@@ -1,2 +1,0 @@
-{"/Users/nicktune/code/living-architecture/packages/cli/src/lib/cli.ts": {"path":"/Users/nicktune/code/living-architecture/packages/cli/src/lib/cli.ts","statementMap":{"0":{"start":{"line":2,"column":2},"end":{"line":2,"column":null}}},"fnMap":{"0":{"name":"cli","decl":{"start":{"line":1,"column":16},"end":{"line":1,"column":30}},"loc":{"start":{"line":1,"column":30},"end":{"line":3,"column":null}},"line":1}},"branchMap":{},"s":{"0":1},"f":{"0":1},"b":{},"meta":{"lastBranch":0,"lastFunction":1,"lastStatement":1,"seen":{"f:1:16:1:30":0,"s:2:2:2:Infinity":0}}}
-}

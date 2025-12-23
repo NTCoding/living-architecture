@@ -41,4 +41,4 @@ Thumbs.db
 .nx/cache
 .nx/workspace-data
 
-vitest.config.*.timestamp*
+vitest.config.*.timestamp*test-output
