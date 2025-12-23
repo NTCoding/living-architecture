@@ -20,9 +20,6 @@
     },
     {
       "path": "./schema"
-    },
-    {
-      "path": "./examples"
     }
   ]
 }
