@@ -20,11 +20,10 @@ Current packages:
 
 Internal (not published):
 - `@living-architecture/schema` - Riviere schema definitions
-- `@living-architecture/examples` - Usage examples
 
 Apps:
-- `@living-architecture/eclair` - Placeholder app
-- `@living-architecture/docs` - Placeholder docs app
+- `@living-architecture/eclair` - Web app for viewing your software architecture via Riviere a schema
+- `@living-architecture/docs` - Living architecture documentation website
 
 Key documents:
 - `docs/project/PRD/active/` - Current PRDs
