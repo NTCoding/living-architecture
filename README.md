@@ -1,109 +1,136 @@
-# LivingArchitecture
+# Rivière
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+**Extract living architecture from code.**
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is ready ✨.
+Rivière generates flow-based architecture graphs from your codebase. See how operations flow through your system — from UI to API to domain logic to events — without manual diagramming.
 
-[Learn more about this workspace setup and its capabilities](https://nx.dev/nx-api/js?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
+## Why Rivière?
 
-## Generate a library
+- **Static docs drift** — Written once, outdated forever
+- **Dependency graphs mislead** — Show imports, not operational flow
+- **Manual diagrams cost hours** — And drift from reality immediately
+- **Cross-codebase understanding requires tribal knowledge** — Especially in distributed systems
 
-```sh
-npx nx g @nx/js:lib packages/pkg1 --publishable --importPath=@my-org/pkg1
-```
+Rivière extracts what actually happens when code runs.
 
-## Run tasks
-
-To build the library use:
-
-```sh
-npx nx build pkg1
-```
-
-To run any task with Nx use:
-
-```sh
-npx nx <target> <project-name>
-```
-
-These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
-
-[More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Versioning and releasing
-
-To version and release the library use
+## How It Works
 
 ```
-npx nx release
+UI /orders
+  → API POST /orders
+    → UseCase PlaceOrder
+      → DomainOp Order.create()
+        → Event order-placed
+          → EventHandler NotifyShipping
 ```
 
-Pass `--dry-run` to see what would happen without actually releasing the library.
+Rivière models operational flow, not technical dependencies. Components have types that reflect their architectural role:
 
-[Learn more about Nx release &raquo;](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+| Type | What It Represents |
+|------|-------------------|
+| **UI** | User-facing routes and screens |
+| **API** | HTTP endpoints (REST, GraphQL) |
+| **UseCase** | Application-level orchestration |
+| **DomainOp** | Domain logic and entity operations |
+| **Event** | Async events published |
+| **EventHandler** | Event subscribers |
 
-## Keep TypeScript project references up to date
+## Quick Start
 
-Nx automatically updates TypeScript [project references](https://www.typescriptlang.org/docs/handbook/project-references.html) in `tsconfig.json` files to ensure they remain accurate based on your project dependencies (`import` or `require` statements). This sync is automatically done when running tasks such as `build` or `typecheck`, which require updated references to function correctly.
-
-To manually trigger the process to sync the project graph dependencies information to the TypeScript project references, run the following command:
-
-```sh
-npx nx sync
+```bash
+npm install @living-architecture/riviere-cli
+npx riviere init
 ```
 
-You can enforce that the TypeScript project references are always in the correct state when running in CI by adding a step to your CI job configuration that runs the following command:
+Point your AI coding assistant at the codebase. It analyzes your code and generates a Rivière graph using the CLI.
 
-```sh
-npx nx sync:check
+## Packages
+
+| Package | Purpose | Install |
+|---------|---------|---------|
+| `@living-architecture/riviere-query` | Query and validate graphs. Browser-safe. | `npm i @living-architecture/riviere-query` |
+| `@living-architecture/riviere-builder` | Build graphs programmatically. | `npm i @living-architecture/riviere-builder` |
+| `@living-architecture/riviere-cli` | CLI for extraction workflows. | `npm i @living-architecture/riviere-cli` |
+
+## Build a Graph
+
+```typescript
+import { RiviereBuilder } from '@living-architecture/riviere-builder';
+
+const builder = RiviereBuilder.create({ name: 'order-system' });
+
+const api = builder.addApi({
+  name: 'place-order',
+  domain: 'orders',
+  module: 'checkout',
+  httpMethod: 'POST',
+  path: '/orders',
+});
+
+const useCase = builder.addUseCase({
+  name: 'PlaceOrder',
+  domain: 'orders',
+  module: 'checkout',
+});
+
+builder.link(api, useCase, { type: 'sync' });
+
+const graph = builder.build();
 ```
 
-[Learn more about nx sync](https://nx.dev/reference/nx-commands#sync)
+## Query a Graph
 
-## Set up CI!
+```typescript
+import { RiviereQuery } from '@living-architecture/riviere-query';
 
-### Step 1
+const query = RiviereQuery.from(graph);
 
-To connect to Nx Cloud, run the following command:
+// Find all entry points
+const entryPoints = query.entryPoints();
 
-```sh
-npx nx connect
+// Trace a flow from a component
+const flow = query.traceForward('orders:checkout:api:place-order');
+
+// Find cross-domain connections
+const crossDomain = query.crossDomainLinks();
+
+// Get components by type
+const events = query.componentsByType('Event');
 ```
 
-Connecting to Nx Cloud ensures a [fast and scalable CI](https://nx.dev/ci/intro/why-nx-cloud?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) pipeline. It includes features such as:
+## The Schema
 
-- [Remote caching](https://nx.dev/ci/features/remote-cache?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task distribution across multiple machines](https://nx.dev/ci/features/distribute-task-execution?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Automated e2e test splitting](https://nx.dev/ci/features/split-e2e-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task flakiness detection and rerunning](https://nx.dev/ci/features/flaky-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+Rivière graphs are JSON documents conforming to the [Rivière Schema](./schema/riviere.schema.json).
 
-### Step 2
-
-Use the following command to configure a CI workflow for your workspace:
-
-```sh
-npx nx g ci-workflow
+```json
+{
+  "version": "1.0",
+  "metadata": {
+    "name": "order-system",
+    "domains": {
+      "orders": { "description": "Order management", "systemType": "domain" }
+    }
+  },
+  "components": [...],
+  "links": [...]
+}
 ```
 
-[Learn more about Nx on CI](https://nx.dev/ci/intro/ci-with-nx#ready-get-started-with-your-provider?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+See [`schema/examples/`](./schema/examples/) for complete multi-domain examples.
 
-## Install Nx Console
+## Visualize with Éclair
 
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
+Open your graph in Éclair, the interactive visualizer:
 
-[Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+- Trace flows end-to-end
+- Filter by domain
+- Search components
+- Click through to source code
 
-## Useful links
+## Contributing
 
-Learn more:
+See [CONTRIBUTING.md](./CONTRIBUTING.md).
 
-- [Learn more about this workspace setup](https://nx.dev/nx-api/js?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects)
-- [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Releasing Packages with Nx release](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+## License
 
-And join the Nx community:
-- [Discord](https://go.nx.dev/community)
-- [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [Our Youtube channel](https://www.youtube.com/@nxdevtools)
-- [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+MIT
