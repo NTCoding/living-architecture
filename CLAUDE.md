@@ -4,7 +4,7 @@ Extract software architecture from code as living documentation, using Riviere s
 
 > 🚨 **FAIL FAST:** If a command fails or doesn't work as expected, STOP and discuss with the user. Do not improvise or try workarounds. Fix the skill/docs so the problem doesn't happen again.
 
-Read `docs/project/project-overview.md` then check `docs/project/prd/active/` for the current PRD.
+Read `docs/project/project-overview.md` then check `docs/project/PRD/active/` for the current PRD.
 
 ## Monorepo Structure
 
@@ -27,7 +27,7 @@ Apps:
 - `@living-architecture/docs` - Placeholder docs app
 
 Key documents:
-- `docs/project/prd/active/` - Current PRDs
+- `docs/project/PRD/active/` - Current PRDs
 - `docs/architecture/overview.md` - System design
 - `docs/architecture/domain-terminology/contextive/definitions.glossary.yml`
 - `docs/architecture/adr/` - Decision records
