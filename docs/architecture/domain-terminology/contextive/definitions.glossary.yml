@@ -1,0 +1,6 @@
+contexts:
+  - name: living-architecture
+    domainVisionStatement: Extract software architecture from code as living documentation, using Riviere schema for flow-based (not structural) architecture
+    terms:
+      - name: ExampleTerm
+        definition: Replace with actual domain terms and definitions

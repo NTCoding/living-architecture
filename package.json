@@ -2,17 +2,56 @@
   "name": "@living-architecture/source",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "build": "nx run-many -t build",
+    "test": "nx run-many -t test",
+    "lint": "nx run-many -t lint",
+    "typecheck": "nx run-many -t typecheck",
+    "verify": "nx run-many -t lint,typecheck && nx run-many -t test --coverage",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.ts": ["eslint --fix"]
+  },
   "private": true,
-  "dependencies": {},
   "devDependencies": {
+    "@nx/esbuild": "22.3.3",
+    "@nx/eslint": "22.3.3",
+    "@nx/eslint-plugin": "^22.3.3",
     "@nx/js": "22.3.3",
+    "@nx/node": "22.3.3",
+    "@nx/vitest": "22.3.3",
     "@swc-node/register": "~1.9.1",
     "@swc/core": "~1.5.7",
     "@swc/helpers": "~0.5.11",
+    "@types/node": "20.19.9",
+    "@vitest/coverage-v8": "^4.0.16",
+    "esbuild": "^0.19.2",
+    "eslint": "~8.57.0",
+    "eslint-plugin-functional": "^9.0.2",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
     "nx": "22.3.3",
     "prettier": "~3.6.2",
     "tslib": "^2.3.0",
-    "typescript": "~5.9.2"
-  }
+    "typescript": "~5.9.2",
+    "typescript-eslint": "^8.50.1",
+    "verdaccio": "^6.0.5",
+    "vite": "^7.0.0",
+    "vitest": "^4.0.8"
+  },
+  "nx": {
+    "includedScripts": [],
+    "targets": {
+      "local-registry": {
+        "executor": "@nx/js:verdaccio",
+        "options": {
+          "port": 4873,
+          "config": ".verdaccio/config.yml",
+          "storage": "tmp/local-registry/storage"
+        }
+      }
+    }
+  },
+  "dependencies": {}
 }

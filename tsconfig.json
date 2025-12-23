@@ -2,5 +2,27 @@
   "extends": "./tsconfig.base.json",
   "compileOnSave": false,
   "files": [],
-  "references": []
+  "references": [
+    {
+      "path": "./packages/query"
+    },
+    {
+      "path": "./packages/builder"
+    },
+    {
+      "path": "./packages/cli"
+    },
+    {
+      "path": "./apps/eclair"
+    },
+    {
+      "path": "./apps/docs"
+    },
+    {
+      "path": "./schema"
+    },
+    {
+      "path": "./examples"
+    }
+  ]
 }
