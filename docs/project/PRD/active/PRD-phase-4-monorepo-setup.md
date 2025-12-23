@@ -405,6 +405,7 @@ Documentation should show version:
 - [ ] **CI/CD** — GitHub Actions for lint, test, build
 - [ ] **CLAUDE.md** — Monorepo commands, POC references, PRD organization
 - [ ] **Convention docs** — `docs/conventions/` from skill templates
+- [ ] **Documentation site** — Set up VitePress in `apps/docs`, migrate content from `~/code/riviere/riviere/client/docs/`
 
 ## 7. What We're NOT Building
 
