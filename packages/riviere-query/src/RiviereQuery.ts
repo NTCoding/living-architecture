@@ -1,4 +1,4 @@
-import type { RiviereGraph, Component, Link, CustomComponent } from '@living-architecture/riviere-schema'
+import type { RiviereGraph, Component, Link, CustomComponent, ComponentType } from '@living-architecture/riviere-schema'
 import { parseRiviereGraph } from '@living-architecture/riviere-schema'
 
 export type ValidationErrorCode =
@@ -120,6 +120,38 @@ export class RiviereQuery {
     return this.graph.components
       .filter((c) => !connectedComponentIds.has(c.id))
       .map((c) => c.id)
+  }
+
+  find(predicate: (component: Component) => boolean): Component | undefined {
+    return this.graph.components.find(predicate)
+  }
+
+  findAll(predicate: (component: Component) => boolean): Component[] {
+    return this.graph.components.filter(predicate)
+  }
+
+  componentById(id: string): Component | undefined {
+    return this.find((c) => c.id === id)
+  }
+
+  search(query: string): Component[] {
+    if (query === '') {
+      return []
+    }
+    const lowerQuery = query.toLowerCase()
+    return this.findAll((c) =>
+      c.name.toLowerCase().includes(lowerQuery) ||
+      c.domain.toLowerCase().includes(lowerQuery) ||
+      c.type.toLowerCase().includes(lowerQuery)
+    )
+  }
+
+  componentsInDomain(domainName: string): Component[] {
+    return this.findAll((c) => c.domain === domainName)
+  }
+
+  componentsByType(type: ComponentType): Component[] {
+    return this.findAll((c) => c.type === type)
   }
 
   private buildConnectedComponentIds(): Set<string> {

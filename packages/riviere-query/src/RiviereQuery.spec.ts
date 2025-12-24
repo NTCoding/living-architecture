@@ -1,16 +1,13 @@
-import type { RiviereGraph } from '@living-architecture/riviere-schema'
-import { RiviereQuery } from './query.js'
+import type { RiviereGraph, APIComponent, SourceLocation } from '@living-architecture/riviere-schema'
+import { RiviereQuery } from './RiviereQuery.js'
+
+const defaultSourceLocation: SourceLocation = { repository: 'test-repo', filePath: 'test.ts' }
 
 function createMinimalValidGraph(): RiviereGraph {
   return {
     version: '1.0',
     metadata: {
-      domains: {
-        test: {
-          description: 'Test domain',
-          systemType: 'domain',
-        },
-      },
+      domains: { test: { description: 'Test domain', systemType: 'domain' } },
     },
     components: [
       {
@@ -20,13 +17,22 @@ function createMinimalValidGraph(): RiviereGraph {
         domain: 'test',
         module: 'mod',
         route: '/test',
-        sourceLocation: {
-          repository: 'test-repo',
-          filePath: 'src/page.tsx',
-        },
+        sourceLocation: defaultSourceLocation,
       },
     ],
     links: [],
+  }
+}
+
+function createAPIComponent(overrides: Partial<APIComponent> & { id: string; name: string; domain: string }): APIComponent {
+  return {
+    type: 'API',
+    module: 'mod',
+    apiType: 'REST',
+    httpMethod: 'GET',
+    path: '/test',
+    sourceLocation: defaultSourceLocation,
+    ...overrides,
   }
 }
 
@@ -253,68 +259,152 @@ describe('RiviereQuery', () => {
   describe('detectOrphans()', () => {
     it('returns empty array when all components are connected', () => {
       const graph = createMinimalValidGraph()
-      graph.components.push({
-        id: 'test:mod:api:endpoint',
-        type: 'API',
-        name: 'Test API',
-        domain: 'test',
-        module: 'mod',
-        apiType: 'REST',
-        httpMethod: 'GET',
-        path: '/api/test',
-        sourceLocation: { repository: 'test-repo', filePath: 'api.ts' },
-      })
-      graph.links = [
-        { source: 'test:mod:ui:page', target: 'test:mod:api:endpoint' },
-      ]
+      graph.components.push(createAPIComponent({ id: 'test:mod:api:endpoint', name: 'Test API', domain: 'test' }))
+      graph.links = [{ source: 'test:mod:ui:page', target: 'test:mod:api:endpoint' }]
 
       const query = new RiviereQuery(graph)
-      const orphans = query.detectOrphans()
 
-      expect(orphans).toEqual([])
+      expect(query.detectOrphans()).toEqual([])
     })
 
     it('returns orphan IDs when components have no links', () => {
       const graph = createMinimalValidGraph()
-
       const query = new RiviereQuery(graph)
-      const orphans = query.detectOrphans()
 
-      expect(orphans).toEqual(['test:mod:ui:page'])
+      expect(query.detectOrphans()).toEqual(['test:mod:ui:page'])
     })
 
     it('considers both source and target links as connected', () => {
       const graph = createMinimalValidGraph()
       graph.components.push(
-        {
-          id: 'test:mod:api:a',
-          type: 'API',
-          name: 'API A',
-          domain: 'test',
-          module: 'mod',
-          apiType: 'REST',
-          httpMethod: 'GET',
-          path: '/a',
-          sourceLocation: { repository: 'test-repo', filePath: 'a.ts' },
-        },
-        {
-          id: 'test:mod:api:b',
-          type: 'API',
-          name: 'API B',
-          domain: 'test',
-          module: 'mod',
-          apiType: 'REST',
-          httpMethod: 'GET',
-          path: '/b',
-          sourceLocation: { repository: 'test-repo', filePath: 'b.ts' },
-        },
+        createAPIComponent({ id: 'test:mod:api:a', name: 'API A', domain: 'test' }),
+        createAPIComponent({ id: 'test:mod:api:b', name: 'API B', domain: 'test' }),
       )
       graph.links = [{ source: 'test:mod:api:a', target: 'test:mod:api:b' }]
 
       const query = new RiviereQuery(graph)
-      const orphans = query.detectOrphans()
 
-      expect(orphans).toEqual(['test:mod:ui:page'])
+      expect(query.detectOrphans()).toEqual(['test:mod:ui:page'])
+    })
+  })
+
+  describe('find()', () => {
+    it('returns first matching component', () => {
+      const graph = createMinimalValidGraph()
+      graph.components.push(createAPIComponent({ id: 'test:mod:api:endpoint', name: 'Test API', domain: 'test' }))
+      const query = new RiviereQuery(graph)
+
+      expect(query.find((c) => c.type === 'API')?.id).toBe('test:mod:api:endpoint')
+    })
+
+    it('returns undefined when no component matches', () => {
+      const graph = createMinimalValidGraph()
+      const query = new RiviereQuery(graph)
+
+      expect(query.find((c) => c.type === 'Event')).toBeUndefined()
+    })
+  })
+
+  describe('findAll()', () => {
+    it('returns all matching components', () => {
+      const graph = createMinimalValidGraph()
+      graph.metadata.domains['orders'] = { description: 'Orders', systemType: 'domain' }
+      graph.components.push(
+        createAPIComponent({ id: 'orders:checkout:api:post', name: 'Create Order', domain: 'orders', httpMethod: 'POST' }),
+        createAPIComponent({ id: 'orders:fulfillment:api:get', name: 'Get Order', domain: 'orders' }),
+      )
+      const query = new RiviereQuery(graph)
+
+      const result = query.findAll((c) => c.domain === 'orders')
+
+      expect(result.map((c) => c.id)).toEqual(['orders:checkout:api:post', 'orders:fulfillment:api:get'])
+    })
+
+    it('returns empty array when no components match', () => {
+      const query = new RiviereQuery(createMinimalValidGraph())
+
+      expect(query.findAll((c) => c.domain === 'nonexistent')).toEqual([])
+    })
+  })
+
+  describe('componentById()', () => {
+    it('returns component when ID exists', () => {
+      const query = new RiviereQuery(createMinimalValidGraph())
+
+      const result = query.componentById('test:mod:ui:page')
+
+      expect(result?.id).toBe('test:mod:ui:page')
+    })
+
+    it('returns undefined when ID does not exist', () => {
+      const query = new RiviereQuery(createMinimalValidGraph())
+
+      expect(query.componentById('nonexistent:id')).toBeUndefined()
+    })
+  })
+
+  describe('search()', () => {
+    it('returns components matching name case-insensitively', () => {
+      const graph = createMinimalValidGraph()
+      graph.metadata.domains['orders'] = { description: 'Orders', systemType: 'domain' }
+      graph.components.push(createAPIComponent({ id: 'orders:api:create', name: 'Create Order', domain: 'orders' }))
+
+      expect(new RiviereQuery(graph).search('ORDER')[0]?.id).toBe('orders:api:create')
+    })
+
+    it('returns components matching domain', () => {
+      const graph = createMinimalValidGraph()
+      graph.metadata.domains['shipping'] = { description: 'Shipping', systemType: 'domain' }
+      graph.components.push(createAPIComponent({ id: 'shipping:api:track', name: 'Track', domain: 'shipping' }))
+
+      expect(new RiviereQuery(graph).search('shipping')[0]?.id).toBe('shipping:api:track')
+    })
+
+    it('returns components matching type', () => {
+      expect(new RiviereQuery(createMinimalValidGraph()).search('UI')[0]?.type).toBe('UI')
+    })
+
+    it('returns empty array for empty query string', () => {
+      expect(new RiviereQuery(createMinimalValidGraph()).search('')).toEqual([])
+    })
+
+    it('returns empty array when no match found', () => {
+      expect(new RiviereQuery(createMinimalValidGraph()).search('nonexistent')).toEqual([])
+    })
+  })
+
+  describe('componentsInDomain()', () => {
+    it('returns all components in specified domain', () => {
+      const graph = createMinimalValidGraph()
+      graph.metadata.domains['shipping'] = { description: 'Shipping', systemType: 'domain' }
+      graph.components.push(
+        createAPIComponent({ id: 'shipping:api:a', name: 'A', domain: 'shipping' }),
+        createAPIComponent({ id: 'shipping:api:b', name: 'B', domain: 'shipping' }),
+      )
+      const query = new RiviereQuery(graph)
+
+      const result = query.componentsInDomain('shipping')
+
+      expect(result.map((c) => c.id)).toEqual(['shipping:api:a', 'shipping:api:b'])
+    })
+
+    it('returns empty array when domain has no components', () => {
+      expect(new RiviereQuery(createMinimalValidGraph()).componentsInDomain('nonexistent')).toEqual([])
+    })
+  })
+
+  describe('componentsByType()', () => {
+    it('returns all components of specified type', () => {
+      const graph = createMinimalValidGraph()
+      graph.components.push(createAPIComponent({ id: 'test:api:a', name: 'A', domain: 'test' }))
+
+      const result = new RiviereQuery(graph).componentsByType('API')
+
+      expect(result.map((c) => c.id)).toEqual(['test:api:a'])
+    })
+
+    it('returns empty array when no components of type exist', () => {
+      expect(new RiviereQuery(createMinimalValidGraph()).componentsByType('Event')).toEqual([])
     })
   })
 })

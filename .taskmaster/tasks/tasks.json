@@ -31,10 +31,11 @@
         "description": "Find components by predicate, ID, text search, domain, or type",
         "details": "## Deliverable\nFind components by predicate, ID, text search, domain, or type\n\n## Context\n- PRD: `docs/project/PRD/active/PRD-phase-5-riviere-query.md` (M2: D2.1-D2.4)\n- Example graph: `riviere-schema/examples/ecommerce-complete.json`\n\n## Key Decisions\n- search() is case-insensitive, searches name + domain + type fields\n- find() returns first match or undefined (like Array.find)\n- findAll() returns all matches (like Array.filter)\n\n## Acceptance Criteria\n- Given components → When find(c => c.type === 'API') → Then returns first API component\n- Given no match → When find() → Then returns undefined\n- Given components → When findAll(c => c.domain === 'orders') → Then returns all orders domain components\n- Given component ID \"orders:checkout:api:post:/orders\" → When componentById() → Then returns that component\n- Given invalid ID → When componentById() → Then returns undefined\n- Given search(\"order\") → When search() → Then returns components with \"order\" in name/domain/type (case-insensitive)\n- Given search(\"\") → When search() → Then returns empty array (not all components)\n- Given domain \"shipping\" → When componentsInDomain() → Then returns all shipping components\n- Given type \"Event\" → When componentsByType() → Then returns all Event components\n\n## Related Code\n- Component types: UI, API, UseCase, DomainOp, Event, EventHandler, Custom\n\n## Verification\nnx test riviere-query --testNamePattern \"find|search|componentById|componentsIn|componentsByType\"",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [],
         "priority": "high",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2025-12-24T23:53:54.396Z"
       },
       {
         "id": "4",
@@ -181,9 +182,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-12-24T23:32:37.369Z",
+      "lastModified": "2025-12-24T23:53:54.397Z",
       "taskCount": 14,
-      "completedCount": 1,
+      "completedCount": 2,
       "tags": [
         "master"
       ]
