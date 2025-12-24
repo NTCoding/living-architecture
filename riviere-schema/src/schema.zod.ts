@@ -12,10 +12,21 @@ export function isRiviereGraph(data: unknown): data is RiviereGraph {
   return validate(data) === true
 }
 
+interface ValidationErrorLike {
+  instancePath: string
+  message?: string
+}
+
+export function formatValidationErrors(errors: ValidationErrorLike[] | null | undefined): string {
+  if (!errors || errors.length === 0) {
+    return 'validation failed without specific errors'
+  }
+  return errors.map((e) => `${e.instancePath}: ${e.message}`).join('\n')
+}
+
 export function parseRiviereGraph(data: unknown): RiviereGraph {
   if (isRiviereGraph(data)) {
     return data
   }
-  const messages = validate.errors!.map((e) => `${e.instancePath}: ${e.message}`).join('\n')
-  throw new Error(`Invalid RiviereGraph:\n${messages}`)
+  throw new Error(`Invalid RiviereGraph:\n${formatValidationErrors(validate.errors)}`)
 }

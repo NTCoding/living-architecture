@@ -6,7 +6,34 @@ import type {
   Link,
   GraphMetadata,
 } from './schema.js'
-import { parseRiviereGraph } from './schema.zod.js'
+import { parseRiviereGraph, formatValidationErrors } from './schema.zod.js'
+
+describe('formatValidationErrors()', () => {
+  it('returns generic message when errors is null', () => {
+    const result = formatValidationErrors(null)
+    expect(result).toBe('validation failed without specific errors')
+  })
+
+  it('returns generic message when errors is empty array', () => {
+    const result = formatValidationErrors([])
+    expect(result).toBe('validation failed without specific errors')
+  })
+
+  it('formats single error with path and message', () => {
+    const errors = [{ instancePath: '/version', message: 'must match pattern' }]
+    const result = formatValidationErrors(errors)
+    expect(result).toBe('/version: must match pattern')
+  })
+
+  it('formats multiple errors joined by newlines', () => {
+    const errors = [
+      { instancePath: '/version', message: 'must match pattern' },
+      { instancePath: '/components/0/type', message: 'must be equal to one of the allowed values' },
+    ]
+    const result = formatValidationErrors(errors)
+    expect(result).toBe('/version: must match pattern\n/components/0/type: must be equal to one of the allowed values')
+  })
+})
 
 describe('parseRiviereGraph()', () => {
   it('parses valid graph and returns typed RiviereGraph', () => {
