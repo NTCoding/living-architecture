@@ -13,7 +13,8 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "default": "./dist/index.js"
-    }
+    },
+    "./schema.json": "./riviere.schema.json"
   },
   "dependencies": {
     "tslib": "^2.3.0"
