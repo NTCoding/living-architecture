@@ -2,9 +2,7 @@
 
 Extract software architecture from code as living documentation, using Riviere schema for flow-based (not structural) architecture
 
-> 🚨 **FAIL FAST:** If a command fails or doesn't work as expected, STOP and discuss with the user. Do not improvise or try workarounds. Fix the skill/docs so the problem doesn't happen again.
-
-Read `docs/project/project-overview.md` then check `docs/project/PRD/active/` for the current PRD.
+Read `@docs/project/project-overview.md` then check `@docs/project/PRD/active/` for the current PRD.
 
 ## Monorepo Structure
 
@@ -88,7 +86,7 @@ nx g @nx/js:library packages/[pkg-name] --publishable --importPath=@living-archi
 After generating a new project:
 1. Update the project's package.json with correct name: `@living-architecture/[project-name]`
 2. Create the 3-file tsconfig structure (tsconfig.json, tsconfig.lib.json, tsconfig.spec.json)
-3. Add vitest.config.ts if tests are needed
+3. Add vitest.config.ts if tests are needed with 100% coverage as the default
 4. If importing from another project, add `"@living-architecture/[pkg-name]": "workspace:*"` to dependencies
 5. Run `nx sync` to update TypeScript project references
 6. Update this CLAUDE.md "Current packages" section

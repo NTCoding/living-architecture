@@ -1,0 +1,507 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://riviere.arch/schema/riviere.schema.json",
+  "title": "Rivière Architecture Graph",
+  "description": "Flow-based architecture graph format for operational visualization",
+  "type": "object",
+  "required": ["version", "metadata", "components", "links"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "Schema version",
+      "pattern": "^[0-9]+\\.[0-9]+$"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Graph-level metadata",
+      "required": ["domains"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Human-readable name for this architecture graph"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of what this graph represents"
+        },
+        "generated": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when this graph was generated"
+        },
+        "sources": {
+          "type": "array",
+          "description": "Source repositories this graph was extracted from",
+          "items": {
+            "type": "object",
+            "required": ["repository"],
+            "properties": {
+              "repository": {
+                "type": "string",
+                "description": "Repository name or identifier"
+              },
+              "commit": {
+                "type": "string",
+                "description": "Git commit SHA"
+              },
+              "extractedAt": {
+                "type": "string",
+                "format": "date-time",
+                "description": "When this repository was extracted"
+              }
+            }
+          }
+        },
+        "domains": {
+          "type": "object",
+          "description": "Domain-level metadata keyed by domain name",
+          "minProperties": 1,
+          "additionalProperties": {
+            "$ref": "#/definitions/domainMetadata"
+          }
+        }
+      }
+    },
+    "components": {
+      "type": "array",
+      "description": "Architectural components in the system",
+      "items": {
+        "$ref": "#/definitions/component"
+      }
+    },
+    "links": {
+      "type": "array",
+      "description": "Operational flows between components",
+      "items": {
+        "$ref": "#/definitions/link"
+      }
+    },
+    "externalLinks": {
+      "type": "array",
+      "description": "Links to external systems outside the graph",
+      "items": {
+        "$ref": "#/definitions/externalLink"
+      }
+    }
+  },
+  "definitions": {
+    "component": {
+      "type": "object",
+      "required": ["id", "type", "name", "domain", "module", "sourceLocation"],
+      "allOf": [
+        {
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "Globally unique identifier following format: {domain}:{module}:{type}:{name}[:{lineNumber}]. Use lowercase. Represents functional slicing (logical components), not technical folders. Line number appended only for collision resolution.",
+              "minLength": 1
+            },
+            "type": {
+              "type": "string",
+              "description": "Node type - use standard types when possible, or custom type when needed",
+              "enum": ["UI", "API", "UseCase", "DomainOp", "Event", "EventHandler", "Custom"],
+              "minLength": 1
+            },
+            "name": {
+              "type": "string",
+              "description": "Human-readable name",
+              "minLength": 1
+            },
+            "domain": {
+              "type": "string",
+              "description": "Domain boundary this node belongs to (e.g., 'orders', 'shipping', 'payment')",
+              "minLength": 1
+            },
+            "module": {
+              "type": "string",
+              "description": "Functional module or logical component within the domain (e.g., 'checkout', 'inventory', 'fulfillment', 'returns')",
+              "minLength": 1
+            },
+            "description": {
+              "type": "string",
+              "description": "Optional description of what this node does"
+            },
+            "sourceLocation": {
+              "$ref": "#/definitions/sourceLocation"
+            },
+            "metadata": {
+              "type": "object",
+              "description": "Extensible metadata for custom properties",
+              "properties": {
+                "schema": {
+                  "type": "object",
+                  "description": "Schema definition as JSON object"
+                }
+              },
+              "additionalProperties": true
+            },
+            "apiType": {
+              "type": "string",
+              "enum": ["REST", "GraphQL", "other"],
+              "description": "API type (required for API nodes)"
+            },
+            "httpMethod": {
+              "type": "string",
+              "enum": ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"],
+              "description": "HTTP method (required for REST APIs)"
+            },
+            "path": {
+              "type": "string",
+              "description": "API path (required for REST APIs)"
+            },
+            "route": {
+              "type": "string",
+              "description": "URL route where UI component is rendered (required for UI nodes)",
+              "minLength": 1
+            },
+            "operationName": {
+              "type": "string",
+              "description": "Operation name (required for GraphQL APIs and DomainOp nodes)"
+            },
+            "entity": {
+              "type": "string",
+              "description": "Entity name (optional for DomainOp nodes)"
+            },
+            "eventName": {
+              "type": "string",
+              "description": "Event name (required for Event nodes)"
+            },
+            "eventSchema": {
+              "type": "string",
+              "description": "Event schema definition (optional for Event nodes)"
+            },
+            "subscribedEvents": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "List of event names this handler subscribes to (required for EventHandler nodes)"
+            },
+            "signature": {
+              "$ref": "#/definitions/operationSignature",
+              "description": "Operation signature (optional for DomainOp nodes)"
+            },
+            "behavior": {
+              "$ref": "#/definitions/operationBehavior",
+              "description": "Operation behavior characteristics (optional for DomainOp nodes)"
+            },
+            "stateChanges": {
+              "type": "array",
+              "description": "State transitions caused by this operation (optional for DomainOp nodes)",
+              "items": {
+                "$ref": "#/definitions/stateTransition"
+              }
+            },
+            "businessRules": {
+              "type": "array",
+              "description": "Business rules enforced by this operation (optional for DomainOp nodes)",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "oneOf": [
+            {
+              "properties": {
+                "type": { "const": "API" },
+                "apiType": { "const": "REST" }
+              },
+              "required": ["apiType", "httpMethod", "path"]
+            },
+            {
+              "properties": {
+                "type": { "const": "API" },
+                "apiType": { "const": "GraphQL" }
+              },
+              "required": ["apiType", "operationName"]
+            },
+            {
+              "properties": {
+                "type": { "const": "API" },
+                "apiType": { "const": "other" }
+              },
+              "required": ["apiType"]
+            },
+            {
+              "properties": {
+                "type": { "const": "DomainOp" }
+              },
+              "required": ["operationName"]
+            },
+            {
+              "properties": {
+                "type": { "const": "Event" }
+              },
+              "required": ["eventName"]
+            },
+            {
+              "properties": {
+                "type": { "const": "EventHandler" }
+              },
+              "required": ["subscribedEvents"]
+            },
+            {
+              "properties": {
+                "type": { "const": "UI" }
+              },
+              "required": ["route"]
+            },
+            {
+              "properties": {
+                "type": { "enum": ["UseCase", "Custom"] }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "link": {
+      "type": "object",
+      "required": ["source", "target"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Optional unique identifier for this link"
+        },
+        "source": {
+          "type": "string",
+          "description": "Source component ID",
+          "minLength": 1
+        },
+        "target": {
+          "type": "string",
+          "description": "Target component ID",
+          "minLength": 1
+        },
+        "type": {
+          "type": "string",
+          "enum": ["sync", "async"],
+          "description": "Link type: sync (request/response) or async (fire-and-forget, events)"
+        },
+        "payload": {
+          "type": "object",
+          "description": "Data transferred through this flow",
+          "properties": {
+            "type": {
+              "type": "string",
+              "description": "Payload type name"
+            },
+            "schema": {
+              "type": "object",
+              "description": "Schema definition as JSON object"
+            }
+          }
+        },
+        "sourceLocation": {
+          "$ref": "#/definitions/sourceLocation"
+        },
+        "metadata": {
+          "type": "object",
+          "description": "Extensible metadata for custom properties",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "externalLink": {
+      "type": "object",
+      "description": "Link from an internal component to an external system",
+      "required": ["source", "target"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Optional unique identifier for this link"
+        },
+        "source": {
+          "type": "string",
+          "description": "Source component ID (must exist in graph)",
+          "minLength": 1
+        },
+        "target": {
+          "$ref": "#/definitions/externalTarget",
+          "description": "External system being called"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["sync", "async"],
+          "description": "Link type: sync (request/response) or async (fire-and-forget)"
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable description of this integration"
+        },
+        "sourceLocation": {
+          "$ref": "#/definitions/sourceLocation"
+        },
+        "metadata": {
+          "type": "object",
+          "description": "Extensible metadata for custom properties",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "externalTarget": {
+      "type": "object",
+      "description": "Reference to an external system outside the graph",
+      "required": ["name"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the external system",
+          "minLength": 1
+        },
+        "domain": {
+          "type": "string",
+          "description": "Domain name if known"
+        },
+        "repository": {
+          "type": "string",
+          "description": "Repository name if known"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL to the external system"
+        }
+      },
+      "additionalProperties": false
+    },
+    "sourceLocation": {
+      "type": "object",
+      "required": ["repository", "filePath"],
+      "properties": {
+        "repository": {
+          "type": "string",
+          "description": "Repository name or identifier"
+        },
+        "filePath": {
+          "type": "string",
+          "description": "Relative file path within repository",
+          "minLength": 1
+        },
+        "lineNumber": {
+          "type": "integer",
+          "description": "Starting line number",
+          "minimum": 1
+        },
+        "endLineNumber": {
+          "type": "integer",
+          "description": "Ending line number",
+          "minimum": 1
+        },
+        "methodName": {
+          "type": "string",
+          "description": "Method or function name"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "description": "Direct URL to view this location in source control"
+        }
+      },
+      "additionalProperties": false
+    },
+    "domainMetadata": {
+      "type": "object",
+      "description": "Domain-level metadata for UI display",
+      "required": ["description", "systemType"],
+      "properties": {
+        "description": {
+          "type": "string",
+          "description": "Human-readable description of domain purpose"
+        },
+        "systemType": {
+          "type": "string",
+          "enum": ["domain", "bff", "ui", "other"],
+          "description": "Classification of domain's role in system"
+        }
+      },
+      "additionalProperties": true
+    },
+    "operationSignature": {
+      "type": "object",
+      "description": "Method signature including parameters and return type",
+      "properties": {
+        "parameters": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "type"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "type": {
+                "type": "string",
+                "minLength": 1
+              },
+              "description": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "returnType": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "operationBehavior": {
+      "type": "object",
+      "description": "Behavioral characteristics of the operation",
+      "properties": {
+        "reads": {
+          "type": "array",
+          "description": "Entity fields or state read by this operation",
+          "items": { "type": "string" }
+        },
+        "validates": {
+          "type": "array",
+          "description": "Invariants or preconditions validated",
+          "items": { "type": "string" }
+        },
+        "modifies": {
+          "type": "array",
+          "description": "Entity fields or state modified by this operation",
+          "items": { "type": "string" }
+        },
+        "emits": {
+          "type": "array",
+          "description": "Events emitted by this operation",
+          "items": { "type": "string" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "stateTransition": {
+      "type": "object",
+      "description": "A single state transition caused by an operation",
+      "required": ["from", "to"],
+      "properties": {
+        "from": {
+          "type": "string",
+          "description": "Source state (use '*' for any state)",
+          "minLength": 1
+        },
+        "to": {
+          "type": "string",
+          "description": "Target state",
+          "minLength": 1
+        },
+        "trigger": {
+          "type": "string",
+          "description": "Operation or event that causes this transition",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -42,7 +42,7 @@ npm install @living-architecture/riviere-cli
 npx riviere init
 ```
 
-Point your AI coding assistant at the codebase. It analyzes your code and generates a Rivière graph using the CLI.
+See [`apps/docs/guide/extraction/`](./apps/docs/guide/extraction/) for AI-assisted extraction.
 
 ## Packages
 

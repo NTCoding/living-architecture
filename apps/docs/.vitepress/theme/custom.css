@@ -1,0 +1,95 @@
+:root {
+  --riviere-ref-heading-bg: var(--vp-c-bg-soft);
+  --riviere-ref-heading-border: var(--vp-c-divider);
+  --riviere-ref-sig-bg: color-mix(in srgb, var(--vp-c-bg-soft) 80%, transparent);
+  --riviere-ref-sig-border: color-mix(in srgb, var(--vp-c-brand-1) 45%, var(--vp-c-divider));
+}
+
+.reference :is(h2, h3, h4) > code {
+  font-family: var(--vp-font-family-mono);
+  font-weight: 700;
+  font-size: 0.98em;
+}
+
+.reference h3 > code {
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid var(--riviere-ref-sig-border);
+  background: var(--riviere-ref-sig-bg);
+  border-radius: 0.55rem;
+  box-shadow: 0 1px 0 0 color-mix(in srgb, var(--vp-c-brand-1) 16%, transparent);
+}
+
+.reference h3 {
+  margin-top: 1.4rem;
+  margin-bottom: 0.6rem;
+}
+
+.reference h3 + :is(pre, table, p, ul, ol) {
+  margin-top: 0.5rem;
+}
+
+.reference table {
+  width: 100%;
+  font-size: 0.95rem;
+}
+
+.reference th,
+.reference td {
+  padding: 0.5rem 0.65rem;
+  vertical-align: top;
+}
+
+.reference thead th {
+  background: var(--vp-c-bg-soft);
+}
+
+.reference tbody tr:nth-child(2n) {
+  background: color-mix(in srgb, var(--vp-c-bg-soft) 55%, transparent);
+}
+
+.reference td code,
+.reference th code {
+  font-family: var(--vp-font-family-mono);
+  font-size: 0.95em;
+}
+
+.reference :is(pre, code) {
+  font-family: var(--vp-font-family-mono);
+}
+
+:root {
+  --vp-c-brand-1: #0d9488;
+  --vp-c-brand-2: #14b8a6;
+  --vp-c-brand-3: #2dd4bf;
+  --vp-c-brand-soft: rgba(20, 184, 166, 0.14);
+  --vp-c-sponsor: #0d9488;
+}
+
+.dark {
+  --vp-c-brand-1: #2dd4bf;
+  --vp-c-brand-2: #14b8a6;
+  --vp-c-brand-3: #0d9488;
+  --vp-c-brand-soft: rgba(45, 212, 191, 0.14);
+}
+
+:root {
+  --vp-home-hero-name-color: transparent;
+  --vp-home-hero-name-background: linear-gradient(
+    135deg,
+    #0d9488 0%,
+    #0891b2 100%
+  );
+}
+
+:root .VPButton.brand {
+  background-color: var(--vp-c-brand-1);
+  border-color: var(--vp-c-brand-1);
+}
+
+:root .VPButton.brand:hover {
+  background-color: var(--vp-c-brand-2);
+  border-color: var(--vp-c-brand-2);
+}
