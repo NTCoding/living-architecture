@@ -122,6 +122,10 @@ task-master set-status --id=<id> --status=done
 
 → Mark as `blocked` if incomplete. Ask for approval if complete.
 
+### Commit changes
+
+Commit all changes include any task files
+
 ---
 
 ## Creating Tasks
