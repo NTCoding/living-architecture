@@ -4,10 +4,10 @@
   "files": [],
   "references": [
     {
-      "path": "./packages/query"
+      "path": "./packages/riviere-query"
     },
     {
-      "path": "./packages/builder"
+      "path": "./packages/riviere-builder"
     },
     {
       "path": "./packages/cli"
@@ -19,7 +19,7 @@
       "path": "./apps/docs"
     },
     {
-      "path": "./schema"
+      "path": "./riviere-schema"
     }
   ]
 }

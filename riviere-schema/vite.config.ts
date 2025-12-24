@@ -1,10 +1,12 @@
-import { defineConfig } from 'vitest/config';
+/// <reference types='vitest' />
+import { defineConfig } from 'vite';
 
 export default defineConfig(() => ({
-  root: __dirname,
-  cacheDir: '../node_modules/.vite/schema',
+  root: import.meta.dirname,
+  cacheDir: '../node_modules/.vite/riviere-schema',
+  plugins: [],
   test: {
-    name: '@living-architecture/schema',
+    name: '@living-architecture/riviere-schema',
     watch: false,
     globals: true,
     environment: 'node',
@@ -13,12 +15,6 @@ export default defineConfig(() => ({
     coverage: {
       reportsDirectory: './test-output/vitest/coverage',
       provider: 'v8' as const,
-      thresholds: {
-        lines: 100,
-        statements: 100,
-        functions: 100,
-        branches: 100,
-      },
     },
   },
 }));

@@ -89,31 +89,31 @@ importers:
 
   apps/eclair: {}
 
-  packages/builder:
-    dependencies:
-      '@living-architecture/riviere-query':
-        specifier: workspace:*
-        version: link:../query
-      tslib:
-        specifier: ^2.3.0
-        version: 2.8.1
-
   packages/cli:
     dependencies:
       '@living-architecture/riviere-builder':
         specifier: workspace:*
-        version: link:../builder
+        version: link:../riviere-builder
       tslib:
         specifier: ^2.3.0
         version: 2.8.1
 
-  packages/query:
+  packages/riviere-builder:
+    dependencies:
+      '@living-architecture/riviere-query':
+        specifier: workspace:*
+        version: link:../riviere-query
+      tslib:
+        specifier: ^2.3.0
+        version: 2.8.1
+
+  packages/riviere-query:
     dependencies:
       tslib:
         specifier: ^2.3.0
         version: 2.8.1
 
-  schema:
+  riviere-schema:
     dependencies:
       tslib:
         specifier: ^2.3.0

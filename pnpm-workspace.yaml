@@ -1,5 +1,5 @@
 packages:
   - 'packages/*'
   - 'apps/*'
-  - 'schema'
+  - 'riviere-schema'
 autoInstallPeers: true

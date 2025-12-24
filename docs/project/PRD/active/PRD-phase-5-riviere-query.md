@@ -243,10 +243,10 @@ interface ValidationError {
 - `~/code/riviere/riviere/poc/client/src/types.ts` — Type definitions
 
 **Schema:**
-- `./schema/riviere.schema.json` — The contract (in this repo)
+- `./riviere-schema/riviere.schema.json` — The contract (in this repo)
 
 **Example Graphs:**
-- `./schema/examples/ecommerce-complete.json`
+- `./riviere-schema/examples/ecommerce-complete.json`
 
 ---
 

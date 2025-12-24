@@ -3,14 +3,10 @@ import { defineConfig } from 'vite';
 
 export default defineConfig(() => ({
   root: import.meta.dirname,
-  cacheDir: '../../node_modules/.vite/packages/builder',
+  cacheDir: '../../node_modules/.vite/packages/riviere-query',
   plugins: [],
-  // Uncomment this if you are using workers.
-  // worker: {
-  //  plugins: [],
-  // },
   test: {
-    name: '@living-architecture/riviere-builder',
+    name: '@living-architecture/riviere-query',
     watch: false,
     globals: true,
     environment: 'node',
