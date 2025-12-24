@@ -16,7 +16,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          filter: tree:0
           fetch-depth: 0
 
       - uses: pnpm/action-setup@v4
