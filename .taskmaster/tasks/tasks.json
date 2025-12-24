@@ -19,11 +19,11 @@
         "description": "validate() returns pass/fail with error paths; detectOrphans() finds disconnected components",
         "details": "## Deliverable\n`validate()` returns pass/fail with error paths; `detectOrphans()` finds disconnected components\n\n## Context\n- PRD: `docs/project/PRD/active/PRD-phase-5-riviere-query.md` (M1: D1.1, D1.2)\n- Schema: `riviere-schema/riviere.schema.json`\n- Uses AJV for JSON Schema validation (browser-safe)\n- Must catch structural issues (missing required fields, invalid types) AND orphans\n\n## Key Decisions\n- Use ajv-formats for date-time validation\n- Orphan = component with zero incoming AND zero outgoing links\n- Error format: `{ path: string, message: string, code: string }`\n\n## Acceptance Criteria\n- Given valid graph → When validate() → Then `{ valid: true, errors: [] }`\n- Given graph with missing required field → When validate() → Then error with specific path (e.g., \"components[0].sourceLocation\")\n- Given graph with invalid component type → When validate() → Then error with code \"INVALID_TYPE\"\n- Given graph with orphaned component → When detectOrphans() → Then returns array of orphan IDs\n- Given graph with no orphans → When detectOrphans() → Then returns empty array\n\n## Related Code\n- `packages/riviere-query/src/lib/` — implementation location\n- `riviere-schema/riviere.schema.json` — schema to validate against\n\n## Verification\nnx test riviere-query --testNamePattern \"validate|orphan\"",
         "testStrategy": "",
-        "status": "in-progress",
+        "status": "done",
         "dependencies": [],
         "priority": "high",
         "subtasks": [],
-        "updatedAt": "2025-12-24T11:53:12.231Z"
+        "updatedAt": "2025-12-24T23:32:37.368Z"
       },
       {
         "id": "3",
@@ -181,9 +181,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-12-24T11:53:12.232Z",
+      "lastModified": "2025-12-24T23:32:37.369Z",
       "taskCount": 14,
-      "completedCount": 0,
+      "completedCount": 1,
       "tags": [
         "master"
       ]

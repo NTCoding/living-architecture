@@ -95,9 +95,13 @@ After generating a new project:
 
 Follow `docs/conventions/task-workflow.md` for all task management. Whenever you are told to "start task", "update task", "complete task" etc you MUST consult the workflow and follow the appropriate step.
 
+Never commit code changes without following the task worfklow.
+
 ## Testing
 
 Follow `docs/conventions/testing.md`.
+
+100% test coverage is mandatory and enforced.
 
 ## Code Conventions
 
