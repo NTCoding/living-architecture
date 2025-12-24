@@ -105,7 +105,7 @@ Follow `docs/conventions/testing.md`.
 
 ## Code Conventions
 
-Follow `docs/conventions/software-design.md`.
+When writing, refactoring, or reviewing code, always follow `docs/conventions/software-design.md`.
 
 ## Security
 
