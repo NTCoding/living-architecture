@@ -1,8 +1,8 @@
-# PRD: Phase 9 — Éclair Migration
+# PRD: Phase 6 — Éclair Migration
 
 **Status:** Draft
 
-**Depends on:** Phase 6 (Riviere Builder) — needs new query package
+**Depends on:** Phase 5 (Riviere Query)
 
 ## 1. Problem
 

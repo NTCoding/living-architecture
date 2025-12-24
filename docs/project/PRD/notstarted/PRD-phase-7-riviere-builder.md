@@ -1,8 +1,8 @@
-# PRD: Phase 6 — Riviere Builder Package
+# PRD: Phase 7 — Riviere Builder Package
 
 **Status:** Draft
 
-**Depends on:** Phase 5 (Riviere Query)
+**Depends on:** Phase 5 (Riviere Query), Phase 6 (Éclair Migration)
 
 ## 1. Problem
 

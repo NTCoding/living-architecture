@@ -1,8 +1,8 @@
-# PRD: Phase 7 — Riviere CLI
+# PRD: Phase 8 — Riviere CLI
 
 **Status:** Draft
 
-**Depends on:** Phase 6 (Riviere Builder)
+**Depends on:** Phase 7 (Riviere Builder)
 
 ## 1. Problem
 

@@ -1,8 +1,8 @@
-# PRD: Phase 8 — Graph Merging
+# PRD: Future — Graph Merging
 
 **Status:** Draft
 
-**Depends on:** Phase 7 (CLI)
+**Depends on:** Phase 8 (CLI)
 
 ## 1. Problem
 
