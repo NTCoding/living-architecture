@@ -1,6 +1,5 @@
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
-import type { ErrorObject } from 'ajv'
-import { RiviereQuery, hasMessage, toValidationError } from './query.js'
+import { RiviereQuery } from './query.js'
 
 function createMinimalValidGraph(): RiviereGraph {
   return {
@@ -32,6 +31,32 @@ function createMinimalValidGraph(): RiviereGraph {
 }
 
 describe('RiviereQuery', () => {
+  describe('constructor', () => {
+    it('accepts valid graph', () => {
+      const graph = createMinimalValidGraph()
+
+      const query = new RiviereQuery(graph)
+
+      expect(query.components()).toHaveLength(1)
+    })
+  })
+
+  describe('fromJSON', () => {
+    it('throws on invalid graph schema', () => {
+      const invalidGraph = { notAValidGraph: true }
+
+      expect(() => RiviereQuery.fromJSON(invalidGraph)).toThrow()
+    })
+
+    it('returns RiviereQuery for valid graph', () => {
+      const graph = createMinimalValidGraph()
+
+      const query = RiviereQuery.fromJSON(graph)
+
+      expect(query.components()).toHaveLength(1)
+    })
+  })
+
   describe('components()', () => {
     it('returns all components from the graph', () => {
       const graph = createMinimalValidGraph()
@@ -66,31 +91,6 @@ describe('RiviereQuery', () => {
 
       expect(result.valid).toBe(true)
       expect(result.errors).toEqual([])
-    })
-
-    it('returns SCHEMA_ERROR when version is missing', () => {
-      const graph = createMinimalValidGraph()
-      // @ts-expect-error - intentionally invalid for test
-      delete graph.version
-
-      const query = new RiviereQuery(graph)
-      const result = query.validate()
-
-      expect(result.valid).toBe(false)
-      expect(result.errors.length).toBeGreaterThan(0)
-      expect(result.errors[0]?.code).toBe('SCHEMA_ERROR')
-    })
-
-    it('returns SCHEMA_ERROR when components is not an array', () => {
-      const graph = createMinimalValidGraph()
-      // @ts-expect-error - intentionally invalid for test
-      graph.components = 'not-an-array'
-
-      const query = new RiviereQuery(graph)
-      const result = query.validate()
-
-      expect(result.valid).toBe(false)
-      expect(result.errors.some((e) => e.code === 'SCHEMA_ERROR')).toBe(true)
     })
 
     it('returns INVALID_LINK_SOURCE when link references non-existent source', () => {
@@ -142,6 +142,112 @@ describe('RiviereQuery', () => {
       expect(result.valid).toBe(false)
       expect(result.errors.length).toBeGreaterThanOrEqual(3)
     })
+
+    it('returns INVALID_TYPE when Custom component references undefined custom type', () => {
+      const graph = createMinimalValidGraph()
+      graph.components.push({
+        id: 'test:mod:custom:cronjob',
+        type: 'Custom',
+        customTypeName: 'CronJob',
+        name: 'Update Tracking Cron',
+        domain: 'test',
+        module: 'mod',
+        sourceLocation: { repository: 'test-repo', filePath: 'cron.ts' },
+      })
+
+      const query = new RiviereQuery(graph)
+      const result = query.validate()
+
+      expect(result.valid).toBe(false)
+      expect(result.errors).toHaveLength(1)
+      expect(result.errors[0]?.code).toBe('INVALID_TYPE')
+      expect(result.errors[0]?.path).toBe('/components/1/customTypeName')
+      expect(result.errors[0]?.message).toContain('CronJob')
+    })
+
+    it('returns INVALID_TYPE when Custom component is missing required custom type property', () => {
+      const graph = createMinimalValidGraph()
+      graph.metadata.customTypes = {
+        CronJob: {
+          description: 'Scheduled background job',
+          requiredProperties: {
+            schedule: { type: 'string', description: 'Cron expression' },
+          },
+        },
+      }
+      graph.components.push({
+        id: 'test:mod:custom:cronjob',
+        type: 'Custom',
+        customTypeName: 'CronJob',
+        name: 'Update Tracking Cron',
+        domain: 'test',
+        module: 'mod',
+        sourceLocation: { repository: 'test-repo', filePath: 'cron.ts' },
+      })
+
+      const query = new RiviereQuery(graph)
+      const result = query.validate()
+
+      expect(result.valid).toBe(false)
+      expect(result.errors).toHaveLength(1)
+      expect(result.errors[0]?.code).toBe('INVALID_TYPE')
+      expect(result.errors[0]?.path).toBe('/components/1')
+      expect(result.errors[0]?.message).toContain('schedule')
+    })
+
+    it('returns valid when Custom component has all required custom type properties', () => {
+      const graph = createMinimalValidGraph()
+      graph.metadata.customTypes = {
+        CronJob: {
+          description: 'Scheduled background job',
+          requiredProperties: {
+            schedule: { type: 'string', description: 'Cron expression' },
+          },
+        },
+      }
+      graph.components.push({
+        id: 'test:mod:custom:cronjob',
+        type: 'Custom',
+        customTypeName: 'CronJob',
+        name: 'Update Tracking Cron',
+        domain: 'test',
+        module: 'mod',
+        sourceLocation: { repository: 'test-repo', filePath: 'cron.ts' },
+        metadata: {
+          schedule: '0 * * * *',
+        },
+      })
+
+      const query = new RiviereQuery(graph)
+      const result = query.validate()
+
+      expect(result.valid).toBe(true)
+      expect(result.errors).toEqual([])
+    })
+
+    it('returns valid when Custom type has no requiredProperties', () => {
+      const graph = createMinimalValidGraph()
+      graph.metadata.customTypes = {
+        SimpleJob: {
+          description: 'A simple job with no required properties',
+        },
+      }
+      graph.components.push({
+        id: 'test:mod:custom:simplejob',
+        type: 'Custom',
+        customTypeName: 'SimpleJob',
+        name: 'Simple Job',
+        domain: 'test',
+        module: 'mod',
+        sourceLocation: { repository: 'test-repo', filePath: 'job.ts' },
+      })
+
+      const query = new RiviereQuery(graph)
+      const result = query.validate()
+
+      expect(result.valid).toBe(true)
+      expect(result.errors).toEqual([])
+    })
   })
 
   describe('detectOrphans()', () => {
@@ -170,7 +276,6 @@ describe('RiviereQuery', () => {
 
     it('returns orphan IDs when components have no links', () => {
       const graph = createMinimalValidGraph()
-      // The single component has no links, so it's an orphan
 
       const query = new RiviereQuery(graph)
       const orphans = query.detectOrphans()
@@ -204,81 +309,12 @@ describe('RiviereQuery', () => {
           sourceLocation: { repository: 'test-repo', filePath: 'b.ts' },
         },
       )
-      // a -> b, page is orphan
       graph.links = [{ source: 'test:mod:api:a', target: 'test:mod:api:b' }]
 
       const query = new RiviereQuery(graph)
       const orphans = query.detectOrphans()
 
       expect(orphans).toEqual(['test:mod:ui:page'])
-    })
-  })
-
-  describe('hasMessage()', () => {
-    it('returns true when error has message', () => {
-      const error: ErrorObject = {
-        keyword: 'required',
-        instancePath: '/foo',
-        schemaPath: '#/required',
-        params: {},
-        message: 'is required',
-      }
-
-      expect(hasMessage(error)).toBe(true)
-    })
-
-    it('returns false when error has no message', () => {
-      const error: ErrorObject = {
-        keyword: 'required',
-        instancePath: '/foo',
-        schemaPath: '#/required',
-        params: {},
-      }
-
-      expect(hasMessage(error)).toBe(false)
-    })
-  })
-
-  describe('toValidationError()', () => {
-    it('converts ajv error to ValidationError', () => {
-      const error: ErrorObject = {
-        keyword: 'required',
-        instancePath: '/components/0/name',
-        schemaPath: '#/required',
-        params: {},
-        message: 'must have required property',
-      }
-
-      const result = toValidationError(error)
-
-      expect(result.path).toBe('/components/0/name')
-      expect(result.message).toBe('must have required property')
-      expect(result.code).toBe('SCHEMA_ERROR')
-    })
-
-    it('uses root path when instancePath is empty', () => {
-      const error: ErrorObject = {
-        keyword: 'required',
-        instancePath: '',
-        schemaPath: '#/required',
-        params: {},
-        message: 'must have required property',
-      }
-
-      const result = toValidationError(error)
-
-      expect(result.path).toBe('/')
-    })
-
-    it('throws when error has no message', () => {
-      const error: ErrorObject = {
-        keyword: 'required',
-        instancePath: '/foo',
-        schemaPath: '#/required',
-        params: {},
-      }
-
-      expect(() => toValidationError(error)).toThrow('ajv error missing message')
     })
   })
 })

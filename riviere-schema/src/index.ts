@@ -1,1 +1,2 @@
-export * from './lib/schema.js';
+export * from './schema.js';
+export { parseRiviereGraph, isRiviereGraph } from './schema.zod.js';

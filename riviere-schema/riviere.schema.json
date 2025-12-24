@@ -59,6 +59,13 @@
           "additionalProperties": {
             "$ref": "#/definitions/domainMetadata"
           }
+        },
+        "customTypes": {
+          "type": "object",
+          "description": "User-defined custom component types with their required and optional properties",
+          "additionalProperties": {
+            "$ref": "#/definitions/customTypeDefinition"
+          }
         }
       }
     },
@@ -86,176 +93,206 @@
   },
   "definitions": {
     "component": {
+      "oneOf": [
+        { "$ref": "#/definitions/uiComponent" },
+        { "$ref": "#/definitions/apiRestComponent" },
+        { "$ref": "#/definitions/apiGraphqlComponent" },
+        { "$ref": "#/definitions/apiOtherComponent" },
+        { "$ref": "#/definitions/useCaseComponent" },
+        { "$ref": "#/definitions/domainOpComponent" },
+        { "$ref": "#/definitions/eventComponent" },
+        { "$ref": "#/definitions/eventHandlerComponent" },
+        { "$ref": "#/definitions/customComponent" }
+      ]
+    },
+    "baseComponentProperties": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Globally unique identifier following format: {domain}:{module}:{type}:{name}[:{lineNumber}].",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string",
+          "description": "Human-readable name",
+          "minLength": 1
+        },
+        "domain": {
+          "type": "string",
+          "description": "Domain boundary this node belongs to",
+          "minLength": 1
+        },
+        "module": {
+          "type": "string",
+          "description": "Functional module within the domain",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string",
+          "description": "Optional description of what this node does"
+        },
+        "sourceLocation": {
+          "$ref": "#/definitions/sourceLocation"
+        },
+        "metadata": {
+          "type": "object",
+          "description": "Extensible metadata for custom properties",
+          "additionalProperties": true
+        }
+      }
+    },
+    "uiComponent": {
+      "type": "object",
+      "required": ["id", "type", "name", "domain", "module", "sourceLocation", "route"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "type": { "const": "UI" },
+        "name": { "type": "string", "minLength": 1 },
+        "domain": { "type": "string", "minLength": 1 },
+        "module": { "type": "string", "minLength": 1 },
+        "description": { "type": "string" },
+        "sourceLocation": { "$ref": "#/definitions/sourceLocation" },
+        "metadata": { "type": "object", "additionalProperties": true },
+        "route": { "type": "string", "description": "URL route where UI component is rendered", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "apiRestComponent": {
+      "type": "object",
+      "required": ["id", "type", "name", "domain", "module", "sourceLocation", "apiType", "httpMethod", "path"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "type": { "const": "API" },
+        "name": { "type": "string", "minLength": 1 },
+        "domain": { "type": "string", "minLength": 1 },
+        "module": { "type": "string", "minLength": 1 },
+        "description": { "type": "string" },
+        "sourceLocation": { "$ref": "#/definitions/sourceLocation" },
+        "metadata": { "type": "object", "additionalProperties": true },
+        "apiType": { "const": "REST" },
+        "httpMethod": { "type": "string", "enum": ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"] },
+        "path": { "type": "string", "description": "API path" }
+      },
+      "additionalProperties": false
+    },
+    "apiGraphqlComponent": {
+      "type": "object",
+      "required": ["id", "type", "name", "domain", "module", "sourceLocation", "apiType", "operationName"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "type": { "const": "API" },
+        "name": { "type": "string", "minLength": 1 },
+        "domain": { "type": "string", "minLength": 1 },
+        "module": { "type": "string", "minLength": 1 },
+        "description": { "type": "string" },
+        "sourceLocation": { "$ref": "#/definitions/sourceLocation" },
+        "metadata": { "type": "object", "additionalProperties": true },
+        "apiType": { "const": "GraphQL" },
+        "operationName": { "type": "string", "description": "GraphQL operation name" }
+      },
+      "additionalProperties": false
+    },
+    "apiOtherComponent": {
+      "type": "object",
+      "required": ["id", "type", "name", "domain", "module", "sourceLocation", "apiType"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "type": { "const": "API" },
+        "name": { "type": "string", "minLength": 1 },
+        "domain": { "type": "string", "minLength": 1 },
+        "module": { "type": "string", "minLength": 1 },
+        "description": { "type": "string" },
+        "sourceLocation": { "$ref": "#/definitions/sourceLocation" },
+        "metadata": { "type": "object", "additionalProperties": true },
+        "apiType": { "const": "other" }
+      },
+      "additionalProperties": false
+    },
+    "useCaseComponent": {
       "type": "object",
       "required": ["id", "type", "name", "domain", "module", "sourceLocation"],
-      "allOf": [
-        {
-          "properties": {
-            "id": {
-              "type": "string",
-              "description": "Globally unique identifier following format: {domain}:{module}:{type}:{name}[:{lineNumber}]. Use lowercase. Represents functional slicing (logical components), not technical folders. Line number appended only for collision resolution.",
-              "minLength": 1
-            },
-            "type": {
-              "type": "string",
-              "description": "Node type - use standard types when possible, or custom type when needed",
-              "enum": ["UI", "API", "UseCase", "DomainOp", "Event", "EventHandler", "Custom"],
-              "minLength": 1
-            },
-            "name": {
-              "type": "string",
-              "description": "Human-readable name",
-              "minLength": 1
-            },
-            "domain": {
-              "type": "string",
-              "description": "Domain boundary this node belongs to (e.g., 'orders', 'shipping', 'payment')",
-              "minLength": 1
-            },
-            "module": {
-              "type": "string",
-              "description": "Functional module or logical component within the domain (e.g., 'checkout', 'inventory', 'fulfillment', 'returns')",
-              "minLength": 1
-            },
-            "description": {
-              "type": "string",
-              "description": "Optional description of what this node does"
-            },
-            "sourceLocation": {
-              "$ref": "#/definitions/sourceLocation"
-            },
-            "metadata": {
-              "type": "object",
-              "description": "Extensible metadata for custom properties",
-              "properties": {
-                "schema": {
-                  "type": "object",
-                  "description": "Schema definition as JSON object"
-                }
-              },
-              "additionalProperties": true
-            },
-            "apiType": {
-              "type": "string",
-              "enum": ["REST", "GraphQL", "other"],
-              "description": "API type (required for API nodes)"
-            },
-            "httpMethod": {
-              "type": "string",
-              "enum": ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"],
-              "description": "HTTP method (required for REST APIs)"
-            },
-            "path": {
-              "type": "string",
-              "description": "API path (required for REST APIs)"
-            },
-            "route": {
-              "type": "string",
-              "description": "URL route where UI component is rendered (required for UI nodes)",
-              "minLength": 1
-            },
-            "operationName": {
-              "type": "string",
-              "description": "Operation name (required for GraphQL APIs and DomainOp nodes)"
-            },
-            "entity": {
-              "type": "string",
-              "description": "Entity name (optional for DomainOp nodes)"
-            },
-            "eventName": {
-              "type": "string",
-              "description": "Event name (required for Event nodes)"
-            },
-            "eventSchema": {
-              "type": "string",
-              "description": "Event schema definition (optional for Event nodes)"
-            },
-            "subscribedEvents": {
-              "type": "array",
-              "items": { "type": "string" },
-              "description": "List of event names this handler subscribes to (required for EventHandler nodes)"
-            },
-            "signature": {
-              "$ref": "#/definitions/operationSignature",
-              "description": "Operation signature (optional for DomainOp nodes)"
-            },
-            "behavior": {
-              "$ref": "#/definitions/operationBehavior",
-              "description": "Operation behavior characteristics (optional for DomainOp nodes)"
-            },
-            "stateChanges": {
-              "type": "array",
-              "description": "State transitions caused by this operation (optional for DomainOp nodes)",
-              "items": {
-                "$ref": "#/definitions/stateTransition"
-              }
-            },
-            "businessRules": {
-              "type": "array",
-              "description": "Business rules enforced by this operation (optional for DomainOp nodes)",
-              "items": {
-                "type": "string",
-                "minLength": 1
-              }
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "oneOf": [
-            {
-              "properties": {
-                "type": { "const": "API" },
-                "apiType": { "const": "REST" }
-              },
-              "required": ["apiType", "httpMethod", "path"]
-            },
-            {
-              "properties": {
-                "type": { "const": "API" },
-                "apiType": { "const": "GraphQL" }
-              },
-              "required": ["apiType", "operationName"]
-            },
-            {
-              "properties": {
-                "type": { "const": "API" },
-                "apiType": { "const": "other" }
-              },
-              "required": ["apiType"]
-            },
-            {
-              "properties": {
-                "type": { "const": "DomainOp" }
-              },
-              "required": ["operationName"]
-            },
-            {
-              "properties": {
-                "type": { "const": "Event" }
-              },
-              "required": ["eventName"]
-            },
-            {
-              "properties": {
-                "type": { "const": "EventHandler" }
-              },
-              "required": ["subscribedEvents"]
-            },
-            {
-              "properties": {
-                "type": { "const": "UI" }
-              },
-              "required": ["route"]
-            },
-            {
-              "properties": {
-                "type": { "enum": ["UseCase", "Custom"] }
-              }
-            }
-          ]
-        }
-      ]
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "type": { "const": "UseCase" },
+        "name": { "type": "string", "minLength": 1 },
+        "domain": { "type": "string", "minLength": 1 },
+        "module": { "type": "string", "minLength": 1 },
+        "description": { "type": "string" },
+        "sourceLocation": { "$ref": "#/definitions/sourceLocation" },
+        "metadata": { "type": "object", "additionalProperties": true }
+      },
+      "additionalProperties": false
+    },
+    "domainOpComponent": {
+      "type": "object",
+      "required": ["id", "type", "name", "domain", "module", "sourceLocation", "operationName"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "type": { "const": "DomainOp" },
+        "name": { "type": "string", "minLength": 1 },
+        "domain": { "type": "string", "minLength": 1 },
+        "module": { "type": "string", "minLength": 1 },
+        "description": { "type": "string" },
+        "sourceLocation": { "$ref": "#/definitions/sourceLocation" },
+        "metadata": { "type": "object", "additionalProperties": true },
+        "operationName": { "type": "string", "description": "Operation name" },
+        "entity": { "type": "string", "description": "Entity name" },
+        "signature": { "$ref": "#/definitions/operationSignature" },
+        "behavior": { "$ref": "#/definitions/operationBehavior" },
+        "stateChanges": { "type": "array", "items": { "$ref": "#/definitions/stateTransition" } },
+        "businessRules": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+      },
+      "additionalProperties": false
+    },
+    "eventComponent": {
+      "type": "object",
+      "required": ["id", "type", "name", "domain", "module", "sourceLocation", "eventName"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "type": { "const": "Event" },
+        "name": { "type": "string", "minLength": 1 },
+        "domain": { "type": "string", "minLength": 1 },
+        "module": { "type": "string", "minLength": 1 },
+        "description": { "type": "string" },
+        "sourceLocation": { "$ref": "#/definitions/sourceLocation" },
+        "metadata": { "type": "object", "additionalProperties": true },
+        "eventName": { "type": "string", "description": "Event name" },
+        "eventSchema": { "type": "string", "description": "Event schema definition" }
+      },
+      "additionalProperties": false
+    },
+    "eventHandlerComponent": {
+      "type": "object",
+      "required": ["id", "type", "name", "domain", "module", "sourceLocation", "subscribedEvents"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "type": { "const": "EventHandler" },
+        "name": { "type": "string", "minLength": 1 },
+        "domain": { "type": "string", "minLength": 1 },
+        "module": { "type": "string", "minLength": 1 },
+        "description": { "type": "string" },
+        "sourceLocation": { "$ref": "#/definitions/sourceLocation" },
+        "metadata": { "type": "object", "additionalProperties": true },
+        "subscribedEvents": { "type": "array", "items": { "type": "string" }, "description": "Events this handler subscribes to" }
+      },
+      "additionalProperties": false
+    },
+    "customComponent": {
+      "type": "object",
+      "required": ["id", "type", "name", "domain", "module", "sourceLocation", "customTypeName"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "type": { "const": "Custom" },
+        "name": { "type": "string", "minLength": 1 },
+        "domain": { "type": "string", "minLength": 1 },
+        "module": { "type": "string", "minLength": 1 },
+        "description": { "type": "string" },
+        "sourceLocation": { "$ref": "#/definitions/sourceLocation" },
+        "metadata": { "type": "object", "additionalProperties": true },
+        "customTypeName": { "type": "string", "description": "Name of the custom type (must match a key in metadata.customTypes)", "minLength": 1 }
+      },
+      "additionalProperties": false
     },
     "link": {
       "type": "object",
@@ -420,6 +457,48 @@
         }
       },
       "additionalProperties": true
+    },
+    "customTypeDefinition": {
+      "type": "object",
+      "description": "Definition of a custom component type with required and optional properties",
+      "properties": {
+        "description": {
+          "type": "string",
+          "description": "Human-readable description of this custom type"
+        },
+        "requiredProperties": {
+          "type": "object",
+          "description": "Properties required for components of this custom type (beyond base component properties)",
+          "additionalProperties": {
+            "$ref": "#/definitions/customPropertyDefinition"
+          }
+        },
+        "optionalProperties": {
+          "type": "object",
+          "description": "Optional properties for components of this custom type",
+          "additionalProperties": {
+            "$ref": "#/definitions/customPropertyDefinition"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "customPropertyDefinition": {
+      "type": "object",
+      "description": "Definition of a property in a custom type",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "JSON Schema type (string, number, boolean, array, object)",
+          "enum": ["string", "number", "boolean", "array", "object"]
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable description of this property"
+        }
+      },
+      "additionalProperties": false
     },
     "operationSignature": {
       "type": "object",

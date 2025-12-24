@@ -1,6 +1,7 @@
 import nx from '@nx/eslint-plugin';
 import tseslint from 'typescript-eslint';
 import noGenericNames from './.eslint-rules/no-generic-names.js';
+import eslintComments from '@eslint-community/eslint-plugin-eslint-comments/configs';
 
 const customRules = {
   plugins: {
@@ -17,7 +18,24 @@ export default tseslint.config(
   ...nx.configs['flat/typescript'],
   ...nx.configs['flat/javascript'],
   {
-    ignores: ['**/dist', '**/out-tsc', '**/node_modules', '**/.nx', '*.config.ts', '*.config.mjs', '*.config.js', 'vitest.workspace.ts', '**/*.d.ts'],
+    ignores: [
+      '**/dist',
+      '**/out-tsc',
+      '**/node_modules',
+      '**/.nx',
+      '*.config.ts',
+      '*.config.mjs',
+      '*.config.js',
+      'vitest.workspace.ts',
+      '**/*.d.ts',
+      '**/test-output'
+    ],
+  },
+  eslintComments.recommended,
+  {
+    rules: {
+      '@eslint-community/eslint-comments/no-use': ['error', { allow: [] }],
+    },
   },
   customRules,
   {
@@ -52,26 +70,51 @@ export default tseslint.config(
       '@typescript-eslint/no-unsafe-return': 'error',
 
       // No type assertions - fix the types instead
-      '@typescript-eslint/consistent-type-assertions': ['error', { assertionStyle: 'never' }],
+      '@typescript-eslint/consistent-type-assertions': [
+        'error',
+        { assertionStyle: 'never' },
+      ],
 
       // Ban generic folder imports (not lib - that's NX convention)
       'no-restricted-imports': [
         'error',
         {
           patterns: [
-            { group: ['*/utils/*', '*/utils'], message: 'No utils folders. Use domain-specific names.' },
-            { group: ['*/helpers/*', '*/helpers'], message: 'No helpers folders. Use domain-specific names.' },
-            { group: ['*/common/*', '*/common'], message: 'No common folders. Use domain-specific names.' },
-            { group: ['*/shared/*', '*/shared'], message: 'No shared folders. Use domain-specific names.' },
-            { group: ['*/core/*', '*/core'], message: 'No core folders. Use domain-specific names.' },
+            {
+              group: ['*/utils/*', '*/utils'],
+              message: 'No utils folders. Use domain-specific names.',
+            },
+            {
+              group: ['*/helpers/*', '*/helpers'],
+              message: 'No helpers folders. Use domain-specific names.',
+            },
+            {
+              group: ['*/common/*', '*/common'],
+              message: 'No common folders. Use domain-specific names.',
+            },
+            {
+              group: ['*/shared/*', '*/shared'],
+              message: 'No shared folders. Use domain-specific names.',
+            },
+            {
+              group: ['*/core/*', '*/core'],
+              message: 'No core folders. Use domain-specific names.',
+            },
+            {
+              group: ['*/src/lib/*', '*/src/lib'],
+              message: 'No lib folders in projects. Use domain-specific names.',
+            },
           ],
         },
       ],
 
       // Complexity limits
-      'max-lines': ['error', { max: 400, skipBlankLines: true, skipComments: true }],
+      'max-lines': [
+        'error',
+        { max: 400, skipBlankLines: true, skipComments: true },
+      ],
       'max-depth': ['error', 3],
-      'complexity': ['error', 12],
+      complexity: ['error', 12],
 
       // Naming conventions
       '@typescript-eslint/naming-convention': [
@@ -117,5 +160,5 @@ export default tseslint.config(
         tsconfigRootDir: import.meta.dirname,
       },
     },
-  }
+  },
 );

@@ -17,6 +17,8 @@
     "./schema.json": "./riviere.schema.json"
   },
   "dependencies": {
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
     "tslib": "^2.3.0"
   }
 }

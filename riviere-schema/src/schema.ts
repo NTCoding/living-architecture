@@ -93,6 +93,7 @@ export interface EventHandlerComponent extends ComponentBase {
 
 export interface CustomComponent extends ComponentBase {
   type: 'Custom'
+  customTypeName: string
 }
 
 export type Component =
@@ -146,6 +147,19 @@ export interface DomainMetadata {
   [key: string]: unknown
 }
 
+export type CustomPropertyType = 'string' | 'number' | 'boolean' | 'array' | 'object'
+
+export interface CustomPropertyDefinition {
+  type: CustomPropertyType
+  description?: string
+}
+
+export interface CustomTypeDefinition {
+  description?: string
+  requiredProperties?: Record<string, CustomPropertyDefinition>
+  optionalProperties?: Record<string, CustomPropertyDefinition>
+}
+
 export interface SourceInfo {
   repository: string
   commit?: string
@@ -158,6 +172,7 @@ export interface GraphMetadata {
   generated?: string
   sources?: SourceInfo[]
   domains: Record<string, DomainMetadata>
+  customTypes?: Record<string, CustomTypeDefinition>
 }
 
 export interface RiviereGraph {

@@ -6,6 +6,55 @@ import type {
   Link,
   GraphMetadata,
 } from './schema.js'
+import { parseRiviereGraph } from './schema.zod.js'
+
+describe('parseRiviereGraph()', () => {
+  it('parses valid graph and returns typed RiviereGraph', () => {
+    const input = {
+      version: '1.0',
+      metadata: { domains: { test: { description: 'Test', systemType: 'domain' } } },
+      components: [],
+      links: [],
+    }
+
+    const result = parseRiviereGraph(input)
+
+    expect(result.version).toBe('1.0')
+    expect(result.components).toHaveLength(0)
+  })
+
+  it('throws on invalid component type', () => {
+    const input = {
+      version: '1.0',
+      metadata: { domains: { test: { description: 'Test', systemType: 'domain' } } },
+      components: [{ id: 'x', type: 'InvalidType', name: 'X', domain: 'test', module: 'mod', sourceLocation: { repository: 'r', filePath: 'f' } }],
+      links: [],
+    }
+
+    expect(() => parseRiviereGraph(input)).toThrow()
+  })
+
+  it('throws on missing required field with error details', () => {
+    const input = {
+      metadata: { domains: { test: { description: 'Test', systemType: 'domain' } } },
+      components: [],
+      links: [],
+    }
+
+    expect(() => parseRiviereGraph(input)).toThrow(/Invalid RiviereGraph/)
+  })
+
+  it('throws on invalid version format', () => {
+    const input = {
+      version: 'not-a-version',
+      metadata: { domains: { test: { description: 'Test', systemType: 'domain' } } },
+      components: [],
+      links: [],
+    }
+
+    expect(() => parseRiviereGraph(input)).toThrow()
+  })
+})
 
 describe('riviere-schema types', () => {
   it('compiles a minimal valid graph structure', () => {

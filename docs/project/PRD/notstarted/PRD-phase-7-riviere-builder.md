@@ -109,6 +109,46 @@ const graph = builder.build();
 - Deferred validation for structural concerns (orphans, etc.)
 - `build()` runs full validation before export
 
+**Custom Type Validation (HARD REQUIREMENT):**
+
+The builder MUST validate custom types at construction time. JSON Schema cannot cross-reference between `components[].customTypeName` and `metadata.customTypes` keys, so this validation MUST happen in the builder.
+
+```typescript
+builder.defineCustomType({
+  name: 'MessageQueue',
+  description: 'Async message queue',
+  requiredProperties: {
+    queueName: { type: 'string', description: 'Queue identifier' },
+    messageType: { type: 'string', description: 'Message schema type' }
+  }
+});
+
+builder.addCustom({
+  customTypeName: 'MessageQueue',  // MUST exist in defined custom types
+  name: 'Order Queue',
+  domain: 'orders',
+  module: 'checkout',
+  metadata: {
+    queueName: 'orders-queue',     // MUST include all requiredProperties
+    messageType: 'OrderCreated'
+  }
+});
+
+// This MUST throw immediately:
+builder.addCustom({
+  customTypeName: 'UndefinedType',  // ERROR: Custom type 'UndefinedType' not defined
+  ...
+});
+
+// This MUST throw immediately:
+builder.addCustom({
+  customTypeName: 'MessageQueue',
+  metadata: {}  // ERROR: Missing required properties for 'MessageQueue': queueName, messageType
+});
+```
+
+Validation happens in `addCustom()`, not deferred to `build()`. Fail fast.
+
 **Error Messages:**
 - Actionable: Tell user what's wrong AND how to fix it
 - Include near-matches when component not found
@@ -131,6 +171,7 @@ API documentation auto-generated from TSDoc comments.
 - [ ] ID generation matches spec (deterministic, kebab-case)
 - [ ] Error messages are actionable (tested with example errors)
 - [ ] Near-match suggestions work for typos
+- [ ] **Custom type validation in `addCustom()` — throws immediately if type undefined or required properties missing**
 - [ ] 100% test coverage
 - [ ] API documentation generated
 - [ ] Can recreate all example graphs programmatically

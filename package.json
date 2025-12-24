@@ -12,10 +12,13 @@
     "prepare": "husky"
   },
   "lint-staged": {
-    "*.ts": ["eslint --fix"]
+    "*.ts": [
+      "eslint --fix"
+    ]
   },
   "private": true,
   "devDependencies": {
+    "@eslint-community/eslint-plugin-eslint-comments": "^4.5.0",
     "@nx/esbuild": "22.3.3",
     "@nx/eslint": "22.3.3",
     "@nx/eslint-plugin": "^22.3.3",
@@ -53,6 +56,5 @@
         }
       }
     }
-  },
-  "dependencies": {}
+  }
 }
