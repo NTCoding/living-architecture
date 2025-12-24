@@ -17,7 +17,7 @@ export default tseslint.config(
   ...nx.configs['flat/typescript'],
   ...nx.configs['flat/javascript'],
   {
-    ignores: ['**/dist', '**/out-tsc', '**/node_modules', '**/.nx', '*.config.ts', '*.config.mjs', '*.config.js', 'vitest.workspace.ts'],
+    ignores: ['**/dist', '**/out-tsc', '**/node_modules', '**/.nx', '*.config.ts', '*.config.mjs', '*.config.js', 'vitest.workspace.ts', '**/*.d.ts'],
   },
   customRules,
   {
