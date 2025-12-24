@@ -17,7 +17,7 @@ Current packages:
 - `@living-architecture/riviere-cli` - CLI tool with binary "riviere" (depends on riviere-builder)
 
 Internal (not published):
-- `@living-architecture/schema` - Riviere schema definitions
+- `@living-architecture/riviere-schema` - Riviere schema definitions
 
 Apps:
 - `@living-architecture/eclair` - Web app for viewing your software architecture via Riviere a schema
