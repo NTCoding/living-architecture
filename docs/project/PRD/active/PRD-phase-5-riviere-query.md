@@ -1,6 +1,6 @@
 # PRD: Phase 5 — Riviere Query Package
 
-**Status:** Planning
+**Status:** Approved
 
 **Depends on:** Phase 4 (Monorepo Setup) — Complete
 
