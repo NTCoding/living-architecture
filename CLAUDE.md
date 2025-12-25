@@ -107,6 +107,8 @@ Follow `docs/conventions/testing.md`.
 
 When writing, refactoring, or reviewing code, always follow `docs/conventions/software-design.md`.
 
+Code quality is of highest importance. Rushing or taking shortcuts is never acceptable.
+
 ## Security
 
 - Never commit secrets, API keys, or credentials

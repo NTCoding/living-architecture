@@ -1,17 +1,17 @@
-import { RiviereQuery } from './RiviereQuery'
+import { RiviereQuery, parseComponentId } from './RiviereQuery'
 import { createMinimalValidGraph, createAPIComponent } from './graph-test-builders'
 
 describe('RiviereQuery.traceFlow()', () => {
   it('throws error when startComponentId does not exist', () => {
     const query = new RiviereQuery(createMinimalValidGraph())
 
-    expect(() => query.traceFlow('nonexistent:id')).toThrow(/component 'nonexistent:id' does not exist/)
+    expect(() => query.traceFlow(parseComponentId('nonexistent:id'))).toThrow(/component 'nonexistent:id' does not exist/)
   })
 
   it('returns only starting component when component is isolated', () => {
     const query = new RiviereQuery(createMinimalValidGraph())
 
-    const result = query.traceFlow('test:mod:ui:page')
+    const result = query.traceFlow(parseComponentId('test:mod:ui:page'))
 
     expect(result.componentIds).toEqual(['test:mod:ui:page'])
     expect(result.linkIds).toEqual([])
@@ -23,7 +23,7 @@ describe('RiviereQuery.traceFlow()', () => {
     graph.links = [{ source: 'test:mod:ui:page', target: 'test:api:create' }]
     const query = new RiviereQuery(graph)
 
-    const result = query.traceFlow('test:mod:ui:page')
+    const result = query.traceFlow(parseComponentId('test:mod:ui:page'))
 
     expect(result.componentIds.sort()).toEqual(['test:api:create', 'test:mod:ui:page'])
     expect(result.linkIds).toEqual(['test:mod:ui:page->test:api:create'])
@@ -35,7 +35,7 @@ describe('RiviereQuery.traceFlow()', () => {
     graph.links = [{ source: 'test:mod:ui:page', target: 'test:api:create' }]
     const query = new RiviereQuery(graph)
 
-    const result = query.traceFlow('test:api:create')
+    const result = query.traceFlow(parseComponentId('test:api:create'))
 
     expect(result.componentIds.sort()).toEqual(['test:api:create', 'test:mod:ui:page'])
     expect(result.linkIds).toEqual(['test:mod:ui:page->test:api:create'])
@@ -53,7 +53,7 @@ describe('RiviereQuery.traceFlow()', () => {
     ]
     const query = new RiviereQuery(graph)
 
-    const result = query.traceFlow('test:mod:ui:page')
+    const result = query.traceFlow(parseComponentId('test:mod:ui:page'))
 
     expect(result.componentIds.sort()).toEqual(['test:api:a', 'test:api:b', 'test:mod:ui:page'])
     expect(result.linkIds.sort()).toEqual(['test:mod:ui:page->test:api:a', 'test:mod:ui:page->test:api:b'])
@@ -68,7 +68,7 @@ describe('RiviereQuery.traceFlow()', () => {
     ]
     const query = new RiviereQuery(graph)
 
-    const result = query.traceFlow('test:mod:ui:page')
+    const result = query.traceFlow(parseComponentId('test:mod:ui:page'))
 
     expect(result.componentIds.sort()).toEqual(['test:api:a', 'test:mod:ui:page'])
     expect(result.linkIds.sort()).toEqual(['test:api:a->test:mod:ui:page', 'test:mod:ui:page->test:api:a'])
@@ -88,7 +88,7 @@ describe('RiviereQuery.traceFlow()', () => {
     ]
     const query = new RiviereQuery(graph)
 
-    const result = query.traceFlow('test:mod:ui:page')
+    const result = query.traceFlow(parseComponentId('test:mod:ui:page'))
 
     expect(result.componentIds.sort()).toEqual(['test:api:a', 'test:mod:ui:page'])
     expect(result.linkIds).toEqual(['test:mod:ui:page->test:api:a'])
@@ -106,7 +106,7 @@ describe('RiviereQuery.traceFlow()', () => {
     ]
     const query = new RiviereQuery(graph)
 
-    const result = query.traceFlow('test:api:b')
+    const result = query.traceFlow(parseComponentId('test:api:b'))
 
     expect(result.componentIds.sort()).toEqual(['test:api:b', 'test:api:c', 'test:mod:ui:page'])
     expect(result.linkIds.sort()).toEqual(['test:api:b->test:api:c', 'test:mod:ui:page->test:api:b'])
@@ -118,7 +118,7 @@ describe('RiviereQuery.traceFlow()', () => {
     graph.links = [{ id: 'custom-link-id', source: 'test:mod:ui:page', target: 'test:api:a' }]
     const query = new RiviereQuery(graph)
 
-    const result = query.traceFlow('test:mod:ui:page')
+    const result = query.traceFlow(parseComponentId('test:mod:ui:page'))
 
     expect(result.linkIds).toEqual(['custom-link-id'])
   })
@@ -137,7 +137,7 @@ describe('RiviereQuery.traceFlow()', () => {
     ]
     const query = new RiviereQuery(graph)
 
-    const result = query.traceFlow('test:api:b')
+    const result = query.traceFlow(parseComponentId('test:api:b'))
 
     expect(result.componentIds.sort()).toEqual([
       'test:api:b',

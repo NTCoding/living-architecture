@@ -1,4 +1,4 @@
-import { RiviereQuery } from './RiviereQuery'
+import { RiviereQuery, parseComponentId } from './RiviereQuery'
 import {
   createMinimalValidGraph,
   createAPIComponent,
@@ -302,7 +302,7 @@ describe('RiviereQuery', () => {
     it('returns component when ID exists', () => {
       const query = new RiviereQuery(createMinimalValidGraph())
 
-      const result = query.componentById('test:mod:ui:page')
+      const result = query.componentById(parseComponentId('test:mod:ui:page'))
 
       expect(result?.id).toBe('test:mod:ui:page')
     })
@@ -310,7 +310,7 @@ describe('RiviereQuery', () => {
     it('returns undefined when ID does not exist', () => {
       const query = new RiviereQuery(createMinimalValidGraph())
 
-      expect(query.componentById('nonexistent:id')).toBeUndefined()
+      expect(query.componentById(parseComponentId('nonexistent:id'))).toBeUndefined()
     })
   })
 

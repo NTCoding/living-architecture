@@ -163,6 +163,12 @@ Names express domain purpose, not code organization.
 
 ---
 
+## Rule 6: Enforce project standards
+
+Ensure code adheres to all project standards in `/docs/conventions`
+
+---
+
 ## Review Procedure
 
 For each file:

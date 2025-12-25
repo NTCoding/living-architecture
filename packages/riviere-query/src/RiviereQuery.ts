@@ -1,5 +1,16 @@
 import type { RiviereGraph, Component, Link, CustomComponent, ComponentType } from '@living-architecture/riviere-schema'
 import { parseRiviereGraph } from '@living-architecture/riviere-schema'
+import { z } from 'zod'
+
+const componentIdSchema = z.string().brand<'ComponentId'>()
+const linkIdSchema = z.string().brand<'LinkId'>()
+
+export type ComponentId = z.infer<typeof componentIdSchema>
+export type LinkId = z.infer<typeof linkIdSchema>
+
+export function parseComponentId(id: string): ComponentId {
+  return componentIdSchema.parse(id)
+}
 
 export type ValidationErrorCode =
   | 'INVALID_LINK_SOURCE'
@@ -17,8 +28,15 @@ export interface ValidationResult {
   errors: ValidationError[]
 }
 
+export interface Domain {
+  name: string
+  description: string
+  systemType: 'domain' | 'bff' | 'ui' | 'other'
+  componentCounts: Record<ComponentType, number> & { total: number }
+}
+
 export interface ComponentModification {
-  id: string
+  id: ComponentId
   before: Component
   after: Component
   changedFields: string[]
@@ -143,11 +161,11 @@ export class RiviereQuery {
     return errors
   }
 
-  detectOrphans(): string[] {
+  detectOrphans(): ComponentId[] {
     const connectedComponentIds = this.buildConnectedComponentIds()
     return this.graph.components
       .filter((c) => !connectedComponentIds.has(c.id))
-      .map((c) => c.id)
+      .map((c) => componentIdSchema.parse(c.id))
   }
 
   find(predicate: (component: Component) => boolean): Component | undefined {
@@ -158,7 +176,7 @@ export class RiviereQuery {
     return this.graph.components.filter(predicate)
   }
 
-  componentById(id: string): Component | undefined {
+  componentById(id: ComponentId): Component | undefined {
     return this.find((c) => c.id === id)
   }
 
@@ -182,6 +200,30 @@ export class RiviereQuery {
     return this.findAll((c) => c.type === type)
   }
 
+  domains(): Domain[] {
+    return Object.entries(this.graph.metadata.domains).map(([name, metadata]) => {
+      const domainComponents = this.componentsInDomain(name)
+
+      const componentCounts: Record<ComponentType, number> & { total: number } = {
+        UI: domainComponents.filter((c) => c.type === 'UI').length,
+        API: domainComponents.filter((c) => c.type === 'API').length,
+        UseCase: domainComponents.filter((c) => c.type === 'UseCase').length,
+        DomainOp: domainComponents.filter((c) => c.type === 'DomainOp').length,
+        Event: domainComponents.filter((c) => c.type === 'Event').length,
+        EventHandler: domainComponents.filter((c) => c.type === 'EventHandler').length,
+        Custom: domainComponents.filter((c) => c.type === 'Custom').length,
+        total: domainComponents.length,
+      }
+
+      return {
+        name,
+        description: metadata.description,
+        systemType: metadata.systemType,
+        componentCounts,
+      }
+    })
+  }
+
   entryPoints(): Component[] {
     const targets = new Set(this.graph.links.map((link) => link.target))
     return this.graph.components.filter((c) => {
@@ -191,15 +233,15 @@ export class RiviereQuery {
     })
   }
 
-  traceFlow(startComponentId: string): { componentIds: string[]; linkIds: string[] } {
+  traceFlow(startComponentId: ComponentId): { componentIds: ComponentId[]; linkIds: LinkId[] } {
     const component = this.componentById(startComponentId)
     if (!component) {
       throw new Error(`Cannot trace flow: component '${startComponentId}' does not exist`)
     }
 
-    const visitedComponents = new Set<string>()
-    const visitedLinks = new Set<string>()
-    const queue: string[] = [startComponentId]
+    const visitedComponents = new Set<ComponentId>()
+    const visitedLinks = new Set<LinkId>()
+    const queue: ComponentId[] = [startComponentId]
 
     while (queue.length > 0) {
       const currentId = queue.shift()
@@ -209,13 +251,15 @@ export class RiviereQuery {
       visitedComponents.add(currentId)
 
       for (const link of this.graph.links) {
-        if (link.source === currentId && !visitedComponents.has(link.target)) {
-          queue.push(link.target)
-          visitedLinks.add(link.id ?? `${link.source}->${link.target}`)
+        const sourceId = componentIdSchema.parse(link.source)
+        const targetId = componentIdSchema.parse(link.target)
+        if (link.source === currentId && !visitedComponents.has(targetId)) {
+          queue.push(targetId)
+          visitedLinks.add(this.linkKey(link))
         }
-        if (link.target === currentId && !visitedComponents.has(link.source)) {
-          queue.push(link.source)
-          visitedLinks.add(link.id ?? `${link.source}->${link.target}`)
+        if (link.target === currentId && !visitedComponents.has(sourceId)) {
+          queue.push(sourceId)
+          visitedLinks.add(this.linkKey(link))
         }
       }
     }
@@ -230,6 +274,13 @@ export class RiviereQuery {
       connected.add(link.target)
     })
     return connected
+  }
+
+  private linkKey(link: Link): LinkId {
+    if (link.id !== undefined) {
+      return linkIdSchema.parse(link.id)
+    }
+    return linkIdSchema.parse(`${link.source}->${link.target}`)
   }
 
   diff(other: RiviereGraph): GraphDiff {
@@ -249,7 +300,7 @@ export class RiviereQuery {
       const changedFields = this.findChangedFields(thisComponent, otherComponent)
       if (changedFields.length > 0) {
         modified.push({
-          id: thisComponent.id,
+          id: componentIdSchema.parse(thisComponent.id),
           before: thisComponent,
           after: otherComponent,
           changedFields,
@@ -257,12 +308,11 @@ export class RiviereQuery {
       }
     }
 
-    const linkKey = (link: Link): string => link.id ?? `${link.source}->${link.target}`
-    const thisLinkKeys = new Set(this.graph.links.map(linkKey))
-    const otherLinkKeys = new Set(other.links.map(linkKey))
+    const thisLinkKeys = new Set(this.graph.links.map((link) => this.linkKey(link)))
+    const otherLinkKeys = new Set(other.links.map((link) => this.linkKey(link)))
 
-    const linksAdded = other.links.filter((link) => !thisLinkKeys.has(linkKey(link)))
-    const linksRemoved = this.graph.links.filter((link) => !otherLinkKeys.has(linkKey(link)))
+    const linksAdded = other.links.filter((link) => !thisLinkKeys.has(this.linkKey(link)))
+    const linksRemoved = this.graph.links.filter((link) => !otherLinkKeys.has(this.linkKey(link)))
 
     return {
       components: {

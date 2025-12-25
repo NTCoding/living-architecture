@@ -43,10 +43,11 @@
         "description": "domains() returns all domains with metadata and component counts",
         "details": "## Deliverable\n`domains()` returns all domains with metadata and component counts\n\n## Context\n- PRD: `docs/project/PRD/active/PRD-phase-5-riviere-query.md` (M3: D3.1)\n- Domain metadata lives in `metadata.domains` in schema\n- Must aggregate component counts per type\n\n## Key Decisions\n- Domain interface: `{ name, description, systemType, componentCounts: Record<ComponentType, number> & { total: number } }`\n- systemType values: 'domain' | 'bff' | 'ui' | 'other'\n\n## Acceptance Criteria\n- Given graph with 3 domains → When domains() → Then returns 3 Domain objects\n- Given domain \"orders\" with 5 APIs, 3 UseCases → When domains() → Then orders.componentCounts.API === 5, orders.componentCounts.UseCase === 3\n- Given domain → Then includes description and systemType from metadata\n\n## Related Code\n- Schema metadata.domains structure in `riviere-schema/riviere.schema.json`\n\n## Verification\nnx test riviere-query --testNamePattern \"domains\"",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2025-12-25T08:37:26.924Z"
       },
       {
         "id": "5",
@@ -184,9 +185,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-12-25T01:23:40.374Z",
+      "lastModified": "2025-12-25T08:37:26.925Z",
       "taskCount": 14,
-      "completedCount": 4,
+      "completedCount": 5,
       "tags": [
         "master"
       ]
