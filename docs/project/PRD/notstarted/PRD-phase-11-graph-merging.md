@@ -1,8 +1,10 @@
-# PRD: Future — Graph Merging
+# PRD: Phase 11 — Graph Merging
 
 **Status:** Draft
 
-**Depends on:** Phase 8 (CLI)
+**Depends on:** Phase 10 (TypeScript Extraction)
+
+---
 
 ## 1. Problem
 
@@ -11,11 +13,15 @@ Real-world systems span multiple repositories. We need to:
 - Resolve cross-repository references (e.g., event publisher in repo A → handler in repo B)
 - Support polyglot systems (different repos, different languages)
 
+---
+
 ## 2. Design Principles
 
 1. **External links first** — Mark cross-repo references during extraction, resolve during merge.
 2. **Deterministic** — Same inputs always produce same merged graph.
 3. **Conflict detection** — Surface merge conflicts clearly.
+
+---
 
 ## 3. What We're Building
 
@@ -55,10 +61,14 @@ riviere merge graph1.json graph2.json --output merged.json
 riviere merge ./graphs/*.json --output merged.json
 ```
 
+---
+
 ## 4. What We're NOT Building
 
 - Real-time sync between repos
-- Automatic extraction (still manual/AI-assisted per repo)
+- Automatic conflict resolution (user decides)
+
+---
 
 ## 5. Success Criteria
 
@@ -68,23 +78,34 @@ riviere merge ./graphs/*.json --output merged.json
 - [ ] Can merge example multi-domain graphs
 - [ ] Documentation covers multi-repo workflow
 
+---
+
 ## 6. Reference
 
 **Design Decisions:**
 - `./docs/project/PRD/archived/PRD-phase-3-client-library.md` — Decision #3: Cross-Repository Edge Resolution
 
+---
+
 ## 7. Open Questions
 
 1. **Conflict resolution** — How to handle duplicate component IDs across repos?
 2. **Partial merges** — Support merging subsets of graphs?
+3. **Merge history** — Track which graphs contributed to merged result?
 
 ---
 
-## Dependencies
+## 8. Milestones
+
+TBD — To be defined during discovery.
+
+---
+
+## 9. Dependencies
 
 **Depends on:**
-- Phase 6 (Builder) — Merge uses builder internals
-- Phase 7 (CLI) — Merge command added to CLI
+- Phase 9 (Launch) — Need stable packages
+- Phase 10 (TypeScript Extraction) — Automated extraction enables multi-repo workflows
 
 **Blocks:**
 - Multi-repo visualization in Éclair
