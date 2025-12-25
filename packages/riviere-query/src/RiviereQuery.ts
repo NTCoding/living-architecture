@@ -154,6 +154,47 @@ export class RiviereQuery {
     return this.findAll((c) => c.type === type)
   }
 
+  entryPoints(): Component[] {
+    const targets = new Set(this.graph.links.map((link) => link.target))
+    return this.graph.components.filter((c) => {
+      const isEntryPointType = c.type === 'UI' || c.type === 'API' || c.type === 'EventHandler' || c.type === 'Custom'
+      const hasNoIncomingLinks = !targets.has(c.id)
+      return isEntryPointType && hasNoIncomingLinks
+    })
+  }
+
+  traceFlow(startComponentId: string): { componentIds: string[]; linkIds: string[] } {
+    const component = this.componentById(startComponentId)
+    if (!component) {
+      throw new Error(`Cannot trace flow: component '${startComponentId}' does not exist`)
+    }
+
+    const visitedComponents = new Set<string>()
+    const visitedLinks = new Set<string>()
+    const queue: string[] = [startComponentId]
+
+    while (queue.length > 0) {
+      const currentId = queue.shift()
+      if (currentId === undefined || visitedComponents.has(currentId)) {
+        continue
+      }
+      visitedComponents.add(currentId)
+
+      for (const link of this.graph.links) {
+        if (link.source === currentId && !visitedComponents.has(link.target)) {
+          queue.push(link.target)
+          visitedLinks.add(link.id ?? `${link.source}->${link.target}`)
+        }
+        if (link.target === currentId && !visitedComponents.has(link.source)) {
+          queue.push(link.source)
+          visitedLinks.add(link.id ?? `${link.source}->${link.target}`)
+        }
+      }
+    }
+
+    return { componentIds: Array.from(visitedComponents), linkIds: Array.from(visitedLinks) }
+  }
+
   private buildConnectedComponentIds(): Set<string> {
     const connected = new Set<string>()
     this.graph.links.forEach((link) => {

@@ -87,10 +87,11 @@
         "description": "Identify flow starting points; trace connected components bidirectionally",
         "details": "## Deliverable\nIdentify flow starting points; trace connected components bidirectionally\n\n## Context\n- PRD: `docs/project/PRD/active/PRD-phase-5-riviere-query.md` (M5: D5.1, D5.2)\n- Entry points = UI, API, EventHandler, Custom with NO incoming links\n\n## Key Decisions\n- entryPoints() filters by type AND checks for zero incoming links\n- traceFlow() does bidirectional BFS/DFS from starting node\n- Returns FlowResult: `{ nodeIds: string[], linkIds: string[] }`\n\n## Acceptance Criteria\n- Given UI component with no incoming links → When entryPoints() → Then includes it\n- Given API component WITH incoming link → When entryPoints() → Then excludes it\n- Given starting node → When traceFlow() → Then returns all connected nodes (upstream + downstream)\n- Given isolated component → When traceFlow() → Then returns just that node\n- Given branching flow → When traceFlow() → Then follows all branches\n\n## Related Code\n- Links structure: `{ source, target, type }`\n- Build adjacency list for efficient traversal\n\n## Verification\nnx test riviere-query --testNamePattern \"entryPoints|traceFlow\"",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [],
         "priority": "high",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2025-12-25T00:46:02.034Z"
       },
       {
         "id": "9",
@@ -182,9 +183,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-12-24T23:53:54.397Z",
+      "lastModified": "2025-12-25T00:46:02.035Z",
       "taskCount": 14,
-      "completedCount": 2,
+      "completedCount": 3,
       "tags": [
         "master"
       ]

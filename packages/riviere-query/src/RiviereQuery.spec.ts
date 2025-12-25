@@ -1,40 +1,11 @@
-import type { RiviereGraph, APIComponent, SourceLocation } from '@living-architecture/riviere-schema'
 import { RiviereQuery } from './RiviereQuery.js'
-
-const defaultSourceLocation: SourceLocation = { repository: 'test-repo', filePath: 'test.ts' }
-
-function createMinimalValidGraph(): RiviereGraph {
-  return {
-    version: '1.0',
-    metadata: {
-      domains: { test: { description: 'Test domain', systemType: 'domain' } },
-    },
-    components: [
-      {
-        id: 'test:mod:ui:page',
-        type: 'UI',
-        name: 'Test Page',
-        domain: 'test',
-        module: 'mod',
-        route: '/test',
-        sourceLocation: defaultSourceLocation,
-      },
-    ],
-    links: [],
-  }
-}
-
-function createAPIComponent(overrides: Partial<APIComponent> & { id: string; name: string; domain: string }): APIComponent {
-  return {
-    type: 'API',
-    module: 'mod',
-    apiType: 'REST',
-    httpMethod: 'GET',
-    path: '/test',
-    sourceLocation: defaultSourceLocation,
-    ...overrides,
-  }
-}
+import {
+  createMinimalValidGraph,
+  createAPIComponent,
+  createEventHandlerComponent,
+  createCustomComponent,
+  createUseCaseComponent,
+} from './graph-test-builders.js'
 
 describe('RiviereQuery', () => {
   describe('constructor', () => {
@@ -407,4 +378,68 @@ describe('RiviereQuery', () => {
       expect(new RiviereQuery(createMinimalValidGraph()).componentsByType('Event')).toEqual([])
     })
   })
+
+  describe('entryPoints()', () => {
+    it('includes UI component when it has no incoming links', () => {
+      const graph = createMinimalValidGraph()
+      const query = new RiviereQuery(graph)
+
+      const result = query.entryPoints()
+
+      expect(result.map((c) => c.id)).toEqual(['test:mod:ui:page'])
+    })
+
+    it('includes API component when it has no incoming links', () => {
+      const graph = createMinimalValidGraph()
+      graph.components = [createAPIComponent({ id: 'test:api:create', name: 'Create', domain: 'test' })]
+      const query = new RiviereQuery(graph)
+
+      const result = query.entryPoints()
+
+      expect(result.map((c) => c.id)).toEqual(['test:api:create'])
+    })
+
+    it('includes EventHandler component when it has no incoming links', () => {
+      const graph = createMinimalValidGraph()
+      graph.components = [createEventHandlerComponent({ id: 'test:handler:order', name: 'Order Handler', domain: 'test' })]
+      const query = new RiviereQuery(graph)
+
+      const result = query.entryPoints()
+
+      expect(result.map((c) => c.id)).toEqual(['test:handler:order'])
+    })
+
+    it('includes Custom component when it has no incoming links', () => {
+      const graph = createMinimalValidGraph()
+      graph.metadata.customTypes = { CronJob: { description: 'Scheduled job' } }
+      graph.components = [createCustomComponent({ id: 'test:cron:nightly', name: 'Nightly Sync', domain: 'test', customTypeName: 'CronJob' })]
+      const query = new RiviereQuery(graph)
+
+      const result = query.entryPoints()
+
+      expect(result.map((c) => c.id)).toEqual(['test:cron:nightly'])
+    })
+
+    it('excludes API component when it has incoming link', () => {
+      const graph = createMinimalValidGraph()
+      graph.components.push(createAPIComponent({ id: 'test:api:create', name: 'Create', domain: 'test' }))
+      graph.links = [{ source: 'test:mod:ui:page', target: 'test:api:create' }]
+      const query = new RiviereQuery(graph)
+
+      const result = query.entryPoints()
+
+      expect(result.map((c) => c.id)).toEqual(['test:mod:ui:page'])
+    })
+
+    it('excludes UseCase component even when it has no incoming links', () => {
+      const graph = createMinimalValidGraph()
+      graph.components = [createUseCaseComponent({ id: 'test:usecase:order', name: 'Create Order', domain: 'test' })]
+      const query = new RiviereQuery(graph)
+
+      const result = query.entryPoints()
+
+      expect(result).toEqual([])
+    })
+  })
+
 })

@@ -2,5 +2,50 @@ contexts:
   - name: living-architecture
     domainVisionStatement: Extract software architecture from code as living documentation, using Riviere schema for flow-based (not structural) architecture
     terms:
-      - name: ExampleTerm
-        definition: Replace with actual domain terms and definitions
+      # Core graph concepts
+      - name: Component
+        definition: A discrete unit of software functionality in a Riviere graph. Has a type, belongs to a domain, and connects to other components via links.
+
+      - name: Link
+        definition: A directed connection between two components, representing a call, dependency, or event flow. Has a source and target component ID, and optionally a type (sync/async).
+
+      - name: Flow
+        definition: A connected path through components and links, typically starting from an entry point and traversing downstream through the graph.
+
+      - name: Entry Point
+        definition: A component that initiates a flow. Must be of type UI, API, EventHandler, or Custom, and have no incoming links.
+
+      - name: Orphan
+        definition: A component with no links (neither incoming nor outgoing). Indicates potentially dead or disconnected code.
+
+      # Domain/boundary concepts
+      - name: Domain
+        definition: A logical grouping of related components. Each component belongs to exactly one domain. Domains have a systemType (domain, bff, ui, other).
+
+      - name: Cross-domain Link
+        definition: A link where source and target components belong to different domains. Represents integration between separate parts of the system.
+
+      - name: External Link
+        definition: A link to a component outside the current graph, typically representing integration with external systems.
+
+      # Component types
+      - name: UI
+        definition: A frontend component representing a user-facing page or screen. Has a route property.
+
+      - name: API
+        definition: An endpoint component exposing functionality over HTTP or other protocols. Has apiType, httpMethod, and path properties.
+
+      - name: UseCase
+        definition: An application service component orchestrating business logic. Coordinates between UI/API layer and domain operations.
+
+      - name: DomainOp
+        definition: A domain operation component representing a business action. May specify entity, stateChanges, and businessRules.
+
+      - name: Event
+        definition: A published event component representing something that happened in the domain. Has an eventName property.
+
+      - name: EventHandler
+        definition: A component that subscribes to and processes events. Has a subscribedEvents property listing event names it handles.
+
+      - name: Custom
+        definition: An extensible component type for domain-specific concepts not covered by built-in types. References a customTypeName defined in graph metadata.
