@@ -1,0 +1,109 @@
+.jsonContainer {
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  color: var(--text-primary);
+}
+
+.jsonBasicChild {
+  margin-left: 1rem;
+}
+
+.jsonLabel {
+  color: #8b5cf6;
+  font-weight: 600;
+  margin-right: 0.25rem;
+}
+
+.jsonClickableLabel {
+  color: #8b5cf6;
+  font-weight: 600;
+  margin-right: 0.25rem;
+  cursor: pointer;
+}
+
+.jsonClickableLabel:hover {
+  text-decoration: underline;
+}
+
+.jsonNull {
+  color: #64748b;
+  font-style: italic;
+}
+
+.jsonUndefined {
+  color: #64748b;
+  font-style: italic;
+}
+
+.jsonNumber {
+  color: #3b82f6;
+}
+
+.jsonString {
+  color: #10b981;
+}
+
+.jsonBoolean {
+  color: #f59e0b;
+  font-weight: 600;
+}
+
+.jsonOther {
+  color: var(--text-secondary);
+}
+
+.jsonPunctuation {
+  color: var(--text-primary);
+}
+
+.jsonExpandIcon {
+  font-size: 0.75rem;
+  margin-right: 0.25rem;
+  user-select: none;
+  cursor: pointer;
+  color: var(--text-tertiary);
+  transition: color 0.15s;
+}
+
+.jsonExpandIcon:hover {
+  color: var(--primary);
+}
+
+.jsonExpandIcon::after {
+  content: '▸';
+}
+
+.jsonCollapseIcon {
+  font-size: 0.75rem;
+  margin-right: 0.25rem;
+  user-select: none;
+  cursor: pointer;
+  color: var(--text-tertiary);
+  transition: color 0.15s;
+}
+
+.jsonCollapseIcon:hover {
+  color: var(--primary);
+}
+
+.jsonCollapseIcon::after {
+  content: '▾';
+}
+
+.jsonCollapsedContent {
+  color: var(--text-tertiary);
+  margin-right: 0.25rem;
+  cursor: pointer;
+}
+
+.jsonCollapsedContent::after {
+  content: '...';
+  font-size: 0.8em;
+}
+
+.jsonChildFields {
+  margin: 0;
+  padding: 0 0 0 0.5rem;
+  list-style: none;
+}

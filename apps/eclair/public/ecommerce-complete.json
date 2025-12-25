@@ -1,0 +1,2413 @@
+{
+  "version": "1.0",
+  "metadata": {
+    "name": "E-Commerce Complete Flow",
+    "description": "Complete order placement flow across all 7 domains: UI → BFF → Orders → Inventory/Payment (parallel) → Shipping → Notifications",
+    "generated": "2025-11-21T22:25:00Z",
+    "sources": [
+      {
+        "repository": "ecommerce-demo-app",
+        "extractedAt": "2025-11-21T22:25:00Z"
+      }
+    ],
+    "domains": {
+      "ui": {
+        "description": "User interface presentation layer",
+        "systemType": "ui"
+      },
+      "bff": {
+        "description": "Backend-for-frontend orchestration layer",
+        "systemType": "bff"
+      },
+      "orders": {
+        "description": "Order lifecycle management - placement, fulfillment, cancellation",
+        "systemType": "domain",
+        "entities": {
+          "Order": {
+            "description": "Aggregate root tracking order lifecycle from placement through delivery or cancellation",
+            "stateMachine": {
+              "states": [
+                "Draft",
+                "Placed",
+                "Confirmed",
+                "Shipped",
+                "Delivered",
+                "Cancelled"
+              ],
+              "initialState": "Draft",
+              "terminalStates": [
+                "Delivered",
+                "Cancelled"
+              ],
+              "transitions": [
+                {
+                  "from": "Draft",
+                  "to": "Placed",
+                  "trigger": "begin"
+                },
+                {
+                  "from": "Placed",
+                  "to": "Confirmed",
+                  "trigger": "confirm"
+                },
+                {
+                  "from": "Confirmed",
+                  "to": "Shipped",
+                  "trigger": "ship"
+                },
+                {
+                  "from": "Shipped",
+                  "to": "Delivered",
+                  "trigger": "deliver"
+                },
+                {
+                  "from": "*",
+                  "to": "Cancelled",
+                  "trigger": "cancel"
+                }
+              ]
+            },
+            "invariants": [
+              "Order must have at least one item",
+              "Total amount must be positive",
+              "Cannot ship without inventory reserved",
+              "Cannot confirm without payment authorized"
+            ],
+            "dataShape": {
+              "fields": [
+                {
+                  "name": "orderId",
+                  "type": "string",
+                  "required": true,
+                  "description": "Unique order identifier"
+                },
+                {
+                  "name": "customerId",
+                  "type": "string",
+                  "required": true,
+                  "description": "Customer placing the order"
+                },
+                {
+                  "name": "items",
+                  "type": "OrderItem[]",
+                  "required": true,
+                  "description": "Line items in the order"
+                },
+                {
+                  "name": "total",
+                  "type": "number",
+                  "required": true,
+                  "description": "Total order amount"
+                },
+                {
+                  "name": "state",
+                  "type": "OrderState",
+                  "required": true,
+                  "description": "Current order state"
+                },
+                {
+                  "name": "placedAt",
+                  "type": "DateTime",
+                  "required": false,
+                  "description": "When order was placed"
+                },
+                {
+                  "name": "shippedAt",
+                  "type": "DateTime",
+                  "required": false,
+                  "description": "When order was shipped"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "inventory": {
+        "description": "Stock reservation and inventory management",
+        "systemType": "domain",
+        "entities": {
+          "InventoryItem": {
+            "description": "Tracks stock levels through reservation, allocation, and release cycles",
+            "stateMachine": {
+              "states": [
+                "Available",
+                "PartiallyReserved",
+                "FullyReserved",
+                "Allocated",
+                "Released"
+              ],
+              "initialState": "Available",
+              "terminalStates": [
+                "Released"
+              ],
+              "transitions": [
+                {
+                  "from": "Available",
+                  "to": "PartiallyReserved",
+                  "trigger": "reserve"
+                },
+                {
+                  "from": "PartiallyReserved",
+                  "to": "FullyReserved",
+                  "trigger": "reserve"
+                },
+                {
+                  "from": "FullyReserved",
+                  "to": "Allocated",
+                  "trigger": "allocate"
+                },
+                {
+                  "from": "PartiallyReserved",
+                  "to": "Released",
+                  "trigger": "release"
+                },
+                {
+                  "from": "Allocated",
+                  "to": "Released",
+                  "trigger": "release"
+                }
+              ]
+            },
+            "invariants": [
+              "Quantity on hand must be non-negative",
+              "Reserved quantity cannot exceed on hand",
+              "Allocated quantity cannot exceed reserved"
+            ],
+            "dataShape": {
+              "fields": [
+                {
+                  "name": "itemId",
+                  "type": "string",
+                  "required": true,
+                  "description": "Product/SKU identifier"
+                },
+                {
+                  "name": "onHand",
+                  "type": "number",
+                  "required": true,
+                  "description": "Total units available"
+                },
+                {
+                  "name": "reserved",
+                  "type": "number",
+                  "required": true,
+                  "description": "Units reserved for orders"
+                },
+                {
+                  "name": "allocated",
+                  "type": "number",
+                  "required": true,
+                  "description": "Units allocated for shipment"
+                },
+                {
+                  "name": "state",
+                  "type": "InventoryState",
+                  "required": true,
+                  "description": "Current inventory state"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "payment": {
+        "description": "Payment processing and transaction management",
+        "systemType": "domain",
+        "entities": {
+          "Payment": {
+            "description": "Manages payment authorization, capture, failure, and refund lifecycle",
+            "stateMachine": {
+              "states": [
+                "Pending",
+                "Authorized",
+                "Captured",
+                "Failed",
+                "Refunded"
+              ],
+              "initialState": "Pending",
+              "terminalStates": [
+                "Captured",
+                "Failed",
+                "Refunded"
+              ],
+              "transitions": [
+                {
+                  "from": "Pending",
+                  "to": "Authorized",
+                  "trigger": "authorize"
+                },
+                {
+                  "from": "Authorized",
+                  "to": "Captured",
+                  "trigger": "capture"
+                },
+                {
+                  "from": "Pending",
+                  "to": "Failed",
+                  "trigger": "fail"
+                },
+                {
+                  "from": "Authorized",
+                  "to": "Failed",
+                  "trigger": "fail"
+                },
+                {
+                  "from": "Captured",
+                  "to": "Refunded",
+                  "trigger": "refund"
+                }
+              ]
+            },
+            "invariants": [
+              "Amount must be positive",
+              "Only one active payment per order",
+              "Cannot refund more than captured"
+            ],
+            "dataShape": {
+              "fields": [
+                {
+                  "name": "paymentId",
+                  "type": "string",
+                  "required": true,
+                  "description": "Unique payment identifier"
+                },
+                {
+                  "name": "orderId",
+                  "type": "string",
+                  "required": true,
+                  "description": "Associated order"
+                },
+                {
+                  "name": "amount",
+                  "type": "number",
+                  "required": true,
+                  "description": "Payment amount"
+                },
+                {
+                  "name": "state",
+                  "type": "PaymentState",
+                  "required": true,
+                  "description": "Current payment state"
+                },
+                {
+                  "name": "transactionId",
+                  "type": "string",
+                  "required": false,
+                  "description": "Payment gateway transaction ID"
+                },
+                {
+                  "name": "authorizedAt",
+                  "type": "DateTime",
+                  "required": false,
+                  "description": "When payment was authorized"
+                },
+                {
+                  "name": "capturedAt",
+                  "type": "DateTime",
+                  "required": false,
+                  "description": "When payment was captured"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "shipping": {
+        "description": "Shipment creation, tracking, and delivery management",
+        "systemType": "domain",
+        "entities": {
+          "Shipment": {
+            "description": "Tracks shipment from creation through dispatch, transit, and delivery",
+            "stateMachine": {
+              "states": [
+                "Created",
+                "Picked",
+                "Packed",
+                "Dispatched",
+                "InTransit",
+                "Delivered",
+                "Returned"
+              ],
+              "initialState": "Created",
+              "terminalStates": [
+                "Delivered",
+                "Returned"
+              ],
+              "transitions": [
+                {
+                  "from": "Created",
+                  "to": "Picked",
+                  "trigger": "pick"
+                },
+                {
+                  "from": "Picked",
+                  "to": "Packed",
+                  "trigger": "pack"
+                },
+                {
+                  "from": "Packed",
+                  "to": "Dispatched",
+                  "trigger": "dispatch"
+                },
+                {
+                  "from": "Dispatched",
+                  "to": "InTransit",
+                  "trigger": "transit"
+                },
+                {
+                  "from": "InTransit",
+                  "to": "Delivered",
+                  "trigger": "deliver"
+                },
+                {
+                  "from": "*",
+                  "to": "Returned",
+                  "trigger": "return"
+                }
+              ]
+            },
+            "invariants": [
+              "Shipment must have at least one item",
+              "Tracking number required once dispatched",
+              "Delivery address must be valid"
+            ],
+            "dataShape": {
+              "fields": [
+                {
+                  "name": "shipmentId",
+                  "type": "string",
+                  "required": true,
+                  "description": "Unique shipment identifier"
+                },
+                {
+                  "name": "orderId",
+                  "type": "string",
+                  "required": true,
+                  "description": "Associated order"
+                },
+                {
+                  "name": "items",
+                  "type": "ShipmentItem[]",
+                  "required": true,
+                  "description": "Items being shipped"
+                },
+                {
+                  "name": "state",
+                  "type": "ShipmentState",
+                  "required": true,
+                  "description": "Current shipment state"
+                },
+                {
+                  "name": "trackingNumber",
+                  "type": "string",
+                  "required": false,
+                  "description": "Carrier tracking number"
+                },
+                {
+                  "name": "dispatchedAt",
+                  "type": "DateTime",
+                  "required": false,
+                  "description": "When shipment left warehouse"
+                },
+                {
+                  "name": "deliveredAt",
+                  "type": "DateTime",
+                  "required": false,
+                  "description": "When shipment arrived"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "notifications": {
+        "description": "Customer notifications for orders and shipments",
+        "systemType": "domain",
+        "entities": {
+          "Notification": {
+            "description": "Represents email, SMS, or push notification with delivery status tracking",
+            "stateMachine": {
+              "states": [
+                "Queued",
+                "Sending",
+                "Sent",
+                "Failed",
+                "Bounced"
+              ],
+              "initialState": "Queued",
+              "terminalStates": [
+                "Sent",
+                "Failed",
+                "Bounced"
+              ],
+              "transitions": [
+                {
+                  "from": "Queued",
+                  "to": "Sending",
+                  "trigger": "send"
+                },
+                {
+                  "from": "Sending",
+                  "to": "Sent",
+                  "trigger": "confirm"
+                },
+                {
+                  "from": "Queued",
+                  "to": "Failed",
+                  "trigger": "fail"
+                },
+                {
+                  "from": "Sending",
+                  "to": "Failed",
+                  "trigger": "fail"
+                },
+                {
+                  "from": "Sent",
+                  "to": "Bounced",
+                  "trigger": "bounce"
+                }
+              ]
+            },
+            "invariants": [
+              "Recipient email/phone must be valid",
+              "Template must exist",
+              "Cannot retry after max attempts"
+            ],
+            "dataShape": {
+              "fields": [
+                {
+                  "name": "notificationId",
+                  "type": "string",
+                  "required": true,
+                  "description": "Unique notification identifier"
+                },
+                {
+                  "name": "recipient",
+                  "type": "string",
+                  "required": true,
+                  "description": "Email, SMS number, or push token"
+                },
+                {
+                  "name": "type",
+                  "type": "'email'|'sms'|'push'",
+                  "required": true,
+                  "description": "Notification channel"
+                },
+                {
+                  "name": "template",
+                  "type": "string",
+                  "required": true,
+                  "description": "Template used for message"
+                },
+                {
+                  "name": "state",
+                  "type": "NotificationState",
+                  "required": true,
+                  "description": "Current delivery state"
+                },
+                {
+                  "name": "sentAt",
+                  "type": "DateTime",
+                  "required": false,
+                  "description": "When notification was sent"
+                },
+                {
+                  "name": "failureReason",
+                  "type": "string",
+                  "required": false,
+                  "description": "Reason for failure if applicable"
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+  },
+  "nodes": [
+    {
+      "id": "ui:checkout:ui:place-order-form",
+      "type": "UI",
+      "name": "Place Order Form",
+      "domain": "ui",
+      "module": "checkout",
+      "description": "React form component for submitting order details",
+      "route": "/checkout",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/ui/src/pages/OrderPage.tsx",
+        "lineNumber": 7,
+        "methodName": "handlePlaceOrder",
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "id": "bff:checkout:api:post:/orders",
+      "type": "API",
+      "name": "POST /orders",
+      "domain": "bff",
+      "module": "checkout",
+      "description": "BFF endpoint that orchestrates order placement across domains",
+      "apiType": "REST",
+      "httpMethod": "POST",
+      "path": "/orders",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/bff/src/api/place-order/endpoint.ts",
+        "lineNumber": 4,
+        "methodName": "placeOrderBFFEndpoint",
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "id": "bff:checkout:usecase:place-order-bff",
+      "type": "UseCase",
+      "name": "Place Order BFF",
+      "domain": "bff",
+      "module": "checkout",
+      "description": "Coordinates order placement and inventory check",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/bff/src/api/place-order/use-cases/place-order-bff-use-case.ts",
+        "lineNumber": 15,
+        "methodName": "apply",
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "id": "orders:checkout:api:post:/orders",
+      "type": "API",
+      "name": "POST /orders",
+      "domain": "orders",
+      "module": "checkout",
+      "description": "Orders domain API endpoint for creating orders",
+      "apiType": "REST",
+      "httpMethod": "POST",
+      "path": "/orders",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/orders-domain/src/api/place-order/endpoint.ts",
+        "lineNumber": 4,
+        "methodName": "placeOrderEndpoint",
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "id": "orders:checkout:usecase:place-order",
+      "type": "UseCase",
+      "name": "Place Order",
+      "domain": "orders",
+      "module": "checkout",
+      "description": "Creates order and publishes OrderPlaced event",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/orders-domain/src/api/place-order/use-cases/place-order-use-case.ts",
+        "lineNumber": 11,
+        "methodName": "apply",
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "id": "orders:checkout:domainop:order.begin",
+      "type": "DomainOp",
+      "name": "Order.begin()",
+      "domain": "orders",
+      "module": "checkout",
+      "description": "Transitions order from Draft to Placed state",
+      "operationName": "begin",
+      "entity": "Order",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/orders-domain/src/domain/Order.ts",
+        "lineNumber": 23,
+        "methodName": "begin",
+        "repository": "ecommerce-demo-app"
+      },
+      "signature": {
+        "parameters": [
+          {
+            "name": "items",
+            "type": "OrderItem[]",
+            "description": "Line items for the order"
+          },
+          {
+            "name": "customerId",
+            "type": "string",
+            "description": "Customer placing order"
+          }
+        ],
+        "returnType": "void"
+      },
+      "behavior": {
+        "reads": [
+          "items parameter",
+          "customerId parameter",
+          "this.state"
+        ],
+        "validates": [
+          "items.length > 0",
+          "state === Draft",
+          "customerId exists"
+        ],
+        "modifies": [
+          "this.state ← Placed",
+          "this.items ← items",
+          "this.total ← calculated sum",
+          "this.placedAt ← timestamp"
+        ],
+        "emits": [
+          "order-placed event"
+        ]
+      },
+      "stateChanges": [
+        {
+          "from": "Draft",
+          "to": "Placed"
+        }
+      ]
+    },
+    {
+      "id": "orders:checkout:event:order-placed",
+      "type": "Event",
+      "name": "OrderPlaced",
+      "domain": "orders",
+      "module": "checkout",
+      "eventName": "OrderPlaced",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/orders-domain/src/infrastructure/events.ts",
+        "lineNumber": 5,
+        "repository": "ecommerce-demo-app"
+      },
+      "metadata": {
+        "schema": {
+          "type": "OrderPlaced",
+          "orderId": "string",
+          "customerId": "string",
+          "items": "Item[]",
+          "totalAmount": "number",
+          "timestamp": "string"
+        }
+      }
+    },
+    {
+      "id": "inventory:fulfillment:eventhandler:order-placed",
+      "type": "EventHandler",
+      "name": "Reserve Inventory Handler",
+      "domain": "inventory",
+      "module": "fulfillment",
+      "description": "Handles OrderPlaced event by reserving inventory",
+      "subscribedEvents": [
+        "OrderPlaced"
+      ],
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/inventory-domain/src/consumer/order-placed/handler.ts",
+        "lineNumber": 5,
+        "methodName": "handleOrderPlaced",
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "id": "inventory:fulfillment:usecase:reserve-inventory",
+      "type": "UseCase",
+      "name": "Reserve Inventory",
+      "domain": "inventory",
+      "module": "fulfillment",
+      "description": "Reserves inventory for order items",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/inventory-domain/src/consumer/order-placed/use-cases/reserve-inventory-use-case.ts",
+        "lineNumber": 5,
+        "methodName": "apply",
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "id": "inventory:fulfillment:domainop:inventoryitem.reserve",
+      "type": "DomainOp",
+      "name": "InventoryItem.reserve()",
+      "domain": "inventory",
+      "module": "fulfillment",
+      "description": "Reserves quantity from available stock",
+      "operationName": "reserve",
+      "entity": "InventoryItem",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/inventory-domain/src/domain/InventoryItem.ts",
+        "lineNumber": 18,
+        "methodName": "reserve",
+        "repository": "ecommerce-demo-app"
+      },
+      "signature": {
+        "parameters": [
+          {
+            "name": "quantity",
+            "type": "number"
+          }
+        ],
+        "returnType": "void"
+      },
+      "behavior": {
+        "validates": [
+          "availableQuantity >= quantity"
+        ],
+        "modifies": [
+          "availableQuantity",
+          "reservedQuantity",
+          "state"
+        ]
+      },
+      "stateChanges": [
+        {
+          "from": "Available",
+          "to": "Reserved"
+        }
+      ]
+    },
+    {
+      "id": "inventory:fulfillment:event:inventory-reserved",
+      "type": "Event",
+      "name": "InventoryReserved",
+      "domain": "inventory",
+      "module": "fulfillment",
+      "eventName": "InventoryReserved",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/inventory-domain/src/infrastructure/events.ts",
+        "lineNumber": 11,
+        "repository": "ecommerce-demo-app"
+      },
+      "metadata": {
+        "schema": {
+          "type": "InventoryReserved",
+          "orderId": "string",
+          "items": "Item[]",
+          "timestamp": "string"
+        }
+      }
+    },
+    {
+      "id": "payment:processing:eventhandler:order-placed",
+      "type": "EventHandler",
+      "name": "Process Payment Handler",
+      "domain": "payment",
+      "module": "processing",
+      "description": "Handles OrderPlaced event by processing payment",
+      "subscribedEvents": [
+        "OrderPlaced"
+      ],
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/payment-domain/src/consumer/order-placed/handler.ts",
+        "lineNumber": 5,
+        "methodName": "handleOrderPlaced",
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "id": "payment:processing:usecase:process-payment",
+      "type": "UseCase",
+      "name": "Process Payment",
+      "domain": "payment",
+      "module": "processing",
+      "description": "Processes payment via external gateway",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/payment-domain/src/consumer/order-placed/use-cases/process-payment-use-case.ts",
+        "lineNumber": 9,
+        "methodName": "apply",
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "id": "payment:processing:domainop:payment.complete",
+      "type": "DomainOp",
+      "name": "Payment.complete()",
+      "domain": "payment",
+      "module": "processing",
+      "description": "Marks payment as completed",
+      "operationName": "complete",
+      "entity": "Payment",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/payment-domain/src/domain/Payment.ts",
+        "lineNumber": 23,
+        "methodName": "complete",
+        "repository": "ecommerce-demo-app"
+      },
+      "signature": {
+        "returnType": "void"
+      },
+      "behavior": {
+        "modifies": [
+          "state"
+        ]
+      },
+      "stateChanges": [
+        {
+          "from": "Authorized",
+          "to": "Completed"
+        }
+      ]
+    },
+    {
+      "id": "payment:processing:event:payment-completed",
+      "type": "Event",
+      "name": "PaymentCompleted",
+      "domain": "payment",
+      "module": "processing",
+      "eventName": "PaymentCompleted",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/payment-domain/src/infrastructure/events.ts",
+        "lineNumber": 5,
+        "repository": "ecommerce-demo-app"
+      },
+      "metadata": {
+        "schema": {
+          "type": "PaymentCompleted",
+          "orderId": "string",
+          "paymentId": "string",
+          "amount": "number",
+          "timestamp": "string"
+        }
+      }
+    },
+    {
+      "id": "payment:processing:domainop:payment.fail",
+      "type": "DomainOp",
+      "name": "Payment.fail()",
+      "domain": "payment",
+      "module": "processing",
+      "description": "Marks payment as failed due to authorization or capture failure",
+      "operationName": "fail",
+      "entity": "Payment",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/payment-domain/src/domain/Payment.ts",
+        "lineNumber": 27,
+        "methodName": "fail",
+        "repository": "ecommerce-demo-app"
+      },
+      "signature": {
+        "returnType": "void"
+      },
+      "behavior": {
+        "modifies": [
+          "state"
+        ]
+      },
+      "stateChanges": [
+        {
+          "from": "Authorized",
+          "to": "Failed"
+        }
+      ]
+    },
+    {
+      "id": "payment:processing:event:payment-failed",
+      "type": "Event",
+      "name": "PaymentFailed",
+      "domain": "payment",
+      "module": "processing",
+      "eventName": "PaymentFailed",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/payment-domain/src/infrastructure/events.ts",
+        "lineNumber": 11,
+        "repository": "ecommerce-demo-app"
+      },
+      "metadata": {
+        "schema": {
+          "type": "PaymentFailed",
+          "orderId": "string",
+          "paymentId": "string",
+          "reason": "string",
+          "timestamp": "string"
+        }
+      }
+    },
+    {
+      "id": "orders:checkout:eventhandler:payment-failed",
+      "type": "EventHandler",
+      "name": "Cancel Order After Payment Failure Handler",
+      "domain": "orders",
+      "module": "checkout",
+      "description": "Cancels order when payment fails (compensation)",
+      "subscribedEvents": [
+        "PaymentFailed"
+      ],
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/orders-domain/src/consumer/payment-failed/handler.ts",
+        "lineNumber": 5,
+        "methodName": "handlePaymentFailed",
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "id": "orders:checkout:usecase:cancel-order-after-payment-failure",
+      "type": "UseCase",
+      "name": "Cancel Order After Payment Failure",
+      "domain": "orders",
+      "module": "checkout",
+      "description": "Compensation flow: cancels order when payment fails",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/orders-domain/src/consumer/payment-failed/use-cases/cancel-order-after-payment-failure-use-case.ts",
+        "lineNumber": 7,
+        "methodName": "apply",
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "id": "notifications:alerts:eventhandler:order-placed",
+      "type": "EventHandler",
+      "name": "Notify Order Placed Handler",
+      "domain": "notifications",
+      "module": "alerts",
+      "description": "Sends order confirmation notification",
+      "subscribedEvents": [
+        "OrderPlaced"
+      ],
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/notifications-domain/src/consumer/order-placed/handler.ts",
+        "lineNumber": 4,
+        "methodName": "handleOrderPlaced",
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "id": "notifications:alerts:usecase:notify-order-placed",
+      "type": "UseCase",
+      "name": "Notify Order Placed",
+      "domain": "notifications",
+      "module": "alerts",
+      "description": "Sends order confirmation email/SMS",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/notifications-domain/src/consumer/order-placed/use-cases/notify-order-placed-use-case.ts",
+        "lineNumber": 7,
+        "methodName": "apply",
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "id": "notifications:alerts:domainop:notification.marksent",
+      "type": "DomainOp",
+      "name": "Notification.markSent()",
+      "domain": "notifications",
+      "module": "alerts",
+      "description": "Marks notification as sent",
+      "operationName": "markSent",
+      "entity": "Notification",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/notifications-domain/src/domain/Notification.ts",
+        "lineNumber": 24,
+        "methodName": "markSent",
+        "repository": "ecommerce-demo-app"
+      },
+      "signature": {
+        "returnType": "void"
+      },
+      "behavior": {
+        "modifies": [
+          "status"
+        ]
+      },
+      "stateChanges": [
+        {
+          "from": "Pending",
+          "to": "Sent"
+        }
+      ]
+    },
+    {
+      "id": "orders:checkout:eventhandler:inventory-reserved",
+      "type": "EventHandler",
+      "name": "Confirm Order After Inventory Handler",
+      "domain": "orders",
+      "module": "checkout",
+      "description": "Marks inventory as reserved on order",
+      "subscribedEvents": [
+        "InventoryReserved"
+      ],
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/orders-domain/src/consumer/inventory-reserved/handler.ts",
+        "lineNumber": 5,
+        "methodName": "handleInventoryReserved",
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "id": "orders:checkout:usecase:confirm-order-after-inventory",
+      "type": "UseCase",
+      "name": "Confirm Order After Inventory",
+      "domain": "orders",
+      "module": "checkout",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/orders-domain/src/consumer/inventory-reserved/use-cases/confirm-order-after-inventory-use-case.ts",
+        "lineNumber": 4,
+        "methodName": "apply",
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "id": "orders:checkout:domainop:order.markinventoryreserved",
+      "type": "DomainOp",
+      "name": "Order.markInventoryReserved()",
+      "domain": "orders",
+      "module": "checkout",
+      "description": "Marks inventory as reserved, checks if order can be confirmed",
+      "operationName": "markInventoryReserved",
+      "entity": "Order",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/orders-domain/src/domain/Order.ts",
+        "lineNumber": 27,
+        "methodName": "markInventoryReserved",
+        "repository": "ecommerce-demo-app"
+      },
+      "signature": {
+        "returnType": "void"
+      },
+      "behavior": {
+        "modifies": [
+          "inventoryReserved",
+          "state"
+        ]
+      },
+      "stateChanges": [
+        {
+          "from": "Placed",
+          "to": "InventoryReserved"
+        }
+      ]
+    },
+    {
+      "id": "orders:checkout:eventhandler:payment-completed",
+      "type": "EventHandler",
+      "name": "Confirm Order After Payment Handler",
+      "domain": "orders",
+      "module": "checkout",
+      "description": "Marks payment as completed on order",
+      "subscribedEvents": [
+        "PaymentCompleted"
+      ],
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/orders-domain/src/consumer/payment-completed/handler.ts",
+        "lineNumber": 5,
+        "methodName": "handlePaymentCompleted",
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "id": "orders:checkout:usecase:confirm-order-after-payment",
+      "type": "UseCase",
+      "name": "Confirm Order After Payment",
+      "domain": "orders",
+      "module": "checkout",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/orders-domain/src/consumer/payment-completed/use-cases/confirm-order-after-payment-use-case.ts",
+        "lineNumber": 7,
+        "methodName": "apply",
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "id": "orders:checkout:domainop:order.markpaymentcompleted",
+      "type": "DomainOp",
+      "name": "Order.markPaymentCompleted()",
+      "domain": "orders",
+      "module": "checkout",
+      "description": "Marks payment as completed, may trigger confirmation",
+      "operationName": "markPaymentCompleted",
+      "entity": "Order",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/orders-domain/src/domain/Order.ts",
+        "lineNumber": 33,
+        "methodName": "markPaymentCompleted",
+        "repository": "ecommerce-demo-app"
+      },
+      "signature": {
+        "returnType": "void"
+      },
+      "behavior": {
+        "modifies": [
+          "paymentCompleted",
+          "state"
+        ]
+      },
+      "stateChanges": [
+        {
+          "from": "Placed",
+          "to": "PaymentCompleted"
+        }
+      ]
+    },
+    {
+      "id": "orders:checkout:event:order-confirmed",
+      "type": "Event",
+      "name": "OrderConfirmed",
+      "domain": "orders",
+      "module": "checkout",
+      "eventName": "OrderConfirmed",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/orders-domain/src/infrastructure/events.ts",
+        "lineNumber": 12,
+        "repository": "ecommerce-demo-app"
+      },
+      "metadata": {
+        "schema": {
+          "type": "OrderConfirmed",
+          "orderId": "string",
+          "timestamp": "string"
+        }
+      }
+    },
+    {
+      "id": "shipping:fulfillment:eventhandler:order-confirmed",
+      "type": "EventHandler",
+      "name": "Create Shipment Handler",
+      "domain": "shipping",
+      "module": "fulfillment",
+      "description": "Creates shipment when order is confirmed",
+      "subscribedEvents": [
+        "OrderConfirmed"
+      ],
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/shipping-domain/src/consumer/order-confirmed/handler.ts",
+        "lineNumber": 4,
+        "methodName": "handleOrderConfirmed",
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "id": "shipping:fulfillment:usecase:create-shipment",
+      "type": "UseCase",
+      "name": "Create Shipment",
+      "domain": "shipping",
+      "module": "fulfillment",
+      "description": "Creates shipment with tracking number from courier",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/shipping-domain/src/consumer/order-confirmed/use-cases/create-shipment-use-case.ts",
+        "lineNumber": 8,
+        "methodName": "apply",
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "id": "shipping:fulfillment:domainop:shipment.create",
+      "type": "DomainOp",
+      "name": "Shipment.create()",
+      "domain": "shipping",
+      "module": "fulfillment",
+      "description": "Creates shipment with tracking number",
+      "operationName": "create",
+      "entity": "Shipment",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/shipping-domain/src/domain/Shipment.ts",
+        "lineNumber": 20,
+        "methodName": "create",
+        "repository": "ecommerce-demo-app"
+      },
+      "signature": {
+        "parameters": [
+          {
+            "name": "trackingNumber",
+            "type": "string"
+          }
+        ],
+        "returnType": "void"
+      },
+      "behavior": {
+        "modifies": [
+          "trackingNumber",
+          "state"
+        ]
+      },
+      "stateChanges": [
+        {
+          "from": "Pending",
+          "to": "Created"
+        }
+      ]
+    },
+    {
+      "id": "shipping:fulfillment:event:shipment-created",
+      "type": "Event",
+      "name": "ShipmentCreated",
+      "domain": "shipping",
+      "module": "fulfillment",
+      "eventName": "ShipmentCreated",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/shipping-domain/src/infrastructure/events.ts",
+        "lineNumber": 5,
+        "repository": "ecommerce-demo-app"
+      },
+      "metadata": {
+        "schema": {
+          "type": "ShipmentCreated",
+          "shipmentId": "string",
+          "orderId": "string",
+          "trackingNumber": "string",
+          "timestamp": "string"
+        }
+      }
+    },
+    {
+      "id": "inventory:fulfillment:eventhandler:shipment-created",
+      "type": "EventHandler",
+      "name": "Allocate Inventory Handler",
+      "domain": "inventory",
+      "module": "fulfillment",
+      "description": "Allocates reserved inventory when shipment is created",
+      "subscribedEvents": [
+        "ShipmentCreated"
+      ],
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/inventory-domain/src/consumer/shipment-created/handler.ts",
+        "lineNumber": 5,
+        "methodName": "handleShipmentCreated",
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "id": "inventory:fulfillment:usecase:allocate-inventory",
+      "type": "UseCase",
+      "name": "Allocate Inventory",
+      "domain": "inventory",
+      "module": "fulfillment",
+      "description": "Transitions reserved inventory to allocated for shipment",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/inventory-domain/src/consumer/shipment-created/use-cases/allocate-inventory-use-case.ts",
+        "lineNumber": 3,
+        "methodName": "apply",
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "id": "inventory:fulfillment:domainop:inventoryitem.allocate",
+      "type": "DomainOp",
+      "name": "InventoryItem.allocate()",
+      "domain": "inventory",
+      "module": "fulfillment",
+      "description": "Moves reserved quantity to allocated for shipment",
+      "operationName": "allocate",
+      "entity": "InventoryItem",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/inventory-domain/src/domain/InventoryItem.ts",
+        "lineNumber": 26,
+        "methodName": "allocate",
+        "repository": "ecommerce-demo-app"
+      },
+      "signature": {
+        "parameters": [
+          {
+            "name": "quantity",
+            "type": "number"
+          }
+        ],
+        "returnType": "void"
+      },
+      "behavior": {
+        "validates": [
+          "reservedQuantity >= quantity"
+        ],
+        "modifies": [
+          "reservedQuantity",
+          "allocatedQuantity",
+          "state"
+        ]
+      },
+      "stateChanges": [
+        {
+          "from": "Reserved",
+          "to": "Allocated"
+        }
+      ]
+    },
+    {
+      "id": "shipping:fulfillment:api:put:/shipments/:id/dispatch",
+      "type": "API",
+      "name": "PUT /shipments/:id/dispatch",
+      "domain": "shipping",
+      "module": "fulfillment",
+      "description": "Dispatch shipment for delivery",
+      "apiType": "REST",
+      "httpMethod": "PUT",
+      "path": "/shipments/:id/dispatch",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/shipping-domain/src/api/dispatch-shipment/endpoint.ts",
+        "lineNumber": 4,
+        "methodName": "dispatchShipmentEndpoint",
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "id": "shipping:fulfillment:usecase:dispatch-shipment",
+      "type": "UseCase",
+      "name": "Dispatch Shipment",
+      "domain": "shipping",
+      "module": "fulfillment",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/shipping-domain/src/api/dispatch-shipment/use-cases/dispatch-shipment-use-case.ts",
+        "lineNumber": 7,
+        "methodName": "apply",
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "id": "shipping:fulfillment:domainop:shipment.dispatch",
+      "type": "DomainOp",
+      "name": "Shipment.dispatch()",
+      "domain": "shipping",
+      "module": "fulfillment",
+      "description": "Marks shipment as dispatched",
+      "operationName": "dispatch",
+      "entity": "Shipment",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/shipping-domain/src/domain/Shipment.ts",
+        "lineNumber": 25,
+        "methodName": "dispatch",
+        "repository": "ecommerce-demo-app"
+      },
+      "signature": {
+        "returnType": "void"
+      },
+      "behavior": {
+        "modifies": [
+          "state"
+        ]
+      },
+      "stateChanges": [
+        {
+          "from": "Created",
+          "to": "Dispatched"
+        }
+      ]
+    },
+    {
+      "id": "shipping:fulfillment:event:shipment-dispatched",
+      "type": "Event",
+      "name": "ShipmentDispatched",
+      "domain": "shipping",
+      "module": "fulfillment",
+      "eventName": "ShipmentDispatched",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/shipping-domain/src/infrastructure/events.ts",
+        "lineNumber": 11,
+        "repository": "ecommerce-demo-app"
+      },
+      "metadata": {
+        "schema": {
+          "type": "ShipmentDispatched",
+          "shipmentId": "string",
+          "orderId": "string",
+          "timestamp": "string"
+        }
+      }
+    },
+    {
+      "id": "notifications:alerts:eventhandler:shipment-dispatched",
+      "type": "EventHandler",
+      "name": "Notify Shipment Dispatched Handler",
+      "domain": "notifications",
+      "module": "alerts",
+      "subscribedEvents": [
+        "ShipmentDispatched"
+      ],
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/notifications-domain/src/consumer/shipment-dispatched/handler.ts",
+        "lineNumber": 4,
+        "methodName": "handleShipmentDispatched",
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "id": "orders:checkout:eventhandler:shipment-dispatched",
+      "type": "EventHandler",
+      "name": "Ship Order Handler",
+      "domain": "orders",
+      "module": "checkout",
+      "description": "Marks order as shipped when shipment is dispatched",
+      "subscribedEvents": [
+        "ShipmentDispatched"
+      ],
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/orders-domain/src/consumer/shipment-dispatched/handler.ts",
+        "lineNumber": 5,
+        "methodName": "handleShipmentDispatched",
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "id": "orders:checkout:usecase:ship-order",
+      "type": "UseCase",
+      "name": "Ship Order",
+      "domain": "orders",
+      "module": "checkout",
+      "description": "Transitions order to shipped state",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/orders-domain/src/consumer/shipment-dispatched/use-cases/ship-order-use-case.ts",
+        "lineNumber": 4,
+        "methodName": "apply",
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "id": "orders:checkout:domainop:order.ship",
+      "type": "DomainOp",
+      "name": "Order.ship()",
+      "domain": "orders",
+      "module": "checkout",
+      "description": "Marks order as shipped",
+      "operationName": "ship",
+      "entity": "Order",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/orders-domain/src/domain/Order.ts",
+        "lineNumber": 49,
+        "methodName": "ship",
+        "repository": "ecommerce-demo-app"
+      },
+      "signature": {
+        "returnType": "void"
+      },
+      "behavior": {
+        "modifies": [
+          "state"
+        ]
+      },
+      "stateChanges": [
+        {
+          "from": "Confirmed",
+          "to": "Shipped"
+        }
+      ]
+    },
+    {
+      "id": "shipping:fulfillment:domainop:shipment.deliver",
+      "type": "DomainOp",
+      "name": "Shipment.deliver()",
+      "domain": "shipping",
+      "module": "fulfillment",
+      "description": "Marks shipment as delivered",
+      "operationName": "deliver",
+      "entity": "Shipment",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/shipping-domain/src/domain/Shipment.ts",
+        "lineNumber": 33,
+        "methodName": "deliver",
+        "repository": "ecommerce-demo-app"
+      },
+      "signature": {
+        "returnType": "void"
+      },
+      "behavior": {
+        "modifies": [
+          "state"
+        ]
+      },
+      "stateChanges": [
+        {
+          "from": "InTransit",
+          "to": "Delivered"
+        }
+      ]
+    },
+    {
+      "id": "shipping:fulfillment:event:shipment-delivered",
+      "type": "Event",
+      "name": "ShipmentDelivered",
+      "domain": "shipping",
+      "module": "fulfillment",
+      "eventName": "ShipmentDelivered",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/shipping-domain/src/infrastructure/events.ts",
+        "lineNumber": 17,
+        "repository": "ecommerce-demo-app"
+      },
+      "metadata": {
+        "schema": {
+          "type": "ShipmentDelivered",
+          "shipmentId": "string",
+          "orderId": "string",
+          "timestamp": "string"
+        }
+      }
+    },
+    {
+      "id": "orders:checkout:eventhandler:shipment-delivered",
+      "type": "EventHandler",
+      "name": "Complete Order Handler",
+      "domain": "orders",
+      "module": "checkout",
+      "subscribedEvents": [
+        "ShipmentDelivered"
+      ],
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/orders-domain/src/consumer/shipment-delivered/handler.ts",
+        "lineNumber": 5,
+        "methodName": "handleShipmentDelivered",
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "id": "orders:checkout:usecase:complete-order",
+      "type": "UseCase",
+      "name": "Complete Order",
+      "domain": "orders",
+      "module": "checkout",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/orders-domain/src/consumer/shipment-delivered/use-cases/complete-order-use-case.ts",
+        "lineNumber": 7,
+        "methodName": "apply",
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "id": "orders:checkout:domainop:order.deliver",
+      "type": "DomainOp",
+      "name": "Order.deliver()",
+      "domain": "orders",
+      "module": "checkout",
+      "description": "Marks order as delivered (final state)",
+      "operationName": "deliver",
+      "entity": "Order",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/orders-domain/src/domain/Order.ts",
+        "lineNumber": 53,
+        "methodName": "deliver",
+        "repository": "ecommerce-demo-app"
+      },
+      "signature": {
+        "returnType": "void"
+      },
+      "behavior": {
+        "modifies": [
+          "state"
+        ]
+      },
+      "stateChanges": [
+        {
+          "from": "Shipped",
+          "to": "Delivered"
+        }
+      ]
+    },
+    {
+      "id": "notifications:alerts:eventhandler:shipment-delivered",
+      "type": "EventHandler",
+      "name": "Notify Delivery Handler",
+      "domain": "notifications",
+      "module": "alerts",
+      "subscribedEvents": [
+        "ShipmentDelivered"
+      ],
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/notifications-domain/src/consumer/shipment-delivered/handler.ts",
+        "lineNumber": 4,
+        "methodName": "handleShipmentDelivered",
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "id": "inventory:fulfillment:api:get:/inventory/:sku",
+      "type": "API",
+      "name": "GET /inventory/:sku",
+      "domain": "inventory",
+      "module": "fulfillment",
+      "description": "Check stock availability for SKU",
+      "apiType": "REST",
+      "httpMethod": "GET",
+      "path": "/inventory/:sku",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/inventory-domain/src/api/check-stock/endpoint.ts",
+        "lineNumber": 4,
+        "methodName": "checkStockEndpoint",
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "id": "inventory:fulfillment:usecase:check-stock",
+      "type": "UseCase",
+      "name": "Check Stock",
+      "domain": "inventory",
+      "module": "fulfillment",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/inventory-domain/src/api/check-stock/use-cases/check-stock-use-case.ts",
+        "lineNumber": 12,
+        "methodName": "apply",
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "id": "orders:checkout:api:post:/orders/:id/cancel",
+      "type": "API",
+      "name": "POST /orders/:id/cancel",
+      "domain": "orders",
+      "module": "checkout",
+      "description": "Cancel an order",
+      "apiType": "REST",
+      "httpMethod": "POST",
+      "path": "/orders/:id/cancel",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/orders-domain/src/api/cancel-order/endpoint.ts",
+        "lineNumber": 4,
+        "methodName": "cancelOrderEndpoint",
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "id": "orders:checkout:usecase:cancel-order",
+      "type": "UseCase",
+      "name": "Cancel Order",
+      "domain": "orders",
+      "module": "checkout",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/orders-domain/src/api/cancel-order/use-cases/cancel-order-use-case.ts",
+        "lineNumber": 7,
+        "methodName": "apply",
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "id": "orders:checkout:domainop:order.cancel",
+      "type": "DomainOp",
+      "name": "Order.cancel()",
+      "domain": "orders",
+      "module": "checkout",
+      "description": "Cancels the order",
+      "operationName": "cancel",
+      "entity": "Order",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/orders-domain/src/domain/Order.ts",
+        "lineNumber": 57,
+        "methodName": "cancel",
+        "repository": "ecommerce-demo-app"
+      },
+      "signature": {
+        "returnType": "void"
+      },
+      "behavior": {
+        "modifies": [
+          "state"
+        ]
+      },
+      "stateChanges": [
+        {
+          "from": "*",
+          "to": "Cancelled"
+        }
+      ]
+    },
+    {
+      "id": "orders:checkout:event:order-cancelled",
+      "type": "Event",
+      "name": "OrderCancelled",
+      "domain": "orders",
+      "module": "checkout",
+      "eventName": "OrderCancelled",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/orders-domain/src/infrastructure/events.ts",
+        "lineNumber": 23,
+        "repository": "ecommerce-demo-app"
+      },
+      "metadata": {
+        "schema": {
+          "type": "OrderCancelled",
+          "orderId": "string",
+          "timestamp": "string"
+        }
+      }
+    },
+    {
+      "id": "inventory:fulfillment:eventhandler:order-cancelled",
+      "type": "EventHandler",
+      "name": "Release Inventory Handler",
+      "domain": "inventory",
+      "module": "fulfillment",
+      "subscribedEvents": [
+        "OrderCancelled"
+      ],
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/inventory-domain/src/consumer/order-cancelled/handler.ts",
+        "lineNumber": 5,
+        "methodName": "handleOrderCancelled",
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "id": "inventory:fulfillment:usecase:release-inventory",
+      "type": "UseCase",
+      "name": "Release Inventory",
+      "domain": "inventory",
+      "module": "fulfillment",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/inventory-domain/src/consumer/order-cancelled/use-cases/release-inventory-use-case.ts",
+        "lineNumber": 7,
+        "methodName": "apply",
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "id": "inventory:fulfillment:domainop:inventoryitem.release",
+      "type": "DomainOp",
+      "name": "InventoryItem.release()",
+      "domain": "inventory",
+      "module": "fulfillment",
+      "description": "Releases reserved inventory back to available",
+      "operationName": "release",
+      "entity": "InventoryItem",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/inventory-domain/src/domain/InventoryItem.ts",
+        "lineNumber": 34,
+        "methodName": "release",
+        "repository": "ecommerce-demo-app"
+      },
+      "signature": {
+        "parameters": [
+          {
+            "name": "quantity",
+            "type": "number"
+          }
+        ],
+        "returnType": "void"
+      },
+      "behavior": {
+        "modifies": [
+          "reservedQuantity",
+          "availableQuantity",
+          "state"
+        ]
+      },
+      "stateChanges": [
+        {
+          "from": "Reserved",
+          "to": "Available"
+        }
+      ]
+    },
+    {
+      "id": "payment:processing:eventhandler:order-cancelled",
+      "type": "EventHandler",
+      "name": "Refund Payment Handler",
+      "domain": "payment",
+      "module": "processing",
+      "description": "Refunds payment when order is cancelled",
+      "subscribedEvents": [
+        "OrderCancelled"
+      ],
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/payment-domain/src/consumer/order-cancelled/handler.ts",
+        "lineNumber": 5,
+        "methodName": "handleOrderCancelled",
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "id": "payment:processing:usecase:refund-payment",
+      "type": "UseCase",
+      "name": "Refund Payment",
+      "domain": "payment",
+      "module": "processing",
+      "description": "Processes refund for cancelled order",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/payment-domain/src/consumer/order-cancelled/use-cases/refund-payment-use-case.ts",
+        "lineNumber": 8,
+        "methodName": "apply",
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "id": "payment:processing:domainop:payment.refund",
+      "type": "DomainOp",
+      "name": "Payment.refund()",
+      "domain": "payment",
+      "module": "processing",
+      "description": "Processes refund for cancelled order",
+      "operationName": "refund",
+      "entity": "Payment",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/payment-domain/src/domain/Payment.ts",
+        "lineNumber": 31,
+        "methodName": "refund",
+        "repository": "ecommerce-demo-app"
+      },
+      "signature": {
+        "returnType": "void"
+      },
+      "behavior": {
+        "modifies": [
+          "state"
+        ]
+      },
+      "stateChanges": [
+        {
+          "from": "Completed",
+          "to": "Refunded"
+        }
+      ]
+    },
+    {
+      "id": "shipping:jobs:custom:update-tracking-cron",
+      "type": "Custom",
+      "name": "Update Tracking Cron",
+      "domain": "shipping",
+      "module": "jobs",
+      "description": "Scheduled job that polls courier API for tracking updates every 5 minutes",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/shipping-domain/src/jobs/update-tracking/cron.ts",
+        "lineNumber": 10,
+        "methodName": "runTrackingUpdate",
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "id": "shipping:jobs:usecase:update-tracking",
+      "type": "UseCase",
+      "name": "Update Tracking",
+      "domain": "shipping",
+      "module": "jobs",
+      "description": "Checks courier API for tracking updates and transitions shipment states",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/shipping-domain/src/jobs/update-tracking/use-cases/update-tracking-use-case.ts",
+        "lineNumber": 8,
+        "methodName": "apply",
+        "repository": "ecommerce-demo-app"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "ui:checkout:ui:place-order-form",
+      "target": "bff:checkout:api:post:/orders",
+      "type": "sync",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/ui/src/pages/OrderPage.tsx",
+        "lineNumber": 8,
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "source": "bff:checkout:api:post:/orders",
+      "target": "bff:checkout:usecase:place-order-bff",
+      "type": "sync",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/bff/src/api/place-order/endpoint.ts",
+        "lineNumber": 8,
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "source": "bff:checkout:usecase:place-order-bff",
+      "target": "orders:checkout:api:post:/orders",
+      "type": "sync",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/bff/src/api/place-order/use-cases/place-order-bff-use-case.ts",
+        "lineNumber": 16,
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "source": "bff:checkout:usecase:place-order-bff",
+      "target": "inventory:fulfillment:api:get:/inventory/:sku",
+      "type": "sync",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/bff/src/api/place-order/use-cases/place-order-bff-use-case.ts",
+        "lineNumber": 26,
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "source": "orders:checkout:api:post:/orders",
+      "target": "orders:checkout:usecase:place-order",
+      "type": "sync",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/orders-domain/src/api/place-order/endpoint.ts",
+        "lineNumber": 8,
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "source": "orders:checkout:usecase:place-order",
+      "target": "orders:checkout:domainop:order.begin",
+      "type": "sync",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/orders-domain/src/api/place-order/use-cases/place-order-use-case.ts",
+        "lineNumber": 16,
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "source": "orders:checkout:usecase:place-order",
+      "target": "orders:checkout:event:order-placed",
+      "type": "async",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/orders-domain/src/api/place-order/use-cases/place-order-use-case.ts",
+        "lineNumber": 27,
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "source": "orders:checkout:event:order-placed",
+      "target": "inventory:fulfillment:eventhandler:order-placed",
+      "type": "async"
+    },
+    {
+      "source": "inventory:fulfillment:eventhandler:order-placed",
+      "target": "inventory:fulfillment:usecase:reserve-inventory",
+      "type": "sync",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/inventory-domain/src/consumer/order-placed/handler.ts",
+        "lineNumber": 12,
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "source": "inventory:fulfillment:usecase:reserve-inventory",
+      "target": "inventory:fulfillment:domainop:inventoryitem.reserve",
+      "type": "sync",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/inventory-domain/src/consumer/order-placed/use-cases/reserve-inventory-use-case.ts",
+        "lineNumber": 12,
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "source": "inventory:fulfillment:usecase:reserve-inventory",
+      "target": "inventory:fulfillment:event:inventory-reserved",
+      "type": "async",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/inventory-domain/src/consumer/order-placed/use-cases/reserve-inventory-use-case.ts",
+        "lineNumber": 20,
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "source": "orders:checkout:event:order-placed",
+      "target": "payment:processing:eventhandler:order-placed",
+      "type": "async"
+    },
+    {
+      "source": "payment:processing:eventhandler:order-placed",
+      "target": "payment:processing:usecase:process-payment",
+      "type": "sync",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/payment-domain/src/consumer/order-placed/handler.ts",
+        "lineNumber": 10,
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "source": "payment:processing:usecase:process-payment",
+      "target": "payment:processing:domainop:payment.complete",
+      "type": "sync",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/payment-domain/src/consumer/order-placed/use-cases/process-payment-use-case.ts",
+        "lineNumber": 18,
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "source": "payment:processing:usecase:process-payment",
+      "target": "payment:processing:event:payment-completed",
+      "type": "async",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/payment-domain/src/consumer/order-placed/use-cases/process-payment-use-case.ts",
+        "lineNumber": 25,
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "source": "payment:processing:usecase:process-payment",
+      "target": "payment:processing:domainop:payment.fail",
+      "type": "sync",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/payment-domain/src/consumer/order-placed/use-cases/process-payment-use-case.ts",
+        "lineNumber": 20,
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "source": "payment:processing:usecase:process-payment",
+      "target": "payment:processing:event:payment-failed",
+      "type": "async",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/payment-domain/src/consumer/order-placed/use-cases/process-payment-use-case.ts",
+        "lineNumber": 23,
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "source": "payment:processing:event:payment-failed",
+      "target": "orders:checkout:eventhandler:payment-failed",
+      "type": "async"
+    },
+    {
+      "source": "orders:checkout:eventhandler:payment-failed",
+      "target": "orders:checkout:usecase:cancel-order-after-payment-failure",
+      "type": "sync",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/orders-domain/src/consumer/payment-failed/handler.ts",
+        "lineNumber": 10,
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "source": "orders:checkout:usecase:cancel-order-after-payment-failure",
+      "target": "orders:checkout:domainop:order.cancel",
+      "type": "sync",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/orders-domain/src/consumer/payment-failed/use-cases/cancel-order-after-payment-failure-use-case.ts",
+        "lineNumber": 10,
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "source": "orders:checkout:usecase:cancel-order-after-payment-failure",
+      "target": "orders:checkout:event:order-cancelled",
+      "type": "async",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/orders-domain/src/consumer/payment-failed/use-cases/cancel-order-after-payment-failure-use-case.ts",
+        "lineNumber": 15,
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "source": "orders:checkout:event:order-placed",
+      "target": "notifications:alerts:eventhandler:order-placed",
+      "type": "async"
+    },
+    {
+      "source": "notifications:alerts:eventhandler:order-placed",
+      "target": "notifications:alerts:usecase:notify-order-placed",
+      "type": "sync",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/notifications-domain/src/consumer/order-placed/handler.ts",
+        "lineNumber": 12,
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "source": "notifications:alerts:usecase:notify-order-placed",
+      "target": "notifications:alerts:domainop:notification.marksent",
+      "type": "sync",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/notifications-domain/src/consumer/order-placed/use-cases/notify-order-placed-use-case.ts",
+        "lineNumber": 15,
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "source": "inventory:fulfillment:event:inventory-reserved",
+      "target": "orders:checkout:eventhandler:inventory-reserved",
+      "type": "async"
+    },
+    {
+      "source": "orders:checkout:eventhandler:inventory-reserved",
+      "target": "orders:checkout:usecase:confirm-order-after-inventory",
+      "type": "sync",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/orders-domain/src/consumer/inventory-reserved/handler.ts",
+        "lineNumber": 10,
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "source": "orders:checkout:usecase:confirm-order-after-inventory",
+      "target": "orders:checkout:domainop:order.markinventoryreserved",
+      "type": "sync",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/orders-domain/src/consumer/inventory-reserved/use-cases/confirm-order-after-inventory-use-case.ts",
+        "lineNumber": 10,
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "source": "payment:processing:event:payment-completed",
+      "target": "orders:checkout:eventhandler:payment-completed",
+      "type": "async"
+    },
+    {
+      "source": "orders:checkout:eventhandler:payment-completed",
+      "target": "orders:checkout:usecase:confirm-order-after-payment",
+      "type": "sync",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/orders-domain/src/consumer/payment-completed/handler.ts",
+        "lineNumber": 10,
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "source": "orders:checkout:usecase:confirm-order-after-payment",
+      "target": "orders:checkout:domainop:order.markpaymentcompleted",
+      "type": "sync",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/orders-domain/src/consumer/payment-completed/use-cases/confirm-order-after-payment-use-case.ts",
+        "lineNumber": 10,
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "source": "orders:checkout:usecase:confirm-order-after-inventory",
+      "target": "orders:checkout:event:order-confirmed",
+      "type": "async",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/orders-domain/src/consumer/inventory-reserved/use-cases/confirm-order-after-inventory-use-case.ts",
+        "lineNumber": 18,
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "source": "orders:checkout:event:order-confirmed",
+      "target": "shipping:fulfillment:eventhandler:order-confirmed",
+      "type": "async"
+    },
+    {
+      "source": "shipping:fulfillment:eventhandler:order-confirmed",
+      "target": "shipping:fulfillment:usecase:create-shipment",
+      "type": "sync",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/shipping-domain/src/consumer/order-confirmed/handler.ts",
+        "lineNumber": 10,
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "source": "shipping:fulfillment:usecase:create-shipment",
+      "target": "shipping:fulfillment:domainop:shipment.create",
+      "type": "sync",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/shipping-domain/src/consumer/order-confirmed/use-cases/create-shipment-use-case.ts",
+        "lineNumber": 15,
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "source": "shipping:fulfillment:usecase:create-shipment",
+      "target": "shipping:fulfillment:event:shipment-created",
+      "type": "async",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/shipping-domain/src/consumer/order-confirmed/use-cases/create-shipment-use-case.ts",
+        "lineNumber": 22,
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "source": "shipping:fulfillment:event:shipment-created",
+      "target": "inventory:fulfillment:eventhandler:shipment-created",
+      "type": "async"
+    },
+    {
+      "source": "inventory:fulfillment:eventhandler:shipment-created",
+      "target": "inventory:fulfillment:usecase:allocate-inventory",
+      "type": "sync",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/inventory-domain/src/consumer/shipment-created/handler.ts",
+        "lineNumber": 14,
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "source": "inventory:fulfillment:usecase:allocate-inventory",
+      "target": "inventory:fulfillment:domainop:inventoryitem.allocate",
+      "type": "sync",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/inventory-domain/src/consumer/shipment-created/use-cases/allocate-inventory-use-case.ts",
+        "lineNumber": 16,
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "source": "shipping:fulfillment:api:put:/shipments/:id/dispatch",
+      "target": "shipping:fulfillment:usecase:dispatch-shipment",
+      "type": "sync",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/shipping-domain/src/api/dispatch-shipment/endpoint.ts",
+        "lineNumber": 8,
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "source": "shipping:fulfillment:usecase:dispatch-shipment",
+      "target": "shipping:fulfillment:domainop:shipment.dispatch",
+      "type": "sync",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/shipping-domain/src/api/dispatch-shipment/use-cases/dispatch-shipment-use-case.ts",
+        "lineNumber": 10,
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "source": "shipping:fulfillment:usecase:dispatch-shipment",
+      "target": "shipping:fulfillment:event:shipment-dispatched",
+      "type": "async",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/shipping-domain/src/api/dispatch-shipment/use-cases/dispatch-shipment-use-case.ts",
+        "lineNumber": 15,
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "source": "shipping:fulfillment:event:shipment-dispatched",
+      "target": "notifications:alerts:eventhandler:shipment-dispatched",
+      "type": "async"
+    },
+    {
+      "source": "shipping:fulfillment:event:shipment-dispatched",
+      "target": "orders:checkout:eventhandler:shipment-dispatched",
+      "type": "async"
+    },
+    {
+      "source": "orders:checkout:eventhandler:shipment-dispatched",
+      "target": "orders:checkout:usecase:ship-order",
+      "type": "sync",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/orders-domain/src/consumer/shipment-dispatched/handler.ts",
+        "lineNumber": 10,
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "source": "orders:checkout:usecase:ship-order",
+      "target": "orders:checkout:domainop:order.ship",
+      "type": "sync",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/orders-domain/src/consumer/shipment-dispatched/use-cases/ship-order-use-case.ts",
+        "lineNumber": 7,
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "source": "shipping:fulfillment:event:shipment-delivered",
+      "target": "orders:checkout:eventhandler:shipment-delivered",
+      "type": "async"
+    },
+    {
+      "source": "orders:checkout:eventhandler:shipment-delivered",
+      "target": "orders:checkout:usecase:complete-order",
+      "type": "sync",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/orders-domain/src/consumer/shipment-delivered/handler.ts",
+        "lineNumber": 10,
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "source": "orders:checkout:usecase:complete-order",
+      "target": "orders:checkout:domainop:order.deliver",
+      "type": "sync",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/orders-domain/src/consumer/shipment-delivered/use-cases/complete-order-use-case.ts",
+        "lineNumber": 10,
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "source": "shipping:fulfillment:event:shipment-delivered",
+      "target": "notifications:alerts:eventhandler:shipment-delivered",
+      "type": "async"
+    },
+    {
+      "source": "inventory:fulfillment:api:get:/inventory/:sku",
+      "target": "inventory:fulfillment:usecase:check-stock",
+      "type": "sync",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/inventory-domain/src/api/check-stock/endpoint.ts",
+        "lineNumber": 8,
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "source": "orders:checkout:api:post:/orders/:id/cancel",
+      "target": "orders:checkout:usecase:cancel-order",
+      "type": "sync",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/orders-domain/src/api/cancel-order/endpoint.ts",
+        "lineNumber": 8,
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "source": "orders:checkout:usecase:cancel-order",
+      "target": "orders:checkout:domainop:order.cancel",
+      "type": "sync",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/orders-domain/src/api/cancel-order/use-cases/cancel-order-use-case.ts",
+        "lineNumber": 10,
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "source": "orders:checkout:usecase:cancel-order",
+      "target": "orders:checkout:event:order-cancelled",
+      "type": "async",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/orders-domain/src/api/cancel-order/use-cases/cancel-order-use-case.ts",
+        "lineNumber": 15,
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "source": "orders:checkout:event:order-cancelled",
+      "target": "inventory:fulfillment:eventhandler:order-cancelled",
+      "type": "async"
+    },
+    {
+      "source": "inventory:fulfillment:eventhandler:order-cancelled",
+      "target": "inventory:fulfillment:usecase:release-inventory",
+      "type": "sync",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/inventory-domain/src/consumer/order-cancelled/handler.ts",
+        "lineNumber": 10,
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "source": "inventory:fulfillment:usecase:release-inventory",
+      "target": "inventory:fulfillment:domainop:inventoryitem.release",
+      "type": "sync",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/inventory-domain/src/consumer/order-cancelled/use-cases/release-inventory-use-case.ts",
+        "lineNumber": 12,
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "source": "orders:checkout:event:order-cancelled",
+      "target": "payment:processing:eventhandler:order-cancelled",
+      "type": "async"
+    },
+    {
+      "source": "payment:processing:eventhandler:order-cancelled",
+      "target": "payment:processing:usecase:refund-payment",
+      "type": "sync",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/payment-domain/src/consumer/order-cancelled/handler.ts",
+        "lineNumber": 10,
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "source": "payment:processing:usecase:refund-payment",
+      "target": "payment:processing:domainop:payment.refund",
+      "type": "sync",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/payment-domain/src/consumer/order-cancelled/use-cases/refund-payment-use-case.ts",
+        "lineNumber": 15,
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "source": "shipping:jobs:custom:update-tracking-cron",
+      "target": "shipping:jobs:usecase:update-tracking",
+      "type": "sync",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/shipping-domain/src/jobs/update-tracking/cron.ts",
+        "lineNumber": 13,
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "source": "shipping:jobs:usecase:update-tracking",
+      "target": "shipping:fulfillment:domainop:shipment.deliver",
+      "type": "sync",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/shipping-domain/src/jobs/update-tracking/use-cases/update-tracking-use-case.ts",
+        "lineNumber": 27,
+        "repository": "ecommerce-demo-app"
+      }
+    },
+    {
+      "source": "shipping:jobs:usecase:update-tracking",
+      "target": "shipping:fulfillment:event:shipment-delivered",
+      "type": "async",
+      "sourceLocation": {
+        "filePath": "ecommerce-demo-app/shipping-domain/src/jobs/update-tracking/use-cases/update-tracking-use-case.ts",
+        "lineNumber": 36,
+        "repository": "ecommerce-demo-app"
+      }
+    }
+  ]
+}

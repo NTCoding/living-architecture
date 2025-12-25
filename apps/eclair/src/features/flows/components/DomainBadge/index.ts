@@ -1,0 +1,1 @@
+export { DomainBadge } from './DomainBadge'

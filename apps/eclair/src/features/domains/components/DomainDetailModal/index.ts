@@ -1,0 +1,1 @@
+export { DomainDetailModal } from './DomainDetailModal'

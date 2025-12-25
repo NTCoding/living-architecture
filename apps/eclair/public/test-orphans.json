@@ -1,0 +1,263 @@
+{
+  "version": "1.0",
+  "metadata": {
+    "name": "Test Graph with Orphans",
+    "description": "Test graph to verify orphan node detection - includes connected flow and isolated orphan nodes",
+    "generated": "2024-01-20T10:00:00Z",
+    "sources": [
+      {
+        "repository": "test-repo",
+        "commit": "test123",
+        "extractedAt": "2024-01-20T10:00:00Z"
+      }
+    ],
+    "domains": {
+      "orders": {
+        "description": "Order management domain",
+        "systemType": "domain"
+      },
+      "shipping": {
+        "description": "Shipping domain",
+        "systemType": "domain"
+      },
+      "inventory": {
+        "description": "Inventory management domain - NOT CONNECTED (orphan nodes)",
+        "systemType": "domain"
+      }
+    }
+  },
+  "components": [
+    {
+      "id": "ui:orders-page",
+      "type": "UI",
+      "name": "Orders Page",
+      "domain": "orders",
+      "module": "ui",
+      "route": "/orders",
+      "sourceLocation": {
+        "repository": "test-repo",
+        "filePath": "src/pages/OrdersPage.tsx",
+        "lineNumber": 1
+      }
+    },
+    {
+      "id": "api:place-order",
+      "type": "API",
+      "name": "POST /orders",
+      "domain": "orders",
+      "module": "api",
+      "apiType": "REST",
+      "httpMethod": "POST",
+      "path": "/orders",
+      "sourceLocation": {
+        "repository": "test-repo",
+        "filePath": "src/api/orders.ts",
+        "lineNumber": 10
+      }
+    },
+    {
+      "id": "usecase:place-order",
+      "type": "UseCase",
+      "name": "Place Order",
+      "domain": "orders",
+      "module": "use-cases",
+      "sourceLocation": {
+        "repository": "test-repo",
+        "filePath": "src/use-cases/PlaceOrder.ts",
+        "lineNumber": 5
+      }
+    },
+    {
+      "id": "domainop:create-order",
+      "type": "DomainOp",
+      "name": "Order.begin()",
+      "domain": "orders",
+      "module": "domain",
+      "operationName": "begin",
+      "entity": "Order",
+      "sourceLocation": {
+        "repository": "test-repo",
+        "filePath": "src/domain/Order.ts",
+        "lineNumber": 45
+      }
+    },
+    {
+      "id": "event:order-created",
+      "type": "Event",
+      "name": "order.created",
+      "domain": "orders",
+      "module": "events",
+      "eventName": "order.created",
+      "sourceLocation": {
+        "repository": "test-repo",
+        "filePath": "src/events/OrderEvents.ts",
+        "lineNumber": 12
+      }
+    },
+    {
+      "id": "eventhandler:prepare-shipping",
+      "type": "EventHandler",
+      "name": "On Order Created",
+      "domain": "shipping",
+      "module": "event-handlers",
+      "subscribedEvents": ["order.created"],
+      "sourceLocation": {
+        "repository": "test-repo",
+        "filePath": "src/event-handlers/ShippingHandlers.ts",
+        "lineNumber": 8
+      }
+    },
+    {
+      "id": "usecase:prepare-shipping",
+      "type": "UseCase",
+      "name": "Prepare Shipping",
+      "domain": "shipping",
+      "module": "use-cases",
+      "sourceLocation": {
+        "repository": "test-repo",
+        "filePath": "src/use-cases/PrepareShipping.ts",
+        "lineNumber": 3
+      }
+    },
+    {
+      "id": "domainop:create-shipment",
+      "type": "DomainOp",
+      "name": "Shipment.create()",
+      "domain": "shipping",
+      "module": "domain",
+      "operationName": "create",
+      "entity": "Shipment",
+      "sourceLocation": {
+        "repository": "test-repo",
+        "filePath": "src/domain/Shipment.ts",
+        "lineNumber": 22
+      }
+    },
+    {
+      "id": "orphan:unused-api",
+      "type": "API",
+      "name": "GET /inventory/report",
+      "domain": "inventory",
+      "module": "api",
+      "apiType": "REST",
+      "httpMethod": "GET",
+      "path": "/inventory/report",
+      "sourceLocation": {
+        "repository": "test-repo",
+        "filePath": "src/api/inventory.ts",
+        "lineNumber": 88
+      }
+    },
+    {
+      "id": "orphan:unused-usecase",
+      "type": "UseCase",
+      "name": "Check Inventory",
+      "domain": "inventory",
+      "module": "use-cases",
+      "sourceLocation": {
+        "repository": "test-repo",
+        "filePath": "src/use-cases/CheckInventory.ts",
+        "lineNumber": 1
+      }
+    },
+    {
+      "id": "orphan:unused-event",
+      "type": "Event",
+      "name": "inventory.low-stock",
+      "domain": "inventory",
+      "module": "events",
+      "eventName": "inventory.low-stock",
+      "sourceLocation": {
+        "repository": "test-repo",
+        "filePath": "src/events/InventoryEvents.ts",
+        "lineNumber": 25
+      }
+    },
+    {
+      "id": "orphan:unused-domainop",
+      "type": "DomainOp",
+      "name": "Inventory.reserve()",
+      "domain": "inventory",
+      "module": "domain",
+      "operationName": "reserve",
+      "entity": "Inventory",
+      "sourceLocation": {
+        "repository": "test-repo",
+        "filePath": "src/domain/Inventory.ts",
+        "lineNumber": 60
+      }
+    }
+  ],
+  "links": [
+    {
+      "source": "ui:orders-page",
+      "target": "api:place-order",
+      "type": "sync",
+      "sourceLocation": {
+        "repository": "test-repo",
+        "filePath": "src/pages/OrdersPage.tsx",
+        "lineNumber": 15
+      }
+    },
+    {
+      "source": "api:place-order",
+      "target": "usecase:place-order",
+      "type": "sync",
+      "sourceLocation": {
+        "repository": "test-repo",
+        "filePath": "src/api/orders.ts",
+        "lineNumber": 20
+      }
+    },
+    {
+      "source": "usecase:place-order",
+      "target": "domainop:create-order",
+      "type": "sync",
+      "sourceLocation": {
+        "repository": "test-repo",
+        "filePath": "src/use-cases/PlaceOrder.ts",
+        "lineNumber": 12
+      }
+    },
+    {
+      "source": "domainop:create-order",
+      "target": "event:order-created",
+      "type": "async",
+      "sourceLocation": {
+        "repository": "test-repo",
+        "filePath": "src/domain/Order.ts",
+        "lineNumber": 55
+      }
+    },
+    {
+      "source": "event:order-created",
+      "target": "eventhandler:prepare-shipping",
+      "type": "async",
+      "sourceLocation": {
+        "repository": "test-repo",
+        "filePath": "src/events/OrderEvents.ts",
+        "lineNumber": 18
+      }
+    },
+    {
+      "source": "eventhandler:prepare-shipping",
+      "target": "usecase:prepare-shipping",
+      "type": "sync",
+      "sourceLocation": {
+        "repository": "test-repo",
+        "filePath": "src/event-handlers/ShippingHandlers.ts",
+        "lineNumber": 15
+      }
+    },
+    {
+      "source": "usecase:prepare-shipping",
+      "target": "domainop:create-shipment",
+      "type": "sync",
+      "sourceLocation": {
+        "repository": "test-repo",
+        "filePath": "src/use-cases/PrepareShipping.ts",
+        "lineNumber": 9
+      }
+    }
+  ]
+}

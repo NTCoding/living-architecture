@@ -1,0 +1,401 @@
+import { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
+import type { RiviereGraph, SystemType, DomainName } from '@/types/riviere'
+import { DomainNameSchema } from '@/types/riviere'
+import { useRiviereQuery } from '@/hooks/useRiviereQuery'
+
+type ViewMode = 'grid' | 'list'
+type FilterType = 'all' | SystemType
+
+interface NodeBreakdown {
+  UI: number
+  API: number
+  UseCase: number
+  DomainOp: number
+  Event: number
+  EventHandler: number
+  Custom: number
+}
+
+interface DomainInfo {
+  id: DomainName
+  description: string
+  systemType: SystemType
+  nodeBreakdown: NodeBreakdown
+  entities: string[]
+  entryPoints: string[]
+  repository: string | undefined
+}
+
+interface OverviewPageProps {
+  graph: RiviereGraph
+}
+
+export function OverviewPage({ graph }: OverviewPageProps): React.ReactElement {
+  const [viewMode, setViewMode] = useState<ViewMode>('grid')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [activeFilter, setActiveFilter] = useState<FilterType>('all')
+  const query = useRiviereQuery(graph)
+
+  const { stats, allDomains } = useMemo(() => {
+    if (query === null) {
+      return {
+        stats: { totalNodes: 0, totalDomains: 0, totalApis: 0, totalEntities: 0, totalEvents: 0 },
+        allDomains: [],
+      }
+    }
+
+    const queryStats = query.stats()
+    const domains = query.domains()
+    const allEntities = query.entities()
+
+    const domainInfos: DomainInfo[] = domains.map((domain) => {
+      const domainId = DomainNameSchema.parse(domain.name)
+      const domainComponents = graph.components.filter((c) => c.domain === domainId)
+
+      const entryPoints: string[] = []
+      for (const node of domainComponents) {
+        if (node.type === 'UI') {
+          entryPoints.push(node.route)
+        } else if (node.type === 'API' && node.path !== undefined) {
+          entryPoints.push(node.path)
+        }
+      }
+
+      const repository = domainComponents
+        .find((node) => node.sourceLocation?.repository !== undefined)
+        ?.sourceLocation?.repository
+
+      const entities = allEntities
+        .filter((e) => e.domain === domain.name)
+        .map((e) => e.name)
+
+      return {
+        id: domainId,
+        description: domain.description,
+        systemType: domain.systemType,
+        nodeBreakdown: domain.componentCounts,
+        entities,
+        entryPoints,
+        repository,
+      }
+    })
+
+    return {
+      stats: {
+        totalNodes: queryStats.componentCount,
+        totalDomains: queryStats.domainCount,
+        totalApis: queryStats.apiCount,
+        totalEntities: queryStats.entityCount,
+        totalEvents: queryStats.eventCount,
+      },
+      allDomains: domainInfos,
+    }
+  }, [query, graph.components])
+
+  const filteredDomains = allDomains.filter((domain) => {
+    const matchesSearch = domain.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      domain.description.toLowerCase().includes(searchQuery.toLowerCase())
+    const matchesFilter = activeFilter === 'all' || domain.systemType === activeFilter
+    return matchesSearch && matchesFilter
+  })
+
+  return (
+    <div className="space-y-6">
+      <header>
+        <h1 className="font-[var(--font-heading)] text-2xl font-bold text-[var(--text-primary)]">
+          Overview
+        </h1>
+        <p className="text-[var(--text-secondary)]">
+          Architecture summary and quick access
+        </p>
+      </header>
+
+      <div className="flex flex-wrap gap-4 rounded-[var(--radius)] border border-[var(--border-color)] bg-[var(--bg-secondary)] p-4 md:flex-nowrap md:gap-6">
+        <StatsItem icon="graph" label="Nodes" value={stats.totalNodes} />
+        <StatsItem icon="folder" label="Domains" value={stats.totalDomains} />
+        <StatsItem icon="plug" label="APIs" value={stats.totalApis} />
+        <StatsItem icon="cube" label="Entities" value={stats.totalEntities} />
+        <StatsItem icon="broadcast" label="Events" value={stats.totalEvents} />
+      </div>
+
+      <div className="filters-section">
+        <div className="search-container">
+          <i className="ph ph-magnifying-glass search-icon" aria-hidden="true" />
+          <input
+            type="text"
+            className="search-input"
+            placeholder="Search domains..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+        <div className="filter-divider" />
+        <span className="filter-label">Type:</span>
+        <div className="filter-group">
+          <button
+            className={`filter-tag ${activeFilter === 'all' ? 'active' : ''}`}
+            onClick={() => setActiveFilter('all')}
+          >
+            All
+          </button>
+          <button
+            className={`filter-tag ${activeFilter === 'domain' ? 'active' : ''}`}
+            onClick={() => setActiveFilter('domain')}
+          >
+            Domain
+          </button>
+          <button
+            className={`filter-tag ${activeFilter === 'ui' ? 'active' : ''}`}
+            onClick={() => setActiveFilter('ui')}
+          >
+            UI
+          </button>
+          <button
+            className={`filter-tag ${activeFilter === 'bff' ? 'active' : ''}`}
+            onClick={() => setActiveFilter('bff')}
+          >
+            BFF
+          </button>
+        </div>
+      </div>
+
+      <section>
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="font-[var(--font-heading)] text-xl font-bold text-[var(--text-primary)]">
+            Domains
+          </h2>
+          <div className="view-mode-switcher">
+            <button
+              className={`view-mode-btn ${viewMode === 'grid' ? 'active' : ''}`}
+              onClick={() => setViewMode('grid')}
+            >
+              <i className="ph ph-squares-four" aria-hidden="true" />
+              Grid
+            </button>
+            <button
+              className={`view-mode-btn ${viewMode === 'list' ? 'active' : ''}`}
+              onClick={() => setViewMode('list')}
+            >
+              <i className="ph ph-list" aria-hidden="true" />
+              List
+            </button>
+          </div>
+        </div>
+        <div className={viewMode === 'grid' ? 'grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3' : 'flex flex-col gap-3'}>
+          {filteredDomains.map((domain) => (
+            <DomainCard
+              key={domain.id}
+              domain={domain}
+              viewMode={viewMode}
+              graphName={graph.metadata.name}
+            />
+          ))}
+        </div>
+      </section>
+    </div>
+  )
+}
+
+interface StatsItemProps {
+  icon: string
+  label: string
+  value: number
+}
+
+function StatsItem({ icon, label, value }: StatsItemProps): React.ReactElement {
+  return (
+    <div className="flex items-center gap-3 border-r border-[var(--border-color)] pr-6 last:border-r-0 last:pr-0 md:border-r md:pr-6">
+      <i className={`ph ph-${icon} text-xl text-[var(--primary)]`} aria-hidden="true" />
+      <div className="flex flex-col gap-0.5">
+        <span className="text-xs font-semibold uppercase tracking-wide text-[var(--text-tertiary)]">
+          {label}
+        </span>
+        <span className="font-[var(--font-heading)] text-xl font-bold text-[var(--text-primary)]">
+          {value}
+        </span>
+      </div>
+    </div>
+  )
+}
+
+interface DomainCardProps {
+  domain: DomainInfo
+  viewMode: ViewMode
+  graphName: string | undefined
+}
+
+function DomainCard({ domain, viewMode, graphName }: DomainCardProps): React.ReactElement {
+  const repoName = domain.repository ?? graphName ?? 'Source Code'
+
+  if (viewMode === 'list') {
+    return (
+      <article className="flex items-center gap-6 rounded-[var(--radius)] border border-[var(--border-color)] bg-[var(--bg-secondary)] px-5 py-4 transition-all hover:border-[var(--primary)] hover:shadow-[var(--shadow)]">
+        <div className="min-w-0 flex-1">
+          <h3 className="text-base font-bold text-[var(--text-primary)]">{domain.id}</h3>
+          <p className="truncate text-xs text-[var(--text-tertiary)]">
+            {domain.description}
+          </p>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <a
+            href="#"
+            className="icon-btn"
+            title={`View source: ${repoName}`}
+            aria-label={`View source code for ${domain.id}`}
+          >
+            <i className="ph ph-github-logo" aria-hidden="true" />
+          </a>
+          <Link
+            to={`/domains/${domain.id}`}
+            className="icon-btn"
+            title="View Details"
+            aria-label={`View details for ${domain.id}`}
+          >
+            <i className="ph ph-info" aria-hidden="true" />
+          </Link>
+          <Link
+            to={`/domains?highlight=${domain.id}`}
+            className="icon-btn-accent"
+            title="View on Domain Map"
+            aria-label={`View ${domain.id} on Domain Map`}
+          >
+            <i className="ph ph-map-trifold" aria-hidden="true" />
+          </Link>
+        </div>
+      </article>
+    )
+  }
+
+  return (
+    <article className="flex h-full flex-col rounded-[var(--radius)] border border-[var(--border-color)] bg-[var(--bg-secondary)] p-5 transition-all hover:-translate-y-0.5 hover:border-[var(--primary)] hover:shadow-[var(--shadow)]">
+      <header className="mb-3">
+        <h3 className="text-base font-bold text-[var(--text-primary)]">{domain.id}</h3>
+        <p className="line-clamp-2 text-xs leading-relaxed text-[var(--text-tertiary)]">
+          {domain.description}
+        </p>
+      </header>
+
+      <NodeBreakdownSection breakdown={domain.nodeBreakdown} />
+
+      {domain.entities.length > 0 && (
+        <EntitiesSection entities={domain.entities} />
+      )}
+
+      {domain.entryPoints.length > 0 && (
+        <EntryPointsSection entryPoints={domain.entryPoints} />
+      )}
+
+      <footer className="mt-auto flex items-center justify-between border-t border-[var(--border-color)] pt-3">
+        <a
+          href="#"
+          className="flex items-center gap-1.5 text-xs text-[var(--text-secondary)] transition-colors hover:text-[var(--primary)]"
+          aria-label={`GitHub repository ${repoName}`}
+        >
+          <i className="ph ph-github-logo text-sm" aria-hidden="true" />
+          <span>{repoName}</span>
+        </a>
+        <div className="flex items-center gap-2">
+          <Link
+            to={`/domains/${domain.id}`}
+            className="icon-btn"
+            title="View Details"
+            aria-label={`View details for ${domain.id}`}
+          >
+            <i className="ph ph-info" aria-hidden="true" />
+          </Link>
+          <Link
+            to={`/domains?highlight=${domain.id}`}
+            className="icon-btn-accent"
+            title="View on Domain Map"
+            aria-label={`View ${domain.id} on Domain Map`}
+          >
+            <i className="ph ph-map-trifold" aria-hidden="true" />
+          </Link>
+        </div>
+      </footer>
+    </article>
+  )
+}
+
+interface NodeBreakdownSectionProps {
+  breakdown: DomainInfo['nodeBreakdown']
+}
+
+function NodeBreakdownSection({ breakdown }: NodeBreakdownSectionProps): React.ReactElement {
+  const items = [
+    { label: 'UI', value: breakdown.UI },
+    { label: 'API', value: breakdown.API },
+    { label: 'UseCase', value: breakdown.UseCase },
+    { label: 'DomainOp', value: breakdown.DomainOp },
+    { label: 'Event', value: breakdown.Event },
+    { label: 'Handler', value: breakdown.EventHandler },
+  ].filter((item) => item.value > 0)
+
+  return (
+    <div className="mb-3 border-b border-[var(--border-color)] pb-3">
+      <h4 className="mb-2 text-[11px] font-bold uppercase tracking-wide text-[var(--text-tertiary)]">
+        Node Breakdown
+      </h4>
+      <div className="grid grid-cols-2 gap-1.5">
+        {items.map((item) => (
+          <div
+            key={item.label}
+            className="flex items-center justify-between rounded bg-[var(--bg-tertiary)] px-2 py-1 text-xs"
+          >
+            <span className="font-medium text-[var(--text-secondary)]">{item.label}</span>
+            <span className="font-bold text-[var(--text-primary)]">{item.value}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+interface EntitiesSectionProps {
+  entities: string[]
+}
+
+function EntitiesSection({ entities }: EntitiesSectionProps): React.ReactElement {
+  return (
+    <div className="mb-3 border-b border-[var(--border-color)] pb-3">
+      <h4 className="mb-2 text-[11px] font-bold uppercase tracking-wide text-[var(--text-tertiary)]">
+        Entities
+      </h4>
+      <div className="flex flex-wrap gap-1.5">
+        {entities.map((entity) => (
+          <span
+            key={entity}
+            className="rounded border border-[var(--border-color)] bg-[var(--bg-tertiary)] px-2 py-1 font-[var(--font-mono)] text-[11px] font-semibold text-[var(--text-primary)]"
+          >
+            {entity}
+          </span>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+interface EntryPointsSectionProps {
+  entryPoints: string[]
+}
+
+function EntryPointsSection({ entryPoints }: EntryPointsSectionProps): React.ReactElement {
+  return (
+    <div className="pb-0">
+      <h4 className="mb-2 text-[11px] font-bold uppercase tracking-wide text-[var(--text-tertiary)]">
+        Entry Points ({entryPoints.length})
+      </h4>
+      <div className="flex flex-col gap-1">
+        {entryPoints.map((path) => (
+          <div
+            key={path}
+            className="rounded bg-[var(--bg-tertiary)] px-2 py-1 font-[var(--font-mono)] text-[11px] text-[var(--text-secondary)]"
+          >
+            {path}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}

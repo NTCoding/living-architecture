@@ -2,100 +2,59 @@
   "name": "@living-architecture/eclair",
   "version": "0.0.1",
   "private": true,
+  "type": "module",
   "nx": {
     "targets": {
       "build": {
-        "executor": "@nx/esbuild:esbuild",
-        "outputs": [
-          "{options.outputPath}"
-        ],
-        "defaultConfiguration": "production",
+        "executor": "nx:run-commands",
+        "outputs": ["{projectRoot}/dist"],
         "options": {
-          "platform": "node",
-          "outputPath": "apps/eclair/dist",
-          "format": [
-            "cjs"
-          ],
-          "bundle": false,
-          "main": "apps/eclair/src/main.ts",
-          "tsConfig": "apps/eclair/tsconfig.app.json",
-          "assets": [
-            "apps/eclair/src/assets"
-          ],
-          "esbuildOptions": {
-            "sourcemap": true,
-            "outExtension": {
-              ".js": ".js"
-            }
-          }
-        },
-        "configurations": {
-          "development": {},
-          "production": {
-            "esbuildOptions": {
-              "sourcemap": false,
-              "outExtension": {
-                ".js": ".js"
-              }
-            }
-          }
+          "command": "vite build",
+          "cwd": "apps/eclair"
         }
-      },
-      "prune-lockfile": {
-        "dependsOn": [
-          "build"
-        ],
-        "cache": true,
-        "executor": "@nx/js:prune-lockfile",
-        "outputs": [
-          "{workspaceRoot}/apps/eclair/dist/package.json",
-          "{workspaceRoot}/apps/eclair/dist/pnpm-lock.yaml"
-        ],
-        "options": {
-          "buildTarget": "build"
-        }
-      },
-      "copy-workspace-modules": {
-        "dependsOn": [
-          "build"
-        ],
-        "cache": true,
-        "outputs": [
-          "{workspaceRoot}/apps/eclair/dist/workspace_modules"
-        ],
-        "executor": "@nx/js:copy-workspace-modules",
-        "options": {
-          "buildTarget": "build"
-        }
-      },
-      "prune": {
-        "dependsOn": [
-          "prune-lockfile",
-          "copy-workspace-modules"
-        ],
-        "executor": "nx:noop"
       },
       "serve": {
+        "executor": "nx:run-commands",
         "continuous": true,
-        "executor": "@nx/js:node",
-        "defaultConfiguration": "development",
-        "dependsOn": [
-          "build"
-        ],
         "options": {
-          "buildTarget": "@living-architecture/eclair:build",
-          "runBuildTargetDependencies": false
-        },
-        "configurations": {
-          "development": {
-            "buildTarget": "@living-architecture/eclair:build:development"
-          },
-          "production": {
-            "buildTarget": "@living-architecture/eclair:build:production"
-          }
+          "command": "vite",
+          "cwd": "apps/eclair"
+        }
+      },
+      "preview": {
+        "executor": "nx:run-commands",
+        "dependsOn": ["build"],
+        "options": {
+          "command": "vite preview",
+          "cwd": "apps/eclair"
         }
       }
     }
   },
-  "dependencies": {}
+  "dependencies": {
+    "@living-architecture/riviere-query": "workspace:*",
+    "@living-architecture/riviere-schema": "workspace:*",
+    "@xyflow/react": "^12.9.3",
+    "d3": "^7.9.0",
+    "dagre": "^0.8.5",
+    "html-to-image": "^1.11.11",
+    "json5": "^2.2.3",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-json-view-lite": "^2.5.0",
+    "react-router-dom": "^7.9.6",
+    "zod": "^4.1.13",
+    "zustand": "^5.0.8"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.17",
+    "@types/d3": "^7.4.3",
+    "@types/dagre": "^0.7.53",
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.5",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.1",
+    "tailwindcss": "^4.1.17",
+    "vite": "^7.2.4"
+  }
 }
