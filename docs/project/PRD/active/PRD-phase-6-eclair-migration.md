@@ -1,8 +1,8 @@
 # PRD: Phase 6 — Éclair Migration
 
-**Status:** Planning
+**Status:** Approved
 
-**Depends on:** Phase 5 (Riviere Query) — In Progress
+**Depends on:** Phase 5 (Riviere Query) — Complete
 
 ---
 
