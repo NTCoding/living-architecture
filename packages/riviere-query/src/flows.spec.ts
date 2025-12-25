@@ -148,17 +148,30 @@ describe('RiviereQuery.flows()', () => {
 })
 
 describe('RiviereQuery.searchWithFlow()', () => {
-  it('returns all IDs as matching and visible when query is empty', () => {
+  it('returns all IDs as matching and visible when query is empty and returnAllOnEmptyQuery is true', () => {
     const graph = createMinimalValidGraph()
     graph.components.push(
       createAPIComponent({ id: 'test:api:a', name: 'API A', domain: 'test' }),
     )
     const query = new RiviereQuery(graph)
 
-    const result = query.searchWithFlow('')
+    const result = query.searchWithFlow('', { returnAllOnEmptyQuery: true })
 
     expect(result.matchingIds.sort()).toEqual(['test:api:a', 'test:mod:ui:page'])
     expect(result.visibleIds.sort()).toEqual(['test:api:a', 'test:mod:ui:page'])
+  })
+
+  it('returns empty arrays when query is empty and returnAllOnEmptyQuery is false', () => {
+    const graph = createMinimalValidGraph()
+    graph.components.push(
+      createAPIComponent({ id: 'test:api:a', name: 'API A', domain: 'test' }),
+    )
+    const query = new RiviereQuery(graph)
+
+    const result = query.searchWithFlow('', { returnAllOnEmptyQuery: false })
+
+    expect(result.matchingIds).toEqual([])
+    expect(result.visibleIds).toEqual([])
   })
 
   it('returns matching component ID and all connected component IDs as visible', () => {
@@ -173,7 +186,7 @@ describe('RiviereQuery.searchWithFlow()', () => {
     ]
     const query = new RiviereQuery(graph)
 
-    const result = query.searchWithFlow('API A')
+    const result = query.searchWithFlow('API A', { returnAllOnEmptyQuery: false })
 
     expect(result.matchingIds).toEqual(['test:api:a'])
     expect(result.visibleIds.sort()).toEqual(['test:api:a', 'test:mod:ui:page', 'test:uc:b'])
@@ -182,7 +195,7 @@ describe('RiviereQuery.searchWithFlow()', () => {
   it('returns empty arrays when query matches nothing', () => {
     const query = new RiviereQuery(createMinimalValidGraph())
 
-    const result = query.searchWithFlow('nonexistent')
+    const result = query.searchWithFlow('nonexistent', { returnAllOnEmptyQuery: false })
 
     expect(result.matchingIds).toEqual([])
     expect(result.visibleIds).toEqual([])

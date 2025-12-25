@@ -117,10 +117,11 @@
         "description": "Find links crossing domain boundaries; summarize domain interconnections",
         "details": "## Deliverable\nFind links crossing domain boundaries; summarize domain interconnections\n\n## Context\n- PRD: `docs/project/PRD/active/PRD-phase-5-riviere-query.md` (M5: D5.5, D5.6)\n\n## Key Decisions\n- CrossDomainLink: link where source.domain !== target.domain\n- crossDomainLinks(domain) returns outgoing links from that domain\n- domainConnections(domain) summarizes: `{ incoming, outgoing }` with counts by type (API vs event)\n\n## Acceptance Criteria\n- Given link orders→shipping → When crossDomainLinks(\"orders\") → Then includes that link\n- Given link within orders → When crossDomainLinks(\"orders\") → Then excludes it\n- Given orders with 2 API calls to shipping, 1 event to notifications → When domainConnections(\"orders\") → Then outgoing.api === 2, outgoing.event === 1\n\n## Verification\nnx test riviere-query --testNamePattern \"crossDomainLinks|domainConnections\"",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2025-12-25T14:18:25.110Z"
       },
       {
         "id": "11",
@@ -189,9 +190,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-12-25T13:44:48.081Z",
+      "lastModified": "2025-12-25T14:18:25.111Z",
       "taskCount": 14,
-      "completedCount": 9,
+      "completedCount": 10,
       "tags": [
         "master"
       ]

@@ -100,6 +100,18 @@ export interface SearchWithFlowResult {
   visibleIds: ComponentId[]
 }
 
+export interface CrossDomainLink {
+  targetDomain: DomainName
+  linkType: LinkType | undefined
+}
+
+export interface DomainConnection {
+  targetDomain: DomainName
+  direction: 'outgoing' | 'incoming'
+  apiCount: number
+  eventCount: number
+}
+
 export function parseComponentId(id: string): ComponentId {
   return componentIdSchema.parse(id)
 }

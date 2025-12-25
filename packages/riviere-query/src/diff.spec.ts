@@ -119,5 +119,22 @@ describe('diff', () => {
       expect(result.links.removed[0]?.source).toBe('test:mod:ui:page')
       expect(result.links.removed[0]?.target).toBe('test:mod:api:endpoint')
     })
+
+    it('uses link id for comparison when link has explicit id', () => {
+      const baseGraph = createMinimalValidGraph()
+      baseGraph.components.push(createAPIComponent({ id: 'test:mod:api:endpoint', name: 'Test API', domain: 'test' }))
+      baseGraph.links = [{ id: 'link-1', source: 'test:mod:ui:page', target: 'test:mod:api:endpoint' }]
+      const otherGraph: RiviereGraph = {
+        ...baseGraph,
+        components: [...baseGraph.components],
+        links: [{ id: 'link-1', source: 'test:mod:ui:page', target: 'test:mod:api:endpoint' }],
+      }
+
+      const query = new RiviereQuery(baseGraph)
+      const result = query.diff(otherGraph)
+
+      expect(result.links.added).toHaveLength(0)
+      expect(result.links.removed).toHaveLength(0)
+    })
   })
 })
