@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { RiviereGraph, DomainName } from '@/types/riviere'
-import { DomainNameSchema, InvariantSchema } from '@/types/riviere'
+import { domainNameSchema, invariantSchema } from '@/types/riviere'
 import { EntityAccordion } from '../domains/components/EntityAccordion/EntityAccordion'
 import { extractEntities } from '../domains/domainNodeBreakdown'
 import type { DomainEntity } from '../domains/extractDomainDetails'
@@ -16,7 +16,7 @@ interface ExtendedDomainEntity extends DomainEntity {
 
 function getAllEntitiesFromGraph(graph: RiviereGraph): ExtendedDomainEntity[] {
   return Object.entries(graph.metadata.domains).flatMap(([domainNameRaw, domainMeta]) => {
-    const parsedDomainName = DomainNameSchema.safeParse(domainNameRaw)
+    const parsedDomainName = domainNameSchema.safeParse(domainNameRaw)
     if (!parsedDomainName.success) {
       return []
     }
@@ -34,7 +34,7 @@ function getAllEntitiesFromGraph(graph: RiviereGraph): ExtendedDomainEntity[] {
         description: metadata?.description,
         invariants:
           metadata?.invariants !== undefined
-            ? metadata.invariants.map((inv) => InvariantSchema.parse(inv))
+            ? metadata.invariants.map((inv) => invariantSchema.parse(inv))
             : [],
       }
       return extendedEntity
@@ -98,7 +98,7 @@ export function EntitiesPage({ graph }: EntitiesPageProps): React.ReactElement {
               if (value === 'all') {
                 setSelectedDomain('all')
               } else {
-                const parsed = DomainNameSchema.safeParse(value)
+                const parsed = domainNameSchema.safeParse(value)
                 if (parsed.success) {
                   setSelectedDomain(parsed.data)
                 }

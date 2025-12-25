@@ -15,7 +15,7 @@ const { capturedOnNodeHover } = vi.hoisted(() => {
 })
 
 const mockGraph: RiviereGraph = {
-  version: '1.0.0',
+  version: '1.0',
   metadata: {
     name: 'Test Graph',
     domains: {
@@ -306,12 +306,14 @@ describe('FullGraphPage', () => {
     const mockSimulationNode: SimulationNode = {
       id: 'node-1',
       type: 'API',
+        apiType: 'other',
       name: 'Test API',
       domain: 'orders',
       originalNode: parseNode({
         sourceLocation: testSourceLocation,
         id: 'node-1',
         type: 'API',
+        apiType: 'other',
         name: 'Test API',
         domain: 'orders',
         module: 'api',

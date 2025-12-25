@@ -6,7 +6,7 @@ const testSourceLocation = { repository: 'test-repo', filePath: 'src/test.ts' }
 
 function createMinimalGraph(overrides: Partial<RiviereGraph> = {}): RiviereGraph {
   return {
-    version: '1.0.0',
+    version: '1.0',
     metadata: {
       name: 'Test Graph',
       domains: parseDomainMetadata({}),
@@ -17,16 +17,30 @@ function createMinimalGraph(overrides: Partial<RiviereGraph> = {}): RiviereGraph
   }
 }
 
+function getTypeDefaults(nodeType: string, overrides: Partial<RawNode>): Partial<RawNode> {
+  if (nodeType === 'API') return { apiType: 'other' }
+  if (nodeType === 'UI') return { route: '/test-route' }
+  if (nodeType === 'Event') return { eventName: overrides.eventName ?? 'TestEvent' }
+  if (nodeType === 'EventHandler') return { subscribedEvents: overrides.subscribedEvents ?? [] }
+  if (nodeType === 'UseCase') return {}
+  if (nodeType === 'DomainOp') return { operationName: 'TestDomainOp' }
+  if (nodeType === 'Custom') return { customTypeName: 'TestCustomType' }
+  return {}
+}
+
 function createNode(overrides: Partial<RawNode> = {}): ReturnType<typeof parseNode> {
-  const defaults: RawNode = {
+  const nodeType = overrides.type ?? 'API'
+  const typeDefaults = getTypeDefaults(nodeType, overrides)
+  const base: RawNode = {
     sourceLocation: testSourceLocation,
     id: 'node-1',
-    type: 'API',
+    type: nodeType,
     name: 'Test Node',
     domain: 'test-domain',
     module: 'test-module',
+    ...typeDefaults,
   }
-  return parseNode({ ...defaults, ...overrides })
+  return parseNode({ ...base, ...overrides })
 }
 
 function createEdge(overrides: Partial<RawEdge> = {}): ReturnType<typeof parseEdge> {

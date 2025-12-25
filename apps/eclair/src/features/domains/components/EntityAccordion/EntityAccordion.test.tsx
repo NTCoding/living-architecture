@@ -4,11 +4,11 @@ import userEvent from '@testing-library/user-event'
 import { EntityAccordion } from './EntityAccordion'
 import type { DomainEntity } from '../../extractDomainDetails'
 import {
-  OperationNameSchema,
-  StateNameSchema,
-  InvariantSchema,
-  ParameterTypeSchema,
-  ReturnTypeSchema,
+  operationNameSchema,
+  stateNameSchema,
+  invariantSchema,
+  parameterTypeSchema,
+  returnTypeSchema,
   type OperationName,
   type StateName,
   type Invariant,
@@ -16,11 +16,11 @@ import {
   type ReturnType,
 } from '@/types/riviere'
 
-const parseOperation = (s: string): OperationName => OperationNameSchema.parse(s)
-const parseState = (s: string): StateName => StateNameSchema.parse(s)
-const parseInvariant = (s: string): Invariant => InvariantSchema.parse(s)
-const parseParameterType = (s: string): ParameterType => ParameterTypeSchema.parse(s)
-const parseReturnType = (s: string): ReturnType => ReturnTypeSchema.parse(s)
+const parseOperation = (s: string): OperationName => operationNameSchema.parse(s)
+const parseState = (s: string): StateName => stateNameSchema.parse(s)
+const parseInvariant = (s: string): Invariant => invariantSchema.parse(s)
+const parseParameterType = (s: string): ParameterType => parameterTypeSchema.parse(s)
+const parseReturnType = (s: string): ReturnType => returnTypeSchema.parse(s)
 
 function createEntity(overrides: Partial<DomainEntity> = {}): DomainEntity {
   return {

@@ -4,6 +4,16 @@
   "targets": {
     "build": {
       "dependsOn": ["^build"]
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "vitest run",
+        "cwd": "apps/eclair"
+      },
+      "configurations": {
+        "skip-nx-cache": true
+      }
     }
   }
 }

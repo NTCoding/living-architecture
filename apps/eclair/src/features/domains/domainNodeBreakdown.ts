@@ -1,8 +1,8 @@
 import type { Node, SourceLocation, NodeType } from '@/types/riviere'
 import {
-  OperationNameSchema,
-  StateNameSchema,
-  EntryPointSchema,
+  operationNameSchema,
+  stateNameSchema,
+  entryPointSchema,
 } from '@/types/riviere'
 import type {
   DomainEntity,
@@ -84,12 +84,12 @@ function collectStateTransitions(node: Node, allStates: Set<string>): void {
   }
 }
 
-function parseOperationName(name: string): ReturnType<typeof OperationNameSchema.parse> {
-  return OperationNameSchema.parse(name)
+function parseOperationName(name: string): ReturnType<typeof operationNameSchema.parse> {
+  return operationNameSchema.parse(name)
 }
 
-function parseStateName(name: string): ReturnType<typeof StateNameSchema.parse> {
-  return StateNameSchema.parse(name)
+function parseStateName(name: string): ReturnType<typeof stateNameSchema.parse> {
+  return stateNameSchema.parse(name)
 }
 
 function mergeOperationIntoEntity(
@@ -199,13 +199,13 @@ export function extractEntities(domainNodes: Node[]): DomainEntity[] {
     }))
 }
 
-export function extractEntryPoints(nodes: Node[]): ReturnType<typeof EntryPointSchema.parse>[] {
-  const entryPoints: ReturnType<typeof EntryPointSchema.parse>[] = []
+export function extractEntryPoints(nodes: Node[]): ReturnType<typeof entryPointSchema.parse>[] {
+  const entryPoints: ReturnType<typeof entryPointSchema.parse>[] = []
   for (const node of nodes) {
     if (node.type === 'UI') {
-      entryPoints.push(EntryPointSchema.parse(node.route))
+      entryPoints.push(entryPointSchema.parse(node.route))
     } else if (node.type === 'API' && node.path !== undefined) {
-      entryPoints.push(EntryPointSchema.parse(node.path))
+      entryPoints.push(entryPointSchema.parse(node.path))
     }
   }
   return entryPoints

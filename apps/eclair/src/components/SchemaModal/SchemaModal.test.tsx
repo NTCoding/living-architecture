@@ -3,17 +3,17 @@ import { render, screen, waitFor, within, fireEvent } from '@testing-library/rea
 import userEvent from '@testing-library/user-event'
 import { SchemaModal } from './SchemaModal'
 import type { RiviereGraph, GraphName } from '@/types/riviere'
-import { NodeIdSchema, DomainNameSchema, ModuleNameSchema, GraphNameSchema } from '@/types/riviere'
+import { nodeIdSchema, domainNameSchema, moduleNameSchema, graphNameSchema } from '@/types/riviere'
 
 const testSourceLocation = { repository: 'test-repo', filePath: 'src/test.ts' }
 
 function createGraphName(name: string): GraphName {
-  return GraphNameSchema.parse(name)
+  return graphNameSchema.parse(name)
 }
 
 function createTestGraph(overrides: Partial<RiviereGraph> = {}): RiviereGraph {
   return {
-    version: '1.0.0',
+    version: '1.0',
     metadata: {
       name: 'test-graph',
       description: 'Test graph description',
@@ -32,26 +32,27 @@ function createTestGraph(overrides: Partial<RiviereGraph> = {}): RiviereGraph {
     components: [
       {
         sourceLocation: testSourceLocation,
-        id: NodeIdSchema.parse('node-1'),
+        id: nodeIdSchema.parse('node-1'),
         type: 'API',
+        apiType: 'other',
         apiType: 'REST',
         name: 'POST /orders',
-        domain: DomainNameSchema.parse('orders'),
-        module: ModuleNameSchema.parse('api'),
+        domain: domainNameSchema.parse('orders'),
+        module: moduleNameSchema.parse('api'),
       },
       {
         sourceLocation: testSourceLocation,
-        id: NodeIdSchema.parse('node-2'),
+        id: nodeIdSchema.parse('node-2'),
         type: 'UseCase',
         name: 'PlaceOrder',
-        domain: DomainNameSchema.parse('orders'),
-        module: ModuleNameSchema.parse('usecases'),
+        domain: domainNameSchema.parse('orders'),
+        module: moduleNameSchema.parse('usecases'),
       },
     ],
     links: [
       {
-        source: NodeIdSchema.parse('node-1'),
-        target: NodeIdSchema.parse('node-2'),
+        source: nodeIdSchema.parse('node-1'),
+        target: nodeIdSchema.parse('node-2'),
         type: 'sync',
       },
     ],
@@ -158,29 +159,31 @@ describe('SchemaModal', () => {
           components: [
             {
               sourceLocation: testSourceLocation,
-              id: NodeIdSchema.parse('node-1'),
+              id: nodeIdSchema.parse('node-1'),
               type: 'API',
+        apiType: 'other',
               apiType: 'REST',
               name: 'POST /orders',
-              domain: DomainNameSchema.parse('orders'),
-              module: ModuleNameSchema.parse('api'),
+              domain: domainNameSchema.parse('orders'),
+              module: moduleNameSchema.parse('api'),
             },
             {
               sourceLocation: testSourceLocation,
-              id: NodeIdSchema.parse('node-2'),
+              id: nodeIdSchema.parse('node-2'),
               type: 'API',
+        apiType: 'other',
               apiType: 'REST',
               name: 'POST /items',
-              domain: DomainNameSchema.parse('orders'),
-              module: ModuleNameSchema.parse('api'),
+              domain: domainNameSchema.parse('orders'),
+              module: moduleNameSchema.parse('api'),
             },
             {
               sourceLocation: testSourceLocation,
-              id: NodeIdSchema.parse('node-3'),
+              id: nodeIdSchema.parse('node-3'),
               type: 'UseCase',
               name: 'PlaceOrder',
-              domain: DomainNameSchema.parse('orders'),
-              module: ModuleNameSchema.parse('usecases'),
+              domain: domainNameSchema.parse('orders'),
+              module: moduleNameSchema.parse('usecases'),
             },
           ],
         })
@@ -259,7 +262,7 @@ describe('SchemaModal', () => {
         const jsonViewer = screen.getByTestId('json-viewer')
         expect(jsonViewer).toBeInTheDocument()
         expect(jsonViewer.textContent).toContain('"version"')
-        expect(jsonViewer.textContent).toContain('"1.0.0"')
+        expect(jsonViewer.textContent).toContain('"1.0"')
       })
 
       it('renders JSON as collapsible tree', () => {
@@ -293,7 +296,7 @@ describe('SchemaModal', () => {
           throw new Error('Expected writeText to have been called with arguments')
         }
         const copiedContent = String(firstCall[0])
-        expect(copiedContent).toContain('"version": "1.0.0"')
+        expect(copiedContent).toContain('"version": "1.0"')
 
         vi.unstubAllGlobals()
       })

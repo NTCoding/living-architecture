@@ -3,7 +3,8 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { Header } from './Header'
 import type { RiviereGraph, GraphName } from '@/types/riviere'
-import { NodeIdSchema, DomainNameSchema, ModuleNameSchema, GraphNameSchema } from '@/types/riviere'
+import { nodeIdSchema, domainNameSchema, moduleNameSchema, graphNameSchema } from '@/types/riviere'
+import { parseDomainMetadata } from '@/lib/riviereTestData'
 
 const mockNavigate = vi.fn()
 const mockClearGraph = vi.fn()
@@ -19,29 +20,31 @@ vi.mock('@/contexts/GraphContext', () => ({
 const testSourceLocation = { repository: 'test-repo', filePath: 'src/test.ts' }
 
 function createGraphName(name: string): GraphName {
-  return GraphNameSchema.parse(name)
+  return graphNameSchema.parse(name)
 }
 
 function createTestGraph(): RiviereGraph {
   return {
-    version: '1.0.0',
+    version: '1.0',
     metadata: {
       name: 'test-graph',
       description: 'Test graph',
       generated: '2024-01-15T10:30:00Z',
-      domains: {
+      domains: parseDomainMetadata({
         orders: { description: 'Order management', systemType: 'domain' },
-      },
+      }),
     },
     components: [
       {
         sourceLocation: testSourceLocation,
-        id: NodeIdSchema.parse('node-1'),
+        id: nodeIdSchema.parse('node-1'),
         type: 'API',
         apiType: 'REST',
+        httpMethod: 'POST',
+        path: '/orders',
         name: 'POST /orders',
-        domain: DomainNameSchema.parse('orders'),
-        module: ModuleNameSchema.parse('api'),
+        domain: domainNameSchema.parse('orders'),
+        module: moduleNameSchema.parse('api'),
       },
     ],
     links: [],
@@ -268,7 +271,7 @@ describe('Header', () => {
   describe('orphan warning', () => {
     it('displays orphan warning when graph has orphan nodes', () => {
       const graphWithOrphans: RiviereGraph = {
-        version: '1.0.0',
+        version: '1.0',
         metadata: {
           name: 'test-graph-orphans',
           description: 'Test graph with orphans',
@@ -280,21 +283,23 @@ describe('Header', () => {
         components: [
           {
             sourceLocation: testSourceLocation,
-            id: NodeIdSchema.parse('node-1'),
+            id: nodeIdSchema.parse('node-1'),
             type: 'API',
             apiType: 'REST',
+            httpMethod: 'POST',
+            path: '/orders',
             name: 'POST /orders',
-            domain: DomainNameSchema.parse('orders'),
-            module: ModuleNameSchema.parse('api'),
+            domain: domainNameSchema.parse('orders'),
+            module: moduleNameSchema.parse('api'),
           },
           {
             sourceLocation: testSourceLocation,
-            id: NodeIdSchema.parse('orphan-node'),
+            id: nodeIdSchema.parse('orphan-node'),
             type: 'DomainOp',
             operationName: 'placeOrder',
             name: 'Place Order',
-            domain: DomainNameSchema.parse('orders'),
-            module: ModuleNameSchema.parse('api'),
+            domain: domainNameSchema.parse('orders'),
+            module: moduleNameSchema.parse('api'),
           },
         ],
         links: [],
@@ -308,7 +313,7 @@ describe('Header', () => {
 
     it('does not display orphan warning when no orphans detected', () => {
       const graphNoOrphans: RiviereGraph = {
-        version: '1.0.0',
+        version: '1.0',
         metadata: {
           name: 'test-graph-no-orphans',
           description: 'Test graph without orphans',
@@ -320,28 +325,30 @@ describe('Header', () => {
         components: [
           {
             sourceLocation: testSourceLocation,
-            id: NodeIdSchema.parse('node-1'),
+            id: nodeIdSchema.parse('node-1'),
             type: 'API',
             apiType: 'REST',
+            httpMethod: 'POST',
+            path: '/orders',
             name: 'POST /orders',
-            domain: DomainNameSchema.parse('orders'),
-            module: ModuleNameSchema.parse('api'),
+            domain: domainNameSchema.parse('orders'),
+            module: moduleNameSchema.parse('api'),
           },
           {
             sourceLocation: testSourceLocation,
-            id: NodeIdSchema.parse('node-2'),
+            id: nodeIdSchema.parse('node-2'),
             type: 'DomainOp',
             operationName: 'placeOrder',
             name: 'Place Order',
-            domain: DomainNameSchema.parse('orders'),
-            module: ModuleNameSchema.parse('api'),
+            domain: domainNameSchema.parse('orders'),
+            module: moduleNameSchema.parse('api'),
           },
         ],
         links: [
           {
             sourceLocation: testSourceLocation,
-            source: NodeIdSchema.parse('node-1'),
-            target: NodeIdSchema.parse('node-2'),
+            source: nodeIdSchema.parse('node-1'),
+            target: nodeIdSchema.parse('node-2'),
             type: 'sync',
           },
         ],
@@ -354,7 +361,7 @@ describe('Header', () => {
 
     it('displays warning with correct singular text for one orphan', () => {
       const graphWithOneOrphan: RiviereGraph = {
-        version: '1.0.0',
+        version: '1.0',
         metadata: {
           name: 'test-graph',
           description: 'Test graph',
@@ -366,12 +373,12 @@ describe('Header', () => {
         components: [
           {
             sourceLocation: testSourceLocation,
-            id: NodeIdSchema.parse('orphan-node'),
+            id: nodeIdSchema.parse('orphan-node'),
             type: 'DomainOp',
             operationName: 'orphan',
             name: 'Orphan Operation',
-            domain: DomainNameSchema.parse('orders'),
-            module: ModuleNameSchema.parse('api'),
+            domain: domainNameSchema.parse('orders'),
+            module: moduleNameSchema.parse('api'),
           },
         ],
         links: [],
@@ -385,7 +392,7 @@ describe('Header', () => {
     it('opens modal when warning is clicked', async () => {
       const user = userEvent.setup()
       const graphWithOrphans: RiviereGraph = {
-        version: '1.0.0',
+        version: '1.0',
         metadata: {
           name: 'test-graph-orphans',
           description: 'Test graph with orphans',
@@ -397,21 +404,23 @@ describe('Header', () => {
         components: [
           {
             sourceLocation: testSourceLocation,
-            id: NodeIdSchema.parse('node-1'),
+            id: nodeIdSchema.parse('node-1'),
             type: 'API',
             apiType: 'REST',
+            httpMethod: 'POST',
+            path: '/orders',
             name: 'POST /orders',
-            domain: DomainNameSchema.parse('orders'),
-            module: ModuleNameSchema.parse('api'),
+            domain: domainNameSchema.parse('orders'),
+            module: moduleNameSchema.parse('api'),
           },
           {
             sourceLocation: testSourceLocation,
-            id: NodeIdSchema.parse('orphan-node'),
+            id: nodeIdSchema.parse('orphan-node'),
             type: 'DomainOp',
             operationName: 'placeOrder',
             name: 'Place Order',
-            domain: DomainNameSchema.parse('orders'),
-            module: ModuleNameSchema.parse('api'),
+            domain: domainNameSchema.parse('orders'),
+            module: moduleNameSchema.parse('api'),
           },
         ],
         links: [],
@@ -429,7 +438,7 @@ describe('Header', () => {
     it('closes modal when close button is clicked', async () => {
       const user = userEvent.setup()
       const graphWithOrphans: RiviereGraph = {
-        version: '1.0.0',
+        version: '1.0',
         metadata: {
           name: 'test-graph-orphans',
           description: 'Test graph with orphans',
@@ -441,21 +450,23 @@ describe('Header', () => {
         components: [
           {
             sourceLocation: testSourceLocation,
-            id: NodeIdSchema.parse('node-1'),
+            id: nodeIdSchema.parse('node-1'),
             type: 'API',
             apiType: 'REST',
+            httpMethod: 'POST',
+            path: '/orders',
             name: 'POST /orders',
-            domain: DomainNameSchema.parse('orders'),
-            module: ModuleNameSchema.parse('api'),
+            domain: domainNameSchema.parse('orders'),
+            module: moduleNameSchema.parse('api'),
           },
           {
             sourceLocation: testSourceLocation,
-            id: NodeIdSchema.parse('orphan-node'),
+            id: nodeIdSchema.parse('orphan-node'),
             type: 'DomainOp',
             operationName: 'placeOrder',
             name: 'Place Order',
-            domain: DomainNameSchema.parse('orders'),
-            module: ModuleNameSchema.parse('api'),
+            domain: domainNameSchema.parse('orders'),
+            module: moduleNameSchema.parse('api'),
           },
         ],
         links: [],
@@ -475,7 +486,7 @@ describe('Header', () => {
     it('closes banner when close icon is clicked', async () => {
       const user = userEvent.setup()
       const graphWithOrphans: RiviereGraph = {
-        version: '1.0.0',
+        version: '1.0',
         metadata: {
           name: 'test-graph-orphans',
           description: 'Test graph with orphans',
@@ -487,12 +498,12 @@ describe('Header', () => {
         components: [
           {
             sourceLocation: testSourceLocation,
-            id: NodeIdSchema.parse('orphan-node'),
+            id: nodeIdSchema.parse('orphan-node'),
             type: 'DomainOp',
             operationName: 'orphan',
             name: 'Orphan Operation',
-            domain: DomainNameSchema.parse('orders'),
-            module: ModuleNameSchema.parse('api'),
+            domain: domainNameSchema.parse('orders'),
+            module: moduleNameSchema.parse('api'),
           },
         ],
         links: [],

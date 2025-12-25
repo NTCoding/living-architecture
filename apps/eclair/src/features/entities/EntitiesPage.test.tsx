@@ -18,7 +18,7 @@ vi.mock('react-router-dom', async () => {
 
 function createTestGraph(): RiviereGraph {
   return {
-    version: '1.0.0',
+    version: '1.0',
     metadata: {
       name: 'Test Architecture',
       description: 'Test description',

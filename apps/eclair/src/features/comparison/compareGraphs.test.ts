@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { compareGraphs } from './compareGraphs'
 import type { RiviereGraph, Node, Edge } from '@/types/riviere'
-import { parseNode, parseEdge, type RawNode, type RawEdge } from '@/lib/riviereTestData'
+import { parseNode, parseEdge, parseDomainMetadata, type RawNode, type RawEdge } from '@/lib/riviereTestData'
 
 const testSourceLocation = { repository: 'test-repo', filePath: 'src/test.ts' }
 
@@ -9,6 +9,7 @@ function createTestNode(overrides: Partial<RawNode> & { id: string; name: string
   const raw: RawNode = {
     sourceLocation: testSourceLocation,
     type: 'API',
+        apiType: 'other',
     ...overrides,
   }
   return parseNode(raw)
@@ -28,7 +29,7 @@ function createTestGraph(nodes: Node[], edges: Edge[], name = 'Test Graph'): Riv
     version: '1.0',
     metadata: {
       name,
-      domains: {},
+      domains: parseDomainMetadata({ 'test-domain': { description: 'Test domain', systemType: 'domain' } }),
     },
     components: nodes,
     links: edges,

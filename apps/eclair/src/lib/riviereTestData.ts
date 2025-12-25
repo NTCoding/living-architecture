@@ -1,13 +1,13 @@
 import {
-  NodeIdSchema,
-  EdgeIdSchema,
-  DomainNameSchema,
-  ModuleNameSchema,
-  EntityNameSchema,
-  EventNameSchema,
-  StateNameSchema,
-  ParameterTypeSchema,
-  ReturnTypeSchema,
+  nodeIdSchema,
+  edgeIdSchema,
+  domainNameSchema,
+  moduleNameSchema,
+  entityNameSchema,
+  eventNameSchema,
+  stateNameSchema,
+  parameterTypeSchema,
+  returnTypeSchema,
   type Node,
   type APINode,
   type Edge,
@@ -61,6 +61,7 @@ export interface RawNode {
   signature?: RawOperationSignature
   behavior?: OperationBehavior
   stateChanges?: RawStateTransition[]
+  customTypeName?: string
 }
 
 export interface RawEdge {
@@ -81,7 +82,7 @@ function parseOperationSignature(raw: RawOperationSignature): OperationSignature
   }
 
   if (raw.returnType !== undefined) {
-    result.returnType = ReturnTypeSchema.parse(raw.returnType)
+    result.returnType = returnTypeSchema.parse(raw.returnType)
   }
 
   return result
@@ -89,12 +90,12 @@ function parseOperationSignature(raw: RawOperationSignature): OperationSignature
 
 function parseOperationParameter(p: RawOperationParameter): {
   name: string
-  type: ReturnType<typeof ParameterTypeSchema.parse>
+  type: ReturnType<typeof parameterTypeSchema.parse>
   description?: string
 } {
-  const param: { name: string; type: ReturnType<typeof ParameterTypeSchema.parse>; description?: string } = {
+  const param: { name: string; type: ReturnType<typeof parameterTypeSchema.parse>; description?: string } = {
     name: p.name,
-    type: ParameterTypeSchema.parse(p.type),
+    type: parameterTypeSchema.parse(p.type),
   }
   if (p.description !== undefined) {
     param.description = p.description
@@ -103,10 +104,10 @@ function parseOperationParameter(p: RawOperationParameter): {
 }
 
 interface BaseNodeFields {
-  id: ReturnType<typeof NodeIdSchema.parse>
+  id: ReturnType<typeof nodeIdSchema.parse>
   name: string
-  domain: ReturnType<typeof DomainNameSchema.parse>
-  module: ReturnType<typeof ModuleNameSchema.parse>
+  domain: ReturnType<typeof domainNameSchema.parse>
+  module: ReturnType<typeof moduleNameSchema.parse>
   description?: string
   sourceLocation: SourceLocation
   metadata?: Record<string, unknown>
@@ -114,10 +115,10 @@ interface BaseNodeFields {
 
 function parseBaseFields(data: RawNode): BaseNodeFields {
   const base: BaseNodeFields = {
-    id: NodeIdSchema.parse(data.id),
+    id: nodeIdSchema.parse(data.id),
     name: data.name,
-    domain: DomainNameSchema.parse(data.domain),
-    module: ModuleNameSchema.parse(data.module),
+    domain: domainNameSchema.parse(data.domain),
+    module: moduleNameSchema.parse(data.module),
     sourceLocation: data.sourceLocation,
   }
   if (data.description !== undefined) base.description = data.description
@@ -150,13 +151,13 @@ function parseDomainOpNode(data: RawNode, base: BaseNodeFields): Node {
     type: 'DomainOp',
     operationName: data.operationName,
   }
-  if (data.entity !== undefined) node.entity = EntityNameSchema.parse(data.entity)
+  if (data.entity !== undefined) node.entity = entityNameSchema.parse(data.entity)
   if (data.signature !== undefined) node.signature = parseOperationSignature(data.signature)
   if (data.behavior !== undefined) node.behavior = data.behavior
   if (data.stateChanges !== undefined) {
     node.stateChanges = data.stateChanges.map(sc => ({
-      from: StateNameSchema.parse(sc.from),
-      to: StateNameSchema.parse(sc.to),
+      from: stateNameSchema.parse(sc.from),
+      to: stateNameSchema.parse(sc.to),
       ...(sc.trigger !== undefined ? { trigger: sc.trigger } : {}),
     }))
   }
@@ -170,7 +171,7 @@ function parseEventNode(data: RawNode, base: BaseNodeFields): Node {
   const node: Node = {
     ...base,
     type: 'Event',
-    eventName: EventNameSchema.parse(data.eventName),
+    eventName: eventNameSchema.parse(data.eventName),
   }
   if (data.eventSchema !== undefined) node.eventSchema = data.eventSchema
   return node
@@ -183,7 +184,7 @@ function parseEventHandlerNode(data: RawNode, base: BaseNodeFields): Node {
   return {
     ...base,
     type: 'EventHandler',
-    subscribedEvents: data.subscribedEvents.map(e => EventNameSchema.parse(e)),
+    subscribedEvents: data.subscribedEvents.map(e => eventNameSchema.parse(e)),
   }
 }
 
@@ -197,16 +198,21 @@ export function parseNode(data: RawNode): Node {
     case 'DomainOp': return parseDomainOpNode(data, base)
     case 'Event': return parseEventNode(data, base)
     case 'EventHandler': return parseEventHandlerNode(data, base)
-    case 'Custom': return { ...base, type: 'Custom' }
+    case 'Custom': {
+      if (data.customTypeName === undefined) {
+        throw new Error(`Custom node requires customTypeName: ${data.id}`)
+      }
+      return { ...base, type: 'Custom', customTypeName: data.customTypeName }
+    }
   }
 }
 
 export function parseEdge(data: RawEdge): Edge {
-  const id = data.id ? EdgeIdSchema.parse(data.id) : undefined
+  const id = data.id ? edgeIdSchema.parse(data.id) : undefined
 
   const result: Edge = {
-    source: NodeIdSchema.parse(data.source),
-    target: NodeIdSchema.parse(data.target),
+    source: nodeIdSchema.parse(data.source),
+    target: nodeIdSchema.parse(data.target),
   }
 
   if (id !== undefined) result.id = id
@@ -218,22 +224,22 @@ export function parseEdge(data: RawEdge): Edge {
   return result
 }
 
-export function parseDomainKey(key: string): ReturnType<typeof DomainNameSchema.parse> {
-  return DomainNameSchema.parse(key)
+export function parseDomainKey(key: string): ReturnType<typeof domainNameSchema.parse> {
+  return domainNameSchema.parse(key)
 }
 
 
-export function parseDomainMetadata(raw: Record<string, RawDomainMetadata>): Record<ReturnType<typeof DomainNameSchema.parse>, DomainMetadata> {
-  type ParsedDomainName = ReturnType<typeof DomainNameSchema.parse>
-  const result: Record<ParsedDomainName, DomainMetadata> = Object.create(null)
+export function parseDomainMetadata(raw: Record<string, RawDomainMetadata>): Record<ReturnType<typeof domainNameSchema.parse>, DomainMetadata> {
+  type ParsedDomainName = ReturnType<typeof domainNameSchema.parse>
+  const result: Record<ParsedDomainName, DomainMetadata> = {}
 
   Object.entries(raw).forEach(([key, value]) => {
-    const parsedKey: ParsedDomainName = DomainNameSchema.parse(key)
-    const entities: Record<ReturnType<typeof EntityNameSchema.parse>, EntityDefinition> | undefined =
+    const parsedKey: ParsedDomainName = domainNameSchema.parse(key)
+    const entities: Record<ReturnType<typeof entityNameSchema.parse>, EntityDefinition> | undefined =
       value.entities
         ? Object.fromEntries(
             Object.entries(value.entities).map(([entityName, definition]) => [
-              EntityNameSchema.parse(entityName),
+              entityNameSchema.parse(entityName),
               definition,
             ]),
           )
@@ -256,13 +262,13 @@ export interface RawDomainMetadata {
   entities?: Record<string, EntityDefinition>
 }
 
-export function parseEntityCard(domain: string, entityName: string): { domain: ReturnType<typeof DomainNameSchema.parse>; entityName: ReturnType<typeof EntityNameSchema.parse> } {
+export function parseEntityCard(domain: string, entityName: string): { domain: ReturnType<typeof domainNameSchema.parse>; entityName: ReturnType<typeof entityNameSchema.parse> } {
   return {
-    domain: DomainNameSchema.parse(domain),
-    entityName: EntityNameSchema.parse(entityName),
+    domain: domainNameSchema.parse(domain),
+    entityName: entityNameSchema.parse(entityName),
   }
 }
 
-export function parseStateName(name: string): ReturnType<typeof StateNameSchema.parse> {
-  return StateNameSchema.parse(name)
+export function parseStateName(name: string): ReturnType<typeof stateNameSchema.parse> {
+  return stateNameSchema.parse(name)
 }

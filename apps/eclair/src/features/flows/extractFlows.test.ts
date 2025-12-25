@@ -1,17 +1,17 @@
 import { describe, it, expect } from 'vitest'
 import { extractFlows } from './extractFlows'
 import type { RiviereGraph } from '@/types/riviere'
-import { parseNode, parseEdge } from '@/lib/riviereTestData'
+import { parseNode, parseEdge, parseDomainMetadata } from '@/lib/riviereTestData'
 
 const testSourceLocation = { repository: 'test-repo', filePath: 'src/test.ts' }
 
 function createTestGraph(): RiviereGraph {
   return {
     version: '1.0',
-    metadata: { domains: {} },
+    metadata: { domains: parseDomainMetadata({ 'test-domain': { description: 'Test domain', systemType: 'domain' } }) },
     components: [
       parseNode({ sourceLocation: testSourceLocation, id: 'ui-1', type: 'UI', name: 'Place Order Form', domain: 'checkout', module: 'ui', route: '/checkout' }),
-      parseNode({ sourceLocation: testSourceLocation, id: 'api-1', type: 'API', name: 'POST /orders', domain: 'orders', module: 'api', httpMethod: 'POST', path: '/orders' }),
+      parseNode({ sourceLocation: testSourceLocation, id: 'api-1', type: 'API', name: 'POST /orders', domain: 'orders', module: 'api', apiType: 'REST', httpMethod: 'POST', path: '/orders' }),
       parseNode({ sourceLocation: testSourceLocation, id: 'uc-1', type: 'UseCase', name: 'Place Order', domain: 'orders', module: 'checkout' }),
       parseNode({ sourceLocation: testSourceLocation, id: 'do-1', type: 'DomainOp', name: 'Order.begin', domain: 'orders', module: 'order', operationName: 'begin' }),
       parseNode({ sourceLocation: testSourceLocation, id: 'evt-1', type: 'Event', name: 'OrderPlaced', domain: 'orders', module: 'events', eventName: 'OrderPlaced' }),
@@ -57,10 +57,10 @@ describe('extractFlows', () => {
   it('returns multiple flows for multiple entry points', () => {
     const graph: RiviereGraph = {
       version: '1.0',
-      metadata: { domains: {} },
+      metadata: { domains: parseDomainMetadata({ 'test-domain': { description: 'Test domain', systemType: 'domain' } }) },
       components: [
         parseNode({ sourceLocation: testSourceLocation, id: 'ui-1', type: 'UI', name: 'Form A', domain: 'd', module: 'm', route: '/form-a' }),
-        parseNode({ sourceLocation: testSourceLocation, id: 'api-1', type: 'API', name: 'GET /items', domain: 'd', module: 'm', httpMethod: 'GET', path: '/items' }),
+        parseNode({ sourceLocation: testSourceLocation, id: 'api-1', type: 'API', name: 'GET /items', domain: 'd', module: 'm', apiType: 'REST', httpMethod: 'GET', path: '/items' }),
         parseNode({ sourceLocation: testSourceLocation, id: 'uc-1', type: 'UseCase', name: 'UC', domain: 'd', module: 'm' }),
       ],
       links: [
@@ -76,9 +76,9 @@ describe('extractFlows', () => {
   it('includes Custom nodes as entry points', () => {
     const graph: RiviereGraph = {
       version: '1.0',
-      metadata: { domains: {} },
+      metadata: { domains: parseDomainMetadata({ 'test-domain': { description: 'Test domain', systemType: 'domain' } }) },
       components: [
-        parseNode({ sourceLocation: testSourceLocation, id: 'job-1', type: 'Custom', name: 'Daily Report', domain: 'reporting', module: 'jobs' }),
+        parseNode({ sourceLocation: testSourceLocation, id: 'job-1', type: 'Custom', name: 'Daily Report', domain: 'reporting', module: 'jobs', customTypeName: 'ScheduledJob' }),
       ],
       links: [],
     }
@@ -92,9 +92,9 @@ describe('extractFlows', () => {
   it('preserves httpMethod and path for API entry points', () => {
     const graph: RiviereGraph = {
       version: '1.0',
-      metadata: { domains: {} },
+      metadata: { domains: parseDomainMetadata({ 'test-domain': { description: 'Test domain', systemType: 'domain' } }) },
       components: [
-        parseNode({ sourceLocation: testSourceLocation, id: 'api-1', type: 'API', name: 'Create Order', domain: 'orders', module: 'api', httpMethod: 'POST', path: '/orders' }),
+        parseNode({ sourceLocation: testSourceLocation, id: 'api-1', type: 'API', name: 'Create Order', domain: 'orders', module: 'api', apiType: 'REST', httpMethod: 'POST', path: '/orders' }),
       ],
       links: [],
     }

@@ -11,7 +11,7 @@ interface ExportContextValue {
   clearExportHandlers: () => void
 }
 
-const ExportContext = createContext<ExportContextValue | null>(null)
+const exportContext = createContext<ExportContextValue | null>(null)
 
 interface ExportProviderProps {
   children: React.ReactNode
@@ -37,11 +37,11 @@ export function ExportProvider({ children }: ExportProviderProps): React.ReactEl
     [handlers, registerExportHandlers, clearExportHandlers]
   )
 
-  return <ExportContext.Provider value={value}>{children}</ExportContext.Provider>
+  return <exportContext.Provider value={value}>{children}</exportContext.Provider>
 }
 
 export function useExport(): ExportContextValue {
-  const context = useContext(ExportContext)
+  const context = useContext(exportContext)
   if (context === null) {
     throw new Error('useExport must be used within ExportProvider')
   }

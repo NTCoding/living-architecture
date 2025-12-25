@@ -14,7 +14,7 @@ import type {
   EntryPoint,
   NodeId,
 } from '@/types/riviere'
-import { InvariantSchema, NodeIdSchema } from '@/types/riviere'
+import { invariantSchema, nodeIdSchema } from '@/types/riviere'
 import { RiviereQuery } from '@living-architecture/riviere-query'
 import type { NodeBreakdown } from './domainNodeBreakdown'
 export type { NodeBreakdown } from './domainNodeBreakdown'
@@ -82,10 +82,18 @@ export interface DomainEvent {
   handlers: EventSubscriber[]
 }
 
-export interface SubscribedEventInfo {
+export interface KnownSourceEventInfo {
   eventName: string
-  sourceDomain: string | undefined
+  sourceDomain: string
+  sourceKnown: true
 }
+
+export interface UnknownSourceEventInfo {
+  eventName: string
+  sourceKnown: false
+}
+
+export type SubscribedEventInfo = KnownSourceEventInfo | UnknownSourceEventInfo
 
 export interface DomainEventHandler {
   id: string
@@ -137,7 +145,7 @@ function mergeEntityMetadata(
     return {
       ...entity,
       description: metadata.description,
-      invariants: (metadata.invariants ?? []).map((inv: string) => InvariantSchema.parse(inv)),
+      invariants: (metadata.invariants ?? []).map((inv: string) => invariantSchema.parse(inv)),
     }
   })
 }
@@ -206,7 +214,7 @@ export function extractDomainDetails(graph: RiviereGraph, domainId: DomainName):
   )
 
   const publishedEvents: DomainEvent[] = queryPublished.map((pe) => {
-    const nodeId = NodeIdSchema.parse(pe.id)
+    const nodeId = nodeIdSchema.parse(pe.id)
     const component = componentById.get(nodeId)
     const schema = component?.metadata !== undefined && component.metadata['schema'] !== undefined
       ? validateEventSchema(component.metadata['schema'])
@@ -222,7 +230,7 @@ export function extractDomainDetails(graph: RiviereGraph, domainId: DomainName):
 
   const domainHandlers = queryHandlers.filter((h) => h.domain === domainId)
   const consumedHandlers: DomainEventHandler[] = domainHandlers.map((h) => {
-    const nodeId = NodeIdSchema.parse(h.id)
+    const nodeId = nodeIdSchema.parse(h.id)
     const component = componentById.get(nodeId)
     const description = component?.description !== null && typeof component?.description === 'string'
       ? component.description

@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { extractDomainMapData, getConnectedDomains } from './extractDomainMapData'
 import type { DomainEdge } from './extractDomainMapData'
 import type { RiviereGraph } from '@/types/riviere'
-import { parseNode, parseEdge } from '@/lib/riviereTestData'
+import { parseNode, parseEdge, parseDomainMetadata } from '@/lib/riviereTestData'
 
 const testSourceLocation = { repository: 'test-repo', filePath: 'src/test.ts' }
 
@@ -10,7 +10,7 @@ function createMinimalGraph(overrides: Partial<RiviereGraph> = {}): RiviereGraph
   return {
     version: '1.0',
     metadata: {
-      domains: {},
+      domains: parseDomainMetadata({ 'test-domain': { description: 'Test domain', systemType: 'domain' } }),
     },
     components: [],
     links: [],

@@ -5,14 +5,14 @@ import { BrowserRouter } from 'react-router-dom'
 import { DomainDetailModal } from './DomainDetailModal'
 import type { DomainDetails } from '../../extractDomainDetails'
 import {
-  OperationNameSchema,
-  EntryPointSchema,
+  operationNameSchema,
+  entryPointSchema,
   type OperationName,
   type EntryPoint,
 } from '@/types/riviere'
 
-const parseOperation = (s: string): OperationName => OperationNameSchema.parse(s)
-const parseEntryPoint = (s: string): EntryPoint => EntryPointSchema.parse(s)
+const parseOperation = (s: string): OperationName => operationNameSchema.parse(s)
+const parseEntryPoint = (s: string): EntryPoint => entryPointSchema.parse(s)
 
 function createDomainDetails(overrides: Partial<DomainDetails> = {}): DomainDetails {
   return {
@@ -59,8 +59,8 @@ function createDomainDetails(overrides: Partial<DomainDetails> = {}): DomainDeta
         { id: 'evt-2', eventName: 'OrderConfirmed', schema: undefined, sourceLocation: undefined, handlers: [] },
       ],
       consumed: [
-        { id: 'h-1', handlerName: 'PaymentCompleted', description: undefined, subscribedEvents: ['PaymentCompleted'], subscribedEventsWithDomain: [{ eventName: 'PaymentCompleted', sourceDomain: undefined }], sourceLocation: undefined },
-        { id: 'h-2', handlerName: 'InventoryReserved', description: undefined, subscribedEvents: ['InventoryReserved'], subscribedEventsWithDomain: [{ eventName: 'InventoryReserved', sourceDomain: undefined }], sourceLocation: undefined },
+        { id: 'h-1', handlerName: 'PaymentCompleted', description: undefined, subscribedEvents: ['PaymentCompleted'], subscribedEventsWithDomain: [{ eventName: 'PaymentCompleted', sourceKnown: false }], sourceLocation: undefined },
+        { id: 'h-2', handlerName: 'InventoryReserved', description: undefined, subscribedEvents: ['InventoryReserved'], subscribedEventsWithDomain: [{ eventName: 'InventoryReserved', sourceKnown: false }], sourceLocation: undefined },
       ],
     },
     crossDomainEdges: [

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { RiviereGraph, SystemType, DomainName } from '@/types/riviere'
-import { DomainNameSchema } from '@/types/riviere'
+import { domainNameSchema } from '@/types/riviere'
 import { useRiviereQuery } from '@/hooks/useRiviereQuery'
 
 type ViewMode = 'grid' | 'list'
@@ -50,7 +50,7 @@ export function OverviewPage({ graph }: OverviewPageProps): React.ReactElement {
     const allEntities = query.entities()
 
     const domainInfos: DomainInfo[] = domains.map((domain) => {
-      const domainId = DomainNameSchema.parse(domain.name)
+      const domainId = domainNameSchema.parse(domain.name)
       const domainComponents = graph.components.filter((c) => c.domain === domainId)
 
       const entryPoints: string[] = []

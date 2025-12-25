@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { EventsPage } from './EventsPage'
 import type { RiviereGraph, SourceLocation } from '@/types/riviere'
-import { parseNode, parseEdge } from '@/lib/riviereTestData'
+import { parseNode, parseEdge, parseDomainMetadata } from '@/lib/riviereTestData'
 
 const testSourceLocation: SourceLocation = {
   repository: 'test-repo',
@@ -35,8 +35,8 @@ describe('EventsPage', () => {
 
   it('renders page header', () => {
     const graph: RiviereGraph = {
-      version: '1.0.0',
-      metadata: { domains: {} },
+      version: '1.0',
+      metadata: { domains: parseDomainMetadata({ 'test-domain': { description: 'Test domain', systemType: 'domain' } }) },
       components: [],
       links: [],
     }
@@ -49,8 +49,8 @@ describe('EventsPage', () => {
 
   it('displays stats bar with event counts', () => {
     const graph: RiviereGraph = {
-      version: '1.0.0',
-      metadata: { domains: {} },
+      version: '1.0',
+      metadata: { domains: parseDomainMetadata({ 'test-domain': { description: 'Test domain', systemType: 'domain' } }) },
       components: [
         parseNode({ sourceLocation: testSourceLocation,
           id: 'orders:event:order-placed',
@@ -100,8 +100,8 @@ describe('EventsPage', () => {
 
   it('renders search input', () => {
     const graph: RiviereGraph = {
-      version: '1.0.0',
-      metadata: { domains: {} },
+      version: '1.0',
+      metadata: { domains: parseDomainMetadata({ 'test-domain': { description: 'Test domain', systemType: 'domain' } }) },
       components: [],
       links: [],
     }
@@ -113,8 +113,8 @@ describe('EventsPage', () => {
 
   it('renders domain filters when events exist', () => {
     const graph: RiviereGraph = {
-      version: '1.0.0',
-      metadata: { domains: {} },
+      version: '1.0',
+      metadata: { domains: parseDomainMetadata({ 'test-domain': { description: 'Test domain', systemType: 'domain' } }) },
       components: [
         parseNode({ sourceLocation: testSourceLocation,
           id: 'orders:event:order-placed',
@@ -145,8 +145,8 @@ describe('EventsPage', () => {
 
   it('renders event cards for all events', () => {
     const graph: RiviereGraph = {
-      version: '1.0.0',
-      metadata: { domains: {} },
+      version: '1.0',
+      metadata: { domains: parseDomainMetadata({ 'test-domain': { description: 'Test domain', systemType: 'domain' } }) },
       components: [
         parseNode({ sourceLocation: testSourceLocation,
           id: 'orders:event:order-placed',
@@ -176,8 +176,8 @@ describe('EventsPage', () => {
 
   it('filters events by search query', async () => {
     const graph: RiviereGraph = {
-      version: '1.0.0',
-      metadata: { domains: {} },
+      version: '1.0',
+      metadata: { domains: parseDomainMetadata({ 'test-domain': { description: 'Test domain', systemType: 'domain' } }) },
       components: [
         parseNode({ sourceLocation: testSourceLocation,
           id: 'orders:event:order-placed',
@@ -215,8 +215,8 @@ describe('EventsPage', () => {
 
   it('filters events by domain', async () => {
     const graph: RiviereGraph = {
-      version: '1.0.0',
-      metadata: { domains: {} },
+      version: '1.0',
+      metadata: { domains: parseDomainMetadata({ 'test-domain': { description: 'Test domain', systemType: 'domain' } }) },
       components: [
         parseNode({ sourceLocation: testSourceLocation,
           id: 'orders:event:order-placed',
@@ -253,8 +253,8 @@ describe('EventsPage', () => {
 
   it('toggles domain filter off when clicked again', async () => {
     const graph: RiviereGraph = {
-      version: '1.0.0',
-      metadata: { domains: {} },
+      version: '1.0',
+      metadata: { domains: parseDomainMetadata({ 'test-domain': { description: 'Test domain', systemType: 'domain' } }) },
       components: [
         parseNode({ sourceLocation: testSourceLocation,
           id: 'orders:event:order-placed',
@@ -293,8 +293,8 @@ describe('EventsPage', () => {
 
   it('extracts event schema from metadata', () => {
     const graph: RiviereGraph = {
-      version: '1.0.0',
-      metadata: { domains: {} },
+      version: '1.0',
+      metadata: { domains: parseDomainMetadata({ 'test-domain': { description: 'Test domain', systemType: 'domain' } }) },
       components: [
         parseNode({ sourceLocation: testSourceLocation,
           id: 'orders:event:order-placed',
@@ -325,8 +325,8 @@ describe('EventsPage', () => {
 
   it('matches handlers to events using subscribedEvents property', async () => {
     const graph: RiviereGraph = {
-      version: '1.0.0',
-      metadata: { domains: {} },
+      version: '1.0',
+      metadata: { domains: parseDomainMetadata({ 'test-domain': { description: 'Test domain', systemType: 'domain' } }) },
       components: [
         parseNode({ sourceLocation: testSourceLocation,
           id: 'orders:event:order-placed',
@@ -368,8 +368,8 @@ describe('EventsPage', () => {
   describe('navigation', () => {
     it('preserves demo query param when navigating to full graph', async () => {
       const graph: RiviereGraph = {
-        version: '1.0.0',
-        metadata: { domains: {} },
+        version: '1.0',
+        metadata: { domains: parseDomainMetadata({ 'test-domain': { description: 'Test domain', systemType: 'domain' } }) },
         components: [
           parseNode({ sourceLocation: testSourceLocation,
             id: 'orders:event:order-placed',

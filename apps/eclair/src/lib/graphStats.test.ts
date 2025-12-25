@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { computeGraphStats } from './graphStats'
 import type { RiviereGraph, SourceLocation } from '@/types/riviere'
-import { parseNode, parseEdge, parseDomainKey } from './riviereTestData'
+import { parseNode, parseEdge, parseDomainKey, parseDomainMetadata } from './riviereTestData'
 
 const testSourceLocation: SourceLocation = {
   repository: 'test-repo',
@@ -10,10 +10,10 @@ const testSourceLocation: SourceLocation = {
 
 function createMinimalGraph(overrides: Partial<RiviereGraph> = {}): RiviereGraph {
   return {
-    version: '1.0.0',
+    version: '1.0',
     metadata: {
       name: 'Test Graph',
-      domains: {},
+      domains: parseDomainMetadata({ 'test-domain': { description: 'Test domain', systemType: 'domain' } }),
     },
     components: [],
     links: [],
@@ -29,7 +29,7 @@ describe('computeGraphStats', () => {
 
     expect(stats).toEqual({
       totalNodes: 0,
-      totalDomains: 0,
+      totalDomains: 1,
       totalApis: 0,
       totalEntities: 0,
       totalEvents: 0,

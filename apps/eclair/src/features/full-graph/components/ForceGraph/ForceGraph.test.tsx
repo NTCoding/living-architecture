@@ -3,11 +3,11 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import { ForceGraph } from './ForceGraph'
 import type { RiviereGraph } from '@/types/riviere'
 import type { Theme } from '@/types/theme'
-import { parseNode, parseEdge, parseDomainKey } from '@/lib/riviereTestData'
+import { parseNode, parseEdge, parseDomainKey, parseDomainMetadata } from '@/lib/riviereTestData'
 const testSourceLocation = { repository: 'test-repo', filePath: 'src/test.ts' }
 
 const mockGraph: RiviereGraph = {
-  version: '1.0.0',
+  version: '1.0',
   metadata: {
     name: 'Test Graph',
     domains: {
@@ -15,13 +15,13 @@ const mockGraph: RiviereGraph = {
     },
   },
   components: [
-    parseNode({ sourceLocation: testSourceLocation, id: 'node-1', type: 'API', name: 'Test API', domain: 'orders', module: 'api' }),
+    parseNode({ sourceLocation: testSourceLocation, id: 'node-1', type: 'API', name: 'Test API', domain: 'orders', module: 'api', apiType: 'other' }),
     parseNode({ sourceLocation: testSourceLocation, id: 'node-2', type: 'UseCase', name: 'Test UseCase', domain: 'orders', module: 'core' }),
     parseNode({ sourceLocation: testSourceLocation, id: 'node-3', type: 'DomainOp', name: 'Test DomainOp', domain: 'orders', module: 'domain', operationName: 'testOp' }),
     parseNode({ sourceLocation: testSourceLocation, id: 'node-4', type: 'Event', name: 'test-event', domain: 'orders', module: 'events', eventName: 'test-event' }),
     parseNode({ sourceLocation: testSourceLocation, id: 'node-5', type: 'EventHandler', name: 'Test Handler', domain: 'orders', module: 'handlers', subscribedEvents: ['test-event'] }),
     parseNode({ sourceLocation: testSourceLocation, id: 'node-6', type: 'UI', name: 'Test UI', domain: 'orders', module: 'ui', route: '/test-ui' }),
-    parseNode({ sourceLocation: testSourceLocation, id: 'node-7', type: 'Custom', name: 'Test Custom', domain: 'orders', module: 'custom' }),
+    parseNode({ sourceLocation: testSourceLocation, id: 'node-7', type: 'Custom', name: 'Test Custom', domain: 'orders', module: 'custom', customTypeName: 'TestCustomType' }),
   ],
   links: [
     parseEdge({ source: 'node-1', target: 'node-2', type: 'sync' }),
@@ -87,8 +87,8 @@ describe('ForceGraph', () => {
 
     test('handles empty graph without crashing', () => {
       const emptyGraph: RiviereGraph = {
-        version: '1.0.0',
-        metadata: { domains: {} },
+        version: '1.0',
+        metadata: { domains: parseDomainMetadata({ 'test-domain': { description: 'Test domain', systemType: 'domain' } }) },
         components: [],
         links: [],
       }
@@ -323,7 +323,7 @@ describe('ForceGraph', () => {
 
     test('handles graph with multiple domains', () => {
       const multiDomainGraph: RiviereGraph = {
-        version: '1.0.0',
+        version: '1.0',
         metadata: {
           domains: {
             [parseDomainKey('orders')]: { description: 'Orders domain', systemType: 'domain' },
@@ -379,8 +379,8 @@ describe('ForceGraph', () => {
   describe('Edge Cases', () => {
     test('handles graph with only edges and no nodes', () => {
       const edgesOnlyGraph: RiviereGraph = {
-        version: '1.0.0',
-        metadata: { domains: {} },
+        version: '1.0',
+        metadata: { domains: parseDomainMetadata({ 'test-domain': { description: 'Test domain', systemType: 'domain' } }) },
         components: [],
         links: [parseEdge({ source: 'node-1', target: 'node-2', type: 'sync' })],
       }
@@ -392,7 +392,7 @@ describe('ForceGraph', () => {
 
     test('handles self-referencing edge', () => {
       const selfRefGraph: RiviereGraph = {
-        version: '1.0.0',
+        version: '1.0',
         metadata: { domains: { [parseDomainKey('orders')]: { description: 'Orders', systemType: 'domain' } } },
         components: [parseNode({ sourceLocation: testSourceLocation, id: 'node-1', type: 'API', name: 'Test API', domain: 'orders', module: 'api' })],
         links: [parseEdge({ source: 'node-1', target: 'node-1', type: 'sync' })],
@@ -405,11 +405,12 @@ describe('ForceGraph', () => {
 
     test('handles long node names', () => {
       const longNameGraph: RiviereGraph = {
-        version: '1.0.0',
+        version: '1.0',
         metadata: { domains: { [parseDomainKey('orders')]: { description: 'Orders', systemType: 'domain' } } },
         components: [
           parseNode({ sourceLocation: testSourceLocation,             id: 'node-1',
             type: 'API',
+        apiType: 'other',
             name: 'This is a very long node name that should be truncated properly',
             domain: 'orders',
             module: 'api',

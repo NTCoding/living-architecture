@@ -314,11 +314,11 @@ export function ForceGraph({
       node: d3.Selection<SVGGElement, SimulationNode, SVGGElement, unknown>,
       links: SimulationLink[]
     ) => {
-      node.on('click', (event, d) => {
+      node.on('click', (event: PointerEvent, d: SimulationNode) => {
         event.stopPropagation()
         handleNodeClick(d.id)
       })
-      node.on('mouseenter', (event, d) => {
+      node.on('mouseenter', (event: MouseEvent, d: SimulationNode) => {
         const incomingCount = links.filter((l) => getLinkNodeId(l.target) === d.id).length
         const outgoingCount = links.filter((l) => getLinkNodeId(l.source) === d.id).length
         handleNodeHover({
@@ -391,19 +391,19 @@ export function ForceGraph({
     }).call(
       d3
         .drag<SVGGElement, SimulationNode>()
-        .on('start', (_event, d) => {
+        .on('start', (_event: d3.D3DragEvent<SVGGElement, SimulationNode, SimulationNode>, d: SimulationNode) => {
           handleNodeHover(null)
           d.fx = d.x
           d.fy = d.y
         })
-        .on('drag', (event, d) => {
+        .on('drag', (event: d3.D3DragEvent<SVGGElement, SimulationNode, SimulationNode>, d: SimulationNode) => {
           d.x = event.x
           d.y = event.y
           d.fx = event.x
           d.fy = event.y
           updatePositions()
         })
-        .on('end', (_event, d) => {
+        .on('end', (_event: d3.D3DragEvent<SVGGElement, SimulationNode, SimulationNode>, d: SimulationNode) => {
           d.fx = null
           d.fy = null
         })

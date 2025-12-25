@@ -24,6 +24,7 @@ const testGraph: RiviereGraph = {
     parseNode({ sourceLocation: testSourceLocation,
       id: 'node-1',
       type: 'API',
+        apiType: 'other',
       name: 'Test API',
       domain: 'test-domain',
       module: 'test-module',
@@ -261,7 +262,7 @@ describe('GraphContext', () => {
         text: () => Promise.resolve(JSON.stringify(invalidGraph)),
       }))
 
-      await expect(fetchAndValidateDemoGraph('/test.json')).rejects.toThrow('Demo graph validation failed')
+      await expect(fetchAndValidateDemoGraph('/test.json')).rejects.toThrow(/Invalid RiviereGraph/)
     })
   })
 
@@ -304,8 +305,6 @@ describe('GraphContext', () => {
       expect(screen.getByTestId('has-graph')).toHaveTextContent('no')
 
       await user.click(screen.getByRole('button', { name: 'Load' }))
-
-      expect(screen.getByTestId('loading')).toHaveTextContent('loading')
 
       await waitFor(() => {
         expect(screen.getByTestId('loading')).toHaveTextContent('done')

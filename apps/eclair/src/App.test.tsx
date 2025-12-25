@@ -1,22 +1,30 @@
 import { render, screen } from '@testing-library/react'
+import type { RenderResult } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { App } from './App'
 import type { RiviereGraph } from '@/types/riviere'
-import { parseNode } from '@/lib/riviereTestData'
+import { parseNode, parseDomainMetadata } from '@/lib/riviereTestData'
 
 const testSourceLocation = { repository: 'test-repo', filePath: 'src/test.ts' }
 
 const mockGraph: RiviereGraph = {
   version: '1.0',
-  metadata: { domains: {} },
+  metadata: { domains: parseDomainMetadata({ 'test-domain': { description: 'Test domain', systemType: 'domain' } }) },
   components: [
     parseNode({ sourceLocation: testSourceLocation, id: 'ui-1', type: 'UI', name: 'Test UI', domain: 'test', module: 'ui', route: '/test' }),
   ],
   links: [],
 }
 
-const mockUseGraph = vi.fn()
+type UseGraphReturn = {
+  graph: RiviereGraph | null
+  hasGraph: boolean
+  graphName: string | null
+  setGraph: ReturnType<typeof vi.fn>
+}
+
+const mockUseGraph = vi.fn<[], UseGraphReturn>()
 
 vi.mock('@/contexts/GraphContext', () => ({
   GraphProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
@@ -39,7 +47,7 @@ vi.mock('@/components/ThemeSwitcher', () => ({
   ThemeSwitcher: () => <div data-testid="theme-switcher">ThemeSwitcher</div>,
 }))
 
-function renderWithRouter(initialPath: string): ReturnType<typeof render> {
+function renderWithRouter(initialPath: string): RenderResult {
   return render(
     <MemoryRouter initialEntries={[initialPath]}>
       <App />
@@ -73,38 +81,45 @@ describe('App routing', () => {
   it('renders FlowsPage at /flows route', () => {
     renderWithRouter('/flows')
 
-    expect(screen.getByRole('heading', { name: 'Flows' })).toBeInTheDocument()
-    expect(screen.getByPlaceholderText('Search flows...')).toBeInTheDocument()
+    const heading = screen.getByRole('heading', { name: 'Flows' })
+    expect(heading).toBeInTheDocument()
+    const searchInput = screen.getByPlaceholderText('Search flows...')
+    expect(searchInput).toBeInTheDocument()
   })
 
   it('renders OverviewPage at / route', () => {
     renderWithRouter('/')
 
-    expect(screen.getByRole('heading', { name: 'Overview' })).toBeInTheDocument()
+    const heading = screen.getByRole('heading', { name: 'Overview' })
+    expect(heading).toBeInTheDocument()
   })
 
   it('renders FullGraphPage at /full-graph route', () => {
     renderWithRouter('/full-graph')
 
-    expect(screen.getByTestId('force-graph-container')).toBeInTheDocument()
+    const container = screen.getByTestId('force-graph-container')
+    expect(container).toBeInTheDocument()
   })
 
   it('renders DomainMapPage component at /domains route', () => {
     renderWithRouter('/domains')
 
-    expect(screen.getAllByRole('link').length).toBeGreaterThan(0)
+    const links = screen.getAllByRole('link')
+    expect(links.length).toBeGreaterThan(0)
   })
 
   it('renders with graph provider wrapper', () => {
     renderWithRouter('/flows')
 
-    expect(screen.getByTestId('logo')).toBeInTheDocument()
+    const logo = screen.getByTestId('logo')
+    expect(logo).toBeInTheDocument()
   })
 
   it('renders app shell with header', () => {
     renderWithRouter('/flows')
 
-    expect(screen.getByTestId('theme-switcher')).toBeInTheDocument()
+    const themeSwitcher = screen.getByTestId('theme-switcher')
+    expect(themeSwitcher).toBeInTheDocument()
   })
 })
 
@@ -116,42 +131,49 @@ describe('App routing without graph', () => {
   it('renders EmptyState at / route when no graph loaded', () => {
     renderWithRouter('/')
 
-    expect(screen.getByTestId('empty-state')).toBeInTheDocument()
+    const emptyState = screen.getByTestId('empty-state')
+    expect(emptyState).toBeInTheDocument()
   })
 
   it('renders EmptyState at /full-graph route when no graph loaded', () => {
     renderWithRouter('/full-graph')
 
-    expect(screen.getByTestId('empty-state')).toBeInTheDocument()
+    const emptyState = screen.getByTestId('empty-state')
+    expect(emptyState).toBeInTheDocument()
   })
 
   it('renders EmptyState at /domains route when no graph loaded', () => {
     renderWithRouter('/domains')
 
-    expect(screen.getByTestId('empty-state')).toBeInTheDocument()
+    const emptyState = screen.getByTestId('empty-state')
+    expect(emptyState).toBeInTheDocument()
   })
 
   it('renders EmptyState at /flows route when no graph loaded', () => {
     renderWithRouter('/flows')
 
-    expect(screen.getByTestId('empty-state')).toBeInTheDocument()
+    const emptyState = screen.getByTestId('empty-state')
+    expect(emptyState).toBeInTheDocument()
   })
 
   it('renders EmptyState at /entities route when no graph loaded', () => {
     renderWithRouter('/entities')
 
-    expect(screen.getByTestId('empty-state')).toBeInTheDocument()
+    const emptyState = screen.getByTestId('empty-state')
+    expect(emptyState).toBeInTheDocument()
   })
 
   it('renders EmptyState at /events route when no graph loaded', () => {
     renderWithRouter('/events')
 
-    expect(screen.getByTestId('empty-state')).toBeInTheDocument()
+    const emptyState = screen.getByTestId('empty-state')
+    expect(emptyState).toBeInTheDocument()
   })
 
   it('renders EmptyState at /domains/:domainId route when no graph loaded', () => {
     renderWithRouter('/domains/test-domain')
 
-    expect(screen.getByTestId('empty-state')).toBeInTheDocument()
+    const emptyState = screen.getByTestId('empty-state')
+    expect(emptyState).toBeInTheDocument()
   })
 })

@@ -87,8 +87,12 @@ export function CodeLinkMenu({ filePath, lineNumber, repository }: CodeLinkMenuP
     setIsOpen(false)
   }
 
+  function ignoreClipboardError(): void {
+    return
+  }
+
   function handleCopyClick(): void {
-    navigator.clipboard.writeText(`${filePath}:${lineNumber}`).catch(() => {})
+    navigator.clipboard.writeText(`${filePath}:${lineNumber}`).catch(ignoreClipboardError)
     setIsOpen(false)
   }
 

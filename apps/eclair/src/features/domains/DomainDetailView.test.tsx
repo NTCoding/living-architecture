@@ -7,11 +7,12 @@ const testSourceLocation = { repository: 'test-repo', filePath: 'src/test.ts' }
 
 describe('DomainDetailView', () => {
   const mockGraph: RiviereGraph = {
-    version: '1.0.0',
+    version: '1.0',
     components: [
       parseNode({ sourceLocation: testSourceLocation,         id: 'node1',
         name: 'TestNode',
         type: 'API',
+        apiType: 'other',
         domain: 'test-domain',
         module: 'test-module',
       }),

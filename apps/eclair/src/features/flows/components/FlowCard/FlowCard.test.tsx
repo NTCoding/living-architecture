@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import userEvent from '@testing-library/user-event'
 import { FlowCard } from './FlowCard'
-import { parseNode, parseEdge } from '@/lib/riviereTestData'
+import { parseNode, parseEdge, parseDomainMetadata } from '@/lib/riviereTestData'
 import type { Flow } from '../../extractFlows'
 import type { RiviereGraph } from '@/types/riviere'
 const testSourceLocation = { repository: 'test-repo', filePath: 'src/test.ts' }
@@ -22,6 +22,7 @@ function createTestFlow(): Flow {
     entryPoint: parseNode({
       id: 'api-1',
       type: 'API',
+        apiType: 'other',
       name: 'POST /orders',
       domain: 'orders',
       module: 'api',
@@ -71,8 +72,8 @@ function createUIFlow(): Flow {
 
 function createTestGraph(): RiviereGraph {
   return {
-    version: '1.0.0',
-    metadata: { domains: {} },
+    version: '1.0',
+    metadata: { domains: parseDomainMetadata({ 'test-domain': { description: 'Test domain', systemType: 'domain' } }) },
     components: [
       parseNode({ sourceLocation: testSourceLocation, id: 'api-1', type: 'API', name: 'POST /orders', domain: 'orders', module: 'api', httpMethod: 'POST', path: '/orders' }),
       parseNode({ sourceLocation: testSourceLocation, id: 'uc-1', type: 'UseCase', name: 'Place Order', domain: 'orders', module: 'checkout' }),
@@ -87,7 +88,7 @@ function createTestGraph(): RiviereGraph {
 function renderWithRouter(
   flow: Flow = createTestFlow(),
   graph: RiviereGraph = createTestGraph(),
-  expanded: boolean = false,
+  expanded = false,
   onToggle: () => void = () => {},
 ): ReturnType<typeof render> {
   return render(
@@ -308,6 +309,7 @@ describe('FlowCard', () => {
         entryPoint: {
           id: 'api-1',
           type: 'API',
+        apiType: 'other',
           name: 'POST /orders',
           domain: 'orders',
           module: 'api',

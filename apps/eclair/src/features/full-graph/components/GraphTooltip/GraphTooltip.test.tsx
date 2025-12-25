@@ -8,12 +8,14 @@ const testSourceLocation = { repository: 'test-repo', filePath: 'src/test.ts' }
 const mockNode: SimulationNode = {
   id: 'test-node',
   type: 'API',
+        apiType: 'other',
   name: 'Test API Node',
   domain: 'orders',
   originalNode: parseNode({
     sourceLocation: testSourceLocation,
     id: 'test-node',
     type: 'API',
+        apiType: 'other',
     name: 'Test API Node',
     domain: 'orders',
     module: 'api',
@@ -96,11 +98,13 @@ describe('GraphTooltip', () => {
     const nodeWithSource: SimulationNode = {
       id: 'node-with-source',
       type: 'API',
+        apiType: 'other',
       name: 'API with Source',
       domain: 'orders',
       originalNode: parseNode({
         id: 'node-with-source',
         type: 'API',
+        apiType: 'other',
         name: 'API with Source',
         domain: 'orders',
         module: 'api',

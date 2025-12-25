@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { FlowTrace } from './FlowTrace'
 import type { FlowStep } from '../../extractFlows'
 import type { RiviereGraph } from '@/types/riviere'
-import { parseNode, parseEdge } from '@/lib/riviereTestData'
+import { parseNode, parseEdge, parseDomainMetadata } from '@/lib/riviereTestData'
 const testSourceLocation = { repository: 'test-repo', filePath: 'src/test.ts' }
 
 vi.mock('@/contexts/ThemeContext', () => ({
@@ -48,8 +48,8 @@ function createTestSteps(): FlowStep[] {
 
 function createTestGraph(): RiviereGraph {
   return {
-    version: '1.0.0',
-    metadata: { domains: {} },
+    version: '1.0',
+    metadata: { domains: parseDomainMetadata({ 'test-domain': { description: 'Test domain', systemType: 'domain' } }) },
     components: [
       parseNode({ sourceLocation: testSourceLocation, id: 'ui-1', type: 'UI', name: 'Order Form', domain: 'checkout', module: 'ui', route: '/checkout' }),
       parseNode({ sourceLocation: testSourceLocation, id: 'api-1', type: 'API', name: 'POST /orders', domain: 'orders', module: 'api', httpMethod: 'POST', path: '/orders' }),

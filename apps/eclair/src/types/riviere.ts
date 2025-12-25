@@ -1,46 +1,46 @@
 import { z } from 'zod'
 
-export const NodeIdSchema = z.string().min(1).brand<'NodeId'>()
-export type NodeId = z.infer<typeof NodeIdSchema>
+export const nodeIdSchema = z.string().min(1).brand<'NodeId'>()
+export type NodeId = z.infer<typeof nodeIdSchema>
 
-export const EdgeIdSchema = z.string().min(1).brand<'EdgeId'>()
-export type EdgeId = z.infer<typeof EdgeIdSchema>
+export const edgeIdSchema = z.string().min(1).brand<'EdgeId'>()
+export type EdgeId = z.infer<typeof edgeIdSchema>
 
-export const DomainNameSchema = z.string().min(1).brand<'DomainName'>()
-export type DomainName = z.infer<typeof DomainNameSchema>
+export const domainNameSchema = z.string().min(1).brand<'DomainName'>()
+export type DomainName = z.infer<typeof domainNameSchema>
 
-export const EntityNameSchema = z.string().min(1).brand<'EntityName'>()
-export type EntityName = z.infer<typeof EntityNameSchema>
+export const entityNameSchema = z.string().min(1).brand<'EntityName'>()
+export type EntityName = z.infer<typeof entityNameSchema>
 
-export const ModuleNameSchema = z.string().min(1).brand<'ModuleName'>()
-export type ModuleName = z.infer<typeof ModuleNameSchema>
+export const moduleNameSchema = z.string().min(1).brand<'ModuleName'>()
+export type ModuleName = z.infer<typeof moduleNameSchema>
 
-export const ParameterTypeSchema = z.string().min(1).brand<'ParameterType'>()
-export type ParameterType = z.infer<typeof ParameterTypeSchema>
+export const parameterTypeSchema = z.string().min(1).brand<'ParameterType'>()
+export type ParameterType = z.infer<typeof parameterTypeSchema>
 
-export const EntityFieldTypeSchema = z.string().min(1).brand<'EntityFieldType'>()
-export type EntityFieldType = z.infer<typeof EntityFieldTypeSchema>
+export const entityFieldTypeSchema = z.string().min(1).brand<'EntityFieldType'>()
+export type EntityFieldType = z.infer<typeof entityFieldTypeSchema>
 
-export const ReturnTypeSchema = z.string().min(1).brand<'ReturnType'>()
-export type ReturnType = z.infer<typeof ReturnTypeSchema>
+export const returnTypeSchema = z.string().min(1).brand<'ReturnType'>()
+export type ReturnType = z.infer<typeof returnTypeSchema>
 
-export const EventNameSchema = z.string().min(1).brand<'EventName'>()
-export type EventName = z.infer<typeof EventNameSchema>
+export const eventNameSchema = z.string().min(1).brand<'EventName'>()
+export type EventName = z.infer<typeof eventNameSchema>
 
-export const GraphNameSchema = z.string().min(1).brand<'GraphName'>()
-export type GraphName = z.infer<typeof GraphNameSchema>
+export const graphNameSchema = z.string().min(1).brand<'GraphName'>()
+export type GraphName = z.infer<typeof graphNameSchema>
 
-export const OperationNameSchema = z.string().min(1).brand<'OperationName'>()
-export type OperationName = z.infer<typeof OperationNameSchema>
+export const operationNameSchema = z.string().min(1).brand<'OperationName'>()
+export type OperationName = z.infer<typeof operationNameSchema>
 
-export const StateNameSchema = z.string().min(1).brand<'StateName'>()
-export type StateName = z.infer<typeof StateNameSchema>
+export const stateNameSchema = z.string().min(1).brand<'StateName'>()
+export type StateName = z.infer<typeof stateNameSchema>
 
-export const InvariantSchema = z.string().min(1).brand<'Invariant'>()
-export type Invariant = z.infer<typeof InvariantSchema>
+export const invariantSchema = z.string().min(1).brand<'Invariant'>()
+export type Invariant = z.infer<typeof invariantSchema>
 
-export const EntryPointSchema = z.string().min(1).brand<'EntryPoint'>()
-export type EntryPoint = z.infer<typeof EntryPointSchema>
+export const entryPointSchema = z.string().min(1).brand<'EntryPoint'>()
+export type EntryPoint = z.infer<typeof entryPointSchema>
 
 export type NodeType = 'UI' | 'API' | 'UseCase' | 'DomainOp' | 'Event' | 'EventHandler' | 'Custom'
 
@@ -172,6 +172,7 @@ export interface EventHandlerNode extends BaseNode {
 
 export interface CustomNode extends BaseNode {
   type: 'Custom'
+  customTypeName: string
 }
 
 export type Node =

@@ -10,7 +10,7 @@ const testSourceLocation = { repository: 'test-repo', filePath: 'src/test.ts' }
 
 function createTestGraph(): RiviereGraph {
   return {
-    version: '1.0.0',
+    version: '1.0',
     metadata: {
       name: 'Test Architecture',
       description: 'Test description',
@@ -19,7 +19,7 @@ function createTestGraph(): RiviereGraph {
       }),
     },
     components: [
-      parseNode({ sourceLocation: testSourceLocation, id: 'n1', type: 'API', name: 'Place Order', domain: 'order-domain', module: 'm1', path: '/api/orders' }),
+      parseNode({ sourceLocation: testSourceLocation, id: 'n1', type: 'API', name: 'Place Order', domain: 'order-domain', module: 'm1', apiType: 'REST', httpMethod: 'POST', path: '/api/orders' }),
       parseNode({ sourceLocation: testSourceLocation, id: 'n2', type: 'UseCase', name: 'Place Order UC', domain: 'order-domain', module: 'm1' }),
       parseNode({ sourceLocation: testSourceLocation, id: 'n3', type: 'DomainOp', name: 'Order.begin', domain: 'order-domain', module: 'm1', entity: 'Order', operationName: 'begin' }),
       parseNode({ sourceLocation: testSourceLocation, id: 'n4', type: 'Event', name: 'OrderPlaced', domain: 'order-domain', module: 'm1', eventName: 'OrderPlaced' }),

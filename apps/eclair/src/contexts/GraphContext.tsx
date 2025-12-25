@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useCallback, useEffect, useRef, useSyncExternalStore } from 'react'
 import type { RiviereGraph, GraphName } from '@/types/riviere'
-import { GraphNameSchema } from '@/types/riviere'
+import { graphNameSchema } from '@/types/riviere'
 import { parseRiviereGraph } from '@living-architecture/riviere-schema'
 
 interface GraphContextValue {
@@ -16,7 +16,7 @@ interface GraphContextValue {
   clearUrlLoadError: () => void
 }
 
-const GraphContext = createContext<GraphContextValue | null>(null)
+const graphContext = createContext<GraphContextValue | null>(null)
 
 const DEFAULT_GRAPH_URL = '/ecommerce-complete.json'
 const DEFAULT_GITHUB_ORG = 'https://github.com/NTCoding'
@@ -37,8 +37,12 @@ function getIsDemoMode(): boolean {
   return params.get('demo') === 'true'
 }
 
+function noopUnsubscribe(): void {
+  return
+}
+
 function subscribeToNothing(): () => void {
-  return () => {}
+  return noopUnsubscribe
 }
 
 function useIsDemoMode(): boolean {
@@ -107,18 +111,18 @@ export function GraphProvider({ children }: GraphProviderProps): React.ReactElem
 
   const hasGraph = graph !== null
   const graphName = graph?.metadata.name !== undefined
-    ? GraphNameSchema.parse(graph.metadata.name)
+    ? graphNameSchema.parse(graph.metadata.name)
     : undefined
 
   return (
-    <GraphContext.Provider value={{ graph, setGraph, clearGraph, hasGraph, graphName, isLoadingDemo, isLoadingFromUrl, loadGraphFromUrl, urlLoadError, clearUrlLoadError }}>
+    <graphContext.Provider value={{ graph, setGraph, clearGraph, hasGraph, graphName, isLoadingDemo, isLoadingFromUrl, loadGraphFromUrl, urlLoadError, clearUrlLoadError }}>
       {children}
-    </GraphContext.Provider>
+    </graphContext.Provider>
   )
 }
 
 export function useGraph(): GraphContextValue {
-  const context = useContext(GraphContext)
+  const context = useContext(graphContext)
   if (context === null) {
     throw new Error('useGraph must be used within a GraphProvider')
   }

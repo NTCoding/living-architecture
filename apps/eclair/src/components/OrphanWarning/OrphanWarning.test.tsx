@@ -4,34 +4,35 @@ import { describe, expect, it } from 'vitest'
 import { OrphanWarning } from './OrphanWarning'
 import type { OrphanDetectionResult } from './OrphanWarning'
 import type { Node } from '@/types/riviere'
-import { NodeIdSchema, DomainNameSchema, ModuleNameSchema, EntityNameSchema } from '@/types/riviere'
+import { nodeIdSchema, domainNameSchema, moduleNameSchema, entityNameSchema } from '@/types/riviere'
 
 const testSourceLocation = { repository: 'test-repo', filePath: 'test.ts', lineNumber: 42 }
 
 function createAPINode(id: string, name: string): Node {
   return {
-    id: NodeIdSchema.parse(id),
+    id: nodeIdSchema.parse(id),
     type: 'API',
+        apiType: 'other',
     name,
     apiType: 'REST',
     httpMethod: 'GET',
     path: '/',
-    domain: DomainNameSchema.parse('orders'),
+    domain: domainNameSchema.parse('orders'),
     sourceLocation: testSourceLocation,
-    module: ModuleNameSchema.parse('api'),
+    module: moduleNameSchema.parse('api'),
   }
 }
 
 function createDomainOpNode(id: string, name: string): Node {
   return {
-    id: NodeIdSchema.parse(id),
+    id: nodeIdSchema.parse(id),
     type: 'DomainOp',
     name,
     operationName: 'test-op',
-    entity: EntityNameSchema.parse('TestEntity'),
-    domain: DomainNameSchema.parse('orders'),
+    entity: entityNameSchema.parse('TestEntity'),
+    domain: domainNameSchema.parse('orders'),
     sourceLocation: testSourceLocation,
-    module: ModuleNameSchema.parse('api'),
+    module: moduleNameSchema.parse('api'),
   }
 }
 

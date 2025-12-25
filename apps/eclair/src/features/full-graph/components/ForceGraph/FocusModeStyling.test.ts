@@ -15,6 +15,7 @@ describe('FocusModeStyling', () => {
       const node: SimulationNode = {
         id: 'node-456',
         type: 'API',
+        apiType: 'other',
         name: 'test',
         domain: 'test',
         originalNode: parseNode({ sourceLocation: testSourceLocation, id: 'node-456', type: 'API', name: 'test', domain: 'test', module: 'test-module' }),
@@ -27,6 +28,7 @@ describe('FocusModeStyling', () => {
       const node: SimulationNode = {
         id: 'test-API',
         type: 'API',
+        apiType: 'other',
         name: 'test',
         domain: 'test',
         originalNode: parseNode({ sourceLocation: testSourceLocation, id: 'test-API', type: 'API', name: 'test', domain: 'test', module: 'test-module' }),

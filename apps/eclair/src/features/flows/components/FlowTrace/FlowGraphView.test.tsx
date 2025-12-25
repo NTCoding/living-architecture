@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { FlowGraphView } from './FlowGraphView'
-import { parseNode, parseEdge } from '@/lib/riviereTestData'
+import { parseNode, parseEdge, parseDomainMetadata } from '@/lib/riviereTestData'
 import type { FlowStep } from '../../extractFlows'
 import type { RiviereGraph } from '@/types/riviere'
 const testSourceLocation = { repository: 'test-repo', filePath: 'src/test.ts' }
@@ -37,8 +37,8 @@ function createTestSteps(): FlowStep[] {
 
 function createTestGraph(): RiviereGraph {
   return {
-    version: '1.0.0',
-    metadata: { domains: {} },
+    version: '1.0',
+    metadata: { domains: parseDomainMetadata({ 'test-domain': { description: 'Test domain', systemType: 'domain' } }) },
     components: [
       parseNode({ sourceLocation: testSourceLocation, id: 'ui-1', type: 'UI', name: 'Order Form', domain: 'checkout', module: 'ui', route: '/orders' }),
       parseNode({ sourceLocation: testSourceLocation, id: 'api-1', type: 'API', name: 'POST /orders', domain: 'orders', module: 'api', httpMethod: 'POST', path: '/orders' }),

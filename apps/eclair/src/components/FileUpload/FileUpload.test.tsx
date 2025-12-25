@@ -1,5 +1,6 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { describe, expect, it, vi } from 'vitest'
 import { FileUpload } from './FileUpload'
 
 function createFile(name: string, content: string, type = 'application/json'): File {
@@ -31,17 +32,23 @@ function getDropZone(): HTMLElement {
   return dropZone
 }
 
+type OnFileLoaded = (content: string, filename: string) => void
+type OnError = (error: string) => void
+
 describe('FileUpload', () => {
   it('renders upload area with instructions', () => {
-    render(<FileUpload onFileLoaded={vi.fn()} onError={vi.fn()} />)
+    render(<FileUpload onFileLoaded={vi.fn<OnFileLoaded>()} onError={vi.fn<OnError>()} />)
 
-    expect(screen.getByText(/drop your rivière graph here/i)).toBeInTheDocument()
-    expect(screen.getByText(/click to browse/i)).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /select file/i })).toBeInTheDocument()
+    const dropText = screen.getByText(/drop your rivière graph here/i)
+    expect(dropText).toBeInTheDocument()
+    const browseText = screen.getByText(/click to browse/i)
+    expect(browseText).toBeInTheDocument()
+    const button = screen.getByRole('button', { name: /select file/i })
+    expect(button).toBeInTheDocument()
   })
 
   it('shows drag-over state when file dragged over', () => {
-    render(<FileUpload onFileLoaded={vi.fn()} onError={vi.fn()} />)
+    render(<FileUpload onFileLoaded={vi.fn<OnFileLoaded>()} onError={vi.fn<OnError>()} />)
 
     const dropZone = getDropZone()
 
@@ -56,8 +63,8 @@ describe('FileUpload', () => {
   })
 
   it('calls onFileLoaded with content when valid JSON dropped', async () => {
-    const onFileLoaded = vi.fn()
-    const onError = vi.fn()
+    const onFileLoaded = vi.fn<OnFileLoaded>()
+    const onError = vi.fn<OnError>()
     const jsonContent = '{"version": "1.0"}'
 
     class MockFileReader {
@@ -87,8 +94,8 @@ describe('FileUpload', () => {
   })
 
   it('calls onError when non-JSON file dropped', () => {
-    const onFileLoaded = vi.fn()
-    const onError = vi.fn()
+    const onFileLoaded = vi.fn<OnFileLoaded>()
+    const onError = vi.fn<OnError>()
 
     render(<FileUpload onFileLoaded={onFileLoaded} onError={onError} />)
 
@@ -104,7 +111,7 @@ describe('FileUpload', () => {
   it('triggers file input when button clicked', async () => {
     const user = userEvent.setup()
 
-    render(<FileUpload onFileLoaded={vi.fn()} onError={vi.fn()} />)
+    render(<FileUpload onFileLoaded={vi.fn<OnFileLoaded>()} onError={vi.fn<OnError>()} />)
 
     const fileInput = document.querySelector('input[type="file"]')
     if (!(fileInput instanceof HTMLInputElement)) {
@@ -112,13 +119,14 @@ describe('FileUpload', () => {
     }
     const clickSpy = vi.spyOn(fileInput, 'click')
 
-    await user.click(screen.getByRole('button', { name: /select file/i }))
+    const button = screen.getByRole('button', { name: /select file/i })
+    await user.click(button)
 
     expect(clickSpy).toHaveBeenCalled()
   })
 
   it('has accessible file input with label', () => {
-    render(<FileUpload onFileLoaded={vi.fn()} onError={vi.fn()} />)
+    render(<FileUpload onFileLoaded={vi.fn<OnFileLoaded>()} onError={vi.fn<OnError>()} />)
 
     const fileInput = document.querySelector('input[type="file"]')
     expect(fileInput).toHaveAttribute('aria-label', 'Upload file')
@@ -127,7 +135,7 @@ describe('FileUpload', () => {
   it('button is keyboard accessible', async () => {
     const user = userEvent.setup()
 
-    render(<FileUpload onFileLoaded={vi.fn()} onError={vi.fn()} />)
+    render(<FileUpload onFileLoaded={vi.fn<OnFileLoaded>()} onError={vi.fn<OnError>()} />)
 
     const button = screen.getByRole('button', { name: /select file/i })
     const fileInput = document.querySelector('input[type="file"]')
@@ -144,8 +152,8 @@ describe('FileUpload', () => {
   })
 
   it('calls onError when FileReader fails', async () => {
-    const onFileLoaded = vi.fn()
-    const onError = vi.fn()
+    const onFileLoaded = vi.fn<OnFileLoaded>()
+    const onError = vi.fn<OnError>()
 
     class MockFileReader {
       result: string | null = null
@@ -173,8 +181,8 @@ describe('FileUpload', () => {
   })
 
   it('calls onError when FileReader returns non-string result', async () => {
-    const onFileLoaded = vi.fn()
-    const onError = vi.fn()
+    const onFileLoaded = vi.fn<OnFileLoaded>()
+    const onError = vi.fn<OnError>()
 
     class MockFileReader {
       result: ArrayBuffer | null = null

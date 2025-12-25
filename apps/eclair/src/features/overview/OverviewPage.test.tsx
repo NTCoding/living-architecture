@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { OverviewPage } from './OverviewPage'
 import type { RiviereGraph } from '@/types/riviere'
-import { parseNode, parseEdge, parseDomainKey } from '@/lib/riviereTestData'
+import { parseNode, parseEdge, parseDomainMetadata } from '@/lib/riviereTestData'
 
 
 const testSourceLocation = { repository: 'test-repo', filePath: 'src/test.ts' }
@@ -14,22 +14,22 @@ function renderWithRouter(ui: React.ReactElement): ReturnType<typeof render> {
 
 function createTestGraph(overrides: Partial<RiviereGraph> = {}): RiviereGraph {
   return {
-    version: '1.0.0',
+    version: '1.0',
     metadata: {
       name: 'Test Architecture',
       description: 'Test description',
-      domains: {
-        [parseDomainKey('order-domain')]: { description: 'Order management', systemType: 'domain' },
-        [parseDomainKey('payment-domain')]: { description: 'Payment processing', systemType: 'domain' },
-      },
+      domains: parseDomainMetadata({
+        'order-domain': { description: 'Order management', systemType: 'domain' },
+        'payment-domain': { description: 'Payment processing', systemType: 'domain' },
+      }),
     },
     components: [
       parseNode({ sourceLocation: testSourceLocation, id: 'n1', type: 'UI', name: '/orders', domain: 'order-domain', module: 'm1', route: '/orders' }),
-      parseNode({ sourceLocation: testSourceLocation, id: 'n2', type: 'API', name: 'Place Order', domain: 'order-domain', module: 'm1', path: '/api/orders' }),
+      parseNode({ sourceLocation: testSourceLocation, id: 'n2', type: 'API', name: 'Place Order', domain: 'order-domain', module: 'm1', apiType: 'REST', httpMethod: 'POST', path: '/api/orders' }),
       parseNode({ sourceLocation: testSourceLocation, id: 'n3', type: 'UseCase', name: 'Place Order UC', domain: 'order-domain', module: 'm1' }),
       parseNode({ sourceLocation: testSourceLocation, id: 'n4', type: 'DomainOp', name: 'Order.begin', domain: 'order-domain', module: 'm1', entity: 'Order', operationName: 'begin' }),
       parseNode({ sourceLocation: testSourceLocation, id: 'n5', type: 'Event', name: 'OrderPlaced', domain: 'order-domain', module: 'm1', eventName: 'OrderPlaced' }),
-      parseNode({ sourceLocation: testSourceLocation, id: 'n6', type: 'API', name: 'Process Payment', domain: 'payment-domain', module: 'm1', path: '/api/payments' }),
+      parseNode({ sourceLocation: testSourceLocation, id: 'n6', type: 'API', name: 'Process Payment', domain: 'payment-domain', module: 'm1', apiType: 'REST', httpMethod: 'POST', path: '/api/payments' }),
       parseNode({ sourceLocation: testSourceLocation, id: 'n7', type: 'DomainOp', name: 'Payment.authorize', domain: 'payment-domain', module: 'm1', entity: 'Payment', operationName: 'authorize' }),
     ],
     links: [
@@ -138,6 +138,7 @@ describe('OverviewPage', () => {
         parseNode({
           id: 'n1',
           type: 'API',
+        apiType: 'other',
           name: 'Test API',
           domain: 'order-domain',
           module: 'm1',
@@ -146,6 +147,7 @@ describe('OverviewPage', () => {
         parseNode({
           id: 'n2',
           type: 'API',
+        apiType: 'other',
           name: 'Payment API',
           domain: 'payment-domain',
           module: 'm1',

@@ -1,38 +1,42 @@
 import { render, screen } from '@testing-library/react'
+import type { RenderResult } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
 import { AppShell } from './AppShell'
 import { ExportProvider } from '@/contexts/ExportContext'
 import type { GraphName, RiviereGraph } from '@/types/riviere'
-import { GraphNameSchema, NodeIdSchema, DomainNameSchema, ModuleNameSchema } from '@/types/riviere'
+import { graphNameSchema, nodeIdSchema, domainNameSchema, moduleNameSchema } from '@/types/riviere'
+import { parseDomainMetadata } from '@/lib/riviereTestData'
 
 
 const testSourceLocation = { repository: 'test-repo', filePath: 'src/test.ts' }
 function createGraphName(name: string): GraphName {
-  return GraphNameSchema.parse(name)
+  return graphNameSchema.parse(name)
 }
 
 function createTestGraph(name: string): RiviereGraph {
   return {
-    version: '1.0.0',
+    version: '1.0',
     metadata: {
       name,
       description: 'Test graph',
       generated: '2024-01-15T10:30:00Z',
-      domains: {
+      domains: parseDomainMetadata({
         orders: { description: 'Order management', systemType: 'domain' },
-      },
+      }),
     },
     components: [
       {
         sourceLocation: testSourceLocation,
-        id: NodeIdSchema.parse('node-1'),
+        id: nodeIdSchema.parse('node-1'),
         type: 'API',
         apiType: 'REST',
+        httpMethod: 'POST',
+        path: '/orders',
         name: 'POST /orders',
-        domain: DomainNameSchema.parse('orders'),
-        module: ModuleNameSchema.parse('api'),
+        domain: domainNameSchema.parse('orders'),
+        module: moduleNameSchema.parse('api'),
       },
     ],
     links: [],
@@ -55,7 +59,7 @@ vi.mock('@/components/ThemeSwitcher', () => ({
   ThemeSwitcher: () => <div data-testid="theme-switcher">ThemeSwitcher</div>,
 }))
 
-function renderWithRouter(ui: React.ReactElement): ReturnType<typeof render> {
+function renderWithRouter(ui: React.ReactElement): RenderResult {
   return render(<MemoryRouter><ExportProvider>{ui}</ExportProvider></MemoryRouter>)
 }
 
@@ -126,8 +130,10 @@ describe('AppShell', () => {
       </AppShell>
     )
 
-    expect(screen.getByTestId('child-content')).toBeInTheDocument()
-    expect(screen.getByText('Main Content')).toBeInTheDocument()
+    const childContent = screen.getByTestId('child-content')
+    expect(childContent).toBeInTheDocument()
+    const mainContent = screen.getByText('Main Content')
+    expect(mainContent).toBeInTheDocument()
   })
 
   it('renders Sidebar component', () => {
@@ -137,8 +143,10 @@ describe('AppShell', () => {
       </AppShell>
     )
 
-    expect(screen.getByText('Éclair')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /Overview/i })).toBeInTheDocument()
+    const eclairText = screen.getByText('Éclair')
+    expect(eclairText).toBeInTheDocument()
+    const overviewLink = screen.getByRole('link', { name: /Overview/i })
+    expect(overviewLink).toBeInTheDocument()
   })
 
   it('renders Header component', () => {
@@ -148,7 +156,8 @@ describe('AppShell', () => {
       </AppShell>
     )
 
-    expect(screen.getByRole('button', { name: /Upload Graph/i })).toBeInTheDocument()
+    const uploadButton = screen.getByRole('button', { name: /Upload Graph/i })
+    expect(uploadButton).toBeInTheDocument()
   })
 
   it('passes graph to Header and displays metadata name', () => {
@@ -159,7 +168,8 @@ describe('AppShell', () => {
       </AppShell>
     )
 
-    expect(screen.getByText('Test Graph')).toBeInTheDocument()
+    const graphName = screen.getByText('Test Graph')
+    expect(graphName).toBeInTheDocument()
   })
 
   it('passes hasGraph to Sidebar for enabling/disabling nav items', () => {
@@ -169,8 +179,12 @@ describe('AppShell', () => {
       </AppShell>
     )
 
-    expect(screen.getByText('Flows').closest('span[aria-disabled]')).toHaveAttribute('aria-disabled', 'true')
-    expect(screen.getByText('Domain Map').closest('span[aria-disabled]')).toHaveAttribute('aria-disabled', 'true')
+    const flowsText = screen.getByText('Flows')
+    const flowsDisabled = flowsText.closest('span[aria-disabled]')
+    expect(flowsDisabled).toHaveAttribute('aria-disabled', 'true')
+    const domainMapText = screen.getByText('Domain Map')
+    const domainMapDisabled = domainMapText.closest('span[aria-disabled]')
+    expect(domainMapDisabled).toHaveAttribute('aria-disabled', 'true')
   })
 
   it('renders main content area', () => {

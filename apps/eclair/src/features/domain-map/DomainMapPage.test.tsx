@@ -4,14 +4,14 @@ import { MemoryRouter } from 'react-router-dom'
 import { DomainMapPage } from './DomainMapPage'
 import { ExportProvider } from '@/contexts/ExportContext'
 import type { RiviereGraph } from '@/types/riviere'
-import { parseNode, parseEdge } from '@/lib/riviereTestData'
+import { parseNode, parseEdge, parseDomainMetadata } from '@/lib/riviereTestData'
 
 const testSourceLocation = { repository: 'test-repo', filePath: 'src/test.ts' }
 
 function createTestGraph(): RiviereGraph {
   return {
     version: '1.0',
-    metadata: { domains: {} },
+    metadata: { domains: parseDomainMetadata({ 'test-domain': { description: 'Test domain', systemType: 'domain' } }) },
     components: [
       parseNode({ sourceLocation: testSourceLocation, id: 'n1', type: 'API', name: 'API 1', domain: 'orders', module: 'm1' }),
       parseNode({ sourceLocation: testSourceLocation, id: 'n2', type: 'UseCase', name: 'UC 1', domain: 'payments', module: 'm2' }),

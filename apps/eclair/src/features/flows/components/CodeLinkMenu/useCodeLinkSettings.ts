@@ -3,13 +3,13 @@ import { z } from 'zod'
 
 const STORAGE_KEY = 'eclair-code-link-settings'
 
-const CodeLinkSettingsSchema = z.object({
+const codeLinkSettingsSchema = z.object({
   vscodePath: z.string().nullable(),
   githubOrg: z.string().nullable(),
   githubBranch: z.string(),
 })
 
-type CodeLinkSettings = z.infer<typeof CodeLinkSettingsSchema>
+type CodeLinkSettings = z.infer<typeof codeLinkSettingsSchema>
 
 interface UseCodeLinkSettingsReturn {
   settings: CodeLinkSettings
@@ -31,7 +31,7 @@ function loadSettings(): CodeLinkSettings {
   if (stored === null) {
     return DEFAULT_SETTINGS
   }
-  return CodeLinkSettingsSchema.parse(JSON.parse(stored))
+  return codeLinkSettingsSchema.parse(JSON.parse(stored))
 }
 
 function saveSettings(settings: CodeLinkSettings): void {

@@ -136,13 +136,17 @@ export function DomainContextGraph({
     setTransform({ scale: 1, translateX: 0, translateY: 0 })
   }, [])
 
+  const ignoreFullscreenError = (): void => {
+    return
+  }
+
   const handleToggleFullscreen = useCallback((): void => {
     if (containerRef.current === null) return
 
     if (document.fullscreenElement !== null) {
-      document.exitFullscreen().catch(() => {})
+      document.exitFullscreen().catch(ignoreFullscreenError)
     } else {
-      containerRef.current.requestFullscreen().catch(() => {})
+      containerRef.current.requestFullscreen().catch(ignoreFullscreenError)
     }
   }, [])
 

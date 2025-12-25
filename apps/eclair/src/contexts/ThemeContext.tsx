@@ -7,7 +7,7 @@ interface ThemeContextValue {
   setTheme: (theme: Theme) => void
 }
 
-const ThemeContext = createContext<ThemeContextValue | null>(null)
+const themeContext = createContext<ThemeContextValue | null>(null)
 
 function getStoredTheme(): Theme {
   if (typeof window === 'undefined') {
@@ -43,14 +43,14 @@ export function ThemeProvider({ children }: ThemeProviderProps): React.ReactElem
   }, [theme])
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme }}>
+    <themeContext.Provider value={{ theme, setTheme }}>
       {children}
-    </ThemeContext.Provider>
+    </themeContext.Provider>
   )
 }
 
 export function useTheme(): ThemeContextValue {
-  const context = useContext(ThemeContext)
+  const context = useContext(themeContext)
   if (context === null) {
     throw new Error('useTheme must be used within a ThemeProvider')
   }
