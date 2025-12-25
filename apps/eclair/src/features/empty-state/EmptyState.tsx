@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { FileUpload } from '@/components/FileUpload'
+import { UrlInput } from '@/components/UrlInput'
 import { useGraph } from '@/contexts/GraphContext'
 import { parseRiviereGraph } from '@living-architecture/riviere-schema'
 
 export function EmptyState(): React.ReactElement {
-  const { setGraph } = useGraph()
+  const { setGraph, loadGraphFromUrl, isLoadingFromUrl, urlLoadError, clearUrlLoadError } = useGraph()
   const [error, setError] = useState<string | null>(null)
 
   const handleFileLoaded = (content: string, fileName: string): void => {
@@ -23,6 +24,12 @@ export function EmptyState(): React.ReactElement {
     setError(errorMessage)
   }
 
+  useEffect(() => {
+    return () => {
+      clearUrlLoadError()
+    }
+  }, [clearUrlLoadError])
+
   return (
     <div className="max-w-2xl mx-auto py-12">
       <div className="text-center mb-12">
@@ -36,11 +43,22 @@ export function EmptyState(): React.ReactElement {
 
       <FileUpload onFileLoaded={handleFileLoaded} onError={handleError} />
 
-      {error !== null && (
+      <div className="my-8 flex items-center">
+        <div className="flex-1 border-t border-[var(--border-color)]" />
+        <span className="px-4 text-sm text-[var(--text-tertiary)]">OR</span>
+        <div className="flex-1 border-t border-[var(--border-color)]" />
+      </div>
+
+      <UrlInput
+        onLoadFromUrl={loadGraphFromUrl}
+        isLoading={isLoadingFromUrl}
+      />
+
+      {(error !== null || urlLoadError !== null) && (
         <div className="mt-6 p-4 rounded-[var(--radius)] bg-red-50 border border-red-200 text-red-700">
           <div className="flex items-start gap-3">
             <i className="ph ph-warning-circle text-xl flex-shrink-0 mt-0.5" aria-hidden="true" />
-            <pre className="text-sm whitespace-pre-wrap font-mono">{error}</pre>
+            <pre className="text-sm whitespace-pre-wrap font-mono">{error !== null ? error : urlLoadError}</pre>
           </div>
         </div>
       )}

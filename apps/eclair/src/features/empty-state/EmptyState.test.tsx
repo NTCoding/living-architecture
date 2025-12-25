@@ -1,4 +1,5 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { GraphProvider, useGraph } from '@/contexts/GraphContext'
 import { EmptyState } from './EmptyState'
 import { parseNode, parseDomainMetadata } from '@/lib/riviereTestData'
@@ -180,5 +181,55 @@ describe('EmptyState', () => {
     })
 
     vi.unstubAllGlobals()
+  })
+
+  describe('URL loading', () => {
+    afterEach(() => {
+      vi.unstubAllGlobals()
+    })
+
+    it('renders UrlInput component', () => {
+      renderEmptyState()
+      expect(screen.getByLabelText('Graph URL')).toBeInTheDocument()
+    })
+
+    it('loads graph from URL successfully', async () => {
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+        ok: true,
+        text: () => Promise.resolve(JSON.stringify(validGraph)),
+      }))
+
+      renderEmptyState()
+
+      const user = userEvent.setup()
+      const input = screen.getByLabelText('Graph URL')
+
+      await user.type(input, 'http://example.com/graph.json')
+      await user.click(screen.getByRole('button', { name: /load from url/i }))
+
+      await waitFor(() => {
+        expect(screen.getByTestId('has-graph')).toHaveTextContent('yes')
+      })
+      expect(screen.getByTestId('graph-name')).toHaveTextContent('Test Graph')
+    })
+
+    it('shows error when URL loading fails', async () => {
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+        ok: false,
+        status: 404,
+      }))
+
+      renderEmptyState()
+
+      const user = userEvent.setup()
+      const input = screen.getByLabelText('Graph URL')
+
+      await user.type(input, 'http://example.com/missing.json')
+      await user.click(screen.getByRole('button', { name: /load from url/i }))
+
+      await waitFor(() => {
+        expect(screen.getByText(/failed to fetch/i)).toBeInTheDocument()
+      })
+    })
   })
 })

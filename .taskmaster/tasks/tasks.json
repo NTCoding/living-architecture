@@ -208,12 +208,13 @@
         "description": "Configure Vite dev server, verify app loads and renders a graph",
         "details": "## Deliverable\nConfigure Vite dev server, verify app loads and renders a graph\n\n## Context\n- PRD: `docs/project/PRD/active/PRD-phase-6-eclair-migration.md` (M2: D2.1, D2.2)\n- Depends on Task 15 (build must work first)\n- Example graph: `packages/riviere-schema/examples/ecommerce-complete.json`\n\n## Key Decisions\n- Dev server must hot-reload\n- Graph loading must work from both file upload and URL\n\n## Acceptance Criteria\n- Given Vite config → When `nx serve eclair` → Then dev server starts successfully\n- Given browser → When navigate to localhost → Then app renders without errors\n- Given file upload → When upload `ecommerce-complete.json` → Then graph nodes and edges visible\n- Given URL input → When provide graph URL → Then graph loads and renders\n\n## Dependencies\nTask 15 (build working)\n\n## Related Code\n- `packages/riviere-schema/examples/ecommerce-complete.json` — Test graph\n- POC `vite.config.ts` — Configuration to adapt\n\n## Verification\nnx serve eclair\n# Manual: Open browser, upload ecommerce-complete.json, see visualization",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           "15"
         ],
         "priority": "high",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2025-12-25T16:31:24.387Z"
       },
       {
         "id": "17",
@@ -270,9 +271,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-12-25T16:12:18.741Z",
+      "lastModified": "2025-12-25T16:31:24.388Z",
       "taskCount": 20,
-      "completedCount": 14,
+      "completedCount": 15,
       "tags": [
         "master"
       ]

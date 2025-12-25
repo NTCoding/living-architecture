@@ -10,11 +10,16 @@ interface GraphContextValue {
   hasGraph: boolean
   graphName: GraphName | undefined
   isLoadingDemo: boolean
+  isLoadingFromUrl: boolean
+  loadGraphFromUrl: (url: string) => Promise<void>
+  urlLoadError: string | null
+  clearUrlLoadError: () => void
 }
 
 const GraphContext = createContext<GraphContextValue | null>(null)
 
 const DEFAULT_GRAPH_URL = '/ecommerce-complete.json'
+const DEFAULT_GITHUB_ORG = 'https://github.com/NTCoding'
 
 export async function fetchAndValidateDemoGraph(url: string = DEFAULT_GRAPH_URL): Promise<RiviereGraph> {
   const response = await fetch(url)
@@ -48,6 +53,8 @@ export function GraphProvider({ children }: GraphProviderProps): React.ReactElem
   const isDemoMode = useIsDemoMode()
   const [graph, setGraphState] = useState<RiviereGraph | null>(null)
   const [isLoadingDemo, setIsLoadingDemo] = useState(isDemoMode)
+  const [isLoadingFromUrl, setIsLoadingFromUrl] = useState(false)
+  const [urlLoadError, setUrlLoadError] = useState<string | null>(null)
   const hasFetchedDemo = useRef(false)
 
   const setGraph = useCallback((newGraph: RiviereGraph | null) => {
@@ -56,6 +63,24 @@ export function GraphProvider({ children }: GraphProviderProps): React.ReactElem
 
   const clearGraph = useCallback(() => {
     setGraphState(null)
+  }, [])
+
+  const loadGraphFromUrl = useCallback(async (url: string) => {
+    setIsLoadingFromUrl(true)
+    setUrlLoadError(null)
+    try {
+      const graph = await fetchAndValidateDemoGraph(url)
+      setGraphState(graph)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error loading graph from URL'
+      setUrlLoadError(message)
+    } finally {
+      setIsLoadingFromUrl(false)
+    }
+  }, [])
+
+  const clearUrlLoadError = useCallback(() => {
+    setUrlLoadError(null)
   }, [])
 
   useEffect(() => {
@@ -67,7 +92,7 @@ export function GraphProvider({ children }: GraphProviderProps): React.ReactElem
 
     localStorage.setItem('eclair-code-link-settings', JSON.stringify({
       vscodePath: null,
-      githubOrg: 'https://github.com/NTCoding',
+      githubOrg: DEFAULT_GITHUB_ORG,
       githubBranch: 'main',
     }))
 
@@ -86,7 +111,7 @@ export function GraphProvider({ children }: GraphProviderProps): React.ReactElem
     : undefined
 
   return (
-    <GraphContext.Provider value={{ graph, setGraph, clearGraph, hasGraph, graphName, isLoadingDemo }}>
+    <GraphContext.Provider value={{ graph, setGraph, clearGraph, hasGraph, graphName, isLoadingDemo, isLoadingFromUrl, loadGraphFromUrl, urlLoadError, clearUrlLoadError }}>
       {children}
     </GraphContext.Provider>
   )
