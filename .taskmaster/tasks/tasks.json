@@ -154,7 +154,7 @@
         "description": "Verify package works in browser; ensure no Node.js dependencies leak",
         "details": "## Deliverable\nVerify package works in browser; ensure no Node.js dependencies leak\n\n## Context\n- PRD: `docs/project/PRD/active/PRD-phase-5-riviere-query.md` (M7: D7.1, D7.2)\n- Must be browser-safe for Eclair (Vite app)\n\n## Key Decisions\n- Create simple HTML test page that imports built package\n- Bundle analysis to check for fs, path, process references\n- AJV is browser-safe, verify no ajv-cli or similar leaks\n\n## Acceptance Criteria\n- Given HTML page importing riviere-query → When opened in browser → Then can call validate(), search(), etc.\n- Given bundle output → When analyzed → Then no references to 'fs', 'path', 'node:' imports\n- Given package.json → Then no dependencies that require Node.js\n\n## Dependencies\nTasks 2, 3, 8, 11 (core implementation complete)\n\n## Verification\n- Manual: Open test page in browser, run queries\n- Automated: grep -r \"require('fs')\" dist/ returns nothing",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           "2",
           "3",
@@ -162,7 +162,8 @@
           "11"
         ],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2025-12-25T15:09:18.947Z"
       },
       {
         "id": "14",
@@ -190,9 +191,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-12-25T14:18:25.111Z",
+      "lastModified": "2025-12-25T15:09:18.948Z",
       "taskCount": 14,
-      "completedCount": 10,
+      "completedCount": 11,
       "tags": [
         "master"
       ]
