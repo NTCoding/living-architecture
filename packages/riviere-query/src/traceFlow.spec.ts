@@ -1,5 +1,5 @@
-import { RiviereQuery } from './RiviereQuery.js'
-import { createMinimalValidGraph, createAPIComponent } from './graph-test-builders.js'
+import { RiviereQuery } from './RiviereQuery'
+import { createMinimalValidGraph, createAPIComponent } from './graph-test-builders'
 
 describe('RiviereQuery.traceFlow()', () => {
   it('throws error when startComponentId does not exist', () => {

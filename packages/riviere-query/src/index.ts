@@ -1,1 +1,1 @@
-export * from './RiviereQuery.js';
+export * from './RiviereQuery';

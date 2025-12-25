@@ -2,6 +2,7 @@ import nx from '@nx/eslint-plugin';
 import tseslint from 'typescript-eslint';
 import noGenericNames from './.eslint-rules/no-generic-names.js';
 import eslintComments from '@eslint-community/eslint-plugin-eslint-comments/configs';
+import importPlugin from 'eslint-plugin-import';
 
 const customRules = {
   plugins: {
@@ -10,6 +11,7 @@ const customRules = {
         'no-generic-names': noGenericNames,
       },
     },
+    import: importPlugin
   },
 };
 
@@ -28,7 +30,7 @@ export default tseslint.config(
       '*.config.js',
       'vitest.workspace.ts',
       '**/*.d.ts',
-      '**/test-output'
+      '**/test-output',
     ],
   },
   eslintComments.recommended,
@@ -41,6 +43,12 @@ export default tseslint.config(
   {
     files: ['**/*.ts', '**/*.tsx'],
     rules: {
+      'import/extensions': [
+        'error',
+        'never',
+        { ts: 'never', tsx: 'never', js: 'never', json: 'always' },
+      ],
+
       // Custom rule: no generic names
       'custom/no-generic-names': 'error',
 

@@ -5,8 +5,8 @@ import type {
   APIComponent,
   Link,
   GraphMetadata,
-} from './schema.js'
-import { parseRiviereGraph, formatValidationErrors } from './schema.zod.js'
+} from './schema'
+import { parseRiviereGraph, formatValidationErrors } from './validation'
 
 describe('formatValidationErrors()', () => {
   it('returns generic message when errors is null', () => {

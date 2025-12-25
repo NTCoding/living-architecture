@@ -1,11 +1,11 @@
-import { RiviereQuery } from './RiviereQuery.js'
+import { RiviereQuery } from './RiviereQuery'
 import {
   createMinimalValidGraph,
   createAPIComponent,
   createEventHandlerComponent,
   createCustomComponent,
   createUseCaseComponent,
-} from './graph-test-builders.js'
+} from './graph-test-builders'
 
 describe('RiviereQuery', () => {
   describe('constructor', () => {

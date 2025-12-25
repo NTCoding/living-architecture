@@ -17,6 +17,34 @@ export interface ValidationResult {
   errors: ValidationError[]
 }
 
+export interface ComponentModification {
+  id: string
+  before: Component
+  after: Component
+  changedFields: string[]
+}
+
+export interface DiffStats {
+  componentsAdded: number
+  componentsRemoved: number
+  componentsModified: number
+  linksAdded: number
+  linksRemoved: number
+}
+
+export interface GraphDiff {
+  components: {
+    added: Component[]
+    removed: Component[]
+    modified: ComponentModification[]
+  }
+  links: {
+    added: Link[]
+    removed: Link[]
+  }
+  stats: DiffStats
+}
+
 function isCustomComponent(component: Component): component is CustomComponent {
   return component.type === 'Custom'
 }
@@ -202,5 +230,73 @@ export class RiviereQuery {
       connected.add(link.target)
     })
     return connected
+  }
+
+  diff(other: RiviereGraph): GraphDiff {
+    const thisIds = new Set(this.graph.components.map((c) => c.id))
+    const otherIds = new Set(other.components.map((c) => c.id))
+    const otherComponentsById = new Map(other.components.map((c) => [c.id, c]))
+
+    const added = other.components.filter((c) => !thisIds.has(c.id))
+    const removed = this.graph.components.filter((c) => !otherIds.has(c.id))
+
+    const modified: ComponentModification[] = []
+    for (const thisComponent of this.graph.components) {
+      const otherComponent = otherComponentsById.get(thisComponent.id)
+      if (!otherComponent) {
+        continue
+      }
+      const changedFields = this.findChangedFields(thisComponent, otherComponent)
+      if (changedFields.length > 0) {
+        modified.push({
+          id: thisComponent.id,
+          before: thisComponent,
+          after: otherComponent,
+          changedFields,
+        })
+      }
+    }
+
+    const linkKey = (link: Link): string => link.id ?? `${link.source}->${link.target}`
+    const thisLinkKeys = new Set(this.graph.links.map(linkKey))
+    const otherLinkKeys = new Set(other.links.map(linkKey))
+
+    const linksAdded = other.links.filter((link) => !thisLinkKeys.has(linkKey(link)))
+    const linksRemoved = this.graph.links.filter((link) => !otherLinkKeys.has(linkKey(link)))
+
+    return {
+      components: {
+        added,
+        removed,
+        modified,
+      },
+      links: {
+        added: linksAdded,
+        removed: linksRemoved,
+      },
+      stats: {
+        componentsAdded: added.length,
+        componentsRemoved: removed.length,
+        componentsModified: modified.length,
+        linksAdded: linksAdded.length,
+        linksRemoved: linksRemoved.length,
+      },
+    }
+  }
+
+  private findChangedFields(before: Component, after: Component): string[] {
+    const beforeEntries = new Map(Object.entries(before))
+    const afterEntries = new Map(Object.entries(after))
+    const changedFields: string[] = []
+    const allKeys = new Set([...beforeEntries.keys(), ...afterEntries.keys()])
+    for (const key of allKeys) {
+      if (key === 'id') {
+        continue
+      }
+      if (JSON.stringify(beforeEntries.get(key)) !== JSON.stringify(afterEntries.get(key))) {
+        changedFields.push(key)
+      }
+    }
+    return changedFields
   }
 }

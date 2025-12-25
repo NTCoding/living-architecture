@@ -1,1 +1,1 @@
-export * from './lib/builder.js';
+export * from './lib/builder';

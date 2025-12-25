@@ -1,10 +1,10 @@
 import Ajv from 'ajv'
 import addFormats from 'ajv-formats'
-import type { RiviereGraph } from './schema.js'
+import type { RiviereGraph } from './schema'
 import rawSchema from '../riviere.schema.json' with { type: 'json' }
 
-const ajv = new Ajv.default({ allErrors: true })
-addFormats.default(ajv)
+const ajv = new Ajv({ allErrors: true })
+addFormats(ajv)
 
 const validate = ajv.compile(rawSchema)
 

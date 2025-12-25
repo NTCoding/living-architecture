@@ -123,10 +123,11 @@
         "description": "Compare two graphs, return added/removed/modified components and links",
         "details": "## Deliverable\nCompare two graphs, return added/removed/modified components and links\n\n## Context\n- PRD: `docs/project/PRD/active/PRD-phase-5-riviere-query.md` (M6: D6.1)\n- Required for Eclair migration (Phase 6)\n\n## Key Decisions\n- GraphDiff: `{ components: { added, removed, modified }, links: { added, removed }, stats }`\n- Modified = same ID but different content (deep compare)\n- ComponentModification: `{ id, before, after, changedFields }`\n\n## Acceptance Criteria\n- Given graph A and B with new component in B → When diff() → Then component in added\n- Given graph A and B with component removed in B → When diff() → Then component in removed\n- Given component with changed name → When diff() → Then component in modified with changedFields\n- Given identical graphs → When diff() → Then all arrays empty\n- Given new link in B → When diff() → Then link in links.added\n\n## Verification\nnx test riviere-query --testNamePattern \"diff\"",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [],
         "priority": "high",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2025-12-25T01:23:40.373Z"
       },
       {
         "id": "12",
@@ -183,9 +184,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-12-25T00:46:02.035Z",
+      "lastModified": "2025-12-25T01:23:40.374Z",
       "taskCount": 14,
-      "completedCount": 3,
+      "completedCount": 4,
       "tags": [
         "master"
       ]

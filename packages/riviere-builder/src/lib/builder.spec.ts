@@ -1,4 +1,4 @@
-import { builder } from './builder.js';
+import { builder } from './builder';
 
 describe('builder', () => {
   it('should work', () => {

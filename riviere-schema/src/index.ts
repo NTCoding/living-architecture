@@ -1,2 +1,2 @@
-export * from './schema.js';
-export { parseRiviereGraph, isRiviereGraph, formatValidationErrors } from './schema.zod.js';
+export * from './schema';
+export { parseRiviereGraph, isRiviereGraph, formatValidationErrors } from './validation';

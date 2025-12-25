@@ -33,6 +33,7 @@
     "esbuild": "^0.19.2",
     "eslint": "~8.57.0",
     "eslint-plugin-functional": "^9.0.2",
+    "eslint-plugin-import": "^2.32.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
     "nx": "22.3.3",
