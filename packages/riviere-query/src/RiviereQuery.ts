@@ -41,6 +41,12 @@ export interface Entity {
   operations: DomainOpComponent[]
 }
 
+export interface EntityTransition {
+  from: string
+  to: string
+  triggeredBy: string
+}
+
 export interface ComponentModification {
   id: ComponentId
   before: Component
@@ -266,6 +272,65 @@ export class RiviereQuery {
       }
     }
     return [...new Set(allRules)]
+  }
+
+  transitionsFor(entityName: string): EntityTransition[] {
+    const operations = this.operationsFor(entityName)
+    const transitions: EntityTransition[] = []
+
+    for (const op of operations) {
+      if (op.stateChanges) {
+        for (const sc of op.stateChanges) {
+          transitions.push({
+            from: sc.from,
+            to: sc.to,
+            triggeredBy: op.operationName,
+          })
+        }
+      }
+    }
+
+    return transitions
+  }
+
+  statesFor(entityName: string): string[] {
+    const operations = this.operationsFor(entityName)
+    const states = new Set<string>()
+    const allStateChanges = operations.flatMap((op) => op.stateChanges ?? [])
+    for (const sc of allStateChanges) {
+      if (sc.from !== '*') states.add(sc.from)
+      states.add(sc.to)
+    }
+    return this.orderStatesByTransitions(states, operations)
+  }
+
+  private orderStatesByTransitions(states: Set<string>, operations: DomainOpComponent[]): string[] {
+    const fromStates = new Set<string>()
+    const toStates = new Set<string>()
+    const transitionMap = new Map<string, string>()
+    for (const op of operations) {
+      if (!op.stateChanges) continue
+      for (const t of op.stateChanges) {
+        if (t.from !== '*') {
+          fromStates.add(t.from)
+          transitionMap.set(t.from, t.to)
+        }
+        toStates.add(t.to)
+      }
+    }
+    const initialStates = [...fromStates].filter((s) => !toStates.has(s))
+    const orderedStates: string[] = []
+    const visited = new Set<string>()
+    const followChain = (state: string): void => {
+      if (visited.has(state)) return
+      visited.add(state)
+      orderedStates.push(state)
+      const next = transitionMap.get(state)
+      if (next) followChain(next)
+    }
+    for (const initial of initialStates) followChain(initial)
+    for (const state of states) if (!visited.has(state)) orderedStates.push(state)
+    return orderedStates
   }
 
   entryPoints(): Component[] {

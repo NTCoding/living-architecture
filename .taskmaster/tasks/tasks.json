@@ -67,10 +67,11 @@
         "description": "Extract states (ordered by flow) and transitions for an entity",
         "details": "## Deliverable\nExtract states (ordered by flow) and transitions for an entity\n\n## Context\n- PRD: `docs/project/PRD/active/PRD-phase-5-riviere-query.md` (M3: D3.4, D3.5)\n- State info lives in DomainOp.stateChanges: `{ from: string, to: string }`\n- Entity state machines defined in metadata.domains[domain].entities[entity].stateMachine\n\n## Key Decisions\n- statesFor() returns states ordered by transition flow (initial → ... → terminal)\n- Use topological sort on transitions to order states\n- transitionsFor() returns all `{ from, to, trigger? }` for entity\n\n## Acceptance Criteria\n- Given Order with states [Draft, Placed, Confirmed, Shipped, Delivered] → When statesFor(\"Order\") → Then returns in transition order\n- Given Order with transition Draft→Placed → When transitionsFor(\"Order\") → Then includes that transition\n- Given entity with wildcard transition \"*\" → Cancelled → When transitionsFor() → Then includes it\n- Given nonexistent entity → When statesFor() → Then returns empty array\n\n## Related Code\n- stateChanges in DomainOp schema\n- stateMachine in domain metadata\n\n## Verification\nnx test riviere-query --testNamePattern \"statesFor|transitionsFor\"",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2025-12-25T09:38:30.455Z"
       },
       {
         "id": "7",
@@ -186,9 +187,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-12-25T09:11:44.233Z",
+      "lastModified": "2025-12-25T09:38:30.456Z",
       "taskCount": 14,
-      "completedCount": 6,
+      "completedCount": 7,
       "tags": [
         "master"
       ]
