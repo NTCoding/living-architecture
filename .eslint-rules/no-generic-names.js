@@ -11,7 +11,7 @@ module.exports = {
 
     const forbiddenWords = ['utils', 'helpers', 'helper', 'service', 'services', 'manager', 'managers', 'processor', 'processors', 'data']
     const forbiddenPattern = new RegExp(
-      `(^|/)(${ forbiddenWords.join('|') })(\.ts$|\.tsx$|/|$)`,
+      `(^|/)(${ forbiddenWords.join('|') })([.]ts$|[.]tsx$|/|$)`,
       'i'
     )
 
