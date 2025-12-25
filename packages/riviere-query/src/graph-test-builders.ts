@@ -4,6 +4,7 @@ import type {
   EventHandlerComponent,
   CustomComponent,
   UseCaseComponent,
+  DomainOpComponent,
   SourceLocation,
 } from '@living-architecture/riviere-schema'
 
@@ -72,6 +73,17 @@ export function createUseCaseComponent(
 ): UseCaseComponent {
   return {
     type: 'UseCase',
+    module: 'mod',
+    sourceLocation: defaultSourceLocation,
+    ...overrides,
+  }
+}
+
+export function createDomainOpComponent(
+  overrides: Partial<DomainOpComponent> & { id: string; name: string; domain: string; operationName: string },
+): DomainOpComponent {
+  return {
+    type: 'DomainOp',
     module: 'mod',
     sourceLocation: defaultSourceLocation,
     ...overrides,

@@ -55,10 +55,11 @@
         "description": "Extract entities from DomainOps, find operations and business rules for an entity",
         "details": "## Deliverable\nExtract entities from DomainOps, find operations and business rules for an entity\n\n## Context\n- PRD: `docs/project/PRD/active/PRD-phase-5-riviere-query.md` (M3: D3.2, D3.3, D3.6)\n- Entities are extracted from DomainOp components (entity field)\n- Operations = DomainOps that target that entity\n\n## Key Decisions\n- Entity format: `{ name: string, domain: string, operations: DomainOp[] }`\n- entities() groups by domain:entity key\n- businessRulesFor() aggregates businessRules arrays from all operations on entity\n\n## Acceptance Criteria\n- Given DomainOps with entity \"Order\" → When entities() → Then includes Order entity\n- Given multiple DomainOps for \"Order\" → When operationsFor(\"Order\") → Then returns all those DomainOps\n- Given operationsFor(\"NonExistent\") → When called → Then returns empty array\n- Given Order operations with businessRules → When businessRulesFor(\"Order\") → Then returns aggregated rules\n\n## Related Code\n- DomainOp schema: has `entity`, `operationName`, `businessRules` fields\n\n## Verification\nnx test riviere-query --testNamePattern \"entities|operationsFor|businessRulesFor\"",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2025-12-25T09:11:44.232Z"
       },
       {
         "id": "6",
@@ -185,9 +186,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-12-25T08:37:26.925Z",
+      "lastModified": "2025-12-25T09:11:44.233Z",
       "taskCount": 14,
-      "completedCount": 5,
+      "completedCount": 6,
       "tags": [
         "master"
       ]

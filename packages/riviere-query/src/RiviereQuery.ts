@@ -1,4 +1,4 @@
-import type { RiviereGraph, Component, Link, CustomComponent, ComponentType } from '@living-architecture/riviere-schema'
+import type { RiviereGraph, Component, Link, CustomComponent, ComponentType, DomainOpComponent } from '@living-architecture/riviere-schema'
 import { parseRiviereGraph } from '@living-architecture/riviere-schema'
 import { z } from 'zod'
 
@@ -33,6 +33,12 @@ export interface Domain {
   description: string
   systemType: 'domain' | 'bff' | 'ui' | 'other'
   componentCounts: Record<ComponentType, number> & { total: number }
+}
+
+export interface Entity {
+  name: string
+  domain: string
+  operations: DomainOpComponent[]
 }
 
 export interface ComponentModification {
@@ -222,6 +228,44 @@ export class RiviereQuery {
         componentCounts,
       }
     })
+  }
+
+  operationsFor(entityName: string): DomainOpComponent[] {
+    return this.graph.components.filter(
+      (c): c is DomainOpComponent => c.type === 'DomainOp' && c.entity === entityName
+    )
+  }
+
+  entities(domainName?: string): Entity[] {
+    const domainOps = this.graph.components.filter(
+      (c): c is DomainOpComponent & { entity: string } => c.type === 'DomainOp' && c.entity !== undefined
+    )
+
+    const filtered = domainName ? domainOps.filter((op) => op.domain === domainName) : domainOps
+
+    const entityMap = new Map<string, Entity>()
+    for (const op of filtered) {
+      const key = `${op.domain}:${op.entity}`
+      const existing = entityMap.get(key)
+      if (existing) {
+        existing.operations.push(op)
+      } else {
+        entityMap.set(key, { name: op.entity, domain: op.domain, operations: [op] })
+      }
+    }
+
+    return Array.from(entityMap.values())
+  }
+
+  businessRulesFor(entityName: string): string[] {
+    const operations = this.operationsFor(entityName)
+    const allRules: string[] = []
+    for (const op of operations) {
+      if (op.businessRules) {
+        allRules.push(...op.businessRules)
+      }
+    }
+    return [...new Set(allRules)]
   }
 
   entryPoints(): Component[] {
