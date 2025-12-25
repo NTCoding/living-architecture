@@ -126,6 +126,10 @@ task-master set-status --id=<id> --status=done
 
 Commit all changes include any task files
 
+### Documentation check
+
+Should any of the project's documentation be updated (including claude.md files) based on the work that was done? Would AI or humans benefit by improving the documentation? Don't just add documentation for the sake it.
+
 ---
 
 ## Creating Tasks
