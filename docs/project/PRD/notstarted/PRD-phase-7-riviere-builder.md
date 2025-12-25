@@ -1,6 +1,6 @@
 # PRD: Phase 7 — Riviere Builder Package
 
-**Status:** Draft
+**Status:** Planning
 
 **Depends on:** Phase 5 (Riviere Query), Phase 6 (Éclair Migration)
 
@@ -47,10 +47,7 @@ class RiviereBuilder {
   addEventHandler(input: EventHandlerInput): Component
   addCustom(input: CustomInput): Component
 
-  // Finding (for linking)
-  findComponent(criteria: FindCriteria): Component | undefined
-  findApiByHttpRoute(method: string, path: string): Component | undefined
-  getComponents(): Component[]
+  // Finding (delegates to query())
   nearMatches(criteria: FindCriteria): Component[]  // Fuzzy matching for error recovery
 
   // Linking
@@ -67,7 +64,7 @@ class RiviereBuilder {
   validate(): ValidationResult
   serialize(): string  // JSON without validation
   build(): RiviereGraph  // Validates and returns graph
-  build(path: string): void  // Validates and writes to file
+  save(path: string): void  // Validates and writes to file
 
   // Inspection
   stats(): BuilderStats
@@ -160,8 +157,8 @@ API documentation auto-generated from TSDoc comments.
 
 ## 4. What We're NOT Building
 
-- CLI (Phase 7)
-- Graph merging (Phase 8)
+- CLI (Phase 8)
+- Graph merging (future)
 - Extraction from source code (future)
 
 ## 5. Success Criteria
@@ -192,19 +189,181 @@ API documentation auto-generated from TSDoc comments.
 **Design Decisions:**
 - `./docs/project/PRD/archived/PRD-phase-3-client-library.md` — 12 resolved decisions
 
-## 7. Open Questions
+## 7. Resolved Questions
 
-1. **File system dependency** — `build(path)` requires Node.js fs. Should this be in builder or CLI only?
-2. **Session persistence** — POC has `serialize()`/`resume()` for draft graphs. Keep this pattern?
+1. **File system dependency** — Builder includes `build(path)` for file writing. This makes the package Node.js-only (not browser-safe), which is acceptable since it's for extraction tools.
+
+2. **Session persistence** — Keep `serialize()`/`resume()`. Essential for CLI workflow where each command is a separate invocation.
 
 ---
 
-## Dependencies
+## 8. Milestones
+
+### M1: Components can be added to a graph
+Core construction capability. Create graphs, add metadata, domains, and all 7 built-in component types.
+
+#### Deliverables
+- **D1.1:** `RiviereBuilder.new(options)` creates new builder instance
+  - Acceptance: Returns builder with graph metadata configured
+  - Verification: Tests with various options
+- **D1.2:** `addSource(source)` adds source repository info
+  - Acceptance: Source added to metadata
+  - Verification: Export includes source
+- **D1.3:** `addDomain(domain)` adds domain with validation
+  - Acceptance: Domain added, rejects duplicates
+  - Verification: Tests with valid and invalid inputs
+- **D1.4:** `addUI/addApi/addUseCase/addDomainOp/addEvent/addEventHandler` for all 7 types
+  - Acceptance: Each returns created component with generated ID
+  - Verification: Tests for each type with required/optional fields
+- **D1.5:** Automatic ID generation following convention
+  - Acceptance: IDs follow `{domain}:{type}:{name}` kebab-case pattern
+  - Verification: Test ID format for each component type
+
+---
+
+### M2: Custom types can be defined and validated
+Register custom types and validate them at construction time.
+
+#### Deliverables
+- **D2.1:** `defineCustomType(definition)` registers custom type
+  - Acceptance: Type stored with required/optional property definitions
+  - Verification: Test registration with various property types
+- **D2.2:** `addCustom(input)` validates against defined type
+  - Acceptance: Throws immediately if type undefined
+  - Acceptance: Throws immediately if required properties missing
+  - Verification: Tests for valid and invalid custom component adds
+- **D2.3:** Error messages include defined types and missing properties
+  - Acceptance: Actionable messages for each failure mode
+  - Verification: Test error message format
+
+---
+
+### M3: Error recovery suggests near-matches
+Fuzzy matching for actionable error messages. Finding delegates to `query()`.
+
+#### Deliverables
+- **D3.1:** `nearMatches(criteria)` returns fuzzy matches for error recovery
+  - Acceptance: Returns similar components when exact match fails
+  - Acceptance: Matches on name similarity, type, domain
+  - Verification: Test with typos and partial matches
+- **D3.2:** Error messages use nearMatches for suggestions
+  - Acceptance: When component not found, error includes "Did you mean...?"
+  - Verification: Test error output format
+
+---
+
+### M4: Components can be connected
+Linking components to form the graph structure.
+
+#### Deliverables
+- **D4.1:** `link(options)` connects internal components
+  - Acceptance: Creates edge with source, target, type (sync/async)
+  - Acceptance: Validates source exists immediately
+  - Acceptance: Target validation deferred to build()
+  - Verification: Tests for valid links, invalid source
+- **D4.2:** `linkExternal(options)` links to external systems
+  - Acceptance: Creates external link with name, optional domain/url
+  - Verification: Test external link creation and export
+- **D4.3:** Link error messages include near-matches (via M3)
+  - Acceptance: When source/target not found, suggests similar components
+  - Verification: Test error messages with typos
+
+---
+
+### M5: Components can be enriched
+Add domain details like state changes and business rules.
+
+#### Deliverables
+- **D5.1:** `enrichComponent(id, enrichment)` adds domain details
+  - Acceptance: Adds stateChanges, businessRules to DomainOp
+  - Acceptance: Validates component exists and is correct type
+  - Verification: Test enrichment of DomainOp
+- **D5.2:** State change validation
+  - Acceptance: stateChanges follow {entity, from, to} format
+  - Verification: Test valid and invalid state changes
+- **D5.3:** Business rules as string array
+  - Acceptance: businessRules stored correctly
+  - Verification: Test enrichment with rules
+
+---
+
+### M6: Draft graphs can be saved and restored
+Session persistence for CLI workflow.
+
+#### Deliverables
+- **D6.1:** `serialize()` exports builder state as string
+  - Acceptance: Returns JSON string of current draft state
+  - Verification: Test serialization at various build stages
+- **D6.2:** `RiviereBuilder.resume(graph)` restores from serialized state
+  - Acceptance: Returns builder with full state restored
+  - Verification: Round-trip: serialize → resume → serialize matches
+- **D6.3:** Serialized format includes all builder state
+  - Acceptance: Components, links, enrichments, custom types all preserved
+  - Verification: Test state completeness after resume
+
+---
+
+### M7: Graphs can be validated and exported
+Final validation and output.
+
+#### Deliverables
+- **D7.1:** `validate()` runs full validation
+  - Acceptance: Returns ValidationResult with errors array
+  - Acceptance: Checks: dangling references, orphans, schema compliance
+  - Verification: Tests with valid and various invalid graphs
+- **D7.2:** `build()` validates and returns graph object
+  - Acceptance: Returns RiviereGraph if valid, throws if invalid
+  - Verification: Test build success and failure paths
+- **D7.3:** `save(path)` validates and writes to file
+  - Acceptance: Writes valid JSON to specified path, throws without writing if invalid
+  - Verification: Test file output and error handling
+- **D7.4:** `stats()` returns builder statistics
+  - Acceptance: Component counts by type, link count, domain count
+  - Verification: Test stats at various build stages
+- **D7.5:** `warnings()` returns non-fatal issues
+  - Acceptance: Orphans, unused domains, etc.
+  - Verification: Test warning detection
+- **D7.6:** `orphans()` returns disconnected components
+  - Acceptance: Components with no incoming or outgoing links
+  - Verification: Test with graph containing orphans
+
+---
+
+### M8: Built graphs can be queried
+Integration with riviere-query package.
+
+#### Deliverables
+- **D8.1:** `query()` returns RiviereQuery instance
+  - Acceptance: Returns working query object for current graph state
+  - Verification: Test query operations on built graph
+- **D8.2:** Query reflects current builder state
+  - Acceptance: Can query mid-construction (validation deferred)
+  - Verification: Test query after partial construction
+
+---
+
+### M9: API documentation generated from code
+TSDoc comments on all public methods, TypeDoc generates reference.
+
+#### Deliverables
+- **D9.1:** All public methods have TSDoc comments
+  - Acceptance: Every exported function/method documented with @param, @returns, @example
+  - Verification: TypeDoc generates without warnings
+- **D9.2:** TypeDoc generates API reference
+  - Acceptance: Generated docs in apps/docs/api/riviere-builder/
+  - Verification: Build produces docs
+- **D9.3:** Static docs replaced with generated
+  - Remove: `apps/docs/api/riviere-builder.md`
+  - Replace with: TypeDoc output
+  - Verification: No duplicate/stale documentation
+
+---
+
+## 9. Dependencies
 
 **Depends on:**
 - Phase 5 (Query) — Builder imports and uses RiviereQuery
 
 **Blocks:**
-- Phase 7 (CLI) — CLI wraps Builder
-- Phase 8 (Graph merging) — Merging uses Builder
-- Éclair migration — After this, Éclair can migrate
+- Phase 8 (CLI) — CLI wraps Builder
+- Future: Graph merging — Merging uses Builder
