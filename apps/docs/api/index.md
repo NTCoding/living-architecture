@@ -75,47 +75,47 @@ Query and analyze Riviere graphs.
 const query = builder.query()
 
 // From JSON file
-const query = RiviereQuery.fromFile(jsonContents)
+const query = RiviereQuery.fromJSON(jsonContents)
 ```
 
 ### Component methods
 
 | Method | Purpose |
 |--------|---------|
-| [`components()`](./riviere-query#components) | Get all components |
-| [`componentById(id)`](./riviere-query#componentbyid) | Find component by ID |
-| [`componentsInDomain(domainId)`](./riviere-query#componentsindomain) | Components in a domain |
-| [`componentsByType(type)`](./riviere-query#componentsbytype) | Components of a type |
-| [`find(predicate)`](./riviere-query#find) | Find with custom function |
-| [`findAll(predicate)`](./riviere-query#findall) | Find all matching |
+| [`components()`](./generated/riviere-query/classes/RiviereQuery#components) | Get all components |
+| [`componentById(id)`](./generated/riviere-query/classes/RiviereQuery#componentbyid) | Find component by ID |
+| [`componentsInDomain(domainId)`](./generated/riviere-query/classes/RiviereQuery#componentsindomain) | Components in a domain |
+| [`componentsByType(type)`](./generated/riviere-query/classes/RiviereQuery#componentsbytype) | Components of a type |
+| [`find(predicate)`](./generated/riviere-query/classes/RiviereQuery#find) | Find with custom function |
+| [`findAll(predicate)`](./generated/riviere-query/classes/RiviereQuery#findall) | Find all matching |
 
 ### Link methods
 
 | Method | Purpose |
 |--------|---------|
-| [`links()`](./riviere-query#links) | Get all links |
+| [`links()`](./generated/riviere-query/classes/RiviereQuery#links) | Get all links |
 
 ### Domain methods
 
 | Method | Purpose |
 |--------|---------|
-| [`domains()`](./riviere-query#domains) | Domain info with component counts |
-| [`entities(domainId?)`](./riviere-query#entities) | Entity names in domain |
-| [`crossDomainLinks(domainId)`](./riviere-query#crossdomainlinks) | Links leaving domain |
+| [`domains()`](./generated/riviere-query/classes/RiviereQuery#domains) | Domain info with component counts |
+| [`entities(domainId?)`](./generated/riviere-query/classes/RiviereQuery#entities) | Entity names in domain |
+| [`crossDomainLinks(domainId)`](./generated/riviere-query/classes/RiviereQuery#crossdomainlinks) | Links leaving domain |
 
 ### Analysis methods
 
 | Method | Purpose |
 |--------|---------|
-| [`entryPoints()`](./riviere-query#entrypoints) | UI/API/EventHandler with no incoming links |
+| [`entryPoints()`](./generated/riviere-query/classes/RiviereQuery#entrypoints) | UI/API/EventHandler with no incoming links |
 
 ---
 
 ## Full Documentation
 
 - [RiviereBuilder](./riviere-builder) — Build graphs with type-safe methods
-- [RiviereQuery](./riviere-query) — Query and analyze graphs
-- [Types](./types) — All TypeScript type definitions
+- [RiviereQuery](./generated/riviere-query/classes/RiviereQuery) — Query and analyze graphs
+- [Types](./generated/riviere-query/README) — All TypeScript type definitions
 
 ## See also
 

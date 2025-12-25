@@ -39,6 +39,8 @@
     "nx": "22.3.3",
     "prettier": "~3.6.2",
     "tslib": "^2.3.0",
+    "typedoc": "^0.28.15",
+    "typedoc-plugin-markdown": "^4.9.0",
     "typescript": "~5.9.2",
     "typescript-eslint": "^8.50.1",
     "verdaccio": "^6.0.5",

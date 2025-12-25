@@ -777,7 +777,7 @@ const entities = query.entities('orders')
 const domains = query.domains()
 ```
 
-See [RiviereQuery](./riviere-query) for available query methods.
+See [RiviereQuery](./generated/riviere-query/classes/RiviereQuery) for available query methods.
 
 ## See also
 

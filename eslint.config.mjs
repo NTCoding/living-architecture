@@ -31,6 +31,8 @@ export default tseslint.config(
       'vitest.workspace.ts',
       '**/*.d.ts',
       '**/test-output',
+      '**/api/generated/**',
+      '**/.vitepress/cache/**',
     ],
   },
   eslintComments.recommended,

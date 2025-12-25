@@ -1,0 +1,21 @@
+# Function: parseHandlerName()
+
+> **parseHandlerName**(`value`): `string` & `$brand`\<`"HandlerName"`\>
+
+Defined in: [domain-types.ts:343](https://github.com/ntcoding/living-architecture/blob/aced3ff111f4aa786ecadcb5e4f3eae782963f49/packages/riviere-query/src/domain-types.ts#L343)
+
+Parses a string as a HandlerName.
+
+## Parameters
+
+### value
+
+`string`
+
+The string to parse
+
+## Returns
+
+`string` & `$brand`\<`"HandlerName"`\>
+
+A branded HandlerName

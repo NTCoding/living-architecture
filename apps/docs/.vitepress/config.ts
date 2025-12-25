@@ -64,8 +64,8 @@ export default defineConfig({
           items: [
             { text: 'Overview', link: '/api/' },
             { text: 'RiviereBuilder', link: '/api/riviere-builder' },
-            { text: 'RiviereQuery', link: '/api/riviere-query' },
-            { text: 'Types', link: '/api/types' },
+            { text: 'RiviereQuery', link: '/api/generated/riviere-query/classes/RiviereQuery' },
+            { text: 'Types', link: '/api/generated/riviere-query/README' },
           ]
         }
       ]

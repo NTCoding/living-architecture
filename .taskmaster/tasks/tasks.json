@@ -171,7 +171,7 @@
         "description": "Document all public methods; generate API reference with TypeDoc",
         "details": "## Deliverable\nDocument all public methods; generate API reference with TypeDoc\n\n## Context\n- PRD: `docs/project/PRD/active/PRD-phase-5-riviere-query.md` (M8: D8.1, D8.2, D8.3)\n- Replace static docs at `apps/docs/api/riviere-query.md` and `apps/docs/api/types.md`\n\n## Key Decisions\n- TSDoc format: @param, @returns, @example\n- TypeDoc outputs to apps/docs/api/generated/ or similar\n- Add typedoc as dev dependency\n\n## Acceptance Criteria\n- Given all public methods → When typedoc runs → Then no warnings about missing docs\n- Given RiviereQuery class → When typedoc runs → Then generates complete API reference\n- Given old static docs → When task complete → Then removed/replaced\n\n## Dependencies\nAll implementation tasks (2-12)\n\n## Verification\nnx run riviere-query:typedoc",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           "2",
           "3",
@@ -186,14 +186,15 @@
           "12"
         ],
         "priority": "low",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2025-12-25T15:30:13.539Z"
       }
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-12-25T15:09:18.948Z",
+      "lastModified": "2025-12-25T15:30:13.539Z",
       "taskCount": 14,
-      "completedCount": 11,
+      "completedCount": 12,
       "tags": [
         "master"
       ]

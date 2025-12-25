@@ -1,0 +1,20 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": ["./src/index.ts"],
+  "out": "../../apps/docs/api/generated/riviere-query",
+  "plugin": ["typedoc-plugin-markdown"],
+  "name": "@living-architecture/riviere-query",
+  "readme": "none",
+  "excludePrivate": true,
+  "excludeProtected": true,
+  "excludeInternal": true,
+  "includeVersion": false,
+  "disableSources": false,
+  "tsconfig": "./tsconfig.lib.json",
+  "validation": {
+    "invalidLink": true,
+    "notExported": false
+  },
+  "hidePageHeader": true,
+  "hideBreadcrumbs": true
+}

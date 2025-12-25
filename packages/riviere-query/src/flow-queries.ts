@@ -100,7 +100,11 @@ function buildOutgoingEdges(graph: RiviereGraph): Map<string, Array<{ target: st
   return edges
 }
 
+/**
+ * Options for searchWithFlow.
+ */
 export interface SearchWithFlowOptions {
+  /** If true, returns all components when the query is empty. */
   returnAllOnEmptyQuery: boolean
 }
 

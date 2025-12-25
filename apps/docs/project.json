@@ -1,0 +1,8 @@
+{
+  "name": "docs",
+  "targets": {
+    "build": {
+      "dependsOn": ["lint", "^build", "riviere-query:typedoc"]
+    }
+  }
+}
