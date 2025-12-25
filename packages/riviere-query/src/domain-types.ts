@@ -82,6 +82,24 @@ export interface GraphDiff {
   stats: DiffStats
 }
 
+export type LinkType = 'sync' | 'async'
+
+export interface FlowStep {
+  component: Component
+  linkType: LinkType | undefined
+  depth: number
+}
+
+export interface Flow {
+  entryPoint: Component
+  steps: FlowStep[]
+}
+
+export interface SearchWithFlowResult {
+  matchingIds: ComponentId[]
+  visibleIds: ComponentId[]
+}
+
 export function parseComponentId(id: string): ComponentId {
   return componentIdSchema.parse(id)
 }

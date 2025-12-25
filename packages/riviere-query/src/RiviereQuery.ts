@@ -1,11 +1,11 @@
 import type { RiviereGraph, Component, Link, CustomComponent, ComponentType, DomainOpComponent, EventComponent, EventHandlerComponent } from '@living-architecture/riviere-schema'
 import type { Entity, EntityTransition, PublishedEvent, EventSubscriber, EventHandlerInfo, KnownSourceEvent, UnknownSourceEvent } from './event-types'
-import type { State, ComponentId, LinkId, ValidationError, ValidationResult, ComponentModification, GraphDiff, Domain, ComponentCounts } from './domain-types'
+import type { State, ComponentId, LinkId, ValidationError, ValidationResult, ComponentModification, GraphDiff, Domain, ComponentCounts, Flow, SearchWithFlowResult } from './domain-types'
 import { parseEntityName, parseDomainName, parseState, parseOperationName, parseComponentId, parseLinkId, parseEventId, parseEventName, parseHandlerId, parseHandlerName } from './domain-types'
 import { parseRiviereGraph } from '@living-architecture/riviere-schema'
 
 export type { Entity, EntityTransition } from './event-types'
-export type { ComponentId, LinkId, ValidationErrorCode, ValidationError, ValidationResult, Domain, ComponentCounts, ComponentModification, DiffStats, GraphDiff } from './domain-types'
+export type { ComponentId, LinkId, ValidationErrorCode, ValidationError, ValidationResult, Domain, ComponentCounts, ComponentModification, DiffStats, GraphDiff, Flow, FlowStep, LinkType, SearchWithFlowResult } from './domain-types'
 export { parseComponentId } from './domain-types'
 
 function isCustomComponent(component: Component): component is CustomComponent {
@@ -368,5 +368,83 @@ export class RiviereQuery {
       return { eventName: parseEventName(name), sourceKnown: false }
     })
     return { id: parseHandlerId(handler.id), handlerName: parseHandlerName(handler.name), domain: parseDomainName(handler.domain), subscribedEvents: handler.subscribedEvents.map(parseEventName), subscribedEventsWithDomain }
+  }
+
+  flows(): Flow[] {
+    const componentById = new Map(this.graph.components.map((c) => [c.id, c]))
+    const outgoingEdges = this.buildOutgoingEdges()
+
+    const traceForward = (entryPointId: string): Flow['steps'] => {
+      const steps: Flow['steps'] = []
+      const visited = new Set<string>()
+
+      const traverse = (nodeId: string, depth: number): void => {
+        if (visited.has(nodeId)) return
+        visited.add(nodeId)
+
+        const component = componentById.get(nodeId)
+        if (!component) return
+
+        const edges = outgoingEdges.get(nodeId)
+        const hasOutgoingEdge = edges !== undefined && edges.length > 0
+        const linkType = hasOutgoingEdge ? edges[0]?.type : undefined
+
+        steps.push({ component, linkType, depth })
+
+        if (edges) {
+          for (const edge of edges) {
+            traverse(edge.target, depth + 1)
+          }
+        }
+      }
+
+      traverse(entryPointId, 0)
+      return steps
+    }
+
+    return this.entryPoints().map((entryPoint) => ({
+      entryPoint,
+      steps: traceForward(entryPoint.id),
+    }))
+  }
+
+  private buildOutgoingEdges(): Map<string, Array<{ target: string; type: 'sync' | 'async' | undefined }>> {
+    const edges = new Map<string, Array<{ target: string; type: 'sync' | 'async' | undefined }>>()
+    for (const link of this.graph.links) {
+      const entry = { target: link.target, type: link.type }
+      const existing = edges.get(link.source)
+      if (existing) {
+        existing.push(entry)
+      } else {
+        edges.set(link.source, [entry])
+      }
+    }
+    return edges
+  }
+
+  searchWithFlow(query: string): SearchWithFlowResult {
+    const trimmedQuery = query.trim().toLowerCase()
+
+    if (trimmedQuery === '') {
+      const allIds = this.graph.components.map((c) => parseComponentId(c.id))
+      return { matchingIds: allIds, visibleIds: allIds }
+    }
+
+    const matchingComponents = this.search(query)
+    if (matchingComponents.length === 0) {
+      return { matchingIds: [], visibleIds: [] }
+    }
+
+    const matchingIds = matchingComponents.map((c) => parseComponentId(c.id))
+    const visibleIds = new Set<ComponentId>()
+
+    for (const component of matchingComponents) {
+      const flow = this.traceFlow(parseComponentId(component.id))
+      for (const id of flow.componentIds) {
+        visibleIds.add(id)
+      }
+    }
+
+    return { matchingIds, visibleIds: Array.from(visibleIds) }
   }
 }

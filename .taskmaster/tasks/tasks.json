@@ -103,12 +103,13 @@
         "description": "Generate all flows from entry points; search with connected flow context",
         "details": "## Deliverable\nGenerate all flows from entry points; search with connected flow context\n\n## Context\n- PRD: `docs/project/PRD/active/PRD-phase-5-riviere-query.md` (M5: D5.3, D5.4)\n- Depends on Task 8 (entryPoints, traceFlow)\n\n## Key Decisions\n- Flow: `{ entryPoint: Component, steps: FlowStep[] }`\n- FlowStep: `{ component, linkType, depth }`\n- flows() iterates all entry points and traces each\n- searchWithFlow() returns matches + their flow context\n\n## Acceptance Criteria\n- Given 3 entry points → When flows() → Then returns 3 Flow objects\n- Given flow with depth 4 → When flows() → Then steps have depth 0, 1, 2, 3, 4\n- Given flow with async link → When flows() → Then step has linkType: 'async'\n- Given search(\"payment\") with flow → When searchWithFlow() → Then returns matches + connected nodes\n\n## Dependencies\nTask 8 (entryPoints, traceFlow)\n\n## Verification\nnx test riviere-query --testNamePattern \"flows|searchWithFlow\"",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           "8"
         ],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2025-12-25T13:44:48.081Z"
       },
       {
         "id": "10",
@@ -188,9 +189,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-12-25T13:07:28.614Z",
+      "lastModified": "2025-12-25T13:44:48.081Z",
       "taskCount": 14,
-      "completedCount": 8,
+      "completedCount": 9,
       "tags": [
         "master"
       ]
