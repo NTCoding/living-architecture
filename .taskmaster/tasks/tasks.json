@@ -141,12 +141,13 @@
         "description": "Calculate graph statistics and node depths from entry points",
         "details": "## Deliverable\nCalculate graph statistics and node depths from entry points\n\n## Context\n- PRD: `docs/project/PRD/active/PRD-phase-5-riviere-query.md` (M6: D6.2, D6.3)\n\n## Key Decisions\n- GraphStats: `{ componentCount, linkCount, domainCount, apiCount, entityCount, eventCount }`\n- nodeDepths() returns Map<string, number> — depth from nearest entry point\n- Nodes unreachable from entry points get depth Infinity or -1 (decide)\n\n## Acceptance Criteria\n- Given graph with 50 components, 45 links → When stats() → Then componentCount === 50, linkCount === 45\n- Given graph with 3 APIs → When stats() → Then apiCount === 3\n- Given entry point at depth 0 → When nodeDepths() → Then entry point has depth 0\n- Given component 3 hops from entry → When nodeDepths() → Then has depth 3\n\n## Dependencies\nTask 8 (entryPoints)\n\n## Verification\nnx test riviere-query --testNamePattern \"stats|nodeDepths\"",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           "8"
         ],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2025-12-25T15:30:37.226Z"
       },
       {
         "id": "13",
@@ -192,9 +193,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-12-25T15:30:13.539Z",
+      "lastModified": "2025-12-25T15:30:37.227Z",
       "taskCount": 14,
-      "completedCount": 12,
+      "completedCount": 13,
       "tags": [
         "master"
       ]
