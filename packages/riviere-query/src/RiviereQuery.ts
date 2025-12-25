@@ -1,79 +1,12 @@
-import type { RiviereGraph, Component, Link, CustomComponent, ComponentType, DomainOpComponent } from '@living-architecture/riviere-schema'
+import type { RiviereGraph, Component, Link, CustomComponent, ComponentType, DomainOpComponent, EventComponent, EventHandlerComponent } from '@living-architecture/riviere-schema'
+import type { Entity, EntityTransition, PublishedEvent, EventSubscriber, EventHandlerInfo, KnownSourceEvent, UnknownSourceEvent } from './event-types'
+import type { State, ComponentId, LinkId, ValidationError, ValidationResult, ComponentModification, GraphDiff, Domain, ComponentCounts } from './domain-types'
+import { parseEntityName, parseDomainName, parseState, parseOperationName, parseComponentId, parseLinkId, parseEventId, parseEventName, parseHandlerId, parseHandlerName } from './domain-types'
 import { parseRiviereGraph } from '@living-architecture/riviere-schema'
-import { z } from 'zod'
 
-const componentIdSchema = z.string().brand<'ComponentId'>()
-const linkIdSchema = z.string().brand<'LinkId'>()
-
-export type ComponentId = z.infer<typeof componentIdSchema>
-export type LinkId = z.infer<typeof linkIdSchema>
-
-export function parseComponentId(id: string): ComponentId {
-  return componentIdSchema.parse(id)
-}
-
-export type ValidationErrorCode =
-  | 'INVALID_LINK_SOURCE'
-  | 'INVALID_LINK_TARGET'
-  | 'INVALID_TYPE'
-
-export interface ValidationError {
-  path: string
-  message: string
-  code: ValidationErrorCode
-}
-
-export interface ValidationResult {
-  valid: boolean
-  errors: ValidationError[]
-}
-
-export interface Domain {
-  name: string
-  description: string
-  systemType: 'domain' | 'bff' | 'ui' | 'other'
-  componentCounts: Record<ComponentType, number> & { total: number }
-}
-
-export interface Entity {
-  name: string
-  domain: string
-  operations: DomainOpComponent[]
-}
-
-export interface EntityTransition {
-  from: string
-  to: string
-  triggeredBy: string
-}
-
-export interface ComponentModification {
-  id: ComponentId
-  before: Component
-  after: Component
-  changedFields: string[]
-}
-
-export interface DiffStats {
-  componentsAdded: number
-  componentsRemoved: number
-  componentsModified: number
-  linksAdded: number
-  linksRemoved: number
-}
-
-export interface GraphDiff {
-  components: {
-    added: Component[]
-    removed: Component[]
-    modified: ComponentModification[]
-  }
-  links: {
-    added: Link[]
-    removed: Link[]
-  }
-  stats: DiffStats
-}
+export type { Entity, EntityTransition } from './event-types'
+export type { ComponentId, LinkId, ValidationErrorCode, ValidationError, ValidationResult, Domain, ComponentCounts, ComponentModification, DiffStats, GraphDiff } from './domain-types'
+export { parseComponentId } from './domain-types'
 
 function isCustomComponent(component: Component): component is CustomComponent {
   return component.type === 'Custom'
@@ -151,9 +84,7 @@ export class RiviereQuery {
       }
 
       const typeDefinition = customTypes[customTypeName]
-      if (!typeDefinition || !typeDefinition.requiredProperties) {
-        return
-      }
+      if (typeDefinition === undefined || typeDefinition.requiredProperties === undefined) return
 
       const requiredPropertyNames = Object.keys(typeDefinition.requiredProperties)
       const componentMetadata = component.metadata
@@ -177,7 +108,7 @@ export class RiviereQuery {
     const connectedComponentIds = this.buildConnectedComponentIds()
     return this.graph.components
       .filter((c) => !connectedComponentIds.has(c.id))
-      .map((c) => componentIdSchema.parse(c.id))
+      .map((c) => parseComponentId(c.id))
   }
 
   find(predicate: (component: Component) => boolean): Component | undefined {
@@ -214,52 +145,33 @@ export class RiviereQuery {
 
   domains(): Domain[] {
     return Object.entries(this.graph.metadata.domains).map(([name, metadata]) => {
-      const domainComponents = this.componentsInDomain(name)
-
-      const componentCounts: Record<ComponentType, number> & { total: number } = {
-        UI: domainComponents.filter((c) => c.type === 'UI').length,
-        API: domainComponents.filter((c) => c.type === 'API').length,
-        UseCase: domainComponents.filter((c) => c.type === 'UseCase').length,
-        DomainOp: domainComponents.filter((c) => c.type === 'DomainOp').length,
-        Event: domainComponents.filter((c) => c.type === 'Event').length,
-        EventHandler: domainComponents.filter((c) => c.type === 'EventHandler').length,
-        Custom: domainComponents.filter((c) => c.type === 'Custom').length,
-        total: domainComponents.length,
+      const dc = this.componentsInDomain(name)
+      const count = (type: string): number => dc.filter((c) => c.type === type).length
+      const componentCounts: ComponentCounts = {
+        UI: count('UI'), API: count('API'), UseCase: count('UseCase'), DomainOp: count('DomainOp'),
+        Event: count('Event'), EventHandler: count('EventHandler'), Custom: count('Custom'), total: dc.length,
       }
-
-      return {
-        name,
-        description: metadata.description,
-        systemType: metadata.systemType,
-        componentCounts,
-      }
+      return { name, description: metadata.description, systemType: metadata.systemType, componentCounts }
     })
   }
 
   operationsFor(entityName: string): DomainOpComponent[] {
-    return this.graph.components.filter(
-      (c): c is DomainOpComponent => c.type === 'DomainOp' && c.entity === entityName
-    )
+    return this.graph.components.filter((c): c is DomainOpComponent => c.type === 'DomainOp' && c.entity === entityName)
   }
 
   entities(domainName?: string): Entity[] {
-    const domainOps = this.graph.components.filter(
-      (c): c is DomainOpComponent & { entity: string } => c.type === 'DomainOp' && c.entity !== undefined
-    )
-
+    const domainOps = this.graph.components.filter((c): c is DomainOpComponent & { entity: string } => c.type === 'DomainOp' && c.entity !== undefined)
     const filtered = domainName ? domainOps.filter((op) => op.domain === domainName) : domainOps
-
     const entityMap = new Map<string, Entity>()
     for (const op of filtered) {
       const key = `${op.domain}:${op.entity}`
       const existing = entityMap.get(key)
       if (existing) {
-        existing.operations.push(op)
+        entityMap.set(key, { ...existing, operations: [...existing.operations, op] })
       } else {
-        entityMap.set(key, { name: op.entity, domain: op.domain, operations: [op] })
+        entityMap.set(key, { name: parseEntityName(op.entity), domain: parseDomainName(op.domain), operations: [op] })
       }
     }
-
     return Array.from(entityMap.values())
   }
 
@@ -267,9 +179,8 @@ export class RiviereQuery {
     const operations = this.operationsFor(entityName)
     const allRules: string[] = []
     for (const op of operations) {
-      if (op.businessRules) {
-        allRules.push(...op.businessRules)
-      }
+      if (op.businessRules === undefined) continue
+      allRules.push(...op.businessRules)
     }
     return [...new Set(allRules)]
   }
@@ -277,39 +188,36 @@ export class RiviereQuery {
   transitionsFor(entityName: string): EntityTransition[] {
     const operations = this.operationsFor(entityName)
     const transitions: EntityTransition[] = []
-
     for (const op of operations) {
-      if (op.stateChanges) {
-        for (const sc of op.stateChanges) {
-          transitions.push({
-            from: sc.from,
-            to: sc.to,
-            triggeredBy: op.operationName,
-          })
-        }
+      if (op.stateChanges === undefined) continue
+      for (const sc of op.stateChanges) {
+        transitions.push({ from: parseState(sc.from), to: parseState(sc.to), triggeredBy: parseOperationName(op.operationName) })
       }
     }
-
     return transitions
   }
 
-  statesFor(entityName: string): string[] {
+  statesFor(entityName: string): State[] {
     const operations = this.operationsFor(entityName)
     const states = new Set<string>()
-    const allStateChanges = operations.flatMap((op) => op.stateChanges ?? [])
-    for (const sc of allStateChanges) {
-      if (sc.from !== '*') states.add(sc.from)
-      states.add(sc.to)
+    for (const op of operations) {
+      if (op.stateChanges === undefined) {
+        continue
+      }
+      for (const sc of op.stateChanges) {
+        if (sc.from !== '*') states.add(sc.from)
+        states.add(sc.to)
+      }
     }
     return this.orderStatesByTransitions(states, operations)
   }
 
-  private orderStatesByTransitions(states: Set<string>, operations: DomainOpComponent[]): string[] {
+  private orderStatesByTransitions(states: Set<string>, operations: DomainOpComponent[]): State[] {
     const fromStates = new Set<string>()
     const toStates = new Set<string>()
     const transitionMap = new Map<string, string>()
     for (const op of operations) {
-      if (!op.stateChanges) continue
+      if (op.stateChanges === undefined) continue
       for (const t of op.stateChanges) {
         if (t.from !== '*') {
           fromStates.add(t.from)
@@ -318,28 +226,26 @@ export class RiviereQuery {
         toStates.add(t.to)
       }
     }
-    const initialStates = [...fromStates].filter((s) => !toStates.has(s))
-    const orderedStates: string[] = []
+    const ordered: State[] = []
     const visited = new Set<string>()
-    const followChain = (state: string): void => {
-      if (visited.has(state)) return
-      visited.add(state)
-      orderedStates.push(state)
-      const next = transitionMap.get(state)
-      if (next) followChain(next)
+    const follow = (s: string): void => {
+      if (visited.has(s)) return
+      visited.add(s)
+      ordered.push(parseState(s))
+      const next = transitionMap.get(s)
+      if (next) follow(next)
     }
-    for (const initial of initialStates) followChain(initial)
-    for (const state of states) if (!visited.has(state)) orderedStates.push(state)
-    return orderedStates
+    [...fromStates].filter((s) => !toStates.has(s)).forEach(follow)
+    states.forEach((s) => {
+      if (!visited.has(s)) ordered.push(parseState(s))
+    })
+    return ordered
   }
 
   entryPoints(): Component[] {
     const targets = new Set(this.graph.links.map((link) => link.target))
-    return this.graph.components.filter((c) => {
-      const isEntryPointType = c.type === 'UI' || c.type === 'API' || c.type === 'EventHandler' || c.type === 'Custom'
-      const hasNoIncomingLinks = !targets.has(c.id)
-      return isEntryPointType && hasNoIncomingLinks
-    })
+    const entryPointTypes = new Set<ComponentType>(['UI', 'API', 'EventHandler', 'Custom'])
+    return this.graph.components.filter((c) => entryPointTypes.has(c.type) && !targets.has(c.id))
   }
 
   traceFlow(startComponentId: ComponentId): { componentIds: ComponentId[]; linkIds: LinkId[] } {
@@ -348,32 +254,27 @@ export class RiviereQuery {
       throw new Error(`Cannot trace flow: component '${startComponentId}' does not exist`)
     }
 
-    const visitedComponents = new Set<ComponentId>()
+    const visited = new Set<ComponentId>()
     const visitedLinks = new Set<LinkId>()
     const queue: ComponentId[] = [startComponentId]
-
     while (queue.length > 0) {
       const currentId = queue.shift()
-      if (currentId === undefined || visitedComponents.has(currentId)) {
-        continue
-      }
-      visitedComponents.add(currentId)
-
+      if (currentId === undefined || visited.has(currentId)) continue
+      visited.add(currentId)
       for (const link of this.graph.links) {
-        const sourceId = componentIdSchema.parse(link.source)
-        const targetId = componentIdSchema.parse(link.target)
-        if (link.source === currentId && !visitedComponents.has(targetId)) {
+        const sourceId = parseComponentId(link.source)
+        const targetId = parseComponentId(link.target)
+        if (link.source === currentId && !visited.has(targetId)) {
           queue.push(targetId)
           visitedLinks.add(this.linkKey(link))
         }
-        if (link.target === currentId && !visitedComponents.has(sourceId)) {
+        if (link.target === currentId && !visited.has(sourceId)) {
           queue.push(sourceId)
           visitedLinks.add(this.linkKey(link))
         }
       }
     }
-
-    return { componentIds: Array.from(visitedComponents), linkIds: Array.from(visitedLinks) }
+    return { componentIds: Array.from(visited), linkIds: Array.from(visitedLinks) }
   }
 
   private buildConnectedComponentIds(): Set<string> {
@@ -387,59 +288,34 @@ export class RiviereQuery {
 
   private linkKey(link: Link): LinkId {
     if (link.id !== undefined) {
-      return linkIdSchema.parse(link.id)
+      return parseLinkId(link.id)
     }
-    return linkIdSchema.parse(`${link.source}->${link.target}`)
+    return parseLinkId(`${link.source}->${link.target}`)
   }
 
   diff(other: RiviereGraph): GraphDiff {
     const thisIds = new Set(this.graph.components.map((c) => c.id))
     const otherIds = new Set(other.components.map((c) => c.id))
-    const otherComponentsById = new Map(other.components.map((c) => [c.id, c]))
-
+    const otherById = new Map(other.components.map((c) => [c.id, c]))
     const added = other.components.filter((c) => !thisIds.has(c.id))
     const removed = this.graph.components.filter((c) => !otherIds.has(c.id))
-
     const modified: ComponentModification[] = []
-    for (const thisComponent of this.graph.components) {
-      const otherComponent = otherComponentsById.get(thisComponent.id)
-      if (!otherComponent) {
-        continue
-      }
-      const changedFields = this.findChangedFields(thisComponent, otherComponent)
+    for (const tc of this.graph.components) {
+      const oc = otherById.get(tc.id)
+      if (oc === undefined) continue
+      const changedFields = this.findChangedFields(tc, oc)
       if (changedFields.length > 0) {
-        modified.push({
-          id: componentIdSchema.parse(thisComponent.id),
-          before: thisComponent,
-          after: otherComponent,
-          changedFields,
-        })
+        modified.push({ id: parseComponentId(tc.id), before: tc, after: oc, changedFields })
       }
     }
-
-    const thisLinkKeys = new Set(this.graph.links.map((link) => this.linkKey(link)))
-    const otherLinkKeys = new Set(other.links.map((link) => this.linkKey(link)))
-
-    const linksAdded = other.links.filter((link) => !thisLinkKeys.has(this.linkKey(link)))
-    const linksRemoved = this.graph.links.filter((link) => !otherLinkKeys.has(this.linkKey(link)))
-
+    const thisLinkKeys = new Set(this.graph.links.map((l) => this.linkKey(l)))
+    const otherLinkKeys = new Set(other.links.map((l) => this.linkKey(l)))
+    const linksAdded = other.links.filter((l) => !thisLinkKeys.has(this.linkKey(l)))
+    const linksRemoved = this.graph.links.filter((l) => !otherLinkKeys.has(this.linkKey(l)))
     return {
-      components: {
-        added,
-        removed,
-        modified,
-      },
-      links: {
-        added: linksAdded,
-        removed: linksRemoved,
-      },
-      stats: {
-        componentsAdded: added.length,
-        componentsRemoved: removed.length,
-        componentsModified: modified.length,
-        linksAdded: linksAdded.length,
-        linksRemoved: linksRemoved.length,
-      },
+      components: { added, removed, modified },
+      links: { added: linksAdded, removed: linksRemoved },
+      stats: { componentsAdded: added.length, componentsRemoved: removed.length, componentsModified: modified.length, linksAdded: linksAdded.length, linksRemoved: linksRemoved.length },
     }
   }
 
@@ -457,5 +333,40 @@ export class RiviereQuery {
       }
     }
     return changedFields
+  }
+
+  publishedEvents(domainName?: string): PublishedEvent[] {
+    const eventComponents = this.graph.components.filter((c): c is EventComponent => c.type === 'Event')
+    const filtered = domainName ? eventComponents.filter((e) => e.domain === domainName) : eventComponents
+    const handlers = this.graph.components.filter((c): c is EventHandlerComponent => c.type === 'EventHandler')
+    return filtered.map((event) => {
+      const subscribers: EventSubscriber[] = handlers.filter((h) => h.subscribedEvents.includes(event.eventName))
+        .map((h) => ({ handlerId: parseHandlerId(h.id), handlerName: parseHandlerName(h.name), domain: parseDomainName(h.domain) }))
+      return { id: parseEventId(event.id), eventName: parseEventName(event.eventName), domain: parseDomainName(event.domain), handlers: subscribers }
+    })
+  }
+
+  eventHandlers(eventName?: string): EventHandlerInfo[] {
+    const eventByName = this.buildEventNameMap()
+    const handlers = this.findEventHandlerComponents()
+    const filtered = eventName ? handlers.filter((h) => h.subscribedEvents.includes(eventName)) : handlers
+    return filtered.map((h) => this.buildEventHandlerInfo(h, eventByName))
+  }
+
+  private buildEventNameMap(): Map<string, EventComponent> {
+    return new Map(this.graph.components.filter((c): c is EventComponent => c.type === 'Event').map((e) => [e.eventName, e]))
+  }
+
+  private findEventHandlerComponents(): EventHandlerComponent[] {
+    return this.graph.components.filter((c): c is EventHandlerComponent => c.type === 'EventHandler')
+  }
+
+  private buildEventHandlerInfo(handler: EventHandlerComponent, eventByName: Map<string, EventComponent>): EventHandlerInfo {
+    const subscribedEventsWithDomain = handler.subscribedEvents.map((name): KnownSourceEvent | UnknownSourceEvent => {
+      const event = eventByName.get(name)
+      if (event) return { eventName: parseEventName(name), sourceDomain: parseDomainName(event.domain), sourceKnown: true }
+      return { eventName: parseEventName(name), sourceKnown: false }
+    })
+    return { id: parseHandlerId(handler.id), handlerName: parseHandlerName(handler.name), domain: parseDomainName(handler.domain), subscribedEvents: handler.subscribedEvents.map(parseEventName), subscribedEventsWithDomain }
   }
 }

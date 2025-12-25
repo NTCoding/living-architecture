@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { RiviereQuery } from './RiviereQuery'
-import { createMinimalValidGraph, createAPIComponent, createUseCaseComponent } from './graph-test-builders'
+import { createMinimalValidGraph, createAPIComponent, createUseCaseComponent } from './riviere-graph-fixtures'
 
 describe('domains', () => {
   it('returns domain with name, description, and systemType from metadata', () => {

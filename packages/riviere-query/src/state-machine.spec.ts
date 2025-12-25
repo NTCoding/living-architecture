@@ -1,5 +1,5 @@
 import { RiviereQuery } from './RiviereQuery'
-import { createMinimalValidGraph, createDomainOpComponent } from './graph-test-builders'
+import { createMinimalValidGraph, createDomainOpComponent } from './riviere-graph-fixtures'
 
 describe('transitionsFor', () => {
   it('returns empty array for nonexistent entity but transitions for existing entity', () => {
@@ -47,11 +47,10 @@ describe('transitionsFor', () => {
 
     const transitions = query.transitionsFor('Order')
 
-    expect(transitions).toHaveLength(2)
-    expect(transitions[0].triggeredBy).toBe('begin')
-    expect(transitions[1].triggeredBy).toBe('confirm')
-    expect(transitions[0]).toEqual({ from: 'Draft', to: 'Placed', triggeredBy: 'begin' })
-    expect(transitions[1]).toEqual({ from: 'Placed', to: 'Confirmed', triggeredBy: 'confirm' })
+    expect(transitions).toEqual([
+      { from: 'Draft', to: 'Placed', triggeredBy: 'begin' },
+      { from: 'Placed', to: 'Confirmed', triggeredBy: 'confirm' },
+    ])
   })
 
   it('includes wildcard from-state transitions', () => {

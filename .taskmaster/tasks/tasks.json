@@ -79,10 +79,11 @@
         "description": "Find published events with their subscribers; find handlers with their subscriptions",
         "details": "## Deliverable\nFind published events with their subscribers; find handlers with their subscriptions\n\n## Context\n- PRD: `docs/project/PRD/active/PRD-phase-5-riviere-query.md` (M4: D4.1, D4.2)\n- Event components have `eventName`\n- EventHandler components have `subscribedEvents[]`\n\n## Key Decisions\n- PublishedEvent: `{ id, eventName, domain, handlers: EventSubscriber[] }`\n- EventHandlerInfo: `{ id, handlerName, domain, subscribedEvents, subscribedEventsWithDomain }`\n- Match handlers to events by eventName\n\n## Acceptance Criteria\n- Given Event \"OrderPlaced\" → When publishedEvents() → Then includes OrderPlaced with its handlers\n- Given EventHandler subscribing to \"OrderPlaced\" → When publishedEvents(\"OrderPlaced\") → Then handler is in handlers array\n- Given EventHandler → When eventHandlers() → Then returns handler info with subscribed events\n- Given eventHandlers(\"OrderPlaced\") → When called → Then returns only handlers subscribing to OrderPlaced\n- Given publishedEvents(\"orders\") → When called with domain filter → Then returns only orders domain events\n\n## Related Code\n- Event/EventHandler component types in schema\n- Links connect Event → EventHandler\n\n## Verification\nnx test riviere-query --testNamePattern \"publishedEvents|eventHandlers\"",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2025-12-25T13:07:28.613Z"
       },
       {
         "id": "8",
@@ -187,9 +188,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-12-25T09:38:30.456Z",
+      "lastModified": "2025-12-25T13:07:28.614Z",
       "taskCount": 14,
-      "completedCount": 7,
+      "completedCount": 8,
       "tags": [
         "master"
       ]

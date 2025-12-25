@@ -1,5 +1,5 @@
 import { RiviereQuery } from './RiviereQuery'
-import { createMinimalValidGraph, createDomainOpComponent } from './graph-test-builders'
+import { createMinimalValidGraph, createDomainOpComponent } from './riviere-graph-fixtures'
 
 describe('operationsFor', () => {
   it('returns empty array when entity does not exist', () => {

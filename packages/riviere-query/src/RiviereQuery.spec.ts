@@ -5,7 +5,7 @@ import {
   createEventHandlerComponent,
   createCustomComponent,
   createUseCaseComponent,
-} from './graph-test-builders'
+} from './riviere-graph-fixtures'
 
 describe('RiviereQuery', () => {
   describe('constructor', () => {

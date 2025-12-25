@@ -1,6 +1,7 @@
 import type {
   RiviereGraph,
   APIComponent,
+  EventComponent,
   EventHandlerComponent,
   CustomComponent,
   UseCaseComponent,
@@ -40,6 +41,17 @@ export function createAPIComponent(
     apiType: 'REST',
     httpMethod: 'GET',
     path: '/test',
+    sourceLocation: defaultSourceLocation,
+    ...overrides,
+  }
+}
+
+export function createEventComponent(
+  overrides: Partial<EventComponent> & { id: string; name: string; domain: string; eventName: string },
+): EventComponent {
+  return {
+    type: 'Event',
+    module: 'mod',
     sourceLocation: defaultSourceLocation,
     ...overrides,
   }
