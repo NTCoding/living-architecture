@@ -1,6 +1,6 @@
 import type { RiviereGraph, Component, Link, ComponentType, DomainOpComponent } from '@living-architecture/riviere-schema'
 import type { Entity, EntityTransition, PublishedEvent, EventHandlerInfo } from './event-types'
-import type { State, ComponentId, LinkId, ValidationResult, GraphDiff, Domain, Flow, SearchWithFlowResult, CrossDomainLink, DomainConnection } from './domain-types'
+import type { State, ComponentId, LinkId, ValidationResult, GraphDiff, Domain, Flow, SearchWithFlowResult, CrossDomainLink, DomainConnection, GraphStats } from './domain-types'
 import { parseRiviereGraph } from '@living-architecture/riviere-schema'
 
 import { findComponent, findAllComponents, componentById as lookupComponentById, searchComponents, componentsInDomain as filterByDomain, componentsByType as filterByType } from './component-queries'
@@ -10,9 +10,11 @@ import { queryCrossDomainLinks, queryDomainConnections } from './cross-domain-qu
 import { queryPublishedEvents, queryEventHandlers } from './event-queries'
 import { validateGraph, detectOrphanComponents } from './graph-validation'
 import { diffGraphs } from './graph-diff'
+import { queryStats } from './stats-queries'
+import { queryNodeDepths } from './depth-queries'
 
 export type { Entity, EntityTransition } from './event-types'
-export type { ComponentId, LinkId, ValidationErrorCode, ValidationError, ValidationResult, Domain, ComponentCounts, ComponentModification, DiffStats, GraphDiff, Flow, FlowStep, LinkType, SearchWithFlowResult, CrossDomainLink, DomainConnection } from './domain-types'
+export type { ComponentId, LinkId, ValidationErrorCode, ValidationError, ValidationResult, Domain, ComponentCounts, ComponentModification, DiffStats, GraphDiff, Flow, FlowStep, LinkType, SearchWithFlowResult, CrossDomainLink, DomainConnection, GraphStats } from './domain-types'
 export type { SearchWithFlowOptions } from './flow-queries'
 export { parseComponentId } from './domain-types'
 
@@ -131,5 +133,13 @@ export class RiviereQuery {
 
   domainConnections(domainName: string): DomainConnection[] {
     return queryDomainConnections(this.graph, domainName)
+  }
+
+  stats(): GraphStats {
+    return queryStats(this.graph)
+  }
+
+  nodeDepths(): Map<ComponentId, number> {
+    return queryNodeDepths(this.graph)
   }
 }

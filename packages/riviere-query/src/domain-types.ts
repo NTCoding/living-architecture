@@ -112,6 +112,15 @@ export interface DomainConnection {
   eventCount: number
 }
 
+export interface GraphStats {
+  componentCount: number
+  linkCount: number
+  domainCount: number
+  apiCount: number
+  entityCount: number
+  eventCount: number
+}
+
 export function parseComponentId(id: string): ComponentId {
   return componentIdSchema.parse(id)
 }
