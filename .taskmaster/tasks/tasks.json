@@ -250,12 +250,13 @@
         "description": "Éclair section in docs site with navigation, user guide (7 pages), and feature reference (5 pages)",
         "details": "## Deliverable\nÉclair section in docs site with navigation, user guide (7 pages), and feature reference (5 pages)\n\n## Context\n- PRD: `docs/project/PRD/active/PRD-phase-6-eclair-migration.md` (M6: D6.1-D6.3)\n- Docs site: `apps/docs/` (VitePress)\n\n## Key Decisions\n- Screenshots required for user guide\n- Follow existing docs site style/format\n\n## Acceptance Criteria\n**Navigation (D6.1):**\n- Given docs site nav → Then \"Éclair\" section visible in nav bar\n- Given Éclair section → Then sidebar with all pages works\n- Given all links → Then resolve correctly\n\n**User Guide (D6.2) — 7 pages:**\n- `eclair/index.md` — Overview: what Éclair is, when to use it\n- `eclair/getting-started.md` — Loading graphs (file upload, URL)\n- `eclair/exploring-graphs.md` — Navigation, zoom, pan, select\n- `eclair/tracing-flows.md` — Click to trace, understand flow paths\n- `eclair/filtering.md` — Domain filtering, show/hide\n- `eclair/searching.md` — Search bar, finding components\n- `eclair/comparing-graphs.md` — Diff view, before/after\n\n**Feature Reference (D6.3) — 5 pages:**\n- `eclair/features/full-graph-view.md` — Main visualization\n- `eclair/features/domain-map.md` — Domain-level view\n- `eclair/features/entity-browser.md` — Entity exploration\n- `eclair/features/event-browser.md` — Event flow view\n- `eclair/features/comparison.md` — Diff feature details\n\n## Dependencies\nTask 17 (features working — needed for screenshots)\n\n## Related Code\n- `apps/docs/.vitepress/config.ts` — Navigation configuration\n- `apps/docs/` — Existing doc pages for style reference\n\n## Verification\nnx serve docs\n# Manual: Navigate to Éclair section, verify all pages render, links work\n# Follow user guide with example graph to verify accuracy",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           "17"
         ],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2025-12-26T13:21:19.894Z"
       },
       {
         "id": "20",
@@ -273,9 +274,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-12-26T09:59:13.520Z",
+      "lastModified": "2025-12-26T13:21:19.895Z",
       "taskCount": 20,
-      "completedCount": 17,
+      "completedCount": 18,
       "tags": [
         "master"
       ]
