@@ -526,6 +526,11 @@
         "description": "Order and shipment analytics tracking",
         "systemType": "domain"
       }
+    },
+    "customTypes": {
+      "CronJob": {
+        "description": "Scheduled background job that runs on a timer"
+      }
     }
   },
   "components": [
@@ -1836,6 +1841,7 @@
     {
       "id": "shipping:jobs:custom:updatetrackingcron",
       "type": "Custom",
+      "customTypeName": "CronJob",
       "name": "Update Tracking Cron",
       "domain": "shipping",
       "module": "jobs",

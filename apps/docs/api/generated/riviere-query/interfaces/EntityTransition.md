@@ -1,6 +1,6 @@
 # Interface: EntityTransition
 
-Defined in: [event-types.ts:28](https://github.com/ntcoding/living-architecture/blob/ccfdb6e3781e7161105e665b956e24e9882c1760/packages/riviere-query/src/event-types.ts#L28)
+Defined in: [event-types.ts:28](https://github.com/ntcoding/living-architecture/blob/c3a1b1a982e31f75f2725ff048cf29bd2efd2afd/packages/riviere-query/src/event-types.ts#L28)
 
 A state transition in an entity's state machine.
 
@@ -10,7 +10,7 @@ A state transition in an entity's state machine.
 
 > **from**: `string` & `$brand`\<`"State"`\>
 
-Defined in: [event-types.ts:30](https://github.com/ntcoding/living-architecture/blob/ccfdb6e3781e7161105e665b956e24e9882c1760/packages/riviere-query/src/event-types.ts#L30)
+Defined in: [event-types.ts:30](https://github.com/ntcoding/living-architecture/blob/c3a1b1a982e31f75f2725ff048cf29bd2efd2afd/packages/riviere-query/src/event-types.ts#L30)
 
 The state before the transition.
 
@@ -20,7 +20,7 @@ The state before the transition.
 
 > **to**: `string` & `$brand`\<`"State"`\>
 
-Defined in: [event-types.ts:32](https://github.com/ntcoding/living-architecture/blob/ccfdb6e3781e7161105e665b956e24e9882c1760/packages/riviere-query/src/event-types.ts#L32)
+Defined in: [event-types.ts:32](https://github.com/ntcoding/living-architecture/blob/c3a1b1a982e31f75f2725ff048cf29bd2efd2afd/packages/riviere-query/src/event-types.ts#L32)
 
 The state after the transition.
 
@@ -30,6 +30,6 @@ The state after the transition.
 
 > **triggeredBy**: `string` & `$brand`\<`"OperationName"`\>
 
-Defined in: [event-types.ts:34](https://github.com/ntcoding/living-architecture/blob/ccfdb6e3781e7161105e665b956e24e9882c1760/packages/riviere-query/src/event-types.ts#L34)
+Defined in: [event-types.ts:34](https://github.com/ntcoding/living-architecture/blob/c3a1b1a982e31f75f2725ff048cf29bd2efd2afd/packages/riviere-query/src/event-types.ts#L34)
 
 The operation that triggers this transition.
