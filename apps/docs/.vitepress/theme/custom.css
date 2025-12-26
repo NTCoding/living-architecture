@@ -1,3 +1,213 @@
+/* Stream Theme - Living Architecture Documentation */
+
+/* Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Lato:wght@400;700&family=Rubik:wght@500;600;700&display=swap');
+
+/* ==========================================================================
+   Typography
+   ========================================================================== */
+
+:root {
+  --vp-font-family-base: 'Lato', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --vp-font-family-mono: 'Fira Code', ui-monospace, SFMono-Regular, monospace;
+}
+
+/* Headings use Rubik */
+.VPDoc h1,
+.VPDoc h2,
+.VPDoc h3,
+.VPDoc h4,
+.VPHome h1,
+.VPFeature .title {
+  font-family: 'Rubik', var(--vp-font-family-base);
+}
+
+/* ==========================================================================
+   Stream Color Palette
+   ========================================================================== */
+
+:root {
+  /* Primary brand colors */
+  --vp-c-brand-1: #0D9488;
+  --vp-c-brand-2: #14B8A6;
+  --vp-c-brand-3: #2DD4BF;
+  --vp-c-brand-soft: rgba(13, 148, 136, 0.14);
+  --vp-c-sponsor: #0D9488;
+
+  /* Stream gradient */
+  --stream-gradient: linear-gradient(90deg, #0D9488 0%, #06B6D4 100%);
+  --stream-gradient-subtle: linear-gradient(90deg, rgba(13, 148, 136, 0.1) 0%, rgba(6, 182, 212, 0.1) 100%);
+
+  /* Text colors */
+  --vp-c-text-1: #1E293B;
+  --vp-c-text-2: #334155;
+  --vp-c-text-3: #64748B;
+
+  /* Background colors */
+  --vp-c-bg: #FFFFFF;
+  --vp-c-bg-soft: #F8FAFC;
+  --vp-c-bg-alt: #F1F5F9;
+
+  /* Border colors */
+  --vp-c-divider: #E2E8F0;
+  --vp-c-gutter: #E2E8F0;
+
+  /* Accent colors */
+  --stream-coral: #FF6B6B;
+  --stream-amber: #F59E0B;
+  --stream-cyan: #06B6D4;
+}
+
+/* Dark mode adjustments */
+.dark {
+  --vp-c-brand-1: #2DD4BF;
+  --vp-c-brand-2: #14B8A6;
+  --vp-c-brand-3: #0D9488;
+  --vp-c-brand-soft: rgba(45, 212, 191, 0.14);
+
+  --vp-c-text-1: #F1F5F9;
+  --vp-c-text-2: #CBD5E1;
+  --vp-c-text-3: #94A3B8;
+
+  --vp-c-bg: #0F172A;
+  --vp-c-bg-soft: #1E293B;
+  --vp-c-bg-alt: #334155;
+
+  --vp-c-divider: #334155;
+  --vp-c-gutter: #334155;
+}
+
+/* ==========================================================================
+   Hero Styling
+   ========================================================================== */
+
+:root {
+  --vp-home-hero-name-color: transparent;
+  --vp-home-hero-name-background: linear-gradient(135deg, #0D9488 0%, #06B6D4 100%);
+  --vp-home-hero-image-background-image: linear-gradient(135deg, rgba(13, 148, 136, 0.2) 0%, rgba(6, 182, 212, 0.2) 100%);
+  --vp-home-hero-image-filter: blur(44px);
+}
+
+.VPHero .tagline {
+  color: var(--vp-c-text-2);
+}
+
+/* ==========================================================================
+   Buttons
+   ========================================================================== */
+
+:root .VPButton.brand {
+  background: var(--stream-gradient);
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3);
+  transition: all 0.3s ease;
+}
+
+:root .VPButton.brand:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(13, 148, 136, 0.4);
+}
+
+:root .VPButton.alt {
+  background: transparent;
+  border: 2px solid var(--vp-c-divider);
+  color: var(--vp-c-brand-1);
+  transition: all 0.3s ease;
+}
+
+:root .VPButton.alt:hover {
+  border-color: var(--vp-c-brand-1);
+  background: var(--vp-c-brand-soft);
+}
+
+/* ==========================================================================
+   Focus States (WCAG AA)
+   ========================================================================== */
+
+*:focus-visible {
+  outline: 2px solid var(--vp-c-brand-1);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.2);
+}
+
+/* Links and buttons have specific focus styling */
+a:focus-visible,
+button:focus-visible,
+.VPButton:focus-visible {
+  outline: 2px solid var(--vp-c-brand-1);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.2);
+  border-radius: 4px;
+}
+
+/* ==========================================================================
+   Feature Cards
+   ========================================================================== */
+
+.VPFeature {
+  border: 2px solid var(--vp-c-divider);
+  transition: all 0.3s ease;
+}
+
+.VPFeature:hover {
+  border-color: var(--vp-c-brand-1);
+  box-shadow: 0 8px 24px rgba(13, 148, 136, 0.12);
+  transform: translateY(-2px);
+}
+
+.VPFeature .title {
+  background: var(--stream-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ==========================================================================
+   Navigation
+   ========================================================================== */
+
+.VPNavBar {
+  border-bottom: 1px solid var(--vp-c-divider);
+}
+
+.VPNavBarTitle .title {
+  font-family: 'Rubik', var(--vp-font-family-base);
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   Sidebar
+   ========================================================================== */
+
+.VPSidebar .link {
+  transition: color 0.2s ease;
+}
+
+.VPSidebar .link.active {
+  color: var(--vp-c-brand-1);
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   Code Blocks
+   ========================================================================== */
+
+.vp-doc div[class*='language-'] {
+  border-radius: 10px;
+  border: 1px solid var(--vp-c-divider);
+}
+
+.vp-doc :not(pre) > code {
+  background: var(--stream-gradient-subtle);
+  border-radius: 4px;
+  padding: 2px 6px;
+  color: var(--vp-c-brand-1);
+}
+
+/* ==========================================================================
+   Reference Documentation Styling
+   ========================================================================== */
+
 :root {
   --riviere-ref-heading-bg: var(--vp-c-bg-soft);
   --riviere-ref-heading-border: var(--vp-c-divider);
@@ -60,36 +270,68 @@
   font-family: var(--vp-font-family-mono);
 }
 
-:root {
-  --vp-c-brand-1: #0d9488;
-  --vp-c-brand-2: #14b8a6;
-  --vp-c-brand-3: #2dd4bf;
-  --vp-c-brand-soft: rgba(20, 184, 166, 0.14);
-  --vp-c-sponsor: #0d9488;
+/* ==========================================================================
+   Tables
+   ========================================================================== */
+
+.vp-doc table {
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--vp-c-divider);
 }
 
-.dark {
-  --vp-c-brand-1: #2dd4bf;
-  --vp-c-brand-2: #14b8a6;
-  --vp-c-brand-3: #0d9488;
-  --vp-c-brand-soft: rgba(45, 212, 191, 0.14);
+.vp-doc th {
+  background: var(--vp-c-bg-soft);
+  font-family: 'Rubik', var(--vp-font-family-base);
+  font-weight: 600;
 }
 
-:root {
-  --vp-home-hero-name-color: transparent;
-  --vp-home-hero-name-background: linear-gradient(
-    135deg,
-    #0d9488 0%,
-    #0891b2 100%
-  );
+/* ==========================================================================
+   Footer
+   ========================================================================== */
+
+.VPFooter {
+  border-top: 1px solid var(--vp-c-divider);
 }
 
-:root .VPButton.brand {
-  background-color: var(--vp-c-brand-1);
-  border-color: var(--vp-c-brand-1);
+.VPFooter .message,
+.VPFooter .copyright {
+  color: var(--vp-c-text-3);
 }
 
-:root .VPButton.brand:hover {
-  background-color: var(--vp-c-brand-2);
-  border-color: var(--vp-c-brand-2);
+/* ==========================================================================
+   Links
+   ========================================================================== */
+
+.vp-doc a {
+  color: var(--vp-c-brand-1);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.vp-doc a:hover {
+  color: var(--vp-c-brand-2);
+  text-decoration: underline;
+}
+
+/* ==========================================================================
+   Scrollbar Styling
+   ========================================================================== */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--vp-c-bg-soft);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--vp-c-brand-soft);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--vp-c-brand-1);
 }

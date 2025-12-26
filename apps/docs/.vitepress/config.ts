@@ -5,6 +5,9 @@ export default defineConfig({
   description: 'Extract software architecture from code as living documentation',
 
   themeConfig: {
+    logo: '/logo.svg',
+    siteTitle: 'Living Architecture',
+
     nav: [
       { text: 'Guide', link: '/guide/' },
       { text: 'Éclair', link: '/eclair/' },
@@ -94,5 +97,14 @@ export default defineConfig({
         }
       ]
     },
+
+    socialLinks: [
+      { icon: 'github', link: 'https://github.com/ntcoding/living-architecture' }
+    ],
+
+    footer: {
+      message: 'Released under the MIT License.',
+      copyright: 'Copyright © 2025 Living Architecture'
+    }
   }
 })
