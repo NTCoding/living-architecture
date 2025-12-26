@@ -2,8 +2,10 @@ import type { RiviereGraph } from '@/types/riviere'
 import type { Node, Edge } from '@xyflow/react'
 import dagre from 'dagre'
 import { getClosestHandle } from '@/lib/handlePositioning'
+import { RiviereQuery } from '@living-architecture/riviere-query'
 
 const LABEL_BG_PADDING: [number, number] = [4, 6]
+const EXTERNAL_NODE_SIZE = 80
 
 function formatEdgeLabel(apiCount: number, eventCount: number): string | undefined {
   if (apiCount > 0 && eventCount > 0) {
@@ -22,6 +24,7 @@ export interface DomainNodeData extends Record<string, unknown> {
   label: string
   nodeCount: number
   dimmed?: boolean
+  isExternal?: boolean
 }
 
 export interface ConnectionDetail {
@@ -89,6 +92,72 @@ function recordEdgeAggregation(
   existing.connections.push(connection)
 }
 
+function getEdgeType(type: string | undefined): 'sync' | 'async' | 'unknown' {
+  if (type === 'sync') return 'sync'
+  if (type === 'async') return 'async'
+  return 'unknown'
+}
+
+function aggregateDomainEdges(
+  links: RiviereGraph['links'],
+  nodeInfo: Map<string, { domain: string; name: string; type: string }>,
+  edgeAggregation: Map<string, EdgeAggregation>
+): void {
+  for (const edge of links) {
+    const sourceInfo = nodeInfo.get(edge.source)
+    const targetInfo = nodeInfo.get(edge.target)
+    if (sourceInfo === undefined || targetInfo === undefined) continue
+    if (sourceInfo.domain === targetInfo.domain) continue
+
+    const isApi = targetInfo.type === 'API'
+    const isEventHandler = targetInfo.type === 'EventHandler'
+    const key = `${sourceInfo.domain}->${targetInfo.domain}`
+    const connection: ConnectionDetail = {
+      sourceName: sourceInfo.name,
+      targetName: targetInfo.name,
+      type: getEdgeType(edge.type),
+      targetNodeType: targetInfo.type,
+    }
+
+    recordEdgeAggregation(edgeAggregation, key, sourceInfo, targetInfo, connection, isApi, isEventHandler)
+  }
+}
+
+interface ExternalEdgeInfo {
+  targetName: string
+  sourceDomain: string
+  connectionCount: number
+}
+
+function aggregateExternalEdges(
+  graph: RiviereGraph,
+  nodeInfo: Map<string, { domain: string; name: string; type: string }>
+): ExternalEdgeInfo[] {
+  if (graph.externalLinks === undefined) return []
+
+  const edgeMap = new Map<string, ExternalEdgeInfo>()
+
+  for (const extLink of graph.externalLinks) {
+    const sourceInfo = nodeInfo.get(extLink.source)
+    if (sourceInfo === undefined) continue
+
+    const key = `${sourceInfo.domain}->${extLink.target.name}`
+    const existing = edgeMap.get(key)
+
+    if (existing === undefined) {
+      edgeMap.set(key, {
+        targetName: extLink.target.name,
+        sourceDomain: sourceInfo.domain,
+        connectionCount: 1,
+      })
+    } else {
+      existing.connectionCount += 1
+    }
+  }
+
+  return Array.from(edgeMap.values())
+}
+
 function computeDagreLayout(input: LayoutInput): Map<string, { x: number; y: number }> {
   const g = new dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}))
 
@@ -123,7 +192,14 @@ function computeDagreLayout(input: LayoutInput): Map<string, { x: number; y: num
   return positions
 }
 
+function createExternalNodeId(name: string): string {
+  return `external:${name}`
+}
+
 export function extractDomainMapData(graph: RiviereGraph): DomainMapData {
+  const query = new RiviereQuery(graph)
+  const externalDomains = query.externalDomains()
+
   const domainCounts = new Map<string, number>()
   for (const node of graph.components) {
     const currentCount = domainCounts.get(node.domain)
@@ -137,48 +213,34 @@ export function extractDomainMapData(graph: RiviereGraph): DomainMapData {
   }
 
   const edgeAggregation = new Map<string, EdgeAggregation>()
-  for (const edge of graph.links) {
-    const sourceInfo = nodeInfo.get(edge.source)
-    const targetInfo = nodeInfo.get(edge.target)
-    if (sourceInfo === undefined || targetInfo === undefined) continue
-    if (sourceInfo.domain === targetInfo.domain) continue
+  aggregateDomainEdges(graph.links, nodeInfo, edgeAggregation)
 
-    const isApi = targetInfo.type === 'API'
-    const isEventHandler = targetInfo.type === 'EventHandler'
-    const key = `${sourceInfo.domain}->${targetInfo.domain}`
-    const edgeType: 'sync' | 'async' | 'unknown' =
-      edge.type === 'sync' ? 'sync' : edge.type === 'async' ? 'async' : 'unknown'
-    const connection: ConnectionDetail = {
-      sourceName: sourceInfo.name,
-      targetName: targetInfo.name,
-      type: edgeType,
-      targetNodeType: targetInfo.type,
-    }
-
-    recordEdgeAggregation(
-      edgeAggregation,
-      key,
-      sourceInfo,
-      targetInfo,
-      connection,
-      isApi,
-      isEventHandler
-    )
-  }
+  const externalEdges = aggregateExternalEdges(graph, nodeInfo)
 
   const domains = Array.from(domainCounts.entries())
-  const domainIds = domains.map(([domain]) => domain)
-  const layoutEdges = Array.from(edgeAggregation.values()).map((agg) => ({
-    source: agg.source,
-    target: agg.target,
-  }))
+  const externalNodeIds = externalDomains.map((ed) => createExternalNodeId(ed.name))
+  const allNodeIds = [...domains.map(([domain]) => domain), ...externalNodeIds]
+
+  const layoutEdges = [
+    ...Array.from(edgeAggregation.values()).map((agg) => ({
+      source: agg.source,
+      target: agg.target,
+    })),
+    ...externalEdges.map((e) => ({
+      source: e.sourceDomain,
+      target: createExternalNodeId(e.targetName),
+    })),
+  ]
 
   const nodeSizes = new Map<string, number>()
   for (const [domain, nodeCount] of domains) {
     nodeSizes.set(domain, Math.max(80, 60 + nodeCount * 4))
   }
+  for (const ed of externalDomains) {
+    nodeSizes.set(createExternalNodeId(ed.name), EXTERNAL_NODE_SIZE)
+  }
 
-  const domainPositions = computeDagreLayout({ domainIds, edges: layoutEdges, nodeSizes })
+  const domainPositions = computeDagreLayout({ domainIds: allNodeIds, edges: layoutEdges, nodeSizes })
 
   const domainNodes: DomainNode[] = domains.map(([domain, nodeCount]) => {
     const position = domainPositions.get(domain)
@@ -189,9 +251,25 @@ export function extractDomainMapData(graph: RiviereGraph): DomainMapData {
       id: domain,
       type: 'domain',
       position,
-      data: { label: domain, nodeCount },
+      data: { label: domain, nodeCount, isExternal: false },
     }
   })
+
+  const externalNodes: DomainNode[] = externalDomains.map((ed) => {
+    const nodeId = createExternalNodeId(ed.name)
+    const position = domainPositions.get(nodeId)
+    if (position === undefined) {
+      throw new Error(`External domain ${ed.name} missing from layout computation`)
+    }
+    return {
+      id: nodeId,
+      type: 'domain',
+      position,
+      data: { label: ed.name, nodeCount: ed.connectionCount, isExternal: true },
+    }
+  })
+
+  const allNodes = [...domainNodes, ...externalNodes]
 
   const domainEdges: DomainEdge[] = Array.from(edgeAggregation.entries()).map(([key, agg]) => {
     const sourcePos = domainPositions.get(agg.source)
@@ -222,7 +300,33 @@ export function extractDomainMapData(graph: RiviereGraph): DomainMapData {
     }
   })
 
-  return { domainNodes, domainEdges }
+  const externalEdgesForMap: DomainEdge[] = externalEdges.map((e) => {
+    const targetId = createExternalNodeId(e.targetName)
+    const sourcePos = domainPositions.get(e.sourceDomain)
+    const targetPos = domainPositions.get(targetId)
+    if (sourcePos === undefined || targetPos === undefined) {
+      throw new Error(`External edge missing position: source=${e.sourceDomain} target=${targetId}`)
+    }
+    const handles = getClosestHandle(sourcePos, targetPos)
+
+    return {
+      id: `${e.sourceDomain}->${targetId}`,
+      source: e.sourceDomain,
+      target: targetId,
+      sourceHandle: handles.sourceHandle,
+      targetHandle: handles.targetHandle,
+      label: `${e.connectionCount} API`,
+      data: { apiCount: e.connectionCount, eventCount: 0, connections: [] },
+      style: { stroke: '#F97316', strokeDasharray: '5,5' },
+      labelStyle: { fontSize: 10, fontWeight: 600, fill: '#1f2937' },
+      labelBgStyle: { fill: 'rgba(255, 255, 255, 0.85)', stroke: 'rgba(0, 0, 0, 0.1)', strokeWidth: 1, filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1))' },
+      labelBgPadding: LABEL_BG_PADDING,
+      labelBgBorderRadius: 4,
+      markerEnd: 'url(#arrow-orange)',
+    }
+  })
+
+  return { domainNodes: allNodes, domainEdges: [...domainEdges, ...externalEdgesForMap] }
 }
 
 export function getConnectedDomains(domain: string, edges: DomainEdge[]): Set<string> {

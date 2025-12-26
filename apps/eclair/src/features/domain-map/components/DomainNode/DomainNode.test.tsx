@@ -30,8 +30,18 @@ describe('DomainNode', () => {
       <DomainNode data={{ label: 'verylongdomainname', nodeCount: 5 }} />
     )
 
-    const label = screen.getByText('verylongdomainname')
+    const label = screen.getByText('verylongdom…')
     expect(label).toHaveStyle({ fontSize: '11px' })
+  })
+
+  it('truncates long labels and shows full name in tooltip', () => {
+    const { container } = renderWithProvider(
+      <DomainNode data={{ label: 'verylongdomainname', nodeCount: 5 }} />
+    )
+
+    expect(screen.getByText('verylongdom…')).toBeInTheDocument()
+    const nodeDiv = container.querySelector('div.flex[title]')
+    expect(nodeDiv).toHaveAttribute('title', 'verylongdomainname')
   })
 
   it('applies larger font for short labels', () => {

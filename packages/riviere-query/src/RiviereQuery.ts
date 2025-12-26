@@ -1,10 +1,11 @@
-import type { RiviereGraph, Component, Link, ComponentType, DomainOpComponent } from '@living-architecture/riviere-schema'
+import type { RiviereGraph, Component, Link, ComponentType, DomainOpComponent, ExternalLink } from '@living-architecture/riviere-schema'
 import type { Entity, EntityTransition, PublishedEvent, EventHandlerInfo } from './event-types'
-import type { State, ComponentId, LinkId, ValidationResult, GraphDiff, Domain, Flow, SearchWithFlowResult, CrossDomainLink, DomainConnection, GraphStats } from './domain-types'
+import type { State, ComponentId, LinkId, ValidationResult, GraphDiff, Domain, Flow, SearchWithFlowResult, CrossDomainLink, DomainConnection, GraphStats, ExternalDomain } from './domain-types'
 import { parseRiviereGraph } from '@living-architecture/riviere-schema'
 
 import { findComponent, findAllComponents, componentById as lookupComponentById, searchComponents, componentsInDomain as filterByDomain, componentsByType as filterByType } from './component-queries'
 import { queryDomains, operationsForEntity, queryEntities, businessRulesForEntity, transitionsForEntity, statesForEntity } from './domain-queries'
+import { queryExternalDomains } from './external-system-queries'
 import { findEntryPoints, traceFlowFrom, queryFlows, searchWithFlowContext, type SearchWithFlowOptions } from './flow-queries'
 import { queryCrossDomainLinks, queryDomainConnections } from './cross-domain-queries'
 import { queryPublishedEvents, queryEventHandlers } from './event-queries'
@@ -14,7 +15,7 @@ import { queryStats } from './stats-queries'
 import { queryNodeDepths } from './depth-queries'
 
 export type { Entity, EntityTransition } from './event-types'
-export type { ComponentId, LinkId, ValidationErrorCode, ValidationError, ValidationResult, Domain, ComponentCounts, ComponentModification, DiffStats, GraphDiff, Flow, FlowStep, LinkType, SearchWithFlowResult, CrossDomainLink, DomainConnection, GraphStats } from './domain-types'
+export type { ComponentId, LinkId, ValidationErrorCode, ValidationError, ValidationResult, Domain, ComponentCounts, ComponentModification, DiffStats, GraphDiff, Flow, FlowStep, LinkType, SearchWithFlowResult, CrossDomainLink, DomainConnection, GraphStats, ExternalDomain } from './domain-types'
 export type { SearchWithFlowOptions } from './flow-queries'
 export { parseComponentId } from './domain-types'
 
@@ -548,5 +549,45 @@ export class RiviereQuery {
    */
   nodeDepths(): Map<ComponentId, number> {
     return queryNodeDepths(this.graph)
+  }
+
+  /**
+   * Returns all external links in the graph.
+   *
+   * External links represent connections from components to external
+   * systems that are not part of the graph (e.g., third-party APIs).
+   *
+   * @returns Array of all external links, or empty array if none exist
+   *
+   * @example
+   * ```typescript
+   * const externalLinks = query.externalLinks()
+   * for (const link of externalLinks) {
+   *   console.log(`${link.source} -> ${link.target.name}`)
+   * }
+   * ```
+   */
+  externalLinks(): ExternalLink[] {
+    return this.graph.externalLinks ?? []
+  }
+
+  /**
+   * Returns external domains that components connect to.
+   *
+   * Each unique external target is returned as a separate ExternalDomain,
+   * with aggregated source domains and connection counts.
+   *
+   * @returns Array of ExternalDomain objects, sorted alphabetically by name
+   *
+   * @example
+   * ```typescript
+   * const externals = query.externalDomains()
+   * for (const ext of externals) {
+   *   console.log(`${ext.name}: ${ext.connectionCount} connections from ${ext.sourceDomains.join(', ')}`)
+   * }
+   * ```
+   */
+  externalDomains(): ExternalDomain[] {
+    return queryExternalDomains(this.graph)
   }
 }

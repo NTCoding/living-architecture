@@ -222,13 +222,13 @@
         "description": "All POC features work identically in migrated app; known bugs addressed",
         "details": "## Deliverable\nAll POC features work identically in migrated app; known bugs from cancelled Task 1 addressed\n\n## Context\n- PRD: `docs/project/PRD/active/PRD-phase-6-eclair-migration.md` (M3: D3.1-D3.6)\n- Replaces cancelled Task 1 (eclair ui bugs) — those issues folded into this verification\n- Design principle: \"No new features\" — same functionality as POC\n\n## Key Decisions\n- **Same behavior as POC** — if POC had a bug, fix it; if POC behavior was intentional, preserve it\n- **Bugs to fix** (from original Task 1):\n  - Tooltip positioning: always appears right, sometimes off-screen → fix positioning\n  - Overview page: card too large, shows everything → limit items, fixed size, \"more\" indicator\n  - External links missing in flows, domain map, full graph, events → add external link support\n  - Events: no link to target handler, no publish location, no payload display → add these\n  - Entities: clicking method doesn't show business rules, state transitions show commas → fix display\n\n## Acceptance Criteria\n**Core Features:**\n- Given graph loaded → When click node → Then connected flow highlighted (D3.1)\n- Given domains panel → When toggle domain → Then visibility changes (D3.2)\n- Given search bar → When type \"order\" → Then matching components shown, case-insensitive (D3.3)\n- Given component → When hover → Then tooltip shows component details, positioned correctly (D3.4 + bug fix)\n- Given theme toggle → When click → Then theme changes AND persists on reload (D3.5)\n- Given two graphs → When compare → Then diff shows added/removed/modified (D3.6)\n\n**Bug Fixes:**\n- Given tooltip → When near screen edge → Then repositions to stay visible\n- Given overview page → When many items → Then card is fixed size with \"more\" indicator\n- Given external link → When viewing flows/domain map/full graph → Then external links visible\n- Given event → When viewing → Then shows target handler link, publish location, payload\n- Given entity method → When click → Then shows business rules and state transitions (no raw commas)\n\n## Dependencies\nTask 16 (app runs)\n\n## Related Code\n- `~/code/riviere/eclair/src/features/comparison/compareGraphs.ts` — POC diff logic\n\n## Verification\nManual testing with ecommerce-complete.json:\n1. Load graph, click nodes, verify flow highlighting\n2. Toggle domains on/off\n3. Search for \"order\", verify results\n4. Hover components, verify tooltip positioning\n5. Toggle light/dark, refresh, verify persistence\n6. Load two graphs, verify diff view",
         "testStrategy": "",
-        "status": "in-progress",
+        "status": "done",
         "dependencies": [
           "16"
         ],
         "priority": "high",
         "subtasks": [],
-        "updatedAt": "2025-12-25T20:20:48.396Z"
+        "updatedAt": "2025-12-26T09:59:13.518Z"
       },
       {
         "id": "18",
@@ -273,9 +273,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-12-25T23:25:11.098Z",
+      "lastModified": "2025-12-26T09:59:13.520Z",
       "taskCount": 20,
-      "completedCount": 16,
+      "completedCount": 17,
       "tags": [
         "master"
       ]

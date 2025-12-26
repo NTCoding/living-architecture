@@ -39,11 +39,13 @@ function createTestFlow(): Flow {
         node: parseNode({ sourceLocation: testSourceLocation, id: 'api-1', type: 'API', name: 'POST /orders', domain: 'orders', module: 'api', httpMethod: 'POST', path: '/orders' }),
         edgeType: 'sync',
         depth: 0,
+        externalLinks: [],
       },
       {
         node: parseNode({ sourceLocation: testSourceLocation, id: 'uc-1', type: 'UseCase', name: 'Place Order', domain: 'orders', module: 'checkout' }),
         edgeType: null,
         depth: 1,
+        externalLinks: [],
       },
     ],
   }
@@ -65,6 +67,7 @@ function createUIFlow(): Flow {
         node: parseNode({ sourceLocation: testSourceLocation, id: 'ui-1', type: 'UI', name: 'Place Order Form', domain: 'checkout', module: 'ui', route: '/place-order' }),
         edgeType: 'sync',
         depth: 0,
+        externalLinks: [],
       },
     ],
   }

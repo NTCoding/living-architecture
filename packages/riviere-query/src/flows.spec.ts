@@ -145,6 +145,64 @@ describe('RiviereQuery.flows()', () => {
     if (!step) throw new Error('Expected step to exist')
     expect(step.component.id).toBe('test:mod:ui:page')
   })
+
+  it('includes external links in steps when component has external connections', () => {
+    const graph = createMinimalValidGraph()
+    graph.components.push(
+      createAPIComponent({ id: 'test:api:payment', name: 'Payment API', domain: 'test' }),
+    )
+    graph.links = [
+      { source: 'test:mod:ui:page', target: 'test:api:payment' },
+    ]
+    graph.externalLinks = [
+      { source: 'test:api:payment', target: { name: 'Stripe', url: 'https://stripe.com' }, type: 'sync' },
+    ]
+    const query = new RiviereQuery(graph)
+
+    const result = query.flows()
+
+    expect(result).toHaveLength(1)
+    const flow = result[0]
+    if (!flow) throw new Error('Expected flow to exist')
+    const paymentStep = flow.steps.find(s => s.component.id === 'test:api:payment')
+    if (!paymentStep) throw new Error('Expected payment step to exist')
+    expect(paymentStep.externalLinks).toHaveLength(1)
+    expect(paymentStep.externalLinks[0]?.target.name).toBe('Stripe')
+  })
+
+  it('returns empty external links array when step has no external connections', () => {
+    const graph = createMinimalValidGraph()
+    const query = new RiviereQuery(graph)
+
+    const result = query.flows()
+
+    expect(result).toHaveLength(1)
+    const flow = result[0]
+    if (!flow) throw new Error('Expected flow to exist')
+    const step = flow.steps[0]
+    if (!step) throw new Error('Expected step to exist')
+    expect(step.externalLinks).toEqual([])
+  })
+
+  it('includes multiple external links for same component', () => {
+    const graph = createMinimalValidGraph()
+    graph.externalLinks = [
+      { source: 'test:mod:ui:page', target: { name: 'Analytics' }, type: 'async' },
+      { source: 'test:mod:ui:page', target: { name: 'CDN' }, type: 'sync' },
+    ]
+    const query = new RiviereQuery(graph)
+
+    const result = query.flows()
+
+    expect(result).toHaveLength(1)
+    const flow = result[0]
+    if (!flow) throw new Error('Expected flow to exist')
+    const step = flow.steps[0]
+    if (!step) throw new Error('Expected step to exist')
+    expect(step.externalLinks).toHaveLength(2)
+    const names = step.externalLinks.map(l => l.target.name).sort()
+    expect(names).toEqual(['Analytics', 'CDN'])
+  })
 })
 
 describe('RiviereQuery.searchWithFlow()', () => {

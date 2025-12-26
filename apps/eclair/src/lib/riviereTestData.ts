@@ -134,7 +134,10 @@ function parseUINode(data: RawNode, base: BaseNodeFields): Node {
 }
 
 function parseAPINode(data: RawNode, base: BaseNodeFields): Node {
-  const apiType = data.apiType ?? 'REST'
+  // Use 'other' as default apiType unless REST-specific properties are provided
+  // This avoids requiring httpMethod/path for all API test fixtures
+  const hasRestProperties = data.httpMethod !== undefined || data.path !== undefined
+  const apiType = data.apiType ?? (hasRestProperties ? 'REST' : 'other')
   const node: APINode = { ...base, type: 'API', apiType }
   if (data.httpMethod !== undefined) node.httpMethod = data.httpMethod
   if (data.path !== undefined) node.path = data.path
@@ -271,4 +274,8 @@ export function parseEntityCard(domain: string, entityName: string): { domain: R
 
 export function parseStateName(name: string): ReturnType<typeof stateNameSchema.parse> {
   return stateNameSchema.parse(name)
+}
+
+export function parseNodeId(id: string): ReturnType<typeof nodeIdSchema.parse> {
+  return nodeIdSchema.parse(id)
 }

@@ -54,6 +54,8 @@ Each note should enable another person to continue immediately.
 
 ## Completing Tasks
 
+First run build, lint and test. If success, continue to task-check.
+
 ### Task-Check Protocol
 
 Before marking any task done, run task-check:

@@ -1,7 +1,16 @@
-import type { Node, NodeType, Edge } from '@/types/riviere'
+import type { Node, NodeType, Edge, ExternalLink } from '@/types/riviere'
 import type { SimulationNode, SimulationLink } from '../../types'
 import type { Theme } from '@/types/theme'
 import { EDGE_COLORS, NODE_COLORS, NODE_RADII, getDomainColor } from '../../types'
+
+interface ExternalNode {
+  id: string
+  type: 'External'
+  name: string
+  domain: string
+  sourceLocation: { repository: string; filePath: string }
+  url?: string
+}
 
 export function createSimulationNodes(nodes: Node[]): SimulationNode[] {
   return nodes.map((node) => ({
@@ -20,6 +29,71 @@ export function createSimulationLinks(edges: Edge[]): SimulationLink[] {
     type: edge.type,
     originalEdge: edge,
   }))
+}
+
+function createExternalNodeId(name: string): string {
+  return `external:${name}`
+}
+
+function createExternalNodeFromLink(link: ExternalLink): ExternalNode {
+  return {
+    id: createExternalNodeId(link.target.name),
+    type: 'External',
+    name: link.target.name,
+    domain: 'external',
+    sourceLocation: { repository: 'external', filePath: '' },
+    url: link.target.url,
+  }
+}
+
+export function createExternalNodes(externalLinks: ExternalLink[] | undefined): SimulationNode[] {
+  if (externalLinks === undefined) {
+    return []
+  }
+
+  const seenNames = new Set<string>()
+  const externalNodes: SimulationNode[] = []
+
+  for (const link of externalLinks) {
+    const name = link.target.name
+    if (seenNames.has(name)) {
+      continue
+    }
+    seenNames.add(name)
+
+    const externalNode = createExternalNodeFromLink(link)
+    externalNodes.push({
+      id: externalNode.id,
+      type: 'External',
+      name: externalNode.name,
+      domain: 'external',
+      originalNode: externalNode,
+    })
+  }
+
+  return externalNodes
+}
+
+export function createExternalLinks(externalLinks: ExternalLink[] | undefined): SimulationLink[] {
+  if (externalLinks === undefined) {
+    return []
+  }
+
+  return externalLinks.map((link) => {
+    const targetId = createExternalNodeId(link.target.name)
+    const syntheticEdge: Edge = {
+      source: link.source,
+      target: targetId,
+      type: link.type,
+    }
+
+    return {
+      source: link.source,
+      target: targetId,
+      type: link.type,
+      originalEdge: syntheticEdge,
+    }
+  })
 }
 
 export function getNodeColor(type: NodeType, theme: Theme): string {

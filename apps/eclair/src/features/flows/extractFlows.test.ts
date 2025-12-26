@@ -135,4 +135,36 @@ describe('extractFlows', () => {
     expect(steps?.[1]?.depth).toBe(1)
     expect(steps?.[2]?.depth).toBe(2)
   })
+
+  it('steps include external links from connected components', () => {
+    const graph: RiviereGraph = {
+      version: '1.0',
+      metadata: { domains: parseDomainMetadata({ 'test-domain': { description: 'Test domain', systemType: 'domain' } }) },
+      components: [
+        parseNode({ sourceLocation: testSourceLocation, id: 'api-1', type: 'API', name: 'Create Order', domain: 'orders', module: 'api', apiType: 'REST', httpMethod: 'POST', path: '/orders' }),
+        parseNode({ sourceLocation: testSourceLocation, id: 'uc-1', type: 'UseCase', name: 'Place Order', domain: 'orders', module: 'checkout' }),
+      ],
+      links: [
+        parseEdge({ source: 'api-1', target: 'uc-1', type: 'sync' }),
+      ],
+      externalLinks: [
+        { source: 'uc-1', target: { name: 'Stripe', url: 'https://stripe.com' }, type: 'sync' },
+      ],
+    }
+
+    const flows = extractFlows(graph)
+    const useCaseStep = flows[0]?.steps.find(s => s.node.id === 'uc-1')
+
+    expect(useCaseStep?.externalLinks).toHaveLength(1)
+    expect(useCaseStep?.externalLinks[0]?.target.name).toBe('Stripe')
+  })
+
+  it('steps include empty external links array when no external connections', () => {
+    const graph = createTestGraph()
+
+    const flows = extractFlows(graph)
+    const firstStep = flows[0]?.steps[0]
+
+    expect(firstStep?.externalLinks).toEqual([])
+  })
 })

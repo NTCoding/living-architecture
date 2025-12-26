@@ -19,6 +19,7 @@ function getCircleTypeClass(nodeType: NodeType): string {
     Event: 'flow-step-circle-event',
     EventHandler: 'flow-step-circle-eventhandler',
     Custom: 'flow-step-circle-custom',
+    External: 'flow-step-circle-external',
   }
   return typeClassMap[nodeType]
 }
@@ -59,18 +60,37 @@ export function FlowTrace({ steps, graph }: FlowTraceProps): React.ReactElement 
       {viewMode === 'waterfall' && (
         <div className="flow-waterfall-view">
           {steps.map((step, index) => (
-            <div key={step.node.id} className="flow-step">
-              <div className={`flow-step-circle ${getCircleTypeClass(step.node.type)}`}>
-                {index + 1}
-              </div>
-              <div className="flow-step-content">
-                <div className="flow-step-name">{step.node.name}</div>
-                <div className="flow-step-meta">
-                  {step.node.module} · {step.node.domain} · {step.node.type}
+            <div key={step.node.id}>
+              <div className="flow-step">
+                <div className={`flow-step-circle ${getCircleTypeClass(step.node.type)}`}>
+                  {index + 1}
                 </div>
+                <div className="flow-step-content">
+                  <div className="flow-step-name">{step.node.name}</div>
+                  <div className="flow-step-meta">
+                    {step.node.module} · {step.node.domain} · {step.node.type}
+                  </div>
+                </div>
+                {step.edgeType !== null && (
+                  <div className="flow-step-edge">{step.edgeType} →</div>
+                )}
               </div>
-              {step.edgeType !== null && (
-                <div className="flow-step-edge">{step.edgeType} →</div>
+              {step.externalLinks.length > 0 && (
+                <div className="flow-external-links">
+                  {step.externalLinks.map((extLink) => (
+                    <div key={extLink.target.name} className="flow-step flow-step-external">
+                      <div className="flow-step-circle flow-step-circle-external">
+                        <i className="ph ph-arrow-square-out" aria-hidden="true" />
+                      </div>
+                      <div className="flow-step-content">
+                        <div className="flow-step-name">{extLink.target.name}</div>
+                        <div className="flow-step-meta">
+                          External · {extLink.type ?? 'sync'}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
           ))}

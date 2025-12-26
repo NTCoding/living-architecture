@@ -322,6 +322,39 @@ describe('EntityAccordion', () => {
 
       expect(screen.queryByText('Reads')).not.toBeInTheDocument()
     })
+
+    it('shows "Governed by" section with entity invariants when method expanded', async () => {
+      const user = userEvent.setup()
+      const entity = createEntity({
+        invariants: [
+          parseInvariant('Order must have at least one item'),
+          parseInvariant('Total amount must be positive'),
+        ],
+      })
+
+      render(<EntityAccordion entity={entity} defaultExpanded />)
+
+      // Expand the method card
+      await user.click(screen.getByRole('button', { name: /begin/i }))
+
+      // Should show "Governed by" section within method card content
+      const methodContent = screen.getByTestId('method-card-content')
+      expect(methodContent).toHaveTextContent('Governed by')
+      expect(methodContent).toHaveTextContent('Order must have at least one item')
+      expect(methodContent).toHaveTextContent('Total amount must be positive')
+    })
+
+    it('does not show "Governed by" section when entity has no invariants', async () => {
+      const user = userEvent.setup()
+      const entity = createEntity({ invariants: [] })
+
+      render(<EntityAccordion entity={entity} defaultExpanded />)
+
+      await user.click(screen.getByRole('button', { name: /begin/i }))
+
+      const methodContent = screen.getByTestId('method-card-content')
+      expect(methodContent).not.toHaveTextContent('Governed by')
+    })
   })
 
   describe('state transitions', () => {
@@ -335,6 +368,33 @@ describe('EntityAccordion', () => {
       const transitions = screen.getAllByTestId('state-transition')
       const beginTransition = transitions.find(el => el.textContent === 'Draft → Pending')
       expect(beginTransition).toBeInTheDocument()
+    })
+
+    it('displays multiple state transitions with visual separators not raw commas', () => {
+      const entity = createEntity({
+        operationDetails: [
+          {
+            id: 'op-multi-state',
+            operationName: parseOperation('processAndShip'),
+            name: 'Order.processAndShip',
+            behavior: undefined,
+            stateChanges: [
+              { from: parseState('Draft'), to: parseState('Active') },
+              { from: parseState('Active'), to: parseState('Shipped') },
+            ],
+            signature: undefined,
+            sourceLocation: undefined,
+          },
+        ],
+      })
+
+      render(<EntityAccordion entity={entity} defaultExpanded />)
+
+      // Should NOT contain raw comma between transitions
+      const transition = screen.getByTestId('state-transition')
+      expect(transition.textContent).not.toContain(', ')
+      // Should contain visual separator (pipe)
+      expect(transition.textContent).toContain(' | ')
     })
 
     it('does not render state transition when operation has no stateChanges', async () => {

@@ -17,7 +17,7 @@ interface EntityHeaderActionsProps {
 
 function EntityHeaderActions({ entity, isExpanded, onViewOnGraph }: EntityHeaderActionsProps): React.ReactElement {
   return (
-    <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+    <div className="flex items-center gap-2">
       {entity.sourceLocation !== undefined && entity.sourceLocation.lineNumber !== undefined && (
         <CodeLinkMenu
           filePath={entity.sourceLocation.filePath}
@@ -58,17 +58,19 @@ export function EntityAccordion({
 
   return (
     <div className="rounded-lg border border-[var(--border-color)]">
-      <button
-        type="button"
-        onClick={() => setIsExpanded(!isExpanded)}
-        aria-expanded={isExpanded}
-        className={`flex w-full items-center justify-between gap-4 p-4 text-left transition-colors ${
+      <div
+        className={`flex w-full items-center justify-between gap-4 p-4 transition-colors ${
           isExpanded
             ? 'border-b border-[#8B5CF6] bg-gradient-to-r from-[rgba(139,92,246,0.08)] to-[rgba(124,58,237,0.08)]'
             : 'bg-[var(--bg-secondary)] shadow-sm hover:border-[#8B5CF6]'
         }`}
       >
-        <div className="flex min-w-0 items-center gap-3">
+        <button
+          type="button"
+          onClick={() => setIsExpanded(!isExpanded)}
+          aria-expanded={isExpanded}
+          className="flex min-w-0 flex-1 items-center gap-3 text-left"
+        >
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#8B5CF6] to-[#7C3AED] text-white">
             <i className="ph ph-cube text-lg" aria-hidden="true" />
           </div>
@@ -81,9 +83,9 @@ export function EntityAccordion({
               {stateCount > 0 && ` · ${stateCount} state${stateCount !== 1 ? 's' : ''}`}
             </span>
           </div>
-        </div>
+        </button>
         <EntityHeaderActions entity={entity} isExpanded={isExpanded} onViewOnGraph={onViewOnGraph} />
-      </button>
+      </div>
 
       {isExpanded && (
         <div className="border-t border-[#8B5CF6] bg-[var(--bg-secondary)] p-4">
@@ -131,17 +133,23 @@ export function EntityAccordion({
             </div>
           )}
 
-          <div>
-            <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-[var(--text-tertiary)]">
-              <i className="ph ph-code text-[var(--primary)]" aria-hidden="true" />
-              Methods
+          {entity.operationDetails.length > 0 ? (
+            <div>
+              <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-[var(--text-tertiary)]">
+                <i className="ph ph-code text-[var(--primary)]" aria-hidden="true" />
+                Methods
+              </div>
+              <div className="space-y-3">
+                {entity.operationDetails.map((op) => (
+                  <MethodCard key={op.id} operation={op} invariants={entity.invariants} />
+                ))}
+              </div>
             </div>
-            <div className="space-y-3">
-              {entity.operationDetails.map((op) => (
-                <MethodCard key={op.id} operation={op} />
-              ))}
+          ) : !hasStates(entity) && !hasInvariants(entity) ? (
+            <div className="text-sm italic text-[var(--text-tertiary)]">
+              No states, rules, or methods defined
             </div>
-          </div>
+          ) : null}
         </div>
       )}
     </div>
@@ -150,16 +158,17 @@ export function EntityAccordion({
 
 interface MethodCardProps {
   operation: DomainEntity['operationDetails'][number]
+  invariants: DomainEntity['invariants']
 }
 
-function MethodCard({ operation }: MethodCardProps): React.ReactElement {
+function MethodCard({ operation, invariants }: MethodCardProps): React.ReactElement {
   const [isExpanded, setIsExpanded] = useState(false)
 
   return (
     <div className="rounded-lg bg-[var(--bg-secondary)] shadow-sm">
       <MethodCardHeader operation={operation} isExpanded={isExpanded} onToggle={() => setIsExpanded(!isExpanded)} />
       {isExpanded && operation.behavior !== undefined && (
-        <MethodCardContent behavior={operation.behavior} />
+        <MethodCardContent behavior={operation.behavior} invariants={invariants} />
       )}
     </div>
   )
@@ -246,7 +255,7 @@ function StateChangesTag({ operation }: StateChangesTagProps): React.ReactElemen
       data-testid="state-transition"
       className="shrink-0 rounded border border-[var(--border-color)] bg-[var(--bg-secondary)] px-2 py-0.5 text-xs text-[var(--text-secondary)]"
     >
-      {operation.stateChanges.map((sc) => `${sc.from} → ${sc.to}`).join(', ')}
+      {operation.stateChanges.map((sc) => `${sc.from} → ${sc.to}`).join(' | ')}
     </span>
   )
 }
@@ -286,11 +295,30 @@ function MethodCardAction({ operation }: MethodCardActionProps): React.ReactElem
 
 interface MethodCardContentProps {
   behavior: Exclude<DomainEntity['operationDetails'][number]['behavior'], undefined>
+  invariants: DomainEntity['invariants']
 }
 
-function MethodCardContent({ behavior }: MethodCardContentProps): React.ReactElement {
+function MethodCardContent({ behavior, invariants }: MethodCardContentProps): React.ReactElement {
+  const hasInvariantsToShow = invariants.length > 0
+
   return (
-    <div className="p-4">
+    <div className="p-4" data-testid="method-card-content">
+      {hasInvariantsToShow && (
+        <div className="mb-4">
+          <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-[var(--text-tertiary)]">
+            <i className="ph ph-shield-check text-[var(--primary)]" aria-hidden="true" />
+            Governed by
+          </div>
+          <div className="space-y-1">
+            {invariants.map((invariant, index) => (
+              <div key={index} className="flex items-start gap-2 text-sm text-[var(--text-secondary)]">
+                <i className="ph ph-check-circle shrink-0 text-[var(--amber)]" aria-hidden="true" />
+                <span>{invariant}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       <div className="grid grid-cols-2 gap-3">
         <BehaviorBox label="Reads" items={behavior.reads} icon="ph-book-open" color="blue" />
         <BehaviorBox label="Validates" items={behavior.validates} icon="ph-shield-check" color="amber" />

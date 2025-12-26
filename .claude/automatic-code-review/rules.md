@@ -4,11 +4,27 @@ Ensure modified code complies with our project conventions. Be ultra critical.
 
 First read lint rules to ensure feedback doesn't contradict them: @/eslint.config.mjs Don't force the user to change code when there is no other solution that will satisfy the lint rules.
 
+## Architecture, modularity check
+
+Check all production code files (not test files) against the following conventions:
+
+Read @/docs/architecture/overview.md
+Read @/docs/conventions/codebase-structure.md
+
+Ensure that all code is in the correct place and aligns with boundaries and layering requirements.
+
+```plaintext
+Architecture or modularity violation: [title of violation]
+Relevant convention: [reference rule]
+Affected Code: [show code and line number]
+Suggested Fix: [suggested fix (if any)]
+Optional?: [Is it mandatory to fix this problem or is there room for debate?]
+```
+
 ## Coding Standards
 
 Check all production code files (not test files) against the following conventions:
 
-Read @/docs/conventions/codebase-structure.md
 Read @/docs/conventions/software-design.md
 Read @/docs/conventions/standard-patterns.md
 

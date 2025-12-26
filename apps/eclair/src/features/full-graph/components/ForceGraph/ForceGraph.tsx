@@ -28,6 +28,8 @@ import {
 import {
   createSimulationNodes,
   createSimulationLinks,
+  createExternalNodes,
+  createExternalLinks,
   getNodeColor,
   getNodeRadius,
   getEdgeColor,
@@ -342,8 +344,12 @@ export function ForceGraph({
     const svg = d3.select(svgRef.current)
     svg.selectAll('*').remove()
 
-    const nodes = createSimulationNodes(filteredNodes)
-    const links = createSimulationLinks(filteredEdges)
+    const regularNodes = createSimulationNodes(filteredNodes)
+    const regularLinks = createSimulationLinks(filteredEdges)
+    const externalNodes = createExternalNodes(graph.externalLinks)
+    const externalSimLinks = createExternalLinks(graph.externalLinks)
+    const nodes = [...regularNodes, ...externalNodes]
+    const links = [...regularLinks, ...externalSimLinks]
 
     const currentGraphKey = filteredNodes.map((n) => n.id).sort().join(',')
     const isGraphDataChange = currentGraphKey !== lastGraphKeyRef.current

@@ -157,7 +157,7 @@ return content.eventType
 
 ### Forbidden Generic Names
 
-**NEVER use these names:**
+**NEVER use these names partially or fully:**
 - `data`
 - `utils`
 - `helpers`
@@ -166,6 +166,8 @@ return content.eventType
 - `manager`
 - `handler`
 - `processor`
+
+Bad Example: `ProductData`. Just use `Product` or something more precise
 
 These names are meaningless - they tell you nothing about what the code actually does.
 

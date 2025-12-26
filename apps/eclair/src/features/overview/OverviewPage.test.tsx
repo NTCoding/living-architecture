@@ -209,13 +209,13 @@ describe('OverviewPage', () => {
     expect(statsItem?.querySelector('.ph-graph')).toBeInTheDocument()
   })
 
-  it('always renders repository link in card footer', () => {
+  it('renders repository link for each domain card', () => {
     const graph = createTestGraph()
 
     renderWithRouter(<OverviewPage graph={graph} />)
 
     const repoLinks = screen.getAllByRole('link', { name: /github/i })
-    expect(repoLinks.length).toBeGreaterThan(0)
+    expect(repoLinks).toHaveLength(2)
   })
 
   it('View Details links navigate to domain detail page', () => {
@@ -388,7 +388,7 @@ describe('OverviewPage', () => {
       expect(screen.queryByText('payment-domain')).not.toBeInTheDocument()
     })
 
-    it('shows no results when search and filter have no matches', async () => {
+    it('removes domain cards when search query matches no domains', async () => {
       const user = userEvent.setup()
       const graph = createTestGraph()
 
@@ -399,6 +399,129 @@ describe('OverviewPage', () => {
 
       const cards = screen.queryAllByRole('link', { name: /View details for/i })
       expect(cards).toHaveLength(0)
+    })
+  })
+
+  describe('Item display limits', () => {
+    function createGraphWithManyItems(): RiviereGraph {
+      return {
+        version: '1.0',
+        metadata: {
+          name: 'Test Architecture',
+          description: 'Test description',
+          domains: parseDomainMetadata({
+            'large-domain': { description: 'Domain with many entities', systemType: 'domain' },
+          }),
+        },
+        components: [
+          parseNode({ sourceLocation: testSourceLocation, id: 'n1', type: 'DomainOp', name: 'Entity1.op', domain: 'large-domain', module: 'm1', entity: 'Entity1', operationName: 'op' }),
+          parseNode({ sourceLocation: testSourceLocation, id: 'n2', type: 'DomainOp', name: 'Entity2.op', domain: 'large-domain', module: 'm1', entity: 'Entity2', operationName: 'op' }),
+          parseNode({ sourceLocation: testSourceLocation, id: 'n3', type: 'DomainOp', name: 'Entity3.op', domain: 'large-domain', module: 'm1', entity: 'Entity3', operationName: 'op' }),
+          parseNode({ sourceLocation: testSourceLocation, id: 'n4', type: 'DomainOp', name: 'Entity4.op', domain: 'large-domain', module: 'm1', entity: 'Entity4', operationName: 'op' }),
+          parseNode({ sourceLocation: testSourceLocation, id: 'n5', type: 'DomainOp', name: 'Entity5.op', domain: 'large-domain', module: 'm1', entity: 'Entity5', operationName: 'op' }),
+          parseNode({ sourceLocation: testSourceLocation, id: 'ep1', type: 'UI', name: '/page1', domain: 'large-domain', module: 'm1', route: '/page1' }),
+          parseNode({ sourceLocation: testSourceLocation, id: 'ep2', type: 'UI', name: '/page2', domain: 'large-domain', module: 'm1', route: '/page2' }),
+          parseNode({ sourceLocation: testSourceLocation, id: 'ep3', type: 'API', name: 'API 3', domain: 'large-domain', module: 'm1', apiType: 'REST', httpMethod: 'GET', path: '/api/3' }),
+          parseNode({ sourceLocation: testSourceLocation, id: 'ep4', type: 'API', name: 'API 4', domain: 'large-domain', module: 'm1', apiType: 'REST', httpMethod: 'GET', path: '/api/4' }),
+          parseNode({ sourceLocation: testSourceLocation, id: 'ep5', type: 'API', name: 'API 5', domain: 'large-domain', module: 'm1', apiType: 'REST', httpMethod: 'GET', path: '/api/5' }),
+        ],
+        links: [],
+      }
+    }
+
+    it('limits entities display to 3 items when domain has more', () => {
+      const graph = createGraphWithManyItems()
+
+      renderWithRouter(<OverviewPage graph={graph} />)
+
+      expect(screen.getByText('Entity1')).toBeInTheDocument()
+      expect(screen.getByText('Entity2')).toBeInTheDocument()
+      expect(screen.getByText('Entity3')).toBeInTheDocument()
+      expect(screen.queryByText('Entity4')).not.toBeInTheDocument()
+      expect(screen.queryByText('Entity5')).not.toBeInTheDocument()
+    })
+
+    it('shows ellipsis indicator when entities exceed limit', () => {
+      const graph = createGraphWithManyItems()
+
+      renderWithRouter(<OverviewPage graph={graph} />)
+
+      const ellipsisIndicators = screen.getAllByText('…')
+      expect(ellipsisIndicators).toHaveLength(2)
+    })
+
+    it('limits entry points display to 3 items when domain has more', () => {
+      const graph = createGraphWithManyItems()
+
+      renderWithRouter(<OverviewPage graph={graph} />)
+
+      expect(screen.getByText('/page1')).toBeInTheDocument()
+      expect(screen.getByText('/page2')).toBeInTheDocument()
+      expect(screen.getByText('/api/3')).toBeInTheDocument()
+      expect(screen.queryByText('/api/4')).not.toBeInTheDocument()
+      expect(screen.queryByText('/api/5')).not.toBeInTheDocument()
+    })
+
+    it('shows ellipsis indicator for entry points when exceeding limit', () => {
+      const graph = createGraphWithManyItems()
+
+      renderWithRouter(<OverviewPage graph={graph} />)
+
+      const ellipsisIndicators = screen.getAllByText('…')
+      expect(ellipsisIndicators).toHaveLength(2)
+    })
+
+    it('shows all entities without ellipsis when count is 3 or less', () => {
+      const graph = createTestGraph()
+
+      renderWithRouter(<OverviewPage graph={graph} />)
+
+      expect(screen.getByText('Order')).toBeInTheDocument()
+      expect(screen.getByText('Payment')).toBeInTheDocument()
+      expect(screen.queryByText('…')).not.toBeInTheDocument()
+    })
+
+    it('truncates long entity names to prevent overflow', () => {
+      const graph = createTestGraph()
+      graph.components.push(
+        parseNode({
+          sourceLocation: testSourceLocation,
+          id: 'op:long-entity',
+          type: 'DomainOp',
+          name: 'Create Very Long Entity',
+          domain: 'order-domain',
+          module: 'core',
+          entity: 'VeryLongEntityNameThatShouldBeTruncated',
+          operationName: 'create',
+        })
+      )
+
+      renderWithRouter(<OverviewPage graph={graph} />)
+
+      const entityBadge = screen.getByText('VeryLongEntityNameThatShouldBeTruncated')
+      expect(entityBadge).toHaveClass('truncate')
+    })
+
+    it('truncates long entry point paths to prevent overflow', () => {
+      const graph = createTestGraph()
+      graph.components.push(
+        parseNode({
+          sourceLocation: testSourceLocation,
+          id: 'api:long-path',
+          type: 'API',
+          name: 'Long Path API',
+          domain: 'order-domain',
+          module: 'api',
+          apiType: 'REST',
+          httpMethod: 'GET',
+          path: '/api/v1/orders/very/long/path/that/should/be/truncated',
+        })
+      )
+
+      renderWithRouter(<OverviewPage graph={graph} />)
+
+      const pathElement = screen.getByText('/api/v1/orders/very/long/path/that/should/be/truncated')
+      expect(pathElement).toHaveClass('truncate')
     })
   })
 })

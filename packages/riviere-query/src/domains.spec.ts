@@ -72,4 +72,19 @@ describe('domains', () => {
 
     expect(() => new RiviereQuery(graph)).toThrow()
   })
+
+  it('does not include external systems in domains (use externalSystems() instead)', () => {
+    const graph = createMinimalValidGraph()
+    graph.externalLinks = [
+      { source: 'test:mod:ui:page', target: { name: 'Stripe' }, type: 'sync' },
+      { source: 'test:mod:ui:page', target: { name: 'Twilio' }, type: 'async' },
+    ]
+    const query = new RiviereQuery(graph)
+
+    const result = query.domains()
+
+    expect(result.find((d) => d.name === 'external')).toBeUndefined()
+    expect(result.find((d) => d.name === 'Stripe')).toBeUndefined()
+    expect(result.find((d) => d.name === 'Twilio')).toBeUndefined()
+  })
 })

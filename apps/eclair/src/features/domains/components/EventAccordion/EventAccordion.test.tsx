@@ -450,4 +450,49 @@ describe('EventAccordion', () => {
       expect(preElement).toBeInTheDocument()
     })
   })
+
+  describe('onViewHandlerOnGraph callback', () => {
+    it('renders view on graph button next to each handler when callback provided', () => {
+      const event = createEvent({
+        handlers: [
+          { domain: 'shipping', handlerName: 'CreateShipment' },
+          { domain: 'notification', handlerName: 'SendEmail' },
+        ],
+      })
+      const onViewHandlerOnGraph = vi.fn()
+
+      render(<EventAccordion event={event} onViewHandlerOnGraph={onViewHandlerOnGraph} defaultExpanded />)
+
+      const handlerGraphButtons = screen.getAllByTitle('View handler on graph')
+      expect(handlerGraphButtons).toHaveLength(2)
+    })
+
+    it('calls onViewHandlerOnGraph with handler info when button is clicked', async () => {
+      const user = userEvent.setup()
+      const event = createEvent({
+        handlers: [{ domain: 'shipping', handlerName: 'CreateShipment' }],
+      })
+      const onViewHandlerOnGraph = vi.fn()
+
+      render(<EventAccordion event={event} onViewHandlerOnGraph={onViewHandlerOnGraph} defaultExpanded />)
+
+      await user.click(screen.getByTitle('View handler on graph'))
+
+      expect(onViewHandlerOnGraph).toHaveBeenCalledWith({
+        domain: 'shipping',
+        handlerName: 'CreateShipment',
+      })
+      expect(onViewHandlerOnGraph).toHaveBeenCalledTimes(1)
+    })
+
+    it('does not render handler graph buttons when onViewHandlerOnGraph is undefined', () => {
+      const event = createEvent({
+        handlers: [{ domain: 'shipping', handlerName: 'CreateShipment' }],
+      })
+
+      render(<EventAccordion event={event} defaultExpanded />)
+
+      expect(screen.queryByTitle('View handler on graph')).not.toBeInTheDocument()
+    })
+  })
 })

@@ -41,6 +41,7 @@ export const NODE_COLORS: NodeColors = {
     Event: '#FBBF24',
     EventHandler: '#A78BFA',
     Custom: '#9CA3AF',
+    External: '#F97316',
   },
   voltage: {
     UI: '#94A3B8',
@@ -50,6 +51,7 @@ export const NODE_COLORS: NodeColors = {
     Event: '#FBBF24',
     EventHandler: '#A78BFA',
     Custom: '#9CA3AF',
+    External: '#F97316',
   },
   circuit: {
     UI: '#9CA3AF',
@@ -59,6 +61,7 @@ export const NODE_COLORS: NodeColors = {
     Event: '#D97706',
     EventHandler: '#6B7280',
     Custom: '#9CA3AF',
+    External: '#EA580C',
   },
 }
 
@@ -70,6 +73,7 @@ export const NODE_RADII: Record<NodeType, number> = {
   Event: 11,
   EventHandler: 10,
   Custom: 10,
+  External: 13,
 }
 
 export const EDGE_COLORS = {

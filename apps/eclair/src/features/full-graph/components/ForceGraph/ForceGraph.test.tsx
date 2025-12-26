@@ -376,6 +376,93 @@ describe('ForceGraph', () => {
     })
   })
 
+  describe('External Links Integration', () => {
+    test('creates external nodes when graph has externalLinks', () => {
+      const sourceNodeId = parseNode({
+        sourceLocation: testSourceLocation,
+        id: 'node-1',
+        type: 'API',
+        name: 'Orders API',
+        domain: 'orders',
+        module: 'api',
+      }).id
+
+      const graphWithExternalLinks: RiviereGraph = {
+        version: '1.0',
+        metadata: {
+          domains: { [parseDomainKey('orders')]: { description: 'Orders', systemType: 'domain' } },
+        },
+        components: [
+          parseNode({
+            sourceLocation: testSourceLocation,
+            id: 'node-1',
+            type: 'API',
+            name: 'Orders API',
+            domain: 'orders',
+            module: 'api',
+          }),
+        ],
+        links: [],
+        externalLinks: [
+          {
+            source: sourceNodeId,
+            target: { name: 'Stripe' },
+            type: 'sync',
+          },
+        ],
+      }
+
+      render(<ForceGraph graph={graphWithExternalLinks} theme="stream" />)
+
+      expect(screen.getByTestId('force-graph-container')).toBeInTheDocument()
+    })
+
+    test('creates external links connecting to external nodes', () => {
+      const sourceNodeId = parseNode({
+        sourceLocation: testSourceLocation,
+        id: 'node-1',
+        type: 'API',
+        name: 'Orders API',
+        domain: 'orders',
+        module: 'api',
+      }).id
+
+      const graphWithExternalLinks: RiviereGraph = {
+        version: '1.0',
+        metadata: {
+          domains: { [parseDomainKey('orders')]: { description: 'Orders', systemType: 'domain' } },
+        },
+        components: [
+          parseNode({
+            sourceLocation: testSourceLocation,
+            id: 'node-1',
+            type: 'API',
+            name: 'Orders API',
+            domain: 'orders',
+            module: 'api',
+          }),
+        ],
+        links: [],
+        externalLinks: [
+          {
+            source: sourceNodeId,
+            target: { name: 'Stripe', url: 'https://stripe.com' },
+            type: 'sync',
+          },
+          {
+            source: sourceNodeId,
+            target: { name: 'Twilio' },
+            type: 'async',
+          },
+        ],
+      }
+
+      render(<ForceGraph graph={graphWithExternalLinks} theme="stream" />)
+
+      expect(screen.getByTestId('force-graph-container')).toBeInTheDocument()
+    })
+  })
+
   describe('Edge Cases', () => {
     test('handles graph with only edges and no nodes', () => {
       const edgesOnlyGraph: RiviereGraph = {

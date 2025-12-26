@@ -1,4 +1,4 @@
-import type { RiviereGraph, Component, ComponentType, Link } from '@living-architecture/riviere-schema'
+import type { RiviereGraph, Component, ComponentType, Link, ExternalLink } from '@living-architecture/riviere-schema'
 import type { ComponentId, LinkId, Flow, SearchWithFlowResult } from './domain-types'
 import { parseComponentId, parseLinkId } from './domain-types'
 import { componentById, searchComponents } from './component-queries'
@@ -51,6 +51,7 @@ function createLinkKey(link: Link): LinkId {
 export function queryFlows(graph: RiviereGraph): Flow[] {
   const componentByIdMap = new Map(graph.components.map((c) => [c.id, c]))
   const outgoingEdges = buildOutgoingEdges(graph)
+  const externalLinksBySource = buildExternalLinksBySource(graph)
 
   const traceForward = (entryPointId: string): Flow['steps'] => {
     const steps: Flow['steps'] = []
@@ -66,8 +67,9 @@ export function queryFlows(graph: RiviereGraph): Flow[] {
       const edges = outgoingEdges.get(nodeId)
       const firstEdge = edges !== undefined && edges.length > 0 ? edges[0] : undefined
       const linkType = firstEdge !== undefined ? firstEdge.type : undefined
+      const externalLinks = externalLinksBySource.get(nodeId) ?? []
 
-      steps.push({ component, linkType, depth })
+      steps.push({ component, linkType, depth, externalLinks })
 
       if (edges) {
         for (const edge of edges) {
@@ -84,6 +86,22 @@ export function queryFlows(graph: RiviereGraph): Flow[] {
     entryPoint,
     steps: traceForward(entryPoint.id),
   }))
+}
+
+function buildExternalLinksBySource(graph: RiviereGraph): Map<string, ExternalLink[]> {
+  const externalLinks = graph.externalLinks ?? []
+  const bySource = new Map<string, ExternalLink[]>()
+
+  for (const link of externalLinks) {
+    const existing = bySource.get(link.source)
+    if (existing) {
+      existing.push(link)
+    } else {
+      bySource.set(link.source, [link])
+    }
+  }
+
+  return bySource
 }
 
 function buildOutgoingEdges(graph: RiviereGraph): Map<string, Array<{ target: string; type: 'sync' | 'async' | undefined }>> {

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import { createSimulationNodes, createSimulationLinks, isAsyncEdge, truncateName, getNodeColor, getNodeRadius, getEdgeColor, getDomainColor } from './VisualizationDataAdapters'
-import type { Node, Edge } from '@/types/riviere'
-import { parseNode, parseEdge } from '@/lib/riviereTestData'
+import { createSimulationNodes, createSimulationLinks, createExternalNodes, createExternalLinks, isAsyncEdge, truncateName, getNodeColor, getNodeRadius, getEdgeColor, getDomainColor } from './VisualizationDataAdapters'
+import type { Node, Edge, ExternalLink } from '@/types/riviere'
+import { parseNode, parseEdge, parseNodeId } from '@/lib/riviereTestData'
 const testSourceLocation = { repository: 'test-repo', filePath: 'src/test.ts' }
 
 describe('VisualizationDataAdapters', () => {
@@ -14,13 +14,11 @@ describe('VisualizationDataAdapters', () => {
       const result = createSimulationNodes(nodes)
 
       expect(result).toHaveLength(1)
-      expect(result[0]).toEqual({
-        id: '1',
-        type: 'API',
-        name: 'Test API',
-        domain: 'test',
-        originalNode: expect.any(Object),
-      })
+      expect(result[0]?.id).toBe('1')
+      expect(result[0]?.type).toBe('API')
+      expect(result[0]?.name).toBe('Test API')
+      expect(result[0]?.domain).toBe('test')
+      expect(result[0]?.originalNode).toBeDefined()
     })
   })
 
@@ -33,12 +31,10 @@ describe('VisualizationDataAdapters', () => {
       const result = createSimulationLinks(edges)
 
       expect(result).toHaveLength(1)
-      expect(result[0]).toEqual({
-        source: '1',
-        target: '2',
-        type: 'sync',
-        originalEdge: expect.any(Object),
-      })
+      expect(result[0]?.source).toBe('1')
+      expect(result[0]?.target).toBe('2')
+      expect(result[0]?.type).toBe('sync')
+      expect(result[0]?.originalEdge).toBeDefined()
     })
   })
 
@@ -190,6 +186,120 @@ describe('VisualizationDataAdapters', () => {
         expect(typeof color).toBe('string')
         expect(color).toBeTruthy()
       })
+    })
+  })
+
+  describe('createExternalNodes', () => {
+    it('creates simulation nodes for external link targets', () => {
+      const externalLinks: ExternalLink[] = [
+        {
+          source: parseNodeId('payment:usecase:processpayment'),
+          target: { name: 'Stripe', url: 'https://api.stripe.com' },
+          type: 'sync',
+          description: 'Process payment via Stripe',
+        },
+      ]
+
+      const result = createExternalNodes(externalLinks)
+
+      expect(result).toHaveLength(1)
+      expect(result[0]?.id).toBe('external:Stripe')
+      expect(result[0]?.type).toBe('External')
+      expect(result[0]?.name).toBe('Stripe')
+      expect(result[0]?.domain).toBe('external')
+      expect(result[0]?.originalNode).toBeDefined()
+      expect(result[0]?.originalNode.id).toBe('external:Stripe')
+      expect(result[0]?.originalNode.type).toBe('External')
+      expect(result[0]?.originalNode.name).toBe('Stripe')
+    })
+
+    it('deduplicates external nodes with same name', () => {
+      const externalLinks: ExternalLink[] = [
+        {
+          source: parseNodeId('payment:usecase:processpayment'),
+          target: { name: 'Stripe', url: 'https://api.stripe.com' },
+          type: 'sync',
+        },
+        {
+          source: parseNodeId('payment:usecase:refundpayment'),
+          target: { name: 'Stripe', url: 'https://api.stripe.com' },
+          type: 'sync',
+        },
+      ]
+
+      const result = createExternalNodes(externalLinks)
+
+      expect(result).toHaveLength(1)
+      expect(result[0]?.name).toBe('Stripe')
+    })
+
+    it('returns empty array for undefined external links', () => {
+      const result = createExternalNodes(undefined)
+      expect(result).toHaveLength(0)
+    })
+  })
+
+  describe('createExternalLinks', () => {
+    it('creates simulation links from source to external target', () => {
+      const externalLinks: ExternalLink[] = [
+        {
+          source: parseNodeId('payment:usecase:processpayment'),
+          target: { name: 'Stripe', url: 'https://api.stripe.com' },
+          type: 'sync',
+        },
+      ]
+
+      const result = createExternalLinks(externalLinks)
+
+      expect(result).toHaveLength(1)
+      expect(result[0]?.source).toBe('payment:usecase:processpayment')
+      expect(result[0]?.target).toBe('external:Stripe')
+      expect(result[0]?.type).toBe('sync')
+      expect(result[0]?.originalEdge).toBeDefined()
+      expect(result[0]?.originalEdge.source).toBe('payment:usecase:processpayment')
+      expect(result[0]?.originalEdge.target).toBe('external:Stripe')
+    })
+
+    it('creates multiple links for same external target', () => {
+      const externalLinks: ExternalLink[] = [
+        {
+          source: parseNodeId('payment:usecase:processpayment'),
+          target: { name: 'Stripe', url: 'https://api.stripe.com' },
+          type: 'sync',
+        },
+        {
+          source: parseNodeId('payment:usecase:refundpayment'),
+          target: { name: 'Stripe', url: 'https://api.stripe.com' },
+          type: 'sync',
+        },
+      ]
+
+      const result = createExternalLinks(externalLinks)
+
+      expect(result).toHaveLength(2)
+      expect(result[0]?.source).toBe('payment:usecase:processpayment')
+      expect(result[1]?.source).toBe('payment:usecase:refundpayment')
+    })
+
+    it('returns empty array for undefined external links', () => {
+      const result = createExternalLinks(undefined)
+      expect(result).toHaveLength(0)
+    })
+  })
+
+  describe('getNodeColor for External nodes', () => {
+    it('returns color for External node type', () => {
+      const color = getNodeColor('External', 'stream')
+      expect(typeof color).toBe('string')
+      expect(color).toBeTruthy()
+    })
+  })
+
+  describe('getNodeRadius for External nodes', () => {
+    it('returns radius for External node type', () => {
+      const radius = getNodeRadius('External')
+      expect(typeof radius).toBe('number')
+      expect(radius).toBeGreaterThan(0)
     })
   })
 })

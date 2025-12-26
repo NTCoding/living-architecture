@@ -1,28 +1,45 @@
 import type { TooltipData } from '../../types'
 import { CodeLinkMenu } from '@/features/flows/components/CodeLinkMenu'
 
+export const TOOLTIP_WIDTH = 310
+export const TOOLTIP_HEIGHT = 200
+
 interface GraphTooltipProps {
   data: TooltipData | null
   onMouseEnter?: () => void
   onMouseLeave?: () => void
 }
 
-function hasSourceLocation(node: TooltipData['node']): boolean {
+function hasSourceLocation(node: TooltipData['node']): node is TooltipData['node'] & { originalNode: { sourceLocation: { filePath: string; lineNumber: number; repository?: string } } } {
   const loc = node.originalNode.sourceLocation
   return loc !== undefined && loc.lineNumber !== undefined
+}
+
+function calculateTooltipPosition(x: number, y: number): { left: number; top: number } {
+  const viewportWidth = window.innerWidth
+  const viewportHeight = window.innerHeight
+
+  const wouldOverflowRight = x + TOOLTIP_WIDTH > viewportWidth
+  const wouldOverflowBottom = y + TOOLTIP_HEIGHT > viewportHeight
+
+  const left = wouldOverflowRight ? x - TOOLTIP_WIDTH : x + 10
+  const top = wouldOverflowBottom ? y - TOOLTIP_HEIGHT - 10 : y - 10
+
+  return { left, top }
 }
 
 export function GraphTooltip({ data, onMouseEnter, onMouseLeave }: GraphTooltipProps): React.ReactElement | null {
   if (!data) return null
 
   const { node, x, y, incomingCount, outgoingCount } = data
+  const { left, top } = calculateTooltipPosition(x, y)
 
   return (
     <div
       className="graph-tooltip fixed z-50 max-w-[300px] rounded-lg border bg-[var(--bg-secondary)] p-4 shadow-lg"
       style={{
-        left: `${x + 10}px`,
-        top: `${y - 10}px`,
+        left: `${left}px`,
+        top: `${top}px`,
       }}
       role="tooltip"
       data-testid="graph-tooltip"
@@ -48,7 +65,7 @@ export function GraphTooltip({ data, onMouseEnter, onMouseLeave }: GraphTooltipP
           {outgoingCount !== 1 ? 's' : ''}
         </div>
       </div>
-      {hasSourceLocation(node) && node.originalNode.sourceLocation !== undefined && node.originalNode.sourceLocation.lineNumber !== undefined && (
+      {hasSourceLocation(node) && (
         <div className="mt-2 border-t border-[var(--border-color)] pt-2">
           <CodeLinkMenu
             filePath={node.originalNode.sourceLocation.filePath}

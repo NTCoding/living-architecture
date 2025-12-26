@@ -1,4 +1,4 @@
-import type { Component, Link } from '@living-architecture/riviere-schema'
+import type { Component, Link, ExternalLink } from '@living-architecture/riviere-schema'
 import { z } from 'zod'
 
 /** @internal */
@@ -180,6 +180,8 @@ export interface FlowStep {
   linkType: LinkType | undefined
   /** Depth from entry point (0 = entry point). */
   depth: number
+  /** External links from this component to external systems. */
+  externalLinks: ExternalLink[]
 }
 
 /**
@@ -242,6 +244,21 @@ export interface GraphStats {
   entityCount: number
   /** Number of Event components. */
   eventCount: number
+}
+
+/**
+ * An external domain that components connect to.
+ *
+ * External domains are any systems not represented in the graph—third-party
+ * services (Stripe, Twilio) or internal domains outside the current scope.
+ */
+export interface ExternalDomain {
+  /** Name of the external domain (e.g., "Stripe", "Twilio"). */
+  name: string
+  /** Domains that have connections to this external domain. */
+  sourceDomains: DomainName[]
+  /** Total number of connections to this external domain. */
+  connectionCount: number
 }
 
 /**

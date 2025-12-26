@@ -837,6 +837,20 @@
     background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
   }
 
+  .flow-step-circle-external {
+    background: linear-gradient(135deg, #64748B 0%, #94A3B8 100%);
+  }
+
+  .flow-external-links {
+    margin-left: 40px;
+    padding-left: 16px;
+    border-left: 2px dashed var(--border-color);
+  }
+
+  .flow-step-external {
+    opacity: 0.9;
+  }
+
   .flow-step-content {
     flex: 1;
   }
@@ -871,10 +885,15 @@
   }
 
   .flow-graph-view {
-    min-height: 300px;
+    height: 400px;
     background: linear-gradient(135deg, rgba(13, 148, 136, 0.03) 0%, rgba(6, 182, 212, 0.03) 100%);
     border-radius: var(--radius);
     padding: 20px;
+  }
+
+  .flow-graph-container {
+    width: 100%;
+    height: 100%;
   }
 
   .flow-graph-nodes {

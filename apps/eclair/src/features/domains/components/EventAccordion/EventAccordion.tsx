@@ -2,10 +2,16 @@ import { useState, useMemo } from 'react'
 import type { DomainEvent } from '../../extractDomainDetails'
 import { CodeLinkMenu } from '@/features/flows/components/CodeLinkMenu'
 
+interface HandlerInfo {
+  domain: string
+  handlerName: string
+}
+
 interface EventAccordionProps {
   event: DomainEvent
   defaultExpanded?: boolean | undefined
   onViewOnGraph?: (eventId: string) => void
+  onViewHandlerOnGraph?: (handler: HandlerInfo) => void
 }
 
 function formatHandlerCount(count: number): string {
@@ -17,6 +23,7 @@ export function EventAccordion({
   event,
   defaultExpanded = false,
   onViewOnGraph,
+  onViewHandlerOnGraph,
 }: EventAccordionProps): React.ReactElement {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded)
 
@@ -24,17 +31,19 @@ export function EventAccordion({
 
   return (
     <div className="rounded-lg border border-[var(--border-color)]">
-      <button
-        type="button"
-        onClick={() => setIsExpanded(!isExpanded)}
-        aria-expanded={isExpanded}
-        className={`flex w-full items-center justify-between gap-4 p-4 text-left transition-colors ${
+      <div
+        className={`flex w-full items-center justify-between gap-4 p-4 transition-colors ${
           isExpanded
             ? 'border-b border-[var(--accent)] bg-gradient-to-r from-[rgba(245,158,11,0.08)] to-[rgba(251,191,36,0.08)]'
             : 'bg-[var(--bg-secondary)] shadow-sm hover:border-[var(--accent)]'
         }`}
       >
-        <div className="flex min-w-0 items-center gap-3">
+        <button
+          type="button"
+          onClick={() => setIsExpanded(!isExpanded)}
+          aria-expanded={isExpanded}
+          className="flex min-w-0 flex-1 items-center gap-3 text-left"
+        >
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[var(--accent)] to-[#F59E0B] text-white">
             <i className="ph ph-lightning text-lg" aria-hidden="true" />
           </div>
@@ -46,8 +55,8 @@ export function EventAccordion({
               {formatHandlerCount(handlerCount)}
             </span>
           </div>
-        </div>
-        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+        </button>
+        <div className="flex items-center gap-2">
           {event.sourceLocation !== undefined && event.sourceLocation.lineNumber !== undefined && (
             <CodeLinkMenu
               filePath={event.sourceLocation.filePath}
@@ -73,7 +82,7 @@ export function EventAccordion({
             aria-hidden="true"
           />
         </div>
-      </button>
+      </div>
 
       {isExpanded && (
         <div className="border-t border-[var(--accent)] bg-[var(--bg-secondary)] p-4">
@@ -87,7 +96,7 @@ export function EventAccordion({
             </div>
           )}
 
-          {event.handlers.length > 0 && (
+          {event.handlers.length > 0 ? (
             <div>
               <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-[var(--text-tertiary)]">
                 <i className="ph ph-ear text-[var(--accent)]" aria-hidden="true" />
@@ -102,14 +111,33 @@ export function EventAccordion({
                     <span className="font-[var(--font-mono)] text-sm text-[var(--text-primary)]">
                       {handler.handlerName}
                     </span>
-                    <span className="rounded bg-[var(--bg-secondary)] px-2 py-0.5 text-xs text-[var(--text-tertiary)]">
-                      {handler.domain}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="rounded bg-[var(--bg-secondary)] px-2 py-0.5 text-xs text-[var(--text-tertiary)]">
+                        {handler.domain}
+                      </span>
+                      {onViewHandlerOnGraph !== undefined && (
+                        <button
+                          type="button"
+                          className="graph-link-btn-sm"
+                          title="View handler on graph"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            onViewHandlerOnGraph({ domain: handler.domain, handlerName: handler.handlerName })
+                          }}
+                        >
+                          <i className="ph ph-graph" aria-hidden="true" />
+                        </button>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
             </div>
-          )}
+          ) : event.schema === undefined ? (
+            <div className="text-sm italic text-[var(--text-tertiary)]">
+              No schema or handlers defined
+            </div>
+          ) : null}
         </div>
       )}
     </div>

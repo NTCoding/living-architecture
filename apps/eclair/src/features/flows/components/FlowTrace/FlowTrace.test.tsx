@@ -27,21 +27,25 @@ function createTestSteps(): FlowStep[] {
       node: parseNode({ sourceLocation: testSourceLocation, id: 'ui-1', type: 'UI', name: 'Order Form', domain: 'checkout', module: 'ui', route: '/checkout' }),
       edgeType: 'sync',
       depth: 0,
+      externalLinks: [],
     },
     {
       node: parseNode({ sourceLocation: testSourceLocation, id: 'api-1', type: 'API', name: 'POST /orders', domain: 'orders', module: 'api', httpMethod: 'POST', path: '/orders' }),
       edgeType: 'sync',
       depth: 1,
+      externalLinks: [],
     },
     {
       node: parseNode({ sourceLocation: testSourceLocation, id: 'uc-1', type: 'UseCase', name: 'Place Order', domain: 'orders', module: 'checkout' }),
       edgeType: 'async',
       depth: 2,
+      externalLinks: [],
     },
     {
       node: parseNode({ sourceLocation: testSourceLocation, id: 'evt-1', type: 'Event', name: 'OrderPlaced', domain: 'orders', module: 'events', eventName: 'OrderPlaced' }),
       edgeType: null,
       depth: 3,
+      externalLinks: [],
     },
   ]
 }
@@ -130,6 +134,25 @@ describe('FlowTrace', () => {
 
       const circle = screen.getByText('4').closest('div')
       expect(circle).toHaveClass('flow-step-circle-event')
+    })
+
+    it('renders External step circle with flow-step-circle-external class', () => {
+      const externalStep: FlowStep = {
+        node: {
+          id: 'external:Stripe',
+          type: 'External',
+          name: 'Stripe',
+          domain: 'external',
+          module: 'external',
+        },
+        edgeType: null,
+        depth: 0,
+        externalLinks: [],
+      }
+      render(<FlowTrace steps={[externalStep]} graph={createTestGraph()} />)
+
+      const circle = screen.getByText('1').closest('div')
+      expect(circle).toHaveClass('flow-step-circle-external')
     })
   })
 
@@ -223,6 +246,49 @@ describe('FlowTrace', () => {
       expect(screen.getByText('POST /orders')).toBeInTheDocument()
       expect(screen.getByText('Place Order')).toBeInTheDocument()
       expect(screen.getByText('OrderPlaced')).toBeInTheDocument()
+    })
+  })
+
+  describe('external links', () => {
+    it('renders external links for steps that have them', () => {
+      const stepsWithExternalLinks: FlowStep[] = [
+        {
+          node: parseNode({ sourceLocation: testSourceLocation, id: 'api-1', type: 'API', name: 'POST /orders', domain: 'orders', module: 'api', httpMethod: 'POST', path: '/orders' }),
+          edgeType: 'sync',
+          depth: 0,
+          externalLinks: [
+            { source: 'api-1', target: { name: 'Stripe', url: 'https://stripe.com' }, type: 'sync' },
+          ],
+        },
+      ]
+      render(<FlowTrace steps={stepsWithExternalLinks} graph={createTestGraph()} />)
+
+      expect(screen.getByText('Stripe')).toBeInTheDocument()
+      expect(screen.getByText('External · sync')).toBeInTheDocument()
+    })
+
+    it('does not render external links section when step has no external links', () => {
+      render(<FlowTrace steps={createTestSteps()} graph={createTestGraph()} />)
+
+      expect(screen.queryByText('External ·')).not.toBeInTheDocument()
+    })
+
+    it('renders multiple external links for a single step', () => {
+      const stepsWithMultipleExternalLinks: FlowStep[] = [
+        {
+          node: parseNode({ sourceLocation: testSourceLocation, id: 'api-1', type: 'API', name: 'POST /orders', domain: 'orders', module: 'api', httpMethod: 'POST', path: '/orders' }),
+          edgeType: 'sync',
+          depth: 0,
+          externalLinks: [
+            { source: 'api-1', target: { name: 'Stripe' }, type: 'sync' },
+            { source: 'api-1', target: { name: 'SendGrid' }, type: 'async' },
+          ],
+        },
+      ]
+      render(<FlowTrace steps={stepsWithMultipleExternalLinks} graph={createTestGraph()} />)
+
+      expect(screen.getByText('Stripe')).toBeInTheDocument()
+      expect(screen.getByText('SendGrid')).toBeInTheDocument()
     })
   })
 })

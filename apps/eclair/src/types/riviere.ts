@@ -42,7 +42,7 @@ export type Invariant = z.infer<typeof invariantSchema>
 export const entryPointSchema = z.string().min(1).brand<'EntryPoint'>()
 export type EntryPoint = z.infer<typeof entryPointSchema>
 
-export type NodeType = 'UI' | 'API' | 'UseCase' | 'DomainOp' | 'Event' | 'EventHandler' | 'Custom'
+export type NodeType = 'UI' | 'API' | 'UseCase' | 'DomainOp' | 'Event' | 'EventHandler' | 'Custom' | 'External'
 
 export type SystemType = 'domain' | 'bff' | 'ui' | 'other'
 
@@ -199,9 +199,29 @@ export interface Edge {
   metadata?: Record<string, unknown>
 }
 
+export interface ExternalTarget {
+  name: string
+  domain?: string
+  repository?: string
+  url?: string
+}
+
+export type LinkType = 'sync' | 'async'
+
+export interface ExternalLink {
+  id?: string
+  source: NodeId
+  target: ExternalTarget
+  type?: LinkType
+  description?: string
+  sourceLocation?: SourceLocation
+  metadata?: Record<string, unknown>
+}
+
 export interface RiviereGraph {
   version: string
   metadata: GraphMetadata
   components: Node[]
   links: Edge[]
+  externalLinks?: ExternalLink[]
 }

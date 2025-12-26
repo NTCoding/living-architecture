@@ -14,11 +14,13 @@ function extractSubgraph(steps: FlowStep[], graph: RiviereGraph): RiviereGraph {
 
   const components = graph.components.filter((node) => nodeIds.has(node.id))
   const links = graph.links.filter((edge) => nodeIds.has(edge.source) && nodeIds.has(edge.target))
+  const externalLinks = steps.flatMap((step) => step.externalLinks)
 
   return {
     ...graph,
     components,
     links,
+    externalLinks,
   }
 }
 
