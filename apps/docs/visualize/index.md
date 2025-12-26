@@ -2,8 +2,6 @@
 
 Éclair is a web-based viewer for exploring software architecture extracted with Rivière.
 
-[Screenshot: Éclair main interface showing a graph visualization with sidebar navigation]
-
 ## When to Use Éclair
 
 Use Éclair when you need to:
@@ -29,9 +27,9 @@ Use Éclair when you need to:
 
 Éclair reads Rivière graph files (JSON). You can create these using:
 
-- **[AI Extraction](/guide/ai-extraction)** — Use Claude to extract architecture from code
-- **[CLI](/cli/)** — Run `riviere build` to generate a graph
-- **[Library](/guide/quick-start)** — Use RiviereBuilder programmatically
+- **[AI Extraction](/extract/)** — Use Claude to extract architecture from code
+- **[CLI](/reference/cli/)** — Run `riviere build` to generate a graph
+- **[Library](/get-started/quick-start)** — Use RiviereBuilder programmatically
 
 ## Next Steps
 

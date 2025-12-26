@@ -129,10 +129,10 @@ The `build()` method returns a valid Riviere graph:
 
 ## Next Steps
 
-- [AI Extraction](/guide/ai-extraction) — The 6-step extraction workflow
-- [Graph Structure](/concepts/graph-structure) — Understand components, links, and domains
-- [API Reference](/api/) — Complete method documentation
+- [AI Extraction](/extract/) — The 6-step extraction workflow
+- [Graph Structure](/reference/schema/graph-structure) — Understand components, links, and domains
+- [API Reference](/reference/api/) — Complete method documentation
 
-## See also
+## See Also
 
-- [Library vs CLI](/guide/library-vs-cli)
+- [Library vs CLI](./library-vs-cli)

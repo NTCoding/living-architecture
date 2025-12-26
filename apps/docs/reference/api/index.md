@@ -117,7 +117,7 @@ const query = RiviereQuery.fromJSON(jsonContents)
 - [RiviereQuery](./generated/riviere-query/classes/RiviereQuery) — Query and analyze graphs
 - [Types](./generated/riviere-query/README) — All TypeScript type definitions
 
-## See also
+## See Also
 
-- [CLI reference](/cli/cli-reference)
-- [Graph structure](/concepts/graph-structure)
+- [CLI reference](/reference/cli/cli-reference)
+- [Graph structure](/reference/schema/graph-structure)

@@ -109,6 +109,10 @@ When writing, refactoring, or reviewing code, always follow `docs/conventions/so
 
 Code quality is of highest importance. Rushing or taking shortcuts is never acceptable.
 
+## Brand Identity, theme, design, UI, UX
+
+All UI and UX design must conform to global brand guidelines: `/docs/brand/` (logo, colors, typography, icons)
+
 ## Security
 
 - Never commit secrets, API keys, or credentials

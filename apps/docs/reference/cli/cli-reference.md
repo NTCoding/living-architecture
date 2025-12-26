@@ -607,9 +607,9 @@ Did you mean one of these?
   - orders:api:api:getorders
 ```
 
-## See also
+## See Also
 
-- [CLI quick start](/guide/cli-quick-start)
-- [AI extraction](/guide/ai-extraction)
-- [Graph structure](/concepts/graph-structure)
-- [API reference](/api/)
+- [CLI quick start](/get-started/cli-quick-start)
+- [AI extraction](/extract/)
+- [Graph structure](/reference/schema/graph-structure)
+- [API reference](/reference/api/)

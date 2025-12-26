@@ -1,24 +1,24 @@
-# Introduction
+# Get Started with Rivière
 
-Living Architecture provides TypeScript libraries for building and querying Riviere architecture graphs.
+Rivière provides tools for building and querying flow-based architecture graphs.
 
 **Schema version:** `v1.0`
 
-## What you'll learn
+## What You'll Learn
 
-- How Riviere represents operational flow across your system
+- How Rivière represents operational flow across your system
 - When to use AI extraction, the CLI, or the TypeScript library
 - Where to go next for guides, concepts, CLI, and API reference
 
-## Why use Riviere?
+## Why Rivière?
 
 Modern distributed systems are hard to understand. Code is scattered across services, events flow between domains, and tracing an operation from UI to database requires deep system familiarity.
 
-**Riviere graphs capture operational flow**—not just "what imports what" but "how does placing an order actually work?" From UI click through API, use case, domain logic, events, and handlers.
+**Rivière captures operational flow**—not just "what imports what" but "how does placing an order actually work?" From UI click through API, use case, domain logic, events, and handlers.
 
 ## What is the Output?
 
-The libraries produce JSON conforming to the **Riviere JSON Schema**:
+Rivière tools produce JSON conforming to the **Rivière JSON Schema**:
 
 ```text
 /schema/riviere.schema.json
@@ -37,7 +37,7 @@ See [Resources](./resources) for example graphs and the visualizer.
 
 Use AI + CLI to extract architecture from existing codebases. This is the primary workflow.
 
-**[Start AI Extraction →](/guide/ai-extraction)**
+**[Start AI Extraction →](/extract/)**
 
 ### Programmatic Library
 
@@ -59,14 +59,14 @@ The schema has conventions for IDs, required fields per node type, and validatio
 
 ## Next Steps
 
-- **[AI Extraction](/guide/ai-extraction)** — Extract architecture from code (recommended)
+- **[AI Extraction](/extract/)** — Extract architecture from code (recommended)
 - [CLI Quick Start](./cli-quick-start) — Build your first graph with CLI
 - [Library Quick Start](./quick-start) — Build graphs programmatically
-- [Core Concepts](/concepts/graph-structure) — Components, links, domains explained
-- [CLI Reference](/cli/) — Command documentation
-- [API Reference](/api/) — RiviereBuilder and RiviereQuery documentation
+- [Core Concepts](/reference/schema/graph-structure) — Components, links, domains explained
+- [CLI Reference](/reference/cli/) — Command documentation
+- [API Reference](/reference/api/) — RiviereBuilder and RiviereQuery documentation
 
-## See also
+## See Also
 
 - [Resources](./resources)
 - [Library vs CLI](./library-vs-cli)

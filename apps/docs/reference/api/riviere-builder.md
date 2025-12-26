@@ -779,7 +779,7 @@ const domains = query.domains()
 
 See [RiviereQuery](./generated/riviere-query/classes/RiviereQuery) for available query methods.
 
-## See also
+## See Also
 
-- [API reference](/api/)
-- [CLI reference](/cli/cli-reference)
+- [API reference](/reference/api/)
+- [CLI reference](/reference/cli/cli-reference)

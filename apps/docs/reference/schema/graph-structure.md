@@ -303,4 +303,4 @@ sourceLocation: {
 ## See Also
 
 - **Riviere JSON Schema** — `/schema/riviere.schema.json`
-- [Resources](/guide/resources) — Complete list of references
+- [Resources](/get-started/resources) — Complete list of references

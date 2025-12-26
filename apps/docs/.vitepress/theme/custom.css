@@ -335,3 +335,24 @@ button:focus-visible,
 ::-webkit-scrollbar-thumb:hover {
   background: var(--vp-c-brand-1);
 }
+
+/* ==========================================================================
+   Medium Zoom (Click to Enlarge Images)
+   ========================================================================== */
+
+.medium-zoom-overlay {
+  z-index: 999;
+}
+
+.medium-zoom-image--opened {
+  z-index: 1000;
+}
+
+/* Make hero image clickable */
+.VPHero .image-container img {
+  cursor: zoom-in;
+}
+
+.medium-zoom-image--opened {
+  cursor: zoom-out;
+}

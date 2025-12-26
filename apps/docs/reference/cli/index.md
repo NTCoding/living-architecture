@@ -50,5 +50,5 @@ The CLI is designed for AI-assisted extraction workflows—deterministic IDs, im
 
 ## Getting Started
 
-- [CLI Quick Start](/guide/cli-quick-start) — Build your first graph
-- [AI Extraction](/guide/ai-extraction) — The 6-step AI + CLI workflow
+- [CLI Quick Start](/get-started/cli-quick-start) — Build your first graph
+- [AI Extraction](/extract/) — The 6-step AI + CLI workflow

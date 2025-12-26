@@ -155,10 +155,10 @@ Your graph is saved at `.riviere/my-service.json`:
 
 ## Next Steps
 
-- [AI Extraction](/guide/ai-extraction) — The complete 6-step AI + CLI workflow
-- [CLI Reference](/cli/cli-reference) — All commands with examples
-- [Graph Structure](/concepts/graph-structure) — Understand components and links
+- [AI Extraction](/extract/) — The complete 6-step AI + CLI workflow
+- [CLI Reference](/reference/cli/cli-reference) — All commands with examples
+- [Graph Structure](/reference/schema/graph-structure) — Understand components and links
 
-## See also
+## See Also
 
-- [CLI section](/cli/)
+- [CLI section](/reference/cli/)

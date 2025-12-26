@@ -49,7 +49,7 @@ Eclair is the interactive graph viewer for Riviere graphs.
 - Filter by domain
 - List view and full graph view
 
-## See also
+## See Also
 
-- [AI extraction](/guide/ai-extraction)
-- [CLI reference](/cli/cli-reference)
+- [AI extraction](/extract/)
+- [CLI reference](/reference/cli/cli-reference)

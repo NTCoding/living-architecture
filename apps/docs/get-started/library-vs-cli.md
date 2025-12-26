@@ -45,7 +45,7 @@ riviere builder add-component --type API --domain orders --module api \
   --repository my-repo --source-file src/api/orders.ts --source-line 10
 ```
 
-**Start here:** [CLI Quick Start](/guide/cli-quick-start)
+**Start here:** [CLI Quick Start](./cli-quick-start)
 
 ## Library Path
 
@@ -84,7 +84,7 @@ const api = builder.addApi({
 const graph = builder.build()
 ```
 
-**Start here:** [Library Quick Start](/guide/quick-start)
+**Start here:** [Library Quick Start](./quick-start)
 
 ## Both Paths, Same Output
 
@@ -94,12 +94,12 @@ Library and CLI produce identical, schema-compliant Riviere graphs. Choose based
 
 Both paths use the same underlying concepts:
 
-- [Graph Structure](/concepts/graph-structure) — Components, links, domains
-- [ID Generation](/concepts/id-generation) — Deterministic component IDs
-- [Validation Rules](/concepts/validation-rules) — What gets validated and when
-- [Error Messages](/concepts/error-messages) — Understanding and fixing errors
+- [Graph Structure](/reference/schema/graph-structure) — Components, links, domains
+- [ID Generation](/reference/schema/id-generation) — Deterministic component IDs
+- [Validation Rules](/reference/schema/validation-rules) — What gets validated and when
+- [Error Messages](/reference/schema/error-messages) — Understanding and fixing errors
 
-## See also
+## See Also
 
-- [CLI reference](/cli/cli-reference)
-- [API reference](/api/)
+- [CLI reference](/reference/cli/cli-reference)
+- [API reference](/reference/api/)

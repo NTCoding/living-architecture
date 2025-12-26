@@ -1,98 +1,100 @@
 import { defineConfig } from 'vitepress'
 
 export default defineConfig({
-  title: 'Living Architecture',
-  description: 'Extract software architecture from code as living documentation',
+  title: 'Rivière',
+  description: 'Living Architecture - See how operations flow through your system',
 
   themeConfig: {
     logo: '/logo.svg',
-    siteTitle: 'Living Architecture',
+    siteTitle: 'Rivière',
 
     nav: [
-      { text: 'Guide', link: '/guide/' },
-      { text: 'Éclair', link: '/eclair/' },
-      { text: 'CLI Reference', link: '/cli/' },
-      { text: 'API Reference', link: '/api/' },
-      { text: 'Concepts', link: '/concepts/graph-structure' },
+      { text: 'Get Started', link: '/get-started/' },
+      { text: 'Extract', link: '/extract/' },
+      { text: 'Visualize', link: '/visualize/' },
+      { text: 'Reference', link: '/reference/schema/graph-structure' },
     ],
 
     sidebar: {
-      '/guide/': [
+      '/get-started/': [
         {
-          text: 'Getting Started',
+          text: 'Get Started',
           items: [
-            { text: 'Introduction', link: '/guide/' },
-            { text: 'AI Extraction', link: '/guide/ai-extraction' },
-            { text: 'CLI Quick Start', link: '/guide/cli-quick-start' },
-            { text: 'Library Quick Start', link: '/guide/quick-start' },
-            { text: 'Library vs CLI', link: '/guide/library-vs-cli' },
-            { text: 'Resources', link: '/guide/resources' },
+            { text: 'Introduction', link: '/get-started/' },
+            { text: 'CLI Quick Start', link: '/get-started/cli-quick-start' },
+            { text: 'Library Quick Start', link: '/get-started/quick-start' },
+            { text: 'Library vs CLI', link: '/get-started/library-vs-cli' },
+            { text: 'Resources', link: '/get-started/resources' },
+          ]
+        }
+      ],
+      '/extract/': [
+        {
+          text: 'Rivière Extraction',
+          items: [
+            { text: 'Overview', link: '/extract/' },
           ]
         },
         {
           text: 'Extraction Steps',
           items: [
-            { text: 'Overview', link: '/guide/extraction/' },
-            { text: 'Step 1: Understand', link: '/guide/extraction/step-1-understand' },
-            { text: 'Step 2: Define', link: '/guide/extraction/step-2-define-components' },
-            { text: 'Step 3: Extract', link: '/guide/extraction/step-3-extract' },
-            { text: 'Step 4: Link', link: '/guide/extraction/step-4-link' },
-            { text: 'Step 5: Enrich', link: '/guide/extraction/step-5-enrich' },
-            { text: 'Step 6: Validate', link: '/guide/extraction/step-6-validate' },
+            { text: 'Workflow', link: '/extract/steps/' },
+            { text: 'Step 1: Understand', link: '/extract/steps/step-1-understand' },
+            { text: 'Step 2: Define', link: '/extract/steps/step-2-define-components' },
+            { text: 'Step 3: Extract', link: '/extract/steps/step-3-extract' },
+            { text: 'Step 4: Link', link: '/extract/steps/step-4-link' },
+            { text: 'Step 5: Enrich', link: '/extract/steps/step-5-enrich' },
+            { text: 'Step 6: Validate', link: '/extract/steps/step-6-validate' },
           ]
         }
       ],
-      '/cli/': [
+      '/visualize/': [
         {
-          text: 'CLI Reference',
+          text: 'Éclair',
           items: [
-            { text: 'Overview', link: '/cli/' },
-            { text: 'Command Reference', link: '/cli/cli-reference' },
-          ]
-        }
-      ],
-      '/concepts/': [
-        {
-          text: 'Core Concepts',
-          items: [
-            { text: 'Graph Structure', link: '/concepts/graph-structure' },
-            { text: 'ID Generation', link: '/concepts/id-generation' },
-            { text: 'Validation Rules', link: '/concepts/validation-rules' },
-            { text: 'Error Messages', link: '/concepts/error-messages' },
-          ]
-        }
-      ],
-      '/api/': [
-        {
-          text: 'API Reference',
-          items: [
-            { text: 'Overview', link: '/api/' },
-            { text: 'RiviereBuilder', link: '/api/riviere-builder' },
-            { text: 'RiviereQuery', link: '/api/generated/riviere-query/classes/RiviereQuery' },
-            { text: 'Types', link: '/api/generated/riviere-query/README' },
-          ]
-        }
-      ],
-      '/eclair/': [
-        {
-          text: 'User Guide',
-          items: [
-            { text: 'Introduction', link: '/eclair/' },
-            { text: 'Getting Started', link: '/eclair/getting-started' },
-            { text: 'Navigation', link: '/eclair/navigation' },
+            { text: 'Introduction', link: '/visualize/' },
+            { text: 'Getting Started', link: '/visualize/getting-started' },
+            { text: 'Navigation', link: '/visualize/navigation' },
           ]
         },
         {
           text: 'Views',
           items: [
-            { text: 'Overview', link: '/eclair/views/overview' },
-            { text: 'Full Graph', link: '/eclair/views/full-graph' },
-            { text: 'Domain Map', link: '/eclair/views/domain-map' },
-            { text: 'Flows', link: '/eclair/views/flows' },
-            { text: 'Entities', link: '/eclair/views/entities' },
-            { text: 'Events', link: '/eclair/views/events' },
-            { text: 'Compare', link: '/eclair/views/compare' },
-            { text: 'Domain Detail', link: '/eclair/views/domain-detail' },
+            { text: 'Overview', link: '/visualize/views/overview' },
+            { text: 'Full Graph', link: '/visualize/views/full-graph' },
+            { text: 'Domain Map', link: '/visualize/views/domain-map' },
+            { text: 'Flows', link: '/visualize/views/flows' },
+            { text: 'Entities', link: '/visualize/views/entities' },
+            { text: 'Events', link: '/visualize/views/events' },
+            { text: 'Compare', link: '/visualize/views/compare' },
+            { text: 'Domain Detail', link: '/visualize/views/domain-detail' },
+          ]
+        }
+      ],
+      '/reference/': [
+        {
+          text: 'Schema',
+          items: [
+            { text: 'Graph Structure', link: '/reference/schema/graph-structure' },
+            { text: 'ID Generation', link: '/reference/schema/id-generation' },
+            { text: 'Validation Rules', link: '/reference/schema/validation-rules' },
+            { text: 'Error Messages', link: '/reference/schema/error-messages' },
+          ]
+        },
+        {
+          text: 'CLI',
+          items: [
+            { text: 'Overview', link: '/reference/cli/' },
+            { text: 'Commands', link: '/reference/cli/cli-reference' },
+          ]
+        },
+        {
+          text: 'Library API',
+          items: [
+            { text: 'Overview', link: '/reference/api/' },
+            { text: 'RiviereBuilder', link: '/reference/api/riviere-builder' },
+            { text: 'RiviereQuery', link: '/reference/api/generated/riviere-query/classes/RiviereQuery' },
+            { text: 'Types', link: '/reference/api/generated/riviere-query/README' },
           ]
         }
       ]
@@ -103,8 +105,8 @@ export default defineConfig({
     ],
 
     footer: {
-      message: 'Released under the MIT License.',
-      copyright: 'Copyright © 2025 Living Architecture'
+      message: 'Released under the MIT License. Created by <a href="https://nick-tune.me">Nick Tune</a> (<a href="https://linkedin.com/in/nick-tune">LinkedIn</a>, <a href="https://github.com/ntcoding">GitHub</a>)',
+      copyright: 'Copyright © 2025 Rivière'
     }
   }
 })

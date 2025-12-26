@@ -1,10 +1,10 @@
-# AI Extraction
+# Rivière Extraction
 
 Extract architecture from your codebase using AI + CLI.
 
 **Schema version:** `v1.0`
 
-## What you'll learn
+## What You'll Learn
 
 - How the 6-step AI + CLI workflow fits together
 - What each step produces in `.riviere/`
@@ -16,14 +16,14 @@ The extraction process uses 6 step-by-step prompt files. Run each in a separate 
 
 | Step | Prompt File | Purpose |
 |------|-------------|---------|
-| 1 | [step-1-understand](./extraction/step-1-understand) | Analyze codebase structure |
-| 2 | [step-2-define-components](./extraction/step-2-define-components) | Create extraction rules |
-| 3 | [step-3-extract](./extraction/step-3-extract) | Add components to graph |
-| 4 | [step-4-link](./extraction/step-4-link) | Connect components |
-| 5 | [step-5-enrich](./extraction/step-5-enrich) | Add state changes and rules |
-| 6 | [step-6-validate](./extraction/step-6-validate) | Check consistency |
+| 1 | [step-1-understand](./steps/step-1-understand) | Analyze codebase structure |
+| 2 | [step-2-define-components](./steps/step-2-define-components) | Create extraction rules |
+| 3 | [step-3-extract](./steps/step-3-extract) | Add components to graph |
+| 4 | [step-4-link](./steps/step-4-link) | Connect components |
+| 5 | [step-5-enrich](./steps/step-5-enrich) | Add state changes and rules |
+| 6 | [step-6-validate](./steps/step-6-validate) | Check consistency |
 
-See the [full extraction guide](./extraction/) for usage instructions.
+See the [full extraction guide](./steps/) for usage instructions.
 
 ## How to Run It
 
@@ -41,7 +41,7 @@ See the [full extraction guide](./extraction/) for usage instructions.
 
 Run each step in a separate Claude session. Review output between steps.
 
-For CLI command details, see [CLI reference](/cli/cli-reference).
+For CLI command details, see [CLI reference](/reference/cli/cli-reference).
 
 ---
 
@@ -132,9 +132,9 @@ AI reads the suggestion, corrects the command, and continues.
 
 ## Next Steps
 
-- [CLI reference](/cli/cli-reference) — All commands with parameters and examples
-- [Graph Structure](/concepts/graph-structure) — Understand components and links
+- [CLI reference](/reference/cli/cli-reference) — All commands with parameters and examples
+- [Graph Structure](/reference/schema/graph-structure) — Understand components and links
 
-## See also
+## See Also
 
-- [CLI quick start](/guide/cli-quick-start)
+- [CLI quick start](/get-started/cli-quick-start)
