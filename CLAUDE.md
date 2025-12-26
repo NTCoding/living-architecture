@@ -141,7 +141,7 @@ Installed from `ntcoding/claude-skillz`:
 ## General Guidelines
 
 - **Fail fast** - If a command fails or something doesn't work, STOP and discuss with the user. Do not improvise or try workarounds. Fix the underlying issue (or update the skill/docs) so it doesn't happen again.
-- **Do not modify root configuration files** (eslint.config.mjs, tsconfig.base.json, nx.json). If you believe a change is genuinely necessary, provide the suggested changes and ask the user.
+- **Do not modify root configuration files** (eslint.config.mjs, tsconfig.base.json, nx.json, vite.config, vitest.config.mts). If you believe a change is genuinely necessary, provide the suggested changes and ask the user.
 - **Do not use `--no-verify`, `--force`, or `--hard` flags.** These are blocked by hooks and will fail. All commits must pass the `verify` gate.
 - **Use NX commands** for all build, test, and lint operations. Do not run npm/pnpm directly in project folders.
 - **Cross-project imports** use package names (e.g., `import { X } from '@living-architecture/[pkg-name]'`), not relative paths.
