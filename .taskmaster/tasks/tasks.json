@@ -290,12 +290,13 @@
         "description": "addUI, addApi, addUseCase, addDomainOp, addEvent, addEventHandler methods with deterministic IDs",
         "details": "## Deliverable\nMethods to add all 6 built-in component types with automatic ID generation.\n\n## Context\n- PRD: `docs/project/PRD/active/PRD-phase-7-riviere-builder.md` (M1: D1.4, D1.5)\n- POC spec: `~/code/riviere/riviere/client/docs/api/riviere-builder.md`\n- Each method validates input, generates ID, and stores component\n\n## Key Decisions\n- ID format: `{domain}:{module}:{type}:{name}` in kebab-case\n- Users don't provide IDs, builder generates them deterministically\n- All methods validate domain exists before adding\n- Each method returns the created component (with generated ID)\n- API supports both REST (httpMethod + path) and GraphQL (operationName)\n- DomainOp has entity, operationName fields\n- Event has eventName, payload fields\n- EventHandler has subscribedEvents array\n\n## Acceptance Criteria\n### addUI\n- Given valid UI input → When addUI() → Then returns UIComponent with ID like `frontend:checkout:ui:checkout-page`\n- Given domain 'unknown' → When addUI({ domain: 'unknown', ... }) → Then throws \"Domain 'unknown' does not exist\"\n- Given name with whitespace → When addUI({ name: 'bad name', ... }) → Then throws \"Component name cannot contain whitespace\"\n\n### addApi (REST)\n- Given REST input → When addApi({ httpMethod: 'POST', path: '/orders', ... }) → Then returns APIComponent with ID like `orders:api:api:post-orders`\n- Given invalid httpMethod → When addApi({ httpMethod: 'INVALID', ... }) → Then throws error\n\n### addApi (GraphQL)\n- Given GraphQL input → When addApi({ apiType: 'GraphQL', operationName: 'createOrder', ... }) → Then returns APIComponent with ID like `orders:api:api:createOrder`\n\n### addUseCase\n- Given valid input → When addUseCase() → Then returns UseCaseComponent with generated ID\n\n### addDomainOp\n- Given valid input with entity → When addDomainOp({ entity: 'Order', operationName: 'place', ... }) → Then returns DomainOpComponent\n\n### addEvent\n- Given valid input → When addEvent({ eventName: 'OrderPlaced', payload: {...}, ... }) → Then returns EventComponent\n\n### addEventHandler\n- Given valid input → When addEventHandler({ subscribedEvents: ['OrderPlaced'], ... }) → Then returns EventHandlerComponent\n\n### ID Generation\n- Given name \"Place Order\" → When ID generated → Then uses kebab-case: \"place-order\"\n- Given same inputs twice → When adding same component → Then throws duplicate ID error\n\n## Related Code\n- `packages/riviere-builder/src/lib/builder.ts` — implementation location\n- `packages/riviere-schema` — Component types, UIComponent, APIComponent, etc.\n\n## Verification\nnx test riviere-builder --testNamePattern \"addUI|addApi|addUseCase|addDomainOp|addEvent|addEventHandler|ID generation\"",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           "21"
         ],
         "priority": "high",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2025-12-26T18:08:12.593Z"
       },
       {
         "id": "23",
@@ -421,9 +422,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-12-26T17:44:01.550Z",
+      "lastModified": "2025-12-26T18:08:12.594Z",
       "taskCount": 31,
-      "completedCount": 20,
+      "completedCount": 21,
       "tags": [
         "master"
       ]
