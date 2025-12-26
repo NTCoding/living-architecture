@@ -318,12 +318,13 @@
         "description": "nearMatches() returns fuzzy matches, errors include 'Did you mean?' suggestions",
         "details": "## Deliverable\nFuzzy matching for actionable error messages when components are not found.\n\n## Context\n- PRD: `docs/project/PRD/active/PRD-phase-7-riviere-builder.md` (M3: D3.1, D3.2)\n- Makes builder AI-friendly: errors suggest corrections\n- Finding delegates to query() for existing component lookups\n\n## Key Decisions\n- `nearMatches(criteria)` returns similar components when exact match fails\n- Match on: name similarity (Levenshtein distance), type, domain\n- Error messages include \"Did you mean...?\" with top 3 near matches\n- Threshold for \"near\": similarity score > 0.6 (configurable)\n\n## Acceptance Criteria\n### nearMatches\n- Given component 'OrderService' exists → When nearMatches({ name: 'OrdrService' }) → Then returns [OrderService] (typo match)\n- Given no similar components → When nearMatches() → Then returns empty array\n- Given multiple similar → When nearMatches() → Then returns sorted by similarity score (best first)\n- Given domain filter → When nearMatches({ domain: 'orders' }) → Then only searches orders domain\n\n### Error messages\n- Given component 'OrderService' exists → When linking to 'OrdrService' (typo) → Then error: \"Component 'OrdrService' not found. Did you mean: OrderService?\"\n- Given multiple near matches → When error thrown → Then shows top 3 suggestions\n- Given no near matches → When error thrown → Then no \"Did you mean\" section\n\n## Related Code\n- `packages/riviere-builder/src/lib/builder.ts` — implementation location\n- Consider: Levenshtein distance library or simple implementation\n\n## Verification\nnx test riviere-builder --testNamePattern \"nearMatches|Did you mean|fuzzy\"",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           "22"
         ],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2025-12-26T23:11:21.017Z"
       },
       {
         "id": "25",
@@ -423,9 +424,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-12-26T20:17:36.611Z",
+      "lastModified": "2025-12-26T23:11:21.019Z",
       "taskCount": 31,
-      "completedCount": 22,
+      "completedCount": 23,
       "tags": [
         "master"
       ]

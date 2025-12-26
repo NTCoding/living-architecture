@@ -2,6 +2,7 @@ import type {
   APIComponent,
   ApiType,
   Component,
+  ComponentType,
   CustomComponent,
   CustomPropertyDefinition,
   CustomTypeDefinition,
@@ -21,6 +22,7 @@ import type {
   UIComponent,
   UseCaseComponent,
 } from '@living-architecture/riviere-schema'
+import { similarityScore } from './string-similarity'
 
 export interface BuilderOptions {
   name?: string
@@ -118,6 +120,29 @@ export interface CustomInput {
   description?: string
   sourceLocation: SourceLocation
   metadata?: Record<string, unknown>
+}
+
+export interface NearMatchQuery {
+  name: string
+  type?: ComponentType
+  domain?: string
+}
+
+export interface NearMatchMismatch {
+  field: 'type' | 'domain'
+  expected: string
+  actual: string
+}
+
+export interface NearMatchResult {
+  component: Component
+  score: number
+  mismatch?: NearMatchMismatch | undefined
+}
+
+export interface NearMatchOptions {
+  threshold?: number
+  limit?: number
 }
 
 interface BuilderMetadata extends Omit<GraphMetadata, 'sources' | 'customTypes'> {
@@ -374,5 +399,44 @@ export class RiviereBuilder {
     }
     this.graph.components.push(component)
     return component
+  }
+
+  nearMatches(query: NearMatchQuery, options?: NearMatchOptions): NearMatchResult[] {
+    if (query.name === '') {
+      return []
+    }
+
+    const threshold = options?.threshold ?? 0.6
+    const limit = options?.limit ?? 10
+
+    const results = this.graph.components
+      .map((component): NearMatchResult => {
+        const score = similarityScore(query.name, component.name)
+        const mismatch = this.detectMismatch(query, component)
+        return { component, score, mismatch }
+      })
+      .filter((result) => result.score >= threshold || result.mismatch !== undefined)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, limit)
+
+    return results
+  }
+
+  private detectMismatch(query: NearMatchQuery, component: Component): NearMatchMismatch | undefined {
+    const nameMatches = query.name.toLowerCase() === component.name.toLowerCase()
+
+    if (!nameMatches) {
+      return undefined
+    }
+
+    if (query.type !== undefined && query.type !== component.type) {
+      return { field: 'type', expected: query.type, actual: component.type }
+    }
+
+    if (query.domain !== undefined && query.domain !== component.domain) {
+      return { field: 'domain', expected: query.domain, actual: component.domain }
+    }
+
+    return undefined
   }
 }
