@@ -264,19 +264,20 @@
         "description": "Types improved (no any), dead code removed, lint passes",
         "details": "## Deliverable\nTypes improved (no `any`), dead code removed, lint passes\n\n## Context\n- PRD: `docs/project/PRD/active/PRD-phase-6-eclair-migration.md` (M5: D5.1, D5.2)\n- Design principle: \"Migration first, quality second\" — this is the quality pass\n- Scope based on findings during migration\n\n## Key Decisions\n- **Separate commits** — don't mix quality improvements with migration commits\n- **Tests required** — any code changes must maintain 100% coverage\n\n## Acceptance Criteria\n- Given source files → When grep for `: any` → Then no occurrences in modified code (D5.1)\n- Given TypeScript → When `nx typecheck eclair` → Then passes with strict mode\n- Given `nx lint eclair` → When run → Then no unused import/function warnings (D5.2)\n- Given test coverage → Then remains at 100%\n\n## Dependencies\nTask 18 (tests passing)\n\n## Related Code\n- Files modified during migration\n\n## Verification\nnx lint eclair\nnx typecheck eclair\ngrep -r \": any\" apps/eclair/src/ | grep -v node_modules\nnx test eclair --coverage",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           "18"
         ],
         "priority": "low",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2025-12-26T14:39:56.900Z"
       }
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-12-26T13:21:19.895Z",
+      "lastModified": "2025-12-26T14:39:56.900Z",
       "taskCount": 20,
-      "completedCount": 18,
+      "completedCount": 19,
       "tags": [
         "master"
       ]
