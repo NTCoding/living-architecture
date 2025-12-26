@@ -117,7 +117,7 @@ describe('RiviereBuilder custom types', () => {
       ).toThrow("Custom type 'UndefinedType' not defined. Defined types: MessageQueue, CacheStore")
     })
 
-    it('throws with empty defined types when no custom types registered', () => {
+    it('throws with explicit message when no custom types registered', () => {
       const builder = RiviereBuilder.new(createValidOptions())
 
       expect(() =>
@@ -128,7 +128,7 @@ describe('RiviereBuilder custom types', () => {
           module: 'messaging',
           sourceLocation: { repository: 'my-org/my-repo', filePath: 'src/some.ts' },
         })
-      ).toThrow("Custom type 'UndefinedType' not defined. Defined types: ")
+      ).toThrow("Custom type 'UndefinedType' not defined. No custom types have been defined.")
     })
 
     it('throws immediately when required properties are missing', () => {

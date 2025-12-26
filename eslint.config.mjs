@@ -111,7 +111,7 @@ export default tseslint.config(
               message: 'No core folders. Use domain-specific names.',
             },
             {
-              group: ['*/src/lib/*', '*/src/lib'],
+              group: ['*/src/lib/*', '*/src/lib', './lib/*', './lib', '../lib/*', '../lib'],
               message: 'No lib folders in projects. Use domain-specific names.',
             },
           ],
