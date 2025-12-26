@@ -4,5 +4,8 @@
   "include": [],
   "references": [
     { "path": "./tsconfig.app.json" }
-  ]
+  ],
+  "nx": {
+    "addTypecheckTarget": false
+  }
 }

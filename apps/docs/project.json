@@ -1,6 +1,12 @@
 {
   "name": "docs",
   "targets": {
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "echo 'Skipping lint for docs project'"
+      }
+    },
     "build": {
       "dependsOn": ["lint", "^build", "riviere-query:typedoc"]
     }
