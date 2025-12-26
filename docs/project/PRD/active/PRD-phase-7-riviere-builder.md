@@ -1,6 +1,6 @@
 # PRD: Phase 7 — Riviere Builder Package
 
-**Status:** Planning
+**Status:** Approved
 
 **Depends on:** Phase 5 (Riviere Query), Phase 6 (Éclair Migration)
 
