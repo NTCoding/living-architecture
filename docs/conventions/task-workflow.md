@@ -61,7 +61,7 @@ First run build, lint and test. If success, continue to task-check.
 Before marking any task done, run task-check:
 
 ```
-Use the Task tool with subagent_type "task-check". Provide:
+Use the Task tool with subagent_type "task-check:task-check". Provide:
 1. Task ID: From task file name or number
 2. Task location: File path or CLI command to retrieve task details
 3. Work summary: Files modified, changes made, decisions, what you skipped

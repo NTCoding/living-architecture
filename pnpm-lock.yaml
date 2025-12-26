@@ -205,6 +205,9 @@ importers:
       '@living-architecture/riviere-query':
         specifier: workspace:*
         version: link:../riviere-query
+      '@living-architecture/riviere-schema':
+        specifier: workspace:*
+        version: link:../../riviere-schema
       tslib:
         specifier: ^2.3.0
         version: 2.8.1

@@ -2,7 +2,7 @@
   "master": {
     "tasks": [
       {
-        "id": 1,
+        "id": "1",
         "title": "fix eclair ui bugs",
         "description": "Eclair has some bugs\n\n- full graph: tool tip always appears to the right on hover, soimetimes off screen\n- overview page: lists everything in the card - card is huge. Overview should be fixed size with limited number of items and indicator there are more\n- Flows and full graph do not show external links. This was a new feature that was added recently that needs to be added to eclair. External links should appear in flows, domain map (as domains), and full graph, and for events\n- events: no link to target handler, no explanation of where the event is published, not displaying the payload\n- entities: clicking on maethod doesn't show the business rules + state transitions show commas draft,active",
         "details": "",
@@ -14,7 +14,7 @@
         "updatedAt": "2025-12-25T15:40:38.591Z"
       },
       {
-        "id": 2,
+        "id": "2",
         "title": "Implement graph validation with JSON Schema",
         "description": "validate() returns pass/fail with error paths; detectOrphans() finds disconnected components",
         "details": "## Deliverable\n`validate()` returns pass/fail with error paths; `detectOrphans()` finds disconnected components\n\n## Context\n- PRD: `docs/project/PRD/active/PRD-phase-5-riviere-query.md` (M1: D1.1, D1.2)\n- Schema: `riviere-schema/riviere.schema.json`\n- Uses AJV for JSON Schema validation (browser-safe)\n- Must catch structural issues (missing required fields, invalid types) AND orphans\n\n## Key Decisions\n- Use ajv-formats for date-time validation\n- Orphan = component with zero incoming AND zero outgoing links\n- Error format: `{ path: string, message: string, code: string }`\n\n## Acceptance Criteria\n- Given valid graph → When validate() → Then `{ valid: true, errors: [] }`\n- Given graph with missing required field → When validate() → Then error with specific path (e.g., \"components[0].sourceLocation\")\n- Given graph with invalid component type → When validate() → Then error with code \"INVALID_TYPE\"\n- Given graph with orphaned component → When detectOrphans() → Then returns array of orphan IDs\n- Given graph with no orphans → When detectOrphans() → Then returns empty array\n\n## Related Code\n- `packages/riviere-query/src/lib/` — implementation location\n- `riviere-schema/riviere.schema.json` — schema to validate against\n\n## Verification\nnx test riviere-query --testNamePattern \"validate|orphan\"",
@@ -26,7 +26,7 @@
         "updatedAt": "2025-12-24T23:32:37.368Z"
       },
       {
-        "id": 3,
+        "id": "3",
         "title": "Implement component lookup and filtering",
         "description": "Find components by predicate, ID, text search, domain, or type",
         "details": "## Deliverable\nFind components by predicate, ID, text search, domain, or type\n\n## Context\n- PRD: `docs/project/PRD/active/PRD-phase-5-riviere-query.md` (M2: D2.1-D2.4)\n- Example graph: `riviere-schema/examples/ecommerce-complete.json`\n\n## Key Decisions\n- search() is case-insensitive, searches name + domain + type fields\n- find() returns first match or undefined (like Array.find)\n- findAll() returns all matches (like Array.filter)\n\n## Acceptance Criteria\n- Given components → When find(c => c.type === 'API') → Then returns first API component\n- Given no match → When find() → Then returns undefined\n- Given components → When findAll(c => c.domain === 'orders') → Then returns all orders domain components\n- Given component ID \"orders:checkout:api:post:/orders\" → When componentById() → Then returns that component\n- Given invalid ID → When componentById() → Then returns undefined\n- Given search(\"order\") → When search() → Then returns components with \"order\" in name/domain/type (case-insensitive)\n- Given search(\"\") → When search() → Then returns empty array (not all components)\n- Given domain \"shipping\" → When componentsInDomain() → Then returns all shipping components\n- Given type \"Event\" → When componentsByType() → Then returns all Event components\n\n## Related Code\n- Component types: UI, API, UseCase, DomainOp, Event, EventHandler, Custom\n\n## Verification\nnx test riviere-query --testNamePattern \"find|search|componentById|componentsIn|componentsByType\"",
@@ -38,7 +38,7 @@
         "updatedAt": "2025-12-24T23:53:54.396Z"
       },
       {
-        "id": 4,
+        "id": "4",
         "title": "Implement domain metadata extraction",
         "description": "domains() returns all domains with metadata and component counts",
         "details": "## Deliverable\n`domains()` returns all domains with metadata and component counts\n\n## Context\n- PRD: `docs/project/PRD/active/PRD-phase-5-riviere-query.md` (M3: D3.1)\n- Domain metadata lives in `metadata.domains` in schema\n- Must aggregate component counts per type\n\n## Key Decisions\n- Domain interface: `{ name, description, systemType, componentCounts: Record<ComponentType, number> & { total: number } }`\n- systemType values: 'domain' | 'bff' | 'ui' | 'other'\n\n## Acceptance Criteria\n- Given graph with 3 domains → When domains() → Then returns 3 Domain objects\n- Given domain \"orders\" with 5 APIs, 3 UseCases → When domains() → Then orders.componentCounts.API === 5, orders.componentCounts.UseCase === 3\n- Given domain → Then includes description and systemType from metadata\n\n## Related Code\n- Schema metadata.domains structure in `riviere-schema/riviere.schema.json`\n\n## Verification\nnx test riviere-query --testNamePattern \"domains\"",
@@ -50,7 +50,7 @@
         "updatedAt": "2025-12-25T08:37:26.924Z"
       },
       {
-        "id": 5,
+        "id": "5",
         "title": "Implement entity analysis",
         "description": "Extract entities from DomainOps, find operations and business rules for an entity",
         "details": "## Deliverable\nExtract entities from DomainOps, find operations and business rules for an entity\n\n## Context\n- PRD: `docs/project/PRD/active/PRD-phase-5-riviere-query.md` (M3: D3.2, D3.3, D3.6)\n- Entities are extracted from DomainOp components (entity field)\n- Operations = DomainOps that target that entity\n\n## Key Decisions\n- Entity format: `{ name: string, domain: string, operations: DomainOp[] }`\n- entities() groups by domain:entity key\n- businessRulesFor() aggregates businessRules arrays from all operations on entity\n\n## Acceptance Criteria\n- Given DomainOps with entity \"Order\" → When entities() → Then includes Order entity\n- Given multiple DomainOps for \"Order\" → When operationsFor(\"Order\") → Then returns all those DomainOps\n- Given operationsFor(\"NonExistent\") → When called → Then returns empty array\n- Given Order operations with businessRules → When businessRulesFor(\"Order\") → Then returns aggregated rules\n\n## Related Code\n- DomainOp schema: has `entity`, `operationName`, `businessRules` fields\n\n## Verification\nnx test riviere-query --testNamePattern \"entities|operationsFor|businessRulesFor\"",
@@ -62,7 +62,7 @@
         "updatedAt": "2025-12-25T09:11:44.232Z"
       },
       {
-        "id": 6,
+        "id": "6",
         "title": "Implement state machine analysis",
         "description": "Extract states (ordered by flow) and transitions for an entity",
         "details": "## Deliverable\nExtract states (ordered by flow) and transitions for an entity\n\n## Context\n- PRD: `docs/project/PRD/active/PRD-phase-5-riviere-query.md` (M3: D3.4, D3.5)\n- State info lives in DomainOp.stateChanges: `{ from: string, to: string }`\n- Entity state machines defined in metadata.domains[domain].entities[entity].stateMachine\n\n## Key Decisions\n- statesFor() returns states ordered by transition flow (initial → ... → terminal)\n- Use topological sort on transitions to order states\n- transitionsFor() returns all `{ from, to, trigger? }` for entity\n\n## Acceptance Criteria\n- Given Order with states [Draft, Placed, Confirmed, Shipped, Delivered] → When statesFor(\"Order\") → Then returns in transition order\n- Given Order with transition Draft→Placed → When transitionsFor(\"Order\") → Then includes that transition\n- Given entity with wildcard transition \"*\" → Cancelled → When transitionsFor() → Then includes it\n- Given nonexistent entity → When statesFor() → Then returns empty array\n\n## Related Code\n- stateChanges in DomainOp schema\n- stateMachine in domain metadata\n\n## Verification\nnx test riviere-query --testNamePattern \"statesFor|transitionsFor\"",
@@ -74,7 +74,7 @@
         "updatedAt": "2025-12-25T09:38:30.455Z"
       },
       {
-        "id": 7,
+        "id": "7",
         "title": "Implement event analysis",
         "description": "Find published events with their subscribers; find handlers with their subscriptions",
         "details": "## Deliverable\nFind published events with their subscribers; find handlers with their subscriptions\n\n## Context\n- PRD: `docs/project/PRD/active/PRD-phase-5-riviere-query.md` (M4: D4.1, D4.2)\n- Event components have `eventName`\n- EventHandler components have `subscribedEvents[]`\n\n## Key Decisions\n- PublishedEvent: `{ id, eventName, domain, handlers: EventSubscriber[] }`\n- EventHandlerInfo: `{ id, handlerName, domain, subscribedEvents, subscribedEventsWithDomain }`\n- Match handlers to events by eventName\n\n## Acceptance Criteria\n- Given Event \"OrderPlaced\" → When publishedEvents() → Then includes OrderPlaced with its handlers\n- Given EventHandler subscribing to \"OrderPlaced\" → When publishedEvents(\"OrderPlaced\") → Then handler is in handlers array\n- Given EventHandler → When eventHandlers() → Then returns handler info with subscribed events\n- Given eventHandlers(\"OrderPlaced\") → When called → Then returns only handlers subscribing to OrderPlaced\n- Given publishedEvents(\"orders\") → When called with domain filter → Then returns only orders domain events\n\n## Related Code\n- Event/EventHandler component types in schema\n- Links connect Event → EventHandler\n\n## Verification\nnx test riviere-query --testNamePattern \"publishedEvents|eventHandlers\"",
@@ -86,7 +86,7 @@
         "updatedAt": "2025-12-25T13:07:28.613Z"
       },
       {
-        "id": 8,
+        "id": "8",
         "title": "Implement entry points and basic flow tracing",
         "description": "Identify flow starting points; trace connected components bidirectionally",
         "details": "## Deliverable\nIdentify flow starting points; trace connected components bidirectionally\n\n## Context\n- PRD: `docs/project/PRD/active/PRD-phase-5-riviere-query.md` (M5: D5.1, D5.2)\n- Entry points = UI, API, EventHandler, Custom with NO incoming links\n\n## Key Decisions\n- entryPoints() filters by type AND checks for zero incoming links\n- traceFlow() does bidirectional BFS/DFS from starting node\n- Returns FlowResult: `{ nodeIds: string[], linkIds: string[] }`\n\n## Acceptance Criteria\n- Given UI component with no incoming links → When entryPoints() → Then includes it\n- Given API component WITH incoming link → When entryPoints() → Then excludes it\n- Given starting node → When traceFlow() → Then returns all connected nodes (upstream + downstream)\n- Given isolated component → When traceFlow() → Then returns just that node\n- Given branching flow → When traceFlow() → Then follows all branches\n\n## Related Code\n- Links structure: `{ source, target, type }`\n- Build adjacency list for efficient traversal\n\n## Verification\nnx test riviere-query --testNamePattern \"entryPoints|traceFlow\"",
@@ -98,7 +98,7 @@
         "updatedAt": "2025-12-25T00:46:02.034Z"
       },
       {
-        "id": 9,
+        "id": "9",
         "title": "Implement flows and search with flow context",
         "description": "Generate all flows from entry points; search with connected flow context",
         "details": "## Deliverable\nGenerate all flows from entry points; search with connected flow context\n\n## Context\n- PRD: `docs/project/PRD/active/PRD-phase-5-riviere-query.md` (M5: D5.3, D5.4)\n- Depends on Task 8 (entryPoints, traceFlow)\n\n## Key Decisions\n- Flow: `{ entryPoint: Component, steps: FlowStep[] }`\n- FlowStep: `{ component, linkType, depth }`\n- flows() iterates all entry points and traces each\n- searchWithFlow() returns matches + their flow context\n\n## Acceptance Criteria\n- Given 3 entry points → When flows() → Then returns 3 Flow objects\n- Given flow with depth 4 → When flows() → Then steps have depth 0, 1, 2, 3, 4\n- Given flow with async link → When flows() → Then step has linkType: 'async'\n- Given search(\"payment\") with flow → When searchWithFlow() → Then returns matches + connected nodes\n\n## Dependencies\nTask 8 (entryPoints, traceFlow)\n\n## Verification\nnx test riviere-query --testNamePattern \"flows|searchWithFlow\"",
@@ -112,7 +112,7 @@
         "updatedAt": "2025-12-25T13:44:48.081Z"
       },
       {
-        "id": 10,
+        "id": "10",
         "title": "Implement cross-domain analysis",
         "description": "Find links crossing domain boundaries; summarize domain interconnections",
         "details": "## Deliverable\nFind links crossing domain boundaries; summarize domain interconnections\n\n## Context\n- PRD: `docs/project/PRD/active/PRD-phase-5-riviere-query.md` (M5: D5.5, D5.6)\n\n## Key Decisions\n- CrossDomainLink: link where source.domain !== target.domain\n- crossDomainLinks(domain) returns outgoing links from that domain\n- domainConnections(domain) summarizes: `{ incoming, outgoing }` with counts by type (API vs event)\n\n## Acceptance Criteria\n- Given link orders→shipping → When crossDomainLinks(\"orders\") → Then includes that link\n- Given link within orders → When crossDomainLinks(\"orders\") → Then excludes it\n- Given orders with 2 API calls to shipping, 1 event to notifications → When domainConnections(\"orders\") → Then outgoing.api === 2, outgoing.event === 1\n\n## Verification\nnx test riviere-query --testNamePattern \"crossDomainLinks|domainConnections\"",
@@ -124,7 +124,7 @@
         "updatedAt": "2025-12-25T14:18:25.110Z"
       },
       {
-        "id": 11,
+        "id": "11",
         "title": "Implement graph diff",
         "description": "Compare two graphs, return added/removed/modified components and links",
         "details": "## Deliverable\nCompare two graphs, return added/removed/modified components and links\n\n## Context\n- PRD: `docs/project/PRD/active/PRD-phase-5-riviere-query.md` (M6: D6.1)\n- Required for Eclair migration (Phase 6)\n\n## Key Decisions\n- GraphDiff: `{ components: { added, removed, modified }, links: { added, removed }, stats }`\n- Modified = same ID but different content (deep compare)\n- ComponentModification: `{ id, before, after, changedFields }`\n\n## Acceptance Criteria\n- Given graph A and B with new component in B → When diff() → Then component in added\n- Given graph A and B with component removed in B → When diff() → Then component in removed\n- Given component with changed name → When diff() → Then component in modified with changedFields\n- Given identical graphs → When diff() → Then all arrays empty\n- Given new link in B → When diff() → Then link in links.added\n\n## Verification\nnx test riviere-query --testNamePattern \"diff\"",
@@ -136,7 +136,7 @@
         "updatedAt": "2025-12-25T01:23:40.373Z"
       },
       {
-        "id": 12,
+        "id": "12",
         "title": "Implement graph analytics",
         "description": "Calculate graph statistics and node depths from entry points",
         "details": "## Deliverable\nCalculate graph statistics and node depths from entry points\n\n## Context\n- PRD: `docs/project/PRD/active/PRD-phase-5-riviere-query.md` (M6: D6.2, D6.3)\n\n## Key Decisions\n- GraphStats: `{ componentCount, linkCount, domainCount, apiCount, entityCount, eventCount }`\n- nodeDepths() returns Map<string, number> — depth from nearest entry point\n- Nodes unreachable from entry points get depth Infinity or -1 (decide)\n\n## Acceptance Criteria\n- Given graph with 50 components, 45 links → When stats() → Then componentCount === 50, linkCount === 45\n- Given graph with 3 APIs → When stats() → Then apiCount === 3\n- Given entry point at depth 0 → When nodeDepths() → Then entry point has depth 0\n- Given component 3 hops from entry → When nodeDepths() → Then has depth 3\n\n## Dependencies\nTask 8 (entryPoints)\n\n## Verification\nnx test riviere-query --testNamePattern \"stats|nodeDepths\"",
@@ -150,7 +150,7 @@
         "updatedAt": "2025-12-25T15:30:37.226Z"
       },
       {
-        "id": 13,
+        "id": "13",
         "title": "Implement browser verification and bundle check",
         "description": "Verify package works in browser; ensure no Node.js dependencies leak",
         "details": "## Deliverable\nVerify package works in browser; ensure no Node.js dependencies leak\n\n## Context\n- PRD: `docs/project/PRD/active/PRD-phase-5-riviere-query.md` (M7: D7.1, D7.2)\n- Must be browser-safe for Eclair (Vite app)\n\n## Key Decisions\n- Create simple HTML test page that imports built package\n- Bundle analysis to check for fs, path, process references\n- AJV is browser-safe, verify no ajv-cli or similar leaks\n\n## Acceptance Criteria\n- Given HTML page importing riviere-query → When opened in browser → Then can call validate(), search(), etc.\n- Given bundle output → When analyzed → Then no references to 'fs', 'path', 'node:' imports\n- Given package.json → Then no dependencies that require Node.js\n\n## Dependencies\nTasks 2, 3, 8, 11 (core implementation complete)\n\n## Verification\n- Manual: Open test page in browser, run queries\n- Automated: grep -r \"require('fs')\" dist/ returns nothing",
@@ -167,7 +167,7 @@
         "updatedAt": "2025-12-25T15:09:18.947Z"
       },
       {
-        "id": 14,
+        "id": "14",
         "title": "Add TSDoc comments and generate API docs",
         "description": "Document all public methods; generate API reference with TypeDoc",
         "details": "## Deliverable\nDocument all public methods; generate API reference with TypeDoc\n\n## Context\n- PRD: `docs/project/PRD/active/PRD-phase-5-riviere-query.md` (M8: D8.1, D8.2, D8.3)\n- Replace static docs at `apps/docs/api/riviere-query.md` and `apps/docs/api/types.md`\n\n## Key Decisions\n- TSDoc format: @param, @returns, @example\n- TypeDoc outputs to apps/docs/api/generated/ or similar\n- Add typedoc as dev dependency\n\n## Acceptance Criteria\n- Given all public methods → When typedoc runs → Then no warnings about missing docs\n- Given RiviereQuery class → When typedoc runs → Then generates complete API reference\n- Given old static docs → When task complete → Then removed/replaced\n\n## Dependencies\nAll implementation tasks (2-12)\n\n## Verification\nnx run riviere-query:typedoc",
@@ -191,7 +191,7 @@
         "updatedAt": "2025-12-25T15:30:13.539Z"
       },
       {
-        "id": 15,
+        "id": "15",
         "title": "Migrate Éclair project structure and configure Vite build",
         "description": "Replace esbuild shell with POC code, configure Vite, update imports to use monorepo packages",
         "details": "## Deliverable\nReplace current esbuild shell with POC code, configure Vite build, update all imports to use monorepo packages\n\n## Context\n- PRD: `docs/project/PRD/active/PRD-phase-6-eclair-migration.md` (M1: D1.1, D1.2)\n- POC location: `~/code/riviere/eclair/` (~150 files, React 19 + Vite + XY-Flow + D3 + Tailwind)\n- Current shell at `apps/eclair/` uses esbuild/Node.js executor — must be replaced entirely with Vite/React\n- Pattern to follow: `apps/docs/` uses `nx:run-commands` executor for Vite\n\n## Key Decisions\n- **Replace, don't modify** — current shell is wrong architecture (Node.js app, not React/Vite)\n- **Migration first, quality second** — get it building before any refactoring\n- **Use package exports** — `@living-architecture/riviere-query` for queries, `@living-architecture/riviere-schema` for validation (`isRiviereGraph`, `parseRiviereGraph`, `formatValidationErrors`)\n- **Remove POC validation code** — delete `src/lib/validateGraph.ts` and local `riviere.schema.json`, use riviere-schema package instead\n\n## Acceptance Criteria\n- Given POC code copied to `apps/eclair/src/` → When `nx build eclair` → Then build succeeds\n- Given package.json → When inspected → Then has workspace dependencies on `@living-architecture/riviere-query` and `@living-architecture/riviere-schema`\n- Given source files → When grep for `'../poc'` or `'../riviere'` → Then returns nothing\n- Given source files → When grep for `riviere.schema.json` import → Then returns nothing (uses package instead)\n- Given `src/lib/validateGraph.ts` → Then file does not exist (removed)\n- Given NX configuration → When inspected → Then uses Vite via `nx:run-commands` (like docs app)\n\n## Dependencies\n- Phase 5 (riviere-query) — Complete\n- riviere-schema package — Must export validation functions\n\n## Related Code\n- `apps/docs/project.json` — NX configuration pattern for Vite apps\n- `~/code/riviere/eclair/` — POC source to copy\n- `~/code/riviere/eclair/src/lib/validateGraph.ts` — Replace with riviere-schema imports\n- `~/code/riviere/eclair/src/hooks/useRiviereQuery.ts` — Update import to `@living-architecture/riviere-query`\n\n## Verification\nnx build eclair\nls apps/eclair/dist/  # Build output exists\ngrep -r \"../poc\\|../riviere\" apps/eclair/src/  # Returns nothing\ngrep -r \"riviere.schema.json\" apps/eclair/src/  # Returns nothing",
@@ -203,7 +203,7 @@
         "updatedAt": "2025-12-25T16:12:18.740Z"
       },
       {
-        "id": 16,
+        "id": "16",
         "title": "Enable Éclair dev server and verify graph loading",
         "description": "Configure Vite dev server, verify app loads and renders a graph",
         "details": "## Deliverable\nConfigure Vite dev server, verify app loads and renders a graph\n\n## Context\n- PRD: `docs/project/PRD/active/PRD-phase-6-eclair-migration.md` (M2: D2.1, D2.2)\n- Depends on Task 15 (build must work first)\n- Example graph: `packages/riviere-schema/examples/ecommerce-complete.json`\n\n## Key Decisions\n- Dev server must hot-reload\n- Graph loading must work from both file upload and URL\n\n## Acceptance Criteria\n- Given Vite config → When `nx serve eclair` → Then dev server starts successfully\n- Given browser → When navigate to localhost → Then app renders without errors\n- Given file upload → When upload `ecommerce-complete.json` → Then graph nodes and edges visible\n- Given URL input → When provide graph URL → Then graph loads and renders\n\n## Dependencies\nTask 15 (build working)\n\n## Related Code\n- `packages/riviere-schema/examples/ecommerce-complete.json` — Test graph\n- POC `vite.config.ts` — Configuration to adapt\n\n## Verification\nnx serve eclair\n# Manual: Open browser, upload ecommerce-complete.json, see visualization",
@@ -217,7 +217,7 @@
         "updatedAt": "2025-12-25T16:31:24.387Z"
       },
       {
-        "id": 17,
+        "id": "17",
         "title": "Verify Éclair feature parity with POC",
         "description": "All POC features work identically in migrated app; known bugs addressed",
         "details": "## Deliverable\nAll POC features work identically in migrated app; known bugs from cancelled Task 1 addressed\n\n## Context\n- PRD: `docs/project/PRD/active/PRD-phase-6-eclair-migration.md` (M3: D3.1-D3.6)\n- Replaces cancelled Task 1 (eclair ui bugs) — those issues folded into this verification\n- Design principle: \"No new features\" — same functionality as POC\n\n## Key Decisions\n- **Same behavior as POC** — if POC had a bug, fix it; if POC behavior was intentional, preserve it\n- **Bugs to fix** (from original Task 1):\n  - Tooltip positioning: always appears right, sometimes off-screen → fix positioning\n  - Overview page: card too large, shows everything → limit items, fixed size, \"more\" indicator\n  - External links missing in flows, domain map, full graph, events → add external link support\n  - Events: no link to target handler, no publish location, no payload display → add these\n  - Entities: clicking method doesn't show business rules, state transitions show commas → fix display\n\n## Acceptance Criteria\n**Core Features:**\n- Given graph loaded → When click node → Then connected flow highlighted (D3.1)\n- Given domains panel → When toggle domain → Then visibility changes (D3.2)\n- Given search bar → When type \"order\" → Then matching components shown, case-insensitive (D3.3)\n- Given component → When hover → Then tooltip shows component details, positioned correctly (D3.4 + bug fix)\n- Given theme toggle → When click → Then theme changes AND persists on reload (D3.5)\n- Given two graphs → When compare → Then diff shows added/removed/modified (D3.6)\n\n**Bug Fixes:**\n- Given tooltip → When near screen edge → Then repositions to stay visible\n- Given overview page → When many items → Then card is fixed size with \"more\" indicator\n- Given external link → When viewing flows/domain map/full graph → Then external links visible\n- Given event → When viewing → Then shows target handler link, publish location, payload\n- Given entity method → When click → Then shows business rules and state transitions (no raw commas)\n\n## Dependencies\nTask 16 (app runs)\n\n## Related Code\n- `~/code/riviere/eclair/src/features/comparison/compareGraphs.ts` — POC diff logic\n\n## Verification\nManual testing with ecommerce-complete.json:\n1. Load graph, click nodes, verify flow highlighting\n2. Toggle domains on/off\n3. Search for \"order\", verify results\n4. Hover components, verify tooltip positioning\n5. Toggle light/dark, refresh, verify persistence\n6. Load two graphs, verify diff view",
@@ -231,7 +231,7 @@
         "updatedAt": "2025-12-26T09:59:13.518Z"
       },
       {
-        "id": 18,
+        "id": "18",
         "title": "Configure Éclair test infrastructure and migrate tests",
         "description": "Vitest configured, POC tests migrated and passing, 100% coverage on new/modified code",
         "details": "## Deliverable\nVitest configured, POC tests migrated and passing, 100% coverage on new/modified code\n\n## Context\n- PRD: `docs/project/PRD/active/PRD-phase-6-eclair-migration.md` (M4: D4.1-D4.3)\n- Project convention: 100% test coverage mandatory\n- POC may have existing tests to migrate\n\n## Key Decisions\n- Use Vitest (consistent with other packages)\n- Coverage requirement: 100% on new/modified code\n- Fix broken tests, don't skip them\n\n## Acceptance Criteria\n- Given `apps/eclair/vitest.config.ts` → When exists → Then properly configured for React/JSX\n- Given `nx test eclair` → When run → Then command executes without config errors\n- Given POC test files → When migrated → Then all tests pass\n- Given coverage report → When generated → Then 100% on new/modified code\n\n## Dependencies\nTask 17 (features verified working)\n\n## Related Code\n- `packages/riviere-query/vitest.config.ts` — Pattern to follow\n- POC test files location: `~/code/riviere/eclair/src/**/*.test.ts(x)`\n\n## Verification\nnx test eclair\nnx test eclair --coverage",
@@ -245,7 +245,7 @@
         "updatedAt": "2025-12-25T23:25:11.097Z"
       },
       {
-        "id": 19,
+        "id": "19",
         "title": "Write Éclair documentation for docs site",
         "description": "Éclair section in docs site with navigation, user guide (7 pages), and feature reference (5 pages)",
         "details": "## Deliverable\nÉclair section in docs site with navigation, user guide (7 pages), and feature reference (5 pages)\n\n## Context\n- PRD: `docs/project/PRD/active/PRD-phase-6-eclair-migration.md` (M6: D6.1-D6.3)\n- Docs site: `apps/docs/` (VitePress)\n\n## Key Decisions\n- Screenshots required for user guide\n- Follow existing docs site style/format\n\n## Acceptance Criteria\n**Navigation (D6.1):**\n- Given docs site nav → Then \"Éclair\" section visible in nav bar\n- Given Éclair section → Then sidebar with all pages works\n- Given all links → Then resolve correctly\n\n**User Guide (D6.2) — 7 pages:**\n- `eclair/index.md` — Overview: what Éclair is, when to use it\n- `eclair/getting-started.md` — Loading graphs (file upload, URL)\n- `eclair/exploring-graphs.md` — Navigation, zoom, pan, select\n- `eclair/tracing-flows.md` — Click to trace, understand flow paths\n- `eclair/filtering.md` — Domain filtering, show/hide\n- `eclair/searching.md` — Search bar, finding components\n- `eclair/comparing-graphs.md` — Diff view, before/after\n\n**Feature Reference (D6.3) — 5 pages:**\n- `eclair/features/full-graph-view.md` — Main visualization\n- `eclair/features/domain-map.md` — Domain-level view\n- `eclair/features/entity-browser.md` — Entity exploration\n- `eclair/features/event-browser.md` — Event flow view\n- `eclair/features/comparison.md` — Diff feature details\n\n## Dependencies\nTask 17 (features working — needed for screenshots)\n\n## Related Code\n- `apps/docs/.vitepress/config.ts` — Navigation configuration\n- `apps/docs/` — Existing doc pages for style reference\n\n## Verification\nnx serve docs\n# Manual: Navigate to Éclair section, verify all pages render, links work\n# Follow user guide with example graph to verify accuracy",
@@ -259,7 +259,7 @@
         "updatedAt": "2025-12-26T13:21:19.894Z"
       },
       {
-        "id": 20,
+        "id": "20",
         "title": "Review Éclair code quality post-migration",
         "description": "Types improved (no any), dead code removed, lint passes",
         "details": "## Deliverable\nTypes improved (no `any`), dead code removed, lint passes\n\n## Context\n- PRD: `docs/project/PRD/active/PRD-phase-6-eclair-migration.md` (M5: D5.1, D5.2)\n- Design principle: \"Migration first, quality second\" — this is the quality pass\n- Scope based on findings during migration\n\n## Key Decisions\n- **Separate commits** — don't mix quality improvements with migration commits\n- **Tests required** — any code changes must maintain 100% coverage\n\n## Acceptance Criteria\n- Given source files → When grep for `: any` → Then no occurrences in modified code (D5.1)\n- Given TypeScript → When `nx typecheck eclair` → Then passes with strict mode\n- Given `nx lint eclair` → When run → Then no unused import/function warnings (D5.2)\n- Given test coverage → Then remains at 100%\n\n## Dependencies\nTask 18 (tests passing)\n\n## Related Code\n- Files modified during migration\n\n## Verification\nnx lint eclair\nnx typecheck eclair\ngrep -r \": any\" apps/eclair/src/ | grep -v node_modules\nnx test eclair --coverage",
@@ -273,146 +273,147 @@
         "updatedAt": "2025-12-26T14:39:56.900Z"
       },
       {
-        "id": 21,
+        "id": "21",
         "title": "Create RiviereBuilder class with metadata methods",
         "description": "Initialize builder with graph options, add source and domain metadata",
         "details": "## Deliverable\nRiviereBuilder class with `new(options)`, `addSource(source)`, and `addDomain(domain)` methods.\n\n## Context\n- PRD: `docs/project/PRD/active/PRD-phase-7-riviere-builder.md` (M1: D1.1, D1.2, D1.3)\n- POC spec: `~/code/riviere/riviere/client/docs/api/riviere-builder.md`\n- Builds on pattern from `packages/riviere-query/src/RiviereQuery.ts`\n\n## Key Decisions\n- Constructor requires at least one source and one domain (fail fast)\n- `addSource()` appends to sources array\n- `addDomain()` validates uniqueness, rejects duplicates\n- Builder stores graph state internally, not yet exportable\n- Domain has: name, description, systemType ('domain' | 'bff' | 'ui' | 'other')\n\n## Acceptance Criteria\n- Given valid options with sources and domains → When `RiviereBuilder.new(options)` → Then returns builder with metadata configured\n- Given options with empty sources → When `new()` → Then throws error with message \"At least one source required\"\n- Given options with empty domains → When `new()` → Then throws error with message \"At least one domain required\"\n- Given builder → When `addSource({ repository: 'repo', commit: 'abc' })` → Then source added to metadata\n- Given builder → When `addDomain({ name: 'orders', description: '...', systemType: 'domain' })` → Then domain added\n- Given domain 'orders' exists → When `addDomain({ name: 'orders', ... })` → Then throws error \"Domain 'orders' already exists\"\n\n## Related Code\n- `packages/riviere-builder/src/lib/builder.ts` — implementation location (currently placeholder)\n- `packages/riviere-schema` — types for RiviereGraph, DomainMetadata, SourceMetadata\n- `packages/riviere-query/src/RiviereQuery.ts` — pattern reference for class structure\n\n## Verification\nnx test riviere-builder --testNamePattern \"new|addSource|addDomain\"",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [],
         "priority": "high",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2025-12-26T17:44:01.549Z"
       },
       {
-        "id": 22,
+        "id": "22",
         "title": "Add component methods with automatic ID generation",
         "description": "addUI, addApi, addUseCase, addDomainOp, addEvent, addEventHandler methods with deterministic IDs",
         "details": "## Deliverable\nMethods to add all 6 built-in component types with automatic ID generation.\n\n## Context\n- PRD: `docs/project/PRD/active/PRD-phase-7-riviere-builder.md` (M1: D1.4, D1.5)\n- POC spec: `~/code/riviere/riviere/client/docs/api/riviere-builder.md`\n- Each method validates input, generates ID, and stores component\n\n## Key Decisions\n- ID format: `{domain}:{module}:{type}:{name}` in kebab-case\n- Users don't provide IDs, builder generates them deterministically\n- All methods validate domain exists before adding\n- Each method returns the created component (with generated ID)\n- API supports both REST (httpMethod + path) and GraphQL (operationName)\n- DomainOp has entity, operationName fields\n- Event has eventName, payload fields\n- EventHandler has subscribedEvents array\n\n## Acceptance Criteria\n### addUI\n- Given valid UI input → When addUI() → Then returns UIComponent with ID like `frontend:checkout:ui:checkout-page`\n- Given domain 'unknown' → When addUI({ domain: 'unknown', ... }) → Then throws \"Domain 'unknown' does not exist\"\n- Given name with whitespace → When addUI({ name: 'bad name', ... }) → Then throws \"Component name cannot contain whitespace\"\n\n### addApi (REST)\n- Given REST input → When addApi({ httpMethod: 'POST', path: '/orders', ... }) → Then returns APIComponent with ID like `orders:api:api:post-orders`\n- Given invalid httpMethod → When addApi({ httpMethod: 'INVALID', ... }) → Then throws error\n\n### addApi (GraphQL)\n- Given GraphQL input → When addApi({ apiType: 'GraphQL', operationName: 'createOrder', ... }) → Then returns APIComponent with ID like `orders:api:api:createOrder`\n\n### addUseCase\n- Given valid input → When addUseCase() → Then returns UseCaseComponent with generated ID\n\n### addDomainOp\n- Given valid input with entity → When addDomainOp({ entity: 'Order', operationName: 'place', ... }) → Then returns DomainOpComponent\n\n### addEvent\n- Given valid input → When addEvent({ eventName: 'OrderPlaced', payload: {...}, ... }) → Then returns EventComponent\n\n### addEventHandler\n- Given valid input → When addEventHandler({ subscribedEvents: ['OrderPlaced'], ... }) → Then returns EventHandlerComponent\n\n### ID Generation\n- Given name \"Place Order\" → When ID generated → Then uses kebab-case: \"place-order\"\n- Given same inputs twice → When adding same component → Then throws duplicate ID error\n\n## Related Code\n- `packages/riviere-builder/src/lib/builder.ts` — implementation location\n- `packages/riviere-schema` — Component types, UIComponent, APIComponent, etc.\n\n## Verification\nnx test riviere-builder --testNamePattern \"addUI|addApi|addUseCase|addDomainOp|addEvent|addEventHandler|ID generation\"",
         "testStrategy": "",
         "status": "pending",
         "dependencies": [
-          21
+          "21"
         ],
         "priority": "high",
         "subtasks": []
       },
       {
-        "id": 23,
+        "id": "23",
         "title": "Add custom type definition and validation",
         "description": "defineCustomType() registers types, addCustom() validates against them at construction time",
         "details": "## Deliverable\nCustom type registration and validation that fails fast when types are undefined or required properties missing.\n\n## Context\n- PRD: `docs/project/PRD/active/PRD-phase-7-riviere-builder.md` (M2: D2.1, D2.2, D2.3)\n- HARD REQUIREMENT: Custom types MUST validate at construction time, not at build()\n- JSON Schema cannot cross-reference between components and customTypes, so builder must enforce this\n\n## Key Decisions\n- `defineCustomType()` registers type with required/optional property definitions\n- `addCustom()` validates customTypeName exists AND required properties present\n- Validation happens in `addCustom()`, NOT deferred to `build()`\n- Error messages must be actionable: list defined types, list missing properties\n\n## Acceptance Criteria\n### defineCustomType\n- Given valid definition → When defineCustomType({ name: 'MessageQueue', requiredProperties: { queueName: {...} } }) → Then type registered\n- Given duplicate type name → When defineCustomType() twice → Then throws \"Custom type 'X' already defined\"\n\n### addCustom validation\n- Given type 'MessageQueue' defined → When addCustom({ customTypeName: 'MessageQueue', ... }) → Then component created\n- Given undefined type → When addCustom({ customTypeName: 'UndefinedType', ... }) → Then throws IMMEDIATELY: \"Custom type 'UndefinedType' not defined. Defined types: MessageQueue, OtherType\"\n- Given type with requiredProperties → When addCustom() missing properties → Then throws IMMEDIATELY: \"Missing required properties for 'MessageQueue': queueName, messageType\"\n- Given all required properties provided → When addCustom() → Then succeeds\n\n### Error message quality\n- Given undefined type → When error thrown → Then lists all defined custom types\n- Given missing properties → When error thrown → Then lists all missing property names\n- Given type with optional properties → When only required provided → Then succeeds\n\n## Related Code\n- `packages/riviere-builder/src/lib/builder.ts` — implementation location\n- `packages/riviere-schema` — CustomComponent type\n\n## Verification\nnx test riviere-builder --testNamePattern \"defineCustomType|addCustom|custom type\"",
         "testStrategy": "",
         "status": "pending",
         "dependencies": [
-          22
+          "22"
         ],
         "priority": "high",
         "subtasks": []
       },
       {
-        "id": 24,
+        "id": "24",
         "title": "Add near-match suggestions for error recovery",
         "description": "nearMatches() returns fuzzy matches, errors include 'Did you mean?' suggestions",
         "details": "## Deliverable\nFuzzy matching for actionable error messages when components are not found.\n\n## Context\n- PRD: `docs/project/PRD/active/PRD-phase-7-riviere-builder.md` (M3: D3.1, D3.2)\n- Makes builder AI-friendly: errors suggest corrections\n- Finding delegates to query() for existing component lookups\n\n## Key Decisions\n- `nearMatches(criteria)` returns similar components when exact match fails\n- Match on: name similarity (Levenshtein distance), type, domain\n- Error messages include \"Did you mean...?\" with top 3 near matches\n- Threshold for \"near\": similarity score > 0.6 (configurable)\n\n## Acceptance Criteria\n### nearMatches\n- Given component 'OrderService' exists → When nearMatches({ name: 'OrdrService' }) → Then returns [OrderService] (typo match)\n- Given no similar components → When nearMatches() → Then returns empty array\n- Given multiple similar → When nearMatches() → Then returns sorted by similarity score (best first)\n- Given domain filter → When nearMatches({ domain: 'orders' }) → Then only searches orders domain\n\n### Error messages\n- Given component 'OrderService' exists → When linking to 'OrdrService' (typo) → Then error: \"Component 'OrdrService' not found. Did you mean: OrderService?\"\n- Given multiple near matches → When error thrown → Then shows top 3 suggestions\n- Given no near matches → When error thrown → Then no \"Did you mean\" section\n\n## Related Code\n- `packages/riviere-builder/src/lib/builder.ts` — implementation location\n- Consider: Levenshtein distance library or simple implementation\n\n## Verification\nnx test riviere-builder --testNamePattern \"nearMatches|Did you mean|fuzzy\"",
         "testStrategy": "",
         "status": "pending",
         "dependencies": [
-          22
+          "22"
         ],
         "priority": "medium",
         "subtasks": []
       },
       {
-        "id": 25,
+        "id": "25",
         "title": "Add component linking methods",
         "description": "link() connects internal components, linkExternal() links to external systems",
         "details": "## Deliverable\nMethods to connect components via internal and external links.\n\n## Context\n- PRD: `docs/project/PRD/active/PRD-phase-7-riviere-builder.md` (M4: D4.1, D4.2, D4.3)\n- Links form the graph structure connecting components\n- External links connect to systems outside the graph\n\n## Key Decisions\n- `link()` creates edge with source, target, type (sync/async)\n- Source validation: immediate (source must exist)\n- Target validation: deferred to build() (allows forward references)\n- `linkExternal()` creates external link with name, optional domain/url\n- Error messages use nearMatches for suggestions (depends on M3)\n\n## Acceptance Criteria\n### link\n- Given source and target exist → When link({ from: sourceId, to: targetId, type: 'sync' }) → Then link created\n- Given source doesn't exist → When link() → Then throws IMMEDIATELY: \"Source component 'X' not found\"\n- Given target doesn't exist → When link() → Then succeeds (validation deferred to build())\n- Given sync type → When link created → Then link.type === 'sync'\n- Given async type → When link created → Then link.type === 'async'\n\n### linkExternal\n- Given valid input → When linkExternal({ from: sourceId, target: { name: 'Stripe API', domain: 'payments' } }) → Then external link created\n- Given source doesn't exist → When linkExternal() → Then throws with near-match suggestions\n- Given target with URL → When linkExternal({ target: { name: 'Stripe', url: 'https://stripe.com' } }) → Then URL stored\n\n### Error messages (via M3)\n- Given typo in source ID → When link() fails → Then error includes \"Did you mean: [suggestions]\"\n\n## Related Code\n- `packages/riviere-builder/src/lib/builder.ts` — implementation location\n- `packages/riviere-schema` — Link, ExternalLink types\n\n## Verification\nnx test riviere-builder --testNamePattern \"link|linkExternal\"",
         "testStrategy": "",
         "status": "pending",
         "dependencies": [
-          22,
-          24
+          "22",
+          "24"
         ],
         "priority": "high",
         "subtasks": []
       },
       {
-        "id": 26,
+        "id": "26",
         "title": "Add component enrichment methods",
         "description": "enrichComponent() adds stateChanges and businessRules to DomainOp components",
         "details": "## Deliverable\nMethod to enrich DomainOp components with domain-specific details.\n\n## Context\n- PRD: `docs/project/PRD/active/PRD-phase-7-riviere-builder.md` (M5: D5.1, D5.2, D5.3)\n- Enrichment is the 4th phase in the 5-phase extraction algorithm\n- Adds state changes and business rules discovered during analysis\n\n## Key Decisions\n- `enrichComponent(id, enrichment)` adds domain details to existing component\n- Only DomainOp components can have stateChanges and businessRules\n- stateChanges format: `{ entity: string, from: string, to: string }`\n- businessRules: string array of domain rules\n- Validates component exists and is correct type before enriching\n\n## Acceptance Criteria\n### enrichComponent\n- Given DomainOp exists → When enrichComponent(id, { stateChanges: [...] }) → Then stateChanges added\n- Given non-DomainOp component → When enrichComponent(id, { stateChanges: [...] }) → Then throws \"Only DomainOp components can have stateChanges\"\n- Given component doesn't exist → When enrichComponent() → Then throws with near-match suggestions\n\n### State change validation\n- Given valid stateChange → When enrichComponent(id, { stateChanges: [{ entity: 'Order', from: 'draft', to: 'placed' }] }) → Then succeeds\n- Given stateChange missing entity → When enrichComponent() → Then throws \"stateChange must have entity, from, and to\"\n\n### Business rules\n- Given rules array → When enrichComponent(id, { businessRules: ['Rule 1', 'Rule 2'] }) → Then rules stored\n- Given empty rules array → When enrichComponent() → Then succeeds (empty is valid)\n\n## Related Code\n- `packages/riviere-builder/src/lib/builder.ts` — implementation location\n- `packages/riviere-schema` — DomainOpComponent, StateChange types\n\n## Verification\nnx test riviere-builder --testNamePattern \"enrichComponent|stateChanges|businessRules\"",
         "testStrategy": "",
         "status": "pending",
         "dependencies": [
-          22
+          "22"
         ],
         "priority": "medium",
         "subtasks": []
       },
       {
-        "id": 27,
+        "id": "27",
         "title": "Add serialize and resume for session persistence",
         "description": "serialize() exports builder state, resume() restores from serialized state",
         "details": "## Deliverable\nSession persistence for CLI workflow where each command is a separate invocation.\n\n## Context\n- PRD: `docs/project/PRD/active/PRD-phase-7-riviere-builder.md` (M6: D6.1, D6.2, D6.3)\n- Essential for CLI: save draft between commands, resume where left off\n- Serialized format must include ALL builder state\n\n## Key Decisions\n- `serialize()` returns JSON string of current draft state (no validation)\n- `RiviereBuilder.resume(graph)` restores builder with full state\n- Serialized format must preserve: components, links, custom types, enrichments, warnings\n- Round-trip must be lossless: serialize → resume → serialize produces identical output\n\n## Acceptance Criteria\n### serialize\n- Given builder with components → When serialize() → Then returns JSON string\n- Given builder at various stages → When serialize() → Then captures current state (not validated)\n- Given builder with custom types → When serialize() → Then custom types included in output\n\n### resume\n- Given serialized string → When RiviereBuilder.resume(JSON.parse(serialized)) → Then builder restored\n- Given resumed builder → When adding more components → Then continues correctly\n- Given invalid JSON → When resume() → Then throws with clear error\n\n### Round-trip completeness\n- Given builder with components, links, custom types, enrichments → When serialize() → resume() → serialize() → Then outputs match\n- Given empty builder → When serialize() → resume() → Then works correctly\n\n## Related Code\n- `packages/riviere-builder/src/lib/builder.ts` — implementation location\n- Consider: What format for serialization? (draft graph + builder metadata)\n\n## Verification\nnx test riviere-builder --testNamePattern \"serialize|resume|round-trip\"",
         "testStrategy": "",
         "status": "pending",
         "dependencies": [
-          22,
-          23,
-          25,
-          26
+          "22",
+          "23",
+          "25",
+          "26"
         ],
         "priority": "medium",
         "subtasks": []
       },
       {
-        "id": 28,
+        "id": "28",
         "title": "Add validation and inspection methods",
         "description": "validate() checks graph, stats() returns counts, warnings() returns issues, orphans() finds disconnected",
         "details": "## Deliverable\nMethods to inspect and validate graph before final export.\n\n## Context\n- PRD: `docs/project/PRD/active/PRD-phase-7-riviere-builder.md` (M7: D7.1, D7.4, D7.5, D7.6)\n- Validation is the 5th phase in the 5-phase extraction algorithm\n- Provides feedback before final build()\n\n## Key Decisions\n- `validate()` runs full validation, returns ValidationResult with errors array\n- `stats()` returns counts: components by type, links, domains\n- `warnings()` returns non-fatal issues (orphans, unused domains, etc.)\n- `orphans()` returns components with no incoming OR outgoing links\n- Validation checks: dangling references, schema compliance, structural issues\n\n## Acceptance Criteria\n### validate\n- Given valid graph → When validate() → Then { valid: true, errors: [] }\n- Given dangling link reference → When validate() → Then error with path and code\n- Given missing required field → When validate() → Then error with specific path\n\n### stats\n- Given 5 APIs, 3 Events → When stats() → Then { API: 5, Event: 3, ... }\n- Given 2 domains → When stats() → Then domainCount: 2\n- Given 10 links → When stats() → Then linkCount: 10\n\n### warnings\n- Given orphan components → When warnings() → Then includes orphan warning\n- Given unused domain (defined but no components) → When warnings() → Then includes unused domain warning\n- Given no issues → When warnings() → Then returns []\n\n### orphans\n- Given component with no links → When orphans() → Then includes that component ID\n- Given all components linked → When orphans() → Then returns []\n- Given component with only outgoing links → When orphans() → Then excludes it (has connections)\n\n## Related Code\n- `packages/riviere-builder/src/lib/builder.ts` — implementation location\n- `packages/riviere-query/src/graph-validation.ts` — validation pattern reference\n\n## Verification\nnx test riviere-builder --testNamePattern \"validate|stats|warnings|orphans\"",
         "testStrategy": "",
         "status": "pending",
         "dependencies": [
-          25
+          "25"
         ],
         "priority": "high",
         "subtasks": []
       },
       {
-        "id": 29,
+        "id": "29",
         "title": "Add build and save methods for final export",
         "description": "build() validates and returns graph, save() validates and writes to file",
         "details": "## Deliverable\nFinal export methods that validate before outputting.\n\n## Context\n- PRD: `docs/project/PRD/active/PRD-phase-7-riviere-builder.md` (M7: D7.2, D7.3)\n- build() and save() are the final step in the 5-phase extraction algorithm\n- Both validate before output (fail fast)\n\n## Key Decisions\n- `build()` validates and returns RiviereGraph object, throws if invalid\n- `save(path)` validates and writes JSON to file, throws without writing if invalid\n- Makes package Node.js-only (not browser-safe) due to file system access\n- JSON output should be formatted (pretty-printed) for readability\n\n## Acceptance Criteria\n### build\n- Given valid graph → When build() → Then returns RiviereGraph object\n- Given invalid graph (validation errors) → When build() → Then throws with validation errors\n- Given graph with orphans → When build() → Then succeeds with warnings (orphans are warnings, not errors)\n\n### save\n- Given valid graph and path → When save('/path/to/output.json') → Then writes formatted JSON\n- Given invalid graph → When save() → Then throws WITHOUT writing any file\n- Given valid path → When save() → Then file contains valid Rivière JSON\n- Given directory doesn't exist → When save('/nonexistent/path.json') → Then throws clear error\n\n### Output format\n- Given graph → When build() or save() → Then output matches Rivière schema\n- Given graph → When save() → Then JSON is pretty-printed (2-space indent)\n\n## Related Code\n- `packages/riviere-builder/src/lib/builder.ts` — implementation location\n- `packages/riviere-schema` — schema validation exports\n\n## Verification\nnx test riviere-builder --testNamePattern \"build|save\"",
         "testStrategy": "",
         "status": "pending",
         "dependencies": [
-          28
+          "28"
         ],
         "priority": "high",
         "subtasks": []
       },
       {
-        "id": 30,
+        "id": "30",
         "title": "Add query() method for RiviereQuery integration",
         "description": "query() returns RiviereQuery instance for current graph state",
         "details": "## Deliverable\nIntegration with riviere-query package for querying built graphs.\n\n## Context\n- PRD: `docs/project/PRD/active/PRD-phase-7-riviere-builder.md` (M8: D8.1, D8.2)\n- Builder depends on riviere-query package\n- Allows querying graph during construction (validation deferred)\n\n## Key Decisions\n- `query()` returns RiviereQuery instance wrapping current graph state\n- Query reflects current builder state (mid-construction is OK)\n- Query methods work even before full validation\n- Useful for finding components during linking phase\n\n## Acceptance Criteria\n### query\n- Given builder with components → When query() → Then returns RiviereQuery instance\n- Given query instance → When query.componentsByType('API') → Then returns APIs in builder\n- Given mid-construction builder → When query() → Then still works (no validation required)\n\n### Query reflects state\n- Given builder → When addApi() then query().componentsByType('API') → Then includes new API\n- Given builder → When modifying builder after query() → Then subsequent query() reflects changes\n\n## Related Code\n- `packages/riviere-builder/src/lib/builder.ts` — implementation location\n- `packages/riviere-query/src/RiviereQuery.ts` — RiviereQuery class to instantiate\n\n## Verification\nnx test riviere-builder --testNamePattern \"query\"",
         "testStrategy": "",
         "status": "pending",
         "dependencies": [
-          22
+          "22"
         ],
         "priority": "medium",
         "subtasks": []
       },
       {
-        "id": 31,
+        "id": "31",
         "title": "Add TSDoc comments and generate API documentation",
         "description": "TSDoc on all public methods, TypeDoc generates reference docs",
         "details": "## Deliverable\nComplete API documentation generated from code comments.\n\n## Context\n- PRD: `docs/project/PRD/active/PRD-phase-7-riviere-builder.md` (M9: D9.1, D9.2, D9.3)\n- Documentation follows pattern from riviere-query\n- Generated docs replace any static API documentation\n\n## Key Decisions\n- All public methods must have TSDoc with @param, @returns, @throws, @example\n- TypeDoc generates docs to apps/docs/api/riviere-builder/\n- Remove static `apps/docs/api/riviere-builder.md` if it exists\n- Documentation is auto-generated, not manually written\n\n## Acceptance Criteria\n### TSDoc comments\n- Given every public method → Then has @param for each parameter\n- Given every public method → Then has @returns describing return value\n- Given methods that throw → Then has @throws describing error conditions\n- Given every public method → Then has at least one @example\n\n### TypeDoc generation\n- Given nx build docs → Then TypeDoc generates without warnings\n- Given generated output → Then appears in apps/docs/api/riviere-builder/\n- Given generated docs → Then methods are properly linked and navigable\n\n### No duplicate docs\n- Given apps/docs/api/riviere-builder.md exists → Then it should be removed\n- Given generated docs → Then no manual/static API docs remain\n\n## Related Code\n- `packages/riviere-builder/src/lib/builder.ts` — add TSDoc here\n- `packages/riviere-query/src/RiviereQuery.ts` — TSDoc pattern reference\n- `apps/docs/` — docs site structure\n\n## Verification\nnx run riviere-builder:build && check for TypeDoc output",
         "testStrategy": "",
         "status": "pending",
         "dependencies": [
-          29
+          "29"
         ],
         "priority": "low",
         "subtasks": []
@@ -420,15 +421,12 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-12-26T14:39:56.900Z",
-      "taskCount": 20,
-      "completedCount": 19,
+      "lastModified": "2025-12-26T17:44:01.550Z",
+      "taskCount": 31,
+      "completedCount": 20,
       "tags": [
         "master"
-      ],
-      "created": "2025-12-26T14:43:26.623Z",
-      "description": "Tasks for master context",
-      "updated": "2025-12-26T14:53:06.887Z"
+      ]
     }
   }
 }
