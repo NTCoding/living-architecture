@@ -167,9 +167,10 @@ return content.eventType
 - `handler`
 - `processor`
 
-Bad Example: `ProductData`. Just use `Product` or something more precise
-
 These names are meaningless - they tell you nothing about what the code actually does.
+
+Bad Example: `ProductData`. Just use `Product` or something more precise
+Bad Example: `extractDomainMapData`. Just use `extractDomainMap`
 
 ### Intention-Revealing Names
 
