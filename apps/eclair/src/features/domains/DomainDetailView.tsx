@@ -1,10 +1,10 @@
 import { useMemo } from 'react'
 import type { NodeType } from '@/types/riviere'
 import type { DomainDetails } from './extractDomainDetails'
-import { NodeTypeBadge } from '@/features/flows/components/NodeTypeBadge'
-import { CodeLinkMenu } from '@/features/flows/components/CodeLinkMenu'
-import { EntityAccordion } from './components/EntityAccordion'
-import { EventAccordion } from './components/EventAccordion'
+import { NodeTypeBadge } from '@/features/flows/components/NodeTypeBadge/NodeTypeBadge'
+import { CodeLinkMenu } from '@/features/flows/components/CodeLinkMenu/CodeLinkMenu'
+import { EntityAccordion } from './components/EntityAccordion/EntityAccordion'
+import { EventAccordion } from './components/EventAccordion/EventAccordion'
 
 type DomainDetailsNode = DomainDetails['nodes'][number]
 type DomainDetailsEntity = DomainDetails['entities'][number]

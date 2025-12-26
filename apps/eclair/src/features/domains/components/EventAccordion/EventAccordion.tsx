@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import type { DomainEvent } from '../../extractDomainDetails'
-import { CodeLinkMenu } from '@/features/flows/components/CodeLinkMenu'
+import { CodeLinkMenu } from '@/features/flows/components/CodeLinkMenu/CodeLinkMenu'
 
 interface HandlerInfo {
   domain: string

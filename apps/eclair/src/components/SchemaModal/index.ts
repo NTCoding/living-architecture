@@ -1,1 +1,0 @@
-export { SchemaModal } from './SchemaModal'

@@ -1,19 +1,21 @@
 import { Handle, Position } from '@xyflow/react'
+import type { NodeProps, Node } from '@xyflow/react'
 
-interface DomainNodeProps {
-  data: {
-    label: string
-    nodeCount: number
-    dimmed?: boolean
-  }
+interface DomainNodeData extends Record<string, unknown> {
+  label: string
+  nodeCount: number
+  dimmed?: boolean
 }
+
+type DomainNodeProps = NodeProps<Node<DomainNodeData>>
 
 function truncateLabel(label: string, maxLength: number): string {
   if (label.length <= maxLength) return label
   return label.substring(0, maxLength - 1) + '…'
 }
 
-export function DomainNode({ data }: DomainNodeProps): React.ReactElement {
+export function DomainNode(props: DomainNodeProps): React.ReactElement {
+  const { data } = props
   const size = 80
   const opacity = data.dimmed === true ? 0.3 : 1
   const fontSize = data.label.length > 10 ? 11 : 13

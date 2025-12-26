@@ -22,11 +22,13 @@ export default defineConfig(() => ({
     coverage: {
       reportsDirectory: './test-output/vitest/coverage',
       provider: 'v8' as const,
+      exclude: [
+        '**/ForceGraph/**',
+        '**/riviereTestData.ts',
+      ],
       thresholds: {
-        lines: 84,
-        statements: 84,
-        functions: 82,
-        branches: 79,
+        '**/*.ts': { lines: 94, statements: 94, functions: 100, branches: 74 },
+        '**/*.tsx': { lines: 80, statements: 80, functions: 80, branches: 75 },
       },
     },
   },

@@ -1,1 +1,0 @@
-export { NodeTypeBadge } from './NodeTypeBadge'

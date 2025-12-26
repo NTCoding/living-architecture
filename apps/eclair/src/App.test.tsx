@@ -31,7 +31,7 @@ vi.mock('@/contexts/GraphContext', () => ({
   useGraph: () => mockUseGraph(),
 }))
 
-vi.mock('@/features/empty-state', () => ({
+vi.mock('@/features/empty-state/EmptyState', () => ({
   EmptyState: () => <div data-testid="empty-state">Upload a graph to get started</div>,
 }))
 
@@ -39,11 +39,11 @@ vi.mock('@/contexts/ThemeContext', () => ({
   useTheme: () => ({ theme: 'stream', setTheme: vi.fn() }),
 }))
 
-vi.mock('@/components/Logo', () => ({
+vi.mock('@/components/Logo/Logo', () => ({
   Logo: () => <div data-testid="logo">Logo</div>,
 }))
 
-vi.mock('@/components/ThemeSwitcher', () => ({
+vi.mock('@/components/ThemeSwitcher/ThemeSwitcher', () => ({
   ThemeSwitcher: () => <div data-testid="theme-switcher">ThemeSwitcher</div>,
 }))
 

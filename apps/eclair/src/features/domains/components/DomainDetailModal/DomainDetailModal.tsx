@@ -1,6 +1,6 @@
 import { useEffect, useId } from 'react'
 import type { DomainDetails } from '../../extractDomainDetails'
-import { NodeTypeBadge } from '@/features/flows/components/NodeTypeBadge'
+import { NodeTypeBadge } from '@/features/flows/components/NodeTypeBadge/NodeTypeBadge'
 
 interface DomainDetailModalProps {
   domain: DomainDetails | null

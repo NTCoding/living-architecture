@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { FileUpload } from '@/components/FileUpload'
-import { UrlInput } from '@/components/UrlInput'
+import { FileUpload } from '@/components/FileUpload/FileUpload'
+import { UrlInput } from '@/components/UrlInput/UrlInput'
 import { useGraph } from '@/contexts/GraphContext'
 import { parseRiviereGraph } from '@living-architecture/riviere-schema'
 

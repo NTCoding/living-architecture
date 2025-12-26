@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { RiviereGraph, GraphName } from '@/types/riviere'
-import { SchemaModal } from '@/components/SchemaModal'
+import { SchemaModal } from '@/components/SchemaModal/SchemaModal'
 import { useGraph } from '@/contexts/GraphContext'
-import { OrphanWarning, type OrphanDetectionResult } from '@/components/OrphanWarning'
+import { OrphanWarning, type OrphanDetectionResult } from '@/components/OrphanWarning/OrphanWarning'
 import { useRiviereQuery } from '@/hooks/useRiviereQuery'
 
 interface HeaderProps {

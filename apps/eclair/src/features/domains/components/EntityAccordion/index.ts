@@ -1,1 +1,0 @@
-export { EntityAccordion } from './EntityAccordion'

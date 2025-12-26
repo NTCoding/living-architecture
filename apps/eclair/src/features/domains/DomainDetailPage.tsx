@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom'
 import type { RiviereGraph } from '@/types/riviere'
 import { extractDomainDetails, type DomainDetails } from './extractDomainDetails'
 import { parseDomainKey } from '@/lib/riviereTestData'
-import { DomainContextGraph } from './components/DomainContextGraph'
+import { DomainContextGraph } from './components/DomainContextGraph/DomainContextGraph'
 import { DomainDetailView, type NodeTypeFilter } from './DomainDetailView'
 
 type ViewMode = 'graph' | 'detail'

@@ -38,7 +38,7 @@ vi.mock('@/contexts/ThemeContext', () => ({
   useTheme: () => ({ theme: 'stream', setTheme: vi.fn() }),
 }))
 
-vi.mock('./components/ForceGraph', () => ({
+vi.mock('./components/ForceGraph/ForceGraph', () => ({
   ForceGraph: (props: { onNodeHover?: (data: TooltipData | null) => void; highlightedNodeId?: string | null }) => {
     if (props.onNodeHover !== undefined) {
       capturedOnNodeHover.current = props.onNodeHover

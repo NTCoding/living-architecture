@@ -1,7 +1,7 @@
 import { useMemo, useCallback, useEffect, useRef } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { ReactFlow, Background, Controls, useNodesState, useEdgesState } from '@xyflow/react'
-import type { NodeTypes, Node, Edge, NodeMouseHandler, EdgeMouseHandler } from '@xyflow/react'
+import type { Node, Edge, NodeMouseHandler, EdgeMouseHandler } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import type { RiviereGraph } from '@/types/riviere'
 import { useExport } from '@/contexts/ExportContext'
@@ -13,14 +13,14 @@ import {
 } from '@/lib/exportGraph'
 import { extractDomainMapData, getConnectedDomains } from './extractDomainMapData'
 import type { DomainNodeData, DomainEdgeData } from './extractDomainMapData'
-import { DomainNode } from './components/DomainNode'
+import { DomainNode } from './components/DomainNode/DomainNode'
 import { useDomainMapInteractions } from './hooks/useDomainMapInteractions'
 
 interface DomainMapPageProps {
   graph: RiviereGraph
 }
 
-const nodeTypes: NodeTypes = { domain: DomainNode }
+const nodeTypes = { domain: DomainNode }
 
 export function DomainMapPage({ graph }: DomainMapPageProps): React.ReactElement {
   const [searchParams] = useSearchParams()

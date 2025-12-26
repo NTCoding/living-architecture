@@ -1,1 +1,0 @@
-export { EventAccordion } from './EventAccordion'

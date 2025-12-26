@@ -10,7 +10,7 @@ vi.mock('@/contexts/ThemeContext', () => ({
   useTheme: () => ({ theme: 'stream' }),
 }))
 
-vi.mock('@/features/full-graph/components/ForceGraph', () => ({
+vi.mock('@/features/full-graph/components/ForceGraph/ForceGraph', () => ({
   ForceGraph: ({ graph }: { graph: { components: Array<{ name: string }> } }) => (
     <div data-testid="force-graph-mock">
       {graph.components.map((node) => (

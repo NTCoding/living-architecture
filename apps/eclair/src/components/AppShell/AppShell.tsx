@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import { useLocation } from 'react-router-dom'
-import { Header } from '@/components/Header'
-import { Sidebar } from '@/components/Sidebar'
+import { Header } from '@/components/Header/Header'
+import { Sidebar } from '@/components/Sidebar/Sidebar'
 import { useExport } from '@/contexts/ExportContext'
 import type { RiviereGraph, GraphName } from '@/types/riviere'
 

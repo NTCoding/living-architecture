@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import type { RiviereGraph } from '@/types/riviere'
 import { extractFlows } from './extractFlows'
-import { FlowCard } from './components/FlowCard'
+import { FlowCard } from './components/FlowCard/FlowCard'
 import { useFlowsState, type FlowFilter } from './hooks/useFlowsState'
 
 interface FlowsPageProps {

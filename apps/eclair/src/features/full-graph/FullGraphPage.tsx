@@ -9,11 +9,11 @@ import {
   exportSvgAsFile,
   UNNAMED_GRAPH_EXPORT_NAME,
 } from '@/lib/exportGraph'
-import { ForceGraph } from './components/ForceGraph'
-import { GraphTooltip } from './components/GraphTooltip'
-import { GraphSearch } from './components/GraphSearch'
-import { DomainFilters } from './components/DomainFilters'
-import { NodeTypeFilters } from './components/NodeTypeFilters'
+import { ForceGraph } from './components/ForceGraph/ForceGraph'
+import { GraphTooltip } from './components/GraphTooltip/GraphTooltip'
+import { GraphSearch } from './components/GraphSearch/GraphSearch'
+import { DomainFilters } from './components/DomainFilters/DomainFilters'
+import { NodeTypeFilters } from './components/NodeTypeFilters/NodeTypeFilters'
 import { filterNodesBySearch } from './hooks/useNodeSearch'
 import { filterByNodeType } from './graphFocusing/filterByNodeType'
 import { getThemeFocusColors } from './graphFocusing/themeFocusColors'

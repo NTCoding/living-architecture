@@ -1,5 +1,5 @@
 import type { TooltipData } from '../../types'
-import { CodeLinkMenu } from '@/features/flows/components/CodeLinkMenu'
+import { CodeLinkMenu } from '@/features/flows/components/CodeLinkMenu/CodeLinkMenu'
 
 export const TOOLTIP_WIDTH = 310
 export const TOOLTIP_HEIGHT = 200

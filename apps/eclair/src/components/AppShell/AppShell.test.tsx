@@ -51,11 +51,11 @@ vi.mock('@/contexts/GraphContext', () => ({
   useGraph: () => ({ clearGraph: vi.fn() }),
 }))
 
-vi.mock('@/components/Logo', () => ({
+vi.mock('@/components/Logo/Logo', () => ({
   Logo: () => <div data-testid="logo">Logo</div>,
 }))
 
-vi.mock('@/components/ThemeSwitcher', () => ({
+vi.mock('@/components/ThemeSwitcher/ThemeSwitcher', () => ({
   ThemeSwitcher: () => <div data-testid="theme-switcher">ThemeSwitcher</div>,
 }))
 

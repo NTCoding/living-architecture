@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { useTheme } from '@/contexts/ThemeContext'
-import { ForceGraph } from '@/features/full-graph/components/ForceGraph'
+import { ForceGraph } from '@/features/full-graph/components/ForceGraph/ForceGraph'
 import type { FlowStep } from '../../extractFlows'
 import type { RiviereGraph } from '@/types/riviere'
 

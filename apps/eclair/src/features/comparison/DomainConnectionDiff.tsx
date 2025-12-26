@@ -1,10 +1,10 @@
 import { useMemo, useState, useCallback } from 'react'
 import { ReactFlow, Background, Controls } from '@xyflow/react'
-import type { Node, Edge, NodeTypes, EdgeMouseHandler } from '@xyflow/react'
+import type { Node, Edge, EdgeMouseHandler } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import dagre from 'dagre'
 import type { DomainConnectionDiffResult, DomainConnection, EdgeDetail } from './computeDomainConnectionDiff'
-import { DomainNode } from '../domain-map/components/DomainNode'
+import { DomainNode } from '../domain-map/components/DomainNode/DomainNode'
 import { getClosestHandle } from '@/lib/handlePositioning'
 
 interface DomainConnectionDiffProps {
@@ -26,7 +26,7 @@ interface DiffEdgeData extends Record<string, unknown> {
   edges: EdgeDetail[]
 }
 
-const nodeTypes: NodeTypes = { domain: DomainNode }
+const nodeTypes = { domain: DomainNode }
 
 const STATUS_COLORS = {
   added: '#1A7F37',

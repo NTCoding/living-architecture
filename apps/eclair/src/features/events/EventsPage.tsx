@@ -1,7 +1,7 @@
 import { useMemo, useState, useCallback } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import type { RiviereGraph } from '@/types/riviere'
-import { EventAccordion } from '@/features/domains/components/EventAccordion'
+import { EventAccordion } from '@/features/domains/components/EventAccordion/EventAccordion'
 import type { DomainEvent } from '@/features/domains/extractDomainDetails'
 
 function isValidSchemaObject(value: unknown): value is Record<string, unknown> {

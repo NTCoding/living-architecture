@@ -1,9 +1,9 @@
 import { useNavigate } from 'react-router-dom'
 import type { RiviereGraph } from '@/types/riviere'
 import type { Flow } from '../../extractFlows'
-import { CodeLinkMenu } from '../CodeLinkMenu'
-import { FlowTrace } from '../FlowTrace'
-import { NodeTypeBadge } from '../NodeTypeBadge'
+import { CodeLinkMenu } from '../CodeLinkMenu/CodeLinkMenu'
+import { FlowTrace } from '../FlowTrace/FlowTrace'
+import { NodeTypeBadge } from '../NodeTypeBadge/NodeTypeBadge'
 
 interface FlowCardProps {
   flow: Flow

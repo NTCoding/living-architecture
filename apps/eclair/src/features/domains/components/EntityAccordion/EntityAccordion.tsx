@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { DomainEntity } from '../../extractDomainDetails'
 import { hasStates, hasInvariants, hasStateChanges } from '../../extractDomainDetails'
-import { CodeLinkMenu } from '@/features/flows/components/CodeLinkMenu'
+import { CodeLinkMenu } from '@/features/flows/components/CodeLinkMenu/CodeLinkMenu'
 
 interface EntityAccordionProps {
   entity: DomainEntity

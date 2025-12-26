@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Logo } from '@/components/Logo'
-import { ThemeSwitcher } from '@/components/ThemeSwitcher'
+import { Logo } from '@/components/Logo/Logo'
+import { ThemeSwitcher } from '@/components/ThemeSwitcher/ThemeSwitcher'
 
 interface NavItemProps {
   icon: string
