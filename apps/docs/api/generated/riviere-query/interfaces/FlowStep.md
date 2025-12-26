@@ -1,6 +1,6 @@
 # Interface: FlowStep
 
-Defined in: [domain-types.ts:176](https://github.com/ntcoding/living-architecture/blob/c0b5781cd918770d734edbb65e0f96b76d45cc15/packages/riviere-query/src/domain-types.ts#L176)
+Defined in: [domain-types.ts:176](https://github.com/ntcoding/living-architecture/blob/b60ad4799408c0a38070973ef0e218212bccdf18/packages/riviere-query/src/domain-types.ts#L176)
 
 A step in an execution flow.
 
@@ -10,7 +10,7 @@ A step in an execution flow.
 
 > **component**: `Component`
 
-Defined in: [domain-types.ts:178](https://github.com/ntcoding/living-architecture/blob/c0b5781cd918770d734edbb65e0f96b76d45cc15/packages/riviere-query/src/domain-types.ts#L178)
+Defined in: [domain-types.ts:178](https://github.com/ntcoding/living-architecture/blob/b60ad4799408c0a38070973ef0e218212bccdf18/packages/riviere-query/src/domain-types.ts#L178)
 
 The component at this step.
 
@@ -20,7 +20,7 @@ The component at this step.
 
 > **depth**: `number`
 
-Defined in: [domain-types.ts:182](https://github.com/ntcoding/living-architecture/blob/c0b5781cd918770d734edbb65e0f96b76d45cc15/packages/riviere-query/src/domain-types.ts#L182)
+Defined in: [domain-types.ts:182](https://github.com/ntcoding/living-architecture/blob/b60ad4799408c0a38070973ef0e218212bccdf18/packages/riviere-query/src/domain-types.ts#L182)
 
 Depth from entry point (0 = entry point).
 
@@ -30,7 +30,7 @@ Depth from entry point (0 = entry point).
 
 > **externalLinks**: `ExternalLink`[]
 
-Defined in: [domain-types.ts:184](https://github.com/ntcoding/living-architecture/blob/c0b5781cd918770d734edbb65e0f96b76d45cc15/packages/riviere-query/src/domain-types.ts#L184)
+Defined in: [domain-types.ts:184](https://github.com/ntcoding/living-architecture/blob/b60ad4799408c0a38070973ef0e218212bccdf18/packages/riviere-query/src/domain-types.ts#L184)
 
 External links from this component to external systems.
 
@@ -40,6 +40,6 @@ External links from this component to external systems.
 
 > **linkType**: [`LinkType`](../type-aliases/LinkType.md) \| `undefined`
 
-Defined in: [domain-types.ts:180](https://github.com/ntcoding/living-architecture/blob/c0b5781cd918770d734edbb65e0f96b76d45cc15/packages/riviere-query/src/domain-types.ts#L180)
+Defined in: [domain-types.ts:180](https://github.com/ntcoding/living-architecture/blob/b60ad4799408c0a38070973ef0e218212bccdf18/packages/riviere-query/src/domain-types.ts#L180)
 
 Type of link leading to this step (undefined for entry point).

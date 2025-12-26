@@ -1,6 +1,6 @@
 # Interface: Entity
 
-Defined in: [event-types.ts:16](https://github.com/ntcoding/living-architecture/blob/c0b5781cd918770d734edbb65e0f96b76d45cc15/packages/riviere-query/src/event-types.ts#L16)
+Defined in: [event-types.ts:16](https://github.com/ntcoding/living-architecture/blob/b60ad4799408c0a38070973ef0e218212bccdf18/packages/riviere-query/src/event-types.ts#L16)
 
 A domain entity with its associated operations.
 
@@ -10,7 +10,7 @@ A domain entity with its associated operations.
 
 > **domain**: `string` & `$brand`\<`"DomainName"`\>
 
-Defined in: [event-types.ts:20](https://github.com/ntcoding/living-architecture/blob/c0b5781cd918770d734edbb65e0f96b76d45cc15/packages/riviere-query/src/event-types.ts#L20)
+Defined in: [event-types.ts:20](https://github.com/ntcoding/living-architecture/blob/b60ad4799408c0a38070973ef0e218212bccdf18/packages/riviere-query/src/event-types.ts#L20)
 
 The domain containing the entity.
 
@@ -20,7 +20,7 @@ The domain containing the entity.
 
 > **name**: `string` & `$brand`\<`"EntityName"`\>
 
-Defined in: [event-types.ts:18](https://github.com/ntcoding/living-architecture/blob/c0b5781cd918770d734edbb65e0f96b76d45cc15/packages/riviere-query/src/event-types.ts#L18)
+Defined in: [event-types.ts:18](https://github.com/ntcoding/living-architecture/blob/b60ad4799408c0a38070973ef0e218212bccdf18/packages/riviere-query/src/event-types.ts#L18)
 
 The entity name.
 
@@ -30,6 +30,6 @@ The entity name.
 
 > **operations**: `DomainOpComponent`[]
 
-Defined in: [event-types.ts:22](https://github.com/ntcoding/living-architecture/blob/c0b5781cd918770d734edbb65e0f96b76d45cc15/packages/riviere-query/src/event-types.ts#L22)
+Defined in: [event-types.ts:22](https://github.com/ntcoding/living-architecture/blob/b60ad4799408c0a38070973ef0e218212bccdf18/packages/riviere-query/src/event-types.ts#L22)
 
 All domain operations targeting this entity.

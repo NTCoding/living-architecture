@@ -1,6 +1,6 @@
 # Interface: ComponentCounts
 
-Defined in: [domain-types.ts:83](https://github.com/ntcoding/living-architecture/blob/c0b5781cd918770d734edbb65e0f96b76d45cc15/packages/riviere-query/src/domain-types.ts#L83)
+Defined in: [domain-types.ts:83](https://github.com/ntcoding/living-architecture/blob/b60ad4799408c0a38070973ef0e218212bccdf18/packages/riviere-query/src/domain-types.ts#L83)
 
 Component counts by type within a domain.
 
@@ -10,7 +10,7 @@ Component counts by type within a domain.
 
 > **API**: `number`
 
-Defined in: [domain-types.ts:87](https://github.com/ntcoding/living-architecture/blob/c0b5781cd918770d734edbb65e0f96b76d45cc15/packages/riviere-query/src/domain-types.ts#L87)
+Defined in: [domain-types.ts:87](https://github.com/ntcoding/living-architecture/blob/b60ad4799408c0a38070973ef0e218212bccdf18/packages/riviere-query/src/domain-types.ts#L87)
 
 Number of API components.
 
@@ -20,7 +20,7 @@ Number of API components.
 
 > **Custom**: `number`
 
-Defined in: [domain-types.ts:97](https://github.com/ntcoding/living-architecture/blob/c0b5781cd918770d734edbb65e0f96b76d45cc15/packages/riviere-query/src/domain-types.ts#L97)
+Defined in: [domain-types.ts:97](https://github.com/ntcoding/living-architecture/blob/b60ad4799408c0a38070973ef0e218212bccdf18/packages/riviere-query/src/domain-types.ts#L97)
 
 Number of Custom components.
 
@@ -30,7 +30,7 @@ Number of Custom components.
 
 > **DomainOp**: `number`
 
-Defined in: [domain-types.ts:91](https://github.com/ntcoding/living-architecture/blob/c0b5781cd918770d734edbb65e0f96b76d45cc15/packages/riviere-query/src/domain-types.ts#L91)
+Defined in: [domain-types.ts:91](https://github.com/ntcoding/living-architecture/blob/b60ad4799408c0a38070973ef0e218212bccdf18/packages/riviere-query/src/domain-types.ts#L91)
 
 Number of DomainOp components.
 
@@ -40,7 +40,7 @@ Number of DomainOp components.
 
 > **Event**: `number`
 
-Defined in: [domain-types.ts:93](https://github.com/ntcoding/living-architecture/blob/c0b5781cd918770d734edbb65e0f96b76d45cc15/packages/riviere-query/src/domain-types.ts#L93)
+Defined in: [domain-types.ts:93](https://github.com/ntcoding/living-architecture/blob/b60ad4799408c0a38070973ef0e218212bccdf18/packages/riviere-query/src/domain-types.ts#L93)
 
 Number of Event components.
 
@@ -50,7 +50,7 @@ Number of Event components.
 
 > **EventHandler**: `number`
 
-Defined in: [domain-types.ts:95](https://github.com/ntcoding/living-architecture/blob/c0b5781cd918770d734edbb65e0f96b76d45cc15/packages/riviere-query/src/domain-types.ts#L95)
+Defined in: [domain-types.ts:95](https://github.com/ntcoding/living-architecture/blob/b60ad4799408c0a38070973ef0e218212bccdf18/packages/riviere-query/src/domain-types.ts#L95)
 
 Number of EventHandler components.
 
@@ -60,7 +60,7 @@ Number of EventHandler components.
 
 > **total**: `number`
 
-Defined in: [domain-types.ts:99](https://github.com/ntcoding/living-architecture/blob/c0b5781cd918770d734edbb65e0f96b76d45cc15/packages/riviere-query/src/domain-types.ts#L99)
+Defined in: [domain-types.ts:99](https://github.com/ntcoding/living-architecture/blob/b60ad4799408c0a38070973ef0e218212bccdf18/packages/riviere-query/src/domain-types.ts#L99)
 
 Total number of components.
 
@@ -70,7 +70,7 @@ Total number of components.
 
 > **UI**: `number`
 
-Defined in: [domain-types.ts:85](https://github.com/ntcoding/living-architecture/blob/c0b5781cd918770d734edbb65e0f96b76d45cc15/packages/riviere-query/src/domain-types.ts#L85)
+Defined in: [domain-types.ts:85](https://github.com/ntcoding/living-architecture/blob/b60ad4799408c0a38070973ef0e218212bccdf18/packages/riviere-query/src/domain-types.ts#L85)
 
 Number of UI components.
 
@@ -80,6 +80,6 @@ Number of UI components.
 
 > **UseCase**: `number`
 
-Defined in: [domain-types.ts:89](https://github.com/ntcoding/living-architecture/blob/c0b5781cd918770d734edbb65e0f96b76d45cc15/packages/riviere-query/src/domain-types.ts#L89)
+Defined in: [domain-types.ts:89](https://github.com/ntcoding/living-architecture/blob/b60ad4799408c0a38070973ef0e218212bccdf18/packages/riviere-query/src/domain-types.ts#L89)
 
 Number of UseCase components.
