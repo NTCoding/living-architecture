@@ -2542,5 +2542,92 @@
       "target": "notifications:webhooks:usecase:sendwebhookusecase",
       "type": "sync"
     }
+  ],
+  "externalLinks": [
+    {
+      "source": "payment:processing:usecase:processpaymentusecase",
+      "target": {
+        "name": "Stripe",
+        "url": "https://api.stripe.com"
+      },
+      "type": "sync",
+      "description": "Process payment via Stripe payment gateway"
+    },
+    {
+      "source": "payment:processing:usecase:refundpaymentusecase",
+      "target": {
+        "name": "Stripe",
+        "url": "https://api.stripe.com"
+      },
+      "type": "sync",
+      "description": "Process refund via Stripe payment gateway"
+    },
+    {
+      "source": "shipping:jobs:usecase:updatetrackingusecase",
+      "target": {
+        "name": "FedEx Tracking API",
+        "url": "https://apis.fedex.com"
+      },
+      "type": "sync",
+      "description": "Poll FedEx API for shipment tracking updates"
+    },
+    {
+      "source": "shipping:fulfillment:usecase:createshipmentusecase",
+      "target": {
+        "name": "FedEx Shipping API",
+        "url": "https://apis.fedex.com"
+      },
+      "type": "sync",
+      "description": "Create shipment and get tracking number from courier"
+    },
+    {
+      "source": "notifications:alerts:usecase:notifyorderplacedusecase",
+      "target": {
+        "name": "SendGrid",
+        "url": "https://api.sendgrid.com"
+      },
+      "type": "async",
+      "description": "Send order confirmation email via SendGrid"
+    },
+    {
+      "source": "bff:checkout:usecase:placeorderbffusecase",
+      "target": {
+        "name": "Fraud Detection Service",
+        "domain": "fraud-detection",
+        "repository": "fraud-detection-service"
+      },
+      "type": "sync",
+      "description": "Check order for fraud signals before processing"
+    },
+    {
+      "source": "bff:checkout:usecase:placeorderbffusecase",
+      "target": {
+        "name": "Customer Profile API",
+        "domain": "customers",
+        "repository": "customer-service"
+      },
+      "type": "sync",
+      "description": "Fetch customer profile and payment methods"
+    },
+    {
+      "source": "analytics:tracking:usecase:recordordermetricsusecase",
+      "target": {
+        "name": "Data Warehouse",
+        "domain": "data-platform",
+        "repository": "analytics-warehouse"
+      },
+      "type": "async",
+      "description": "Stream order metrics to analytics warehouse"
+    },
+    {
+      "source": "analytics:tracking:usecase:recorddeliverymetricsusecase",
+      "target": {
+        "name": "Data Warehouse",
+        "domain": "data-platform",
+        "repository": "analytics-warehouse"
+      },
+      "type": "async",
+      "description": "Stream delivery metrics to analytics warehouse"
+    }
   ]
 }

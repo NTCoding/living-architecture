@@ -2452,6 +2452,35 @@
       },
       "type": "async",
       "description": "Send order confirmation email via SendGrid"
+    },
+    {
+      "source": "bff:checkout:usecase:placeorderbffusecase",
+      "target": {
+        "name": "Fraud Detection Service",
+        "domain": "fraud-detection",
+        "repository": "fraud-detection-service"
+      },
+      "type": "sync",
+      "description": "Check order for fraud signals before processing"
+    },
+    {
+      "source": "bff:checkout:usecase:placeorderbffusecase",
+      "target": {
+        "name": "Customer Profile API",
+        "domain": "customers",
+        "repository": "customer-service"
+      },
+      "type": "sync",
+      "description": "Fetch customer profile and payment methods"
+    },
+    {
+      "source": "shipping:fulfillment:usecase:createshipmentusecase",
+      "target": {
+        "name": "FedEx Shipping API",
+        "url": "https://apis.fedex.com"
+      },
+      "type": "sync",
+      "description": "Create shipment and get tracking number from courier"
     }
   ]
 }
