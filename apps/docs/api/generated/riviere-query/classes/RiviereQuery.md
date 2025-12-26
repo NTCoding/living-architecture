@@ -1,6 +1,6 @@
 # Class: RiviereQuery
 
-Defined in: [RiviereQuery.ts:46](https://github.com/ntcoding/living-architecture/blob/aced3ff111f4aa786ecadcb5e4f3eae782963f49/packages/riviere-query/src/RiviereQuery.ts#L46)
+Defined in: [RiviereQuery.ts:47](https://github.com/ntcoding/living-architecture/blob/ccfdb6e3781e7161105e665b956e24e9882c1760/packages/riviere-query/src/RiviereQuery.ts#L47)
 
 Query and analyze Riviere architecture graphs.
 
@@ -29,7 +29,7 @@ const flow = query.traceFlow('orders:checkout:api:post-orders')
 
 > **new RiviereQuery**(`graph`): `RiviereQuery`
 
-Defined in: [RiviereQuery.ts:61](https://github.com/ntcoding/living-architecture/blob/aced3ff111f4aa786ecadcb5e4f3eae782963f49/packages/riviere-query/src/RiviereQuery.ts#L61)
+Defined in: [RiviereQuery.ts:62](https://github.com/ntcoding/living-architecture/blob/ccfdb6e3781e7161105e665b956e24e9882c1760/packages/riviere-query/src/RiviereQuery.ts#L62)
 
 Creates a new RiviereQuery instance.
 
@@ -62,7 +62,7 @@ const query = new RiviereQuery(graph)
 
 > **businessRulesFor**(`entityName`): `string`[]
 
-Defined in: [RiviereQuery.ts:309](https://github.com/ntcoding/living-architecture/blob/aced3ff111f4aa786ecadcb5e4f3eae782963f49/packages/riviere-query/src/RiviereQuery.ts#L309)
+Defined in: [RiviereQuery.ts:310](https://github.com/ntcoding/living-architecture/blob/ccfdb6e3781e7161105e665b956e24e9882c1760/packages/riviere-query/src/RiviereQuery.ts#L310)
 
 Returns all business rules for an entity's operations.
 
@@ -92,7 +92,7 @@ const rules = query.businessRulesFor('Order')
 
 > **componentById**(`id`): `Component` \| `undefined`
 
-Defined in: [RiviereQuery.ts:193](https://github.com/ntcoding/living-architecture/blob/aced3ff111f4aa786ecadcb5e4f3eae782963f49/packages/riviere-query/src/RiviereQuery.ts#L193)
+Defined in: [RiviereQuery.ts:194](https://github.com/ntcoding/living-architecture/blob/ccfdb6e3781e7161105e665b956e24e9882c1760/packages/riviere-query/src/RiviereQuery.ts#L194)
 
 Finds a component by its ID.
 
@@ -122,7 +122,7 @@ const component = query.componentById('orders:checkout:api:post-orders')
 
 > **components**(): `Component`[]
 
-Defined in: [RiviereQuery.ts:95](https://github.com/ntcoding/living-architecture/blob/aced3ff111f4aa786ecadcb5e4f3eae782963f49/packages/riviere-query/src/RiviereQuery.ts#L95)
+Defined in: [RiviereQuery.ts:96](https://github.com/ntcoding/living-architecture/blob/ccfdb6e3781e7161105e665b956e24e9882c1760/packages/riviere-query/src/RiviereQuery.ts#L96)
 
 Returns all components in the graph.
 
@@ -145,7 +145,7 @@ console.log(`Total: ${allComponents.length}`)
 
 > **componentsByType**(`type`): `Component`[]
 
-Defined in: [RiviereQuery.ts:242](https://github.com/ntcoding/living-architecture/blob/aced3ff111f4aa786ecadcb5e4f3eae782963f49/packages/riviere-query/src/RiviereQuery.ts#L242)
+Defined in: [RiviereQuery.ts:243](https://github.com/ntcoding/living-architecture/blob/ccfdb6e3781e7161105e665b956e24e9882c1760/packages/riviere-query/src/RiviereQuery.ts#L243)
 
 Returns all components of a specific type.
 
@@ -176,7 +176,7 @@ const events = query.componentsByType('Event')
 
 > **componentsInDomain**(`domainName`): `Component`[]
 
-Defined in: [RiviereQuery.ts:226](https://github.com/ntcoding/living-architecture/blob/aced3ff111f4aa786ecadcb5e4f3eae782963f49/packages/riviere-query/src/RiviereQuery.ts#L226)
+Defined in: [RiviereQuery.ts:227](https://github.com/ntcoding/living-architecture/blob/ccfdb6e3781e7161105e665b956e24e9882c1760/packages/riviere-query/src/RiviereQuery.ts#L227)
 
 Returns all components in a specific domain.
 
@@ -206,7 +206,7 @@ const orderComponents = query.componentsInDomain('orders')
 
 > **crossDomainLinks**(`domainName`): [`CrossDomainLink`](../interfaces/CrossDomainLink.md)[]
 
-Defined in: [RiviereQuery.ts:493](https://github.com/ntcoding/living-architecture/blob/aced3ff111f4aa786ecadcb5e4f3eae782963f49/packages/riviere-query/src/RiviereQuery.ts#L493)
+Defined in: [RiviereQuery.ts:494](https://github.com/ntcoding/living-architecture/blob/ccfdb6e3781e7161105e665b956e24e9882c1760/packages/riviere-query/src/RiviereQuery.ts#L494)
 
 Returns links from a domain to other domains.
 
@@ -236,7 +236,7 @@ const outgoing = query.crossDomainLinks('orders')
 
 > **detectOrphans**(): `string` & `$brand`\<`"ComponentId"`\>[]
 
-Defined in: [RiviereQuery.ts:146](https://github.com/ntcoding/living-architecture/blob/aced3ff111f4aa786ecadcb5e4f3eae782963f49/packages/riviere-query/src/RiviereQuery.ts#L146)
+Defined in: [RiviereQuery.ts:147](https://github.com/ntcoding/living-architecture/blob/ccfdb6e3781e7161105e665b956e24e9882c1760/packages/riviere-query/src/RiviereQuery.ts#L147)
 
 Detects orphan components with no incoming or outgoing links.
 
@@ -261,7 +261,7 @@ if (orphanIds.length > 0) {
 
 > **diff**(`other`): [`GraphDiff`](../interfaces/GraphDiff.md)
 
-Defined in: [RiviereQuery.ts:398](https://github.com/ntcoding/living-architecture/blob/aced3ff111f4aa786ecadcb5e4f3eae782963f49/packages/riviere-query/src/RiviereQuery.ts#L398)
+Defined in: [RiviereQuery.ts:399](https://github.com/ntcoding/living-architecture/blob/ccfdb6e3781e7161105e665b956e24e9882c1760/packages/riviere-query/src/RiviereQuery.ts#L399)
 
 Compares this graph with another and returns the differences.
 
@@ -296,7 +296,7 @@ console.log(`Removed: ${diff.stats.componentsRemoved}`)
 
 > **domainConnections**(`domainName`): [`DomainConnection`](../interfaces/DomainConnection.md)[]
 
-Defined in: [RiviereQuery.ts:513](https://github.com/ntcoding/living-architecture/blob/aced3ff111f4aa786ecadcb5e4f3eae782963f49/packages/riviere-query/src/RiviereQuery.ts#L513)
+Defined in: [RiviereQuery.ts:514](https://github.com/ntcoding/living-architecture/blob/ccfdb6e3781e7161105e665b956e24e9882c1760/packages/riviere-query/src/RiviereQuery.ts#L514)
 
 Returns cross-domain connections with API and event counts.
 
@@ -331,7 +331,7 @@ for (const conn of connections) {
 
 > **domains**(): [`Domain`](../interfaces/Domain.md)[]
 
-Defined in: [RiviereQuery.ts:259](https://github.com/ntcoding/living-architecture/blob/aced3ff111f4aa786ecadcb5e4f3eae782963f49/packages/riviere-query/src/RiviereQuery.ts#L259)
+Defined in: [RiviereQuery.ts:260](https://github.com/ntcoding/living-architecture/blob/ccfdb6e3781e7161105e665b956e24e9882c1760/packages/riviere-query/src/RiviereQuery.ts#L260)
 
 Returns domain information with component counts.
 
@@ -356,7 +356,7 @@ for (const domain of domains) {
 
 > **entities**(`domainName?`): [`Entity`](../interfaces/Entity.md)[]
 
-Defined in: [RiviereQuery.ts:294](https://github.com/ntcoding/living-architecture/blob/aced3ff111f4aa786ecadcb5e4f3eae782963f49/packages/riviere-query/src/RiviereQuery.ts#L294)
+Defined in: [RiviereQuery.ts:295](https://github.com/ntcoding/living-architecture/blob/ccfdb6e3781e7161105e665b956e24e9882c1760/packages/riviere-query/src/RiviereQuery.ts#L295)
 
 Returns entities with their domain operations.
 
@@ -391,7 +391,7 @@ for (const entity of orderEntities) {
 
 > **entryPoints**(): `Component`[]
 
-Defined in: [RiviereQuery.ts:359](https://github.com/ntcoding/living-architecture/blob/aced3ff111f4aa786ecadcb5e4f3eae782963f49/packages/riviere-query/src/RiviereQuery.ts#L359)
+Defined in: [RiviereQuery.ts:360](https://github.com/ntcoding/living-architecture/blob/ccfdb6e3781e7161105e665b956e24e9882c1760/packages/riviere-query/src/RiviereQuery.ts#L360)
 
 Returns components that are entry points to the system.
 
@@ -416,7 +416,7 @@ const entryPoints = query.entryPoints()
 
 > **eventHandlers**(`eventName?`): [`EventHandlerInfo`](../interfaces/EventHandlerInfo.md)[]
 
-Defined in: [RiviereQuery.ts:434](https://github.com/ntcoding/living-architecture/blob/aced3ff111f4aa786ecadcb5e4f3eae782963f49/packages/riviere-query/src/RiviereQuery.ts#L434)
+Defined in: [RiviereQuery.ts:435](https://github.com/ntcoding/living-architecture/blob/ccfdb6e3781e7161105e665b956e24e9882c1760/packages/riviere-query/src/RiviereQuery.ts#L435)
 
 Returns event handlers with their subscriptions.
 
@@ -443,11 +443,67 @@ const orderPlacedHandlers = query.eventHandlers('order-placed')
 
 ***
 
+### externalDomains()
+
+> **externalDomains**(): [`ExternalDomain`](../interfaces/ExternalDomain.md)[]
+
+Defined in: [RiviereQuery.ts:590](https://github.com/ntcoding/living-architecture/blob/ccfdb6e3781e7161105e665b956e24e9882c1760/packages/riviere-query/src/RiviereQuery.ts#L590)
+
+Returns external domains that components connect to.
+
+Each unique external target is returned as a separate ExternalDomain,
+with aggregated source domains and connection counts.
+
+#### Returns
+
+[`ExternalDomain`](../interfaces/ExternalDomain.md)[]
+
+Array of ExternalDomain objects, sorted alphabetically by name
+
+#### Example
+
+```typescript
+const externals = query.externalDomains()
+for (const ext of externals) {
+  console.log(`${ext.name}: ${ext.connectionCount} connections from ${ext.sourceDomains.join(', ')}`)
+}
+```
+
+***
+
+### externalLinks()
+
+> **externalLinks**(): `ExternalLink`[]
+
+Defined in: [RiviereQuery.ts:570](https://github.com/ntcoding/living-architecture/blob/ccfdb6e3781e7161105e665b956e24e9882c1760/packages/riviere-query/src/RiviereQuery.ts#L570)
+
+Returns all external links in the graph.
+
+External links represent connections from components to external
+systems that are not part of the graph (e.g., third-party APIs).
+
+#### Returns
+
+`ExternalLink`[]
+
+Array of all external links, or empty array if none exist
+
+#### Example
+
+```typescript
+const externalLinks = query.externalLinks()
+for (const link of externalLinks) {
+  console.log(`${link.source} -> ${link.target.name}`)
+}
+```
+
+***
+
 ### find()
 
 > **find**(`predicate`): `Component` \| `undefined`
 
-Defined in: [RiviereQuery.ts:161](https://github.com/ntcoding/living-architecture/blob/aced3ff111f4aa786ecadcb5e4f3eae782963f49/packages/riviere-query/src/RiviereQuery.ts#L161)
+Defined in: [RiviereQuery.ts:162](https://github.com/ntcoding/living-architecture/blob/ccfdb6e3781e7161105e665b956e24e9882c1760/packages/riviere-query/src/RiviereQuery.ts#L162)
 
 Finds the first component matching a predicate.
 
@@ -477,7 +533,7 @@ const checkout = query.find(c => c.name.includes('checkout'))
 
 > **findAll**(`predicate`): `Component`[]
 
-Defined in: [RiviereQuery.ts:178](https://github.com/ntcoding/living-architecture/blob/aced3ff111f4aa786ecadcb5e4f3eae782963f49/packages/riviere-query/src/RiviereQuery.ts#L178)
+Defined in: [RiviereQuery.ts:179](https://github.com/ntcoding/living-architecture/blob/ccfdb6e3781e7161105e665b956e24e9882c1760/packages/riviere-query/src/RiviereQuery.ts#L179)
 
 Finds all components matching a predicate.
 
@@ -509,7 +565,7 @@ const orderHandlers = query.findAll(c =>
 
 > **flows**(): [`Flow`](../interfaces/Flow.md)[]
 
-Defined in: [RiviereQuery.ts:458](https://github.com/ntcoding/living-architecture/blob/aced3ff111f4aa786ecadcb5e4f3eae782963f49/packages/riviere-query/src/RiviereQuery.ts#L458)
+Defined in: [RiviereQuery.ts:459](https://github.com/ntcoding/living-architecture/blob/ccfdb6e3781e7161105e665b956e24e9882c1760/packages/riviere-query/src/RiviereQuery.ts#L459)
 
 Returns all flows in the graph.
 
@@ -541,7 +597,7 @@ for (const flow of flows) {
 
 > **links**(): `Link`[]
 
-Defined in: [RiviereQuery.ts:110](https://github.com/ntcoding/living-architecture/blob/aced3ff111f4aa786ecadcb5e4f3eae782963f49/packages/riviere-query/src/RiviereQuery.ts#L110)
+Defined in: [RiviereQuery.ts:111](https://github.com/ntcoding/living-architecture/blob/ccfdb6e3781e7161105e665b956e24e9882c1760/packages/riviere-query/src/RiviereQuery.ts#L111)
 
 Returns all links in the graph.
 
@@ -564,7 +620,7 @@ console.log(`Total links: ${allLinks.length}`)
 
 > **nodeDepths**(): `Map`\<`string` & `$brand`\<`"ComponentId"`\>, `number`\>
 
-Defined in: [RiviereQuery.ts:549](https://github.com/ntcoding/living-architecture/blob/aced3ff111f4aa786ecadcb5e4f3eae782963f49/packages/riviere-query/src/RiviereQuery.ts#L549)
+Defined in: [RiviereQuery.ts:550](https://github.com/ntcoding/living-architecture/blob/ccfdb6e3781e7161105e665b956e24e9882c1760/packages/riviere-query/src/RiviereQuery.ts#L550)
 
 Calculates depth from entry points for each component.
 
@@ -591,7 +647,7 @@ for (const [id, depth] of depths) {
 
 > **operationsFor**(`entityName`): `DomainOpComponent`[]
 
-Defined in: [RiviereQuery.ts:274](https://github.com/ntcoding/living-architecture/blob/aced3ff111f4aa786ecadcb5e4f3eae782963f49/packages/riviere-query/src/RiviereQuery.ts#L274)
+Defined in: [RiviereQuery.ts:275](https://github.com/ntcoding/living-architecture/blob/ccfdb6e3781e7161105e665b956e24e9882c1760/packages/riviere-query/src/RiviereQuery.ts#L275)
 
 Returns all domain operations for a specific entity.
 
@@ -621,7 +677,7 @@ const orderOps = query.operationsFor('Order')
 
 > **publishedEvents**(`domainName?`): [`PublishedEvent`](../interfaces/PublishedEvent.md)[]
 
-Defined in: [RiviereQuery.ts:418](https://github.com/ntcoding/living-architecture/blob/aced3ff111f4aa786ecadcb5e4f3eae782963f49/packages/riviere-query/src/RiviereQuery.ts#L418)
+Defined in: [RiviereQuery.ts:419](https://github.com/ntcoding/living-architecture/blob/ccfdb6e3781e7161105e665b956e24e9882c1760/packages/riviere-query/src/RiviereQuery.ts#L419)
 
 Returns published events with their handlers.
 
@@ -656,7 +712,7 @@ for (const event of orderEvents) {
 
 > **search**(`query`): `Component`[]
 
-Defined in: [RiviereQuery.ts:211](https://github.com/ntcoding/living-architecture/blob/aced3ff111f4aa786ecadcb5e4f3eae782963f49/packages/riviere-query/src/RiviereQuery.ts#L211)
+Defined in: [RiviereQuery.ts:212](https://github.com/ntcoding/living-architecture/blob/ccfdb6e3781e7161105e665b956e24e9882c1760/packages/riviere-query/src/RiviereQuery.ts#L212)
 
 Searches components by name, domain, or type.
 
@@ -689,7 +745,7 @@ const results = query.search('order')
 
 > **searchWithFlow**(`query`, `options`): [`SearchWithFlowResult`](../interfaces/SearchWithFlowResult.md)
 
-Defined in: [RiviereQuery.ts:478](https://github.com/ntcoding/living-architecture/blob/aced3ff111f4aa786ecadcb5e4f3eae782963f49/packages/riviere-query/src/RiviereQuery.ts#L478)
+Defined in: [RiviereQuery.ts:479](https://github.com/ntcoding/living-architecture/blob/ccfdb6e3781e7161105e665b956e24e9882c1760/packages/riviere-query/src/RiviereQuery.ts#L479)
 
 Searches for components and returns their flow context.
 
@@ -729,7 +785,7 @@ console.log(`Showing ${result.visibleIds.length} nodes in context`)
 
 > **statesFor**(`entityName`): `string` & `$brand`\<`"State"`\>[]
 
-Defined in: [RiviereQuery.ts:342](https://github.com/ntcoding/living-architecture/blob/aced3ff111f4aa786ecadcb5e4f3eae782963f49/packages/riviere-query/src/RiviereQuery.ts#L342)
+Defined in: [RiviereQuery.ts:343](https://github.com/ntcoding/living-architecture/blob/ccfdb6e3781e7161105e665b956e24e9882c1760/packages/riviere-query/src/RiviereQuery.ts#L343)
 
 Returns ordered states for an entity based on transitions.
 
@@ -762,7 +818,7 @@ const orderStates = query.statesFor('Order')
 
 > **stats**(): [`GraphStats`](../interfaces/GraphStats.md)
 
-Defined in: [RiviereQuery.ts:530](https://github.com/ntcoding/living-architecture/blob/aced3ff111f4aa786ecadcb5e4f3eae782963f49/packages/riviere-query/src/RiviereQuery.ts#L530)
+Defined in: [RiviereQuery.ts:531](https://github.com/ntcoding/living-architecture/blob/ccfdb6e3781e7161105e665b956e24e9882c1760/packages/riviere-query/src/RiviereQuery.ts#L531)
 
 Returns aggregate statistics about the graph.
 
@@ -787,7 +843,7 @@ console.log(`Domains: ${stats.domainCount}`)
 
 > **traceFlow**(`startComponentId`): `object`
 
-Defined in: [RiviereQuery.ts:378](https://github.com/ntcoding/living-architecture/blob/aced3ff111f4aa786ecadcb5e4f3eae782963f49/packages/riviere-query/src/RiviereQuery.ts#L378)
+Defined in: [RiviereQuery.ts:379](https://github.com/ntcoding/living-architecture/blob/ccfdb6e3781e7161105e665b956e24e9882c1760/packages/riviere-query/src/RiviereQuery.ts#L379)
 
 Traces the complete flow bidirectionally from a starting component.
 
@@ -829,7 +885,7 @@ console.log(`Flow includes ${flow.componentIds.length} nodes`)
 
 > **transitionsFor**(`entityName`): [`EntityTransition`](../interfaces/EntityTransition.md)[]
 
-Defined in: [RiviereQuery.ts:324](https://github.com/ntcoding/living-architecture/blob/aced3ff111f4aa786ecadcb5e4f3eae782963f49/packages/riviere-query/src/RiviereQuery.ts#L324)
+Defined in: [RiviereQuery.ts:325](https://github.com/ntcoding/living-architecture/blob/ccfdb6e3781e7161105e665b956e24e9882c1760/packages/riviere-query/src/RiviereQuery.ts#L325)
 
 Returns state transitions for an entity.
 
@@ -859,7 +915,7 @@ const transitions = query.transitionsFor('Order')
 
 > **validate**(): [`ValidationResult`](../interfaces/ValidationResult.md)
 
-Defined in: [RiviereQuery.ts:129](https://github.com/ntcoding/living-architecture/blob/aced3ff111f4aa786ecadcb5e4f3eae782963f49/packages/riviere-query/src/RiviereQuery.ts#L129)
+Defined in: [RiviereQuery.ts:130](https://github.com/ntcoding/living-architecture/blob/ccfdb6e3781e7161105e665b956e24e9882c1760/packages/riviere-query/src/RiviereQuery.ts#L130)
 
 Validates the graph structure beyond schema validation.
 
@@ -886,7 +942,7 @@ if (!result.valid) {
 
 > `static` **fromJSON**(`json`): `RiviereQuery`
 
-Defined in: [RiviereQuery.ts:79](https://github.com/ntcoding/living-architecture/blob/aced3ff111f4aa786ecadcb5e4f3eae782963f49/packages/riviere-query/src/RiviereQuery.ts#L79)
+Defined in: [RiviereQuery.ts:80](https://github.com/ntcoding/living-architecture/blob/ccfdb6e3781e7161105e665b956e24e9882c1760/packages/riviere-query/src/RiviereQuery.ts#L80)
 
 Creates a RiviereQuery from raw JSON data.
 

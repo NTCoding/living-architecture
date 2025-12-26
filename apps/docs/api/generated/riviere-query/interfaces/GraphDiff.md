@@ -1,6 +1,6 @@
 # Interface: GraphDiff
 
-Defined in: [domain-types.ts:149](https://github.com/ntcoding/living-architecture/blob/aced3ff111f4aa786ecadcb5e4f3eae782963f49/packages/riviere-query/src/domain-types.ts#L149)
+Defined in: [domain-types.ts:149](https://github.com/ntcoding/living-architecture/blob/ccfdb6e3781e7161105e665b956e24e9882c1760/packages/riviere-query/src/domain-types.ts#L149)
 
 Complete diff between two graph versions.
 
@@ -10,7 +10,7 @@ Complete diff between two graph versions.
 
 > **components**: `object`
 
-Defined in: [domain-types.ts:151](https://github.com/ntcoding/living-architecture/blob/aced3ff111f4aa786ecadcb5e4f3eae782963f49/packages/riviere-query/src/domain-types.ts#L151)
+Defined in: [domain-types.ts:151](https://github.com/ntcoding/living-architecture/blob/ccfdb6e3781e7161105e665b956e24e9882c1760/packages/riviere-query/src/domain-types.ts#L151)
 
 Component changes.
 
@@ -38,7 +38,7 @@ Components present in old graph but not new.
 
 > **links**: `object`
 
-Defined in: [domain-types.ts:160](https://github.com/ntcoding/living-architecture/blob/aced3ff111f4aa786ecadcb5e4f3eae782963f49/packages/riviere-query/src/domain-types.ts#L160)
+Defined in: [domain-types.ts:160](https://github.com/ntcoding/living-architecture/blob/ccfdb6e3781e7161105e665b956e24e9882c1760/packages/riviere-query/src/domain-types.ts#L160)
 
 Link changes.
 
@@ -60,6 +60,6 @@ Links present in old graph but not new.
 
 > **stats**: [`DiffStats`](DiffStats.md)
 
-Defined in: [domain-types.ts:167](https://github.com/ntcoding/living-architecture/blob/aced3ff111f4aa786ecadcb5e4f3eae782963f49/packages/riviere-query/src/domain-types.ts#L167)
+Defined in: [domain-types.ts:167](https://github.com/ntcoding/living-architecture/blob/ccfdb6e3781e7161105e665b956e24e9882c1760/packages/riviere-query/src/domain-types.ts#L167)
 
 Summary statistics.

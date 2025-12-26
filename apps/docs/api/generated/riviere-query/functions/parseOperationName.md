@@ -2,7 +2,7 @@
 
 > **parseOperationName**(`value`): `string` & `$brand`\<`"OperationName"`\>
 
-Defined in: [domain-types.ts:303](https://github.com/ntcoding/living-architecture/blob/aced3ff111f4aa786ecadcb5e4f3eae782963f49/packages/riviere-query/src/domain-types.ts#L303)
+Defined in: [domain-types.ts:320](https://github.com/ntcoding/living-architecture/blob/ccfdb6e3781e7161105e665b956e24e9882c1760/packages/riviere-query/src/domain-types.ts#L320)
 
 Parses a string as an OperationName.
 

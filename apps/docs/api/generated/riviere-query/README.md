@@ -16,6 +16,7 @@
 - [EntityTransition](interfaces/EntityTransition.md)
 - [EventHandlerInfo](interfaces/EventHandlerInfo.md)
 - [EventSubscriber](interfaces/EventSubscriber.md)
+- [ExternalDomain](interfaces/ExternalDomain.md)
 - [Flow](interfaces/Flow.md)
 - [FlowStep](interfaces/FlowStep.md)
 - [GraphDiff](interfaces/GraphDiff.md)
