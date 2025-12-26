@@ -7,6 +7,7 @@ export default defineConfig({
   themeConfig: {
     nav: [
       { text: 'Guide', link: '/guide/' },
+      { text: 'Éclair', link: '/eclair/' },
       { text: 'CLI Reference', link: '/cli/' },
       { text: 'API Reference', link: '/api/' },
       { text: 'Concepts', link: '/concepts/graph-structure' },
@@ -66,6 +67,29 @@ export default defineConfig({
             { text: 'RiviereBuilder', link: '/api/riviere-builder' },
             { text: 'RiviereQuery', link: '/api/generated/riviere-query/classes/RiviereQuery' },
             { text: 'Types', link: '/api/generated/riviere-query/README' },
+          ]
+        }
+      ],
+      '/eclair/': [
+        {
+          text: 'User Guide',
+          items: [
+            { text: 'Introduction', link: '/eclair/' },
+            { text: 'Getting Started', link: '/eclair/getting-started' },
+            { text: 'Navigation', link: '/eclair/navigation' },
+          ]
+        },
+        {
+          text: 'Views',
+          items: [
+            { text: 'Overview', link: '/eclair/views/overview' },
+            { text: 'Full Graph', link: '/eclair/views/full-graph' },
+            { text: 'Domain Map', link: '/eclair/views/domain-map' },
+            { text: 'Flows', link: '/eclair/views/flows' },
+            { text: 'Entities', link: '/eclair/views/entities' },
+            { text: 'Events', link: '/eclair/views/events' },
+            { text: 'Compare', link: '/eclair/views/compare' },
+            { text: 'Domain Detail', link: '/eclair/views/domain-detail' },
           ]
         }
       ]
