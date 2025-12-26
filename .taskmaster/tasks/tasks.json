@@ -304,12 +304,13 @@
         "description": "defineCustomType() registers types, addCustom() validates against them at construction time",
         "details": "## Deliverable\nCustom type registration and validation that fails fast when types are undefined or required properties missing.\n\n## Context\n- PRD: `docs/project/PRD/active/PRD-phase-7-riviere-builder.md` (M2: D2.1, D2.2, D2.3)\n- HARD REQUIREMENT: Custom types MUST validate at construction time, not at build()\n- JSON Schema cannot cross-reference between components and customTypes, so builder must enforce this\n\n## Key Decisions\n- `defineCustomType()` registers type with required/optional property definitions\n- `addCustom()` validates customTypeName exists AND required properties present\n- Validation happens in `addCustom()`, NOT deferred to `build()`\n- Error messages must be actionable: list defined types, list missing properties\n\n## Acceptance Criteria\n### defineCustomType\n- Given valid definition → When defineCustomType({ name: 'MessageQueue', requiredProperties: { queueName: {...} } }) → Then type registered\n- Given duplicate type name → When defineCustomType() twice → Then throws \"Custom type 'X' already defined\"\n\n### addCustom validation\n- Given type 'MessageQueue' defined → When addCustom({ customTypeName: 'MessageQueue', ... }) → Then component created\n- Given undefined type → When addCustom({ customTypeName: 'UndefinedType', ... }) → Then throws IMMEDIATELY: \"Custom type 'UndefinedType' not defined. Defined types: MessageQueue, OtherType\"\n- Given type with requiredProperties → When addCustom() missing properties → Then throws IMMEDIATELY: \"Missing required properties for 'MessageQueue': queueName, messageType\"\n- Given all required properties provided → When addCustom() → Then succeeds\n\n### Error message quality\n- Given undefined type → When error thrown → Then lists all defined custom types\n- Given missing properties → When error thrown → Then lists all missing property names\n- Given type with optional properties → When only required provided → Then succeeds\n\n## Related Code\n- `packages/riviere-builder/src/lib/builder.ts` — implementation location\n- `packages/riviere-schema` — CustomComponent type\n\n## Verification\nnx test riviere-builder --testNamePattern \"defineCustomType|addCustom|custom type\"",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           "22"
         ],
         "priority": "high",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2025-12-26T20:17:36.610Z"
       },
       {
         "id": "24",
@@ -422,9 +423,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-12-26T18:08:12.594Z",
+      "lastModified": "2025-12-26T20:17:36.611Z",
       "taskCount": 31,
-      "completedCount": 21,
+      "completedCount": 22,
       "tags": [
         "master"
       ]

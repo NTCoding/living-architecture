@@ -2,6 +2,8 @@ import type {
   APIComponent,
   ApiType,
   Component,
+  CustomComponent,
+  CustomPropertyDefinition,
   DomainMetadata,
   DomainOpComponent,
   EventComponent,
@@ -95,6 +97,23 @@ export interface EventHandlerInput {
   domain: string
   module: string
   subscribedEvents: string[]
+  description?: string
+  sourceLocation: SourceLocation
+  metadata?: Record<string, unknown>
+}
+
+export interface CustomTypeInput {
+  name: string
+  description?: string
+  requiredProperties?: Record<string, CustomPropertyDefinition>
+  optionalProperties?: Record<string, CustomPropertyDefinition>
+}
+
+export interface CustomInput {
+  customTypeName: string
+  name: string
+  domain: string
+  module: string
   description?: string
   sourceLocation: SourceLocation
   metadata?: Record<string, unknown>
@@ -264,11 +283,75 @@ export class RiviereBuilder {
     return this.registerComponent(component)
   }
 
+  defineCustomType(input: CustomTypeInput): void {
+    if (!this.graph.metadata.customTypes) {
+      this.graph.metadata.customTypes = {}
+    }
+
+    if (this.graph.metadata.customTypes[input.name]) {
+      throw new Error(`Custom type '${input.name}' already defined`)
+    }
+
+    this.graph.metadata.customTypes[input.name] = {
+      ...(input.requiredProperties !== undefined && { requiredProperties: input.requiredProperties }),
+      ...(input.optionalProperties !== undefined && { optionalProperties: input.optionalProperties }),
+      ...(input.description !== undefined && { description: input.description }),
+    }
+  }
+
+  addCustom(input: CustomInput): CustomComponent {
+    this.validateCustomType(input.customTypeName)
+    this.validateRequiredProperties(input.customTypeName, input.metadata)
+    const id = this.generateComponentId(input.domain, input.module, 'custom', input.name)
+
+    const component: CustomComponent = {
+      id,
+      type: 'Custom',
+      customTypeName: input.customTypeName,
+      name: input.name,
+      domain: input.domain,
+      module: input.module,
+      sourceLocation: input.sourceLocation,
+      ...(input.description !== undefined && { description: input.description }),
+      ...(input.metadata !== undefined && { metadata: input.metadata }),
+    }
+    return this.registerComponent(component)
+  }
+
+  private validateCustomType(customTypeName: string): void {
+    const customTypes = this.graph.metadata.customTypes
+    if (!customTypes || !customTypes[customTypeName]) {
+      const definedTypes = customTypes ? Object.keys(customTypes).join(', ') : ''
+      throw new Error(`Custom type '${customTypeName}' not defined. Defined types: ${definedTypes}`)
+    }
+  }
+
+  private validateRequiredProperties(
+    customTypeName: string,
+    metadata: Record<string, unknown> | undefined
+  ): void {
+    const typeDefinition = this.graph.metadata.customTypes?.[customTypeName]
+    if (!typeDefinition?.requiredProperties) {
+      return
+    }
+
+    const requiredKeys = Object.keys(typeDefinition.requiredProperties)
+    const providedKeys = metadata ? Object.keys(metadata) : []
+    const missingKeys = requiredKeys.filter((key) => !providedKeys.includes(key))
+
+    if (missingKeys.length > 0) {
+      throw new Error(
+        `Missing required properties for '${customTypeName}': ${missingKeys.join(', ')}`
+      )
+    }
+  }
+
   private generateComponentId(domain: string, module: string, type: string, name: string): string {
     if (!this.graph.metadata.domains[domain]) {
       throw new Error(`Domain '${domain}' does not exist`)
     }
-    return `${domain}:${module}:${type}:${toKebabCase(name)}`
+    const nameSegment = name.toLowerCase().replace(/\s+/g, '-')
+    return `${domain}:${module}:${type}:${nameSegment}`
   }
 
   private registerComponent<T extends Component>(component: T): T {
@@ -278,10 +361,4 @@ export class RiviereBuilder {
     this.graph.components.push(component)
     return component
   }
-}
-
-function toKebabCase(str: string): string {
-  return str
-    .toLowerCase()
-    .replace(/\s+/g, '-')
 }
