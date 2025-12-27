@@ -14,10 +14,14 @@ import type {
   UIComponent,
   UseCaseComponent,
 } from '@living-architecture/riviere-schema'
+import type { ValidationResult } from '@living-architecture/riviere-query'
+import { calculateStats, findOrphans, findWarnings, validateGraph } from './inspection'
 import { similarityScore } from './string-similarity'
 import type {
   APIInput,
   BuilderOptions,
+  BuilderStats,
+  BuilderWarning,
   CustomInput,
   CustomTypeInput,
   DomainInput,
@@ -37,6 +41,8 @@ import type {
 export type {
   APIInput,
   BuilderOptions,
+  BuilderStats,
+  BuilderWarning,
   CustomInput,
   CustomTypeInput,
   DomainInput,
@@ -381,6 +387,22 @@ export class RiviereBuilder {
     }
     this.graph.externalLinks.push(externalLink)
     return externalLink
+  }
+
+  warnings(): BuilderWarning[] {
+    return findWarnings(this.graph)
+  }
+
+  stats(): BuilderStats {
+    return calculateStats(this.graph)
+  }
+
+  validate(): ValidationResult {
+    return validateGraph(this.graph)
+  }
+
+  orphans(): string[] {
+    return findOrphans(this.graph)
   }
 
   private sourceNotFoundError(id: string): Error {

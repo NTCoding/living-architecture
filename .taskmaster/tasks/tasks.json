@@ -376,12 +376,13 @@
         "description": "validate() checks graph, stats() returns counts, warnings() returns issues, orphans() finds disconnected",
         "details": "## Deliverable\nMethods to inspect and validate graph before final export.\n\n## Context\n- PRD: `docs/project/PRD/active/PRD-phase-7-riviere-builder.md` (M7: D7.1, D7.4, D7.5, D7.6)\n- Validation is the 5th phase in the 5-phase extraction algorithm\n- Provides feedback before final build()\n\n## Key Decisions\n- `validate()` runs full validation, returns ValidationResult with errors array\n- `stats()` returns counts: components by type, links, domains\n- `warnings()` returns non-fatal issues (orphans, unused domains, etc.)\n- `orphans()` returns components with no incoming OR outgoing links\n- Validation checks: dangling references, schema compliance, structural issues\n\n## Acceptance Criteria\n### validate\n- Given valid graph → When validate() → Then { valid: true, errors: [] }\n- Given dangling link reference → When validate() → Then error with path and code\n- Given missing required field → When validate() → Then error with specific path\n\n### stats\n- Given 5 APIs, 3 Events → When stats() → Then { API: 5, Event: 3, ... }\n- Given 2 domains → When stats() → Then domainCount: 2\n- Given 10 links → When stats() → Then linkCount: 10\n\n### warnings\n- Given orphan components → When warnings() → Then includes orphan warning\n- Given unused domain (defined but no components) → When warnings() → Then includes unused domain warning\n- Given no issues → When warnings() → Then returns []\n\n### orphans\n- Given component with no links → When orphans() → Then includes that component ID\n- Given all components linked → When orphans() → Then returns []\n- Given component with only outgoing links → When orphans() → Then excludes it (has connections)\n\n## Related Code\n- `packages/riviere-builder/src/lib/builder.ts` — implementation location\n- `packages/riviere-query/src/graph-validation.ts` — validation pattern reference\n\n## Verification\nnx test riviere-builder --testNamePattern \"validate|stats|warnings|orphans\"",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           "25"
         ],
         "priority": "high",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2025-12-27T01:21:38.351Z"
       },
       {
         "id": "29",
@@ -425,9 +426,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-12-27T00:26:35.492Z",
+      "lastModified": "2025-12-27T01:21:38.352Z",
       "taskCount": 31,
-      "completedCount": 24,
+      "completedCount": 25,
       "tags": [
         "master"
       ]
