@@ -434,10 +434,11 @@
         "description": "Create CLI package, configure binary, set up command routing and shared output infrastructure",
         "details": "## Deliverable: Working CLI package with `riviere --help`, `riviere builder --help`, and `riviere query --help`\n\n### Context\nPhase 8 PRD: `docs/project/PRD/active/PRD-phase-8-riviere-cli.md`\n\nThis is the foundation for all CLI commands. The CLI is a thin wrapper over riviere-builder and riviere-query libraries.\n\n### Key Decisions and Principles\n- **Commander.js** — CLI framework (resolved in PRD)\n- **Thin wrapper** — CLI mirrors library API, no CLI-specific logic\n- **Integration tests only** — Verify CLI-to-library interaction, not domain logic\n- **Binary name: `riviere`** — Works with npx\n\n### Delivers\n- Package `@living-architecture/riviere-cli` created via nx generator\n- Binary `riviere` configured in package.json\n- Root command shows version and command list\n- `riviere builder` subcommand group (empty, ready for commands)\n- `riviere query` subcommand group (empty, ready for commands)\n- Shared output utilities:\n  - `--json` flag support infrastructure\n  - Success/error JSON schema: `{ success, data, warnings }` / `{ success, error: { code, message, suggestions } }`\n  - Human-readable output (stderr for progress, stdout for results)\n- Error codes enum (GRAPH_NOT_FOUND, COMPONENT_NOT_FOUND, etc.)\n\n### Acceptance Criteria\n- Given the package is installed, When running `npx riviere --help`, Then shows version and available commands (builder, query)\n- Given the package is installed, When running `npx riviere builder --help`, Then shows builder subcommand list\n- Given the package is installed, When running `npx riviere query --help`, Then shows query subcommand list\n- Given the package is installed, When running `npx riviere --version`, Then shows package version\n- Given an invalid command, When running `npx riviere invalid`, Then exits with error code and helpful message\n\n### Dependencies\n- NX monorepo already set up\n- riviere-builder and riviere-query packages exist\n\n### Related Code\n- `packages/riviere-builder/` — Builder package structure to follow\n- `packages/riviere-builder/package.json` — Package.json patterns\n\n### Verification\n```bash\nnx build riviere-cli\nnpx riviere --help\nnpx riviere --version\nnpx riviere builder --help\nnpx riviere query --help\nnx test riviere-cli\n```",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [],
         "priority": "high",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2025-12-27T20:27:55.362Z"
       },
       {
         "id": "33",
@@ -585,9 +586,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-12-27T12:13:13.195Z",
+      "lastModified": "2025-12-27T20:27:55.363Z",
       "taskCount": 43,
-      "completedCount": 30,
+      "completedCount": 31,
       "tags": [
         "master"
       ]

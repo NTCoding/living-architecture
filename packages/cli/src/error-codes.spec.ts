@@ -1,0 +1,15 @@
+import { CliErrorCode } from './error-codes';
+
+describe('CliErrorCode', () => {
+  it.each([
+    ['GraphNotFound', 'GRAPH_NOT_FOUND'],
+    ['ComponentNotFound', 'COMPONENT_NOT_FOUND'],
+    ['DomainNotFound', 'DOMAIN_NOT_FOUND'],
+    ['DuplicateComponent', 'DUPLICATE_COMPONENT'],
+    ['InvalidLink', 'INVALID_LINK'],
+    ['ValidationError', 'VALIDATION_ERROR'],
+    ['GraphCorrupted', 'GRAPH_CORRUPTED'],
+  ] as const)('defines %s error code with value %s', (member, value) => {
+    expect(CliErrorCode[member]).toBe(value);
+  });
+});
