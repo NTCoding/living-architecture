@@ -405,12 +405,13 @@
         "description": "query() returns RiviereQuery instance for current graph state",
         "details": "## Deliverable\nIntegration with riviere-query package for querying built graphs.\n\n## Context\n- PRD: `docs/project/PRD/active/PRD-phase-7-riviere-builder.md` (M8: D8.1, D8.2)\n- Builder depends on riviere-query package\n- Allows querying graph during construction (validation deferred)\n\n## Key Decisions\n- `query()` returns RiviereQuery instance wrapping current graph state\n- Query reflects current builder state (mid-construction is OK)\n- Query methods work even before full validation\n- Useful for finding components during linking phase\n\n## Acceptance Criteria\n### query\n- Given builder with components → When query() → Then returns RiviereQuery instance\n- Given query instance → When query.componentsByType('API') → Then returns APIs in builder\n- Given mid-construction builder → When query() → Then still works (no validation required)\n\n### Query reflects state\n- Given builder → When addApi() then query().componentsByType('API') → Then includes new API\n- Given builder → When modifying builder after query() → Then subsequent query() reflects changes\n\n## Related Code\n- `packages/riviere-builder/src/lib/builder.ts` — implementation location\n- `packages/riviere-query/src/RiviereQuery.ts` — RiviereQuery class to instantiate\n\n## Verification\nnx test riviere-builder --testNamePattern \"query\"",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           "22"
         ],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2025-12-27T10:33:42.512Z"
       },
       {
         "id": "31",
@@ -428,9 +429,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-12-27T09:18:05.539Z",
+      "lastModified": "2025-12-27T10:33:42.513Z",
       "taskCount": 31,
-      "completedCount": 27,
+      "completedCount": 28,
       "tags": [
         "master"
       ]

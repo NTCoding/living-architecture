@@ -16,7 +16,7 @@ import type {
   UIComponent,
   UseCaseComponent,
 } from '@living-architecture/riviere-schema'
-import type { ValidationResult } from '@living-architecture/riviere-query'
+import { RiviereQuery, type ValidationResult } from '@living-architecture/riviere-query'
 import { calculateStats, findOrphans, findWarnings, toRiviereGraph, validateGraph } from './inspection'
 import { assertCustomTypeExists, assertDomainExists, assertRequiredPropertiesProvided } from './builder-assertions'
 import { ComponentId } from './component-id'
@@ -375,6 +375,10 @@ export class RiviereBuilder {
 
   orphans(): string[] {
     return findOrphans(this.graph)
+  }
+
+  query(): RiviereQuery {
+    return new RiviereQuery(toRiviereGraph(this.graph))
   }
 
   build(): RiviereGraph {
