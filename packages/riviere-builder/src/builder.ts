@@ -82,6 +82,25 @@ export class RiviereBuilder {
     this.graph = graph
   }
 
+  static resume(graph: RiviereGraph): RiviereBuilder {
+    if (!graph.metadata.sources || graph.metadata.sources.length === 0) {
+      throw new Error('Invalid graph: missing sources')
+    }
+
+    const builderGraph: BuilderGraph = {
+      version: graph.version,
+      metadata: {
+        ...graph.metadata,
+        sources: graph.metadata.sources,
+        customTypes: graph.metadata.customTypes ?? {},
+      },
+      components: graph.components,
+      links: graph.links,
+      externalLinks: graph.externalLinks ?? [],
+    }
+    return new RiviereBuilder(builderGraph)
+  }
+
   static new(options: BuilderOptions): RiviereBuilder {
     if (options.sources.length === 0) {
       throw new Error('At least one source required')
@@ -379,6 +398,10 @@ export class RiviereBuilder {
 
   query(): RiviereQuery {
     return new RiviereQuery(toRiviereGraph(this.graph))
+  }
+
+  serialize(): string {
+    return JSON.stringify(this.graph, null, 2)
   }
 
   build(): RiviereGraph {
