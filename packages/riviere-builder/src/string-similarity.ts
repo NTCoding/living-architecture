@@ -1,4 +1,16 @@
-
+/**
+ * Calculates the Levenshtein edit distance between two strings.
+ *
+ * @param a - First string
+ * @param b - Second string
+ * @returns Number of single-character edits needed to transform a into b
+ *
+ * @example
+ * ```typescript
+ * levenshteinDistance('kitten', 'sitting') // 3
+ * levenshteinDistance('hello', 'hello') // 0
+ * ```
+ */
 export function levenshteinDistance(a: string, b: string): number  {
   if (a.length === 0) return b.length
   if (b.length === 0) return a.length
@@ -22,6 +34,22 @@ export function levenshteinDistance(a: string, b: string): number  {
   return finalRow[b.length] ?? 0
 }
 
+/**
+ * Calculates normalized similarity score between two strings.
+ *
+ * Returns 1.0 for identical strings, 0.0 for completely different strings.
+ * Case-insensitive comparison.
+ *
+ * @param a - First string
+ * @param b - Second string
+ * @returns Similarity score from 0.0 to 1.0
+ *
+ * @example
+ * ```typescript
+ * similarityScore('Order', 'order') // 1.0
+ * similarityScore('Order', 'Ordr') // 0.8
+ * ```
+ */
 export function similarityScore(a: string, b: string): number {
   const aLower = a.toLowerCase()
   const bLower = b.toLowerCase()

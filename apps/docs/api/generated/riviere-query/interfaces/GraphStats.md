@@ -1,6 +1,6 @@
 # Interface: GraphStats
 
-Defined in: [domain-types.ts:234](https://github.com/ntcoding/living-architecture/blob/b60ad4799408c0a38070973ef0e218212bccdf18/packages/riviere-query/src/domain-types.ts#L234)
+Defined in: [domain-types.ts:234](https://github.com/ntcoding/living-architecture/blob/0187e5d7378806600c01437dfa0ddf19b749a24f/packages/riviere-query/src/domain-types.ts#L234)
 
 Aggregate statistics about a graph.
 
@@ -10,7 +10,7 @@ Aggregate statistics about a graph.
 
 > **apiCount**: `number`
 
-Defined in: [domain-types.ts:242](https://github.com/ntcoding/living-architecture/blob/b60ad4799408c0a38070973ef0e218212bccdf18/packages/riviere-query/src/domain-types.ts#L242)
+Defined in: [domain-types.ts:242](https://github.com/ntcoding/living-architecture/blob/0187e5d7378806600c01437dfa0ddf19b749a24f/packages/riviere-query/src/domain-types.ts#L242)
 
 Number of API components.
 
@@ -20,7 +20,7 @@ Number of API components.
 
 > **componentCount**: `number`
 
-Defined in: [domain-types.ts:236](https://github.com/ntcoding/living-architecture/blob/b60ad4799408c0a38070973ef0e218212bccdf18/packages/riviere-query/src/domain-types.ts#L236)
+Defined in: [domain-types.ts:236](https://github.com/ntcoding/living-architecture/blob/0187e5d7378806600c01437dfa0ddf19b749a24f/packages/riviere-query/src/domain-types.ts#L236)
 
 Total number of components.
 
@@ -30,7 +30,7 @@ Total number of components.
 
 > **domainCount**: `number`
 
-Defined in: [domain-types.ts:240](https://github.com/ntcoding/living-architecture/blob/b60ad4799408c0a38070973ef0e218212bccdf18/packages/riviere-query/src/domain-types.ts#L240)
+Defined in: [domain-types.ts:240](https://github.com/ntcoding/living-architecture/blob/0187e5d7378806600c01437dfa0ddf19b749a24f/packages/riviere-query/src/domain-types.ts#L240)
 
 Number of domains.
 
@@ -40,7 +40,7 @@ Number of domains.
 
 > **entityCount**: `number`
 
-Defined in: [domain-types.ts:244](https://github.com/ntcoding/living-architecture/blob/b60ad4799408c0a38070973ef0e218212bccdf18/packages/riviere-query/src/domain-types.ts#L244)
+Defined in: [domain-types.ts:244](https://github.com/ntcoding/living-architecture/blob/0187e5d7378806600c01437dfa0ddf19b749a24f/packages/riviere-query/src/domain-types.ts#L244)
 
 Number of unique entities.
 
@@ -50,7 +50,7 @@ Number of unique entities.
 
 > **eventCount**: `number`
 
-Defined in: [domain-types.ts:246](https://github.com/ntcoding/living-architecture/blob/b60ad4799408c0a38070973ef0e218212bccdf18/packages/riviere-query/src/domain-types.ts#L246)
+Defined in: [domain-types.ts:246](https://github.com/ntcoding/living-architecture/blob/0187e5d7378806600c01437dfa0ddf19b749a24f/packages/riviere-query/src/domain-types.ts#L246)
 
 Number of Event components.
 
@@ -60,6 +60,6 @@ Number of Event components.
 
 > **linkCount**: `number`
 
-Defined in: [domain-types.ts:238](https://github.com/ntcoding/living-architecture/blob/b60ad4799408c0a38070973ef0e218212bccdf18/packages/riviere-query/src/domain-types.ts#L238)
+Defined in: [domain-types.ts:238](https://github.com/ntcoding/living-architecture/blob/0187e5d7378806600c01437dfa0ddf19b749a24f/packages/riviere-query/src/domain-types.ts#L238)
 
 Total number of links.

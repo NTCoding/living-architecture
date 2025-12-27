@@ -25,6 +25,18 @@ interface InspectionGraph {
   externalLinks: ExternalLink[]
 }
 
+/**
+ * Finds components with no incoming or outgoing links.
+ *
+ * @param graph - The graph to inspect
+ * @returns Array of orphaned component IDs
+ *
+ * @example
+ * ```typescript
+ * const orphans = findOrphans(graph)
+ * // ['orders:checkout:api:unused-endpoint']
+ * ```
+ */
 export function findOrphans(graph: InspectionGraph): string[] {
   const connectedIds = new Set<string>()
 
@@ -40,6 +52,18 @@ export function findOrphans(graph: InspectionGraph): string[] {
   return graph.components.filter((c) => !connectedIds.has(c.id)).map((c) => c.id)
 }
 
+/**
+ * Calculates statistics about the graph.
+ *
+ * @param graph - The graph to analyze
+ * @returns Object with component counts, link counts, and domain count
+ *
+ * @example
+ * ```typescript
+ * const stats = calculateStats(graph)
+ * // { componentCount: 10, linkCount: 8, domainCount: 2, ... }
+ * ```
+ */
 export function calculateStats(graph: InspectionGraph): BuilderStats {
   const components = graph.components
   return {
@@ -59,6 +83,20 @@ export function calculateStats(graph: InspectionGraph): BuilderStats {
   }
 }
 
+/**
+ * Finds non-fatal issues in the graph.
+ *
+ * Detects orphaned components and unused domains.
+ *
+ * @param graph - The graph to inspect
+ * @returns Array of warning objects
+ *
+ * @example
+ * ```typescript
+ * const warnings = findWarnings(graph)
+ * // [{ code: 'ORPHAN_COMPONENT', message: '...', componentId: '...' }]
+ * ```
+ */
 export function findWarnings(graph: InspectionGraph): BuilderWarning[] {
   const warnings: BuilderWarning[] = []
 
@@ -84,6 +122,20 @@ export function findWarnings(graph: InspectionGraph): BuilderWarning[] {
   return warnings
 }
 
+/**
+ * Converts builder internal graph to schema-compliant RiviereGraph.
+ *
+ * Removes undefined optional fields and ensures proper structure.
+ *
+ * @param graph - The internal builder graph
+ * @returns Schema-compliant RiviereGraph
+ *
+ * @example
+ * ```typescript
+ * const output = toRiviereGraph(builderGraph)
+ * JSON.stringify(output) // Valid Rivière JSON
+ * ```
+ */
 export function toRiviereGraph(graph: InspectionGraph): RiviereGraph {
   const hasCustomTypes = Object.keys(graph.metadata.customTypes).length > 0
   const hasExternalLinks = graph.externalLinks.length > 0
@@ -103,6 +155,20 @@ export function toRiviereGraph(graph: InspectionGraph): RiviereGraph {
   }
 }
 
+/**
+ * Validates the graph against the Rivière schema.
+ *
+ * @param graph - The graph to validate
+ * @returns Validation result with valid flag and any errors
+ *
+ * @example
+ * ```typescript
+ * const result = validateGraph(graph)
+ * if (!result.valid) {
+ *   console.error(result.errors)
+ * }
+ * ```
+ */
 export function validateGraph(graph: InspectionGraph): ValidationResult {
   return new RiviereQuery(toRiviereGraph(graph)).validate()
 }

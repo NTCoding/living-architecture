@@ -1,6 +1,6 @@
 # Interface: PublishedEvent
 
-Defined in: [event-types.ts:52](https://github.com/ntcoding/living-architecture/blob/b60ad4799408c0a38070973ef0e218212bccdf18/packages/riviere-query/src/event-types.ts#L52)
+Defined in: [event-types.ts:52](https://github.com/ntcoding/living-architecture/blob/0187e5d7378806600c01437dfa0ddf19b749a24f/packages/riviere-query/src/event-types.ts#L52)
 
 A published event with its subscribers.
 
@@ -10,7 +10,7 @@ A published event with its subscribers.
 
 > **domain**: `string` & `$brand`\<`"DomainName"`\>
 
-Defined in: [event-types.ts:58](https://github.com/ntcoding/living-architecture/blob/b60ad4799408c0a38070973ef0e218212bccdf18/packages/riviere-query/src/event-types.ts#L58)
+Defined in: [event-types.ts:58](https://github.com/ntcoding/living-architecture/blob/0187e5d7378806600c01437dfa0ddf19b749a24f/packages/riviere-query/src/event-types.ts#L58)
 
 The domain that publishes the event.
 
@@ -20,7 +20,7 @@ The domain that publishes the event.
 
 > **eventName**: `string` & `$brand`\<`"EventName"`\>
 
-Defined in: [event-types.ts:56](https://github.com/ntcoding/living-architecture/blob/b60ad4799408c0a38070973ef0e218212bccdf18/packages/riviere-query/src/event-types.ts#L56)
+Defined in: [event-types.ts:56](https://github.com/ntcoding/living-architecture/blob/0187e5d7378806600c01437dfa0ddf19b749a24f/packages/riviere-query/src/event-types.ts#L56)
 
 The event name.
 
@@ -30,7 +30,7 @@ The event name.
 
 > **handlers**: [`EventSubscriber`](EventSubscriber.md)[]
 
-Defined in: [event-types.ts:60](https://github.com/ntcoding/living-architecture/blob/b60ad4799408c0a38070973ef0e218212bccdf18/packages/riviere-query/src/event-types.ts#L60)
+Defined in: [event-types.ts:60](https://github.com/ntcoding/living-architecture/blob/0187e5d7378806600c01437dfa0ddf19b749a24f/packages/riviere-query/src/event-types.ts#L60)
 
 Event handlers subscribed to this event.
 
@@ -40,6 +40,6 @@ Event handlers subscribed to this event.
 
 > **id**: `string` & `$brand`\<`"EventId"`\>
 
-Defined in: [event-types.ts:54](https://github.com/ntcoding/living-architecture/blob/b60ad4799408c0a38070973ef0e218212bccdf18/packages/riviere-query/src/event-types.ts#L54)
+Defined in: [event-types.ts:54](https://github.com/ntcoding/living-architecture/blob/0187e5d7378806600c01437dfa0ddf19b749a24f/packages/riviere-query/src/event-types.ts#L54)
 
 The event component's ID.

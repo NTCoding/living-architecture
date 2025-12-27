@@ -1,6 +1,6 @@
 # Interface: DiffStats
 
-Defined in: [domain-types.ts:133](https://github.com/ntcoding/living-architecture/blob/b60ad4799408c0a38070973ef0e218212bccdf18/packages/riviere-query/src/domain-types.ts#L133)
+Defined in: [domain-types.ts:133](https://github.com/ntcoding/living-architecture/blob/0187e5d7378806600c01437dfa0ddf19b749a24f/packages/riviere-query/src/domain-types.ts#L133)
 
 Summary statistics of differences between graphs.
 
@@ -10,7 +10,7 @@ Summary statistics of differences between graphs.
 
 > **componentsAdded**: `number`
 
-Defined in: [domain-types.ts:135](https://github.com/ntcoding/living-architecture/blob/b60ad4799408c0a38070973ef0e218212bccdf18/packages/riviere-query/src/domain-types.ts#L135)
+Defined in: [domain-types.ts:135](https://github.com/ntcoding/living-architecture/blob/0187e5d7378806600c01437dfa0ddf19b749a24f/packages/riviere-query/src/domain-types.ts#L135)
 
 Number of components added.
 
@@ -20,7 +20,7 @@ Number of components added.
 
 > **componentsModified**: `number`
 
-Defined in: [domain-types.ts:139](https://github.com/ntcoding/living-architecture/blob/b60ad4799408c0a38070973ef0e218212bccdf18/packages/riviere-query/src/domain-types.ts#L139)
+Defined in: [domain-types.ts:139](https://github.com/ntcoding/living-architecture/blob/0187e5d7378806600c01437dfa0ddf19b749a24f/packages/riviere-query/src/domain-types.ts#L139)
 
 Number of components modified.
 
@@ -30,7 +30,7 @@ Number of components modified.
 
 > **componentsRemoved**: `number`
 
-Defined in: [domain-types.ts:137](https://github.com/ntcoding/living-architecture/blob/b60ad4799408c0a38070973ef0e218212bccdf18/packages/riviere-query/src/domain-types.ts#L137)
+Defined in: [domain-types.ts:137](https://github.com/ntcoding/living-architecture/blob/0187e5d7378806600c01437dfa0ddf19b749a24f/packages/riviere-query/src/domain-types.ts#L137)
 
 Number of components removed.
 
@@ -40,7 +40,7 @@ Number of components removed.
 
 > **linksAdded**: `number`
 
-Defined in: [domain-types.ts:141](https://github.com/ntcoding/living-architecture/blob/b60ad4799408c0a38070973ef0e218212bccdf18/packages/riviere-query/src/domain-types.ts#L141)
+Defined in: [domain-types.ts:141](https://github.com/ntcoding/living-architecture/blob/0187e5d7378806600c01437dfa0ddf19b749a24f/packages/riviere-query/src/domain-types.ts#L141)
 
 Number of links added.
 
@@ -50,6 +50,6 @@ Number of links added.
 
 > **linksRemoved**: `number`
 
-Defined in: [domain-types.ts:143](https://github.com/ntcoding/living-architecture/blob/b60ad4799408c0a38070973ef0e218212bccdf18/packages/riviere-query/src/domain-types.ts#L143)
+Defined in: [domain-types.ts:143](https://github.com/ntcoding/living-architecture/blob/0187e5d7378806600c01437dfa0ddf19b749a24f/packages/riviere-query/src/domain-types.ts#L143)
 
 Number of links removed.

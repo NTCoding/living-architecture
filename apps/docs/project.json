@@ -8,7 +8,7 @@
       }
     },
     "build": {
-      "dependsOn": ["lint", "^build", "riviere-query:typedoc"]
+      "dependsOn": ["lint", "^build", "riviere-query:typedoc", "riviere-builder:typedoc"]
     }
   }
 }

@@ -1,0 +1,13 @@
+{
+  "name": "riviere-builder",
+  "targets": {
+    "typedoc": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm exec typedoc --options packages/riviere-builder/typedoc.json",
+        "cwd": "{workspaceRoot}"
+      },
+      "dependsOn": ["build"]
+    }
+  }
+}

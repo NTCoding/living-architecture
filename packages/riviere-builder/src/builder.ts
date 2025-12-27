@@ -75,6 +75,32 @@ interface BuilderGraph extends Omit<RiviereGraph, 'metadata' | 'externalLinks'> 
   externalLinks: ExternalLink[]
 }
 
+/**
+ * Programmatically construct Rivière architecture graphs.
+ *
+ * RiviereBuilder provides a fluent API for creating graphs, adding components,
+ * linking them together, and exporting valid JSON conforming to the Rivière schema.
+ *
+ * @example
+ * ```typescript
+ * import { RiviereBuilder } from '@living-architecture/riviere-builder'
+ *
+ * const builder = RiviereBuilder.new({
+ *   sources: [{ type: 'git', url: 'https://github.com/org/repo' }],
+ *   domains: { orders: { description: 'Order management' } }
+ * })
+ *
+ * const api = builder.addApi({
+ *   name: 'Create Order',
+ *   domain: 'orders',
+ *   module: 'checkout',
+ *   apiType: 'REST',
+ *   sourceLocation: { file: 'src/api/orders.ts', line: 10 }
+ * })
+ *
+ * const graph = builder.build()
+ * ```
+ */
 export class RiviereBuilder {
   graph: BuilderGraph
 
@@ -82,6 +108,24 @@ export class RiviereBuilder {
     this.graph = graph
   }
 
+  /**
+   * Restores a builder from a previously serialized graph.
+   *
+   * Use this to continue building a graph that was saved mid-construction,
+   * or to modify an existing graph.
+   *
+   * @param graph - A valid RiviereGraph object to resume from
+   * @returns A new RiviereBuilder instance with the graph state restored
+   * @throws If the graph is missing required sources
+   *
+   * @example
+   * ```typescript
+   * const json = await fs.readFile('draft.json', 'utf-8')
+   * const graph = JSON.parse(json)
+   * const builder = RiviereBuilder.resume(graph)
+   * builder.addApi({ ... })
+   * ```
+   */
   static resume(graph: RiviereGraph): RiviereBuilder {
     if (!graph.metadata.sources || graph.metadata.sources.length === 0) {
       throw new Error('Invalid graph: missing sources')
@@ -101,6 +145,26 @@ export class RiviereBuilder {
     return new RiviereBuilder(builderGraph)
   }
 
+  /**
+   * Creates a new builder with initial configuration.
+   *
+   * @param options - Configuration including sources and domains
+   * @returns A new RiviereBuilder instance
+   * @throws If sources array is empty
+   * @throws If domains object is empty
+   *
+   * @example
+   * ```typescript
+   * const builder = RiviereBuilder.new({
+   *   name: 'My System',
+   *   sources: [{ type: 'git', url: 'https://github.com/org/repo' }],
+   *   domains: {
+   *     orders: { description: 'Order management' },
+   *     users: { description: 'User accounts' }
+   *   }
+   * })
+   * ```
+   */
   static new(options: BuilderOptions): RiviereBuilder {
     if (options.sources.length === 0) {
       throw new Error('At least one source required')
@@ -127,10 +191,37 @@ export class RiviereBuilder {
     return new RiviereBuilder(graph)
   }
 
+  /**
+   * Adds an additional source repository to the graph.
+   *
+   * @param source - Source repository information
+   *
+   * @example
+   * ```typescript
+   * builder.addSource({
+   *   type: 'git',
+   *   url: 'https://github.com/org/another-repo'
+   * })
+   * ```
+   */
   addSource(source: SourceInfo): void {
     this.graph.metadata.sources.push(source)
   }
 
+  /**
+   * Adds a new domain to the graph.
+   *
+   * @param input - Domain name and description
+   * @throws If domain with same name already exists
+   *
+   * @example
+   * ```typescript
+   * builder.addDomain({
+   *   name: 'payments',
+   *   description: 'Payment processing'
+   * })
+   * ```
+   */
   addDomain(input: DomainInput): void {
     if (this.graph.metadata.domains[input.name]) {
       throw new Error(`Domain '${input.name}' already exists`)
@@ -142,6 +233,24 @@ export class RiviereBuilder {
     }
   }
 
+  /**
+   * Adds a UI component to the graph.
+   *
+   * @param input - UI component properties including route and source location
+   * @returns The created UI component with generated ID
+   * @throws If the specified domain does not exist
+   *
+   * @example
+   * ```typescript
+   * const ui = builder.addUI({
+   *   name: 'Order List',
+   *   domain: 'orders',
+   *   module: 'dashboard',
+   *   route: '/orders',
+   *   sourceLocation: { file: 'src/pages/OrderList.tsx', line: 15 }
+   * })
+   * ```
+   */
   addUI(input: UIInput): UIComponent {
     this.validateDomainExists(input.domain)
     const id = this.generateComponentId(input.domain, input.module, 'ui', input.name)
@@ -160,6 +269,26 @@ export class RiviereBuilder {
     return this.registerComponent(component)
   }
 
+  /**
+   * Adds an API component to the graph.
+   *
+   * @param input - API component properties including type, method, and path
+   * @returns The created API component with generated ID
+   * @throws If the specified domain does not exist
+   *
+   * @example
+   * ```typescript
+   * const api = builder.addApi({
+   *   name: 'Create Order',
+   *   domain: 'orders',
+   *   module: 'checkout',
+   *   apiType: 'REST',
+   *   httpMethod: 'POST',
+   *   path: '/api/orders',
+   *   sourceLocation: { file: 'src/api/orders.ts', line: 25 }
+   * })
+   * ```
+   */
   addApi(input: APIInput): APIComponent {
     this.validateDomainExists(input.domain)
     const id = this.generateComponentId(input.domain, input.module, 'api', input.name)
@@ -181,6 +310,23 @@ export class RiviereBuilder {
     return this.registerComponent(component)
   }
 
+  /**
+   * Adds a UseCase component to the graph.
+   *
+   * @param input - UseCase component properties
+   * @returns The created UseCase component with generated ID
+   * @throws If the specified domain does not exist
+   *
+   * @example
+   * ```typescript
+   * const useCase = builder.addUseCase({
+   *   name: 'Place Order',
+   *   domain: 'orders',
+   *   module: 'checkout',
+   *   sourceLocation: { file: 'src/usecases/PlaceOrder.ts', line: 10 }
+   * })
+   * ```
+   */
   addUseCase(input: UseCaseInput): UseCaseComponent {
     this.validateDomainExists(input.domain)
     const id = this.generateComponentId(input.domain, input.module, 'usecase', input.name)
@@ -198,6 +344,28 @@ export class RiviereBuilder {
     return this.registerComponent(component)
   }
 
+  /**
+   * Adds a DomainOp component to the graph.
+   *
+   * DomainOp represents domain operations that change entity state.
+   * Can be enriched later with state changes and business rules.
+   *
+   * @param input - DomainOp component properties including operation name
+   * @returns The created DomainOp component with generated ID
+   * @throws If the specified domain does not exist
+   *
+   * @example
+   * ```typescript
+   * const domainOp = builder.addDomainOp({
+   *   name: 'Confirm Order',
+   *   domain: 'orders',
+   *   module: 'fulfillment',
+   *   operationName: 'confirmOrder',
+   *   entity: 'Order',
+   *   sourceLocation: { file: 'src/domain/Order.ts', line: 45 }
+   * })
+   * ```
+   */
   addDomainOp(input: DomainOpInput): DomainOpComponent {
     this.validateDomainExists(input.domain)
     const id = this.generateComponentId(input.domain, input.module, 'domainop', input.name)
@@ -221,6 +389,24 @@ export class RiviereBuilder {
     return this.registerComponent(component)
   }
 
+  /**
+   * Adds an Event component to the graph.
+   *
+   * @param input - Event component properties including event name
+   * @returns The created Event component with generated ID
+   * @throws If the specified domain does not exist
+   *
+   * @example
+   * ```typescript
+   * const event = builder.addEvent({
+   *   name: 'Order Placed',
+   *   domain: 'orders',
+   *   module: 'checkout',
+   *   eventName: 'OrderPlaced',
+   *   sourceLocation: { file: 'src/events/OrderPlaced.ts', line: 5 }
+   * })
+   * ```
+   */
   addEvent(input: EventInput): EventComponent {
     this.validateDomainExists(input.domain)
     const id = this.generateComponentId(input.domain, input.module, 'event', input.name)
@@ -240,6 +426,24 @@ export class RiviereBuilder {
     return this.registerComponent(component)
   }
 
+  /**
+   * Adds an EventHandler component to the graph.
+   *
+   * @param input - EventHandler component properties including subscribed events
+   * @returns The created EventHandler component with generated ID
+   * @throws If the specified domain does not exist
+   *
+   * @example
+   * ```typescript
+   * const handler = builder.addEventHandler({
+   *   name: 'Send Confirmation Email',
+   *   domain: 'notifications',
+   *   module: 'email',
+   *   subscribedEvents: ['OrderPlaced'],
+   *   sourceLocation: { file: 'src/handlers/OrderConfirmation.ts', line: 10 }
+   * })
+   * ```
+   */
   addEventHandler(input: EventHandlerInput): EventHandlerComponent {
     this.validateDomainExists(input.domain)
     const id = this.generateComponentId(input.domain, input.module, 'eventhandler', input.name)
@@ -258,6 +462,26 @@ export class RiviereBuilder {
     return this.registerComponent(component)
   }
 
+  /**
+   * Defines a custom component type for the graph.
+   *
+   * Custom types allow extending the schema with domain-specific component kinds.
+   * Must be defined before adding custom components of that type.
+   *
+   * @param input - Custom type definition with required and optional properties
+   * @throws If a custom type with the same name already exists
+   *
+   * @example
+   * ```typescript
+   * builder.defineCustomType({
+   *   name: 'MessageQueue',
+   *   description: 'Async message queue',
+   *   requiredProperties: {
+   *     queueName: { type: 'string', description: 'Queue identifier' }
+   *   }
+   * })
+   * ```
+   */
   defineCustomType(input: CustomTypeInput): void {
     const customTypes = this.graph.metadata.customTypes
 
@@ -272,6 +496,30 @@ export class RiviereBuilder {
     }
   }
 
+  /**
+   * Adds a Custom component to the graph.
+   *
+   * Custom components use types defined via defineCustomType().
+   * Validates that the custom type exists and required properties are provided.
+   *
+   * @param input - Custom component properties including type name and metadata
+   * @returns The created Custom component with generated ID
+   * @throws If the specified domain does not exist
+   * @throws If the custom type has not been defined
+   * @throws If required properties for the custom type are missing
+   *
+   * @example
+   * ```typescript
+   * const queue = builder.addCustom({
+   *   customTypeName: 'MessageQueue',
+   *   name: 'Order Events Queue',
+   *   domain: 'orders',
+   *   module: 'messaging',
+   *   sourceLocation: { file: 'src/queues/orders.ts', line: 5 },
+   *   metadata: { queueName: 'order-events' }
+   * })
+   * ```
+   */
   addCustom(input: CustomInput): CustomComponent {
     this.validateDomainExists(input.domain)
     this.validateCustomType(input.customTypeName)
@@ -292,6 +540,26 @@ export class RiviereBuilder {
     return this.registerComponent(component)
   }
 
+  /**
+   * Enriches a DomainOp component with additional domain details.
+   *
+   * Adds state changes and business rules to an existing DomainOp.
+   * Multiple enrichments accumulate rather than replace.
+   *
+   * @param id - The component ID to enrich
+   * @param enrichment - State changes and business rules to add
+   * @throws If the component does not exist
+   * @throws If the component is not a DomainOp type
+   *
+   * @example
+   * ```typescript
+   * builder.enrichComponent('orders:fulfillment:domainop:confirm-order', {
+   *   entity: 'Order',
+   *   stateChanges: [{ entity: 'Order', from: 'pending', to: 'confirmed' }],
+   *   businessRules: ['Order must have valid payment']
+   * })
+   * ```
+   */
   enrichComponent(id: string, enrichment: EnrichmentInput): void {
     const component = this.graph.components.find((c) => c.id === id)
     if (!component) {
@@ -343,10 +611,45 @@ export class RiviereBuilder {
     return component
   }
 
+  /**
+   * Finds components similar to a query for error recovery.
+   *
+   * Returns fuzzy matches when an exact component lookup fails,
+   * enabling actionable error messages with "Did you mean...?" suggestions.
+   *
+   * @param query - Search criteria including partial ID, name, type, or domain
+   * @param options - Optional matching thresholds and limits
+   * @returns Array of similar components with similarity scores
+   *
+   * @example
+   * ```typescript
+   * const matches = builder.nearMatches({ name: 'Place Ordr' })
+   * // [{ component: {...}, score: 0.9, mismatches: [...] }]
+   * ```
+   */
   nearMatches(query: NearMatchQuery, options?: NearMatchOptions): NearMatchResult[] {
     return findNearMatches(this.graph.components, query, options)
   }
 
+  /**
+   * Creates a link between two components in the graph.
+   *
+   * Source component must exist; target validation is deferred to build().
+   * Use linkExternal() for connections to external systems.
+   *
+   * @param input - Link properties including source, target, and type
+   * @returns The created link
+   * @throws If the source component does not exist
+   *
+   * @example
+   * ```typescript
+   * const link = builder.link({
+   *   from: 'orders:checkout:api:create-order',
+   *   to: 'orders:checkout:usecase:place-order',
+   *   type: 'sync'
+   * })
+   * ```
+   */
   link(input: LinkInput): Link {
     const sourceExists = this.graph.components.some((c) => c.id === input.from)
     if (!sourceExists) {
@@ -362,6 +665,25 @@ export class RiviereBuilder {
     return link
   }
 
+  /**
+   * Creates a link from a component to an external system.
+   *
+   * Use this for connections to systems outside the graph,
+   * such as third-party APIs or external databases.
+   *
+   * @param input - External link properties including target system info
+   * @returns The created external link
+   * @throws If the source component does not exist
+   *
+   * @example
+   * ```typescript
+   * const link = builder.linkExternal({
+   *   from: 'orders:payments:usecase:process-payment',
+   *   target: { name: 'Stripe API', domain: 'payments' },
+   *   type: 'sync'
+   * })
+   * ```
+   */
   linkExternal(input: ExternalLinkInput): ExternalLink {
     const sourceExists = this.graph.components.some((c) => c.id === input.from)
     if (!sourceExists) {
@@ -380,30 +702,132 @@ export class RiviereBuilder {
     return externalLink
   }
 
+  /**
+   * Returns non-fatal issues found in the graph.
+   *
+   * Warnings indicate potential problems that don't prevent building,
+   * such as orphaned components or unused domains.
+   *
+   * @returns Array of warning objects with type and message
+   *
+   * @example
+   * ```typescript
+   * const warnings = builder.warnings()
+   * for (const w of warnings) {
+   *   console.log(`${w.type}: ${w.message}`)
+   * }
+   * ```
+   */
   warnings(): BuilderWarning[] {
     return findWarnings(this.graph)
   }
 
+  /**
+   * Returns statistics about the current graph state.
+   *
+   * @returns Counts of components by type, domains, and links
+   *
+   * @example
+   * ```typescript
+   * const stats = builder.stats()
+   * console.log(`Components: ${stats.componentCount}`)
+   * console.log(`Links: ${stats.linkCount}`)
+   * ```
+   */
   stats(): BuilderStats {
     return calculateStats(this.graph)
   }
 
+  /**
+   * Runs full validation on the graph.
+   *
+   * Checks for dangling references, orphans, and schema compliance.
+   * Called automatically by build().
+   *
+   * @returns Validation result with valid flag and error details
+   *
+   * @example
+   * ```typescript
+   * const result = builder.validate()
+   * if (!result.valid) {
+   *   for (const error of result.errors) {
+   *     console.error(error.message)
+   *   }
+   * }
+   * ```
+   */
   validate(): ValidationResult {
     return validateGraph(this.graph)
   }
 
+  /**
+   * Returns IDs of components with no incoming or outgoing links.
+   *
+   * @returns Array of orphaned component IDs
+   *
+   * @example
+   * ```typescript
+   * const orphans = builder.orphans()
+   * if (orphans.length > 0) {
+   *   console.warn('Orphaned components:', orphans)
+   * }
+   * ```
+   */
   orphans(): string[] {
     return findOrphans(this.graph)
   }
 
+  /**
+   * Returns a RiviereQuery instance for the current graph state.
+   *
+   * Enables querying mid-construction without affecting builder state.
+   *
+   * @returns RiviereQuery instance for the current graph
+   *
+   * @example
+   * ```typescript
+   * const query = builder.query()
+   * const apis = query.componentsByType('API')
+   * ```
+   */
   query(): RiviereQuery {
     return new RiviereQuery(toRiviereGraph(this.graph))
   }
 
+  /**
+   * Serializes the current graph state as a JSON string.
+   *
+   * Does not validate. Use for saving drafts mid-construction
+   * that can be resumed later with RiviereBuilder.resume().
+   *
+   * @returns JSON string representation of the graph
+   *
+   * @example
+   * ```typescript
+   * const json = builder.serialize()
+   * await fs.writeFile('draft.json', json)
+   * ```
+   */
   serialize(): string {
     return JSON.stringify(this.graph, null, 2)
   }
 
+  /**
+   * Validates and returns the completed graph.
+   *
+   * @returns Valid RiviereGraph object
+   * @throws If validation fails with error details
+   *
+   * @example
+   * ```typescript
+   * try {
+   *   const graph = builder.build()
+   *   console.log('Graph built successfully')
+   * } catch (error) {
+   *   console.error('Build failed:', error.message)
+   * }
+   * ```
+   */
   build(): RiviereGraph {
     const result = this.validate()
     if (!result.valid) {
@@ -413,6 +837,19 @@ export class RiviereBuilder {
     return toRiviereGraph(this.graph)
   }
 
+  /**
+   * Validates the graph and writes it to a file.
+   *
+   * @param path - Absolute or relative file path to write
+   * @throws If validation fails
+   * @throws If the directory does not exist
+   * @throws If write fails
+   *
+   * @example
+   * ```typescript
+   * await builder.save('./output/architecture.json')
+   * ```
+   */
   async save(path: string): Promise<void> {
     const graph = this.build()
 

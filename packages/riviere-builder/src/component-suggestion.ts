@@ -21,6 +21,22 @@ function detectMismatch(query: NearMatchQuery, component: Component): NearMatchM
   return undefined
 }
 
+/**
+ * Finds components similar to a query using fuzzy matching.
+ *
+ * Used for error recovery to suggest alternatives when exact matches fail.
+ *
+ * @param components - Array of components to search
+ * @param query - Search criteria with name and optional type/domain filters
+ * @param options - Optional threshold and limit settings
+ * @returns Array of matching components with similarity scores
+ *
+ * @example
+ * ```typescript
+ * const matches = findNearMatches(components, { name: 'Create Ordr' })
+ * // [{ component: {...}, score: 0.9, mismatch: undefined }]
+ * ```
+ */
 export function findNearMatches(
   components: Component[],
   query: NearMatchQuery,
@@ -46,6 +62,19 @@ export function findNearMatches(
   return results
 }
 
+/**
+ * Creates an error with suggestions for a missing source component.
+ *
+ * @param components - Array of existing components to search for suggestions
+ * @param id - The ComponentId that was not found
+ * @returns Error with message including "Did you mean...?" suggestions if available
+ *
+ * @example
+ * ```typescript
+ * const error = createSourceNotFoundError(components, ComponentId.parse('orders:checkout:api:create-ordr'))
+ * // Error: Source component 'orders:checkout:api:create-ordr' not found. Did you mean: orders:checkout:api:create-order?
+ * ```
+ */
 export function createSourceNotFoundError(components: Component[], id: ComponentId): Error {
   const suggestions = findNearMatches(components, { name: id.name() }, { limit: 3 })
   const baseMessage = `Source component '${id}' not found`

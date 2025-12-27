@@ -92,9 +92,9 @@ export default defineConfig({
           text: 'Library API',
           items: [
             { text: 'Overview', link: '/reference/api/' },
-            { text: 'RiviereBuilder', link: '/reference/api/riviere-builder' },
-            { text: 'RiviereQuery', link: '/reference/api/generated/riviere-query/classes/RiviereQuery' },
-            { text: 'Types', link: '/reference/api/generated/riviere-query/README' },
+            { text: 'RiviereBuilder', link: '/api/generated/riviere-builder/classes/RiviereBuilder' },
+            { text: 'RiviereQuery', link: '/api/generated/riviere-query/classes/RiviereQuery' },
+            { text: 'Types', link: '/api/generated/riviere-query/README' },
           ]
         }
       ]
