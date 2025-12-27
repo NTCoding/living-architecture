@@ -43,6 +43,7 @@ Optional?: [Is it mandatory to fix this problem or is there room for debate?]
 Check all test files (not production code) against the following conventions:
 
 Read: @/docs/conventions/testing.md
+- tests should not contain code comments ever - they're banned. Hard fail, not optional.
 
 Report any errors in the format:
 

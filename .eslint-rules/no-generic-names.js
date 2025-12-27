@@ -9,11 +9,29 @@ module.exports = {
   create(context) {
     const filename = context.getFilename()
 
-    const forbiddenWords = ['utils', 'helpers', 'helper', 'service', 'services', 'manager', 'managers', 'processor', 'processors', 'data']
+    const forbiddenWordsWithSuggestions = {
+      'utils': 'Use domain-specific name describing what it does',
+      'helpers': 'Try "fixtures" for test data, or name by purpose',
+      'helper': 'Try "fixtures" for test data, or name by purpose',
+      'service': 'Name by domain action (e.g., OrderSubmitter, PaymentGateway)',
+      'services': 'Name by domain action (e.g., OrderSubmitter, PaymentGateway)',
+      'manager': 'Name by responsibility (e.g., ConnectionPool, SessionStore)',
+      'managers': 'Name by responsibility (e.g., ConnectionPool, SessionStore)',
+      'processor': 'Name by what it processes (e.g., OrderFulfiller, EventDispatcher)',
+      'processors': 'Name by what it processes (e.g., OrderFulfiller, EventDispatcher)',
+      'data': 'Name by domain concept (e.g., OrderDetails, CustomerProfile)',
+    }
+
+    const forbiddenWords = Object.keys(forbiddenWordsWithSuggestions)
     const forbiddenPattern = new RegExp(
-      `(^|/)(${ forbiddenWords.join('|') })([.]ts$|[.]tsx$|/|$)`,
+      `(^|/|-)(${ forbiddenWords.join('|') })(-|[.]ts$|[.]tsx$|/|$)`,
       'i'
     )
+
+    const findForbiddenWord = (text) => {
+      const lowerText = text.toLowerCase()
+      return forbiddenWords.find(word => lowerText.includes(word))
+    }
 
     const isForbiddenName = (name) => {
       if (!name) return false
@@ -28,13 +46,22 @@ module.exports = {
       })
     }
 
-    const violations = []
+    const getFilenameMessage = (filepath) => {
+      const matchedWord = findForbiddenWord(filepath)
+      if (matchedWord) {
+        const suggestion = forbiddenWordsWithSuggestions[matchedWord]
+        return `Generic word "${matchedWord}" in filename. ${suggestion}`
+      }
+      return 'Generic filename. Use domain-specific naming.'
+    }
 
-    if (forbiddenPattern.test(filename)) {
-      violations.push({
-        type: 'filename',
-        message: `Generic filename or path. Use domain-specific naming (e.g., NodePositioner.ts, EdgeRenderer.ts)`,
-      })
+    const getClassMessage = (className) => {
+      const matchedWord = findForbiddenWord(className)
+      if (matchedWord) {
+        const suggestion = forbiddenWordsWithSuggestions[matchedWord]
+        return `Generic word "${matchedWord}" in class "${className}". ${suggestion}`
+      }
+      return `Generic class name "${className}". Use domain-specific naming.`
     }
 
     return {
@@ -42,7 +69,7 @@ module.exports = {
         if (node.id && isForbiddenName(node.id.name)) {
           context.report({
             node: node.id,
-            message: `Generic class name "${ node.id.name }". Use domain purpose (e.g., NodePositioner, EdgeRenderer, OrderValidator)`,
+            message: getClassMessage(node.id.name),
           })
         }
       },
@@ -51,7 +78,7 @@ module.exports = {
         if (forbiddenPattern.test(filename)) {
           context.report({
             node,
-            message: `Generic filename or path. Use domain-specific naming (e.g., NodePositioner.ts, EdgeRenderer.ts)`,
+            message: getFilenameMessage(filename),
           })
         }
       },
