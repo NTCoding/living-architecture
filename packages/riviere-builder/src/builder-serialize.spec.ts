@@ -200,7 +200,7 @@ describe('RiviereBuilder', () => {
       expect(resumed.stats().componentsByType.Custom).toBe(1)
     })
 
-    it('preserves links and allows continued linking after resume', () => {
+    it('allows continued linking after resume', () => {
       const original = RiviereBuilder.new(createValidOptions())
       const api = original.addApi({
         name: 'Create Order',
