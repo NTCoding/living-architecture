@@ -332,13 +332,14 @@
         "description": "link() connects internal components, linkExternal() links to external systems",
         "details": "## Deliverable\nMethods to connect components via internal and external links.\n\n## Context\n- PRD: `docs/project/PRD/active/PRD-phase-7-riviere-builder.md` (M4: D4.1, D4.2, D4.3)\n- Links form the graph structure connecting components\n- External links connect to systems outside the graph\n\n## Key Decisions\n- `link()` creates edge with source, target, type (sync/async)\n- Source validation: immediate (source must exist)\n- Target validation: deferred to build() (allows forward references)\n- `linkExternal()` creates external link with name, optional domain/url\n- Error messages use nearMatches for suggestions (depends on M3)\n\n## Acceptance Criteria\n### link\n- Given source and target exist → When link({ from: sourceId, to: targetId, type: 'sync' }) → Then link created\n- Given source doesn't exist → When link() → Then throws IMMEDIATELY: \"Source component 'X' not found\"\n- Given target doesn't exist → When link() → Then succeeds (validation deferred to build())\n- Given sync type → When link created → Then link.type === 'sync'\n- Given async type → When link created → Then link.type === 'async'\n\n### linkExternal\n- Given valid input → When linkExternal({ from: sourceId, target: { name: 'Stripe API', domain: 'payments' } }) → Then external link created\n- Given source doesn't exist → When linkExternal() → Then throws with near-match suggestions\n- Given target with URL → When linkExternal({ target: { name: 'Stripe', url: 'https://stripe.com' } }) → Then URL stored\n\n### Error messages (via M3)\n- Given typo in source ID → When link() fails → Then error includes \"Did you mean: [suggestions]\"\n\n## Related Code\n- `packages/riviere-builder/src/lib/builder.ts` — implementation location\n- `packages/riviere-schema` — Link, ExternalLink types\n\n## Verification\nnx test riviere-builder --testNamePattern \"link|linkExternal\"",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           "22",
           "24"
         ],
         "priority": "high",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2025-12-27T00:26:35.491Z"
       },
       {
         "id": "26",
@@ -424,9 +425,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-12-26T23:11:21.019Z",
+      "lastModified": "2025-12-27T00:26:35.492Z",
       "taskCount": 31,
-      "completedCount": 23,
+      "completedCount": 24,
       "tags": [
         "master"
       ]

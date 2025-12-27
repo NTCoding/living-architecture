@@ -1,148 +1,56 @@
 import type {
   APIComponent,
-  ApiType,
   Component,
-  ComponentType,
   CustomComponent,
-  CustomPropertyDefinition,
   CustomTypeDefinition,
-  DomainMetadata,
   DomainOpComponent,
   EventComponent,
   EventHandlerComponent,
+  ExternalLink,
   GraphMetadata,
-  HttpMethod,
-  OperationBehavior,
-  OperationSignature,
+  Link,
   RiviereGraph,
   SourceInfo,
-  SourceLocation,
-  StateTransition,
-  SystemType,
   UIComponent,
   UseCaseComponent,
 } from '@living-architecture/riviere-schema'
 import { similarityScore } from './string-similarity'
+import type {
+  APIInput,
+  BuilderOptions,
+  CustomInput,
+  CustomTypeInput,
+  DomainInput,
+  DomainOpInput,
+  EventHandlerInput,
+  EventInput,
+  ExternalLinkInput,
+  LinkInput,
+  NearMatchMismatch,
+  NearMatchOptions,
+  NearMatchQuery,
+  NearMatchResult,
+  UIInput,
+  UseCaseInput,
+} from './types'
 
-export interface BuilderOptions {
-  name?: string
-  description?: string
-  sources: SourceInfo[]
-  domains: Record<string, DomainMetadata>
-}
-
-export interface DomainInput {
-  name: string
-  description: string
-  systemType: SystemType
-}
-
-export interface UIInput {
-  name: string
-  domain: string
-  module: string
-  route: string
-  description?: string
-  sourceLocation: SourceLocation
-  metadata?: Record<string, unknown>
-}
-
-export interface APIInput {
-  name: string
-  domain: string
-  module: string
-  apiType: ApiType
-  httpMethod?: HttpMethod
-  path?: string
-  operationName?: string
-  description?: string
-  sourceLocation: SourceLocation
-  metadata?: Record<string, unknown>
-}
-
-export interface UseCaseInput {
-  name: string
-  domain: string
-  module: string
-  description?: string
-  sourceLocation: SourceLocation
-  metadata?: Record<string, unknown>
-}
-
-export interface DomainOpInput {
-  name: string
-  domain: string
-  module: string
-  operationName: string
-  entity?: string
-  signature?: OperationSignature
-  behavior?: OperationBehavior
-  stateChanges?: StateTransition[]
-  businessRules?: string[]
-  description?: string
-  sourceLocation: SourceLocation
-  metadata?: Record<string, unknown>
-}
-
-export interface EventInput {
-  name: string
-  domain: string
-  module: string
-  eventName: string
-  eventSchema?: string
-  description?: string
-  sourceLocation: SourceLocation
-  metadata?: Record<string, unknown>
-}
-
-export interface EventHandlerInput {
-  name: string
-  domain: string
-  module: string
-  subscribedEvents: string[]
-  description?: string
-  sourceLocation: SourceLocation
-  metadata?: Record<string, unknown>
-}
-
-export interface CustomTypeInput {
-  name: string
-  description?: string
-  requiredProperties?: Record<string, CustomPropertyDefinition>
-  optionalProperties?: Record<string, CustomPropertyDefinition>
-}
-
-export interface CustomInput {
-  customTypeName: string
-  name: string
-  domain: string
-  module: string
-  description?: string
-  sourceLocation: SourceLocation
-  metadata?: Record<string, unknown>
-}
-
-export interface NearMatchQuery {
-  name: string
-  type?: ComponentType
-  domain?: string
-}
-
-export interface NearMatchMismatch {
-  field: 'type' | 'domain'
-  expected: string
-  actual: string
-}
-
-export interface NearMatchResult {
-  component: Component
-  score: number
-  mismatch?: NearMatchMismatch | undefined
-}
-
-export interface NearMatchOptions {
-  threshold?: number
-  limit?: number
+export type {
+  APIInput,
+  BuilderOptions,
+  CustomInput,
+  CustomTypeInput,
+  DomainInput,
+  DomainOpInput,
+  EventHandlerInput,
+  EventInput,
+  ExternalLinkInput,
+  LinkInput,
+  NearMatchMismatch,
+  NearMatchOptions,
+  NearMatchQuery,
+  NearMatchResult,
+  UIInput,
+  UseCaseInput,
 }
 
 interface BuilderMetadata extends Omit<GraphMetadata, 'sources' | 'customTypes'> {
@@ -150,8 +58,9 @@ interface BuilderMetadata extends Omit<GraphMetadata, 'sources' | 'customTypes'>
   customTypes: Record<string, CustomTypeDefinition>
 }
 
-interface BuilderGraph extends Omit<RiviereGraph, 'metadata'> {
+interface BuilderGraph extends Omit<RiviereGraph, 'metadata' | 'externalLinks'> {
   metadata: BuilderMetadata
+  externalLinks: ExternalLink[]
 }
 
 export class RiviereBuilder {
@@ -181,6 +90,7 @@ export class RiviereBuilder {
       },
       components: [],
       links: [],
+      externalLinks: [],
     }
 
     return new RiviereBuilder(graph)
@@ -438,5 +348,50 @@ export class RiviereBuilder {
     }
 
     return undefined
+  }
+
+  link(input: LinkInput): Link {
+    const sourceExists = this.graph.components.some((c) => c.id === input.from)
+    if (!sourceExists) {
+      throw this.sourceNotFoundError(input.from)
+    }
+
+    const link: Link = {
+      source: input.from,
+      target: input.to,
+      ...(input.type !== undefined && { type: input.type }),
+    }
+    this.graph.links.push(link)
+    return link
+  }
+
+  linkExternal(input: ExternalLinkInput): ExternalLink {
+    const sourceExists = this.graph.components.some((c) => c.id === input.from)
+    if (!sourceExists) {
+      throw this.sourceNotFoundError(input.from)
+    }
+
+    const externalLink: ExternalLink = {
+      source: input.from,
+      target: input.target,
+      ...(input.type !== undefined && { type: input.type }),
+      ...(input.description !== undefined && { description: input.description }),
+      ...(input.sourceLocation !== undefined && { sourceLocation: input.sourceLocation }),
+      ...(input.metadata !== undefined && { metadata: input.metadata }),
+    }
+    this.graph.externalLinks.push(externalLink)
+    return externalLink
+  }
+
+  private sourceNotFoundError(id: string): Error {
+    const parts = id.split(':')
+    const namePart = parts[parts.length - 1]!
+    const suggestions = this.nearMatches({ name: namePart }, { limit: 3 })
+    const baseMessage = `Source component '${id}' not found`
+    if (suggestions.length === 0) {
+      return new Error(baseMessage)
+    }
+    const suggestionIds = suggestions.map((s) => s.component.id).join(', ')
+    return new Error(`${baseMessage}. Did you mean: ${suggestionIds}?`)
   }
 }
