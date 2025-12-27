@@ -1,3 +1,5 @@
+import { promises as fs } from 'node:fs'
+import { dirname } from 'node:path'
 import type {
   APIComponent,
   Component,
@@ -15,7 +17,7 @@ import type {
   UseCaseComponent,
 } from '@living-architecture/riviere-schema'
 import type { ValidationResult } from '@living-architecture/riviere-query'
-import { calculateStats, findOrphans, findWarnings, validateGraph } from './inspection'
+import { calculateStats, findOrphans, findWarnings, toRiviereGraph, validateGraph } from './inspection'
 import { similarityScore } from './string-similarity'
 import type {
   APIInput,
@@ -403,6 +405,29 @@ export class RiviereBuilder {
 
   orphans(): string[] {
     return findOrphans(this.graph)
+  }
+
+  build(): RiviereGraph {
+    const result = this.validate()
+    if (!result.valid) {
+      const messages = result.errors.map((e) => e.message).join('; ')
+      throw new Error(`Validation failed: ${messages}`)
+    }
+    return toRiviereGraph(this.graph)
+  }
+
+  async save(path: string): Promise<void> {
+    const graph = this.build()
+
+    const dir = dirname(path)
+    try {
+      await fs.access(dir)
+    } catch {
+      throw new Error(`Directory does not exist: ${dir}`)
+    }
+
+    const json = JSON.stringify(graph, null, 2)
+    await fs.writeFile(path, json, 'utf-8')
   }
 
   private sourceNotFoundError(id: string): Error {

@@ -84,21 +84,25 @@ export function findWarnings(graph: InspectionGraph): BuilderWarning[] {
   return warnings
 }
 
-export function validateGraph(graph: InspectionGraph): ValidationResult {
+export function toRiviereGraph(graph: InspectionGraph): RiviereGraph {
   const hasCustomTypes = Object.keys(graph.metadata.customTypes).length > 0
   const hasExternalLinks = graph.externalLinks.length > 0
 
-  const riviereGraph: RiviereGraph = {
+  return {
     version: graph.version,
     metadata: {
-      ...graph.metadata,
+      ...(graph.metadata.name !== undefined && { name: graph.metadata.name }),
+      ...(graph.metadata.description !== undefined && { description: graph.metadata.description }),
       sources: graph.metadata.sources,
+      domains: graph.metadata.domains,
       ...(hasCustomTypes && { customTypes: graph.metadata.customTypes }),
     },
     components: graph.components,
     links: graph.links,
     ...(hasExternalLinks && { externalLinks: graph.externalLinks }),
   }
+}
 
-  return new RiviereQuery(riviereGraph).validate()
+export function validateGraph(graph: InspectionGraph): ValidationResult {
+  return new RiviereQuery(toRiviereGraph(graph)).validate()
 }

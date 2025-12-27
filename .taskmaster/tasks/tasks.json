@@ -390,12 +390,13 @@
         "description": "build() validates and returns graph, save() validates and writes to file",
         "details": "## Deliverable\nFinal export methods that validate before outputting.\n\n## Context\n- PRD: `docs/project/PRD/active/PRD-phase-7-riviere-builder.md` (M7: D7.2, D7.3)\n- build() and save() are the final step in the 5-phase extraction algorithm\n- Both validate before output (fail fast)\n\n## Key Decisions\n- `build()` validates and returns RiviereGraph object, throws if invalid\n- `save(path)` validates and writes JSON to file, throws without writing if invalid\n- Makes package Node.js-only (not browser-safe) due to file system access\n- JSON output should be formatted (pretty-printed) for readability\n\n## Acceptance Criteria\n### build\n- Given valid graph → When build() → Then returns RiviereGraph object\n- Given invalid graph (validation errors) → When build() → Then throws with validation errors\n- Given graph with orphans → When build() → Then succeeds with warnings (orphans are warnings, not errors)\n\n### save\n- Given valid graph and path → When save('/path/to/output.json') → Then writes formatted JSON\n- Given invalid graph → When save() → Then throws WITHOUT writing any file\n- Given valid path → When save() → Then file contains valid Rivière JSON\n- Given directory doesn't exist → When save('/nonexistent/path.json') → Then throws clear error\n\n### Output format\n- Given graph → When build() or save() → Then output matches Rivière schema\n- Given graph → When save() → Then JSON is pretty-printed (2-space indent)\n\n## Related Code\n- `packages/riviere-builder/src/lib/builder.ts` — implementation location\n- `packages/riviere-schema` — schema validation exports\n\n## Verification\nnx test riviere-builder --testNamePattern \"build|save\"",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           "28"
         ],
         "priority": "high",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2025-12-27T08:29:15.578Z"
       },
       {
         "id": "30",
@@ -426,9 +427,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-12-27T01:21:38.352Z",
+      "lastModified": "2025-12-27T08:29:15.580Z",
       "taskCount": 31,
-      "completedCount": 25,
+      "completedCount": 26,
       "tags": [
         "master"
       ]
