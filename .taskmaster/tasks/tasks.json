@@ -458,14 +458,15 @@
         "id": "34",
         "title": "Implement builder metadata commands (add-source, add-domain)",
         "description": "Create add-source and add-domain commands for adding metadata to graphs",
-        "details": "## Deliverable: `riviere builder add-source` and `riviere builder add-domain` commands\n\n### Context\nPhase 8 PRD: `docs/project/PRD/active/PRD-phase-8-riviere-cli.md`\n\nMetadata commands that wrap `RiviereBuilder.addSource()` and `RiviereBuilder.addDomain()`.\n\n**NOTE:** The RiviereBuilder.new() constructor requires at least one source and one domain. The CLI init command may need to require these, or the first add-source/add-domain may need to handle graph creation. Implementer should reconcile this during implementation.\n\n### Key Decisions and Principles\n- **Thin wrapper** — Direct mapping to builder methods\n- **Fail on duplicates** — addDomain rejects duplicate domain names\n\n### Delivers\n- `riviere builder add-source --type <git|local> --url <url> [--path <path>]`\n- `riviere builder add-domain --name <name> --description <desc> [--system-type <type>]`\n\n### Acceptance Criteria\n- Given a graph exists, When running `riviere builder add-source --type git --url https://github.com/org/repo`, Then source is added to graph metadata\n- Given a graph exists, When running `riviere builder add-domain --name \"orders\" --description \"Order management\"`, Then domain is added to graph\n- Given domain \"orders\" already exists, When running `riviere builder add-domain --name \"orders\"`, Then returns error DUPLICATE_DOMAIN\n- Given no graph exists, When running `riviere builder add-source ...`, Then returns error GRAPH_NOT_FOUND\n- Given --json flag, When command succeeds, Then outputs `{ success: true, data: { ... } }`\n\n### Dependencies\n- Task 33 (builder init)\n\n### Related Code\n- `packages/riviere-builder/src/builder.ts` — `addSource()`, `addDomain()`\n- `packages/riviere-builder/src/types.ts` — `DomainInput`, `SourceInfo`\n\n### Verification\n```bash\nriviere builder init --name \"test\"\nriviere builder add-source --type git --url https://github.com/test/repo\nriviere builder add-domain --name \"orders\" --description \"Order mgmt\"\ncat .riviere/graph.json | jq .metadata\nnx test riviere-cli\n```",
+        "details": "## Deliverable: `riviere builder add-source` and `riviere builder add-domain` commands\n\n### Context\nPhase 8 PRD: `docs/project/PRD/active/PRD-phase-8-riviere-cli.md`\n\nMetadata commands that wrap `RiviereBuilder.addSource()` and `RiviereBuilder.addDomain()`.\n\n### Reconciled Decision: add-source syntax\nThe original task specified `--type <git|local> --url <url> [--path <path>]` but the `SourceInfo` schema interface only supports `{ repository: string, commit?: string, extractedAt?: string }`. Following the \"thin wrapper\" principle, the CLI matches the schema exactly. The init command already established this pattern with `--source <url>` storing as `{ repository: url }`.\n\n### Key Decisions and Principles\n- **Thin wrapper** — Direct mapping to builder methods and schema types\n- **Fail on duplicates** — addDomain rejects duplicate domain names\n- **Match schema** — CLI flags mirror SourceInfo and DomainInput interfaces\n\n### Delivers\n- `riviere builder add-source --repository <url>` (matches SourceInfo.repository)\n- `riviere builder add-domain --name <name> --description <desc> --system-type <type>` (matches DomainInput)\n\n### Acceptance Criteria\n- Given a graph exists, When running `riviere builder add-source --repository https://github.com/org/repo`, Then source is added to graph metadata\n- Given a graph exists, When running `riviere builder add-domain --name \"orders\" --description \"Order management\" --system-type domain`, Then domain is added to graph\n- Given domain \"orders\" already exists, When running `riviere builder add-domain --name \"orders\"`, Then returns error DUPLICATE_DOMAIN\n- Given no graph exists, When running `riviere builder add-source ...`, Then returns error GRAPH_NOT_FOUND\n- Given --json flag, When command succeeds, Then outputs `{ success: true, data: { ... } }`\n\n### Dependencies\n- Task 33 (builder init)\n\n### Related Code\n- `packages/riviere-builder/src/builder.ts` — `addSource()`, `addDomain()`\n- `packages/riviere-builder/src/types.ts` — `DomainInput`, `SourceInfo`\n- `riviere-schema/src/schema.ts` — `SourceInfo { repository, commit?, extractedAt? }`\n\n### Verification\n```bash\nriviere builder init --name \"test\" --source https://github.com/test/repo --domain '{\"name\":\"orders\",\"description\":\"Orders\",\"systemType\":\"domain\"}'\nriviere builder add-source --repository https://github.com/test/repo2\nriviere builder add-domain --name \"payments\" --description \"Payment processing\" --system-type bff\ncat .riviere/graph.json | jq .metadata\nnx test riviere-cli\n```",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           "33"
         ],
         "priority": "high",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2025-12-27T22:22:22.080Z"
       },
       {
         "id": "35",
@@ -587,9 +588,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-12-27T21:30:37.574Z",
+      "lastModified": "2025-12-27T22:22:22.082Z",
       "taskCount": 43,
-      "completedCount": 32,
+      "completedCount": 33,
       "tags": [
         "master"
       ]

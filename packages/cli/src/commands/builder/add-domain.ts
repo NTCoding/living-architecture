@@ -1,0 +1,102 @@
+import { Command } from 'commander';
+import { readFile, writeFile } from 'node:fs/promises';
+import { DuplicateDomainError, RiviereBuilder } from '@living-architecture/riviere-builder';
+import type { SystemType } from '@living-architecture/riviere-schema';
+import { parseRiviereGraph } from '@living-architecture/riviere-schema';
+import { formatError, formatSuccess } from '../../output';
+import { CliErrorCode } from '../../error-codes';
+import { fileExists } from '../../file-existence';
+import { resolveGraphPath, getDefaultGraphPathDescription } from '../../graph-path';
+
+const VALID_SYSTEM_TYPES: readonly SystemType[] = ['domain', 'bff', 'ui', 'other'];
+
+function isValidSystemType(value: string): value is SystemType {
+  return VALID_SYSTEM_TYPES.some((t) => t === value);
+}
+
+interface AddDomainOptions {
+  name: string;
+  description: string;
+  systemType: string;
+  graph?: string;
+  json?: boolean;
+}
+
+export function createAddDomainCommand(): Command {
+  return new Command('add-domain')
+    .description('Add a domain to the graph')
+    .requiredOption('--name <name>', 'Domain name')
+    .requiredOption('--description <description>', 'Domain description')
+    .requiredOption('--system-type <type>', 'System type (domain, bff, ui, other)')
+    .option('--graph <path>', getDefaultGraphPathDescription())
+    .option('--json', 'Output result as JSON')
+    .action(async (options: AddDomainOptions) => {
+      if (!isValidSystemType(options.systemType)) {
+        console.log(
+          JSON.stringify(
+            formatError(
+              CliErrorCode.ValidationError,
+              `Invalid system type: ${options.systemType}`,
+              [`Valid types: ${VALID_SYSTEM_TYPES.join(', ')}`]
+            )
+          )
+        );
+        return;
+      }
+      const systemType = options.systemType;
+
+      const graphPath = resolveGraphPath(options.graph);
+
+      const graphExists = await fileExists(graphPath);
+
+      if (!graphExists) {
+        console.log(
+          JSON.stringify(
+            formatError(CliErrorCode.GraphNotFound, `Graph not found at ${graphPath}`, [
+              'Run riviere builder init first',
+            ])
+          )
+        );
+        return;
+      }
+
+      const content = await readFile(graphPath, 'utf-8');
+      const parsed: unknown = JSON.parse(content);
+      const graph = parseRiviereGraph(parsed);
+      const builder = RiviereBuilder.resume(graph);
+
+      try {
+        builder.addDomain({
+          name: options.name,
+          description: options.description,
+          systemType,
+        });
+      } catch (error) {
+        if (error instanceof DuplicateDomainError) {
+          console.log(
+            JSON.stringify(
+              formatError(CliErrorCode.DuplicateDomain, error.message, [
+                'Use a different domain name',
+              ])
+            )
+          );
+          return;
+        }
+        throw error;
+      }
+
+      await writeFile(graphPath, builder.serialize(), 'utf-8');
+
+      if (options.json === true) {
+        console.log(
+          JSON.stringify(
+            formatSuccess({
+              name: options.name,
+              description: options.description,
+              systemType: options.systemType,
+            })
+          )
+        );
+      }
+    });
+}

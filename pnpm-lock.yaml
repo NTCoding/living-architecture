@@ -196,6 +196,9 @@ importers:
       '@living-architecture/riviere-builder':
         specifier: workspace:*
         version: link:../riviere-builder
+      '@living-architecture/riviere-schema':
+        specifier: workspace:*
+        version: link:../../riviere-schema
       commander:
         specifier: ^14.0.2
         version: 14.0.2

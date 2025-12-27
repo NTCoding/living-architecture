@@ -3,6 +3,7 @@ export enum CliErrorCode {
   ComponentNotFound = 'COMPONENT_NOT_FOUND',
   DomainNotFound = 'DOMAIN_NOT_FOUND',
   DuplicateComponent = 'DUPLICATE_COMPONENT',
+  DuplicateDomain = 'DUPLICATE_DOMAIN',
   InvalidLink = 'INVALID_LINK',
   ValidationError = 'VALIDATION_ERROR',
   GraphCorrupted = 'GRAPH_CORRUPTED',

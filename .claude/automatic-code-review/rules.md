@@ -2,7 +2,7 @@
 
 Ensure modified code complies with our project conventions. Be ultra critical.
 
-First read lint rules to ensure feedback doesn't contradict them: @/eslint.config.mjs Don't force the user to change code when there is no other solution that will satisfy the lint rules.
+First read lint rules to ensure feedback doesn't contradict them @/eslint.config.mjs Don't force the user to change code when there is no other solution that will satisfy the lint rules. Example: never suggest using the 'as' or 'let' keywords which are banned.
 
 ## Architecture, modularity check
 

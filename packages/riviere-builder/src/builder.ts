@@ -21,6 +21,7 @@ import { calculateStats, findOrphans, findWarnings, toRiviereGraph, validateGrap
 import { assertCustomTypeExists, assertDomainExists, assertRequiredPropertiesProvided } from './builder-assertions'
 import { ComponentId } from './component-id'
 import { createSourceNotFoundError, findNearMatches } from './component-suggestion'
+import { DuplicateDomainError } from './errors'
 import type {
   APIInput,
   BuilderOptions,
@@ -224,7 +225,7 @@ export class RiviereBuilder {
    */
   addDomain(input: DomainInput): void {
     if (this.graph.metadata.domains[input.name]) {
-      throw new Error(`Domain '${input.name}' already exists`)
+      throw new DuplicateDomainError(input.name)
     }
 
     this.graph.metadata.domains[input.name] = {

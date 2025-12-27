@@ -1,12 +1,13 @@
 import { Command } from 'commander';
-import { access, mkdir, writeFile } from 'node:fs/promises';
-import { dirname, join } from 'node:path';
+import { mkdir, writeFile } from 'node:fs/promises';
+import { dirname } from 'node:path';
 import { RiviereBuilder } from '@living-architecture/riviere-builder';
 import type { BuilderOptions } from '@living-architecture/riviere-builder';
 import { formatError, formatSuccess } from '../../output';
 import { CliErrorCode } from '../../error-codes';
-
-type SystemType = 'domain' | 'bff' | 'ui' | 'other';
+import { fileExists } from '../../file-existence';
+import { resolveGraphPath, getDefaultGraphPathDescription } from '../../graph-path';
+import type { SystemType } from '@living-architecture/riviere-schema';
 
 interface DomainInputParsed {
   name: string;
@@ -14,7 +15,7 @@ interface DomainInputParsed {
   systemType: SystemType;
 }
 
-const VALID_SYSTEM_TYPES: readonly string[] = ['domain', 'bff', 'ui', 'other'];
+const VALID_SYSTEM_TYPES: readonly SystemType[] = ['domain', 'bff', 'ui', 'other'];
 
 function isDomainInputParsed(value: unknown): value is DomainInputParsed {
   if (typeof value !== 'object' || value === null) {
@@ -27,7 +28,7 @@ function isDomainInputParsed(value: unknown): value is DomainInputParsed {
     typeof value.description === 'string' &&
     'systemType' in value &&
     typeof value.systemType === 'string' &&
-    VALID_SYSTEM_TYPES.includes(value.systemType)
+    VALID_SYSTEM_TYPES.some((t) => t === value.systemType)
   );
 }
 
@@ -55,7 +56,7 @@ export function createInitCommand(): Command {
   return new Command('init')
     .description('Initialize a new graph')
     .option('--name <name>', 'System name')
-    .option('--graph <path>', 'Custom graph file path')
+    .option('--graph <path>', getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .option('--source <url>', 'Source repository URL (repeatable)', collectSource, [])
     .option('--domain <json>', 'Domain as JSON (repeatable)', parseDomainJson, [])
@@ -83,13 +84,10 @@ export function createInitCommand(): Command {
         return;
       }
 
-      const graphPath =
-        options.graph !== undefined ? options.graph : join(process.cwd(), '.riviere', 'graph.json');
+      const graphPath = resolveGraphPath(options.graph);
       const graphDir = dirname(graphPath);
 
-      const graphExists = await access(graphPath)
-        .then(() => true)
-        .catch(() => false);
+      const graphExists = await fileExists(graphPath);
 
       if (graphExists) {
         console.log(
