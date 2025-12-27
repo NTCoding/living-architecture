@@ -9,6 +9,7 @@ describe('CliErrorCode', () => {
     ['InvalidLink', 'INVALID_LINK'],
     ['ValidationError', 'VALIDATION_ERROR'],
     ['GraphCorrupted', 'GRAPH_CORRUPTED'],
+    ['GraphExists', 'GRAPH_EXISTS'],
   ] as const)('defines %s error code with value %s', (member, value) => {
     expect(CliErrorCode[member]).toBe(value);
   });

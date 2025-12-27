@@ -1,5 +1,6 @@
 import { Command } from 'commander';
 import { createRequire } from 'module';
+import { createInitCommand } from './commands/builder/init';
 
 interface PackageJson {
   version: string;
@@ -27,9 +28,11 @@ export function createProgram(): Command {
 
   program.name('riviere').version(packageJson.version);
 
-  program
+  const builderCmd = program
     .command('builder')
     .description('Commands for building a graph');
+
+  builderCmd.addCommand(createInitCommand());
 
   program
     .command('query')

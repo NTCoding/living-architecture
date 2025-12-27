@@ -6,4 +6,5 @@ export enum CliErrorCode {
   InvalidLink = 'INVALID_LINK',
   ValidationError = 'VALIDATION_ERROR',
   GraphCorrupted = 'GRAPH_CORRUPTED',
+  GraphExists = 'GRAPH_EXISTS',
 }
