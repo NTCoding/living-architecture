@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { RiviereBuilder } from './builder'
-import { createValidOptions, createSourceLocation } from './builder-test-helpers'
+import { createValidOptions, createSourceLocation } from './builder-test-fixtures'
 
 describe('RiviereBuilder', () => {
   describe('validate', () => {

@@ -3,7 +3,7 @@ import { promises as fs } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { RiviereBuilder } from './builder'
-import { createValidOptions, createSourceLocation } from './builder-test-helpers'
+import { createValidOptions, createSourceLocation } from './builder-test-fixtures'
 
 describe('RiviereBuilder', () => {
   describe('build', () => {
