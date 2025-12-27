@@ -1,6 +1,6 @@
 # PRD: Phase 8 — Riviere CLI
 
-**Status:** Draft
+**Status:** Approved
 
 **Depends on:** Phase 7 (Riviere Builder)
 
@@ -22,6 +22,7 @@ The POC CLI exists but will be rewritten from scratch using the POC as a specifi
 4. **Self-documenting** — Comprehensive `--help` with examples.
 5. **Error recovery** — Near-match suggestions when things go wrong.
 6. **Thin wrapper** — CLI mirrors library API. No CLI-specific logic.
+7. **Integration tests only** — CLI tests verify correct interaction with the underlying TypeScript library (`riviere-builder`, `riviere-query`). Domain logic is already tested in those packages—CLI tests should not duplicate that coverage.
 
 ## 3. What We're Building
 
@@ -103,12 +104,15 @@ IDs follow the pattern: `{domain}:{type}:{name}` in kebab-case.
 ### Example Session (AI Agent)
 
 ```bash
-# Initialize
-riviere builder init --name "ecommerce"
+# Initialize with required sources and domains (variadic flags)
+riviere builder init --name "ecommerce" \
+  --domain orders "Order management" \
+  --domain payments "Payment processing" \
+  --source git https://github.com/org/orders-service ./orders
 
-# Add metadata
-riviere builder add-source --repository "orders-service" --path "./orders"
-riviere builder add-domain --name "orders" --description "Order management"
+# Add more metadata later if needed
+riviere builder add-source git https://github.com/org/payments-service ./payments
+riviere builder add-domain shipping "Shipping and logistics"
 
 # Add components
 riviere builder add-component --type API --name "place-order" --domain orders \
@@ -242,6 +246,10 @@ Each command:
 2. **Graph storage** — Single file at `.riviere/graph.json`. Builder's `serialize()`/`resume()` handles persistence. CLI manages file location.
 
 3. **Session state** — The graph file is the state. Each command reads, modifies, writes. No separate session tracking.
+
+4. **`init` command syntax** — Uses variadic flags for sources and domains: `--domain <name> <description>` and `--source <type> <url> [path]`. Repeat flags for multiples. At least one of each is required (matches RiviereBuilder.new() requirements).
+
+5. **`link-http` implementation** — This is CLI orchestration, not a thin wrapper. It finds API components by HTTP path using query methods, then creates a link using `builder.link()`. Acceptable divergence from "thin wrapper" principle since it only composes existing library calls.
 
 ---
 
