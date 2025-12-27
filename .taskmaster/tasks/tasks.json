@@ -345,15 +345,15 @@
         "id": "26",
         "title": "Add component enrichment methods",
         "description": "enrichComponent() adds stateChanges and businessRules to DomainOp components",
-        "details": "## Deliverable\nMethod to enrich DomainOp components with domain-specific details.\n\n## Context\n- PRD: `docs/project/PRD/active/PRD-phase-7-riviere-builder.md` (M5: D5.1, D5.2, D5.3)\n- Enrichment is the 4th phase in the 5-phase extraction algorithm\n- Adds state changes and business rules discovered during analysis\n\n## Key Decisions\n- `enrichComponent(id, enrichment)` adds domain details to existing component\n- Only DomainOp components can have stateChanges and businessRules\n- stateChanges format: `{ entity: string, from: string, to: string }`\n- businessRules: string array of domain rules\n- Validates component exists and is correct type before enriching\n\n## Acceptance Criteria\n### enrichComponent\n- Given DomainOp exists → When enrichComponent(id, { stateChanges: [...] }) → Then stateChanges added\n- Given non-DomainOp component → When enrichComponent(id, { stateChanges: [...] }) → Then throws \"Only DomainOp components can have stateChanges\"\n- Given component doesn't exist → When enrichComponent() → Then throws with near-match suggestions\n\n### State change validation\n- Given valid stateChange → When enrichComponent(id, { stateChanges: [{ entity: 'Order', from: 'draft', to: 'placed' }] }) → Then succeeds\n- Given stateChange missing entity → When enrichComponent() → Then throws \"stateChange must have entity, from, and to\"\n\n### Business rules\n- Given rules array → When enrichComponent(id, { businessRules: ['Rule 1', 'Rule 2'] }) → Then rules stored\n- Given empty rules array → When enrichComponent() → Then succeeds (empty is valid)\n\n## Related Code\n- `packages/riviere-builder/src/lib/builder.ts` — implementation location\n- `packages/riviere-schema` — DomainOpComponent, StateChange types\n\n## Verification\nnx test riviere-builder --testNamePattern \"enrichComponent|stateChanges|businessRules\"",
+        "details": "## Deliverable\nMethod to enrich DomainOp components with domain-specific details.\n\n## Context\n- PRD: `docs/project/PRD/active/PRD-phase-7-riviere-builder.md` (M5: D5.1, D5.2, D5.3)\n- Enrichment is the 4th phase in the 5-phase extraction algorithm\n- Adds state changes and business rules discovered during analysis\n\n## Key Decisions\n- `enrichComponent(id, enrichment)` adds domain details to existing component\n- Only DomainOp components can be enriched with stateChanges and businessRules\n- stateChanges format: `{ from: string, to: string }` (matches existing StateTransition schema)\n- Entity is set at component level, not per-transition\n- businessRules: string array of domain rules\n- Validates component exists and is correct type before enriching\n- Enrichment appends to existing stateChanges/businessRules arrays\n\n## Acceptance Criteria\n### enrichComponent\n- Given DomainOp exists → When enrichComponent(id, { stateChanges: [{ from: 'draft', to: 'placed' }] }) → Then stateChanges added\n- Given DomainOp exists → When enrichComponent(id, { entity: 'Order' }) → Then entity set\n- Given non-DomainOp component → When enrichComponent(id, { stateChanges: [...] }) → Then throws \"Only DomainOp components can be enriched\"\n- Given component doesn't exist → When enrichComponent() → Then throws with near-match suggestions\n\n### State change validation\n- Given valid stateChange → When enrichComponent(id, { stateChanges: [{ from: 'draft', to: 'placed' }] }) → Then succeeds\n- Given stateChange missing 'from' → When enrichComponent() → Then throws error about missing 'from' and 'to'\n- Given stateChange missing 'to' → When enrichComponent() → Then throws error about missing 'from' and 'to'\n\n### Business rules\n- Given rules array → When enrichComponent(id, { businessRules: ['Rule 1', 'Rule 2'] }) → Then rules stored\n- Given empty rules array → When enrichComponent() → Then succeeds (empty is valid)\n\n### Append behavior\n- Given DomainOp with existing stateChanges → When enrichComponent with more → Then appends to array\n\n## Related Code\n- `packages/riviere-builder/src/lib/builder.ts` — implementation location\n- `packages/riviere-schema` — DomainOpComponent, StateTransition types\n\n## Verification\nnx test riviere-builder --testNamePattern \"enrichComponent\"",
         "testStrategy": "",
-        "status": "in-progress",
+        "status": "done",
         "dependencies": [
           "22"
         ],
         "priority": "medium",
         "subtasks": [],
-        "updatedAt": "2025-12-27T08:32:29.042Z"
+        "updatedAt": "2025-12-27T09:18:05.538Z"
       },
       {
         "id": "27",
@@ -428,9 +428,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-12-27T08:32:29.043Z",
+      "lastModified": "2025-12-27T09:18:05.539Z",
       "taskCount": 31,
-      "completedCount": 26,
+      "completedCount": 27,
       "tags": [
         "master"
       ]

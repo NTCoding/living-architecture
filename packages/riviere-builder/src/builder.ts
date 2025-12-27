@@ -18,7 +18,9 @@ import type {
 } from '@living-architecture/riviere-schema'
 import type { ValidationResult } from '@living-architecture/riviere-query'
 import { calculateStats, findOrphans, findWarnings, toRiviereGraph, validateGraph } from './inspection'
-import { similarityScore } from './string-similarity'
+import { assertCustomTypeExists, assertDomainExists, assertRequiredPropertiesProvided } from './builder-assertions'
+import { ComponentId } from './component-id'
+import { createSourceNotFoundError, findNearMatches } from './component-suggestion'
 import type {
   APIInput,
   BuilderOptions,
@@ -28,6 +30,7 @@ import type {
   CustomTypeInput,
   DomainInput,
   DomainOpInput,
+  EnrichmentInput,
   EventHandlerInput,
   EventInput,
   ExternalLinkInput,
@@ -49,6 +52,7 @@ export type {
   CustomTypeInput,
   DomainInput,
   DomainOpInput,
+  EnrichmentInput,
   EventHandlerInput,
   EventInput,
   ExternalLinkInput,
@@ -269,41 +273,42 @@ export class RiviereBuilder {
     return this.registerComponent(component)
   }
 
-  private validateDomainExists(domain: string): void {
-    if (!this.graph.metadata.domains[domain]) {
-      throw new Error(`Domain '${domain}' does not exist`)
+  enrichComponent(id: string, enrichment: EnrichmentInput): void {
+    const component = this.graph.components.find((c) => c.id === id)
+    if (!component) {
+      throw this.componentNotFoundError(id)
+    }
+    if (component.type !== 'DomainOp') {
+      throw new Error(`Only DomainOp components can be enriched. '${id}' is type '${component.type}'`)
+    }
+    if (enrichment.entity !== undefined) {
+      component.entity = enrichment.entity
+    }
+    if (enrichment.stateChanges !== undefined) {
+      component.stateChanges = [...(component.stateChanges ?? []), ...enrichment.stateChanges]
+    }
+    if (enrichment.businessRules !== undefined) {
+      component.businessRules = [...(component.businessRules ?? []), ...enrichment.businessRules]
     }
   }
 
+  private componentNotFoundError(id: string): Error {
+    return createSourceNotFoundError(this.graph.components, ComponentId.parse(id))
+  }
+
+  private validateDomainExists(domain: string): void {
+    assertDomainExists(this.graph.metadata.domains, domain)
+  }
+
   private validateCustomType(customTypeName: string): void {
-    const customTypes = this.graph.metadata.customTypes
-    if (!customTypes[customTypeName]) {
-      const definedTypes = Object.keys(customTypes)
-      if (definedTypes.length === 0) {
-        throw new Error(`Custom type '${customTypeName}' not defined. No custom types have been defined.`)
-      }
-      throw new Error(`Custom type '${customTypeName}' not defined. Defined types: ${definedTypes.join(', ')}`)
-    }
+    assertCustomTypeExists(this.graph.metadata.customTypes, customTypeName)
   }
 
   private validateRequiredProperties(
     customTypeName: string,
     metadata: Record<string, unknown> | undefined
   ): void {
-    const typeDefinition = this.graph.metadata.customTypes[customTypeName]
-    if (!typeDefinition?.requiredProperties) {
-      return
-    }
-
-    const requiredKeys = Object.keys(typeDefinition.requiredProperties)
-    const providedKeys = metadata ? Object.keys(metadata) : []
-    const missingKeys = requiredKeys.filter((key) => !providedKeys.includes(key))
-
-    if (missingKeys.length > 0) {
-      throw new Error(
-        `Missing required properties for '${customTypeName}': ${missingKeys.join(', ')}`
-      )
-    }
+    assertRequiredPropertiesProvided(this.graph.metadata.customTypes, customTypeName, metadata)
   }
 
   private generateComponentId(domain: string, module: string, type: string, name: string): string {
@@ -320,42 +325,7 @@ export class RiviereBuilder {
   }
 
   nearMatches(query: NearMatchQuery, options?: NearMatchOptions): NearMatchResult[] {
-    if (query.name === '') {
-      return []
-    }
-
-    const threshold = options?.threshold ?? 0.6
-    const limit = options?.limit ?? 10
-
-    const results = this.graph.components
-      .map((component): NearMatchResult => {
-        const score = similarityScore(query.name, component.name)
-        const mismatch = this.detectMismatch(query, component)
-        return { component, score, mismatch }
-      })
-      .filter((result) => result.score >= threshold || result.mismatch !== undefined)
-      .sort((a, b) => b.score - a.score)
-      .slice(0, limit)
-
-    return results
-  }
-
-  private detectMismatch(query: NearMatchQuery, component: Component): NearMatchMismatch | undefined {
-    const nameMatches = query.name.toLowerCase() === component.name.toLowerCase()
-
-    if (!nameMatches) {
-      return undefined
-    }
-
-    if (query.type !== undefined && query.type !== component.type) {
-      return { field: 'type', expected: query.type, actual: component.type }
-    }
-
-    if (query.domain !== undefined && query.domain !== component.domain) {
-      return { field: 'domain', expected: query.domain, actual: component.domain }
-    }
-
-    return undefined
+    return findNearMatches(this.graph.components, query, options)
   }
 
   link(input: LinkInput): Link {
@@ -431,14 +401,6 @@ export class RiviereBuilder {
   }
 
   private sourceNotFoundError(id: string): Error {
-    const parts = id.split(':')
-    const namePart = parts[parts.length - 1]!
-    const suggestions = this.nearMatches({ name: namePart }, { limit: 3 })
-    const baseMessage = `Source component '${id}' not found`
-    if (suggestions.length === 0) {
-      return new Error(baseMessage)
-    }
-    const suggestionIds = suggestions.map((s) => s.component.id).join(', ')
-    return new Error(`${baseMessage}. Did you mean: ${suggestionIds}?`)
+    return createSourceNotFoundError(this.graph.components, ComponentId.parse(id))
   }
 }

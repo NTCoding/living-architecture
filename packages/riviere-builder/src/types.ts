@@ -174,3 +174,9 @@ export interface BuilderWarning {
   componentId?: string
   domainName?: string
 }
+
+export interface EnrichmentInput {
+  entity?: string
+  stateChanges?: StateTransition[]
+  businessRules?: string[]
+}

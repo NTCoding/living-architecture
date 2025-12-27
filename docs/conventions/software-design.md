@@ -131,7 +131,7 @@ class OrderProcessor {
 
 ## Fail-Fast Error Handling
 
-**NEVER use fallback chains:**
+**NEVER use fallback chains that hide missing data:**
 ```typescript
 value ?? backup ?? default ?? 'unknown'  // ❌
 ```
@@ -150,6 +150,29 @@ return content.eventType
 ```
 
 **Error format:** `Expected [X]. Got [Y]. Context: [debugging info]`
+
+### When `??` Is Acceptable
+
+Single `??` with a legitimate default is fine when:
+- The field is intentionally optional by design
+- The default represents the correct initial state (not a fallback hiding missing data)
+- No data is being masked or lost
+
+```typescript
+// ✅ OK - optional array with correct initial state
+const items = [...(existingItems ?? []), ...newItems]
+
+// ✅ OK - optional config with sensible default
+const timeout = options?.timeout ?? 5000
+
+// ❌ BAD - hiding which field actually had data
+const name = user.displayName ?? user.username ?? user.email ?? 'Anonymous'
+
+// ❌ BAD - masking missing required data
+const id = response.id ?? generatedId ?? 'unknown'
+```
+
+**The test:** Would you want to know if the value was missing? If yes, fail fast. If the default is genuinely correct, `??` is fine.
 
 ## Naming Conventions
 
