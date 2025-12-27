@@ -57,7 +57,7 @@ Optional?: [Is it mandatory to fix this problem or is there room for debate?]
 
 ## No Dangerous Fallback Values
 
-Pay extra special attention to dangerous fallback values that hide bugs. Claude Code loves setting default fallbacks
+Pay extra special attention to dangerous fallback values that hide bugs. Claude Code loves setting default fallbacks. 
 
 ❌ **Forbidden:**
 - `value ?? 'default'` (without clear reason)
@@ -80,3 +80,5 @@ validateSchema(data).catch(() => {})
 ```
 
 **Why:** If a value is required, make it required. Don't hide missing data.
+
+You must provide detailed feedback explaining why you believe the default value is dangerous in the current context and propose a better solution.

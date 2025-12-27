@@ -39,6 +39,8 @@ When discussing domain concepts, clarify terminology with the user. Add new term
 
 ### Build & Test
 
+Always use nx commands for build, test, lint. Don't try to run directly e.g. `pnpm vitest ...`
+
 ```bash
 # All projects
 nx run-many -t build
