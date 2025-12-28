@@ -2,7 +2,7 @@
 
 Extract software architecture from code as living documentation, using Riviere schema for flow-based (not structural) architecture
 
-Read `@docs/project/project-overview.md` then check `@docs/project/PRD/active/` for the current PRD.
+Read `@docs/project/project-overview.md` then check `@docs/project/PRD/active/*.md` for the current PRD.
 
 ## Monorepo Structure
 
@@ -12,16 +12,16 @@ packages/   - Shared libraries (publishable to npm)
 ```
 
 Current packages:
-- `@living-architecture/riviere-query` - Browser-safe query library (no Node.js dependencies)
-- `@living-architecture/riviere-builder` - Node.js builder (depends on riviere-query)
-- `@living-architecture/riviere-cli` - CLI tool with binary "riviere" (depends on riviere-builder)
+- `living-architecture/riviere-query` - Browser-safe query library (no Node.js dependencies)
+- `living-architecture/riviere-builder` - Node.js builder (depends on riviere-query)
+- `living-architecture/riviere-cli` - CLI tool with binary "riviere" (depends on riviere-builder)
 
 Internal (not published):
 - `@living-architecture/riviere-schema` - Riviere schema definitions
 
 Apps:
-- `@living-architecture/eclair` - Web app for viewing your software architecture via Riviere a schema
-- `@living-architecture/docs` - Living architecture documentation website
+- `living-architecture/eclair` - Web app for viewing your software architecture via Riviere a schema
+- `living-architecture/docs` - Living architecture documentation website
 
 Key documents:
 - `docs/project/PRD/active/` - Current PRDs
@@ -107,7 +107,13 @@ Follow `docs/conventions/testing.md`.
 
 ## Code Conventions
 
-When writing, refactoring, or reviewing code, always follow `docs/conventions/software-design.md`.
+When writing, editing, refactoring, or reviewing code: 
+
+- always follow `docs/conventions/software-design.md` 
+- look for standard implementation patterns defined in `docs/conventions/standard-patterns.md`
+-  avoid `docs/conventions/anti-patterns.md`
+
+The automatic code review agent enforces these conventions (see `./claude/automatic-code-review/rules.md`)
 
 Code quality is of highest importance. Rushing or taking shortcuts is never acceptable.
 
