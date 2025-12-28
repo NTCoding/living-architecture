@@ -10,6 +10,9 @@ import { createLinkHttpCommand } from './commands/builder/link-http';
 import { createValidateCommand } from './commands/builder/validate';
 import { createFinalizeCommand } from './commands/builder/finalize';
 import { createEnrichCommand } from './commands/builder/enrich';
+import { createComponentSummaryCommand } from './commands/builder/component-summary';
+import { createComponentChecklistCommand } from './commands/builder/component-checklist';
+import { createCheckConsistencyCommand } from './commands/builder/check-consistency';
 import { createEntryPointsCommand } from './commands/query/entry-points';
 import { createDomainsCommand } from './commands/query/domains';
 import { createTraceCommand } from './commands/query/trace';
@@ -55,6 +58,9 @@ export function createProgram(): Command {
   builderCmd.addCommand(createValidateCommand());
   builderCmd.addCommand(createFinalizeCommand());
   builderCmd.addCommand(createEnrichCommand());
+  builderCmd.addCommand(createComponentSummaryCommand());
+  builderCmd.addCommand(createComponentChecklistCommand());
+  builderCmd.addCommand(createCheckConsistencyCommand());
 
   const queryCmd = program
     .command('query')

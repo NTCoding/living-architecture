@@ -530,12 +530,13 @@
         "description": "Create reporting commands for graph inspection and AI workflow support",
         "details": "## Deliverable: Builder reporting commands for graph inspection\n\n### Context\nPhase 8 PRD: `docs/project/PRD/active/PRD-phase-8-riviere-cli.md`\n\nReporting commands that help AI agents understand graph state and identify work remaining.\n\n### Key Decisions and Principles\n- **AI workflow support** — These commands help AI agents track extraction progress\n- **Thin wrapper** — Uses builder.stats(), builder.orphans(), builder.warnings()\n\n### Delivers\n- `riviere builder component-summary` — Component counts by domain/type\n- `riviere builder component-checklist [--type <type>]` — Markdown checklist for linking/enrichment\n- `riviere builder check-consistency` — Reports orphans and structural issues\n\n### Acceptance Criteria\n- Given graph with components, When running `component-summary`, Then outputs counts by domain and type\n- Given graph with components, When running `component-checklist`, Then outputs markdown checklist of components\n- Given --type DomainOp filter, When running component-checklist, Then only DomainOp components listed\n- Given graph with orphan components, When running `check-consistency`, Then reports orphans\n- Given graph with warnings, When running check-consistency, Then reports all warnings\n- Given --json flag, When commands run, Then output follows JSON schema\n\n### Dependencies\n- Task 35 (add-component)\n\n### Related Code\n- `packages/riviere-builder/src/builder.ts` — `stats()`, `orphans()`, `warnings()`\n- `packages/riviere-builder/src/inspection.ts` — Stats and warning logic\n\n### Verification\n```bash\nriviere builder component-summary\nriviere builder component-summary --json\nriviere builder component-checklist\nriviere builder component-checklist --type DomainOp\nriviere builder check-consistency\nnx test riviere-cli\n```",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           "35"
         ],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2025-12-28T21:46:44.404Z"
       },
       {
         "id": "40",
@@ -594,9 +595,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-12-28T20:59:22.990Z",
+      "lastModified": "2025-12-28T21:46:44.405Z",
       "taskCount": 43,
-      "completedCount": 39,
+      "completedCount": 40,
       "tags": [
         "master"
       ]

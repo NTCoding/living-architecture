@@ -1,7 +1,52 @@
 import { mkdtemp, rm, mkdir, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { vi, beforeEach, afterEach } from 'vitest';
+import { vi, beforeEach, afterEach, expect, it } from 'vitest';
+import { createProgram } from './cli';
+
+export interface ErrorOutput {
+  success: false;
+  error: {
+    code: string;
+    message: string;
+    suggestions: string[];
+  };
+}
+
+export function isErrorOutput(value: unknown): value is ErrorOutput {
+  if (typeof value !== 'object' || value === null) return false;
+  if (!('success' in value) || value.success !== false) return false;
+  if (!('error' in value) || typeof value.error !== 'object' || value.error === null) return false;
+  return true;
+}
+
+export function parseErrorOutput(consoleOutput: string[]): ErrorOutput {
+  const firstLine = consoleOutput[0];
+  if (firstLine === undefined) {
+    throw new Error('Expected console output but got empty array');
+  }
+  const parsed: unknown = JSON.parse(firstLine);
+  if (!isErrorOutput(parsed)) {
+    throw new Error('Invalid error output');
+  }
+  return parsed;
+}
+
+export function parseSuccessOutput<T>(
+  consoleOutput: string[],
+  guard: (value: unknown) => value is T,
+  errorMessage: string
+): T {
+  const firstLine = consoleOutput[0];
+  if (firstLine === undefined) {
+    throw new Error('Expected console output but got empty array');
+  }
+  const parsed: unknown = JSON.parse(firstLine);
+  if (!guard(parsed)) {
+    throw new Error(errorMessage);
+  }
+  return parsed;
+}
 
 export interface TestContext {
   testDir: string;
@@ -99,4 +144,35 @@ export async function createGraphWithDomain(testDir: string, domainName: string)
     links: [],
   };
   await writeFile(join(graphDir, 'graph.json'), JSON.stringify(graph), 'utf-8');
+}
+
+export function hasSuccessOutputStructure(value: unknown): value is { success: true; data: object } {
+  if (typeof value !== 'object' || value === null) return false;
+  if (!('success' in value) || value.success !== true) return false;
+  if (!('data' in value) || typeof value.data !== 'object' || value.data === null) return false;
+  return true;
+}
+
+export function testCommandRegistration(commandName: string): void {
+  it(`registers ${commandName} command under builder`, () => {
+    const program = createProgram();
+    const builderCmd = program.commands.find((cmd) => cmd.name() === 'builder');
+    const cmd = builderCmd?.commands.find((cmd) => cmd.name() === commandName);
+    expect(cmd?.name()).toBe(commandName);
+  });
+}
+
+export async function testCustomGraphPath<T>(
+  ctx: TestContext,
+  commandArgs: string[],
+  parseOutput: (consoleOutput: string[]) => T
+): Promise<T> {
+  const customPath = await createGraph(
+    ctx.testDir,
+    { version: '1.0', metadata: baseMetadata, components: [], links: [] },
+    'custom'
+  );
+
+  await createProgram().parseAsync(['node', 'riviere', ...commandArgs, '--graph', customPath, '--json']);
+  return parseOutput(ctx.consoleOutput);
 }
