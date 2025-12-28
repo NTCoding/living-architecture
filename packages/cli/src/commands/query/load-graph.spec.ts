@@ -98,7 +98,9 @@ describe('load-graph', () => {
       })
 
       expect(ctx.consoleOutput).toHaveLength(1)
-      const output: unknown = JSON.parse(ctx.consoleOutput[0] ?? '{}')
+      const firstOutput = ctx.consoleOutput[0]
+      if (firstOutput === undefined) throw new Error('Expected output')
+      const output: unknown = JSON.parse(firstOutput)
       expect(output).toMatchObject({
         success: false,
         error: { code: CliErrorCode.GraphNotFound },

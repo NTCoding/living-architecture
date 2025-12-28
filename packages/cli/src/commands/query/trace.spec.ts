@@ -49,10 +49,14 @@ function isTraceErrorOutput(value: unknown): value is TraceErrorOutput {
 }
 
 function parseOutput(consoleOutput: string[]): TraceOutput {
-  const parsed: unknown = JSON.parse(consoleOutput[0] ?? '{}')
+  const firstOutput = consoleOutput[0]
+  if (firstOutput === undefined) {
+    throw new Error('Expected console output but got none')
+  }
+  const parsed: unknown = JSON.parse(firstOutput)
   if (isTraceSuccessOutput(parsed)) return parsed
   if (isTraceErrorOutput(parsed)) return parsed
-  throw new Error(`Invalid trace output: ${consoleOutput[0]}`)
+  throw new Error(`Invalid trace output: ${firstOutput}`)
 }
 
 describe('riviere query trace', () => {
