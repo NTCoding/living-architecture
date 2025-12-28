@@ -1,11 +1,10 @@
 import { Command } from 'commander';
 import { writeFile } from 'node:fs/promises';
-import { fileExists } from '../../file-existence';
-import { resolveGraphPath, getDefaultGraphPathDescription } from '../../graph-path';
 import { InvalidEnrichmentTargetError } from '@living-architecture/riviere-builder';
-import { reportGraphNotFound, loadGraphBuilder, handleComponentNotFoundError } from './link-infrastructure';
+import { withGraphBuilder, handleComponentNotFoundError } from './link-infrastructure';
 import { formatError, formatSuccess } from '../../output';
 import { CliErrorCode } from '../../error-codes';
+import { getDefaultGraphPathDescription } from '../../graph-path';
 import type { StateTransition } from '@living-architecture/riviere-schema';
 
 interface EnrichOptions {
@@ -61,13 +60,6 @@ export function createEnrichCommand(): Command {
     .option('--graph <path>', getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .action(async (options: EnrichOptions) => {
-      const graphPath = resolveGraphPath(options.graph);
-      const graphExists = await fileExists(graphPath);
-      if (!graphExists) {
-        reportGraphNotFound(graphPath);
-        return;
-      }
-
       const parseResult = parseStateChanges(options.stateChange);
       if (!parseResult.success) {
         const msg = `Invalid state-change format: '${parseResult.invalidInput}'. Expected 'from:to'.`;
@@ -75,23 +67,23 @@ export function createEnrichCommand(): Command {
         return;
       }
 
-      const builder = await loadGraphBuilder(graphPath);
+      await withGraphBuilder(options.graph, async (builder, graphPath) => {
+        try {
+          builder.enrichComponent(options.id, {
+            ...(options.entity !== undefined && { entity: options.entity }),
+            ...(parseResult.stateChanges.length > 0 && { stateChanges: parseResult.stateChanges }),
+            ...(options.businessRule.length > 0 && { businessRules: options.businessRule }),
+          });
+        } catch (error) {
+          handleEnrichmentError(error);
+          return;
+        }
 
-      try {
-        builder.enrichComponent(options.id, {
-          ...(options.entity !== undefined && { entity: options.entity }),
-          ...(parseResult.stateChanges.length > 0 && { stateChanges: parseResult.stateChanges }),
-          ...(options.businessRule.length > 0 && { businessRules: options.businessRule }),
-        });
-      } catch (error) {
-        handleEnrichmentError(error);
-        return;
-      }
+        await writeFile(graphPath, builder.serialize(), 'utf-8');
 
-      await writeFile(graphPath, builder.serialize(), 'utf-8');
-
-      if (options.json === true) {
-        console.log(JSON.stringify(formatSuccess({ componentId: options.id })));
-      }
+        if (options.json === true) {
+          console.log(JSON.stringify(formatSuccess({ componentId: options.id })));
+        }
+      });
     });
 }

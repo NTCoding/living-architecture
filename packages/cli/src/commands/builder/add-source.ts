@@ -1,11 +1,8 @@
 import { Command } from 'commander';
-import { readFile, writeFile } from 'node:fs/promises';
-import { RiviereBuilder } from '@living-architecture/riviere-builder';
-import { parseRiviereGraph } from '@living-architecture/riviere-schema';
-import { formatError, formatSuccess } from '../../output';
-import { CliErrorCode } from '../../error-codes';
-import { fileExists } from '../../file-existence';
-import { resolveGraphPath, getDefaultGraphPathDescription } from '../../graph-path';
+import { writeFile } from 'node:fs/promises';
+import { formatSuccess } from '../../output';
+import { getDefaultGraphPathDescription } from '../../graph-path';
+import { withGraphBuilder } from './link-infrastructure';
 
 interface AddSourceOptions {
   repository: string;
@@ -20,38 +17,20 @@ export function createAddSourceCommand(): Command {
     .option('--graph <path>', getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .action(async (options: AddSourceOptions) => {
-      const graphPath = resolveGraphPath(options.graph);
+      await withGraphBuilder(options.graph, async (builder, graphPath) => {
+        builder.addSource({ repository: options.repository });
 
-      const graphExists = await fileExists(graphPath);
+        await writeFile(graphPath, builder.serialize(), 'utf-8');
 
-      if (!graphExists) {
-        console.log(
-          JSON.stringify(
-            formatError(CliErrorCode.GraphNotFound, `Graph not found at ${graphPath}`, [
-              'Run riviere builder init first',
-            ])
-          )
-        );
-        return;
-      }
-
-      const content = await readFile(graphPath, 'utf-8');
-      const parsed: unknown = JSON.parse(content);
-      const graph = parseRiviereGraph(parsed);
-      const builder = RiviereBuilder.resume(graph);
-
-      builder.addSource({ repository: options.repository });
-
-      await writeFile(graphPath, builder.serialize(), 'utf-8');
-
-      if (options.json === true) {
-        console.log(
-          JSON.stringify(
-            formatSuccess({
-              repository: options.repository,
-            })
-          )
-        );
-      }
+        if (options.json === true) {
+          console.log(
+            JSON.stringify(
+              formatSuccess({
+                repository: options.repository,
+              })
+            )
+          );
+        }
+      });
     });
 }

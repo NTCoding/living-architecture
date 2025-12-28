@@ -1,12 +1,11 @@
 import { Command } from 'commander';
-import { readFile, writeFile } from 'node:fs/promises';
-import { DuplicateDomainError, RiviereBuilder } from '@living-architecture/riviere-builder';
-import { parseRiviereGraph } from '@living-architecture/riviere-schema';
+import { writeFile } from 'node:fs/promises';
+import { DuplicateDomainError } from '@living-architecture/riviere-builder';
 import { formatError, formatSuccess } from '../../output';
 import { CliErrorCode } from '../../error-codes';
-import { fileExists } from '../../file-existence';
-import { resolveGraphPath, getDefaultGraphPathDescription } from '../../graph-path';
+import { getDefaultGraphPathDescription } from '../../graph-path';
 import { isValidSystemType, VALID_SYSTEM_TYPES } from '../../component-types';
+import { withGraphBuilder } from './link-infrastructure';
 
 interface AddDomainOptions {
   name: string;
@@ -39,58 +38,38 @@ export function createAddDomainCommand(): Command {
       }
       const systemType = options.systemType;
 
-      const graphPath = resolveGraphPath(options.graph);
+      await withGraphBuilder(options.graph, async (builder, graphPath) => {
+        try {
+          builder.addDomain({
+            name: options.name,
+            description: options.description,
+            systemType,
+          });
+        } catch (error) {
+          if (error instanceof DuplicateDomainError) {
+            console.log(
+              JSON.stringify(
+                formatError(CliErrorCode.DuplicateDomain, error.message, ['Use a different domain name'])
+              )
+            );
+            return;
+          }
+          throw error;
+        }
 
-      const graphExists = await fileExists(graphPath);
+        await writeFile(graphPath, builder.serialize(), 'utf-8');
 
-      if (!graphExists) {
-        console.log(
-          JSON.stringify(
-            formatError(CliErrorCode.GraphNotFound, `Graph not found at ${graphPath}`, [
-              'Run riviere builder init first',
-            ])
-          )
-        );
-        return;
-      }
-
-      const content = await readFile(graphPath, 'utf-8');
-      const parsed: unknown = JSON.parse(content);
-      const graph = parseRiviereGraph(parsed);
-      const builder = RiviereBuilder.resume(graph);
-
-      try {
-        builder.addDomain({
-          name: options.name,
-          description: options.description,
-          systemType,
-        });
-      } catch (error) {
-        if (error instanceof DuplicateDomainError) {
+        if (options.json === true) {
           console.log(
             JSON.stringify(
-              formatError(CliErrorCode.DuplicateDomain, error.message, [
-                'Use a different domain name',
-              ])
+              formatSuccess({
+                name: options.name,
+                description: options.description,
+                systemType: options.systemType,
+              })
             )
           );
-          return;
         }
-        throw error;
-      }
-
-      await writeFile(graphPath, builder.serialize(), 'utf-8');
-
-      if (options.json === true) {
-        console.log(
-          JSON.stringify(
-            formatSuccess({
-              name: options.name,
-              description: options.description,
-              systemType: options.systemType,
-            })
-          )
-        );
-      }
+      });
     });
 }
