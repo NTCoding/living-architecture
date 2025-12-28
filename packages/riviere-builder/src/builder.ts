@@ -21,7 +21,7 @@ import { calculateStats, findOrphans, findWarnings, toRiviereGraph, validateGrap
 import { assertCustomTypeExists, assertDomainExists, assertRequiredPropertiesProvided } from './builder-assertions'
 import { ComponentId } from '@living-architecture/riviere-schema'
 import { createSourceNotFoundError, findNearMatches } from './component-suggestion'
-import { DuplicateComponentError, DuplicateDomainError } from './errors'
+import { DuplicateComponentError, DuplicateDomainError, InvalidEnrichmentTargetError } from './errors'
 import type {
   APIInput,
   BuilderOptions,
@@ -567,7 +567,7 @@ export class RiviereBuilder {
       throw this.componentNotFoundError(id)
     }
     if (component.type !== 'DomainOp') {
-      throw new Error(`Only DomainOp components can be enriched. '${id}' is type '${component.type}'`)
+      throw new InvalidEnrichmentTargetError(id, component.type)
     }
     if (enrichment.entity !== undefined) {
       component.entity = enrichment.entity

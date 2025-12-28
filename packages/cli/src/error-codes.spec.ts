@@ -7,6 +7,7 @@ describe('CliErrorCode', () => {
     ['DomainNotFound', 'DOMAIN_NOT_FOUND'],
     ['DuplicateComponent', 'DUPLICATE_COMPONENT'],
     ['InvalidLink', 'INVALID_LINK'],
+    ['InvalidComponentType', 'INVALID_COMPONENT_TYPE'],
     ['ValidationError', 'VALIDATION_ERROR'],
     ['GraphCorrupted', 'GRAPH_CORRUPTED'],
     ['GraphExists', 'GRAPH_EXISTS'],

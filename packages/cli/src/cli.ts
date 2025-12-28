@@ -9,6 +9,7 @@ import { createLinkExternalCommand } from './commands/builder/link-external';
 import { createLinkHttpCommand } from './commands/builder/link-http';
 import { createValidateCommand } from './commands/builder/validate';
 import { createFinalizeCommand } from './commands/builder/finalize';
+import { createEnrichCommand } from './commands/builder/enrich';
 import { createEntryPointsCommand } from './commands/query/entry-points';
 import { createDomainsCommand } from './commands/query/domains';
 import { createTraceCommand } from './commands/query/trace';
@@ -53,6 +54,7 @@ export function createProgram(): Command {
   builderCmd.addCommand(createLinkHttpCommand());
   builderCmd.addCommand(createValidateCommand());
   builderCmd.addCommand(createFinalizeCommand());
+  builderCmd.addCommand(createEnrichCommand());
 
   const queryCmd = program
     .command('query')
