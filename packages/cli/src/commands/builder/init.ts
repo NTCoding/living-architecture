@@ -8,14 +8,13 @@ import { CliErrorCode } from '../../error-codes';
 import { fileExists } from '../../file-existence';
 import { resolveGraphPath, getDefaultGraphPathDescription } from '../../graph-path';
 import type { SystemType } from '@living-architecture/riviere-schema';
+import { isValidSystemType } from '../../component-types';
 
 interface DomainInputParsed {
   name: string;
   description: string;
   systemType: SystemType;
 }
-
-const VALID_SYSTEM_TYPES: readonly SystemType[] = ['domain', 'bff', 'ui', 'other'];
 
 function isDomainInputParsed(value: unknown): value is DomainInputParsed {
   if (typeof value !== 'object' || value === null) {
@@ -28,7 +27,7 @@ function isDomainInputParsed(value: unknown): value is DomainInputParsed {
     typeof value.description === 'string' &&
     'systemType' in value &&
     typeof value.systemType === 'string' &&
-    VALID_SYSTEM_TYPES.some((t) => t === value.systemType)
+    isValidSystemType(value.systemType)
   );
 }
 

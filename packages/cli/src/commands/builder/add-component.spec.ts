@@ -414,6 +414,7 @@ describe('riviere builder add-component', () => {
         components: [{ sourceLocation: { lineNumber: 42 } }],
       });
     });
+
   });
 
   describe('getErrorMessage', () => {

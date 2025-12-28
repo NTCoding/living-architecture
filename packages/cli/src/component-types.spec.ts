@@ -2,9 +2,13 @@ import { describe, it, expect } from 'vitest';
 import {
   isValidComponentType,
   isValidLinkType,
+  isValidApiType,
+  isValidSystemType,
   normalizeComponentType,
   VALID_COMPONENT_TYPES,
   VALID_LINK_TYPES,
+  VALID_API_TYPES,
+  VALID_SYSTEM_TYPES,
 } from './component-types';
 
 describe('component-types', () => {
@@ -55,6 +59,46 @@ describe('component-types', () => {
 
     it('throws for invalid component type', () => {
       expect(() => normalizeComponentType('Invalid')).toThrow(/Invalid component type/);
+    });
+  });
+
+  describe('VALID_SYSTEM_TYPES', () => {
+    it('contains domain, bff, ui, and other', () => {
+      expect(VALID_SYSTEM_TYPES).toEqual(['domain', 'bff', 'ui', 'other']);
+    });
+  });
+
+  describe('isValidSystemType', () => {
+    it.each(VALID_SYSTEM_TYPES)('accepts %s as valid', (type) => {
+      expect(isValidSystemType(type)).toBe(true);
+    });
+
+    it('rejects invalid system types', () => {
+      expect(isValidSystemType('backend')).toBe(false);
+      expect(isValidSystemType('DOMAIN')).toBe(false);
+      expect(isValidSystemType('')).toBe(false);
+    });
+  });
+
+  describe('VALID_API_TYPES', () => {
+    it('contains REST, GraphQL, and other', () => {
+      expect(VALID_API_TYPES).toEqual(['REST', 'GraphQL', 'other']);
+    });
+  });
+
+  describe('isValidApiType', () => {
+    it.each(VALID_API_TYPES)('accepts %s as valid', (type) => {
+      expect(isValidApiType(type)).toBe(true);
+    });
+
+    it.each(VALID_API_TYPES)('accepts case variations of %s', (type) => {
+      expect(isValidApiType(type.toLowerCase())).toBe(true);
+      expect(isValidApiType(type.toUpperCase())).toBe(true);
+    });
+
+    it('rejects invalid API types', () => {
+      expect(isValidApiType('SOAP')).toBe(false);
+      expect(isValidApiType('')).toBe(false);
     });
   });
 

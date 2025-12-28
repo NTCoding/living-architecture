@@ -1,18 +1,12 @@
 import { Command } from 'commander';
 import { readFile, writeFile } from 'node:fs/promises';
 import { DuplicateDomainError, RiviereBuilder } from '@living-architecture/riviere-builder';
-import type { SystemType } from '@living-architecture/riviere-schema';
 import { parseRiviereGraph } from '@living-architecture/riviere-schema';
 import { formatError, formatSuccess } from '../../output';
 import { CliErrorCode } from '../../error-codes';
 import { fileExists } from '../../file-existence';
 import { resolveGraphPath, getDefaultGraphPathDescription } from '../../graph-path';
-
-const VALID_SYSTEM_TYPES: readonly SystemType[] = ['domain', 'bff', 'ui', 'other'];
-
-function isValidSystemType(value: string): value is SystemType {
-  return VALID_SYSTEM_TYPES.some((t) => t === value);
-}
+import { isValidSystemType, VALID_SYSTEM_TYPES } from '../../component-types';
 
 interface AddDomainOptions {
   name: string;

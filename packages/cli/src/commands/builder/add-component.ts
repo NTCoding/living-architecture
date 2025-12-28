@@ -6,30 +6,19 @@ import {
   DuplicateComponentError,
   RiviereBuilder,
 } from '@living-architecture/riviere-builder';
-import type { ApiType, HttpMethod, SourceLocation } from '@living-architecture/riviere-schema';
+import type { SourceLocation } from '@living-architecture/riviere-schema';
 import { parseRiviereGraph } from '@living-architecture/riviere-schema';
 import { getDefaultGraphPathDescription, resolveGraphPath } from '../../graph-path';
 import { fileExists } from '../../file-existence';
 import { formatError, formatSuccess } from '../../output';
 import { CliErrorCode } from '../../error-codes';
-
-const VALID_COMPONENT_TYPES = ['UI', 'API', 'UseCase', 'DomainOp', 'Event', 'EventHandler', 'Custom'] as const;
-type ComponentTypeFlag = (typeof VALID_COMPONENT_TYPES)[number];
-
-const VALID_API_TYPES: readonly ApiType[] = ['REST', 'GraphQL', 'other'];
-const VALID_HTTP_METHODS: readonly HttpMethod[] = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'];
-
-function isValidComponentType(value: string): value is ComponentTypeFlag {
-  return VALID_COMPONENT_TYPES.some((t) => t === value);
-}
-
-function isValidApiType(value: string): value is ApiType {
-  return VALID_API_TYPES.some((t) => t === value);
-}
-
-function isValidHttpMethod(value: string): value is HttpMethod {
-  return VALID_HTTP_METHODS.some((t) => t === value);
-}
+import {
+  isValidComponentType,
+  isValidApiType,
+  VALID_COMPONENT_TYPES,
+  type ComponentTypeFlag,
+} from '../../component-types';
+import { isValidHttpMethod } from '../../validation';
 
 export function getErrorMessage(error: unknown): string {
   if (error instanceof Error) {

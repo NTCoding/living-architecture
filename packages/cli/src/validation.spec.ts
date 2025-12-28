@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { validateComponentType, validateLinkType, validateHttpMethod, isValidHttpMethod } from './validation';
+import {
+  validateComponentType,
+  validateLinkType,
+  validateSystemType,
+  validateHttpMethod,
+  isValidHttpMethod,
+} from './validation';
 import { CliErrorCode } from './error-codes';
 
 describe('validation', () => {
@@ -82,6 +88,23 @@ describe('validation', () => {
 
     it('returns false for invalid HTTP methods', () => {
       expect(isValidHttpMethod('INVALID')).toBe(false);
+    });
+  });
+
+  describe('validateSystemType', () => {
+    it.each(['domain', 'bff', 'ui', 'other'])('returns valid for %s', (type) => {
+      expect(validateSystemType(type)).toEqual({ valid: true });
+    });
+
+    it('returns invalid with error for unknown system type', () => {
+      const result = validateSystemType('backend');
+      expect(result.valid).toBe(false);
+      expect(result.errorJson).toBeDefined();
+      const error: unknown = JSON.parse(result.errorJson ?? '');
+      expect(error).toMatchObject({
+        success: false,
+        error: { code: CliErrorCode.ValidationError, message: 'Invalid system type: backend' },
+      });
     });
   });
 });

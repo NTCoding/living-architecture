@@ -1,5 +1,12 @@
 import type { HttpMethod } from '@living-architecture/riviere-schema';
-import { isValidComponentType, isValidLinkType, VALID_COMPONENT_TYPES, VALID_LINK_TYPES } from './component-types';
+import {
+  isValidComponentType,
+  isValidLinkType,
+  isValidSystemType,
+  VALID_COMPONENT_TYPES,
+  VALID_LINK_TYPES,
+  VALID_SYSTEM_TYPES,
+} from './component-types';
 import { formatError } from './output';
 import { CliErrorCode } from './error-codes';
 
@@ -38,7 +45,22 @@ export function validateLinkType(linkType: string | undefined): ValidationResult
   };
 }
 
-const VALID_HTTP_METHODS: readonly HttpMethod[] = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'];
+export function validateSystemType(systemType: string): ValidationResult {
+  if (isValidSystemType(systemType)) {
+    return { valid: true };
+  }
+
+  return {
+    valid: false,
+    errorJson: JSON.stringify(
+      formatError(CliErrorCode.ValidationError, `Invalid system type: ${systemType}`, [
+        `Valid types: ${VALID_SYSTEM_TYPES.join(', ')}`,
+      ])
+    ),
+  };
+}
+
+export const VALID_HTTP_METHODS: readonly HttpMethod[] = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'];
 
 export function isValidHttpMethod(value: string): value is HttpMethod {
   return VALID_HTTP_METHODS.some((m) => m === value.toUpperCase());

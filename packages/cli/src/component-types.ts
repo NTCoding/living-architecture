@@ -22,6 +22,20 @@ export function normalizeComponentType(value: string): string {
   return normalized;
 }
 
+export const VALID_SYSTEM_TYPES = ['domain', 'bff', 'ui', 'other'] as const;
+export type SystemTypeFlag = (typeof VALID_SYSTEM_TYPES)[number];
+
+export function isValidSystemType(value: string): value is SystemTypeFlag {
+  return VALID_SYSTEM_TYPES.some((t) => t === value);
+}
+
+export const VALID_API_TYPES = ['REST', 'GraphQL', 'other'] as const;
+export type ApiTypeFlag = (typeof VALID_API_TYPES)[number];
+
+export function isValidApiType(value: string): value is ApiTypeFlag {
+  return VALID_API_TYPES.some((t) => t.toLowerCase() === value.toLowerCase());
+}
+
 export const VALID_LINK_TYPES = ['sync', 'async'] as const;
 export type LinkType = (typeof VALID_LINK_TYPES)[number];
 
