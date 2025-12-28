@@ -1,6 +1,6 @@
 # Interface: ExternalLinkInput
 
-Defined in: [types.ts:121](https://github.com/ntcoding/living-architecture/blob/0187e5d7378806600c01437dfa0ddf19b749a24f/packages/riviere-builder/src/types.ts#L121)
+Defined in: [packages/riviere-builder/src/types.ts:121](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-builder/src/types.ts#L121)
 
 ## Properties
 
@@ -8,7 +8,7 @@ Defined in: [types.ts:121](https://github.com/ntcoding/living-architecture/blob/
 
 > `optional` **description**: `string`
 
-Defined in: [types.ts:125](https://github.com/ntcoding/living-architecture/blob/0187e5d7378806600c01437dfa0ddf19b749a24f/packages/riviere-builder/src/types.ts#L125)
+Defined in: [packages/riviere-builder/src/types.ts:125](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-builder/src/types.ts#L125)
 
 ***
 
@@ -16,7 +16,7 @@ Defined in: [types.ts:125](https://github.com/ntcoding/living-architecture/blob/
 
 > **from**: `string`
 
-Defined in: [types.ts:122](https://github.com/ntcoding/living-architecture/blob/0187e5d7378806600c01437dfa0ddf19b749a24f/packages/riviere-builder/src/types.ts#L122)
+Defined in: [packages/riviere-builder/src/types.ts:122](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-builder/src/types.ts#L122)
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: [types.ts:122](https://github.com/ntcoding/living-architecture/blob/
 
 > `optional` **metadata**: `Record`\<`string`, `unknown`\>
 
-Defined in: [types.ts:127](https://github.com/ntcoding/living-architecture/blob/0187e5d7378806600c01437dfa0ddf19b749a24f/packages/riviere-builder/src/types.ts#L127)
+Defined in: [packages/riviere-builder/src/types.ts:127](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-builder/src/types.ts#L127)
 
 ***
 
@@ -32,7 +32,7 @@ Defined in: [types.ts:127](https://github.com/ntcoding/living-architecture/blob/
 
 > `optional` **sourceLocation**: `SourceLocation`
 
-Defined in: [types.ts:126](https://github.com/ntcoding/living-architecture/blob/0187e5d7378806600c01437dfa0ddf19b749a24f/packages/riviere-builder/src/types.ts#L126)
+Defined in: [packages/riviere-builder/src/types.ts:126](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-builder/src/types.ts#L126)
 
 ***
 
@@ -40,7 +40,7 @@ Defined in: [types.ts:126](https://github.com/ntcoding/living-architecture/blob/
 
 > **target**: `ExternalTarget`
 
-Defined in: [types.ts:123](https://github.com/ntcoding/living-architecture/blob/0187e5d7378806600c01437dfa0ddf19b749a24f/packages/riviere-builder/src/types.ts#L123)
+Defined in: [packages/riviere-builder/src/types.ts:123](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-builder/src/types.ts#L123)
 
 ***
 
@@ -48,4 +48,4 @@ Defined in: [types.ts:123](https://github.com/ntcoding/living-architecture/blob/
 
 > `optional` **type**: `LinkType`
 
-Defined in: [types.ts:124](https://github.com/ntcoding/living-architecture/blob/0187e5d7378806600c01437dfa0ddf19b749a24f/packages/riviere-builder/src/types.ts#L124)
+Defined in: [packages/riviere-builder/src/types.ts:124](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-builder/src/types.ts#L124)

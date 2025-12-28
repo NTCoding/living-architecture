@@ -2,6 +2,10 @@
 
 ## Classes
 
+- [CustomTypeNotFoundError](classes/CustomTypeNotFoundError.md)
+- [DomainNotFoundError](classes/DomainNotFoundError.md)
+- [DuplicateComponentError](classes/DuplicateComponentError.md)
+- [DuplicateDomainError](classes/DuplicateDomainError.md)
 - [RiviereBuilder](classes/RiviereBuilder.md)
 
 ## Interfaces

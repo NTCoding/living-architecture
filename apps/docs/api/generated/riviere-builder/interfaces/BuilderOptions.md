@@ -1,6 +1,6 @@
 # Interface: BuilderOptions
 
-Defined in: [types.ts:17](https://github.com/ntcoding/living-architecture/blob/0187e5d7378806600c01437dfa0ddf19b749a24f/packages/riviere-builder/src/types.ts#L17)
+Defined in: [packages/riviere-builder/src/types.ts:17](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-builder/src/types.ts#L17)
 
 ## Properties
 
@@ -8,7 +8,7 @@ Defined in: [types.ts:17](https://github.com/ntcoding/living-architecture/blob/0
 
 > `optional` **description**: `string`
 
-Defined in: [types.ts:19](https://github.com/ntcoding/living-architecture/blob/0187e5d7378806600c01437dfa0ddf19b749a24f/packages/riviere-builder/src/types.ts#L19)
+Defined in: [packages/riviere-builder/src/types.ts:19](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-builder/src/types.ts#L19)
 
 ***
 
@@ -16,7 +16,7 @@ Defined in: [types.ts:19](https://github.com/ntcoding/living-architecture/blob/0
 
 > **domains**: `Record`\<`string`, `DomainMetadata`\>
 
-Defined in: [types.ts:21](https://github.com/ntcoding/living-architecture/blob/0187e5d7378806600c01437dfa0ddf19b749a24f/packages/riviere-builder/src/types.ts#L21)
+Defined in: [packages/riviere-builder/src/types.ts:21](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-builder/src/types.ts#L21)
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: [types.ts:21](https://github.com/ntcoding/living-architecture/blob/0
 
 > `optional` **name**: `string`
 
-Defined in: [types.ts:18](https://github.com/ntcoding/living-architecture/blob/0187e5d7378806600c01437dfa0ddf19b749a24f/packages/riviere-builder/src/types.ts#L18)
+Defined in: [packages/riviere-builder/src/types.ts:18](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-builder/src/types.ts#L18)
 
 ***
 
@@ -32,4 +32,4 @@ Defined in: [types.ts:18](https://github.com/ntcoding/living-architecture/blob/0
 
 > **sources**: `SourceInfo`[]
 
-Defined in: [types.ts:20](https://github.com/ntcoding/living-architecture/blob/0187e5d7378806600c01437dfa0ddf19b749a24f/packages/riviere-builder/src/types.ts#L20)
+Defined in: [packages/riviere-builder/src/types.ts:20](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-builder/src/types.ts#L20)

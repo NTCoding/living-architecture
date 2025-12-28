@@ -1,6 +1,6 @@
 # Interface: LinkInput
 
-Defined in: [types.ts:115](https://github.com/ntcoding/living-architecture/blob/0187e5d7378806600c01437dfa0ddf19b749a24f/packages/riviere-builder/src/types.ts#L115)
+Defined in: [packages/riviere-builder/src/types.ts:115](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-builder/src/types.ts#L115)
 
 ## Properties
 
@@ -8,7 +8,7 @@ Defined in: [types.ts:115](https://github.com/ntcoding/living-architecture/blob/
 
 > **from**: `string`
 
-Defined in: [types.ts:116](https://github.com/ntcoding/living-architecture/blob/0187e5d7378806600c01437dfa0ddf19b749a24f/packages/riviere-builder/src/types.ts#L116)
+Defined in: [packages/riviere-builder/src/types.ts:116](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-builder/src/types.ts#L116)
 
 ***
 
@@ -16,7 +16,7 @@ Defined in: [types.ts:116](https://github.com/ntcoding/living-architecture/blob/
 
 > **to**: `string`
 
-Defined in: [types.ts:117](https://github.com/ntcoding/living-architecture/blob/0187e5d7378806600c01437dfa0ddf19b749a24f/packages/riviere-builder/src/types.ts#L117)
+Defined in: [packages/riviere-builder/src/types.ts:117](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-builder/src/types.ts#L117)
 
 ***
 
@@ -24,4 +24,4 @@ Defined in: [types.ts:117](https://github.com/ntcoding/living-architecture/blob/
 
 > `optional` **type**: `LinkType`
 
-Defined in: [types.ts:118](https://github.com/ntcoding/living-architecture/blob/0187e5d7378806600c01437dfa0ddf19b749a24f/packages/riviere-builder/src/types.ts#L118)
+Defined in: [packages/riviere-builder/src/types.ts:118](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-builder/src/types.ts#L118)

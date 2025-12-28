@@ -1,6 +1,6 @@
 # Interface: CustomTypeInput
 
-Defined in: [types.ts:98](https://github.com/ntcoding/living-architecture/blob/0187e5d7378806600c01437dfa0ddf19b749a24f/packages/riviere-builder/src/types.ts#L98)
+Defined in: [packages/riviere-builder/src/types.ts:98](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-builder/src/types.ts#L98)
 
 ## Properties
 
@@ -8,7 +8,7 @@ Defined in: [types.ts:98](https://github.com/ntcoding/living-architecture/blob/0
 
 > `optional` **description**: `string`
 
-Defined in: [types.ts:100](https://github.com/ntcoding/living-architecture/blob/0187e5d7378806600c01437dfa0ddf19b749a24f/packages/riviere-builder/src/types.ts#L100)
+Defined in: [packages/riviere-builder/src/types.ts:100](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-builder/src/types.ts#L100)
 
 ***
 
@@ -16,7 +16,7 @@ Defined in: [types.ts:100](https://github.com/ntcoding/living-architecture/blob/
 
 > **name**: `string`
 
-Defined in: [types.ts:99](https://github.com/ntcoding/living-architecture/blob/0187e5d7378806600c01437dfa0ddf19b749a24f/packages/riviere-builder/src/types.ts#L99)
+Defined in: [packages/riviere-builder/src/types.ts:99](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-builder/src/types.ts#L99)
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: [types.ts:99](https://github.com/ntcoding/living-architecture/blob/0
 
 > `optional` **optionalProperties**: `Record`\<`string`, `CustomPropertyDefinition`\>
 
-Defined in: [types.ts:102](https://github.com/ntcoding/living-architecture/blob/0187e5d7378806600c01437dfa0ddf19b749a24f/packages/riviere-builder/src/types.ts#L102)
+Defined in: [packages/riviere-builder/src/types.ts:102](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-builder/src/types.ts#L102)
 
 ***
 
@@ -32,4 +32,4 @@ Defined in: [types.ts:102](https://github.com/ntcoding/living-architecture/blob/
 
 > `optional` **requiredProperties**: `Record`\<`string`, `CustomPropertyDefinition`\>
 
-Defined in: [types.ts:101](https://github.com/ntcoding/living-architecture/blob/0187e5d7378806600c01437dfa0ddf19b749a24f/packages/riviere-builder/src/types.ts#L101)
+Defined in: [packages/riviere-builder/src/types.ts:101](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-builder/src/types.ts#L101)

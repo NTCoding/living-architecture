@@ -1,6 +1,6 @@
 # Interface: NearMatchOptions
 
-Defined in: [types.ts:148](https://github.com/ntcoding/living-architecture/blob/0187e5d7378806600c01437dfa0ddf19b749a24f/packages/riviere-builder/src/types.ts#L148)
+Defined in: [packages/riviere-builder/src/types.ts:148](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-builder/src/types.ts#L148)
 
 ## Properties
 
@@ -8,7 +8,7 @@ Defined in: [types.ts:148](https://github.com/ntcoding/living-architecture/blob/
 
 > `optional` **limit**: `number`
 
-Defined in: [types.ts:150](https://github.com/ntcoding/living-architecture/blob/0187e5d7378806600c01437dfa0ddf19b749a24f/packages/riviere-builder/src/types.ts#L150)
+Defined in: [packages/riviere-builder/src/types.ts:150](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-builder/src/types.ts#L150)
 
 ***
 
@@ -16,4 +16,4 @@ Defined in: [types.ts:150](https://github.com/ntcoding/living-architecture/blob/
 
 > `optional` **threshold**: `number`
 
-Defined in: [types.ts:149](https://github.com/ntcoding/living-architecture/blob/0187e5d7378806600c01437dfa0ddf19b749a24f/packages/riviere-builder/src/types.ts#L149)
+Defined in: [packages/riviere-builder/src/types.ts:149](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-builder/src/types.ts#L149)

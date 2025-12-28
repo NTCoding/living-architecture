@@ -6,7 +6,7 @@ Banned patterns. Exceptions require documented justification.
 
 ## String-Based Error Detection
 
-🚨 **Never parse error message strings to determine error types.**
+🚨 **Never parse error message strings to determine error types or extract information.**
 
 ### ❌ Bad
 
@@ -14,6 +14,8 @@ Banned patterns. Exceptions require documented justification.
 if (error.message.startsWith("Custom type '") && error.message.includes('not defined')) {
   // Handle missing custom type
 }
+
+const match = errorMessage.match(/Did you mean: (.+)\?/);
 ```
 
 ### ✓ Good
@@ -37,7 +39,7 @@ if (error instanceof CustomTypeNotDefinedError) {
 
 ## Exceptions
 
-When unavoidable (e.g., third-party library limitations):
+Only when 100% unavoidable (e.g., third-party library limitations):
 
 ```typescript
 // ANTI-PATTERN EXCEPTION: String-Based Error Detection

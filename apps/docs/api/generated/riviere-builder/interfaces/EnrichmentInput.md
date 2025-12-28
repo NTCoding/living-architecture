@@ -1,6 +1,6 @@
 # Interface: EnrichmentInput
 
-Defined in: [types.ts:178](https://github.com/ntcoding/living-architecture/blob/0187e5d7378806600c01437dfa0ddf19b749a24f/packages/riviere-builder/src/types.ts#L178)
+Defined in: [packages/riviere-builder/src/types.ts:178](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-builder/src/types.ts#L178)
 
 ## Properties
 
@@ -8,7 +8,7 @@ Defined in: [types.ts:178](https://github.com/ntcoding/living-architecture/blob/
 
 > `optional` **businessRules**: `string`[]
 
-Defined in: [types.ts:181](https://github.com/ntcoding/living-architecture/blob/0187e5d7378806600c01437dfa0ddf19b749a24f/packages/riviere-builder/src/types.ts#L181)
+Defined in: [packages/riviere-builder/src/types.ts:181](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-builder/src/types.ts#L181)
 
 ***
 
@@ -16,7 +16,7 @@ Defined in: [types.ts:181](https://github.com/ntcoding/living-architecture/blob/
 
 > `optional` **entity**: `string`
 
-Defined in: [types.ts:179](https://github.com/ntcoding/living-architecture/blob/0187e5d7378806600c01437dfa0ddf19b749a24f/packages/riviere-builder/src/types.ts#L179)
+Defined in: [packages/riviere-builder/src/types.ts:179](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-builder/src/types.ts#L179)
 
 ***
 
@@ -24,4 +24,4 @@ Defined in: [types.ts:179](https://github.com/ntcoding/living-architecture/blob/
 
 > `optional` **stateChanges**: `StateTransition`[]
 
-Defined in: [types.ts:180](https://github.com/ntcoding/living-architecture/blob/0187e5d7378806600c01437dfa0ddf19b749a24f/packages/riviere-builder/src/types.ts#L180)
+Defined in: [packages/riviere-builder/src/types.ts:180](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-builder/src/types.ts#L180)

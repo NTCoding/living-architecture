@@ -1,6 +1,6 @@
 # Interface: NearMatchResult
 
-Defined in: [types.ts:142](https://github.com/ntcoding/living-architecture/blob/0187e5d7378806600c01437dfa0ddf19b749a24f/packages/riviere-builder/src/types.ts#L142)
+Defined in: [packages/riviere-builder/src/types.ts:142](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-builder/src/types.ts#L142)
 
 ## Properties
 
@@ -8,7 +8,7 @@ Defined in: [types.ts:142](https://github.com/ntcoding/living-architecture/blob/
 
 > **component**: `Component`
 
-Defined in: [types.ts:143](https://github.com/ntcoding/living-architecture/blob/0187e5d7378806600c01437dfa0ddf19b749a24f/packages/riviere-builder/src/types.ts#L143)
+Defined in: [packages/riviere-builder/src/types.ts:143](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-builder/src/types.ts#L143)
 
 ***
 
@@ -16,7 +16,7 @@ Defined in: [types.ts:143](https://github.com/ntcoding/living-architecture/blob/
 
 > `optional` **mismatch**: [`NearMatchMismatch`](NearMatchMismatch.md)
 
-Defined in: [types.ts:145](https://github.com/ntcoding/living-architecture/blob/0187e5d7378806600c01437dfa0ddf19b749a24f/packages/riviere-builder/src/types.ts#L145)
+Defined in: [packages/riviere-builder/src/types.ts:145](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-builder/src/types.ts#L145)
 
 ***
 
@@ -24,4 +24,4 @@ Defined in: [types.ts:145](https://github.com/ntcoding/living-architecture/blob/
 
 > **score**: `number`
 
-Defined in: [types.ts:144](https://github.com/ntcoding/living-architecture/blob/0187e5d7378806600c01437dfa0ddf19b749a24f/packages/riviere-builder/src/types.ts#L144)
+Defined in: [packages/riviere-builder/src/types.ts:144](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-builder/src/types.ts#L144)

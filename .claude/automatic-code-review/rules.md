@@ -55,6 +55,12 @@ Suggested Fix: [suggested fix (if any)]
 Optional?: [Is it mandatory to fix this problem or is there room for debate?]
 ```
 
+### Skipping test coverage 
+
+Check for `/* v8 ignore next -- @preserve */` which skips test coverage for specific lines of code.
+
+There may be exceptional cases where this is necessary because code is unreachable but is needed to satisfy the compiler. However, in most cases the problem can be solved by extracting code or writing tests to mock behaviour (or a combination of both.). Provide suggestions.
+
 ## No Dangerous Fallback Values
 
 Pay extra special attention to dangerous fallback values that hide bugs. Claude Code loves setting default fallbacks. 
@@ -96,3 +102,9 @@ Has Exception Comment?: [Yes/No]
 ```
 
 Hard failure unless documented exception exists.
+
+## Duplicated code
+
+Claude Code has a very bad habbit of duplicating code. If the same code is duplicated more than twice then it should be flagged.
+
+Don't spend too long looking across the whole codebase for duplicated code but do look in related files that might contain the same code and do use search patterns that can identify duplication quickly across many files.
