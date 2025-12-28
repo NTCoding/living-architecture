@@ -1,37 +1,15 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { mkdtemp, rm, mkdir, writeFile } from 'node:fs/promises'
-import { tmpdir } from 'node:os'
+import { describe, it, expect } from 'vitest'
+import { mkdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
+import { RiviereQuery } from '@living-architecture/riviere-query'
 import { loadGraph, isLoadGraphError, withGraph } from './load-graph'
 import { CliErrorCode } from '../../error-codes'
-
-interface TestContext {
-  testDir: string
-  originalCwd: string
-  consoleOutput: string[]
-}
-
-function createTestContext(): TestContext {
-  return {
-    testDir: '',
-    originalCwd: '',
-    consoleOutput: [],
-  }
-}
+import type { TestContext } from '../../command-test-fixtures'
+import { createTestContext, setupCommandTest } from '../../command-test-fixtures'
 
 describe('load-graph', () => {
-  const ctx = createTestContext()
-
-  beforeEach(async () => {
-    ctx.testDir = await mkdtemp(join(tmpdir(), 'load-graph-test-'))
-    ctx.originalCwd = process.cwd()
-    process.chdir(ctx.testDir)
-  })
-
-  afterEach(async () => {
-    process.chdir(ctx.originalCwd)
-    await rm(ctx.testDir, { recursive: true })
-  })
+  const ctx: TestContext = createTestContext()
+  setupCommandTest(ctx)
 
   describe('loadGraph', () => {
     it('returns LoadGraphError when graph file does not exist', async () => {
@@ -74,24 +52,13 @@ describe('load-graph', () => {
 
       expect(isLoadGraphError(result)).toBe(false)
       if (!isLoadGraphError(result)) {
-        expect(result.query).toBeDefined()
-        expect(result.graphPath).toContain('graph.json')
+        expect(result.query).toBeInstanceOf(RiviereQuery)
+        expect(result.graphPath).toContain('.riviere/graph.json')
       }
     })
   })
 
   describe('withGraph', () => {
-    beforeEach(() => {
-      ctx.consoleOutput = []
-      vi.spyOn(console, 'log').mockImplementation((msg: string) => {
-        ctx.consoleOutput.push(msg)
-      })
-    })
-
-    afterEach(() => {
-      vi.restoreAllMocks()
-    })
-
     it('outputs error JSON when graph does not exist', async () => {
       await withGraph(undefined, () => {
         throw new Error('Handler should not be called')

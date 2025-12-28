@@ -189,7 +189,7 @@ describe('riviere query trace', () => {
       expect(output.error.message).toContain('orders:checkout:api:nonexistent')
     })
 
-    it('rethrows unexpected errors from traceFlow', async () => {
+    it('propagates unexpected errors thrown by traceFlow', async () => {
       await createGraph(ctx.testDir, {
         version: '1.0',
         metadata: baseMetadata,
