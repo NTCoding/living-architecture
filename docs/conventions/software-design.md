@@ -6,7 +6,7 @@ Professional software design patterns and principles for writing maintainable, w
 
 🚨 **Fail-fast over silent fallbacks.** Never use fallback chains (`value ?? backup ?? 'unknown'`). If data should exist, validate and throw a clear error.
 
-🚨 **Strive for maximum type-safety. No `any`. No `as`.** Type escape hatches defeat TypeScript's purpose. There's always a type-safe solution.
+🚨 **Strive for maximum type-safety. No `any`. No `as`.** Type escape hatches defeat TypeScript's purpose. There's always a type-safe solution (except `as const` which is allowed)
 
 🚨 **Make illegal states unrepresentable.** Use discriminated unions, not optional fields. If a state combination shouldn't exist, make the type system forbid it.
 
@@ -270,7 +270,7 @@ type Order = UnconfirmedOrder | ConfirmedOrder | ShippedOrder
 
 **STRICTLY FORBIDDEN without explicit user approval:**
 - `any` type
-- `as` type assertions (`as unknown as`, `as any`, `as SomeType`)
+- `as` type assertions (`as unknown as`, `as any`, `as SomeType`) (`as const` is allowed)
 - `@ts-ignore` / `@ts-expect-error`
 
 There is always a better type-safe solution. These make code unsafe and defeat TypeScript's purpose.
