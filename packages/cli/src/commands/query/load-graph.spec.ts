@@ -7,6 +7,16 @@ import { CliErrorCode } from '../../error-codes'
 import type { TestContext } from '../../command-test-fixtures'
 import { createTestContext, setupCommandTest } from '../../command-test-fixtures'
 
+const validGraph = {
+  version: '1.0',
+  metadata: {
+    sources: [{ repository: 'https://github.com/org/repo' }],
+    domains: { test: { description: 'Test domain', systemType: 'domain' } },
+  },
+  components: [],
+  links: [],
+}
+
 describe('load-graph', () => {
   const ctx: TestContext = createTestContext()
   setupCommandTest(ctx)
@@ -37,15 +47,6 @@ describe('load-graph', () => {
     it('returns RiviereQuery when graph file is valid', async () => {
       const graphDir = join(ctx.testDir, '.riviere')
       await mkdir(graphDir, { recursive: true })
-      const validGraph = {
-        version: '1.0',
-        metadata: {
-          sources: [{ repository: 'https://github.com/org/repo' }],
-          domains: { test: { description: 'Test domain', systemType: 'domain' } },
-        },
-        components: [],
-        links: [],
-      }
       await writeFile(join(graphDir, 'graph.json'), JSON.stringify(validGraph), 'utf-8')
 
       const result = await loadGraph()
@@ -74,24 +75,15 @@ describe('load-graph', () => {
       })
     })
 
-    it('calls handler with query when graph exists', async () => {
+    it('executes handler with RiviereQuery when graph file is valid', async () => {
       const graphDir = join(ctx.testDir, '.riviere')
       await mkdir(graphDir, { recursive: true })
-      const validGraph = {
-        version: '1.0',
-        metadata: {
-          sources: [{ repository: 'https://github.com/org/repo' }],
-          domains: { test: { description: 'Test domain', systemType: 'domain' } },
-        },
-        components: [],
-        links: [],
-      }
       await writeFile(join(graphDir, 'graph.json'), JSON.stringify(validGraph), 'utf-8')
 
       const handlerState = { called: false }
       await withGraph(undefined, (query) => {
         handlerState.called = true
-        expect(query).toBeDefined()
+        expect(query).toBeInstanceOf(RiviereQuery)
       })
 
       expect(handlerState.called).toBe(true)
@@ -100,15 +92,6 @@ describe('load-graph', () => {
     it('awaits async handlers', async () => {
       const graphDir = join(ctx.testDir, '.riviere')
       await mkdir(graphDir, { recursive: true })
-      const validGraph = {
-        version: '1.0',
-        metadata: {
-          sources: [{ repository: 'https://github.com/org/repo' }],
-          domains: { test: { description: 'Test domain', systemType: 'domain' } },
-        },
-        components: [],
-        links: [],
-      }
       await writeFile(join(graphDir, 'graph.json'), JSON.stringify(validGraph), 'utf-8')
 
       const asyncState = { completed: false }
@@ -134,15 +117,6 @@ describe('load-graph', () => {
     it('returns false when result has query property', async () => {
       const graphDir = join(ctx.testDir, '.riviere')
       await mkdir(graphDir, { recursive: true })
-      const validGraph = {
-        version: '1.0',
-        metadata: {
-          sources: [{ repository: 'https://github.com/org/repo' }],
-          domains: { test: { description: 'Test domain', systemType: 'domain' } },
-        },
-        components: [],
-        links: [],
-      }
       await writeFile(join(graphDir, 'graph.json'), JSON.stringify(validGraph), 'utf-8')
 
       const result = await loadGraph()

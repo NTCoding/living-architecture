@@ -59,6 +59,18 @@ function parseOutput(consoleOutput: string[]): TraceOutput {
   throw new Error(`Invalid trace output: ${firstOutput}`)
 }
 
+function expectSuccessOutput(output: TraceOutput): TraceSuccessOutput {
+  expect(output.success).toBe(true)
+  if (!isTraceSuccessOutput(output)) throw new Error('Type narrowing failed')
+  return output
+}
+
+function expectErrorOutput(output: TraceOutput): TraceErrorOutput {
+  expect(output.success).toBe(false)
+  if (!isTraceErrorOutput(output)) throw new Error('Type narrowing failed')
+  return output
+}
+
 describe('riviere query trace', () => {
   describe('command registration', () => {
     it('registers trace command under query', () => {
@@ -97,14 +109,12 @@ describe('riviere query trace', () => {
         '--json',
       ])
 
-      const output = parseOutput(ctx.consoleOutput)
-      if (!isTraceSuccessOutput(output)) throw new Error('Expected success output')
+      const output = expectSuccessOutput(parseOutput(ctx.consoleOutput))
 
-      expect(output.success).toBe(true)
-      expect(output.data.componentIds.sort()).toEqual([
-        'orders:checkout:api:place-order',
-        'orders:checkout:usecase:place-order',
-      ])
+      // Order of componentIds is implementation-dependent (graph traversal order)
+      expect(new Set(output.data.componentIds)).toEqual(
+        new Set(['orders:checkout:api:place-order', 'orders:checkout:usecase:place-order'])
+      )
       expect(output.data.linkIds).toEqual(['orders:checkout:api:place-order->orders:checkout:usecase:place-order'])
     })
 
@@ -125,8 +135,7 @@ describe('riviere query trace', () => {
         '--json',
       ])
 
-      const output = parseOutput(ctx.consoleOutput)
-      if (!isTraceSuccessOutput(output)) throw new Error('Expected success output')
+      const output = expectSuccessOutput(parseOutput(ctx.consoleOutput))
 
       expect(output.data.componentIds).toEqual(['orders:checkout:api:place-order'])
       expect(output.data.linkIds).toEqual([])
@@ -159,8 +168,7 @@ describe('riviere query trace', () => {
         '--json',
       ])
 
-      const output = parseOutput(ctx.consoleOutput)
-      if (!isTraceErrorOutput(output)) throw new Error('Expected error output')
+      const output = expectErrorOutput(parseOutput(ctx.consoleOutput))
 
       expect(output.error.code).toBe(CliErrorCode.GraphNotFound)
     })
@@ -182,8 +190,7 @@ describe('riviere query trace', () => {
         '--json',
       ])
 
-      const output = parseOutput(ctx.consoleOutput)
-      if (!isTraceErrorOutput(output)) throw new Error('Expected error output')
+      const output = expectErrorOutput(parseOutput(ctx.consoleOutput))
 
       expect(output.error.code).toBe(CliErrorCode.ComponentNotFound)
       expect(output.error.message).toContain('orders:checkout:api:nonexistent')
