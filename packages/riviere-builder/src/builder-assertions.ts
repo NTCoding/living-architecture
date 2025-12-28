@@ -1,8 +1,9 @@
 import type { CustomTypeDefinition, DomainMetadata } from '@living-architecture/riviere-schema'
+import { CustomTypeNotFoundError, DomainNotFoundError } from './errors'
 
 export function assertDomainExists(domains: Record<string, DomainMetadata>, domain: string): void {
   if (!domains[domain]) {
-    throw new Error(`Domain '${domain}' does not exist`)
+    throw new DomainNotFoundError(domain)
   }
 }
 
@@ -12,10 +13,7 @@ export function assertCustomTypeExists(
 ): void {
   if (!customTypes[customTypeName]) {
     const definedTypes = Object.keys(customTypes)
-    if (definedTypes.length === 0) {
-      throw new Error(`Custom type '${customTypeName}' not defined. No custom types have been defined.`)
-    }
-    throw new Error(`Custom type '${customTypeName}' not defined. Defined types: ${definedTypes.join(', ')}`)
+    throw new CustomTypeNotFoundError(customTypeName, definedTypes)
   }
 }
 

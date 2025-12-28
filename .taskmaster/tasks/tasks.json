@@ -474,12 +474,13 @@
         "description": "Create add-component command supporting all 7 component types via --type flag",
         "details": "## Deliverable: `riviere builder add-component` command for all 7 component types\n\n### Context\nPhase 8 PRD: `docs/project/PRD/active/PRD-phase-8-riviere-cli.md`\n\nSingle command with --type flag that dispatches to appropriate builder method (addUI, addApi, addUseCase, addDomainOp, addEvent, addEventHandler, addCustom).\n\n### Key Decisions and Principles\n- **One command, multiple types** — `--type` flag selects component type\n- **Type-specific flags** — Different types have different required/optional flags\n- **ID generation** — Builder generates IDs automatically, CLI returns them\n\n### Delivers\n- `riviere builder add-component --type <type> --name <name> --domain <domain> --module <module> [type-specific flags]`\n- Type-specific flags:\n  - API: --api-type, --http-method, --path\n  - UI: --route\n  - DomainOp: --operation-name, --entity\n  - Event: --event-name\n  - EventHandler: --subscribed-events (comma-separated)\n  - Custom: --custom-type-name\n- All require: --source-file, --source-line\n\n### Acceptance Criteria\n- Given domain \"orders\" exists, When running `riviere builder add-component --type API --name \"Create Order\" --domain orders --module checkout --api-type REST --http-method POST --path \"/orders\" --source-file src/api.ts --source-line 10`, Then API component created with generated ID\n- Given domain does not exist, When running add-component with --domain \"unknown\", Then returns error DOMAIN_NOT_FOUND\n- Given --type is invalid, When running add-component with --type \"Invalid\", Then returns error with valid types list\n- Given component ID already exists, When adding duplicate, Then returns error DUPLICATE_COMPONENT\n- Given --json flag, When command succeeds, Then outputs `{ success: true, data: { id: \"orders:checkout:api:create-order\", ... } }`\n- Given --type Custom, When --custom-type-name not defined, Then returns error CUSTOM_TYPE_NOT_FOUND\n\n### Dependencies\n- Task 34 (metadata commands - need domains to exist)\n\n### Related Code\n- `packages/riviere-builder/src/builder.ts` — addUI, addApi, addUseCase, addDomainOp, addEvent, addEventHandler, addCustom\n- `packages/riviere-builder/src/types.ts` — Input types for each component\n\n### Verification\n```bash\nriviere builder add-domain --name \"orders\" --description \"Orders\"\nriviere builder add-component --type API --name \"Create Order\" --domain orders --module checkout --api-type REST --source-file src/api.ts --source-line 1\nriviere builder add-component --type UseCase --name \"Place Order\" --domain orders --module checkout --source-file src/uc.ts --source-line 1\ncat .riviere/graph.json | jq '.components'\nnx test riviere-cli\n```",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           "34"
         ],
         "priority": "high",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2025-12-28T08:53:00.115Z"
       },
       {
         "id": "36",
@@ -588,9 +589,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-12-27T22:22:22.082Z",
+      "lastModified": "2025-12-28T08:53:00.116Z",
       "taskCount": 43,
-      "completedCount": 33,
+      "completedCount": 34,
       "tags": [
         "master"
       ]

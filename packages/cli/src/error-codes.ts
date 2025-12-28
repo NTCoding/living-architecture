@@ -2,6 +2,7 @@ export enum CliErrorCode {
   GraphNotFound = 'GRAPH_NOT_FOUND',
   ComponentNotFound = 'COMPONENT_NOT_FOUND',
   DomainNotFound = 'DOMAIN_NOT_FOUND',
+  CustomTypeNotFound = 'CUSTOM_TYPE_NOT_FOUND',
   DuplicateComponent = 'DUPLICATE_COMPONENT',
   DuplicateDomain = 'DUPLICATE_DOMAIN',
   InvalidLink = 'INVALID_LINK',

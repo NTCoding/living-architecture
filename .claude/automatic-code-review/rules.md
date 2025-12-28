@@ -82,3 +82,17 @@ validateSchema(data).catch(() => {})
 **Why:** If a value is required, make it required. Don't hide missing data.
 
 You must provide detailed feedback explaining why you believe the default value is dangerous in the current context and propose a better solution.
+
+## Anti-Patterns
+
+Check production code against @/docs/conventions/anti-patterns.md
+
+```plaintext
+Anti-Pattern Violation: [title]
+Pattern: [reference from anti-patterns.md]
+Code: [show code and line number]
+Fix: [what to do instead]
+Has Exception Comment?: [Yes/No]
+```
+
+Hard failure unless documented exception exists.

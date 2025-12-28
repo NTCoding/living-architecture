@@ -85,6 +85,9 @@ export default tseslint.config(
         { assertionStyle: 'never' },
       ],
 
+      // No non-null assertions - handle errors properly
+      '@typescript-eslint/no-non-null-assertion': 'error',
+
       // Ban generic folder imports (not lib - that's NX convention)
       'no-restricted-imports': [
         'error',

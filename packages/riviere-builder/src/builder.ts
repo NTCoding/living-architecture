@@ -21,7 +21,7 @@ import { calculateStats, findOrphans, findWarnings, toRiviereGraph, validateGrap
 import { assertCustomTypeExists, assertDomainExists, assertRequiredPropertiesProvided } from './builder-assertions'
 import { ComponentId } from './component-id'
 import { createSourceNotFoundError, findNearMatches } from './component-suggestion'
-import { DuplicateDomainError } from './errors'
+import { DuplicateComponentError, DuplicateDomainError } from './errors'
 import type {
   APIInput,
   BuilderOptions,
@@ -606,7 +606,7 @@ export class RiviereBuilder {
 
   private registerComponent<T extends Component>(component: T): T {
     if (this.graph.components.some((c) => c.id === component.id)) {
-      throw new Error(`Component with ID '${component.id}' already exists`)
+      throw new DuplicateComponentError(component.id)
     }
     this.graph.components.push(component)
     return component

@@ -1,5 +1,6 @@
 import { Command } from 'commander';
 import { createRequire } from 'module';
+import { createAddComponentCommand } from './commands/builder/add-component';
 import { createAddDomainCommand } from './commands/builder/add-domain';
 import { createAddSourceCommand } from './commands/builder/add-source';
 import { createInitCommand } from './commands/builder/init';
@@ -34,6 +35,7 @@ export function createProgram(): Command {
     .command('builder')
     .description('Commands for building a graph');
 
+  builderCmd.addCommand(createAddComponentCommand());
   builderCmd.addCommand(createAddDomainCommand());
   builderCmd.addCommand(createAddSourceCommand());
   builderCmd.addCommand(createInitCommand());
