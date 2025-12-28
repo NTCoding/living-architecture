@@ -28,9 +28,13 @@ function isComponentsOutput(value: unknown): value is ComponentsOutput {
 }
 
 function parseOutput(consoleOutput: string[]): ComponentsOutput {
-  const parsed: unknown = JSON.parse(consoleOutput[0] ?? '{}');
+  const firstLine = consoleOutput[0];
+  if (firstLine === undefined) {
+    throw new Error('Expected console output but got empty array');
+  }
+  const parsed: unknown = JSON.parse(firstLine);
   if (!isComponentsOutput(parsed)) {
-    throw new Error(`Invalid components output: ${consoleOutput[0]}`);
+    throw new Error(`Invalid components output: ${firstLine}`);
   }
   return parsed;
 }
