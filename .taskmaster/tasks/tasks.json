@@ -488,13 +488,13 @@
         "description": "Create link and link-external commands for connecting components",
         "details": "## Deliverable: `riviere builder link`, `riviere builder link-http`, and `riviere builder link-external` commands\n\n### Context\nPhase 8 PRD: `docs/project/PRD/active/PRD-phase-8-riviere-cli.md`\n\nCommands for creating connections between components.\n\n### Key Decisions and Principles\n- **Source validation immediate** — link() validates source exists immediately\n- **Target validation deferred** — target validation happens at build()\n- **Near-match suggestions** — On COMPONENT_NOT_FOUND, suggest similar components\n- **link-http is orchestration** — Finds API by path using query, then calls link(). Not a thin wrapper, but acceptable since it only composes library calls. See PRD Resolved Questions #5.\n\n### Delivers\n- `riviere builder link --from <id> --to <id> [--type sync|async]`\n- `riviere builder link-http --path <http-path> --to <id> [--type sync|async]` — Finds API component by HTTP path, creates link\n- `riviere builder link-external --from <id> --target-name <name> [--target-domain <domain>] [--target-url <url>] [--type sync|async]`\n\n### Acceptance Criteria\n**link command:**\n- Given source component exists, When running `riviere builder link --from \"orders:api:create\" --to \"orders:usecase:place\"`, Then link created\n- Given source component does NOT exist, When running link, Then returns error COMPONENT_NOT_FOUND with near-match suggestions\n- Given --type async, When running link, Then link.type is \"async\"\n\n**link-http command:**\n- Given API component with path \"/orders\", When running `riviere builder link-http --path \"/orders\" --to \"orders:usecase:place\"`, Then finds API and creates link\n- Given no API matches path, When running link-http, Then returns error with suggestions of similar paths\n- Given multiple APIs match path, When running link-http, Then returns error listing matches (user must use link with explicit ID)\n\n**link-external command:**\n- Given external target, When running `riviere builder link-external --from \"orders:api:pay\" --target-name \"Stripe API\" --target-domain \"payments\"`, Then external link created\n\n**Common:**\n- Given --json flag, When command succeeds, Then outputs link details in JSON\n\n### Dependencies\n- Task 35 (add-component - need components to link)\n\n### Related Code\n- `packages/riviere-builder/src/builder.ts` — `link()`, `linkExternal()`, `nearMatches()`\n- `packages/riviere-query/src/RiviereQuery.ts` — `componentsByType()`, `search()` for link-http\n- `packages/riviere-builder/src/component-suggestion.ts` — Near-match logic\n\n### Verification\n```bash\nriviere builder link --from \"orders:checkout:api:create-order\" --to \"orders:checkout:usecase:place-order\"\nriviere builder link-http --path \"/orders\" --to \"orders:checkout:usecase:place-order\"\nriviere builder link-external --from \"orders:checkout:api:pay\" --target-name \"Stripe\" --target-domain \"payments\"\ncat .riviere/graph.json | jq '.links, .externalLinks'\nnx test riviere-cli\n```",
         "testStrategy": "",
-        "status": "in-progress",
+        "status": "done",
         "dependencies": [
           "35"
         ],
         "priority": "high",
         "subtasks": [],
-        "updatedAt": "2025-12-28T10:57:40.214Z"
+        "updatedAt": "2025-12-28T12:36:38.162Z"
       },
       {
         "id": "37",
@@ -515,12 +515,13 @@
         "description": "Create validate and finalize commands for graph validation and export",
         "details": "## Deliverable: `riviere builder validate` and `riviere builder finalize` commands\n\n### Context\nPhase 8 PRD: `docs/project/PRD/active/PRD-phase-8-riviere-cli.md`\n\nValidation and export commands. `validate` runs checks without modifying. `finalize` validates then exports final graph.\n\n### Key Decisions and Principles\n- **validate is non-destructive** — Just reports issues\n- **finalize validates first** — Won't export invalid graph\n\n### Delivers\n- `riviere builder validate` — Runs full validation, returns result\n- `riviere builder finalize [--output <path>]` — Validates and exports final graph\n\n### Acceptance Criteria\n- Given valid graph, When running `riviere builder validate`, Then returns `{ valid: true, errors: [], warnings: [...] }`\n- Given graph with dangling reference, When running validate, Then returns `{ valid: false, errors: [{ code: \"DANGLING_REFERENCE\", ... }] }`\n- Given valid graph, When running `riviere builder finalize`, Then writes validated graph to .riviere/graph.json\n- Given invalid graph, When running finalize, Then returns VALIDATION_ERROR with details, does NOT write\n- Given --output flag, When running finalize, Then writes to specified path\n- Given --json flag, When commands run, Then output follows JSON schema\n\n### Dependencies\n- Task 36 (linking commands - need links for full validation)\n\n### Related Code\n- `packages/riviere-builder/src/builder.ts` — `validate()`, `build()`, `save()`\n- `packages/riviere-builder/src/inspection.ts` — Validation logic\n\n### Verification\n```bash\nriviere builder validate\nriviere builder validate --json\nriviere builder finalize\nriviere builder finalize --output ./dist/graph.json\nnx test riviere-cli\n```",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           "36"
         ],
         "priority": "high",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2025-12-28T12:57:01.921Z"
       },
       {
         "id": "39",
@@ -590,9 +591,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-12-28T10:57:40.216Z",
+      "lastModified": "2025-12-28T12:57:01.922Z",
       "taskCount": 43,
-      "completedCount": 34,
+      "completedCount": 36,
       "tags": [
         "master"
       ]

@@ -7,6 +7,8 @@ import { createInitCommand } from './commands/builder/init';
 import { createLinkCommand } from './commands/builder/link';
 import { createLinkExternalCommand } from './commands/builder/link-external';
 import { createLinkHttpCommand } from './commands/builder/link-http';
+import { createValidateCommand } from './commands/builder/validate';
+import { createFinalizeCommand } from './commands/builder/finalize';
 
 interface PackageJson {
   version: string;
@@ -45,6 +47,8 @@ export function createProgram(): Command {
   builderCmd.addCommand(createLinkCommand());
   builderCmd.addCommand(createLinkExternalCommand());
   builderCmd.addCommand(createLinkHttpCommand());
+  builderCmd.addCommand(createValidateCommand());
+  builderCmd.addCommand(createFinalizeCommand());
 
   program
     .command('query')
