@@ -4,6 +4,9 @@ import { createAddComponentCommand } from './commands/builder/add-component';
 import { createAddDomainCommand } from './commands/builder/add-domain';
 import { createAddSourceCommand } from './commands/builder/add-source';
 import { createInitCommand } from './commands/builder/init';
+import { createLinkCommand } from './commands/builder/link';
+import { createLinkExternalCommand } from './commands/builder/link-external';
+import { createLinkHttpCommand } from './commands/builder/link-http';
 
 interface PackageJson {
   version: string;
@@ -39,6 +42,9 @@ export function createProgram(): Command {
   builderCmd.addCommand(createAddDomainCommand());
   builderCmd.addCommand(createAddSourceCommand());
   builderCmd.addCommand(createInitCommand());
+  builderCmd.addCommand(createLinkCommand());
+  builderCmd.addCommand(createLinkExternalCommand());
+  builderCmd.addCommand(createLinkHttpCommand());
 
   program
     .command('query')

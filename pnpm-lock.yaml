@@ -196,6 +196,9 @@ importers:
       '@living-architecture/riviere-builder':
         specifier: workspace:*
         version: link:../riviere-builder
+      '@living-architecture/riviere-query':
+        specifier: workspace:*
+        version: link:../riviere-query
       '@living-architecture/riviere-schema':
         specifier: workspace:*
         version: link:../../riviere-schema

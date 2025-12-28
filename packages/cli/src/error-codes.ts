@@ -9,4 +9,5 @@ export enum CliErrorCode {
   ValidationError = 'VALIDATION_ERROR',
   GraphCorrupted = 'GRAPH_CORRUPTED',
   GraphExists = 'GRAPH_EXISTS',
+  AmbiguousApiMatch = 'AMBIGUOUS_API_MATCH',
 }

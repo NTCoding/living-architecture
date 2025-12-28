@@ -1,5 +1,6 @@
 import type { Component } from '@living-architecture/riviere-schema'
 import type { ComponentId } from './component-id'
+import { ComponentNotFoundError } from './errors'
 import { similarityScore } from './string-similarity'
 import type { NearMatchMismatch, NearMatchOptions, NearMatchQuery, NearMatchResult } from './types'
 
@@ -63,24 +64,20 @@ export function findNearMatches(
 }
 
 /**
- * Creates an error with suggestions for a missing source component.
+ * Creates a typed error with suggestions for a missing source component.
  *
  * @param components - Array of existing components to search for suggestions
  * @param id - The ComponentId that was not found
- * @returns Error with message including "Did you mean...?" suggestions if available
+ * @returns ComponentNotFoundError with suggestions array for programmatic access
  *
  * @example
  * ```typescript
  * const error = createSourceNotFoundError(components, ComponentId.parse('orders:checkout:api:create-ordr'))
- * // Error: Source component 'orders:checkout:api:create-ordr' not found. Did you mean: orders:checkout:api:create-order?
+ * // ComponentNotFoundError with suggestions: ['orders:checkout:api:create-order']
  * ```
  */
-export function createSourceNotFoundError(components: Component[], id: ComponentId): Error {
-  const suggestions = findNearMatches(components, { name: id.name() }, { limit: 3 })
-  const baseMessage = `Source component '${id}' not found`
-  if (suggestions.length === 0) {
-    return new Error(baseMessage)
-  }
-  const suggestionIds = suggestions.map((s) => s.component.id).join(', ')
-  return new Error(`${baseMessage}. Did you mean: ${suggestionIds}?`)
+export function createSourceNotFoundError(components: Component[], id: ComponentId): ComponentNotFoundError {
+  const matches = findNearMatches(components, { name: id.name() }, { limit: 3 })
+  const suggestions = matches.map((s) => s.component.id)
+  return new ComponentNotFoundError(id.toString(), suggestions)
 }

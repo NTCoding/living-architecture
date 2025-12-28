@@ -43,3 +43,18 @@ export class DuplicateComponentError extends Error {
     this.componentId = componentId
   }
 }
+
+export class ComponentNotFoundError extends Error {
+  readonly componentId: string
+  readonly suggestions: string[]
+
+  constructor(componentId: string, suggestions: string[] = []) {
+    const baseMessage = `Source component '${componentId}' not found`
+    const message =
+      suggestions.length > 0 ? `${baseMessage}. Did you mean: ${suggestions.join(', ')}?` : baseMessage
+    super(message)
+    this.name = 'ComponentNotFoundError'
+    this.componentId = componentId
+    this.suggestions = suggestions
+  }
+}
