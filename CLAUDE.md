@@ -111,7 +111,7 @@ When writing, editing, refactoring, or reviewing code:
 
 - always follow `docs/conventions/software-design.md` 
 - look for standard implementation patterns defined in `docs/conventions/standard-patterns.md`
--  avoid `docs/conventions/anti-patterns.md`
+-  avoid `@docs/conventions/anti-patterns.md`
 
 The automatic code review agent enforces these conventions (see `./claude/automatic-code-review/rules.md`)
 

@@ -36,7 +36,7 @@
   },
   "claudeCode": {
     "maxTurns": 1,
-    "appendSystemPrompt": "CRITICAL: You MUST respond with ONLY valid JSON. No explanations, no 'I will', no 'I'll analyze', no markdown code blocks, no text before or after JSON. Your response must start with '{' or '[' and end with '}' or ']'. The output will be parsed with JSON.parse() and any non-JSON content will cause system failure. DO NOT wrap JSON in markdown code blocks."
+    "appendSystemPrompt": ""
   },
   "codexCli": {},
   "grokCli": {

@@ -502,12 +502,13 @@
         "description": "Create enrich command for adding state changes and business rules to DomainOp components",
         "details": "## Deliverable: `riviere builder enrich` command for DomainOp enrichment\n\n### Context\nPhase 8 PRD: `docs/project/PRD/active/PRD-phase-8-riviere-cli.md`\n\nWraps `RiviereBuilder.enrichComponent()`. Only works on DomainOp components.\n\n### Key Decisions and Principles\n- **DomainOp only** — Throws if component is not DomainOp type\n- **Additive** — Enrichment adds to existing, doesn't replace\n\n### Delivers\n- `riviere builder enrich --id <component-id> [--entity <name>] [--state-change <entity:from:to>] [--business-rule <rule>]`\n- Multiple --state-change and --business-rule flags allowed\n\n### Acceptance Criteria\n- Given DomainOp component exists, When running `riviere builder enrich --id \"orders:checkout:domainop:confirm\" --entity \"Order\" --state-change \"Order:pending:confirmed\" --business-rule \"Order must have items\"`, Then component enriched\n- Given component is not DomainOp, When running enrich, Then returns error INVALID_COMPONENT_TYPE\n- Given component does not exist, When running enrich, Then returns error COMPONENT_NOT_FOUND with suggestions\n- Given multiple --state-change flags, When running enrich, Then all state changes added\n- Given --json flag, When command succeeds, Then outputs enriched component\n\n### Dependencies\n- Task 35 (add-component)\n\n### Related Code\n- `packages/riviere-builder/src/builder.ts` — `enrichComponent()`\n- `packages/riviere-builder/src/types.ts` — `EnrichmentInput`\n\n### Verification\n```bash\nriviere builder add-component --type DomainOp --name \"Confirm Order\" --domain orders --module checkout --operation-name confirmOrder --source-file src/domain.ts --source-line 1\nriviere builder enrich --id \"orders:checkout:domainop:confirm-order\" --entity \"Order\" --state-change \"Order:pending:confirmed\"\ncat .riviere/graph.json | jq '.components[] | select(.type == \"DomainOp\")'\nnx test riviere-cli\n```",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           "35"
         ],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2025-12-28T20:59:22.989Z"
       },
       {
         "id": "38",
@@ -556,13 +557,13 @@
         "description": "Create trace and orphans commands for flow analysis",
         "details": "## Deliverable: `riviere query trace` and `riviere query orphans` commands\n\n### Context\nPhase 8 PRD: `docs/project/PRD/active/PRD-phase-8-riviere-cli.md`\n\nFlow analysis commands for understanding graph connectivity.\n\n### Key Decisions and Principles\n- **Thin wrapper** — Direct mapping to RiviereQuery methods\n- **trace is bidirectional** — Returns all connected components\n\n### Delivers\n- `riviere query trace <component-id>` — Traces flow from component, returns connected nodes\n- `riviere query orphans` — Finds components with no links\n\n### Acceptance Criteria\n- Given linked components, When running `query trace \"orders:api:create\"`, Then returns all components in the connected flow\n- Given component not in graph, When running trace with invalid ID, Then returns error COMPONENT_NOT_FOUND with suggestions\n- Given graph with orphan components, When running `query orphans`, Then returns list of disconnected component IDs\n- Given fully connected graph, When running orphans, Then returns empty list\n- Given --json flag, When commands run, Then output follows JSON schema\n\n### Dependencies\n- Task 40 (query entry-points/domains)\n\n### Related Code\n- `packages/riviere-query/src/RiviereQuery.ts` — `traceFlow()`, `detectOrphans()`\n- `packages/riviere-query/src/flow-queries.ts` — Flow tracing logic\n\n### Verification\n```bash\nriviere query trace \"orders:checkout:api:create-order\"\nriviere query trace \"orders:checkout:api:create-order\" --json\nriviere query orphans\nriviere query orphans --json\nnx test riviere-cli\n```",
         "testStrategy": "",
-        "status": "in-progress",
+        "status": "done",
         "dependencies": [
           "40"
         ],
         "priority": "high",
         "subtasks": [],
-        "updatedAt": "2025-12-28T13:40:59.956Z"
+        "updatedAt": "2025-12-28T16:17:03.985Z"
       },
       {
         "id": "42",
@@ -593,9 +594,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-12-28T13:40:59.959Z",
+      "lastModified": "2025-12-28T20:59:22.990Z",
       "taskCount": 43,
-      "completedCount": 37,
+      "completedCount": 39,
       "tags": [
         "master"
       ]
