@@ -3,6 +3,8 @@ import { ComponentNotFoundError, RiviereBuilder } from '@living-architecture/riv
 import { parseRiviereGraph } from '@living-architecture/riviere-schema';
 import { formatError } from '../../output';
 import { CliErrorCode } from '../../error-codes';
+import { resolveGraphPath } from '../../graph-path';
+import { fileExists } from '../../file-existence';
 
 export function reportGraphNotFound(graphPath: string): void {
   console.log(
@@ -17,6 +19,22 @@ export async function loadGraphBuilder(graphPath: string): Promise<RiviereBuilde
   const parsed: unknown = JSON.parse(content);
   const graph = parseRiviereGraph(parsed);
   return RiviereBuilder.resume(graph);
+}
+
+export async function withGraphBuilder(
+  graphPathOption: string | undefined,
+  handler: (builder: RiviereBuilder, graphPath: string) => Promise<void>
+): Promise<void> {
+  const graphPath = resolveGraphPath(graphPathOption);
+  const graphExists = await fileExists(graphPath);
+
+  if (!graphExists) {
+    reportGraphNotFound(graphPath);
+    return;
+  }
+
+  const builder = await loadGraphBuilder(graphPath);
+  await handler(builder, graphPath);
 }
 
 export function handleComponentNotFoundError(error: unknown): void {

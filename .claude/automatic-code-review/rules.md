@@ -108,3 +108,7 @@ Hard failure unless documented exception exists.
 Claude Code has a very bad habit of duplicating code. If near-identical code is duplicated more than twice then it must be addressed even if it requires touching files not part of the current change set (Claude Code will look for excuses to weasel out - be strict)
 
 Don't spend too long looking across the whole codebase for duplicated code but do look in related files that might contain the same code and do use search patterns that can identify duplication quickly.
+
+## Suggest updates
+
+How can we update our coding conventions, documents and processes to prevent the type of errors you've identified? Provide suggestions if they seem relevant and useful.
