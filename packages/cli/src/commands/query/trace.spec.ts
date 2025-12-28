@@ -111,7 +111,6 @@ describe('riviere query trace', () => {
 
       const output = expectSuccessOutput(parseOutput(ctx.consoleOutput))
 
-      // Order of componentIds is implementation-dependent (graph traversal order)
       expect(new Set(output.data.componentIds)).toEqual(
         new Set(['orders:checkout:api:place-order', 'orders:checkout:usecase:place-order'])
       )
