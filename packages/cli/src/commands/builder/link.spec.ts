@@ -162,7 +162,6 @@ describe('riviere builder link', () => {
           code: CliErrorCode.ComponentNotFound,
         },
       });
-      // Should include near-match suggestion
       expect(testContext.consoleOutput[0]).toContain('orders:checkout:api:create-order');
     });
 
