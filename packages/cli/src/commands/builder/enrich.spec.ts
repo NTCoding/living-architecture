@@ -1,58 +1,16 @@
 import { describe, it, expect } from 'vitest';
-import { mkdir, writeFile, readFile } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { createProgram } from '../../cli';
 import { CliErrorCode } from '../../error-codes';
-import { type TestContext, createTestContext, setupCommandTest } from '../../command-test-fixtures';
-
-async function createGraphWithDomainOp(testDir: string): Promise<void> {
-  const graphDir = join(testDir, '.riviere');
-  await mkdir(graphDir, { recursive: true });
-  const graph = {
-    version: '1.0',
-    metadata: {
-      sources: [{ repository: 'https://github.com/org/repo' }],
-      domains: { orders: { description: 'Order management', systemType: 'domain' } },
-    },
-    components: [
-      {
-        id: 'orders:checkout:domainop:confirm-order',
-        type: 'DomainOp',
-        name: 'Confirm Order',
-        domain: 'orders',
-        module: 'checkout',
-        operationName: 'confirmOrder',
-        sourceLocation: { repository: 'https://github.com/org/repo', filePath: 'src/domain.ts' },
-      },
-    ],
-    links: [],
-  };
-  await writeFile(join(graphDir, 'graph.json'), JSON.stringify(graph), 'utf-8');
-}
-
-async function createGraphWithUseCase(testDir: string): Promise<void> {
-  const graphDir = join(testDir, '.riviere');
-  await mkdir(graphDir, { recursive: true });
-  const graph = {
-    version: '1.0',
-    metadata: {
-      sources: [{ repository: 'https://github.com/org/repo' }],
-      domains: { orders: { description: 'Order management', systemType: 'domain' } },
-    },
-    components: [
-      {
-        id: 'orders:checkout:usecase:place-order',
-        type: 'UseCase',
-        name: 'Place Order',
-        domain: 'orders',
-        module: 'checkout',
-        sourceLocation: { repository: 'https://github.com/org/repo', filePath: 'src/usecase.ts' },
-      },
-    ],
-    links: [],
-  };
-  await writeFile(join(graphDir, 'graph.json'), JSON.stringify(graph), 'utf-8');
-}
+import {
+  type TestContext,
+  createTestContext,
+  setupCommandTest,
+  createGraphWithComponent,
+  domainOpComponent,
+  simpleUseCaseComponent,
+} from '../../command-test-fixtures';
 
 describe('riviere builder enrich', () => {
   describe('command registration', () => {
@@ -85,7 +43,7 @@ describe('riviere builder enrich', () => {
     });
 
     it('returns COMPONENT_NOT_FOUND with suggestions when component does not exist', async () => {
-      await createGraphWithDomainOp(ctx.testDir);
+      await createGraphWithComponent(ctx.testDir, domainOpComponent);
       const program = createProgram();
       await program.parseAsync([
         'node',
@@ -110,7 +68,7 @@ describe('riviere builder enrich', () => {
     });
 
     it('returns INVALID_COMPONENT_TYPE when component is not DomainOp', async () => {
-      await createGraphWithUseCase(ctx.testDir);
+      await createGraphWithComponent(ctx.testDir, simpleUseCaseComponent);
       const program = createProgram();
       await program.parseAsync([
         'node',
@@ -134,7 +92,7 @@ describe('riviere builder enrich', () => {
     });
 
     it('returns VALIDATION_ERROR when state-change has no colon', async () => {
-      await createGraphWithDomainOp(ctx.testDir);
+      await createGraphWithComponent(ctx.testDir, domainOpComponent);
       const program = createProgram();
       await program.parseAsync([
         'node',
@@ -158,7 +116,7 @@ describe('riviere builder enrich', () => {
     });
 
     it('returns VALIDATION_ERROR when state-change has too many colons', async () => {
-      await createGraphWithDomainOp(ctx.testDir);
+      await createGraphWithComponent(ctx.testDir, domainOpComponent);
       const program = createProgram();
       await program.parseAsync([
         'node',
@@ -187,7 +145,7 @@ describe('riviere builder enrich', () => {
     setupCommandTest(ctx);
 
     it('enriches DomainOp with entity', async () => {
-      await createGraphWithDomainOp(ctx.testDir);
+      await createGraphWithComponent(ctx.testDir, domainOpComponent);
       const program = createProgram();
       await program.parseAsync([
         'node',
@@ -209,7 +167,7 @@ describe('riviere builder enrich', () => {
     });
 
     it('enriches DomainOp with state-change', async () => {
-      await createGraphWithDomainOp(ctx.testDir);
+      await createGraphWithComponent(ctx.testDir, domainOpComponent);
       const program = createProgram();
       await program.parseAsync([
         'node',
@@ -231,7 +189,7 @@ describe('riviere builder enrich', () => {
     });
 
     it('enriches DomainOp with multiple state-changes', async () => {
-      await createGraphWithDomainOp(ctx.testDir);
+      await createGraphWithComponent(ctx.testDir, domainOpComponent);
       const program = createProgram();
       await program.parseAsync([
         'node',
@@ -262,7 +220,7 @@ describe('riviere builder enrich', () => {
     });
 
     it('enriches DomainOp with business-rule', async () => {
-      await createGraphWithDomainOp(ctx.testDir);
+      await createGraphWithComponent(ctx.testDir, domainOpComponent);
       const program = createProgram();
       await program.parseAsync([
         'node',
@@ -284,7 +242,7 @@ describe('riviere builder enrich', () => {
     });
 
     it('enriches DomainOp with multiple business-rules', async () => {
-      await createGraphWithDomainOp(ctx.testDir);
+      await createGraphWithComponent(ctx.testDir, domainOpComponent);
       const program = createProgram();
       await program.parseAsync([
         'node',
@@ -308,7 +266,7 @@ describe('riviere builder enrich', () => {
     });
 
     it('outputs success JSON when --json flag provided', async () => {
-      await createGraphWithDomainOp(ctx.testDir);
+      await createGraphWithComponent(ctx.testDir, domainOpComponent);
       const program = createProgram();
       await program.parseAsync([
         'node',

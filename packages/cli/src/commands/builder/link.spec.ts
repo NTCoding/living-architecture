@@ -1,10 +1,14 @@
 import { describe, it, expect } from 'vitest';
-import { mkdir, writeFile, readFile } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { createProgram } from '../../cli';
 import { CliErrorCode } from '../../error-codes';
-import type { TestContext } from '../../command-test-fixtures';
-import { createTestContext, setupCommandTest } from '../../command-test-fixtures';
+import {
+  type TestContext,
+  createTestContext,
+  setupCommandTest,
+  createGraphWithComponent,
+} from '../../command-test-fixtures';
 
 describe('riviere builder link', () => {
   describe('command registration', () => {
@@ -21,37 +25,20 @@ describe('riviere builder link', () => {
     const ctx: TestContext = createTestContext();
     setupCommandTest(ctx);
 
-    async function createGraphWithComponent(): Promise<void> {
-      const graphDir = join(ctx.testDir, '.riviere');
-      await mkdir(graphDir, { recursive: true });
-      const graph = {
-        version: '1.0',
-        metadata: {
-          sources: [{ repository: 'https://github.com/org/repo' }],
-          domains: {
-            orders: { description: 'Order management', systemType: 'domain' },
-          },
-        },
-        components: [
-          {
-            id: 'orders:checkout:api:create-order',
-            type: 'API',
-            name: 'Create Order',
-            domain: 'orders',
-            module: 'checkout',
-            apiType: 'REST',
-            httpMethod: 'POST',
-            path: '/orders',
-            sourceLocation: { repository: 'https://github.com/org/repo', filePath: 'src/api/orders.ts' },
-          },
-        ],
-        links: [],
-      };
-      await writeFile(join(graphDir, 'graph.json'), JSON.stringify(graph), 'utf-8');
-    }
+    const linkSourceComponent = {
+      id: 'orders:checkout:api:create-order',
+      type: 'API',
+      name: 'Create Order',
+      domain: 'orders',
+      module: 'checkout',
+      apiType: 'REST',
+      httpMethod: 'POST',
+      path: '/orders',
+      sourceLocation: { repository: 'https://github.com/org/repo', filePath: 'src/api/orders.ts' },
+    };
 
     it('creates link when source component exists', async () => {
-      await createGraphWithComponent();
+      await createGraphWithComponent(ctx.testDir, linkSourceComponent);
 
       const program = createProgram();
       await program.parseAsync([
@@ -110,7 +97,7 @@ describe('riviere builder link', () => {
     });
 
     it('returns COMPONENT_NOT_FOUND with suggestions when source does not exist', async () => {
-      await createGraphWithComponent();
+      await createGraphWithComponent(ctx.testDir, linkSourceComponent);
 
       const program = createProgram();
       await program.parseAsync([
@@ -143,7 +130,7 @@ describe('riviere builder link', () => {
     });
 
     it('sets link type when --link-type async provided', async () => {
-      await createGraphWithComponent();
+      await createGraphWithComponent(ctx.testDir, linkSourceComponent);
 
       const program = createProgram();
       await program.parseAsync([
@@ -182,7 +169,7 @@ describe('riviere builder link', () => {
     });
 
     it('outputs success JSON with link details when --json flag provided', async () => {
-      await createGraphWithComponent();
+      await createGraphWithComponent(ctx.testDir, linkSourceComponent);
 
       const program = createProgram();
       await program.parseAsync([
@@ -217,7 +204,7 @@ describe('riviere builder link', () => {
     });
 
     it('creates link without output when --json not provided', async () => {
-      await createGraphWithComponent();
+      await createGraphWithComponent(ctx.testDir, linkSourceComponent);
 
       const program = createProgram();
       await program.parseAsync([
@@ -247,7 +234,7 @@ describe('riviere builder link', () => {
     });
 
     it('propagates error when source ID format is malformed', async () => {
-      await createGraphWithComponent();
+      await createGraphWithComponent(ctx.testDir, linkSourceComponent);
 
       const program = createProgram();
 
@@ -272,7 +259,7 @@ describe('riviere builder link', () => {
     });
 
     it('returns VALIDATION_ERROR when component type is invalid', async () => {
-      await createGraphWithComponent();
+      await createGraphWithComponent(ctx.testDir, linkSourceComponent);
 
       const program = createProgram();
       await program.parseAsync([
@@ -305,7 +292,7 @@ describe('riviere builder link', () => {
     });
 
     it('returns VALIDATION_ERROR when link type is invalid', async () => {
-      await createGraphWithComponent();
+      await createGraphWithComponent(ctx.testDir, linkSourceComponent);
 
       const program = createProgram();
       await program.parseAsync([

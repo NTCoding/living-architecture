@@ -146,6 +146,55 @@ export async function createGraphWithDomain(testDir: string, domainName: string)
   await writeFile(join(graphDir, 'graph.json'), JSON.stringify(graph), 'utf-8');
 }
 
+export async function createGraphWithSource(testDir: string, repository: string): Promise<void> {
+  const graphDir = join(testDir, '.riviere');
+  await mkdir(graphDir, { recursive: true });
+  const graph = {
+    version: '1.0',
+    metadata: {
+      sources: [{ repository }],
+      domains: { orders: { description: 'Orders', systemType: 'domain' } },
+    },
+    components: [],
+    links: [],
+  };
+  await writeFile(join(graphDir, 'graph.json'), JSON.stringify(graph), 'utf-8');
+}
+
+export async function createGraphWithComponent(testDir: string, component: object): Promise<void> {
+  const graphDir = join(testDir, '.riviere');
+  await mkdir(graphDir, { recursive: true });
+  const graph = {
+    version: '1.0',
+    metadata: {
+      sources: [{ repository: 'https://github.com/org/repo' }],
+      domains: { orders: { description: 'Order management', systemType: 'domain' } },
+    },
+    components: [component],
+    links: [],
+  };
+  await writeFile(join(graphDir, 'graph.json'), JSON.stringify(graph), 'utf-8');
+}
+
+export const domainOpComponent = {
+  id: 'orders:checkout:domainop:confirm-order',
+  type: 'DomainOp',
+  name: 'Confirm Order',
+  domain: 'orders',
+  module: 'checkout',
+  operationName: 'confirmOrder',
+  sourceLocation: { repository: 'https://github.com/org/repo', filePath: 'src/domain.ts' },
+};
+
+export const simpleUseCaseComponent = {
+  id: 'orders:checkout:usecase:place-order',
+  type: 'UseCase',
+  name: 'Place Order',
+  domain: 'orders',
+  module: 'checkout',
+  sourceLocation: { repository: 'https://github.com/org/repo', filePath: 'src/usecase.ts' },
+};
+
 export function hasSuccessOutputStructure(value: unknown): value is { success: true; data: object } {
   if (typeof value !== 'object' || value === null) return false;
   if (!('success' in value) || value.success !== true) return false;

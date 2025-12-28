@@ -1,9 +1,14 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { mkdtemp, rm, readFile, mkdir, writeFile } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
+import { describe, it, expect } from 'vitest';
+import { readFile, mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { createProgram } from '../../cli';
 import { CliErrorCode } from '../../error-codes';
+import {
+  type TestContext,
+  createTestContext,
+  setupCommandTest,
+  createGraphWithSource,
+} from '../../command-test-fixtures';
 
 describe('riviere builder add-source', () => {
   describe('command registration', () => {
@@ -17,50 +22,11 @@ describe('riviere builder add-source', () => {
   });
 
   describe('adding source to existing graph', () => {
-    const testContext: {
-      testDir: string;
-      originalCwd: string;
-      consoleOutput: string[];
-    } = {
-      testDir: '',
-      originalCwd: '',
-      consoleOutput: [],
-    };
-
-    beforeEach(async () => {
-      testContext.testDir = await mkdtemp(join(tmpdir(), 'riviere-test-'));
-      testContext.originalCwd = process.cwd();
-      testContext.consoleOutput = [];
-      process.chdir(testContext.testDir);
-
-      vi.spyOn(console, 'log').mockImplementation((msg: string) => {
-        testContext.consoleOutput.push(msg);
-      });
-    });
-
-    afterEach(async () => {
-      vi.restoreAllMocks();
-      process.chdir(testContext.originalCwd);
-      await rm(testContext.testDir, { recursive: true });
-    });
-
-    async function createGraphWithSource(repository: string): Promise<void> {
-      const graphDir = join(testContext.testDir, '.riviere');
-      await mkdir(graphDir, { recursive: true });
-      const graph = {
-        version: '1.0',
-        metadata: {
-          sources: [{ repository }],
-          domains: { orders: { description: 'Orders', systemType: 'domain' } },
-        },
-        components: [],
-        links: [],
-      };
-      await writeFile(join(graphDir, 'graph.json'), JSON.stringify(graph), 'utf-8');
-    }
+    const ctx: TestContext = createTestContext();
+    setupCommandTest(ctx);
 
     it('adds source to graph metadata when graph exists', async () => {
-      await createGraphWithSource('https://github.com/org/repo1');
+      await createGraphWithSource(ctx.testDir, 'https://github.com/org/repo1');
 
       const program = createProgram();
       await program.parseAsync([
@@ -72,7 +38,7 @@ describe('riviere builder add-source', () => {
         'https://github.com/org/repo2',
       ]);
 
-      const graphPath = join(testContext.testDir, '.riviere', 'graph.json');
+      const graphPath = join(ctx.testDir, '.riviere', 'graph.json');
       const content = await readFile(graphPath, 'utf-8');
       const graph: unknown = JSON.parse(content);
 
@@ -87,7 +53,7 @@ describe('riviere builder add-source', () => {
     });
 
     it('outputs success JSON when --json flag provided', async () => {
-      await createGraphWithSource('https://github.com/org/repo1');
+      await createGraphWithSource(ctx.testDir, 'https://github.com/org/repo1');
 
       const program = createProgram();
       await program.parseAsync([
@@ -100,8 +66,8 @@ describe('riviere builder add-source', () => {
         '--json',
       ]);
 
-      expect(testContext.consoleOutput).toHaveLength(1);
-      const output: unknown = JSON.parse(testContext.consoleOutput[0] ?? '');
+      expect(ctx.consoleOutput).toHaveLength(1);
+      const output: unknown = JSON.parse(ctx.consoleOutput[0] ?? '');
       expect(output).toMatchObject({
         success: true,
         data: {
@@ -112,32 +78,8 @@ describe('riviere builder add-source', () => {
   });
 
   describe('error handling', () => {
-    const testContext: {
-      testDir: string;
-      originalCwd: string;
-      consoleOutput: string[];
-    } = {
-      testDir: '',
-      originalCwd: '',
-      consoleOutput: [],
-    };
-
-    beforeEach(async () => {
-      testContext.testDir = await mkdtemp(join(tmpdir(), 'riviere-test-'));
-      testContext.originalCwd = process.cwd();
-      testContext.consoleOutput = [];
-      process.chdir(testContext.testDir);
-
-      vi.spyOn(console, 'log').mockImplementation((msg: string) => {
-        testContext.consoleOutput.push(msg);
-      });
-    });
-
-    afterEach(async () => {
-      vi.restoreAllMocks();
-      process.chdir(testContext.originalCwd);
-      await rm(testContext.testDir, { recursive: true });
-    });
+    const ctx: TestContext = createTestContext();
+    setupCommandTest(ctx);
 
     it('returns GRAPH_NOT_FOUND when no graph exists', async () => {
       const program = createProgram();
@@ -150,13 +92,13 @@ describe('riviere builder add-source', () => {
         'https://github.com/org/repo',
       ]);
 
-      const output = testContext.consoleOutput.join('\n');
+      const output = ctx.consoleOutput.join('\n');
       expect(output).toContain(CliErrorCode.GraphNotFound);
     });
 
     it('uses custom graph path when --graph provided', async () => {
-      const customGraphPath = join(testContext.testDir, 'custom', 'graph.json');
-      await mkdir(join(testContext.testDir, 'custom'), { recursive: true });
+      const customGraphPath = join(ctx.testDir, 'custom', 'graph.json');
+      await mkdir(join(ctx.testDir, 'custom'), { recursive: true });
       const graph = {
         version: '1.0',
         metadata: {

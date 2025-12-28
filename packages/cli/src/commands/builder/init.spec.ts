@@ -1,6 +1,5 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { mkdtemp, rm, readFile, stat, mkdir, writeFile } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
+import { describe, it, expect } from 'vitest';
+import { readFile, stat, mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { createProgram } from '../../cli';
 import { CliErrorCode } from '../../error-codes';
@@ -19,21 +18,8 @@ describe('riviere builder init', () => {
   });
 
   describe('graph file creation', () => {
-    const testContext = {
-      testDir: '',
-      originalCwd: '',
-    };
-
-    beforeEach(async () => {
-      testContext.testDir = await mkdtemp(join(tmpdir(), 'riviere-test-'));
-      testContext.originalCwd = process.cwd();
-      process.chdir(testContext.testDir);
-    });
-
-    afterEach(async () => {
-      process.chdir(testContext.originalCwd);
-      await rm(testContext.testDir, { recursive: true });
-    });
+    const ctx: TestContext = createTestContext();
+    setupCommandTest(ctx);
 
     it('creates .riviere/graph.json when called with valid source and domain', async () => {
       const program = createProgram();
@@ -49,7 +35,7 @@ describe('riviere builder init', () => {
         '{"name":"orders","description":"Order management","systemType":"domain"}',
       ]);
 
-      const graphPath = join(testContext.testDir, '.riviere', 'graph.json');
+      const graphPath = join(ctx.testDir, '.riviere', 'graph.json');
       const fileStat = await stat(graphPath);
       expect(fileStat.isFile()).toBe(true);
 
@@ -73,7 +59,7 @@ describe('riviere builder init', () => {
         '{"name":"orders","description":"Order management","systemType":"domain"}',
       ]);
 
-      const graphPath = join(testContext.testDir, '.riviere', 'graph.json');
+      const graphPath = join(ctx.testDir, '.riviere', 'graph.json');
       const content = await readFile(graphPath, 'utf-8');
       const graph: unknown = JSON.parse(content);
 
@@ -100,7 +86,7 @@ describe('riviere builder init', () => {
         '{"name":"orders","description":"Order management","systemType":"domain"}',
       ]);
 
-      const graphPath = join(testContext.testDir, '.riviere', 'graph.json');
+      const graphPath = join(ctx.testDir, '.riviere', 'graph.json');
       const content = await readFile(graphPath, 'utf-8');
       const graph: unknown = JSON.parse(content);
 
@@ -125,7 +111,7 @@ describe('riviere builder init', () => {
         '{"name":"orders","description":"Order management","systemType":"domain"}',
       ]);
 
-      const graphPath = join(testContext.testDir, '.riviere', 'graph.json');
+      const graphPath = join(ctx.testDir, '.riviere', 'graph.json');
       const content = await readFile(graphPath, 'utf-8');
       const graph: unknown = JSON.parse(content);
 
@@ -157,7 +143,7 @@ describe('riviere builder init', () => {
         '{"name":"payments","description":"Payment processing","systemType":"bff"}',
       ]);
 
-      const graphPath = join(testContext.testDir, '.riviere', 'graph.json');
+      const graphPath = join(ctx.testDir, '.riviere', 'graph.json');
       const content = await readFile(graphPath, 'utf-8');
       const graph: unknown = JSON.parse(content);
 
@@ -187,7 +173,7 @@ describe('riviere builder init', () => {
         '{"name":"orders","description":"Order management","systemType":"domain"}',
       ]);
 
-      const graphPath = join(testContext.testDir, '.riviere', 'graph.json');
+      const graphPath = join(ctx.testDir, '.riviere', 'graph.json');
       const content = await readFile(graphPath, 'utf-8');
       const graph: unknown = JSON.parse(content);
 
@@ -212,7 +198,7 @@ describe('riviere builder init', () => {
         '{"name":"orders","description":"Order management","systemType":"domain"}',
       ]);
 
-      const graphPath = join(testContext.testDir, '.riviere', 'graph.json');
+      const graphPath = join(ctx.testDir, '.riviere', 'graph.json');
       const content = await readFile(graphPath, 'utf-8');
       const graph: unknown = JSON.parse(content);
 
@@ -274,24 +260,8 @@ describe('riviere builder init', () => {
   });
 
   describe('validation errors', () => {
-    const testContext: {
-      testDir: string;
-      originalCwd: string;
-    } = {
-      testDir: '',
-      originalCwd: '',
-    };
-
-    beforeEach(async () => {
-      testContext.testDir = await mkdtemp(join(tmpdir(), 'riviere-test-'));
-      testContext.originalCwd = process.cwd();
-      process.chdir(testContext.testDir);
-    });
-
-    afterEach(async () => {
-      process.chdir(testContext.originalCwd);
-      await rm(testContext.testDir, { recursive: true });
-    });
+    const ctx: TestContext = createTestContext();
+    setupCommandTest(ctx);
 
     it('throws when domain JSON is not valid JSON', async () => {
       const program = createProgram();
