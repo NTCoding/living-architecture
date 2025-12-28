@@ -572,12 +572,13 @@
         "description": "Create commands for listing and searching components",
         "details": "## Deliverable: `riviere query components` and `riviere query search` commands\n\n### Context\nPhase 8 PRD: `docs/project/PRD/active/PRD-phase-8-riviere-cli.md`\n\nComponent listing and search commands with filtering support.\n\n### Key Decisions and Principles\n- **Thin wrapper** — Direct mapping to RiviereQuery methods\n- **Filters combine** — --domain and --type can be used together\n\n### Delivers\n- `riviere query components [--domain <name>] [--type <type>]` — Lists components with optional filters\n- `riviere query search <term>` — Searches components by name (case-insensitive)\n\n### Acceptance Criteria\n- Given graph with components, When running `query components`, Then returns all components\n- Given --domain filter, When running `query components --domain orders`, Then returns only orders domain components\n- Given --type filter, When running `query components --type API`, Then returns only API components\n- Given both filters, When running `query components --domain orders --type API`, Then returns orders domain APIs only\n- Given search term, When running `query search \"order\"`, Then returns components with \"order\" in name\n- Given no matches, When running search, Then returns empty list\n- Given --json flag, When commands run, Then output follows JSON schema\n\n### Dependencies\n- Task 40 (query entry-points/domains)\n\n### Related Code\n- `packages/riviere-query/src/RiviereQuery.ts` — `components()`, `componentsInDomain()`, `componentsByType()`, `search()`\n- `packages/riviere-query/src/component-queries.ts` — Component query logic\n\n### Verification\n```bash\nriviere query components\nriviere query components --domain orders\nriviere query components --type API\nriviere query components --domain orders --type API --json\nriviere query search \"order\"\nriviere query search \"order\" --json\nnx test riviere-cli\n```",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           "40"
         ],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2025-12-28T22:56:31.128Z"
       },
       {
         "id": "43",
@@ -595,9 +596,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-12-28T21:46:44.405Z",
+      "lastModified": "2025-12-28T22:56:31.129Z",
       "taskCount": 43,
-      "completedCount": 40,
+      "completedCount": 41,
       "tags": [
         "master"
       ]

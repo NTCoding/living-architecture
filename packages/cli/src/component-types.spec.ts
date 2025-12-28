@@ -5,6 +5,7 @@ import {
   isValidApiType,
   isValidSystemType,
   normalizeComponentType,
+  normalizeToSchemaComponentType,
   VALID_COMPONENT_TYPES,
   VALID_LINK_TYPES,
   VALID_API_TYPES,
@@ -59,6 +60,30 @@ describe('component-types', () => {
 
     it('throws for invalid component type', () => {
       expect(() => normalizeComponentType('Invalid')).toThrow(/Invalid component type/);
+    });
+  });
+
+  describe('normalizeToSchemaComponentType', () => {
+    it.each([
+      ['UI', 'UI'],
+      ['ui', 'UI'],
+      ['API', 'API'],
+      ['api', 'API'],
+      ['UseCase', 'UseCase'],
+      ['usecase', 'UseCase'],
+      ['DomainOp', 'DomainOp'],
+      ['domainop', 'DomainOp'],
+      ['Event', 'Event'],
+      ['EventHandler', 'EventHandler'],
+      ['Custom', 'Custom'],
+    ])('normalizes %s to schema type %s', (input, expected) => {
+      expect(normalizeToSchemaComponentType(input)).toBe(expected);
+    });
+
+    it('throws for invalid component type', () => {
+      expect(() => normalizeToSchemaComponentType('InvalidType')).toThrow(
+        /Expected valid ComponentType/
+      );
     });
   });
 

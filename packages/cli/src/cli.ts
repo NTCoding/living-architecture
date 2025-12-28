@@ -17,6 +17,8 @@ import { createEntryPointsCommand } from './commands/query/entry-points';
 import { createDomainsCommand } from './commands/query/domains';
 import { createTraceCommand } from './commands/query/trace';
 import { createOrphansCommand } from './commands/query/orphans';
+import { createComponentsCommand } from './commands/query/components';
+import { createSearchCommand } from './commands/query/search';
 
 interface PackageJson {
   version: string;
@@ -70,6 +72,8 @@ export function createProgram(): Command {
   queryCmd.addCommand(createDomainsCommand());
   queryCmd.addCommand(createTraceCommand());
   queryCmd.addCommand(createOrphansCommand());
+  queryCmd.addCommand(createComponentsCommand());
+  queryCmd.addCommand(createSearchCommand());
 
   return program;
 }
