@@ -542,12 +542,13 @@
         "description": "Create query commands for listing entry points and domains with stats",
         "details": "## Deliverable: `riviere query entry-points` and `riviere query domains` commands\n\n### Context\nPhase 8 PRD: `docs/project/PRD/active/PRD-phase-8-riviere-cli.md`\n\nQuery commands that wrap RiviereQuery methods for discovering graph structure.\n\n### Key Decisions and Principles\n- **Thin wrapper** — Direct mapping to RiviereQuery methods\n- **Read-only** — Query commands never modify the graph\n\n### Delivers\n- `riviere query entry-points` — Lists APIs, UIs, EventHandlers with no incoming links\n- `riviere query domains` — Lists domains with component counts\n\n### Acceptance Criteria\n- Given graph with API components, When running `query entry-points`, Then returns API components that have no incoming links\n- Given graph with EventHandler components, When running `query entry-points`, Then includes EventHandlers in results\n- Given graph with domains, When running `query domains`, Then returns domain names with component counts per type\n- Given --json flag, When commands run, Then output follows JSON schema\n- Given no graph exists, When running query commands, Then returns error GRAPH_NOT_FOUND\n\n### Dependencies\n- Task 38 (validate/finalize - need complete graph to query)\n\n### Related Code\n- `packages/riviere-query/src/RiviereQuery.ts` — `entryPoints()`, `domains()`\n- `packages/riviere-query/src/flow-queries.ts` — Entry point logic\n\n### Verification\n```bash\nriviere query entry-points\nriviere query entry-points --json\nriviere query domains\nriviere query domains --json\nnx test riviere-cli\n```",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           "38"
         ],
         "priority": "high",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2025-12-28T13:36:19.384Z"
       },
       {
         "id": "41",
@@ -591,9 +592,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-12-28T12:57:01.922Z",
+      "lastModified": "2025-12-28T13:36:19.385Z",
       "taskCount": 43,
-      "completedCount": 36,
+      "completedCount": 37,
       "tags": [
         "master"
       ]

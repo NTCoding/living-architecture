@@ -1,15 +1,16 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { mkdtemp, rm, mkdir, writeFile, readFile, access } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
+import { describe, it, expect } from 'vitest';
+import { mkdir, readFile, access } from 'node:fs/promises';
 import { join } from 'node:path';
 import { createProgram } from '../../cli';
 import { CliErrorCode } from '../../error-codes';
-
-interface TestContext {
-  testDir: string;
-  originalCwd: string;
-  consoleOutput: string[];
-}
+import type { TestContext } from '../../command-test-fixtures';
+import {
+  createTestContext,
+  setupCommandTest,
+  createGraph,
+  baseMetadata,
+  useCaseComponent,
+} from '../../command-test-fixtures';
 
 interface FinalizeSuccessOutput {
   success: true;
@@ -38,14 +39,6 @@ function isFinalizeError(value: unknown): value is FinalizeErrorOutput {
   return true;
 }
 
-async function createGraph(testDir: string, graphData: object, subPath = '.riviere'): Promise<string> {
-  const graphDir = join(testDir, subPath);
-  await mkdir(graphDir, { recursive: true });
-  const graphPath = join(graphDir, 'graph.json');
-  await writeFile(graphPath, JSON.stringify(graphData), 'utf-8');
-  return graphPath;
-}
-
 async function fileExists(path: string): Promise<boolean> {
   try {
     await access(path);
@@ -54,22 +47,6 @@ async function fileExists(path: string): Promise<boolean> {
     return false;
   }
 }
-
-const baseMetadata = {
-  sources: [{ repository: 'https://github.com/org/repo' }],
-  domains: { orders: { description: 'Order management', systemType: 'domain' } },
-};
-
-const sourceLocation = { repository: 'https://github.com/org/repo', filePath: 'src/orders/component.ts' };
-
-const validComponent = {
-  id: 'orders:checkout:usecase:place-order',
-  type: 'UseCase',
-  name: 'place-order',
-  domain: 'orders',
-  module: 'checkout',
-  sourceLocation,
-};
 
 describe('riviere builder finalize', () => {
   describe('command registration', () => {
@@ -82,27 +59,14 @@ describe('riviere builder finalize', () => {
   });
 
   describe('finalizing a valid graph', () => {
-    const ctx: TestContext = { testDir: '', originalCwd: '', consoleOutput: [] };
-
-    beforeEach(async () => {
-      ctx.testDir = await mkdtemp(join(tmpdir(), 'riviere-test-'));
-      ctx.originalCwd = process.cwd();
-      ctx.consoleOutput = [];
-      process.chdir(ctx.testDir);
-      vi.spyOn(console, 'log').mockImplementation((msg: string) => ctx.consoleOutput.push(msg));
-    });
-
-    afterEach(async () => {
-      vi.restoreAllMocks();
-      process.chdir(ctx.originalCwd);
-      await rm(ctx.testDir, { recursive: true });
-    });
+    const ctx: TestContext = createTestContext();
+    setupCommandTest(ctx);
 
     it('writes graph to .riviere/graph.json when graph is valid', async () => {
       await createGraph(ctx.testDir, {
         version: '1.0',
         metadata: baseMetadata,
-        components: [validComponent],
+        components: [useCaseComponent],
         links: [],
       });
 
@@ -121,7 +85,7 @@ describe('riviere builder finalize', () => {
       await createGraph(ctx.testDir, {
         version: '1.0',
         metadata: baseMetadata,
-        components: [validComponent],
+        components: [useCaseComponent],
         links: [],
       });
 
@@ -138,7 +102,7 @@ describe('riviere builder finalize', () => {
       await createGraph(ctx.testDir, {
         version: '1.0',
         metadata: baseMetadata,
-        components: [validComponent],
+        components: [useCaseComponent],
         links: [],
       });
 
@@ -155,21 +119,8 @@ describe('riviere builder finalize', () => {
   });
 
   describe('finalizing an invalid graph', () => {
-    const ctx: TestContext = { testDir: '', originalCwd: '', consoleOutput: [] };
-
-    beforeEach(async () => {
-      ctx.testDir = await mkdtemp(join(tmpdir(), 'riviere-test-'));
-      ctx.originalCwd = process.cwd();
-      ctx.consoleOutput = [];
-      process.chdir(ctx.testDir);
-      vi.spyOn(console, 'log').mockImplementation((msg: string) => ctx.consoleOutput.push(msg));
-    });
-
-    afterEach(async () => {
-      vi.restoreAllMocks();
-      process.chdir(ctx.originalCwd);
-      await rm(ctx.testDir, { recursive: true });
-    });
+    const ctx: TestContext = createTestContext();
+    setupCommandTest(ctx);
 
     it('returns VALIDATION_ERROR when graph has errors', async () => {
       await createGraph(ctx.testDir, {
@@ -220,21 +171,8 @@ describe('riviere builder finalize', () => {
   });
 
   describe('error handling', () => {
-    const ctx: TestContext = { testDir: '', originalCwd: '', consoleOutput: [] };
-
-    beforeEach(async () => {
-      ctx.testDir = await mkdtemp(join(tmpdir(), 'riviere-test-'));
-      ctx.originalCwd = process.cwd();
-      ctx.consoleOutput = [];
-      process.chdir(ctx.testDir);
-      vi.spyOn(console, 'log').mockImplementation((msg: string) => ctx.consoleOutput.push(msg));
-    });
-
-    afterEach(async () => {
-      vi.restoreAllMocks();
-      process.chdir(ctx.originalCwd);
-      await rm(ctx.testDir, { recursive: true });
-    });
+    const ctx: TestContext = createTestContext();
+    setupCommandTest(ctx);
 
     it('returns GRAPH_NOT_FOUND when no graph exists', async () => {
       await createProgram().parseAsync(['node', 'riviere', 'builder', 'finalize']);
@@ -244,7 +182,7 @@ describe('riviere builder finalize', () => {
     it('uses custom graph path when --graph provided for reading', async () => {
       const customPath = await createGraph(
         ctx.testDir,
-        { version: '1.0', metadata: baseMetadata, components: [validComponent], links: [] },
+        { version: '1.0', metadata: baseMetadata, components: [useCaseComponent], links: [] },
         'custom'
       );
 

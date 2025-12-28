@@ -1,9 +1,10 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { mkdtemp, rm, mkdir, writeFile, readFile } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
+import { describe, it, expect } from 'vitest';
+import { mkdir, writeFile, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { createProgram } from '../../cli';
 import { CliErrorCode } from '../../error-codes';
+import type { TestContext } from '../../command-test-fixtures';
+import { createTestContext, setupCommandTest } from '../../command-test-fixtures';
 
 describe('riviere builder link', () => {
   describe('command registration', () => {
@@ -17,35 +18,11 @@ describe('riviere builder link', () => {
   });
 
   describe('creating links', () => {
-    const testContext: {
-      testDir: string;
-      originalCwd: string;
-      consoleOutput: string[];
-    } = {
-      testDir: '',
-      originalCwd: '',
-      consoleOutput: [],
-    };
-
-    beforeEach(async () => {
-      testContext.testDir = await mkdtemp(join(tmpdir(), 'riviere-test-'));
-      testContext.originalCwd = process.cwd();
-      testContext.consoleOutput = [];
-      process.chdir(testContext.testDir);
-
-      vi.spyOn(console, 'log').mockImplementation((msg: string) => {
-        testContext.consoleOutput.push(msg);
-      });
-    });
-
-    afterEach(async () => {
-      vi.restoreAllMocks();
-      process.chdir(testContext.originalCwd);
-      await rm(testContext.testDir, { recursive: true });
-    });
+    const ctx: TestContext = createTestContext();
+    setupCommandTest(ctx);
 
     async function createGraphWithComponent(): Promise<void> {
-      const graphDir = join(testContext.testDir, '.riviere');
+      const graphDir = join(ctx.testDir, '.riviere');
       await mkdir(graphDir, { recursive: true });
       const graph = {
         version: '1.0',
@@ -95,7 +72,7 @@ describe('riviere builder link', () => {
         '--json',
       ]);
 
-      const graphPath = join(testContext.testDir, '.riviere', 'graph.json');
+      const graphPath = join(ctx.testDir, '.riviere', 'graph.json');
       const content = await readFile(graphPath, 'utf-8');
       const graph: unknown = JSON.parse(content);
 
@@ -128,7 +105,7 @@ describe('riviere builder link', () => {
         'place-order',
       ]);
 
-      const output = testContext.consoleOutput.join('\n');
+      const output = ctx.consoleOutput.join('\n');
       expect(output).toContain(CliErrorCode.GraphNotFound);
     });
 
@@ -154,15 +131,15 @@ describe('riviere builder link', () => {
         '--json',
       ]);
 
-      expect(testContext.consoleOutput).toHaveLength(1);
-      const output: unknown = JSON.parse(testContext.consoleOutput[0] ?? '');
+      expect(ctx.consoleOutput).toHaveLength(1);
+      const output: unknown = JSON.parse(ctx.consoleOutput[0] ?? '');
       expect(output).toMatchObject({
         success: false,
         error: {
           code: CliErrorCode.ComponentNotFound,
         },
       });
-      expect(testContext.consoleOutput[0]).toContain('orders:checkout:api:create-order');
+      expect(ctx.consoleOutput[0]).toContain('orders:checkout:api:create-order');
     });
 
     it('sets link type when --link-type async provided', async () => {
@@ -189,7 +166,7 @@ describe('riviere builder link', () => {
         '--json',
       ]);
 
-      const graphPath = join(testContext.testDir, '.riviere', 'graph.json');
+      const graphPath = join(ctx.testDir, '.riviere', 'graph.json');
       const content = await readFile(graphPath, 'utf-8');
       const graph: unknown = JSON.parse(content);
 
@@ -226,8 +203,8 @@ describe('riviere builder link', () => {
         '--json',
       ]);
 
-      expect(testContext.consoleOutput).toHaveLength(1);
-      const output: unknown = JSON.parse(testContext.consoleOutput[0] ?? '');
+      expect(ctx.consoleOutput).toHaveLength(1);
+      const output: unknown = JSON.parse(ctx.consoleOutput[0] ?? '');
       expect(output).toMatchObject({
         success: true,
         data: {
@@ -260,8 +237,8 @@ describe('riviere builder link', () => {
         'place-order',
       ]);
 
-      expect(testContext.consoleOutput).toHaveLength(0);
-      const graphPath = join(testContext.testDir, '.riviere', 'graph.json');
+      expect(ctx.consoleOutput).toHaveLength(0);
+      const graphPath = join(ctx.testDir, '.riviere', 'graph.json');
       const content = await readFile(graphPath, 'utf-8');
       const graph: unknown = JSON.parse(content);
       expect(graph).toMatchObject({
@@ -316,8 +293,8 @@ describe('riviere builder link', () => {
         '--json',
       ]);
 
-      expect(testContext.consoleOutput).toHaveLength(1);
-      const output: unknown = JSON.parse(testContext.consoleOutput[0] ?? '');
+      expect(ctx.consoleOutput).toHaveLength(1);
+      const output: unknown = JSON.parse(ctx.consoleOutput[0] ?? '');
       expect(output).toMatchObject({
         success: false,
         error: {
@@ -351,8 +328,8 @@ describe('riviere builder link', () => {
         '--json',
       ]);
 
-      expect(testContext.consoleOutput).toHaveLength(1);
-      const output: unknown = JSON.parse(testContext.consoleOutput[0] ?? '');
+      expect(ctx.consoleOutput).toHaveLength(1);
+      const output: unknown = JSON.parse(ctx.consoleOutput[0] ?? '');
       expect(output).toMatchObject({
         success: false,
         error: {

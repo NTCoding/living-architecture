@@ -1,9 +1,10 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { mkdtemp, rm, mkdir, writeFile, readFile } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
+import { describe, it, expect } from 'vitest';
+import { mkdir, writeFile, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { createProgram } from '../../cli';
 import { CliErrorCode } from '../../error-codes';
+import type { TestContext } from '../../command-test-fixtures';
+import { createTestContext, setupCommandTest } from '../../command-test-fixtures';
 
 interface ApiComponentDef {
   id: string;
@@ -22,25 +23,8 @@ describe('riviere builder link-http', () => {
   });
 
   describe('creating links by HTTP path', () => {
-    const ctx: { testDir: string; originalCwd: string; consoleOutput: string[] } = {
-      testDir: '',
-      originalCwd: '',
-      consoleOutput: [],
-    };
-
-    beforeEach(async () => {
-      ctx.testDir = await mkdtemp(join(tmpdir(), 'riviere-test-'));
-      ctx.originalCwd = process.cwd();
-      ctx.consoleOutput = [];
-      process.chdir(ctx.testDir);
-      vi.spyOn(console, 'log').mockImplementation((msg: string) => ctx.consoleOutput.push(msg));
-    });
-
-    afterEach(async () => {
-      vi.restoreAllMocks();
-      process.chdir(ctx.originalCwd);
-      await rm(ctx.testDir, { recursive: true });
-    });
+    const ctx: TestContext = createTestContext();
+    setupCommandTest(ctx);
 
     async function createGraph(apis: ApiComponentDef[]): Promise<void> {
       const graphDir = join(ctx.testDir, '.riviere');
@@ -67,18 +51,39 @@ describe('riviere builder link-http', () => {
       await writeFile(join(graphDir, 'graph.json'), JSON.stringify(graph), 'utf-8');
     }
 
-    const singleApi: ApiComponentDef = { id: 'orders:checkout:api:create-order', name: 'Create Order', path: '/orders', httpMethod: 'POST' };
+    const singleApi: ApiComponentDef = {
+      id: 'orders:checkout:api:create-order',
+      name: 'Create Order',
+      path: '/orders',
+      httpMethod: 'POST',
+    };
     const multipleApis: ApiComponentDef[] = [
       { id: 'orders:checkout:api:get-orders', name: 'Get Orders', path: '/orders', httpMethod: 'GET' },
       { id: 'orders:checkout:api:create-order', name: 'Create Order', path: '/orders', httpMethod: 'POST' },
     ];
 
-    function buildArgs(overrides: { path?: string; toType?: string; linkType?: string; method?: string; json?: boolean }): string[] {
+    function buildArgs(overrides: {
+      path?: string;
+      toType?: string;
+      linkType?: string;
+      method?: string;
+      json?: boolean;
+    }): string[] {
       const args = [
-        'node', 'riviere', 'builder', 'link-http',
-        '--path', overrides.path ?? '/orders',
-        '--to-domain', 'orders', '--to-module', 'checkout',
-        '--to-type', overrides.toType ?? 'UseCase', '--to-name', 'place-order',
+        'node',
+        'riviere',
+        'builder',
+        'link-http',
+        '--path',
+        overrides.path ?? '/orders',
+        '--to-domain',
+        'orders',
+        '--to-module',
+        'checkout',
+        '--to-type',
+        overrides.toType ?? 'UseCase',
+        '--to-name',
+        'place-order',
       ];
       if (overrides.linkType) args.push('--link-type', overrides.linkType);
       if (overrides.method) args.push('--method', overrides.method);
@@ -159,7 +164,9 @@ describe('riviere builder link-http', () => {
       await createGraph([singleApi]);
       await createProgram().parseAsync(buildArgs({ linkType: 'async' }));
       expect(await readGraph()).toMatchObject({
-        links: [{ source: 'orders:checkout:api:create-order', target: 'orders:checkout:usecase:place-order', type: 'async' }],
+        links: [
+          { source: 'orders:checkout:api:create-order', target: 'orders:checkout:usecase:place-order', type: 'async' },
+        ],
       });
     });
 

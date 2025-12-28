@@ -9,6 +9,8 @@ import { createLinkExternalCommand } from './commands/builder/link-external';
 import { createLinkHttpCommand } from './commands/builder/link-http';
 import { createValidateCommand } from './commands/builder/validate';
 import { createFinalizeCommand } from './commands/builder/finalize';
+import { createEntryPointsCommand } from './commands/query/entry-points';
+import { createDomainsCommand } from './commands/query/domains';
 
 interface PackageJson {
   version: string;
@@ -50,9 +52,12 @@ export function createProgram(): Command {
   builderCmd.addCommand(createValidateCommand());
   builderCmd.addCommand(createFinalizeCommand());
 
-  program
+  const queryCmd = program
     .command('query')
     .description('Commands for querying a graph');
+
+  queryCmd.addCommand(createEntryPointsCommand());
+  queryCmd.addCommand(createDomainsCommand());
 
   return program;
 }

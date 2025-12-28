@@ -1,9 +1,11 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { mkdtemp, rm, readFile, stat, mkdir, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createProgram } from '../../cli';
 import { CliErrorCode } from '../../error-codes';
+import type { TestContext } from '../../command-test-fixtures';
+import { createTestContext, setupCommandTest } from '../../command-test-fixtures';
 
 describe('riviere builder init', () => {
   describe('command registration', () => {
@@ -222,35 +224,11 @@ describe('riviere builder init', () => {
   });
 
   describe('graph already exists', () => {
-    const testContext: {
-      testDir: string;
-      originalCwd: string;
-      consoleOutput: string[];
-    } = {
-      testDir: '',
-      originalCwd: '',
-      consoleOutput: [],
-    };
-
-    beforeEach(async () => {
-      testContext.testDir = await mkdtemp(join(tmpdir(), 'riviere-test-'));
-      testContext.originalCwd = process.cwd();
-      testContext.consoleOutput = [];
-      process.chdir(testContext.testDir);
-
-      vi.spyOn(console, 'log').mockImplementation((msg: string) => {
-        testContext.consoleOutput.push(msg);
-      });
-    });
-
-    afterEach(async () => {
-      vi.restoreAllMocks();
-      process.chdir(testContext.originalCwd);
-      await rm(testContext.testDir, { recursive: true });
-    });
+    const ctx: TestContext = createTestContext();
+    setupCommandTest(ctx);
 
     it('returns GRAPH_EXISTS error when .riviere/graph.json already exists', async () => {
-      const graphDir = join(testContext.testDir, '.riviere');
+      const graphDir = join(ctx.testDir, '.riviere');
       await mkdir(graphDir, { recursive: true });
       await writeFile(join(graphDir, 'graph.json'), '{"existing": true}', 'utf-8');
 
@@ -267,12 +245,12 @@ describe('riviere builder init', () => {
         '{"name":"orders","description":"Order management","systemType":"domain"}',
       ]);
 
-      const output = testContext.consoleOutput.join('\n');
+      const output = ctx.consoleOutput.join('\n');
       expect(output).toContain(CliErrorCode.GraphExists);
     });
 
     it('does not modify existing graph.json when it already exists', async () => {
-      const graphDir = join(testContext.testDir, '.riviere');
+      const graphDir = join(ctx.testDir, '.riviere');
       const originalContent = '{"existing": true}';
       await mkdir(graphDir, { recursive: true });
       await writeFile(join(graphDir, 'graph.json'), originalContent, 'utf-8');
@@ -365,6 +343,5 @@ describe('riviere builder init', () => {
         ])
       ).rejects.toThrow('Invalid domain JSON');
     });
-
   });
 });
