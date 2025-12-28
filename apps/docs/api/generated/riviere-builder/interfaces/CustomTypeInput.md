@@ -1,6 +1,6 @@
 # Interface: CustomTypeInput
 
-Defined in: [packages/riviere-builder/src/types.ts:98](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-builder/src/types.ts#L98)
+Defined in: [packages/riviere-builder/src/types.ts:98](https://github.com/ntcoding/living-architecture/blob/cbff252f4a73592ee31cdc39860927ac5c94b984/packages/riviere-builder/src/types.ts#L98)
 
 ## Properties
 
@@ -8,7 +8,7 @@ Defined in: [packages/riviere-builder/src/types.ts:98](https://github.com/ntcodi
 
 > `optional` **description**: `string`
 
-Defined in: [packages/riviere-builder/src/types.ts:100](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-builder/src/types.ts#L100)
+Defined in: [packages/riviere-builder/src/types.ts:100](https://github.com/ntcoding/living-architecture/blob/cbff252f4a73592ee31cdc39860927ac5c94b984/packages/riviere-builder/src/types.ts#L100)
 
 ***
 
@@ -16,7 +16,7 @@ Defined in: [packages/riviere-builder/src/types.ts:100](https://github.com/ntcod
 
 > **name**: `string`
 
-Defined in: [packages/riviere-builder/src/types.ts:99](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-builder/src/types.ts#L99)
+Defined in: [packages/riviere-builder/src/types.ts:99](https://github.com/ntcoding/living-architecture/blob/cbff252f4a73592ee31cdc39860927ac5c94b984/packages/riviere-builder/src/types.ts#L99)
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: [packages/riviere-builder/src/types.ts:99](https://github.com/ntcodi
 
 > `optional` **optionalProperties**: `Record`\<`string`, `CustomPropertyDefinition`\>
 
-Defined in: [packages/riviere-builder/src/types.ts:102](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-builder/src/types.ts#L102)
+Defined in: [packages/riviere-builder/src/types.ts:102](https://github.com/ntcoding/living-architecture/blob/cbff252f4a73592ee31cdc39860927ac5c94b984/packages/riviere-builder/src/types.ts#L102)
 
 ***
 
@@ -32,4 +32,4 @@ Defined in: [packages/riviere-builder/src/types.ts:102](https://github.com/ntcod
 
 > `optional` **requiredProperties**: `Record`\<`string`, `CustomPropertyDefinition`\>
 
-Defined in: [packages/riviere-builder/src/types.ts:101](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-builder/src/types.ts#L101)
+Defined in: [packages/riviere-builder/src/types.ts:101](https://github.com/ntcoding/living-architecture/blob/cbff252f4a73592ee31cdc39860927ac5c94b984/packages/riviere-builder/src/types.ts#L101)

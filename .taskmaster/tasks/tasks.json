@@ -556,12 +556,13 @@
         "description": "Create trace and orphans commands for flow analysis",
         "details": "## Deliverable: `riviere query trace` and `riviere query orphans` commands\n\n### Context\nPhase 8 PRD: `docs/project/PRD/active/PRD-phase-8-riviere-cli.md`\n\nFlow analysis commands for understanding graph connectivity.\n\n### Key Decisions and Principles\n- **Thin wrapper** — Direct mapping to RiviereQuery methods\n- **trace is bidirectional** — Returns all connected components\n\n### Delivers\n- `riviere query trace <component-id>` — Traces flow from component, returns connected nodes\n- `riviere query orphans` — Finds components with no links\n\n### Acceptance Criteria\n- Given linked components, When running `query trace \"orders:api:create\"`, Then returns all components in the connected flow\n- Given component not in graph, When running trace with invalid ID, Then returns error COMPONENT_NOT_FOUND with suggestions\n- Given graph with orphan components, When running `query orphans`, Then returns list of disconnected component IDs\n- Given fully connected graph, When running orphans, Then returns empty list\n- Given --json flag, When commands run, Then output follows JSON schema\n\n### Dependencies\n- Task 40 (query entry-points/domains)\n\n### Related Code\n- `packages/riviere-query/src/RiviereQuery.ts` — `traceFlow()`, `detectOrphans()`\n- `packages/riviere-query/src/flow-queries.ts` — Flow tracing logic\n\n### Verification\n```bash\nriviere query trace \"orders:checkout:api:create-order\"\nriviere query trace \"orders:checkout:api:create-order\" --json\nriviere query orphans\nriviere query orphans --json\nnx test riviere-cli\n```",
         "testStrategy": "",
-        "status": "pending",
+        "status": "in-progress",
         "dependencies": [
           "40"
         ],
         "priority": "high",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2025-12-28T13:40:59.956Z"
       },
       {
         "id": "42",
@@ -592,7 +593,7 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-12-28T13:36:19.385Z",
+      "lastModified": "2025-12-28T13:40:59.959Z",
       "taskCount": 43,
       "completedCount": 37,
       "tags": [

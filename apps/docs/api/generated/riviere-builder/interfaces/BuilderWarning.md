@@ -1,6 +1,6 @@
 # Interface: BuilderWarning
 
-Defined in: [packages/riviere-builder/src/types.ts:171](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-builder/src/types.ts#L171)
+Defined in: [packages/riviere-builder/src/types.ts:171](https://github.com/ntcoding/living-architecture/blob/cbff252f4a73592ee31cdc39860927ac5c94b984/packages/riviere-builder/src/types.ts#L171)
 
 ## Properties
 
@@ -8,7 +8,7 @@ Defined in: [packages/riviere-builder/src/types.ts:171](https://github.com/ntcod
 
 > **code**: `WarningCode`
 
-Defined in: [packages/riviere-builder/src/types.ts:172](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-builder/src/types.ts#L172)
+Defined in: [packages/riviere-builder/src/types.ts:172](https://github.com/ntcoding/living-architecture/blob/cbff252f4a73592ee31cdc39860927ac5c94b984/packages/riviere-builder/src/types.ts#L172)
 
 ***
 
@@ -16,7 +16,7 @@ Defined in: [packages/riviere-builder/src/types.ts:172](https://github.com/ntcod
 
 > `optional` **componentId**: `string`
 
-Defined in: [packages/riviere-builder/src/types.ts:174](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-builder/src/types.ts#L174)
+Defined in: [packages/riviere-builder/src/types.ts:174](https://github.com/ntcoding/living-architecture/blob/cbff252f4a73592ee31cdc39860927ac5c94b984/packages/riviere-builder/src/types.ts#L174)
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: [packages/riviere-builder/src/types.ts:174](https://github.com/ntcod
 
 > `optional` **domainName**: `string`
 
-Defined in: [packages/riviere-builder/src/types.ts:175](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-builder/src/types.ts#L175)
+Defined in: [packages/riviere-builder/src/types.ts:175](https://github.com/ntcoding/living-architecture/blob/cbff252f4a73592ee31cdc39860927ac5c94b984/packages/riviere-builder/src/types.ts#L175)
 
 ***
 
@@ -32,4 +32,4 @@ Defined in: [packages/riviere-builder/src/types.ts:175](https://github.com/ntcod
 
 > **message**: `string`
 
-Defined in: [packages/riviere-builder/src/types.ts:173](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-builder/src/types.ts#L173)
+Defined in: [packages/riviere-builder/src/types.ts:173](https://github.com/ntcoding/living-architecture/blob/cbff252f4a73592ee31cdc39860927ac5c94b984/packages/riviere-builder/src/types.ts#L173)

@@ -2,6 +2,7 @@ import type { RiviereGraph, Component, ComponentType, Link, ExternalLink } from 
 import type { ComponentId, LinkId, Flow, SearchWithFlowResult } from './domain-types'
 import { parseComponentId, parseLinkId } from './domain-types'
 import { componentById, searchComponents } from './component-queries'
+import { ComponentNotFoundError } from './errors'
 
 export function findEntryPoints(graph: RiviereGraph): Component[] {
   const targets = new Set(graph.links.map((link) => link.target))
@@ -12,7 +13,7 @@ export function findEntryPoints(graph: RiviereGraph): Component[] {
 export function traceFlowFrom(graph: RiviereGraph, startComponentId: ComponentId): { componentIds: ComponentId[]; linkIds: LinkId[] } {
   const component = componentById(graph, startComponentId)
   if (!component) {
-    throw new Error(`Cannot trace flow: component '${startComponentId}' does not exist`)
+    throw new ComponentNotFoundError(startComponentId)
   }
 
   const visited = new Set<ComponentId>()

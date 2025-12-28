@@ -2,6 +2,8 @@
 
 ## Classes
 
+- [ComponentId](classes/ComponentId.md)
+- [ComponentNotFoundError](classes/ComponentNotFoundError.md)
 - [CustomTypeNotFoundError](classes/CustomTypeNotFoundError.md)
 - [DomainNotFoundError](classes/DomainNotFoundError.md)
 - [DuplicateComponentError](classes/DuplicateComponentError.md)
@@ -14,6 +16,7 @@
 - [BuilderOptions](interfaces/BuilderOptions.md)
 - [BuilderStats](interfaces/BuilderStats.md)
 - [BuilderWarning](interfaces/BuilderWarning.md)
+- [ComponentIdParts](interfaces/ComponentIdParts.md)
 - [CustomInput](interfaces/CustomInput.md)
 - [CustomTypeInput](interfaces/CustomTypeInput.md)
 - [DomainInput](interfaces/DomainInput.md)
@@ -29,3 +32,7 @@
 - [NearMatchResult](interfaces/NearMatchResult.md)
 - [UIInput](interfaces/UIInput.md)
 - [UseCaseInput](interfaces/UseCaseInput.md)
+
+## Functions
+
+- [findNearMatches](functions/findNearMatches.md)

@@ -1,6 +1,6 @@
 # Interface: EventHandlerInfo
 
-Defined in: [event-types.ts:93](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-query/src/event-types.ts#L93)
+Defined in: [packages/riviere-query/src/event-types.ts:93](https://github.com/ntcoding/living-architecture/blob/cbff252f4a73592ee31cdc39860927ac5c94b984/packages/riviere-query/src/event-types.ts#L93)
 
 Information about an event handler component.
 
@@ -10,7 +10,7 @@ Information about an event handler component.
 
 > **domain**: `string` & `$brand`\<`"DomainName"`\>
 
-Defined in: [event-types.ts:99](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-query/src/event-types.ts#L99)
+Defined in: [packages/riviere-query/src/event-types.ts:99](https://github.com/ntcoding/living-architecture/blob/cbff252f4a73592ee31cdc39860927ac5c94b984/packages/riviere-query/src/event-types.ts#L99)
 
 The domain containing the handler.
 
@@ -20,7 +20,7 @@ The domain containing the handler.
 
 > **handlerName**: `string` & `$brand`\<`"HandlerName"`\>
 
-Defined in: [event-types.ts:97](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-query/src/event-types.ts#L97)
+Defined in: [packages/riviere-query/src/event-types.ts:97](https://github.com/ntcoding/living-architecture/blob/cbff252f4a73592ee31cdc39860927ac5c94b984/packages/riviere-query/src/event-types.ts#L97)
 
 The handler's name.
 
@@ -30,7 +30,7 @@ The handler's name.
 
 > **id**: `string` & `$brand`\<`"HandlerId"`\>
 
-Defined in: [event-types.ts:95](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-query/src/event-types.ts#L95)
+Defined in: [packages/riviere-query/src/event-types.ts:95](https://github.com/ntcoding/living-architecture/blob/cbff252f4a73592ee31cdc39860927ac5c94b984/packages/riviere-query/src/event-types.ts#L95)
 
 The handler's component ID.
 
@@ -40,7 +40,7 @@ The handler's component ID.
 
 > **subscribedEvents**: `string` & `$brand`\<`"EventName"`\>[]
 
-Defined in: [event-types.ts:101](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-query/src/event-types.ts#L101)
+Defined in: [packages/riviere-query/src/event-types.ts:101](https://github.com/ntcoding/living-architecture/blob/cbff252f4a73592ee31cdc39860927ac5c94b984/packages/riviere-query/src/event-types.ts#L101)
 
 List of event names this handler subscribes to.
 
@@ -50,6 +50,6 @@ List of event names this handler subscribes to.
 
 > **subscribedEventsWithDomain**: [`SubscribedEventWithDomain`](../type-aliases/SubscribedEventWithDomain.md)[]
 
-Defined in: [event-types.ts:103](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-query/src/event-types.ts#L103)
+Defined in: [packages/riviere-query/src/event-types.ts:103](https://github.com/ntcoding/living-architecture/blob/cbff252f4a73592ee31cdc39860927ac5c94b984/packages/riviere-query/src/event-types.ts#L103)
 
 Subscribed events with source domain information.

@@ -11,6 +11,8 @@ import { createValidateCommand } from './commands/builder/validate';
 import { createFinalizeCommand } from './commands/builder/finalize';
 import { createEntryPointsCommand } from './commands/query/entry-points';
 import { createDomainsCommand } from './commands/query/domains';
+import { createTraceCommand } from './commands/query/trace';
+import { createOrphansCommand } from './commands/query/orphans';
 
 interface PackageJson {
   version: string;
@@ -58,6 +60,8 @@ export function createProgram(): Command {
 
   queryCmd.addCommand(createEntryPointsCommand());
   queryCmd.addCommand(createDomainsCommand());
+  queryCmd.addCommand(createTraceCommand());
+  queryCmd.addCommand(createOrphansCommand());
 
   return program;
 }

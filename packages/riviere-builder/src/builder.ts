@@ -19,7 +19,7 @@ import type {
 import { RiviereQuery, type ValidationResult } from '@living-architecture/riviere-query'
 import { calculateStats, findOrphans, findWarnings, toRiviereGraph, validateGraph } from './inspection'
 import { assertCustomTypeExists, assertDomainExists, assertRequiredPropertiesProvided } from './builder-assertions'
-import { ComponentId } from './component-id'
+import { ComponentId } from '@living-architecture/riviere-schema'
 import { createSourceNotFoundError, findNearMatches } from './component-suggestion'
 import { DuplicateComponentError, DuplicateDomainError } from './errors'
 import type {

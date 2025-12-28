@@ -1,6 +1,6 @@
 # Class: DuplicateComponentError
 
-Defined in: [packages/riviere-builder/src/errors.ts:37](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-builder/src/errors.ts#L37)
+Defined in: [packages/riviere-builder/src/errors.ts:37](https://github.com/ntcoding/living-architecture/blob/cbff252f4a73592ee31cdc39860927ac5c94b984/packages/riviere-builder/src/errors.ts#L37)
 
 ## Extends
 
@@ -12,7 +12,7 @@ Defined in: [packages/riviere-builder/src/errors.ts:37](https://github.com/ntcod
 
 > **new DuplicateComponentError**(`componentId`): `DuplicateComponentError`
 
-Defined in: [packages/riviere-builder/src/errors.ts:40](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-builder/src/errors.ts#L40)
+Defined in: [packages/riviere-builder/src/errors.ts:40](https://github.com/ntcoding/living-architecture/blob/cbff252f4a73592ee31cdc39860927ac5c94b984/packages/riviere-builder/src/errors.ts#L40)
 
 #### Parameters
 
@@ -46,7 +46,7 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 
 > `readonly` **componentId**: `string`
 
-Defined in: [packages/riviere-builder/src/errors.ts:38](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-builder/src/errors.ts#L38)
+Defined in: [packages/riviere-builder/src/errors.ts:38](https://github.com/ntcoding/living-architecture/blob/cbff252f4a73592ee31cdc39860927ac5c94b984/packages/riviere-builder/src/errors.ts#L38)
 
 ***
 

@@ -1,6 +1,6 @@
 # Interface: NearMatchQuery
 
-Defined in: [packages/riviere-builder/src/types.ts:130](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-builder/src/types.ts#L130)
+Defined in: [packages/riviere-builder/src/types.ts:130](https://github.com/ntcoding/living-architecture/blob/cbff252f4a73592ee31cdc39860927ac5c94b984/packages/riviere-builder/src/types.ts#L130)
 
 ## Properties
 
@@ -8,7 +8,7 @@ Defined in: [packages/riviere-builder/src/types.ts:130](https://github.com/ntcod
 
 > `optional` **domain**: `string`
 
-Defined in: [packages/riviere-builder/src/types.ts:133](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-builder/src/types.ts#L133)
+Defined in: [packages/riviere-builder/src/types.ts:133](https://github.com/ntcoding/living-architecture/blob/cbff252f4a73592ee31cdc39860927ac5c94b984/packages/riviere-builder/src/types.ts#L133)
 
 ***
 
@@ -16,7 +16,7 @@ Defined in: [packages/riviere-builder/src/types.ts:133](https://github.com/ntcod
 
 > **name**: `string`
 
-Defined in: [packages/riviere-builder/src/types.ts:131](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-builder/src/types.ts#L131)
+Defined in: [packages/riviere-builder/src/types.ts:131](https://github.com/ntcoding/living-architecture/blob/cbff252f4a73592ee31cdc39860927ac5c94b984/packages/riviere-builder/src/types.ts#L131)
 
 ***
 
@@ -24,4 +24,4 @@ Defined in: [packages/riviere-builder/src/types.ts:131](https://github.com/ntcod
 
 > `optional` **type**: `ComponentType`
 
-Defined in: [packages/riviere-builder/src/types.ts:132](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-builder/src/types.ts#L132)
+Defined in: [packages/riviere-builder/src/types.ts:132](https://github.com/ntcoding/living-architecture/blob/cbff252f4a73592ee31cdc39860927ac5c94b984/packages/riviere-builder/src/types.ts#L132)

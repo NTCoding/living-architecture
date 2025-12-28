@@ -18,6 +18,7 @@ export type { Entity, EntityTransition } from './event-types'
 export type { ComponentId, LinkId, ValidationErrorCode, ValidationError, ValidationResult, Domain, ComponentCounts, ComponentModification, DiffStats, GraphDiff, Flow, FlowStep, LinkType, SearchWithFlowResult, CrossDomainLink, DomainConnection, GraphStats, ExternalDomain } from './domain-types'
 export type { SearchWithFlowOptions } from './flow-queries'
 export { parseComponentId } from './domain-types'
+export { ComponentNotFoundError } from './errors'
 
 function assertValidGraph(graph: unknown): asserts graph is RiviereGraph {
   parseRiviereGraph(graph)

@@ -1,14 +1,10 @@
-import { Command } from 'commander';
-import { readFile } from 'node:fs/promises';
-import { RiviereQuery } from '@living-architecture/riviere-query';
-import { resolveGraphPath, getDefaultGraphPathDescription } from '../../graph-path';
-import { fileExists } from '../../file-existence';
-import { formatError, formatSuccess } from '../../output';
-import { CliErrorCode } from '../../error-codes';
+import { Command } from 'commander'
+import { formatSuccess } from '../../output'
+import { withGraph, getDefaultGraphPathDescription } from './load-graph'
 
 interface EntryPointsOptions {
-  graph?: string;
-  json?: boolean;
+  graph?: string
+  json?: boolean
 }
 
 export function createEntryPointsCommand(): Command {
@@ -17,27 +13,12 @@ export function createEntryPointsCommand(): Command {
     .option('--graph <path>', getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .action(async (options: EntryPointsOptions) => {
-      const graphPath = resolveGraphPath(options.graph);
-      const graphExists = await fileExists(graphPath);
+      await withGraph(options.graph, (query) => {
+        const entryPoints = query.entryPoints()
 
-      if (!graphExists) {
-        console.log(
-          JSON.stringify(
-            formatError(CliErrorCode.GraphNotFound, `Graph not found at ${graphPath}`, [
-              'Run riviere builder init first',
-            ])
-          )
-        );
-        return;
-      }
-
-      const content = await readFile(graphPath, 'utf-8');
-      const parsed: unknown = JSON.parse(content);
-      const query = RiviereQuery.fromJSON(parsed);
-      const entryPoints = query.entryPoints();
-
-      if (options.json === true) {
-        console.log(JSON.stringify(formatSuccess({ entryPoints })));
-      }
-    });
+        if (options.json) {
+          console.log(JSON.stringify(formatSuccess({ entryPoints })))
+        }
+      })
+    })
 }

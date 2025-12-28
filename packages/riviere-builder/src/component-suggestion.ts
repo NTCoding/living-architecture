@@ -1,5 +1,4 @@
-import type { Component } from '@living-architecture/riviere-schema'
-import type { ComponentId } from './component-id'
+import type { Component, ComponentId } from '@living-architecture/riviere-schema'
 import { ComponentNotFoundError } from './errors'
 import { similarityScore } from './string-similarity'
 import type { NearMatchMismatch, NearMatchOptions, NearMatchQuery, NearMatchResult } from './types'

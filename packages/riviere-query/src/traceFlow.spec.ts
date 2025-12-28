@@ -1,11 +1,31 @@
-import { RiviereQuery, parseComponentId } from './RiviereQuery'
+import { RiviereQuery, parseComponentId, ComponentNotFoundError } from './RiviereQuery'
 import { createMinimalValidGraph, createAPIComponent } from './riviere-graph-fixtures'
 
 describe('RiviereQuery.traceFlow()', () => {
-  it('throws error when startComponentId does not exist', () => {
+  it('throws ComponentNotFoundError when startComponentId does not exist', () => {
     const query = new RiviereQuery(createMinimalValidGraph())
 
-    expect(() => query.traceFlow(parseComponentId('nonexistent:id'))).toThrow(/component 'nonexistent:id' does not exist/)
+    expect(() => query.traceFlow(parseComponentId('nonexistent:mod:api:foo'))).toThrow(ComponentNotFoundError)
+  })
+
+  it('includes componentId in ComponentNotFoundError', () => {
+    const query = new RiviereQuery(createMinimalValidGraph())
+
+    const captureError = (): ComponentNotFoundError | undefined => {
+      try {
+        query.traceFlow(parseComponentId('nonexistent:mod:api:foo'))
+        return undefined
+      } catch (error) {
+        if (error instanceof ComponentNotFoundError) {
+          return error
+        }
+        return undefined
+      }
+    }
+
+    const caughtError = captureError()
+    expect(caughtError).toBeDefined()
+    expect(caughtError?.componentId).toBe('nonexistent:mod:api:foo')
   })
 
   it('returns only starting component when component is isolated', () => {

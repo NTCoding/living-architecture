@@ -1,3 +1,4 @@
 export * from './builder';
-export * from './component-id';
+export { ComponentId, type ComponentIdParts } from '@living-architecture/riviere-schema';
 export * from './errors';
+export { findNearMatches } from './component-suggestion';

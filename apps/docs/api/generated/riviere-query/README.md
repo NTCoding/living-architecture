@@ -2,6 +2,7 @@
 
 ## Classes
 
+- [ComponentNotFoundError](classes/ComponentNotFoundError.md)
 - [RiviereQuery](classes/RiviereQuery.md)
 
 ## Interfaces

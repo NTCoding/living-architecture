@@ -1,6 +1,6 @@
 # Interface: ExternalDomain
 
-Defined in: [domain-types.ts:255](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-query/src/domain-types.ts#L255)
+Defined in: [packages/riviere-query/src/domain-types.ts:255](https://github.com/ntcoding/living-architecture/blob/cbff252f4a73592ee31cdc39860927ac5c94b984/packages/riviere-query/src/domain-types.ts#L255)
 
 An external domain that components connect to.
 
@@ -13,7 +13,7 @@ services (Stripe, Twilio) or internal domains outside the current scope.
 
 > **connectionCount**: `number`
 
-Defined in: [domain-types.ts:261](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-query/src/domain-types.ts#L261)
+Defined in: [packages/riviere-query/src/domain-types.ts:261](https://github.com/ntcoding/living-architecture/blob/cbff252f4a73592ee31cdc39860927ac5c94b984/packages/riviere-query/src/domain-types.ts#L261)
 
 Total number of connections to this external domain.
 
@@ -23,7 +23,7 @@ Total number of connections to this external domain.
 
 > **name**: `string`
 
-Defined in: [domain-types.ts:257](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-query/src/domain-types.ts#L257)
+Defined in: [packages/riviere-query/src/domain-types.ts:257](https://github.com/ntcoding/living-architecture/blob/cbff252f4a73592ee31cdc39860927ac5c94b984/packages/riviere-query/src/domain-types.ts#L257)
 
 Name of the external domain (e.g., "Stripe", "Twilio").
 
@@ -33,6 +33,6 @@ Name of the external domain (e.g., "Stripe", "Twilio").
 
 > **sourceDomains**: `string` & `$brand`\<`"DomainName"`\>[]
 
-Defined in: [domain-types.ts:259](https://github.com/ntcoding/living-architecture/blob/33f79848ff5805eefab5e294fe621a7ebb3eb2cf/packages/riviere-query/src/domain-types.ts#L259)
+Defined in: [packages/riviere-query/src/domain-types.ts:259](https://github.com/ntcoding/living-architecture/blob/cbff252f4a73592ee31cdc39860927ac5c94b984/packages/riviere-query/src/domain-types.ts#L259)
 
 Domains that have connections to this external domain.
