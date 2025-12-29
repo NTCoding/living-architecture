@@ -626,13 +626,13 @@
         "description": "Workflow to publish packages to npm on version tag push",
         "details": "## Deliverable: GitHub Actions workflow publishes packages to npm\n\n### Context\nPRD Phase 9 (docs/project/PRD/active/PRD-phase-9-launch.md), Milestone 1, Deliverable D1.3.\n\nWhen a version tag (e.g., v0.1.0) is pushed, all four packages should be published to npm automatically. This enables hands-off releases via git tag.\n\n### Key Decisions and Principles\n- Trigger on tag push matching `v*` pattern\n- Publish all packages in dependency order\n- Use NPM_TOKEN secret for authentication\n- Dry-run first, then real publish\n\n### Delivers\nTagging a release automatically publishes all packages to npm.\n\n### Acceptance Criteria\n- Given workflow file When tag v0.1.0 pushed Then workflow triggers\n- Given NPM_TOKEN secret configured When workflow runs Then authenticates to npm\n- Given packages in correct order When workflow runs Then publishes schema → query → builder → cli\n- Given publish succeeds When workflow completes Then packages visible on npm\n- Given publish fails When error occurs Then workflow fails with clear error\n\n### Dependencies\n- Task 45 (packages configured for publishing)\n\n### Related Code\n- `.github/workflows/ci.yml` — existing CI workflow for reference\n- `packages/*/package.json` — package configs\n\n### Verification\n```bash\n# Workflow file exists\nls .github/workflows/publish.yml\n\n# Workflow syntax valid\nact -n -W .github/workflows/publish.yml 2>/dev/null || echo 'Install act for local testing'\n\n# Manual dry-run test\n# git tag v0.1.0-test && git push origin v0.1.0-test\n```",
         "testStrategy": "",
-        "status": "in-progress",
+        "status": "done",
         "dependencies": [
           "45"
         ],
         "priority": "high",
         "subtasks": [],
-        "updatedAt": "2025-12-29T20:26:08.274Z"
+        "updatedAt": "2025-12-29T22:54:18.227Z"
       },
       {
         "id": "47",
@@ -819,9 +819,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-12-29T20:26:08.276Z",
+      "lastModified": "2025-12-29T22:54:18.228Z",
       "taskCount": 61,
-      "completedCount": 44,
+      "completedCount": 45,
       "tags": [
         "master"
       ]
