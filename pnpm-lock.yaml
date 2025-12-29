@@ -191,7 +191,19 @@ importers:
         specifier: ^4.0.16
         version: 4.0.16(@types/node@24.10.4)(@vitest/ui@4.0.16)(jiti@2.6.1)(jsdom@26.1.0)(lightningcss@1.30.2)(yaml@2.8.2)
 
-  packages/cli:
+  packages/riviere-builder:
+    dependencies:
+      '@living-architecture/riviere-query':
+        specifier: workspace:*
+        version: link:../riviere-query
+      '@living-architecture/riviere-schema':
+        specifier: workspace:*
+        version: link:../../riviere-schema
+      tslib:
+        specifier: ^2.3.0
+        version: 2.8.1
+
+  packages/riviere-cli:
     dependencies:
       '@living-architecture/riviere-builder':
         specifier: workspace:*
@@ -205,18 +217,6 @@ importers:
       commander:
         specifier: ^14.0.2
         version: 14.0.2
-      tslib:
-        specifier: ^2.3.0
-        version: 2.8.1
-
-  packages/riviere-builder:
-    dependencies:
-      '@living-architecture/riviere-query':
-        specifier: workspace:*
-        version: link:../riviere-query
-      '@living-architecture/riviere-schema':
-        specifier: workspace:*
-        version: link:../../riviere-schema
       tslib:
         specifier: ^2.3.0
         version: 2.8.1
