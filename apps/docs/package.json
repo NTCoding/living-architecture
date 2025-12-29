@@ -17,7 +17,7 @@
           "commands": [
             "cp ../../packages/riviere-cli/docs/workflow/step-*.md extract/steps/",
             "cp ../../packages/riviere-cli/docs/generated/cli-reference.md reference/cli/cli-reference.md",
-            "vitepress build"
+            "pnpm exec vitepress build"
           ],
           "cwd": "apps/docs",
           "parallel": false
@@ -30,7 +30,7 @@
           "commands": [
             "cp ../../packages/riviere-cli/docs/workflow/step-*.md extract/steps/",
             "cp ../../packages/riviere-cli/docs/generated/cli-reference.md reference/cli/cli-reference.md",
-            "vitepress dev"
+            "pnpm exec vitepress dev"
           ],
           "cwd": "apps/docs",
           "parallel": false
@@ -42,7 +42,7 @@
           "build"
         ],
         "options": {
-          "command": "vitepress preview",
+          "command": "pnpm exec vitepress preview",
           "cwd": "apps/docs"
         }
       },
