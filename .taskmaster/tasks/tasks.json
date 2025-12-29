@@ -612,12 +612,13 @@
         "description": "Add publishConfig and set version to 0.1.0 for all packages",
         "details": "## Deliverable: All packages configured for npm publishing\n\n### Context\nPRD Phase 9 (docs/project/PRD/active/PRD-phase-9-launch.md), Milestone 1, Deliverable D1.2.\n\nFour packages need npm publishing configuration: riviere-query, riviere-builder, riviere-cli, riviere-schema. Each needs `publishConfig.access: public` and version set to 0.1.0.\n\n### Key Decisions and Principles\n- Version 0.1.0 signals pre-release, breaking changes expected\n- Public access required for scoped packages on npm\n- All packages publish together for consistency\n\n### Delivers\nAll package.json files ready for npm publish.\n\n### Acceptance Criteria\n- Given riviere-query package.json When task complete Then has publishConfig.access: public\n- Given riviere-builder package.json When task complete Then has publishConfig.access: public\n- Given riviere-cli package.json When task complete Then has publishConfig.access: public\n- Given riviere-schema package.json When task complete Then has publishConfig.access: public\n- Given all packages at 0.0.1 When task complete Then all packages at 0.1.0\n- When `npm pack --dry-run` runs in each package Then all succeed\n\n### Dependencies\n- Task 44 (riviere-schema moved to packages)\n\n### Related Code\n- `packages/riviere-query/package.json`\n- `packages/riviere-builder/package.json`\n- `packages/riviere-cli/package.json`\n- `packages/riviere-schema/package.json`\n\n### Verification\n```bash\n# All packages have publishConfig\nfor pkg in packages/*/package.json; do\n  grep -q 'publishConfig' \"$pkg\" || echo \"Missing publishConfig: $pkg\"\ndone\n\n# All packages at 0.1.0\nfor pkg in packages/*/package.json; do\n  grep -q '\"version\": \"0.1.0\"' \"$pkg\" || echo \"Wrong version: $pkg\"\ndone\n\n# Dry-run pack works\nfor dir in packages/*/; do\n  (cd \"$dir\" && npm pack --dry-run)\ndone\n```",
         "testStrategy": "",
-        "status": "pending",
+        "status": "in-progress",
         "dependencies": [
           "44"
         ],
         "priority": "high",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2025-12-29T20:10:38.765Z"
       },
       {
         "id": "46",
@@ -817,7 +818,7 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-12-29T20:03:08.274Z",
+      "lastModified": "2025-12-29T20:10:38.766Z",
       "taskCount": 61,
       "completedCount": 43,
       "tags": [
