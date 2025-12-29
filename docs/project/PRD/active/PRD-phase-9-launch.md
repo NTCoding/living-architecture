@@ -1,6 +1,6 @@
 # PRD: Phase 9 — Launch
 
-**Status:** Draft
+**Status:** Planning
 
 **Depends on:** Phase 8 (Riviere CLI)
 
@@ -10,7 +10,7 @@
 
 We need to make Living Architecture publicly available for early adopters:
 
-- **npm packages** — riviere-query, riviere-builder, riviere-cli published and installable
+- **npm packages** — riviere-query, riviere-builder, riviere-cli, riviere-schema published and installable
 - **Hosted Éclair** — Visualizer accessible without local setup
 - **Documentation** — Guides, API reference, examples available online
 - **Landing page** — Entry point explaining what this is and why to use it
@@ -30,6 +30,8 @@ Currently nothing is published or deployed. Early adopters have no way to try th
 4. **Minimal landing page** — Clear value proposition, links to docs/Éclair. Not a marketing site.
 
 5. **Pre-release versioning** — Start at 0.1.0. Breaking changes expected. Signal early-stage clearly.
+
+6. **Conventional commits** — All commits follow conventional commit format for automated changelog generation.
 
 ---
 
@@ -68,6 +70,7 @@ The **ecommerce-demo-app** (github.com/NTCoding/ecommerce-demo-app) serves as a 
 - Architecture extracted using AI-assisted workflow
 - Includes custom types (message queues, external integrations)
 - Pre-extracted graph viewable in Éclair
+- Contains `.riviere/` folder with extracted graph
 
 This proves the full workflow works and gives early adopters a realistic reference.
 
@@ -86,6 +89,7 @@ This proves the full workflow works and gives early adopters a realistic referen
 - Analytics dashboard
 - Paid features or tiers
 - Custom domain email
+- Announcement/launch communications (blog, social media)
 
 ---
 
@@ -109,6 +113,10 @@ This proves the full workflow works and gives early adopters a realistic referen
 - [ ] Docs cover getting started, API reference, examples
 - [ ] At least one complete example graph included
 
+**Demo:**
+- [ ] Demo app uses published riviere-cli
+- [ ] Demo loads and works in Éclair end-to-end
+
 ---
 
 ## 6. Resolved Questions
@@ -116,38 +124,84 @@ This proves the full workflow works and gives early adopters a realistic referen
 1. **Domain** — `living-architecture.dev` needs to be registered. Added to M3 deliverables.
 2. **npm scope** — `@living-architecture` is owned and ready.
 3. **Versioning** — Start at 0.1.0 (pre-release). Breaking changes expected.
-
-## 7. Open Questions
-
-1. **Changelog** — Auto-generate from commits or manual?
+4. **Changelog** — Auto-generate from conventional commits using release-please or similar.
+5. **Commit enforcement** — commitlint + husky locally; CI validates PR titles follow conventional format.
+6. **riviere-schema** — Will be published (move to packages/, remove private flag, cleanup trigger field).
 
 ---
 
-## 8. Milestones
+## 7. Milestones
 
 ### M1: npm packages can be published
 
-Packages have correct metadata and can be published to npm.
+Packages have correct metadata, repo is ready for public release.
 
 #### Deliverables
-- **D1.1:** Package.json files configured for publishing
+
+- **D1.1:** riviere-schema prepared for publishing
+  - Move from repo root to `packages/riviere-schema/`
+  - Remove `"private": true`
+  - Remove "trigger" field from DomainOp state change
+  - Add `publishConfig.access: "public"`
+  - Acceptance: `npm pack` succeeds, schema tests pass
+  - Verification: Dry-run pack, run tests
+
+- **D1.2:** Package.json files configured for publishing
   - Add `publishConfig.access: "public"` to all 4 packages
   - Set version to 0.1.0
   - Acceptance: `npm pack` succeeds for each package
   - Verification: Dry-run pack in CI
 
-- **D1.2:** GitHub Actions workflow for npm publish
+- **D1.3:** GitHub Actions workflow for npm publish
   - Trigger on version tag push (e.g., `v0.1.0`)
   - Publish all packages to npm
   - Acceptance: Tagged release publishes packages
   - Verification: Manual test with dry-run, then real publish
 
-- **D1.3:** Package READMEs updated
-  - Installation instructions
-  - Link to full docs at living-architecture.dev/docs
-  - Basic usage example
-  - Acceptance: Each package has useful README
+- **D1.4:** Package READMEs reviewed and updated
+  - Installation instructions correct
+  - Links to docs verified working
+  - Basic usage example included
+  - Acceptance: Each package has useful README with working links
+  - Verification: Review content, test links
+
+- **D1.5:** Root README reviewed and updated
+  - Project description current
+  - All links verified working (docs, npm, Éclair, GitHub)
+  - Acceptance: README is accurate and all links resolve
+  - Verification: Manual link check
+
+- **D1.6:** LICENSE file added
+  - MIT license
+  - Acceptance: LICENSE file exists at repo root
+  - Verification: File exists
+
+- **D1.7:** CONTRIBUTING.md created
+  - How to contribute
+  - Commit message format (conventional commits)
+  - Development setup
+  - Acceptance: Clear contribution guidelines
   - Verification: Review content
+
+- **D1.8:** commitlint + husky configured
+  - Enforces conventional commit format locally
+  - Helpful error message on rejection
+  - Acceptance: Non-conventional commits rejected with guidance
+  - Verification: Test with bad commit message
+
+- **D1.9:** Branch protection configured
+  - Require CI to pass before merge
+  - Require conventional PR title
+  - Require branch up-to-date with main
+  - Acceptance: PRs blocked until requirements met
+  - Verification: Test with failing PR
+
+- **D1.10:** Post-publish smoke test
+  - After npm publish, verify from clean environment:
+    - `npm install @living-architecture/riviere-cli` works
+    - `npx riviere --help` runs successfully
+  - Acceptance: Fresh install works
+  - Verification: Test in clean directory/CI
 
 ---
 
@@ -156,6 +210,7 @@ Packages have correct metadata and can be published to npm.
 Simple entry point at living-architecture.dev root.
 
 #### Deliverables
+
 - **D2.1:** Landing page app created
   - Create `apps/landing/` with static HTML or minimal Vite app
   - Acceptance: `nx build landing` succeeds
@@ -165,8 +220,9 @@ Simple entry point at living-architecture.dev root.
   - Value proposition (what problem does this solve?)
   - Key capabilities (3-4 bullets)
   - Links to Docs, Éclair, GitHub
-  - Acceptance: Clear, concise messaging
-  - Verification: Review content
+  - All links verified working
+  - Acceptance: Clear, concise messaging with functional links
+  - Verification: Review content, test all links
 
 - **D2.3:** Example screenshot included
   - Screenshot of Éclair visualizing ecommerce-complete.json
@@ -181,31 +237,37 @@ Simple entry point at living-architecture.dev root.
 All three apps deploy to correct paths.
 
 #### Deliverables
-- **D3.1:** Domain registered
+
+- **D3.1:** Make living-architecture repo public
+  - Change GitHub repo visibility to public
+  - Acceptance: Repo accessible without authentication
+  - Verification: Access in incognito browser
+
+- **D3.2:** Domain registered
   - Register `living-architecture.dev`
   - Acceptance: Domain owned and DNS accessible
   - Verification: WHOIS shows ownership
 
-- **D3.2:** Netlify project created
+- **D3.3:** Netlify project created
   - Connect to GitHub repo
   - Configure build command and publish directory
   - Acceptance: Project appears in Netlify dashboard
   - Verification: Dashboard accessible
 
-- **D3.3:** Build configuration
+- **D3.4:** Build configuration
   - Create `netlify.toml` at repo root
   - Configure build to produce: landing + docs + éclair
   - Acceptance: `netlify build` succeeds locally (or in CI)
   - Verification: Build output contains all three apps
 
-- **D3.4:** Routing configured
+- **D3.5:** Routing configured
   - `/` serves landing page
   - `/docs/*` serves documentation
   - `/eclair/*` serves visualizer
   - Acceptance: All paths resolve correctly
   - Verification: Test in preview deploy
 
-- **D3.5:** Custom domain configured
+- **D3.6:** Custom domain configured
   - Point `living-architecture.dev` DNS to Netlify
   - Enable HTTPS
   - Acceptance: Domain loads with valid certificate
@@ -218,6 +280,7 @@ All three apps deploy to correct paths.
 Push to main triggers deployment.
 
 #### Deliverables
+
 - **D4.1:** Auto-deploy on push to main
   - Netlify builds and deploys on merge to main
   - Acceptance: Change merged → visible on production
@@ -235,15 +298,17 @@ Push to main triggers deployment.
 The ecommerce-demo-app serves as a real-world example of extraction → visualization.
 
 #### Deliverables
+
 - **D5.1:** Demo app imports npm riviere packages
   - Add `@living-architecture/riviere-cli` as devDependency
   - Repository: github.com/NTCoding/ecommerce-demo-app
   - Acceptance: `npm install` works, riviere CLI available
   - Verification: `npx riviere --help` works in demo repo
 
-- **D5.2:** Architecture extracted using AI workflow
+- **D5.2:** Architecture extracted using riviere CLI
   - Use riviere CLI with AI-assisted extraction
   - Extract flows across all domains (orders, shipping, inventory, payments, notifications, bff, ui)
+  - Generates `.riviere/` folder with graph.json
   - Include custom types where needed
   - Acceptance: Complete graph.json in .riviere/ folder
   - Verification: Graph validates successfully
@@ -254,11 +319,12 @@ The ecommerce-demo-app serves as a real-world example of extraction → visualiz
   - Acceptance: Custom types appear in graph with proper validation
   - Verification: Éclair renders custom types correctly
 
-- **D5.4:** Demo viewable in Éclair
+- **D5.4:** Demo viewable and works in Éclair
   - Link demo graph from docs and landing page
   - URL: living-architecture.dev/eclair?graph=<demo-url>
-  - Acceptance: One-click to see demo architecture
-  - Verification: Click link, see visualization
+  - Verify demo loads and renders correctly end-to-end
+  - Acceptance: One-click to see working demo architecture
+  - Verification: Click link, verify visualization loads and is navigable
 
 ---
 
@@ -267,6 +333,7 @@ The ecommerce-demo-app serves as a real-world example of extraction → visualiz
 Docs site content complete for launch.
 
 #### Deliverables
+
 - **D6.1:** Getting started guide
   - Install CLI: `npm install -g @living-architecture/riviere-cli`
   - Extract first graph (walkthrough with sample codebase)
@@ -289,7 +356,7 @@ Docs site content complete for launch.
 
 ---
 
-## 9. Dependencies
+## 8. Dependencies
 
 **Depends on:**
 - Phase 5 (Query) — Package must be complete
