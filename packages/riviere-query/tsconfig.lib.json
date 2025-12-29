@@ -12,7 +12,7 @@
   "include": ["src/**/*.ts"],
   "references": [
     {
-      "path": "../../riviere-schema/tsconfig.lib.json"
+      "path": "../riviere-schema/tsconfig.lib.json"
     }
   ],
   "exclude": [

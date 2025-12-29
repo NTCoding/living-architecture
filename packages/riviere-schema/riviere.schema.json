@@ -573,11 +573,6 @@
           "type": "string",
           "description": "Target state",
           "minLength": 1
-        },
-        "trigger": {
-          "type": "string",
-          "description": "Operation or event that causes this transition",
-          "minLength": 1
         }
       },
       "additionalProperties": false

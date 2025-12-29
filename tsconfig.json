@@ -19,7 +19,7 @@
       "path": "./apps/docs"
     },
     {
-      "path": "./riviere-schema"
+      "path": "./packages/riviere-schema"
     }
   ]
 }

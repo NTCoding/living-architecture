@@ -15,7 +15,7 @@
       "path": "../riviere-query/tsconfig.lib.json"
     },
     {
-      "path": "../../riviere-schema/tsconfig.lib.json"
+      "path": "../riviere-schema/tsconfig.lib.json"
     },
     {
       "path": "../riviere-builder/tsconfig.lib.json"

@@ -1,5 +1,5 @@
 {
-  "version": "1.0",
+  "version": "0.1",
   "metadata": {
     "name": "E-Commerce Complete Flow v2",
     "description": "Complete order placement flow with analytics tracking - UI → BFF → Orders → Inventory/Payment (parallel) → Shipping → Notifications → Analytics",

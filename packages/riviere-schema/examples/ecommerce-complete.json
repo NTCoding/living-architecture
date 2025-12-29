@@ -1,5 +1,5 @@
 {
-  "version": "1.0",
+  "version": "0.1",
   "metadata": {
     "name": "E-Commerce Complete Flow",
     "description": "Complete order placement flow across all 7 domains: UI → BFF → Orders → Inventory/Payment (parallel) → Shipping → Notifications",
