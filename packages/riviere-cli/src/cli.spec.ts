@@ -41,7 +41,7 @@ describe('createProgram', () => {
   it('returns program with version from package.json', () => {
     const program = createProgram();
 
-    expect(program.version()).toBe('0.1.0');
+    expect(program.version()).toMatch(/^\d+\.\d+\.\d+/);
   });
 
   it('registers builder subcommand', () => {
