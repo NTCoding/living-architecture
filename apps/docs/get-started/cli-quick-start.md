@@ -23,7 +23,7 @@ npm install @living-architecture/riviere-cli
 Create a new graph with a name:
 
 ```bash
-riviere builder new-graph --name "my-service"
+riviere builder init --name "my-service"
 ```
 
 **Output:** Creates `.riviere/my-service.json`

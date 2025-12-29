@@ -10,7 +10,7 @@
       "path": "./packages/riviere-builder"
     },
     {
-      "path": "./packages/cli"
+      "path": "./packages/riviere-cli"
     },
     {
       "path": "./apps/eclair"

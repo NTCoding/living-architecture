@@ -30,11 +30,11 @@ See the [full extraction guide](./steps/) for usage instructions.
 **Do not use plan mode.** These steps require direct execution, not planning.
 
 ```text
-# In Claude, load each step file:
-"Read /path/to/extraction/step-1-understand.md and analyze this codebase"
+# In Claude, execute each step file:
+"Execute /path/to/step-1-understand.md"
 
 # Review output, then proceed to next step:
-"Read /path/to/extraction/step-2-define-components.md"
+"Execute /path/to/step-2-define-components.md"
 
 # Continue through all 6 steps...
 ```
@@ -81,8 +81,6 @@ When AI makes errors, CLI provides near-match suggestions. AI self-corrects and 
 
 **Why:** CLI generates deterministic IDs. These IDs are used in all subsequent steps. Getting components right here prevents cascading errors later.
 
-**CLI commands:** `new-graph`, `add-source`, `add-domain`, `add-component`
-
 ---
 
 ### Step 4: Link
@@ -90,8 +88,6 @@ When AI makes errors, CLI provides near-match suggestions. AI self-corrects and 
 **What:** AI traces flows between components and calls CLI to create links.
 
 **Why:** Links show how operations flow through the system. Without links, you have a list of components, not an architecture graph.
-
-**CLI commands:** `component-checklist`, `link`, `link-http`, `link-external`
 
 ---
 
@@ -101,8 +97,6 @@ When AI makes errors, CLI provides near-match suggestions. AI self-corrects and 
 
 **Why:** State machines and business rules are the most valuable part of the graph. They show what each operation actually does, not just that it exists.
 
-**CLI commands:** `enrich`
-
 ---
 
 ### Step 6: Validate
@@ -110,8 +104,6 @@ When AI makes errors, CLI provides near-match suggestions. AI self-corrects and 
 **What:** Check consistency, fix orphans, and export the final graph.
 
 **Why:** Catches dangling references, orphan components, and schema violations before the graph is used. Ensures the output is valid and complete.
-
-**CLI commands:** `check-consistency`, `validate`
 
 ---
 

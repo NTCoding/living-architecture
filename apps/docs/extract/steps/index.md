@@ -10,25 +10,22 @@ Run each step in a separate Claude session. Load the step file, review output, p
 
 ```
 # Step 1: Understand the codebase
-"Read /path/to/extraction/step-1-understand.md and analyze this codebase"
+"Execute /path/to/step-1-understand.md"
 
 # Step 2: Define component patterns
-"Read /path/to/extraction/step-2-define-components.md"
+"Execute /path/to/step-2-define-components.md"
 
 # Step 3: Extract components
-"Read /path/to/extraction/step-3-extract.md"
+"Execute /path/to/step-3-extract.md"
 
 # Step 4: Link components
-"Read /path/to/extraction/step-4-link.md"
+"Execute /path/to/step-4-link.md"
 
 # Step 5: Enrich with business rules
-"Read /path/to/extraction/step-5-enrich.md"
+"Execute /path/to/step-5-enrich.md"
 
 # Step 6: Validate and export
-"Read /path/to/extraction/step-6-validate.md"
-
-# After build, you can continue editing directly
-# The graph file is always editable
+"Execute /path/to/step-6-validate.md"
 ```
 
 CLI: `npx @living-architecture/riviere-cli`
@@ -55,12 +52,12 @@ Git history tracks changes across runs.
 If components are missing, reload the step with feedback:
 
 ```
-"Read /path/to/extraction/step-2-define-components.md
+"Execute /path/to/step-2-define-components.md
 
 You missed domain operations in src/services/. Update the rules."
 ```
 
-Then reload step-3 to re-extract.
+Then re-run step-3 to re-extract.
 
 Config files improve over time. Each fix makes future extractions more accurate.
 

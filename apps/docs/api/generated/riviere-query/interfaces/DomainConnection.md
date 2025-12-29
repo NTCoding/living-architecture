@@ -1,6 +1,6 @@
 # Interface: DomainConnection
 
-Defined in: [packages/riviere-query/src/domain-types.ts:220](https://github.com/ntcoding/living-architecture/blob/cbff252f4a73592ee31cdc39860927ac5c94b984/packages/riviere-query/src/domain-types.ts#L220)
+Defined in: [packages/riviere-query/src/domain-types.ts:220](https://github.com/ntcoding/living-architecture/blob/f8344d72e1c34413c214bfbca6e072f88255c627/packages/riviere-query/src/domain-types.ts#L220)
 
 Summary of connections between domains.
 
@@ -10,7 +10,7 @@ Summary of connections between domains.
 
 > **apiCount**: `number`
 
-Defined in: [packages/riviere-query/src/domain-types.ts:226](https://github.com/ntcoding/living-architecture/blob/cbff252f4a73592ee31cdc39860927ac5c94b984/packages/riviere-query/src/domain-types.ts#L226)
+Defined in: [packages/riviere-query/src/domain-types.ts:226](https://github.com/ntcoding/living-architecture/blob/f8344d72e1c34413c214bfbca6e072f88255c627/packages/riviere-query/src/domain-types.ts#L226)
 
 Number of API-based connections.
 
@@ -20,7 +20,7 @@ Number of API-based connections.
 
 > **direction**: `"outgoing"` \| `"incoming"`
 
-Defined in: [packages/riviere-query/src/domain-types.ts:224](https://github.com/ntcoding/living-architecture/blob/cbff252f4a73592ee31cdc39860927ac5c94b984/packages/riviere-query/src/domain-types.ts#L224)
+Defined in: [packages/riviere-query/src/domain-types.ts:224](https://github.com/ntcoding/living-architecture/blob/f8344d72e1c34413c214bfbca6e072f88255c627/packages/riviere-query/src/domain-types.ts#L224)
 
 Direction relative to the queried domain.
 
@@ -30,7 +30,7 @@ Direction relative to the queried domain.
 
 > **eventCount**: `number`
 
-Defined in: [packages/riviere-query/src/domain-types.ts:228](https://github.com/ntcoding/living-architecture/blob/cbff252f4a73592ee31cdc39860927ac5c94b984/packages/riviere-query/src/domain-types.ts#L228)
+Defined in: [packages/riviere-query/src/domain-types.ts:228](https://github.com/ntcoding/living-architecture/blob/f8344d72e1c34413c214bfbca6e072f88255c627/packages/riviere-query/src/domain-types.ts#L228)
 
 Number of event-based connections.
 
@@ -40,6 +40,6 @@ Number of event-based connections.
 
 > **targetDomain**: `string` & `$brand`\<`"DomainName"`\>
 
-Defined in: [packages/riviere-query/src/domain-types.ts:222](https://github.com/ntcoding/living-architecture/blob/cbff252f4a73592ee31cdc39860927ac5c94b984/packages/riviere-query/src/domain-types.ts#L222)
+Defined in: [packages/riviere-query/src/domain-types.ts:222](https://github.com/ntcoding/living-architecture/blob/f8344d72e1c34413c214bfbca6e072f88255c627/packages/riviere-query/src/domain-types.ts#L222)
 
 The connected domain name.

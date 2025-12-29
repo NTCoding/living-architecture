@@ -43,3 +43,7 @@ Thumbs.db
 
 vitest.config.*.timestamp*
 test-output
+
+# Workflow files copied from CLI package during build
+apps/docs/extract/steps/step-*.md
+reference/cli/cli-reference.md

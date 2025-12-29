@@ -1,0 +1,14 @@
+{
+  "name": "riviere-cli",
+  "targets": {
+    "generate-docs": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm exec npx tsx packages/riviere-cli/scripts/generate-docs.ts",
+        "cwd": "{workspaceRoot}"
+      },
+      "dependsOn": ["build"],
+      "outputs": ["{projectRoot}/docs/generated"]
+    }
+  }
+}

@@ -8,7 +8,7 @@ The CLI is designed for AI-assisted extraction workflows—deterministic IDs, im
 
 | Command | Purpose |
 |---------|---------|
-| [`new-graph`](./cli-reference#new-graph) | Initialize a new graph |
+| [`init`](./cli-reference#init) | Initialize a new graph |
 | [`add-source`](./cli-reference#add-source) | Register a source repository |
 | [`add-domain`](./cli-reference#add-domain) | Add a domain |
 

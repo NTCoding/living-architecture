@@ -1,6 +1,6 @@
 # Interface: EnrichmentInput
 
-Defined in: [packages/riviere-builder/src/types.ts:178](https://github.com/ntcoding/living-architecture/blob/cbff252f4a73592ee31cdc39860927ac5c94b984/packages/riviere-builder/src/types.ts#L178)
+Defined in: [packages/riviere-builder/src/types.ts:178](https://github.com/ntcoding/living-architecture/blob/f8344d72e1c34413c214bfbca6e072f88255c627/packages/riviere-builder/src/types.ts#L178)
 
 ## Properties
 
@@ -8,7 +8,7 @@ Defined in: [packages/riviere-builder/src/types.ts:178](https://github.com/ntcod
 
 > `optional` **businessRules**: `string`[]
 
-Defined in: [packages/riviere-builder/src/types.ts:181](https://github.com/ntcoding/living-architecture/blob/cbff252f4a73592ee31cdc39860927ac5c94b984/packages/riviere-builder/src/types.ts#L181)
+Defined in: [packages/riviere-builder/src/types.ts:181](https://github.com/ntcoding/living-architecture/blob/f8344d72e1c34413c214bfbca6e072f88255c627/packages/riviere-builder/src/types.ts#L181)
 
 ***
 
@@ -16,7 +16,7 @@ Defined in: [packages/riviere-builder/src/types.ts:181](https://github.com/ntcod
 
 > `optional` **entity**: `string`
 
-Defined in: [packages/riviere-builder/src/types.ts:179](https://github.com/ntcoding/living-architecture/blob/cbff252f4a73592ee31cdc39860927ac5c94b984/packages/riviere-builder/src/types.ts#L179)
+Defined in: [packages/riviere-builder/src/types.ts:179](https://github.com/ntcoding/living-architecture/blob/f8344d72e1c34413c214bfbca6e072f88255c627/packages/riviere-builder/src/types.ts#L179)
 
 ***
 
@@ -24,4 +24,4 @@ Defined in: [packages/riviere-builder/src/types.ts:179](https://github.com/ntcod
 
 > `optional` **stateChanges**: `StateTransition`[]
 
-Defined in: [packages/riviere-builder/src/types.ts:180](https://github.com/ntcoding/living-architecture/blob/cbff252f4a73592ee31cdc39860927ac5c94b984/packages/riviere-builder/src/types.ts#L180)
+Defined in: [packages/riviere-builder/src/types.ts:180](https://github.com/ntcoding/living-architecture/blob/f8344d72e1c34413c214bfbca6e072f88255c627/packages/riviere-builder/src/types.ts#L180)

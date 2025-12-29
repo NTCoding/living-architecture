@@ -2,6 +2,6 @@
 
 > **State** = `z.infer`\<*typeof* `stateSchema`\>
 
-Defined in: [packages/riviere-query/src/domain-types.ts:38](https://github.com/ntcoding/living-architecture/blob/cbff252f4a73592ee31cdc39860927ac5c94b984/packages/riviere-query/src/domain-types.ts#L38)
+Defined in: [packages/riviere-query/src/domain-types.ts:38](https://github.com/ntcoding/living-architecture/blob/f8344d72e1c34413c214bfbca6e072f88255c627/packages/riviere-query/src/domain-types.ts#L38)
 
 Branded type for state names in entity state machines.

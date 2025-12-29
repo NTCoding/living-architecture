@@ -8,6 +8,7 @@
 - [DomainNotFoundError](classes/DomainNotFoundError.md)
 - [DuplicateComponentError](classes/DuplicateComponentError.md)
 - [DuplicateDomainError](classes/DuplicateDomainError.md)
+- [InvalidEnrichmentTargetError](classes/InvalidEnrichmentTargetError.md)
 - [RiviereBuilder](classes/RiviereBuilder.md)
 
 ## Interfaces

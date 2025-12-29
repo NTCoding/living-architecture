@@ -1,6 +1,6 @@
 # Interface: BuilderOptions
 
-Defined in: [packages/riviere-builder/src/types.ts:17](https://github.com/ntcoding/living-architecture/blob/cbff252f4a73592ee31cdc39860927ac5c94b984/packages/riviere-builder/src/types.ts#L17)
+Defined in: [packages/riviere-builder/src/types.ts:17](https://github.com/ntcoding/living-architecture/blob/f8344d72e1c34413c214bfbca6e072f88255c627/packages/riviere-builder/src/types.ts#L17)
 
 ## Properties
 
@@ -8,7 +8,7 @@ Defined in: [packages/riviere-builder/src/types.ts:17](https://github.com/ntcodi
 
 > `optional` **description**: `string`
 
-Defined in: [packages/riviere-builder/src/types.ts:19](https://github.com/ntcoding/living-architecture/blob/cbff252f4a73592ee31cdc39860927ac5c94b984/packages/riviere-builder/src/types.ts#L19)
+Defined in: [packages/riviere-builder/src/types.ts:19](https://github.com/ntcoding/living-architecture/blob/f8344d72e1c34413c214bfbca6e072f88255c627/packages/riviere-builder/src/types.ts#L19)
 
 ***
 
@@ -16,7 +16,7 @@ Defined in: [packages/riviere-builder/src/types.ts:19](https://github.com/ntcodi
 
 > **domains**: `Record`\<`string`, `DomainMetadata`\>
 
-Defined in: [packages/riviere-builder/src/types.ts:21](https://github.com/ntcoding/living-architecture/blob/cbff252f4a73592ee31cdc39860927ac5c94b984/packages/riviere-builder/src/types.ts#L21)
+Defined in: [packages/riviere-builder/src/types.ts:21](https://github.com/ntcoding/living-architecture/blob/f8344d72e1c34413c214bfbca6e072f88255c627/packages/riviere-builder/src/types.ts#L21)
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: [packages/riviere-builder/src/types.ts:21](https://github.com/ntcodi
 
 > `optional` **name**: `string`
 
-Defined in: [packages/riviere-builder/src/types.ts:18](https://github.com/ntcoding/living-architecture/blob/cbff252f4a73592ee31cdc39860927ac5c94b984/packages/riviere-builder/src/types.ts#L18)
+Defined in: [packages/riviere-builder/src/types.ts:18](https://github.com/ntcoding/living-architecture/blob/f8344d72e1c34413c214bfbca6e072f88255c627/packages/riviere-builder/src/types.ts#L18)
 
 ***
 
@@ -32,4 +32,4 @@ Defined in: [packages/riviere-builder/src/types.ts:18](https://github.com/ntcodi
 
 > **sources**: `SourceInfo`[]
 
-Defined in: [packages/riviere-builder/src/types.ts:20](https://github.com/ntcoding/living-architecture/blob/cbff252f4a73592ee31cdc39860927ac5c94b984/packages/riviere-builder/src/types.ts#L20)
+Defined in: [packages/riviere-builder/src/types.ts:20](https://github.com/ntcoding/living-architecture/blob/f8344d72e1c34413c214bfbca6e072f88255c627/packages/riviere-builder/src/types.ts#L20)

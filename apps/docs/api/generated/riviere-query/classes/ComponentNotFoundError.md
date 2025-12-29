@@ -1,6 +1,6 @@
 # Class: ComponentNotFoundError
 
-Defined in: packages/riviere-query/src/errors.ts:1
+Defined in: [packages/riviere-query/src/errors.ts:1](https://github.com/ntcoding/living-architecture/blob/f8344d72e1c34413c214bfbca6e072f88255c627/packages/riviere-query/src/errors.ts#L1)
 
 ## Extends
 
@@ -12,7 +12,7 @@ Defined in: packages/riviere-query/src/errors.ts:1
 
 > **new ComponentNotFoundError**(`componentId`, `suggestions`): `ComponentNotFoundError`
 
-Defined in: packages/riviere-query/src/errors.ts:5
+Defined in: [packages/riviere-query/src/errors.ts:5](https://github.com/ntcoding/living-architecture/blob/f8344d72e1c34413c214bfbca6e072f88255c627/packages/riviere-query/src/errors.ts#L5)
 
 #### Parameters
 
@@ -50,7 +50,7 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 
 > `readonly` **componentId**: `string`
 
-Defined in: packages/riviere-query/src/errors.ts:2
+Defined in: [packages/riviere-query/src/errors.ts:2](https://github.com/ntcoding/living-architecture/blob/f8344d72e1c34413c214bfbca6e072f88255c627/packages/riviere-query/src/errors.ts#L2)
 
 ***
 
@@ -94,7 +94,7 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 
 > `readonly` **suggestions**: `string`[]
 
-Defined in: packages/riviere-query/src/errors.ts:3
+Defined in: [packages/riviere-query/src/errors.ts:3](https://github.com/ntcoding/living-architecture/blob/f8344d72e1c34413c214bfbca6e072f88255c627/packages/riviere-query/src/errors.ts#L3)
 
 ***
 

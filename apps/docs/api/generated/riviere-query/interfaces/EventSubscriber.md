@@ -1,6 +1,6 @@
 # Interface: EventSubscriber
 
-Defined in: [packages/riviere-query/src/event-types.ts:40](https://github.com/ntcoding/living-architecture/blob/cbff252f4a73592ee31cdc39860927ac5c94b984/packages/riviere-query/src/event-types.ts#L40)
+Defined in: [packages/riviere-query/src/event-types.ts:40](https://github.com/ntcoding/living-architecture/blob/f8344d72e1c34413c214bfbca6e072f88255c627/packages/riviere-query/src/event-types.ts#L40)
 
 An event handler that subscribes to an event.
 
@@ -10,7 +10,7 @@ An event handler that subscribes to an event.
 
 > **domain**: `string` & `$brand`\<`"DomainName"`\>
 
-Defined in: [packages/riviere-query/src/event-types.ts:46](https://github.com/ntcoding/living-architecture/blob/cbff252f4a73592ee31cdc39860927ac5c94b984/packages/riviere-query/src/event-types.ts#L46)
+Defined in: [packages/riviere-query/src/event-types.ts:46](https://github.com/ntcoding/living-architecture/blob/f8344d72e1c34413c214bfbca6e072f88255c627/packages/riviere-query/src/event-types.ts#L46)
 
 The domain containing the handler.
 
@@ -20,7 +20,7 @@ The domain containing the handler.
 
 > **handlerId**: `string` & `$brand`\<`"HandlerId"`\>
 
-Defined in: [packages/riviere-query/src/event-types.ts:42](https://github.com/ntcoding/living-architecture/blob/cbff252f4a73592ee31cdc39860927ac5c94b984/packages/riviere-query/src/event-types.ts#L42)
+Defined in: [packages/riviere-query/src/event-types.ts:42](https://github.com/ntcoding/living-architecture/blob/f8344d72e1c34413c214bfbca6e072f88255c627/packages/riviere-query/src/event-types.ts#L42)
 
 The handler's component ID.
 
@@ -30,6 +30,6 @@ The handler's component ID.
 
 > **handlerName**: `string` & `$brand`\<`"HandlerName"`\>
 
-Defined in: [packages/riviere-query/src/event-types.ts:44](https://github.com/ntcoding/living-architecture/blob/cbff252f4a73592ee31cdc39860927ac5c94b984/packages/riviere-query/src/event-types.ts#L44)
+Defined in: [packages/riviere-query/src/event-types.ts:44](https://github.com/ntcoding/living-architecture/blob/f8344d72e1c34413c214bfbca6e072f88255c627/packages/riviere-query/src/event-types.ts#L44)
 
 The handler's name.

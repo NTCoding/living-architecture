@@ -2,7 +2,7 @@
 
 > **parseComponentId**(`id`): `string` & `$brand`\<`"ComponentId"`\>
 
-Defined in: [packages/riviere-query/src/domain-types.ts:270](https://github.com/ntcoding/living-architecture/blob/cbff252f4a73592ee31cdc39860927ac5c94b984/packages/riviere-query/src/domain-types.ts#L270)
+Defined in: [packages/riviere-query/src/domain-types.ts:270](https://github.com/ntcoding/living-architecture/blob/f8344d72e1c34413c214bfbca6e072f88255c627/packages/riviere-query/src/domain-types.ts#L270)
 
 Parses a string as a ComponentId.
 

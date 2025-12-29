@@ -38,7 +38,7 @@ The CLI is designed for **AI-assisted extraction workflows**. AI analyzes code a
 4. AI self-corrects based on CLI error messages
 
 ```bash
-riviere builder new-graph --name "my-service"
+riviere builder init --name "my-service"
 riviere builder add-domain --name "orders" --type "domain" --description "Order management"
 riviere builder add-component --type API --domain orders --module api \
   --http-method POST --path /orders \

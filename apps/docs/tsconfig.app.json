@@ -6,5 +6,13 @@
     "moduleResolution": "bundler",
     "types": ["vitepress/client"]
   },
-  "include": [".vitepress/**/*.ts"]
+  "include": [".vitepress/**/*.ts"],
+  "references": [
+    {
+      "path": "../../packages/riviere-cli/tsconfig.lib.json"
+    },
+    {
+      "path": "./tsconfig.scripts.json"
+    }
+  ]
 }

@@ -11,7 +11,7 @@ Check all production code files (not test files) against the following conventio
 Read @/docs/architecture/overview.md
 Read @/docs/conventions/codebase-structure.md
 
-Ensure that all code is in the correct place and aligns with boundaries and layering requirements.
+Ensure that all code is in the correct place and aligns with boundaries and layering requirements. Look at each line of code and ask "What is the purpose of this code? Is it related to other code? Is it highly cohesive? Should it really be here or would it fit better somewhere else?"
 
 ```plaintext
 Architecture or modularity violation: [title of violation]

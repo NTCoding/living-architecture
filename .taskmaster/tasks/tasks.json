@@ -586,17 +586,18 @@
         "description": "Add help text with examples to all commands and generate CLI reference docs",
         "details": "## Deliverable: Complete CLI help text and generated reference documentation\n\n### Context\nPhase 8 PRD: `docs/project/PRD/active/PRD-phase-8-riviere-cli.md`\n\nDocumentation milestone. Every command should have comprehensive --help with at least one example.\n\n### Key Decisions and Principles\n- **Self-documenting** — Help text is the primary documentation\n- **Examples required** — Every command must have at least one usage example\n\n### Delivers\n- All commands have --help with:\n  - Description\n  - Usage pattern\n  - All flags documented\n  - At least one example\n- CLI reference page generated for docs site\n- Extraction workflow docs updated with final command names\n\n### Acceptance Criteria\n- Given any command, When running `<command> --help`, Then shows description, usage, flags, and example\n- Given riviere --help, When running, Then shows all available commands with brief descriptions\n- Given docs site build, When built, Then `/cli/reference` page exists with all commands\n- Given extraction workflow docs, When reviewed, Then uses correct `riviere builder`/`riviere query` command names\n- Manual review: help text is clear and examples are copy-pasteable\n\n### Dependencies\n- Task 42 (query components/search - all commands implemented)\n\n### Related Code\n- Commander.js command definitions in `packages/riviere-cli/src/commands/`\n- Docs site at `apps/docs/`\n\n### Verification\n```bash\nriviere --help\nriviere builder --help\nriviere builder init --help\nriviere query --help\nriviere query trace --help\n# Manual review of all help text\nnx build docs\n# Check /cli/reference page exists\n```",
         "testStrategy": "",
-        "status": "pending",
+        "status": "in-progress",
         "dependencies": [
           "42"
         ],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2025-12-29T07:01:14.897Z"
       }
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-12-28T22:56:31.129Z",
+      "lastModified": "2025-12-29T07:01:14.898Z",
       "taskCount": 43,
       "completedCount": 41,
       "tags": [

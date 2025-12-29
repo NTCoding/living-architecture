@@ -7,20 +7,33 @@
     "targets": {
       "build": {
         "executor": "nx:run-commands",
+        "dependsOn": [
+          "validate-cli-refs"
+        ],
         "outputs": [
           "{projectRoot}/.vitepress/dist"
         ],
         "options": {
-          "command": "vitepress build",
-          "cwd": "apps/docs"
+          "commands": [
+            "cp ../../packages/riviere-cli/docs/workflow/step-*.md extract/steps/",
+            "cp ../../packages/riviere-cli/docs/generated/cli-reference.md reference/cli/cli-reference.md",
+            "vitepress build"
+          ],
+          "cwd": "apps/docs",
+          "parallel": false
         }
       },
       "serve": {
         "executor": "nx:run-commands",
         "continuous": true,
         "options": {
-          "command": "vitepress dev",
-          "cwd": "apps/docs"
+          "commands": [
+            "cp ../../packages/riviere-cli/docs/workflow/step-*.md extract/steps/",
+            "cp ../../packages/riviere-cli/docs/generated/cli-reference.md reference/cli/cli-reference.md",
+            "vitepress dev"
+          ],
+          "cwd": "apps/docs",
+          "parallel": false
         }
       },
       "preview": {
@@ -30,6 +43,13 @@
         ],
         "options": {
           "command": "vitepress preview",
+          "cwd": "apps/docs"
+        }
+      },
+      "validate-cli-refs": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "npx tsx scripts/validate-cli-refs.ts",
           "cwd": "apps/docs"
         }
       }

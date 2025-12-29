@@ -1,6 +1,6 @@
 # Interface: NearMatchResult
 
-Defined in: [packages/riviere-builder/src/types.ts:142](https://github.com/ntcoding/living-architecture/blob/cbff252f4a73592ee31cdc39860927ac5c94b984/packages/riviere-builder/src/types.ts#L142)
+Defined in: [packages/riviere-builder/src/types.ts:142](https://github.com/ntcoding/living-architecture/blob/f8344d72e1c34413c214bfbca6e072f88255c627/packages/riviere-builder/src/types.ts#L142)
 
 ## Properties
 
@@ -8,7 +8,7 @@ Defined in: [packages/riviere-builder/src/types.ts:142](https://github.com/ntcod
 
 > **component**: `Component`
 
-Defined in: [packages/riviere-builder/src/types.ts:143](https://github.com/ntcoding/living-architecture/blob/cbff252f4a73592ee31cdc39860927ac5c94b984/packages/riviere-builder/src/types.ts#L143)
+Defined in: [packages/riviere-builder/src/types.ts:143](https://github.com/ntcoding/living-architecture/blob/f8344d72e1c34413c214bfbca6e072f88255c627/packages/riviere-builder/src/types.ts#L143)
 
 ***
 
@@ -16,7 +16,7 @@ Defined in: [packages/riviere-builder/src/types.ts:143](https://github.com/ntcod
 
 > `optional` **mismatch**: [`NearMatchMismatch`](NearMatchMismatch.md)
 
-Defined in: [packages/riviere-builder/src/types.ts:145](https://github.com/ntcoding/living-architecture/blob/cbff252f4a73592ee31cdc39860927ac5c94b984/packages/riviere-builder/src/types.ts#L145)
+Defined in: [packages/riviere-builder/src/types.ts:145](https://github.com/ntcoding/living-architecture/blob/f8344d72e1c34413c214bfbca6e072f88255c627/packages/riviere-builder/src/types.ts#L145)
 
 ***
 
@@ -24,4 +24,4 @@ Defined in: [packages/riviere-builder/src/types.ts:145](https://github.com/ntcod
 
 > **score**: `number`
 
-Defined in: [packages/riviere-builder/src/types.ts:144](https://github.com/ntcoding/living-architecture/blob/cbff252f4a73592ee31cdc39860927ac5c94b984/packages/riviere-builder/src/types.ts#L144)
+Defined in: [packages/riviere-builder/src/types.ts:144](https://github.com/ntcoding/living-architecture/blob/f8344d72e1c34413c214bfbca6e072f88255c627/packages/riviere-builder/src/types.ts#L144)
