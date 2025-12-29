@@ -320,11 +320,13 @@ The ecommerce-demo-app serves as a real-world example of extraction → visualiz
   - Verification: Éclair renders custom types correctly
 
 - **D5.4:** Demo viewable and works in Éclair
-  - Link demo graph from docs and landing page
-  - URL: living-architecture.dev/eclair?graph=<demo-url>
-  - Verify demo loads and renders correctly end-to-end
-  - Acceptance: One-click to see working demo architecture
-  - Verification: Click link, verify visualization loads and is navigable
+  - Éclair homepage shows upload page with demo graph URL pre-filled in URL input
+  - Explanatory text: "Try it out: Click 'Load' to explore the ecommerce-demo-app architecture"
+  - Demo graph URL: `https://raw.githubusercontent.com/NTCoding/ecommerce-demo-app/main/.riviere/graph.json`
+  - User clicks Load to see the visualization
+  - Link to Éclair from docs and landing page
+  - Acceptance: User lands on Éclair homepage, sees pre-filled URL with explanation, clicks Load
+  - Verification: Visit Éclair, verify pre-fill works and demo loads correctly
 
 ---
 
@@ -353,6 +355,13 @@ Docs site content complete for launch.
   - Linked from docs with explanations
   - Acceptance: Examples load in Éclair, are educational
   - Verification: Test loading each example
+
+- **D6.4:** Documentation links updated
+  - Replace placeholder URLs (`github.com/org/...`) with `github.com/ntcoding/living-architecture`
+  - Update source code JSDoc examples that generate into API docs
+  - Files to update: `apps/docs/reference/api/index.md`, `apps/docs/reference/cli/cli-reference.md`, `apps/docs/extract/steps/step-3-extract.md`, `packages/riviere-builder/src/builder.ts`
+  - Acceptance: No placeholder URLs remain
+  - Verification: `grep -r "github.com/org" apps/docs packages/` returns no results
 
 ---
 
