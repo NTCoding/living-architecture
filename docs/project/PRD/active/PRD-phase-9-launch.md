@@ -141,10 +141,12 @@ Packages have correct metadata, repo is ready for public release.
 - **D1.1:** riviere-schema prepared for publishing
   - Move from repo root to `packages/riviere-schema/`
   - Remove `"private": true`
-  - Remove "trigger" field from DomainOp state change
+  - Change graph schema version from `1.0` to `0.1` (align with npm package version)
+  - Update all example graphs to use version `0.1`
+  - Remove `trigger` field from `stateTransition` definition
   - Add `publishConfig.access: "public"`
-  - Acceptance: `npm pack` succeeds, schema tests pass
-  - Verification: Dry-run pack, run tests
+  - Acceptance: `npm pack` succeeds, schema tests pass, all graphs use version 0.1
+  - Verification: Dry-run pack, run tests, validate example graphs
 
 - **D1.2:** Package.json files configured for publishing
   - Add `publishConfig.access: "public"` to all 4 packages
@@ -205,30 +207,38 @@ Packages have correct metadata, repo is ready for public release.
 
 ---
 
-### M2: Landing page exists
+### M2: Landing page validated
 
-Simple entry point at living-architecture.dev root.
+Landing page exists at `apps/docs/index.md`. Validate content and links work.
 
 #### Deliverables
 
-- **D2.1:** Landing page app created
-  - Create `apps/landing/` with static HTML or minimal Vite app
-  - Acceptance: `nx build landing` succeeds
-  - Verification: Build output exists
+- **D2.1:** Landing page builds and renders correctly
+  - Verify `nx build docs` succeeds
+  - Verify homepage renders without errors
+  - Acceptance: Page loads, no console errors
+  - Verification: Build and visual inspection
 
-- **D2.2:** Content written
-  - Value proposition (what problem does this solve?)
-  - Key capabilities (3-4 bullets)
-  - Links to Docs, Éclair, GitHub
-  - All links verified working
-  - Acceptance: Clear, concise messaging with functional links
-  - Verification: Review content, test all links
+- **D2.2:** All links verified working
+  - Test: Get Started link
+  - Test: View Demo link (Éclair)
+  - Test: GitHub link
+  - Test: All internal doc links
+  - Acceptance: All links resolve correctly
+  - Verification: Click-test each link
 
-- **D2.3:** Example screenshot included
-  - Screenshot of Éclair visualizing ecommerce-complete.json
-  - Shows graph visualization capability
-  - Acceptance: Image loads, is clear and relevant
-  - Verification: Visual review
+- **D2.3:** Content reviewed for accuracy
+  - Value proposition still accurate?
+  - Package names correct?
+  - Feature descriptions up to date?
+  - Acceptance: Content reflects current state
+  - Verification: Manual review
+
+- **D2.4:** Hero screenshot displays correctly
+  - Image loads without errors
+  - Image is clear and representative
+  - Acceptance: Screenshot visible and relevant
+  - Verification: Visual inspection
 
 ---
 
@@ -330,30 +340,30 @@ The ecommerce-demo-app serves as a real-world example of extraction → visualiz
 
 ---
 
-### M6: Documentation ready for early adopters
+### M6: Documentation reviewed and polished
 
-Docs site content complete for launch.
+Documentation exists. Review for completeness and polish for launch.
 
 #### Deliverables
 
-- **D6.1:** Getting started guide
-  - Install CLI: `npm install -g @living-architecture/riviere-cli`
-  - Extract first graph (walkthrough with sample codebase)
-  - View in Éclair
-  - Acceptance: New user can complete guide in <15 minutes
+- **D6.1:** Getting started guide reviewed
+  - Verify installation instructions work
+  - Verify extraction walkthrough is complete
+  - Verify Éclair viewing instructions work
+  - Acceptance: Guide is accurate and followable
   - Verification: Follow guide on fresh machine
 
-- **D6.2:** API reference complete
-  - riviere-query methods documented
-  - riviere-builder methods documented
-  - CLI commands documented
+- **D6.2:** API reference verified
+  - Verify riviere-query methods documented
+  - Verify riviere-builder methods documented
+  - Verify CLI commands documented
   - Acceptance: All public APIs have reference docs
   - Verification: TypeDoc generates without warnings
 
-- **D6.3:** Example graphs available
-  - ecommerce-demo-app graph (from M5)
-  - Linked from docs with explanations
-  - Acceptance: Examples load in Éclair, are educational
+- **D6.3:** Example graphs verified
+  - Verify ecommerce-demo-app graph loads in Éclair
+  - Verify links to examples work
+  - Acceptance: Examples load correctly
   - Verification: Test loading each example
 
 - **D6.4:** Documentation links updated
@@ -362,6 +372,42 @@ Docs site content complete for launch.
   - Files to update: `apps/docs/reference/api/index.md`, `apps/docs/reference/cli/cli-reference.md`, `apps/docs/extract/steps/step-3-extract.md`, `packages/riviere-builder/src/builder.ts`
   - Acceptance: No placeholder URLs remain
   - Verification: `grep -r "github.com/org" apps/docs packages/` returns no results
+
+---
+
+### M7: Éclair UI polished
+
+Review and polish Éclair visualizer for launch readiness.
+
+#### Deliverables
+
+- **D7.1:** Demo UX flow verified
+  - Homepage shows upload page with demo graph URL pre-filled
+  - "Load" button works to load the demo
+  - Visualization renders correctly
+  - Acceptance: User can load demo in 1 click
+  - Verification: Test full flow from homepage
+
+- **D7.2:** UI rough edges reviewed
+  - Check for layout issues, broken styling
+  - Check for console errors during use
+  - Check mobile/responsive behavior
+  - Acceptance: No obvious visual bugs
+  - Verification: Manual testing on different screen sizes
+
+- **D7.3:** Interactive features work
+  - Domain filtering works
+  - Node selection works
+  - Zooming/panning works
+  - Acceptance: All interactions responsive
+  - Verification: Test each feature
+
+- **D7.4:** Visual consistency check
+  - Colors match brand guidelines
+  - Typography consistent
+  - Icons display correctly
+  - Acceptance: Visually polished for launch
+  - Verification: Compare against brand docs
 
 ---
 

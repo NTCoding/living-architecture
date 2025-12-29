@@ -3,7 +3,7 @@ import { defineConfig } from 'vite';
 
 export default defineConfig(() => ({
   root: import.meta.dirname,
-  cacheDir: '../../node_modules/.vite/packages/cli',
+  cacheDir: '../../node_modules/.vite/packages/riviere-cli',
   plugins: [],
   // Uncomment this if you are using workers.
   // worker: {
