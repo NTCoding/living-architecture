@@ -612,13 +612,13 @@
         "description": "Add publishConfig and set version to 0.1.0 for all packages",
         "details": "## Deliverable: All packages configured for npm publishing\n\n### Context\nPRD Phase 9 (docs/project/PRD/active/PRD-phase-9-launch.md), Milestone 1, Deliverable D1.2.\n\nFour packages need npm publishing configuration: riviere-query, riviere-builder, riviere-cli, riviere-schema. Each needs `publishConfig.access: public` and version set to 0.1.0.\n\n### Key Decisions and Principles\n- Version 0.1.0 signals pre-release, breaking changes expected\n- Public access required for scoped packages on npm\n- All packages publish together for consistency\n\n### Delivers\nAll package.json files ready for npm publish.\n\n### Acceptance Criteria\n- Given riviere-query package.json When task complete Then has publishConfig.access: public\n- Given riviere-builder package.json When task complete Then has publishConfig.access: public\n- Given riviere-cli package.json When task complete Then has publishConfig.access: public\n- Given riviere-schema package.json When task complete Then has publishConfig.access: public\n- Given all packages at 0.0.1 When task complete Then all packages at 0.1.0\n- When `npm pack --dry-run` runs in each package Then all succeed\n\n### Dependencies\n- Task 44 (riviere-schema moved to packages)\n\n### Related Code\n- `packages/riviere-query/package.json`\n- `packages/riviere-builder/package.json`\n- `packages/riviere-cli/package.json`\n- `packages/riviere-schema/package.json`\n\n### Verification\n```bash\n# All packages have publishConfig\nfor pkg in packages/*/package.json; do\n  grep -q 'publishConfig' \"$pkg\" || echo \"Missing publishConfig: $pkg\"\ndone\n\n# All packages at 0.1.0\nfor pkg in packages/*/package.json; do\n  grep -q '\"version\": \"0.1.0\"' \"$pkg\" || echo \"Wrong version: $pkg\"\ndone\n\n# Dry-run pack works\nfor dir in packages/*/; do\n  (cd \"$dir\" && npm pack --dry-run)\ndone\n```",
         "testStrategy": "",
-        "status": "in-progress",
+        "status": "done",
         "dependencies": [
           "44"
         ],
         "priority": "high",
         "subtasks": [],
-        "updatedAt": "2025-12-29T20:10:38.765Z"
+        "updatedAt": "2025-12-29T20:21:54.926Z"
       },
       {
         "id": "46",
@@ -626,12 +626,13 @@
         "description": "Workflow to publish packages to npm on version tag push",
         "details": "## Deliverable: GitHub Actions workflow publishes packages to npm\n\n### Context\nPRD Phase 9 (docs/project/PRD/active/PRD-phase-9-launch.md), Milestone 1, Deliverable D1.3.\n\nWhen a version tag (e.g., v0.1.0) is pushed, all four packages should be published to npm automatically. This enables hands-off releases via git tag.\n\n### Key Decisions and Principles\n- Trigger on tag push matching `v*` pattern\n- Publish all packages in dependency order\n- Use NPM_TOKEN secret for authentication\n- Dry-run first, then real publish\n\n### Delivers\nTagging a release automatically publishes all packages to npm.\n\n### Acceptance Criteria\n- Given workflow file When tag v0.1.0 pushed Then workflow triggers\n- Given NPM_TOKEN secret configured When workflow runs Then authenticates to npm\n- Given packages in correct order When workflow runs Then publishes schema → query → builder → cli\n- Given publish succeeds When workflow completes Then packages visible on npm\n- Given publish fails When error occurs Then workflow fails with clear error\n\n### Dependencies\n- Task 45 (packages configured for publishing)\n\n### Related Code\n- `.github/workflows/ci.yml` — existing CI workflow for reference\n- `packages/*/package.json` — package configs\n\n### Verification\n```bash\n# Workflow file exists\nls .github/workflows/publish.yml\n\n# Workflow syntax valid\nact -n -W .github/workflows/publish.yml 2>/dev/null || echo 'Install act for local testing'\n\n# Manual dry-run test\n# git tag v0.1.0-test && git push origin v0.1.0-test\n```",
         "testStrategy": "",
-        "status": "pending",
+        "status": "in-progress",
         "dependencies": [
           "45"
         ],
         "priority": "high",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2025-12-29T20:26:08.274Z"
       },
       {
         "id": "47",
@@ -818,9 +819,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-12-29T20:10:38.766Z",
+      "lastModified": "2025-12-29T20:26:08.276Z",
       "taskCount": 61,
-      "completedCount": 43,
+      "completedCount": 44,
       "tags": [
         "master"
       ]

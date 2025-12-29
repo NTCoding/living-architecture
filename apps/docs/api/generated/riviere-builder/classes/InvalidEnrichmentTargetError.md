@@ -1,6 +1,6 @@
 # Class: InvalidEnrichmentTargetError
 
-Defined in: [packages/riviere-builder/src/errors.ts:62](https://github.com/ntcoding/living-architecture/blob/f8344d72e1c34413c214bfbca6e072f88255c627/packages/riviere-builder/src/errors.ts#L62)
+Defined in: [packages/riviere-builder/src/errors.ts:62](https://github.com/ntcoding/living-architecture/blob/71e2269f663811c97e1a1873a1384dd999dc80c7/packages/riviere-builder/src/errors.ts#L62)
 
 ## Extends
 
@@ -12,7 +12,7 @@ Defined in: [packages/riviere-builder/src/errors.ts:62](https://github.com/ntcod
 
 > **new InvalidEnrichmentTargetError**(`componentId`, `componentType`): `InvalidEnrichmentTargetError`
 
-Defined in: [packages/riviere-builder/src/errors.ts:66](https://github.com/ntcoding/living-architecture/blob/f8344d72e1c34413c214bfbca6e072f88255c627/packages/riviere-builder/src/errors.ts#L66)
+Defined in: [packages/riviere-builder/src/errors.ts:66](https://github.com/ntcoding/living-architecture/blob/71e2269f663811c97e1a1873a1384dd999dc80c7/packages/riviere-builder/src/errors.ts#L66)
 
 #### Parameters
 
@@ -50,7 +50,7 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 
 > `readonly` **componentId**: `string`
 
-Defined in: [packages/riviere-builder/src/errors.ts:63](https://github.com/ntcoding/living-architecture/blob/f8344d72e1c34413c214bfbca6e072f88255c627/packages/riviere-builder/src/errors.ts#L63)
+Defined in: [packages/riviere-builder/src/errors.ts:63](https://github.com/ntcoding/living-architecture/blob/71e2269f663811c97e1a1873a1384dd999dc80c7/packages/riviere-builder/src/errors.ts#L63)
 
 ***
 
@@ -58,7 +58,7 @@ Defined in: [packages/riviere-builder/src/errors.ts:63](https://github.com/ntcod
 
 > `readonly` **componentType**: `string`
 
-Defined in: [packages/riviere-builder/src/errors.ts:64](https://github.com/ntcoding/living-architecture/blob/f8344d72e1c34413c214bfbca6e072f88255c627/packages/riviere-builder/src/errors.ts#L64)
+Defined in: [packages/riviere-builder/src/errors.ts:64](https://github.com/ntcoding/living-architecture/blob/71e2269f663811c97e1a1873a1384dd999dc80c7/packages/riviere-builder/src/errors.ts#L64)
 
 ***
 

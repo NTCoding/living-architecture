@@ -1,6 +1,6 @@
 # Interface: ComponentIdParts
 
-Defined in: riviere-schema/dist/component-id.d.ts:4
+Defined in: packages/riviere-schema/dist/component-id.d.ts:4
 
 Parts that make up a component ID.
 
@@ -10,7 +10,7 @@ Parts that make up a component ID.
 
 > **domain**: `string`
 
-Defined in: riviere-schema/dist/component-id.d.ts:5
+Defined in: packages/riviere-schema/dist/component-id.d.ts:5
 
 ***
 
@@ -18,7 +18,7 @@ Defined in: riviere-schema/dist/component-id.d.ts:5
 
 > **module**: `string`
 
-Defined in: riviere-schema/dist/component-id.d.ts:6
+Defined in: packages/riviere-schema/dist/component-id.d.ts:6
 
 ***
 
@@ -26,7 +26,7 @@ Defined in: riviere-schema/dist/component-id.d.ts:6
 
 > **name**: `string`
 
-Defined in: riviere-schema/dist/component-id.d.ts:8
+Defined in: packages/riviere-schema/dist/component-id.d.ts:8
 
 ***
 
@@ -34,4 +34,4 @@ Defined in: riviere-schema/dist/component-id.d.ts:8
 
 > **type**: `string`
 
-Defined in: riviere-schema/dist/component-id.d.ts:7
+Defined in: packages/riviere-schema/dist/component-id.d.ts:7

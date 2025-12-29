@@ -1,6 +1,6 @@
 # Interface: FlowStep
 
-Defined in: [packages/riviere-query/src/domain-types.ts:176](https://github.com/ntcoding/living-architecture/blob/f8344d72e1c34413c214bfbca6e072f88255c627/packages/riviere-query/src/domain-types.ts#L176)
+Defined in: [packages/riviere-query/src/domain-types.ts:176](https://github.com/ntcoding/living-architecture/blob/71e2269f663811c97e1a1873a1384dd999dc80c7/packages/riviere-query/src/domain-types.ts#L176)
 
 A step in an execution flow.
 
@@ -10,7 +10,7 @@ A step in an execution flow.
 
 > **component**: `Component`
 
-Defined in: [packages/riviere-query/src/domain-types.ts:178](https://github.com/ntcoding/living-architecture/blob/f8344d72e1c34413c214bfbca6e072f88255c627/packages/riviere-query/src/domain-types.ts#L178)
+Defined in: [packages/riviere-query/src/domain-types.ts:178](https://github.com/ntcoding/living-architecture/blob/71e2269f663811c97e1a1873a1384dd999dc80c7/packages/riviere-query/src/domain-types.ts#L178)
 
 The component at this step.
 
@@ -20,7 +20,7 @@ The component at this step.
 
 > **depth**: `number`
 
-Defined in: [packages/riviere-query/src/domain-types.ts:182](https://github.com/ntcoding/living-architecture/blob/f8344d72e1c34413c214bfbca6e072f88255c627/packages/riviere-query/src/domain-types.ts#L182)
+Defined in: [packages/riviere-query/src/domain-types.ts:182](https://github.com/ntcoding/living-architecture/blob/71e2269f663811c97e1a1873a1384dd999dc80c7/packages/riviere-query/src/domain-types.ts#L182)
 
 Depth from entry point (0 = entry point).
 
@@ -30,7 +30,7 @@ Depth from entry point (0 = entry point).
 
 > **externalLinks**: `ExternalLink`[]
 
-Defined in: [packages/riviere-query/src/domain-types.ts:184](https://github.com/ntcoding/living-architecture/blob/f8344d72e1c34413c214bfbca6e072f88255c627/packages/riviere-query/src/domain-types.ts#L184)
+Defined in: [packages/riviere-query/src/domain-types.ts:184](https://github.com/ntcoding/living-architecture/blob/71e2269f663811c97e1a1873a1384dd999dc80c7/packages/riviere-query/src/domain-types.ts#L184)
 
 External links from this component to external systems.
 
@@ -40,6 +40,6 @@ External links from this component to external systems.
 
 > **linkType**: [`LinkType`](../type-aliases/LinkType.md) \| `undefined`
 
-Defined in: [packages/riviere-query/src/domain-types.ts:180](https://github.com/ntcoding/living-architecture/blob/f8344d72e1c34413c214bfbca6e072f88255c627/packages/riviere-query/src/domain-types.ts#L180)
+Defined in: [packages/riviere-query/src/domain-types.ts:180](https://github.com/ntcoding/living-architecture/blob/71e2269f663811c97e1a1873a1384dd999dc80c7/packages/riviere-query/src/domain-types.ts#L180)
 
 Type of link leading to this step (undefined for entry point).

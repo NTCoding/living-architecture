@@ -15,8 +15,6 @@ Current packages:
 - `living-architecture/riviere-query` - Browser-safe query library (no Node.js dependencies)
 - `living-architecture/riviere-builder` - Node.js builder (depends on riviere-query)
 - `living-architecture/riviere-cli` - CLI tool with binary "riviere" (depends on riviere-builder)
-
-Internal (not published):
 - `@living-architecture/riviere-schema` - Riviere schema definitions
 
 Apps:
