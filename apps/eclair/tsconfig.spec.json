@@ -39,7 +39,7 @@
       "path": "./tsconfig.app.json"
     },
     {
-      "path": "../../riviere-schema/tsconfig.lib.json"
+      "path": "../../packages/riviere-schema/tsconfig.lib.json"
     },
     {
       "path": "../../packages/riviere-query/tsconfig.lib.json"

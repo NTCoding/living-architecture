@@ -2,7 +2,7 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig(() => ({
   root: __dirname,
-  cacheDir: '../node_modules/.vite/riviere-schema',
+  cacheDir: '../../node_modules/.vite/packages/riviere-schema',
   test: {
     name: '@living-architecture/riviere-schema',
     watch: false,
