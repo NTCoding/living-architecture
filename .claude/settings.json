@@ -34,7 +34,8 @@
   "enabledPlugins": {
     "task-check@claude-skillz": true,
     "automatic-code-review@claude-skillz": true,
-    "development-skills@claude-skillz": true
+    "development-skills@claude-skillz": true,
+    "full-codebase-review@claude-skillz": true
   },
   "automaticCodeReview": {
     "enabled": true,
