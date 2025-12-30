@@ -10,10 +10,6 @@ interface GraphContextValue {
   hasGraph: boolean
   graphName: GraphName | undefined
   isLoadingDemo: boolean
-  isLoadingFromUrl: boolean
-  loadGraphFromUrl: (url: string) => Promise<void>
-  urlLoadError: string | null
-  clearUrlLoadError: () => void
 }
 
 const graphContext = createContext<GraphContextValue | null>(null)
@@ -57,8 +53,6 @@ export function GraphProvider({ children }: GraphProviderProps): React.ReactElem
   const isDemoMode = useIsDemoMode()
   const [graph, setGraphState] = useState<RiviereGraph | null>(null)
   const [isLoadingDemo, setIsLoadingDemo] = useState(isDemoMode)
-  const [isLoadingFromUrl, setIsLoadingFromUrl] = useState(false)
-  const [urlLoadError, setUrlLoadError] = useState<string | null>(null)
   const hasFetchedDemo = useRef(false)
 
   const setGraph = useCallback((newGraph: RiviereGraph | null) => {
@@ -67,24 +61,6 @@ export function GraphProvider({ children }: GraphProviderProps): React.ReactElem
 
   const clearGraph = useCallback(() => {
     setGraphState(null)
-  }, [])
-
-  const loadGraphFromUrl = useCallback(async (url: string) => {
-    setIsLoadingFromUrl(true)
-    setUrlLoadError(null)
-    try {
-      const graph = await fetchAndValidateDemoGraph(url)
-      setGraphState(graph)
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error loading graph from URL'
-      setUrlLoadError(message)
-    } finally {
-      setIsLoadingFromUrl(false)
-    }
-  }, [])
-
-  const clearUrlLoadError = useCallback(() => {
-    setUrlLoadError(null)
   }, [])
 
   useEffect(() => {
@@ -115,7 +91,7 @@ export function GraphProvider({ children }: GraphProviderProps): React.ReactElem
     : undefined
 
   return (
-    <graphContext.Provider value={{ graph, setGraph, clearGraph, hasGraph, graphName, isLoadingDemo, isLoadingFromUrl, loadGraphFromUrl, urlLoadError, clearUrlLoadError }}>
+    <graphContext.Provider value={{ graph, setGraph, clearGraph, hasGraph, graphName, isLoadingDemo }}>
       {children}
     </graphContext.Provider>
   )

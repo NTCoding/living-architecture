@@ -704,12 +704,13 @@
         "description": "Verify npm install and npx riviere work after publishing",
         "details": "## Deliverable: Automated verification that published packages work\n\n### Context\nPRD Phase 9 (docs/project/PRD/active/PRD-phase-9-launch.md), Milestone 1, Deliverable D1.10.\n\nAfter npm publish, we need to verify the packages actually work when installed fresh. This catches issues like missing files in the published package.\n\n### Key Decisions and Principles\n- Run in clean environment (no workspace context)\n- Test the most common user flow: install CLI and run help\n- Fail the workflow if smoke test fails\n\n### Delivers\nConfidence that published packages work for end users.\n\n### Acceptance Criteria\n- Given publish workflow When packages published Then smoke test job runs\n- Given smoke test job When runs Then creates clean directory\n- Given clean directory When npm install @living-architecture/riviere-cli runs Then succeeds\n- Given CLI installed When npx riviere --help runs Then outputs help text\n- Given smoke test fails When workflow continues Then workflow marked as failed\n\n### Dependencies\n- Task 46 (publish workflow exists)\n\n### Related Code\n- .github/workflows/publish.yml — add smoke test job\n\n### Verification\n- Workflow file includes smoke test job after publish\n- Job runs in clean environment\n- Job tests install and CLI execution",
         "testStrategy": "",
-        "status": "pending",
+        "status": "deferred",
         "dependencies": [
           "46"
         ],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2025-12-30T16:11:07.140Z"
       },
       {
         "id": "53",
@@ -768,10 +769,11 @@
         "description": "Pre-fill demo graph URL on Eclair homepage for easy onboarding",
         "details": "## Deliverable: Users can load demo graph with one click\n\n### Context\nPRD Phase 9 (docs/project/PRD/active/PRD-phase-9-launch.md), Milestone 5, Deliverable D5.4.\n\nEclair homepage should have the demo graph URL pre-filled in the URL input field with explanatory text. Users click Load to immediately see a working visualization.\n\nDemo URL: https://raw.githubusercontent.com/NTCoding/ecommerce-demo-app/main/.riviere/graph.json\n\n### Key Decisions and Principles\n- Frictionless first experience\n- Clear call-to-action\n- Demo must actually load and work\n\n### Delivers\nNew users can see a working visualization within seconds.\n\n### Acceptance Criteria\n- Given Eclair homepage When loaded Then URL input has demo URL pre-filled\n- Given Eclair homepage When viewed Then explanatory text visible (Try it out...)\n- Given Load button When clicked Then demo graph loads successfully\n- Given demo loaded When visualization viewed Then graph renders correctly\n- Given demo loaded When interactions tried Then filtering/selection work\n\n### Dependencies\nNone (can work with placeholder URL, will use real URL after Task 58)\n\n### Related Code\n- apps/eclair/src/ — React app source\n- Look for upload/load page component\n\n### Verification\n- nx serve eclair\n- Visit homepage\n- Verify URL pre-filled\n- Click Load, verify graph loads",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [],
         "priority": "high",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2025-12-30T16:28:44.647Z"
       },
       {
         "id": "58",
@@ -827,9 +829,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-12-30T15:12:48.182Z",
+      "lastModified": "2025-12-30T16:28:44.648Z",
       "taskCount": 61,
-      "completedCount": 53,
+      "completedCount": 54,
       "tags": [
         "master"
       ]

@@ -1,11 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { FileUpload } from '@/components/FileUpload/FileUpload'
-import { UrlInput } from '@/components/UrlInput/UrlInput'
 import { useGraph } from '@/contexts/GraphContext'
 import { parseRiviereGraph } from '@living-architecture/riviere-schema'
 
 export function EmptyState(): React.ReactElement {
-  const { setGraph, loadGraphFromUrl, isLoadingFromUrl, urlLoadError, clearUrlLoadError } = useGraph()
+  const { setGraph } = useGraph()
   const [error, setError] = useState<string | null>(null)
 
   const handleFileLoaded = (content: string, fileName: string): void => {
@@ -24,12 +23,6 @@ export function EmptyState(): React.ReactElement {
     setError(errorMessage)
   }
 
-  useEffect(() => {
-    return () => {
-      clearUrlLoadError()
-    }
-  }, [clearUrlLoadError])
-
   return (
     <div className="max-w-2xl mx-auto py-12">
       <div className="text-center mb-12">
@@ -43,25 +36,28 @@ export function EmptyState(): React.ReactElement {
 
       <FileUpload onFileLoaded={handleFileLoaded} onError={handleError} />
 
-      <div className="my-8 flex items-center">
-        <div className="flex-1 border-t border-[var(--border-color)]" />
-        <span className="px-4 text-sm text-[var(--text-tertiary)]">OR</span>
-        <div className="flex-1 border-t border-[var(--border-color)]" />
-      </div>
-
-      <UrlInput
-        onLoadFromUrl={loadGraphFromUrl}
-        isLoading={isLoadingFromUrl}
-      />
-
-      {(error !== null || urlLoadError !== null) && (
+      {error !== null && (
         <div className="mt-6 p-4 rounded-[var(--radius)] bg-red-50 border border-red-200 text-red-700">
           <div className="flex items-start gap-3">
             <i className="ph ph-warning-circle text-xl flex-shrink-0 mt-0.5" aria-hidden="true" />
-            <pre className="text-sm whitespace-pre-wrap font-mono">{error !== null ? error : urlLoadError}</pre>
+            <pre className="text-sm whitespace-pre-wrap font-mono">{error}</pre>
           </div>
         </div>
       )}
+
+      <div className="text-center mt-8">
+        <p className="text-sm text-[var(--text-secondary)] mb-3">
+          Want to see it in action first?
+        </p>
+        <a
+          href="?demo=true"
+          className="inline-flex items-center gap-2 px-6 py-2 rounded-[var(--radius)]
+                     bg-gradient-to-r from-[var(--primary)] to-[var(--primary-dark)]
+                     text-white font-medium hover:shadow-lg transition-all duration-200"
+        >
+          View Demo
+        </a>
+      </div>
 
       <div className="mt-12 p-6 rounded-[var(--radius-lg)] bg-[var(--bg-tertiary)]">
         <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
@@ -73,7 +69,7 @@ export function EmptyState(): React.ReactElement {
           through APIs, use cases, domain operations, and events.
         </p>
         <p className="text-sm text-[var(--text-secondary)]">
-          Load an example graph or generate one from your codebase to get started.
+          Upload your graph or view the demo to get started.
         </p>
       </div>
     </div>
