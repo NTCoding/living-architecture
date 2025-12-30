@@ -678,12 +678,13 @@
         "description": "Ensure each package has accurate installation, usage, and links",
         "details": "## Deliverable: Package READMEs ready for npm consumers\n\n### Context\nPRD Phase 9 (docs/project/PRD/active/PRD-phase-9-launch.md), Milestone 1, Deliverable D1.4.\n\nEach published package needs a README that helps npm users understand what it does and how to use it. READMEs should have correct installation instructions, basic usage examples, and links to full documentation.\n\n### Key Decisions and Principles\n- Keep READMEs concise (point to docs for details)\n- Installation instructions must match published package names\n- All links must resolve (no 404s)\n\n### Delivers\nEach package README is accurate and helpful for new users.\n\n### Acceptance Criteria\n- Given riviere-query README When reviewed Then has correct npm install command\n- Given riviere-builder README When reviewed Then has correct npm install command\n- Given riviere-cli README When reviewed Then has correct npm install and npx usage\n- Given riviere-schema README When reviewed Then has correct npm install command\n- Given each README When checked Then all external links resolve (no 404)\n- Given each README When read Then includes basic usage example\n\n### Dependencies\n- Task 44 (schema package location finalized)\n\n### Related Code\n- packages/riviere-query/README.md\n- packages/riviere-builder/README.md\n- packages/riviere-cli/README.md\n- packages/riviere-schema/README.md (after move)\n\n### Verification\n- Read each README and verify content accuracy\n- Click-test all links\n- Verify npm install commands match package names",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           "44"
         ],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2025-12-30T09:14:48.907Z"
       },
       {
         "id": "51",
@@ -822,9 +823,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-12-30T08:57:36.705Z",
+      "lastModified": "2025-12-30T09:14:48.908Z",
       "taskCount": 61,
-      "completedCount": 48,
+      "completedCount": 49,
       "tags": [
         "master"
       ]

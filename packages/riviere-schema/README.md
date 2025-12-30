@@ -1,11 +1,13 @@
-# schema
+# @living-architecture/riviere-schema
 
-This library was generated with [Nx](https://nx.dev).
+Riviere schema definition with TypeScript types and validation.
 
-## Building
+## Install
 
-Run `nx build schema` to build the library.
+```bash
+npm install @living-architecture/riviere-schema
+```
 
-## Running unit tests
+## Documentation
 
-Run `nx test schema` to execute the unit tests via [Vitest](https://vitest.dev/).
+See [Schema Reference](../../apps/docs/reference/schema).

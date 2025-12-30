@@ -1,11 +1,13 @@
-# query
+# @living-architecture/riviere-query
 
-This library was generated with [Nx](https://nx.dev).
+Query library for Riviere architecture graphs.
 
-## Building
+## Install
 
-Run `nx build query` to build the library.
+```bash
+npm install @living-architecture/riviere-query
+```
 
-## Running unit tests
+## Documentation
 
-Run `nx test query` to execute the unit tests via [Vitest](https://vitest.dev/).
+See [apps/docs](../../apps/docs) for full documentation.

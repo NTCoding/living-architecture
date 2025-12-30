@@ -1,11 +1,19 @@
-# cli
+# @living-architecture/riviere-cli
 
-This library was generated with [Nx](https://nx.dev).
+CLI tool for building and querying Riviere architecture graphs.
 
-## Building
+## Install
 
-Run `nx build cli` to build the library.
+```bash
+npm install -g @living-architecture/riviere-cli
+```
 
-## Running unit tests
+Or use npx:
 
-Run `nx test cli` to execute the unit tests via [Vitest](https://vitest.dev/).
+```bash
+npx @living-architecture/riviere-cli --help
+```
+
+## Documentation
+
+See [apps/docs](../../apps/docs) for full documentation.

@@ -1,11 +1,13 @@
-# builder
+# @living-architecture/riviere-builder
 
-This library was generated with [Nx](https://nx.dev).
+Construct Riviere architecture graphs programmatically.
 
-## Building
+## Install
 
-Run `nx build builder` to build the library.
+```bash
+npm install @living-architecture/riviere-builder
+```
 
-## Running unit tests
+## Documentation
 
-Run `nx test builder` to execute the unit tests via [Vitest](https://vitest.dev/).
+See [apps/docs](../../apps/docs) for full documentation.
