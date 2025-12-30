@@ -1,6 +1,6 @@
 # Class: DomainNotFoundError
 
-Defined in: [packages/riviere-builder/src/errors.ts:11](https://github.com/ntcoding/living-architecture/blob/71e2269f663811c97e1a1873a1384dd999dc80c7/packages/riviere-builder/src/errors.ts#L11)
+Defined in: [packages/riviere-builder/src/errors.ts:11](https://github.com/ntcoding/living-architecture/blob/d4967a3da183df8420cf94f4ddcea233b1bd1221/packages/riviere-builder/src/errors.ts#L11)
 
 ## Extends
 
@@ -12,7 +12,7 @@ Defined in: [packages/riviere-builder/src/errors.ts:11](https://github.com/ntcod
 
 > **new DomainNotFoundError**(`domainName`): `DomainNotFoundError`
 
-Defined in: [packages/riviere-builder/src/errors.ts:14](https://github.com/ntcoding/living-architecture/blob/71e2269f663811c97e1a1873a1384dd999dc80c7/packages/riviere-builder/src/errors.ts#L14)
+Defined in: [packages/riviere-builder/src/errors.ts:14](https://github.com/ntcoding/living-architecture/blob/d4967a3da183df8420cf94f4ddcea233b1bd1221/packages/riviere-builder/src/errors.ts#L14)
 
 #### Parameters
 
@@ -46,7 +46,7 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 
 > `readonly` **domainName**: `string`
 
-Defined in: [packages/riviere-builder/src/errors.ts:12](https://github.com/ntcoding/living-architecture/blob/71e2269f663811c97e1a1873a1384dd999dc80c7/packages/riviere-builder/src/errors.ts#L12)
+Defined in: [packages/riviere-builder/src/errors.ts:12](https://github.com/ntcoding/living-architecture/blob/d4967a3da183df8420cf94f4ddcea233b1bd1221/packages/riviere-builder/src/errors.ts#L12)
 
 ***
 

@@ -1,8 +1,0 @@
-# Cloudflare Pages configuration
-# https://developers.cloudflare.com/pages/configuration/wrangler-configuration/
-
-name = "living-architecture"
-pages_build_output_dir = "dist"
-
-[build]
-command = "pnpm build:deploy"

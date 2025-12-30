@@ -1,6 +1,6 @@
 # Interface: UnknownSourceEvent
 
-Defined in: [packages/riviere-query/src/event-types.ts:78](https://github.com/ntcoding/living-architecture/blob/71e2269f663811c97e1a1873a1384dd999dc80c7/packages/riviere-query/src/event-types.ts#L78)
+Defined in: [packages/riviere-query/src/event-types.ts:78](https://github.com/ntcoding/living-architecture/blob/d4967a3da183df8420cf94f4ddcea233b1bd1221/packages/riviere-query/src/event-types.ts#L78)
 
 A subscribed event where the source domain is unknown.
 
@@ -10,7 +10,7 @@ A subscribed event where the source domain is unknown.
 
 > **eventName**: `string` & `$brand`\<`"EventName"`\>
 
-Defined in: [packages/riviere-query/src/event-types.ts:80](https://github.com/ntcoding/living-architecture/blob/71e2269f663811c97e1a1873a1384dd999dc80c7/packages/riviere-query/src/event-types.ts#L80)
+Defined in: [packages/riviere-query/src/event-types.ts:80](https://github.com/ntcoding/living-architecture/blob/d4967a3da183df8420cf94f4ddcea233b1bd1221/packages/riviere-query/src/event-types.ts#L80)
 
 The event name.
 
@@ -20,6 +20,6 @@ The event name.
 
 > **sourceKnown**: `false`
 
-Defined in: [packages/riviere-query/src/event-types.ts:82](https://github.com/ntcoding/living-architecture/blob/71e2269f663811c97e1a1873a1384dd999dc80c7/packages/riviere-query/src/event-types.ts#L82)
+Defined in: [packages/riviere-query/src/event-types.ts:82](https://github.com/ntcoding/living-architecture/blob/d4967a3da183df8420cf94f4ddcea233b1bd1221/packages/riviere-query/src/event-types.ts#L82)
 
 Indicates the source is unknown.

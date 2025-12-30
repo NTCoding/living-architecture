@@ -1,6 +1,6 @@
 # Class: CustomTypeNotFoundError
 
-Defined in: [packages/riviere-builder/src/errors.ts:21](https://github.com/ntcoding/living-architecture/blob/71e2269f663811c97e1a1873a1384dd999dc80c7/packages/riviere-builder/src/errors.ts#L21)
+Defined in: [packages/riviere-builder/src/errors.ts:21](https://github.com/ntcoding/living-architecture/blob/d4967a3da183df8420cf94f4ddcea233b1bd1221/packages/riviere-builder/src/errors.ts#L21)
 
 ## Extends
 
@@ -12,7 +12,7 @@ Defined in: [packages/riviere-builder/src/errors.ts:21](https://github.com/ntcod
 
 > **new CustomTypeNotFoundError**(`customTypeName`, `definedTypes`): `CustomTypeNotFoundError`
 
-Defined in: [packages/riviere-builder/src/errors.ts:25](https://github.com/ntcoding/living-architecture/blob/71e2269f663811c97e1a1873a1384dd999dc80c7/packages/riviere-builder/src/errors.ts#L25)
+Defined in: [packages/riviere-builder/src/errors.ts:25](https://github.com/ntcoding/living-architecture/blob/d4967a3da183df8420cf94f4ddcea233b1bd1221/packages/riviere-builder/src/errors.ts#L25)
 
 #### Parameters
 
@@ -50,7 +50,7 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 
 > `readonly` **customTypeName**: `string`
 
-Defined in: [packages/riviere-builder/src/errors.ts:22](https://github.com/ntcoding/living-architecture/blob/71e2269f663811c97e1a1873a1384dd999dc80c7/packages/riviere-builder/src/errors.ts#L22)
+Defined in: [packages/riviere-builder/src/errors.ts:22](https://github.com/ntcoding/living-architecture/blob/d4967a3da183df8420cf94f4ddcea233b1bd1221/packages/riviere-builder/src/errors.ts#L22)
 
 ***
 
@@ -58,7 +58,7 @@ Defined in: [packages/riviere-builder/src/errors.ts:22](https://github.com/ntcod
 
 > `readonly` **definedTypes**: `string`[]
 
-Defined in: [packages/riviere-builder/src/errors.ts:23](https://github.com/ntcoding/living-architecture/blob/71e2269f663811c97e1a1873a1384dd999dc80c7/packages/riviere-builder/src/errors.ts#L23)
+Defined in: [packages/riviere-builder/src/errors.ts:23](https://github.com/ntcoding/living-architecture/blob/d4967a3da183df8420cf94f4ddcea233b1bd1221/packages/riviere-builder/src/errors.ts#L23)
 
 ***
 
