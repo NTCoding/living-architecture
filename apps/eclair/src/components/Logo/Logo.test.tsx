@@ -20,12 +20,12 @@ describe('Logo', () => {
     expect(svg).toBeInTheDocument()
   })
 
-  it('renders with default size of 44', () => {
+  it('renders with default size of 36', () => {
     render(<Logo />)
 
     const svg = document.querySelector('svg')
-    expect(svg).toHaveAttribute('width', '44')
-    expect(svg).toHaveAttribute('height', '44')
+    expect(svg).toHaveAttribute('width', '36')
+    expect(svg).toHaveAttribute('height', '36')
   })
 
   it('renders with custom size', () => {
