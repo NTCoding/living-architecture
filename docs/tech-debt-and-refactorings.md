@@ -8,7 +8,7 @@
 
 **Root cause:** NX issue [#33091](https://github.com/nrwl/nx/issues/33091) - concurrent module loading creates race conditions.
 
-**Workaround:** `build:deploy` script bypasses NX entirely and runs vitepress/vite directly. This only affects Cloudflare deployments - local dev and GitHub Actions use NX normally.
+**Workaround:** `build:deploy` script bypasses NX entirely and runs tsc/vitepress/vite directly. This only affects Cloudflare deployments - local dev and GitHub Actions use NX normally.
 
 **When to revisit:** Check NX releases for a fix to #33091. Once fixed, restore the original `build:deploy` command:
 

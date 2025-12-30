@@ -5,7 +5,7 @@
   "packageManager": "pnpm@10.26.2",
   "scripts": {
     "build": "nx run-many -t build",
-    "build:deploy": "cd apps/docs && cp ../../packages/riviere-cli/docs/workflow/step-*.md extract/steps/ && cp ../../packages/riviere-cli/docs/generated/cli-reference.md reference/cli/cli-reference.md && NODE_OPTIONS='--max-old-space-size=4096' npx vitepress build && cd ../eclair && npx vite build && cd ../.. && rm -rf dist && mkdir -p dist/eclair && cp -r apps/docs/.vitepress/dist/* dist/ && cp -r apps/eclair/dist/* dist/eclair/",
+    "build:deploy": "cd packages/riviere-schema && npx tsc --build tsconfig.lib.json && cd ../riviere-query && npx tsc --build tsconfig.lib.json && cd ../../apps/docs && cp ../../packages/riviere-cli/docs/workflow/step-*.md extract/steps/ && cp ../../packages/riviere-cli/docs/generated/cli-reference.md reference/cli/cli-reference.md && NODE_OPTIONS='--max-old-space-size=4096' npx vitepress build && cd ../eclair && npx vite build && cd ../.. && rm -rf dist && mkdir -p dist/eclair && cp -r apps/docs/.vitepress/dist/* dist/ && cp -r apps/eclair/dist/* dist/eclair/",
     "test": "nx run-many -t test",
     "lint": "nx run-many -t lint",
     "typecheck": "nx run-many -t typecheck",
