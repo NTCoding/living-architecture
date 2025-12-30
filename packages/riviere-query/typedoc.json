@@ -10,6 +10,7 @@
   "excludeInternal": true,
   "includeVersion": false,
   "disableSources": false,
+  "sourceLinkTemplate": "https://github.com/NTCoding/living-architecture/blob/main/{path}#L{line}",
   "tsconfig": "./tsconfig.lib.json",
   "validation": {
     "invalidLink": true,

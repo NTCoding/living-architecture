@@ -1,6 +1,6 @@
 # Interface: ValidationError
 
-Defined in: [packages/riviere-query/src/domain-types.ts:61](https://github.com/NTCoding/living-architecture/blob/86a30c8aa4bee22db725a4e520eefb77d328660c/packages/riviere-query/src/domain-types.ts#L61)
+Defined in: [packages/riviere-query/src/domain-types.ts:61](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/domain-types.ts#L61)
 
 A validation error found in the graph.
 
@@ -10,7 +10,7 @@ A validation error found in the graph.
 
 > **code**: [`ValidationErrorCode`](../type-aliases/ValidationErrorCode.md)
 
-Defined in: [packages/riviere-query/src/domain-types.ts:67](https://github.com/NTCoding/living-architecture/blob/86a30c8aa4bee22db725a4e520eefb77d328660c/packages/riviere-query/src/domain-types.ts#L67)
+Defined in: [packages/riviere-query/src/domain-types.ts:67](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/domain-types.ts#L67)
 
 Machine-readable error code.
 
@@ -20,7 +20,7 @@ Machine-readable error code.
 
 > **message**: `string`
 
-Defined in: [packages/riviere-query/src/domain-types.ts:65](https://github.com/NTCoding/living-architecture/blob/86a30c8aa4bee22db725a4e520eefb77d328660c/packages/riviere-query/src/domain-types.ts#L65)
+Defined in: [packages/riviere-query/src/domain-types.ts:65](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/domain-types.ts#L65)
 
 Human-readable error description.
 
@@ -30,6 +30,6 @@ Human-readable error description.
 
 > **path**: `string`
 
-Defined in: [packages/riviere-query/src/domain-types.ts:63](https://github.com/NTCoding/living-architecture/blob/86a30c8aa4bee22db725a4e520eefb77d328660c/packages/riviere-query/src/domain-types.ts#L63)
+Defined in: [packages/riviere-query/src/domain-types.ts:63](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/domain-types.ts#L63)
 
 JSON path to the error location.

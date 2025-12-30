@@ -1,6 +1,6 @@
 # Interface: Flow
 
-Defined in: [packages/riviere-query/src/domain-types.ts:190](https://github.com/NTCoding/living-architecture/blob/86a30c8aa4bee22db725a4e520eefb77d328660c/packages/riviere-query/src/domain-types.ts#L190)
+Defined in: [packages/riviere-query/src/domain-types.ts:190](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/domain-types.ts#L190)
 
 An execution flow from entry point through the graph.
 
@@ -10,7 +10,7 @@ An execution flow from entry point through the graph.
 
 > **entryPoint**: `Component`
 
-Defined in: [packages/riviere-query/src/domain-types.ts:192](https://github.com/NTCoding/living-architecture/blob/86a30c8aa4bee22db725a4e520eefb77d328660c/packages/riviere-query/src/domain-types.ts#L192)
+Defined in: [packages/riviere-query/src/domain-types.ts:192](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/domain-types.ts#L192)
 
 The entry point component.
 
@@ -20,6 +20,6 @@ The entry point component.
 
 > **steps**: [`FlowStep`](FlowStep.md)[]
 
-Defined in: [packages/riviere-query/src/domain-types.ts:194](https://github.com/NTCoding/living-architecture/blob/86a30c8aa4bee22db725a4e520eefb77d328660c/packages/riviere-query/src/domain-types.ts#L194)
+Defined in: [packages/riviere-query/src/domain-types.ts:194](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/domain-types.ts#L194)
 
 Steps in the flow including entry point.

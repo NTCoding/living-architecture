@@ -1,6 +1,6 @@
 # Interface: BuilderStats
 
-Defined in: [packages/riviere-builder/src/types.ts:153](https://github.com/NTCoding/living-architecture/blob/86a30c8aa4bee22db725a4e520eefb77d328660c/packages/riviere-builder/src/types.ts#L153)
+Defined in: [packages/riviere-builder/src/types.ts:153](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/types.ts#L153)
 
 ## Properties
 
@@ -8,7 +8,7 @@ Defined in: [packages/riviere-builder/src/types.ts:153](https://github.com/NTCod
 
 > **componentCount**: `number`
 
-Defined in: [packages/riviere-builder/src/types.ts:154](https://github.com/NTCoding/living-architecture/blob/86a30c8aa4bee22db725a4e520eefb77d328660c/packages/riviere-builder/src/types.ts#L154)
+Defined in: [packages/riviere-builder/src/types.ts:154](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/types.ts#L154)
 
 ***
 
@@ -16,7 +16,7 @@ Defined in: [packages/riviere-builder/src/types.ts:154](https://github.com/NTCod
 
 > **componentsByType**: `object`
 
-Defined in: [packages/riviere-builder/src/types.ts:155](https://github.com/NTCoding/living-architecture/blob/86a30c8aa4bee22db725a4e520eefb77d328660c/packages/riviere-builder/src/types.ts#L155)
+Defined in: [packages/riviere-builder/src/types.ts:155](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/types.ts#L155)
 
 #### API
 
@@ -52,7 +52,7 @@ Defined in: [packages/riviere-builder/src/types.ts:155](https://github.com/NTCod
 
 > **domainCount**: `number`
 
-Defined in: [packages/riviere-builder/src/types.ts:166](https://github.com/NTCoding/living-architecture/blob/86a30c8aa4bee22db725a4e520eefb77d328660c/packages/riviere-builder/src/types.ts#L166)
+Defined in: [packages/riviere-builder/src/types.ts:166](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/types.ts#L166)
 
 ***
 
@@ -60,7 +60,7 @@ Defined in: [packages/riviere-builder/src/types.ts:166](https://github.com/NTCod
 
 > **externalLinkCount**: `number`
 
-Defined in: [packages/riviere-builder/src/types.ts:165](https://github.com/NTCoding/living-architecture/blob/86a30c8aa4bee22db725a4e520eefb77d328660c/packages/riviere-builder/src/types.ts#L165)
+Defined in: [packages/riviere-builder/src/types.ts:165](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/types.ts#L165)
 
 ***
 
@@ -68,4 +68,4 @@ Defined in: [packages/riviere-builder/src/types.ts:165](https://github.com/NTCod
 
 > **linkCount**: `number`
 
-Defined in: [packages/riviere-builder/src/types.ts:164](https://github.com/NTCoding/living-architecture/blob/86a30c8aa4bee22db725a4e520eefb77d328660c/packages/riviere-builder/src/types.ts#L164)
+Defined in: [packages/riviere-builder/src/types.ts:164](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/types.ts#L164)

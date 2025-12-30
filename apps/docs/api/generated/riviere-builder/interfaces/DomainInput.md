@@ -1,6 +1,6 @@
 # Interface: DomainInput
 
-Defined in: [packages/riviere-builder/src/types.ts:24](https://github.com/NTCoding/living-architecture/blob/86a30c8aa4bee22db725a4e520eefb77d328660c/packages/riviere-builder/src/types.ts#L24)
+Defined in: [packages/riviere-builder/src/types.ts:24](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/types.ts#L24)
 
 ## Properties
 
@@ -8,7 +8,7 @@ Defined in: [packages/riviere-builder/src/types.ts:24](https://github.com/NTCodi
 
 > **description**: `string`
 
-Defined in: [packages/riviere-builder/src/types.ts:26](https://github.com/NTCoding/living-architecture/blob/86a30c8aa4bee22db725a4e520eefb77d328660c/packages/riviere-builder/src/types.ts#L26)
+Defined in: [packages/riviere-builder/src/types.ts:26](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/types.ts#L26)
 
 ***
 
@@ -16,7 +16,7 @@ Defined in: [packages/riviere-builder/src/types.ts:26](https://github.com/NTCodi
 
 > **name**: `string`
 
-Defined in: [packages/riviere-builder/src/types.ts:25](https://github.com/NTCoding/living-architecture/blob/86a30c8aa4bee22db725a4e520eefb77d328660c/packages/riviere-builder/src/types.ts#L25)
+Defined in: [packages/riviere-builder/src/types.ts:25](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/types.ts#L25)
 
 ***
 
@@ -24,4 +24,4 @@ Defined in: [packages/riviere-builder/src/types.ts:25](https://github.com/NTCodi
 
 > **systemType**: `SystemType`
 
-Defined in: [packages/riviere-builder/src/types.ts:27](https://github.com/NTCoding/living-architecture/blob/86a30c8aa4bee22db725a4e520eefb77d328660c/packages/riviere-builder/src/types.ts#L27)
+Defined in: [packages/riviere-builder/src/types.ts:27](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/types.ts#L27)
