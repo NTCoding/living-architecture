@@ -664,12 +664,13 @@
         "description": "Require CI pass and conventional PR titles before merge",
         "details": "## Deliverable: PRs blocked until quality requirements met\n\n### Context\nPRD Phase 9 (docs/project/PRD/active/PRD-phase-9-launch.md), Milestone 1, Deliverable D1.9.\n\nBranch protection ensures code quality. PRs to main should require CI to pass and PR title to follow conventional format.\n\n### Key Decisions and Principles\n- Protect main branch\n- Require CI workflow to pass\n- Require PR title follows conventional commit format (for squash merges)\n- Require branch up-to-date with main\n\n### Delivers\nPRs cannot merge until requirements are met.\n\n### Acceptance Criteria\n- Given branch protection not configured When task complete Then main branch protected\n- Given PR with failing CI When merge attempted Then merge blocked\n- Given PR with non-conventional title When merge attempted Then merge blocked\n- Given PR out of date with main When merge attempted Then merge blocked\n- Given all requirements met When merge attempted Then merge succeeds\n\n### Dependencies\n- Task 46 (CI workflow must exist to require it)\n\n### Related Code\n- .github/workflows/ci.yml — CI workflow to require\n\n### Verification\nManual verification in GitHub:\n- Settings > Branches > Branch protection rules\n- Verify main branch has protection enabled\n- Test with failing PR",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           "46"
         ],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2025-12-30T08:57:36.704Z"
       },
       {
         "id": "50",
@@ -821,9 +822,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-12-30T08:43:45.304Z",
+      "lastModified": "2025-12-30T08:57:36.705Z",
       "taskCount": 61,
-      "completedCount": 47,
+      "completedCount": 48,
       "tags": [
         "master"
       ]
