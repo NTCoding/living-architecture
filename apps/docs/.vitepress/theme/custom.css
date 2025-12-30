@@ -358,7 +358,8 @@ button:focus-visible,
   z-index: 1000;
 }
 
-/* Make hero image clickable */
+/* Make images zoomable */
+.vp-doc img,
 .VPHero .image-container img {
   cursor: zoom-in;
 }

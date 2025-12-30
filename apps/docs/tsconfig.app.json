@@ -4,9 +4,9 @@
     "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "types": ["vitepress/client"]
+    "types": ["vitepress/client", "vue"]
   },
-  "include": [".vitepress/**/*.ts"],
+  "include": [".vitepress/**/*.ts", ".vitepress/**/*.d.ts"],
   "references": [
     {
       "path": "../../packages/riviere-cli/tsconfig.lib.json"
