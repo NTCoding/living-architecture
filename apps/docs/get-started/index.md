@@ -23,7 +23,7 @@ pnpm install
 nx serve eclair
 ```
 
-Open [localhost:5173/eclair](http://localhost:5173/eclair/) — the demo graph is available at `/ecommerce-complete.json`
+Open `http://localhost:5173/eclair/` — the demo graph is available at `/ecommerce-complete.json`
 
 ---
 

@@ -101,7 +101,7 @@ pnpm install
 nx serve eclair
 ```
 
-Open [localhost:5173/eclair](http://localhost:5173/eclair/)
+Open `http://localhost:5173/eclair/`
 
 ## Choose Your Path
 
