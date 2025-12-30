@@ -692,10 +692,11 @@
         "description": "Ensure project README has accurate description and working links",
         "details": "## Deliverable: Root README accurately represents the project\n\n### Context\nPRD Phase 9 (docs/project/PRD/active/PRD-phase-9-launch.md), Milestone 1, Deliverable D1.5.\n\nThe root README is the first thing visitors see on GitHub. It should clearly explain what Living Architecture is, link to documentation, and provide quick start guidance.\n\n### Key Decisions and Principles\n- Clear value proposition upfront\n- Links to docs, npm packages, Eclair visualizer\n- Keep concise, point to docs for details\n\n### Delivers\nGitHub visitors understand the project and can find resources.\n\n### Acceptance Criteria\n- Given root README When reviewed Then project description is current\n- Given root README When links clicked Then all resolve correctly\n- Given root README When read Then links to documentation site\n- Given root README When read Then links to npm packages\n- Given root README When read Then links to Eclair visualizer\n- Given root README When read Then has quick start or getting started section\n\n### Dependencies\nNone\n\n### Related Code\n- README.md at repo root\n\n### Verification\n- Read README and verify content accuracy\n- Click-test all links (docs, npm, Eclair, GitHub)",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2025-12-30T09:40:50.672Z"
       },
       {
         "id": "52",
@@ -823,9 +824,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-12-30T09:14:48.908Z",
+      "lastModified": "2025-12-30T09:40:50.674Z",
       "taskCount": 61,
-      "completedCount": 49,
+      "completedCount": 50,
       "tags": [
         "master"
       ]

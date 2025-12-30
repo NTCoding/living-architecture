@@ -1,25 +1,22 @@
-# Rivière
+# Living Architecture
 
 **Extract living architecture from code.**
 
-Rivière generates flow-based architecture graphs from your codebase. See how operations flow through your system — from UI to API to domain logic to events — without manual diagramming.
+[**View Demo**](https://nicktune.github.io/living-architecture/eclair/) · [**Documentation**](https://living-architecture.dev) · [**npm**](https://www.npmjs.com/org/living-architecture)
 
-## Why Rivière?
+<p align="center">
+  <img src="./apps/docs/public/eclair-hero.png" alt="Éclair - architecture visualization" width="800">
+</p>
 
-- **Static docs drift** — Written once, outdated forever
-- **Dependency graphs mislead** — Show imports, not operational flow
-- **Manual diagrams cost hours** — And drift from reality immediately
-- **Cross-codebase understanding requires tribal knowledge** — Especially in distributed systems
-
-Rivière extracts what actually happens when code runs.
+See how operations flow through your system — from UI to API to domain logic to events — without manual diagramming. This project provides tools for extracting, modelling, and visualizing a system, using the Rivière graph-based schema.
 
 ## How It Works
 
-```
+```text
 UI /orders
   → API POST /orders
     → UseCase PlaceOrder
-      → DomainOp Order.create()
+      → DomainOp Order.place()
         → Event order-placed
           → EventHandler NotifyShipping
 ```
@@ -34,46 +31,60 @@ Rivière models operational flow, not technical dependencies. Components have ty
 | **DomainOp** | Domain logic and entity operations |
 | **Event** | Async events published |
 | **EventHandler** | Event subscribers |
+| **Custom** | Your own types (message queues, external APIs, cron jobs, etc.) |
+
+These are the standard types. Define custom types for anything that doesn't fit — the schema is designed to adapt to your architecture, not the other way around.
+
+The Rivière schema is language-agnostic. Extract architecture from any codebase — TypeScript, Java, Python, Go, or any combination.
 
 ## Quick Start
 
 ```bash
-npm install @living-architecture/riviere-cli
-npx riviere init
+npm install -g @living-architecture/riviere-cli
+riviere builder init --domain orders --output graph.json
 ```
 
-See [`apps/docs/guide/extraction/`](./apps/docs/guide/extraction/) for AI-assisted extraction.
+See the [extraction guide](./apps/docs/extract/) for AI-assisted extraction.
 
 ## Packages
 
 | Package | Purpose | Install |
 |---------|---------|---------|
-| `@living-architecture/riviere-query` | Query and validate graphs. Browser-safe. | `npm i @living-architecture/riviere-query` |
-| `@living-architecture/riviere-builder` | Build graphs programmatically. | `npm i @living-architecture/riviere-builder` |
-| `@living-architecture/riviere-cli` | CLI for extraction workflows. | `npm i @living-architecture/riviere-cli` |
+| `@living-architecture/riviere-schema` | Schema definition and validation | `npm i @living-architecture/riviere-schema` |
+| `@living-architecture/riviere-query` | Query graphs. Browser-safe. | `npm i @living-architecture/riviere-query` |
+| `@living-architecture/riviere-builder` | Build graphs programmatically | `npm i @living-architecture/riviere-builder` |
+| `@living-architecture/riviere-cli` | CLI for extraction workflows | `npm i -g @living-architecture/riviere-cli` |
 
 ## Build a Graph
 
 ```typescript
 import { RiviereBuilder } from '@living-architecture/riviere-builder';
 
-const builder = RiviereBuilder.create({ name: 'order-system' });
+const builder = RiviereBuilder.new({
+  sources: [{ repository: 'https://github.com/org/repo' }],
+  domains: {
+    orders: { description: 'Order management', systemType: 'domain' }
+  }
+});
 
 const api = builder.addApi({
-  name: 'place-order',
+  name: 'Create Order',
   domain: 'orders',
   module: 'checkout',
+  apiType: 'REST',
   httpMethod: 'POST',
   path: '/orders',
+  sourceLocation: { repository: 'repo', filePath: 'src/api/orders.ts' }
 });
 
 const useCase = builder.addUseCase({
   name: 'PlaceOrder',
   domain: 'orders',
   module: 'checkout',
+  sourceLocation: { repository: 'repo', filePath: 'src/usecases/place-order.ts' }
 });
 
-builder.link(api, useCase, { type: 'sync' });
+builder.link({ from: api.id, to: useCase.id, type: 'sync' });
 
 const graph = builder.build();
 ```
@@ -83,30 +94,28 @@ const graph = builder.build();
 ```typescript
 import { RiviereQuery } from '@living-architecture/riviere-query';
 
-const query = RiviereQuery.from(graph);
+const query = RiviereQuery.fromJSON(graphData);
 
 // Find all entry points
 const entryPoints = query.entryPoints();
 
 // Trace a flow from a component
-const flow = query.traceForward('orders:checkout:api:place-order');
+const flow = query.traceFlow('orders:checkout:api:create-order');
 
 // Find cross-domain connections
-const crossDomain = query.crossDomainLinks();
+const crossDomain = query.crossDomainLinks('orders');
 
 // Get components by type
 const events = query.componentsByType('Event');
 ```
 
-## The Schema
+## The Rivière Schema
 
-Rivière graphs are JSON documents conforming to the [Rivière Schema](./schema/riviere.schema.json).
+Rivière graphs are JSON documents conforming to the [Rivière schema](./packages/riviere-schema/riviere.schema.json).
 
 ```json
 {
-  "version": "1.0",
   "metadata": {
-    "name": "order-system",
     "domains": {
       "orders": { "description": "Order management", "systemType": "domain" }
     }
@@ -116,16 +125,30 @@ Rivière graphs are JSON documents conforming to the [Rivière Schema](./schema/
 }
 ```
 
-See [`schema/examples/`](./schema/examples/) for complete multi-domain examples.
+See [examples](./packages/riviere-schema/examples/) for complete multi-domain graphs.
 
 ## Visualize with Éclair
 
-Open your graph in Éclair, the interactive visualizer:
+Open your graph in [Éclair](./apps/eclair/), the interactive visualizer:
 
 - Trace flows end-to-end
 - Filter by domain
 - Search components
 - Click through to source code
+
+## Documentation
+
+See [apps/docs](./apps/docs/) for full documentation.
+
+## Links
+
+- **Website & Docs**: [living-architecture.dev](https://living-architecture.dev)
+- **Éclair Visualizer**: [living-architecture.dev/eclair](https://living-architecture.dev/eclair)
+- **npm**: [@living-architecture](https://www.npmjs.com/org/living-architecture)
+
+## Author
+
+Created by [Nick Tune](https://nick-tune.me) ([Bluesky](https://bsky.app/profile/nick-tune.me), [LinkedIn](https://linkedin.com/in/nick-tune), [GitHub](https://github.com/ntcoding)).
 
 ## Contributing
 
