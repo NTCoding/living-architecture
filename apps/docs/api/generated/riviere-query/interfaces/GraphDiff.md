@@ -1,6 +1,6 @@
 # Interface: GraphDiff
 
-Defined in: [packages/riviere-query/src/domain-types.ts:149](https://github.com/ntcoding/living-architecture/blob/d4967a3da183df8420cf94f4ddcea233b1bd1221/packages/riviere-query/src/domain-types.ts#L149)
+Defined in: [packages/riviere-query/src/domain-types.ts:149](https://github.com/NTCoding/living-architecture/blob/86a30c8aa4bee22db725a4e520eefb77d328660c/packages/riviere-query/src/domain-types.ts#L149)
 
 Complete diff between two graph versions.
 
@@ -10,7 +10,7 @@ Complete diff between two graph versions.
 
 > **components**: `object`
 
-Defined in: [packages/riviere-query/src/domain-types.ts:151](https://github.com/ntcoding/living-architecture/blob/d4967a3da183df8420cf94f4ddcea233b1bd1221/packages/riviere-query/src/domain-types.ts#L151)
+Defined in: [packages/riviere-query/src/domain-types.ts:151](https://github.com/NTCoding/living-architecture/blob/86a30c8aa4bee22db725a4e520eefb77d328660c/packages/riviere-query/src/domain-types.ts#L151)
 
 Component changes.
 
@@ -38,7 +38,7 @@ Components present in old graph but not new.
 
 > **links**: `object`
 
-Defined in: [packages/riviere-query/src/domain-types.ts:160](https://github.com/ntcoding/living-architecture/blob/d4967a3da183df8420cf94f4ddcea233b1bd1221/packages/riviere-query/src/domain-types.ts#L160)
+Defined in: [packages/riviere-query/src/domain-types.ts:160](https://github.com/NTCoding/living-architecture/blob/86a30c8aa4bee22db725a4e520eefb77d328660c/packages/riviere-query/src/domain-types.ts#L160)
 
 Link changes.
 
@@ -60,6 +60,6 @@ Links present in old graph but not new.
 
 > **stats**: [`DiffStats`](DiffStats.md)
 
-Defined in: [packages/riviere-query/src/domain-types.ts:167](https://github.com/ntcoding/living-architecture/blob/d4967a3da183df8420cf94f4ddcea233b1bd1221/packages/riviere-query/src/domain-types.ts#L167)
+Defined in: [packages/riviere-query/src/domain-types.ts:167](https://github.com/NTCoding/living-architecture/blob/86a30c8aa4bee22db725a4e520eefb77d328660c/packages/riviere-query/src/domain-types.ts#L167)
 
 Summary statistics.

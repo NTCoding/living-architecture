@@ -1,6 +1,6 @@
 # Interface: UIInput
 
-Defined in: [packages/riviere-builder/src/types.ts:30](https://github.com/ntcoding/living-architecture/blob/d4967a3da183df8420cf94f4ddcea233b1bd1221/packages/riviere-builder/src/types.ts#L30)
+Defined in: [packages/riviere-builder/src/types.ts:30](https://github.com/NTCoding/living-architecture/blob/86a30c8aa4bee22db725a4e520eefb77d328660c/packages/riviere-builder/src/types.ts#L30)
 
 ## Properties
 
@@ -8,7 +8,7 @@ Defined in: [packages/riviere-builder/src/types.ts:30](https://github.com/ntcodi
 
 > `optional` **description**: `string`
 
-Defined in: [packages/riviere-builder/src/types.ts:35](https://github.com/ntcoding/living-architecture/blob/d4967a3da183df8420cf94f4ddcea233b1bd1221/packages/riviere-builder/src/types.ts#L35)
+Defined in: [packages/riviere-builder/src/types.ts:35](https://github.com/NTCoding/living-architecture/blob/86a30c8aa4bee22db725a4e520eefb77d328660c/packages/riviere-builder/src/types.ts#L35)
 
 ***
 
@@ -16,7 +16,7 @@ Defined in: [packages/riviere-builder/src/types.ts:35](https://github.com/ntcodi
 
 > **domain**: `string`
 
-Defined in: [packages/riviere-builder/src/types.ts:32](https://github.com/ntcoding/living-architecture/blob/d4967a3da183df8420cf94f4ddcea233b1bd1221/packages/riviere-builder/src/types.ts#L32)
+Defined in: [packages/riviere-builder/src/types.ts:32](https://github.com/NTCoding/living-architecture/blob/86a30c8aa4bee22db725a4e520eefb77d328660c/packages/riviere-builder/src/types.ts#L32)
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: [packages/riviere-builder/src/types.ts:32](https://github.com/ntcodi
 
 > `optional` **metadata**: `Record`\<`string`, `unknown`\>
 
-Defined in: [packages/riviere-builder/src/types.ts:37](https://github.com/ntcoding/living-architecture/blob/d4967a3da183df8420cf94f4ddcea233b1bd1221/packages/riviere-builder/src/types.ts#L37)
+Defined in: [packages/riviere-builder/src/types.ts:37](https://github.com/NTCoding/living-architecture/blob/86a30c8aa4bee22db725a4e520eefb77d328660c/packages/riviere-builder/src/types.ts#L37)
 
 ***
 
@@ -32,7 +32,7 @@ Defined in: [packages/riviere-builder/src/types.ts:37](https://github.com/ntcodi
 
 > **module**: `string`
 
-Defined in: [packages/riviere-builder/src/types.ts:33](https://github.com/ntcoding/living-architecture/blob/d4967a3da183df8420cf94f4ddcea233b1bd1221/packages/riviere-builder/src/types.ts#L33)
+Defined in: [packages/riviere-builder/src/types.ts:33](https://github.com/NTCoding/living-architecture/blob/86a30c8aa4bee22db725a4e520eefb77d328660c/packages/riviere-builder/src/types.ts#L33)
 
 ***
 
@@ -40,7 +40,7 @@ Defined in: [packages/riviere-builder/src/types.ts:33](https://github.com/ntcodi
 
 > **name**: `string`
 
-Defined in: [packages/riviere-builder/src/types.ts:31](https://github.com/ntcoding/living-architecture/blob/d4967a3da183df8420cf94f4ddcea233b1bd1221/packages/riviere-builder/src/types.ts#L31)
+Defined in: [packages/riviere-builder/src/types.ts:31](https://github.com/NTCoding/living-architecture/blob/86a30c8aa4bee22db725a4e520eefb77d328660c/packages/riviere-builder/src/types.ts#L31)
 
 ***
 
@@ -48,7 +48,7 @@ Defined in: [packages/riviere-builder/src/types.ts:31](https://github.com/ntcodi
 
 > **route**: `string`
 
-Defined in: [packages/riviere-builder/src/types.ts:34](https://github.com/ntcoding/living-architecture/blob/d4967a3da183df8420cf94f4ddcea233b1bd1221/packages/riviere-builder/src/types.ts#L34)
+Defined in: [packages/riviere-builder/src/types.ts:34](https://github.com/NTCoding/living-architecture/blob/86a30c8aa4bee22db725a4e520eefb77d328660c/packages/riviere-builder/src/types.ts#L34)
 
 ***
 
@@ -56,4 +56,4 @@ Defined in: [packages/riviere-builder/src/types.ts:34](https://github.com/ntcodi
 
 > **sourceLocation**: `SourceLocation`
 
-Defined in: [packages/riviere-builder/src/types.ts:36](https://github.com/ntcoding/living-architecture/blob/d4967a3da183df8420cf94f4ddcea233b1bd1221/packages/riviere-builder/src/types.ts#L36)
+Defined in: [packages/riviere-builder/src/types.ts:36](https://github.com/NTCoding/living-architecture/blob/86a30c8aa4bee22db725a4e520eefb77d328660c/packages/riviere-builder/src/types.ts#L36)
