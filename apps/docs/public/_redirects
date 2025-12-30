@@ -1,5 +1,4 @@
-# SPA routing for Éclair
-# Only redirect paths that don't match static files
-/eclair/assets/*  /eclair/assets/:splat  200
+# SPA routing for Éclair - explicit identity rules prevent infinite loop
 /eclair/index.html  /eclair/index.html  200
-/eclair/*  /eclair/index.html  200!
+/eclair/assets/*  /eclair/assets/:splat  200
+/eclair/*  /eclair/index.html  200
