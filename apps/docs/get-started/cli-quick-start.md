@@ -16,8 +16,6 @@ Build your first Riviere graph using CLI commands in 5 minutes.
 npm install @living-architecture/riviere-cli
 ```
 
-> **Note:** Package not yet published to npm. For now, clone the repository and reference the local package.
-
 ## Step 1: Initialize Graph
 
 Create a new graph with a name:

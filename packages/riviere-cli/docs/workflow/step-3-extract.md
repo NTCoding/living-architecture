@@ -9,7 +9,7 @@ Find all component instances using patterns from Step 2 and add them to the grap
 - **Do not use plan mode.** Execute directly.
 - Read `.riviere/config/metadata.md` for domains and conventions
 - Read `.riviere/config/component-definitions.md` for extraction rules
-- CLI available (user will provide path)
+- CLI installed: `npm install @living-architecture/riviere-cli`
 
 ## Initialize Graph
 

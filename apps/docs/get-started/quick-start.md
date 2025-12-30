@@ -16,8 +16,6 @@ Build your first Riviere graph in 5 minutes.
 npm install @living-architecture/riviere-builder
 ```
 
-> **Note:** Package not yet published to npm. For now, clone the repository and reference the local package.
-
 ## Basic Usage
 
 ```typescript

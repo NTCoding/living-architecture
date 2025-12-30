@@ -1,4 +1,4 @@
 import { createProgram } from './cli'
 
 const program = createProgram()
-program.parse()
+program.parseAsync().catch(() => process.exit(1))
