@@ -1,0 +1,3 @@
+# SPA routing for Éclair
+# Serve index.html for all /eclair/* routes that don't match static files
+/eclair/*  /eclair/index.html  200

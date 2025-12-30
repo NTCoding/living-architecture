@@ -14,7 +14,7 @@ hero:
       link: /get-started/
     - theme: alt
       text: View Demo
-      link: https://nicktune.github.io/living-architecture/eclair/
+      link: /eclair/
     - theme: alt
       text: GitHub
       link: https://github.com/ntcoding/living-architecture

@@ -13,7 +13,7 @@ if (rootElement === null) {
 
 createRoot(rootElement).render(
   <StrictMode>
-    <BrowserRouter>
+    <BrowserRouter basename="/eclair">
       <ThemeProvider>
         <App />
       </ThemeProvider>

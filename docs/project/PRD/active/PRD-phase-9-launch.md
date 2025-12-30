@@ -76,9 +76,9 @@ This proves the full workflow works and gives early adopters a realistic referen
 
 ### Deployment Infrastructure
 
-- **Netlify** for hosting all three apps (landing, docs, Éclair)
+- **Cloudflare Pages** for hosting docs and Éclair (free tier: 500 builds/month, unlimited bandwidth)
 - **GitHub Actions** for npm publishing on release tags
-- **Automated deploys** on push to main
+- **Automated deploys** on push to main via Cloudflare Pages
 
 ---
 
@@ -242,9 +242,9 @@ Landing page exists at `apps/docs/index.md`. Validate content and links work.
 
 ---
 
-### M3: Netlify deployment configured
+### M3: Cloudflare Pages deployment configured
 
-All three apps deploy to correct paths.
+Docs and Éclair deploy to correct paths.
 
 #### Deliverables
 
@@ -258,27 +258,26 @@ All three apps deploy to correct paths.
   - Acceptance: Domain owned and DNS accessible
   - Verification: WHOIS shows ownership
 
-- **D3.3:** Netlify project created
+- **D3.3:** Cloudflare Pages project created
   - Connect to GitHub repo
   - Configure build command and publish directory
-  - Acceptance: Project appears in Netlify dashboard
+  - Acceptance: Project appears in Cloudflare dashboard
   - Verification: Dashboard accessible
 
 - **D3.4:** Build configuration
-  - Create `netlify.toml` at repo root
-  - Configure build to produce: landing + docs + éclair
-  - Acceptance: `netlify build` succeeds locally (or in CI)
-  - Verification: Build output contains all three apps
+  - Create `wrangler.toml` at repo root
+  - Configure build to produce: docs + éclair
+  - Acceptance: `pnpm build:deploy` succeeds locally
+  - Verification: Build output contains both apps
 
 - **D3.5:** Routing configured
-  - `/` serves landing page
-  - `/docs/*` serves documentation
-  - `/eclair/*` serves visualizer
+  - `/` serves landing page + docs
+  - `/eclair/*` serves visualizer (SPA routing via `_redirects`)
   - Acceptance: All paths resolve correctly
   - Verification: Test in preview deploy
 
 - **D3.6:** Custom domain configured
-  - Point `living-architecture.dev` DNS to Netlify
+  - Point `living-architecture.dev` DNS to Cloudflare
   - Enable HTTPS
   - Acceptance: Domain loads with valid certificate
   - Verification: Browser shows secure connection
@@ -292,7 +291,7 @@ Push to main triggers deployment.
 #### Deliverables
 
 - **D4.1:** Auto-deploy on push to main
-  - Netlify builds and deploys on merge to main
+  - Cloudflare Pages builds and deploys on merge to main
   - Acceptance: Change merged → visible on production
   - Verification: Make small change, verify deployment
 
