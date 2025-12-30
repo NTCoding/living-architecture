@@ -55,25 +55,8 @@ export function AppShell({ children, hasGraph, graphName, graph }: AppShellProps
             >
               Nick Tune
             </a>
-            {' · '}
-            <a
-              href="https://linkedin.com/in/nick-tune"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[var(--accent-primary)] hover:underline"
-            >
-              LinkedIn
-            </a>
-            {' · '}
-            <a
-              href="https://github.com/ntcoding"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[var(--accent-primary)] hover:underline"
-            >
-              GitHub
-            </a>
-            {' · '}
+
+            {' ('}
             <a
               href="https://bsky.app/profile/nick-tune.me"
               target="_blank"
@@ -82,6 +65,25 @@ export function AppShell({ children, hasGraph, graphName, graph }: AppShellProps
             >
               Bluesky
             </a>
+            {', '}
+            <a
+              href="https://linkedin.com/in/nick-tune"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[var(--accent-primary)] hover:underline"
+            >
+              LinkedIn
+            </a>
+            {', '}
+            <a
+              href="https://github.com/ntcoding"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[var(--accent-primary)] hover:underline"
+            >
+              GitHub
+            </a>
+            {')'}
           </p>
         </footer>
       </div>

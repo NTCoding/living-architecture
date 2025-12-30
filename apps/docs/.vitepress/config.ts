@@ -4,6 +4,10 @@ export default defineConfig({
   title: 'Rivière',
   description: 'Living Architecture - See how operations flow through your system',
 
+  head: [
+    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }]
+  ],
+
   themeConfig: {
     logo: '/logo.svg',
     siteTitle: 'Rivière',
