@@ -640,10 +640,11 @@
         "description": "Add repo governance files for open source release",
         "details": "## Deliverable: Repository has standard open source governance files\n\n### Context\nPRD Phase 9 (docs/project/PRD/active/PRD-phase-9-launch.md), Milestone 1, Deliverables D1.6 and D1.7.\n\nFor open source release, the repo needs a LICENSE file and contribution guidelines. The root package.json already specifies MIT license, but the actual LICENSE file is missing.\n\n### Key Decisions and Principles\n- MIT license (already declared in root package.json)\n- CONTRIBUTING.md explains conventional commits requirement\n- Keep both files concise and actionable\n\n### Delivers\nRepository ready for external contributors.\n\n### Acceptance Criteria\n- Given no LICENSE file When task complete Then LICENSE file exists at repo root\n- Given LICENSE file When read Then contains MIT license text with correct year/author\n- Given no CONTRIBUTING.md When task complete Then CONTRIBUTING.md exists at repo root\n- Given CONTRIBUTING.md When read Then explains how to contribute\n- Given CONTRIBUTING.md When read Then documents conventional commit format requirement\n- Given CONTRIBUTING.md When read Then explains development setup (pnpm install, nx commands)\n\n### Dependencies\nNone\n\n### Related Code\n- package.json — has license: MIT field\n- .husky/ — commit hooks (referenced in CONTRIBUTING)\n\n### Verification\n- LICENSE exists at repo root\n- CONTRIBUTING.md exists at repo root\n- LICENSE contains MIT text\n- CONTRIBUTING.md mentions conventional commits and pnpm",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2025-12-30T08:27:11.890Z"
       },
       {
         "id": "48",
@@ -819,9 +820,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-12-29T22:54:18.228Z",
+      "lastModified": "2025-12-30T08:27:11.891Z",
       "taskCount": 61,
-      "completedCount": 45,
+      "completedCount": 46,
       "tags": [
         "master"
       ]

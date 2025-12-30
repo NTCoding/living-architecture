@@ -1,7 +1,7 @@
 {
   "name": "@living-architecture/source",
   "version": "0.0.0",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "packageManager": "pnpm@10.26.2",
   "scripts": {
     "build": "nx run-many -t build",
