@@ -356,3 +356,75 @@ button:focus-visible,
 .medium-zoom-image--opened {
   cursor: zoom-out;
 }
+
+/* ==========================================================================
+   Workflow Diagram (Homepage)
+   ========================================================================== */
+
+.workflow-diagram {
+  max-width: 800px;
+  margin: 1.5rem auto 2rem;
+  padding: 0 1rem;
+}
+
+.workflow-diagram svg {
+  width: 100%;
+  height: auto;
+}
+
+@media (max-width: 640px) {
+  .workflow-diagram svg {
+    /* On mobile, allow horizontal scroll if needed */
+    min-width: 600px;
+  }
+
+  .workflow-diagram {
+    overflow-x: auto;
+  }
+}
+
+/* ==========================================================================
+   Screenshot Gallery (Homepage)
+   ========================================================================== */
+
+.screenshots {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin: 2rem 0;
+  max-width: 1152px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0 24px;
+}
+
+.screenshots figure {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.screenshots img {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  border: 1px solid var(--vp-c-divider);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  cursor: zoom-in;
+}
+
+.screenshots figcaption {
+  margin-top: 0.75rem;
+  text-align: center;
+  color: var(--vp-c-text-2);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+  .screenshots {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}

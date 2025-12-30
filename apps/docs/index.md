@@ -27,19 +27,44 @@ features:
   - title: Interactive Visualization
     details: Explore your architecture in Éclair. Filter by domain, trace flows, compare versions, and understand your system at any level.
   - title: 100% Open Source
-    details: MIT licensed. Use it, fork it, contribute. Built in the open on GitHub.
+    details: Apache 2.0 licensed. Use it, fork it, contribute. Built in the open on GitHub.
 ---
 
-## The Problem
+## How It Works
 
-Modern distributed systems span multiple codebases, languages, and domains. Understanding how an operation flows through the system is difficult:
+<div class="workflow-diagram">
+  <img src="/workflow-infographic.svg" alt="Workflow: Your Code → Extract → Rivière Schema → Visualize in Éclair">
+</div>
 
-- **Static documentation** becomes outdated immediately
-- **Dependency graphs** show imports, not operational flow
-- **Manual diagramming** is time-consuming and error-prone
-- **Cross-codebase tracing** requires tribal knowledge
+<div class="products">
 
-## The Solution
+### Rivière Schema
+
+A JSON format that captures how operations flow through your system — from UI to API to domain logic to events. Not just what imports what, but how things actually work.
+
+**[Learn the Schema →](/reference/schema/graph-structure)**
+
+### Rivière CLI
+
+Point an AI assistant at your codebase. It calls CLI commands to analyze your code and build a Rivière schema.
+
+**[CLI Guide →](/reference/cli/)**
+
+### Rivière Builder
+
+Build schemas programmatically in TypeScript. Integrate into build pipelines or create custom extraction tools.
+
+**[Library Guide →](/get-started/quick-start)**
+
+### Éclair
+
+Load your schema into Éclair. Filter by domain, trace flows end-to-end, see which services publish and subscribe to events.
+
+**[Explore the Demo →](https://living-architecture.dev/eclair/?demo=true)**
+
+</div>
+
+## Rivière Flow-Based Schema
 
 Rivière extracts **flow-based architecture** directly from code. Instead of showing technical dependencies, it traces how operations flow through your system.
 
@@ -52,23 +77,31 @@ UI /orders
   → EventHandler: Prepare Shipping
 ```
 
-## Two Products
+## See It In Action
 
-<div class="products">
-
-### Rivière — Extract
-
-CLI and libraries for extracting architecture from code. Works with AI assistants or programmatically.
-
-**[Start Extracting →](/extract/)**
-
-### Éclair — Visualize
-
-Interactive web app for exploring architecture graphs. Multiple views for different questions.
-
-**[Start Viewing →](/visualize/)**
-
+<div class="screenshots">
+<figure>
+  <img src="/eclair-flow.png" alt="Flow view showing an operational flow through multiple domains">
+  <figcaption>Trace an operational flow end-to-end</figcaption>
+</figure>
+<figure>
+  <img src="/eclair-domain-map.png" alt="Domain map showing dependencies between domains">
+  <figcaption>Visualize domain dependencies</figcaption>
+</figure>
 </div>
+
+## Run Locally
+
+Clone the repo and run Éclair with the demo graph.
+
+```bash
+git clone https://github.com/NTCoding/living-architecture.git
+cd living-architecture
+pnpm install
+nx serve eclair
+```
+
+Open [localhost:5173/eclair](http://localhost:5173/eclair/)
 
 ## Choose Your Path
 
@@ -78,6 +111,8 @@ Interactive web app for exploring architecture graphs. Multiple views for differ
 | Build graphs programmatically | [Library Quick Start](/get-started/quick-start) |
 | View an architecture graph | [Éclair Guide](/visualize/) |
 | Understand the schema format | [Schema Reference](/reference/schema/graph-structure) |
+| Try it with a demo graph | [View Demo](https://living-architecture.dev/eclair/?demo=true) |
+| Run Éclair locally | [Run Locally](/get-started/#run-locally) |
 
 ## Packages
 
