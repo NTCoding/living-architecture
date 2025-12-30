@@ -1,3 +1,5 @@
 # SPA routing for Éclair
-# Serve index.html for all /eclair/* routes that don't match static files
-/eclair/*  /eclair/index.html  200
+# Only redirect paths that don't match static files
+/eclair/assets/*  /eclair/assets/:splat  200
+/eclair/index.html  /eclair/index.html  200
+/eclair/*  /eclair/index.html  200!
