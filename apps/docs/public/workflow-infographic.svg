@@ -1,0 +1,647 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="775"
+   height="320"
+   viewBox="0 0 775 320"
+   fill="none"
+   version="1.1"
+   id="svg34"
+   sodipodi:docname="workflow-infographic.svg"
+   inkscape:version="1.4.3 (0d15f75, 2025-12-25)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview34"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="1.1196843"
+     inkscape:cx="311.69499"
+     inkscape:cy="120.12314"
+     inkscape:window-width="1648"
+     inkscape:window-height="912"
+     inkscape:window-x="0"
+     inkscape:window-y="34"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg34" />
+  <defs
+     id="defs4">
+    <!-- Rivière gradient -->
+    <linearGradient
+       id="stream-gradient"
+       x1="0"
+       y1="0"
+       x2="40"
+       y2="40"
+       gradientUnits="userSpaceOnUse">
+      <stop
+         offset="0%"
+         stop-color="#0D9488"
+         id="stop1" />
+      <stop
+         offset="100%"
+         stop-color="#06B6D4"
+         id="stop2" />
+    </linearGradient>
+    <!-- Arrow markers -->
+    <marker
+       id="arrow-gray"
+       markerWidth="8"
+       markerHeight="6"
+       refX="7"
+       refY="3"
+       orient="auto"
+       viewBox="0 0 8 6"
+       preserveAspectRatio="xMidYMid">
+      <polygon
+         points="0,6 0,0 8,3 "
+         fill="#64748b"
+         id="polygon2" />
+    </marker>
+    <marker
+       id="arrow-teal"
+       markerWidth="8"
+       markerHeight="6"
+       refX="7"
+       refY="3"
+       orient="auto"
+       viewBox="0 0 8 6"
+       preserveAspectRatio="xMidYMid">
+      <polygon
+         points="0,6 0,0 8,3 "
+         fill="#0d9488"
+         id="polygon3" />
+    </marker>
+    <marker
+       id="arrow-cyan"
+       markerWidth="8"
+       markerHeight="6"
+       refX="7"
+       refY="3"
+       orient="auto"
+       viewBox="0 0 8 6"
+       preserveAspectRatio="xMidYMid">
+      <polygon
+         points="0,6 0,0 8,3 "
+         fill="#06b6d4"
+         id="polygon4" />
+    </marker>
+    <marker
+       id="arrow-gray-3"
+       markerWidth="8"
+       markerHeight="6"
+       refX="7"
+       refY="3"
+       orient="auto"
+       viewBox="0 0 8 6"
+       preserveAspectRatio="xMidYMid">
+      <polygon
+         points="0,0 8,3 0,6 "
+         fill="#64748b"
+         id="polygon2-0" />
+    </marker>
+    <marker
+       id="arrow-gray-6"
+       markerWidth="8"
+       markerHeight="6"
+       refX="7"
+       refY="3"
+       orient="auto"
+       viewBox="0 0 8 6"
+       preserveAspectRatio="xMidYMid">
+      <polygon
+         points="0,0 8,3 0,6 "
+         fill="#64748b"
+         id="polygon2-5" />
+    </marker>
+    <marker
+       id="arrow-gray-1"
+       markerWidth="8"
+       markerHeight="6"
+       refX="7"
+       refY="3"
+       orient="auto-start-reverse"
+       viewBox="0 0 8 6"
+       preserveAspectRatio="xMidYMid">
+      <polygon
+         points="8,3 0,6 0,0 "
+         fill="#64748b"
+         id="polygon2-4"
+         transform="matrix(-1,0,0,1,8,0)" />
+    </marker>
+    <marker
+       id="arrow-gray-9"
+       markerWidth="8"
+       markerHeight="6"
+       refX="7"
+       refY="3"
+       orient="auto"
+       viewBox="0 0 8 6"
+       preserveAspectRatio="xMidYMid">
+      <polygon
+         points="0,0 8,3 0,6 "
+         fill="#64748b"
+         id="polygon2-54" />
+    </marker>
+    <marker
+       id="arrow-gray-67"
+       markerWidth="8"
+       markerHeight="6"
+       refX="7"
+       refY="3"
+       orient="auto"
+       viewBox="0 0 8 6"
+       preserveAspectRatio="xMidYMid">
+      <polygon
+         points="0,0 8,3 0,6 "
+         fill="#64748b"
+         id="polygon2-8" />
+    </marker>
+    <marker
+       id="arrow-teal-7"
+       markerWidth="8"
+       markerHeight="6"
+       refX="7"
+       refY="3"
+       orient="auto"
+       viewBox="0 0 8 6"
+       preserveAspectRatio="xMidYMid">
+      <polygon
+         points="0,0 8,3 0,6 "
+         fill="#0d9488"
+         id="polygon3-4" />
+    </marker>
+    <marker
+       id="arrow-teal-1"
+       markerWidth="8"
+       markerHeight="6"
+       refX="7"
+       refY="3"
+       orient="auto"
+       viewBox="0 0 8 6"
+       preserveAspectRatio="xMidYMid">
+      <polygon
+         points="0,0 8,3 0,6 "
+         fill="#0d9488"
+         id="polygon3-5" />
+    </marker>
+    <marker
+       id="arrow-teal-9"
+       markerWidth="8"
+       markerHeight="6"
+       refX="7"
+       refY="3"
+       orient="auto"
+       viewBox="0 0 8 6"
+       preserveAspectRatio="xMidYMid">
+      <polygon
+         points="0,0 8,3 0,6 "
+         fill="#0d9488"
+         id="polygon3-3" />
+    </marker>
+  </defs>
+  <!-- COLUMN 1: Your Code (far left) -->
+  <g
+     transform="translate(43.12882,115.13721)"
+     id="g-yourcode">
+    <g transform="translate(-12,-32)">
+      <!-- Lucide file-code icon -->
+      <path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M14 2v5a1 1 0 0 0 1 1h5" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M10 12.5 8 15l2 2.5" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="m14 12.5 2 2.5-2 2.5" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <text
+       x="0"
+       y="8"
+       font-family="Rubik, sans-serif"
+       font-size="12px"
+       font-weight="600"
+       fill="#334155"
+       text-anchor="middle"
+       id="text-yourcode">Your Code</text>
+  </g>
+  <!-- COLUMN 2: Extraction Code (top) - with settings/cog icon -->
+  <g
+     transform="translate(166.5,50)"
+     id="g-extraction">
+    <g transform="translate(-12,-12)">
+      <!-- Lucide settings icon -->
+      <path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="12" cy="12" r="3" fill="none" stroke="#64748B" stroke-width="2"/>
+    </g>
+    <text
+       x="0"
+       y="22"
+       font-family="Rubik, sans-serif"
+       font-size="12px"
+       font-weight="600"
+       fill="#334155"
+       text-anchor="middle"
+       id="text-extraction">Extraction</text>
+    <text
+       x="0"
+       y="36"
+       font-family="Rubik, sans-serif"
+       font-size="12px"
+       font-weight="600"
+       fill="#334155"
+       text-anchor="middle"
+       id="text-extraction2">Code</text>
+  </g>
+  <!-- COLUMN 2: AI (bottom) - with sparkles icon -->
+  <g
+     transform="translate(167.56636,187.37813)"
+     id="g-ai">
+    <g transform="translate(-12,-32)">
+      <!-- Lucide sparkles icon -->
+      <path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M20 2v4" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round"/>
+      <path d="M22 4h-4" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="4" cy="20" r="2" fill="none" stroke="#64748B" stroke-width="2"/>
+    </g>
+    <text
+       x="0"
+       y="5"
+       font-family="Rubik, sans-serif"
+       font-size="12px"
+       font-weight="600"
+       fill="#334155"
+       text-anchor="middle"
+       id="text-ai">AI</text>
+  </g>
+  <!-- COLUMN 3: Rivière CLI - with square-terminal icon -->
+  <g
+     transform="translate(312.14152,188.73589)"
+     id="g-cli">
+    <g transform="translate(-12,-32)">
+      <!-- Lucide square-terminal icon -->
+      <rect x="3" y="3" width="18" height="18" rx="2" ry="2" fill="none" stroke="#0D9488" stroke-width="2"/>
+      <path d="m7 11 2-2-2-2" fill="none" stroke="#0D9488" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M11 13h4" fill="none" stroke="#0D9488" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <text
+       x="0"
+       y="5"
+       font-family="Rubik, sans-serif"
+       font-size="12px"
+       font-weight="600"
+       fill="#0D9488"
+       text-anchor="middle"
+       id="text-cli">Rivière CLI</text>
+  </g>
+  <!-- COLUMN 3: Rivière Builder - with package icon -->
+  <g
+     transform="translate(305.96777,64.761058)"
+     id="g-builder">
+    <g transform="translate(-12,-32)">
+      <!-- Lucide package icon -->
+      <path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z" fill="none" stroke="#0D9488" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M12 22V12" fill="none" stroke="#0D9488" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <polyline points="3.29 7 12 12 20.71 7" fill="none" stroke="#0D9488" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="m7.5 4.27 9 5.15" fill="none" stroke="#0D9488" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <text
+       x="0"
+       y="5"
+       font-family="Rubik, sans-serif"
+       font-size="12px"
+       font-weight="600"
+       fill="#0D9488"
+       text-anchor="middle"
+       id="text-builder">Rivière</text>
+    <text
+       x="0"
+       y="19"
+       font-family="Rubik, sans-serif"
+       font-size="12px"
+       font-weight="600"
+       fill="#0D9488"
+       text-anchor="middle"
+       id="text-builder2">Builder</text>
+  </g>
+  <!-- COLUMN 4: SCHEMA (center) - with logo -->
+  <g
+     transform="translate(448.57654,117.98337)"
+     id="g22">
+    <g
+       transform="translate(-20,-30)"
+       id="g21">
+      <rect
+         width="40"
+         height="40"
+         rx="12"
+         fill="url(#stream-gradient)"
+         id="rect14"
+         style="fill:url(#stream-gradient)"
+         x="0"
+         y="0" />
+      <circle
+         cx="12"
+         cy="12"
+         r="2.5"
+         fill="#ffffff"
+         id="circle14" />
+      <circle
+         cx="28"
+         cy="12"
+         r="2.5"
+         fill="#ffffff"
+         id="circle15" />
+      <circle
+         cx="20"
+         cy="20"
+         r="3.5"
+         fill="#ffffff"
+         id="circle16" />
+      <circle
+         cx="12"
+         cy="28"
+         r="2.5"
+         fill="#ffffff"
+         opacity="0.8"
+         id="circle17" />
+      <circle
+         cx="28"
+         cy="28"
+         r="2.5"
+         fill="#ffffff"
+         opacity="0.8"
+         id="circle18" />
+      <line
+         x1="12"
+         y1="12"
+         x2="20"
+         y2="20"
+         stroke="#ffffff"
+         stroke-width="1.5"
+         opacity="0.8"
+         id="line18" />
+      <line
+         x1="28"
+         y1="12"
+         x2="20"
+         y2="20"
+         stroke="#ffffff"
+         stroke-width="1.5"
+         opacity="0.8"
+         id="line19" />
+      <line
+         x1="20"
+         y1="20"
+         x2="12"
+         y2="28"
+         stroke="#ffffff"
+         stroke-width="1.5"
+         opacity="0.6"
+         id="line20" />
+      <line
+         x1="20"
+         y1="20"
+         x2="28"
+         y2="28"
+         stroke="#ffffff"
+         stroke-width="1.5"
+         opacity="0.6"
+         id="line21" />
+    </g>
+    <text
+       x="0"
+       y="30"
+       font-family="Rubik, sans-serif"
+       font-size="14px"
+       font-weight="700"
+       fill="#0d9488"
+       text-anchor="middle"
+       id="text21"
+       style="font-size:13px"><tspan
+         sodipodi:role="line"
+         id="tspan34"
+         x="0"
+         y="30"
+         style="font-size:13px">Riviere</tspan><tspan
+         sodipodi:role="line"
+         id="tspan35"
+         x="0"
+         y="46.25"
+         style="font-size:13px;direction:ltr">Schema</tspan></text>
+  </g>
+  <!-- COLUMN 5: Rivière Query - with search icon -->
+  <!-- COLUMN 5: Éclair - with visualization/graph icon -->
+  <!-- ============ FLOWING CURVE ARROWS ============ -->
+  <!-- Extraction Code → Your Code (extracts) - gentle S-curve down-left -->
+  <path
+     d="M 128,50 C 100,55 75.666218,70.003366 62.666218,90.003366"
+     stroke="#94a3b8"
+     stroke-width="1.5"
+     stroke-dasharray="6, 4"
+     stroke-linecap="round"
+     fill="none"
+     marker-end="url(#arrow-gray)"
+     id="curve-extract-code-to-yourcode"
+     sodipodi:nodetypes="cc" />
+  <!-- AI → Your Code (extracts) - gentle S-curve up-left -->
+  <path
+     d="M 148,168 C 120,160 95.323012,155.32638 77.323012,140.32638"
+     stroke="#94a3b8"
+     stroke-width="1.5"
+     stroke-dasharray="6, 4"
+     stroke-linecap="round"
+     fill="none"
+     marker-end="url(#arrow-gray)"
+     id="curve-ai-to-yourcode"
+     sodipodi:nodetypes="cc" />
+  <!-- AI → CLI (uses) - gentle arc right -->
+  <path
+     d="m 190,178 c 30,-3 59.34135,-3.53293 84.34135,-0.53293"
+     stroke="#94a3b8"
+     stroke-width="1.5"
+     stroke-dasharray="6, 4"
+     stroke-linecap="round"
+     fill="none"
+     marker-end="url(#arrow-gray)"
+     id="curve-ai-to-cli"
+     sodipodi:nodetypes="cc" />
+  <!-- Extraction Code → Builder (uses) - clean arc right -->
+  <path
+     d="M 190,50 C 220,50 250,55 275,60"
+     stroke="#94a3b8"
+     stroke-width="1.5"
+     stroke-dasharray="6, 4"
+     stroke-linecap="round"
+     fill="none"
+     marker-end="url(#arrow-gray)"
+     id="curve-extractcode-to-builder" />
+  <!-- CLI → Builder (uses) - gentle S-curve up -->
+  <path
+     d="m 312.53293,151.53594 c 3,-25 -1.73353,-40.14075 -3.73353,-60.140752"
+     stroke="#14b8a6"
+     stroke-width="1.5"
+     stroke-dasharray="6, 4"
+     stroke-linecap="round"
+     fill="none"
+     marker-end="url(#arrow-teal)"
+     id="curve-cli-to-builder"
+     sodipodi:nodetypes="cc" />
+  <!-- Builder → Schema (builds) - clean arc right -->
+  <path
+     d="M 335,65 C 365,70 395,85 425,100"
+     stroke="#14b8a6"
+     stroke-width="1.5"
+     stroke-dasharray="6, 4"
+     stroke-linecap="round"
+     fill="none"
+     marker-end="url(#arrow-teal)"
+     id="curve-builder-to-schema" />
+  <!-- Query → Schema (queries) - gentle arc left -->
+  <path
+     d="M 561.71785,119.24102 C 531.71785,114.24102 510,112 480,115"
+     stroke="#14b8a6"
+     stroke-width="1.5"
+     stroke-dasharray="6, 4"
+     stroke-linecap="round"
+     fill="none"
+     marker-end="url(#arrow-teal)"
+     id="curve-query-to-schema"
+     sodipodi:nodetypes="cc" />
+  <!-- Éclair → Query (uses) - gentle arc left -->
+  <path
+     d="m 682.17613,121.13847 c -30,-5 -39.8204,-6.13847 -59.8204,-1.13847"
+     stroke="#06b6d4"
+     stroke-width="1.5"
+     stroke-dasharray="6, 4"
+     stroke-linecap="round"
+     fill="none"
+     marker-end="url(#arrow-cyan)"
+     id="curve-eclair-to-query"
+     sodipodi:nodetypes="cc" />
+  <!-- ============ END ARROWS ============ -->
+  <!-- Label 1: Extract architecture from code -->
+  <g
+     id="label-extract"
+     transform="translate(119, 250)">
+    <line x1="-50" y1="-12" x2="50" y2="-12" stroke="#E2E8F0" stroke-width="1" id="line-extract"/>
+    <text
+       x="0"
+       y="4"
+       font-family="Rubik, sans-serif"
+       font-size="13"
+       font-weight="500"
+       fill="#475569"
+       text-anchor="middle"
+       id="text1">Extract architecture</text>
+    <text
+       x="0"
+       y="20"
+       font-family="Rubik, sans-serif"
+       font-size="13"
+       font-weight="500"
+       fill="#475569"
+       text-anchor="middle"
+       id="text2">from code</text>
+  </g>
+  <g
+     transform="translate(591.53442,137.51843)"
+     id="g-query">
+    <g transform="translate(-12,-32)">
+      <!-- Lucide braces icon -->
+      <path d="M8 3H7a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5c0 1.1.9 2 2 2h1" fill="none" stroke="#0D9488" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M16 21h1a2 2 0 0 0 2-2v-5c0-1.1.9-2 2-2a2 2 0 0 1-2-2V5a2 2 0 0 0-2-2h-1" fill="none" stroke="#0D9488" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <text
+       x="0"
+       y="5"
+       font-family="Rubik, sans-serif"
+       font-size="12px"
+       font-weight="600"
+       fill="#0D9488"
+       text-anchor="middle"
+       id="text-query">Rivière</text>
+    <text
+       x="0"
+       y="19"
+       font-family="Rubik, sans-serif"
+       font-size="12px"
+       font-weight="600"
+       fill="#0D9488"
+       text-anchor="middle"
+       id="text-query2">Query</text>
+  </g>
+  <g
+     transform="translate(708.08591,137.49126)"
+     id="g-eclair">
+    <g transform="translate(-12,-32)">
+      <path
+         d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"
+         fill="none"
+         stroke="#06B6D4"
+         stroke-width="2"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         id="icon-eclair" />
+    </g>
+    <text
+       x="0"
+       y="5"
+       font-family="Rubik, sans-serif"
+       font-size="12px"
+       font-weight="600"
+       fill="#06B6D4"
+       text-anchor="middle"
+       id="text-eclair">Éclair</text>
+  </g>
+  <!-- Label 2: Build Riviere graph-based schema -->
+  <g
+     id="label-build"
+     transform="translate(385, 250)">
+    <line x1="-50" y1="-12" x2="50" y2="-12" stroke="#99F6E4" stroke-width="1" id="line-build"/>
+    <text
+       x="0"
+       y="4"
+       font-family="Rubik, sans-serif"
+       font-size="13"
+       font-weight="500"
+       fill="#0F766E"
+       text-anchor="middle"
+       id="text3">Build Rivière</text>
+    <text
+       x="0"
+       y="20"
+       font-family="Rubik, sans-serif"
+       font-size="13"
+       font-weight="500"
+       fill="#0F766E"
+       text-anchor="middle"
+       id="text7">graph schema</text>
+  </g>
+  <!-- Label 3: Visualize and explore the schema -->
+  <g
+     id="label-visualize"
+     transform="translate(653, 250)">
+    <line x1="-60" y1="-12" x2="60" y2="-12" stroke="#A5F3FC" stroke-width="1" id="line-visualize"/>
+    <text
+       x="0"
+       y="4"
+       font-family="Rubik, sans-serif"
+       font-size="13"
+       font-weight="500"
+       fill="#0E7490"
+       text-anchor="middle"
+       id="text9">Visualize and explore</text>
+    <text
+       x="0"
+       y="20"
+       font-family="Rubik, sans-serif"
+       font-size="13"
+       font-weight="500"
+       fill="#0E7490"
+       text-anchor="middle"
+       id="text10">the schema</text>
+  </g>
+</svg>
