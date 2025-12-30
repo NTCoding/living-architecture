@@ -18,6 +18,8 @@
   },
   "private": true,
   "devDependencies": {
+    "@commitlint/cli": "^20.2.0",
+    "@commitlint/config-conventional": "^20.2.0",
     "@eslint-community/eslint-plugin-eslint-comments": "^4.5.0",
     "@nx/esbuild": "22.3.3",
     "@nx/eslint": "22.3.3",

@@ -652,10 +652,11 @@
         "description": "Add commit-msg hook to enforce conventional commit format",
         "details": "## Deliverable: Non-conventional commits rejected with helpful guidance\n\n### Context\nPRD Phase 9 (docs/project/PRD/active/PRD-phase-9-launch.md), Milestone 1, Deliverable D1.8.\n\nConventional commits enable automated changelog generation. Husky is already configured with a pre-commit hook. Need to add commitlint with a commit-msg hook.\n\n### Key Decisions and Principles\n- Use @commitlint/config-conventional preset\n- Helpful error messages guide contributors to correct format\n- Works with existing husky setup\n\n### Delivers\nCommits that dont follow conventional format are rejected locally.\n\n### Acceptance Criteria\n- Given commitlint not installed When task complete Then commitlint packages installed\n- Given no commit-msg hook When task complete Then .husky/commit-msg exists\n- Given conventional commit (feat: add X) When committed Then commit succeeds\n- Given non-conventional commit (added X) When committed Then commit rejected\n- Given rejected commit When error shown Then includes guidance on correct format\n\n### Dependencies\nNone\n\n### Related Code\n- .husky/pre-commit — existing hook for reference\n- package.json — devDependencies\n\n### Verification\n- commitlint.config.js or similar config file exists\n- .husky/commit-msg hook exists\n- Test: echo 'bad commit' | npx commitlint fails\n- Test: echo 'feat: good commit' | npx commitlint passes",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2025-12-30T08:43:45.303Z"
       },
       {
         "id": "49",
@@ -820,9 +821,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-12-30T08:27:11.891Z",
+      "lastModified": "2025-12-30T08:43:45.304Z",
       "taskCount": 61,
-      "completedCount": 46,
+      "completedCount": 47,
       "tags": [
         "master"
       ]
