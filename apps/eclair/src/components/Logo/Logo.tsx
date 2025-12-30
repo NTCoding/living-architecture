@@ -61,7 +61,7 @@ function CircuitLogo({ size }: { size: number }): React.ReactElement {
   )
 }
 
-export function Logo({ size = 36 }: LogoProps): React.ReactElement {
+export function Logo({ size = 44 }: LogoProps): React.ReactElement {
   const { theme } = useTheme()
   const gradientId = `logo-gradient-${size}`
 

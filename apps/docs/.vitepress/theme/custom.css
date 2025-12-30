@@ -172,7 +172,12 @@ button:focus-visible,
 
 .VPNavBarTitle .title {
   font-family: 'Rubik', var(--vp-font-family-base);
+  font-size: 18px;
   font-weight: 600;
+  background: var(--stream-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 /* ==========================================================================

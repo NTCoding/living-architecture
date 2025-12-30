@@ -83,11 +83,15 @@ Logo with wordmark:
 ```html
 <div style="display: flex; align-items: center; gap: 16px;">
   <!-- Logo SVG here -->
-  <span style="font-family: 'Rubik', sans-serif; font-size: 18px; font-weight: 600; color: #0D9488;">
+  <span style="font-family: 'Rubik', sans-serif; font-size: 18px; font-weight: 600;
+    background: linear-gradient(90deg, #0D9488 0%, #06B6D4 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
     Éclair
   </span>
 </div>
 ```
+
+**Fallback:** Use solid `#0D9488` when CSS gradients aren't supported (plain text, email).
 
 ## Usage Rules
 

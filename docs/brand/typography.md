@@ -53,7 +53,8 @@ Font families and hierarchy for each theme.
 
 **Text:** "Éclair"
 **Font:** Rubik, 18px, 600 weight
-**Color:** `#0D9488` (teal)
+**Color:** Gradient (`#0D9488` → `#06B6D4`)
+**Fallback:** `#0D9488` (solid teal) for plain text contexts
 
 **Tagline:** "Code visualization platform"
 **Font:** Lato, 12px
