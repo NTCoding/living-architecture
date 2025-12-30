@@ -728,11 +728,11 @@
         "description": "Configure netlify.toml for multi-app deployment with routing",
         "details": "## Deliverable: Netlify builds and routes all three apps correctly\n\n### Context\nPRD Phase 9 (docs/project/PRD/active/PRD-phase-9-launch.md), Milestone 3, Deliverables D3.4 and D3.5.\n\nThe site has three apps that need to be served from different paths:\n- / serves landing page (docs homepage)\n- /docs/* serves documentation\n- /eclair/* serves visualizer\n\nNeed a netlify.toml that builds all apps and configures routing.\n\n### Key Decisions and Principles\n- Single build output combining all apps\n- Use Netlify redirects/rewrites for routing\n- Build command uses nx\n\n### Delivers\nNetlify can build and serve the complete site.\n\n### Acceptance Criteria\n- Given no netlify.toml When task complete Then netlify.toml exists at repo root\n- Given netlify.toml When build runs Then builds docs and eclair apps\n- Given built site When / requested Then serves docs homepage\n- Given built site When /docs/* requested Then serves documentation pages\n- Given built site When /eclair/* requested Then serves visualizer app\n- Given SPA routes in eclair When deep link accessed Then app handles routing\n\n### Dependencies\nNone\n\n### Related Code\n- apps/docs/ — VitePress documentation\n- apps/eclair/ — React visualizer app\n- nx.json — build configuration\n\n### Verification\n- netlify.toml exists\n- netlify build runs locally (or npx netlify-cli build)\n- Build output contains expected files\n- Test routing with local server",
         "testStrategy": "",
-        "status": "in-progress",
+        "status": "done",
         "dependencies": [],
         "priority": "high",
         "subtasks": [],
-        "updatedAt": "2025-12-30T10:02:03.694Z"
+        "updatedAt": "2025-12-30T15:12:44.310Z"
       },
       {
         "id": "55",
@@ -740,12 +740,13 @@
         "description": "Make repo public, register domain, configure Netlify project",
         "details": "## Deliverable: Netlify project connected and domain configured\n\n### Context\nPRD Phase 9 (docs/project/PRD/active/PRD-phase-9-launch.md), Milestone 3, Deliverables D3.1, D3.2, D3.3, D3.6.\n\nThese are manual steps that cannot be automated. This task serves as a checklist.\n\n### Key Decisions and Principles\n- Domain: living-architecture.dev\n- HTTPS required\n- Auto-deploy from main branch\n\n### Delivers\nSite accessible at living-architecture.dev with HTTPS.\n\n### Checklist\n- [ ] Make GitHub repo public (Settings > General > Danger Zone)\n- [ ] Verify repo accessible in incognito browser\n- [ ] Register living-architecture.dev domain\n- [ ] Create Netlify project connected to GitHub repo\n- [ ] Configure build command and publish directory in Netlify\n- [ ] Add custom domain in Netlify\n- [ ] Configure DNS to point to Netlify\n- [ ] Verify HTTPS certificate provisioned\n- [ ] Test site loads at living-architecture.dev\n\n### Dependencies\n- Task 54 (netlify.toml must exist)\n\n### Related Code\n- netlify.toml — Netlify reads this for build config\n\n### Verification\n- Repo accessible without authentication\n- living-architecture.dev loads with valid HTTPS\n- All three app paths work (/,  /docs/*, /eclair/*)",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           "54"
         ],
         "priority": "high",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2025-12-30T15:12:46.257Z"
       },
       {
         "id": "56",
@@ -753,12 +754,13 @@
         "description": "Test auto-deploy on push to main and PR preview deploys",
         "details": "## Deliverable: Confidence that deployments are automated\n\n### Context\nPRD Phase 9 (docs/project/PRD/active/PRD-phase-9-launch.md), Milestone 4, Deliverables D4.1 and D4.2.\n\nAfter Netlify is configured, verify that auto-deploy works for both pushes to main and PR previews.\n\n### Key Decisions and Principles\n- Zero manual deployment steps\n- Every PR gets a preview URL\n- Main branch always reflects production\n\n### Delivers\nAutomated deployment pipeline verified working.\n\n### Acceptance Criteria\n- Given change merged to main When Netlify triggers Then site rebuilds automatically\n- Given rebuild completes When site visited Then shows new content\n- Given PR opened When Netlify runs Then preview deploy created\n- Given preview deploy When PR page viewed Then includes preview URL link\n\n### Dependencies\n- Task 55 (Netlify fully configured)\n\n### Related Code\n- netlify.toml — deployment config\n\n### Verification\n- Make small documentation change\n- Create PR, verify preview URL appears\n- Merge PR, verify production updates",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           "55"
         ],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2025-12-30T15:12:48.179Z"
       },
       {
         "id": "57",
@@ -825,9 +827,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-12-30T10:02:03.695Z",
+      "lastModified": "2025-12-30T15:12:48.182Z",
       "taskCount": 61,
-      "completedCount": 50,
+      "completedCount": 53,
       "tags": [
         "master"
       ]
