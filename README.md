@@ -95,7 +95,7 @@ See the [extraction guide](https://living-architecture.dev/extract/) for AI-assi
 import { RiviereBuilder } from '@living-architecture/riviere-builder';
 
 const builder = RiviereBuilder.new({
-  sources: [{ repository: 'https://github.com/org/repo' }],
+  sources: [{ repository: 'https://github.com/your-org/your-repo' }],
   domains: {
     orders: { description: 'Order management', systemType: 'domain' }
   }

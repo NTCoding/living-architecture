@@ -70,3 +70,13 @@ export class InvalidEnrichmentTargetError extends Error {
     this.componentType = componentType
   }
 }
+
+export class CustomTypeAlreadyDefinedError extends Error {
+  readonly typeName: string
+
+  constructor(typeName: string) {
+    super(`Custom type '${typeName}' already defined`)
+    this.name = 'CustomTypeAlreadyDefinedError'
+    this.typeName = typeName
+  }
+}

@@ -21,7 +21,12 @@ import { calculateStats, findOrphans, findWarnings, toRiviereGraph, validateGrap
 import { assertCustomTypeExists, assertDomainExists, assertRequiredPropertiesProvided } from './builder-assertions'
 import { ComponentId } from '@living-architecture/riviere-schema'
 import { createSourceNotFoundError, findNearMatches } from './component-suggestion'
-import { DuplicateComponentError, DuplicateDomainError, InvalidEnrichmentTargetError } from './errors'
+import {
+  CustomTypeAlreadyDefinedError,
+  DuplicateComponentError,
+  DuplicateDomainError,
+  InvalidEnrichmentTargetError,
+} from './errors'
 import type {
   APIInput,
   BuilderOptions,
@@ -87,7 +92,7 @@ interface BuilderGraph extends Omit<RiviereGraph, 'metadata' | 'externalLinks'> 
  * import { RiviereBuilder } from '@living-architecture/riviere-builder'
  *
  * const builder = RiviereBuilder.new({
- *   sources: [{ type: 'git', url: 'https://github.com/org/repo' }],
+ *   sources: [{ type: 'git', url: 'https://github.com/your-org/your-repo' }],
  *   domains: { orders: { description: 'Order management' } }
  * })
  *
@@ -158,7 +163,7 @@ export class RiviereBuilder {
    * ```typescript
    * const builder = RiviereBuilder.new({
    *   name: 'My System',
-   *   sources: [{ type: 'git', url: 'https://github.com/org/repo' }],
+   *   sources: [{ type: 'git', url: 'https://github.com/your-org/your-repo' }],
    *   domains: {
    *     orders: { description: 'Order management' },
    *     users: { description: 'User accounts' }
@@ -201,7 +206,7 @@ export class RiviereBuilder {
    * ```typescript
    * builder.addSource({
    *   type: 'git',
-   *   url: 'https://github.com/org/another-repo'
+   *   url: 'https://github.com/your-org/another-repo'
    * })
    * ```
    */
@@ -487,7 +492,7 @@ export class RiviereBuilder {
     const customTypes = this.graph.metadata.customTypes
 
     if (customTypes[input.name]) {
-      throw new Error(`Custom type '${input.name}' already defined`)
+      throw new CustomTypeAlreadyDefinedError(input.name)
     }
 
     customTypes[input.name] = {

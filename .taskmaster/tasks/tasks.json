@@ -718,10 +718,11 @@
         "description": "Verify docs homepage renders correctly with working links",
         "details": "## Deliverable: Landing page ready for launch\n\n### Context\nPRD Phase 9 (docs/project/PRD/active/PRD-phase-9-launch.md), Milestone 2, Deliverables D2.1-D2.4.\n\nThe landing page already exists at apps/docs/index.md. This task validates it builds correctly, all links work, content is accurate, and the hero screenshot displays.\n\n### Key Decisions and Principles\n- Validation only, not creation\n- All links must resolve (internal and external)\n- Content must reflect current state of project\n\n### Delivers\nConfidence that landing page is launch-ready.\n\n### Acceptance Criteria\n- Given docs app When nx build docs runs Then build succeeds\n- Given built docs When homepage loaded Then renders without console errors\n- Given Get Started link When clicked Then navigates to getting started page\n- Given View Demo link When clicked Then navigates to Eclair\n- Given GitHub link When clicked Then opens GitHub repo\n- Given all internal links When clicked Then navigate correctly\n- Given hero screenshot When page loads Then image displays correctly\n- Given content When reviewed Then accurately describes the project\n\n### Dependencies\nNone\n\n### Related Code\n- apps/docs/index.md — landing page content\n- apps/docs/.vitepress/ — VitePress config\n- apps/docs/public/eclair-hero.png — hero screenshot\n\n### Verification\n- nx build docs succeeds\n- nx serve docs and visually inspect homepage\n- Click all links and verify navigation\n- Check browser console for errors",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2025-12-30T22:25:18.339Z"
       },
       {
         "id": "54",
@@ -794,10 +795,11 @@
         "description": "Update github.com/org placeholder URLs to actual repo URLs",
         "details": "## Deliverable: No placeholder URLs remain in documentation\n\n### Context\nPRD Phase 9 (docs/project/PRD/active/PRD-phase-9-launch.md), Milestone 6, Deliverable D6.4.\n\nDocumentation contains placeholder URLs like github.com/org/... that need to be replaced with github.com/ntcoding/living-architecture.\n\n### Key Decisions and Principles\n- Replace all instances consistently\n- Check both markdown files and source code JSDoc\n\n### Delivers\nAll documentation links point to real URLs.\n\n### Acceptance Criteria\n- Given placeholder URL github.com/org When searched Then no results\n- Given apps/docs/reference/api/index.md When checked Then has correct URLs\n- Given apps/docs/reference/cli/cli-reference.md When checked Then has correct URLs\n- Given apps/docs/extract/steps/step-3-extract.md When checked Then has correct URLs\n- Given packages/riviere-builder/src/builder.ts JSDoc When checked Then has correct URLs\n\n### Dependencies\nNone\n\n### Related Code\n- apps/docs/reference/api/index.md\n- apps/docs/reference/cli/cli-reference.md\n- apps/docs/extract/steps/step-3-extract.md\n- packages/riviere-builder/src/builder.ts\n\n### Verification\ngrep -r 'github.com/org' apps/docs packages/ returns no results",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2025-12-30T22:15:48.116Z"
       },
       {
         "id": "60",
@@ -829,9 +831,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-12-30T16:28:44.648Z",
+      "lastModified": "2025-12-30T22:25:18.340Z",
       "taskCount": 61,
-      "completedCount": 54,
+      "completedCount": 56,
       "tags": [
         "master"
       ]

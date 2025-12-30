@@ -10,7 +10,7 @@ The main class. Create an instance, add components, connect them, build a graph.
 import { RiviereBuilder } from '@living-architecture/riviere-builder'
 
 const builder = RiviereBuilder.new({
-  sources: [{ type: 'git', url: 'https://github.com/org/repo' }],
+  sources: [{ type: 'git', url: 'https://github.com/your-org/your-repo' }],
   domains: {
     orders: { description: 'Order management', systemType: 'domain' }
   }

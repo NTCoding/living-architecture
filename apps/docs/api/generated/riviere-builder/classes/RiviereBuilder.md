@@ -13,7 +13,7 @@ linking them together, and exporting valid JSON conforming to the Rivière schem
 import { RiviereBuilder } from '@living-architecture/riviere-builder'
 
 const builder = RiviereBuilder.new({
-  sources: [{ type: 'git', url: 'https://github.com/org/repo' }],
+  sources: [{ type: 'git', url: 'https://github.com/your-org/your-repo' }],
   domains: { orders: { description: 'Order management' } }
 })
 
@@ -316,7 +316,7 @@ Source repository information
 ```typescript
 builder.addSource({
   type: 'git',
-  url: 'https://github.com/org/another-repo'
+  url: 'https://github.com/your-org/another-repo'
 })
 ```
 
@@ -877,7 +877,7 @@ If domains object is empty
 ```typescript
 const builder = RiviereBuilder.new({
   name: 'My System',
-  sources: [{ type: 'git', url: 'https://github.com/org/repo' }],
+  sources: [{ type: 'git', url: 'https://github.com/your-org/your-repo' }],
   domains: {
     orders: { description: 'Order management' },
     users: { description: 'User accounts' }

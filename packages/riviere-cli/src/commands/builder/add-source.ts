@@ -17,8 +17,8 @@ export function createAddSourceCommand(): Command {
       'after',
       `
 Examples:
-  $ riviere builder add-source --repository https://github.com/org/orders-service
-  $ riviere builder add-source --repository https://github.com/org/payments-api --json
+  $ riviere builder add-source --repository https://github.com/your-org/orders-service
+  $ riviere builder add-source --repository https://github.com/your-org/payments-api --json
 `
     )
     .requiredOption('--repository <url>', 'Source repository URL')

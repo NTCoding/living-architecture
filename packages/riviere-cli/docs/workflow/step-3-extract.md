@@ -16,13 +16,13 @@ Find all component instances using patterns from Step 2 and add them to the grap
 Create graph with sources and domains:
 ```bash
 riviere builder init \
-  --source "https://github.com/org/[repo-name]" \
+  --source "https://github.com/your-org/your-repo" \
   --domain '{"name":"[name]","description":"[desc]","systemType":"domain"}'
 ```
 
 Add additional sources if needed:
 ```bash
-riviere builder add-source --repository "https://github.com/org/[repo-name]"
+riviere builder add-source --repository "https://github.com/your-org/your-repo"
 ```
 
 Add additional domains if needed:

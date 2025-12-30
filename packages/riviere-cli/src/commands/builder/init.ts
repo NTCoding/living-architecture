@@ -58,12 +58,12 @@ export function createInitCommand(): Command {
       'after',
       `
 Examples:
-  $ riviere builder init --source https://github.com/org/repo \\
+  $ riviere builder init --source https://github.com/your-org/your-repo \\
       --domain '{"name":"orders","description":"Order management","systemType":"domain"}'
 
   $ riviere builder init --name "ecommerce" \\
-      --source https://github.com/org/orders \\
-      --source https://github.com/org/payments \\
+      --source https://github.com/your-org/orders \\
+      --source https://github.com/your-org/payments \\
       --domain '{"name":"orders","description":"Order management","systemType":"domain"}' \\
       --domain '{"name":"payments","description":"Payment processing","systemType":"domain"}'
 `
