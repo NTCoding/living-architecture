@@ -21,9 +21,9 @@
      inkscape:pageopacity="0.0"
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="1.1196843"
-     inkscape:cx="311.69499"
-     inkscape:cy="120.12314"
+     inkscape:zoom="1.2354457"
+     inkscape:cx="263.87237"
+     inkscape:cy="65.158669"
      inkscape:window-width="1648"
      inkscape:window-height="912"
      inkscape:window-x="0"
@@ -210,12 +210,42 @@
   <g
      transform="translate(43.12882,115.13721)"
      id="g-yourcode">
-    <g transform="translate(-12,-32)">
+    <g
+       transform="translate(-12,-32)"
+       id="g4">
       <!-- Lucide file-code icon -->
-      <path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="M14 2v5a1 1 0 0 0 1 1h5" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="M10 12.5 8 15l2 2.5" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="m14 12.5 2 2.5-2 2.5" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <path
+         d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"
+         fill="none"
+         stroke="#64748B"
+         stroke-width="2"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         id="path1" />
+      <path
+         d="M14 2v5a1 1 0 0 0 1 1h5"
+         fill="none"
+         stroke="#64748B"
+         stroke-width="2"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         id="path2" />
+      <path
+         d="M10 12.5 8 15l2 2.5"
+         fill="none"
+         stroke="#64748B"
+         stroke-width="2"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         id="path3" />
+      <path
+         d="m14 12.5 2 2.5-2 2.5"
+         fill="none"
+         stroke="#64748B"
+         stroke-width="2"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         id="path4" />
     </g>
     <text
        x="0"
@@ -231,10 +261,26 @@
   <g
      transform="translate(166.5,50)"
      id="g-extraction">
-    <g transform="translate(-12,-12)">
+    <g
+       transform="translate(-12,-12)"
+       id="g5">
       <!-- Lucide settings icon -->
-      <path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      <circle cx="12" cy="12" r="3" fill="none" stroke="#64748B" stroke-width="2"/>
+      <path
+         d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"
+         fill="none"
+         stroke="#64748B"
+         stroke-width="2"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         id="path5" />
+      <circle
+         cx="12"
+         cy="12"
+         r="3"
+         fill="none"
+         stroke="#64748B"
+         stroke-width="2"
+         id="circle5" />
     </g>
     <text
        x="0"
@@ -259,12 +305,40 @@
   <g
      transform="translate(167.56636,187.37813)"
      id="g-ai">
-    <g transform="translate(-12,-32)">
+    <g
+       transform="translate(-12,-32)"
+       id="g8">
       <!-- Lucide sparkles icon -->
-      <path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="M20 2v4" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round"/>
-      <path d="M22 4h-4" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round"/>
-      <circle cx="4" cy="20" r="2" fill="none" stroke="#64748B" stroke-width="2"/>
+      <path
+         d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"
+         fill="none"
+         stroke="#64748B"
+         stroke-width="2"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         id="path6" />
+      <path
+         d="M20 2v4"
+         fill="none"
+         stroke="#64748B"
+         stroke-width="2"
+         stroke-linecap="round"
+         id="path7" />
+      <path
+         d="M22 4h-4"
+         fill="none"
+         stroke="#64748B"
+         stroke-width="2"
+         stroke-linecap="round"
+         id="path8" />
+      <circle
+         cx="4"
+         cy="20"
+         r="2"
+         fill="none"
+         stroke="#64748B"
+         stroke-width="2"
+         id="circle8" />
     </g>
     <text
        x="0"
@@ -280,11 +354,37 @@
   <g
      transform="translate(312.14152,188.73589)"
      id="g-cli">
-    <g transform="translate(-12,-32)">
+    <g
+       transform="translate(-12,-32)"
+       id="g10">
       <!-- Lucide square-terminal icon -->
-      <rect x="3" y="3" width="18" height="18" rx="2" ry="2" fill="none" stroke="#0D9488" stroke-width="2"/>
-      <path d="m7 11 2-2-2-2" fill="none" stroke="#0D9488" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="M11 13h4" fill="none" stroke="#0D9488" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <rect
+         x="3"
+         y="3"
+         width="18"
+         height="18"
+         rx="2"
+         ry="2"
+         fill="none"
+         stroke="#0D9488"
+         stroke-width="2"
+         id="rect8" />
+      <path
+         d="m7 11 2-2-2-2"
+         fill="none"
+         stroke="#0D9488"
+         stroke-width="2"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         id="path9" />
+      <path
+         d="M11 13h4"
+         fill="none"
+         stroke="#0D9488"
+         stroke-width="2"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         id="path10" />
     </g>
     <text
        x="0"
@@ -300,12 +400,42 @@
   <g
      transform="translate(305.96777,64.761058)"
      id="g-builder">
-    <g transform="translate(-12,-32)">
+    <g
+       transform="translate(-12,-32)"
+       id="g13">
       <!-- Lucide package icon -->
-      <path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z" fill="none" stroke="#0D9488" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="M12 22V12" fill="none" stroke="#0D9488" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      <polyline points="3.29 7 12 12 20.71 7" fill="none" stroke="#0D9488" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="m7.5 4.27 9 5.15" fill="none" stroke="#0D9488" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <path
+         d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"
+         fill="none"
+         stroke="#0D9488"
+         stroke-width="2"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         id="path11" />
+      <path
+         d="M12 22V12"
+         fill="none"
+         stroke="#0D9488"
+         stroke-width="2"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         id="path12" />
+      <polyline
+         points="3.29 7 12 12 20.71 7"
+         fill="none"
+         stroke="#0D9488"
+         stroke-width="2"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         id="polyline12" />
+      <path
+         d="m7.5 4.27 9 5.15"
+         fill="none"
+         stroke="#0D9488"
+         stroke-width="2"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         id="path13" />
     </g>
     <text
        x="0"
@@ -446,6 +576,15 @@
      marker-end="url(#arrow-gray)"
      id="curve-extract-code-to-yourcode"
      sodipodi:nodetypes="cc" />
+  <text
+     x="77.505241"
+     y="54.505241"
+     font-family="Rubik, sans-serif"
+     font-size="10px"
+     font-weight="500"
+     fill="#64748b"
+     text-anchor="middle"
+     id="text13">extracts</text>
   <!-- AI → Your Code (extracts) - gentle S-curve up-left -->
   <path
      d="M 148,168 C 120,160 95.323012,155.32638 77.323012,140.32638"
@@ -457,6 +596,15 @@
      marker-end="url(#arrow-gray)"
      id="curve-ai-to-yourcode"
      sodipodi:nodetypes="cc" />
+  <text
+     x="105.7652"
+     y="177.10692"
+     font-family="Rubik, sans-serif"
+     font-size="10px"
+     font-weight="500"
+     fill="#64748b"
+     text-anchor="middle"
+     id="text14">extracts</text>
   <!-- AI → CLI (uses) - gentle arc right -->
   <path
      d="m 190,178 c 30,-3 59.34135,-3.53293 84.34135,-0.53293"
@@ -499,6 +647,15 @@
      fill="none"
      marker-end="url(#arrow-teal)"
      id="curve-builder-to-schema" />
+  <text
+     x="380"
+     y="66.352203"
+     font-family="Rubik, sans-serif"
+     font-size="10px"
+     font-weight="500"
+     fill="#0d9488"
+     text-anchor="middle"
+     id="text15">builds</text>
   <!-- Query → Schema (queries) - gentle arc left -->
   <path
      d="M 561.71785,119.24102 C 531.71785,114.24102 510,112 480,115"
@@ -510,6 +667,15 @@
      marker-end="url(#arrow-teal)"
      id="curve-query-to-schema"
      sodipodi:nodetypes="cc" />
+  <text
+     x="523.45911"
+     y="105.69392"
+     font-family="Rubik, sans-serif"
+     font-size="10px"
+     font-weight="500"
+     fill="#0d9488"
+     text-anchor="middle"
+     id="text16">queries</text>
   <!-- Éclair → Query (uses) - gentle arc left -->
   <path
      d="m 682.17613,121.13847 c -30,-5 -39.8204,-6.13847 -59.8204,-1.13847"
@@ -526,7 +692,14 @@
   <g
      id="label-extract"
      transform="translate(119, 250)">
-    <line x1="-50" y1="-12" x2="50" y2="-12" stroke="#E2E8F0" stroke-width="1" id="line-extract"/>
+    <line
+       x1="-50"
+       y1="-12"
+       x2="50"
+       y2="-12"
+       stroke="#E2E8F0"
+       stroke-width="1"
+       id="line-extract" />
     <text
        x="0"
        y="4"
@@ -549,10 +722,26 @@
   <g
      transform="translate(591.53442,137.51843)"
      id="g-query">
-    <g transform="translate(-12,-32)">
+    <g
+       transform="translate(-12,-32)"
+       id="g17">
       <!-- Lucide braces icon -->
-      <path d="M8 3H7a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5c0 1.1.9 2 2 2h1" fill="none" stroke="#0D9488" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="M16 21h1a2 2 0 0 0 2-2v-5c0-1.1.9-2 2-2a2 2 0 0 1-2-2V5a2 2 0 0 0-2-2h-1" fill="none" stroke="#0D9488" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <path
+         d="M8 3H7a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5c0 1.1.9 2 2 2h1"
+         fill="none"
+         stroke="#0D9488"
+         stroke-width="2"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         id="path16" />
+      <path
+         d="M16 21h1a2 2 0 0 0 2-2v-5c0-1.1.9-2 2-2a2 2 0 0 1-2-2V5a2 2 0 0 0-2-2h-1"
+         fill="none"
+         stroke="#0D9488"
+         stroke-width="2"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         id="path17" />
     </g>
     <text
        x="0"
@@ -576,7 +765,9 @@
   <g
      transform="translate(708.08591,137.49126)"
      id="g-eclair">
-    <g transform="translate(-12,-32)">
+    <g
+       transform="translate(-12,-32)"
+       id="g18">
       <path
          d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"
          fill="none"
@@ -600,7 +791,14 @@
   <g
      id="label-build"
      transform="translate(385, 250)">
-    <line x1="-50" y1="-12" x2="50" y2="-12" stroke="#99F6E4" stroke-width="1" id="line-build"/>
+    <line
+       x1="-50"
+       y1="-12"
+       x2="50"
+       y2="-12"
+       stroke="#99F6E4"
+       stroke-width="1"
+       id="line-build" />
     <text
        x="0"
        y="4"
@@ -624,7 +822,14 @@
   <g
      id="label-visualize"
      transform="translate(653, 250)">
-    <line x1="-60" y1="-12" x2="60" y2="-12" stroke="#A5F3FC" stroke-width="1" id="line-visualize"/>
+    <line
+       x1="-60"
+       y1="-12"
+       x2="60"
+       y2="-12"
+       stroke="#A5F3FC"
+       stroke-width="1"
+       id="line-visualize" />
     <text
        x="0"
        y="4"

@@ -22,7 +22,7 @@
     "!**/*.tsbuildinfo"
   ],
   "bin": {
-    "riviere": "./dist/index.js"
+    "riviere": "./dist/bin.js"
   },
   "dependencies": {
     "@living-architecture/riviere-builder": "workspace:*",

@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { GraphProvider, useGraph, fetchAndValidateDemoGraph } from './GraphContext'
+import { GraphProvider, useGraph, fetchAndValidateDemoGraph, buildDemoGraphUrl } from './GraphContext'
 import type { RiviereGraph } from '@/types/riviere'
 import { parseNode, parseDomainKey } from '@/lib/riviereTestData'
 
@@ -221,7 +221,17 @@ describe('GraphContext', () => {
       expect(screen.getByTestId('has-graph')).toHaveTextContent('yes')
       expect(screen.getByTestId('graph-name')).toHaveTextContent('Test Graph')
     })
+  })
 
+  describe('buildDemoGraphUrl', () => {
+    afterEach(() => {
+      vi.unstubAllEnvs()
+    })
+
+    it('builds URL using Vite base path', () => {
+      vi.stubEnv('BASE_URL', '/eclair/')
+      expect(buildDemoGraphUrl()).toBe('/eclair/ecommerce-complete.json')
+    })
   })
 
   describe('fetchAndValidateDemoGraph', () => {

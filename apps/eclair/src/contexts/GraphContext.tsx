@@ -14,10 +14,14 @@ interface GraphContextValue {
 
 const graphContext = createContext<GraphContextValue | null>(null)
 
-const DEFAULT_GRAPH_URL = '/ecommerce-complete.json'
+const DEMO_GRAPH_FILENAME = 'ecommerce-complete.json'
 const DEFAULT_GITHUB_ORG = 'https://github.com/NTCoding'
 
-export async function fetchAndValidateDemoGraph(url: string = DEFAULT_GRAPH_URL): Promise<RiviereGraph> {
+export function buildDemoGraphUrl(): string {
+  return `${import.meta.env.BASE_URL}${DEMO_GRAPH_FILENAME}`
+}
+
+export async function fetchAndValidateDemoGraph(url: string = buildDemoGraphUrl()): Promise<RiviereGraph> {
   const response = await fetch(url)
   if (!response.ok) {
     throw new Error(`Failed to fetch demo graph: ${response.status}`)

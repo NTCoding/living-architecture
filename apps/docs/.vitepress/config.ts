@@ -105,7 +105,7 @@ export default defineConfig({
     ],
 
     footer: {
-      message: 'Released under the MIT License. Created by <a href="https://nick-tune.me">Nick Tune</a> (<a href="https://bsky.app/profile/nick-tune.me">Bluesky</a>, <a href="https://linkedin.com/in/nick-tune">LinkedIn</a>, <a href="https://github.com/ntcoding">GitHub</a>)',
+      message: 'Released under the Apache 2.0 License. Created by <a href="https://nick-tune.me">Nick Tune</a> (<a href="https://bsky.app/profile/nick-tune.me">Bluesky</a>, <a href="https://linkedin.com/in/nick-tune">LinkedIn</a>, <a href="https://github.com/ntcoding">GitHub</a>)',
       copyright: 'Copyright © 2025 Rivière'
     }
   }

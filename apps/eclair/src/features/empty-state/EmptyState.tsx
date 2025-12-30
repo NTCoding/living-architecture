@@ -52,9 +52,10 @@ export function EmptyState(): React.ReactElement {
         <a
           href="?demo=true"
           className="inline-flex items-center gap-2 px-6 py-2 rounded-[var(--radius)]
-                     bg-gradient-to-r from-[var(--primary)] to-[var(--primary-dark)]
-                     text-white font-medium hover:shadow-lg transition-all duration-200"
+                     border-2 border-[var(--primary)] text-[var(--primary)]
+                     font-medium hover:bg-[var(--primary)]/10 transition-all duration-200"
         >
+          <i className="ph ph-play-circle" aria-hidden="true" />
           View Demo
         </a>
       </div>

@@ -33,7 +33,7 @@
     "@swc/helpers": "~0.5.11",
     "@types/node": "20.19.9",
     "@vitest/coverage-v8": "^4.0.16",
-    "esbuild": "^0.19.2",
+    "esbuild": "^0.19.12",
     "eslint": "^9.39.0",
     "eslint-plugin-functional": "^9.0.2",
     "eslint-plugin-import": "^2.32.0",

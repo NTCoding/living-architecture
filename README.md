@@ -37,14 +37,48 @@ These are the standard types. Define custom types for anything that doesn't fit 
 
 The Rivière schema is language-agnostic. Extract architecture from any codebase — TypeScript, Java, Python, Go, or any combination.
 
-## Quick Start
+## Try It
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+### Try the Demo
+
+Open Éclair and explore a sample architecture graph.
+
+**[View Demo →](https://living-architecture.dev/eclair/?demo=true)**
+
+**Sample graph:** [ecommerce-complete.json](https://raw.githubusercontent.com/NTCoding/living-architecture/main/apps/eclair/public/ecommerce-complete.json)
+
+</td>
+<td width="50%" valign="top">
+
+### Run Locally
+
+Clone the repo and run Éclair with the demo graph.
+
+```bash
+git clone https://github.com/NTCoding/living-architecture.git
+cd living-architecture
+pnpm install
+nx serve eclair
+```
+
+Open [localhost:5173/eclair](http://localhost:5173/eclair/)
+
+</td>
+</tr>
+</table>
+
+## Extract Your Own Architecture
 
 ```bash
 npm install -g @living-architecture/riviere-cli
 riviere builder init --domain orders --output graph.json
 ```
 
-See the [extraction guide](./apps/docs/extract/) for AI-assisted extraction.
+See the [extraction guide](https://living-architecture.dev/extract/) for AI-assisted extraction.
 
 ## Packages
 
@@ -156,4 +190,4 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ## License
 
-MIT
+Apache-2.0

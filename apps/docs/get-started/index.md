@@ -4,6 +4,29 @@ Rivière provides tools for building and querying flow-based architecture graphs
 
 **Schema version:** `v1.0`
 
+## Try Éclair First
+
+See what Rivière produces before building your own graph.
+
+### Online Demo
+
+**[View Demo →](https://living-architecture.dev/eclair/?demo=true)** — Explore a sample e-commerce architecture
+
+Or download the sample: [ecommerce-complete.json](https://raw.githubusercontent.com/NTCoding/living-architecture/main/apps/eclair/public/ecommerce-complete.json)
+
+### Run Locally {#run-locally}
+
+```bash
+git clone https://github.com/NTCoding/living-architecture.git
+cd living-architecture
+pnpm install
+nx serve eclair
+```
+
+Open [localhost:5173/eclair](http://localhost:5173/eclair/) — the demo graph is available at `/ecommerce-complete.json`
+
+---
+
 ## What You'll Learn
 
 - How Rivière represents operational flow across your system

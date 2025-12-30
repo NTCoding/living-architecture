@@ -1,6 +1,18 @@
 {
   "name": "riviere-cli",
   "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "node esbuild.config.mjs",
+          "tsc --emitDeclarationOnly --declaration --declarationDir dist"
+        ],
+        "cwd": "{projectRoot}",
+        "parallel": false
+      },
+      "outputs": ["{projectRoot}/dist"]
+    },
     "generate-docs": {
       "executor": "nx:run-commands",
       "options": {
