@@ -1,36 +1,29 @@
 # Architecture Overview
 
-## C4 Context
+![Rivière workflow: extracting architecture from code, building the schema graph, and visualizing it](../../apps/docs/public/workflow-infographic.svg)
 
-[Draw a simple sketch diagram showing the system in its environment]
+## Components
 
-- What systems does this interact with?
-- Who are the users?
-- What are the main data flows?
+### Your Code
+The source code from which architecture is extracted. Rivière reads your codebase to build a living representation of how operations flow through your system.
 
-## C4 Containers
+### Extraction Code
+Custom scripts or code you write to extract architecture from your codebase. Uses the Rivière Builder library to parse your code and emit schema components.
 
-[Draw a simple sketch diagram showing high-level technical building blocks]
+### AI
+AI-assisted extraction as an alternative to writing extraction code. Can analyze your codebase and generate Rivière schema components.
 
-- What are the main deployable units?
-- How do they communicate?
-- What technologies are used?
+### Rivière CLI
+Command-line interface for building and validating schemas. Provides an interactive workflow for defining domains, components, and links.
 
-## External Dependencies
+### Rivière Builder
+Node.js library for programmatically building the schema graph. Used by extraction code and the CLI to construct the schema.
 
-[List external services, APIs, third-party systems]
+### Rivière Schema
+The central graph-based representation of your architecture. Captures domains, operations, entities, events, and the flows between them.
 
-- Service name: purpose, criticality, owner
+### Rivière Query
+Browser-safe library for querying the schema. Provides methods to traverse flows, find components, and analyze the architecture graph.
 
-## Legacy Systems
-
-[Any legacy systems this interacts with or replaces]
-
-- What are we migrating from?
-- What integration points exist?
-
-## Known Tech Debt & Migrations
-
-[Current tech debt, planned migrations, known issues]
-
-- Issue: impact, planned resolution
+### Éclair
+Web application for visualizing and exploring your architecture. Renders the schema as interactive diagrams showing domains, flows, and component relationships.
