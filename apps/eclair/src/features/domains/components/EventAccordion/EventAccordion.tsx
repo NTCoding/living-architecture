@@ -145,11 +145,11 @@ export function EventAccordion({
 }
 
 interface SchemaHighlightProps {
-  schema: Record<string, unknown>
+  schema: string
 }
 
 function SchemaHighlight({ schema }: SchemaHighlightProps): React.ReactElement {
-  const formatted = useMemo(() => JSON.stringify(schema, null, 2), [schema])
+  const formatted = useMemo(() => schema, [schema])
   const tokens = useMemo(() => highlightTypeSchema(formatted), [formatted])
 
   return (

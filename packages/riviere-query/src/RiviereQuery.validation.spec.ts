@@ -64,56 +64,6 @@ describe('RiviereQuery validate()', () => {
     expect(result.errors[0]?.message).toContain('CronJob')
   })
 
-  it('returns INVALID_TYPE when Custom component is missing required custom type property', () => {
-    const graph = createMinimalValidGraph()
-    graph.metadata.customTypes = {
-      CronJob: {
-        description: 'Scheduled background job',
-        requiredProperties: { schedule: { type: 'string', description: 'Cron expression' } },
-      },
-    }
-    graph.components.push({
-      id: 'test:mod:custom:cronjob',
-      type: 'Custom',
-      customTypeName: 'CronJob',
-      name: 'Update Tracking Cron',
-      domain: 'test',
-      module: 'mod',
-      sourceLocation: { repository: 'test-repo', filePath: 'cron.ts' },
-    })
-    const query = new RiviereQuery(graph)
-    const result = query.validate()
-    expect(result.valid).toBe(false)
-    expect(result.errors).toHaveLength(1)
-    expect(result.errors[0]?.code).toBe('INVALID_TYPE')
-    expect(result.errors[0]?.path).toBe('/components/1')
-    expect(result.errors[0]?.message).toContain('schedule')
-  })
-
-  it('returns valid when Custom component has all required custom type properties', () => {
-    const graph = createMinimalValidGraph()
-    graph.metadata.customTypes = {
-      CronJob: {
-        description: 'Scheduled background job',
-        requiredProperties: { schedule: { type: 'string', description: 'Cron expression' } },
-      },
-    }
-    graph.components.push({
-      id: 'test:mod:custom:cronjob',
-      type: 'Custom',
-      customTypeName: 'CronJob',
-      name: 'Update Tracking Cron',
-      domain: 'test',
-      module: 'mod',
-      sourceLocation: { repository: 'test-repo', filePath: 'cron.ts' },
-      metadata: { schedule: '0 * * * *' },
-    })
-    const query = new RiviereQuery(graph)
-    const result = query.validate()
-    expect(result.valid).toBe(true)
-    expect(result.errors).toEqual([])
-  })
-
   it('returns valid when Custom type has no requiredProperties', () => {
     const graph = createMinimalValidGraph()
     graph.metadata.customTypes = {

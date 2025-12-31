@@ -14,7 +14,7 @@ import type {
   EntryPoint,
   NodeId,
 } from '@/types/riviere'
-import { invariantSchema, nodeIdSchema } from '@/types/riviere'
+import { nodeIdSchema } from '@/types/riviere'
 import { RiviereQuery } from '@living-architecture/riviere-query'
 import type { NodeBreakdown } from './domainNodeBreakdown'
 export type { NodeBreakdown } from './domainNodeBreakdown'
@@ -77,7 +77,7 @@ export interface EventSubscriber {
 export interface DomainEvent {
   id: string
   eventName: string
-  schema: Record<string, unknown> | undefined
+  schema: string | undefined
   sourceLocation: SourceLocation | undefined
   handlers: EventSubscriber[]
 }
@@ -130,36 +130,6 @@ export interface DomainDetails {
 
 export type DomainDetailsType = DomainDetails | null
 
-function mergeEntityMetadata(
-  entities: DomainEntity[],
-  domainMeta: NonNullable<RiviereGraph['metadata']['domains'][string]>
-): DomainEntity[] {
-  const entityMetadata = domainMeta.entities ?? {}
-
-  return entities.map((entity) => {
-    const metadata = entityMetadata[entity.name]
-    if (metadata === undefined) {
-      return entity
-    }
-
-    return {
-      ...entity,
-      description: metadata.description,
-      invariants: (metadata.invariants ?? []).map((inv: string) => invariantSchema.parse(inv)),
-    }
-  })
-}
-
-function isObjectRecord(value: unknown): value is Record<string, unknown> {
-  return value !== null && typeof value === 'object' && !Array.isArray(value)
-}
-
-function validateEventSchema(schema: unknown): Record<string, unknown> | undefined {
-  if (typeof schema === 'string') return undefined
-  if (isObjectRecord(schema)) return schema
-  return undefined
-}
-
 function buildCrossDomainEdges(
   graph: RiviereGraph,
   domainId: DomainName
@@ -204,8 +174,7 @@ export function extractDomainDetails(graph: RiviereGraph, domainId: DomainName):
 
   const breakdown = countNodesByType(domainNodes)
   const nodes = formatDomainNodes(domainNodes)
-  const extractedEntities = extractEntities(domainNodes)
-  const entities = mergeEntityMetadata(extractedEntities, domainMeta)
+  const entities = extractEntities(domainNodes)
 
   const queryPublished = query.publishedEvents(domainId)
   const queryHandlers = query.eventHandlers()
@@ -216,9 +185,7 @@ export function extractDomainDetails(graph: RiviereGraph, domainId: DomainName):
   const publishedEvents: DomainEvent[] = queryPublished.map((pe) => {
     const nodeId = nodeIdSchema.parse(pe.id)
     const component = componentById.get(nodeId)
-    const schema = component?.metadata !== undefined && component.metadata['schema'] !== undefined
-      ? validateEventSchema(component.metadata['schema'])
-      : undefined
+    const schema = component?.type === 'Event' ? component.eventSchema : undefined
     return {
       id: pe.id,
       eventName: pe.eventName,

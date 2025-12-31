@@ -151,26 +151,5 @@ describe('RiviereBuilder custom types', () => {
         })
       ).toThrow("Missing required properties for 'MessageQueue': queueName, messageType")
     })
-
-    it('succeeds when all required properties are provided in metadata', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
-      builder.defineCustomType({
-        name: 'MessageQueue',
-        requiredProperties: {
-          queueName: { type: 'string' },
-        },
-      })
-
-      const component = builder.addCustom({
-        customTypeName: 'MessageQueue',
-        name: 'Order Queue',
-        domain: 'orders',
-        module: 'messaging',
-        sourceLocation: { repository: 'my-org/my-repo', filePath: 'src/queues.ts' },
-        metadata: { queueName: 'orders-queue' },
-      })
-
-      expect(component.metadata).toEqual({ queueName: 'orders-queue' })
-    })
   })
 })

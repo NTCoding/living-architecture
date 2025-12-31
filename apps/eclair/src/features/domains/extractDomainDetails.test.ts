@@ -146,8 +146,8 @@ describe('extractDomainDetails', () => {
             name: 'OrderPlaced',
             domain: 'order-domain',
             eventName: 'OrderPlaced',
+            eventSchema: '{ orderId: string, items: Item[] }',
             sourceLocation: { repository: 'test-repo', filePath: 'src/events.ts', lineNumber: 10 },
-            metadata: { schema: { orderId: 'string', items: 'Item[]' } },
           }),
         ],
       })
@@ -158,7 +158,7 @@ describe('extractDomainDetails', () => {
       expect(result?.events.published[0]).toEqual({
         id: 'evt-1',
         eventName: 'OrderPlaced',
-        schema: { orderId: 'string', items: 'Item[]' },
+        schema: '{ orderId: string, items: Item[] }',
         sourceLocation: { repository: 'test-repo', filePath: 'src/events.ts', lineNumber: 10 },
         handlers: [],
       })

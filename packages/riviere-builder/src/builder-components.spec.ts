@@ -33,7 +33,7 @@ describe('RiviereBuilder components', () => {
       })
     })
 
-    it('includes optional description and metadata when provided', () => {
+    it('includes optional description when provided', () => {
       const builder = RiviereBuilder.new(createValidOptions())
 
       const component = builder.addUI({
@@ -43,11 +43,9 @@ describe('RiviereBuilder components', () => {
         route: '/checkout',
         description: 'Main checkout page',
         sourceLocation: { repository: 'my-org/my-repo', filePath: 'src/pages/checkout.tsx' },
-        metadata: { priority: 'high' },
       })
 
       expect(component.description).toBe('Main checkout page')
-      expect(component.metadata).toEqual({ priority: 'high' })
     })
 
     it("throws when domain does not exist", () => {
@@ -133,7 +131,7 @@ describe('RiviereBuilder components', () => {
       })
     })
 
-    it('includes optional description and metadata when provided', () => {
+    it('includes optional description when provided', () => {
       const builder = RiviereBuilder.new(createValidOptions())
 
       const component = builder.addApi({
@@ -145,11 +143,9 @@ describe('RiviereBuilder components', () => {
         path: '/orders',
         description: 'Creates a new order',
         sourceLocation: { repository: 'my-org/my-repo', filePath: 'src/api/orders.ts' },
-        metadata: { rateLimit: 100 },
       })
 
       expect(component.description).toBe('Creates a new order')
-      expect(component.metadata).toEqual({ rateLimit: 100 })
     })
   })
 
@@ -174,7 +170,7 @@ describe('RiviereBuilder components', () => {
       })
     })
 
-    it('includes optional description and metadata when provided', () => {
+    it('includes optional description when provided', () => {
       const builder = RiviereBuilder.new(createValidOptions())
 
       const component = builder.addUseCase({
@@ -183,11 +179,9 @@ describe('RiviereBuilder components', () => {
         module: 'checkout',
         description: 'Orchestrates order placement',
         sourceLocation: { repository: 'my-org/my-repo', filePath: 'src/usecases/place-order.ts' },
-        metadata: { timeout: 30000 },
       })
 
       expect(component.description).toBe('Orchestrates order placement')
-      expect(component.metadata).toEqual({ timeout: 30000 })
     })
   })
 
@@ -231,7 +225,6 @@ describe('RiviereBuilder components', () => {
         businessRules: ['Order must have items'],
         description: 'Places an order',
         sourceLocation: { repository: 'my-org/my-repo', filePath: 'src/domain/order.ts' },
-        metadata: { critical: true },
       })
 
       expect(component.signature).toEqual({
@@ -242,7 +235,6 @@ describe('RiviereBuilder components', () => {
       expect(component.stateChanges).toEqual([{ from: 'draft', to: 'placed' }])
       expect(component.businessRules).toEqual(['Order must have items'])
       expect(component.description).toBe('Places an order')
-      expect(component.metadata).toEqual({ critical: true })
     })
   })
 
@@ -280,12 +272,10 @@ describe('RiviereBuilder components', () => {
         eventSchema: 'OrderPlacedPayload',
         description: 'Emitted when order is placed',
         sourceLocation: { repository: 'my-org/my-repo', filePath: 'src/events/order-placed.ts' },
-        metadata: { version: 1 },
       })
 
       expect(component.eventSchema).toBe('OrderPlacedPayload')
       expect(component.description).toBe('Emitted when order is placed')
-      expect(component.metadata).toEqual({ version: 1 })
     })
   })
 
@@ -318,7 +308,7 @@ describe('RiviereBuilder components', () => {
       })
     })
 
-    it('includes optional description and metadata when provided', () => {
+    it('includes optional description when provided', () => {
       const builder = RiviereBuilder.new(createValidOptions())
 
       const component = builder.addEventHandler({
@@ -331,11 +321,9 @@ describe('RiviereBuilder components', () => {
           repository: 'my-org/my-repo',
           filePath: 'src/handlers/send-order-confirmation.ts',
         },
-        metadata: { async: true },
       })
 
       expect(component.description).toBe('Sends confirmation email')
-      expect(component.metadata).toEqual({ async: true })
     })
   })
 })

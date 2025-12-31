@@ -47,7 +47,6 @@ interface ComponentBase {
   module: string
   description?: string
   sourceLocation: SourceLocation
-  metadata?: Record<string, unknown>
 }
 
 export interface UIComponent extends ComponentBase {
@@ -119,7 +118,6 @@ export interface Link {
   type?: LinkType
   payload?: PayloadDefinition
   sourceLocation?: SourceLocation
-  metadata?: Record<string, unknown>
 }
 
 export interface ExternalTarget {
@@ -136,7 +134,6 @@ export interface ExternalLink {
   type?: LinkType
   description?: string
   sourceLocation?: SourceLocation
-  metadata?: Record<string, unknown>
 }
 
 export type SystemType = 'domain' | 'bff' | 'ui' | 'other'

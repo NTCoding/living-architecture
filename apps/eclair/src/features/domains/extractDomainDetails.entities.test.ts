@@ -166,57 +166,6 @@ describe('extractDomainDetails entities extraction', () => {
     expect(orderEntity?.sourceLocation).toEqual({ repository: 'test-repo', filePath: 'unknown' })
   })
 
-  it('merges entity metadata (invariants and description) from domain metadata', () => {
-    const graph = createMinimalGraph({
-      metadata: {
-        domains: parseDomainMetadata({
-          'order-domain': {
-            description: 'Orders',
-            systemType: 'domain',
-            entities: {
-              Order: {
-                description: 'Represents a customer order',
-                invariants: ['Must have at least one item', 'Total must be positive'],
-              },
-              Payment: {
-                description: 'Payment information',
-                invariants: ['Amount must match order total'],
-              },
-            },
-          },
-        }),
-      },
-      components: [
-        createNode({
-          id: 'op-1',
-          type: 'DomainOp',
-          name: 'Order.begin()',
-          domain: 'order-domain',
-          entity: 'Order',
-          operationName: 'begin',
-        }),
-        createNode({
-          id: 'op-2',
-          type: 'DomainOp',
-          name: 'Payment.process()',
-          domain: 'order-domain',
-          entity: 'Payment',
-          operationName: 'process',
-        }),
-      ],
-    })
-
-    const result = extractDomainDetails(graph, parseDomainKey('order-domain'))
-
-    const orderEntity = result?.entities.find((e) => e.name === 'Order')
-    expect(orderEntity?.description).toBe('Represents a customer order')
-    expect(orderEntity?.invariants).toEqual(['Must have at least one item', 'Total must be positive'])
-
-    const paymentEntity = result?.entities.find((e) => e.name === 'Payment')
-    expect(paymentEntity?.description).toBe('Payment information')
-    expect(paymentEntity?.invariants).toEqual(['Amount must match order total'])
-  })
-
   it('returns empty invariants when entity has no metadata', () => {
     const graph = createMinimalGraph({
       metadata: {

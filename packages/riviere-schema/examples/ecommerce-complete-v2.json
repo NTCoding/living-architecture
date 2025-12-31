@@ -21,506 +21,23 @@
       },
       "orders": {
         "description": "Order lifecycle management - placement, fulfillment, cancellation",
-        "systemType": "domain",
-        "entities": {
-          "Order": {
-            "description": "Aggregate root tracking order lifecycle from placement through delivery or cancellation",
-            "stateMachine": {
-              "states": [
-                "Draft",
-                "Placed",
-                "Confirmed",
-                "Shipped",
-                "Delivered",
-                "Cancelled"
-              ],
-              "initialState": "Draft",
-              "terminalStates": [
-                "Delivered",
-                "Cancelled"
-              ],
-              "transitions": [
-                {
-                  "from": "Draft",
-                  "to": "Placed",
-                  "trigger": "begin"
-                },
-                {
-                  "from": "Placed",
-                  "to": "Confirmed",
-                  "trigger": "confirm"
-                },
-                {
-                  "from": "Confirmed",
-                  "to": "Shipped",
-                  "trigger": "ship"
-                },
-                {
-                  "from": "Shipped",
-                  "to": "Delivered",
-                  "trigger": "deliver"
-                },
-                {
-                  "from": "*",
-                  "to": "Cancelled",
-                  "trigger": "cancel"
-                }
-              ]
-            },
-            "invariants": [
-              "Order must have at least one item",
-              "Total amount must be positive",
-              "Cannot ship without inventory reserved",
-              "Cannot confirm without payment authorized"
-            ],
-            "dataShape": {
-              "fields": [
-                {
-                  "name": "orderId",
-                  "type": "string",
-                  "required": true,
-                  "description": "Unique order identifier"
-                },
-                {
-                  "name": "customerId",
-                  "type": "string",
-                  "required": true,
-                  "description": "Customer placing the order"
-                },
-                {
-                  "name": "items",
-                  "type": "OrderItem[]",
-                  "required": true,
-                  "description": "Line items in the order"
-                },
-                {
-                  "name": "total",
-                  "type": "number",
-                  "required": true,
-                  "description": "Total order amount"
-                },
-                {
-                  "name": "state",
-                  "type": "OrderState",
-                  "required": true,
-                  "description": "Current order state"
-                },
-                {
-                  "name": "placedAt",
-                  "type": "DateTime",
-                  "required": false,
-                  "description": "When order was placed"
-                },
-                {
-                  "name": "shippedAt",
-                  "type": "DateTime",
-                  "required": false,
-                  "description": "When order was shipped"
-                }
-              ]
-            }
-          }
-        }
+        "systemType": "domain"
       },
       "inventory": {
         "description": "Stock reservation and inventory management",
-        "systemType": "domain",
-        "entities": {
-          "InventoryItem": {
-            "description": "Tracks stock levels through reservation, allocation, and release cycles",
-            "stateMachine": {
-              "states": [
-                "Available",
-                "PartiallyReserved",
-                "FullyReserved",
-                "Allocated",
-                "Released"
-              ],
-              "initialState": "Available",
-              "terminalStates": [
-                "Released"
-              ],
-              "transitions": [
-                {
-                  "from": "Available",
-                  "to": "PartiallyReserved",
-                  "trigger": "reserve"
-                },
-                {
-                  "from": "PartiallyReserved",
-                  "to": "FullyReserved",
-                  "trigger": "reserve"
-                },
-                {
-                  "from": "FullyReserved",
-                  "to": "Allocated",
-                  "trigger": "allocate"
-                },
-                {
-                  "from": "PartiallyReserved",
-                  "to": "Released",
-                  "trigger": "release"
-                },
-                {
-                  "from": "Allocated",
-                  "to": "Released",
-                  "trigger": "release"
-                }
-              ]
-            },
-            "invariants": [
-              "Quantity on hand must be non-negative",
-              "Reserved quantity cannot exceed on hand",
-              "Allocated quantity cannot exceed reserved"
-            ],
-            "dataShape": {
-              "fields": [
-                {
-                  "name": "itemId",
-                  "type": "string",
-                  "required": true,
-                  "description": "Product/SKU identifier"
-                },
-                {
-                  "name": "onHand",
-                  "type": "number",
-                  "required": true,
-                  "description": "Total units available"
-                },
-                {
-                  "name": "reserved",
-                  "type": "number",
-                  "required": true,
-                  "description": "Units reserved for orders"
-                },
-                {
-                  "name": "allocated",
-                  "type": "number",
-                  "required": true,
-                  "description": "Units allocated for shipment"
-                },
-                {
-                  "name": "state",
-                  "type": "InventoryState",
-                  "required": true,
-                  "description": "Current inventory state"
-                }
-              ]
-            }
-          }
-        }
+        "systemType": "domain"
       },
       "payment": {
         "description": "Payment processing and transaction management",
-        "systemType": "domain",
-        "entities": {
-          "Payment": {
-            "description": "Manages payment authorization, capture, failure, and refund lifecycle",
-            "stateMachine": {
-              "states": [
-                "Pending",
-                "Authorized",
-                "Captured",
-                "Failed",
-                "Refunded"
-              ],
-              "initialState": "Pending",
-              "terminalStates": [
-                "Captured",
-                "Failed",
-                "Refunded"
-              ],
-              "transitions": [
-                {
-                  "from": "Pending",
-                  "to": "Authorized",
-                  "trigger": "authorize"
-                },
-                {
-                  "from": "Authorized",
-                  "to": "Captured",
-                  "trigger": "capture"
-                },
-                {
-                  "from": "Pending",
-                  "to": "Failed",
-                  "trigger": "fail"
-                },
-                {
-                  "from": "Authorized",
-                  "to": "Failed",
-                  "trigger": "fail"
-                },
-                {
-                  "from": "Captured",
-                  "to": "Refunded",
-                  "trigger": "refund"
-                }
-              ]
-            },
-            "invariants": [
-              "Amount must be positive",
-              "Only one active payment per order",
-              "Cannot refund more than captured"
-            ],
-            "dataShape": {
-              "fields": [
-                {
-                  "name": "paymentId",
-                  "type": "string",
-                  "required": true,
-                  "description": "Unique payment identifier"
-                },
-                {
-                  "name": "orderId",
-                  "type": "string",
-                  "required": true,
-                  "description": "Associated order"
-                },
-                {
-                  "name": "amount",
-                  "type": "number",
-                  "required": true,
-                  "description": "Payment amount"
-                },
-                {
-                  "name": "state",
-                  "type": "PaymentState",
-                  "required": true,
-                  "description": "Current payment state"
-                },
-                {
-                  "name": "transactionId",
-                  "type": "string",
-                  "required": false,
-                  "description": "Payment gateway transaction ID"
-                },
-                {
-                  "name": "authorizedAt",
-                  "type": "DateTime",
-                  "required": false,
-                  "description": "When payment was authorized"
-                },
-                {
-                  "name": "capturedAt",
-                  "type": "DateTime",
-                  "required": false,
-                  "description": "When payment was captured"
-                }
-              ]
-            }
-          }
-        }
+        "systemType": "domain"
       },
       "shipping": {
         "description": "Shipment creation, tracking, and delivery management",
-        "systemType": "domain",
-        "entities": {
-          "Shipment": {
-            "description": "Tracks shipment from creation through dispatch, transit, and delivery",
-            "stateMachine": {
-              "states": [
-                "Created",
-                "Picked",
-                "Packed",
-                "Dispatched",
-                "InTransit",
-                "Delivered",
-                "Returned"
-              ],
-              "initialState": "Created",
-              "terminalStates": [
-                "Delivered",
-                "Returned"
-              ],
-              "transitions": [
-                {
-                  "from": "Created",
-                  "to": "Picked",
-                  "trigger": "pick"
-                },
-                {
-                  "from": "Picked",
-                  "to": "Packed",
-                  "trigger": "pack"
-                },
-                {
-                  "from": "Packed",
-                  "to": "Dispatched",
-                  "trigger": "dispatch"
-                },
-                {
-                  "from": "Dispatched",
-                  "to": "InTransit",
-                  "trigger": "transit"
-                },
-                {
-                  "from": "InTransit",
-                  "to": "Delivered",
-                  "trigger": "deliver"
-                },
-                {
-                  "from": "*",
-                  "to": "Returned",
-                  "trigger": "return"
-                }
-              ]
-            },
-            "invariants": [
-              "Shipment must have at least one item",
-              "Tracking number required once dispatched",
-              "Delivery address must be valid"
-            ],
-            "dataShape": {
-              "fields": [
-                {
-                  "name": "shipmentId",
-                  "type": "string",
-                  "required": true,
-                  "description": "Unique shipment identifier"
-                },
-                {
-                  "name": "orderId",
-                  "type": "string",
-                  "required": true,
-                  "description": "Associated order"
-                },
-                {
-                  "name": "items",
-                  "type": "ShipmentItem[]",
-                  "required": true,
-                  "description": "Items being shipped"
-                },
-                {
-                  "name": "state",
-                  "type": "ShipmentState",
-                  "required": true,
-                  "description": "Current shipment state"
-                },
-                {
-                  "name": "trackingNumber",
-                  "type": "string",
-                  "required": false,
-                  "description": "Carrier tracking number"
-                },
-                {
-                  "name": "dispatchedAt",
-                  "type": "DateTime",
-                  "required": false,
-                  "description": "When shipment left warehouse"
-                },
-                {
-                  "name": "deliveredAt",
-                  "type": "DateTime",
-                  "required": false,
-                  "description": "When shipment arrived"
-                }
-              ]
-            }
-          }
-        }
+        "systemType": "domain"
       },
       "notifications": {
         "description": "Customer notifications for orders and shipments",
-        "systemType": "domain",
-        "entities": {
-          "Notification": {
-            "description": "Represents email, SMS, or push notification with delivery status tracking",
-            "stateMachine": {
-              "states": [
-                "Queued",
-                "Sending",
-                "Sent",
-                "Failed",
-                "Bounced"
-              ],
-              "initialState": "Queued",
-              "terminalStates": [
-                "Sent",
-                "Failed",
-                "Bounced"
-              ],
-              "transitions": [
-                {
-                  "from": "Queued",
-                  "to": "Sending",
-                  "trigger": "send"
-                },
-                {
-                  "from": "Sending",
-                  "to": "Sent",
-                  "trigger": "confirm"
-                },
-                {
-                  "from": "Queued",
-                  "to": "Failed",
-                  "trigger": "fail"
-                },
-                {
-                  "from": "Sending",
-                  "to": "Failed",
-                  "trigger": "fail"
-                },
-                {
-                  "from": "Sent",
-                  "to": "Bounced",
-                  "trigger": "bounce"
-                }
-              ]
-            },
-            "invariants": [
-              "Recipient email/phone must be valid",
-              "Template must exist",
-              "Cannot retry after max attempts"
-            ],
-            "dataShape": {
-              "fields": [
-                {
-                  "name": "notificationId",
-                  "type": "string",
-                  "required": true,
-                  "description": "Unique notification identifier"
-                },
-                {
-                  "name": "recipient",
-                  "type": "string",
-                  "required": true,
-                  "description": "Email, SMS number, or push token"
-                },
-                {
-                  "name": "type",
-                  "type": "'email'|'sms'|'push'",
-                  "required": true,
-                  "description": "Notification channel"
-                },
-                {
-                  "name": "template",
-                  "type": "string",
-                  "required": true,
-                  "description": "Template used for message"
-                },
-                {
-                  "name": "state",
-                  "type": "NotificationState",
-                  "required": true,
-                  "description": "Current delivery state"
-                },
-                {
-                  "name": "sentAt",
-                  "type": "DateTime",
-                  "required": false,
-                  "description": "When notification was sent"
-                },
-                {
-                  "name": "failureReason",
-                  "type": "string",
-                  "required": false,
-                  "description": "Reason for failure if applicable"
-                }
-              ]
-            }
-          }
-        }
+        "systemType": "domain"
       },
       "analytics": {
         "description": "Order and shipment analytics tracking",
@@ -680,16 +197,6 @@
         "filePath": "orders-domain/src/infrastructure/events.ts",
         "lineNumber": 5,
         "repository": "ecommerce-demo-app"
-      },
-      "metadata": {
-        "schema": {
-          "type": "OrderPlaced",
-          "orderId": "string",
-          "customerId": "string",
-          "items": "Item[]",
-          "totalAmount": "number",
-          "timestamp": "string"
-        }
       }
     },
     {
@@ -775,14 +282,6 @@
         "filePath": "inventory-domain/src/infrastructure/events.ts",
         "lineNumber": 11,
         "repository": "ecommerce-demo-app"
-      },
-      "metadata": {
-        "schema": {
-          "type": "InventoryReserved",
-          "orderId": "string",
-          "items": "Item[]",
-          "timestamp": "string"
-        }
       }
     },
     {
@@ -857,15 +356,6 @@
         "filePath": "payment-domain/src/infrastructure/events.ts",
         "lineNumber": 5,
         "repository": "ecommerce-demo-app"
-      },
-      "metadata": {
-        "schema": {
-          "type": "PaymentCompleted",
-          "orderId": "string",
-          "paymentId": "string",
-          "amount": "number",
-          "timestamp": "string"
-        }
       }
     },
     {
@@ -909,15 +399,6 @@
         "filePath": "payment-domain/src/infrastructure/events.ts",
         "lineNumber": 11,
         "repository": "ecommerce-demo-app"
-      },
-      "metadata": {
-        "schema": {
-          "type": "PaymentFailed",
-          "orderId": "string",
-          "paymentId": "string",
-          "reason": "string",
-          "timestamp": "string"
-        }
       }
     },
     {
@@ -1145,13 +626,6 @@
         "filePath": "orders-domain/src/infrastructure/events.ts",
         "lineNumber": 12,
         "repository": "ecommerce-demo-app"
-      },
-      "metadata": {
-        "schema": {
-          "type": "OrderConfirmed",
-          "orderId": "string",
-          "timestamp": "string"
-        }
       }
     },
     {
@@ -1233,15 +707,6 @@
         "filePath": "shipping-domain/src/infrastructure/events.ts",
         "lineNumber": 5,
         "repository": "ecommerce-demo-app"
-      },
-      "metadata": {
-        "schema": {
-          "type": "ShipmentCreated",
-          "shipmentId": "string",
-          "orderId": "string",
-          "trackingNumber": "string",
-          "timestamp": "string"
-        }
       }
     },
     {
@@ -1387,14 +852,6 @@
         "filePath": "shipping-domain/src/infrastructure/events.ts",
         "lineNumber": 11,
         "repository": "ecommerce-demo-app"
-      },
-      "metadata": {
-        "schema": {
-          "type": "ShipmentDispatched",
-          "shipmentId": "string",
-          "orderId": "string",
-          "timestamp": "string"
-        }
       }
     },
     {
@@ -1515,14 +972,6 @@
         "filePath": "shipping-domain/src/infrastructure/events.ts",
         "lineNumber": 17,
         "repository": "ecommerce-demo-app"
-      },
-      "metadata": {
-        "schema": {
-          "type": "ShipmentDelivered",
-          "shipmentId": "string",
-          "orderId": "string",
-          "timestamp": "string"
-        }
       }
     },
     {
@@ -1701,13 +1150,6 @@
         "filePath": "orders-domain/src/infrastructure/events.ts",
         "lineNumber": 23,
         "repository": "ecommerce-demo-app"
-      },
-      "metadata": {
-        "schema": {
-          "type": "OrderCancelled",
-          "orderId": "string",
-          "timestamp": "string"
-        }
       }
     },
     {

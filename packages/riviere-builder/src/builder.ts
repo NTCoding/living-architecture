@@ -270,7 +270,6 @@ export class RiviereBuilder {
       route: input.route,
       sourceLocation: input.sourceLocation,
       ...(input.description !== undefined && { description: input.description }),
-      ...(input.metadata !== undefined && { metadata: input.metadata }),
     }
     return this.registerComponent(component)
   }
@@ -311,7 +310,6 @@ export class RiviereBuilder {
       ...(input.path !== undefined && { path: input.path }),
       ...(input.operationName !== undefined && { operationName: input.operationName }),
       ...(input.description !== undefined && { description: input.description }),
-      ...(input.metadata !== undefined && { metadata: input.metadata }),
     }
     return this.registerComponent(component)
   }
@@ -345,7 +343,6 @@ export class RiviereBuilder {
       module: input.module,
       sourceLocation: input.sourceLocation,
       ...(input.description !== undefined && { description: input.description }),
-      ...(input.metadata !== undefined && { metadata: input.metadata }),
     }
     return this.registerComponent(component)
   }
@@ -390,7 +387,6 @@ export class RiviereBuilder {
       ...(input.stateChanges !== undefined && { stateChanges: input.stateChanges }),
       ...(input.businessRules !== undefined && { businessRules: input.businessRules }),
       ...(input.description !== undefined && { description: input.description }),
-      ...(input.metadata !== undefined && { metadata: input.metadata }),
     }
     return this.registerComponent(component)
   }
@@ -427,7 +423,6 @@ export class RiviereBuilder {
       sourceLocation: input.sourceLocation,
       ...(input.eventSchema !== undefined && { eventSchema: input.eventSchema }),
       ...(input.description !== undefined && { description: input.description }),
-      ...(input.metadata !== undefined && { metadata: input.metadata }),
     }
     return this.registerComponent(component)
   }
@@ -463,7 +458,6 @@ export class RiviereBuilder {
       subscribedEvents: input.subscribedEvents,
       sourceLocation: input.sourceLocation,
       ...(input.description !== undefined && { description: input.description }),
-      ...(input.metadata !== undefined && { metadata: input.metadata }),
     }
     return this.registerComponent(component)
   }
@@ -541,7 +535,6 @@ export class RiviereBuilder {
       module: input.module,
       sourceLocation: input.sourceLocation,
       ...(input.description !== undefined && { description: input.description }),
-      ...(input.metadata !== undefined && { metadata: input.metadata }),
     }
     return this.registerComponent(component)
   }
@@ -702,7 +695,6 @@ export class RiviereBuilder {
       ...(input.type !== undefined && { type: input.type }),
       ...(input.description !== undefined && { description: input.description }),
       ...(input.sourceLocation !== undefined && { sourceLocation: input.sourceLocation }),
-      ...(input.metadata !== undefined && { metadata: input.metadata }),
     }
     this.graph.externalLinks.push(externalLink)
     return externalLink

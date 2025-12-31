@@ -194,7 +194,6 @@ describe('RiviereBuilder', () => {
         type: 'async',
         description: 'Payment processing',
         sourceLocation: { repository: 'test/repo', filePath: 'src/stripe.ts' },
-        metadata: { timeout: 30000 },
       })
 
       expect(externalLink.type).toBe('async')
@@ -203,7 +202,6 @@ describe('RiviereBuilder', () => {
         repository: 'test/repo',
         filePath: 'src/stripe.ts',
       })
-      expect(externalLink.metadata).toEqual({ timeout: 30000 })
     })
   })
 })

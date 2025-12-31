@@ -49,26 +49,6 @@ function validateCustomTypes(graph: RiviereGraph): ValidationError[] {
         message: `Custom type '${customTypeName}' is not defined in metadata.customTypes`,
         code: 'INVALID_TYPE',
       })
-      return
-    }
-
-    const typeDefinition = customTypes[customTypeName]
-    const requiredProperties = typeDefinition?.requiredProperties
-    const hasNoRequiredProperties = requiredProperties === undefined
-    if (hasNoRequiredProperties) return
-
-    const requiredPropertyNames = Object.keys(requiredProperties)
-    const componentMetadata = component.metadata
-    const missingProperties = componentMetadata
-      ? requiredPropertyNames.filter((prop) => !(prop in componentMetadata))
-      : requiredPropertyNames
-
-    if (missingProperties.length > 0) {
-      errors.push({
-        path: `/components/${index}`,
-        message: `Custom component is missing required properties for type '${customTypeName}': ${missingProperties.join(', ')}`,
-        code: 'INVALID_TYPE',
-      })
     }
   })
 

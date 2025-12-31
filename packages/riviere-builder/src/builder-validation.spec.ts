@@ -86,7 +86,6 @@ describe('RiviereBuilder', () => {
       builder.defineCustomType({
         name: 'Database',
         description: 'Database component',
-        requiredProperties: { engine: { type: 'string', description: 'DB engine' } },
       })
 
       const source = builder.addCustom({
@@ -95,7 +94,6 @@ describe('RiviereBuilder', () => {
         domain: 'orders',
         module: 'persistence',
         sourceLocation: createSourceLocation(),
-        metadata: { engine: 'postgres' },
       })
 
       const target = builder.addDomainOp({
