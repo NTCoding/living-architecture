@@ -2,6 +2,31 @@ import { Link, useLocation } from 'react-router-dom'
 import { Logo } from '@/components/Logo/Logo'
 import { ThemeSwitcher } from '@/components/ThemeSwitcher/ThemeSwitcher'
 
+function getNavItemBaseClasses(collapsed: boolean): string {
+  return collapsed
+    ? 'w-full flex items-center justify-center p-2 rounded-[var(--radius)] transition-all duration-200'
+    : 'w-full flex items-center gap-3 px-3 py-2 rounded-[var(--radius)] text-left text-sm transition-all duration-200'
+}
+
+function getTooltipTitle(collapsed: boolean, label: string): string | undefined {
+  return collapsed ? label : undefined
+}
+
+interface NavItemContentProps {
+  icon: string
+  label: string
+  collapsed: boolean
+}
+
+function NavItemContent({ icon, label, collapsed }: NavItemContentProps): React.ReactElement {
+  return (
+    <>
+      <i className={`ph ph-${icon} text-lg`} aria-hidden="true" />
+      {!collapsed && <span>{label}</span>}
+    </>
+  )
+}
+
 interface NavItemProps {
   icon: string
   label: string
@@ -9,6 +34,30 @@ interface NavItemProps {
   disabled?: boolean
   active?: boolean
   collapsed?: boolean
+}
+
+function NavItem({ icon, label, to, disabled = false, active = false, collapsed = false }: NavItemProps): React.ReactElement {
+  const baseClasses = getNavItemBaseClasses(collapsed)
+
+  const stateClasses = disabled
+    ? 'opacity-40 cursor-not-allowed'
+    : active
+      ? 'bg-[var(--bg-tertiary)] text-[var(--primary)] font-medium'
+      : 'text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]'
+
+  if (disabled) {
+    return (
+      <span className={`${baseClasses} ${stateClasses}`} aria-disabled="true" title={getTooltipTitle(collapsed, label)}>
+        <NavItemContent icon={icon} label={label} collapsed={collapsed} />
+      </span>
+    )
+  }
+
+  return (
+    <Link to={to} className={`${baseClasses} ${stateClasses}`} title={getTooltipTitle(collapsed, label)}>
+      <NavItemContent icon={icon} label={label} collapsed={collapsed} />
+    </Link>
+  )
 }
 
 interface ExternalLinkProps {
@@ -19,9 +68,7 @@ interface ExternalLinkProps {
 }
 
 function ExternalLink({ icon, label, href, collapsed = false }: ExternalLinkProps): React.ReactElement {
-  const baseClasses = collapsed
-    ? 'w-full flex items-center justify-center p-2 rounded-[var(--radius)] transition-all duration-200'
-    : 'w-full flex items-center gap-3 px-3 py-2 rounded-[var(--radius)] text-left text-sm transition-all duration-200'
+  const baseClasses = getNavItemBaseClasses(collapsed)
 
   return (
     <a
@@ -29,39 +76,10 @@ function ExternalLink({ icon, label, href, collapsed = false }: ExternalLinkProp
       target="_blank"
       rel="noopener noreferrer"
       className={`${baseClasses} text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]`}
-      title={collapsed ? label : undefined}
+      title={getTooltipTitle(collapsed, label)}
     >
-      <i className={`ph ph-${icon} text-lg`} aria-hidden="true" />
-      {!collapsed && <span>{label}</span>}
+      <NavItemContent icon={icon} label={label} collapsed={collapsed} />
     </a>
-  )
-}
-
-function NavItem({ icon, label, to, disabled = false, active = false, collapsed = false }: NavItemProps): React.ReactElement {
-  const baseClasses = collapsed
-    ? 'w-full flex items-center justify-center p-2 rounded-[var(--radius)] transition-all duration-200'
-    : 'w-full flex items-center gap-3 px-3 py-2 rounded-[var(--radius)] text-left text-sm transition-all duration-200'
-
-  const stateClasses = disabled
-    ? 'opacity-40 cursor-not-allowed'
-    : active
-      ? 'bg-[var(--bg-tertiary)] text-[var(--primary)] font-medium'
-      : 'text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]'
-
-  if (disabled) {
-    return (
-      <span className={`${baseClasses} ${stateClasses}`} aria-disabled="true" title={collapsed ? label : undefined}>
-        <i className={`ph ph-${icon} text-lg`} aria-hidden="true" />
-        {!collapsed && <span>{label}</span>}
-      </span>
-    )
-  }
-
-  return (
-    <Link to={to} className={`${baseClasses} ${stateClasses}`} title={collapsed ? label : undefined}>
-      <i className={`ph ph-${icon} text-lg`} aria-hidden="true" />
-      {!collapsed && <span>{label}</span>}
-    </Link>
   )
 }
 
