@@ -12,7 +12,6 @@ import { DomainDetailPage } from '@/features/domains/DomainDetailPage'
 import { EntitiesPage } from '@/features/entities/EntitiesPage'
 import { EventsPage } from '@/features/events/EventsPage'
 import { ComparisonPage } from '@/features/comparison/ComparisonPage'
-import { AboutPage } from '@/features/about/AboutPage'
 
 function useRequiredGraph(): RiviereGraph {
   const { graph } = useGraph()
@@ -95,10 +94,6 @@ function AppContent(): React.ReactElement {
         <Route
           path="/compare"
           element={<ComparisonPage />}
-        />
-        <Route
-          path="/about"
-          element={<AboutPage />}
         />
       </Routes>
     </AppShell>

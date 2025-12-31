@@ -11,6 +11,32 @@ interface NavItemProps {
   collapsed?: boolean
 }
 
+interface ExternalLinkProps {
+  icon: string
+  label: string
+  href: string
+  collapsed?: boolean
+}
+
+function ExternalLink({ icon, label, href, collapsed = false }: ExternalLinkProps): React.ReactElement {
+  const baseClasses = collapsed
+    ? 'w-full flex items-center justify-center p-2 rounded-[var(--radius)] transition-all duration-200'
+    : 'w-full flex items-center gap-3 px-3 py-2 rounded-[var(--radius)] text-left text-sm transition-all duration-200'
+
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`${baseClasses} text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]`}
+      title={collapsed ? label : undefined}
+    >
+      <i className={`ph ph-${icon} text-lg`} aria-hidden="true" />
+      {!collapsed && <span>{label}</span>}
+    </a>
+  )
+}
+
 function NavItem({ icon, label, to, disabled = false, active = false, collapsed = false }: NavItemProps): React.ReactElement {
   const baseClasses = collapsed
     ? 'w-full flex items-center justify-center p-2 rounded-[var(--radius)] transition-all duration-200'
@@ -68,7 +94,7 @@ export function Sidebar({ hasGraph, collapsed = false, onToggleCollapse }: Sideb
         <NavItem icon="git-diff" label="Compare" to="/compare" active={currentPath === '/compare'} collapsed={collapsed} />
 
         <div className="my-3 border-t border-[var(--border-color)]" />
-        <NavItem icon="info" label="About Rivière" to="/about" active={currentPath === '/about'} collapsed={collapsed} />
+        <ExternalLink icon="info" label="About Rivière" href="https://living-architecture.dev" collapsed={collapsed} />
       </nav>
 
       {!collapsed && (
