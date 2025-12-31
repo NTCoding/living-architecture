@@ -1,6 +1,6 @@
 {
   "name": "@living-architecture/riviere-query",
-  "version": "0.2.9",
+  "version": "0.2.10",
   "publishConfig": {
     "access": "public"
   },

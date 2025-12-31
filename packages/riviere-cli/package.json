@@ -1,6 +1,6 @@
 {
   "name": "@living-architecture/riviere-cli",
-  "version": "0.3.7",
+  "version": "0.3.8",
   "publishConfig": {
     "access": "public"
   },
