@@ -123,6 +123,79 @@ describe('RiviereBuilder enrichComponent', () => {
     })
   })
 
+  describe('behavior', () => {
+    it('adds behavior.reads to DomainOp component', () => {
+      const builder = RiviereBuilder.new(createValidOptions())
+      const domainOp = builder.addDomainOp({
+        name: 'Place Order',
+        domain: 'orders',
+        module: 'checkout',
+        operationName: 'placeOrder',
+        sourceLocation: createSourceLocation(),
+      })
+
+      builder.enrichComponent(domainOp.id, {
+        behavior: { reads: ['items parameter', 'this.state'] },
+      })
+
+      const enriched = builder.graph.components.find((c) => c.id === domainOp.id)
+      expect(enriched).toMatchObject({
+        behavior: { reads: ['items parameter', 'this.state'] },
+      })
+    })
+
+    it('adds complete behavior object to DomainOp component', () => {
+      const builder = RiviereBuilder.new(createValidOptions())
+      const domainOp = builder.addDomainOp({
+        name: 'Place Order',
+        domain: 'orders',
+        module: 'checkout',
+        operationName: 'placeOrder',
+        sourceLocation: createSourceLocation(),
+      })
+
+      builder.enrichComponent(domainOp.id, {
+        behavior: {
+          reads: ['items parameter'],
+          validates: ['items.length > 0'],
+          modifies: ['this.state ← Placed'],
+          emits: ['order-placed event'],
+        },
+      })
+
+      const enriched = builder.graph.components.find((c) => c.id === domainOp.id)
+      expect(enriched).toMatchObject({
+        behavior: {
+          reads: ['items parameter'],
+          validates: ['items.length > 0'],
+          modifies: ['this.state ← Placed'],
+          emits: ['order-placed event'],
+        },
+      })
+    })
+
+    it('appends to existing behavior.reads', () => {
+      const builder = RiviereBuilder.new(createValidOptions())
+      const domainOp = builder.addDomainOp({
+        name: 'Place Order',
+        domain: 'orders',
+        module: 'checkout',
+        operationName: 'placeOrder',
+        sourceLocation: createSourceLocation(),
+        behavior: { reads: ['this.state'] },
+      })
+
+      builder.enrichComponent(domainOp.id, {
+        behavior: { reads: ['items parameter'] },
+      })
+
+      const enriched = builder.graph.components.find((c) => c.id === domainOp.id)
+      expect(enriched).toMatchObject({
+        behavior: { reads: ['this.state', 'items parameter'] },
+      })
+    })
+  })
+
   describe('append behavior', () => {
     it('appends to existing stateChanges', () => {
       const builder = RiviereBuilder.new(createValidOptions())

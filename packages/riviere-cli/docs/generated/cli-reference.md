@@ -59,6 +59,7 @@ riviere builder add-component [options]
 | `--event-name <name>` | Event name |
 | `--subscribed-events <events>` | Comma-separated subscribed event names |
 | `--custom-type <name>` | Custom type name |
+| `--custom-property <key:value>` | Custom property (repeatable) |
 | `--description <desc>` | Component description |
 | `--line-number <n>` | Source line number |
 | `--graph <path>` | Custom graph file path (default: .riviere/graph.json) |
@@ -355,7 +356,7 @@ riviere builder finalize --json
 
 ### `enrich`
 
-Enrich a DomainOp component with entity, state changes, and business rules
+Enrich a DomainOp component with semantic information
 
 ```bash
 riviere builder enrich [options]
@@ -368,6 +369,10 @@ riviere builder enrich [options]
 | `--entity <name>` | Entity name |
 | `--state-change <from:to>` | State transition (repeatable) |
 | `--business-rule <rule>` | Business rule (repeatable) |
+| `--reads <value>` | What the operation reads (repeatable) |
+| `--validates <value>` | What the operation validates (repeatable) |
+| `--modifies <value>` | What the operation modifies (repeatable) |
+| `--emits <value>` | What the operation emits (repeatable) |
 | `--graph <path>` | Custom graph file path (default: .riviere/graph.json) |
 
 **Optional:**
@@ -381,13 +386,17 @@ riviere builder enrich \
   --id "orders:checkout:domainop:orderbegin" \
   --entity Order \
   --state-change "Draft:Placed" \
-  --business-rule "Order must have at least one item"
+  --business-rule "Order must have at least one item" \
+  --reads "this.items" \
+  --validates "items.length > 0" \
+  --modifies "this.state <- Placed" \
+  --emits "OrderPlaced event"
 riviere builder enrich \
   --id "payments:gateway:domainop:paymentprocess" \
   --state-change "Pending:Processing" \
-  --state-change "Processing:Completed" \
-  --business-rule "Amount must be positive" \
-  --business-rule "Currency must be valid"
+  --reads "amount parameter" \
+  --validates "amount > 0" \
+  --modifies "this.status <- Processing"
 ```
 
 ---

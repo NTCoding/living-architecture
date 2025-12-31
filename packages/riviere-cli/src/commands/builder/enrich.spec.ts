@@ -288,4 +288,92 @@ describe('riviere builder enrich', () => {
       });
     });
   });
+
+  describe('behavior options', () => {
+    const ctx: TestContext = createTestContext();
+    setupCommandTest(ctx);
+
+    it('enriches DomainOp with --reads option', async () => {
+      await createGraphWithComponent(ctx.testDir, domainOpComponent);
+      const program = createProgram();
+      await program.parseAsync([
+        'node',
+        'riviere',
+        'builder',
+        'enrich',
+        '--id',
+        'orders:checkout:domainop:confirm-order',
+        '--reads',
+        'this.state',
+      ]);
+
+      const graphPath = join(ctx.testDir, '.riviere', 'graph.json');
+      const content = await readFile(graphPath, 'utf-8');
+      const graph: unknown = JSON.parse(content);
+      expect(graph).toMatchObject({
+        components: [{ behavior: { reads: ['this.state'] } }],
+      });
+    });
+
+    it('enriches DomainOp with multiple --reads options', async () => {
+      await createGraphWithComponent(ctx.testDir, domainOpComponent);
+      const program = createProgram();
+      await program.parseAsync([
+        'node',
+        'riviere',
+        'builder',
+        'enrich',
+        '--id',
+        'orders:checkout:domainop:confirm-order',
+        '--reads',
+        'this.state',
+        '--reads',
+        'items parameter',
+      ]);
+
+      const graphPath = join(ctx.testDir, '.riviere', 'graph.json');
+      const content = await readFile(graphPath, 'utf-8');
+      const graph: unknown = JSON.parse(content);
+      expect(graph).toMatchObject({
+        components: [{ behavior: { reads: ['this.state', 'items parameter'] } }],
+      });
+    });
+
+    it('enriches DomainOp with all behavior options', async () => {
+      await createGraphWithComponent(ctx.testDir, domainOpComponent);
+      const program = createProgram();
+      await program.parseAsync([
+        'node',
+        'riviere',
+        'builder',
+        'enrich',
+        '--id',
+        'orders:checkout:domainop:confirm-order',
+        '--reads',
+        'this.state',
+        '--validates',
+        'state === Draft',
+        '--modifies',
+        'this.state ← Placed',
+        '--emits',
+        'order-placed event',
+      ]);
+
+      const graphPath = join(ctx.testDir, '.riviere', 'graph.json');
+      const content = await readFile(graphPath, 'utf-8');
+      const graph: unknown = JSON.parse(content);
+      expect(graph).toMatchObject({
+        components: [
+          {
+            behavior: {
+              reads: ['this.state'],
+              validates: ['state === Draft'],
+              modifies: ['this.state ← Placed'],
+              emits: ['order-placed event'],
+            },
+          },
+        ],
+      });
+    });
+  });
 });

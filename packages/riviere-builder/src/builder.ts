@@ -21,6 +21,7 @@ import { calculateStats, findOrphans, findWarnings, toRiviereGraph, validateGrap
 import { assertCustomTypeExists, assertDomainExists, assertRequiredPropertiesProvided } from './builder-assertions'
 import { ComponentId } from '@living-architecture/riviere-schema'
 import { createSourceNotFoundError, findNearMatches } from './component-suggestion'
+import { mergeBehavior } from './merge-behavior'
 import {
   CustomTypeAlreadyDefinedError,
   DuplicateComponentError,
@@ -576,6 +577,9 @@ export class RiviereBuilder {
     }
     if (enrichment.businessRules !== undefined) {
       component.businessRules = [...(component.businessRules ?? []), ...enrichment.businessRules]
+    }
+    if (enrichment.behavior !== undefined) {
+      component.behavior = mergeBehavior(component.behavior, enrichment.behavior)
     }
   }
 

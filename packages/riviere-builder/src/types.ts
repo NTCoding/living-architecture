@@ -179,4 +179,5 @@ export interface EnrichmentInput {
   entity?: string
   stateChanges?: StateTransition[]
   businessRules?: string[]
+  behavior?: OperationBehavior
 }

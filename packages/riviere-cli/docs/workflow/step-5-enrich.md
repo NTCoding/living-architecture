@@ -2,7 +2,7 @@
 
 ## Objective
 
-Add semantic information to DomainOps — state changes and business rules.
+Add semantic information to DomainOps — state changes, business rules, and operation behavior.
 
 ## Prerequisites
 
@@ -53,16 +53,44 @@ if (this.total <= 0) throw new Error('...');           // total must be positive
 
 Capture as plain English rules.
 
-### 3. Enrich via CLI
+### 3. Identify Operation Behavior
+
+Look for what the operation reads, validates, modifies, and emits:
+
+```typescript
+// Reads (parameters and state accessed)
+const items = this.items;             // reads: "this.items"
+const total = params.amount;          // reads: "amount parameter"
+
+// Validates (preconditions checked)
+if (this.state !== 'Draft') throw     // validates: "state === Draft"
+if (!items.length) throw              // validates: "items.length > 0"
+
+// Modifies (state changes made)
+this.state = 'Placed';                // modifies: "this.state ← Placed"
+this.total = sum;                     // modifies: "this.total ← calculated sum"
+
+// Emits (events published)
+emit(new OrderPlaced(...));           // emits: "OrderPlaced event"
+```
+
+### 4. Enrich via CLI
 
 ```bash
 npx riviere builder enrich \
   --id "[component-id]" \
-  --state-change "from:[State1],to:[State2]" \
-  --business-rule "Rule description"
+  --state-change "Draft:Placed" \
+  --business-rule "Rule description" \
+  --reads "this.items" \
+  --reads "amount parameter" \
+  --validates "state === Draft" \
+  --modifies "this.state ← Placed" \
+  --emits "OrderPlaced event"
 ```
 
-### 4. Mark Done
+All options are repeatable — use multiple flags to add multiple values.
+
+### 5. Mark Done
 
 ```markdown
 - [x] orders:domainop:order.begin (src/domain/Order.ts:23)

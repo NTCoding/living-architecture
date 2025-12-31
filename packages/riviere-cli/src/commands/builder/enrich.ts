@@ -12,6 +12,10 @@ interface EnrichOptions {
   entity?: string;
   stateChange: string[];
   businessRule: string[];
+  reads: string[];
+  validates: string[];
+  modifies: string[];
+  emits: string[];
   graph?: string;
   json?: boolean;
 }
@@ -42,6 +46,34 @@ function parseStateChanges(inputs: string[]): ParseResult {
   return { success: true, stateChanges };
 }
 
+interface BehaviorOptions {
+  reads: string[];
+  validates: string[];
+  modifies: string[];
+  emits: string[];
+}
+
+function buildBehavior(options: BehaviorOptions): { behavior: object } | Record<string, never> {
+  const hasBehavior =
+    options.reads.length > 0 ||
+    options.validates.length > 0 ||
+    options.modifies.length > 0 ||
+    options.emits.length > 0;
+
+  if (!hasBehavior) {
+    return {};
+  }
+
+  return {
+    behavior: {
+      ...(options.reads.length > 0 && { reads: options.reads }),
+      ...(options.validates.length > 0 && { validates: options.validates }),
+      ...(options.modifies.length > 0 && { modifies: options.modifies }),
+      ...(options.emits.length > 0 && { emits: options.emits }),
+    },
+  };
+}
+
 function handleEnrichmentError(error: unknown): void {
   if (error instanceof InvalidEnrichmentTargetError) {
     console.log(JSON.stringify(formatError(CliErrorCode.InvalidComponentType, error.message, [])));
@@ -52,7 +84,7 @@ function handleEnrichmentError(error: unknown): void {
 
 export function createEnrichCommand(): Command {
   return new Command('enrich')
-    .description('Enrich a DomainOp component with entity, state changes, and business rules')
+    .description('Enrich a DomainOp component with semantic information')
     .addHelpText(
       'after',
       `
@@ -61,20 +93,28 @@ Examples:
       --id "orders:checkout:domainop:orderbegin" \\
       --entity Order \\
       --state-change "Draft:Placed" \\
-      --business-rule "Order must have at least one item"
+      --business-rule "Order must have at least one item" \\
+      --reads "this.items" \\
+      --validates "items.length > 0" \\
+      --modifies "this.state <- Placed" \\
+      --emits "OrderPlaced event"
 
   $ riviere builder enrich \\
       --id "payments:gateway:domainop:paymentprocess" \\
       --state-change "Pending:Processing" \\
-      --state-change "Processing:Completed" \\
-      --business-rule "Amount must be positive" \\
-      --business-rule "Currency must be valid"
+      --reads "amount parameter" \\
+      --validates "amount > 0" \\
+      --modifies "this.status <- Processing"
 `
     )
     .requiredOption('--id <component-id>', 'Component ID to enrich')
     .option('--entity <name>', 'Entity name')
     .option('--state-change <from:to>', 'State transition (repeatable)', collectOption, [])
     .option('--business-rule <rule>', 'Business rule (repeatable)', collectOption, [])
+    .option('--reads <value>', 'What the operation reads (repeatable)', collectOption, [])
+    .option('--validates <value>', 'What the operation validates (repeatable)', collectOption, [])
+    .option('--modifies <value>', 'What the operation modifies (repeatable)', collectOption, [])
+    .option('--emits <value>', 'What the operation emits (repeatable)', collectOption, [])
     .option('--graph <path>', getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .action(async (options: EnrichOptions) => {
@@ -91,6 +131,7 @@ Examples:
             ...(options.entity !== undefined && { entity: options.entity }),
             ...(parseResult.stateChanges.length > 0 && { stateChanges: parseResult.stateChanges }),
             ...(options.businessRule.length > 0 && { businessRules: options.businessRule }),
+            ...buildBehavior(options),
           });
         } catch (error) {
           handleEnrichmentError(error);
