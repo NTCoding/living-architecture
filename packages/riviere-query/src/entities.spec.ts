@@ -159,6 +159,7 @@ describe('entities', () => {
 
     const entities = query.entities()
 
+    expect(entities).toHaveLength(1)
     expect(entities[0]?.states).toEqual(['Draft', 'Placed', 'Confirmed'])
   })
 
@@ -177,6 +178,7 @@ describe('entities', () => {
 
     const entities = query.entities()
 
+    expect(entities).toHaveLength(1)
     expect(entities[0]?.transitions).toEqual([
       { from: 'Draft', to: 'Placed', triggeredBy: 'begin' },
     ])
@@ -205,6 +207,7 @@ describe('entities', () => {
 
     const entities = query.entities()
 
+    expect(entities).toHaveLength(1)
     expect(entities[0]?.businessRules).toEqual([
       'Total must be positive',
       'Customer must be verified',
@@ -228,9 +231,10 @@ describe('Entity methods', () => {
     )
     const query = new RiviereQuery(graph)
 
-    const entity = query.entities()[0]
+    const entities = query.entities()
 
-    expect(entity?.hasStates()).toBe(true)
+    expect(entities).toHaveLength(1)
+    expect(entities[0]?.hasStates()).toBe(true)
   })
 
   it('hasStates returns false when entity has no states', () => {
@@ -246,9 +250,10 @@ describe('Entity methods', () => {
     )
     const query = new RiviereQuery(graph)
 
-    const entity = query.entities()[0]
+    const entities = query.entities()
 
-    expect(entity?.hasStates()).toBe(false)
+    expect(entities).toHaveLength(1)
+    expect(entities[0]?.hasStates()).toBe(false)
   })
 
   it('hasBusinessRules returns true when entity has business rules', () => {
@@ -265,9 +270,10 @@ describe('Entity methods', () => {
     )
     const query = new RiviereQuery(graph)
 
-    const entity = query.entities()[0]
+    const entities = query.entities()
 
-    expect(entity?.hasBusinessRules()).toBe(true)
+    expect(entities).toHaveLength(1)
+    expect(entities[0]?.hasBusinessRules()).toBe(true)
   })
 
   it('hasBusinessRules returns false when entity has no business rules', () => {
@@ -283,9 +289,10 @@ describe('Entity methods', () => {
     )
     const query = new RiviereQuery(graph)
 
-    const entity = query.entities()[0]
+    const entities = query.entities()
 
-    expect(entity?.hasBusinessRules()).toBe(false)
+    expect(entities).toHaveLength(1)
+    expect(entities[0]?.hasBusinessRules()).toBe(false)
   })
 
   it('firstOperationId returns first operation id', () => {
@@ -308,9 +315,10 @@ describe('Entity methods', () => {
     )
     const query = new RiviereQuery(graph)
 
-    const entity = query.entities()[0]
+    const entities = query.entities()
 
-    expect(entity?.firstOperationId()).toBe('orders:checkout:domainop:order.begin')
+    expect(entities).toHaveLength(1)
+    expect(entities[0]?.firstOperationId()).toBe('orders:checkout:domainop:order.begin')
   })
 
   it('firstOperationId returns undefined when no operations', () => {
