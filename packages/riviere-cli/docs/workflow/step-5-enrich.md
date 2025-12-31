@@ -76,19 +76,12 @@ emit(new OrderPlaced(...));           // emits: "OrderPlaced event"
 
 ### 4. Enrich via CLI
 
-```bash
-npx riviere builder enrich \
-  --id "[component-id]" \
-  --state-change "Draft:Placed" \
-  --business-rule "Rule description" \
-  --reads "this.items" \
-  --reads "amount parameter" \
-  --validates "state === Draft" \
-  --modifies "this.state ← Placed" \
-  --emits "OrderPlaced event"
+**Fetch the CLI reference for `enrich` command syntax:**
+```
+https://raw.githubusercontent.com/NTCoding/living-architecture/main/packages/riviere-cli/docs/generated/cli-reference.md
 ```
 
-All options are repeatable — use multiple flags to add multiple values.
+**Best effort on all fields.** Add every value you identify — state changes, business rules, reads, validates, modifies, emits. All options are repeatable.
 
 ### 5. Mark Done
 
