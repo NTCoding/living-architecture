@@ -65,12 +65,29 @@ export function EmptyState(): React.ReactElement {
           What is a Rivière graph?
         </h2>
         <p className="text-sm text-[var(--text-secondary)] mb-4">
-          Rivière is a JSON format for describing flow-based software architecture.
-          It captures how operations flow through your system, from UI interactions
+          <a
+            href="https://living-architecture.dev/reference/schema/graph-structure"
+            className="text-[var(--primary)] hover:underline"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Rivière
+          </a>{' '}
+          is a JSON format for describing flow-based software architecture. It
+          captures how operations flow through your system, from UI interactions
           through APIs, use cases, domain operations, and events.
         </p>
         <p className="text-sm text-[var(--text-secondary)]">
-          Upload your graph or view the demo to get started.
+          Upload your graph or view the demo to get started. Learn more at{' '}
+          <a
+            href="https://living-architecture.dev"
+            className="text-[var(--primary)] hover:underline"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            living-architecture.dev
+          </a>
+          .
         </p>
       </div>
     </div>

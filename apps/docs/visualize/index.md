@@ -34,5 +34,4 @@ Use Éclair when you need to:
 ## Next Steps
 
 - [Getting Started](./getting-started) — Load your first graph
-- [Navigation](./navigation) — Learn common controls
 - [Views](./views/overview) — Explore what each view offers

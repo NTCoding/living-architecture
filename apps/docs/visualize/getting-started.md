@@ -23,7 +23,10 @@ Open `http://localhost:5173/eclair/` — the demo graph loads automatically.
 
 Or drag and drop a JSON file anywhere on the page.
 
+## Export Visualizations
+
+Export graph views as images via the header menu: **Export as PNG** or **Export as SVG**.
+
 ## Next Steps
 
-- [Navigation](./navigation) — Learn how to pan, zoom, and interact
-- [Full Graph View](./views/full-graph) — Explore the main visualization
+- [Views](./views/overview) — Explore each view

@@ -58,7 +58,6 @@ export default defineConfig({
           items: [
             { text: 'Introduction', link: '/visualize/' },
             { text: 'Getting Started', link: '/visualize/getting-started' },
-            { text: 'Navigation', link: '/visualize/navigation' },
           ]
         },
         {
