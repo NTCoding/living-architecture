@@ -9,6 +9,14 @@ Add semantic information to DomainOps — state changes, business rules, and ope
 - **Do not use plan mode.** Execute directly.
 - Graph with linked components from Step 4.
 
+## Important: Enrich is Additive
+
+The `enrich` command **adds** to existing component data — it does not replace. If you run enrich multiple times on the same component, values accumulate.
+
+To re-enrich from scratch, either:
+1. Remove the component and re-add it, or
+2. Manually edit the graph JSON to clear the fields first
+
 ## Generate Checklist
 
 ```bash

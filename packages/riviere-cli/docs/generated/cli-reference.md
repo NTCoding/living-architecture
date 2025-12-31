@@ -356,7 +356,7 @@ riviere builder finalize --json
 
 ### `enrich`
 
-Enrich a DomainOp component with semantic information
+Enrich a DomainOp component with semantic information. Note: Enrichment is additive — running multiple times accumulates values.
 
 ```bash
 riviere builder enrich [options]
