@@ -58,6 +58,17 @@
         "dependencies": [],
         "priority": "medium",
         "subtasks": []
+      },
+      {
+        "id": 66,
+        "title": "Add social media preview cards to eclair and docs apps",
+        "description": "Design a branded social preview image (1200x630px) and add Open Graph/Twitter Card meta tags to both apps",
+        "details": "## Deliverable: Add social media preview cards to eclair and docs apps\n\n### Context\nWhen links to eclair or docs are shared on social media (Twitter, LinkedIn, Slack), they display as a white box with just the website name. Neither app has Open Graph or Twitter Card meta tags configured.\n\nCurrent state:\n- Eclair: `/apps/eclair/index.html` — only has title, no OG/Twitter tags\n- Docs: `/apps/docs/.vitepress/config.ts` — has title/description, no OG/Twitter tags\n\n### Key Decisions\n- Create ONE dedicated social preview image used across all pages of both apps\n- Image dimensions: 1200x630px (optimal for OG/Twitter)\n- Design must follow brand guidelines in `/docs/brand/`\n\n### Delivers\n1. A branded social preview card image (1200x630px)\n2. Meta tags configured so shared links display rich previews\n\n### Acceptance Criteria\n- Given brand guidelines, When preview image designed, Then follows colors/typography/logo from `/docs/brand/`\n- Given preview image, When dimensions checked, Then is 1200x630px\n- Given eclair link shared on social media, When preview renders, Then shows branded image with title and description\n- Given docs link shared on social media, When preview renders, Then shows same branded image with title and description\n- Given Open Graph validator tool, When URL tested, Then all required tags present (og:title, og:description, og:image, og:url, og:type)\n\n### Dependencies\n- None\n\n### Related Code\n- `/docs/brand/` — brand guidelines (colors, logo, typography)\n- `/apps/eclair/index.html` — add meta tags to <head>\n- `/apps/docs/.vitepress/config.ts` — add to head array\n\n### Verification\n1. Test with https://www.opengraph.xyz/\n2. Test actual share on Twitter/LinkedIn/Slack",
+        "testStrategy": "",
+        "status": "pending",
+        "dependencies": [],
+        "priority": "low",
+        "subtasks": []
       }
     ],
     "metadata": {
@@ -70,7 +81,7 @@
       ],
       "created": "2025-12-31T18:44:27.260Z",
       "description": "Tasks for master context",
-      "updated": "2025-12-31T18:59:27.052Z"
+      "updated": "2025-12-31T20:14:34.619Z"
     }
   }
 }
