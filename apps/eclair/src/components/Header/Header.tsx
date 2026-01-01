@@ -7,10 +7,10 @@ import { OrphanWarning, type OrphanDetectionResult } from '@/components/OrphanWa
 import { useRiviereQuery } from '@/hooks/useRiviereQuery'
 
 interface HeaderProps {
-  graphName: GraphName | undefined
-  graph: RiviereGraph | null
-  onExportPng?: () => void
-  onExportSvg?: () => void
+  readonly graphName: GraphName | undefined
+  readonly graph: RiviereGraph | null
+  readonly onExportPng?: () => void
+  readonly onExportSvg?: () => void
 }
 
 export function Header({ graphName, graph, onExportPng, onExportSvg }: HeaderProps): React.ReactElement {

@@ -9,7 +9,7 @@ import { DomainDetailView, type NodeTypeFilter } from './DomainDetailView'
 type ViewMode = 'graph' | 'detail'
 
 interface DomainDetailPageProps {
-  graph: RiviereGraph
+  readonly graph: RiviereGraph
 }
 
 export function DomainDetailPage({ graph }: DomainDetailPageProps): React.ReactElement {
@@ -30,7 +30,7 @@ export function DomainDetailPage({ graph }: DomainDetailPageProps): React.ReactE
 }
 
 interface DomainDetailContentProps {
-  domain: DomainDetails
+  readonly domain: DomainDetails
 }
 
 function DomainDetailContent({ domain }: DomainDetailContentProps): React.ReactElement {
@@ -50,11 +50,15 @@ function DomainDetailContent({ domain }: DomainDetailContentProps): React.ReactE
     const modes: ViewMode[] = ['graph', 'detail']
     const currentIndex = modes.indexOf(viewMode)
 
-    const newIndex = event.key === 'ArrowRight'
-      ? (currentIndex + 1) % modes.length
-      : event.key === 'ArrowLeft'
-      ? (currentIndex - 1 + modes.length) % modes.length
-      : undefined
+    const isArrowRight = event.key === 'ArrowRight'
+    const isArrowLeft = event.key === 'ArrowLeft'
+
+    const computeNewIndex = (): number | undefined => {
+      if (isArrowRight) return (currentIndex + 1) % modes.length
+      if (isArrowLeft) return (currentIndex - 1 + modes.length) % modes.length
+      return undefined
+    }
+    const newIndex = computeNewIndex()
 
     if (newIndex === undefined) return
 
@@ -94,11 +98,11 @@ function DomainDetailContent({ domain }: DomainDetailContentProps): React.ReactE
 }
 
 interface DomainHeaderProps {
-  domain: DomainDetails
-  viewMode: ViewMode
-  setViewMode: (mode: ViewMode) => void
-  onKeyDown: (event: React.KeyboardEvent<HTMLButtonElement>) => void
-  setTabRef: (mode: ViewMode) => (el: HTMLButtonElement | null) => void
+  readonly domain: DomainDetails
+  readonly viewMode: ViewMode
+  readonly setViewMode: (mode: ViewMode) => void
+  readonly onKeyDown: (event: React.KeyboardEvent<HTMLButtonElement>) => void
+  readonly setTabRef: (mode: ViewMode) => (el: HTMLButtonElement | null) => void
 }
 
 function DomainHeader({ domain, viewMode, setViewMode, onKeyDown, setTabRef }: DomainHeaderProps): React.ReactElement {
@@ -147,12 +151,12 @@ function DomainHeader({ domain, viewMode, setViewMode, onKeyDown, setTabRef }: D
 
 
 interface ViewModeTabProps {
-  mode: ViewMode
-  label: string
-  icon: string
-  isSelected: boolean
-  onClick: () => void
-  onKeyDown: (event: React.KeyboardEvent<HTMLButtonElement>) => void
+  readonly mode: ViewMode
+  readonly label: string
+  readonly icon: string
+  readonly isSelected: boolean
+  readonly onClick: () => void
+  readonly onKeyDown: (event: React.KeyboardEvent<HTMLButtonElement>) => void
 }
 
 const ViewModeTab = forwardRef<HTMLButtonElement, ViewModeTabProps>(function ViewModeTab(

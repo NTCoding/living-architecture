@@ -1,5 +1,5 @@
 interface DomainBadgeProps {
-  domain: string
+  readonly domain: string
 }
 
 function hashString(str: string): number {
@@ -22,7 +22,7 @@ function getDomainColorClass(domain: string): string {
   return 'domain-badge-indigo'
 }
 
-export function DomainBadge({ domain }: DomainBadgeProps): React.ReactElement {
+export function DomainBadge({ domain }: Readonly<DomainBadgeProps>): React.ReactElement {
   const colorClass = getDomainColorClass(domain)
 
   return (

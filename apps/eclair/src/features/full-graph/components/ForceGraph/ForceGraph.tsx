@@ -1,30 +1,21 @@
-import { useEffect, useRef, useCallback, useState } from 'react'
+import { useEffect, useRef, useCallback, useState, useMemo } from 'react'
 import * as d3 from 'd3'
-import dagre from 'dagre'
-import type { RiviereGraph } from '@/types/riviere'
+import type { RiviereGraph, Edge } from '@/types/riviere'
 import type { Theme } from '@/types/theme'
 import type { SimulationNode, SimulationLink, TooltipData } from '../../types'
-import { NODE_RADII } from '../../types'
-import { getThemeFocusColors } from '../../graphFocusing/themeFocusColors'
-import { FOCUS_MODE_TRANSITIONS, FOCUS_MODE_NODE_SCALES, FOCUS_MODE_OPACITY, FOCUS_MODE_STROKES, FOCUS_MODE_TEXT, UNFOCUSED_NODE_STROKE_COLOR } from '../../graphFocusing/focusModeConstants'
+import { computeDagreLayout } from './computeDagreLayout'
 import {
   updateHighlight,
   setupSVGFiltersAndMarkers,
   getLinkNodeId,
-  applyFocusModeCircleStyles,
-  applyResetModeCircleStyles,
   calculateFitViewportTransform,
-  applyFocusModeLinkStyles,
-  applyResetModeLinkStyles,
-  applyFocusModeTextStyles,
-  applyResetModeTextStyles,
   setupLinks,
   setupNodes,
   createUpdatePositionsFunction,
-  calculateFocusModeZoom,
   applyDagrePositions,
   setupZoomBehavior,
 } from './GraphRenderingSetup'
+import { applyFocusMode, applyResetMode } from './applyFocusModeBehavior'
 import {
   createSimulationNodes,
   createSimulationLinks,
@@ -39,53 +30,16 @@ import {
   getDomainColor,
 } from './VisualizationDataAdapters'
 
-interface DagreLayoutInput {
-  nodes: SimulationNode[]
-  edges: Array<{ source: string; target: string }>
-}
-
-function computeDagreLayout(input: DagreLayoutInput): Map<string, { x: number; y: number }> {
-  const g = new dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}))
-
-  g.setGraph({
-    rankdir: 'LR',
-    nodesep: 50,
-    ranksep: 120,
-    marginx: 40,
-    marginy: 40,
-  })
-
-  for (const node of input.nodes) {
-    const radius = NODE_RADII[node.type]
-    const size = radius * 2 + 40
-    g.setNode(node.id, { width: size, height: size })
-  }
-
-  for (const edge of input.edges) {
-    g.setEdge(edge.source, edge.target)
-  }
-
-  dagre.layout(g)
-
-  const positions = new Map<string, { x: number; y: number }>()
-  for (const node of input.nodes) {
-    const layoutNode = g.node(node.id)
-    positions.set(node.id, { x: layoutNode.x, y: layoutNode.y })
-  }
-
-  return positions
-}
-
 interface ForceGraphProps {
-  graph: RiviereGraph
-  theme: Theme
-  highlightedNodeIds?: Set<string> | undefined
-  highlightedNodeId?: string | null
-  visibleNodeIds?: Set<string> | undefined
-  focusedDomain?: string | null
-  onNodeClick?: (nodeId: string) => void
-  onNodeHover?: (data: TooltipData | null) => void
-  onBackgroundClick?: () => void
+  readonly graph: RiviereGraph
+  readonly theme: Theme
+  readonly highlightedNodeIds?: Set<string> | undefined
+  readonly highlightedNodeId?: string | null
+  readonly visibleNodeIds?: Set<string> | undefined
+  readonly focusedDomain?: string | null
+  readonly onNodeClick?: (nodeId: string) => void
+  readonly onNodeHover?: (data: TooltipData | null) => void
+  readonly onBackgroundClick?: () => void
 }
 
 export function ForceGraph({
@@ -98,13 +52,18 @@ export function ForceGraph({
   onNodeClick,
   onNodeHover,
   onBackgroundClick,
-}: ForceGraphProps): React.ReactElement {
+}: Readonly<ForceGraphProps>): React.ReactElement {
   const svgRef = useRef<SVGSVGElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 })
   const lastGraphKeyRef = useRef<string>('')
   const nodeSelectionRef = useRef<d3.Selection<SVGGElement, SimulationNode, SVGGElement, unknown> | null>(null)
   const linkSelectionRef = useRef<d3.Selection<SVGPathElement, SimulationLink, SVGGElement, unknown> | null>(null)
+  const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null)
+  const nodesRef = useRef<SimulationNode[]>([])
+  const wasHighlightedRef = useRef(false)
+  const onNodeHoverRef = useRef(onNodeHover)
+  onNodeHoverRef.current = onNodeHover
 
   const filteredNodes = visibleNodeIds
     ? graph.components.filter((n) => visibleNodeIds.has(n.id))
@@ -115,6 +74,15 @@ export function ForceGraph({
         (e) => visibleNodeIds.has(e.source) && visibleNodeIds.has(e.target)
       )
     : graph.links
+
+  const allEdgesForTracing: Edge[] = useMemo(() => [
+    ...filteredEdges,
+    ...(graph.externalLinks ?? []).map((link) => ({
+      source: link.source,
+      target: `external:${link.target.name}`,
+      type: link.type,
+    })),
+  ], [filteredEdges, graph.externalLinks])
 
   useEffect(() => {
     if (!containerRef.current) return
@@ -142,128 +110,14 @@ export function ForceGraph({
 
   const handleNodeHover = useCallback(
     (data: TooltipData | null) => {
-      onNodeHover?.(data)
+      onNodeHoverRef.current?.(data)
     },
-    [onNodeHover]
-  )
-
-  const applyFocusMode = useCallback(
-    (
-      svg: d3.Selection<SVGSVGElement, unknown, d3.BaseType, unknown>,
-      node: d3.Selection<SVGGElement, SimulationNode, SVGGElement, unknown>,
-      link: d3.Selection<SVGPathElement, SimulationLink, SVGGElement, unknown>,
-      zoom: d3.ZoomBehavior<SVGSVGElement, unknown>,
-      nodes: SimulationNode[],
-      domain: string
-    ) => {
-      const focusColors = getThemeFocusColors(theme)
-
-      applyFocusModeCircleStyles({
-        node,
-        focusedDomain: domain,
-        focusColors,
-        transitionDuration: FOCUS_MODE_TRANSITIONS.elementAnimation,
-        nodeRadiusScale: FOCUS_MODE_NODE_SCALES,
-        opacityValues: FOCUS_MODE_OPACITY,
-        strokeWidths: FOCUS_MODE_STROKES,
-        getNodeRadius,
-        unfocusedStrokeColor: UNFOCUSED_NODE_STROKE_COLOR,
-      })
-
-      applyFocusModeTextStyles({
-        node,
-        focusedDomain: domain,
-        transitionDuration: FOCUS_MODE_TRANSITIONS.elementAnimation,
-        selector: '.node-label',
-        focusedOpacity: 1,
-        focusedFontSize: FOCUS_MODE_TEXT.focusedLabelSize,
-        focusedFontWeight: FOCUS_MODE_TEXT.focusedLabelWeight,
-        unfocusedFontSize: FOCUS_MODE_TEXT.unfocusedLabelSize,
-        unfocusedFontWeight: FOCUS_MODE_TEXT.unfocusedLabelWeight,
-      })
-
-      applyFocusModeTextStyles({
-        node,
-        focusedDomain: domain,
-        transitionDuration: FOCUS_MODE_TRANSITIONS.elementAnimation,
-        selector: '.node-domain-label',
-        focusedOpacity: 1,
-        focusedFontSize: FOCUS_MODE_TEXT.focusedDomainSize,
-        focusedFontWeight: FOCUS_MODE_TEXT.focusedDomainWeight,
-        unfocusedFontSize: FOCUS_MODE_TEXT.unfocusedDomainSize,
-        unfocusedFontWeight: FOCUS_MODE_TEXT.unfocusedDomainWeight,
-      })
-
-      applyFocusModeLinkStyles({
-        link,
-        nodes,
-        focusedDomain: domain,
-        transitionDuration: FOCUS_MODE_TRANSITIONS.elementAnimation,
-        focusedOpacity: FOCUS_MODE_OPACITY.focusedEdge,
-        unfocusedOpacity: FOCUS_MODE_OPACITY.unfocusedEdge,
-        focusedStrokeWidth: FOCUS_MODE_STROKES.focusedEdgeWidth,
-        unfocusedStrokeWidth: FOCUS_MODE_STROKES.unfocusedEdgeWidth,
-      })
-
-      const focusZoom = calculateFocusModeZoom({
-        nodes,
-        focusedDomain: domain,
-        dimensions,
-      })
-
-      if (focusZoom) {
-        svg
-          .transition()
-          .duration(FOCUS_MODE_TRANSITIONS.zoomAnimation)
-          .call(
-            zoom.transform,
-            d3.zoomIdentity.translate(focusZoom.translateX, focusZoom.translateY).scale(focusZoom.scale)
-          )
-      }
-    },
-    [theme, dimensions]
+    []
   )
 
   const handleBackgroundClick = useCallback(() => {
     onBackgroundClick?.()
   }, [onBackgroundClick])
-
-  const applyResetMode = useCallback(
-    (
-      node: d3.Selection<SVGGElement, SimulationNode, SVGGElement, unknown>,
-      link: d3.Selection<SVGPathElement, SimulationLink, SVGGElement, unknown>
-    ) => {
-      applyResetModeCircleStyles({
-        node,
-        transitionDuration: FOCUS_MODE_TRANSITIONS.elementAnimation,
-        getNodeRadius,
-      })
-
-      applyResetModeTextStyles({
-        node,
-        transitionDuration: FOCUS_MODE_TRANSITIONS.elementAnimation,
-        selector: '.node-label',
-        opacity: 1,
-        fontSize: '11px',
-        fontWeight: 600,
-      })
-
-      applyResetModeTextStyles({
-        node,
-        transitionDuration: FOCUS_MODE_TRANSITIONS.elementAnimation,
-        selector: '.node-domain-label',
-        opacity: 1,
-        fontSize: '9px',
-        fontWeight: 500,
-      })
-
-      applyResetModeLinkStyles({
-        link,
-        transitionDuration: FOCUS_MODE_TRANSITIONS.elementAnimation,
-      })
-    },
-    []
-  )
 
   const fitViewportFn = useCallback(
     (
@@ -298,18 +152,18 @@ export function ForceGraph({
       shouldFitViewport: boolean
     ) => {
       if (domain) {
-        applyFocusMode(svg, node, link, zoom, nodes, domain)
+        applyFocusMode({ svg, node, link, zoom, nodes, domain, theme, dimensions })
         return
       }
       if (highlightIds) {
         return
       }
-      applyResetMode(node, link)
+      applyResetMode({ node, link })
       if (shouldFitViewport && nodes.length > 0 && dimensions.width > 0 && dimensions.height > 0) {
         fitViewportFn(svg, zoom, nodes)
       }
     },
-    [applyFocusMode, applyResetMode, fitViewportFn, dimensions]
+    [fitViewportFn, dimensions, theme]
   )
 
   const setupNodeEvents = useCallback(
@@ -429,20 +283,30 @@ export function ForceGraph({
 
     nodeSelectionRef.current = node
     linkSelectionRef.current = link
+    zoomRef.current = zoom
+    nodesRef.current = nodes
 
     applyVisualization(node, link, zoom, svg, nodes, focusedDomain, undefined, isGraphDataChange)
     svg.on('click', handleBackgroundClick)
-
-    updateHighlight({ node, link, filteredEdges, highlightedNodeIds })
-  }, [filteredNodes, filteredEdges, theme, dimensions, focusedDomain, highlightedNodeIds, applyVisualization, setupNodeEvents, handleBackgroundClick, handleNodeHover])
+  }, [filteredNodes, filteredEdges, allEdgesForTracing, theme, dimensions, focusedDomain, applyVisualization, setupNodeEvents, handleBackgroundClick])
 
   useEffect(() => {
     const node = nodeSelectionRef.current
     const link = linkSelectionRef.current
     if (!node || !link) return
 
-    updateHighlight({ node, link, filteredEdges, highlightedNodeIds })
-  }, [highlightedNodeIds, filteredEdges])
+    const isHighlighted = highlightedNodeIds !== undefined && highlightedNodeIds.size > 0
+    const wasHighlighted = wasHighlightedRef.current
+    const highlightCleared = wasHighlighted && !isHighlighted
+
+    updateHighlight({ node, link, filteredEdges: allEdgesForTracing, highlightedNodeIds })
+    wasHighlightedRef.current = isHighlighted
+
+    if (highlightCleared && svgRef.current && zoomRef.current && nodesRef.current.length > 0) {
+      const svg = d3.select(svgRef.current)
+      fitViewportFn(svg, zoomRef.current, nodesRef.current)
+    }
+  }, [highlightedNodeIds, allEdgesForTracing, fitViewportFn])
 
   return (
     <div ref={containerRef} className="relative h-full w-full overflow-hidden rounded-lg" data-testid="force-graph-container" data-highlighted-node={highlightedNodeId}>

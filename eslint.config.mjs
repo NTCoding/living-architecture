@@ -3,6 +3,7 @@ import tseslint from 'typescript-eslint';
 import noGenericNames from './.eslint-rules/no-generic-names.js';
 import eslintComments from '@eslint-community/eslint-plugin-eslint-comments/configs';
 import importPlugin from 'eslint-plugin-import';
+import sonarjs from 'eslint-plugin-sonarjs';
 
 const customRules = {
   plugins: {
@@ -41,6 +42,7 @@ export default tseslint.config(
       '@eslint-community/eslint-comments/no-use': ['error', { allow: [] }],
     },
   },
+  sonarjs.configs.recommended,
   customRules,
   {
     files: ['**/*.ts', '**/*.tsx'],

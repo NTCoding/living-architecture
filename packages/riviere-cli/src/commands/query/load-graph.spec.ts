@@ -95,8 +95,9 @@ describe('load-graph', () => {
       await writeFile(join(graphDir, 'graph.json'), JSON.stringify(validGraph), 'utf-8')
 
       const asyncState = { completed: false }
+      const delay = new Promise<void>((resolve) => setTimeout(resolve, 10))
       await withGraph(undefined, async () => {
-        await new Promise((resolve) => setTimeout(resolve, 10))
+        await delay
         asyncState.completed = true
       })
 

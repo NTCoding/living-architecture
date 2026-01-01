@@ -3,11 +3,11 @@ import type { AggregatedConnection } from '../../extractDomainDetails'
 import { ConnectionItem } from './ConnectionItem'
 
 interface DomainInfoModalProps {
-  nodeId: string
-  connections: AggregatedConnection[]
-  isCurrent: boolean
-  currentDomainId: string
-  onClose: () => void
+  readonly nodeId: string
+  readonly connections: readonly AggregatedConnection[]
+  readonly isCurrent: boolean
+  readonly currentDomainId: string
+  readonly onClose: () => void
 }
 
 export function DomainInfoModal({
@@ -16,7 +16,7 @@ export function DomainInfoModal({
   isCurrent,
   currentDomainId,
   onClose,
-}: DomainInfoModalProps): React.ReactElement {
+}: Readonly<DomainInfoModalProps>): React.ReactElement {
   const handleBackdropClick = useCallback(() => {
     onClose()
   }, [onClose])
@@ -43,12 +43,12 @@ export function DomainInfoModal({
 }
 
 interface ModalHeaderProps {
-  nodeId: string
-  isCurrent: boolean
-  onClose: () => void
+  readonly nodeId: string
+  readonly isCurrent: boolean
+  readonly onClose: () => void
 }
 
-function ModalHeader({ nodeId, isCurrent, onClose }: ModalHeaderProps): React.ReactElement {
+function ModalHeader({ nodeId, isCurrent, onClose }: Readonly<ModalHeaderProps>): React.ReactElement {
   return (
     <div className="flex items-center justify-between border-b border-[var(--border-color)] px-4 py-3">
       <div className="flex items-center gap-3">
@@ -82,41 +82,55 @@ interface ModalContentProps {
   currentDomainId: string
 }
 
-function ModalContent({ isCurrent, connections, currentDomainId }: ModalContentProps): React.ReactElement {
-  return (
-    <div className="p-4">
-      {isCurrent ? (
+function ModalContent({ isCurrent, connections, currentDomainId }: Readonly<ModalContentProps>): React.ReactElement {
+  const isCurrentDomain = isCurrent
+  const hasNoConnections = connections.length === 0
+
+  const renderContent = (): React.ReactElement => {
+    if (isCurrentDomain) {
+      return (
         <p className="text-sm text-[var(--text-secondary)]">
           This is the domain you are currently viewing.
         </p>
-      ) : connections.length === 0 ? (
+      )
+    }
+    if (hasNoConnections) {
+      return (
         <p className="text-sm text-[var(--text-secondary)]">
           No direct connections to {currentDomainId}.
         </p>
-      ) : (
-        <div className="space-y-3">
-          <h4 className="text-xs font-semibold uppercase tracking-wide text-[var(--text-tertiary)]">
-            Connections
-          </h4>
-          {connections.map((conn) => (
-            <ConnectionItem
-              key={`${conn.direction}-${conn.targetDomain}`}
-              connection={conn}
-              currentDomainId={currentDomainId}
-              targetDomainId={currentDomainId}
-            />
-          ))}
-        </div>
-      )}
+      )
+    }
+    return (
+      <div className="space-y-3">
+        <h4 className="text-xs font-semibold uppercase tracking-wide text-[var(--text-tertiary)]">
+          Connections
+        </h4>
+        {connections.map((conn) => (
+          <ConnectionItem
+            key={`${conn.direction}-${conn.targetDomain}`}
+            connection={conn}
+            currentDomainId={currentDomainId}
+            targetDomainId={currentDomainId}
+          />
+        ))}
+      </div>
+    )
+  }
+  const content = renderContent()
+
+  return (
+    <div className="p-4">
+      {content}
     </div>
   )
 }
 
 interface ModalFooterProps {
-  nodeId: string
+  readonly nodeId: string
 }
 
-function ModalFooter({ nodeId }: ModalFooterProps): React.ReactElement {
+function ModalFooter({ nodeId }: Readonly<ModalFooterProps>): React.ReactElement {
   return (
     <div className="border-t border-[var(--border-color)] px-4 py-3">
       <a

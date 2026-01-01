@@ -1,23 +1,25 @@
 import type { DomainPosition } from './DomainContextGraph'
 
 interface DomainNodeProps {
-  position: DomainPosition
-  isSelected: boolean
-  onClick: () => void
+  readonly position: DomainPosition
+  readonly isSelected: boolean
+  readonly onClick: () => void
 }
 
-export function DomainNode({ position, isSelected, onClick }: DomainNodeProps): React.ReactElement {
+export function DomainNode({ position, isSelected, onClick }: Readonly<DomainNodeProps>): React.ReactElement {
   const nodeRadius = position.isCurrent ? 40 : 30
 
   const fillStyle = position.isCurrent
     ? { fill: 'var(--primary)' }
     : { fill: 'var(--bg-tertiary)' }
 
-  const strokeStyle = isSelected
-    ? { stroke: 'var(--primary)' }
-    : position.isCurrent
-      ? { stroke: 'var(--primary-dark)' }
-      : { stroke: 'var(--border-color)' }
+  const getStrokeStyle = (): Record<string, string> => {
+    if (isSelected) return { stroke: 'var(--primary)' }
+    if (position.isCurrent) return { stroke: 'var(--primary-dark)' }
+    return { stroke: 'var(--border-color)' }
+  }
+
+  const strokeStyle = getStrokeStyle()
 
   const textStyle = position.isCurrent
     ? { fill: 'white' }

@@ -10,9 +10,9 @@ import { DomainConnectionDiff } from './DomainConnectionDiff'
 type ResultsViewMode = 'graph' | 'list'
 
 interface ChangeItemBase {
-  node: Node
-  changeType: 'added' | 'removed' | 'modified'
-  changedFields?: string[]
+  readonly node: Node
+  readonly changeType: 'added' | 'removed' | 'modified'
+  readonly changedFields?: string[]
 }
 
 function buildChangeItems(diff: GraphDiff): ChangeItemBase[] {
@@ -34,18 +34,18 @@ function buildChangeItems(diff: GraphDiff): ChangeItemBase[] {
 }
 
 interface UploadedFile {
-  name: string
-  graph: RiviereGraph
+  readonly name: string
+  readonly graph: RiviereGraph
 }
 
 interface UploadError {
-  message: string
+  readonly message: string
 }
 
 type UploadState =
-  | { status: 'empty' }
-  | { status: 'loaded'; file: UploadedFile }
-  | { status: 'error'; error: UploadError }
+  | { readonly status: 'empty' }
+  | { readonly status: 'loaded'; readonly file: UploadedFile }
+  | { readonly status: 'error'; readonly error: UploadError }
 
 function parseGraphFile(content: string, fileName: string): UploadState {
   try {
@@ -59,11 +59,11 @@ function parseGraphFile(content: string, fileName: string): UploadState {
 }
 
 interface UploadZoneProps {
-  label: string
-  sublabel: string
-  number: number
-  state: UploadState
-  onFileSelect: (file: File) => void
+  readonly label: string
+  readonly sublabel: string
+  readonly number: number
+  readonly state: UploadState
+  readonly onFileSelect: (file: File) => void
 }
 
 function UploadZone({ label, sublabel, number, state, onFileSelect }: UploadZoneProps): React.ReactElement {
@@ -101,66 +101,70 @@ function UploadZone({ label, sublabel, number, state, onFileSelect }: UploadZone
           <div className="text-xs text-[var(--text-tertiary)]">{sublabel}</div>
         </div>
       </div>
-      <div
-        role="button"
-        tabIndex={0}
-        onClick={handleClick}
-        onKeyDown={handleKeyDown}
-        className={`flex min-h-[140px] cursor-pointer flex-col items-center justify-center gap-2 rounded-[var(--radius)] border-2 border-dashed p-6 transition-all hover:border-[var(--primary)] hover:bg-[var(--bg-tertiary)] ${
-          isLoaded
-            ? 'border-green-500 bg-green-50 dark:bg-green-950'
-            : hasError
-              ? 'border-red-500 bg-red-50 dark:bg-red-950'
-              : 'border-[var(--border-color)] bg-[var(--bg-secondary)]'
-        }`}
-      >
-        <input
-          ref={inputRef}
-          type="file"
-          accept=".json,application/json"
-          onChange={handleChange}
-          className="sr-only"
-          aria-label={`Upload ${label} file`}
-        />
-        {state.status === 'empty' && (
-          <>
-            <i className="ph ph-file-arrow-up text-4xl text-[var(--text-tertiary)]" aria-hidden="true" />
-            <div className="text-center">
-              <div className="font-semibold text-[var(--text-primary)]">Drop JSON file or click to upload</div>
-              <div className="text-xs text-[var(--text-tertiary)]">Rivière schema JSON</div>
-            </div>
-          </>
-        )}
-        {state.status === 'loaded' && (
-          <>
-            <i className="ph ph-check-circle text-4xl text-green-600" aria-hidden="true" />
-            <div className="text-center">
-              <div className="font-semibold text-green-600">{state.file.name}</div>
-              <div className="text-xs text-[var(--text-tertiary)]">
-                {state.file.graph.components.length} nodes
-              </div>
-            </div>
-          </>
-        )}
-        {state.status === 'error' && (
-          <>
-            <i className="ph ph-x-circle text-4xl text-red-600" aria-hidden="true" />
-            <div className="text-center">
-              <div className="font-semibold text-red-600">Invalid file</div>
-              <div className="text-xs text-red-500">{state.error.message}</div>
-            </div>
-          </>
-        )}
-      </div>
+      {(() => {
+        const getBorderColor = (): string => {
+          if (isLoaded) return 'border-green-500 bg-green-50 dark:bg-green-950'
+          if (hasError) return 'border-red-500 bg-red-50 dark:bg-red-950'
+          return 'border-[var(--border-color)] bg-[var(--bg-secondary)]'
+        }
+        const borderColor = getBorderColor()
+        return (
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={handleClick}
+            onKeyDown={handleKeyDown}
+            className={`flex min-h-[140px] cursor-pointer flex-col items-center justify-center gap-2 rounded-[var(--radius)] border-2 border-dashed p-6 transition-all hover:border-[var(--primary)] hover:bg-[var(--bg-tertiary)] ${borderColor}`}
+          >
+            <input
+              ref={inputRef}
+              type="file"
+              accept=".json,application/json"
+              onChange={handleChange}
+              className="sr-only"
+              aria-label={`Upload ${label} file`}
+            />
+            {state.status === 'empty' && (
+              <>
+                <i className="ph ph-file-arrow-up text-4xl text-[var(--text-tertiary)]" aria-hidden="true" />
+                <div className="text-center">
+                  <div className="font-semibold text-[var(--text-primary)]">Drop JSON file or click to upload</div>
+                  <div className="text-xs text-[var(--text-tertiary)]">Rivière schema JSON</div>
+                </div>
+              </>
+            )}
+            {state.status === 'loaded' && (
+              <>
+                <i className="ph ph-check-circle text-4xl text-green-600" aria-hidden="true" />
+                <div className="text-center">
+                  <div className="font-semibold text-green-600">{state.file.name}</div>
+                  <div className="text-xs text-[var(--text-tertiary)]">
+                    {state.file.graph.components.length} nodes
+                  </div>
+                </div>
+              </>
+            )}
+            {state.status === 'error' && (
+              <>
+                <i className="ph ph-x-circle text-4xl text-red-600" aria-hidden="true" />
+                <div className="text-center">
+                  <div className="font-semibold text-red-600">Invalid file</div>
+                  <div className="text-xs text-red-500">{state.error.message}</div>
+                </div>
+              </>
+            )}
+          </div>
+        )
+      })()}
     </div>
   )
 }
 
 interface ChangeItemProps {
-  item: ChangeItemBase
+  readonly item: ChangeItemBase
 }
 
-function ChangeItem({ item }: ChangeItemProps): React.ReactElement {
+function ChangeItem({ item }: Readonly<ChangeItemProps>): React.ReactElement {
   const { node, changeType, changedFields } = item
 
   const changeIndicator = {
@@ -216,10 +220,10 @@ function extractUniqueTypes(items: ChangeItemBase[]): string[] {
 }
 
 interface DetailedChangesProps {
-  diff: GraphDiff
+  readonly diff: GraphDiff
 }
 
-function DetailedChanges({ diff }: DetailedChangesProps): React.ReactElement {
+function DetailedChanges({ diff }: Readonly<DetailedChangesProps>): React.ReactElement {
   const [filter, setFilter] = useState<ChangeFilter>('all')
   const [domainFilter, setDomainFilter] = useState<string | null>(null)
   const [typeFilter, setTypeFilter] = useState<string | null>(null)

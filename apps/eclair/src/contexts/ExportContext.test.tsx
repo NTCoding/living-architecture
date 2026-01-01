@@ -14,7 +14,7 @@ function TestConsumer(): React.ReactElement {
   )
 }
 
-function TestRegistrar({ onPng, onSvg }: { onPng?: () => void; onSvg?: () => void }): React.ReactElement {
+function TestRegistrar({ onPng, onSvg }: { readonly onPng?: () => void; readonly onSvg?: () => void }): React.ReactElement {
   const { registerExportHandlers, clearExportHandlers } = useExport()
 
   return (

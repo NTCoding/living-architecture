@@ -1,16 +1,16 @@
 import { useState, useCallback } from 'react'
 
 interface DomainInfo {
-  name: string
-  nodeCount: number
+  readonly name: string
+  readonly nodeCount: number
 }
 
 interface DomainFiltersProps {
-  domains: DomainInfo[]
-  visibleDomains: Set<string>
-  onToggleDomain: (domain: string) => void
-  onShowAll: () => void
-  onHideAll: () => void
+  readonly domains: readonly DomainInfo[]
+  readonly visibleDomains: Set<string>
+  readonly onToggleDomain: (domain: string) => void
+  readonly onShowAll: () => void
+  readonly onHideAll: () => void
 }
 
 export function DomainFilters({
@@ -19,7 +19,7 @@ export function DomainFilters({
   onToggleDomain,
   onShowAll,
   onHideAll,
-}: DomainFiltersProps): React.ReactElement {
+}: Readonly<DomainFiltersProps>): React.ReactElement {
   const [isOpen, setIsOpen] = useState(true)
 
   const toggleOpen = useCallback(() => {

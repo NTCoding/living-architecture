@@ -1,5 +1,5 @@
 import { describe, expect, test, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import { ForceGraph } from './ForceGraph'
 import type { RiviereGraph } from '@/types/riviere'
 import type { Theme } from '@/types/theme'
@@ -153,7 +153,7 @@ describe('ForceGraph', () => {
   })
 
   describe('Event Callbacks', () => {
-    test('calls onNodeClick when provided', () => {
+    test('renders without error when onNodeClick callback is provided', () => {
       render(
         <ForceGraph
           graph={mockGraph}
@@ -162,11 +162,10 @@ describe('ForceGraph', () => {
         />
       )
 
-      const svg = screen.getByTestId('force-graph-svg')
-      expect(svg).toBeInTheDocument()
+      expect(screen.getByTestId('force-graph-svg')).toBeInTheDocument()
     })
 
-    test('calls onNodeHover when provided', () => {
+    test('renders without error when onNodeHover callback is provided', () => {
       render(
         <ForceGraph
           graph={mockGraph}
@@ -175,11 +174,10 @@ describe('ForceGraph', () => {
         />
       )
 
-      const svg = screen.getByTestId('force-graph-svg')
-      expect(svg).toBeInTheDocument()
+      expect(screen.getByTestId('force-graph-svg')).toBeInTheDocument()
     })
 
-    test('calls onBackgroundClick when SVG is clicked', () => {
+    test('renders without error when onBackgroundClick callback is provided', () => {
       render(
         <ForceGraph
           graph={mockGraph}
@@ -188,8 +186,7 @@ describe('ForceGraph', () => {
         />
       )
 
-      const svg = screen.getByTestId('force-graph-svg')
-      fireEvent.click(svg)
+      expect(screen.getByTestId('force-graph-svg')).toBeInTheDocument()
     })
   })
 
@@ -261,18 +258,6 @@ describe('ForceGraph', () => {
 
       expect(screen.getByTestId('force-graph-container')).toBeInTheDocument()
     })
-
-    test('handles undefined focusedDomain', () => {
-      render(
-        <ForceGraph
-          graph={mockGraph}
-          theme="stream"
-          focusedDomain={null}
-        />
-      )
-
-      expect(screen.getByTestId('force-graph-container')).toBeInTheDocument()
-    })
   })
 
   describe('Graph Updates', () => {
@@ -308,6 +293,18 @@ describe('ForceGraph', () => {
 
       rerender(
         <ForceGraph graph={mockGraph} theme="stream" highlightedNodeIds={new Set(['node-2'])} />
+      )
+
+      expect(screen.getByTestId('force-graph-container')).toBeInTheDocument()
+    })
+
+    test('resets zoom to fit viewport when highlight is cleared', () => {
+      const { rerender } = render(
+        <ForceGraph graph={mockGraph} theme="stream" highlightedNodeIds={new Set(['node-1'])} />
+      )
+
+      rerender(
+        <ForceGraph graph={mockGraph} theme="stream" highlightedNodeIds={undefined} />
       )
 
       expect(screen.getByTestId('force-graph-container')).toBeInTheDocument()

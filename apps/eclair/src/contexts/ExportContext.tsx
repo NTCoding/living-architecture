@@ -1,20 +1,20 @@
 import { createContext, useContext, useState, useCallback, useMemo } from 'react'
 
 interface ExportHandlers {
-  onPng: (() => void) | null
-  onSvg: (() => void) | null
+  readonly onPng: (() => void) | null
+  readonly onSvg: (() => void) | null
 }
 
 interface ExportContextValue {
-  exportHandlers: ExportHandlers
-  registerExportHandlers: (handlers: ExportHandlers) => void
-  clearExportHandlers: () => void
+  readonly exportHandlers: ExportHandlers
+  readonly registerExportHandlers: (handlers: ExportHandlers) => void
+  readonly clearExportHandlers: () => void
 }
 
 const exportContext = createContext<ExportContextValue | null>(null)
 
 interface ExportProviderProps {
-  children: React.ReactNode
+  readonly children: React.ReactNode
 }
 
 export function ExportProvider({ children }: ExportProviderProps): React.ReactElement {

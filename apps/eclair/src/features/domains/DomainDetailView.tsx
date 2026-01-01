@@ -13,15 +13,15 @@ type DomainDetailsConsumedEvent = DomainDetails['events']['consumed'][number]
 export type NodeTypeFilter = NodeType | 'all'
 const NODE_TYPES: NodeType[] = ['UI', 'API', 'UseCase', 'DomainOp', 'Event', 'EventHandler', 'Custom']
 interface DomainDetailViewProps {
-  domain: DomainDetails
-  nodeSearch: string
-  setNodeSearch: (search: string) => void
-  nodeTypeFilter: NodeTypeFilter
-  setNodeTypeFilter: (filter: NodeTypeFilter) => void
-  entitySearch: string
-  setEntitySearch: (search: string) => void
-  eventSearch: string
-  setEventSearch: (search: string) => void
+  readonly domain: DomainDetails
+  readonly nodeSearch: string
+  readonly setNodeSearch: (search: string) => void
+  readonly nodeTypeFilter: NodeTypeFilter
+  readonly setNodeTypeFilter: (filter: NodeTypeFilter) => void
+  readonly entitySearch: string
+  readonly setEntitySearch: (search: string) => void
+  readonly eventSearch: string
+  readonly setEventSearch: (search: string) => void
 }
 
 export function DomainDetailView({
@@ -82,7 +82,9 @@ export function DomainDetailView({
   )
 }
 interface StatisticsRowProps {
-  entities: number; operations: number; events: number
+  readonly entities: number
+  readonly operations: number
+  readonly events: number
 }
 function StatisticsRow({ entities, operations, events }: StatisticsRowProps): React.ReactElement {
   return (
@@ -94,12 +96,12 @@ function StatisticsRow({ entities, operations, events }: StatisticsRowProps): Re
   )
 }
 interface NodesSectionProps {
-  filteredNodes: Array<DomainDetailsNode>
-  domain: DomainDetails
-  nodeSearch: string
-  setNodeSearch: (search: string) => void
-  nodeTypeFilter: NodeTypeFilter
-  setNodeTypeFilter: (filter: NodeTypeFilter) => void
+  readonly filteredNodes: Array<DomainDetailsNode>
+  readonly domain: DomainDetails
+  readonly nodeSearch: string
+  readonly setNodeSearch: (search: string) => void
+  readonly nodeTypeFilter: NodeTypeFilter
+  readonly setNodeTypeFilter: (filter: NodeTypeFilter) => void
 }
 function NodesSection({ filteredNodes, domain, nodeSearch, setNodeSearch, nodeTypeFilter, setNodeTypeFilter }: NodesSectionProps): React.ReactElement {
   return (
@@ -116,10 +118,10 @@ function NodesSection({ filteredNodes, domain, nodeSearch, setNodeSearch, nodeTy
 }
 
 interface NodeFilterBarProps {
-  nodeSearch: string
-  setNodeSearch: (search: string) => void
-  nodeTypeFilter: NodeTypeFilter
-  setNodeTypeFilter: (filter: NodeTypeFilter) => void
+  readonly nodeSearch: string
+  readonly setNodeSearch: (search: string) => void
+  readonly nodeTypeFilter: NodeTypeFilter
+  readonly setNodeTypeFilter: (filter: NodeTypeFilter) => void
 }
 function NodeFilterBar({ nodeSearch, setNodeSearch, nodeTypeFilter, setNodeTypeFilter }: NodeFilterBarProps): React.ReactElement {
   return (
@@ -160,8 +162,8 @@ function NodeFilterBar({ nodeSearch, setNodeSearch, nodeTypeFilter, setNodeTypeF
 }
 
 interface NodesListOrEmptyProps {
-  filteredNodes: Array<DomainDetailsNode>
-  domain: DomainDetails
+  readonly filteredNodes: Array<DomainDetailsNode>
+  readonly domain: DomainDetails
 }
 function NodesListOrEmpty({ filteredNodes, domain }: NodesListOrEmptyProps): React.ReactElement {
   if (filteredNodes.length > 0) {
@@ -182,10 +184,36 @@ function NodesListOrEmpty({ filteredNodes, domain }: NodesListOrEmptyProps): Rea
 }
 
 interface NodeListItemProps {
-  node: DomainDetailsNode
+  readonly node: DomainDetailsNode
 }
 function NodeListItem({ node }: NodeListItemProps): React.ReactElement {
   const sourceLocation = node.sourceLocation
+  const hasSourceLocation = sourceLocation !== undefined && sourceLocation.lineNumber !== undefined
+  const hasNodeLocation = node.location !== undefined
+
+  const showCodeLink = hasSourceLocation
+  const showNodeLocation = !hasSourceLocation && hasNodeLocation
+
+  const renderNodeAction = (): React.ReactElement | null => {
+    if (showCodeLink) {
+      return (
+        <CodeLinkMenu
+          filePath={sourceLocation.filePath}
+          lineNumber={sourceLocation.lineNumber}
+          repository={sourceLocation.repository}
+        />
+      )
+    }
+    if (showNodeLocation) {
+      return (
+        <span className="max-w-[200px] shrink-0 truncate text-xs text-[var(--text-tertiary)]" title={node.location}>
+          {node.location}
+        </span>
+      )
+    }
+    return null
+  }
+  const nodeAction = renderNodeAction()
 
   return (
     <div className="flex items-center justify-between gap-4 rounded-[var(--radius)] border border-[var(--border-color)] bg-[var(--bg-secondary)] px-3 py-2 shadow-sm">
@@ -193,26 +221,16 @@ function NodeListItem({ node }: NodeListItemProps): React.ReactElement {
         <NodeTypeBadge type={node.type} />
         <span className="truncate text-sm font-medium text-[var(--text-primary)]">{node.name}</span>
       </div>
-      {sourceLocation !== undefined && sourceLocation.lineNumber !== undefined ? (
-        <CodeLinkMenu
-          filePath={sourceLocation.filePath}
-          lineNumber={sourceLocation.lineNumber}
-          repository={sourceLocation.repository}
-        />
-      ) : node.location !== undefined ? (
-        <span className="max-w-[200px] shrink-0 truncate text-xs text-[var(--text-tertiary)]" title={node.location}>
-          {node.location}
-        </span>
-      ) : null}
+      {nodeAction}
     </div>
   )
 }
 
 interface EntitiesSectionProps {
-  filteredEntities: Array<DomainDetailsEntity>
-  domain: DomainDetails
-  entitySearch: string
-  setEntitySearch: (search: string) => void
+  readonly filteredEntities: Array<DomainDetailsEntity>
+  readonly domain: DomainDetails
+  readonly entitySearch: string
+  readonly setEntitySearch: (search: string) => void
 }
 function EntitiesSection({ filteredEntities, domain, entitySearch, setEntitySearch }: EntitiesSectionProps): React.ReactElement {
   return (
@@ -242,8 +260,8 @@ function EntitiesSection({ filteredEntities, domain, entitySearch, setEntitySear
 }
 
 interface EntitiesListOrEmptyProps {
-  filteredEntities: Array<DomainDetailsEntity>
-  domain: DomainDetails
+  readonly filteredEntities: Array<DomainDetailsEntity>
+  readonly domain: DomainDetails
 }
 function EntitiesListOrEmpty({ filteredEntities, domain }: EntitiesListOrEmptyProps): React.ReactElement {
   if (filteredEntities.length > 0) {
@@ -267,11 +285,11 @@ function EntitiesListOrEmpty({ filteredEntities, domain }: EntitiesListOrEmptyPr
 }
 
 interface EventsSectionProps {
-  hasEvents: boolean
-  eventSearch: string
-  setEventSearch: (search: string) => void
-  filteredPublishedEvents: Array<DomainDetailsPublishedEvent>
-  filteredConsumedEvents: Array<DomainDetailsConsumedEvent>
+  readonly hasEvents: boolean
+  readonly eventSearch: string
+  readonly setEventSearch: (search: string) => void
+  readonly filteredPublishedEvents: Array<DomainDetailsPublishedEvent>
+  readonly filteredConsumedEvents: Array<DomainDetailsConsumedEvent>
 }
 function EventsSection({
   hasEvents,
@@ -307,9 +325,9 @@ function EventsSection({
 }
 
 interface EventsListOrEmptyProps {
-  hasEvents: boolean
-  filteredPublishedEvents: Array<DomainDetailsPublishedEvent>
-  filteredConsumedEvents: Array<DomainDetailsConsumedEvent>
+  readonly hasEvents: boolean
+  readonly filteredPublishedEvents: Array<DomainDetailsPublishedEvent>
+  readonly filteredConsumedEvents: Array<DomainDetailsConsumedEvent>
 }
 function EventsListOrEmpty({ hasEvents, filteredPublishedEvents, filteredConsumedEvents }: EventsListOrEmptyProps): React.ReactElement {
   if (!hasEvents) {
@@ -328,7 +346,7 @@ function EventsListOrEmpty({ hasEvents, filteredPublishedEvents, filteredConsume
 }
 
 interface PublishedEventsSectionProps {
-  events: Array<DomainDetailsPublishedEvent>
+  readonly events: Array<DomainDetailsPublishedEvent>
 }
 function PublishedEventsSection({ events }: PublishedEventsSectionProps): React.ReactElement {
   return events.length === 0 ? <></> : (
@@ -344,7 +362,7 @@ function PublishedEventsSection({ events }: PublishedEventsSectionProps): React.
 }
 
 interface ConsumedEventsSectionProps {
-  events: Array<DomainDetailsConsumedEvent>
+  readonly events: Array<DomainDetailsConsumedEvent>
 }
 function ConsumedEventsSection({ events }: ConsumedEventsSectionProps): React.ReactElement {
   return events.length === 0 ? <></> : (
@@ -360,7 +378,7 @@ function ConsumedEventsSection({ events }: ConsumedEventsSectionProps): React.Re
 }
 
 interface ConsumedEventItemProps {
-  handler: DomainDetailsConsumedEvent
+  readonly handler: DomainDetailsConsumedEvent
 }
 function ConsumedEventItem({ handler }: ConsumedEventItemProps): React.ReactElement {
   const sourceLocation = handler.sourceLocation

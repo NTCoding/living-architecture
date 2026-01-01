@@ -2,16 +2,16 @@ import { useState, useCallback } from 'react'
 import type { NodeType } from '@/types/riviere'
 
 interface NodeTypeInfo {
-  type: NodeType
-  nodeCount: number
+  readonly type: NodeType
+  readonly nodeCount: number
 }
 
 interface NodeTypeFiltersProps {
-  nodeTypes: NodeTypeInfo[]
-  visibleTypes: Set<NodeType>
-  onToggleType: (type: NodeType) => void
-  onShowAll: () => void
-  onHideAll: () => void
+  readonly nodeTypes: readonly NodeTypeInfo[]
+  readonly visibleTypes: Set<NodeType>
+  readonly onToggleType: (type: NodeType) => void
+  readonly onShowAll: () => void
+  readonly onHideAll: () => void
 }
 
 export function NodeTypeFilters({
@@ -20,7 +20,7 @@ export function NodeTypeFilters({
   onToggleType,
   onShowAll,
   onHideAll,
-}: NodeTypeFiltersProps): React.ReactElement {
+}: Readonly<NodeTypeFiltersProps>): React.ReactElement {
   const [isOpen, setIsOpen] = useState(true)
 
   const toggleOpen = useCallback(() => {

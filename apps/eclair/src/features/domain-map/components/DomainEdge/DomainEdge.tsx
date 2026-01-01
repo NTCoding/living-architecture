@@ -1,15 +1,22 @@
 import { BaseEdge, getStraightPath } from '@xyflow/react'
 
 interface DomainEdgeProps {
-  id: string
-  sourceX: number
-  sourceY: number
-  targetX: number
-  targetY: number
-  data?: {
-    apiCount?: number
-    eventCount?: number
-  }
+  readonly id: string
+  readonly sourceX: number
+  readonly sourceY: number
+  readonly targetX: number
+  readonly targetY: number
+  readonly data?: Readonly<{
+    readonly apiCount?: number
+    readonly eventCount?: number
+  }>
+}
+
+function getEdgeLabel(apiCount: number, eventCount: number): string | undefined {
+  if (apiCount > 0 && eventCount > 0) return `${apiCount} API · ${eventCount} Event`
+  if (apiCount > 0) return `${apiCount} API`
+  if (eventCount > 0) return `${eventCount} Event`
+  return undefined
 }
 
 export function DomainEdge({
@@ -19,17 +26,13 @@ export function DomainEdge({
   targetX,
   targetY,
   data,
-}: DomainEdgeProps): React.ReactElement {
+}: Readonly<DomainEdgeProps>): React.ReactElement {
   const [edgePath, labelX, labelY] = getStraightPath({ sourceX, sourceY, targetX, targetY })
 
   const apiCount = data?.apiCount ?? 0
   const eventCount = data?.eventCount ?? 0
 
-  const labelText =
-    apiCount > 0 && eventCount > 0 ? `${apiCount} API · ${eventCount} Event` :
-    apiCount > 0 ? `${apiCount} API` :
-    eventCount > 0 ? `${eventCount} Event` :
-    undefined
+  const labelText = getEdgeLabel(apiCount, eventCount)
 
   return (
     <BaseEdge

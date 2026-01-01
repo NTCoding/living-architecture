@@ -91,4 +91,19 @@ describe('traceFlow', () => {
     expect(result.nodeIds).toContain('c')
     expect(result.nodeIds).toContain('d')
   })
+
+  test('traces flow from external node back through connected internal nodes', () => {
+    const edgesWithExternal: Edge[] = [
+      parseEdge({ source: 'api', target: 'usecase', type: 'sync' }),
+      parseEdge({ source: 'usecase', target: 'external:Stripe', type: 'sync' }),
+    ]
+
+    const result = traceFlow('external:Stripe', edgesWithExternal)
+
+    expect(result.nodeIds).toContain('external:Stripe')
+    expect(result.nodeIds).toContain('usecase')
+    expect(result.nodeIds).toContain('api')
+    expect(result.edgeKeys).toContain('usecase->external:Stripe')
+    expect(result.edgeKeys).toContain('api->usecase')
+  })
 })

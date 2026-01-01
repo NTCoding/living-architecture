@@ -3,11 +3,11 @@ import type { DomainDetails } from '../../extractDomainDetails'
 import { NodeTypeBadge } from '@/features/flows/components/NodeTypeBadge/NodeTypeBadge'
 
 interface DomainDetailModalProps {
-  domain: DomainDetails | null
-  onClose: () => void
+  readonly domain: DomainDetails | null
+  readonly onClose: () => void
 }
 
-export function DomainDetailModal({ domain, onClose }: DomainDetailModalProps): React.ReactElement | null {
+export function DomainDetailModal({ domain, onClose }: Readonly<DomainDetailModalProps>): React.ReactElement | null {
   const titleId = useId()
 
   useEffect(() => {

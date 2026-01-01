@@ -1,14 +1,14 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 
 interface GraphSearchProps {
-  onSearch: (query: string) => void
-  placeholder?: string | undefined
+  readonly onSearch: (query: string) => void
+  readonly placeholder?: string | undefined
 }
 
 export function GraphSearch({
   onSearch,
   placeholder = 'Search nodes...',
-}: GraphSearchProps): React.ReactElement {
+}: Readonly<GraphSearchProps>): React.ReactElement {
   const [query, setQuery] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
 

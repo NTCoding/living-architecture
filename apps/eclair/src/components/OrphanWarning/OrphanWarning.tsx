@@ -2,14 +2,14 @@ import { useState } from 'react'
 import type { Node } from '@/types/riviere'
 
 export interface OrphanDetectionResult {
-  hasOrphans: boolean
-  orphanNodeIds: Set<string>
-  orphanCount: number
+  readonly hasOrphans: boolean
+  readonly orphanNodeIds: Set<string>
+  readonly orphanCount: number
 }
 
 interface OrphanWarningProps {
-  result: OrphanDetectionResult
-  nodes: Node[]
+  readonly result: OrphanDetectionResult
+  readonly nodes: Node[]
 }
 
 export function OrphanWarning({ result, nodes }: OrphanWarningProps): React.ReactElement | null {

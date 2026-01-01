@@ -38,10 +38,10 @@ const jsonViewStyles = {
 }
 
 interface SchemaModalProps {
-  graph: RiviereGraph | null
-  graphName: GraphName | undefined
-  isOpen: boolean
-  onClose: () => void
+  readonly graph: RiviereGraph | null
+  readonly graphName: GraphName | undefined
+  readonly isOpen: boolean
+  readonly onClose: () => void
 }
 
 export function SchemaModal({

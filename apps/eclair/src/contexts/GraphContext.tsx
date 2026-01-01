@@ -4,12 +4,12 @@ import { graphNameSchema } from '@/types/riviere'
 import { parseRiviereGraph } from '@living-architecture/riviere-schema'
 
 interface GraphContextValue {
-  graph: RiviereGraph | null
-  setGraph: (graph: RiviereGraph | null) => void
-  clearGraph: () => void
-  hasGraph: boolean
-  graphName: GraphName | undefined
-  isLoadingDemo: boolean
+  readonly graph: RiviereGraph | null
+  readonly setGraph: (graph: RiviereGraph | null) => void
+  readonly clearGraph: () => void
+  readonly hasGraph: boolean
+  readonly graphName: GraphName | undefined
+  readonly isLoadingDemo: boolean
 }
 
 const graphContext = createContext<GraphContextValue | null>(null)
@@ -50,7 +50,7 @@ function useIsDemoMode(): boolean {
 }
 
 interface GraphProviderProps {
-  children: React.ReactNode
+  readonly children: React.ReactNode
 }
 
 export function GraphProvider({ children }: GraphProviderProps): React.ReactElement {

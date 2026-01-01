@@ -159,7 +159,7 @@ export function extractDomainDetails(graph: RiviereGraph, domainId: DomainName):
   const consumedHandlers: DomainEventHandler[] = domainHandlers.map((h) => {
     const nodeId = nodeIdSchema.parse(h.id)
     const component = componentById.get(nodeId)
-    const description = component?.description !== null && typeof component?.description === 'string'
+    const description = component?.description !== undefined && typeof component?.description === 'string'
       ? component.description
       : undefined
     return {
@@ -173,8 +173,8 @@ export function extractDomainDetails(graph: RiviereGraph, domainId: DomainName):
   })
 
   const events: DomainEvents = {
-    published: publishedEvents.sort((a, b) => a.eventName.localeCompare(b.eventName)),
-    consumed: consumedHandlers.sort((a, b) => a.handlerName.localeCompare(b.handlerName)),
+    published: publishedEvents.toSorted((a: DomainEvent, b: DomainEvent) => a.eventName.localeCompare(b.eventName)),
+    consumed: consumedHandlers.toSorted((a: DomainEventHandler, b: DomainEventHandler) => a.handlerName.localeCompare(b.handlerName)),
   }
 
   const crossDomainEdges = buildCrossDomainEdges(graph, domainId)
@@ -182,7 +182,7 @@ export function extractDomainDetails(graph: RiviereGraph, domainId: DomainName):
   const entryPoints = extractEntryPoints(domainNodes)
 
   const repository = domainNodes
-    .find((node) => node.sourceLocation?.repository !== undefined)
+    .find((node) => node.sourceLocation?.repository)
     ?.sourceLocation?.repository
 
   return {

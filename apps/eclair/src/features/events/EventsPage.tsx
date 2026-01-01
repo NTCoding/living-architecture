@@ -5,7 +5,7 @@ import { EventAccordion } from '@/features/domains/components/EventAccordion/Eve
 import type { DomainEvent } from '@/features/domains/extractDomainDetails'
 
 interface EventsPageProps {
-  graph: RiviereGraph
+  readonly graph: RiviereGraph
 }
 
 interface PublishedEvent extends DomainEvent {
@@ -23,7 +23,7 @@ function handlerSubscribesToEvent(
   )
 }
 
-export function EventsPage({ graph }: EventsPageProps): React.ReactElement {
+export function EventsPage({ graph }: Readonly<EventsPageProps>): React.ReactElement {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const [searchQuery, setSearchQuery] = useState('')
@@ -35,7 +35,7 @@ export function EventsPage({ graph }: EventsPageProps): React.ReactElement {
     navigate(`/full-graph?node=${eventId}${demoParam}`)
   }, [navigate, searchParams])
 
-  const { publishedEvents, domains } = useMemo(() => {
+  const { publishedEvents, domains } = useMemo((): { publishedEvents: PublishedEvent[]; domains: string[] } => {
     const published: PublishedEvent[] = []
     const domainSet = new Set<string>()
 
@@ -65,16 +65,16 @@ export function EventsPage({ graph }: EventsPageProps): React.ReactElement {
     })
 
     return {
-      publishedEvents: published.sort((a, b) => {
+      publishedEvents: [...published].sort((a: PublishedEvent, b: PublishedEvent) => {
         const domainCompare = a.domain.localeCompare(b.domain)
         if (domainCompare !== 0) return domainCompare
         return a.eventName.localeCompare(b.eventName)
       }),
-      domains: Array.from(domainSet).sort((a, b) => a.localeCompare(b)),
+      domains: Array.from(domainSet).sort((a: string, b: string) => a.localeCompare(b)),
     }
   }, [graph])
 
-  const filteredPublished = useMemo(() => {
+  const filteredPublished = useMemo((): PublishedEvent[] => {
     return publishedEvents.filter((event) => {
       const matchesSearch =
         searchQuery === '' ||

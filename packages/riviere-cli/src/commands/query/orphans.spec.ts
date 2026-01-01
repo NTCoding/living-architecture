@@ -28,13 +28,18 @@ interface OrphansErrorOutput {
   }
 }
 
-type OrphansOutput = OrphansSuccessOutput | OrphansErrorOutput
+function isValidOrphansList(orphans: unknown): orphans is string[] {
+  if (!Array.isArray(orphans)) return false
+  return orphans.every((item): item is string => typeof item === 'string')
+}
 
 function isOrphansSuccessOutput(value: unknown): value is OrphansSuccessOutput {
   if (typeof value !== 'object' || value === null) return false
   if (!('success' in value) || value.success !== true) return false
-  if (!('data' in value) || typeof value.data !== 'object' || value.data === null) return false
-  if (!('orphans' in value.data) || !Array.isArray(value.data.orphans)) return false
+  if (!('data' in value) || typeof value.data !== 'object') return false
+  if (value.data === null || !('orphans' in value.data)) return false
+  if (!isValidOrphansList(value.data.orphans)) return false
+  if (!('warnings' in value) || !Array.isArray(value.warnings)) return false
   return true
 }
 
@@ -46,11 +51,23 @@ function isOrphansErrorOutput(value: unknown): value is OrphansErrorOutput {
   return true
 }
 
-function parseOutput(consoleOutput: string[]): OrphansOutput {
+function parseOutput(consoleOutput: string[]): OrphansSuccessOutput | OrphansErrorOutput {
   const parsed: unknown = JSON.parse(consoleOutput[0] ?? '{}')
   if (isOrphansSuccessOutput(parsed)) return parsed
   if (isOrphansErrorOutput(parsed)) return parsed
   throw new Error(`Invalid orphans output: ${consoleOutput[0]}`)
+}
+
+function assertSuccess(output: OrphansSuccessOutput | OrphansErrorOutput): OrphansSuccessOutput {
+  if (isOrphansSuccessOutput(output)) {
+    return output
+  }
+  throw new Error('Expected success output')
+}
+
+function getSortedOrphans(output: OrphansSuccessOutput): string[] {
+  const orphans: string[] = output.data.orphans
+  return [...orphans].sort((a, b) => a.localeCompare(b))
 }
 
 describe('riviere query orphans', () => {
@@ -77,11 +94,10 @@ describe('riviere query orphans', () => {
 
       await createProgram().parseAsync(['node', 'riviere', 'query', 'orphans', '--json'])
 
-      const output = parseOutput(ctx.consoleOutput)
-      if (!isOrphansSuccessOutput(output)) throw new Error('Expected success output')
+      const output = assertSuccess(parseOutput(ctx.consoleOutput))
 
       expect(output.success).toBe(true)
-      expect(output.data.orphans.sort((a, b) => a.localeCompare(b))).toEqual([
+      expect(getSortedOrphans(output)).toEqual([
         'orders:checkout:api:place-order',
         'orders:checkout:usecase:place-order',
       ])
@@ -105,8 +121,8 @@ describe('riviere query orphans', () => {
       await createProgram().parseAsync(['node', 'riviere', 'query', 'orphans', '--json'])
 
       const output = parseOutput(ctx.consoleOutput)
-      if (!isOrphansSuccessOutput(output)) throw new Error('Expected success output')
 
+      if (!isOrphansSuccessOutput(output)) throw new Error('Expected success output')
       expect(output.data.orphans).toEqual([])
     })
 

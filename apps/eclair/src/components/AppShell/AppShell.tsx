@@ -6,10 +6,10 @@ import { useExport } from '@/contexts/ExportContext'
 import type { RiviereGraph, GraphName } from '@/types/riviere'
 
 interface AppShellProps {
-  children: React.ReactNode
-  hasGraph: boolean
-  graphName: GraphName | undefined
-  graph: RiviereGraph | null
+  readonly children: React.ReactNode
+  readonly hasGraph: boolean
+  readonly graphName: GraphName | undefined
+  readonly graph: RiviereGraph | null
 }
 
 const COLLAPSED_BY_DEFAULT_ROUTES = ['/full-graph']

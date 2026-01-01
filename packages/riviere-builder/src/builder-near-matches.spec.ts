@@ -61,7 +61,7 @@ describe('RiviereBuilder.nearMatches', () => {
         { expectedName: 'OrderService', expectedType: 'UseCase', mismatchField: 'type' },
         'UseCase found when Event expected',
       ],
-    ])('nearMatches(%o) - %s', (query, expected, _description) => {
+    ])('nearMatches(%o) - %s', (query, expected) => {
       const builder = createBuilderWithComponents()
       const results = builder.nearMatches(query)
 
@@ -84,7 +84,7 @@ describe('RiviereBuilder.nearMatches', () => {
         { expectedName: 'OrderService', expectedDomain: 'orders', mismatchField: 'domain' },
         'exact name with wrong domain returns match with domain mismatch',
       ],
-    ])('nearMatches(%o) - %s', (query, expected, _description) => {
+    ])('nearMatches(%o) - %s', (query, expected) => {
       const builder = createBuilderWithComponents()
       const results = builder.nearMatches(query)
 
@@ -106,7 +106,7 @@ describe('RiviereBuilder.nearMatches', () => {
       [{ name: 'OrderServce' }, 'OrderService', 'missing char finds match'],
       [{ name: 'OrderSerivce' }, 'OrderService', 'transposed chars finds match'],
       [{ name: 'Paymentservice' }, 'PaymentService', 'case difference finds match'],
-    ])('nearMatches(%o) finds "%s" - %s', (query, expectedName, _description) => {
+    ])('nearMatches(%o) finds "%s" - %s', (query, expectedName) => {
       const builder = createBuilderWithComponents()
       const results = builder.nearMatches(query)
 
@@ -122,7 +122,7 @@ describe('RiviereBuilder.nearMatches', () => {
       [{ name: 'XYZ123' }, 'completely different returns empty'],
       [{ name: 'Foo' }, 'short unrelated returns empty'],
       [{ name: '' }, 'empty name returns empty'],
-    ])('nearMatches(%o) returns [] - %s', (query, _description) => {
+    ])('nearMatches(%o) returns [] - %s', (query) => {
       const builder = createBuilderWithComponents()
       const results = builder.nearMatches(query)
 

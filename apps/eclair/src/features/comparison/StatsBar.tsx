@@ -1,10 +1,10 @@
 import type { GraphDiff } from './compareGraphs'
 
 interface StatsBarProps {
-  diff: GraphDiff
+  readonly diff: GraphDiff
 }
 
-export function StatsBar({ diff }: StatsBarProps): React.ReactElement {
+export function StatsBar({ diff }: Readonly<StatsBarProps>): React.ReactElement {
   return (
     <div className="flex flex-wrap gap-4 rounded-[var(--radius)] border border-[var(--border-color)] bg-[var(--bg-secondary)] p-4 md:flex-nowrap md:gap-6">
       <div className="flex items-center gap-3 border-r border-[var(--border-color)] pr-6 last:border-r-0 last:pr-0">

@@ -19,7 +19,7 @@ import { DomainNode } from './components/DomainNode/DomainNode'
 import { useDomainMapInteractions } from './hooks/useDomainMapInteractions'
 
 interface DomainMapPageProps {
-  graph: RiviereGraph
+  readonly graph: RiviereGraph
 }
 
 const nodeTypes = { domain: DomainNode }

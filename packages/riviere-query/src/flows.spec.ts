@@ -81,7 +81,7 @@ describe('RiviereQuery.flows()', () => {
     const result = query.flows()
 
     expect(result).toHaveLength(2)
-    const entryPointIds = result.map((f) => f.entryPoint.id).sort()
+    const entryPointIds = result.map((f) => f.entryPoint.id).slice().sort((a, b) => a.localeCompare(b))
     expect(entryPointIds).toEqual(['test:api:endpoint', 'test:mod:ui:page'])
   })
 
@@ -125,7 +125,7 @@ describe('RiviereQuery.flows()', () => {
     const flow = result[0]
     if (!flow) throw new Error('Expected flow to exist')
     expect(flow.steps).toHaveLength(3)
-    const stepIds = flow.steps.map((s) => s.component.id).sort()
+    const stepIds = flow.steps.map((s) => s.component.id).slice().sort((a, b) => a.localeCompare(b))
     expect(stepIds).toEqual(['test:api:a', 'test:api:b', 'test:mod:ui:page'])
   })
 
@@ -200,7 +200,7 @@ describe('RiviereQuery.flows()', () => {
     const step = flow.steps[0]
     if (!step) throw new Error('Expected step to exist')
     expect(step.externalLinks).toHaveLength(2)
-    const names = step.externalLinks.map(l => l.target.name).sort()
+    const names = step.externalLinks.map(l => l.target.name).slice().sort((a, b) => a.localeCompare(b))
     expect(names).toEqual(['Analytics', 'CDN'])
   })
 })
@@ -215,8 +215,8 @@ describe('RiviereQuery.searchWithFlow()', () => {
 
     const result = query.searchWithFlow('', { returnAllOnEmptyQuery: true })
 
-    expect(result.matchingIds.sort()).toEqual(['test:api:a', 'test:mod:ui:page'])
-    expect(result.visibleIds.sort()).toEqual(['test:api:a', 'test:mod:ui:page'])
+    expect(result.matchingIds.slice().sort((a, b) => a.localeCompare(b))).toEqual(['test:api:a', 'test:mod:ui:page'])
+    expect(result.visibleIds.slice().sort((a, b) => a.localeCompare(b))).toEqual(['test:api:a', 'test:mod:ui:page'])
   })
 
   it('returns empty arrays when query is empty and returnAllOnEmptyQuery is false', () => {
@@ -247,7 +247,7 @@ describe('RiviereQuery.searchWithFlow()', () => {
     const result = query.searchWithFlow('API A', { returnAllOnEmptyQuery: false })
 
     expect(result.matchingIds).toEqual(['test:api:a'])
-    expect(result.visibleIds.sort()).toEqual(['test:api:a', 'test:mod:ui:page', 'test:uc:b'])
+    expect(result.visibleIds.slice().sort((a, b) => a.localeCompare(b))).toEqual(['test:api:a', 'test:mod:ui:page', 'test:uc:b'])
   })
 
   it('returns empty arrays when query matches nothing', () => {

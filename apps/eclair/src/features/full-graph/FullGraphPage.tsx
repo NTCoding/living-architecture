@@ -37,7 +37,7 @@ function findOrphanNodeIds(nodes: Node[], edges: Edge[]): Set<string> {
 }
 
 interface FullGraphPageProps {
-  graph: RiviereGraph
+  readonly graph: RiviereGraph
 }
 
 interface DomainInfo {
@@ -81,7 +81,7 @@ function extractNodeTypes(graph: RiviereGraph): NodeTypeInfo[] {
     .sort((a, b) => a.type.localeCompare(b.type))
 }
 
-export function FullGraphPage({ graph }: FullGraphPageProps): React.ReactElement {
+export function FullGraphPage({ graph }: Readonly<FullGraphPageProps>): React.ReactElement {
   const { theme } = useTheme()
   const { registerExportHandlers, clearExportHandlers } = useExport()
   const [searchParams] = useSearchParams()

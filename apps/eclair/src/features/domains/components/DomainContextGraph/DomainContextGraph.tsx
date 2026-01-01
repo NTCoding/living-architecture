@@ -11,8 +11,8 @@ interface ViewTransform {
 }
 
 interface DomainContextGraphProps {
-  domainId: string
-  connections: AggregatedConnection[]
+  readonly domainId: string
+  readonly connections: readonly AggregatedConnection[]
 }
 
 export interface DomainPosition {
@@ -76,7 +76,7 @@ const ZOOM_SENSITIVITY = 0.001
 export function DomainContextGraph({
   domainId,
   connections,
-}: DomainContextGraphProps): React.ReactElement {
+}: Readonly<DomainContextGraphProps>): React.ReactElement {
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null)
   const [transform, setTransform] = useState<ViewTransform>({ scale: 1, translateX: 0, translateY: 0 })
   const [isPanning, setIsPanning] = useState(false)

@@ -52,7 +52,7 @@ export function formatDomainNodes(nodes: Node[]): DomainNode[] {
       type: node.type,
       name: node.name,
       location:
-        node.sourceLocation !== undefined
+        node.sourceLocation != undefined
           ? formatLocation(node.sourceLocation.filePath, node.sourceLocation.lineNumber)
           : undefined,
       sourceLocation: node.sourceLocation,

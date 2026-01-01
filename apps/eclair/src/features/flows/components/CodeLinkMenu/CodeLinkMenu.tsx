@@ -27,7 +27,7 @@ function getModalCurrentValue(
   return null
 }
 
-export function CodeLinkMenu({ filePath, lineNumber, repository }: CodeLinkMenuProps): React.ReactElement {
+export function CodeLinkMenu({ filePath, lineNumber, repository }: Readonly<CodeLinkMenuProps>): React.ReactElement {
   const [isOpen, setIsOpen] = useState(false)
   const [modalMode, setModalMode] = useState<ModalMode>(null)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -178,13 +178,13 @@ export function CodeLinkMenu({ filePath, lineNumber, repository }: CodeLinkMenuP
                 <i className="ph ph-github-logo text-[var(--text-secondary)]" aria-hidden="true" />
                 <span>Open on GitHub</span>
               </div>
-              {repository !== undefined && settings.githubOrg !== null && (
+              {settings.githubOrg !== null && (
                 <span className="ml-6 text-xs text-[var(--text-tertiary)]">
                   {settings.githubOrg}
                 </span>
               )}
             </button>
-            {repository !== undefined && settings.githubOrg !== null && (
+            {settings.githubOrg !== null && (
               <button
                 type="button"
                 className="px-2 py-2 text-[var(--text-tertiary)] hover:text-[var(--text-primary)]"

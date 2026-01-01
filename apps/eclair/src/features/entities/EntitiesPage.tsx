@@ -6,10 +6,10 @@ import type { RiviereGraph } from '@/types/riviere'
 import { EntityAccordion } from '../domains/components/EntityAccordion/EntityAccordion'
 
 interface EntitiesPageProps {
-  graph: RiviereGraph
+  readonly graph: RiviereGraph
 }
 
-export function EntitiesPage({ graph }: EntitiesPageProps): React.ReactElement {
+export function EntitiesPage({ graph }: Readonly<EntitiesPageProps>): React.ReactElement {
   const navigate = useNavigate()
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedDomain, setSelectedDomain] = useState<string>('all')

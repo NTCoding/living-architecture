@@ -6,16 +6,15 @@ import { FlowTrace } from '../FlowTrace/FlowTrace'
 import { NodeTypeBadge } from '../NodeTypeBadge/NodeTypeBadge'
 
 interface FlowCardProps {
-  flow: Flow
-  graph: RiviereGraph
-  expanded: boolean
-  onToggle: () => void
+  readonly flow: Flow
+  readonly graph: RiviereGraph
+  readonly expanded: boolean
+  readonly onToggle: () => void
 }
 
-export function FlowCard({ flow, graph, expanded, onToggle }: FlowCardProps): React.ReactElement {
+export function FlowCard({ flow, graph, expanded, onToggle }: Readonly<FlowCardProps>): React.ReactElement {
   const navigate = useNavigate()
   const { entryPoint } = flow
-  const hasSourceLocation = entryPoint.sourceLocation !== undefined
 
   function handleViewOnGraph(e: React.MouseEvent): void {
     e.stopPropagation()
@@ -43,7 +42,7 @@ export function FlowCard({ flow, graph, expanded, onToggle }: FlowCardProps): Re
           <span className="flow-item-domain">{entryPoint.domain}</span>
         </div>
         <div data-testid="flow-item-actions" className="flow-item-actions">
-          {hasSourceLocation && entryPoint.sourceLocation !== undefined && entryPoint.sourceLocation.lineNumber !== undefined && (
+          {entryPoint.sourceLocation && (
             <CodeLinkMenu
               filePath={entryPoint.sourceLocation.filePath}
               lineNumber={entryPoint.sourceLocation.lineNumber}

@@ -1,7 +1,7 @@
 import type { NodeType } from '@/types/riviere'
 
 interface NodeTypeBadgeProps {
-  type: NodeType
+  readonly type: NodeType
 }
 
 function getBadgeClass(type: NodeType): string {
@@ -28,7 +28,7 @@ function getDisplayLabel(type: NodeType): string {
   return type
 }
 
-export function NodeTypeBadge({ type }: NodeTypeBadgeProps): React.ReactElement {
+export function NodeTypeBadge({ type }: Readonly<NodeTypeBadgeProps>): React.ReactElement {
   const badgeClass = getBadgeClass(type)
 
   return (

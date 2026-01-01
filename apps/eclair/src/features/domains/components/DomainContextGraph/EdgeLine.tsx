@@ -1,15 +1,15 @@
 import type { DomainPosition } from './DomainContextGraph'
 
 interface EdgeLineProps {
-  from: DomainPosition
-  to: DomainPosition
-  fromRadius: number
-  toRadius: number
-  testId: string
-  direction: 'incoming' | 'outgoing'
+  readonly from: DomainPosition
+  readonly to: DomainPosition
+  readonly fromRadius: number
+  readonly toRadius: number
+  readonly testId: string
+  readonly direction: 'incoming' | 'outgoing'
 }
 
-export function EdgeLine({ from, to, fromRadius, toRadius, testId, direction }: EdgeLineProps): React.ReactElement {
+export function EdgeLine({ from, to, fromRadius, toRadius, testId, direction }: Readonly<EdgeLineProps>): React.ReactElement {
   const dx = to.x - from.x
   const dy = to.y - from.y
   const length = Math.sqrt(dx * dx + dy * dy)

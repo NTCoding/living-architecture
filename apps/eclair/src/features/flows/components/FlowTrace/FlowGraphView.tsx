@@ -5,8 +5,8 @@ import type { FlowStep } from '../../extractFlows'
 import type { RiviereGraph } from '@/types/riviere'
 
 interface FlowGraphViewProps {
-  steps: FlowStep[]
-  graph: RiviereGraph
+  readonly steps: readonly FlowStep[]
+  readonly graph: RiviereGraph
 }
 
 function extractSubgraph(steps: FlowStep[], graph: RiviereGraph): RiviereGraph {
@@ -24,7 +24,7 @@ function extractSubgraph(steps: FlowStep[], graph: RiviereGraph): RiviereGraph {
   }
 }
 
-export function FlowGraphView({ steps, graph }: FlowGraphViewProps): React.ReactElement {
+export function FlowGraphView({ steps, graph }: Readonly<FlowGraphViewProps>): React.ReactElement {
   const { theme } = useTheme()
   const subgraph = useMemo(() => extractSubgraph(steps, graph), [steps, graph])
 

@@ -8,7 +8,7 @@ import { DomainNode } from '../domain-map/components/DomainNode/DomainNode'
 import { getClosestHandle } from '@/lib/handlePositioning'
 
 interface DomainConnectionDiffProps {
-  diff: DomainConnectionDiffResult
+  readonly diff: DomainConnectionDiffResult
 }
 
 type ConnectionStatus = 'added' | 'removed' | 'unchanged'
@@ -116,9 +116,11 @@ function buildEdges(
   })
 }
 
-function Legend({ className }: { className?: string }): React.ReactElement {
+function Legend({ className }: { readonly className?: string }): React.ReactElement {
+  const classNameString = className !== undefined ? ` ${className}` : ''
+  const divClassName = `flex flex-col gap-2 rounded-md border border-[var(--border-color)] bg-[var(--bg-primary)] p-3 text-xs${classNameString}`
   return (
-    <div className={`flex flex-col gap-2 rounded-md border border-[var(--border-color)] bg-[var(--bg-primary)] p-3 text-xs${className !== undefined ? ` ${className}` : ''}`}>
+    <div className={divClassName}>
       <div className="flex items-center gap-2">
         <div className="h-0.5 w-4" style={{ backgroundColor: STATUS_COLORS.added }} />
         <span>Added</span>
@@ -145,10 +147,10 @@ interface TooltipData {
 }
 
 interface EdgeTooltipProps {
-  data: TooltipData
+  readonly data: TooltipData
 }
 
-function EdgeTooltip({ data }: EdgeTooltipProps): React.ReactElement {
+function EdgeTooltip({ data }: Readonly<EdgeTooltipProps>): React.ReactElement {
   const statusLabel = {
     added: 'Added Connection',
     removed: 'Removed Connection',
@@ -197,15 +199,15 @@ function EdgeTooltip({ data }: EdgeTooltipProps): React.ReactElement {
 }
 
 interface FullscreenModalProps {
-  nodes: Node<DiffNodeData>[]
-  edges: Edge<DiffEdgeData>[]
-  onClose: () => void
-  onEdgeMouseEnter: EdgeMouseHandler<Edge<DiffEdgeData>>
-  onEdgeMouseLeave: () => void
-  tooltip: TooltipData | null
+  readonly nodes: readonly Node<DiffNodeData>[]
+  readonly edges: readonly Edge<DiffEdgeData>[]
+  readonly onClose: () => void
+  readonly onEdgeMouseEnter: EdgeMouseHandler<Edge<DiffEdgeData>>
+  readonly onEdgeMouseLeave: () => void
+  readonly tooltip: TooltipData | null
 }
 
-function FullscreenModal({ nodes, edges, onClose, onEdgeMouseEnter, onEdgeMouseLeave, tooltip }: FullscreenModalProps): React.ReactElement {
+function FullscreenModal({ nodes, edges, onClose, onEdgeMouseEnter, onEdgeMouseLeave, tooltip }: Readonly<FullscreenModalProps>): React.ReactElement {
   return (
     <div
       role="dialog"

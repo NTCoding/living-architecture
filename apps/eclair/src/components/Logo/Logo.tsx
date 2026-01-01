@@ -1,10 +1,10 @@
 import { useTheme } from '@/contexts/ThemeContext'
 
 interface LogoProps {
-  size?: number
+  readonly size?: number
 }
 
-function StreamLogo({ size, gradientId }: { size: number; gradientId: string }): React.ReactElement {
+function StreamLogo({ size, gradientId }: { readonly size: number; readonly gradientId: string }): React.ReactElement {
   return (
     <svg width={size} height={size} viewBox="0 0 40 40" fill="none">
       <defs>
@@ -27,7 +27,7 @@ function StreamLogo({ size, gradientId }: { size: number; gradientId: string }):
   )
 }
 
-function VoltageLogo({ size }: { size: number }): React.ReactElement {
+function VoltageLogo({ size }: { readonly size: number }): React.ReactElement {
   return (
     <svg width={size} height={size} viewBox="0 0 40 40" fill="none">
       <rect width="40" height="40" rx="8" fill="#1A1A24" />
@@ -44,7 +44,7 @@ function VoltageLogo({ size }: { size: number }): React.ReactElement {
   )
 }
 
-function CircuitLogo({ size }: { size: number }): React.ReactElement {
+function CircuitLogo({ size }: { readonly size: number }): React.ReactElement {
   return (
     <svg width={size} height={size} viewBox="0 0 40 40" fill="none">
       <rect width="40" height="40" rx="6" fill="#000000" />

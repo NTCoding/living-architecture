@@ -41,7 +41,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       # Prepend any command with "nx-cloud record --" to record its logs to Nx Cloud
       # - run: pnpm exec nx-cloud record -- echo Hello World
-      - run: pnpm exec nx run-many -t lint test build typecheck --verbose
+      - run: pnpm exec nx run-many -t lint test build typecheck --verbose --coverage
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@a31c9398be7ace6bbfaf30c0bd5d415f843d45e9

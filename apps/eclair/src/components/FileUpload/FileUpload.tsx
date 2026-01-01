@@ -1,9 +1,9 @@
 import { useState, useCallback, useRef } from 'react'
 
 interface FileUploadProps {
-  onFileLoaded: (content: string, fileName: string) => void
-  onError: (error: string) => void
-  accept?: string
+  readonly onFileLoaded: (content: string, fileName: string) => void
+  readonly onError: (error: string) => void
+  readonly accept?: string
 }
 
 export function FileUpload({ onFileLoaded, onError, accept = '.json' }: FileUploadProps): React.ReactElement {

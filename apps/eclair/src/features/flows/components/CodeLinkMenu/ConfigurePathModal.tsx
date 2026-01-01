@@ -30,10 +30,10 @@ const CONFIG = {
 }
 
 interface ModalContentProps {
-  mode: ConfigureMode
-  onClose: () => void
-  onSave: (value: string) => void
-  currentValue: string | null
+  readonly mode: ConfigureMode
+  readonly onClose: () => void
+  readonly onSave: (value: string) => void
+  readonly currentValue: string | null
 }
 
 function deriveInitialInputValue(currentValue: string | null): string {
@@ -43,7 +43,7 @@ function deriveInitialInputValue(currentValue: string | null): string {
   return currentValue
 }
 
-function ModalContent({ mode, onClose, onSave, currentValue }: ModalContentProps): React.ReactElement {
+function ModalContent({ mode, onClose, onSave, currentValue }: Readonly<ModalContentProps>): React.ReactElement {
   const [inputValue, setInputValue] = useState(() => deriveInitialInputValue(currentValue))
   const config = CONFIG[mode]
 

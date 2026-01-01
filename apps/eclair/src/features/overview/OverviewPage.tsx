@@ -32,7 +32,7 @@ interface OverviewPageProps {
   graph: RiviereGraph
 }
 
-export function OverviewPage({ graph }: OverviewPageProps): React.ReactElement {
+export function OverviewPage({ graph }: Readonly<OverviewPageProps>): React.ReactElement {
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
   const [searchQuery, setSearchQuery] = useState('')
   const [activeFilter, setActiveFilter] = useState<FilterType>('all')
@@ -64,7 +64,7 @@ export function OverviewPage({ graph }: OverviewPageProps): React.ReactElement {
       }
 
       const repository = domainComponents
-        .find((node) => node.sourceLocation?.repository !== undefined)
+        .find((node) => node.sourceLocation != null)
         ?.sourceLocation?.repository
 
       const entities = allEntities
@@ -199,12 +199,12 @@ export function OverviewPage({ graph }: OverviewPageProps): React.ReactElement {
 }
 
 interface StatsItemProps {
-  icon: string
-  label: string
-  value: number
+  readonly icon: string
+  readonly label: string
+  readonly value: number
 }
 
-function StatsItem({ icon, label, value }: StatsItemProps): React.ReactElement {
+function StatsItem({ icon, label, value }: Readonly<StatsItemProps>): React.ReactElement {
   return (
     <div className="flex items-center gap-3 border-r border-[var(--border-color)] pr-6 last:border-r-0 last:pr-0 md:border-r md:pr-6">
       <i className={`ph ph-${icon} text-xl text-[var(--primary)]`} aria-hidden="true" />
@@ -221,12 +221,12 @@ function StatsItem({ icon, label, value }: StatsItemProps): React.ReactElement {
 }
 
 interface DomainCardProps {
-  domain: DomainInfo
-  viewMode: ViewMode
-  graphName: string | undefined
+  readonly domain: DomainInfo
+  readonly viewMode: ViewMode
+  readonly graphName: string | undefined
 }
 
-function DomainCard({ domain, viewMode, graphName }: DomainCardProps): React.ReactElement {
+function DomainCard({ domain, viewMode, graphName }: Readonly<DomainCardProps>): React.ReactElement {
   const repoName: string | undefined = domain.repository !== undefined ? domain.repository : graphName
   const { settings } = useCodeLinkSettings()
   const githubUrl = repoName !== undefined && settings.githubOrg !== null ? `${settings.githubOrg.replace(/\/$/, '')}/${repoName}` : null
@@ -333,10 +333,10 @@ function DomainCard({ domain, viewMode, graphName }: DomainCardProps): React.Rea
 }
 
 interface NodeBreakdownSectionProps {
-  breakdown: DomainInfo['nodeBreakdown']
+  readonly breakdown: DomainInfo['nodeBreakdown']
 }
 
-function NodeBreakdownSection({ breakdown }: NodeBreakdownSectionProps): React.ReactElement {
+function NodeBreakdownSection({ breakdown }: Readonly<NodeBreakdownSectionProps>): React.ReactElement {
   const items = [
     { label: 'UI', value: breakdown.UI },
     { label: 'API', value: breakdown.API },
@@ -369,10 +369,10 @@ function NodeBreakdownSection({ breakdown }: NodeBreakdownSectionProps): React.R
 const DISPLAY_LIMIT = 3
 
 interface EntitiesSectionProps {
-  entities: string[]
+  readonly entities: readonly string[]
 }
 
-function EntitiesSection({ entities }: EntitiesSectionProps): React.ReactElement {
+function EntitiesSection({ entities }: Readonly<EntitiesSectionProps>): React.ReactElement {
   const displayedEntities = entities.slice(0, DISPLAY_LIMIT)
   const hasMore = entities.length > DISPLAY_LIMIT
 
@@ -401,10 +401,10 @@ function EntitiesSection({ entities }: EntitiesSectionProps): React.ReactElement
 }
 
 interface EntryPointsSectionProps {
-  entryPoints: string[]
+  readonly entryPoints: readonly string[]
 }
 
-function EntryPointsSection({ entryPoints }: EntryPointsSectionProps): React.ReactElement {
+function EntryPointsSection({ entryPoints }: Readonly<EntryPointsSectionProps>): React.ReactElement {
   const displayedEntryPoints = entryPoints.slice(0, DISPLAY_LIMIT)
   const hasMore = entryPoints.length > DISPLAY_LIMIT
 

@@ -5,14 +5,13 @@ export const TOOLTIP_WIDTH = 310
 export const TOOLTIP_HEIGHT = 200
 
 interface GraphTooltipProps {
-  data: TooltipData | null
-  onMouseEnter?: () => void
-  onMouseLeave?: () => void
+  readonly data: TooltipData | null
+  readonly onMouseEnter?: () => void
+  readonly onMouseLeave?: () => void
 }
 
 function hasSourceLocation(node: TooltipData['node']): node is TooltipData['node'] & { originalNode: { sourceLocation: { filePath: string; lineNumber: number; repository?: string } } } {
-  const loc = node.originalNode.sourceLocation
-  return loc !== undefined && loc.lineNumber !== undefined
+  return node.originalNode.sourceLocation != null && typeof node.originalNode.sourceLocation?.lineNumber === 'number'
 }
 
 function calculateTooltipPosition(x: number, y: number): { left: number; top: number } {

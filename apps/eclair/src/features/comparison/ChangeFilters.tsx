@@ -1,8 +1,8 @@
 type ChangeFilter = 'all' | 'added' | 'removed' | 'modified'
 
 interface FilterTabsProps {
-  activeFilter: ChangeFilter
-  onFilterChange: (filter: ChangeFilter) => void
+  readonly activeFilter: ChangeFilter
+  readonly onFilterChange: (filter: ChangeFilter) => void
 }
 
 export function FilterTabs({ activeFilter, onFilterChange }: FilterTabsProps): React.ReactElement {
@@ -34,9 +34,9 @@ export function FilterTabs({ activeFilter, onFilterChange }: FilterTabsProps): R
 }
 
 interface DomainFilterProps {
-  domains: string[]
-  activeDomain: string | null
-  onDomainChange: (domain: string | null) => void
+  readonly domains: string[]
+  readonly activeDomain: string | null
+  readonly onDomainChange: (domain: string | null) => void
 }
 
 export function DomainFilter({ domains, activeDomain, onDomainChange }: DomainFilterProps): React.ReactElement {
@@ -61,9 +61,9 @@ export function DomainFilter({ domains, activeDomain, onDomainChange }: DomainFi
 }
 
 interface TypeFilterProps {
-  types: string[]
-  activeType: string | null
-  onTypeChange: (type: string | null) => void
+  readonly types: string[]
+  readonly activeType: string | null
+  readonly onTypeChange: (type: string | null) => void
 }
 
 export function TypeFilter({ types, activeType, onTypeChange }: TypeFilterProps): React.ReactElement {

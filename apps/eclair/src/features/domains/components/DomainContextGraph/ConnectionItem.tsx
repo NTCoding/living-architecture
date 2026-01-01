@@ -1,12 +1,12 @@
 import type { AggregatedConnection } from '../../extractDomainDetails'
 
 interface ConnectionItemProps {
-  connection: AggregatedConnection
-  currentDomainId: string
-  targetDomainId: string
+  readonly connection: AggregatedConnection
+  readonly currentDomainId: string
+  readonly targetDomainId: string
 }
 
-export function ConnectionItem({ connection, currentDomainId, targetDomainId }: ConnectionItemProps): React.ReactElement {
+export function ConnectionItem({ connection, currentDomainId, targetDomainId }: Readonly<ConnectionItemProps>): React.ReactElement {
   const isOutgoing = connection.direction === 'outgoing'
   const fromDomain = isOutgoing ? currentDomainId : targetDomainId
   const toDomain = isOutgoing ? targetDomainId : currentDomainId

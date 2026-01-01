@@ -2,20 +2,18 @@ import { Link, useLocation } from 'react-router-dom'
 import { Logo } from '@/components/Logo/Logo'
 import { ThemeSwitcher } from '@/components/ThemeSwitcher/ThemeSwitcher'
 
-function getNavItemBaseClasses(collapsed: boolean): string {
-  return collapsed
-    ? 'w-full flex items-center justify-center p-2 rounded-[var(--radius)] transition-all duration-200'
-    : 'w-full flex items-center gap-3 px-3 py-2 rounded-[var(--radius)] text-left text-sm transition-all duration-200'
+function getCollapsedNavItemClasses(): string {
+  return 'w-full flex items-center justify-center p-2 rounded-[var(--radius)] transition-all duration-200'
 }
 
-function getTooltipTitle(collapsed: boolean, label: string): string | undefined {
-  return collapsed ? label : undefined
+function getExpandedNavItemClasses(): string {
+  return 'w-full flex items-center gap-3 px-3 py-2 rounded-[var(--radius)] text-left text-sm transition-all duration-200'
 }
 
 interface NavItemContentProps {
-  icon: string
-  label: string
-  collapsed: boolean
+  readonly icon: string
+  readonly label: string
+  readonly collapsed: boolean
 }
 
 function NavItemContent({ icon, label, collapsed }: NavItemContentProps): React.ReactElement {
@@ -28,22 +26,40 @@ function NavItemContent({ icon, label, collapsed }: NavItemContentProps): React.
 }
 
 interface NavItemProps {
-  icon: string
-  label: string
-  to: string
-  disabled?: boolean
-  active?: boolean
-  collapsed?: boolean
+  readonly icon: string
+  readonly label: string
+  readonly to: string
+  readonly disabled?: boolean
+  readonly active?: boolean
+  readonly collapsed?: boolean
+}
+
+function getDisabledStateClasses(): string {
+  return 'opacity-40 cursor-not-allowed'
+}
+
+function getActiveStateClasses(): string {
+  return 'bg-[var(--bg-tertiary)] text-[var(--primary)] font-medium'
+}
+
+function getDefaultStateClasses(): string {
+  return 'text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]'
+}
+
+function getNavItemStateClasses(disabled: boolean, active: boolean): string {
+  if (disabled) return getDisabledStateClasses()
+  if (active) return getActiveStateClasses()
+  return getDefaultStateClasses()
+}
+
+function getTooltipTitle(collapsed: boolean, label: string): string | undefined {
+  if (collapsed) return label
+  return undefined
 }
 
 function NavItem({ icon, label, to, disabled = false, active = false, collapsed = false }: NavItemProps): React.ReactElement {
-  const baseClasses = getNavItemBaseClasses(collapsed)
-
-  const stateClasses = disabled
-    ? 'opacity-40 cursor-not-allowed'
-    : active
-      ? 'bg-[var(--bg-tertiary)] text-[var(--primary)] font-medium'
-      : 'text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]'
+  const baseClasses = collapsed ? getCollapsedNavItemClasses() : getExpandedNavItemClasses()
+  const stateClasses = getNavItemStateClasses(disabled, active)
 
   if (disabled) {
     return (
@@ -61,14 +77,14 @@ function NavItem({ icon, label, to, disabled = false, active = false, collapsed 
 }
 
 interface ExternalLinkProps {
-  icon: string
-  label: string
-  href: string
-  collapsed?: boolean
+  readonly icon: string
+  readonly label: string
+  readonly href: string
+  readonly collapsed?: boolean
 }
 
 function ExternalLink({ icon, label, href, collapsed = false }: ExternalLinkProps): React.ReactElement {
-  const baseClasses = getNavItemBaseClasses(collapsed)
+  const baseClasses = collapsed ? getCollapsedNavItemClasses() : getExpandedNavItemClasses()
 
   return (
     <a
@@ -84,9 +100,9 @@ function ExternalLink({ icon, label, href, collapsed = false }: ExternalLinkProp
 }
 
 interface SidebarProps {
-  hasGraph: boolean
-  collapsed?: boolean
-  onToggleCollapse?: () => void
+  readonly hasGraph: boolean
+  readonly collapsed?: boolean
+  readonly onToggleCollapse?: () => void
 }
 
 export function Sidebar({ hasGraph, collapsed = false, onToggleCollapse }: SidebarProps): React.ReactElement {

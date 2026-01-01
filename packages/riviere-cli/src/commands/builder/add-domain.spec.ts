@@ -221,13 +221,14 @@ describe('riviere builder add-domain', () => {
       await createGraphWithDomain(mockContext.testDir, 'orders');
 
       const unexpectedError = new Error('Unexpected database error');
+      const throwUnexpectedError = () => {
+        throw unexpectedError;
+      };
 
       vi.doMock('@living-architecture/riviere-builder', () => ({
         RiviereBuilder: {
           resume: vi.fn().mockReturnValue({
-            addDomain: vi.fn().mockImplementation(() => {
-              throw unexpectedError;
-            }),
+            addDomain: vi.fn().mockImplementation(throwUnexpectedError),
           }),
         },
         DuplicateDomainError: class DuplicateDomainError extends Error {},
