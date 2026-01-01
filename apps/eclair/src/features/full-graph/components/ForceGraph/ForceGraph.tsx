@@ -352,7 +352,7 @@ export function ForceGraph({
     const nodes = [...regularNodes, ...externalNodes]
     const links = [...regularLinks, ...externalSimLinks]
 
-    const currentGraphKey = filteredNodes.map((n) => n.id).sort().join(',')
+    const currentGraphKey = filteredNodes.map((n) => n.id).sort((a, b) => a.localeCompare(b)).join(',')
     const isGraphDataChange = currentGraphKey !== lastGraphKeyRef.current
     lastGraphKeyRef.current = currentGraphKey
 

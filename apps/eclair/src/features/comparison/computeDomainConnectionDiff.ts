@@ -57,6 +57,38 @@ interface ConnectionAggregation {
   edges: EdgeDetail[]
 }
 
+type EdgeType = 'sync' | 'async' | 'unknown'
+
+function parseEdgeType(type: string): EdgeType {
+  if (type === 'async') return 'async'
+  if (type === 'sync') return 'sync'
+  return 'unknown'
+}
+
+function createNewAggregation(
+  sourceInfo: NodeInfo,
+  targetInfo: NodeInfo,
+  edgeDetail: EdgeDetail
+): ConnectionAggregation {
+  return {
+    source: sourceInfo.domain,
+    target: targetInfo.domain,
+    apiCount: targetInfo.type === 'API' ? 1 : 0,
+    eventCount: targetInfo.type === 'EventHandler' ? 1 : 0,
+    edges: [edgeDetail],
+  }
+}
+
+function updateExistingAggregation(
+  existing: ConnectionAggregation,
+  targetType: NodeType,
+  edgeDetail: EdgeDetail
+): void {
+  if (targetType === 'API') existing.apiCount += 1
+  if (targetType === 'EventHandler') existing.eventCount += 1
+  existing.edges.push(edgeDetail)
+}
+
 function aggregateDomainConnections(graph: RiviereGraph): Map<string, ConnectionAggregation> {
   const nodeInfo = buildNodeInfoMap(graph.components)
   const aggregation = new Map<string, ConnectionAggregation>()
@@ -68,33 +100,17 @@ function aggregateDomainConnections(graph: RiviereGraph): Map<string, Connection
     if (sourceInfo.domain === targetInfo.domain) continue
 
     const key = createConnectionKey(sourceInfo.domain, targetInfo.domain)
-    const existing = aggregation.get(key)
-    const isApi = targetInfo.type === 'API'
-    const isEventHandler = targetInfo.type === 'EventHandler'
-    const edgeType: 'sync' | 'async' | 'unknown' =
-      edge.type === 'async' ? 'async' : edge.type === 'sync' ? 'sync' : 'unknown'
     const edgeDetail: EdgeDetail = {
       sourceNodeName: sourceInfo.name,
       targetNodeName: targetInfo.name,
-      type: edgeType,
+      type: parseEdgeType(edge.type),
     }
 
+    const existing = aggregation.get(key)
     if (existing === undefined) {
-      aggregation.set(key, {
-        source: sourceInfo.domain,
-        target: targetInfo.domain,
-        apiCount: isApi ? 1 : 0,
-        eventCount: isEventHandler ? 1 : 0,
-        edges: [edgeDetail],
-      })
+      aggregation.set(key, createNewAggregation(sourceInfo, targetInfo, edgeDetail))
     } else {
-      if (isApi) {
-        existing.apiCount += 1
-      }
-      if (isEventHandler) {
-        existing.eventCount += 1
-      }
-      existing.edges.push(edgeDetail)
+      updateExistingAggregation(existing, targetInfo.type, edgeDetail)
     }
   }
 

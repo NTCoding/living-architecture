@@ -204,7 +204,7 @@ function extractUniqueDomains(items: ChangeItemBase[]): string[] {
   for (const item of items) {
     domains.add(item.node.domain)
   }
-  return Array.from(domains).sort()
+  return Array.from(domains).sort((a, b) => a.localeCompare(b))
 }
 
 function extractUniqueTypes(items: ChangeItemBase[]): string[] {
@@ -212,7 +212,7 @@ function extractUniqueTypes(items: ChangeItemBase[]): string[] {
   for (const item of items) {
     types.add(item.node.type)
   }
-  return Array.from(types).sort()
+  return Array.from(types).sort((a, b) => a.localeCompare(b))
 }
 
 interface DetailedChangesProps {

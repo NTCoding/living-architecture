@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, useCallback } from 'react'
+import { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react'
 import type { Theme } from '@/types/theme'
 import { DEFAULT_THEME, THEME_STORAGE_KEY } from '@/types/theme'
 
@@ -42,8 +42,10 @@ export function ThemeProvider({ children }: ThemeProviderProps): React.ReactElem
     applyThemeToDocument(theme)
   }, [theme])
 
+  const contextValue = useMemo(() => ({ theme, setTheme }), [theme, setTheme])
+
   return (
-    <themeContext.Provider value={{ theme, setTheme }}>
+    <themeContext.Provider value={contextValue}>
       {children}
     </themeContext.Provider>
   )

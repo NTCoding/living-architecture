@@ -96,7 +96,7 @@ function getDomainPaletteColor(index: number): string {
 }
 
 export function getDomainColor(domain: string, domains: string[]): string {
-  const sortedDomains = [...domains].sort()
+  const sortedDomains = [...domains].sort((a, b) => a.localeCompare(b))
   const index = sortedDomains.indexOf(domain)
   if (index === -1) return getDomainPaletteColor(0)
   return getDomainPaletteColor(index % 10)

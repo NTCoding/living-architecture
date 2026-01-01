@@ -24,7 +24,6 @@ const testGraph: RiviereGraph = {
     parseNode({ sourceLocation: testSourceLocation,
       id: 'node-1',
       type: 'API',
-        apiType: 'other',
       name: 'Test API',
       domain: 'test-domain',
       module: 'test-module',

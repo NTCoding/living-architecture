@@ -12,6 +12,17 @@ interface PublishedEvent extends DomainEvent {
   domain: string
 }
 
+function handlerSubscribesToEvent(
+  subscribedEvents: string[] | undefined,
+  eventName: string,
+  eventId: string
+): boolean {
+  if (subscribedEvents === undefined) return false
+  return subscribedEvents.some(
+    (name) => name === eventName || eventId.includes(name)
+  )
+}
+
 export function EventsPage({ graph }: EventsPageProps): React.ReactElement {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -35,14 +46,9 @@ export function EventsPage({ graph }: EventsPageProps): React.ReactElement {
       domainSet.add(eventNode.domain)
 
       const eventHandlers = eventHandlerNodes
-        .filter((handler) => {
-          const subscribedEvents = handler.subscribedEvents
-          if (subscribedEvents === undefined) return false
-          return subscribedEvents.some((eventName) =>
-            eventName === eventNode.name ||
-            eventNode.id.includes(eventName)
-          )
-        })
+        .filter((handler) =>
+          handlerSubscribesToEvent(handler.subscribedEvents, eventNode.name, eventNode.id)
+        )
         .map((h) => ({
           domain: h.domain,
           handlerName: h.name,
@@ -64,7 +70,7 @@ export function EventsPage({ graph }: EventsPageProps): React.ReactElement {
         if (domainCompare !== 0) return domainCompare
         return a.eventName.localeCompare(b.eventName)
       }),
-      domains: Array.from(domainSet).sort(),
+      domains: Array.from(domainSet).sort((a, b) => a.localeCompare(b)),
     }
   }, [graph])
 

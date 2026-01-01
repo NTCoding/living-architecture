@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, useEffect, useRef, useSyncExternalStore } from 'react'
+import { createContext, useContext, useState, useCallback, useEffect, useRef, useSyncExternalStore, useMemo } from 'react'
 import type { RiviereGraph, GraphName } from '@/types/riviere'
 import { graphNameSchema } from '@/types/riviere'
 import { parseRiviereGraph } from '@living-architecture/riviere-schema'
@@ -94,8 +94,13 @@ export function GraphProvider({ children }: GraphProviderProps): React.ReactElem
     ? graphNameSchema.parse(graph.metadata.name)
     : undefined
 
+  const contextValue = useMemo(
+    () => ({ graph, setGraph, clearGraph, hasGraph, graphName, isLoadingDemo }),
+    [graph, setGraph, clearGraph, hasGraph, graphName, isLoadingDemo]
+  )
+
   return (
-    <graphContext.Provider value={{ graph, setGraph, clearGraph, hasGraph, graphName, isLoadingDemo }}>
+    <graphContext.Provider value={contextValue}>
       {children}
     </graphContext.Provider>
   )

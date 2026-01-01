@@ -34,7 +34,6 @@ function createTestGraph(overrides: Partial<RiviereGraph> = {}): RiviereGraph {
         sourceLocation: testSourceLocation,
         id: nodeIdSchema.parse('node-1'),
         type: 'API',
-        apiType: 'other',
         apiType: 'REST',
         name: 'POST /orders',
         domain: domainNameSchema.parse('orders'),
@@ -161,7 +160,6 @@ describe('SchemaModal', () => {
               sourceLocation: testSourceLocation,
               id: nodeIdSchema.parse('node-1'),
               type: 'API',
-        apiType: 'other',
               apiType: 'REST',
               name: 'POST /orders',
               domain: domainNameSchema.parse('orders'),
@@ -171,7 +169,6 @@ describe('SchemaModal', () => {
               sourceLocation: testSourceLocation,
               id: nodeIdSchema.parse('node-2'),
               type: 'API',
-        apiType: 'other',
               apiType: 'REST',
               name: 'POST /items',
               domain: domainNameSchema.parse('orders'),
@@ -276,119 +273,115 @@ describe('SchemaModal', () => {
       })
     })
 
-    describe('copy functionality', () => {
-      it('copies JSON to clipboard when copy clicked', async () => {
-        const user = userEvent.setup()
-        const writeText = vi.fn().mockResolvedValue(undefined)
-        vi.stubGlobal('navigator', {
-          clipboard: { writeText },
-        })
-
-        render(
-          <SchemaModal graph={createTestGraph()} graphName={createGraphName('test.json')} isOpen={true} onClose={vi.fn()} />
-        )
-
-        await user.click(screen.getByRole('button', { name: /copy/i }))
-
-        expect(writeText).toHaveBeenCalled()
-        const firstCall = writeText.mock.calls[0]
-        if (firstCall === undefined) {
-          throw new Error('Expected writeText to have been called with arguments')
-        }
-        const copiedContent = String(firstCall[0])
-        expect(copiedContent).toContain('"version": "1.0"')
-
-        vi.unstubAllGlobals()
+    it('copy: copies JSON to clipboard when copy clicked', async () => {
+      const user = userEvent.setup()
+      const writeText = vi.fn().mockResolvedValue(undefined)
+      vi.stubGlobal('navigator', {
+        clipboard: { writeText },
       })
 
-      it('shows success feedback after copy', async () => {
-        const user = userEvent.setup()
-        const writeText = vi.fn().mockResolvedValue(undefined)
-        vi.stubGlobal('navigator', {
-          clipboard: { writeText },
-        })
+      render(
+        <SchemaModal graph={createTestGraph()} graphName={createGraphName('test.json')} isOpen={true} onClose={vi.fn()} />
+      )
 
-        render(
-          <SchemaModal graph={createTestGraph()} graphName={createGraphName('test.json')} isOpen={true} onClose={vi.fn()} />
-        )
+      await user.click(screen.getByRole('button', { name: /copy/i }))
 
-        await user.click(screen.getByRole('button', { name: /copy/i }))
+      expect(writeText).toHaveBeenCalled()
+      const firstCall = writeText.mock.calls[0]
+      if (firstCall === undefined) {
+        throw new Error('Expected writeText to have been called with arguments')
+      }
+      const copiedContent = String(firstCall[0])
+      expect(copiedContent).toContain('"version": "1.0"')
 
-        await waitFor(() => {
-          expect(screen.getByText(/copied/i)).toBeInTheDocument()
-        })
-
-        vi.unstubAllGlobals()
-      })
-
-      it('clears copy feedback after timeout', async () => {
-        vi.useFakeTimers()
-        const writeText = vi.fn().mockResolvedValue(undefined)
-        vi.stubGlobal('navigator', {
-          clipboard: { writeText },
-        })
-
-        render(
-          <SchemaModal graph={createTestGraph()} graphName={createGraphName('test.json')} isOpen={true} onClose={vi.fn()} />
-        )
-
-        const copyButton = screen.getByRole('button', { name: /copy/i })
-        fireEvent.click(copyButton)
-
-        await vi.waitFor(() => {
-          expect(screen.getByText(/copied/i)).toBeInTheDocument()
-        })
-
-        vi.advanceTimersByTime(2000)
-
-        await vi.waitFor(() => {
-          expect(screen.getByRole('button', { name: /copy/i })).toHaveTextContent('Copy')
-        })
-
-        vi.unstubAllGlobals()
-        vi.useRealTimers()
-      })
+      vi.unstubAllGlobals()
     })
 
-    describe('download functionality', () => {
-      it('triggers download when download clicked', async () => {
-        const user = userEvent.setup()
-        const createObjectURL = vi.fn().mockReturnValue('blob:test-url')
-        const revokeObjectURL = vi.fn()
-        URL.createObjectURL = createObjectURL
-        URL.revokeObjectURL = revokeObjectURL
-
-        const clickSpy = vi.fn()
-        const createElementOriginal = document.createElement.bind(document)
-        vi.spyOn(document, 'createElement').mockImplementation((tagName: string) => {
-          const element = createElementOriginal(tagName)
-          if (tagName === 'a') {
-            element.click = clickSpy
-          }
-          return element
-        })
-
-        render(
-          <SchemaModal graph={createTestGraph()} graphName={createGraphName('my-schema.json')} isOpen={true} onClose={vi.fn()} />
-        )
-
-        await user.click(screen.getByRole('button', { name: /download/i }))
-
-        expect(createObjectURL).toHaveBeenCalled()
-        expect(clickSpy).toHaveBeenCalled()
-        expect(revokeObjectURL).toHaveBeenCalledWith('blob:test-url')
-
-        vi.restoreAllMocks()
+    it('copy: shows success feedback after copy', async () => {
+      const user = userEvent.setup()
+      const writeText = vi.fn().mockResolvedValue(undefined)
+      vi.stubGlobal('navigator', {
+        clipboard: { writeText },
       })
 
-      it('disables download button when graphName is undefined', () => {
-        render(
-          <SchemaModal graph={createTestGraph()} graphName={undefined} isOpen={true} onClose={vi.fn()} />
-        )
+      render(
+        <SchemaModal graph={createTestGraph()} graphName={createGraphName('test.json')} isOpen={true} onClose={vi.fn()} />
+      )
 
-        const downloadButton = screen.getByRole('button', { name: /download/i })
-        expect(downloadButton).toBeDisabled()
+      await user.click(screen.getByRole('button', { name: /copy/i }))
+
+      await waitFor(() => {
+        expect(screen.getByText(/copied/i)).toBeInTheDocument()
       })
+
+      vi.unstubAllGlobals()
+    })
+
+    it('copy: clears copy feedback after timeout', async () => {
+      vi.useFakeTimers()
+      const writeText = vi.fn().mockResolvedValue(undefined)
+      vi.stubGlobal('navigator', {
+        clipboard: { writeText },
+      })
+
+      render(
+        <SchemaModal graph={createTestGraph()} graphName={createGraphName('test.json')} isOpen={true} onClose={vi.fn()} />
+      )
+
+      const copyButton = screen.getByRole('button', { name: /copy/i })
+      fireEvent.click(copyButton)
+
+      await vi.waitFor(() => {
+        expect(screen.getByText(/copied/i)).toBeInTheDocument()
+      })
+
+      vi.advanceTimersByTime(2000)
+
+      await vi.waitFor(() => {
+        expect(screen.getByRole('button', { name: /copy/i })).toHaveTextContent('Copy')
+      })
+
+      vi.unstubAllGlobals()
+      vi.useRealTimers()
+    })
+
+    it('download: triggers download when download clicked', async () => {
+      const user = userEvent.setup()
+      const createObjectURL = vi.fn().mockReturnValue('blob:test-url')
+      const revokeObjectURL = vi.fn()
+      URL.createObjectURL = createObjectURL
+      URL.revokeObjectURL = revokeObjectURL
+
+      const clickSpy = vi.fn()
+      const createElementOriginal = document.createElement.bind(document)
+      vi.spyOn(document, 'createElement').mockImplementation((tagName: string) => {
+        const element = createElementOriginal(tagName)
+        if (tagName === 'a') {
+          element.click = clickSpy
+        }
+        return element
+      })
+
+      render(
+        <SchemaModal graph={createTestGraph()} graphName={createGraphName('my-schema.json')} isOpen={true} onClose={vi.fn()} />
+      )
+
+      await user.click(screen.getByRole('button', { name: /download/i }))
+
+      expect(createObjectURL).toHaveBeenCalled()
+      expect(clickSpy).toHaveBeenCalled()
+      expect(revokeObjectURL).toHaveBeenCalledWith('blob:test-url')
+
+      vi.restoreAllMocks()
+    })
+
+    it('download: disables download button when graphName is undefined', () => {
+      render(
+        <SchemaModal graph={createTestGraph()} graphName={undefined} isOpen={true} onClose={vi.fn()} />
+      )
+
+      const downloadButton = screen.getByRole('button', { name: /download/i })
+      expect(downloadButton).toBeDisabled()
     })
 
     describe('backdrop interaction', () => {

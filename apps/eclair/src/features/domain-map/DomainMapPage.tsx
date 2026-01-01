@@ -156,7 +156,7 @@ export function DomainMapPage({ graph }: DomainMapPageProps): React.ReactElement
         const backgroundColor = getComputedStyle(document.documentElement)
           .getPropertyValue('--bg-primary')
           .trim()
-        void exportElementAsPng(exportContainerRef.current, filename, { backgroundColor })
+        exportElementAsPng(exportContainerRef.current, filename, { backgroundColor }).catch(console.error)
       }
     }
 

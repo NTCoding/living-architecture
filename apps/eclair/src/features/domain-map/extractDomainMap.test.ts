@@ -41,7 +41,7 @@ describe('extractDomainMap', () => {
       const result = extractDomainMap(graph)
 
       expect(result.domainNodes).toHaveLength(2)
-      expect(result.domainNodes.map((d) => d.id).sort()).toEqual(['orders', 'payments'])
+      expect(result.domainNodes.map((d) => d.id).sort((a, b) => a.localeCompare(b))).toEqual(['orders', 'payments'])
     })
 
     it('counts nodes per domain correctly', () => {

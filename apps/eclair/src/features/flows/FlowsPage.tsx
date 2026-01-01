@@ -15,7 +15,7 @@ export function FlowsPage({ graph }: FlowsPageProps): React.ReactElement {
 
   const domains = useMemo(() => {
     const domainSet = new Set(flows.map((f) => f.entryPoint.domain))
-    return Array.from(domainSet).sort()
+    return Array.from(domainSet).sort((a, b) => a.localeCompare(b))
   }, [flows])
 
   const filteredFlows = useMemo(() => {

@@ -12,7 +12,6 @@ function createAPINode(id: string, name: string): Node {
   return {
     id: nodeIdSchema.parse(id),
     type: 'API',
-        apiType: 'other',
     name,
     apiType: 'REST',
     httpMethod: 'GET',

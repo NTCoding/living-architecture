@@ -21,7 +21,7 @@ function EntityHeaderActions({ entity, isExpanded, onViewOnGraph }: EntityHeader
 
   return (
     <div className="flex items-center gap-2">
-      {firstOp?.sourceLocation !== undefined && firstOp.sourceLocation.lineNumber !== undefined && (
+      {firstOp?.sourceLocation?.lineNumber !== undefined && (
         <CodeLinkMenu
           filePath={firstOp.sourceLocation.filePath}
           lineNumber={firstOp.sourceLocation.lineNumber}

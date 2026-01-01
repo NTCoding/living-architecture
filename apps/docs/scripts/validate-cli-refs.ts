@@ -112,7 +112,7 @@ function main(): void {
   console.log('Validating CLI command references in docs...\n');
 
   const validCommands = getValidCommands();
-  console.log(`Valid commands: ${[...validCommands].sort().join(', ')}\n`);
+  console.log(`Valid commands: ${[...validCommands].sort((a, b) => a.localeCompare(b)).join(', ')}\n`);
 
   const files = findMarkdownFiles(docsDir);
   const allErrors = files.flatMap((file) => validateFile(file, validCommands));

@@ -81,7 +81,7 @@ describe('riviere query orphans', () => {
       if (!isOrphansSuccessOutput(output)) throw new Error('Expected success output')
 
       expect(output.success).toBe(true)
-      expect(output.data.orphans.sort()).toEqual([
+      expect(output.data.orphans.sort((a, b) => a.localeCompare(b))).toEqual([
         'orders:checkout:api:place-order',
         'orders:checkout:usecase:place-order',
       ])
