@@ -1,0 +1,35 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "schedule": ["on saturday"],
+  "timezone": "UTC",
+  "prConcurrentLimit": 5,
+  "automerge": false,
+  "packageRules": [
+    {
+      "description": "Auto-merge patch updates when CI passes",
+      "matchUpdateTypes": ["patch"],
+      "automerge": true
+    },
+    {
+      "description": "Group all NX packages",
+      "matchPackagePatterns": ["^@nx/", "^nx$"],
+      "groupName": "nx"
+    },
+    {
+      "description": "Group all type definitions",
+      "matchPackagePatterns": ["^@types/"],
+      "groupName": "types"
+    },
+    {
+      "description": "Group ESLint packages",
+      "matchPackagePatterns": ["eslint", "^@eslint/", "^eslint-"],
+      "groupName": "eslint"
+    },
+    {
+      "description": "Group Vitest packages",
+      "matchPackagePatterns": ["vitest", "^@vitest/"],
+      "groupName": "vitest"
+    }
+  ]
+}
