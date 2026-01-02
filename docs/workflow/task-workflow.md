@@ -1,176 +1,23 @@
 # Task Workflow
 
-> **When to use this document:** Read this when starting work, creating tasks, updating task status, or completing tasks. This document defines the complete task lifecycle using Task Master AI.
+> **When to use this document:** Consult this when managing tasks or PRDs. Find your action in the table below, then follow the linked section.
 
 ## Lifecycle Steps
 
-| Step | Section | When |
-|------|---------|------|
-| **Find next task** | [Starting Work](#starting-work) | Beginning a session |
-| **Set in-progress** | [Starting Work](#starting-work) | Before any work |
-| **Update progress** | [Session Continuity](#session-continuity) | During work |
-| **Run task-check** | [Completing Tasks](#completing-tasks) | Before marking done |
-| **Get approval** | [Completing Tasks](#completing-tasks) | After task-check passes |
-| **Mark done** | [Completing Tasks](#completing-tasks) | After approval |
-| **Create task** | [Creating Tasks](#creating-tasks) | New work identified |
-
----
-
-## Starting Work
-
-> **Branch Protection:** Direct pushes to `main` are blocked. All changes must go through pull requests.
-
-```bash
-task-master next                                    # Find next available task
-task-master show <id>                               # Review task details
-task-master set-status --id=<id> --status=in-progress   # Mark as in-progress
-git checkout -b <task-id>-<short-description>       # Create feature branch
-```
-
-**Before any work:** Always set the task to `in-progress` and create a feature branch. Never start work without both steps.
-
-When starting work on a specific task, read related files (PRD, referenced code) to get full context.
-
----
-
-## Session Continuity
-
-The conversation could end at any point. The next session needs to easily identify what to do next.
-
-**Update progress regularly** by editing `.taskmaster/tasks/tasks.json`:
-
-```bash
-# Tasks are nested under .master.tasks array, NOT at root level
-jq '.master.tasks |= map(if .id == 17 then .details += "\n\n[timestamp] Progress note here" else . end)' \
-  .taskmaster/tasks/tasks.json > tmp.json && mv tmp.json .taskmaster/tasks/tasks.json
-```
-
-**Include in progress notes:**
-- Specific file paths and line numbers
-- Concrete next steps
-- Design decisions and rationale
-- References to screenshots, mockups, or external resources
-
-Each note should enable another person to continue immediately.
-
----
-
-## Completing Tasks
-
-First run build, lint and test (with --coverage). If success, continue to task-check.
-
-### Task-Check Protocol
-
-Before marking any task done, run task-check:
-
-```
-Use the Task tool with subagent_type "task-check:task-check". Provide:
-1. Task ID: From task file name or number
-2. Task location: `taskmaster show <taskId>`
-3. Work summary: Files modified, changes made, decisions, what you skipped
-4. Attempt: Which attempt (1, 2, or 3). Start with 1.
-```
-
-### Handling the Response
-
-**If STATUS = PASS:**
-Work is complete. Proceed to get approval.
-
-**If STATUS = FAIL:**
-Read the ISSUES section. For each issue:
-
-| Issue Type | Action |
-|------------|--------|
-| Unfinished requirements | Fix immediately |
-| Missing acceptance criteria | Fix immediately |
-| Bugs or broken code paths | Fix immediately |
-| Missing expected edge cases | Fix immediately |
-| Minor fixes (typos, formatting) | Fix immediately |
-| Significant changes (architecture, new features) | STOP. Ask user first. |
-
-After fixing, re-run task-check.
-
-**If STATUS = NEED_INFO:**
-- If answer is in task/PRD/codebase: Answer yourself and re-run
-- If only user can decide: Ask user, wait, then re-run
-
-### Loop Behavior
-
-Keep running task-check until:
-- STATUS = PASS, or
-- User says to stop ("that's fine", "skip the check"), or
-- 3 attempts reached
-
-**After 3 failed attempts:** Stop. Tell user: "task-check has failed 3 times. Outstanding issues: [list]. I need guidance."
-
-### Get Approval
-
-After task-check passes:
-
-1. List all acceptance criteria and what you completed
-2. Ask: "Can I mark task-XXX as complete and commit?"
-3. Wait for explicit approval
-4. Only after approval: update status + commit
-
-**If thinking "task is done, let me mark it complete" → STOP. Ask first.**
-
-### Mark Done
-
-```bash
-task-master set-status --id=<id> --status=done
-```
-
-**Never mark done when:**
-- Work is incomplete ("I'll finish this later")
-- Something isn't working ("I'll create a follow-up task")
-- You haven't asked for approval
-
-→ Mark as `blocked` if incomplete. Ask for approval if complete.
-
-### Commit and Push via PR
-
-All changes go through PRs to ensure SonarCloud checks run:
-
-1. Commit changes: `git add -A && git commit -m "feat: description"`
-2. Push branch: `git push -u origin HEAD`
-3. Create PR: `gh pr create --title "feat(scope): description" --fill`
-   - PR title must follow conventional commits (validated by CI)
-4. Wait for checks: `gh pr checks --watch`
-5. If SonarCloud fails, see [SonarCloud Feedback Loop](#sonarcloud-feedback-loop)
-6. User merges PR when checks pass
-
-### SonarCloud Feedback Loop
-
-If SonarCloud check fails on your PR:
-
-1. Check PR comments from SonarCloud bot:
-   ```bash
-   gh pr view --comments | head -50
-   ```
-
-2. Query issues via SonarCloud API:
-   ```bash
-   curl -s "https://sonarcloud.io/api/issues/search?organization=nick-tune-org&projectKeys=NTCoding_living-architecture&pullRequest=$(gh pr view --json number -q .number)&severities=CRITICAL,BLOCKER,MAJOR" | jq '.issues[] | {rule: .rule, message: .message, file: .component, line: .line}'
-   ```
-
-3. Query security hotspots:
-   ```bash
-   curl -s "https://sonarcloud.io/api/hotspots/search?organization=nick-tune-org&projectKey=NTCoding_living-architecture&pullRequest=$(gh pr view --json number -q .number)" | jq '.hotspots[] | {message: .message, file: .component, line: .line}'
-   ```
-
-4. Fix identified issues locally
-5. Commit and push: `git add -A && git commit -m "fix: address SonarCloud issues" && git push`
-6. Repeat until checks pass
-
-### Documentation check
-
-Should any of the project's documentation be updated (including claude.md files) based on the work that was done? Would AI or humans benefit by improving the documentation? Don't just add documentation for the sake it.
+| Action | When |
+|--------|------|
+| [Create task](#creating-tasks) | New work identified |
+| [Start task](#starting-work) | User says "start task" or "next task" |
+| [Update task](#updating-tasks) | Acceptance criteria changed, new insights |
+| [Complete task](#completing-tasks) | Work finished, ready for PR |
+| [Activate PRD](#activating-a-prd) | Moving PRD to `active/` |
+| [Archive PRD](#archiving-a-prd) | PRD complete |
 
 ---
 
 ## Creating Tasks
 
-### Step 1: Generate Task Content
+### From PRD Deliverables
 
 Use the `/create-tasks` skill to generate well-formed task content:
 
@@ -184,139 +31,234 @@ This skill:
 - Ensures proper structure with context, acceptance criteria, dependencies
 - Splits epics using SPIDR techniques
 
-### Step 2: Add to Backlog
-
-Once the skill generates task content, add it to taskmaster:
+### Add to GitHub Issues
 
 ```bash
-task-master add-task \
-  --title="Task title from skill output" \
-  --description="Brief description" \
-  --details="Full task content from skill output" \
-  --priority="high|medium|low" \
-  --dependencies="1,2,3"
+gh issue create \
+  --title "[M1-D1] Task title" \
+  --body "Task content from skill output" \
+  --milestone "<milestone-name>"
 ```
 
-**Never use `--prompt` flag.**
+**Title format:** `[M<milestone>-D<deliverable>] Description` for PRD tasks.
 
-### PRD to Tasks
+### Dependencies
 
-1. Find the PRD in `docs/project/PRD/active/`
-2. Use `/create-tasks` skill to generate task content from deliverables
-3. Add each task to backlog with `task-master add-task`
-4. Verify: `task-master show <id>`
+If a task depends on another, note in the issue body: `Depends on #X`
 
-**Never use `task-master parse-prd`** — it uses AI and produces unreliable results.
-
-### Banned AI Commands
-
-Do not use these commands (they invoke AI, which is wasteful and unreliable):
-- `task-master update-task`
-- `task-master parse-prd`
-- `task-master add-task --prompt`
+GitHub automatically creates a link between issues.
 
 ---
 
-## Ground Rules
+## Starting Work
 
-1. **Set in-progress before any work** — `task-master set-status --id=<id> --status=in-progress`
+> **Branch Protection:** Direct pushes to `main` are blocked. All changes must go through pull requests.
 
-2. **Get approval before marking done** — List criteria, ask permission, wait for response
-
-3. **Frequent progress updates** — Document in tasks.json for session continuity
-
-4. **One task at a time** — Never start a new task while another is in-progress
-
-5. **Capture requirements immediately** — When user gives requirements, add to task acceptance criteria or create new task before implementing
-
-6. **Commit tasks.json** — Always commit the tasks file with your changes, otherwise progress is lost
-
-7. **Propose new tasks** — When insights emerge that don't fit current tasks, propose new ones
-
-8. **Check task status first** — Before decisions, run `task-master show <id>` to see all progress notes
-
----
-
-## Quick Reference
-
-### Task Commands
-
-| Command | Purpose |
-|---------|---------|
-| `task-master list` | Show all tasks with status |
-| `task-master next` | Get next available task |
-| `task-master show <id>` | View task details |
-| `task-master set-status --id=<id> --status=<status>` | Update task status |
-| `task-master add-task --title="..." --description="..."` | Create new task |
-
-### Git & PR Commands
-
-| Command | Purpose |
-|---------|---------|
-| `git checkout -b <branch>` | Create feature branch |
-| `git push -u origin HEAD` | Push branch to remote |
-| `gh pr create --title "feat: ..." --fill` | Create pull request |
-| `gh pr checks --watch` | Watch CI checks |
-| `gh pr view --comments` | View PR comments (SonarCloud feedback) |
-
-### Task ID Format
-
-- Main tasks: `1`, `2`, `3`
-- Subtasks: `1.1`, `1.2`, `2.1`
-- Sub-subtasks: `1.1.1`, `1.1.2`
-
-### Status Values
-
-| Status | Meaning |
-|--------|---------|
-| `pending` | Ready to work on |
-| `in-progress` | Currently being worked on |
-| `done` | Completed and verified |
-| `blocked` | Waiting on external factors |
-| `deferred` | Postponed |
-| `cancelled` | No longer needed |
-
-### Task Fields
-
-```json
-{
-  "id": "1.2",
-  "title": "Implement user authentication",
-  "description": "Set up JWT-based auth system",
-  "status": "pending",
-  "priority": "high",
-  "dependencies": ["1.1"],
-  "details": "Implementation notes and progress...",
-  "testStrategy": "Unit tests for auth, integration tests for login"
-}
-```
-
----
-
-## Project Structure
-
-```
-.taskmaster/
-├── tasks/
-│   └── tasks.json          # Main task database
-└── config.json             # AI model settings (use task-master models)
-```
-
----
-
-## Troubleshooting
-
-### Task File Sync Issues
+### Find the Active Milestone
 
 ```bash
-task-master generate        # Regenerate task files from tasks.json
-task-master fix-dependencies # Fix dependency issues
+# List files in active PRD folder
+ls docs/project/PRD/active/
+# → PRD-phase-9-launch.md
+
+# Milestone name = filename without PRD- and .md
+# → phase-9-launch
 ```
 
-### Validate Dependencies
+### Find Next Task
 
 ```bash
-task-master validate-dependencies
+# List unassigned issues (ordered by title = PRD order)
+gh issue list --milestone "<milestone-name>" --state open --assignee ""
 ```
 
-**Do not re-initialize.** Running `task-master init` again just re-adds the same files.
+Propose the first issue to the user:
+
+> Next task is #X: "Title". Start this task?
+
+Wait for user confirmation before proceeding.
+
+### Start Working
+
+After user confirms:
+
+```bash
+# Assign the issue
+gh issue edit <number> --add-assignee @me
+
+# Create feature branch
+git checkout -b issue-<number>-short-description
+
+# Read issue details
+gh issue view <number>
+```
+
+Read the issue body and related files (PRD, referenced code) before starting.
+
+---
+
+## Updating Tasks
+
+### Edit Issue Body
+
+```bash
+gh issue edit <number> --body "Updated content"
+```
+
+### Add a Comment
+
+```bash
+gh issue comment <number> --body "New insight: ..."
+```
+
+---
+
+## Completing Tasks
+
+Follow all steps autonomously. Only notify the user when the PR is ready for review.
+
+1. [Verify](#verify) — Run build, lint, test
+2. [Task-check](#task-check) — Validate completion
+3. [Create PR](#create-pr) — Commit, push, create PR
+4. [Fix CI failures](#fix-ci-failures) — Address any SonarCloud issues
+5. [Notify user](#notify-user) — PR ready for review
+
+---
+
+### Verify
+
+```bash
+pnpm nx run-many -t lint,typecheck,test
+```
+
+If any fail, fix and re-run before proceeding.
+
+---
+
+### Task-check
+
+Run the task-check agent:
+
+```
+Use the Task tool with subagent_type "task-check:task-check". Provide:
+1. Task ID: GitHub issue number
+2. Task location: `gh issue view <number>`
+3. Work summary: Files modified, changes made, decisions, what you skipped
+4. Attempt: Which attempt (1, 2, or 3). Start with 1.
+```
+
+**Handle response:**
+
+| STATUS | Action |
+|--------|--------|
+| PASS | Continue to [Create PR](#create-pr) |
+| FAIL | Fix issues listed, re-run task-check (max 3 attempts) |
+| NEED_INFO | If answerable from codebase, answer and re-run. Otherwise ask user. |
+
+**After 3 failed attempts:** Stop and ask user for guidance.
+
+---
+
+### Create PR
+
+```bash
+# Commit
+git add -A && git commit -m "feat(scope): description"
+
+# Push
+git push -u origin HEAD
+
+# Create PR (auto-closes issue when merged)
+gh pr create --title "feat(scope): description" --body "Closes #<number>"
+
+# Wait for CI checks
+gh pr checks --watch
+```
+
+If checks pass, proceed to [Notify user](#notify-user).
+
+If SonarCloud fails, proceed to [Fix CI failures](#fix-ci-failures).
+
+---
+
+### Fix CI failures
+
+Query SonarCloud issues:
+
+```bash
+curl -s "https://sonarcloud.io/api/issues/search?organization=nick-tune-org&projectKeys=NTCoding_living-architecture&pullRequest=$(gh pr view --json number -q .number)&severities=CRITICAL,BLOCKER,MAJOR" | jq '.issues[] | {rule: .rule, message: .message, file: .component, line: .line}'
+```
+
+Query security hotspots:
+
+```bash
+curl -s "https://sonarcloud.io/api/hotspots/search?organization=nick-tune-org&projectKey=NTCoding_living-architecture&pullRequest=$(gh pr view --json number -q .number)" | jq '.hotspots[] | {message: .message, file: .component, line: .line}'
+```
+
+Fix issues, commit, push:
+
+```bash
+git add -A && git commit -m "fix: address SonarCloud issues" && git push
+```
+
+Repeat until checks pass.
+
+---
+
+### Notify user
+
+When all checks pass, tell the user:
+
+> PR #X is ready for review: <PR URL>
+
+The user will review and merge. The issue auto-closes when the PR is merged (via `Closes #<number>` in PR body).
+
+---
+
+## Activating a PRD
+
+When moving a PRD from `notstarted/` to `active/`:
+
+1. Move the file:
+   ```bash
+   git mv docs/project/PRD/notstarted/PRD-<name>.md docs/project/PRD/active/
+   ```
+
+2. Create the milestone (name = filename without `PRD-` and `.md`):
+   ```bash
+   gh api repos/NTCoding/living-architecture/milestones \
+     --method POST \
+     --field title="<name>" \
+     --field description="See docs/project/PRD/active/PRD-<name>.md"
+   ```
+
+3. Commit:
+   ```bash
+   git add -A && git commit -m "chore: activate PRD <name>"
+   ```
+
+---
+
+## Archiving a PRD
+
+When a PRD is complete:
+
+1. Move the file:
+   ```bash
+   git mv docs/project/PRD/active/PRD-<name>.md docs/project/PRD/archived/
+   ```
+
+2. Find the milestone number:
+   ```bash
+   gh api repos/NTCoding/living-architecture/milestones --jq '.[] | {number, title}'
+   ```
+
+3. Close the milestone:
+   ```bash
+   gh api repos/NTCoding/living-architecture/milestones/<number> --method PATCH --field state=closed
+   ```
+
+4. Commit:
+   ```bash
+   git add -A && git commit -m "chore: archive PRD <name>"
+   ```

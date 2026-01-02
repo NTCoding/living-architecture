@@ -2,9 +2,7 @@ Find the next available task and start it using TDD.
 
 ## Steps
 
-1. Run `task-master next` to find the next available task
-2. Run `task-master show <id>` to review task details
-3. Run `task-master set-status --id=<id> --status=in-progress
+Follow the [Starting Work](docs/workflow/task-workflow.md#starting-work) section in the task workflow.
 
 ## TDD Process
 
