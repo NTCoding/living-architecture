@@ -20,6 +20,8 @@ jobs:
         with:
           fetch-depth: 0
 
+      - uses: nrwl/nx-set-shas@v4
+
       - uses: pnpm/action-setup@v4
         name: Install pnpm
         with:
