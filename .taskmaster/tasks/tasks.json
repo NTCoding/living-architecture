@@ -213,6 +213,17 @@
         "dependencies": [],
         "priority": "medium",
         "subtasks": []
+      },
+      {
+        "id": 80,
+        "title": "Fix empty connections section when clicking domain map edge",
+        "description": "Domain map sidebar shows '7 connections' but Connections section below is empty",
+        "details": "## Deliverable: Domain map edge click shows actual connections in sidebar\n\n### Context\nBug reported: When clicking on a line (edge) on the \"domain map\", the sidebar says for example \"7 connections\", but then the \"Connections\" section below it is empty. The count is displayed but the actual connection details are missing.\n\n### Key Decisions and Principles\n- Investigate if connection data is being passed but not rendered\n- Check if the inspector panel has the correct data binding\n- Ensure connection details (source, target, type) are displayed\n\n### Delivers\nWhen clicking an edge on the domain map, the sidebar displays the connection count AND lists the actual connections below.\n\n### Acceptance Criteria\n- Given domain map with edges When clicking an edge Then sidebar shows correct connection count\n- Given edge clicked on domain map When viewing sidebar Then Connections section lists each connection\n- Given edge with multiple connections When clicking Then all connections are listed with source/target info\n\n### Dependencies\n- None\n\n### Related Code\n- `apps/eclair/src/features/domain-map/DomainMapPage.tsx` — domain map with edge click handling\n- Integration inspector/sidebar component (needs identification)\n\n### Verification\n- Run `nx test eclair` to ensure no regressions\n- Manual test: Click edge on domain map, verify connections list populates",
+        "testStrategy": "",
+        "status": "pending",
+        "dependencies": [],
+        "priority": "high",
+        "subtasks": []
       }
     ],
     "metadata": {
@@ -225,7 +236,7 @@
       ],
       "created": "2026-01-02T14:44:47.668Z",
       "description": "Tasks for master context",
-      "updated": "2026-01-02T14:49:17.898Z"
+      "updated": "2026-01-02T14:51:48.603Z"
     }
   }
 }
