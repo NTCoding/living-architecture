@@ -213,6 +213,7 @@ After addressing feedback:
 
 ```bash
 git add -A && git commit -m "fix: address PR feedback" && git push
+sleep 5  # Wait for CI to pick up new commit
 gh pr checks --watch --fail-fast -i 30
 ```
 
