@@ -49,4 +49,4 @@ apps/docs/extract/steps/step-*.md
 reference/cli/cli-reference.md
 
 # TypeScript build artifacts
-  *.tsbuildinfo
+*.tsbuildinfo

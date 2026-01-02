@@ -172,7 +172,7 @@ git push -u origin HEAD
 gh pr create --title "feat(scope): description" --body "Closes #<number>"
 
 # Wait for CI checks
-gh pr checks --watch
+gh pr checks --watch --fail-fast -i 30
 ```
 
 The `--watch` flag blocks until all checks complete. Output shows `pass` or `fail` for each check.
@@ -213,7 +213,7 @@ After addressing feedback:
 
 ```bash
 git add -A && git commit -m "fix: address PR feedback" && git push
-gh pr checks --watch
+gh pr checks --watch --fail-fast -i 30
 ```
 
 Repeat the feedback cycle (CodeRabbit → SonarCloud → commit) until all checks pass with no new comments.
