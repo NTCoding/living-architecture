@@ -86,6 +86,9 @@ After user confirms:
 # Assign the issue
 gh issue edit <number> --add-assignee @me
 
+# Pull latest from main
+git checkout main && git pull origin main
+
 # Create feature branch
 git checkout -b issue-<number>-short-description
 
