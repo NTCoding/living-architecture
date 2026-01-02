@@ -16,4 +16,3 @@ knowledge_base:
       - "docs/conventions/testing.md"
       - "docs/conventions/standard-patterns.md"
       - "docs/workflow/code-review.md"
-      - "CLAUDE.md"
