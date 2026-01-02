@@ -248,7 +248,7 @@ When moving a PRD from `notstarted/` to `active/`:
    gh api repos/NTCoding/living-architecture/milestones \
      --method POST \
      --field title="<name>" \
-     --field description="See docs/project/PRD/active/PRD-<name>.md"
+     --field description="See https://github.com/NTCoding/living-architecture/blob/main/docs/project/PRD/active/PRD-<name>.md"
    ```
 
 3. Commit:
