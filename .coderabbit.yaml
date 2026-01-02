@@ -1,0 +1,19 @@
+# CodeRabbit Configuration
+# Docs: https://docs.coderabbit.ai/reference/configuration
+
+language: en-US
+
+reviews:
+  auto_review:
+    enabled: true
+
+knowledge_base:
+  code_guidelines:
+    enabled: true
+    filePatterns:
+      - "docs/conventions/software-design.md"
+      - "docs/conventions/anti-patterns.md"
+      - "docs/conventions/testing.md"
+      - "docs/conventions/standard-patterns.md"
+      - "docs/workflow/code-review.md"
+      - "CLAUDE.md"
