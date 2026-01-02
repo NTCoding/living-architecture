@@ -23,12 +23,12 @@
     },
     {
       "description": "Group ESLint packages",
-      "matchPackagePatterns": ["eslint", "^@eslint/", "^eslint-"],
+      "matchPackagePatterns": ["^eslint$", "^@eslint/", "^eslint-"],
       "groupName": "eslint"
     },
     {
       "description": "Group Vitest packages",
-      "matchPackagePatterns": ["vitest", "^@vitest/"],
+      "matchPackagePatterns": ["^vitest$", "^@vitest/"],
       "groupName": "vitest"
     }
   ]
