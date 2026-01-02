@@ -207,15 +207,16 @@ curl -s "https://sonarcloud.io/api/hotspots/search?organization=nick-tune-org&pr
 
 Fix all reported issues. For false positives, ask the user.
 
-#### Commit fixes
+#### Commit and re-check
 
-After addressing all feedback:
+After addressing feedback:
 
 ```bash
 git add -A && git commit -m "fix: address PR feedback" && git push
+gh pr checks --watch
 ```
 
-Re-check for new feedback until clean.
+Repeat the feedback cycle (CodeRabbit → SonarCloud → commit) until all checks pass with no new comments.
 
 ---
 
