@@ -21,7 +21,7 @@
 
 Use the `/create-tasks` skill to generate well-formed task content:
 
-```
+```text
 /create-tasks
 ```
 
@@ -120,7 +120,7 @@ Follow all steps autonomously. Only notify the user when the PR is ready for rev
 1. [Verify](#verify) — Run build, lint, test
 2. [Task-check](#task-check) — Validate completion
 3. [Create PR](#create-pr) — Commit, push, create PR
-4. [Fix CI failures](#fix-ci-failures) — Address any SonarCloud issues
+4. [Address PR feedback](#address-pr-feedback) — Fix CodeRabbit comments, SonarCloud issues, CI failures
 5. [Notify user](#notify-user) — PR ready for review
 
 ---
@@ -175,15 +175,25 @@ gh pr create --title "feat(scope): description" --body "Closes #<number>"
 gh pr checks --watch
 ```
 
-If checks pass, proceed to [Notify user](#notify-user).
+The `--watch` flag blocks until all checks complete. Output shows `pass` or `fail` for each check.
 
-If SonarCloud fails, proceed to [Fix CI failures](#fix-ci-failures).
+After checks complete, always proceed to [Address PR feedback](#address-pr-feedback) — CodeRabbit comments may exist even when checks pass.
 
 ---
 
-### Fix CI failures
+### Address PR feedback
 
-Query SonarCloud issues:
+#### CodeRabbit comments
+
+```bash
+gh api repos/NTCoding/living-architecture/pulls/<number>/comments --jq '.[] | select(.user.login | contains("coderabbitai")) | {file: .path, line: .line, body: .body}'
+```
+
+Fix valid issues. For nitpicks or disagreements, reply explaining your reasoning (don't dismiss — leave visible for user review).
+
+#### SonarCloud issues
+
+Always query and fix SonarCloud issues, even if checks pass (some issues may not block the PR).
 
 ```bash
 curl -s "https://sonarcloud.io/api/issues/search?organization=nick-tune-org&projectKeys=NTCoding_living-architecture&pullRequest=$(gh pr view --json number -q .number)&severities=CRITICAL,BLOCKER,MAJOR" | jq '.issues[] | {rule: .rule, message: .message, file: .component, line: .line}'
@@ -195,19 +205,23 @@ Query security hotspots:
 curl -s "https://sonarcloud.io/api/hotspots/search?organization=nick-tune-org&projectKey=NTCoding_living-architecture&pullRequest=$(gh pr view --json number -q .number)" | jq '.hotspots[] | {message: .message, file: .component, line: .line}'
 ```
 
-Fix issues, commit, push:
+Fix all reported issues. For false positives, ask the user.
+
+#### Commit fixes
+
+After addressing all feedback:
 
 ```bash
-git add -A && git commit -m "fix: address SonarCloud issues" && git push
+git add -A && git commit -m "fix: address PR feedback" && git push
 ```
 
-Repeat until checks pass.
+Re-check for new feedback until clean.
 
 ---
 
 ### Notify user
 
-When all checks pass, tell the user:
+When all feedback is addressed and checks pass, tell the user:
 
 > PR #X is ready for review: <PR URL>
 
