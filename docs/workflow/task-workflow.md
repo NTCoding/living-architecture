@@ -52,7 +52,7 @@ GitHub automatically creates a link between issues.
 
 ## Starting Work
 
-> **Branch Protection:** Direct pushes to `main` are blocked. All changes must go through pull requests.
+> **Branch Protection:** Direct pushes to `main` are blocked. All changes must go through pull requests. Before ANY code changes or planning, you MUST be on a feature branch. If you're on `main`, create a branch first.
 
 ### Find the Active Milestone
 
@@ -83,14 +83,14 @@ Wait for user confirmation before proceeding.
 After user confirms:
 
 ```bash
-# Assign the issue
-gh issue edit <number> --add-assignee @me
-
 # Pull latest from main
 git checkout main && git pull origin main
 
-# Create feature branch
+# Create feature branch FIRST
 git checkout -b issue-<number>-short-description
+
+# Assign the issue
+gh issue edit <number> --add-assignee @me
 
 # Read issue details
 gh issue view <number>
@@ -114,9 +114,24 @@ gh issue edit <number> --body "Updated content"
 gh issue comment <number> --body "New insight: ..."
 ```
 
+### After Plan Discussions
+
+When plan discussions with the user change requirements, scope, or approach:
+
+1. Update the GitHub issue body immediately:
+   ```bash
+   gh issue edit <number> --body "Updated requirements..."
+   ```
+
+2. Ensure acceptance criteria reflect the agreed changes
+
+This keeps the issue as the single source of truth for reviewers.
+
 ---
 
 ## Completing Tasks
+
+> **CRITICAL:** A task is not complete until a PR exists and passes checks. Do not stop or ask the user until you reach "Notify user" step.
 
 Follow all steps autonomously. Only notify the user when the PR is ready for review.
 
@@ -174,11 +189,11 @@ git push -u origin HEAD
 # Create PR (auto-closes issue when merged)
 gh pr create --title "feat(scope): description" --body "Closes #<number>"
 
-# Wait for CI checks
+# Wait for CI checks (REQUIRED - do not skip)
 gh pr checks --watch --fail-fast -i 30
 ```
 
-The `--watch` flag blocks until all checks complete. Output shows `pass` or `fail` for each check.
+**You MUST run `gh pr checks --watch`** — this blocks until all CI checks complete. Do not use `gh pr view` or any other command as a substitute. Do not proceed until this command exits with all checks passing.
 
 After checks complete, always proceed to [Address PR feedback](#address-pr-feedback) — CodeRabbit comments may exist even when checks pass.
 
