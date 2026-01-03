@@ -24,7 +24,8 @@ import {
   createLayoutEdges,
   getNodeColor,
   getNodeRadius,
-  getEdgeColor,
+  getSemanticEdgeType,
+  getSemanticEdgeColor,
   isAsyncEdge,
   truncateName,
   getDomainColor,
@@ -224,18 +225,20 @@ export function ForceGraph({
     const linkGroup = g.append('g').attr('class', 'links')
     const nodeGroup = g.append('g').attr('class', 'nodes')
 
+    const nodeMap = new Map<string, SimulationNode>()
+    for (const n of nodes) {
+      nodeMap.set(n.id, n)
+    }
+
     const link = setupLinks({
       linkGroup,
       links,
       theme,
-      getEdgeColor,
+      nodeMap,
+      getSemanticEdgeType,
+      getSemanticEdgeColor,
       isAsyncEdge,
     })
-
-    const nodePositionMap = new Map<string, SimulationNode>()
-    for (const n of nodes) {
-      nodePositionMap.set(n.id, n)
-    }
 
     const node = setupNodes({
       nodeGroup,
@@ -272,7 +275,7 @@ export function ForceGraph({
     const updatePositions = createUpdatePositionsFunction({
       link,
       node,
-      nodePositionMap,
+      nodePositionMap: nodeMap,
       getNodeRadius,
     })
 

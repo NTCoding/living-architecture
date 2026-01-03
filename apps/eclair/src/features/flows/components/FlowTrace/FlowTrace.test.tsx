@@ -256,6 +256,77 @@ describe('FlowTrace', () => {
     })
   })
 
+  describe('subscribed events', () => {
+    it('renders subscribed events for EventHandler steps', () => {
+      const eventHandlerStep: FlowStep[] = [
+        {
+          node: {
+            id: 'eh-1',
+            type: 'EventHandler',
+            name: 'Reserve Inventory',
+            domain: 'inventory',
+            module: 'handlers',
+            subscribedEvents: ['OrderPlaced'],
+          },
+          edgeType: null,
+          depth: 0,
+          externalLinks: [],
+        },
+      ]
+      render(<FlowTrace steps={eventHandlerStep} graph={createTestGraph()} />)
+
+      expect(screen.getByText('Handles: OrderPlaced')).toBeInTheDocument()
+    })
+
+    it('renders multiple subscribed events comma-separated', () => {
+      const eventHandlerStep: FlowStep[] = [
+        {
+          node: {
+            id: 'eh-1',
+            type: 'EventHandler',
+            name: 'Multi-Event Handler',
+            domain: 'inventory',
+            module: 'handlers',
+            subscribedEvents: ['OrderPlaced', 'OrderCancelled'],
+          },
+          edgeType: null,
+          depth: 0,
+          externalLinks: [],
+        },
+      ]
+      render(<FlowTrace steps={eventHandlerStep} graph={createTestGraph()} />)
+
+      expect(screen.getByText('Handles: OrderPlaced, OrderCancelled')).toBeInTheDocument()
+    })
+
+    it('does not render subscribed events for non-EventHandler nodes', () => {
+      render(<FlowTrace steps={createTestSteps()} graph={createTestGraph()} />)
+
+      expect(screen.queryByText(/^Handles:/)).not.toBeInTheDocument()
+    })
+
+    it('does not render subscribed events when empty array', () => {
+      const eventHandlerStep: FlowStep[] = [
+        {
+          node: {
+            id: 'eh-1',
+            type: 'EventHandler',
+            name: 'Handler Without Events',
+            domain: 'inventory',
+            module: 'handlers',
+            subscribedEvents: [],
+          },
+          edgeType: null,
+          depth: 0,
+          externalLinks: [],
+        },
+      ]
+      render(<FlowTrace steps={eventHandlerStep} graph={createTestGraph()} />)
+
+      expect(screen.queryByText(/^Handles:/)).not.toBeInTheDocument()
+    })
+  })
+
   describe('external links', () => {
     it('renders external links for steps that have them', () => {
       const stepsWithExternalLinks: FlowStep[] = [

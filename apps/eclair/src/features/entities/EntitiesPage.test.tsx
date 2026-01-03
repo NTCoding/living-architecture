@@ -97,7 +97,14 @@ describe('EntitiesPage', () => {
     expect(screen.getByText('Order')).toBeInTheDocument()
     expect(screen.getByText('Payment')).toBeInTheDocument()
     expect(screen.getByText('Invoice')).toBeInTheDocument()
-    expect(screen.getByText(/3 entities found/)).toBeInTheDocument()
+  })
+
+  it('displays stats bar with entity and operation counts', () => {
+    const graph = createTestGraph()
+    render(<EntitiesPage graph={graph} />)
+
+    expect(screen.getByTestId('stat-total-entities')).toHaveTextContent('3')
+    expect(screen.getByTestId('stat-total-operations')).toHaveTextContent('4')
   })
 
   it('renders state machine when entity card is expanded', async () => {
@@ -147,8 +154,8 @@ describe('EntitiesPage', () => {
     const user = userEvent.setup()
     render(<EntitiesPage graph={graph} />)
 
-    const domainSelect = screen.getByDisplayValue('All Domains')
-    await user.selectOptions(domainSelect, 'payment-domain')
+    const paymentDomainButton = screen.getByRole('button', { name: 'payment-domain' })
+    await user.click(paymentDomainButton)
 
     expect(screen.getByText('Payment')).toBeInTheDocument()
     expect(screen.getByText('Invoice')).toBeInTheDocument()
@@ -172,19 +179,21 @@ describe('EntitiesPage', () => {
     expect(mockNavigate).toHaveBeenCalledWith('/full-graph?node=n5')
   })
 
-  it('resets to all domains filter after selecting a specific domain', async () => {
+  it('toggles domain filter off when clicking same domain button again', async () => {
     const graph = createTestGraph()
     const user = userEvent.setup()
     render(<EntitiesPage graph={graph} />)
 
-    const domainSelect = screen.getByDisplayValue('All Domains')
-    await user.selectOptions(domainSelect, 'order-domain')
+    const orderDomainButton = screen.getByRole('button', { name: 'order-domain' })
+    await user.click(orderDomainButton)
 
-    expect(screen.getByDisplayValue('order-domain')).toBeInTheDocument()
+    expect(screen.getByText('Order')).toBeInTheDocument()
+    expect(screen.queryByText('Invoice')).not.toBeInTheDocument()
 
-    await user.selectOptions(domainSelect, 'all')
+    await user.click(orderDomainButton)
 
-    expect(screen.getByDisplayValue('All Domains')).toBeInTheDocument()
+    expect(screen.getByText('Order')).toBeInTheDocument()
+    expect(screen.getByText('Invoice')).toBeInTheDocument()
   })
 
   it('shows no entities message when search matches nothing', async () => {

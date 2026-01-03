@@ -135,7 +135,7 @@ describe('EntityAccordion', () => {
       expect(screen.getByText('Confirmed')).toBeInTheDocument()
     })
 
-    it('shows business rules section when entity has businessRules', async () => {
+    it('does not show entity-level business rules section (rules are shown at operation level)', async () => {
       const user = userEvent.setup()
       const entity = createEntity({
         businessRules: [
@@ -143,19 +143,6 @@ describe('EntityAccordion', () => {
           'Total amount must be positive',
         ],
       })
-
-      render(<EntityAccordion entity={entity} />)
-
-      await user.click(screen.getByRole('button', { name: /order/i }))
-
-      expect(screen.getByText('Business Rules')).toBeInTheDocument()
-      expect(screen.getByText('Order must have at least one item')).toBeInTheDocument()
-      expect(screen.getByText('Total amount must be positive')).toBeInTheDocument()
-    })
-
-    it('does not show business rules section when entity has no businessRules', async () => {
-      const user = userEvent.setup()
-      const entity = createEntity({ businessRules: [] })
 
       render(<EntityAccordion entity={entity} />)
 
@@ -327,12 +314,19 @@ describe('EntityAccordion', () => {
       expect(screen.queryByText('Reads')).not.toBeInTheDocument()
     })
 
-    it('shows "Governed by" section with entity businessRules when method expanded', async () => {
+    it('shows "Governed by" section with operation-level businessRules when method expanded', async () => {
       const user = userEvent.setup()
       const entity = createEntity({
-        businessRules: [
-          'Order must have at least one item',
-          'Total amount must be positive',
+        operations: [
+          createDomainOp({
+            id: 'op-with-rules',
+            operationName: 'begin',
+            behavior: { reads: ['inventory'], validates: ['stock'], modifies: ['order'], emits: ['OrderStarted'] },
+            businessRules: [
+              'Order must have at least one item',
+              'Total amount must be positive',
+            ],
+          }),
         ],
       })
 
@@ -346,9 +340,17 @@ describe('EntityAccordion', () => {
       expect(methodContent).toHaveTextContent('Total amount must be positive')
     })
 
-    it('does not show "Governed by" section when entity has no businessRules', async () => {
+    it('does not show "Governed by" section when operation has no businessRules', async () => {
       const user = userEvent.setup()
-      const entity = createEntity({ businessRules: [] })
+      const entity = createEntity({
+        operations: [
+          createDomainOp({
+            id: 'op-no-rules',
+            operationName: 'begin',
+            behavior: { reads: ['inventory'], validates: ['stock'], modifies: ['order'], emits: ['OrderStarted'] },
+          }),
+        ],
+      })
 
       render(<EntityAccordion entity={entity} defaultExpanded />)
 

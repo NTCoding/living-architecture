@@ -159,6 +159,39 @@ describe('extractDomainMap', () => {
   })
 })
 
+describe('external edges', () => {
+    it('populates connection details for external edges', () => {
+      const graph = createMinimalGraph({
+        components: [
+          parseNode({ sourceLocation: testSourceLocation, id: 'n1', type: 'UseCase', name: 'PlaceOrder', domain: 'orders', module: 'm1' }),
+          parseNode({ sourceLocation: testSourceLocation, id: 'n2', type: 'API', name: 'CreatePayment', domain: 'orders', module: 'm1' }),
+        ],
+        links: [],
+        externalLinks: [
+          { source: 'n1', target: { name: 'Stripe', url: 'https://stripe.com' }, type: 'sync' },
+          { source: 'n2', target: { name: 'Stripe', url: 'https://stripe.com' }, type: 'async' },
+        ],
+      })
+
+      const result = extractDomainMap(graph)
+
+      const stripeEdge = result.domainEdges.find((e) => e.target === 'external:Stripe')
+      expect(stripeEdge?.data?.connections).toHaveLength(2)
+      expect(stripeEdge?.data?.connections).toContainEqual({
+        sourceName: 'PlaceOrder',
+        targetName: 'Stripe',
+        type: 'sync',
+        targetNodeType: 'External',
+      })
+      expect(stripeEdge?.data?.connections).toContainEqual({
+        sourceName: 'CreatePayment',
+        targetName: 'Stripe',
+        type: 'async',
+        targetNodeType: 'External',
+      })
+    })
+  })
+
 describe('getConnectedDomains', () => {
   it('returns empty set when domain has no connections', () => {
     const edges: DomainEdge[] = []

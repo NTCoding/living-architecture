@@ -867,6 +867,13 @@
     color: var(--text-tertiary);
   }
 
+  .flow-step-subscribed-events {
+    font-size: 11px;
+    color: var(--primary);
+    font-style: italic;
+    margin-top: 2px;
+  }
+
   .flow-step-edge {
     font-size: 11px;
     color: var(--text-tertiary);

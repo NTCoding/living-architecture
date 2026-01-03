@@ -83,6 +83,9 @@ export function GraphProvider({ children }: GraphProviderProps): React.ReactElem
     fetchAndValidateDemoGraph()
       .then((graph) => {
         setGraphState(graph)
+        const url = new URL(window.location.href)
+        url.searchParams.delete('demo')
+        window.history.replaceState({}, '', url.toString())
       })
       .finally(() => {
         setIsLoadingDemo(false)

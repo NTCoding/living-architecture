@@ -388,5 +388,41 @@ describe('EventsPage', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith('/full-graph?node=orders:event:order-placed&demo=true')
     })
+
+    it('navigates to handler on graph when clicking view handler button', async () => {
+      const graph: RiviereGraph = {
+        version: '1.0',
+        metadata: { domains: parseDomainMetadata({ 'test-domain': { description: 'Test domain', systemType: 'domain' } }) },
+        components: [
+          parseNode({ sourceLocation: testSourceLocation,
+            id: 'orders:event:order-placed',
+            type: 'Event',
+            name: 'OrderPlaced',
+            domain: 'orders',
+            module: 'checkout',
+            eventName: 'OrderPlaced',
+          }),
+          parseNode({ sourceLocation: testSourceLocation,
+            id: 'inventory:handler:reserve-inventory',
+            type: 'EventHandler',
+            name: 'Reserve Inventory Handler',
+            domain: 'inventory',
+            module: 'fulfillment',
+            subscribedEvents: ['OrderPlaced'],
+          }),
+        ],
+        links: [],
+      }
+
+      renderWithRouter(graph)
+
+      const accordion = screen.getByRole('button', { name: /OrderPlaced/i })
+      await userEvent.click(accordion)
+
+      const viewHandlerButtons = screen.getAllByTitle('View handler on graph')
+      await userEvent.click(viewHandlerButtons[0])
+
+      expect(mockNavigate).toHaveBeenCalledWith('/full-graph?node=inventory:handler:reserve-inventory')
+    })
   })
 })

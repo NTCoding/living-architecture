@@ -1,7 +1,7 @@
 import type { Node, NodeType, Edge, ExternalLink } from '@/types/riviere'
 import type { SimulationNode, SimulationLink } from '../../types'
 import type { Theme } from '@/types/theme'
-import { EDGE_COLORS, NODE_COLORS, NODE_RADII, getDomainColor } from '../../types'
+import { EDGE_COLORS, SEMANTIC_EDGE_COLORS, NODE_COLORS, NODE_RADII, getDomainColor } from '../../types'
 
 interface ExternalNode {
   id: string
@@ -114,6 +114,20 @@ export function getEdgeColor(type: string | undefined, theme: Theme): string {
 
 export function isAsyncEdge(type: string | undefined): boolean {
   return type === 'async'
+}
+
+export type SemanticEdgeType = 'event' | 'eventHandler' | 'external' | 'default'
+
+export function getSemanticEdgeType(sourceType: NodeType, targetType: NodeType): SemanticEdgeType {
+  if (targetType === 'Event') return 'event'
+  if (targetType === 'External') return 'external'
+  if (sourceType === 'EventHandler') return 'eventHandler'
+  return 'default'
+}
+
+export function getSemanticEdgeColor(sourceType: NodeType, targetType: NodeType, theme: Theme): string {
+  const semanticType = getSemanticEdgeType(sourceType, targetType)
+  return SEMANTIC_EDGE_COLORS[theme][semanticType]
 }
 
 export function truncateName(name: string, maxLength: number): string {

@@ -127,6 +127,7 @@ interface ExternalEdgeInfo {
   targetName: string
   sourceDomain: string
   connectionCount: number
+  connections: ConnectionDetail[]
 }
 
 function aggregateExternalEdges(
@@ -144,14 +145,23 @@ function aggregateExternalEdges(
     const key = `${sourceInfo.domain}->${extLink.target.name}`
     const existing = edgeMap.get(key)
 
+    const connection: ConnectionDetail = {
+      sourceName: sourceInfo.name,
+      targetName: extLink.target.name,
+      type: getEdgeType(extLink.type),
+      targetNodeType: 'External',
+    }
+
     if (existing === undefined) {
       edgeMap.set(key, {
         targetName: extLink.target.name,
         sourceDomain: sourceInfo.domain,
         connectionCount: 1,
+        connections: [connection],
       })
     } else {
       existing.connectionCount += 1
+      existing.connections.push(connection)
     }
   }
 
@@ -316,7 +326,7 @@ export function extractDomainMap(graph: RiviereGraph): DomainMapData {
       sourceHandle: handles.sourceHandle,
       targetHandle: handles.targetHandle,
       label: `${e.connectionCount} API`,
-      data: { apiCount: e.connectionCount, eventCount: 0, connections: [] },
+      data: { apiCount: e.connectionCount, eventCount: 0, connections: e.connections },
       style: { stroke: '#F97316', strokeDasharray: '5,5' },
       labelStyle: { fontSize: 10, fontWeight: 600, fill: '#1f2937' },
       labelBgStyle: { fill: 'rgba(255, 255, 255, 0.85)', stroke: 'rgba(0, 0, 0, 0.1)', strokeWidth: 1, filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1))' },

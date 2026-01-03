@@ -70,6 +70,11 @@ export function FlowTrace({ steps, graph }: Readonly<FlowTraceProps>): React.Rea
                   <div className="flow-step-meta">
                     {step.node.module} · {step.node.domain} · {step.node.type}
                   </div>
+                  {step.node.subscribedEvents !== undefined && step.node.subscribedEvents.length > 0 && (
+                    <div className="flow-step-subscribed-events">
+                      Handles: {step.node.subscribedEvents.join(', ')}
+                    </div>
+                  )}
                 </div>
                 {step.edgeType !== null && (
                   <div className="flow-step-edge">{step.edgeType} →</div>

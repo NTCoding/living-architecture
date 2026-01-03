@@ -35,6 +35,17 @@ export function EventsPage({ graph }: Readonly<EventsPageProps>): React.ReactEle
     navigate(`/full-graph?node=${eventId}${demoParam}`)
   }, [navigate, searchParams])
 
+  const handleViewHandlerOnGraph = useCallback((handler: { domain: string; handlerName: string }) => {
+    const handlerNode = graph.components.find(
+      (node) => node.type === 'EventHandler' && node.domain === handler.domain && node.name === handler.handlerName
+    )
+    if (handlerNode) {
+      const demo = searchParams.get('demo')
+      const demoParam = demo === 'true' ? '&demo=true' : ''
+      navigate(`/full-graph?node=${handlerNode.id}${demoParam}`)
+    }
+  }, [graph.components, navigate, searchParams])
+
   const { publishedEvents, domains } = useMemo((): { publishedEvents: PublishedEvent[]; domains: string[] } => {
     const published: PublishedEvent[] = []
     const domainSet = new Set<string>()
@@ -169,7 +180,7 @@ export function EventsPage({ graph }: Readonly<EventsPageProps>): React.ReactEle
           <section data-testid="published-events">
             <div className="space-y-3">
               {filteredPublished.map((event) => (
-                <EventAccordion key={event.id} event={event} onViewOnGraph={handleViewOnGraph} />
+                <EventAccordion key={event.id} event={event} onViewOnGraph={handleViewOnGraph} onViewHandlerOnGraph={handleViewHandlerOnGraph} />
               ))}
             </div>
           </section>

@@ -19,6 +19,7 @@ export interface FlowStepNode {
   name: string
   module: string
   domain: string
+  subscribedEvents?: string[]
 }
 
 export interface FlowStep {
@@ -34,13 +35,19 @@ export interface Flow {
 }
 
 function componentToFlowStepNode(component: Component): FlowStepNode {
-  return {
+  const node: FlowStepNode = {
     id: component.id,
     type: component.type,
     name: component.name,
     module: component.module,
     domain: component.domain,
   }
+
+  if (component.type === 'EventHandler') {
+    node.subscribedEvents = component.subscribedEvents
+  }
+
+  return node
 }
 
 function adaptFlowStep(queryStep: QueryFlowStep): FlowStep {

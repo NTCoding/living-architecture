@@ -167,4 +167,22 @@ describe('extractFlows', () => {
 
     expect(firstStep?.externalLinks).toEqual([])
   })
+
+  it('EventHandler steps include subscribedEvents', () => {
+    const graph = createTestGraph()
+
+    const flows = extractFlows(graph)
+    const eventHandlerStep = flows[0]?.steps.find(s => s.node.type === 'EventHandler')
+
+    expect(eventHandlerStep?.node.subscribedEvents).toEqual(['OrderPlaced'])
+  })
+
+  it('non-EventHandler steps do not include subscribedEvents', () => {
+    const graph = createTestGraph()
+
+    const flows = extractFlows(graph)
+    const useCaseStep = flows[0]?.steps.find(s => s.node.type === 'UseCase')
+
+    expect(useCaseStep?.node.subscribedEvents).toBeUndefined()
+  })
 })

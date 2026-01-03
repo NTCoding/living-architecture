@@ -30,8 +30,8 @@ describe('DomainNode', () => {
       <DomainNode data={{ label: 'verylongdomainname', nodeCount: 5 }} />
     )
 
-    const label = screen.getByText('verylongdom…')
-    expect(label).toHaveStyle({ fontSize: '11px' })
+    const label = screen.getByText('verylongdomainn…')
+    expect(label).toHaveStyle({ fontSize: '10px' })
   })
 
   it('truncates long labels and shows full name in tooltip', () => {
@@ -39,7 +39,7 @@ describe('DomainNode', () => {
       <DomainNode data={{ label: 'verylongdomainname', nodeCount: 5 }} />
     )
 
-    expect(screen.getByText('verylongdom…')).toBeInTheDocument()
+    expect(screen.getByText('verylongdomainn…')).toBeInTheDocument()
     const nodeDiv = container.querySelector('div.flex[title]')
     expect(nodeDiv).toHaveAttribute('title', 'verylongdomainname')
   })
@@ -50,7 +50,7 @@ describe('DomainNode', () => {
     )
 
     const label = screen.getByText('orders')
-    expect(label).toHaveStyle({ fontSize: '13px' })
+    expect(label).toHaveStyle({ fontSize: '12px' })
   })
 
   it('applies reduced opacity when dimmed', () => {

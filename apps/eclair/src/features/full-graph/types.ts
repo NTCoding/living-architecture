@@ -82,6 +82,27 @@ export const EDGE_COLORS = {
   circuit: { sync: '#0969DA', async: '#1A7F37' },
 }
 
+export const SEMANTIC_EDGE_COLORS = {
+  stream: {
+    event: '#D97706',
+    eventHandler: '#7C3AED',
+    external: '#64748B',
+    default: '#0D9488',
+  },
+  voltage: {
+    event: '#FBBF24',
+    eventHandler: '#A78BFA',
+    external: '#94A3B8',
+    default: '#00D4FF',
+  },
+  circuit: {
+    event: '#B45309',
+    eventHandler: '#6D28D9',
+    external: '#6B7280',
+    default: '#0969DA',
+  },
+}
+
 function getDomainPaletteColor(index: number): string {
   if (index === 0) return '#0F766E'
   if (index === 1) return '#7C3AED'

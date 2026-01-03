@@ -121,23 +121,6 @@ export function EntityAccordion({
             </div>
           )}
 
-          {entity.hasBusinessRules() && (
-            <div className="mb-4">
-              <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-[var(--text-tertiary)]">
-                <i className="ph ph-shield-check text-[var(--primary)]" aria-hidden="true" />
-                Business Rules
-              </div>
-              <div className="space-y-2">
-                {entity.businessRules.map((rule, index) => (
-                  <div key={index} className="flex items-start gap-2 rounded-lg bg-[var(--bg-tertiary)] p-3 text-sm text-[var(--text-secondary)]">
-                    <i className="ph ph-check-circle shrink-0 text-[var(--amber)]" aria-hidden="true" />
-                    <span>{rule}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
           {(() => {
             if (entity.operations.length > 0) {
               return (
@@ -148,16 +131,16 @@ export function EntityAccordion({
                   </div>
                   <div className="space-y-3">
                     {entity.operations.map((op) => (
-                      <MethodCard key={op.id} operation={op} businessRules={entity.businessRules} />
+                      <MethodCard key={op.id} operation={op} businessRules={op.businessRules ?? []} />
                     ))}
                   </div>
                 </div>
               )
             }
-            if (!entity.hasStates() && !entity.hasBusinessRules()) {
+            if (!entity.hasStates()) {
               return (
                 <div className="text-sm italic text-[var(--text-tertiary)]">
-                  No states, rules, or methods defined
+                  No states or methods defined
                 </div>
               )
             }
@@ -218,7 +201,7 @@ function MethodCardButton({ operation, isExpanded, onToggle }: Readonly<MethodCa
       type="button"
       onClick={onToggle}
       aria-expanded={isExpanded}
-      className="flex min-w-0 flex-1 items-center gap-3 text-left hover:opacity-80"
+      className="flex min-w-0 flex-1 items-center gap-3 rounded-md px-2 py-1 -mx-2 text-left transition-colors hover:bg-[var(--bg-tertiary)]"
     >
       <MethodSignature operation={operation} />
       <StateChangesTag operation={operation} />

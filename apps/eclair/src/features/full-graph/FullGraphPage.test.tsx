@@ -367,30 +367,6 @@ describe('FullGraphPage', () => {
     })
   })
 
-  describe('search functionality', () => {
-    test('filters visible nodes based on search query', async () => {
-      const user = userEvent.setup()
-      renderWithRouter()
-
-      const searchInput = screen.getByPlaceholderText(/search/i)
-      await user.type(searchInput, 'Test API')
-
-      expect(screen.getByTestId('force-graph-container')).toBeInTheDocument()
-    })
-
-    test('clears highlighted node when searching', async () => {
-      const user = userEvent.setup()
-      renderWithRouter(['/full-graph?node=node-1'])
-
-      expect(screen.getByTestId('force-graph-container')).toHaveAttribute('data-highlighted-node', 'node-1')
-
-      const searchInput = screen.getByPlaceholderText(/search/i)
-      await user.type(searchInput, 'API')
-
-      expect(screen.getByTestId('force-graph-container')).not.toHaveAttribute('data-highlighted-node', 'node-1')
-    })
-  })
-
   describe('tooltip mouse interaction', () => {
     const mockSimulationNode: SimulationNode = {
       id: 'node-1',

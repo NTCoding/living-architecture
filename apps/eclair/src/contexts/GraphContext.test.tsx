@@ -220,6 +220,39 @@ describe('GraphContext', () => {
       expect(screen.getByTestId('has-graph')).toHaveTextContent('yes')
       expect(screen.getByTestId('graph-name')).toHaveTextContent('Test Graph')
     })
+
+    it('clears demo param from URL after loading demo graph', async () => {
+      vi.stubGlobal('location', {
+        ...window.location,
+        href: 'http://localhost:3000/?demo=true',
+        search: '?demo=true',
+      })
+
+      const mockReplaceState = vi.fn()
+      vi.stubGlobal('history', { ...window.history, replaceState: mockReplaceState })
+
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+        ok: true,
+        text: () => Promise.resolve(JSON.stringify(testGraph)),
+      }))
+
+      function DemoTestConsumer(): React.ReactElement {
+        const { isLoadingDemo } = useGraph()
+        return <span data-testid="loading">{isLoadingDemo ? 'loading' : 'done'}</span>
+      }
+
+      render(
+        <GraphProvider>
+          <DemoTestConsumer />
+        </GraphProvider>
+      )
+
+      await waitFor(() => {
+        expect(screen.getByTestId('loading')).toHaveTextContent('done')
+      })
+
+      expect(mockReplaceState).toHaveBeenCalledWith({}, '', 'http://localhost:3000/')
+    })
   })
 
   describe('buildDemoGraphUrl', () => {

@@ -38,42 +38,71 @@ export function EntitiesPage({ graph }: Readonly<EntitiesPageProps>): React.Reac
     return Array.from(new Set(entities.map((e) => e.domain)))
   }, [entities])
 
+  const totalOperations = useMemo(() => {
+    return entities.reduce((sum, entity) => sum + entity.operations.length, 0)
+  }, [entities])
+
+  const toggleDomain = (domain: string): void => {
+    setSelectedDomain((prev) => (prev === domain ? 'all' : domain))
+  }
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="font-[var(--font-heading)] text-3xl font-bold text-[var(--text-primary)]">
-            Entities
-          </h1>
-          <p className="mt-1 text-[var(--text-secondary)]">
-            {filteredEntities.length} {filteredEntities.length === 1 ? 'entity' : 'entities'} found
-          </p>
+    <div data-testid="entities-page" className="space-y-6">
+      <header className="page-header">
+        <h1 className="page-title">Entities</h1>
+        <p className="page-subtitle">Domain entities and their operations</p>
+      </header>
+
+      <div data-testid="stats-bar" className="stats-bar">
+        <div className="stats-bar-item">
+          <i className="ph ph-cube stats-bar-icon" aria-hidden="true" />
+          <div className="stats-bar-content">
+            <div className="stats-bar-label">Total Entities</div>
+            <div data-testid="stat-total-entities" className="stats-bar-value">
+              {entities.length}
+            </div>
+          </div>
+        </div>
+        <div className="stats-bar-item">
+          <i className="ph ph-function stats-bar-icon" aria-hidden="true" />
+          <div className="stats-bar-content">
+            <div className="stats-bar-label">Operations</div>
+            <div data-testid="stat-total-operations" className="stats-bar-value">
+              {totalOperations}
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="space-y-4 rounded-lg border border-[var(--border-color)] bg-[var(--bg-secondary)] p-4">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="filters-section">
+        <div className="search-container">
+          <i className="ph ph-magnifying-glass search-icon" aria-hidden="true" />
           <input
             type="text"
+            className="search-input"
             placeholder="Search entities..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex-1 rounded-lg border border-[var(--border-color)] bg-[var(--bg-tertiary)] px-3 py-2 text-[var(--text-primary)] placeholder-[var(--text-tertiary)] focus:border-[var(--primary)] focus:outline-none"
           />
-
-          <select
-            value={selectedDomain}
-            onChange={(e) => setSelectedDomain(e.target.value)}
-            className="rounded-lg border border-[var(--border-color)] bg-[var(--bg-tertiary)] px-3 py-2 text-[var(--text-primary)] focus:border-[var(--primary)] focus:outline-none"
-          >
-            <option value="all">All Domains</option>
-            {domains.map((domain) => (
-              <option key={domain} value={domain}>
-                {domain}
-              </option>
-            ))}
-          </select>
         </div>
+        {domains.length > 0 && (
+          <>
+            <div className="filter-divider" />
+            <span className="filter-label">Domain:</span>
+            <div className="filter-group">
+              {domains.map((domain) => (
+                <button
+                  key={domain}
+                  type="button"
+                  className={`filter-tag ${selectedDomain === domain ? 'active' : ''}`}
+                  onClick={() => toggleDomain(domain)}
+                >
+                  {domain}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
       </div>
 
       {filteredEntities.length === 0 ? (

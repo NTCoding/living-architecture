@@ -11,10 +11,8 @@ import {
 } from '@/lib/exportGraph'
 import { ForceGraph } from './components/ForceGraph/ForceGraph'
 import { GraphTooltip } from './components/GraphTooltip/GraphTooltip'
-import { GraphSearch } from './components/GraphSearch/GraphSearch'
 import { DomainFilters } from './components/DomainFilters/DomainFilters'
 import { NodeTypeFilters } from './components/NodeTypeFilters/NodeTypeFilters'
-import { filterNodesBySearch } from './hooks/useNodeSearch'
 import { filterByNodeType } from './graphFocusing/filterByNodeType'
 import { getThemeFocusColors } from './graphFocusing/themeFocusColors'
 import type { TooltipData } from './types'
@@ -91,7 +89,6 @@ export function FullGraphPage({ graph }: Readonly<FullGraphPageProps>): React.Re
   const [highlightedNodeId, setHighlightedNodeId] = useState<string | null>(
     () => searchParams.get('node')
   )
-  const [searchQuery, setSearchQuery] = useState('')
   const [filterPanelOpen, setFilterPanelOpen] = useState(false)
   const [visibleTypes, setVisibleTypes] = useState<Set<NodeType>>(() => {
     const types = new Set(graph.components.map((n) => n.type))
@@ -140,18 +137,6 @@ export function FullGraphPage({ graph }: Readonly<FullGraphPageProps>): React.Re
     }
   }, [graph, visibleTypes])
 
-  const searchResult = useMemo(() => {
-    return filterNodesBySearch(
-      searchQuery,
-      filteredGraph.nodes,
-      filteredGraph.edges
-    )
-  }, [searchQuery, filteredGraph])
-
-  const visibleNodeIds = searchQuery.trim()
-    ? searchResult.visibleNodeIds
-    : undefined
-
   const handleNodeClick = useCallback((nodeId: string) => {
     setHighlightedNodeId((prev) => (prev === nodeId ? null : nodeId))
     setTooltipData(null)
@@ -187,12 +172,6 @@ export function FullGraphPage({ graph }: Readonly<FullGraphPageProps>): React.Re
     tooltipHideTimeoutRef.current = setTimeout(() => {
       setTooltipData(null)
     }, 200)
-  }, [])
-
-
-  const handleSearch = useCallback((query: string) => {
-    setSearchQuery(query)
-    setHighlightedNodeId(null)
   }, [])
 
   const handleToggleDomain = useCallback((domain: string) => {
@@ -272,7 +251,6 @@ export function FullGraphPage({ graph }: Readonly<FullGraphPageProps>): React.Re
         theme={theme}
         highlightedNodeIds={highlightedNodeIds}
         highlightedNodeId={highlightedNodeId}
-        visibleNodeIds={visibleNodeIds}
         focusedDomain={focusedDomain}
         onNodeClick={handleNodeClick}
         onNodeHover={handleNodeHover}
@@ -353,10 +331,9 @@ export function FullGraphPage({ graph }: Readonly<FullGraphPageProps>): React.Re
       )}
 
       <div
-        className="floating-panel absolute right-2 top-4 flex items-center gap-2 md:right-4"
-        data-testid="search-panel"
+        className="floating-panel absolute right-2 top-4 md:right-4"
+        data-testid="filter-panel-toggle"
       >
-        <GraphSearch onSearch={handleSearch} />
         <button
           type="button"
           onClick={toggleFilterPanel}

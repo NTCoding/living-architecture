@@ -3,7 +3,7 @@ import type { SimulationNode, SimulationLink } from '../../types'
 import type { Edge, NodeType } from '@/types/riviere'
 import type { Theme } from '@/types/theme'
 import { traceFlow } from '../../hooks/useFlowTracing'
-import { EDGE_COLORS } from '../../types'
+import { EDGE_COLORS, SEMANTIC_EDGE_COLORS } from '../../types'
 import { getLinkNodeId } from './FocusModeStyling'
 
 export {
@@ -107,6 +107,11 @@ export function setupSVGFiltersAndMarkers(defs: d3.Selection<SVGDefsElement, unk
 
   appendArrowMarker(defs, 'arrowhead-sync', EDGE_COLORS[theme].sync)
   appendArrowMarker(defs, 'arrowhead-async', EDGE_COLORS[theme].async)
+
+  appendArrowMarker(defs, 'arrowhead-event', SEMANTIC_EDGE_COLORS[theme].event)
+  appendArrowMarker(defs, 'arrowhead-eventHandler', SEMANTIC_EDGE_COLORS[theme].eventHandler)
+  appendArrowMarker(defs, 'arrowhead-external', SEMANTIC_EDGE_COLORS[theme].external)
+  appendArrowMarker(defs, 'arrowhead-default', SEMANTIC_EDGE_COLORS[theme].default)
 }
 
 export interface FitViewportParams {
@@ -141,19 +146,33 @@ export function calculateFitViewportTransform(params: FitViewportParams): { tran
   return { translateX, translateY, scale }
 }
 
+export type SemanticEdgeType = 'event' | 'eventHandler' | 'external' | 'default'
+
 export interface SetupLinksParams {
   linkGroup: d3.Selection<SVGGElement, unknown, d3.BaseType, unknown>
   links: SimulationLink[]
   theme: Theme
-  getEdgeColor: (type: string | undefined, theme: Theme) => string
+  nodeMap: Map<string, SimulationNode>
+  getSemanticEdgeType: (sourceType: NodeType, targetType: NodeType) => SemanticEdgeType
+  getSemanticEdgeColor: (sourceType: NodeType, targetType: NodeType, theme: Theme) => string
   isAsyncEdge: (type: string | undefined) => boolean
+}
+
+function getNodeType(nodeId: string, nodeMap: Map<string, SimulationNode>): NodeType {
+  const node = nodeMap.get(nodeId)
+  if (!node) {
+    throw new Error(`Node ${nodeId} not found in node map`)
+  }
+  return node.type
 }
 
 export function setupLinks({
   linkGroup,
   links,
   theme,
-  getEdgeColor,
+  nodeMap,
+  getSemanticEdgeType,
+  getSemanticEdgeColor,
   isAsyncEdge: isAsync,
 }: SetupLinksParams): d3.Selection<SVGPathElement, SimulationLink, SVGGElement, unknown> {
   return linkGroup
@@ -161,18 +180,34 @@ export function setupLinks({
     .data(links)
     .join('path')
     .attr('class', (d) => {
-      const classes = ['graph-link']
+      const sourceId = getLinkNodeId(d.source)
+      const targetId = getLinkNodeId(d.target)
+      const sourceType = getNodeType(sourceId, nodeMap)
+      const targetType = getNodeType(targetId, nodeMap)
+      const semanticType = getSemanticEdgeType(sourceType, targetType)
+      const classes = ['graph-link', `edge-${semanticType}`]
       if (isAsync(d.type)) classes.push('async')
       return classes.join(' ')
     })
-    .attr('stroke', (d) => getEdgeColor(d.type, theme))
+    .attr('stroke', (d) => {
+      const sourceId = getLinkNodeId(d.source)
+      const targetId = getLinkNodeId(d.target)
+      const sourceType = getNodeType(sourceId, nodeMap)
+      const targetType = getNodeType(targetId, nodeMap)
+      return getSemanticEdgeColor(sourceType, targetType, theme)
+    })
     .attr('stroke-width', 2)
     .attr('fill', 'none')
     .attr('opacity', 0.6)
     .attr('stroke-dasharray', (d) => (isAsync(d.type) ? '5,3' : 'none'))
-    .attr('marker-end', (d) =>
-      isAsync(d.type) ? 'url(#arrowhead-async)' : 'url(#arrowhead-sync)'
-    )
+    .attr('marker-end', (d) => {
+      const sourceId = getLinkNodeId(d.source)
+      const targetId = getLinkNodeId(d.target)
+      const sourceType = getNodeType(sourceId, nodeMap)
+      const targetType = getNodeType(targetId, nodeMap)
+      const semanticType = getSemanticEdgeType(sourceType, targetType)
+      return `url(#arrowhead-${semanticType})`
+    })
 }
 
 export interface SetupNodesParams {
