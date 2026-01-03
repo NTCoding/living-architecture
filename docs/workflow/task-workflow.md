@@ -177,10 +177,10 @@ git push -u origin HEAD
 ```
 
 ```
-/submit-pr "feat(scope): description"
+/submit-pr --title "feat(scope): description" --body "## Summary\n- Change 1\n- Change 2"
 ```
 
-The sub-agent will create the PR (or update existing), watch all CI checks, and return results.
+The sub-agent will create the PR, watch all CI checks, and return results.
 
 **When checks pass:** Proceed to [Notify user](#notify-user).
 

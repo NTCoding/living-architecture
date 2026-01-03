@@ -6,9 +6,13 @@ Launch a Haiku sub-agent to create a PR (if needed) and watch CI checks. Generic
 
 **Create new PR:**
 ```
-/submit-pr "title"
+/submit-pr --title "PR title" --body "PR description"
 ```
-Example: `/submit-pr "feat(auth): add OAuth2 login flow"`
+
+Example:
+```
+/submit-pr --title "feat(auth): add OAuth2 login flow" --body "## Summary\n- Added OAuth2 provider\n- Integrated with existing auth middleware"
+```
 
 **Update existing PR (re-check after fixes):**
 ```
@@ -40,15 +44,17 @@ Arguments: $ARGUMENTS
 
 2. If arguments contain "--update": this is an UPDATE (PR must exist)
    - Run: `gh pr view --json number,url`
-   - If errors: STOP and return "❌ No PR exists for this branch. Use /submit-pr \"title\" to create one."
+   - If errors: STOP and return "❌ No PR exists for this branch. Use /submit-pr to create one."
    - If succeeds: skip to step 5
 
-3. If arguments contain a title (not --update): this is a CREATE
+3. If arguments contain "--title": this is a CREATE
+   - Parse title from: --title "..."
+   - Parse body from: --body "..." (may contain \n for newlines)
    - Check if PR exists: `gh pr view --json number,url 2>/dev/null`
    - If PR exists: STOP and return "❌ PR already exists. Use /submit-pr --update to re-check."
    - If no PR: continue to step 4
 
-4. Create PR: `gh pr create --title "<title from arguments>" --body ""`
+4. Create PR: `gh pr create --title "<title>" --body "<body>"`
 
 ## Watch and Report
 
