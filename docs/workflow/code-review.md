@@ -112,3 +112,7 @@ Don't spend too long looking across the whole codebase for duplicated code but d
 ## Suggest updates
 
 How can we update our coding conventions, documents and processes to prevent the type of errors you've identified? Provide suggestions if they seem relevant and useful.
+
+## Workflow Reminder
+
+After addressing any issues above, complete the task by following `docs/workflow/task-workflow.md` → Completing Tasks.
