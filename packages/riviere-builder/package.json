@@ -23,7 +23,6 @@
   ],
   "dependencies": {
     "@living-architecture/riviere-query": "workspace:*",
-    "@living-architecture/riviere-schema": "workspace:*",
-    "tslib": "^2.3.0"
+    "@living-architecture/riviere-schema": "workspace:*"
   }
 }

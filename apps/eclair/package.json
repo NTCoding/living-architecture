@@ -43,13 +43,11 @@
     "d3": "^7.9.0",
     "dagre": "^0.8.5",
     "html-to-image": "^1.11.11",
-    "json5": "^2.2.3",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-json-view-lite": "^2.5.0",
     "react-router-dom": "^7.9.6",
-    "zod": "^4.1.13",
-    "zustand": "^5.0.8"
+    "zod": "^4.1.13"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.1.17",
@@ -64,7 +62,6 @@
     "@vitejs/plugin-react": "^5.1.1",
     "@vitest/ui": "^4.0.16",
     "jsdom": "^26.0.0",
-    "tailwindcss": "^4.1.17",
     "vite": "^7.2.4",
     "vitest": "^4.0.16"
   }

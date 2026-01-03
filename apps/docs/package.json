@@ -59,6 +59,5 @@
     "vitepress": "^1.5.0"
   },
   "devDependencies": {
-    "medium-zoom": "^1.1.0"
   }
 }
