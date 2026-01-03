@@ -18,7 +18,8 @@
         ".vitepress/config.ts"
       ],
       "project": [
-        ".vitepress/**/*.ts"
+        ".vitepress/**/*.ts",
+        ".vitepress/**/*.vue"
       ]
     },
     "packages/riviere-cli": {
