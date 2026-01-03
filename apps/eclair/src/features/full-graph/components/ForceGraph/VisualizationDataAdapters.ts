@@ -116,12 +116,10 @@ export function isAsyncEdge(type: string | undefined): boolean {
   return type === 'async'
 }
 
-export type SemanticEdgeType = 'event' | 'eventHandler' | 'external' | 'default'
+export type SemanticEdgeType = 'event' | 'default'
 
-export function getSemanticEdgeType(sourceType: NodeType, targetType: NodeType): SemanticEdgeType {
+export function getSemanticEdgeType(_sourceType: NodeType, targetType: NodeType): SemanticEdgeType {
   if (targetType === 'Event') return 'event'
-  if (targetType === 'External') return 'external'
-  if (sourceType === 'EventHandler') return 'eventHandler'
   return 'default'
 }
 

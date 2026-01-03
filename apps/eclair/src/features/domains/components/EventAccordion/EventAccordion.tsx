@@ -19,6 +19,71 @@ function formatHandlerCount(count: number): string {
   return `${count} handler${count !== 1 ? 's' : ''}`
 }
 
+interface EventHandlersSectionProps {
+  readonly event: DomainEvent
+  readonly onViewHandlerOnGraph: ((handler: HandlerInfo) => void) | undefined
+}
+
+function EventHandlersSection({ event, onViewHandlerOnGraph }: Readonly<EventHandlersSectionProps>): React.ReactElement | null {
+  if (event.handlers.length > 0) {
+    return (
+      <div>
+        <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-[var(--text-tertiary)]">
+          <i className="ph ph-ear text-[var(--accent)]" aria-hidden="true" />
+          Handlers
+        </div>
+        <div className="space-y-2">
+          {event.handlers.map((handler) => (
+            <div
+              key={`${handler.domain}-${handler.handlerName}`}
+              data-testid="handler-row"
+              className="flex items-center gap-3 rounded-lg bg-[var(--bg-tertiary)] px-3 py-2"
+            >
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-[var(--primary)] text-white">
+                <i className="ph ph-ear text-sm" aria-hidden="true" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <span
+                  data-testid="handler-name"
+                  className="block truncate font-[var(--font-mono)] text-sm font-semibold text-[var(--text-primary)]"
+                >
+                  {handler.handlerName}
+                </span>
+                <span data-testid="handler-domain" className="text-xs text-[var(--text-secondary)]">
+                  {handler.domain}
+                </span>
+              </div>
+              {onViewHandlerOnGraph !== undefined && (
+                <button
+                  type="button"
+                  className="graph-link-btn-sm"
+                  title="View handler on graph"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onViewHandlerOnGraph({ domain: handler.domain, handlerName: handler.handlerName })
+                  }}
+                >
+                  <i className="ph ph-graph" aria-hidden="true" />
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  if (event.schema === undefined) {
+    return (
+      <div className="text-sm italic text-[var(--text-tertiary)]">
+        No schema or handlers defined
+      </div>
+    )
+  }
+
+  return null
+}
+
 export function EventAccordion({
   event,
   defaultExpanded = false,
@@ -44,7 +109,7 @@ export function EventAccordion({
           aria-expanded={isExpanded}
           className="flex min-w-0 flex-1 items-center gap-3 text-left"
         >
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[var(--accent)] to-[#F59E0B] text-white">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[var(--node-event)] text-white">
             <i className="ph ph-lightning text-lg" aria-hidden="true" />
           </div>
           <div className="min-w-0">
@@ -98,56 +163,7 @@ export function EventAccordion({
             </div>
           )}
 
-          {(() => {
-            if (event.handlers.length > 0) {
-              return (
-                <div>
-                  <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-[var(--text-tertiary)]">
-                    <i className="ph ph-ear text-[var(--accent)]" aria-hidden="true" />
-                    Handlers
-                  </div>
-                  <div className="space-y-2">
-                    {event.handlers.map((handler) => (
-                      <div
-                        key={`${handler.domain}-${handler.handlerName}`}
-                        className="flex items-center justify-between rounded-lg bg-[var(--bg-tertiary)] px-3 py-2"
-                      >
-                        <span className="font-[var(--font-mono)] text-sm text-[var(--text-primary)]">
-                          {handler.handlerName}
-                        </span>
-                        <div className="flex items-center gap-2">
-                          <span className="rounded bg-[var(--bg-secondary)] px-2 py-0.5 text-xs text-[var(--text-tertiary)]">
-                            {handler.domain}
-                          </span>
-                          {onViewHandlerOnGraph !== undefined && (
-                            <button
-                              type="button"
-                              className="graph-link-btn-sm"
-                              title="View handler on graph"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                onViewHandlerOnGraph({ domain: handler.domain, handlerName: handler.handlerName })
-                              }}
-                            >
-                              <i className="ph ph-graph" aria-hidden="true" />
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )
-            }
-            if (event.schema == null) {
-              return (
-                <div className="text-sm italic text-[var(--text-tertiary)]">
-                  No schema or handlers defined
-                </div>
-              )
-            }
-            return null
-          })()}
+          <EventHandlersSection event={event} onViewHandlerOnGraph={onViewHandlerOnGraph} />
         </div>
       )}
     </div>

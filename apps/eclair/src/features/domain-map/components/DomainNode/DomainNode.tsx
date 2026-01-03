@@ -4,23 +4,29 @@ import type { DomainNodeData } from '../../extractDomainMap'
 
 type DomainNodeProps = NodeProps<Node<DomainNodeData>>
 
-function truncateLabel(label: string, maxLength: number): string {
-  if (label.length <= maxLength) return label
-  return label.substring(0, maxLength - 1) + '…'
-}
+// All domain nodes use consistent sizing for visual clarity.
+// Larger circles with proportional text ensure readable labels.
+const DOMAIN_NODE_SIZE = 120
+const EXTERNAL_NODE_SIZE = 100
+const DIMMED_OPACITY = 0.3
+const FULL_OPACITY = 1
+const DOMAIN_FONT_SIZE = 14
+const EXTERNAL_FONT_SIZE = 12
 
 export function DomainNode(props: DomainNodeProps): React.ReactElement {
   const { data } = props
-  const size = 100
-  const opacity = data.dimmed === true ? 0.3 : 1
-  const fontSize = data.label.length > 12 ? 10 : 12
-  const displayLabel = truncateLabel(data.label, 16)
-  const isExternal = data.isExternal === true
+  const isExternal = data.isExternal ?? false
+  const size = isExternal ? EXTERNAL_NODE_SIZE : DOMAIN_NODE_SIZE
+  const opacity = data.dimmed ? DIMMED_OPACITY : FULL_OPACITY
+  const fontSize = isExternal ? EXTERNAL_FONT_SIZE : DOMAIN_FONT_SIZE
+
+  // Show full label - circles are sized to accommodate typical domain names
+  const displayLabel = data.label
 
   const baseClasses = 'flex items-center justify-center rounded-full border-2 text-center shadow-lg transition-all hover:shadow-xl'
   const internalClasses = 'border-[var(--primary)] bg-[var(--bg-secondary)]'
   const externalClasses = 'domain-node-external'
-  const nodeClasses = `${baseClasses} ${isExternal ? externalClasses : internalClasses}`
+  const domainNodeClasses = `${baseClasses} ${isExternal ? externalClasses : internalClasses}`
 
   return (
     <>
@@ -33,7 +39,7 @@ export function DomainNode(props: DomainNodeProps): React.ReactElement {
       <Handle id="left-source" type="source" position={Position.Left} className="invisible" />
       <Handle id="right-source" type="source" position={Position.Right} className="invisible" />
       <div
-        className={nodeClasses}
+        className={domainNodeClasses}
         style={{ width: size, height: size, opacity }}
         title={data.label}
       >
@@ -41,16 +47,16 @@ export function DomainNode(props: DomainNodeProps): React.ReactElement {
           <div className="flex flex-col items-center gap-1">
             <i className="ph ph-arrow-square-out domain-node-external-icon" aria-hidden="true" />
             <span
-              className="max-w-full overflow-hidden px-1 font-bold text-[var(--text-primary)]"
-              style={{ fontSize: fontSize - 1, textShadow: '0 1px 2px rgba(0,0,0,0.2)' }}
+              className="max-w-full overflow-hidden px-2 font-bold text-[var(--text-primary)] leading-tight"
+              style={{ fontSize }}
             >
               {displayLabel}
             </span>
           </div>
         ) : (
           <span
-            className="max-w-full overflow-hidden px-2 font-bold text-[var(--text-primary)]"
-            style={{ fontSize, textShadow: '0 1px 2px rgba(0,0,0,0.2)' }}
+            className="max-w-full overflow-hidden px-3 font-bold text-[var(--text-primary)] leading-tight"
+            style={{ fontSize }}
           >
             {displayLabel}
           </span>

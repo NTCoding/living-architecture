@@ -314,6 +314,47 @@ describe('EntityAccordion', () => {
       expect(screen.queryByText('Reads')).not.toBeInTheDocument()
     })
 
+    it('shows empty state message when operation has no behavior and no businessRules', async () => {
+      const user = userEvent.setup()
+      const entity = createEntity({
+        operations: [
+          createDomainOp({
+            id: 'op-minimal',
+            operationName: 'doSomething',
+          }),
+        ],
+      })
+
+      render(<EntityAccordion entity={entity} defaultExpanded />)
+
+      await user.click(screen.getByRole('button', { name: /doSomething/i }))
+
+      const methodContent = screen.getByTestId('method-card-content')
+      expect(methodContent).toHaveTextContent('No additional behavior information available')
+    })
+
+    it('shows business rules when operation has businessRules but no behavior', async () => {
+      const user = userEvent.setup()
+      const entity = createEntity({
+        operations: [
+          createDomainOp({
+            id: 'op-rules-only',
+            operationName: 'processOrder',
+            businessRules: ['Must have valid customer ID'],
+          }),
+        ],
+      })
+
+      render(<EntityAccordion entity={entity} defaultExpanded />)
+
+      await user.click(screen.getByRole('button', { name: /processOrder/i }))
+
+      const methodContent = screen.getByTestId('method-card-content')
+      expect(methodContent).toHaveTextContent('Governed by')
+      expect(methodContent).toHaveTextContent('Must have valid customer ID')
+      expect(methodContent).not.toHaveTextContent('No additional behavior information')
+    })
+
     it('shows "Governed by" section with operation-level businessRules when method expanded', async () => {
       const user = userEvent.setup()
       const entity = createEntity({

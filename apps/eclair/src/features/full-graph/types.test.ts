@@ -40,16 +40,16 @@ describe('graph constants', () => {
 })
 
 describe('External node colors', () => {
-  test('uses gray color for External nodes in stream theme', () => {
-    expect(NODE_COLORS.stream.External).toBe('#64748B')
+  test('uses light slate color for External nodes in stream theme', () => {
+    expect(NODE_COLORS.stream.External).toBe('#94A3B8')
   })
 
-  test('uses gray color for External nodes in voltage theme', () => {
-    expect(NODE_COLORS.voltage.External).toBe('#64748B')
+  test('uses light slate color for External nodes in voltage theme', () => {
+    expect(NODE_COLORS.voltage.External).toBe('#94A3B8')
   })
 
-  test('uses light gray color for External nodes in circuit theme', () => {
-    expect(NODE_COLORS.circuit.External).toBe('#94A3B8')
+  test('uses gray color for External nodes in circuit theme', () => {
+    expect(NODE_COLORS.circuit.External).toBe('#9CA3AF')
   })
 
   test('External color is distinct from Event color', () => {

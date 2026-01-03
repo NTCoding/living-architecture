@@ -329,6 +329,36 @@ describe('EventAccordion', () => {
     })
   })
 
+  describe('handler row layout', () => {
+    it('renders handler icon on left side of handler row', () => {
+      const event = createEvent({
+        handlers: [{ domain: 'shipping', handlerName: 'CreateShipment' }],
+      })
+
+      render(<EventAccordion event={event} defaultExpanded />)
+
+      const handlerRow = screen.getByText('CreateShipment').closest('[data-testid="handler-row"]')
+      expect(handlerRow).toBeInTheDocument()
+      expect(handlerRow?.querySelector('.ph-ear')).toBeInTheDocument()
+    })
+
+    it('renders domain below handler name not beside it', () => {
+      const event = createEvent({
+        handlers: [{ domain: 'shipping', handlerName: 'CreateShipment' }],
+      })
+
+      render(<EventAccordion event={event} defaultExpanded />)
+
+      const handlerRow = screen.getByText('CreateShipment').closest('[data-testid="handler-row"]')
+      const handlerName = handlerRow?.querySelector('[data-testid="handler-name"]')
+      const domainLabel = handlerRow?.querySelector('[data-testid="handler-domain"]')
+
+      expect(handlerName).toBeInTheDocument()
+      expect(domainLabel).toBeInTheDocument()
+      expect(domainLabel?.tagName.toLowerCase()).toBe('span')
+    })
+  })
+
   describe('onViewHandlerOnGraph callback', () => {
     it('renders view on graph button next to each handler when callback provided', () => {
       const event = createEvent({

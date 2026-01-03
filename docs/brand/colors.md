@@ -116,15 +116,19 @@ Technical, minimal, GitHub-inspired, developer-first.
 
 ---
 
-## Graph Visualization Colors
+## Architectural Component Colors
 
-### Node Types
+Each type of architectural component has a distinct color per theme. These colors apply across all UIs that visualize architecture (graphs, diagrams, badges, etc.).
 
-| Node Type | Stream | Voltage | Circuit |
-|-----------|--------|---------|---------|
-| UI | `#94A3B8` | `#606070` | `#8C959F` |
+| Component Type | Stream | Voltage | Circuit |
+|----------------|--------|---------|---------|
+| UI | `#F43F5E` | `#FB7185` | `#E11D48` |
 | API | `#0D9488` | `#00D4FF` | `#0969DA` |
-| UseCase | `#FF6B6B` | `#FF006E` | `#1A7F37` |
-| DomainOp | `#F59E0B` | `#39FF14` | `#24292F` |
-| Event | `#06B6D4` | `#A0A0B0` | `#6E7781` |
-| EventHandler | `#FF6B6B` | `#FF006E` | `#1A7F37` |
+| UseCase | `#A78BFA` | `#C4B5FD` | `#A78BFA` |
+| DomainOp | `#06B6D4` | `#22D3EE` | `#0550AE` |
+| Event | `#F59E0B` | `#F97316` | `#BF8700` |
+| EventHandler | `#EAB308` | `#FACC15` | `#9A6700` |
+| Custom | `#78716C` | `#A8A29E` | `#57534E` |
+| External | `#94A3B8` | `#94A3B8` | `#9CA3AF` |
+
+**Implementation:** Define these colors once in a centralized constants file and reference throughout the application. Never hardcode these values in components.

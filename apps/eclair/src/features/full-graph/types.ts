@@ -32,48 +32,59 @@ export interface NodeColors {
   circuit: Record<NodeType, string>
 }
 
+/*
+ * NODE TYPE COLORS - MUST STAY IN SYNC WITH CSS VARIABLES
+ * =========================================================
+ * Source of truth: /apps/eclair/src/index.css (CSS variables)
+ * Documentation: /apps/eclair/docs/brand/graph-visualization.md
+ *
+ * When updating colors:
+ * 1. Update index.css :root and theme classes
+ * 2. Update this NODE_COLORS object to match
+ * 3. Update brand docs table
+ */
 export const NODE_COLORS: NodeColors = {
   stream: {
-    UI: '#94A3B8',
-    API: '#14B8A6',
+    UI: '#F43F5E',
+    API: '#0D9488',
     UseCase: '#A78BFA',
-    DomainOp: '#94A3B8',
-    Event: '#FBBF24',
-    EventHandler: '#A78BFA',
-    Custom: '#9CA3AF',
-    External: '#64748B',
+    DomainOp: '#06B6D4',
+    Event: '#F59E0B',
+    EventHandler: '#EAB308',
+    Custom: '#78716C',
+    External: '#94A3B8',
   },
   voltage: {
-    UI: '#94A3B8',
-    API: '#22D3EE',
-    UseCase: '#A78BFA',
-    DomainOp: '#94A3B8',
-    Event: '#FBBF24',
-    EventHandler: '#A78BFA',
-    Custom: '#9CA3AF',
-    External: '#64748B',
+    UI: '#FB7185',
+    API: '#00D4FF',
+    UseCase: '#C4B5FD',
+    DomainOp: '#22D3EE',
+    Event: '#F97316',
+    EventHandler: '#FACC15',
+    Custom: '#A8A29E',
+    External: '#94A3B8',
   },
   circuit: {
-    UI: '#9CA3AF',
-    API: '#6B7280',
-    UseCase: '#6B7280',
-    DomainOp: '#4B5563',
-    Event: '#D97706',
-    EventHandler: '#6B7280',
-    Custom: '#9CA3AF',
-    External: '#94A3B8',
+    UI: '#E11D48',
+    API: '#0969DA',
+    UseCase: '#A78BFA',
+    DomainOp: '#0550AE',
+    Event: '#BF8700',
+    EventHandler: '#9A6700',
+    Custom: '#57534E',
+    External: '#9CA3AF',
   },
 }
 
 export const NODE_RADII: Record<NodeType, number> = {
-  UI: 14,
+  UI: 12,
   API: 12,
-  UseCase: 11,
-  DomainOp: 10,
-  Event: 11,
-  EventHandler: 10,
-  Custom: 10,
-  External: 13,
+  UseCase: 12,
+  DomainOp: 12,
+  Event: 12,
+  EventHandler: 12,
+  Custom: 12,
+  External: 12,
 }
 
 export const EDGE_COLORS = {
@@ -84,21 +95,15 @@ export const EDGE_COLORS = {
 
 export const SEMANTIC_EDGE_COLORS = {
   stream: {
-    event: '#D97706',
-    eventHandler: '#7C3AED',
-    external: '#64748B',
+    event: '#FF6B6B',
     default: '#0D9488',
   },
   voltage: {
-    event: '#FBBF24',
-    eventHandler: '#A78BFA',
-    external: '#94A3B8',
+    event: '#39FF14',
     default: '#00D4FF',
   },
   circuit: {
-    event: '#B45309',
-    eventHandler: '#6D28D9',
-    external: '#6B7280',
+    event: '#1A7F37',
     default: '#0969DA',
   },
 }

@@ -103,6 +103,35 @@ Has Exception Comment?: [Yes/No]
 
 Hard failure unless documented exception exists.
 
+## Brand Identity & Design Consistency
+
+All UI must conform to the project's brand identity. Design elements—colors, typography, spacing—must come from centralized sources, not ad-hoc values scattered through components.
+
+**Why:** Consistent brand identity requires single sources of truth. When values are hardcoded in components, they drift from the brand, resist theme changes, and create maintenance burden.
+
+**Brand documentation hierarchy:**
+1. `/docs/brand/` — Global brand identity (colors, typography, icons). Applies to ALL UIs.
+2. `/apps/[app]/docs/brand/` — App-specific extensions only (e.g., Éclair component specs)
+
+**Implementation sources:**
+- CSS custom properties: `var(--primary)`, `var(--accent)`, etc.
+- Centralized constants derived from brand docs (e.g., component type colors in `types.ts`)
+
+**Detection:** Search modified files for hardcoded values that bypass the design system:
+- Hex colors: `#[0-9A-Fa-f]{6}`
+
+**Exception:** Test files may use literal values for assertions.
+
+```plaintext
+Brand Violation: [element type] bypasses design system
+Principle: Design values must come from centralized brand sources
+Code: [show code and line number]
+Fix: [use CSS variable / constant, or add to brand docs if new value needed]
+Exception?: [Yes/No]
+```
+
+Hard failure. Design consistency is not optional.
+
 ## Duplicated code
 
 Claude Code has a very bad habit of duplicating code. If near-identical code is duplicated more than twice then it must be addressed even if it requires touching files not part of the current change set (Claude Code will look for excuses to weasel out - be strict)

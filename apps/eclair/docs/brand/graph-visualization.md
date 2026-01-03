@@ -145,16 +145,11 @@ Nodes must stand out from canvas through:
 
 ---
 
-## Node Type Colors
+## Component Type Colors
 
-| Type | Stream | Voltage | Circuit |
-|------|--------|---------|---------|
-| UI | `#94A3B8` | `#606070` | `#8C959F` |
-| API | `#0D9488` | `#00D4FF` | `#0969DA` |
-| UseCase | `#FF6B6B` | `#FF006E` | `#1A7F37` |
-| DomainOp | `#F59E0B` | `#39FF14` | `#24292F` |
-| Event | `#06B6D4` | `#A0A0B0` | `#6E7781` |
-| EventHandler | `#FF6B6B` | `#FF006E` | `#1A7F37` |
+See [Global Brand Colors](/docs/brand/colors.md#architectural-component-colors) for the authoritative color values per component type.
+
+In Éclair, these are implemented in `types.ts` as `NODE_COLORS` and used throughout the application.
 
 ---
 

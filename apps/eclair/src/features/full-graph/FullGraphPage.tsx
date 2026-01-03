@@ -86,9 +86,7 @@ export function FullGraphPage({ graph }: Readonly<FullGraphPageProps>): React.Re
   const [tooltipData, setTooltipData] = useState<TooltipData | null>(null)
   const tooltipHideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const exportContainerRef = useRef<HTMLDivElement>(null)
-  const [highlightedNodeId, setHighlightedNodeId] = useState<string | null>(
-    () => searchParams.get('node')
-  )
+  const [highlightedNodeId, setHighlightedNodeId] = useState<string | null>(null)
   const [filterPanelOpen, setFilterPanelOpen] = useState(false)
   const [visibleTypes, setVisibleTypes] = useState<Set<NodeType>>(() => {
     const types = new Set(graph.components.map((n) => n.type))
@@ -136,6 +134,16 @@ export function FullGraphPage({ graph }: Readonly<FullGraphPageProps>): React.Re
       edges: nonOrphanEdges,
     }
   }, [graph, visibleTypes])
+
+  useEffect(() => {
+    const nodeFromUrl = searchParams.get('node')
+    if (nodeFromUrl === null) {
+      setHighlightedNodeId(null)
+      return
+    }
+    const nodeExists = filteredGraph.nodes.some((n) => n.id === nodeFromUrl)
+    setHighlightedNodeId(nodeExists ? nodeFromUrl : null)
+  }, [searchParams, filteredGraph.nodes])
 
   const handleNodeClick = useCallback((nodeId: string) => {
     setHighlightedNodeId((prev) => (prev === nodeId ? null : nodeId))

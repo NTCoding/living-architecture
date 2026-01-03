@@ -25,32 +25,30 @@ describe('DomainNode', () => {
     expect(screen.getByText('orders')).toBeInTheDocument()
   })
 
-  it('applies smaller font for long labels', () => {
+  it('shows full label without truncation', () => {
     renderWithProvider(
       <DomainNode data={{ label: 'verylongdomainname', nodeCount: 5 }} />
     )
 
-    const label = screen.getByText('verylongdomainn…')
-    expect(label).toHaveStyle({ fontSize: '10px' })
+    expect(screen.getByText('verylongdomainname')).toBeInTheDocument()
   })
 
-  it('truncates long labels and shows full name in tooltip', () => {
+  it('shows full name in tooltip', () => {
     const { container } = renderWithProvider(
       <DomainNode data={{ label: 'verylongdomainname', nodeCount: 5 }} />
     )
 
-    expect(screen.getByText('verylongdomainn…')).toBeInTheDocument()
     const nodeDiv = container.querySelector('div.flex[title]')
     expect(nodeDiv).toHaveAttribute('title', 'verylongdomainname')
   })
 
-  it('applies larger font for short labels', () => {
+  it('applies consistent font size for all labels', () => {
     renderWithProvider(
       <DomainNode data={{ label: 'orders', nodeCount: 5 }} />
     )
 
     const label = screen.getByText('orders')
-    expect(label).toHaveStyle({ fontSize: '12px' })
+    expect(label).toHaveStyle({ fontSize: '14px' })
   })
 
   it('applies reduced opacity when dimmed', () => {
@@ -62,6 +60,26 @@ describe('DomainNode', () => {
     expect(nodeDiv).toHaveStyle({ opacity: '0.3' })
   })
 
+  describe('consistent sizing', () => {
+    it('uses consistent 120px size for all domain nodes', () => {
+      const { container } = renderWithProvider(
+        <DomainNode data={{ label: 'orders', nodeCount: 5 }} />
+      )
+
+      const nodeDiv = container.querySelector('div.flex[title]')
+      expect(nodeDiv).toHaveStyle({ width: '120px', height: '120px' })
+    })
+
+    it('ignores calculatedSize prop for consistent sizing', () => {
+      const { container } = renderWithProvider(
+        <DomainNode data={{ label: 'orders', nodeCount: 5, calculatedSize: 200 }} />
+      )
+
+      const nodeDiv = container.querySelector('div.flex[title]')
+      expect(nodeDiv).toHaveStyle({ width: '120px', height: '120px' })
+    })
+  })
+
   describe('external domain styling', () => {
     it('applies external styling class when isExternal is true', () => {
       const { container } = renderWithProvider(
@@ -70,6 +88,24 @@ describe('DomainNode', () => {
 
       const nodeDiv = container.querySelector('div.flex')
       expect(nodeDiv).toHaveClass('domain-node-external')
+    })
+
+    it('uses smaller 100px size for external nodes', () => {
+      const { container } = renderWithProvider(
+        <DomainNode data={{ label: 'Stripe', nodeCount: 3, isExternal: true }} />
+      )
+
+      const nodeDiv = container.querySelector('div.flex[title]')
+      expect(nodeDiv).toHaveStyle({ width: '100px', height: '100px' })
+    })
+
+    it('uses smaller font for external nodes', () => {
+      renderWithProvider(
+        <DomainNode data={{ label: 'Stripe', nodeCount: 3, isExternal: true }} />
+      )
+
+      const label = screen.getByText('Stripe')
+      expect(label).toHaveStyle({ fontSize: '12px' })
     })
 
     it('renders arrow-square-out icon for external nodes', () => {

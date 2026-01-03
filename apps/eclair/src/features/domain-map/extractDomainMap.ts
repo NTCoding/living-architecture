@@ -5,7 +5,9 @@ import { getClosestHandle } from '@/lib/handlePositioning'
 import { RiviereQuery } from '@living-architecture/riviere-query'
 
 const LABEL_BG_PADDING: [number, number] = [4, 6]
-const EXTERNAL_NODE_SIZE = 80
+// All domain nodes use consistent sizing for visual clarity
+const DOMAIN_NODE_SIZE = 120
+const EXTERNAL_NODE_SIZE = 100
 
 function formatEdgeLabel(apiCount: number, eventCount: number): string | undefined {
   if (apiCount > 0 && eventCount > 0) {
@@ -23,6 +25,7 @@ function formatEdgeLabel(apiCount: number, eventCount: number): string | undefin
 export interface DomainNodeData {
   label: string
   nodeCount: number
+  calculatedSize?: number
   dimmed?: boolean
   isExternal?: boolean
 }
@@ -242,9 +245,10 @@ export function extractDomainMap(graph: RiviereGraph): DomainMapData {
     })),
   ]
 
+  // All domain nodes use consistent sizing for visual clarity
   const nodeSizes = new Map<string, number>()
-  for (const [domain, nodeCount] of domains) {
-    nodeSizes.set(domain, Math.max(80, 60 + nodeCount * 4))
+  for (const [domain] of domains) {
+    nodeSizes.set(domain, DOMAIN_NODE_SIZE)
   }
   for (const ed of externalDomains) {
     nodeSizes.set(createExternalNodeId(ed.name), EXTERNAL_NODE_SIZE)
@@ -257,11 +261,12 @@ export function extractDomainMap(graph: RiviereGraph): DomainMapData {
     if (position === undefined) {
       throw new Error(`Domain ${domain} missing from layout computation`)
     }
+    const calculatedSize = nodeSizes.get(domain)
     return {
       id: domain,
       type: 'domain',
       position,
-      data: { label: domain, nodeCount, isExternal: false },
+      data: { label: domain, nodeCount, calculatedSize, isExternal: false },
     }
   })
 
@@ -271,11 +276,12 @@ export function extractDomainMap(graph: RiviereGraph): DomainMapData {
     if (position === undefined) {
       throw new Error(`External domain ${ed.name} missing from layout computation`)
     }
+    const calculatedSize = nodeSizes.get(nodeId)
     return {
       id: nodeId,
       type: 'domain',
       position,
-      data: { label: ed.name, nodeCount: ed.connectionCount, isExternal: true },
+      data: { label: ed.name, nodeCount: ed.connectionCount, calculatedSize, isExternal: true },
     }
   })
 

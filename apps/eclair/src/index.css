@@ -47,6 +47,15 @@
 }
 
 @layer base {
+  /*
+   * COMPONENT TYPE COLORS - SINGLE SOURCE OF TRUTH
+   * ================================================
+   * These CSS variables define component type colors for all themes.
+   * See: /apps/eclair/docs/brand/graph-visualization.md
+   *
+   * JavaScript usage: types.ts NODE_COLORS must stay in sync with these values.
+   * When updating colors, update BOTH this file AND types.ts NODE_COLORS.
+   */
   :root {
     --primary: var(--color-stream-primary);
     --primary-dark: var(--color-stream-primary-dark);
@@ -63,24 +72,25 @@
     --font-body: 'Lato', sans-serif;
     --font-mono: 'Fira Code', monospace;
     --flow-gradient: linear-gradient(90deg, #0D9488 0%, #06B6D4 100%);
+    /* Default component type colors (stream theme) */
+    --node-ui: #F43F5E;
+    --node-api: #0D9488;
+    --node-usecase: #A78BFA;
+    --node-domainop: #06B6D4;
+    --node-event: #F59E0B;
+    --node-eventhandler: #EAB308;
+    --node-custom: #78716C;
+    --node-external: #94A3B8;
+    /* Semantic colors */
+    --amber: #F59E0B;
+    --green: #10B981;
+    --purple: #8B5CF6;
+    --cyan: #06B6D4;
   }
 
+  /* Stream theme - uses :root defaults, only override if different */
   .theme-stream {
-    --primary: var(--color-stream-primary);
-    --primary-dark: var(--color-stream-primary-dark);
-    --accent: var(--color-stream-accent);
-    --bg-primary: var(--color-stream-bg-primary);
-    --bg-secondary: var(--color-stream-bg-secondary);
-    --bg-tertiary: var(--color-stream-bg-tertiary);
-    --border-color: var(--color-stream-border);
-    --text-primary: var(--color-stream-text-primary);
-    --text-secondary: var(--color-stream-text-secondary);
-    --text-tertiary: var(--color-stream-text-tertiary);
-    --radius: var(--radius-lg);
-    --font-heading: 'Rubik', sans-serif;
-    --font-body: 'Lato', sans-serif;
-    --font-mono: 'Fira Code', monospace;
-    --flow-gradient: linear-gradient(90deg, #0D9488 0%, #06B6D4 100%);
+    /* Inherits all component type colors from :root */
   }
 
   .theme-voltage {
@@ -99,6 +109,20 @@
     --font-body: 'Inter', sans-serif;
     --font-mono: 'Fira Code', monospace;
     --flow-gradient: linear-gradient(135deg, #00D4FF 0%, #0066FF 100%);
+    /* Component type colors from brand guidelines */
+    --node-ui: #FB7185;
+    --node-api: #00D4FF;
+    --node-usecase: #C4B5FD;
+    --node-domainop: #22D3EE;
+    --node-event: #F97316;
+    --node-eventhandler: #FACC15;
+    --node-custom: #A8A29E;
+    --node-external: #94A3B8;
+    /* Semantic colors */
+    --amber: #F59E0B;
+    --green: #39FF14;
+    --purple: #8B5CF6;
+    --cyan: #00D4FF;
   }
 
   .theme-circuit {
@@ -117,6 +141,20 @@
     --font-body: 'Inter', sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
     --flow-gradient: linear-gradient(90deg, #0969DA 0%, #0550AE 100%);
+    /* Component type colors from brand guidelines */
+    --node-ui: #E11D48;
+    --node-api: #0969DA;
+    --node-usecase: #A78BFA;
+    --node-domainop: #0550AE;
+    --node-event: #BF8700;
+    --node-eventhandler: #9A6700;
+    --node-custom: #57534E;
+    --node-external: #9CA3AF;
+    /* Semantic colors */
+    --amber: #BF8700;
+    --green: #1A7F37;
+    --purple: #8250DF;
+    --cyan: #0969DA;
   }
 
   * {
@@ -807,36 +845,37 @@
     flex-shrink: 0;
   }
 
+  /* Flow step circles use component type CSS variables */
   .flow-step-circle-ui {
-    background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
+    background: var(--node-ui);
   }
 
   .flow-step-circle-api {
-    background: linear-gradient(135deg, #0D9488 0%, #06B6D4 100%);
+    background: var(--node-api);
   }
 
   .flow-step-circle-usecase {
-    background: #8B5CF6;
+    background: var(--node-usecase);
   }
 
   .flow-step-circle-domainop {
-    background: #10B981;
+    background: var(--node-domainop);
   }
 
   .flow-step-circle-event {
-    background: #F59E0B;
+    background: var(--node-event);
   }
 
   .flow-step-circle-eventhandler {
-    background: #F59E0B;
+    background: var(--node-eventhandler);
   }
 
   .flow-step-circle-custom {
-    background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+    background: var(--node-custom);
   }
 
   .flow-step-circle-external {
-    background: linear-gradient(135deg, #64748B 0%, #94A3B8 100%);
+    background: var(--node-external);
   }
 
   .flow-external-links {
@@ -952,94 +991,96 @@
     color: var(--text-tertiary);
   }
 
+  /* Flow graph node types use component type CSS variables */
   .flow-graph-node-ui .flow-graph-node-type {
-    background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
+    background: var(--node-ui);
   }
 
   .flow-graph-node-ui {
-    border-color: #FF6B6B;
+    border-color: var(--node-ui);
   }
 
   .flow-graph-node-api .flow-graph-node-type {
-    background: linear-gradient(135deg, #0D9488 0%, #06B6D4 100%);
+    background: var(--node-api);
   }
 
   .flow-graph-node-api {
-    border-color: #0D9488;
+    border-color: var(--node-api);
   }
 
   .flow-graph-node-usecase .flow-graph-node-type {
-    background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
+    background: var(--node-usecase);
   }
 
   .flow-graph-node-usecase {
-    border-color: #8B5CF6;
+    border-color: var(--node-usecase);
   }
 
   .flow-graph-node-domainop .flow-graph-node-type {
-    background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+    background: var(--node-domainop);
   }
 
   .flow-graph-node-domainop {
-    border-color: #10B981;
+    border-color: var(--node-domainop);
   }
 
   .flow-graph-node-event .flow-graph-node-type {
-    background: linear-gradient(135deg, #F59E0B 0%, #FBBF24 100%);
+    background: var(--node-event);
   }
 
   .flow-graph-node-event {
-    border-color: #F59E0B;
+    border-color: var(--node-event);
   }
 
   .flow-graph-node-eventhandler .flow-graph-node-type {
-    background: linear-gradient(135deg, #F59E0B 0%, #FBBF24 100%);
+    background: var(--node-eventhandler);
   }
 
   .flow-graph-node-eventhandler {
-    border-color: #F59E0B;
+    border-color: var(--node-eventhandler);
   }
 
   .flow-graph-node-custom .flow-graph-node-type {
-    background: linear-gradient(135deg, #6B7280 0%, #9CA3AF 100%);
+    background: var(--node-custom);
   }
 
   .flow-graph-node-custom {
-    border-color: #6B7280;
+    border-color: var(--node-custom);
   }
 
+  /* Badges use component type CSS variables */
   .badge-ui {
-    background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
+    background: var(--node-ui);
     color: white;
   }
 
   .badge-api {
-    background: linear-gradient(135deg, #0D9488 0%, #06B6D4 100%);
+    background: var(--node-api);
     color: white;
   }
 
   .badge-usecase {
-    background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
+    background: var(--node-usecase);
     color: white;
   }
 
   .badge-domainop {
-    background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+    background: var(--node-domainop);
     color: white;
   }
 
   .badge-event {
-    background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+    background: var(--node-event);
     color: white;
   }
 
   .badge-eventhandler {
-    background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+    background: var(--node-eventhandler);
     color: white;
   }
 
   .badge-custom {
-    background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+    background: var(--node-custom);
     color: white;
   }
 
