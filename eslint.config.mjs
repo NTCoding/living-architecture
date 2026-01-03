@@ -64,6 +64,9 @@ export default tseslint.config(
       'no-inline-comments': 'error',
       'spaced-comment': 'off',
 
+      // Prefer positive conditions in if/else and ternaries (SonarCloud S7735)
+      'no-negated-condition': 'error',
+
       // Ban let - use const only
       'no-restricted-syntax': [
         'error',

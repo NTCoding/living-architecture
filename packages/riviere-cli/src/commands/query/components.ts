@@ -44,13 +44,13 @@ Examples:
         const allComponents = query.components();
 
         const filteredByDomain =
-          options.domain !== undefined
-            ? allComponents.filter((c) => c.domain === options.domain)
-            : allComponents;
+          options.domain === undefined
+            ? allComponents
+            : allComponents.filter((c) => c.domain === options.domain);
 
-        const typeFilter = options.type !== undefined ? normalizeToSchemaComponentType(options.type) : undefined;
+        const typeFilter = options.type === undefined ? undefined : normalizeToSchemaComponentType(options.type);
         const filteredByType =
-          typeFilter !== undefined ? filteredByDomain.filter((c) => c.type === typeFilter) : filteredByDomain;
+          typeFilter === undefined ? filteredByDomain : filteredByDomain.filter((c) => c.type === typeFilter);
 
         const components = filteredByType.map(toComponentOutput);
 

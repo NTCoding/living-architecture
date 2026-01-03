@@ -21,8 +21,9 @@ export function Header({ graphName, graph, onExportPng, onExportSvg }: HeaderPro
   const { clearGraph } = useGraph()
   const query = useRiviereQuery(graph)
 
-  const orphanResult: OrphanDetectionResult | null = query !== null
-    ? (() => {
+  const orphanResult: OrphanDetectionResult | null = query === null
+    ? null
+    : (() => {
         const orphanIds = query.detectOrphans()
         return {
           hasOrphans: orphanIds.length > 0,
@@ -30,7 +31,6 @@ export function Header({ graphName, graph, onExportPng, onExportSvg }: HeaderPro
           orphanCount: orphanIds.length,
         }
       })()
-    : null
 
   useEffect(() => {
     if (!isExportOpen) return

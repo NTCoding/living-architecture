@@ -393,7 +393,7 @@ function ConsumedEventItem({ handler }: ConsumedEventItemProps): React.ReactElem
             <span className="block truncate font-[var(--font-mono)] text-sm font-bold text-[var(--text-primary)]">{handler.handlerName}</span>
             {handler.subscribedEventsWithDomain.length > 0 && (
               <span className="block text-xs text-[var(--text-tertiary)]">
-                Listens to: {handler.subscribedEventsWithDomain.map((e: typeof handler.subscribedEventsWithDomain[number]) => e.sourceDomain !== undefined ? `${e.eventName} (${e.sourceDomain})` : e.eventName).join(', ')}
+                Listens to: {handler.subscribedEventsWithDomain.map((e: typeof handler.subscribedEventsWithDomain[number]) => e.sourceDomain === undefined ? e.eventName : `${e.eventName} (${e.sourceDomain})`).join(', ')}
               </span>
             )}
           </div>

@@ -16,7 +16,7 @@ interface EventAccordionProps {
 
 function formatHandlerCount(count: number): string {
   if (count === 0) return 'No handlers'
-  return `${count} handler${count !== 1 ? 's' : ''}`
+  return `${count} handler${count === 1 ? '' : 's'}`
 }
 
 interface EventHandlersSectionProps {

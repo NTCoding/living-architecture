@@ -373,6 +373,7 @@ riviere builder enrich [options]
 | `--validates <value>` | What the operation validates (repeatable) |
 | `--modifies <value>` | What the operation modifies (repeatable) |
 | `--emits <value>` | What the operation emits (repeatable) |
+| `--signature <dsl>` | Operation signature (e.g., "orderId:string, amount:number -> Order") |
 | `--graph <path>` | Custom graph file path (default: .riviere/graph.json) |
 
 **Optional:**

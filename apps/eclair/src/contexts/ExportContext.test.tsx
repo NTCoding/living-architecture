@@ -6,8 +6,8 @@ function TestConsumer(): React.ReactElement {
   const { exportHandlers } = useExport()
   return (
     <div>
-      <span data-testid="has-png">{exportHandlers.onPng !== null ? 'yes' : 'no'}</span>
-      <span data-testid="has-svg">{exportHandlers.onSvg !== null ? 'yes' : 'no'}</span>
+      <span data-testid="has-png">{exportHandlers.onPng === null ? 'no' : 'yes'}</span>
+      <span data-testid="has-svg">{exportHandlers.onSvg === null ? 'no' : 'yes'}</span>
       <button onClick={() => exportHandlers.onPng?.()}>PNG</button>
       <button onClick={() => exportHandlers.onSvg?.()}>SVG</button>
     </div>

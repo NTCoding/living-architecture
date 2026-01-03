@@ -161,7 +161,7 @@ function parseDomainOpNode(data: RawNode, base: BaseNodeFields): Node {
     node.stateChanges = data.stateChanges.map(sc => ({
       from: stateNameSchema.parse(sc.from),
       to: stateNameSchema.parse(sc.to),
-      ...(sc.trigger !== undefined ? { trigger: sc.trigger } : {}),
+      ...(sc.trigger === undefined ? {} : { trigger: sc.trigger }),
     }))
   }
   return node
@@ -251,7 +251,7 @@ export function parseDomainMetadata(raw: Record<string, RawDomainMetadata>): Rec
     const parsedValue: DomainMetadata = {
       description: value.description,
       systemType: value.systemType,
-      ...(entities !== undefined ? { entities } : {}),
+      ...(entities === undefined ? {} : { entities }),
     }
     result[parsedKey] = parsedValue
   })

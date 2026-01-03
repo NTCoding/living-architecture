@@ -67,7 +67,7 @@ export function queryFlows(graph: RiviereGraph): Flow[] {
 
       const edges = outgoingEdges.get(nodeId)
       const firstEdge = edges !== undefined && edges.length > 0 ? edges[0] : undefined
-      const linkType = firstEdge !== undefined ? firstEdge.type : undefined
+      const linkType = firstEdge === undefined ? undefined : firstEdge.type
       const externalLinks = externalLinksBySource.get(nodeId) ?? []
 
       steps.push({ component, linkType, depth, externalLinks })

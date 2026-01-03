@@ -41,7 +41,7 @@ Examples:
       await withGraphBuilder(options.graph, async (builder) => {
         const allComponents = builder.query().components();
         const filteredComponents =
-          options.type !== undefined ? allComponents.filter((c) => c.type === options.type) : allComponents;
+          options.type === undefined ? allComponents : allComponents.filter((c) => c.type === options.type);
 
         const checklistItems = filteredComponents.map((c) => ({
           id: c.id,

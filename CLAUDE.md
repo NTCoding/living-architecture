@@ -95,7 +95,7 @@ After generating a new project:
 
 ## Task Workflow
 
-Source of truth: `docs/workflow/task-workflow.md`
+Whenever working on a task, always follow: `docs/workflow/task-workflow.md`
 
 **Read the workflow BEFORE:**
 - Finding or starting a task

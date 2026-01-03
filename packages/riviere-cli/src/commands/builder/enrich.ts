@@ -139,8 +139,8 @@ function parseSignature(input: string): SignatureParseResult {
 
   // Split on " -> " to separate parameters from return type
   const arrowIndex = trimmed.indexOf(' -> ');
-  const paramsPart = arrowIndex !== -1 ? trimmed.slice(0, arrowIndex).trim() : trimmed;
-  const returnType = arrowIndex !== -1 ? trimmed.slice(arrowIndex + 4).trim() : undefined;
+  const paramsPart = arrowIndex === -1 ? trimmed : trimmed.slice(0, arrowIndex).trim();
+  const returnType = arrowIndex === -1 ? undefined : trimmed.slice(arrowIndex + 4).trim();
 
   const paramsResult = parseParameters(paramsPart);
   if (!paramsResult.success) {
@@ -212,7 +212,7 @@ Examples:
         return;
       }
 
-      const signatureResult = options.signature !== undefined ? parseSignature(options.signature) : undefined;
+      const signatureResult = options.signature === undefined ? undefined : parseSignature(options.signature);
       if (signatureResult !== undefined && !signatureResult.success) {
         console.log(JSON.stringify(formatError(CliErrorCode.ValidationError, signatureResult.error, [])));
         return;
