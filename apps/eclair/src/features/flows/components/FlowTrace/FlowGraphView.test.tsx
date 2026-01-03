@@ -64,11 +64,13 @@ function createTestSteps(): FlowStep[] {
       node: parseNode({ sourceLocation: testSourceLocation, id: 'ui-1', type: 'UI', name: 'Order Form', domain: 'checkout', module: 'ui', route: '/orders' }),
       edgeType: 'sync',
       depth: 0,
+      externalLinks: [],
     },
     {
       node: parseNode({ sourceLocation: testSourceLocation, id: 'api-1', type: 'API', name: 'POST /orders', domain: 'orders', module: 'api', httpMethod: 'POST', path: '/orders' }),
       edgeType: null,
       depth: 1,
+      externalLinks: [],
     },
   ]
 }
