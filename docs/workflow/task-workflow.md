@@ -177,7 +177,7 @@ git push -u origin HEAD
 ```
 
 ```text
-/submit-pr --title "feat(scope): description" --body "## Summary\n- Change 1\n- Change 2"
+/submit-pr --title "feat(scope): description" --body "## Summary\n- Change 1\n- Change 2" --did-you-run-task-check=yes
 ```
 
 The sub-agent will create the PR, watch all CI checks, and return results.
