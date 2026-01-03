@@ -21,6 +21,18 @@
       },
       "dependsOn": ["build"],
       "outputs": ["{projectRoot}/docs/generated"]
+    },
+    "check-generated-docs": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "pnpm exec npx tsx packages/riviere-cli/scripts/generate-docs.ts",
+          "git diff --exit-code packages/riviere-cli/docs/generated/ || (echo 'Generated docs are stale. Run: pnpm nx generate-docs riviere-cli' && exit 1)"
+        ],
+        "cwd": "{workspaceRoot}",
+        "parallel": false
+      },
+      "dependsOn": ["build"]
     }
   }
 }

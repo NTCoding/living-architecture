@@ -4,6 +4,7 @@ import noGenericNames from './.eslint-rules/no-generic-names.js';
 import eslintComments from '@eslint-community/eslint-plugin-eslint-comments/configs';
 import importPlugin from 'eslint-plugin-import';
 import sonarjs from 'eslint-plugin-sonarjs';
+import jsdoc from 'eslint-plugin-jsdoc';
 
 const customRules = {
   plugins: {
@@ -176,4 +177,22 @@ export default tseslint.config(
       },
     },
   },
+  // JSDoc enforcement for RiviereBuilder public API only
+    {
+      files: ['packages/riviere-builder/src/builder.ts'],
+      plugins: { jsdoc },
+      rules: {
+        'jsdoc/require-jsdoc': ['error', {
+          publicOnly: { ancestorsOnly: true },
+          require: {
+            ClassDeclaration: true,
+            MethodDefinition: true,
+          },
+        }],
+        'jsdoc/require-param': 'error',
+        'jsdoc/require-param-description': 'error',
+        'jsdoc/require-returns': 'error',
+        'jsdoc/require-returns-description': 'error',
+      },
+    },
 );
