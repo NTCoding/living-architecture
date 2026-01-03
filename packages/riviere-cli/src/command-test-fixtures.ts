@@ -13,7 +13,7 @@ export interface ErrorOutput {
   };
 }
 
-export function isErrorOutput(value: unknown): value is ErrorOutput {
+function isErrorOutput(value: unknown): value is ErrorOutput {
   if (typeof value !== 'object' || value === null) return false;
   if (!('success' in value) || value.success !== false) return false;
   if (!('error' in value) || typeof value.error !== 'object' || value.error === null) return false;

@@ -265,17 +265,6 @@ export interface RawDomainMetadata {
   entities?: Record<string, EntityDefinition>
 }
 
-export function parseEntityCard(domain: string, entityName: string): { domain: ReturnType<typeof domainNameSchema.parse>; entityName: ReturnType<typeof entityNameSchema.parse> } {
-  return {
-    domain: domainNameSchema.parse(domain),
-    entityName: entityNameSchema.parse(entityName),
-  }
-}
-
-export function parseStateName(name: string): ReturnType<typeof stateNameSchema.parse> {
-  return stateNameSchema.parse(name)
-}
-
 export function parseNodeId(id: string): ReturnType<typeof nodeIdSchema.parse> {
   return nodeIdSchema.parse(id)
 }

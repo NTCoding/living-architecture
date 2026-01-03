@@ -60,7 +60,7 @@ export function validateSystemType(systemType: string): ValidationResult {
   };
 }
 
-export const VALID_HTTP_METHODS: readonly HttpMethod[] = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'];
+const VALID_HTTP_METHODS: readonly HttpMethod[] = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'];
 
 export function isValidHttpMethod(value: string): value is HttpMethod {
   return VALID_HTTP_METHODS.some((m) => m === value.toUpperCase());
