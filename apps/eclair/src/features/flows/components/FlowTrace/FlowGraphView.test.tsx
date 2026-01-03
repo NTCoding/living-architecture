@@ -150,7 +150,6 @@ describe('FlowGraphView', () => {
     it('shows tooltip when node hover callback is called with data', () => {
       render(<FlowGraphView steps={createTestSteps()} graph={createTestGraph()} />)
 
-      expect(mockState.onNodeHover).toBeDefined()
       act(() => {
         mockState.onNodeHover?.(createTooltipData('Test Node'))
       })
@@ -197,6 +196,28 @@ describe('FlowGraphView', () => {
       })
 
       expect(screen.getByText('Tooltip: Second Node')).toBeInTheDocument()
+    })
+
+    it('restores tooltip when same node is re-hovered before timeout completes', () => {
+      render(<FlowGraphView steps={createTestSteps()} graph={createTestGraph()} />)
+
+      act(() => {
+        mockState.onNodeHover?.(createTooltipData('Test Node'))
+      })
+      act(() => {
+        mockState.onNodeHover?.(null)
+      })
+      act(() => {
+        vi.advanceTimersByTime(100)
+      })
+      act(() => {
+        mockState.onNodeHover?.(createTooltipData('Test Node'))
+      })
+      act(() => {
+        vi.advanceTimersByTime(200)
+      })
+
+      expect(screen.getByText('Tooltip: Test Node')).toBeInTheDocument()
     })
 
     it('keeps tooltip visible when mouse enters tooltip', () => {
