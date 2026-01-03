@@ -1,30 +1,28 @@
 import type { RiviereGraph, Node, Edge, NodeType, NodeId } from '@/types/riviere'
 
-export type ChangeType = 'added' | 'removed' | 'modified' | 'unchanged'
-
-export interface NodeAddition {
+interface NodeAddition {
   node: Node
 }
 
-export interface NodeRemoval {
+interface NodeRemoval {
   node: Node
 }
 
-export interface NodeModification {
+interface NodeModification {
   before: Node
   after: Node
   changedFields: string[]
 }
 
-export interface EdgeAddition {
+interface EdgeAddition {
   edge: Edge
 }
 
-export interface EdgeRemoval {
+interface EdgeRemoval {
   edge: Edge
 }
 
-export interface EdgeModification {
+interface EdgeModification {
   before: Edge
   after: Edge
   changedFields: string[]

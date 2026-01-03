@@ -36,9 +36,6 @@ export type OperationName = z.infer<typeof operationNameSchema>
 export const stateNameSchema = z.string().min(1).brand<'StateName'>()
 export type StateName = z.infer<typeof stateNameSchema>
 
-export const invariantSchema = z.string().min(1).brand<'Invariant'>()
-export type Invariant = z.infer<typeof invariantSchema>
-
 export const entryPointSchema = z.string().min(1).brand<'EntryPoint'>()
 export type EntryPoint = z.infer<typeof entryPointSchema>
 
@@ -79,21 +76,10 @@ export interface OperationBehavior {
   emits?: string[]
 }
 
-export interface StateTransition {
+interface StateTransition {
   from: StateName
   to: StateName
   trigger?: string
-}
-
-export interface EntityField {
-  name: string
-  type: EntityFieldType
-  required?: boolean
-  description?: string
-}
-
-export interface EntityDataShape {
-  fields?: EntityField[]
 }
 
 export interface DomainMetadata {
@@ -118,7 +104,7 @@ interface BaseNode {
   metadata?: Record<string, unknown>
 }
 
-export interface UINode extends BaseNode {
+interface UINode extends BaseNode {
   type: 'UI'
   route: string
 }
@@ -131,11 +117,11 @@ export interface APINode extends BaseNode {
   operationName?: string
 }
 
-export interface UseCaseNode extends BaseNode {
+interface UseCaseNode extends BaseNode {
   type: 'UseCase'
 }
 
-export interface DomainOpNode extends BaseNode {
+interface DomainOpNode extends BaseNode {
   type: 'DomainOp'
   operationName: string
   entity?: EntityName
@@ -144,18 +130,18 @@ export interface DomainOpNode extends BaseNode {
   stateChanges?: StateTransition[]
 }
 
-export interface EventNode extends BaseNode {
+interface EventNode extends BaseNode {
   type: 'Event'
   eventName: EventName
   eventSchema?: string
 }
 
-export interface EventHandlerNode extends BaseNode {
+interface EventHandlerNode extends BaseNode {
   type: 'EventHandler'
   subscribedEvents: EventName[]
 }
 
-export interface CustomNode extends BaseNode {
+interface CustomNode extends BaseNode {
   type: 'Custom'
   customTypeName: string
 }

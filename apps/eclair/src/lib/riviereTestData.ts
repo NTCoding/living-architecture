@@ -23,7 +23,7 @@ import {
   type EntityDefinition,
 } from '@/types/riviere'
 
-export interface RawOperationParameter {
+interface RawOperationParameter {
   name: string
   type: string
   description?: string

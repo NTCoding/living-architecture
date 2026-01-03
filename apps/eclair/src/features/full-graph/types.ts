@@ -24,9 +24,7 @@ export interface TooltipData {
   outgoingCount: number
 }
 
-export type Theme = 'stream' | 'voltage' | 'circuit'
-
-export interface NodeColors {
+interface NodeColors {
   stream: Record<NodeType, string>
   voltage: Record<NodeType, string>
   circuit: Record<NodeType, string>

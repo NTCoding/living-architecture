@@ -18,6 +18,15 @@
         ".vitepress/**/*.ts"
       ]
     },
+    "packages/riviere-cli": {
+      "entry": [
+        "src/bin.ts",
+        "src/index.ts"
+      ],
+      "project": [
+        "src/**/*.ts"
+      ]
+    },
     "packages/*": {
       "project": [
         "src/**/*.ts"

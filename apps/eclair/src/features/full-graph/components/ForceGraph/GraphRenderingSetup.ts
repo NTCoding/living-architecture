@@ -14,12 +14,6 @@ export {
   applyResetModeLinkStyles,
   applyFocusModeTextStyles,
   applyResetModeTextStyles,
-  type FocusModeCircleParams,
-  type ResetModeCircleParams,
-  type FocusModeLinkParams,
-  type ResetModeLinkParams,
-  type FocusModeTextParams,
-  type ResetModeTextParams,
 } from './FocusModeStyling'
 
 export interface UpdateHighlightParams {
@@ -146,7 +140,7 @@ export function calculateFitViewportTransform(params: FitViewportParams): { tran
   return { translateX, translateY, scale }
 }
 
-export type SemanticEdgeType = 'event' | 'eventHandler' | 'external' | 'default'
+type SemanticEdgeType = 'event' | 'eventHandler' | 'external' | 'default'
 
 export interface SetupLinksParams {
   linkGroup: d3.Selection<SVGGElement, unknown, d3.BaseType, unknown>

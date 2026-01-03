@@ -11,7 +11,6 @@ import type {
 import { nodeIdSchema } from '@/types/riviere'
 import { RiviereQuery, type Entity } from '@living-architecture/riviere-query'
 import type { NodeBreakdown } from './domainNodeBreakdown'
-export type { NodeBreakdown } from './domainNodeBreakdown'
 import { countNodesByType, formatDomainNodes, extractEntryPoints } from './domainNodeBreakdown'
 
 export interface DomainNode {
@@ -42,18 +41,18 @@ export interface DomainEvent {
   handlers: EventSubscriber[]
 }
 
-export interface KnownSourceEventInfo {
+interface KnownSourceEventInfo {
   eventName: string
   sourceDomain: string
   sourceKnown: true
 }
 
-export interface UnknownSourceEventInfo {
+interface UnknownSourceEventInfo {
   eventName: string
   sourceKnown: false
 }
 
-export type SubscribedEventInfo = KnownSourceEventInfo | UnknownSourceEventInfo
+type SubscribedEventInfo = KnownSourceEventInfo | UnknownSourceEventInfo
 
 export interface DomainEventHandler {
   id: string
@@ -87,8 +86,6 @@ export interface DomainDetails {
   entryPoints: EntryPoint[]
   repository: string | undefined
 }
-
-export type DomainDetailsType = DomainDetails | null
 
 function buildCrossDomainEdges(
   graph: RiviereGraph,
