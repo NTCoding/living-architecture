@@ -28,6 +28,14 @@ Defined in: [packages/riviere-builder/src/types.ts:179](https://github.com/NTCod
 
 ***
 
+### signature?
+
+> `optional` **signature**: `OperationSignature`
+
+Defined in: [packages/riviere-builder/src/types.ts:183](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/types.ts#L183)
+
+***
+
 ### stateChanges?
 
 > `optional` **stateChanges**: `StateTransition`[]

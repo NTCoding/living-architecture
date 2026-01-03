@@ -51,10 +51,7 @@ export function formatDomainNodes(nodes: Node[]): DomainNode[] {
       id: node.id,
       type: node.type,
       name: node.name,
-      location:
-        node.sourceLocation != undefined
-          ? formatLocation(node.sourceLocation.filePath, node.sourceLocation.lineNumber)
-          : undefined,
+      location: formatLocation(node.sourceLocation.filePath, node.sourceLocation.lineNumber),
       sourceLocation: node.sourceLocation,
     }))
     .sort((a, b) => NODE_TYPE_PRIORITY[a.type] - NODE_TYPE_PRIORITY[b.type])

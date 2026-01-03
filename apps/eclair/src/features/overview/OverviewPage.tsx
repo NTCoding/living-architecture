@@ -227,9 +227,9 @@ interface DomainCardProps {
 }
 
 function DomainCard({ domain, viewMode, graphName }: Readonly<DomainCardProps>): React.ReactElement {
-  const repoName: string | undefined = domain.repository !== undefined ? domain.repository : graphName
+  const repoName: string | undefined = domain.repository === undefined ? graphName : domain.repository
   const { settings } = useCodeLinkSettings()
-  const githubUrl = repoName !== undefined && settings.githubOrg !== null ? `${settings.githubOrg.replace(/\/$/, '')}/${repoName}` : null
+  const githubUrl = repoName === undefined || settings.githubOrg === null ? null : `${settings.githubOrg.replace(/\/$/, '')}/${repoName}`
 
   if (viewMode === 'list') {
     return (
@@ -295,7 +295,9 @@ function DomainCard({ domain, viewMode, graphName }: Readonly<DomainCardProps>):
       )}
 
       <footer className="relative z-10 mt-auto flex items-center justify-between border-t border-[var(--border-color)] pt-3">
-        {githubUrl !== null ? (
+        {githubUrl === null ? (
+          <span />
+        ) : (
           <a
             href={githubUrl}
             target="_blank"
@@ -306,8 +308,6 @@ function DomainCard({ domain, viewMode, graphName }: Readonly<DomainCardProps>):
             <i className="ph ph-github-logo text-sm" aria-hidden="true" />
             <span>{repoName}</span>
           </a>
-        ) : (
-          <span />
         )}
         <div className="flex items-center gap-2">
           <Link

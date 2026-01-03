@@ -57,11 +57,11 @@ export function GraphTooltip({ data, onMouseEnter, onMouseLeave }: GraphTooltipP
       <div className="border-t border-[var(--border-color)] pt-2">
         <div className="text-xs text-[var(--text-secondary)]">
           <span className="font-semibold">Incoming:</span> {incomingCount} edge
-          {incomingCount !== 1 ? 's' : ''}
+          {incomingCount === 1 ? '' : 's'}
         </div>
         <div className="text-xs text-[var(--text-secondary)]">
           <span className="font-semibold">Outgoing:</span> {outgoingCount} edge
-          {outgoingCount !== 1 ? 's' : ''}
+          {outgoingCount === 1 ? '' : 's'}
         </div>
       </div>
       {hasSourceLocation(node) && (

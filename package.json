@@ -11,7 +11,7 @@
     "typecheck": "nx run-many -t typecheck",
     "knip": "knip",
     "lint:md": "markdownlint-cli2 \"**/*.md\" \"!**/node_modules/**\"",
-    "verify": "nx run-many -t lint,typecheck && nx run-many -t test --coverage",
+    "verify": "nx run-many -t lint,typecheck && nx run-many -t test,check-generated-docs",
     "prepare": "husky"
   },
   "lint-staged": {
@@ -33,9 +33,10 @@
     "@swc/core": "~1.5.7",
     "@types/node": "20.19.9",
     "@vitest/coverage-v8": "^4.0.16",
-    "esbuild": "^0.19.12",
+    "esbuild": "^0.21.0",
     "eslint": "^9.39.0",
     "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-jsdoc": "^61.5.0",
     "eslint-plugin-sonarjs": "^3.0.5",
     "husky": "^9.1.7",
     "knip": "^5.21.2",

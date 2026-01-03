@@ -93,9 +93,9 @@ export function GraphProvider({ children }: GraphProviderProps): React.ReactElem
   }, [isDemoMode])
 
   const hasGraph = graph !== null
-  const graphName = graph?.metadata.name !== undefined
-    ? graphNameSchema.parse(graph.metadata.name)
-    : undefined
+  const graphName = graph?.metadata.name === undefined
+    ? undefined
+    : graphNameSchema.parse(graph.metadata.name)
 
   const contextValue = useMemo(
     () => ({ graph, setGraph, clearGraph, hasGraph, graphName, isLoadingDemo }),

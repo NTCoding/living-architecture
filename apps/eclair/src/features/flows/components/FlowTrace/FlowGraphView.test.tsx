@@ -53,7 +53,7 @@ vi.mock('@/features/full-graph/components/GraphTooltip/GraphTooltip', () => ({
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
-      {data !== null ? `Tooltip: ${data.node.name}` : 'No tooltip'}
+      {data === null ? 'No tooltip' : `Tooltip: ${data.node.name}`}
     </div>
   ),
 }))

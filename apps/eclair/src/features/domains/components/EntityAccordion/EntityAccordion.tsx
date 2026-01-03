@@ -82,8 +82,8 @@ export function EntityAccordion({
               {entity.name}
             </span>
             <span className="block text-xs text-[var(--text-tertiary)]">
-              {operationCount} operation{operationCount !== 1 ? 's' : ''}
-              {stateCount > 0 && ` · ${stateCount} state${stateCount !== 1 ? 's' : ''}`}
+              {operationCount} operation{operationCount === 1 ? '' : 's'}
+              {stateCount > 0 && ` · ${stateCount} state${stateCount === 1 ? '' : 's'}`}
             </span>
           </div>
         </button>

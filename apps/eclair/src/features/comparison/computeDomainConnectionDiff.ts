@@ -133,10 +133,10 @@ export function computeDomainConnectionDiff(
   const unchanged: DomainConnection[] = []
 
   for (const [key, connection] of afterConnections) {
-    if (!beforeConnections.has(key)) {
-      added.push(connection)
-    } else {
+    if (beforeConnections.has(key)) {
       unchanged.push(connection)
+    } else {
+      added.push(connection)
     }
   }
 

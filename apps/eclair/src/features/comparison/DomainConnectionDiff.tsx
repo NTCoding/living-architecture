@@ -117,7 +117,7 @@ function buildEdges(
 }
 
 function Legend({ className }: { readonly className?: string }): React.ReactElement {
-  const classNameString = className !== undefined ? ` ${className}` : ''
+  const classNameString = className === undefined ? '' : ` ${className}`
   const divClassName = `flex flex-col gap-2 rounded-md border border-[var(--border-color)] bg-[var(--bg-primary)] p-3 text-xs${classNameString}`
   return (
     <div className={divClassName}>

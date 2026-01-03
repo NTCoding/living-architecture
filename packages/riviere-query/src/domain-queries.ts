@@ -34,10 +34,10 @@ export function queryEntities(graph: RiviereGraph, domainName?: string): Entity[
   for (const op of filtered) {
     const key = `${op.domain}:${op.entity}`
     const existing = entityMap.get(key)
-    if (existing !== undefined) {
-      entityMap.set(key, { ...existing, operations: [...existing.operations, op] })
-    } else {
+    if (existing === undefined) {
       entityMap.set(key, { name: op.entity, domain: op.domain, operations: [op] })
+    } else {
+      entityMap.set(key, { ...existing, operations: [...existing.operations, op] })
     }
   }
   return Array.from(entityMap.values())

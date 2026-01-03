@@ -143,10 +143,10 @@ export function DomainContextGraph({
   const handleToggleFullscreen = useCallback((): void => {
     if (containerRef.current === null) return
 
-    if (document.fullscreenElement !== null) {
-      document.exitFullscreen().catch(ignoreFullscreenError)
-    } else {
+    if (document.fullscreenElement === null) {
       containerRef.current.requestFullscreen().catch(ignoreFullscreenError)
+    } else {
+      document.exitFullscreen().catch(ignoreFullscreenError)
     }
   }, [])
 
@@ -174,10 +174,10 @@ export function DomainContextGraph({
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange)
   }, [])
 
-  const selectedPosition = selectedNodeId !== null ? positionMap.get(selectedNodeId) : undefined
-  const selectedConnections = selectedNodeId !== null
-    ? connections.filter((c) => c.targetDomain === selectedNodeId)
-    : []
+  const selectedPosition = selectedNodeId === null ? undefined : positionMap.get(selectedNodeId)
+  const selectedConnections = selectedNodeId === null
+    ? []
+    : connections.filter((c) => c.targetDomain === selectedNodeId)
 
   const transformStyle = `translate(${transform.translateX}px, ${transform.translateY}px) scale(${transform.scale})`
 

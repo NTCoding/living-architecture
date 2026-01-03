@@ -4,14 +4,16 @@ Launch a Haiku sub-agent to create a PR (if needed) and watch CI checks. Generic
 
 ## Usage
 
-**Create new PR:**
+**First-time PR:** Use `/complete-task` which runs task-check and submit-pr automatically.
+
+**Create new PR (if task-check already passed):**
 ```text
-/submit-pr --title "PR title" --body "PR description"
+/submit-pr --title "PR title" --body "PR description" --did-you-run-task-check=yes
 ```
 
 Example:
 ```text
-/submit-pr --title "feat(auth): add OAuth2 login flow" --body "## Summary\n- Added OAuth2 provider\n- Integrated with existing auth middleware"
+/submit-pr --title "feat(auth): add OAuth2 login flow" --body "## Summary\n- Added OAuth2 provider\n- Integrated with existing auth middleware" --did-you-run-task-check=yes
 ```
 
 **Update existing PR (re-check after fixes):**
@@ -48,6 +50,16 @@ Arguments: $ARGUMENTS
    - If succeeds: skip to step 5
 
 3. If arguments contain "--title": this is a CREATE
+   - Check if "--did-you-run-task-check=yes" flag is present
+   - If flag is MISSING: STOP and return:
+     "⚠️ Initial PRs require task-check validation.
+
+     Options:
+     1. Run `/complete-task` (runs task-check + creates PR automatically)
+     2. If task-check already passed, add the flag:
+        /submit-pr --title \"...\" --body \"...\" --did-you-run-task-check=yes"
+
+   - If flag is present: continue
    - Parse title from: --title "..."
    - Parse body from: --body "..." (may contain \n for newlines)
    - Check if PR exists: `gh pr view --json number,url 2>/dev/null`

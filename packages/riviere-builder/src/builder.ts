@@ -581,6 +581,9 @@ export class RiviereBuilder {
     if (enrichment.behavior !== undefined) {
       component.behavior = mergeBehavior(component.behavior, enrichment.behavior)
     }
+    if (enrichment.signature !== undefined) {
+      component.signature = enrichment.signature
+    }
   }
 
   private componentNotFoundError(id: string): Error {

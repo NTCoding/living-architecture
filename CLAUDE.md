@@ -95,9 +95,15 @@ After generating a new project:
 
 ## Task Workflow
 
-Tasks are managed via GitHub Issues. Follow `docs/workflow/task-workflow.md` for all task management. Whenever you are told to "start task", "update task", "complete task" etc. you MUST consult the workflow and follow the appropriate step.
+Whenever working on a task, always follow: `docs/workflow/task-workflow.md`
 
-Never commit code changes without following the task workflow.
+**Read the workflow BEFORE:**
+- Finding or starting a task
+- Running any `gh issue` or `gh pr` commands
+- Creating commits or PRs
+- Updating requirements after user discussions
+
+Execute the exact steps documented. Do not improvise.
 
 ## Testing
 

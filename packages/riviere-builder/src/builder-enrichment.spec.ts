@@ -242,4 +242,50 @@ describe('RiviereBuilder enrichComponent', () => {
       })
     })
   })
+
+  describe('signature', () => {
+    it('sets signature on DomainOp component', () => {
+      const builder = RiviereBuilder.new(createValidOptions())
+      const domainOp = builder.addDomainOp({
+        name: 'Place Order',
+        domain: 'orders',
+        module: 'checkout',
+        operationName: 'placeOrder',
+        sourceLocation: createSourceLocation(),
+      })
+
+      builder.enrichComponent(domainOp.id, {
+        signature: { parameters: [{ name: 'orderId', type: 'string' }], returnType: 'Order' },
+      })
+
+      const enriched = builder.graph.components.find((c) => c.id === domainOp.id)
+      expect(enriched).toMatchObject({
+        signature: { parameters: [{ name: 'orderId', type: 'string' }], returnType: 'Order' },
+      })
+    })
+
+    it('replaces existing signature on DomainOp component', () => {
+      const builder = RiviereBuilder.new(createValidOptions())
+      const domainOp = builder.addDomainOp({
+        name: 'Place Order',
+        domain: 'orders',
+        module: 'checkout',
+        operationName: 'placeOrder',
+        sourceLocation: createSourceLocation(),
+        signature: { returnType: 'void' },
+      })
+
+      builder.enrichComponent(domainOp.id, {
+        signature: { parameters: [{ name: 'orderId', type: 'string' }], returnType: 'Order' },
+      })
+
+      const enriched = builder.graph.components.find((c) => c.id === domainOp.id)
+      expect(enriched).toMatchObject({
+        signature: {
+          parameters: [{ name: 'orderId', type: 'string' }],
+          returnType: 'Order',
+        },
+      })
+    })
+  })
 })
