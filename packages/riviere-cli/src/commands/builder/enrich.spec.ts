@@ -293,86 +293,98 @@ describe('riviere builder enrich', () => {
     const ctx: TestContext = createTestContext();
     setupCommandTest(ctx);
 
-    it('enriches DomainOp with --reads option', async () => {
+    it.each([
+      { name: 'single --reads', args: ['--reads', 'this.state'], expected: { reads: ['this.state'] } },
+      {
+        name: 'multiple --reads',
+        args: ['--reads', 'this.state', '--reads', 'items parameter'],
+        expected: { reads: ['this.state', 'items parameter'] },
+      },
+      {
+        name: 'all behavior options',
+        args: ['--reads', 'this.state', '--validates', 'state === Draft', '--modifies', 'this.state ← Placed', '--emits', 'order-placed event'],
+        expected: { reads: ['this.state'], validates: ['state === Draft'], modifies: ['this.state ← Placed'], emits: ['order-placed event'] },
+      },
+    ])('enriches DomainOp with $name', async ({ args, expected }) => {
+      await createGraphWithComponent(ctx.testDir, domainOpComponent);
+      const program = createProgram();
+      await program.parseAsync(['node', 'riviere', 'builder', 'enrich', '--id', 'orders:checkout:domainop:confirm-order', ...args]);
+
+      const graphPath = join(ctx.testDir, '.riviere', 'graph.json');
+      const content = await readFile(graphPath, 'utf-8');
+      const graph: unknown = JSON.parse(content);
+      expect(graph).toMatchObject({ components: [{ behavior: expected }] });
+    });
+  });
+
+  describe('signature option', () => {
+    const ctx: TestContext = createTestContext();
+    setupCommandTest(ctx);
+
+    it.each([
+      {
+        name: 'full signature with multiple parameters',
+        input: 'orderId:string, amount:number -> Order',
+        expected: {
+          parameters: [
+            { name: 'orderId', type: 'string' },
+            { name: 'amount', type: 'number' },
+          ],
+          returnType: 'Order',
+        },
+      },
+      {
+        name: 'parameter with description',
+        input: 'orderId:string:The order ID -> Order',
+        expected: {
+          parameters: [{ name: 'orderId', type: 'string', description: 'The order ID' }],
+          returnType: 'Order',
+        },
+      },
+      {
+        name: 'parameters only (no return type)',
+        input: 'orderId:string',
+        expected: { parameters: [{ name: 'orderId', type: 'string' }] },
+      },
+      {
+        name: 'return type only',
+        input: '-> Order',
+        expected: { returnType: 'Order' },
+      },
+    ])('parses $name', async ({ input, expected }) => {
       await createGraphWithComponent(ctx.testDir, domainOpComponent);
       const program = createProgram();
       await program.parseAsync([
-        'node',
-        'riviere',
-        'builder',
-        'enrich',
-        '--id',
-        'orders:checkout:domainop:confirm-order',
-        '--reads',
-        'this.state',
+        'node', 'riviere', 'builder', 'enrich',
+        '--id', 'orders:checkout:domainop:confirm-order',
+        '--signature', input,
       ]);
 
       const graphPath = join(ctx.testDir, '.riviere', 'graph.json');
       const content = await readFile(graphPath, 'utf-8');
       const graph: unknown = JSON.parse(content);
-      expect(graph).toMatchObject({
-        components: [{ behavior: { reads: ['this.state'] } }],
-      });
+      expect(graph).toMatchObject({ components: [{ signature: expected }] });
     });
 
-    it('enriches DomainOp with multiple --reads options', async () => {
+    it.each([
+      { name: 'no colon in parameter', input: 'invalid' },
+      { name: 'empty parameter name', input: ':string -> Order' },
+      { name: 'empty string', input: '' },
+      { name: 'arrow with no return type', input: '->' },
+    ])('returns VALIDATION_ERROR for $name', async ({ input }) => {
       await createGraphWithComponent(ctx.testDir, domainOpComponent);
       const program = createProgram();
       await program.parseAsync([
-        'node',
-        'riviere',
-        'builder',
-        'enrich',
-        '--id',
-        'orders:checkout:domainop:confirm-order',
-        '--reads',
-        'this.state',
-        '--reads',
-        'items parameter',
+        'node', 'riviere', 'builder', 'enrich',
+        '--id', 'orders:checkout:domainop:confirm-order',
+        '--signature', input,
       ]);
 
-      const graphPath = join(ctx.testDir, '.riviere', 'graph.json');
-      const content = await readFile(graphPath, 'utf-8');
-      const graph: unknown = JSON.parse(content);
-      expect(graph).toMatchObject({
-        components: [{ behavior: { reads: ['this.state', 'items parameter'] } }],
-      });
-    });
-
-    it('enriches DomainOp with all behavior options', async () => {
-      await createGraphWithComponent(ctx.testDir, domainOpComponent);
-      const program = createProgram();
-      await program.parseAsync([
-        'node',
-        'riviere',
-        'builder',
-        'enrich',
-        '--id',
-        'orders:checkout:domainop:confirm-order',
-        '--reads',
-        'this.state',
-        '--validates',
-        'state === Draft',
-        '--modifies',
-        'this.state ← Placed',
-        '--emits',
-        'order-placed event',
-      ]);
-
-      const graphPath = join(ctx.testDir, '.riviere', 'graph.json');
-      const content = await readFile(graphPath, 'utf-8');
-      const graph: unknown = JSON.parse(content);
-      expect(graph).toMatchObject({
-        components: [
-          {
-            behavior: {
-              reads: ['this.state'],
-              validates: ['state === Draft'],
-              modifies: ['this.state ← Placed'],
-              emits: ['order-placed event'],
-            },
-          },
-        ],
+      expect(ctx.consoleOutput).toHaveLength(1);
+      const output: unknown = JSON.parse(ctx.consoleOutput[0] ?? '');
+      expect(output).toMatchObject({
+        success: false,
+        error: { code: CliErrorCode.ValidationError },
       });
     });
   });
