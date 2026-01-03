@@ -1,5 +1,8 @@
 {
   "$schema": "https://knip.dev/reference/knip-json",
+  "ignoreDependencies": [
+    "tailwindcss"
+  ],
   "workspaces": {
     "apps/eclair": {
       "entry": [
