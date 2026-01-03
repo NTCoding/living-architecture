@@ -1,21 +1,59 @@
-import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { render, screen, act, fireEvent } from '@testing-library/react'
 import { FlowGraphView } from './FlowGraphView'
 import { parseNode, parseEdge, parseDomainMetadata } from '@/lib/riviereTestData'
 import type { FlowStep } from '../../extractFlows'
 import type { RiviereGraph } from '@/types/riviere'
+import type { TooltipData } from '@/features/full-graph/types'
+
 const testSourceLocation = { repository: 'test-repo', filePath: 'src/test.ts' }
 
 vi.mock('@/contexts/ThemeContext', () => ({
   useTheme: () => ({ theme: 'stream' }),
 }))
 
+interface MockState {
+  onNodeHover: ((data: TooltipData | null) => void) | undefined
+}
+
+const mockState: MockState = { onNodeHover: undefined }
+
 vi.mock('@/features/full-graph/components/ForceGraph/ForceGraph', () => ({
-  ForceGraph: ({ graph }: { graph: { components: Array<{ name: string }> } }) => (
-    <div data-testid="force-graph-mock">
-      {graph.components.map((node) => (
-        <span key={node.name}>{node.name}</span>
-      ))}
+  ForceGraph: ({
+    graph,
+    onNodeHover,
+  }: {
+    graph: { components: Array<{ name: string }> }
+    onNodeHover?: (data: TooltipData | null) => void
+  }) => {
+    mockState.onNodeHover = onNodeHover
+    return (
+      <div data-testid="force-graph-mock">
+        {graph.components.map((node) => (
+          <span key={node.name}>{node.name}</span>
+        ))}
+      </div>
+    )
+  },
+}))
+
+vi.mock('@/features/full-graph/components/GraphTooltip/GraphTooltip', () => ({
+  GraphTooltip: ({
+    data,
+    onMouseEnter,
+    onMouseLeave,
+  }: {
+    data: TooltipData | null
+    onMouseEnter?: () => void
+    onMouseLeave?: () => void
+  }) => (
+    <div
+      data-testid="graph-tooltip-mock"
+      data-has-data={data !== null}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+    >
+      {data !== null ? `Tooltip: ${data.node.name}` : 'No tooltip'}
     </div>
   ),
 }))
@@ -51,7 +89,40 @@ function createTestGraph(): RiviereGraph {
   }
 }
 
+function createTooltipData(name: string): TooltipData {
+  return {
+    node: {
+      id: 'test-node',
+      type: 'UI',
+      name,
+      domain: 'test',
+      originalNode: parseNode({
+        sourceLocation: testSourceLocation,
+        id: 'test-node',
+        type: 'UI',
+        name,
+        domain: 'test',
+        module: 'test',
+        route: '/test',
+      }),
+    },
+    x: 100,
+    y: 100,
+    incomingCount: 1,
+    outgoingCount: 2,
+  }
+}
+
 describe('FlowGraphView', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+    mockState.onNodeHover = undefined
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
   it('renders ForceGraph with nodes from steps', () => {
     render(<FlowGraphView steps={createTestSteps()} graph={createTestGraph()} />)
 
@@ -73,5 +144,96 @@ describe('FlowGraphView', () => {
     expect(screen.getByText('Order Form')).toBeInTheDocument()
     expect(screen.getByText('POST /orders')).toBeInTheDocument()
     expect(screen.queryByText('Other')).not.toBeInTheDocument()
+  })
+
+  describe('tooltip behavior', () => {
+    it('shows tooltip when node hover callback is called with data', () => {
+      render(<FlowGraphView steps={createTestSteps()} graph={createTestGraph()} />)
+
+      expect(mockState.onNodeHover).toBeDefined()
+      act(() => {
+        mockState.onNodeHover?.(createTooltipData('Test Node'))
+      })
+
+      expect(screen.getByText('Tooltip: Test Node')).toBeInTheDocument()
+    })
+
+    it('hides tooltip after delay when node hover callback is called with null', () => {
+      render(<FlowGraphView steps={createTestSteps()} graph={createTestGraph()} />)
+
+      act(() => {
+        mockState.onNodeHover?.(createTooltipData('Test Node'))
+      })
+      expect(screen.getByText('Tooltip: Test Node')).toBeInTheDocument()
+
+      act(() => {
+        mockState.onNodeHover?.(null)
+      })
+      expect(screen.getByText('Tooltip: Test Node')).toBeInTheDocument()
+
+      act(() => {
+        vi.advanceTimersByTime(200)
+      })
+      expect(screen.getByText('No tooltip')).toBeInTheDocument()
+    })
+
+    it('cancels hide timeout when hovering new node before timeout completes', () => {
+      render(<FlowGraphView steps={createTestSteps()} graph={createTestGraph()} />)
+
+      act(() => {
+        mockState.onNodeHover?.(createTooltipData('First Node'))
+      })
+      act(() => {
+        mockState.onNodeHover?.(null)
+      })
+      act(() => {
+        vi.advanceTimersByTime(100)
+      })
+      act(() => {
+        mockState.onNodeHover?.(createTooltipData('Second Node'))
+      })
+      act(() => {
+        vi.advanceTimersByTime(200)
+      })
+
+      expect(screen.getByText('Tooltip: Second Node')).toBeInTheDocument()
+    })
+
+    it('keeps tooltip visible when mouse enters tooltip', () => {
+      render(<FlowGraphView steps={createTestSteps()} graph={createTestGraph()} />)
+
+      act(() => {
+        mockState.onNodeHover?.(createTooltipData('Test Node'))
+      })
+      act(() => {
+        mockState.onNodeHover?.(null)
+      })
+
+      const tooltip = screen.getByTestId('graph-tooltip-mock')
+      fireEvent.mouseEnter(tooltip)
+
+      act(() => {
+        vi.advanceTimersByTime(300)
+      })
+
+      expect(screen.getByText('Tooltip: Test Node')).toBeInTheDocument()
+    })
+
+    it('hides tooltip after delay when mouse leaves tooltip', () => {
+      render(<FlowGraphView steps={createTestSteps()} graph={createTestGraph()} />)
+
+      act(() => {
+        mockState.onNodeHover?.(createTooltipData('Test Node'))
+      })
+
+      const tooltip = screen.getByTestId('graph-tooltip-mock')
+      fireEvent.mouseLeave(tooltip)
+
+      act(() => {
+        vi.advanceTimersByTime(200)
+      })
+
+      expect(screen.getByText('No tooltip')).toBeInTheDocument()
+    })
   })
 })
