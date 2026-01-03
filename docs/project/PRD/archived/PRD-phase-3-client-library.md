@@ -1222,7 +1222,7 @@ Errors must enable AI self-correction. Each error should:
 4. Be machine-parseable for programmatic handling
 
 **Example:**
-```
+```text
 Error: Unknown edge type 'sync'
   Location: edge from 'api-orders-place' to 'uc-orders-place'
   Provided type: 'sync'

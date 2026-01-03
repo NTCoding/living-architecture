@@ -82,7 +82,7 @@ Wait for user confirmation before proceeding.
 
 After user confirms:
 
-```
+```text
 /start-task <issue-number>
 ```
 
@@ -147,7 +147,7 @@ If any fail, fix and re-run before proceeding.
 
 Run the task-check agent:
 
-```
+```text
 Use the Task tool with subagent_type "task-check:task-check". Provide:
 1. Task ID: GitHub issue number
 2. Task location: `gh issue view <number>`
@@ -176,7 +176,7 @@ git add -A && git commit -m "feat(scope): description"
 git push -u origin HEAD
 ```
 
-```
+```text
 /submit-pr --title "feat(scope): description" --body "## Summary\n- Change 1\n- Change 2"
 ```
 
@@ -237,7 +237,7 @@ git add -A && git commit -m "fix: address PR feedback"
 git push
 ```
 
-```
+```text
 /submit-pr --update
 ```
 

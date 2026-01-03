@@ -2,7 +2,7 @@
 
 ## Monorepo Layout
 
-```
+```text
 living-architecture/
 ├── apps/                    # Deployable applications
 │   └── <app-name>/

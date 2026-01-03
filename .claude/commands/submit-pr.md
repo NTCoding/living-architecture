@@ -5,17 +5,17 @@ Launch a Haiku sub-agent to create a PR (if needed) and watch CI checks. Generic
 ## Usage
 
 **Create new PR:**
-```
+```text
 /submit-pr --title "PR title" --body "PR description"
 ```
 
 Example:
-```
+```text
 /submit-pr --title "feat(auth): add OAuth2 login flow" --body "## Summary\n- Added OAuth2 provider\n- Integrated with existing auth middleware"
 ```
 
 **Update existing PR (re-check after fixes):**
-```
+```text
 /submit-pr --update
 ```
 
@@ -29,7 +29,7 @@ Use the Task tool with:
 
 Prompt for the sub-agent:
 
-```
+```text
 Submit a PR for the current branch and watch all CI checks until complete.
 
 Arguments: $ARGUMENTS

@@ -94,7 +94,7 @@ Type-specific options:
 
 Finish ALL matches for one component type before starting the next:
 
-```
+```text
 APIs (@Controller): 12 matches → 18 endpoints extracted
 UseCases (extends BaseUseCase): 8 matches → 8 use cases extracted
 ```

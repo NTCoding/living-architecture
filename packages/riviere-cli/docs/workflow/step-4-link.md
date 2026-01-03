@@ -56,7 +56,7 @@ When tracing code, you'll encounter two types of calls:
 **Multiple targets:** One component often links to multiple others.
 
 **Trace through non-components:** You may follow the code through intermediate files, but only link between components:
-```
+```text
 API → helper → service → UseCase
 ```
 The link is **API → UseCase**.
@@ -72,7 +72,7 @@ The link is **API → UseCase**.
 ## CLI Commands
 
 **Fetch the CLI reference for full command syntax and examples:**
-```
+```text
 https://raw.githubusercontent.com/NTCoding/living-architecture/main/packages/riviere-cli/docs/generated/cli-reference.md
 ```
 

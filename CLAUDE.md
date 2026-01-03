@@ -6,7 +6,7 @@ Read `@docs/project/project-overview.md` then check `@docs/project/PRD/active/*.
 
 ## Monorepo Structure
 
-```
+```text
 apps/       - Deployable applications (not published)
 packages/   - Shared libraries (publishable to npm)
 ```
@@ -107,11 +107,11 @@ Follow `docs/conventions/testing.md`.
 
 ## Code Conventions
 
-When writing, editing, refactoring, or reviewing code: 
+When writing, editing, refactoring, or reviewing code:
 
-- always follow `docs/conventions/software-design.md` 
+- always follow `docs/conventions/software-design.md`
 - look for standard implementation patterns defined in `docs/conventions/standard-patterns.md`
--  avoid `@docs/conventions/anti-patterns.md`
+- avoid `@docs/conventions/anti-patterns.md`
 
 The automatic code review agent enforces these conventions (see `./claude/automatic-code-review/rules.md`)
 

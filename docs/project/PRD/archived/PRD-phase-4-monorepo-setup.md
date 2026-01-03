@@ -29,7 +29,7 @@ This blocks production releases and makes the project hard to discover and use.
 
 ### Repository Structure
 
-```
+```text
 riviere/
 ├── schema/                     ← Schema at root (prominent, internal)
 │   ├── riviere.schema.json
@@ -93,7 +93,7 @@ riviere/
 
 ### Package Dependencies
 
-```
+```text
 schema/ (internal, not published)
     ↑
 @living-architecture/riviere-query (standalone, browser-safe)
@@ -159,7 +159,7 @@ schema/ (internal, not published)
 
 The root `README.md` should present Rivière as a launched product:
 
-```markdown
+````markdown
 # Rivière
 
 **Extract living architecture from code.**
@@ -259,7 +259,7 @@ Open your graph in [Éclair](https://riviere.dev/eclair), the interactive visual
 
 ## How It Works
 
-```
+```text
 Your Code                    Rivière Graph               Éclair Visualizer
    │                              │                            │
    ▼                              ▼                            ▼
@@ -292,7 +292,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for development setup.
 ## License
 
 MIT
-```
+````
 
 ---
 
@@ -302,7 +302,7 @@ MIT
 
 All documentation lives in one site at **riviere.dev/docs** (or similar):
 
-```
+```text
 apps/docs/                      ← VitePress site
 ├── .vitepress/
 │   └── config.ts
@@ -597,7 +597,7 @@ Read and follow all instructions in `CLAUDE.md`.
 
 ### Phase 4.5: Documentation Structure
 
-```
+```text
 docs/
 ├── project/                    ← Internal
 │   ├── PRD/

@@ -2,7 +2,6 @@
 
 Build your first Riviere graph using CLI commands in 5 minutes.
 
-
 ## What you'll learn
 
 - How to create a graph, add components, link them, and validate the result

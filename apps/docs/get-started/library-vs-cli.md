@@ -2,7 +2,6 @@
 
 Riviere offers two paths for building architecture graphs. Choose based on your use case.
 
-
 ## What you'll learn
 
 - When the CLI is the best fit (AI-assisted extraction, deterministic validation)

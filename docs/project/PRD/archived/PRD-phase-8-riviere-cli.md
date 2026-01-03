@@ -40,14 +40,14 @@ npx riviere --help
 
 Commands are organized into two groups mirroring the underlying libraries:
 
-```
+```text
 riviere builder <subcommand>    # → @living-architecture/riviere-builder
 riviere query <subcommand>      # → @living-architecture/riviere-query
 ```
 
 ### Builder Commands
 
-```
+```text
 riviere builder init                    Initialize new graph
 riviere builder add-source              Add source repository
 riviere builder add-domain              Add domain
@@ -65,7 +65,7 @@ riviere builder check-consistency       Check for orphans and structural issues
 
 ### Query Commands
 
-```
+```text
 riviere query entry-points              List entry points (APIs, UIs, EventHandlers)
 riviere query domains                   List domains with stats
 riviere query trace <id>                Trace flow from component
@@ -77,7 +77,7 @@ riviere query search <term>             Search components by name
 ### Graph Storage
 
 Graphs are stored in `.riviere/` directory:
-```
+```text
 .riviere/
 ├── graph.json                 # Current graph (draft or finalized)
 └── config/                    # Extraction config (managed by workflow, not CLI)

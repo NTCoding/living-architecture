@@ -85,7 +85,7 @@ emit(new OrderPlaced(...));           // emits: "OrderPlaced event"
 ### 4. Enrich via CLI
 
 **Fetch the CLI reference for `enrich` command syntax:**
-```
+```text
 https://raw.githubusercontent.com/NTCoding/living-architecture/main/packages/riviere-cli/docs/generated/cli-reference.md
 ```
 

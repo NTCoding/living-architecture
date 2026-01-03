@@ -1,6 +1,5 @@
 # API Reference
 
-
 ## RiviereBuilder
 
 The main class. Create an instance, add components, connect them, build a graph.

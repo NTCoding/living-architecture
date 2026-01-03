@@ -18,7 +18,7 @@ Modern distributed systems span multiple codebases, languages, and domains. Unde
 Living Architecture extracts flow-based architecture models directly from code and presents them as interactive, queryable graphs. Instead of showing technical dependencies, it traces how operations and data flow through the system.
 
 **Example flow:**
-```
+```text
 UI /orders
   → API /bff/orders/place
   → API /orders-domain/place-order

@@ -2,7 +2,6 @@
 
 Build your first Riviere graph in 5 minutes.
 
-
 ## What you'll learn
 
 - How to configure `RiviereBuilder` with sources and domains

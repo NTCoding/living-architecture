@@ -203,13 +203,13 @@ export default [
 ```
 
 **IDE Feedback (classes):**
-```
+```text
 error: Class "OrderRepository" must have an @ArchitectureComponent decorator.
        Valid types: UI, API, UseCase, DomainOp, Event, EventHandler, Custom
 ```
 
 **IDE Feedback (functions):**
-```
+```text
 error: Exported function "createOrder" must have a @riviere JSDoc annotation.
        Example: /** @riviere UseCase */
 ```

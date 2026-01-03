@@ -242,7 +242,6 @@ When you encounter generic names:
 3. **Extract domain concept**: Is there a domain term for this?
 4. **Rename comprehensively**: Update all references
 
-
 ## Type-Driven Design
 
 **Principle:** Follow Scott Wlaschin's type-driven approach to domain modeling. Express domain concepts using the type system.
@@ -358,13 +357,11 @@ interface PaymentProcessor {
 // Only ONE method is actually used today
 ```
 
-
 ### Application Rules
 
 - Build the simplest thing that works
 - Add capabilities when requirements demand them, not before
 - "But we might need it" is not a requirement
-
 
 ## When Tempted to Cut Corners
 

@@ -33,7 +33,7 @@ nx test [project-name]
 
 Use [conventional commits](https://www.conventionalcommits.org/):
 
-```
+```text
 feat: add new query function
 fix: handle empty input gracefully
 docs: update API reference

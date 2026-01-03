@@ -4,7 +4,7 @@ Launch a Haiku sub-agent to set up the working environment for a GitHub issue.
 
 ## Usage
 
-```
+```text
 /start-task <issue-number>
 ```
 
@@ -16,7 +16,7 @@ Use the Task tool with:
 
 Prompt for the sub-agent:
 
-```
+```text
 Set up the working environment for GitHub issue #$ARGUMENTS.
 
 ## Steps

@@ -30,7 +30,7 @@ How to write tests that catch bugs, document behavior, and remain maintainable.
 
 ### Good Names (Describe Outcomes)
 
-```
+```text
 returns empty array when input is null
 throws ValidationError when email format invalid
 calculates tax correctly for tax-exempt items
@@ -39,7 +39,7 @@ preserves original order when duplicates removed
 
 ### Bad Names (Describe Actions)
 
-```
+```text
 test null input           // What about null input?
 should work               // What does "work" mean?
 handles edge cases        // Which edge cases?

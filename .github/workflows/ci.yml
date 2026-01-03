@@ -83,6 +83,28 @@ jobs:
       - name: Check for dead code
         run: pnpm knip
 
+  lint-markdown:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.26.2
+          run_install: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Check markdown formatting
+        run: pnpm lint:md
+
   publish:
     needs: [main]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
