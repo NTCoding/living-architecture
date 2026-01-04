@@ -25,9 +25,9 @@ Work through the entire lifecycle autonomously. Present the user with a complete
 
 **Create Tasks** — New work identified from a PRD. Break down deliverables into tasks.
 
-**List Tasks** — User says "next task" or asks what's available. Run the script, then propose the first task to the user.
+**List Tasks** — User says "next task" or asks what's available. Run the script, propose the first task to the user, and ask them to confirm. Once confirmed, start the task (which provides the details), then create a plan. Do not create a plan before starting.
 
-**Start Task** — User has confirmed they want to begin a specific task. This script provides the issue details—do not fetch them separately.
+**Start Task** — User has confirmed they want to begin a specific task. Run this FIRST—it provides the issue details needed for planning. Do not create a plan or fetch issue details separately before running this script.
 
 **Amend Task** — Requirements changed or need clarification during development.
 
