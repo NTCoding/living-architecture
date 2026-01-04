@@ -48,18 +48,54 @@ get_inline_comments() {
         }' 2>/dev/null
 }
 
-# Get review body stats
+# Get latest CodeRabbit review body (supersedes earlier reviews)
+get_latest_review_body() {
+    gh api "repos/${REPO}/pulls/${PR_NUMBER}/reviews" \
+        --jq '[.[] | select(.user.login | startswith("coderabbitai"))] | last | .body // empty' 2>/dev/null
+}
+
+# Get review body stats from latest review
 get_review_stats() {
-    local review_body=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}/reviews" \
-        --jq '[.[] | select(.user.login | startswith("coderabbitai"))] | last | .body // empty' 2>/dev/null)
+    local review_body
+    review_body=$(get_latest_review_body)
 
     if [[ -n "$review_body" ]]; then
-        local actionable=$(echo "$review_body" | sed -n 's/.*Actionable comments posted: \([0-9]*\).*/\1/p' | head -1)
-        local nitpicks=$(echo "$review_body" | sed -n 's/.*🧹 Nitpick comments (\([0-9]*\)).*/\1/p' | head -1)
+        local actionable
+        local nitpicks
+        actionable=$(echo "$review_body" | sed -n 's/.*Actionable comments posted: \([0-9]*\).*/\1/p' | head -1)
+        nitpicks=$(echo "$review_body" | sed -n 's/.*🧹 Nitpick comments (\([0-9]*\)).*/\1/p' | head -1)
         echo "${actionable:-0} ${nitpicks:-0}"
     else
         echo "0 0"
     fi
+}
+
+# Extract nitpick details from review body (file:line - title format)
+get_nitpick_details() {
+    local review_body
+    review_body=$(get_latest_review_body)
+
+    if [[ -z "$review_body" ]]; then
+        return
+    fi
+
+    # Parse the nested structure: <summary>filename (count)</summary> then `line`: **title**
+    # Extract filename from <summary> tags and line:title from backtick patterns
+    local current_file=""
+    echo "$review_body" | while IFS= read -r line; do
+        # Match file summary: <summary>scripts/foo.sh (2)</summary>
+        if [[ "$line" =~ \<summary\>([^[:space:]]+)[[:space:]]*\([0-9]+\)\</summary\> ]]; then
+            current_file="${BASH_REMATCH[1]}"
+        fi
+        # Match nitpick: `52-63`: **Title here.**
+        if [[ "$line" =~ \`([0-9]+-?[0-9]*)\`:[[:space:]]*\*\*([^*]+)\*\* ]]; then
+            local line_range="${BASH_REMATCH[1]}"
+            local title="${BASH_REMATCH[2]}"
+            if [[ -n "$current_file" ]]; then
+                echo "${current_file}:${line_range} - ${title}"
+            fi
+        fi
+    done
 }
 
 # Main logic
@@ -71,7 +107,7 @@ if [[ -z "$REVIEW_STATE" ]]; then
 fi
 
 REVIEW_DECISION=$(get_review_decision)
-read ACTIONABLE NITPICKS <<< $(get_review_stats)
+read -r ACTIONABLE NITPICKS <<< "$(get_review_stats)"
 
 echo "=========================================="
 echo "CodeRabbit Review Status"
@@ -91,10 +127,17 @@ if [[ -n "$COMMENTS" ]]; then
     echo ""
 fi
 
-# Show nitpicks note
+# Show nitpicks with details
 if [[ "$NITPICKS" != "0" ]]; then
     echo "## Suggestions to Consider ($NITPICKS nitpicks)"
-    echo "  See PR for optional improvements"
+    NITPICK_DETAILS=$(get_nitpick_details)
+    if [[ -n "$NITPICK_DETAILS" ]]; then
+        echo "$NITPICK_DETAILS" | while IFS= read -r detail; do
+            echo "- $detail"
+        done
+    fi
+    echo ""
+    echo "Fix these unless you have a good reason not to. See PR for full details."
     echo ""
 fi
 
