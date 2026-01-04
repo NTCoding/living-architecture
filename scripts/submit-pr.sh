@@ -138,6 +138,18 @@ if [[ -n "$UNCOMMITTED" ]]; then
     exit 1
 fi
 
+# Precondition: ensure branch is up-to-date with main
+echo "Checking if branch is up-to-date with main..."
+git fetch origin main --quiet
+BEHIND_COUNT=$(git rev-list --count HEAD..origin/main)
+if [[ "$BEHIND_COUNT" -gt 0 ]]; then
+    echo "Branch is $BEHIND_COUNT commit(s) behind main. Merging..."
+    if ! git merge origin/main --no-edit; then
+        echo "Error: Merge failed. Resolve conflicts and try again." >&2
+        exit 1
+    fi
+fi
+
 if [[ "$MODE" == "update" ]]; then
     # UPDATE mode: PR must exist
     if ! gh pr view --json number,url >/dev/null 2>&1; then
