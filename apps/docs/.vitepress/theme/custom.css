@@ -92,6 +92,11 @@
   color: var(--vp-c-text-2);
 }
 
+/* Prevent hero gradient blur from bleeding outside container */
+.VPHero .image-container {
+  overflow: hidden;
+}
+
 /* ==========================================================================
    Buttons
    ========================================================================== */
@@ -166,8 +171,21 @@ button:focus-visible,
    Navigation
    ========================================================================== */
 
-.VPNavBar {
-  border-bottom: 1px solid var(--vp-c-divider);
+/* VitePress's built-in .divider-line handles the nav bar bottom border on doc pages.
+   On homepage, the divider-line is invisible, so we add a border-bottom to the nav bar.
+   On doc pages with sidebar, VitePress's divider only covers the content area (via padding-left).
+   We override this to make the divider-line span full width for consistent alignment. */
+
+/* Homepage: full-width border (VitePress's divider-line is invisible on home) */
+.VPNavBar.home {
+  border-bottom: 1px solid var(--vp-c-gutter);
+}
+
+/* Doc pages with sidebar: make divider span full width instead of just content area */
+@media (min-width: 960px) {
+  .VPNavBar.has-sidebar .divider {
+    padding-left: 0;
+  }
 }
 
 .VPNavBarTitle .title {
