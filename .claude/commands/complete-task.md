@@ -1,28 +1,77 @@
 # Complete Task
 
-Verify task completion and submit PR.
-
-## Usage
+## Workflow
 
 ```text
 /complete-task
+    │
+    ▼
+Spawn sub-agent with pipeline
+    │
+    ├── Verify gate → FAIL → return to main
+    ├── /code-review → FAIL → return findings + next steps
+    ├── Task-check  → FAIL → return issues
+    ├── Submit PR → FAIL → return issues
+    └── Return SUCCESS with PR URL
+```
+
+## Usage
+
+```bash
+/complete-task                    # Full pipeline
+/complete-task --feedback-rejected # Skip code review
 ```
 
 ## Instructions
 
-1. Run verify gate: `pnpm nx run-many -t lint,typecheck,test`
-2. Run task-check agent to validate completion
-3. If task-check passes: commit, push, then run `./scripts/submit-pr.sh --title "..." --body "..."`
-4. Wait for CI checks to complete
-5. Report CI results to user (pass/fail, PR URL)
+Use the Task tool:
 
-If any step fails, report the error. Do not attempt fixes without user input.
+```yaml
+subagent_type: general-purpose
+model: haiku
+prompt: |
+  Run this pipeline. Stop and return on first failure.
 
-## After Initial Submission
+  1. **Verify gate**: Run `pnpm nx run-many -t lint,typecheck,test`
+     - FAIL → return:
+       VERIFY GATE FAILED
+       [error output]
+       NEXT STEPS: Fix the errors and re-run /complete-task
+       LOOP CONTROL: If this is your third successive attempt, ask the user for help.
 
-When pushing updates to an existing PR:
+  2. **Code review** [SKIP IF --feedback-rejected]:
+     - Run `/code-review`
+     - PASS → continue
+     - FAIL → return:
+       CODE REVIEW FAILED
+       [findings from /code-review]
+       NEXT STEPS:
+       - Fix issues and re-run /complete-task
+       - OR reject all findings and re-run /complete-task --feedback-rejected
+       LOOP CONTROL: If this is your third successive attempt, ask the user for help.
 
-1. Commit and push changes
-2. Run `./scripts/submit-pr.sh --update`
-3. Wait for CI checks to complete
-4. Report CI results to user
+  3. **Task-check** [SKIP IF marker exists]:
+     - Check if `/tmp/task-check-done-<branch>.marker` exists
+     - If exists → skip to step 4
+     - If missing:
+       - Use Task tool with subagent_type: "task-check:task-check"
+       - FAIL → return:
+         TASK CHECK FAILED
+         [issues]
+         NEXT STEPS: Address the issues and re-run /complete-task
+         LOOP CONTROL: If this is your third successive attempt, ask the user for help.
+       - PASS → create marker: `date > /tmp/task-check-done-<branch>.marker`
+
+  4. **Submit PR**:
+     - Commit changes
+     - Push to remote
+     - Run `./scripts/submit-pr.sh` and wait for it to complete (may take several minutes)
+     - FAIL → return:
+       SUBMIT PR FAILED
+       [script output]
+       NEXT STEPS: Address the issues and re-run /complete-task
+       LOOP CONTROL: If this is your third successive attempt, ask the user for help.
+     - SUCCESS → return:
+       PR READY FOR REVIEW
+       [PR URL and output from submit-pr.sh]
+```
