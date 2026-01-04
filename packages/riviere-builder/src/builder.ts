@@ -22,6 +22,7 @@ import { assertCustomTypeExists, assertDomainExists, assertRequiredPropertiesPro
 import { ComponentId } from '@living-architecture/riviere-schema'
 import { createSourceNotFoundError, findNearMatches } from './component-suggestion'
 import { mergeBehavior } from './merge-behavior'
+import { deduplicateStrings, deduplicateStateTransitions } from './deduplicate'
 import {
   CustomTypeAlreadyDefinedError,
   DuplicateComponentError,
@@ -573,10 +574,14 @@ export class RiviereBuilder {
       component.entity = enrichment.entity
     }
     if (enrichment.stateChanges !== undefined) {
-      component.stateChanges = [...(component.stateChanges ?? []), ...enrichment.stateChanges]
+      const existing = component.stateChanges ?? []
+      const newItems = deduplicateStateTransitions(existing, enrichment.stateChanges)
+      component.stateChanges = [...existing, ...newItems]
     }
     if (enrichment.businessRules !== undefined) {
-      component.businessRules = [...(component.businessRules ?? []), ...enrichment.businessRules]
+      const existing = component.businessRules ?? []
+      const newItems = deduplicateStrings(existing, enrichment.businessRules)
+      component.businessRules = [...existing, ...newItems]
     }
     if (enrichment.behavior !== undefined) {
       component.behavior = mergeBehavior(component.behavior, enrichment.behavior)
