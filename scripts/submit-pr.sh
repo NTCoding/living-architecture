@@ -148,6 +148,8 @@ if [[ "$BEHIND_COUNT" -gt 0 ]]; then
         echo "Error: Merge failed. Resolve conflicts and try again." >&2
         exit 1
     fi
+    echo "Merge successful. Pushing to remote..."
+    git push
 fi
 
 if [[ "$MODE" == "update" ]]; then
