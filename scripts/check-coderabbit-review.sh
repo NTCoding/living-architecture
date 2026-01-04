@@ -123,7 +123,12 @@ echo ""
 COMMENTS=$(get_inline_comments)
 if [[ -n "$COMMENTS" ]]; then
     echo "## Comments to Address"
-    echo "$COMMENTS" | jq -r '"- [\(.severity)] \(.path):\(.line) - \(.title)"'
+    # Handle potential malformed JSON gracefully
+    if echo "$COMMENTS" | jq -r '"- [\(.severity)] \(.path):\(.line) - \(.title)"' 2>/dev/null; then
+        :  # Success - output already printed
+    else
+        echo "  (unable to parse inline comments)"
+    fi
     echo ""
 fi
 

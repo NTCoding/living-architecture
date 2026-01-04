@@ -43,6 +43,10 @@ fi
 
 # Get repo info for API calls
 REPO=$(gh repo view --json nameWithOwner -q '.nameWithOwner')
+if [[ -z "$REPO" ]]; then
+    echo "Error: Could not determine repository. Are you in a git repo with a GitHub remote?" >&2
+    exit 1
+fi
 
 # Wait for CodeRabbit review to complete (with timeout)
 wait_for_coderabbit_review() {
@@ -54,7 +58,8 @@ wait_for_coderabbit_review() {
 
     while [[ $elapsed -lt $timeout ]]; do
         # Check if CodeRabbit has submitted a review
-        local review_state=$(gh pr view "$pr_number" --json reviews \
+        local review_state
+        review_state=$(gh pr view "$pr_number" --json reviews \
             --jq '[.reviews[] | select(.author.login | startswith("coderabbitai"))] | last | .state // empty')
 
         if [[ -n "$review_state" ]]; then
@@ -71,6 +76,27 @@ wait_for_coderabbit_review() {
     return 1
 }
 
+# Get latest CodeRabbit review body
+get_latest_review_body() {
+    local pr_number=$1
+    gh api "repos/${REPO}/pulls/${pr_number}/reviews" \
+        --jq '[.[] | select(.user.login | startswith("coderabbitai"))] | last | .body // empty' 2>/dev/null
+}
+
+# Get nitpick count from review body
+get_nitpick_count() {
+    local pr_number=$1
+    local review_body
+    review_body=$(get_latest_review_body "$pr_number")
+    if [[ -n "$review_body" ]]; then
+        local count
+        count=$(echo "$review_body" | sed -n 's/.*🧹 Nitpick comments (\([0-9]*\)).*/\1/p' | head -1)
+        echo "${count:-0}"
+    else
+        echo "0"
+    fi
+}
+
 # Get CodeRabbit feedback (inline comments and nitpicks)
 get_coderabbit_feedback() {
     local pr_number=$1
@@ -82,18 +108,20 @@ get_coderabbit_feedback() {
 
     echo ""
 
-    # Get review body and extract nitpicks
-    local review_body=$(gh api "repos/${REPO}/pulls/${pr_number}/reviews" \
-        --jq '[.[] | select(.user.login | startswith("coderabbitai"))] | last | .body // empty' 2>/dev/null)
+    # Get review body and extract stats
+    local review_body
+    review_body=$(get_latest_review_body "$pr_number")
 
     if [[ -n "$review_body" ]]; then
         # Extract actionable count (macOS-compatible)
-        local actionable=$(echo "$review_body" | sed -n 's/.*Actionable comments posted: \([0-9]*\).*/\1/p' | head -1)
+        local actionable
+        actionable=$(echo "$review_body" | sed -n 's/.*Actionable comments posted: \([0-9]*\).*/\1/p' | head -1)
         actionable="${actionable:-0}"
         echo "Actionable comments: $actionable"
 
         # Extract nitpick count from the review body (macOS-compatible)
-        local nitpick_count=$(echo "$review_body" | sed -n 's/.*🧹 Nitpick comments (\([0-9]*\)).*/\1/p' | head -1)
+        local nitpick_count
+        nitpick_count=$(echo "$review_body" | sed -n 's/.*🧹 Nitpick comments (\([0-9]*\)).*/\1/p' | head -1)
         nitpick_count="${nitpick_count:-0}"
         if [[ "$nitpick_count" != "0" ]]; then
             echo ""
@@ -191,10 +219,7 @@ if [[ "$CHECK_STATUS" == "pass" ]]; then
     echo ""
 
     # Show nitpicks as suggestions (non-blocking)
-    NITPICKS=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}/reviews" \
-        --jq '[.[] | select(.user.login | startswith("coderabbitai"))] | last | .body // empty' 2>/dev/null | \
-        sed -n 's/.*🧹 Nitpick comments (\([0-9]*\)).*/\1/p' | head -1)
-    NITPICKS="${NITPICKS:-0}"
+    NITPICKS=$(get_nitpick_count "$PR_NUMBER")
 
     if [[ "$NITPICKS" != "0" && -n "$NITPICKS" ]]; then
         echo "## Suggestions to consider ($NITPICKS nitpicks):"
