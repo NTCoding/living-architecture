@@ -144,9 +144,9 @@ function addEventHandlerComponent(builder: RiviereBuilder, common: CommonInput, 
   return component.id;
 }
 
-type ComponentHandler = (builder: RiviereBuilder, common: CommonInput, options: AddComponentOptions) => string;
+type ComponentAdder = (builder: RiviereBuilder, common: CommonInput, options: AddComponentOptions) => string;
 
-const componentHandlers: Record<ComponentTypeFlag, ComponentHandler> = {
+const componentAdders: Record<ComponentTypeFlag, ComponentAdder> = {
   UI: addUIComponent,
   API: addAPIComponent,
   UseCase: addUseCaseComponent,
@@ -178,8 +178,8 @@ function addComponentToBuilder(
     ...(options.description ? { description: options.description } : {}),
   };
 
-  const handler = componentHandlers[componentType];
-  return handler(builder, commonInput, options);
+  const adder = componentAdders[componentType];
+  return adder(builder, commonInput, options);
 }
 
 function tryAddComponent(

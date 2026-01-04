@@ -375,11 +375,9 @@ describe('riviere builder add-component', () => {
 
   describe('getErrorMessage', () => {
     it('returns message from Error instance', () => expect(getErrorMessage(new Error('test error'))).toBe('test error'));
-    it('returns Unknown error for non-Error values', () => {
-      expect(getErrorMessage('string error')).toBe('Unknown error');
-      expect(getErrorMessage(null)).toBe('Unknown error');
-      expect(getErrorMessage(undefined)).toBe('Unknown error');
-      expect(getErrorMessage(42)).toBe('Unknown error');
-    });
+    it('returns Unknown error when input is string', () => expect(getErrorMessage('string error')).toBe('Unknown error'));
+    it('returns Unknown error when input is null', () => expect(getErrorMessage(null)).toBe('Unknown error'));
+    it('returns Unknown error when input is undefined', () => expect(getErrorMessage(undefined)).toBe('Unknown error'));
+    it('returns Unknown error when input is number', () => expect(getErrorMessage(42)).toBe('Unknown error'));
   });
 });
