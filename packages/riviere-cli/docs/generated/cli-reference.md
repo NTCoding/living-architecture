@@ -57,6 +57,7 @@ riviere builder add-component [options]
 | `--operation-name <name>` | Operation name (DomainOp) |
 | `--entity <entity>` | Entity name (DomainOp) |
 | `--event-name <name>` | Event name |
+| `--event-schema <schema>` | Event schema definition |
 | `--subscribed-events <events>` | Comma-separated subscribed event names |
 | `--custom-type <name>` | Custom type name |
 | `--custom-property <key:value>` | Custom property (repeatable) |
@@ -87,7 +88,8 @@ riviere builder add-component --type DomainOp --name "order-begin" \
 # Add an Event
 riviere builder add-component --type Event --name "order-placed" \
   --domain orders --module events --repository ecommerce \
-  --file-path src/events/OrderPlaced.ts --event-name "order-placed"
+  --file-path src/events/OrderPlaced.ts --event-name "order-placed" \
+  --event-schema "{ orderId: string, total: number }"
 ```
 
 ---
