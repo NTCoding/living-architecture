@@ -3,6 +3,8 @@
 How to write tests that catch bugs, document behavior, and remain maintainable.
 
 > Based on [BugMagnet](https://github.com/gojko/bugmagnet-ai-assistant) by Gojko Adzic. Adapted with attribution.
+>
+> **See also:** [Project-specific conventions](#project-specific-conventions) at the end of this document.
 
 ## Critical Rules
 
@@ -136,44 +138,6 @@ it('sends confirmation email after processing', () => {
 })
 ```
 
-## Test Fixtures
-
-> **Project-specific convention** (not from BugMagnet)
-
-Use fixture files to reduce duplication and improve test clarity.
-
-**When to use fixtures:**
-
-- Multiple tests share similar setup data
-- Tests differ only in specific values being tested
-
-**Pattern:** Create `<module>-fixtures.ts` alongside `<module>.spec.ts`
-
-```typescript
-// command-fixtures.ts
-const DEFAULTS = {
-  type: 'UI',
-  name: 'Test Component',
-  domain: 'orders',
-} as const;
-
-export function buildArgs(options = {}) {
-  return { ...DEFAULTS, ...options };
-}
-
-// command.spec.ts
-it('handles custom value', async () => {
-  await run(buildArgs({ customField: 'test-value' }));
-  expect(...);
-});
-```
-
-**Benefits:**
-
-- Tests show only what's relevant to the test case
-- Defaults defined once, not repeated
-- Changes to common structure happen in one place
-
 ## Edge Case Checklists
 
 When testing a function, systematically consider these edge cases based on input types.
@@ -273,3 +237,45 @@ When you discover a bug, don't stop—explore related scenarios:
 - If you found a bug and wrote one test: STOP. Bugs cluster. What related scenarios might have the same problem?
 
 - If you're skipping edge cases because "that won't happen": STOP. It will happen. In production. At 3 AM.
+
+---
+
+## Project-Specific Conventions
+
+The following conventions are specific to this project, not from BugMagnet.
+
+### Test Fixtures
+
+Use fixture files to reduce duplication and improve test clarity.
+
+**When to use fixtures:**
+
+- Multiple tests share similar setup data
+- Tests differ only in specific values being tested
+
+**Pattern:** Create `<module>-fixtures.ts` alongside `<module>.spec.ts`
+
+```typescript
+// command-fixtures.ts
+const DEFAULTS = {
+  type: 'UI',
+  name: 'Test Component',
+  domain: 'orders',
+} as const;
+
+export function buildArgs(options = {}) {
+  return { ...DEFAULTS, ...options };
+}
+
+// command.spec.ts
+it('handles custom value', async () => {
+  await run(buildArgs({ customField: 'test-value' }));
+  expect(...);
+});
+```
+
+**Benefits:**
+
+- Tests show only what's relevant to the test case
+- Defaults defined once, not repeated
+- Changes to common structure happen in one place
