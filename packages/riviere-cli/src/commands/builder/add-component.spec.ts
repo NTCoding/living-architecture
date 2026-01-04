@@ -5,6 +5,7 @@ import { createProgram } from '../../cli';
 import { CliErrorCode } from '../../error-codes';
 import { getErrorMessage } from './add-component';
 import { type TestContext, createTestContext, setupCommandTest, createGraphWithDomain } from '../../command-test-fixtures';
+import { buildAddComponentArgs } from './add-component-fixtures';
 
 describe('riviere builder add-component', () => {
   describe('command registration', () => {
@@ -23,26 +24,7 @@ describe('riviere builder add-component', () => {
 
     it('returns GRAPH_NOT_FOUND when no graph exists', async () => {
       const program = createProgram();
-      await program.parseAsync([
-        'node',
-        'riviere',
-        'builder',
-        'add-component',
-        '--type',
-        'UI',
-        '--name',
-        'Test Component',
-        '--domain',
-        'orders',
-        '--module',
-        'checkout',
-        '--repository',
-        'https://github.com/org/repo',
-        '--file-path',
-        'src/test.ts',
-        '--route',
-        '/test',
-      ]);
+      await program.parseAsync(buildAddComponentArgs({ extraArgs: ['--route', '/test'] }));
 
       const output = ctx.consoleOutput.join('\n');
       expect(output).toContain(CliErrorCode.GraphNotFound);
@@ -50,24 +32,7 @@ describe('riviere builder add-component', () => {
 
     it('returns VALIDATION_ERROR when --type is invalid', async () => {
       const program = createProgram();
-      await program.parseAsync([
-        'node',
-        'riviere',
-        'builder',
-        'add-component',
-        '--type',
-        'InvalidType',
-        '--name',
-        'Test Component',
-        '--domain',
-        'orders',
-        '--module',
-        'checkout',
-        '--repository',
-        'https://github.com/org/repo',
-        '--file-path',
-        'src/test.ts',
-      ]);
+      await program.parseAsync(buildAddComponentArgs({ type: 'InvalidType' }));
 
       expect(ctx.consoleOutput).toHaveLength(1);
       const output: unknown = JSON.parse(ctx.consoleOutput[0] ?? '');
@@ -88,26 +53,9 @@ describe('riviere builder add-component', () => {
     it('returns DOMAIN_NOT_FOUND when domain does not exist', async () => {
       await createGraphWithDomain(ctx.testDir, 'orders');
       const program = createProgram();
-      await program.parseAsync([
-        'node',
-        'riviere',
-        'builder',
-        'add-component',
-        '--type',
-        'UI',
-        '--name',
-        'Test',
-        '--domain',
-        'nonexistent',
-        '--module',
-        'checkout',
-        '--repository',
-        'https://github.com/org/repo',
-        '--file-path',
-        'src/test.ts',
-        '--route',
-        '/test',
-      ]);
+      await program.parseAsync(
+        buildAddComponentArgs({ name: 'Test', domain: 'nonexistent', extraArgs: ['--route', '/test'] }),
+      );
       expect(ctx.consoleOutput.join('\n')).toContain(CliErrorCode.DomainNotFound);
     });
 
@@ -121,24 +69,7 @@ describe('riviere builder add-component', () => {
     ])('returns VALIDATION_ERROR when $type missing $expectedFlag', async ({ type, expectedFlag }) => {
       await createGraphWithDomain(ctx.testDir, 'orders');
       const program = createProgram();
-      await program.parseAsync([
-        'node',
-        'riviere',
-        'builder',
-        'add-component',
-        '--type',
-        type,
-        '--name',
-        'Test',
-        '--domain',
-        'orders',
-        '--module',
-        'checkout',
-        '--repository',
-        'https://github.com/org/repo',
-        '--file-path',
-        'src/test.ts',
-      ]);
+      await program.parseAsync(buildAddComponentArgs({ type, name: 'Test' }));
       const output = ctx.consoleOutput.join('\n');
       expect(output).toContain(CliErrorCode.ValidationError);
       expect(output).toContain(expectedFlag);
@@ -181,25 +112,7 @@ describe('riviere builder add-component', () => {
       await createGraphWithDomain(ctx.testDir, 'orders');
 
       const program = createProgram();
-      await program.parseAsync([
-        'node',
-        'riviere',
-        'builder',
-        'add-component',
-        '--type',
-        type,
-        '--name',
-        name,
-        '--domain',
-        'orders',
-        '--module',
-        module,
-        '--repository',
-        'https://github.com/org/repo',
-        '--file-path',
-        filePath,
-        ...extraArgs,
-      ]);
+      await program.parseAsync(buildAddComponentArgs({ type, name, module, filePath, extraArgs }));
 
       const graphPath = join(ctx.testDir, '.riviere', 'graph.json');
       const content = await readFile(graphPath, 'utf-8');
@@ -212,26 +125,15 @@ describe('riviere builder add-component', () => {
       await createGraphWithDomain(ctx.testDir, 'orders');
 
       const program = createProgram();
-      await program.parseAsync([
-        'node',
-        'riviere',
-        'builder',
-        'add-component',
-        '--type',
-        'Custom',
-        '--name',
-        'Order Queue',
-        '--domain',
-        'orders',
-        '--module',
-        'messaging',
-        '--repository',
-        'https://github.com/org/repo',
-        '--file-path',
-        'src/queues/orders.ts',
-        '--custom-type',
-        'MessageQueue',
-      ]);
+      await program.parseAsync(
+        buildAddComponentArgs({
+          type: 'Custom',
+          name: 'Order Queue',
+          module: 'messaging',
+          filePath: 'src/queues/orders.ts',
+          extraArgs: ['--custom-type', 'MessageQueue'],
+        }),
+      );
 
       const output = ctx.consoleOutput.join('\n');
       expect(output).toContain(CliErrorCode.CustomTypeNotFound);
@@ -240,26 +142,11 @@ describe('riviere builder add-component', () => {
     it('returns DUPLICATE_COMPONENT when component already exists', async () => {
       await createGraphWithDomain(ctx.testDir, 'orders');
 
-      const args = [
-        'node',
-        'riviere',
-        'builder',
-        'add-component',
-        '--type',
-        'UI',
-        '--name',
-        'Checkout Page',
-        '--domain',
-        'orders',
-        '--module',
-        'checkout',
-        '--repository',
-        'https://github.com/org/repo',
-        '--file-path',
-        'src/pages/checkout.tsx',
-        '--route',
-        '/checkout',
-      ];
+      const args = buildAddComponentArgs({
+        name: 'Checkout Page',
+        filePath: 'src/pages/checkout.tsx',
+        extraArgs: ['--route', '/checkout'],
+      });
 
       const program1 = createProgram();
       await program1.parseAsync(args);
@@ -275,27 +162,13 @@ describe('riviere builder add-component', () => {
       await createGraphWithDomain(ctx.testDir, 'orders');
 
       const program = createProgram();
-      await program.parseAsync([
-        'node',
-        'riviere',
-        'builder',
-        'add-component',
-        '--type',
-        'UI',
-        '--name',
-        'Checkout Page',
-        '--domain',
-        'orders',
-        '--module',
-        'checkout',
-        '--repository',
-        'https://github.com/org/repo',
-        '--file-path',
-        'src/pages/checkout.tsx',
-        '--route',
-        '/checkout',
-        '--json',
-      ]);
+      await program.parseAsync(
+        buildAddComponentArgs({
+          name: 'Checkout Page',
+          filePath: 'src/pages/checkout.tsx',
+          extraArgs: ['--route', '/checkout', '--json'],
+        }),
+      );
 
       expect(ctx.consoleOutput).toHaveLength(1);
       const output: unknown = JSON.parse(ctx.consoleOutput[0] ?? '');
@@ -308,28 +181,14 @@ describe('riviere builder add-component', () => {
     it('includes description when --description provided', async () => {
       await createGraphWithDomain(ctx.testDir, 'orders');
       const program = createProgram();
-      await program.parseAsync([
-        'node',
-        'riviere',
-        'builder',
-        'add-component',
-        '--type',
-        'UI',
-        '--name',
-        'Checkout',
-        '--domain',
-        'orders',
-        '--module',
-        'web',
-        '--repository',
-        'https://github.com/org/repo',
-        '--file-path',
-        'src/checkout.tsx',
-        '--route',
-        '/checkout',
-        '--description',
-        'Main checkout page',
-      ]);
+      await program.parseAsync(
+        buildAddComponentArgs({
+          name: 'Checkout',
+          module: 'web',
+          filePath: 'src/checkout.tsx',
+          extraArgs: ['--route', '/checkout', '--description', 'Main checkout page'],
+        }),
+      );
       const graphPath = join(ctx.testDir, '.riviere', 'graph.json');
       const content = await readFile(graphPath, 'utf-8');
       const graph: unknown = JSON.parse(content);
@@ -341,28 +200,14 @@ describe('riviere builder add-component', () => {
     it('includes lineNumber in sourceLocation when --line-number provided', async () => {
       await createGraphWithDomain(ctx.testDir, 'orders');
       const program = createProgram();
-      await program.parseAsync([
-        'node',
-        'riviere',
-        'builder',
-        'add-component',
-        '--type',
-        'UI',
-        '--name',
-        'Checkout',
-        '--domain',
-        'orders',
-        '--module',
-        'web',
-        '--repository',
-        'https://github.com/org/repo',
-        '--file-path',
-        'src/checkout.tsx',
-        '--route',
-        '/checkout',
-        '--line-number',
-        '42',
-      ]);
+      await program.parseAsync(
+        buildAddComponentArgs({
+          name: 'Checkout',
+          module: 'web',
+          filePath: 'src/checkout.tsx',
+          extraArgs: ['--route', '/checkout', '--line-number', '42'],
+        }),
+      );
       const graphPath = join(ctx.testDir, '.riviere', 'graph.json');
       const content = await readFile(graphPath, 'utf-8');
       const graph: unknown = JSON.parse(content);
@@ -370,7 +215,6 @@ describe('riviere builder add-component', () => {
         components: [{ sourceLocation: { lineNumber: 42 } }],
       });
     });
-
   });
 
   describe('getErrorMessage', () => {

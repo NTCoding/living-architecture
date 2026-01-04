@@ -136,6 +136,42 @@ it('sends confirmation email after processing', () => {
 })
 ```
 
+## Test Fixtures
+
+Use fixture files to reduce duplication and improve test clarity.
+
+**When to use fixtures:**
+
+- Multiple tests share similar setup data
+- Tests differ only in specific values being tested
+
+**Pattern:** Create `<module>-fixtures.ts` alongside `<module>.spec.ts`
+
+```typescript
+// command-fixtures.ts
+const DEFAULTS = {
+  type: 'UI',
+  name: 'Test Component',
+  domain: 'orders',
+} as const;
+
+export function buildArgs(options = {}) {
+  return { ...DEFAULTS, ...options };
+}
+
+// command.spec.ts
+it('handles custom value', async () => {
+  await run(buildArgs({ customField: 'test-value' }));
+  expect(...);
+});
+```
+
+**Benefits:**
+
+- Tests show only what's relevant to the test case
+- Defaults defined once, not repeated
+- Changes to common structure happen in one place
+
 ## Edge Case Checklists
 
 When testing a function, systematically consider these edge cases based on input types.
