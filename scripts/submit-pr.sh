@@ -87,18 +87,18 @@ get_coderabbit_feedback() {
         --jq '[.[] | select(.user.login | startswith("coderabbitai"))] | last | .body // empty' 2>/dev/null)
 
     if [[ -n "$review_body" ]]; then
-        # Extract actionable count
-        local actionable=$(echo "$review_body" | grep -oP 'Actionable comments posted: \K\d+' || echo "0")
+        # Extract actionable count (macOS-compatible)
+        local actionable=$(echo "$review_body" | sed -n 's/.*Actionable comments posted: \([0-9]*\).*/\1/p' | head -1)
+        actionable="${actionable:-0}"
         echo "Actionable comments: $actionable"
 
-        # Extract nitpick count from the review body
-        local nitpick_count=$(echo "$review_body" | grep -oP '🧹 Nitpick comments \(\K\d+' || echo "0")
+        # Extract nitpick count from the review body (macOS-compatible)
+        local nitpick_count=$(echo "$review_body" | sed -n 's/.*🧹 Nitpick comments (\([0-9]*\)).*/\1/p' | head -1)
+        nitpick_count="${nitpick_count:-0}"
         if [[ "$nitpick_count" != "0" ]]; then
             echo ""
             echo "## Nitpicks to Consider ($nitpick_count)"
-            # Extract nitpick content - simplified extraction
-            echo "$review_body" | sed -n '/🧹 Nitpick comments/,/<\/blockquote><\/details>/p' | \
-                grep -oP '`[^`]+`.*?(?=<\/blockquote>|$)' | head -5 || echo "  (see PR for details)"
+            echo "  (see PR for details)"
         fi
     fi
 }
@@ -193,7 +193,8 @@ if [[ "$CHECK_STATUS" == "pass" ]]; then
     # Show nitpicks as suggestions (non-blocking)
     NITPICKS=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}/reviews" \
         --jq '[.[] | select(.user.login | startswith("coderabbitai"))] | last | .body // empty' 2>/dev/null | \
-        grep -oP '🧹 Nitpick comments \(\K\d+' || echo "0")
+        sed -n 's/.*🧹 Nitpick comments (\([0-9]*\)).*/\1/p' | head -1)
+    NITPICKS="${NITPICKS:-0}"
 
     if [[ "$NITPICKS" != "0" && -n "$NITPICKS" ]]; then
         echo "## Suggestions to consider ($NITPICKS nitpicks):"
