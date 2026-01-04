@@ -12,9 +12,9 @@ Generate well-formed tasks from PRD deliverables and add them to GitHub.
    - Use SPIDR techniques to split epics
 3. For each task, run:
    ```bash
-   ./scripts/create-task.sh "<milestone>" "[M<n>-D<n>] <title>" "<body>"
+   ./scripts/create-task.sh "<milestone>" "[M<milestone>-D<deliverable>] <title>" "<body>"
    ```
    - Milestone = PRD filename without `PRD-` and `.md`
-   - Title format: `[M<milestone>-D<deliverable>] Description`
+   - Title format: `[M<milestone>-D<deliverable>] <title>`
    - Body: task content with acceptance criteria
 4. If a task depends on another, include `Depends on #X` in the body
