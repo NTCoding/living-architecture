@@ -27,7 +27,7 @@ Work through the entire lifecycle autonomously. Present the user with a complete
 
 **List Tasks** — User says "next task" or asks what's available. Run the script, then propose the first task to the user.
 
-**Start Task** — User has confirmed they want to begin a specific task.
+**Start Task** — User has confirmed they want to begin a specific task. This script provides the issue details—do not fetch them separately.
 
 **Amend Task** — Requirements changed or need clarification during development.
 
