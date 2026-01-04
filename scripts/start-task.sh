@@ -31,6 +31,9 @@ echo "Issue title: $ISSUE_TITLE"
 
 # Create short description from title (lowercase, hyphens, max 30 chars)
 SHORT_DESC=$(echo "$ISSUE_TITLE" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-//' | sed 's/-$//' | cut -c1-30)
+if [[ -z "$SHORT_DESC" ]]; then
+    SHORT_DESC="task"
+fi
 BRANCH_NAME="issue-${ISSUE_NUMBER}-${SHORT_DESC}"
 
 echo "Creating branch: $BRANCH_NAME"

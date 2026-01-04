@@ -9,6 +9,11 @@ LABEL_FILTER=""
 while [[ $# -gt 0 ]]; do
     case $1 in
         --label)
+            if [[ -z "${2:-}" ]]; then
+                echo "Error: --label requires a value" >&2
+                echo "Usage: ./scripts/list-tasks.sh [--label <label>]" >&2
+                exit 1
+            fi
             LABEL_FILTER="$2"
             shift 2
             ;;

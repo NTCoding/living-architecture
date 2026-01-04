@@ -63,6 +63,13 @@ elif [[ "$MODE" == "create" ]]; then
         exit 1
     fi
 
+    # Prevent PR creation from main branch
+    CURRENT_BRANCH=$(git branch --show-current)
+    if [[ "$CURRENT_BRANCH" == "main" ]]; then
+        echo "Error: Cannot create PR from main branch. Create a feature branch first." >&2
+        exit 1
+    fi
+
     if [[ -z "$TITLE" ]]; then
         echo "Error: --title is required for creating a PR" >&2
         exit 1

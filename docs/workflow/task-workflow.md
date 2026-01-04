@@ -35,6 +35,6 @@ Work through the entire lifecycle autonomously. Present the user with a complete
 
 **Re-check PR** — PR feedback addressed, needs CI verification.
 
-**Activate PRD** — Moving a PRD from notstarted to active.
+**Activate PRD** — Moving a PRD from not started to active.
 
 **Archive PRD** — All tasks in a PRD complete. Close the milestone.
