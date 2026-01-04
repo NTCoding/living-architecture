@@ -119,10 +119,9 @@ get_coderabbit_feedback() {
         actionable="${actionable:-0}"
         echo "Actionable comments: $actionable"
 
-        # Extract nitpick count from the review body (macOS-compatible)
+        # Extract nitpick count using shared helper
         local nitpick_count
-        nitpick_count=$(echo "$review_body" | sed -n 's/.*🧹 Nitpick comments (\([0-9]*\)).*/\1/p' | head -1)
-        nitpick_count="${nitpick_count:-0}"
+        nitpick_count=$(get_nitpick_count "$pr_number")
         if [[ "$nitpick_count" != "0" ]]; then
             echo ""
             echo "## Nitpicks to Consider ($nitpick_count)"
