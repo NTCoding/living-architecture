@@ -25,7 +25,7 @@ Work through the entire lifecycle autonomously. Present the user with a complete
 
 **Create Tasks** — New work identified from a PRD. Break down deliverables into tasks.
 
-**List Tasks** — Find available tasks to work on next.
+**List Tasks** — User says "next task" or asks what's available. Run the script, then propose the first task to the user.
 
 **Start Task** — User has confirmed they want to begin a specific task.
 
