@@ -92,6 +92,11 @@
   color: var(--vp-c-text-2);
 }
 
+/* Prevent hero gradient blur from bleeding outside container */
+.VPHero .image-container {
+  overflow: hidden;
+}
+
 /* ==========================================================================
    Buttons
    ========================================================================== */
@@ -166,9 +171,8 @@ button:focus-visible,
    Navigation
    ========================================================================== */
 
-.VPNavBar {
-  border-bottom: 1px solid var(--vp-c-divider);
-}
+/* Note: VPNavBar border handled by VitePress default .divider-line element
+   which properly aligns with sidebar. Do not override with border-bottom. */
 
 .VPNavBarTitle .title {
   font-family: 'Rubik', var(--vp-font-family-base);
