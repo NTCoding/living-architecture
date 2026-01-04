@@ -15,7 +15,7 @@ Work through the entire lifecycle autonomously. Present the user with a complete
 | Start Task | `./scripts/start-task.sh <issue-number>` | **User confirmation required** |
 | Amend Task | `./scripts/amend-task.sh <issue-number> "Amendment"` | Autonomous |
 | Complete Task | `/complete-task` | Autonomous |
-| Re-check PR | `./scripts/submit-pr.sh --update` | Autonomous |
+| Re-check PR | `/complete-task` | Autonomous |
 | Activate PRD | `./scripts/activate-prd.sh <prd-name>` | **User confirmation required** |
 | Archive PRD | `./scripts/archive-prd.sh <prd-name>` | **User confirmation required** |
 
@@ -31,9 +31,9 @@ Work through the entire lifecycle autonomously. Present the user with a complete
 
 **Amend Task** — Requirements changed or need clarification during development.
 
-**Complete Task** — Implementation done, tests passing. Submit the PR.
+**Complete Task** — Implementation done, tests passing. Runs the complete autonomous pipeline: verify gate, code review, task-check, and PR submission.
 
-**Re-check PR** — PR feedback addressed, needs CI verification.
+**Re-check PR** — PR feedback addressed, needs CI verification. Run `/complete-task` again to re-run the full pipeline.
 
 **Activate PRD** — Moving a PRD from not started to active.
 
