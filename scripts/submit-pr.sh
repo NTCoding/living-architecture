@@ -97,6 +97,23 @@ get_nitpick_count() {
     fi
 }
 
+# Get nitpick content from review body
+get_nitpick_content() {
+    local pr_number=$1
+    local review_body
+    review_body=$(get_latest_review_body "$pr_number")
+
+    if [[ -n "$review_body" ]]; then
+        # Extract content between 🧹 Nitpick comments section
+        # The format is: <summary>🧹 Nitpick comments (N)</summary><blockquote>...content...</blockquote></details>
+        echo "$review_body" | sed -n '/🧹 Nitpick comments/,/<\/details>/p' | \
+            sed 's/<[^>]*>//g' | \
+            sed 's/&nbsp;/ /g' | \
+            grep -v "^$" | \
+            grep -v "🧹 Nitpick comments"
+    fi
+}
+
 # Get CodeRabbit feedback (inline comments and nitpicks)
 get_coderabbit_feedback() {
     local pr_number=$1
@@ -118,15 +135,22 @@ get_coderabbit_feedback() {
         actionable=$(echo "$review_body" | sed -n 's/.*Actionable comments posted: \([0-9]*\).*/\1/p' | head -1)
         actionable="${actionable:-0}"
         echo "Actionable comments: $actionable"
+    fi
+}
 
-        # Extract nitpick count using shared helper
-        local nitpick_count
-        nitpick_count=$(get_nitpick_count "$pr_number")
-        if [[ "$nitpick_count" != "0" ]]; then
-            echo ""
-            echo "## Nitpicks to Consider ($nitpick_count)"
-            echo "  (see PR for details)"
-        fi
+# Show nitpicks with actual content
+show_nitpicks() {
+    local pr_number=$1
+    local nitpick_count
+    nitpick_count=$(get_nitpick_count "$pr_number")
+
+    if [[ "$nitpick_count" != "0" && -n "$nitpick_count" ]]; then
+        echo ""
+        echo "## Nitpicks to Consider ($nitpick_count)"
+        echo ""
+        get_nitpick_content "$pr_number"
+        echo ""
+        echo "You are encouraged to address all nitpicks where possible unless there's a good reason not to."
     fi
 }
 
@@ -216,6 +240,7 @@ if [[ "$CHECK_STATUS" == "pass" ]]; then
             echo "=========================================="
             echo ""
             get_coderabbit_feedback "$PR_NUMBER"
+            show_nitpicks "$PR_NUMBER"
             echo ""
             echo "PR #$PR_NUMBER: $PR_URL"
             echo ""
@@ -225,28 +250,20 @@ if [[ "$CHECK_STATUS" == "pass" ]]; then
         fi
     fi
 
-    # Success - show any nitpicks as suggestions
+    # Success
     echo "=========================================="
     echo "All checks passed! PR ready for review."
     echo "=========================================="
+    show_nitpicks "$PR_NUMBER"
     echo ""
-
-    # Show nitpicks as suggestions (non-blocking)
-    NITPICKS=$(get_nitpick_count "$PR_NUMBER")
-
-    if [[ "$NITPICKS" != "0" && -n "$NITPICKS" ]]; then
-        echo "## Suggestions to consider ($NITPICKS nitpicks):"
-        echo "  See PR comments for optional improvements"
-        echo ""
-    fi
-
     echo "PR #$PR_NUMBER: $PR_URL"
 else
-    echo "Some checks failed."
-    echo "PR #$PR_NUMBER: $PR_URL"
+    echo "CI checks failed."
     echo ""
-    echo "PR Comments:"
-    gh pr view --comments
+    get_coderabbit_feedback "$PR_NUMBER"
+    show_nitpicks "$PR_NUMBER"
+    echo ""
+    echo "PR #$PR_NUMBER: $PR_URL"
     echo ""
     echo "Fix issues and run: ./scripts/submit-pr.sh --update"
 fi
