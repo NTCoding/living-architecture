@@ -15,6 +15,10 @@ PR_NUMBER="${1:-}"
 
 # Get repo info
 REPO=$(gh repo view --json nameWithOwner -q '.nameWithOwner')
+if [[ -z "$REPO" ]]; then
+    echo "Error: Could not determine repository. Are you in a git repo with a GitHub remote?" >&2
+    exit 1
+fi
 
 # If no PR number provided, get from current branch
 if [[ -z "$PR_NUMBER" ]]; then
