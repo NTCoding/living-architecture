@@ -171,8 +171,9 @@ button:focus-visible,
    Navigation
    ========================================================================== */
 
-/* Note: VPNavBar border handled by VitePress default .divider-line element
-   which properly aligns with sidebar. Do not override with border-bottom. */
+.VPNavBar {
+  border-bottom: 1px solid var(--vp-c-divider);
+}
 
 .VPNavBarTitle .title {
   font-family: 'Rubik', var(--vp-font-family-base);
@@ -192,6 +193,13 @@ button:focus-visible,
 /* ==========================================================================
    Sidebar
    ========================================================================== */
+
+/* Add bottom border to sidebar curtain to align with nav bar border */
+@media (min-width: 960px) {
+  .VPSidebar .curtain {
+    border-bottom: 1px solid var(--vp-c-divider);
+  }
+}
 
 .VPSidebar .link {
   transition: color 0.2s ease;
