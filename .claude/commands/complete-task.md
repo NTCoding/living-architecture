@@ -66,12 +66,17 @@ prompt: |
      - Commit changes
      - Push to remote
      - Run `./scripts/submit-pr.sh` and wait for it to complete (may take several minutes)
+     - Capture the COMPLETE raw output from the script
      - FAIL → return:
        SUBMIT PR FAILED
-       [script output]
+       <raw-output>
+       [paste the COMPLETE raw output from submit-pr.sh here - do not summarize]
+       </raw-output>
        NEXT STEPS: Address the issues and re-run /complete-task
        LOOP CONTROL: If this is your third successive attempt, ask the user for help.
      - SUCCESS → return:
        PR READY FOR REVIEW
-       [PR URL and output from submit-pr.sh]
+       <raw-output>
+       [paste the COMPLETE raw output from submit-pr.sh here - do not summarize]
+       </raw-output>
 ```
