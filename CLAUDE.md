@@ -109,7 +109,7 @@ When writing, editing, refactoring, or reviewing code:
 - look for standard implementation patterns defined in `docs/conventions/standard-patterns.md`
 - avoid `@docs/conventions/anti-patterns.md`
 
-The automatic code review agent enforces these conventions (see `./claude/automatic-code-review/rules.md`)
+Code review runs via `/code-review` and `/complete-task` commands (see `.claude/automatic-code-review/rules.md` for rules)
 
 Code quality is of highest importance. Rushing or taking shortcuts is never acceptable.
 
@@ -134,7 +134,7 @@ Installed from `ntcoding/claude-skillz`:
 
 **Plugins:**
 - `task-check` - Validates task completion before marking done
-- `automatic-code-review` - Reviews code on session stop
+- `automatic-code-review` - Code review agent (used by /code-review and /complete-task)
 
 ## NX Guidelines
 

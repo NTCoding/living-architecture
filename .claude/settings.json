@@ -38,7 +38,7 @@
     "full-codebase-review@claude-skillz": true
   },
   "automaticCodeReview": {
-    "enabled": true,
+    "enabled": false,
     "fileExtensions": [
       "ts",
       "tsx"
