@@ -1,304 +1,40 @@
 # Task Workflow
 
-> **When to use this document:** Consult this when managing tasks or PRDs. Find your action in the table below, then follow the linked section.
+> **MANDATORY:** Follow these instructions exactly. Do not run git/gh commands directly.
+
+## Goal
+
+Work through the entire lifecycle autonomously. Present the user with a completed pull request that is green and ready for review. Do not stop to ask the user unless absolutely necessary.
 
 ## Lifecycle Steps
 
-| Action | When |
-|--------|------|
-| [Create task](#creating-tasks) | New work identified |
-| [Start task](#starting-work) | User says "start task" or "next task" |
-| [Update task](#updating-tasks) | Acceptance criteria changed, new insights |
-| [Complete task](#completing-tasks) | Work finished, ready for PR |
-| [Activate PRD](#activating-a-prd) | Moving PRD to `active/` |
-| [Archive PRD](#archiving-a-prd) | PRD complete |
+| Step | Command | Permission |
+|------|---------|------------|
+| Create Tasks | `/create-tasks` | **User confirmation required** |
+| List Tasks | `./scripts/list-tasks.sh` | Autonomous |
+| Start Task | `./scripts/start-task.sh <issue-number>` | **User confirmation required** |
+| Amend Task | `./scripts/amend-task.sh <issue-number> "Amendment"` | Autonomous |
+| Complete Task | `/complete-task` | Autonomous |
+| Re-check PR | `./scripts/submit-pr.sh --update` | Autonomous |
+| Activate PRD | `./scripts/activate-prd.sh <prd-name>` | **User confirmation required** |
+| Archive PRD | `./scripts/archive-prd.sh <prd-name>` | **User confirmation required** |
 
 ---
 
-## Creating Tasks
+## When to Use Each Step
 
-### From PRD Deliverables
+**Create Tasks** — New work identified from a PRD. Break down deliverables into tasks.
 
-Use the `/create-tasks` skill to generate well-formed task content:
+**List Tasks** — User says "next task" or asks what's available. Run the script, propose the first task to the user, and ask them to confirm. Once confirmed, start the task (which provides the details), then create a plan. Do not create a plan before starting.
 
-```text
-/create-tasks
-```
+**Start Task** — User has confirmed they want to begin a specific task. Run this FIRST—it provides the issue details needed for planning. Do not create a plan or fetch issue details separately before running this script.
 
-This skill:
-- Validates task size (max 1 day, vertical slice)
-- Applies INVEST criteria
-- Ensures proper structure with context, acceptance criteria, dependencies
-- Splits epics using SPIDR techniques
+**Amend Task** — Requirements changed or need clarification during development.
 
-### Add to GitHub Issues
+**Complete Task** — Implementation done, tests passing. Submit the PR.
 
-```bash
-gh issue create \
-  --title "[M1-D1] Task title" \
-  --body "Task content from skill output" \
-  --milestone "<milestone-name>"
-```
+**Re-check PR** — PR feedback addressed, needs CI verification.
 
-**Title format:** `[M<milestone>-D<deliverable>] Description` for PRD tasks.
+**Activate PRD** — Moving a PRD from not started to active.
 
-### Dependencies
-
-If a task depends on another, note in the issue body: `Depends on #X`
-
-GitHub automatically creates a link between issues.
-
----
-
-## Starting Work
-
-> **Branch Protection:** Direct pushes to `main` are blocked. All changes must go through pull requests. Before ANY code changes or planning, you MUST be on a feature branch. If you're on `main`, create a branch first.
-
-### Find the Active Milestone
-
-```bash
-# List files in active PRD folder
-ls docs/project/PRD/active/
-# → PRD-phase-9-launch.md
-
-# Milestone name = filename without PRD- and .md
-# → phase-9-launch
-```
-
-### Find Next Task
-
-```bash
-# List unassigned issues (ordered by title = PRD order)
-gh issue list --milestone "<milestone-name>" --state open --assignee ""
-```
-
-Propose the first issue to the user:
-
-> Next task is #X: "Title". Start this task?
-
-Wait for user confirmation before proceeding.
-
-### Start Working
-
-After user confirms:
-
-```text
-/start-task <issue-number>
-```
-
-Read the returned issue details and related files (PRD, referenced code) before starting.
-
----
-
-## Updating Tasks
-
-### Edit Issue Body
-
-```bash
-gh issue edit <number> --body "Updated content"
-```
-
-### Add a Comment
-
-```bash
-gh issue comment <number> --body "New insight: ..."
-```
-
-### After Plan Discussions
-
-When plan discussions with the user change requirements, scope, or approach:
-
-1. Update the GitHub issue body immediately:
-   ```bash
-   gh issue edit <number> --body "Updated requirements..."
-   ```
-
-2. Ensure acceptance criteria reflect the agreed changes
-
-This keeps the issue as the single source of truth for reviewers.
-
----
-
-## Completing Tasks
-
-> **CRITICAL:** A task is not complete until a PR exists and passes checks. Do not stop or ask the user until you reach "Notify user" step.
-
-Follow all steps autonomously. Only notify the user when the PR is ready for review.
-
-1. [Verify](#verify) — Run build, lint, test
-2. [Task-check](#task-check) — Validate completion
-3. [Create PR](#create-pr) — Commit, push, create PR
-4. [Address PR feedback](#address-pr-feedback) — Fix CodeRabbit comments, SonarCloud issues, CI failures
-5. [Notify user](#notify-user) — PR ready for review
-
----
-
-### Verify
-
-```bash
-pnpm nx run-many -t lint,typecheck,test
-```
-
-If any fail, fix and re-run before proceeding.
-
----
-
-### Task-check
-
-Run the task-check agent:
-
-```text
-Use the Task tool with subagent_type "task-check:task-check". Provide:
-1. Task ID: GitHub issue number
-2. Task location: `gh issue view <number>`
-3. Work summary: Files modified, changes made, decisions, what you skipped
-4. Attempt: Which attempt (1, 2, or 3). Start with 1.
-```
-
-**Handle response:**
-
-| STATUS | Action |
-|--------|--------|
-| PASS | Continue to [Create PR](#create-pr) |
-| FAIL | Fix issues listed, re-run task-check (max 3 attempts) |
-| NEED_INFO | If answerable from codebase, answer and re-run. Otherwise ask user. |
-
-**After 3 failed attempts:** Stop and ask user for guidance.
-
----
-
-### Create PR
-
-Commit and push your changes, then run:
-
-```bash
-git add -A && git commit -m "feat(scope): description"
-git push -u origin HEAD
-```
-
-```text
-/submit-pr --title "feat(scope): description" --body "## Summary\n- Change 1\n- Change 2" --did-you-run-task-check=yes
-```
-
-The sub-agent will create the PR, watch all CI checks, and return results.
-
-**When checks pass:** Proceed to [Notify user](#notify-user).
-
-**When checks fail or issues found:** Proceed to [Address PR feedback](#address-pr-feedback).
-
----
-
-### Address PR feedback
-
-> **CRITICAL:** Read PR comments FIRST. Bot comments (SonarCloud, CodeRabbit) explain exactly what failed. Do not investigate logs or query APIs until you've read the comments.
-
-#### Step 1: Read PR comments
-
-```bash
-gh pr view <number> --comments
-```
-
-Look for:
-- **SonarCloud Quality Gate** — Shows coverage %, duplications, issues blocking the gate
-- **CodeRabbit review** — Shows code review comments
-
-The comments tell you exactly what to fix. Read them before doing anything else.
-
-#### Step 2: CodeRabbit line comments
-
-```bash
-gh api repos/NTCoding/living-architecture/pulls/<number>/comments --jq '.[] | select(.user.login | contains("coderabbitai")) | {file: .path, line: .line, body: .body}'
-```
-
-Fix valid issues. For nitpicks or disagreements, reply explaining your reasoning (don't dismiss — leave visible for user review).
-
-#### Step 3: SonarCloud details (if needed)
-
-The PR comment shows coverage % and what's blocking the Quality Gate. If you need specific file/line details:
-
-```bash
-curl -s "https://sonarcloud.io/api/issues/search?organization=nick-tune-org&projectKeys=NTCoding_living-architecture&pullRequest=$(gh pr view --json number -q .number)&severities=CRITICAL,BLOCKER,MAJOR" | jq '.issues[] | {rule: .rule, message: .message, file: .component, line: .line}'
-```
-
-Query security hotspots:
-
-```bash
-curl -s "https://sonarcloud.io/api/hotspots/search?organization=nick-tune-org&projectKey=NTCoding_living-architecture&pullRequest=$(gh pr view --json number -q .number)" | jq '.hotspots[] | {message: .message, file: .component, line: .line}'
-```
-
-Fix all reported issues. For false positives, ask the user.
-
-#### Step 4: Commit and re-check
-
-After addressing feedback:
-
-```bash
-git add -A && git commit -m "fix: address PR feedback"
-git push
-```
-
-```text
-/submit-pr --update
-```
-
-Repeat Steps 1-4 until all checks pass with no new comments.
-
----
-
-### Notify user
-
-When all feedback is addressed and checks pass, tell the user:
-
-> PR #X is ready for review: <PR URL>
-
-The user will review and merge. The issue auto-closes when the PR is merged (via `Closes #<number>` in PR body).
-
----
-
-## Activating a PRD
-
-When moving a PRD from `notstarted/` to `active/`:
-
-1. Move the file:
-   ```bash
-   git mv docs/project/PRD/notstarted/PRD-<name>.md docs/project/PRD/active/
-   ```
-
-2. Create the milestone (name = filename without `PRD-` and `.md`):
-   ```bash
-   gh api repos/NTCoding/living-architecture/milestones \
-     --method POST \
-     --field title="<name>" \
-     --field description="See https://github.com/NTCoding/living-architecture/blob/main/docs/project/PRD/active/PRD-<name>.md"
-   ```
-
-3. Commit:
-   ```bash
-   git add -A && git commit -m "chore: activate PRD <name>"
-   ```
-
----
-
-## Archiving a PRD
-
-When a PRD is complete:
-
-1. Move the file:
-   ```bash
-   git mv docs/project/PRD/active/PRD-<name>.md docs/project/PRD/archived/
-   ```
-
-2. Find the milestone number:
-   ```bash
-   gh api repos/NTCoding/living-architecture/milestones --jq '.[] | {number, title}'
-   ```
-
-3. Close the milestone:
-   ```bash
-   gh api repos/NTCoding/living-architecture/milestones/<number> --method PATCH --field state=closed
-   ```
-
-4. Commit:
-   ```bash
-   git add -A && git commit -m "chore: archive PRD <name>"
-   ```
+**Archive PRD** — All tasks in a PRD complete. Close the milestone.

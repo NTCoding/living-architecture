@@ -41,48 +41,46 @@ Always use nx commands for build, test, lint. Don't try to run directly e.g. `pn
 
 ```bash
 # All projects
-pnpm nx run-many -t build
-pnpm nx run-many -t test
-pnpm nx run-many -t lint
+nx run-many -t build
+nx run-many -t test
+nx run-many -t lint
 
 # Specific project
-pnpm nx build [project-name]
-pnpm nx test [project-name]
-pnpm nx lint [project-name]
+nx build [project-name]
+nx test [project-name]
+nx lint [project-name]
 
 # Affected only (CI optimization)
-pnpm nx affected -t build
-pnpm nx affected -t test
+nx affected -t build
+nx affected -t test
 ```
 
 ### Single Test File
 
 ```bash
-pnpm nx test [project-name] -- --testNamePattern "should validate"
+nx test [project-name] -- --testNamePattern "should validate"
 ```
 
 ### Verify (Full Gate)
 
 ```bash
-pnpm nx run-many -t lint,typecheck,test
+nx run-many -t lint,typecheck,test --coverage
 ```
-
-Coverage is always enabled in vitest configs.
 
 ### Dependency Graph
 
 ```bash
-pnpm nx graph
+nx graph
 ```
 
 ### Adding New Projects
 
 ```bash
 # Add backend application
-pnpm nx g @nx/node:application apps/[app-name]
+nx g @nx/node:application apps/[app-name]
 
 # Add shared library (publishable)
-pnpm nx g @nx/js:library packages/[pkg-name] --publishable --importPath=@living-architecture/[pkg-name]
+nx g @nx/js:library packages/[pkg-name] --publishable --importPath=@living-architecture/[pkg-name]
 ```
 
 After generating a new project:
@@ -90,20 +88,12 @@ After generating a new project:
 2. Create the 3-file tsconfig structure (tsconfig.json, tsconfig.lib.json, tsconfig.spec.json)
 3. Add vitest.config.ts if tests are needed with 100% coverage as the default
 4. If importing from another project, add `"@living-architecture/[pkg-name]": "workspace:*"` to dependencies
-5. Run `pnpm nx sync` to update TypeScript project references
+5. Run `nx sync` to update TypeScript project references
 6. Update this CLAUDE.md "Current packages" section
 
 ## Task Workflow
 
-Whenever working on a task, always follow: `docs/workflow/task-workflow.md`
-
-**Read the workflow BEFORE:**
-- Finding or starting a task
-- Running any `gh issue` or `gh pr` commands
-- Creating commits or PRs
-- Updating requirements after user discussions
-
-Execute the exact steps documented. Do not improvise.
+*CRUCIAL*: Whenever working on any task, follow @docs/workflow/task-workflow.md from start to finish. Do not make any changes or commit any code without following these steps exactly.
 
 ## Testing
 
@@ -148,9 +138,9 @@ Installed from `ntcoding/claude-skillz`:
 
 ## NX Guidelines
 
-- **Use generators** - Don't manually create project folders. Use `pnpm nx g @nx/js:library` or `pnpm nx g @nx/node:application`.
-- **Run `pnpm nx sync`** - After modifying tsconfig references or adding dependencies between projects.
-- **Debugging stale cache** - If something seems stale, run `pnpm nx reset` to clear the cache.
+- **Use generators** - Don't manually create project folders. Use `nx g @nx/js:library` or `nx g @nx/node:application`.
+- **Run `nx sync`** - After modifying tsconfig references or adding dependencies between projects.
+- **Debugging stale cache** - If something seems stale, run `nx reset` to clear the cache.
 
 ## General Guidelines
 
