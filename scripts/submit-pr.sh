@@ -41,6 +41,68 @@ if [[ -z "$MODE" ]]; then
     exit 1
 fi
 
+# Get repo info for API calls
+REPO=$(gh repo view --json nameWithOwner -q '.nameWithOwner')
+
+# Wait for CodeRabbit review to complete (with timeout)
+wait_for_coderabbit_review() {
+    local pr_number=$1
+    local timeout=${2:-300}  # Default 5 min timeout
+    local elapsed=0
+
+    echo "Waiting for CodeRabbit review..."
+
+    while [[ $elapsed -lt $timeout ]]; do
+        # Check if CodeRabbit has submitted a review
+        local review_state=$(gh pr view "$pr_number" --json reviews \
+            --jq '[.reviews[] | select(.author.login | startswith("coderabbitai"))] | last | .state // empty')
+
+        if [[ -n "$review_state" ]]; then
+            echo "CodeRabbit review completed: $review_state"
+            return 0
+        fi
+
+        sleep 15
+        elapsed=$((elapsed + 15))
+        echo "  Still waiting for CodeRabbit... (${elapsed}s/${timeout}s)"
+    done
+
+    echo "CodeRabbit review timeout - continuing without review"
+    return 1
+}
+
+# Get CodeRabbit feedback (inline comments and nitpicks)
+get_coderabbit_feedback() {
+    local pr_number=$1
+
+    # Get inline review comments from CodeRabbit
+    echo "## Inline Comments"
+    gh api "repos/${REPO}/pulls/${pr_number}/comments" \
+        --jq '.[] | select(.user.login | startswith("coderabbitai")) | "- \(.path):\(.line // .original_line // "?") \(.body | split("\n")[0] | gsub("^_⚠️ Potential issue_ \\| _🟡 Minor_"; "[MINOR]") | gsub("^_⚠️ Potential issue_ \\| _🔴 Major_"; "[MAJOR]"))"' 2>/dev/null || echo "  (none)"
+
+    echo ""
+
+    # Get review body and extract nitpicks
+    local review_body=$(gh api "repos/${REPO}/pulls/${pr_number}/reviews" \
+        --jq '[.[] | select(.user.login | startswith("coderabbitai"))] | last | .body // empty' 2>/dev/null)
+
+    if [[ -n "$review_body" ]]; then
+        # Extract actionable count
+        local actionable=$(echo "$review_body" | grep -oP 'Actionable comments posted: \K\d+' || echo "0")
+        echo "Actionable comments: $actionable"
+
+        # Extract nitpick count from the review body
+        local nitpick_count=$(echo "$review_body" | grep -oP '🧹 Nitpick comments \(\K\d+' || echo "0")
+        if [[ "$nitpick_count" != "0" ]]; then
+            echo ""
+            echo "## Nitpicks to Consider ($nitpick_count)"
+            # Extract nitpick content - simplified extraction
+            echo "$review_body" | sed -n '/🧹 Nitpick comments/,/<\/blockquote><\/details>/p' | \
+                grep -oP '`[^`]+`.*?(?=<\/blockquote>|$)' | head -5 || echo "  (see PR for details)"
+        fi
+    fi
+}
+
 # Precondition: check for uncommitted changes
 UNCOMMITTED=$(git status --porcelain)
 if [[ -n "$UNCOMMITTED" ]]; then
@@ -99,8 +161,47 @@ PR_NUMBER=$(echo "$PR_INFO" | jq -r '.number')
 PR_URL=$(echo "$PR_INFO" | jq -r '.url')
 
 if [[ "$CHECK_STATUS" == "pass" ]]; then
-    echo "All checks passed!"
-    echo "PR #$PR_NUMBER ready for review: $PR_URL"
+    echo "CI checks passed!"
+    echo ""
+
+    # Wait for CodeRabbit review
+    if wait_for_coderabbit_review "$PR_NUMBER"; then
+        # Check review decision
+        REVIEW_DECISION=$(gh pr view "$PR_NUMBER" --json reviewDecision --jq '.reviewDecision // empty')
+
+        if [[ "$REVIEW_DECISION" == "CHANGES_REQUESTED" ]]; then
+            echo "=========================================="
+            echo "CodeRabbit requested changes"
+            echo "=========================================="
+            echo ""
+            get_coderabbit_feedback "$PR_NUMBER"
+            echo ""
+            echo "PR #$PR_NUMBER: $PR_URL"
+            echo ""
+            echo "Fix required issues and run: ./scripts/submit-pr.sh --update"
+            echo "=========================================="
+            exit 1
+        fi
+    fi
+
+    # Success - show any nitpicks as suggestions
+    echo "=========================================="
+    echo "All checks passed! PR ready for review."
+    echo "=========================================="
+    echo ""
+
+    # Show nitpicks as suggestions (non-blocking)
+    NITPICKS=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}/reviews" \
+        --jq '[.[] | select(.user.login | startswith("coderabbitai"))] | last | .body // empty' 2>/dev/null | \
+        grep -oP '🧹 Nitpick comments \(\K\d+' || echo "0")
+
+    if [[ "$NITPICKS" != "0" && -n "$NITPICKS" ]]; then
+        echo "## Suggestions to consider ($NITPICKS nitpicks):"
+        echo "  See PR comments for optional improvements"
+        echo ""
+    fi
+
+    echo "PR #$PR_NUMBER: $PR_URL"
 else
     echo "Some checks failed."
     echo "PR #$PR_NUMBER: $PR_URL"
