@@ -22,17 +22,20 @@ fi
 
 echo "Activating PRD: $PRD_NAME"
 
+# Get repository from git remote
+REPO=$(gh repo view --json nameWithOwner -q .nameWithOwner)
+
 # Move the file
 git mv "$SOURCE" "$DEST"
 
 # Create the milestone
-gh api repos/NTCoding/living-architecture/milestones \
+gh api "repos/${REPO}/milestones" \
     --method POST \
     --field title="$PRD_NAME" \
-    --field description="See https://github.com/NTCoding/living-architecture/blob/main/${DEST}"
+    --field description="See https://github.com/${REPO}/blob/main/${DEST}"
 
-# Commit
-git add -A && git commit -m "chore: activate PRD $PRD_NAME"
+# Commit only the moved file
+git commit -m "chore: activate PRD $PRD_NAME"
 
 echo ""
 echo "PRD activated: $PRD_NAME"

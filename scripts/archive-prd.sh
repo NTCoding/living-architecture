@@ -22,14 +22,17 @@ fi
 
 echo "Archiving PRD: $PRD_NAME"
 
+# Get repository from git remote
+REPO=$(gh repo view --json nameWithOwner -q .nameWithOwner)
+
 # Move the file
 git mv "$SOURCE" "$DEST"
 
 # Find and close the milestone
-MILESTONE_NUMBER=$(gh api repos/NTCoding/living-architecture/milestones --jq ".[] | select(.title == \"$PRD_NAME\") | .number")
+MILESTONE_NUMBER=$(gh api "repos/${REPO}/milestones" --jq ".[] | select(.title == \"$PRD_NAME\") | .number")
 
 if [[ -n "$MILESTONE_NUMBER" ]]; then
-    gh api "repos/NTCoding/living-architecture/milestones/$MILESTONE_NUMBER" \
+    gh api "repos/${REPO}/milestones/$MILESTONE_NUMBER" \
         --method PATCH \
         --field state=closed
     echo "Milestone closed: $PRD_NAME"
@@ -37,8 +40,8 @@ else
     echo "Warning: Milestone '$PRD_NAME' not found"
 fi
 
-# Commit
-git add -A && git commit -m "chore: archive PRD $PRD_NAME"
+# Commit only the moved file
+git commit -m "chore: archive PRD $PRD_NAME"
 
 echo ""
 echo "PRD archived: $PRD_NAME"
