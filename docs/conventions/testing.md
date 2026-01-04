@@ -138,6 +138,8 @@ it('sends confirmation email after processing', () => {
 
 ## Test Fixtures
 
+> **Project-specific convention** (not from BugMagnet)
+
 Use fixture files to reduce duplication and improve test clarity.
 
 **When to use fixtures:**
