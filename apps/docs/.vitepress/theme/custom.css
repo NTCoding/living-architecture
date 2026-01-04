@@ -171,20 +171,20 @@ button:focus-visible,
    Navigation
    ========================================================================== */
 
-/* VitePress's built-in .divider-line handles the content area border on doc pages.
-   We only add border-bottom to .VPNavBar.home (homepage has no divider-line visible).
-   For docs pages with sidebar, we add border to .VPSidebar .curtain to align with
-   the content area divider-line. */
+/* VitePress's built-in .divider-line handles the nav bar bottom border on doc pages.
+   On homepage, the divider-line is invisible, so we add a border-bottom to the nav bar.
+   On doc pages with sidebar, VitePress's divider only covers the content area (via padding-left).
+   We override this to make the divider-line span full width for consistent alignment. */
 
 /* Homepage: full-width border (VitePress's divider-line is invisible on home) */
 .VPNavBar.home {
   border-bottom: 1px solid var(--vp-c-gutter);
 }
 
-/* Docs pages with sidebar: border on sidebar curtain aligns with content divider-line */
+/* Doc pages with sidebar: make divider span full width instead of just content area */
 @media (min-width: 960px) {
-  .VPSidebar .curtain {
-    border-bottom: 1px solid var(--vp-c-gutter);
+  .VPNavBar.has-sidebar .divider {
+    padding-left: 0;
   }
 }
 
