@@ -5,7 +5,16 @@ export default defineConfig({
   description: 'Living Architecture - See how operations flow through your system',
 
   head: [
-    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }]
+    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }],
+    ['meta', { property: 'og:type', content: 'website' }],
+    ['meta', { property: 'og:title', content: 'Riviere - Living Architecture' }],
+    ['meta', { property: 'og:description', content: 'See how operations flow through your system' }],
+    ['meta', { property: 'og:image', content: 'https://living-architecture.dev/og-preview.png' }],
+    ['meta', { property: 'og:url', content: 'https://living-architecture.dev' }],
+    ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
+    ['meta', { name: 'twitter:title', content: 'Riviere - Living Architecture' }],
+    ['meta', { name: 'twitter:description', content: 'See how operations flow through your system' }],
+    ['meta', { name: 'twitter:image', content: 'https://living-architecture.dev/og-preview.png' }],
   ],
 
   themeConfig: {

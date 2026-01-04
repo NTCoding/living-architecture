@@ -1,0 +1,52 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="accent-gradient" x1="0" y1="0" x2="1200" y2="0">
+      <stop offset="0%" stop-color="#0D9488"/>
+      <stop offset="100%" stop-color="#06B6D4"/>
+    </linearGradient>
+    <linearGradient id="logo-gradient" x1="0" y1="0" x2="120" y2="120">
+      <stop offset="0%" stop-color="#0D9488"/>
+      <stop offset="100%" stop-color="#06B6D4"/>
+    </linearGradient>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@700&amp;family=Lato:wght@400&amp;display=swap');
+      .title { font-family: 'Rubik', sans-serif; font-weight: 700; }
+      .tagline { font-family: 'Lato', sans-serif; font-weight: 400; }
+    </style>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="#F8FAFC"/>
+
+  <!-- Top gradient accent bar -->
+  <rect width="1200" height="6" fill="url(#accent-gradient)"/>
+
+  <!-- Bottom gradient accent bar -->
+  <rect y="624" width="1200" height="6" fill="url(#accent-gradient)"/>
+
+  <!-- Centered content group -->
+  <g transform="translate(600, 355)">
+    <!-- Logo (120x120, centered above text) -->
+    <g transform="translate(-60, -195)">
+      <rect width="120" height="120" rx="36" fill="url(#logo-gradient)"/>
+      <circle cx="36" cy="36" r="7.5" fill="white"/>
+      <circle cx="84" cy="36" r="7.5" fill="white"/>
+      <circle cx="60" cy="60" r="10.5" fill="white"/>
+      <circle cx="36" cy="84" r="7.5" fill="white" opacity="0.8"/>
+      <circle cx="84" cy="84" r="7.5" fill="white" opacity="0.8"/>
+      <line x1="36" y1="36" x2="60" y2="60" stroke="white" stroke-width="4.5" opacity="0.8"/>
+      <line x1="84" y1="36" x2="60" y2="60" stroke="white" stroke-width="4.5" opacity="0.8"/>
+      <line x1="60" y1="60" x2="36" y2="84" stroke="white" stroke-width="4.5" opacity="0.6"/>
+      <line x1="60" y1="60" x2="84" y2="84" stroke="white" stroke-width="4.5" opacity="0.6"/>
+    </g>
+
+    <!-- Title (centered) -->
+    <text x="0" y="10" class="title" fill="#1E293B" font-size="64" text-anchor="middle">Living Architecture</text>
+
+    <!-- Tagline (centered, below title) -->
+    <text x="0" y="53" class="tagline" fill="#334155" font-size="26" text-anchor="middle">See how operations flow through your system</text>
+
+    <!-- URL (centered, below tagline) -->
+    <text x="0" y="95" class="tagline" fill="#64748B" font-size="20" text-anchor="middle">living-architecture.dev</text>
+  </g>
+</svg>
