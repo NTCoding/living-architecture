@@ -49,3 +49,16 @@ contexts:
 
       - name: Custom
         definition: An extensible component type for domain-specific concepts not covered by built-in types. References a customTypeName defined in graph metadata.
+
+      # Extraction concepts
+      - name: Extraction Config
+        definition: A YAML/JSON file defining how to detect architectural components in source code. Organized by module, specifies detection rules for each component type, validated by JSON Schema.
+
+      - name: Detection Predicate
+        definition: A condition used to identify components during extraction. Examples include hasDecorator, extendsClass, implementsInterface, nameMatches. Predicates compose with and/or logic.
+
+      - name: Convention
+        definition: A pattern teams adopt for marking architectural components in code. Examples include decorators, JSDoc tags, naming patterns, and base class inheritance.
+
+      - name: Enforcement
+        definition: A mechanism ensuring all code follows conventions. Typically ESLint rules or CI checks that fail when components lack required markers.
