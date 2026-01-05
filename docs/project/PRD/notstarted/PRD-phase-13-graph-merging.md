@@ -1,8 +1,8 @@
-# PRD: Phase 11 — Graph Merging
+# PRD: Phase 13 — Graph Merging
 
 **Status:** Draft
 
-**Depends on:** Phase 10 (TypeScript Extraction)
+**Depends on:** Phase 12 (Connection Detection)
 
 ---
 
@@ -105,7 +105,7 @@ TBD — To be defined during discovery.
 
 **Depends on:**
 - Phase 9 (Launch) — Need stable packages
-- Phase 10 (TypeScript Extraction) — Automated extraction enables multi-repo workflows
+- Phase 12 (Connection Detection) — Full graphs with connections needed for merging
 
 **Blocks:**
-- Multi-repo visualization in Éclair
+- Multi-repo visualization in Eclair
