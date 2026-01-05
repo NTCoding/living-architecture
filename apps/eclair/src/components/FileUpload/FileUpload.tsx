@@ -1,4 +1,6 @@
-import { useState, useCallback, useRef } from 'react'
+import {
+ useState, useCallback, useRef 
+} from 'react'
 
 interface FileUploadProps {
   readonly onFileLoaded: (content: string, fileName: string) => void
@@ -6,7 +8,9 @@ interface FileUploadProps {
   readonly accept?: string
 }
 
-export function FileUpload({ onFileLoaded, onError, accept = '.json' }: FileUploadProps): React.ReactElement {
+export function FileUpload({
+ onFileLoaded, onError, accept = '.json' 
+}: FileUploadProps): React.ReactElement {
   const [isDragging, setIsDragging] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 

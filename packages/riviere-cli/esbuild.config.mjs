@@ -8,9 +8,7 @@ await esbuild.build({
   target: 'node18',
   format: 'esm',
   outfile: 'dist/bin.js',
-  banner: {
-    js: '#!/usr/bin/env node',
-  },
+  banner: {js: '#!/usr/bin/env node',},
   // Bundle workspace packages into CLI to avoid ESM resolution issues
   external: [
     'commander',

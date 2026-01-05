@@ -1,9 +1,14 @@
-import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
-import type { RiviereGraph, SystemType, DomainName } from '@/types/riviere'
-import { domainNameSchema } from '@/types/riviere'
-import { useRiviereQuery } from '@/hooks/useRiviereQuery'
-import { useCodeLinkSettings } from '@/features/flows/components/CodeLinkMenu/useCodeLinkSettings'
+import {
+ useMemo, useState 
+} from 'react';
+import { Link } from 'react-router-dom';
+import type {
+ RiviereGraph, SystemType, DomainName 
+} from '@/types/riviere';
+import { domainNameSchema } from '@/types/riviere';
+import { useRiviereQuery } from '@/hooks/useRiviereQuery';
+import { useCodeLinkSettings } from '@/features/flows/components/CodeLinkMenu/useCodeLinkSettings';
+import { StatsItem } from './StatsItem';
 
 type ViewMode = 'grid' | 'list'
 type FilterType = 'all' | SystemType
@@ -28,9 +33,7 @@ interface DomainInfo {
   repository: string | undefined
 }
 
-interface OverviewPageProps {
-  graph: RiviereGraph
-}
+interface OverviewPageProps {graph: RiviereGraph}
 
 export function OverviewPage({ graph }: Readonly<OverviewPageProps>): React.ReactElement {
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
@@ -38,10 +41,18 @@ export function OverviewPage({ graph }: Readonly<OverviewPageProps>): React.Reac
   const [activeFilter, setActiveFilter] = useState<FilterType>('all')
   const query = useRiviereQuery(graph)
 
-  const { stats, allDomains } = useMemo(() => {
+  const {
+ stats, allDomains 
+} = useMemo(() => {
     if (query === null) {
       return {
-        stats: { totalNodes: 0, totalDomains: 0, totalApis: 0, totalEntities: 0, totalEvents: 0 },
+        stats: {
+ totalNodes: 0,
+totalDomains: 0,
+totalApis: 0,
+totalEntities: 0,
+totalEvents: 0 
+},
         allDomains: [],
       }
     }
@@ -198,35 +209,15 @@ export function OverviewPage({ graph }: Readonly<OverviewPageProps>): React.Reac
   )
 }
 
-interface StatsItemProps {
-  readonly icon: string
-  readonly label: string
-  readonly value: number
-}
-
-function StatsItem({ icon, label, value }: Readonly<StatsItemProps>): React.ReactElement {
-  return (
-    <div className="flex items-center gap-3 border-r border-[var(--border-color)] pr-6 last:border-r-0 last:pr-0 md:border-r md:pr-6">
-      <i className={`ph ph-${icon} text-xl text-[var(--primary)]`} aria-hidden="true" />
-      <div className="flex flex-col gap-0.5">
-        <span className="text-xs font-semibold uppercase tracking-wide text-[var(--text-tertiary)]">
-          {label}
-        </span>
-        <span className="font-[var(--font-heading)] text-xl font-bold text-[var(--text-primary)]">
-          {value}
-        </span>
-      </div>
-    </div>
-  )
-}
-
 interface DomainCardProps {
   readonly domain: DomainInfo
   readonly viewMode: ViewMode
   readonly graphName: string | undefined
 }
 
-function DomainCard({ domain, viewMode, graphName }: Readonly<DomainCardProps>): React.ReactElement {
+function DomainCard({
+ domain, viewMode, graphName 
+}: Readonly<DomainCardProps>): React.ReactElement {
   const repoName: string | undefined = domain.repository === undefined ? graphName : domain.repository
   const { settings } = useCodeLinkSettings()
   const githubUrl = repoName === undefined || settings.githubOrg === null ? null : `${settings.githubOrg.replace(/\/$/, '')}/${repoName}`
@@ -332,18 +323,34 @@ function DomainCard({ domain, viewMode, graphName }: Readonly<DomainCardProps>):
   )
 }
 
-interface NodeBreakdownSectionProps {
-  readonly breakdown: DomainInfo['nodeBreakdown']
-}
+interface NodeBreakdownSectionProps {readonly breakdown: DomainInfo['nodeBreakdown']}
 
 function NodeBreakdownSection({ breakdown }: Readonly<NodeBreakdownSectionProps>): React.ReactElement {
   const items = [
-    { label: 'UI', value: breakdown.UI },
-    { label: 'API', value: breakdown.API },
-    { label: 'UseCase', value: breakdown.UseCase },
-    { label: 'DomainOp', value: breakdown.DomainOp },
-    { label: 'Event', value: breakdown.Event },
-    { label: 'Handler', value: breakdown.EventHandler },
+    {
+ label: 'UI',
+value: breakdown.UI 
+},
+    {
+ label: 'API',
+value: breakdown.API 
+},
+    {
+ label: 'UseCase',
+value: breakdown.UseCase 
+},
+    {
+ label: 'DomainOp',
+value: breakdown.DomainOp 
+},
+    {
+ label: 'Event',
+value: breakdown.Event 
+},
+    {
+ label: 'Handler',
+value: breakdown.EventHandler 
+},
   ].filter((item) => item.value > 0)
 
   return (
@@ -368,9 +375,7 @@ function NodeBreakdownSection({ breakdown }: Readonly<NodeBreakdownSectionProps>
 
 const DISPLAY_LIMIT = 3
 
-interface EntitiesSectionProps {
-  readonly entities: readonly string[]
-}
+interface EntitiesSectionProps {readonly entities: readonly string[]}
 
 function EntitiesSection({ entities }: Readonly<EntitiesSectionProps>): React.ReactElement {
   const displayedEntities = entities.slice(0, DISPLAY_LIMIT)
@@ -400,9 +405,7 @@ function EntitiesSection({ entities }: Readonly<EntitiesSectionProps>): React.Re
   )
 }
 
-interface EntryPointsSectionProps {
-  readonly entryPoints: readonly string[]
-}
+interface EntryPointsSectionProps {readonly entryPoints: readonly string[]}
 
 function EntryPointsSection({ entryPoints }: Readonly<EntryPointsSectionProps>): React.ReactElement {
   const displayedEntryPoints = entryPoints.slice(0, DISPLAY_LIMIT)

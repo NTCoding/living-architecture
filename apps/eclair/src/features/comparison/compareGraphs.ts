@@ -1,12 +1,10 @@
-import type { RiviereGraph, Node, Edge, NodeType, NodeId } from '@/types/riviere'
+import type {
+ RiviereGraph, Node, Edge, NodeType, NodeId 
+} from '@/types/riviere'
 
-interface NodeAddition {
-  node: Node
-}
+interface NodeAddition {node: Node}
 
-interface NodeRemoval {
-  node: Node
-}
+interface NodeRemoval {node: Node}
 
 interface NodeModification {
   before: Node
@@ -14,13 +12,9 @@ interface NodeModification {
   changedFields: string[]
 }
 
-interface EdgeAddition {
-  edge: Edge
-}
+interface EdgeAddition {edge: Edge}
 
-interface EdgeRemoval {
-  edge: Edge
-}
+interface EdgeRemoval {edge: Edge}
 
 interface EdgeModification {
   before: Edge
@@ -65,13 +59,9 @@ export interface NodeTypeChanges {
   modified: NodeModification[]
 }
 
-interface ByDomainAccumulator {
-  data: Record<string, DomainChanges>
-}
+interface ByDomainAccumulator {data: Record<string, DomainChanges>}
 
-interface ByNodeTypeAccumulator {
-  data: Map<NodeType, NodeTypeChanges>
-}
+interface ByNodeTypeAccumulator {data: Map<NodeType, NodeTypeChanges>}
 
 export interface GraphDiff {
   nodes: NodeDiff
@@ -182,22 +172,22 @@ function getChangedEdgeFields(before: Edge, after: Edge): string[] {
   return changed
 }
 
-function initializeDomainChanges(): DomainChanges {
-  return { added: [], removed: [], modified: [] }
-}
-
-function initializeNodeTypeChanges(): NodeTypeChanges {
-  return { added: [], removed: [], modified: [] }
+function initializeChanges(): DomainChanges {
+  return {
+    added: [],
+    removed: [],
+    modified: [],
+  };
 }
 
 function ensureDomainEntry(acc: ByDomainAccumulator, domain: string): DomainChanges {
-  acc.data[domain] ??= initializeDomainChanges()
-  return acc.data[domain]
+  acc.data[domain] ??= initializeChanges();
+  return acc.data[domain];
 }
 
 function ensureNodeTypeEntry(acc: ByNodeTypeAccumulator, nodeType: NodeType): NodeTypeChanges {
   if (!acc.data.has(nodeType)) {
-    acc.data.set(nodeType, initializeNodeTypeChanges())
+    acc.data.set(nodeType, initializeChanges())
   }
   const entry = acc.data.get(nodeType)
   if (entry === undefined) {
@@ -248,7 +238,12 @@ function compareNodes(
   const beforeNodesById = new Map<NodeId, Node>(beforeNodes.map((n) => [n.id, n]))
   const afterNodesById = new Map<NodeId, Node>(afterNodes.map((n) => [n.id, n]))
 
-  const nodeDiff: NodeDiff = { added: [], removed: [], modified: [], unchanged: [] }
+  const nodeDiff: NodeDiff = {
+ added: [],
+removed: [],
+modified: [],
+unchanged: [] 
+}
 
   for (const afterNode of afterNodes) {
     const beforeNode = beforeNodesById.get(afterNode.id)
@@ -260,7 +255,11 @@ function compareNodes(
 
     const changedFields = getChangedNodeFields(beforeNode, afterNode)
     if (changedFields.length > 0) {
-      recordModification({ before: beforeNode, after: afterNode, changedFields }, nodeDiff, byDomain, byNodeType)
+      recordModification({
+ before: beforeNode,
+after: afterNode,
+changedFields 
+}, nodeDiff, byDomain, byNodeType)
     } else {
       nodeDiff.unchanged.push(afterNode)
     }
@@ -279,7 +278,12 @@ function compareEdges(beforeEdges: Edge[], afterEdges: Edge[]): EdgeDiff {
   const beforeEdgesByKey = new Map(beforeEdges.map((e) => [createEdgeKey(e), e]))
   const afterEdgesByKey = new Map(afterEdges.map((e) => [createEdgeKey(e), e]))
 
-  const edgeDiff: EdgeDiff = { added: [], removed: [], modified: [], unchanged: [] }
+  const edgeDiff: EdgeDiff = {
+ added: [],
+removed: [],
+modified: [],
+unchanged: [] 
+}
 
   for (const afterEdge of afterEdges) {
     const key = createEdgeKey(afterEdge)
@@ -292,7 +296,11 @@ function compareEdges(beforeEdges: Edge[], afterEdges: Edge[]): EdgeDiff {
 
     const changedFields = getChangedEdgeFields(beforeEdge, afterEdge)
     if (changedFields.length > 0) {
-      edgeDiff.modified.push({ before: beforeEdge, after: afterEdge, changedFields })
+      edgeDiff.modified.push({
+ before: beforeEdge,
+after: afterEdge,
+changedFields 
+})
     } else {
       edgeDiff.unchanged.push(afterEdge)
     }

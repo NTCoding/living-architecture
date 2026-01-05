@@ -1,4 +1,6 @@
-import type { Node, NodeType } from '@/types/riviere'
+import type {
+ Node, NodeType 
+} from '@/types/riviere'
 import { entryPointSchema } from '@/types/riviere'
 import type { DomainNode } from './extractDomainDetails'
 

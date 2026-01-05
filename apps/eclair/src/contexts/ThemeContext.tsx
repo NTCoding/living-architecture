@@ -1,6 +1,10 @@
-import { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react'
+import {
+ createContext, useContext, useEffect, useState, useCallback, useMemo 
+} from 'react'
 import type { Theme } from '@/types/theme'
-import { DEFAULT_THEME, THEME_STORAGE_KEY } from '@/types/theme'
+import {
+ DEFAULT_THEME, THEME_STORAGE_KEY 
+} from '@/types/theme'
 
 interface ThemeContextValue {
   readonly theme: Theme
@@ -25,9 +29,7 @@ function applyThemeToDocument(theme: Theme): void {
   document.body.classList.add(`theme-${theme}`)
 }
 
-interface ThemeProviderProps {
-  readonly children: React.ReactNode
-}
+interface ThemeProviderProps {readonly children: React.ReactNode}
 
 export function ThemeProvider({ children }: ThemeProviderProps): React.ReactElement {
   const [theme, setThemeState] = useState<Theme>(getStoredTheme)
@@ -42,7 +44,10 @@ export function ThemeProvider({ children }: ThemeProviderProps): React.ReactElem
     applyThemeToDocument(theme)
   }, [theme])
 
-  const contextValue = useMemo(() => ({ theme, setTheme }), [theme, setTheme])
+  const contextValue = useMemo(() => ({
+ theme,
+setTheme 
+}), [theme, setTheme])
 
   return (
     <themeContext.Provider value={contextValue}>

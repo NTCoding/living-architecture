@@ -1,4 +1,6 @@
-import { useEffect, useId } from 'react'
+import {
+ useEffect, useId 
+} from 'react'
 import type { DomainDetails } from '../../extractDomainDetails'
 import { NodeTypeBadge } from '@/features/flows/components/NodeTypeBadge/NodeTypeBadge'
 
@@ -7,7 +9,9 @@ interface DomainDetailModalProps {
   readonly onClose: () => void
 }
 
-export function DomainDetailModal({ domain, onClose }: Readonly<DomainDetailModalProps>): React.ReactElement | null {
+export function DomainDetailModal({
+ domain, onClose 
+}: Readonly<DomainDetailModalProps>): React.ReactElement | null {
   const titleId = useId()
 
   useEffect(() => {
@@ -87,7 +91,11 @@ export function DomainDetailModal({ domain, onClose }: Readonly<DomainDetailModa
                 ))}
               </div>
             ) : (
-              <div style={{ fontSize: '12px', color: 'var(--text-tertiary)', fontStyle: 'italic' }}>
+              <div style={{
+ fontSize: '12px',
+color: 'var(--text-tertiary)',
+fontStyle: 'italic' 
+}}>
                 No nodes in this domain
               </div>
             )}
@@ -111,7 +119,11 @@ export function DomainDetailModal({ domain, onClose }: Readonly<DomainDetailModa
                 ))}
               </div>
             ) : (
-              <div style={{ fontSize: '12px', color: 'var(--text-tertiary)', fontStyle: 'italic' }}>
+              <div style={{
+ fontSize: '12px',
+color: 'var(--text-tertiary)',
+fontStyle: 'italic' 
+}}>
                 No entities in this domain
               </div>
             )}
@@ -145,7 +157,11 @@ export function DomainDetailModal({ domain, onClose }: Readonly<DomainDetailModa
                 )}
               </div>
             ) : (
-              <div style={{ fontSize: '12px', color: 'var(--text-tertiary)', fontStyle: 'italic' }}>
+              <div style={{
+ fontSize: '12px',
+color: 'var(--text-tertiary)',
+fontStyle: 'italic' 
+}}>
                 No events in this domain
               </div>
             )}
@@ -157,15 +173,25 @@ export function DomainDetailModal({ domain, onClose }: Readonly<DomainDetailModa
               <div className="domain-edges-list">
                 {domain.crossDomainEdges.map((edge) => (
                   <div key={`${edge.targetDomain}-${edge.edgeType ?? 'unknown'}`} className="domain-edge-item">
-                    <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{domain.id}</span>
+                    <span style={{
+ fontSize: '12px',
+color: 'var(--text-secondary)' 
+}}>{domain.id}</span>
                     <span className="domain-edge-arrow">{edge.edgeType === 'sync' ? '→' : '⇢'}</span>
                     <span className="domain-edge-target">{edge.targetDomain}</span>
-                    <span style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>{edge.edgeType ?? 'unknown'}</span>
+                    <span style={{
+ fontSize: '11px',
+color: 'var(--text-tertiary)' 
+}}>{edge.edgeType ?? 'unknown'}</span>
                   </div>
                 ))}
               </div>
             ) : (
-              <div style={{ fontSize: '12px', color: 'var(--text-tertiary)', fontStyle: 'italic' }}>
+              <div style={{
+ fontSize: '12px',
+color: 'var(--text-tertiary)',
+fontStyle: 'italic' 
+}}>
                 No cross-domain connections
               </div>
             )}

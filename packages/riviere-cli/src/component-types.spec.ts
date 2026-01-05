@@ -1,4 +1,6 @@
-import { describe, it, expect } from 'vitest';
+import {
+ describe, it, expect 
+} from 'vitest';
 import {
   isValidComponentType,
   isValidLinkType,
@@ -59,7 +61,9 @@ describe('component-types', () => {
     });
 
     it('throws for invalid component type', () => {
-      expect(() => normalizeComponentType('Invalid')).toThrow(/Invalid component type/);
+      expect(() => normalizeComponentType('Invalid')).toThrow(
+        /Invalid component type/,
+      );
     });
   });
 
@@ -82,7 +86,7 @@ describe('component-types', () => {
 
     it('throws for invalid component type', () => {
       expect(() => normalizeToSchemaComponentType('InvalidType')).toThrow(
-        /Expected valid ComponentType/
+        /Expected valid ComponentType/,
       );
     });
   });

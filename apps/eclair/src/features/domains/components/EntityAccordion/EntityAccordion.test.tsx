@@ -1,14 +1,26 @@
-import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import {
+ describe, it, expect, vi 
+} from 'vitest'
+import {
+ render, screen 
+} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { EntityAccordion } from './EntityAccordion'
 import { Entity } from '@living-architecture/riviere-query'
-import type { DomainOpComponent, SourceLocation } from '@living-architecture/riviere-schema'
+import type {
+ DomainOpComponent, SourceLocation 
+} from '@living-architecture/riviere-schema'
 
-const defaultSourceLocation: SourceLocation = { repository: 'test-repo', filePath: 'test.ts' }
+const defaultSourceLocation: SourceLocation = {
+ repository: 'test-repo',
+filePath: 'test.ts' 
+}
 
 function createDomainOp(
-  overrides: Partial<DomainOpComponent> & { id: string; operationName: string },
+  overrides: Partial<DomainOpComponent> & {
+ id: string;
+operationName: string 
+},
 ): DomainOpComponent {
   return {
     type: 'DomainOp',
@@ -31,13 +43,24 @@ function createEntity(overrides: {
     createDomainOp({
       id: 'op-1',
       operationName: 'begin',
-      behavior: { reads: ['inventory'], validates: ['stock'], modifies: ['order'], emits: ['OrderStarted'] },
-      stateChanges: [{ from: 'Draft', to: 'Pending' }],
+      behavior: {
+ reads: ['inventory'],
+validates: ['stock'],
+modifies: ['order'],
+emits: ['OrderStarted'] 
+},
+      stateChanges: [{
+ from: 'Draft',
+to: 'Pending' 
+}],
     }),
     createDomainOp({
       id: 'op-2',
       operationName: 'confirm',
-      stateChanges: [{ from: 'Pending', to: 'Confirmed' }],
+      stateChanges: [{
+ from: 'Pending',
+to: 'Confirmed' 
+}],
     }),
   ]
 
@@ -62,9 +85,18 @@ describe('EntityAccordion', () => {
     it('renders operation count', () => {
       const entity = createEntity({
         operations: [
-          createDomainOp({ id: 'op-a', operationName: 'a' }),
-          createDomainOp({ id: 'op-b', operationName: 'b' }),
-          createDomainOp({ id: 'op-c', operationName: 'c' }),
+          createDomainOp({
+ id: 'op-a',
+operationName: 'a' 
+}),
+          createDomainOp({
+ id: 'op-b',
+operationName: 'b' 
+}),
+          createDomainOp({
+ id: 'op-c',
+operationName: 'c' 
+}),
         ],
       })
 
@@ -74,9 +106,7 @@ describe('EntityAccordion', () => {
     })
 
     it('renders state count when states exist', () => {
-      const entity = createEntity({
-        states: ['A', 'B', 'C', 'D'],
-      })
+      const entity = createEntity({states: ['A', 'B', 'C', 'D'],})
 
       render(<EntityAccordion entity={entity} />)
 
@@ -362,7 +392,12 @@ describe('EntityAccordion', () => {
           createDomainOp({
             id: 'op-with-rules',
             operationName: 'begin',
-            behavior: { reads: ['inventory'], validates: ['stock'], modifies: ['order'], emits: ['OrderStarted'] },
+            behavior: {
+ reads: ['inventory'],
+validates: ['stock'],
+modifies: ['order'],
+emits: ['OrderStarted'] 
+},
             businessRules: [
               'Order must have at least one item',
               'Total amount must be positive',
@@ -388,7 +423,12 @@ describe('EntityAccordion', () => {
           createDomainOp({
             id: 'op-no-rules',
             operationName: 'begin',
-            behavior: { reads: ['inventory'], validates: ['stock'], modifies: ['order'], emits: ['OrderStarted'] },
+            behavior: {
+ reads: ['inventory'],
+validates: ['stock'],
+modifies: ['order'],
+emits: ['OrderStarted'] 
+},
           }),
         ],
       })
@@ -422,8 +462,14 @@ describe('EntityAccordion', () => {
             id: 'op-multi-state',
             operationName: 'processAndShip',
             stateChanges: [
-              { from: 'Draft', to: 'Active' },
-              { from: 'Active', to: 'Shipped' },
+              {
+ from: 'Draft',
+to: 'Active' 
+},
+              {
+ from: 'Active',
+to: 'Shipped' 
+},
             ],
           }),
         ],
@@ -512,8 +558,14 @@ describe('EntityAccordion', () => {
             operationName: 'release',
             signature: {
               parameters: [
-                { name: 'orderId', type: 'string' },
-                { name: 'reason', type: 'ReleaseReason' },
+                {
+ name: 'orderId',
+type: 'string' 
+},
+                {
+ name: 'reason',
+type: 'ReleaseReason' 
+},
               ],
               returnType: 'void',
             },

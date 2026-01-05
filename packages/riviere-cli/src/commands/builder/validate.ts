@@ -18,7 +18,7 @@ Examples:
   $ riviere builder validate
   $ riviere builder validate --json
   $ riviere builder validate --graph .riviere/my-graph.json
-`
+`,
     )
     .option('--graph <path>', getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
@@ -34,8 +34,8 @@ Examples:
                 valid: validationResult.valid,
                 errors: validationResult.errors,
                 warnings,
-              })
-            )
+              }),
+            ),
           );
         }
       });

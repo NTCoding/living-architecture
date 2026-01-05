@@ -1,11 +1,23 @@
-import { useState, useCallback, useRef } from 'react'
-import type { RiviereGraph, Node } from '@/types/riviere'
-import { parseRiviereGraph } from '@living-architecture/riviere-schema'
-import { compareGraphs, type GraphDiff } from './compareGraphs'
-import { computeDomainConnectionDiff, type DomainConnectionDiffResult } from './computeDomainConnectionDiff'
-import { FilterTabs, DomainFilter, TypeFilter, type ChangeFilter } from './ChangeFilters'
-import { StatsBar } from './StatsBar'
-import { DomainConnectionDiff } from './DomainConnectionDiff'
+import {
+ useState, useCallback 
+} from 'react';
+import type { Node } from '@/types/riviere';
+import { parseRiviereGraph } from '@living-architecture/riviere-schema';
+import {
+ compareGraphs, type GraphDiff 
+} from './compareGraphs';
+import {
+  computeDomainConnectionDiff,
+  type DomainConnectionDiffResult,
+} from './computeDomainConnectionDiff';
+import {
+ FilterTabs, DomainFilter, TypeFilter, type ChangeFilter 
+} from './ChangeFilters';
+import { StatsBar } from './StatsBar';
+import { DomainConnectionDiff } from './DomainConnectionDiff';
+import {
+ UploadZone, type UploadState 
+} from './UploadZone';
 
 type ResultsViewMode = 'graph' | 'list'
 
@@ -19,158 +31,70 @@ function buildChangeItems(diff: GraphDiff): ChangeItemBase[] {
   const items: ChangeItemBase[] = []
 
   for (const addition of diff.nodes.added) {
-    items.push({ node: addition.node, changeType: 'added' })
+    items.push({
+ node: addition.node,
+changeType: 'added' 
+})
   }
 
   for (const removal of diff.nodes.removed) {
-    items.push({ node: removal.node, changeType: 'removed' })
+    items.push({
+ node: removal.node,
+changeType: 'removed' 
+})
   }
 
   for (const modification of diff.nodes.modified) {
-    items.push({ node: modification.after, changeType: 'modified', changedFields: modification.changedFields })
+    items.push({
+ node: modification.after,
+changeType: 'modified',
+changedFields: modification.changedFields 
+})
   }
 
   return items
 }
 
-interface UploadedFile {
-  readonly name: string
-  readonly graph: RiviereGraph
-}
-
-interface UploadError {
-  readonly message: string
-}
-
-type UploadState =
-  | { readonly status: 'empty' }
-  | { readonly status: 'loaded'; readonly file: UploadedFile }
-  | { readonly status: 'error'; readonly error: UploadError }
-
 function parseGraphFile(content: string, fileName: string): UploadState {
   try {
     const data: unknown = JSON.parse(content)
     const graph = parseRiviereGraph(data)
-    return { status: 'loaded', file: { name: fileName, graph } }
+    return {
+ status: 'loaded',
+file: {
+ name: fileName,
+graph 
+} 
+}
   } catch (e) {
     const message = e instanceof Error ? e.message : 'Unknown error'
-    return { status: 'error', error: { message } }
+    return {
+ status: 'error',
+error: { message } 
+}
   }
 }
 
-interface UploadZoneProps {
-  readonly label: string
-  readonly sublabel: string
-  readonly number: number
-  readonly state: UploadState
-  readonly onFileSelect: (file: File) => void
-}
-
-function UploadZone({ label, sublabel, number, state, onFileSelect }: UploadZoneProps): React.ReactElement {
-  const inputRef = useRef<HTMLInputElement>(null)
-
-  const handleChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (file) {
-      onFileSelect(file)
-    }
-  }, [onFileSelect])
-
-  const handleClick = useCallback(() => {
-    inputRef.current?.click()
-  }, [])
-
-  const handleKeyDown = useCallback((event: React.KeyboardEvent) => {
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault()
-      inputRef.current?.click()
-    }
-  }, [])
-
-  const isLoaded = state.status === 'loaded'
-  const hasError = state.status === 'error'
-
-  return (
-    <div className="flex flex-col gap-3">
-      <div className="flex items-center gap-3">
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--primary)] text-sm font-bold text-white">
-          {number}
-        </div>
-        <div>
-          <div className="font-bold text-[var(--text-primary)]">{label}</div>
-          <div className="text-xs text-[var(--text-tertiary)]">{sublabel}</div>
-        </div>
-      </div>
-      {(() => {
-        const getBorderColor = (): string => {
-          if (isLoaded) return 'border-green-500 bg-green-50 dark:bg-green-950'
-          if (hasError) return 'border-red-500 bg-red-50 dark:bg-red-950'
-          return 'border-[var(--border-color)] bg-[var(--bg-secondary)]'
-        }
-        const borderColor = getBorderColor()
-        return (
-          <div
-            role="button"
-            tabIndex={0}
-            onClick={handleClick}
-            onKeyDown={handleKeyDown}
-            className={`flex min-h-[140px] cursor-pointer flex-col items-center justify-center gap-2 rounded-[var(--radius)] border-2 border-dashed p-6 transition-all hover:border-[var(--primary)] hover:bg-[var(--bg-tertiary)] ${borderColor}`}
-          >
-            <input
-              ref={inputRef}
-              type="file"
-              accept=".json,application/json"
-              onChange={handleChange}
-              className="sr-only"
-              aria-label={`Upload ${label} file`}
-            />
-            {state.status === 'empty' && (
-              <>
-                <i className="ph ph-file-arrow-up text-4xl text-[var(--text-tertiary)]" aria-hidden="true" />
-                <div className="text-center">
-                  <div className="font-semibold text-[var(--text-primary)]">Drop JSON file or click to upload</div>
-                  <div className="text-xs text-[var(--text-tertiary)]">Rivière schema JSON</div>
-                </div>
-              </>
-            )}
-            {state.status === 'loaded' && (
-              <>
-                <i className="ph ph-check-circle text-4xl text-green-600" aria-hidden="true" />
-                <div className="text-center">
-                  <div className="font-semibold text-green-600">{state.file.name}</div>
-                  <div className="text-xs text-[var(--text-tertiary)]">
-                    {state.file.graph.components.length} nodes
-                  </div>
-                </div>
-              </>
-            )}
-            {state.status === 'error' && (
-              <>
-                <i className="ph ph-x-circle text-4xl text-red-600" aria-hidden="true" />
-                <div className="text-center">
-                  <div className="font-semibold text-red-600">Invalid file</div>
-                  <div className="text-xs text-red-500">{state.error.message}</div>
-                </div>
-              </>
-            )}
-          </div>
-        )
-      })()}
-    </div>
-  )
-}
-
-interface ChangeItemProps {
-  readonly item: ChangeItemBase
-}
+interface ChangeItemProps {readonly item: ChangeItemBase}
 
 function ChangeItem({ item }: Readonly<ChangeItemProps>): React.ReactElement {
-  const { node, changeType, changedFields } = item
+  const {
+ node, changeType, changedFields 
+} = item
 
   const changeIndicator = {
-    added: { text: '+ ADDED', color: 'text-[#1A7F37]' },
-    removed: { text: '- REMOVED', color: 'text-[#FF6B6B]' },
-    modified: { text: '~ MODIFIED', color: 'text-amber-500' },
+    added: {
+ text: '+ ADDED',
+color: 'text-[#1A7F37]' 
+},
+    removed: {
+ text: '- REMOVED',
+color: 'text-[#FF6B6B]' 
+},
+    modified: {
+ text: '~ MODIFIED',
+color: 'text-amber-500' 
+},
   }[changeType]
 
   const borderColor = {
@@ -219,9 +143,7 @@ function extractUniqueTypes(items: ChangeItemBase[]): string[] {
   return Array.from(types).sort((a, b) => a.localeCompare(b))
 }
 
-interface DetailedChangesProps {
-  readonly diff: GraphDiff
-}
+interface DetailedChangesProps {readonly diff: GraphDiff}
 
 function DetailedChanges({ diff }: Readonly<DetailedChangesProps>): React.ReactElement {
   const [filter, setFilter] = useState<ChangeFilter>('all')
@@ -279,13 +201,19 @@ export function ComparisonPage(): React.ReactElement {
     reader.onload = (event) => {
       const content = event.target?.result
       if (typeof content !== 'string') {
-        setBeforeState({ status: 'error', error: { message: 'Failed to read file' } })
+        setBeforeState({
+ status: 'error',
+error: { message: 'Failed to read file' } 
+})
         return
       }
       setBeforeState(parseGraphFile(content, file.name))
     }
     reader.onerror = () => {
-      setBeforeState({ status: 'error', error: { message: 'Failed to read file' } })
+      setBeforeState({
+ status: 'error',
+error: { message: 'Failed to read file' } 
+})
     }
     reader.readAsText(file)
   }, [])
@@ -295,13 +223,19 @@ export function ComparisonPage(): React.ReactElement {
     reader.onload = (event) => {
       const content = event.target?.result
       if (typeof content !== 'string') {
-        setAfterState({ status: 'error', error: { message: 'Failed to read file' } })
+        setAfterState({
+ status: 'error',
+error: { message: 'Failed to read file' } 
+})
         return
       }
       setAfterState(parseGraphFile(content, file.name))
     }
     reader.onerror = () => {
-      setAfterState({ status: 'error', error: { message: 'Failed to read file' } })
+      setAfterState({
+ status: 'error',
+error: { message: 'Failed to read file' } 
+})
     }
     reader.readAsText(file)
   }, [])

@@ -86,7 +86,9 @@ interface StatisticsRowProps {
   readonly operations: number
   readonly events: number
 }
-function StatisticsRow({ entities, operations, events }: StatisticsRowProps): React.ReactElement {
+function StatisticsRow({
+ entities, operations, events 
+}: StatisticsRowProps): React.ReactElement {
   return (
     <div data-testid="stats-row" className="flex gap-6 rounded-[var(--radius)] border border-[var(--border-color)] bg-[var(--bg-secondary)] p-4">
       <div className="flex items-center gap-3 border-r border-[var(--border-color)] pr-6"><i className="ph ph-cube text-xl text-[var(--primary)]" aria-hidden="true" /><div className="flex flex-col gap-0.5"><span className="text-xs font-semibold uppercase tracking-wide text-[var(--text-tertiary)]">Entities</span><span className="font-[var(--font-heading)] text-xl font-bold text-[var(--text-primary)]">{entities}</span></div></div>
@@ -103,7 +105,9 @@ interface NodesSectionProps {
   readonly nodeTypeFilter: NodeTypeFilter
   readonly setNodeTypeFilter: (filter: NodeTypeFilter) => void
 }
-function NodesSection({ filteredNodes, domain, nodeSearch, setNodeSearch, nodeTypeFilter, setNodeTypeFilter }: NodesSectionProps): React.ReactElement {
+function NodesSection({
+ filteredNodes, domain, nodeSearch, setNodeSearch, nodeTypeFilter, setNodeTypeFilter 
+}: NodesSectionProps): React.ReactElement {
   return (
     <section data-testid="detail-panel">
       <div className="mb-4 flex items-center justify-between">
@@ -123,7 +127,9 @@ interface NodeFilterBarProps {
   readonly nodeTypeFilter: NodeTypeFilter
   readonly setNodeTypeFilter: (filter: NodeTypeFilter) => void
 }
-function NodeFilterBar({ nodeSearch, setNodeSearch, nodeTypeFilter, setNodeTypeFilter }: NodeFilterBarProps): React.ReactElement {
+function NodeFilterBar({
+ nodeSearch, setNodeSearch, nodeTypeFilter, setNodeTypeFilter 
+}: NodeFilterBarProps): React.ReactElement {
   return (
     <div data-testid="filters-section" className="filters-section mb-4">
       <div className="search-container">
@@ -165,7 +171,9 @@ interface NodesListOrEmptyProps {
   readonly filteredNodes: Array<DomainDetailsNode>
   readonly domain: DomainDetails
 }
-function NodesListOrEmpty({ filteredNodes, domain }: NodesListOrEmptyProps): React.ReactElement {
+function NodesListOrEmpty({
+ filteredNodes, domain 
+}: NodesListOrEmptyProps): React.ReactElement {
   if (filteredNodes.length > 0) {
     return (
       <div data-testid="nodes-list" className="max-h-[320px] space-y-2 overflow-y-auto">
@@ -183,9 +191,7 @@ function NodesListOrEmpty({ filteredNodes, domain }: NodesListOrEmptyProps): Rea
   )
 }
 
-interface NodeListItemProps {
-  readonly node: DomainDetailsNode
-}
+interface NodeListItemProps {readonly node: DomainDetailsNode}
 function NodeListItem({ node }: NodeListItemProps): React.ReactElement {
   const sourceLocation = node.sourceLocation
   const hasSourceLocation = sourceLocation !== undefined && sourceLocation.lineNumber !== undefined
@@ -232,7 +238,9 @@ interface EntitiesSectionProps {
   readonly entitySearch: string
   readonly setEntitySearch: (search: string) => void
 }
-function EntitiesSection({ filteredEntities, domain, entitySearch, setEntitySearch }: EntitiesSectionProps): React.ReactElement {
+function EntitiesSection({
+ filteredEntities, domain, entitySearch, setEntitySearch 
+}: EntitiesSectionProps): React.ReactElement {
   return (
     <section>
       <div className="mb-4 flex items-center justify-between">
@@ -263,7 +271,9 @@ interface EntitiesListOrEmptyProps {
   readonly filteredEntities: Array<DomainDetailsEntity>
   readonly domain: DomainDetails
 }
-function EntitiesListOrEmpty({ filteredEntities, domain }: EntitiesListOrEmptyProps): React.ReactElement {
+function EntitiesListOrEmpty({
+ filteredEntities, domain 
+}: EntitiesListOrEmptyProps): React.ReactElement {
   if (filteredEntities.length > 0) {
     return (
       <div className="max-h-[320px] space-y-3 overflow-y-auto">
@@ -329,7 +339,9 @@ interface EventsListOrEmptyProps {
   readonly filteredPublishedEvents: Array<DomainDetailsPublishedEvent>
   readonly filteredConsumedEvents: Array<DomainDetailsConsumedEvent>
 }
-function EventsListOrEmpty({ hasEvents, filteredPublishedEvents, filteredConsumedEvents }: EventsListOrEmptyProps): React.ReactElement {
+function EventsListOrEmpty({
+ hasEvents, filteredPublishedEvents, filteredConsumedEvents 
+}: EventsListOrEmptyProps): React.ReactElement {
   if (!hasEvents) {
     return <p className="text-sm italic text-[var(--text-tertiary)]">No events in this domain</p>
   }
@@ -345,9 +357,7 @@ function EventsListOrEmpty({ hasEvents, filteredPublishedEvents, filteredConsume
   )
 }
 
-interface PublishedEventsSectionProps {
-  readonly events: Array<DomainDetailsPublishedEvent>
-}
+interface PublishedEventsSectionProps {readonly events: Array<DomainDetailsPublishedEvent>}
 function PublishedEventsSection({ events }: PublishedEventsSectionProps): React.ReactElement {
   return events.length === 0 ? <></> : (
     <div data-testid="published-events">
@@ -361,9 +371,7 @@ function PublishedEventsSection({ events }: PublishedEventsSectionProps): React.
   )
 }
 
-interface ConsumedEventsSectionProps {
-  readonly events: Array<DomainDetailsConsumedEvent>
-}
+interface ConsumedEventsSectionProps {readonly events: Array<DomainDetailsConsumedEvent>}
 function ConsumedEventsSection({ events }: ConsumedEventsSectionProps): React.ReactElement {
   return events.length === 0 ? <></> : (
     <div data-testid="consumed-events">
@@ -377,9 +385,7 @@ function ConsumedEventsSection({ events }: ConsumedEventsSectionProps): React.Re
   )
 }
 
-interface ConsumedEventItemProps {
-  readonly handler: DomainDetailsConsumedEvent
-}
+interface ConsumedEventItemProps {readonly handler: DomainDetailsConsumedEvent}
 function ConsumedEventItem({ handler }: ConsumedEventItemProps): React.ReactElement {
   const sourceLocation = handler.sourceLocation
   return (

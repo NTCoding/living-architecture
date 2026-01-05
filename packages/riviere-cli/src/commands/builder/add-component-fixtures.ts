@@ -17,8 +17,21 @@ const DEFAULTS = {
   filePath: 'src/test.ts',
 } as const;
 
-export function buildAddComponentArgs(options: AddComponentArgsOptions = {}): string[] {
-  const { type, name, domain, module, repository, filePath, extraArgs = [] } = { ...DEFAULTS, ...options };
+export function buildAddComponentArgs(
+  options: AddComponentArgsOptions = {},
+): string[] {
+  const {
+    type,
+    name,
+    domain,
+    module,
+    repository,
+    filePath,
+    extraArgs = [],
+  } = {
+ ...DEFAULTS,
+...options 
+};
   return [
     'node',
     'riviere',

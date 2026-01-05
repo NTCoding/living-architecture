@@ -1,12 +1,19 @@
 import { Command } from 'commander';
 import { writeFile } from 'node:fs/promises';
 import type { ExternalTarget } from '@living-architecture/riviere-schema';
-import { getDefaultGraphPathDescription, resolveGraphPath } from '../../graph-path';
+import {
+  getDefaultGraphPathDescription,
+  resolveGraphPath,
+} from '../../graph-path';
 import { fileExists } from '../../file-existence';
 import { formatSuccess } from '../../output';
 import { isValidLinkType } from '../../component-types';
 import { validateLinkType } from '../../validation';
-import { loadGraphBuilder, reportGraphNotFound, tryBuilderOperation } from './link-infrastructure';
+import {
+  loadGraphBuilder,
+  reportGraphNotFound,
+  tryBuilderOperation,
+} from './link-infrastructure';
 
 interface ExternalLinkInput {
   from: string;
@@ -50,7 +57,7 @@ Examples:
       --target-name "FedEx API" \\
       --target-domain "shipping" \\
       --link-type async
-`
+`,
     )
     .requiredOption('--from <component-id>', 'Source component ID')
     .requiredOption('--target-name <name>', 'External target name')
@@ -86,7 +93,9 @@ Examples:
         externalLinkInput.type = options.linkType;
       }
 
-      const externalLink = tryBuilderOperation(() => builder.linkExternal(externalLinkInput));
+      const externalLink = tryBuilderOperation(() =>
+        builder.linkExternal(externalLinkInput),
+      );
       if (externalLink === undefined) {
         return;
       }

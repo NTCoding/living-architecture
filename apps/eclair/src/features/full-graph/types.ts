@@ -1,5 +1,9 @@
-import type { Node, Edge, NodeType } from '@/types/riviere'
-import type { SimulationNodeDatum, SimulationLinkDatum } from 'd3'
+import type {
+ Node, Edge, NodeType 
+} from '@/types/riviere'
+import type {
+ SimulationNodeDatum, SimulationLinkDatum 
+} from 'd3'
 
 export interface SimulationNode extends SimulationNodeDatum {
   id: string
@@ -86,9 +90,18 @@ export const NODE_RADII: Record<NodeType, number> = {
 }
 
 export const EDGE_COLORS = {
-  stream: { sync: '#0D9488', async: '#FF6B6B' },
-  voltage: { sync: '#00D4FF', async: '#39FF14' },
-  circuit: { sync: '#0969DA', async: '#1A7F37' },
+  stream: {
+ sync: '#0D9488',
+async: '#FF6B6B' 
+},
+  voltage: {
+ sync: '#00D4FF',
+async: '#39FF14' 
+},
+  circuit: {
+ sync: '#0969DA',
+async: '#1A7F37' 
+},
 }
 
 export const SEMANTIC_EDGE_COLORS = {

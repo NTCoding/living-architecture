@@ -21,9 +21,7 @@ import { createOrphansCommand } from './commands/query/orphans';
 import { createComponentsCommand } from './commands/query/components';
 import { createSearchCommand } from './commands/query/search';
 
-interface PackageJson {
-  version: string;
-}
+interface PackageJson {version: string;}
 
 export function parsePackageJson(pkg: unknown): PackageJson {
   if (typeof pkg !== 'object' || pkg === null || !('version' in pkg)) {

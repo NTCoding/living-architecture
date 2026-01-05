@@ -1,8 +1,15 @@
-import { describe, it, expect } from 'vitest';
+import {
+ describe, it, expect 
+} from 'vitest';
 import { createProgram } from '../../cli';
 import { CliErrorCode } from '../../error-codes';
 import type { TestContext } from '../../command-test-fixtures';
-import { createTestContext, setupCommandTest, createGraph, sourceLocation } from '../../command-test-fixtures';
+import {
+  createTestContext,
+  setupCommandTest,
+  createGraph,
+  sourceLocation,
+} from '../../command-test-fixtures';
 
 interface ComponentInfo {
   id: string;
@@ -13,17 +20,21 @@ interface ComponentInfo {
 
 interface SearchOutput {
   success: true;
-  data: {
-    components: ComponentInfo[];
-  };
+  data: {components: ComponentInfo[];};
   warnings: string[];
 }
 
 function isSearchOutput(value: unknown): value is SearchOutput {
   if (typeof value !== 'object' || value === null) return false;
   if (!('success' in value) || value.success !== true) return false;
-  if (!('data' in value) || typeof value.data !== 'object' || value.data === null) return false;
-  if (!('components' in value.data) || !Array.isArray(value.data.components)) return false;
+  if (
+    !('data' in value) ||
+    typeof value.data !== 'object' ||
+    value.data === null
+  )
+    return false;
+  if (!('components' in value.data) || !Array.isArray(value.data.components))
+    return false;
   return true;
 }
 
@@ -40,7 +51,9 @@ describe('riviere query search', () => {
     it('registers search command under query', () => {
       const program = createProgram();
       const queryCmd = program.commands.find((cmd) => cmd.name() === 'query');
-      const searchCmd = queryCmd?.commands.find((cmd) => cmd.name() === 'search');
+      const searchCmd = queryCmd?.commands.find(
+        (cmd) => cmd.name() === 'search',
+      );
       expect(searchCmd?.name()).toBe('search');
     });
   });
@@ -54,7 +67,12 @@ describe('riviere query search', () => {
         version: '1.0',
         metadata: {
           sources: [{ repository: 'https://github.com/org/repo' }],
-          domains: { orders: { description: 'Order management', systemType: 'domain' } },
+          domains: {
+orders: {
+ description: 'Order management',
+systemType: 'domain' 
+},
+},
         },
         components: [
           {
@@ -91,7 +109,14 @@ describe('riviere query search', () => {
         links: [],
       });
 
-      await createProgram().parseAsync(['node', 'riviere', 'query', 'search', 'order', '--json']);
+      await createProgram().parseAsync([
+        'node',
+        'riviere',
+        'query',
+        'search',
+        'order',
+        '--json',
+      ]);
       const output = parseOutput(ctx.consoleOutput);
       expect(output.success).toBe(true);
       expect(output.data.components).toHaveLength(3);
@@ -99,7 +124,7 @@ describe('riviere query search', () => {
         (c) =>
           c.name.toLowerCase().includes('order') ||
           c.domain.toLowerCase().includes('order') ||
-          c.type.toLowerCase().includes('order')
+          c.type.toLowerCase().includes('order'),
       );
       expect(allMatchSearchTerm).toBe(true);
     });
@@ -109,7 +134,12 @@ describe('riviere query search', () => {
         version: '1.0',
         metadata: {
           sources: [{ repository: 'https://github.com/org/repo' }],
-          domains: { orders: { description: 'Order management', systemType: 'domain' } },
+          domains: {
+orders: {
+ description: 'Order management',
+systemType: 'domain' 
+},
+},
         },
         components: [
           {
@@ -127,7 +157,14 @@ describe('riviere query search', () => {
         links: [],
       });
 
-      await createProgram().parseAsync(['node', 'riviere', 'query', 'search', 'nonexistent', '--json']);
+      await createProgram().parseAsync([
+        'node',
+        'riviere',
+        'query',
+        'search',
+        'nonexistent',
+        '--json',
+      ]);
       const output = parseOutput(ctx.consoleOutput);
       expect(output.data.components).toHaveLength(0);
     });
@@ -137,7 +174,12 @@ describe('riviere query search', () => {
         version: '1.0',
         metadata: {
           sources: [{ repository: 'https://github.com/org/repo' }],
-          domains: { orders: { description: 'Order management', systemType: 'domain' } },
+          domains: {
+orders: {
+ description: 'Order management',
+systemType: 'domain' 
+},
+},
         },
         components: [
           {
@@ -155,7 +197,14 @@ describe('riviere query search', () => {
         links: [],
       });
 
-      await createProgram().parseAsync(['node', 'riviere', 'query', 'search', '', '--json']);
+      await createProgram().parseAsync([
+        'node',
+        'riviere',
+        'query',
+        'search',
+        '',
+        '--json',
+      ]);
       const output = parseOutput(ctx.consoleOutput);
       expect(output.data.components).toHaveLength(0);
     });
@@ -165,7 +214,12 @@ describe('riviere query search', () => {
         version: '1.0',
         metadata: {
           sources: [{ repository: 'https://github.com/org/repo' }],
-          domains: { orders: { description: 'Order management', systemType: 'domain' } },
+          domains: {
+orders: {
+ description: 'Order management',
+systemType: 'domain' 
+},
+},
         },
         components: [
           {
@@ -183,7 +237,13 @@ describe('riviere query search', () => {
         links: [],
       });
 
-      await createProgram().parseAsync(['node', 'riviere', 'query', 'search', 'order']);
+      await createProgram().parseAsync([
+        'node',
+        'riviere',
+        'query',
+        'search',
+        'order',
+      ]);
       expect(ctx.consoleOutput).toHaveLength(0);
     });
   });
@@ -193,8 +253,17 @@ describe('riviere query search', () => {
     setupCommandTest(ctx);
 
     it('returns GRAPH_NOT_FOUND when no graph exists', async () => {
-      await createProgram().parseAsync(['node', 'riviere', 'query', 'search', 'term', '--json']);
-      expect(ctx.consoleOutput.join('\n')).toContain(CliErrorCode.GraphNotFound);
+      await createProgram().parseAsync([
+        'node',
+        'riviere',
+        'query',
+        'search',
+        'term',
+        '--json',
+      ]);
+      expect(ctx.consoleOutput.join('\n')).toContain(
+        CliErrorCode.GraphNotFound,
+      );
     });
   });
 });

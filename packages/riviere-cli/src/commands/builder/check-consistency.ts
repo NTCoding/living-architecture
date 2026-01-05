@@ -17,7 +17,7 @@ export function createCheckConsistencyCommand(): Command {
 Examples:
   $ riviere builder check-consistency
   $ riviere builder check-consistency --json
-`
+`,
     )
     .option('--graph <path>', getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
@@ -32,8 +32,8 @@ Examples:
               formatSuccess({
                 consistent,
                 warnings,
-              })
-            )
+              }),
+            ),
           );
         }
       });

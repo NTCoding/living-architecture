@@ -1,15 +1,31 @@
-export const VALID_COMPONENT_TYPES = ['UI', 'API', 'UseCase', 'DomainOp', 'Event', 'EventHandler', 'Custom'] as const;
+export const VALID_COMPONENT_TYPES = [
+  'UI',
+  'API',
+  'UseCase',
+  'DomainOp',
+  'Event',
+  'EventHandler',
+  'Custom',
+] as const;
 export type ComponentTypeFlag = (typeof VALID_COMPONENT_TYPES)[number];
 
-export function isValidComponentType(value: string): value is ComponentTypeFlag {
-  return VALID_COMPONENT_TYPES.some((t) => t.toLowerCase() === value.toLowerCase());
+export function isValidComponentType(
+  value: string,
+): value is ComponentTypeFlag {
+  return VALID_COMPONENT_TYPES.some(
+    (t) => t.toLowerCase() === value.toLowerCase(),
+  );
 }
 
-export function normalizeToSchemaComponentType(value: string): ComponentTypeFlag {
-  const found = VALID_COMPONENT_TYPES.find((t) => t.toLowerCase() === value.toLowerCase());
+export function normalizeToSchemaComponentType(
+  value: string,
+): ComponentTypeFlag {
+  const found = VALID_COMPONENT_TYPES.find(
+    (t) => t.toLowerCase() === value.toLowerCase(),
+  );
   if (found === undefined) {
     throw new Error(
-      `Expected valid ComponentType. Got: ${value}. Valid types: ${VALID_COMPONENT_TYPES.join(', ')}`
+      `Expected valid ComponentType. Got: ${value}. Valid types: ${VALID_COMPONENT_TYPES.join(', ')}`,
     );
   }
   return found;
@@ -27,7 +43,9 @@ export function normalizeComponentType(value: string): string {
   };
   const normalized = typeMap[value.toLowerCase()];
   if (normalized === undefined) {
-    throw new Error(`Invalid component type: ${value}. Valid types: ${Object.keys(typeMap).join(', ')}`);
+    throw new Error(
+      `Invalid component type: ${value}. Valid types: ${Object.keys(typeMap).join(', ')}`,
+    );
   }
   return normalized;
 }

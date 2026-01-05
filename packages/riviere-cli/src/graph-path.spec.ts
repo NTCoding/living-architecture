@@ -1,6 +1,10 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import {
+ describe, it, expect, beforeEach, afterEach 
+} from 'vitest';
 import { join } from 'node:path';
-import { resolveGraphPath, getDefaultGraphPathDescription } from './graph-path';
+import {
+ resolveGraphPath, getDefaultGraphPathDescription 
+} from './graph-path';
 
 describe('resolveGraphPath', () => {
   const testContext: { originalCwd: string } = { originalCwd: '' };
@@ -32,6 +36,8 @@ describe('getDefaultGraphPathDescription', () => {
   it('returns description with default path', () => {
     const result = getDefaultGraphPathDescription();
 
-    expect(result).toBe('Custom graph file path (default: .riviere/graph.json)');
+    expect(result).toBe(
+      'Custom graph file path (default: .riviere/graph.json)',
+    );
   });
 });

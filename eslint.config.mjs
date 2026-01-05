@@ -5,6 +5,7 @@ import eslintComments from '@eslint-community/eslint-plugin-eslint-comments/conf
 import importPlugin from 'eslint-plugin-import';
 import sonarjs from 'eslint-plugin-sonarjs';
 import jsdoc from 'eslint-plugin-jsdoc';
+import stylistic from '@stylistic/eslint-plugin';
 
 const customRules = {
   plugins: {
@@ -198,4 +199,18 @@ export default tseslint.config(
         'jsdoc/require-returns-description': 'error',
       },
     },
+  {
+    plugins: {
+      '@stylistic': stylistic,
+    },
+    rules: {
+      '@stylistic/object-curly-newline': ['error', {
+        multiline: true,
+        minProperties: 2
+      }],
+      '@stylistic/object-property-newline': ['error', {
+        allowAllPropertiesOnSameLine: false
+      }],
+    }
+  }
 );

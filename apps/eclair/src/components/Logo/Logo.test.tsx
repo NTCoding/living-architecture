@@ -1,11 +1,16 @@
 import { render } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import {
+ describe, expect, it, vi 
+} from 'vitest'
 import { Logo } from './Logo'
 
 const mockSetTheme = vi.fn()
 
 vi.mock('@/contexts/ThemeContext', () => ({
-  useTheme: vi.fn(() => ({ theme: 'stream', setTheme: mockSetTheme })),
+useTheme: vi.fn(() => ({
+ theme: 'stream',
+setTheme: mockSetTheme 
+})),
 }))
 
 import { useTheme } from '@/contexts/ThemeContext'
@@ -37,7 +42,10 @@ describe('Logo', () => {
   })
 
   it('renders Stream logo with teal gradient when theme is stream', () => {
-    mockUseTheme.mockReturnValue({ theme: 'stream', setTheme: mockSetTheme })
+    mockUseTheme.mockReturnValue({
+ theme: 'stream',
+setTheme: mockSetTheme 
+})
     render(<Logo />)
 
     const gradient = document.querySelector('linearGradient')
@@ -49,7 +57,10 @@ describe('Logo', () => {
   })
 
   it('renders Voltage logo with colored nodes when theme is voltage', () => {
-    mockUseTheme.mockReturnValue({ theme: 'voltage', setTheme: mockSetTheme })
+    mockUseTheme.mockReturnValue({
+ theme: 'voltage',
+setTheme: mockSetTheme 
+})
     render(<Logo />)
 
     const circles = document.querySelectorAll('circle')
@@ -65,7 +76,10 @@ describe('Logo', () => {
   })
 
   it('renders Circuit logo with black background when theme is circuit', () => {
-    mockUseTheme.mockReturnValue({ theme: 'circuit', setTheme: mockSetTheme })
+    mockUseTheme.mockReturnValue({
+ theme: 'circuit',
+setTheme: mockSetTheme 
+})
     render(<Logo />)
 
     const rect = document.querySelector('rect')

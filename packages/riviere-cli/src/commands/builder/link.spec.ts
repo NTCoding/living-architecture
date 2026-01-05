@@ -1,4 +1,6 @@
-import { describe, it, expect } from 'vitest';
+import {
+ describe, it, expect 
+} from 'vitest';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { createProgram } from '../../cli';
@@ -14,7 +16,9 @@ describe('riviere builder link', () => {
   describe('command registration', () => {
     it('registers link command under builder', () => {
       const program = createProgram();
-      const builderCmd = program.commands.find((cmd) => cmd.name() === 'builder');
+      const builderCmd = program.commands.find(
+        (cmd) => cmd.name() === 'builder',
+      );
       const linkCmd = builderCmd?.commands.find((cmd) => cmd.name() === 'link');
 
       expect(linkCmd?.name()).toBe('link');
@@ -34,7 +38,10 @@ describe('riviere builder link', () => {
       apiType: 'REST',
       httpMethod: 'POST',
       path: '/orders',
-      sourceLocation: { repository: 'https://github.com/org/repo', filePath: 'src/api/orders.ts' },
+      sourceLocation: {
+        repository: 'https://github.com/org/repo',
+        filePath: 'src/api/orders.ts',
+      },
     };
 
     it('creates link when source component exists', async () => {
@@ -122,11 +129,11 @@ describe('riviere builder link', () => {
       const output: unknown = JSON.parse(ctx.consoleOutput[0] ?? '');
       expect(output).toMatchObject({
         success: false,
-        error: {
-          code: CliErrorCode.ComponentNotFound,
-        },
+        error: {code: CliErrorCode.ComponentNotFound,},
       });
-      expect(ctx.consoleOutput[0]).toContain('orders:checkout:api:create-order');
+      expect(ctx.consoleOutput[0]).toContain(
+        'orders:checkout:api:create-order',
+      );
     });
 
     it('sets link type when --link-type async provided', async () => {
@@ -229,7 +236,12 @@ describe('riviere builder link', () => {
       const content = await readFile(graphPath, 'utf-8');
       const graph: unknown = JSON.parse(content);
       expect(graph).toMatchObject({
-        links: [{ source: 'orders:checkout:api:create-order', target: 'orders:checkout:usecase:place-order' }],
+        links: [
+          {
+            source: 'orders:checkout:api:create-order',
+            target: 'orders:checkout:usecase:place-order',
+          },
+        ],
       });
     });
 
@@ -254,7 +266,7 @@ describe('riviere builder link', () => {
           'UseCase',
           '--to-name',
           'place-order',
-        ])
+        ]),
       ).rejects.toThrow(/Invalid component ID format/);
     });
 

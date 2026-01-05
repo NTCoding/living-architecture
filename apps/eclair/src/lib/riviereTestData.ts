@@ -69,7 +69,10 @@ export interface RawEdge {
   source: string
   target: string
   type?: EdgeType
-  payload?: { type?: string; schema?: string }
+  payload?: {
+ type?: string;
+schema?: string 
+}
   sourceLocation?: SourceLocation
   metadata?: Record<string, unknown>
 }
@@ -93,7 +96,11 @@ function parseOperationParameter(p: RawOperationParameter): {
   type: ReturnType<typeof parameterTypeSchema.parse>
   description?: string
 } {
-  const param: { name: string; type: ReturnType<typeof parameterTypeSchema.parse>; description?: string } = {
+  const param: {
+ name: string;
+type: ReturnType<typeof parameterTypeSchema.parse>;
+description?: string 
+} = {
     name: p.name,
     type: parameterTypeSchema.parse(p.type),
   }
@@ -130,7 +137,11 @@ function parseUINode(data: RawNode, base: BaseNodeFields): Node {
   if (data.route === undefined) {
     throw new Error(`UI node requires route: ${data.id}`)
   }
-  return { ...base, type: 'UI', route: data.route }
+  return {
+ ...base,
+type: 'UI',
+route: data.route 
+}
 }
 
 function parseAPINode(data: RawNode, base: BaseNodeFields): Node {
@@ -138,7 +149,11 @@ function parseAPINode(data: RawNode, base: BaseNodeFields): Node {
   // This avoids requiring httpMethod/path for all API test fixtures
   const hasRestProperties = data.httpMethod !== undefined || data.path !== undefined
   const apiType = data.apiType ?? (hasRestProperties ? 'REST' : 'other')
-  const node: APINode = { ...base, type: 'API', apiType }
+  const node: APINode = {
+ ...base,
+type: 'API',
+apiType 
+}
   if (data.httpMethod !== undefined) node.httpMethod = data.httpMethod
   if (data.path !== undefined) node.path = data.path
   if (data.operationName !== undefined) node.operationName = data.operationName
@@ -197,7 +212,10 @@ export function parseNode(data: RawNode): Node {
   switch (data.type) {
     case 'UI': return parseUINode(data, base)
     case 'API': return parseAPINode(data, base)
-    case 'UseCase': return { ...base, type: 'UseCase' }
+    case 'UseCase': return {
+ ...base,
+type: 'UseCase' 
+}
     case 'DomainOp': return parseDomainOpNode(data, base)
     case 'Event': return parseEventNode(data, base)
     case 'EventHandler': return parseEventHandlerNode(data, base)
@@ -205,7 +223,11 @@ export function parseNode(data: RawNode): Node {
       if (data.customTypeName === undefined) {
         throw new Error(`Custom node requires customTypeName: ${data.id}`)
       }
-      return { ...base, type: 'Custom', customTypeName: data.customTypeName }
+      return {
+ ...base,
+type: 'Custom',
+customTypeName: data.customTypeName 
+}
     }
   }
 }

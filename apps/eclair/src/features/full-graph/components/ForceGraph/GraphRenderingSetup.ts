@@ -1,9 +1,15 @@
 import * as d3 from 'd3'
-import type { SimulationNode, SimulationLink } from '../../types'
-import type { Edge, NodeType } from '@/types/riviere'
+import type {
+ SimulationNode, SimulationLink 
+} from '../../types'
+import type {
+ Edge, NodeType 
+} from '@/types/riviere'
 import type { Theme } from '@/types/theme'
 import { traceFlow } from '../../hooks/useFlowTracing'
-import { EDGE_COLORS, SEMANTIC_EDGE_COLORS } from '../../types'
+import {
+ EDGE_COLORS, SEMANTIC_EDGE_COLORS 
+} from '../../types'
 import { getLinkNodeId } from './FocusModeStyling'
 
 export {
@@ -34,7 +40,9 @@ export function extractCoordinates(nodes: SimulationNode[], field: 'x' | 'y'): n
   })
 }
 
-export function updateHighlight({ node, link, filteredEdges, highlightedNodeIds }: UpdateHighlightParams): void {
+export function updateHighlight({
+ node, link, filteredEdges, highlightedNodeIds 
+}: UpdateHighlightParams): void {
   if (!highlightedNodeIds || highlightedNodeIds.size === 0) {
     node.attr('opacity', 1)
     link.attr('opacity', 0.6)
@@ -110,13 +118,24 @@ export function setupSVGFiltersAndMarkers(defs: d3.Selection<SVGDefsElement, unk
 
 export interface FitViewportParams {
   nodes: SimulationNode[]
-  dimensions: { width: number; height: number }
+  dimensions: {
+ width: number;
+height: number 
+}
   padding: number
 }
 
-export function calculateFitViewportTransform(params: FitViewportParams): { translateX: number; translateY: number; scale: number } {
+export function calculateFitViewportTransform(params: FitViewportParams): {
+ translateX: number;
+translateY: number;
+scale: number 
+} {
   if (params.nodes.length === 0) {
-    return { translateX: 0, translateY: 0, scale: 1 }
+    return {
+ translateX: 0,
+translateY: 0,
+scale: 1 
+}
   }
 
   const xs = extractCoordinates(params.nodes, 'x')
@@ -137,7 +156,11 @@ export function calculateFitViewportTransform(params: FitViewportParams): { tran
   const translateX = (params.dimensions.width - graphWidth * scale) / 2 - minX * scale
   const translateY = (params.dimensions.height - graphHeight * scale) / 2 - minY * scale
 
-  return { translateX, translateY, scale }
+  return {
+ translateX,
+translateY,
+scale 
+}
 }
 
 type SemanticEdgeType = 'event' | 'eventHandler' | 'external' | 'default'
@@ -271,7 +294,9 @@ export interface UpdatePositionsParams {
 }
 
 export function createUpdatePositionsFunction(params: UpdatePositionsParams): () => void {
-  const { link, node, nodePositionMap, getNodeRadius } = params
+  const {
+ link, node, nodePositionMap, getNodeRadius 
+} = params
 
   return function updatePositions(): void {
     link.attr('d', (d) => {
@@ -327,11 +352,20 @@ export function createUpdatePositionsFunction(params: UpdatePositionsParams): ()
 export interface FocusModeZoomParams {
   nodes: SimulationNode[]
   focusedDomain: string
-  dimensions: { width: number; height: number }
+  dimensions: {
+ width: number;
+height: number 
+}
 }
 
-export function calculateFocusModeZoom(params: FocusModeZoomParams): { translateX: number; translateY: number; scale: number } | null {
-  const { nodes, focusedDomain, dimensions } = params
+export function calculateFocusModeZoom(params: FocusModeZoomParams): {
+ translateX: number;
+translateY: number;
+scale: number 
+} | null {
+  const {
+ nodes, focusedDomain, dimensions 
+} = params
   const focusedNodes = nodes.filter((n) => n.domain === focusedDomain)
 
   if (focusedNodes.length === 0) return null
@@ -358,16 +392,25 @@ export function calculateFocusModeZoom(params: FocusModeZoomParams): { translate
   const translateX = dimensions.width / 2 - centerX * scale
   const translateY = dimensions.height / 2 - centerY * scale
 
-  return { translateX, translateY, scale }
+  return {
+ translateX,
+translateY,
+scale 
+}
 }
 
 export interface ApplyDagrePositionsParams {
   nodes: SimulationNode[]
-  positions: Map<string, { x: number; y: number }>
+  positions: Map<string, {
+ x: number;
+y: number 
+}>
 }
 
 export function applyDagrePositions(params: ApplyDagrePositionsParams): void {
-  const { nodes, positions } = params
+  const {
+ nodes, positions 
+} = params
 
   for (const node of nodes) {
     const pos = positions.get(node.id)
@@ -378,9 +421,7 @@ export function applyDagrePositions(params: ApplyDagrePositionsParams): void {
   }
 }
 
-export interface ZoomBehaviorOptions {
-  onInteractionStart?: () => void
-}
+export interface ZoomBehaviorOptions {onInteractionStart?: () => void}
 
 export function setupZoomBehavior(
   svg: d3.Selection<SVGSVGElement, unknown, d3.BaseType, unknown>,

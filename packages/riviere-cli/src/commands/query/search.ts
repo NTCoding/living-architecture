@@ -1,6 +1,8 @@
 import { Command } from 'commander';
 import { formatSuccess } from '../../output';
-import { withGraph, getDefaultGraphPathDescription } from './load-graph';
+import {
+ withGraph, getDefaultGraphPathDescription 
+} from './load-graph';
 import { toComponentOutput } from './component-output';
 
 interface SearchOptions {
@@ -17,7 +19,7 @@ export function createSearchCommand(): Command {
 Examples:
   $ riviere query search order
   $ riviere query search "place-order" --json
-`
+`,
     )
     .argument('<term>', 'Search term')
     .option('--graph <path>', getDefaultGraphPathDescription())

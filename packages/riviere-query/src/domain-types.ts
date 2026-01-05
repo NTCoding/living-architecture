@@ -1,70 +1,77 @@
-import type { Component, Link, ExternalLink } from '@living-architecture/riviere-schema'
-import { z } from 'zod'
+import type {
+  Component,
+  Link,
+  ExternalLink,
+} from '@living-architecture/riviere-schema';
+import { z } from 'zod';
 
 /** @internal */
-const componentIdSchema = z.string().brand<'ComponentId'>()
+const componentIdSchema = z.string().brand<'ComponentId'>();
 /** @internal */
-const linkIdSchema = z.string().brand<'LinkId'>()
+const linkIdSchema = z.string().brand<'LinkId'>();
 /** @internal */
-const entityNameSchema = z.string().brand<'EntityName'>()
+const entityNameSchema = z.string().brand<'EntityName'>();
 /** @internal */
-const domainNameSchema = z.string().brand<'DomainName'>()
+const domainNameSchema = z.string().brand<'DomainName'>();
 /** @internal */
-const stateSchema = z.string().brand<'State'>()
+const stateSchema = z.string().brand<'State'>();
 /** @internal */
-const operationNameSchema = z.string().brand<'OperationName'>()
+const operationNameSchema = z.string().brand<'OperationName'>();
 /** @internal */
-const eventIdSchema = z.string().brand<'EventId'>()
+const eventIdSchema = z.string().brand<'EventId'>();
 /** @internal */
-const eventNameSchema = z.string().brand<'EventName'>()
+const eventNameSchema = z.string().brand<'EventName'>();
 /** @internal */
-const handlerIdSchema = z.string().brand<'HandlerId'>()
+const handlerIdSchema = z.string().brand<'HandlerId'>();
 /** @internal */
-const handlerNameSchema = z.string().brand<'HandlerName'>()
+const handlerNameSchema = z.string().brand<'HandlerName'>();
 
 /** Branded type for component identifiers. */
-export type ComponentId = z.infer<typeof componentIdSchema>
+export type ComponentId = z.infer<typeof componentIdSchema>;
 
 /** Branded type for link identifiers. */
-export type LinkId = z.infer<typeof linkIdSchema>
+export type LinkId = z.infer<typeof linkIdSchema>;
 
 /** Branded type for entity names. */
-export type EntityName = z.infer<typeof entityNameSchema>
+export type EntityName = z.infer<typeof entityNameSchema>;
 
 /** Branded type for domain names. */
-export type DomainName = z.infer<typeof domainNameSchema>
+export type DomainName = z.infer<typeof domainNameSchema>;
 
 /** Branded type for state names in entity state machines. */
-export type State = z.infer<typeof stateSchema>
+export type State = z.infer<typeof stateSchema>;
 
 /** Branded type for operation names. */
-export type OperationName = z.infer<typeof operationNameSchema>
+export type OperationName = z.infer<typeof operationNameSchema>;
 
 /** Branded type for event identifiers. */
-export type EventId = z.infer<typeof eventIdSchema>
+export type EventId = z.infer<typeof eventIdSchema>;
 
 /** Branded type for event names. */
-export type EventName = z.infer<typeof eventNameSchema>
+export type EventName = z.infer<typeof eventNameSchema>;
 
 /** Branded type for event handler identifiers. */
-export type HandlerId = z.infer<typeof handlerIdSchema>
+export type HandlerId = z.infer<typeof handlerIdSchema>;
 
 /** Branded type for event handler names. */
-export type HandlerName = z.infer<typeof handlerNameSchema>
+export type HandlerName = z.infer<typeof handlerNameSchema>;
 
 /** Error codes for graph validation failures. */
-export type ValidationErrorCode = 'INVALID_LINK_SOURCE' | 'INVALID_LINK_TARGET' | 'INVALID_TYPE'
+export type ValidationErrorCode =
+  | 'INVALID_LINK_SOURCE'
+  | 'INVALID_LINK_TARGET'
+  | 'INVALID_TYPE';
 
 /**
  * A validation error found in the graph.
  */
 export interface ValidationError {
   /** JSON path to the error location. */
-  path: string
+  path: string;
   /** Human-readable error description. */
-  message: string
+  message: string;
   /** Machine-readable error code. */
-  code: ValidationErrorCode
+  code: ValidationErrorCode;
 }
 
 /**
@@ -72,9 +79,9 @@ export interface ValidationError {
  */
 export interface ValidationResult {
   /** Whether the graph passed validation. */
-  valid: boolean
+  valid: boolean;
   /** List of validation errors (empty if valid). */
-  errors: ValidationError[]
+  errors: ValidationError[];
 }
 
 /**
@@ -82,21 +89,21 @@ export interface ValidationResult {
  */
 export interface ComponentCounts {
   /** Number of UI components. */
-  UI: number
+  UI: number;
   /** Number of API components. */
-  API: number
+  API: number;
   /** Number of UseCase components. */
-  UseCase: number
+  UseCase: number;
   /** Number of DomainOp components. */
-  DomainOp: number
+  DomainOp: number;
   /** Number of Event components. */
-  Event: number
+  Event: number;
   /** Number of EventHandler components. */
-  EventHandler: number
+  EventHandler: number;
   /** Number of Custom components. */
-  Custom: number
+  Custom: number;
   /** Total number of components. */
-  total: number
+  total: number;
 }
 
 /**
@@ -104,13 +111,13 @@ export interface ComponentCounts {
  */
 export interface Domain {
   /** Domain name. */
-  name: string
+  name: string;
   /** Domain description from graph metadata. */
-  description: string
+  description: string;
   /** System type classification. */
-  systemType: 'domain' | 'bff' | 'ui' | 'other'
+  systemType: 'domain' | 'bff' | 'ui' | 'other';
   /** Counts of components by type. */
-  componentCounts: ComponentCounts
+  componentCounts: ComponentCounts;
 }
 
 /**
@@ -118,13 +125,13 @@ export interface Domain {
  */
 export interface ComponentModification {
   /** The component ID. */
-  id: ComponentId
+  id: ComponentId;
   /** The component state before modification. */
-  before: Component
+  before: Component;
   /** The component state after modification. */
-  after: Component
+  after: Component;
   /** List of field names that changed. */
-  changedFields: string[]
+  changedFields: string[];
 }
 
 /**
@@ -132,15 +139,15 @@ export interface ComponentModification {
  */
 export interface DiffStats {
   /** Number of components added. */
-  componentsAdded: number
+  componentsAdded: number;
   /** Number of components removed. */
-  componentsRemoved: number
+  componentsRemoved: number;
   /** Number of components modified. */
-  componentsModified: number
+  componentsModified: number;
   /** Number of links added. */
-  linksAdded: number
+  linksAdded: number;
   /** Number of links removed. */
-  linksRemoved: number
+  linksRemoved: number;
 }
 
 /**
@@ -150,38 +157,38 @@ export interface GraphDiff {
   /** Component changes. */
   components: {
     /** Components present in new graph but not old. */
-    added: Component[]
+    added: Component[];
     /** Components present in old graph but not new. */
-    removed: Component[]
+    removed: Component[];
     /** Components present in both with different values. */
-    modified: ComponentModification[]
-  }
+    modified: ComponentModification[];
+  };
   /** Link changes. */
   links: {
     /** Links present in new graph but not old. */
-    added: Link[]
+    added: Link[];
     /** Links present in old graph but not new. */
-    removed: Link[]
-  }
+    removed: Link[];
+  };
   /** Summary statistics. */
-  stats: DiffStats
+  stats: DiffStats;
 }
 
 /** Type of link between components. */
-export type LinkType = 'sync' | 'async'
+export type LinkType = 'sync' | 'async';
 
 /**
  * A step in an execution flow.
  */
 export interface FlowStep {
   /** The component at this step. */
-  component: Component
+  component: Component;
   /** Type of link leading to this step (undefined for entry point). */
-  linkType: LinkType | undefined
+  linkType: LinkType | undefined;
   /** Depth from entry point (0 = entry point). */
-  depth: number
+  depth: number;
   /** External links from this component to external systems. */
-  externalLinks: ExternalLink[]
+  externalLinks: ExternalLink[];
 }
 
 /**
@@ -189,9 +196,9 @@ export interface FlowStep {
  */
 export interface Flow {
   /** The entry point component. */
-  entryPoint: Component
+  entryPoint: Component;
   /** Steps in the flow including entry point. */
-  steps: FlowStep[]
+  steps: FlowStep[];
 }
 
 /**
@@ -199,9 +206,9 @@ export interface Flow {
  */
 export interface SearchWithFlowResult {
   /** IDs of components that matched the search. */
-  matchingIds: ComponentId[]
+  matchingIds: ComponentId[];
   /** IDs of all components visible in the matching flows. */
-  visibleIds: ComponentId[]
+  visibleIds: ComponentId[];
 }
 
 /**
@@ -209,9 +216,9 @@ export interface SearchWithFlowResult {
  */
 export interface CrossDomainLink {
   /** The target domain name. */
-  targetDomain: DomainName
+  targetDomain: DomainName;
   /** Type of the cross-domain link. */
-  linkType: LinkType | undefined
+  linkType: LinkType | undefined;
 }
 
 /**
@@ -219,13 +226,13 @@ export interface CrossDomainLink {
  */
 export interface DomainConnection {
   /** The connected domain name. */
-  targetDomain: DomainName
+  targetDomain: DomainName;
   /** Direction relative to the queried domain. */
-  direction: 'outgoing' | 'incoming'
+  direction: 'outgoing' | 'incoming';
   /** Number of API-based connections. */
-  apiCount: number
+  apiCount: number;
   /** Number of event-based connections. */
-  eventCount: number
+  eventCount: number;
 }
 
 /**
@@ -233,17 +240,17 @@ export interface DomainConnection {
  */
 export interface GraphStats {
   /** Total number of components. */
-  componentCount: number
+  componentCount: number;
   /** Total number of links. */
-  linkCount: number
+  linkCount: number;
   /** Number of domains. */
-  domainCount: number
+  domainCount: number;
   /** Number of API components. */
-  apiCount: number
+  apiCount: number;
   /** Number of unique entities. */
-  entityCount: number
+  entityCount: number;
   /** Number of Event components. */
-  eventCount: number
+  eventCount: number;
 }
 
 /**
@@ -254,11 +261,11 @@ export interface GraphStats {
  */
 export interface ExternalDomain {
   /** Name of the external domain (e.g., "Stripe", "Twilio"). */
-  name: string
+  name: string;
   /** Domains that have connections to this external domain. */
-  sourceDomains: DomainName[]
+  sourceDomains: DomainName[];
   /** Total number of connections to this external domain. */
-  connectionCount: number
+  connectionCount: number;
 }
 
 /**
@@ -268,7 +275,7 @@ export interface ExternalDomain {
  * @returns A branded ComponentId
  */
 export function parseComponentId(id: string): ComponentId {
-  return componentIdSchema.parse(id)
+  return componentIdSchema.parse(id);
 }
 
 /**
@@ -278,7 +285,7 @@ export function parseComponentId(id: string): ComponentId {
  * @returns A branded LinkId
  */
 export function parseLinkId(id: string): LinkId {
-  return linkIdSchema.parse(id)
+  return linkIdSchema.parse(id);
 }
 
 /**
@@ -288,7 +295,7 @@ export function parseLinkId(id: string): LinkId {
  * @returns A branded EntityName
  */
 export function parseEntityName(value: string): EntityName {
-  return entityNameSchema.parse(value)
+  return entityNameSchema.parse(value);
 }
 
 /**
@@ -298,7 +305,7 @@ export function parseEntityName(value: string): EntityName {
  * @returns A branded DomainName
  */
 export function parseDomainName(value: string): DomainName {
-  return domainNameSchema.parse(value)
+  return domainNameSchema.parse(value);
 }
 
 /**
@@ -308,7 +315,7 @@ export function parseDomainName(value: string): DomainName {
  * @returns A branded State
  */
 export function parseState(value: string): State {
-  return stateSchema.parse(value)
+  return stateSchema.parse(value);
 }
 
 /**
@@ -318,7 +325,7 @@ export function parseState(value: string): State {
  * @returns A branded OperationName
  */
 export function parseOperationName(value: string): OperationName {
-  return operationNameSchema.parse(value)
+  return operationNameSchema.parse(value);
 }
 
 /**
@@ -328,7 +335,7 @@ export function parseOperationName(value: string): OperationName {
  * @returns A branded EventId
  */
 export function parseEventId(value: string): EventId {
-  return eventIdSchema.parse(value)
+  return eventIdSchema.parse(value);
 }
 
 /**
@@ -338,7 +345,7 @@ export function parseEventId(value: string): EventId {
  * @returns A branded EventName
  */
 export function parseEventName(value: string): EventName {
-  return eventNameSchema.parse(value)
+  return eventNameSchema.parse(value);
 }
 
 /**
@@ -348,7 +355,7 @@ export function parseEventName(value: string): EventName {
  * @returns A branded HandlerId
  */
 export function parseHandlerId(value: string): HandlerId {
-  return handlerIdSchema.parse(value)
+  return handlerIdSchema.parse(value);
 }
 
 /**
@@ -358,5 +365,5 @@ export function parseHandlerId(value: string): HandlerId {
  * @returns A branded HandlerName
  */
 export function parseHandlerName(value: string): HandlerName {
-  return handlerNameSchema.parse(value)
+  return handlerNameSchema.parse(value);
 }

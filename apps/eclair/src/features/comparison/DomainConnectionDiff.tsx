@@ -1,15 +1,21 @@
-import { useMemo, useState, useCallback } from 'react'
-import { ReactFlow, Background, Controls } from '@xyflow/react'
-import type { Node, Edge, EdgeMouseHandler } from '@xyflow/react'
+import {
+ useMemo, useState, useCallback 
+} from 'react'
+import {
+ ReactFlow, Background, Controls 
+} from '@xyflow/react'
+import type {
+ Node, Edge, EdgeMouseHandler 
+} from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import dagre from 'dagre'
-import type { DomainConnectionDiffResult, DomainConnection, EdgeDetail } from './computeDomainConnectionDiff'
+import type {
+ DomainConnectionDiffResult, DomainConnection, EdgeDetail 
+} from './computeDomainConnectionDiff'
 import { DomainNode } from '../domain-map/components/DomainNode/DomainNode'
 import { getClosestHandle } from '@/lib/handlePositioning'
 
-interface DomainConnectionDiffProps {
-  readonly diff: DomainConnectionDiffResult
-}
+interface DomainConnectionDiffProps {readonly diff: DomainConnectionDiffResult}
 
 type ConnectionStatus = 'added' | 'removed' | 'unchanged'
 
@@ -36,8 +42,14 @@ const STATUS_COLORS = {
 
 function computeDagreLayout(
   domainIds: string[],
-  edges: Array<{ source: string; target: string }>
-): Map<string, { x: number; y: number }> {
+  edges: Array<{
+ source: string;
+target: string 
+}>
+): Map<string, {
+ x: number;
+y: number 
+}> {
   const layoutGraph = new dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}))
 
   layoutGraph.setGraph({
@@ -49,7 +61,10 @@ function computeDagreLayout(
   })
 
   for (const domainId of domainIds) {
-    layoutGraph.setNode(domainId, { width: 80, height: 80 })
+    layoutGraph.setNode(domainId, {
+ width: 80,
+height: 80 
+})
   }
 
   for (const edge of edges) {
@@ -58,10 +73,16 @@ function computeDagreLayout(
 
   dagre.layout(layoutGraph)
 
-  const positions = new Map<string, { x: number; y: number }>()
+  const positions = new Map<string, {
+ x: number;
+y: number 
+}>()
   for (const domainId of domainIds) {
     const node = layoutGraph.node(domainId)
-    positions.set(domainId, { x: node.x, y: node.y })
+    positions.set(domainId, {
+ x: node.x,
+y: node.y 
+})
   }
 
   return positions
@@ -69,7 +90,10 @@ function computeDagreLayout(
 
 function buildNodes(
   domains: string[],
-  positions: Map<string, { x: number; y: number }>,
+  positions: Map<string, {
+ x: number;
+y: number 
+}>,
   domainsWithChanges: Set<string>
 ): Node<DiffNodeData>[] {
   return domains.map((domain) => {
@@ -82,7 +106,11 @@ function buildNodes(
       id: domain,
       type: 'domain',
       position,
-      data: { label: domain, nodeCount: 0, dimmed: !hasChanges },
+      data: {
+ label: domain,
+nodeCount: 0,
+dimmed: !hasChanges 
+},
     }
   })
 }
@@ -90,7 +118,10 @@ function buildNodes(
 function buildEdges(
   connections: DomainConnection[],
   status: ConnectionStatus,
-  positions: Map<string, { x: number; y: number }>
+  positions: Map<string, {
+ x: number;
+y: number 
+}>
 ): Edge<DiffEdgeData>[] {
   return connections.map((conn) => {
     const sourcePos = positions.get(conn.source)
@@ -108,8 +139,18 @@ function buildEdges(
       target: conn.target,
       sourceHandle: handles.sourceHandle,
       targetHandle: handles.targetHandle,
-      data: { status, sourceDomain: conn.source, targetDomain: conn.target, edges: conn.edges },
-      style: { stroke: color, strokeWidth: status === 'unchanged' ? 2 : 3, opacity, cursor: 'pointer' },
+      data: {
+ status,
+sourceDomain: conn.source,
+targetDomain: conn.target,
+edges: conn.edges 
+},
+      style: {
+ stroke: color,
+strokeWidth: status === 'unchanged' ? 2 : 3,
+opacity,
+cursor: 'pointer' 
+},
       animated: false,
       interactionWidth: 20,
     }
@@ -146,9 +187,7 @@ interface TooltipData {
   edges: EdgeDetail[]
 }
 
-interface EdgeTooltipProps {
-  readonly data: TooltipData
-}
+interface EdgeTooltipProps {readonly data: TooltipData}
 
 function EdgeTooltip({ data }: Readonly<EdgeTooltipProps>): React.ReactElement {
   const statusLabel = {
@@ -163,7 +202,10 @@ function EdgeTooltip({ data }: Readonly<EdgeTooltipProps>): React.ReactElement {
     <div
       data-testid="edge-tooltip"
       className="pointer-events-none fixed z-50 max-w-xs rounded-md border border-[var(--border-color)] bg-[var(--bg-primary)] p-3 shadow-lg"
-      style={{ left: data.x + 10, top: data.y + 10 }}
+      style={{
+ left: data.x + 10,
+top: data.y + 10 
+}}
     >
       <div className="mb-2 flex items-center gap-2">
         <div className="h-2 w-2 rounded-full" style={{ backgroundColor: statusColor }} />
@@ -207,7 +249,9 @@ interface FullscreenModalProps {
   readonly tooltip: TooltipData | null
 }
 
-function FullscreenModal({ nodes, edges, onClose, onEdgeMouseEnter, onEdgeMouseLeave, tooltip }: Readonly<FullscreenModalProps>): React.ReactElement {
+function FullscreenModal({
+ nodes, edges, onClose, onEdgeMouseEnter, onEdgeMouseLeave, tooltip 
+}: Readonly<FullscreenModalProps>): React.ReactElement {
   return (
     <div
       role="dialog"
@@ -265,9 +309,18 @@ export function DomainConnectionDiff({ diff }: DomainConnectionDiffProps): React
 
   const positions = useMemo(() => {
     const allEdges = [
-      ...diff.connections.added.map((c) => ({ source: c.source, target: c.target })),
-      ...diff.connections.removed.map((c) => ({ source: c.source, target: c.target })),
-      ...diff.connections.unchanged.map((c) => ({ source: c.source, target: c.target })),
+      ...diff.connections.added.map((c) => ({
+ source: c.source,
+target: c.target 
+})),
+      ...diff.connections.removed.map((c) => ({
+ source: c.source,
+target: c.target 
+})),
+      ...diff.connections.unchanged.map((c) => ({
+ source: c.source,
+target: c.target 
+})),
     ]
     return computeDagreLayout(diff.domains, allEdges)
   }, [diff.domains, diff.connections])

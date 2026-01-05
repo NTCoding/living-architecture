@@ -1,7 +1,13 @@
-import { useCallback, useEffect, useId, useState } from 'react'
-import { JsonView, collapseAllNested } from 'react-json-view-lite'
+import {
+ useCallback, useEffect, useId, useState 
+} from 'react'
+import {
+ JsonView, collapseAllNested 
+} from 'react-json-view-lite'
 import 'react-json-view-lite/dist/index.css'
-import type { RiviereGraph, GraphName } from '@/types/riviere'
+import type {
+ RiviereGraph, GraphName 
+} from '@/types/riviere'
 import styles from './SchemaModal.module.css'
 
 function getStyle(name: string): string {

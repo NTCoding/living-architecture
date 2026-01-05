@@ -1,10 +1,14 @@
 import { Command } from 'commander';
 import { writeFile } from 'node:fs/promises';
 import { DuplicateDomainError } from '@living-architecture/riviere-builder';
-import { formatError, formatSuccess } from '../../output';
+import {
+ formatError, formatSuccess 
+} from '../../output';
 import { CliErrorCode } from '../../error-codes';
 import { getDefaultGraphPathDescription } from '../../graph-path';
-import { isValidSystemType, VALID_SYSTEM_TYPES } from '../../component-types';
+import {
+ isValidSystemType, VALID_SYSTEM_TYPES 
+} from '../../component-types';
 import { withGraphBuilder } from './link-infrastructure';
 
 interface AddDomainOptions {
@@ -27,11 +31,14 @@ Examples:
 
   $ riviere builder add-domain --name checkout-bff --system-type bff \\
       --description "Checkout backend-for-frontend"
-`
+`,
     )
     .requiredOption('--name <name>', 'Domain name')
     .requiredOption('--description <description>', 'Domain description')
-    .requiredOption('--system-type <type>', 'System type (domain, bff, ui, other)')
+    .requiredOption(
+      '--system-type <type>',
+      'System type (domain, bff, ui, other)',
+    )
     .option('--graph <path>', getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .action(async (options: AddDomainOptions) => {
@@ -41,9 +48,9 @@ Examples:
             formatError(
               CliErrorCode.ValidationError,
               `Invalid system type: ${options.systemType}`,
-              [`Valid types: ${VALID_SYSTEM_TYPES.join(', ')}`]
-            )
-          )
+              [`Valid types: ${VALID_SYSTEM_TYPES.join(', ')}`],
+            ),
+          ),
         );
         return;
       }
@@ -60,8 +67,10 @@ Examples:
           if (error instanceof DuplicateDomainError) {
             console.log(
               JSON.stringify(
-                formatError(CliErrorCode.DuplicateDomain, error.message, ['Use a different domain name'])
-              )
+                formatError(CliErrorCode.DuplicateDomain, error.message, [
+                  'Use a different domain name',
+                ]),
+              ),
             );
             return;
           }
@@ -77,8 +86,8 @@ Examples:
                 name: options.name,
                 description: options.description,
                 systemType: options.systemType,
-              })
-            )
+              }),
+            ),
           );
         }
       });

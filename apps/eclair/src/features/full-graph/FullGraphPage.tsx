@@ -1,6 +1,10 @@
-import { useState, useCallback, useMemo, useRef, useEffect } from 'react'
+import {
+ useState, useCallback, useMemo, useRef, useEffect 
+} from 'react'
 import { useSearchParams } from 'react-router-dom'
-import type { RiviereGraph, NodeType } from '@/types/riviere'
+import type {
+ RiviereGraph, NodeType 
+} from '@/types/riviere'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useExport } from '@/contexts/ExportContext'
 import {
@@ -16,7 +20,9 @@ import { NodeTypeFilters } from './components/NodeTypeFilters/NodeTypeFilters'
 import { filterByNodeType } from './graphFocusing/filterByNodeType'
 import { getThemeFocusColors } from './graphFocusing/themeFocusColors'
 import type { TooltipData } from './types'
-import type { Node, Edge } from '@/types/riviere'
+import type {
+ Node, Edge 
+} from '@/types/riviere'
 
 function findOrphanNodeIds(nodes: Node[], edges: Edge[]): Set<string> {
   const connectedNodeIds = new Set<string>()
@@ -34,9 +40,7 @@ function findOrphanNodeIds(nodes: Node[], edges: Edge[]): Set<string> {
   return orphanIds
 }
 
-interface FullGraphPageProps {
-  readonly graph: RiviereGraph
-}
+interface FullGraphPageProps {readonly graph: RiviereGraph}
 
 interface DomainInfo {
   name: string
@@ -57,7 +61,10 @@ function extractDomains(graph: RiviereGraph): DomainInfo[] {
   }
 
   return Array.from(domainCounts.entries())
-    .map(([name, nodeCount]) => ({ name, nodeCount }))
+    .map(([name, nodeCount]) => ({
+ name,
+nodeCount 
+}))
     .sort((a, b) => a.name.localeCompare(b.name))
 }
 
@@ -75,13 +82,18 @@ function extractNodeTypes(graph: RiviereGraph): NodeTypeInfo[] {
   }
 
   return Array.from(typeCounts.entries())
-    .map(([type, nodeCount]) => ({ type, nodeCount }))
+    .map(([type, nodeCount]) => ({
+ type,
+nodeCount 
+}))
     .sort((a, b) => a.type.localeCompare(b.type))
 }
 
 export function FullGraphPage({ graph }: Readonly<FullGraphPageProps>): React.ReactElement {
   const { theme } = useTheme()
-  const { registerExportHandlers, clearExportHandlers } = useExport()
+  const {
+ registerExportHandlers, clearExportHandlers 
+} = useExport()
   const [searchParams] = useSearchParams()
   const [tooltipData, setTooltipData] = useState<TooltipData | null>(null)
   const tooltipHideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -241,7 +253,10 @@ export function FullGraphPage({ graph }: Readonly<FullGraphPageProps>): React.Re
       }
     }
 
-    registerExportHandlers({ onPng: handleExportPng, onSvg: handleExportSvg })
+    registerExportHandlers({
+ onPng: handleExportPng,
+onSvg: handleExportSvg 
+})
 
     return () => {
       clearExportHandlers()
@@ -255,7 +270,11 @@ export function FullGraphPage({ graph }: Readonly<FullGraphPageProps>): React.Re
   return (
     <div ref={exportContainerRef} className="relative h-full w-full" data-testid="full-graph-page">
       <ForceGraph
-        graph={{ ...graph, components: filteredGraph.nodes, links: filteredGraph.edges }}
+        graph={{
+ ...graph,
+components: filteredGraph.nodes,
+links: filteredGraph.edges 
+}}
         theme={theme}
         highlightedNodeIds={highlightedNodeIds}
         highlightedNodeId={highlightedNodeId}
@@ -268,9 +287,7 @@ export function FullGraphPage({ graph }: Readonly<FullGraphPageProps>): React.Re
       {focusedDomain !== null && focusedDomain !== HIDE_ALL_DOMAINS && (
         <div
           className="pointer-events-none absolute inset-0 transition-opacity duration-600"
-          style={{
-            backgroundColor: focusColors.overlayBackground,
-          }}
+          style={{backgroundColor: focusColors.overlayBackground,}}
         />
       )}
 
@@ -312,9 +329,7 @@ export function FullGraphPage({ graph }: Readonly<FullGraphPageProps>): React.Re
             type="button"
             onClick={handleShowAllDomains}
             className="mt-4 flex items-center gap-2 text-sm font-medium transition-colors"
-            style={{
-              color: focusColors.borderColor,
-            }}
+            style={{color: focusColors.borderColor,}}
           >
             <i className="ph ph-x-circle text-base" />
             <span>Clear focus</span>

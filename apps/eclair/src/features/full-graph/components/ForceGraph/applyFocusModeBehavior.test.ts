@@ -1,10 +1,21 @@
-import { describe, it, expect, vi } from 'vitest'
+import {
+ describe, it, expect, vi 
+} from 'vitest'
 import * as d3 from 'd3'
-import { applyFocusMode, applyResetMode } from './applyFocusModeBehavior'
-import type { SimulationNode, SimulationLink } from '../../types'
-import { parseNode, parseEdge } from '@/lib/riviereTestData'
+import {
+ applyFocusMode, applyResetMode 
+} from './applyFocusModeBehavior'
+import type {
+ SimulationNode, SimulationLink 
+} from '../../types'
+import {
+ parseNode, parseEdge 
+} from '@/lib/riviereTestData'
 
-const testSourceLocation = { repository: 'test-repo', filePath: 'src/test.ts' }
+const testSourceLocation = {
+ repository: 'test-repo',
+filePath: 'src/test.ts' 
+}
 
 function createTestNode(id: string, type: SimulationNode['type'], domain: string): SimulationNode {
   return {
@@ -32,7 +43,11 @@ function createTestLink(sourceId: string, targetId: string): SimulationLink {
     source: sourceId,
     target: targetId,
     type: 'sync',
-    originalEdge: parseEdge({ source: sourceId, target: targetId, type: 'sync' }),
+    originalEdge: parseEdge({
+ source: sourceId,
+target: targetId,
+type: 'sync' 
+}),
   }
 }
 
@@ -63,7 +78,13 @@ function createTestContext(): TestContext {
     return t
   })
 
-  return { svgElement, svg, nodeGroup, linkGroup, zoom }
+  return {
+ svgElement,
+svg,
+nodeGroup,
+linkGroup,
+zoom 
+}
 }
 
 function cleanupContext(ctx: TestContext): void {
@@ -104,7 +125,10 @@ describe('applyFocusModeBehavior', () => {
           nodes,
           domain: 'orders',
           theme: 'stream',
-          dimensions: { width: 800, height: 600 },
+          dimensions: {
+ width: 800,
+height: 600 
+},
         })
       ).not.toThrow()
 
@@ -126,7 +150,10 @@ describe('applyFocusModeBehavior', () => {
           nodes,
           domain: 'nonexistent',
           theme: 'stream',
-          dimensions: { width: 800, height: 600 },
+          dimensions: {
+ width: 800,
+height: 600 
+},
         })
       ).not.toThrow()
 
@@ -151,7 +178,10 @@ describe('applyFocusModeBehavior', () => {
           nodes,
           domain: 'orders',
           theme: 'voltage',
-          dimensions: { width: 800, height: 600 },
+          dimensions: {
+ width: 800,
+height: 600 
+},
         })
       ).not.toThrow()
 
@@ -176,7 +206,10 @@ describe('applyFocusModeBehavior', () => {
           nodes,
           domain: 'orders',
           theme: 'circuit',
-          dimensions: { width: 800, height: 600 },
+          dimensions: {
+ width: 800,
+height: 600 
+},
         })
       ).not.toThrow()
 
@@ -204,7 +237,10 @@ describe('applyFocusModeBehavior', () => {
           nodes,
           domain: 'nonexistent',
           theme: 'stream',
-          dimensions: { width: 800, height: 600 },
+          dimensions: {
+ width: 800,
+height: 600 
+},
         })
       ).not.toThrow()
 
@@ -286,7 +322,10 @@ describe('applyFocusModeBehavior', () => {
         nodes,
         domain: 'orders',
         theme: 'stream',
-        dimensions: { width: 800, height: 600 },
+        dimensions: {
+ width: 800,
+height: 600 
+},
       })
 
       expect(() =>

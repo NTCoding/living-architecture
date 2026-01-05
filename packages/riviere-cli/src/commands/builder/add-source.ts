@@ -19,7 +19,7 @@ export function createAddSourceCommand(): Command {
 Examples:
   $ riviere builder add-source --repository https://github.com/your-org/orders-service
   $ riviere builder add-source --repository https://github.com/your-org/payments-api --json
-`
+`,
     )
     .requiredOption('--repository <url>', 'Source repository URL')
     .option('--graph <path>', getDefaultGraphPathDescription())
@@ -33,10 +33,8 @@ Examples:
         if (options.json === true) {
           console.log(
             JSON.stringify(
-              formatSuccess({
-                repository: options.repository,
-              })
-            )
+              formatSuccess({repository: options.repository,}),
+            ),
           );
         }
       });

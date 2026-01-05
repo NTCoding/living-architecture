@@ -15,14 +15,28 @@ export interface ErrorOutput {
   };
 }
 
-export function formatSuccess<T>(data: T, warnings: string[] = []): SuccessOutput<T> {
-  return { success: true, data, warnings };
+export function formatSuccess<T>(
+  data: T,
+  warnings: string[] = [],
+): SuccessOutput<T> {
+  return {
+ success: true,
+data,
+warnings 
+};
 }
 
 export function formatError(
   code: CliErrorCode,
   message: string,
-  suggestions: string[] = []
+  suggestions: string[] = [],
 ): ErrorOutput {
-  return { success: false, error: { code, message, suggestions } };
+  return {
+ success: false,
+error: {
+ code,
+message,
+suggestions 
+} 
+};
 }

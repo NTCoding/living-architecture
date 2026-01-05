@@ -1,13 +1,13 @@
-import { useState, useMemo, useCallback } from 'react'
+import {
+ useState, useMemo, useCallback 
+} from 'react'
 import { useNavigate } from 'react-router-dom'
 import { RiviereQuery } from '@living-architecture/riviere-query'
 import type { Entity } from '@living-architecture/riviere-query'
 import type { RiviereGraph } from '@/types/riviere'
 import { EntityAccordion } from '../domains/components/EntityAccordion/EntityAccordion'
 
-interface EntitiesPageProps {
-  readonly graph: RiviereGraph
-}
+interface EntitiesPageProps {readonly graph: RiviereGraph}
 
 export function EntitiesPage({ graph }: Readonly<EntitiesPageProps>): React.ReactElement {
   const navigate = useNavigate()

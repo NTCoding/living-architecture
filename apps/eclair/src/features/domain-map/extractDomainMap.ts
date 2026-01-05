@@ -1,5 +1,7 @@
 import type { RiviereGraph } from '@/types/riviere'
-import type { Node, Edge } from '@xyflow/react'
+import type {
+ Node, Edge 
+} from '@xyflow/react'
 import dagre from 'dagre'
 import { getClosestHandle } from '@/lib/handlePositioning'
 import { RiviereQuery } from '@living-architecture/riviere-query'
@@ -53,7 +55,10 @@ interface DomainMapData {
 
 interface LayoutInput {
   domainIds: string[]
-  edges: Array<{ source: string; target: string }>
+  edges: Array<{
+ source: string;
+target: string 
+}>
   nodeSizes: Map<string, number>
 }
 
@@ -68,8 +73,16 @@ interface EdgeAggregation {
 function recordEdgeAggregation(
   aggregation: Map<string, EdgeAggregation>,
   key: string,
-  sourceInfo: { domain: string; name: string; type: string },
-  targetInfo: { domain: string; name: string; type: string },
+  sourceInfo: {
+ domain: string;
+name: string;
+type: string 
+},
+  targetInfo: {
+ domain: string;
+name: string;
+type: string 
+},
   connection: ConnectionDetail,
   isApi: boolean,
   isEventHandler: boolean
@@ -103,7 +116,11 @@ function getEdgeType(type: string | undefined): 'sync' | 'async' | 'unknown' {
 
 function aggregateDomainEdges(
   links: RiviereGraph['links'],
-  nodeInfo: Map<string, { domain: string; name: string; type: string }>,
+  nodeInfo: Map<string, {
+ domain: string;
+name: string;
+type: string 
+}>,
   edgeAggregation: Map<string, EdgeAggregation>
 ): void {
   for (const edge of links) {
@@ -135,7 +152,11 @@ interface ExternalEdgeInfo {
 
 function aggregateExternalEdges(
   graph: RiviereGraph,
-  nodeInfo: Map<string, { domain: string; name: string; type: string }>
+  nodeInfo: Map<string, {
+ domain: string;
+name: string;
+type: string 
+}>
 ): ExternalEdgeInfo[] {
   if (graph.externalLinks === undefined) return []
 
@@ -171,7 +192,10 @@ function aggregateExternalEdges(
   return Array.from(edgeMap.values())
 }
 
-function computeDagreLayout(input: LayoutInput): Map<string, { x: number; y: number }> {
+function computeDagreLayout(input: LayoutInput): Map<string, {
+ x: number;
+y: number 
+}> {
   const g = new dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}))
 
   g.setGraph({
@@ -187,7 +211,10 @@ function computeDagreLayout(input: LayoutInput): Map<string, { x: number; y: num
     if (size === undefined) {
       throw new Error(`Domain ${domainId} missing from nodeSizes`)
     }
-    g.setNode(domainId, { width: size, height: size })
+    g.setNode(domainId, {
+ width: size,
+height: size 
+})
   }
 
   for (const edge of input.edges) {
@@ -196,10 +223,16 @@ function computeDagreLayout(input: LayoutInput): Map<string, { x: number; y: num
 
   dagre.layout(g)
 
-  const positions = new Map<string, { x: number; y: number }>()
+  const positions = new Map<string, {
+ x: number;
+y: number 
+}>()
   for (const domainId of input.domainIds) {
     const node = g.node(domainId)
-    positions.set(domainId, { x: node.x, y: node.y })
+    positions.set(domainId, {
+ x: node.x,
+y: node.y 
+})
   }
 
   return positions
@@ -220,9 +253,17 @@ export function extractDomainMap(graph: RiviereGraph): DomainMapData {
     domainCounts.set(node.domain, count + 1)
   }
 
-  const nodeInfo = new Map<string, { domain: string; name: string; type: string }>()
+  const nodeInfo = new Map<string, {
+ domain: string;
+name: string;
+type: string 
+}>()
   for (const node of graph.components) {
-    nodeInfo.set(node.id, { domain: node.domain, name: node.name, type: node.type })
+    nodeInfo.set(node.id, {
+ domain: node.domain,
+name: node.name,
+type: node.type 
+})
   }
 
   const edgeAggregation = new Map<string, EdgeAggregation>()
@@ -254,7 +295,11 @@ export function extractDomainMap(graph: RiviereGraph): DomainMapData {
     nodeSizes.set(createExternalNodeId(ed.name), EXTERNAL_NODE_SIZE)
   }
 
-  const domainPositions = computeDagreLayout({ domainIds: allNodeIds, edges: layoutEdges, nodeSizes })
+  const domainPositions = computeDagreLayout({
+ domainIds: allNodeIds,
+edges: layoutEdges,
+nodeSizes 
+})
 
   const domainNodes: DomainNode[] = domains.map(([domain, nodeCount]) => {
     const position = domainPositions.get(domain)
@@ -266,7 +311,12 @@ export function extractDomainMap(graph: RiviereGraph): DomainMapData {
       id: domain,
       type: 'domain',
       position,
-      data: { label: domain, nodeCount, calculatedSize, isExternal: false },
+      data: {
+ label: domain,
+nodeCount,
+calculatedSize,
+isExternal: false 
+},
     }
   })
 
@@ -281,7 +331,12 @@ export function extractDomainMap(graph: RiviereGraph): DomainMapData {
       id: nodeId,
       type: 'domain',
       position,
-      data: { label: ed.name, nodeCount: ed.connectionCount, calculatedSize, isExternal: true },
+      data: {
+ label: ed.name,
+nodeCount: ed.connectionCount,
+calculatedSize,
+isExternal: true 
+},
     }
   })
 
@@ -306,10 +361,23 @@ export function extractDomainMap(graph: RiviereGraph): DomainMapData {
       sourceHandle: handles.sourceHandle,
       targetHandle: handles.targetHandle,
       label: formatEdgeLabel(agg.apiCount, agg.eventCount),
-      data: { apiCount: agg.apiCount, eventCount: agg.eventCount, connections: agg.connections },
+      data: {
+ apiCount: agg.apiCount,
+eventCount: agg.eventCount,
+connections: agg.connections 
+},
       style: { stroke: strokeColor },
-      labelStyle: { fontSize: 10, fontWeight: 600, fill: '#1f2937' },
-      labelBgStyle: { fill: 'rgba(255, 255, 255, 0.85)', stroke: 'rgba(0, 0, 0, 0.1)', strokeWidth: 1, filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1))' },
+      labelStyle: {
+ fontSize: 10,
+fontWeight: 600,
+fill: '#1f2937' 
+},
+      labelBgStyle: {
+ fill: 'rgba(255, 255, 255, 0.85)',
+stroke: 'rgba(0, 0, 0, 0.1)',
+strokeWidth: 1,
+filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1))' 
+},
       labelBgPadding: LABEL_BG_PADDING,
       labelBgBorderRadius: 4,
       markerEnd: arrowMarker,
@@ -332,17 +400,36 @@ export function extractDomainMap(graph: RiviereGraph): DomainMapData {
       sourceHandle: handles.sourceHandle,
       targetHandle: handles.targetHandle,
       label: `${e.connectionCount} API`,
-      data: { apiCount: e.connectionCount, eventCount: 0, connections: e.connections },
-      style: { stroke: '#F97316', strokeDasharray: '5,5' },
-      labelStyle: { fontSize: 10, fontWeight: 600, fill: '#1f2937' },
-      labelBgStyle: { fill: 'rgba(255, 255, 255, 0.85)', stroke: 'rgba(0, 0, 0, 0.1)', strokeWidth: 1, filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1))' },
+      data: {
+ apiCount: e.connectionCount,
+eventCount: 0,
+connections: e.connections 
+},
+      style: {
+ stroke: '#F97316',
+strokeDasharray: '5,5' 
+},
+      labelStyle: {
+ fontSize: 10,
+fontWeight: 600,
+fill: '#1f2937' 
+},
+      labelBgStyle: {
+ fill: 'rgba(255, 255, 255, 0.85)',
+stroke: 'rgba(0, 0, 0, 0.1)',
+strokeWidth: 1,
+filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1))' 
+},
       labelBgPadding: LABEL_BG_PADDING,
       labelBgBorderRadius: 4,
       markerEnd: 'url(#arrow-orange)',
     }
   })
 
-  return { domainNodes: allNodes, domainEdges: [...domainEdges, ...externalEdgesForMap] }
+  return {
+ domainNodes: allNodes,
+domainEdges: [...domainEdges, ...externalEdgesForMap] 
+}
 }
 
 export function getConnectedDomains(domain: string, edges: DomainEdge[]): Set<string> {

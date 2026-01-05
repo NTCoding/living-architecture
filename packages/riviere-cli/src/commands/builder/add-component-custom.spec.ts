@@ -1,9 +1,16 @@
-import { describe, it, expect } from 'vitest';
+import {
+ describe, it, expect 
+} from 'vitest';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { createProgram } from '../../cli';
 import { CliErrorCode } from '../../error-codes';
-import { type TestContext, createTestContext, setupCommandTest, createGraphWithCustomType } from '../../command-test-fixtures';
+import {
+  type TestContext,
+  createTestContext,
+  setupCommandTest,
+  createGraphWithCustomType,
+} from '../../command-test-fixtures';
 
 describe('riviere builder add-component Custom type', () => {
   const ctx: TestContext = createTestContext();
@@ -12,7 +19,12 @@ describe('riviere builder add-component Custom type', () => {
   it('stores custom properties directly on component when --custom-property provided', async () => {
     await createGraphWithCustomType(ctx.testDir, 'orders', 'BackgroundJob', {
       description: 'Scheduled background task',
-      requiredProperties: { schedule: { type: 'string', description: 'Cron expression' } },
+      requiredProperties: {
+schedule: {
+ type: 'string',
+description: 'Cron expression' 
+},
+},
     });
 
     const program = createProgram();
@@ -90,8 +102,11 @@ describe('riviere builder add-component Custom type', () => {
     const content = await readFile(graphPath, 'utf-8');
     const graph: unknown = JSON.parse(content);
     expect(graph).toMatchObject({
-      components: [{ schedule: '0 0 * * *', timeout: '5m' }],
-    });
+components: [{
+ schedule: '0 0 * * *',
+timeout: '5m' 
+}],
+});
   });
 
   it('returns VALIDATION_ERROR when --custom-property has invalid format', async () => {

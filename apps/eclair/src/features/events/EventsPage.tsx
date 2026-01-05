@@ -1,16 +1,16 @@
-import { useMemo, useState, useCallback } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import {
+ useMemo, useState, useCallback 
+} from 'react'
+import {
+ useNavigate, useSearchParams 
+} from 'react-router-dom'
 import type { RiviereGraph } from '@/types/riviere'
 import { EventAccordion } from '@/features/domains/components/EventAccordion/EventAccordion'
 import type { DomainEvent } from '@/features/domains/extractDomainDetails'
 
-interface EventsPageProps {
-  readonly graph: RiviereGraph
-}
+interface EventsPageProps {readonly graph: RiviereGraph}
 
-interface PublishedEvent extends DomainEvent {
-  domain: string
-}
+interface PublishedEvent extends DomainEvent {domain: string}
 
 function handlerSubscribesToEvent(
   subscribedEvents: string[] | undefined,
@@ -35,7 +35,10 @@ export function EventsPage({ graph }: Readonly<EventsPageProps>): React.ReactEle
     navigate(`/full-graph?node=${eventId}${demoParam}`)
   }, [navigate, searchParams])
 
-  const handleViewHandlerOnGraph = useCallback((handler: { domain: string; handlerName: string }) => {
+  const handleViewHandlerOnGraph = useCallback((handler: {
+ domain: string;
+handlerName: string 
+}) => {
     const handlerNode = graph.components.find(
       (node) => node.type === 'EventHandler' && node.domain === handler.domain && node.name === handler.handlerName
     )
@@ -46,7 +49,12 @@ export function EventsPage({ graph }: Readonly<EventsPageProps>): React.ReactEle
     }
   }, [graph.components, navigate, searchParams])
 
-  const { publishedEvents, domains } = useMemo((): { publishedEvents: PublishedEvent[]; domains: string[] } => {
+  const {
+ publishedEvents, domains 
+} = useMemo((): {
+ publishedEvents: PublishedEvent[];
+domains: string[] 
+} => {
     const published: PublishedEvent[] = []
     const domainSet = new Set<string>()
 

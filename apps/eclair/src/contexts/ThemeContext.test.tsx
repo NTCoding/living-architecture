@@ -1,9 +1,15 @@
-import { render, screen } from '@testing-library/react'
+import {
+ render, screen 
+} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { ThemeProvider, useTheme } from './ThemeContext'
+import {
+ ThemeProvider, useTheme 
+} from './ThemeContext'
 
 function TestConsumer(): React.ReactElement {
-  const { theme, setTheme } = useTheme()
+  const {
+ theme, setTheme 
+} = useTheme()
   return (
     <div>
       <span data-testid="current-theme">{theme}</span>

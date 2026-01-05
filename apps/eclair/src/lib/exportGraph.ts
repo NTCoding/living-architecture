@@ -36,9 +36,7 @@ export function exportSvgAsFile(svg: SVGSVGElement, filename: string): void {
   downloadBlob(blob, filename)
 }
 
-interface PngExportOptions {
-  backgroundColor?: string
-}
+interface PngExportOptions {backgroundColor?: string}
 
 export async function exportElementAsPng(
   element: HTMLElement,

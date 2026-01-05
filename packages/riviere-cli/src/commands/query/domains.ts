@@ -1,10 +1,12 @@
-import { Command } from 'commander'
-import { formatSuccess } from '../../output'
-import { withGraph, getDefaultGraphPathDescription } from './load-graph'
+import { Command } from 'commander';
+import { formatSuccess } from '../../output';
+import {
+ withGraph, getDefaultGraphPathDescription 
+} from './load-graph';
 
 interface DomainsOptions {
-  graph?: string
-  json?: boolean
+  graph?: string;
+  json?: boolean;
 }
 
 export function createDomainsCommand(): Command {
@@ -16,17 +18,17 @@ export function createDomainsCommand(): Command {
 Examples:
   $ riviere query domains
   $ riviere query domains --json
-`
+`,
     )
     .option('--graph <path>', getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .action(async (options: DomainsOptions) => {
       await withGraph(options.graph, (query) => {
-        const domains = query.domains()
+        const domains = query.domains();
 
         if (options.json) {
-          console.log(JSON.stringify(formatSuccess({ domains })))
+          console.log(JSON.stringify(formatSuccess({ domains })));
         }
-      })
-    })
+      });
+    });
 }

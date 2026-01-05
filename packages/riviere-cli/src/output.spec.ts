@@ -1,4 +1,9 @@
-import { formatSuccess, formatError, type SuccessOutput, type ErrorOutput } from './output';
+import {
+  formatSuccess,
+  formatError,
+  type SuccessOutput,
+  type ErrorOutput,
+} from './output';
 import { CliErrorCode } from './error-codes';
 
 describe('formatSuccess', () => {
@@ -32,7 +37,7 @@ describe('formatError', () => {
   it('returns error output with code and message', () => {
     const result = formatError(
       CliErrorCode.GraphNotFound,
-      'No graph found at .riviere/graph.json'
+      'No graph found at .riviere/graph.json',
     );
 
     expect(result).toEqual({
@@ -49,7 +54,7 @@ describe('formatError', () => {
     const result = formatError(
       CliErrorCode.ComponentNotFound,
       "Component 'orders:api:place-ordr' not found",
-      ['orders:api:place-order', 'orders:api:get-order']
+      ['orders:api:place-order', 'orders:api:get-order'],
     );
 
     expect(result).toEqual({

@@ -48,7 +48,9 @@ interface ModalHeaderProps {
   readonly onClose: () => void
 }
 
-function ModalHeader({ nodeId, isCurrent, onClose }: Readonly<ModalHeaderProps>): React.ReactElement {
+function ModalHeader({
+ nodeId, isCurrent, onClose 
+}: Readonly<ModalHeaderProps>): React.ReactElement {
   return (
     <div className="flex items-center justify-between border-b border-[var(--border-color)] px-4 py-3">
       <div className="flex items-center gap-3">
@@ -82,7 +84,9 @@ interface ModalContentProps {
   currentDomainId: string
 }
 
-function ModalContent({ isCurrent, connections, currentDomainId }: Readonly<ModalContentProps>): React.ReactElement {
+function ModalContent({
+ isCurrent, connections, currentDomainId 
+}: Readonly<ModalContentProps>): React.ReactElement {
   const isCurrentDomain = isCurrent
   const hasNoConnections = connections.length === 0
 
@@ -126,9 +130,7 @@ function ModalContent({ isCurrent, connections, currentDomainId }: Readonly<Moda
   )
 }
 
-interface ModalFooterProps {
-  readonly nodeId: string
-}
+interface ModalFooterProps {readonly nodeId: string}
 
 function ModalFooter({ nodeId }: Readonly<ModalFooterProps>): React.ReactElement {
   return (

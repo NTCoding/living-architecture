@@ -1,4 +1,6 @@
-import { describe, it, expect } from 'vitest'
+import {
+ describe, it, expect 
+} from 'vitest'
 import {
   countNodesByType,
   formatDomainNodes,
@@ -9,7 +11,10 @@ import { parseNode } from '@/lib/riviereTestData'
 import type { SourceLocation } from '@/types/riviere'
 import type { RawNode } from '@/lib/riviereTestData'
 
-const testSourceLocation = { repository: 'test-repo', filePath: 'src/test.ts' }
+const testSourceLocation = {
+ repository: 'test-repo',
+filePath: 'src/test.ts' 
+}
 
 function createNode(overrides: Partial<RawNode> = {}): ReturnType<typeof parseNode> {
   return parseNode({
@@ -43,13 +48,39 @@ describe('domainNodeBreakdown', () => {
 
     it('counts single node of each type', () => {
       const nodes = [
-        createNode({ id: 'ui-1', type: 'UI', route: '/test' }),
-        createNode({ id: 'api-1', type: 'API' }),
-        createNode({ id: 'uc-1', type: 'UseCase' }),
-        createNode({ id: 'op-1', type: 'DomainOp', operationName: 'test' }),
-        createNode({ id: 'event-1', type: 'Event', eventName: 'TestEvent' }),
-        createNode({ id: 'handler-1', type: 'EventHandler', subscribedEvents: ['TestEvent'] }),
-        createNode({ id: 'custom-1', type: 'Custom', customTypeName: 'TestCustomType' }),
+        createNode({
+ id: 'ui-1',
+type: 'UI',
+route: '/test' 
+}),
+        createNode({
+ id: 'api-1',
+type: 'API' 
+}),
+        createNode({
+ id: 'uc-1',
+type: 'UseCase' 
+}),
+        createNode({
+ id: 'op-1',
+type: 'DomainOp',
+operationName: 'test' 
+}),
+        createNode({
+ id: 'event-1',
+type: 'Event',
+eventName: 'TestEvent' 
+}),
+        createNode({
+ id: 'handler-1',
+type: 'EventHandler',
+subscribedEvents: ['TestEvent'] 
+}),
+        createNode({
+ id: 'custom-1',
+type: 'Custom',
+customTypeName: 'TestCustomType' 
+}),
       ]
 
       const result = countNodesByType(nodes)
@@ -65,9 +96,18 @@ describe('domainNodeBreakdown', () => {
 
     it('counts multiple nodes of same type', () => {
       const nodes = [
-        createNode({ id: 'api-1', type: 'API' }),
-        createNode({ id: 'api-2', type: 'API' }),
-        createNode({ id: 'api-3', type: 'API' }),
+        createNode({
+ id: 'api-1',
+type: 'API' 
+}),
+        createNode({
+ id: 'api-2',
+type: 'API' 
+}),
+        createNode({
+ id: 'api-3',
+type: 'API' 
+}),
       ]
 
       const result = countNodesByType(nodes)
@@ -78,11 +118,29 @@ describe('domainNodeBreakdown', () => {
 
     it('handles mixed node types', () => {
       const nodes = [
-        createNode({ id: 'ui-1', type: 'UI', route: '/test' }),
-        createNode({ id: 'api-1', type: 'API' }),
-        createNode({ id: 'api-2', type: 'API' }),
-        createNode({ id: 'event-1', type: 'Event', eventName: 'TestEvent' }),
-        createNode({ id: 'handler-1', type: 'EventHandler', subscribedEvents: ['TestEvent'] }),
+        createNode({
+ id: 'ui-1',
+type: 'UI',
+route: '/test' 
+}),
+        createNode({
+ id: 'api-1',
+type: 'API' 
+}),
+        createNode({
+ id: 'api-2',
+type: 'API' 
+}),
+        createNode({
+ id: 'event-1',
+type: 'Event',
+eventName: 'TestEvent' 
+}),
+        createNode({
+ id: 'handler-1',
+type: 'EventHandler',
+subscribedEvents: ['TestEvent'] 
+}),
       ]
 
       const result = countNodesByType(nodes)
@@ -102,7 +160,11 @@ describe('domainNodeBreakdown', () => {
           id: 'api-1',
           type: 'API',
           apiType: 'other',
-          sourceLocation: { repository: 'test-repo', filePath: 'src/api/orders.ts', lineNumber: 42 },
+          sourceLocation: {
+ repository: 'test-repo',
+filePath: 'src/api/orders.ts',
+lineNumber: 42 
+},
         }),
       ]
 
@@ -119,7 +181,10 @@ describe('domainNodeBreakdown', () => {
         name: 'Test Node',
         domain: 'test-domain',
         module: 'test-module',
-        sourceLocation: { repository: 'test-repo', filePath: '' },
+        sourceLocation: {
+ repository: 'test-repo',
+filePath: '' 
+},
       }
       const nodes = [parseNode(rawNode)]
 
@@ -134,7 +199,10 @@ describe('domainNodeBreakdown', () => {
           id: 'api-1',
           type: 'API',
           apiType: 'other',
-          sourceLocation: { repository: 'test-repo', filePath: 'src/api/orders.ts' },
+          sourceLocation: {
+ repository: 'test-repo',
+filePath: 'src/api/orders.ts' 
+},
         }),
       ]
 
@@ -145,13 +213,39 @@ describe('domainNodeBreakdown', () => {
 
     it('sorts by type priority (UI, API, UseCase, DomainOp, Event, EventHandler, Custom)', () => {
       const nodes = [
-        createNode({ id: 'handler-1', type: 'EventHandler', subscribedEvents: ['TestEvent'] }),
-        createNode({ id: 'api-1', type: 'API' }),
-        createNode({ id: 'ui-1', type: 'UI', route: '/test' }),
-        createNode({ id: 'event-1', type: 'Event', eventName: 'TestEvent' }),
-        createNode({ id: 'uc-1', type: 'UseCase' }),
-        createNode({ id: 'op-1', type: 'DomainOp', operationName: 'test' }),
-        createNode({ id: 'custom-1', type: 'Custom', customTypeName: 'TestCustomType' }),
+        createNode({
+ id: 'handler-1',
+type: 'EventHandler',
+subscribedEvents: ['TestEvent'] 
+}),
+        createNode({
+ id: 'api-1',
+type: 'API' 
+}),
+        createNode({
+ id: 'ui-1',
+type: 'UI',
+route: '/test' 
+}),
+        createNode({
+ id: 'event-1',
+type: 'Event',
+eventName: 'TestEvent' 
+}),
+        createNode({
+ id: 'uc-1',
+type: 'UseCase' 
+}),
+        createNode({
+ id: 'op-1',
+type: 'DomainOp',
+operationName: 'test' 
+}),
+        createNode({
+ id: 'custom-1',
+type: 'Custom',
+customTypeName: 'TestCustomType' 
+}),
       ]
 
       const result = formatDomainNodes(nodes)
@@ -166,7 +260,11 @@ describe('domainNodeBreakdown', () => {
     })
 
     it('preserves node id, type, name, and sourceLocation', () => {
-      const sourceLocation: SourceLocation = { repository: 'test-repo', filePath: 'src/test.ts', lineNumber: 10 }
+      const sourceLocation: SourceLocation = {
+ repository: 'test-repo',
+filePath: 'src/test.ts',
+lineNumber: 10 
+}
       const nodes = [
         createNode({
           id: 'api-123',
@@ -195,8 +293,16 @@ describe('domainNodeBreakdown', () => {
   describe('extractEntryPoints', () => {
     it('extracts routes from UI nodes', () => {
       const nodes = [
-        createNode({ id: 'ui-1', type: 'UI', route: '/dashboard' }),
-        createNode({ id: 'ui-2', type: 'UI', route: '/settings' }),
+        createNode({
+ id: 'ui-1',
+type: 'UI',
+route: '/dashboard' 
+}),
+        createNode({
+ id: 'ui-2',
+type: 'UI',
+route: '/settings' 
+}),
       ]
 
       const result = extractEntryPoints(nodes)
@@ -207,8 +313,16 @@ describe('domainNodeBreakdown', () => {
 
     it('extracts paths from API nodes', () => {
       const nodes = [
-        createNode({ id: 'api-1', type: 'API', path: '/api/users' }),
-        createNode({ id: 'api-2', type: 'API', path: '/api/orders' }),
+        createNode({
+ id: 'api-1',
+type: 'API',
+path: '/api/users' 
+}),
+        createNode({
+ id: 'api-2',
+type: 'API',
+path: '/api/orders' 
+}),
       ]
 
       const result = extractEntryPoints(nodes)
@@ -219,8 +333,15 @@ describe('domainNodeBreakdown', () => {
 
     it('ignores nodes without path property', () => {
       const nodes = [
-        createNode({ id: 'api-1', type: 'API', path: '/api/users' }),
-        createNode({ id: 'api-2', type: 'API' }),
+        createNode({
+ id: 'api-1',
+type: 'API',
+path: '/api/users' 
+}),
+        createNode({
+ id: 'api-2',
+type: 'API' 
+}),
       ]
 
       const result = extractEntryPoints(nodes)
@@ -231,9 +352,20 @@ describe('domainNodeBreakdown', () => {
 
     it('ignores non-UI/API nodes', () => {
       const nodes = [
-        createNode({ id: 'api-1', type: 'API', path: '/api/users' }),
-        createNode({ id: 'uc-1', type: 'UseCase' }),
-        createNode({ id: 'op-1', type: 'DomainOp', operationName: 'test' }),
+        createNode({
+ id: 'api-1',
+type: 'API',
+path: '/api/users' 
+}),
+        createNode({
+ id: 'uc-1',
+type: 'UseCase' 
+}),
+        createNode({
+ id: 'op-1',
+type: 'DomainOp',
+operationName: 'test' 
+}),
       ]
 
       const result = extractEntryPoints(nodes)
@@ -243,8 +375,15 @@ describe('domainNodeBreakdown', () => {
 
     it('returns empty array when no entry points', () => {
       const nodes = [
-        createNode({ id: 'uc-1', type: 'UseCase' }),
-        createNode({ id: 'op-1', type: 'DomainOp', operationName: 'test' }),
+        createNode({
+ id: 'uc-1',
+type: 'UseCase' 
+}),
+        createNode({
+ id: 'op-1',
+type: 'DomainOp',
+operationName: 'test' 
+}),
       ]
 
       const result = extractEntryPoints(nodes)
@@ -254,9 +393,20 @@ describe('domainNodeBreakdown', () => {
 
     it('handles mixed UI and API entry points', () => {
       const nodes = [
-        createNode({ id: 'ui-1', type: 'UI', route: '/dashboard' }),
-        createNode({ id: 'api-1', type: 'API', path: '/api/orders' }),
-        createNode({ id: 'uc-1', type: 'UseCase' }),
+        createNode({
+ id: 'ui-1',
+type: 'UI',
+route: '/dashboard' 
+}),
+        createNode({
+ id: 'api-1',
+type: 'API',
+path: '/api/orders' 
+}),
+        createNode({
+ id: 'uc-1',
+type: 'UseCase' 
+}),
       ]
 
       const result = extractEntryPoints(nodes)
@@ -266,9 +416,21 @@ describe('domainNodeBreakdown', () => {
 
     it('returns all entry points in order encountered', () => {
       const nodes = [
-        createNode({ id: 'ui-1', type: 'UI', route: '/first' }),
-        createNode({ id: 'api-1', type: 'API', path: '/second' }),
-        createNode({ id: 'ui-2', type: 'UI', route: '/third' }),
+        createNode({
+ id: 'ui-1',
+type: 'UI',
+route: '/first' 
+}),
+        createNode({
+ id: 'api-1',
+type: 'API',
+path: '/second' 
+}),
+        createNode({
+ id: 'ui-2',
+type: 'UI',
+route: '/third' 
+}),
       ]
 
       const result = extractEntryPoints(nodes)

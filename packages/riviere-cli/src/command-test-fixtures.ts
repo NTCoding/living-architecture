@@ -1,7 +1,11 @@
-import { mkdtemp, rm, mkdir, writeFile } from 'node:fs/promises';
+import {
+ mkdtemp, rm, mkdir, writeFile 
+} from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { vi, beforeEach, afterEach, expect, it } from 'vitest';
+import {
+ vi, beforeEach, afterEach, expect, it 
+} from 'vitest';
 import { createProgram } from './cli';
 
 export interface ErrorOutput {
@@ -16,7 +20,12 @@ export interface ErrorOutput {
 function isErrorOutput(value: unknown): value is ErrorOutput {
   if (typeof value !== 'object' || value === null) return false;
   if (!('success' in value) || value.success !== false) return false;
-  if (!('error' in value) || typeof value.error !== 'object' || value.error === null) return false;
+  if (
+    !('error' in value) ||
+    typeof value.error !== 'object' ||
+    value.error === null
+  )
+    return false;
   return true;
 }
 
@@ -35,7 +44,7 @@ export function parseErrorOutput(consoleOutput: string[]): ErrorOutput {
 export function parseSuccessOutput<T>(
   consoleOutput: string[],
   guard: (value: unknown) => value is T,
-  errorMessage: string
+  errorMessage: string,
 ): T {
   const firstLine = consoleOutput[0];
   if (firstLine === undefined) {
@@ -68,7 +77,9 @@ export function setupCommandTest(ctx: TestContext): void {
     ctx.originalCwd = process.cwd();
     ctx.consoleOutput = [];
     process.chdir(ctx.testDir);
-    vi.spyOn(console, 'log').mockImplementation((msg: string) => ctx.consoleOutput.push(msg));
+    vi.spyOn(console, 'log').mockImplementation((msg: string) =>
+      ctx.consoleOutput.push(msg),
+    );
   });
 
   afterEach(async () => {
@@ -78,7 +89,11 @@ export function setupCommandTest(ctx: TestContext): void {
   });
 }
 
-export async function createGraph(testDir: string, graphData: object, subPath = '.riviere'): Promise<string> {
+export async function createGraph(
+  testDir: string,
+  graphData: object,
+  subPath = '.riviere',
+): Promise<string> {
   const graphDir = join(testDir, subPath);
   await mkdir(graphDir, { recursive: true });
   const graphPath = join(graphDir, 'graph.json');
@@ -88,10 +103,18 @@ export async function createGraph(testDir: string, graphData: object, subPath = 
 
 export const baseMetadata = {
   sources: [{ repository: 'https://github.com/org/repo' }],
-  domains: { orders: { description: 'Order management', systemType: 'domain' } },
+  domains: {
+orders: {
+ description: 'Order management',
+systemType: 'domain' 
+},
+},
 };
 
-export const sourceLocation = { repository: 'https://github.com/org/repo', filePath: 'src/orders/handler.ts' };
+export const sourceLocation = {
+  repository: 'https://github.com/org/repo',
+  filePath: 'src/orders/handler.ts',
+};
 
 export const useCaseComponent = {
   id: 'orders:checkout:usecase:place-order',
@@ -131,14 +154,22 @@ export const validLink = {
   type: 'sync',
 };
 
-export async function createGraphWithDomain(testDir: string, domainName: string): Promise<void> {
+export async function createGraphWithDomain(
+  testDir: string,
+  domainName: string,
+): Promise<void> {
   const graphDir = join(testDir, '.riviere');
   await mkdir(graphDir, { recursive: true });
   const graph = {
     version: '1.0',
     metadata: {
       sources: [{ repository: 'https://github.com/org/repo' }],
-      domains: { [domainName]: { description: 'Test domain', systemType: 'domain' } },
+      domains: {
+[domainName]: {
+ description: 'Test domain',
+systemType: 'domain' 
+},
+},
     },
     components: [],
     links: [],
@@ -146,14 +177,22 @@ export async function createGraphWithDomain(testDir: string, domainName: string)
   await writeFile(join(graphDir, 'graph.json'), JSON.stringify(graph), 'utf-8');
 }
 
-export async function createGraphWithSource(testDir: string, repository: string): Promise<void> {
+export async function createGraphWithSource(
+  testDir: string,
+  repository: string,
+): Promise<void> {
   const graphDir = join(testDir, '.riviere');
   await mkdir(graphDir, { recursive: true });
   const graph = {
     version: '1.0',
     metadata: {
       sources: [{ repository }],
-      domains: { orders: { description: 'Orders', systemType: 'domain' } },
+      domains: {
+ orders: {
+ description: 'Orders',
+systemType: 'domain' 
+} 
+},
     },
     components: [],
     links: [],
@@ -161,14 +200,22 @@ export async function createGraphWithSource(testDir: string, repository: string)
   await writeFile(join(graphDir, 'graph.json'), JSON.stringify(graph), 'utf-8');
 }
 
-export async function createGraphWithComponent(testDir: string, component: object): Promise<void> {
+export async function createGraphWithComponent(
+  testDir: string,
+  component: object,
+): Promise<void> {
   const graphDir = join(testDir, '.riviere');
   await mkdir(graphDir, { recursive: true });
   const graph = {
     version: '1.0',
     metadata: {
       sources: [{ repository: 'https://github.com/org/repo' }],
-      domains: { orders: { description: 'Order management', systemType: 'domain' } },
+      domains: {
+orders: {
+ description: 'Order management',
+systemType: 'domain' 
+},
+},
     },
     components: [component],
     links: [],
@@ -178,15 +225,21 @@ export async function createGraphWithComponent(testDir: string, component: objec
 
 export interface CustomTypeDefinition {
   description?: string;
-  requiredProperties?: Record<string, { type: string; description?: string }>;
-  optionalProperties?: Record<string, { type: string; description?: string }>;
+  requiredProperties?: Record<string, {
+ type: string;
+description?: string 
+}>;
+  optionalProperties?: Record<string, {
+ type: string;
+description?: string 
+}>;
 }
 
 export async function createGraphWithCustomType(
   testDir: string,
   domainName: string,
   customTypeName: string,
-  customTypeDefinition: CustomTypeDefinition
+  customTypeDefinition: CustomTypeDefinition,
 ): Promise<void> {
   const graphDir = join(testDir, '.riviere');
   await mkdir(graphDir, { recursive: true });
@@ -194,7 +247,12 @@ export async function createGraphWithCustomType(
     version: '1.0',
     metadata: {
       sources: [{ repository: 'https://github.com/org/repo' }],
-      domains: { [domainName]: { description: 'Test domain', systemType: 'domain' } },
+      domains: {
+[domainName]: {
+ description: 'Test domain',
+systemType: 'domain' 
+},
+},
       customTypes: { [customTypeName]: customTypeDefinition },
     },
     components: [],
@@ -210,7 +268,10 @@ export const domainOpComponent = {
   domain: 'orders',
   module: 'checkout',
   operationName: 'confirmOrder',
-  sourceLocation: { repository: 'https://github.com/org/repo', filePath: 'src/domain.ts' },
+  sourceLocation: {
+    repository: 'https://github.com/org/repo',
+    filePath: 'src/domain.ts',
+  },
 };
 
 export const simpleUseCaseComponent = {
@@ -219,13 +280,26 @@ export const simpleUseCaseComponent = {
   name: 'Place Order',
   domain: 'orders',
   module: 'checkout',
-  sourceLocation: { repository: 'https://github.com/org/repo', filePath: 'src/usecase.ts' },
+  sourceLocation: {
+    repository: 'https://github.com/org/repo',
+    filePath: 'src/usecase.ts',
+  },
 };
 
-export function hasSuccessOutputStructure(value: unknown): value is { success: true; data: object } {
+export function hasSuccessOutputStructure(
+  value: unknown,
+): value is {
+ success: true;
+data: object 
+} {
   if (typeof value !== 'object' || value === null) return false;
   if (!('success' in value) || value.success !== true) return false;
-  if (!('data' in value) || typeof value.data !== 'object' || value.data === null) return false;
+  if (
+    !('data' in value) ||
+    typeof value.data !== 'object' ||
+    value.data === null
+  )
+    return false;
   return true;
 }
 
@@ -241,14 +315,26 @@ export function testCommandRegistration(commandName: string): void {
 export async function testCustomGraphPath<T>(
   ctx: TestContext,
   commandArgs: string[],
-  parseOutput: (consoleOutput: string[]) => T
+  parseOutput: (consoleOutput: string[]) => T,
 ): Promise<T> {
   const customPath = await createGraph(
     ctx.testDir,
-    { version: '1.0', metadata: baseMetadata, components: [], links: [] },
-    'custom'
+    {
+ version: '1.0',
+metadata: baseMetadata,
+components: [],
+links: [] 
+},
+    'custom',
   );
 
-  await createProgram().parseAsync(['node', 'riviere', ...commandArgs, '--graph', customPath, '--json']);
+  await createProgram().parseAsync([
+    'node',
+    'riviere',
+    ...commandArgs,
+    '--graph',
+    customPath,
+    '--json',
+  ]);
   return parseOutput(ctx.consoleOutput);
 }

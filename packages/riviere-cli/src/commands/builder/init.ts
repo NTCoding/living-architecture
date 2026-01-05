@@ -1,12 +1,19 @@
 import { Command } from 'commander';
-import { mkdir, writeFile } from 'node:fs/promises';
+import {
+ mkdir, writeFile 
+} from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { RiviereBuilder } from '@living-architecture/riviere-builder';
 import type { BuilderOptions } from '@living-architecture/riviere-builder';
-import { formatError, formatSuccess } from '../../output';
+import {
+ formatError, formatSuccess 
+} from '../../output';
 import { CliErrorCode } from '../../error-codes';
 import { fileExists } from '../../file-existence';
-import { resolveGraphPath, getDefaultGraphPathDescription } from '../../graph-path';
+import {
+  resolveGraphPath,
+  getDefaultGraphPathDescription,
+} from '../../graph-path';
 import type { SystemType } from '@living-architecture/riviere-schema';
 import { isValidSystemType } from '../../component-types';
 
@@ -31,7 +38,10 @@ function isDomainInputParsed(value: unknown): value is DomainInputParsed {
   );
 }
 
-function parseDomainJson(value: string, previous: DomainInputParsed[]): DomainInputParsed[] {
+function parseDomainJson(
+  value: string,
+  previous: DomainInputParsed[],
+): DomainInputParsed[] {
   const parsed: unknown = JSON.parse(value);
   if (!isDomainInputParsed(parsed)) {
     throw new Error(`Invalid domain JSON: ${value}`);
@@ -66,22 +76,34 @@ Examples:
       --source https://github.com/your-org/payments \\
       --domain '{"name":"orders","description":"Order management","systemType":"domain"}' \\
       --domain '{"name":"payments","description":"Payment processing","systemType":"domain"}'
-`
+`,
     )
     .option('--name <name>', 'System name')
     .option('--graph <path>', getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
-    .option('--source <url>', 'Source repository URL (repeatable)', collectSource, [])
-    .option('--domain <json>', 'Domain as JSON (repeatable)', parseDomainJson, [])
+    .option(
+      '--source <url>',
+      'Source repository URL (repeatable)',
+      collectSource,
+      [],
+    )
+    .option(
+      '--domain <json>',
+      'Domain as JSON (repeatable)',
+      parseDomainJson,
+      [],
+    )
     .action(async (options: InitOptions) => {
       // Validate required flags
       if (options.source.length === 0) {
         console.log(
           JSON.stringify(
-            formatError(CliErrorCode.ValidationError, 'At least one source required', [
-              'Add --source <url> flag',
-            ])
-          )
+            formatError(
+              CliErrorCode.ValidationError,
+              'At least one source required',
+              ['Add --source <url> flag'],
+            ),
+          ),
         );
         return;
       }
@@ -89,10 +111,12 @@ Examples:
       if (options.domain.length === 0) {
         console.log(
           JSON.stringify(
-            formatError(CliErrorCode.ValidationError, 'At least one domain required', [
-              'Add --domain <json> flag',
-            ])
-          )
+            formatError(
+              CliErrorCode.ValidationError,
+              'At least one domain required',
+              ['Add --domain <json> flag'],
+            ),
+          ),
         );
         return;
       }
@@ -105,10 +129,12 @@ Examples:
       if (graphExists) {
         console.log(
           JSON.stringify(
-            formatError(CliErrorCode.GraphExists, `Graph already exists at ${graphPath}`, [
-              'Delete the file to reinitialize',
-            ])
-          )
+            formatError(
+              CliErrorCode.GraphExists,
+              `Graph already exists at ${graphPath}`,
+              ['Delete the file to reinitialize'],
+            ),
+          ),
         );
         return;
       }
@@ -143,8 +169,8 @@ Examples:
               path: graphPath,
               sources: options.source.length,
               domains: domainNames,
-            })
-          )
+            }),
+          ),
         );
       }
     });

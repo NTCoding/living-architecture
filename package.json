@@ -29,6 +29,7 @@
     "@nx/eslint-plugin": "^22.3.3",
     "@nx/js": "22.3.3",
     "@nx/vitest": "22.3.3",
+    "@stylistic/eslint-plugin": "^5.6.1",
     "@swc-node/register": "~1.9.1",
     "@swc/core": "~1.5.7",
     "@types/node": "20.19.9",

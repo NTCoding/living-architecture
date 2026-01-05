@@ -1,16 +1,20 @@
-import { useState, useRef, useCallback, forwardRef } from 'react'
+import {
+ useState, useRef, useCallback, forwardRef 
+} from 'react'
 import { useParams } from 'react-router-dom'
 import type { RiviereGraph } from '@/types/riviere'
-import { extractDomainDetails, type DomainDetails } from './extractDomainDetails'
+import {
+ extractDomainDetails, type DomainDetails 
+} from './extractDomainDetails'
 import { parseDomainKey } from '@/lib/riviereTestData'
 import { DomainContextGraph } from './components/DomainContextGraph/DomainContextGraph'
-import { DomainDetailView, type NodeTypeFilter } from './DomainDetailView'
+import {
+ DomainDetailView, type NodeTypeFilter 
+} from './DomainDetailView'
 
 type ViewMode = 'graph' | 'detail'
 
-interface DomainDetailPageProps {
-  readonly graph: RiviereGraph
-}
+interface DomainDetailPageProps {readonly graph: RiviereGraph}
 
 export function DomainDetailPage({ graph }: DomainDetailPageProps): React.ReactElement {
   const { domainId } = useParams<{ domainId: string }>()
@@ -29,9 +33,7 @@ export function DomainDetailPage({ graph }: DomainDetailPageProps): React.ReactE
   return <DomainDetailContent domain={domain} />
 }
 
-interface DomainDetailContentProps {
-  readonly domain: DomainDetails
-}
+interface DomainDetailContentProps {readonly domain: DomainDetails}
 
 function DomainDetailContent({ domain }: DomainDetailContentProps): React.ReactElement {
   const [viewMode, setViewMode] = useState<ViewMode>('detail')
@@ -105,7 +107,9 @@ interface DomainHeaderProps {
   readonly setTabRef: (mode: ViewMode) => (el: HTMLButtonElement | null) => void
 }
 
-function DomainHeader({ domain, viewMode, setViewMode, onKeyDown, setTabRef }: DomainHeaderProps): React.ReactElement {
+function DomainHeader({
+ domain, viewMode, setViewMode, onKeyDown, setTabRef 
+}: DomainHeaderProps): React.ReactElement {
   return (
     <header data-testid="domain-header">
       <div className="flex items-center justify-between">
@@ -160,7 +164,9 @@ interface ViewModeTabProps {
 }
 
 const ViewModeTab = forwardRef<HTMLButtonElement, ViewModeTabProps>(function ViewModeTab(
-  { label, icon, isSelected, onClick, onKeyDown },
+  {
+ label, icon, isSelected, onClick, onKeyDown 
+},
   ref
 ) {
   return (

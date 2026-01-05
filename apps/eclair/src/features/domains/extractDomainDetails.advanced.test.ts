@@ -1,8 +1,15 @@
-import { describe, it, expect } from 'vitest'
+import {
+ describe, it, expect 
+} from 'vitest'
 import { extractDomainDetails } from './extractDomainDetails'
-import { parseNode, parseEdge, parseDomainMetadata, parseDomainKey, type RawNode, type RawEdge } from '@/lib/riviereTestData'
+import {
+ parseNode, parseEdge, parseDomainMetadata, parseDomainKey, type RawNode, type RawEdge 
+} from '@/lib/riviereTestData'
 import type { RiviereGraph } from '@/types/riviere'
-const testSourceLocation = { repository: 'test-repo', filePath: 'src/test.ts' }
+const testSourceLocation = {
+ repository: 'test-repo',
+filePath: 'src/test.ts' 
+}
 
 function createMinimalGraph(overrides: Partial<RiviereGraph> = {}): RiviereGraph {
   return {
@@ -40,7 +47,10 @@ function createNode(overrides: Partial<RawNode> = {}): ReturnType<typeof parseNo
     module: 'test-module',
     ...typeDefaults,
   }
-  return parseNode({ ...base, ...overrides })
+  return parseNode({
+ ...base,
+...overrides 
+})
 }
 
 function createEdge(overrides: Partial<RawEdge> = {}): ReturnType<typeof parseEdge> {
@@ -48,7 +58,10 @@ function createEdge(overrides: Partial<RawEdge> = {}): ReturnType<typeof parseEd
     source: 'node-1',
     target: 'node-2',
   }
-  return parseEdge({ ...defaults, ...overrides })
+  return parseEdge({
+ ...defaults,
+...overrides 
+})
 }
 
 describe('extractDomainDetails - advanced tests', () => {
@@ -57,62 +70,145 @@ describe('extractDomainDetails - advanced tests', () => {
       const graph = createMinimalGraph({
         metadata: {
           domains: parseDomainMetadata({
-            'order-domain': { description: 'Orders', systemType: 'domain' },
-            'inventory-domain': { description: 'Inventory', systemType: 'domain' },
-            'shipping-domain': { description: 'Shipping', systemType: 'domain' },
+            'order-domain': {
+ description: 'Orders',
+systemType: 'domain' 
+},
+            'inventory-domain': {
+ description: 'Inventory',
+systemType: 'domain' 
+},
+            'shipping-domain': {
+ description: 'Shipping',
+systemType: 'domain' 
+},
           }),
         },
         components: [
-          createNode({ id: 'order-evt', type: 'Event', name: 'OrderPlaced', domain: 'order-domain', eventName: 'OrderPlaced' }),
-          createNode({ id: 'inv-handler', type: 'EventHandler', name: 'ReserveInventory', domain: 'inventory-domain', subscribedEvents: ['OrderPlaced'] }),
-          createNode({ id: 'ship-handler', type: 'EventHandler', name: 'CreateShipment', domain: 'shipping-domain', subscribedEvents: ['OrderPlaced'] }),
+          createNode({
+ id: 'order-evt',
+type: 'Event',
+name: 'OrderPlaced',
+domain: 'order-domain',
+eventName: 'OrderPlaced' 
+}),
+          createNode({
+ id: 'inv-handler',
+type: 'EventHandler',
+name: 'ReserveInventory',
+domain: 'inventory-domain',
+subscribedEvents: ['OrderPlaced'] 
+}),
+          createNode({
+ id: 'ship-handler',
+type: 'EventHandler',
+name: 'CreateShipment',
+domain: 'shipping-domain',
+subscribedEvents: ['OrderPlaced'] 
+}),
         ],
         links: [
-          createEdge({ source: 'order-evt', target: 'inv-handler', type: 'async' }),
-          createEdge({ source: 'order-evt', target: 'ship-handler', type: 'async' }),
+          createEdge({
+ source: 'order-evt',
+target: 'inv-handler',
+type: 'async' 
+}),
+          createEdge({
+ source: 'order-evt',
+target: 'ship-handler',
+type: 'async' 
+}),
         ],
       })
 
       const result = extractDomainDetails(graph, parseDomainKey('order-domain'))
 
       expect(result?.crossDomainEdges).toHaveLength(2)
-      expect(result?.crossDomainEdges).toContainEqual({ targetDomain: 'inventory-domain', edgeType: 'async' })
-      expect(result?.crossDomainEdges).toContainEqual({ targetDomain: 'shipping-domain', edgeType: 'async' })
+      expect(result?.crossDomainEdges).toContainEqual({
+ targetDomain: 'inventory-domain',
+edgeType: 'async' 
+})
+      expect(result?.crossDomainEdges).toContainEqual({
+ targetDomain: 'shipping-domain',
+edgeType: 'async' 
+})
     })
 
     it('extracts sync edges', () => {
       const graph = createMinimalGraph({
         metadata: {
           domains: parseDomainMetadata({
-            'bff-domain': { description: 'BFF', systemType: 'bff' },
-            'order-domain': { description: 'Orders', systemType: 'domain' },
+            'bff-domain': {
+ description: 'BFF',
+systemType: 'bff' 
+},
+            'order-domain': {
+ description: 'Orders',
+systemType: 'domain' 
+},
           }),
         },
         components: [
-          createNode({ id: 'bff-api', type: 'API', name: 'BFF API', domain: 'bff-domain' }),
-          createNode({ id: 'order-api', type: 'API', name: 'Order API', domain: 'order-domain' }),
+          createNode({
+ id: 'bff-api',
+type: 'API',
+name: 'BFF API',
+domain: 'bff-domain' 
+}),
+          createNode({
+ id: 'order-api',
+type: 'API',
+name: 'Order API',
+domain: 'order-domain' 
+}),
         ],
         links: [
-          createEdge({ source: 'bff-api', target: 'order-api', type: 'sync' }),
+          createEdge({
+ source: 'bff-api',
+target: 'order-api',
+type: 'sync' 
+}),
         ],
       })
 
       const result = extractDomainDetails(graph, parseDomainKey('bff-domain'))
 
-      expect(result?.crossDomainEdges).toEqual([{ targetDomain: 'order-domain', edgeType: 'sync' }])
+      expect(result?.crossDomainEdges).toEqual([{
+ targetDomain: 'order-domain',
+edgeType: 'sync' 
+}])
     })
 
     it('ignores intra-domain edges', () => {
       const graph = createMinimalGraph({
         metadata: {
-          domains: parseDomainMetadata({ 'order-domain': { description: 'Orders', systemType: 'domain' } }),
-        },
+domains: parseDomainMetadata({
+ 'order-domain': {
+ description: 'Orders',
+systemType: 'domain' 
+} 
+}),
+},
         components: [
-          createNode({ id: 'api-1', type: 'API', name: 'API', domain: 'order-domain' }),
-          createNode({ id: 'uc-1', type: 'UseCase', name: 'UC', domain: 'order-domain' }),
+          createNode({
+ id: 'api-1',
+type: 'API',
+name: 'API',
+domain: 'order-domain' 
+}),
+          createNode({
+ id: 'uc-1',
+type: 'UseCase',
+name: 'UC',
+domain: 'order-domain' 
+}),
         ],
         links: [
-          createEdge({ source: 'api-1', target: 'uc-1', type: 'sync' }),
+          createEdge({
+ source: 'api-1',
+target: 'uc-1',
+type: 'sync' 
+}),
         ],
       })
 
@@ -125,44 +221,120 @@ describe('extractDomainDetails - advanced tests', () => {
       const graph = createMinimalGraph({
         metadata: {
           domains: parseDomainMetadata({
-            'order-domain': { description: 'Orders', systemType: 'domain' },
-            'inventory-domain': { description: 'Inventory', systemType: 'domain' },
+            'order-domain': {
+ description: 'Orders',
+systemType: 'domain' 
+},
+            'inventory-domain': {
+ description: 'Inventory',
+systemType: 'domain' 
+},
           }),
         },
         components: [
-          createNode({ id: 'evt-1', type: 'Event', name: 'Event1', domain: 'order-domain', eventName: 'Event1' }),
-          createNode({ id: 'evt-2', type: 'Event', name: 'Event2', domain: 'order-domain', eventName: 'Event2' }),
-          createNode({ id: 'handler-1', type: 'EventHandler', name: 'Handler1', domain: 'inventory-domain', subscribedEvents: ['Event1'] }),
-          createNode({ id: 'handler-2', type: 'EventHandler', name: 'Handler2', domain: 'inventory-domain', subscribedEvents: ['Event2'] }),
+          createNode({
+ id: 'evt-1',
+type: 'Event',
+name: 'Event1',
+domain: 'order-domain',
+eventName: 'Event1' 
+}),
+          createNode({
+ id: 'evt-2',
+type: 'Event',
+name: 'Event2',
+domain: 'order-domain',
+eventName: 'Event2' 
+}),
+          createNode({
+ id: 'handler-1',
+type: 'EventHandler',
+name: 'Handler1',
+domain: 'inventory-domain',
+subscribedEvents: ['Event1'] 
+}),
+          createNode({
+ id: 'handler-2',
+type: 'EventHandler',
+name: 'Handler2',
+domain: 'inventory-domain',
+subscribedEvents: ['Event2'] 
+}),
         ],
         links: [
-          createEdge({ source: 'evt-1', target: 'handler-1', type: 'async' }),
-          createEdge({ source: 'evt-2', target: 'handler-2', type: 'async' }),
+          createEdge({
+ source: 'evt-1',
+target: 'handler-1',
+type: 'async' 
+}),
+          createEdge({
+ source: 'evt-2',
+target: 'handler-2',
+type: 'async' 
+}),
         ],
       })
 
       const result = extractDomainDetails(graph, parseDomainKey('order-domain'))
 
-      expect(result?.crossDomainEdges).toEqual([{ targetDomain: 'inventory-domain', edgeType: 'async' }])
+      expect(result?.crossDomainEdges).toEqual([{
+ targetDomain: 'inventory-domain',
+edgeType: 'async' 
+}])
     })
 
     it('sorts cross-domain edges alphabetically by target domain', () => {
       const graph = createMinimalGraph({
         metadata: {
           domains: parseDomainMetadata({
-            'order-domain': { description: 'Orders', systemType: 'domain' },
-            'zebra-domain': { description: 'Zebra', systemType: 'domain' },
-            'apple-domain': { description: 'Apple', systemType: 'domain' },
+            'order-domain': {
+ description: 'Orders',
+systemType: 'domain' 
+},
+            'zebra-domain': {
+ description: 'Zebra',
+systemType: 'domain' 
+},
+            'apple-domain': {
+ description: 'Apple',
+systemType: 'domain' 
+},
           }),
         },
         components: [
-          createNode({ id: 'evt-1', type: 'Event', name: 'Event1', domain: 'order-domain', eventName: 'Event1' }),
-          createNode({ id: 'h-z', type: 'EventHandler', name: 'Z Handler', domain: 'zebra-domain', subscribedEvents: ['Event1'] }),
-          createNode({ id: 'h-a', type: 'EventHandler', name: 'A Handler', domain: 'apple-domain', subscribedEvents: ['Event1'] }),
+          createNode({
+ id: 'evt-1',
+type: 'Event',
+name: 'Event1',
+domain: 'order-domain',
+eventName: 'Event1' 
+}),
+          createNode({
+ id: 'h-z',
+type: 'EventHandler',
+name: 'Z Handler',
+domain: 'zebra-domain',
+subscribedEvents: ['Event1'] 
+}),
+          createNode({
+ id: 'h-a',
+type: 'EventHandler',
+name: 'A Handler',
+domain: 'apple-domain',
+subscribedEvents: ['Event1'] 
+}),
         ],
         links: [
-          createEdge({ source: 'evt-1', target: 'h-z', type: 'async' }),
-          createEdge({ source: 'evt-1', target: 'h-a', type: 'async' }),
+          createEdge({
+ source: 'evt-1',
+target: 'h-z',
+type: 'async' 
+}),
+          createEdge({
+ source: 'evt-1',
+target: 'h-a',
+type: 'async' 
+}),
         ],
       })
 
@@ -177,19 +349,55 @@ describe('extractDomainDetails - advanced tests', () => {
       const graph = createMinimalGraph({
         metadata: {
           domains: parseDomainMetadata({
-            'order-domain': { description: 'Orders', systemType: 'domain' },
-            'inventory-domain': { description: 'Inventory', systemType: 'domain' },
+            'order-domain': {
+ description: 'Orders',
+systemType: 'domain' 
+},
+            'inventory-domain': {
+ description: 'Inventory',
+systemType: 'domain' 
+},
           }),
         },
         components: [
-          createNode({ id: 'order-api', type: 'API', name: 'OrderAPI', domain: 'order-domain' }),
-          createNode({ id: 'order-evt', type: 'Event', name: 'OrderPlaced', domain: 'order-domain', eventName: 'OrderPlaced' }),
-          createNode({ id: 'inv-api', type: 'API', name: 'ReserveAPI', domain: 'inventory-domain' }),
-          createNode({ id: 'inv-handler', type: 'EventHandler', name: 'Handler', domain: 'inventory-domain', subscribedEvents: ['OrderPlaced'] }),
+          createNode({
+ id: 'order-api',
+type: 'API',
+name: 'OrderAPI',
+domain: 'order-domain' 
+}),
+          createNode({
+ id: 'order-evt',
+type: 'Event',
+name: 'OrderPlaced',
+domain: 'order-domain',
+eventName: 'OrderPlaced' 
+}),
+          createNode({
+ id: 'inv-api',
+type: 'API',
+name: 'ReserveAPI',
+domain: 'inventory-domain' 
+}),
+          createNode({
+ id: 'inv-handler',
+type: 'EventHandler',
+name: 'Handler',
+domain: 'inventory-domain',
+subscribedEvents: ['OrderPlaced'] 
+}),
         ],
         links: [
-          createEdge({ source: 'order-api', target: 'inv-api', type: 'sync' }),
-          createEdge({ source: 'order-evt', target: 'inv-handler', type: 'async' }),
+          createEdge({
+ source: 'order-api',
+target: 'inv-api',
+type: 'sync' 
+}),
+          createEdge({
+ source: 'order-evt',
+target: 'inv-handler',
+type: 'async' 
+}),
         ],
       })
 
@@ -207,16 +415,36 @@ describe('extractDomainDetails - advanced tests', () => {
       const graph = createMinimalGraph({
         metadata: {
           domains: parseDomainMetadata({
-            'order-domain': { description: 'Orders', systemType: 'domain' },
-            'bff-domain': { description: 'BFF', systemType: 'bff' },
+            'order-domain': {
+ description: 'Orders',
+systemType: 'domain' 
+},
+            'bff-domain': {
+ description: 'BFF',
+systemType: 'bff' 
+},
           }),
         },
         components: [
-          createNode({ id: 'bff-api', type: 'API', name: 'BFF', domain: 'bff-domain' }),
-          createNode({ id: 'order-api', type: 'API', name: 'OrderAPI', domain: 'order-domain' }),
+          createNode({
+ id: 'bff-api',
+type: 'API',
+name: 'BFF',
+domain: 'bff-domain' 
+}),
+          createNode({
+ id: 'order-api',
+type: 'API',
+name: 'OrderAPI',
+domain: 'order-domain' 
+}),
         ],
         links: [
-          createEdge({ source: 'bff-api', target: 'order-api', type: 'sync' }),
+          createEdge({
+ source: 'bff-api',
+target: 'order-api',
+type: 'sync' 
+}),
         ],
       })
 
@@ -234,19 +462,53 @@ describe('extractDomainDetails - advanced tests', () => {
       const graph = createMinimalGraph({
         metadata: {
           domains: parseDomainMetadata({
-            'order-domain': { description: 'Orders', systemType: 'domain' },
-            'inventory-domain': { description: 'Inventory', systemType: 'domain' },
+            'order-domain': {
+ description: 'Orders',
+systemType: 'domain' 
+},
+            'inventory-domain': {
+ description: 'Inventory',
+systemType: 'domain' 
+},
           }),
         },
         components: [
-          createNode({ id: 'order-api-1', type: 'API', name: 'API1', domain: 'order-domain' }),
-          createNode({ id: 'order-api-2', type: 'API', name: 'API2', domain: 'order-domain' }),
-          createNode({ id: 'inv-api-1', type: 'API', name: 'InvAPI1', domain: 'inventory-domain' }),
-          createNode({ id: 'inv-api-2', type: 'API', name: 'InvAPI2', domain: 'inventory-domain' }),
+          createNode({
+ id: 'order-api-1',
+type: 'API',
+name: 'API1',
+domain: 'order-domain' 
+}),
+          createNode({
+ id: 'order-api-2',
+type: 'API',
+name: 'API2',
+domain: 'order-domain' 
+}),
+          createNode({
+ id: 'inv-api-1',
+type: 'API',
+name: 'InvAPI1',
+domain: 'inventory-domain' 
+}),
+          createNode({
+ id: 'inv-api-2',
+type: 'API',
+name: 'InvAPI2',
+domain: 'inventory-domain' 
+}),
         ],
         links: [
-          createEdge({ source: 'order-api-1', target: 'inv-api-1', type: 'sync' }),
-          createEdge({ source: 'order-api-2', target: 'inv-api-2', type: 'sync' }),
+          createEdge({
+ source: 'order-api-1',
+target: 'inv-api-1',
+type: 'sync' 
+}),
+          createEdge({
+ source: 'order-api-2',
+target: 'inv-api-2',
+type: 'sync' 
+}),
         ],
       })
 
@@ -261,8 +523,13 @@ describe('extractDomainDetails - advanced tests', () => {
     it('includes behavior data for entity operations', () => {
       const graph = createMinimalGraph({
         metadata: {
-          domains: parseDomainMetadata({ 'order-domain': { description: 'Orders', systemType: 'domain' } }),
-        },
+domains: parseDomainMetadata({
+ 'order-domain': {
+ description: 'Orders',
+systemType: 'domain' 
+} 
+}),
+},
         components: [
           createNode({
             id: 'op-1',
@@ -296,8 +563,13 @@ describe('extractDomainDetails - advanced tests', () => {
     it('includes state changes for entity operations', () => {
       const graph = createMinimalGraph({
         metadata: {
-          domains: parseDomainMetadata({ 'order-domain': { description: 'Orders', systemType: 'domain' } }),
-        },
+domains: parseDomainMetadata({
+ 'order-domain': {
+ description: 'Orders',
+systemType: 'domain' 
+} 
+}),
+},
         components: [
           createNode({
             id: 'op-1',
@@ -306,7 +578,10 @@ describe('extractDomainDetails - advanced tests', () => {
             domain: 'order-domain',
             entity: 'Order',
             operationName: 'begin',
-            stateChanges: [{ from: 'Draft', to: 'Placed' }],
+            stateChanges: [{
+ from: 'Draft',
+to: 'Placed' 
+}],
           }),
         ],
       })
@@ -315,14 +590,22 @@ describe('extractDomainDetails - advanced tests', () => {
       const orderEntity = result?.entities.find((e) => e.name === 'Order')
       const beginOp = orderEntity?.operations.find((op) => op.operationName === 'begin')
 
-      expect(beginOp?.stateChanges).toEqual([{ from: 'Draft', to: 'Placed' }])
+      expect(beginOp?.stateChanges).toEqual([{
+ from: 'Draft',
+to: 'Placed' 
+}])
     })
 
     it('includes signature for entity operations', () => {
       const graph = createMinimalGraph({
         metadata: {
-          domains: parseDomainMetadata({ 'order-domain': { description: 'Orders', systemType: 'domain' } }),
-        },
+domains: parseDomainMetadata({
+ 'order-domain': {
+ description: 'Orders',
+systemType: 'domain' 
+} 
+}),
+},
         components: [
           createNode({
             id: 'op-1',
@@ -333,8 +616,14 @@ describe('extractDomainDetails - advanced tests', () => {
             operationName: 'begin',
             signature: {
               parameters: [
-                { name: 'items', type: 'OrderItem[]' },
-                { name: 'customerId', type: 'string' },
+                {
+ name: 'items',
+type: 'OrderItem[]' 
+},
+                {
+ name: 'customerId',
+type: 'string' 
+},
               ],
               returnType: 'Order',
             },
@@ -353,8 +642,13 @@ describe('extractDomainDetails - advanced tests', () => {
     it('includes source location for entity operations', () => {
       const graph = createMinimalGraph({
         metadata: {
-          domains: parseDomainMetadata({ 'order-domain': { description: 'Orders', systemType: 'domain' } }),
-        },
+domains: parseDomainMetadata({
+ 'order-domain': {
+ description: 'Orders',
+systemType: 'domain' 
+} 
+}),
+},
         components: [
           createNode({
             id: 'op-1',
@@ -363,7 +657,11 @@ describe('extractDomainDetails - advanced tests', () => {
             domain: 'order-domain',
             entity: 'Order',
             operationName: 'begin',
-            sourceLocation: { repository: 'test-repo', filePath: 'src/Order.ts', lineNumber: 23 },
+            sourceLocation: {
+ repository: 'test-repo',
+filePath: 'src/Order.ts',
+lineNumber: 23 
+},
           }),
         ],
       })
@@ -377,47 +675,4 @@ describe('extractDomainDetails - advanced tests', () => {
     })
   })
 
-  describe('entity state machine', () => {
-    it('aggregates all unique states from operation stateChanges', () => {
-      const graph = createMinimalGraph({
-        metadata: {
-          domains: parseDomainMetadata({ 'order-domain': { description: 'Orders', systemType: 'domain' } }),
-        },
-        components: [
-          createNode({
-            id: 'op-1',
-            type: 'DomainOp',
-            name: 'Order.begin()',
-            domain: 'order-domain',
-            entity: 'Order',
-            operationName: 'begin',
-            stateChanges: [{ from: 'Draft', to: 'Placed' }],
-          }),
-          createNode({
-            id: 'op-2',
-            type: 'DomainOp',
-            name: 'Order.confirm()',
-            domain: 'order-domain',
-            entity: 'Order',
-            operationName: 'confirm',
-            stateChanges: [{ from: 'Placed', to: 'Confirmed' }],
-          }),
-          createNode({
-            id: 'op-3',
-            type: 'DomainOp',
-            name: 'Order.ship()',
-            domain: 'order-domain',
-            entity: 'Order',
-            operationName: 'ship',
-            stateChanges: [{ from: 'Confirmed', to: 'Shipped' }],
-          }),
-        ],
-      })
-
-      const result = extractDomainDetails(graph, parseDomainKey('order-domain'))
-      const orderEntity = result?.entities.find((e) => e.name === 'Order')
-
-      expect(orderEntity?.states).toEqual(['Draft', 'Placed', 'Confirmed', 'Shipped'])
-    })
-  })
 })

@@ -9,9 +9,13 @@ import type {
   NodeId,
 } from '@/types/riviere'
 import { nodeIdSchema } from '@/types/riviere'
-import { RiviereQuery, type Entity } from '@living-architecture/riviere-query'
+import {
+ RiviereQuery, type Entity 
+} from '@living-architecture/riviere-query'
 import type { NodeBreakdown } from './domainNodeBreakdown'
-import { countNodesByType, formatDomainNodes, extractEntryPoints } from './domainNodeBreakdown'
+import {
+ countNodesByType, formatDomainNodes, extractEntryPoints 
+} from './domainNodeBreakdown'
 
 export interface DomainNode {
   id: string

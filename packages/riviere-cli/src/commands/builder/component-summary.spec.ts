@@ -1,4 +1,6 @@
-import { describe, it, expect } from 'vitest';
+import {
+ describe, it, expect 
+} from 'vitest';
 import { createProgram } from '../../cli';
 import { CliErrorCode } from '../../error-codes';
 import type { TestContext } from '../../command-test-fixtures';
@@ -35,15 +37,25 @@ interface ComponentSummaryOutput {
   warnings: string[];
 }
 
-function isComponentSummaryOutput(value: unknown): value is ComponentSummaryOutput {
+function isComponentSummaryOutput(
+  value: unknown,
+): value is ComponentSummaryOutput {
   if (!hasSuccessOutputStructure(value)) return false;
-  if (!('componentCount' in value.data) || typeof value.data.componentCount !== 'number') return false;
+  if (
+    !('componentCount' in value.data) ||
+    typeof value.data.componentCount !== 'number'
+  )
+    return false;
   if (!('componentsByType' in value.data)) return false;
   return true;
 }
 
 function parseSummaryOutput(consoleOutput: string[]): ComponentSummaryOutput {
-  return parseSuccessOutput(consoleOutput, isComponentSummaryOutput, 'Invalid component-summary output');
+  return parseSuccessOutput(
+    consoleOutput,
+    isComponentSummaryOutput,
+    'Invalid component-summary output',
+  );
 }
 
 describe('riviere builder component-summary', () => {
@@ -56,13 +68,23 @@ describe('riviere builder component-summary', () => {
     setupCommandTest(ctx);
 
     it('returns GRAPH_NOT_FOUND when no graph exists', async () => {
-      await createProgram().parseAsync(['node', 'riviere', 'builder', 'component-summary', '--json']);
+      await createProgram().parseAsync([
+        'node',
+        'riviere',
+        'builder',
+        'component-summary',
+        '--json',
+      ]);
       const output = parseErrorOutput(ctx.consoleOutput);
       expect(output.error.code).toBe(CliErrorCode.GraphNotFound);
     });
 
     it('uses custom graph path when --graph provided', async () => {
-      const output = await testCustomGraphPath(ctx, ['builder', 'component-summary'], parseSummaryOutput);
+      const output = await testCustomGraphPath(
+        ctx,
+        ['builder', 'component-summary'],
+        parseSummaryOutput,
+      );
       expect(output.success).toBe(true);
     });
   });
@@ -106,7 +128,13 @@ describe('riviere builder component-summary', () => {
         ],
       });
 
-      await createProgram().parseAsync(['node', 'riviere', 'builder', 'component-summary', '--json']);
+      await createProgram().parseAsync([
+        'node',
+        'riviere',
+        'builder',
+        'component-summary',
+        '--json',
+      ]);
       const output = parseSummaryOutput(ctx.consoleOutput);
 
       expect(output.data.componentCount).toBe(2);
@@ -124,7 +152,13 @@ describe('riviere builder component-summary', () => {
         links: [],
       });
 
-      await createProgram().parseAsync(['node', 'riviere', 'builder', 'component-summary', '--json']);
+      await createProgram().parseAsync([
+        'node',
+        'riviere',
+        'builder',
+        'component-summary',
+        '--json',
+      ]);
       const output = parseSummaryOutput(ctx.consoleOutput);
 
       expect(output.data.componentsByType).toEqual({
@@ -146,7 +180,13 @@ describe('riviere builder component-summary', () => {
         links: [],
       });
 
-      await createProgram().parseAsync(['node', 'riviere', 'builder', 'component-summary', '--json']);
+      await createProgram().parseAsync([
+        'node',
+        'riviere',
+        'builder',
+        'component-summary',
+        '--json',
+      ]);
       const output = parseSummaryOutput(ctx.consoleOutput);
 
       expect(output.data.componentCount).toBe(0);
@@ -167,7 +207,12 @@ describe('riviere builder component-summary', () => {
         links: [],
       });
 
-      await createProgram().parseAsync(['node', 'riviere', 'builder', 'component-summary']);
+      await createProgram().parseAsync([
+        'node',
+        'riviere',
+        'builder',
+        'component-summary',
+      ]);
       expect(ctx.consoleOutput).toHaveLength(0);
     });
   });

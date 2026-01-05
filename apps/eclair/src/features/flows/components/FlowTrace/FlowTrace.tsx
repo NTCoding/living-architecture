@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import type { FlowStep } from '../../extractFlows'
-import type { NodeType, RiviereGraph } from '@/types/riviere'
+import type {
+ NodeType, RiviereGraph 
+} from '@/types/riviere'
 import { FlowGraphView } from './FlowGraphView'
 
 type ViewMode = 'waterfall' | 'graph'
@@ -24,7 +26,9 @@ function getCircleTypeClass(nodeType: NodeType): string {
   return typeClassMap[nodeType]
 }
 
-export function FlowTrace({ steps, graph }: Readonly<FlowTraceProps>): React.ReactElement {
+export function FlowTrace({
+ steps, graph 
+}: Readonly<FlowTraceProps>): React.ReactElement {
   const [viewMode, setViewMode] = useState<ViewMode>('waterfall')
 
   if (steps.length === 0) {

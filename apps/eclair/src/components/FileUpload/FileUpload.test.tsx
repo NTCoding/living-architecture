@@ -1,6 +1,10 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import {
+ render, screen, fireEvent, waitFor 
+} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it, vi } from 'vitest'
+import {
+ describe, expect, it, vi 
+} from 'vitest'
 import { FileUpload } from './FileUpload'
 
 function createFile(name: string, content: string, type = 'application/json'): File {
@@ -9,14 +13,22 @@ function createFile(name: string, content: string, type = 'application/json'): F
 
 interface MockDataTransfer {
   files: File[]
-  items: Array<{ kind: string; type: string; getAsFile: () => File }>
+  items: Array<{
+ kind: string;
+type: string;
+getAsFile: () => File 
+}>
   types: string[]
 }
 
 function createDataTransfer(files: File[]): MockDataTransfer {
   return {
     files,
-    items: files.map((file) => ({ kind: 'file', type: file.type, getAsFile: () => file })),
+    items: files.map((file) => ({
+ kind: 'file',
+type: file.type,
+getAsFile: () => file 
+})),
     types: ['Files'],
   }
 }

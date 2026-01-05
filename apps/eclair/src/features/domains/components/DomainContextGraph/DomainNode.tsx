@@ -6,7 +6,9 @@ interface DomainNodeProps {
   readonly onClick: () => void
 }
 
-export function DomainNode({ position, isSelected, onClick }: Readonly<DomainNodeProps>): React.ReactElement {
+export function DomainNode({
+ position, isSelected, onClick 
+}: Readonly<DomainNodeProps>): React.ReactElement {
   const nodeRadius = position.isCurrent ? 40 : 30
 
   const fillStyle = position.isCurrent
@@ -39,7 +41,10 @@ export function DomainNode({ position, isSelected, onClick }: Readonly<DomainNod
         cx={position.x}
         cy={position.y}
         r={nodeRadius}
-        style={{ ...fillStyle, ...strokeStyle }}
+        style={{
+ ...fillStyle,
+...strokeStyle 
+}}
         strokeWidth={isSelected ? '3' : '2'}
       />
       <text

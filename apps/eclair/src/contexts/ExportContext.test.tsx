@@ -1,6 +1,12 @@
-import { render, screen, act } from '@testing-library/react'
-import { describe, it, expect, vi } from 'vitest'
-import { ExportProvider, useExport } from './ExportContext'
+import {
+ render, screen, act 
+} from '@testing-library/react'
+import {
+ describe, it, expect, vi 
+} from 'vitest'
+import {
+ ExportProvider, useExport 
+} from './ExportContext'
 
 function TestConsumer(): React.ReactElement {
   const { exportHandlers } = useExport()
@@ -14,12 +20,22 @@ function TestConsumer(): React.ReactElement {
   )
 }
 
-function TestRegistrar({ onPng, onSvg }: { readonly onPng?: () => void; readonly onSvg?: () => void }): React.ReactElement {
-  const { registerExportHandlers, clearExportHandlers } = useExport()
+function TestRegistrar({
+ onPng, onSvg 
+}: {
+ readonly onPng?: () => void;
+readonly onSvg?: () => void 
+}): React.ReactElement {
+  const {
+ registerExportHandlers, clearExportHandlers 
+} = useExport()
 
   return (
     <div>
-      <button onClick={() => registerExportHandlers({ onPng: onPng ?? null, onSvg: onSvg ?? null })}>
+      <button onClick={() => registerExportHandlers({
+ onPng: onPng ?? null,
+onSvg: onSvg ?? null 
+})}>
         Register
       </button>
       <button onClick={clearExportHandlers}>Clear</button>

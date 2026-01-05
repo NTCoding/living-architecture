@@ -1,6 +1,10 @@
-import { useState, useCallback } from 'react'
+import {
+ useState, useCallback 
+} from 'react'
 import type { ConnectionDetail } from '../extractDomainMap'
-import { pluralizeComponent, pluralizeConnection } from '../pluralize'
+import {
+ pluralizeComponent, pluralizeConnection 
+} from '../pluralize'
 
 interface TooltipState {
   visible: boolean
@@ -21,9 +25,7 @@ interface InspectorState {
   connections: ConnectionDetail[]
 }
 
-interface UseDomainMapInteractionsOptions {
-  initialFocusedDomain?: string | null
-}
+interface UseDomainMapInteractionsOptions {initialFocusedDomain?: string | null}
 
 interface UseDomainMapInteractionsResult {
   tooltip: TooltipState
@@ -98,11 +100,17 @@ export function useDomainMapInteractions(options: UseDomainMapInteractionsOption
   }, [])
 
   const hideTooltip = useCallback(() => {
-    setTooltip((prev) => ({ ...prev, visible: false }))
+    setTooltip((prev) => ({
+ ...prev,
+visible: false 
+}))
   }, [])
 
   const selectEdge = useCallback((source: string, target: string, apiCount: number, eventCount: number, sourceNodeCount: number, targetNodeCount: number, connections: ConnectionDetail[]) => {
-    setTooltip((prev) => ({ ...prev, visible: false }))
+    setTooltip((prev) => ({
+ ...prev,
+visible: false 
+}))
     setInspector({
       visible: true,
       source,
@@ -116,7 +124,10 @@ export function useDomainMapInteractions(options: UseDomainMapInteractionsOption
   }, [])
 
   const closeInspector = useCallback(() => {
-    setInspector((prev) => ({ ...prev, visible: false }))
+    setInspector((prev) => ({
+ ...prev,
+visible: false 
+}))
   }, [])
 
   const selectDomain = useCallback((domain: string) => {

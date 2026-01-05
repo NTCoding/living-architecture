@@ -1,12 +1,21 @@
-import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import {
+ describe, it, expect, vi 
+} from 'vitest'
+import {
+ render, screen 
+} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { DomainInfoModal } from './DomainInfoModal'
 import type { AggregatedConnection } from '../../extractDomainDetails'
 
 describe('DomainInfoModal', () => {
   const mockConnections: AggregatedConnection[] = [
-    { targetDomain: 'inventory', direction: 'outgoing', apiCount: 1, eventCount: 0 },
+    {
+ targetDomain: 'inventory',
+direction: 'outgoing',
+apiCount: 1,
+eventCount: 0 
+},
   ]
 
   it('renders domain name and label', () => {

@@ -1,5 +1,9 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { readFile, mkdir, writeFile, mkdtemp, rm } from 'node:fs/promises';
+import {
+ describe, it, expect, vi, beforeEach, afterEach 
+} from 'vitest';
+import {
+ readFile, mkdir, writeFile, mkdtemp, rm 
+} from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createProgram } from '../../cli';
@@ -15,8 +19,12 @@ describe('riviere builder add-domain', () => {
   describe('command registration', () => {
     it('registers add-domain command under builder', () => {
       const program = createProgram();
-      const builderCmd = program.commands.find((cmd) => cmd.name() === 'builder');
-      const addDomainCmd = builderCmd?.commands.find((cmd) => cmd.name() === 'add-domain');
+      const builderCmd = program.commands.find(
+        (cmd) => cmd.name() === 'builder',
+      );
+      const addDomainCmd = builderCmd?.commands.find(
+        (cmd) => cmd.name() === 'add-domain',
+      );
 
       expect(addDomainCmd?.name()).toBe('add-domain');
     });
@@ -50,8 +58,14 @@ describe('riviere builder add-domain', () => {
       expect(graph).toMatchObject({
         metadata: {
           domains: {
-            orders: { description: 'Test domain', systemType: 'domain' },
-            payments: { description: 'Payment processing', systemType: 'bff' },
+            orders: {
+ description: 'Test domain',
+systemType: 'domain' 
+},
+            payments: {
+ description: 'Payment processing',
+systemType: 'bff' 
+},
           },
         },
       });
@@ -165,7 +179,12 @@ describe('riviere builder add-domain', () => {
         version: '1.0',
         metadata: {
           sources: [{ repository: 'https://github.com/org/repo' }],
-          domains: { orders: { description: 'Orders', systemType: 'domain' } },
+          domains: {
+ orders: {
+ description: 'Orders',
+systemType: 'domain' 
+} 
+},
         },
         components: [],
         links: [],
@@ -193,8 +212,14 @@ describe('riviere builder add-domain', () => {
       expect(savedGraph).toMatchObject({
         metadata: {
           domains: {
-            orders: { description: 'Orders', systemType: 'domain' },
-            payments: { description: 'Payment processing', systemType: 'bff' },
+            orders: {
+ description: 'Orders',
+systemType: 'domain' 
+},
+            payments: {
+ description: 'Payment processing',
+systemType: 'bff' 
+},
           },
         },
       });
@@ -202,7 +227,13 @@ describe('riviere builder add-domain', () => {
   });
 
   describe('unexpected builder errors', () => {
-    const mockContext: { testDir: string; originalCwd: string } = { testDir: '', originalCwd: '' };
+    const mockContext: {
+ testDir: string;
+originalCwd: string 
+} = {
+      testDir: '',
+      originalCwd: '',
+    };
 
     beforeEach(async () => {
       mockContext.testDir = await mkdtemp(join(tmpdir(), 'riviere-test-'));
@@ -226,11 +257,7 @@ describe('riviere builder add-domain', () => {
       };
 
       vi.doMock('@living-architecture/riviere-builder', () => ({
-        RiviereBuilder: {
-          resume: vi.fn().mockReturnValue({
-            addDomain: vi.fn().mockImplementation(throwUnexpectedError),
-          }),
-        },
+        RiviereBuilder: {resume: vi.fn().mockReturnValue({addDomain: vi.fn().mockImplementation(throwUnexpectedError),}),},
         DuplicateDomainError: class DuplicateDomainError extends Error {},
       }));
 
@@ -249,7 +276,7 @@ describe('riviere builder add-domain', () => {
           'Payment processing',
           '--system-type',
           'domain',
-        ])
+        ]),
       ).rejects.toThrow('Unexpected database error');
     });
   });

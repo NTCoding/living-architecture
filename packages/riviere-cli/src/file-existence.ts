@@ -1,8 +1,6 @@
 import { access } from 'node:fs/promises';
 
-interface NodeError extends Error {
-  code?: string;
-}
+interface NodeError extends Error {code?: string;}
 
 function isNodeError(error: unknown): error is NodeError {
   return error instanceof Error && 'code' in error;

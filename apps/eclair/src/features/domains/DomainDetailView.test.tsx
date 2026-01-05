@@ -1,15 +1,24 @@
-import { render, screen } from '@testing-library/react'
+import {
+ render, screen 
+} from '@testing-library/react'
 import { DomainDetailView } from './DomainDetailView'
 import { extractDomainDetails } from './extractDomainDetails'
-import { parseNode, parseDomainMetadata, parseDomainKey } from '@/lib/riviereTestData'
+import {
+ parseNode, parseDomainMetadata, parseDomainKey 
+} from '@/lib/riviereTestData'
 import type { RiviereGraph } from '@/types/riviere'
-const testSourceLocation = { repository: 'test-repo', filePath: 'src/test.ts' }
+const testSourceLocation = {
+ repository: 'test-repo',
+filePath: 'src/test.ts' 
+}
 
 describe('DomainDetailView', () => {
   const mockGraph: RiviereGraph = {
     version: '1.0',
     components: [
-      parseNode({ sourceLocation: testSourceLocation,         id: 'node1',
+      parseNode({
+ sourceLocation: testSourceLocation,
+id: 'node1',
         name: 'TestNode',
         type: 'API',
         apiType: 'other',

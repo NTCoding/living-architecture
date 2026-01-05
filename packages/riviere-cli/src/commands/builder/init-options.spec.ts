@@ -1,5 +1,9 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { mkdtemp, rm, readFile, stat } from 'node:fs/promises';
+import {
+ describe, it, expect, beforeEach, afterEach, vi 
+} from 'vitest';
+import {
+ mkdtemp, rm, readFile, stat 
+} from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createProgram } from '../../cli';
@@ -24,7 +28,12 @@ describe('riviere builder init options', () => {
     });
 
     it('creates graph at custom path when --graph provided', async () => {
-      const customPath = join(testContext.testDir, 'custom', 'path', 'graph.json');
+      const customPath = join(
+        testContext.testDir,
+        'custom',
+        'path',
+        'graph.json',
+      );
       const program = createProgram();
 
       await program.parseAsync([

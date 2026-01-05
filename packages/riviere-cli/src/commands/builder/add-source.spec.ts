@@ -1,5 +1,9 @@
-import { describe, it, expect } from 'vitest';
-import { readFile, mkdir, writeFile } from 'node:fs/promises';
+import {
+ describe, it, expect 
+} from 'vitest';
+import {
+ readFile, mkdir, writeFile 
+} from 'node:fs/promises';
 import { join } from 'node:path';
 import { createProgram } from '../../cli';
 import { CliErrorCode } from '../../error-codes';
@@ -14,8 +18,12 @@ describe('riviere builder add-source', () => {
   describe('command registration', () => {
     it('registers add-source command under builder', () => {
       const program = createProgram();
-      const builderCmd = program.commands.find((cmd) => cmd.name() === 'builder');
-      const addSourceCmd = builderCmd?.commands.find((cmd) => cmd.name() === 'add-source');
+      const builderCmd = program.commands.find(
+        (cmd) => cmd.name() === 'builder',
+      );
+      const addSourceCmd = builderCmd?.commands.find(
+        (cmd) => cmd.name() === 'add-source',
+      );
 
       expect(addSourceCmd?.name()).toBe('add-source');
     });
@@ -70,9 +78,7 @@ describe('riviere builder add-source', () => {
       const output: unknown = JSON.parse(ctx.consoleOutput[0] ?? '');
       expect(output).toMatchObject({
         success: true,
-        data: {
-          repository: 'https://github.com/org/repo2',
-        },
+        data: {repository: 'https://github.com/org/repo2',},
       });
     });
   });
@@ -103,7 +109,12 @@ describe('riviere builder add-source', () => {
         version: '1.0',
         metadata: {
           sources: [{ repository: 'https://github.com/org/repo1' }],
-          domains: { orders: { description: 'Orders', systemType: 'domain' } },
+          domains: {
+ orders: {
+ description: 'Orders',
+systemType: 'domain' 
+} 
+},
         },
         components: [],
         links: [],

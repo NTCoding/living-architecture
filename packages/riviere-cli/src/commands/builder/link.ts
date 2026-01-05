@@ -1,12 +1,23 @@
 import { Command } from 'commander';
 import { writeFile } from 'node:fs/promises';
 import { ComponentId } from '@living-architecture/riviere-builder';
-import { getDefaultGraphPathDescription, resolveGraphPath } from '../../graph-path';
+import {
+  getDefaultGraphPathDescription,
+  resolveGraphPath,
+} from '../../graph-path';
 import { fileExists } from '../../file-existence';
 import { formatSuccess } from '../../output';
-import { isValidLinkType, normalizeComponentType } from '../../component-types';
-import { validateComponentType, validateLinkType } from '../../validation';
-import { loadGraphBuilder, reportGraphNotFound, tryBuilderOperation } from './link-infrastructure';
+import {
+ isValidLinkType, normalizeComponentType 
+} from '../../component-types';
+import {
+ validateComponentType, validateLinkType 
+} from '../../validation';
+import {
+  loadGraphBuilder,
+  reportGraphNotFound,
+  tryBuilderOperation,
+} from './link-infrastructure';
 
 interface LinkOptions {
   from: string;
@@ -35,12 +46,15 @@ Examples:
       --from "orders:checkout:domainop:orderbegin" \\
       --to-domain orders --to-module events --to-type Event --to-name "order-placed" \\
       --link-type async
-`
+`,
     )
     .requiredOption('--from <component-id>', 'Source component ID')
     .requiredOption('--to-domain <domain>', 'Target domain')
     .requiredOption('--to-module <module>', 'Target module')
-    .requiredOption('--to-type <type>', 'Target component type (UI, API, UseCase, DomainOp, Event, EventHandler, Custom)')
+    .requiredOption(
+      '--to-type <type>',
+      'Target component type (UI, API, UseCase, DomainOp, Event, EventHandler, Custom)',
+    )
     .requiredOption('--to-name <name>', 'Target component name')
     .option('--link-type <type>', 'Link type (sync, async)')
     .option('--graph <path>', getDefaultGraphPathDescription())
@@ -75,7 +89,11 @@ Examples:
         name: options.toName,
       }).toString();
 
-      const linkInput: { from: string; to: string; type?: 'sync' | 'async' } = {
+      const linkInput: {
+ from: string;
+to: string;
+type?: 'sync' | 'async' 
+} = {
         from: options.from,
         to: targetId,
       };

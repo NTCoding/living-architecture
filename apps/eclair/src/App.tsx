@@ -1,6 +1,10 @@
-import { Routes, Route } from 'react-router-dom'
+import {
+ Routes, Route 
+} from 'react-router-dom'
 import { AppShell } from '@/components/AppShell/AppShell'
-import { GraphProvider, useGraph } from '@/contexts/GraphContext'
+import {
+ GraphProvider, useGraph 
+} from '@/contexts/GraphContext'
 import { ExportProvider } from '@/contexts/ExportContext'
 import { EmptyState } from '@/features/empty-state/EmptyState'
 import type { RiviereGraph } from '@/types/riviere'
@@ -50,7 +54,9 @@ function Events(): React.ReactElement {
 }
 
 function AppContent(): React.ReactElement {
-  const { hasGraph, graphName, graph, isLoadingDemo } = useGraph()
+  const {
+ hasGraph, graphName, graph, isLoadingDemo 
+} = useGraph()
 
   if (isLoadingDemo) {
     return (

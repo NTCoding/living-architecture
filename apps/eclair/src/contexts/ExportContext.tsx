@@ -1,4 +1,6 @@
-import { createContext, useContext, useState, useCallback, useMemo } from 'react'
+import {
+ createContext, useContext, useState, useCallback, useMemo 
+} from 'react'
 
 interface ExportHandlers {
   readonly onPng: (() => void) | null
@@ -13,19 +15,23 @@ interface ExportContextValue {
 
 const exportContext = createContext<ExportContextValue | null>(null)
 
-interface ExportProviderProps {
-  readonly children: React.ReactNode
-}
+interface ExportProviderProps {readonly children: React.ReactNode}
 
 export function ExportProvider({ children }: ExportProviderProps): React.ReactElement {
-  const [handlers, setHandlers] = useState<ExportHandlers>({ onPng: null, onSvg: null })
+  const [handlers, setHandlers] = useState<ExportHandlers>({
+ onPng: null,
+onSvg: null 
+})
 
   const registerExportHandlers = useCallback((newHandlers: ExportHandlers) => {
     setHandlers(newHandlers)
   }, [])
 
   const clearExportHandlers = useCallback(() => {
-    setHandlers({ onPng: null, onSvg: null })
+    setHandlers({
+ onPng: null,
+onSvg: null 
+})
   }, [])
 
   const value = useMemo(

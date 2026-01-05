@@ -1,4 +1,6 @@
-import { useState, useCallback, useEffect, useRef } from 'react'
+import {
+ useState, useCallback, useEffect, useRef 
+} from 'react'
 
 interface GraphSearchProps {
   readonly onSearch: (query: string) => void

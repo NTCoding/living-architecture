@@ -1,4 +1,6 @@
-import { describe, it, expect } from 'vitest';
+import {
+ describe, it, expect 
+} from 'vitest';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { createProgram } from '../../cli';
@@ -14,8 +16,12 @@ describe('riviere builder define-custom-type', () => {
   describe('command registration', () => {
     it('registers define-custom-type command under builder', () => {
       const program = createProgram();
-      const builderCmd = program.commands.find((cmd) => cmd.name() === 'builder');
-      const defineCustomTypeCmd = builderCmd?.commands.find((cmd) => cmd.name() === 'define-custom-type');
+      const builderCmd = program.commands.find(
+        (cmd) => cmd.name() === 'builder',
+      );
+      const defineCustomTypeCmd = builderCmd?.commands.find(
+        (cmd) => cmd.name() === 'define-custom-type',
+      );
 
       expect(defineCustomTypeCmd?.name()).toBe('define-custom-type');
     });
@@ -42,13 +48,7 @@ describe('riviere builder define-custom-type', () => {
       const content = await readFile(graphPath, 'utf-8');
       const graph: unknown = JSON.parse(content);
 
-      expect(graph).toMatchObject({
-        metadata: {
-          customTypes: {
-            MessageQueue: {},
-          },
-        },
-      });
+      expect(graph).toMatchObject({metadata: {customTypes: {MessageQueue: {},},},});
     });
 
     it('stores description when provided', async () => {
@@ -70,15 +70,7 @@ describe('riviere builder define-custom-type', () => {
       const content = await readFile(graphPath, 'utf-8');
       const graph: unknown = JSON.parse(content);
 
-      expect(graph).toMatchObject({
-        metadata: {
-          customTypes: {
-            MessageQueue: {
-              description: 'Async message queue',
-            },
-          },
-        },
-      });
+      expect(graph).toMatchObject({metadata: {customTypes: {MessageQueue: {description: 'Async message queue',},},},});
     });
 
     it('stores required properties when provided', async () => {
@@ -107,7 +99,10 @@ describe('riviere builder define-custom-type', () => {
           customTypes: {
             DataStore: {
               requiredProperties: {
-                tableName: { type: 'string', description: 'Table name' },
+                tableName: {
+ type: 'string',
+description: 'Table name' 
+},
                 partitionKey: { type: 'string' },
               },
             },
@@ -140,8 +135,11 @@ describe('riviere builder define-custom-type', () => {
           customTypes: {
             Cache: {
               optionalProperties: {
-                ttlSeconds: { type: 'number', description: 'Time to live' },
-              },
+ttlSeconds: {
+ type: 'number',
+description: 'Time to live' 
+},
+},
             },
           },
         },

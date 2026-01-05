@@ -1,11 +1,20 @@
-import { describe, it, expect } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import {
+ describe, it, expect 
+} from 'vitest'
+import {
+ render, screen 
+} from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import userEvent from '@testing-library/user-event'
 import { FlowsPage } from './FlowsPage'
 import type { RiviereGraph } from '@/types/riviere'
-import { parseNode, parseEdge, parseDomainMetadata } from '@/lib/riviereTestData'
-const testSourceLocation = { repository: 'test-repo', filePath: 'src/test.ts' }
+import {
+ parseNode, parseEdge, parseDomainMetadata 
+} from '@/lib/riviereTestData'
+const testSourceLocation = {
+ repository: 'test-repo',
+filePath: 'src/test.ts' 
+}
 
 function renderWithRouter(graph: RiviereGraph): ReturnType<typeof render> {
   return render(
@@ -18,15 +27,59 @@ function renderWithRouter(graph: RiviereGraph): ReturnType<typeof render> {
 function createTestGraph(): RiviereGraph {
   return {
     version: '1.0',
-    metadata: { domains: parseDomainMetadata({ 'test-domain': { description: 'Test domain', systemType: 'domain' } }) },
+    metadata: {
+ domains: parseDomainMetadata({
+ 'test-domain': {
+ description: 'Test domain',
+systemType: 'domain' 
+} 
+}) 
+},
     components: [
-      parseNode({ sourceLocation: testSourceLocation, id: 'ui-1', type: 'UI', name: 'Order Form', domain: 'checkout', module: 'ui', route: '/orders' }),
-      parseNode({ sourceLocation: testSourceLocation, id: 'api-1', type: 'API', name: 'GET /health', domain: 'app', module: 'api', apiType: 'REST', httpMethod: 'GET', path: '/health' }),
-      parseNode({ sourceLocation: testSourceLocation, id: 'job-1', type: 'Custom', name: 'Daily Report', domain: 'reporting', module: 'jobs', customTypeName: 'ScheduledJob' }),
-      parseNode({ sourceLocation: testSourceLocation, id: 'uc-1', type: 'UseCase', name: 'Place Order', domain: 'orders', module: 'checkout' }),
+      parseNode({
+ sourceLocation: testSourceLocation,
+id: 'ui-1',
+type: 'UI',
+name: 'Order Form',
+domain: 'checkout',
+module: 'ui',
+route: '/orders' 
+}),
+      parseNode({
+ sourceLocation: testSourceLocation,
+id: 'api-1',
+type: 'API',
+name: 'GET /health',
+domain: 'app',
+module: 'api',
+apiType: 'REST',
+httpMethod: 'GET',
+path: '/health' 
+}),
+      parseNode({
+ sourceLocation: testSourceLocation,
+id: 'job-1',
+type: 'Custom',
+name: 'Daily Report',
+domain: 'reporting',
+module: 'jobs',
+customTypeName: 'ScheduledJob' 
+}),
+      parseNode({
+ sourceLocation: testSourceLocation,
+id: 'uc-1',
+type: 'UseCase',
+name: 'Place Order',
+domain: 'orders',
+module: 'checkout' 
+}),
     ],
     links: [
-      parseEdge({ source: 'ui-1', target: 'uc-1', type: 'sync' }),
+      parseEdge({
+ source: 'ui-1',
+target: 'uc-1',
+type: 'sync' 
+}),
     ],
   }
 }

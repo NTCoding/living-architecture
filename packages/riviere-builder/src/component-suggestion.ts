@@ -1,24 +1,43 @@
-import type { Component, ComponentId } from '@living-architecture/riviere-schema'
-import { ComponentNotFoundError } from './errors'
-import { similarityScore } from './string-similarity'
-import type { NearMatchMismatch, NearMatchOptions, NearMatchQuery, NearMatchResult } from './types'
+import type {
+  Component,
+  ComponentId,
+} from '@living-architecture/riviere-schema';
+import { ComponentNotFoundError } from './errors';
+import { similarityScore } from './string-similarity';
+import type {
+  NearMatchMismatch,
+  NearMatchOptions,
+  NearMatchQuery,
+  NearMatchResult,
+} from './types';
 
-function detectMismatch(query: NearMatchQuery, component: Component): NearMatchMismatch | undefined {
-  const nameMatches = query.name.toLowerCase() === component.name.toLowerCase()
+function detectMismatch(
+  query: NearMatchQuery,
+  component: Component,
+): NearMatchMismatch | undefined {
+  const nameMatches = query.name.toLowerCase() === component.name.toLowerCase();
 
   if (!nameMatches) {
-    return undefined
+    return undefined;
   }
 
   if (query.type !== undefined && query.type !== component.type) {
-    return { field: 'type', expected: query.type, actual: component.type }
+    return {
+ field: 'type',
+expected: query.type,
+actual: component.type 
+};
   }
 
   if (query.domain !== undefined && query.domain !== component.domain) {
-    return { field: 'domain', expected: query.domain, actual: component.domain }
+    return {
+      field: 'domain',
+      expected: query.domain,
+      actual: component.domain,
+    };
   }
 
-  return undefined
+  return undefined;
 }
 
 /**
@@ -40,26 +59,32 @@ function detectMismatch(query: NearMatchQuery, component: Component): NearMatchM
 export function findNearMatches(
   components: Component[],
   query: NearMatchQuery,
-  options?: NearMatchOptions
+  options?: NearMatchOptions,
 ): NearMatchResult[] {
   if (query.name === '') {
-    return []
+    return [];
   }
 
-  const threshold = options?.threshold ?? 0.6
-  const limit = options?.limit ?? 10
+  const threshold = options?.threshold ?? 0.6;
+  const limit = options?.limit ?? 10;
 
   const results = components
     .map((component): NearMatchResult => {
-      const score = similarityScore(query.name, component.name)
-      const mismatch = detectMismatch(query, component)
-      return { component, score, mismatch }
+      const score = similarityScore(query.name, component.name);
+      const mismatch = detectMismatch(query, component);
+      return {
+ component,
+score,
+mismatch 
+};
     })
-    .filter((result) => result.score >= threshold || result.mismatch !== undefined)
+    .filter(
+      (result) => result.score >= threshold || result.mismatch !== undefined,
+    )
     .sort((a, b) => b.score - a.score)
-    .slice(0, limit)
+    .slice(0, limit);
 
-  return results
+  return results;
 }
 
 /**
@@ -75,8 +100,15 @@ export function findNearMatches(
  * // ComponentNotFoundError with suggestions: ['orders:checkout:api:create-order']
  * ```
  */
-export function createSourceNotFoundError(components: Component[], id: ComponentId): ComponentNotFoundError {
-  const matches = findNearMatches(components, { name: id.name() }, { limit: 3 })
-  const suggestions = matches.map((s) => s.component.id)
-  return new ComponentNotFoundError(id.toString(), suggestions)
+export function createSourceNotFoundError(
+  components: Component[],
+  id: ComponentId,
+): ComponentNotFoundError {
+  const matches = findNearMatches(
+    components,
+    { name: id.name() },
+    { limit: 3 },
+  );
+  const suggestions = matches.map((s) => s.component.id);
+  return new ComponentNotFoundError(id.toString(), suggestions);
 }

@@ -13,6 +13,35 @@ Read @/docs/conventions/codebase-structure.md
 
 Ensure that all code is in the correct place and aligns with boundaries and layering requirements. Look at each line of code and ask "What is the purpose of this code? Is it related to other code? Is it highly cohesive? Should it really be here or would it fit better somewhere else?"
 
+### Vertical Slice Organization
+
+Check for type-based organization patterns that violate the "organize by usage" principle.
+
+**Detection patterns:**
+- Folders named: `types/`, `models/`, `validators/`, `assertions/`, `schemas/`, `interfaces/`
+- Files named: `types.ts`, `models.ts`, `validators.ts`, `assertions.ts`, `schemas.ts`, `interfaces.ts`
+- Any folder or file that groups items by category rather than by what uses them together
+
+**When found:**
+1. Trace where each item is actually used
+2. Identify which items are used together vs separately
+3. Propose a specific alternative structure with concrete file moves
+4. Only report if you can propose a better alternative
+
+If you cannot find a reasonable alternative, the current structure may be acceptable.
+
+**Exception:** Test fixtures shared across multiple test files.
+
+```plaintext
+Organization Violation: Type-based grouping detected
+Principle: Organize by usage, not by type (codebase-structure.md)
+Code: [show folder/file structure]
+Current: [describe what exists]
+Alternative: [propose specific restructure with file moves]
+Why better: [explain how alternative groups by usage]
+Optional?: No - code that's used together should live together
+```
+
 ```plaintext
 Architecture or modularity violation: [title of violation]
 Relevant convention: [reference rule]

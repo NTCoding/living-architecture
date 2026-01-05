@@ -1,16 +1,27 @@
-import { render, screen } from '@testing-library/react'
+import {
+ render, screen 
+} from '@testing-library/react'
 import type { RenderResult } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
-import { describe, expect, it, vi } from 'vitest'
+import {
+ describe, expect, it, vi 
+} from 'vitest'
 import { AppShell } from './AppShell'
 import { ExportProvider } from '@/contexts/ExportContext'
-import type { GraphName, RiviereGraph } from '@/types/riviere'
-import { graphNameSchema, nodeIdSchema, domainNameSchema, moduleNameSchema } from '@/types/riviere'
+import type {
+ GraphName, RiviereGraph 
+} from '@/types/riviere'
+import {
+ graphNameSchema, nodeIdSchema, domainNameSchema, moduleNameSchema 
+} from '@/types/riviere'
 import { parseDomainMetadata } from '@/lib/riviereTestData'
 
 
-const testSourceLocation = { repository: 'test-repo', filePath: 'src/test.ts' }
+const testSourceLocation = {
+ repository: 'test-repo',
+filePath: 'src/test.ts' 
+}
 function createGraphName(name: string): GraphName {
   return graphNameSchema.parse(name)
 }
@@ -23,8 +34,11 @@ function createTestGraph(name: string): RiviereGraph {
       description: 'Test graph',
       generated: '2024-01-15T10:30:00Z',
       domains: parseDomainMetadata({
-        orders: { description: 'Order management', systemType: 'domain' },
-      }),
+orders: {
+ description: 'Order management',
+systemType: 'domain' 
+},
+}),
     },
     components: [
       {
@@ -44,20 +58,17 @@ function createTestGraph(name: string): RiviereGraph {
 }
 
 vi.mock('@/contexts/ThemeContext', () => ({
-  useTheme: () => ({ theme: 'stream', setTheme: vi.fn() }),
+useTheme: () => ({
+ theme: 'stream',
+setTheme: vi.fn() 
+}),
 }))
 
-vi.mock('@/contexts/GraphContext', () => ({
-  useGraph: () => ({ clearGraph: vi.fn() }),
-}))
+vi.mock('@/contexts/GraphContext', () => ({useGraph: () => ({ clearGraph: vi.fn() }),}))
 
-vi.mock('@/components/Logo/Logo', () => ({
-  Logo: () => <div data-testid="logo">Logo</div>,
-}))
+vi.mock('@/components/Logo/Logo', () => ({Logo: () => <div data-testid="logo">Logo</div>,}))
 
-vi.mock('@/components/ThemeSwitcher/ThemeSwitcher', () => ({
-  ThemeSwitcher: () => <div data-testid="theme-switcher">ThemeSwitcher</div>,
-}))
+vi.mock('@/components/ThemeSwitcher/ThemeSwitcher', () => ({ThemeSwitcher: () => <div data-testid="theme-switcher">ThemeSwitcher</div>,}))
 
 function renderWithRouter(ui: React.ReactElement): RenderResult {
   return render(<MemoryRouter><ExportProvider>{ui}</ExportProvider></MemoryRouter>)

@@ -1,15 +1,26 @@
 import * as d3 from 'd3'
 import type { NodeType } from '@/types/riviere'
-import type { SimulationNode, SimulationLink } from '../../types'
+import type {
+ SimulationNode, SimulationLink 
+} from '../../types'
 
 export interface FocusModeCircleParams {
   node: d3.Selection<SVGGElement, SimulationNode, SVGGElement, unknown>
   focusedDomain: string
   focusColors: { glowColor: string }
   transitionDuration: number
-  nodeRadiusScale: { focusedRadius: number; unfocusedRadius: number }
-  opacityValues: { focusedNode: number; unfocusedNode: number }
-  strokeWidths: { focusedNodeWidth: number; unfocusedNodeWidth: number }
+  nodeRadiusScale: {
+ focusedRadius: number;
+unfocusedRadius: number 
+}
+  opacityValues: {
+ focusedNode: number;
+unfocusedNode: number 
+}
+  strokeWidths: {
+ focusedNodeWidth: number;
+unfocusedNodeWidth: number 
+}
   getNodeRadius: (type: NodeType) => number
   unfocusedStrokeColor: string
 }

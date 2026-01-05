@@ -15,7 +15,9 @@ interface EntityHeaderActionsProps {
   readonly onViewOnGraph: ((nodeId: string) => void) | undefined
 }
 
-function EntityHeaderActions({ entity, isExpanded, onViewOnGraph }: Readonly<EntityHeaderActionsProps>): React.ReactElement {
+function EntityHeaderActions({
+ entity, isExpanded, onViewOnGraph 
+}: Readonly<EntityHeaderActionsProps>): React.ReactElement {
   const firstOp = entity.operations[0]
   const firstOpId = entity.firstOperationId()
 
@@ -157,7 +159,9 @@ interface MethodCardProps {
   readonly businessRules: readonly string[]
 }
 
-function MethodCard({ operation, businessRules }: Readonly<MethodCardProps>): React.ReactElement {
+function MethodCard({
+ operation, businessRules 
+}: Readonly<MethodCardProps>): React.ReactElement {
   const [isExpanded, setIsExpanded] = useState(false)
 
   return (
@@ -176,7 +180,9 @@ interface MethodCardHeaderProps {
   readonly onToggle: () => void
 }
 
-function MethodCardHeader({ operation, isExpanded, onToggle }: Readonly<MethodCardHeaderProps>): React.ReactElement {
+function MethodCardHeader({
+ operation, isExpanded, onToggle 
+}: Readonly<MethodCardHeaderProps>): React.ReactElement {
   return (
     <div
       className={`flex w-full items-center justify-between gap-4 px-4 py-3 transition-colors ${
@@ -195,7 +201,9 @@ interface MethodCardButtonProps {
   readonly onToggle: () => void
 }
 
-function MethodCardButton({ operation, isExpanded, onToggle }: Readonly<MethodCardButtonProps>): React.ReactElement {
+function MethodCardButton({
+ operation, isExpanded, onToggle 
+}: Readonly<MethodCardButtonProps>): React.ReactElement {
   return (
     <button
       type="button"
@@ -210,9 +218,7 @@ function MethodCardButton({ operation, isExpanded, onToggle }: Readonly<MethodCa
   )
 }
 
-interface MethodSignatureProps {
-  readonly operation: DomainOpComponent
-}
+interface MethodSignatureProps {readonly operation: DomainOpComponent}
 
 function formatParameters(signature: NonNullable<MethodSignatureProps['operation']['signature']>): string {
   if (signature.parameters === undefined) {
@@ -237,9 +243,7 @@ function MethodSignature({ operation }: Readonly<MethodSignatureProps>): React.R
   )
 }
 
-interface StateChangesTagProps {
-  readonly operation: DomainOpComponent
-}
+interface StateChangesTagProps {readonly operation: DomainOpComponent}
 
 function hasStateChanges(
   operation: DomainOpComponent
@@ -262,9 +266,7 @@ function StateChangesTag({ operation }: Readonly<StateChangesTagProps>): React.R
   )
 }
 
-interface MethodCardChevronProps {
-  readonly isExpanded: boolean
-}
+interface MethodCardChevronProps {readonly isExpanded: boolean}
 
 function MethodCardChevron({ isExpanded }: Readonly<MethodCardChevronProps>): React.ReactElement {
   return (
@@ -275,9 +277,7 @@ function MethodCardChevron({ isExpanded }: Readonly<MethodCardChevronProps>): Re
   )
 }
 
-interface MethodCardActionProps {
-  readonly operation: DomainOpComponent
-}
+interface MethodCardActionProps {readonly operation: DomainOpComponent}
 
 function MethodCardAction({ operation }: Readonly<MethodCardActionProps>): React.ReactElement {
   const sourceLocation = operation.sourceLocation
@@ -300,7 +300,9 @@ interface MethodCardContentProps {
   readonly businessRules: readonly string[]
 }
 
-function MethodCardContent({ operation, businessRules }: Readonly<MethodCardContentProps>): React.ReactElement {
+function MethodCardContent({
+ operation, businessRules 
+}: Readonly<MethodCardContentProps>): React.ReactElement {
   const hasRulesToShow = businessRules.length > 0
   const hasBehavior = operation.behavior !== undefined
   const hasAnyContent = hasRulesToShow || hasBehavior
@@ -355,7 +357,9 @@ const colorStyles: Record<BehaviorBoxProps['color'], string> = {
   purple: 'border-l-[var(--purple)]',
 }
 
-function BehaviorBox({ label, items, icon, color }: Readonly<BehaviorBoxProps>): React.ReactElement {
+function BehaviorBox({
+ label, items, icon, color 
+}: Readonly<BehaviorBoxProps>): React.ReactElement {
   const hasItems = items !== undefined && items.length > 0
 
   return (

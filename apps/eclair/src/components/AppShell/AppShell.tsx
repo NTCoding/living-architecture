@@ -1,9 +1,13 @@
-import { useState, useCallback } from 'react'
+import {
+ useState, useCallback 
+} from 'react'
 import { useLocation } from 'react-router-dom'
 import { Header } from '@/components/Header/Header'
 import { Sidebar } from '@/components/Sidebar/Sidebar'
 import { useExport } from '@/contexts/ExportContext'
-import type { RiviereGraph, GraphName } from '@/types/riviere'
+import type {
+ RiviereGraph, GraphName 
+} from '@/types/riviere'
 
 interface AppShellProps {
   readonly children: React.ReactNode
@@ -20,7 +24,9 @@ function isMobileViewport(): boolean {
   return window.innerWidth < MOBILE_BREAKPOINT
 }
 
-export function AppShell({ children, hasGraph, graphName, graph }: AppShellProps): React.ReactElement {
+export function AppShell({
+ children, hasGraph, graphName, graph 
+}: AppShellProps): React.ReactElement {
   const location = useLocation()
   const { exportHandlers } = useExport()
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() =>

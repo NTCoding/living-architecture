@@ -1,4 +1,6 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import {
+ useState, useEffect, useCallback, useRef 
+} from 'react'
 import type { AggregatedConnection } from '../../extractDomainDetails'
 import { EdgeLine } from './EdgeLine'
 import { DomainNode } from './DomainNode'
@@ -78,9 +80,16 @@ export function DomainContextGraph({
   connections,
 }: Readonly<DomainContextGraphProps>): React.ReactElement {
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null)
-  const [transform, setTransform] = useState<ViewTransform>({ scale: 1, translateX: 0, translateY: 0 })
+  const [transform, setTransform] = useState<ViewTransform>({
+ scale: 1,
+translateX: 0,
+translateY: 0 
+})
   const [isPanning, setIsPanning] = useState(false)
-  const [panStart, setPanStart] = useState({ x: 0, y: 0 })
+  const [panStart, setPanStart] = useState({
+ x: 0,
+y: 0 
+})
   const [isFullscreen, setIsFullscreen] = useState(false)
   const svgRef = useRef<SVGSVGElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -114,7 +123,10 @@ export function DomainContextGraph({
   const handleMouseDown = useCallback((e: React.MouseEvent<SVGSVGElement>): void => {
     if (e.button === 0) {
       setIsPanning(true)
-      setPanStart({ x: e.clientX - transform.translateX, y: e.clientY - transform.translateY })
+      setPanStart({
+ x: e.clientX - transform.translateX,
+y: e.clientY - transform.translateY 
+})
     }
   }, [transform.translateX, transform.translateY])
 
@@ -133,7 +145,11 @@ export function DomainContextGraph({
   }, [])
 
   const handleResetView = useCallback((): void => {
-    setTransform({ scale: 1, translateX: 0, translateY: 0 })
+    setTransform({
+ scale: 1,
+translateX: 0,
+translateY: 0 
+})
   }, [])
 
   const ignoreFullscreenError = (): void => {
@@ -251,7 +267,10 @@ export function DomainContextGraph({
       <div className="absolute bottom-4 right-4 flex gap-1 rounded-lg border border-[var(--border-color)] bg-[var(--bg-secondary)] p-1 shadow-lg">
         <button
           type="button"
-          onClick={() => setTransform((prev) => ({ ...prev, scale: Math.min(MAX_SCALE, prev.scale * 1.2) }))}
+          onClick={() => setTransform((prev) => ({
+ ...prev,
+scale: Math.min(MAX_SCALE, prev.scale * 1.2) 
+}))}
           className="flex h-8 w-8 items-center justify-center rounded text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]"
           aria-label="Zoom in"
         >
@@ -259,7 +278,10 @@ export function DomainContextGraph({
         </button>
         <button
           type="button"
-          onClick={() => setTransform((prev) => ({ ...prev, scale: Math.max(MIN_SCALE, prev.scale / 1.2) }))}
+          onClick={() => setTransform((prev) => ({
+ ...prev,
+scale: Math.max(MIN_SCALE, prev.scale / 1.2) 
+}))}
           className="flex h-8 w-8 items-center justify-center rounded text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]"
           aria-label="Zoom out"
         >

@@ -1,11 +1,22 @@
-import { describe, it, expect, vi } from 'vitest'
-import { render, screen, waitFor, within, fireEvent } from '@testing-library/react'
+import {
+ describe, it, expect, vi 
+} from 'vitest'
+import {
+ render, screen, waitFor, within, fireEvent 
+} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { SchemaModal } from './SchemaModal'
-import type { RiviereGraph, GraphName } from '@/types/riviere'
-import { nodeIdSchema, domainNameSchema, moduleNameSchema, graphNameSchema } from '@/types/riviere'
+import type {
+ RiviereGraph, GraphName 
+} from '@/types/riviere'
+import {
+ nodeIdSchema, domainNameSchema, moduleNameSchema, graphNameSchema 
+} from '@/types/riviere'
 
-const testSourceLocation = { repository: 'test-repo', filePath: 'src/test.ts' }
+const testSourceLocation = {
+ repository: 'test-repo',
+filePath: 'src/test.ts' 
+}
 
 function createGraphName(name: string): GraphName {
   return graphNameSchema.parse(name)
@@ -209,10 +220,22 @@ describe('SchemaModal', () => {
             description: 'Test',
             generated: '2024-01-15T10:30:00Z',
             domains: {
-              'orders': { description: 'Order', systemType: 'domain' },
-              'inventory': { description: 'Inventory', systemType: 'domain' },
-              'shipping': { description: 'Shipping', systemType: 'domain' },
-              'payments': { description: 'Payments', systemType: 'domain' },
+              'orders': {
+ description: 'Order',
+systemType: 'domain' 
+},
+              'inventory': {
+ description: 'Inventory',
+systemType: 'domain' 
+},
+              'shipping': {
+ description: 'Shipping',
+systemType: 'domain' 
+},
+              'payments': {
+ description: 'Payments',
+systemType: 'domain' 
+},
             },
           },
         })
@@ -276,9 +299,7 @@ describe('SchemaModal', () => {
     it('copy: copies JSON to clipboard when copy clicked', async () => {
       const user = userEvent.setup()
       const writeText = vi.fn().mockResolvedValue(undefined)
-      vi.stubGlobal('navigator', {
-        clipboard: { writeText },
-      })
+      vi.stubGlobal('navigator', {clipboard: { writeText },})
 
       render(
         <SchemaModal graph={createTestGraph()} graphName={createGraphName('test.json')} isOpen={true} onClose={vi.fn()} />
@@ -300,9 +321,7 @@ describe('SchemaModal', () => {
     it('copy: shows success feedback after copy', async () => {
       const user = userEvent.setup()
       const writeText = vi.fn().mockResolvedValue(undefined)
-      vi.stubGlobal('navigator', {
-        clipboard: { writeText },
-      })
+      vi.stubGlobal('navigator', {clipboard: { writeText },})
 
       render(
         <SchemaModal graph={createTestGraph()} graphName={createGraphName('test.json')} isOpen={true} onClose={vi.fn()} />
@@ -320,9 +339,7 @@ describe('SchemaModal', () => {
     it('copy: clears copy feedback after timeout', async () => {
       vi.useFakeTimers()
       const writeText = vi.fn().mockResolvedValue(undefined)
-      vi.stubGlobal('navigator', {
-        clipboard: { writeText },
-      })
+      vi.stubGlobal('navigator', {clipboard: { writeText },})
 
       render(
         <SchemaModal graph={createTestGraph()} graphName={createGraphName('test.json')} isOpen={true} onClose={vi.fn()} />

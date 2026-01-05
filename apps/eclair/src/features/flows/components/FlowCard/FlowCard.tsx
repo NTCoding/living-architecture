@@ -12,7 +12,9 @@ interface FlowCardProps {
   readonly onToggle: () => void
 }
 
-export function FlowCard({ flow, graph, expanded, onToggle }: Readonly<FlowCardProps>): React.ReactElement {
+export function FlowCard({
+ flow, graph, expanded, onToggle 
+}: Readonly<FlowCardProps>): React.ReactElement {
   const navigate = useNavigate()
   const { entryPoint } = flow
 

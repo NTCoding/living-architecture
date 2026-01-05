@@ -1,4 +1,6 @@
-import { Link, useLocation } from 'react-router-dom'
+import {
+ Link, useLocation 
+} from 'react-router-dom'
 import { Logo } from '@/components/Logo/Logo'
 import { ThemeSwitcher } from '@/components/ThemeSwitcher/ThemeSwitcher'
 
@@ -16,7 +18,9 @@ interface NavItemContentProps {
   readonly collapsed: boolean
 }
 
-function NavItemContent({ icon, label, collapsed }: NavItemContentProps): React.ReactElement {
+function NavItemContent({
+ icon, label, collapsed 
+}: NavItemContentProps): React.ReactElement {
   return (
     <>
       <i className={`ph ph-${icon} text-lg`} aria-hidden="true" />
@@ -57,7 +61,9 @@ function getTooltipTitle(collapsed: boolean, label: string): string | undefined 
   return undefined
 }
 
-function NavItem({ icon, label, to, disabled = false, active = false, collapsed = false }: NavItemProps): React.ReactElement {
+function NavItem({
+ icon, label, to, disabled = false, active = false, collapsed = false 
+}: NavItemProps): React.ReactElement {
   const baseClasses = collapsed ? getCollapsedNavItemClasses() : getExpandedNavItemClasses()
   const stateClasses = getNavItemStateClasses(disabled, active)
 
@@ -83,7 +89,9 @@ interface ExternalLinkProps {
   readonly collapsed?: boolean
 }
 
-function ExternalLink({ icon, label, href, collapsed = false }: ExternalLinkProps): React.ReactElement {
+function ExternalLink({
+ icon, label, href, collapsed = false 
+}: ExternalLinkProps): React.ReactElement {
   const baseClasses = collapsed ? getCollapsedNavItemClasses() : getExpandedNavItemClasses()
 
   return (
@@ -105,7 +113,9 @@ interface SidebarProps {
   readonly onToggleCollapse?: () => void
 }
 
-export function Sidebar({ hasGraph, collapsed = false, onToggleCollapse }: SidebarProps): React.ReactElement {
+export function Sidebar({
+ hasGraph, collapsed = false, onToggleCollapse 
+}: SidebarProps): React.ReactElement {
   const location = useLocation()
   const currentPath = location.pathname
 

@@ -1,5 +1,9 @@
-import { createContext, useContext, useState, useCallback, useEffect, useRef, useSyncExternalStore, useMemo } from 'react'
-import type { RiviereGraph, GraphName } from '@/types/riviere'
+import {
+ createContext, useContext, useState, useCallback, useEffect, useRef, useSyncExternalStore, useMemo 
+} from 'react'
+import type {
+ RiviereGraph, GraphName 
+} from '@/types/riviere'
 import { graphNameSchema } from '@/types/riviere'
 import { parseRiviereGraph } from '@living-architecture/riviere-schema'
 
@@ -49,9 +53,7 @@ function useIsDemoMode(): boolean {
   return useSyncExternalStore(subscribeToNothing, getIsDemoMode, () => false)
 }
 
-interface GraphProviderProps {
-  readonly children: React.ReactNode
-}
+interface GraphProviderProps {readonly children: React.ReactNode}
 
 export function GraphProvider({ children }: GraphProviderProps): React.ReactElement {
   const isDemoMode = useIsDemoMode()
@@ -98,7 +100,14 @@ export function GraphProvider({ children }: GraphProviderProps): React.ReactElem
     : graphNameSchema.parse(graph.metadata.name)
 
   const contextValue = useMemo(
-    () => ({ graph, setGraph, clearGraph, hasGraph, graphName, isLoadingDemo }),
+    () => ({
+ graph,
+setGraph,
+clearGraph,
+hasGraph,
+graphName,
+isLoadingDemo 
+}),
     [graph, setGraph, clearGraph, hasGraph, graphName, isLoadingDemo]
   )
 

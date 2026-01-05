@@ -1,17 +1,28 @@
-import { describe, it, expect } from 'vitest';
-import { mkdir, writeFile, readFile } from 'node:fs/promises';
+import {
+ describe, it, expect 
+} from 'vitest';
+import {
+ mkdir, writeFile, readFile 
+} from 'node:fs/promises';
 import { join } from 'node:path';
 import { createProgram } from '../../cli';
 import { CliErrorCode } from '../../error-codes';
 import type { TestContext } from '../../command-test-fixtures';
-import { createTestContext, setupCommandTest } from '../../command-test-fixtures';
+import {
+  createTestContext,
+  setupCommandTest,
+} from '../../command-test-fixtures';
 
 describe('riviere builder link-external', () => {
   describe('command registration', () => {
     it('registers link-external command under builder', () => {
       const program = createProgram();
-      const builderCmd = program.commands.find((cmd) => cmd.name() === 'builder');
-      const linkExternalCmd = builderCmd?.commands.find((cmd) => cmd.name() === 'link-external');
+      const builderCmd = program.commands.find(
+        (cmd) => cmd.name() === 'builder',
+      );
+      const linkExternalCmd = builderCmd?.commands.find(
+        (cmd) => cmd.name() === 'link-external',
+      );
 
       expect(linkExternalCmd?.name()).toBe('link-external');
     });
@@ -29,8 +40,11 @@ describe('riviere builder link-external', () => {
         metadata: {
           sources: [{ repository: 'https://github.com/org/repo' }],
           domains: {
-            orders: { description: 'Order management', systemType: 'domain' },
-          },
+orders: {
+ description: 'Order management',
+systemType: 'domain' 
+},
+},
         },
         components: [
           {
@@ -42,13 +56,20 @@ describe('riviere builder link-external', () => {
             apiType: 'REST',
             httpMethod: 'POST',
             path: '/payments',
-            sourceLocation: { repository: 'https://github.com/org/repo', filePath: 'src/api/payments.ts' },
+            sourceLocation: {
+              repository: 'https://github.com/org/repo',
+              filePath: 'src/api/payments.ts',
+            },
           },
         ],
         links: [],
         externalLinks: [],
       };
-      await writeFile(join(graphDir, 'graph.json'), JSON.stringify(graph), 'utf-8');
+      await writeFile(
+        join(graphDir, 'graph.json'),
+        JSON.stringify(graph),
+        'utf-8',
+      );
     }
 
     it('creates external link when source component exists', async () => {
@@ -75,9 +96,7 @@ describe('riviere builder link-external', () => {
         externalLinks: [
           {
             source: 'orders:checkout:api:pay',
-            target: {
-              name: 'Stripe API',
-            },
+            target: {name: 'Stripe API',},
           },
         ],
       });
@@ -120,9 +139,7 @@ describe('riviere builder link-external', () => {
       const output: unknown = JSON.parse(ctx.consoleOutput[0] ?? '');
       expect(output).toMatchObject({
         success: false,
-        error: {
-          code: CliErrorCode.ComponentNotFound,
-        },
+        error: {code: CliErrorCode.ComponentNotFound,},
       });
     });
 
@@ -190,9 +207,7 @@ describe('riviere builder link-external', () => {
         data: {
           externalLink: {
             source: 'orders:checkout:api:pay',
-            target: {
-              name: 'Stripe API',
-            },
+            target: {name: 'Stripe API',},
           },
         },
       });
@@ -218,7 +233,12 @@ describe('riviere builder link-external', () => {
       const content = await readFile(graphPath, 'utf-8');
       const graph: unknown = JSON.parse(content);
       expect(graph).toMatchObject({
-        externalLinks: [{ source: 'orders:checkout:api:pay', target: { name: 'Stripe API' } }],
+        externalLinks: [
+          {
+ source: 'orders:checkout:api:pay',
+target: { name: 'Stripe API' } 
+},
+        ],
       });
     });
 
@@ -237,7 +257,7 @@ describe('riviere builder link-external', () => {
           'malformed-id',
           '--target-name',
           'Stripe API',
-        ])
+        ]),
       ).rejects.toThrow(/Invalid component ID format/);
     });
 

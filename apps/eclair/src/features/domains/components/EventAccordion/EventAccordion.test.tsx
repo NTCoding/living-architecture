@@ -1,5 +1,9 @@
-import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import {
+ describe, it, expect, vi 
+} from 'vitest'
+import {
+ render, screen 
+} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { EventAccordion } from './EventAccordion'
 import type { DomainEvent } from '../../extractDomainDetails'
@@ -27,8 +31,14 @@ describe('EventAccordion', () => {
     it('renders handler count when handlers exist', () => {
       const event = createEvent({
         handlers: [
-          { domain: 'shipping', handlerName: 'CreateShipment' },
-          { domain: 'notification', handlerName: 'SendEmail' },
+          {
+ domain: 'shipping',
+handlerName: 'CreateShipment' 
+},
+          {
+ domain: 'notification',
+handlerName: 'SendEmail' 
+},
         ],
       })
 
@@ -39,8 +49,11 @@ describe('EventAccordion', () => {
 
     it('renders singular handler text for single handler', () => {
       const event = createEvent({
-        handlers: [{ domain: 'shipping', handlerName: 'CreateShipment' }],
-      })
+handlers: [{
+ domain: 'shipping',
+handlerName: 'CreateShipment' 
+}],
+})
 
       render(<EventAccordion event={event} />)
 
@@ -55,8 +68,11 @@ describe('EventAccordion', () => {
 
     it('does not show handler details when collapsed', () => {
       const event = createEvent({
-        handlers: [{ domain: 'shipping', handlerName: 'CreateShipment' }],
-      })
+handlers: [{
+ domain: 'shipping',
+handlerName: 'CreateShipment' 
+}],
+})
 
       render(<EventAccordion event={event} />)
 
@@ -68,8 +84,11 @@ describe('EventAccordion', () => {
     it('expands when header is clicked', async () => {
       const user = userEvent.setup()
       const event = createEvent({
-        handlers: [{ domain: 'shipping', handlerName: 'CreateShipment' }],
-      })
+handlers: [{
+ domain: 'shipping',
+handlerName: 'CreateShipment' 
+}],
+})
 
       render(<EventAccordion event={event} />)
 
@@ -82,8 +101,14 @@ describe('EventAccordion', () => {
       const user = userEvent.setup()
       const event = createEvent({
         handlers: [
-          { domain: 'shipping', handlerName: 'CreateShipment' },
-          { domain: 'notification', handlerName: 'SendEmail' },
+          {
+ domain: 'shipping',
+handlerName: 'CreateShipment' 
+},
+          {
+ domain: 'notification',
+handlerName: 'SendEmail' 
+},
         ],
       })
 
@@ -122,9 +147,7 @@ describe('EventAccordion', () => {
 
     it('handles complex nested schema objects', async () => {
       const user = userEvent.setup()
-      const event = createEvent({
-        schema: '{ orderId: string, items: Item[], metadata: { timestamp: timestamp, version: number } }',
-      })
+      const event = createEvent({schema: '{ orderId: string, items: Item[], metadata: { timestamp: timestamp, version: number } }',})
 
       render(<EventAccordion event={event} />)
       await user.click(screen.getByRole('button', { name: /orderplaced/i }))
@@ -147,8 +170,11 @@ describe('EventAccordion', () => {
     it('hides handler details when header is clicked again', async () => {
       const user = userEvent.setup()
       const event = createEvent({
-        handlers: [{ domain: 'shipping', handlerName: 'CreateShipment' }],
-      })
+handlers: [{
+ domain: 'shipping',
+handlerName: 'CreateShipment' 
+}],
+})
 
       render(<EventAccordion event={event} />)
 
@@ -230,7 +256,10 @@ describe('EventAccordion', () => {
     it('prevents event propagation when clicking code link menu', async () => {
       const user = userEvent.setup()
       const event = createEvent({
-        handlers: [{ domain: 'shipping', handlerName: 'CreateShipment' }],
+        handlers: [{
+ domain: 'shipping',
+handlerName: 'CreateShipment' 
+}],
         sourceLocation: {
           filePath: 'src/events/OrderPlaced.ts',
           lineNumber: 15,
@@ -251,8 +280,11 @@ describe('EventAccordion', () => {
   describe('defaultExpanded prop', () => {
     it('shows handler details initially when defaultExpanded is true', () => {
       const event = createEvent({
-        handlers: [{ domain: 'shipping', handlerName: 'CreateShipment' }],
-      })
+handlers: [{
+ domain: 'shipping',
+handlerName: 'CreateShipment' 
+}],
+})
 
       render(<EventAccordion event={event} defaultExpanded />)
 
@@ -292,8 +324,11 @@ describe('EventAccordion', () => {
     it('prevents event propagation when clicking view on graph button', async () => {
       const user = userEvent.setup()
       const event = createEvent({
-        handlers: [{ domain: 'shipping', handlerName: 'CreateShipment' }],
-      })
+handlers: [{
+ domain: 'shipping',
+handlerName: 'CreateShipment' 
+}],
+})
       const onViewOnGraph = () => {}
 
       render(<EventAccordion event={event} onViewOnGraph={onViewOnGraph} />)
@@ -332,8 +367,11 @@ describe('EventAccordion', () => {
   describe('handler row layout', () => {
     it('renders handler icon on left side of handler row', () => {
       const event = createEvent({
-        handlers: [{ domain: 'shipping', handlerName: 'CreateShipment' }],
-      })
+handlers: [{
+ domain: 'shipping',
+handlerName: 'CreateShipment' 
+}],
+})
 
       render(<EventAccordion event={event} defaultExpanded />)
 
@@ -344,8 +382,11 @@ describe('EventAccordion', () => {
 
     it('renders domain below handler name not beside it', () => {
       const event = createEvent({
-        handlers: [{ domain: 'shipping', handlerName: 'CreateShipment' }],
-      })
+handlers: [{
+ domain: 'shipping',
+handlerName: 'CreateShipment' 
+}],
+})
 
       render(<EventAccordion event={event} defaultExpanded />)
 
@@ -363,8 +404,14 @@ describe('EventAccordion', () => {
     it('renders view on graph button next to each handler when callback provided', () => {
       const event = createEvent({
         handlers: [
-          { domain: 'shipping', handlerName: 'CreateShipment' },
-          { domain: 'notification', handlerName: 'SendEmail' },
+          {
+ domain: 'shipping',
+handlerName: 'CreateShipment' 
+},
+          {
+ domain: 'notification',
+handlerName: 'SendEmail' 
+},
         ],
       })
       const onViewHandlerOnGraph = vi.fn()
@@ -378,8 +425,11 @@ describe('EventAccordion', () => {
     it('calls onViewHandlerOnGraph with handler info when button is clicked', async () => {
       const user = userEvent.setup()
       const event = createEvent({
-        handlers: [{ domain: 'shipping', handlerName: 'CreateShipment' }],
-      })
+handlers: [{
+ domain: 'shipping',
+handlerName: 'CreateShipment' 
+}],
+})
       const onViewHandlerOnGraph = vi.fn()
 
       render(<EventAccordion event={event} onViewHandlerOnGraph={onViewHandlerOnGraph} defaultExpanded />)
@@ -395,8 +445,11 @@ describe('EventAccordion', () => {
 
     it('does not render handler graph buttons when onViewHandlerOnGraph is undefined', () => {
       const event = createEvent({
-        handlers: [{ domain: 'shipping', handlerName: 'CreateShipment' }],
-      })
+handlers: [{
+ domain: 'shipping',
+handlerName: 'CreateShipment' 
+}],
+})
 
       render(<EventAccordion event={event} defaultExpanded />)
 

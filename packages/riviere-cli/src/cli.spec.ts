@@ -1,4 +1,6 @@
-import { createProgram, parsePackageJson } from './cli';
+import {
+ createProgram, parsePackageJson 
+} from './cli';
 import { Command } from 'commander';
 
 describe('parsePackageJson', () => {
@@ -9,19 +11,27 @@ describe('parsePackageJson', () => {
   });
 
   it('throws when input is null', () => {
-    expect(() => parsePackageJson(null)).toThrow('Invalid package.json: missing version field');
+    expect(() => parsePackageJson(null)).toThrow(
+      'Invalid package.json: missing version field',
+    );
   });
 
   it('throws when input is not an object', () => {
-    expect(() => parsePackageJson('not an object')).toThrow('Invalid package.json: missing version field');
+    expect(() => parsePackageJson('not an object')).toThrow(
+      'Invalid package.json: missing version field',
+    );
   });
 
   it('throws when version field is missing', () => {
-    expect(() => parsePackageJson({ name: 'test' })).toThrow('Invalid package.json: missing version field');
+    expect(() => parsePackageJson({ name: 'test' })).toThrow(
+      'Invalid package.json: missing version field',
+    );
   });
 
   it('throws when version is not a string', () => {
-    expect(() => parsePackageJson({ version: 123 })).toThrow('Invalid package.json: version must be a string');
+    expect(() => parsePackageJson({ version: 123 })).toThrow(
+      'Invalid package.json: version must be a string',
+    );
   });
 });
 

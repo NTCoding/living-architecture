@@ -1,4 +1,6 @@
-import type { Node, Edge, NodeType, NodeId } from '@/types/riviere'
+import type {
+ Node, Edge, NodeType, NodeId 
+} from '@/types/riviere'
 
 export interface FilteredGraph {
   nodes: Node[]
@@ -20,7 +22,10 @@ function findVisibleDescendants(
   visibleNodeIds: Set<string>,
   outgoingEdges: Map<string, Edge[]>,
   visited: Set<string>
-): Array<{ targetId: NodeId; edge: Edge }> {
+): Array<{
+ targetId: NodeId;
+edge: Edge 
+}> {
   if (visited.has(nodeId)) {
     return []
   }
@@ -30,12 +35,18 @@ function findVisibleDescendants(
     return []
   }
 
-  const descendants: Array<{ targetId: NodeId; edge: Edge }> = []
+  const descendants: Array<{
+ targetId: NodeId;
+edge: Edge 
+}> = []
   const nodeEdges = outgoingEdges.get(nodeId) ?? []
 
   for (const edge of nodeEdges) {
     if (visibleNodeIds.has(edge.target)) {
-      descendants.push({ targetId: edge.target, edge })
+      descendants.push({
+ targetId: edge.target,
+edge 
+})
       continue
     }
 
@@ -76,7 +87,9 @@ function processEdgeForRewiring(
     new Set()
   )
 
-  for (const { targetId, edge: originalEdge } of visibleTargets) {
+  for (const {
+ targetId, edge: originalEdge 
+} of visibleTargets) {
     const edgeKey = `${edge.source}->${targetId}`
     if (addedEdgePairs.has(edgeKey)) {
       continue
@@ -125,5 +138,8 @@ export function filterByNodeType(
     )
   }
 
-  return { nodes: visibleNodes, edges: rewiredEdges }
+  return {
+ nodes: visibleNodes,
+edges: rewiredEdges 
+}
 }

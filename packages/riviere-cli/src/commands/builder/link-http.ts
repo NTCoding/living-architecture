@@ -2,14 +2,32 @@ import { Command } from 'commander';
 import { writeFile } from 'node:fs/promises';
 import { ComponentId } from '@living-architecture/riviere-builder';
 import { RiviereQuery } from '@living-architecture/riviere-query';
-import type { Component, HttpMethod, RiviereGraph } from '@living-architecture/riviere-schema';
-import { getDefaultGraphPathDescription, resolveGraphPath } from '../../graph-path';
+import type {
+  Component,
+  HttpMethod,
+  RiviereGraph,
+} from '@living-architecture/riviere-schema';
+import {
+  getDefaultGraphPathDescription,
+  resolveGraphPath,
+} from '../../graph-path';
 import { fileExists } from '../../file-existence';
-import { formatError, formatSuccess } from '../../output';
+import {
+ formatError, formatSuccess 
+} from '../../output';
 import { CliErrorCode } from '../../error-codes';
-import { isValidLinkType, normalizeComponentType } from '../../component-types';
-import { isValidHttpMethod, validateComponentType, validateHttpMethod, validateLinkType } from '../../validation';
-import { loadGraphBuilder, reportGraphNotFound } from './link-infrastructure';
+import {
+ isValidLinkType, normalizeComponentType 
+} from '../../component-types';
+import {
+  isValidHttpMethod,
+  validateComponentType,
+  validateHttpMethod,
+  validateLinkType,
+} from '../../validation';
+import {
+ loadGraphBuilder, reportGraphNotFound 
+} from './link-infrastructure';
 
 interface ApiComponent {
   id: string;
@@ -20,11 +38,19 @@ interface ApiComponent {
   httpMethod: HttpMethod;
 }
 
-function isRestApiWithPath(component: Component): component is Component & ApiComponent {
-  return component.type === 'API' && 'path' in component && 'httpMethod' in component;
+function isRestApiWithPath(
+  component: Component,
+): component is Component & ApiComponent {
+  return (
+    component.type === 'API' && 'path' in component && 'httpMethod' in component
+  );
 }
 
-function findApisByPath(graph: RiviereGraph, path: string, method?: HttpMethod): ApiComponent[] {
+function findApisByPath(
+  graph: RiviereGraph,
+  path: string,
+  method?: HttpMethod,
+): ApiComponent[] {
   const query = new RiviereQuery(graph);
   const allComponents = query.componentsByType('API');
   const apis = allComponents.filter(isRestApiWithPath);
@@ -62,20 +88,29 @@ function reportNoApiFoundForPath(path: string, availablePaths: string[]): void {
       formatError(
         CliErrorCode.ComponentNotFound,
         `No API found with path '${path}'`,
-        availablePaths.length > 0 ? [`Available paths: ${availablePaths.join(', ')}`] : []
-      )
-    )
+        availablePaths.length > 0
+          ? [`Available paths: ${availablePaths.join(', ')}`]
+          : [],
+      ),
+    ),
   );
 }
 
-function reportAmbiguousApiMatch(path: string, matchingApis: ApiComponent[]): void {
-  const apiList = matchingApis.map((api) => `${api.id} (${api.httpMethod})`).join(', ');
+function reportAmbiguousApiMatch(
+  path: string,
+  matchingApis: ApiComponent[],
+): void {
+  const apiList = matchingApis
+    .map((api) => `${api.id} (${api.httpMethod})`)
+    .join(', ');
   console.log(
     JSON.stringify(
-      formatError(CliErrorCode.AmbiguousApiMatch, `Multiple APIs match path '${path}': ${apiList}`, [
-        'Add --method flag to disambiguate',
-      ])
-    )
+      formatError(
+        CliErrorCode.AmbiguousApiMatch,
+        `Multiple APIs match path '${path}': ${apiList}`,
+        ['Add --method flag to disambiguate'],
+      ),
+    ),
   );
 }
 
@@ -113,14 +148,17 @@ Examples:
       --path "/users/{id}" --method GET \\
       --to-domain users --to-module queries --to-type UseCase --to-name "get-user" \\
       --link-type sync
-`
+`,
     )
     .requiredOption('--path <http-path>', 'HTTP path to match')
     .requiredOption('--to-domain <domain>', 'Target domain')
     .requiredOption('--to-module <module>', 'Target module')
     .requiredOption('--to-type <type>', 'Target component type')
     .requiredOption('--to-name <name>', 'Target component name')
-    .option('--method <method>', 'Filter by HTTP method (GET, POST, PUT, PATCH, DELETE)')
+    .option(
+      '--method <method>',
+      'Filter by HTTP method (GET, POST, PUT, PATCH, DELETE)',
+    )
     .option('--link-type <type>', 'Link type (sync, async)')
     .option('--graph <path>', getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
@@ -143,7 +181,10 @@ Examples:
       const graph = builder.build();
 
       const normalizedMethod = options.method?.toUpperCase();
-      const httpMethod = normalizedMethod && isValidHttpMethod(normalizedMethod) ? normalizedMethod : undefined;
+      const httpMethod =
+        normalizedMethod && isValidHttpMethod(normalizedMethod)
+          ? normalizedMethod
+          : undefined;
       const matchingApis = findApisByPath(graph, options.path, httpMethod);
 
       const [matchedApi, ...otherApis] = matchingApis;
@@ -165,7 +206,11 @@ Examples:
         name: options.toName,
       }).toString();
 
-      const linkInput: { from: string; to: string; type?: 'sync' | 'async' } = {
+      const linkInput: {
+ from: string;
+to: string;
+type?: 'sync' | 'async' 
+} = {
         from: matchedApi.id,
         to: targetId,
       };
@@ -188,8 +233,8 @@ Examples:
                 path: matchedApi.path,
                 method: matchedApi.httpMethod,
               },
-            })
-          )
+            }),
+          ),
         );
       }
     });

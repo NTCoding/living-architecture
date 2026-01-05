@@ -1,5 +1,9 @@
-import { describe, expect, test, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import {
+ describe, expect, test, vi 
+} from 'vitest'
+import {
+ render, screen 
+} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { NodeTypeFilters } from './NodeTypeFilters'
 import type { NodeType } from '@/types/riviere'
@@ -11,9 +15,18 @@ interface NodeTypeInfo {
 
 describe('NodeTypeFilters', () => {
   const mockNodeTypes: NodeTypeInfo[] = [
-    { type: 'API', nodeCount: 5 },
-    { type: 'UseCase', nodeCount: 3 },
-    { type: 'DomainOp', nodeCount: 8 },
+    {
+ type: 'API',
+nodeCount: 5 
+},
+    {
+ type: 'UseCase',
+nodeCount: 3 
+},
+    {
+ type: 'DomainOp',
+nodeCount: 8 
+},
   ]
 
   test('renders with node type filters heading', () => {

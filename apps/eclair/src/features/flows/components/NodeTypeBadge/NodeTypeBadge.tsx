@@ -1,8 +1,6 @@
 import type { NodeType } from '@/types/riviere'
 
-interface NodeTypeBadgeProps {
-  readonly type: NodeType
-}
+interface NodeTypeBadgeProps {readonly type: NodeType}
 
 function getBadgeClass(type: NodeType): string {
   switch (type) {

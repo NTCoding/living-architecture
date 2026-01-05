@@ -1,5 +1,7 @@
 import { Command } from 'commander';
-import { readFile, writeFile } from 'node:fs/promises';
+import {
+ readFile, writeFile 
+} from 'node:fs/promises';
 import {
   CustomTypeNotFoundError,
   DomainNotFoundError,
@@ -8,9 +10,14 @@ import {
 } from '@living-architecture/riviere-builder';
 import type { SourceLocation } from '@living-architecture/riviere-schema';
 import { parseRiviereGraph } from '@living-architecture/riviere-schema';
-import { getDefaultGraphPathDescription, resolveGraphPath } from '../../graph-path';
+import {
+  getDefaultGraphPathDescription,
+  resolveGraphPath,
+} from '../../graph-path';
 import { fileExists } from '../../file-existence';
-import { formatError, formatSuccess } from '../../output';
+import {
+ formatError, formatSuccess 
+} from '../../output';
 import { CliErrorCode } from '../../error-codes';
 import {
   isValidComponentType,
@@ -59,7 +66,9 @@ interface CommonInput {
   description?: string;
 }
 
-function parseCustomProperties(properties: string[] | undefined): Record<string, string> | undefined {
+function parseCustomProperties(
+  properties: string[] | undefined,
+): Record<string, string> | undefined {
   if (!properties || properties.length === 0) {
     return undefined;
   }
@@ -67,7 +76,9 @@ function parseCustomProperties(properties: string[] | undefined): Record<string,
   for (const prop of properties) {
     const colonIndex = prop.indexOf(':');
     if (colonIndex === -1) {
-      throw new Error(`Invalid custom property format: ${prop}. Expected 'key:value'`);
+      throw new Error(
+        `Invalid custom property format: ${prop}. Expected 'key:value'`,
+      );
     }
     const key = prop.slice(0, colonIndex);
     const value = prop.slice(colonIndex + 1);
@@ -76,15 +87,26 @@ function parseCustomProperties(properties: string[] | undefined): Record<string,
   return metadata;
 }
 
-function addUIComponent(builder: RiviereBuilder, common: CommonInput, options: AddComponentOptions): string {
+function addUIComponent(
+  builder: RiviereBuilder,
+  common: CommonInput,
+  options: AddComponentOptions,
+): string {
   if (!options.route) {
     throw new Error('--route is required for UI component');
   }
-  const component = builder.addUI({ ...common, route: options.route });
+  const component = builder.addUI({
+ ...common,
+route: options.route 
+});
   return component.id;
 }
 
-function addAPIComponent(builder: RiviereBuilder, common: CommonInput, options: AddComponentOptions): string {
+function addAPIComponent(
+  builder: RiviereBuilder,
+  common: CommonInput,
+  options: AddComponentOptions,
+): string {
   if (!options.apiType || !isValidApiType(options.apiType)) {
     throw new Error('--api-type is required for API component');
   }
@@ -102,37 +124,60 @@ function addAPIComponent(builder: RiviereBuilder, common: CommonInput, options: 
   return component.id;
 }
 
-function addUseCaseComponent(builder: RiviereBuilder, common: CommonInput): string {
+function addUseCaseComponent(
+  builder: RiviereBuilder,
+  common: CommonInput,
+): string {
   const component = builder.addUseCase(common);
   return component.id;
 }
 
-function addDomainOpComponent(builder: RiviereBuilder, common: CommonInput, options: AddComponentOptions): string {
+function addDomainOpComponent(
+  builder: RiviereBuilder,
+  common: CommonInput,
+  options: AddComponentOptions,
+): string {
   if (!options.operationName) {
     throw new Error('--operation-name is required for DomainOp component');
   }
-  const input = { ...common, operationName: options.operationName };
+  const input = {
+ ...common,
+operationName: options.operationName 
+};
   const component = options.entity
-    ? builder.addDomainOp({ ...input, entity: options.entity })
+    ? builder.addDomainOp({
+ ...input,
+entity: options.entity 
+})
     : builder.addDomainOp(input);
   return component.id;
 }
 
-function addEventComponent(builder: RiviereBuilder, common: CommonInput, options: AddComponentOptions): string {
+function addEventComponent(
+  builder: RiviereBuilder,
+  common: CommonInput,
+  options: AddComponentOptions,
+): string {
   if (!options.eventName) {
     throw new Error('--event-name is required for Event component');
   }
   const component = builder.addEvent({
     ...common,
     eventName: options.eventName,
-    ...(options.eventSchema !== undefined && { eventSchema: options.eventSchema }),
+    ...(options.eventSchema !== undefined && {eventSchema: options.eventSchema,}),
   });
   return component.id;
 }
 
-function addEventHandlerComponent(builder: RiviereBuilder, common: CommonInput, options: AddComponentOptions): string {
+function addEventHandlerComponent(
+  builder: RiviereBuilder,
+  common: CommonInput,
+  options: AddComponentOptions,
+): string {
   if (!options.subscribedEvents) {
-    throw new Error('--subscribed-events is required for EventHandler component');
+    throw new Error(
+      '--subscribed-events is required for EventHandler component',
+    );
   }
   const component = builder.addEventHandler({
     ...common,
@@ -144,7 +189,11 @@ function addEventHandlerComponent(builder: RiviereBuilder, common: CommonInput, 
   return component.id;
 }
 
-type ComponentAdder = (builder: RiviereBuilder, common: CommonInput, options: AddComponentOptions) => string;
+type ComponentAdder = (
+  builder: RiviereBuilder,
+  common: CommonInput,
+  options: AddComponentOptions,
+) => string;
 
 const componentAdders: Record<ComponentTypeFlag, ComponentAdder> = {
   UI: addUIComponent,
@@ -158,7 +207,11 @@ const componentAdders: Record<ComponentTypeFlag, ComponentAdder> = {
       throw new Error('--custom-type is required for Custom component');
     }
     const metadata = parseCustomProperties(options.customProperty);
-    const input = { ...common, customTypeName: options.customType, ...(metadata !== undefined && { metadata }) };
+    const input = {
+      ...common,
+      customTypeName: options.customType,
+      ...(metadata !== undefined && { metadata }),
+    };
     const component = builder.addCustom(input);
     return component.id;
   },
@@ -168,7 +221,7 @@ function addComponentToBuilder(
   builder: RiviereBuilder,
   componentType: ComponentTypeFlag,
   options: AddComponentOptions,
-  sourceLocation: SourceLocation
+  sourceLocation: SourceLocation,
 ): string {
   const commonInput: CommonInput = {
     name: options.name,
@@ -186,16 +239,23 @@ function tryAddComponent(
   builder: RiviereBuilder,
   componentType: ComponentTypeFlag,
   options: AddComponentOptions,
-  sourceLocation: SourceLocation
+  sourceLocation: SourceLocation,
 ): string | undefined {
   try {
-    return addComponentToBuilder(builder, componentType, options, sourceLocation);
+    return addComponentToBuilder(
+      builder,
+      componentType,
+      options,
+      sourceLocation,
+    );
   } catch (error) {
     if (error instanceof DomainNotFoundError) {
       console.log(
         JSON.stringify(
-          formatError(CliErrorCode.DomainNotFound, error.message, ['Run riviere builder add-domain first'])
-        )
+          formatError(CliErrorCode.DomainNotFound, error.message, [
+            'Run riviere builder add-domain first',
+          ]),
+        ),
       );
       return undefined;
     }
@@ -204,17 +264,23 @@ function tryAddComponent(
         JSON.stringify(
           formatError(CliErrorCode.CustomTypeNotFound, error.message, [
             'Run riviere builder add-custom-type first',
-          ])
-        )
+          ]),
+        ),
       );
       return undefined;
     }
     if (error instanceof DuplicateComponentError) {
-      console.log(JSON.stringify(formatError(CliErrorCode.DuplicateComponent, error.message, [])));
+      console.log(
+        JSON.stringify(
+          formatError(CliErrorCode.DuplicateComponent, error.message, []),
+        ),
+      );
       return undefined;
     }
     const message = getErrorMessage(error);
-    console.log(JSON.stringify(formatError(CliErrorCode.ValidationError, message, [])));
+    console.log(
+      JSON.stringify(formatError(CliErrorCode.ValidationError, message, [])),
+    );
     return undefined;
   }
 }
@@ -247,9 +313,12 @@ Examples:
       --domain orders --module events --repository ecommerce \\
       --file-path src/events/OrderPlaced.ts --event-name "order-placed" \\
       --event-schema "{ orderId: string, total: number }"
-`
+`,
     )
-    .requiredOption('--type <type>', 'Component type (UI, API, UseCase, DomainOp, Event, EventHandler, Custom)')
+    .requiredOption(
+      '--type <type>',
+      'Component type (UI, API, UseCase, DomainOp, Event, EventHandler, Custom)',
+    )
     .requiredOption('--name <name>', 'Component name')
     .requiredOption('--domain <domain>', 'Domain name')
     .requiredOption('--module <module>', 'Module name')
@@ -263,9 +332,17 @@ Examples:
     .option('--entity <entity>', 'Entity name (DomainOp)')
     .option('--event-name <name>', 'Event name')
     .option('--event-schema <schema>', 'Event schema definition')
-    .option('--subscribed-events <events>', 'Comma-separated subscribed event names')
+    .option(
+      '--subscribed-events <events>',
+      'Comma-separated subscribed event names',
+    )
     .option('--custom-type <name>', 'Custom type name')
-    .option('--custom-property <key:value>', 'Custom property (repeatable)', (val, acc: string[]) => [...acc, val], [])
+    .option(
+      '--custom-property <key:value>',
+      'Custom property (repeatable)',
+      (val, acc: string[]) => [...acc, val],
+      [],
+    )
     .option('--description <desc>', 'Component description')
     .option('--line-number <n>', 'Source line number')
     .option('--graph <path>', getDefaultGraphPathDescription())
@@ -274,10 +351,12 @@ Examples:
       if (!isValidComponentType(options.type)) {
         console.log(
           JSON.stringify(
-            formatError(CliErrorCode.ValidationError, `Invalid component type: ${options.type}`, [
-              `Valid types: ${VALID_COMPONENT_TYPES.join(', ')}`,
-            ])
-          )
+            formatError(
+              CliErrorCode.ValidationError,
+              `Invalid component type: ${options.type}`,
+              [`Valid types: ${VALID_COMPONENT_TYPES.join(', ')}`],
+            ),
+          ),
         );
         return;
       }
@@ -289,10 +368,12 @@ Examples:
       if (!graphExists) {
         console.log(
           JSON.stringify(
-            formatError(CliErrorCode.GraphNotFound, `Graph not found at ${graphPath}`, [
-              'Run riviere builder init first',
-            ])
-          )
+            formatError(
+              CliErrorCode.GraphNotFound,
+              `Graph not found at ${graphPath}`,
+              ['Run riviere builder init first'],
+            ),
+          ),
         );
         return;
       }
@@ -305,10 +386,17 @@ Examples:
       const sourceLocation: SourceLocation = {
         repository: options.repository,
         filePath: options.filePath,
-        ...(options.lineNumber ? { lineNumber: parseInt(options.lineNumber, 10) } : {}),
+        ...(options.lineNumber
+          ? { lineNumber: parseInt(options.lineNumber, 10) }
+          : {}),
       };
 
-      const componentId = tryAddComponent(builder, componentType, options, sourceLocation);
+      const componentId = tryAddComponent(
+        builder,
+        componentType,
+        options,
+        sourceLocation,
+      );
 
       if (componentId === undefined) {
         return;

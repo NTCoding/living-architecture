@@ -1,27 +1,100 @@
-import type { RiviereGraph, Component, Link, ComponentType, DomainOpComponent, ExternalLink } from '@living-architecture/riviere-schema'
-import type { Entity, EntityTransition, PublishedEvent, EventHandlerInfo } from './event-types'
-import type { State, ComponentId, LinkId, ValidationResult, GraphDiff, Domain, Flow, SearchWithFlowResult, CrossDomainLink, DomainConnection, GraphStats, ExternalDomain } from './domain-types'
-import { parseRiviereGraph } from '@living-architecture/riviere-schema'
+import type {
+  RiviereGraph,
+  Component,
+  Link,
+  ComponentType,
+  DomainOpComponent,
+  ExternalLink,
+} from '@living-architecture/riviere-schema';
+import type {
+  Entity,
+  EntityTransition,
+  PublishedEvent,
+  EventHandlerInfo,
+} from './event-types';
+import type {
+  State,
+  ComponentId,
+  LinkId,
+  ValidationResult,
+  GraphDiff,
+  Domain,
+  Flow,
+  SearchWithFlowResult,
+  CrossDomainLink,
+  DomainConnection,
+  GraphStats,
+  ExternalDomain,
+} from './domain-types';
+import { parseRiviereGraph } from '@living-architecture/riviere-schema';
 
-import { findComponent, findAllComponents, componentById as lookupComponentById, searchComponents, componentsInDomain as filterByDomain, componentsByType as filterByType } from './component-queries'
-import { queryDomains, operationsForEntity, queryEntities, businessRulesForEntity, transitionsForEntity, statesForEntity } from './domain-queries'
-import { queryExternalDomains } from './external-system-queries'
-import { findEntryPoints, traceFlowFrom, queryFlows, searchWithFlowContext, type SearchWithFlowOptions } from './flow-queries'
-import { queryCrossDomainLinks, queryDomainConnections } from './cross-domain-queries'
-import { queryPublishedEvents, queryEventHandlers } from './event-queries'
-import { validateGraph, detectOrphanComponents } from './graph-validation'
-import { diffGraphs } from './graph-diff'
-import { queryStats } from './stats-queries'
-import { queryNodeDepths } from './depth-queries'
+import {
+  findComponent,
+  findAllComponents,
+  componentById as lookupComponentById,
+  searchComponents,
+  componentsInDomain as filterByDomain,
+  componentsByType as filterByType,
+} from './component-queries';
+import {
+  queryDomains,
+  operationsForEntity,
+  queryEntities,
+  businessRulesForEntity,
+  transitionsForEntity,
+  statesForEntity,
+} from './domain-queries';
+import { queryExternalDomains } from './external-system-queries';
+import {
+  findEntryPoints,
+  traceFlowFrom,
+  queryFlows,
+  searchWithFlowContext,
+  type SearchWithFlowOptions,
+} from './flow-queries';
+import {
+  queryCrossDomainLinks,
+  queryDomainConnections,
+} from './cross-domain-queries';
+import {
+ queryPublishedEvents, queryEventHandlers 
+} from './event-queries';
+import {
+ validateGraph, detectOrphanComponents 
+} from './graph-validation';
+import { diffGraphs } from './graph-diff';
+import { queryStats } from './stats-queries';
+import { queryNodeDepths } from './depth-queries';
 
-export type { Entity, EntityTransition } from './event-types'
-export type { ComponentId, LinkId, ValidationErrorCode, ValidationError, ValidationResult, Domain, ComponentCounts, ComponentModification, DiffStats, GraphDiff, Flow, FlowStep, LinkType, SearchWithFlowResult, CrossDomainLink, DomainConnection, GraphStats, ExternalDomain } from './domain-types'
-export type { SearchWithFlowOptions } from './flow-queries'
-export { parseComponentId } from './domain-types'
-export { ComponentNotFoundError } from './errors'
+export type {
+ Entity, EntityTransition 
+} from './event-types';
+export type {
+  ComponentId,
+  LinkId,
+  ValidationErrorCode,
+  ValidationError,
+  ValidationResult,
+  Domain,
+  ComponentCounts,
+  ComponentModification,
+  DiffStats,
+  GraphDiff,
+  Flow,
+  FlowStep,
+  LinkType,
+  SearchWithFlowResult,
+  CrossDomainLink,
+  DomainConnection,
+  GraphStats,
+  ExternalDomain,
+} from './domain-types';
+export type { SearchWithFlowOptions } from './flow-queries';
+export { parseComponentId } from './domain-types';
+export { ComponentNotFoundError } from './errors';
 
 function assertValidGraph(graph: unknown): asserts graph is RiviereGraph {
-  parseRiviereGraph(graph)
+  parseRiviereGraph(graph);
 }
 
 /**
@@ -46,7 +119,7 @@ function assertValidGraph(graph: unknown): asserts graph is RiviereGraph {
  * ```
  */
 export class RiviereQuery {
-  private readonly graph: RiviereGraph
+  private readonly graph: RiviereGraph;
 
   /**
    * Creates a new RiviereQuery instance.
@@ -61,8 +134,8 @@ export class RiviereQuery {
    * ```
    */
   constructor(graph: RiviereGraph) {
-    assertValidGraph(graph)
-    this.graph = graph
+    assertValidGraph(graph);
+    this.graph = graph;
   }
 
   /**
@@ -79,8 +152,8 @@ export class RiviereQuery {
    * ```
    */
   static fromJSON(json: unknown): RiviereQuery {
-    assertValidGraph(json)
-    return new RiviereQuery(json)
+    assertValidGraph(json);
+    return new RiviereQuery(json);
   }
 
   /**
@@ -95,7 +168,7 @@ export class RiviereQuery {
    * ```
    */
   components(): Component[] {
-    return this.graph.components
+    return this.graph.components;
   }
 
   /**
@@ -110,7 +183,7 @@ export class RiviereQuery {
    * ```
    */
   links(): Link[] {
-    return this.graph.links
+    return this.graph.links;
   }
 
   /**
@@ -129,7 +202,7 @@ export class RiviereQuery {
    * ```
    */
   validate(): ValidationResult {
-    return validateGraph(this.graph)
+    return validateGraph(this.graph);
   }
 
   /**
@@ -146,7 +219,7 @@ export class RiviereQuery {
    * ```
    */
   detectOrphans(): ComponentId[] {
-    return detectOrphanComponents(this.graph)
+    return detectOrphanComponents(this.graph);
   }
 
   /**
@@ -161,7 +234,7 @@ export class RiviereQuery {
    * ```
    */
   find(predicate: (component: Component) => boolean): Component | undefined {
-    return findComponent(this.graph, predicate)
+    return findComponent(this.graph, predicate);
   }
 
   /**
@@ -178,7 +251,7 @@ export class RiviereQuery {
    * ```
    */
   findAll(predicate: (component: Component) => boolean): Component[] {
-    return findAllComponents(this.graph, predicate)
+    return findAllComponents(this.graph, predicate);
   }
 
   /**
@@ -193,7 +266,7 @@ export class RiviereQuery {
    * ```
    */
   componentById(id: ComponentId): Component | undefined {
-    return lookupComponentById(this.graph, id)
+    return lookupComponentById(this.graph, id);
   }
 
   /**
@@ -211,7 +284,7 @@ export class RiviereQuery {
    * ```
    */
   search(query: string): Component[] {
-    return searchComponents(this.graph, query)
+    return searchComponents(this.graph, query);
   }
 
   /**
@@ -226,7 +299,7 @@ export class RiviereQuery {
    * ```
    */
   componentsInDomain(domainName: string): Component[] {
-    return filterByDomain(this.graph, domainName)
+    return filterByDomain(this.graph, domainName);
   }
 
   /**
@@ -242,7 +315,7 @@ export class RiviereQuery {
    * ```
    */
   componentsByType(type: ComponentType): Component[] {
-    return filterByType(this.graph, type)
+    return filterByType(this.graph, type);
   }
 
   /**
@@ -259,7 +332,7 @@ export class RiviereQuery {
    * ```
    */
   domains(): Domain[] {
-    return queryDomains(this.graph)
+    return queryDomains(this.graph);
   }
 
   /**
@@ -274,7 +347,7 @@ export class RiviereQuery {
    * ```
    */
   operationsFor(entityName: string): DomainOpComponent[] {
-    return operationsForEntity(this.graph, entityName)
+    return operationsForEntity(this.graph, entityName);
   }
 
   /**
@@ -294,7 +367,7 @@ export class RiviereQuery {
    * ```
    */
   entities(domainName?: string): Entity[] {
-    return queryEntities(this.graph, domainName)
+    return queryEntities(this.graph, domainName);
   }
 
   /**
@@ -309,7 +382,7 @@ export class RiviereQuery {
    * ```
    */
   businessRulesFor(entityName: string): string[] {
-    return businessRulesForEntity(this.graph, entityName)
+    return businessRulesForEntity(this.graph, entityName);
   }
 
   /**
@@ -324,7 +397,7 @@ export class RiviereQuery {
    * ```
    */
   transitionsFor(entityName: string): EntityTransition[] {
-    return transitionsForEntity(this.graph, entityName)
+    return transitionsForEntity(this.graph, entityName);
   }
 
   /**
@@ -342,7 +415,7 @@ export class RiviereQuery {
    * ```
    */
   statesFor(entityName: string): State[] {
-    return statesForEntity(this.graph, entityName)
+    return statesForEntity(this.graph, entityName);
   }
 
   /**
@@ -359,7 +432,7 @@ export class RiviereQuery {
    * ```
    */
   entryPoints(): Component[] {
-    return findEntryPoints(this.graph)
+    return findEntryPoints(this.graph);
   }
 
   /**
@@ -377,8 +450,11 @@ export class RiviereQuery {
    * console.log(`Flow includes ${flow.componentIds.length} nodes`)
    * ```
    */
-  traceFlow(startComponentId: ComponentId): { componentIds: ComponentId[]; linkIds: LinkId[] } {
-    return traceFlowFrom(this.graph, startComponentId)
+  traceFlow(startComponentId: ComponentId): {
+    componentIds: ComponentId[];
+    linkIds: LinkId[];
+  } {
+    return traceFlowFrom(this.graph, startComponentId);
   }
 
   /**
@@ -398,7 +474,7 @@ export class RiviereQuery {
    * ```
    */
   diff(other: RiviereGraph): GraphDiff {
-    return diffGraphs(this.graph, other)
+    return diffGraphs(this.graph, other);
   }
 
   /**
@@ -418,7 +494,7 @@ export class RiviereQuery {
    * ```
    */
   publishedEvents(domainName?: string): PublishedEvent[] {
-    return queryPublishedEvents(this.graph, domainName)
+    return queryPublishedEvents(this.graph, domainName);
   }
 
   /**
@@ -434,7 +510,7 @@ export class RiviereQuery {
    * ```
    */
   eventHandlers(eventName?: string): EventHandlerInfo[] {
-    return queryEventHandlers(this.graph, eventName)
+    return queryEventHandlers(this.graph, eventName);
   }
 
   /**
@@ -458,7 +534,7 @@ export class RiviereQuery {
    * ```
    */
   flows(): Flow[] {
-    return queryFlows(this.graph)
+    return queryFlows(this.graph);
   }
 
   /**
@@ -477,8 +553,11 @@ export class RiviereQuery {
    * console.log(`Showing ${result.visibleIds.length} nodes in context`)
    * ```
    */
-  searchWithFlow(query: string, options: SearchWithFlowOptions): SearchWithFlowResult {
-    return searchWithFlowContext(this.graph, query, options)
+  searchWithFlow(
+    query: string,
+    options: SearchWithFlowOptions,
+  ): SearchWithFlowResult {
+    return searchWithFlowContext(this.graph, query, options);
   }
 
   /**
@@ -493,7 +572,7 @@ export class RiviereQuery {
    * ```
    */
   crossDomainLinks(domainName: string): CrossDomainLink[] {
-    return queryCrossDomainLinks(this.graph, domainName)
+    return queryCrossDomainLinks(this.graph, domainName);
   }
 
   /**
@@ -513,7 +592,7 @@ export class RiviereQuery {
    * ```
    */
   domainConnections(domainName: string): DomainConnection[] {
-    return queryDomainConnections(this.graph, domainName)
+    return queryDomainConnections(this.graph, domainName);
   }
 
   /**
@@ -530,7 +609,7 @@ export class RiviereQuery {
    * ```
    */
   stats(): GraphStats {
-    return queryStats(this.graph)
+    return queryStats(this.graph);
   }
 
   /**
@@ -549,7 +628,7 @@ export class RiviereQuery {
    * ```
    */
   nodeDepths(): Map<ComponentId, number> {
-    return queryNodeDepths(this.graph)
+    return queryNodeDepths(this.graph);
   }
 
   /**
@@ -569,7 +648,7 @@ export class RiviereQuery {
    * ```
    */
   externalLinks(): ExternalLink[] {
-    return this.graph.externalLinks ?? []
+    return this.graph.externalLinks ?? [];
   }
 
   /**
@@ -589,6 +668,6 @@ export class RiviereQuery {
    * ```
    */
   externalDomains(): ExternalDomain[] {
-    return queryExternalDomains(this.graph)
+    return queryExternalDomains(this.graph);
   }
 }

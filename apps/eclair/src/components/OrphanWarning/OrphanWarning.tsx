@@ -12,7 +12,9 @@ interface OrphanWarningProps {
   readonly nodes: Node[]
 }
 
-export function OrphanWarning({ result, nodes }: OrphanWarningProps): React.ReactElement | null {
+export function OrphanWarning({
+ result, nodes 
+}: OrphanWarningProps): React.ReactElement | null {
   const [isOpen, setIsOpen] = useState(false)
   const [isDismissed, setIsDismissed] = useState(false)
 

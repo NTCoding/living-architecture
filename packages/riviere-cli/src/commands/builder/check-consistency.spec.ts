@@ -1,4 +1,6 @@
-import { describe, it, expect } from 'vitest';
+import {
+ describe, it, expect 
+} from 'vitest';
 import { createProgram } from '../../cli';
 import { CliErrorCode } from '../../error-codes';
 import type { TestContext } from '../../command-test-fixtures';
@@ -33,13 +35,22 @@ interface ConsistencyOutput {
 
 function isConsistencyOutput(value: unknown): value is ConsistencyOutput {
   if (!hasSuccessOutputStructure(value)) return false;
-  if (!('consistent' in value.data) || typeof value.data.consistent !== 'boolean') return false;
-  if (!('warnings' in value.data) || !Array.isArray(value.data.warnings)) return false;
+  if (
+    !('consistent' in value.data) ||
+    typeof value.data.consistent !== 'boolean'
+  )
+    return false;
+  if (!('warnings' in value.data) || !Array.isArray(value.data.warnings))
+    return false;
   return true;
 }
 
 function parseConsistencyOutput(consoleOutput: string[]): ConsistencyOutput {
-  return parseSuccessOutput(consoleOutput, isConsistencyOutput, 'Invalid check-consistency output');
+  return parseSuccessOutput(
+    consoleOutput,
+    isConsistencyOutput,
+    'Invalid check-consistency output',
+  );
 }
 
 describe('riviere builder check-consistency', () => {
@@ -52,13 +63,23 @@ describe('riviere builder check-consistency', () => {
     setupCommandTest(ctx);
 
     it('returns GRAPH_NOT_FOUND when no graph exists', async () => {
-      await createProgram().parseAsync(['node', 'riviere', 'builder', 'check-consistency', '--json']);
+      await createProgram().parseAsync([
+        'node',
+        'riviere',
+        'builder',
+        'check-consistency',
+        '--json',
+      ]);
       const output = parseErrorOutput(ctx.consoleOutput);
       expect(output.error.code).toBe(CliErrorCode.GraphNotFound);
     });
 
     it('uses custom graph path when --graph provided', async () => {
-      const output = await testCustomGraphPath(ctx, ['builder', 'check-consistency'], parseConsistencyOutput);
+      const output = await testCustomGraphPath(
+        ctx,
+        ['builder', 'check-consistency'],
+        parseConsistencyOutput,
+      );
       expect(output.success).toBe(true);
     });
   });
@@ -102,7 +123,13 @@ describe('riviere builder check-consistency', () => {
         ],
       });
 
-      await createProgram().parseAsync(['node', 'riviere', 'builder', 'check-consistency', '--json']);
+      await createProgram().parseAsync([
+        'node',
+        'riviere',
+        'builder',
+        'check-consistency',
+        '--json',
+      ]);
       const output = parseConsistencyOutput(ctx.consoleOutput);
 
       expect(output.data.consistent).toBe(true);
@@ -126,12 +153,20 @@ describe('riviere builder check-consistency', () => {
         links: [],
       });
 
-      await createProgram().parseAsync(['node', 'riviere', 'builder', 'check-consistency', '--json']);
+      await createProgram().parseAsync([
+        'node',
+        'riviere',
+        'builder',
+        'check-consistency',
+        '--json',
+      ]);
       const output = parseConsistencyOutput(ctx.consoleOutput);
 
       expect(output.data.consistent).toBe(false);
       expect(output.data.warnings.length).toBeGreaterThan(0);
-      const orphanWarning = output.data.warnings.find((w) => w.code === 'ORPHAN_COMPONENT');
+      const orphanWarning = output.data.warnings.find(
+        (w) => w.code === 'ORPHAN_COMPONENT',
+      );
       expect(orphanWarning?.componentId).toBe('orders:checkout:usecase:orphan');
     });
 
@@ -140,7 +175,10 @@ describe('riviere builder check-consistency', () => {
         ...baseMetadata,
         domains: {
           ...baseMetadata.domains,
-          payments: { description: 'Unused domain', systemType: 'domain' as const },
+          payments: {
+            description: 'Unused domain',
+            systemType: 'domain' as const,
+          },
         },
       };
 
@@ -178,11 +216,19 @@ describe('riviere builder check-consistency', () => {
         ],
       });
 
-      await createProgram().parseAsync(['node', 'riviere', 'builder', 'check-consistency', '--json']);
+      await createProgram().parseAsync([
+        'node',
+        'riviere',
+        'builder',
+        'check-consistency',
+        '--json',
+      ]);
       const output = parseConsistencyOutput(ctx.consoleOutput);
 
       expect(output.data.consistent).toBe(false);
-      const unusedWarning = output.data.warnings.find((w) => w.code === 'UNUSED_DOMAIN');
+      const unusedWarning = output.data.warnings.find(
+        (w) => w.code === 'UNUSED_DOMAIN',
+      );
       expect(unusedWarning?.domainName).toBe('payments');
     });
 
@@ -203,7 +249,13 @@ describe('riviere builder check-consistency', () => {
         links: [],
       });
 
-      await createProgram().parseAsync(['node', 'riviere', 'builder', 'check-consistency', '--json']);
+      await createProgram().parseAsync([
+        'node',
+        'riviere',
+        'builder',
+        'check-consistency',
+        '--json',
+      ]);
       const output = parseConsistencyOutput(ctx.consoleOutput);
 
       expect(output.data.consistent).toBe(false);
@@ -222,7 +274,12 @@ describe('riviere builder check-consistency', () => {
         links: [],
       });
 
-      await createProgram().parseAsync(['node', 'riviere', 'builder', 'check-consistency']);
+      await createProgram().parseAsync([
+        'node',
+        'riviere',
+        'builder',
+        'check-consistency',
+      ]);
       expect(ctx.consoleOutput).toHaveLength(0);
     });
   });

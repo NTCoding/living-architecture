@@ -1,5 +1,5 @@
-import { promises as fs } from 'node:fs'
-import { dirname } from 'node:path'
+import { promises as fs } from 'node:fs';
+import { dirname } from 'node:path';
 import type {
   APIComponent,
   Component,
@@ -15,20 +15,36 @@ import type {
   SourceInfo,
   UIComponent,
   UseCaseComponent,
-} from '@living-architecture/riviere-schema'
-import { RiviereQuery, type ValidationResult } from '@living-architecture/riviere-query'
-import { calculateStats, findOrphans, findWarnings, toRiviereGraph, validateGraph } from './inspection'
-import { assertCustomTypeExists, assertDomainExists, assertRequiredPropertiesProvided } from './builder-assertions'
-import { ComponentId } from '@living-architecture/riviere-schema'
-import { createSourceNotFoundError, findNearMatches } from './component-suggestion'
-import { mergeBehavior } from './merge-behavior'
-import { deduplicateStrings, deduplicateStateTransitions } from './deduplicate'
+} from '@living-architecture/riviere-schema';
+import {
+  RiviereQuery,
+  type ValidationResult,
+} from '@living-architecture/riviere-query';
+import {
+  calculateStats,
+  findOrphans,
+  findWarnings,
+  toRiviereGraph,
+  validateGraph,
+} from './inspection';
+import { findNearMatches } from './component-suggestion';
+import {
+  createComponentNotFoundError,
+  generateComponentId,
+  validateCustomType,
+  validateDomainExists,
+  validateRequiredProperties,
+} from './builder-internals';
+import { mergeBehavior } from './merge-behavior';
+import {
+ deduplicateStrings, deduplicateStateTransitions 
+} from './deduplicate';
 import {
   CustomTypeAlreadyDefinedError,
   DuplicateComponentError,
   DuplicateDomainError,
   InvalidEnrichmentTargetError,
-} from './errors'
+} from './errors';
 import type {
   APIInput,
   BuilderOptions,
@@ -49,7 +65,7 @@ import type {
   NearMatchResult,
   UIInput,
   UseCaseInput,
-} from './types'
+} from './types';
 
 export type {
   APIInput,
@@ -71,16 +87,22 @@ export type {
   NearMatchResult,
   UIInput,
   UseCaseInput,
+};
+
+interface BuilderMetadata extends Omit<
+  GraphMetadata,
+  'sources' | 'customTypes'
+> {
+  sources: SourceInfo[];
+  customTypes: Record<string, CustomTypeDefinition>;
 }
 
-interface BuilderMetadata extends Omit<GraphMetadata, 'sources' | 'customTypes'> {
-  sources: SourceInfo[]
-  customTypes: Record<string, CustomTypeDefinition>
-}
-
-interface BuilderGraph extends Omit<RiviereGraph, 'metadata' | 'externalLinks'> {
-  metadata: BuilderMetadata
-  externalLinks: ExternalLink[]
+interface BuilderGraph extends Omit<
+  RiviereGraph,
+  'metadata' | 'externalLinks'
+> {
+  metadata: BuilderMetadata;
+  externalLinks: ExternalLink[];
 }
 
 /**
@@ -110,10 +132,10 @@ interface BuilderGraph extends Omit<RiviereGraph, 'metadata' | 'externalLinks'> 
  * ```
  */
 export class RiviereBuilder {
-  graph: BuilderGraph
+  graph: BuilderGraph;
 
   private constructor(graph: BuilderGraph) {
-    this.graph = graph
+    this.graph = graph;
   }
 
   /**
@@ -136,7 +158,7 @@ export class RiviereBuilder {
    */
   static resume(graph: RiviereGraph): RiviereBuilder {
     if (!graph.metadata.sources || graph.metadata.sources.length === 0) {
-      throw new Error('Invalid graph: missing sources')
+      throw new Error('Invalid graph: missing sources');
     }
 
     const builderGraph: BuilderGraph = {
@@ -149,8 +171,8 @@ export class RiviereBuilder {
       components: graph.components,
       links: graph.links,
       externalLinks: graph.externalLinks ?? [],
-    }
-    return new RiviereBuilder(builderGraph)
+    };
+    return new RiviereBuilder(builderGraph);
   }
 
   /**
@@ -175,18 +197,18 @@ export class RiviereBuilder {
    */
   static new(options: BuilderOptions): RiviereBuilder {
     if (options.sources.length === 0) {
-      throw new Error('At least one source required')
+      throw new Error('At least one source required');
     }
 
     if (Object.keys(options.domains).length === 0) {
-      throw new Error('At least one domain required')
+      throw new Error('At least one domain required');
     }
 
     const graph: BuilderGraph = {
       version: '1.0',
       metadata: {
         ...(options.name !== undefined && { name: options.name }),
-        ...(options.description !== undefined && { description: options.description }),
+        ...(options.description !== undefined && {description: options.description,}),
         sources: options.sources,
         domains: options.domains,
         customTypes: {},
@@ -194,9 +216,9 @@ export class RiviereBuilder {
       components: [],
       links: [],
       externalLinks: [],
-    }
+    };
 
-    return new RiviereBuilder(graph)
+    return new RiviereBuilder(graph);
   }
 
   /**
@@ -213,7 +235,7 @@ export class RiviereBuilder {
    * ```
    */
   addSource(source: SourceInfo): void {
-    this.graph.metadata.sources.push(source)
+    this.graph.metadata.sources.push(source);
   }
 
   /**
@@ -232,13 +254,13 @@ export class RiviereBuilder {
    */
   addDomain(input: DomainInput): void {
     if (this.graph.metadata.domains[input.name]) {
-      throw new DuplicateDomainError(input.name)
+      throw new DuplicateDomainError(input.name);
     }
 
     this.graph.metadata.domains[input.name] = {
       description: input.description,
       systemType: input.systemType,
-    }
+    };
   }
 
   /**
@@ -260,8 +282,8 @@ export class RiviereBuilder {
    * ```
    */
   addUI(input: UIInput): UIComponent {
-    this.validateDomainExists(input.domain)
-    const id = this.generateComponentId(input.domain, input.module, 'ui', input.name)
+    validateDomainExists(this.graph.metadata.domains, input.domain);
+    const id = generateComponentId(input.domain, input.module, 'ui', input.name);
 
     const component: UIComponent = {
       id,
@@ -271,9 +293,9 @@ export class RiviereBuilder {
       module: input.module,
       route: input.route,
       sourceLocation: input.sourceLocation,
-      ...(input.description !== undefined && { description: input.description }),
-    }
-    return this.registerComponent(component)
+      ...(input.description !== undefined && {description: input.description,}),
+    };
+    return this.registerComponent(component);
   }
 
   /**
@@ -297,8 +319,8 @@ export class RiviereBuilder {
    * ```
    */
   addApi(input: APIInput): APIComponent {
-    this.validateDomainExists(input.domain)
-    const id = this.generateComponentId(input.domain, input.module, 'api', input.name)
+    validateDomainExists(this.graph.metadata.domains, input.domain);
+    const id = generateComponentId(input.domain, input.module, 'api', input.name);
 
     const component: APIComponent = {
       id,
@@ -310,10 +332,10 @@ export class RiviereBuilder {
       sourceLocation: input.sourceLocation,
       ...(input.httpMethod !== undefined && { httpMethod: input.httpMethod }),
       ...(input.path !== undefined && { path: input.path }),
-      ...(input.operationName !== undefined && { operationName: input.operationName }),
-      ...(input.description !== undefined && { description: input.description }),
-    }
-    return this.registerComponent(component)
+      ...(input.operationName !== undefined && {operationName: input.operationName,}),
+      ...(input.description !== undefined && {description: input.description,}),
+    };
+    return this.registerComponent(component);
   }
 
   /**
@@ -334,8 +356,8 @@ export class RiviereBuilder {
    * ```
    */
   addUseCase(input: UseCaseInput): UseCaseComponent {
-    this.validateDomainExists(input.domain)
-    const id = this.generateComponentId(input.domain, input.module, 'usecase', input.name)
+    validateDomainExists(this.graph.metadata.domains, input.domain);
+    const id = generateComponentId(input.domain, input.module, 'usecase', input.name);
 
     const component: UseCaseComponent = {
       id,
@@ -344,9 +366,9 @@ export class RiviereBuilder {
       domain: input.domain,
       module: input.module,
       sourceLocation: input.sourceLocation,
-      ...(input.description !== undefined && { description: input.description }),
-    }
-    return this.registerComponent(component)
+      ...(input.description !== undefined && {description: input.description,}),
+    };
+    return this.registerComponent(component);
   }
 
   /**
@@ -372,8 +394,8 @@ export class RiviereBuilder {
    * ```
    */
   addDomainOp(input: DomainOpInput): DomainOpComponent {
-    this.validateDomainExists(input.domain)
-    const id = this.generateComponentId(input.domain, input.module, 'domainop', input.name)
+    validateDomainExists(this.graph.metadata.domains, input.domain);
+    const id = generateComponentId(input.domain, input.module, 'domainop', input.name);
 
     const component: DomainOpComponent = {
       id,
@@ -386,11 +408,11 @@ export class RiviereBuilder {
       ...(input.entity !== undefined && { entity: input.entity }),
       ...(input.signature !== undefined && { signature: input.signature }),
       ...(input.behavior !== undefined && { behavior: input.behavior }),
-      ...(input.stateChanges !== undefined && { stateChanges: input.stateChanges }),
-      ...(input.businessRules !== undefined && { businessRules: input.businessRules }),
-      ...(input.description !== undefined && { description: input.description }),
-    }
-    return this.registerComponent(component)
+      ...(input.stateChanges !== undefined && {stateChanges: input.stateChanges,}),
+      ...(input.businessRules !== undefined && {businessRules: input.businessRules,}),
+      ...(input.description !== undefined && {description: input.description,}),
+    };
+    return this.registerComponent(component);
   }
 
   /**
@@ -412,8 +434,8 @@ export class RiviereBuilder {
    * ```
    */
   addEvent(input: EventInput): EventComponent {
-    this.validateDomainExists(input.domain)
-    const id = this.generateComponentId(input.domain, input.module, 'event', input.name)
+    validateDomainExists(this.graph.metadata.domains, input.domain);
+    const id = generateComponentId(input.domain, input.module, 'event', input.name);
 
     const component: EventComponent = {
       id,
@@ -423,10 +445,10 @@ export class RiviereBuilder {
       module: input.module,
       eventName: input.eventName,
       sourceLocation: input.sourceLocation,
-      ...(input.eventSchema !== undefined && { eventSchema: input.eventSchema }),
-      ...(input.description !== undefined && { description: input.description }),
-    }
-    return this.registerComponent(component)
+      ...(input.eventSchema !== undefined && {eventSchema: input.eventSchema,}),
+      ...(input.description !== undefined && {description: input.description,}),
+    };
+    return this.registerComponent(component);
   }
 
   /**
@@ -448,8 +470,8 @@ export class RiviereBuilder {
    * ```
    */
   addEventHandler(input: EventHandlerInput): EventHandlerComponent {
-    this.validateDomainExists(input.domain)
-    const id = this.generateComponentId(input.domain, input.module, 'eventhandler', input.name)
+    validateDomainExists(this.graph.metadata.domains, input.domain);
+    const id = generateComponentId(input.domain, input.module, 'eventhandler', input.name);
 
     const component: EventHandlerComponent = {
       id,
@@ -459,9 +481,9 @@ export class RiviereBuilder {
       module: input.module,
       subscribedEvents: input.subscribedEvents,
       sourceLocation: input.sourceLocation,
-      ...(input.description !== undefined && { description: input.description }),
-    }
-    return this.registerComponent(component)
+      ...(input.description !== undefined && {description: input.description,}),
+    };
+    return this.registerComponent(component);
   }
 
   /**
@@ -485,17 +507,17 @@ export class RiviereBuilder {
    * ```
    */
   defineCustomType(input: CustomTypeInput): void {
-    const customTypes = this.graph.metadata.customTypes
+    const customTypes = this.graph.metadata.customTypes;
 
     if (customTypes[input.name]) {
-      throw new CustomTypeAlreadyDefinedError(input.name)
+      throw new CustomTypeAlreadyDefinedError(input.name);
     }
 
     customTypes[input.name] = {
-      ...(input.requiredProperties !== undefined && { requiredProperties: input.requiredProperties }),
-      ...(input.optionalProperties !== undefined && { optionalProperties: input.optionalProperties }),
-      ...(input.description !== undefined && { description: input.description }),
-    }
+      ...(input.requiredProperties !== undefined && {requiredProperties: input.requiredProperties,}),
+      ...(input.optionalProperties !== undefined && {optionalProperties: input.optionalProperties,}),
+      ...(input.description !== undefined && {description: input.description,}),
+    };
   }
 
   /**
@@ -523,10 +545,10 @@ export class RiviereBuilder {
    * ```
    */
   addCustom(input: CustomInput): CustomComponent {
-    this.validateDomainExists(input.domain)
-    this.validateCustomType(input.customTypeName)
-    this.validateRequiredProperties(input.customTypeName, input.metadata)
-    const id = this.generateComponentId(input.domain, input.module, 'custom', input.name)
+    validateDomainExists(this.graph.metadata.domains, input.domain);
+    validateCustomType(this.graph.metadata.customTypes, input.customTypeName);
+    validateRequiredProperties(this.graph.metadata.customTypes, input.customTypeName, input.metadata);
+    const id = generateComponentId(input.domain, input.module, 'custom', input.name);
 
     const component: CustomComponent = {
       id,
@@ -536,10 +558,10 @@ export class RiviereBuilder {
       domain: input.domain,
       module: input.module,
       sourceLocation: input.sourceLocation,
-      ...(input.description !== undefined && { description: input.description }),
+      ...(input.description !== undefined && {description: input.description,}),
       ...input.metadata,
-    }
-    return this.registerComponent(component)
+    };
+    return this.registerComponent(component);
   }
 
   /**
@@ -563,64 +585,46 @@ export class RiviereBuilder {
    * ```
    */
   enrichComponent(id: string, enrichment: EnrichmentInput): void {
-    const component = this.graph.components.find((c) => c.id === id)
+    const component = this.graph.components.find((c) => c.id === id);
     if (!component) {
-      throw this.componentNotFoundError(id)
+      throw createComponentNotFoundError(this.graph.components, id);
     }
     if (component.type !== 'DomainOp') {
-      throw new InvalidEnrichmentTargetError(id, component.type)
+      throw new InvalidEnrichmentTargetError(id, component.type);
     }
     if (enrichment.entity !== undefined) {
-      component.entity = enrichment.entity
+      component.entity = enrichment.entity;
     }
     if (enrichment.stateChanges !== undefined) {
-      const existing = component.stateChanges ?? []
-      const newItems = deduplicateStateTransitions(existing, enrichment.stateChanges)
-      component.stateChanges = [...existing, ...newItems]
+      const existing = component.stateChanges ?? [];
+      const newItems = deduplicateStateTransitions(
+        existing,
+        enrichment.stateChanges,
+      );
+      component.stateChanges = [...existing, ...newItems];
     }
     if (enrichment.businessRules !== undefined) {
-      const existing = component.businessRules ?? []
-      const newItems = deduplicateStrings(existing, enrichment.businessRules)
-      component.businessRules = [...existing, ...newItems]
+      const existing = component.businessRules ?? [];
+      const newItems = deduplicateStrings(existing, enrichment.businessRules);
+      component.businessRules = [...existing, ...newItems];
     }
     if (enrichment.behavior !== undefined) {
-      component.behavior = mergeBehavior(component.behavior, enrichment.behavior)
+      component.behavior = mergeBehavior(
+        component.behavior,
+        enrichment.behavior,
+      );
     }
     if (enrichment.signature !== undefined) {
-      component.signature = enrichment.signature
+      component.signature = enrichment.signature;
     }
-  }
-
-  private componentNotFoundError(id: string): Error {
-    return createSourceNotFoundError(this.graph.components, ComponentId.parse(id))
-  }
-
-  private validateDomainExists(domain: string): void {
-    assertDomainExists(this.graph.metadata.domains, domain)
-  }
-
-  private validateCustomType(customTypeName: string): void {
-    assertCustomTypeExists(this.graph.metadata.customTypes, customTypeName)
-  }
-
-  private validateRequiredProperties(
-    customTypeName: string,
-    metadata: Record<string, unknown> | undefined
-  ): void {
-    assertRequiredPropertiesProvided(this.graph.metadata.customTypes, customTypeName, metadata)
-  }
-
-  private generateComponentId(domain: string, module: string, type: string, name: string): string {
-    const nameSegment = name.toLowerCase().replace(/\s+/g, '-')
-    return `${domain}:${module}:${type}:${nameSegment}`
   }
 
   private registerComponent<T extends Component>(component: T): T {
     if (this.graph.components.some((c) => c.id === component.id)) {
-      throw new DuplicateComponentError(component.id)
+      throw new DuplicateComponentError(component.id);
     }
-    this.graph.components.push(component)
-    return component
+    this.graph.components.push(component);
+    return component;
   }
 
   /**
@@ -639,8 +643,11 @@ export class RiviereBuilder {
    * // [{ component: {...}, score: 0.9, mismatches: [...] }]
    * ```
    */
-  nearMatches(query: NearMatchQuery, options?: NearMatchOptions): NearMatchResult[] {
-    return findNearMatches(this.graph.components, query, options)
+  nearMatches(
+    query: NearMatchQuery,
+    options?: NearMatchOptions,
+  ): NearMatchResult[] {
+    return findNearMatches(this.graph.components, query, options);
   }
 
   /**
@@ -663,18 +670,18 @@ export class RiviereBuilder {
    * ```
    */
   link(input: LinkInput): Link {
-    const sourceExists = this.graph.components.some((c) => c.id === input.from)
+    const sourceExists = this.graph.components.some((c) => c.id === input.from);
     if (!sourceExists) {
-      throw this.sourceNotFoundError(input.from)
+      throw createComponentNotFoundError(this.graph.components, input.from);
     }
 
     const link: Link = {
       source: input.from,
       target: input.to,
       ...(input.type !== undefined && { type: input.type }),
-    }
-    this.graph.links.push(link)
-    return link
+    };
+    this.graph.links.push(link);
+    return link;
   }
 
   /**
@@ -697,20 +704,20 @@ export class RiviereBuilder {
    * ```
    */
   linkExternal(input: ExternalLinkInput): ExternalLink {
-    const sourceExists = this.graph.components.some((c) => c.id === input.from)
+    const sourceExists = this.graph.components.some((c) => c.id === input.from);
     if (!sourceExists) {
-      throw this.sourceNotFoundError(input.from)
+      throw createComponentNotFoundError(this.graph.components, input.from);
     }
 
     const externalLink: ExternalLink = {
       source: input.from,
       target: input.target,
       ...(input.type !== undefined && { type: input.type }),
-      ...(input.description !== undefined && { description: input.description }),
-      ...(input.sourceLocation !== undefined && { sourceLocation: input.sourceLocation }),
-    }
-    this.graph.externalLinks.push(externalLink)
-    return externalLink
+      ...(input.description !== undefined && {description: input.description,}),
+      ...(input.sourceLocation !== undefined && {sourceLocation: input.sourceLocation,}),
+    };
+    this.graph.externalLinks.push(externalLink);
+    return externalLink;
   }
 
   /**
@@ -730,7 +737,7 @@ export class RiviereBuilder {
    * ```
    */
   warnings(): BuilderWarning[] {
-    return findWarnings(this.graph)
+    return findWarnings(this.graph);
   }
 
   /**
@@ -746,7 +753,7 @@ export class RiviereBuilder {
    * ```
    */
   stats(): BuilderStats {
-    return calculateStats(this.graph)
+    return calculateStats(this.graph);
   }
 
   /**
@@ -768,7 +775,7 @@ export class RiviereBuilder {
    * ```
    */
   validate(): ValidationResult {
-    return validateGraph(this.graph)
+    return validateGraph(this.graph);
   }
 
   /**
@@ -785,7 +792,7 @@ export class RiviereBuilder {
    * ```
    */
   orphans(): string[] {
-    return findOrphans(this.graph)
+    return findOrphans(this.graph);
   }
 
   /**
@@ -802,7 +809,7 @@ export class RiviereBuilder {
    * ```
    */
   query(): RiviereQuery {
-    return new RiviereQuery(toRiviereGraph(this.graph))
+    return new RiviereQuery(toRiviereGraph(this.graph));
   }
 
   /**
@@ -820,7 +827,7 @@ export class RiviereBuilder {
    * ```
    */
   serialize(): string {
-    return JSON.stringify(this.graph, null, 2)
+    return JSON.stringify(this.graph, null, 2);
   }
 
   /**
@@ -840,12 +847,12 @@ export class RiviereBuilder {
    * ```
    */
   build(): RiviereGraph {
-    const result = this.validate()
+    const result = this.validate();
     if (!result.valid) {
-      const messages = result.errors.map((e) => e.message).join('; ')
-      throw new Error(`Validation failed: ${messages}`)
+      const messages = result.errors.map((e) => e.message).join('; ');
+      throw new Error(`Validation failed: ${messages}`);
     }
-    return toRiviereGraph(this.graph)
+    return toRiviereGraph(this.graph);
   }
 
   /**
@@ -862,20 +869,17 @@ export class RiviereBuilder {
    * ```
    */
   async save(path: string): Promise<void> {
-    const graph = this.build()
+    const graph = this.build();
 
-    const dir = dirname(path)
+    const dir = dirname(path);
     try {
-      await fs.access(dir)
+      await fs.access(dir);
     } catch {
-      throw new Error(`Directory does not exist: ${dir}`)
+      throw new Error(`Directory does not exist: ${dir}`);
     }
 
-    const json = JSON.stringify(graph, null, 2)
-    await fs.writeFile(path, json, 'utf-8')
+    const json = JSON.stringify(graph, null, 2);
+    await fs.writeFile(path, json, 'utf-8');
   }
 
-  private sourceNotFoundError(id: string): Error {
-    return createSourceNotFoundError(this.graph.components, ComponentId.parse(id))
-  }
 }

@@ -1,15 +1,41 @@
-import { describe, expect, test } from 'vitest'
+import {
+ describe, expect, test 
+} from 'vitest'
 import { traceFlow } from './useFlowTracing'
 import type { Edge } from '@/types/riviere'
 import { parseEdge } from '@/lib/riviereTestData'
 
 const testEdges: Edge[] = [
-  parseEdge({ source: 'a', target: 'b', type: 'sync' }),
-  parseEdge({ source: 'b', target: 'c', type: 'sync' }),
-  parseEdge({ source: 'c', target: 'd', type: 'async' }),
-  parseEdge({ source: 'a', target: 'e', type: 'sync' }),
-  parseEdge({ source: 'f', target: 'a', type: 'sync' }),
-  parseEdge({ source: 'g', target: 'h', type: 'sync' }),
+  parseEdge({
+ source: 'a',
+target: 'b',
+type: 'sync' 
+}),
+  parseEdge({
+ source: 'b',
+target: 'c',
+type: 'sync' 
+}),
+  parseEdge({
+ source: 'c',
+target: 'd',
+type: 'async' 
+}),
+  parseEdge({
+ source: 'a',
+target: 'e',
+type: 'sync' 
+}),
+  parseEdge({
+ source: 'f',
+target: 'a',
+type: 'sync' 
+}),
+  parseEdge({
+ source: 'g',
+target: 'h',
+type: 'sync' 
+}),
 ]
 
 describe('traceFlow', () => {
@@ -65,9 +91,18 @@ describe('traceFlow', () => {
 
   test('handles cyclic graphs without infinite loops', () => {
     const cyclicEdges: Edge[] = [
-      parseEdge({ source: 'x', target: 'y' }),
-      parseEdge({ source: 'y', target: 'z' }),
-      parseEdge({ source: 'z', target: 'x' }),
+      parseEdge({
+ source: 'x',
+target: 'y' 
+}),
+      parseEdge({
+ source: 'y',
+target: 'z' 
+}),
+      parseEdge({
+ source: 'z',
+target: 'x' 
+}),
     ]
 
     const result = traceFlow('x', cyclicEdges)
@@ -94,8 +129,16 @@ describe('traceFlow', () => {
 
   test('traces flow from external node back through connected internal nodes', () => {
     const edgesWithExternal: Edge[] = [
-      parseEdge({ source: 'api', target: 'usecase', type: 'sync' }),
-      parseEdge({ source: 'usecase', target: 'external:Stripe', type: 'sync' }),
+      parseEdge({
+ source: 'api',
+target: 'usecase',
+type: 'sync' 
+}),
+      parseEdge({
+ source: 'usecase',
+target: 'external:Stripe',
+type: 'sync' 
+}),
     ]
 
     const result = traceFlow('external:Stripe', edgesWithExternal)

@@ -23,14 +23,18 @@ export function validateComponentType(componentType: string): ValidationResult {
   return {
     valid: false,
     errorJson: JSON.stringify(
-      formatError(CliErrorCode.ValidationError, `Invalid component type: ${componentType}`, [
-        `Valid types: ${VALID_COMPONENT_TYPES.join(', ')}`,
-      ])
+      formatError(
+        CliErrorCode.ValidationError,
+        `Invalid component type: ${componentType}`,
+        [`Valid types: ${VALID_COMPONENT_TYPES.join(', ')}`],
+      ),
     ),
   };
 }
 
-export function validateLinkType(linkType: string | undefined): ValidationResult {
+export function validateLinkType(
+  linkType: string | undefined,
+): ValidationResult {
   if (linkType === undefined || isValidLinkType(linkType)) {
     return { valid: true };
   }
@@ -38,9 +42,11 @@ export function validateLinkType(linkType: string | undefined): ValidationResult
   return {
     valid: false,
     errorJson: JSON.stringify(
-      formatError(CliErrorCode.ValidationError, `Invalid link type: ${linkType}`, [
-        `Valid types: ${VALID_LINK_TYPES.join(', ')}`,
-      ])
+      formatError(
+        CliErrorCode.ValidationError,
+        `Invalid link type: ${linkType}`,
+        [`Valid types: ${VALID_LINK_TYPES.join(', ')}`],
+      ),
     ),
   };
 }
@@ -53,20 +59,32 @@ export function validateSystemType(systemType: string): ValidationResult {
   return {
     valid: false,
     errorJson: JSON.stringify(
-      formatError(CliErrorCode.ValidationError, `Invalid system type: ${systemType}`, [
-        `Valid types: ${VALID_SYSTEM_TYPES.join(', ')}`,
-      ])
+      formatError(
+        CliErrorCode.ValidationError,
+        `Invalid system type: ${systemType}`,
+        [`Valid types: ${VALID_SYSTEM_TYPES.join(', ')}`],
+      ),
     ),
   };
 }
 
-const VALID_HTTP_METHODS: readonly HttpMethod[] = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'];
+const VALID_HTTP_METHODS: readonly HttpMethod[] = [
+  'GET',
+  'POST',
+  'PUT',
+  'PATCH',
+  'DELETE',
+  'HEAD',
+  'OPTIONS',
+];
 
 export function isValidHttpMethod(value: string): value is HttpMethod {
   return VALID_HTTP_METHODS.some((m) => m === value.toUpperCase());
 }
 
-export function validateHttpMethod(method: string | undefined): ValidationResult {
+export function validateHttpMethod(
+  method: string | undefined,
+): ValidationResult {
   if (method === undefined || isValidHttpMethod(method)) {
     return { valid: true };
   }
@@ -74,9 +92,11 @@ export function validateHttpMethod(method: string | undefined): ValidationResult
   return {
     valid: false,
     errorJson: JSON.stringify(
-      formatError(CliErrorCode.ValidationError, `Invalid HTTP method: ${method}`, [
-        `Valid methods: ${VALID_HTTP_METHODS.join(', ')}`,
-      ])
+      formatError(
+        CliErrorCode.ValidationError,
+        `Invalid HTTP method: ${method}`,
+        [`Valid methods: ${VALID_HTTP_METHODS.join(', ')}`],
+      ),
     ),
   };
 }

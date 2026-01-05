@@ -1,8 +1,14 @@
-import { useEffect, useRef, useCallback, useState, useMemo } from 'react'
+import {
+ useEffect, useRef, useCallback, useState, useMemo 
+} from 'react'
 import * as d3 from 'd3'
-import type { RiviereGraph, Edge } from '@/types/riviere'
+import type {
+ RiviereGraph, Edge 
+} from '@/types/riviere'
 import type { Theme } from '@/types/theme'
-import type { SimulationNode, SimulationLink, TooltipData } from '../../types'
+import type {
+ SimulationNode, SimulationLink, TooltipData 
+} from '../../types'
 import { computeDagreLayout } from './computeDagreLayout'
 import {
   updateHighlight,
@@ -15,7 +21,9 @@ import {
   applyDagrePositions,
   setupZoomBehavior,
 } from './GraphRenderingSetup'
-import { applyFocusMode, applyResetMode } from './applyFocusModeBehavior'
+import {
+ applyFocusMode, applyResetMode 
+} from './applyFocusModeBehavior'
 import {
   createSimulationNodes,
   createSimulationLinks,
@@ -56,7 +64,10 @@ export function ForceGraph({
 }: Readonly<ForceGraphProps>): React.ReactElement {
   const svgRef = useRef<SVGSVGElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
-  const [dimensions, setDimensions] = useState({ width: 0, height: 0 })
+  const [dimensions, setDimensions] = useState({
+ width: 0,
+height: 0 
+})
   const lastGraphKeyRef = useRef<string>('')
   const nodeSelectionRef = useRef<d3.Selection<SVGGElement, SimulationNode, SVGGElement, unknown> | null>(null)
   const linkSelectionRef = useRef<d3.Selection<SVGPathElement, SimulationLink, SVGGElement, unknown> | null>(null)
@@ -126,7 +137,9 @@ export function ForceGraph({
       zoom: d3.ZoomBehavior<SVGSVGElement, unknown>,
       nodes: SimulationNode[]
     ) => {
-      const { translateX, translateY, scale } = calculateFitViewportTransform({
+      const {
+ translateX, translateY, scale 
+} = calculateFitViewportTransform({
         nodes,
         dimensions,
         padding: 80,
@@ -153,13 +166,25 @@ export function ForceGraph({
       shouldFitViewport: boolean
     ) => {
       if (domain) {
-        applyFocusMode({ svg, node, link, zoom, nodes, domain, theme, dimensions })
+        applyFocusMode({
+ svg,
+node,
+link,
+zoom,
+nodes,
+domain,
+theme,
+dimensions 
+})
         return
       }
       if (highlightIds) {
         return
       }
-      applyResetMode({ node, link })
+      applyResetMode({
+ node,
+link 
+})
       if (shouldFitViewport && nodes.length > 0 && dimensions.width > 0 && dimensions.height > 0) {
         fitViewportFn(svg, zoom, nodes)
       }
@@ -214,8 +239,14 @@ export function ForceGraph({
     const uniqueDomains = [...new Set(nodes.map((n) => n.domain))]
     const edgesForLayout = createLayoutEdges(filteredEdges, graph.externalLinks)
 
-    const positions = computeDagreLayout({ nodes, edges: edgesForLayout })
-    applyDagrePositions({ nodes, positions })
+    const positions = computeDagreLayout({
+ nodes,
+edges: edgesForLayout 
+})
+    applyDagrePositions({
+ nodes,
+positions 
+})
 
     const g = svg.append('g').attr('class', 'graph-container')
 
@@ -279,9 +310,7 @@ export function ForceGraph({
       getNodeRadius,
     })
 
-    const zoom = setupZoomBehavior(svg, g, {
-      onInteractionStart: () => handleNodeHover(null),
-    })
+    const zoom = setupZoomBehavior(svg, g, {onInteractionStart: () => handleNodeHover(null),})
     updatePositions()
 
     nodeSelectionRef.current = node
@@ -302,7 +331,12 @@ export function ForceGraph({
     const wasHighlighted = wasHighlightedRef.current
     const highlightCleared = wasHighlighted && !isHighlighted
 
-    updateHighlight({ node, link, filteredEdges: allEdgesForTracing, highlightedNodeIds })
+    updateHighlight({
+ node,
+link,
+filteredEdges: allEdgesForTracing,
+highlightedNodeIds 
+})
     wasHighlightedRef.current = isHighlighted
 
     if (highlightCleared && svgRef.current && zoomRef.current && nodesRef.current.length > 0) {

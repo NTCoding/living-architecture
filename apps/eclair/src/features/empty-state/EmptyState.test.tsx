@@ -1,8 +1,16 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import { GraphProvider, useGraph } from '@/contexts/GraphContext'
+import {
+ render, screen, fireEvent, waitFor 
+} from '@testing-library/react'
+import {
+ GraphProvider, useGraph 
+} from '@/contexts/GraphContext'
 import { EmptyState } from './EmptyState'
-import { parseNode, parseDomainMetadata } from '@/lib/riviereTestData'
-import type { RiviereGraph, SourceLocation } from '@/types/riviere'
+import {
+ parseNode, parseDomainMetadata 
+} from '@/lib/riviereTestData'
+import type {
+ RiviereGraph, SourceLocation 
+} from '@/types/riviere'
 
 const testSourceLocation: SourceLocation = {
   repository: 'test-repo',
@@ -14,11 +22,21 @@ const validGraph: RiviereGraph = {
   metadata: {
     name: 'Test Graph',
     domains: parseDomainMetadata({
-      test: { description: 'Test', systemType: 'domain' },
-    }),
+test: {
+ description: 'Test',
+systemType: 'domain' 
+},
+}),
   },
   components: [
-    parseNode({ sourceLocation: testSourceLocation, id: 'n1', type: 'UseCase', name: 'Test', domain: 'test', module: 'test' }),
+    parseNode({
+ sourceLocation: testSourceLocation,
+id: 'n1',
+type: 'UseCase',
+name: 'Test',
+domain: 'test',
+module: 'test' 
+}),
   ],
   links: [],
 }
@@ -29,20 +47,30 @@ function createFile(name: string, content: string): File {
 
 interface MockDataTransfer {
   files: File[]
-  items: Array<{ kind: string; type: string; getAsFile: () => File }>
+  items: Array<{
+ kind: string;
+type: string;
+getAsFile: () => File 
+}>
   types: string[]
 }
 
 function createDataTransfer(files: File[]): MockDataTransfer {
   return {
     files,
-    items: files.map((file) => ({ kind: 'file', type: file.type, getAsFile: () => file })),
+    items: files.map((file) => ({
+ kind: 'file',
+type: file.type,
+getAsFile: () => file 
+})),
     types: ['Files'],
   }
 }
 
 function GraphStateDisplay(): React.ReactElement {
-  const { hasGraph, graphName } = useGraph()
+  const {
+ hasGraph, graphName 
+} = useGraph()
   return (
     <div>
       <span data-testid="has-graph">{hasGraph ? 'yes' : 'no'}</span>

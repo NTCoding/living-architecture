@@ -1,4 +1,6 @@
-import type { Node, Edge } from '@/types/riviere'
+import type {
+ Node, Edge 
+} from '@/types/riviere'
 import { traceFlow } from './useFlowTracing'
 
 export interface SearchResult {
@@ -52,5 +54,8 @@ export function filterNodesBySearch(
     }
   }
 
-  return { matchingNodeIds, visibleNodeIds }
+  return {
+ matchingNodeIds,
+visibleNodeIds 
+}
 }

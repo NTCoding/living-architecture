@@ -17,7 +17,7 @@ export function createComponentSummaryCommand(): Command {
 Examples:
   $ riviere builder component-summary
   $ riviere builder component-summary --json
-`
+`,
     )
     .option('--graph <path>', getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')

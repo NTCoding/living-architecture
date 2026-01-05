@@ -1,4 +1,6 @@
-import { describe, it, expect } from 'vitest';
+import {
+ describe, it, expect 
+} from 'vitest';
 import { createProgram } from '../../cli';
 import { CliErrorCode } from '../../error-codes';
 import type { TestContext } from '../../command-test-fixtures';
@@ -33,13 +35,19 @@ interface ChecklistOutput {
 
 function isChecklistOutput(value: unknown): value is ChecklistOutput {
   if (!hasSuccessOutputStructure(value)) return false;
-  if (!('total' in value.data) || typeof value.data.total !== 'number') return false;
-  if (!('components' in value.data) || !Array.isArray(value.data.components)) return false;
+  if (!('total' in value.data) || typeof value.data.total !== 'number')
+    return false;
+  if (!('components' in value.data) || !Array.isArray(value.data.components))
+    return false;
   return true;
 }
 
 function parseChecklistOutput(consoleOutput: string[]): ChecklistOutput {
-  return parseSuccessOutput(consoleOutput, isChecklistOutput, 'Invalid component-checklist output');
+  return parseSuccessOutput(
+    consoleOutput,
+    isChecklistOutput,
+    'Invalid component-checklist output',
+  );
 }
 
 describe('riviere builder component-checklist', () => {
@@ -52,7 +60,13 @@ describe('riviere builder component-checklist', () => {
     setupCommandTest(ctx);
 
     it('returns GRAPH_NOT_FOUND when no graph exists', async () => {
-      await createProgram().parseAsync(['node', 'riviere', 'builder', 'component-checklist', '--json']);
+      await createProgram().parseAsync([
+        'node',
+        'riviere',
+        'builder',
+        'component-checklist',
+        '--json',
+      ]);
       const output = parseErrorOutput(ctx.consoleOutput);
       expect(output.error.code).toBe(CliErrorCode.GraphNotFound);
     });
@@ -79,7 +93,11 @@ describe('riviere builder component-checklist', () => {
     });
 
     it('uses custom graph path when --graph provided', async () => {
-      const output = await testCustomGraphPath(ctx, ['builder', 'component-checklist'], parseChecklistOutput);
+      const output = await testCustomGraphPath(
+        ctx,
+        ['builder', 'component-checklist'],
+        parseChecklistOutput,
+      );
       expect(output.success).toBe(true);
     });
   });
@@ -116,7 +134,13 @@ describe('riviere builder component-checklist', () => {
         links: [],
       });
 
-      await createProgram().parseAsync(['node', 'riviere', 'builder', 'component-checklist', '--json']);
+      await createProgram().parseAsync([
+        'node',
+        'riviere',
+        'builder',
+        'component-checklist',
+        '--json',
+      ]);
       const output = parseChecklistOutput(ctx.consoleOutput);
 
       expect(output.data.total).toBe(2);
@@ -137,7 +161,13 @@ describe('riviere builder component-checklist', () => {
         links: [],
       });
 
-      await createProgram().parseAsync(['node', 'riviere', 'builder', 'component-checklist', '--json']);
+      await createProgram().parseAsync([
+        'node',
+        'riviere',
+        'builder',
+        'component-checklist',
+        '--json',
+      ]);
       const output = parseChecklistOutput(ctx.consoleOutput);
 
       expect(output.data.total).toBe(0);
@@ -246,7 +276,12 @@ describe('riviere builder component-checklist', () => {
         links: [],
       });
 
-      await createProgram().parseAsync(['node', 'riviere', 'builder', 'component-checklist']);
+      await createProgram().parseAsync([
+        'node',
+        'riviere',
+        'builder',
+        'component-checklist',
+      ]);
       expect(ctx.consoleOutput).toHaveLength(0);
     });
   });

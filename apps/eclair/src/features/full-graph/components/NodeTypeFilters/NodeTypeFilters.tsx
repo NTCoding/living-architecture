@@ -1,4 +1,6 @@
-import { useState, useCallback } from 'react'
+import {
+ useState, useCallback 
+} from 'react'
 import type { NodeType } from '@/types/riviere'
 
 interface NodeTypeInfo {

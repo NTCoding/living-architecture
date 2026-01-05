@@ -2,10 +2,10 @@
  * Parts that make up a component ID.
  */
 export interface ComponentIdParts {
-  domain: string
-  module: string
-  type: string
-  name: string
+  domain: string;
+  module: string;
+  type: string;
+  name: string;
 }
 
 /**
@@ -25,12 +25,12 @@ export interface ComponentIdParts {
  * ```
  */
 export class ComponentId {
-  private readonly _name: string
-  private readonly value: string
+  private readonly _name: string;
+  private readonly value: string;
 
   private constructor(name: string, value: string) {
-    this._name = name
-    this.value = value
+    this._name = name;
+    this.value = value;
   }
 
   /**
@@ -50,9 +50,9 @@ export class ComponentId {
    * ```
    */
   static create(parts: ComponentIdParts): ComponentId {
-    const nameSegment = parts.name.toLowerCase().replace(/\s+/g, '-')
-    const value = `${parts.domain}:${parts.module}:${parts.type}:${nameSegment}`
-    return new ComponentId(nameSegment, value)
+    const nameSegment = parts.name.toLowerCase().replace(/\s+/g, '-');
+    const value = `${parts.domain}:${parts.module}:${parts.type}:${nameSegment}`;
+    return new ComponentId(nameSegment, value);
   }
 
   /**
@@ -69,12 +69,14 @@ export class ComponentId {
    * ```
    */
   static parse(id: string): ComponentId {
-    const parts = id.split(':')
-    const name = parts[3]
+    const parts = id.split(':');
+    const name = parts[3];
     if (parts.length !== 4 || name === undefined) {
-      throw new Error(`Invalid component ID format: '${id}'. Expected 'domain:module:type:name'`)
+      throw new Error(
+        `Invalid component ID format: '${id}'. Expected 'domain:module:type:name'`,
+      );
     }
-    return new ComponentId(name, id)
+    return new ComponentId(name, id);
   }
 
   /**
@@ -83,7 +85,7 @@ export class ComponentId {
    * @returns Full ID in format `domain:module:type:name`
    */
   toString(): string {
-    return this.value
+    return this.value;
   }
 
   /**
@@ -92,6 +94,6 @@ export class ComponentId {
    * @returns The kebab-case name portion
    */
   name(): string {
-    return this._name
+    return this._name;
   }
 }

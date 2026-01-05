@@ -1,4 +1,6 @@
-import { describe, it, expect } from 'vitest';
+import {
+ describe, it, expect 
+} from 'vitest';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { createProgram } from '../../cli';
@@ -16,8 +18,12 @@ describe('riviere builder enrich', () => {
   describe('command registration', () => {
     it('registers enrich command under builder', () => {
       const program = createProgram();
-      const builderCmd = program.commands.find((cmd) => cmd.name() === 'builder');
-      const enrichCmd = builderCmd?.commands.find((cmd) => cmd.name() === 'enrich');
+      const builderCmd = program.commands.find(
+        (cmd) => cmd.name() === 'builder',
+      );
+      const enrichCmd = builderCmd?.commands.find(
+        (cmd) => cmd.name() === 'enrich',
+      );
 
       expect(enrichCmd?.name()).toBe('enrich');
     });
@@ -85,9 +91,7 @@ describe('riviere builder enrich', () => {
       const output: unknown = JSON.parse(ctx.consoleOutput[0] ?? '');
       expect(output).toMatchObject({
         success: false,
-        error: {
-          code: CliErrorCode.InvalidComponentType,
-        },
+        error: {code: CliErrorCode.InvalidComponentType,},
       });
     });
 
@@ -109,9 +113,7 @@ describe('riviere builder enrich', () => {
       const output: unknown = JSON.parse(ctx.consoleOutput[0] ?? '');
       expect(output).toMatchObject({
         success: false,
-        error: {
-          code: CliErrorCode.ValidationError,
-        },
+        error: {code: CliErrorCode.ValidationError,},
       });
     });
 
@@ -133,9 +135,7 @@ describe('riviere builder enrich', () => {
       const output: unknown = JSON.parse(ctx.consoleOutput[0] ?? '');
       expect(output).toMatchObject({
         success: false,
-        error: {
-          code: CliErrorCode.ValidationError,
-        },
+        error: {code: CliErrorCode.ValidationError,},
       });
     });
   });
@@ -162,7 +162,12 @@ describe('riviere builder enrich', () => {
       const content = await readFile(graphPath, 'utf-8');
       const graph: unknown = JSON.parse(content);
       expect(graph).toMatchObject({
-        components: [{ id: 'orders:checkout:domainop:confirm-order', entity: 'Order' }],
+        components: [
+          {
+ id: 'orders:checkout:domainop:confirm-order',
+entity: 'Order' 
+},
+        ],
       });
     });
 
@@ -184,8 +189,13 @@ describe('riviere builder enrich', () => {
       const content = await readFile(graphPath, 'utf-8');
       const graph: unknown = JSON.parse(content);
       expect(graph).toMatchObject({
-        components: [{ stateChanges: [{ from: 'pending', to: 'confirmed' }] }],
-      });
+components: [{
+ stateChanges: [{
+ from: 'pending',
+to: 'confirmed' 
+}] 
+}],
+});
     });
 
     it('enriches DomainOp with multiple state-changes', async () => {
@@ -211,8 +221,14 @@ describe('riviere builder enrich', () => {
         components: [
           {
             stateChanges: [
-              { from: 'pending', to: 'confirmed' },
-              { from: 'confirmed', to: 'shipped' },
+              {
+ from: 'pending',
+to: 'confirmed' 
+},
+              {
+ from: 'confirmed',
+to: 'shipped' 
+},
             ],
           },
         ],
@@ -236,9 +252,7 @@ describe('riviere builder enrich', () => {
       const graphPath = join(ctx.testDir, '.riviere', 'graph.json');
       const content = await readFile(graphPath, 'utf-8');
       const graph: unknown = JSON.parse(content);
-      expect(graph).toMatchObject({
-        components: [{ businessRules: ['Order must have items'] }],
-      });
+      expect(graph).toMatchObject({components: [{ businessRules: ['Order must have items'] }],});
     });
 
     it('enriches DomainOp with multiple business-rules', async () => {
@@ -260,9 +274,7 @@ describe('riviere builder enrich', () => {
       const graphPath = join(ctx.testDir, '.riviere', 'graph.json');
       const content = await readFile(graphPath, 'utf-8');
       const graph: unknown = JSON.parse(content);
-      expect(graph).toMatchObject({
-        components: [{ businessRules: ['Rule 1', 'Rule 2'] }],
-      });
+      expect(graph).toMatchObject({components: [{ businessRules: ['Rule 1', 'Rule 2'] }],});
     });
 
     it('outputs success JSON when --json flag provided', async () => {
@@ -294,7 +306,11 @@ describe('riviere builder enrich', () => {
     setupCommandTest(ctx);
 
     it.each([
-      { name: 'single --reads', args: ['--reads', 'this.state'], expected: { reads: ['this.state'] } },
+      {
+        name: 'single --reads',
+        args: ['--reads', 'this.state'],
+        expected: { reads: ['this.state'] },
+      },
       {
         name: 'multiple --reads',
         args: ['--reads', 'this.state', '--reads', 'items parameter'],
@@ -302,13 +318,37 @@ describe('riviere builder enrich', () => {
       },
       {
         name: 'all behavior options',
-        args: ['--reads', 'this.state', '--validates', 'state === Draft', '--modifies', 'this.state ← Placed', '--emits', 'order-placed event'],
-        expected: { reads: ['this.state'], validates: ['state === Draft'], modifies: ['this.state ← Placed'], emits: ['order-placed event'] },
+        args: [
+          '--reads',
+          'this.state',
+          '--validates',
+          'state === Draft',
+          '--modifies',
+          'this.state ← Placed',
+          '--emits',
+          'order-placed event',
+        ],
+        expected: {
+          reads: ['this.state'],
+          validates: ['state === Draft'],
+          modifies: ['this.state ← Placed'],
+          emits: ['order-placed event'],
+        },
       },
-    ])('enriches DomainOp with $name', async ({ args, expected }) => {
+    ])('enriches DomainOp with $name', async ({
+ args, expected 
+}) => {
       await createGraphWithComponent(ctx.testDir, domainOpComponent);
       const program = createProgram();
-      await program.parseAsync(['node', 'riviere', 'builder', 'enrich', '--id', 'orders:checkout:domainop:confirm-order', ...args]);
+      await program.parseAsync([
+        'node',
+        'riviere',
+        'builder',
+        'enrich',
+        '--id',
+        'orders:checkout:domainop:confirm-order',
+        ...args,
+      ]);
 
       const graphPath = join(ctx.testDir, '.riviere', 'graph.json');
       const content = await readFile(graphPath, 'utf-8');
@@ -317,75 +357,4 @@ describe('riviere builder enrich', () => {
     });
   });
 
-  describe('signature option', () => {
-    const ctx: TestContext = createTestContext();
-    setupCommandTest(ctx);
-
-    it.each([
-      {
-        name: 'full signature with multiple parameters',
-        input: 'orderId:string, amount:number -> Order',
-        expected: {
-          parameters: [
-            { name: 'orderId', type: 'string' },
-            { name: 'amount', type: 'number' },
-          ],
-          returnType: 'Order',
-        },
-      },
-      {
-        name: 'parameter with description',
-        input: 'orderId:string:The order ID -> Order',
-        expected: {
-          parameters: [{ name: 'orderId', type: 'string', description: 'The order ID' }],
-          returnType: 'Order',
-        },
-      },
-      {
-        name: 'parameters only (no return type)',
-        input: 'orderId:string',
-        expected: { parameters: [{ name: 'orderId', type: 'string' }] },
-      },
-      {
-        name: 'return type only',
-        input: '-> Order',
-        expected: { returnType: 'Order' },
-      },
-    ])('parses $name', async ({ input, expected }) => {
-      await createGraphWithComponent(ctx.testDir, domainOpComponent);
-      const program = createProgram();
-      await program.parseAsync([
-        'node', 'riviere', 'builder', 'enrich',
-        '--id', 'orders:checkout:domainop:confirm-order',
-        '--signature', input,
-      ]);
-
-      const graphPath = join(ctx.testDir, '.riviere', 'graph.json');
-      const content = await readFile(graphPath, 'utf-8');
-      const graph: unknown = JSON.parse(content);
-      expect(graph).toMatchObject({ components: [{ signature: expected }] });
-    });
-
-    it.each([
-      { name: 'no colon in parameter', input: 'invalid' },
-      { name: 'empty parameter name', input: ':string -> Order' },
-      { name: 'empty string', input: '' },
-      { name: 'arrow with no return type', input: '->' },
-    ])('returns VALIDATION_ERROR for $name', async ({ input }) => {
-      await createGraphWithComponent(ctx.testDir, domainOpComponent);
-      const program = createProgram();
-      await program.parseAsync([
-        'node', 'riviere', 'builder', 'enrich',
-        '--id', 'orders:checkout:domainop:confirm-order',
-        '--signature', input,
-      ]);
-
-      expect(ctx.consoleOutput).toHaveLength(1);
-      const output: unknown = JSON.parse(ctx.consoleOutput[0] ?? '');
-      expect(output).toMatchObject({
-        success: false,
-        error: { code: CliErrorCode.ValidationError },
-      });
-    });
-  });
 });

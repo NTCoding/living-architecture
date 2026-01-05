@@ -1,8 +1,6 @@
 import type { GraphDiff } from './compareGraphs'
 
-interface StatsBarProps {
-  readonly diff: GraphDiff
-}
+interface StatsBarProps {readonly diff: GraphDiff}
 
 export function StatsBar({ diff }: Readonly<StatsBarProps>): React.ReactElement {
   return (

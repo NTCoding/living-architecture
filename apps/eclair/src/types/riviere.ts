@@ -114,9 +114,7 @@ export interface APINode extends BaseNode {
   operationName?: string
 }
 
-interface UseCaseNode extends BaseNode {
-  type: 'UseCase'
-}
+interface UseCaseNode extends BaseNode {type: 'UseCase'}
 
 interface DomainOpNode extends BaseNode {
   type: 'DomainOp'

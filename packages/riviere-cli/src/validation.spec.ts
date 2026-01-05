@@ -1,4 +1,6 @@
-import { describe, it, expect } from 'vitest';
+import {
+ describe, it, expect 
+} from 'vitest';
 import {
   validateComponentType,
   validateLinkType,
@@ -25,7 +27,10 @@ describe('validation', () => {
       const error: unknown = JSON.parse(result.errorJson ?? '');
       expect(error).toMatchObject({
         success: false,
-        error: { code: CliErrorCode.ValidationError, message: 'Invalid component type: InvalidType' },
+        error: {
+          code: CliErrorCode.ValidationError,
+          message: 'Invalid component type: InvalidType',
+        },
       });
     });
   });
@@ -50,7 +55,10 @@ describe('validation', () => {
       const error: unknown = JSON.parse(result.errorJson ?? '');
       expect(error).toMatchObject({
         success: false,
-        error: { code: CliErrorCode.ValidationError, message: 'Invalid link type: invalid' },
+        error: {
+          code: CliErrorCode.ValidationError,
+          message: 'Invalid link type: invalid',
+        },
       });
     });
   });
@@ -60,9 +68,12 @@ describe('validation', () => {
       expect(validateHttpMethod(undefined)).toEqual({ valid: true });
     });
 
-    it.each(['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'])('returns valid for %s', (method) => {
-      expect(validateHttpMethod(method)).toEqual({ valid: true });
-    });
+    it.each(['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'])(
+      'returns valid for %s',
+      (method) => {
+        expect(validateHttpMethod(method)).toEqual({ valid: true });
+      },
+    );
 
     it('returns valid for lowercase method', () => {
       expect(validateHttpMethod('get')).toEqual({ valid: true });
@@ -75,7 +86,10 @@ describe('validation', () => {
       const error: unknown = JSON.parse(result.errorJson ?? '');
       expect(error).toMatchObject({
         success: false,
-        error: { code: CliErrorCode.ValidationError, message: 'Invalid HTTP method: INVALID' },
+        error: {
+          code: CliErrorCode.ValidationError,
+          message: 'Invalid HTTP method: INVALID',
+        },
       });
     });
   });
@@ -92,9 +106,12 @@ describe('validation', () => {
   });
 
   describe('validateSystemType', () => {
-    it.each(['domain', 'bff', 'ui', 'other'])('returns valid for %s', (type) => {
-      expect(validateSystemType(type)).toEqual({ valid: true });
-    });
+    it.each(['domain', 'bff', 'ui', 'other'])(
+      'returns valid for %s',
+      (type) => {
+        expect(validateSystemType(type)).toEqual({ valid: true });
+      },
+    );
 
     it('returns invalid with error for unknown system type', () => {
       const result = validateSystemType('backend');
@@ -103,7 +120,10 @@ describe('validation', () => {
       const error: unknown = JSON.parse(result.errorJson ?? '');
       expect(error).toMatchObject({
         success: false,
-        error: { code: CliErrorCode.ValidationError, message: 'Invalid system type: backend' },
+        error: {
+          code: CliErrorCode.ValidationError,
+          message: 'Invalid system type: backend',
+        },
       });
     });
   });

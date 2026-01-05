@@ -1,4 +1,6 @@
-import { describe, it, expect } from 'vitest'
+import {
+ describe, it, expect 
+} from 'vitest'
 import { render } from '@testing-library/react'
 import { ReactFlowProvider } from '@xyflow/react'
 import { DomainEdge } from './DomainEdge'
@@ -16,7 +18,10 @@ describe('DomainEdge', () => {
         sourceY={0}
         targetX={100}
         targetY={100}
-        data={{ apiCount: 0, eventCount: 0 }}
+        data={{
+ apiCount: 0,
+eventCount: 0 
+}}
       />
     )
 
@@ -32,7 +37,10 @@ describe('DomainEdge', () => {
         sourceY={0}
         targetX={100}
         targetY={100}
-        data={{ apiCount: 3, eventCount: 2 }}
+        data={{
+ apiCount: 3,
+eventCount: 2 
+}}
       />
     )
 
@@ -48,7 +56,10 @@ describe('DomainEdge', () => {
         sourceY={0}
         targetX={100}
         targetY={100}
-        data={{ apiCount: 5, eventCount: 0 }}
+        data={{
+ apiCount: 5,
+eventCount: 0 
+}}
       />
     )
 
@@ -64,7 +75,10 @@ describe('DomainEdge', () => {
         sourceY={0}
         targetX={100}
         targetY={100}
-        data={{ apiCount: 0, eventCount: 4 }}
+        data={{
+ apiCount: 0,
+eventCount: 4 
+}}
       />
     )
 

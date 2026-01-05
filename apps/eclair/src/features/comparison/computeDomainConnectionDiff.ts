@@ -1,4 +1,6 @@
-import type { RiviereGraph, Node, NodeType } from '@/types/riviere'
+import type {
+ RiviereGraph, Node, NodeType 
+} from '@/types/riviere'
 
 export interface EdgeDetail {
   sourceNodeName: string
@@ -32,7 +34,11 @@ interface NodeInfo {
 function buildNodeInfoMap(nodes: Node[]): Map<string, NodeInfo> {
   const map = new Map<string, NodeInfo>()
   for (const node of nodes) {
-    map.set(node.id, { domain: node.domain, name: node.name, type: node.type })
+    map.set(node.id, {
+ domain: node.domain,
+name: node.name,
+type: node.type 
+})
   }
   return map
 }
@@ -148,6 +154,10 @@ export function computeDomainConnectionDiff(
 
   return {
     domains: Array.from(allDomains),
-    connections: { added, removed, unchanged },
+    connections: {
+ added,
+removed,
+unchanged 
+},
   }
 }

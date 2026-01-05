@@ -1,10 +1,12 @@
-import { Command } from 'commander'
-import { formatSuccess } from '../../output'
-import { withGraph, getDefaultGraphPathDescription } from './load-graph'
+import { Command } from 'commander';
+import { formatSuccess } from '../../output';
+import {
+ withGraph, getDefaultGraphPathDescription 
+} from './load-graph';
 
 interface OrphansOptions {
-  graph?: string
-  json?: boolean
+  graph?: string;
+  json?: boolean;
 }
 
 export function createOrphansCommand(): Command {
@@ -16,17 +18,17 @@ export function createOrphansCommand(): Command {
 Examples:
   $ riviere query orphans
   $ riviere query orphans --json
-`
+`,
     )
     .option('--graph <path>', getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .action(async (options: OrphansOptions) => {
       await withGraph(options.graph, (query) => {
-        const orphans = query.detectOrphans()
+        const orphans = query.detectOrphans();
 
         if (options.json) {
-          console.log(JSON.stringify(formatSuccess({ orphans })))
+          console.log(JSON.stringify(formatSuccess({ orphans })));
         }
-      })
-    })
+      });
+    });
 }

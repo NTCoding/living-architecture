@@ -1,9 +1,17 @@
-import { describe, it, expect, vi } from 'vitest';
-import { mkdir, writeFile } from 'node:fs/promises';
+import {
+ describe, it, expect, vi 
+} from 'vitest';
+import {
+ mkdir, writeFile 
+} from 'node:fs/promises';
 import { join } from 'node:path';
 import { withGraphBuilder } from './link-infrastructure';
 import { CliErrorCode } from '../../error-codes';
-import { type TestContext, createTestContext, setupCommandTest } from '../../command-test-fixtures';
+import {
+  type TestContext,
+  createTestContext,
+  setupCommandTest,
+} from '../../command-test-fixtures';
 
 describe('link-infrastructure', () => {
   describe('withGraphBuilder', () => {
@@ -31,19 +39,28 @@ describe('link-infrastructure', () => {
         version: '1.0',
         metadata: {
           sources: [{ repository: 'https://github.com/org/repo' }],
-          domains: { test: { description: 'Test domain', systemType: 'domain' } },
+          domains: {
+test: {
+ description: 'Test domain',
+systemType: 'domain' 
+},
+},
         },
         components: [],
         links: [],
       };
-      await writeFile(join(graphDir, 'graph.json'), JSON.stringify(graph), 'utf-8');
+      await writeFile(
+        join(graphDir, 'graph.json'),
+        JSON.stringify(graph),
+        'utf-8',
+      );
 
       const handler = vi.fn();
       await withGraphBuilder(undefined, handler);
 
       expect(handler).toHaveBeenCalledWith(
         expect.objectContaining({}),
-        expect.stringContaining('.riviere/graph.json')
+        expect.stringContaining('.riviere/graph.json'),
       );
     });
 
@@ -54,7 +71,12 @@ describe('link-infrastructure', () => {
         version: '1.0',
         metadata: {
           sources: [{ repository: 'https://github.com/org/repo' }],
-          domains: { test: { description: 'Test domain', systemType: 'domain' } },
+          domains: {
+test: {
+ description: 'Test domain',
+systemType: 'domain' 
+},
+},
         },
         components: [],
         links: [],
@@ -64,7 +86,10 @@ describe('link-infrastructure', () => {
       const handler = vi.fn();
       await withGraphBuilder(customPath, handler);
 
-      expect(handler).toHaveBeenCalledWith(expect.objectContaining({}), customPath);
+      expect(handler).toHaveBeenCalledWith(
+        expect.objectContaining({}),
+        customPath,
+      );
     });
   });
 });

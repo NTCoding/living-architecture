@@ -1,8 +1,13 @@
-import { describe, it, expect } from 'vitest'
+import {
+ describe, it, expect 
+} from 'vitest'
 import { getLinkNodeId } from './FocusModeStyling'
 import type { SimulationNode } from '../../types'
 import { parseNode } from '@/lib/riviereTestData'
-const testSourceLocation = { repository: 'test-repo', filePath: 'src/test.ts' }
+const testSourceLocation = {
+ repository: 'test-repo',
+filePath: 'src/test.ts' 
+}
 
 describe('FocusModeStyling', () => {
 
@@ -18,7 +23,14 @@ describe('FocusModeStyling', () => {
         apiType: 'other',
         name: 'test',
         domain: 'test',
-        originalNode: parseNode({ sourceLocation: testSourceLocation, id: 'node-456', type: 'API', name: 'test', domain: 'test', module: 'test-module' }),
+        originalNode: parseNode({
+ sourceLocation: testSourceLocation,
+id: 'node-456',
+type: 'API',
+name: 'test',
+domain: 'test',
+module: 'test-module' 
+}),
       }
 
       expect(getLinkNodeId(node)).toBe('node-456')
@@ -31,7 +43,14 @@ describe('FocusModeStyling', () => {
         apiType: 'other',
         name: 'test',
         domain: 'test',
-        originalNode: parseNode({ sourceLocation: testSourceLocation, id: 'test-API', type: 'API', name: 'test', domain: 'test', module: 'test-module' }),
+        originalNode: parseNode({
+ sourceLocation: testSourceLocation,
+id: 'test-API',
+type: 'API',
+name: 'test',
+domain: 'test',
+module: 'test-module' 
+}),
       }
       expect(getLinkNodeId(node)).toBe('test-API')
     })
@@ -42,7 +61,15 @@ describe('FocusModeStyling', () => {
         type: 'Event',
         name: 'test',
         domain: 'test',
-        originalNode: parseNode({ sourceLocation: testSourceLocation, id: 'test-Event', type: 'Event', name: 'test', domain: 'test', module: 'test-module', eventName: 'TestEvent' }),
+        originalNode: parseNode({
+ sourceLocation: testSourceLocation,
+id: 'test-Event',
+type: 'Event',
+name: 'test',
+domain: 'test',
+module: 'test-module',
+eventName: 'TestEvent' 
+}),
       }
       expect(getLinkNodeId(node)).toBe('test-Event')
     })
@@ -53,7 +80,15 @@ describe('FocusModeStyling', () => {
         type: 'UI',
         name: 'test',
         domain: 'test',
-        originalNode: parseNode({ sourceLocation: testSourceLocation, id: 'test-UI', type: 'UI', name: 'test', domain: 'test', module: 'test-module', route: '/test' }),
+        originalNode: parseNode({
+ sourceLocation: testSourceLocation,
+id: 'test-UI',
+type: 'UI',
+name: 'test',
+domain: 'test',
+module: 'test-module',
+route: '/test' 
+}),
       }
       expect(getLinkNodeId(node)).toBe('test-UI')
     })
