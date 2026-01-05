@@ -24,7 +24,7 @@ This phase focuses on components only. Metadata extraction comes in PRD 11, conn
 
 1. **Deterministic and fast** — Extraction runs in seconds. No AI, no network calls. Suitable for CI/every build.
 
-2. **Language-agnostic DSL** — YAML/JSON config, validated by JSON Schema. Can support TypeScript, Java, C# extractors in future.
+2. **Language-agnostic DSL** — YAML/JSON config, validated by JSON Schema. Can support TypeScript, Java, C# extractors in the future.
 
 3. **Simple detection rules** — `find` (classes/methods/functions) + `where` (predicates with explicit `and`/`or`).
 
