@@ -1,0 +1,315 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://living-architecture.dev/schemas/extraction-config.schema.json",
+  "title": "Extraction Config",
+  "description": "Configuration for extracting architectural components from source code",
+  "type": "object",
+  "required": ["modules"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON Schema reference"
+    },
+    "modules": {
+      "type": "array",
+      "description": "Module definitions for component extraction",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/module"
+      }
+    }
+  },
+  "$defs": {
+    "module": {
+      "type": "object",
+      "description": "A module defines extraction rules for a path pattern",
+      "required": ["path", "api", "useCase", "domainOp", "event", "eventHandler", "ui"],
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Glob pattern for files in this module",
+          "minLength": 1
+        },
+        "api": {
+          "$ref": "#/$defs/componentRule",
+          "description": "Detection rule for API components"
+        },
+        "useCase": {
+          "$ref": "#/$defs/componentRule",
+          "description": "Detection rule for UseCase components"
+        },
+        "domainOp": {
+          "$ref": "#/$defs/componentRule",
+          "description": "Detection rule for DomainOp components"
+        },
+        "event": {
+          "$ref": "#/$defs/componentRule",
+          "description": "Detection rule for Event components"
+        },
+        "eventHandler": {
+          "$ref": "#/$defs/componentRule",
+          "description": "Detection rule for EventHandler components"
+        },
+        "ui": {
+          "$ref": "#/$defs/componentRule",
+          "description": "Detection rule for UI components"
+        }
+      }
+    },
+    "componentRule": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/notUsed"
+        },
+        {
+          "$ref": "#/$defs/detectionRule"
+        }
+      ]
+    },
+    "notUsed": {
+      "type": "object",
+      "description": "Marks this component type as not used in the module",
+      "required": ["notUsed"],
+      "additionalProperties": false,
+      "properties": {
+        "notUsed": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    },
+    "detectionRule": {
+      "type": "object",
+      "description": "Rule for detecting components of this type",
+      "required": ["find", "where"],
+      "additionalProperties": false,
+      "properties": {
+        "find": {
+          "$ref": "#/$defs/findTarget"
+        },
+        "where": {
+          "$ref": "#/$defs/predicate"
+        }
+      }
+    },
+    "findTarget": {
+      "type": "string",
+      "description": "The code construct to search for",
+      "enum": ["classes", "methods", "functions"]
+    },
+    "predicate": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/hasDecoratorPredicate"
+        },
+        {
+          "$ref": "#/$defs/hasJSDocPredicate"
+        },
+        {
+          "$ref": "#/$defs/extendsClassPredicate"
+        },
+        {
+          "$ref": "#/$defs/implementsInterfacePredicate"
+        },
+        {
+          "$ref": "#/$defs/nameEndsWithPredicate"
+        },
+        {
+          "$ref": "#/$defs/nameMatchesPredicate"
+        },
+        {
+          "$ref": "#/$defs/inClassWithPredicate"
+        },
+        {
+          "$ref": "#/$defs/andPredicate"
+        },
+        {
+          "$ref": "#/$defs/orPredicate"
+        }
+      ]
+    },
+    "hasDecoratorPredicate": {
+      "type": "object",
+      "description": "Matches if the target has a specified decorator",
+      "required": ["hasDecorator"],
+      "additionalProperties": false,
+      "properties": {
+        "hasDecorator": {
+          "type": "object",
+          "required": ["name"],
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "oneOf": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "minItems": 1
+                }
+              ],
+              "description": "Decorator name(s) to match"
+            },
+            "from": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Package the decorator is imported from"
+            }
+          }
+        }
+      }
+    },
+    "hasJSDocPredicate": {
+      "type": "object",
+      "description": "Matches if the target has a specified JSDoc tag",
+      "required": ["hasJSDoc"],
+      "additionalProperties": false,
+      "properties": {
+        "hasJSDoc": {
+          "type": "object",
+          "required": ["tag"],
+          "additionalProperties": false,
+          "properties": {
+            "tag": {
+              "type": "string",
+              "minLength": 1,
+              "description": "JSDoc tag to match (without @)"
+            }
+          }
+        }
+      }
+    },
+    "extendsClassPredicate": {
+      "type": "object",
+      "description": "Matches if the class extends a specified base class",
+      "required": ["extendsClass"],
+      "additionalProperties": false,
+      "properties": {
+        "extendsClass": {
+          "type": "object",
+          "required": ["name"],
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Base class name to match"
+            }
+          }
+        }
+      }
+    },
+    "implementsInterfacePredicate": {
+      "type": "object",
+      "description": "Matches if the class implements a specified interface",
+      "required": ["implementsInterface"],
+      "additionalProperties": false,
+      "properties": {
+        "implementsInterface": {
+          "type": "object",
+          "required": ["name"],
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Interface name to match"
+            }
+          }
+        }
+      }
+    },
+    "nameEndsWithPredicate": {
+      "type": "object",
+      "description": "Matches if the target name ends with a specified suffix",
+      "required": ["nameEndsWith"],
+      "additionalProperties": false,
+      "properties": {
+        "nameEndsWith": {
+          "type": "object",
+          "required": ["suffix"],
+          "additionalProperties": false,
+          "properties": {
+            "suffix": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Suffix to match"
+            }
+          }
+        }
+      }
+    },
+    "nameMatchesPredicate": {
+      "type": "object",
+      "description": "Matches if the target name matches a regex pattern",
+      "required": ["nameMatches"],
+      "additionalProperties": false,
+      "properties": {
+        "nameMatches": {
+          "type": "object",
+          "required": ["pattern"],
+          "additionalProperties": false,
+          "properties": {
+            "pattern": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Regex pattern to match against the name"
+            }
+          }
+        }
+      }
+    },
+    "inClassWithPredicate": {
+      "type": "object",
+      "description": "Matches if the method is in a class matching the predicate",
+      "required": ["inClassWith"],
+      "additionalProperties": false,
+      "properties": {
+        "inClassWith": {
+          "$ref": "#/$defs/predicate",
+          "description": "Predicate the containing class must satisfy"
+        }
+      }
+    },
+    "andPredicate": {
+      "type": "object",
+      "description": "Matches if all predicates match",
+      "required": ["and"],
+      "additionalProperties": false,
+      "properties": {
+        "and": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/predicate"
+          },
+          "minItems": 2,
+          "description": "All predicates must match"
+        }
+      }
+    },
+    "orPredicate": {
+      "type": "object",
+      "description": "Matches if any predicate matches",
+      "required": ["or"],
+      "additionalProperties": false,
+      "properties": {
+        "or": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/predicate"
+          },
+          "minItems": 2,
+          "description": "Any predicate must match"
+        }
+      }
+    }
+  }
+}

@@ -41,6 +41,9 @@ importers:
       '@swc/core':
         specifier: ~1.5.7
         version: 1.5.29(@swc/helpers@0.5.17)
+      '@swc/helpers':
+        specifier: ~0.5.11
+        version: 0.5.17
       '@types/node':
         specifier: 20.19.9
         version: 20.19.9
@@ -237,6 +240,15 @@ importers:
       commander:
         specifier: ^14.0.2
         version: 14.0.2
+
+  packages/riviere-extract-config:
+    dependencies:
+      ajv:
+        specifier: ^8.17.1
+        version: 8.17.1
+      ajv-formats:
+        specifier: ^3.0.1
+        version: 3.0.1(ajv@8.17.1)
 
   packages/riviere-query:
     dependencies:
@@ -8041,7 +8053,6 @@ snapshots:
   '@swc/helpers@0.5.17':
     dependencies:
       tslib: 2.8.1
-    optional: true
 
   '@swc/types@0.1.25':
     dependencies:

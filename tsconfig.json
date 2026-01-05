@@ -20,6 +20,9 @@
     },
     {
       "path": "./packages/riviere-schema"
+    },
+    {
+      "path": "./packages/riviere-extract-config"
     }
   ]
 }
