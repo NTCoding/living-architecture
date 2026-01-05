@@ -1,5 +1,5 @@
 import {
- useEffect, useId 
+  useEffect, useId 
 } from 'react'
 import type { DomainDetails } from '../../extractDomainDetails'
 import { NodeTypeBadge } from '@/features/flows/components/NodeTypeBadge/NodeTypeBadge'
@@ -10,7 +10,7 @@ interface DomainDetailModalProps {
 }
 
 export function DomainDetailModal({
- domain, onClose 
+  domain, onClose 
 }: Readonly<DomainDetailModalProps>): React.ReactElement | null {
   const titleId = useId()
 
@@ -92,10 +92,10 @@ export function DomainDetailModal({
               </div>
             ) : (
               <div style={{
- fontSize: '12px',
-color: 'var(--text-tertiary)',
-fontStyle: 'italic' 
-}}>
+                fontSize: '12px',
+                color: 'var(--text-tertiary)',
+                fontStyle: 'italic' 
+              }}>
                 No nodes in this domain
               </div>
             )}
@@ -120,10 +120,10 @@ fontStyle: 'italic'
               </div>
             ) : (
               <div style={{
- fontSize: '12px',
-color: 'var(--text-tertiary)',
-fontStyle: 'italic' 
-}}>
+                fontSize: '12px',
+                color: 'var(--text-tertiary)',
+                fontStyle: 'italic' 
+              }}>
                 No entities in this domain
               </div>
             )}
@@ -158,10 +158,10 @@ fontStyle: 'italic'
               </div>
             ) : (
               <div style={{
- fontSize: '12px',
-color: 'var(--text-tertiary)',
-fontStyle: 'italic' 
-}}>
+                fontSize: '12px',
+                color: 'var(--text-tertiary)',
+                fontStyle: 'italic' 
+              }}>
                 No events in this domain
               </div>
             )}
@@ -174,24 +174,24 @@ fontStyle: 'italic'
                 {domain.crossDomainEdges.map((edge) => (
                   <div key={`${edge.targetDomain}-${edge.edgeType ?? 'unknown'}`} className="domain-edge-item">
                     <span style={{
- fontSize: '12px',
-color: 'var(--text-secondary)' 
-}}>{domain.id}</span>
+                      fontSize: '12px',
+                      color: 'var(--text-secondary)' 
+                    }}>{domain.id}</span>
                     <span className="domain-edge-arrow">{edge.edgeType === 'sync' ? '→' : '⇢'}</span>
                     <span className="domain-edge-target">{edge.targetDomain}</span>
                     <span style={{
- fontSize: '11px',
-color: 'var(--text-tertiary)' 
-}}>{edge.edgeType ?? 'unknown'}</span>
+                      fontSize: '11px',
+                      color: 'var(--text-tertiary)' 
+                    }}>{edge.edgeType ?? 'unknown'}</span>
                   </div>
                 ))}
               </div>
             ) : (
               <div style={{
- fontSize: '12px',
-color: 'var(--text-tertiary)',
-fontStyle: 'italic' 
-}}>
+                fontSize: '12px',
+                color: 'var(--text-tertiary)',
+                fontStyle: 'italic' 
+              }}>
                 No cross-domain connections
               </div>
             )}

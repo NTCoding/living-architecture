@@ -1,111 +1,111 @@
 import {
- describe, it, expect 
+  describe, it, expect 
 } from 'vitest'
 import { extractFlows } from './extractFlows'
 import type { RiviereGraph } from '@/types/riviere'
 import {
- parseNode, parseEdge, parseDomainMetadata 
+  parseNode, parseEdge, parseDomainMetadata 
 } from '@/lib/riviereTestData'
 
 const testSourceLocation = {
- repository: 'test-repo',
-filePath: 'src/test.ts' 
+  repository: 'test-repo',
+  filePath: 'src/test.ts' 
 }
 
 function createTestGraph(): RiviereGraph {
   return {
     version: '1.0',
     metadata: {
- domains: parseDomainMetadata({
- 'test-domain': {
- description: 'Test domain',
-systemType: 'domain' 
-} 
-}) 
-},
+      domains: parseDomainMetadata({
+        'test-domain': {
+          description: 'Test domain',
+          systemType: 'domain' 
+        } 
+      }) 
+    },
     components: [
       parseNode({
- sourceLocation: testSourceLocation,
-id: 'ui-1',
-type: 'UI',
-name: 'Place Order Form',
-domain: 'checkout',
-module: 'ui',
-route: '/checkout' 
-}),
+        sourceLocation: testSourceLocation,
+        id: 'ui-1',
+        type: 'UI',
+        name: 'Place Order Form',
+        domain: 'checkout',
+        module: 'ui',
+        route: '/checkout' 
+      }),
       parseNode({
- sourceLocation: testSourceLocation,
-id: 'api-1',
-type: 'API',
-name: 'POST /orders',
-domain: 'orders',
-module: 'api',
-apiType: 'REST',
-httpMethod: 'POST',
-path: '/orders' 
-}),
+        sourceLocation: testSourceLocation,
+        id: 'api-1',
+        type: 'API',
+        name: 'POST /orders',
+        domain: 'orders',
+        module: 'api',
+        apiType: 'REST',
+        httpMethod: 'POST',
+        path: '/orders' 
+      }),
       parseNode({
- sourceLocation: testSourceLocation,
-id: 'uc-1',
-type: 'UseCase',
-name: 'Place Order',
-domain: 'orders',
-module: 'checkout' 
-}),
+        sourceLocation: testSourceLocation,
+        id: 'uc-1',
+        type: 'UseCase',
+        name: 'Place Order',
+        domain: 'orders',
+        module: 'checkout' 
+      }),
       parseNode({
- sourceLocation: testSourceLocation,
-id: 'do-1',
-type: 'DomainOp',
-name: 'Order.begin',
-domain: 'orders',
-module: 'order',
-operationName: 'begin' 
-}),
+        sourceLocation: testSourceLocation,
+        id: 'do-1',
+        type: 'DomainOp',
+        name: 'Order.begin',
+        domain: 'orders',
+        module: 'order',
+        operationName: 'begin' 
+      }),
       parseNode({
- sourceLocation: testSourceLocation,
-id: 'evt-1',
-type: 'Event',
-name: 'OrderPlaced',
-domain: 'orders',
-module: 'events',
-eventName: 'OrderPlaced' 
-}),
+        sourceLocation: testSourceLocation,
+        id: 'evt-1',
+        type: 'Event',
+        name: 'OrderPlaced',
+        domain: 'orders',
+        module: 'events',
+        eventName: 'OrderPlaced' 
+      }),
       parseNode({
- sourceLocation: testSourceLocation,
-id: 'eh-1',
-type: 'EventHandler',
-name: 'Reserve Inventory',
-domain: 'inventory',
-module: 'handlers',
-subscribedEvents: ['OrderPlaced'] 
-}),
+        sourceLocation: testSourceLocation,
+        id: 'eh-1',
+        type: 'EventHandler',
+        name: 'Reserve Inventory',
+        domain: 'inventory',
+        module: 'handlers',
+        subscribedEvents: ['OrderPlaced'] 
+      }),
     ],
     links: [
       parseEdge({
- source: 'ui-1',
-target: 'api-1',
-type: 'sync' 
-}),
+        source: 'ui-1',
+        target: 'api-1',
+        type: 'sync' 
+      }),
       parseEdge({
- source: 'api-1',
-target: 'uc-1',
-type: 'sync' 
-}),
+        source: 'api-1',
+        target: 'uc-1',
+        type: 'sync' 
+      }),
       parseEdge({
- source: 'uc-1',
-target: 'do-1',
-type: 'sync' 
-}),
+        source: 'uc-1',
+        target: 'do-1',
+        type: 'sync' 
+      }),
       parseEdge({
- source: 'do-1',
-target: 'evt-1',
-type: 'async' 
-}),
+        source: 'do-1',
+        target: 'evt-1',
+        type: 'async' 
+      }),
       parseEdge({
- source: 'evt-1',
-target: 'eh-1',
-type: 'async' 
-}),
+        source: 'evt-1',
+        target: 'eh-1',
+        type: 'async' 
+      }),
     ],
   }
 }
@@ -141,49 +141,49 @@ describe('extractFlows', () => {
     const graph: RiviereGraph = {
       version: '1.0',
       metadata: {
- domains: parseDomainMetadata({
- 'test-domain': {
- description: 'Test domain',
-systemType: 'domain' 
-} 
-}) 
-},
+        domains: parseDomainMetadata({
+          'test-domain': {
+            description: 'Test domain',
+            systemType: 'domain' 
+          } 
+        }) 
+      },
       components: [
         parseNode({
- sourceLocation: testSourceLocation,
-id: 'ui-1',
-type: 'UI',
-name: 'Form A',
-domain: 'd',
-module: 'm',
-route: '/form-a' 
-}),
+          sourceLocation: testSourceLocation,
+          id: 'ui-1',
+          type: 'UI',
+          name: 'Form A',
+          domain: 'd',
+          module: 'm',
+          route: '/form-a' 
+        }),
         parseNode({
- sourceLocation: testSourceLocation,
-id: 'api-1',
-type: 'API',
-name: 'GET /items',
-domain: 'd',
-module: 'm',
-apiType: 'REST',
-httpMethod: 'GET',
-path: '/items' 
-}),
+          sourceLocation: testSourceLocation,
+          id: 'api-1',
+          type: 'API',
+          name: 'GET /items',
+          domain: 'd',
+          module: 'm',
+          apiType: 'REST',
+          httpMethod: 'GET',
+          path: '/items' 
+        }),
         parseNode({
- sourceLocation: testSourceLocation,
-id: 'uc-1',
-type: 'UseCase',
-name: 'UC',
-domain: 'd',
-module: 'm' 
-}),
+          sourceLocation: testSourceLocation,
+          id: 'uc-1',
+          type: 'UseCase',
+          name: 'UC',
+          domain: 'd',
+          module: 'm' 
+        }),
       ],
       links: [
         parseEdge({
- source: 'ui-1',
-target: 'uc-1',
-type: 'sync' 
-}),
+          source: 'ui-1',
+          target: 'uc-1',
+          type: 'sync' 
+        }),
       ],
     }
 
@@ -196,23 +196,23 @@ type: 'sync'
     const graph: RiviereGraph = {
       version: '1.0',
       metadata: {
- domains: parseDomainMetadata({
- 'test-domain': {
- description: 'Test domain',
-systemType: 'domain' 
-} 
-}) 
-},
+        domains: parseDomainMetadata({
+          'test-domain': {
+            description: 'Test domain',
+            systemType: 'domain' 
+          } 
+        }) 
+      },
       components: [
         parseNode({
- sourceLocation: testSourceLocation,
-id: 'job-1',
-type: 'Custom',
-name: 'Daily Report',
-domain: 'reporting',
-module: 'jobs',
-customTypeName: 'ScheduledJob' 
-}),
+          sourceLocation: testSourceLocation,
+          id: 'job-1',
+          type: 'Custom',
+          name: 'Daily Report',
+          domain: 'reporting',
+          module: 'jobs',
+          customTypeName: 'ScheduledJob' 
+        }),
       ],
       links: [],
     }
@@ -227,25 +227,25 @@ customTypeName: 'ScheduledJob'
     const graph: RiviereGraph = {
       version: '1.0',
       metadata: {
- domains: parseDomainMetadata({
- 'test-domain': {
- description: 'Test domain',
-systemType: 'domain' 
-} 
-}) 
-},
+        domains: parseDomainMetadata({
+          'test-domain': {
+            description: 'Test domain',
+            systemType: 'domain' 
+          } 
+        }) 
+      },
       components: [
         parseNode({
- sourceLocation: testSourceLocation,
-id: 'api-1',
-type: 'API',
-name: 'Create Order',
-domain: 'orders',
-module: 'api',
-apiType: 'REST',
-httpMethod: 'POST',
-path: '/orders' 
-}),
+          sourceLocation: testSourceLocation,
+          id: 'api-1',
+          type: 'API',
+          name: 'Create Order',
+          domain: 'orders',
+          module: 'api',
+          apiType: 'REST',
+          httpMethod: 'POST',
+          path: '/orders' 
+        }),
       ],
       links: [],
     }
@@ -291,50 +291,50 @@ path: '/orders'
     const graph: RiviereGraph = {
       version: '1.0',
       metadata: {
- domains: parseDomainMetadata({
- 'test-domain': {
- description: 'Test domain',
-systemType: 'domain' 
-} 
-}) 
-},
+        domains: parseDomainMetadata({
+          'test-domain': {
+            description: 'Test domain',
+            systemType: 'domain' 
+          } 
+        }) 
+      },
       components: [
         parseNode({
- sourceLocation: testSourceLocation,
-id: 'api-1',
-type: 'API',
-name: 'Create Order',
-domain: 'orders',
-module: 'api',
-apiType: 'REST',
-httpMethod: 'POST',
-path: '/orders' 
-}),
+          sourceLocation: testSourceLocation,
+          id: 'api-1',
+          type: 'API',
+          name: 'Create Order',
+          domain: 'orders',
+          module: 'api',
+          apiType: 'REST',
+          httpMethod: 'POST',
+          path: '/orders' 
+        }),
         parseNode({
- sourceLocation: testSourceLocation,
-id: 'uc-1',
-type: 'UseCase',
-name: 'Place Order',
-domain: 'orders',
-module: 'checkout' 
-}),
+          sourceLocation: testSourceLocation,
+          id: 'uc-1',
+          type: 'UseCase',
+          name: 'Place Order',
+          domain: 'orders',
+          module: 'checkout' 
+        }),
       ],
       links: [
         parseEdge({
- source: 'api-1',
-target: 'uc-1',
-type: 'sync' 
-}),
+          source: 'api-1',
+          target: 'uc-1',
+          type: 'sync' 
+        }),
       ],
       externalLinks: [
         {
- source: 'uc-1',
-target: {
- name: 'Stripe',
-url: 'https://stripe.com' 
-},
-type: 'sync' 
-},
+          source: 'uc-1',
+          target: {
+            name: 'Stripe',
+            url: 'https://stripe.com' 
+          },
+          type: 'sync' 
+        },
       ],
     }
 

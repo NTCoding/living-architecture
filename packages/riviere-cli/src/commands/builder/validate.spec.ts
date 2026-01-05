@@ -1,5 +1,5 @@
 import {
- describe, it, expect 
+  describe, it, expect 
 } from 'vitest';
 import { createProgram } from '../../cli';
 import { CliErrorCode } from '../../error-codes';
@@ -20,10 +20,10 @@ interface ValidationOutput {
   data: {
     valid: boolean;
     errors: Array<{
- code: string;
-message: string;
-path: string 
-}>;
+      code: string;
+      message: string;
+      path: string 
+    }>;
     warnings: Array<{
       code: string;
       message: string;
@@ -119,9 +119,9 @@ describe('riviere builder validate', () => {
         components: [apiComponent],
         links: [
           {
- ...validLink,
-target: 'orders:checkout:usecase:nonexistent' 
-},
+            ...validLink,
+            target: 'orders:checkout:usecase:nonexistent' 
+          },
         ],
       });
 
@@ -145,9 +145,9 @@ target: 'orders:checkout:usecase:nonexistent'
         metadata: baseMetadata,
         components: [useCaseComponent],
         links: [{
- ...validLink,
-source: 'orders:checkout:api:nonexistent' 
-}],
+          ...validLink,
+          source: 'orders:checkout:api:nonexistent' 
+        }],
       });
 
       await createProgram().parseAsync([
@@ -227,9 +227,9 @@ source: 'orders:checkout:api:nonexistent'
         domains: {
           ...baseMetadata.domains,
           payments: {
- description: 'Unused',
-systemType: 'domain' 
-},
+            description: 'Unused',
+            systemType: 'domain' 
+          },
         },
       };
 
@@ -286,11 +286,11 @@ systemType: 'domain'
         metadata: baseMetadata,
         components: [],
         links: [{
- id: 'x→y:sync',
-source: 'x',
-target: 'y',
-type: 'sync' 
-}],
+          id: 'x→y:sync',
+          source: 'x',
+          target: 'y',
+          type: 'sync' 
+        }],
       });
 
       await createProgram().parseAsync([
@@ -346,11 +346,11 @@ type: 'sync'
       const customPath = await createGraph(
         ctx.testDir,
         {
- version: '1.0',
-metadata: baseMetadata,
-components: [],
-links: [] 
-},
+          version: '1.0',
+          metadata: baseMetadata,
+          components: [],
+          links: [] 
+        },
         'custom',
       );
 

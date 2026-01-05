@@ -10,7 +10,7 @@ interface EdgeLineProps {
 }
 
 export function EdgeLine({
- from, to, fromRadius, toRadius, testId, direction 
+  from, to, fromRadius, toRadius, testId, direction 
 }: Readonly<EdgeLineProps>): React.ReactElement {
   const dx = to.x - from.x
   const dy = to.y - from.y

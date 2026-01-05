@@ -1,8 +1,8 @@
 import {
- describe, it, expect 
+  describe, it, expect 
 } from 'vitest';
 import {
- readFile, mkdir, writeFile 
+  readFile, mkdir, writeFile 
 } from 'node:fs/promises';
 import { join } from 'node:path';
 import { createProgram } from '../../cli';
@@ -110,11 +110,11 @@ describe('riviere builder add-source', () => {
         metadata: {
           sources: [{ repository: 'https://github.com/org/repo1' }],
           domains: {
- orders: {
- description: 'Orders',
-systemType: 'domain' 
-} 
-},
+            orders: {
+              description: 'Orders',
+              systemType: 'domain' 
+            } 
+          },
         },
         components: [],
         links: [],

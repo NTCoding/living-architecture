@@ -5,14 +5,14 @@ import { NODE_RADII } from '../../types'
 interface DagreLayoutInput {
   nodes: SimulationNode[]
   edges: Array<{
- source: string;
-target: string 
-}>
+    source: string;
+    target: string 
+  }>
 }
 
 export function computeDagreLayout(input: DagreLayoutInput): Map<string, {
- x: number;
-y: number 
+  x: number;
+  y: number 
 }> {
   const g = new dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}))
 
@@ -28,9 +28,9 @@ y: number
     const radius = NODE_RADII[node.type]
     const size = radius * 2 + 40
     g.setNode(node.id, {
- width: size,
-height: size 
-})
+      width: size,
+      height: size 
+    })
   }
 
   for (const edge of input.edges) {
@@ -40,15 +40,15 @@ height: size
   dagre.layout(g)
 
   const positions = new Map<string, {
- x: number;
-y: number 
-}>()
+    x: number;
+    y: number 
+  }>()
   for (const node of input.nodes) {
     const layoutNode = g.node(node.id)
     positions.set(node.id, {
- x: layoutNode.x,
-y: layoutNode.y 
-})
+      x: layoutNode.x,
+      y: layoutNode.y 
+    })
   }
 
   return positions

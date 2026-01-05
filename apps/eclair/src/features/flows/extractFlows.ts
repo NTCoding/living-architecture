@@ -1,11 +1,11 @@
 import {
- RiviereQuery, type Flow as QueryFlow, type FlowStep as QueryFlowStep 
+  RiviereQuery, type Flow as QueryFlow, type FlowStep as QueryFlowStep 
 } from '@living-architecture/riviere-query'
 import type {
- Component, ExternalLink 
+  Component, ExternalLink 
 } from '@living-architecture/riviere-schema'
 import type {
- RiviereGraph, SourceLocation, NodeType 
+  RiviereGraph, SourceLocation, NodeType 
 } from '@/types/riviere'
 
 export interface EntryPoint {

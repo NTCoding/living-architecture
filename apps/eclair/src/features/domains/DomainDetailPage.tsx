@@ -1,15 +1,15 @@
 import {
- useState, useRef, useCallback, forwardRef 
+  useState, useRef, useCallback, forwardRef 
 } from 'react'
 import { useParams } from 'react-router-dom'
 import type { RiviereGraph } from '@/types/riviere'
 import {
- extractDomainDetails, type DomainDetails 
+  extractDomainDetails, type DomainDetails 
 } from './extractDomainDetails'
 import { parseDomainKey } from '@/lib/riviereTestData'
 import { DomainContextGraph } from './components/DomainContextGraph/DomainContextGraph'
 import {
- DomainDetailView, type NodeTypeFilter 
+  DomainDetailView, type NodeTypeFilter 
 } from './DomainDetailView'
 
 type ViewMode = 'graph' | 'detail'
@@ -108,7 +108,7 @@ interface DomainHeaderProps {
 }
 
 function DomainHeader({
- domain, viewMode, setViewMode, onKeyDown, setTabRef 
+  domain, viewMode, setViewMode, onKeyDown, setTabRef 
 }: DomainHeaderProps): React.ReactElement {
   return (
     <header data-testid="domain-header">
@@ -165,8 +165,8 @@ interface ViewModeTabProps {
 
 const ViewModeTab = forwardRef<HTMLButtonElement, ViewModeTabProps>(function ViewModeTab(
   {
- label, icon, isSelected, onClick, onKeyDown 
-},
+    label, icon, isSelected, onClick, onKeyDown 
+  },
   ref
 ) {
   return (

@@ -1,8 +1,8 @@
 import {
- describe, it, expect 
+  describe, it, expect 
 } from 'vitest';
 import {
- mkdir, readFile, access 
+  mkdir, readFile, access 
 } from 'node:fs/promises';
 import { join } from 'node:path';
 import { createProgram } from '../../cli';
@@ -25,10 +25,10 @@ interface FinalizeSuccessOutput {
 interface FinalizeErrorOutput {
   success: false;
   error: {
- code: string;
-message: string;
-suggestions: string[] 
-};
+    code: string;
+    message: string;
+    suggestions: string[] 
+  };
 }
 
 function isFinalizeSuccess(value: unknown): value is FinalizeSuccessOutput {
@@ -108,9 +108,9 @@ describe('riviere builder finalize', () => {
       const content = await readFile(graphPath, 'utf-8');
       const graph: unknown = JSON.parse(content);
       expect(graph).toMatchObject({
- version: '1.0',
-metadata: baseMetadata 
-});
+        version: '1.0',
+        metadata: baseMetadata 
+      });
     });
 
     it('writes graph to custom path when --output provided', async () => {

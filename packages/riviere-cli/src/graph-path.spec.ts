@@ -1,9 +1,9 @@
 import {
- describe, it, expect, beforeEach, afterEach 
+  describe, it, expect, beforeEach, afterEach 
 } from 'vitest';
 import { join } from 'node:path';
 import {
- resolveGraphPath, getDefaultGraphPathDescription 
+  resolveGraphPath, getDefaultGraphPathDescription 
 } from './graph-path';
 
 describe('resolveGraphPath', () => {

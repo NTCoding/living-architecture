@@ -1,5 +1,5 @@
 import {
- describe, it, expect 
+  describe, it, expect 
 } from 'vitest';
 import { createProgram } from '../../cli';
 import { CliErrorCode } from '../../error-codes';

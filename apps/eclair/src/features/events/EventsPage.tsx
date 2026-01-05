@@ -1,8 +1,8 @@
 import {
- useMemo, useState, useCallback 
+  useMemo, useState, useCallback 
 } from 'react'
 import {
- useNavigate, useSearchParams 
+  useNavigate, useSearchParams 
 } from 'react-router-dom'
 import type { RiviereGraph } from '@/types/riviere'
 import { EventAccordion } from '@/features/domains/components/EventAccordion/EventAccordion'
@@ -36,9 +36,9 @@ export function EventsPage({ graph }: Readonly<EventsPageProps>): React.ReactEle
   }, [navigate, searchParams])
 
   const handleViewHandlerOnGraph = useCallback((handler: {
- domain: string;
-handlerName: string 
-}) => {
+    domain: string;
+    handlerName: string 
+  }) => {
     const handlerNode = graph.components.find(
       (node) => node.type === 'EventHandler' && node.domain === handler.domain && node.name === handler.handlerName
     )
@@ -50,11 +50,11 @@ handlerName: string
   }, [graph.components, navigate, searchParams])
 
   const {
- publishedEvents, domains 
-} = useMemo((): {
- publishedEvents: PublishedEvent[];
-domains: string[] 
-} => {
+    publishedEvents, domains 
+  } = useMemo((): {
+    publishedEvents: PublishedEvent[];
+    domains: string[] 
+  } => {
     const published: PublishedEvent[] = []
     const domainSet = new Set<string>()
 

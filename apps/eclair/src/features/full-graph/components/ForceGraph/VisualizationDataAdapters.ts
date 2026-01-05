@@ -1,12 +1,12 @@
 import type {
- Node, NodeType, Edge, ExternalLink 
+  Node, NodeType, Edge, ExternalLink 
 } from '@/types/riviere'
 import type {
- SimulationNode, SimulationLink 
+  SimulationNode, SimulationLink 
 } from '../../types'
 import type { Theme } from '@/types/theme'
 import {
- EDGE_COLORS, SEMANTIC_EDGE_COLORS, NODE_COLORS, NODE_RADII, getDomainColor 
+  EDGE_COLORS, SEMANTIC_EDGE_COLORS, NODE_COLORS, NODE_RADII, getDomainColor 
 } from '../../types'
 
 interface ExternalNode {
@@ -15,9 +15,9 @@ interface ExternalNode {
   name: string
   domain: string
   sourceLocation: {
- repository: string;
-filePath: string 
-}
+    repository: string;
+    filePath: string 
+  }
   url?: string
 }
 
@@ -51,9 +51,9 @@ function createExternalNodeFromLink(link: ExternalLink): ExternalNode {
     name: link.target.name,
     domain: 'external',
     sourceLocation: {
- repository: 'external',
-filePath: '' 
-},
+      repository: 'external',
+      filePath: '' 
+    },
     url: link.target.url,
   }
 }

@@ -7,10 +7,10 @@
  */
 
 import type {
- Command, Argument 
+  Command, Argument 
 } from 'commander';
 import {
- writeFileSync, mkdirSync 
+  writeFileSync, mkdirSync 
 } from 'node:fs';
 import { join } from 'node:path';
 import { createProgram } from '../src/cli';

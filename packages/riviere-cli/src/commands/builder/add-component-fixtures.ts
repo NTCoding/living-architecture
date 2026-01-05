@@ -29,9 +29,9 @@ export function buildAddComponentArgs(
     filePath,
     extraArgs = [],
   } = {
- ...DEFAULTS,
-...options 
-};
+    ...DEFAULTS,
+    ...options 
+  };
   return [
     'node',
     'riviere',

@@ -1,5 +1,5 @@
 import {
- describe, it, expect 
+  describe, it, expect 
 } from 'vitest';
 import { createProgram } from '../../cli';
 import { CliErrorCode } from '../../error-codes';
@@ -68,11 +68,11 @@ describe('riviere query search', () => {
         metadata: {
           sources: [{ repository: 'https://github.com/org/repo' }],
           domains: {
-orders: {
- description: 'Order management',
-systemType: 'domain' 
-},
-},
+            orders: {
+              description: 'Order management',
+              systemType: 'domain' 
+            },
+          },
         },
         components: [
           {
@@ -135,11 +135,11 @@ systemType: 'domain'
         metadata: {
           sources: [{ repository: 'https://github.com/org/repo' }],
           domains: {
-orders: {
- description: 'Order management',
-systemType: 'domain' 
-},
-},
+            orders: {
+              description: 'Order management',
+              systemType: 'domain' 
+            },
+          },
         },
         components: [
           {
@@ -175,11 +175,11 @@ systemType: 'domain'
         metadata: {
           sources: [{ repository: 'https://github.com/org/repo' }],
           domains: {
-orders: {
- description: 'Order management',
-systemType: 'domain' 
-},
-},
+            orders: {
+              description: 'Order management',
+              systemType: 'domain' 
+            },
+          },
         },
         components: [
           {
@@ -215,11 +215,11 @@ systemType: 'domain'
         metadata: {
           sources: [{ repository: 'https://github.com/org/repo' }],
           domains: {
-orders: {
- description: 'Order management',
-systemType: 'domain' 
-},
-},
+            orders: {
+              description: 'Order management',
+              systemType: 'domain' 
+            },
+          },
         },
         components: [
           {

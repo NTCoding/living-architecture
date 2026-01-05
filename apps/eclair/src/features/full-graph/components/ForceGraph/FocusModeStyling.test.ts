@@ -1,12 +1,12 @@
 import {
- describe, it, expect 
+  describe, it, expect 
 } from 'vitest'
 import { getLinkNodeId } from './FocusModeStyling'
 import type { SimulationNode } from '../../types'
 import { parseNode } from '@/lib/riviereTestData'
 const testSourceLocation = {
- repository: 'test-repo',
-filePath: 'src/test.ts' 
+  repository: 'test-repo',
+  filePath: 'src/test.ts' 
 }
 
 describe('FocusModeStyling', () => {
@@ -24,13 +24,13 @@ describe('FocusModeStyling', () => {
         name: 'test',
         domain: 'test',
         originalNode: parseNode({
- sourceLocation: testSourceLocation,
-id: 'node-456',
-type: 'API',
-name: 'test',
-domain: 'test',
-module: 'test-module' 
-}),
+          sourceLocation: testSourceLocation,
+          id: 'node-456',
+          type: 'API',
+          name: 'test',
+          domain: 'test',
+          module: 'test-module' 
+        }),
       }
 
       expect(getLinkNodeId(node)).toBe('node-456')
@@ -44,13 +44,13 @@ module: 'test-module'
         name: 'test',
         domain: 'test',
         originalNode: parseNode({
- sourceLocation: testSourceLocation,
-id: 'test-API',
-type: 'API',
-name: 'test',
-domain: 'test',
-module: 'test-module' 
-}),
+          sourceLocation: testSourceLocation,
+          id: 'test-API',
+          type: 'API',
+          name: 'test',
+          domain: 'test',
+          module: 'test-module' 
+        }),
       }
       expect(getLinkNodeId(node)).toBe('test-API')
     })
@@ -62,14 +62,14 @@ module: 'test-module'
         name: 'test',
         domain: 'test',
         originalNode: parseNode({
- sourceLocation: testSourceLocation,
-id: 'test-Event',
-type: 'Event',
-name: 'test',
-domain: 'test',
-module: 'test-module',
-eventName: 'TestEvent' 
-}),
+          sourceLocation: testSourceLocation,
+          id: 'test-Event',
+          type: 'Event',
+          name: 'test',
+          domain: 'test',
+          module: 'test-module',
+          eventName: 'TestEvent' 
+        }),
       }
       expect(getLinkNodeId(node)).toBe('test-Event')
     })
@@ -81,14 +81,14 @@ eventName: 'TestEvent'
         name: 'test',
         domain: 'test',
         originalNode: parseNode({
- sourceLocation: testSourceLocation,
-id: 'test-UI',
-type: 'UI',
-name: 'test',
-domain: 'test',
-module: 'test-module',
-route: '/test' 
-}),
+          sourceLocation: testSourceLocation,
+          id: 'test-UI',
+          type: 'UI',
+          name: 'test',
+          domain: 'test',
+          module: 'test-module',
+          route: '/test' 
+        }),
       }
       expect(getLinkNodeId(node)).toBe('test-UI')
     })

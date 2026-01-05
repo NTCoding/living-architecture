@@ -1,8 +1,8 @@
 import {
- createContext, useContext, useState, useCallback, useEffect, useRef, useSyncExternalStore, useMemo 
+  createContext, useContext, useState, useCallback, useEffect, useRef, useSyncExternalStore, useMemo 
 } from 'react'
 import type {
- RiviereGraph, GraphName 
+  RiviereGraph, GraphName 
 } from '@/types/riviere'
 import { graphNameSchema } from '@/types/riviere'
 import { parseRiviereGraph } from '@living-architecture/riviere-schema'
@@ -101,13 +101,13 @@ export function GraphProvider({ children }: GraphProviderProps): React.ReactElem
 
   const contextValue = useMemo(
     () => ({
- graph,
-setGraph,
-clearGraph,
-hasGraph,
-graphName,
-isLoadingDemo 
-}),
+      graph,
+      setGraph,
+      clearGraph,
+      hasGraph,
+      graphName,
+      isLoadingDemo 
+    }),
     [graph, setGraph, clearGraph, hasGraph, graphName, isLoadingDemo]
   )
 

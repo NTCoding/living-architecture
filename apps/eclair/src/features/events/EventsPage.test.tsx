@@ -1,17 +1,17 @@
 import {
- describe, it, expect, vi, beforeEach 
+  describe, it, expect, vi, beforeEach 
 } from 'vitest'
 import {
- render, screen 
+  render, screen 
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { EventsPage } from './EventsPage'
 import type {
- RiviereGraph, SourceLocation 
+  RiviereGraph, SourceLocation 
 } from '@/types/riviere'
 import {
- parseNode, parseEdge, parseDomainMetadata 
+  parseNode, parseEdge, parseDomainMetadata 
 } from '@/lib/riviereTestData'
 
 const testSourceLocation: SourceLocation = {
@@ -45,13 +45,13 @@ describe('EventsPage', () => {
     const graph: RiviereGraph = {
       version: '1.0',
       metadata: {
- domains: parseDomainMetadata({
- 'test-domain': {
- description: 'Test domain',
-systemType: 'domain' 
-} 
-}) 
-},
+        domains: parseDomainMetadata({
+          'test-domain': {
+            description: 'Test domain',
+            systemType: 'domain' 
+          } 
+        }) 
+      },
       components: [],
       links: [],
     }
@@ -66,16 +66,16 @@ systemType: 'domain'
     const graph: RiviereGraph = {
       version: '1.0',
       metadata: {
- domains: parseDomainMetadata({
- 'test-domain': {
- description: 'Test domain',
-systemType: 'domain' 
-} 
-}) 
-},
+        domains: parseDomainMetadata({
+          'test-domain': {
+            description: 'Test domain',
+            systemType: 'domain' 
+          } 
+        }) 
+      },
       components: [
         parseNode({
- sourceLocation: testSourceLocation,
+          sourceLocation: testSourceLocation,
           id: 'orders:event:order-placed',
           type: 'Event',
           name: 'OrderPlaced',
@@ -84,7 +84,7 @@ systemType: 'domain'
           eventName: 'OrderPlaced',
         }),
         parseNode({
- sourceLocation: testSourceLocation,
+          sourceLocation: testSourceLocation,
           id: 'orders:usecase:place-order',
           type: 'UseCase',
           name: 'PlaceOrderUseCase',
@@ -92,7 +92,7 @@ systemType: 'domain'
           module: 'checkout',
         }),
         parseNode({
- sourceLocation: testSourceLocation,
+          sourceLocation: testSourceLocation,
           id: 'inventory:handler:order-placed',
           type: 'EventHandler',
           name: 'OrderPlacedHandler',
@@ -127,13 +127,13 @@ systemType: 'domain'
     const graph: RiviereGraph = {
       version: '1.0',
       metadata: {
- domains: parseDomainMetadata({
- 'test-domain': {
- description: 'Test domain',
-systemType: 'domain' 
-} 
-}) 
-},
+        domains: parseDomainMetadata({
+          'test-domain': {
+            description: 'Test domain',
+            systemType: 'domain' 
+          } 
+        }) 
+      },
       components: [],
       links: [],
     }
@@ -147,16 +147,16 @@ systemType: 'domain'
     const graph: RiviereGraph = {
       version: '1.0',
       metadata: {
- domains: parseDomainMetadata({
- 'test-domain': {
- description: 'Test domain',
-systemType: 'domain' 
-} 
-}) 
-},
+        domains: parseDomainMetadata({
+          'test-domain': {
+            description: 'Test domain',
+            systemType: 'domain' 
+          } 
+        }) 
+      },
       components: [
         parseNode({
- sourceLocation: testSourceLocation,
+          sourceLocation: testSourceLocation,
           id: 'orders:event:order-placed',
           type: 'Event',
           name: 'OrderPlaced',
@@ -165,7 +165,7 @@ systemType: 'domain'
           eventName: 'OrderPlaced',
         }),
         parseNode({
- sourceLocation: testSourceLocation,
+          sourceLocation: testSourceLocation,
           id: 'payment:event:payment-completed',
           type: 'Event',
           name: 'PaymentCompleted',
@@ -188,16 +188,16 @@ systemType: 'domain'
     const graph: RiviereGraph = {
       version: '1.0',
       metadata: {
- domains: parseDomainMetadata({
- 'test-domain': {
- description: 'Test domain',
-systemType: 'domain' 
-} 
-}) 
-},
+        domains: parseDomainMetadata({
+          'test-domain': {
+            description: 'Test domain',
+            systemType: 'domain' 
+          } 
+        }) 
+      },
       components: [
         parseNode({
- sourceLocation: testSourceLocation,
+          sourceLocation: testSourceLocation,
           id: 'orders:event:order-placed',
           type: 'Event',
           name: 'OrderPlaced',
@@ -206,7 +206,7 @@ systemType: 'domain'
           eventName: 'OrderPlaced',
         }),
         parseNode({
- sourceLocation: testSourceLocation,
+          sourceLocation: testSourceLocation,
           id: 'payment:event:payment-completed',
           type: 'Event',
           name: 'PaymentCompleted',
@@ -228,16 +228,16 @@ systemType: 'domain'
     const graph: RiviereGraph = {
       version: '1.0',
       metadata: {
- domains: parseDomainMetadata({
- 'test-domain': {
- description: 'Test domain',
-systemType: 'domain' 
-} 
-}) 
-},
+        domains: parseDomainMetadata({
+          'test-domain': {
+            description: 'Test domain',
+            systemType: 'domain' 
+          } 
+        }) 
+      },
       components: [
         parseNode({
- sourceLocation: testSourceLocation,
+          sourceLocation: testSourceLocation,
           id: 'orders:event:order-placed',
           type: 'Event',
           name: 'OrderPlaced',
@@ -246,7 +246,7 @@ systemType: 'domain'
           eventName: 'OrderPlaced',
         }),
         parseNode({
- sourceLocation: testSourceLocation,
+          sourceLocation: testSourceLocation,
           id: 'payment:event:payment-completed',
           type: 'Event',
           name: 'PaymentCompleted',
@@ -276,16 +276,16 @@ systemType: 'domain'
     const graph: RiviereGraph = {
       version: '1.0',
       metadata: {
- domains: parseDomainMetadata({
- 'test-domain': {
- description: 'Test domain',
-systemType: 'domain' 
-} 
-}) 
-},
+        domains: parseDomainMetadata({
+          'test-domain': {
+            description: 'Test domain',
+            systemType: 'domain' 
+          } 
+        }) 
+      },
       components: [
         parseNode({
- sourceLocation: testSourceLocation,
+          sourceLocation: testSourceLocation,
           id: 'orders:event:order-placed',
           type: 'Event',
           name: 'OrderPlaced',
@@ -294,7 +294,7 @@ systemType: 'domain'
           eventName: 'OrderPlaced',
         }),
         parseNode({
- sourceLocation: testSourceLocation,
+          sourceLocation: testSourceLocation,
           id: 'payment:event:payment-completed',
           type: 'Event',
           name: 'PaymentCompleted',
@@ -323,16 +323,16 @@ systemType: 'domain'
     const graph: RiviereGraph = {
       version: '1.0',
       metadata: {
- domains: parseDomainMetadata({
- 'test-domain': {
- description: 'Test domain',
-systemType: 'domain' 
-} 
-}) 
-},
+        domains: parseDomainMetadata({
+          'test-domain': {
+            description: 'Test domain',
+            systemType: 'domain' 
+          } 
+        }) 
+      },
       components: [
         parseNode({
- sourceLocation: testSourceLocation,
+          sourceLocation: testSourceLocation,
           id: 'orders:event:order-placed',
           type: 'Event',
           name: 'OrderPlaced',
@@ -341,7 +341,7 @@ systemType: 'domain'
           eventName: 'OrderPlaced',
         }),
         parseNode({
- sourceLocation: testSourceLocation,
+          sourceLocation: testSourceLocation,
           id: 'payment:event:payment-completed',
           type: 'Event',
           name: 'PaymentCompleted',
@@ -372,16 +372,16 @@ systemType: 'domain'
     const graph: RiviereGraph = {
       version: '1.0',
       metadata: {
- domains: parseDomainMetadata({
- 'test-domain': {
- description: 'Test domain',
-systemType: 'domain' 
-} 
-}) 
-},
+        domains: parseDomainMetadata({
+          'test-domain': {
+            description: 'Test domain',
+            systemType: 'domain' 
+          } 
+        }) 
+      },
       components: [
         parseNode({
- sourceLocation: testSourceLocation,
+          sourceLocation: testSourceLocation,
           id: 'orders:event:order-placed',
           type: 'Event',
           name: 'OrderPlaced',
@@ -407,16 +407,16 @@ systemType: 'domain'
     const graph: RiviereGraph = {
       version: '1.0',
       metadata: {
- domains: parseDomainMetadata({
- 'test-domain': {
- description: 'Test domain',
-systemType: 'domain' 
-} 
-}) 
-},
+        domains: parseDomainMetadata({
+          'test-domain': {
+            description: 'Test domain',
+            systemType: 'domain' 
+          } 
+        }) 
+      },
       components: [
         parseNode({
- sourceLocation: testSourceLocation,
+          sourceLocation: testSourceLocation,
           id: 'orders:event:order-placed',
           type: 'Event',
           name: 'OrderPlaced',
@@ -425,7 +425,7 @@ systemType: 'domain'
           eventName: 'OrderPlaced',
         }),
         parseNode({
- sourceLocation: testSourceLocation,
+          sourceLocation: testSourceLocation,
           id: 'inventory:handler:order-placed',
           type: 'EventHandler',
           name: 'Reserve Inventory Handler',
@@ -434,7 +434,7 @@ systemType: 'domain'
           subscribedEvents: ['OrderPlaced'],
         }),
         parseNode({
- sourceLocation: testSourceLocation,
+          sourceLocation: testSourceLocation,
           id: 'payment:handler:order-placed',
           type: 'EventHandler',
           name: 'Process Payment Handler',
@@ -460,16 +460,16 @@ systemType: 'domain'
       const graph: RiviereGraph = {
         version: '1.0',
         metadata: {
- domains: parseDomainMetadata({
- 'test-domain': {
- description: 'Test domain',
-systemType: 'domain' 
-} 
-}) 
-},
+          domains: parseDomainMetadata({
+            'test-domain': {
+              description: 'Test domain',
+              systemType: 'domain' 
+            } 
+          }) 
+        },
         components: [
           parseNode({
- sourceLocation: testSourceLocation,
+            sourceLocation: testSourceLocation,
             id: 'orders:event:order-placed',
             type: 'Event',
             name: 'OrderPlaced',
@@ -496,16 +496,16 @@ systemType: 'domain'
       const graph: RiviereGraph = {
         version: '1.0',
         metadata: {
- domains: parseDomainMetadata({
- 'test-domain': {
- description: 'Test domain',
-systemType: 'domain' 
-} 
-}) 
-},
+          domains: parseDomainMetadata({
+            'test-domain': {
+              description: 'Test domain',
+              systemType: 'domain' 
+            } 
+          }) 
+        },
         components: [
           parseNode({
- sourceLocation: testSourceLocation,
+            sourceLocation: testSourceLocation,
             id: 'orders:event:order-placed',
             type: 'Event',
             name: 'OrderPlaced',
@@ -514,7 +514,7 @@ systemType: 'domain'
             eventName: 'OrderPlaced',
           }),
           parseNode({
- sourceLocation: testSourceLocation,
+            sourceLocation: testSourceLocation,
             id: 'inventory:handler:reserve-inventory',
             type: 'EventHandler',
             name: 'Reserve Inventory Handler',

@@ -1,14 +1,14 @@
 import {
- useState, useRef, useEffect 
+  useState, useRef, useEffect 
 } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type {
- RiviereGraph, GraphName 
+  RiviereGraph, GraphName 
 } from '@/types/riviere'
 import { SchemaModal } from '@/components/SchemaModal/SchemaModal'
 import { useGraph } from '@/contexts/GraphContext'
 import {
- OrphanWarning, type OrphanDetectionResult 
+  OrphanWarning, type OrphanDetectionResult 
 } from '@/components/OrphanWarning/OrphanWarning'
 import { useRiviereQuery } from '@/hooks/useRiviereQuery'
 
@@ -20,7 +20,7 @@ interface HeaderProps {
 }
 
 export function Header({
- graphName, graph, onExportPng, onExportSvg 
+  graphName, graph, onExportPng, onExportSvg 
 }: HeaderProps): React.ReactElement {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isExportOpen, setIsExportOpen] = useState(false)
@@ -32,13 +32,13 @@ export function Header({
   const orphanResult: OrphanDetectionResult | null = query === null
     ? null
     : (() => {
-        const orphanIds = query.detectOrphans()
-        return {
-          hasOrphans: orphanIds.length > 0,
-          orphanNodeIds: new Set(orphanIds),
-          orphanCount: orphanIds.length,
-        }
-      })()
+      const orphanIds = query.detectOrphans()
+      return {
+        hasOrphans: orphanIds.length > 0,
+        orphanNodeIds: new Set(orphanIds),
+        orphanCount: orphanIds.length,
+      }
+    })()
 
   useEffect(() => {
     if (!isExportOpen) return
@@ -146,7 +146,7 @@ export function Header({
               <span>Upload Graph</span>
             </button>
           </div>
-      </header>
+        </header>
       </div>
       {orphanResult && graph !== null && <OrphanWarning result={orphanResult} nodes={graph.components} />}
       <SchemaModal

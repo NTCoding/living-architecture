@@ -1,42 +1,42 @@
 import {
- render, screen 
+  render, screen 
 } from '@testing-library/react'
 import type { RenderResult } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import {
- beforeEach, describe, expect, it, vi 
+  beforeEach, describe, expect, it, vi 
 } from 'vitest'
 import { App } from './App'
 import type { RiviereGraph } from '@/types/riviere'
 import {
- parseNode, parseDomainMetadata 
+  parseNode, parseDomainMetadata 
 } from '@/lib/riviereTestData'
 
 const testSourceLocation = {
- repository: 'test-repo',
-filePath: 'src/test.ts' 
+  repository: 'test-repo',
+  filePath: 'src/test.ts' 
 }
 
 const mockGraph: RiviereGraph = {
   version: '1.0',
   metadata: {
- domains: parseDomainMetadata({
- 'test-domain': {
- description: 'Test domain',
-systemType: 'domain' 
-} 
-}) 
-},
+    domains: parseDomainMetadata({
+      'test-domain': {
+        description: 'Test domain',
+        systemType: 'domain' 
+      } 
+    }) 
+  },
   components: [
     parseNode({
- sourceLocation: testSourceLocation,
-id: 'ui-1',
-type: 'UI',
-name: 'Test UI',
-domain: 'test',
-module: 'ui',
-route: '/test' 
-}),
+      sourceLocation: testSourceLocation,
+      id: 'ui-1',
+      type: 'UI',
+      name: 'Test UI',
+      domain: 'test',
+      module: 'ui',
+      route: '/test' 
+    }),
   ],
   links: [],
 }
@@ -58,10 +58,10 @@ vi.mock('@/contexts/GraphContext', () => ({
 vi.mock('@/features/empty-state/EmptyState', () => ({EmptyState: () => <div data-testid="empty-state">Upload a graph to get started</div>,}))
 
 vi.mock('@/contexts/ThemeContext', () => ({
-useTheme: () => ({
- theme: 'stream',
-setTheme: vi.fn() 
-}),
+  useTheme: () => ({
+    theme: 'stream',
+    setTheme: vi.fn() 
+  }),
 }))
 
 vi.mock('@/components/Logo/Logo', () => ({Logo: () => <div data-testid="logo">Logo</div>,}))

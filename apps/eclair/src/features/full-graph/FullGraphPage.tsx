@@ -1,9 +1,9 @@
 import {
- useState, useCallback, useMemo, useRef, useEffect 
+  useState, useCallback, useMemo, useRef, useEffect 
 } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import type {
- RiviereGraph, NodeType 
+  RiviereGraph, NodeType 
 } from '@/types/riviere'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useExport } from '@/contexts/ExportContext'
@@ -21,7 +21,7 @@ import { filterByNodeType } from './graphFocusing/filterByNodeType'
 import { getThemeFocusColors } from './graphFocusing/themeFocusColors'
 import type { TooltipData } from './types'
 import type {
- Node, Edge 
+  Node, Edge 
 } from '@/types/riviere'
 
 function findOrphanNodeIds(nodes: Node[], edges: Edge[]): Set<string> {
@@ -62,9 +62,9 @@ function extractDomains(graph: RiviereGraph): DomainInfo[] {
 
   return Array.from(domainCounts.entries())
     .map(([name, nodeCount]) => ({
- name,
-nodeCount 
-}))
+      name,
+      nodeCount 
+    }))
     .sort((a, b) => a.name.localeCompare(b.name))
 }
 
@@ -83,17 +83,17 @@ function extractNodeTypes(graph: RiviereGraph): NodeTypeInfo[] {
 
   return Array.from(typeCounts.entries())
     .map(([type, nodeCount]) => ({
- type,
-nodeCount 
-}))
+      type,
+      nodeCount 
+    }))
     .sort((a, b) => a.type.localeCompare(b.type))
 }
 
 export function FullGraphPage({ graph }: Readonly<FullGraphPageProps>): React.ReactElement {
   const { theme } = useTheme()
   const {
- registerExportHandlers, clearExportHandlers 
-} = useExport()
+    registerExportHandlers, clearExportHandlers 
+  } = useExport()
   const [searchParams] = useSearchParams()
   const [tooltipData, setTooltipData] = useState<TooltipData | null>(null)
   const tooltipHideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -254,9 +254,9 @@ export function FullGraphPage({ graph }: Readonly<FullGraphPageProps>): React.Re
     }
 
     registerExportHandlers({
- onPng: handleExportPng,
-onSvg: handleExportSvg 
-})
+      onPng: handleExportPng,
+      onSvg: handleExportSvg 
+    })
 
     return () => {
       clearExportHandlers()
@@ -271,10 +271,10 @@ onSvg: handleExportSvg
     <div ref={exportContainerRef} className="relative h-full w-full" data-testid="full-graph-page">
       <ForceGraph
         graph={{
- ...graph,
-components: filteredGraph.nodes,
-links: filteredGraph.edges 
-}}
+          ...graph,
+          components: filteredGraph.nodes,
+          links: filteredGraph.edges 
+        }}
         theme={theme}
         highlightedNodeIds={highlightedNodeIds}
         highlightedNodeId={highlightedNodeId}

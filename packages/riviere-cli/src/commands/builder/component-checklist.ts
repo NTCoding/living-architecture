@@ -1,7 +1,7 @@
 import { Command } from 'commander';
 import { getDefaultGraphPathDescription } from '../../graph-path';
 import {
- formatError, formatSuccess 
+  formatError, formatSuccess 
 } from '../../output';
 import { CliErrorCode } from '../../error-codes';
 import { isValidComponentType } from '../../component-types';

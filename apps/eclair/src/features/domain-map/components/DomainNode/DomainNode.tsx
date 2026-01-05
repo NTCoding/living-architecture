@@ -1,8 +1,8 @@
 import {
- Handle, Position 
+  Handle, Position 
 } from '@xyflow/react'
 import type {
- NodeProps, Node 
+  NodeProps, Node 
 } from '@xyflow/react'
 import type { DomainNodeData } from '../../extractDomainMap'
 
@@ -45,10 +45,10 @@ export function DomainNode(props: DomainNodeProps): React.ReactElement {
       <div
         className={domainNodeClasses}
         style={{
- width: size,
-height: size,
-opacity 
-}}
+          width: size,
+          height: size,
+          opacity 
+        }}
         title={data.label}
       >
         {isExternal ? (

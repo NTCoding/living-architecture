@@ -4,10 +4,10 @@ import type {
   Link,
 } from '@living-architecture/riviere-schema';
 import type {
- ComponentModification, GraphDiff, LinkId 
+  ComponentModification, GraphDiff, LinkId 
 } from './domain-types';
 import {
- parseComponentId, parseLinkId 
+  parseComponentId, parseLinkId 
 } from './domain-types';
 
 export function diffGraphs(

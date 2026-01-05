@@ -1,5 +1,5 @@
 import {
- useCallback, useRef 
+  useCallback, useRef 
 } from 'react';
 import type { RiviereGraph } from '@/types/riviere';
 
@@ -13,13 +13,13 @@ interface UploadError {readonly message: string;}
 export type UploadState =
   | { readonly status: 'empty' }
   | {
-      readonly status: 'loaded';
-      readonly file: UploadedFile;
-    }
+    readonly status: 'loaded';
+    readonly file: UploadedFile;
+  }
   | {
-      readonly status: 'error';
-      readonly error: UploadError;
-    };
+    readonly status: 'error';
+    readonly error: UploadError;
+  };
 
 interface UploadZoneProps {
   readonly label: string;

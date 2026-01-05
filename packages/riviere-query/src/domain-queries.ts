@@ -5,7 +5,7 @@ import type {
 import { Entity } from './event-types';
 import type { EntityTransition } from './event-types';
 import type {
- State, Domain, ComponentCounts 
+  State, Domain, ComponentCounts 
 } from './domain-types';
 import {
   parseEntityName,

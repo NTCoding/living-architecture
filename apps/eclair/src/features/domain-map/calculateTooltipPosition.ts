@@ -19,7 +19,7 @@ export function calculateTooltipPositionWithViewportClipping(
   const top = wouldOverflowBottom ? y - TOOLTIP_HEIGHT - 10 : y
 
   return {
- left,
-top 
-}
+    left,
+    top 
+  }
 }

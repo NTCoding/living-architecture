@@ -13,11 +13,11 @@ import {
 } from '../../graph-path';
 import { fileExists } from '../../file-existence';
 import {
- formatError, formatSuccess 
+  formatError, formatSuccess 
 } from '../../output';
 import { CliErrorCode } from '../../error-codes';
 import {
- isValidLinkType, normalizeComponentType 
+  isValidLinkType, normalizeComponentType 
 } from '../../component-types';
 import {
   isValidHttpMethod,
@@ -26,7 +26,7 @@ import {
   validateLinkType,
 } from '../../validation';
 import {
- loadGraphBuilder, reportGraphNotFound 
+  loadGraphBuilder, reportGraphNotFound 
 } from './link-infrastructure';
 
 interface ApiComponent {
@@ -207,10 +207,10 @@ Examples:
       }).toString();
 
       const linkInput: {
- from: string;
-to: string;
-type?: 'sync' | 'async' 
-} = {
+        from: string;
+        to: string;
+        type?: 'sync' | 'async' 
+      } = {
         from: matchedApi.id,
         to: targetId,
       };

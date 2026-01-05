@@ -1,8 +1,8 @@
 import {
- describe, it, expect 
+  describe, it, expect 
 } from 'vitest'
 import {
- pluralize, pluralizeComponent, pluralizeConnection 
+  pluralize, pluralizeComponent, pluralizeConnection 
 } from './pluralize'
 
 describe('pluralize', () => {

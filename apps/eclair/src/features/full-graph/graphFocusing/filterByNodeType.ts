@@ -1,5 +1,5 @@
 import type {
- Node, Edge, NodeType, NodeId 
+  Node, Edge, NodeType, NodeId 
 } from '@/types/riviere'
 
 export interface FilteredGraph {
@@ -23,8 +23,8 @@ function findVisibleDescendants(
   outgoingEdges: Map<string, Edge[]>,
   visited: Set<string>
 ): Array<{
- targetId: NodeId;
-edge: Edge 
+  targetId: NodeId;
+  edge: Edge 
 }> {
   if (visited.has(nodeId)) {
     return []
@@ -36,17 +36,17 @@ edge: Edge
   }
 
   const descendants: Array<{
- targetId: NodeId;
-edge: Edge 
-}> = []
+    targetId: NodeId;
+    edge: Edge 
+  }> = []
   const nodeEdges = outgoingEdges.get(nodeId) ?? []
 
   for (const edge of nodeEdges) {
     if (visibleNodeIds.has(edge.target)) {
       descendants.push({
- targetId: edge.target,
-edge 
-})
+        targetId: edge.target,
+        edge 
+      })
       continue
     }
 
@@ -88,8 +88,8 @@ function processEdgeForRewiring(
   )
 
   for (const {
- targetId, edge: originalEdge 
-} of visibleTargets) {
+    targetId, edge: originalEdge 
+  } of visibleTargets) {
     const edgeKey = `${edge.source}->${targetId}`
     if (addedEdgePairs.has(edgeKey)) {
       continue
@@ -139,7 +139,7 @@ export function filterByNodeType(
   }
 
   return {
- nodes: visibleNodes,
-edges: rewiredEdges 
-}
+    nodes: visibleNodes,
+    edges: rewiredEdges 
+  }
 }

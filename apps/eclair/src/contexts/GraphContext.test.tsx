@@ -1,19 +1,19 @@
 import {
- render, screen, waitFor 
+  render, screen, waitFor 
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import {
- GraphProvider, useGraph, fetchAndValidateDemoGraph, buildDemoGraphUrl 
+  GraphProvider, useGraph, fetchAndValidateDemoGraph, buildDemoGraphUrl 
 } from './GraphContext'
 import type { RiviereGraph } from '@/types/riviere'
 import {
- parseNode, parseDomainKey 
+  parseNode, parseDomainKey 
 } from '@/lib/riviereTestData'
 
 
 const testSourceLocation = {
- repository: 'test-repo',
-filePath: 'src/test.ts' 
+  repository: 'test-repo',
+  filePath: 'src/test.ts' 
 }
 const CODE_LINK_SETTINGS_KEY = 'eclair-code-link-settings'
 
@@ -31,7 +31,7 @@ const testGraph: RiviereGraph = {
   },
   components: [
     parseNode({
- sourceLocation: testSourceLocation,
+      sourceLocation: testSourceLocation,
       id: 'node-1',
       type: 'API',
       name: 'Test API',
@@ -62,8 +62,8 @@ const anotherGraph: RiviereGraph = {
 
 function TestConsumer(): React.ReactElement {
   const {
- graph, setGraph, clearGraph, hasGraph, graphName 
-} = useGraph()
+    graph, setGraph, clearGraph, hasGraph, graphName 
+  } = useGraph()
   return (
     <div>
       <span data-testid="has-graph">{hasGraph ? 'yes' : 'no'}</span>
@@ -174,9 +174,9 @@ describe('GraphContext', () => {
 
     it('sets GitHub org in localStorage when demo mode detected', async () => {
       vi.stubGlobal('location', {
- ...window.location,
-search: '?demo=true' 
-})
+        ...window.location,
+        search: '?demo=true' 
+      })
 
       vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
         ok: true,
@@ -205,9 +205,9 @@ search: '?demo=true'
 
     it('loads graph when demo mode detected', async () => {
       vi.stubGlobal('location', {
- ...window.location,
-search: '?demo=true' 
-})
+        ...window.location,
+        search: '?demo=true' 
+      })
 
       vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
         ok: true,
@@ -216,8 +216,8 @@ search: '?demo=true'
 
       function DemoTestConsumer(): React.ReactElement {
         const {
- hasGraph, graphName, isLoadingDemo 
-} = useGraph()
+          hasGraph, graphName, isLoadingDemo 
+        } = useGraph()
         return (
           <div>
             <span data-testid="loading">{isLoadingDemo ? 'loading' : 'done'}</span>
@@ -250,9 +250,9 @@ search: '?demo=true'
 
       const mockReplaceState = vi.fn()
       vi.stubGlobal('history', {
- ...window.history,
-replaceState: mockReplaceState 
-})
+        ...window.history,
+        replaceState: mockReplaceState 
+      })
 
       vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
         ok: true,
@@ -318,17 +318,17 @@ replaceState: mockReplaceState
       const invalidGraph = {
         version: '1.0',
         metadata: {
- domains: {
- 'test': {
- description: 'test',
-systemType: 'domain' 
-} 
-} 
-},
+          domains: {
+            'test': {
+              description: 'test',
+              systemType: 'domain' 
+            } 
+          } 
+        },
         components: [{
- id: 'bad-node',
-type: 'InvalidType' 
-}],
+          id: 'bad-node',
+          type: 'InvalidType' 
+        }],
         links: [],
       }
 

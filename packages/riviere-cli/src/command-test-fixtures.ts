@@ -1,10 +1,10 @@
 import {
- mkdtemp, rm, mkdir, writeFile 
+  mkdtemp, rm, mkdir, writeFile 
 } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
- vi, beforeEach, afterEach, expect, it 
+  vi, beforeEach, afterEach, expect, it 
 } from 'vitest';
 import { createProgram } from './cli';
 
@@ -104,11 +104,11 @@ export async function createGraph(
 export const baseMetadata = {
   sources: [{ repository: 'https://github.com/org/repo' }],
   domains: {
-orders: {
- description: 'Order management',
-systemType: 'domain' 
-},
-},
+    orders: {
+      description: 'Order management',
+      systemType: 'domain' 
+    },
+  },
 };
 
 export const sourceLocation = {
@@ -165,11 +165,11 @@ export async function createGraphWithDomain(
     metadata: {
       sources: [{ repository: 'https://github.com/org/repo' }],
       domains: {
-[domainName]: {
- description: 'Test domain',
-systemType: 'domain' 
-},
-},
+        [domainName]: {
+          description: 'Test domain',
+          systemType: 'domain' 
+        },
+      },
     },
     components: [],
     links: [],
@@ -188,11 +188,11 @@ export async function createGraphWithSource(
     metadata: {
       sources: [{ repository }],
       domains: {
- orders: {
- description: 'Orders',
-systemType: 'domain' 
-} 
-},
+        orders: {
+          description: 'Orders',
+          systemType: 'domain' 
+        } 
+      },
     },
     components: [],
     links: [],
@@ -211,11 +211,11 @@ export async function createGraphWithComponent(
     metadata: {
       sources: [{ repository: 'https://github.com/org/repo' }],
       domains: {
-orders: {
- description: 'Order management',
-systemType: 'domain' 
-},
-},
+        orders: {
+          description: 'Order management',
+          systemType: 'domain' 
+        },
+      },
     },
     components: [component],
     links: [],
@@ -226,13 +226,13 @@ systemType: 'domain'
 export interface CustomTypeDefinition {
   description?: string;
   requiredProperties?: Record<string, {
- type: string;
-description?: string 
-}>;
+    type: string;
+    description?: string 
+  }>;
   optionalProperties?: Record<string, {
- type: string;
-description?: string 
-}>;
+    type: string;
+    description?: string 
+  }>;
 }
 
 export async function createGraphWithCustomType(
@@ -248,11 +248,11 @@ export async function createGraphWithCustomType(
     metadata: {
       sources: [{ repository: 'https://github.com/org/repo' }],
       domains: {
-[domainName]: {
- description: 'Test domain',
-systemType: 'domain' 
-},
-},
+        [domainName]: {
+          description: 'Test domain',
+          systemType: 'domain' 
+        },
+      },
       customTypes: { [customTypeName]: customTypeDefinition },
     },
     components: [],
@@ -289,8 +289,8 @@ export const simpleUseCaseComponent = {
 export function hasSuccessOutputStructure(
   value: unknown,
 ): value is {
- success: true;
-data: object 
+  success: true;
+  data: object 
 } {
   if (typeof value !== 'object' || value === null) return false;
   if (!('success' in value) || value.success !== true) return false;
@@ -320,11 +320,11 @@ export async function testCustomGraphPath<T>(
   const customPath = await createGraph(
     ctx.testDir,
     {
- version: '1.0',
-metadata: baseMetadata,
-components: [],
-links: [] 
-},
+      version: '1.0',
+      metadata: baseMetadata,
+      components: [],
+      links: [] 
+    },
     'custom',
   );
 

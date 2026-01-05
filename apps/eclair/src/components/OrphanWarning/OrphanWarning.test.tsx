@@ -1,21 +1,21 @@
 import {
- render, screen 
+  render, screen 
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import {
- describe, expect, it 
+  describe, expect, it 
 } from 'vitest'
 import { OrphanWarning } from './OrphanWarning'
 import type { OrphanDetectionResult } from './OrphanWarning'
 import type { Node } from '@/types/riviere'
 import {
- nodeIdSchema, domainNameSchema, moduleNameSchema, entityNameSchema 
+  nodeIdSchema, domainNameSchema, moduleNameSchema, entityNameSchema 
 } from '@/types/riviere'
 
 const testSourceLocation = {
- repository: 'test-repo',
-filePath: 'test.ts',
-lineNumber: 42 
+  repository: 'test-repo',
+  filePath: 'test.ts',
+  lineNumber: 42 
 }
 
 function createAPINode(id: string, name: string): Node {

@@ -1,8 +1,8 @@
 import {
- describe, expect, test, vi, beforeEach 
+  describe, expect, test, vi, beforeEach 
 } from 'vitest'
 import {
- render, screen, fireEvent, act 
+  render, screen, fireEvent, act 
 } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
@@ -10,25 +10,25 @@ import { FullGraphPage } from './FullGraphPage'
 import { ExportProvider } from '@/contexts/ExportContext'
 import type { RiviereGraph } from '@/types/riviere'
 import {
- parseNode, parseEdge, parseDomainKey 
+  parseNode, parseEdge, parseDomainKey 
 } from '@/lib/riviereTestData'
 import type {
- TooltipData, SimulationNode 
+  TooltipData, SimulationNode 
 } from './types'
 const testSourceLocation = {
- repository: 'test-repo',
-filePath: 'src/test.ts' 
+  repository: 'test-repo',
+  filePath: 'src/test.ts' 
 }
 
 const {
- capturedOnNodeHover, capturedOnBackgroundClick 
+  capturedOnNodeHover, capturedOnBackgroundClick 
 } = vi.hoisted(() => {
   const hoverRef: { current: ((data: TooltipData | null) => void) | undefined } = { current: undefined }
   const backgroundClickRef: { current: (() => void) | undefined } = { current: undefined }
   return {
- capturedOnNodeHover: hoverRef,
-capturedOnBackgroundClick: backgroundClickRef 
-}
+    capturedOnNodeHover: hoverRef,
+    capturedOnBackgroundClick: backgroundClickRef 
+  }
 })
 
 const mockGraph: RiviereGraph = {
@@ -37,61 +37,61 @@ const mockGraph: RiviereGraph = {
     name: 'Test Graph',
     domains: {
       [parseDomainKey('orders')]: {
- description: 'Orders domain',
-systemType: 'domain' 
-},
+        description: 'Orders domain',
+        systemType: 'domain' 
+      },
       [parseDomainKey('shipping')]: {
- description: 'Shipping domain',
-systemType: 'domain' 
-},
+        description: 'Shipping domain',
+        systemType: 'domain' 
+      },
     },
   },
   components: [
     parseNode({
- sourceLocation: testSourceLocation,
-id: 'node-1',
-type: 'API',
-name: 'Test API',
-domain: 'orders',
-module: 'api' 
-}),
+      sourceLocation: testSourceLocation,
+      id: 'node-1',
+      type: 'API',
+      name: 'Test API',
+      domain: 'orders',
+      module: 'api' 
+    }),
     parseNode({
- sourceLocation: testSourceLocation,
-id: 'node-2',
-type: 'UseCase',
-name: 'Test UseCase',
-domain: 'orders',
-module: 'core' 
-}),
+      sourceLocation: testSourceLocation,
+      id: 'node-2',
+      type: 'UseCase',
+      name: 'Test UseCase',
+      domain: 'orders',
+      module: 'core' 
+    }),
     parseNode({
- sourceLocation: testSourceLocation,
-id: 'node-3',
-type: 'DomainOp',
-name: 'Ship Order',
-domain: 'shipping',
-module: 'core',
-operationName: 'ship' 
-}),
+      sourceLocation: testSourceLocation,
+      id: 'node-3',
+      type: 'DomainOp',
+      name: 'Ship Order',
+      domain: 'shipping',
+      module: 'core',
+      operationName: 'ship' 
+    }),
   ],
   links: [
     parseEdge({
- source: 'node-1',
-target: 'node-2',
-type: 'sync' 
-}),
+      source: 'node-1',
+      target: 'node-2',
+      type: 'sync' 
+    }),
     parseEdge({
- source: 'node-2',
-target: 'node-3',
-type: 'async' 
-}),
+      source: 'node-2',
+      target: 'node-3',
+      type: 'async' 
+    }),
   ],
 }
 
 vi.mock('@/contexts/ThemeContext', () => ({
-useTheme: () => ({
- theme: 'stream',
-setTheme: vi.fn() 
-}),
+  useTheme: () => ({
+    theme: 'stream',
+    setTheme: vi.fn() 
+  }),
 }))
 
 vi.mock('./components/ForceGraph/ForceGraph', () => ({
@@ -371,9 +371,9 @@ describe('FullGraphPage', () => {
         {
           source: 'node-1',
           target: {
- name: 'Stripe',
-url: 'https://api.stripe.com' 
-},
+            name: 'Stripe',
+            url: 'https://api.stripe.com' 
+          },
           type: 'sync',
         },
       ],
@@ -440,7 +440,7 @@ url: 'https://api.stripe.com'
     const mockSimulationNode: SimulationNode = {
       id: 'node-1',
       type: 'API',
-        apiType: 'other',
+      apiType: 'other',
       name: 'Test API',
       domain: 'orders',
       originalNode: parseNode({

@@ -1,12 +1,12 @@
 import {
- useCallback, useEffect, useId, useState 
+  useCallback, useEffect, useId, useState 
 } from 'react'
 import {
- JsonView, collapseAllNested 
+  JsonView, collapseAllNested 
 } from 'react-json-view-lite'
 import 'react-json-view-lite/dist/index.css'
 import type {
- RiviereGraph, GraphName 
+  RiviereGraph, GraphName 
 } from '@/types/riviere'
 import styles from './SchemaModal.module.css'
 

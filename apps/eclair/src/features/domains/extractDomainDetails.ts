@@ -10,11 +10,11 @@ import type {
 } from '@/types/riviere'
 import { nodeIdSchema } from '@/types/riviere'
 import {
- RiviereQuery, type Entity 
+  RiviereQuery, type Entity 
 } from '@living-architecture/riviere-query'
 import type { NodeBreakdown } from './domainNodeBreakdown'
 import {
- countNodesByType, formatDomainNodes, extractEntryPoints 
+  countNodesByType, formatDomainNodes, extractEntryPoints 
 } from './domainNodeBreakdown'
 
 export interface DomainNode {

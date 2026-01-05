@@ -1,5 +1,5 @@
 import {
- describe, it, expect 
+  describe, it, expect 
 } from 'vitest';
 import { RiviereBuilder } from './builder';
 import {
@@ -82,9 +82,9 @@ describe('RiviereBuilder', () => {
       });
 
       builder.link({
- from: source.id,
-to: target.id 
-});
+        from: source.id,
+        to: target.id 
+      });
 
       const stats = builder.stats();
 
@@ -145,9 +145,9 @@ to: target.id
       });
 
       builder.link({
- from: source.id,
-to: target.id 
-});
+        from: source.id,
+        to: target.id 
+      });
 
       const warnings = builder.warnings();
 
@@ -171,9 +171,9 @@ to: target.id
         sourceLocation: createSourceLocation(),
       });
       builder.linkExternal({
- from: linked.id,
-target: { name: 'External' } 
-});
+        from: linked.id,
+        target: { name: 'External' } 
+      });
 
       const warnings = builder.warnings();
 
@@ -285,9 +285,9 @@ target: { name: 'External' }
       });
 
       builder.link({
- from: source.id,
-to: target.id 
-});
+        from: source.id,
+        to: target.id 
+      });
 
       const warnings = builder.warnings();
 
@@ -315,9 +315,9 @@ to: target.id
         sourceLocation: createSourceLocation(),
       });
       builder.link({
- from: source.id,
-to: target.id 
-});
+        from: source.id,
+        to: target.id 
+      });
       expect(builder.orphans()).toEqual([]);
     });
 
@@ -341,9 +341,9 @@ to: target.id
         sourceLocation: createSourceLocation(),
       });
       builder.link({
- from: source.id,
-to: 'nonexistent:target:id' 
-});
+        from: source.id,
+        to: 'nonexistent:target:id' 
+      });
       expect(builder.orphans()).toEqual([]);
     });
 
@@ -363,9 +363,9 @@ to: 'nonexistent:target:id'
         sourceLocation: createSourceLocation(),
       });
       builder.link({
- from: source.id,
-to: target.id 
-});
+        from: source.id,
+        to: target.id 
+      });
       expect(builder.orphans()).toEqual([]);
     });
 
@@ -378,9 +378,9 @@ to: target.id
         sourceLocation: createSourceLocation(),
       });
       builder.linkExternal({
- from: source.id,
-target: { name: 'Stripe API' } 
-});
+        from: source.id,
+        target: { name: 'Stripe API' } 
+      });
       expect(builder.orphans()).toEqual([]);
     });
 

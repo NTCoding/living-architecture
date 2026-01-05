@@ -1,5 +1,5 @@
 import {
- describe, it, expect 
+  describe, it, expect 
 } from 'vitest';
 import { queryExternalDomains } from './external-system-queries';
 import {

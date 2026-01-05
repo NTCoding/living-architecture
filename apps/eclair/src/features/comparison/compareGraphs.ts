@@ -1,5 +1,5 @@
 import type {
- RiviereGraph, Node, Edge, NodeType, NodeId 
+  RiviereGraph, Node, Edge, NodeType, NodeId 
 } from '@/types/riviere'
 
 interface NodeAddition {node: Node}
@@ -239,11 +239,11 @@ function compareNodes(
   const afterNodesById = new Map<NodeId, Node>(afterNodes.map((n) => [n.id, n]))
 
   const nodeDiff: NodeDiff = {
- added: [],
-removed: [],
-modified: [],
-unchanged: [] 
-}
+    added: [],
+    removed: [],
+    modified: [],
+    unchanged: [] 
+  }
 
   for (const afterNode of afterNodes) {
     const beforeNode = beforeNodesById.get(afterNode.id)
@@ -256,10 +256,10 @@ unchanged: []
     const changedFields = getChangedNodeFields(beforeNode, afterNode)
     if (changedFields.length > 0) {
       recordModification({
- before: beforeNode,
-after: afterNode,
-changedFields 
-}, nodeDiff, byDomain, byNodeType)
+        before: beforeNode,
+        after: afterNode,
+        changedFields 
+      }, nodeDiff, byDomain, byNodeType)
     } else {
       nodeDiff.unchanged.push(afterNode)
     }
@@ -279,11 +279,11 @@ function compareEdges(beforeEdges: Edge[], afterEdges: Edge[]): EdgeDiff {
   const afterEdgesByKey = new Map(afterEdges.map((e) => [createEdgeKey(e), e]))
 
   const edgeDiff: EdgeDiff = {
- added: [],
-removed: [],
-modified: [],
-unchanged: [] 
-}
+    added: [],
+    removed: [],
+    modified: [],
+    unchanged: [] 
+  }
 
   for (const afterEdge of afterEdges) {
     const key = createEdgeKey(afterEdge)
@@ -297,10 +297,10 @@ unchanged: []
     const changedFields = getChangedEdgeFields(beforeEdge, afterEdge)
     if (changedFields.length > 0) {
       edgeDiff.modified.push({
- before: beforeEdge,
-after: afterEdge,
-changedFields 
-})
+        before: beforeEdge,
+        after: afterEdge,
+        changedFields 
+      })
     } else {
       edgeDiff.unchanged.push(afterEdge)
     }

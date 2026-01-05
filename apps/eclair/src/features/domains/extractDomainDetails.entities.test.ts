@@ -1,15 +1,15 @@
 import {
- describe, it, expect 
+  describe, it, expect 
 } from 'vitest'
 import { extractDomainDetails } from './extractDomainDetails'
 import {
- parseNode, parseDomainMetadata, parseDomainKey, type RawNode 
+  parseNode, parseDomainMetadata, parseDomainKey, type RawNode 
 } from '@/lib/riviereTestData'
 import type { RiviereGraph } from '@/types/riviere'
 
 const testSourceLocation = {
- repository: 'test-repo',
-filePath: 'src/test.ts' 
+  repository: 'test-repo',
+  filePath: 'src/test.ts' 
 }
 
 function createMinimalGraph(overrides: Partial<RiviereGraph> = {}): RiviereGraph {
@@ -36,22 +36,22 @@ function createNode(overrides: Partial<RawNode> = {}): ReturnType<typeof parseNo
     module: 'test-module',
   }
   return parseNode({
- ...defaults,
-...overrides 
-})
+    ...defaults,
+    ...overrides 
+  })
 }
 
 describe('extractDomainDetails entities extraction', () => {
   it('extracts unique entities with their operations', () => {
     const graph = createMinimalGraph({
       metadata: {
-domains: parseDomainMetadata({
- 'order-domain': {
- description: 'Orders',
-systemType: 'domain' 
-} 
-}),
-},
+        domains: parseDomainMetadata({
+          'order-domain': {
+            description: 'Orders',
+            systemType: 'domain' 
+          } 
+        }),
+      },
       components: [
         createNode({
           id: 'op-1',
@@ -94,38 +94,38 @@ systemType: 'domain'
   it('sorts entities alphabetically and operations alphabetically', () => {
     const graph = createMinimalGraph({
       metadata: {
-domains: parseDomainMetadata({
- 'order-domain': {
- description: 'Orders',
-systemType: 'domain' 
-} 
-}),
-},
+        domains: parseDomainMetadata({
+          'order-domain': {
+            description: 'Orders',
+            systemType: 'domain' 
+          } 
+        }),
+      },
       components: [
         createNode({
- id: 'op-1',
-type: 'DomainOp',
-name: 'Zebra.z()',
-domain: 'order-domain',
-entity: 'Zebra',
-operationName: 'z' 
-}),
+          id: 'op-1',
+          type: 'DomainOp',
+          name: 'Zebra.z()',
+          domain: 'order-domain',
+          entity: 'Zebra',
+          operationName: 'z' 
+        }),
         createNode({
- id: 'op-2',
-type: 'DomainOp',
-name: 'Apple.b()',
-domain: 'order-domain',
-entity: 'Apple',
-operationName: 'b' 
-}),
+          id: 'op-2',
+          type: 'DomainOp',
+          name: 'Apple.b()',
+          domain: 'order-domain',
+          entity: 'Apple',
+          operationName: 'b' 
+        }),
         createNode({
- id: 'op-3',
-type: 'DomainOp',
-name: 'Apple.a()',
-domain: 'order-domain',
-entity: 'Apple',
-operationName: 'a' 
-}),
+          id: 'op-3',
+          type: 'DomainOp',
+          name: 'Apple.a()',
+          domain: 'order-domain',
+          entity: 'Apple',
+          operationName: 'a' 
+        }),
       ],
     })
 
@@ -138,20 +138,20 @@ operationName: 'a'
   it('returns empty array when no entities', () => {
     const graph = createMinimalGraph({
       metadata: {
-domains: parseDomainMetadata({
- 'order-domain': {
- description: 'Orders',
-systemType: 'domain' 
-} 
-}),
-},
+        domains: parseDomainMetadata({
+          'order-domain': {
+            description: 'Orders',
+            systemType: 'domain' 
+          } 
+        }),
+      },
       components: [
         createNode({
- id: 'api-1',
-type: 'API',
-name: 'API',
-domain: 'order-domain' 
-}),
+          id: 'api-1',
+          type: 'API',
+          name: 'API',
+          domain: 'order-domain' 
+        }),
       ],
     })
 
@@ -163,13 +163,13 @@ domain: 'order-domain'
   it('includes sourceLocation on first operation', () => {
     const graph = createMinimalGraph({
       metadata: {
-domains: parseDomainMetadata({
- 'order-domain': {
- description: 'Orders',
-systemType: 'domain' 
-} 
-}),
-},
+        domains: parseDomainMetadata({
+          'order-domain': {
+            description: 'Orders',
+            systemType: 'domain' 
+          } 
+        }),
+      },
       components: [
         createNode({
           id: 'op-1',
@@ -179,10 +179,10 @@ systemType: 'domain'
           entity: 'Order',
           operationName: 'begin',
           sourceLocation: {
- repository: 'test-repo',
-filePath: 'src/Order.ts',
-lineNumber: 10 
-},
+            repository: 'test-repo',
+            filePath: 'src/Order.ts',
+            lineNumber: 10 
+          },
         }),
         createNode({
           id: 'op-2',
@@ -192,10 +192,10 @@ lineNumber: 10
           entity: 'Order',
           operationName: 'confirm',
           sourceLocation: {
- repository: 'test-repo',
-filePath: 'src/Order.ts',
-lineNumber: 30 
-},
+            repository: 'test-repo',
+            filePath: 'src/Order.ts',
+            lineNumber: 30 
+          },
         }),
       ],
     })
@@ -204,10 +204,10 @@ lineNumber: 30
     const orderEntity = result?.entities.find((e) => e.name === 'Order')
 
     expect(orderEntity?.operations[0]?.sourceLocation).toEqual({
- repository: 'test-repo',
-filePath: 'src/Order.ts',
-lineNumber: 10 
-})
+      repository: 'test-repo',
+      filePath: 'src/Order.ts',
+      lineNumber: 10 
+    })
   })
 
   it('handles entity with minimal sourceLocation', () => {
@@ -220,19 +220,19 @@ lineNumber: 10
       entity: 'Order',
       operationName: 'begin',
       sourceLocation: {
- repository: 'test-repo',
-filePath: 'unknown' 
-},
+        repository: 'test-repo',
+        filePath: 'unknown' 
+      },
     }
     const graph = createMinimalGraph({
       metadata: {
-domains: parseDomainMetadata({
- 'order-domain': {
- description: 'Orders',
-systemType: 'domain' 
-} 
-}),
-},
+        domains: parseDomainMetadata({
+          'order-domain': {
+            description: 'Orders',
+            systemType: 'domain' 
+          } 
+        }),
+      },
       components: [parseNode(rawNode)],
     })
 
@@ -240,20 +240,20 @@ systemType: 'domain'
     const orderEntity = result?.entities.find((e) => e.name === 'Order')
 
     expect(orderEntity?.operations[0]?.sourceLocation).toEqual({
- repository: 'test-repo',
-filePath: 'unknown' 
-})
+      repository: 'test-repo',
+      filePath: 'unknown' 
+    })
   })
 
   it('returns empty businessRules when operations have no businessRules', () => {
     const graph = createMinimalGraph({
       metadata: {
         domains: parseDomainMetadata({
-'order-domain': {
- description: 'Orders',
-systemType: 'domain' 
-},
-}),
+          'order-domain': {
+            description: 'Orders',
+            systemType: 'domain' 
+          },
+        }),
       },
       components: [
         createNode({

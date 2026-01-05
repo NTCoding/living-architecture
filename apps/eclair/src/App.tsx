@@ -1,9 +1,9 @@
 import {
- Routes, Route 
+  Routes, Route 
 } from 'react-router-dom'
 import { AppShell } from '@/components/AppShell/AppShell'
 import {
- GraphProvider, useGraph 
+  GraphProvider, useGraph 
 } from '@/contexts/GraphContext'
 import { ExportProvider } from '@/contexts/ExportContext'
 import { EmptyState } from '@/features/empty-state/EmptyState'
@@ -55,8 +55,8 @@ function Events(): React.ReactElement {
 
 function AppContent(): React.ReactElement {
   const {
- hasGraph, graphName, graph, isLoadingDemo 
-} = useGraph()
+    hasGraph, graphName, graph, isLoadingDemo 
+  } = useGraph()
 
   if (isLoadingDemo) {
     return (

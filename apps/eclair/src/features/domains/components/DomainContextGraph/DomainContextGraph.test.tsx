@@ -1,8 +1,8 @@
 import {
- describe, it, expect 
+  describe, it, expect 
 } from 'vitest'
 import {
- render, screen 
+  render, screen 
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { BrowserRouter } from 'react-router-dom'
@@ -12,23 +12,23 @@ import type { AggregatedConnection } from '../../extractDomainDetails'
 function createConnections(overrides: Partial<AggregatedConnection>[] = []): AggregatedConnection[] {
   const defaults: AggregatedConnection[] = [
     {
- targetDomain: 'inventory-domain',
-direction: 'outgoing',
-apiCount: 2,
-eventCount: 1 
-},
+      targetDomain: 'inventory-domain',
+      direction: 'outgoing',
+      apiCount: 2,
+      eventCount: 1 
+    },
     {
- targetDomain: 'payment-domain',
-direction: 'outgoing',
-apiCount: 1,
-eventCount: 0 
-},
+      targetDomain: 'payment-domain',
+      direction: 'outgoing',
+      apiCount: 1,
+      eventCount: 0 
+    },
     {
- targetDomain: 'shipping-domain',
-direction: 'incoming',
-apiCount: 0,
-eventCount: 2 
-},
+      targetDomain: 'shipping-domain',
+      direction: 'incoming',
+      apiCount: 0,
+      eventCount: 2 
+    },
   ]
   if (overrides.length === 0) return defaults
   return overrides.map((o, i) => {
@@ -37,9 +37,9 @@ eventCount: 2
       throw new Error('Default connection not found')
     }
     return {
- ...base,
-...o 
-}
+      ...base,
+      ...o 
+    }
   })
 }
 
@@ -108,11 +108,11 @@ describe('DomainContextGraph', () => {
     it('renders edges between domains', () => {
       const connections = createConnections([
         {
- targetDomain: 'inventory-domain',
-direction: 'outgoing',
-apiCount: 1,
-eventCount: 0 
-},
+          targetDomain: 'inventory-domain',
+          direction: 'outgoing',
+          apiCount: 1,
+          eventCount: 0 
+        },
       ])
 
       renderWithRouter(
@@ -128,11 +128,11 @@ eventCount: 0
     it('renders edge with correct direction for outgoing', () => {
       const connections = createConnections([
         {
- targetDomain: 'inventory-domain',
-direction: 'outgoing',
-apiCount: 1,
-eventCount: 0 
-},
+          targetDomain: 'inventory-domain',
+          direction: 'outgoing',
+          apiCount: 1,
+          eventCount: 0 
+        },
       ])
 
       renderWithRouter(
@@ -149,11 +149,11 @@ eventCount: 0
     it('renders edge with correct direction for incoming', () => {
       const connections = createConnections([
         {
- targetDomain: 'shipping-domain',
-direction: 'incoming',
-apiCount: 0,
-eventCount: 1 
-},
+          targetDomain: 'shipping-domain',
+          direction: 'incoming',
+          apiCount: 0,
+          eventCount: 1 
+        },
       ])
 
       renderWithRouter(
@@ -173,11 +173,11 @@ eventCount: 1
       const user = userEvent.setup()
       const connections = createConnections([
         {
- targetDomain: 'inventory-domain',
-direction: 'outgoing',
-apiCount: 2,
-eventCount: 1 
-},
+          targetDomain: 'inventory-domain',
+          direction: 'outgoing',
+          apiCount: 2,
+          eventCount: 1 
+        },
       ])
 
       renderWithRouter(
@@ -215,11 +215,11 @@ eventCount: 1
       const user = userEvent.setup()
       const connections = createConnections([
         {
- targetDomain: 'inventory-domain',
-direction: 'outgoing',
-apiCount: 1,
-eventCount: 0 
-},
+          targetDomain: 'inventory-domain',
+          direction: 'outgoing',
+          apiCount: 1,
+          eventCount: 0 
+        },
       ])
 
       renderWithRouter(
@@ -240,11 +240,11 @@ eventCount: 0
       const user = userEvent.setup()
       const connections = createConnections([
         {
- targetDomain: 'inventory-domain',
-direction: 'outgoing',
-apiCount: 2,
-eventCount: 1 
-},
+          targetDomain: 'inventory-domain',
+          direction: 'outgoing',
+          apiCount: 2,
+          eventCount: 1 
+        },
       ])
 
       renderWithRouter(

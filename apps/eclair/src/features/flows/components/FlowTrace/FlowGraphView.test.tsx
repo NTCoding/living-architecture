@@ -1,20 +1,20 @@
 import {
- describe, it, expect, vi, beforeEach, afterEach 
+  describe, it, expect, vi, beforeEach, afterEach 
 } from 'vitest'
 import {
- render, screen, act, fireEvent 
+  render, screen, act, fireEvent 
 } from '@testing-library/react'
 import { FlowGraphView } from './FlowGraphView'
 import {
- parseNode, parseEdge, parseDomainMetadata 
+  parseNode, parseEdge, parseDomainMetadata 
 } from '@/lib/riviereTestData'
 import type { FlowStep } from '../../extractFlows'
 import type { RiviereGraph } from '@/types/riviere'
 import type { TooltipData } from '@/features/full-graph/types'
 
 const testSourceLocation = {
- repository: 'test-repo',
-filePath: 'src/test.ts' 
+  repository: 'test-repo',
+  filePath: 'src/test.ts' 
 }
 
 vi.mock('@/contexts/ThemeContext', () => ({useTheme: () => ({ theme: 'stream' }),}))
@@ -67,29 +67,29 @@ function createTestSteps(): FlowStep[] {
   return [
     {
       node: parseNode({
- sourceLocation: testSourceLocation,
-id: 'ui-1',
-type: 'UI',
-name: 'Order Form',
-domain: 'checkout',
-module: 'ui',
-route: '/orders' 
-}),
+        sourceLocation: testSourceLocation,
+        id: 'ui-1',
+        type: 'UI',
+        name: 'Order Form',
+        domain: 'checkout',
+        module: 'ui',
+        route: '/orders' 
+      }),
       edgeType: 'sync',
       depth: 0,
       externalLinks: [],
     },
     {
       node: parseNode({
- sourceLocation: testSourceLocation,
-id: 'api-1',
-type: 'API',
-name: 'POST /orders',
-domain: 'orders',
-module: 'api',
-httpMethod: 'POST',
-path: '/orders' 
-}),
+        sourceLocation: testSourceLocation,
+        id: 'api-1',
+        type: 'API',
+        name: 'POST /orders',
+        domain: 'orders',
+        module: 'api',
+        httpMethod: 'POST',
+        path: '/orders' 
+      }),
       edgeType: null,
       depth: 1,
       externalLinks: [],
@@ -101,53 +101,53 @@ function createTestGraph(): RiviereGraph {
   return {
     version: '1.0',
     metadata: {
- domains: parseDomainMetadata({
- 'test-domain': {
- description: 'Test domain',
-systemType: 'domain' 
-} 
-}) 
-},
+      domains: parseDomainMetadata({
+        'test-domain': {
+          description: 'Test domain',
+          systemType: 'domain' 
+        } 
+      }) 
+    },
     components: [
       parseNode({
- sourceLocation: testSourceLocation,
-id: 'ui-1',
-type: 'UI',
-name: 'Order Form',
-domain: 'checkout',
-module: 'ui',
-route: '/orders' 
-}),
+        sourceLocation: testSourceLocation,
+        id: 'ui-1',
+        type: 'UI',
+        name: 'Order Form',
+        domain: 'checkout',
+        module: 'ui',
+        route: '/orders' 
+      }),
       parseNode({
- sourceLocation: testSourceLocation,
-id: 'api-1',
-type: 'API',
-name: 'POST /orders',
-domain: 'orders',
-module: 'api',
-httpMethod: 'POST',
-path: '/orders' 
-}),
+        sourceLocation: testSourceLocation,
+        id: 'api-1',
+        type: 'API',
+        name: 'POST /orders',
+        domain: 'orders',
+        module: 'api',
+        httpMethod: 'POST',
+        path: '/orders' 
+      }),
       parseNode({
- sourceLocation: testSourceLocation,
-id: 'other-node',
-type: 'UseCase',
-name: 'Other',
-domain: 'other',
-module: 'other' 
-}),
+        sourceLocation: testSourceLocation,
+        id: 'other-node',
+        type: 'UseCase',
+        name: 'Other',
+        domain: 'other',
+        module: 'other' 
+      }),
     ],
     links: [
       parseEdge({
- source: 'ui-1',
-target: 'api-1',
-type: 'sync' 
-}),
+        source: 'ui-1',
+        target: 'api-1',
+        type: 'sync' 
+      }),
       parseEdge({
- source: 'api-1',
-target: 'other-node',
-type: 'sync' 
-}),
+        source: 'api-1',
+        target: 'other-node',
+        type: 'sync' 
+      }),
     ],
   }
 }

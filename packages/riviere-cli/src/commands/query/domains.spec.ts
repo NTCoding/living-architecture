@@ -1,5 +1,5 @@
 import {
- describe, it, expect 
+  describe, it, expect 
 } from 'vitest';
 import { createProgram } from '../../cli';
 import { CliErrorCode } from '../../error-codes';
@@ -79,11 +79,11 @@ describe('riviere query domains', () => {
         metadata: {
           sources: [{ repository: 'https://github.com/org/repo' }],
           domains: {
-orders: {
- description: 'Order management',
-systemType: 'domain' 
-},
-},
+            orders: {
+              description: 'Order management',
+              systemType: 'domain' 
+            },
+          },
         },
         components: [
           {
@@ -140,13 +140,13 @@ systemType: 'domain'
           sources: [{ repository: 'https://github.com/org/repo' }],
           domains: {
             orders: {
- description: 'Order management',
-systemType: 'domain' 
-},
+              description: 'Order management',
+              systemType: 'domain' 
+            },
             payments: {
- description: 'Payment processing',
-systemType: 'bff' 
-},
+              description: 'Payment processing',
+              systemType: 'bff' 
+            },
           },
         },
         components: [
@@ -198,11 +198,11 @@ systemType: 'bff'
         metadata: {
           sources: [{ repository: 'https://github.com/org/repo' }],
           domains: {
-orders: {
- description: 'Order management',
-systemType: 'domain' 
-},
-},
+            orders: {
+              description: 'Order management',
+              systemType: 'domain' 
+            },
+          },
         },
         components: [],
         links: [],

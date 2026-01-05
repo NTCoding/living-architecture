@@ -1,8 +1,8 @@
 import {
- describe, it, expect, vi, beforeEach, afterEach 
+  describe, it, expect, vi, beforeEach, afterEach 
 } from 'vitest';
 import {
- readFile, mkdir, writeFile, mkdtemp, rm 
+  readFile, mkdir, writeFile, mkdtemp, rm 
 } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -59,13 +59,13 @@ describe('riviere builder add-domain', () => {
         metadata: {
           domains: {
             orders: {
- description: 'Test domain',
-systemType: 'domain' 
-},
+              description: 'Test domain',
+              systemType: 'domain' 
+            },
             payments: {
- description: 'Payment processing',
-systemType: 'bff' 
-},
+              description: 'Payment processing',
+              systemType: 'bff' 
+            },
           },
         },
       });
@@ -180,11 +180,11 @@ systemType: 'bff'
         metadata: {
           sources: [{ repository: 'https://github.com/org/repo' }],
           domains: {
- orders: {
- description: 'Orders',
-systemType: 'domain' 
-} 
-},
+            orders: {
+              description: 'Orders',
+              systemType: 'domain' 
+            } 
+          },
         },
         components: [],
         links: [],
@@ -213,13 +213,13 @@ systemType: 'domain'
         metadata: {
           domains: {
             orders: {
- description: 'Orders',
-systemType: 'domain' 
-},
+              description: 'Orders',
+              systemType: 'domain' 
+            },
             payments: {
- description: 'Payment processing',
-systemType: 'bff' 
-},
+              description: 'Payment processing',
+              systemType: 'bff' 
+            },
           },
         },
       });
@@ -228,9 +228,9 @@ systemType: 'bff'
 
   describe('unexpected builder errors', () => {
     const mockContext: {
- testDir: string;
-originalCwd: string 
-} = {
+      testDir: string;
+      originalCwd: string 
+    } = {
       testDir: '',
       originalCwd: '',
     };

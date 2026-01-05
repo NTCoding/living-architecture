@@ -3,7 +3,7 @@ import type {
   DomainMetadata,
 } from '@living-architecture/riviere-schema';
 import {
- CustomTypeNotFoundError, DomainNotFoundError 
+  CustomTypeNotFoundError, DomainNotFoundError 
 } from './errors';
 
 export function assertDomainExists(

@@ -1,8 +1,8 @@
 import {
- describe, it, expect 
+  describe, it, expect 
 } from 'vitest';
 import {
- readFile, stat, mkdir, writeFile 
+  readFile, stat, mkdir, writeFile 
 } from 'node:fs/promises';
 import { join } from 'node:path';
 import { createProgram } from '../../cli';
@@ -159,13 +159,13 @@ describe('riviere builder init', () => {
         metadata: {
           domains: {
             orders: {
- description: 'Order management',
-systemType: 'domain' 
-},
+              description: 'Order management',
+              systemType: 'domain' 
+            },
             payments: {
- description: 'Payment processing',
-systemType: 'bff' 
-},
+              description: 'Payment processing',
+              systemType: 'bff' 
+            },
           },
         },
       });

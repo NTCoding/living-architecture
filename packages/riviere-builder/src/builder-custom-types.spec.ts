@@ -1,19 +1,19 @@
 import {
- RiviereBuilder, type BuilderOptions 
+  RiviereBuilder, type BuilderOptions 
 } from './builder';
 
 function createValidOptions(): BuilderOptions {
   return {
     sources: [{
- repository: 'my-org/my-repo',
-commit: 'abc123' 
-}],
+      repository: 'my-org/my-repo',
+      commit: 'abc123' 
+    }],
     domains: {
-orders: {
- description: 'Order management',
-systemType: 'domain' 
-},
-},
+      orders: {
+        description: 'Order management',
+        systemType: 'domain' 
+      },
+    },
   };
 }
 
@@ -25,21 +25,21 @@ describe('RiviereBuilder custom types', () => {
       builder.defineCustomType({
         name: 'MessageQueue',
         requiredProperties: {
-queueName: {
- type: 'string',
-description: 'Queue identifier' 
-},
-},
+          queueName: {
+            type: 'string',
+            description: 'Queue identifier' 
+          },
+        },
       });
 
       expect(builder.graph.metadata.customTypes).toEqual({
         MessageQueue: {
           requiredProperties: {
-queueName: {
- type: 'string',
-description: 'Queue identifier' 
-},
-},
+            queueName: {
+              type: 'string',
+              description: 'Queue identifier' 
+            },
+          },
         },
       });
     });
@@ -51,22 +51,22 @@ description: 'Queue identifier'
         name: 'CacheStore',
         description: 'In-memory cache',
         optionalProperties: {
-ttl: {
- type: 'number',
-description: 'Time to live in seconds' 
-},
-},
+          ttl: {
+            type: 'number',
+            description: 'Time to live in seconds' 
+          },
+        },
       });
 
       expect(builder.graph.metadata.customTypes).toEqual({
         CacheStore: {
           description: 'In-memory cache',
           optionalProperties: {
-ttl: {
- type: 'number',
-description: 'Time to live in seconds' 
-},
-},
+            ttl: {
+              type: 'number',
+              description: 'Time to live in seconds' 
+            },
+          },
         },
       });
     });

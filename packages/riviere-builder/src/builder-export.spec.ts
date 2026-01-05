@@ -1,5 +1,5 @@
 import {
- describe, it, expect, afterEach 
+  describe, it, expect, afterEach 
 } from 'vitest';
 import { promises as fs } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -35,9 +35,9 @@ describe('RiviereBuilder', () => {
       });
 
       builder.link({
- from: source.id,
-to: target.id 
-});
+        from: source.id,
+        to: target.id 
+      });
 
       const graph = builder.build();
 
@@ -46,19 +46,19 @@ to: target.id
       expect(graph.metadata.description).toBe('A test graph');
       expect(graph.metadata.sources).toEqual([
         {
- repository: 'test/repo',
-commit: 'abc123' 
-},
+          repository: 'test/repo',
+          commit: 'abc123' 
+        },
       ]);
       expect(graph.metadata.domains).toEqual({
         orders: {
- description: 'Order domain',
-systemType: 'domain' 
-},
+          description: 'Order domain',
+          systemType: 'domain' 
+        },
         shipping: {
- description: 'Shipping domain',
-systemType: 'domain' 
-},
+          description: 'Shipping domain',
+          systemType: 'domain' 
+        },
       });
       expect(graph.components).toContainEqual(
         expect.objectContaining({
@@ -91,9 +91,9 @@ systemType: 'domain'
       });
 
       builder.link({
- from: source.id,
-to: 'nonexistent:component:id' 
-});
+        from: source.id,
+        to: 'nonexistent:component:id' 
+      });
 
       expect(() => builder.build()).toThrow(/validation failed/i);
     });
@@ -170,9 +170,9 @@ to: 'nonexistent:component:id'
       });
 
       builder.link({
- from: source.id,
-to: target.id 
-});
+        from: source.id,
+        to: target.id 
+      });
 
       const graph = builder.build();
 
@@ -190,17 +190,17 @@ to: target.id
       });
 
       builder.linkExternal({
- from: source.id,
-target: { name: 'Stripe API' } 
-});
+        from: source.id,
+        target: { name: 'Stripe API' } 
+      });
 
       const graph = builder.build();
 
       expect(graph.externalLinks).toEqual([
         {
- source: source.id,
-target: { name: 'Stripe API' } 
-},
+          source: source.id,
+          target: { name: 'Stripe API' } 
+        },
       ]);
     });
   });
@@ -234,9 +234,9 @@ target: { name: 'Stripe API' }
       });
 
       builder.link({
- from: source.id,
-to: target.id 
-});
+        from: source.id,
+        to: target.id 
+      });
 
       const filePath = join(tmpdir(), `riviere-test-${Date.now()}.json`);
       tempFiles.push(filePath);
@@ -261,9 +261,9 @@ to: target.id
       });
 
       builder.link({
- from: source.id,
-to: 'nonexistent:component:id' 
-});
+        from: source.id,
+        to: 'nonexistent:component:id' 
+      });
 
       const filePath = join(
         tmpdir(),
@@ -296,9 +296,9 @@ to: 'nonexistent:component:id'
       });
 
       builder.link({
- from: source.id,
-to: target.id 
-});
+        from: source.id,
+        to: target.id 
+      });
 
       const filePath = '/nonexistent-directory-xyz/output.json';
 

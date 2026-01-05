@@ -1,56 +1,56 @@
 import {
- describe, expect, test 
+  describe, expect, test 
 } from 'vitest'
 import { filterByNodeType } from './filterByNodeType'
 import type {
- Node, Edge 
+  Node, Edge 
 } from '@/types/riviere'
 import {
- parseNode, parseEdge 
+  parseNode, parseEdge 
 } from '@/lib/riviereTestData'
 const testSourceLocation = {
- repository: 'test-repo',
-filePath: 'src/test.ts' 
+  repository: 'test-repo',
+  filePath: 'src/test.ts' 
 }
 
 describe('filterByNodeType', () => {
   test('keeps nodes of visible types', () => {
     const nodes: Node[] = [
       parseNode({
- sourceLocation: testSourceLocation,
-id: '1',
-type: 'API',
-name: 'API 1',
-domain: 'orders',
-module: 'api' 
-}),
+        sourceLocation: testSourceLocation,
+        id: '1',
+        type: 'API',
+        name: 'API 1',
+        domain: 'orders',
+        module: 'api' 
+      }),
       parseNode({
- sourceLocation: testSourceLocation,
-id: '2',
-type: 'UseCase',
-name: 'UseCase 1',
-domain: 'orders',
-module: 'core' 
-}),
+        sourceLocation: testSourceLocation,
+        id: '2',
+        type: 'UseCase',
+        name: 'UseCase 1',
+        domain: 'orders',
+        module: 'core' 
+      }),
       parseNode({
- sourceLocation: testSourceLocation,
-id: '3',
-type: 'DomainOp',
-name: 'DomainOp 1',
-domain: 'orders',
-module: 'core',
-operationName: 'op1' 
-}),
+        sourceLocation: testSourceLocation,
+        id: '3',
+        type: 'DomainOp',
+        name: 'DomainOp 1',
+        domain: 'orders',
+        module: 'core',
+        operationName: 'op1' 
+      }),
     ]
     const edges: Edge[] = [
       parseEdge({
- source: '1',
-target: '2' 
-}),
+        source: '1',
+        target: '2' 
+      }),
       parseEdge({
- source: '2',
-target: '3' 
-}),
+        source: '2',
+        target: '3' 
+      }),
     ]
 
     const result = filterByNodeType(nodes, edges, new Set(['API', 'UseCase']))
@@ -62,26 +62,26 @@ target: '3'
   test('removes nodes of hidden types', () => {
     const nodes: Node[] = [
       parseNode({
- sourceLocation: testSourceLocation,
-id: '1',
-type: 'API',
-name: 'API 1',
-domain: 'orders',
-module: 'api' 
-}),
+        sourceLocation: testSourceLocation,
+        id: '1',
+        type: 'API',
+        name: 'API 1',
+        domain: 'orders',
+        module: 'api' 
+      }),
       parseNode({
- sourceLocation: testSourceLocation,
-id: '2',
-type: 'UseCase',
-name: 'UseCase 1',
-domain: 'orders',
-module: 'core' 
-}),
+        sourceLocation: testSourceLocation,
+        id: '2',
+        type: 'UseCase',
+        name: 'UseCase 1',
+        domain: 'orders',
+        module: 'core' 
+      }),
     ]
     const edges: Edge[] = [parseEdge({
- source: '1',
-target: '2' 
-})]
+      source: '1',
+      target: '2' 
+    })]
 
     const result = filterByNodeType(nodes, edges, new Set(['API']))
 
@@ -92,26 +92,26 @@ target: '2'
   test('keeps edges when both endpoints are visible', () => {
     const nodes: Node[] = [
       parseNode({
- sourceLocation: testSourceLocation,
-id: '1',
-type: 'API',
-name: 'API 1',
-domain: 'orders',
-module: 'api' 
-}),
+        sourceLocation: testSourceLocation,
+        id: '1',
+        type: 'API',
+        name: 'API 1',
+        domain: 'orders',
+        module: 'api' 
+      }),
       parseNode({
- sourceLocation: testSourceLocation,
-id: '2',
-type: 'UseCase',
-name: 'UseCase 1',
-domain: 'orders',
-module: 'core' 
-}),
+        sourceLocation: testSourceLocation,
+        id: '2',
+        type: 'UseCase',
+        name: 'UseCase 1',
+        domain: 'orders',
+        module: 'core' 
+      }),
     ]
     const edges: Edge[] = [parseEdge({
- source: '1',
-target: '2' 
-})]
+      source: '1',
+      target: '2' 
+    })]
 
     const result = filterByNodeType(nodes, edges, new Set(['API', 'UseCase']))
 
@@ -123,40 +123,40 @@ target: '2'
   test('rewires edges when middle node is hidden', () => {
     const nodes: Node[] = [
       parseNode({
- sourceLocation: testSourceLocation,
-id: '1',
-type: 'API',
-name: 'API 1',
-domain: 'orders',
-module: 'api' 
-}),
+        sourceLocation: testSourceLocation,
+        id: '1',
+        type: 'API',
+        name: 'API 1',
+        domain: 'orders',
+        module: 'api' 
+      }),
       parseNode({
- sourceLocation: testSourceLocation,
-id: '2',
-type: 'UseCase',
-name: 'UseCase 1',
-domain: 'orders',
-module: 'core' 
-}),
+        sourceLocation: testSourceLocation,
+        id: '2',
+        type: 'UseCase',
+        name: 'UseCase 1',
+        domain: 'orders',
+        module: 'core' 
+      }),
       parseNode({
- sourceLocation: testSourceLocation,
-id: '3',
-type: 'DomainOp',
-name: 'DomainOp 1',
-domain: 'orders',
-module: 'core',
-operationName: 'op1' 
-}),
+        sourceLocation: testSourceLocation,
+        id: '3',
+        type: 'DomainOp',
+        name: 'DomainOp 1',
+        domain: 'orders',
+        module: 'core',
+        operationName: 'op1' 
+      }),
     ]
     const edges: Edge[] = [
       parseEdge({
- source: '1',
-target: '2' 
-}),
+        source: '1',
+        target: '2' 
+      }),
       parseEdge({
- source: '2',
-target: '3' 
-}),
+        source: '2',
+        target: '3' 
+      }),
     ]
 
     const result = filterByNodeType(nodes, edges, new Set(['API', 'DomainOp']))
@@ -171,52 +171,52 @@ target: '3'
   test('rewires edges through multiple hidden nodes', () => {
     const nodes: Node[] = [
       parseNode({
- sourceLocation: testSourceLocation,
-id: '1',
-type: 'API',
-name: 'API 1',
-domain: 'orders',
-module: 'api' 
-}),
+        sourceLocation: testSourceLocation,
+        id: '1',
+        type: 'API',
+        name: 'API 1',
+        domain: 'orders',
+        module: 'api' 
+      }),
       parseNode({
- sourceLocation: testSourceLocation,
-id: '2',
-type: 'UseCase',
-name: 'UseCase 1',
-domain: 'orders',
-module: 'core' 
-}),
+        sourceLocation: testSourceLocation,
+        id: '2',
+        type: 'UseCase',
+        name: 'UseCase 1',
+        domain: 'orders',
+        module: 'core' 
+      }),
       parseNode({
- sourceLocation: testSourceLocation,
-id: '3',
-type: 'UseCase',
-name: 'UseCase 2',
-domain: 'orders',
-module: 'core' 
-}),
+        sourceLocation: testSourceLocation,
+        id: '3',
+        type: 'UseCase',
+        name: 'UseCase 2',
+        domain: 'orders',
+        module: 'core' 
+      }),
       parseNode({
- sourceLocation: testSourceLocation,
-id: '4',
-type: 'DomainOp',
-name: 'DomainOp 1',
-domain: 'orders',
-module: 'core',
-operationName: 'op1' 
-}),
+        sourceLocation: testSourceLocation,
+        id: '4',
+        type: 'DomainOp',
+        name: 'DomainOp 1',
+        domain: 'orders',
+        module: 'core',
+        operationName: 'op1' 
+      }),
     ]
     const edges: Edge[] = [
       parseEdge({
- source: '1',
-target: '2' 
-}),
+        source: '1',
+        target: '2' 
+      }),
       parseEdge({
- source: '2',
-target: '3' 
-}),
+        source: '2',
+        target: '3' 
+      }),
       parseEdge({
- source: '3',
-target: '4' 
-}),
+        source: '3',
+        target: '4' 
+      }),
     ]
 
     const result = filterByNodeType(nodes, edges, new Set(['API', 'DomainOp']))
@@ -230,42 +230,42 @@ target: '4'
   test('preserves edge metadata when rewiring', () => {
     const nodes: Node[] = [
       parseNode({
- sourceLocation: testSourceLocation,
-id: '1',
-type: 'API',
-name: 'API 1',
-domain: 'orders',
-module: 'api' 
-}),
+        sourceLocation: testSourceLocation,
+        id: '1',
+        type: 'API',
+        name: 'API 1',
+        domain: 'orders',
+        module: 'api' 
+      }),
       parseNode({
- sourceLocation: testSourceLocation,
-id: '2',
-type: 'UseCase',
-name: 'UseCase 1',
-domain: 'orders',
-module: 'core' 
-}),
+        sourceLocation: testSourceLocation,
+        id: '2',
+        type: 'UseCase',
+        name: 'UseCase 1',
+        domain: 'orders',
+        module: 'core' 
+      }),
       parseNode({
- sourceLocation: testSourceLocation,
-id: '3',
-type: 'DomainOp',
-name: 'DomainOp 1',
-domain: 'orders',
-module: 'core',
-operationName: 'op1' 
-}),
+        sourceLocation: testSourceLocation,
+        id: '3',
+        type: 'DomainOp',
+        name: 'DomainOp 1',
+        domain: 'orders',
+        module: 'core',
+        operationName: 'op1' 
+      }),
     ]
     const edges: Edge[] = [
       parseEdge({
- source: '1',
-target: '2',
-type: 'sync' 
-}),
+        source: '1',
+        target: '2',
+        type: 'sync' 
+      }),
       parseEdge({
- source: '2',
-target: '3',
-type: 'async' 
-}),
+        source: '2',
+        target: '3',
+        type: 'async' 
+      }),
     ]
 
     const result = filterByNodeType(nodes, edges, new Set(['API', 'DomainOp']))
@@ -277,56 +277,56 @@ type: 'async'
   test('handles multiple paths from same source to same target', () => {
     const nodes: Node[] = [
       parseNode({
- sourceLocation: testSourceLocation,
-id: '1',
-type: 'API',
-name: 'API 1',
-domain: 'orders',
-module: 'api' 
-}),
+        sourceLocation: testSourceLocation,
+        id: '1',
+        type: 'API',
+        name: 'API 1',
+        domain: 'orders',
+        module: 'api' 
+      }),
       parseNode({
- sourceLocation: testSourceLocation,
-id: '2',
-type: 'UseCase',
-name: 'UseCase 1',
-domain: 'orders',
-module: 'core' 
-}),
+        sourceLocation: testSourceLocation,
+        id: '2',
+        type: 'UseCase',
+        name: 'UseCase 1',
+        domain: 'orders',
+        module: 'core' 
+      }),
       parseNode({
- sourceLocation: testSourceLocation,
-id: '3',
-type: 'UseCase',
-name: 'UseCase 2',
-domain: 'orders',
-module: 'core' 
-}),
+        sourceLocation: testSourceLocation,
+        id: '3',
+        type: 'UseCase',
+        name: 'UseCase 2',
+        domain: 'orders',
+        module: 'core' 
+      }),
       parseNode({
- sourceLocation: testSourceLocation,
-id: '4',
-type: 'DomainOp',
-name: 'DomainOp 1',
-domain: 'orders',
-module: 'core',
-operationName: 'op1' 
-}),
+        sourceLocation: testSourceLocation,
+        id: '4',
+        type: 'DomainOp',
+        name: 'DomainOp 1',
+        domain: 'orders',
+        module: 'core',
+        operationName: 'op1' 
+      }),
     ]
     const edges: Edge[] = [
       parseEdge({
- source: '1',
-target: '2' 
-}),
+        source: '1',
+        target: '2' 
+      }),
       parseEdge({
- source: '1',
-target: '3' 
-}),
+        source: '1',
+        target: '3' 
+      }),
       parseEdge({
- source: '2',
-target: '4' 
-}),
+        source: '2',
+        target: '4' 
+      }),
       parseEdge({
- source: '3',
-target: '4' 
-}),
+        source: '3',
+        target: '4' 
+      }),
     ]
 
     const result = filterByNodeType(nodes, edges, new Set(['API', 'DomainOp']))
@@ -339,26 +339,26 @@ target: '4'
   test('returns empty graph when all types are hidden', () => {
     const nodes: Node[] = [
       parseNode({
- sourceLocation: testSourceLocation,
-id: '1',
-type: 'API',
-name: 'API 1',
-domain: 'orders',
-module: 'api' 
-}),
+        sourceLocation: testSourceLocation,
+        id: '1',
+        type: 'API',
+        name: 'API 1',
+        domain: 'orders',
+        module: 'api' 
+      }),
       parseNode({
- sourceLocation: testSourceLocation,
-id: '2',
-type: 'UseCase',
-name: 'UseCase 1',
-domain: 'orders',
-module: 'core' 
-}),
+        sourceLocation: testSourceLocation,
+        id: '2',
+        type: 'UseCase',
+        name: 'UseCase 1',
+        domain: 'orders',
+        module: 'core' 
+      }),
     ]
     const edges: Edge[] = [parseEdge({
- source: '1',
-target: '2' 
-})]
+      source: '1',
+      target: '2' 
+    })]
 
     const result = filterByNodeType(nodes, edges, new Set())
 
@@ -369,35 +369,35 @@ target: '2'
   test('handles disconnected nodes', () => {
     const nodes: Node[] = [
       parseNode({
- sourceLocation: testSourceLocation,
-id: '1',
-type: 'API',
-name: 'API 1',
-domain: 'orders',
-module: 'api' 
-}),
+        sourceLocation: testSourceLocation,
+        id: '1',
+        type: 'API',
+        name: 'API 1',
+        domain: 'orders',
+        module: 'api' 
+      }),
       parseNode({
- sourceLocation: testSourceLocation,
-id: '2',
-type: 'UseCase',
-name: 'UseCase 1',
-domain: 'orders',
-module: 'core' 
-}),
+        sourceLocation: testSourceLocation,
+        id: '2',
+        type: 'UseCase',
+        name: 'UseCase 1',
+        domain: 'orders',
+        module: 'core' 
+      }),
       parseNode({
- sourceLocation: testSourceLocation,
-id: '3',
-type: 'DomainOp',
-name: 'DomainOp 1',
-domain: 'orders',
-module: 'core',
-operationName: 'op1' 
-}),
+        sourceLocation: testSourceLocation,
+        id: '3',
+        type: 'DomainOp',
+        name: 'DomainOp 1',
+        domain: 'orders',
+        module: 'core',
+        operationName: 'op1' 
+      }),
     ]
     const edges: Edge[] = [parseEdge({
- source: '1',
-target: '2' 
-})]
+      source: '1',
+      target: '2' 
+    })]
 
     const result = filterByNodeType(nodes, edges, new Set(['API', 'DomainOp']))
 

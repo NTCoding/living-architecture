@@ -1,8 +1,8 @@
 import {
- describe, it, expect, vi 
+  describe, it, expect, vi 
 } from 'vitest';
 import {
- mkdir, writeFile 
+  mkdir, writeFile 
 } from 'node:fs/promises';
 import { join } from 'node:path';
 import { withGraphBuilder } from './link-infrastructure';
@@ -40,11 +40,11 @@ describe('link-infrastructure', () => {
         metadata: {
           sources: [{ repository: 'https://github.com/org/repo' }],
           domains: {
-test: {
- description: 'Test domain',
-systemType: 'domain' 
-},
-},
+            test: {
+              description: 'Test domain',
+              systemType: 'domain' 
+            },
+          },
         },
         components: [],
         links: [],
@@ -72,11 +72,11 @@ systemType: 'domain'
         metadata: {
           sources: [{ repository: 'https://github.com/org/repo' }],
           domains: {
-test: {
- description: 'Test domain',
-systemType: 'domain' 
-},
-},
+            test: {
+              description: 'Test domain',
+              systemType: 'domain' 
+            },
+          },
         },
         components: [],
         links: [],

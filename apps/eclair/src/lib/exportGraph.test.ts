@@ -1,9 +1,9 @@
 import {
- describe, it, expect, vi, beforeEach, afterEach 
+  describe, it, expect, vi, beforeEach, afterEach 
 } from 'vitest'
 import { toPng } from 'html-to-image'
 import {
- generateExportFilename, downloadBlob, exportSvgAsFile, exportElementAsPng 
+  generateExportFilename, downloadBlob, exportSvgAsFile, exportElementAsPng 
 } from './exportGraph'
 
 describe('generateExportFilename', () => {
@@ -101,12 +101,12 @@ describe('downloadBlob', () => {
 describe('exportSvgAsFile', () => {
   it('serializes SVG element and triggers download with correct blob type', () => {
     const captured: {
- blob: Blob | null;
-filename: string 
-} = {
- blob: null,
-filename: '' 
-}
+      blob: Blob | null;
+      filename: string 
+    } = {
+      blob: null,
+      filename: '' 
+    }
 
     const mockCreateObjectURL = vi.fn((blob: Blob) => {
       captured.blob = blob
@@ -166,12 +166,12 @@ describe('exportElementAsPng', () => {
     mockedToPng.mockResolvedValue('data:image/png;base64,testbase64data')
 
     const captured: {
- filename: string;
-href: string 
-} = {
- filename: '',
-href: '' 
-}
+      filename: string;
+      href: string 
+    } = {
+      filename: '',
+      href: '' 
+    }
 
     vi.spyOn(document, 'createElement').mockImplementation((tagName: string) => {
       if (tagName === 'a') {

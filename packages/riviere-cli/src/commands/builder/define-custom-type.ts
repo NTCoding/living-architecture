@@ -7,7 +7,7 @@ import type {
 import { getDefaultGraphPathDescription } from '../../graph-path';
 import { withGraphBuilder } from './link-infrastructure';
 import {
- formatError, formatSuccess 
+  formatError, formatSuccess 
 } from '../../output';
 import { CliErrorCode } from '../../error-codes';
 
@@ -35,8 +35,8 @@ interface DefineCustomTypeOptions {
 function parsePropertySpec(
   spec: string,
 ): {
- name: string;
-definition: CustomPropertyDefinition 
+  name: string;
+  definition: CustomPropertyDefinition 
 } | { error: string } {
   const parts = spec.split(':');
   if (parts.length < 2 || parts.length > 3) {
@@ -58,9 +58,9 @@ definition: CustomPropertyDefinition
   }
 
   return {
- name: name.trim(),
-definition 
-};
+    name: name.trim(),
+    definition 
+  };
 }
 
 interface ParsePropertiesSuccess {
@@ -80,9 +80,9 @@ function parsePropertySpecs(
 ): ParsePropertiesResult {
   if (specs === undefined || specs.length === 0) {
     return {
- success: true,
-properties: {} 
-};
+      success: true,
+      properties: {} 
+    };
   }
 
   const properties: Record<string, CustomPropertyDefinition> = {};
@@ -90,9 +90,9 @@ properties: {}
     const result = parsePropertySpec(spec);
     if ('error' in result) {
       return {
- success: false,
-error: result.error 
-};
+        success: false,
+        error: result.error 
+      };
     }
     if (properties[result.name] !== undefined) {
       return {
@@ -104,9 +104,9 @@ error: result.error
   }
 
   return {
- success: true,
-properties 
-};
+    success: true,
+    properties 
+  };
 }
 
 function collect(value: string, previous: string[]): string[] {

@@ -1,9 +1,9 @@
 import {
- useMemo, useState 
+  useMemo, useState 
 } from 'react';
 import { Link } from 'react-router-dom';
 import type {
- RiviereGraph, SystemType, DomainName 
+  RiviereGraph, SystemType, DomainName 
 } from '@/types/riviere';
 import { domainNameSchema } from '@/types/riviere';
 import { useRiviereQuery } from '@/hooks/useRiviereQuery';
@@ -42,17 +42,17 @@ export function OverviewPage({ graph }: Readonly<OverviewPageProps>): React.Reac
   const query = useRiviereQuery(graph)
 
   const {
- stats, allDomains 
-} = useMemo(() => {
+    stats, allDomains 
+  } = useMemo(() => {
     if (query === null) {
       return {
         stats: {
- totalNodes: 0,
-totalDomains: 0,
-totalApis: 0,
-totalEntities: 0,
-totalEvents: 0 
-},
+          totalNodes: 0,
+          totalDomains: 0,
+          totalApis: 0,
+          totalEntities: 0,
+          totalEvents: 0 
+        },
         allDomains: [],
       }
     }
@@ -216,7 +216,7 @@ interface DomainCardProps {
 }
 
 function DomainCard({
- domain, viewMode, graphName 
+  domain, viewMode, graphName 
 }: Readonly<DomainCardProps>): React.ReactElement {
   const repoName: string | undefined = domain.repository === undefined ? graphName : domain.repository
   const { settings } = useCodeLinkSettings()
@@ -328,29 +328,29 @@ interface NodeBreakdownSectionProps {readonly breakdown: DomainInfo['nodeBreakdo
 function NodeBreakdownSection({ breakdown }: Readonly<NodeBreakdownSectionProps>): React.ReactElement {
   const items = [
     {
- label: 'UI',
-value: breakdown.UI 
-},
+      label: 'UI',
+      value: breakdown.UI 
+    },
     {
- label: 'API',
-value: breakdown.API 
-},
+      label: 'API',
+      value: breakdown.API 
+    },
     {
- label: 'UseCase',
-value: breakdown.UseCase 
-},
+      label: 'UseCase',
+      value: breakdown.UseCase 
+    },
     {
- label: 'DomainOp',
-value: breakdown.DomainOp 
-},
+      label: 'DomainOp',
+      value: breakdown.DomainOp 
+    },
     {
- label: 'Event',
-value: breakdown.Event 
-},
+      label: 'Event',
+      value: breakdown.Event 
+    },
     {
- label: 'Handler',
-value: breakdown.EventHandler 
-},
+      label: 'Handler',
+      value: breakdown.EventHandler 
+    },
   ].filter((item) => item.value > 0)
 
   return (

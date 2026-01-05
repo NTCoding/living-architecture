@@ -8,11 +8,11 @@ import {
   ComponentId,
 } from '@living-architecture/riviere-builder';
 import {
- formatError, formatSuccess 
+  formatError, formatSuccess 
 } from '../../output';
 import { CliErrorCode } from '../../error-codes';
 import {
- withGraph, getDefaultGraphPathDescription 
+  withGraph, getDefaultGraphPathDescription 
 } from './load-graph';
 
 interface TraceOptions {

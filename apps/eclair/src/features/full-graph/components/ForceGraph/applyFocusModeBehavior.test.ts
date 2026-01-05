@@ -1,20 +1,20 @@
 import {
- describe, it, expect, vi 
+  describe, it, expect, vi 
 } from 'vitest'
 import * as d3 from 'd3'
 import {
- applyFocusMode, applyResetMode 
+  applyFocusMode, applyResetMode 
 } from './applyFocusModeBehavior'
 import type {
- SimulationNode, SimulationLink 
+  SimulationNode, SimulationLink 
 } from '../../types'
 import {
- parseNode, parseEdge 
+  parseNode, parseEdge 
 } from '@/lib/riviereTestData'
 
 const testSourceLocation = {
- repository: 'test-repo',
-filePath: 'src/test.ts' 
+  repository: 'test-repo',
+  filePath: 'src/test.ts' 
 }
 
 function createTestNode(id: string, type: SimulationNode['type'], domain: string): SimulationNode {
@@ -44,10 +44,10 @@ function createTestLink(sourceId: string, targetId: string): SimulationLink {
     target: targetId,
     type: 'sync',
     originalEdge: parseEdge({
- source: sourceId,
-target: targetId,
-type: 'sync' 
-}),
+      source: sourceId,
+      target: targetId,
+      type: 'sync' 
+    }),
   }
 }
 
@@ -79,12 +79,12 @@ function createTestContext(): TestContext {
   })
 
   return {
- svgElement,
-svg,
-nodeGroup,
-linkGroup,
-zoom 
-}
+    svgElement,
+    svg,
+    nodeGroup,
+    linkGroup,
+    zoom 
+  }
 }
 
 function cleanupContext(ctx: TestContext): void {
@@ -126,9 +126,9 @@ describe('applyFocusModeBehavior', () => {
           domain: 'orders',
           theme: 'stream',
           dimensions: {
- width: 800,
-height: 600 
-},
+            width: 800,
+            height: 600 
+          },
         })
       ).not.toThrow()
 
@@ -151,9 +151,9 @@ height: 600
           domain: 'nonexistent',
           theme: 'stream',
           dimensions: {
- width: 800,
-height: 600 
-},
+            width: 800,
+            height: 600 
+          },
         })
       ).not.toThrow()
 
@@ -179,9 +179,9 @@ height: 600
           domain: 'orders',
           theme: 'voltage',
           dimensions: {
- width: 800,
-height: 600 
-},
+            width: 800,
+            height: 600 
+          },
         })
       ).not.toThrow()
 
@@ -207,9 +207,9 @@ height: 600
           domain: 'orders',
           theme: 'circuit',
           dimensions: {
- width: 800,
-height: 600 
-},
+            width: 800,
+            height: 600 
+          },
         })
       ).not.toThrow()
 
@@ -238,9 +238,9 @@ height: 600
           domain: 'nonexistent',
           theme: 'stream',
           dimensions: {
- width: 800,
-height: 600 
-},
+            width: 800,
+            height: 600 
+          },
         })
       ).not.toThrow()
 
@@ -323,9 +323,9 @@ height: 600
         domain: 'orders',
         theme: 'stream',
         dimensions: {
- width: 800,
-height: 600 
-},
+          width: 800,
+          height: 600 
+        },
       })
 
       expect(() =>

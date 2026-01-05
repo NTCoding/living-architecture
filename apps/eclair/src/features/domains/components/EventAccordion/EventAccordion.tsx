@@ -25,7 +25,7 @@ interface EventHandlersSectionProps {
 }
 
 function EventHandlersSection({
- event, onViewHandlerOnGraph 
+  event, onViewHandlerOnGraph 
 }: Readonly<EventHandlersSectionProps>): React.ReactElement | null {
   if (event.handlers.length > 0) {
     return (
@@ -63,9 +63,9 @@ function EventHandlersSection({
                   onClick={(e) => {
                     e.stopPropagation()
                     onViewHandlerOnGraph({
- domain: handler.domain,
-handlerName: handler.handlerName 
-})
+                      domain: handler.domain,
+                      handlerName: handler.handlerName 
+                    })
                   }}
                 >
                   <i className="ph ph-graph" aria-hidden="true" />

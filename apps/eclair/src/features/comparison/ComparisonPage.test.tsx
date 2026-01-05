@@ -1,8 +1,8 @@
 import {
- describe, it, expect, vi, afterEach 
+  describe, it, expect, vi, afterEach 
 } from 'vitest'
 import {
- render, screen, waitFor 
+  render, screen, waitFor 
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
@@ -221,76 +221,76 @@ describe('ComparisonPage', () => {
 
     it('displays stats showing added/removed/modified/unchanged counts', async () => {
       const domainMetadata = {
-d: {
- description: 'Test domain',
-systemType: 'domain' 
-},
-}
+        d: {
+          description: 'Test domain',
+          systemType: 'domain' 
+        },
+      }
       const sl = {
- repository: 'test-repo',
-filePath: 'src/test.ts' 
-}
+        repository: 'test-repo',
+        filePath: 'src/test.ts' 
+      }
       const beforeJson = JSON.stringify({
         version: '1.0',
         metadata: {
- name: 'Before',
-domains: domainMetadata 
-},
+          name: 'Before',
+          domains: domainMetadata 
+        },
         components: [
           {
- id: 'd:m:api:unchanged',
-type: 'API',
-apiType: 'REST',
-httpMethod: 'GET',
-path: '/unchanged',
-name: 'Same',
-domain: 'd',
-module: 'm',
-sourceLocation: sl 
-},
+            id: 'd:m:api:unchanged',
+            type: 'API',
+            apiType: 'REST',
+            httpMethod: 'GET',
+            path: '/unchanged',
+            name: 'Same',
+            domain: 'd',
+            module: 'm',
+            sourceLocation: sl 
+          },
           {
- id: 'd:m:api:removed',
-type: 'API',
-apiType: 'REST',
-httpMethod: 'GET',
-path: '/removed',
-name: 'Gone',
-domain: 'd',
-module: 'm',
-sourceLocation: sl 
-},
+            id: 'd:m:api:removed',
+            type: 'API',
+            apiType: 'REST',
+            httpMethod: 'GET',
+            path: '/removed',
+            name: 'Gone',
+            domain: 'd',
+            module: 'm',
+            sourceLocation: sl 
+          },
         ],
         links: [],
       })
       const afterJson = JSON.stringify({
         version: '1.0',
         metadata: {
- name: 'After',
-domains: domainMetadata 
-},
+          name: 'After',
+          domains: domainMetadata 
+        },
         components: [
           {
- id: 'd:m:api:unchanged',
-type: 'API',
-apiType: 'REST',
-httpMethod: 'GET',
-path: '/unchanged',
-name: 'Same',
-domain: 'd',
-module: 'm',
-sourceLocation: sl 
-},
+            id: 'd:m:api:unchanged',
+            type: 'API',
+            apiType: 'REST',
+            httpMethod: 'GET',
+            path: '/unchanged',
+            name: 'Same',
+            domain: 'd',
+            module: 'm',
+            sourceLocation: sl 
+          },
           {
- id: 'd:m:api:added',
-type: 'API',
-apiType: 'REST',
-httpMethod: 'GET',
-path: '/added',
-name: 'New',
-domain: 'd',
-module: 'm',
-sourceLocation: sl 
-},
+            id: 'd:m:api:added',
+            type: 'API',
+            apiType: 'REST',
+            httpMethod: 'GET',
+            path: '/added',
+            name: 'New',
+            domain: 'd',
+            module: 'm',
+            sourceLocation: sl 
+          },
         ],
         links: [],
       })
@@ -326,97 +326,97 @@ sourceLocation: sl
     })
 
     function createGraphsWithCrossDomainEdges(): {
- beforeJson: string;
-afterJson: string 
-} {
+      beforeJson: string;
+      afterJson: string 
+    } {
       const domainMetadata = {
         orders: {
- description: 'Order domain',
-systemType: 'domain' 
-},
+          description: 'Order domain',
+          systemType: 'domain' 
+        },
         payments: {
- description: 'Payment domain',
-systemType: 'domain' 
-},
+          description: 'Payment domain',
+          systemType: 'domain' 
+        },
       }
       const sl = {
- repository: 'test-repo',
-filePath: 'src/test.ts' 
-}
+        repository: 'test-repo',
+        filePath: 'src/test.ts' 
+      }
       const beforeJson = JSON.stringify({
         version: '1.0',
         metadata: {
- name: 'Before',
-domains: domainMetadata 
-},
+          name: 'Before',
+          domains: domainMetadata 
+        },
         components: [
           {
- id: 'orders:checkout:api:place-order',
-type: 'API',
-apiType: 'REST',
-httpMethod: 'POST',
-path: '/orders',
-name: 'POST /orders',
-domain: 'orders',
-module: 'checkout',
-sourceLocation: sl 
-},
+            id: 'orders:checkout:api:place-order',
+            type: 'API',
+            apiType: 'REST',
+            httpMethod: 'POST',
+            path: '/orders',
+            name: 'POST /orders',
+            domain: 'orders',
+            module: 'checkout',
+            sourceLocation: sl 
+          },
           {
- id: 'payments:billing:usecase:process-payment',
-type: 'UseCase',
-name: 'Process Payment',
-domain: 'payments',
-module: 'billing',
-sourceLocation: sl 
-},
+            id: 'payments:billing:usecase:process-payment',
+            type: 'UseCase',
+            name: 'Process Payment',
+            domain: 'payments',
+            module: 'billing',
+            sourceLocation: sl 
+          },
         ],
         links: [],
       })
       const afterJson = JSON.stringify({
         version: '1.0',
         metadata: {
- name: 'After',
-domains: domainMetadata 
-},
+          name: 'After',
+          domains: domainMetadata 
+        },
         components: [
           {
- id: 'orders:checkout:api:place-order',
-type: 'API',
-apiType: 'REST',
-httpMethod: 'POST',
-path: '/orders',
-name: 'POST /orders',
-domain: 'orders',
-module: 'checkout',
-sourceLocation: sl 
-},
+            id: 'orders:checkout:api:place-order',
+            type: 'API',
+            apiType: 'REST',
+            httpMethod: 'POST',
+            path: '/orders',
+            name: 'POST /orders',
+            domain: 'orders',
+            module: 'checkout',
+            sourceLocation: sl 
+          },
           {
- id: 'payments:billing:usecase:process-payment',
-type: 'UseCase',
-name: 'Process Payment',
-domain: 'payments',
-module: 'billing',
-sourceLocation: sl 
-},
+            id: 'payments:billing:usecase:process-payment',
+            type: 'UseCase',
+            name: 'Process Payment',
+            domain: 'payments',
+            module: 'billing',
+            sourceLocation: sl 
+          },
         ],
         links: [
           {
- source: 'orders:checkout:api:place-order',
-target: 'payments:billing:usecase:process-payment',
-type: 'sync' 
-},
+            source: 'orders:checkout:api:place-order',
+            target: 'payments:billing:usecase:process-payment',
+            type: 'sync' 
+          },
         ],
       })
       return {
- beforeJson,
-afterJson 
-}
+        beforeJson,
+        afterJson 
+      }
     }
 
     it('shows domain connection diff visualization after comparison', async () => {
       const {
- beforeJson, afterJson 
-} = createGraphsWithCrossDomainEdges()
+        beforeJson, afterJson 
+      } = createGraphsWithCrossDomainEdges()
       stubFileReaderWithMultipleContents([beforeJson, afterJson])
 
       const user = userEvent.setup()
@@ -441,8 +441,8 @@ afterJson
 
     it('shows cross-domain connection changes heading above diagram', async () => {
       const {
- beforeJson, afterJson 
-} = createGraphsWithCrossDomainEdges()
+        beforeJson, afterJson 
+      } = createGraphsWithCrossDomainEdges()
       stubFileReaderWithMultipleContents([beforeJson, afterJson])
 
       const user = userEvent.setup()
@@ -467,8 +467,8 @@ afterJson
 
     it('shows node changes heading above stats bar', async () => {
       const {
- beforeJson, afterJson 
-} = createGraphsWithCrossDomainEdges()
+        beforeJson, afterJson 
+      } = createGraphsWithCrossDomainEdges()
       stubFileReaderWithMultipleContents([beforeJson, afterJson])
 
       const user = userEvent.setup()

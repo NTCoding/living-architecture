@@ -1,5 +1,5 @@
 import {
- describe, it, expect 
+  describe, it, expect 
 } from 'vitest';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -100,9 +100,9 @@ describe('riviere builder define-custom-type', () => {
             DataStore: {
               requiredProperties: {
                 tableName: {
- type: 'string',
-description: 'Table name' 
-},
+                  type: 'string',
+                  description: 'Table name' 
+                },
                 partitionKey: { type: 'string' },
               },
             },
@@ -135,11 +135,11 @@ description: 'Table name'
           customTypes: {
             Cache: {
               optionalProperties: {
-ttlSeconds: {
- type: 'number',
-description: 'Time to live' 
-},
-},
+                ttlSeconds: {
+                  type: 'number',
+                  description: 'Time to live' 
+                },
+              },
             },
           },
         },

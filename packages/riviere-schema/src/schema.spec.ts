@@ -7,7 +7,7 @@ import type {
   GraphMetadata,
 } from './schema';
 import {
- parseRiviereGraph, formatValidationErrors 
+  parseRiviereGraph, formatValidationErrors 
 } from './validation';
 
 describe('formatValidationErrors()', () => {

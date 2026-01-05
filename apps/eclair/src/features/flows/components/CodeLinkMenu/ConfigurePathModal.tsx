@@ -44,7 +44,7 @@ function deriveInitialInputValue(currentValue: string | null): string {
 }
 
 function ModalContent({
- mode, onClose, onSave, currentValue 
+  mode, onClose, onSave, currentValue 
 }: Readonly<ModalContentProps>): React.ReactElement {
   const [inputValue, setInputValue] = useState(() => deriveInitialInputValue(currentValue))
   const config = CONFIG[mode]

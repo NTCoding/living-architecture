@@ -1,5 +1,5 @@
 import {
- BaseEdge, getStraightPath 
+  BaseEdge, getStraightPath 
 } from '@xyflow/react'
 
 interface DomainEdgeProps {
@@ -30,11 +30,11 @@ export function DomainEdge({
   data,
 }: Readonly<DomainEdgeProps>): React.ReactElement {
   const [edgePath, labelX, labelY] = getStraightPath({
- sourceX,
-sourceY,
-targetX,
-targetY 
-})
+    sourceX,
+    sourceY,
+    targetX,
+    targetY 
+  })
 
   const apiCount = data?.apiCount ?? 0
   const eventCount = data?.eventCount ?? 0

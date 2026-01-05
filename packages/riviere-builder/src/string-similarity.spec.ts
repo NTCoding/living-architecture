@@ -1,8 +1,8 @@
 import {
- describe, it, expect 
+  describe, it, expect 
 } from 'vitest';
 import {
- levenshteinDistance, similarityScore 
+  levenshteinDistance, similarityScore 
 } from './string-similarity';
 
 describe('levenshteinDistance', () => {

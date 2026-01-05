@@ -1,19 +1,19 @@
 import {
- describe, it, expect, vi 
+  describe, it, expect, vi 
 } from 'vitest'
 import {
- render, screen 
+  render, screen 
 } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import userEvent from '@testing-library/user-event'
 import { EntitiesPage } from './EntitiesPage'
 import {
- parseNode, parseEdge, parseDomainMetadata 
+  parseNode, parseEdge, parseDomainMetadata 
 } from '@/lib/riviereTestData'
 import type { RiviereGraph } from '@/types/riviere'
 const testSourceLocation = {
- repository: 'test-repo',
-filePath: 'src/test.ts' 
+  repository: 'test-repo',
+  filePath: 'src/test.ts' 
 }
 
 const mockNavigate = vi.fn()
@@ -33,27 +33,27 @@ function createTestGraph(): RiviereGraph {
       description: 'Test description',
       domains: parseDomainMetadata({
         'order-domain': {
- description: 'Order management',
-systemType: 'domain' 
-},
+          description: 'Order management',
+          systemType: 'domain' 
+        },
         'payment-domain': {
- description: 'Payment processing',
-systemType: 'domain' 
-},
+          description: 'Payment processing',
+          systemType: 'domain' 
+        },
       }),
     },
     components: [
       // Order domain - API and Order entity
       parseNode({
- sourceLocation: testSourceLocation,
-id: 'n1',
-type: 'API',
-name: 'Place Order',
-domain: 'order-domain',
-module: 'm1',
-httpMethod: 'POST',
-path: '/api/orders' 
-}),
+        sourceLocation: testSourceLocation,
+        id: 'n1',
+        type: 'API',
+        name: 'Place Order',
+        domain: 'order-domain',
+        module: 'm1',
+        httpMethod: 'POST',
+        path: '/api/orders' 
+      }),
       parseNode({
         sourceLocation: testSourceLocation,
         id: 'n2',
@@ -64,9 +64,9 @@ path: '/api/orders'
         entity: 'Order',
         operationName: 'begin',
         stateChanges: [{
- from: 'Draft',
-to: 'Pending' 
-}],
+          from: 'Draft',
+          to: 'Pending' 
+        }],
       }),
       parseNode({
         sourceLocation: testSourceLocation,
@@ -78,9 +78,9 @@ to: 'Pending'
         entity: 'Order',
         operationName: 'confirm',
         stateChanges: [{
- from: 'Pending',
-to: 'Confirmed' 
-}],
+          from: 'Pending',
+          to: 'Confirmed' 
+        }],
       }),
       // Payment domain - Payment entity
       parseNode({
@@ -107,9 +107,9 @@ to: 'Confirmed'
     ],
     links: [
       parseEdge({
- source: 'n1',
-target: 'n2' 
-}),
+        source: 'n1',
+        target: 'n2' 
+      }),
     ],
   }
 }

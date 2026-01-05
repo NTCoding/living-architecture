@@ -46,7 +46,7 @@ export function traceFlow(startNodeId: string, edges: Edge[]): FlowResult {
   traverseBackward(startNodeId)
 
   return {
- nodeIds,
-edgeKeys 
-}
+    nodeIds,
+    edgeKeys 
+  }
 }

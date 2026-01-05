@@ -1,5 +1,5 @@
 import {
- useState, useCallback, useRef 
+  useState, useCallback, useRef 
 } from 'react'
 
 interface FileUploadProps {
@@ -9,7 +9,7 @@ interface FileUploadProps {
 }
 
 export function FileUpload({
- onFileLoaded, onError, accept = '.json' 
+  onFileLoaded, onError, accept = '.json' 
 }: FileUploadProps): React.ReactElement {
   const [isDragging, setIsDragging] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -75,9 +75,9 @@ export function FileUpload({
         border-2 border-dashed rounded-[var(--radius-lg)] p-12 text-center
         transition-all duration-200
         ${isDragging
-          ? 'border-[var(--primary)] bg-[var(--primary)]/5'
-          : 'border-[var(--border-color)] hover:border-[var(--primary)]/50'
-        }
+      ? 'border-[var(--primary)] bg-[var(--primary)]/5'
+      : 'border-[var(--border-color)] hover:border-[var(--primary)]/50'
+    }
       `}
     >
       <input

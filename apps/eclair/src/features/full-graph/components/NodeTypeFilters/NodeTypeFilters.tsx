@@ -1,5 +1,5 @@
 import {
- useState, useCallback 
+  useState, useCallback 
 } from 'react'
 import type { NodeType } from '@/types/riviere'
 

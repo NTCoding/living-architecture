@@ -1,20 +1,20 @@
 import {
- describe, it, expect, vi 
+  describe, it, expect, vi 
 } from 'vitest'
 import {
- render, screen 
+  render, screen 
 } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import userEvent from '@testing-library/user-event'
 import { FlowCard } from './FlowCard'
 import {
- parseNode, parseEdge, parseDomainMetadata 
+  parseNode, parseEdge, parseDomainMetadata 
 } from '@/lib/riviereTestData'
 import type { Flow } from '../../extractFlows'
 import type { RiviereGraph } from '@/types/riviere'
 const testSourceLocation = {
- repository: 'test-repo',
-filePath: 'src/test.ts' 
+  repository: 'test-repo',
+  filePath: 'src/test.ts' 
 }
 
 const mockNavigate = vi.fn()
@@ -31,7 +31,7 @@ function createTestFlow(): Flow {
     entryPoint: parseNode({
       id: 'api-1',
       type: 'API',
-        apiType: 'other',
+      apiType: 'other',
       name: 'POST /orders',
       domain: 'orders',
       module: 'api',
@@ -46,28 +46,28 @@ function createTestFlow(): Flow {
     steps: [
       {
         node: parseNode({
- sourceLocation: testSourceLocation,
-id: 'api-1',
-type: 'API',
-name: 'POST /orders',
-domain: 'orders',
-module: 'api',
-httpMethod: 'POST',
-path: '/orders' 
-}),
+          sourceLocation: testSourceLocation,
+          id: 'api-1',
+          type: 'API',
+          name: 'POST /orders',
+          domain: 'orders',
+          module: 'api',
+          httpMethod: 'POST',
+          path: '/orders' 
+        }),
         edgeType: 'sync',
         depth: 0,
         externalLinks: [],
       },
       {
         node: parseNode({
- sourceLocation: testSourceLocation,
-id: 'uc-1',
-type: 'UseCase',
-name: 'Place Order',
-domain: 'orders',
-module: 'checkout' 
-}),
+          sourceLocation: testSourceLocation,
+          id: 'uc-1',
+          type: 'UseCase',
+          name: 'Place Order',
+          domain: 'orders',
+          module: 'checkout' 
+        }),
         edgeType: null,
         depth: 1,
         externalLinks: [],
@@ -90,14 +90,14 @@ function createUIFlow(): Flow {
     steps: [
       {
         node: parseNode({
- sourceLocation: testSourceLocation,
-id: 'ui-1',
-type: 'UI',
-name: 'Place Order Form',
-domain: 'checkout',
-module: 'ui',
-route: '/place-order' 
-}),
+          sourceLocation: testSourceLocation,
+          id: 'ui-1',
+          type: 'UI',
+          name: 'Place Order Form',
+          domain: 'checkout',
+          module: 'ui',
+          route: '/place-order' 
+        }),
         edgeType: 'sync',
         depth: 0,
         externalLinks: [],
@@ -110,48 +110,48 @@ function createTestGraph(): RiviereGraph {
   return {
     version: '1.0',
     metadata: {
- domains: parseDomainMetadata({
- 'test-domain': {
- description: 'Test domain',
-systemType: 'domain' 
-} 
-}) 
-},
+      domains: parseDomainMetadata({
+        'test-domain': {
+          description: 'Test domain',
+          systemType: 'domain' 
+        } 
+      }) 
+    },
     components: [
       parseNode({
- sourceLocation: testSourceLocation,
-id: 'api-1',
-type: 'API',
-name: 'POST /orders',
-domain: 'orders',
-module: 'api',
-httpMethod: 'POST',
-path: '/orders' 
-}),
+        sourceLocation: testSourceLocation,
+        id: 'api-1',
+        type: 'API',
+        name: 'POST /orders',
+        domain: 'orders',
+        module: 'api',
+        httpMethod: 'POST',
+        path: '/orders' 
+      }),
       parseNode({
- sourceLocation: testSourceLocation,
-id: 'uc-1',
-type: 'UseCase',
-name: 'Place Order',
-domain: 'orders',
-module: 'checkout' 
-}),
+        sourceLocation: testSourceLocation,
+        id: 'uc-1',
+        type: 'UseCase',
+        name: 'Place Order',
+        domain: 'orders',
+        module: 'checkout' 
+      }),
       parseNode({
- sourceLocation: testSourceLocation,
-id: 'ui-1',
-type: 'UI',
-name: 'Place Order Form',
-domain: 'checkout',
-module: 'ui',
-route: '/place-order' 
-}),
+        sourceLocation: testSourceLocation,
+        id: 'ui-1',
+        type: 'UI',
+        name: 'Place Order Form',
+        domain: 'checkout',
+        module: 'ui',
+        route: '/place-order' 
+      }),
     ],
     links: [
       parseEdge({
- source: 'api-1',
-target: 'uc-1',
-type: 'sync' 
-}),
+        source: 'api-1',
+        target: 'uc-1',
+        type: 'sync' 
+      }),
     ],
   }
 }
@@ -387,7 +387,7 @@ describe('FlowCard', () => {
         entryPoint: {
           id: 'api-1',
           type: 'API',
-        apiType: 'other',
+          apiType: 'other',
           name: 'POST /orders',
           domain: 'orders',
           module: 'api',

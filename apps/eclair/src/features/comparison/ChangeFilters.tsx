@@ -6,28 +6,28 @@ interface FilterTabsProps {
 }
 
 export function FilterTabs({
- activeFilter, onFilterChange 
+  activeFilter, onFilterChange 
 }: FilterTabsProps): React.ReactElement {
   const filters: Array<{
- key: ChangeFilter;
-label: string 
-}> = [
+    key: ChangeFilter;
+    label: string 
+  }> = [
     {
- key: 'all',
-label: 'All Changes' 
-},
+      key: 'all',
+      label: 'All Changes' 
+    },
     {
- key: 'added',
-label: 'Added' 
-},
+      key: 'added',
+      label: 'Added' 
+    },
     {
- key: 'removed',
-label: 'Removed' 
-},
+      key: 'removed',
+      label: 'Removed' 
+    },
     {
- key: 'modified',
-label: 'Modified' 
-},
+      key: 'modified',
+      label: 'Modified' 
+    },
   ]
 
   return (
@@ -57,7 +57,7 @@ interface DomainFilterProps {
 }
 
 export function DomainFilter({
- domains, activeDomain, onDomainChange 
+  domains, activeDomain, onDomainChange 
 }: DomainFilterProps): React.ReactElement {
   return (
     <div className="flex gap-2">
@@ -86,7 +86,7 @@ interface TypeFilterProps {
 }
 
 export function TypeFilter({
- types, activeType, onTypeChange 
+  types, activeType, onTypeChange 
 }: TypeFilterProps): React.ReactElement {
   return (
     <div className="flex gap-2">

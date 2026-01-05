@@ -8,10 +8,10 @@ import {
 import { fileExists } from '../../file-existence';
 import { formatSuccess } from '../../output';
 import {
- isValidLinkType, normalizeComponentType 
+  isValidLinkType, normalizeComponentType 
 } from '../../component-types';
 import {
- validateComponentType, validateLinkType 
+  validateComponentType, validateLinkType 
 } from '../../validation';
 import {
   loadGraphBuilder,
@@ -90,10 +90,10 @@ Examples:
       }).toString();
 
       const linkInput: {
- from: string;
-to: string;
-type?: 'sync' | 'async' 
-} = {
+        from: string;
+        to: string;
+        type?: 'sync' | 'async' 
+      } = {
         from: options.from,
         to: targetId,
       };

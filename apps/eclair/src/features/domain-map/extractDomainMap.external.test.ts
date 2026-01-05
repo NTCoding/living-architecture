@@ -1,28 +1,28 @@
 import {
- describe, it, expect 
+  describe, it, expect 
 } from 'vitest'
 import { extractDomainMap } from './extractDomainMap'
 import type { RiviereGraph } from '@/types/riviere'
 import {
- parseNode, parseDomainMetadata 
+  parseNode, parseDomainMetadata 
 } from '@/lib/riviereTestData'
 
 const testSourceLocation = {
- repository: 'test-repo',
-filePath: 'src/test.ts' 
+  repository: 'test-repo',
+  filePath: 'src/test.ts' 
 }
 
 function createMinimalGraph(overrides: Partial<RiviereGraph> = {}): RiviereGraph {
   return {
     version: '1.0',
     metadata: {
-domains: parseDomainMetadata({
- 'test-domain': {
- description: 'Test domain',
-systemType: 'domain' 
-} 
-}),
-},
+      domains: parseDomainMetadata({
+        'test-domain': {
+          description: 'Test domain',
+          systemType: 'domain' 
+        } 
+      }),
+    },
     components: [],
     links: [],
     ...overrides,
@@ -53,15 +53,15 @@ describe('extractDomainMap external links integration', () => {
       ],
       externalLinks: [
         {
- source: sourceNodeId,
-target: { name: 'Stripe' },
-type: 'sync' 
-},
+          source: sourceNodeId,
+          target: { name: 'Stripe' },
+          type: 'sync' 
+        },
         {
- source: sourceNodeId,
-target: { name: 'Twilio' },
-type: 'sync' 
-},
+          source: sourceNodeId,
+          target: { name: 'Twilio' },
+          type: 'sync' 
+        },
       ],
     })
 
@@ -120,10 +120,10 @@ type: 'sync'
       ],
       externalLinks: [
         {
- source: sourceNodeId,
-target: { name: 'Stripe' },
-type: 'sync' 
-},
+          source: sourceNodeId,
+          target: { name: 'Stripe' },
+          type: 'sync' 
+        },
       ],
     })
 
@@ -155,33 +155,33 @@ type: 'sync'
     const graph = createMinimalGraph({
       components: [
         parseNode({
- sourceLocation: testSourceLocation,
-id: 'n1',
-type: 'API',
-name: 'API 1',
-domain: 'orders',
-module: 'm1' 
-}),
+          sourceLocation: testSourceLocation,
+          id: 'n1',
+          type: 'API',
+          name: 'API 1',
+          domain: 'orders',
+          module: 'm1' 
+        }),
         parseNode({
- sourceLocation: testSourceLocation,
-id: 'n2',
-type: 'UseCase',
-name: 'UC 1',
-domain: 'orders',
-module: 'm1' 
-}),
+          sourceLocation: testSourceLocation,
+          id: 'n2',
+          type: 'UseCase',
+          name: 'UC 1',
+          domain: 'orders',
+          module: 'm1' 
+        }),
       ],
       externalLinks: [
         {
- source: node1Id,
-target: { name: 'Stripe' },
-type: 'sync' 
-},
+          source: node1Id,
+          target: { name: 'Stripe' },
+          type: 'sync' 
+        },
         {
- source: node2Id,
-target: { name: 'Stripe' },
-type: 'sync' 
-},
+          source: node2Id,
+          target: { name: 'Stripe' },
+          type: 'sync' 
+        },
       ],
     })
 
@@ -195,13 +195,13 @@ type: 'sync'
     const graph = createMinimalGraph({
       components: [
         parseNode({
- sourceLocation: testSourceLocation,
-id: 'n1',
-type: 'API',
-name: 'API 1',
-domain: 'orders',
-module: 'm1' 
-}),
+          sourceLocation: testSourceLocation,
+          id: 'n1',
+          type: 'API',
+          name: 'API 1',
+          domain: 'orders',
+          module: 'm1' 
+        }),
       ],
     })
 

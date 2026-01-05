@@ -16,7 +16,7 @@ interface EntityHeaderActionsProps {
 }
 
 function EntityHeaderActions({
- entity, isExpanded, onViewOnGraph 
+  entity, isExpanded, onViewOnGraph 
 }: Readonly<EntityHeaderActionsProps>): React.ReactElement {
   const firstOp = entity.operations[0]
   const firstOpId = entity.firstOperationId()
@@ -160,7 +160,7 @@ interface MethodCardProps {
 }
 
 function MethodCard({
- operation, businessRules 
+  operation, businessRules 
 }: Readonly<MethodCardProps>): React.ReactElement {
   const [isExpanded, setIsExpanded] = useState(false)
 
@@ -181,7 +181,7 @@ interface MethodCardHeaderProps {
 }
 
 function MethodCardHeader({
- operation, isExpanded, onToggle 
+  operation, isExpanded, onToggle 
 }: Readonly<MethodCardHeaderProps>): React.ReactElement {
   return (
     <div
@@ -202,7 +202,7 @@ interface MethodCardButtonProps {
 }
 
 function MethodCardButton({
- operation, isExpanded, onToggle 
+  operation, isExpanded, onToggle 
 }: Readonly<MethodCardButtonProps>): React.ReactElement {
   return (
     <button
@@ -301,7 +301,7 @@ interface MethodCardContentProps {
 }
 
 function MethodCardContent({
- operation, businessRules 
+  operation, businessRules 
 }: Readonly<MethodCardContentProps>): React.ReactElement {
   const hasRulesToShow = businessRules.length > 0
   const hasBehavior = operation.behavior !== undefined
@@ -358,7 +358,7 @@ const colorStyles: Record<BehaviorBoxProps['color'], string> = {
 }
 
 function BehaviorBox({
- label, items, icon, color 
+  label, items, icon, color 
 }: Readonly<BehaviorBoxProps>): React.ReactElement {
   const hasItems = items !== undefined && items.length > 0
 

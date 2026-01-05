@@ -1,8 +1,8 @@
 import {
- describe, it, expect 
+  describe, it, expect 
 } from 'vitest'
 import {
- renderHook, act 
+  renderHook, act 
 } from '@testing-library/react'
 import { useDomainMapInteractions } from './useDomainMapInteractions'
 import type { ConnectionDetail } from '../extractDomainMap'
@@ -150,17 +150,17 @@ describe('useDomainMapInteractions', () => {
       const { result } = renderHook(() => useDomainMapInteractions())
       const connections: ConnectionDetail[] = [
         {
- sourceName: 'PlaceOrder',
-targetName: 'ProcessPayment',
-type: 'sync',
-targetNodeType: 'API' 
-},
+          sourceName: 'PlaceOrder',
+          targetName: 'ProcessPayment',
+          type: 'sync',
+          targetNodeType: 'API' 
+        },
         {
- sourceName: 'OrderCreated',
-targetName: 'HandleOrder',
-type: 'async',
-targetNodeType: 'EventHandler' 
-},
+          sourceName: 'OrderCreated',
+          targetName: 'HandleOrder',
+          type: 'async',
+          targetNodeType: 'EventHandler' 
+        },
       ]
 
       act(() => {

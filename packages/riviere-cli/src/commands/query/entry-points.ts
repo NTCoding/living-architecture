@@ -1,7 +1,7 @@
 import { Command } from 'commander';
 import { formatSuccess } from '../../output';
 import {
- withGraph, getDefaultGraphPathDescription 
+  withGraph, getDefaultGraphPathDescription 
 } from './load-graph';
 
 interface EntryPointsOptions {

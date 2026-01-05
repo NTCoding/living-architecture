@@ -23,10 +23,10 @@ function detectMismatch(
 
   if (query.type !== undefined && query.type !== component.type) {
     return {
- field: 'type',
-expected: query.type,
-actual: component.type 
-};
+      field: 'type',
+      expected: query.type,
+      actual: component.type 
+    };
   }
 
   if (query.domain !== undefined && query.domain !== component.domain) {
@@ -73,10 +73,10 @@ export function findNearMatches(
       const score = similarityScore(query.name, component.name);
       const mismatch = detectMismatch(query, component);
       return {
- component,
-score,
-mismatch 
-};
+        component,
+        score,
+        mismatch 
+      };
     })
     .filter(
       (result) => result.score >= threshold || result.mismatch !== undefined,

@@ -1,27 +1,27 @@
 import {
- RiviereBuilder, type BuilderOptions 
+  RiviereBuilder, type BuilderOptions 
 } from './builder';
 
 function createValidOptions(): BuilderOptions {
   return {
     sources: [{
- repository: 'test/repo',
-commit: 'abc123' 
-}],
+      repository: 'test/repo',
+      commit: 'abc123' 
+    }],
     domains: {
-orders: {
- description: 'Order domain',
-systemType: 'domain' 
-},
-},
+      orders: {
+        description: 'Order domain',
+        systemType: 'domain' 
+      },
+    },
   };
 }
 
 function createSourceLocation() {
   return {
- repository: 'test/repo',
-filePath: 'src/test.ts' 
-};
+    repository: 'test/repo',
+    filePath: 'src/test.ts' 
+  };
 }
 
 describe('RiviereBuilder enrichComponent', () => {
@@ -37,21 +37,21 @@ describe('RiviereBuilder enrichComponent', () => {
       });
 
       builder.enrichComponent(domainOp.id, {
-stateChanges: [{
- from: 'draft',
-to: 'placed' 
-}],
-});
+        stateChanges: [{
+          from: 'draft',
+          to: 'placed' 
+        }],
+      });
 
       const enriched = builder.graph.components.find(
         (c) => c.id === domainOp.id,
       );
       expect(enriched).toMatchObject({
-stateChanges: [{
- from: 'draft',
-to: 'placed' 
-}],
-});
+        stateChanges: [{
+          from: 'draft',
+          to: 'placed' 
+        }],
+      });
     });
   });
 
@@ -117,11 +117,11 @@ to: 'placed'
 
       expect(() =>
         builder.enrichComponent(useCase.id, {
-stateChanges: [{
- from: 'draft',
-to: 'placed' 
-}],
-}),
+          stateChanges: [{
+            from: 'draft',
+            to: 'placed' 
+          }],
+        }),
       ).toThrow(
         "Only DomainOp components can be enriched. 'orders:checkout:usecase:checkout-flow' is type 'UseCase'",
       );
@@ -244,17 +244,17 @@ to: 'placed'
         operationName: 'placeOrder',
         sourceLocation: createSourceLocation(),
         stateChanges: [{
- from: 'draft',
-to: 'placed' 
-}],
+          from: 'draft',
+          to: 'placed' 
+        }],
       });
 
       builder.enrichComponent(domainOp.id, {
-stateChanges: [{
- from: 'placed',
-to: 'shipped' 
-}],
-});
+        stateChanges: [{
+          from: 'placed',
+          to: 'shipped' 
+        }],
+      });
 
       const enriched = builder.graph.components.find(
         (c) => c.id === domainOp.id,
@@ -262,13 +262,13 @@ to: 'shipped'
       expect(enriched).toMatchObject({
         stateChanges: [
           {
- from: 'draft',
-to: 'placed' 
-},
+            from: 'draft',
+            to: 'placed' 
+          },
           {
- from: 'placed',
-to: 'shipped' 
-},
+            from: 'placed',
+            to: 'shipped' 
+          },
         ],
       });
     });
@@ -312,9 +312,9 @@ to: 'shipped'
       builder.enrichComponent(domainOp.id, {
         signature: {
           parameters: [{
- name: 'orderId',
-type: 'string' 
-}],
+            name: 'orderId',
+            type: 'string' 
+          }],
           returnType: 'Order',
         },
       });
@@ -325,9 +325,9 @@ type: 'string'
       expect(enriched).toMatchObject({
         signature: {
           parameters: [{
- name: 'orderId',
-type: 'string' 
-}],
+            name: 'orderId',
+            type: 'string' 
+          }],
           returnType: 'Order',
         },
       });
@@ -347,9 +347,9 @@ type: 'string'
       builder.enrichComponent(domainOp.id, {
         signature: {
           parameters: [{
- name: 'orderId',
-type: 'string' 
-}],
+            name: 'orderId',
+            type: 'string' 
+          }],
           returnType: 'Order',
         },
       });
@@ -360,9 +360,9 @@ type: 'string'
       expect(enriched).toMatchObject({
         signature: {
           parameters: [{
- name: 'orderId',
-type: 'string' 
-}],
+            name: 'orderId',
+            type: 'string' 
+          }],
           returnType: 'Order',
         },
       });

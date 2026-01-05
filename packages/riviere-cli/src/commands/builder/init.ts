@@ -1,12 +1,12 @@
 import { Command } from 'commander';
 import {
- mkdir, writeFile 
+  mkdir, writeFile 
 } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { RiviereBuilder } from '@living-architecture/riviere-builder';
 import type { BuilderOptions } from '@living-architecture/riviere-builder';
 import {
- formatError, formatSuccess 
+  formatError, formatSuccess 
 } from '../../output';
 import { CliErrorCode } from '../../error-codes';
 import { fileExists } from '../../file-existence';

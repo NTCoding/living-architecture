@@ -1,5 +1,5 @@
 import {
- describe, it, expect 
+  describe, it, expect 
 } from 'vitest';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -20,11 +20,11 @@ describe('riviere builder add-component Custom type', () => {
     await createGraphWithCustomType(ctx.testDir, 'orders', 'BackgroundJob', {
       description: 'Scheduled background task',
       requiredProperties: {
-schedule: {
- type: 'string',
-description: 'Cron expression' 
-},
-},
+        schedule: {
+          type: 'string',
+          description: 'Cron expression' 
+        },
+      },
     });
 
     const program = createProgram();
@@ -102,11 +102,11 @@ description: 'Cron expression'
     const content = await readFile(graphPath, 'utf-8');
     const graph: unknown = JSON.parse(content);
     expect(graph).toMatchObject({
-components: [{
- schedule: '0 0 * * *',
-timeout: '5m' 
-}],
-});
+      components: [{
+        schedule: '0 0 * * *',
+        timeout: '5m' 
+      }],
+    });
   });
 
   it('returns VALIDATION_ERROR when --custom-property has invalid format', async () => {

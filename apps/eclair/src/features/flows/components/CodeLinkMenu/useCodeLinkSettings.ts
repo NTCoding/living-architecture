@@ -1,5 +1,5 @@
 import {
- useState, useCallback 
+  useState, useCallback 
 } from 'react'
 import { z } from 'zod'
 
@@ -46,9 +46,9 @@ export function useCodeLinkSettings(): UseCodeLinkSettingsReturn {
   const setVscodePath = useCallback((path: string) => {
     setSettings((prev) => {
       const next = {
- ...prev,
-vscodePath: path 
-}
+        ...prev,
+        vscodePath: path 
+      }
       saveSettings(next)
       return next
     })
@@ -57,9 +57,9 @@ vscodePath: path
   const setGithubOrg = useCallback((org: string) => {
     setSettings((prev) => {
       const next = {
- ...prev,
-githubOrg: org 
-}
+        ...prev,
+        githubOrg: org 
+      }
       saveSettings(next)
       return next
     })
@@ -68,9 +68,9 @@ githubOrg: org
   const setGithubBranch = useCallback((branch: string) => {
     setSettings((prev) => {
       const next = {
- ...prev,
-githubBranch: branch 
-}
+        ...prev,
+        githubBranch: branch 
+      }
       saveSettings(next)
       return next
     })

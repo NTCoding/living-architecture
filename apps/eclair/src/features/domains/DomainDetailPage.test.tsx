@@ -1,22 +1,22 @@
 import {
- describe, it, expect 
+  describe, it, expect 
 } from 'vitest'
 import {
- render, screen, within 
+  render, screen, within 
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import {
- MemoryRouter, Routes, Route 
+  MemoryRouter, Routes, Route 
 } from 'react-router-dom'
 import { DomainDetailPage } from './DomainDetailPage'
 import {
- parseNode, parseEdge, parseDomainMetadata 
+  parseNode, parseEdge, parseDomainMetadata 
 } from '@/lib/riviereTestData'
 import type { RiviereGraph } from '@/types/riviere'
 
 const testSourceLocation = {
- repository: 'test-repo',
-filePath: 'src/test.ts' 
+  repository: 'test-repo',
+  filePath: 'src/test.ts' 
 }
 
 function createTestGraph(): RiviereGraph {
@@ -26,61 +26,61 @@ function createTestGraph(): RiviereGraph {
       name: 'Test Architecture',
       description: 'Test description',
       domains: parseDomainMetadata({
-'order-domain': {
- description: 'Order management',
-systemType: 'domain' 
-},
-}),
+        'order-domain': {
+          description: 'Order management',
+          systemType: 'domain' 
+        },
+      }),
     },
     components: [
       parseNode({
- sourceLocation: testSourceLocation,
-id: 'n1',
-type: 'API',
-name: 'Place Order',
-domain: 'order-domain',
-module: 'm1',
-apiType: 'REST',
-httpMethod: 'POST',
-path: '/api/orders' 
-}),
+        sourceLocation: testSourceLocation,
+        id: 'n1',
+        type: 'API',
+        name: 'Place Order',
+        domain: 'order-domain',
+        module: 'm1',
+        apiType: 'REST',
+        httpMethod: 'POST',
+        path: '/api/orders' 
+      }),
       parseNode({
- sourceLocation: testSourceLocation,
-id: 'n2',
-type: 'UseCase',
-name: 'Place Order UC',
-domain: 'order-domain',
-module: 'm1' 
-}),
+        sourceLocation: testSourceLocation,
+        id: 'n2',
+        type: 'UseCase',
+        name: 'Place Order UC',
+        domain: 'order-domain',
+        module: 'm1' 
+      }),
       parseNode({
- sourceLocation: testSourceLocation,
-id: 'n3',
-type: 'DomainOp',
-name: 'Order.begin',
-domain: 'order-domain',
-module: 'm1',
-entity: 'Order',
-operationName: 'begin' 
-}),
+        sourceLocation: testSourceLocation,
+        id: 'n3',
+        type: 'DomainOp',
+        name: 'Order.begin',
+        domain: 'order-domain',
+        module: 'm1',
+        entity: 'Order',
+        operationName: 'begin' 
+      }),
       parseNode({
- sourceLocation: testSourceLocation,
-id: 'n4',
-type: 'Event',
-name: 'OrderPlaced',
-domain: 'order-domain',
-module: 'm1',
-eventName: 'OrderPlaced' 
-}),
+        sourceLocation: testSourceLocation,
+        id: 'n4',
+        type: 'Event',
+        name: 'OrderPlaced',
+        domain: 'order-domain',
+        module: 'm1',
+        eventName: 'OrderPlaced' 
+      }),
     ],
     links: [
       parseEdge({
- source: 'n1',
-target: 'n2' 
-}),
+        source: 'n1',
+        target: 'n2' 
+      }),
       parseEdge({
- source: 'n2',
-target: 'n3' 
-}),
+        source: 'n2',
+        target: 'n3' 
+      }),
     ],
   }
 }
@@ -181,8 +181,8 @@ describe('DomainDetailPage', () => {
       const graph = createTestGraph()
       graph.components.push(
         parseNode({
- sourceLocation: testSourceLocation,
-id: 'n5',
+          sourceLocation: testSourceLocation,
+          id: 'n5',
           type: 'EventHandler',
           name: 'Handle Payment',
           domain: 'order-domain',

@@ -73,11 +73,11 @@ describe('riviere query components', () => {
         metadata: {
           sources: [{ repository: 'https://github.com/org/repo' }],
           domains: {
-orders: {
- description: 'Order management',
-systemType: 'domain' 
-},
-},
+            orders: {
+              description: 'Order management',
+              systemType: 'domain' 
+            },
+          },
         },
         components: [
           {
@@ -128,9 +128,9 @@ systemType: 'domain'
           sources: [{ repository: 'https://github.com/org/repo' }],
           domains: {
             orders: {
- description: 'Order management',
-systemType: 'domain' 
-},
+              description: 'Order management',
+              systemType: 'domain' 
+            },
             payments: {
               description: 'Payment processing',
               systemType: 'domain',
@@ -184,11 +184,11 @@ systemType: 'domain'
         metadata: {
           sources: [{ repository: 'https://github.com/org/repo' }],
           domains: {
-orders: {
- description: 'Order management',
-systemType: 'domain' 
-},
-},
+            orders: {
+              description: 'Order management',
+              systemType: 'domain' 
+            },
+          },
         },
         components: [
           {
@@ -234,11 +234,11 @@ systemType: 'domain'
         metadata: {
           sources: [{ repository: 'https://github.com/org/repo' }],
           domains: {
-orders: {
- description: 'Order management',
-systemType: 'domain' 
-},
-},
+            orders: {
+              description: 'Order management',
+              systemType: 'domain' 
+            },
+          },
         },
         components: [
           {
@@ -276,9 +276,9 @@ systemType: 'domain'
           sources: [{ repository: 'https://github.com/org/repo' }],
           domains: {
             orders: {
- description: 'Order management',
-systemType: 'domain' 
-},
+              description: 'Order management',
+              systemType: 'domain' 
+            },
             payments: {
               description: 'Payment processing',
               systemType: 'domain',
@@ -344,11 +344,11 @@ systemType: 'domain'
         metadata: {
           sources: [{ repository: 'https://github.com/org/repo' }],
           domains: {
-orders: {
- description: 'Order management',
-systemType: 'domain' 
-},
-},
+            orders: {
+              description: 'Order management',
+              systemType: 'domain' 
+            },
+          },
         },
         components: [
           {

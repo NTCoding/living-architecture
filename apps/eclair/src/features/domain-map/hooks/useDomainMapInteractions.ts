@@ -1,9 +1,9 @@
 import {
- useState, useCallback 
+  useState, useCallback 
 } from 'react'
 import type { ConnectionDetail } from '../extractDomainMap'
 import {
- pluralizeComponent, pluralizeConnection 
+  pluralizeComponent, pluralizeConnection 
 } from '../pluralize'
 
 interface TooltipState {
@@ -101,16 +101,16 @@ export function useDomainMapInteractions(options: UseDomainMapInteractionsOption
 
   const hideTooltip = useCallback(() => {
     setTooltip((prev) => ({
- ...prev,
-visible: false 
-}))
+      ...prev,
+      visible: false 
+    }))
   }, [])
 
   const selectEdge = useCallback((source: string, target: string, apiCount: number, eventCount: number, sourceNodeCount: number, targetNodeCount: number, connections: ConnectionDetail[]) => {
     setTooltip((prev) => ({
- ...prev,
-visible: false 
-}))
+      ...prev,
+      visible: false 
+    }))
     setInspector({
       visible: true,
       source,
@@ -125,9 +125,9 @@ visible: false
 
   const closeInspector = useCallback(() => {
     setInspector((prev) => ({
- ...prev,
-visible: false 
-}))
+      ...prev,
+      visible: false 
+    }))
   }, [])
 
   const selectDomain = useCallback((domain: string) => {

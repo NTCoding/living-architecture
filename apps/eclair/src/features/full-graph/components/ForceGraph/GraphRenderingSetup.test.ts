@@ -1,5 +1,5 @@
 import {
- describe, it, expect, vi 
+  describe, it, expect, vi 
 } from 'vitest'
 import * as d3 from 'd3'
 import {
@@ -12,8 +12,8 @@ import {
 import type { SimulationNode } from '../../types'
 import { parseNode } from '@/lib/riviereTestData'
 const testSourceLocation = {
- repository: 'test-repo',
-filePath: 'src/test.ts' 
+  repository: 'test-repo',
+  filePath: 'src/test.ts' 
 }
 
 describe('GraphRenderingSetup', () => {
@@ -21,37 +21,37 @@ describe('GraphRenderingSetup', () => {
     it('returns x coordinates when field is x', () => {
       const nodes: SimulationNode[] = [
         {
- id: '1',
-type: 'API',
-name: 'test',
-domain: 'test',
-originalNode: parseNode({
- sourceLocation: testSourceLocation,
-id: '1',
-type: 'API',
-name: 'test',
-domain: 'test',
-module: 'test' 
-}),
-x: 10,
-y: 20 
-},
+          id: '1',
+          type: 'API',
+          name: 'test',
+          domain: 'test',
+          originalNode: parseNode({
+            sourceLocation: testSourceLocation,
+            id: '1',
+            type: 'API',
+            name: 'test',
+            domain: 'test',
+            module: 'test' 
+          }),
+          x: 10,
+          y: 20 
+        },
         {
- id: '2',
-type: 'API',
-name: 'test2',
-domain: 'test',
-originalNode: parseNode({
- sourceLocation: testSourceLocation,
-id: '2',
-type: 'API',
-name: 'test2',
-domain: 'test',
-module: 'test' 
-}),
-x: 30,
-y: 40 
-},
+          id: '2',
+          type: 'API',
+          name: 'test2',
+          domain: 'test',
+          originalNode: parseNode({
+            sourceLocation: testSourceLocation,
+            id: '2',
+            type: 'API',
+            name: 'test2',
+            domain: 'test',
+            module: 'test' 
+          }),
+          x: 30,
+          y: 40 
+        },
       ]
 
       const result = extractCoordinates(nodes, 'x')
@@ -62,37 +62,37 @@ y: 40
     it('returns y coordinates when field is y', () => {
       const nodes: SimulationNode[] = [
         {
- id: '1',
-type: 'API',
-name: 'test',
-domain: 'test',
-originalNode: parseNode({
- sourceLocation: testSourceLocation,
-id: '1',
-type: 'API',
-name: 'test',
-domain: 'test',
-module: 'test' 
-}),
-x: 10,
-y: 20 
-},
+          id: '1',
+          type: 'API',
+          name: 'test',
+          domain: 'test',
+          originalNode: parseNode({
+            sourceLocation: testSourceLocation,
+            id: '1',
+            type: 'API',
+            name: 'test',
+            domain: 'test',
+            module: 'test' 
+          }),
+          x: 10,
+          y: 20 
+        },
         {
- id: '2',
-type: 'API',
-name: 'test2',
-domain: 'test',
-originalNode: parseNode({
- sourceLocation: testSourceLocation,
-id: '2',
-type: 'API',
-name: 'test2',
-domain: 'test',
-module: 'test' 
-}),
-x: 30,
-y: 40 
-},
+          id: '2',
+          type: 'API',
+          name: 'test2',
+          domain: 'test',
+          originalNode: parseNode({
+            sourceLocation: testSourceLocation,
+            id: '2',
+            type: 'API',
+            name: 'test2',
+            domain: 'test',
+            module: 'test' 
+          }),
+          x: 30,
+          y: 40 
+        },
       ]
 
       const result = extractCoordinates(nodes, 'y')
@@ -103,20 +103,20 @@ y: 40
     it('throws error when x coordinate is undefined', () => {
       const nodes: SimulationNode[] = [
         {
- id: '1',
-type: 'API',
-name: 'test',
-domain: 'test',
-originalNode: parseNode({
- sourceLocation: testSourceLocation,
-id: '1',
-type: 'API',
-name: 'test',
-domain: 'test',
-module: 'test' 
-}),
-y: 20 
-},
+          id: '1',
+          type: 'API',
+          name: 'test',
+          domain: 'test',
+          originalNode: parseNode({
+            sourceLocation: testSourceLocation,
+            id: '1',
+            type: 'API',
+            name: 'test',
+            domain: 'test',
+            module: 'test' 
+          }),
+          y: 20 
+        },
       ]
 
       expect(() => extractCoordinates(nodes, 'x')).toThrow('missing layout x coordinate')
@@ -125,20 +125,20 @@ y: 20
     it('throws error when y coordinate is undefined', () => {
       const nodes: SimulationNode[] = [
         {
- id: '1',
-type: 'API',
-name: 'test',
-domain: 'test',
-originalNode: parseNode({
- sourceLocation: testSourceLocation,
-id: '1',
-type: 'API',
-name: 'test',
-domain: 'test',
-module: 'test' 
-}),
-x: 10 
-},
+          id: '1',
+          type: 'API',
+          name: 'test',
+          domain: 'test',
+          originalNode: parseNode({
+            sourceLocation: testSourceLocation,
+            id: '1',
+            type: 'API',
+            name: 'test',
+            domain: 'test',
+            module: 'test' 
+          }),
+          x: 10 
+        },
       ]
 
       expect(() => extractCoordinates(nodes, 'y')).toThrow('missing layout y coordinate')
@@ -147,54 +147,54 @@ x: 10
     it('handles multiple nodes with coordinates', () => {
       const nodes: SimulationNode[] = [
         {
- id: '1',
-type: 'API',
-name: 'test',
-domain: 'test',
-originalNode: parseNode({
- sourceLocation: testSourceLocation,
-id: '1',
-type: 'API',
-name: 'test',
-domain: 'test',
-module: 'test' 
-}),
-x: 5,
-y: 15 
-},
+          id: '1',
+          type: 'API',
+          name: 'test',
+          domain: 'test',
+          originalNode: parseNode({
+            sourceLocation: testSourceLocation,
+            id: '1',
+            type: 'API',
+            name: 'test',
+            domain: 'test',
+            module: 'test' 
+          }),
+          x: 5,
+          y: 15 
+        },
         {
- id: '2',
-type: 'UseCase',
-name: 'test2',
-domain: 'test',
-originalNode: parseNode({
- sourceLocation: testSourceLocation,
-id: '2',
-type: 'UseCase',
-name: 'test2',
-domain: 'test',
-module: 'test' 
-}),
-x: 25,
-y: 35 
-},
+          id: '2',
+          type: 'UseCase',
+          name: 'test2',
+          domain: 'test',
+          originalNode: parseNode({
+            sourceLocation: testSourceLocation,
+            id: '2',
+            type: 'UseCase',
+            name: 'test2',
+            domain: 'test',
+            module: 'test' 
+          }),
+          x: 25,
+          y: 35 
+        },
         {
- id: '3',
-type: 'Event',
-name: 'test3',
-domain: 'test',
-originalNode: parseNode({
- sourceLocation: testSourceLocation,
-id: '3',
-type: 'Event',
-name: 'test3',
-domain: 'test',
-module: 'test',
-eventName: 'test3' 
-}),
-x: 45,
-y: 55 
-},
+          id: '3',
+          type: 'Event',
+          name: 'test3',
+          domain: 'test',
+          originalNode: parseNode({
+            sourceLocation: testSourceLocation,
+            id: '3',
+            type: 'Event',
+            name: 'test3',
+            domain: 'test',
+            module: 'test',
+            eventName: 'test3' 
+          }),
+          x: 45,
+          y: 55 
+        },
       ]
 
       expect(extractCoordinates(nodes, 'x')).toEqual([5, 25, 45])
@@ -204,21 +204,21 @@ y: 55
     it('handles single node', () => {
       const nodes: SimulationNode[] = [
         {
- id: '1',
-type: 'API',
-name: 'test',
-domain: 'test',
-originalNode: parseNode({
- sourceLocation: testSourceLocation,
-id: '1',
-type: 'API',
-name: 'test',
-domain: 'test',
-module: 'test' 
-}),
-x: 100,
-y: 200 
-},
+          id: '1',
+          type: 'API',
+          name: 'test',
+          domain: 'test',
+          originalNode: parseNode({
+            sourceLocation: testSourceLocation,
+            id: '1',
+            type: 'API',
+            name: 'test',
+            domain: 'test',
+            module: 'test' 
+          }),
+          x: 100,
+          y: 200 
+        },
       ]
 
       expect(extractCoordinates(nodes, 'x')).toEqual([100])
@@ -231,45 +231,45 @@ y: 200
       const result = calculateFitViewportTransform({
         nodes: [],
         dimensions: {
- width: 800,
-height: 600 
-},
+          width: 800,
+          height: 600 
+        },
         padding: 80,
       })
 
       expect(result).toEqual({
- translateX: 0,
-translateY: 0,
-scale: 1 
-})
+        translateX: 0,
+        translateY: 0,
+        scale: 1 
+      })
     })
 
     it('centers single node in viewport', () => {
       const nodes: SimulationNode[] = [
         {
- id: '1',
-type: 'API',
-name: 'test',
-domain: 'test',
-originalNode: parseNode({
- sourceLocation: testSourceLocation,
-id: '1',
-type: 'API',
-name: 'test',
-domain: 'test',
-module: 'test' 
-}),
-x: 100,
-y: 100 
-},
+          id: '1',
+          type: 'API',
+          name: 'test',
+          domain: 'test',
+          originalNode: parseNode({
+            sourceLocation: testSourceLocation,
+            id: '1',
+            type: 'API',
+            name: 'test',
+            domain: 'test',
+            module: 'test' 
+          }),
+          x: 100,
+          y: 100 
+        },
       ]
 
       const result = calculateFitViewportTransform({
         nodes,
         dimensions: {
- width: 800,
-height: 600 
-},
+          width: 800,
+          height: 600 
+        },
         padding: 80,
       })
 
@@ -281,45 +281,45 @@ height: 600
     it('fits multiple nodes with applied padding', () => {
       const nodes: SimulationNode[] = [
         {
- id: '1',
-type: 'API',
-name: 'test1',
-domain: 'test',
-originalNode: parseNode({
- sourceLocation: testSourceLocation,
-id: '1',
-type: 'API',
-name: 'test1',
-domain: 'test',
-module: 'test' 
-}),
-x: 0,
-y: 0 
-},
+          id: '1',
+          type: 'API',
+          name: 'test1',
+          domain: 'test',
+          originalNode: parseNode({
+            sourceLocation: testSourceLocation,
+            id: '1',
+            type: 'API',
+            name: 'test1',
+            domain: 'test',
+            module: 'test' 
+          }),
+          x: 0,
+          y: 0 
+        },
         {
- id: '2',
-type: 'API',
-name: 'test2',
-domain: 'test',
-originalNode: parseNode({
- sourceLocation: testSourceLocation,
-id: '2',
-type: 'API',
-name: 'test2',
-domain: 'test',
-module: 'test' 
-}),
-x: 100,
-y: 100 
-},
+          id: '2',
+          type: 'API',
+          name: 'test2',
+          domain: 'test',
+          originalNode: parseNode({
+            sourceLocation: testSourceLocation,
+            id: '2',
+            type: 'API',
+            name: 'test2',
+            domain: 'test',
+            module: 'test' 
+          }),
+          x: 100,
+          y: 100 
+        },
       ]
 
       const result = calculateFitViewportTransform({
         nodes,
         dimensions: {
- width: 800,
-height: 600 
-},
+          width: 800,
+          height: 600 
+        },
         padding: 80,
       })
 
@@ -330,29 +330,29 @@ height: 600
     it('respects max scale of 1', () => {
       const nodes: SimulationNode[] = [
         {
- id: '1',
-type: 'API',
-name: 'test',
-domain: 'test',
-originalNode: parseNode({
- sourceLocation: testSourceLocation,
-id: '1',
-type: 'API',
-name: 'test',
-domain: 'test',
-module: 'test' 
-}),
-x: 10,
-y: 10 
-},
+          id: '1',
+          type: 'API',
+          name: 'test',
+          domain: 'test',
+          originalNode: parseNode({
+            sourceLocation: testSourceLocation,
+            id: '1',
+            type: 'API',
+            name: 'test',
+            domain: 'test',
+            module: 'test' 
+          }),
+          x: 10,
+          y: 10 
+        },
       ]
 
       const result = calculateFitViewportTransform({
         nodes,
         dimensions: {
- width: 1000,
-height: 1000 
-},
+          width: 1000,
+          height: 1000 
+        },
         padding: 10,
       })
 
@@ -364,30 +364,30 @@ height: 1000
     it('returns null when no nodes in focused domain', () => {
       const nodes: SimulationNode[] = [
         {
- id: '1',
-type: 'API',
-name: 'test',
-domain: 'orders',
-originalNode: parseNode({
- sourceLocation: testSourceLocation,
-id: '1',
-type: 'API',
-name: 'test',
-domain: 'orders',
-module: 'test' 
-}),
-x: 100,
-y: 100 
-},
+          id: '1',
+          type: 'API',
+          name: 'test',
+          domain: 'orders',
+          originalNode: parseNode({
+            sourceLocation: testSourceLocation,
+            id: '1',
+            type: 'API',
+            name: 'test',
+            domain: 'orders',
+            module: 'test' 
+          }),
+          x: 100,
+          y: 100 
+        },
       ]
 
       const result = calculateFocusModeZoom({
         nodes,
         focusedDomain: 'payments',
         dimensions: {
- width: 800,
-height: 600 
-},
+          width: 800,
+          height: 600 
+        },
       })
 
       expect(result).toBeNull()
@@ -396,62 +396,62 @@ height: 600
     it('calculates zoom to focus on domain nodes', () => {
       const nodes: SimulationNode[] = [
         {
- id: '1',
-type: 'API',
-name: 'test1',
-domain: 'payments',
-originalNode: parseNode({
- sourceLocation: testSourceLocation,
-id: '1',
-type: 'API',
-name: 'test1',
-domain: 'payments',
-module: 'test' 
-}),
-x: 0,
-y: 0 
-},
+          id: '1',
+          type: 'API',
+          name: 'test1',
+          domain: 'payments',
+          originalNode: parseNode({
+            sourceLocation: testSourceLocation,
+            id: '1',
+            type: 'API',
+            name: 'test1',
+            domain: 'payments',
+            module: 'test' 
+          }),
+          x: 0,
+          y: 0 
+        },
         {
- id: '2',
-type: 'API',
-name: 'test2',
-domain: 'payments',
-originalNode: parseNode({
- sourceLocation: testSourceLocation,
-id: '2',
-type: 'API',
-name: 'test2',
-domain: 'payments',
-module: 'test' 
-}),
-x: 100,
-y: 100 
-},
+          id: '2',
+          type: 'API',
+          name: 'test2',
+          domain: 'payments',
+          originalNode: parseNode({
+            sourceLocation: testSourceLocation,
+            id: '2',
+            type: 'API',
+            name: 'test2',
+            domain: 'payments',
+            module: 'test' 
+          }),
+          x: 100,
+          y: 100 
+        },
         {
- id: '3',
-type: 'API',
-name: 'test3',
-domain: 'orders',
-originalNode: parseNode({
- sourceLocation: testSourceLocation,
-id: '3',
-type: 'API',
-name: 'test3',
-domain: 'orders',
-module: 'test' 
-}),
-x: 500,
-y: 500 
-},
+          id: '3',
+          type: 'API',
+          name: 'test3',
+          domain: 'orders',
+          originalNode: parseNode({
+            sourceLocation: testSourceLocation,
+            id: '3',
+            type: 'API',
+            name: 'test3',
+            domain: 'orders',
+            module: 'test' 
+          }),
+          x: 500,
+          y: 500 
+        },
       ]
 
       const result = calculateFocusModeZoom({
         nodes,
         focusedDomain: 'payments',
         dimensions: {
- width: 800,
-height: 600 
-},
+          width: 800,
+          height: 600 
+        },
       })
 
       expect(result).not.toBeNull()
@@ -464,30 +464,30 @@ height: 600
     it('caps zoom scale at 2.5', () => {
       const nodes: SimulationNode[] = [
         {
- id: '1',
-type: 'API',
-name: 'test',
-domain: 'payments',
-originalNode: parseNode({
- sourceLocation: testSourceLocation,
-id: '1',
-type: 'API',
-name: 'test',
-domain: 'payments',
-module: 'test' 
-}),
-x: 50,
-y: 50 
-},
+          id: '1',
+          type: 'API',
+          name: 'test',
+          domain: 'payments',
+          originalNode: parseNode({
+            sourceLocation: testSourceLocation,
+            id: '1',
+            type: 'API',
+            name: 'test',
+            domain: 'payments',
+            module: 'test' 
+          }),
+          x: 50,
+          y: 50 
+        },
       ]
 
       const result = calculateFocusModeZoom({
         nodes,
         focusedDomain: 'payments',
         dimensions: {
- width: 800,
-height: 600 
-},
+          width: 800,
+          height: 600 
+        },
       })
 
       expect(result?.scale).toBeLessThanOrEqual(2.5)
@@ -498,50 +498,50 @@ height: 600
     it('applies positions from map to nodes', () => {
       const nodes: SimulationNode[] = [
         {
- id: '1',
-type: 'API',
-name: 'test1',
-domain: 'test',
-originalNode: parseNode({
- sourceLocation: testSourceLocation,
-id: '1',
-type: 'API',
-name: 'test1',
-domain: 'test',
-module: 'test' 
-}) 
-},
+          id: '1',
+          type: 'API',
+          name: 'test1',
+          domain: 'test',
+          originalNode: parseNode({
+            sourceLocation: testSourceLocation,
+            id: '1',
+            type: 'API',
+            name: 'test1',
+            domain: 'test',
+            module: 'test' 
+          }) 
+        },
         {
- id: '2',
-type: 'API',
-name: 'test2',
-domain: 'test',
-originalNode: parseNode({
- sourceLocation: testSourceLocation,
-id: '2',
-type: 'API',
-name: 'test2',
-domain: 'test',
-module: 'test' 
-}) 
-},
+          id: '2',
+          type: 'API',
+          name: 'test2',
+          domain: 'test',
+          originalNode: parseNode({
+            sourceLocation: testSourceLocation,
+            id: '2',
+            type: 'API',
+            name: 'test2',
+            domain: 'test',
+            module: 'test' 
+          }) 
+        },
       ]
 
       const positions = new Map([
         ['1', {
- x: 100,
-y: 200 
-}],
+          x: 100,
+          y: 200 
+        }],
         ['2', {
- x: 300,
-y: 400 
-}],
+          x: 300,
+          y: 400 
+        }],
       ])
 
       applyDagrePositions({
- nodes,
-positions 
-})
+        nodes,
+        positions 
+      })
 
       expect(nodes[0]?.x).toBe(100)
       expect(nodes[0]?.y).toBe(200)
@@ -552,46 +552,46 @@ positions
     it('skips nodes without positions in map', () => {
       const nodes: SimulationNode[] = [
         {
- id: '1',
-type: 'API',
-name: 'test1',
-domain: 'test',
-originalNode: parseNode({
- sourceLocation: testSourceLocation,
-id: '1',
-type: 'API',
-name: 'test1',
-domain: 'test',
-module: 'test' 
-}) 
-},
+          id: '1',
+          type: 'API',
+          name: 'test1',
+          domain: 'test',
+          originalNode: parseNode({
+            sourceLocation: testSourceLocation,
+            id: '1',
+            type: 'API',
+            name: 'test1',
+            domain: 'test',
+            module: 'test' 
+          }) 
+        },
         {
- id: '2',
-type: 'API',
-name: 'test2',
-domain: 'test',
-originalNode: parseNode({
- sourceLocation: testSourceLocation,
-id: '2',
-type: 'API',
-name: 'test2',
-domain: 'test',
-module: 'test' 
-}) 
-},
+          id: '2',
+          type: 'API',
+          name: 'test2',
+          domain: 'test',
+          originalNode: parseNode({
+            sourceLocation: testSourceLocation,
+            id: '2',
+            type: 'API',
+            name: 'test2',
+            domain: 'test',
+            module: 'test' 
+          }) 
+        },
       ]
 
       const positions = new Map([
         ['1', {
- x: 100,
-y: 200 
-}],
+          x: 100,
+          y: 200 
+        }],
       ])
 
       applyDagrePositions({
- nodes,
-positions 
-})
+        nodes,
+        positions 
+      })
 
       expect(nodes[0]?.x).toBe(100)
       expect(nodes[0]?.y).toBe(200)
@@ -602,30 +602,30 @@ positions
     it('handles empty positions map', () => {
       const nodes: SimulationNode[] = [
         {
- id: '1',
-type: 'API',
-name: 'test',
-domain: 'test',
-originalNode: parseNode({
- sourceLocation: testSourceLocation,
-id: '1',
-type: 'API',
-name: 'test',
-domain: 'test',
-module: 'test' 
-}) 
-},
+          id: '1',
+          type: 'API',
+          name: 'test',
+          domain: 'test',
+          originalNode: parseNode({
+            sourceLocation: testSourceLocation,
+            id: '1',
+            type: 'API',
+            name: 'test',
+            domain: 'test',
+            module: 'test' 
+          }) 
+        },
       ]
 
       const positions = new Map<string, {
- x: number;
-y: number 
-}>()
+        x: number;
+        y: number 
+      }>()
 
       applyDagrePositions({
- nodes,
-positions 
-})
+        nodes,
+        positions 
+      })
 
       expect(nodes[0]?.x).toBeUndefined()
       expect(nodes[0]?.y).toBeUndefined()
@@ -634,34 +634,34 @@ positions
     it('overwrites existing positions', () => {
       const nodes: SimulationNode[] = [
         {
- id: '1',
-type: 'API',
-name: 'test',
-domain: 'test',
-originalNode: parseNode({
- sourceLocation: testSourceLocation,
-id: '1',
-type: 'API',
-name: 'test',
-domain: 'test',
-module: 'test' 
-}),
-x: 10,
-y: 20 
-},
+          id: '1',
+          type: 'API',
+          name: 'test',
+          domain: 'test',
+          originalNode: parseNode({
+            sourceLocation: testSourceLocation,
+            id: '1',
+            type: 'API',
+            name: 'test',
+            domain: 'test',
+            module: 'test' 
+          }),
+          x: 10,
+          y: 20 
+        },
       ]
 
       const positions = new Map([
         ['1', {
- x: 100,
-y: 200 
-}],
+          x: 100,
+          y: 200 
+        }],
       ])
 
       applyDagrePositions({
- nodes,
-positions 
-})
+        nodes,
+        positions 
+      })
 
       expect(nodes[0]?.x).toBe(100)
       expect(nodes[0]?.y).toBe(200)
@@ -678,15 +678,15 @@ positions
       const svg = d3.select(svgElement)
       const g = svg.append('g')
       return {
- svg,
-g 
-}
+        svg,
+        g 
+      }
     }
 
     it('accepts onInteractionStart option without throwing', () => {
       const {
- svg, g 
-} = createTestSvgAndGroup()
+        svg, g 
+      } = createTestSvgAndGroup()
       const onInteractionStart = vi.fn()
 
       expect(() => setupZoomBehavior(svg, g, { onInteractionStart })).not.toThrow()
@@ -696,8 +696,8 @@ g
 
     it('works without options parameter', () => {
       const {
- svg, g 
-} = createTestSvgAndGroup()
+        svg, g 
+      } = createTestSvgAndGroup()
 
       expect(() => setupZoomBehavior(svg, g)).not.toThrow()
 
@@ -706,8 +706,8 @@ g
 
     it('returns a zoom behavior object', () => {
       const {
- svg, g 
-} = createTestSvgAndGroup()
+        svg, g 
+      } = createTestSvgAndGroup()
 
       const zoom = setupZoomBehavior(svg, g)
 

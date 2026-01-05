@@ -1,31 +1,31 @@
 import {
- describe, it, expect 
+  describe, it, expect 
 } from 'vitest'
 import {
- extractDomainMap, getConnectedDomains 
+  extractDomainMap, getConnectedDomains 
 } from './extractDomainMap'
 import type { DomainEdge } from './extractDomainMap'
 import type { RiviereGraph } from '@/types/riviere'
 import {
- parseNode, parseEdge, parseDomainMetadata 
+  parseNode, parseEdge, parseDomainMetadata 
 } from '@/lib/riviereTestData'
 
 const testSourceLocation = {
- repository: 'test-repo',
-filePath: 'src/test.ts' 
+  repository: 'test-repo',
+  filePath: 'src/test.ts' 
 }
 
 function createMinimalGraph(overrides: Partial<RiviereGraph> = {}): RiviereGraph {
   return {
     version: '1.0',
     metadata: {
-domains: parseDomainMetadata({
- 'test-domain': {
- description: 'Test domain',
-systemType: 'domain' 
-} 
-}),
-},
+      domains: parseDomainMetadata({
+        'test-domain': {
+          description: 'Test domain',
+          systemType: 'domain' 
+        } 
+      }),
+    },
     components: [],
     links: [],
     ...overrides,
@@ -47,30 +47,30 @@ describe('extractDomainMap', () => {
       const graph = createMinimalGraph({
         components: [
           parseNode({
- sourceLocation: testSourceLocation,
-id: 'n1',
-type: 'API',
-name: 'API 1',
-domain: 'orders',
-module: 'm1' 
-}),
+            sourceLocation: testSourceLocation,
+            id: 'n1',
+            type: 'API',
+            name: 'API 1',
+            domain: 'orders',
+            module: 'm1' 
+          }),
           parseNode({
- sourceLocation: testSourceLocation,
-id: 'n2',
-type: 'UseCase',
-name: 'UC 1',
-domain: 'orders',
-module: 'm1' 
-}),
+            sourceLocation: testSourceLocation,
+            id: 'n2',
+            type: 'UseCase',
+            name: 'UC 1',
+            domain: 'orders',
+            module: 'm1' 
+          }),
           parseNode({
- sourceLocation: testSourceLocation,
-id: 'n3',
-type: 'Event',
-name: 'Ev 1',
-domain: 'payments',
-module: 'm2',
-eventName: 'Ev1' 
-}),
+            sourceLocation: testSourceLocation,
+            id: 'n3',
+            type: 'Event',
+            name: 'Ev 1',
+            domain: 'payments',
+            module: 'm2',
+            eventName: 'Ev1' 
+          }),
         ],
       })
 
@@ -84,39 +84,39 @@ eventName: 'Ev1'
       const graph = createMinimalGraph({
         components: [
           parseNode({
- sourceLocation: testSourceLocation,
-id: 'n1',
-type: 'API',
-name: 'API 1',
-domain: 'orders',
-module: 'm1' 
-}),
+            sourceLocation: testSourceLocation,
+            id: 'n1',
+            type: 'API',
+            name: 'API 1',
+            domain: 'orders',
+            module: 'm1' 
+          }),
           parseNode({
- sourceLocation: testSourceLocation,
-id: 'n2',
-type: 'UseCase',
-name: 'UC 1',
-domain: 'orders',
-module: 'm1' 
-}),
+            sourceLocation: testSourceLocation,
+            id: 'n2',
+            type: 'UseCase',
+            name: 'UC 1',
+            domain: 'orders',
+            module: 'm1' 
+          }),
           parseNode({
- sourceLocation: testSourceLocation,
-id: 'n3',
-type: 'DomainOp',
-name: 'Op 1',
-domain: 'orders',
-module: 'm1',
-operationName: 'op1' 
-}),
+            sourceLocation: testSourceLocation,
+            id: 'n3',
+            type: 'DomainOp',
+            name: 'Op 1',
+            domain: 'orders',
+            module: 'm1',
+            operationName: 'op1' 
+          }),
           parseNode({
- sourceLocation: testSourceLocation,
-id: 'n4',
-type: 'Event',
-name: 'Ev 1',
-domain: 'payments',
-module: 'm2',
-eventName: 'Ev1' 
-}),
+            sourceLocation: testSourceLocation,
+            id: 'n4',
+            type: 'Event',
+            name: 'Ev 1',
+            domain: 'payments',
+            module: 'm2',
+            eventName: 'Ev1' 
+          }),
         ],
       })
 
@@ -133,13 +133,13 @@ eventName: 'Ev1'
       const graph = createMinimalGraph({
         components: [
           parseNode({
- sourceLocation: testSourceLocation,
-id: 'n1',
-type: 'API',
-name: 'API 1',
-domain: 'orders',
-module: 'm1' 
-}),
+            sourceLocation: testSourceLocation,
+            id: 'n1',
+            type: 'API',
+            name: 'API 1',
+            domain: 'orders',
+            module: 'm1' 
+          }),
         ],
       })
 
@@ -154,27 +154,27 @@ module: 'm1'
       const graph = createMinimalGraph({
         components: [
           parseNode({
- sourceLocation: testSourceLocation,
-id: 'n1',
-type: 'API',
-name: 'API 1',
-domain: 'orders',
-module: 'm1' 
-}),
+            sourceLocation: testSourceLocation,
+            id: 'n1',
+            type: 'API',
+            name: 'API 1',
+            domain: 'orders',
+            module: 'm1' 
+          }),
           parseNode({
- sourceLocation: testSourceLocation,
-id: 'n2',
-type: 'UseCase',
-name: 'UC 1',
-domain: 'payments',
-module: 'm2' 
-}),
+            sourceLocation: testSourceLocation,
+            id: 'n2',
+            type: 'UseCase',
+            name: 'UC 1',
+            domain: 'payments',
+            module: 'm2' 
+          }),
         ],
         links: [parseEdge({
- source: 'n1',
-target: 'n2',
-type: 'sync' 
-})],
+          source: 'n1',
+          target: 'n2',
+          type: 'sync' 
+        })],
       })
 
       const result = extractDomainMap(graph)
@@ -188,27 +188,27 @@ type: 'sync'
       const graph = createMinimalGraph({
         components: [
           parseNode({
- sourceLocation: testSourceLocation,
-id: 'n1',
-type: 'API',
-name: 'API 1',
-domain: 'orders',
-module: 'm1' 
-}),
+            sourceLocation: testSourceLocation,
+            id: 'n1',
+            type: 'API',
+            name: 'API 1',
+            domain: 'orders',
+            module: 'm1' 
+          }),
           parseNode({
- sourceLocation: testSourceLocation,
-id: 'n2',
-type: 'UseCase',
-name: 'UC 1',
-domain: 'orders',
-module: 'm1' 
-}),
+            sourceLocation: testSourceLocation,
+            id: 'n2',
+            type: 'UseCase',
+            name: 'UC 1',
+            domain: 'orders',
+            module: 'm1' 
+          }),
         ],
         links: [parseEdge({
- source: 'n1',
-target: 'n2',
-type: 'sync' 
-})],
+          source: 'n1',
+          target: 'n2',
+          type: 'sync' 
+        })],
       })
 
       const result = extractDomainMap(graph)
@@ -220,41 +220,41 @@ type: 'sync'
       const graph = createMinimalGraph({
         components: [
           parseNode({
- sourceLocation: testSourceLocation,
-id: 'n1',
-type: 'API',
-name: 'API 1',
-domain: 'orders',
-module: 'm1' 
-}),
+            sourceLocation: testSourceLocation,
+            id: 'n1',
+            type: 'API',
+            name: 'API 1',
+            domain: 'orders',
+            module: 'm1' 
+          }),
           parseNode({
- sourceLocation: testSourceLocation,
-id: 'n2',
-type: 'UseCase',
-name: 'UC 1',
-domain: 'orders',
-module: 'm1' 
-}),
+            sourceLocation: testSourceLocation,
+            id: 'n2',
+            type: 'UseCase',
+            name: 'UC 1',
+            domain: 'orders',
+            module: 'm1' 
+          }),
           parseNode({
- sourceLocation: testSourceLocation,
-id: 'n3',
-type: 'API',
-name: 'API 2',
-domain: 'payments',
-module: 'm2' 
-}),
+            sourceLocation: testSourceLocation,
+            id: 'n3',
+            type: 'API',
+            name: 'API 2',
+            domain: 'payments',
+            module: 'm2' 
+          }),
         ],
         links: [
           parseEdge({
- source: 'n1',
-target: 'n3',
-type: 'sync' 
-}),
+            source: 'n1',
+            target: 'n3',
+            type: 'sync' 
+          }),
           parseEdge({
- source: 'n2',
-target: 'n3',
-type: 'sync' 
-}),
+            source: 'n2',
+            target: 'n3',
+            type: 'sync' 
+          }),
         ],
       })
 
@@ -269,29 +269,29 @@ type: 'sync'
       const graph = createMinimalGraph({
         components: [
           parseNode({
- sourceLocation: testSourceLocation,
-id: 'n1',
-type: 'Event',
-name: 'Ev 1',
-domain: 'orders',
-module: 'm1',
-eventName: 'Ev1' 
-}),
+            sourceLocation: testSourceLocation,
+            id: 'n1',
+            type: 'Event',
+            name: 'Ev 1',
+            domain: 'orders',
+            module: 'm1',
+            eventName: 'Ev1' 
+          }),
           parseNode({
- sourceLocation: testSourceLocation,
-id: 'n2',
-type: 'EventHandler',
-name: 'EH 1',
-domain: 'payments',
-module: 'm2',
-subscribedEvents: ['Ev1'] 
-}),
+            sourceLocation: testSourceLocation,
+            id: 'n2',
+            type: 'EventHandler',
+            name: 'EH 1',
+            domain: 'payments',
+            module: 'm2',
+            subscribedEvents: ['Ev1'] 
+          }),
         ],
         links: [parseEdge({
- source: 'n1',
-target: 'n2',
-type: 'async' 
-})],
+          source: 'n1',
+          target: 'n2',
+          type: 'async' 
+        })],
       })
 
       const result = extractDomainMap(graph)
@@ -304,26 +304,26 @@ type: 'async'
       const graph = createMinimalGraph({
         components: [
           parseNode({
- sourceLocation: testSourceLocation,
-id: 'n1',
-type: 'API',
-name: 'API 1',
-domain: 'orders',
-module: 'm1' 
-}),
+            sourceLocation: testSourceLocation,
+            id: 'n1',
+            type: 'API',
+            name: 'API 1',
+            domain: 'orders',
+            module: 'm1' 
+          }),
           parseNode({
- sourceLocation: testSourceLocation,
-id: 'n2',
-type: 'API',
-name: 'API 2',
-domain: 'payments',
-module: 'm2' 
-}),
+            sourceLocation: testSourceLocation,
+            id: 'n2',
+            type: 'API',
+            name: 'API 2',
+            domain: 'payments',
+            module: 'm2' 
+          }),
         ],
         links: [parseEdge({
- source: 'n1',
-target: 'n2' 
-})],
+          source: 'n1',
+          target: 'n2' 
+        })],
       })
 
       const result = extractDomainMap(graph)
@@ -335,65 +335,65 @@ target: 'n2'
 })
 
 describe('external edges', () => {
-    it('populates connection details for external edges', () => {
-      const graph = createMinimalGraph({
-        components: [
-          parseNode({
- sourceLocation: testSourceLocation,
-id: 'n1',
-type: 'UseCase',
-name: 'PlaceOrder',
-domain: 'orders',
-module: 'm1' 
-}),
-          parseNode({
- sourceLocation: testSourceLocation,
-id: 'n2',
-type: 'API',
-name: 'CreatePayment',
-domain: 'orders',
-module: 'm1' 
-}),
-        ],
-        links: [],
-        externalLinks: [
-          {
- source: 'n1',
-target: {
- name: 'Stripe',
-url: 'https://stripe.com' 
-},
-type: 'sync' 
-},
-          {
- source: 'n2',
-target: {
- name: 'Stripe',
-url: 'https://stripe.com' 
-},
-type: 'async' 
-},
-        ],
-      })
+  it('populates connection details for external edges', () => {
+    const graph = createMinimalGraph({
+      components: [
+        parseNode({
+          sourceLocation: testSourceLocation,
+          id: 'n1',
+          type: 'UseCase',
+          name: 'PlaceOrder',
+          domain: 'orders',
+          module: 'm1' 
+        }),
+        parseNode({
+          sourceLocation: testSourceLocation,
+          id: 'n2',
+          type: 'API',
+          name: 'CreatePayment',
+          domain: 'orders',
+          module: 'm1' 
+        }),
+      ],
+      links: [],
+      externalLinks: [
+        {
+          source: 'n1',
+          target: {
+            name: 'Stripe',
+            url: 'https://stripe.com' 
+          },
+          type: 'sync' 
+        },
+        {
+          source: 'n2',
+          target: {
+            name: 'Stripe',
+            url: 'https://stripe.com' 
+          },
+          type: 'async' 
+        },
+      ],
+    })
 
-      const result = extractDomainMap(graph)
+    const result = extractDomainMap(graph)
 
-      const stripeEdge = result.domainEdges.find((e) => e.target === 'external:Stripe')
-      expect(stripeEdge?.data?.connections).toHaveLength(2)
-      expect(stripeEdge?.data?.connections).toContainEqual({
-        sourceName: 'PlaceOrder',
-        targetName: 'Stripe',
-        type: 'sync',
-        targetNodeType: 'External',
-      })
-      expect(stripeEdge?.data?.connections).toContainEqual({
-        sourceName: 'CreatePayment',
-        targetName: 'Stripe',
-        type: 'async',
-        targetNodeType: 'External',
-      })
+    const stripeEdge = result.domainEdges.find((e) => e.target === 'external:Stripe')
+    expect(stripeEdge?.data?.connections).toHaveLength(2)
+    expect(stripeEdge?.data?.connections).toContainEqual({
+      sourceName: 'PlaceOrder',
+      targetName: 'Stripe',
+      type: 'sync',
+      targetNodeType: 'External',
+    })
+    expect(stripeEdge?.data?.connections).toContainEqual({
+      sourceName: 'CreatePayment',
+      targetName: 'Stripe',
+      type: 'async',
+      targetNodeType: 'External',
     })
   })
+})
 
 describe('getConnectedDomains', () => {
   it('returns empty set when domain has no connections', () => {
@@ -407,25 +407,25 @@ describe('getConnectedDomains', () => {
   it('returns domains that the source domain connects to', () => {
     const edges: DomainEdge[] = [
       {
- id: 'e1',
-source: 'orders',
-target: 'payments',
-data: {
- apiCount: 1,
-eventCount: 0,
-connections: [] 
-} 
-},
+        id: 'e1',
+        source: 'orders',
+        target: 'payments',
+        data: {
+          apiCount: 1,
+          eventCount: 0,
+          connections: [] 
+        } 
+      },
       {
- id: 'e2',
-source: 'orders',
-target: 'shipping',
-data: {
- apiCount: 0,
-eventCount: 1,
-connections: [] 
-} 
-},
+        id: 'e2',
+        source: 'orders',
+        target: 'shipping',
+        data: {
+          apiCount: 0,
+          eventCount: 1,
+          connections: [] 
+        } 
+      },
     ]
 
     const result = getConnectedDomains('orders', edges)
@@ -437,25 +437,25 @@ connections: []
   it('returns domains that connect to the target domain', () => {
     const edges: DomainEdge[] = [
       {
- id: 'e1',
-source: 'orders',
-target: 'payments',
-data: {
- apiCount: 1,
-eventCount: 0,
-connections: [] 
-} 
-},
+        id: 'e1',
+        source: 'orders',
+        target: 'payments',
+        data: {
+          apiCount: 1,
+          eventCount: 0,
+          connections: [] 
+        } 
+      },
       {
- id: 'e2',
-source: 'shipping',
-target: 'payments',
-data: {
- apiCount: 1,
-eventCount: 0,
-connections: [] 
-} 
-},
+        id: 'e2',
+        source: 'shipping',
+        target: 'payments',
+        data: {
+          apiCount: 1,
+          eventCount: 0,
+          connections: [] 
+        } 
+      },
     ]
 
     const result = getConnectedDomains('payments', edges)
@@ -467,25 +467,25 @@ connections: []
   it('returns both incoming and outgoing connections', () => {
     const edges: DomainEdge[] = [
       {
- id: 'e1',
-source: 'orders',
-target: 'payments',
-data: {
- apiCount: 1,
-eventCount: 0,
-connections: [] 
-} 
-},
+        id: 'e1',
+        source: 'orders',
+        target: 'payments',
+        data: {
+          apiCount: 1,
+          eventCount: 0,
+          connections: [] 
+        } 
+      },
       {
- id: 'e2',
-source: 'payments',
-target: 'notifications',
-data: {
- apiCount: 1,
-eventCount: 0,
-connections: [] 
-} 
-},
+        id: 'e2',
+        source: 'payments',
+        target: 'notifications',
+        data: {
+          apiCount: 1,
+          eventCount: 0,
+          connections: [] 
+        } 
+      },
     ]
 
     const result = getConnectedDomains('payments', edges)

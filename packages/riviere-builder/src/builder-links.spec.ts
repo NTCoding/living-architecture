@@ -1,22 +1,22 @@
 import {
- describe, it, expect 
+  describe, it, expect 
 } from 'vitest';
 import {
- RiviereBuilder, type BuilderOptions 
+  RiviereBuilder, type BuilderOptions 
 } from './builder';
 
 function createValidOptions(): BuilderOptions {
   return {
     sources: [{
- repository: 'test/repo',
-commit: 'abc123' 
-}],
+      repository: 'test/repo',
+      commit: 'abc123' 
+    }],
     domains: {
-orders: {
- description: 'Order domain',
-systemType: 'domain' 
-},
-},
+      orders: {
+        description: 'Order domain',
+        systemType: 'domain' 
+      },
+    },
   };
 }
 
@@ -47,9 +47,9 @@ describe('RiviereBuilder', () => {
       });
 
       const link = builder.link({
- from: source.id,
-to: target.id 
-});
+        from: source.id,
+        to: target.id 
+      });
 
       expect(link.source).toBe(source.id);
       expect(link.target).toBe(target.id);
@@ -167,9 +167,9 @@ to: target.id
       });
 
       const link = builder.link({
- from: source.id,
-to: 'any:target:id' 
-});
+        from: source.id,
+        to: 'any:target:id' 
+      });
 
       expect(link.type).toBeUndefined();
     });
@@ -192,9 +192,9 @@ to: 'any:target:id'
       const externalLink = builder.linkExternal({
         from: source.id,
         target: {
- name: 'Stripe API',
-domain: 'payments' 
-},
+          name: 'Stripe API',
+          domain: 'payments' 
+        },
       });
 
       expect(externalLink.source).toBe(source.id);
@@ -239,9 +239,9 @@ domain: 'payments'
       const externalLink = builder.linkExternal({
         from: source.id,
         target: {
- name: 'Stripe API',
-url: 'https://stripe.com/api' 
-},
+          name: 'Stripe API',
+          url: 'https://stripe.com/api' 
+        },
       });
 
       expect(externalLink.target.url).toBe('https://stripe.com/api');
@@ -266,9 +266,9 @@ url: 'https://stripe.com/api'
         type: 'async',
         description: 'Payment processing',
         sourceLocation: {
- repository: 'test/repo',
-filePath: 'src/stripe.ts' 
-},
+          repository: 'test/repo',
+          filePath: 'src/stripe.ts' 
+        },
       });
 
       expect(externalLink.type).toBe('async');

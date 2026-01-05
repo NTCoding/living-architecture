@@ -1,19 +1,19 @@
 import {
- describe, it, expect, vi 
+  describe, it, expect, vi 
 } from 'vitest'
 import {
- render, screen 
+  render, screen 
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { FlowTrace } from './FlowTrace'
 import type { FlowStep } from '../../extractFlows'
 import type { RiviereGraph } from '@/types/riviere'
 import {
- parseNode, parseEdge, parseDomainMetadata 
+  parseNode, parseEdge, parseDomainMetadata 
 } from '@/lib/riviereTestData'
 const testSourceLocation = {
- repository: 'test-repo',
-filePath: 'src/test.ts' 
+  repository: 'test-repo',
+  filePath: 'src/test.ts' 
 }
 
 vi.mock('@/contexts/ThemeContext', () => ({useTheme: () => ({ theme: 'stream' }),}))
@@ -32,56 +32,56 @@ function createTestSteps(): FlowStep[] {
   return [
     {
       node: parseNode({
- sourceLocation: testSourceLocation,
-id: 'ui-1',
-type: 'UI',
-name: 'Order Form',
-domain: 'checkout',
-module: 'ui',
-route: '/checkout' 
-}),
+        sourceLocation: testSourceLocation,
+        id: 'ui-1',
+        type: 'UI',
+        name: 'Order Form',
+        domain: 'checkout',
+        module: 'ui',
+        route: '/checkout' 
+      }),
       edgeType: 'sync',
       depth: 0,
       externalLinks: [],
     },
     {
       node: parseNode({
- sourceLocation: testSourceLocation,
-id: 'api-1',
-type: 'API',
-name: 'POST /orders',
-domain: 'orders',
-module: 'api',
-httpMethod: 'POST',
-path: '/orders' 
-}),
+        sourceLocation: testSourceLocation,
+        id: 'api-1',
+        type: 'API',
+        name: 'POST /orders',
+        domain: 'orders',
+        module: 'api',
+        httpMethod: 'POST',
+        path: '/orders' 
+      }),
       edgeType: 'sync',
       depth: 1,
       externalLinks: [],
     },
     {
       node: parseNode({
- sourceLocation: testSourceLocation,
-id: 'uc-1',
-type: 'UseCase',
-name: 'Place Order',
-domain: 'orders',
-module: 'checkout' 
-}),
+        sourceLocation: testSourceLocation,
+        id: 'uc-1',
+        type: 'UseCase',
+        name: 'Place Order',
+        domain: 'orders',
+        module: 'checkout' 
+      }),
       edgeType: 'async',
       depth: 2,
       externalLinks: [],
     },
     {
       node: parseNode({
- sourceLocation: testSourceLocation,
-id: 'evt-1',
-type: 'Event',
-name: 'OrderPlaced',
-domain: 'orders',
-module: 'events',
-eventName: 'OrderPlaced' 
-}),
+        sourceLocation: testSourceLocation,
+        id: 'evt-1',
+        type: 'Event',
+        name: 'OrderPlaced',
+        domain: 'orders',
+        module: 'events',
+        eventName: 'OrderPlaced' 
+      }),
       edgeType: null,
       depth: 3,
       externalLinks: [],
@@ -93,67 +93,67 @@ function createTestGraph(): RiviereGraph {
   return {
     version: '1.0',
     metadata: {
- domains: parseDomainMetadata({
- 'test-domain': {
- description: 'Test domain',
-systemType: 'domain' 
-} 
-}) 
-},
+      domains: parseDomainMetadata({
+        'test-domain': {
+          description: 'Test domain',
+          systemType: 'domain' 
+        } 
+      }) 
+    },
     components: [
       parseNode({
- sourceLocation: testSourceLocation,
-id: 'ui-1',
-type: 'UI',
-name: 'Order Form',
-domain: 'checkout',
-module: 'ui',
-route: '/checkout' 
-}),
+        sourceLocation: testSourceLocation,
+        id: 'ui-1',
+        type: 'UI',
+        name: 'Order Form',
+        domain: 'checkout',
+        module: 'ui',
+        route: '/checkout' 
+      }),
       parseNode({
- sourceLocation: testSourceLocation,
-id: 'api-1',
-type: 'API',
-name: 'POST /orders',
-domain: 'orders',
-module: 'api',
-httpMethod: 'POST',
-path: '/orders' 
-}),
+        sourceLocation: testSourceLocation,
+        id: 'api-1',
+        type: 'API',
+        name: 'POST /orders',
+        domain: 'orders',
+        module: 'api',
+        httpMethod: 'POST',
+        path: '/orders' 
+      }),
       parseNode({
- sourceLocation: testSourceLocation,
-id: 'uc-1',
-type: 'UseCase',
-name: 'Place Order',
-domain: 'orders',
-module: 'checkout' 
-}),
+        sourceLocation: testSourceLocation,
+        id: 'uc-1',
+        type: 'UseCase',
+        name: 'Place Order',
+        domain: 'orders',
+        module: 'checkout' 
+      }),
       parseNode({
- sourceLocation: testSourceLocation,
-id: 'evt-1',
-type: 'Event',
-name: 'OrderPlaced',
-domain: 'orders',
-module: 'events',
-eventName: 'OrderPlaced' 
-}),
+        sourceLocation: testSourceLocation,
+        id: 'evt-1',
+        type: 'Event',
+        name: 'OrderPlaced',
+        domain: 'orders',
+        module: 'events',
+        eventName: 'OrderPlaced' 
+      }),
     ],
     links: [
       parseEdge({
- source: 'ui-1',
-target: 'api-1',
-type: 'sync' 
-}),
+        source: 'ui-1',
+        target: 'api-1',
+        type: 'sync' 
+      }),
       parseEdge({
- source: 'api-1',
-target: 'uc-1',
-type: 'sync' 
-}),
+        source: 'api-1',
+        target: 'uc-1',
+        type: 'sync' 
+      }),
       parseEdge({
- source: 'uc-1',
-target: 'evt-1',
-type: 'async' 
-}),
+        source: 'uc-1',
+        target: 'evt-1',
+        type: 'async' 
+      }),
     ],
   }
 }
@@ -422,26 +422,26 @@ describe('FlowTrace', () => {
       const stepsWithExternalLinks: FlowStep[] = [
         {
           node: parseNode({
- sourceLocation: testSourceLocation,
-id: 'api-1',
-type: 'API',
-name: 'POST /orders',
-domain: 'orders',
-module: 'api',
-httpMethod: 'POST',
-path: '/orders' 
-}),
+            sourceLocation: testSourceLocation,
+            id: 'api-1',
+            type: 'API',
+            name: 'POST /orders',
+            domain: 'orders',
+            module: 'api',
+            httpMethod: 'POST',
+            path: '/orders' 
+          }),
           edgeType: 'sync',
           depth: 0,
           externalLinks: [
             {
- source: 'api-1',
-target: {
- name: 'Stripe',
-url: 'https://stripe.com' 
-},
-type: 'sync' 
-},
+              source: 'api-1',
+              target: {
+                name: 'Stripe',
+                url: 'https://stripe.com' 
+              },
+              type: 'sync' 
+            },
           ],
         },
       ]
@@ -461,28 +461,28 @@ type: 'sync'
       const stepsWithMultipleExternalLinks: FlowStep[] = [
         {
           node: parseNode({
- sourceLocation: testSourceLocation,
-id: 'api-1',
-type: 'API',
-name: 'POST /orders',
-domain: 'orders',
-module: 'api',
-httpMethod: 'POST',
-path: '/orders' 
-}),
+            sourceLocation: testSourceLocation,
+            id: 'api-1',
+            type: 'API',
+            name: 'POST /orders',
+            domain: 'orders',
+            module: 'api',
+            httpMethod: 'POST',
+            path: '/orders' 
+          }),
           edgeType: 'sync',
           depth: 0,
           externalLinks: [
             {
- source: 'api-1',
-target: { name: 'Stripe' },
-type: 'sync' 
-},
+              source: 'api-1',
+              target: { name: 'Stripe' },
+              type: 'sync' 
+            },
             {
- source: 'api-1',
-target: { name: 'SendGrid' },
-type: 'async' 
-},
+              source: 'api-1',
+              target: { name: 'SendGrid' },
+              type: 'async' 
+            },
           ],
         },
       ]

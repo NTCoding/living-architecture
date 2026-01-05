@@ -12,7 +12,7 @@ import {
   type ValidationResult,
 } from '@living-architecture/riviere-query';
 import type {
- BuilderStats, BuilderWarning 
+  BuilderStats, BuilderWarning 
 } from './types';
 
 interface InspectionGraph {

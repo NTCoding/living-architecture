@@ -1,12 +1,12 @@
 import {
- render, screen 
+  render, screen 
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import {
- MemoryRouter, Routes, Route, useLocation 
+  MemoryRouter, Routes, Route, useLocation 
 } from 'react-router-dom'
 import {
- describe, expect, it, vi 
+  describe, expect, it, vi 
 } from 'vitest'
 import { Sidebar } from './Sidebar'
 
@@ -16,10 +16,10 @@ function LocationDisplay(): React.ReactElement {
 }
 
 vi.mock('@/contexts/ThemeContext', () => ({
-useTheme: () => ({
- theme: 'stream',
-setTheme: vi.fn() 
-}),
+  useTheme: () => ({
+    theme: 'stream',
+    setTheme: vi.fn() 
+  }),
 }))
 
 vi.mock('@/components/Logo/Logo', () => ({Logo: () => <div data-testid="logo">Logo</div>,}))

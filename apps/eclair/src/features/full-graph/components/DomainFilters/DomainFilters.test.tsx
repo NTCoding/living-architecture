@@ -1,25 +1,25 @@
 import {
- describe, expect, test, vi 
+  describe, expect, test, vi 
 } from 'vitest'
 import {
- render, screen 
+  render, screen 
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { DomainFilters } from './DomainFilters'
 
 const mockDomains = [
   {
- name: 'orders',
-nodeCount: 5 
-},
+    name: 'orders',
+    nodeCount: 5 
+  },
   {
- name: 'inventory',
-nodeCount: 3 
-},
+    name: 'inventory',
+    nodeCount: 3 
+  },
   {
- name: 'shipping',
-nodeCount: 4 
-},
+    name: 'shipping',
+    nodeCount: 4 
+  },
 ]
 
 describe('DomainFilters', () => {

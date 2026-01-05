@@ -1,18 +1,18 @@
 import {
- describe, expect, test, vi, beforeEach 
+  describe, expect, test, vi, beforeEach 
 } from 'vitest'
 import {
- render, screen 
+  render, screen 
 } from '@testing-library/react'
 import { ForceGraph } from './ForceGraph'
 import type { RiviereGraph } from '@/types/riviere'
 import type { Theme } from '@/types/theme'
 import {
- parseNode, parseEdge, parseDomainKey, parseDomainMetadata 
+  parseNode, parseEdge, parseDomainKey, parseDomainMetadata 
 } from '@/lib/riviereTestData'
 const testSourceLocation = {
- repository: 'test-repo',
-filePath: 'src/test.ts' 
+  repository: 'test-repo',
+  filePath: 'src/test.ts' 
 }
 
 const mockGraph: RiviereGraph = {
@@ -20,97 +20,97 @@ const mockGraph: RiviereGraph = {
   metadata: {
     name: 'Test Graph',
     domains: {
-[parseDomainKey('orders')]: {
- description: 'Orders domain',
-systemType: 'domain' 
-},
-},
+      [parseDomainKey('orders')]: {
+        description: 'Orders domain',
+        systemType: 'domain' 
+      },
+    },
   },
   components: [
     parseNode({
- sourceLocation: testSourceLocation,
-id: 'node-1',
-type: 'API',
-name: 'Test API',
-domain: 'orders',
-module: 'api',
-apiType: 'other' 
-}),
+      sourceLocation: testSourceLocation,
+      id: 'node-1',
+      type: 'API',
+      name: 'Test API',
+      domain: 'orders',
+      module: 'api',
+      apiType: 'other' 
+    }),
     parseNode({
- sourceLocation: testSourceLocation,
-id: 'node-2',
-type: 'UseCase',
-name: 'Test UseCase',
-domain: 'orders',
-module: 'core' 
-}),
+      sourceLocation: testSourceLocation,
+      id: 'node-2',
+      type: 'UseCase',
+      name: 'Test UseCase',
+      domain: 'orders',
+      module: 'core' 
+    }),
     parseNode({
- sourceLocation: testSourceLocation,
-id: 'node-3',
-type: 'DomainOp',
-name: 'Test DomainOp',
-domain: 'orders',
-module: 'domain',
-operationName: 'testOp' 
-}),
+      sourceLocation: testSourceLocation,
+      id: 'node-3',
+      type: 'DomainOp',
+      name: 'Test DomainOp',
+      domain: 'orders',
+      module: 'domain',
+      operationName: 'testOp' 
+    }),
     parseNode({
- sourceLocation: testSourceLocation,
-id: 'node-4',
-type: 'Event',
-name: 'test-event',
-domain: 'orders',
-module: 'events',
-eventName: 'test-event' 
-}),
+      sourceLocation: testSourceLocation,
+      id: 'node-4',
+      type: 'Event',
+      name: 'test-event',
+      domain: 'orders',
+      module: 'events',
+      eventName: 'test-event' 
+    }),
     parseNode({
- sourceLocation: testSourceLocation,
-id: 'node-5',
-type: 'EventHandler',
-name: 'Test Handler',
-domain: 'orders',
-module: 'handlers',
-subscribedEvents: ['test-event'] 
-}),
+      sourceLocation: testSourceLocation,
+      id: 'node-5',
+      type: 'EventHandler',
+      name: 'Test Handler',
+      domain: 'orders',
+      module: 'handlers',
+      subscribedEvents: ['test-event'] 
+    }),
     parseNode({
- sourceLocation: testSourceLocation,
-id: 'node-6',
-type: 'UI',
-name: 'Test UI',
-domain: 'orders',
-module: 'ui',
-route: '/test-ui' 
-}),
+      sourceLocation: testSourceLocation,
+      id: 'node-6',
+      type: 'UI',
+      name: 'Test UI',
+      domain: 'orders',
+      module: 'ui',
+      route: '/test-ui' 
+    }),
     parseNode({
- sourceLocation: testSourceLocation,
-id: 'node-7',
-type: 'Custom',
-name: 'Test Custom',
-domain: 'orders',
-module: 'custom',
-customTypeName: 'TestCustomType' 
-}),
+      sourceLocation: testSourceLocation,
+      id: 'node-7',
+      type: 'Custom',
+      name: 'Test Custom',
+      domain: 'orders',
+      module: 'custom',
+      customTypeName: 'TestCustomType' 
+    }),
   ],
   links: [
     parseEdge({
- source: 'node-1',
-target: 'node-2',
-type: 'sync' 
-}),
+      source: 'node-1',
+      target: 'node-2',
+      type: 'sync' 
+    }),
     parseEdge({
- source: 'node-2',
-target: 'node-3',
-type: 'sync' 
-}),
+      source: 'node-2',
+      target: 'node-3',
+      type: 'sync' 
+    }),
     parseEdge({
- source: 'node-3',
-target: 'node-4',
-type: 'async' 
-}),
+      source: 'node-3',
+      target: 'node-4',
+      type: 'async' 
+    }),
     parseEdge({
- source: 'node-4',
-target: 'node-5',
-type: 'async' 
-}),
+      source: 'node-4',
+      target: 'node-5',
+      type: 'async' 
+    }),
   ],
 }
 
@@ -172,13 +172,13 @@ describe('ForceGraph', () => {
       const emptyGraph: RiviereGraph = {
         version: '1.0',
         metadata: {
- domains: parseDomainMetadata({
- 'test-domain': {
- description: 'Test domain',
-systemType: 'domain' 
-} 
-}) 
-},
+          domains: parseDomainMetadata({
+            'test-domain': {
+              description: 'Test domain',
+              systemType: 'domain' 
+            } 
+          }) 
+        },
         components: [],
         links: [],
       }
@@ -357,13 +357,13 @@ systemType: 'domain'
       const newGraph: RiviereGraph = {
         ...mockGraph,
         components: [...mockGraph.components, parseNode({
- sourceLocation: testSourceLocation,
-id: 'node-8',
-type: 'API',
-name: 'New Node',
-domain: 'orders',
-module: 'api' 
-})],
+          sourceLocation: testSourceLocation,
+          id: 'node-8',
+          type: 'API',
+          name: 'New Node',
+          domain: 'orders',
+          module: 'api' 
+        })],
       }
 
       rerender(<ForceGraph graph={newGraph} theme="stream" />)
@@ -421,56 +421,56 @@ module: 'api'
         metadata: {
           domains: {
             [parseDomainKey('orders')]: {
- description: 'Orders domain',
-systemType: 'domain' 
-},
+              description: 'Orders domain',
+              systemType: 'domain' 
+            },
             [parseDomainKey('shipping')]: {
- description: 'Shipping domain',
-systemType: 'domain' 
-},
+              description: 'Shipping domain',
+              systemType: 'domain' 
+            },
             [parseDomainKey('inventory')]: {
- description: 'Inventory domain',
-systemType: 'domain' 
-},
+              description: 'Inventory domain',
+              systemType: 'domain' 
+            },
           },
         },
         components: [
           parseNode({
- sourceLocation: testSourceLocation,
-id: 'o1',
-type: 'API',
-name: 'Orders API',
-domain: 'orders',
-module: 'api' 
-}),
+            sourceLocation: testSourceLocation,
+            id: 'o1',
+            type: 'API',
+            name: 'Orders API',
+            domain: 'orders',
+            module: 'api' 
+          }),
           parseNode({
- sourceLocation: testSourceLocation,
-id: 's1',
-type: 'API',
-name: 'Shipping API',
-domain: 'shipping',
-module: 'api' 
-}),
+            sourceLocation: testSourceLocation,
+            id: 's1',
+            type: 'API',
+            name: 'Shipping API',
+            domain: 'shipping',
+            module: 'api' 
+          }),
           parseNode({
- sourceLocation: testSourceLocation,
-id: 'i1',
-type: 'API',
-name: 'Inventory API',
-domain: 'inventory',
-module: 'api' 
-}),
+            sourceLocation: testSourceLocation,
+            id: 'i1',
+            type: 'API',
+            name: 'Inventory API',
+            domain: 'inventory',
+            module: 'api' 
+          }),
         ],
         links: [
           parseEdge({
- source: 'o1',
-target: 's1',
-type: 'sync' 
-}),
+            source: 'o1',
+            target: 's1',
+            type: 'sync' 
+          }),
           parseEdge({
- source: 'o1',
-target: 'i1',
-type: 'async' 
-}),
+            source: 'o1',
+            target: 'i1',
+            type: 'async' 
+          }),
         ],
       }
 
@@ -522,13 +522,13 @@ type: 'async'
       const graphWithExternalLinks: RiviereGraph = {
         version: '1.0',
         metadata: {
-domains: {
- [parseDomainKey('orders')]: {
- description: 'Orders',
-systemType: 'domain' 
-} 
-},
-},
+          domains: {
+            [parseDomainKey('orders')]: {
+              description: 'Orders',
+              systemType: 'domain' 
+            } 
+          },
+        },
         components: [
           parseNode({
             sourceLocation: testSourceLocation,
@@ -567,13 +567,13 @@ systemType: 'domain'
       const graphWithExternalLinks: RiviereGraph = {
         version: '1.0',
         metadata: {
-domains: {
- [parseDomainKey('orders')]: {
- description: 'Orders',
-systemType: 'domain' 
-} 
-},
-},
+          domains: {
+            [parseDomainKey('orders')]: {
+              description: 'Orders',
+              systemType: 'domain' 
+            } 
+          },
+        },
         components: [
           parseNode({
             sourceLocation: testSourceLocation,
@@ -589,9 +589,9 @@ systemType: 'domain'
           {
             source: sourceNodeId,
             target: {
- name: 'Stripe',
-url: 'https://stripe.com' 
-},
+              name: 'Stripe',
+              url: 'https://stripe.com' 
+            },
             type: 'sync',
           },
           {
@@ -613,19 +613,19 @@ url: 'https://stripe.com'
       const edgesOnlyGraph: RiviereGraph = {
         version: '1.0',
         metadata: {
- domains: parseDomainMetadata({
- 'test-domain': {
- description: 'Test domain',
-systemType: 'domain' 
-} 
-}) 
-},
+          domains: parseDomainMetadata({
+            'test-domain': {
+              description: 'Test domain',
+              systemType: 'domain' 
+            } 
+          }) 
+        },
         components: [],
         links: [parseEdge({
- source: 'node-1',
-target: 'node-2',
-type: 'sync' 
-})],
+          source: 'node-1',
+          target: 'node-2',
+          type: 'sync' 
+        })],
       }
 
       render(<ForceGraph graph={edgesOnlyGraph} theme="stream" />)
@@ -637,26 +637,26 @@ type: 'sync'
       const selfRefGraph: RiviereGraph = {
         version: '1.0',
         metadata: {
- domains: {
- [parseDomainKey('orders')]: {
- description: 'Orders',
-systemType: 'domain' 
-} 
-} 
-},
+          domains: {
+            [parseDomainKey('orders')]: {
+              description: 'Orders',
+              systemType: 'domain' 
+            } 
+          } 
+        },
         components: [parseNode({
- sourceLocation: testSourceLocation,
-id: 'node-1',
-type: 'API',
-name: 'Test API',
-domain: 'orders',
-module: 'api' 
-})],
+          sourceLocation: testSourceLocation,
+          id: 'node-1',
+          type: 'API',
+          name: 'Test API',
+          domain: 'orders',
+          module: 'api' 
+        })],
         links: [parseEdge({
- source: 'node-1',
-target: 'node-1',
-type: 'sync' 
-})],
+          source: 'node-1',
+          target: 'node-1',
+          type: 'sync' 
+        })],
       }
 
       render(<ForceGraph graph={selfRefGraph} theme="stream" />)
@@ -668,19 +668,19 @@ type: 'sync'
       const longNameGraph: RiviereGraph = {
         version: '1.0',
         metadata: {
- domains: {
- [parseDomainKey('orders')]: {
- description: 'Orders',
-systemType: 'domain' 
-} 
-} 
-},
+          domains: {
+            [parseDomainKey('orders')]: {
+              description: 'Orders',
+              systemType: 'domain' 
+            } 
+          } 
+        },
         components: [
           parseNode({
- sourceLocation: testSourceLocation,
-id: 'node-1',
+            sourceLocation: testSourceLocation,
+            id: 'node-1',
             type: 'API',
-        apiType: 'other',
+            apiType: 'other',
             name: 'This is a very long node name that should be truncated properly',
             domain: 'orders',
             module: 'api',

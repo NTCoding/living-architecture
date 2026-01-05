@@ -87,7 +87,7 @@ interface StatisticsRowProps {
   readonly events: number
 }
 function StatisticsRow({
- entities, operations, events 
+  entities, operations, events 
 }: StatisticsRowProps): React.ReactElement {
   return (
     <div data-testid="stats-row" className="flex gap-6 rounded-[var(--radius)] border border-[var(--border-color)] bg-[var(--bg-secondary)] p-4">
@@ -106,7 +106,7 @@ interface NodesSectionProps {
   readonly setNodeTypeFilter: (filter: NodeTypeFilter) => void
 }
 function NodesSection({
- filteredNodes, domain, nodeSearch, setNodeSearch, nodeTypeFilter, setNodeTypeFilter 
+  filteredNodes, domain, nodeSearch, setNodeSearch, nodeTypeFilter, setNodeTypeFilter 
 }: NodesSectionProps): React.ReactElement {
   return (
     <section data-testid="detail-panel">
@@ -128,7 +128,7 @@ interface NodeFilterBarProps {
   readonly setNodeTypeFilter: (filter: NodeTypeFilter) => void
 }
 function NodeFilterBar({
- nodeSearch, setNodeSearch, nodeTypeFilter, setNodeTypeFilter 
+  nodeSearch, setNodeSearch, nodeTypeFilter, setNodeTypeFilter 
 }: NodeFilterBarProps): React.ReactElement {
   return (
     <div data-testid="filters-section" className="filters-section mb-4">
@@ -172,7 +172,7 @@ interface NodesListOrEmptyProps {
   readonly domain: DomainDetails
 }
 function NodesListOrEmpty({
- filteredNodes, domain 
+  filteredNodes, domain 
 }: NodesListOrEmptyProps): React.ReactElement {
   if (filteredNodes.length > 0) {
     return (
@@ -239,7 +239,7 @@ interface EntitiesSectionProps {
   readonly setEntitySearch: (search: string) => void
 }
 function EntitiesSection({
- filteredEntities, domain, entitySearch, setEntitySearch 
+  filteredEntities, domain, entitySearch, setEntitySearch 
 }: EntitiesSectionProps): React.ReactElement {
   return (
     <section>
@@ -272,7 +272,7 @@ interface EntitiesListOrEmptyProps {
   readonly domain: DomainDetails
 }
 function EntitiesListOrEmpty({
- filteredEntities, domain 
+  filteredEntities, domain 
 }: EntitiesListOrEmptyProps): React.ReactElement {
   if (filteredEntities.length > 0) {
     return (
@@ -340,7 +340,7 @@ interface EventsListOrEmptyProps {
   readonly filteredConsumedEvents: Array<DomainDetailsConsumedEvent>
 }
 function EventsListOrEmpty({
- hasEvents, filteredPublishedEvents, filteredConsumedEvents 
+  hasEvents, filteredPublishedEvents, filteredConsumedEvents 
 }: EventsListOrEmptyProps): React.ReactElement {
   if (!hasEvents) {
     return <p className="text-sm italic text-[var(--text-tertiary)]">No events in this domain</p>

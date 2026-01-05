@@ -7,7 +7,7 @@ interface ConnectionItemProps {
 }
 
 export function ConnectionItem({
- connection, currentDomainId, targetDomainId 
+  connection, currentDomainId, targetDomainId 
 }: Readonly<ConnectionItemProps>): React.ReactElement {
   const isOutgoing = connection.direction === 'outgoing'
   const fromDomain = isOutgoing ? currentDomainId : targetDomainId

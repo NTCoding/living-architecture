@@ -1,8 +1,8 @@
 import {
- describe, it, expect 
+  describe, it, expect 
 } from 'vitest';
 import {
- mkdir, writeFile, readFile 
+  mkdir, writeFile, readFile 
 } from 'node:fs/promises';
 import { join } from 'node:path';
 import { createProgram } from '../../cli';
@@ -45,11 +45,11 @@ describe('riviere builder link-http', () => {
         metadata: {
           sources: [{ repository: 'https://github.com/org/repo' }],
           domains: {
-orders: {
- description: 'Order management',
-systemType: 'domain' 
-},
-},
+            orders: {
+              description: 'Order management',
+              systemType: 'domain' 
+            },
+          },
         },
         components: apis.map((api) => ({
           id: api.id,
@@ -257,17 +257,17 @@ systemType: 'domain'
     ])(
       'returns VALIDATION_ERROR for invalid input: $message',
       async ({
- override, message 
-}) => {
+        override, message 
+      }) => {
         await createGraph([singleApi]);
         await createProgram().parseAsync(buildArgs(override));
         const output: unknown = JSON.parse(ctx.consoleOutput[0] ?? '');
         expect(output).toMatchObject({
           success: false,
           error: {
- code: CliErrorCode.ValidationError,
-message 
-},
+            code: CliErrorCode.ValidationError,
+            message 
+          },
         });
       },
     );

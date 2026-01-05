@@ -1,5 +1,5 @@
 import {
- describe, it, expect 
+  describe, it, expect 
 } from 'vitest';
 import { RiviereBuilder } from './builder';
 import {
@@ -28,9 +28,9 @@ describe('RiviereBuilder', () => {
       });
 
       builder.link({
- from: source.id,
-to: target.id 
-});
+        from: source.id,
+        to: target.id 
+      });
 
       const result = builder.validate();
 
@@ -49,9 +49,9 @@ to: target.id
       });
 
       builder.link({
- from: source.id,
-to: 'nonexistent:target:id' 
-});
+        from: source.id,
+        to: 'nonexistent:target:id' 
+      });
 
       const result = builder.validate();
 
@@ -74,13 +74,13 @@ to: 'nonexistent:target:id'
       });
 
       builder.link({
- from: source.id,
-to: 'bad:target:one' 
-});
+        from: source.id,
+        to: 'bad:target:one' 
+      });
       builder.link({
- from: source.id,
-to: 'bad:target:two' 
-});
+        from: source.id,
+        to: 'bad:target:two' 
+      });
 
       const result = builder.validate();
 
@@ -122,9 +122,9 @@ to: 'bad:target:two'
       });
 
       builder.link({
- from: source.id,
-to: target.id 
-});
+        from: source.id,
+        to: target.id 
+      });
 
       const result = builder.validate();
 

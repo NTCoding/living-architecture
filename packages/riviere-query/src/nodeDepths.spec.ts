@@ -1,8 +1,8 @@
 import {
- describe, it, expect 
+  describe, it, expect 
 } from 'vitest';
 import {
- RiviereQuery, parseComponentId 
+  RiviereQuery, parseComponentId 
 } from './RiviereQuery';
 import {
   createMinimalValidGraph,

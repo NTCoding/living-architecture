@@ -1,14 +1,14 @@
 import {
- describe, it, expect 
+  describe, it, expect 
 } from 'vitest'
 import { extractDomainDetails } from './extractDomainDetails'
 import {
- parseNode, parseDomainMetadata, parseDomainKey, type RawNode 
+  parseNode, parseDomainMetadata, parseDomainKey, type RawNode 
 } from '@/lib/riviereTestData'
 import type { RiviereGraph } from '@/types/riviere'
 const testSourceLocation = {
- repository: 'test-repo',
-filePath: 'src/test.ts' 
+  repository: 'test-repo',
+  filePath: 'src/test.ts' 
 }
 
 function createMinimalGraph(overrides: Partial<RiviereGraph> = {}): RiviereGraph {
@@ -29,30 +29,30 @@ function createNode(overrides: Partial<RawNode> = {}): ReturnType<typeof parseNo
     sourceLocation: testSourceLocation,
     id: 'node-1',
     type: 'API',
-        apiType: 'other',
+    apiType: 'other',
     name: 'Test Node',
     domain: 'test-domain',
     module: 'test-module',
   }
   return parseNode({
- ...defaults,
-...overrides 
-})
+    ...defaults,
+    ...overrides 
+  })
 }
 
 describe('extractDomainDetails', () => {
   describe('basic domain info', () => {
     it('returns null for non-existent domain', () => {
       const graph = createMinimalGraph({
-metadata: {
- domains: parseDomainMetadata({
- 'other-domain': {
- description: 'Other',
-systemType: 'domain' 
-} 
-}) 
-},
-})
+        metadata: {
+          domains: parseDomainMetadata({
+            'other-domain': {
+              description: 'Other',
+              systemType: 'domain' 
+            } 
+          }) 
+        },
+      })
 
       const result = extractDomainDetails(graph, parseDomainKey('non-existent'))
 
@@ -63,11 +63,11 @@ systemType: 'domain'
       const graph = createMinimalGraph({
         metadata: {
           domains: parseDomainMetadata({
-'order-domain': {
- description: 'Manages orders',
-systemType: 'domain' 
-},
-}),
+            'order-domain': {
+              description: 'Manages orders',
+              systemType: 'domain' 
+            },
+          }),
         },
       })
 
@@ -84,13 +84,13 @@ systemType: 'domain'
     it('extracts all nodes belonging to domain with type and location', () => {
       const graph = createMinimalGraph({
         metadata: {
-domains: parseDomainMetadata({
- 'order-domain': {
- description: 'Orders',
-systemType: 'domain' 
-} 
-}),
-},
+          domains: parseDomainMetadata({
+            'order-domain': {
+              description: 'Orders',
+              systemType: 'domain' 
+            } 
+          }),
+        },
         components: [
           createNode({
             id: 'api-1',
@@ -99,10 +99,10 @@ systemType: 'domain'
             name: 'POST /orders',
             domain: 'order-domain',
             sourceLocation: {
- repository: 'test-repo',
-filePath: 'src/api/orders.ts',
-lineNumber: 12 
-},
+              repository: 'test-repo',
+              filePath: 'src/api/orders.ts',
+              lineNumber: 12 
+            },
           }),
           createNode({
             id: 'uc-1',
@@ -110,10 +110,10 @@ lineNumber: 12
             name: 'Place Order',
             domain: 'order-domain',
             sourceLocation: {
- repository: 'test-repo',
-filePath: 'src/usecases/PlaceOrder.ts',
-lineNumber: 8 
-},
+              repository: 'test-repo',
+              filePath: 'src/usecases/PlaceOrder.ts',
+              lineNumber: 8 
+            },
           }),
           createNode({
             id: 'other-1',
@@ -134,10 +134,10 @@ lineNumber: 8
         name: 'POST /orders',
         location: 'src/api/orders.ts:12',
         sourceLocation: {
- repository: 'test-repo',
-filePath: 'src/api/orders.ts',
-lineNumber: 12 
-},
+          repository: 'test-repo',
+          filePath: 'src/api/orders.ts',
+          lineNumber: 12 
+        },
       })
       expect(result?.nodes[1]).toEqual({
         id: 'uc-1',
@@ -145,64 +145,64 @@ lineNumber: 12
         name: 'Place Order',
         location: 'src/usecases/PlaceOrder.ts:8',
         sourceLocation: {
- repository: 'test-repo',
-filePath: 'src/usecases/PlaceOrder.ts',
-lineNumber: 8 
-},
+          repository: 'test-repo',
+          filePath: 'src/usecases/PlaceOrder.ts',
+          lineNumber: 8 
+        },
       })
     })
 
     it('sorts nodes by type priority (UI, API, UseCase, DomainOp, Event, EventHandler, Custom)', () => {
       const graph = createMinimalGraph({
         metadata: {
-domains: parseDomainMetadata({
- 'order-domain': {
- description: 'Orders',
-systemType: 'domain' 
-} 
-}),
-},
+          domains: parseDomainMetadata({
+            'order-domain': {
+              description: 'Orders',
+              systemType: 'domain' 
+            } 
+          }),
+        },
         components: [
           createNode({
- id: 'handler-1',
-type: 'EventHandler',
-name: 'Handler',
-domain: 'order-domain',
-subscribedEvents: ['Event'] 
-}),
+            id: 'handler-1',
+            type: 'EventHandler',
+            name: 'Handler',
+            domain: 'order-domain',
+            subscribedEvents: ['Event'] 
+          }),
           createNode({
- id: 'api-1',
-type: 'API',
-name: 'API',
-domain: 'order-domain' 
-}),
+            id: 'api-1',
+            type: 'API',
+            name: 'API',
+            domain: 'order-domain' 
+          }),
           createNode({
- id: 'ui-1',
-type: 'UI',
-name: 'UI',
-domain: 'order-domain',
-route: '/ui' 
-}),
+            id: 'ui-1',
+            type: 'UI',
+            name: 'UI',
+            domain: 'order-domain',
+            route: '/ui' 
+          }),
           createNode({
- id: 'event-1',
-type: 'Event',
-name: 'Event',
-domain: 'order-domain',
-eventName: 'Event' 
-}),
+            id: 'event-1',
+            type: 'Event',
+            name: 'Event',
+            domain: 'order-domain',
+            eventName: 'Event' 
+          }),
           createNode({
- id: 'uc-1',
-type: 'UseCase',
-name: 'UseCase',
-domain: 'order-domain' 
-}),
+            id: 'uc-1',
+            type: 'UseCase',
+            name: 'UseCase',
+            domain: 'order-domain' 
+          }),
           createNode({
- id: 'op-1',
-type: 'DomainOp',
-name: 'DomainOp',
-domain: 'order-domain',
-operationName: 'op' 
-}),
+            id: 'op-1',
+            type: 'DomainOp',
+            name: 'DomainOp',
+            domain: 'order-domain',
+            operationName: 'op' 
+          }),
         ],
       })
 
@@ -217,13 +217,13 @@ operationName: 'op'
     it('extracts published events with full event data', () => {
       const graph = createMinimalGraph({
         metadata: {
-domains: parseDomainMetadata({
- 'order-domain': {
- description: 'Orders',
-systemType: 'domain' 
-} 
-}),
-},
+          domains: parseDomainMetadata({
+            'order-domain': {
+              description: 'Orders',
+              systemType: 'domain' 
+            } 
+          }),
+        },
         components: [
           createNode({
             id: 'evt-1',
@@ -233,10 +233,10 @@ systemType: 'domain'
             eventName: 'OrderPlaced',
             eventSchema: '{ orderId: string, items: Item[] }',
             sourceLocation: {
- repository: 'test-repo',
-filePath: 'src/events.ts',
-lineNumber: 10 
-},
+              repository: 'test-repo',
+              filePath: 'src/events.ts',
+              lineNumber: 10 
+            },
           }),
         ],
       })
@@ -249,10 +249,10 @@ lineNumber: 10
         eventName: 'OrderPlaced',
         schema: '{ orderId: string, items: Item[] }',
         sourceLocation: {
- repository: 'test-repo',
-filePath: 'src/events.ts',
-lineNumber: 10 
-},
+          repository: 'test-repo',
+          filePath: 'src/events.ts',
+          lineNumber: 10 
+        },
         handlers: [],
       })
     })
@@ -262,17 +262,17 @@ lineNumber: 10
         metadata: {
           domains: parseDomainMetadata({
             'order-domain': {
- description: 'Orders',
-systemType: 'domain' 
-},
+              description: 'Orders',
+              systemType: 'domain' 
+            },
             'inventory-domain': {
- description: 'Inventory',
-systemType: 'domain' 
-},
+              description: 'Inventory',
+              systemType: 'domain' 
+            },
             'shipping-domain': {
- description: 'Shipping',
-systemType: 'domain' 
-},
+              description: 'Shipping',
+              systemType: 'domain' 
+            },
           }),
         },
         components: [
@@ -319,28 +319,28 @@ systemType: 'domain'
     it('sorts published events alphabetically', () => {
       const graph = createMinimalGraph({
         metadata: {
-domains: parseDomainMetadata({
- 'order-domain': {
- description: 'Orders',
-systemType: 'domain' 
-} 
-}),
-},
+          domains: parseDomainMetadata({
+            'order-domain': {
+              description: 'Orders',
+              systemType: 'domain' 
+            } 
+          }),
+        },
         components: [
           createNode({
- id: 'evt-1',
-type: 'Event',
-name: 'ZebraEvent',
-domain: 'order-domain',
-eventName: 'ZebraEvent' 
-}),
+            id: 'evt-1',
+            type: 'Event',
+            name: 'ZebraEvent',
+            domain: 'order-domain',
+            eventName: 'ZebraEvent' 
+          }),
           createNode({
- id: 'evt-2',
-type: 'Event',
-name: 'AppleEvent',
-domain: 'order-domain',
-eventName: 'AppleEvent' 
-}),
+            id: 'evt-2',
+            type: 'Event',
+            name: 'AppleEvent',
+            domain: 'order-domain',
+            eventName: 'AppleEvent' 
+          }),
         ],
       })
 
@@ -352,13 +352,13 @@ eventName: 'AppleEvent'
     it('extracts consumed events as full handler objects', () => {
       const graph = createMinimalGraph({
         metadata: {
-domains: parseDomainMetadata({
- 'order-domain': {
- description: 'Orders',
-systemType: 'domain' 
-} 
-}),
-},
+          domains: parseDomainMetadata({
+            'order-domain': {
+              description: 'Orders',
+              systemType: 'domain' 
+            } 
+          }),
+        },
         components: [
           createNode({
             id: 'handler-1',
@@ -368,10 +368,10 @@ systemType: 'domain'
             description: 'Updates order status when payment succeeds',
             subscribedEvents: ['PaymentCompleted'],
             sourceLocation: {
- repository: 'test-repo',
-filePath: 'src/handlers/payment.ts',
-lineNumber: 15 
-},
+              repository: 'test-repo',
+              filePath: 'src/handlers/payment.ts',
+              lineNumber: 15 
+            },
           }),
         ],
       })
@@ -385,42 +385,42 @@ lineNumber: 15
         description: 'Updates order status when payment succeeds',
         subscribedEvents: ['PaymentCompleted'],
         subscribedEventsWithDomain: [{
- eventName: 'PaymentCompleted',
-sourceKnown: false 
-}],
+          eventName: 'PaymentCompleted',
+          sourceKnown: false 
+        }],
         sourceLocation: {
- repository: 'test-repo',
-filePath: 'src/handlers/payment.ts',
-lineNumber: 15 
-},
+          repository: 'test-repo',
+          filePath: 'src/handlers/payment.ts',
+          lineNumber: 15 
+        },
       })
     })
 
     it('sorts consumed handlers alphabetically by name', () => {
       const graph = createMinimalGraph({
         metadata: {
-domains: parseDomainMetadata({
- 'order-domain': {
- description: 'Orders',
-systemType: 'domain' 
-} 
-}),
-},
+          domains: parseDomainMetadata({
+            'order-domain': {
+              description: 'Orders',
+              systemType: 'domain' 
+            } 
+          }),
+        },
         components: [
           createNode({
- id: 'h-1',
-type: 'EventHandler',
-name: 'Zebra Handler',
-domain: 'order-domain',
-subscribedEvents: ['X'] 
-}),
+            id: 'h-1',
+            type: 'EventHandler',
+            name: 'Zebra Handler',
+            domain: 'order-domain',
+            subscribedEvents: ['X'] 
+          }),
           createNode({
- id: 'h-2',
-type: 'EventHandler',
-name: 'Apple Handler',
-domain: 'order-domain',
-subscribedEvents: ['Y'] 
-}),
+            id: 'h-2',
+            type: 'EventHandler',
+            name: 'Apple Handler',
+            domain: 'order-domain',
+            subscribedEvents: ['Y'] 
+          }),
         ],
       })
 
@@ -434,39 +434,39 @@ subscribedEvents: ['Y']
     it('includes node breakdown counts', () => {
       const graph = createMinimalGraph({
         metadata: {
-domains: parseDomainMetadata({
- 'order-domain': {
- description: 'Orders',
-systemType: 'domain' 
-} 
-}),
-},
+          domains: parseDomainMetadata({
+            'order-domain': {
+              description: 'Orders',
+              systemType: 'domain' 
+            } 
+          }),
+        },
         components: [
           createNode({
- id: 'ui-1',
-type: 'UI',
-name: 'UI',
-domain: 'order-domain',
-route: '/ui' 
-}),
+            id: 'ui-1',
+            type: 'UI',
+            name: 'UI',
+            domain: 'order-domain',
+            route: '/ui' 
+          }),
           createNode({
- id: 'api-1',
-type: 'API',
-name: 'API 1',
-domain: 'order-domain' 
-}),
+            id: 'api-1',
+            type: 'API',
+            name: 'API 1',
+            domain: 'order-domain' 
+          }),
           createNode({
- id: 'api-2',
-type: 'API',
-name: 'API 2',
-domain: 'order-domain' 
-}),
+            id: 'api-2',
+            type: 'API',
+            name: 'API 2',
+            domain: 'order-domain' 
+          }),
           createNode({
- id: 'uc-1',
-type: 'UseCase',
-name: 'UC',
-domain: 'order-domain' 
-}),
+            id: 'uc-1',
+            type: 'UseCase',
+            name: 'UC',
+            domain: 'order-domain' 
+          }),
         ],
       })
 
@@ -488,30 +488,30 @@ domain: 'order-domain'
     it('includes entry points from UI routes and API paths', () => {
       const graph = createMinimalGraph({
         metadata: {
-domains: parseDomainMetadata({
- 'order-domain': {
- description: 'Orders',
-systemType: 'domain' 
-} 
-}),
-},
+          domains: parseDomainMetadata({
+            'order-domain': {
+              description: 'Orders',
+              systemType: 'domain' 
+            } 
+          }),
+        },
         components: [
           createNode({
- id: 'ui-1',
-type: 'UI',
-name: '/orders',
-domain: 'order-domain',
-route: '/orders' 
-}),
+            id: 'ui-1',
+            type: 'UI',
+            name: '/orders',
+            domain: 'order-domain',
+            route: '/orders' 
+          }),
           createNode({
- id: 'api-1',
-type: 'API',
-name: 'Place Order',
-domain: 'order-domain',
-apiType: 'REST',
-httpMethod: 'POST',
-path: '/api/orders' 
-}),
+            id: 'api-1',
+            type: 'API',
+            name: 'Place Order',
+            domain: 'order-domain',
+            apiType: 'REST',
+            httpMethod: 'POST',
+            path: '/api/orders' 
+          }),
         ],
       })
 
@@ -525,13 +525,13 @@ path: '/api/orders'
     it('includes repository from first node with sourceLocation.repository', () => {
       const graph = createMinimalGraph({
         metadata: {
-domains: parseDomainMetadata({
- 'order-domain': {
- description: 'Orders',
-systemType: 'domain' 
-} 
-}),
-},
+          domains: parseDomainMetadata({
+            'order-domain': {
+              description: 'Orders',
+              systemType: 'domain' 
+            } 
+          }),
+        },
         components: [
           createNode({
             id: 'api-1',
@@ -540,9 +540,9 @@ systemType: 'domain'
             name: 'API',
             domain: 'order-domain',
             sourceLocation: {
- filePath: 'src/api.ts',
-repository: 'ecommerce-app' 
-},
+              filePath: 'src/api.ts',
+              repository: 'ecommerce-app' 
+            },
           }),
         ],
       })

@@ -1,13 +1,13 @@
 import {
- useEffect, useRef, useCallback, useState, useMemo 
+  useEffect, useRef, useCallback, useState, useMemo 
 } from 'react'
 import * as d3 from 'd3'
 import type {
- RiviereGraph, Edge 
+  RiviereGraph, Edge 
 } from '@/types/riviere'
 import type { Theme } from '@/types/theme'
 import type {
- SimulationNode, SimulationLink, TooltipData 
+  SimulationNode, SimulationLink, TooltipData 
 } from '../../types'
 import { computeDagreLayout } from './computeDagreLayout'
 import {
@@ -22,7 +22,7 @@ import {
   setupZoomBehavior,
 } from './GraphRenderingSetup'
 import {
- applyFocusMode, applyResetMode 
+  applyFocusMode, applyResetMode 
 } from './applyFocusModeBehavior'
 import {
   createSimulationNodes,
@@ -65,9 +65,9 @@ export function ForceGraph({
   const svgRef = useRef<SVGSVGElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const [dimensions, setDimensions] = useState({
- width: 0,
-height: 0 
-})
+    width: 0,
+    height: 0 
+  })
   const lastGraphKeyRef = useRef<string>('')
   const nodeSelectionRef = useRef<d3.Selection<SVGGElement, SimulationNode, SVGGElement, unknown> | null>(null)
   const linkSelectionRef = useRef<d3.Selection<SVGPathElement, SimulationLink, SVGGElement, unknown> | null>(null)
@@ -83,8 +83,8 @@ height: 0
 
   const filteredEdges = visibleNodeIds
     ? graph.links.filter(
-        (e) => visibleNodeIds.has(e.source) && visibleNodeIds.has(e.target)
-      )
+      (e) => visibleNodeIds.has(e.source) && visibleNodeIds.has(e.target)
+    )
     : graph.links
 
   const allEdgesForTracing: Edge[] = useMemo(() => [
@@ -138,8 +138,8 @@ height: 0
       nodes: SimulationNode[]
     ) => {
       const {
- translateX, translateY, scale 
-} = calculateFitViewportTransform({
+        translateX, translateY, scale 
+      } = calculateFitViewportTransform({
         nodes,
         dimensions,
         padding: 80,
@@ -167,24 +167,24 @@ height: 0
     ) => {
       if (domain) {
         applyFocusMode({
- svg,
-node,
-link,
-zoom,
-nodes,
-domain,
-theme,
-dimensions 
-})
+          svg,
+          node,
+          link,
+          zoom,
+          nodes,
+          domain,
+          theme,
+          dimensions 
+        })
         return
       }
       if (highlightIds) {
         return
       }
       applyResetMode({
- node,
-link 
-})
+        node,
+        link 
+      })
       if (shouldFitViewport && nodes.length > 0 && dimensions.width > 0 && dimensions.height > 0) {
         fitViewportFn(svg, zoom, nodes)
       }
@@ -240,13 +240,13 @@ link
     const edgesForLayout = createLayoutEdges(filteredEdges, graph.externalLinks)
 
     const positions = computeDagreLayout({
- nodes,
-edges: edgesForLayout 
-})
+      nodes,
+      edges: edgesForLayout 
+    })
     applyDagrePositions({
- nodes,
-positions 
-})
+      nodes,
+      positions 
+    })
 
     const g = svg.append('g').attr('class', 'graph-container')
 
@@ -332,11 +332,11 @@ positions
     const highlightCleared = wasHighlighted && !isHighlighted
 
     updateHighlight({
- node,
-link,
-filteredEdges: allEdgesForTracing,
-highlightedNodeIds 
-})
+      node,
+      link,
+      filteredEdges: allEdgesForTracing,
+      highlightedNodeIds 
+    })
     wasHighlightedRef.current = isHighlighted
 
     if (highlightCleared && svgRef.current && zoomRef.current && nodesRef.current.length > 0) {

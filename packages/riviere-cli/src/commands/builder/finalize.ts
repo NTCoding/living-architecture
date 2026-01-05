@@ -1,7 +1,7 @@
 import { Command } from 'commander';
 import { writeFile } from 'node:fs/promises';
 import {
- formatError, formatSuccess 
+  formatError, formatSuccess 
 } from '../../output';
 import { CliErrorCode } from '../../error-codes';
 import { getDefaultGraphPathDescription } from '../../graph-path';

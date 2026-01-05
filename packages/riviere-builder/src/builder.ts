@@ -37,7 +37,7 @@ import {
 } from './builder-internals';
 import { mergeBehavior } from './merge-behavior';
 import {
- deduplicateStrings, deduplicateStateTransitions 
+  deduplicateStrings, deduplicateStateTransitions 
 } from './deduplicate';
 import {
   CustomTypeAlreadyDefinedError,

@@ -1,8 +1,8 @@
 import {
- describe, it, expect, vi 
+  describe, it, expect, vi 
 } from 'vitest'
 import {
- render, screen 
+  render, screen 
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { EventAccordion } from './EventAccordion'
@@ -32,13 +32,13 @@ describe('EventAccordion', () => {
       const event = createEvent({
         handlers: [
           {
- domain: 'shipping',
-handlerName: 'CreateShipment' 
-},
+            domain: 'shipping',
+            handlerName: 'CreateShipment' 
+          },
           {
- domain: 'notification',
-handlerName: 'SendEmail' 
-},
+            domain: 'notification',
+            handlerName: 'SendEmail' 
+          },
         ],
       })
 
@@ -49,11 +49,11 @@ handlerName: 'SendEmail'
 
     it('renders singular handler text for single handler', () => {
       const event = createEvent({
-handlers: [{
- domain: 'shipping',
-handlerName: 'CreateShipment' 
-}],
-})
+        handlers: [{
+          domain: 'shipping',
+          handlerName: 'CreateShipment' 
+        }],
+      })
 
       render(<EventAccordion event={event} />)
 
@@ -68,11 +68,11 @@ handlerName: 'CreateShipment'
 
     it('does not show handler details when collapsed', () => {
       const event = createEvent({
-handlers: [{
- domain: 'shipping',
-handlerName: 'CreateShipment' 
-}],
-})
+        handlers: [{
+          domain: 'shipping',
+          handlerName: 'CreateShipment' 
+        }],
+      })
 
       render(<EventAccordion event={event} />)
 
@@ -84,11 +84,11 @@ handlerName: 'CreateShipment'
     it('expands when header is clicked', async () => {
       const user = userEvent.setup()
       const event = createEvent({
-handlers: [{
- domain: 'shipping',
-handlerName: 'CreateShipment' 
-}],
-})
+        handlers: [{
+          domain: 'shipping',
+          handlerName: 'CreateShipment' 
+        }],
+      })
 
       render(<EventAccordion event={event} />)
 
@@ -102,13 +102,13 @@ handlerName: 'CreateShipment'
       const event = createEvent({
         handlers: [
           {
- domain: 'shipping',
-handlerName: 'CreateShipment' 
-},
+            domain: 'shipping',
+            handlerName: 'CreateShipment' 
+          },
           {
- domain: 'notification',
-handlerName: 'SendEmail' 
-},
+            domain: 'notification',
+            handlerName: 'SendEmail' 
+          },
         ],
       })
 
@@ -170,11 +170,11 @@ handlerName: 'SendEmail'
     it('hides handler details when header is clicked again', async () => {
       const user = userEvent.setup()
       const event = createEvent({
-handlers: [{
- domain: 'shipping',
-handlerName: 'CreateShipment' 
-}],
-})
+        handlers: [{
+          domain: 'shipping',
+          handlerName: 'CreateShipment' 
+        }],
+      })
 
       render(<EventAccordion event={event} />)
 
@@ -257,9 +257,9 @@ handlerName: 'CreateShipment'
       const user = userEvent.setup()
       const event = createEvent({
         handlers: [{
- domain: 'shipping',
-handlerName: 'CreateShipment' 
-}],
+          domain: 'shipping',
+          handlerName: 'CreateShipment' 
+        }],
         sourceLocation: {
           filePath: 'src/events/OrderPlaced.ts',
           lineNumber: 15,
@@ -280,11 +280,11 @@ handlerName: 'CreateShipment'
   describe('defaultExpanded prop', () => {
     it('shows handler details initially when defaultExpanded is true', () => {
       const event = createEvent({
-handlers: [{
- domain: 'shipping',
-handlerName: 'CreateShipment' 
-}],
-})
+        handlers: [{
+          domain: 'shipping',
+          handlerName: 'CreateShipment' 
+        }],
+      })
 
       render(<EventAccordion event={event} defaultExpanded />)
 
@@ -324,11 +324,11 @@ handlerName: 'CreateShipment'
     it('prevents event propagation when clicking view on graph button', async () => {
       const user = userEvent.setup()
       const event = createEvent({
-handlers: [{
- domain: 'shipping',
-handlerName: 'CreateShipment' 
-}],
-})
+        handlers: [{
+          domain: 'shipping',
+          handlerName: 'CreateShipment' 
+        }],
+      })
       const onViewOnGraph = () => {}
 
       render(<EventAccordion event={event} onViewOnGraph={onViewOnGraph} />)
@@ -367,11 +367,11 @@ handlerName: 'CreateShipment'
   describe('handler row layout', () => {
     it('renders handler icon on left side of handler row', () => {
       const event = createEvent({
-handlers: [{
- domain: 'shipping',
-handlerName: 'CreateShipment' 
-}],
-})
+        handlers: [{
+          domain: 'shipping',
+          handlerName: 'CreateShipment' 
+        }],
+      })
 
       render(<EventAccordion event={event} defaultExpanded />)
 
@@ -382,11 +382,11 @@ handlerName: 'CreateShipment'
 
     it('renders domain below handler name not beside it', () => {
       const event = createEvent({
-handlers: [{
- domain: 'shipping',
-handlerName: 'CreateShipment' 
-}],
-})
+        handlers: [{
+          domain: 'shipping',
+          handlerName: 'CreateShipment' 
+        }],
+      })
 
       render(<EventAccordion event={event} defaultExpanded />)
 
@@ -405,13 +405,13 @@ handlerName: 'CreateShipment'
       const event = createEvent({
         handlers: [
           {
- domain: 'shipping',
-handlerName: 'CreateShipment' 
-},
+            domain: 'shipping',
+            handlerName: 'CreateShipment' 
+          },
           {
- domain: 'notification',
-handlerName: 'SendEmail' 
-},
+            domain: 'notification',
+            handlerName: 'SendEmail' 
+          },
         ],
       })
       const onViewHandlerOnGraph = vi.fn()
@@ -425,11 +425,11 @@ handlerName: 'SendEmail'
     it('calls onViewHandlerOnGraph with handler info when button is clicked', async () => {
       const user = userEvent.setup()
       const event = createEvent({
-handlers: [{
- domain: 'shipping',
-handlerName: 'CreateShipment' 
-}],
-})
+        handlers: [{
+          domain: 'shipping',
+          handlerName: 'CreateShipment' 
+        }],
+      })
       const onViewHandlerOnGraph = vi.fn()
 
       render(<EventAccordion event={event} onViewHandlerOnGraph={onViewHandlerOnGraph} defaultExpanded />)
@@ -445,11 +445,11 @@ handlerName: 'CreateShipment'
 
     it('does not render handler graph buttons when onViewHandlerOnGraph is undefined', () => {
       const event = createEvent({
-handlers: [{
- domain: 'shipping',
-handlerName: 'CreateShipment' 
-}],
-})
+        handlers: [{
+          domain: 'shipping',
+          handlerName: 'CreateShipment' 
+        }],
+      })
 
       render(<EventAccordion event={event} defaultExpanded />)
 

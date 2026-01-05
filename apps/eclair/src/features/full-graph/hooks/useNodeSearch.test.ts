@@ -1,89 +1,89 @@
 import {
- describe, expect, test 
+  describe, expect, test 
 } from 'vitest'
 import { filterNodesBySearch } from './useNodeSearch'
 import type {
- Node, Edge 
+  Node, Edge 
 } from '@/types/riviere'
 import {
- parseNode, parseEdge 
+  parseNode, parseEdge 
 } from '@/lib/riviereTestData'
 const testSourceLocation = {
- repository: 'test-repo',
-filePath: 'src/test.ts' 
+  repository: 'test-repo',
+  filePath: 'src/test.ts' 
 }
 
 const testNodes: Node[] = [
   parseNode({
- sourceLocation: testSourceLocation,
-id: 'ui-1',
-type: 'UI',
-name: 'Order Page',
-domain: 'orders',
-module: 'web',
-route: '/orders' 
-}),
+    sourceLocation: testSourceLocation,
+    id: 'ui-1',
+    type: 'UI',
+    name: 'Order Page',
+    domain: 'orders',
+    module: 'web',
+    route: '/orders' 
+  }),
   parseNode({
- sourceLocation: testSourceLocation,
-id: 'api-1',
-type: 'API',
-name: 'Place Order',
-domain: 'orders',
-module: 'api' 
-}),
+    sourceLocation: testSourceLocation,
+    id: 'api-1',
+    type: 'API',
+    name: 'Place Order',
+    domain: 'orders',
+    module: 'api' 
+  }),
   parseNode({
- sourceLocation: testSourceLocation,
-id: 'usecase-1',
-type: 'UseCase',
-name: 'PlaceOrderUseCase',
-domain: 'orders',
-module: 'core' 
-}),
+    sourceLocation: testSourceLocation,
+    id: 'usecase-1',
+    type: 'UseCase',
+    name: 'PlaceOrderUseCase',
+    domain: 'orders',
+    module: 'core' 
+  }),
   parseNode({
- sourceLocation: testSourceLocation,
-id: 'event-1',
-type: 'Event',
-name: 'OrderPlaced',
-domain: 'orders',
-module: 'events',
-eventName: 'OrderPlaced' 
-}),
+    sourceLocation: testSourceLocation,
+    id: 'event-1',
+    type: 'Event',
+    name: 'OrderPlaced',
+    domain: 'orders',
+    module: 'events',
+    eventName: 'OrderPlaced' 
+  }),
   parseNode({
- sourceLocation: testSourceLocation,
-id: 'handler-1',
-type: 'EventHandler',
-name: 'ShipmentHandler',
-domain: 'shipping',
-module: 'handlers',
-subscribedEvents: ['OrderPlaced'] 
-}),
+    sourceLocation: testSourceLocation,
+    id: 'handler-1',
+    type: 'EventHandler',
+    name: 'ShipmentHandler',
+    domain: 'shipping',
+    module: 'handlers',
+    subscribedEvents: ['OrderPlaced'] 
+  }),
   parseNode({
- sourceLocation: testSourceLocation,
-id: 'api-2',
-type: 'API',
-name: 'Get Inventory',
-domain: 'inventory',
-module: 'api' 
-}),
+    sourceLocation: testSourceLocation,
+    id: 'api-2',
+    type: 'API',
+    name: 'Get Inventory',
+    domain: 'inventory',
+    module: 'api' 
+  }),
 ]
 
 const testEdges: Edge[] = [
   parseEdge({
- source: 'ui-1',
-target: 'api-1' 
-}),
+    source: 'ui-1',
+    target: 'api-1' 
+  }),
   parseEdge({
- source: 'api-1',
-target: 'usecase-1' 
-}),
+    source: 'api-1',
+    target: 'usecase-1' 
+  }),
   parseEdge({
- source: 'usecase-1',
-target: 'event-1' 
-}),
+    source: 'usecase-1',
+    target: 'event-1' 
+  }),
   parseEdge({
- source: 'event-1',
-target: 'handler-1' 
-}),
+    source: 'event-1',
+    target: 'handler-1' 
+  }),
 ]
 
 describe('filterNodesBySearch', () => {

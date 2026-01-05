@@ -1,12 +1,12 @@
 import {
- describe, it, expect 
+  describe, it, expect 
 } from 'vitest'
 import { computeGraphStats } from './graphStats'
 import type {
- RiviereGraph, SourceLocation 
+  RiviereGraph, SourceLocation 
 } from '@/types/riviere'
 import {
- parseNode, parseEdge, parseDomainKey, parseDomainMetadata 
+  parseNode, parseEdge, parseDomainKey, parseDomainMetadata 
 } from './riviereTestData'
 
 const testSourceLocation: SourceLocation = {
@@ -20,11 +20,11 @@ function createMinimalGraph(overrides: Partial<RiviereGraph> = {}): RiviereGraph
     metadata: {
       name: 'Test Graph',
       domains: parseDomainMetadata({
- 'test-domain': {
- description: 'Test domain',
-systemType: 'domain' 
-} 
-}),
+        'test-domain': {
+          description: 'Test domain',
+          systemType: 'domain' 
+        } 
+      }),
     },
     components: [],
     links: [],
@@ -52,30 +52,30 @@ describe('computeGraphStats', () => {
     const graph = createMinimalGraph({
       components: [
         parseNode({
- sourceLocation: testSourceLocation,
-id: 'n1',
-type: 'UI',
-name: 'UI 1',
-domain: 'd1',
-module: 'm1',
-route: '/ui1' 
-}),
+          sourceLocation: testSourceLocation,
+          id: 'n1',
+          type: 'UI',
+          name: 'UI 1',
+          domain: 'd1',
+          module: 'm1',
+          route: '/ui1' 
+        }),
         parseNode({
- sourceLocation: testSourceLocation,
-id: 'n2',
-type: 'API',
-name: 'API 1',
-domain: 'd1',
-module: 'm1' 
-}),
+          sourceLocation: testSourceLocation,
+          id: 'n2',
+          type: 'API',
+          name: 'API 1',
+          domain: 'd1',
+          module: 'm1' 
+        }),
         parseNode({
- sourceLocation: testSourceLocation,
-id: 'n3',
-type: 'UseCase',
-name: 'UC 1',
-domain: 'd1',
-module: 'm1' 
-}),
+          sourceLocation: testSourceLocation,
+          id: 'n3',
+          type: 'UseCase',
+          name: 'UC 1',
+          domain: 'd1',
+          module: 'm1' 
+        }),
       ],
     })
 
@@ -89,17 +89,17 @@ module: 'm1'
       metadata: {
         domains: {
           [parseDomainKey('order-domain')]: {
- description: 'Order domain',
-systemType: 'domain' 
-},
+            description: 'Order domain',
+            systemType: 'domain' 
+          },
           [parseDomainKey('payment-domain')]: {
- description: 'Payment domain',
-systemType: 'domain' 
-},
+            description: 'Payment domain',
+            systemType: 'domain' 
+          },
           [parseDomainKey('shipping-domain')]: {
- description: 'Shipping domain',
-systemType: 'domain' 
-},
+            description: 'Shipping domain',
+            systemType: 'domain' 
+          },
         },
       },
     })
@@ -113,38 +113,38 @@ systemType: 'domain'
     const graph = createMinimalGraph({
       components: [
         parseNode({
- sourceLocation: testSourceLocation,
-id: 'n1',
-type: 'API',
-name: 'API 1',
-domain: 'd1',
-module: 'm1' 
-}),
+          sourceLocation: testSourceLocation,
+          id: 'n1',
+          type: 'API',
+          name: 'API 1',
+          domain: 'd1',
+          module: 'm1' 
+        }),
         parseNode({
- sourceLocation: testSourceLocation,
-id: 'n2',
-type: 'API',
-name: 'API 2',
-domain: 'd1',
-module: 'm1' 
-}),
+          sourceLocation: testSourceLocation,
+          id: 'n2',
+          type: 'API',
+          name: 'API 2',
+          domain: 'd1',
+          module: 'm1' 
+        }),
         parseNode({
- sourceLocation: testSourceLocation,
-id: 'n3',
-type: 'UI',
-name: 'UI 1',
-domain: 'd1',
-module: 'm1',
-route: '/ui1' 
-}),
+          sourceLocation: testSourceLocation,
+          id: 'n3',
+          type: 'UI',
+          name: 'UI 1',
+          domain: 'd1',
+          module: 'm1',
+          route: '/ui1' 
+        }),
         parseNode({
- sourceLocation: testSourceLocation,
-id: 'n4',
-type: 'UseCase',
-name: 'UC 1',
-domain: 'd1',
-module: 'm1' 
-}),
+          sourceLocation: testSourceLocation,
+          id: 'n4',
+          type: 'UseCase',
+          name: 'UC 1',
+          domain: 'd1',
+          module: 'm1' 
+        }),
       ],
     })
 
@@ -157,43 +157,43 @@ module: 'm1'
     const graph = createMinimalGraph({
       components: [
         parseNode({
- sourceLocation: testSourceLocation,
-id: 'n1',
-type: 'DomainOp',
-name: 'Order.begin',
-domain: 'd1',
-module: 'm1',
-entity: 'Order',
-operationName: 'begin' 
-}),
+          sourceLocation: testSourceLocation,
+          id: 'n1',
+          type: 'DomainOp',
+          name: 'Order.begin',
+          domain: 'd1',
+          module: 'm1',
+          entity: 'Order',
+          operationName: 'begin' 
+        }),
         parseNode({
- sourceLocation: testSourceLocation,
-id: 'n2',
-type: 'DomainOp',
-name: 'Order.cancel',
-domain: 'd1',
-module: 'm1',
-entity: 'Order',
-operationName: 'cancel' 
-}),
+          sourceLocation: testSourceLocation,
+          id: 'n2',
+          type: 'DomainOp',
+          name: 'Order.cancel',
+          domain: 'd1',
+          module: 'm1',
+          entity: 'Order',
+          operationName: 'cancel' 
+        }),
         parseNode({
- sourceLocation: testSourceLocation,
-id: 'n3',
-type: 'DomainOp',
-name: 'Payment.authorize',
-domain: 'd1',
-module: 'm1',
-entity: 'Payment',
-operationName: 'authorize' 
-}),
+          sourceLocation: testSourceLocation,
+          id: 'n3',
+          type: 'DomainOp',
+          name: 'Payment.authorize',
+          domain: 'd1',
+          module: 'm1',
+          entity: 'Payment',
+          operationName: 'authorize' 
+        }),
         parseNode({
- sourceLocation: testSourceLocation,
-id: 'n4',
-type: 'UseCase',
-name: 'UC 1',
-domain: 'd1',
-module: 'm1' 
-}),
+          sourceLocation: testSourceLocation,
+          id: 'n4',
+          type: 'UseCase',
+          name: 'UC 1',
+          domain: 'd1',
+          module: 'm1' 
+        }),
       ],
     })
 
@@ -206,41 +206,41 @@ module: 'm1'
     const graph = createMinimalGraph({
       components: [
         parseNode({
- sourceLocation: testSourceLocation,
-id: 'n1',
-type: 'Event',
-name: 'OrderPlaced',
-domain: 'd1',
-module: 'm1',
-eventName: 'OrderPlaced' 
-}),
+          sourceLocation: testSourceLocation,
+          id: 'n1',
+          type: 'Event',
+          name: 'OrderPlaced',
+          domain: 'd1',
+          module: 'm1',
+          eventName: 'OrderPlaced' 
+        }),
         parseNode({
- sourceLocation: testSourceLocation,
-id: 'n2',
-type: 'Event',
-name: 'PaymentAuthorized',
-domain: 'd1',
-module: 'm1',
-eventName: 'PaymentAuthorized' 
-}),
+          sourceLocation: testSourceLocation,
+          id: 'n2',
+          type: 'Event',
+          name: 'PaymentAuthorized',
+          domain: 'd1',
+          module: 'm1',
+          eventName: 'PaymentAuthorized' 
+        }),
         parseNode({
- sourceLocation: testSourceLocation,
-id: 'n3',
-type: 'Event',
-name: 'ShipmentCreated',
-domain: 'd1',
-module: 'm1',
-eventName: 'ShipmentCreated' 
-}),
+          sourceLocation: testSourceLocation,
+          id: 'n3',
+          type: 'Event',
+          name: 'ShipmentCreated',
+          domain: 'd1',
+          module: 'm1',
+          eventName: 'ShipmentCreated' 
+        }),
         parseNode({
- sourceLocation: testSourceLocation,
-id: 'n4',
-type: 'EventHandler',
-name: 'Handler 1',
-domain: 'd1',
-module: 'm1',
-subscribedEvents: ['OrderPlaced'] 
-}),
+          sourceLocation: testSourceLocation,
+          id: 'n4',
+          type: 'EventHandler',
+          name: 'Handler 1',
+          domain: 'd1',
+          module: 'm1',
+          subscribedEvents: ['OrderPlaced'] 
+        }),
       ],
     })
 
@@ -253,32 +253,32 @@ subscribedEvents: ['OrderPlaced']
     const graph = createMinimalGraph({
       components: [
         parseNode({
- sourceLocation: testSourceLocation,
-id: 'n1',
-type: 'UI',
-name: 'UI 1',
-domain: 'd1',
-module: 'm1',
-route: '/ui1' 
-}),
+          sourceLocation: testSourceLocation,
+          id: 'n1',
+          type: 'UI',
+          name: 'UI 1',
+          domain: 'd1',
+          module: 'm1',
+          route: '/ui1' 
+        }),
         parseNode({
- sourceLocation: testSourceLocation,
-id: 'n2',
-type: 'API',
-name: 'API 1',
-domain: 'd1',
-module: 'm1' 
-}),
+          sourceLocation: testSourceLocation,
+          id: 'n2',
+          type: 'API',
+          name: 'API 1',
+          domain: 'd1',
+          module: 'm1' 
+        }),
       ],
       links: [
         parseEdge({
- source: 'n1',
-target: 'n2' 
-}),
+          source: 'n1',
+          target: 'n2' 
+        }),
         parseEdge({
- source: 'n2',
-target: 'n1' 
-}),
+          source: 'n2',
+          target: 'n1' 
+        }),
       ],
     })
 

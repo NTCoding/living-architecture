@@ -1,27 +1,27 @@
 import {
- RiviereBuilder, type BuilderOptions 
+  RiviereBuilder, type BuilderOptions 
 } from './builder';
 
 function createValidOptions(): BuilderOptions {
   return {
     sources: [{
- repository: 'test/repo',
-commit: 'abc123' 
-}],
+      repository: 'test/repo',
+      commit: 'abc123' 
+    }],
     domains: {
-orders: {
- description: 'Order domain',
-systemType: 'domain' 
-},
-},
+      orders: {
+        description: 'Order domain',
+        systemType: 'domain' 
+      },
+    },
   };
 }
 
 function createSourceLocation() {
   return {
- repository: 'test/repo',
-filePath: 'src/test.ts' 
-};
+    repository: 'test/repo',
+    filePath: 'src/test.ts' 
+  };
 }
 
 describe('RiviereBuilder enrichComponent duplicate rejection', () => {
@@ -34,25 +34,25 @@ describe('RiviereBuilder enrichComponent duplicate rejection', () => {
       operationName: 'placeOrder',
       sourceLocation: createSourceLocation(),
       stateChanges: [{
- from: 'draft',
-to: 'placed' 
-}],
+        from: 'draft',
+        to: 'placed' 
+      }],
     });
 
     builder.enrichComponent(domainOp.id, {
-stateChanges: [{
- from: 'draft',
-to: 'placed' 
-}],
-});
+      stateChanges: [{
+        from: 'draft',
+        to: 'placed' 
+      }],
+    });
 
     const enriched = builder.graph.components.find((c) => c.id === domainOp.id);
     expect(enriched).toMatchObject({
-stateChanges: [{
- from: 'draft',
-to: 'placed' 
-}],
-});
+      stateChanges: [{
+        from: 'draft',
+        to: 'placed' 
+      }],
+    });
   });
 
   it('skips duplicate stateChange including trigger field', () => {
@@ -64,28 +64,28 @@ to: 'placed'
       operationName: 'placeOrder',
       sourceLocation: createSourceLocation(),
       stateChanges: [{
- from: 'draft',
-to: 'placed',
-trigger: 'submit' 
-}],
+        from: 'draft',
+        to: 'placed',
+        trigger: 'submit' 
+      }],
     });
 
     builder.enrichComponent(domainOp.id, {
-stateChanges: [{
- from: 'draft',
-to: 'placed',
-trigger: 'submit' 
-}],
-});
+      stateChanges: [{
+        from: 'draft',
+        to: 'placed',
+        trigger: 'submit' 
+      }],
+    });
 
     const enriched = builder.graph.components.find((c) => c.id === domainOp.id);
     expect(enriched).toMatchObject({
-stateChanges: [{
- from: 'draft',
-to: 'placed',
-trigger: 'submit' 
-}],
-});
+      stateChanges: [{
+        from: 'draft',
+        to: 'placed',
+        trigger: 'submit' 
+      }],
+    });
   });
 
   it('adds stateChange when trigger differs', () => {
@@ -97,31 +97,31 @@ trigger: 'submit'
       operationName: 'placeOrder',
       sourceLocation: createSourceLocation(),
       stateChanges: [{
- from: 'draft',
-to: 'placed' 
-}],
+        from: 'draft',
+        to: 'placed' 
+      }],
     });
 
     builder.enrichComponent(domainOp.id, {
-stateChanges: [{
- from: 'draft',
-to: 'placed',
-trigger: 'submit' 
-}],
-});
+      stateChanges: [{
+        from: 'draft',
+        to: 'placed',
+        trigger: 'submit' 
+      }],
+    });
 
     const enriched = builder.graph.components.find((c) => c.id === domainOp.id);
     expect(enriched).toMatchObject({
       stateChanges: [
         {
- from: 'draft',
-to: 'placed' 
-},
+          from: 'draft',
+          to: 'placed' 
+        },
         {
- from: 'draft',
-to: 'placed',
-trigger: 'submit' 
-},
+          from: 'draft',
+          to: 'placed',
+          trigger: 'submit' 
+        },
       ],
     });
   });
@@ -221,31 +221,31 @@ trigger: 'submit'
       sourceLocation: createSourceLocation(),
       businessRules: ['Rule A', 'Rule B'],
       stateChanges: [{
- from: 'draft',
-to: 'placed' 
-}],
+        from: 'draft',
+        to: 'placed' 
+      }],
       behavior: {
- reads: ['this.state'],
-emits: ['OrderPlaced'] 
-},
+        reads: ['this.state'],
+        emits: ['OrderPlaced'] 
+      },
     });
 
     builder.enrichComponent(domainOp.id, {
       businessRules: ['Rule B', 'Rule C'],
       stateChanges: [
         {
- from: 'draft',
-to: 'placed' 
-},
+          from: 'draft',
+          to: 'placed' 
+        },
         {
- from: 'placed',
-to: 'shipped' 
-},
+          from: 'placed',
+          to: 'shipped' 
+        },
       ],
       behavior: {
- reads: ['this.state', 'items'],
-emits: ['OrderShipped'] 
-},
+        reads: ['this.state', 'items'],
+        emits: ['OrderShipped'] 
+      },
     });
 
     const enriched = builder.graph.components.find((c) => c.id === domainOp.id);
@@ -253,13 +253,13 @@ emits: ['OrderShipped']
       businessRules: ['Rule A', 'Rule B', 'Rule C'],
       stateChanges: [
         {
- from: 'draft',
-to: 'placed' 
-},
+          from: 'draft',
+          to: 'placed' 
+        },
         {
- from: 'placed',
-to: 'shipped' 
-},
+          from: 'placed',
+          to: 'shipped' 
+        },
       ],
       behavior: {
         reads: ['this.state', 'items'],

@@ -1,13 +1,13 @@
 import {
- describe, it, expect 
+  describe, it, expect 
 } from 'vitest';
 import {
- mkdir, writeFile 
+  mkdir, writeFile 
 } from 'node:fs/promises';
 import { join } from 'node:path';
 import { RiviereQuery } from '@living-architecture/riviere-query';
 import {
- loadGraph, isLoadGraphError, withGraph 
+  loadGraph, isLoadGraphError, withGraph 
 } from './load-graph';
 import { CliErrorCode } from '../../error-codes';
 import type { TestContext } from '../../command-test-fixtures';
@@ -21,11 +21,11 @@ const validGraph = {
   metadata: {
     sources: [{ repository: 'https://github.com/org/repo' }],
     domains: {
- test: {
- description: 'Test domain',
-systemType: 'domain' 
-} 
-},
+      test: {
+        description: 'Test domain',
+        systemType: 'domain' 
+      } 
+    },
   },
   components: [],
   links: [],

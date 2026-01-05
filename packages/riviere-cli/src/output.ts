@@ -20,10 +20,10 @@ export function formatSuccess<T>(
   warnings: string[] = [],
 ): SuccessOutput<T> {
   return {
- success: true,
-data,
-warnings 
-};
+    success: true,
+    data,
+    warnings 
+  };
 }
 
 export function formatError(
@@ -32,11 +32,11 @@ export function formatError(
   suggestions: string[] = [],
 ): ErrorOutput {
   return {
- success: false,
-error: {
- code,
-message,
-suggestions 
-} 
-};
+    success: false,
+    error: {
+      code,
+      message,
+      suggestions 
+    } 
+  };
 }

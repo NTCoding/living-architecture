@@ -1,21 +1,21 @@
 import {
- describe, it, expect, afterEach 
+  describe, it, expect, afterEach 
 } from 'vitest'
 import {
- render, screen 
+  render, screen 
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { OverviewPage } from './OverviewPage'
 import type { RiviereGraph } from '@/types/riviere'
 import {
- parseNode, parseEdge, parseDomainMetadata 
+  parseNode, parseEdge, parseDomainMetadata 
 } from '@/lib/riviereTestData'
 
 
 const testSourceLocation = {
- repository: 'test-repo',
-filePath: 'src/test.ts' 
+  repository: 'test-repo',
+  filePath: 'src/test.ts' 
 }
 function renderWithRouter(ui: React.ReactElement): ReturnType<typeof render> {
   return render(<MemoryRouter>{ui}</MemoryRouter>)
@@ -29,98 +29,98 @@ function createTestGraph(overrides: Partial<RiviereGraph> = {}): RiviereGraph {
       description: 'Test description',
       domains: parseDomainMetadata({
         'order-domain': {
- description: 'Order management',
-systemType: 'domain' 
-},
+          description: 'Order management',
+          systemType: 'domain' 
+        },
         'payment-domain': {
- description: 'Payment processing',
-systemType: 'domain' 
-},
+          description: 'Payment processing',
+          systemType: 'domain' 
+        },
       }),
     },
     components: [
       parseNode({
- sourceLocation: testSourceLocation,
-id: 'n1',
-type: 'UI',
-name: '/orders',
-domain: 'order-domain',
-module: 'm1',
-route: '/orders' 
-}),
+        sourceLocation: testSourceLocation,
+        id: 'n1',
+        type: 'UI',
+        name: '/orders',
+        domain: 'order-domain',
+        module: 'm1',
+        route: '/orders' 
+      }),
       parseNode({
- sourceLocation: testSourceLocation,
-id: 'n2',
-type: 'API',
-name: 'Place Order',
-domain: 'order-domain',
-module: 'm1',
-apiType: 'REST',
-httpMethod: 'POST',
-path: '/api/orders' 
-}),
+        sourceLocation: testSourceLocation,
+        id: 'n2',
+        type: 'API',
+        name: 'Place Order',
+        domain: 'order-domain',
+        module: 'm1',
+        apiType: 'REST',
+        httpMethod: 'POST',
+        path: '/api/orders' 
+      }),
       parseNode({
- sourceLocation: testSourceLocation,
-id: 'n3',
-type: 'UseCase',
-name: 'Place Order UC',
-domain: 'order-domain',
-module: 'm1' 
-}),
+        sourceLocation: testSourceLocation,
+        id: 'n3',
+        type: 'UseCase',
+        name: 'Place Order UC',
+        domain: 'order-domain',
+        module: 'm1' 
+      }),
       parseNode({
- sourceLocation: testSourceLocation,
-id: 'n4',
-type: 'DomainOp',
-name: 'Order.begin',
-domain: 'order-domain',
-module: 'm1',
-entity: 'Order',
-operationName: 'begin' 
-}),
+        sourceLocation: testSourceLocation,
+        id: 'n4',
+        type: 'DomainOp',
+        name: 'Order.begin',
+        domain: 'order-domain',
+        module: 'm1',
+        entity: 'Order',
+        operationName: 'begin' 
+      }),
       parseNode({
- sourceLocation: testSourceLocation,
-id: 'n5',
-type: 'Event',
-name: 'OrderPlaced',
-domain: 'order-domain',
-module: 'm1',
-eventName: 'OrderPlaced' 
-}),
+        sourceLocation: testSourceLocation,
+        id: 'n5',
+        type: 'Event',
+        name: 'OrderPlaced',
+        domain: 'order-domain',
+        module: 'm1',
+        eventName: 'OrderPlaced' 
+      }),
       parseNode({
- sourceLocation: testSourceLocation,
-id: 'n6',
-type: 'API',
-name: 'Process Payment',
-domain: 'payment-domain',
-module: 'm1',
-apiType: 'REST',
-httpMethod: 'POST',
-path: '/api/payments' 
-}),
+        sourceLocation: testSourceLocation,
+        id: 'n6',
+        type: 'API',
+        name: 'Process Payment',
+        domain: 'payment-domain',
+        module: 'm1',
+        apiType: 'REST',
+        httpMethod: 'POST',
+        path: '/api/payments' 
+      }),
       parseNode({
- sourceLocation: testSourceLocation,
-id: 'n7',
-type: 'DomainOp',
-name: 'Payment.authorize',
-domain: 'payment-domain',
-module: 'm1',
-entity: 'Payment',
-operationName: 'authorize' 
-}),
+        sourceLocation: testSourceLocation,
+        id: 'n7',
+        type: 'DomainOp',
+        name: 'Payment.authorize',
+        domain: 'payment-domain',
+        module: 'm1',
+        entity: 'Payment',
+        operationName: 'authorize' 
+      }),
     ],
     links: [
       parseEdge({
- source: 'n1',
-target: 'n2' 
-}),
+        source: 'n1',
+        target: 'n2' 
+      }),
       parseEdge({
- source: 'n2',
-target: 'n3' 
-}),
+        source: 'n2',
+        target: 'n3' 
+      }),
       parseEdge({
- source: 'n3',
-target: 'n4' 
-}),
+        source: 'n3',
+        target: 'n4' 
+      }),
     ],
     ...overrides,
   }
@@ -223,35 +223,35 @@ describe('OverviewPage', () => {
 
   it('renders repository link when sourceLocation has repository', () => {
     localStorage.setItem('eclair-code-link-settings', JSON.stringify({
- vscodePath: null,
-githubOrg: 'https://github.com/org',
-githubBranch: 'main' 
-}))
+      vscodePath: null,
+      githubOrg: 'https://github.com/org',
+      githubBranch: 'main' 
+    }))
     const graph = createTestGraph({
       components: [
         parseNode({
           id: 'n1',
           type: 'API',
-        apiType: 'other',
+          apiType: 'other',
           name: 'Test API',
           domain: 'order-domain',
           module: 'm1',
           sourceLocation: {
- filePath: '/src/api.ts',
-repository: 'ecommerce-app' 
-},
+            filePath: '/src/api.ts',
+            repository: 'ecommerce-app' 
+          },
         }),
         parseNode({
           id: 'n2',
           type: 'API',
-        apiType: 'other',
+          apiType: 'other',
           name: 'Payment API',
           domain: 'payment-domain',
           module: 'm1',
           sourceLocation: {
- filePath: '/src/payment.ts',
-repository: 'payment-service' 
-},
+            filePath: '/src/payment.ts',
+            repository: 'payment-service' 
+          },
         }),
       ],
     })
@@ -311,10 +311,10 @@ repository: 'payment-service'
 
   it('renders repository link for each domain card', () => {
     localStorage.setItem('eclair-code-link-settings', JSON.stringify({
- vscodePath: null,
-githubOrg: 'https://github.com/org',
-githubBranch: 'main' 
-}))
+      vscodePath: null,
+      githubOrg: 'https://github.com/org',
+      githubBranch: 'main' 
+    }))
     const graph = createTestGraph()
 
     renderWithRouter(<OverviewPage graph={graph} />)

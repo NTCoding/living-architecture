@@ -1,19 +1,19 @@
 import {
- RiviereBuilder, type BuilderOptions 
+  RiviereBuilder, type BuilderOptions 
 } from './builder';
 
 function createValidOptions(): BuilderOptions {
   return {
     sources: [{
- repository: 'my-org/my-repo',
-commit: 'abc123' 
-}],
+      repository: 'my-org/my-repo',
+      commit: 'abc123' 
+    }],
     domains: {
-orders: {
- description: 'Order management',
-systemType: 'domain' 
-},
-},
+      orders: {
+        description: 'Order management',
+        systemType: 'domain' 
+      },
+    },
   };
 }
 
@@ -22,15 +22,15 @@ describe('RiviereBuilder', () => {
     it('returns builder instance when given valid options', () => {
       const options: BuilderOptions = {
         sources: [{
- repository: 'my-org/my-repo',
-commit: 'abc123' 
-}],
+          repository: 'my-org/my-repo',
+          commit: 'abc123' 
+        }],
         domains: {
-orders: {
- description: 'Order management',
-systemType: 'domain' 
-},
-},
+          orders: {
+            description: 'Order management',
+            systemType: 'domain' 
+          },
+        },
       };
 
       const builder = RiviereBuilder.new(options);
@@ -42,11 +42,11 @@ systemType: 'domain'
       const options: BuilderOptions = {
         sources: [],
         domains: {
-orders: {
- description: 'Order management',
-systemType: 'domain' 
-},
-},
+          orders: {
+            description: 'Order management',
+            systemType: 'domain' 
+          },
+        },
       };
 
       expect(() => RiviereBuilder.new(options)).toThrow(
@@ -70,15 +70,15 @@ systemType: 'domain'
         name: 'my-service',
         description: 'Service description',
         sources: [{
- repository: 'my-org/my-repo',
-commit: 'abc123' 
-}],
+          repository: 'my-org/my-repo',
+          commit: 'abc123' 
+        }],
         domains: {
-orders: {
- description: 'Order management',
-systemType: 'domain' 
-},
-},
+          orders: {
+            description: 'Order management',
+            systemType: 'domain' 
+          },
+        },
       };
 
       const builder = RiviereBuilder.new(options);
@@ -87,16 +87,16 @@ systemType: 'domain'
       expect(builder.graph.metadata.description).toBe('Service description');
       expect(builder.graph.metadata.sources).toEqual([
         {
- repository: 'my-org/my-repo',
-commit: 'abc123' 
-},
+          repository: 'my-org/my-repo',
+          commit: 'abc123' 
+        },
       ]);
       expect(builder.graph.metadata.domains).toEqual({
-orders: {
- description: 'Order management',
-systemType: 'domain' 
-},
-});
+        orders: {
+          description: 'Order management',
+          systemType: 'domain' 
+        },
+      });
     });
   });
 
@@ -111,13 +111,13 @@ systemType: 'domain'
 
       expect(builder.graph.metadata.sources).toEqual([
         {
- repository: 'my-org/my-repo',
-commit: 'abc123' 
-},
+          repository: 'my-org/my-repo',
+          commit: 'abc123' 
+        },
         {
- repository: 'another-org/another-repo',
-commit: 'def456' 
-},
+          repository: 'another-org/another-repo',
+          commit: 'def456' 
+        },
       ]);
     });
 

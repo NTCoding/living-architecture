@@ -1,5 +1,5 @@
 import {
- describe, it, expect 
+  describe, it, expect 
 } from 'vitest';
 import type { RiviereGraph } from '@living-architecture/riviere-schema';
 import { RiviereBuilder } from './builder';
@@ -45,11 +45,11 @@ describe('RiviereBuilder', () => {
       builder.defineCustomType({
         name: 'Repository',
         requiredProperties: {
-entityName: {
- type: 'string',
-description: 'Entity managed' 
-},
-},
+          entityName: {
+            type: 'string',
+            description: 'Entity managed' 
+          },
+        },
       });
 
       const serialized = builder.serialize();
@@ -75,10 +75,10 @@ description: 'Entity managed'
         sourceLocation: createSourceLocation(),
       });
       builder.link({
- from: source.id,
-to: target.id,
-type: 'sync' 
-});
+        from: source.id,
+        to: target.id,
+        type: 'sync' 
+      });
 
       const serialized = builder.serialize();
 
@@ -97,9 +97,9 @@ type: 'sync'
         sourceLocation: createSourceLocation(),
       });
       builder.linkExternal({
- from: source.id,
-target: { name: 'Stripe' } 
-});
+        from: source.id,
+        target: { name: 'Stripe' } 
+      });
 
       const serialized = builder.serialize();
 
@@ -119,9 +119,9 @@ target: { name: 'Stripe' }
       builder.enrichComponent(op.id, {
         entity: 'Order',
         stateChanges: [{
- from: 'draft',
-to: 'pending' 
-}],
+          from: 'draft',
+          to: 'pending' 
+        }],
         businessRules: ['Order must have at least one item'],
       });
 
@@ -201,11 +201,11 @@ to: 'pending'
       original.defineCustomType({
         name: 'Repository',
         requiredProperties: {
-entityName: {
- type: 'string',
-description: 'Entity managed' 
-},
-},
+          entityName: {
+            type: 'string',
+            description: 'Entity managed' 
+          },
+        },
       });
       const serialized = original.serialize();
 
@@ -239,10 +239,10 @@ description: 'Entity managed'
         sourceLocation: createSourceLocation(),
       });
       original.link({
- from: api.id,
-to: useCase.id,
-type: 'sync' 
-});
+        from: api.id,
+        to: useCase.id,
+        type: 'sync' 
+      });
       const serialized = original.serialize();
 
       const resumed = RiviereBuilder.resume(JSON.parse(serialized));
@@ -254,9 +254,9 @@ type: 'sync'
         sourceLocation: createSourceLocation(),
       });
       resumed.link({
- from: useCase.id,
-to: domainOp.id 
-});
+        from: useCase.id,
+        to: domainOp.id 
+      });
 
       expect(resumed.stats().linkCount).toBe(2);
       expect(resumed.stats().componentCount).toBe(3);
@@ -296,15 +296,15 @@ to: domainOp.id
         version: '1.0',
         metadata: {
           sources: [{
- repository: 'test/repo',
-commit: 'abc123' 
-}],
+            repository: 'test/repo',
+            commit: 'abc123' 
+          }],
           domains: {
-orders: {
- description: 'Order domain',
-systemType: 'domain' 
-},
-},
+            orders: {
+              description: 'Order domain',
+              systemType: 'domain' 
+            },
+          },
         },
         components: [],
         links: [],
@@ -338,9 +338,9 @@ systemType: 'domain'
       original.enrichComponent(target.id, {
         entity: 'Order',
         stateChanges: [{
- from: 'draft',
-to: 'pending' 
-}],
+          from: 'draft',
+          to: 'pending' 
+        }],
         businessRules: ['Order must have items'],
       });
       const firstSerialized = original.serialize();

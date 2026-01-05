@@ -1,5 +1,5 @@
 import {
- useState, useRef, useEffect 
+  useState, useRef, useEffect 
 } from 'react'
 import { useCodeLinkSettings } from './useCodeLinkSettings'
 import { ConfigurePathModal } from './ConfigurePathModal'
@@ -30,7 +30,7 @@ function getModalCurrentValue(
 }
 
 export function CodeLinkMenu({
- filePath, lineNumber, repository 
+  filePath, lineNumber, repository 
 }: Readonly<CodeLinkMenuProps>): React.ReactElement {
   const [isOpen, setIsOpen] = useState(false)
   const [modalMode, setModalMode] = useState<ModalMode>(null)

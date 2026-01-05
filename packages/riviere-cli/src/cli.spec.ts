@@ -1,5 +1,5 @@
 import {
- createProgram, parsePackageJson 
+  createProgram, parsePackageJson 
 } from './cli';
 import { Command } from 'commander';
 

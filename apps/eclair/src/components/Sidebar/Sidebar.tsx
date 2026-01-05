@@ -1,5 +1,5 @@
 import {
- Link, useLocation 
+  Link, useLocation 
 } from 'react-router-dom'
 import { Logo } from '@/components/Logo/Logo'
 import { ThemeSwitcher } from '@/components/ThemeSwitcher/ThemeSwitcher'
@@ -19,7 +19,7 @@ interface NavItemContentProps {
 }
 
 function NavItemContent({
- icon, label, collapsed 
+  icon, label, collapsed 
 }: NavItemContentProps): React.ReactElement {
   return (
     <>
@@ -62,7 +62,7 @@ function getTooltipTitle(collapsed: boolean, label: string): string | undefined 
 }
 
 function NavItem({
- icon, label, to, disabled = false, active = false, collapsed = false 
+  icon, label, to, disabled = false, active = false, collapsed = false 
 }: NavItemProps): React.ReactElement {
   const baseClasses = collapsed ? getCollapsedNavItemClasses() : getExpandedNavItemClasses()
   const stateClasses = getNavItemStateClasses(disabled, active)
@@ -90,7 +90,7 @@ interface ExternalLinkProps {
 }
 
 function ExternalLink({
- icon, label, href, collapsed = false 
+  icon, label, href, collapsed = false 
 }: ExternalLinkProps): React.ReactElement {
   const baseClasses = collapsed ? getCollapsedNavItemClasses() : getExpandedNavItemClasses()
 
@@ -114,7 +114,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({
- hasGraph, collapsed = false, onToggleCollapse 
+  hasGraph, collapsed = false, onToggleCollapse 
 }: SidebarProps): React.ReactElement {
   const location = useLocation()
   const currentPath = location.pathname

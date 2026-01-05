@@ -1,21 +1,21 @@
 import {
- describe, it, expect, vi 
+  describe, it, expect, vi 
 } from 'vitest'
 import {
- render, screen, waitFor, within, fireEvent 
+  render, screen, waitFor, within, fireEvent 
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { SchemaModal } from './SchemaModal'
 import type {
- RiviereGraph, GraphName 
+  RiviereGraph, GraphName 
 } from '@/types/riviere'
 import {
- nodeIdSchema, domainNameSchema, moduleNameSchema, graphNameSchema 
+  nodeIdSchema, domainNameSchema, moduleNameSchema, graphNameSchema 
 } from '@/types/riviere'
 
 const testSourceLocation = {
- repository: 'test-repo',
-filePath: 'src/test.ts' 
+  repository: 'test-repo',
+  filePath: 'src/test.ts' 
 }
 
 function createGraphName(name: string): GraphName {
@@ -221,21 +221,21 @@ describe('SchemaModal', () => {
             generated: '2024-01-15T10:30:00Z',
             domains: {
               'orders': {
- description: 'Order',
-systemType: 'domain' 
-},
+                description: 'Order',
+                systemType: 'domain' 
+              },
               'inventory': {
- description: 'Inventory',
-systemType: 'domain' 
-},
+                description: 'Inventory',
+                systemType: 'domain' 
+              },
               'shipping': {
- description: 'Shipping',
-systemType: 'domain' 
-},
+                description: 'Shipping',
+                systemType: 'domain' 
+              },
               'payments': {
- description: 'Payments',
-systemType: 'domain' 
-},
+                description: 'Payments',
+                systemType: 'domain' 
+              },
             },
           },
         })

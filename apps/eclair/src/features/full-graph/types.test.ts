@@ -1,8 +1,8 @@
 import {
- describe, expect, test 
+  describe, expect, test 
 } from 'vitest'
 import {
- NODE_COLORS, NODE_RADII, EDGE_COLORS, getDomainColor 
+  NODE_COLORS, NODE_RADII, EDGE_COLORS, getDomainColor 
 } from './types'
 import type { Theme } from '@/types/theme'
 import type { NodeType } from '@/types/riviere'

@@ -1,10 +1,10 @@
 import { Command } from 'commander';
 import {
- formatSuccess, formatError 
+  formatSuccess, formatError 
 } from '../../output';
 import { CliErrorCode } from '../../error-codes';
 import {
- withGraph, getDefaultGraphPathDescription 
+  withGraph, getDefaultGraphPathDescription 
 } from './load-graph';
 import {
   isValidComponentType,

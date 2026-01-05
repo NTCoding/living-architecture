@@ -1,5 +1,5 @@
 import {
- describe, it, expect 
+  describe, it, expect 
 } from 'vitest';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -164,9 +164,9 @@ describe('riviere builder enrich', () => {
       expect(graph).toMatchObject({
         components: [
           {
- id: 'orders:checkout:domainop:confirm-order',
-entity: 'Order' 
-},
+            id: 'orders:checkout:domainop:confirm-order',
+            entity: 'Order' 
+          },
         ],
       });
     });
@@ -189,13 +189,13 @@ entity: 'Order'
       const content = await readFile(graphPath, 'utf-8');
       const graph: unknown = JSON.parse(content);
       expect(graph).toMatchObject({
-components: [{
- stateChanges: [{
- from: 'pending',
-to: 'confirmed' 
-}] 
-}],
-});
+        components: [{
+          stateChanges: [{
+            from: 'pending',
+            to: 'confirmed' 
+          }] 
+        }],
+      });
     });
 
     it('enriches DomainOp with multiple state-changes', async () => {
@@ -222,13 +222,13 @@ to: 'confirmed'
           {
             stateChanges: [
               {
- from: 'pending',
-to: 'confirmed' 
-},
+                from: 'pending',
+                to: 'confirmed' 
+              },
               {
- from: 'confirmed',
-to: 'shipped' 
-},
+                from: 'confirmed',
+                to: 'shipped' 
+              },
             ],
           },
         ],
@@ -336,8 +336,8 @@ to: 'shipped'
         },
       },
     ])('enriches DomainOp with $name', async ({
- args, expected 
-}) => {
+      args, expected 
+    }) => {
       await createGraphWithComponent(ctx.testDir, domainOpComponent);
       const program = createProgram();
       await program.parseAsync([

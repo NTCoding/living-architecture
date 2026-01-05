@@ -49,7 +49,7 @@ interface ModalHeaderProps {
 }
 
 function ModalHeader({
- nodeId, isCurrent, onClose 
+  nodeId, isCurrent, onClose 
 }: Readonly<ModalHeaderProps>): React.ReactElement {
   return (
     <div className="flex items-center justify-between border-b border-[var(--border-color)] px-4 py-3">
@@ -85,7 +85,7 @@ interface ModalContentProps {
 }
 
 function ModalContent({
- isCurrent, connections, currentDomainId 
+  isCurrent, connections, currentDomainId 
 }: Readonly<ModalContentProps>): React.ReactElement {
   const isCurrentDomain = isCurrent
   const hasNoConnections = connections.length === 0

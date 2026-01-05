@@ -1,15 +1,15 @@
 import {
- render, screen, fireEvent, waitFor 
+  render, screen, fireEvent, waitFor 
 } from '@testing-library/react'
 import {
- GraphProvider, useGraph 
+  GraphProvider, useGraph 
 } from '@/contexts/GraphContext'
 import { EmptyState } from './EmptyState'
 import {
- parseNode, parseDomainMetadata 
+  parseNode, parseDomainMetadata 
 } from '@/lib/riviereTestData'
 import type {
- RiviereGraph, SourceLocation 
+  RiviereGraph, SourceLocation 
 } from '@/types/riviere'
 
 const testSourceLocation: SourceLocation = {
@@ -22,21 +22,21 @@ const validGraph: RiviereGraph = {
   metadata: {
     name: 'Test Graph',
     domains: parseDomainMetadata({
-test: {
- description: 'Test',
-systemType: 'domain' 
-},
-}),
+      test: {
+        description: 'Test',
+        systemType: 'domain' 
+      },
+    }),
   },
   components: [
     parseNode({
- sourceLocation: testSourceLocation,
-id: 'n1',
-type: 'UseCase',
-name: 'Test',
-domain: 'test',
-module: 'test' 
-}),
+      sourceLocation: testSourceLocation,
+      id: 'n1',
+      type: 'UseCase',
+      name: 'Test',
+      domain: 'test',
+      module: 'test' 
+    }),
   ],
   links: [],
 }
@@ -48,10 +48,10 @@ function createFile(name: string, content: string): File {
 interface MockDataTransfer {
   files: File[]
   items: Array<{
- kind: string;
-type: string;
-getAsFile: () => File 
-}>
+    kind: string;
+    type: string;
+    getAsFile: () => File 
+  }>
   types: string[]
 }
 
@@ -59,18 +59,18 @@ function createDataTransfer(files: File[]): MockDataTransfer {
   return {
     files,
     items: files.map((file) => ({
- kind: 'file',
-type: file.type,
-getAsFile: () => file 
-})),
+      kind: 'file',
+      type: file.type,
+      getAsFile: () => file 
+    })),
     types: ['Files'],
   }
 }
 
 function GraphStateDisplay(): React.ReactElement {
   const {
- hasGraph, graphName 
-} = useGraph()
+    hasGraph, graphName 
+  } = useGraph()
   return (
     <div>
       <span data-testid="has-graph">{hasGraph ? 'yes' : 'no'}</span>

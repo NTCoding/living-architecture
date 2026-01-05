@@ -1,26 +1,26 @@
 import {
- render, screen 
+  render, screen 
 } from '@testing-library/react'
 import type { RenderResult } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import {
- describe, expect, it, vi 
+  describe, expect, it, vi 
 } from 'vitest'
 import { AppShell } from './AppShell'
 import { ExportProvider } from '@/contexts/ExportContext'
 import type {
- GraphName, RiviereGraph 
+  GraphName, RiviereGraph 
 } from '@/types/riviere'
 import {
- graphNameSchema, nodeIdSchema, domainNameSchema, moduleNameSchema 
+  graphNameSchema, nodeIdSchema, domainNameSchema, moduleNameSchema 
 } from '@/types/riviere'
 import { parseDomainMetadata } from '@/lib/riviereTestData'
 
 
 const testSourceLocation = {
- repository: 'test-repo',
-filePath: 'src/test.ts' 
+  repository: 'test-repo',
+  filePath: 'src/test.ts' 
 }
 function createGraphName(name: string): GraphName {
   return graphNameSchema.parse(name)
@@ -34,11 +34,11 @@ function createTestGraph(name: string): RiviereGraph {
       description: 'Test graph',
       generated: '2024-01-15T10:30:00Z',
       domains: parseDomainMetadata({
-orders: {
- description: 'Order management',
-systemType: 'domain' 
-},
-}),
+        orders: {
+          description: 'Order management',
+          systemType: 'domain' 
+        },
+      }),
     },
     components: [
       {
@@ -58,10 +58,10 @@ systemType: 'domain'
 }
 
 vi.mock('@/contexts/ThemeContext', () => ({
-useTheme: () => ({
- theme: 'stream',
-setTheme: vi.fn() 
-}),
+  useTheme: () => ({
+    theme: 'stream',
+    setTheme: vi.fn() 
+  }),
 }))
 
 vi.mock('@/contexts/GraphContext', () => ({useGraph: () => ({ clearGraph: vi.fn() }),}))

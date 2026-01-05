@@ -1,8 +1,8 @@
 import {
- describe, it, expect 
+  describe, it, expect 
 } from 'vitest'
 import {
- render, screen 
+  render, screen 
 } from '@testing-library/react'
 import { ConnectionItem } from './ConnectionItem'
 import type { AggregatedConnection } from '../../extractDomainDetails'

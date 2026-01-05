@@ -5,5 +5,5 @@ export {
   formatValidationErrors,
 } from './validation';
 export {
- ComponentId, type ComponentIdParts 
+  ComponentId, type ComponentIdParts 
 } from './component-id';

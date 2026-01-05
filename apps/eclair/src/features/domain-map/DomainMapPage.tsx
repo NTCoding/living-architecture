@@ -1,14 +1,14 @@
 import {
- useMemo, useCallback, useEffect, useRef 
+  useMemo, useCallback, useEffect, useRef 
 } from 'react'
 import {
- useSearchParams, useNavigate 
+  useSearchParams, useNavigate 
 } from 'react-router-dom'
 import {
- ReactFlow, Background, Controls, useNodesState, useEdgesState 
+  ReactFlow, Background, Controls, useNodesState, useEdgesState 
 } from '@xyflow/react'
 import type {
- Node, Edge, NodeMouseHandler, EdgeMouseHandler 
+  Node, Edge, NodeMouseHandler, EdgeMouseHandler 
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import type { RiviereGraph } from '@/types/riviere'
@@ -20,12 +20,12 @@ import {
   UNNAMED_GRAPH_EXPORT_NAME,
 } from '@/lib/exportGraph'
 import {
- extractDomainMap, getConnectedDomains 
+  extractDomainMap, getConnectedDomains 
 } from './extractDomainMap'
 import { calculateTooltipPositionWithViewportClipping } from './calculateTooltipPosition'
 import { pluralizeConnection } from './pluralize'
 import type {
- DomainNodeData, DomainEdgeData 
+  DomainNodeData, DomainEdgeData 
 } from './extractDomainMap'
 import { DomainNode } from './components/DomainNode/DomainNode'
 import { useDomainMapInteractions } from './hooks/useDomainMapInteractions'
@@ -38,14 +38,14 @@ export function DomainMapPage({ graph }: DomainMapPageProps): React.ReactElement
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const {
- registerExportHandlers, clearExportHandlers 
-} = useExport()
+    registerExportHandlers, clearExportHandlers 
+  } = useExport()
   const exportContainerRef = useRef<HTMLDivElement>(null)
   const highlightDomain = searchParams.get('highlight')
 
   const {
- domainNodes: initialNodes, domainEdges: initialEdges 
-} = useMemo(() => extractDomainMap(graph), [graph])
+    domainNodes: initialNodes, domainEdges: initialEdges 
+  } = useMemo(() => extractDomainMap(graph), [graph])
   const [nodes, setNodes, onNodesChange] = useNodesState<Node<DomainNodeData>>(initialNodes)
   const [edges, setEdges] = useEdgesState<Edge<DomainEdgeData>>(initialEdges)
 
@@ -144,9 +144,9 @@ export function DomainMapPage({ graph }: DomainMapPageProps): React.ReactElement
       return {
         ...node,
         data: {
- ...node.data,
-dimmed: isDimmed 
-},
+          ...node.data,
+          dimmed: isDimmed 
+        },
       }
     })
   }, [nodes, focusedDomain, connectedDomains])
@@ -158,9 +158,9 @@ dimmed: isDimmed
       return {
         ...edge,
         style: {
- ...edge.style,
-opacity: isRelevant ? 1 : 0.2 
-},
+          ...edge.style,
+          opacity: isRelevant ? 1 : 0.2 
+        },
       }
     })
   }, [edges, focusedDomain])
@@ -190,9 +190,9 @@ opacity: isRelevant ? 1 : 0.2
     }
 
     registerExportHandlers({
- onPng: handleExportPng,
-onSvg: handleExportSvg 
-})
+      onPng: handleExportPng,
+      onSvg: handleExportSvg 
+    })
 
     return () => {
       clearExportHandlers()
@@ -257,16 +257,16 @@ onSvg: handleExportSvg
 
       {tooltip.visible && (() => {
         const {
- left, top 
-} = calculateTooltipPositionWithViewportClipping(tooltip.x, tooltip.y)
+          left, top 
+        } = calculateTooltipPositionWithViewportClipping(tooltip.x, tooltip.y)
         return (
           <div
             data-testid="domain-map-tooltip"
             className="pointer-events-none fixed z-50 rounded-md border border-[var(--border-primary)] bg-[var(--bg-primary)] px-3 py-2 shadow-lg"
             style={{
- left,
-top 
-}}
+              left,
+              top 
+            }}
           >
             <div className="text-sm font-semibold text-[var(--text-primary)]">{tooltip.title}</div>
             <div className="text-xs text-[var(--text-secondary)]">{tooltip.detail}</div>

@@ -1,15 +1,15 @@
 import {
- render, screen 
+  render, screen 
 } from '@testing-library/react'
 import { DomainDetailView } from './DomainDetailView'
 import { extractDomainDetails } from './extractDomainDetails'
 import {
- parseNode, parseDomainMetadata, parseDomainKey 
+  parseNode, parseDomainMetadata, parseDomainKey 
 } from '@/lib/riviereTestData'
 import type { RiviereGraph } from '@/types/riviere'
 const testSourceLocation = {
- repository: 'test-repo',
-filePath: 'src/test.ts' 
+  repository: 'test-repo',
+  filePath: 'src/test.ts' 
 }
 
 describe('DomainDetailView', () => {
@@ -17,8 +17,8 @@ describe('DomainDetailView', () => {
     version: '1.0',
     components: [
       parseNode({
- sourceLocation: testSourceLocation,
-id: 'node1',
+        sourceLocation: testSourceLocation,
+        id: 'node1',
         name: 'TestNode',
         type: 'API',
         apiType: 'other',

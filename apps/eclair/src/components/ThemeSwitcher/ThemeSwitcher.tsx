@@ -1,12 +1,12 @@
 import { useTheme } from '@/contexts/ThemeContext'
 import {
- THEMES, THEME_LABELS 
+  THEMES, THEME_LABELS 
 } from '@/types/theme'
 
 export function ThemeSwitcher(): React.ReactElement {
   const {
- theme, setTheme 
-} = useTheme()
+    theme, setTheme 
+  } = useTheme()
 
   return (
     <div
@@ -24,9 +24,9 @@ export function ThemeSwitcher(): React.ReactElement {
             flex-1 px-2 py-1.5 rounded-[calc(var(--radius)/2)] text-xs font-semibold
             border transition-all duration-200
             ${theme === themeOption
-              ? 'bg-[var(--bg-secondary)] text-[var(--primary)] border-[var(--primary)]'
-              : 'bg-[var(--bg-tertiary)] text-[var(--text-secondary)] border-[var(--border-color)] hover:text-[var(--text-primary)] hover:border-[var(--primary)]'
-            }
+          ? 'bg-[var(--bg-secondary)] text-[var(--primary)] border-[var(--primary)]'
+          : 'bg-[var(--bg-tertiary)] text-[var(--text-secondary)] border-[var(--border-color)] hover:text-[var(--text-primary)] hover:border-[var(--primary)]'
+        }
           `}
         >
           {THEME_LABELS[themeOption]}

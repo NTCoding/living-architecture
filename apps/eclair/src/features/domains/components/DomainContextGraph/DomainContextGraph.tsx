@@ -1,5 +1,5 @@
 import {
- useState, useEffect, useCallback, useRef 
+  useState, useEffect, useCallback, useRef 
 } from 'react'
 import type { AggregatedConnection } from '../../extractDomainDetails'
 import { EdgeLine } from './EdgeLine'
@@ -81,15 +81,15 @@ export function DomainContextGraph({
 }: Readonly<DomainContextGraphProps>): React.ReactElement {
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null)
   const [transform, setTransform] = useState<ViewTransform>({
- scale: 1,
-translateX: 0,
-translateY: 0 
-})
+    scale: 1,
+    translateX: 0,
+    translateY: 0 
+  })
   const [isPanning, setIsPanning] = useState(false)
   const [panStart, setPanStart] = useState({
- x: 0,
-y: 0 
-})
+    x: 0,
+    y: 0 
+  })
   const [isFullscreen, setIsFullscreen] = useState(false)
   const svgRef = useRef<SVGSVGElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -124,9 +124,9 @@ y: 0
     if (e.button === 0) {
       setIsPanning(true)
       setPanStart({
- x: e.clientX - transform.translateX,
-y: e.clientY - transform.translateY 
-})
+        x: e.clientX - transform.translateX,
+        y: e.clientY - transform.translateY 
+      })
     }
   }, [transform.translateX, transform.translateY])
 
@@ -146,10 +146,10 @@ y: e.clientY - transform.translateY
 
   const handleResetView = useCallback((): void => {
     setTransform({
- scale: 1,
-translateX: 0,
-translateY: 0 
-})
+      scale: 1,
+      translateX: 0,
+      translateY: 0 
+    })
   }, [])
 
   const ignoreFullscreenError = (): void => {
@@ -268,9 +268,9 @@ translateY: 0
         <button
           type="button"
           onClick={() => setTransform((prev) => ({
- ...prev,
-scale: Math.min(MAX_SCALE, prev.scale * 1.2) 
-}))}
+            ...prev,
+            scale: Math.min(MAX_SCALE, prev.scale * 1.2) 
+          }))}
           className="flex h-8 w-8 items-center justify-center rounded text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]"
           aria-label="Zoom in"
         >
@@ -279,9 +279,9 @@ scale: Math.min(MAX_SCALE, prev.scale * 1.2)
         <button
           type="button"
           onClick={() => setTransform((prev) => ({
- ...prev,
-scale: Math.max(MIN_SCALE, prev.scale / 1.2) 
-}))}
+            ...prev,
+            scale: Math.max(MIN_SCALE, prev.scale / 1.2) 
+          }))}
           className="flex h-8 w-8 items-center justify-center rounded text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]"
           aria-label="Zoom out"
         >

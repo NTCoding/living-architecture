@@ -1,18 +1,18 @@
 import {
- describe, it, expect 
+  describe, it, expect 
 } from 'vitest'
 import {
- createSimulationNodes, createSimulationLinks, createExternalNodes, createExternalLinks, createLayoutEdges, isAsyncEdge, truncateName, getNodeColor, getNodeRadius, getEdgeColor, getSemanticEdgeType, getSemanticEdgeColor, getDomainColor 
+  createSimulationNodes, createSimulationLinks, createExternalNodes, createExternalLinks, createLayoutEdges, isAsyncEdge, truncateName, getNodeColor, getNodeRadius, getEdgeColor, getSemanticEdgeType, getSemanticEdgeColor, getDomainColor 
 } from './VisualizationDataAdapters'
 import type {
- Node, Edge, ExternalLink 
+  Node, Edge, ExternalLink 
 } from '@/types/riviere'
 import {
- parseNode, parseEdge, parseNodeId 
+  parseNode, parseEdge, parseNodeId 
 } from '@/lib/riviereTestData'
 const testSourceLocation = {
- repository: 'test-repo',
-filePath: 'src/test.ts' 
+  repository: 'test-repo',
+  filePath: 'src/test.ts' 
 }
 
 describe('VisualizationDataAdapters', () => {
@@ -20,13 +20,13 @@ describe('VisualizationDataAdapters', () => {
     it('transforms nodes into simulation nodes', () => {
       const nodes: Node[] = [
         parseNode({
- sourceLocation: testSourceLocation,
-id: '1',
-type: 'API',
-name: 'Test API',
-domain: 'test',
-module: 'test-module' 
-}),
+          sourceLocation: testSourceLocation,
+          id: '1',
+          type: 'API',
+          name: 'Test API',
+          domain: 'test',
+          module: 'test-module' 
+        }),
       ]
 
       const result = createSimulationNodes(nodes)
@@ -44,10 +44,10 @@ module: 'test-module'
     it('transforms edges into simulation links', () => {
       const edges: Edge[] = [
         parseEdge({
- source: '1',
-target: '2',
-type: 'sync' 
-}),
+          source: '1',
+          target: '2',
+          type: 'sync' 
+        }),
       ]
 
       const result = createSimulationLinks(edges)
@@ -217,9 +217,9 @@ type: 'sync'
         {
           source: parseNodeId('payment:usecase:processpayment'),
           target: {
- name: 'Stripe',
-url: 'https://api.stripe.com' 
-},
+            name: 'Stripe',
+            url: 'https://api.stripe.com' 
+          },
           type: 'sync',
           description: 'Process payment via Stripe',
         },
@@ -243,17 +243,17 @@ url: 'https://api.stripe.com'
         {
           source: parseNodeId('payment:usecase:processpayment'),
           target: {
- name: 'Stripe',
-url: 'https://api.stripe.com' 
-},
+            name: 'Stripe',
+            url: 'https://api.stripe.com' 
+          },
           type: 'sync',
         },
         {
           source: parseNodeId('payment:usecase:refundpayment'),
           target: {
- name: 'Stripe',
-url: 'https://api.stripe.com' 
-},
+            name: 'Stripe',
+            url: 'https://api.stripe.com' 
+          },
           type: 'sync',
         },
       ]
@@ -276,9 +276,9 @@ url: 'https://api.stripe.com'
         {
           source: parseNodeId('payment:usecase:processpayment'),
           target: {
- name: 'Stripe',
-url: 'https://api.stripe.com' 
-},
+            name: 'Stripe',
+            url: 'https://api.stripe.com' 
+          },
           type: 'sync',
         },
       ]
@@ -299,17 +299,17 @@ url: 'https://api.stripe.com'
         {
           source: parseNodeId('payment:usecase:processpayment'),
           target: {
- name: 'Stripe',
-url: 'https://api.stripe.com' 
-},
+            name: 'Stripe',
+            url: 'https://api.stripe.com' 
+          },
           type: 'sync',
         },
         {
           source: parseNodeId('payment:usecase:refundpayment'),
           target: {
- name: 'Stripe',
-url: 'https://api.stripe.com' 
-},
+            name: 'Stripe',
+            url: 'https://api.stripe.com' 
+          },
           type: 'sync',
         },
       ]
@@ -401,47 +401,47 @@ url: 'https://api.stripe.com'
   describe('createLayoutEdges', () => {
     it('includes internal edges in layout', () => {
       const internalEdges: Edge[] = [parseEdge({
- source: 'a',
-target: 'b',
-type: 'sync' 
-})]
+        source: 'a',
+        target: 'b',
+        type: 'sync' 
+      })]
 
       const result = createLayoutEdges(internalEdges, undefined)
 
       expect(result).toEqual([{
- source: 'a',
-target: 'b' 
-}])
+        source: 'a',
+        target: 'b' 
+      }])
     })
 
     it('includes external links as edges in layout', () => {
       const internalEdges: Edge[] = [parseEdge({
- source: 'a',
-target: 'b',
-type: 'sync' 
-})]
+        source: 'a',
+        target: 'b',
+        type: 'sync' 
+      })]
       const externalLinks: ExternalLink[] = [
         {
- source: 'b',
-target: {
- name: 'Stripe',
-url: 'https://api.stripe.com' 
-},
-type: 'sync' 
-},
+          source: 'b',
+          target: {
+            name: 'Stripe',
+            url: 'https://api.stripe.com' 
+          },
+          type: 'sync' 
+        },
       ]
 
       const result = createLayoutEdges(internalEdges, externalLinks)
 
       expect(result).toEqual([
         {
- source: 'a',
-target: 'b' 
-},
+          source: 'a',
+          target: 'b' 
+        },
         {
- source: 'b',
-target: 'external:Stripe' 
-},
+          source: 'b',
+          target: 'external:Stripe' 
+        },
       ])
     })
 
@@ -449,34 +449,34 @@ target: 'external:Stripe'
       const internalEdges: Edge[] = []
       const externalLinks: ExternalLink[] = [
         {
- source: 'a',
-target: {
- name: 'Stripe',
-url: 'https://api.stripe.com' 
-},
-type: 'sync' 
-},
+          source: 'a',
+          target: {
+            name: 'Stripe',
+            url: 'https://api.stripe.com' 
+          },
+          type: 'sync' 
+        },
         {
- source: 'b',
-target: {
- name: 'Stripe',
-url: 'https://api.stripe.com' 
-},
-type: 'sync' 
-},
+          source: 'b',
+          target: {
+            name: 'Stripe',
+            url: 'https://api.stripe.com' 
+          },
+          type: 'sync' 
+        },
       ]
 
       const result = createLayoutEdges(internalEdges, externalLinks)
 
       expect(result).toHaveLength(2)
       expect(result).toContainEqual({
- source: 'a',
-target: 'external:Stripe' 
-})
+        source: 'a',
+        target: 'external:Stripe' 
+      })
       expect(result).toContainEqual({
- source: 'b',
-target: 'external:Stripe' 
-})
+        source: 'b',
+        target: 'external:Stripe' 
+      })
     })
   })
 })

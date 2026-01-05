@@ -204,6 +204,7 @@ export default tseslint.config(
       '@stylistic': stylistic,
     },
     rules: {
+      '@stylistic/indent': ['error', 2],
       '@stylistic/object-curly-newline': ['error', {
         multiline: true,
         minProperties: 2

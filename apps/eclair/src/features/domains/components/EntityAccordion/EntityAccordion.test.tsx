@@ -1,26 +1,26 @@
 import {
- describe, it, expect, vi 
+  describe, it, expect, vi 
 } from 'vitest'
 import {
- render, screen 
+  render, screen 
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { EntityAccordion } from './EntityAccordion'
 import { Entity } from '@living-architecture/riviere-query'
 import type {
- DomainOpComponent, SourceLocation 
+  DomainOpComponent, SourceLocation 
 } from '@living-architecture/riviere-schema'
 
 const defaultSourceLocation: SourceLocation = {
- repository: 'test-repo',
-filePath: 'test.ts' 
+  repository: 'test-repo',
+  filePath: 'test.ts' 
 }
 
 function createDomainOp(
   overrides: Partial<DomainOpComponent> & {
- id: string;
-operationName: string 
-},
+    id: string;
+    operationName: string 
+  },
 ): DomainOpComponent {
   return {
     type: 'DomainOp',
@@ -44,23 +44,23 @@ function createEntity(overrides: {
       id: 'op-1',
       operationName: 'begin',
       behavior: {
- reads: ['inventory'],
-validates: ['stock'],
-modifies: ['order'],
-emits: ['OrderStarted'] 
-},
+        reads: ['inventory'],
+        validates: ['stock'],
+        modifies: ['order'],
+        emits: ['OrderStarted'] 
+      },
       stateChanges: [{
- from: 'Draft',
-to: 'Pending' 
-}],
+        from: 'Draft',
+        to: 'Pending' 
+      }],
     }),
     createDomainOp({
       id: 'op-2',
       operationName: 'confirm',
       stateChanges: [{
- from: 'Pending',
-to: 'Confirmed' 
-}],
+        from: 'Pending',
+        to: 'Confirmed' 
+      }],
     }),
   ]
 
@@ -86,17 +86,17 @@ describe('EntityAccordion', () => {
       const entity = createEntity({
         operations: [
           createDomainOp({
- id: 'op-a',
-operationName: 'a' 
-}),
+            id: 'op-a',
+            operationName: 'a' 
+          }),
           createDomainOp({
- id: 'op-b',
-operationName: 'b' 
-}),
+            id: 'op-b',
+            operationName: 'b' 
+          }),
           createDomainOp({
- id: 'op-c',
-operationName: 'c' 
-}),
+            id: 'op-c',
+            operationName: 'c' 
+          }),
         ],
       })
 
@@ -393,11 +393,11 @@ operationName: 'c'
             id: 'op-with-rules',
             operationName: 'begin',
             behavior: {
- reads: ['inventory'],
-validates: ['stock'],
-modifies: ['order'],
-emits: ['OrderStarted'] 
-},
+              reads: ['inventory'],
+              validates: ['stock'],
+              modifies: ['order'],
+              emits: ['OrderStarted'] 
+            },
             businessRules: [
               'Order must have at least one item',
               'Total amount must be positive',
@@ -424,11 +424,11 @@ emits: ['OrderStarted']
             id: 'op-no-rules',
             operationName: 'begin',
             behavior: {
- reads: ['inventory'],
-validates: ['stock'],
-modifies: ['order'],
-emits: ['OrderStarted'] 
-},
+              reads: ['inventory'],
+              validates: ['stock'],
+              modifies: ['order'],
+              emits: ['OrderStarted'] 
+            },
           }),
         ],
       })
@@ -463,13 +463,13 @@ emits: ['OrderStarted']
             operationName: 'processAndShip',
             stateChanges: [
               {
- from: 'Draft',
-to: 'Active' 
-},
+                from: 'Draft',
+                to: 'Active' 
+              },
               {
- from: 'Active',
-to: 'Shipped' 
-},
+                from: 'Active',
+                to: 'Shipped' 
+              },
             ],
           }),
         ],
@@ -559,13 +559,13 @@ to: 'Shipped'
             signature: {
               parameters: [
                 {
- name: 'orderId',
-type: 'string' 
-},
+                  name: 'orderId',
+                  type: 'string' 
+                },
                 {
- name: 'reason',
-type: 'ReleaseReason' 
-},
+                  name: 'reason',
+                  type: 'ReleaseReason' 
+                },
               ],
               returnType: 'void',
             },

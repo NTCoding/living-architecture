@@ -1,8 +1,8 @@
 import {
- describe, it, expect 
+  describe, it, expect 
 } from 'vitest';
 import {
- mkdir, writeFile, readFile 
+  mkdir, writeFile, readFile 
 } from 'node:fs/promises';
 import { join } from 'node:path';
 import { createProgram } from '../../cli';
@@ -40,11 +40,11 @@ describe('riviere builder link-external', () => {
         metadata: {
           sources: [{ repository: 'https://github.com/org/repo' }],
           domains: {
-orders: {
- description: 'Order management',
-systemType: 'domain' 
-},
-},
+            orders: {
+              description: 'Order management',
+              systemType: 'domain' 
+            },
+          },
         },
         components: [
           {
@@ -235,9 +235,9 @@ systemType: 'domain'
       expect(graph).toMatchObject({
         externalLinks: [
           {
- source: 'orders:checkout:api:pay',
-target: { name: 'Stripe API' } 
-},
+            source: 'orders:checkout:api:pay',
+            target: { name: 'Stripe API' } 
+          },
         ],
       });
     });

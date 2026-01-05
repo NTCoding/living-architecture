@@ -1,8 +1,8 @@
 import {
- describe, it, expect 
+  describe, it, expect 
 } from 'vitest'
 import {
- render, screen 
+  render, screen 
 } from '@testing-library/react'
 import { StatsBar } from './StatsBar'
 import type { GraphDiff } from './compareGraphs'
@@ -17,17 +17,17 @@ interface NodeStats {
 function createMockDiff(stats: NodeStats): GraphDiff {
   return {
     nodes: {
- added: [],
-removed: [],
-modified: [],
-unchanged: [] 
-},
+      added: [],
+      removed: [],
+      modified: [],
+      unchanged: [] 
+    },
     edges: {
- added: [],
-removed: [],
-modified: [],
-unchanged: [] 
-},
+      added: [],
+      removed: [],
+      modified: [],
+      unchanged: [] 
+    },
     stats: {
       ...stats,
       edgesAdded: 0,
@@ -43,11 +43,11 @@ unchanged: []
 describe('StatsBar', () => {
   it('displays added nodes count', () => {
     const diff = createMockDiff({
- nodesAdded: 5,
-nodesRemoved: 0,
-nodesModified: 0,
-nodesUnchanged: 0 
-})
+      nodesAdded: 5,
+      nodesRemoved: 0,
+      nodesModified: 0,
+      nodesUnchanged: 0 
+    })
     render(<StatsBar diff={diff} />)
 
     expect(screen.getByText('5')).toBeInTheDocument()
@@ -56,11 +56,11 @@ nodesUnchanged: 0
 
   it('displays removed nodes count', () => {
     const diff = createMockDiff({
- nodesAdded: 0,
-nodesRemoved: 3,
-nodesModified: 0,
-nodesUnchanged: 0 
-})
+      nodesAdded: 0,
+      nodesRemoved: 3,
+      nodesModified: 0,
+      nodesUnchanged: 0 
+    })
     render(<StatsBar diff={diff} />)
 
     expect(screen.getByText('3')).toBeInTheDocument()
@@ -69,11 +69,11 @@ nodesUnchanged: 0
 
   it('displays modified nodes count', () => {
     const diff = createMockDiff({
- nodesAdded: 0,
-nodesRemoved: 0,
-nodesModified: 7,
-nodesUnchanged: 0 
-})
+      nodesAdded: 0,
+      nodesRemoved: 0,
+      nodesModified: 7,
+      nodesUnchanged: 0 
+    })
     render(<StatsBar diff={diff} />)
 
     expect(screen.getByText('7')).toBeInTheDocument()
@@ -82,11 +82,11 @@ nodesUnchanged: 0
 
   it('displays unchanged nodes count', () => {
     const diff = createMockDiff({
- nodesAdded: 0,
-nodesRemoved: 0,
-nodesModified: 0,
-nodesUnchanged: 42 
-})
+      nodesAdded: 0,
+      nodesRemoved: 0,
+      nodesModified: 0,
+      nodesUnchanged: 42 
+    })
     render(<StatsBar diff={diff} />)
 
     expect(screen.getByText('42')).toBeInTheDocument()
@@ -95,11 +95,11 @@ nodesUnchanged: 42
 
   it('displays all stats together', () => {
     const diff = createMockDiff({
- nodesAdded: 10,
-nodesRemoved: 5,
-nodesModified: 3,
-nodesUnchanged: 100 
-})
+      nodesAdded: 10,
+      nodesRemoved: 5,
+      nodesModified: 3,
+      nodesUnchanged: 100 
+    })
     render(<StatsBar diff={diff} />)
 
     expect(screen.getByText('10')).toBeInTheDocument()
@@ -110,11 +110,11 @@ nodesUnchanged: 100
 
   it('renders icons with aria-hidden for accessibility', () => {
     const diff = createMockDiff({
- nodesAdded: 1,
-nodesRemoved: 1,
-nodesModified: 1,
-nodesUnchanged: 1 
-})
+      nodesAdded: 1,
+      nodesRemoved: 1,
+      nodesModified: 1,
+      nodesUnchanged: 1 
+    })
     const { container } = render(<StatsBar diff={diff} />)
 
     const icons = container.querySelectorAll('i[aria-hidden="true"]')

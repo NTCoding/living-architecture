@@ -2,12 +2,12 @@ import { Command } from 'commander';
 import { writeFile } from 'node:fs/promises';
 import { DuplicateDomainError } from '@living-architecture/riviere-builder';
 import {
- formatError, formatSuccess 
+  formatError, formatSuccess 
 } from '../../output';
 import { CliErrorCode } from '../../error-codes';
 import { getDefaultGraphPathDescription } from '../../graph-path';
 import {
- isValidSystemType, VALID_SYSTEM_TYPES 
+  isValidSystemType, VALID_SYSTEM_TYPES 
 } from '../../component-types';
 import { withGraphBuilder } from './link-infrastructure';
 

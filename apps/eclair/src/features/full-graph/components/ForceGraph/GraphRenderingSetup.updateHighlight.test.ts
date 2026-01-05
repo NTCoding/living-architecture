@@ -6,10 +6,10 @@ import {
 import * as d3 from 'd3'
 import { updateHighlight } from './GraphRenderingSetup'
 import type {
- SimulationNode, SimulationLink 
+  SimulationNode, SimulationLink 
 } from '../../types'
 import {
- parseNode, parseEdge 
+  parseNode, parseEdge 
 } from '@/lib/riviereTestData'
 
 const testSourceLocation = {

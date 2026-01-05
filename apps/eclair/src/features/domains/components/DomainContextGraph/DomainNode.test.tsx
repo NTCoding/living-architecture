@@ -1,5 +1,5 @@
 import {
- describe, it, expect, vi 
+  describe, it, expect, vi 
 } from 'vitest'
 import { render } from '@testing-library/react'
 import { DomainNode } from './DomainNode'
@@ -8,11 +8,11 @@ import type { DomainPosition } from './DomainContextGraph'
 describe('DomainNode', () => {
   it('renders SVG group with domain name', () => {
     const position: DomainPosition = {
- id: 'orders',
-x: 100,
-y: 100,
-isCurrent: true 
-}
+      id: 'orders',
+      x: 100,
+      y: 100,
+      isCurrent: true 
+    }
     const { container } = render(
       <svg>
         <DomainNode position={position} isSelected={false} onClick={() => {}} />
@@ -25,11 +25,11 @@ isCurrent: true
 
   it('applies selected styling when isSelected is true', () => {
     const position: DomainPosition = {
- id: 'orders',
-x: 100,
-y: 100,
-isCurrent: false 
-}
+      id: 'orders',
+      x: 100,
+      y: 100,
+      isCurrent: false 
+    }
     const { container } = render(
       <svg>
         <DomainNode position={position} isSelected={true} onClick={() => {}} />
@@ -42,11 +42,11 @@ isCurrent: false
 
   it('applies larger radius and white text for current domain', () => {
     const position: DomainPosition = {
- id: 'orders',
-x: 100,
-y: 100,
-isCurrent: true 
-}
+      id: 'orders',
+      x: 100,
+      y: 100,
+      isCurrent: true 
+    }
     const { container } = render(
       <svg>
         <DomainNode position={position} isSelected={false} onClick={() => {}} />
@@ -62,11 +62,11 @@ isCurrent: true
   it('calls onClick when clicked', () => {
     const onClick = vi.fn()
     const position: DomainPosition = {
- id: 'orders',
-x: 100,
-y: 100,
-isCurrent: true 
-}
+      id: 'orders',
+      x: 100,
+      y: 100,
+      isCurrent: true 
+    }
     const { container } = render(
       <svg>
         <DomainNode position={position} isSelected={false} onClick={onClick} />

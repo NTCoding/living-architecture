@@ -1,8 +1,8 @@
 import {
- describe, it, expect 
+  describe, it, expect 
 } from 'vitest'
 import {
- render, screen 
+  render, screen 
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { DomainConnectionDiff } from './DomainConnectionDiff'
@@ -32,13 +32,13 @@ describe('DomainConnectionDiff', () => {
   describe('rendering', () => {
     it('renders ReactFlow container', () => {
       const diff = createMinimalDiff({
- domains: ['orders', 'payments'],
-connections: {
- added: [],
-removed: [],
-unchanged: [] 
-} 
-})
+        domains: ['orders', 'payments'],
+        connections: {
+          added: [],
+          removed: [],
+          unchanged: [] 
+        } 
+      })
 
       render(<DomainConnectionDiff diff={diff} />)
 
@@ -47,13 +47,13 @@ unchanged: []
 
     it('displays legend with change types', () => {
       const diff = createMinimalDiff({
- domains: ['orders'],
-connections: {
- added: [],
-removed: [],
-unchanged: [] 
-} 
-})
+        domains: ['orders'],
+        connections: {
+          added: [],
+          removed: [],
+          unchanged: [] 
+        } 
+      })
 
       render(<DomainConnectionDiff diff={diff} />)
 
@@ -69,16 +69,16 @@ unchanged: []
         domains: ['orders', 'payments'],
         connections: {
           added: [{
- source: 'orders',
-target: 'payments',
-apiCount: 1,
-eventCount: 0,
-edges: [{
- sourceNodeName: 'POST /orders',
-targetNodeName: 'Process Payment',
-type: 'sync' 
-}] 
-}],
+            source: 'orders',
+            target: 'payments',
+            apiCount: 1,
+            eventCount: 0,
+            edges: [{
+              sourceNodeName: 'POST /orders',
+              targetNodeName: 'Process Payment',
+              type: 'sync' 
+            }] 
+          }],
           removed: [],
           unchanged: [],
         },
@@ -95,16 +95,16 @@ type: 'sync'
         connections: {
           added: [],
           removed: [{
- source: 'orders',
-target: 'shipping',
-apiCount: 2,
-eventCount: 1,
-edges: [{
- sourceNodeName: 'Ship Order',
-targetNodeName: 'Create Shipment',
-type: 'sync' 
-}] 
-}],
+            source: 'orders',
+            target: 'shipping',
+            apiCount: 2,
+            eventCount: 1,
+            edges: [{
+              sourceNodeName: 'Ship Order',
+              targetNodeName: 'Create Shipment',
+              type: 'sync' 
+            }] 
+          }],
           unchanged: [],
         },
       })
@@ -121,16 +121,16 @@ type: 'sync'
           added: [],
           removed: [],
           unchanged: [{
- source: 'inventory',
-target: 'warehouse',
-apiCount: 1,
-eventCount: 2,
-edges: [{
- sourceNodeName: 'Check Stock',
-targetNodeName: 'Get Inventory',
-type: 'sync' 
-}] 
-}],
+            source: 'inventory',
+            target: 'warehouse',
+            apiCount: 1,
+            eventCount: 2,
+            edges: [{
+              sourceNodeName: 'Check Stock',
+              targetNodeName: 'Get Inventory',
+              type: 'sync' 
+            }] 
+          }],
         },
       })
 
@@ -144,38 +144,38 @@ type: 'sync'
         domains: ['orders', 'payments', 'shipping', 'inventory'],
         connections: {
           added: [{
- source: 'orders',
-target: 'payments',
-apiCount: 1,
-eventCount: 0,
-edges: [{
- sourceNodeName: 'POST /orders',
-targetNodeName: 'Process Payment',
-type: 'sync' 
-}] 
-}],
+            source: 'orders',
+            target: 'payments',
+            apiCount: 1,
+            eventCount: 0,
+            edges: [{
+              sourceNodeName: 'POST /orders',
+              targetNodeName: 'Process Payment',
+              type: 'sync' 
+            }] 
+          }],
           removed: [{
- source: 'orders',
-target: 'shipping',
-apiCount: 1,
-eventCount: 0,
-edges: [{
- sourceNodeName: 'Ship Order',
-targetNodeName: 'Create Shipment',
-type: 'sync' 
-}] 
-}],
+            source: 'orders',
+            target: 'shipping',
+            apiCount: 1,
+            eventCount: 0,
+            edges: [{
+              sourceNodeName: 'Ship Order',
+              targetNodeName: 'Create Shipment',
+              type: 'sync' 
+            }] 
+          }],
           unchanged: [{
- source: 'inventory',
-target: 'shipping',
-apiCount: 0,
-eventCount: 1,
-edges: [{
- sourceNodeName: 'InventoryUpdated',
-targetNodeName: 'Handle Inventory',
-type: 'async' 
-}] 
-}],
+            source: 'inventory',
+            target: 'shipping',
+            apiCount: 0,
+            eventCount: 1,
+            edges: [{
+              sourceNodeName: 'InventoryUpdated',
+              targetNodeName: 'Handle Inventory',
+              type: 'async' 
+            }] 
+          }],
         },
       })
 
@@ -189,16 +189,16 @@ type: 'async'
         domains: ['order-management-system', 'payment-processing'],
         connections: {
           added: [{
- source: 'order-management-system',
-target: 'payment-processing',
-apiCount: 1,
-eventCount: 0,
-edges: [{
- sourceNodeName: 'POST /orders',
-targetNodeName: 'Process',
-type: 'sync' 
-}] 
-}],
+            source: 'order-management-system',
+            target: 'payment-processing',
+            apiCount: 1,
+            eventCount: 0,
+            edges: [{
+              sourceNodeName: 'POST /orders',
+              targetNodeName: 'Process',
+              type: 'sync' 
+            }] 
+          }],
           removed: [],
           unchanged: [],
         },
@@ -214,16 +214,16 @@ type: 'sync'
         domains: ['orders', 'payments', 'shipping'],
         connections: {
           added: [{
- source: 'orders',
-target: 'payments',
-apiCount: 1,
-eventCount: 0,
-edges: [{
- sourceNodeName: 'POST /orders',
-targetNodeName: 'Process Payment',
-type: 'sync' 
-}] 
-}],
+            source: 'orders',
+            target: 'payments',
+            apiCount: 1,
+            eventCount: 0,
+            edges: [{
+              sourceNodeName: 'POST /orders',
+              targetNodeName: 'Process Payment',
+              type: 'sync' 
+            }] 
+          }],
           removed: [],
           unchanged: [],
         },
@@ -238,13 +238,13 @@ type: 'sync'
   describe('legend styling', () => {
     it('applies custom className when provided', () => {
       const diff = createMinimalDiff({
- domains: ['orders'],
-connections: {
- added: [],
-removed: [],
-unchanged: [] 
-} 
-})
+        domains: ['orders'],
+        connections: {
+          added: [],
+          removed: [],
+          unchanged: [] 
+        } 
+      })
 
       const { container } = render(<DomainConnectionDiff diff={diff} />)
 
@@ -265,15 +265,15 @@ unchanged: []
             eventCount: 1,
             edges: [
               {
- sourceNodeName: 'POST /orders',
-targetNodeName: 'Process Payment',
-type: 'sync' 
-},
+                sourceNodeName: 'POST /orders',
+                targetNodeName: 'Process Payment',
+                type: 'sync' 
+              },
               {
- sourceNodeName: 'OrderPlaced',
-targetNodeName: 'HandleOrder',
-type: 'async' 
-},
+                sourceNodeName: 'OrderPlaced',
+                targetNodeName: 'HandleOrder',
+                type: 'async' 
+              },
             ],
           }],
           removed: [],
@@ -347,10 +347,10 @@ type: 'async'
             apiCount: 1,
             eventCount: 0,
             edges: [{
- sourceNodeName: 'POST /orders',
-targetNodeName: 'Process Payment',
-type: 'sync' 
-}],
+              sourceNodeName: 'POST /orders',
+              targetNodeName: 'Process Payment',
+              type: 'sync' 
+            }],
           }],
           removed: [],
           unchanged: [],
@@ -373,10 +373,10 @@ type: 'sync'
             apiCount: 1,
             eventCount: 0,
             edges: [{
- sourceNodeName: 'POST /orders',
-targetNodeName: 'Process Payment',
-type: 'sync' 
-}],
+              sourceNodeName: 'POST /orders',
+              targetNodeName: 'Process Payment',
+              type: 'sync' 
+            }],
           }],
           removed: [],
           unchanged: [],
@@ -401,10 +401,10 @@ type: 'sync'
             apiCount: 1,
             eventCount: 0,
             edges: [{
- sourceNodeName: 'POST /orders',
-targetNodeName: 'Process Payment',
-type: 'sync' 
-}],
+              sourceNodeName: 'POST /orders',
+              targetNodeName: 'Process Payment',
+              type: 'sync' 
+            }],
           }],
           removed: [],
           unchanged: [],

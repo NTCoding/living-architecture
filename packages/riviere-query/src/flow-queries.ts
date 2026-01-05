@@ -12,10 +12,10 @@ import type {
   SearchWithFlowResult,
 } from './domain-types';
 import {
- parseComponentId, parseLinkId 
+  parseComponentId, parseLinkId 
 } from './domain-types';
 import {
- componentById, searchComponents 
+  componentById, searchComponents 
 } from './component-queries';
 import { ComponentNotFoundError } from './errors';
 

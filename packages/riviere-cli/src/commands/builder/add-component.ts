@@ -1,6 +1,6 @@
 import { Command } from 'commander';
 import {
- readFile, writeFile 
+  readFile, writeFile 
 } from 'node:fs/promises';
 import {
   CustomTypeNotFoundError,
@@ -16,7 +16,7 @@ import {
 } from '../../graph-path';
 import { fileExists } from '../../file-existence';
 import {
- formatError, formatSuccess 
+  formatError, formatSuccess 
 } from '../../output';
 import { CliErrorCode } from '../../error-codes';
 import {
@@ -96,9 +96,9 @@ function addUIComponent(
     throw new Error('--route is required for UI component');
   }
   const component = builder.addUI({
- ...common,
-route: options.route 
-});
+    ...common,
+    route: options.route 
+  });
   return component.id;
 }
 
@@ -141,14 +141,14 @@ function addDomainOpComponent(
     throw new Error('--operation-name is required for DomainOp component');
   }
   const input = {
- ...common,
-operationName: options.operationName 
-};
+    ...common,
+    operationName: options.operationName 
+  };
   const component = options.entity
     ? builder.addDomainOp({
- ...input,
-entity: options.entity 
-})
+      ...input,
+      entity: options.entity 
+    })
     : builder.addDomainOp(input);
   return component.id;
 }

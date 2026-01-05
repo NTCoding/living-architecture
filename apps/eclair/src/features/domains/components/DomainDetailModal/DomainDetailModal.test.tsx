@@ -1,8 +1,8 @@
 import {
- describe, it, expect, vi 
+  describe, it, expect, vi 
 } from 'vitest'
 import {
- render, screen 
+  render, screen 
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { BrowserRouter } from 'react-router-dom'
@@ -34,19 +34,19 @@ function createDomainDetails(overrides: Partial<DomainDetails> = {}): DomainDeta
     },
     nodes: [
       {
- id: 'api-1',
-type: 'API',
-name: 'POST /orders',
-location: 'src/api/orders.ts:12',
-sourceLocation: undefined 
-},
+        id: 'api-1',
+        type: 'API',
+        name: 'POST /orders',
+        location: 'src/api/orders.ts:12',
+        sourceLocation: undefined 
+      },
       {
- id: 'uc-1',
-type: 'UseCase',
-name: 'PlaceOrder',
-location: 'src/usecases/PlaceOrder.ts:8',
-sourceLocation: undefined 
-},
+        id: 'uc-1',
+        type: 'UseCase',
+        name: 'PlaceOrder',
+        location: 'src/usecases/PlaceOrder.ts:8',
+        sourceLocation: undefined 
+      },
     ],
     entities: [
       {
@@ -72,54 +72,54 @@ sourceLocation: undefined
     events: {
       published: [
         {
- id: 'evt-1',
-eventName: 'OrderPlaced',
-schema: undefined,
-sourceLocation: undefined,
-handlers: [] 
-},
+          id: 'evt-1',
+          eventName: 'OrderPlaced',
+          schema: undefined,
+          sourceLocation: undefined,
+          handlers: [] 
+        },
         {
- id: 'evt-2',
-eventName: 'OrderConfirmed',
-schema: undefined,
-sourceLocation: undefined,
-handlers: [] 
-},
+          id: 'evt-2',
+          eventName: 'OrderConfirmed',
+          schema: undefined,
+          sourceLocation: undefined,
+          handlers: [] 
+        },
       ],
       consumed: [
         {
- id: 'h-1',
-handlerName: 'PaymentCompleted',
-description: undefined,
-subscribedEvents: ['PaymentCompleted'],
-subscribedEventsWithDomain: [{
- eventName: 'PaymentCompleted',
-sourceKnown: false 
-}],
-sourceLocation: undefined 
-},
+          id: 'h-1',
+          handlerName: 'PaymentCompleted',
+          description: undefined,
+          subscribedEvents: ['PaymentCompleted'],
+          subscribedEventsWithDomain: [{
+            eventName: 'PaymentCompleted',
+            sourceKnown: false 
+          }],
+          sourceLocation: undefined 
+        },
         {
- id: 'h-2',
-handlerName: 'InventoryReserved',
-description: undefined,
-subscribedEvents: ['InventoryReserved'],
-subscribedEventsWithDomain: [{
- eventName: 'InventoryReserved',
-sourceKnown: false 
-}],
-sourceLocation: undefined 
-},
+          id: 'h-2',
+          handlerName: 'InventoryReserved',
+          description: undefined,
+          subscribedEvents: ['InventoryReserved'],
+          subscribedEventsWithDomain: [{
+            eventName: 'InventoryReserved',
+            sourceKnown: false 
+          }],
+          sourceLocation: undefined 
+        },
       ],
     },
     crossDomainEdges: [
       {
- targetDomain: 'inventory-domain',
-edgeType: 'async' 
-},
+        targetDomain: 'inventory-domain',
+        edgeType: 'async' 
+      },
       {
- targetDomain: 'payment-domain',
-edgeType: 'async' 
-},
+        targetDomain: 'payment-domain',
+        edgeType: 'async' 
+      },
     ],
     entryPoints: [parseEntryPoint('/orders'), parseEntryPoint('/orders/:id')],
     repository: 'ecommerce-app',
@@ -185,19 +185,19 @@ describe('DomainDetailModal', () => {
         const domain = createDomainDetails({
           nodes: [
             {
- id: 'api-1',
-type: 'API',
-name: 'POST /orders',
-location: 'src/api.ts:10',
-sourceLocation: undefined 
-},
+              id: 'api-1',
+              type: 'API',
+              name: 'POST /orders',
+              location: 'src/api.ts:10',
+              sourceLocation: undefined 
+            },
             {
- id: 'uc-1',
-type: 'UseCase',
-name: 'PlaceOrder',
-location: 'src/uc.ts:5',
-sourceLocation: undefined 
-},
+              id: 'uc-1',
+              type: 'UseCase',
+              name: 'PlaceOrder',
+              location: 'src/uc.ts:5',
+              sourceLocation: undefined 
+            },
           ],
         })
 
@@ -212,12 +212,12 @@ sourceLocation: undefined
         const domain = createDomainDetails({
           nodes: [
             {
- id: 'api-1',
-type: 'API',
-name: 'POST /orders',
-location: 'src/api/orders.ts:12',
-sourceLocation: undefined 
-},
+              id: 'api-1',
+              type: 'API',
+              name: 'POST /orders',
+              location: 'src/api/orders.ts:12',
+              sourceLocation: undefined 
+            },
           ],
         })
 
@@ -230,12 +230,12 @@ sourceLocation: undefined
         const domain = createDomainDetails({
           nodes: [
             {
- id: 'api-1',
-type: 'API',
-name: 'POST /orders',
-location: undefined,
-sourceLocation: undefined 
-},
+              id: 'api-1',
+              type: 'API',
+              name: 'POST /orders',
+              location: undefined,
+              sourceLocation: undefined 
+            },
           ],
         })
 
@@ -303,19 +303,19 @@ sourceLocation: undefined
           events: {
             published: [
               {
- id: 'e1',
-eventName: 'OrderPlaced',
-schema: undefined,
-sourceLocation: undefined,
-handlers: [] 
-},
+                id: 'e1',
+                eventName: 'OrderPlaced',
+                schema: undefined,
+                sourceLocation: undefined,
+                handlers: [] 
+              },
               {
- id: 'e2',
-eventName: 'OrderConfirmed',
-schema: undefined,
-sourceLocation: undefined,
-handlers: [] 
-},
+                id: 'e2',
+                eventName: 'OrderConfirmed',
+                schema: undefined,
+                sourceLocation: undefined,
+                handlers: [] 
+              },
             ],
             consumed: [],
           },
@@ -335,21 +335,21 @@ handlers: []
             published: [],
             consumed: [
               {
- id: 'h1',
-handlerName: 'PaymentCompleted',
-description: undefined,
-subscribedEvents: [],
-subscribedEventsWithDomain: [],
-sourceLocation: undefined 
-},
+                id: 'h1',
+                handlerName: 'PaymentCompleted',
+                description: undefined,
+                subscribedEvents: [],
+                subscribedEventsWithDomain: [],
+                sourceLocation: undefined 
+              },
               {
- id: 'h2',
-handlerName: 'InventoryReserved',
-description: undefined,
-subscribedEvents: [],
-subscribedEventsWithDomain: [],
-sourceLocation: undefined 
-},
+                id: 'h2',
+                handlerName: 'InventoryReserved',
+                description: undefined,
+                subscribedEvents: [],
+                subscribedEventsWithDomain: [],
+                sourceLocation: undefined 
+              },
             ],
           },
         })
@@ -363,11 +363,11 @@ sourceLocation: undefined
 
       it('renders empty state when no events', () => {
         const domain = createDomainDetails({
- events: {
- published: [],
-consumed: [] 
-} 
-})
+          events: {
+            published: [],
+            consumed: [] 
+          } 
+        })
 
         renderWithRouter(<DomainDetailModal domain={domain} onClose={vi.fn()} />)
 
@@ -380,13 +380,13 @@ consumed: []
         const domain = createDomainDetails({
           crossDomainEdges: [
             {
- targetDomain: 'inventory-domain',
-edgeType: 'async' 
-},
+              targetDomain: 'inventory-domain',
+              edgeType: 'async' 
+            },
             {
- targetDomain: 'payment-domain',
-edgeType: 'sync' 
-},
+              targetDomain: 'payment-domain',
+              edgeType: 'sync' 
+            },
           ],
         })
 

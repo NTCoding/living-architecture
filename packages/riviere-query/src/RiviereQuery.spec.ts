@@ -1,5 +1,5 @@
 import {
- RiviereQuery, parseComponentId 
+  RiviereQuery, parseComponentId 
 } from './RiviereQuery';
 import {
   createMinimalValidGraph,

@@ -6,7 +6,7 @@ import {
   handleComponentNotFoundError,
 } from './link-infrastructure';
 import {
- formatError, formatSuccess 
+  formatError, formatSuccess 
 } from '../../output';
 import { CliErrorCode } from '../../error-codes';
 import { getDefaultGraphPathDescription } from '../../graph-path';
@@ -40,20 +40,20 @@ function parseStateChange(input: string): StateTransition | undefined {
     return undefined;
   }
   return {
- from,
-to 
-};
+    from,
+    to 
+  };
 }
 
 type ParseResult =
   | {
- success: true;
-stateChanges: StateTransition[] 
-}
+    success: true;
+    stateChanges: StateTransition[] 
+  }
   | {
- success: false;
-invalidInput: string 
-};
+    success: false;
+    invalidInput: string 
+  };
 
 function parseStateChanges(inputs: string[]): ParseResult {
   const stateChanges: StateTransition[] = [];
@@ -61,16 +61,16 @@ function parseStateChanges(inputs: string[]): ParseResult {
     const parsed = parseStateChange(sc);
     if (parsed === undefined) {
       return {
- success: false,
-invalidInput: sc 
-};
+        success: false,
+        invalidInput: sc 
+      };
     }
     stateChanges.push(parsed);
   }
   return {
- success: true,
-stateChanges 
-};
+    success: true,
+    stateChanges 
+  };
 }
 
 interface BehaviorOptions {
@@ -122,30 +122,30 @@ function parseParameter(input: string): OperationParameter | undefined {
 
 type SignatureParseResult =
   | {
- success: true;
-signature: OperationSignature 
-}
+    success: true;
+    signature: OperationSignature 
+  }
   | {
- success: false;
-error: string 
-};
+    success: false;
+    error: string 
+  };
 
 type ParametersParseResult =
   | {
- success: true;
-parameters: OperationParameter[] 
-}
+    success: true;
+    parameters: OperationParameter[] 
+  }
   | {
- success: false;
-error: string 
-};
+    success: false;
+    error: string 
+  };
 
 function parseParameters(paramsPart: string): ParametersParseResult {
   if (paramsPart === '') {
     return {
- success: true,
-parameters: [] 
-};
+      success: true,
+      parameters: [] 
+    };
   }
   const paramStrings = paramsPart.split(',').map((p) => p.trim());
   const parameters: OperationParameter[] = [];
@@ -160,9 +160,9 @@ parameters: []
     parameters.push(param);
   }
   return {
- success: true,
-parameters 
-};
+    success: true,
+    parameters 
+  };
 }
 
 function buildSignatureObject(
@@ -187,13 +187,13 @@ function parseSignature(input: string): SignatureParseResult {
     const returnType = trimmed.slice(2).trim();
     return returnType === ''
       ? {
-          success: false,
-          error: `Invalid signature format: '${input}'. Return type cannot be empty.`,
-        }
+        success: false,
+        error: `Invalid signature format: '${input}'. Return type cannot be empty.`,
+      }
       : {
- success: true,
-signature: { returnType } 
-};
+        success: true,
+        signature: { returnType } 
+      };
   }
 
   // Split on " -> " to separate parameters from return type
@@ -219,9 +219,9 @@ signature: { returnType }
   }
 
   return {
- success: true,
-signature 
-};
+    success: true,
+    signature 
+  };
 }
 
 function handleEnrichmentError(error: unknown): void {

@@ -11,8 +11,8 @@ import { CliErrorCode } from '../../error-codes';
 export { getDefaultGraphPathDescription };
 
 type JsonParseSuccess = {
- success: true;
-data: unknown 
+  success: true;
+  data: unknown 
 };
 type JsonParseFailure = { success: false };
 type JsonParseResult = JsonParseSuccess | JsonParseFailure;
@@ -20,9 +20,9 @@ type JsonParseResult = JsonParseSuccess | JsonParseFailure;
 function parseJsonSafely(content: string): JsonParseResult {
   try {
     return {
- success: true,
-data: JSON.parse(content) 
-};
+      success: true,
+      data: JSON.parse(content) 
+    };
   } catch {
     return { success: false };
   }
@@ -76,9 +76,9 @@ export async function loadGraph(
   const query = RiviereQuery.fromJSON(parseResult.data);
 
   return {
- query,
-graphPath 
-};
+    query,
+    graphPath 
+  };
 }
 
 export async function withGraph(

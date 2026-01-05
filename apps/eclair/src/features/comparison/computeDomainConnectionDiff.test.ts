@@ -1,5 +1,5 @@
 import {
- describe, it, expect 
+  describe, it, expect 
 } from 'vitest'
 import { computeDomainConnectionDiff } from './computeDomainConnectionDiff'
 import type { RiviereGraph } from '@/types/riviere'
@@ -18,9 +18,9 @@ function createGraph(
   nodes: ReturnType<typeof parseNode>[],
   edges: ReturnType<typeof parseEdge>[],
   domains: Record<string, {
- description: string;
-systemType: 'domain' | 'bff' | 'ui' | 'other' 
-}>
+    description: string;
+    systemType: 'domain' | 'bff' | 'ui' | 'other' 
+  }>
 ): RiviereGraph {
   return {
     version: '1.0',
@@ -35,37 +35,37 @@ describe('computeDomainConnectionDiff', () => {
     it('returns all domains from both before and after graphs', () => {
       const before = createGraph(
         [parseNode({
- sourceLocation: testSourceLocation,
-id: 'n1',
-type: 'API',
-name: 'API 1',
-domain: 'orders',
-module: 'm' 
-})],
+          sourceLocation: testSourceLocation,
+          id: 'n1',
+          type: 'API',
+          name: 'API 1',
+          domain: 'orders',
+          module: 'm' 
+        })],
         [],
         {
- orders: {
- description: 'Orders',
-systemType: 'domain' 
-} 
-}
+          orders: {
+            description: 'Orders',
+            systemType: 'domain' 
+          } 
+        }
       )
       const after = createGraph(
         [parseNode({
- sourceLocation: testSourceLocation,
-id: 'n2',
-type: 'API',
-name: 'API 2',
-domain: 'payments',
-module: 'm' 
-})],
+          sourceLocation: testSourceLocation,
+          id: 'n2',
+          type: 'API',
+          name: 'API 2',
+          domain: 'payments',
+          module: 'm' 
+        })],
         [],
         {
- payments: {
- description: 'Payments',
-systemType: 'domain' 
-} 
-}
+          payments: {
+            description: 'Payments',
+            systemType: 'domain' 
+          } 
+        }
       )
 
       const result = computeDomainConnectionDiff(before, after)
@@ -80,67 +80,67 @@ systemType: 'domain'
       const before = createGraph(
         [
           parseNode({
- sourceLocation: testSourceLocation,
-id: 'n1',
-type: 'API',
-name: 'API 1',
-domain: 'orders',
-module: 'm' 
-}),
+            sourceLocation: testSourceLocation,
+            id: 'n1',
+            type: 'API',
+            name: 'API 1',
+            domain: 'orders',
+            module: 'm' 
+          }),
           parseNode({
- sourceLocation: testSourceLocation,
-id: 'n2',
-type: 'UseCase',
-name: 'UC 1',
-domain: 'payments',
-module: 'm' 
-}),
+            sourceLocation: testSourceLocation,
+            id: 'n2',
+            type: 'UseCase',
+            name: 'UC 1',
+            domain: 'payments',
+            module: 'm' 
+          }),
         ],
         [],
         {
           orders: {
- description: 'Orders',
-systemType: 'domain' 
-},
+            description: 'Orders',
+            systemType: 'domain' 
+          },
           payments: {
- description: 'Payments',
-systemType: 'domain' 
-},
+            description: 'Payments',
+            systemType: 'domain' 
+          },
         }
       )
       const after = createGraph(
         [
           parseNode({
- sourceLocation: testSourceLocation,
-id: 'n1',
-type: 'API',
-name: 'API 1',
-domain: 'orders',
-module: 'm' 
-}),
+            sourceLocation: testSourceLocation,
+            id: 'n1',
+            type: 'API',
+            name: 'API 1',
+            domain: 'orders',
+            module: 'm' 
+          }),
           parseNode({
- sourceLocation: testSourceLocation,
-id: 'n2',
-type: 'UseCase',
-name: 'UC 1',
-domain: 'payments',
-module: 'm' 
-}),
+            sourceLocation: testSourceLocation,
+            id: 'n2',
+            type: 'UseCase',
+            name: 'UC 1',
+            domain: 'payments',
+            module: 'm' 
+          }),
         ],
         [parseEdge({
- source: 'n1',
-target: 'n2',
-type: 'sync' 
-})],
+          source: 'n1',
+          target: 'n2',
+          type: 'sync' 
+        })],
         {
           orders: {
- description: 'Orders',
-systemType: 'domain' 
-},
+            description: 'Orders',
+            systemType: 'domain' 
+          },
           payments: {
- description: 'Payments',
-systemType: 'domain' 
-},
+            description: 'Payments',
+            systemType: 'domain' 
+          },
         }
       )
 
@@ -155,67 +155,67 @@ systemType: 'domain'
       const before = createGraph(
         [
           parseNode({
- sourceLocation: testSourceLocation,
-id: 'n1',
-type: 'API',
-name: 'API 1',
-domain: 'orders',
-module: 'm' 
-}),
+            sourceLocation: testSourceLocation,
+            id: 'n1',
+            type: 'API',
+            name: 'API 1',
+            domain: 'orders',
+            module: 'm' 
+          }),
           parseNode({
- sourceLocation: testSourceLocation,
-id: 'n2',
-type: 'UseCase',
-name: 'UC 1',
-domain: 'payments',
-module: 'm' 
-}),
+            sourceLocation: testSourceLocation,
+            id: 'n2',
+            type: 'UseCase',
+            name: 'UC 1',
+            domain: 'payments',
+            module: 'm' 
+          }),
         ],
         [parseEdge({
- source: 'n1',
-target: 'n2',
-type: 'sync' 
-})],
+          source: 'n1',
+          target: 'n2',
+          type: 'sync' 
+        })],
         {
           orders: {
- description: 'Orders',
-systemType: 'domain' 
-},
+            description: 'Orders',
+            systemType: 'domain' 
+          },
           payments: {
- description: 'Payments',
-systemType: 'domain' 
-},
+            description: 'Payments',
+            systemType: 'domain' 
+          },
         }
       )
       const after = createGraph(
         [
           parseNode({
- sourceLocation: testSourceLocation,
-id: 'n1',
-type: 'API',
-name: 'API 1',
-domain: 'orders',
-module: 'm' 
-}),
+            sourceLocation: testSourceLocation,
+            id: 'n1',
+            type: 'API',
+            name: 'API 1',
+            domain: 'orders',
+            module: 'm' 
+          }),
           parseNode({
- sourceLocation: testSourceLocation,
-id: 'n2',
-type: 'UseCase',
-name: 'UC 1',
-domain: 'payments',
-module: 'm' 
-}),
+            sourceLocation: testSourceLocation,
+            id: 'n2',
+            type: 'UseCase',
+            name: 'UC 1',
+            domain: 'payments',
+            module: 'm' 
+          }),
         ],
         [],
         {
           orders: {
- description: 'Orders',
-systemType: 'domain' 
-},
+            description: 'Orders',
+            systemType: 'domain' 
+          },
           payments: {
- description: 'Payments',
-systemType: 'domain' 
-},
+            description: 'Payments',
+            systemType: 'domain' 
+          },
         }
       )
 
@@ -230,71 +230,71 @@ systemType: 'domain'
       const before = createGraph(
         [
           parseNode({
- sourceLocation: testSourceLocation,
-id: 'n1',
-type: 'API',
-name: 'API 1',
-domain: 'orders',
-module: 'm' 
-}),
+            sourceLocation: testSourceLocation,
+            id: 'n1',
+            type: 'API',
+            name: 'API 1',
+            domain: 'orders',
+            module: 'm' 
+          }),
           parseNode({
- sourceLocation: testSourceLocation,
-id: 'n2',
-type: 'UseCase',
-name: 'UC 1',
-domain: 'payments',
-module: 'm' 
-}),
+            sourceLocation: testSourceLocation,
+            id: 'n2',
+            type: 'UseCase',
+            name: 'UC 1',
+            domain: 'payments',
+            module: 'm' 
+          }),
         ],
         [parseEdge({
- source: 'n1',
-target: 'n2',
-type: 'sync' 
-})],
+          source: 'n1',
+          target: 'n2',
+          type: 'sync' 
+        })],
         {
           orders: {
- description: 'Orders',
-systemType: 'domain' 
-},
+            description: 'Orders',
+            systemType: 'domain' 
+          },
           payments: {
- description: 'Payments',
-systemType: 'domain' 
-},
+            description: 'Payments',
+            systemType: 'domain' 
+          },
         }
       )
       const after = createGraph(
         [
           parseNode({
- sourceLocation: testSourceLocation,
-id: 'n1',
-type: 'API',
-name: 'API 1',
-domain: 'orders',
-module: 'm' 
-}),
+            sourceLocation: testSourceLocation,
+            id: 'n1',
+            type: 'API',
+            name: 'API 1',
+            domain: 'orders',
+            module: 'm' 
+          }),
           parseNode({
- sourceLocation: testSourceLocation,
-id: 'n2',
-type: 'UseCase',
-name: 'UC 1',
-domain: 'payments',
-module: 'm' 
-}),
+            sourceLocation: testSourceLocation,
+            id: 'n2',
+            type: 'UseCase',
+            name: 'UC 1',
+            domain: 'payments',
+            module: 'm' 
+          }),
         ],
         [parseEdge({
- source: 'n1',
-target: 'n2',
-type: 'sync' 
-})],
+          source: 'n1',
+          target: 'n2',
+          type: 'sync' 
+        })],
         {
           orders: {
- description: 'Orders',
-systemType: 'domain' 
-},
+            description: 'Orders',
+            systemType: 'domain' 
+          },
           payments: {
- description: 'Payments',
-systemType: 'domain' 
-},
+            description: 'Payments',
+            systemType: 'domain' 
+          },
         }
       )
 

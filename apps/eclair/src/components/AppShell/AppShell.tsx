@@ -1,12 +1,12 @@
 import {
- useState, useCallback 
+  useState, useCallback 
 } from 'react'
 import { useLocation } from 'react-router-dom'
 import { Header } from '@/components/Header/Header'
 import { Sidebar } from '@/components/Sidebar/Sidebar'
 import { useExport } from '@/contexts/ExportContext'
 import type {
- RiviereGraph, GraphName 
+  RiviereGraph, GraphName 
 } from '@/types/riviere'
 
 interface AppShellProps {
@@ -25,7 +25,7 @@ function isMobileViewport(): boolean {
 }
 
 export function AppShell({
- children, hasGraph, graphName, graph 
+  children, hasGraph, graphName, graph 
 }: AppShellProps): React.ReactElement {
   const location = useLocation()
   const { exportHandlers } = useExport()

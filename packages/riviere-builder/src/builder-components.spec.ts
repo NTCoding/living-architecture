@@ -1,19 +1,19 @@
 import {
- RiviereBuilder, type BuilderOptions 
+  RiviereBuilder, type BuilderOptions 
 } from './builder';
 
 function createValidOptions(): BuilderOptions {
   return {
     sources: [{
- repository: 'my-org/my-repo',
-commit: 'abc123' 
-}],
+      repository: 'my-org/my-repo',
+      commit: 'abc123' 
+    }],
     domains: {
-orders: {
- description: 'Order management',
-systemType: 'domain' 
-},
-},
+      orders: {
+        description: 'Order management',
+        systemType: 'domain' 
+      },
+    },
   };
 }
 
@@ -274,19 +274,19 @@ describe('RiviereBuilder components', () => {
         entity: 'Order',
         signature: {
           parameters: [{
- name: 'orderId',
-type: 'string' 
-}],
+            name: 'orderId',
+            type: 'string' 
+          }],
           returnType: 'Order',
         },
         behavior: {
- reads: ['inventory'],
-modifies: ['orders'] 
-},
+          reads: ['inventory'],
+          modifies: ['orders'] 
+        },
         stateChanges: [{
- from: 'draft',
-to: 'placed' 
-}],
+          from: 'draft',
+          to: 'placed' 
+        }],
         businessRules: ['Order must have items'],
         description: 'Places an order',
         sourceLocation: {
@@ -297,9 +297,9 @@ to: 'placed'
 
       expect(component.signature).toEqual({
         parameters: [{
- name: 'orderId',
-type: 'string' 
-}],
+          name: 'orderId',
+          type: 'string' 
+        }],
         returnType: 'Order',
       });
       expect(component.behavior).toEqual({
@@ -307,9 +307,9 @@ type: 'string'
         modifies: ['orders'],
       });
       expect(component.stateChanges).toEqual([{
- from: 'draft',
-to: 'placed' 
-}]);
+        from: 'draft',
+        to: 'placed' 
+      }]);
       expect(component.businessRules).toEqual(['Order must have items']);
       expect(component.description).toBe('Places an order');
     });

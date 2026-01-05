@@ -1,22 +1,22 @@
 import {
- useState, useCallback 
+  useState, useCallback 
 } from 'react';
 import type { Node } from '@/types/riviere';
 import { parseRiviereGraph } from '@living-architecture/riviere-schema';
 import {
- compareGraphs, type GraphDiff 
+  compareGraphs, type GraphDiff 
 } from './compareGraphs';
 import {
   computeDomainConnectionDiff,
   type DomainConnectionDiffResult,
 } from './computeDomainConnectionDiff';
 import {
- FilterTabs, DomainFilter, TypeFilter, type ChangeFilter 
+  FilterTabs, DomainFilter, TypeFilter, type ChangeFilter 
 } from './ChangeFilters';
 import { StatsBar } from './StatsBar';
 import { DomainConnectionDiff } from './DomainConnectionDiff';
 import {
- UploadZone, type UploadState 
+  UploadZone, type UploadState 
 } from './UploadZone';
 
 type ResultsViewMode = 'graph' | 'list'
@@ -32,24 +32,24 @@ function buildChangeItems(diff: GraphDiff): ChangeItemBase[] {
 
   for (const addition of diff.nodes.added) {
     items.push({
- node: addition.node,
-changeType: 'added' 
-})
+      node: addition.node,
+      changeType: 'added' 
+    })
   }
 
   for (const removal of diff.nodes.removed) {
     items.push({
- node: removal.node,
-changeType: 'removed' 
-})
+      node: removal.node,
+      changeType: 'removed' 
+    })
   }
 
   for (const modification of diff.nodes.modified) {
     items.push({
- node: modification.after,
-changeType: 'modified',
-changedFields: modification.changedFields 
-})
+      node: modification.after,
+      changeType: 'modified',
+      changedFields: modification.changedFields 
+    })
   }
 
   return items
@@ -60,18 +60,18 @@ function parseGraphFile(content: string, fileName: string): UploadState {
     const data: unknown = JSON.parse(content)
     const graph = parseRiviereGraph(data)
     return {
- status: 'loaded',
-file: {
- name: fileName,
-graph 
-} 
-}
+      status: 'loaded',
+      file: {
+        name: fileName,
+        graph 
+      } 
+    }
   } catch (e) {
     const message = e instanceof Error ? e.message : 'Unknown error'
     return {
- status: 'error',
-error: { message } 
-}
+      status: 'error',
+      error: { message } 
+    }
   }
 }
 
@@ -79,22 +79,22 @@ interface ChangeItemProps {readonly item: ChangeItemBase}
 
 function ChangeItem({ item }: Readonly<ChangeItemProps>): React.ReactElement {
   const {
- node, changeType, changedFields 
-} = item
+    node, changeType, changedFields 
+  } = item
 
   const changeIndicator = {
     added: {
- text: '+ ADDED',
-color: 'text-[#1A7F37]' 
-},
+      text: '+ ADDED',
+      color: 'text-[#1A7F37]' 
+    },
     removed: {
- text: '- REMOVED',
-color: 'text-[#FF6B6B]' 
-},
+      text: '- REMOVED',
+      color: 'text-[#FF6B6B]' 
+    },
     modified: {
- text: '~ MODIFIED',
-color: 'text-amber-500' 
-},
+      text: '~ MODIFIED',
+      color: 'text-amber-500' 
+    },
   }[changeType]
 
   const borderColor = {
@@ -202,18 +202,18 @@ export function ComparisonPage(): React.ReactElement {
       const content = event.target?.result
       if (typeof content !== 'string') {
         setBeforeState({
- status: 'error',
-error: { message: 'Failed to read file' } 
-})
+          status: 'error',
+          error: { message: 'Failed to read file' } 
+        })
         return
       }
       setBeforeState(parseGraphFile(content, file.name))
     }
     reader.onerror = () => {
       setBeforeState({
- status: 'error',
-error: { message: 'Failed to read file' } 
-})
+        status: 'error',
+        error: { message: 'Failed to read file' } 
+      })
     }
     reader.readAsText(file)
   }, [])
@@ -224,18 +224,18 @@ error: { message: 'Failed to read file' }
       const content = event.target?.result
       if (typeof content !== 'string') {
         setAfterState({
- status: 'error',
-error: { message: 'Failed to read file' } 
-})
+          status: 'error',
+          error: { message: 'Failed to read file' } 
+        })
         return
       }
       setAfterState(parseGraphFile(content, file.name))
     }
     reader.onerror = () => {
       setAfterState({
- status: 'error',
-error: { message: 'Failed to read file' } 
-})
+        status: 'error',
+        error: { message: 'Failed to read file' } 
+      })
     }
     reader.readAsText(file)
   }, [])

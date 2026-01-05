@@ -1,5 +1,5 @@
 import type {
- Node, NodeType 
+  Node, NodeType 
 } from '@/types/riviere'
 import { entryPointSchema } from '@/types/riviere'
 import type { DomainNode } from './extractDomainDetails'

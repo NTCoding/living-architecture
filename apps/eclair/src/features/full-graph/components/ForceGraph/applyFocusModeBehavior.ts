@@ -1,6 +1,6 @@
 import * as d3 from 'd3'
 import type {
- SimulationNode, SimulationLink 
+  SimulationNode, SimulationLink 
 } from '../../types'
 import type { Theme } from '@/types/theme'
 import { getThemeFocusColors } from '../../graphFocusing/themeFocusColors'
@@ -32,15 +32,15 @@ export interface ApplyFocusModeParams {
   domain: string
   theme: Theme
   dimensions: {
- width: number;
-height: number 
-}
+    width: number;
+    height: number 
+  }
 }
 
 export function applyFocusMode(params: ApplyFocusModeParams): void {
   const {
- svg, node, link, zoom, nodes, domain, theme, dimensions 
-} = params
+    svg, node, link, zoom, nodes, domain, theme, dimensions 
+  } = params
   const focusColors = getThemeFocusColors(theme)
 
   applyFocusModeCircleStyles({
@@ -91,10 +91,10 @@ export function applyFocusMode(params: ApplyFocusModeParams): void {
   })
 
   const focusZoom = calculateFocusModeZoom({
- nodes,
-focusedDomain: domain,
-dimensions 
-})
+    nodes,
+    focusedDomain: domain,
+    dimensions 
+  })
 
   if (focusZoom) {
     svg
@@ -114,8 +114,8 @@ export interface ApplyResetModeParams {
 
 export function applyResetMode(params: ApplyResetModeParams): void {
   const {
- node, link 
-} = params
+    node, link 
+  } = params
 
   applyResetModeCircleStyles({
     node,

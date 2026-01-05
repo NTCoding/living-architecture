@@ -11,20 +11,20 @@ interface GraphTooltipProps {
 }
 
 function hasSourceLocation(node: TooltipData['node']): node is TooltipData['node'] & {
- originalNode: {
- sourceLocation: {
- filePath: string;
-lineNumber: number;
-repository?: string 
-} 
-} 
+  originalNode: {
+    sourceLocation: {
+      filePath: string;
+      lineNumber: number;
+      repository?: string 
+    } 
+  } 
 } {
   return node.originalNode.sourceLocation != null && typeof node.originalNode.sourceLocation?.lineNumber === 'number'
 }
 
 function calculateTooltipPosition(x: number, y: number): {
- left: number;
-top: number 
+  left: number;
+  top: number 
 } {
   const viewportWidth = window.innerWidth
   const viewportHeight = window.innerHeight
@@ -36,22 +36,22 @@ top: number
   const top = wouldOverflowBottom ? y - TOOLTIP_HEIGHT - 10 : y - 10
 
   return {
- left,
-top 
-}
+    left,
+    top 
+  }
 }
 
 export function GraphTooltip({
- data, onMouseEnter, onMouseLeave 
+  data, onMouseEnter, onMouseLeave 
 }: GraphTooltipProps): React.ReactElement | null {
   if (!data) return null
 
   const {
- node, x, y, incomingCount, outgoingCount 
-} = data
+    node, x, y, incomingCount, outgoingCount 
+  } = data
   const {
- left, top 
-} = calculateTooltipPosition(x, y)
+    left, top 
+  } = calculateTooltipPosition(x, y)
 
   return (
     <div

@@ -1,20 +1,20 @@
 import { RiviereQuery } from '@living-architecture/riviere-query';
 import {
- RiviereBuilder, type BuilderOptions 
+  RiviereBuilder, type BuilderOptions 
 } from './builder';
 
 function createValidOptions(): BuilderOptions {
   return {
     sources: [{
- repository: 'my-org/my-repo',
-commit: 'abc123' 
-}],
+      repository: 'my-org/my-repo',
+      commit: 'abc123' 
+    }],
     domains: {
-orders: {
- description: 'Order management',
-systemType: 'domain' 
-},
-},
+      orders: {
+        description: 'Order management',
+        systemType: 'domain' 
+      },
+    },
   };
 }
 
@@ -92,9 +92,9 @@ describe('query', () => {
       httpMethod: 'POST',
       path: '/new',
       sourceLocation: {
- repository: 'my-org/my-repo',
-filePath: 'src/new.ts' 
-},
+        repository: 'my-org/my-repo',
+        filePath: 'src/new.ts' 
+      },
     });
 
     const afterApis = builder.query().componentsByType('API');

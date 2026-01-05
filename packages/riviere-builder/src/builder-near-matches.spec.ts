@@ -1,23 +1,23 @@
 import {
- describe, it, expect 
+  describe, it, expect 
 } from 'vitest';
 import { RiviereBuilder } from './builder';
 
 function createBuilderWithComponents(): RiviereBuilder {
   const builder = RiviereBuilder.new({
     sources: [{
- repository: 'test/repo',
-commit: 'abc123' 
-}],
+      repository: 'test/repo',
+      commit: 'abc123' 
+    }],
     domains: {
       orders: {
- description: 'Order domain',
-systemType: 'domain' 
-},
+        description: 'Order domain',
+        systemType: 'domain' 
+      },
       shipping: {
- description: 'Shipping domain',
-systemType: 'domain' 
-},
+        description: 'Shipping domain',
+        systemType: 'domain' 
+      },
     },
   });
 
@@ -80,9 +80,9 @@ describe('RiviereBuilder.nearMatches', () => {
     it('exact name with wrong type returns match with type mismatch', () => {
       const builder = createBuilderWithComponents();
       const query = {
- name: 'OrderPlaced',
-type: 'UseCase' as const 
-};
+        name: 'OrderPlaced',
+        type: 'UseCase' as const 
+      };
       const results = builder.nearMatches(query);
 
       expect(results.length).toBeGreaterThan(0);
@@ -99,9 +99,9 @@ type: 'UseCase' as const
     it('UseCase found when Event expected', () => {
       const builder = createBuilderWithComponents();
       const query = {
- name: 'OrderService',
-type: 'Event' as const 
-};
+        name: 'OrderService',
+        type: 'Event' as const 
+      };
       const results = builder.nearMatches(query);
 
       expect(results.length).toBeGreaterThan(0);
@@ -120,9 +120,9 @@ type: 'Event' as const
     it.each([
       [
         {
- name: 'OrderService',
-domain: 'shipping' 
-},
+          name: 'OrderService',
+          domain: 'shipping' 
+        },
         {
           expectedName: 'OrderService',
           expectedDomain: 'orders',

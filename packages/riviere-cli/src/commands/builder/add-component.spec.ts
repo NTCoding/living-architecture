@@ -1,5 +1,5 @@
 import {
- describe, it, expect 
+  describe, it, expect 
 } from 'vitest';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -80,40 +80,40 @@ describe('riviere builder add-component', () => {
 
     it.each([
       {
- type: 'UI',
-expectedFlag: '--route' 
-},
+        type: 'UI',
+        expectedFlag: '--route' 
+      },
       {
- type: 'API',
-expectedFlag: '--api-type' 
-},
+        type: 'API',
+        expectedFlag: '--api-type' 
+      },
       {
- type: 'DomainOp',
-expectedFlag: '--operation-name' 
-},
+        type: 'DomainOp',
+        expectedFlag: '--operation-name' 
+      },
       {
- type: 'Event',
-expectedFlag: '--event-name' 
-},
+        type: 'Event',
+        expectedFlag: '--event-name' 
+      },
       {
- type: 'EventHandler',
-expectedFlag: '--subscribed-events' 
-},
+        type: 'EventHandler',
+        expectedFlag: '--subscribed-events' 
+      },
       {
- type: 'Custom',
-expectedFlag: '--custom-type' 
-},
+        type: 'Custom',
+        expectedFlag: '--custom-type' 
+      },
     ])(
       'returns VALIDATION_ERROR when $type missing $expectedFlag',
       async ({
- type, expectedFlag 
-}) => {
+        type, expectedFlag 
+      }) => {
         await createGraphWithDomain(ctx.testDir, 'orders');
         const program = createProgram();
         await program.parseAsync(buildAddComponentArgs({
- type,
-name: 'Test' 
-}));
+          type,
+          name: 'Test' 
+        }));
         const output = ctx.consoleOutput.join('\n');
         expect(output).toContain(CliErrorCode.ValidationError);
         expect(output).toContain(expectedFlag);
@@ -129,9 +129,9 @@ name: 'Test'
         extraArgs: ['--route', '/checkout'],
         expectedId: 'orders:checkout:ui:checkout-page',
         expectedFields: {
- type: 'UI',
-route: '/checkout' 
-},
+          type: 'UI',
+          route: '/checkout' 
+        },
       },
       {
         type: 'API',
@@ -162,9 +162,9 @@ route: '/checkout'
         extraArgs: ['--api-type', 'REST'],
         expectedId: 'orders:api:api:list-orders',
         expectedFields: {
- type: 'API',
-apiType: 'REST' 
-},
+          type: 'API',
+          apiType: 'REST' 
+        },
       },
       {
         type: 'UseCase',
@@ -196,9 +196,9 @@ apiType: 'REST'
         extraArgs: ['--operation-name', 'archive'],
         expectedId: 'orders:domain:domainop:order-archive',
         expectedFields: {
- type: 'DomainOp',
-operationName: 'archive' 
-},
+          type: 'DomainOp',
+          operationName: 'archive' 
+        },
       },
       {
         type: 'Event',
@@ -208,9 +208,9 @@ operationName: 'archive'
         extraArgs: ['--event-name', 'OrderPlaced'],
         expectedId: 'orders:events:event:order-placed',
         expectedFields: {
- type: 'Event',
-eventName: 'OrderPlaced' 
-},
+          type: 'Event',
+          eventName: 'OrderPlaced' 
+        },
       },
       {
         type: 'Event',
@@ -258,12 +258,12 @@ eventName: 'OrderPlaced'
         const program = createProgram();
         await program.parseAsync(
           buildAddComponentArgs({
- type,
-name,
-module,
-filePath,
-extraArgs 
-}),
+            type,
+            name,
+            module,
+            filePath,
+            extraArgs 
+          }),
         );
 
         const graphPath = join(ctx.testDir, '.riviere', 'graph.json');
@@ -271,11 +271,11 @@ extraArgs
         const graph: unknown = JSON.parse(content);
 
         expect(graph).toMatchObject({
-components: [{
- id: expectedId,
-...expectedFields 
-}],
-});
+          components: [{
+            id: expectedId,
+            ...expectedFields 
+          }],
+        });
       },
     );
 

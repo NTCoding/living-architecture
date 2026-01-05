@@ -3,15 +3,15 @@ import type { RiviereGraph } from '@/types/riviere'
 import { extractFlows } from './extractFlows'
 import { FlowCard } from './components/FlowCard/FlowCard'
 import {
- useFlowsState, type FlowFilter 
+  useFlowsState, type FlowFilter 
 } from './hooks/useFlowsState'
 
 interface FlowsPageProps {readonly graph: RiviereGraph}
 
 export function FlowsPage({ graph }: Readonly<FlowsPageProps>): React.ReactElement {
   const {
- searchQuery, setSearchQuery, activeFilter, setActiveFilter, expandedFlowIds, toggleFlow, activeDomains, toggleDomain 
-} = useFlowsState()
+    searchQuery, setSearchQuery, activeFilter, setActiveFilter, expandedFlowIds, toggleFlow, activeDomains, toggleDomain 
+  } = useFlowsState()
 
   const flows = useMemo(() => extractFlows(graph), [graph])
 
@@ -41,25 +41,25 @@ export function FlowsPage({ graph }: Readonly<FlowsPageProps>): React.ReactEleme
   const jobsCount = flows.filter((f) => f.entryPoint.type === 'Custom').length
 
   const filters: Array<{
- key: FlowFilter;
-label: string 
-}> = [
+    key: FlowFilter;
+    label: string 
+  }> = [
     {
- key: 'all',
-label: 'All' 
-},
+      key: 'all',
+      label: 'All' 
+    },
     {
- key: 'ui',
-label: 'UI' 
-},
+      key: 'ui',
+      label: 'UI' 
+    },
     {
- key: 'api',
-label: 'API' 
-},
+      key: 'api',
+      label: 'API' 
+    },
     {
- key: 'jobs',
-label: 'Jobs' 
-},
+      key: 'jobs',
+      label: 'Jobs' 
+    },
   ]
 
   return (
