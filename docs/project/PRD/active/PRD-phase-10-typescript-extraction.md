@@ -1,6 +1,6 @@
 # PRD: Phase 10 — TypeScript Component Extraction
 
-**Status:** Draft
+**Status:** Approved
 
 **Depends on:** Phase 9 (Launch)
 
@@ -165,13 +165,7 @@ Draft components as JSON. Not a valid Riviere graph (no connections). Implementa
 
 ---
 
-## 6. Open Questions
-
-1. **Output format / draft mode** — Extracted components aren't valid for the full Riviere schema. What's the exact intermediate format? JSON from CLI, documented structure, implementation detail. Need to define the specific fields.
-
----
-
-## 7. Milestones
+## 6. Milestones
 
 ### M1: DSL design documented and config schema exists
 
@@ -310,7 +304,7 @@ Draft components as JSON. Not a valid Riviere graph (no connections). Implementa
 
 ---
 
-## 8. Dependencies
+## 7. Dependencies
 
 **Depends on:**
 - Phase 9 (Launch) — Packages published, CLI available
@@ -322,7 +316,7 @@ Draft components as JSON. Not a valid Riviere graph (no connections). Implementa
 
 ---
 
-## 9. Reference
+## 8. Reference
 
 ### Inspiration
 
