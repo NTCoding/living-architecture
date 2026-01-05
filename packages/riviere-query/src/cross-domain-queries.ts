@@ -25,7 +25,7 @@ export function queryCrossDomainLinks(graph: RiviereGraph, domainName: string): 
       continue
     }
 
-    const linkTypeKey = link.type === undefined ? 'UNDEFINED_LINK_TYPE' : link.type
+    const linkTypeKey = link.type ?? 'UNDEFINED_LINK_TYPE'
     const key = `${targetDomain}:${linkTypeKey}`
     if (seen.has(key)) {
       continue

@@ -200,7 +200,7 @@ export function DomainMapPage({ graph }: DomainMapPageProps): React.ReactElement
     const handleExportSvg = (): void => {
       const svg = exportContainerRef.current?.querySelector('svg')
       if (!(svg instanceof SVGSVGElement)) {
-        throw new Error('Export container must contain an SVG element')
+        throw new TypeError('Export container must contain an SVG element')
       }
       const filename = generateExportFilename(graphName, 'svg')
       exportSvgAsFile(svg, filename)

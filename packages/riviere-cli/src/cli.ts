@@ -28,7 +28,7 @@ export function parsePackageJson(pkg: unknown): PackageJson {
     throw new Error('Invalid package.json: missing version field')
   }
   if (typeof pkg.version !== 'string') {
-    throw new Error('Invalid package.json: version must be a string')
+    throw new TypeError('Invalid package.json: version must be a string')
   }
   return { version: pkg.version }
 }

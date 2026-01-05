@@ -226,7 +226,7 @@ function DomainCard({
   graphName,
 }: Readonly<DomainCardProps>): React.ReactElement {
   const repoName: string | undefined =
-    domain.repository === undefined ? graphName : domain.repository
+    domain.repository ?? graphName
   const { settings } = useCodeLinkSettings()
   const githubUrl =
     repoName === undefined || settings.githubOrg === null

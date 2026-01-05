@@ -1,4 +1,4 @@
-import baseConfig from '../../eslint.config.mjs'
+import baseConfig from '../../eslint.config.mjs';
 
 export default [
   ...baseConfig,
@@ -45,7 +45,13 @@ export default [
     },
   },
   {
-    files: ['**/*.test.ts', '**/*.test.tsx', '**/*.spec.ts', '**/*.spec.tsx', '**/test/**/*'],
+    files: [
+      '**/*.test.ts',
+      '**/*.test.tsx',
+      '**/*.spec.ts',
+      '**/*.spec.tsx',
+      '**/test/**/*',
+    ],
     rules: {
       '@typescript-eslint/no-unsafe-call': 'off',
       '@typescript-eslint/no-unsafe-member-access': 'off',
@@ -55,4 +61,4 @@ export default [
       'max-lines': ['error', 730],
     },
   },
-]
+];

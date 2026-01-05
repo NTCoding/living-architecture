@@ -17,7 +17,7 @@ export function generateComponentId(
   type: string,
   name: string,
 ): string {
-  const nameSegment = name.toLowerCase().replace(/\s+/g, '-')
+  const nameSegment = name.toLowerCase().replaceAll(/\s+/g, '-')
   return `${domain}:${module}:${type}:${nameSegment}`
 }
 

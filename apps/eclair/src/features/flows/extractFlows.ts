@@ -64,7 +64,7 @@ function adaptFlowStep(queryStep: QueryFlowStep): FlowStep {
 
   return {
     node: componentToFlowStepNode(component),
-    edgeType: linkType === undefined ? null : linkType,
+    edgeType: linkType ?? null,
     depth: queryStep.depth,
     externalLinks: queryStep.externalLinks,
   }

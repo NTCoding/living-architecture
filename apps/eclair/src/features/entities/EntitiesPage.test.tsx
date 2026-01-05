@@ -152,7 +152,7 @@ describe('EntitiesPage', () => {
     expect(screen.queryByText('Pending')).not.toBeInTheDocument()
 
     const entityButton = screen.getByText('Order')
-    await user.click(entityButton.closest('button') || entityButton)
+    await user.click(entityButton.closest('button') ?? entityButton)
 
     expect(screen.getByText('Draft')).toBeInTheDocument()
     expect(screen.getByText('Pending')).toBeInTheDocument()
@@ -167,7 +167,7 @@ describe('EntitiesPage', () => {
     expect(screen.queryByText(/begin/)).not.toBeInTheDocument()
 
     const entityButton = screen.getByText('Order')
-    await user.click(entityButton.closest('button') || entityButton)
+    await user.click(entityButton.closest('button') ?? entityButton)
 
     expect(screen.getByText(/begin/)).toBeInTheDocument()
     expect(screen.getByText(/confirm/)).toBeInTheDocument()

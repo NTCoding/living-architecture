@@ -206,7 +206,7 @@ export function extractDomainMap(graph: RiviereGraph): DomainMapData {
   const domainCounts = new Map<string, number>()
   for (const node of graph.components) {
     const currentCount = domainCounts.get(node.domain)
-    const count = currentCount === undefined ? 0 : currentCount
+    const count = currentCount ?? 0
     domainCounts.set(node.domain, count + 1)
   }
 

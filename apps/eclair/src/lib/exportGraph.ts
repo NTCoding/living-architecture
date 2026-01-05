@@ -13,7 +13,7 @@ function formatTimestamp(date: Date): string {
 }
 
 export function generateExportFilename(graphName: string, extension: 'png' | 'svg'): string {
-  const sanitizedName = graphName.replace(/ /g, '-')
+  const sanitizedName = graphName.replaceAll(' ', '-')
   const timestamp = formatTimestamp(new Date())
   return `${sanitizedName}-${timestamp}.${extension}`
 }

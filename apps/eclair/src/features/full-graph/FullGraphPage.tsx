@@ -4,6 +4,8 @@ import {
 import { useSearchParams } from 'react-router-dom'
 import type {
   RiviereGraph, NodeType 
+  ,
+  Node, Edge 
 } from '@/types/riviere'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useExport } from '@/contexts/ExportContext'
@@ -20,9 +22,6 @@ import { NodeTypeFilters } from './components/NodeTypeFilters/NodeTypeFilters'
 import { filterByNodeType } from './graphFocusing/filterByNodeType'
 import { getThemeFocusColors } from './graphFocusing/themeFocusColors'
 import type { TooltipData } from './types'
-import type {
-  Node, Edge 
-} from '@/types/riviere'
 
 function findOrphanNodeIds(nodes: Node[], edges: Edge[]): Set<string> {
   const connectedNodeIds = new Set<string>()

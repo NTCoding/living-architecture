@@ -6,6 +6,9 @@ import importPlugin from 'eslint-plugin-import'
 import sonarjs from 'eslint-plugin-sonarjs'
 import jsdoc from 'eslint-plugin-jsdoc'
 import stylistic from '@stylistic/eslint-plugin'
+import react from 'eslint-plugin-react'
+import jsxA11y from 'eslint-plugin-jsx-a11y'
+import unicorn from 'eslint-plugin-unicorn'
 
 const customRules = {
   plugins: {
@@ -91,6 +94,11 @@ export default tseslint.config(
 
       // No non-null assertions - handle errors properly
       '@typescript-eslint/no-non-null-assertion': 'error',
+
+      // SonarCloud rule equivalents
+      '@typescript-eslint/prefer-includes': 'error',
+      '@typescript-eslint/prefer-nullish-coalescing': 'error',
+      'import/no-duplicates': 'error',
 
       // Ban generic folder imports (not lib - that's NX convention)
       'no-restricted-imports': [
@@ -215,6 +223,28 @@ export default tseslint.config(
           allowAllPropertiesOnSameLine: false,
         },
       ],
+    },
+  },
+  // Unicorn rules (code quality)
+  {
+    files: ['**/*.ts', '**/*.tsx'],
+    plugins: { unicorn },
+    rules: {
+      'unicorn/prefer-string-replace-all': 'error',
+      'unicorn/prefer-type-error': 'error',
+    },
+  },
+  // React and accessibility rules (eclair only)
+  {
+    files: ['apps/eclair/**/*.tsx'],
+    plugins: {
+      react,
+      'jsx-a11y': jsxA11y,
+    },
+    rules: {
+      'react/no-array-index-key': 'error',
+      'jsx-a11y/prefer-tag-over-role': 'error',
+      'jsx-a11y/anchor-is-valid': 'error',
     },
   },
   // Eclair test files: larger limit for lint-staged compatibility
