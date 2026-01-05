@@ -48,11 +48,21 @@ Run this pipeline directly (do NOT spawn a subagent to orchestrate - subagents c
      - OR reject all findings and re-run /complete-task --feedback-rejected
      LOOP CONTROL: If this is your third successive attempt, ask the user for help.
 
-3. **Task-check** [SKIP IF marker exists]:
+3. **Task-check** [SKIP IF marker exists OR no issue]:
+   - Get current branch: `git branch --show-current`
+   - Extract issue number from branch (pattern: `issue-<NUMBER>-...`)
+   - If no issue number found → skip to step 4 (no task to verify)
    - Check if `/tmp/task-check-done-<branch>.marker` exists
-   - If exists → skip to step 4
+   - If marker exists → skip to step 4
    - If missing:
-     - Use Task tool with subagent_type: "task-check:task-check"
+     - Build work summary: list changed files via `git diff --name-only main`
+     - Use Task tool with subagent_type: "task-check:task-check", prompt:
+       ```text
+       Task ID: <issue-number>
+       Task location: gh issue view <issue-number>
+       Work summary: Modified files: <list of changed files>
+       Attempt: 1
+       ```
      - FAIL → return:
        TASK CHECK FAILED
        <raw-output>

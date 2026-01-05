@@ -32,12 +32,12 @@ interface DefineCustomTypeOptions {
   json?: boolean;
 }
 
-function parsePropertySpec(
-  spec: string,
-): {
-  name: string;
-  definition: CustomPropertyDefinition 
-} | { error: string } {
+function parsePropertySpec(spec: string):
+  | {
+    name: string;
+    definition: CustomPropertyDefinition;
+  }
+  | { error: string } {
   const parts = spec.split(':');
   if (parts.length < 2 || parts.length > 3) {
     return {error: `Invalid property format: "${spec}". Expected "name:type" or "name:type:description"`,};
@@ -59,7 +59,7 @@ function parsePropertySpec(
 
   return {
     name: name.trim(),
-    definition 
+    definition,
   };
 }
 
@@ -75,13 +75,11 @@ interface ParsePropertiesError {
 
 type ParsePropertiesResult = ParsePropertiesSuccess | ParsePropertiesError;
 
-function parsePropertySpecs(
-  specs: string[] | undefined,
-): ParsePropertiesResult {
+function parsePropertySpecs(specs: string[] | undefined): ParsePropertiesResult {
   if (specs === undefined || specs.length === 0) {
     return {
       success: true,
-      properties: {} 
+      properties: {},
     };
   }
 
@@ -91,7 +89,7 @@ function parsePropertySpecs(
     if ('error' in result) {
       return {
         success: false,
-        error: result.error 
+        error: result.error,
       };
     }
     if (properties[result.name] !== undefined) {
@@ -105,7 +103,7 @@ function parsePropertySpecs(
 
   return {
     success: true,
-    properties 
+    properties,
   };
 }
 
@@ -136,9 +134,7 @@ export function createDefineCustomTypeCommand(): Command {
       const requiredResult = parsePropertySpecs(options.requiredProperty);
       if (!requiredResult.success) {
         console.log(
-          JSON.stringify(
-            formatError(CliErrorCode.ValidationError, requiredResult.error, []),
-          ),
+          JSON.stringify(formatError(CliErrorCode.ValidationError, requiredResult.error, [])),
         );
         return;
       }
@@ -146,9 +142,7 @@ export function createDefineCustomTypeCommand(): Command {
       const optionalResult = parsePropertySpecs(options.optionalProperty);
       if (!optionalResult.success) {
         console.log(
-          JSON.stringify(
-            formatError(CliErrorCode.ValidationError, optionalResult.error, []),
-          ),
+          JSON.stringify(formatError(CliErrorCode.ValidationError, optionalResult.error, [])),
         );
         return;
       }
@@ -156,7 +150,7 @@ export function createDefineCustomTypeCommand(): Command {
       await withGraphBuilder(options.graph, async (builder, graphPath) => {
         builder.defineCustomType({
           name: options.name,
-          ...(options.description !== undefined && {description: options.description,}),
+          ...(options.description !== undefined && { description: options.description }),
           ...(Object.keys(requiredResult.properties).length > 0 && {requiredProperties: requiredResult.properties,}),
           ...(Object.keys(optionalResult.properties).length > 0 && {optionalProperties: optionalResult.properties,}),
         });
@@ -167,7 +161,7 @@ export function createDefineCustomTypeCommand(): Command {
             JSON.stringify(
               formatSuccess({
                 name: options.name,
-                ...(options.description !== undefined && {description: options.description,}),
+                ...(options.description !== undefined && { description: options.description }),
                 ...(Object.keys(requiredResult.properties).length > 0 && {requiredProperties: requiredResult.properties,}),
                 ...(Object.keys(optionalResult.properties).length > 0 && {optionalProperties: optionalResult.properties,}),
               }),

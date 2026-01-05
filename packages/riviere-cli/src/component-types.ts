@@ -9,20 +9,12 @@ export const VALID_COMPONENT_TYPES = [
 ] as const;
 export type ComponentTypeFlag = (typeof VALID_COMPONENT_TYPES)[number];
 
-export function isValidComponentType(
-  value: string,
-): value is ComponentTypeFlag {
-  return VALID_COMPONENT_TYPES.some(
-    (t) => t.toLowerCase() === value.toLowerCase(),
-  );
+export function isValidComponentType(value: string): value is ComponentTypeFlag {
+  return VALID_COMPONENT_TYPES.some((t) => t.toLowerCase() === value.toLowerCase());
 }
 
-export function normalizeToSchemaComponentType(
-  value: string,
-): ComponentTypeFlag {
-  const found = VALID_COMPONENT_TYPES.find(
-    (t) => t.toLowerCase() === value.toLowerCase(),
-  );
+export function normalizeToSchemaComponentType(value: string): ComponentTypeFlag {
+  const found = VALID_COMPONENT_TYPES.find((t) => t.toLowerCase() === value.toLowerCase());
   if (found === undefined) {
     throw new Error(
       `Expected valid ComponentType. Got: ${value}. Valid types: ${VALID_COMPONENT_TYPES.join(', ')}`,

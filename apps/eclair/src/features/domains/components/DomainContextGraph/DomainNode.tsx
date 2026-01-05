@@ -1,31 +1,31 @@
-import type { DomainPosition } from './DomainContextGraph'
+import type { DomainPosition } from './DomainContextGraph';
 
 interface DomainNodeProps {
-  readonly position: DomainPosition
-  readonly isSelected: boolean
-  readonly onClick: () => void
+  readonly position: DomainPosition;
+  readonly isSelected: boolean;
+  readonly onClick: () => void;
 }
 
 export function DomainNode({
-  position, isSelected, onClick 
+  position,
+  isSelected,
+  onClick,
 }: Readonly<DomainNodeProps>): React.ReactElement {
-  const nodeRadius = position.isCurrent ? 40 : 30
+  const nodeRadius = position.isCurrent ? 40 : 30;
 
   const fillStyle = position.isCurrent
     ? { fill: 'var(--primary)' }
-    : { fill: 'var(--bg-tertiary)' }
+    : { fill: 'var(--bg-tertiary)' };
 
   const getStrokeStyle = (): Record<string, string> => {
-    if (isSelected) return { stroke: 'var(--primary)' }
-    if (position.isCurrent) return { stroke: 'var(--primary-dark)' }
-    return { stroke: 'var(--border-color)' }
-  }
+    if (isSelected) return { stroke: 'var(--primary)' };
+    if (position.isCurrent) return { stroke: 'var(--primary-dark)' };
+    return { stroke: 'var(--border-color)' };
+  };
 
-  const strokeStyle = getStrokeStyle()
+  const strokeStyle = getStrokeStyle();
 
-  const textStyle = position.isCurrent
-    ? { fill: 'white' }
-    : { fill: 'var(--text-primary)' }
+  const textStyle = position.isCurrent ? { fill: 'white' } : { fill: 'var(--text-primary)' };
 
   return (
     <g
@@ -33,8 +33,8 @@ export function DomainNode({
       data-current={position.isCurrent.toString()}
       style={{ cursor: 'pointer' }}
       onClick={(e) => {
-        e.stopPropagation()
-        onClick()
+        e.stopPropagation();
+        onClick();
       }}
     >
       <circle
@@ -43,7 +43,7 @@ export function DomainNode({
         r={nodeRadius}
         style={{
           ...fillStyle,
-          ...strokeStyle 
+          ...strokeStyle,
         }}
         strokeWidth={isSelected ? '3' : '2'}
       />
@@ -59,5 +59,5 @@ export function DomainNode({
         {position.id}
       </text>
     </g>
-  )
+  );
 }

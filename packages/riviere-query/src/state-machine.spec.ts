@@ -1,7 +1,6 @@
 import { RiviereQuery } from './RiviereQuery';
 import {
-  createMinimalValidGraph,
-  createDomainOpComponent,
+  createMinimalValidGraph, createDomainOpComponent 
 } from './riviere-graph-fixtures';
 
 describe('transitionsFor', () => {

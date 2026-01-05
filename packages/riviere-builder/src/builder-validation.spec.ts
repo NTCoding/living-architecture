@@ -3,8 +3,7 @@ import {
 } from 'vitest';
 import { RiviereBuilder } from './builder';
 import {
-  createValidOptions,
-  createSourceLocation,
+  createValidOptions, createSourceLocation 
 } from './builder-test-fixtures';
 
 describe('RiviereBuilder', () => {
@@ -29,7 +28,7 @@ describe('RiviereBuilder', () => {
 
       builder.link({
         from: source.id,
-        to: target.id 
+        to: target.id,
       });
 
       const result = builder.validate();
@@ -50,7 +49,7 @@ describe('RiviereBuilder', () => {
 
       builder.link({
         from: source.id,
-        to: 'nonexistent:target:id' 
+        to: 'nonexistent:target:id',
       });
 
       const result = builder.validate();
@@ -75,11 +74,11 @@ describe('RiviereBuilder', () => {
 
       builder.link({
         from: source.id,
-        to: 'bad:target:one' 
+        to: 'bad:target:one',
       });
       builder.link({
         from: source.id,
-        to: 'bad:target:two' 
+        to: 'bad:target:two',
       });
 
       const result = builder.validate();
@@ -123,7 +122,7 @@ describe('RiviereBuilder', () => {
 
       builder.link({
         from: source.id,
-        to: target.id 
+        to: target.id,
       });
 
       const result = builder.validate();

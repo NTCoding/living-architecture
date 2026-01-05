@@ -45,9 +45,7 @@ export function createProgram(): Command {
 
   program.name('riviere').version(packageJson.version);
 
-  const builderCmd = program
-    .command('builder')
-    .description('Commands for building a graph');
+  const builderCmd = program.command('builder').description('Commands for building a graph');
 
   builderCmd.addCommand(createAddComponentCommand());
   builderCmd.addCommand(createAddDomainCommand());
@@ -64,9 +62,7 @@ export function createProgram(): Command {
   builderCmd.addCommand(createCheckConsistencyCommand());
   builderCmd.addCommand(createDefineCustomTypeCommand());
 
-  const queryCmd = program
-    .command('query')
-    .description('Commands for querying a graph');
+  const queryCmd = program.command('query').description('Commands for querying a graph');
 
   queryCmd.addCommand(createEntryPointsCommand());
   queryCmd.addCommand(createDomainsCommand());

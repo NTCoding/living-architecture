@@ -4,14 +4,16 @@ import {
 
 function createValidOptions(): BuilderOptions {
   return {
-    sources: [{
-      repository: 'my-org/my-repo',
-      commit: 'abc123' 
-    }],
+    sources: [
+      {
+        repository: 'my-org/my-repo',
+        commit: 'abc123',
+      },
+    ],
     domains: {
       orders: {
         description: 'Order management',
-        systemType: 'domain' 
+        systemType: 'domain',
       },
     },
   };
@@ -21,14 +23,16 @@ describe('RiviereBuilder', () => {
   describe('new', () => {
     it('returns builder instance when given valid options', () => {
       const options: BuilderOptions = {
-        sources: [{
-          repository: 'my-org/my-repo',
-          commit: 'abc123' 
-        }],
+        sources: [
+          {
+            repository: 'my-org/my-repo',
+            commit: 'abc123',
+          },
+        ],
         domains: {
           orders: {
             description: 'Order management',
-            systemType: 'domain' 
+            systemType: 'domain',
           },
         },
       };
@@ -44,14 +48,12 @@ describe('RiviereBuilder', () => {
         domains: {
           orders: {
             description: 'Order management',
-            systemType: 'domain' 
+            systemType: 'domain',
           },
         },
       };
 
-      expect(() => RiviereBuilder.new(options)).toThrow(
-        'At least one source required',
-      );
+      expect(() => RiviereBuilder.new(options)).toThrow('At least one source required');
     });
 
     it('throws when domains object is empty', () => {
@@ -60,23 +62,23 @@ describe('RiviereBuilder', () => {
         domains: {},
       };
 
-      expect(() => RiviereBuilder.new(options)).toThrow(
-        'At least one domain required',
-      );
+      expect(() => RiviereBuilder.new(options)).toThrow('At least one domain required');
     });
 
     it('configures graph metadata from options', () => {
       const options: BuilderOptions = {
         name: 'my-service',
         description: 'Service description',
-        sources: [{
-          repository: 'my-org/my-repo',
-          commit: 'abc123' 
-        }],
+        sources: [
+          {
+            repository: 'my-org/my-repo',
+            commit: 'abc123',
+          },
+        ],
         domains: {
           orders: {
             description: 'Order management',
-            systemType: 'domain' 
+            systemType: 'domain',
           },
         },
       };
@@ -88,13 +90,13 @@ describe('RiviereBuilder', () => {
       expect(builder.graph.metadata.sources).toEqual([
         {
           repository: 'my-org/my-repo',
-          commit: 'abc123' 
+          commit: 'abc123',
         },
       ]);
       expect(builder.graph.metadata.domains).toEqual({
         orders: {
           description: 'Order management',
-          systemType: 'domain' 
+          systemType: 'domain',
         },
       });
     });
@@ -112,11 +114,11 @@ describe('RiviereBuilder', () => {
       expect(builder.graph.metadata.sources).toEqual([
         {
           repository: 'my-org/my-repo',
-          commit: 'abc123' 
+          commit: 'abc123',
         },
         {
           repository: 'another-org/another-repo',
-          commit: 'def456' 
+          commit: 'def456',
         },
       ]);
     });
@@ -126,7 +128,7 @@ describe('RiviereBuilder', () => {
 
       builder.addSource({ repository: 'no-commit-repo' });
 
-      expect(builder.graph.metadata.sources).toContainEqual({repository: 'no-commit-repo',});
+      expect(builder.graph.metadata.sources).toContainEqual({ repository: 'no-commit-repo' });
     });
   });
 

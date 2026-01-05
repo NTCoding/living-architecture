@@ -1,37 +1,37 @@
 import type {
   Node, Edge, NodeType 
-} from '@/types/riviere'
+} from '@/types/riviere';
 import type {
   SimulationNodeDatum, SimulationLinkDatum 
-} from 'd3'
+} from 'd3';
 
 export interface SimulationNode extends SimulationNodeDatum {
-  id: string
-  type: NodeType
-  name: string
-  domain: string
-  originalNode: Node
+  id: string;
+  type: NodeType;
+  name: string;
+  domain: string;
+  originalNode: Node;
 }
 
 export interface SimulationLink extends SimulationLinkDatum<SimulationNode> {
-  source: SimulationNode | string
-  target: SimulationNode | string
-  type: 'sync' | 'async' | undefined
-  originalEdge: Edge
+  source: SimulationNode | string;
+  target: SimulationNode | string;
+  type: 'sync' | 'async' | undefined;
+  originalEdge: Edge;
 }
 
 export interface TooltipData {
-  node: SimulationNode
-  x: number
-  y: number
-  incomingCount: number
-  outgoingCount: number
+  node: SimulationNode;
+  x: number;
+  y: number;
+  incomingCount: number;
+  outgoingCount: number;
 }
 
 interface NodeColors {
-  stream: Record<NodeType, string>
-  voltage: Record<NodeType, string>
-  circuit: Record<NodeType, string>
+  stream: Record<NodeType, string>;
+  voltage: Record<NodeType, string>;
+  circuit: Record<NodeType, string>;
 }
 
 /*
@@ -76,7 +76,7 @@ export const NODE_COLORS: NodeColors = {
     Custom: '#57534E',
     External: '#9CA3AF',
   },
-}
+};
 
 export const NODE_RADII: Record<NodeType, number> = {
   UI: 12,
@@ -87,22 +87,22 @@ export const NODE_RADII: Record<NodeType, number> = {
   EventHandler: 12,
   Custom: 12,
   External: 12,
-}
+};
 
 export const EDGE_COLORS = {
   stream: {
     sync: '#0D9488',
-    async: '#FF6B6B' 
+    async: '#FF6B6B',
   },
   voltage: {
     sync: '#00D4FF',
-    async: '#39FF14' 
+    async: '#39FF14',
   },
   circuit: {
     sync: '#0969DA',
-    async: '#1A7F37' 
+    async: '#1A7F37',
   },
-}
+};
 
 export const SEMANTIC_EDGE_COLORS = {
   stream: {
@@ -117,24 +117,24 @@ export const SEMANTIC_EDGE_COLORS = {
     event: '#1A7F37',
     default: '#0969DA',
   },
-}
+};
 
 function getDomainPaletteColor(index: number): string {
-  if (index === 0) return '#0F766E'
-  if (index === 1) return '#7C3AED'
-  if (index === 2) return '#0369A1'
-  if (index === 3) return '#B45309'
-  if (index === 4) return '#4338CA'
-  if (index === 5) return '#0891B2'
-  if (index === 6) return '#6D28D9'
-  if (index === 7) return '#0E7490'
-  if (index === 8) return '#4F46E5'
-  return '#047857'
+  if (index === 0) return '#0F766E';
+  if (index === 1) return '#7C3AED';
+  if (index === 2) return '#0369A1';
+  if (index === 3) return '#B45309';
+  if (index === 4) return '#4338CA';
+  if (index === 5) return '#0891B2';
+  if (index === 6) return '#6D28D9';
+  if (index === 7) return '#0E7490';
+  if (index === 8) return '#4F46E5';
+  return '#047857';
 }
 
 export function getDomainColor(domain: string, domains: string[]): string {
-  const sortedDomains = [...domains].sort((a, b) => a.localeCompare(b))
-  const index = sortedDomains.indexOf(domain)
-  if (index === -1) return getDomainPaletteColor(0)
-  return getDomainPaletteColor(index % 10)
+  const sortedDomains = [...domains].sort((a, b) => a.localeCompare(b));
+  const index = sortedDomains.indexOf(domain);
+  if (index === -1) return getDomainPaletteColor(0);
+  return getDomainPaletteColor(index % 10);
 }

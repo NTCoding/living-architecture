@@ -106,12 +106,9 @@ describe('validation', () => {
   });
 
   describe('validateSystemType', () => {
-    it.each(['domain', 'bff', 'ui', 'other'])(
-      'returns valid for %s',
-      (type) => {
-        expect(validateSystemType(type)).toEqual({ valid: true });
-      },
-    );
+    it.each(['domain', 'bff', 'ui', 'other'])('returns valid for %s', (type) => {
+      expect(validateSystemType(type)).toEqual({ valid: true });
+    });
 
     it('returns invalid with error for unknown system type', () => {
       const result = validateSystemType('backend');

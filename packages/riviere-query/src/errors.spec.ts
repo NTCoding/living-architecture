@@ -7,9 +7,7 @@ describe('ComponentNotFoundError', () => {
   it('has message containing component ID', () => {
     const error = new ComponentNotFoundError('orders:checkout:api:place-order');
 
-    expect(error.message).toBe(
-      "Component 'orders:checkout:api:place-order' not found",
-    );
+    expect(error.message).toBe("Component 'orders:checkout:api:place-order' not found");
   });
 
   it('exposes componentId property', () => {
@@ -25,14 +23,8 @@ describe('ComponentNotFoundError', () => {
   });
 
   it('exposes provided suggestions', () => {
-    const suggestions = [
-      'orders:checkout:api:create-order',
-      'orders:checkout:api:get-order',
-    ];
-    const error = new ComponentNotFoundError(
-      'orders:checkout:api:place-ordr',
-      suggestions,
-    );
+    const suggestions = ['orders:checkout:api:create-order', 'orders:checkout:api:get-order'];
+    const error = new ComponentNotFoundError('orders:checkout:api:place-ordr', suggestions);
 
     expect(error.suggestions).toEqual(suggestions);
   });

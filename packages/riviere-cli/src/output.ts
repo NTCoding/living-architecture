@@ -15,14 +15,11 @@ export interface ErrorOutput {
   };
 }
 
-export function formatSuccess<T>(
-  data: T,
-  warnings: string[] = [],
-): SuccessOutput<T> {
+export function formatSuccess<T>(data: T, warnings: string[] = []): SuccessOutput<T> {
   return {
     success: true,
     data,
-    warnings 
+    warnings,
   };
 }
 
@@ -36,7 +33,7 @@ export function formatError(
     error: {
       code,
       message,
-      suggestions 
-    } 
+      suggestions,
+    },
   };
 }

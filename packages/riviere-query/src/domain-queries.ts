@@ -1,6 +1,5 @@
 import type {
-  RiviereGraph,
-  DomainOpComponent,
+  RiviereGraph, DomainOpComponent 
 } from '@living-architecture/riviere-schema';
 import { Entity } from './event-types';
 import type { EntityTransition } from './event-types';
@@ -8,18 +7,14 @@ import type {
   State, Domain, ComponentCounts 
 } from './domain-types';
 import {
-  parseEntityName,
-  parseDomainName,
-  parseState,
-  parseOperationName,
+  parseEntityName, parseDomainName, parseState, parseOperationName 
 } from './domain-types';
 import { componentsInDomain } from './component-queries';
 
 export function queryDomains(graph: RiviereGraph): Domain[] {
   return Object.entries(graph.metadata.domains).map(([name, metadata]) => {
     const dc = componentsInDomain(graph, name);
-    const count = (type: string): number =>
-      dc.filter((c) => c.type === type).length;
+    const count = (type: string): number => dc.filter((c) => c.type === type).length;
     const componentCounts: ComponentCounts = {
       UI: count('UI'),
       API: count('API'),
@@ -39,13 +34,9 @@ export function queryDomains(graph: RiviereGraph): Domain[] {
   });
 }
 
-export function operationsForEntity(
-  graph: RiviereGraph,
-  entityName: string,
-): DomainOpComponent[] {
+export function operationsForEntity(graph: RiviereGraph, entityName: string): DomainOpComponent[] {
   return graph.components.filter(
-    (c): c is DomainOpComponent =>
-      c.type === 'DomainOp' && c.entity === entityName,
+    (c): c is DomainOpComponent => c.type === 'DomainOp' && c.entity === entityName,
   );
 }
 
@@ -55,17 +46,12 @@ interface PartialEntity {
   operations: DomainOpComponent[];
 }
 
-export function queryEntities(
-  graph: RiviereGraph,
-  domainName?: string,
-): Entity[] {
+export function queryEntities(graph: RiviereGraph, domainName?: string): Entity[] {
   const domainOps = graph.components.filter(
     (c): c is DomainOpComponent & { entity: string } =>
       c.type === 'DomainOp' && c.entity !== undefined,
   );
-  const filtered = domainName
-    ? domainOps.filter((op) => op.domain === domainName)
-    : domainOps;
+  const filtered = domainName ? domainOps.filter((op) => op.domain === domainName) : domainOps;
   const entityMap = new Map<string, PartialEntity>();
   for (const op of filtered) {
     const key = `${op.domain}:${op.entity}`;
@@ -102,10 +88,7 @@ function createEntity(graph: RiviereGraph, partial: PartialEntity): Entity {
   );
 }
 
-export function businessRulesForEntity(
-  graph: RiviereGraph,
-  entityName: string,
-): string[] {
+export function businessRulesForEntity(graph: RiviereGraph, entityName: string): string[] {
   const operations = operationsForEntity(graph, entityName);
   const allRules: string[] = [];
   for (const op of operations) {
@@ -115,10 +98,7 @@ export function businessRulesForEntity(
   return [...new Set(allRules)];
 }
 
-export function transitionsForEntity(
-  graph: RiviereGraph,
-  entityName: string,
-): EntityTransition[] {
+export function transitionsForEntity(graph: RiviereGraph, entityName: string): EntityTransition[] {
   const operations = operationsForEntity(graph, entityName);
   const transitions: EntityTransition[] = [];
   for (const op of operations) {
@@ -134,10 +114,7 @@ export function transitionsForEntity(
   return transitions;
 }
 
-export function statesForEntity(
-  graph: RiviereGraph,
-  entityName: string,
-): State[] {
+export function statesForEntity(graph: RiviereGraph, entityName: string): State[] {
   const operations = operationsForEntity(graph, entityName);
   const states = new Set<string>();
   for (const op of operations) {
@@ -150,10 +127,7 @@ export function statesForEntity(
   return orderStatesByTransitions(states, operations);
 }
 
-function orderStatesByTransitions(
-  states: Set<string>,
-  operations: DomainOpComponent[],
-): State[] {
+function orderStatesByTransitions(states: Set<string>, operations: DomainOpComponent[]): State[] {
   const fromStates = new Set<string>();
   const toStates = new Set<string>();
   const transitionMap = new Map<string, string>();

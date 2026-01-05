@@ -134,9 +134,7 @@ describe('RiviereQuery', () => {
       );
       const query = new RiviereQuery(graph);
 
-      expect(query.find((c) => c.type === 'API')?.id).toBe(
-        'test:mod:api:endpoint',
-      );
+      expect(query.find((c) => c.type === 'API')?.id).toBe('test:mod:api:endpoint');
     });
 
     it('returns undefined when no component matches', () => {
@@ -196,9 +194,7 @@ describe('RiviereQuery', () => {
     it('returns undefined when ID does not exist', () => {
       const query = new RiviereQuery(createMinimalValidGraph());
 
-      expect(
-        query.componentById(parseComponentId('nonexistent:id')),
-      ).toBeUndefined();
+      expect(query.componentById(parseComponentId('nonexistent:id'))).toBeUndefined();
     });
   });
 
@@ -217,9 +213,7 @@ describe('RiviereQuery', () => {
         }),
       );
 
-      expect(new RiviereQuery(graph).search('ORDER')[0]?.id).toBe(
-        'orders:api:create',
-      );
+      expect(new RiviereQuery(graph).search('ORDER')[0]?.id).toBe('orders:api:create');
     });
 
     it('returns components matching domain', () => {
@@ -236,27 +230,19 @@ describe('RiviereQuery', () => {
         }),
       );
 
-      expect(new RiviereQuery(graph).search('shipping')[0]?.id).toBe(
-        'shipping:api:track',
-      );
+      expect(new RiviereQuery(graph).search('shipping')[0]?.id).toBe('shipping:api:track');
     });
 
     it('returns components matching type', () => {
-      expect(
-        new RiviereQuery(createMinimalValidGraph()).search('UI')[0]?.type,
-      ).toBe('UI');
+      expect(new RiviereQuery(createMinimalValidGraph()).search('UI')[0]?.type).toBe('UI');
     });
 
     it('returns empty array for empty query string', () => {
-      expect(new RiviereQuery(createMinimalValidGraph()).search('')).toEqual(
-        [],
-      );
+      expect(new RiviereQuery(createMinimalValidGraph()).search('')).toEqual([]);
     });
 
     it('returns empty array when no match found', () => {
-      expect(
-        new RiviereQuery(createMinimalValidGraph()).search('nonexistent'),
-      ).toEqual([]);
+      expect(new RiviereQuery(createMinimalValidGraph()).search('nonexistent')).toEqual([]);
     });
   });
 
@@ -283,18 +269,13 @@ describe('RiviereQuery', () => {
 
       const result = query.componentsInDomain('shipping');
 
-      expect(result.map((c) => c.id)).toEqual([
-        'shipping:api:a',
-        'shipping:api:b',
-      ]);
+      expect(result.map((c) => c.id)).toEqual(['shipping:api:a', 'shipping:api:b']);
     });
 
     it('returns empty array when domain has no components', () => {
-      expect(
-        new RiviereQuery(createMinimalValidGraph()).componentsInDomain(
-          'nonexistent',
-        ),
-      ).toEqual([]);
+      expect(new RiviereQuery(createMinimalValidGraph()).componentsInDomain('nonexistent')).toEqual(
+        [],
+      );
     });
   });
 
@@ -315,17 +296,13 @@ describe('RiviereQuery', () => {
     });
 
     it('returns empty array when no components of type exist', () => {
-      expect(
-        new RiviereQuery(createMinimalValidGraph()).componentsByType('Event'),
-      ).toEqual([]);
+      expect(new RiviereQuery(createMinimalValidGraph()).componentsByType('Event')).toEqual([]);
     });
   });
 
   describe('externalLinks()', () => {
     it('returns empty array when graph has no external links', () => {
-      expect(
-        new RiviereQuery(createMinimalValidGraph()).externalLinks(),
-      ).toEqual([]);
+      expect(new RiviereQuery(createMinimalValidGraph()).externalLinks()).toEqual([]);
     });
 
     it('returns external links from the graph', () => {
@@ -392,7 +369,7 @@ describe('RiviereQuery', () => {
 
     it('includes Custom component when it has no incoming links', () => {
       const graph = createMinimalValidGraph();
-      graph.metadata.customTypes = {CronJob: { description: 'Scheduled job' },};
+      graph.metadata.customTypes = { CronJob: { description: 'Scheduled job' } };
       graph.components = [
         createCustomComponent({
           id: 'test:cron:nightly',
@@ -449,9 +426,7 @@ describe('RiviereQuery', () => {
 
   describe('externalDomains()', () => {
     it('returns empty array when graph has no external links', () => {
-      expect(
-        new RiviereQuery(createMinimalValidGraph()).externalDomains(),
-      ).toEqual([]);
+      expect(new RiviereQuery(createMinimalValidGraph()).externalDomains()).toEqual([]);
     });
 
     it('returns external domains with connection counts', () => {

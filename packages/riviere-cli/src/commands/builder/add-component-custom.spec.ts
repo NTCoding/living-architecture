@@ -22,7 +22,7 @@ describe('riviere builder add-component Custom type', () => {
       requiredProperties: {
         schedule: {
           type: 'string',
-          description: 'Cron expression' 
+          description: 'Cron expression',
         },
       },
     });
@@ -102,10 +102,12 @@ describe('riviere builder add-component Custom type', () => {
     const content = await readFile(graphPath, 'utf-8');
     const graph: unknown = JSON.parse(content);
     expect(graph).toMatchObject({
-      components: [{
-        schedule: '0 0 * * *',
-        timeout: '5m' 
-      }],
+      components: [
+        {
+          schedule: '0 0 * * *',
+          timeout: '5m',
+        },
+      ],
     });
   });
 

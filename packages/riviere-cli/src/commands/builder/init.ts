@@ -11,8 +11,7 @@ import {
 import { CliErrorCode } from '../../error-codes';
 import { fileExists } from '../../file-existence';
 import {
-  resolveGraphPath,
-  getDefaultGraphPathDescription,
+  resolveGraphPath, getDefaultGraphPathDescription 
 } from '../../graph-path';
 import type { SystemType } from '@living-architecture/riviere-schema';
 import { isValidSystemType } from '../../component-types';
@@ -38,10 +37,7 @@ function isDomainInputParsed(value: unknown): value is DomainInputParsed {
   );
 }
 
-function parseDomainJson(
-  value: string,
-  previous: DomainInputParsed[],
-): DomainInputParsed[] {
+function parseDomainJson(value: string, previous: DomainInputParsed[]): DomainInputParsed[] {
   const parsed: unknown = JSON.parse(value);
   if (!isDomainInputParsed(parsed)) {
     throw new Error(`Invalid domain JSON: ${value}`);
@@ -81,28 +77,16 @@ Examples:
     .option('--name <name>', 'System name')
     .option('--graph <path>', getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
-    .option(
-      '--source <url>',
-      'Source repository URL (repeatable)',
-      collectSource,
-      [],
-    )
-    .option(
-      '--domain <json>',
-      'Domain as JSON (repeatable)',
-      parseDomainJson,
-      [],
-    )
+    .option('--source <url>', 'Source repository URL (repeatable)', collectSource, [])
+    .option('--domain <json>', 'Domain as JSON (repeatable)', parseDomainJson, [])
     .action(async (options: InitOptions) => {
       // Validate required flags
       if (options.source.length === 0) {
         console.log(
           JSON.stringify(
-            formatError(
-              CliErrorCode.ValidationError,
-              'At least one source required',
-              ['Add --source <url> flag'],
-            ),
+            formatError(CliErrorCode.ValidationError, 'At least one source required', [
+              'Add --source <url> flag',
+            ]),
           ),
         );
         return;
@@ -111,11 +95,9 @@ Examples:
       if (options.domain.length === 0) {
         console.log(
           JSON.stringify(
-            formatError(
-              CliErrorCode.ValidationError,
-              'At least one domain required',
-              ['Add --domain <json> flag'],
-            ),
+            formatError(CliErrorCode.ValidationError, 'At least one domain required', [
+              'Add --domain <json> flag',
+            ]),
           ),
         );
         return;
@@ -129,11 +111,9 @@ Examples:
       if (graphExists) {
         console.log(
           JSON.stringify(
-            formatError(
-              CliErrorCode.GraphExists,
-              `Graph already exists at ${graphPath}`,
-              ['Delete the file to reinitialize'],
-            ),
+            formatError(CliErrorCode.GraphExists, `Graph already exists at ${graphPath}`, [
+              'Delete the file to reinitialize',
+            ]),
           ),
         );
         return;

@@ -1,6 +1,5 @@
 import type {
-  RiviereGraph,
-  DomainOpComponent,
+  RiviereGraph, DomainOpComponent 
 } from '@living-architecture/riviere-schema';
 import type { GraphStats } from './domain-types';
 
@@ -9,12 +8,8 @@ export function queryStats(graph: RiviereGraph): GraphStats {
 
   const uniqueDomains = new Set(components.map((c) => c.domain));
 
-  const domainOps = components.filter(
-    (c): c is DomainOpComponent => c.type === 'DomainOp',
-  );
-  const uniqueEntities = new Set(
-    domainOps.filter((c) => c.entity).map((c) => c.entity),
-  );
+  const domainOps = components.filter((c): c is DomainOpComponent => c.type === 'DomainOp');
+  const uniqueEntities = new Set(domainOps.filter((c) => c.entity).map((c) => c.entity));
 
   return {
     componentCount: components.length,

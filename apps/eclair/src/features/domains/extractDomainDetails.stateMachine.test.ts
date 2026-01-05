@@ -7,7 +7,7 @@ import {
   parseDomainMetadata,
   parseDomainKey,
   type RawNode,
-} from '@/lib/riviereTestData';
+} from '@/lib/riviereTestFixtures';
 import type { RiviereGraph } from '@/types/riviere';
 
 const testSourceLocation = {

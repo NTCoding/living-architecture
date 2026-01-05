@@ -1,28 +1,23 @@
 import {
-  describe,
-  it,
-  expect,
-} from 'vitest'
+  describe, it, expect 
+} from 'vitest';
 import {
-  render,
-  screen,
-} from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
-import { OverviewPage } from './OverviewPage'
-import type { RiviereGraph } from '@/types/riviere'
+  render, screen 
+} from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
+import { OverviewPage } from './OverviewPage';
+import type { RiviereGraph } from '@/types/riviere';
 import {
-  parseNode,
-  parseDomainMetadata,
-} from '@/lib/riviereTestData'
-
+  parseNode, parseDomainMetadata 
+} from '@/lib/riviereTestFixtures';
 
 const testSourceLocation = {
   repository: 'test-repo',
   filePath: 'src/test.ts',
-}
+};
 
 function renderWithRouter(ui: React.ReactElement): ReturnType<typeof render> {
-  return render(<MemoryRouter>{ui}</MemoryRouter>)
+  return render(<MemoryRouter>{ui}</MemoryRouter>);
 }
 
 function createTestGraph(): RiviereGraph {
@@ -61,7 +56,7 @@ function createTestGraph(): RiviereGraph {
       }),
     ],
     links: [],
-  }
+  };
 }
 
 function createGraphWithManyItems(): RiviereGraph {
@@ -181,64 +176,64 @@ function createGraphWithManyItems(): RiviereGraph {
       }),
     ],
     links: [],
-  }
+  };
 }
 
 describe('OverviewPage - Item display limits', () => {
   it('limits entities display to 3 items when domain has more', () => {
-    const graph = createGraphWithManyItems()
+    const graph = createGraphWithManyItems();
 
-    renderWithRouter(<OverviewPage graph={graph} />)
+    renderWithRouter(<OverviewPage graph={graph} />);
 
-    expect(screen.getByText('Entity1')).toBeInTheDocument()
-    expect(screen.getByText('Entity2')).toBeInTheDocument()
-    expect(screen.getByText('Entity3')).toBeInTheDocument()
-    expect(screen.queryByText('Entity4')).not.toBeInTheDocument()
-    expect(screen.queryByText('Entity5')).not.toBeInTheDocument()
-  })
+    expect(screen.getByText('Entity1')).toBeInTheDocument();
+    expect(screen.getByText('Entity2')).toBeInTheDocument();
+    expect(screen.getByText('Entity3')).toBeInTheDocument();
+    expect(screen.queryByText('Entity4')).not.toBeInTheDocument();
+    expect(screen.queryByText('Entity5')).not.toBeInTheDocument();
+  });
 
   it('shows ellipsis indicator when entities exceed limit', () => {
-    const graph = createGraphWithManyItems()
+    const graph = createGraphWithManyItems();
 
-    renderWithRouter(<OverviewPage graph={graph} />)
+    renderWithRouter(<OverviewPage graph={graph} />);
 
-    const ellipsisIndicators = screen.getAllByText('…')
-    expect(ellipsisIndicators).toHaveLength(2)
-  })
+    const ellipsisIndicators = screen.getAllByText('…');
+    expect(ellipsisIndicators).toHaveLength(2);
+  });
 
   it('limits entry points display to 3 items when domain has more', () => {
-    const graph = createGraphWithManyItems()
+    const graph = createGraphWithManyItems();
 
-    renderWithRouter(<OverviewPage graph={graph} />)
+    renderWithRouter(<OverviewPage graph={graph} />);
 
-    expect(screen.getByText('/page1')).toBeInTheDocument()
-    expect(screen.getByText('/page2')).toBeInTheDocument()
-    expect(screen.getByText('/api/3')).toBeInTheDocument()
-    expect(screen.queryByText('/api/4')).not.toBeInTheDocument()
-    expect(screen.queryByText('/api/5')).not.toBeInTheDocument()
-  })
+    expect(screen.getByText('/page1')).toBeInTheDocument();
+    expect(screen.getByText('/page2')).toBeInTheDocument();
+    expect(screen.getByText('/api/3')).toBeInTheDocument();
+    expect(screen.queryByText('/api/4')).not.toBeInTheDocument();
+    expect(screen.queryByText('/api/5')).not.toBeInTheDocument();
+  });
 
   it('shows ellipsis indicator for entry points when exceeding limit', () => {
-    const graph = createGraphWithManyItems()
+    const graph = createGraphWithManyItems();
 
-    renderWithRouter(<OverviewPage graph={graph} />)
+    renderWithRouter(<OverviewPage graph={graph} />);
 
-    const ellipsisIndicators = screen.getAllByText('…')
-    expect(ellipsisIndicators).toHaveLength(2)
-  })
+    const ellipsisIndicators = screen.getAllByText('…');
+    expect(ellipsisIndicators).toHaveLength(2);
+  });
 
   it('shows all entities without ellipsis when count is 3 or less', () => {
-    const graph = createTestGraph()
+    const graph = createTestGraph();
 
-    renderWithRouter(<OverviewPage graph={graph} />)
+    renderWithRouter(<OverviewPage graph={graph} />);
 
-    expect(screen.getByText('Order')).toBeInTheDocument()
-    expect(screen.getByText('Payment')).toBeInTheDocument()
-    expect(screen.queryByText('…')).not.toBeInTheDocument()
-  })
+    expect(screen.getByText('Order')).toBeInTheDocument();
+    expect(screen.getByText('Payment')).toBeInTheDocument();
+    expect(screen.queryByText('…')).not.toBeInTheDocument();
+  });
 
   it('truncates long entity names to prevent overflow', () => {
-    const graph = createTestGraph()
+    const graph = createTestGraph();
     graph.components.push(
       parseNode({
         sourceLocation: testSourceLocation,
@@ -249,17 +244,17 @@ describe('OverviewPage - Item display limits', () => {
         module: 'core',
         entity: 'VeryLongEntityNameThatShouldBeTruncated',
         operationName: 'create',
-      })
-    )
+      }),
+    );
 
-    renderWithRouter(<OverviewPage graph={graph} />)
+    renderWithRouter(<OverviewPage graph={graph} />);
 
-    const entityBadge = screen.getByText('VeryLongEntityNameThatShouldBeTruncated')
-    expect(entityBadge).toHaveClass('truncate')
-  })
+    const entityBadge = screen.getByText('VeryLongEntityNameThatShouldBeTruncated');
+    expect(entityBadge).toHaveClass('truncate');
+  });
 
   it('truncates long entry point paths to prevent overflow', () => {
-    const graph = createTestGraph()
+    const graph = createTestGraph();
     graph.components.push(
       parseNode({
         sourceLocation: testSourceLocation,
@@ -271,12 +266,12 @@ describe('OverviewPage - Item display limits', () => {
         apiType: 'REST',
         httpMethod: 'GET',
         path: '/api/v1/orders/very/long/path/that/should/be/truncated',
-      })
-    )
+      }),
+    );
 
-    renderWithRouter(<OverviewPage graph={graph} />)
+    renderWithRouter(<OverviewPage graph={graph} />);
 
-    const pathElement = screen.getByText('/api/v1/orders/very/long/path/that/should/be/truncated')
-    expect(pathElement).toHaveClass('truncate')
-  })
-})
+    const pathElement = screen.getByText('/api/v1/orders/very/long/path/that/should/be/truncated');
+    expect(pathElement).toHaveClass('truncate');
+  });
+});

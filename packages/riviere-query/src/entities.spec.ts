@@ -1,7 +1,6 @@
 import { RiviereQuery } from './RiviereQuery';
 import {
-  createMinimalValidGraph,
-  createDomainOpComponent,
+  createMinimalValidGraph, createDomainOpComponent 
 } from './riviere-graph-fixtures';
 
 describe('operationsFor', () => {
@@ -345,9 +344,7 @@ describe('Entity methods', () => {
     const entities = query.entities();
 
     expect(entities).toHaveLength(1);
-    expect(entities[0]?.firstOperationId()).toBe(
-      'orders:checkout:domainop:order.begin',
-    );
+    expect(entities[0]?.firstOperationId()).toBe('orders:checkout:domainop:order.begin');
   });
 
   it('firstOperationId returns undefined when no operations', () => {
@@ -397,10 +394,7 @@ describe('businessRulesFor', () => {
         domain: 'orders',
         operationName: 'begin',
         entity: 'Order',
-        businessRules: [
-          'Order must have at least one item',
-          'Customer must be verified',
-        ],
+        businessRules: ['Order must have at least one item', 'Customer must be verified'],
       }),
       createDomainOpComponent({
         id: 'orders:checkout:domainop:order.ship',

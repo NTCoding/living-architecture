@@ -7,14 +7,16 @@ import {
 
 function createValidOptions(): BuilderOptions {
   return {
-    sources: [{
-      repository: 'test/repo',
-      commit: 'abc123' 
-    }],
+    sources: [
+      {
+        repository: 'test/repo',
+        commit: 'abc123',
+      },
+    ],
     domains: {
       orders: {
         description: 'Order domain',
-        systemType: 'domain' 
+        systemType: 'domain',
       },
     },
   };
@@ -48,7 +50,7 @@ describe('RiviereBuilder', () => {
 
       const link = builder.link({
         from: source.id,
-        to: target.id 
+        to: target.id,
       });
 
       expect(link.source).toBe(source.id);
@@ -168,7 +170,7 @@ describe('RiviereBuilder', () => {
 
       const link = builder.link({
         from: source.id,
-        to: 'any:target:id' 
+        to: 'any:target:id',
       });
 
       expect(link.type).toBeUndefined();
@@ -193,7 +195,7 @@ describe('RiviereBuilder', () => {
         from: source.id,
         target: {
           name: 'Stripe API',
-          domain: 'payments' 
+          domain: 'payments',
         },
       });
 
@@ -240,7 +242,7 @@ describe('RiviereBuilder', () => {
         from: source.id,
         target: {
           name: 'Stripe API',
-          url: 'https://stripe.com/api' 
+          url: 'https://stripe.com/api',
         },
       });
 
@@ -267,7 +269,7 @@ describe('RiviereBuilder', () => {
         description: 'Payment processing',
         sourceLocation: {
           repository: 'test/repo',
-          filePath: 'src/stripe.ts' 
+          filePath: 'src/stripe.ts',
         },
       });
 

@@ -1,15 +1,15 @@
 import {
   useEffect, useRef, useCallback, useState, useMemo 
-} from 'react'
-import * as d3 from 'd3'
+} from 'react';
+import * as d3 from 'd3';
 import type {
   RiviereGraph, Edge 
-} from '@/types/riviere'
-import type { Theme } from '@/types/theme'
+} from '@/types/riviere';
+import type { Theme } from '@/types/theme';
 import type {
   SimulationNode, SimulationLink, TooltipData 
-} from '../../types'
-import { computeDagreLayout } from './computeDagreLayout'
+} from '../../types';
+import { computeDagreLayout } from './computeDagreLayout';
 import {
   updateHighlight,
   setupSVGFiltersAndMarkers,
@@ -20,10 +20,10 @@ import {
   createUpdatePositionsFunction,
   applyDagrePositions,
   setupZoomBehavior,
-} from './GraphRenderingSetup'
+} from './GraphRenderingSetup';
 import {
   applyFocusMode, applyResetMode 
-} from './applyFocusModeBehavior'
+} from './applyFocusModeBehavior';
 import {
   createSimulationNodes,
   createSimulationLinks,
@@ -37,18 +37,18 @@ import {
   isAsyncEdge,
   truncateName,
   getDomainColor,
-} from './VisualizationDataAdapters'
+} from './VisualizationDataAdapters';
 
 interface ForceGraphProps {
-  readonly graph: RiviereGraph
-  readonly theme: Theme
-  readonly highlightedNodeIds?: Set<string> | undefined
-  readonly highlightedNodeId?: string | null
-  readonly visibleNodeIds?: Set<string> | undefined
-  readonly focusedDomain?: string | null
-  readonly onNodeClick?: (nodeId: string) => void
-  readonly onNodeHover?: (data: TooltipData | null) => void
-  readonly onBackgroundClick?: () => void
+  readonly graph: RiviereGraph;
+  readonly theme: Theme;
+  readonly highlightedNodeIds?: Set<string> | undefined;
+  readonly highlightedNodeId?: string | null;
+  readonly visibleNodeIds?: Set<string> | undefined;
+  readonly focusedDomain?: string | null;
+  readonly onNodeClick?: (nodeId: string) => void;
+  readonly onNodeHover?: (data: TooltipData | null) => void;
+  readonly onBackgroundClick?: () => void;
 }
 
 export function ForceGraph({
@@ -62,80 +62,88 @@ export function ForceGraph({
   onNodeHover,
   onBackgroundClick,
 }: Readonly<ForceGraphProps>): React.ReactElement {
-  const svgRef = useRef<SVGSVGElement>(null)
-  const containerRef = useRef<HTMLDivElement>(null)
+  const svgRef = useRef<SVGSVGElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({
     width: 0,
-    height: 0 
-  })
-  const lastGraphKeyRef = useRef<string>('')
-  const nodeSelectionRef = useRef<d3.Selection<SVGGElement, SimulationNode, SVGGElement, unknown> | null>(null)
-  const linkSelectionRef = useRef<d3.Selection<SVGPathElement, SimulationLink, SVGGElement, unknown> | null>(null)
-  const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null)
-  const nodesRef = useRef<SimulationNode[]>([])
-  const wasHighlightedRef = useRef(false)
-  const onNodeHoverRef = useRef(onNodeHover)
-  onNodeHoverRef.current = onNodeHover
+    height: 0,
+  });
+  const lastGraphKeyRef = useRef<string>('');
+  const nodeSelectionRef = useRef<d3.Selection<
+    SVGGElement,
+    SimulationNode,
+    SVGGElement,
+    unknown
+  > | null>(null);
+  const linkSelectionRef = useRef<d3.Selection<
+    SVGPathElement,
+    SimulationLink,
+    SVGGElement,
+    unknown
+  > | null>(null);
+  const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
+  const nodesRef = useRef<SimulationNode[]>([]);
+  const wasHighlightedRef = useRef(false);
+  const onNodeHoverRef = useRef(onNodeHover);
+  onNodeHoverRef.current = onNodeHover;
 
   const filteredNodes = visibleNodeIds
     ? graph.components.filter((n) => visibleNodeIds.has(n.id))
-    : graph.components
+    : graph.components;
 
   const filteredEdges = visibleNodeIds
-    ? graph.links.filter(
-      (e) => visibleNodeIds.has(e.source) && visibleNodeIds.has(e.target)
-    )
-    : graph.links
+    ? graph.links.filter((e) => visibleNodeIds.has(e.source) && visibleNodeIds.has(e.target))
+    : graph.links;
 
-  const allEdgesForTracing: Edge[] = useMemo(() => [
-    ...filteredEdges,
-    ...(graph.externalLinks ?? []).map((link) => ({
-      source: link.source,
-      target: `external:${link.target.name}`,
-      type: link.type,
-    })),
-  ], [filteredEdges, graph.externalLinks])
+  const allEdgesForTracing: Edge[] = useMemo(
+    () => [
+      ...filteredEdges,
+      ...(graph.externalLinks ?? []).map((link) => ({
+        source: link.source,
+        target: `external:${link.target.name}`,
+        type: link.type,
+      })),
+    ],
+    [filteredEdges, graph.externalLinks],
+  );
 
   useEffect(() => {
-    if (!containerRef.current) return
+    if (!containerRef.current) return;
 
     const resizeObserver = new ResizeObserver((entries) => {
-      const entry = entries[0]
+      const entry = entries[0];
       if (entry) {
         setDimensions({
           width: entry.contentRect.width,
           height: entry.contentRect.height,
-        })
+        });
       }
-    })
+    });
 
-    resizeObserver.observe(containerRef.current)
-    return () => resizeObserver.disconnect()
-  }, [])
+    resizeObserver.observe(containerRef.current);
+    return () => resizeObserver.disconnect();
+  }, []);
 
   const handleNodeClick = useCallback(
     (nodeId: string) => {
-      onNodeClick?.(nodeId)
+      onNodeClick?.(nodeId);
     },
-    [onNodeClick]
-  )
+    [onNodeClick],
+  );
 
-  const handleNodeHover = useCallback(
-    (data: TooltipData | null) => {
-      onNodeHoverRef.current?.(data)
-    },
-    []
-  )
+  const handleNodeHover = useCallback((data: TooltipData | null) => {
+    onNodeHoverRef.current?.(data);
+  }, []);
 
   const handleBackgroundClick = useCallback(() => {
-    onBackgroundClick?.()
-  }, [onBackgroundClick])
+    onBackgroundClick?.();
+  }, [onBackgroundClick]);
 
   const fitViewportFn = useCallback(
     (
       svg: d3.Selection<SVGSVGElement, unknown, d3.BaseType, unknown>,
       zoom: d3.ZoomBehavior<SVGSVGElement, unknown>,
-      nodes: SimulationNode[]
+      nodes: SimulationNode[],
     ) => {
       const {
         translateX, translateY, scale 
@@ -143,16 +151,18 @@ export function ForceGraph({
         nodes,
         dimensions,
         padding: 80,
-      })
+      });
 
-      const svgElement = svg.node()
+      const svgElement = svg.node();
       if (!svgElement?.viewBox?.baseVal) {
-        throw new Error('SVG element does not support viewBox.baseVal - zoom requires full SVG support')
+        throw new Error(
+          'SVG element does not support viewBox.baseVal - zoom requires full SVG support',
+        );
       }
-      svg.call(zoom.transform, d3.zoomIdentity.translate(translateX, translateY).scale(scale))
+      svg.call(zoom.transform, d3.zoomIdentity.translate(translateX, translateY).scale(scale));
     },
-    [dimensions]
-  )
+    [dimensions],
+  );
 
   const applyVisualization = useCallback(
     (
@@ -163,7 +173,7 @@ export function ForceGraph({
       nodes: SimulationNode[],
       domain: string | null | undefined,
       highlightIds: Set<string> | undefined,
-      shouldFitViewport: boolean
+      shouldFitViewport: boolean,
     ) => {
       if (domain) {
         applyFocusMode({
@@ -174,91 +184,94 @@ export function ForceGraph({
           nodes,
           domain,
           theme,
-          dimensions 
-        })
-        return
+          dimensions,
+        });
+        return;
       }
       if (highlightIds) {
-        return
+        return;
       }
       applyResetMode({
         node,
-        link 
-      })
+        link,
+      });
       if (shouldFitViewport && nodes.length > 0 && dimensions.width > 0 && dimensions.height > 0) {
-        fitViewportFn(svg, zoom, nodes)
+        fitViewportFn(svg, zoom, nodes);
       }
     },
-    [fitViewportFn, dimensions, theme]
-  )
+    [fitViewportFn, dimensions, theme],
+  );
 
   const setupNodeEvents = useCallback(
     (
       node: d3.Selection<SVGGElement, SimulationNode, SVGGElement, unknown>,
-      links: SimulationLink[]
+      links: SimulationLink[],
     ) => {
       node.on('click', (event: PointerEvent, d: SimulationNode) => {
-        event.stopPropagation()
-        handleNodeClick(d.id)
-      })
+        event.stopPropagation();
+        handleNodeClick(d.id);
+      });
       node.on('mouseenter', (event: MouseEvent, d: SimulationNode) => {
-        const incomingCount = links.filter((l) => getLinkNodeId(l.target) === d.id).length
-        const outgoingCount = links.filter((l) => getLinkNodeId(l.source) === d.id).length
+        const incomingCount = links.filter((l) => getLinkNodeId(l.target) === d.id).length;
+        const outgoingCount = links.filter((l) => getLinkNodeId(l.source) === d.id).length;
         handleNodeHover({
           node: d,
           x: event.pageX,
           y: event.pageY,
           incomingCount,
           outgoingCount,
-        })
-      })
+        });
+      });
       node.on('mouseleave', () => {
-        handleNodeHover(null)
-      })
+        handleNodeHover(null);
+      });
     },
-    [handleNodeClick, handleNodeHover]
-  )
+    [handleNodeClick, handleNodeHover],
+  );
 
   useEffect(() => {
-    if (!svgRef.current || dimensions.width === 0 || dimensions.height === 0) return
+    if (!svgRef.current || dimensions.width === 0 || dimensions.height === 0) return;
 
-    const svg = d3.select(svgRef.current)
-    svg.selectAll('*').remove()
+    const svg = d3.select(svgRef.current);
+    svg.selectAll('*').remove();
 
-    const regularNodes = createSimulationNodes(filteredNodes)
-    const regularLinks = createSimulationLinks(filteredEdges)
-    const externalNodes = createExternalNodes(graph.externalLinks)
-    const externalSimLinks = createExternalLinks(graph.externalLinks)
-    const nodes = [...regularNodes, ...externalNodes]
-    const links = [...regularLinks, ...externalSimLinks]
+    const regularNodes = createSimulationNodes(filteredNodes);
+    const regularLinks = createSimulationLinks(filteredEdges);
+    const externalNodes = createExternalNodes(graph.externalLinks);
+    const externalSimLinks = createExternalLinks(graph.externalLinks);
+    const nodes = [...regularNodes, ...externalNodes];
+    const links = [...regularLinks, ...externalSimLinks];
 
-    const currentGraphKey = filteredNodes.map((n) => n.id).sort((a, b) => a.localeCompare(b)).join(',')
-    const isGraphDataChange = currentGraphKey !== lastGraphKeyRef.current
-    lastGraphKeyRef.current = currentGraphKey
+    const currentGraphKey = filteredNodes
+      .map((n) => n.id)
+      .sort((a, b) => a.localeCompare(b))
+      .join(',');
+    const isGraphDataChange = currentGraphKey !== lastGraphKeyRef.current;
+    lastGraphKeyRef.current = currentGraphKey;
 
-    const uniqueDomains = [...new Set(nodes.map((n) => n.domain))]
-    const edgesForLayout = createLayoutEdges(filteredEdges, graph.externalLinks)
+    const uniqueDomains = [...new Set(nodes.map((n) => n.domain))];
+    const edgesForLayout = createLayoutEdges(filteredEdges, graph.externalLinks);
 
     const positions = computeDagreLayout({
       nodes,
-      edges: edgesForLayout 
-    })
+      edges: edgesForLayout,
+    });
     applyDagrePositions({
       nodes,
-      positions 
-    })
+      positions,
+    });
 
-    const g = svg.append('g').attr('class', 'graph-container')
+    const g = svg.append('g').attr('class', 'graph-container');
 
-    const defs = svg.append('defs')
-    setupSVGFiltersAndMarkers(defs, theme)
+    const defs = svg.append('defs');
+    setupSVGFiltersAndMarkers(defs, theme);
 
-    const linkGroup = g.append('g').attr('class', 'links')
-    const nodeGroup = g.append('g').attr('class', 'nodes')
+    const linkGroup = g.append('g').attr('class', 'links');
+    const nodeGroup = g.append('g').attr('class', 'nodes');
 
-    const nodeMap = new Map<string, SimulationNode>()
+    const nodeMap = new Map<string, SimulationNode>();
     for (const n of nodes) {
-      nodeMap.set(n.id, n)
+      nodeMap.set(n.id, n);
     }
 
     const link = setupLinks({
@@ -269,7 +282,7 @@ export function ForceGraph({
       getSemanticEdgeType,
       getSemanticEdgeColor,
       isAsyncEdge,
-    })
+    });
 
     const node = setupNodes({
       nodeGroup,
@@ -283,72 +296,111 @@ export function ForceGraph({
     }).call(
       d3
         .drag<SVGGElement, SimulationNode>()
-        .on('start', (_event: d3.D3DragEvent<SVGGElement, SimulationNode, SimulationNode>, d: SimulationNode) => {
-          handleNodeHover(null)
-          d.fx = d.x
-          d.fy = d.y
-        })
-        .on('drag', (event: d3.D3DragEvent<SVGGElement, SimulationNode, SimulationNode>, d: SimulationNode) => {
-          d.x = event.x
-          d.y = event.y
-          d.fx = event.x
-          d.fy = event.y
-          updatePositions()
-        })
-        .on('end', (_event: d3.D3DragEvent<SVGGElement, SimulationNode, SimulationNode>, d: SimulationNode) => {
-          d.fx = null
-          d.fy = null
-        })
-    )
+        .on(
+          'start',
+          (
+            _event: d3.D3DragEvent<SVGGElement, SimulationNode, SimulationNode>,
+            d: SimulationNode,
+          ) => {
+            handleNodeHover(null);
+            d.fx = d.x;
+            d.fy = d.y;
+          },
+        )
+        .on(
+          'drag',
+          (
+            event: d3.D3DragEvent<SVGGElement, SimulationNode, SimulationNode>,
+            d: SimulationNode,
+          ) => {
+            d.x = event.x;
+            d.y = event.y;
+            d.fx = event.x;
+            d.fy = event.y;
+            updatePositions();
+          },
+        )
+        .on(
+          'end',
+          (
+            _event: d3.D3DragEvent<SVGGElement, SimulationNode, SimulationNode>,
+            d: SimulationNode,
+          ) => {
+            d.fx = null;
+            d.fy = null;
+          },
+        ),
+    );
 
-    setupNodeEvents(node, links)
+    setupNodeEvents(node, links);
 
     const updatePositions = createUpdatePositionsFunction({
       link,
       node,
       nodePositionMap: nodeMap,
       getNodeRadius,
-    })
+    });
 
-    const zoom = setupZoomBehavior(svg, g, {onInteractionStart: () => handleNodeHover(null),})
-    updatePositions()
+    const zoom = setupZoomBehavior(svg, g, { onInteractionStart: () => handleNodeHover(null) });
+    updatePositions();
 
-    nodeSelectionRef.current = node
-    linkSelectionRef.current = link
-    zoomRef.current = zoom
-    nodesRef.current = nodes
+    nodeSelectionRef.current = node;
+    linkSelectionRef.current = link;
+    zoomRef.current = zoom;
+    nodesRef.current = nodes;
 
-    applyVisualization(node, link, zoom, svg, nodes, focusedDomain, undefined, isGraphDataChange)
-    svg.on('click', handleBackgroundClick)
-  }, [filteredNodes, filteredEdges, allEdgesForTracing, theme, dimensions, focusedDomain, applyVisualization, setupNodeEvents, handleBackgroundClick])
+    applyVisualization(node, link, zoom, svg, nodes, focusedDomain, undefined, isGraphDataChange);
+    svg.on('click', handleBackgroundClick);
+  }, [
+    filteredNodes,
+    filteredEdges,
+    allEdgesForTracing,
+    theme,
+    dimensions,
+    focusedDomain,
+    applyVisualization,
+    setupNodeEvents,
+    handleBackgroundClick,
+  ]);
 
   useEffect(() => {
-    const node = nodeSelectionRef.current
-    const link = linkSelectionRef.current
-    if (!node || !link) return
+    const node = nodeSelectionRef.current;
+    const link = linkSelectionRef.current;
+    if (!node || !link) return;
 
-    const isHighlighted = highlightedNodeIds !== undefined && highlightedNodeIds.size > 0
-    const wasHighlighted = wasHighlightedRef.current
-    const highlightCleared = wasHighlighted && !isHighlighted
+    const isHighlighted = highlightedNodeIds !== undefined && highlightedNodeIds.size > 0;
+    const wasHighlighted = wasHighlightedRef.current;
+    const highlightCleared = wasHighlighted && !isHighlighted;
 
     updateHighlight({
       node,
       link,
       filteredEdges: allEdgesForTracing,
-      highlightedNodeIds 
-    })
-    wasHighlightedRef.current = isHighlighted
+      highlightedNodeIds,
+    });
+    wasHighlightedRef.current = isHighlighted;
 
     if (highlightCleared && svgRef.current && zoomRef.current && nodesRef.current.length > 0) {
-      const svg = d3.select(svgRef.current)
-      fitViewportFn(svg, zoomRef.current, nodesRef.current)
+      const svg = d3.select(svgRef.current);
+      fitViewportFn(svg, zoomRef.current, nodesRef.current);
     }
-  }, [highlightedNodeIds, allEdgesForTracing, fitViewportFn])
+  }, [highlightedNodeIds, allEdgesForTracing, fitViewportFn]);
 
   return (
-    <div ref={containerRef} className="relative h-full w-full overflow-hidden rounded-lg" data-testid="force-graph-container" data-highlighted-node={highlightedNodeId}>
+    <div
+      ref={containerRef}
+      className="relative h-full w-full overflow-hidden rounded-lg"
+      data-testid="force-graph-container"
+      data-highlighted-node={highlightedNodeId}
+    >
       <div className="canvas-background absolute inset-0" />
-      <svg ref={svgRef} width={dimensions.width} height={dimensions.height} className="relative z-10" data-testid="force-graph-svg" />
+      <svg
+        ref={svgRef}
+        width={dimensions.width}
+        height={dimensions.height}
+        className="relative z-10"
+        data-testid="force-graph-svg"
+      />
     </div>
-  )
+  );
 }

@@ -4,14 +4,16 @@ import {
 
 function createValidOptions(): BuilderOptions {
   return {
-    sources: [{
-      repository: 'test/repo',
-      commit: 'abc123' 
-    }],
+    sources: [
+      {
+        repository: 'test/repo',
+        commit: 'abc123',
+      },
+    ],
     domains: {
       orders: {
         description: 'Order domain',
-        systemType: 'domain' 
+        systemType: 'domain',
       },
     },
   };
@@ -20,7 +22,7 @@ function createValidOptions(): BuilderOptions {
 function createSourceLocation() {
   return {
     repository: 'test/repo',
-    filePath: 'src/test.ts' 
+    filePath: 'src/test.ts',
   };
 }
 
@@ -37,20 +39,22 @@ describe('RiviereBuilder enrichComponent', () => {
       });
 
       builder.enrichComponent(domainOp.id, {
-        stateChanges: [{
-          from: 'draft',
-          to: 'placed' 
-        }],
+        stateChanges: [
+          {
+            from: 'draft',
+            to: 'placed',
+          },
+        ],
       });
 
-      const enriched = builder.graph.components.find(
-        (c) => c.id === domainOp.id,
-      );
+      const enriched = builder.graph.components.find((c) => c.id === domainOp.id);
       expect(enriched).toMatchObject({
-        stateChanges: [{
-          from: 'draft',
-          to: 'placed' 
-        }],
+        stateChanges: [
+          {
+            from: 'draft',
+            to: 'placed',
+          },
+        ],
       });
     });
   });
@@ -66,22 +70,10 @@ describe('RiviereBuilder enrichComponent', () => {
         sourceLocation: createSourceLocation(),
       });
 
-      builder.enrichComponent(domainOp.id, {
-        businessRules: [
-          'Customer must have valid payment',
-          'Inventory must be available',
-        ],
-      });
+      builder.enrichComponent(domainOp.id, {businessRules: ['Customer must have valid payment', 'Inventory must be available'],});
 
-      const enriched = builder.graph.components.find(
-        (c) => c.id === domainOp.id,
-      );
-      expect(enriched).toMatchObject({
-        businessRules: [
-          'Customer must have valid payment',
-          'Inventory must be available',
-        ],
-      });
+      const enriched = builder.graph.components.find((c) => c.id === domainOp.id);
+      expect(enriched).toMatchObject({businessRules: ['Customer must have valid payment', 'Inventory must be available'],});
     });
   });
 
@@ -98,9 +90,7 @@ describe('RiviereBuilder enrichComponent', () => {
 
       builder.enrichComponent(domainOp.id, { entity: 'Order' });
 
-      const enriched = builder.graph.components.find(
-        (c) => c.id === domainOp.id,
-      );
+      const enriched = builder.graph.components.find((c) => c.id === domainOp.id);
       expect(enriched).toMatchObject({ entity: 'Order' });
     });
   });
@@ -117,10 +107,12 @@ describe('RiviereBuilder enrichComponent', () => {
 
       expect(() =>
         builder.enrichComponent(useCase.id, {
-          stateChanges: [{
-            from: 'draft',
-            to: 'placed' 
-          }],
+          stateChanges: [
+            {
+              from: 'draft',
+              to: 'placed',
+            },
+          ],
         }),
       ).toThrow(
         "Only DomainOp components can be enriched. 'orders:checkout:usecase:checkout-flow' is type 'UseCase'",
@@ -138,10 +130,8 @@ describe('RiviereBuilder enrichComponent', () => {
       });
 
       expect(() =>
-        builder.enrichComponent('orders:checkout:domainop:place-ordr', {entity: 'Order',}),
-      ).toThrow(
-        /not found.*Did you mean.*orders:checkout:domainop:place-order/i,
-      );
+        builder.enrichComponent('orders:checkout:domainop:place-ordr', { entity: 'Order' }),
+      ).toThrow(/not found.*Did you mean.*orders:checkout:domainop:place-order/i);
     });
 
     it('accepts empty businessRules array', () => {
@@ -156,9 +146,7 @@ describe('RiviereBuilder enrichComponent', () => {
 
       builder.enrichComponent(domainOp.id, { businessRules: [] });
 
-      const enriched = builder.graph.components.find(
-        (c) => c.id === domainOp.id,
-      );
+      const enriched = builder.graph.components.find((c) => c.id === domainOp.id);
       expect(enriched).toMatchObject({ businessRules: [] });
     });
   });
@@ -176,10 +164,8 @@ describe('RiviereBuilder enrichComponent', () => {
 
       builder.enrichComponent(domainOp.id, {behavior: { reads: ['items parameter', 'this.state'] },});
 
-      const enriched = builder.graph.components.find(
-        (c) => c.id === domainOp.id,
-      );
-      expect(enriched).toMatchObject({behavior: { reads: ['items parameter', 'this.state'] },});
+      const enriched = builder.graph.components.find((c) => c.id === domainOp.id);
+      expect(enriched).toMatchObject({ behavior: { reads: ['items parameter', 'this.state'] } });
     });
 
     it('adds complete behavior object to DomainOp component', () => {
@@ -201,9 +187,7 @@ describe('RiviereBuilder enrichComponent', () => {
         },
       });
 
-      const enriched = builder.graph.components.find(
-        (c) => c.id === domainOp.id,
-      );
+      const enriched = builder.graph.components.find((c) => c.id === domainOp.id);
       expect(enriched).toMatchObject({
         behavior: {
           reads: ['items parameter'],
@@ -225,12 +209,10 @@ describe('RiviereBuilder enrichComponent', () => {
         behavior: { reads: ['this.state'] },
       });
 
-      builder.enrichComponent(domainOp.id, {behavior: { reads: ['items parameter'] },});
+      builder.enrichComponent(domainOp.id, { behavior: { reads: ['items parameter'] } });
 
-      const enriched = builder.graph.components.find(
-        (c) => c.id === domainOp.id,
-      );
-      expect(enriched).toMatchObject({behavior: { reads: ['this.state', 'items parameter'] },});
+      const enriched = builder.graph.components.find((c) => c.id === domainOp.id);
+      expect(enriched).toMatchObject({ behavior: { reads: ['this.state', 'items parameter'] } });
     });
   });
 
@@ -243,31 +225,33 @@ describe('RiviereBuilder enrichComponent', () => {
         module: 'checkout',
         operationName: 'placeOrder',
         sourceLocation: createSourceLocation(),
-        stateChanges: [{
-          from: 'draft',
-          to: 'placed' 
-        }],
+        stateChanges: [
+          {
+            from: 'draft',
+            to: 'placed',
+          },
+        ],
       });
 
       builder.enrichComponent(domainOp.id, {
-        stateChanges: [{
-          from: 'placed',
-          to: 'shipped' 
-        }],
+        stateChanges: [
+          {
+            from: 'placed',
+            to: 'shipped',
+          },
+        ],
       });
 
-      const enriched = builder.graph.components.find(
-        (c) => c.id === domainOp.id,
-      );
+      const enriched = builder.graph.components.find((c) => c.id === domainOp.id);
       expect(enriched).toMatchObject({
         stateChanges: [
           {
             from: 'draft',
-            to: 'placed' 
+            to: 'placed',
           },
           {
             from: 'placed',
-            to: 'shipped' 
+            to: 'shipped',
           },
         ],
       });
@@ -284,17 +268,10 @@ describe('RiviereBuilder enrichComponent', () => {
         businessRules: ['Customer must be authenticated'],
       });
 
-      builder.enrichComponent(domainOp.id, {businessRules: ['Inventory must be available'],});
+      builder.enrichComponent(domainOp.id, { businessRules: ['Inventory must be available'] });
 
-      const enriched = builder.graph.components.find(
-        (c) => c.id === domainOp.id,
-      );
-      expect(enriched).toMatchObject({
-        businessRules: [
-          'Customer must be authenticated',
-          'Inventory must be available',
-        ],
-      });
+      const enriched = builder.graph.components.find((c) => c.id === domainOp.id);
+      expect(enriched).toMatchObject({businessRules: ['Customer must be authenticated', 'Inventory must be available'],});
     });
   });
 
@@ -311,23 +288,25 @@ describe('RiviereBuilder enrichComponent', () => {
 
       builder.enrichComponent(domainOp.id, {
         signature: {
-          parameters: [{
-            name: 'orderId',
-            type: 'string' 
-          }],
+          parameters: [
+            {
+              name: 'orderId',
+              type: 'string',
+            },
+          ],
           returnType: 'Order',
         },
       });
 
-      const enriched = builder.graph.components.find(
-        (c) => c.id === domainOp.id,
-      );
+      const enriched = builder.graph.components.find((c) => c.id === domainOp.id);
       expect(enriched).toMatchObject({
         signature: {
-          parameters: [{
-            name: 'orderId',
-            type: 'string' 
-          }],
+          parameters: [
+            {
+              name: 'orderId',
+              type: 'string',
+            },
+          ],
           returnType: 'Order',
         },
       });
@@ -346,23 +325,25 @@ describe('RiviereBuilder enrichComponent', () => {
 
       builder.enrichComponent(domainOp.id, {
         signature: {
-          parameters: [{
-            name: 'orderId',
-            type: 'string' 
-          }],
+          parameters: [
+            {
+              name: 'orderId',
+              type: 'string',
+            },
+          ],
           returnType: 'Order',
         },
       });
 
-      const enriched = builder.graph.components.find(
-        (c) => c.id === domainOp.id,
-      );
+      const enriched = builder.graph.components.find((c) => c.id === domainOp.id);
       expect(enriched).toMatchObject({
         signature: {
-          parameters: [{
-            name: 'orderId',
-            type: 'string' 
-          }],
+          parameters: [
+            {
+              name: 'orderId',
+              type: 'string',
+            },
+          ],
           returnType: 'Order',
         },
       });

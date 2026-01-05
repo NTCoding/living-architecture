@@ -9,20 +9,15 @@ import { createProgram } from '../../cli';
 import { CliErrorCode } from '../../error-codes';
 import type { TestContext } from '../../command-test-fixtures';
 import {
-  createTestContext,
-  setupCommandTest,
+  createTestContext, setupCommandTest 
 } from '../../command-test-fixtures';
 
 describe('riviere builder link-external', () => {
   describe('command registration', () => {
     it('registers link-external command under builder', () => {
       const program = createProgram();
-      const builderCmd = program.commands.find(
-        (cmd) => cmd.name() === 'builder',
-      );
-      const linkExternalCmd = builderCmd?.commands.find(
-        (cmd) => cmd.name() === 'link-external',
-      );
+      const builderCmd = program.commands.find((cmd) => cmd.name() === 'builder');
+      const linkExternalCmd = builderCmd?.commands.find((cmd) => cmd.name() === 'link-external');
 
       expect(linkExternalCmd?.name()).toBe('link-external');
     });
@@ -42,7 +37,7 @@ describe('riviere builder link-external', () => {
           domains: {
             orders: {
               description: 'Order management',
-              systemType: 'domain' 
+              systemType: 'domain',
             },
           },
         },
@@ -65,11 +60,7 @@ describe('riviere builder link-external', () => {
         links: [],
         externalLinks: [],
       };
-      await writeFile(
-        join(graphDir, 'graph.json'),
-        JSON.stringify(graph),
-        'utf-8',
-      );
+      await writeFile(join(graphDir, 'graph.json'), JSON.stringify(graph), 'utf-8');
     }
 
     it('creates external link when source component exists', async () => {
@@ -96,7 +87,7 @@ describe('riviere builder link-external', () => {
         externalLinks: [
           {
             source: 'orders:checkout:api:pay',
-            target: {name: 'Stripe API',},
+            target: { name: 'Stripe API' },
           },
         ],
       });
@@ -139,7 +130,7 @@ describe('riviere builder link-external', () => {
       const output: unknown = JSON.parse(ctx.consoleOutput[0] ?? '');
       expect(output).toMatchObject({
         success: false,
-        error: {code: CliErrorCode.ComponentNotFound,},
+        error: { code: CliErrorCode.ComponentNotFound },
       });
     });
 
@@ -207,7 +198,7 @@ describe('riviere builder link-external', () => {
         data: {
           externalLink: {
             source: 'orders:checkout:api:pay',
-            target: {name: 'Stripe API',},
+            target: { name: 'Stripe API' },
           },
         },
       });
@@ -236,7 +227,7 @@ describe('riviere builder link-external', () => {
         externalLinks: [
           {
             source: 'orders:checkout:api:pay',
-            target: { name: 'Stripe API' } 
+            target: { name: 'Stripe API' },
           },
         ],
       });

@@ -4,14 +4,16 @@ import {
 
 function createValidOptions(): BuilderOptions {
   return {
-    sources: [{
-      repository: 'my-org/my-repo',
-      commit: 'abc123' 
-    }],
+    sources: [
+      {
+        repository: 'my-org/my-repo',
+        commit: 'abc123',
+      },
+    ],
     domains: {
       orders: {
         description: 'Order management',
-        systemType: 'domain' 
+        systemType: 'domain',
       },
     },
   };
@@ -273,20 +275,24 @@ describe('RiviereBuilder components', () => {
         operationName: 'place',
         entity: 'Order',
         signature: {
-          parameters: [{
-            name: 'orderId',
-            type: 'string' 
-          }],
+          parameters: [
+            {
+              name: 'orderId',
+              type: 'string',
+            },
+          ],
           returnType: 'Order',
         },
         behavior: {
           reads: ['inventory'],
-          modifies: ['orders'] 
+          modifies: ['orders'],
         },
-        stateChanges: [{
-          from: 'draft',
-          to: 'placed' 
-        }],
+        stateChanges: [
+          {
+            from: 'draft',
+            to: 'placed',
+          },
+        ],
         businessRules: ['Order must have items'],
         description: 'Places an order',
         sourceLocation: {
@@ -296,20 +302,24 @@ describe('RiviereBuilder components', () => {
       });
 
       expect(component.signature).toEqual({
-        parameters: [{
-          name: 'orderId',
-          type: 'string' 
-        }],
+        parameters: [
+          {
+            name: 'orderId',
+            type: 'string',
+          },
+        ],
         returnType: 'Order',
       });
       expect(component.behavior).toEqual({
         reads: ['inventory'],
         modifies: ['orders'],
       });
-      expect(component.stateChanges).toEqual([{
-        from: 'draft',
-        to: 'placed' 
-      }]);
+      expect(component.stateChanges).toEqual([
+        {
+          from: 'draft',
+          to: 'placed',
+        },
+      ]);
       expect(component.businessRules).toEqual(['Order must have items']);
       expect(component.description).toBe('Places an order');
     });

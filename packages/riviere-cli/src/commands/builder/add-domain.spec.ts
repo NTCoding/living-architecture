@@ -19,12 +19,8 @@ describe('riviere builder add-domain', () => {
   describe('command registration', () => {
     it('registers add-domain command under builder', () => {
       const program = createProgram();
-      const builderCmd = program.commands.find(
-        (cmd) => cmd.name() === 'builder',
-      );
-      const addDomainCmd = builderCmd?.commands.find(
-        (cmd) => cmd.name() === 'add-domain',
-      );
+      const builderCmd = program.commands.find((cmd) => cmd.name() === 'builder');
+      const addDomainCmd = builderCmd?.commands.find((cmd) => cmd.name() === 'add-domain');
 
       expect(addDomainCmd?.name()).toBe('add-domain');
     });
@@ -60,11 +56,11 @@ describe('riviere builder add-domain', () => {
           domains: {
             orders: {
               description: 'Test domain',
-              systemType: 'domain' 
+              systemType: 'domain',
             },
             payments: {
               description: 'Payment processing',
-              systemType: 'bff' 
+              systemType: 'bff',
             },
           },
         },
@@ -182,8 +178,8 @@ describe('riviere builder add-domain', () => {
           domains: {
             orders: {
               description: 'Orders',
-              systemType: 'domain' 
-            } 
+              systemType: 'domain',
+            },
           },
         },
         components: [],
@@ -214,11 +210,11 @@ describe('riviere builder add-domain', () => {
           domains: {
             orders: {
               description: 'Orders',
-              systemType: 'domain' 
+              systemType: 'domain',
             },
             payments: {
               description: 'Payment processing',
-              systemType: 'bff' 
+              systemType: 'bff',
             },
           },
         },
@@ -229,7 +225,7 @@ describe('riviere builder add-domain', () => {
   describe('unexpected builder errors', () => {
     const mockContext: {
       testDir: string;
-      originalCwd: string 
+      originalCwd: string;
     } = {
       testDir: '',
       originalCwd: '',
@@ -257,7 +253,11 @@ describe('riviere builder add-domain', () => {
       };
 
       vi.doMock('@living-architecture/riviere-builder', () => ({
-        RiviereBuilder: {resume: vi.fn().mockReturnValue({addDomain: vi.fn().mockImplementation(throwUnexpectedError),}),},
+        RiviereBuilder: {
+          resume: vi
+            .fn()
+            .mockReturnValue({ addDomain: vi.fn().mockImplementation(throwUnexpectedError) }),
+        },
         DuplicateDomainError: class DuplicateDomainError extends Error {},
       }));
 

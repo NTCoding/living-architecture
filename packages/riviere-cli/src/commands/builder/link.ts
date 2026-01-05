@@ -2,8 +2,7 @@ import { Command } from 'commander';
 import { writeFile } from 'node:fs/promises';
 import { ComponentId } from '@living-architecture/riviere-builder';
 import {
-  getDefaultGraphPathDescription,
-  resolveGraphPath,
+  getDefaultGraphPathDescription, resolveGraphPath 
 } from '../../graph-path';
 import { fileExists } from '../../file-existence';
 import { formatSuccess } from '../../output';
@@ -14,9 +13,7 @@ import {
   validateComponentType, validateLinkType 
 } from '../../validation';
 import {
-  loadGraphBuilder,
-  reportGraphNotFound,
-  tryBuilderOperation,
+  loadGraphBuilder, reportGraphNotFound, tryBuilderOperation 
 } from './link-infrastructure';
 
 interface LinkOptions {
@@ -92,7 +89,7 @@ Examples:
       const linkInput: {
         from: string;
         to: string;
-        type?: 'sync' | 'async' 
+        type?: 'sync' | 'async';
       } = {
         from: options.from,
         to: targetId,

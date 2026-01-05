@@ -1,13 +1,13 @@
-import { useCallback } from 'react'
-import type { AggregatedConnection } from '../../extractDomainDetails'
-import { ConnectionItem } from './ConnectionItem'
+import { useCallback } from 'react';
+import type { AggregatedConnection } from '../../extractDomainDetails';
+import { ConnectionItem } from './ConnectionItem';
 
 interface DomainInfoModalProps {
-  readonly nodeId: string
-  readonly connections: readonly AggregatedConnection[]
-  readonly isCurrent: boolean
-  readonly currentDomainId: string
-  readonly onClose: () => void
+  readonly nodeId: string;
+  readonly connections: readonly AggregatedConnection[];
+  readonly isCurrent: boolean;
+  readonly currentDomainId: string;
+  readonly onClose: () => void;
 }
 
 export function DomainInfoModal({
@@ -18,8 +18,8 @@ export function DomainInfoModal({
   onClose,
 }: Readonly<DomainInfoModalProps>): React.ReactElement {
   const handleBackdropClick = useCallback(() => {
-    onClose()
-  }, [onClose])
+    onClose();
+  }, [onClose]);
 
   return (
     <>
@@ -35,27 +35,38 @@ export function DomainInfoModal({
         className="absolute left-1/2 top-1/2 z-50 w-80 -translate-x-1/2 -translate-y-1/2 rounded-lg border border-[var(--border-color)] bg-[var(--bg-secondary)] shadow-xl"
       >
         <ModalHeader nodeId={nodeId} isCurrent={isCurrent} onClose={onClose} />
-        <ModalContent isCurrent={isCurrent} connections={connections} currentDomainId={currentDomainId} />
+        <ModalContent
+          isCurrent={isCurrent}
+          connections={connections}
+          currentDomainId={currentDomainId}
+        />
         {!isCurrent && <ModalFooter nodeId={nodeId} />}
       </div>
     </>
-  )
+  );
 }
 
 interface ModalHeaderProps {
-  readonly nodeId: string
-  readonly isCurrent: boolean
-  readonly onClose: () => void
+  readonly nodeId: string;
+  readonly isCurrent: boolean;
+  readonly onClose: () => void;
 }
 
 function ModalHeader({
-  nodeId, isCurrent, onClose 
+  nodeId,
+  isCurrent,
+  onClose,
 }: Readonly<ModalHeaderProps>): React.ReactElement {
   return (
     <div className="flex items-center justify-between border-b border-[var(--border-color)] px-4 py-3">
       <div className="flex items-center gap-3">
-        <div className={`flex h-8 w-8 items-center justify-center rounded-full ${isCurrent ? 'bg-[var(--primary)]' : 'bg-[var(--bg-tertiary)]'}`}>
-          <i className={`ph ph-circles-three-plus text-sm ${isCurrent ? 'text-white' : 'text-[var(--text-secondary)]'}`} aria-hidden="true" />
+        <div
+          className={`flex h-8 w-8 items-center justify-center rounded-full ${isCurrent ? 'bg-[var(--primary)]' : 'bg-[var(--bg-tertiary)]'}`}
+        >
+          <i
+            className={`ph ph-circles-three-plus text-sm ${isCurrent ? 'text-white' : 'text-[var(--text-secondary)]'}`}
+            aria-hidden="true"
+          />
         </div>
         <div>
           <h3 id={`modal-title-${nodeId}`} className="font-semibold text-[var(--text-primary)]">
@@ -75,20 +86,22 @@ function ModalHeader({
         <i className="ph ph-x text-sm" aria-hidden="true" />
       </button>
     </div>
-  )
+  );
 }
 
 interface ModalContentProps {
-  isCurrent: boolean
-  connections: AggregatedConnection[]
-  currentDomainId: string
+  isCurrent: boolean;
+  connections: AggregatedConnection[];
+  currentDomainId: string;
 }
 
 function ModalContent({
-  isCurrent, connections, currentDomainId 
+  isCurrent,
+  connections,
+  currentDomainId,
 }: Readonly<ModalContentProps>): React.ReactElement {
-  const isCurrentDomain = isCurrent
-  const hasNoConnections = connections.length === 0
+  const isCurrentDomain = isCurrent;
+  const hasNoConnections = connections.length === 0;
 
   const renderContent = (): React.ReactElement => {
     if (isCurrentDomain) {
@@ -96,14 +109,14 @@ function ModalContent({
         <p className="text-sm text-[var(--text-secondary)]">
           This is the domain you are currently viewing.
         </p>
-      )
+      );
     }
     if (hasNoConnections) {
       return (
         <p className="text-sm text-[var(--text-secondary)]">
           No direct connections to {currentDomainId}.
         </p>
-      )
+      );
     }
     return (
       <div className="space-y-3">
@@ -119,18 +132,14 @@ function ModalContent({
           />
         ))}
       </div>
-    )
-  }
-  const content = renderContent()
+    );
+  };
+  const content = renderContent();
 
-  return (
-    <div className="p-4">
-      {content}
-    </div>
-  )
+  return <div className="p-4">{content}</div>;
 }
 
-interface ModalFooterProps {readonly nodeId: string}
+interface ModalFooterProps {readonly nodeId: string;}
 
 function ModalFooter({ nodeId }: Readonly<ModalFooterProps>): React.ReactElement {
   return (
@@ -143,5 +152,5 @@ function ModalFooter({ nodeId }: Readonly<ModalFooterProps>): React.ReactElement
         View Domain Details
       </a>
     </div>
-  )
+  );
 }

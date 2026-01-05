@@ -1,7 +1,5 @@
 import type {
-  RiviereGraph,
-  Component,
-  ComponentType,
+  RiviereGraph, Component, ComponentType 
 } from '@living-architecture/riviere-schema';
 
 export function findComponent(
@@ -18,17 +16,11 @@ export function findAllComponents(
   return graph.components.filter(predicate);
 }
 
-export function componentById(
-  graph: RiviereGraph,
-  id: string,
-): Component | undefined {
+export function componentById(graph: RiviereGraph, id: string): Component | undefined {
   return findComponent(graph, (c) => c.id === id);
 }
 
-export function searchComponents(
-  graph: RiviereGraph,
-  query: string,
-): Component[] {
+export function searchComponents(graph: RiviereGraph, query: string): Component[] {
   if (query === '') {
     return [];
   }
@@ -42,16 +34,10 @@ export function searchComponents(
   );
 }
 
-export function componentsInDomain(
-  graph: RiviereGraph,
-  domainName: string,
-): Component[] {
+export function componentsInDomain(graph: RiviereGraph, domainName: string): Component[] {
   return findAllComponents(graph, (c) => c.domain === domainName);
 }
 
-export function componentsByType(
-  graph: RiviereGraph,
-  type: ComponentType,
-): Component[] {
+export function componentsByType(graph: RiviereGraph, type: ComponentType): Component[] {
   return findAllComponents(graph, (c) => c.type === type);
 }

@@ -1,16 +1,16 @@
 import {
   describe, it, expect 
-} from 'vitest'
-import { extractDomainMap } from './extractDomainMap'
-import type { RiviereGraph } from '@/types/riviere'
+} from 'vitest';
+import { extractDomainMap } from './extractDomainMap';
+import type { RiviereGraph } from '@/types/riviere';
 import {
   parseNode, parseDomainMetadata 
-} from '@/lib/riviereTestData'
+} from '@/lib/riviereTestFixtures';
 
 const testSourceLocation = {
   repository: 'test-repo',
-  filePath: 'src/test.ts' 
-}
+  filePath: 'src/test.ts',
+};
 
 function createMinimalGraph(overrides: Partial<RiviereGraph> = {}): RiviereGraph {
   return {
@@ -19,14 +19,14 @@ function createMinimalGraph(overrides: Partial<RiviereGraph> = {}): RiviereGraph
       domains: parseDomainMetadata({
         'test-domain': {
           description: 'Test domain',
-          systemType: 'domain' 
-        } 
+          systemType: 'domain',
+        },
       }),
     },
     components: [],
     links: [],
     ...overrides,
-  }
+  };
 }
 
 describe('extractDomainMap external links integration', () => {
@@ -38,7 +38,7 @@ describe('extractDomainMap external links integration', () => {
       name: 'API 1',
       domain: 'orders',
       module: 'm1',
-    }).id
+    }).id;
 
     const graph = createMinimalGraph({
       components: [
@@ -55,27 +55,27 @@ describe('extractDomainMap external links integration', () => {
         {
           source: sourceNodeId,
           target: { name: 'Stripe' },
-          type: 'sync' 
+          type: 'sync',
         },
         {
           source: sourceNodeId,
           target: { name: 'Twilio' },
-          type: 'sync' 
+          type: 'sync',
         },
       ],
-    })
+    });
 
-    const result = extractDomainMap(graph)
+    const result = extractDomainMap(graph);
 
-    const stripeNode = result.domainNodes.find((n) => n.id === 'external:Stripe')
-    const twilioNode = result.domainNodes.find((n) => n.id === 'external:Twilio')
-    expect(stripeNode).toBeDefined()
-    expect(stripeNode?.data.label).toBe('Stripe')
-    expect(stripeNode?.data.isExternal).toBe(true)
-    expect(twilioNode).toBeDefined()
-    expect(twilioNode?.data.label).toBe('Twilio')
-    expect(twilioNode?.data.isExternal).toBe(true)
-  })
+    const stripeNode = result.domainNodes.find((n) => n.id === 'external:Stripe');
+    const twilioNode = result.domainNodes.find((n) => n.id === 'external:Twilio');
+    expect(stripeNode).toBeDefined();
+    expect(stripeNode?.data.label).toBe('Stripe');
+    expect(stripeNode?.data.isExternal).toBe(true);
+    expect(twilioNode).toBeDefined();
+    expect(twilioNode?.data.label).toBe('Twilio');
+    expect(twilioNode?.data.isExternal).toBe(true);
+  });
 
   it('does not create external nodes when no externalLinks', () => {
     const graph = createMinimalGraph({
@@ -89,13 +89,13 @@ describe('extractDomainMap external links integration', () => {
           module: 'm1',
         }),
       ],
-    })
+    });
 
-    const result = extractDomainMap(graph)
+    const result = extractDomainMap(graph);
 
-    const externalNodes = result.domainNodes.filter((n) => n.id.startsWith('external:'))
-    expect(externalNodes).toHaveLength(0)
-  })
+    const externalNodes = result.domainNodes.filter((n) => n.id.startsWith('external:'));
+    expect(externalNodes).toHaveLength(0);
+  });
 
   it('creates edge from source domain to specific external system', () => {
     const sourceNodeId = parseNode({
@@ -105,7 +105,7 @@ describe('extractDomainMap external links integration', () => {
       name: 'API 1',
       domain: 'orders',
       module: 'm1',
-    }).id
+    }).id;
 
     const graph = createMinimalGraph({
       components: [
@@ -122,17 +122,17 @@ describe('extractDomainMap external links integration', () => {
         {
           source: sourceNodeId,
           target: { name: 'Stripe' },
-          type: 'sync' 
+          type: 'sync',
         },
       ],
-    })
+    });
 
-    const result = extractDomainMap(graph)
+    const result = extractDomainMap(graph);
 
-    const stripeEdge = result.domainEdges.find((e) => e.target === 'external:Stripe')
-    expect(stripeEdge).toBeDefined()
-    expect(stripeEdge?.source).toBe('orders')
-  })
+    const stripeEdge = result.domainEdges.find((e) => e.target === 'external:Stripe');
+    expect(stripeEdge).toBeDefined();
+    expect(stripeEdge?.source).toBe('orders');
+  });
 
   it('counts connections per external system', () => {
     const node1Id = parseNode({
@@ -142,7 +142,7 @@ describe('extractDomainMap external links integration', () => {
       name: 'API 1',
       domain: 'orders',
       module: 'm1',
-    }).id
+    }).id;
     const node2Id = parseNode({
       sourceLocation: testSourceLocation,
       id: 'n2',
@@ -150,7 +150,7 @@ describe('extractDomainMap external links integration', () => {
       name: 'UC 1',
       domain: 'orders',
       module: 'm1',
-    }).id
+    }).id;
 
     const graph = createMinimalGraph({
       components: [
@@ -160,7 +160,7 @@ describe('extractDomainMap external links integration', () => {
           type: 'API',
           name: 'API 1',
           domain: 'orders',
-          module: 'm1' 
+          module: 'm1',
         }),
         parseNode({
           sourceLocation: testSourceLocation,
@@ -168,28 +168,28 @@ describe('extractDomainMap external links integration', () => {
           type: 'UseCase',
           name: 'UC 1',
           domain: 'orders',
-          module: 'm1' 
+          module: 'm1',
         }),
       ],
       externalLinks: [
         {
           source: node1Id,
           target: { name: 'Stripe' },
-          type: 'sync' 
+          type: 'sync',
         },
         {
           source: node2Id,
           target: { name: 'Stripe' },
-          type: 'sync' 
+          type: 'sync',
         },
       ],
-    })
+    });
 
-    const result = extractDomainMap(graph)
+    const result = extractDomainMap(graph);
 
-    const stripeNode = result.domainNodes.find((n) => n.id === 'external:Stripe')
-    expect(stripeNode?.data.nodeCount).toBe(2)
-  })
+    const stripeNode = result.domainNodes.find((n) => n.id === 'external:Stripe');
+    expect(stripeNode?.data.nodeCount).toBe(2);
+  });
 
   it('marks internal domain nodes as not external', () => {
     const graph = createMinimalGraph({
@@ -200,14 +200,14 @@ describe('extractDomainMap external links integration', () => {
           type: 'API',
           name: 'API 1',
           domain: 'orders',
-          module: 'm1' 
+          module: 'm1',
         }),
       ],
-    })
+    });
 
-    const result = extractDomainMap(graph)
+    const result = extractDomainMap(graph);
 
-    const ordersNode = result.domainNodes.find((n) => n.id === 'orders')
-    expect(ordersNode?.data.isExternal).toBe(false)
-  })
-})
+    const ordersNode = result.domainNodes.find((n) => n.id === 'orders');
+    expect(ordersNode?.data.isExternal).toBe(false);
+  });
+});

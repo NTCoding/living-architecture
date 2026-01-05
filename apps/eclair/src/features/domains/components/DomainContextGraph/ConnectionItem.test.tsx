@@ -1,11 +1,11 @@
 import {
   describe, it, expect 
-} from 'vitest'
+} from 'vitest';
 import {
   render, screen 
-} from '@testing-library/react'
-import { ConnectionItem } from './ConnectionItem'
-import type { AggregatedConnection } from '../../extractDomainDetails'
+} from '@testing-library/react';
+import { ConnectionItem } from './ConnectionItem';
+import type { AggregatedConnection } from '../../extractDomainDetails';
 
 describe('ConnectionItem', () => {
   it('renders outgoing connection with domain names', () => {
@@ -14,19 +14,19 @@ describe('ConnectionItem', () => {
       direction: 'outgoing',
       apiCount: 1,
       eventCount: 0,
-    }
+    };
 
     render(
       <ConnectionItem
         connection={connection}
         currentDomainId="orders"
         targetDomainId="inventory"
-      />
-    )
+      />,
+    );
 
-    expect(screen.getByText('orders')).toBeInTheDocument()
-    expect(screen.getByText('inventory')).toBeInTheDocument()
-  })
+    expect(screen.getByText('orders')).toBeInTheDocument();
+    expect(screen.getByText('inventory')).toBeInTheDocument();
+  });
 
   it('displays API call count', () => {
     const connection: AggregatedConnection = {
@@ -34,18 +34,18 @@ describe('ConnectionItem', () => {
       direction: 'outgoing',
       apiCount: 2,
       eventCount: 0,
-    }
+    };
 
     render(
       <ConnectionItem
         connection={connection}
         currentDomainId="orders"
         targetDomainId="inventory"
-      />
-    )
+      />,
+    );
 
-    expect(screen.getByText('2 API calls')).toBeInTheDocument()
-  })
+    expect(screen.getByText('2 API calls')).toBeInTheDocument();
+  });
 
   it('displays event count', () => {
     const connection: AggregatedConnection = {
@@ -53,18 +53,14 @@ describe('ConnectionItem', () => {
       direction: 'outgoing',
       apiCount: 0,
       eventCount: 1,
-    }
+    };
 
     render(
-      <ConnectionItem
-        connection={connection}
-        currentDomainId="orders"
-        targetDomainId="shipping"
-      />
-    )
+      <ConnectionItem connection={connection} currentDomainId="orders" targetDomainId="shipping" />,
+    );
 
-    expect(screen.getByText('1 event')).toBeInTheDocument()
-  })
+    expect(screen.getByText('1 event')).toBeInTheDocument();
+  });
 
   it('displays both API and event counts when present', () => {
     const connection: AggregatedConnection = {
@@ -72,17 +68,17 @@ describe('ConnectionItem', () => {
       direction: 'outgoing',
       apiCount: 1,
       eventCount: 1,
-    }
+    };
 
     render(
       <ConnectionItem
         connection={connection}
         currentDomainId="orders"
         targetDomainId="inventory"
-      />
-    )
+      />,
+    );
 
-    expect(screen.getByText('1 API call')).toBeInTheDocument()
-    expect(screen.getByText('1 event')).toBeInTheDocument()
-  })
-})
+    expect(screen.getByText('1 API call')).toBeInTheDocument();
+    expect(screen.getByText('1 event')).toBeInTheDocument();
+  });
+});

@@ -1,21 +1,21 @@
-import { expect } from 'vitest'
-import * as matchers from '@testing-library/jest-dom/matchers'
+import { expect } from 'vitest';
+import * as matchers from '@testing-library/jest-dom/matchers';
 
-expect.extend(matchers)
+expect.extend(matchers);
 
 class ResizeObserverMock {
   observe(): void {
-    return
+    return;
   }
   unobserve(): void {
-    return
+    return;
   }
   disconnect(): void {
-    return
+    return;
   }
 }
 
-globalThis.ResizeObserver = ResizeObserverMock
+globalThis.ResizeObserver = ResizeObserverMock;
 
 SVGElement.prototype.getBBox = () => ({
   x: 0,
@@ -27,4 +27,4 @@ SVGElement.prototype.getBBox = () => ({
   bottom: 20,
   left: 0,
   toJSON: () => '',
-})
+});

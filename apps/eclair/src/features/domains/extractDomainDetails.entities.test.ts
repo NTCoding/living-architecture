@@ -1,16 +1,19 @@
 import {
   describe, it, expect 
-} from 'vitest'
-import { extractDomainDetails } from './extractDomainDetails'
+} from 'vitest';
+import { extractDomainDetails } from './extractDomainDetails';
 import {
-  parseNode, parseDomainMetadata, parseDomainKey, type RawNode 
-} from '@/lib/riviereTestData'
-import type { RiviereGraph } from '@/types/riviere'
+  parseNode,
+  parseDomainMetadata,
+  parseDomainKey,
+  type RawNode,
+} from '@/lib/riviereTestFixtures';
+import type { RiviereGraph } from '@/types/riviere';
 
 const testSourceLocation = {
   repository: 'test-repo',
-  filePath: 'src/test.ts' 
-}
+  filePath: 'src/test.ts',
+};
 
 function createMinimalGraph(overrides: Partial<RiviereGraph> = {}): RiviereGraph {
   return {
@@ -22,7 +25,7 @@ function createMinimalGraph(overrides: Partial<RiviereGraph> = {}): RiviereGraph
     components: [],
     links: [],
     ...overrides,
-  }
+  };
 }
 
 function createNode(overrides: Partial<RawNode> = {}): ReturnType<typeof parseNode> {
@@ -34,11 +37,11 @@ function createNode(overrides: Partial<RawNode> = {}): ReturnType<typeof parseNo
     name: 'Test Node',
     domain: 'test-domain',
     module: 'test-module',
-  }
+  };
   return parseNode({
     ...defaults,
-    ...overrides 
-  })
+    ...overrides,
+  });
 }
 
 describe('extractDomainDetails entities extraction', () => {
@@ -48,8 +51,8 @@ describe('extractDomainDetails entities extraction', () => {
         domains: parseDomainMetadata({
           'order-domain': {
             description: 'Orders',
-            systemType: 'domain' 
-          } 
+            systemType: 'domain',
+          },
         }),
       },
       components: [
@@ -78,18 +81,18 @@ describe('extractDomainDetails entities extraction', () => {
           operationName: 'add',
         }),
       ],
-    })
+    });
 
-    const result = extractDomainDetails(graph, parseDomainKey('order-domain'))
+    const result = extractDomainDetails(graph, parseDomainKey('order-domain'));
 
-    expect(result?.entities).toHaveLength(2)
+    expect(result?.entities).toHaveLength(2);
 
-    const orderEntity = result?.entities.find((e) => e.name === 'Order')
-    expect(orderEntity?.operations.map(op => op.operationName)).toEqual(['begin', 'confirm'])
+    const orderEntity = result?.entities.find((e) => e.name === 'Order');
+    expect(orderEntity?.operations.map((op) => op.operationName)).toEqual(['begin', 'confirm']);
 
-    const orderItemEntity = result?.entities.find((e) => e.name === 'OrderItem')
-    expect(orderItemEntity?.operations.map(op => op.operationName)).toEqual(['add'])
-  })
+    const orderItemEntity = result?.entities.find((e) => e.name === 'OrderItem');
+    expect(orderItemEntity?.operations.map((op) => op.operationName)).toEqual(['add']);
+  });
 
   it('sorts entities alphabetically and operations alphabetically', () => {
     const graph = createMinimalGraph({
@@ -97,8 +100,8 @@ describe('extractDomainDetails entities extraction', () => {
         domains: parseDomainMetadata({
           'order-domain': {
             description: 'Orders',
-            systemType: 'domain' 
-          } 
+            systemType: 'domain',
+          },
         }),
       },
       components: [
@@ -108,7 +111,7 @@ describe('extractDomainDetails entities extraction', () => {
           name: 'Zebra.z()',
           domain: 'order-domain',
           entity: 'Zebra',
-          operationName: 'z' 
+          operationName: 'z',
         }),
         createNode({
           id: 'op-2',
@@ -116,7 +119,7 @@ describe('extractDomainDetails entities extraction', () => {
           name: 'Apple.b()',
           domain: 'order-domain',
           entity: 'Apple',
-          operationName: 'b' 
+          operationName: 'b',
         }),
         createNode({
           id: 'op-3',
@@ -124,16 +127,16 @@ describe('extractDomainDetails entities extraction', () => {
           name: 'Apple.a()',
           domain: 'order-domain',
           entity: 'Apple',
-          operationName: 'a' 
+          operationName: 'a',
         }),
       ],
-    })
+    });
 
-    const result = extractDomainDetails(graph, parseDomainKey('order-domain'))
+    const result = extractDomainDetails(graph, parseDomainKey('order-domain'));
 
-    expect(result?.entities.map((e) => e.name)).toEqual(['Apple', 'Zebra'])
-    expect(result?.entities[0]?.operations.map(op => op.operationName)).toEqual(['a', 'b'])
-  })
+    expect(result?.entities.map((e) => e.name)).toEqual(['Apple', 'Zebra']);
+    expect(result?.entities[0]?.operations.map((op) => op.operationName)).toEqual(['a', 'b']);
+  });
 
   it('returns empty array when no entities', () => {
     const graph = createMinimalGraph({
@@ -141,8 +144,8 @@ describe('extractDomainDetails entities extraction', () => {
         domains: parseDomainMetadata({
           'order-domain': {
             description: 'Orders',
-            systemType: 'domain' 
-          } 
+            systemType: 'domain',
+          },
         }),
       },
       components: [
@@ -150,15 +153,15 @@ describe('extractDomainDetails entities extraction', () => {
           id: 'api-1',
           type: 'API',
           name: 'API',
-          domain: 'order-domain' 
+          domain: 'order-domain',
         }),
       ],
-    })
+    });
 
-    const result = extractDomainDetails(graph, parseDomainKey('order-domain'))
+    const result = extractDomainDetails(graph, parseDomainKey('order-domain'));
 
-    expect(result?.entities).toEqual([])
-  })
+    expect(result?.entities).toEqual([]);
+  });
 
   it('includes sourceLocation on first operation', () => {
     const graph = createMinimalGraph({
@@ -166,8 +169,8 @@ describe('extractDomainDetails entities extraction', () => {
         domains: parseDomainMetadata({
           'order-domain': {
             description: 'Orders',
-            systemType: 'domain' 
-          } 
+            systemType: 'domain',
+          },
         }),
       },
       components: [
@@ -181,7 +184,7 @@ describe('extractDomainDetails entities extraction', () => {
           sourceLocation: {
             repository: 'test-repo',
             filePath: 'src/Order.ts',
-            lineNumber: 10 
+            lineNumber: 10,
           },
         }),
         createNode({
@@ -194,21 +197,21 @@ describe('extractDomainDetails entities extraction', () => {
           sourceLocation: {
             repository: 'test-repo',
             filePath: 'src/Order.ts',
-            lineNumber: 30 
+            lineNumber: 30,
           },
         }),
       ],
-    })
+    });
 
-    const result = extractDomainDetails(graph, parseDomainKey('order-domain'))
-    const orderEntity = result?.entities.find((e) => e.name === 'Order')
+    const result = extractDomainDetails(graph, parseDomainKey('order-domain'));
+    const orderEntity = result?.entities.find((e) => e.name === 'Order');
 
     expect(orderEntity?.operations[0]?.sourceLocation).toEqual({
       repository: 'test-repo',
       filePath: 'src/Order.ts',
-      lineNumber: 10 
-    })
-  })
+      lineNumber: 10,
+    });
+  });
 
   it('handles entity with minimal sourceLocation', () => {
     const rawNode: RawNode = {
@@ -221,29 +224,29 @@ describe('extractDomainDetails entities extraction', () => {
       operationName: 'begin',
       sourceLocation: {
         repository: 'test-repo',
-        filePath: 'unknown' 
+        filePath: 'unknown',
       },
-    }
+    };
     const graph = createMinimalGraph({
       metadata: {
         domains: parseDomainMetadata({
           'order-domain': {
             description: 'Orders',
-            systemType: 'domain' 
-          } 
+            systemType: 'domain',
+          },
         }),
       },
       components: [parseNode(rawNode)],
-    })
+    });
 
-    const result = extractDomainDetails(graph, parseDomainKey('order-domain'))
-    const orderEntity = result?.entities.find((e) => e.name === 'Order')
+    const result = extractDomainDetails(graph, parseDomainKey('order-domain'));
+    const orderEntity = result?.entities.find((e) => e.name === 'Order');
 
     expect(orderEntity?.operations[0]?.sourceLocation).toEqual({
       repository: 'test-repo',
-      filePath: 'unknown' 
-    })
-  })
+      filePath: 'unknown',
+    });
+  });
 
   it('returns empty businessRules when operations have no businessRules', () => {
     const graph = createMinimalGraph({
@@ -251,7 +254,7 @@ describe('extractDomainDetails entities extraction', () => {
         domains: parseDomainMetadata({
           'order-domain': {
             description: 'Orders',
-            systemType: 'domain' 
+            systemType: 'domain',
           },
         }),
       },
@@ -265,11 +268,11 @@ describe('extractDomainDetails entities extraction', () => {
           operationName: 'begin',
         }),
       ],
-    })
+    });
 
-    const result = extractDomainDetails(graph, parseDomainKey('order-domain'))
+    const result = extractDomainDetails(graph, parseDomainKey('order-domain'));
 
-    const orderEntity = result?.entities.find((e) => e.name === 'Order')
-    expect(orderEntity?.businessRules).toEqual([])
-  })
-})
+    const orderEntity = result?.entities.find((e) => e.name === 'Order');
+    expect(orderEntity?.businessRules).toEqual([]);
+  });
+});

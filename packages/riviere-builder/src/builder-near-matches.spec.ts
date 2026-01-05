@@ -5,18 +5,20 @@ import { RiviereBuilder } from './builder';
 
 function createBuilderWithComponents(): RiviereBuilder {
   const builder = RiviereBuilder.new({
-    sources: [{
-      repository: 'test/repo',
-      commit: 'abc123' 
-    }],
+    sources: [
+      {
+        repository: 'test/repo',
+        commit: 'abc123',
+      },
+    ],
     domains: {
       orders: {
         description: 'Order domain',
-        systemType: 'domain' 
+        systemType: 'domain',
       },
       shipping: {
         description: 'Shipping domain',
-        systemType: 'domain' 
+        systemType: 'domain',
       },
     },
   });
@@ -81,7 +83,7 @@ describe('RiviereBuilder.nearMatches', () => {
       const builder = createBuilderWithComponents();
       const query = {
         name: 'OrderPlaced',
-        type: 'UseCase' as const 
+        type: 'UseCase' as const,
       };
       const results = builder.nearMatches(query);
 
@@ -100,7 +102,7 @@ describe('RiviereBuilder.nearMatches', () => {
       const builder = createBuilderWithComponents();
       const query = {
         name: 'OrderService',
-        type: 'Event' as const 
+        type: 'Event' as const,
       };
       const results = builder.nearMatches(query);
 
@@ -121,7 +123,7 @@ describe('RiviereBuilder.nearMatches', () => {
       [
         {
           name: 'OrderService',
-          domain: 'shipping' 
+          domain: 'shipping',
         },
         {
           expectedName: 'OrderService',
@@ -150,16 +152,8 @@ describe('RiviereBuilder.nearMatches', () => {
     it.each([
       [{ name: 'OrdrService' }, 'OrderService', 'single typo finds match'],
       [{ name: 'OrderServce' }, 'OrderService', 'missing char finds match'],
-      [
-        { name: 'OrderSerivce' },
-        'OrderService',
-        'transposed chars finds match',
-      ],
-      [
-        { name: 'Paymentservice' },
-        'PaymentService',
-        'case difference finds match',
-      ],
+      [{ name: 'OrderSerivce' }, 'OrderService', 'transposed chars finds match'],
+      [{ name: 'Paymentservice' }, 'PaymentService', 'case difference finds match'],
     ])('nearMatches(%o) finds "%s" - %s', (query, expectedName) => {
       const builder = createBuilderWithComponents();
       const results = builder.nearMatches(query);
@@ -187,10 +181,7 @@ describe('RiviereBuilder.nearMatches', () => {
   describe('multiple matches sorted by score', () => {
     it('returns multiple results sorted by score descending', () => {
       const builder = createBuilderWithComponents();
-      const results = builder.nearMatches(
-        { name: 'Service' },
-        { threshold: 0.3 },
-      );
+      const results = builder.nearMatches({ name: 'Service' }, { threshold: 0.3 });
 
       expect(results.length).toBe(4);
       expect(results.map((r) => r.component.name)).toEqual([
@@ -226,10 +217,7 @@ describe('RiviereBuilder.nearMatches', () => {
     it('respects threshold option', () => {
       const builder = createBuilderWithComponents();
       // Very high threshold should exclude partial matches
-      const results = builder.nearMatches(
-        { name: 'OrderServic' },
-        { threshold: 0.99 },
-      );
+      const results = builder.nearMatches({ name: 'OrderServic' }, { threshold: 0.99 });
 
       expect(results).toEqual([]);
     });
@@ -237,10 +225,7 @@ describe('RiviereBuilder.nearMatches', () => {
     it('respects limit option', () => {
       const builder = createBuilderWithComponents();
       // Lower threshold to get multiple matches, then limit to 1
-      const results = builder.nearMatches(
-        { name: 'OrderService' },
-        { limit: 1 },
-      );
+      const results = builder.nearMatches({ name: 'OrderService' }, { limit: 1 });
 
       expect(results.length).toBe(1);
     });

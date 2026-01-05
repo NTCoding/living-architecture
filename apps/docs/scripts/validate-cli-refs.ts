@@ -4,7 +4,9 @@
  * Fails build if docs reference non-existent commands.
  */
 
-import { readdirSync, readFileSync, statSync } from 'node:fs';
+import {
+  readdirSync, readFileSync, statSync 
+} from 'node:fs';
 import { join } from 'node:path';
 import { createProgram } from '../../../packages/riviere-cli/src/cli';
 
@@ -70,7 +72,7 @@ function validateLine(
   lineNumber: number,
   filePath: string,
   validCommands: Set<string>,
-  patterns: readonly RegExp[]
+  patterns: readonly RegExp[],
 ): ValidationError[] {
   const errors: ValidationError[] = [];
 
@@ -96,13 +98,10 @@ function validateFile(filePath: string, validCommands: Set<string>): ValidationE
   const content = readFileSync(filePath, 'utf-8');
   const lines = content.split('\n');
 
-  const patterns = [
-    /riviere\s+builder\s+([a-z-]+)/g,
-    /cli-reference#([a-z-]+)/g,
-  ] as const;
+  const patterns = [/riviere\s+builder\s+([a-z-]+)/g, /cli-reference#([a-z-]+)/g] as const;
 
   return lines.flatMap((line, index) =>
-    validateLine(line, index + 1, filePath, validCommands, patterns)
+    validateLine(line, index + 1, filePath, validCommands, patterns),
   );
 }
 
@@ -112,7 +111,9 @@ function main(): void {
   console.log('Validating CLI command references in docs...\n');
 
   const validCommands = getValidCommands();
-  console.log(`Valid commands: ${[...validCommands].sort((a, b) => a.localeCompare(b)).join(', ')}\n`);
+  console.log(
+    `Valid commands: ${[...validCommands].sort((a, b) => a.localeCompare(b)).join(', ')}\n`,
+  );
 
   const files = findMarkdownFiles(docsDir);
   const allErrors = files.flatMap((file) => validateFile(file, validCommands));

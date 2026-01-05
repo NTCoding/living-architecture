@@ -1,8 +1,5 @@
 import {
-  formatSuccess,
-  formatError,
-  type SuccessOutput,
-  type ErrorOutput,
+  formatSuccess, formatError, type SuccessOutput, type ErrorOutput 
 } from './output';
 import { CliErrorCode } from './error-codes';
 
@@ -35,10 +32,7 @@ describe('formatSuccess', () => {
 
 describe('formatError', () => {
   it('returns error output with code and message', () => {
-    const result = formatError(
-      CliErrorCode.GraphNotFound,
-      'No graph found at .riviere/graph.json',
-    );
+    const result = formatError(CliErrorCode.GraphNotFound, 'No graph found at .riviere/graph.json');
 
     expect(result).toEqual({
       success: false,

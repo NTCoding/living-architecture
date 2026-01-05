@@ -1,16 +1,11 @@
 import {
-  describe,
-  it,
-  expect,
-  vi,
+  describe, it, expect, vi 
 } from 'vitest';
 import { createProgram } from '../../cli';
 import { CliErrorCode } from '../../error-codes';
 import type { TestContext } from '../../command-test-fixtures';
 import {
-  createTestContext,
-  setupCommandTest,
-  createGraph,
+  createTestContext, setupCommandTest, createGraph 
 } from '../../command-test-fixtures';
 
 describe('riviere query components - error handling', () => {
@@ -18,16 +13,8 @@ describe('riviere query components - error handling', () => {
   setupCommandTest(ctx);
 
   it('returns GRAPH_NOT_FOUND when no graph exists', async () => {
-    await createProgram().parseAsync([
-      'node',
-      'riviere',
-      'query',
-      'components',
-      '--json',
-    ]);
-    expect(ctx.consoleOutput.join('\n')).toContain(
-      CliErrorCode.GraphNotFound,
-    );
+    await createProgram().parseAsync(['node', 'riviere', 'query', 'components', '--json']);
+    expect(ctx.consoleOutput.join('\n')).toContain(CliErrorCode.GraphNotFound);
   });
 
   it('returns VALIDATION_ERROR when --type value is invalid', async () => {
@@ -55,9 +42,7 @@ describe('riviere query components - error handling', () => {
       'InvalidType',
       '--json',
     ]);
-    expect(ctx.consoleOutput.join('\n')).toContain(
-      CliErrorCode.ValidationError,
-    );
+    expect(ctx.consoleOutput.join('\n')).toContain(CliErrorCode.ValidationError);
   });
 
   it('outputs error to stderr when --type is invalid and --json not provided', async () => {

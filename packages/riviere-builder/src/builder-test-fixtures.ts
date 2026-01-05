@@ -2,18 +2,20 @@ import type { BuilderOptions } from './builder';
 
 export function createValidOptions(): BuilderOptions {
   return {
-    sources: [{
-      repository: 'test/repo',
-      commit: 'abc123' 
-    }],
+    sources: [
+      {
+        repository: 'test/repo',
+        commit: 'abc123',
+      },
+    ],
     domains: {
       orders: {
         description: 'Order domain',
-        systemType: 'domain' 
+        systemType: 'domain',
       },
       shipping: {
         description: 'Shipping domain',
-        systemType: 'domain' 
+        systemType: 'domain',
       },
     },
   };
@@ -22,6 +24,6 @@ export function createValidOptions(): BuilderOptions {
 export function createSourceLocation() {
   return {
     repository: 'test/repo',
-    filePath: 'src/test.ts' 
+    filePath: 'src/test.ts',
   };
 }

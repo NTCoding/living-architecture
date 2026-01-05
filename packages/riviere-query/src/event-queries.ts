@@ -18,13 +18,8 @@ import {
   parseHandlerName,
 } from './domain-types';
 
-export function queryPublishedEvents(
-  graph: RiviereGraph,
-  domainName?: string,
-): PublishedEvent[] {
-  const eventComponents = graph.components.filter(
-    (c): c is EventComponent => c.type === 'Event',
-  );
+export function queryPublishedEvents(graph: RiviereGraph, domainName?: string): PublishedEvent[] {
+  const eventComponents = graph.components.filter((c): c is EventComponent => c.type === 'Event');
   const filtered = domainName
     ? eventComponents.filter((e) => e.domain === domainName)
     : eventComponents;
@@ -49,10 +44,7 @@ export function queryPublishedEvents(
   });
 }
 
-export function queryEventHandlers(
-  graph: RiviereGraph,
-  eventName?: string,
-): EventHandlerInfo[] {
+export function queryEventHandlers(graph: RiviereGraph, eventName?: string): EventHandlerInfo[] {
   const eventByName = buildEventNameMap(graph);
   const handlers = findEventHandlerComponents(graph);
   const filtered = eventName
@@ -69,12 +61,8 @@ function buildEventNameMap(graph: RiviereGraph): Map<string, EventComponent> {
   );
 }
 
-function findEventHandlerComponents(
-  graph: RiviereGraph,
-): EventHandlerComponent[] {
-  return graph.components.filter(
-    (c): c is EventHandlerComponent => c.type === 'EventHandler',
-  );
+function findEventHandlerComponents(graph: RiviereGraph): EventHandlerComponent[] {
+  return graph.components.filter((c): c is EventHandlerComponent => c.type === 'EventHandler');
 }
 
 function buildEventHandlerInfo(

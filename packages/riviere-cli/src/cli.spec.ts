@@ -11,9 +11,7 @@ describe('parsePackageJson', () => {
   });
 
   it('throws when input is null', () => {
-    expect(() => parsePackageJson(null)).toThrow(
-      'Invalid package.json: missing version field',
-    );
+    expect(() => parsePackageJson(null)).toThrow('Invalid package.json: missing version field');
   });
 
   it('throws when input is not an object', () => {

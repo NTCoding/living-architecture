@@ -4,14 +4,16 @@ import {
 
 function createValidOptions(): BuilderOptions {
   return {
-    sources: [{
-      repository: 'my-org/my-repo',
-      commit: 'abc123' 
-    }],
+    sources: [
+      {
+        repository: 'my-org/my-repo',
+        commit: 'abc123',
+      },
+    ],
     domains: {
       orders: {
         description: 'Order management',
-        systemType: 'domain' 
+        systemType: 'domain',
       },
     },
   };
@@ -27,7 +29,7 @@ describe('RiviereBuilder custom types', () => {
         requiredProperties: {
           queueName: {
             type: 'string',
-            description: 'Queue identifier' 
+            description: 'Queue identifier',
           },
         },
       });
@@ -37,7 +39,7 @@ describe('RiviereBuilder custom types', () => {
           requiredProperties: {
             queueName: {
               type: 'string',
-              description: 'Queue identifier' 
+              description: 'Queue identifier',
             },
           },
         },
@@ -53,7 +55,7 @@ describe('RiviereBuilder custom types', () => {
         optionalProperties: {
           ttl: {
             type: 'number',
-            description: 'Time to live in seconds' 
+            description: 'Time to live in seconds',
           },
         },
       });
@@ -64,7 +66,7 @@ describe('RiviereBuilder custom types', () => {
           optionalProperties: {
             ttl: {
               type: 'number',
-              description: 'Time to live in seconds' 
+              description: 'Time to live in seconds',
             },
           },
         },
@@ -146,9 +148,7 @@ describe('RiviereBuilder custom types', () => {
             filePath: 'src/some.ts',
           },
         }),
-      ).toThrow(
-        "Custom type 'UndefinedType' not defined. Defined types: MessageQueue, CacheStore",
-      );
+      ).toThrow("Custom type 'UndefinedType' not defined. Defined types: MessageQueue, CacheStore");
     });
 
     it('throws with explicit message when no custom types registered', () => {
@@ -165,9 +165,7 @@ describe('RiviereBuilder custom types', () => {
             filePath: 'src/some.ts',
           },
         }),
-      ).toThrow(
-        "Custom type 'UndefinedType' not defined. No custom types have been defined.",
-      );
+      ).toThrow("Custom type 'UndefinedType' not defined. No custom types have been defined.");
     });
 
     it('throws immediately when required properties are missing', () => {
@@ -191,9 +189,7 @@ describe('RiviereBuilder custom types', () => {
             filePath: 'src/queues.ts',
           },
         }),
-      ).toThrow(
-        "Missing required properties for 'MessageQueue': queueName, messageType",
-      );
+      ).toThrow("Missing required properties for 'MessageQueue': queueName, messageType");
     });
   });
 });

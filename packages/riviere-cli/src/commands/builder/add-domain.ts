@@ -35,10 +35,7 @@ Examples:
     )
     .requiredOption('--name <name>', 'Domain name')
     .requiredOption('--description <description>', 'Domain description')
-    .requiredOption(
-      '--system-type <type>',
-      'System type (domain, bff, ui, other)',
-    )
+    .requiredOption('--system-type <type>', 'System type (domain, bff, ui, other)')
     .option('--graph <path>', getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .action(async (options: AddDomainOptions) => {

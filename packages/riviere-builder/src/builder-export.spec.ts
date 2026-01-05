@@ -6,8 +6,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { RiviereBuilder } from './builder';
 import {
-  createValidOptions,
-  createSourceLocation,
+  createValidOptions, createSourceLocation 
 } from './builder-test-fixtures';
 
 describe('RiviereBuilder', () => {
@@ -36,7 +35,7 @@ describe('RiviereBuilder', () => {
 
       builder.link({
         from: source.id,
-        to: target.id 
+        to: target.id,
       });
 
       const graph = builder.build();
@@ -47,17 +46,17 @@ describe('RiviereBuilder', () => {
       expect(graph.metadata.sources).toEqual([
         {
           repository: 'test/repo',
-          commit: 'abc123' 
+          commit: 'abc123',
         },
       ]);
       expect(graph.metadata.domains).toEqual({
         orders: {
           description: 'Order domain',
-          systemType: 'domain' 
+          systemType: 'domain',
         },
         shipping: {
           description: 'Shipping domain',
-          systemType: 'domain' 
+          systemType: 'domain',
         },
       });
       expect(graph.components).toContainEqual(
@@ -92,7 +91,7 @@ describe('RiviereBuilder', () => {
 
       builder.link({
         from: source.id,
-        to: 'nonexistent:component:id' 
+        to: 'nonexistent:component:id',
       });
 
       expect(() => builder.build()).toThrow(/validation failed/i);
@@ -111,9 +110,7 @@ describe('RiviereBuilder', () => {
       const graph = builder.build();
 
       expect(graph.components).toHaveLength(1);
-      expect(
-        builder.warnings().some((w) => w.code === 'ORPHAN_COMPONENT'),
-      ).toBe(true);
+      expect(builder.warnings().some((w) => w.code === 'ORPHAN_COMPONENT')).toBe(true);
     });
 
     it('excludes customTypes when none defined', () => {
@@ -171,7 +168,7 @@ describe('RiviereBuilder', () => {
 
       builder.link({
         from: source.id,
-        to: target.id 
+        to: target.id,
       });
 
       const graph = builder.build();
@@ -191,7 +188,7 @@ describe('RiviereBuilder', () => {
 
       builder.linkExternal({
         from: source.id,
-        target: { name: 'Stripe API' } 
+        target: { name: 'Stripe API' },
       });
 
       const graph = builder.build();
@@ -199,7 +196,7 @@ describe('RiviereBuilder', () => {
       expect(graph.externalLinks).toEqual([
         {
           source: source.id,
-          target: { name: 'Stripe API' } 
+          target: { name: 'Stripe API' },
         },
       ]);
     });
@@ -235,7 +232,7 @@ describe('RiviereBuilder', () => {
 
       builder.link({
         from: source.id,
-        to: target.id 
+        to: target.id,
       });
 
       const filePath = join(tmpdir(), `riviere-test-${Date.now()}.json`);
@@ -262,18 +259,13 @@ describe('RiviereBuilder', () => {
 
       builder.link({
         from: source.id,
-        to: 'nonexistent:component:id' 
+        to: 'nonexistent:component:id',
       });
 
-      const filePath = join(
-        tmpdir(),
-        `riviere-test-invalid-${Date.now()}.json`,
-      );
+      const filePath = join(tmpdir(), `riviere-test-invalid-${Date.now()}.json`);
       tempFiles.push(filePath);
 
-      await expect(builder.save(filePath)).rejects.toThrow(
-        /validation failed/i,
-      );
+      await expect(builder.save(filePath)).rejects.toThrow(/validation failed/i);
       await expect(fs.access(filePath)).rejects.toThrow();
     });
 
@@ -297,14 +289,12 @@ describe('RiviereBuilder', () => {
 
       builder.link({
         from: source.id,
-        to: target.id 
+        to: target.id,
       });
 
       const filePath = '/nonexistent-directory-xyz/output.json';
 
-      await expect(builder.save(filePath)).rejects.toThrow(
-        /directory does not exist/i,
-      );
+      await expect(builder.save(filePath)).rejects.toThrow(/directory does not exist/i);
     });
   });
 });

@@ -8,9 +8,7 @@ import { join } from 'node:path';
 import { withGraphBuilder } from './link-infrastructure';
 import { CliErrorCode } from '../../error-codes';
 import {
-  type TestContext,
-  createTestContext,
-  setupCommandTest,
+  type TestContext, createTestContext, setupCommandTest 
 } from '../../command-test-fixtures';
 
 describe('link-infrastructure', () => {
@@ -42,18 +40,14 @@ describe('link-infrastructure', () => {
           domains: {
             test: {
               description: 'Test domain',
-              systemType: 'domain' 
+              systemType: 'domain',
             },
           },
         },
         components: [],
         links: [],
       };
-      await writeFile(
-        join(graphDir, 'graph.json'),
-        JSON.stringify(graph),
-        'utf-8',
-      );
+      await writeFile(join(graphDir, 'graph.json'), JSON.stringify(graph), 'utf-8');
 
       const handler = vi.fn();
       await withGraphBuilder(undefined, handler);
@@ -74,7 +68,7 @@ describe('link-infrastructure', () => {
           domains: {
             test: {
               description: 'Test domain',
-              systemType: 'domain' 
+              systemType: 'domain',
             },
           },
         },
@@ -86,10 +80,7 @@ describe('link-infrastructure', () => {
       const handler = vi.fn();
       await withGraphBuilder(customPath, handler);
 
-      expect(handler).toHaveBeenCalledWith(
-        expect.objectContaining({}),
-        customPath,
-      );
+      expect(handler).toHaveBeenCalledWith(expect.objectContaining({}), customPath);
     });
   });
 });

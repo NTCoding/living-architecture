@@ -1,7 +1,5 @@
 import type {
-  Component,
-  Link,
-  ExternalLink,
+  Component, Link, ExternalLink 
 } from '@living-architecture/riviere-schema';
 import { z } from 'zod';
 
@@ -57,10 +55,7 @@ export type HandlerId = z.infer<typeof handlerIdSchema>;
 export type HandlerName = z.infer<typeof handlerNameSchema>;
 
 /** Error codes for graph validation failures. */
-export type ValidationErrorCode =
-  | 'INVALID_LINK_SOURCE'
-  | 'INVALID_LINK_TARGET'
-  | 'INVALID_TYPE';
+export type ValidationErrorCode = 'INVALID_LINK_SOURCE' | 'INVALID_LINK_TARGET' | 'INVALID_TYPE';
 
 /**
  * A validation error found in the graph.

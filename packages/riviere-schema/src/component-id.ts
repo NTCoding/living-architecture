@@ -72,9 +72,7 @@ export class ComponentId {
     const parts = id.split(':');
     const name = parts[3];
     if (parts.length !== 4 || name === undefined) {
-      throw new Error(
-        `Invalid component ID format: '${id}'. Expected 'domain:module:type:name'`,
-      );
+      throw new Error(`Invalid component ID format: '${id}'. Expected 'domain:module:type:name'`);
     }
     return new ComponentId(name, id);
   }

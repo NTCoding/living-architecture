@@ -21,70 +21,91 @@ describe('deduplicateStrings', () => {
 
 describe('deduplicateStateTransitions', () => {
   it('returns all incoming when no existing', () => {
-    const result = deduplicateStateTransitions([], [{
-      from: 'a',
-      to: 'b' 
-    }]);
-    expect(result).toEqual([{
-      from: 'a',
-      to: 'b' 
-    }]);
+    const result = deduplicateStateTransitions(
+      [],
+      [
+        {
+          from: 'a',
+          to: 'b',
+        },
+      ],
+    );
+    expect(result).toEqual([
+      {
+        from: 'a',
+        to: 'b',
+      },
+    ]);
   });
 
   it('filters out duplicates by from and to', () => {
     const result = deduplicateStateTransitions(
-      [{
-        from: 'a',
-        to: 'b' 
-      }],
       [
         {
           from: 'a',
-          to: 'b' 
+          to: 'b',
+        },
+      ],
+      [
+        {
+          from: 'a',
+          to: 'b',
         },
         {
           from: 'b',
-          to: 'c' 
+          to: 'c',
         },
       ],
     );
-    expect(result).toEqual([{
-      from: 'b',
-      to: 'c' 
-    }]);
+    expect(result).toEqual([
+      {
+        from: 'b',
+        to: 'c',
+      },
+    ]);
   });
 
   it('treats different triggers as non-duplicates', () => {
     const result = deduplicateStateTransitions(
-      [{
-        from: 'a',
-        to: 'b' 
-      }],
-      [{
+      [
+        {
+          from: 'a',
+          to: 'b',
+        },
+      ],
+      [
+        {
+          from: 'a',
+          to: 'b',
+          trigger: 'submit',
+        },
+      ],
+    );
+    expect(result).toEqual([
+      {
         from: 'a',
         to: 'b',
-        trigger: 'submit' 
-      }],
-    );
-    expect(result).toEqual([{
-      from: 'a',
-      to: 'b',
-      trigger: 'submit' 
-    }]);
+        trigger: 'submit',
+      },
+    ]);
   });
 
   it('filters duplicates including trigger', () => {
     const result = deduplicateStateTransitions(
-      [{
-        from: 'a',
-        to: 'b',
-        trigger: 'submit' 
-      }],
-      [{
-        from: 'a',
-        to: 'b',
-        trigger: 'submit' 
-      }],
+      [
+        {
+          from: 'a',
+          to: 'b',
+          trigger: 'submit',
+        },
+      ],
+      [
+        {
+          from: 'a',
+          to: 'b',
+          trigger: 'submit',
+        },
+      ],
     );
     expect(result).toEqual([]);
   });
@@ -94,21 +115,21 @@ describe('deduplicateStateTransitions', () => {
       [
         {
           from: 'a',
-          to: 'b' 
+          to: 'b',
         },
         {
           from: 'b',
-          to: 'c' 
+          to: 'c',
         },
       ],
       [
         {
           from: 'a',
-          to: 'b' 
+          to: 'b',
         },
         {
           from: 'b',
-          to: 'c' 
+          to: 'c',
         },
       ],
     );

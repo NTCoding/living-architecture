@@ -18,12 +18,8 @@ describe('riviere builder enrich', () => {
   describe('command registration', () => {
     it('registers enrich command under builder', () => {
       const program = createProgram();
-      const builderCmd = program.commands.find(
-        (cmd) => cmd.name() === 'builder',
-      );
-      const enrichCmd = builderCmd?.commands.find(
-        (cmd) => cmd.name() === 'enrich',
-      );
+      const builderCmd = program.commands.find((cmd) => cmd.name() === 'builder');
+      const enrichCmd = builderCmd?.commands.find((cmd) => cmd.name() === 'enrich');
 
       expect(enrichCmd?.name()).toBe('enrich');
     });
@@ -91,7 +87,7 @@ describe('riviere builder enrich', () => {
       const output: unknown = JSON.parse(ctx.consoleOutput[0] ?? '');
       expect(output).toMatchObject({
         success: false,
-        error: {code: CliErrorCode.InvalidComponentType,},
+        error: { code: CliErrorCode.InvalidComponentType },
       });
     });
 
@@ -113,7 +109,7 @@ describe('riviere builder enrich', () => {
       const output: unknown = JSON.parse(ctx.consoleOutput[0] ?? '');
       expect(output).toMatchObject({
         success: false,
-        error: {code: CliErrorCode.ValidationError,},
+        error: { code: CliErrorCode.ValidationError },
       });
     });
 
@@ -135,7 +131,7 @@ describe('riviere builder enrich', () => {
       const output: unknown = JSON.parse(ctx.consoleOutput[0] ?? '');
       expect(output).toMatchObject({
         success: false,
-        error: {code: CliErrorCode.ValidationError,},
+        error: { code: CliErrorCode.ValidationError },
       });
     });
   });
@@ -165,7 +161,7 @@ describe('riviere builder enrich', () => {
         components: [
           {
             id: 'orders:checkout:domainop:confirm-order',
-            entity: 'Order' 
+            entity: 'Order',
           },
         ],
       });
@@ -189,12 +185,16 @@ describe('riviere builder enrich', () => {
       const content = await readFile(graphPath, 'utf-8');
       const graph: unknown = JSON.parse(content);
       expect(graph).toMatchObject({
-        components: [{
-          stateChanges: [{
-            from: 'pending',
-            to: 'confirmed' 
-          }] 
-        }],
+        components: [
+          {
+            stateChanges: [
+              {
+                from: 'pending',
+                to: 'confirmed',
+              },
+            ],
+          },
+        ],
       });
     });
 
@@ -223,11 +223,11 @@ describe('riviere builder enrich', () => {
             stateChanges: [
               {
                 from: 'pending',
-                to: 'confirmed' 
+                to: 'confirmed',
               },
               {
                 from: 'confirmed',
-                to: 'shipped' 
+                to: 'shipped',
               },
             ],
           },
@@ -252,7 +252,7 @@ describe('riviere builder enrich', () => {
       const graphPath = join(ctx.testDir, '.riviere', 'graph.json');
       const content = await readFile(graphPath, 'utf-8');
       const graph: unknown = JSON.parse(content);
-      expect(graph).toMatchObject({components: [{ businessRules: ['Order must have items'] }],});
+      expect(graph).toMatchObject({ components: [{ businessRules: ['Order must have items'] }] });
     });
 
     it('enriches DomainOp with multiple business-rules', async () => {
@@ -274,7 +274,7 @@ describe('riviere builder enrich', () => {
       const graphPath = join(ctx.testDir, '.riviere', 'graph.json');
       const content = await readFile(graphPath, 'utf-8');
       const graph: unknown = JSON.parse(content);
-      expect(graph).toMatchObject({components: [{ businessRules: ['Rule 1', 'Rule 2'] }],});
+      expect(graph).toMatchObject({ components: [{ businessRules: ['Rule 1', 'Rule 2'] }] });
     });
 
     it('outputs success JSON when --json flag provided', async () => {
@@ -356,5 +356,4 @@ describe('riviere builder enrich', () => {
       expect(graph).toMatchObject({ components: [{ behavior: expected }] });
     });
   });
-
 });

@@ -38,7 +38,7 @@ interface CommandInfo {
 
 interface CommandWithRegisteredArgs {readonly registeredArguments?: readonly Argument[];}
 
-interface CommandWithEvents {readonly _events?: {readonly afterHelp?: unknown;};}
+interface CommandWithEvents {readonly _events?: { readonly afterHelp?: unknown };}
 
 type AfterHelpContext = {
   readonly command: Command;
@@ -55,9 +55,7 @@ function extractOptions(cmd: Command): readonly OptionInfo[] {
     }));
 }
 
-function hasRegisteredArguments(
-  cmd: Command,
-): cmd is Command & CommandWithRegisteredArgs {
+function hasRegisteredArguments(cmd: Command): cmd is Command & CommandWithRegisteredArgs {
   return 'registeredArguments' in cmd && Array.isArray(cmd.registeredArguments);
 }
 
@@ -73,9 +71,7 @@ function extractArguments(cmd: Command): readonly ArgumentInfo[] {
   }));
 }
 
-function isAfterHelpCallback(
-  fn: unknown,
-): fn is (ctx: AfterHelpContext) => string | void {
+function isAfterHelpCallback(fn: unknown): fn is (ctx: AfterHelpContext) => string | void {
   return typeof fn === 'function';
 }
 
@@ -102,9 +98,7 @@ function callAfterHelpHandler(afterHelp: unknown, cmd: Command): string {
 function parseExamplesFromHelpText(helpText: string): readonly string[] {
   const lines = helpText.split('\n');
   const examples: string[] = [];
-  const examplesStartIndex = lines.findIndex((line) =>
-    line.trim().startsWith('Examples:'),
-  );
+  const examplesStartIndex = lines.findIndex((line) => line.trim().startsWith('Examples:'));
 
   if (examplesStartIndex === -1) {
     return examples;
@@ -141,9 +135,7 @@ function parseExamplesFromHelpText(helpText: string): readonly string[] {
 }
 
 function hasEvents(cmd: Command): cmd is Command & CommandWithEvents {
-  return (
-    '_events' in cmd && typeof cmd._events === 'object' && cmd._events !== null
-  );
+  return '_events' in cmd && typeof cmd._events === 'object' && cmd._events !== null;
 }
 
 function extractExamples(cmd: Command): readonly string[] {
@@ -177,10 +169,7 @@ function extractCommandInfo(cmd: Command, parentName: string): CommandInfo {
   };
 }
 
-function collectCommands(
-  cmd: Command,
-  parentName: string,
-): readonly CommandInfo[] {
+function collectCommands(cmd: Command, parentName: string): readonly CommandInfo[] {
   const fullName = parentName ? `${parentName} ${cmd.name()}` : cmd.name();
 
   return cmd.commands.flatMap((subcmd) =>
@@ -202,9 +191,7 @@ function generateCommandMarkdown(cmd: CommandInfo): string {
   lines.push(cmd.description);
   lines.push('');
 
-  const args = cmd.arguments
-    .map((a) => (a.required ? `<${a.name}>` : `[${a.name}]`))
-    .join(' ');
+  const args = cmd.arguments.map((a) => (a.required ? `<${a.name}>` : `[${a.name}]`)).join(' ');
   const syntax = `${cmd.fullName}${args ? ' ' + args : ''} [options]`;
   lines.push('```bash');
   lines.push(syntax);
@@ -264,12 +251,8 @@ function generateReference(): string {
   const program = createProgram();
   const allCommands = collectCommands(program, '');
 
-  const builderCommands = allCommands.filter((c) =>
-    c.fullName.startsWith('riviere builder'),
-  );
-  const queryCommands = allCommands.filter((c) =>
-    c.fullName.startsWith('riviere query'),
-  );
+  const builderCommands = allCommands.filter((c) => c.fullName.startsWith('riviere builder'));
+  const queryCommands = allCommands.filter((c) => c.fullName.startsWith('riviere query'));
 
   const lines: string[] = [];
 
@@ -280,9 +263,7 @@ function generateReference(): string {
   lines.push('# CLI Command Reference');
   lines.push('');
   lines.push('> This file is auto-generated from CLI command definitions.');
-  lines.push(
-    '> Do not edit manually. Run `nx generate-docs riviere-cli` to regenerate.',
-  );
+  lines.push('> Do not edit manually. Run `nx generate-docs riviere-cli` to regenerate.');
   lines.push('');
   lines.push('Complete documentation for all Riviere CLI commands.');
   lines.push('');

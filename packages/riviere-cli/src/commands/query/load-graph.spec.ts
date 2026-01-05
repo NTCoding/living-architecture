@@ -12,8 +12,7 @@ import {
 import { CliErrorCode } from '../../error-codes';
 import type { TestContext } from '../../command-test-fixtures';
 import {
-  createTestContext,
-  setupCommandTest,
+  createTestContext, setupCommandTest 
 } from '../../command-test-fixtures';
 
 const validGraph = {
@@ -23,8 +22,8 @@ const validGraph = {
     domains: {
       test: {
         description: 'Test domain',
-        systemType: 'domain' 
-      } 
+        systemType: 'domain',
+      },
     },
   },
   components: [],
@@ -61,11 +60,7 @@ describe('load-graph', () => {
     it('returns RiviereQuery when graph file is valid', async () => {
       const graphDir = join(ctx.testDir, '.riviere');
       await mkdir(graphDir, { recursive: true });
-      await writeFile(
-        join(graphDir, 'graph.json'),
-        JSON.stringify(validGraph),
-        'utf-8',
-      );
+      await writeFile(join(graphDir, 'graph.json'), JSON.stringify(validGraph), 'utf-8');
 
       const result = await loadGraph();
 
@@ -96,11 +91,7 @@ describe('load-graph', () => {
     it('executes handler with RiviereQuery when graph file is valid', async () => {
       const graphDir = join(ctx.testDir, '.riviere');
       await mkdir(graphDir, { recursive: true });
-      await writeFile(
-        join(graphDir, 'graph.json'),
-        JSON.stringify(validGraph),
-        'utf-8',
-      );
+      await writeFile(join(graphDir, 'graph.json'), JSON.stringify(validGraph), 'utf-8');
 
       const handlerState = { called: false };
       await withGraph(undefined, (query) => {
@@ -114,11 +105,7 @@ describe('load-graph', () => {
     it('awaits async handlers', async () => {
       const graphDir = join(ctx.testDir, '.riviere');
       await mkdir(graphDir, { recursive: true });
-      await writeFile(
-        join(graphDir, 'graph.json'),
-        JSON.stringify(validGraph),
-        'utf-8',
-      );
+      await writeFile(join(graphDir, 'graph.json'), JSON.stringify(validGraph), 'utf-8');
 
       const asyncState = { completed: false };
       const delay = new Promise<void>((resolve) => setTimeout(resolve, 10));
@@ -144,11 +131,7 @@ describe('load-graph', () => {
     it('returns false when result has query property', async () => {
       const graphDir = join(ctx.testDir, '.riviere');
       await mkdir(graphDir, { recursive: true });
-      await writeFile(
-        join(graphDir, 'graph.json'),
-        JSON.stringify(validGraph),
-        'utf-8',
-      );
+      await writeFile(join(graphDir, 'graph.json'), JSON.stringify(validGraph), 'utf-8');
 
       const result = await loadGraph();
       expect(isLoadGraphError(result)).toBe(false);

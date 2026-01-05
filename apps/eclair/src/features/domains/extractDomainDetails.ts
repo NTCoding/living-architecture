@@ -7,162 +7,163 @@ import type {
   SourceLocation,
   EntryPoint,
   NodeId,
-} from '@/types/riviere'
-import { nodeIdSchema } from '@/types/riviere'
+} from '@/types/riviere';
+import { nodeIdSchema } from '@/types/riviere';
 import {
   RiviereQuery, type Entity 
-} from '@living-architecture/riviere-query'
-import type { NodeBreakdown } from './domainNodeBreakdown'
+} from '@living-architecture/riviere-query';
+import type { NodeBreakdown } from './domainNodeBreakdown';
 import {
   countNodesByType, formatDomainNodes, extractEntryPoints 
-} from './domainNodeBreakdown'
+} from './domainNodeBreakdown';
 
 export interface DomainNode {
-  id: string
-  type: NodeType
-  name: string
-  location: string | undefined
-  sourceLocation: SourceLocation | undefined
+  id: string;
+  type: NodeType;
+  name: string;
+  location: string | undefined;
+  sourceLocation: SourceLocation | undefined;
 }
 
 export interface AggregatedConnection {
-  targetDomain: string
-  direction: 'incoming' | 'outgoing'
-  apiCount: number
-  eventCount: number
+  targetDomain: string;
+  direction: 'incoming' | 'outgoing';
+  apiCount: number;
+  eventCount: number;
 }
 
 export interface EventSubscriber {
-  domain: string
-  handlerName: string
+  domain: string;
+  handlerName: string;
 }
 
 export interface DomainEvent {
-  id: string
-  eventName: string
-  schema: string | undefined
-  sourceLocation: SourceLocation | undefined
-  handlers: EventSubscriber[]
+  id: string;
+  eventName: string;
+  schema: string | undefined;
+  sourceLocation: SourceLocation | undefined;
+  handlers: EventSubscriber[];
 }
 
 interface KnownSourceEventInfo {
-  eventName: string
-  sourceDomain: string
-  sourceKnown: true
+  eventName: string;
+  sourceDomain: string;
+  sourceKnown: true;
 }
 
 interface UnknownSourceEventInfo {
-  eventName: string
-  sourceKnown: false
+  eventName: string;
+  sourceKnown: false;
 }
 
-type SubscribedEventInfo = KnownSourceEventInfo | UnknownSourceEventInfo
+type SubscribedEventInfo = KnownSourceEventInfo | UnknownSourceEventInfo;
 
 export interface DomainEventHandler {
-  id: string
-  handlerName: string
-  description: string | undefined
-  subscribedEvents: string[]
-  subscribedEventsWithDomain: SubscribedEventInfo[]
-  sourceLocation: SourceLocation | undefined
+  id: string;
+  handlerName: string;
+  description: string | undefined;
+  subscribedEvents: string[];
+  subscribedEventsWithDomain: SubscribedEventInfo[];
+  sourceLocation: SourceLocation | undefined;
 }
 
 export interface DomainEvents {
-  published: DomainEvent[]
-  consumed: DomainEventHandler[]
+  published: DomainEvent[];
+  consumed: DomainEventHandler[];
 }
 
 export interface CrossDomainEdge {
-  targetDomain: string
-  edgeType: EdgeType | undefined
+  targetDomain: string;
+  edgeType: EdgeType | undefined;
 }
 
 export interface DomainDetails {
-  id: string
-  description: string
-  systemType: SystemType
-  nodeBreakdown: NodeBreakdown
-  nodes: DomainNode[]
-  entities: Entity[]
-  events: DomainEvents
-  crossDomainEdges: CrossDomainEdge[]
-  aggregatedConnections: AggregatedConnection[]
-  entryPoints: EntryPoint[]
-  repository: string | undefined
+  id: string;
+  description: string;
+  systemType: SystemType;
+  nodeBreakdown: NodeBreakdown;
+  nodes: DomainNode[];
+  entities: Entity[];
+  events: DomainEvents;
+  crossDomainEdges: CrossDomainEdge[];
+  aggregatedConnections: AggregatedConnection[];
+  entryPoints: EntryPoint[];
+  repository: string | undefined;
 }
 
-function buildCrossDomainEdges(
-  graph: RiviereGraph,
-  domainId: DomainName
-): CrossDomainEdge[] {
-  const nodeIdToDomain = new Map<string, string>()
+function buildCrossDomainEdges(graph: RiviereGraph, domainId: DomainName): CrossDomainEdge[] {
+  const nodeIdToDomain = new Map<string, string>();
   for (const node of graph.components) {
-    nodeIdToDomain.set(node.id, node.domain)
+    nodeIdToDomain.set(node.id, node.domain);
   }
 
-  const crossDomainEdgeSet = new Set<string>()
-  const crossDomainEdges: CrossDomainEdge[] = []
+  const crossDomainEdgeSet = new Set<string>();
+  const crossDomainEdges: CrossDomainEdge[] = [];
 
   for (const edge of graph.links) {
-    const sourceDomain = nodeIdToDomain.get(edge.source)
-    const targetDomain = nodeIdToDomain.get(edge.target)
+    const sourceDomain = nodeIdToDomain.get(edge.source);
+    const targetDomain = nodeIdToDomain.get(edge.target);
 
     if (sourceDomain !== domainId || targetDomain === domainId || targetDomain === undefined) {
-      continue
+      continue;
     }
 
-    const key = `${targetDomain}:${edge.type ?? 'unknown'}`
-    if (crossDomainEdgeSet.has(key)) continue
+    const key = `${targetDomain}:${edge.type ?? 'unknown'}`;
+    if (crossDomainEdgeSet.has(key)) continue;
 
-    crossDomainEdgeSet.add(key)
+    crossDomainEdgeSet.add(key);
     crossDomainEdges.push({
       targetDomain,
       edgeType: edge.type,
-    })
+    });
   }
 
-  return crossDomainEdges.sort((a, b) => a.targetDomain.localeCompare(b.targetDomain))
+  return crossDomainEdges.sort((a, b) => a.targetDomain.localeCompare(b.targetDomain));
 }
 
-export function extractDomainDetails(graph: RiviereGraph, domainId: DomainName): DomainDetails | null {
-  const domainMeta = graph.metadata.domains[domainId]
+export function extractDomainDetails(
+  graph: RiviereGraph,
+  domainId: DomainName,
+): DomainDetails | null {
+  const domainMeta = graph.metadata.domains[domainId];
   if (domainMeta === undefined) {
-    return null
+    return null;
   }
 
-  const query = new RiviereQuery(graph)
-  const domainNodes = graph.components.filter((n) => n.domain === domainId)
+  const query = new RiviereQuery(graph);
+  const domainNodes = graph.components.filter((n) => n.domain === domainId);
 
-  const breakdown = countNodesByType(domainNodes)
-  const nodes = formatDomainNodes(domainNodes)
-  const entities = query.entities(domainId)
+  const breakdown = countNodesByType(domainNodes);
+  const nodes = formatDomainNodes(domainNodes);
+  const entities = query.entities(domainId);
 
-  const queryPublished = query.publishedEvents(domainId)
-  const queryHandlers = query.eventHandlers()
+  const queryPublished = query.publishedEvents(domainId);
+  const queryHandlers = query.eventHandlers();
   const componentById = new Map<NodeId, RiviereGraph['components'][number]>(
-    graph.components.map((c) => [c.id, c])
-  )
+    graph.components.map((c) => [c.id, c]),
+  );
 
   const publishedEvents: DomainEvent[] = queryPublished.map((pe) => {
-    const nodeId = nodeIdSchema.parse(pe.id)
-    const component = componentById.get(nodeId)
-    const schema = component?.type === 'Event' ? component.eventSchema : undefined
+    const nodeId = nodeIdSchema.parse(pe.id);
+    const component = componentById.get(nodeId);
+    const schema = component?.type === 'Event' ? component.eventSchema : undefined;
     return {
       id: pe.id,
       eventName: pe.eventName,
       sourceLocation: component?.sourceLocation,
       handlers: pe.handlers,
       schema,
-    }
-  })
+    };
+  });
 
-  const domainHandlers = queryHandlers.filter((h) => h.domain === domainId)
+  const domainHandlers = queryHandlers.filter((h) => h.domain === domainId);
   const consumedHandlers: DomainEventHandler[] = domainHandlers.map((h) => {
-    const nodeId = nodeIdSchema.parse(h.id)
-    const component = componentById.get(nodeId)
-    const description = component?.description !== undefined && typeof component?.description === 'string'
-      ? component.description
-      : undefined
+    const nodeId = nodeIdSchema.parse(h.id);
+    const component = componentById.get(nodeId);
+    const description =
+      component?.description !== undefined && typeof component?.description === 'string'
+        ? component.description
+        : undefined;
     return {
       id: h.id,
       handlerName: h.handlerName,
@@ -170,21 +171,24 @@ export function extractDomainDetails(graph: RiviereGraph, domainId: DomainName):
       sourceLocation: component?.sourceLocation,
       subscribedEvents: h.subscribedEvents,
       subscribedEventsWithDomain: h.subscribedEventsWithDomain,
-    }
-  })
+    };
+  });
 
   const events: DomainEvents = {
-    published: publishedEvents.toSorted((a: DomainEvent, b: DomainEvent) => a.eventName.localeCompare(b.eventName)),
-    consumed: consumedHandlers.toSorted((a: DomainEventHandler, b: DomainEventHandler) => a.handlerName.localeCompare(b.handlerName)),
-  }
+    published: publishedEvents.toSorted((a: DomainEvent, b: DomainEvent) =>
+      a.eventName.localeCompare(b.eventName),
+    ),
+    consumed: consumedHandlers.toSorted((a: DomainEventHandler, b: DomainEventHandler) =>
+      a.handlerName.localeCompare(b.handlerName),
+    ),
+  };
 
-  const crossDomainEdges = buildCrossDomainEdges(graph, domainId)
-  const aggregatedConnections = query.domainConnections(domainId)
-  const entryPoints = extractEntryPoints(domainNodes)
+  const crossDomainEdges = buildCrossDomainEdges(graph, domainId);
+  const aggregatedConnections = query.domainConnections(domainId);
+  const entryPoints = extractEntryPoints(domainNodes);
 
-  const repository = domainNodes
-    .find((node) => node.sourceLocation?.repository)
-    ?.sourceLocation?.repository
+  const repository = domainNodes.find((node) => node.sourceLocation?.repository)?.sourceLocation
+    ?.repository;
 
   return {
     id: domainId,
@@ -198,5 +202,5 @@ export function extractDomainDetails(graph: RiviereGraph, domainId: DomainName):
     aggregatedConnections,
     entryPoints,
     repository,
-  }
+  };
 }

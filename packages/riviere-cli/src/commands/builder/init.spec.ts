@@ -9,17 +9,14 @@ import { createProgram } from '../../cli';
 import { CliErrorCode } from '../../error-codes';
 import type { TestContext } from '../../command-test-fixtures';
 import {
-  createTestContext,
-  setupCommandTest,
+  createTestContext, setupCommandTest 
 } from '../../command-test-fixtures';
 
 describe('riviere builder init', () => {
   describe('command registration', () => {
     it('registers init command under builder', () => {
       const program = createProgram();
-      const builderCmd = program.commands.find(
-        (cmd) => cmd.name() === 'builder',
-      );
+      const builderCmd = program.commands.find((cmd) => cmd.name() === 'builder');
       const initCmd = builderCmd?.commands.find((cmd) => cmd.name() === 'init');
 
       expect(initCmd?.name()).toBe('init');
@@ -72,7 +69,7 @@ describe('riviere builder init', () => {
       const content = await readFile(graphPath, 'utf-8');
       const graph: unknown = JSON.parse(content);
 
-      expect(graph).toMatchObject({metadata: {sources: [{ repository: 'https://github.com/org/repo' }],},});
+      expect(graph).toMatchObject({metadata: { sources: [{ repository: 'https://github.com/org/repo' }] },});
     });
 
     it('includes multiple sources when multiple --source flags provided', async () => {
@@ -160,11 +157,11 @@ describe('riviere builder init', () => {
           domains: {
             orders: {
               description: 'Order management',
-              systemType: 'domain' 
+              systemType: 'domain',
             },
             payments: {
               description: 'Payment processing',
-              systemType: 'bff' 
+              systemType: 'bff',
             },
           },
         },
@@ -191,7 +188,7 @@ describe('riviere builder init', () => {
       const content = await readFile(graphPath, 'utf-8');
       const graph: unknown = JSON.parse(content);
 
-      expect(graph).toMatchObject({metadata: {name: 'ecommerce',},});
+      expect(graph).toMatchObject({ metadata: { name: 'ecommerce' } });
     });
 
     it('omits name from graph metadata when --name not provided', async () => {
@@ -212,7 +209,7 @@ describe('riviere builder init', () => {
       const content = await readFile(graphPath, 'utf-8');
       const graph: unknown = JSON.parse(content);
 
-      expect(graph).toMatchObject({metadata: {},});
+      expect(graph).toMatchObject({ metadata: {} });
       expect(graph).not.toHaveProperty('metadata.name');
     });
   });
@@ -224,11 +221,7 @@ describe('riviere builder init', () => {
     it('returns GRAPH_EXISTS error when .riviere/graph.json already exists', async () => {
       const graphDir = join(ctx.testDir, '.riviere');
       await mkdir(graphDir, { recursive: true });
-      await writeFile(
-        join(graphDir, 'graph.json'),
-        '{"existing": true}',
-        'utf-8',
-      );
+      await writeFile(join(graphDir, 'graph.json'), '{"existing": true}', 'utf-8');
 
       const program = createProgram();
 

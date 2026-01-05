@@ -9,8 +9,7 @@ import { createProgram } from '../../cli';
 import { CliErrorCode } from '../../error-codes';
 import type { TestContext } from '../../command-test-fixtures';
 import {
-  createTestContext,
-  setupCommandTest,
+  createTestContext, setupCommandTest 
 } from '../../command-test-fixtures';
 
 interface ApiComponentDef {
@@ -24,12 +23,10 @@ describe('riviere builder link-http', () => {
   describe('command registration', () => {
     it('registers link-http command under builder', () => {
       const program = createProgram();
-      const builderCmd = program.commands.find(
-        (cmd) => cmd.name() === 'builder',
+      const builderCmd = program.commands.find((cmd) => cmd.name() === 'builder');
+      expect(builderCmd?.commands.find((cmd) => cmd.name() === 'link-http')?.name()).toBe(
+        'link-http',
       );
-      expect(
-        builderCmd?.commands.find((cmd) => cmd.name() === 'link-http')?.name(),
-      ).toBe('link-http');
     });
   });
 
@@ -47,7 +44,7 @@ describe('riviere builder link-http', () => {
           domains: {
             orders: {
               description: 'Order management',
-              systemType: 'domain' 
+              systemType: 'domain',
             },
           },
         },
@@ -67,11 +64,7 @@ describe('riviere builder link-http', () => {
         })),
         links: [],
       };
-      await writeFile(
-        join(graphDir, 'graph.json'),
-        JSON.stringify(graph),
-        'utf-8',
-      );
+      await writeFile(join(graphDir, 'graph.json'), JSON.stringify(graph), 'utf-8');
     }
 
     const singleApi: ApiComponentDef = {
@@ -125,9 +118,7 @@ describe('riviere builder link-http', () => {
     }
 
     async function readGraph(): Promise<unknown> {
-      return JSON.parse(
-        await readFile(join(ctx.testDir, '.riviere', 'graph.json'), 'utf-8'),
-      );
+      return JSON.parse(await readFile(join(ctx.testDir, '.riviere', 'graph.json'), 'utf-8'));
     }
 
     it('finds API by path and creates link', async () => {
@@ -145,9 +136,7 @@ describe('riviere builder link-http', () => {
 
     it('returns GRAPH_NOT_FOUND when no graph exists', async () => {
       await createProgram().parseAsync(buildArgs({ json: false }));
-      expect(ctx.consoleOutput.join('\n')).toContain(
-        CliErrorCode.GraphNotFound,
-      );
+      expect(ctx.consoleOutput.join('\n')).toContain(CliErrorCode.GraphNotFound);
     });
 
     it('returns error when no API matches path', async () => {
@@ -254,22 +243,19 @@ describe('riviere builder link-http', () => {
         override: { method: 'INVALID' },
         message: 'Invalid HTTP method: INVALID',
       },
-    ])(
-      'returns VALIDATION_ERROR for invalid input: $message',
-      async ({
-        override, message 
-      }) => {
-        await createGraph([singleApi]);
-        await createProgram().parseAsync(buildArgs(override));
-        const output: unknown = JSON.parse(ctx.consoleOutput[0] ?? '');
-        expect(output).toMatchObject({
-          success: false,
-          error: {
-            code: CliErrorCode.ValidationError,
-            message 
-          },
-        });
-      },
-    );
+    ])('returns VALIDATION_ERROR for invalid input: $message', async ({
+      override, message 
+    }) => {
+      await createGraph([singleApi]);
+      await createProgram().parseAsync(buildArgs(override));
+      const output: unknown = JSON.parse(ctx.consoleOutput[0] ?? '');
+      expect(output).toMatchObject({
+        success: false,
+        error: {
+          code: CliErrorCode.ValidationError,
+          message,
+        },
+      });
+    });
   });
 });

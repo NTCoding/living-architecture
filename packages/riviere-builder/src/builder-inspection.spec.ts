@@ -3,8 +3,7 @@ import {
 } from 'vitest';
 import { RiviereBuilder } from './builder';
 import {
-  createValidOptions,
-  createSourceLocation,
+  createValidOptions, createSourceLocation 
 } from './builder-test-fixtures';
 
 describe('RiviereBuilder', () => {
@@ -83,7 +82,7 @@ describe('RiviereBuilder', () => {
 
       builder.link({
         from: source.id,
-        to: target.id 
+        to: target.id,
       });
 
       const stats = builder.stats();
@@ -146,7 +145,7 @@ describe('RiviereBuilder', () => {
 
       builder.link({
         from: source.id,
-        to: target.id 
+        to: target.id,
       });
 
       const warnings = builder.warnings();
@@ -172,14 +171,12 @@ describe('RiviereBuilder', () => {
       });
       builder.linkExternal({
         from: linked.id,
-        target: { name: 'External' } 
+        target: { name: 'External' },
       });
 
       const warnings = builder.warnings();
 
-      const orphanWarnings = warnings.filter(
-        (w) => w.code === 'ORPHAN_COMPONENT',
-      );
+      const orphanWarnings = warnings.filter((w) => w.code === 'ORPHAN_COMPONENT');
       expect(orphanWarnings).toHaveLength(1);
       expect(orphanWarnings[0]).toMatchObject({
         code: 'ORPHAN_COMPONENT',
@@ -225,12 +222,8 @@ describe('RiviereBuilder', () => {
 
       const warnings = builder.warnings();
 
-      const orphanWarnings = warnings.filter(
-        (w) => w.code === 'ORPHAN_COMPONENT',
-      );
-      const unusedDomainWarnings = warnings.filter(
-        (w) => w.code === 'UNUSED_DOMAIN',
-      );
+      const orphanWarnings = warnings.filter((w) => w.code === 'ORPHAN_COMPONENT');
+      const unusedDomainWarnings = warnings.filter((w) => w.code === 'UNUSED_DOMAIN');
 
       expect(orphanWarnings).toHaveLength(1);
       expect(unusedDomainWarnings).toHaveLength(1);
@@ -260,9 +253,7 @@ describe('RiviereBuilder', () => {
 
       const warnings = builder.warnings();
 
-      const orphanWarnings = warnings.filter(
-        (w) => w.code === 'ORPHAN_COMPONENT',
-      );
+      const orphanWarnings = warnings.filter((w) => w.code === 'ORPHAN_COMPONENT');
       expect(orphanWarnings).toHaveLength(1);
       expect(orphanWarnings[0]?.componentId).toContain('another-service');
     });
@@ -286,14 +277,12 @@ describe('RiviereBuilder', () => {
 
       builder.link({
         from: source.id,
-        to: target.id 
+        to: target.id,
       });
 
       const warnings = builder.warnings();
 
-      const unusedDomainWarnings = warnings.filter(
-        (w) => w.code === 'UNUSED_DOMAIN',
-      );
+      const unusedDomainWarnings = warnings.filter((w) => w.code === 'UNUSED_DOMAIN');
       expect(unusedDomainWarnings).toHaveLength(0);
     });
   });
@@ -316,7 +305,7 @@ describe('RiviereBuilder', () => {
       });
       builder.link({
         from: source.id,
-        to: target.id 
+        to: target.id,
       });
       expect(builder.orphans()).toEqual([]);
     });
@@ -342,7 +331,7 @@ describe('RiviereBuilder', () => {
       });
       builder.link({
         from: source.id,
-        to: 'nonexistent:target:id' 
+        to: 'nonexistent:target:id',
       });
       expect(builder.orphans()).toEqual([]);
     });
@@ -364,7 +353,7 @@ describe('RiviereBuilder', () => {
       });
       builder.link({
         from: source.id,
-        to: target.id 
+        to: target.id,
       });
       expect(builder.orphans()).toEqual([]);
     });
@@ -379,7 +368,7 @@ describe('RiviereBuilder', () => {
       });
       builder.linkExternal({
         from: source.id,
-        target: { name: 'Stripe API' } 
+        target: { name: 'Stripe API' },
       });
       expect(builder.orphans()).toEqual([]);
     });

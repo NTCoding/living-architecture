@@ -1,19 +1,19 @@
 import {
   useState, useCallback 
-} from 'react'
-import type { NodeType } from '@/types/riviere'
+} from 'react';
+import type { NodeType } from '@/types/riviere';
 
 interface NodeTypeInfo {
-  readonly type: NodeType
-  readonly nodeCount: number
+  readonly type: NodeType;
+  readonly nodeCount: number;
 }
 
 interface NodeTypeFiltersProps {
-  readonly nodeTypes: readonly NodeTypeInfo[]
-  readonly visibleTypes: Set<NodeType>
-  readonly onToggleType: (type: NodeType) => void
-  readonly onShowAll: () => void
-  readonly onHideAll: () => void
+  readonly nodeTypes: readonly NodeTypeInfo[];
+  readonly visibleTypes: Set<NodeType>;
+  readonly onToggleType: (type: NodeType) => void;
+  readonly onShowAll: () => void;
+  readonly onHideAll: () => void;
 }
 
 export function NodeTypeFilters({
@@ -23,14 +23,14 @@ export function NodeTypeFilters({
   onShowAll,
   onHideAll,
 }: Readonly<NodeTypeFiltersProps>): React.ReactElement {
-  const [isOpen, setIsOpen] = useState(true)
+  const [isOpen, setIsOpen] = useState(true);
 
   const toggleOpen = useCallback(() => {
-    setIsOpen((prev) => !prev)
-  }, [])
+    setIsOpen((prev) => !prev);
+  }, []);
 
-  const allVisible = nodeTypes.every((nt) => visibleTypes.has(nt.type))
-  const noneVisible = visibleTypes.size === 0
+  const allVisible = nodeTypes.every((nt) => visibleTypes.has(nt.type));
+  const noneVisible = visibleTypes.size === 0;
 
   return (
     <div
@@ -45,9 +45,7 @@ export function NodeTypeFilters({
         aria-controls="node-type-filter-list"
         data-testid="node-type-filters-toggle"
       >
-        <span className="text-sm font-semibold text-[var(--text-primary)]">
-          Node Type Filters
-        </span>
+        <span className="text-sm font-semibold text-[var(--text-primary)]">Node Type Filters</span>
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="16"
@@ -66,10 +64,7 @@ export function NodeTypeFilters({
       </button>
 
       {isOpen && (
-        <div
-          id="node-type-filter-list"
-          className="border-t border-[var(--border-color)] p-4"
-        >
+        <div id="node-type-filter-list" className="border-t border-[var(--border-color)] p-4">
           <div className="mb-3 flex gap-2">
             <button
               type="button"
@@ -93,7 +88,7 @@ export function NodeTypeFilters({
 
           <div className="space-y-2">
             {nodeTypes.map((nodeType) => {
-              const isVisible = visibleTypes.has(nodeType.type)
+              const isVisible = visibleTypes.has(nodeType.type);
               return (
                 <label
                   key={nodeType.type}
@@ -106,18 +101,14 @@ export function NodeTypeFilters({
                     className="h-4 w-4 rounded border-[var(--border-color)] accent-[var(--primary)]"
                     data-testid={`node-type-checkbox-${nodeType.type}`}
                   />
-                  <span className="flex-1 text-sm text-[var(--text-primary)]">
-                    {nodeType.type}
-                  </span>
-                  <span className="text-xs text-[var(--text-tertiary)]">
-                    {nodeType.nodeCount}
-                  </span>
+                  <span className="flex-1 text-sm text-[var(--text-primary)]">{nodeType.type}</span>
+                  <span className="text-xs text-[var(--text-tertiary)]">{nodeType.nodeCount}</span>
                 </label>
-              )
+              );
             })}
           </div>
         </div>
       )}
     </div>
-  )
+  );
 }

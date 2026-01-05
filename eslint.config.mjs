@@ -213,5 +213,21 @@ export default tseslint.config(
         allowAllPropertiesOnSameLine: false
       }],
     }
-  }
+  },
+  // Eclair test files: larger limit for lint-staged compatibility
+  {
+    files: [
+      'apps/eclair/**/*.test.ts',
+      'apps/eclair/**/*.test.tsx',
+      'apps/eclair/**/*.spec.ts',
+      'apps/eclair/**/*.spec.tsx',
+    ],
+    rules: {
+      'max-lines': ['error', {
+        max: 730,
+        skipBlankLines: true,
+        skipComments: true
+      }],
+    },
+  },
 );

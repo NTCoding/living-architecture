@@ -31,11 +31,7 @@ Examples:
         await writeFile(graphPath, builder.serialize(), 'utf-8');
 
         if (options.json === true) {
-          console.log(
-            JSON.stringify(
-              formatSuccess({repository: options.repository,}),
-            ),
-          );
+          console.log(JSON.stringify(formatSuccess({ repository: options.repository })));
         }
       });
     });

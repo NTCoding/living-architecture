@@ -1,24 +1,28 @@
 import type {
   Node, NodeType, Edge, ExternalLink 
-} from '@/types/riviere'
+} from '@/types/riviere';
 import type {
   SimulationNode, SimulationLink 
-} from '../../types'
-import type { Theme } from '@/types/theme'
+} from '../../types';
+import type { Theme } from '@/types/theme';
 import {
-  EDGE_COLORS, SEMANTIC_EDGE_COLORS, NODE_COLORS, NODE_RADII, getDomainColor 
-} from '../../types'
+  EDGE_COLORS,
+  SEMANTIC_EDGE_COLORS,
+  NODE_COLORS,
+  NODE_RADII,
+  getDomainColor,
+} from '../../types';
 
 interface ExternalNode {
-  id: string
-  type: 'External'
-  name: string
-  domain: string
+  id: string;
+  type: 'External';
+  name: string;
+  domain: string;
   sourceLocation: {
     repository: string;
-    filePath: string 
-  }
-  url?: string
+    filePath: string;
+  };
+  url?: string;
 }
 
 export function createSimulationNodes(nodes: Node[]): SimulationNode[] {
@@ -28,7 +32,7 @@ export function createSimulationNodes(nodes: Node[]): SimulationNode[] {
     name: node.name,
     domain: node.domain,
     originalNode: node,
-  }))
+  }));
 }
 
 export function createSimulationLinks(edges: Edge[]): SimulationLink[] {
@@ -37,11 +41,11 @@ export function createSimulationLinks(edges: Edge[]): SimulationLink[] {
     target: edge.target,
     type: edge.type,
     originalEdge: edge,
-  }))
+  }));
 }
 
 function createExternalNodeId(name: string): string {
-  return `external:${name}`
+  return `external:${name}`;
 }
 
 function createExternalNodeFromLink(link: ExternalLink): ExternalNode {
@@ -52,123 +56,127 @@ function createExternalNodeFromLink(link: ExternalLink): ExternalNode {
     domain: 'external',
     sourceLocation: {
       repository: 'external',
-      filePath: '' 
+      filePath: '',
     },
     url: link.target.url,
-  }
+  };
 }
 
 export function createExternalNodes(externalLinks: ExternalLink[] | undefined): SimulationNode[] {
   if (externalLinks === undefined) {
-    return []
+    return [];
   }
 
-  const seenNames = new Set<string>()
-  const externalNodes: SimulationNode[] = []
+  const seenNames = new Set<string>();
+  const externalNodes: SimulationNode[] = [];
 
   for (const link of externalLinks) {
-    const name = link.target.name
+    const name = link.target.name;
     if (seenNames.has(name)) {
-      continue
+      continue;
     }
-    seenNames.add(name)
+    seenNames.add(name);
 
-    const externalNode = createExternalNodeFromLink(link)
+    const externalNode = createExternalNodeFromLink(link);
     externalNodes.push({
       id: externalNode.id,
       type: 'External',
       name: externalNode.name,
       domain: 'external',
       originalNode: externalNode,
-    })
+    });
   }
 
-  return externalNodes
+  return externalNodes;
 }
 
 export function createExternalLinks(externalLinks: ExternalLink[] | undefined): SimulationLink[] {
   if (externalLinks === undefined) {
-    return []
+    return [];
   }
 
   return externalLinks.map((link) => {
-    const targetId = createExternalNodeId(link.target.name)
+    const targetId = createExternalNodeId(link.target.name);
     const syntheticEdge: Edge = {
       source: link.source,
       target: targetId,
       type: link.type,
-    }
+    };
 
     return {
       source: link.source,
       target: targetId,
       type: link.type,
       originalEdge: syntheticEdge,
-    }
-  })
+    };
+  });
 }
 
 export function getNodeColor(type: NodeType, theme: Theme): string {
-  return NODE_COLORS[theme][type]
+  return NODE_COLORS[theme][type];
 }
 
 export function getNodeRadius(type: NodeType): number {
-  return NODE_RADII[type]
+  return NODE_RADII[type];
 }
 
 export function getEdgeColor(type: string | undefined, theme: Theme): string {
-  const colors = EDGE_COLORS[theme]
+  const colors = EDGE_COLORS[theme];
   if (type === 'async') {
-    return colors.async
+    return colors.async;
   }
-  return colors.sync
+  return colors.sync;
 }
 
 export function isAsyncEdge(type: string | undefined): boolean {
-  return type === 'async'
+  return type === 'async';
 }
 
-export type SemanticEdgeType = 'event' | 'default'
+export type SemanticEdgeType = 'event' | 'default';
 
 export function getSemanticEdgeType(_sourceType: NodeType, targetType: NodeType): SemanticEdgeType {
-  if (targetType === 'Event') return 'event'
-  return 'default'
+  if (targetType === 'Event') return 'event';
+  return 'default';
 }
 
-export function getSemanticEdgeColor(sourceType: NodeType, targetType: NodeType, theme: Theme): string {
-  const semanticType = getSemanticEdgeType(sourceType, targetType)
-  return SEMANTIC_EDGE_COLORS[theme][semanticType]
+export function getSemanticEdgeColor(
+  sourceType: NodeType,
+  targetType: NodeType,
+  theme: Theme,
+): string {
+  const semanticType = getSemanticEdgeType(sourceType, targetType);
+  return SEMANTIC_EDGE_COLORS[theme][semanticType];
 }
 
 export function truncateName(name: string, maxLength: number): string {
-  if (name.length <= maxLength) return name
-  return name.substring(0, maxLength - 2) + '...'
+  if (name.length <= maxLength) return name;
+  return name.substring(0, maxLength - 2) + '...';
 }
 
 interface LayoutEdge {
-  source: string
-  target: string
+  source: string;
+  target: string;
 }
 
 export function createLayoutEdges(
   internalEdges: Edge[],
-  externalLinks: ExternalLink[] | undefined
+  externalLinks: ExternalLink[] | undefined,
 ): LayoutEdge[] {
   const layoutEdges: LayoutEdge[] = internalEdges.map((e) => ({
     source: e.source,
     target: e.target,
-  }))
+  }));
 
   if (externalLinks !== undefined) {
     for (const link of externalLinks) {
       layoutEdges.push({
         source: link.source,
         target: createExternalNodeId(link.target.name),
-      })
+      });
     }
   }
 
-  return layoutEdges
+  return layoutEdges;
 }
 
-export { getDomainColor }
+export { getDomainColor };

@@ -1,11 +1,9 @@
 import { Command } from 'commander';
 import {
-  ComponentNotFoundError,
-  parseComponentId,
+  ComponentNotFoundError, parseComponentId 
 } from '@living-architecture/riviere-query';
 import {
-  findNearMatches,
-  ComponentId,
+  findNearMatches, ComponentId 
 } from '@living-architecture/riviere-builder';
 import {
   formatError, formatSuccess 
@@ -56,11 +54,7 @@ Examples:
 
             console.log(
               JSON.stringify(
-                formatError(
-                  CliErrorCode.ComponentNotFound,
-                  error.message,
-                  suggestions,
-                ),
+                formatError(CliErrorCode.ComponentNotFound, error.message, suggestions),
               ),
             );
             return;

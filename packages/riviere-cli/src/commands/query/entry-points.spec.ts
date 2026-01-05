@@ -31,14 +31,8 @@ interface EntryPointsOutput {
 function isEntryPointsOutput(value: unknown): value is EntryPointsOutput {
   if (typeof value !== 'object' || value === null) return false;
   if (!('success' in value) || value.success !== true) return false;
-  if (
-    !('data' in value) ||
-    typeof value.data !== 'object' ||
-    value.data === null
-  )
-    return false;
-  if (!('entryPoints' in value.data) || !Array.isArray(value.data.entryPoints))
-    return false;
+  if (!('data' in value) || typeof value.data !== 'object' || value.data === null) return false;
+  if (!('entryPoints' in value.data) || !Array.isArray(value.data.entryPoints)) return false;
   return true;
 }
 
@@ -55,9 +49,7 @@ describe('riviere query entry-points', () => {
     it('registers entry-points command under query', () => {
       const program = createProgram();
       const queryCmd = program.commands.find((cmd) => cmd.name() === 'query');
-      const entryPointsCmd = queryCmd?.commands.find(
-        (cmd) => cmd.name() === 'entry-points',
-      );
+      const entryPointsCmd = queryCmd?.commands.find((cmd) => cmd.name() === 'entry-points');
       expect(entryPointsCmd?.name()).toBe('entry-points');
     });
   });
@@ -81,19 +73,11 @@ describe('riviere query entry-points', () => {
         ],
       });
 
-      await createProgram().parseAsync([
-        'node',
-        'riviere',
-        'query',
-        'entry-points',
-        '--json',
-      ]);
+      await createProgram().parseAsync(['node', 'riviere', 'query', 'entry-points', '--json']);
       const output = parseOutput(ctx.consoleOutput);
       expect(output.success).toBe(true);
       expect(output.data.entryPoints).toHaveLength(1);
-      expect(output.data.entryPoints[0]?.id).toBe(
-        'orders:checkout:api:place-order',
-      );
+      expect(output.data.entryPoints[0]?.id).toBe('orders:checkout:api:place-order');
     });
 
     it('returns EventHandler components with no incoming links', async () => {
@@ -111,19 +95,11 @@ describe('riviere query entry-points', () => {
         ],
       });
 
-      await createProgram().parseAsync([
-        'node',
-        'riviere',
-        'query',
-        'entry-points',
-        '--json',
-      ]);
+      await createProgram().parseAsync(['node', 'riviere', 'query', 'entry-points', '--json']);
       const output = parseOutput(ctx.consoleOutput);
       expect(output.success).toBe(true);
       expect(output.data.entryPoints).toHaveLength(1);
-      expect(output.data.entryPoints[0]?.id).toBe(
-        'orders:checkout:eventhandler:on-order-placed',
-      );
+      expect(output.data.entryPoints[0]?.id).toBe('orders:checkout:eventhandler:on-order-placed');
     });
 
     it('excludes components that have incoming links', async () => {
@@ -153,23 +129,13 @@ describe('riviere query entry-points', () => {
         ],
       });
 
-      await createProgram().parseAsync([
-        'node',
-        'riviere',
-        'query',
-        'entry-points',
-        '--json',
-      ]);
+      await createProgram().parseAsync(['node', 'riviere', 'query', 'entry-points', '--json']);
       const output = parseOutput(ctx.consoleOutput);
       expect(output.data.entryPoints).toHaveLength(1);
-      expect(output.data.entryPoints[0]?.id).toBe(
-        'orders:checkout:api:place-order',
+      expect(output.data.entryPoints[0]?.id).toBe('orders:checkout:api:place-order');
+      expect(output.data.entryPoints.some((ep) => ep.id === 'orders:checkout:api:get-order')).toBe(
+        false,
       );
-      expect(
-        output.data.entryPoints.some(
-          (ep) => ep.id === 'orders:checkout:api:get-order',
-        ),
-      ).toBe(false);
     });
 
     it('produces no output when --json flag is not provided', async () => {
@@ -180,12 +146,7 @@ describe('riviere query entry-points', () => {
         links: [],
       });
 
-      await createProgram().parseAsync([
-        'node',
-        'riviere',
-        'query',
-        'entry-points',
-      ]);
+      await createProgram().parseAsync(['node', 'riviere', 'query', 'entry-points']);
       expect(ctx.consoleOutput).toHaveLength(0);
     });
   });
@@ -195,16 +156,8 @@ describe('riviere query entry-points', () => {
     setupCommandTest(ctx);
 
     it('returns GRAPH_NOT_FOUND when no graph exists', async () => {
-      await createProgram().parseAsync([
-        'node',
-        'riviere',
-        'query',
-        'entry-points',
-        '--json',
-      ]);
-      expect(ctx.consoleOutput.join('\n')).toContain(
-        CliErrorCode.GraphNotFound,
-      );
+      await createProgram().parseAsync(['node', 'riviere', 'query', 'entry-points', '--json']);
+      expect(ctx.consoleOutput.join('\n')).toContain(CliErrorCode.GraphNotFound);
     });
   });
 });

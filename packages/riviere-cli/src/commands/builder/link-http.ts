@@ -3,13 +3,10 @@ import { writeFile } from 'node:fs/promises';
 import { ComponentId } from '@living-architecture/riviere-builder';
 import { RiviereQuery } from '@living-architecture/riviere-query';
 import type {
-  Component,
-  HttpMethod,
-  RiviereGraph,
+  Component, HttpMethod, RiviereGraph 
 } from '@living-architecture/riviere-schema';
 import {
-  getDefaultGraphPathDescription,
-  resolveGraphPath,
+  getDefaultGraphPathDescription, resolveGraphPath 
 } from '../../graph-path';
 import { fileExists } from '../../file-existence';
 import {
@@ -38,19 +35,11 @@ interface ApiComponent {
   httpMethod: HttpMethod;
 }
 
-function isRestApiWithPath(
-  component: Component,
-): component is Component & ApiComponent {
-  return (
-    component.type === 'API' && 'path' in component && 'httpMethod' in component
-  );
+function isRestApiWithPath(component: Component): component is Component & ApiComponent {
+  return component.type === 'API' && 'path' in component && 'httpMethod' in component;
 }
 
-function findApisByPath(
-  graph: RiviereGraph,
-  path: string,
-  method?: HttpMethod,
-): ApiComponent[] {
+function findApisByPath(graph: RiviereGraph, path: string, method?: HttpMethod): ApiComponent[] {
   const query = new RiviereQuery(graph);
   const allComponents = query.componentsByType('API');
   const apis = allComponents.filter(isRestApiWithPath);
@@ -88,21 +77,14 @@ function reportNoApiFoundForPath(path: string, availablePaths: string[]): void {
       formatError(
         CliErrorCode.ComponentNotFound,
         `No API found with path '${path}'`,
-        availablePaths.length > 0
-          ? [`Available paths: ${availablePaths.join(', ')}`]
-          : [],
+        availablePaths.length > 0 ? [`Available paths: ${availablePaths.join(', ')}`] : [],
       ),
     ),
   );
 }
 
-function reportAmbiguousApiMatch(
-  path: string,
-  matchingApis: ApiComponent[],
-): void {
-  const apiList = matchingApis
-    .map((api) => `${api.id} (${api.httpMethod})`)
-    .join(', ');
+function reportAmbiguousApiMatch(path: string, matchingApis: ApiComponent[]): void {
+  const apiList = matchingApis.map((api) => `${api.id} (${api.httpMethod})`).join(', ');
   console.log(
     JSON.stringify(
       formatError(
@@ -155,10 +137,7 @@ Examples:
     .requiredOption('--to-module <module>', 'Target module')
     .requiredOption('--to-type <type>', 'Target component type')
     .requiredOption('--to-name <name>', 'Target component name')
-    .option(
-      '--method <method>',
-      'Filter by HTTP method (GET, POST, PUT, PATCH, DELETE)',
-    )
+    .option('--method <method>', 'Filter by HTTP method (GET, POST, PUT, PATCH, DELETE)')
     .option('--link-type <type>', 'Link type (sync, async)')
     .option('--graph <path>', getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
@@ -182,9 +161,7 @@ Examples:
 
       const normalizedMethod = options.method?.toUpperCase();
       const httpMethod =
-        normalizedMethod && isValidHttpMethod(normalizedMethod)
-          ? normalizedMethod
-          : undefined;
+        normalizedMethod && isValidHttpMethod(normalizedMethod) ? normalizedMethod : undefined;
       const matchingApis = findApisByPath(graph, options.path, httpMethod);
 
       const [matchedApi, ...otherApis] = matchingApis;
@@ -209,7 +186,7 @@ Examples:
       const linkInput: {
         from: string;
         to: string;
-        type?: 'sync' | 'async' 
+        type?: 'sync' | 'async';
       } = {
         from: matchedApi.id,
         to: targetId,

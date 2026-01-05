@@ -35,19 +35,13 @@ interface ChecklistOutput {
 
 function isChecklistOutput(value: unknown): value is ChecklistOutput {
   if (!hasSuccessOutputStructure(value)) return false;
-  if (!('total' in value.data) || typeof value.data.total !== 'number')
-    return false;
-  if (!('components' in value.data) || !Array.isArray(value.data.components))
-    return false;
+  if (!('total' in value.data) || typeof value.data.total !== 'number') return false;
+  if (!('components' in value.data) || !Array.isArray(value.data.components)) return false;
   return true;
 }
 
 function parseChecklistOutput(consoleOutput: string[]): ChecklistOutput {
-  return parseSuccessOutput(
-    consoleOutput,
-    isChecklistOutput,
-    'Invalid component-checklist output',
-  );
+  return parseSuccessOutput(consoleOutput, isChecklistOutput, 'Invalid component-checklist output');
 }
 
 describe('riviere builder component-checklist', () => {
@@ -276,12 +270,7 @@ describe('riviere builder component-checklist', () => {
         links: [],
       });
 
-      await createProgram().parseAsync([
-        'node',
-        'riviere',
-        'builder',
-        'component-checklist',
-      ]);
+      await createProgram().parseAsync(['node', 'riviere', 'builder', 'component-checklist']);
       expect(ctx.consoleOutput).toHaveLength(0);
     });
   });

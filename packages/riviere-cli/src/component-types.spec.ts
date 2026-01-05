@@ -61,9 +61,7 @@ describe('component-types', () => {
     });
 
     it('throws for invalid component type', () => {
-      expect(() => normalizeComponentType('Invalid')).toThrow(
-        /Invalid component type/,
-      );
+      expect(() => normalizeComponentType('Invalid')).toThrow(/Invalid component type/);
     });
   });
 

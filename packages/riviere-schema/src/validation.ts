@@ -17,9 +17,7 @@ interface ValidationErrorLike {
   message?: string;
 }
 
-export function formatValidationErrors(
-  errors: ValidationErrorLike[] | null | undefined,
-): string {
+export function formatValidationErrors(errors: ValidationErrorLike[] | null | undefined): string {
   if (!errors || errors.length === 0) {
     return 'validation failed without specific errors';
   }
@@ -30,7 +28,5 @@ export function parseRiviereGraph(data: unknown): RiviereGraph {
   if (isRiviereGraph(data)) {
     return data;
   }
-  throw new Error(
-    `Invalid RiviereGraph:\n${formatValidationErrors(validate.errors)}`,
-  );
+  throw new Error(`Invalid RiviereGraph:\n${formatValidationErrors(validate.errors)}`);
 }

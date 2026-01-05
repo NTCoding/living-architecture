@@ -55,14 +55,7 @@ export interface UIComponent extends ComponentBase {
 }
 
 export type ApiType = 'REST' | 'GraphQL' | 'other';
-export type HttpMethod =
-  | 'GET'
-  | 'POST'
-  | 'PUT'
-  | 'PATCH'
-  | 'DELETE'
-  | 'HEAD'
-  | 'OPTIONS';
+export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS';
 
 export interface APIComponent extends ComponentBase {
   type: 'API';
@@ -150,12 +143,7 @@ export interface DomainMetadata {
   [key: string]: unknown;
 }
 
-export type CustomPropertyType =
-  | 'string'
-  | 'number'
-  | 'boolean'
-  | 'array'
-  | 'object';
+export type CustomPropertyType = 'string' | 'number' | 'boolean' | 'array' | 'object';
 
 export interface CustomPropertyDefinition {
   type: CustomPropertyType;

@@ -1,12 +1,13 @@
-import { useTheme } from '@/contexts/ThemeContext'
+import { useTheme } from '@/contexts/ThemeContext';
 
-interface LogoProps {readonly size?: number}
+interface LogoProps {readonly size?: number;}
 
 function StreamLogo({
-  size, gradientId 
+  size,
+  gradientId,
 }: {
   readonly size: number;
-  readonly gradientId: string 
+  readonly gradientId: string;
 }): React.ReactElement {
   return (
     <svg width={size} height={size} viewBox="0 0 40 40" fill="none">
@@ -27,7 +28,7 @@ function StreamLogo({
       <line x1="20" y1="20" x2="12" y2="28" stroke="white" strokeWidth="1.5" opacity="0.6" />
       <line x1="20" y1="20" x2="28" y2="28" stroke="white" strokeWidth="1.5" opacity="0.6" />
     </svg>
-  )
+  );
 }
 
 function VoltageLogo({ size }: { readonly size: number }): React.ReactElement {
@@ -44,7 +45,7 @@ function VoltageLogo({ size }: { readonly size: number }): React.ReactElement {
       <line x1="20" y1="20" x2="12" y2="28" stroke="#FF006E" strokeWidth="2" />
       <line x1="20" y1="20" x2="28" y2="28" stroke="#39FF14" strokeWidth="2" />
     </svg>
-  )
+  );
 }
 
 function CircuitLogo({ size }: { readonly size: number }): React.ReactElement {
@@ -61,20 +62,20 @@ function CircuitLogo({ size }: { readonly size: number }): React.ReactElement {
       <line x1="20" y1="20" x2="12" y2="28" stroke="white" strokeWidth="1.5" />
       <line x1="20" y1="20" x2="28" y2="28" stroke="white" strokeWidth="1.5" />
     </svg>
-  )
+  );
 }
 
 export function Logo({ size = 36 }: LogoProps): React.ReactElement {
-  const { theme } = useTheme()
-  const gradientId = `logo-gradient-${size}`
+  const { theme } = useTheme();
+  const gradientId = `logo-gradient-${size}`;
 
   switch (theme) {
     case 'voltage':
-      return <VoltageLogo size={size} />
+      return <VoltageLogo size={size} />;
     case 'circuit':
-      return <CircuitLogo size={size} />
+      return <CircuitLogo size={size} />;
     case 'stream':
     default:
-      return <StreamLogo size={size} gradientId={gradientId} />
+      return <StreamLogo size={size} gradientId={gradientId} />;
   }
 }

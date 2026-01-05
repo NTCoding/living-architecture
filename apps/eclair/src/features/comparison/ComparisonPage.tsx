@@ -19,99 +19,103 @@ import {
   UploadZone, type UploadState 
 } from './UploadZone';
 
-type ResultsViewMode = 'graph' | 'list'
+type ResultsViewMode = 'graph' | 'list';
 
 interface ChangeItemBase {
-  readonly node: Node
-  readonly changeType: 'added' | 'removed' | 'modified'
-  readonly changedFields?: string[]
+  readonly node: Node;
+  readonly changeType: 'added' | 'removed' | 'modified';
+  readonly changedFields?: string[];
 }
 
 function buildChangeItems(diff: GraphDiff): ChangeItemBase[] {
-  const items: ChangeItemBase[] = []
+  const items: ChangeItemBase[] = [];
 
   for (const addition of diff.nodes.added) {
     items.push({
       node: addition.node,
-      changeType: 'added' 
-    })
+      changeType: 'added',
+    });
   }
 
   for (const removal of diff.nodes.removed) {
     items.push({
       node: removal.node,
-      changeType: 'removed' 
-    })
+      changeType: 'removed',
+    });
   }
 
   for (const modification of diff.nodes.modified) {
     items.push({
       node: modification.after,
       changeType: 'modified',
-      changedFields: modification.changedFields 
-    })
+      changedFields: modification.changedFields,
+    });
   }
 
-  return items
+  return items;
 }
 
 function parseGraphFile(content: string, fileName: string): UploadState {
   try {
-    const data: unknown = JSON.parse(content)
-    const graph = parseRiviereGraph(data)
+    const data: unknown = JSON.parse(content);
+    const graph = parseRiviereGraph(data);
     return {
       status: 'loaded',
       file: {
         name: fileName,
-        graph 
-      } 
-    }
+        graph,
+      },
+    };
   } catch (e) {
-    const message = e instanceof Error ? e.message : 'Unknown error'
+    const message = e instanceof Error ? e.message : 'Unknown error';
     return {
       status: 'error',
-      error: { message } 
-    }
+      error: { message },
+    };
   }
 }
 
-interface ChangeItemProps {readonly item: ChangeItemBase}
+interface ChangeItemProps {readonly item: ChangeItemBase;}
 
 function ChangeItem({ item }: Readonly<ChangeItemProps>): React.ReactElement {
   const {
     node, changeType, changedFields 
-  } = item
+  } = item;
 
   const changeIndicator = {
     added: {
       text: '+ ADDED',
-      color: 'text-[#1A7F37]' 
+      color: 'text-[#1A7F37]',
     },
     removed: {
       text: '- REMOVED',
-      color: 'text-[#FF6B6B]' 
+      color: 'text-[#FF6B6B]',
     },
     modified: {
       text: '~ MODIFIED',
-      color: 'text-amber-500' 
+      color: 'text-amber-500',
     },
-  }[changeType]
+  }[changeType];
 
   const borderColor = {
     added: 'border-l-[#1A7F37]',
     removed: 'border-l-[#FF6B6B]',
     modified: 'border-l-amber-500',
-  }[changeType]
+  }[changeType];
 
   return (
-    <div className={`rounded-[var(--radius)] border border-[var(--border-color)] ${borderColor} border-l-4 bg-[var(--bg-secondary)] p-4`}>
+    <div
+      className={`rounded-[var(--radius)] border border-[var(--border-color)] ${borderColor} border-l-4 bg-[var(--bg-secondary)] p-4`}
+    >
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-3">
           <span className="rounded bg-[var(--bg-tertiary)] px-2 py-0.5 text-xs font-semibold uppercase text-[var(--text-secondary)]">
             {node.type}
           </span>
           <span className="font-semibold text-[var(--text-primary)]">{node.name}</span>
-          <span className="text-sm text-[var(--text-tertiary)]">{node.domain} · {node.module}</span>
+          <span className="text-sm text-[var(--text-tertiary)]">
+            {node.domain} · {node.module}
+          </span>
         </div>
         <span className={`text-xs font-bold ${changeIndicator.color}`}>{changeIndicator.text}</span>
       </div>
@@ -124,40 +128,40 @@ function ChangeItem({ item }: Readonly<ChangeItemProps>): React.ReactElement {
         </p>
       )}
     </div>
-  )
+  );
 }
 
 function extractUniqueDomains(items: ChangeItemBase[]): string[] {
-  const domains = new Set<string>()
+  const domains = new Set<string>();
   for (const item of items) {
-    domains.add(item.node.domain)
+    domains.add(item.node.domain);
   }
-  return Array.from(domains).sort((a, b) => a.localeCompare(b))
+  return Array.from(domains).sort((a, b) => a.localeCompare(b));
 }
 
 function extractUniqueTypes(items: ChangeItemBase[]): string[] {
-  const types = new Set<string>()
+  const types = new Set<string>();
   for (const item of items) {
-    types.add(item.node.type)
+    types.add(item.node.type);
   }
-  return Array.from(types).sort((a, b) => a.localeCompare(b))
+  return Array.from(types).sort((a, b) => a.localeCompare(b));
 }
 
-interface DetailedChangesProps {readonly diff: GraphDiff}
+interface DetailedChangesProps {readonly diff: GraphDiff;}
 
 function DetailedChanges({ diff }: Readonly<DetailedChangesProps>): React.ReactElement {
-  const [filter, setFilter] = useState<ChangeFilter>('all')
-  const [domainFilter, setDomainFilter] = useState<string | null>(null)
-  const [typeFilter, setTypeFilter] = useState<string | null>(null)
+  const [filter, setFilter] = useState<ChangeFilter>('all');
+  const [domainFilter, setDomainFilter] = useState<string | null>(null);
+  const [typeFilter, setTypeFilter] = useState<string | null>(null);
 
-  const allItems = buildChangeItems(diff)
-  const uniqueDomains = extractUniqueDomains(allItems)
-  const uniqueTypes = extractUniqueTypes(allItems)
+  const allItems = buildChangeItems(diff);
+  const uniqueDomains = extractUniqueDomains(allItems);
+  const uniqueTypes = extractUniqueTypes(allItems);
 
   const filteredItems = allItems
     .filter((item) => filter === 'all' || item.changeType === filter)
     .filter((item) => domainFilter === null || item.node.domain === domainFilter)
-    .filter((item) => typeFilter === null || item.node.type === typeFilter)
+    .filter((item) => typeFilter === null || item.node.type === typeFilter);
 
   return (
     <div className="space-y-4">
@@ -167,8 +171,14 @@ function DetailedChanges({ diff }: Readonly<DetailedChangesProps>): React.ReactE
       </div>
       {uniqueDomains.length > 1 && (
         <div className="flex items-center gap-3">
-          <span className="text-xs font-semibold uppercase text-[var(--text-tertiary)]">Domain</span>
-          <DomainFilter domains={uniqueDomains} activeDomain={domainFilter} onDomainChange={setDomainFilter} />
+          <span className="text-xs font-semibold uppercase text-[var(--text-tertiary)]">
+            Domain
+          </span>
+          <DomainFilter
+            domains={uniqueDomains}
+            activeDomain={domainFilter}
+            onDomainChange={setDomainFilter}
+          />
         </div>
       )}
       {uniqueTypes.length > 1 && (
@@ -182,75 +192,80 @@ function DetailedChanges({ diff }: Readonly<DetailedChangesProps>): React.ReactE
           <ChangeItem key={item.node.id} item={item} />
         ))}
         {filteredItems.length === 0 && (
-          <p className="py-8 text-center text-sm text-[var(--text-tertiary)]">No changes to display</p>
+          <p className="py-8 text-center text-sm text-[var(--text-tertiary)]">
+            No changes to display
+          </p>
         )}
       </div>
     </div>
-  )
+  );
 }
 
 export function ComparisonPage(): React.ReactElement {
-  const [beforeState, setBeforeState] = useState<UploadState>({ status: 'empty' })
-  const [afterState, setAfterState] = useState<UploadState>({ status: 'empty' })
-  const [comparisonResult, setComparisonResult] = useState<GraphDiff | null>(null)
-  const [domainDiff, setDomainDiff] = useState<DomainConnectionDiffResult | null>(null)
-  const [viewMode, setViewMode] = useState<ResultsViewMode>('graph')
+  const [beforeState, setBeforeState] = useState<UploadState>({ status: 'empty' });
+  const [afterState, setAfterState] = useState<UploadState>({ status: 'empty' });
+  const [comparisonResult, setComparisonResult] = useState<GraphDiff | null>(null);
+  const [domainDiff, setDomainDiff] = useState<DomainConnectionDiffResult | null>(null);
+  const [viewMode, setViewMode] = useState<ResultsViewMode>('graph');
 
   const handleBeforeFileSelect = useCallback((file: File) => {
-    const reader = new FileReader()
+    const reader = new FileReader();
     reader.onload = (event) => {
-      const content = event.target?.result
+      const content = event.target?.result;
       if (typeof content !== 'string') {
         setBeforeState({
           status: 'error',
-          error: { message: 'Failed to read file' } 
-        })
-        return
+          error: { message: 'Failed to read file' },
+        });
+        return;
       }
-      setBeforeState(parseGraphFile(content, file.name))
-    }
+      setBeforeState(parseGraphFile(content, file.name));
+    };
     reader.onerror = () => {
       setBeforeState({
         status: 'error',
-        error: { message: 'Failed to read file' } 
-      })
-    }
-    reader.readAsText(file)
-  }, [])
+        error: { message: 'Failed to read file' },
+      });
+    };
+    reader.readAsText(file);
+  }, []);
 
   const handleAfterFileSelect = useCallback((file: File) => {
-    const reader = new FileReader()
+    const reader = new FileReader();
     reader.onload = (event) => {
-      const content = event.target?.result
+      const content = event.target?.result;
       if (typeof content !== 'string') {
         setAfterState({
           status: 'error',
-          error: { message: 'Failed to read file' } 
-        })
-        return
+          error: { message: 'Failed to read file' },
+        });
+        return;
       }
-      setAfterState(parseGraphFile(content, file.name))
-    }
+      setAfterState(parseGraphFile(content, file.name));
+    };
     reader.onerror = () => {
       setAfterState({
         status: 'error',
-        error: { message: 'Failed to read file' } 
-      })
-    }
-    reader.readAsText(file)
-  }, [])
+        error: { message: 'Failed to read file' },
+      });
+    };
+    reader.readAsText(file);
+  }, []);
 
-  const canCompare = beforeState.status === 'loaded' && afterState.status === 'loaded'
+  const canCompare = beforeState.status === 'loaded' && afterState.status === 'loaded';
 
   const handleCompare = useCallback(() => {
-    if (beforeState.status !== 'loaded' || afterState.status !== 'loaded') return
+    if (beforeState.status !== 'loaded' || afterState.status !== 'loaded') return;
 
-    const diff = compareGraphs(beforeState.file.graph, afterState.file.graph)
-    setComparisonResult(diff)
+    const diff = compareGraphs(beforeState.file.graph, afterState.file.graph);
+    setComparisonResult(diff);
 
-    const connectionDiff = computeDomainConnectionDiff(beforeState.file.graph, afterState.file.graph)
-    setDomainDiff(connectionDiff)
-  }, [beforeState, afterState])
+    const connectionDiff = computeDomainConnectionDiff(
+      beforeState.file.graph,
+      afterState.file.graph,
+    );
+    setDomainDiff(connectionDiff);
+  }, [beforeState, afterState]);
 
   return (
     <div className="space-y-8">
@@ -277,7 +292,10 @@ export function ComparisonPage(): React.ReactElement {
 
               <div className="hidden items-center justify-center md:flex">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--bg-tertiary)]">
-                  <i className="ph ph-arrow-right text-xl text-[var(--text-tertiary)]" aria-hidden="true" />
+                  <i
+                    className="ph ph-arrow-right text-xl text-[var(--text-tertiary)]"
+                    aria-hidden="true"
+                  />
                 </div>
               </div>
 
@@ -339,16 +357,21 @@ export function ComparisonPage(): React.ReactElement {
           </div>
 
           <div className="space-y-3">
-            <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--text-tertiary)]">Node Changes</h2>
+            <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--text-tertiary)]">
+              Node Changes
+            </h2>
             <StatsBar diff={comparisonResult} />
           </div>
 
           {viewMode === 'graph' && domainDiff !== null && (
             <div className="space-y-3">
               <div className="flex items-baseline justify-between">
-                <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--text-tertiary)]">Cross-Domain Connection Changes</h2>
+                <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--text-tertiary)]">
+                  Cross-Domain Connection Changes
+                </h2>
                 <span className="text-xs text-[var(--text-tertiary)]">
-                  {domainDiff.connections.added.length} added · {domainDiff.connections.removed.length} removed
+                  {domainDiff.connections.added.length} added ·{' '}
+                  {domainDiff.connections.removed.length} removed
                 </span>
               </div>
               <DomainConnectionDiff diff={domainDiff} />
@@ -359,5 +382,5 @@ export function ComparisonPage(): React.ReactElement {
         </section>
       )}
     </div>
-  )
+  );
 }

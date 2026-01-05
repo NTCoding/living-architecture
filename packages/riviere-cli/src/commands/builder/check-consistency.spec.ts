@@ -35,22 +35,13 @@ interface ConsistencyOutput {
 
 function isConsistencyOutput(value: unknown): value is ConsistencyOutput {
   if (!hasSuccessOutputStructure(value)) return false;
-  if (
-    !('consistent' in value.data) ||
-    typeof value.data.consistent !== 'boolean'
-  )
-    return false;
-  if (!('warnings' in value.data) || !Array.isArray(value.data.warnings))
-    return false;
+  if (!('consistent' in value.data) || typeof value.data.consistent !== 'boolean') return false;
+  if (!('warnings' in value.data) || !Array.isArray(value.data.warnings)) return false;
   return true;
 }
 
 function parseConsistencyOutput(consoleOutput: string[]): ConsistencyOutput {
-  return parseSuccessOutput(
-    consoleOutput,
-    isConsistencyOutput,
-    'Invalid check-consistency output',
-  );
+  return parseSuccessOutput(consoleOutput, isConsistencyOutput, 'Invalid check-consistency output');
 }
 
 describe('riviere builder check-consistency', () => {
@@ -164,9 +155,7 @@ describe('riviere builder check-consistency', () => {
 
       expect(output.data.consistent).toBe(false);
       expect(output.data.warnings.length).toBeGreaterThan(0);
-      const orphanWarning = output.data.warnings.find(
-        (w) => w.code === 'ORPHAN_COMPONENT',
-      );
+      const orphanWarning = output.data.warnings.find((w) => w.code === 'ORPHAN_COMPONENT');
       expect(orphanWarning?.componentId).toBe('orders:checkout:usecase:orphan');
     });
 
@@ -226,9 +215,7 @@ describe('riviere builder check-consistency', () => {
       const output = parseConsistencyOutput(ctx.consoleOutput);
 
       expect(output.data.consistent).toBe(false);
-      const unusedWarning = output.data.warnings.find(
-        (w) => w.code === 'UNUSED_DOMAIN',
-      );
+      const unusedWarning = output.data.warnings.find((w) => w.code === 'UNUSED_DOMAIN');
       expect(unusedWarning?.domainName).toBe('payments');
     });
 
@@ -274,12 +261,7 @@ describe('riviere builder check-consistency', () => {
         links: [],
       });
 
-      await createProgram().parseAsync([
-        'node',
-        'riviere',
-        'builder',
-        'check-consistency',
-      ]);
+      await createProgram().parseAsync(['node', 'riviere', 'builder', 'check-consistency']);
       expect(ctx.consoleOutput).toHaveLength(0);
     });
   });

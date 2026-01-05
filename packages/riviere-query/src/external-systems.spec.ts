@@ -43,9 +43,10 @@ describe('queryExternalDomains', () => {
     const result = queryExternalDomains(graph);
 
     expect(result).toHaveLength(2);
-    expect(
-      result.map((d) => d.name).sort((a, b) => a.localeCompare(b)),
-    ).toEqual(['Stripe', 'Twilio']);
+    expect(result.map((d) => d.name).sort((a, b) => a.localeCompare(b))).toEqual([
+      'Stripe',
+      'Twilio',
+    ]);
   });
 
   it('includes source domain for each external domain', () => {
@@ -106,9 +107,7 @@ describe('queryExternalDomains', () => {
     expect(result).toHaveLength(1);
     expect(result[0]?.name).toBe('Stripe');
     expect(result[0]?.sourceDomains.sort((a, b) => a.localeCompare(b))).toEqual(
-      [parseDomainName('orders'), parseDomainName('payments')].sort((a, b) =>
-        a.localeCompare(b),
-      ),
+      [parseDomainName('orders'), parseDomainName('payments')].sort((a, b) => a.localeCompare(b)),
     );
   });
 

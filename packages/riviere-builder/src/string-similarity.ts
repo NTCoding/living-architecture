@@ -25,11 +25,7 @@ export function levenshteinDistance(a: string, b: string): number {
       const insertion = row[j];
       const substitution = currentRow[j];
       /* v8 ignore next -- @preserve */
-      const value = Math.min(
-        (insertion ?? 0) + 1,
-        (deletion ?? 0) + 1,
-        (substitution ?? 0) + cost,
-      );
+      const value = Math.min((insertion ?? 0) + 1, (deletion ?? 0) + 1, (substitution ?? 0) + cost);
       return [...row, value];
     }, nextRow);
   }, previousRow);

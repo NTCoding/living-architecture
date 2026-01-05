@@ -1,15 +1,15 @@
-import { useState } from 'react'
-import type { FlowStep } from '../../extractFlows'
+import { useState } from 'react';
+import type { FlowStep } from '../../extractFlows';
 import type {
   NodeType, RiviereGraph 
-} from '@/types/riviere'
-import { FlowGraphView } from './FlowGraphView'
+} from '@/types/riviere';
+import { FlowGraphView } from './FlowGraphView';
 
-type ViewMode = 'waterfall' | 'graph'
+type ViewMode = 'waterfall' | 'graph';
 
 interface FlowTraceProps {
-  readonly steps: readonly FlowStep[]
-  readonly graph: RiviereGraph
+  readonly steps: readonly FlowStep[];
+  readonly graph: RiviereGraph;
 }
 
 function getCircleTypeClass(nodeType: NodeType): string {
@@ -22,21 +22,21 @@ function getCircleTypeClass(nodeType: NodeType): string {
     EventHandler: 'flow-step-circle-eventhandler',
     Custom: 'flow-step-circle-custom',
     External: 'flow-step-circle-external',
-  }
-  return typeClassMap[nodeType]
+  };
+  return typeClassMap[nodeType];
 }
 
 export function FlowTrace({
   steps, graph 
 }: Readonly<FlowTraceProps>): React.ReactElement {
-  const [viewMode, setViewMode] = useState<ViewMode>('waterfall')
+  const [viewMode, setViewMode] = useState<ViewMode>('waterfall');
 
   if (steps.length === 0) {
     return (
       <div data-testid="flow-trace" className="flow-trace-container">
         No steps in this flow
       </div>
-    )
+    );
   }
 
   return (
@@ -70,19 +70,20 @@ export function FlowTrace({
                   {index + 1}
                 </div>
                 <div className="flow-step-content">
-                  <div className="flow-step-name" title={step.node.name}>{step.node.name}</div>
+                  <div className="flow-step-name" title={step.node.name}>
+                    {step.node.name}
+                  </div>
                   <div className="flow-step-meta">
                     {step.node.module} · {step.node.domain} · {step.node.type}
                   </div>
-                  {step.node.subscribedEvents !== undefined && step.node.subscribedEvents.length > 0 && (
+                  {step.node.subscribedEvents !== undefined &&
+                    step.node.subscribedEvents.length > 0 && (
                     <div className="flow-step-subscribed-events">
                       Handles: {step.node.subscribedEvents.join(', ')}
                     </div>
                   )}
                 </div>
-                {step.edgeType !== null && (
-                  <div className="flow-step-edge">{step.edgeType} →</div>
-                )}
+                {step.edgeType !== null && <div className="flow-step-edge">{step.edgeType} →</div>}
               </div>
               {step.externalLinks.length > 0 && (
                 <div className="flow-external-links">
@@ -93,9 +94,7 @@ export function FlowTrace({
                       </div>
                       <div className="flow-step-content">
                         <div className="flow-step-name">{extLink.target.name}</div>
-                        <div className="flow-step-meta">
-                          External · {extLink.type ?? 'sync'}
-                        </div>
+                        <div className="flow-step-meta">External · {extLink.type ?? 'sync'}</div>
                       </div>
                     </div>
                   ))}
@@ -112,5 +111,5 @@ export function FlowTrace({
         </div>
       )}
     </div>
-  )
+  );
 }

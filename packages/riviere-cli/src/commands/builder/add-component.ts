@@ -11,8 +11,7 @@ import {
 import type { SourceLocation } from '@living-architecture/riviere-schema';
 import { parseRiviereGraph } from '@living-architecture/riviere-schema';
 import {
-  getDefaultGraphPathDescription,
-  resolveGraphPath,
+  getDefaultGraphPathDescription, resolveGraphPath 
 } from '../../graph-path';
 import { fileExists } from '../../file-existence';
 import {
@@ -76,9 +75,7 @@ function parseCustomProperties(
   for (const prop of properties) {
     const colonIndex = prop.indexOf(':');
     if (colonIndex === -1) {
-      throw new Error(
-        `Invalid custom property format: ${prop}. Expected 'key:value'`,
-      );
+      throw new Error(`Invalid custom property format: ${prop}. Expected 'key:value'`);
     }
     const key = prop.slice(0, colonIndex);
     const value = prop.slice(colonIndex + 1);
@@ -97,7 +94,7 @@ function addUIComponent(
   }
   const component = builder.addUI({
     ...common,
-    route: options.route 
+    route: options.route,
   });
   return component.id;
 }
@@ -124,10 +121,7 @@ function addAPIComponent(
   return component.id;
 }
 
-function addUseCaseComponent(
-  builder: RiviereBuilder,
-  common: CommonInput,
-): string {
+function addUseCaseComponent(builder: RiviereBuilder, common: CommonInput): string {
   const component = builder.addUseCase(common);
   return component.id;
 }
@@ -142,12 +136,12 @@ function addDomainOpComponent(
   }
   const input = {
     ...common,
-    operationName: options.operationName 
+    operationName: options.operationName,
   };
   const component = options.entity
     ? builder.addDomainOp({
       ...input,
-      entity: options.entity 
+      entity: options.entity,
     })
     : builder.addDomainOp(input);
   return component.id;
@@ -164,7 +158,7 @@ function addEventComponent(
   const component = builder.addEvent({
     ...common,
     eventName: options.eventName,
-    ...(options.eventSchema !== undefined && {eventSchema: options.eventSchema,}),
+    ...(options.eventSchema !== undefined && { eventSchema: options.eventSchema }),
   });
   return component.id;
 }
@@ -175,9 +169,7 @@ function addEventHandlerComponent(
   options: AddComponentOptions,
 ): string {
   if (!options.subscribedEvents) {
-    throw new Error(
-      '--subscribed-events is required for EventHandler component',
-    );
+    throw new Error('--subscribed-events is required for EventHandler component');
   }
   const component = builder.addEventHandler({
     ...common,
@@ -242,12 +234,7 @@ function tryAddComponent(
   sourceLocation: SourceLocation,
 ): string | undefined {
   try {
-    return addComponentToBuilder(
-      builder,
-      componentType,
-      options,
-      sourceLocation,
-    );
+    return addComponentToBuilder(builder, componentType, options, sourceLocation);
   } catch (error) {
     if (error instanceof DomainNotFoundError) {
       console.log(
@@ -270,17 +257,11 @@ function tryAddComponent(
       return undefined;
     }
     if (error instanceof DuplicateComponentError) {
-      console.log(
-        JSON.stringify(
-          formatError(CliErrorCode.DuplicateComponent, error.message, []),
-        ),
-      );
+      console.log(JSON.stringify(formatError(CliErrorCode.DuplicateComponent, error.message, [])));
       return undefined;
     }
     const message = getErrorMessage(error);
-    console.log(
-      JSON.stringify(formatError(CliErrorCode.ValidationError, message, [])),
-    );
+    console.log(JSON.stringify(formatError(CliErrorCode.ValidationError, message, [])));
     return undefined;
   }
 }
@@ -332,10 +313,7 @@ Examples:
     .option('--entity <entity>', 'Entity name (DomainOp)')
     .option('--event-name <name>', 'Event name')
     .option('--event-schema <schema>', 'Event schema definition')
-    .option(
-      '--subscribed-events <events>',
-      'Comma-separated subscribed event names',
-    )
+    .option('--subscribed-events <events>', 'Comma-separated subscribed event names')
     .option('--custom-type <name>', 'Custom type name')
     .option(
       '--custom-property <key:value>',
@@ -351,11 +329,9 @@ Examples:
       if (!isValidComponentType(options.type)) {
         console.log(
           JSON.stringify(
-            formatError(
-              CliErrorCode.ValidationError,
-              `Invalid component type: ${options.type}`,
-              [`Valid types: ${VALID_COMPONENT_TYPES.join(', ')}`],
-            ),
+            formatError(CliErrorCode.ValidationError, `Invalid component type: ${options.type}`, [
+              `Valid types: ${VALID_COMPONENT_TYPES.join(', ')}`,
+            ]),
           ),
         );
         return;
@@ -368,11 +344,9 @@ Examples:
       if (!graphExists) {
         console.log(
           JSON.stringify(
-            formatError(
-              CliErrorCode.GraphNotFound,
-              `Graph not found at ${graphPath}`,
-              ['Run riviere builder init first'],
-            ),
+            formatError(CliErrorCode.GraphNotFound, `Graph not found at ${graphPath}`, [
+              'Run riviere builder init first',
+            ]),
           ),
         );
         return;
@@ -386,17 +360,10 @@ Examples:
       const sourceLocation: SourceLocation = {
         repository: options.repository,
         filePath: options.filePath,
-        ...(options.lineNumber
-          ? { lineNumber: parseInt(options.lineNumber, 10) }
-          : {}),
+        ...(options.lineNumber ? { lineNumber: parseInt(options.lineNumber, 10) } : {}),
       };
 
-      const componentId = tryAddComponent(
-        builder,
-        componentType,
-        options,
-        sourceLocation,
-      );
+      const componentId = tryAddComponent(builder, componentType, options, sourceLocation);
 
       if (componentId === undefined) {
         return;

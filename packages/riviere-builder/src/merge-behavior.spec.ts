@@ -30,14 +30,14 @@ describe('mergeBehavior', () => {
     const result = mergeBehavior(
       {
         reads: ['a'],
-        validates: ['v'] 
+        validates: ['v'],
       },
       { modifies: ['m'] },
     );
     expect(result).toEqual({
       reads: ['a'],
       validates: ['v'],
-      modifies: ['m'] 
+      modifies: ['m'],
     });
   });
 });

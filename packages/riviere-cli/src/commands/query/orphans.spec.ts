@@ -15,7 +15,7 @@ import {
 
 interface OrphansSuccessOutput {
   success: true;
-  data: {orphans: string[];};
+  data: { orphans: string[] };
   warnings: string[];
 }
 
@@ -46,29 +46,19 @@ function isOrphansSuccessOutput(value: unknown): value is OrphansSuccessOutput {
 function isOrphansErrorOutput(value: unknown): value is OrphansErrorOutput {
   if (typeof value !== 'object' || value === null) return false;
   if (!('success' in value) || value.success !== false) return false;
-  if (
-    !('error' in value) ||
-    typeof value.error !== 'object' ||
-    value.error === null
-  )
-    return false;
-  if (!('code' in value.error) || typeof value.error.code !== 'string')
-    return false;
+  if (!('error' in value) || typeof value.error !== 'object' || value.error === null) return false;
+  if (!('code' in value.error) || typeof value.error.code !== 'string') return false;
   return true;
 }
 
-function parseOutput(
-  consoleOutput: string[],
-): OrphansSuccessOutput | OrphansErrorOutput {
+function parseOutput(consoleOutput: string[]): OrphansSuccessOutput | OrphansErrorOutput {
   const parsed: unknown = JSON.parse(consoleOutput[0] ?? '{}');
   if (isOrphansSuccessOutput(parsed)) return parsed;
   if (isOrphansErrorOutput(parsed)) return parsed;
   throw new Error(`Invalid orphans output: ${consoleOutput[0]}`);
 }
 
-function assertSuccess(
-  output: OrphansSuccessOutput | OrphansErrorOutput,
-): OrphansSuccessOutput {
+function assertSuccess(output: OrphansSuccessOutput | OrphansErrorOutput): OrphansSuccessOutput {
   if (isOrphansSuccessOutput(output)) {
     return output;
   }
@@ -85,9 +75,7 @@ describe('riviere query orphans', () => {
     it('registers orphans command under query', () => {
       const program = createProgram();
       const queryCmd = program.commands.find((cmd) => cmd.name() === 'query');
-      const orphansCmd = queryCmd?.commands.find(
-        (cmd) => cmd.name() === 'orphans',
-      );
+      const orphansCmd = queryCmd?.commands.find((cmd) => cmd.name() === 'orphans');
       expect(orphansCmd?.name()).toBe('orphans');
     });
   });
@@ -104,13 +92,7 @@ describe('riviere query orphans', () => {
         links: [],
       });
 
-      await createProgram().parseAsync([
-        'node',
-        'riviere',
-        'query',
-        'orphans',
-        '--json',
-      ]);
+      await createProgram().parseAsync(['node', 'riviere', 'query', 'orphans', '--json']);
 
       const output = assertSuccess(parseOutput(ctx.consoleOutput));
 
@@ -136,18 +118,11 @@ describe('riviere query orphans', () => {
         ],
       });
 
-      await createProgram().parseAsync([
-        'node',
-        'riviere',
-        'query',
-        'orphans',
-        '--json',
-      ]);
+      await createProgram().parseAsync(['node', 'riviere', 'query', 'orphans', '--json']);
 
       const output = parseOutput(ctx.consoleOutput);
 
-      if (!isOrphansSuccessOutput(output))
-        throw new Error('Expected success output');
+      if (!isOrphansSuccessOutput(output)) throw new Error('Expected success output');
       expect(output.data.orphans).toEqual([]);
     });
 
@@ -169,17 +144,10 @@ describe('riviere query orphans', () => {
     setupCommandTest(ctx);
 
     it('returns GRAPH_NOT_FOUND when no graph exists', async () => {
-      await createProgram().parseAsync([
-        'node',
-        'riviere',
-        'query',
-        'orphans',
-        '--json',
-      ]);
+      await createProgram().parseAsync(['node', 'riviere', 'query', 'orphans', '--json']);
 
       const output = parseOutput(ctx.consoleOutput);
-      if (!isOrphansErrorOutput(output))
-        throw new Error('Expected error output');
+      if (!isOrphansErrorOutput(output)) throw new Error('Expected error output');
 
       expect(output.error.code).toBe(CliErrorCode.GraphNotFound);
     });

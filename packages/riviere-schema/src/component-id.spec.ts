@@ -21,9 +21,7 @@ describe('ComponentId', () => {
         name: 'Handle Customer Request',
       });
 
-      expect(id.toString()).toBe(
-        'orders:checkout:usecase:handle-customer-request',
-      );
+      expect(id.toString()).toBe('orders:checkout:usecase:handle-customer-request');
     });
 
     it('exposes name segment', () => {
@@ -53,9 +51,7 @@ describe('ComponentId', () => {
     });
 
     it('throws on invalid format with too many segments', () => {
-      expect(() =>
-        ComponentId.parse('orders:checkout:domainop:place:order'),
-      ).toThrow(
+      expect(() => ComponentId.parse('orders:checkout:domainop:place:order')).toThrow(
         "Invalid component ID format: 'orders:checkout:domainop:place:order'. Expected 'domain:module:type:name'",
       );
     });

@@ -41,11 +41,7 @@ Examples:
       if (options.type !== undefined && !isValidComponentType(options.type)) {
         const errorMessage = `Invalid component type: ${options.type}. Valid types: ${VALID_COMPONENT_TYPES.join(', ')}`;
         if (options.json) {
-          console.log(
-            JSON.stringify(
-              formatError(CliErrorCode.ValidationError, errorMessage),
-            ),
-          );
+          console.log(JSON.stringify(formatError(CliErrorCode.ValidationError, errorMessage)));
         } else {
           console.error(`Error: ${errorMessage}`);
         }
@@ -61,9 +57,7 @@ Examples:
             : allComponents.filter((c) => c.domain === options.domain);
 
         const typeFilter =
-          options.type === undefined
-            ? undefined
-            : normalizeToSchemaComponentType(options.type);
+          options.type === undefined ? undefined : normalizeToSchemaComponentType(options.type);
         const filteredByType =
           typeFilter === undefined
             ? filteredByDomain

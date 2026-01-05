@@ -1,7 +1,5 @@
 import type {
-  RiviereGraph,
-  Component,
-  Link,
+  RiviereGraph, Component, Link 
 } from '@living-architecture/riviere-schema';
 import type {
   ComponentModification, GraphDiff, LinkId 
@@ -10,10 +8,7 @@ import {
   parseComponentId, parseLinkId 
 } from './domain-types';
 
-export function diffGraphs(
-  current: RiviereGraph,
-  other: RiviereGraph,
-): GraphDiff {
+export function diffGraphs(current: RiviereGraph, other: RiviereGraph): GraphDiff {
   const thisIds = new Set(current.components.map((c) => c.id));
   const otherIds = new Set(other.components.map((c) => c.id));
   const otherById = new Map(other.components.map((c) => [c.id, c]));
@@ -38,12 +33,8 @@ export function diffGraphs(
 
   const thisLinkKeys = new Set(current.links.map((l) => createLinkKey(l)));
   const otherLinkKeys = new Set(other.links.map((l) => createLinkKey(l)));
-  const linksAdded = other.links.filter(
-    (l) => !thisLinkKeys.has(createLinkKey(l)),
-  );
-  const linksRemoved = current.links.filter(
-    (l) => !otherLinkKeys.has(createLinkKey(l)),
-  );
+  const linksAdded = other.links.filter((l) => !thisLinkKeys.has(createLinkKey(l)));
+  const linksRemoved = current.links.filter((l) => !otherLinkKeys.has(createLinkKey(l)));
 
   return {
     components: {
@@ -80,10 +71,7 @@ function findChangedFields(before: Component, after: Component): string[] {
 
   for (const key of allKeys) {
     if (key === 'id') continue;
-    if (
-      JSON.stringify(beforeEntries.get(key)) !==
-      JSON.stringify(afterEntries.get(key))
-    ) {
+    if (JSON.stringify(beforeEntries.get(key)) !== JSON.stringify(afterEntries.get(key))) {
       changedFields.push(key);
     }
   }

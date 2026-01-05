@@ -1,31 +1,32 @@
-import { useState } from 'react'
-import type { DomainEvent } from '../../extractDomainDetails'
-import { CodeLinkMenu } from '@/features/flows/components/CodeLinkMenu/CodeLinkMenu'
+import { useState } from 'react';
+import type { DomainEvent } from '../../extractDomainDetails';
+import { CodeLinkMenu } from '@/features/flows/components/CodeLinkMenu/CodeLinkMenu';
 
 interface HandlerInfo {
-  readonly domain: string
-  readonly handlerName: string
+  readonly domain: string;
+  readonly handlerName: string;
 }
 
 interface EventAccordionProps {
-  readonly event: DomainEvent
-  readonly defaultExpanded?: boolean | undefined
-  readonly onViewOnGraph?: (eventId: string) => void
-  readonly onViewHandlerOnGraph?: (handler: HandlerInfo) => void
+  readonly event: DomainEvent;
+  readonly defaultExpanded?: boolean | undefined;
+  readonly onViewOnGraph?: (eventId: string) => void;
+  readonly onViewHandlerOnGraph?: (handler: HandlerInfo) => void;
 }
 
 function formatHandlerCount(count: number): string {
-  if (count === 0) return 'No handlers'
-  return `${count} handler${count === 1 ? '' : 's'}`
+  if (count === 0) return 'No handlers';
+  return `${count} handler${count === 1 ? '' : 's'}`;
 }
 
 interface EventHandlersSectionProps {
-  readonly event: DomainEvent
-  readonly onViewHandlerOnGraph: ((handler: HandlerInfo) => void) | undefined
+  readonly event: DomainEvent;
+  readonly onViewHandlerOnGraph: ((handler: HandlerInfo) => void) | undefined;
 }
 
 function EventHandlersSection({
-  event, onViewHandlerOnGraph 
+  event,
+  onViewHandlerOnGraph,
 }: Readonly<EventHandlersSectionProps>): React.ReactElement | null {
   if (event.handlers.length > 0) {
     return (
@@ -61,11 +62,11 @@ function EventHandlersSection({
                   className="graph-link-btn-sm"
                   title="View handler on graph"
                   onClick={(e) => {
-                    e.stopPropagation()
+                    e.stopPropagation();
                     onViewHandlerOnGraph({
                       domain: handler.domain,
-                      handlerName: handler.handlerName 
-                    })
+                      handlerName: handler.handlerName,
+                    });
                   }}
                 >
                   <i className="ph ph-graph" aria-hidden="true" />
@@ -75,7 +76,7 @@ function EventHandlersSection({
           ))}
         </div>
       </div>
-    )
+    );
   }
 
   if (event.schema === undefined) {
@@ -83,10 +84,10 @@ function EventHandlersSection({
       <div className="text-sm italic text-[var(--text-tertiary)]">
         No schema or handlers defined
       </div>
-    )
+    );
   }
 
-  return null
+  return null;
 }
 
 export function EventAccordion({
@@ -95,9 +96,9 @@ export function EventAccordion({
   onViewOnGraph,
   onViewHandlerOnGraph,
 }: Readonly<EventAccordionProps>): React.ReactElement {
-  const [isExpanded, setIsExpanded] = useState(defaultExpanded)
+  const [isExpanded, setIsExpanded] = useState(defaultExpanded);
 
-  const handlerCount = event.handlers.length
+  const handlerCount = event.handlers.length;
 
   return (
     <div className="rounded-lg border border-[var(--border-color)]">
@@ -140,8 +141,8 @@ export function EventAccordion({
               className="graph-link-btn-sm"
               title="View on Graph"
               onClick={(e) => {
-                e.stopPropagation()
-                onViewOnGraph(event.id)
+                e.stopPropagation();
+                onViewOnGraph(event.id);
               }}
             >
               <i className="ph ph-graph" aria-hidden="true" />
@@ -172,5 +173,5 @@ export function EventAccordion({
         </div>
       )}
     </div>
-  )
+  );
 }

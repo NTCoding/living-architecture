@@ -1,20 +1,23 @@
-import dagre from 'dagre'
-import type { SimulationNode } from '../../types'
-import { NODE_RADII } from '../../types'
+import dagre from 'dagre';
+import type { SimulationNode } from '../../types';
+import { NODE_RADII } from '../../types';
 
 interface DagreLayoutInput {
-  nodes: SimulationNode[]
+  nodes: SimulationNode[];
   edges: Array<{
     source: string;
-    target: string 
-  }>
+    target: string;
+  }>;
 }
 
-export function computeDagreLayout(input: DagreLayoutInput): Map<string, {
-  x: number;
-  y: number 
-}> {
-  const g = new dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}))
+export function computeDagreLayout(input: DagreLayoutInput): Map<
+  string,
+  {
+    x: number;
+    y: number;
+  }
+> {
+  const g = new dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
 
   g.setGraph({
     rankdir: 'LR',
@@ -22,34 +25,37 @@ export function computeDagreLayout(input: DagreLayoutInput): Map<string, {
     ranksep: 120,
     marginx: 40,
     marginy: 40,
-  })
+  });
 
   for (const node of input.nodes) {
-    const radius = NODE_RADII[node.type]
-    const size = radius * 2 + 40
+    const radius = NODE_RADII[node.type];
+    const size = radius * 2 + 40;
     g.setNode(node.id, {
       width: size,
-      height: size 
-    })
+      height: size,
+    });
   }
 
   for (const edge of input.edges) {
-    g.setEdge(edge.source, edge.target)
+    g.setEdge(edge.source, edge.target);
   }
 
-  dagre.layout(g)
+  dagre.layout(g);
 
-  const positions = new Map<string, {
-    x: number;
-    y: number 
-  }>()
+  const positions = new Map<
+    string,
+    {
+      x: number;
+      y: number;
+    }
+  >();
   for (const node of input.nodes) {
-    const layoutNode = g.node(node.id)
+    const layoutNode = g.node(node.id);
     positions.set(node.id, {
       x: layoutNode.x,
-      y: layoutNode.y 
-    })
+      y: layoutNode.y,
+    });
   }
 
-  return positions
+  return positions;
 }

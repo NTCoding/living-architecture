@@ -1,4 +1,4 @@
 declare module '*.vue' {
-  const component: unknown
-  export default component
+  const component: unknown;
+  export default component;
 }

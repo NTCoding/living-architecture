@@ -1,17 +1,17 @@
 import {
   describe, expect, test 
-} from 'vitest'
-import { filterByNodeType } from './filterByNodeType'
+} from 'vitest';
+import { filterByNodeType } from './filterByNodeType';
 import type {
   Node, Edge 
-} from '@/types/riviere'
+} from '@/types/riviere';
 import {
   parseNode, parseEdge 
-} from '@/lib/riviereTestData'
+} from '@/lib/riviereTestFixtures';
 const testSourceLocation = {
   repository: 'test-repo',
-  filePath: 'src/test.ts' 
-}
+  filePath: 'src/test.ts',
+};
 
 describe('filterByNodeType', () => {
   test('keeps nodes of visible types', () => {
@@ -22,7 +22,7 @@ describe('filterByNodeType', () => {
         type: 'API',
         name: 'API 1',
         domain: 'orders',
-        module: 'api' 
+        module: 'api',
       }),
       parseNode({
         sourceLocation: testSourceLocation,
@@ -30,7 +30,7 @@ describe('filterByNodeType', () => {
         type: 'UseCase',
         name: 'UseCase 1',
         domain: 'orders',
-        module: 'core' 
+        module: 'core',
       }),
       parseNode({
         sourceLocation: testSourceLocation,
@@ -39,25 +39,25 @@ describe('filterByNodeType', () => {
         name: 'DomainOp 1',
         domain: 'orders',
         module: 'core',
-        operationName: 'op1' 
+        operationName: 'op1',
       }),
-    ]
+    ];
     const edges: Edge[] = [
       parseEdge({
         source: '1',
-        target: '2' 
+        target: '2',
       }),
       parseEdge({
         source: '2',
-        target: '3' 
+        target: '3',
       }),
-    ]
+    ];
 
-    const result = filterByNodeType(nodes, edges, new Set(['API', 'UseCase']))
+    const result = filterByNodeType(nodes, edges, new Set(['API', 'UseCase']));
 
-    expect(result.nodes).toHaveLength(2)
-    expect(result.nodes.map((n) => n.id)).toEqual(['1', '2'])
-  })
+    expect(result.nodes).toHaveLength(2);
+    expect(result.nodes.map((n) => n.id)).toEqual(['1', '2']);
+  });
 
   test('removes nodes of hidden types', () => {
     const nodes: Node[] = [
@@ -67,7 +67,7 @@ describe('filterByNodeType', () => {
         type: 'API',
         name: 'API 1',
         domain: 'orders',
-        module: 'api' 
+        module: 'api',
       }),
       parseNode({
         sourceLocation: testSourceLocation,
@@ -75,19 +75,21 @@ describe('filterByNodeType', () => {
         type: 'UseCase',
         name: 'UseCase 1',
         domain: 'orders',
-        module: 'core' 
+        module: 'core',
       }),
-    ]
-    const edges: Edge[] = [parseEdge({
-      source: '1',
-      target: '2' 
-    })]
+    ];
+    const edges: Edge[] = [
+      parseEdge({
+        source: '1',
+        target: '2',
+      }),
+    ];
 
-    const result = filterByNodeType(nodes, edges, new Set(['API']))
+    const result = filterByNodeType(nodes, edges, new Set(['API']));
 
-    expect(result.nodes).toHaveLength(1)
-    expect(result.nodes[0]?.id).toBe('1')
-  })
+    expect(result.nodes).toHaveLength(1);
+    expect(result.nodes[0]?.id).toBe('1');
+  });
 
   test('keeps edges when both endpoints are visible', () => {
     const nodes: Node[] = [
@@ -97,7 +99,7 @@ describe('filterByNodeType', () => {
         type: 'API',
         name: 'API 1',
         domain: 'orders',
-        module: 'api' 
+        module: 'api',
       }),
       parseNode({
         sourceLocation: testSourceLocation,
@@ -105,20 +107,22 @@ describe('filterByNodeType', () => {
         type: 'UseCase',
         name: 'UseCase 1',
         domain: 'orders',
-        module: 'core' 
+        module: 'core',
       }),
-    ]
-    const edges: Edge[] = [parseEdge({
-      source: '1',
-      target: '2' 
-    })]
+    ];
+    const edges: Edge[] = [
+      parseEdge({
+        source: '1',
+        target: '2',
+      }),
+    ];
 
-    const result = filterByNodeType(nodes, edges, new Set(['API', 'UseCase']))
+    const result = filterByNodeType(nodes, edges, new Set(['API', 'UseCase']));
 
-    expect(result.edges).toHaveLength(1)
-    expect(result.edges[0]?.source).toBe('1')
-    expect(result.edges[0]?.target).toBe('2')
-  })
+    expect(result.edges).toHaveLength(1);
+    expect(result.edges[0]?.source).toBe('1');
+    expect(result.edges[0]?.target).toBe('2');
+  });
 
   test('rewires edges when middle node is hidden', () => {
     const nodes: Node[] = [
@@ -128,7 +132,7 @@ describe('filterByNodeType', () => {
         type: 'API',
         name: 'API 1',
         domain: 'orders',
-        module: 'api' 
+        module: 'api',
       }),
       parseNode({
         sourceLocation: testSourceLocation,
@@ -136,7 +140,7 @@ describe('filterByNodeType', () => {
         type: 'UseCase',
         name: 'UseCase 1',
         domain: 'orders',
-        module: 'core' 
+        module: 'core',
       }),
       parseNode({
         sourceLocation: testSourceLocation,
@@ -145,28 +149,28 @@ describe('filterByNodeType', () => {
         name: 'DomainOp 1',
         domain: 'orders',
         module: 'core',
-        operationName: 'op1' 
+        operationName: 'op1',
       }),
-    ]
+    ];
     const edges: Edge[] = [
       parseEdge({
         source: '1',
-        target: '2' 
+        target: '2',
       }),
       parseEdge({
         source: '2',
-        target: '3' 
+        target: '3',
       }),
-    ]
+    ];
 
-    const result = filterByNodeType(nodes, edges, new Set(['API', 'DomainOp']))
+    const result = filterByNodeType(nodes, edges, new Set(['API', 'DomainOp']));
 
-    expect(result.nodes).toHaveLength(2)
-    expect(result.nodes.map((n) => n.id)).toEqual(['1', '3'])
-    expect(result.edges).toHaveLength(1)
-    expect(result.edges[0]?.source).toBe('1')
-    expect(result.edges[0]?.target).toBe('3')
-  })
+    expect(result.nodes).toHaveLength(2);
+    expect(result.nodes.map((n) => n.id)).toEqual(['1', '3']);
+    expect(result.edges).toHaveLength(1);
+    expect(result.edges[0]?.source).toBe('1');
+    expect(result.edges[0]?.target).toBe('3');
+  });
 
   test('rewires edges through multiple hidden nodes', () => {
     const nodes: Node[] = [
@@ -176,7 +180,7 @@ describe('filterByNodeType', () => {
         type: 'API',
         name: 'API 1',
         domain: 'orders',
-        module: 'api' 
+        module: 'api',
       }),
       parseNode({
         sourceLocation: testSourceLocation,
@@ -184,7 +188,7 @@ describe('filterByNodeType', () => {
         type: 'UseCase',
         name: 'UseCase 1',
         domain: 'orders',
-        module: 'core' 
+        module: 'core',
       }),
       parseNode({
         sourceLocation: testSourceLocation,
@@ -192,7 +196,7 @@ describe('filterByNodeType', () => {
         type: 'UseCase',
         name: 'UseCase 2',
         domain: 'orders',
-        module: 'core' 
+        module: 'core',
       }),
       parseNode({
         sourceLocation: testSourceLocation,
@@ -201,31 +205,31 @@ describe('filterByNodeType', () => {
         name: 'DomainOp 1',
         domain: 'orders',
         module: 'core',
-        operationName: 'op1' 
+        operationName: 'op1',
       }),
-    ]
+    ];
     const edges: Edge[] = [
       parseEdge({
         source: '1',
-        target: '2' 
+        target: '2',
       }),
       parseEdge({
         source: '2',
-        target: '3' 
+        target: '3',
       }),
       parseEdge({
         source: '3',
-        target: '4' 
+        target: '4',
       }),
-    ]
+    ];
 
-    const result = filterByNodeType(nodes, edges, new Set(['API', 'DomainOp']))
+    const result = filterByNodeType(nodes, edges, new Set(['API', 'DomainOp']));
 
-    expect(result.nodes).toHaveLength(2)
-    expect(result.edges).toHaveLength(1)
-    expect(result.edges[0]?.source).toBe('1')
-    expect(result.edges[0]?.target).toBe('4')
-  })
+    expect(result.nodes).toHaveLength(2);
+    expect(result.edges).toHaveLength(1);
+    expect(result.edges[0]?.source).toBe('1');
+    expect(result.edges[0]?.target).toBe('4');
+  });
 
   test('preserves edge metadata when rewiring', () => {
     const nodes: Node[] = [
@@ -235,7 +239,7 @@ describe('filterByNodeType', () => {
         type: 'API',
         name: 'API 1',
         domain: 'orders',
-        module: 'api' 
+        module: 'api',
       }),
       parseNode({
         sourceLocation: testSourceLocation,
@@ -243,7 +247,7 @@ describe('filterByNodeType', () => {
         type: 'UseCase',
         name: 'UseCase 1',
         domain: 'orders',
-        module: 'core' 
+        module: 'core',
       }),
       parseNode({
         sourceLocation: testSourceLocation,
@@ -252,27 +256,27 @@ describe('filterByNodeType', () => {
         name: 'DomainOp 1',
         domain: 'orders',
         module: 'core',
-        operationName: 'op1' 
+        operationName: 'op1',
       }),
-    ]
+    ];
     const edges: Edge[] = [
       parseEdge({
         source: '1',
         target: '2',
-        type: 'sync' 
+        type: 'sync',
       }),
       parseEdge({
         source: '2',
         target: '3',
-        type: 'async' 
+        type: 'async',
       }),
-    ]
+    ];
 
-    const result = filterByNodeType(nodes, edges, new Set(['API', 'DomainOp']))
+    const result = filterByNodeType(nodes, edges, new Set(['API', 'DomainOp']));
 
-    expect(result.edges).toHaveLength(1)
-    expect(result.edges[0]?.type).toBe('async')
-  })
+    expect(result.edges).toHaveLength(1);
+    expect(result.edges[0]?.type).toBe('async');
+  });
 
   test('handles multiple paths from same source to same target', () => {
     const nodes: Node[] = [
@@ -282,7 +286,7 @@ describe('filterByNodeType', () => {
         type: 'API',
         name: 'API 1',
         domain: 'orders',
-        module: 'api' 
+        module: 'api',
       }),
       parseNode({
         sourceLocation: testSourceLocation,
@@ -290,7 +294,7 @@ describe('filterByNodeType', () => {
         type: 'UseCase',
         name: 'UseCase 1',
         domain: 'orders',
-        module: 'core' 
+        module: 'core',
       }),
       parseNode({
         sourceLocation: testSourceLocation,
@@ -298,7 +302,7 @@ describe('filterByNodeType', () => {
         type: 'UseCase',
         name: 'UseCase 2',
         domain: 'orders',
-        module: 'core' 
+        module: 'core',
       }),
       parseNode({
         sourceLocation: testSourceLocation,
@@ -307,34 +311,34 @@ describe('filterByNodeType', () => {
         name: 'DomainOp 1',
         domain: 'orders',
         module: 'core',
-        operationName: 'op1' 
+        operationName: 'op1',
       }),
-    ]
+    ];
     const edges: Edge[] = [
       parseEdge({
         source: '1',
-        target: '2' 
+        target: '2',
       }),
       parseEdge({
         source: '1',
-        target: '3' 
+        target: '3',
       }),
       parseEdge({
         source: '2',
-        target: '4' 
+        target: '4',
       }),
       parseEdge({
         source: '3',
-        target: '4' 
+        target: '4',
       }),
-    ]
+    ];
 
-    const result = filterByNodeType(nodes, edges, new Set(['API', 'DomainOp']))
+    const result = filterByNodeType(nodes, edges, new Set(['API', 'DomainOp']));
 
-    expect(result.edges).toHaveLength(1)
-    expect(result.edges[0]?.source).toBe('1')
-    expect(result.edges[0]?.target).toBe('4')
-  })
+    expect(result.edges).toHaveLength(1);
+    expect(result.edges[0]?.source).toBe('1');
+    expect(result.edges[0]?.target).toBe('4');
+  });
 
   test('returns empty graph when all types are hidden', () => {
     const nodes: Node[] = [
@@ -344,7 +348,7 @@ describe('filterByNodeType', () => {
         type: 'API',
         name: 'API 1',
         domain: 'orders',
-        module: 'api' 
+        module: 'api',
       }),
       parseNode({
         sourceLocation: testSourceLocation,
@@ -352,19 +356,21 @@ describe('filterByNodeType', () => {
         type: 'UseCase',
         name: 'UseCase 1',
         domain: 'orders',
-        module: 'core' 
+        module: 'core',
       }),
-    ]
-    const edges: Edge[] = [parseEdge({
-      source: '1',
-      target: '2' 
-    })]
+    ];
+    const edges: Edge[] = [
+      parseEdge({
+        source: '1',
+        target: '2',
+      }),
+    ];
 
-    const result = filterByNodeType(nodes, edges, new Set())
+    const result = filterByNodeType(nodes, edges, new Set());
 
-    expect(result.nodes).toHaveLength(0)
-    expect(result.edges).toHaveLength(0)
-  })
+    expect(result.nodes).toHaveLength(0);
+    expect(result.edges).toHaveLength(0);
+  });
 
   test('handles disconnected nodes', () => {
     const nodes: Node[] = [
@@ -374,7 +380,7 @@ describe('filterByNodeType', () => {
         type: 'API',
         name: 'API 1',
         domain: 'orders',
-        module: 'api' 
+        module: 'api',
       }),
       parseNode({
         sourceLocation: testSourceLocation,
@@ -382,7 +388,7 @@ describe('filterByNodeType', () => {
         type: 'UseCase',
         name: 'UseCase 1',
         domain: 'orders',
-        module: 'core' 
+        module: 'core',
       }),
       parseNode({
         sourceLocation: testSourceLocation,
@@ -391,17 +397,19 @@ describe('filterByNodeType', () => {
         name: 'DomainOp 1',
         domain: 'orders',
         module: 'core',
-        operationName: 'op1' 
+        operationName: 'op1',
       }),
-    ]
-    const edges: Edge[] = [parseEdge({
-      source: '1',
-      target: '2' 
-    })]
+    ];
+    const edges: Edge[] = [
+      parseEdge({
+        source: '1',
+        target: '2',
+      }),
+    ];
 
-    const result = filterByNodeType(nodes, edges, new Set(['API', 'DomainOp']))
+    const result = filterByNodeType(nodes, edges, new Set(['API', 'DomainOp']));
 
-    expect(result.nodes).toHaveLength(2)
-    expect(result.edges).toHaveLength(0)
-  })
-})
+    expect(result.nodes).toHaveLength(2);
+    expect(result.edges).toHaveLength(0);
+  });
+});

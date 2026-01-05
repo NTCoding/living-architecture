@@ -6,10 +6,7 @@ import type {
   ExternalLink,
 } from '@living-architecture/riviere-schema';
 import type {
-  ComponentId,
-  LinkId,
-  Flow,
-  SearchWithFlowResult,
+  ComponentId, LinkId, Flow, SearchWithFlowResult 
 } from './domain-types';
 import {
   parseComponentId, parseLinkId 
@@ -21,15 +18,8 @@ import { ComponentNotFoundError } from './errors';
 
 export function findEntryPoints(graph: RiviereGraph): Component[] {
   const targets = new Set(graph.links.map((link) => link.target));
-  const entryPointTypes = new Set<ComponentType>([
-    'UI',
-    'API',
-    'EventHandler',
-    'Custom',
-  ]);
-  return graph.components.filter(
-    (c) => entryPointTypes.has(c.type) && !targets.has(c.id),
-  );
+  const entryPointTypes = new Set<ComponentType>(['UI', 'API', 'EventHandler', 'Custom']);
+  return graph.components.filter((c) => entryPointTypes.has(c.type) && !targets.has(c.id));
 }
 
 export function traceFlowFrom(
@@ -97,8 +87,7 @@ export function queryFlows(graph: RiviereGraph): Flow[] {
       if (!component) return;
 
       const edges = outgoingEdges.get(nodeId);
-      const firstEdge =
-        edges !== undefined && edges.length > 0 ? edges[0] : undefined;
+      const firstEdge = edges !== undefined && edges.length > 0 ? edges[0] : undefined;
       const linkType = firstEdge === undefined ? undefined : firstEdge.type;
       const externalLinks = externalLinksBySource.get(nodeId) ?? [];
 
@@ -126,9 +115,7 @@ export function queryFlows(graph: RiviereGraph): Flow[] {
   }));
 }
 
-function buildExternalLinksBySource(
-  graph: RiviereGraph,
-): Map<string, ExternalLink[]> {
+function buildExternalLinksBySource(graph: RiviereGraph): Map<string, ExternalLink[]> {
   const externalLinks = graph.externalLinks ?? [];
   const bySource = new Map<string, ExternalLink[]>();
 

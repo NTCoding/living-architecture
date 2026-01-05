@@ -21,10 +21,7 @@ export function generateComponentId(
   return `${domain}:${module}:${type}:${nameSegment}`;
 }
 
-export function createComponentNotFoundError(
-  components: Component[],
-  id: string,
-): Error {
+export function createComponentNotFoundError(components: Component[], id: string): Error {
   return createSourceNotFoundError(components, ComponentId.parse(id));
 }
 

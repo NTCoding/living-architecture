@@ -28,12 +28,7 @@ describe('riviere builder init options', () => {
     });
 
     it('creates graph at custom path when --graph provided', async () => {
-      const customPath = join(
-        testContext.testDir,
-        'custom',
-        'path',
-        'graph.json',
-      );
+      const customPath = join(testContext.testDir, 'custom', 'path', 'graph.json');
       const program = createProgram();
 
       await program.parseAsync([

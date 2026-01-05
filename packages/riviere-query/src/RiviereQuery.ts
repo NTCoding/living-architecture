@@ -7,10 +7,7 @@ import type {
   ExternalLink,
 } from '@living-architecture/riviere-schema';
 import type {
-  Entity,
-  EntityTransition,
-  PublishedEvent,
-  EventHandlerInfo,
+  Entity, EntityTransition, PublishedEvent, EventHandlerInfo 
 } from './event-types';
 import type {
   State,
@@ -53,8 +50,7 @@ import {
   type SearchWithFlowOptions,
 } from './flow-queries';
 import {
-  queryCrossDomainLinks,
-  queryDomainConnections,
+  queryCrossDomainLinks, queryDomainConnections 
 } from './cross-domain-queries';
 import {
   queryPublishedEvents, queryEventHandlers 
@@ -553,10 +549,7 @@ export class RiviereQuery {
    * console.log(`Showing ${result.visibleIds.length} nodes in context`)
    * ```
    */
-  searchWithFlow(
-    query: string,
-    options: SearchWithFlowOptions,
-  ): SearchWithFlowResult {
+  searchWithFlow(query: string, options: SearchWithFlowOptions): SearchWithFlowResult {
     return searchWithFlowContext(this.graph, query, options);
   }
 

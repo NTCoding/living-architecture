@@ -4,14 +4,16 @@ import {
 
 function createValidOptions(): BuilderOptions {
   return {
-    sources: [{
-      repository: 'test/repo',
-      commit: 'abc123' 
-    }],
+    sources: [
+      {
+        repository: 'test/repo',
+        commit: 'abc123',
+      },
+    ],
     domains: {
       orders: {
         description: 'Order domain',
-        systemType: 'domain' 
+        systemType: 'domain',
       },
     },
   };
@@ -20,7 +22,7 @@ function createValidOptions(): BuilderOptions {
 function createSourceLocation() {
   return {
     repository: 'test/repo',
-    filePath: 'src/test.ts' 
+    filePath: 'src/test.ts',
   };
 }
 
@@ -33,25 +35,31 @@ describe('RiviereBuilder enrichComponent duplicate rejection', () => {
       module: 'checkout',
       operationName: 'placeOrder',
       sourceLocation: createSourceLocation(),
-      stateChanges: [{
-        from: 'draft',
-        to: 'placed' 
-      }],
+      stateChanges: [
+        {
+          from: 'draft',
+          to: 'placed',
+        },
+      ],
     });
 
     builder.enrichComponent(domainOp.id, {
-      stateChanges: [{
-        from: 'draft',
-        to: 'placed' 
-      }],
+      stateChanges: [
+        {
+          from: 'draft',
+          to: 'placed',
+        },
+      ],
     });
 
     const enriched = builder.graph.components.find((c) => c.id === domainOp.id);
     expect(enriched).toMatchObject({
-      stateChanges: [{
-        from: 'draft',
-        to: 'placed' 
-      }],
+      stateChanges: [
+        {
+          from: 'draft',
+          to: 'placed',
+        },
+      ],
     });
   });
 
@@ -63,28 +71,34 @@ describe('RiviereBuilder enrichComponent duplicate rejection', () => {
       module: 'checkout',
       operationName: 'placeOrder',
       sourceLocation: createSourceLocation(),
-      stateChanges: [{
-        from: 'draft',
-        to: 'placed',
-        trigger: 'submit' 
-      }],
+      stateChanges: [
+        {
+          from: 'draft',
+          to: 'placed',
+          trigger: 'submit',
+        },
+      ],
     });
 
     builder.enrichComponent(domainOp.id, {
-      stateChanges: [{
-        from: 'draft',
-        to: 'placed',
-        trigger: 'submit' 
-      }],
+      stateChanges: [
+        {
+          from: 'draft',
+          to: 'placed',
+          trigger: 'submit',
+        },
+      ],
     });
 
     const enriched = builder.graph.components.find((c) => c.id === domainOp.id);
     expect(enriched).toMatchObject({
-      stateChanges: [{
-        from: 'draft',
-        to: 'placed',
-        trigger: 'submit' 
-      }],
+      stateChanges: [
+        {
+          from: 'draft',
+          to: 'placed',
+          trigger: 'submit',
+        },
+      ],
     });
   });
 
@@ -96,18 +110,22 @@ describe('RiviereBuilder enrichComponent duplicate rejection', () => {
       module: 'checkout',
       operationName: 'placeOrder',
       sourceLocation: createSourceLocation(),
-      stateChanges: [{
-        from: 'draft',
-        to: 'placed' 
-      }],
+      stateChanges: [
+        {
+          from: 'draft',
+          to: 'placed',
+        },
+      ],
     });
 
     builder.enrichComponent(domainOp.id, {
-      stateChanges: [{
-        from: 'draft',
-        to: 'placed',
-        trigger: 'submit' 
-      }],
+      stateChanges: [
+        {
+          from: 'draft',
+          to: 'placed',
+          trigger: 'submit',
+        },
+      ],
     });
 
     const enriched = builder.graph.components.find((c) => c.id === domainOp.id);
@@ -115,12 +133,12 @@ describe('RiviereBuilder enrichComponent duplicate rejection', () => {
       stateChanges: [
         {
           from: 'draft',
-          to: 'placed' 
+          to: 'placed',
         },
         {
           from: 'draft',
           to: 'placed',
-          trigger: 'submit' 
+          trigger: 'submit',
         },
       ],
     });
@@ -137,10 +155,10 @@ describe('RiviereBuilder enrichComponent duplicate rejection', () => {
       businessRules: ['Order must have items'],
     });
 
-    builder.enrichComponent(domainOp.id, {businessRules: ['Order must have items'],});
+    builder.enrichComponent(domainOp.id, { businessRules: ['Order must have items'] });
 
     const enriched = builder.graph.components.find((c) => c.id === domainOp.id);
-    expect(enriched).toMatchObject({businessRules: ['Order must have items'],});
+    expect(enriched).toMatchObject({ businessRules: ['Order must have items'] });
   });
 
   it('skips duplicate behavior.reads', () => {
@@ -154,10 +172,10 @@ describe('RiviereBuilder enrichComponent duplicate rejection', () => {
       behavior: { reads: ['this.state'] },
     });
 
-    builder.enrichComponent(domainOp.id, {behavior: { reads: ['this.state'] },});
+    builder.enrichComponent(domainOp.id, { behavior: { reads: ['this.state'] } });
 
     const enriched = builder.graph.components.find((c) => c.id === domainOp.id);
-    expect(enriched).toMatchObject({behavior: { reads: ['this.state'] },});
+    expect(enriched).toMatchObject({ behavior: { reads: ['this.state'] } });
   });
 
   it('skips duplicate behavior.validates', () => {
@@ -171,10 +189,10 @@ describe('RiviereBuilder enrichComponent duplicate rejection', () => {
       behavior: { validates: ['items.length > 0'] },
     });
 
-    builder.enrichComponent(domainOp.id, {behavior: { validates: ['items.length > 0'] },});
+    builder.enrichComponent(domainOp.id, { behavior: { validates: ['items.length > 0'] } });
 
     const enriched = builder.graph.components.find((c) => c.id === domainOp.id);
-    expect(enriched).toMatchObject({behavior: { validates: ['items.length > 0'] },});
+    expect(enriched).toMatchObject({ behavior: { validates: ['items.length > 0'] } });
   });
 
   it('skips duplicate behavior.modifies', () => {
@@ -188,10 +206,10 @@ describe('RiviereBuilder enrichComponent duplicate rejection', () => {
       behavior: { modifies: ['this.state'] },
     });
 
-    builder.enrichComponent(domainOp.id, {behavior: { modifies: ['this.state'] },});
+    builder.enrichComponent(domainOp.id, { behavior: { modifies: ['this.state'] } });
 
     const enriched = builder.graph.components.find((c) => c.id === domainOp.id);
-    expect(enriched).toMatchObject({behavior: { modifies: ['this.state'] },});
+    expect(enriched).toMatchObject({ behavior: { modifies: ['this.state'] } });
   });
 
   it('skips duplicate behavior.emits', () => {
@@ -205,10 +223,10 @@ describe('RiviereBuilder enrichComponent duplicate rejection', () => {
       behavior: { emits: ['OrderPlaced'] },
     });
 
-    builder.enrichComponent(domainOp.id, {behavior: { emits: ['OrderPlaced'] },});
+    builder.enrichComponent(domainOp.id, { behavior: { emits: ['OrderPlaced'] } });
 
     const enriched = builder.graph.components.find((c) => c.id === domainOp.id);
-    expect(enriched).toMatchObject({behavior: { emits: ['OrderPlaced'] },});
+    expect(enriched).toMatchObject({ behavior: { emits: ['OrderPlaced'] } });
   });
 
   it('adds only new values when mix of existing and new provided', () => {
@@ -220,13 +238,15 @@ describe('RiviereBuilder enrichComponent duplicate rejection', () => {
       operationName: 'placeOrder',
       sourceLocation: createSourceLocation(),
       businessRules: ['Rule A', 'Rule B'],
-      stateChanges: [{
-        from: 'draft',
-        to: 'placed' 
-      }],
+      stateChanges: [
+        {
+          from: 'draft',
+          to: 'placed',
+        },
+      ],
       behavior: {
         reads: ['this.state'],
-        emits: ['OrderPlaced'] 
+        emits: ['OrderPlaced'],
       },
     });
 
@@ -235,16 +255,16 @@ describe('RiviereBuilder enrichComponent duplicate rejection', () => {
       stateChanges: [
         {
           from: 'draft',
-          to: 'placed' 
+          to: 'placed',
         },
         {
           from: 'placed',
-          to: 'shipped' 
+          to: 'shipped',
         },
       ],
       behavior: {
         reads: ['this.state', 'items'],
-        emits: ['OrderShipped'] 
+        emits: ['OrderShipped'],
       },
     });
 
@@ -254,11 +274,11 @@ describe('RiviereBuilder enrichComponent duplicate rejection', () => {
       stateChanges: [
         {
           from: 'draft',
-          to: 'placed' 
+          to: 'placed',
         },
         {
           from: 'placed',
-          to: 'shipped' 
+          to: 'shipped',
         },
       ],
       behavior: {

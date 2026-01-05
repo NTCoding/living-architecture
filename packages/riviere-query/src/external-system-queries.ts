@@ -46,9 +46,7 @@ function convertToExternalDomains(
   return Array.from(domains.entries())
     .map(([name, acc]) => ({
       name,
-      sourceDomains: Array.from(acc.sourceDomains).map((d) =>
-        parseDomainName(d),
-      ),
+      sourceDomains: Array.from(acc.sourceDomains).map((d) => parseDomainName(d)),
       connectionCount: acc.connectionCount,
     }))
     .sort((a, b) => a.name.localeCompare(b.name));
@@ -69,9 +67,6 @@ export function queryExternalDomains(graph: RiviereGraph): ExternalDomain[] {
   }
 
   const componentDomains = buildComponentDomainMap(graph);
-  const domains = aggregateExternalDomains(
-    graph.externalLinks,
-    componentDomains,
-  );
+  const domains = aggregateExternalDomains(graph.externalLinks, componentDomains);
   return convertToExternalDomains(domains);
 }

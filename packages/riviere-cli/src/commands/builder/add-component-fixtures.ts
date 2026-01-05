@@ -17,9 +17,7 @@ const DEFAULTS = {
   filePath: 'src/test.ts',
 } as const;
 
-export function buildAddComponentArgs(
-  options: AddComponentArgsOptions = {},
-): string[] {
+export function buildAddComponentArgs(options: AddComponentArgsOptions = {}): string[] {
   const {
     type,
     name,
@@ -30,7 +28,7 @@ export function buildAddComponentArgs(
     extraArgs = [],
   } = {
     ...DEFAULTS,
-    ...options 
+    ...options,
   };
   return [
     'node',

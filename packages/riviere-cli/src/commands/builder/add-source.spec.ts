@@ -18,12 +18,8 @@ describe('riviere builder add-source', () => {
   describe('command registration', () => {
     it('registers add-source command under builder', () => {
       const program = createProgram();
-      const builderCmd = program.commands.find(
-        (cmd) => cmd.name() === 'builder',
-      );
-      const addSourceCmd = builderCmd?.commands.find(
-        (cmd) => cmd.name() === 'add-source',
-      );
+      const builderCmd = program.commands.find((cmd) => cmd.name() === 'builder');
+      const addSourceCmd = builderCmd?.commands.find((cmd) => cmd.name() === 'add-source');
 
       expect(addSourceCmd?.name()).toBe('add-source');
     });
@@ -78,7 +74,7 @@ describe('riviere builder add-source', () => {
       const output: unknown = JSON.parse(ctx.consoleOutput[0] ?? '');
       expect(output).toMatchObject({
         success: true,
-        data: {repository: 'https://github.com/org/repo2',},
+        data: { repository: 'https://github.com/org/repo2' },
       });
     });
   });
@@ -112,8 +108,8 @@ describe('riviere builder add-source', () => {
           domains: {
             orders: {
               description: 'Orders',
-              systemType: 'domain' 
-            } 
+              systemType: 'domain',
+            },
           },
         },
         components: [],

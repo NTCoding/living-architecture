@@ -1,15 +1,11 @@
 import type {
-  CustomTypeDefinition,
-  DomainMetadata,
+  CustomTypeDefinition, DomainMetadata 
 } from '@living-architecture/riviere-schema';
 import {
   CustomTypeNotFoundError, DomainNotFoundError 
 } from './errors';
 
-export function assertDomainExists(
-  domains: Record<string, DomainMetadata>,
-  domain: string,
-): void {
+export function assertDomainExists(domains: Record<string, DomainMetadata>, domain: string): void {
   if (!domains[domain]) {
     throw new DomainNotFoundError(domain);
   }

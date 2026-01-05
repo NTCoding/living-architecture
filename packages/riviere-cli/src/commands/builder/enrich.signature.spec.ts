@@ -1,7 +1,5 @@
 import {
-  describe,
-  it,
-  expect,
+  describe, it, expect 
 } from 'vitest';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -55,10 +53,12 @@ describe('riviere builder enrich - signature option', () => {
       name: 'parameters only (no return type)',
       input: 'orderId:string',
       expected: {
-        parameters: [{
-          name: 'orderId',
-          type: 'string',
-        }],
+        parameters: [
+          {
+            name: 'orderId',
+            type: 'string',
+          },
+        ],
       },
     },
     {
@@ -67,8 +67,7 @@ describe('riviere builder enrich - signature option', () => {
       expected: { returnType: 'Order' },
     },
   ])('parses $name', async ({
-    input,
-    expected,
+    input, expected 
   }) => {
     await createGraphWithComponent(ctx.testDir, domainOpComponent);
     const program = createProgram();

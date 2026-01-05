@@ -1,22 +1,22 @@
 import {
   describe, it, expect, vi 
-} from 'vitest'
+} from 'vitest';
 import {
   render, screen 
-} from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import { BrowserRouter } from 'react-router-dom'
-import { DomainDetailModal } from './DomainDetailModal'
-import type { DomainDetails } from '../../extractDomainDetails'
+} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { BrowserRouter } from 'react-router-dom';
+import { DomainDetailModal } from './DomainDetailModal';
+import type { DomainDetails } from '../../extractDomainDetails';
 import {
   operationNameSchema,
   entryPointSchema,
   type OperationName,
   type EntryPoint,
-} from '@/types/riviere'
+} from '@/types/riviere';
 
-const parseOperation = (s: string): OperationName => operationNameSchema.parse(s)
-const parseEntryPoint = (s: string): EntryPoint => entryPointSchema.parse(s)
+const parseOperation = (s: string): OperationName => operationNameSchema.parse(s);
+const parseEntryPoint = (s: string): EntryPoint => entryPointSchema.parse(s);
 
 function createDomainDetails(overrides: Partial<DomainDetails> = {}): DomainDetails {
   return {
@@ -38,14 +38,14 @@ function createDomainDetails(overrides: Partial<DomainDetails> = {}): DomainDeta
         type: 'API',
         name: 'POST /orders',
         location: 'src/api/orders.ts:12',
-        sourceLocation: undefined 
+        sourceLocation: undefined,
       },
       {
         id: 'uc-1',
         type: 'UseCase',
         name: 'PlaceOrder',
         location: 'src/usecases/PlaceOrder.ts:8',
-        sourceLocation: undefined 
+        sourceLocation: undefined,
       },
     ],
     entities: [
@@ -76,14 +76,14 @@ function createDomainDetails(overrides: Partial<DomainDetails> = {}): DomainDeta
           eventName: 'OrderPlaced',
           schema: undefined,
           sourceLocation: undefined,
-          handlers: [] 
+          handlers: [],
         },
         {
           id: 'evt-2',
           eventName: 'OrderConfirmed',
           schema: undefined,
           sourceLocation: undefined,
-          handlers: [] 
+          handlers: [],
         },
       ],
       consumed: [
@@ -92,93 +92,95 @@ function createDomainDetails(overrides: Partial<DomainDetails> = {}): DomainDeta
           handlerName: 'PaymentCompleted',
           description: undefined,
           subscribedEvents: ['PaymentCompleted'],
-          subscribedEventsWithDomain: [{
-            eventName: 'PaymentCompleted',
-            sourceKnown: false 
-          }],
-          sourceLocation: undefined 
+          subscribedEventsWithDomain: [
+            {
+              eventName: 'PaymentCompleted',
+              sourceKnown: false,
+            },
+          ],
+          sourceLocation: undefined,
         },
         {
           id: 'h-2',
           handlerName: 'InventoryReserved',
           description: undefined,
           subscribedEvents: ['InventoryReserved'],
-          subscribedEventsWithDomain: [{
-            eventName: 'InventoryReserved',
-            sourceKnown: false 
-          }],
-          sourceLocation: undefined 
+          subscribedEventsWithDomain: [
+            {
+              eventName: 'InventoryReserved',
+              sourceKnown: false,
+            },
+          ],
+          sourceLocation: undefined,
         },
       ],
     },
     crossDomainEdges: [
       {
         targetDomain: 'inventory-domain',
-        edgeType: 'async' 
+        edgeType: 'async',
       },
       {
         targetDomain: 'payment-domain',
-        edgeType: 'async' 
+        edgeType: 'async',
       },
     ],
     entryPoints: [parseEntryPoint('/orders'), parseEntryPoint('/orders/:id')],
     repository: 'ecommerce-app',
     ...overrides,
-  }
+  };
 }
 
 function renderWithRouter(ui: React.ReactElement): ReturnType<typeof render> {
-  return render(<BrowserRouter>{ui}</BrowserRouter>)
+  return render(<BrowserRouter>{ui}</BrowserRouter>);
 }
 
 describe('DomainDetailModal', () => {
   describe('when not open', () => {
     it('renders nothing', () => {
-      const { container } = renderWithRouter(
-        <DomainDetailModal domain={null} onClose={vi.fn()} />
-      )
+      const { container } = renderWithRouter(<DomainDetailModal domain={null} onClose={vi.fn()} />);
 
-      expect(container.firstChild).toBeNull()
-    })
-  })
+      expect(container.firstChild).toBeNull();
+    });
+  });
 
   describe('when open', () => {
     describe('header', () => {
       it('renders domain id as title', () => {
-        const domain = createDomainDetails({ id: 'unique-domain-title' })
+        const domain = createDomainDetails({ id: 'unique-domain-title' });
 
-        renderWithRouter(<DomainDetailModal domain={domain} onClose={vi.fn()} />)
+        renderWithRouter(<DomainDetailModal domain={domain} onClose={vi.fn()} />);
 
-        expect(screen.getByRole('heading', { name: 'unique-domain-title' })).toBeInTheDocument()
-      })
+        expect(screen.getByRole('heading', { name: 'unique-domain-title' })).toBeInTheDocument();
+      });
 
       it('renders close button', () => {
-        renderWithRouter(<DomainDetailModal domain={createDomainDetails()} onClose={vi.fn()} />)
+        renderWithRouter(<DomainDetailModal domain={createDomainDetails()} onClose={vi.fn()} />);
 
-        expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument()
-      })
+        expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument();
+      });
 
       it('calls onClose when close button clicked', async () => {
-        const user = userEvent.setup()
-        const onClose = vi.fn()
+        const user = userEvent.setup();
+        const onClose = vi.fn();
 
-        renderWithRouter(<DomainDetailModal domain={createDomainDetails()} onClose={onClose} />)
+        renderWithRouter(<DomainDetailModal domain={createDomainDetails()} onClose={onClose} />);
 
-        await user.click(screen.getByRole('button', { name: 'Close' }))
+        await user.click(screen.getByRole('button', { name: 'Close' }));
 
-        expect(onClose).toHaveBeenCalled()
-      })
-    })
+        expect(onClose).toHaveBeenCalled();
+      });
+    });
 
     describe('description section', () => {
       it('renders description', () => {
-        const domain = createDomainDetails({ description: 'Handles all order operations' })
+        const domain = createDomainDetails({ description: 'Handles all order operations' });
 
-        renderWithRouter(<DomainDetailModal domain={domain} onClose={vi.fn()} />)
+        renderWithRouter(<DomainDetailModal domain={domain} onClose={vi.fn()} />);
 
-        expect(screen.getByText('Handles all order operations')).toBeInTheDocument()
-      })
-    })
+        expect(screen.getByText('Handles all order operations')).toBeInTheDocument();
+      });
+    });
 
     describe('nodes section', () => {
       it('renders all nodes with type badge and name', () => {
@@ -189,24 +191,24 @@ describe('DomainDetailModal', () => {
               type: 'API',
               name: 'POST /orders',
               location: 'src/api.ts:10',
-              sourceLocation: undefined 
+              sourceLocation: undefined,
             },
             {
               id: 'uc-1',
               type: 'UseCase',
               name: 'PlaceOrder',
               location: 'src/uc.ts:5',
-              sourceLocation: undefined 
+              sourceLocation: undefined,
             },
           ],
-        })
+        });
 
-        renderWithRouter(<DomainDetailModal domain={domain} onClose={vi.fn()} />)
+        renderWithRouter(<DomainDetailModal domain={domain} onClose={vi.fn()} />);
 
-        expect(screen.getByText('Nodes')).toBeInTheDocument()
-        expect(screen.getByText('POST /orders')).toBeInTheDocument()
-        expect(screen.getByText('PlaceOrder')).toBeInTheDocument()
-      })
+        expect(screen.getByText('Nodes')).toBeInTheDocument();
+        expect(screen.getByText('POST /orders')).toBeInTheDocument();
+        expect(screen.getByText('PlaceOrder')).toBeInTheDocument();
+      });
 
       it('renders code location links', () => {
         const domain = createDomainDetails({
@@ -216,15 +218,15 @@ describe('DomainDetailModal', () => {
               type: 'API',
               name: 'POST /orders',
               location: 'src/api/orders.ts:12',
-              sourceLocation: undefined 
+              sourceLocation: undefined,
             },
           ],
-        })
+        });
 
-        renderWithRouter(<DomainDetailModal domain={domain} onClose={vi.fn()} />)
+        renderWithRouter(<DomainDetailModal domain={domain} onClose={vi.fn()} />);
 
-        expect(screen.getByText('src/api/orders.ts:12')).toBeInTheDocument()
-      })
+        expect(screen.getByText('src/api/orders.ts:12')).toBeInTheDocument();
+      });
 
       it('handles nodes without location', () => {
         const domain = createDomainDetails({
@@ -234,24 +236,24 @@ describe('DomainDetailModal', () => {
               type: 'API',
               name: 'POST /orders',
               location: undefined,
-              sourceLocation: undefined 
+              sourceLocation: undefined,
             },
           ],
-        })
+        });
 
-        renderWithRouter(<DomainDetailModal domain={domain} onClose={vi.fn()} />)
+        renderWithRouter(<DomainDetailModal domain={domain} onClose={vi.fn()} />);
 
-        expect(screen.getByText('POST /orders')).toBeInTheDocument()
-      })
+        expect(screen.getByText('POST /orders')).toBeInTheDocument();
+      });
 
       it('renders empty state when no nodes', () => {
-        const domain = createDomainDetails({ nodes: [] })
+        const domain = createDomainDetails({ nodes: [] });
 
-        renderWithRouter(<DomainDetailModal domain={domain} onClose={vi.fn()} />)
+        renderWithRouter(<DomainDetailModal domain={domain} onClose={vi.fn()} />);
 
-        expect(screen.getByText('No nodes in this domain')).toBeInTheDocument()
-      })
-    })
+        expect(screen.getByText('No nodes in this domain')).toBeInTheDocument();
+      });
+    });
 
     describe('entities section', () => {
       it('renders entities with their operations', () => {
@@ -276,26 +278,26 @@ describe('DomainDetailModal', () => {
               sourceLocation: undefined,
             },
           ],
-        })
+        });
 
-        renderWithRouter(<DomainDetailModal domain={domain} onClose={vi.fn()} />)
+        renderWithRouter(<DomainDetailModal domain={domain} onClose={vi.fn()} />);
 
-        expect(screen.getByText('Entities')).toBeInTheDocument()
-        expect(screen.getByText('Order')).toBeInTheDocument()
-        expect(screen.getByText('begin')).toBeInTheDocument()
-        expect(screen.getByText('confirm')).toBeInTheDocument()
-        expect(screen.getByText('Payment')).toBeInTheDocument()
-        expect(screen.getByText('authorize')).toBeInTheDocument()
-      })
+        expect(screen.getByText('Entities')).toBeInTheDocument();
+        expect(screen.getByText('Order')).toBeInTheDocument();
+        expect(screen.getByText('begin')).toBeInTheDocument();
+        expect(screen.getByText('confirm')).toBeInTheDocument();
+        expect(screen.getByText('Payment')).toBeInTheDocument();
+        expect(screen.getByText('authorize')).toBeInTheDocument();
+      });
 
       it('renders empty state when no entities', () => {
-        const domain = createDomainDetails({ entities: [] })
+        const domain = createDomainDetails({ entities: [] });
 
-        renderWithRouter(<DomainDetailModal domain={domain} onClose={vi.fn()} />)
+        renderWithRouter(<DomainDetailModal domain={domain} onClose={vi.fn()} />);
 
-        expect(screen.getByText('No entities in this domain')).toBeInTheDocument()
-      })
-    })
+        expect(screen.getByText('No entities in this domain')).toBeInTheDocument();
+      });
+    });
 
     describe('events section', () => {
       it('renders published events', () => {
@@ -307,27 +309,27 @@ describe('DomainDetailModal', () => {
                 eventName: 'OrderPlaced',
                 schema: undefined,
                 sourceLocation: undefined,
-                handlers: [] 
+                handlers: [],
               },
               {
                 id: 'e2',
                 eventName: 'OrderConfirmed',
                 schema: undefined,
                 sourceLocation: undefined,
-                handlers: [] 
+                handlers: [],
               },
             ],
             consumed: [],
           },
-        })
+        });
 
-        renderWithRouter(<DomainDetailModal domain={domain} onClose={vi.fn()} />)
+        renderWithRouter(<DomainDetailModal domain={domain} onClose={vi.fn()} />);
 
-        expect(screen.getByText('Events')).toBeInTheDocument()
-        expect(screen.getByText('Published')).toBeInTheDocument()
-        expect(screen.getByText('OrderPlaced')).toBeInTheDocument()
-        expect(screen.getByText('OrderConfirmed')).toBeInTheDocument()
-      })
+        expect(screen.getByText('Events')).toBeInTheDocument();
+        expect(screen.getByText('Published')).toBeInTheDocument();
+        expect(screen.getByText('OrderPlaced')).toBeInTheDocument();
+        expect(screen.getByText('OrderConfirmed')).toBeInTheDocument();
+      });
 
       it('renders consumed events', () => {
         const domain = createDomainDetails({
@@ -340,7 +342,7 @@ describe('DomainDetailModal', () => {
                 description: undefined,
                 subscribedEvents: [],
                 subscribedEventsWithDomain: [],
-                sourceLocation: undefined 
+                sourceLocation: undefined,
               },
               {
                 id: 'h2',
@@ -348,32 +350,32 @@ describe('DomainDetailModal', () => {
                 description: undefined,
                 subscribedEvents: [],
                 subscribedEventsWithDomain: [],
-                sourceLocation: undefined 
+                sourceLocation: undefined,
               },
             ],
           },
-        })
+        });
 
-        renderWithRouter(<DomainDetailModal domain={domain} onClose={vi.fn()} />)
+        renderWithRouter(<DomainDetailModal domain={domain} onClose={vi.fn()} />);
 
-        expect(screen.getByText('Consumed')).toBeInTheDocument()
-        expect(screen.getByText('PaymentCompleted')).toBeInTheDocument()
-        expect(screen.getByText('InventoryReserved')).toBeInTheDocument()
-      })
+        expect(screen.getByText('Consumed')).toBeInTheDocument();
+        expect(screen.getByText('PaymentCompleted')).toBeInTheDocument();
+        expect(screen.getByText('InventoryReserved')).toBeInTheDocument();
+      });
 
       it('renders empty state when no events', () => {
         const domain = createDomainDetails({
           events: {
             published: [],
-            consumed: [] 
-          } 
-        })
+            consumed: [],
+          },
+        });
 
-        renderWithRouter(<DomainDetailModal domain={domain} onClose={vi.fn()} />)
+        renderWithRouter(<DomainDetailModal domain={domain} onClose={vi.fn()} />);
 
-        expect(screen.getByText('No events in this domain')).toBeInTheDocument()
-      })
-    })
+        expect(screen.getByText('No events in this domain')).toBeInTheDocument();
+      });
+    });
 
     describe('cross-domain edges section', () => {
       it('renders outgoing edges with target domain and type', () => {
@@ -381,78 +383,78 @@ describe('DomainDetailModal', () => {
           crossDomainEdges: [
             {
               targetDomain: 'inventory-domain',
-              edgeType: 'async' 
+              edgeType: 'async',
             },
             {
               targetDomain: 'payment-domain',
-              edgeType: 'sync' 
+              edgeType: 'sync',
             },
           ],
-        })
+        });
 
-        renderWithRouter(<DomainDetailModal domain={domain} onClose={vi.fn()} />)
+        renderWithRouter(<DomainDetailModal domain={domain} onClose={vi.fn()} />);
 
-        expect(screen.getByText('Cross-Domain Connections')).toBeInTheDocument()
-        expect(screen.getByText('inventory-domain')).toBeInTheDocument()
-        expect(screen.getByText('async')).toBeInTheDocument()
-        expect(screen.getByText('payment-domain')).toBeInTheDocument()
-        expect(screen.getByText('sync')).toBeInTheDocument()
-      })
+        expect(screen.getByText('Cross-Domain Connections')).toBeInTheDocument();
+        expect(screen.getByText('inventory-domain')).toBeInTheDocument();
+        expect(screen.getByText('async')).toBeInTheDocument();
+        expect(screen.getByText('payment-domain')).toBeInTheDocument();
+        expect(screen.getByText('sync')).toBeInTheDocument();
+      });
 
       it('renders empty state when no cross-domain edges', () => {
-        const domain = createDomainDetails({ crossDomainEdges: [] })
+        const domain = createDomainDetails({ crossDomainEdges: [] });
 
-        renderWithRouter(<DomainDetailModal domain={domain} onClose={vi.fn()} />)
+        renderWithRouter(<DomainDetailModal domain={domain} onClose={vi.fn()} />);
 
-        expect(screen.getByText('No cross-domain connections')).toBeInTheDocument()
-      })
-    })
+        expect(screen.getByText('No cross-domain connections')).toBeInTheDocument();
+      });
+    });
 
     describe('backdrop interaction', () => {
       it('calls onClose when backdrop clicked', async () => {
-        const user = userEvent.setup()
-        const onClose = vi.fn()
+        const user = userEvent.setup();
+        const onClose = vi.fn();
 
-        renderWithRouter(<DomainDetailModal domain={createDomainDetails()} onClose={onClose} />)
+        renderWithRouter(<DomainDetailModal domain={createDomainDetails()} onClose={onClose} />);
 
-        await user.click(screen.getByTestId('modal-backdrop'))
+        await user.click(screen.getByTestId('modal-backdrop'));
 
-        expect(onClose).toHaveBeenCalled()
-      })
-    })
+        expect(onClose).toHaveBeenCalled();
+      });
+    });
 
     describe('keyboard navigation', () => {
       it('calls onClose when Escape pressed', async () => {
-        const user = userEvent.setup()
-        const onClose = vi.fn()
+        const user = userEvent.setup();
+        const onClose = vi.fn();
 
-        renderWithRouter(<DomainDetailModal domain={createDomainDetails()} onClose={onClose} />)
+        renderWithRouter(<DomainDetailModal domain={createDomainDetails()} onClose={onClose} />);
 
-        await user.keyboard('{Escape}')
+        await user.keyboard('{Escape}');
 
-        expect(onClose).toHaveBeenCalled()
-      })
-    })
+        expect(onClose).toHaveBeenCalled();
+      });
+    });
 
     describe('accessibility', () => {
       it('has role dialog', () => {
-        renderWithRouter(<DomainDetailModal domain={createDomainDetails()} onClose={vi.fn()} />)
+        renderWithRouter(<DomainDetailModal domain={createDomainDetails()} onClose={vi.fn()} />);
 
-        expect(screen.getByRole('dialog')).toBeInTheDocument()
-      })
+        expect(screen.getByRole('dialog')).toBeInTheDocument();
+      });
 
       it('has aria-labelledby pointing to title', () => {
-        renderWithRouter(<DomainDetailModal domain={createDomainDetails()} onClose={vi.fn()} />)
+        renderWithRouter(<DomainDetailModal domain={createDomainDetails()} onClose={vi.fn()} />);
 
-        const dialog = screen.getByRole('dialog')
-        const labelledBy = dialog.getAttribute('aria-labelledby')
+        const dialog = screen.getByRole('dialog');
+        const labelledBy = dialog.getAttribute('aria-labelledby');
         if (labelledBy === null) {
-          throw new Error('Dialog missing aria-labelledby')
+          throw new Error('Dialog missing aria-labelledby');
         }
 
-        const title = document.getElementById(labelledBy)
-        expect(title).toBeInTheDocument()
-      })
-    })
-  })
-})
+        const title = document.getElementById(labelledBy);
+        expect(title).toBeInTheDocument();
+      });
+    });
+  });
+});

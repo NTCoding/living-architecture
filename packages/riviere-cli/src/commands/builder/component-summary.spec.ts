@@ -37,14 +37,9 @@ interface ComponentSummaryOutput {
   warnings: string[];
 }
 
-function isComponentSummaryOutput(
-  value: unknown,
-): value is ComponentSummaryOutput {
+function isComponentSummaryOutput(value: unknown): value is ComponentSummaryOutput {
   if (!hasSuccessOutputStructure(value)) return false;
-  if (
-    !('componentCount' in value.data) ||
-    typeof value.data.componentCount !== 'number'
-  )
+  if (!('componentCount' in value.data) || typeof value.data.componentCount !== 'number')
     return false;
   if (!('componentsByType' in value.data)) return false;
   return true;
@@ -207,12 +202,7 @@ describe('riviere builder component-summary', () => {
         links: [],
       });
 
-      await createProgram().parseAsync([
-        'node',
-        'riviere',
-        'builder',
-        'component-summary',
-      ]);
+      await createProgram().parseAsync(['node', 'riviere', 'builder', 'component-summary']);
       expect(ctx.consoleOutput).toHaveLength(0);
     });
   });

@@ -1,18 +1,18 @@
 import {
   useState, useCallback 
-} from 'react'
+} from 'react';
 
 interface DomainInfo {
-  readonly name: string
-  readonly nodeCount: number
+  readonly name: string;
+  readonly nodeCount: number;
 }
 
 interface DomainFiltersProps {
-  readonly domains: readonly DomainInfo[]
-  readonly visibleDomains: Set<string>
-  readonly onToggleDomain: (domain: string) => void
-  readonly onShowAll: () => void
-  readonly onHideAll: () => void
+  readonly domains: readonly DomainInfo[];
+  readonly visibleDomains: Set<string>;
+  readonly onToggleDomain: (domain: string) => void;
+  readonly onShowAll: () => void;
+  readonly onHideAll: () => void;
 }
 
 export function DomainFilters({
@@ -22,14 +22,14 @@ export function DomainFilters({
   onShowAll,
   onHideAll,
 }: Readonly<DomainFiltersProps>): React.ReactElement {
-  const [isOpen, setIsOpen] = useState(true)
+  const [isOpen, setIsOpen] = useState(true);
 
   const toggleOpen = useCallback(() => {
-    setIsOpen((prev) => !prev)
-  }, [])
+    setIsOpen((prev) => !prev);
+  }, []);
 
-  const allVisible = domains.every((d) => visibleDomains.has(d.name))
-  const noneVisible = visibleDomains.size === 0
+  const allVisible = domains.every((d) => visibleDomains.has(d.name));
+  const noneVisible = visibleDomains.size === 0;
 
   return (
     <div
@@ -44,9 +44,7 @@ export function DomainFilters({
         aria-controls="domain-filter-list"
         data-testid="domain-filters-toggle"
       >
-        <span className="text-sm font-semibold text-[var(--text-primary)]">
-          Domain Filters
-        </span>
+        <span className="text-sm font-semibold text-[var(--text-primary)]">Domain Filters</span>
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="16"
@@ -65,10 +63,7 @@ export function DomainFilters({
       </button>
 
       {isOpen && (
-        <div
-          id="domain-filter-list"
-          className="border-t border-[var(--border-color)] p-4"
-        >
+        <div id="domain-filter-list" className="border-t border-[var(--border-color)] p-4">
           <div className="mb-3 flex gap-2">
             <button
               type="button"
@@ -92,7 +87,7 @@ export function DomainFilters({
 
           <div className="space-y-2">
             {domains.map((domain) => {
-              const isVisible = visibleDomains.has(domain.name)
+              const isVisible = visibleDomains.has(domain.name);
               return (
                 <label
                   key={domain.name}
@@ -105,18 +100,14 @@ export function DomainFilters({
                     className="h-4 w-4 rounded border-[var(--border-color)] accent-[var(--primary)]"
                     data-testid={`domain-checkbox-${domain.name}`}
                   />
-                  <span className="flex-1 text-sm text-[var(--text-primary)]">
-                    {domain.name}
-                  </span>
-                  <span className="text-xs text-[var(--text-tertiary)]">
-                    {domain.nodeCount}
-                  </span>
+                  <span className="flex-1 text-sm text-[var(--text-primary)]">{domain.name}</span>
+                  <span className="text-xs text-[var(--text-tertiary)]">{domain.nodeCount}</span>
                 </label>
-              )
+              );
             })}
           </div>
         </div>
       )}
     </div>
-  )
+  );
 }

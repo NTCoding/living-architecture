@@ -1,34 +1,32 @@
-import { useState } from 'react'
-import { FileUpload } from '@/components/FileUpload/FileUpload'
-import { useGraph } from '@/contexts/GraphContext'
-import { parseRiviereGraph } from '@living-architecture/riviere-schema'
+import { useState } from 'react';
+import { FileUpload } from '@/components/FileUpload/FileUpload';
+import { useGraph } from '@/contexts/GraphContext';
+import { parseRiviereGraph } from '@living-architecture/riviere-schema';
 
 export function EmptyState(): React.ReactElement {
-  const { setGraph } = useGraph()
-  const [error, setError] = useState<string | null>(null)
+  const { setGraph } = useGraph();
+  const [error, setError] = useState<string | null>(null);
 
   const handleFileLoaded = (content: string, fileName: string): void => {
-    setError(null)
+    setError(null);
     try {
-      const data: unknown = JSON.parse(content)
-      const graph = parseRiviereGraph(data)
-      setGraph(graph)
+      const data: unknown = JSON.parse(content);
+      const graph = parseRiviereGraph(data);
+      setGraph(graph);
     } catch (e) {
-      const message = e instanceof Error ? e.message : 'Unknown error'
-      setError(`Validation failed for ${fileName}:\n${message}`)
+      const message = e instanceof Error ? e.message : 'Unknown error';
+      setError(`Validation failed for ${fileName}:\n${message}`);
     }
-  }
+  };
 
   const handleError = (errorMessage: string): void => {
-    setError(errorMessage)
-  }
+    setError(errorMessage);
+  };
 
   return (
     <div className="max-w-2xl mx-auto py-12">
       <div className="text-center mb-12">
-        <h1 className="text-3xl font-bold text-[var(--text-primary)] mb-3">
-          Welcome to Éclair
-        </h1>
+        <h1 className="text-3xl font-bold text-[var(--text-primary)] mb-3">Welcome to Éclair</h1>
         <p className="text-lg text-[var(--text-secondary)]">
           Upload a Rivière architecture graph to start exploring your system
         </p>
@@ -46,9 +44,7 @@ export function EmptyState(): React.ReactElement {
       )}
 
       <div className="text-center mt-8">
-        <p className="text-sm text-[var(--text-secondary)] mb-3">
-          Want to see it in action first?
-        </p>
+        <p className="text-sm text-[var(--text-secondary)] mb-3">Want to see it in action first?</p>
         <a
           href="?demo=true"
           className="inline-flex items-center gap-2 px-6 py-2 rounded-[var(--radius)]
@@ -73,9 +69,9 @@ export function EmptyState(): React.ReactElement {
           >
             Rivière
           </a>{' '}
-          is a JSON format for describing flow-based software architecture. It
-          captures how operations flow through your system, from UI interactions
-          through APIs, use cases, domain operations, and events.
+          is a JSON format for describing flow-based software architecture. It captures how
+          operations flow through your system, from UI interactions through APIs, use cases, domain
+          operations, and events.
         </p>
         <p className="text-sm text-[var(--text-secondary)]">
           Upload your graph or view the demo to get started. Learn more at{' '}
@@ -91,5 +87,5 @@ export function EmptyState(): React.ReactElement {
         </p>
       </div>
     </div>
-  )
+  );
 }

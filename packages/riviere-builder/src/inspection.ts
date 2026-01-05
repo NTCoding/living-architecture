@@ -8,8 +8,7 @@ import type {
   SourceInfo,
 } from '@living-architecture/riviere-schema';
 import {
-  RiviereQuery,
-  type ValidationResult,
+  RiviereQuery, type ValidationResult 
 } from '@living-architecture/riviere-query';
 import type {
   BuilderStats, BuilderWarning 
@@ -54,9 +53,7 @@ export function findOrphans(graph: InspectionGraph): string[] {
     connectedIds.add(externalLink.source);
   }
 
-  return graph.components
-    .filter((c) => !connectedIds.has(c.id))
-    .map((c) => c.id);
+  return graph.components.filter((c) => !connectedIds.has(c.id)).map((c) => c.id);
 }
 
 /**
@@ -151,7 +148,7 @@ export function toRiviereGraph(graph: InspectionGraph): RiviereGraph {
     version: graph.version,
     metadata: {
       ...(graph.metadata.name !== undefined && { name: graph.metadata.name }),
-      ...(graph.metadata.description !== undefined && {description: graph.metadata.description,}),
+      ...(graph.metadata.description !== undefined && { description: graph.metadata.description }),
       sources: graph.metadata.sources,
       domains: graph.metadata.domains,
       ...(hasCustomTypes && { customTypes: graph.metadata.customTypes }),

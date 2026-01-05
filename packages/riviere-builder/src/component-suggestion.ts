@@ -1,14 +1,10 @@
 import type {
-  Component,
-  ComponentId,
+  Component, ComponentId 
 } from '@living-architecture/riviere-schema';
 import { ComponentNotFoundError } from './errors';
 import { similarityScore } from './string-similarity';
 import type {
-  NearMatchMismatch,
-  NearMatchOptions,
-  NearMatchQuery,
-  NearMatchResult,
+  NearMatchMismatch, NearMatchOptions, NearMatchQuery, NearMatchResult 
 } from './types';
 
 function detectMismatch(
@@ -25,7 +21,7 @@ function detectMismatch(
     return {
       field: 'type',
       expected: query.type,
-      actual: component.type 
+      actual: component.type,
     };
   }
 
@@ -75,12 +71,10 @@ export function findNearMatches(
       return {
         component,
         score,
-        mismatch 
+        mismatch,
       };
     })
-    .filter(
-      (result) => result.score >= threshold || result.mismatch !== undefined,
-    )
+    .filter((result) => result.score >= threshold || result.mismatch !== undefined)
     .sort((a, b) => b.score - a.score)
     .slice(0, limit);
 
@@ -104,11 +98,7 @@ export function createSourceNotFoundError(
   components: Component[],
   id: ComponentId,
 ): ComponentNotFoundError {
-  const matches = findNearMatches(
-    components,
-    { name: id.name() },
-    { limit: 3 },
-  );
+  const matches = findNearMatches(components, { name: id.name() }, { limit: 3 });
   const suggestions = matches.map((s) => s.component.id);
   return new ComponentNotFoundError(id.toString(), suggestions);
 }

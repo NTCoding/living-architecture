@@ -36,33 +36,17 @@ type TraceOutput = TraceSuccessOutput | TraceErrorOutput;
 function isTraceSuccessOutput(value: unknown): value is TraceSuccessOutput {
   if (typeof value !== 'object' || value === null) return false;
   if (!('success' in value) || value.success !== true) return false;
-  if (
-    !('data' in value) ||
-    typeof value.data !== 'object' ||
-    value.data === null
-  )
-    return false;
-  if (
-    !('componentIds' in value.data) ||
-    !Array.isArray(value.data.componentIds)
-  )
-    return false;
-  if (!('linkIds' in value.data) || !Array.isArray(value.data.linkIds))
-    return false;
+  if (!('data' in value) || typeof value.data !== 'object' || value.data === null) return false;
+  if (!('componentIds' in value.data) || !Array.isArray(value.data.componentIds)) return false;
+  if (!('linkIds' in value.data) || !Array.isArray(value.data.linkIds)) return false;
   return true;
 }
 
 function isTraceErrorOutput(value: unknown): value is TraceErrorOutput {
   if (typeof value !== 'object' || value === null) return false;
   if (!('success' in value) || value.success !== false) return false;
-  if (
-    !('error' in value) ||
-    typeof value.error !== 'object' ||
-    value.error === null
-  )
-    return false;
-  if (!('code' in value.error) || typeof value.error.code !== 'string')
-    return false;
+  if (!('error' in value) || typeof value.error !== 'object' || value.error === null) return false;
+  if (!('code' in value.error) || typeof value.error.code !== 'string') return false;
   return true;
 }
 
@@ -130,10 +114,7 @@ describe('riviere query trace', () => {
       const output = expectSuccessOutput(parseOutput(ctx.consoleOutput));
 
       expect(new Set(output.data.componentIds)).toEqual(
-        new Set([
-          'orders:checkout:api:place-order',
-          'orders:checkout:usecase:place-order',
-        ]),
+        new Set(['orders:checkout:api:place-order', 'orders:checkout:usecase:place-order']),
       );
       expect(output.data.linkIds).toEqual([
         'orders:checkout:api:place-order->orders:checkout:usecase:place-order',
@@ -159,9 +140,7 @@ describe('riviere query trace', () => {
 
       const output = expectSuccessOutput(parseOutput(ctx.consoleOutput));
 
-      expect(output.data.componentIds).toEqual([
-        'orders:checkout:api:place-order',
-      ]);
+      expect(output.data.componentIds).toEqual(['orders:checkout:api:place-order']);
       expect(output.data.linkIds).toEqual([]);
     });
 

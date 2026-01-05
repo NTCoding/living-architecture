@@ -1,15 +1,18 @@
 import {
   describe, it, expect 
-} from 'vitest'
-import { extractDomainDetails } from './extractDomainDetails'
+} from 'vitest';
+import { extractDomainDetails } from './extractDomainDetails';
 import {
-  parseNode, parseDomainMetadata, parseDomainKey, type RawNode 
-} from '@/lib/riviereTestData'
-import type { RiviereGraph } from '@/types/riviere'
+  parseNode,
+  parseDomainMetadata,
+  parseDomainKey,
+  type RawNode,
+} from '@/lib/riviereTestFixtures';
+import type { RiviereGraph } from '@/types/riviere';
 const testSourceLocation = {
   repository: 'test-repo',
-  filePath: 'src/test.ts' 
-}
+  filePath: 'src/test.ts',
+};
 
 function createMinimalGraph(overrides: Partial<RiviereGraph> = {}): RiviereGraph {
   return {
@@ -21,7 +24,7 @@ function createMinimalGraph(overrides: Partial<RiviereGraph> = {}): RiviereGraph
     components: [],
     links: [],
     ...overrides,
-  }
+  };
 }
 
 function createNode(overrides: Partial<RawNode> = {}): ReturnType<typeof parseNode> {
@@ -33,11 +36,11 @@ function createNode(overrides: Partial<RawNode> = {}): ReturnType<typeof parseNo
     name: 'Test Node',
     domain: 'test-domain',
     module: 'test-module',
-  }
+  };
   return parseNode({
     ...defaults,
-    ...overrides 
-  })
+    ...overrides,
+  });
 }
 
 describe('extractDomainDetails', () => {
@@ -48,16 +51,16 @@ describe('extractDomainDetails', () => {
           domains: parseDomainMetadata({
             'other-domain': {
               description: 'Other',
-              systemType: 'domain' 
-            } 
-          }) 
+              systemType: 'domain',
+            },
+          }),
         },
-      })
+      });
 
-      const result = extractDomainDetails(graph, parseDomainKey('non-existent'))
+      const result = extractDomainDetails(graph, parseDomainKey('non-existent'));
 
-      expect(result).toBeNull()
-    })
+      expect(result).toBeNull();
+    });
 
     it('extracts domain id, name, description and systemType', () => {
       const graph = createMinimalGraph({
@@ -65,20 +68,20 @@ describe('extractDomainDetails', () => {
           domains: parseDomainMetadata({
             'order-domain': {
               description: 'Manages orders',
-              systemType: 'domain' 
+              systemType: 'domain',
             },
           }),
         },
-      })
+      });
 
-      const result = extractDomainDetails(graph, parseDomainKey('order-domain'))
+      const result = extractDomainDetails(graph, parseDomainKey('order-domain'));
 
-      expect(result).not.toBeNull()
-      expect(result?.id).toBe('order-domain')
-      expect(result?.description).toBe('Manages orders')
-      expect(result?.systemType).toBe('domain')
-    })
-  })
+      expect(result).not.toBeNull();
+      expect(result?.id).toBe('order-domain');
+      expect(result?.description).toBe('Manages orders');
+      expect(result?.systemType).toBe('domain');
+    });
+  });
 
   describe('nodes extraction', () => {
     it('extracts all nodes belonging to domain with type and location', () => {
@@ -87,8 +90,8 @@ describe('extractDomainDetails', () => {
           domains: parseDomainMetadata({
             'order-domain': {
               description: 'Orders',
-              systemType: 'domain' 
-            } 
+              systemType: 'domain',
+            },
           }),
         },
         components: [
@@ -101,7 +104,7 @@ describe('extractDomainDetails', () => {
             sourceLocation: {
               repository: 'test-repo',
               filePath: 'src/api/orders.ts',
-              lineNumber: 12 
+              lineNumber: 12,
             },
           }),
           createNode({
@@ -112,7 +115,7 @@ describe('extractDomainDetails', () => {
             sourceLocation: {
               repository: 'test-repo',
               filePath: 'src/usecases/PlaceOrder.ts',
-              lineNumber: 8 
+              lineNumber: 8,
             },
           }),
           createNode({
@@ -123,11 +126,11 @@ describe('extractDomainDetails', () => {
             domain: 'other-domain',
           }),
         ],
-      })
+      });
 
-      const result = extractDomainDetails(graph, parseDomainKey('order-domain'))
+      const result = extractDomainDetails(graph, parseDomainKey('order-domain'));
 
-      expect(result?.nodes).toHaveLength(2)
+      expect(result?.nodes).toHaveLength(2);
       expect(result?.nodes[0]).toEqual({
         id: 'api-1',
         type: 'API',
@@ -136,9 +139,9 @@ describe('extractDomainDetails', () => {
         sourceLocation: {
           repository: 'test-repo',
           filePath: 'src/api/orders.ts',
-          lineNumber: 12 
+          lineNumber: 12,
         },
-      })
+      });
       expect(result?.nodes[1]).toEqual({
         id: 'uc-1',
         type: 'UseCase',
@@ -147,10 +150,10 @@ describe('extractDomainDetails', () => {
         sourceLocation: {
           repository: 'test-repo',
           filePath: 'src/usecases/PlaceOrder.ts',
-          lineNumber: 8 
+          lineNumber: 8,
         },
-      })
-    })
+      });
+    });
 
     it('sorts nodes by type priority (UI, API, UseCase, DomainOp, Event, EventHandler, Custom)', () => {
       const graph = createMinimalGraph({
@@ -158,8 +161,8 @@ describe('extractDomainDetails', () => {
           domains: parseDomainMetadata({
             'order-domain': {
               description: 'Orders',
-              systemType: 'domain' 
-            } 
+              systemType: 'domain',
+            },
           }),
         },
         components: [
@@ -168,50 +171,50 @@ describe('extractDomainDetails', () => {
             type: 'EventHandler',
             name: 'Handler',
             domain: 'order-domain',
-            subscribedEvents: ['Event'] 
+            subscribedEvents: ['Event'],
           }),
           createNode({
             id: 'api-1',
             type: 'API',
             name: 'API',
-            domain: 'order-domain' 
+            domain: 'order-domain',
           }),
           createNode({
             id: 'ui-1',
             type: 'UI',
             name: 'UI',
             domain: 'order-domain',
-            route: '/ui' 
+            route: '/ui',
           }),
           createNode({
             id: 'event-1',
             type: 'Event',
             name: 'Event',
             domain: 'order-domain',
-            eventName: 'Event' 
+            eventName: 'Event',
           }),
           createNode({
             id: 'uc-1',
             type: 'UseCase',
             name: 'UseCase',
-            domain: 'order-domain' 
+            domain: 'order-domain',
           }),
           createNode({
             id: 'op-1',
             type: 'DomainOp',
             name: 'DomainOp',
             domain: 'order-domain',
-            operationName: 'op' 
+            operationName: 'op',
           }),
         ],
-      })
+      });
 
-      const result = extractDomainDetails(graph, parseDomainKey('order-domain'))
+      const result = extractDomainDetails(graph, parseDomainKey('order-domain'));
 
-      const types = result?.nodes.map((n) => n.type)
-      expect(types).toEqual(['UI', 'API', 'UseCase', 'DomainOp', 'Event', 'EventHandler'])
-    })
-  })
+      const types = result?.nodes.map((n) => n.type);
+      expect(types).toEqual(['UI', 'API', 'UseCase', 'DomainOp', 'Event', 'EventHandler']);
+    });
+  });
 
   describe('events extraction', () => {
     it('extracts published events with full event data', () => {
@@ -220,8 +223,8 @@ describe('extractDomainDetails', () => {
           domains: parseDomainMetadata({
             'order-domain': {
               description: 'Orders',
-              systemType: 'domain' 
-            } 
+              systemType: 'domain',
+            },
           }),
         },
         components: [
@@ -235,15 +238,15 @@ describe('extractDomainDetails', () => {
             sourceLocation: {
               repository: 'test-repo',
               filePath: 'src/events.ts',
-              lineNumber: 10 
+              lineNumber: 10,
             },
           }),
         ],
-      })
+      });
 
-      const result = extractDomainDetails(graph, parseDomainKey('order-domain'))
+      const result = extractDomainDetails(graph, parseDomainKey('order-domain'));
 
-      expect(result?.events.published).toHaveLength(1)
+      expect(result?.events.published).toHaveLength(1);
       expect(result?.events.published[0]).toEqual({
         id: 'evt-1',
         eventName: 'OrderPlaced',
@@ -251,11 +254,11 @@ describe('extractDomainDetails', () => {
         sourceLocation: {
           repository: 'test-repo',
           filePath: 'src/events.ts',
-          lineNumber: 10 
+          lineNumber: 10,
         },
         handlers: [],
-      })
-    })
+      });
+    });
 
     it('includes handlers that subscribe to published events', () => {
       const graph = createMinimalGraph({
@@ -263,15 +266,15 @@ describe('extractDomainDetails', () => {
           domains: parseDomainMetadata({
             'order-domain': {
               description: 'Orders',
-              systemType: 'domain' 
+              systemType: 'domain',
             },
             'inventory-domain': {
               description: 'Inventory',
-              systemType: 'domain' 
+              systemType: 'domain',
             },
             'shipping-domain': {
               description: 'Shipping',
-              systemType: 'domain' 
+              systemType: 'domain',
             },
           }),
         },
@@ -298,23 +301,23 @@ describe('extractDomainDetails', () => {
             subscribedEvents: ['OrderPlaced'],
           }),
         ],
-      })
+      });
 
-      const result = extractDomainDetails(graph, parseDomainKey('order-domain'))
-      const orderPlacedEvent = result?.events.published.find((e) => e.eventName === 'OrderPlaced')
+      const result = extractDomainDetails(graph, parseDomainKey('order-domain'));
+      const orderPlacedEvent = result?.events.published.find((e) => e.eventName === 'OrderPlaced');
 
-      expect(orderPlacedEvent?.handlers).toHaveLength(2)
+      expect(orderPlacedEvent?.handlers).toHaveLength(2);
       expect(orderPlacedEvent?.handlers).toContainEqual({
         handlerId: 'handler-inv',
         domain: 'inventory-domain',
         handlerName: 'Reserve Inventory Handler',
-      })
+      });
       expect(orderPlacedEvent?.handlers).toContainEqual({
         handlerId: 'handler-ship',
         domain: 'shipping-domain',
         handlerName: 'Create Shipment Handler',
-      })
-    })
+      });
+    });
 
     it('sorts published events alphabetically', () => {
       const graph = createMinimalGraph({
@@ -322,8 +325,8 @@ describe('extractDomainDetails', () => {
           domains: parseDomainMetadata({
             'order-domain': {
               description: 'Orders',
-              systemType: 'domain' 
-            } 
+              systemType: 'domain',
+            },
           }),
         },
         components: [
@@ -332,22 +335,25 @@ describe('extractDomainDetails', () => {
             type: 'Event',
             name: 'ZebraEvent',
             domain: 'order-domain',
-            eventName: 'ZebraEvent' 
+            eventName: 'ZebraEvent',
           }),
           createNode({
             id: 'evt-2',
             type: 'Event',
             name: 'AppleEvent',
             domain: 'order-domain',
-            eventName: 'AppleEvent' 
+            eventName: 'AppleEvent',
           }),
         ],
-      })
+      });
 
-      const result = extractDomainDetails(graph, parseDomainKey('order-domain'))
+      const result = extractDomainDetails(graph, parseDomainKey('order-domain'));
 
-      expect(result?.events.published.map((e) => e.eventName)).toEqual(['AppleEvent', 'ZebraEvent'])
-    })
+      expect(result?.events.published.map((e) => e.eventName)).toEqual([
+        'AppleEvent',
+        'ZebraEvent',
+      ]);
+    });
 
     it('extracts consumed events as full handler objects', () => {
       const graph = createMinimalGraph({
@@ -355,8 +361,8 @@ describe('extractDomainDetails', () => {
           domains: parseDomainMetadata({
             'order-domain': {
               description: 'Orders',
-              systemType: 'domain' 
-            } 
+              systemType: 'domain',
+            },
           }),
         },
         components: [
@@ -370,31 +376,33 @@ describe('extractDomainDetails', () => {
             sourceLocation: {
               repository: 'test-repo',
               filePath: 'src/handlers/payment.ts',
-              lineNumber: 15 
+              lineNumber: 15,
             },
           }),
         ],
-      })
+      });
 
-      const result = extractDomainDetails(graph, parseDomainKey('order-domain'))
+      const result = extractDomainDetails(graph, parseDomainKey('order-domain'));
 
-      expect(result?.events.consumed).toHaveLength(1)
+      expect(result?.events.consumed).toHaveLength(1);
       expect(result?.events.consumed[0]).toEqual({
         id: 'handler-1',
         handlerName: 'Handle Payment Completed',
         description: 'Updates order status when payment succeeds',
         subscribedEvents: ['PaymentCompleted'],
-        subscribedEventsWithDomain: [{
-          eventName: 'PaymentCompleted',
-          sourceKnown: false 
-        }],
+        subscribedEventsWithDomain: [
+          {
+            eventName: 'PaymentCompleted',
+            sourceKnown: false,
+          },
+        ],
         sourceLocation: {
           repository: 'test-repo',
           filePath: 'src/handlers/payment.ts',
-          lineNumber: 15 
+          lineNumber: 15,
         },
-      })
-    })
+      });
+    });
 
     it('sorts consumed handlers alphabetically by name', () => {
       const graph = createMinimalGraph({
@@ -402,8 +410,8 @@ describe('extractDomainDetails', () => {
           domains: parseDomainMetadata({
             'order-domain': {
               description: 'Orders',
-              systemType: 'domain' 
-            } 
+              systemType: 'domain',
+            },
           }),
         },
         components: [
@@ -412,23 +420,26 @@ describe('extractDomainDetails', () => {
             type: 'EventHandler',
             name: 'Zebra Handler',
             domain: 'order-domain',
-            subscribedEvents: ['X'] 
+            subscribedEvents: ['X'],
           }),
           createNode({
             id: 'h-2',
             type: 'EventHandler',
             name: 'Apple Handler',
             domain: 'order-domain',
-            subscribedEvents: ['Y'] 
+            subscribedEvents: ['Y'],
           }),
         ],
-      })
+      });
 
-      const result = extractDomainDetails(graph, parseDomainKey('order-domain'))
+      const result = extractDomainDetails(graph, parseDomainKey('order-domain'));
 
-      expect(result?.events.consumed.map((h) => h.handlerName)).toEqual(['Apple Handler', 'Zebra Handler'])
-    })
-  })
+      expect(result?.events.consumed.map((h) => h.handlerName)).toEqual([
+        'Apple Handler',
+        'Zebra Handler',
+      ]);
+    });
+  });
 
   describe('node breakdown', () => {
     it('includes node breakdown counts', () => {
@@ -437,8 +448,8 @@ describe('extractDomainDetails', () => {
           domains: parseDomainMetadata({
             'order-domain': {
               description: 'Orders',
-              systemType: 'domain' 
-            } 
+              systemType: 'domain',
+            },
           }),
         },
         components: [
@@ -447,30 +458,30 @@ describe('extractDomainDetails', () => {
             type: 'UI',
             name: 'UI',
             domain: 'order-domain',
-            route: '/ui' 
+            route: '/ui',
           }),
           createNode({
             id: 'api-1',
             type: 'API',
             name: 'API 1',
-            domain: 'order-domain' 
+            domain: 'order-domain',
           }),
           createNode({
             id: 'api-2',
             type: 'API',
             name: 'API 2',
-            domain: 'order-domain' 
+            domain: 'order-domain',
           }),
           createNode({
             id: 'uc-1',
             type: 'UseCase',
             name: 'UC',
-            domain: 'order-domain' 
+            domain: 'order-domain',
           }),
         ],
-      })
+      });
 
-      const result = extractDomainDetails(graph, parseDomainKey('order-domain'))
+      const result = extractDomainDetails(graph, parseDomainKey('order-domain'));
 
       expect(result?.nodeBreakdown).toEqual({
         UI: 1,
@@ -480,9 +491,9 @@ describe('extractDomainDetails', () => {
         Event: 0,
         EventHandler: 0,
         Custom: 0,
-      })
-    })
-  })
+      });
+    });
+  });
 
   describe('entry points', () => {
     it('includes entry points from UI routes and API paths', () => {
@@ -491,8 +502,8 @@ describe('extractDomainDetails', () => {
           domains: parseDomainMetadata({
             'order-domain': {
               description: 'Orders',
-              systemType: 'domain' 
-            } 
+              systemType: 'domain',
+            },
           }),
         },
         components: [
@@ -501,7 +512,7 @@ describe('extractDomainDetails', () => {
             type: 'UI',
             name: '/orders',
             domain: 'order-domain',
-            route: '/orders' 
+            route: '/orders',
           }),
           createNode({
             id: 'api-1',
@@ -510,16 +521,16 @@ describe('extractDomainDetails', () => {
             domain: 'order-domain',
             apiType: 'REST',
             httpMethod: 'POST',
-            path: '/api/orders' 
+            path: '/api/orders',
           }),
         ],
-      })
+      });
 
-      const result = extractDomainDetails(graph, parseDomainKey('order-domain'))
+      const result = extractDomainDetails(graph, parseDomainKey('order-domain'));
 
-      expect(result?.entryPoints).toEqual(['/orders', '/api/orders'])
-    })
-  })
+      expect(result?.entryPoints).toEqual(['/orders', '/api/orders']);
+    });
+  });
 
   describe('repository', () => {
     it('includes repository from first node with sourceLocation.repository', () => {
@@ -528,8 +539,8 @@ describe('extractDomainDetails', () => {
           domains: parseDomainMetadata({
             'order-domain': {
               description: 'Orders',
-              systemType: 'domain' 
-            } 
+              systemType: 'domain',
+            },
           }),
         },
         components: [
@@ -541,15 +552,15 @@ describe('extractDomainDetails', () => {
             domain: 'order-domain',
             sourceLocation: {
               filePath: 'src/api.ts',
-              repository: 'ecommerce-app' 
+              repository: 'ecommerce-app',
             },
           }),
         ],
-      })
+      });
 
-      const result = extractDomainDetails(graph, parseDomainKey('order-domain'))
+      const result = extractDomainDetails(graph, parseDomainKey('order-domain'));
 
-      expect(result?.repository).toBe('ecommerce-app')
-    })
-  })
-})
+      expect(result?.repository).toBe('ecommerce-app');
+    });
+  });
+});

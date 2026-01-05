@@ -43,7 +43,7 @@ describe('fileExists', () => {
     const permissionError = new Error('Permission denied');
     Object.assign(permissionError, { code: 'EACCES' });
 
-    vi.doMock('node:fs/promises', () => ({access: vi.fn().mockRejectedValue(permissionError),}));
+    vi.doMock('node:fs/promises', () => ({ access: vi.fn().mockRejectedValue(permissionError) }));
 
     const { fileExists } = await import('./file-existence');
 

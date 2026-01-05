@@ -5,14 +5,16 @@ import {
 
 function createValidOptions(): BuilderOptions {
   return {
-    sources: [{
-      repository: 'my-org/my-repo',
-      commit: 'abc123' 
-    }],
+    sources: [
+      {
+        repository: 'my-org/my-repo',
+        commit: 'abc123',
+      },
+    ],
     domains: {
       orders: {
         description: 'Order management',
-        systemType: 'domain' 
+        systemType: 'domain',
       },
     },
   };
@@ -93,7 +95,7 @@ describe('query', () => {
       path: '/new',
       sourceLocation: {
         repository: 'my-org/my-repo',
-        filePath: 'src/new.ts' 
+        filePath: 'src/new.ts',
       },
     });
 

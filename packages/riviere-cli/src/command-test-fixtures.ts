@@ -20,12 +20,7 @@ export interface ErrorOutput {
 function isErrorOutput(value: unknown): value is ErrorOutput {
   if (typeof value !== 'object' || value === null) return false;
   if (!('success' in value) || value.success !== false) return false;
-  if (
-    !('error' in value) ||
-    typeof value.error !== 'object' ||
-    value.error === null
-  )
-    return false;
+  if (!('error' in value) || typeof value.error !== 'object' || value.error === null) return false;
   return true;
 }
 
@@ -77,9 +72,7 @@ export function setupCommandTest(ctx: TestContext): void {
     ctx.originalCwd = process.cwd();
     ctx.consoleOutput = [];
     process.chdir(ctx.testDir);
-    vi.spyOn(console, 'log').mockImplementation((msg: string) =>
-      ctx.consoleOutput.push(msg),
-    );
+    vi.spyOn(console, 'log').mockImplementation((msg: string) => ctx.consoleOutput.push(msg));
   });
 
   afterEach(async () => {
@@ -106,7 +99,7 @@ export const baseMetadata = {
   domains: {
     orders: {
       description: 'Order management',
-      systemType: 'domain' 
+      systemType: 'domain',
     },
   },
 };
@@ -154,10 +147,7 @@ export const validLink = {
   type: 'sync',
 };
 
-export async function createGraphWithDomain(
-  testDir: string,
-  domainName: string,
-): Promise<void> {
+export async function createGraphWithDomain(testDir: string, domainName: string): Promise<void> {
   const graphDir = join(testDir, '.riviere');
   await mkdir(graphDir, { recursive: true });
   const graph = {
@@ -167,7 +157,7 @@ export async function createGraphWithDomain(
       domains: {
         [domainName]: {
           description: 'Test domain',
-          systemType: 'domain' 
+          systemType: 'domain',
         },
       },
     },
@@ -177,10 +167,7 @@ export async function createGraphWithDomain(
   await writeFile(join(graphDir, 'graph.json'), JSON.stringify(graph), 'utf-8');
 }
 
-export async function createGraphWithSource(
-  testDir: string,
-  repository: string,
-): Promise<void> {
+export async function createGraphWithSource(testDir: string, repository: string): Promise<void> {
   const graphDir = join(testDir, '.riviere');
   await mkdir(graphDir, { recursive: true });
   const graph = {
@@ -190,8 +177,8 @@ export async function createGraphWithSource(
       domains: {
         orders: {
           description: 'Orders',
-          systemType: 'domain' 
-        } 
+          systemType: 'domain',
+        },
       },
     },
     components: [],
@@ -200,10 +187,7 @@ export async function createGraphWithSource(
   await writeFile(join(graphDir, 'graph.json'), JSON.stringify(graph), 'utf-8');
 }
 
-export async function createGraphWithComponent(
-  testDir: string,
-  component: object,
-): Promise<void> {
+export async function createGraphWithComponent(testDir: string, component: object): Promise<void> {
   const graphDir = join(testDir, '.riviere');
   await mkdir(graphDir, { recursive: true });
   const graph = {
@@ -213,7 +197,7 @@ export async function createGraphWithComponent(
       domains: {
         orders: {
           description: 'Order management',
-          systemType: 'domain' 
+          systemType: 'domain',
         },
       },
     },
@@ -225,14 +209,20 @@ export async function createGraphWithComponent(
 
 export interface CustomTypeDefinition {
   description?: string;
-  requiredProperties?: Record<string, {
-    type: string;
-    description?: string 
-  }>;
-  optionalProperties?: Record<string, {
-    type: string;
-    description?: string 
-  }>;
+  requiredProperties?: Record<
+    string,
+    {
+      type: string;
+      description?: string;
+    }
+  >;
+  optionalProperties?: Record<
+    string,
+    {
+      type: string;
+      description?: string;
+    }
+  >;
 }
 
 export async function createGraphWithCustomType(
@@ -250,7 +240,7 @@ export async function createGraphWithCustomType(
       domains: {
         [domainName]: {
           description: 'Test domain',
-          systemType: 'domain' 
+          systemType: 'domain',
         },
       },
       customTypes: { [customTypeName]: customTypeDefinition },
@@ -286,20 +276,13 @@ export const simpleUseCaseComponent = {
   },
 };
 
-export function hasSuccessOutputStructure(
-  value: unknown,
-): value is {
+export function hasSuccessOutputStructure(value: unknown): value is {
   success: true;
-  data: object 
+  data: object;
 } {
   if (typeof value !== 'object' || value === null) return false;
   if (!('success' in value) || value.success !== true) return false;
-  if (
-    !('data' in value) ||
-    typeof value.data !== 'object' ||
-    value.data === null
-  )
-    return false;
+  if (!('data' in value) || typeof value.data !== 'object' || value.data === null) return false;
   return true;
 }
 
@@ -323,7 +306,7 @@ export async function testCustomGraphPath<T>(
       version: '1.0',
       metadata: baseMetadata,
       components: [],
-      links: [] 
+      links: [],
     },
     'custom',
   );

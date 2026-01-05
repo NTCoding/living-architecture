@@ -1,8 +1,8 @@
-type ChangeFilter = 'all' | 'added' | 'removed' | 'modified'
+type ChangeFilter = 'all' | 'added' | 'removed' | 'modified';
 
 interface FilterTabsProps {
-  readonly activeFilter: ChangeFilter
-  readonly onFilterChange: (filter: ChangeFilter) => void
+  readonly activeFilter: ChangeFilter;
+  readonly onFilterChange: (filter: ChangeFilter) => void;
 }
 
 export function FilterTabs({
@@ -10,25 +10,25 @@ export function FilterTabs({
 }: FilterTabsProps): React.ReactElement {
   const filters: Array<{
     key: ChangeFilter;
-    label: string 
+    label: string;
   }> = [
     {
       key: 'all',
-      label: 'All Changes' 
+      label: 'All Changes',
     },
     {
       key: 'added',
-      label: 'Added' 
+      label: 'Added',
     },
     {
       key: 'removed',
-      label: 'Removed' 
+      label: 'Removed',
     },
     {
       key: 'modified',
-      label: 'Modified' 
+      label: 'Modified',
     },
-  ]
+  ];
 
   return (
     <div className="flex gap-2">
@@ -47,17 +47,19 @@ export function FilterTabs({
         </button>
       ))}
     </div>
-  )
+  );
 }
 
 interface DomainFilterProps {
-  readonly domains: string[]
-  readonly activeDomain: string | null
-  readonly onDomainChange: (domain: string | null) => void
+  readonly domains: string[];
+  readonly activeDomain: string | null;
+  readonly onDomainChange: (domain: string | null) => void;
 }
 
 export function DomainFilter({
-  domains, activeDomain, onDomainChange 
+  domains,
+  activeDomain,
+  onDomainChange,
 }: DomainFilterProps): React.ReactElement {
   return (
     <div className="flex gap-2">
@@ -76,17 +78,19 @@ export function DomainFilter({
         </button>
       ))}
     </div>
-  )
+  );
 }
 
 interface TypeFilterProps {
-  readonly types: string[]
-  readonly activeType: string | null
-  readonly onTypeChange: (type: string | null) => void
+  readonly types: string[];
+  readonly activeType: string | null;
+  readonly onTypeChange: (type: string | null) => void;
 }
 
 export function TypeFilter({
-  types, activeType, onTypeChange 
+  types,
+  activeType,
+  onTypeChange,
 }: TypeFilterProps): React.ReactElement {
   return (
     <div className="flex gap-2">
@@ -105,7 +109,7 @@ export function TypeFilter({
         </button>
       ))}
     </div>
-  )
+  );
 }
 
-export type { ChangeFilter }
+export type { ChangeFilter };

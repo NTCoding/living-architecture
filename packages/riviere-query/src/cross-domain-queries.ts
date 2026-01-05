@@ -8,10 +8,7 @@ function buildNodeIdToDomain(graph: RiviereGraph): Map<string, string> {
   return new Map(graph.components.map((c) => [c.id, c.domain]));
 }
 
-export function queryCrossDomainLinks(
-  graph: RiviereGraph,
-  domainName: string,
-): CrossDomainLink[] {
+export function queryCrossDomainLinks(graph: RiviereGraph, domainName: string): CrossDomainLink[] {
   const nodeIdToDomain = buildNodeIdToDomain(graph);
   const seen = new Set<string>();
   const results: CrossDomainLink[] = [];
@@ -28,8 +25,7 @@ export function queryCrossDomainLinks(
       continue;
     }
 
-    const linkTypeKey =
-      link.type === undefined ? 'UNDEFINED_LINK_TYPE' : link.type;
+    const linkTypeKey = link.type === undefined ? 'UNDEFINED_LINK_TYPE' : link.type;
     const key = `${targetDomain}:${linkTypeKey}`;
     if (seen.has(key)) {
       continue;
@@ -52,10 +48,7 @@ function linkTypeForSort(linkType: 'sync' | 'async' | undefined): string {
   return linkType;
 }
 
-function compareCrossDomainLinks(
-  a: CrossDomainLink,
-  b: CrossDomainLink,
-): number {
+function compareCrossDomainLinks(a: CrossDomainLink, b: CrossDomainLink): number {
   const domainCompare = a.targetDomain.localeCompare(b.targetDomain);
   if (domainCompare !== 0) return domainCompare;
   return linkTypeForSort(a.linkType).localeCompare(linkTypeForSort(b.linkType));
@@ -113,19 +106,11 @@ function collectConnections(
     const targetDomain = nodeIdToDomain.get(link.target);
     const targetType = nodeById.get(link.target)?.type;
 
-    if (
-      sourceDomain === domainName &&
-      targetDomain !== undefined &&
-      targetDomain !== domainName
-    ) {
+    if (sourceDomain === domainName && targetDomain !== undefined && targetDomain !== domainName) {
       incrementConnectionCount(outgoing, targetDomain, targetType);
     }
 
-    if (
-      targetDomain === domainName &&
-      sourceDomain !== undefined &&
-      sourceDomain !== domainName
-    ) {
+    if (targetDomain === domainName && sourceDomain !== undefined && sourceDomain !== domainName) {
       incrementConnectionCount(incoming, sourceDomain, targetType);
     }
   }
@@ -153,17 +138,10 @@ export function queryDomainConnections(
   domainName: string,
 ): DomainConnection[] {
   const nodeIdToDomain = buildNodeIdToDomain(graph);
-  const nodeById = new Map(
-    graph.components.map((c) => [c.id, { type: c.type }]),
-  );
+  const nodeById = new Map(graph.components.map((c) => [c.id, { type: c.type }]));
   const {
     outgoing, incoming 
-  } = collectConnections(
-    graph,
-    domainName,
-    nodeIdToDomain,
-    nodeById,
-  );
+  } = collectConnections(graph, domainName, nodeIdToDomain, nodeById);
 
   const results = [
     ...toConnectionResults(outgoing, 'outgoing'),

@@ -36,8 +36,6 @@ describe('getDefaultGraphPathDescription', () => {
   it('returns description with default path', () => {
     const result = getDefaultGraphPathDescription();
 
-    expect(result).toBe(
-      'Custom graph file path (default: .riviere/graph.json)',
-    );
+    expect(result).toBe('Custom graph file path (default: .riviere/graph.json)');
   });
 });

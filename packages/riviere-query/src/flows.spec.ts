@@ -256,9 +256,7 @@ describe('RiviereQuery.flows()', () => {
     expect(result).toHaveLength(1);
     const flow = result[0];
     if (!flow) throw new Error('Expected flow to exist');
-    const paymentStep = flow.steps.find(
-      (s) => s.component.id === 'test:api:payment',
-    );
+    const paymentStep = flow.steps.find((s) => s.component.id === 'test:api:payment');
     if (!paymentStep) throw new Error('Expected payment step to exist');
     expect(paymentStep.externalLinks).toHaveLength(1);
     expect(paymentStep.externalLinks[0]?.target.name).toBe('Stripe');
@@ -324,12 +322,14 @@ describe('RiviereQuery.searchWithFlow()', () => {
 
     const result = query.searchWithFlow('', { returnAllOnEmptyQuery: true });
 
-    expect(
-      result.matchingIds.slice().sort((a, b) => a.localeCompare(b)),
-    ).toEqual(['test:api:a', 'test:mod:ui:page']);
-    expect(
-      result.visibleIds.slice().sort((a, b) => a.localeCompare(b)),
-    ).toEqual(['test:api:a', 'test:mod:ui:page']);
+    expect(result.matchingIds.slice().sort((a, b) => a.localeCompare(b))).toEqual([
+      'test:api:a',
+      'test:mod:ui:page',
+    ]);
+    expect(result.visibleIds.slice().sort((a, b) => a.localeCompare(b))).toEqual([
+      'test:api:a',
+      'test:mod:ui:page',
+    ]);
   });
 
   it('returns empty arrays when query is empty and returnAllOnEmptyQuery is false', () => {
@@ -375,18 +375,20 @@ describe('RiviereQuery.searchWithFlow()', () => {
     ];
     const query = new RiviereQuery(graph);
 
-    const result = query.searchWithFlow('API A', {returnAllOnEmptyQuery: false,});
+    const result = query.searchWithFlow('API A', { returnAllOnEmptyQuery: false });
 
     expect(result.matchingIds).toEqual(['test:api:a']);
-    expect(
-      result.visibleIds.slice().sort((a, b) => a.localeCompare(b)),
-    ).toEqual(['test:api:a', 'test:mod:ui:page', 'test:uc:b']);
+    expect(result.visibleIds.slice().sort((a, b) => a.localeCompare(b))).toEqual([
+      'test:api:a',
+      'test:mod:ui:page',
+      'test:uc:b',
+    ]);
   });
 
   it('returns empty arrays when query matches nothing', () => {
     const query = new RiviereQuery(createMinimalValidGraph());
 
-    const result = query.searchWithFlow('nonexistent', {returnAllOnEmptyQuery: false,});
+    const result = query.searchWithFlow('nonexistent', { returnAllOnEmptyQuery: false });
 
     expect(result.matchingIds).toEqual([]);
     expect(result.visibleIds).toEqual([]);

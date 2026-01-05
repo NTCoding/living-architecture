@@ -22,7 +22,7 @@ interface ValidationOutput {
     errors: Array<{
       code: string;
       message: string;
-      path: string 
+      path: string;
     }>;
     warnings: Array<{
       code: string;
@@ -36,16 +36,9 @@ interface ValidationOutput {
 function isValidationOutput(value: unknown): value is ValidationOutput {
   if (typeof value !== 'object' || value === null) return false;
   if (!('success' in value) || value.success !== true) return false;
-  if (
-    !('data' in value) ||
-    typeof value.data !== 'object' ||
-    value.data === null
-  )
-    return false;
-  if (!('valid' in value.data) || typeof value.data.valid !== 'boolean')
-    return false;
-  if (!('errors' in value.data) || !Array.isArray(value.data.errors))
-    return false;
+  if (!('data' in value) || typeof value.data !== 'object' || value.data === null) return false;
+  if (!('valid' in value.data) || typeof value.data.valid !== 'boolean') return false;
+  if (!('errors' in value.data) || !Array.isArray(value.data.errors)) return false;
   return true;
 }
 
@@ -61,12 +54,8 @@ describe('riviere builder validate', () => {
   describe('command registration', () => {
     it('registers validate command under builder', () => {
       const program = createProgram();
-      const builderCmd = program.commands.find(
-        (cmd) => cmd.name() === 'builder',
-      );
-      const validateCmd = builderCmd?.commands.find(
-        (cmd) => cmd.name() === 'validate',
-      );
+      const builderCmd = program.commands.find((cmd) => cmd.name() === 'builder');
+      const validateCmd = builderCmd?.commands.find((cmd) => cmd.name() === 'validate');
       expect(validateCmd?.name()).toBe('validate');
     });
   });
@@ -83,13 +72,7 @@ describe('riviere builder validate', () => {
         links: [validLink],
       });
 
-      await createProgram().parseAsync([
-        'node',
-        'riviere',
-        'builder',
-        'validate',
-        '--json',
-      ]);
+      await createProgram().parseAsync(['node', 'riviere', 'builder', 'validate', '--json']);
       const output = parseOutput(ctx.consoleOutput);
       expect(output.data.valid).toBe(true);
       expect(output.data.errors).toHaveLength(0);
@@ -103,12 +86,7 @@ describe('riviere builder validate', () => {
         links: [validLink],
       });
 
-      await createProgram().parseAsync([
-        'node',
-        'riviere',
-        'builder',
-        'validate',
-      ]);
+      await createProgram().parseAsync(['node', 'riviere', 'builder', 'validate']);
       expect(ctx.consoleOutput).toHaveLength(0);
     });
 
@@ -120,23 +98,15 @@ describe('riviere builder validate', () => {
         links: [
           {
             ...validLink,
-            target: 'orders:checkout:usecase:nonexistent' 
+            target: 'orders:checkout:usecase:nonexistent',
           },
         ],
       });
 
-      await createProgram().parseAsync([
-        'node',
-        'riviere',
-        'builder',
-        'validate',
-        '--json',
-      ]);
+      await createProgram().parseAsync(['node', 'riviere', 'builder', 'validate', '--json']);
       const output = parseOutput(ctx.consoleOutput);
       expect(output.data.valid).toBe(false);
-      expect(
-        output.data.errors.some((e) => e.code === 'INVALID_LINK_TARGET'),
-      ).toBe(true);
+      expect(output.data.errors.some((e) => e.code === 'INVALID_LINK_TARGET')).toBe(true);
     });
 
     it('returns valid=false with errors when graph has dangling link source', async () => {
@@ -144,24 +114,18 @@ describe('riviere builder validate', () => {
         version: '1.0',
         metadata: baseMetadata,
         components: [useCaseComponent],
-        links: [{
-          ...validLink,
-          source: 'orders:checkout:api:nonexistent' 
-        }],
+        links: [
+          {
+            ...validLink,
+            source: 'orders:checkout:api:nonexistent',
+          },
+        ],
       });
 
-      await createProgram().parseAsync([
-        'node',
-        'riviere',
-        'builder',
-        'validate',
-        '--json',
-      ]);
+      await createProgram().parseAsync(['node', 'riviere', 'builder', 'validate', '--json']);
       const output = parseOutput(ctx.consoleOutput);
       expect(output.data.valid).toBe(false);
-      expect(
-        output.data.errors.some((e) => e.code === 'INVALID_LINK_SOURCE'),
-      ).toBe(true);
+      expect(output.data.errors.some((e) => e.code === 'INVALID_LINK_SOURCE')).toBe(true);
     });
 
     it('returns valid=false with multiple errors for multiple issues', async () => {
@@ -179,13 +143,7 @@ describe('riviere builder validate', () => {
         ],
       });
 
-      await createProgram().parseAsync([
-        'node',
-        'riviere',
-        'builder',
-        'validate',
-        '--json',
-      ]);
+      await createProgram().parseAsync(['node', 'riviere', 'builder', 'validate', '--json']);
       const output = parseOutput(ctx.consoleOutput);
       expect(output.data.valid).toBe(false);
       expect(output.data.errors.length).toBeGreaterThan(1);
@@ -206,18 +164,10 @@ describe('riviere builder validate', () => {
         links: [],
       });
 
-      await createProgram().parseAsync([
-        'node',
-        'riviere',
-        'builder',
-        'validate',
-        '--json',
-      ]);
+      await createProgram().parseAsync(['node', 'riviere', 'builder', 'validate', '--json']);
       const output = parseOutput(ctx.consoleOutput);
       expect(output.data.valid).toBe(true);
-      const orphanWarning = output.data.warnings.find(
-        (w) => w.code === 'ORPHAN_COMPONENT',
-      );
+      const orphanWarning = output.data.warnings.find((w) => w.code === 'ORPHAN_COMPONENT');
       expect(orphanWarning?.componentId).toBe('orders:checkout:usecase:orphan');
     });
 
@@ -228,7 +178,7 @@ describe('riviere builder validate', () => {
           ...baseMetadata.domains,
           payments: {
             description: 'Unused',
-            systemType: 'domain' 
+            systemType: 'domain',
           },
         },
       };
@@ -240,17 +190,9 @@ describe('riviere builder validate', () => {
         links: [validLink],
       });
 
-      await createProgram().parseAsync([
-        'node',
-        'riviere',
-        'builder',
-        'validate',
-        '--json',
-      ]);
+      await createProgram().parseAsync(['node', 'riviere', 'builder', 'validate', '--json']);
       const output = parseOutput(ctx.consoleOutput);
-      const unusedWarning = output.data.warnings.find(
-        (w) => w.code === 'UNUSED_DOMAIN',
-      );
+      const unusedWarning = output.data.warnings.find((w) => w.code === 'UNUSED_DOMAIN');
       expect(unusedWarning?.domainName).toBe('payments');
     });
   });
@@ -267,13 +209,7 @@ describe('riviere builder validate', () => {
         links: [],
       });
 
-      await createProgram().parseAsync([
-        'node',
-        'riviere',
-        'builder',
-        'validate',
-        '--json',
-      ]);
+      await createProgram().parseAsync(['node', 'riviere', 'builder', 'validate', '--json']);
       const output = parseOutput(ctx.consoleOutput);
       expect(output.success).toBe(true);
       expect(output.data.valid).toBe(true);
@@ -285,21 +221,17 @@ describe('riviere builder validate', () => {
         version: '1.0',
         metadata: baseMetadata,
         components: [],
-        links: [{
-          id: 'x→y:sync',
-          source: 'x',
-          target: 'y',
-          type: 'sync' 
-        }],
+        links: [
+          {
+            id: 'x→y:sync',
+            source: 'x',
+            target: 'y',
+            type: 'sync',
+          },
+        ],
       });
 
-      await createProgram().parseAsync([
-        'node',
-        'riviere',
-        'builder',
-        'validate',
-        '--json',
-      ]);
+      await createProgram().parseAsync(['node', 'riviere', 'builder', 'validate', '--json']);
       const output = parseOutput(ctx.consoleOutput);
       expect(output.success).toBe(true);
       expect(output.data.valid).toBe(false);
@@ -314,13 +246,7 @@ describe('riviere builder validate', () => {
         links: [],
       });
 
-      await createProgram().parseAsync([
-        'node',
-        'riviere',
-        'builder',
-        'validate',
-        '--json',
-      ]);
+      await createProgram().parseAsync(['node', 'riviere', 'builder', 'validate', '--json']);
       const output = parseOutput(ctx.consoleOutput);
       expect(Array.isArray(output.data.warnings)).toBe(true);
     });
@@ -331,15 +257,8 @@ describe('riviere builder validate', () => {
     setupCommandTest(ctx);
 
     it('returns GRAPH_NOT_FOUND when no graph exists', async () => {
-      await createProgram().parseAsync([
-        'node',
-        'riviere',
-        'builder',
-        'validate',
-      ]);
-      expect(ctx.consoleOutput.join('\n')).toContain(
-        CliErrorCode.GraphNotFound,
-      );
+      await createProgram().parseAsync(['node', 'riviere', 'builder', 'validate']);
+      expect(ctx.consoleOutput.join('\n')).toContain(CliErrorCode.GraphNotFound);
     });
 
     it('uses custom graph path when --graph provided', async () => {
@@ -349,7 +268,7 @@ describe('riviere builder validate', () => {
           version: '1.0',
           metadata: baseMetadata,
           components: [],
-          links: [] 
+          links: [],
         },
         'custom',
       );

@@ -18,12 +18,8 @@ describe('riviere builder add-component', () => {
   describe('command registration', () => {
     it('registers add-component command under builder', () => {
       const program = createProgram();
-      const builderCmd = program.commands.find(
-        (cmd) => cmd.name() === 'builder',
-      );
-      const addComponentCmd = builderCmd?.commands.find(
-        (cmd) => cmd.name() === 'add-component',
-      );
+      const builderCmd = program.commands.find((cmd) => cmd.name() === 'builder');
+      const addComponentCmd = builderCmd?.commands.find((cmd) => cmd.name() === 'add-component');
 
       expect(addComponentCmd?.name()).toBe('add-component');
     });
@@ -35,9 +31,7 @@ describe('riviere builder add-component', () => {
 
     it('returns GRAPH_NOT_FOUND when no graph exists', async () => {
       const program = createProgram();
-      await program.parseAsync(
-        buildAddComponentArgs({ extraArgs: ['--route', '/test'] }),
-      );
+      await program.parseAsync(buildAddComponentArgs({ extraArgs: ['--route', '/test'] }));
 
       const output = ctx.consoleOutput.join('\n');
       expect(output).toContain(CliErrorCode.GraphNotFound);
@@ -73,35 +67,33 @@ describe('riviere builder add-component', () => {
           extraArgs: ['--route', '/test'],
         }),
       );
-      expect(ctx.consoleOutput.join('\n')).toContain(
-        CliErrorCode.DomainNotFound,
-      );
+      expect(ctx.consoleOutput.join('\n')).toContain(CliErrorCode.DomainNotFound);
     });
 
     it.each([
       {
         type: 'UI',
-        expectedFlag: '--route' 
+        expectedFlag: '--route',
       },
       {
         type: 'API',
-        expectedFlag: '--api-type' 
+        expectedFlag: '--api-type',
       },
       {
         type: 'DomainOp',
-        expectedFlag: '--operation-name' 
+        expectedFlag: '--operation-name',
       },
       {
         type: 'Event',
-        expectedFlag: '--event-name' 
+        expectedFlag: '--event-name',
       },
       {
         type: 'EventHandler',
-        expectedFlag: '--subscribed-events' 
+        expectedFlag: '--subscribed-events',
       },
       {
         type: 'Custom',
-        expectedFlag: '--custom-type' 
+        expectedFlag: '--custom-type',
       },
     ])(
       'returns VALIDATION_ERROR when $type missing $expectedFlag',
@@ -110,10 +102,12 @@ describe('riviere builder add-component', () => {
       }) => {
         await createGraphWithDomain(ctx.testDir, 'orders');
         const program = createProgram();
-        await program.parseAsync(buildAddComponentArgs({
-          type,
-          name: 'Test' 
-        }));
+        await program.parseAsync(
+          buildAddComponentArgs({
+            type,
+            name: 'Test',
+          }),
+        );
         const output = ctx.consoleOutput.join('\n');
         expect(output).toContain(CliErrorCode.ValidationError);
         expect(output).toContain(expectedFlag);
@@ -130,7 +124,7 @@ describe('riviere builder add-component', () => {
         expectedId: 'orders:checkout:ui:checkout-page',
         expectedFields: {
           type: 'UI',
-          route: '/checkout' 
+          route: '/checkout',
         },
       },
       {
@@ -138,14 +132,7 @@ describe('riviere builder add-component', () => {
         name: 'Create Order',
         module: 'api',
         filePath: 'src/api/orders.ts',
-        extraArgs: [
-          '--api-type',
-          'REST',
-          '--http-method',
-          'POST',
-          '--http-path',
-          '/api/orders',
-        ],
+        extraArgs: ['--api-type', 'REST', '--http-method', 'POST', '--http-path', '/api/orders'],
         expectedId: 'orders:api:api:create-order',
         expectedFields: {
           type: 'API',
@@ -163,7 +150,7 @@ describe('riviere builder add-component', () => {
         expectedId: 'orders:api:api:list-orders',
         expectedFields: {
           type: 'API',
-          apiType: 'REST' 
+          apiType: 'REST',
         },
       },
       {
@@ -197,7 +184,7 @@ describe('riviere builder add-component', () => {
         expectedId: 'orders:domain:domainop:order-archive',
         expectedFields: {
           type: 'DomainOp',
-          operationName: 'archive' 
+          operationName: 'archive',
         },
       },
       {
@@ -209,7 +196,7 @@ describe('riviere builder add-component', () => {
         expectedId: 'orders:events:event:order-placed',
         expectedFields: {
           type: 'Event',
-          eventName: 'OrderPlaced' 
+          eventName: 'OrderPlaced',
         },
       },
       {
@@ -217,12 +204,7 @@ describe('riviere builder add-component', () => {
         name: 'Payment Received',
         module: 'events',
         filePath: 'src/events/payment-received.ts',
-        extraArgs: [
-          '--event-name',
-          'PaymentReceived',
-          '--event-schema',
-          '{ orderId: string }',
-        ],
+        extraArgs: ['--event-name', 'PaymentReceived', '--event-schema', '{ orderId: string }'],
         expectedId: 'orders:events:event:payment-received',
         expectedFields: {
           type: 'Event',
@@ -245,13 +227,7 @@ describe('riviere builder add-component', () => {
     ])(
       'creates $type component',
       async ({
-        type,
-        name,
-        module,
-        filePath,
-        extraArgs,
-        expectedId,
-        expectedFields,
+        type, name, module, filePath, extraArgs, expectedId, expectedFields 
       }) => {
         await createGraphWithDomain(ctx.testDir, 'orders');
 
@@ -262,7 +238,7 @@ describe('riviere builder add-component', () => {
             name,
             module,
             filePath,
-            extraArgs 
+            extraArgs,
           }),
         );
 
@@ -271,10 +247,12 @@ describe('riviere builder add-component', () => {
         const graph: unknown = JSON.parse(content);
 
         expect(graph).toMatchObject({
-          components: [{
-            id: expectedId,
-            ...expectedFields 
-          }],
+          components: [
+            {
+              id: expectedId,
+              ...expectedFields,
+            },
+          ],
         });
       },
     );
@@ -344,18 +322,13 @@ describe('riviere builder add-component', () => {
           name: 'Checkout',
           module: 'web',
           filePath: 'src/checkout.tsx',
-          extraArgs: [
-            '--route',
-            '/checkout',
-            '--description',
-            'Main checkout page',
-          ],
+          extraArgs: ['--route', '/checkout', '--description', 'Main checkout page'],
         }),
       );
       const graphPath = join(ctx.testDir, '.riviere', 'graph.json');
       const content = await readFile(graphPath, 'utf-8');
       const graph: unknown = JSON.parse(content);
-      expect(graph).toMatchObject({components: [{ description: 'Main checkout page' }],});
+      expect(graph).toMatchObject({ components: [{ description: 'Main checkout page' }] });
     });
 
     it('includes lineNumber in sourceLocation when --line-number provided', async () => {
@@ -372,7 +345,7 @@ describe('riviere builder add-component', () => {
       const graphPath = join(ctx.testDir, '.riviere', 'graph.json');
       const content = await readFile(graphPath, 'utf-8');
       const graph: unknown = JSON.parse(content);
-      expect(graph).toMatchObject({components: [{ sourceLocation: { lineNumber: 42 } }],});
+      expect(graph).toMatchObject({ components: [{ sourceLocation: { lineNumber: 42 } }] });
     });
   });
 

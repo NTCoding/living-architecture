@@ -1,15 +1,12 @@
 import type {
-  RiviereGraph,
-  CustomComponent,
+  RiviereGraph, CustomComponent 
 } from '@living-architecture/riviere-schema';
 import type {
-  ComponentId,
-  ValidationError,
-  ValidationResult,
+  ComponentId, ValidationError, ValidationResult 
 } from './domain-types';
 import { parseComponentId } from './domain-types';
 
-function isCustomComponent(component: {type: string;}): component is CustomComponent {
+function isCustomComponent(component: { type: string }): component is CustomComponent {
   return component.type === 'Custom';
 }
 

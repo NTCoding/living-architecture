@@ -34,9 +34,7 @@ describe('errors', () => {
     it('includes custom type name and defined types in message', () => {
       const error = new CustomTypeNotFoundError('Queue', ['Worker', 'Cache']);
 
-      expect(error.message).toBe(
-        "Custom type 'Queue' not defined. Defined types: Worker, Cache",
-      );
+      expect(error.message).toBe("Custom type 'Queue' not defined. Defined types: Worker, Cache");
       expect(error.customTypeName).toBe('Queue');
       expect(error.definedTypes).toEqual(['Worker', 'Cache']);
       expect(error.name).toBe('CustomTypeNotFoundError');
@@ -53,9 +51,7 @@ describe('errors', () => {
 
   describe('DuplicateComponentError', () => {
     it('includes component ID in message', () => {
-      const error = new DuplicateComponentError(
-        'orders:checkout:api:create-order',
-      );
+      const error = new DuplicateComponentError('orders:checkout:api:create-order');
 
       expect(error.message).toBe(
         "Component with ID 'orders:checkout:api:create-order' already exists",
@@ -67,26 +63,19 @@ describe('errors', () => {
 
   describe('ComponentNotFoundError', () => {
     it('includes component ID and empty suggestions by default', () => {
-      const error = new ComponentNotFoundError(
-        'orders:checkout:api:create-ordr',
-      );
+      const error = new ComponentNotFoundError('orders:checkout:api:create-ordr');
 
-      expect(error.message).toBe(
-        "Source component 'orders:checkout:api:create-ordr' not found",
-      );
+      expect(error.message).toBe("Source component 'orders:checkout:api:create-ordr' not found");
       expect(error.componentId).toBe('orders:checkout:api:create-ordr');
       expect(error.suggestions).toEqual([]);
       expect(error.name).toBe('ComponentNotFoundError');
     });
 
     it('includes suggestions in message when provided', () => {
-      const error = new ComponentNotFoundError(
-        'orders:checkout:api:create-ordr',
-        [
-          'orders:checkout:api:create-order',
-          'orders:checkout:api:update-order',
-        ],
-      );
+      const error = new ComponentNotFoundError('orders:checkout:api:create-ordr', [
+        'orders:checkout:api:create-order',
+        'orders:checkout:api:update-order',
+      ]);
 
       expect(error.message).toBe(
         "Source component 'orders:checkout:api:create-ordr' not found. Did you mean: orders:checkout:api:create-order, orders:checkout:api:update-order?",

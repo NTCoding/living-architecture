@@ -11,9 +11,7 @@ interface EntryPointsOptions {
 
 export function createEntryPointsCommand(): Command {
   return new Command('entry-points')
-    .description(
-      'List entry points (APIs, UIs, EventHandlers with no incoming links)',
-    )
+    .description('List entry points (APIs, UIs, EventHandlers with no incoming links)')
     .addHelpText(
       'after',
       `

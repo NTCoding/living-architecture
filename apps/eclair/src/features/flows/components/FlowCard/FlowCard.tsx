@@ -1,26 +1,29 @@
-import { useNavigate } from 'react-router-dom'
-import type { RiviereGraph } from '@/types/riviere'
-import type { Flow } from '../../extractFlows'
-import { CodeLinkMenu } from '../CodeLinkMenu/CodeLinkMenu'
-import { FlowTrace } from '../FlowTrace/FlowTrace'
-import { NodeTypeBadge } from '../NodeTypeBadge/NodeTypeBadge'
+import { useNavigate } from 'react-router-dom';
+import type { RiviereGraph } from '@/types/riviere';
+import type { Flow } from '../../extractFlows';
+import { CodeLinkMenu } from '../CodeLinkMenu/CodeLinkMenu';
+import { FlowTrace } from '../FlowTrace/FlowTrace';
+import { NodeTypeBadge } from '../NodeTypeBadge/NodeTypeBadge';
 
 interface FlowCardProps {
-  readonly flow: Flow
-  readonly graph: RiviereGraph
-  readonly expanded: boolean
-  readonly onToggle: () => void
+  readonly flow: Flow;
+  readonly graph: RiviereGraph;
+  readonly expanded: boolean;
+  readonly onToggle: () => void;
 }
 
 export function FlowCard({
-  flow, graph, expanded, onToggle 
+  flow,
+  graph,
+  expanded,
+  onToggle,
 }: Readonly<FlowCardProps>): React.ReactElement {
-  const navigate = useNavigate()
-  const { entryPoint } = flow
+  const navigate = useNavigate();
+  const { entryPoint } = flow;
 
   function handleViewOnGraph(e: React.MouseEvent): void {
-    e.stopPropagation()
-    navigate(`/full-graph?node=${entryPoint.id}`)
+    e.stopPropagation();
+    navigate(`/full-graph?node=${entryPoint.id}`);
   }
 
   return (
@@ -30,8 +33,8 @@ export function FlowCard({
         onClick={onToggle}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault()
-            onToggle()
+            e.preventDefault();
+            onToggle();
           }
         }}
         role="button"
@@ -40,7 +43,9 @@ export function FlowCard({
       >
         <div data-testid="flow-item-left" className="flow-item-left">
           <NodeTypeBadge type={entryPoint.type} />
-          <span className="flow-item-title" title={entryPoint.name}>{entryPoint.name}</span>
+          <span className="flow-item-title" title={entryPoint.name}>
+            {entryPoint.name}
+          </span>
           <span className="flow-item-domain">{entryPoint.domain}</span>
         </div>
         <div data-testid="flow-item-actions" className="flow-item-actions">
@@ -69,5 +74,5 @@ export function FlowCard({
       </div>
       {expanded && <FlowTrace steps={flow.steps} graph={graph} />}
     </div>
-  )
+  );
 }

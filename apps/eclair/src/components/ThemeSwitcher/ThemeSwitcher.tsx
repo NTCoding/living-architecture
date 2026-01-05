@@ -1,19 +1,15 @@
-import { useTheme } from '@/contexts/ThemeContext'
+import { useTheme } from '@/contexts/ThemeContext';
 import {
   THEMES, THEME_LABELS 
-} from '@/types/theme'
+} from '@/types/theme';
 
 export function ThemeSwitcher(): React.ReactElement {
   const {
     theme, setTheme 
-  } = useTheme()
+  } = useTheme();
 
   return (
-    <div
-      className="flex gap-1.5"
-      role="tablist"
-      aria-label="Theme selection"
-    >
+    <div className="flex gap-1.5" role="tablist" aria-label="Theme selection">
       {THEMES.map((themeOption) => (
         <button
           key={themeOption}
@@ -23,7 +19,8 @@ export function ThemeSwitcher(): React.ReactElement {
           className={`
             flex-1 px-2 py-1.5 rounded-[calc(var(--radius)/2)] text-xs font-semibold
             border transition-all duration-200
-            ${theme === themeOption
+            ${
+        theme === themeOption
           ? 'bg-[var(--bg-secondary)] text-[var(--primary)] border-[var(--primary)]'
           : 'bg-[var(--bg-tertiary)] text-[var(--text-secondary)] border-[var(--border-color)] hover:text-[var(--text-primary)] hover:border-[var(--primary)]'
         }
@@ -33,5 +30,5 @@ export function ThemeSwitcher(): React.ReactElement {
         </button>
       ))}
     </div>
-  )
+  );
 }

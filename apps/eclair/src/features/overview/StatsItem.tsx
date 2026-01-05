@@ -5,9 +5,7 @@ interface StatsItemProps {
 }
 
 export function StatsItem({
-  icon,
-  label,
-  value,
+  icon, label, value 
 }: Readonly<StatsItemProps>): React.ReactElement {
   return (
     <div className="flex items-center gap-3 border-r border-[var(--border-color)] pr-6 last:border-r-0 last:pr-0 md:border-r md:pr-6">

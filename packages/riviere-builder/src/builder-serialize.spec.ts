@@ -4,8 +4,7 @@ import {
 import type { RiviereGraph } from '@living-architecture/riviere-schema';
 import { RiviereBuilder } from './builder';
 import {
-  createValidOptions,
-  createSourceLocation,
+  createValidOptions, createSourceLocation 
 } from './builder-test-fixtures';
 
 describe('RiviereBuilder', () => {
@@ -47,7 +46,7 @@ describe('RiviereBuilder', () => {
         requiredProperties: {
           entityName: {
             type: 'string',
-            description: 'Entity managed' 
+            description: 'Entity managed',
           },
         },
       });
@@ -77,7 +76,7 @@ describe('RiviereBuilder', () => {
       builder.link({
         from: source.id,
         to: target.id,
-        type: 'sync' 
+        type: 'sync',
       });
 
       const serialized = builder.serialize();
@@ -98,7 +97,7 @@ describe('RiviereBuilder', () => {
       });
       builder.linkExternal({
         from: source.id,
-        target: { name: 'Stripe' } 
+        target: { name: 'Stripe' },
       });
 
       const serialized = builder.serialize();
@@ -118,10 +117,12 @@ describe('RiviereBuilder', () => {
       });
       builder.enrichComponent(op.id, {
         entity: 'Order',
-        stateChanges: [{
-          from: 'draft',
-          to: 'pending' 
-        }],
+        stateChanges: [
+          {
+            from: 'draft',
+            to: 'pending',
+          },
+        ],
         businessRules: ['Order must have at least one item'],
       });
 
@@ -203,7 +204,7 @@ describe('RiviereBuilder', () => {
         requiredProperties: {
           entityName: {
             type: 'string',
-            description: 'Entity managed' 
+            description: 'Entity managed',
           },
         },
       });
@@ -241,7 +242,7 @@ describe('RiviereBuilder', () => {
       original.link({
         from: api.id,
         to: useCase.id,
-        type: 'sync' 
+        type: 'sync',
       });
       const serialized = original.serialize();
 
@@ -255,7 +256,7 @@ describe('RiviereBuilder', () => {
       });
       resumed.link({
         from: useCase.id,
-        to: domainOp.id 
+        to: domainOp.id,
       });
 
       expect(resumed.stats().linkCount).toBe(2);
@@ -273,36 +274,34 @@ describe('RiviereBuilder', () => {
         links: [],
       };
 
-      expect(() => RiviereBuilder.resume(invalidGraph)).toThrow(
-        'Invalid graph: missing sources',
-      );
+      expect(() => RiviereBuilder.resume(invalidGraph)).toThrow('Invalid graph: missing sources');
     });
 
     it('throws clear error when graph metadata is missing sources', () => {
       const invalidGraph = {
         version: '1.0',
-        metadata: {domains: {},},
+        metadata: { domains: {} },
         components: [],
         links: [],
       };
 
-      expect(() => RiviereBuilder.resume(invalidGraph)).toThrow(
-        'Invalid graph: missing sources',
-      );
+      expect(() => RiviereBuilder.resume(invalidGraph)).toThrow('Invalid graph: missing sources');
     });
 
     it('normalizes graph without optional customTypes and externalLinks', () => {
       const minimalGraph: RiviereGraph = {
         version: '1.0',
         metadata: {
-          sources: [{
-            repository: 'test/repo',
-            commit: 'abc123' 
-          }],
+          sources: [
+            {
+              repository: 'test/repo',
+              commit: 'abc123',
+            },
+          ],
           domains: {
             orders: {
               description: 'Order domain',
-              systemType: 'domain' 
+              systemType: 'domain',
             },
           },
         },
@@ -337,10 +336,12 @@ describe('RiviereBuilder', () => {
       });
       original.enrichComponent(target.id, {
         entity: 'Order',
-        stateChanges: [{
-          from: 'draft',
-          to: 'pending' 
-        }],
+        stateChanges: [
+          {
+            from: 'draft',
+            to: 'pending',
+          },
+        ],
         businessRules: ['Order must have items'],
       });
       const firstSerialized = original.serialize();

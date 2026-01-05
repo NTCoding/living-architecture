@@ -2,17 +2,14 @@ import { Command } from 'commander';
 import { writeFile } from 'node:fs/promises';
 import type { ExternalTarget } from '@living-architecture/riviere-schema';
 import {
-  getDefaultGraphPathDescription,
-  resolveGraphPath,
+  getDefaultGraphPathDescription, resolveGraphPath 
 } from '../../graph-path';
 import { fileExists } from '../../file-existence';
 import { formatSuccess } from '../../output';
 import { isValidLinkType } from '../../component-types';
 import { validateLinkType } from '../../validation';
 import {
-  loadGraphBuilder,
-  reportGraphNotFound,
-  tryBuilderOperation,
+  loadGraphBuilder, reportGraphNotFound, tryBuilderOperation 
 } from './link-infrastructure';
 
 interface ExternalLinkInput {
@@ -93,9 +90,7 @@ Examples:
         externalLinkInput.type = options.linkType;
       }
 
-      const externalLink = tryBuilderOperation(() =>
-        builder.linkExternal(externalLinkInput),
-      );
+      const externalLink = tryBuilderOperation(() => builder.linkExternal(externalLinkInput));
       if (externalLink === undefined) {
         return;
       }

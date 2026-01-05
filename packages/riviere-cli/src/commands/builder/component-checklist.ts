@@ -35,9 +35,7 @@ Examples:
             formatError(
               CliErrorCode.InvalidComponentType,
               `Invalid component type: ${options.type}`,
-              [
-                'Valid types: UI, API, UseCase, DomainOp, Event, EventHandler, Custom',
-              ],
+              ['Valid types: UI, API, UseCase, DomainOp, Event, EventHandler, Custom'],
             ),
           ),
         );

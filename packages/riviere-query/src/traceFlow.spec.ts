@@ -1,20 +1,17 @@
 import {
-  RiviereQuery,
-  parseComponentId,
-  ComponentNotFoundError,
+  RiviereQuery, parseComponentId, ComponentNotFoundError 
 } from './RiviereQuery';
 import {
-  createMinimalValidGraph,
-  createAPIComponent,
+  createMinimalValidGraph, createAPIComponent 
 } from './riviere-graph-fixtures';
 
 describe('RiviereQuery.traceFlow()', () => {
   it('throws ComponentNotFoundError when startComponentId does not exist', () => {
     const query = new RiviereQuery(createMinimalValidGraph());
 
-    expect(() =>
-      query.traceFlow(parseComponentId('nonexistent:mod:api:foo')),
-    ).toThrow(ComponentNotFoundError);
+    expect(() => query.traceFlow(parseComponentId('nonexistent:mod:api:foo'))).toThrow(
+      ComponentNotFoundError,
+    );
   });
 
   it('includes componentId in ComponentNotFoundError', () => {
@@ -65,9 +62,10 @@ describe('RiviereQuery.traceFlow()', () => {
 
     const result = query.traceFlow(parseComponentId('test:mod:ui:page'));
 
-    expect(
-      result.componentIds.slice().sort((a, b) => a.localeCompare(b)),
-    ).toEqual(['test:api:create', 'test:mod:ui:page']);
+    expect(result.componentIds.slice().sort((a, b) => a.localeCompare(b))).toEqual([
+      'test:api:create',
+      'test:mod:ui:page',
+    ]);
     expect(result.linkIds).toEqual(['test:mod:ui:page->test:api:create']);
   });
 
@@ -90,9 +88,10 @@ describe('RiviereQuery.traceFlow()', () => {
 
     const result = query.traceFlow(parseComponentId('test:api:create'));
 
-    expect(
-      result.componentIds.slice().sort((a, b) => a.localeCompare(b)),
-    ).toEqual(['test:api:create', 'test:mod:ui:page']);
+    expect(result.componentIds.slice().sort((a, b) => a.localeCompare(b))).toEqual([
+      'test:api:create',
+      'test:mod:ui:page',
+    ]);
     expect(result.linkIds).toEqual(['test:mod:ui:page->test:api:create']);
   });
 
@@ -124,9 +123,11 @@ describe('RiviereQuery.traceFlow()', () => {
 
     const result = query.traceFlow(parseComponentId('test:mod:ui:page'));
 
-    expect(
-      result.componentIds.slice().sort((a, b) => a.localeCompare(b)),
-    ).toEqual(['test:api:a', 'test:api:b', 'test:mod:ui:page']);
+    expect(result.componentIds.slice().sort((a, b) => a.localeCompare(b))).toEqual([
+      'test:api:a',
+      'test:api:b',
+      'test:mod:ui:page',
+    ]);
     expect(result.linkIds.slice().sort((a, b) => a.localeCompare(b))).toEqual([
       'test:mod:ui:page->test:api:a',
       'test:mod:ui:page->test:api:b',
@@ -156,9 +157,10 @@ describe('RiviereQuery.traceFlow()', () => {
 
     const result = query.traceFlow(parseComponentId('test:mod:ui:page'));
 
-    expect(
-      result.componentIds.slice().sort((a, b) => a.localeCompare(b)),
-    ).toEqual(['test:api:a', 'test:mod:ui:page']);
+    expect(result.componentIds.slice().sort((a, b) => a.localeCompare(b))).toEqual([
+      'test:api:a',
+      'test:mod:ui:page',
+    ]);
     expect(result.linkIds.slice().sort((a, b) => a.localeCompare(b))).toEqual([
       'test:api:a->test:mod:ui:page',
       'test:mod:ui:page->test:api:a',
@@ -202,9 +204,10 @@ describe('RiviereQuery.traceFlow()', () => {
 
     const result = query.traceFlow(parseComponentId('test:mod:ui:page'));
 
-    expect(
-      result.componentIds.slice().sort((a, b) => a.localeCompare(b)),
-    ).toEqual(['test:api:a', 'test:mod:ui:page']);
+    expect(result.componentIds.slice().sort((a, b) => a.localeCompare(b))).toEqual([
+      'test:api:a',
+      'test:mod:ui:page',
+    ]);
     expect(result.linkIds).toEqual(['test:mod:ui:page->test:api:a']);
   });
 
@@ -236,9 +239,11 @@ describe('RiviereQuery.traceFlow()', () => {
 
     const result = query.traceFlow(parseComponentId('test:api:b'));
 
-    expect(
-      result.componentIds.slice().sort((a, b) => a.localeCompare(b)),
-    ).toEqual(['test:api:b', 'test:api:c', 'test:mod:ui:page']);
+    expect(result.componentIds.slice().sort((a, b) => a.localeCompare(b))).toEqual([
+      'test:api:b',
+      'test:api:c',
+      'test:mod:ui:page',
+    ]);
     expect(result.linkIds.slice().sort((a, b) => a.localeCompare(b))).toEqual([
       'test:api:b->test:api:c',
       'test:mod:ui:page->test:api:b',
@@ -305,9 +310,12 @@ describe('RiviereQuery.traceFlow()', () => {
 
     const result = query.traceFlow(parseComponentId('test:api:b'));
 
-    expect(
-      result.componentIds.slice().sort((a, b) => a.localeCompare(b)),
-    ).toEqual(['test:api:b', 'test:api:c', 'test:api:d', 'test:mod:ui:page']);
+    expect(result.componentIds.slice().sort((a, b) => a.localeCompare(b))).toEqual([
+      'test:api:b',
+      'test:api:c',
+      'test:api:d',
+      'test:mod:ui:page',
+    ]);
     expect(result.linkIds.slice().sort((a, b) => a.localeCompare(b))).toEqual([
       'test:api:b->test:api:c',
       'test:api:c->test:api:d',

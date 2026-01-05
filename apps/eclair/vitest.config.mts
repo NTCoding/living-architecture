@@ -21,7 +21,7 @@ export default defineConfig(() => ({
       provider: 'v8' as const,
       reporter: ['text', 'lcov'],
       exclude: [
-        '**/riviereTestData.ts',
+        '**/riviereTestFixtures.ts',
         '**/ForceGraph/ForceGraph.tsx',
         '**/ForceGraph/GraphRenderingSetup.ts',
       ],
