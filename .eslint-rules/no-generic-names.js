@@ -24,7 +24,7 @@ module.exports = {
 
     const forbiddenWords = Object.keys(forbiddenWordsWithSuggestions)
     const forbiddenPattern = new RegExp(
-      `(^|/|-)(${ forbiddenWords.join('|') })(-|[.]ts$|[.]tsx$|/|$)`,
+      `(^|/|-|[a-z])(${ forbiddenWords.join('|') })(-|[.]ts$|[.]tsx$|/|$)`,
       'i'
     )
 
