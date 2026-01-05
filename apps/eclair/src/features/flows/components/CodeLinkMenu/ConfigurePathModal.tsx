@@ -1,14 +1,14 @@
-import { useState } from 'react';
-import { createPortal } from 'react-dom';
+import { useState } from 'react'
+import { createPortal } from 'react-dom'
 
-type ConfigureMode = 'vscode' | 'github' | 'github-full';
+type ConfigureMode = 'vscode' | 'github' | 'github-full'
 
 interface ConfigurePathModalProps {
-  mode: ConfigureMode;
-  isOpen: boolean;
-  onClose: () => void;
-  onSave: (value: string) => void;
-  currentValue: string | null;
+  mode: ConfigureMode
+  isOpen: boolean
+  onClose: () => void
+  onSave: (value: string) => void
+  currentValue: string | null
 }
 
 const CONFIG = {
@@ -27,20 +27,20 @@ const CONFIG = {
     placeholder: 'https://github.com/myorg/myrepo',
     description: 'Enter the full GitHub repository URL (no repository in graph data)',
   },
-};
+}
 
 interface ModalContentProps {
-  readonly mode: ConfigureMode;
-  readonly onClose: () => void;
-  readonly onSave: (value: string) => void;
-  readonly currentValue: string | null;
+  readonly mode: ConfigureMode
+  readonly onClose: () => void
+  readonly onSave: (value: string) => void
+  readonly currentValue: string | null
 }
 
 function deriveInitialInputValue(currentValue: string | null): string {
   if (currentValue === null) {
-    return '';
+    return ''
   }
-  return currentValue;
+  return currentValue
 }
 
 function ModalContent({
@@ -49,11 +49,11 @@ function ModalContent({
   onSave,
   currentValue,
 }: Readonly<ModalContentProps>): React.ReactElement {
-  const [inputValue, setInputValue] = useState(() => deriveInitialInputValue(currentValue));
-  const config = CONFIG[mode];
+  const [inputValue, setInputValue] = useState(() => deriveInitialInputValue(currentValue))
+  const config = CONFIG[mode]
 
   function handleSave(): void {
-    onSave(inputValue);
+    onSave(inputValue)
   }
 
   return (
@@ -61,7 +61,7 @@ function ModalContent({
       className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/50"
       onClick={onClose}
       onKeyDown={(e) => {
-        if (e.key === 'Escape') onClose();
+        if (e.key === 'Escape') onClose()
       }}
       role="presentation"
     >
@@ -105,7 +105,7 @@ function ModalContent({
         </div>
       </div>
     </div>
-  );
+  )
 }
 
 export function ConfigurePathModal({
@@ -116,7 +116,7 @@ export function ConfigurePathModal({
   currentValue,
 }: ConfigurePathModalProps): React.ReactElement | null {
   if (!isOpen) {
-    return null;
+    return null
   }
 
   return createPortal(
@@ -128,5 +128,5 @@ export function ConfigurePathModal({
       currentValue={currentValue}
     />,
     document.body,
-  );
+  )
 }

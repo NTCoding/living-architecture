@@ -1,40 +1,40 @@
 import {
   useMemo, useState, useCallback 
-} from 'react';
+} from 'react'
 import {
   useNavigate, useSearchParams 
-} from 'react-router-dom';
-import type { RiviereGraph } from '@/types/riviere';
-import { EventAccordion } from '@/features/domains/components/EventAccordion/EventAccordion';
-import type { DomainEvent } from '@/features/domains/extractDomainDetails';
+} from 'react-router-dom'
+import type { RiviereGraph } from '@/types/riviere'
+import { EventAccordion } from '@/features/domains/components/EventAccordion/EventAccordion'
+import type { DomainEvent } from '@/features/domains/extractDomainDetails'
 
-interface EventsPageProps {readonly graph: RiviereGraph;}
+interface EventsPageProps {readonly graph: RiviereGraph}
 
-interface PublishedEvent extends DomainEvent {domain: string;}
+interface PublishedEvent extends DomainEvent {domain: string}
 
 function handlerSubscribesToEvent(
   subscribedEvents: string[] | undefined,
   eventName: string,
   eventId: string,
 ): boolean {
-  if (subscribedEvents === undefined) return false;
-  return subscribedEvents.some((name) => name === eventName || eventId.includes(name));
+  if (subscribedEvents === undefined) return false
+  return subscribedEvents.some((name) => name === eventName || eventId.includes(name))
 }
 
 export function EventsPage({ graph }: Readonly<EventsPageProps>): React.ReactElement {
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeDomains, setActiveDomains] = useState<Set<string>>(new Set());
+  const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const [searchQuery, setSearchQuery] = useState('')
+  const [activeDomains, setActiveDomains] = useState<Set<string>>(new Set())
 
   const handleViewOnGraph = useCallback(
     (eventId: string) => {
-      const demo = searchParams.get('demo');
-      const demoParam = demo === 'true' ? '&demo=true' : '';
-      navigate(`/full-graph?node=${eventId}${demoParam}`);
+      const demo = searchParams.get('demo')
+      const demoParam = demo === 'true' ? '&demo=true' : ''
+      navigate(`/full-graph?node=${eventId}${demoParam}`)
     },
     [navigate, searchParams],
-  );
+  )
 
   const handleViewHandlerOnGraph = useCallback(
     (handler: {
@@ -46,30 +46,30 @@ export function EventsPage({ graph }: Readonly<EventsPageProps>): React.ReactEle
           node.type === 'EventHandler' &&
           node.domain === handler.domain &&
           node.name === handler.handlerName,
-      );
+      )
       if (handlerNode) {
-        const demo = searchParams.get('demo');
-        const demoParam = demo === 'true' ? '&demo=true' : '';
-        navigate(`/full-graph?node=${handlerNode.id}${demoParam}`);
+        const demo = searchParams.get('demo')
+        const demoParam = demo === 'true' ? '&demo=true' : ''
+        navigate(`/full-graph?node=${handlerNode.id}${demoParam}`)
       }
     },
     [graph.components, navigate, searchParams],
-  );
+  )
 
   const {
     publishedEvents, domains 
   } = useMemo((): {
-    publishedEvents: PublishedEvent[];
-    domains: string[];
+    publishedEvents: PublishedEvent[]
+    domains: string[]
   } => {
-    const published: PublishedEvent[] = [];
-    const domainSet = new Set<string>();
+    const published: PublishedEvent[] = []
+    const domainSet = new Set<string>()
 
-    const eventNodes = graph.components.filter((node) => node.type === 'Event');
-    const eventHandlerNodes = graph.components.filter((node) => node.type === 'EventHandler');
+    const eventNodes = graph.components.filter((node) => node.type === 'Event')
+    const eventHandlerNodes = graph.components.filter((node) => node.type === 'EventHandler')
 
     eventNodes.forEach((eventNode) => {
-      domainSet.add(eventNode.domain);
+      domainSet.add(eventNode.domain)
 
       const eventHandlers = eventHandlerNodes
         .filter((handler) =>
@@ -78,7 +78,7 @@ export function EventsPage({ graph }: Readonly<EventsPageProps>): React.ReactEle
         .map((h) => ({
           domain: h.domain,
           handlerName: h.name,
-        }));
+        }))
 
       published.push({
         id: eventNode.id,
@@ -87,45 +87,45 @@ export function EventsPage({ graph }: Readonly<EventsPageProps>): React.ReactEle
         sourceLocation: eventNode.sourceLocation,
         handlers: eventHandlers,
         domain: eventNode.domain,
-      });
-    });
+      })
+    })
 
     return {
       publishedEvents: [...published].sort((a: PublishedEvent, b: PublishedEvent) => {
-        const domainCompare = a.domain.localeCompare(b.domain);
-        if (domainCompare !== 0) return domainCompare;
-        return a.eventName.localeCompare(b.eventName);
+        const domainCompare = a.domain.localeCompare(b.domain)
+        if (domainCompare !== 0) return domainCompare
+        return a.eventName.localeCompare(b.eventName)
       }),
       domains: Array.from(domainSet).sort((a: string, b: string) => a.localeCompare(b)),
-    };
-  }, [graph]);
+    }
+  }, [graph])
 
   const filteredPublished = useMemo((): PublishedEvent[] => {
     return publishedEvents.filter((event) => {
       const matchesSearch =
-        searchQuery === '' || event.eventName.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesDomain = activeDomains.size === 0 || activeDomains.has(event.domain);
-      return matchesSearch && matchesDomain;
-    });
-  }, [publishedEvents, searchQuery, activeDomains]);
+        searchQuery === '' || event.eventName.toLowerCase().includes(searchQuery.toLowerCase())
+      const matchesDomain = activeDomains.size === 0 || activeDomains.has(event.domain)
+      return matchesSearch && matchesDomain
+    })
+  }, [publishedEvents, searchQuery, activeDomains])
 
-  const totalEvents = publishedEvents.length;
-  const eventNodeIds = new Set(graph.components.filter((n) => n.type === 'Event').map((n) => n.id));
+  const totalEvents = publishedEvents.length
+  const eventNodeIds = new Set(graph.components.filter((n) => n.type === 'Event').map((n) => n.id))
   const uniquePublishers = new Set(
     graph.links.filter((edge) => eventNodeIds.has(edge.target)).map((edge) => edge.source),
-  ).size;
+  ).size
 
   const toggleDomain = (domain: string): void => {
     setActiveDomains((prev) => {
-      const next = new Set(prev);
+      const next = new Set(prev)
       if (next.has(domain)) {
-        next.delete(domain);
+        next.delete(domain)
       } else {
-        next.add(domain);
+        next.add(domain)
       }
-      return next;
-    });
-  };
+      return next
+    })
+  }
 
   return (
     <div data-testid="events-page" className="space-y-6">
@@ -207,5 +207,5 @@ export function EventsPage({ graph }: Readonly<EventsPageProps>): React.ReactEle
         )}
       </div>
     </div>
-  );
+  )
 }

@@ -1,19 +1,19 @@
 import {
   describe, it, expect 
-} from 'vitest';
-import { extractDomainDetails } from './extractDomainDetails';
+} from 'vitest'
+import { extractDomainDetails } from './extractDomainDetails'
 import {
   parseNode,
   parseDomainMetadata,
   parseDomainKey,
   type RawNode,
-} from '@/lib/riviereTestFixtures';
-import type { RiviereGraph } from '@/types/riviere';
+} from '@/lib/riviereTestFixtures'
+import type { RiviereGraph } from '@/types/riviere'
 
 const testSourceLocation = {
   repository: 'test-repo',
   filePath: 'src/test.ts',
-};
+}
 
 function createMinimalGraph(overrides: Partial<RiviereGraph> = {}): RiviereGraph {
   return {
@@ -25,11 +25,11 @@ function createMinimalGraph(overrides: Partial<RiviereGraph> = {}): RiviereGraph
     components: [],
     links: [],
     ...overrides,
-  };
+  }
 }
 
 function createNode(overrides: Partial<RawNode> = {}): ReturnType<typeof parseNode> {
-  const nodeType = overrides.type ?? 'DomainOp';
+  const nodeType = overrides.type ?? 'DomainOp'
   const base: RawNode = {
     sourceLocation: testSourceLocation,
     id: 'node-1',
@@ -38,11 +38,11 @@ function createNode(overrides: Partial<RawNode> = {}): ReturnType<typeof parseNo
     domain: 'test-domain',
     module: 'test-module',
     operationName: 'TestDomainOp',
-  };
+  }
   return parseNode({
     ...base,
     ...overrides,
-  });
+  })
 }
 
 describe('extractDomainDetails - entity state machine', () => {
@@ -100,11 +100,11 @@ describe('extractDomainDetails - entity state machine', () => {
           ],
         }),
       ],
-    });
+    })
 
-    const result = extractDomainDetails(graph, parseDomainKey('order-domain'));
-    const orderEntity = result?.entities.find((e) => e.name === 'Order');
+    const result = extractDomainDetails(graph, parseDomainKey('order-domain'))
+    const orderEntity = result?.entities.find((e) => e.name === 'Order')
 
-    expect(orderEntity?.states).toEqual(['Draft', 'Placed', 'Confirmed', 'Shipped']);
-  });
-});
+    expect(orderEntity?.states).toEqual(['Draft', 'Placed', 'Confirmed', 'Shipped'])
+  })
+})

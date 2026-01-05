@@ -1,17 +1,17 @@
 import type {
   Node, NodeType 
-} from '@/types/riviere';
-import { entryPointSchema } from '@/types/riviere';
-import type { DomainNode } from './extractDomainDetails';
+} from '@/types/riviere'
+import { entryPointSchema } from '@/types/riviere'
+import type { DomainNode } from './extractDomainDetails'
 
 export interface NodeBreakdown {
-  UI: number;
-  API: number;
-  UseCase: number;
-  DomainOp: number;
-  Event: number;
-  EventHandler: number;
-  Custom: number;
+  UI: number
+  API: number
+  UseCase: number
+  DomainOp: number
+  Event: number
+  EventHandler: number
+  Custom: number
 }
 
 const NODE_TYPE_PRIORITY: Record<NodeType, number> = {
@@ -22,7 +22,7 @@ const NODE_TYPE_PRIORITY: Record<NodeType, number> = {
   Event: 5,
   EventHandler: 6,
   Custom: 7,
-};
+}
 
 export function countNodesByType(nodes: Node[]): NodeBreakdown {
   const breakdown: NodeBreakdown = {
@@ -33,18 +33,18 @@ export function countNodesByType(nodes: Node[]): NodeBreakdown {
     Event: 0,
     EventHandler: 0,
     Custom: 0,
-  };
-  for (const node of nodes) {
-    breakdown[node.type]++;
   }
-  return breakdown;
+  for (const node of nodes) {
+    breakdown[node.type]++
+  }
+  return breakdown
 }
 
 function formatLocation(filePath: string, lineNumber: number | undefined): string {
   if (lineNumber !== undefined) {
-    return `${filePath}:${lineNumber}`;
+    return `${filePath}:${lineNumber}`
   }
-  return filePath;
+  return filePath
 }
 
 export function formatDomainNodes(nodes: Node[]): DomainNode[] {
@@ -56,17 +56,17 @@ export function formatDomainNodes(nodes: Node[]): DomainNode[] {
       location: formatLocation(node.sourceLocation.filePath, node.sourceLocation.lineNumber),
       sourceLocation: node.sourceLocation,
     }))
-    .sort((a, b) => NODE_TYPE_PRIORITY[a.type] - NODE_TYPE_PRIORITY[b.type]);
+    .sort((a, b) => NODE_TYPE_PRIORITY[a.type] - NODE_TYPE_PRIORITY[b.type])
 }
 
 export function extractEntryPoints(nodes: Node[]): ReturnType<typeof entryPointSchema.parse>[] {
-  const entryPoints: ReturnType<typeof entryPointSchema.parse>[] = [];
+  const entryPoints: ReturnType<typeof entryPointSchema.parse>[] = []
   for (const node of nodes) {
     if (node.type === 'UI') {
-      entryPoints.push(entryPointSchema.parse(node.route));
+      entryPoints.push(entryPointSchema.parse(node.route))
     } else if (node.type === 'API' && node.path !== undefined) {
-      entryPoints.push(entryPointSchema.parse(node.path));
+      entryPoints.push(entryPointSchema.parse(node.path))
     }
   }
-  return entryPoints;
+  return entryPoints
 }

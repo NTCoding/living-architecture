@@ -1,9 +1,9 @@
 import {
   describe, it, expect 
-} from 'vitest';
-import { render } from '@testing-library/react';
-import { EdgeLine } from './EdgeLine';
-import type { DomainPosition } from './DomainContextGraph';
+} from 'vitest'
+import { render } from '@testing-library/react'
+import { EdgeLine } from './EdgeLine'
+import type { DomainPosition } from './DomainContextGraph'
 
 describe('EdgeLine', () => {
   const from: DomainPosition = {
@@ -11,13 +11,13 @@ describe('EdgeLine', () => {
     x: 100,
     y: 100,
     isCurrent: true,
-  };
+  }
   const to: DomainPosition = {
     id: 'inventory',
     x: 200,
     y: 200,
     isCurrent: false,
-  };
+  }
 
   it('renders SVG group element', () => {
     const { container } = render(
@@ -31,11 +31,11 @@ describe('EdgeLine', () => {
           direction="outgoing"
         />
       </svg>,
-    );
+    )
 
-    const group = container.querySelector('[data-testid="test-edge"]');
-    expect(group).toBeInTheDocument();
-  });
+    const group = container.querySelector('[data-testid="test-edge"]')
+    expect(group).toBeInTheDocument()
+  })
 
   it('returns empty group when positions are identical', () => {
     const same: DomainPosition = {
@@ -43,7 +43,7 @@ describe('EdgeLine', () => {
       x: 100,
       y: 100,
       isCurrent: true,
-    };
+    }
 
     const { container } = render(
       <svg>
@@ -56,12 +56,12 @@ describe('EdgeLine', () => {
           direction="outgoing"
         />
       </svg>,
-    );
+    )
 
-    const group = container.querySelector('[data-testid="same-edge"]');
-    expect(group).toBeInTheDocument();
-    expect(group?.querySelector('line')).not.toBeInTheDocument();
-  });
+    const group = container.querySelector('[data-testid="same-edge"]')
+    expect(group).toBeInTheDocument()
+    expect(group?.querySelector('line')).not.toBeInTheDocument()
+  })
 
   it('renders line with correct direction attribute', () => {
     const { container } = render(
@@ -75,9 +75,9 @@ describe('EdgeLine', () => {
           direction="incoming"
         />
       </svg>,
-    );
+    )
 
-    const group = container.querySelector('[data-direction="incoming"]');
-    expect(group).toBeInTheDocument();
-  });
-});
+    const group = container.querySelector('[data-direction="incoming"]')
+    expect(group).toBeInTheDocument()
+  })
+})

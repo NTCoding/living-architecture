@@ -1,11 +1,11 @@
 import {
   describe, it, expect, vi 
-} from 'vitest';
+} from 'vitest'
 import {
   render, screen 
-} from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { ConfigurePathModal } from './ConfigurePathModal';
+} from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { ConfigurePathModal } from './ConfigurePathModal'
 
 describe('ConfigurePathModal', () => {
   describe('portal rendering', () => {
@@ -20,13 +20,13 @@ describe('ConfigurePathModal', () => {
             currentValue={null}
           />
         </div>,
-      );
+      )
 
-      const modalBackdrop = baseElement.querySelector('[role="presentation"]');
-      expect(modalBackdrop).not.toBeNull();
-      expect(modalBackdrop?.parentElement).toBe(document.body);
-    });
-  });
+      const modalBackdrop = baseElement.querySelector('[role="presentation"]')
+      expect(modalBackdrop).not.toBeNull()
+      expect(modalBackdrop?.parentElement).toBe(document.body)
+    })
+  })
   describe('vscode mode', () => {
     it('renders modal with VS Code title', () => {
       render(
@@ -37,10 +37,10 @@ describe('ConfigurePathModal', () => {
           onSave={() => {}}
           currentValue={null}
         />,
-      );
+      )
 
-      expect(screen.getByText('Configure VS Code Path')).toBeInTheDocument();
-    });
+      expect(screen.getByText('Configure VS Code Path')).toBeInTheDocument()
+    })
 
     it('shows placeholder for local path', () => {
       render(
@@ -51,10 +51,10 @@ describe('ConfigurePathModal', () => {
           onSave={() => {}}
           currentValue={null}
         />,
-      );
+      )
 
-      expect(screen.getByPlaceholderText('/Users/you/code/project')).toBeInTheDocument();
-    });
+      expect(screen.getByPlaceholderText('/Users/you/code/project')).toBeInTheDocument()
+    })
 
     it('pre-fills input with current value', () => {
       render(
@@ -65,11 +65,11 @@ describe('ConfigurePathModal', () => {
           onSave={() => {}}
           currentValue="/existing/path"
         />,
-      );
+      )
 
-      expect(screen.getByDisplayValue('/existing/path')).toBeInTheDocument();
-    });
-  });
+      expect(screen.getByDisplayValue('/existing/path')).toBeInTheDocument()
+    })
+  })
 
   describe('github mode', () => {
     it('renders modal with GitHub Organization title', () => {
@@ -81,10 +81,10 @@ describe('ConfigurePathModal', () => {
           onSave={() => {}}
           currentValue={null}
         />,
-      );
+      )
 
-      expect(screen.getByText('Configure GitHub Organization')).toBeInTheDocument();
-    });
+      expect(screen.getByText('Configure GitHub Organization')).toBeInTheDocument()
+    })
 
     it('shows placeholder for GitHub org URL', () => {
       render(
@@ -95,16 +95,16 @@ describe('ConfigurePathModal', () => {
           onSave={() => {}}
           currentValue={null}
         />,
-      );
+      )
 
-      expect(screen.getByPlaceholderText('https://github.com/myorg')).toBeInTheDocument();
-    });
-  });
+      expect(screen.getByPlaceholderText('https://github.com/myorg')).toBeInTheDocument()
+    })
+  })
 
   describe('interactions', () => {
     it('calls onClose when Cancel clicked', async () => {
-      const onClose = vi.fn();
-      const user = userEvent.setup();
+      const onClose = vi.fn()
+      const user = userEvent.setup()
 
       render(
         <ConfigurePathModal
@@ -114,16 +114,16 @@ describe('ConfigurePathModal', () => {
           onSave={() => {}}
           currentValue={null}
         />,
-      );
+      )
 
-      await user.click(screen.getByRole('button', { name: 'Cancel' }));
+      await user.click(screen.getByRole('button', { name: 'Cancel' }))
 
-      expect(onClose).toHaveBeenCalledTimes(1);
-    });
+      expect(onClose).toHaveBeenCalledTimes(1)
+    })
 
     it('calls onSave with input value when Save clicked', async () => {
-      const onSave = vi.fn();
-      const user = userEvent.setup();
+      const onSave = vi.fn()
+      const user = userEvent.setup()
 
       render(
         <ConfigurePathModal
@@ -133,13 +133,13 @@ describe('ConfigurePathModal', () => {
           onSave={onSave}
           currentValue={null}
         />,
-      );
+      )
 
-      await user.type(screen.getByRole('textbox'), '/my/new/path');
-      await user.click(screen.getByRole('button', { name: 'Save' }));
+      await user.type(screen.getByRole('textbox'), '/my/new/path')
+      await user.click(screen.getByRole('button', { name: 'Save' }))
 
-      expect(onSave).toHaveBeenCalledWith('/my/new/path');
-    });
+      expect(onSave).toHaveBeenCalledWith('/my/new/path')
+    })
 
     it('does not render when isOpen is false', () => {
       render(
@@ -150,10 +150,10 @@ describe('ConfigurePathModal', () => {
           onSave={() => {}}
           currentValue={null}
         />,
-      );
+      )
 
-      expect(screen.queryByText('Configure VS Code Path')).not.toBeInTheDocument();
-    });
+      expect(screen.queryByText('Configure VS Code Path')).not.toBeInTheDocument()
+    })
 
     it('disables Save button when input is empty', () => {
       render(
@@ -164,13 +164,13 @@ describe('ConfigurePathModal', () => {
           onSave={() => {}}
           currentValue={null}
         />,
-      );
+      )
 
-      expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
-    });
+      expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled()
+    })
 
     it('enables Save button when input has value', async () => {
-      const user = userEvent.setup();
+      const user = userEvent.setup()
 
       render(
         <ConfigurePathModal
@@ -180,11 +180,11 @@ describe('ConfigurePathModal', () => {
           onSave={() => {}}
           currentValue={null}
         />,
-      );
+      )
 
-      await user.type(screen.getByRole('textbox'), '/path');
+      await user.type(screen.getByRole('textbox'), '/path')
 
-      expect(screen.getByRole('button', { name: 'Save' })).toBeEnabled();
-    });
-  });
-});
+      expect(screen.getByRole('button', { name: 'Save' })).toBeEnabled()
+    })
+  })
+})

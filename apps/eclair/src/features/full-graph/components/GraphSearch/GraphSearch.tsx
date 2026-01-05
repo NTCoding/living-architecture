@@ -1,54 +1,54 @@
 import {
   useState, useCallback, useEffect, useRef 
-} from 'react';
+} from 'react'
 
 interface GraphSearchProps {
-  readonly onSearch: (query: string) => void;
-  readonly placeholder?: string | undefined;
+  readonly onSearch: (query: string) => void
+  readonly placeholder?: string | undefined
 }
 
 export function GraphSearch({
   onSearch,
   placeholder = 'Search nodes...',
 }: Readonly<GraphSearchProps>): React.ReactElement {
-  const [query, setQuery] = useState('');
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [query, setQuery] = useState('')
+  const inputRef = useRef<HTMLInputElement>(null)
 
   const handleChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
-      const value = event.target.value;
-      setQuery(value);
-      onSearch(value);
+      const value = event.target.value
+      setQuery(value)
+      onSearch(value)
     },
     [onSearch],
-  );
+  )
 
   const handleClear = useCallback(() => {
-    setQuery('');
-    onSearch('');
-    inputRef.current?.focus();
-  }, [onSearch]);
+    setQuery('')
+    onSearch('')
+    inputRef.current?.focus()
+  }, [onSearch])
 
   const handleKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLInputElement>) => {
       if (event.key === 'Escape') {
-        handleClear();
+        handleClear()
       }
     },
     [handleClear],
-  );
+  )
 
   useEffect(() => {
     const handleGlobalKeyDown = (event: KeyboardEvent) => {
       if (event.key === '/' && event.target === document.body) {
-        event.preventDefault();
-        inputRef.current?.focus();
+        event.preventDefault()
+        inputRef.current?.focus()
       }
-    };
+    }
 
-    document.addEventListener('keydown', handleGlobalKeyDown);
-    return () => document.removeEventListener('keydown', handleGlobalKeyDown);
-  }, []);
+    document.addEventListener('keydown', handleGlobalKeyDown)
+    return () => document.removeEventListener('keydown', handleGlobalKeyDown)
+  }, [])
 
   return (
     <div className="relative" data-testid="graph-search">
@@ -106,5 +106,5 @@ export function GraphSearch({
         </button>
       )}
     </div>
-  );
+  )
 }

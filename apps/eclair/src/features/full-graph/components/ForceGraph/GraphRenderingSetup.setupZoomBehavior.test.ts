@@ -1,57 +1,57 @@
 import {
   describe, it, expect, vi 
-} from 'vitest';
-import * as d3 from 'd3';
-import { setupZoomBehavior } from './GraphRenderingSetup';
+} from 'vitest'
+import * as d3 from 'd3'
+import { setupZoomBehavior } from './GraphRenderingSetup'
 
 describe('GraphRenderingSetup', () => {
   describe('setupZoomBehavior', () => {
     function createTestSvgAndGroup(): {
-      svg: d3.Selection<SVGSVGElement, unknown, null, undefined>;
-      g: d3.Selection<SVGGElement, unknown, null, undefined>;
+      svg: d3.Selection<SVGSVGElement, unknown, null, undefined>
+      g: d3.Selection<SVGGElement, unknown, null, undefined>
     } {
-      const svgElement = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-      document.body.appendChild(svgElement);
-      const svg = d3.select(svgElement);
-      const g = svg.append('g');
+      const svgElement = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+      document.body.appendChild(svgElement)
+      const svg = d3.select(svgElement)
+      const g = svg.append('g')
       return {
         svg,
         g,
-      };
+      }
     }
 
     it('accepts onInteractionStart option without throwing', () => {
       const {
         svg, g 
-      } = createTestSvgAndGroup();
-      const onInteractionStart = vi.fn();
+      } = createTestSvgAndGroup()
+      const onInteractionStart = vi.fn()
 
-      expect(() => setupZoomBehavior(svg, g, { onInteractionStart })).not.toThrow();
+      expect(() => setupZoomBehavior(svg, g, { onInteractionStart })).not.toThrow()
 
-      svg.node()?.remove();
-    });
+      svg.node()?.remove()
+    })
 
     it('works without options parameter', () => {
       const {
         svg, g 
-      } = createTestSvgAndGroup();
+      } = createTestSvgAndGroup()
 
-      expect(() => setupZoomBehavior(svg, g)).not.toThrow();
+      expect(() => setupZoomBehavior(svg, g)).not.toThrow()
 
-      svg.node()?.remove();
-    });
+      svg.node()?.remove()
+    })
 
     it('returns a zoom behavior object', () => {
       const {
         svg, g 
-      } = createTestSvgAndGroup();
+      } = createTestSvgAndGroup()
 
-      const zoom = setupZoomBehavior(svg, g);
+      const zoom = setupZoomBehavior(svg, g)
 
-      expect(zoom).toBeDefined();
-      expect(zoom.scaleExtent).toBeDefined();
+      expect(zoom).toBeDefined()
+      expect(zoom.scaleExtent).toBeDefined()
 
-      svg.node()?.remove();
-    });
-  });
-});
+      svg.node()?.remove()
+    })
+  })
+})

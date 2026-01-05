@@ -1,9 +1,9 @@
-import type { AggregatedConnection } from '../../extractDomainDetails';
+import type { AggregatedConnection } from '../../extractDomainDetails'
 
 interface ConnectionItemProps {
-  readonly connection: AggregatedConnection;
-  readonly currentDomainId: string;
-  readonly targetDomainId: string;
+  readonly connection: AggregatedConnection
+  readonly currentDomainId: string
+  readonly targetDomainId: string
 }
 
 export function ConnectionItem({
@@ -11,9 +11,9 @@ export function ConnectionItem({
   currentDomainId,
   targetDomainId,
 }: Readonly<ConnectionItemProps>): React.ReactElement {
-  const isOutgoing = connection.direction === 'outgoing';
-  const fromDomain = isOutgoing ? currentDomainId : targetDomainId;
-  const toDomain = isOutgoing ? targetDomainId : currentDomainId;
+  const isOutgoing = connection.direction === 'outgoing'
+  const fromDomain = isOutgoing ? currentDomainId : targetDomainId
+  const toDomain = isOutgoing ? targetDomainId : currentDomainId
 
   return (
     <div className="rounded-md bg-[var(--bg-tertiary)] p-3">
@@ -44,5 +44,5 @@ export function ConnectionItem({
         )}
       </div>
     </div>
-  );
+  )
 }

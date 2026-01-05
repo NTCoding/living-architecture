@@ -7,12 +7,12 @@ import type {
   UseCaseComponent,
   DomainOpComponent,
   SourceLocation,
-} from '@living-architecture/riviere-schema';
+} from '@living-architecture/riviere-schema'
 
 export const defaultSourceLocation: SourceLocation = {
   repository: 'test-repo',
   filePath: 'test.ts',
-};
+}
 
 export function createMinimalValidGraph(): RiviereGraph {
   return {
@@ -37,14 +37,14 @@ export function createMinimalValidGraph(): RiviereGraph {
       },
     ],
     links: [],
-  };
+  }
 }
 
 export function createAPIComponent(
   overrides: Partial<APIComponent> & {
-    id: string;
-    name: string;
-    domain: string;
+    id: string
+    name: string
+    domain: string
   },
 ): APIComponent {
   return {
@@ -55,15 +55,15 @@ export function createAPIComponent(
     path: '/test',
     sourceLocation: defaultSourceLocation,
     ...overrides,
-  };
+  }
 }
 
 export function createEventComponent(
   overrides: Partial<EventComponent> & {
-    id: string;
-    name: string;
-    domain: string;
-    eventName: string;
+    id: string
+    name: string
+    domain: string
+    eventName: string
   },
 ): EventComponent {
   return {
@@ -71,14 +71,14 @@ export function createEventComponent(
     module: 'mod',
     sourceLocation: defaultSourceLocation,
     ...overrides,
-  };
+  }
 }
 
 export function createEventHandlerComponent(
   overrides: Partial<EventHandlerComponent> & {
-    id: string;
-    name: string;
-    domain: string;
+    id: string
+    name: string
+    domain: string
   },
 ): EventHandlerComponent {
   return {
@@ -87,15 +87,15 @@ export function createEventHandlerComponent(
     subscribedEvents: ['TestEvent'],
     sourceLocation: defaultSourceLocation,
     ...overrides,
-  };
+  }
 }
 
 export function createCustomComponent(
   overrides: Partial<CustomComponent> & {
-    id: string;
-    name: string;
-    domain: string;
-    customTypeName: string;
+    id: string
+    name: string
+    domain: string
+    customTypeName: string
   },
 ): CustomComponent {
   return {
@@ -103,14 +103,14 @@ export function createCustomComponent(
     module: 'mod',
     sourceLocation: defaultSourceLocation,
     ...overrides,
-  };
+  }
 }
 
 export function createUseCaseComponent(
   overrides: Partial<UseCaseComponent> & {
-    id: string;
-    name: string;
-    domain: string;
+    id: string
+    name: string
+    domain: string
   },
 ): UseCaseComponent {
   return {
@@ -118,15 +118,15 @@ export function createUseCaseComponent(
     module: 'mod',
     sourceLocation: defaultSourceLocation,
     ...overrides,
-  };
+  }
 }
 
 export function createDomainOpComponent(
   overrides: Partial<DomainOpComponent> & {
-    id: string;
-    name: string;
-    domain: string;
-    operationName: string;
+    id: string
+    name: string
+    domain: string
+    operationName: string
   },
 ): DomainOpComponent {
   return {
@@ -134,5 +134,5 @@ export function createDomainOpComponent(
     module: 'mod',
     sourceLocation: defaultSourceLocation,
     ...overrides,
-  };
+  }
 }

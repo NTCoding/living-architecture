@@ -1,37 +1,37 @@
 import {
   Handle, Position 
-} from '@xyflow/react';
+} from '@xyflow/react'
 import type {
   NodeProps, Node 
-} from '@xyflow/react';
-import type { DomainNodeData } from '../../extractDomainMap';
+} from '@xyflow/react'
+import type { DomainNodeData } from '../../extractDomainMap'
 
-type DomainNodeProps = NodeProps<Node<DomainNodeData>>;
+type DomainNodeProps = NodeProps<Node<DomainNodeData>>
 
 // All domain nodes use consistent sizing for visual clarity.
 // Larger circles with proportional text ensure readable labels.
-const DOMAIN_NODE_SIZE = 120;
-const EXTERNAL_NODE_SIZE = 100;
-const DIMMED_OPACITY = 0.3;
-const FULL_OPACITY = 1;
-const DOMAIN_FONT_SIZE = 14;
-const EXTERNAL_FONT_SIZE = 12;
+const DOMAIN_NODE_SIZE = 120
+const EXTERNAL_NODE_SIZE = 100
+const DIMMED_OPACITY = 0.3
+const FULL_OPACITY = 1
+const DOMAIN_FONT_SIZE = 14
+const EXTERNAL_FONT_SIZE = 12
 
 export function DomainNode(props: DomainNodeProps): React.ReactElement {
-  const { data } = props;
-  const isExternal = data.isExternal ?? false;
-  const size = isExternal ? EXTERNAL_NODE_SIZE : DOMAIN_NODE_SIZE;
-  const opacity = data.dimmed ? DIMMED_OPACITY : FULL_OPACITY;
-  const fontSize = isExternal ? EXTERNAL_FONT_SIZE : DOMAIN_FONT_SIZE;
+  const { data } = props
+  const isExternal = data.isExternal ?? false
+  const size = isExternal ? EXTERNAL_NODE_SIZE : DOMAIN_NODE_SIZE
+  const opacity = data.dimmed ? DIMMED_OPACITY : FULL_OPACITY
+  const fontSize = isExternal ? EXTERNAL_FONT_SIZE : DOMAIN_FONT_SIZE
 
   // Show full label - circles are sized to accommodate typical domain names
-  const displayLabel = data.label;
+  const displayLabel = data.label
 
   const baseClasses =
-    'flex items-center justify-center rounded-full border-2 text-center shadow-lg transition-all hover:shadow-xl';
-  const internalClasses = 'border-[var(--primary)] bg-[var(--bg-secondary)]';
-  const externalClasses = 'domain-node-external';
-  const domainNodeClasses = `${baseClasses} ${isExternal ? externalClasses : internalClasses}`;
+    'flex items-center justify-center rounded-full border-2 text-center shadow-lg transition-all hover:shadow-xl'
+  const internalClasses = 'border-[var(--primary)] bg-[var(--bg-secondary)]'
+  const externalClasses = 'domain-node-external'
+  const domainNodeClasses = `${baseClasses} ${isExternal ? externalClasses : internalClasses}`
 
   return (
     <>
@@ -72,5 +72,5 @@ export function DomainNode(props: DomainNodeProps): React.ReactElement {
         )}
       </div>
     </>
-  );
+  )
 }

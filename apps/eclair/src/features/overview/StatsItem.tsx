@@ -1,7 +1,7 @@
 interface StatsItemProps {
-  readonly icon: string;
-  readonly label: string;
-  readonly value: number;
+  readonly icon: string
+  readonly label: string
+  readonly value: number
 }
 
 export function StatsItem({
@@ -19,5 +19,5 @@ export function StatsItem({
         </span>
       </div>
     </div>
-  );
+  )
 }

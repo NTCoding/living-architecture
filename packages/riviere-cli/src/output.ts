@@ -1,18 +1,18 @@
-import { CliErrorCode } from './error-codes';
+import { CliErrorCode } from './error-codes'
 
 export interface SuccessOutput<T> {
-  success: true;
-  data: T;
-  warnings: string[];
+  success: true
+  data: T
+  warnings: string[]
 }
 
 export interface ErrorOutput {
-  success: false;
+  success: false
   error: {
-    code: string;
-    message: string;
-    suggestions: string[];
-  };
+    code: string
+    message: string
+    suggestions: string[]
+  }
 }
 
 export function formatSuccess<T>(data: T, warnings: string[] = []): SuccessOutput<T> {
@@ -20,7 +20,7 @@ export function formatSuccess<T>(data: T, warnings: string[] = []): SuccessOutpu
     success: true,
     data,
     warnings,
-  };
+  }
 }
 
 export function formatError(
@@ -35,5 +35,5 @@ export function formatError(
       message,
       suggestions,
     },
-  };
+  }
 }

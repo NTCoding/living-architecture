@@ -1,30 +1,30 @@
 import {
   describe, it, expect, vi 
-} from 'vitest';
+} from 'vitest'
 import {
   render, screen 
-} from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
-import userEvent from '@testing-library/user-event';
-import { FlowCard } from './FlowCard';
+} from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
+import userEvent from '@testing-library/user-event'
+import { FlowCard } from './FlowCard'
 import {
   parseNode, parseEdge, parseDomainMetadata 
-} from '@/lib/riviereTestFixtures';
-import type { Flow } from '../../extractFlows';
-import type { RiviereGraph } from '@/types/riviere';
+} from '@/lib/riviereTestFixtures'
+import type { Flow } from '../../extractFlows'
+import type { RiviereGraph } from '@/types/riviere'
 const testSourceLocation = {
   repository: 'test-repo',
   filePath: 'src/test.ts',
-};
+}
 
-const mockNavigate = vi.fn();
+const mockNavigate = vi.fn()
 vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual('react-router-dom');
+  const actual = await vi.importActual('react-router-dom')
   return {
     ...actual,
     useNavigate: () => mockNavigate,
-  };
-});
+  }
+})
 
 function createTestFlow(): Flow {
   return {
@@ -73,7 +73,7 @@ function createTestFlow(): Flow {
         externalLinks: [],
       },
     ],
-  };
+  }
 }
 
 function createUIFlow(): Flow {
@@ -103,7 +103,7 @@ function createUIFlow(): Flow {
         externalLinks: [],
       },
     ],
-  };
+  }
 }
 
 function createTestGraph(): RiviereGraph {
@@ -153,7 +153,7 @@ function createTestGraph(): RiviereGraph {
         type: 'sync',
       }),
     ],
-  };
+  }
 }
 
 function renderWithRouter(
@@ -166,7 +166,7 @@ function renderWithRouter(
     <MemoryRouter>
       <FlowCard flow={flow} graph={graph} expanded={expanded} onToggle={onToggle} />
     </MemoryRouter>,
-  );
+  )
 }
 
 describe('FlowCard', () => {
@@ -179,11 +179,11 @@ describe('FlowCard', () => {
           expanded={false}
           onToggle={() => {}}
         />,
-      );
+      )
 
-      expect(screen.getByTestId('flow-card')).toHaveClass('flow-item');
-    });
-  });
+      expect(screen.getByTestId('flow-card')).toHaveClass('flow-item')
+    })
+  })
 
   describe('header', () => {
     it('renders header with flow-item-header class', () => {
@@ -194,10 +194,10 @@ describe('FlowCard', () => {
           expanded={false}
           onToggle={() => {}}
         />,
-      );
+      )
 
-      expect(screen.getByTestId('flow-card-header')).toHaveClass('flow-item-header');
-    });
+      expect(screen.getByTestId('flow-card-header')).toHaveClass('flow-item-header')
+    })
 
     it('renders left section with flow-item-left class', () => {
       render(
@@ -207,10 +207,10 @@ describe('FlowCard', () => {
           expanded={false}
           onToggle={() => {}}
         />,
-      );
+      )
 
-      expect(screen.getByTestId('flow-item-left')).toHaveClass('flow-item-left');
-    });
+      expect(screen.getByTestId('flow-item-left')).toHaveClass('flow-item-left')
+    })
 
     it('renders node type badge with node-type-badge class', () => {
       render(
@@ -220,12 +220,12 @@ describe('FlowCard', () => {
           expanded={false}
           onToggle={() => {}}
         />,
-      );
+      )
 
-      const badge = screen.getByTestId('node-type-badge');
-      expect(badge).toHaveClass('node-type-badge');
-      expect(badge).toHaveClass('badge-api');
-    });
+      const badge = screen.getByTestId('node-type-badge')
+      expect(badge).toHaveClass('node-type-badge')
+      expect(badge).toHaveClass('badge-api')
+    })
 
     it('renders title with flow-item-title class', () => {
       render(
@@ -235,11 +235,11 @@ describe('FlowCard', () => {
           expanded={false}
           onToggle={() => {}}
         />,
-      );
+      )
 
-      const title = screen.getByText('POST /orders');
-      expect(title).toHaveClass('flow-item-title');
-    });
+      const title = screen.getByText('POST /orders')
+      expect(title).toHaveClass('flow-item-title')
+    })
 
     it('displays title attribute with full entry point name for tooltip', () => {
       render(
@@ -249,11 +249,11 @@ describe('FlowCard', () => {
           expanded={false}
           onToggle={() => {}}
         />,
-      );
+      )
 
-      const title = screen.getByText('POST /orders');
-      expect(title).toHaveAttribute('title', 'POST /orders');
-    });
+      const title = screen.getByText('POST /orders')
+      expect(title).toHaveAttribute('title', 'POST /orders')
+    })
 
     it('renders domain text', () => {
       render(
@@ -263,11 +263,11 @@ describe('FlowCard', () => {
           expanded={false}
           onToggle={() => {}}
         />,
-      );
+      )
 
-      expect(screen.getByText('orders')).toHaveClass('flow-item-domain');
-    });
-  });
+      expect(screen.getByText('orders')).toHaveClass('flow-item-domain')
+    })
+  })
 
   describe('actions', () => {
     it('renders actions container with flow-item-actions class', () => {
@@ -278,10 +278,10 @@ describe('FlowCard', () => {
           expanded={false}
           onToggle={() => {}}
         />,
-      );
+      )
 
-      expect(screen.getByTestId('flow-item-actions')).toHaveClass('flow-item-actions');
-    });
+      expect(screen.getByTestId('flow-item-actions')).toHaveClass('flow-item-actions')
+    })
 
     it('renders code link menu with source location when available', () => {
       render(
@@ -291,10 +291,10 @@ describe('FlowCard', () => {
           expanded={false}
           onToggle={() => {}}
         />,
-      );
+      )
 
-      expect(screen.getByTitle('src/api/orders/routes.ts:42')).toHaveClass('code-link');
-    });
+      expect(screen.getByTitle('src/api/orders/routes.ts:42')).toHaveClass('code-link')
+    })
 
     it('does not render code link when no source location', () => {
       render(
@@ -304,58 +304,58 @@ describe('FlowCard', () => {
           expanded={false}
           onToggle={() => {}}
         />,
-      );
+      )
 
-      expect(screen.queryByText(/src\//)).not.toBeInTheDocument();
-    });
+      expect(screen.queryByText(/src\//)).not.toBeInTheDocument()
+    })
 
     it('renders View on Graph button with graph-link-btn class', () => {
-      renderWithRouter();
+      renderWithRouter()
 
-      const graphBtn = screen.getByTitle('View on Full Graph');
-      expect(graphBtn).toHaveClass('graph-link-btn');
-    });
+      const graphBtn = screen.getByTitle('View on Full Graph')
+      expect(graphBtn).toHaveClass('graph-link-btn')
+    })
 
     it('navigates to full graph with node param when View on Graph clicked', async () => {
-      const user = userEvent.setup();
-      mockNavigate.mockClear();
+      const user = userEvent.setup()
+      mockNavigate.mockClear()
 
-      renderWithRouter();
+      renderWithRouter()
 
-      await user.click(screen.getByTitle('View on Full Graph'));
+      await user.click(screen.getByTitle('View on Full Graph'))
 
-      expect(mockNavigate).toHaveBeenCalledWith('/full-graph?node=api-1');
-    });
-  });
+      expect(mockNavigate).toHaveBeenCalledWith('/full-graph?node=api-1')
+    })
+  })
 
   describe('expand/collapse', () => {
     it('renders chevron icon', () => {
-      renderWithRouter();
+      renderWithRouter()
 
-      expect(screen.getByTestId('flow-card-chevron')).toBeInTheDocument();
-    });
+      expect(screen.getByTestId('flow-card-chevron')).toBeInTheDocument()
+    })
 
     it('rotates chevron when expanded', () => {
-      renderWithRouter(createTestFlow(), createTestGraph(), true);
+      renderWithRouter(createTestFlow(), createTestGraph(), true)
 
-      expect(screen.getByTestId('flow-card-chevron')).toHaveClass('rotate-180');
-    });
+      expect(screen.getByTestId('flow-card-chevron')).toHaveClass('rotate-180')
+    })
 
     it('does not show flow trace when collapsed', () => {
-      renderWithRouter(createTestFlow(), createTestGraph(), false);
+      renderWithRouter(createTestFlow(), createTestGraph(), false)
 
-      expect(screen.queryByTestId('flow-trace')).not.toBeInTheDocument();
-    });
+      expect(screen.queryByTestId('flow-trace')).not.toBeInTheDocument()
+    })
 
     it('shows flow trace when expanded', () => {
-      renderWithRouter(createTestFlow(), createTestGraph(), true);
+      renderWithRouter(createTestFlow(), createTestGraph(), true)
 
-      expect(screen.getByTestId('flow-trace')).toBeInTheDocument();
-    });
+      expect(screen.getByTestId('flow-trace')).toBeInTheDocument()
+    })
 
     it('calls onToggle when header clicked', async () => {
-      const onToggle = vi.fn();
-      const user = userEvent.setup();
+      const onToggle = vi.fn()
+      const user = userEvent.setup()
 
       render(
         <MemoryRouter>
@@ -366,30 +366,30 @@ describe('FlowCard', () => {
             onToggle={onToggle}
           />
         </MemoryRouter>,
-      );
+      )
 
-      await user.click(screen.getByTestId('flow-card-header'));
+      await user.click(screen.getByTestId('flow-card-header'))
 
-      expect(onToggle).toHaveBeenCalledTimes(1);
-    });
+      expect(onToggle).toHaveBeenCalledTimes(1)
+    })
 
     it('header is keyboard accessible with tabIndex', () => {
-      renderWithRouter();
+      renderWithRouter()
 
-      const header = screen.getByTestId('flow-card-header');
-      expect(header).toHaveAttribute('tabIndex', '0');
-    });
+      const header = screen.getByTestId('flow-card-header')
+      expect(header).toHaveAttribute('tabIndex', '0')
+    })
 
     it('header has button role', () => {
-      renderWithRouter();
+      renderWithRouter()
 
-      const header = screen.getByTestId('flow-card-header');
-      expect(header).toHaveAttribute('role', 'button');
-    });
+      const header = screen.getByTestId('flow-card-header')
+      expect(header).toHaveAttribute('role', 'button')
+    })
 
     it('toggles expanded state multiple times', async () => {
-      const onToggle = vi.fn();
-      const user = userEvent.setup();
+      const onToggle = vi.fn()
+      const user = userEvent.setup()
 
       render(
         <MemoryRouter>
@@ -400,18 +400,18 @@ describe('FlowCard', () => {
             onToggle={onToggle}
           />
         </MemoryRouter>,
-      );
+      )
 
-      await user.click(screen.getByTestId('flow-card-header'));
-      await user.click(screen.getByTestId('flow-card-header'));
-      await user.click(screen.getByTestId('flow-card-header'));
+      await user.click(screen.getByTestId('flow-card-header'))
+      await user.click(screen.getByTestId('flow-card-header'))
+      await user.click(screen.getByTestId('flow-card-header'))
 
-      expect(onToggle).toHaveBeenCalledTimes(3);
-    });
+      expect(onToggle).toHaveBeenCalledTimes(3)
+    })
 
     it('calls onToggle when Enter key pressed on header', async () => {
-      const onToggle = vi.fn();
-      const user = userEvent.setup();
+      const onToggle = vi.fn()
+      const user = userEvent.setup()
 
       render(
         <MemoryRouter>
@@ -422,18 +422,18 @@ describe('FlowCard', () => {
             onToggle={onToggle}
           />
         </MemoryRouter>,
-      );
+      )
 
-      const header = screen.getByTestId('flow-card-header');
-      header.focus();
-      await user.keyboard('{Enter}');
+      const header = screen.getByTestId('flow-card-header')
+      header.focus()
+      await user.keyboard('{Enter}')
 
-      expect(onToggle).toHaveBeenCalledTimes(1);
-    });
+      expect(onToggle).toHaveBeenCalledTimes(1)
+    })
 
     it('calls onToggle when Space key pressed on header', async () => {
-      const onToggle = vi.fn();
-      const user = userEvent.setup();
+      const onToggle = vi.fn()
+      const user = userEvent.setup()
 
       render(
         <MemoryRouter>
@@ -444,18 +444,18 @@ describe('FlowCard', () => {
             onToggle={onToggle}
           />
         </MemoryRouter>,
-      );
+      )
 
-      const header = screen.getByTestId('flow-card-header');
-      header.focus();
-      await user.keyboard(' ');
+      const header = screen.getByTestId('flow-card-header')
+      header.focus()
+      await user.keyboard(' ')
 
-      expect(onToggle).toHaveBeenCalledTimes(1);
-    });
+      expect(onToggle).toHaveBeenCalledTimes(1)
+    })
 
     it('does not toggle when other keys pressed on header', async () => {
-      const onToggle = vi.fn();
-      const user = userEvent.setup();
+      const onToggle = vi.fn()
+      const user = userEvent.setup()
 
       render(
         <MemoryRouter>
@@ -466,15 +466,15 @@ describe('FlowCard', () => {
             onToggle={onToggle}
           />
         </MemoryRouter>,
-      );
+      )
 
-      const header = screen.getByTestId('flow-card-header');
-      header.focus();
-      await user.keyboard('a');
+      const header = screen.getByTestId('flow-card-header')
+      header.focus()
+      await user.keyboard('a')
 
-      expect(onToggle).not.toHaveBeenCalled();
-    });
-  });
+      expect(onToggle).not.toHaveBeenCalled()
+    })
+  })
 
   describe('code link edge cases', () => {
     it('does not render code link when sourceLocation has no lineNumber', () => {
@@ -494,7 +494,7 @@ describe('FlowCard', () => {
           },
         },
         steps: [],
-      };
+      }
 
       render(
         <FlowCard
@@ -503,9 +503,9 @@ describe('FlowCard', () => {
           expanded={false}
           onToggle={() => {}}
         />,
-      );
+      )
 
-      expect(screen.queryByTitle(/src\/api\/orders\/routes\.ts/)).not.toBeInTheDocument();
-    });
-  });
-});
+      expect(screen.queryByTitle(/src\/api\/orders\/routes\.ts/)).not.toBeInTheDocument()
+    })
+  })
+})

@@ -1,29 +1,29 @@
 import {
   describe, it, expect 
-} from 'vitest';
-import { compareGraphs } from './compareGraphs';
+} from 'vitest'
+import { compareGraphs } from './compareGraphs'
 import type {
   RiviereGraph, Node, Edge 
-} from '@/types/riviere';
+} from '@/types/riviere'
 import {
   parseNode,
   parseEdge,
   parseDomainMetadata,
   type RawNode,
   type RawEdge,
-} from '@/lib/riviereTestFixtures';
+} from '@/lib/riviereTestFixtures'
 
 const testSourceLocation = {
   repository: 'test-repo',
   filePath: 'src/test.ts',
-};
+}
 
 function createTestNode(
   overrides: Partial<RawNode> & {
-    id: string;
-    name: string;
-    domain: string;
-    module: string;
+    id: string
+    name: string
+    domain: string
+    module: string
   },
 ): Node {
   const raw: RawNode = {
@@ -31,8 +31,8 @@ function createTestNode(
     type: 'API',
     apiType: 'other',
     ...overrides,
-  };
-  return parseNode(raw);
+  }
+  return parseNode(raw)
 }
 
 function createTestEdge(source: string, target: string, overrides: Partial<RawEdge> = {}): Edge {
@@ -40,8 +40,8 @@ function createTestEdge(source: string, target: string, overrides: Partial<RawEd
     source,
     target,
     ...overrides,
-  };
-  return parseEdge(raw);
+  }
+  return parseEdge(raw)
 }
 
 function createTestGraph(nodes: Node[], edges: Edge[], name = 'Test Graph'): RiviereGraph {
@@ -58,7 +58,7 @@ function createTestGraph(nodes: Node[], edges: Edge[], name = 'Test Graph'): Riv
     },
     components: nodes,
     links: edges,
-  };
+  }
 }
 
 describe('compareGraphs', () => {
@@ -69,22 +69,22 @@ describe('compareGraphs', () => {
         name: 'API Endpoint',
         domain: 'test',
         module: 'api',
-      });
-      const edge = createTestEdge('node-1', 'node-2');
-      const before = createTestGraph([nodeA], [edge]);
-      const after = createTestGraph([nodeA], [edge]);
+      })
+      const edge = createTestEdge('node-1', 'node-2')
+      const before = createTestGraph([nodeA], [edge])
+      const after = createTestGraph([nodeA], [edge])
 
-      const diff = compareGraphs(before, after);
+      const diff = compareGraphs(before, after)
 
-      expect(diff.nodes.added).toHaveLength(0);
-      expect(diff.nodes.removed).toHaveLength(0);
-      expect(diff.nodes.modified).toHaveLength(0);
-      expect(diff.nodes.unchanged).toHaveLength(1);
-      expect(diff.edges.added).toHaveLength(0);
-      expect(diff.edges.removed).toHaveLength(0);
-      expect(diff.edges.unchanged).toHaveLength(1);
-    });
-  });
+      expect(diff.nodes.added).toHaveLength(0)
+      expect(diff.nodes.removed).toHaveLength(0)
+      expect(diff.nodes.modified).toHaveLength(0)
+      expect(diff.nodes.unchanged).toHaveLength(1)
+      expect(diff.edges.added).toHaveLength(0)
+      expect(diff.edges.removed).toHaveLength(0)
+      expect(diff.edges.unchanged).toHaveLength(1)
+    })
+  })
 
   describe('detecting added nodes', () => {
     it('identifies nodes present in after but not in before', () => {
@@ -93,23 +93,23 @@ describe('compareGraphs', () => {
         name: 'Existing',
         domain: 'test',
         module: 'api',
-      });
+      })
       const newNode = createTestNode({
         id: 'node-2',
         name: 'New API',
         domain: 'test',
         module: 'api',
-      });
-      const before = createTestGraph([existingNode], []);
-      const after = createTestGraph([existingNode, newNode], []);
+      })
+      const before = createTestGraph([existingNode], [])
+      const after = createTestGraph([existingNode, newNode], [])
 
-      const diff = compareGraphs(before, after);
+      const diff = compareGraphs(before, after)
 
-      expect(diff.nodes.added).toHaveLength(1);
-      expect(diff.nodes.added[0]?.node.id).toBe('node-2');
-      expect(diff.nodes.added[0]?.node.name).toBe('New API');
-    });
-  });
+      expect(diff.nodes.added).toHaveLength(1)
+      expect(diff.nodes.added[0]?.node.id).toBe('node-2')
+      expect(diff.nodes.added[0]?.node.name).toBe('New API')
+    })
+  })
 
   describe('detecting removed nodes', () => {
     it('identifies nodes present in before but not in after', () => {
@@ -118,23 +118,23 @@ describe('compareGraphs', () => {
         name: 'Remaining',
         domain: 'test',
         module: 'api',
-      });
+      })
       const removedNode = createTestNode({
         id: 'node-2',
         name: 'Removed API',
         domain: 'test',
         module: 'api',
-      });
-      const before = createTestGraph([remainingNode, removedNode], []);
-      const after = createTestGraph([remainingNode], []);
+      })
+      const before = createTestGraph([remainingNode, removedNode], [])
+      const after = createTestGraph([remainingNode], [])
 
-      const diff = compareGraphs(before, after);
+      const diff = compareGraphs(before, after)
 
-      expect(diff.nodes.removed).toHaveLength(1);
-      expect(diff.nodes.removed[0]?.node.id).toBe('node-2');
-      expect(diff.nodes.removed[0]?.node.name).toBe('Removed API');
-    });
-  });
+      expect(diff.nodes.removed).toHaveLength(1)
+      expect(diff.nodes.removed[0]?.node.id).toBe('node-2')
+      expect(diff.nodes.removed[0]?.node.name).toBe('Removed API')
+    })
+  })
 
   describe('detecting modified nodes', () => {
     it('identifies nodes with same ID but different properties', () => {
@@ -144,25 +144,25 @@ describe('compareGraphs', () => {
         domain: 'test',
         module: 'api',
         description: 'old',
-      });
+      })
       const afterNode = createTestNode({
         id: 'node-1',
         name: 'Updated Name',
         domain: 'test',
         module: 'api',
         description: 'new',
-      });
-      const before = createTestGraph([beforeNode], []);
-      const after = createTestGraph([afterNode], []);
+      })
+      const before = createTestGraph([beforeNode], [])
+      const after = createTestGraph([afterNode], [])
 
-      const diff = compareGraphs(before, after);
+      const diff = compareGraphs(before, after)
 
-      expect(diff.nodes.modified).toHaveLength(1);
-      expect(diff.nodes.modified[0]?.before.name).toBe('Original Name');
-      expect(diff.nodes.modified[0]?.after.name).toBe('Updated Name');
-      expect(diff.nodes.modified[0]?.changedFields).toContain('name');
-      expect(diff.nodes.modified[0]?.changedFields).toContain('description');
-    });
+      expect(diff.nodes.modified).toHaveLength(1)
+      expect(diff.nodes.modified[0]?.before.name).toBe('Original Name')
+      expect(diff.nodes.modified[0]?.after.name).toBe('Updated Name')
+      expect(diff.nodes.modified[0]?.changedFields).toContain('name')
+      expect(diff.nodes.modified[0]?.changedFields).toContain('description')
+    })
 
     it('does not flag nodes as modified when only ID matches and all fields are same', () => {
       const node = createTestNode({
@@ -171,16 +171,16 @@ describe('compareGraphs', () => {
         domain: 'test',
         module: 'api',
         description: 'same',
-      });
-      const before = createTestGraph([node], []);
-      const after = createTestGraph([node], []);
+      })
+      const before = createTestGraph([node], [])
+      const after = createTestGraph([node], [])
 
-      const diff = compareGraphs(before, after);
+      const diff = compareGraphs(before, after)
 
-      expect(diff.nodes.modified).toHaveLength(0);
-      expect(diff.nodes.unchanged).toHaveLength(1);
-    });
-  });
+      expect(diff.nodes.modified).toHaveLength(0)
+      expect(diff.nodes.unchanged).toHaveLength(1)
+    })
+  })
 
   describe('detecting edge changes', () => {
     it('identifies added edges by source-target pair', () => {
@@ -197,16 +197,16 @@ describe('compareGraphs', () => {
           domain: 'test',
           module: 'api',
         }),
-      ];
-      const before = createTestGraph(nodes, []);
-      const after = createTestGraph(nodes, [createTestEdge('node-1', 'node-2')]);
+      ]
+      const before = createTestGraph(nodes, [])
+      const after = createTestGraph(nodes, [createTestEdge('node-1', 'node-2')])
 
-      const diff = compareGraphs(before, after);
+      const diff = compareGraphs(before, after)
 
-      expect(diff.edges.added).toHaveLength(1);
-      expect(diff.edges.added[0]?.edge.source).toBe('node-1');
-      expect(diff.edges.added[0]?.edge.target).toBe('node-2');
-    });
+      expect(diff.edges.added).toHaveLength(1)
+      expect(diff.edges.added[0]?.edge.source).toBe('node-1')
+      expect(diff.edges.added[0]?.edge.target).toBe('node-2')
+    })
 
     it('identifies removed edges by source-target pair', () => {
       const nodes = [
@@ -222,16 +222,16 @@ describe('compareGraphs', () => {
           domain: 'test',
           module: 'api',
         }),
-      ];
-      const before = createTestGraph(nodes, [createTestEdge('node-1', 'node-2')]);
-      const after = createTestGraph(nodes, []);
+      ]
+      const before = createTestGraph(nodes, [createTestEdge('node-1', 'node-2')])
+      const after = createTestGraph(nodes, [])
 
-      const diff = compareGraphs(before, after);
+      const diff = compareGraphs(before, after)
 
-      expect(diff.edges.removed).toHaveLength(1);
-      expect(diff.edges.removed[0]?.edge.source).toBe('node-1');
-      expect(diff.edges.removed[0]?.edge.target).toBe('node-2');
-    });
+      expect(diff.edges.removed).toHaveLength(1)
+      expect(diff.edges.removed[0]?.edge.source).toBe('node-1')
+      expect(diff.edges.removed[0]?.edge.target).toBe('node-2')
+    })
 
     it('identifies modified edges when same source-target but different properties', () => {
       const nodes = [
@@ -247,19 +247,19 @@ describe('compareGraphs', () => {
           domain: 'test',
           module: 'api',
         }),
-      ];
-      const beforeEdge = createTestEdge('node-1', 'node-2', { type: 'sync' });
-      const afterEdge = createTestEdge('node-1', 'node-2', { type: 'async' });
-      const before = createTestGraph(nodes, [beforeEdge]);
-      const after = createTestGraph(nodes, [afterEdge]);
+      ]
+      const beforeEdge = createTestEdge('node-1', 'node-2', { type: 'sync' })
+      const afterEdge = createTestEdge('node-1', 'node-2', { type: 'async' })
+      const before = createTestGraph(nodes, [beforeEdge])
+      const after = createTestGraph(nodes, [afterEdge])
 
-      const diff = compareGraphs(before, after);
+      const diff = compareGraphs(before, after)
 
-      expect(diff.edges.modified).toHaveLength(1);
-      expect(diff.edges.modified[0]?.before.type).toBe('sync');
-      expect(diff.edges.modified[0]?.after.type).toBe('async');
-    });
-  });
+      expect(diff.edges.modified).toHaveLength(1)
+      expect(diff.edges.modified[0]?.before.type).toBe('sync')
+      expect(diff.edges.modified[0]?.after.type).toBe('async')
+    })
+  })
 
   describe('computing statistics', () => {
     it('provides accurate counts for all change types', () => {
@@ -282,7 +282,7 @@ describe('compareGraphs', () => {
           domain: 'test',
           module: 'api',
         }),
-      ];
+      ]
       const afterNodes = [
         createTestNode({
           id: 'unchanged',
@@ -302,18 +302,18 @@ describe('compareGraphs', () => {
           domain: 'test',
           module: 'api',
         }),
-      ];
-      const before = createTestGraph(beforeNodes, []);
-      const after = createTestGraph(afterNodes, []);
+      ]
+      const before = createTestGraph(beforeNodes, [])
+      const after = createTestGraph(afterNodes, [])
 
-      const diff = compareGraphs(before, after);
+      const diff = compareGraphs(before, after)
 
-      expect(diff.stats.nodesAdded).toBe(1);
-      expect(diff.stats.nodesRemoved).toBe(1);
-      expect(diff.stats.nodesModified).toBe(1);
-      expect(diff.stats.nodesUnchanged).toBe(1);
-    });
-  });
+      expect(diff.stats.nodesAdded).toBe(1)
+      expect(diff.stats.nodesRemoved).toBe(1)
+      expect(diff.stats.nodesModified).toBe(1)
+      expect(diff.stats.nodesUnchanged).toBe(1)
+    })
+  })
 
   describe('categorizing changes by domain', () => {
     it('groups node changes by their domain', () => {
@@ -322,22 +322,22 @@ describe('compareGraphs', () => {
         name: 'Orders API',
         domain: 'orders',
         module: 'api',
-      });
+      })
       const node2 = createTestNode({
         id: 'node-2',
         name: 'Shipping API',
         domain: 'shipping',
         module: 'api',
-      });
-      const before = createTestGraph([], []);
-      const after = createTestGraph([node1, node2], []);
+      })
+      const before = createTestGraph([], [])
+      const after = createTestGraph([node1, node2], [])
 
-      const diff = compareGraphs(before, after);
+      const diff = compareGraphs(before, after)
 
-      expect(diff.byDomain['orders']?.added).toHaveLength(1);
-      expect(diff.byDomain['shipping']?.added).toHaveLength(1);
-    });
-  });
+      expect(diff.byDomain['orders']?.added).toHaveLength(1)
+      expect(diff.byDomain['shipping']?.added).toHaveLength(1)
+    })
+  })
 
   describe('categorizing changes by node type', () => {
     it('groups node changes by their type', () => {
@@ -347,7 +347,7 @@ describe('compareGraphs', () => {
         type: 'API',
         domain: 'test',
         module: 'api',
-      });
+      })
       const eventNode = createTestNode({
         id: 'event-1',
         name: 'Event',
@@ -355,16 +355,16 @@ describe('compareGraphs', () => {
         domain: 'test',
         module: 'events',
         eventName: 'TestEvent',
-      });
-      const before = createTestGraph([], []);
-      const after = createTestGraph([apiNode, eventNode], []);
+      })
+      const before = createTestGraph([], [])
+      const after = createTestGraph([apiNode, eventNode], [])
 
-      const diff = compareGraphs(before, after);
+      const diff = compareGraphs(before, after)
 
-      expect(diff.byNodeType['API']?.added).toHaveLength(1);
-      expect(diff.byNodeType['Event']?.added).toHaveLength(1);
-    });
-  });
+      expect(diff.byNodeType['API']?.added).toHaveLength(1)
+      expect(diff.byNodeType['Event']?.added).toHaveLength(1)
+    })
+  })
 
   describe('detecting type-specific field changes', () => {
     it('detects eventSchema changes on Event nodes', () => {
@@ -376,7 +376,7 @@ describe('compareGraphs', () => {
         module: 'events',
         eventName: 'order.placed',
         eventSchema: '{ orderId: string }',
-      });
+      })
       const afterEvent = createTestNode({
         id: 'event-1',
         name: 'Order Placed',
@@ -385,15 +385,15 @@ describe('compareGraphs', () => {
         module: 'events',
         eventName: 'order.placed',
         eventSchema: '{ orderId: string, customerId: string }',
-      });
-      const before = createTestGraph([beforeEvent], []);
-      const after = createTestGraph([afterEvent], []);
+      })
+      const before = createTestGraph([beforeEvent], [])
+      const after = createTestGraph([afterEvent], [])
 
-      const diff = compareGraphs(before, after);
+      const diff = compareGraphs(before, after)
 
-      expect(diff.nodes.modified).toHaveLength(1);
-      expect(diff.nodes.modified[0]?.changedFields).toContain('eventSchema');
-    });
+      expect(diff.nodes.modified).toHaveLength(1)
+      expect(diff.nodes.modified[0]?.changedFields).toContain('eventSchema')
+    })
 
     it('detects subscribedEvents changes on EventHandler nodes', () => {
       const beforeHandler = createTestNode({
@@ -403,7 +403,7 @@ describe('compareGraphs', () => {
         domain: 'shipping',
         module: 'handlers',
         subscribedEvents: ['order.placed'],
-      });
+      })
       const afterHandler = createTestNode({
         id: 'handler-1',
         name: 'Handle Order Events',
@@ -411,15 +411,15 @@ describe('compareGraphs', () => {
         domain: 'shipping',
         module: 'handlers',
         subscribedEvents: ['order.placed', 'order.updated'],
-      });
-      const before = createTestGraph([beforeHandler], []);
-      const after = createTestGraph([afterHandler], []);
+      })
+      const before = createTestGraph([beforeHandler], [])
+      const after = createTestGraph([afterHandler], [])
 
-      const diff = compareGraphs(before, after);
+      const diff = compareGraphs(before, after)
 
-      expect(diff.nodes.modified).toHaveLength(1);
-      expect(diff.nodes.modified[0]?.changedFields).toContain('subscribedEvents');
-    });
+      expect(diff.nodes.modified).toHaveLength(1)
+      expect(diff.nodes.modified[0]?.changedFields).toContain('subscribedEvents')
+    })
 
     it('detects DomainOp-specific field changes', () => {
       const beforeOp = createTestNode({
@@ -449,7 +449,7 @@ describe('compareGraphs', () => {
             to: 'Pending',
           },
         ],
-      });
+      })
       const afterOp = createTestNode({
         id: 'op-1',
         name: 'Create Order',
@@ -486,17 +486,17 @@ describe('compareGraphs', () => {
             to: 'Assigned',
           },
         ],
-      });
-      const before = createTestGraph([beforeOp], []);
-      const after = createTestGraph([afterOp], []);
+      })
+      const before = createTestGraph([beforeOp], [])
+      const after = createTestGraph([afterOp], [])
 
-      const diff = compareGraphs(before, after);
+      const diff = compareGraphs(before, after)
 
-      expect(diff.nodes.modified).toHaveLength(1);
-      expect(diff.nodes.modified[0]?.changedFields).toContain('signature');
-      expect(diff.nodes.modified[0]?.changedFields).toContain('behavior');
-      expect(diff.nodes.modified[0]?.changedFields).toContain('stateChanges');
-    });
+      expect(diff.nodes.modified).toHaveLength(1)
+      expect(diff.nodes.modified[0]?.changedFields).toContain('signature')
+      expect(diff.nodes.modified[0]?.changedFields).toContain('behavior')
+      expect(diff.nodes.modified[0]?.changedFields).toContain('stateChanges')
+    })
 
     it('detects UI-specific route changes', () => {
       const beforeUI = createTestNode({
@@ -506,7 +506,7 @@ describe('compareGraphs', () => {
         domain: 'orders',
         module: 'pages',
         route: '/orders',
-      });
+      })
       const afterUI = createTestNode({
         id: 'ui-1',
         name: 'Order Page',
@@ -514,14 +514,14 @@ describe('compareGraphs', () => {
         domain: 'orders',
         module: 'pages',
         route: '/orders/:id',
-      });
-      const before = createTestGraph([beforeUI], []);
-      const after = createTestGraph([afterUI], []);
+      })
+      const before = createTestGraph([beforeUI], [])
+      const after = createTestGraph([afterUI], [])
 
-      const diff = compareGraphs(before, after);
+      const diff = compareGraphs(before, after)
 
-      expect(diff.nodes.modified).toHaveLength(1);
-      expect(diff.nodes.modified[0]?.changedFields).toContain('route');
-    });
-  });
-});
+      expect(diff.nodes.modified).toHaveLength(1)
+      expect(diff.nodes.modified[0]?.changedFields).toContain('route')
+    })
+  })
+})

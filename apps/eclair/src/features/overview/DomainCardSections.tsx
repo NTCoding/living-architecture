@@ -1,10 +1,10 @@
-const DISPLAY_LIMIT = 3;
+const DISPLAY_LIMIT = 3
 
-interface EntitiesSectionProps {readonly entities: readonly string[];}
+interface EntitiesSectionProps {readonly entities: readonly string[]}
 
 export function EntitiesSection({ entities }: Readonly<EntitiesSectionProps>): React.ReactElement {
-  const displayedEntities = entities.slice(0, DISPLAY_LIMIT);
-  const hasMore = entities.length > DISPLAY_LIMIT;
+  const displayedEntities = entities.slice(0, DISPLAY_LIMIT)
+  const hasMore = entities.length > DISPLAY_LIMIT
 
   return (
     <div className="mb-3 border-b border-[var(--border-color)] pb-3">
@@ -30,14 +30,14 @@ export function EntitiesSection({ entities }: Readonly<EntitiesSectionProps>): R
         )}
       </div>
     </div>
-  );
+  )
 }
 
-interface EntryPointsSectionProps {readonly entryPoints: readonly string[];}
+interface EntryPointsSectionProps {readonly entryPoints: readonly string[]}
 
 export function EntryPointsSection({entryPoints,}: Readonly<EntryPointsSectionProps>): React.ReactElement {
-  const displayedEntryPoints = entryPoints.slice(0, DISPLAY_LIMIT);
-  const hasMore = entryPoints.length > DISPLAY_LIMIT;
+  const displayedEntryPoints = entryPoints.slice(0, DISPLAY_LIMIT)
+  const hasMore = entryPoints.length > DISPLAY_LIMIT
 
   return (
     <div className="pb-0">
@@ -63,5 +63,5 @@ export function EntryPointsSection({entryPoints,}: Readonly<EntryPointsSectionPr
         )}
       </div>
     </div>
-  );
+  )
 }

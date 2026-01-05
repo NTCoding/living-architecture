@@ -1,25 +1,25 @@
 import {
   describe, it, expect, vi 
-} from 'vitest';
+} from 'vitest'
 import {
   render, screen, waitFor, within, fireEvent 
-} from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { SchemaModal } from './SchemaModal';
+} from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { SchemaModal } from './SchemaModal'
 import type {
   RiviereGraph, GraphName 
-} from '@/types/riviere';
+} from '@/types/riviere'
 import {
   nodeIdSchema, domainNameSchema, moduleNameSchema, graphNameSchema 
-} from '@/types/riviere';
+} from '@/types/riviere'
 
 const testSourceLocation = {
   repository: 'test-repo',
   filePath: 'src/test.ts',
-};
+}
 
 function createGraphName(name: string): GraphName {
-  return graphNameSchema.parse(name);
+  return graphNameSchema.parse(name)
 }
 
 function createTestGraph(overrides: Partial<RiviereGraph> = {}): RiviereGraph {
@@ -67,7 +67,7 @@ function createTestGraph(overrides: Partial<RiviereGraph> = {}): RiviereGraph {
       },
     ],
     ...overrides,
-  };
+  }
 }
 
 describe('SchemaModal', () => {
@@ -75,10 +75,10 @@ describe('SchemaModal', () => {
     it('renders nothing when graph is null', () => {
       const { container } = render(
         <SchemaModal graph={null} graphName={undefined} isOpen={true} onClose={vi.fn()} />,
-      );
+      )
 
-      expect(container.firstChild).toBeNull();
-    });
+      expect(container.firstChild).toBeNull()
+    })
 
     it('renders nothing when isOpen is false', () => {
       const { container } = render(
@@ -88,11 +88,11 @@ describe('SchemaModal', () => {
           isOpen={false}
           onClose={vi.fn()}
         />,
-      );
+      )
 
-      expect(container.firstChild).toBeNull();
-    });
-  });
+      expect(container.firstChild).toBeNull()
+    })
+  })
 
   describe('when open', () => {
     describe('header', () => {
@@ -104,10 +104,10 @@ describe('SchemaModal', () => {
             isOpen={true}
             onClose={vi.fn()}
           />,
-        );
+        )
 
-        expect(screen.getByText('ecommerce-complete.json')).toBeInTheDocument();
-      });
+        expect(screen.getByText('ecommerce-complete.json')).toBeInTheDocument()
+      })
 
       it('renders empty title when graphName undefined', () => {
         render(
@@ -117,17 +117,17 @@ describe('SchemaModal', () => {
             isOpen={true}
             onClose={vi.fn()}
           />,
-        );
+        )
 
-        const dialog = screen.getByRole('dialog');
-        const labelledBy = dialog.getAttribute('aria-labelledby');
+        const dialog = screen.getByRole('dialog')
+        const labelledBy = dialog.getAttribute('aria-labelledby')
         if (labelledBy === null) {
-          throw new Error('Expected dialog to have aria-labelledby attribute');
+          throw new Error('Expected dialog to have aria-labelledby attribute')
         }
-        const titleElement = document.getElementById(labelledBy);
-        expect(titleElement).toBeInTheDocument();
-        expect(titleElement?.textContent).toBe('');
-      });
+        const titleElement = document.getElementById(labelledBy)
+        expect(titleElement).toBeInTheDocument()
+        expect(titleElement?.textContent).toBe('')
+      })
 
       it('renders close button', () => {
         render(
@@ -137,14 +137,14 @@ describe('SchemaModal', () => {
             isOpen={true}
             onClose={vi.fn()}
           />,
-        );
+        )
 
-        expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument();
-      });
+        expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument()
+      })
 
       it('calls onClose when close button clicked', async () => {
-        const user = userEvent.setup();
-        const onClose = vi.fn();
+        const user = userEvent.setup()
+        const onClose = vi.fn()
 
         render(
           <SchemaModal
@@ -153,12 +153,12 @@ describe('SchemaModal', () => {
             isOpen={true}
             onClose={onClose}
           />,
-        );
+        )
 
-        await user.click(screen.getByRole('button', { name: 'Close' }));
+        await user.click(screen.getByRole('button', { name: 'Close' }))
 
-        expect(onClose).toHaveBeenCalled();
-      });
+        expect(onClose).toHaveBeenCalled()
+      })
 
       it('renders copy button', () => {
         render(
@@ -168,10 +168,10 @@ describe('SchemaModal', () => {
             isOpen={true}
             onClose={vi.fn()}
           />,
-        );
+        )
 
-        expect(screen.getByRole('button', { name: /copy/i })).toBeInTheDocument();
-      });
+        expect(screen.getByRole('button', { name: /copy/i })).toBeInTheDocument()
+      })
 
       it('renders download button', () => {
         render(
@@ -181,15 +181,15 @@ describe('SchemaModal', () => {
             isOpen={true}
             onClose={vi.fn()}
           />,
-        );
+        )
 
-        expect(screen.getByRole('button', { name: /download/i })).toBeInTheDocument();
-      });
-    });
+        expect(screen.getByRole('button', { name: /download/i })).toBeInTheDocument()
+      })
+    })
 
     describe('metadata section', () => {
       it('renders schema version', () => {
-        const graph = createTestGraph({ version: '2.5.0' });
+        const graph = createTestGraph({ version: '2.5.0' })
 
         render(
           <SchemaModal
@@ -198,11 +198,11 @@ describe('SchemaModal', () => {
             isOpen={true}
             onClose={vi.fn()}
           />,
-        );
+        )
 
-        expect(screen.getByText('Schema Version')).toBeInTheDocument();
-        expect(screen.getByText('2.5.0')).toBeInTheDocument();
-      });
+        expect(screen.getByText('Schema Version')).toBeInTheDocument()
+        expect(screen.getByText('2.5.0')).toBeInTheDocument()
+      })
 
       it('renders node count', () => {
         const graph = createTestGraph({
@@ -234,7 +234,7 @@ describe('SchemaModal', () => {
               module: moduleNameSchema.parse('usecases'),
             },
           ],
-        });
+        })
 
         render(
           <SchemaModal
@@ -243,11 +243,11 @@ describe('SchemaModal', () => {
             isOpen={true}
             onClose={vi.fn()}
           />,
-        );
+        )
 
-        expect(screen.getByText('Total Nodes')).toBeInTheDocument();
-        expect(screen.getByText('3')).toBeInTheDocument();
-      });
+        expect(screen.getByText('Total Nodes')).toBeInTheDocument()
+        expect(screen.getByText('3')).toBeInTheDocument()
+      })
 
       it('renders edge count', () => {
         render(
@@ -257,11 +257,11 @@ describe('SchemaModal', () => {
             isOpen={true}
             onClose={vi.fn()}
           />,
-        );
+        )
 
-        expect(screen.getByText('Total Edges')).toBeInTheDocument();
-        expect(screen.getByText('1')).toBeInTheDocument();
-      });
+        expect(screen.getByText('Total Edges')).toBeInTheDocument()
+        expect(screen.getByText('1')).toBeInTheDocument()
+      })
 
       it('renders domain count', () => {
         const graph = createTestGraph({
@@ -288,7 +288,7 @@ describe('SchemaModal', () => {
               },
             },
           },
-        });
+        })
 
         render(
           <SchemaModal
@@ -297,15 +297,15 @@ describe('SchemaModal', () => {
             isOpen={true}
             onClose={vi.fn()}
           />,
-        );
+        )
 
-        expect(screen.getByText('Domains')).toBeInTheDocument();
-        expect(screen.getByText('4')).toBeInTheDocument();
-      });
+        expect(screen.getByText('Domains')).toBeInTheDocument()
+        expect(screen.getByText('4')).toBeInTheDocument()
+      })
 
       it('renders generated date when available', () => {
-        const graph = createTestGraph();
-        graph.metadata.generated = '2024-06-15T14:30:00Z';
+        const graph = createTestGraph()
+        graph.metadata.generated = '2024-06-15T14:30:00Z'
 
         render(
           <SchemaModal
@@ -314,15 +314,15 @@ describe('SchemaModal', () => {
             isOpen={true}
             onClose={vi.fn()}
           />,
-        );
+        )
 
-        expect(screen.getByText('Generated')).toBeInTheDocument();
-        expect(screen.getByText('2024-06-15')).toBeInTheDocument();
-      });
+        expect(screen.getByText('Generated')).toBeInTheDocument()
+        expect(screen.getByText('2024-06-15')).toBeInTheDocument()
+      })
 
       it('renders unknown when generated date missing', () => {
-        const graph = createTestGraph();
-        delete graph.metadata.generated;
+        const graph = createTestGraph()
+        delete graph.metadata.generated
 
         render(
           <SchemaModal
@@ -331,12 +331,12 @@ describe('SchemaModal', () => {
             isOpen={true}
             onClose={vi.fn()}
           />,
-        );
+        )
 
-        expect(screen.getByText('Generated')).toBeInTheDocument();
-        expect(screen.getByText('Unknown')).toBeInTheDocument();
-      });
-    });
+        expect(screen.getByText('Generated')).toBeInTheDocument()
+        expect(screen.getByText('Unknown')).toBeInTheDocument()
+      })
+    })
 
     describe('JSON viewer', () => {
       it('renders formatted JSON content', () => {
@@ -347,13 +347,13 @@ describe('SchemaModal', () => {
             isOpen={true}
             onClose={vi.fn()}
           />,
-        );
+        )
 
-        const jsonViewer = screen.getByTestId('json-viewer');
-        expect(jsonViewer).toBeInTheDocument();
-        expect(jsonViewer.textContent).toContain('"version"');
-        expect(jsonViewer.textContent).toContain('"1.0"');
-      });
+        const jsonViewer = screen.getByTestId('json-viewer')
+        expect(jsonViewer).toBeInTheDocument()
+        expect(jsonViewer.textContent).toContain('"version"')
+        expect(jsonViewer.textContent).toContain('"1.0"')
+      })
 
       it('renders JSON as collapsible tree', () => {
         render(
@@ -363,18 +363,18 @@ describe('SchemaModal', () => {
             isOpen={true}
             onClose={vi.fn()}
           />,
-        );
+        )
 
-        const jsonViewer = screen.getByTestId('json-viewer');
-        const treeView = within(jsonViewer).getByRole('tree');
-        expect(treeView).toBeInTheDocument();
-      });
-    });
+        const jsonViewer = screen.getByTestId('json-viewer')
+        const treeView = within(jsonViewer).getByRole('tree')
+        expect(treeView).toBeInTheDocument()
+      })
+    })
 
     it('copy: copies JSON to clipboard when copy clicked', async () => {
-      const user = userEvent.setup();
-      const writeText = vi.fn().mockResolvedValue(undefined);
-      vi.stubGlobal('navigator', { clipboard: { writeText } });
+      const user = userEvent.setup()
+      const writeText = vi.fn().mockResolvedValue(undefined)
+      vi.stubGlobal('navigator', { clipboard: { writeText } })
 
       render(
         <SchemaModal
@@ -383,25 +383,25 @@ describe('SchemaModal', () => {
           isOpen={true}
           onClose={vi.fn()}
         />,
-      );
+      )
 
-      await user.click(screen.getByRole('button', { name: /copy/i }));
+      await user.click(screen.getByRole('button', { name: /copy/i }))
 
-      expect(writeText).toHaveBeenCalled();
-      const firstCall = writeText.mock.calls[0];
+      expect(writeText).toHaveBeenCalled()
+      const firstCall = writeText.mock.calls[0]
       if (firstCall === undefined) {
-        throw new Error('Expected writeText to have been called with arguments');
+        throw new Error('Expected writeText to have been called with arguments')
       }
-      const copiedContent = String(firstCall[0]);
-      expect(copiedContent).toContain('"version": "1.0"');
+      const copiedContent = String(firstCall[0])
+      expect(copiedContent).toContain('"version": "1.0"')
 
-      vi.unstubAllGlobals();
-    });
+      vi.unstubAllGlobals()
+    })
 
     it('copy: shows success feedback after copy', async () => {
-      const user = userEvent.setup();
-      const writeText = vi.fn().mockResolvedValue(undefined);
-      vi.stubGlobal('navigator', { clipboard: { writeText } });
+      const user = userEvent.setup()
+      const writeText = vi.fn().mockResolvedValue(undefined)
+      vi.stubGlobal('navigator', { clipboard: { writeText } })
 
       render(
         <SchemaModal
@@ -410,21 +410,21 @@ describe('SchemaModal', () => {
           isOpen={true}
           onClose={vi.fn()}
         />,
-      );
+      )
 
-      await user.click(screen.getByRole('button', { name: /copy/i }));
+      await user.click(screen.getByRole('button', { name: /copy/i }))
 
       await waitFor(() => {
-        expect(screen.getByText(/copied/i)).toBeInTheDocument();
-      });
+        expect(screen.getByText(/copied/i)).toBeInTheDocument()
+      })
 
-      vi.unstubAllGlobals();
-    });
+      vi.unstubAllGlobals()
+    })
 
     it('copy: clears copy feedback after timeout', async () => {
-      vi.useFakeTimers();
-      const writeText = vi.fn().mockResolvedValue(undefined);
-      vi.stubGlobal('navigator', { clipboard: { writeText } });
+      vi.useFakeTimers()
+      const writeText = vi.fn().mockResolvedValue(undefined)
+      vi.stubGlobal('navigator', { clipboard: { writeText } })
 
       render(
         <SchemaModal
@@ -433,41 +433,41 @@ describe('SchemaModal', () => {
           isOpen={true}
           onClose={vi.fn()}
         />,
-      );
+      )
 
-      const copyButton = screen.getByRole('button', { name: /copy/i });
-      fireEvent.click(copyButton);
-
-      await vi.waitFor(() => {
-        expect(screen.getByText(/copied/i)).toBeInTheDocument();
-      });
-
-      vi.advanceTimersByTime(2000);
+      const copyButton = screen.getByRole('button', { name: /copy/i })
+      fireEvent.click(copyButton)
 
       await vi.waitFor(() => {
-        expect(screen.getByRole('button', { name: /copy/i })).toHaveTextContent('Copy');
-      });
+        expect(screen.getByText(/copied/i)).toBeInTheDocument()
+      })
 
-      vi.unstubAllGlobals();
-      vi.useRealTimers();
-    });
+      vi.advanceTimersByTime(2000)
+
+      await vi.waitFor(() => {
+        expect(screen.getByRole('button', { name: /copy/i })).toHaveTextContent('Copy')
+      })
+
+      vi.unstubAllGlobals()
+      vi.useRealTimers()
+    })
 
     it('download: triggers download when download clicked', async () => {
-      const user = userEvent.setup();
-      const createObjectURL = vi.fn().mockReturnValue('blob:test-url');
-      const revokeObjectURL = vi.fn();
-      URL.createObjectURL = createObjectURL;
-      URL.revokeObjectURL = revokeObjectURL;
+      const user = userEvent.setup()
+      const createObjectURL = vi.fn().mockReturnValue('blob:test-url')
+      const revokeObjectURL = vi.fn()
+      URL.createObjectURL = createObjectURL
+      URL.revokeObjectURL = revokeObjectURL
 
-      const clickSpy = vi.fn();
-      const createElementOriginal = document.createElement.bind(document);
+      const clickSpy = vi.fn()
+      const createElementOriginal = document.createElement.bind(document)
       vi.spyOn(document, 'createElement').mockImplementation((tagName: string) => {
-        const element = createElementOriginal(tagName);
+        const element = createElementOriginal(tagName)
         if (tagName === 'a') {
-          element.click = clickSpy;
+          element.click = clickSpy
         }
-        return element;
-      });
+        return element
+      })
 
       render(
         <SchemaModal
@@ -476,16 +476,16 @@ describe('SchemaModal', () => {
           isOpen={true}
           onClose={vi.fn()}
         />,
-      );
+      )
 
-      await user.click(screen.getByRole('button', { name: /download/i }));
+      await user.click(screen.getByRole('button', { name: /download/i }))
 
-      expect(createObjectURL).toHaveBeenCalled();
-      expect(clickSpy).toHaveBeenCalled();
-      expect(revokeObjectURL).toHaveBeenCalledWith('blob:test-url');
+      expect(createObjectURL).toHaveBeenCalled()
+      expect(clickSpy).toHaveBeenCalled()
+      expect(revokeObjectURL).toHaveBeenCalledWith('blob:test-url')
 
-      vi.restoreAllMocks();
-    });
+      vi.restoreAllMocks()
+    })
 
     it('download: disables download button when graphName is undefined', () => {
       render(
@@ -495,16 +495,16 @@ describe('SchemaModal', () => {
           isOpen={true}
           onClose={vi.fn()}
         />,
-      );
+      )
 
-      const downloadButton = screen.getByRole('button', { name: /download/i });
-      expect(downloadButton).toBeDisabled();
-    });
+      const downloadButton = screen.getByRole('button', { name: /download/i })
+      expect(downloadButton).toBeDisabled()
+    })
 
     describe('backdrop interaction', () => {
       it('calls onClose when backdrop clicked', async () => {
-        const user = userEvent.setup();
-        const onClose = vi.fn();
+        const user = userEvent.setup()
+        const onClose = vi.fn()
 
         render(
           <SchemaModal
@@ -513,15 +513,15 @@ describe('SchemaModal', () => {
             isOpen={true}
             onClose={onClose}
           />,
-        );
+        )
 
-        await user.click(screen.getByTestId('modal-backdrop'));
+        await user.click(screen.getByTestId('modal-backdrop'))
 
-        expect(onClose).toHaveBeenCalled();
-      });
+        expect(onClose).toHaveBeenCalled()
+      })
 
       it('calls onClose when Enter pressed on backdrop', async () => {
-        const onClose = vi.fn();
+        const onClose = vi.fn()
 
         render(
           <SchemaModal
@@ -530,17 +530,17 @@ describe('SchemaModal', () => {
             isOpen={true}
             onClose={onClose}
           />,
-        );
+        )
 
-        const backdrop = screen.getByTestId('modal-backdrop');
-        backdrop.focus();
-        fireEvent.keyDown(backdrop, { key: 'Enter' });
+        const backdrop = screen.getByTestId('modal-backdrop')
+        backdrop.focus()
+        fireEvent.keyDown(backdrop, { key: 'Enter' })
 
-        expect(onClose).toHaveBeenCalled();
-      });
+        expect(onClose).toHaveBeenCalled()
+      })
 
       it('calls onClose when Space pressed on backdrop', async () => {
-        const onClose = vi.fn();
+        const onClose = vi.fn()
 
         render(
           <SchemaModal
@@ -549,17 +549,17 @@ describe('SchemaModal', () => {
             isOpen={true}
             onClose={onClose}
           />,
-        );
+        )
 
-        const backdrop = screen.getByTestId('modal-backdrop');
-        backdrop.focus();
-        fireEvent.keyDown(backdrop, { key: ' ' });
+        const backdrop = screen.getByTestId('modal-backdrop')
+        backdrop.focus()
+        fireEvent.keyDown(backdrop, { key: ' ' })
 
-        expect(onClose).toHaveBeenCalled();
-      });
+        expect(onClose).toHaveBeenCalled()
+      })
 
       it('does not close on other keys pressed on backdrop', () => {
-        const onClose = vi.fn();
+        const onClose = vi.fn()
 
         render(
           <SchemaModal
@@ -568,17 +568,17 @@ describe('SchemaModal', () => {
             isOpen={true}
             onClose={onClose}
           />,
-        );
+        )
 
-        const backdrop = screen.getByTestId('modal-backdrop');
-        fireEvent.keyDown(backdrop, { key: 'Tab' });
+        const backdrop = screen.getByTestId('modal-backdrop')
+        fireEvent.keyDown(backdrop, { key: 'Tab' })
 
-        expect(onClose).not.toHaveBeenCalled();
-      });
+        expect(onClose).not.toHaveBeenCalled()
+      })
 
       it('does not close when clicking modal content', async () => {
-        const user = userEvent.setup();
-        const onClose = vi.fn();
+        const user = userEvent.setup()
+        const onClose = vi.fn()
 
         render(
           <SchemaModal
@@ -587,18 +587,18 @@ describe('SchemaModal', () => {
             isOpen={true}
             onClose={onClose}
           />,
-        );
+        )
 
-        await user.click(screen.getByTestId('json-viewer'));
+        await user.click(screen.getByTestId('json-viewer'))
 
-        expect(onClose).not.toHaveBeenCalled();
-      });
-    });
+        expect(onClose).not.toHaveBeenCalled()
+      })
+    })
 
     describe('keyboard navigation', () => {
       it('calls onClose when Escape pressed', async () => {
-        const user = userEvent.setup();
-        const onClose = vi.fn();
+        const user = userEvent.setup()
+        const onClose = vi.fn()
 
         render(
           <SchemaModal
@@ -607,13 +607,13 @@ describe('SchemaModal', () => {
             isOpen={true}
             onClose={onClose}
           />,
-        );
+        )
 
-        await user.keyboard('{Escape}');
+        await user.keyboard('{Escape}')
 
-        expect(onClose).toHaveBeenCalled();
-      });
-    });
+        expect(onClose).toHaveBeenCalled()
+      })
+    })
 
     describe('accessibility', () => {
       it('has role dialog', () => {
@@ -624,10 +624,10 @@ describe('SchemaModal', () => {
             isOpen={true}
             onClose={vi.fn()}
           />,
-        );
+        )
 
-        expect(screen.getByRole('dialog')).toBeInTheDocument();
-      });
+        expect(screen.getByRole('dialog')).toBeInTheDocument()
+      })
 
       it('has aria-modal true', () => {
         render(
@@ -637,10 +637,10 @@ describe('SchemaModal', () => {
             isOpen={true}
             onClose={vi.fn()}
           />,
-        );
+        )
 
-        expect(screen.getByRole('dialog')).toHaveAttribute('aria-modal', 'true');
-      });
+        expect(screen.getByRole('dialog')).toHaveAttribute('aria-modal', 'true')
+      })
 
       it('has aria-labelledby pointing to title', () => {
         render(
@@ -650,17 +650,17 @@ describe('SchemaModal', () => {
             isOpen={true}
             onClose={vi.fn()}
           />,
-        );
+        )
 
-        const dialog = screen.getByRole('dialog');
-        const labelledBy = dialog.getAttribute('aria-labelledby');
+        const dialog = screen.getByRole('dialog')
+        const labelledBy = dialog.getAttribute('aria-labelledby')
         if (labelledBy === null) {
-          throw new Error('Expected dialog to have aria-labelledby attribute');
+          throw new Error('Expected dialog to have aria-labelledby attribute')
         }
 
-        const title = document.getElementById(labelledBy);
-        expect(title).toBeInTheDocument();
-      });
-    });
-  });
-});
+        const title = document.getElementById(labelledBy)
+        expect(title).toBeInTheDocument()
+      })
+    })
+  })
+})

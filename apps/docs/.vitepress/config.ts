@@ -1,57 +1,81 @@
-import { defineConfig } from 'vitepress';
+import { defineConfig } from 'vitepress'
 
 export default defineConfig({
   title: 'Rivière',
   description: 'Living Architecture - See how operations flow through your system',
 
   head: [
-    ['link', {
-      rel: 'icon',
-      type: 'image/svg+xml',
-      href: '/favicon.svg' 
-    }],
-    ['meta', {
-      property: 'og:type',
-      content: 'website' 
-    }],
-    ['meta', {
-      property: 'og:title',
-      content: 'Rivière - Living Architecture' 
-    }],
+    [
+      'link',
+      {
+        rel: 'icon',
+        type: 'image/svg+xml',
+        href: '/favicon.svg',
+      },
+    ],
+    [
+      'meta',
+      {
+        property: 'og:type',
+        content: 'website',
+      },
+    ],
+    [
+      'meta',
+      {
+        property: 'og:title',
+        content: 'Rivière - Living Architecture',
+      },
+    ],
     [
       'meta',
       {
         property: 'og:description',
-        content: 'See how operations flow through your system' 
+        content: 'See how operations flow through your system',
       },
     ],
-    ['meta', {
-      property: 'og:image',
-      content: 'https://living-architecture.dev/og-preview.png' 
-    }],
-    ['meta', {
-      property: 'og:url',
-      content: 'https://living-architecture.dev' 
-    }],
-    ['meta', {
-      name: 'twitter:card',
-      content: 'summary_large_image' 
-    }],
-    ['meta', {
-      name: 'twitter:title',
-      content: 'Rivière - Living Architecture' 
-    }],
+    [
+      'meta',
+      {
+        property: 'og:image',
+        content: 'https://living-architecture.dev/og-preview.png',
+      },
+    ],
+    [
+      'meta',
+      {
+        property: 'og:url',
+        content: 'https://living-architecture.dev',
+      },
+    ],
+    [
+      'meta',
+      {
+        name: 'twitter:card',
+        content: 'summary_large_image',
+      },
+    ],
+    [
+      'meta',
+      {
+        name: 'twitter:title',
+        content: 'Rivière - Living Architecture',
+      },
+    ],
     [
       'meta',
       {
         name: 'twitter:description',
-        content: 'See how operations flow through your system' 
+        content: 'See how operations flow through your system',
       },
     ],
-    ['meta', {
-      name: 'twitter:image',
-      content: 'https://living-architecture.dev/og-preview.png' 
-    }],
+    [
+      'meta',
+      {
+        name: 'twitter:image',
+        content: 'https://living-architecture.dev/og-preview.png',
+      },
+    ],
   ],
 
   themeConfig: {
@@ -61,19 +85,19 @@ export default defineConfig({
     nav: [
       {
         text: 'Get Started',
-        link: '/get-started/' 
+        link: '/get-started/',
       },
       {
         text: 'Extract',
-        link: '/extract/' 
+        link: '/extract/',
       },
       {
         text: 'Visualize',
-        link: '/visualize/' 
+        link: '/visualize/',
       },
       {
         text: 'Reference',
-        link: '/reference/schema/graph-structure' 
+        link: '/reference/schema/graph-structure',
       },
     ],
 
@@ -84,23 +108,23 @@ export default defineConfig({
           items: [
             {
               text: 'Introduction',
-              link: '/get-started/' 
+              link: '/get-started/',
             },
             {
               text: 'CLI Quick Start',
-              link: '/get-started/cli-quick-start' 
+              link: '/get-started/cli-quick-start',
             },
             {
               text: 'Library Quick Start',
-              link: '/get-started/quick-start' 
+              link: '/get-started/quick-start',
             },
             {
               text: 'Library vs CLI',
-              link: '/get-started/library-vs-cli' 
+              link: '/get-started/library-vs-cli',
             },
             {
               text: 'Resources',
-              link: '/get-started/resources' 
+              link: '/get-started/resources',
             },
           ],
         },
@@ -108,41 +132,43 @@ export default defineConfig({
       '/extract/': [
         {
           text: 'Rivière Extraction',
-          items: [{
-            text: 'Overview',
-            link: '/extract/' 
-          }],
+          items: [
+            {
+              text: 'Overview',
+              link: '/extract/',
+            },
+          ],
         },
         {
           text: 'Extraction Steps',
           items: [
             {
               text: 'Workflow',
-              link: '/extract/steps/' 
+              link: '/extract/steps/',
             },
             {
               text: 'Step 1: Understand',
-              link: '/extract/steps/step-1-understand' 
+              link: '/extract/steps/step-1-understand',
             },
             {
               text: 'Step 2: Define',
-              link: '/extract/steps/step-2-define-components' 
+              link: '/extract/steps/step-2-define-components',
             },
             {
               text: 'Step 3: Extract',
-              link: '/extract/steps/step-3-extract' 
+              link: '/extract/steps/step-3-extract',
             },
             {
               text: 'Step 4: Link',
-              link: '/extract/steps/step-4-link' 
+              link: '/extract/steps/step-4-link',
             },
             {
               text: 'Step 5: Enrich',
-              link: '/extract/steps/step-5-enrich' 
+              link: '/extract/steps/step-5-enrich',
             },
             {
               text: 'Step 6: Validate',
-              link: '/extract/steps/step-6-validate' 
+              link: '/extract/steps/step-6-validate',
             },
           ],
         },
@@ -153,11 +179,11 @@ export default defineConfig({
           items: [
             {
               text: 'Introduction',
-              link: '/visualize/' 
+              link: '/visualize/',
             },
             {
               text: 'Getting Started',
-              link: '/visualize/getting-started' 
+              link: '/visualize/getting-started',
             },
           ],
         },
@@ -166,35 +192,35 @@ export default defineConfig({
           items: [
             {
               text: 'Overview',
-              link: '/visualize/views/overview' 
+              link: '/visualize/views/overview',
             },
             {
               text: 'Full Graph',
-              link: '/visualize/views/full-graph' 
+              link: '/visualize/views/full-graph',
             },
             {
               text: 'Domain Map',
-              link: '/visualize/views/domain-map' 
+              link: '/visualize/views/domain-map',
             },
             {
               text: 'Flows',
-              link: '/visualize/views/flows' 
+              link: '/visualize/views/flows',
             },
             {
               text: 'Entities',
-              link: '/visualize/views/entities' 
+              link: '/visualize/views/entities',
             },
             {
               text: 'Events',
-              link: '/visualize/views/events' 
+              link: '/visualize/views/events',
             },
             {
               text: 'Compare',
-              link: '/visualize/views/compare' 
+              link: '/visualize/views/compare',
             },
             {
               text: 'Domain Detail',
-              link: '/visualize/views/domain-detail' 
+              link: '/visualize/views/domain-detail',
             },
           ],
         },
@@ -202,21 +228,23 @@ export default defineConfig({
       '/reference/': [
         {
           text: 'Schema',
-          items: [{
-            text: 'Graph Structure',
-            link: '/reference/schema/graph-structure' 
-          }],
+          items: [
+            {
+              text: 'Graph Structure',
+              link: '/reference/schema/graph-structure',
+            },
+          ],
         },
         {
           text: 'CLI',
           items: [
             {
               text: 'Overview',
-              link: '/reference/cli/' 
+              link: '/reference/cli/',
             },
             {
               text: 'Commands',
-              link: '/reference/cli/cli-reference' 
+              link: '/reference/cli/cli-reference',
             },
           ],
         },
@@ -225,7 +253,7 @@ export default defineConfig({
           items: [
             {
               text: 'Overview',
-              link: '/reference/api/' 
+              link: '/reference/api/',
             },
             {
               text: 'RiviereBuilder',
@@ -233,37 +261,39 @@ export default defineConfig({
             },
             {
               text: 'RiviereQuery',
-              link: '/api/generated/riviere-query/classes/RiviereQuery' 
+              link: '/api/generated/riviere-query/classes/RiviereQuery',
             },
             {
               text: 'Types',
-              link: '/api/generated/riviere-query/README' 
+              link: '/api/generated/riviere-query/README',
             },
             {
               text: 'ID Generation',
-              link: '/reference/api/id-generation' 
+              link: '/reference/api/id-generation',
             },
             {
               text: 'Validation Rules',
-              link: '/reference/api/validation-rules' 
+              link: '/reference/api/validation-rules',
             },
             {
               text: 'Error Messages',
-              link: '/reference/api/error-messages' 
+              link: '/reference/api/error-messages',
             },
           ],
         },
       ],
     },
 
-    socialLinks: [{
-      icon: 'github',
-      link: 'https://github.com/ntcoding/living-architecture' 
-    }],
+    socialLinks: [
+      {
+        icon: 'github',
+        link: 'https://github.com/ntcoding/living-architecture',
+      },
+    ],
 
     footer: {
       message:
         'Released under the Apache 2.0 License. Created by <a href="https://nick-tune.me">Nick Tune</a> (<a href="https://bsky.app/profile/nick-tune.me">Bluesky</a>, <a href="https://linkedin.com/in/nick-tune">LinkedIn</a>, <a href="https://github.com/ntcoding">GitHub</a>)',
     },
   },
-});
+})

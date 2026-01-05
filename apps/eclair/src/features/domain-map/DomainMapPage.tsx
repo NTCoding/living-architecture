@@ -1,71 +1,71 @@
 import {
   useMemo, useCallback, useEffect, useRef 
-} from 'react';
+} from 'react'
 import {
   useSearchParams, useNavigate 
-} from 'react-router-dom';
+} from 'react-router-dom'
 import {
   ReactFlow, Background, Controls, useNodesState, useEdgesState 
-} from '@xyflow/react';
+} from '@xyflow/react'
 import type {
   Node, Edge, NodeMouseHandler, EdgeMouseHandler 
-} from '@xyflow/react';
-import '@xyflow/react/dist/style.css';
-import type { RiviereGraph } from '@/types/riviere';
-import { useExport } from '@/contexts/ExportContext';
+} from '@xyflow/react'
+import '@xyflow/react/dist/style.css'
+import type { RiviereGraph } from '@/types/riviere'
+import { useExport } from '@/contexts/ExportContext'
 import {
   generateExportFilename,
   exportElementAsPng,
   exportSvgAsFile,
   UNNAMED_GRAPH_EXPORT_NAME,
-} from '@/lib/exportGraph';
+} from '@/lib/exportGraph'
 import {
   extractDomainMap, getConnectedDomains 
-} from './extractDomainMap';
-import { calculateTooltipPositionWithViewportClipping } from './calculateTooltipPosition';
-import { pluralizeConnection } from './pluralize';
+} from './extractDomainMap'
+import { calculateTooltipPositionWithViewportClipping } from './calculateTooltipPosition'
+import { pluralizeConnection } from './pluralize'
 import type {
   DomainNodeData, DomainEdgeData 
-} from './extractDomainMap';
-import { DomainNode } from './components/DomainNode/DomainNode';
-import { useDomainMapInteractions } from './hooks/useDomainMapInteractions';
+} from './extractDomainMap'
+import { DomainNode } from './components/DomainNode/DomainNode'
+import { useDomainMapInteractions } from './hooks/useDomainMapInteractions'
 
-interface DomainMapPageProps {readonly graph: RiviereGraph;}
+interface DomainMapPageProps {readonly graph: RiviereGraph}
 
-const nodeTypes = { domain: DomainNode };
+const nodeTypes = { domain: DomainNode }
 
 export function DomainMapPage({ graph }: DomainMapPageProps): React.ReactElement {
-  const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
+  const [searchParams] = useSearchParams()
+  const navigate = useNavigate()
   const {
     registerExportHandlers, clearExportHandlers 
-  } = useExport();
-  const exportContainerRef = useRef<HTMLDivElement>(null);
-  const highlightDomain = searchParams.get('highlight');
+  } = useExport()
+  const exportContainerRef = useRef<HTMLDivElement>(null)
+  const highlightDomain = searchParams.get('highlight')
 
   const {
     domainNodes: initialNodes, domainEdges: initialEdges 
   } = useMemo(
     () => extractDomainMap(graph),
     [graph],
-  );
-  const [nodes, setNodes, onNodesChange] = useNodesState<Node<DomainNodeData>>(initialNodes);
-  const [edges, setEdges] = useEdgesState<Edge<DomainEdgeData>>(initialEdges);
+  )
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node<DomainNodeData>>(initialNodes)
+  const [edges, setEdges] = useEdgesState<Edge<DomainEdgeData>>(initialEdges)
 
   useEffect(() => {
-    setNodes(initialNodes);
-    setEdges(initialEdges);
-  }, [initialNodes, initialEdges, setNodes, setEdges]);
+    setNodes(initialNodes)
+    setEdges(initialEdges)
+  }, [initialNodes, initialEdges, setNodes, setEdges])
 
-  const connectionText = pluralizeConnection(initialEdges.length);
+  const connectionText = pluralizeConnection(initialEdges.length)
 
   const nodeCountMap = useMemo(() => {
-    const map = new Map<string, number>();
+    const map = new Map<string, number>()
     for (const node of nodes) {
-      map.set(node.id, node.data.nodeCount);
+      map.set(node.id, node.data.nodeCount)
     }
-    return map;
-  }, [nodes]);
+    return map
+  }, [nodes])
 
   const {
     tooltip,
@@ -78,26 +78,26 @@ export function DomainMapPage({ graph }: DomainMapPageProps): React.ReactElement
     selectEdge,
     closeInspector,
     clearFocus,
-  } = useDomainMapInteractions({ initialFocusedDomain: highlightDomain });
+  } = useDomainMapInteractions({ initialFocusedDomain: highlightDomain })
 
   const onNodeMouseEnter: NodeMouseHandler<Node<DomainNodeData>> = useCallback(
     (event, node) => {
       if (node.data.isExternal === true) {
-        showExternalNodeTooltip(event.clientX, event.clientY, node.data.label, node.data.nodeCount);
+        showExternalNodeTooltip(event.clientX, event.clientY, node.data.label, node.data.nodeCount)
       } else {
-        showNodeTooltip(event.clientX, event.clientY, node.data.label, node.data.nodeCount);
+        showNodeTooltip(event.clientX, event.clientY, node.data.label, node.data.nodeCount)
       }
     },
     [showNodeTooltip, showExternalNodeTooltip],
-  );
+  )
 
   const onNodeMouseLeave = useCallback(() => {
-    hideTooltip();
-  }, [hideTooltip]);
+    hideTooltip()
+  }, [hideTooltip])
 
   const onEdgeMouseEnter: EdgeMouseHandler<Edge<DomainEdgeData>> = useCallback(
     (event, edge) => {
-      if (edge.data === undefined) return;
+      if (edge.data === undefined) return
       showEdgeTooltip(
         event.clientX,
         event.clientY,
@@ -105,24 +105,22 @@ export function DomainMapPage({ graph }: DomainMapPageProps): React.ReactElement
         edge.target,
         edge.data.apiCount,
         edge.data.eventCount,
-      );
+      )
     },
     [showEdgeTooltip],
-  );
+  )
 
   const onEdgeMouseLeave = useCallback(() => {
-    hideTooltip();
-  }, [hideTooltip]);
+    hideTooltip()
+  }, [hideTooltip])
 
   const onEdgeClick = useCallback(
     (_event: React.MouseEvent, edge: Edge<DomainEdgeData>) => {
-      if (edge.data === undefined) return;
-      const sourceNodeCount = nodeCountMap.get(edge.source);
-      const targetNodeCount = nodeCountMap.get(edge.target);
+      if (edge.data === undefined) return
+      const sourceNodeCount = nodeCountMap.get(edge.source)
+      const targetNodeCount = nodeCountMap.get(edge.target)
       if (sourceNodeCount === undefined || targetNodeCount === undefined) {
-        throw new Error(
-          `Edge references missing node: source=${edge.source} target=${edge.target}`,
-        );
+        throw new Error(`Edge references missing node: source=${edge.source} target=${edge.target}`)
       }
       selectEdge(
         edge.source,
@@ -132,91 +130,91 @@ export function DomainMapPage({ graph }: DomainMapPageProps): React.ReactElement
         sourceNodeCount,
         targetNodeCount,
         edge.data.connections,
-      );
+      )
     },
     [selectEdge, nodeCountMap],
-  );
+  )
 
   const onNodeClick: NodeMouseHandler<Node<DomainNodeData>> = useCallback(
     (_event, node) => {
       if (node.data.isExternal === true) {
-        return;
+        return
       }
-      navigate(`/domains/${node.id}`);
+      navigate(`/domains/${node.id}`)
     },
     [navigate],
-  );
+  )
 
   const connectedDomains = useMemo(() => {
-    if (focusedDomain === null) return null;
-    return getConnectedDomains(focusedDomain, edges);
-  }, [focusedDomain, edges]);
+    if (focusedDomain === null) return null
+    return getConnectedDomains(focusedDomain, edges)
+  }, [focusedDomain, edges])
 
   const styledNodes = useMemo(() => {
-    if (focusedDomain === null) return nodes;
+    if (focusedDomain === null) return nodes
     return nodes.map((node) => {
-      const isFocused = node.id === focusedDomain;
-      const isConnected = connectedDomains === null ? false : connectedDomains.has(node.id);
-      const isDimmed = !isFocused && !isConnected;
+      const isFocused = node.id === focusedDomain
+      const isConnected = connectedDomains === null ? false : connectedDomains.has(node.id)
+      const isDimmed = !isFocused && !isConnected
       return {
         ...node,
         data: {
           ...node.data,
           dimmed: isDimmed,
         },
-      };
-    });
-  }, [nodes, focusedDomain, connectedDomains]);
+      }
+    })
+  }, [nodes, focusedDomain, connectedDomains])
 
   const styledEdges = useMemo(() => {
-    if (focusedDomain === null) return edges;
+    if (focusedDomain === null) return edges
     return edges.map((edge) => {
-      const isRelevant = edge.source === focusedDomain || edge.target === focusedDomain;
+      const isRelevant = edge.source === focusedDomain || edge.target === focusedDomain
       return {
         ...edge,
         style: {
           ...edge.style,
           opacity: isRelevant ? 1 : 0.2,
         },
-      };
-    });
-  }, [edges, focusedDomain]);
+      }
+    })
+  }, [edges, focusedDomain])
 
-  const totalConnections = inspector.apiCount + inspector.eventCount;
+  const totalConnections = inspector.apiCount + inspector.eventCount
 
   useEffect(() => {
-    const graphName = graph.metadata.name ?? UNNAMED_GRAPH_EXPORT_NAME;
+    const graphName = graph.metadata.name ?? UNNAMED_GRAPH_EXPORT_NAME
 
     const handleExportPng = (): void => {
       if (exportContainerRef.current) {
-        const filename = generateExportFilename(graphName, 'png');
+        const filename = generateExportFilename(graphName, 'png')
         const backgroundColor = getComputedStyle(document.documentElement)
           .getPropertyValue('--bg-primary')
-          .trim();
+          .trim()
         exportElementAsPng(exportContainerRef.current, filename, { backgroundColor }).catch(
           console.error,
-        );
+        )
       }
-    };
+    }
 
     const handleExportSvg = (): void => {
-      const svg = exportContainerRef.current?.querySelector('svg');
+      const svg = exportContainerRef.current?.querySelector('svg')
       if (!(svg instanceof SVGSVGElement)) {
-        throw new Error('Export container must contain an SVG element');
+        throw new Error('Export container must contain an SVG element')
       }
-      const filename = generateExportFilename(graphName, 'svg');
-      exportSvgAsFile(svg, filename);
-    };
+      const filename = generateExportFilename(graphName, 'svg')
+      exportSvgAsFile(svg, filename)
+    }
 
     registerExportHandlers({
       onPng: handleExportPng,
       onSvg: handleExportSvg,
-    });
+    })
 
     return () => {
-      clearExportHandlers();
-    };
-  }, [graph.metadata.name, registerExportHandlers, clearExportHandlers]);
+      clearExportHandlers()
+    }
+  }, [graph.metadata.name, registerExportHandlers, clearExportHandlers])
 
   return (
     <div ref={exportContainerRef} data-testid="domain-map-page" className="relative h-full w-full">
@@ -278,7 +276,7 @@ export function DomainMapPage({ graph }: DomainMapPageProps): React.ReactElement
         (() => {
           const {
             left, top 
-          } = calculateTooltipPositionWithViewportClipping(tooltip.x, tooltip.y);
+          } = calculateTooltipPositionWithViewportClipping(tooltip.x, tooltip.y)
           return (
             <div
               data-testid="domain-map-tooltip"
@@ -293,7 +291,7 @@ export function DomainMapPage({ graph }: DomainMapPageProps): React.ReactElement
               </div>
               <div className="text-xs text-[var(--text-secondary)]">{tooltip.detail}</div>
             </div>
-          );
+          )
         })()}
 
       <div
@@ -329,7 +327,7 @@ export function DomainMapPage({ graph }: DomainMapPageProps): React.ReactElement
             <div className="inspector-section-title">Connections</div>
             <div className="inspector-connection-list">
               {inspector.connections.map((conn, index) => {
-                const isEvent = conn.targetNodeType === 'EventHandler';
+                const isEvent = conn.targetNodeType === 'EventHandler'
                 return (
                   <div
                     key={`${conn.sourceName}-${conn.targetName}-${index}`}
@@ -345,7 +343,7 @@ export function DomainMapPage({ graph }: DomainMapPageProps): React.ReactElement
                     <div className="mt-2 text-sm text-[var(--text-primary)]">{conn.sourceName}</div>
                     <div className="text-xs text-[var(--text-secondary)]">→ {conn.targetName}</div>
                   </div>
-                );
+                )
               })}
             </div>
           </div>
@@ -364,5 +362,5 @@ export function DomainMapPage({ graph }: DomainMapPageProps): React.ReactElement
         </div>
       </div>
     </div>
-  );
+  )
 }

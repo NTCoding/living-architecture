@@ -6,21 +6,21 @@ export const VALID_COMPONENT_TYPES = [
   'Event',
   'EventHandler',
   'Custom',
-] as const;
-export type ComponentTypeFlag = (typeof VALID_COMPONENT_TYPES)[number];
+] as const
+export type ComponentTypeFlag = (typeof VALID_COMPONENT_TYPES)[number]
 
 export function isValidComponentType(value: string): value is ComponentTypeFlag {
-  return VALID_COMPONENT_TYPES.some((t) => t.toLowerCase() === value.toLowerCase());
+  return VALID_COMPONENT_TYPES.some((t) => t.toLowerCase() === value.toLowerCase())
 }
 
 export function normalizeToSchemaComponentType(value: string): ComponentTypeFlag {
-  const found = VALID_COMPONENT_TYPES.find((t) => t.toLowerCase() === value.toLowerCase());
+  const found = VALID_COMPONENT_TYPES.find((t) => t.toLowerCase() === value.toLowerCase())
   if (found === undefined) {
     throw new Error(
       `Expected valid ComponentType. Got: ${value}. Valid types: ${VALID_COMPONENT_TYPES.join(', ')}`,
-    );
+    )
   }
-  return found;
+  return found
 }
 
 export function normalizeComponentType(value: string): string {
@@ -32,33 +32,33 @@ export function normalizeComponentType(value: string): string {
     event: 'event',
     eventhandler: 'eventhandler',
     custom: 'custom',
-  };
-  const normalized = typeMap[value.toLowerCase()];
+  }
+  const normalized = typeMap[value.toLowerCase()]
   if (normalized === undefined) {
     throw new Error(
       `Invalid component type: ${value}. Valid types: ${Object.keys(typeMap).join(', ')}`,
-    );
+    )
   }
-  return normalized;
+  return normalized
 }
 
-export const VALID_SYSTEM_TYPES = ['domain', 'bff', 'ui', 'other'] as const;
-export type SystemTypeFlag = (typeof VALID_SYSTEM_TYPES)[number];
+export const VALID_SYSTEM_TYPES = ['domain', 'bff', 'ui', 'other'] as const
+export type SystemTypeFlag = (typeof VALID_SYSTEM_TYPES)[number]
 
 export function isValidSystemType(value: string): value is SystemTypeFlag {
-  return VALID_SYSTEM_TYPES.some((t) => t === value);
+  return VALID_SYSTEM_TYPES.some((t) => t === value)
 }
 
-export const VALID_API_TYPES = ['REST', 'GraphQL', 'other'] as const;
-export type ApiTypeFlag = (typeof VALID_API_TYPES)[number];
+export const VALID_API_TYPES = ['REST', 'GraphQL', 'other'] as const
+export type ApiTypeFlag = (typeof VALID_API_TYPES)[number]
 
 export function isValidApiType(value: string): value is ApiTypeFlag {
-  return VALID_API_TYPES.some((t) => t.toLowerCase() === value.toLowerCase());
+  return VALID_API_TYPES.some((t) => t.toLowerCase() === value.toLowerCase())
 }
 
-export const VALID_LINK_TYPES = ['sync', 'async'] as const;
-export type LinkType = (typeof VALID_LINK_TYPES)[number];
+export const VALID_LINK_TYPES = ['sync', 'async'] as const
+export type LinkType = (typeof VALID_LINK_TYPES)[number]
 
 export function isValidLinkType(value: string): value is LinkType {
-  return VALID_LINK_TYPES.some((t) => t === value);
+  return VALID_LINK_TYPES.some((t) => t === value)
 }

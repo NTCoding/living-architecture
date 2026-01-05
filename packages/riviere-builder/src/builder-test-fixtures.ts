@@ -1,4 +1,4 @@
-import type { BuilderOptions } from './builder';
+import type { BuilderOptions } from './builder'
 
 export function createValidOptions(): BuilderOptions {
   return {
@@ -18,12 +18,12 @@ export function createValidOptions(): BuilderOptions {
         systemType: 'domain',
       },
     },
-  };
+  }
 }
 
 export function createSourceLocation() {
   return {
     repository: 'test/repo',
     filePath: 'src/test.ts',
-  };
+  }
 }

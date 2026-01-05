@@ -1,21 +1,21 @@
 import {
   useCallback, useEffect, useId, useState 
-} from 'react';
+} from 'react'
 import {
   JsonView, collapseAllNested 
-} from 'react-json-view-lite';
-import 'react-json-view-lite/dist/index.css';
+} from 'react-json-view-lite'
+import 'react-json-view-lite/dist/index.css'
 import type {
   RiviereGraph, GraphName 
-} from '@/types/riviere';
-import styles from './SchemaModal.module.css';
+} from '@/types/riviere'
+import styles from './SchemaModal.module.css'
 
 function getStyle(name: string): string {
-  const value = styles[name];
+  const value = styles[name]
   if (value === undefined) {
-    throw new Error(`CSS module class "${name}" not found in SchemaModal.module.css`);
+    throw new Error(`CSS module class "${name}" not found in SchemaModal.module.css`)
   }
-  return value;
+  return value
 }
 
 const jsonViewStyles = {
@@ -41,13 +41,13 @@ const jsonViewStyles = {
     collapseJson: 'Collapse JSON node',
     expandJson: 'Expand JSON node',
   },
-};
+}
 
 interface SchemaModalProps {
-  readonly graph: RiviereGraph | null;
-  readonly graphName: GraphName | undefined;
-  readonly isOpen: boolean;
-  readonly onClose: () => void;
+  readonly graph: RiviereGraph | null
+  readonly graphName: GraphName | undefined
+  readonly isOpen: boolean
+  readonly onClose: () => void
 }
 
 export function SchemaModal({
@@ -56,71 +56,71 @@ export function SchemaModal({
   isOpen,
   onClose,
 }: SchemaModalProps): React.ReactElement | null {
-  const titleId = useId();
-  const [copyFeedback, setCopyFeedback] = useState(false);
-  const shouldExpandNode = useCallback((level: number) => collapseAllNested(level), []);
+  const titleId = useId()
+  const [copyFeedback, setCopyFeedback] = useState(false)
+  const shouldExpandNode = useCallback((level: number) => collapseAllNested(level), [])
 
   useEffect(() => {
     if (graph === null || !isOpen) {
-      return;
+      return
     }
 
     function closeModalOnEscape(e: KeyboardEvent): void {
       if (e.key === 'Escape') {
-        onClose();
+        onClose()
       }
     }
 
-    document.addEventListener('keydown', closeModalOnEscape);
-    return () => document.removeEventListener('keydown', closeModalOnEscape);
-  }, [graph, isOpen, onClose]);
+    document.addEventListener('keydown', closeModalOnEscape)
+    return () => document.removeEventListener('keydown', closeModalOnEscape)
+  }, [graph, isOpen, onClose])
 
   if (graph === null || !isOpen) {
-    return null;
+    return null
   }
 
-  const jsonContent = JSON.stringify(graph, null, 2);
+  const jsonContent = JSON.stringify(graph, null, 2)
 
   const copySchemaJson = async (): Promise<void> => {
-    await navigator.clipboard.writeText(jsonContent);
-    setCopyFeedback(true);
-    setTimeout(() => setCopyFeedback(false), 2000);
-  };
+    await navigator.clipboard.writeText(jsonContent)
+    setCopyFeedback(true)
+    setTimeout(() => setCopyFeedback(false), 2000)
+  }
 
   const downloadSchemaAsJson = (): void => {
     if (graphName === undefined) {
       throw new Error(
         'Cannot download: graphName is required. Button should be disabled when graphName is undefined.',
-      );
+      )
     }
-    const blob = new Blob([jsonContent], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = graphName;
-    link.click();
-    URL.revokeObjectURL(url);
-  };
+    const blob = new Blob([jsonContent], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = graphName
+    link.click()
+    URL.revokeObjectURL(url)
+  }
 
-  const nodeCount = graph.components.length;
-  const edgeCount = graph.links.length;
-  const domainCount = Object.keys(graph.metadata.domains).length;
+  const nodeCount = graph.components.length
+  const edgeCount = graph.links.length
+  const domainCount = Object.keys(graph.metadata.domains).length
 
   function formatGeneratedDate(isoDateString: string | undefined): string {
     if (isoDateString === undefined) {
-      return 'Unknown';
+      return 'Unknown'
     }
-    const parts = isoDateString.split('T');
-    const datePart = parts[0];
+    const parts = isoDateString.split('T')
+    const datePart = parts[0]
     if (datePart === undefined || datePart === '') {
       throw new Error(
         `Invalid ISO date string: "${isoDateString}". Expected format like "2024-01-15T10:30:00Z".`,
-      );
+      )
     }
-    return datePart;
+    return datePart
   }
 
-  const generatedDate = formatGeneratedDate(graph.metadata.generated);
+  const generatedDate = formatGeneratedDate(graph.metadata.generated)
 
   return (
     <div
@@ -134,7 +134,7 @@ export function SchemaModal({
         onClick={onClose}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
-            onClose();
+            onClose()
           }
         }}
         role="button"
@@ -235,5 +235,5 @@ export function SchemaModal({
         </div>
       </div>
     </div>
-  );
+  )
 }

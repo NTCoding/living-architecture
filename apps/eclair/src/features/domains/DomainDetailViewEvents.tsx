@@ -1,16 +1,16 @@
-import type { DomainDetails } from './extractDomainDetails';
-import { EventAccordion } from './components/EventAccordion/EventAccordion';
-import { CodeLinkMenu } from '@/features/flows/components/CodeLinkMenu/CodeLinkMenu';
+import type { DomainDetails } from './extractDomainDetails'
+import { EventAccordion } from './components/EventAccordion/EventAccordion'
+import { CodeLinkMenu } from '@/features/flows/components/CodeLinkMenu/CodeLinkMenu'
 
-type DomainDetailsPublishedEvent = DomainDetails['events']['published'][number];
-type DomainDetailsConsumedEvent = DomainDetails['events']['consumed'][number];
+type DomainDetailsPublishedEvent = DomainDetails['events']['published'][number]
+type DomainDetailsConsumedEvent = DomainDetails['events']['consumed'][number]
 
 interface EventsSectionProps {
-  readonly hasEvents: boolean;
-  readonly eventSearch: string;
-  readonly setEventSearch: (search: string) => void;
-  readonly filteredPublishedEvents: Array<DomainDetailsPublishedEvent>;
-  readonly filteredConsumedEvents: Array<DomainDetailsConsumedEvent>;
+  readonly hasEvents: boolean
+  readonly eventSearch: string
+  readonly setEventSearch: (search: string) => void
+  readonly filteredPublishedEvents: Array<DomainDetailsPublishedEvent>
+  readonly filteredConsumedEvents: Array<DomainDetailsConsumedEvent>
 }
 
 export function EventsSection({
@@ -50,13 +50,13 @@ export function EventsSection({
         filteredConsumedEvents={filteredConsumedEvents}
       />
     </section>
-  );
+  )
 }
 
 interface EventsListOrEmptyProps {
-  readonly hasEvents: boolean;
-  readonly filteredPublishedEvents: Array<DomainDetailsPublishedEvent>;
-  readonly filteredConsumedEvents: Array<DomainDetailsConsumedEvent>;
+  readonly hasEvents: boolean
+  readonly filteredPublishedEvents: Array<DomainDetailsPublishedEvent>
+  readonly filteredConsumedEvents: Array<DomainDetailsConsumedEvent>
 }
 
 function EventsListOrEmpty({
@@ -65,7 +65,7 @@ function EventsListOrEmpty({
   filteredConsumedEvents,
 }: EventsListOrEmptyProps): React.ReactElement {
   if (!hasEvents) {
-    return <p className="text-sm italic text-[var(--text-tertiary)]">No events in this domain</p>;
+    return <p className="text-sm italic text-[var(--text-tertiary)]">No events in this domain</p>
   }
 
   return (
@@ -76,10 +76,10 @@ function EventsListOrEmpty({
         <p className="text-sm italic text-[var(--text-tertiary)]">No events match your search</p>
       )}
     </div>
-  );
+  )
 }
 
-interface PublishedEventsSectionProps {readonly events: Array<DomainDetailsPublishedEvent>;}
+interface PublishedEventsSectionProps {readonly events: Array<DomainDetailsPublishedEvent>}
 
 function PublishedEventsSection({ events }: PublishedEventsSectionProps): React.ReactElement {
   return events.length === 0 ? (
@@ -93,10 +93,10 @@ function PublishedEventsSection({ events }: PublishedEventsSectionProps): React.
         ))}
       </div>
     </div>
-  );
+  )
 }
 
-interface ConsumedEventsSectionProps {readonly events: Array<DomainDetailsConsumedEvent>;}
+interface ConsumedEventsSectionProps {readonly events: Array<DomainDetailsConsumedEvent>}
 
 function ConsumedEventsSection({ events }: ConsumedEventsSectionProps): React.ReactElement {
   return events.length === 0 ? (
@@ -110,13 +110,13 @@ function ConsumedEventsSection({ events }: ConsumedEventsSectionProps): React.Re
         ))}
       </div>
     </div>
-  );
+  )
 }
 
-interface ConsumedEventItemProps {readonly handler: DomainDetailsConsumedEvent;}
+interface ConsumedEventItemProps {readonly handler: DomainDetailsConsumedEvent}
 
 function ConsumedEventItem({ handler }: ConsumedEventItemProps): React.ReactElement {
-  const sourceLocation = handler.sourceLocation;
+  const sourceLocation = handler.sourceLocation
   return (
     <div className="overflow-hidden rounded-lg border border-[var(--border-color)] bg-[var(--bg-secondary)] shadow-sm">
       <div className="flex items-center justify-between gap-3 p-4">
@@ -151,5 +151,5 @@ function ConsumedEventItem({ handler }: ConsumedEventItemProps): React.ReactElem
         )}
       </div>
     </div>
-  );
+  )
 }

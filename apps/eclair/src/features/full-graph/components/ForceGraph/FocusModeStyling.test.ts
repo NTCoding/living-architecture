@@ -1,19 +1,19 @@
 import {
   describe, it, expect 
-} from 'vitest';
-import { getLinkNodeId } from './FocusModeStyling';
-import type { SimulationNode } from '../../types';
-import { parseNode } from '@/lib/riviereTestFixtures';
+} from 'vitest'
+import { getLinkNodeId } from './FocusModeStyling'
+import type { SimulationNode } from '../../types'
+import { parseNode } from '@/lib/riviereTestFixtures'
 const testSourceLocation = {
   repository: 'test-repo',
   filePath: 'src/test.ts',
-};
+}
 
 describe('FocusModeStyling', () => {
   describe('getLinkNodeId', () => {
     it('returns id string when nodeOrId is a string', () => {
-      expect(getLinkNodeId('node-123')).toBe('node-123');
-    });
+      expect(getLinkNodeId('node-123')).toBe('node-123')
+    })
 
     it('returns id from node object when nodeOrId is a node', () => {
       const node: SimulationNode = {
@@ -30,10 +30,10 @@ describe('FocusModeStyling', () => {
           domain: 'test',
           module: 'test-module',
         }),
-      };
+      }
 
-      expect(getLinkNodeId(node)).toBe('node-456');
-    });
+      expect(getLinkNodeId(node)).toBe('node-456')
+    })
 
     it('handles API node type', () => {
       const node: SimulationNode = {
@@ -50,9 +50,9 @@ describe('FocusModeStyling', () => {
           domain: 'test',
           module: 'test-module',
         }),
-      };
-      expect(getLinkNodeId(node)).toBe('test-API');
-    });
+      }
+      expect(getLinkNodeId(node)).toBe('test-API')
+    })
 
     it('handles Event node type', () => {
       const node: SimulationNode = {
@@ -69,9 +69,9 @@ describe('FocusModeStyling', () => {
           module: 'test-module',
           eventName: 'TestEvent',
         }),
-      };
-      expect(getLinkNodeId(node)).toBe('test-Event');
-    });
+      }
+      expect(getLinkNodeId(node)).toBe('test-Event')
+    })
 
     it('handles UI node type', () => {
       const node: SimulationNode = {
@@ -88,14 +88,14 @@ describe('FocusModeStyling', () => {
           module: 'test-module',
           route: '/test',
         }),
-      };
-      expect(getLinkNodeId(node)).toBe('test-UI');
-    });
+      }
+      expect(getLinkNodeId(node)).toBe('test-UI')
+    })
 
     it('preserves special characters in id', () => {
-      expect(getLinkNodeId('node-with-dashes')).toBe('node-with-dashes');
-      expect(getLinkNodeId('node_with_underscores')).toBe('node_with_underscores');
-      expect(getLinkNodeId('node:with:colons')).toBe('node:with:colons');
-    });
-  });
-});
+      expect(getLinkNodeId('node-with-dashes')).toBe('node-with-dashes')
+      expect(getLinkNodeId('node_with_underscores')).toBe('node_with_underscores')
+      expect(getLinkNodeId('node:with:colons')).toBe('node:with:colons')
+    })
+  })
+})

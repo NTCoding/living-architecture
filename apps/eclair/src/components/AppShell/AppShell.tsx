@@ -1,27 +1,27 @@
 import {
   useState, useCallback 
-} from 'react';
-import { useLocation } from 'react-router-dom';
-import { Header } from '@/components/Header/Header';
-import { Sidebar } from '@/components/Sidebar/Sidebar';
-import { useExport } from '@/contexts/ExportContext';
+} from 'react'
+import { useLocation } from 'react-router-dom'
+import { Header } from '@/components/Header/Header'
+import { Sidebar } from '@/components/Sidebar/Sidebar'
+import { useExport } from '@/contexts/ExportContext'
 import type {
   RiviereGraph, GraphName 
-} from '@/types/riviere';
+} from '@/types/riviere'
 
 interface AppShellProps {
-  readonly children: React.ReactNode;
-  readonly hasGraph: boolean;
-  readonly graphName: GraphName | undefined;
-  readonly graph: RiviereGraph | null;
+  readonly children: React.ReactNode
+  readonly hasGraph: boolean
+  readonly graphName: GraphName | undefined
+  readonly graph: RiviereGraph | null
 }
 
-const COLLAPSED_BY_DEFAULT_ROUTES = ['/full-graph'];
-const MOBILE_BREAKPOINT = 768;
+const COLLAPSED_BY_DEFAULT_ROUTES = ['/full-graph']
+const MOBILE_BREAKPOINT = 768
 
 function isMobileViewport(): boolean {
-  if (typeof window === 'undefined') return false;
-  return window.innerWidth < MOBILE_BREAKPOINT;
+  if (typeof window === 'undefined') return false
+  return window.innerWidth < MOBILE_BREAKPOINT
 }
 
 export function AppShell({
@@ -30,15 +30,15 @@ export function AppShell({
   graphName,
   graph,
 }: AppShellProps): React.ReactElement {
-  const location = useLocation();
-  const { exportHandlers } = useExport();
+  const location = useLocation()
+  const { exportHandlers } = useExport()
   const [sidebarCollapsed, setSidebarCollapsed] = useState(
     () => isMobileViewport() || COLLAPSED_BY_DEFAULT_ROUTES.includes(location.pathname),
-  );
+  )
 
   const toggleSidebarCollapsedState = useCallback(() => {
-    setSidebarCollapsed((prev) => !prev);
-  }, []);
+    setSidebarCollapsed((prev) => !prev)
+  }, [])
 
   return (
     <div className="h-screen flex overflow-hidden bg-[var(--bg-primary)]">
@@ -98,5 +98,5 @@ export function AppShell({
         </footer>
       </div>
     </div>
-  );
+  )
 }

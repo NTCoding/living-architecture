@@ -1,18 +1,18 @@
 import {
   describe, it, expect 
-} from 'vitest';
-import { extractDomainDetails } from './extractDomainDetails';
+} from 'vitest'
+import { extractDomainDetails } from './extractDomainDetails'
 import {
   parseNode,
   parseDomainMetadata,
   parseDomainKey,
   type RawNode,
-} from '@/lib/riviereTestFixtures';
-import type { RiviereGraph } from '@/types/riviere';
+} from '@/lib/riviereTestFixtures'
+import type { RiviereGraph } from '@/types/riviere'
 const testSourceLocation = {
   repository: 'test-repo',
   filePath: 'src/test.ts',
-};
+}
 
 function createMinimalGraph(overrides: Partial<RiviereGraph> = {}): RiviereGraph {
   return {
@@ -24,7 +24,7 @@ function createMinimalGraph(overrides: Partial<RiviereGraph> = {}): RiviereGraph
     components: [],
     links: [],
     ...overrides,
-  };
+  }
 }
 
 function createNode(overrides: Partial<RawNode> = {}): ReturnType<typeof parseNode> {
@@ -36,11 +36,11 @@ function createNode(overrides: Partial<RawNode> = {}): ReturnType<typeof parseNo
     name: 'Test Node',
     domain: 'test-domain',
     module: 'test-module',
-  };
+  }
   return parseNode({
     ...defaults,
     ...overrides,
-  });
+  })
 }
 
 describe('extractDomainDetails', () => {
@@ -55,12 +55,12 @@ describe('extractDomainDetails', () => {
             },
           }),
         },
-      });
+      })
 
-      const result = extractDomainDetails(graph, parseDomainKey('non-existent'));
+      const result = extractDomainDetails(graph, parseDomainKey('non-existent'))
 
-      expect(result).toBeNull();
-    });
+      expect(result).toBeNull()
+    })
 
     it('extracts domain id, name, description and systemType', () => {
       const graph = createMinimalGraph({
@@ -72,16 +72,16 @@ describe('extractDomainDetails', () => {
             },
           }),
         },
-      });
+      })
 
-      const result = extractDomainDetails(graph, parseDomainKey('order-domain'));
+      const result = extractDomainDetails(graph, parseDomainKey('order-domain'))
 
-      expect(result).not.toBeNull();
-      expect(result?.id).toBe('order-domain');
-      expect(result?.description).toBe('Manages orders');
-      expect(result?.systemType).toBe('domain');
-    });
-  });
+      expect(result).not.toBeNull()
+      expect(result?.id).toBe('order-domain')
+      expect(result?.description).toBe('Manages orders')
+      expect(result?.systemType).toBe('domain')
+    })
+  })
 
   describe('nodes extraction', () => {
     it('extracts all nodes belonging to domain with type and location', () => {
@@ -126,11 +126,11 @@ describe('extractDomainDetails', () => {
             domain: 'other-domain',
           }),
         ],
-      });
+      })
 
-      const result = extractDomainDetails(graph, parseDomainKey('order-domain'));
+      const result = extractDomainDetails(graph, parseDomainKey('order-domain'))
 
-      expect(result?.nodes).toHaveLength(2);
+      expect(result?.nodes).toHaveLength(2)
       expect(result?.nodes[0]).toEqual({
         id: 'api-1',
         type: 'API',
@@ -141,7 +141,7 @@ describe('extractDomainDetails', () => {
           filePath: 'src/api/orders.ts',
           lineNumber: 12,
         },
-      });
+      })
       expect(result?.nodes[1]).toEqual({
         id: 'uc-1',
         type: 'UseCase',
@@ -152,8 +152,8 @@ describe('extractDomainDetails', () => {
           filePath: 'src/usecases/PlaceOrder.ts',
           lineNumber: 8,
         },
-      });
-    });
+      })
+    })
 
     it('sorts nodes by type priority (UI, API, UseCase, DomainOp, Event, EventHandler, Custom)', () => {
       const graph = createMinimalGraph({
@@ -207,14 +207,14 @@ describe('extractDomainDetails', () => {
             operationName: 'op',
           }),
         ],
-      });
+      })
 
-      const result = extractDomainDetails(graph, parseDomainKey('order-domain'));
+      const result = extractDomainDetails(graph, parseDomainKey('order-domain'))
 
-      const types = result?.nodes.map((n) => n.type);
-      expect(types).toEqual(['UI', 'API', 'UseCase', 'DomainOp', 'Event', 'EventHandler']);
-    });
-  });
+      const types = result?.nodes.map((n) => n.type)
+      expect(types).toEqual(['UI', 'API', 'UseCase', 'DomainOp', 'Event', 'EventHandler'])
+    })
+  })
 
   describe('events extraction', () => {
     it('extracts published events with full event data', () => {
@@ -242,11 +242,11 @@ describe('extractDomainDetails', () => {
             },
           }),
         ],
-      });
+      })
 
-      const result = extractDomainDetails(graph, parseDomainKey('order-domain'));
+      const result = extractDomainDetails(graph, parseDomainKey('order-domain'))
 
-      expect(result?.events.published).toHaveLength(1);
+      expect(result?.events.published).toHaveLength(1)
       expect(result?.events.published[0]).toEqual({
         id: 'evt-1',
         eventName: 'OrderPlaced',
@@ -257,8 +257,8 @@ describe('extractDomainDetails', () => {
           lineNumber: 10,
         },
         handlers: [],
-      });
-    });
+      })
+    })
 
     it('includes handlers that subscribe to published events', () => {
       const graph = createMinimalGraph({
@@ -301,23 +301,23 @@ describe('extractDomainDetails', () => {
             subscribedEvents: ['OrderPlaced'],
           }),
         ],
-      });
+      })
 
-      const result = extractDomainDetails(graph, parseDomainKey('order-domain'));
-      const orderPlacedEvent = result?.events.published.find((e) => e.eventName === 'OrderPlaced');
+      const result = extractDomainDetails(graph, parseDomainKey('order-domain'))
+      const orderPlacedEvent = result?.events.published.find((e) => e.eventName === 'OrderPlaced')
 
-      expect(orderPlacedEvent?.handlers).toHaveLength(2);
+      expect(orderPlacedEvent?.handlers).toHaveLength(2)
       expect(orderPlacedEvent?.handlers).toContainEqual({
         handlerId: 'handler-inv',
         domain: 'inventory-domain',
         handlerName: 'Reserve Inventory Handler',
-      });
+      })
       expect(orderPlacedEvent?.handlers).toContainEqual({
         handlerId: 'handler-ship',
         domain: 'shipping-domain',
         handlerName: 'Create Shipment Handler',
-      });
-    });
+      })
+    })
 
     it('sorts published events alphabetically', () => {
       const graph = createMinimalGraph({
@@ -345,15 +345,12 @@ describe('extractDomainDetails', () => {
             eventName: 'AppleEvent',
           }),
         ],
-      });
+      })
 
-      const result = extractDomainDetails(graph, parseDomainKey('order-domain'));
+      const result = extractDomainDetails(graph, parseDomainKey('order-domain'))
 
-      expect(result?.events.published.map((e) => e.eventName)).toEqual([
-        'AppleEvent',
-        'ZebraEvent',
-      ]);
-    });
+      expect(result?.events.published.map((e) => e.eventName)).toEqual(['AppleEvent', 'ZebraEvent'])
+    })
 
     it('extracts consumed events as full handler objects', () => {
       const graph = createMinimalGraph({
@@ -380,11 +377,11 @@ describe('extractDomainDetails', () => {
             },
           }),
         ],
-      });
+      })
 
-      const result = extractDomainDetails(graph, parseDomainKey('order-domain'));
+      const result = extractDomainDetails(graph, parseDomainKey('order-domain'))
 
-      expect(result?.events.consumed).toHaveLength(1);
+      expect(result?.events.consumed).toHaveLength(1)
       expect(result?.events.consumed[0]).toEqual({
         id: 'handler-1',
         handlerName: 'Handle Payment Completed',
@@ -401,8 +398,8 @@ describe('extractDomainDetails', () => {
           filePath: 'src/handlers/payment.ts',
           lineNumber: 15,
         },
-      });
-    });
+      })
+    })
 
     it('sorts consumed handlers alphabetically by name', () => {
       const graph = createMinimalGraph({
@@ -430,16 +427,16 @@ describe('extractDomainDetails', () => {
             subscribedEvents: ['Y'],
           }),
         ],
-      });
+      })
 
-      const result = extractDomainDetails(graph, parseDomainKey('order-domain'));
+      const result = extractDomainDetails(graph, parseDomainKey('order-domain'))
 
       expect(result?.events.consumed.map((h) => h.handlerName)).toEqual([
         'Apple Handler',
         'Zebra Handler',
-      ]);
-    });
-  });
+      ])
+    })
+  })
 
   describe('node breakdown', () => {
     it('includes node breakdown counts', () => {
@@ -479,9 +476,9 @@ describe('extractDomainDetails', () => {
             domain: 'order-domain',
           }),
         ],
-      });
+      })
 
-      const result = extractDomainDetails(graph, parseDomainKey('order-domain'));
+      const result = extractDomainDetails(graph, parseDomainKey('order-domain'))
 
       expect(result?.nodeBreakdown).toEqual({
         UI: 1,
@@ -491,9 +488,9 @@ describe('extractDomainDetails', () => {
         Event: 0,
         EventHandler: 0,
         Custom: 0,
-      });
-    });
-  });
+      })
+    })
+  })
 
   describe('entry points', () => {
     it('includes entry points from UI routes and API paths', () => {
@@ -524,13 +521,13 @@ describe('extractDomainDetails', () => {
             path: '/api/orders',
           }),
         ],
-      });
+      })
 
-      const result = extractDomainDetails(graph, parseDomainKey('order-domain'));
+      const result = extractDomainDetails(graph, parseDomainKey('order-domain'))
 
-      expect(result?.entryPoints).toEqual(['/orders', '/api/orders']);
-    });
-  });
+      expect(result?.entryPoints).toEqual(['/orders', '/api/orders'])
+    })
+  })
 
   describe('repository', () => {
     it('includes repository from first node with sourceLocation.repository', () => {
@@ -556,11 +553,11 @@ describe('extractDomainDetails', () => {
             },
           }),
         ],
-      });
+      })
 
-      const result = extractDomainDetails(graph, parseDomainKey('order-domain'));
+      const result = extractDomainDetails(graph, parseDomainKey('order-domain'))
 
-      expect(result?.repository).toBe('ecommerce-app');
-    });
-  });
-});
+      expect(result?.repository).toBe('ecommerce-app')
+    })
+  })
+})

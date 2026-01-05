@@ -1,20 +1,20 @@
 import type {
   Node, Edge, NodeType, NodeId 
-} from '@/types/riviere';
+} from '@/types/riviere'
 
 export interface FilteredGraph {
-  nodes: Node[];
-  edges: Edge[];
+  nodes: Node[]
+  edges: Edge[]
 }
 
 function buildOutgoingEdgesMap(edges: Edge[]): Map<string, Edge[]> {
-  const outgoingEdges = new Map<string, Edge[]>();
+  const outgoingEdges = new Map<string, Edge[]>()
   for (const edge of edges) {
-    const edgesFromSource = outgoingEdges.get(edge.source) ?? [];
-    edgesFromSource.push(edge);
-    outgoingEdges.set(edge.source, edgesFromSource);
+    const edgesFromSource = outgoingEdges.get(edge.source) ?? []
+    edgesFromSource.push(edge)
+    outgoingEdges.set(edge.source, edgesFromSource)
   }
-  return outgoingEdges;
+  return outgoingEdges
 }
 
 function findVisibleDescendants(
@@ -23,31 +23,31 @@ function findVisibleDescendants(
   outgoingEdges: Map<string, Edge[]>,
   visited: Set<string>,
 ): Array<{
-  targetId: NodeId;
-  edge: Edge;
+  targetId: NodeId
+  edge: Edge
 }> {
   if (visited.has(nodeId)) {
-    return [];
+    return []
   }
-  visited.add(nodeId);
+  visited.add(nodeId)
 
   if (visibleNodeIds.has(nodeId)) {
-    return [];
+    return []
   }
 
   const descendants: Array<{
-    targetId: NodeId;
-    edge: Edge;
-  }> = [];
-  const nodeEdges = outgoingEdges.get(nodeId) ?? [];
+    targetId: NodeId
+    edge: Edge
+  }> = []
+  const nodeEdges = outgoingEdges.get(nodeId) ?? []
 
   for (const edge of nodeEdges) {
     if (visibleNodeIds.has(edge.target)) {
       descendants.push({
         targetId: edge.target,
         edge,
-      });
-      continue;
+      })
+      continue
     }
 
     const furtherDescendants = findVisibleDescendants(
@@ -55,11 +55,11 @@ function findVisibleDescendants(
       visibleNodeIds,
       outgoingEdges,
       new Set(visited),
-    );
-    descendants.push(...furtherDescendants);
+    )
+    descendants.push(...furtherDescendants)
   }
 
-  return descendants;
+  return descendants
 }
 
 function processEdgeForRewiring(
@@ -72,12 +72,12 @@ function processEdgeForRewiring(
   addedEdgePairs: Set<string>,
 ): void {
   if (sourceVisible && targetVisible) {
-    rewiredEdges.push(edge);
-    return;
+    rewiredEdges.push(edge)
+    return
   }
 
   if (!sourceVisible || targetVisible) {
-    return;
+    return
   }
 
   const visibleTargets = findVisibleDescendants(
@@ -85,28 +85,28 @@ function processEdgeForRewiring(
     visibleNodeIds,
     outgoingEdges,
     new Set(),
-  );
+  )
 
   for (const {
     targetId, edge: originalEdge 
   } of visibleTargets) {
-    const edgeKey = `${edge.source}->${targetId}`;
+    const edgeKey = `${edge.source}->${targetId}`
     if (addedEdgePairs.has(edgeKey)) {
-      continue;
+      continue
     }
 
     const rewiredEdge: Edge = {
       source: edge.source,
       target: targetId,
-    };
-    if (originalEdge.type !== undefined) {
-      rewiredEdge.type = originalEdge.type;
     }
     if (originalEdge.type !== undefined) {
-      rewiredEdge.type = originalEdge.type;
+      rewiredEdge.type = originalEdge.type
     }
-    rewiredEdges.push(rewiredEdge);
-    addedEdgePairs.add(edgeKey);
+    if (originalEdge.type !== undefined) {
+      rewiredEdge.type = originalEdge.type
+    }
+    rewiredEdges.push(rewiredEdge)
+    addedEdgePairs.add(edgeKey)
   }
 }
 
@@ -115,17 +115,17 @@ export function filterByNodeType(
   edges: Edge[],
   visibleTypes: Set<NodeType>,
 ): FilteredGraph {
-  const visibleNodes = nodes.filter((n) => visibleTypes.has(n.type));
-  const visibleNodeIds = new Set(visibleNodes.map((n) => n.id));
+  const visibleNodes = nodes.filter((n) => visibleTypes.has(n.type))
+  const visibleNodeIds = new Set(visibleNodes.map((n) => n.id))
 
-  const outgoingEdges = buildOutgoingEdgesMap(edges);
+  const outgoingEdges = buildOutgoingEdgesMap(edges)
 
-  const rewiredEdges: Edge[] = [];
-  const addedEdgePairs = new Set<string>();
+  const rewiredEdges: Edge[] = []
+  const addedEdgePairs = new Set<string>()
 
   for (const edge of edges) {
-    const sourceVisible = visibleNodeIds.has(edge.source);
-    const targetVisible = visibleNodeIds.has(edge.target);
+    const sourceVisible = visibleNodeIds.has(edge.source)
+    const targetVisible = visibleNodeIds.has(edge.target)
 
     processEdgeForRewiring(
       edge,
@@ -135,11 +135,11 @@ export function filterByNodeType(
       outgoingEdges,
       rewiredEdges,
       addedEdgePairs,
-    );
+    )
   }
 
   return {
     nodes: visibleNodes,
     edges: rewiredEdges,
-  };
+  }
 }

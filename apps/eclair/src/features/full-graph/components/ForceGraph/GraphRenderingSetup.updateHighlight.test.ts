@@ -1,44 +1,44 @@
 import {
   describe, it, expect 
-} from 'vitest';
-import * as d3 from 'd3';
-import { updateHighlight } from './GraphRenderingSetup';
+} from 'vitest'
+import * as d3 from 'd3'
+import { updateHighlight } from './GraphRenderingSetup'
 import type {
   SimulationNode, SimulationLink 
-} from '../../types';
+} from '../../types'
 import {
   parseNode, parseEdge 
-} from '@/lib/riviereTestFixtures';
+} from '@/lib/riviereTestFixtures'
 
 const testSourceLocation = {
   repository: 'test-repo',
   filePath: 'src/test.ts',
-};
+}
 
 function createTestElements(): {
-  svg: d3.Selection<SVGSVGElement, unknown, null, undefined>;
-  nodeGroup: d3.Selection<SVGGElement, unknown, null, undefined>;
-  linkGroup: d3.Selection<SVGGElement, unknown, null, undefined>;
-  cleanup: () => void;
+  svg: d3.Selection<SVGSVGElement, unknown, null, undefined>
+  nodeGroup: d3.Selection<SVGGElement, unknown, null, undefined>
+  linkGroup: d3.Selection<SVGGElement, unknown, null, undefined>
+  cleanup: () => void
 } {
-  const svgElement = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  document.body.appendChild(svgElement);
-  const svg = d3.select(svgElement);
-  const nodeGroup = svg.append('g').attr('class', 'nodes');
-  const linkGroup = svg.append('g').attr('class', 'links');
+  const svgElement = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+  document.body.appendChild(svgElement)
+  const svg = d3.select(svgElement)
+  const nodeGroup = svg.append('g').attr('class', 'nodes')
+  const linkGroup = svg.append('g').attr('class', 'links')
   return {
     svg,
     nodeGroup,
     linkGroup,
     cleanup: () => svgElement.remove(),
-  };
+  }
 }
 
 describe('GraphRenderingSetup - updateHighlight', () => {
   it('resets all nodes to full opacity when highlightedNodeIds is undefined', () => {
     const {
       nodeGroup, linkGroup, cleanup 
-    } = createTestElements();
+    } = createTestElements()
     const testNode: SimulationNode = {
       id: '1',
       type: 'API',
@@ -52,33 +52,33 @@ describe('GraphRenderingSetup - updateHighlight', () => {
         domain: 'test',
         module: 'test',
       }),
-    };
+    }
     const nodeSelection = nodeGroup
       .selectAll<SVGGElement, SimulationNode>('g')
       .data([testNode])
       .join('g')
-      .attr('opacity', 0.2);
-    const emptyLinks: SimulationLink[] = [];
+      .attr('opacity', 0.2)
+    const emptyLinks: SimulationLink[] = []
     const linkSelection = linkGroup
       .selectAll<SVGPathElement, SimulationLink>('path')
       .data(emptyLinks)
-      .join('path');
+      .join('path')
 
     updateHighlight({
       node: nodeSelection,
       link: linkSelection,
       filteredEdges: [],
       highlightedNodeIds: undefined,
-    });
+    })
 
-    expect(nodeSelection.attr('opacity')).toBe('1');
-    cleanup();
-  });
+    expect(nodeSelection.attr('opacity')).toBe('1')
+    cleanup()
+  })
 
   it('resets all links to default opacity when highlightedNodeIds is undefined', () => {
     const {
       nodeGroup, linkGroup, cleanup 
-    } = createTestElements();
+    } = createTestElements()
     const testNode: SimulationNode = {
       id: '1',
       type: 'API',
@@ -92,11 +92,11 @@ describe('GraphRenderingSetup - updateHighlight', () => {
         domain: 'test',
         module: 'test',
       }),
-    };
+    }
     const nodeSelection = nodeGroup
       .selectAll<SVGGElement, SimulationNode>('g')
       .data([testNode])
-      .join('g');
+      .join('g')
     const testLink: SimulationLink = {
       source: '1',
       target: '2',
@@ -106,28 +106,28 @@ describe('GraphRenderingSetup - updateHighlight', () => {
         target: '2',
         type: 'sync',
       }),
-    };
+    }
     const linkSelection = linkGroup
       .selectAll<SVGPathElement, SimulationLink>('path')
       .data([testLink])
       .join('path')
-      .attr('opacity', 0.1);
+      .attr('opacity', 0.1)
 
     updateHighlight({
       node: nodeSelection,
       link: linkSelection,
       filteredEdges: [],
       highlightedNodeIds: undefined,
-    });
+    })
 
-    expect(linkSelection.attr('opacity')).toBe('0.6');
-    cleanup();
-  });
+    expect(linkSelection.attr('opacity')).toBe('0.6')
+    cleanup()
+  })
 
   it('resets nodes when highlightedNodeIds is empty set', () => {
     const {
       nodeGroup, linkGroup, cleanup 
-    } = createTestElements();
+    } = createTestElements()
     const testNode: SimulationNode = {
       id: '1',
       type: 'API',
@@ -141,33 +141,33 @@ describe('GraphRenderingSetup - updateHighlight', () => {
         domain: 'test',
         module: 'test',
       }),
-    };
+    }
     const nodeSelection = nodeGroup
       .selectAll<SVGGElement, SimulationNode>('g')
       .data([testNode])
       .join('g')
-      .attr('opacity', 0.2);
-    const emptyLinks: SimulationLink[] = [];
+      .attr('opacity', 0.2)
+    const emptyLinks: SimulationLink[] = []
     const linkSelection = linkGroup
       .selectAll<SVGPathElement, SimulationLink>('path')
       .data(emptyLinks)
-      .join('path');
+      .join('path')
 
     updateHighlight({
       node: nodeSelection,
       link: linkSelection,
       filteredEdges: [],
       highlightedNodeIds: new Set(),
-    });
+    })
 
-    expect(nodeSelection.attr('opacity')).toBe('1');
-    cleanup();
-  });
+    expect(nodeSelection.attr('opacity')).toBe('1')
+    cleanup()
+  })
 
   it('dims nodes outside highlighted flow when highlightedNodeIds contains a node ID', () => {
     const {
       nodeGroup, linkGroup, cleanup 
-    } = createTestElements();
+    } = createTestElements()
 
     const nodeA: SimulationNode = {
       id: 'a',
@@ -182,7 +182,7 @@ describe('GraphRenderingSetup - updateHighlight', () => {
         domain: 'test',
         module: 'test',
       }),
-    };
+    }
     const nodeB: SimulationNode = {
       id: 'b',
       type: 'UseCase',
@@ -196,7 +196,7 @@ describe('GraphRenderingSetup - updateHighlight', () => {
         domain: 'test',
         module: 'test',
       }),
-    };
+    }
     const nodeC: SimulationNode = {
       id: 'c',
       type: 'Event',
@@ -211,7 +211,7 @@ describe('GraphRenderingSetup - updateHighlight', () => {
         module: 'test',
         eventName: 'C',
       }),
-    };
+    }
     const nodeX: SimulationNode = {
       id: 'x',
       type: 'API',
@@ -225,18 +225,18 @@ describe('GraphRenderingSetup - updateHighlight', () => {
         domain: 'other',
         module: 'other',
       }),
-    };
+    }
 
     const nodeSelection = nodeGroup
       .selectAll<SVGGElement, SimulationNode>('g')
       .data([nodeA, nodeB, nodeC, nodeX])
-      .join('g');
+      .join('g')
 
-    const emptyLinks: SimulationLink[] = [];
+    const emptyLinks: SimulationLink[] = []
     const linkSelection = linkGroup
       .selectAll<SVGPathElement, SimulationLink>('path')
       .data(emptyLinks)
-      .join('path');
+      .join('path')
 
     const edges = [
       parseEdge({
@@ -249,24 +249,24 @@ describe('GraphRenderingSetup - updateHighlight', () => {
         target: 'c',
         type: 'sync',
       }),
-    ];
+    ]
 
     updateHighlight({
       node: nodeSelection,
       link: linkSelection,
       filteredEdges: edges,
       highlightedNodeIds: new Set(['b']),
-    });
+    })
 
-    const opacities = nodeSelection.nodes().map((n) => n.getAttribute('opacity'));
-    expect(opacities).toEqual(['1', '1', '1', '0.2']);
-    cleanup();
-  });
+    const opacities = nodeSelection.nodes().map((n) => n.getAttribute('opacity'))
+    expect(opacities).toEqual(['1', '1', '1', '0.2'])
+    cleanup()
+  })
 
   it('dims edges outside highlighted flow when highlightedNodeIds contains a node ID', () => {
     const {
       nodeGroup, linkGroup, cleanup 
-    } = createTestElements();
+    } = createTestElements()
 
     const nodeA: SimulationNode = {
       id: 'a',
@@ -281,7 +281,7 @@ describe('GraphRenderingSetup - updateHighlight', () => {
         domain: 'test',
         module: 'test',
       }),
-    };
+    }
     const nodeB: SimulationNode = {
       id: 'b',
       type: 'UseCase',
@@ -295,7 +295,7 @@ describe('GraphRenderingSetup - updateHighlight', () => {
         domain: 'test',
         module: 'test',
       }),
-    };
+    }
     const nodeX: SimulationNode = {
       id: 'x',
       type: 'API',
@@ -309,7 +309,7 @@ describe('GraphRenderingSetup - updateHighlight', () => {
         domain: 'other',
         module: 'other',
       }),
-    };
+    }
     const nodeY: SimulationNode = {
       id: 'y',
       type: 'API',
@@ -323,12 +323,12 @@ describe('GraphRenderingSetup - updateHighlight', () => {
         domain: 'other',
         module: 'other',
       }),
-    };
+    }
 
     const nodeSelection = nodeGroup
       .selectAll<SVGGElement, SimulationNode>('g')
       .data([nodeA, nodeB, nodeX, nodeY])
-      .join('g');
+      .join('g')
 
     const linkAB: SimulationLink = {
       source: 'a',
@@ -339,7 +339,7 @@ describe('GraphRenderingSetup - updateHighlight', () => {
         target: 'b',
         type: 'sync',
       }),
-    };
+    }
     const linkXY: SimulationLink = {
       source: 'x',
       target: 'y',
@@ -349,12 +349,12 @@ describe('GraphRenderingSetup - updateHighlight', () => {
         target: 'y',
         type: 'sync',
       }),
-    };
+    }
 
     const linkSelection = linkGroup
       .selectAll<SVGPathElement, SimulationLink>('path')
       .data([linkAB, linkXY])
-      .join('path');
+      .join('path')
 
     const edges = [
       parseEdge({
@@ -367,17 +367,17 @@ describe('GraphRenderingSetup - updateHighlight', () => {
         target: 'y',
         type: 'sync',
       }),
-    ];
+    ]
 
     updateHighlight({
       node: nodeSelection,
       link: linkSelection,
       filteredEdges: edges,
       highlightedNodeIds: new Set(['b']),
-    });
+    })
 
-    const opacities = linkSelection.nodes().map((n) => n.getAttribute('opacity'));
-    expect(opacities).toEqual(['0.8', '0.1']);
-    cleanup();
-  });
-});
+    const opacities = linkSelection.nodes().map((n) => n.getAttribute('opacity'))
+    expect(opacities).toEqual(['0.8', '0.1'])
+    cleanup()
+  })
+})

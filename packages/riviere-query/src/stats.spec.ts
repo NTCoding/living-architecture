@@ -1,42 +1,42 @@
 import {
   describe, it, expect 
-} from 'vitest';
-import { RiviereQuery } from './RiviereQuery';
-import type { RiviereGraph } from '@living-architecture/riviere-schema';
+} from 'vitest'
+import { RiviereQuery } from './RiviereQuery'
+import type { RiviereGraph } from '@living-architecture/riviere-schema'
 import {
   createMinimalValidGraph,
   createAPIComponent,
   createEventComponent,
   createDomainOpComponent,
   defaultSourceLocation,
-} from './riviere-graph-fixtures';
+} from './riviere-graph-fixtures'
 
 describe('stats', () => {
   it('returns componentCount matching number of components', () => {
-    const graph = createMinimalValidGraph();
+    const graph = createMinimalValidGraph()
     graph.components.push(
       createAPIComponent({
         id: 'test:mod:api:one',
         name: 'API One',
         domain: 'test',
       }),
-    );
+    )
 
-    const query = new RiviereQuery(graph);
-    const result = query.stats();
+    const query = new RiviereQuery(graph)
+    const result = query.stats()
 
-    expect(result.componentCount).toBe(2);
-  });
+    expect(result.componentCount).toBe(2)
+  })
 
   it('returns linkCount matching number of links', () => {
-    const graph = createMinimalValidGraph();
+    const graph = createMinimalValidGraph()
     graph.components.push(
       createAPIComponent({
         id: 'test:mod:api:one',
         name: 'API One',
         domain: 'test',
       }),
-    );
+    )
     graph.links = [
       {
         source: 'test:mod:ui:page',
@@ -46,13 +46,13 @@ describe('stats', () => {
         source: 'test:mod:api:one',
         target: 'test:mod:ui:page',
       },
-    ];
+    ]
 
-    const query = new RiviereQuery(graph);
-    const result = query.stats();
+    const query = new RiviereQuery(graph)
+    const result = query.stats()
 
-    expect(result.linkCount).toBe(2);
-  });
+    expect(result.linkCount).toBe(2)
+  })
 
   it('returns domainCount counting unique domains', () => {
     const graph: RiviereGraph = {
@@ -99,16 +99,16 @@ describe('stats', () => {
         },
       ],
       links: [],
-    };
+    }
 
-    const query = new RiviereQuery(graph);
-    const result = query.stats();
+    const query = new RiviereQuery(graph)
+    const result = query.stats()
 
-    expect(result.domainCount).toBe(2);
-  });
+    expect(result.domainCount).toBe(2)
+  })
 
   it('returns apiCount counting only API components', () => {
-    const graph = createMinimalValidGraph();
+    const graph = createMinimalValidGraph()
     graph.components.push(
       createAPIComponent({
         id: 'test:mod:api:one',
@@ -120,16 +120,16 @@ describe('stats', () => {
         name: 'API Two',
         domain: 'test',
       }),
-    );
+    )
 
-    const query = new RiviereQuery(graph);
-    const result = query.stats();
+    const query = new RiviereQuery(graph)
+    const result = query.stats()
 
-    expect(result.apiCount).toBe(2);
-  });
+    expect(result.apiCount).toBe(2)
+  })
 
   it('returns entityCount counting unique entities from DomainOp components', () => {
-    const graph = createMinimalValidGraph();
+    const graph = createMinimalValidGraph()
     graph.components.push(
       createDomainOpComponent({
         id: 'test:mod:op:create',
@@ -152,16 +152,16 @@ describe('stats', () => {
         operationName: 'create',
         entity: 'Shipment',
       }),
-    );
+    )
 
-    const query = new RiviereQuery(graph);
-    const result = query.stats();
+    const query = new RiviereQuery(graph)
+    const result = query.stats()
 
-    expect(result.entityCount).toBe(2);
-  });
+    expect(result.entityCount).toBe(2)
+  })
 
   it('returns eventCount counting only Event components', () => {
-    const graph = createMinimalValidGraph();
+    const graph = createMinimalValidGraph()
     graph.components.push(
       createEventComponent({
         id: 'test:mod:event:one',
@@ -175,13 +175,13 @@ describe('stats', () => {
         domain: 'test',
         eventName: 'OrderShipped',
       }),
-    );
+    )
 
-    const query = new RiviereQuery(graph);
-    const result = query.stats();
+    const query = new RiviereQuery(graph)
+    const result = query.stats()
 
-    expect(result.eventCount).toBe(2);
-  });
+    expect(result.eventCount).toBe(2)
+  })
 
   it('returns zeros for graph with no components', () => {
     const graph: RiviereGraph = {
@@ -196,10 +196,10 @@ describe('stats', () => {
       },
       components: [],
       links: [],
-    };
+    }
 
-    const query = new RiviereQuery(graph);
-    const result = query.stats();
+    const query = new RiviereQuery(graph)
+    const result = query.stats()
 
     expect(result).toEqual({
       componentCount: 0,
@@ -208,6 +208,6 @@ describe('stats', () => {
       apiCount: 0,
       entityCount: 0,
       eventCount: 0,
-    });
-  });
-});
+    })
+  })
+})

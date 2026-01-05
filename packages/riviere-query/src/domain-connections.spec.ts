@@ -1,30 +1,30 @@
 import {
   describe, it, expect 
-} from 'vitest';
-import { RiviereQuery } from './RiviereQuery';
+} from 'vitest'
+import { RiviereQuery } from './RiviereQuery'
 import {
   createMinimalValidGraph,
   createAPIComponent,
   createUseCaseComponent,
   createEventHandlerComponent,
-} from './riviere-graph-fixtures';
+} from './riviere-graph-fixtures'
 
 describe('domainConnections', () => {
   it('returns empty array when domain has no connections to other domains', () => {
-    const graph = createMinimalValidGraph();
-    const query = new RiviereQuery(graph);
+    const graph = createMinimalValidGraph()
+    const query = new RiviereQuery(graph)
 
-    const result = query.domainConnections('test');
+    const result = query.domainConnections('test')
 
-    expect(result).toEqual([]);
-  });
+    expect(result).toEqual([])
+  })
 
   it('returns outgoing connections with API counts when calling other domain APIs', () => {
-    const graph = createMinimalValidGraph();
+    const graph = createMinimalValidGraph()
     graph.metadata.domains['orders'] = {
       description: 'Orders',
       systemType: 'domain',
-    };
+    }
     graph.components.push(
       createUseCaseComponent({
         id: 'test:mod:usecase:caller',
@@ -41,7 +41,7 @@ describe('domainConnections', () => {
         name: 'Get',
         domain: 'orders',
       }),
-    );
+    )
     graph.links.push(
       {
         source: 'test:mod:usecase:caller',
@@ -53,10 +53,10 @@ describe('domainConnections', () => {
         target: 'orders:mod:api:get',
         type: 'sync',
       },
-    );
-    const query = new RiviereQuery(graph);
+    )
+    const query = new RiviereQuery(graph)
 
-    const result = query.domainConnections('test');
+    const result = query.domainConnections('test')
 
     expect(result).toEqual([
       {
@@ -65,15 +65,15 @@ describe('domainConnections', () => {
         apiCount: 2,
         eventCount: 0,
       },
-    ]);
-  });
+    ])
+  })
 
   it('returns outgoing connections with event counts when triggering event handlers', () => {
-    const graph = createMinimalValidGraph();
+    const graph = createMinimalValidGraph()
     graph.metadata.domains['notifications'] = {
       description: 'Notifications',
       systemType: 'domain',
-    };
+    }
     graph.components.push(
       createUseCaseComponent({
         id: 'test:mod:usecase:sender',
@@ -85,15 +85,15 @@ describe('domainConnections', () => {
         name: 'Notify',
         domain: 'notifications',
       }),
-    );
+    )
     graph.links.push({
       source: 'test:mod:usecase:sender',
       target: 'notifications:mod:handler:notify',
       type: 'async',
-    });
-    const query = new RiviereQuery(graph);
+    })
+    const query = new RiviereQuery(graph)
 
-    const result = query.domainConnections('test');
+    const result = query.domainConnections('test')
 
     expect(result).toEqual([
       {
@@ -102,15 +102,15 @@ describe('domainConnections', () => {
         apiCount: 0,
         eventCount: 1,
       },
-    ]);
-  });
+    ])
+  })
 
   it('returns incoming connections when other domains call this domain', () => {
-    const graph = createMinimalValidGraph();
+    const graph = createMinimalValidGraph()
     graph.metadata.domains['orders'] = {
       description: 'Orders',
       systemType: 'domain',
-    };
+    }
     graph.components.push(
       createAPIComponent({
         id: 'test:mod:api:target',
@@ -122,15 +122,15 @@ describe('domainConnections', () => {
         name: 'Caller',
         domain: 'orders',
       }),
-    );
+    )
     graph.links.push({
       source: 'orders:mod:usecase:caller',
       target: 'test:mod:api:target',
       type: 'sync',
-    });
-    const query = new RiviereQuery(graph);
+    })
+    const query = new RiviereQuery(graph)
 
-    const result = query.domainConnections('test');
+    const result = query.domainConnections('test')
 
     expect(result).toEqual([
       {
@@ -139,15 +139,15 @@ describe('domainConnections', () => {
         apiCount: 1,
         eventCount: 0,
       },
-    ]);
-  });
+    ])
+  })
 
   it('returns both incoming and outgoing connections for bidirectional relationships', () => {
-    const graph = createMinimalValidGraph();
+    const graph = createMinimalValidGraph()
     graph.metadata.domains['orders'] = {
       description: 'Orders',
       systemType: 'domain',
-    };
+    }
     graph.components.push(
       createAPIComponent({
         id: 'test:mod:api:target',
@@ -169,7 +169,7 @@ describe('domainConnections', () => {
         name: 'OrderCaller',
         domain: 'orders',
       }),
-    );
+    )
     graph.links.push(
       {
         source: 'test:mod:usecase:caller',
@@ -181,35 +181,35 @@ describe('domainConnections', () => {
         target: 'test:mod:api:target',
         type: 'sync',
       },
-    );
-    const query = new RiviereQuery(graph);
+    )
+    const query = new RiviereQuery(graph)
 
-    const result = query.domainConnections('test');
+    const result = query.domainConnections('test')
 
     expect(result).toContainEqual({
       targetDomain: 'orders',
       direction: 'outgoing',
       apiCount: 1,
       eventCount: 0,
-    });
+    })
     expect(result).toContainEqual({
       targetDomain: 'orders',
       direction: 'incoming',
       apiCount: 1,
       eventCount: 0,
-    });
-  });
+    })
+  })
 
   it('returns results sorted by targetDomain', () => {
-    const graph = createMinimalValidGraph();
+    const graph = createMinimalValidGraph()
     graph.metadata.domains['zebra'] = {
       description: 'Zebra',
       systemType: 'domain',
-    };
+    }
     graph.metadata.domains['alpha'] = {
       description: 'Alpha',
       systemType: 'domain',
-    };
+    }
     graph.components.push(
       createUseCaseComponent({
         id: 'test:mod:usecase:x',
@@ -226,7 +226,7 @@ describe('domainConnections', () => {
         name: 'A',
         domain: 'alpha',
       }),
-    );
+    )
     graph.links.push(
       {
         source: 'test:mod:usecase:x',
@@ -238,16 +238,16 @@ describe('domainConnections', () => {
         target: 'alpha:mod:api:a',
         type: 'sync',
       },
-    );
-    const query = new RiviereQuery(graph);
+    )
+    const query = new RiviereQuery(graph)
 
-    const result = query.domainConnections('test');
+    const result = query.domainConnections('test')
 
-    expect(result.map((c) => c.targetDomain)).toEqual(['alpha', 'zebra']);
-  });
+    expect(result.map((c) => c.targetDomain)).toEqual(['alpha', 'zebra'])
+  })
 
   it('excludes links within the same domain from counts', () => {
-    const graph = createMinimalValidGraph();
+    const graph = createMinimalValidGraph()
     graph.components.push(
       createUseCaseComponent({
         id: 'test:mod:usecase:internal',
@@ -259,16 +259,16 @@ describe('domainConnections', () => {
         name: 'InternalAPI',
         domain: 'test',
       }),
-    );
+    )
     graph.links.push({
       source: 'test:mod:usecase:internal',
       target: 'test:mod:api:internalapi',
       type: 'sync',
-    });
-    const query = new RiviereQuery(graph);
+    })
+    const query = new RiviereQuery(graph)
 
-    const result = query.domainConnections('test');
+    const result = query.domainConnections('test')
 
-    expect(result).toEqual([]);
-  });
-});
+    expect(result).toEqual([])
+  })
+})

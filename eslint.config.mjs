@@ -1,11 +1,11 @@
-import nx from '@nx/eslint-plugin';
-import tseslint from 'typescript-eslint';
-import noGenericNames from './.eslint-rules/no-generic-names.js';
-import eslintComments from '@eslint-community/eslint-plugin-eslint-comments/configs';
-import importPlugin from 'eslint-plugin-import';
-import sonarjs from 'eslint-plugin-sonarjs';
-import jsdoc from 'eslint-plugin-jsdoc';
-import stylistic from '@stylistic/eslint-plugin';
+import nx from '@nx/eslint-plugin'
+import tseslint from 'typescript-eslint'
+import noGenericNames from './.eslint-rules/no-generic-names.js'
+import eslintComments from '@eslint-community/eslint-plugin-eslint-comments/configs'
+import importPlugin from 'eslint-plugin-import'
+import sonarjs from 'eslint-plugin-sonarjs'
+import jsdoc from 'eslint-plugin-jsdoc'
+import stylistic from '@stylistic/eslint-plugin'
 
 const customRules = {
   plugins: {
@@ -14,9 +14,9 @@ const customRules = {
         'no-generic-names': noGenericNames,
       },
     },
-    import: importPlugin
+    import: importPlugin,
   },
-};
+}
 
 export default tseslint.config(
   ...nx.configs['flat/base'],
@@ -87,10 +87,7 @@ export default tseslint.config(
       '@typescript-eslint/no-unsafe-return': 'error',
 
       // No type assertions - fix the types instead
-      '@typescript-eslint/consistent-type-assertions': [
-        'error',
-        { assertionStyle: 'never' },
-      ],
+      '@typescript-eslint/consistent-type-assertions': ['error', { assertionStyle: 'never' }],
 
       // No non-null assertions - handle errors properly
       '@typescript-eslint/no-non-null-assertion': 'error',
@@ -129,10 +126,7 @@ export default tseslint.config(
       ],
 
       // Complexity limits
-      'max-lines': [
-        'error',
-        { max: 400, skipBlankLines: true, skipComments: true },
-      ],
+      'max-lines': ['error', { max: 400, skipBlankLines: true, skipComments: true }],
       'max-depth': ['error', 3],
       complexity: ['error', 12],
 
@@ -182,37 +176,46 @@ export default tseslint.config(
     },
   },
   // JSDoc enforcement for RiviereBuilder public API only
-    {
-      files: ['packages/riviere-builder/src/builder.ts'],
-      plugins: { jsdoc },
-      rules: {
-        'jsdoc/require-jsdoc': ['error', {
+  {
+    files: ['packages/riviere-builder/src/builder.ts'],
+    plugins: { jsdoc },
+    rules: {
+      'jsdoc/require-jsdoc': [
+        'error',
+        {
           publicOnly: { ancestorsOnly: true },
           require: {
             ClassDeclaration: true,
             MethodDefinition: true,
           },
-        }],
-        'jsdoc/require-param': 'error',
-        'jsdoc/require-param-description': 'error',
-        'jsdoc/require-returns': 'error',
-        'jsdoc/require-returns-description': 'error',
-      },
+        },
+      ],
+      'jsdoc/require-param': 'error',
+      'jsdoc/require-param-description': 'error',
+      'jsdoc/require-returns': 'error',
+      'jsdoc/require-returns-description': 'error',
     },
+  },
   {
     plugins: {
       '@stylistic': stylistic,
     },
     rules: {
       '@stylistic/indent': ['error', 2],
-      '@stylistic/object-curly-newline': ['error', {
-        multiline: true,
-        minProperties: 2
-      }],
-      '@stylistic/object-property-newline': ['error', {
-        allowAllPropertiesOnSameLine: false
-      }],
-    }
+      '@stylistic/object-curly-newline': [
+        'error',
+        {
+          multiline: true,
+          minProperties: 2,
+        },
+      ],
+      '@stylistic/object-property-newline': [
+        'error',
+        {
+          allowAllPropertiesOnSameLine: false,
+        },
+      ],
+    },
   },
   // Eclair test files: larger limit for lint-staged compatibility
   {
@@ -223,11 +226,14 @@ export default tseslint.config(
       'apps/eclair/**/*.spec.tsx',
     ],
     rules: {
-      'max-lines': ['error', {
-        max: 730,
-        skipBlankLines: true,
-        skipComments: true
-      }],
+      'max-lines': [
+        'error',
+        {
+          max: 730,
+          skipBlankLines: true,
+          skipComments: true,
+        },
+      ],
     },
   },
-);
+)

@@ -1,9 +1,9 @@
 import {
   describe, it, expect 
-} from 'vitest';
+} from 'vitest'
 import {
   levenshteinDistance, similarityScore 
-} from './string-similarity';
+} from './string-similarity'
 
 describe('levenshteinDistance', () => {
   it.each([
@@ -26,9 +26,9 @@ describe('levenshteinDistance', () => {
     // Completely different
     ['abc', 'xyz', 3],
   ] as const)('("%s", "%s") returns %d', (a, b, expected) => {
-    expect(levenshteinDistance(a, b)).toBe(expected);
-  });
-});
+    expect(levenshteinDistance(a, b)).toBe(expected)
+  })
+})
 
 describe('similarityScore', () => {
   it.each([
@@ -51,6 +51,6 @@ describe('similarityScore', () => {
     ['', '', 1.0],
     ['abc', '', 0.0],
   ] as const)('("%s", "%s") returns ~%d', (a, b, expected) => {
-    expect(similarityScore(a, b)).toBeCloseTo(expected, 2);
-  });
-});
+    expect(similarityScore(a, b)).toBeCloseTo(expected, 2)
+  })
+})

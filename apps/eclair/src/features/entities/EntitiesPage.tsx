@@ -1,53 +1,53 @@
 import {
   useState, useMemo, useCallback 
-} from 'react';
-import { useNavigate } from 'react-router-dom';
-import { RiviereQuery } from '@living-architecture/riviere-query';
-import type { Entity } from '@living-architecture/riviere-query';
-import type { RiviereGraph } from '@/types/riviere';
-import { EntityAccordion } from '../domains/components/EntityAccordion/EntityAccordion';
+} from 'react'
+import { useNavigate } from 'react-router-dom'
+import { RiviereQuery } from '@living-architecture/riviere-query'
+import type { Entity } from '@living-architecture/riviere-query'
+import type { RiviereGraph } from '@/types/riviere'
+import { EntityAccordion } from '../domains/components/EntityAccordion/EntityAccordion'
 
-interface EntitiesPageProps {readonly graph: RiviereGraph;}
+interface EntitiesPageProps {readonly graph: RiviereGraph}
 
 export function EntitiesPage({ graph }: Readonly<EntitiesPageProps>): React.ReactElement {
-  const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedDomain, setSelectedDomain] = useState<string>('all');
+  const navigate = useNavigate()
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedDomain, setSelectedDomain] = useState<string>('all')
 
   const handleViewOnGraph = useCallback(
     (nodeId: string) => {
-      navigate(`/full-graph?node=${nodeId}`);
+      navigate(`/full-graph?node=${nodeId}`)
     },
     [navigate],
-  );
+  )
 
   const entities = useMemo<Entity[]>(() => {
-    const query = new RiviereQuery(graph);
-    return query.entities();
-  }, [graph]);
+    const query = new RiviereQuery(graph)
+    return query.entities()
+  }, [graph])
 
   const filteredEntities = useMemo(() => {
     return entities.filter((entity) => {
       const matchesSearch =
         entity.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        entity.domain.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesDomain = selectedDomain === 'all' || entity.domain === selectedDomain;
+        entity.domain.toLowerCase().includes(searchQuery.toLowerCase())
+      const matchesDomain = selectedDomain === 'all' || entity.domain === selectedDomain
 
-      return matchesSearch && matchesDomain;
-    });
-  }, [entities, searchQuery, selectedDomain]);
+      return matchesSearch && matchesDomain
+    })
+  }, [entities, searchQuery, selectedDomain])
 
   const domains = useMemo(() => {
-    return Array.from(new Set(entities.map((e) => e.domain)));
-  }, [entities]);
+    return Array.from(new Set(entities.map((e) => e.domain)))
+  }, [entities])
 
   const totalOperations = useMemo(() => {
-    return entities.reduce((sum, entity) => sum + entity.operations.length, 0);
-  }, [entities]);
+    return entities.reduce((sum, entity) => sum + entity.operations.length, 0)
+  }, [entities])
 
   const toggleDomain = (domain: string): void => {
-    setSelectedDomain((prev) => (prev === domain ? 'all' : domain));
-  };
+    setSelectedDomain((prev) => (prev === domain ? 'all' : domain))
+  }
 
   return (
     <div data-testid="entities-page" className="space-y-6">
@@ -128,5 +128,5 @@ export function EntitiesPage({ graph }: Readonly<EntitiesPageProps>): React.Reac
         </div>
       )}
     </div>
-  );
+  )
 }

@@ -1,63 +1,63 @@
 import {
   useState, useCallback, useMemo, useRef, useEffect 
-} from 'react';
-import { useSearchParams } from 'react-router-dom';
+} from 'react'
+import { useSearchParams } from 'react-router-dom'
 import type {
   RiviereGraph, NodeType 
-} from '@/types/riviere';
-import { useTheme } from '@/contexts/ThemeContext';
-import { useExport } from '@/contexts/ExportContext';
+} from '@/types/riviere'
+import { useTheme } from '@/contexts/ThemeContext'
+import { useExport } from '@/contexts/ExportContext'
 import {
   generateExportFilename,
   exportElementAsPng,
   exportSvgAsFile,
   UNNAMED_GRAPH_EXPORT_NAME,
-} from '@/lib/exportGraph';
-import { ForceGraph } from './components/ForceGraph/ForceGraph';
-import { GraphTooltip } from './components/GraphTooltip/GraphTooltip';
-import { DomainFilters } from './components/DomainFilters/DomainFilters';
-import { NodeTypeFilters } from './components/NodeTypeFilters/NodeTypeFilters';
-import { filterByNodeType } from './graphFocusing/filterByNodeType';
-import { getThemeFocusColors } from './graphFocusing/themeFocusColors';
-import type { TooltipData } from './types';
+} from '@/lib/exportGraph'
+import { ForceGraph } from './components/ForceGraph/ForceGraph'
+import { GraphTooltip } from './components/GraphTooltip/GraphTooltip'
+import { DomainFilters } from './components/DomainFilters/DomainFilters'
+import { NodeTypeFilters } from './components/NodeTypeFilters/NodeTypeFilters'
+import { filterByNodeType } from './graphFocusing/filterByNodeType'
+import { getThemeFocusColors } from './graphFocusing/themeFocusColors'
+import type { TooltipData } from './types'
 import type {
   Node, Edge 
-} from '@/types/riviere';
+} from '@/types/riviere'
 
 function findOrphanNodeIds(nodes: Node[], edges: Edge[]): Set<string> {
-  const connectedNodeIds = new Set<string>();
+  const connectedNodeIds = new Set<string>()
   for (const edge of edges) {
-    connectedNodeIds.add(edge.source);
-    connectedNodeIds.add(edge.target);
+    connectedNodeIds.add(edge.source)
+    connectedNodeIds.add(edge.target)
   }
 
-  const orphanIds = new Set<string>();
+  const orphanIds = new Set<string>()
   for (const node of nodes) {
     if (!connectedNodeIds.has(node.id)) {
-      orphanIds.add(node.id);
+      orphanIds.add(node.id)
     }
   }
-  return orphanIds;
+  return orphanIds
 }
 
-interface FullGraphPageProps {readonly graph: RiviereGraph;}
+interface FullGraphPageProps {readonly graph: RiviereGraph}
 
 interface DomainInfo {
-  name: string;
-  nodeCount: number;
+  name: string
+  nodeCount: number
 }
 
 interface NodeTypeInfo {
-  type: NodeType;
-  nodeCount: number;
+  type: NodeType
+  nodeCount: number
 }
 
 function extractDomains(graph: RiviereGraph): DomainInfo[] {
-  const domainCounts = new Map<string, number>();
+  const domainCounts = new Map<string, number>()
 
   for (const node of graph.components) {
-    const count = domainCounts.get(node.domain) ?? 0;
-    domainCounts.set(node.domain, count + 1);
+    const count = domainCounts.get(node.domain) ?? 0
+    domainCounts.set(node.domain, count + 1)
   }
 
   return Array.from(domainCounts.entries())
@@ -65,20 +65,20 @@ function extractDomains(graph: RiviereGraph): DomainInfo[] {
       name,
       nodeCount,
     }))
-    .sort((a, b) => a.name.localeCompare(b.name));
+    .sort((a, b) => a.name.localeCompare(b.name))
 }
 
 function extractNodeTypes(graph: RiviereGraph): NodeTypeInfo[] {
-  const typeCounts = new Map<NodeType, number>();
+  const typeCounts = new Map<NodeType, number>()
 
   for (const node of graph.components) {
-    const count = typeCounts.get(node.type) ?? 0;
-    typeCounts.set(node.type, count + 1);
+    const count = typeCounts.get(node.type) ?? 0
+    typeCounts.set(node.type, count + 1)
   }
 
   if (graph.externalLinks !== undefined && graph.externalLinks.length > 0) {
-    const uniqueExternals = new Set(graph.externalLinks.map((l) => l.target.name));
-    typeCounts.set('External', uniqueExternals.size);
+    const uniqueExternals = new Set(graph.externalLinks.map((l) => l.target.name))
+    typeCounts.set('External', uniqueExternals.size)
   }
 
   return Array.from(typeCounts.entries())
@@ -86,180 +86,180 @@ function extractNodeTypes(graph: RiviereGraph): NodeTypeInfo[] {
       type,
       nodeCount,
     }))
-    .sort((a, b) => a.type.localeCompare(b.type));
+    .sort((a, b) => a.type.localeCompare(b.type))
 }
 
 export function FullGraphPage({ graph }: Readonly<FullGraphPageProps>): React.ReactElement {
-  const { theme } = useTheme();
+  const { theme } = useTheme()
   const {
     registerExportHandlers, clearExportHandlers 
-  } = useExport();
-  const [searchParams] = useSearchParams();
-  const [tooltipData, setTooltipData] = useState<TooltipData | null>(null);
-  const tooltipHideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const exportContainerRef = useRef<HTMLDivElement>(null);
-  const [highlightedNodeId, setHighlightedNodeId] = useState<string | null>(null);
-  const [filterPanelOpen, setFilterPanelOpen] = useState(false);
+  } = useExport()
+  const [searchParams] = useSearchParams()
+  const [tooltipData, setTooltipData] = useState<TooltipData | null>(null)
+  const tooltipHideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const exportContainerRef = useRef<HTMLDivElement>(null)
+  const [highlightedNodeId, setHighlightedNodeId] = useState<string | null>(null)
+  const [filterPanelOpen, setFilterPanelOpen] = useState(false)
   const [visibleTypes, setVisibleTypes] = useState<Set<NodeType>>(() => {
-    const types = new Set(graph.components.map((n) => n.type));
+    const types = new Set(graph.components.map((n) => n.type))
     if (graph.externalLinks !== undefined && graph.externalLinks.length > 0) {
-      types.add('External');
+      types.add('External')
     }
-    return types;
-  });
-  const HIDE_ALL_DOMAINS = '__HIDE_ALL__';
-  const [focusedDomain, setFocusedDomain] = useState<string | null>(null);
+    return types
+  })
+  const HIDE_ALL_DOMAINS = '__HIDE_ALL__'
+  const [focusedDomain, setFocusedDomain] = useState<string | null>(null)
 
   const visibleDomains = useMemo(() => {
     if (focusedDomain === HIDE_ALL_DOMAINS) {
-      return new Set<string>();
+      return new Set<string>()
     }
     if (focusedDomain) {
-      return new Set([focusedDomain]);
+      return new Set([focusedDomain])
     }
-    return new Set(graph.components.map((n) => n.domain));
-  }, [focusedDomain, graph.components, HIDE_ALL_DOMAINS]);
+    return new Set(graph.components.map((n) => n.domain))
+  }, [focusedDomain, graph.components, HIDE_ALL_DOMAINS])
 
-  const domains = useMemo(() => extractDomains(graph), [graph]);
-  const nodeTypes = useMemo(() => extractNodeTypes(graph), [graph]);
-  const domainCount = new Set(graph.components.map((n) => n.domain)).size;
+  const domains = useMemo(() => extractDomains(graph), [graph])
+  const nodeTypes = useMemo(() => extractNodeTypes(graph), [graph])
+  const domainCount = new Set(graph.components.map((n) => n.domain)).size
 
   const filteredGraph = useMemo(() => {
-    const typeFiltered = filterByNodeType(graph.components, graph.links, visibleTypes);
+    const typeFiltered = filterByNodeType(graph.components, graph.links, visibleTypes)
 
-    const orphanNodeIds = findOrphanNodeIds(typeFiltered.nodes, typeFiltered.edges);
+    const orphanNodeIds = findOrphanNodeIds(typeFiltered.nodes, typeFiltered.edges)
 
-    const nonOrphanNodes = typeFiltered.nodes.filter((n) => !orphanNodeIds.has(n.id));
+    const nonOrphanNodes = typeFiltered.nodes.filter((n) => !orphanNodeIds.has(n.id))
 
     const nonOrphanEdges = typeFiltered.edges.filter(
       (e) => !orphanNodeIds.has(e.source) && !orphanNodeIds.has(e.target),
-    );
+    )
 
     return {
       nodes: nonOrphanNodes,
       edges: nonOrphanEdges,
-    };
-  }, [graph, visibleTypes]);
+    }
+  }, [graph, visibleTypes])
 
   useEffect(() => {
-    const nodeFromUrl = searchParams.get('node');
+    const nodeFromUrl = searchParams.get('node')
     if (nodeFromUrl === null) {
-      setHighlightedNodeId(null);
-      return;
+      setHighlightedNodeId(null)
+      return
     }
-    const nodeExists = filteredGraph.nodes.some((n) => n.id === nodeFromUrl);
-    setHighlightedNodeId(nodeExists ? nodeFromUrl : null);
-  }, [searchParams, filteredGraph.nodes]);
+    const nodeExists = filteredGraph.nodes.some((n) => n.id === nodeFromUrl)
+    setHighlightedNodeId(nodeExists ? nodeFromUrl : null)
+  }, [searchParams, filteredGraph.nodes])
 
   const handleNodeClick = useCallback((nodeId: string) => {
-    setHighlightedNodeId((prev) => (prev === nodeId ? null : nodeId));
-    setTooltipData(null);
-  }, []);
+    setHighlightedNodeId((prev) => (prev === nodeId ? null : nodeId))
+    setTooltipData(null)
+  }, [])
 
   const handleBackgroundClick = useCallback(() => {
-    setHighlightedNodeId(null);
-  }, []);
+    setHighlightedNodeId(null)
+  }, [])
 
   const handleNodeHover = useCallback((data: TooltipData | null) => {
     if (tooltipHideTimeoutRef.current) {
-      clearTimeout(tooltipHideTimeoutRef.current);
-      tooltipHideTimeoutRef.current = null;
+      clearTimeout(tooltipHideTimeoutRef.current)
+      tooltipHideTimeoutRef.current = null
     }
 
     if (data) {
-      setTooltipData(data);
+      setTooltipData(data)
     } else {
       tooltipHideTimeoutRef.current = setTimeout(() => {
-        setTooltipData(null);
-      }, 200);
+        setTooltipData(null)
+      }, 200)
     }
-  }, []);
+  }, [])
 
   const handleTooltipMouseEnter = useCallback(() => {
     if (tooltipHideTimeoutRef.current) {
-      clearTimeout(tooltipHideTimeoutRef.current);
-      tooltipHideTimeoutRef.current = null;
+      clearTimeout(tooltipHideTimeoutRef.current)
+      tooltipHideTimeoutRef.current = null
     }
-  }, []);
+  }, [])
 
   const handleTooltipMouseLeave = useCallback(() => {
     tooltipHideTimeoutRef.current = setTimeout(() => {
-      setTooltipData(null);
-    }, 200);
-  }, []);
+      setTooltipData(null)
+    }, 200)
+  }, [])
 
   const handleToggleDomain = useCallback((domain: string) => {
-    setFocusedDomain((prev) => (prev === domain ? null : domain));
-  }, []);
+    setFocusedDomain((prev) => (prev === domain ? null : domain))
+  }, [])
 
   const handleShowAllDomains = useCallback(() => {
-    setFocusedDomain(null);
-  }, []);
+    setFocusedDomain(null)
+  }, [])
 
   const handleHideAllDomains = useCallback(() => {
-    setFocusedDomain(HIDE_ALL_DOMAINS);
-  }, [HIDE_ALL_DOMAINS]);
+    setFocusedDomain(HIDE_ALL_DOMAINS)
+  }, [HIDE_ALL_DOMAINS])
 
-  const focusColors = getThemeFocusColors(theme);
+  const focusColors = getThemeFocusColors(theme)
 
   const handleToggleType = useCallback((type: NodeType) => {
     setVisibleTypes((prev) => {
-      const next = new Set(prev);
+      const next = new Set(prev)
       if (next.has(type)) {
-        next.delete(type);
-        return next;
+        next.delete(type)
+        return next
       }
-      next.add(type);
-      return next;
-    });
-  }, []);
+      next.add(type)
+      return next
+    })
+  }, [])
 
   const handleShowAllTypes = useCallback(() => {
-    setVisibleTypes(new Set(nodeTypes.map((nt) => nt.type)));
-  }, [nodeTypes]);
+    setVisibleTypes(new Set(nodeTypes.map((nt) => nt.type)))
+  }, [nodeTypes])
 
   const handleHideAllTypes = useCallback(() => {
-    setVisibleTypes(new Set());
-  }, []);
+    setVisibleTypes(new Set())
+  }, [])
 
   const toggleFilterPanel = useCallback(() => {
-    setFilterPanelOpen((prev) => !prev);
-  }, []);
+    setFilterPanelOpen((prev) => !prev)
+  }, [])
 
   useEffect(() => {
-    const graphName = graph.metadata.name ?? UNNAMED_GRAPH_EXPORT_NAME;
+    const graphName = graph.metadata.name ?? UNNAMED_GRAPH_EXPORT_NAME
 
     const handleExportPng = (): void => {
       if (exportContainerRef.current) {
-        const filename = generateExportFilename(graphName, 'png');
+        const filename = generateExportFilename(graphName, 'png')
         const backgroundColor = getComputedStyle(document.documentElement)
           .getPropertyValue('--bg-primary')
-          .trim();
+          .trim()
         exportElementAsPng(exportContainerRef.current, filename, { backgroundColor }).catch(
           console.error,
-        );
+        )
       }
-    };
+    }
 
     const handleExportSvg = (): void => {
-      const svg = exportContainerRef.current?.querySelector('svg');
+      const svg = exportContainerRef.current?.querySelector('svg')
       if (svg instanceof SVGSVGElement) {
-        const filename = generateExportFilename(graphName, 'svg');
-        exportSvgAsFile(svg, filename);
+        const filename = generateExportFilename(graphName, 'svg')
+        exportSvgAsFile(svg, filename)
       }
-    };
+    }
 
     registerExportHandlers({
       onPng: handleExportPng,
       onSvg: handleExportSvg,
-    });
+    })
 
     return () => {
-      clearExportHandlers();
-    };
-  }, [graph.metadata.name, registerExportHandlers, clearExportHandlers]);
+      clearExportHandlers()
+    }
+  }, [graph.metadata.name, registerExportHandlers, clearExportHandlers])
 
-  const highlightedNodeIds = highlightedNodeId ? new Set([highlightedNodeId]) : undefined;
+  const highlightedNodeIds = highlightedNodeId ? new Set([highlightedNodeId]) : undefined
 
   return (
     <div ref={exportContainerRef} className="relative h-full w-full" data-testid="full-graph-page">
@@ -380,5 +380,5 @@ export function FullGraphPage({ graph }: Readonly<FullGraphPageProps>): React.Re
         </div>
       )}
     </div>
-  );
+  )
 }

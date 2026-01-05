@@ -1,16 +1,16 @@
-import { Command } from 'commander';
-import { writeFile } from 'node:fs/promises';
+import { Command } from 'commander'
+import { writeFile } from 'node:fs/promises'
 import {
   formatError, formatSuccess 
-} from '../../output';
-import { CliErrorCode } from '../../error-codes';
-import { getDefaultGraphPathDescription } from '../../graph-path';
-import { withGraphBuilder } from './link-infrastructure';
+} from '../../output'
+import { CliErrorCode } from '../../error-codes'
+import { getDefaultGraphPathDescription } from '../../graph-path'
+import { withGraphBuilder } from './link-infrastructure'
 
 interface FinalizeOptions {
-  graph?: string;
-  output?: string;
-  json?: boolean;
+  graph?: string
+  output?: string
+  json?: boolean
 }
 
 export function createFinalizeCommand(): Command {
@@ -30,27 +30,27 @@ Examples:
     .option('--json', 'Output result as JSON')
     .action(async (options: FinalizeOptions) => {
       await withGraphBuilder(options.graph, async (builder, graphPath) => {
-        const validationResult = builder.validate();
+        const validationResult = builder.validate()
 
         if (!validationResult.valid) {
-          const messages = validationResult.errors.map((e) => e.message).join('; ');
+          const messages = validationResult.errors.map((e) => e.message).join('; ')
           console.log(
             JSON.stringify(
               formatError(CliErrorCode.ValidationError, `Validation failed: ${messages}`, [
                 'Fix the validation errors and try again',
               ]),
             ),
-          );
-          return;
+          )
+          return
         }
 
-        const outputPath = options.output ?? graphPath;
-        const finalGraph = builder.build();
-        await writeFile(outputPath, JSON.stringify(finalGraph, null, 2), 'utf-8');
+        const outputPath = options.output ?? graphPath
+        const finalGraph = builder.build()
+        await writeFile(outputPath, JSON.stringify(finalGraph, null, 2), 'utf-8')
 
         if (options.json === true) {
-          console.log(JSON.stringify(formatSuccess({ path: outputPath })));
+          console.log(JSON.stringify(formatSuccess({ path: outputPath })))
         }
-      });
-    });
+      })
+    })
 }

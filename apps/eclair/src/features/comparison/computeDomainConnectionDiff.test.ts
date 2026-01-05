@@ -1,16 +1,16 @@
 import {
   describe, it, expect 
-} from 'vitest';
-import { computeDomainConnectionDiff } from './computeDomainConnectionDiff';
-import type { RiviereGraph } from '@/types/riviere';
+} from 'vitest'
+import { computeDomainConnectionDiff } from './computeDomainConnectionDiff'
+import type { RiviereGraph } from '@/types/riviere'
 import {
   parseNode, parseEdge, parseDomainMetadata 
-} from '@/lib/riviereTestFixtures';
+} from '@/lib/riviereTestFixtures'
 
 const testSourceLocation = {
   repository: 'test-repo',
   filePath: 'src/test.ts',
-};
+}
 
 function createGraph(
   nodes: ReturnType<typeof parseNode>[],
@@ -18,8 +18,8 @@ function createGraph(
   domains: Record<
     string,
     {
-      description: string;
-      systemType: 'domain' | 'bff' | 'ui' | 'other';
+      description: string
+      systemType: 'domain' | 'bff' | 'ui' | 'other'
     }
   >,
 ): RiviereGraph {
@@ -28,7 +28,7 @@ function createGraph(
     metadata: { domains: parseDomainMetadata(domains) },
     components: nodes,
     links: edges,
-  };
+  }
 }
 
 describe('computeDomainConnectionDiff', () => {
@@ -52,7 +52,7 @@ describe('computeDomainConnectionDiff', () => {
             systemType: 'domain',
           },
         },
-      );
+      )
       const after = createGraph(
         [
           parseNode({
@@ -71,14 +71,14 @@ describe('computeDomainConnectionDiff', () => {
             systemType: 'domain',
           },
         },
-      );
+      )
 
-      const result = computeDomainConnectionDiff(before, after);
+      const result = computeDomainConnectionDiff(before, after)
 
-      expect(result.domains).toContain('orders');
-      expect(result.domains).toContain('payments');
-    });
-  });
+      expect(result.domains).toContain('orders')
+      expect(result.domains).toContain('payments')
+    })
+  })
 
   describe('connection changes', () => {
     it('identifies added connection when edge exists only in after graph', () => {
@@ -112,7 +112,7 @@ describe('computeDomainConnectionDiff', () => {
             systemType: 'domain',
           },
         },
-      );
+      )
       const after = createGraph(
         [
           parseNode({
@@ -149,14 +149,14 @@ describe('computeDomainConnectionDiff', () => {
             systemType: 'domain',
           },
         },
-      );
+      )
 
-      const result = computeDomainConnectionDiff(before, after);
+      const result = computeDomainConnectionDiff(before, after)
 
-      expect(result.connections.added).toHaveLength(1);
-      expect(result.connections.added[0]?.source).toBe('orders');
-      expect(result.connections.added[0]?.target).toBe('payments');
-    });
+      expect(result.connections.added).toHaveLength(1)
+      expect(result.connections.added[0]?.source).toBe('orders')
+      expect(result.connections.added[0]?.target).toBe('payments')
+    })
 
     it('identifies removed connection when edge exists only in before graph', () => {
       const before = createGraph(
@@ -195,7 +195,7 @@ describe('computeDomainConnectionDiff', () => {
             systemType: 'domain',
           },
         },
-      );
+      )
       const after = createGraph(
         [
           parseNode({
@@ -226,14 +226,14 @@ describe('computeDomainConnectionDiff', () => {
             systemType: 'domain',
           },
         },
-      );
+      )
 
-      const result = computeDomainConnectionDiff(before, after);
+      const result = computeDomainConnectionDiff(before, after)
 
-      expect(result.connections.removed).toHaveLength(1);
-      expect(result.connections.removed[0]?.source).toBe('orders');
-      expect(result.connections.removed[0]?.target).toBe('payments');
-    });
+      expect(result.connections.removed).toHaveLength(1)
+      expect(result.connections.removed[0]?.source).toBe('orders')
+      expect(result.connections.removed[0]?.target).toBe('payments')
+    })
 
     it('identifies unchanged connection when edge exists in both graphs', () => {
       const before = createGraph(
@@ -272,7 +272,7 @@ describe('computeDomainConnectionDiff', () => {
             systemType: 'domain',
           },
         },
-      );
+      )
       const after = createGraph(
         [
           parseNode({
@@ -309,13 +309,13 @@ describe('computeDomainConnectionDiff', () => {
             systemType: 'domain',
           },
         },
-      );
+      )
 
-      const result = computeDomainConnectionDiff(before, after);
+      const result = computeDomainConnectionDiff(before, after)
 
-      expect(result.connections.unchanged).toHaveLength(1);
-      expect(result.connections.unchanged[0]?.source).toBe('orders');
-      expect(result.connections.unchanged[0]?.target).toBe('payments');
-    });
-  });
-});
+      expect(result.connections.unchanged).toHaveLength(1)
+      expect(result.connections.unchanged[0]?.source).toBe('orders')
+      expect(result.connections.unchanged[0]?.target).toBe('payments')
+    })
+  })
+})

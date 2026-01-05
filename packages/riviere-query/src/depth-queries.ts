@@ -1,31 +1,31 @@
 import type {
   RiviereGraph, ComponentType 
-} from '@living-architecture/riviere-schema';
-import type { ComponentId } from './domain-types';
-import { parseComponentId } from './domain-types';
+} from '@living-architecture/riviere-schema'
+import type { ComponentId } from './domain-types'
+import { parseComponentId } from './domain-types'
 
 interface DepthQueueEntry {
-  id: ComponentId;
-  depth: number;
+  id: ComponentId
+  depth: number
 }
 
 export function queryNodeDepths(graph: RiviereGraph): Map<ComponentId, number> {
-  const depths = new Map<ComponentId, number>();
+  const depths = new Map<ComponentId, number>()
 
-  const entryPoints = findEntryPointIds(graph);
+  const entryPoints = findEntryPointIds(graph)
   if (entryPoints.length === 0) {
-    return depths;
+    return depths
   }
 
-  const outgoingEdges = buildOutgoingEdges(graph);
+  const outgoingEdges = buildOutgoingEdges(graph)
   const queue: DepthQueueEntry[] = entryPoints.map((id) => ({
     id,
     depth: 0,
-  }));
+  }))
 
-  processQueue(queue, depths, outgoingEdges);
+  processQueue(queue, depths, outgoingEdges)
 
-  return depths;
+  return depths
 }
 
 function processQueue(
@@ -33,18 +33,18 @@ function processQueue(
   depths: Map<ComponentId, number>,
   outgoingEdges: Map<ComponentId, ComponentId[]>,
 ): void {
-  const current = queue.shift();
-  if (current === undefined) return;
+  const current = queue.shift()
+  if (current === undefined) return
 
-  const existingDepth = depths.get(current.id);
-  const shouldProcess = existingDepth === undefined || existingDepth > current.depth;
+  const existingDepth = depths.get(current.id)
+  const shouldProcess = existingDepth === undefined || existingDepth > current.depth
 
   if (shouldProcess) {
-    depths.set(current.id, current.depth);
-    enqueueChildren(outgoingEdges, current, queue);
+    depths.set(current.id, current.depth)
+    enqueueChildren(outgoingEdges, current, queue)
   }
 
-  processQueue(queue, depths, outgoingEdges);
+  processQueue(queue, depths, outgoingEdges)
 }
 
 function enqueueChildren(
@@ -52,36 +52,36 @@ function enqueueChildren(
   current: DepthQueueEntry,
   queue: DepthQueueEntry[],
 ): void {
-  const edges = outgoingEdges.get(current.id);
+  const edges = outgoingEdges.get(current.id)
   if (edges) {
     for (const targetId of edges) {
       queue.push({
         id: targetId,
         depth: current.depth + 1,
-      });
+      })
     }
   }
 }
 
 function findEntryPointIds(graph: RiviereGraph): ComponentId[] {
-  const targets = new Set(graph.links.map((link) => link.target));
-  const entryPointTypes = new Set<ComponentType>(['UI', 'API', 'EventHandler', 'Custom']);
+  const targets = new Set(graph.links.map((link) => link.target))
+  const entryPointTypes = new Set<ComponentType>(['UI', 'API', 'EventHandler', 'Custom'])
   return graph.components
     .filter((c) => entryPointTypes.has(c.type) && !targets.has(c.id))
-    .map((c) => parseComponentId(c.id));
+    .map((c) => parseComponentId(c.id))
 }
 
 function buildOutgoingEdges(graph: RiviereGraph): Map<ComponentId, ComponentId[]> {
-  const edges = new Map<ComponentId, ComponentId[]>();
+  const edges = new Map<ComponentId, ComponentId[]>()
   for (const link of graph.links) {
-    const sourceId = parseComponentId(link.source);
-    const targetId = parseComponentId(link.target);
-    const existing = edges.get(sourceId);
+    const sourceId = parseComponentId(link.source)
+    const targetId = parseComponentId(link.target)
+    const existing = edges.get(sourceId)
     if (existing) {
-      existing.push(targetId);
+      existing.push(targetId)
     } else {
-      edges.set(sourceId, [targetId]);
+      edges.set(sourceId, [targetId])
     }
   }
-  return edges;
+  return edges
 }

@@ -1,4 +1,4 @@
-import type { DomainOpComponent } from '@living-architecture/riviere-schema';
+import type { DomainOpComponent } from '@living-architecture/riviere-schema'
 import type {
   EntityName,
   DomainName,
@@ -8,7 +8,7 @@ import type {
   EventName,
   HandlerId,
   HandlerName,
-} from './domain-types';
+} from './domain-types'
 
 /**
  * A domain entity with its associated operations, states, and business rules.
@@ -30,15 +30,15 @@ export class Entity {
   ) {}
 
   hasStates(): boolean {
-    return this.states.length > 0;
+    return this.states.length > 0
   }
 
   hasBusinessRules(): boolean {
-    return this.businessRules.length > 0;
+    return this.businessRules.length > 0
   }
 
   firstOperationId(): string | undefined {
-    return this.operations[0]?.id;
+    return this.operations[0]?.id
   }
 }
 
@@ -47,11 +47,11 @@ export class Entity {
  */
 export interface EntityTransition {
   /** The state before the transition. */
-  from: State;
+  from: State
   /** The state after the transition. */
-  to: State;
+  to: State
   /** The operation that triggers this transition. */
-  triggeredBy: OperationName;
+  triggeredBy: OperationName
 }
 
 /**
@@ -59,11 +59,11 @@ export interface EntityTransition {
  */
 export interface EventSubscriber {
   /** The handler's component ID. */
-  handlerId: HandlerId;
+  handlerId: HandlerId
   /** The handler's name. */
-  handlerName: HandlerName;
+  handlerName: HandlerName
   /** The domain containing the handler. */
-  domain: DomainName;
+  domain: DomainName
 }
 
 /**
@@ -71,13 +71,13 @@ export interface EventSubscriber {
  */
 export interface PublishedEvent {
   /** The event component's ID. */
-  id: EventId;
+  id: EventId
   /** The event name. */
-  eventName: EventName;
+  eventName: EventName
   /** The domain that publishes the event. */
-  domain: DomainName;
+  domain: DomainName
   /** Event handlers subscribed to this event. */
-  handlers: EventSubscriber[];
+  handlers: EventSubscriber[]
 }
 
 /**
@@ -85,11 +85,11 @@ export interface PublishedEvent {
  */
 export interface KnownSourceEvent {
   /** The event name. */
-  eventName: EventName;
+  eventName: EventName
   /** The domain that publishes this event. */
-  sourceDomain: DomainName;
+  sourceDomain: DomainName
   /** Indicates the source is known. */
-  sourceKnown: true;
+  sourceKnown: true
 }
 
 /**
@@ -97,28 +97,28 @@ export interface KnownSourceEvent {
  */
 export interface UnknownSourceEvent {
   /** The event name. */
-  eventName: EventName;
+  eventName: EventName
   /** Indicates the source is unknown. */
-  sourceKnown: false;
+  sourceKnown: false
 }
 
 /**
  * A subscribed event with optional source domain information.
  */
-export type SubscribedEventWithDomain = KnownSourceEvent | UnknownSourceEvent;
+export type SubscribedEventWithDomain = KnownSourceEvent | UnknownSourceEvent
 
 /**
  * Information about an event handler component.
  */
 export interface EventHandlerInfo {
   /** The handler's component ID. */
-  id: HandlerId;
+  id: HandlerId
   /** The handler's name. */
-  handlerName: HandlerName;
+  handlerName: HandlerName
   /** The domain containing the handler. */
-  domain: DomainName;
+  domain: DomainName
   /** List of event names this handler subscribes to. */
-  subscribedEvents: EventName[];
+  subscribedEvents: EventName[]
   /** Subscribed events with source domain information. */
-  subscribedEventsWithDomain: SubscribedEventWithDomain[];
+  subscribedEventsWithDomain: SubscribedEventWithDomain[]
 }

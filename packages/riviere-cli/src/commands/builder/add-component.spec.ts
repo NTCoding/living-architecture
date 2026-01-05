@@ -1,74 +1,74 @@
 import {
   describe, it, expect 
-} from 'vitest';
-import { readFile } from 'node:fs/promises';
-import { join } from 'node:path';
-import { createProgram } from '../../cli';
-import { CliErrorCode } from '../../error-codes';
-import { getErrorMessage } from './add-component';
+} from 'vitest'
+import { readFile } from 'node:fs/promises'
+import { join } from 'node:path'
+import { createProgram } from '../../cli'
+import { CliErrorCode } from '../../error-codes'
+import { getErrorMessage } from './add-component'
 import {
   type TestContext,
   createTestContext,
   setupCommandTest,
   createGraphWithDomain,
-} from '../../command-test-fixtures';
-import { buildAddComponentArgs } from './add-component-fixtures';
+} from '../../command-test-fixtures'
+import { buildAddComponentArgs } from './add-component-fixtures'
 
 describe('riviere builder add-component', () => {
   describe('command registration', () => {
     it('registers add-component command under builder', () => {
-      const program = createProgram();
-      const builderCmd = program.commands.find((cmd) => cmd.name() === 'builder');
-      const addComponentCmd = builderCmd?.commands.find((cmd) => cmd.name() === 'add-component');
+      const program = createProgram()
+      const builderCmd = program.commands.find((cmd) => cmd.name() === 'builder')
+      const addComponentCmd = builderCmd?.commands.find((cmd) => cmd.name() === 'add-component')
 
-      expect(addComponentCmd?.name()).toBe('add-component');
-    });
-  });
+      expect(addComponentCmd?.name()).toBe('add-component')
+    })
+  })
 
   describe('error handling', () => {
-    const ctx: TestContext = createTestContext();
-    setupCommandTest(ctx);
+    const ctx: TestContext = createTestContext()
+    setupCommandTest(ctx)
 
     it('returns GRAPH_NOT_FOUND when no graph exists', async () => {
-      const program = createProgram();
-      await program.parseAsync(buildAddComponentArgs({ extraArgs: ['--route', '/test'] }));
+      const program = createProgram()
+      await program.parseAsync(buildAddComponentArgs({ extraArgs: ['--route', '/test'] }))
 
-      const output = ctx.consoleOutput.join('\n');
-      expect(output).toContain(CliErrorCode.GraphNotFound);
-    });
+      const output = ctx.consoleOutput.join('\n')
+      expect(output).toContain(CliErrorCode.GraphNotFound)
+    })
 
     it('returns VALIDATION_ERROR when --type is invalid', async () => {
-      const program = createProgram();
-      await program.parseAsync(buildAddComponentArgs({ type: 'InvalidType' }));
+      const program = createProgram()
+      await program.parseAsync(buildAddComponentArgs({ type: 'InvalidType' }))
 
-      expect(ctx.consoleOutput).toHaveLength(1);
-      const output: unknown = JSON.parse(ctx.consoleOutput[0] ?? '');
+      expect(ctx.consoleOutput).toHaveLength(1)
+      const output: unknown = JSON.parse(ctx.consoleOutput[0] ?? '')
       expect(output).toMatchObject({
         success: false,
         error: {
           code: CliErrorCode.ValidationError,
           message: 'Invalid component type: InvalidType',
         },
-      });
-    });
-  });
+      })
+    })
+  })
 
   describe('adding components', () => {
-    const ctx: TestContext = createTestContext();
-    setupCommandTest(ctx);
+    const ctx: TestContext = createTestContext()
+    setupCommandTest(ctx)
 
     it('returns DOMAIN_NOT_FOUND when domain does not exist', async () => {
-      await createGraphWithDomain(ctx.testDir, 'orders');
-      const program = createProgram();
+      await createGraphWithDomain(ctx.testDir, 'orders')
+      const program = createProgram()
       await program.parseAsync(
         buildAddComponentArgs({
           name: 'Test',
           domain: 'nonexistent',
           extraArgs: ['--route', '/test'],
         }),
-      );
-      expect(ctx.consoleOutput.join('\n')).toContain(CliErrorCode.DomainNotFound);
-    });
+      )
+      expect(ctx.consoleOutput.join('\n')).toContain(CliErrorCode.DomainNotFound)
+    })
 
     it.each([
       {
@@ -100,19 +100,19 @@ describe('riviere builder add-component', () => {
       async ({
         type, expectedFlag 
       }) => {
-        await createGraphWithDomain(ctx.testDir, 'orders');
-        const program = createProgram();
+        await createGraphWithDomain(ctx.testDir, 'orders')
+        const program = createProgram()
         await program.parseAsync(
           buildAddComponentArgs({
             type,
             name: 'Test',
           }),
-        );
-        const output = ctx.consoleOutput.join('\n');
-        expect(output).toContain(CliErrorCode.ValidationError);
-        expect(output).toContain(expectedFlag);
+        )
+        const output = ctx.consoleOutput.join('\n')
+        expect(output).toContain(CliErrorCode.ValidationError)
+        expect(output).toContain(expectedFlag)
       },
-    );
+    )
 
     it.each([
       {
@@ -229,9 +229,9 @@ describe('riviere builder add-component', () => {
       async ({
         type, name, module, filePath, extraArgs, expectedId, expectedFields 
       }) => {
-        await createGraphWithDomain(ctx.testDir, 'orders');
+        await createGraphWithDomain(ctx.testDir, 'orders')
 
-        const program = createProgram();
+        const program = createProgram()
         await program.parseAsync(
           buildAddComponentArgs({
             type,
@@ -240,11 +240,11 @@ describe('riviere builder add-component', () => {
             filePath,
             extraArgs,
           }),
-        );
+        )
 
-        const graphPath = join(ctx.testDir, '.riviere', 'graph.json');
-        const content = await readFile(graphPath, 'utf-8');
-        const graph: unknown = JSON.parse(content);
+        const graphPath = join(ctx.testDir, '.riviere', 'graph.json')
+        const content = await readFile(graphPath, 'utf-8')
+        const graph: unknown = JSON.parse(content)
 
         expect(graph).toMatchObject({
           components: [
@@ -253,14 +253,14 @@ describe('riviere builder add-component', () => {
               ...expectedFields,
             },
           ],
-        });
+        })
       },
-    );
+    )
 
     it('returns CUSTOM_TYPE_NOT_FOUND when custom type not defined', async () => {
-      await createGraphWithDomain(ctx.testDir, 'orders');
+      await createGraphWithDomain(ctx.testDir, 'orders')
 
-      const program = createProgram();
+      const program = createProgram()
       await program.parseAsync(
         buildAddComponentArgs({
           type: 'Custom',
@@ -269,54 +269,54 @@ describe('riviere builder add-component', () => {
           filePath: 'src/queues/orders.ts',
           extraArgs: ['--custom-type', 'MessageQueue'],
         }),
-      );
+      )
 
-      const output = ctx.consoleOutput.join('\n');
-      expect(output).toContain(CliErrorCode.CustomTypeNotFound);
-    });
+      const output = ctx.consoleOutput.join('\n')
+      expect(output).toContain(CliErrorCode.CustomTypeNotFound)
+    })
 
     it('returns DUPLICATE_COMPONENT when component already exists', async () => {
-      await createGraphWithDomain(ctx.testDir, 'orders');
+      await createGraphWithDomain(ctx.testDir, 'orders')
 
       const args = buildAddComponentArgs({
         name: 'Checkout Page',
         filePath: 'src/pages/checkout.tsx',
         extraArgs: ['--route', '/checkout'],
-      });
+      })
 
-      const program1 = createProgram();
-      await program1.parseAsync(args);
+      const program1 = createProgram()
+      await program1.parseAsync(args)
 
-      const program2 = createProgram();
-      await program2.parseAsync(args);
+      const program2 = createProgram()
+      await program2.parseAsync(args)
 
-      const output = ctx.consoleOutput.join('\n');
-      expect(output).toContain(CliErrorCode.DuplicateComponent);
-    });
+      const output = ctx.consoleOutput.join('\n')
+      expect(output).toContain(CliErrorCode.DuplicateComponent)
+    })
 
     it('outputs success JSON with component ID when --json flag provided', async () => {
-      await createGraphWithDomain(ctx.testDir, 'orders');
+      await createGraphWithDomain(ctx.testDir, 'orders')
 
-      const program = createProgram();
+      const program = createProgram()
       await program.parseAsync(
         buildAddComponentArgs({
           name: 'Checkout Page',
           filePath: 'src/pages/checkout.tsx',
           extraArgs: ['--route', '/checkout', '--json'],
         }),
-      );
+      )
 
-      expect(ctx.consoleOutput).toHaveLength(1);
-      const output: unknown = JSON.parse(ctx.consoleOutput[0] ?? '');
+      expect(ctx.consoleOutput).toHaveLength(1)
+      const output: unknown = JSON.parse(ctx.consoleOutput[0] ?? '')
       expect(output).toMatchObject({
         success: true,
         data: { componentId: 'orders:checkout:ui:checkout-page' },
-      });
-    });
+      })
+    })
 
     it('includes description when --description provided', async () => {
-      await createGraphWithDomain(ctx.testDir, 'orders');
-      const program = createProgram();
+      await createGraphWithDomain(ctx.testDir, 'orders')
+      const program = createProgram()
       await program.parseAsync(
         buildAddComponentArgs({
           name: 'Checkout',
@@ -324,16 +324,16 @@ describe('riviere builder add-component', () => {
           filePath: 'src/checkout.tsx',
           extraArgs: ['--route', '/checkout', '--description', 'Main checkout page'],
         }),
-      );
-      const graphPath = join(ctx.testDir, '.riviere', 'graph.json');
-      const content = await readFile(graphPath, 'utf-8');
-      const graph: unknown = JSON.parse(content);
-      expect(graph).toMatchObject({ components: [{ description: 'Main checkout page' }] });
-    });
+      )
+      const graphPath = join(ctx.testDir, '.riviere', 'graph.json')
+      const content = await readFile(graphPath, 'utf-8')
+      const graph: unknown = JSON.parse(content)
+      expect(graph).toMatchObject({ components: [{ description: 'Main checkout page' }] })
+    })
 
     it('includes lineNumber in sourceLocation when --line-number provided', async () => {
-      await createGraphWithDomain(ctx.testDir, 'orders');
-      const program = createProgram();
+      await createGraphWithDomain(ctx.testDir, 'orders')
+      const program = createProgram()
       await program.parseAsync(
         buildAddComponentArgs({
           name: 'Checkout',
@@ -341,24 +341,24 @@ describe('riviere builder add-component', () => {
           filePath: 'src/checkout.tsx',
           extraArgs: ['--route', '/checkout', '--line-number', '42'],
         }),
-      );
-      const graphPath = join(ctx.testDir, '.riviere', 'graph.json');
-      const content = await readFile(graphPath, 'utf-8');
-      const graph: unknown = JSON.parse(content);
-      expect(graph).toMatchObject({ components: [{ sourceLocation: { lineNumber: 42 } }] });
-    });
-  });
+      )
+      const graphPath = join(ctx.testDir, '.riviere', 'graph.json')
+      const content = await readFile(graphPath, 'utf-8')
+      const graph: unknown = JSON.parse(content)
+      expect(graph).toMatchObject({ components: [{ sourceLocation: { lineNumber: 42 } }] })
+    })
+  })
 
   describe('getErrorMessage', () => {
     it('returns message from Error instance', () =>
-      expect(getErrorMessage(new Error('test error'))).toBe('test error'));
+      expect(getErrorMessage(new Error('test error'))).toBe('test error'))
     it('returns Unknown error when input is string', () =>
-      expect(getErrorMessage('string error')).toBe('Unknown error'));
+      expect(getErrorMessage('string error')).toBe('Unknown error'))
     it('returns Unknown error when input is null', () =>
-      expect(getErrorMessage(null)).toBe('Unknown error'));
+      expect(getErrorMessage(null)).toBe('Unknown error'))
     it('returns Unknown error when input is undefined', () =>
-      expect(getErrorMessage(undefined)).toBe('Unknown error'));
+      expect(getErrorMessage(undefined)).toBe('Unknown error'))
     it('returns Unknown error when input is number', () =>
-      expect(getErrorMessage(42)).toBe('Unknown error'));
-  });
-});
+      expect(getErrorMessage(42)).toBe('Unknown error'))
+  })
+})

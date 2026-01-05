@@ -1,37 +1,37 @@
-import type { NodeType } from '@/types/riviere';
+import type { NodeType } from '@/types/riviere'
 
-interface NodeTypeBadgeProps {readonly type: NodeType;}
+interface NodeTypeBadgeProps {readonly type: NodeType}
 
 function getBadgeClass(type: NodeType): string {
   switch (type) {
     case 'UI':
-      return 'badge-ui';
+      return 'badge-ui'
     case 'API':
-      return 'badge-api';
+      return 'badge-api'
     case 'UseCase':
-      return 'badge-usecase';
+      return 'badge-usecase'
     case 'DomainOp':
-      return 'badge-domainop';
+      return 'badge-domainop'
     case 'Event':
-      return 'badge-event';
+      return 'badge-event'
     case 'EventHandler':
-      return 'badge-eventhandler';
+      return 'badge-eventhandler'
     case 'Custom':
-      return 'badge-custom';
+      return 'badge-custom'
   }
 }
 
 function getDisplayLabel(type: NodeType): string {
-  if (type === 'Custom') return 'JOB';
-  return type;
+  if (type === 'Custom') return 'JOB'
+  return type
 }
 
 export function NodeTypeBadge({ type }: Readonly<NodeTypeBadgeProps>): React.ReactElement {
-  const badgeClass = getBadgeClass(type);
+  const badgeClass = getBadgeClass(type)
 
   return (
     <span data-testid="node-type-badge" className={`node-type-badge ${badgeClass}`}>
       {getDisplayLabel(type)}
     </span>
-  );
+  )
 }

@@ -1,29 +1,29 @@
-import { useState } from 'react';
-import type { Node } from '@/types/riviere';
+import { useState } from 'react'
+import type { Node } from '@/types/riviere'
 
 export interface OrphanDetectionResult {
-  readonly hasOrphans: boolean;
-  readonly orphanNodeIds: Set<string>;
-  readonly orphanCount: number;
+  readonly hasOrphans: boolean
+  readonly orphanNodeIds: Set<string>
+  readonly orphanCount: number
 }
 
 interface OrphanWarningProps {
-  readonly result: OrphanDetectionResult;
-  readonly nodes: Node[];
+  readonly result: OrphanDetectionResult
+  readonly nodes: Node[]
 }
 
 export function OrphanWarning({
   result, nodes 
 }: OrphanWarningProps): React.ReactElement | null {
-  const [isOpen, setIsOpen] = useState(false);
-  const [isDismissed, setIsDismissed] = useState(false);
+  const [isOpen, setIsOpen] = useState(false)
+  const [isDismissed, setIsDismissed] = useState(false)
 
   if (!result.hasOrphans || isDismissed) {
-    return null;
+    return null
   }
 
-  const nodeText = result.orphanCount === 1 ? 'node has' : 'nodes have';
-  const orphanNodes = nodes.filter((n) => result.orphanNodeIds.has(n.id));
+  const nodeText = result.orphanCount === 1 ? 'node has' : 'nodes have'
+  const orphanNodes = nodes.filter((n) => result.orphanNodeIds.has(n.id))
 
   return (
     <>
@@ -111,5 +111,5 @@ export function OrphanWarning({
         </div>
       )}
     </>
-  );
+  )
 }

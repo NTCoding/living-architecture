@@ -1,21 +1,21 @@
 import {
   describe, it, expect 
-} from 'vitest';
-import { readFile } from 'node:fs/promises';
-import { join } from 'node:path';
-import { createProgram } from '../../cli';
-import { CliErrorCode } from '../../error-codes';
+} from 'vitest'
+import { readFile } from 'node:fs/promises'
+import { join } from 'node:path'
+import { createProgram } from '../../cli'
+import { CliErrorCode } from '../../error-codes'
 import {
   type TestContext,
   createTestContext,
   setupCommandTest,
   createGraphWithComponent,
   domainOpComponent,
-} from '../../command-test-fixtures';
+} from '../../command-test-fixtures'
 
 describe('riviere builder enrich - signature option', () => {
-  const ctx: TestContext = createTestContext();
-  setupCommandTest(ctx);
+  const ctx: TestContext = createTestContext()
+  setupCommandTest(ctx)
 
   it.each([
     {
@@ -69,8 +69,8 @@ describe('riviere builder enrich - signature option', () => {
   ])('parses $name', async ({
     input, expected 
   }) => {
-    await createGraphWithComponent(ctx.testDir, domainOpComponent);
-    const program = createProgram();
+    await createGraphWithComponent(ctx.testDir, domainOpComponent)
+    const program = createProgram()
     await program.parseAsync([
       'node',
       'riviere',
@@ -80,13 +80,13 @@ describe('riviere builder enrich - signature option', () => {
       'orders:checkout:domainop:confirm-order',
       '--signature',
       input,
-    ]);
+    ])
 
-    const graphPath = join(ctx.testDir, '.riviere', 'graph.json');
-    const content = await readFile(graphPath, 'utf-8');
-    const graph: unknown = JSON.parse(content);
-    expect(graph).toMatchObject({ components: [{ signature: expected }] });
-  });
+    const graphPath = join(ctx.testDir, '.riviere', 'graph.json')
+    const content = await readFile(graphPath, 'utf-8')
+    const graph: unknown = JSON.parse(content)
+    expect(graph).toMatchObject({ components: [{ signature: expected }] })
+  })
 
   it.each([
     {
@@ -106,8 +106,8 @@ describe('riviere builder enrich - signature option', () => {
       input: '->',
     },
   ])('returns VALIDATION_ERROR for $name', async ({ input }) => {
-    await createGraphWithComponent(ctx.testDir, domainOpComponent);
-    const program = createProgram();
+    await createGraphWithComponent(ctx.testDir, domainOpComponent)
+    const program = createProgram()
     await program.parseAsync([
       'node',
       'riviere',
@@ -117,13 +117,13 @@ describe('riviere builder enrich - signature option', () => {
       'orders:checkout:domainop:confirm-order',
       '--signature',
       input,
-    ]);
+    ])
 
-    expect(ctx.consoleOutput).toHaveLength(1);
-    const output: unknown = JSON.parse(ctx.consoleOutput[0] ?? '');
+    expect(ctx.consoleOutput).toHaveLength(1)
+    const output: unknown = JSON.parse(ctx.consoleOutput[0] ?? '')
     expect(output).toMatchObject({
       success: false,
       error: { code: CliErrorCode.ValidationError },
-    });
-  });
-});
+    })
+  })
+})

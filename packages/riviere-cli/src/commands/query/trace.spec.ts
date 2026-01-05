@@ -1,9 +1,9 @@
 import {
   describe, it, expect 
-} from 'vitest';
-import { createProgram } from '../../cli';
-import { CliErrorCode } from '../../error-codes';
-import type { TestContext } from '../../command-test-fixtures';
+} from 'vitest'
+import { createProgram } from '../../cli'
+import { CliErrorCode } from '../../error-codes'
+import type { TestContext } from '../../command-test-fixtures'
 import {
   createTestContext,
   setupCommandTest,
@@ -11,81 +11,81 @@ import {
   baseMetadata,
   apiComponent,
   useCaseComponent,
-} from '../../command-test-fixtures';
+} from '../../command-test-fixtures'
 
 interface TraceSuccessOutput {
-  success: true;
+  success: true
   data: {
-    componentIds: string[];
-    linkIds: string[];
-  };
-  warnings: string[];
+    componentIds: string[]
+    linkIds: string[]
+  }
+  warnings: string[]
 }
 
 interface TraceErrorOutput {
-  success: false;
+  success: false
   error: {
-    code: string;
-    message: string;
-    suggestions: string[];
-  };
+    code: string
+    message: string
+    suggestions: string[]
+  }
 }
 
-type TraceOutput = TraceSuccessOutput | TraceErrorOutput;
+type TraceOutput = TraceSuccessOutput | TraceErrorOutput
 
 function isTraceSuccessOutput(value: unknown): value is TraceSuccessOutput {
-  if (typeof value !== 'object' || value === null) return false;
-  if (!('success' in value) || value.success !== true) return false;
-  if (!('data' in value) || typeof value.data !== 'object' || value.data === null) return false;
-  if (!('componentIds' in value.data) || !Array.isArray(value.data.componentIds)) return false;
-  if (!('linkIds' in value.data) || !Array.isArray(value.data.linkIds)) return false;
-  return true;
+  if (typeof value !== 'object' || value === null) return false
+  if (!('success' in value) || value.success !== true) return false
+  if (!('data' in value) || typeof value.data !== 'object' || value.data === null) return false
+  if (!('componentIds' in value.data) || !Array.isArray(value.data.componentIds)) return false
+  if (!('linkIds' in value.data) || !Array.isArray(value.data.linkIds)) return false
+  return true
 }
 
 function isTraceErrorOutput(value: unknown): value is TraceErrorOutput {
-  if (typeof value !== 'object' || value === null) return false;
-  if (!('success' in value) || value.success !== false) return false;
-  if (!('error' in value) || typeof value.error !== 'object' || value.error === null) return false;
-  if (!('code' in value.error) || typeof value.error.code !== 'string') return false;
-  return true;
+  if (typeof value !== 'object' || value === null) return false
+  if (!('success' in value) || value.success !== false) return false
+  if (!('error' in value) || typeof value.error !== 'object' || value.error === null) return false
+  if (!('code' in value.error) || typeof value.error.code !== 'string') return false
+  return true
 }
 
 function parseOutput(consoleOutput: string[]): TraceOutput {
-  const firstOutput = consoleOutput[0];
+  const firstOutput = consoleOutput[0]
   if (firstOutput === undefined) {
-    throw new Error('Expected console output but got none');
+    throw new Error('Expected console output but got none')
   }
-  const parsed: unknown = JSON.parse(firstOutput);
-  if (isTraceSuccessOutput(parsed)) return parsed;
-  if (isTraceErrorOutput(parsed)) return parsed;
-  throw new Error(`Invalid trace output: ${firstOutput}`);
+  const parsed: unknown = JSON.parse(firstOutput)
+  if (isTraceSuccessOutput(parsed)) return parsed
+  if (isTraceErrorOutput(parsed)) return parsed
+  throw new Error(`Invalid trace output: ${firstOutput}`)
 }
 
 function expectSuccessOutput(output: TraceOutput): TraceSuccessOutput {
-  expect(output.success).toBe(true);
-  if (!isTraceSuccessOutput(output)) throw new Error('Type narrowing failed');
-  return output;
+  expect(output.success).toBe(true)
+  if (!isTraceSuccessOutput(output)) throw new Error('Type narrowing failed')
+  return output
 }
 
 function expectErrorOutput(output: TraceOutput): TraceErrorOutput {
-  expect(output.success).toBe(false);
-  if (!isTraceErrorOutput(output)) throw new Error('Type narrowing failed');
-  return output;
+  expect(output.success).toBe(false)
+  if (!isTraceErrorOutput(output)) throw new Error('Type narrowing failed')
+  return output
 }
 
 describe('riviere query trace', () => {
   describe('command registration', () => {
     it('registers trace command under query', () => {
-      const program = createProgram();
-      const queryCmd = program.commands.find((cmd) => cmd.name() === 'query');
-      const traceCmd = queryCmd?.commands.find((cmd) => cmd.name() === 'trace');
-      expect(traceCmd?.name()).toBe('trace');
-    });
-  });
+      const program = createProgram()
+      const queryCmd = program.commands.find((cmd) => cmd.name() === 'query')
+      const traceCmd = queryCmd?.commands.find((cmd) => cmd.name() === 'trace')
+      expect(traceCmd?.name()).toBe('trace')
+    })
+  })
 
   describe('tracing flow from component', () => {
-    const ctx: TestContext = createTestContext();
-    setupCommandTest(ctx);
+    const ctx: TestContext = createTestContext()
+    setupCommandTest(ctx)
 
     it('returns componentIds and linkIds for connected components', async () => {
       await createGraph(ctx.testDir, {
@@ -100,7 +100,7 @@ describe('riviere query trace', () => {
             type: 'sync',
           },
         ],
-      });
+      })
 
       await createProgram().parseAsync([
         'node',
@@ -109,17 +109,17 @@ describe('riviere query trace', () => {
         'trace',
         'orders:checkout:api:place-order',
         '--json',
-      ]);
+      ])
 
-      const output = expectSuccessOutput(parseOutput(ctx.consoleOutput));
+      const output = expectSuccessOutput(parseOutput(ctx.consoleOutput))
 
       expect(new Set(output.data.componentIds)).toEqual(
         new Set(['orders:checkout:api:place-order', 'orders:checkout:usecase:place-order']),
-      );
+      )
       expect(output.data.linkIds).toEqual([
         'orders:checkout:api:place-order->orders:checkout:usecase:place-order',
-      ]);
-    });
+      ])
+    })
 
     it('returns only starting component when isolated', async () => {
       await createGraph(ctx.testDir, {
@@ -127,7 +127,7 @@ describe('riviere query trace', () => {
         metadata: baseMetadata,
         components: [apiComponent],
         links: [],
-      });
+      })
 
       await createProgram().parseAsync([
         'node',
@@ -136,13 +136,13 @@ describe('riviere query trace', () => {
         'trace',
         'orders:checkout:api:place-order',
         '--json',
-      ]);
+      ])
 
-      const output = expectSuccessOutput(parseOutput(ctx.consoleOutput));
+      const output = expectSuccessOutput(parseOutput(ctx.consoleOutput))
 
-      expect(output.data.componentIds).toEqual(['orders:checkout:api:place-order']);
-      expect(output.data.linkIds).toEqual([]);
-    });
+      expect(output.data.componentIds).toEqual(['orders:checkout:api:place-order'])
+      expect(output.data.linkIds).toEqual([])
+    })
 
     it('produces no output when --json flag is not provided', async () => {
       await createGraph(ctx.testDir, {
@@ -150,7 +150,7 @@ describe('riviere query trace', () => {
         metadata: baseMetadata,
         components: [apiComponent],
         links: [],
-      });
+      })
 
       await createProgram().parseAsync([
         'node',
@@ -158,14 +158,14 @@ describe('riviere query trace', () => {
         'query',
         'trace',
         'orders:checkout:api:place-order',
-      ]);
-      expect(ctx.consoleOutput).toHaveLength(0);
-    });
-  });
+      ])
+      expect(ctx.consoleOutput).toHaveLength(0)
+    })
+  })
 
   describe('error handling', () => {
-    const ctx: TestContext = createTestContext();
-    setupCommandTest(ctx);
+    const ctx: TestContext = createTestContext()
+    setupCommandTest(ctx)
 
     it('returns GRAPH_NOT_FOUND when no graph exists', async () => {
       await createProgram().parseAsync([
@@ -175,12 +175,12 @@ describe('riviere query trace', () => {
         'trace',
         'any:mod:type:component',
         '--json',
-      ]);
+      ])
 
-      const output = expectErrorOutput(parseOutput(ctx.consoleOutput));
+      const output = expectErrorOutput(parseOutput(ctx.consoleOutput))
 
-      expect(output.error.code).toBe(CliErrorCode.GraphNotFound);
-    });
+      expect(output.error.code).toBe(CliErrorCode.GraphNotFound)
+    })
 
     it('returns COMPONENT_NOT_FOUND with suggestions when component does not exist', async () => {
       await createGraph(ctx.testDir, {
@@ -188,7 +188,7 @@ describe('riviere query trace', () => {
         metadata: baseMetadata,
         components: [apiComponent, useCaseComponent],
         links: [],
-      });
+      })
 
       await createProgram().parseAsync([
         'node',
@@ -197,13 +197,13 @@ describe('riviere query trace', () => {
         'trace',
         'orders:checkout:api:nonexistent',
         '--json',
-      ]);
+      ])
 
-      const output = expectErrorOutput(parseOutput(ctx.consoleOutput));
+      const output = expectErrorOutput(parseOutput(ctx.consoleOutput))
 
-      expect(output.error.code).toBe(CliErrorCode.ComponentNotFound);
-      expect(output.error.message).toContain('orders:checkout:api:nonexistent');
-    });
+      expect(output.error.code).toBe(CliErrorCode.ComponentNotFound)
+      expect(output.error.message).toContain('orders:checkout:api:nonexistent')
+    })
 
     it('propagates unexpected errors thrown by traceFlow', async () => {
       await createGraph(ctx.testDir, {
@@ -211,15 +211,15 @@ describe('riviere query trace', () => {
         metadata: baseMetadata,
         components: [apiComponent],
         links: [],
-      });
+      })
 
-      const queryModule = await import('@living-architecture/riviere-query');
-      const queryClass = queryModule.RiviereQuery;
-      const originalTraceFlow = queryClass.prototype.traceFlow;
+      const queryModule = await import('@living-architecture/riviere-query')
+      const queryClass = queryModule.RiviereQuery
+      const originalTraceFlow = queryClass.prototype.traceFlow
 
       queryClass.prototype.traceFlow = () => {
-        throw new Error('Unexpected internal error');
-      };
+        throw new Error('Unexpected internal error')
+      }
 
       try {
         await expect(
@@ -231,10 +231,10 @@ describe('riviere query trace', () => {
             'orders:checkout:api:place-order',
             '--json',
           ]),
-        ).rejects.toThrow('Unexpected internal error');
+        ).rejects.toThrow('Unexpected internal error')
       } finally {
-        queryClass.prototype.traceFlow = originalTraceFlow;
+        queryClass.prototype.traceFlow = originalTraceFlow
       }
-    });
-  });
-});
+    })
+  })
+})

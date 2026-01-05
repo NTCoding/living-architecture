@@ -1,30 +1,30 @@
-import { Command } from 'commander';
+import { Command } from 'commander'
 import {
   mkdir, writeFile 
-} from 'node:fs/promises';
-import { dirname } from 'node:path';
-import { RiviereBuilder } from '@living-architecture/riviere-builder';
-import type { BuilderOptions } from '@living-architecture/riviere-builder';
+} from 'node:fs/promises'
+import { dirname } from 'node:path'
+import { RiviereBuilder } from '@living-architecture/riviere-builder'
+import type { BuilderOptions } from '@living-architecture/riviere-builder'
 import {
   formatError, formatSuccess 
-} from '../../output';
-import { CliErrorCode } from '../../error-codes';
-import { fileExists } from '../../file-existence';
+} from '../../output'
+import { CliErrorCode } from '../../error-codes'
+import { fileExists } from '../../file-existence'
 import {
   resolveGraphPath, getDefaultGraphPathDescription 
-} from '../../graph-path';
-import type { SystemType } from '@living-architecture/riviere-schema';
-import { isValidSystemType } from '../../component-types';
+} from '../../graph-path'
+import type { SystemType } from '@living-architecture/riviere-schema'
+import { isValidSystemType } from '../../component-types'
 
 interface DomainInputParsed {
-  name: string;
-  description: string;
-  systemType: SystemType;
+  name: string
+  description: string
+  systemType: SystemType
 }
 
 function isDomainInputParsed(value: unknown): value is DomainInputParsed {
   if (typeof value !== 'object' || value === null) {
-    return false;
+    return false
   }
   return (
     'name' in value &&
@@ -34,27 +34,27 @@ function isDomainInputParsed(value: unknown): value is DomainInputParsed {
     'systemType' in value &&
     typeof value.systemType === 'string' &&
     isValidSystemType(value.systemType)
-  );
+  )
 }
 
 function parseDomainJson(value: string, previous: DomainInputParsed[]): DomainInputParsed[] {
-  const parsed: unknown = JSON.parse(value);
+  const parsed: unknown = JSON.parse(value)
   if (!isDomainInputParsed(parsed)) {
-    throw new Error(`Invalid domain JSON: ${value}`);
+    throw new Error(`Invalid domain JSON: ${value}`)
   }
-  return [...previous, parsed];
+  return [...previous, parsed]
 }
 
 function collectSource(value: string, previous: string[]): string[] {
-  return [...previous, value];
+  return [...previous, value]
 }
 
 interface InitOptions {
-  name?: string;
-  graph?: string;
-  json?: boolean;
-  source: string[];
-  domain: DomainInputParsed[];
+  name?: string
+  graph?: string
+  json?: boolean
+  source: string[]
+  domain: DomainInputParsed[]
 }
 
 export function createInitCommand(): Command {
@@ -88,8 +88,8 @@ Examples:
               'Add --source <url> flag',
             ]),
           ),
-        );
-        return;
+        )
+        return
       }
 
       if (options.domain.length === 0) {
@@ -99,14 +99,14 @@ Examples:
               'Add --domain <json> flag',
             ]),
           ),
-        );
-        return;
+        )
+        return
       }
 
-      const graphPath = resolveGraphPath(options.graph);
-      const graphDir = dirname(graphPath);
+      const graphPath = resolveGraphPath(options.graph)
+      const graphDir = dirname(graphPath)
 
-      const graphExists = await fileExists(graphPath);
+      const graphExists = await fileExists(graphPath)
 
       if (graphExists) {
         console.log(
@@ -115,34 +115,34 @@ Examples:
               'Delete the file to reinitialize',
             ]),
           ),
-        );
-        return;
+        )
+        return
       }
 
-      const domains: BuilderOptions['domains'] = {};
+      const domains: BuilderOptions['domains'] = {}
       for (const d of options.domain) {
         domains[d.name] = {
           description: d.description,
           systemType: d.systemType,
-        };
+        }
       }
 
       const builderOptions: BuilderOptions = {
         sources: options.source.map((url) => ({ repository: url })),
         domains,
-      };
-
-      if (options.name !== undefined) {
-        builderOptions.name = options.name;
       }
 
-      const builder = RiviereBuilder.new(builderOptions);
+      if (options.name !== undefined) {
+        builderOptions.name = options.name
+      }
 
-      await mkdir(graphDir, { recursive: true });
-      await writeFile(graphPath, builder.serialize(), 'utf-8');
+      const builder = RiviereBuilder.new(builderOptions)
+
+      await mkdir(graphDir, { recursive: true })
+      await writeFile(graphPath, builder.serialize(), 'utf-8')
 
       if (options.json === true) {
-        const domainNames = options.domain.map((d) => d.name);
+        const domainNames = options.domain.map((d) => d.name)
         console.log(
           JSON.stringify(
             formatSuccess({
@@ -151,7 +151,7 @@ Examples:
               domains: domainNames,
             }),
           ),
-        );
+        )
       }
-    });
+    })
 }

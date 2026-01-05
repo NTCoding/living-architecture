@@ -1,50 +1,50 @@
-import type { TooltipData } from '../../types';
-import { CodeLinkMenu } from '@/features/flows/components/CodeLinkMenu/CodeLinkMenu';
+import type { TooltipData } from '../../types'
+import { CodeLinkMenu } from '@/features/flows/components/CodeLinkMenu/CodeLinkMenu'
 
-export const TOOLTIP_WIDTH = 310;
-export const TOOLTIP_HEIGHT = 200;
+export const TOOLTIP_WIDTH = 310
+export const TOOLTIP_HEIGHT = 200
 
 interface GraphTooltipProps {
-  readonly data: TooltipData | null;
-  readonly onMouseEnter?: () => void;
-  readonly onMouseLeave?: () => void;
+  readonly data: TooltipData | null
+  readonly onMouseEnter?: () => void
+  readonly onMouseLeave?: () => void
 }
 
 function hasSourceLocation(node: TooltipData['node']): node is TooltipData['node'] & {
   originalNode: {
     sourceLocation: {
-      filePath: string;
-      lineNumber: number;
-      repository?: string;
-    };
-  };
+      filePath: string
+      lineNumber: number
+      repository?: string
+    }
+  }
 } {
   return (
     node.originalNode.sourceLocation != null &&
     typeof node.originalNode.sourceLocation?.lineNumber === 'number'
-  );
+  )
 }
 
 function calculateTooltipPosition(
   x: number,
   y: number,
 ): {
-  left: number;
-  top: number;
+  left: number
+  top: number
 } {
-  const viewportWidth = window.innerWidth;
-  const viewportHeight = window.innerHeight;
+  const viewportWidth = window.innerWidth
+  const viewportHeight = window.innerHeight
 
-  const wouldOverflowRight = x + TOOLTIP_WIDTH > viewportWidth;
-  const wouldOverflowBottom = y + TOOLTIP_HEIGHT > viewportHeight;
+  const wouldOverflowRight = x + TOOLTIP_WIDTH > viewportWidth
+  const wouldOverflowBottom = y + TOOLTIP_HEIGHT > viewportHeight
 
-  const left = wouldOverflowRight ? x - TOOLTIP_WIDTH : x + 10;
-  const top = wouldOverflowBottom ? y - TOOLTIP_HEIGHT - 10 : y - 10;
+  const left = wouldOverflowRight ? x - TOOLTIP_WIDTH : x + 10
+  const top = wouldOverflowBottom ? y - TOOLTIP_HEIGHT - 10 : y - 10
 
   return {
     left,
     top,
-  };
+  }
 }
 
 export function GraphTooltip({
@@ -52,14 +52,14 @@ export function GraphTooltip({
   onMouseEnter,
   onMouseLeave,
 }: GraphTooltipProps): React.ReactElement | null {
-  if (!data) return null;
+  if (!data) return null
 
   const {
     node, x, y, incomingCount, outgoingCount 
-  } = data;
+  } = data
   const {
     left, top 
-  } = calculateTooltipPosition(x, y);
+  } = calculateTooltipPosition(x, y)
 
   return (
     <div
@@ -103,5 +103,5 @@ export function GraphTooltip({
         Click to trace flow
       </div>
     </div>
-  );
+  )
 }

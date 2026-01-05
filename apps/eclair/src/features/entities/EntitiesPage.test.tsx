@@ -1,29 +1,29 @@
 import {
   describe, it, expect, vi 
-} from 'vitest';
+} from 'vitest'
 import {
   render, screen 
-} from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
-import userEvent from '@testing-library/user-event';
-import { EntitiesPage } from './EntitiesPage';
+} from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
+import userEvent from '@testing-library/user-event'
+import { EntitiesPage } from './EntitiesPage'
 import {
   parseNode, parseEdge, parseDomainMetadata 
-} from '@/lib/riviereTestFixtures';
-import type { RiviereGraph } from '@/types/riviere';
+} from '@/lib/riviereTestFixtures'
+import type { RiviereGraph } from '@/types/riviere'
 const testSourceLocation = {
   repository: 'test-repo',
   filePath: 'src/test.ts',
-};
+}
 
-const mockNavigate = vi.fn();
+const mockNavigate = vi.fn()
 vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual('react-router-dom');
+  const actual = await vi.importActual('react-router-dom')
   return {
     ...actual,
     useNavigate: () => mockNavigate,
-  };
-});
+  }
+})
 
 function createTestGraph(): RiviereGraph {
   return {
@@ -115,132 +115,132 @@ function createTestGraph(): RiviereGraph {
         target: 'n2',
       }),
     ],
-  };
+  }
 }
 
 describe('EntitiesPage', () => {
   it('renders page title', () => {
-    const graph = createTestGraph();
-    render(<EntitiesPage graph={graph} />);
+    const graph = createTestGraph()
+    render(<EntitiesPage graph={graph} />)
 
-    expect(screen.getByRole('heading', { name: 'Entities' })).toBeInTheDocument();
-  });
+    expect(screen.getByRole('heading', { name: 'Entities' })).toBeInTheDocument()
+  })
 
   it('displays all entities from graph', () => {
-    const graph = createTestGraph();
-    render(<EntitiesPage graph={graph} />);
+    const graph = createTestGraph()
+    render(<EntitiesPage graph={graph} />)
 
     // Shows entities from all domains
-    expect(screen.getByText('Order')).toBeInTheDocument();
-    expect(screen.getByText('Payment')).toBeInTheDocument();
-    expect(screen.getByText('Invoice')).toBeInTheDocument();
-  });
+    expect(screen.getByText('Order')).toBeInTheDocument()
+    expect(screen.getByText('Payment')).toBeInTheDocument()
+    expect(screen.getByText('Invoice')).toBeInTheDocument()
+  })
 
   it('displays stats bar with entity and operation counts', () => {
-    const graph = createTestGraph();
-    render(<EntitiesPage graph={graph} />);
+    const graph = createTestGraph()
+    render(<EntitiesPage graph={graph} />)
 
-    expect(screen.getByTestId('stat-total-entities')).toHaveTextContent('3');
-    expect(screen.getByTestId('stat-total-operations')).toHaveTextContent('4');
-  });
+    expect(screen.getByTestId('stat-total-entities')).toHaveTextContent('3')
+    expect(screen.getByTestId('stat-total-operations')).toHaveTextContent('4')
+  })
 
   it('renders state machine when entity card is expanded', async () => {
-    const user = userEvent.setup();
-    const graph = createTestGraph();
-    render(<EntitiesPage graph={graph} />);
+    const user = userEvent.setup()
+    const graph = createTestGraph()
+    render(<EntitiesPage graph={graph} />)
 
-    expect(screen.queryByText('Pending')).not.toBeInTheDocument();
+    expect(screen.queryByText('Pending')).not.toBeInTheDocument()
 
-    const entityButton = screen.getByText('Order');
-    await user.click(entityButton.closest('button') || entityButton);
+    const entityButton = screen.getByText('Order')
+    await user.click(entityButton.closest('button') || entityButton)
 
-    expect(screen.getByText('Draft')).toBeInTheDocument();
-    expect(screen.getByText('Pending')).toBeInTheDocument();
-    expect(screen.getByText('Confirmed')).toBeInTheDocument();
-  });
+    expect(screen.getByText('Draft')).toBeInTheDocument()
+    expect(screen.getByText('Pending')).toBeInTheDocument()
+    expect(screen.getByText('Confirmed')).toBeInTheDocument()
+  })
 
   it('lists entity operations when card is expanded', async () => {
-    const user = userEvent.setup();
-    const graph = createTestGraph();
-    render(<EntitiesPage graph={graph} />);
+    const user = userEvent.setup()
+    const graph = createTestGraph()
+    render(<EntitiesPage graph={graph} />)
 
-    expect(screen.queryByText(/begin/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/begin/)).not.toBeInTheDocument()
 
-    const entityButton = screen.getByText('Order');
-    await user.click(entityButton.closest('button') || entityButton);
+    const entityButton = screen.getByText('Order')
+    await user.click(entityButton.closest('button') || entityButton)
 
-    expect(screen.getByText(/begin/)).toBeInTheDocument();
-    expect(screen.getByText(/confirm/)).toBeInTheDocument();
-  });
+    expect(screen.getByText(/begin/)).toBeInTheDocument()
+    expect(screen.getByText(/confirm/)).toBeInTheDocument()
+  })
 
   it('filters entities by search query - shows matching, hides non-matching', async () => {
-    const graph = createTestGraph();
-    const user = userEvent.setup();
-    render(<EntitiesPage graph={graph} />);
+    const graph = createTestGraph()
+    const user = userEvent.setup()
+    render(<EntitiesPage graph={graph} />)
 
-    const searchInput = screen.getByPlaceholderText('Search entities...');
-    await user.type(searchInput, 'Invoice');
+    const searchInput = screen.getByPlaceholderText('Search entities...')
+    await user.type(searchInput, 'Invoice')
 
-    expect(screen.getByText('Invoice')).toBeInTheDocument();
-    expect(screen.queryByText('Order')).not.toBeInTheDocument();
-    expect(screen.queryByText('Payment')).not.toBeInTheDocument();
-  });
+    expect(screen.getByText('Invoice')).toBeInTheDocument()
+    expect(screen.queryByText('Order')).not.toBeInTheDocument()
+    expect(screen.queryByText('Payment')).not.toBeInTheDocument()
+  })
 
   it('filters entities by domain - shows domain entities, hides others', async () => {
-    const graph = createTestGraph();
-    const user = userEvent.setup();
-    render(<EntitiesPage graph={graph} />);
+    const graph = createTestGraph()
+    const user = userEvent.setup()
+    render(<EntitiesPage graph={graph} />)
 
-    const paymentDomainButton = screen.getByRole('button', { name: 'payment-domain' });
-    await user.click(paymentDomainButton);
+    const paymentDomainButton = screen.getByRole('button', { name: 'payment-domain' })
+    await user.click(paymentDomainButton)
 
-    expect(screen.getByText('Payment')).toBeInTheDocument();
-    expect(screen.getByText('Invoice')).toBeInTheDocument();
-    expect(screen.queryByText('Order')).not.toBeInTheDocument();
-  });
+    expect(screen.getByText('Payment')).toBeInTheDocument()
+    expect(screen.getByText('Invoice')).toBeInTheDocument()
+    expect(screen.queryByText('Order')).not.toBeInTheDocument()
+  })
 
   it('navigates to full graph with node ID when view on graph button clicked', async () => {
-    const user = userEvent.setup();
-    const graph = createTestGraph();
+    const user = userEvent.setup()
+    const graph = createTestGraph()
 
     render(
       <MemoryRouter>
         <EntitiesPage graph={graph} />
       </MemoryRouter>,
-    );
+    )
 
     // Entities sorted alphabetically: Invoice, Order, Payment - click first one (Invoice)
-    const graphButtons = screen.getAllByTitle('View on Graph');
-    await user.click(graphButtons[0]);
+    const graphButtons = screen.getAllByTitle('View on Graph')
+    await user.click(graphButtons[0])
 
-    expect(mockNavigate).toHaveBeenCalledWith('/full-graph?node=n5');
-  });
+    expect(mockNavigate).toHaveBeenCalledWith('/full-graph?node=n5')
+  })
 
   it('toggles domain filter off when clicking same domain button again', async () => {
-    const graph = createTestGraph();
-    const user = userEvent.setup();
-    render(<EntitiesPage graph={graph} />);
+    const graph = createTestGraph()
+    const user = userEvent.setup()
+    render(<EntitiesPage graph={graph} />)
 
-    const orderDomainButton = screen.getByRole('button', { name: 'order-domain' });
-    await user.click(orderDomainButton);
+    const orderDomainButton = screen.getByRole('button', { name: 'order-domain' })
+    await user.click(orderDomainButton)
 
-    expect(screen.getByText('Order')).toBeInTheDocument();
-    expect(screen.queryByText('Invoice')).not.toBeInTheDocument();
+    expect(screen.getByText('Order')).toBeInTheDocument()
+    expect(screen.queryByText('Invoice')).not.toBeInTheDocument()
 
-    await user.click(orderDomainButton);
+    await user.click(orderDomainButton)
 
-    expect(screen.getByText('Order')).toBeInTheDocument();
-    expect(screen.getByText('Invoice')).toBeInTheDocument();
-  });
+    expect(screen.getByText('Order')).toBeInTheDocument()
+    expect(screen.getByText('Invoice')).toBeInTheDocument()
+  })
 
   it('shows no entities message when search matches nothing', async () => {
-    const graph = createTestGraph();
-    const user = userEvent.setup();
-    render(<EntitiesPage graph={graph} />);
+    const graph = createTestGraph()
+    const user = userEvent.setup()
+    render(<EntitiesPage graph={graph} />)
 
-    const searchInput = screen.getByPlaceholderText('Search entities...');
-    await user.type(searchInput, 'nonexistent-entity-xyz');
+    const searchInput = screen.getByPlaceholderText('Search entities...')
+    await user.type(searchInput, 'nonexistent-entity-xyz')
 
-    expect(screen.getByText('No entities found')).toBeInTheDocument();
-  });
-});
+    expect(screen.getByText('No entities found')).toBeInTheDocument()
+  })
+})

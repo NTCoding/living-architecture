@@ -5,21 +5,21 @@ import type {
   APIComponent,
   Link,
   GraphMetadata,
-} from './schema';
+} from './schema'
 import {
   parseRiviereGraph, formatValidationErrors 
-} from './validation';
+} from './validation'
 
 describe('formatValidationErrors()', () => {
   it('returns generic message when errors is null', () => {
-    const result = formatValidationErrors(null);
-    expect(result).toBe('validation failed without specific errors');
-  });
+    const result = formatValidationErrors(null)
+    expect(result).toBe('validation failed without specific errors')
+  })
 
   it('returns generic message when errors is empty array', () => {
-    const result = formatValidationErrors([]);
-    expect(result).toBe('validation failed without specific errors');
-  });
+    const result = formatValidationErrors([])
+    expect(result).toBe('validation failed without specific errors')
+  })
 
   it('formats single error with path and message', () => {
     const errors = [
@@ -27,10 +27,10 @@ describe('formatValidationErrors()', () => {
         instancePath: '/version',
         message: 'must match pattern',
       },
-    ];
-    const result = formatValidationErrors(errors);
-    expect(result).toBe('/version: must match pattern');
-  });
+    ]
+    const result = formatValidationErrors(errors)
+    expect(result).toBe('/version: must match pattern')
+  })
 
   it('formats multiple errors joined by newlines', () => {
     const errors = [
@@ -42,13 +42,13 @@ describe('formatValidationErrors()', () => {
         instancePath: '/components/0/type',
         message: 'must be equal to one of the allowed values',
       },
-    ];
-    const result = formatValidationErrors(errors);
+    ]
+    const result = formatValidationErrors(errors)
     expect(result).toBe(
       '/version: must match pattern\n/components/0/type: must be equal to one of the allowed values',
-    );
-  });
-});
+    )
+  })
+})
 
 describe('parseRiviereGraph()', () => {
   it('parses valid graph and returns typed RiviereGraph', () => {
@@ -64,13 +64,13 @@ describe('parseRiviereGraph()', () => {
       },
       components: [],
       links: [],
-    };
+    }
 
-    const result = parseRiviereGraph(input);
+    const result = parseRiviereGraph(input)
 
-    expect(result.version).toBe('1.0');
-    expect(result.components).toHaveLength(0);
-  });
+    expect(result.version).toBe('1.0')
+    expect(result.components).toHaveLength(0)
+  })
 
   it('throws on invalid component type', () => {
     const input = {
@@ -97,10 +97,10 @@ describe('parseRiviereGraph()', () => {
         },
       ],
       links: [],
-    };
+    }
 
-    expect(() => parseRiviereGraph(input)).toThrow();
-  });
+    expect(() => parseRiviereGraph(input)).toThrow()
+  })
 
   it('throws on missing required field with error details', () => {
     const input = {
@@ -114,10 +114,10 @@ describe('parseRiviereGraph()', () => {
       },
       components: [],
       links: [],
-    };
+    }
 
-    expect(() => parseRiviereGraph(input)).toThrow(/Invalid RiviereGraph/);
-  });
+    expect(() => parseRiviereGraph(input)).toThrow(/Invalid RiviereGraph/)
+  })
 
   it('throws on invalid version format', () => {
     const input = {
@@ -132,11 +132,11 @@ describe('parseRiviereGraph()', () => {
       },
       components: [],
       links: [],
-    };
+    }
 
-    expect(() => parseRiviereGraph(input)).toThrow();
-  });
-});
+    expect(() => parseRiviereGraph(input)).toThrow()
+  })
+})
 
 describe('riviere-schema types', () => {
   it('compiles a minimal valid graph structure', () => {
@@ -165,11 +165,11 @@ describe('riviere-schema types', () => {
         },
       ],
       links: [],
-    };
+    }
 
-    expect(graph.version).toBe('1.0');
-    expect(graph.components).toHaveLength(1);
-  });
+    expect(graph.version).toBe('1.0')
+    expect(graph.components).toHaveLength(1)
+  })
 
   it('enforces discriminated union for component types', () => {
     const uiComponent: UIComponent = {
@@ -183,7 +183,7 @@ describe('riviere-schema types', () => {
         repository: 'repo',
         filePath: 'file.ts',
       },
-    };
+    }
 
     const apiComponent: APIComponent = {
       id: 'test:mod:api:endpoint',
@@ -198,22 +198,22 @@ describe('riviere-schema types', () => {
         repository: 'repo',
         filePath: 'api.ts',
       },
-    };
+    }
 
-    const components: Component[] = [uiComponent, apiComponent];
-    expect(components).toHaveLength(2);
-  });
+    const components: Component[] = [uiComponent, apiComponent]
+    expect(components).toHaveLength(2)
+  })
 
   it('enforces link structure', () => {
     const link: Link = {
       source: 'component-a',
       target: 'component-b',
       type: 'sync',
-    };
+    }
 
-    expect(link.source).toBe('component-a');
-    expect(link.target).toBe('component-b');
-  });
+    expect(link.source).toBe('component-a')
+    expect(link.target).toBe('component-b')
+  })
 
   it('enforces metadata structure with required domains', () => {
     const metadata: GraphMetadata = {
@@ -223,8 +223,8 @@ describe('riviere-schema types', () => {
           systemType: 'domain',
         },
       },
-    };
+    }
 
-    expect(metadata.domains['orders']?.systemType).toBe('domain');
-  });
-});
+    expect(metadata.domains['orders']?.systemType).toBe('domain')
+  })
+})

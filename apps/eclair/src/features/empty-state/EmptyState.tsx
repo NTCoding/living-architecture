@@ -1,27 +1,27 @@
-import { useState } from 'react';
-import { FileUpload } from '@/components/FileUpload/FileUpload';
-import { useGraph } from '@/contexts/GraphContext';
-import { parseRiviereGraph } from '@living-architecture/riviere-schema';
+import { useState } from 'react'
+import { FileUpload } from '@/components/FileUpload/FileUpload'
+import { useGraph } from '@/contexts/GraphContext'
+import { parseRiviereGraph } from '@living-architecture/riviere-schema'
 
 export function EmptyState(): React.ReactElement {
-  const { setGraph } = useGraph();
-  const [error, setError] = useState<string | null>(null);
+  const { setGraph } = useGraph()
+  const [error, setError] = useState<string | null>(null)
 
   const handleFileLoaded = (content: string, fileName: string): void => {
-    setError(null);
+    setError(null)
     try {
-      const data: unknown = JSON.parse(content);
-      const graph = parseRiviereGraph(data);
-      setGraph(graph);
+      const data: unknown = JSON.parse(content)
+      const graph = parseRiviereGraph(data)
+      setGraph(graph)
     } catch (e) {
-      const message = e instanceof Error ? e.message : 'Unknown error';
-      setError(`Validation failed for ${fileName}:\n${message}`);
+      const message = e instanceof Error ? e.message : 'Unknown error'
+      setError(`Validation failed for ${fileName}:\n${message}`)
     }
-  };
+  }
 
   const handleError = (errorMessage: string): void => {
-    setError(errorMessage);
-  };
+    setError(errorMessage)
+  }
 
   return (
     <div className="max-w-2xl mx-auto py-12">
@@ -87,5 +87,5 @@ export function EmptyState(): React.ReactElement {
         </p>
       </div>
     </div>
-  );
+  )
 }

@@ -1,16 +1,16 @@
 import {
   render, screen 
-} from '@testing-library/react';
-import { DomainDetailView } from './DomainDetailView';
-import { extractDomainDetails } from './extractDomainDetails';
+} from '@testing-library/react'
+import { DomainDetailView } from './DomainDetailView'
+import { extractDomainDetails } from './extractDomainDetails'
 import {
   parseNode, parseDomainMetadata, parseDomainKey 
-} from '@/lib/riviereTestFixtures';
-import type { RiviereGraph } from '@/types/riviere';
+} from '@/lib/riviereTestFixtures'
+import type { RiviereGraph } from '@/types/riviere'
 const testSourceLocation = {
   repository: 'test-repo',
   filePath: 'src/test.ts',
-};
+}
 
 describe('DomainDetailView', () => {
   const mockGraph: RiviereGraph = {
@@ -35,12 +35,12 @@ describe('DomainDetailView', () => {
         },
       }),
     },
-  };
+  }
 
   it('renders statistics row', () => {
-    const domain = extractDomainDetails(mockGraph, parseDomainKey('test-domain'));
-    expect(domain).not.toBeNull();
-    if (!domain) return;
+    const domain = extractDomainDetails(mockGraph, parseDomainKey('test-domain'))
+    expect(domain).not.toBeNull()
+    if (!domain) return
 
     render(
       <DomainDetailView
@@ -54,15 +54,15 @@ describe('DomainDetailView', () => {
         eventSearch=""
         setEventSearch={() => {}}
       />,
-    );
+    )
 
-    expect(screen.getByTestId('stats-row')).toBeInTheDocument();
-  });
+    expect(screen.getByTestId('stats-row')).toBeInTheDocument()
+  })
 
   it('displays nodes section with filter', () => {
-    const domain = extractDomainDetails(mockGraph, parseDomainKey('test-domain'));
-    expect(domain).not.toBeNull();
-    if (!domain) return;
+    const domain = extractDomainDetails(mockGraph, parseDomainKey('test-domain'))
+    expect(domain).not.toBeNull()
+    if (!domain) return
 
     render(
       <DomainDetailView
@@ -76,16 +76,16 @@ describe('DomainDetailView', () => {
         eventSearch=""
         setEventSearch={() => {}}
       />,
-    );
+    )
 
-    expect(screen.getByTestId('filters-section')).toBeInTheDocument();
-    expect(screen.getByTestId('nodes-list')).toBeInTheDocument();
-  });
+    expect(screen.getByTestId('filters-section')).toBeInTheDocument()
+    expect(screen.getByTestId('nodes-list')).toBeInTheDocument()
+  })
 
   it('filters nodes by search query', () => {
-    const domain = extractDomainDetails(mockGraph, parseDomainKey('test-domain'));
-    expect(domain).not.toBeNull();
-    if (!domain) return;
+    const domain = extractDomainDetails(mockGraph, parseDomainKey('test-domain'))
+    expect(domain).not.toBeNull()
+    if (!domain) return
 
     render(
       <DomainDetailView
@@ -99,15 +99,15 @@ describe('DomainDetailView', () => {
         eventSearch=""
         setEventSearch={() => {}}
       />,
-    );
+    )
 
-    expect(screen.getByText('TestNode')).toBeInTheDocument();
-  });
+    expect(screen.getByText('TestNode')).toBeInTheDocument()
+  })
 
   it('renders empty state when no nodes match search', () => {
-    const domain = extractDomainDetails(mockGraph, parseDomainKey('test-domain'));
-    expect(domain).not.toBeNull();
-    if (!domain) return;
+    const domain = extractDomainDetails(mockGraph, parseDomainKey('test-domain'))
+    expect(domain).not.toBeNull()
+    if (!domain) return
 
     render(
       <DomainDetailView
@@ -121,8 +121,8 @@ describe('DomainDetailView', () => {
         eventSearch=""
         setEventSearch={() => {}}
       />,
-    );
+    )
 
-    expect(screen.getByText('No nodes match your search')).toBeInTheDocument();
-  });
-});
+    expect(screen.getByText('No nodes match your search')).toBeInTheDocument()
+  })
+})

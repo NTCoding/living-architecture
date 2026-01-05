@@ -1,48 +1,48 @@
 import {
   useMemo, useState 
-} from 'react';
-import { Link } from 'react-router-dom';
+} from 'react'
+import { Link } from 'react-router-dom'
 import type {
   RiviereGraph, SystemType, DomainName 
-} from '@/types/riviere';
-import { domainNameSchema } from '@/types/riviere';
-import { useRiviereQuery } from '@/hooks/useRiviereQuery';
-import { useCodeLinkSettings } from '@/features/flows/components/CodeLinkMenu/useCodeLinkSettings';
-import { StatsItem } from './StatsItem';
+} from '@/types/riviere'
+import { domainNameSchema } from '@/types/riviere'
+import { useRiviereQuery } from '@/hooks/useRiviereQuery'
+import { useCodeLinkSettings } from '@/features/flows/components/CodeLinkMenu/useCodeLinkSettings'
+import { StatsItem } from './StatsItem'
 import {
   EntitiesSection, EntryPointsSection 
-} from './DomainCardSections';
+} from './DomainCardSections'
 
-type ViewMode = 'grid' | 'list';
-type FilterType = 'all' | SystemType;
+type ViewMode = 'grid' | 'list'
+type FilterType = 'all' | SystemType
 
 interface NodeBreakdown {
-  UI: number;
-  API: number;
-  UseCase: number;
-  DomainOp: number;
-  Event: number;
-  EventHandler: number;
-  Custom: number;
+  UI: number
+  API: number
+  UseCase: number
+  DomainOp: number
+  Event: number
+  EventHandler: number
+  Custom: number
 }
 
 interface DomainInfo {
-  id: DomainName;
-  description: string;
-  systemType: SystemType;
-  nodeBreakdown: NodeBreakdown;
-  entities: string[];
-  entryPoints: string[];
-  repository: string | undefined;
+  id: DomainName
+  description: string
+  systemType: SystemType
+  nodeBreakdown: NodeBreakdown
+  entities: string[]
+  entryPoints: string[]
+  repository: string | undefined
 }
 
-interface OverviewPageProps {graph: RiviereGraph;}
+interface OverviewPageProps {graph: RiviereGraph}
 
 export function OverviewPage({ graph }: Readonly<OverviewPageProps>): React.ReactElement {
-  const [viewMode, setViewMode] = useState<ViewMode>('grid');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeFilter, setActiveFilter] = useState<FilterType>('all');
-  const query = useRiviereQuery(graph);
+  const [viewMode, setViewMode] = useState<ViewMode>('grid')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [activeFilter, setActiveFilter] = useState<FilterType>('all')
+  const query = useRiviereQuery(graph)
 
   const {
     stats, allDomains 
@@ -57,30 +57,30 @@ export function OverviewPage({ graph }: Readonly<OverviewPageProps>): React.Reac
           totalEvents: 0,
         },
         allDomains: [],
-      };
+      }
     }
 
-    const queryStats = query.stats();
-    const domains = query.domains();
-    const allEntities = query.entities();
+    const queryStats = query.stats()
+    const domains = query.domains()
+    const allEntities = query.entities()
 
     const domainInfos: DomainInfo[] = domains.map((domain) => {
-      const domainId = domainNameSchema.parse(domain.name);
-      const domainComponents = query.componentsInDomain(domain.name);
+      const domainId = domainNameSchema.parse(domain.name)
+      const domainComponents = query.componentsInDomain(domain.name)
 
-      const entryPoints: string[] = [];
+      const entryPoints: string[] = []
       for (const node of domainComponents) {
         if (node.type === 'UI') {
-          entryPoints.push(node.route);
+          entryPoints.push(node.route)
         } else if (node.type === 'API' && node.path !== undefined) {
-          entryPoints.push(node.path);
+          entryPoints.push(node.path)
         }
       }
 
       const repository = domainComponents.find((node) => node.sourceLocation != null)
-        ?.sourceLocation?.repository;
+        ?.sourceLocation?.repository
 
-      const entities = allEntities.filter((e) => e.domain === domain.name).map((e) => e.name);
+      const entities = allEntities.filter((e) => e.domain === domain.name).map((e) => e.name)
 
       return {
         id: domainId,
@@ -90,8 +90,8 @@ export function OverviewPage({ graph }: Readonly<OverviewPageProps>): React.Reac
         entities,
         entryPoints,
         repository,
-      };
-    });
+      }
+    })
 
     return {
       stats: {
@@ -102,16 +102,16 @@ export function OverviewPage({ graph }: Readonly<OverviewPageProps>): React.Reac
         totalEvents: queryStats.eventCount,
       },
       allDomains: domainInfos,
-    };
-  }, [query]);
+    }
+  }, [query])
 
   const filteredDomains = allDomains.filter((domain) => {
     const matchesSearch =
       domain.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      domain.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesFilter = activeFilter === 'all' || domain.systemType === activeFilter;
-    return matchesSearch && matchesFilter;
-  });
+      domain.description.toLowerCase().includes(searchQuery.toLowerCase())
+    const matchesFilter = activeFilter === 'all' || domain.systemType === activeFilter
+    return matchesSearch && matchesFilter
+  })
 
   return (
     <div className="space-y-6">
@@ -211,13 +211,13 @@ export function OverviewPage({ graph }: Readonly<OverviewPageProps>): React.Reac
         </div>
       </section>
     </div>
-  );
+  )
 }
 
 interface DomainCardProps {
-  readonly domain: DomainInfo;
-  readonly viewMode: ViewMode;
-  readonly graphName: string | undefined;
+  readonly domain: DomainInfo
+  readonly viewMode: ViewMode
+  readonly graphName: string | undefined
 }
 
 function DomainCard({
@@ -226,12 +226,12 @@ function DomainCard({
   graphName,
 }: Readonly<DomainCardProps>): React.ReactElement {
   const repoName: string | undefined =
-    domain.repository === undefined ? graphName : domain.repository;
-  const { settings } = useCodeLinkSettings();
+    domain.repository === undefined ? graphName : domain.repository
+  const { settings } = useCodeLinkSettings()
   const githubUrl =
     repoName === undefined || settings.githubOrg === null
       ? null
-      : `${settings.githubOrg.replace(/\/$/, '')}/${repoName}`;
+      : `${settings.githubOrg.replace(/\/$/, '')}/${repoName}`
 
   if (viewMode === 'list') {
     return (
@@ -280,7 +280,7 @@ function DomainCard({
           </Link>
         </div>
       </article>
-    );
+    )
   }
 
   return (
@@ -342,10 +342,10 @@ function DomainCard({
         </div>
       </footer>
     </article>
-  );
+  )
 }
 
-interface NodeBreakdownSectionProps {readonly breakdown: DomainInfo['nodeBreakdown'];}
+interface NodeBreakdownSectionProps {readonly breakdown: DomainInfo['nodeBreakdown']}
 
 function NodeBreakdownSection({breakdown,}: Readonly<NodeBreakdownSectionProps>): React.ReactElement {
   const items = [
@@ -373,7 +373,7 @@ function NodeBreakdownSection({breakdown,}: Readonly<NodeBreakdownSectionProps>)
       label: 'Handler',
       value: breakdown.EventHandler,
     },
-  ].filter((item) => item.value > 0);
+  ].filter((item) => item.value > 0)
 
   return (
     <div className="mb-3 border-b border-[var(--border-color)] pb-3">
@@ -392,6 +392,5 @@ function NodeBreakdownSection({breakdown,}: Readonly<NodeBreakdownSectionProps>)
         ))}
       </div>
     </div>
-  );
+  )
 }
-

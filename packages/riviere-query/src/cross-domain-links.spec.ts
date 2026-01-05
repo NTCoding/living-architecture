@@ -1,35 +1,35 @@
 import {
   describe, it, expect 
-} from 'vitest';
-import { RiviereQuery } from './RiviereQuery';
+} from 'vitest'
+import { RiviereQuery } from './RiviereQuery'
 import {
   createMinimalValidGraph,
   createAPIComponent,
   createUseCaseComponent,
-} from './riviere-graph-fixtures';
-import { queryCrossDomainLinks } from './cross-domain-queries';
-import type { RiviereGraph } from '@living-architecture/riviere-schema';
+} from './riviere-graph-fixtures'
+import { queryCrossDomainLinks } from './cross-domain-queries'
+import type { RiviereGraph } from '@living-architecture/riviere-schema'
 
 describe('crossDomainLinks', () => {
   it('returns empty array when domain has no outgoing links to other domains', () => {
-    const graph = createMinimalValidGraph();
-    const query = new RiviereQuery(graph);
+    const graph = createMinimalValidGraph()
+    const query = new RiviereQuery(graph)
 
-    const result = query.crossDomainLinks('test');
+    const result = query.crossDomainLinks('test')
 
-    expect(result).toEqual([]);
-  });
+    expect(result).toEqual([])
+  })
 
   it('returns unique outgoing links to other domains with link type', () => {
-    const graph = createMinimalValidGraph();
+    const graph = createMinimalValidGraph()
     graph.metadata.domains['orders'] = {
       description: 'Orders',
       systemType: 'domain',
-    };
+    }
     graph.metadata.domains['shipping'] = {
       description: 'Shipping',
       systemType: 'domain',
-    };
+    }
     graph.components.push(
       createUseCaseComponent({
         id: 'test:mod:usecase:process',
@@ -46,7 +46,7 @@ describe('crossDomainLinks', () => {
         name: 'Ship',
         domain: 'shipping',
       }),
-    );
+    )
     graph.links.push(
       {
         source: 'test:mod:usecase:process',
@@ -58,10 +58,10 @@ describe('crossDomainLinks', () => {
         target: 'shipping:mod:api:ship',
         type: 'async',
       },
-    );
-    const query = new RiviereQuery(graph);
+    )
+    const query = new RiviereQuery(graph)
 
-    const result = query.crossDomainLinks('test');
+    const result = query.crossDomainLinks('test')
 
     expect(result).toEqual([
       {
@@ -72,15 +72,15 @@ describe('crossDomainLinks', () => {
         targetDomain: 'shipping',
         linkType: 'async',
       },
-    ]);
-  });
+    ])
+  })
 
   it('deduplicates links by targetDomain and linkType', () => {
-    const graph = createMinimalValidGraph();
+    const graph = createMinimalValidGraph()
     graph.metadata.domains['orders'] = {
       description: 'Orders',
       systemType: 'domain',
-    };
+    }
     graph.components.push(
       createUseCaseComponent({
         id: 'test:mod:usecase:a',
@@ -102,7 +102,7 @@ describe('crossDomainLinks', () => {
         name: 'Two',
         domain: 'orders',
       }),
-    );
+    )
     graph.links.push(
       {
         source: 'test:mod:usecase:a',
@@ -114,25 +114,25 @@ describe('crossDomainLinks', () => {
         target: 'orders:mod:api:two',
         type: 'sync',
       },
-    );
-    const query = new RiviereQuery(graph);
+    )
+    const query = new RiviereQuery(graph)
 
-    const result = query.crossDomainLinks('test');
+    const result = query.crossDomainLinks('test')
 
     expect(result).toEqual([
       {
         targetDomain: 'orders',
         linkType: 'sync',
       },
-    ]);
-  });
+    ])
+  })
 
   it('treats different link types to same domain as separate entries', () => {
-    const graph = createMinimalValidGraph();
+    const graph = createMinimalValidGraph()
     graph.metadata.domains['orders'] = {
       description: 'Orders',
       systemType: 'domain',
-    };
+    }
     graph.components.push(
       createUseCaseComponent({
         id: 'test:mod:usecase:sync',
@@ -154,7 +154,7 @@ describe('crossDomainLinks', () => {
         name: 'Two',
         domain: 'orders',
       }),
-    );
+    )
     graph.links.push(
       {
         source: 'test:mod:usecase:sync',
@@ -166,10 +166,10 @@ describe('crossDomainLinks', () => {
         target: 'orders:mod:api:two',
         type: 'async',
       },
-    );
-    const query = new RiviereQuery(graph);
+    )
+    const query = new RiviereQuery(graph)
 
-    const result = query.crossDomainLinks('test');
+    const result = query.crossDomainLinks('test')
 
     expect(result).toEqual([
       {
@@ -180,11 +180,11 @@ describe('crossDomainLinks', () => {
         targetDomain: 'orders',
         linkType: 'sync',
       },
-    ]);
-  });
+    ])
+  })
 
   it('excludes links within the same domain', () => {
-    const graph = createMinimalValidGraph();
+    const graph = createMinimalValidGraph()
     graph.components.push(
       createUseCaseComponent({
         id: 'test:mod:usecase:caller',
@@ -196,29 +196,29 @@ describe('crossDomainLinks', () => {
         name: 'Target',
         domain: 'test',
       }),
-    );
+    )
     graph.links.push({
       source: 'test:mod:usecase:caller',
       target: 'test:mod:api:target',
       type: 'sync',
-    });
-    const query = new RiviereQuery(graph);
+    })
+    const query = new RiviereQuery(graph)
 
-    const result = query.crossDomainLinks('test');
+    const result = query.crossDomainLinks('test')
 
-    expect(result).toEqual([]);
-  });
+    expect(result).toEqual([])
+  })
 
   it('returns results sorted by targetDomain', () => {
-    const graph = createMinimalValidGraph();
+    const graph = createMinimalValidGraph()
     graph.metadata.domains['zebra'] = {
       description: 'Zebra',
       systemType: 'domain',
-    };
+    }
     graph.metadata.domains['alpha'] = {
       description: 'Alpha',
       systemType: 'domain',
-    };
+    }
     graph.components.push(
       createUseCaseComponent({
         id: 'test:mod:usecase:x',
@@ -235,7 +235,7 @@ describe('crossDomainLinks', () => {
         name: 'A',
         domain: 'alpha',
       }),
-    );
+    )
     graph.links.push(
       {
         source: 'test:mod:usecase:x',
@@ -247,13 +247,13 @@ describe('crossDomainLinks', () => {
         target: 'alpha:mod:api:a',
         type: 'sync',
       },
-    );
-    const query = new RiviereQuery(graph);
+    )
+    const query = new RiviereQuery(graph)
 
-    const result = query.crossDomainLinks('test');
+    const result = query.crossDomainLinks('test')
 
-    expect(result.map((l) => l.targetDomain)).toEqual(['alpha', 'zebra']);
-  });
+    expect(result.map((l) => l.targetDomain)).toEqual(['alpha', 'zebra'])
+  })
 
   it('ignores links to non-existent components (defensive check)', () => {
     const graph: RiviereGraph = {
@@ -286,19 +286,19 @@ describe('crossDomainLinks', () => {
           target: 'non-existent-component',
         },
       ],
-    };
+    }
 
-    const result = queryCrossDomainLinks(graph, 'test');
+    const result = queryCrossDomainLinks(graph, 'test')
 
-    expect(result).toEqual([]);
-  });
+    expect(result).toEqual([])
+  })
 
   it('handles links with no explicit type (undefined linkType)', () => {
-    const graph = createMinimalValidGraph();
+    const graph = createMinimalValidGraph()
     graph.metadata.domains['orders'] = {
       description: 'Orders',
       systemType: 'domain',
-    };
+    }
     graph.components.push(
       createUseCaseComponent({
         id: 'test:mod:usecase:caller',
@@ -310,33 +310,33 @@ describe('crossDomainLinks', () => {
         name: 'Target',
         domain: 'orders',
       }),
-    );
+    )
     graph.links.push({
       source: 'test:mod:usecase:caller',
       target: 'orders:mod:api:target',
-    });
-    const query = new RiviereQuery(graph);
+    })
+    const query = new RiviereQuery(graph)
 
-    const result = query.crossDomainLinks('test');
+    const result = query.crossDomainLinks('test')
 
     expect(result).toEqual([
       {
         targetDomain: 'orders',
         linkType: undefined,
       },
-    ]);
-  });
+    ])
+  })
 
   it('sorts undefined linkType before named types', () => {
-    const graph = createMinimalValidGraph();
+    const graph = createMinimalValidGraph()
     graph.metadata.domains['orders'] = {
       description: 'Orders',
       systemType: 'domain',
-    };
+    }
     graph.metadata.domains['payments'] = {
       description: 'Payments',
       systemType: 'domain',
-    };
+    }
     graph.components.push(
       createUseCaseComponent({
         id: 'test:mod:usecase:a',
@@ -368,7 +368,7 @@ describe('crossDomainLinks', () => {
         name: 'Pay',
         domain: 'payments',
       }),
-    );
+    )
     graph.links.push(
       {
         source: 'test:mod:usecase:a',
@@ -383,10 +383,10 @@ describe('crossDomainLinks', () => {
         source: 'test:mod:usecase:c',
         target: 'payments:mod:api:pay',
       },
-    );
-    const query = new RiviereQuery(graph);
+    )
+    const query = new RiviereQuery(graph)
 
-    const result = query.crossDomainLinks('test');
+    const result = query.crossDomainLinks('test')
 
     expect(result).toEqual([
       {
@@ -401,6 +401,6 @@ describe('crossDomainLinks', () => {
         targetDomain: 'payments',
         linkType: undefined,
       },
-    ]);
-  });
-});
+    ])
+  })
+})

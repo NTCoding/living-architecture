@@ -1,18 +1,18 @@
 import {
   describe, it, expect 
-} from 'vitest';
+} from 'vitest'
 import {
   extractCoordinates,
   calculateFitViewportTransform,
   calculateFocusModeZoom,
   applyDagrePositions,
-} from './GraphRenderingSetup';
-import type { SimulationNode } from '../../types';
-import { parseNode } from '@/lib/riviereTestFixtures';
+} from './GraphRenderingSetup'
+import type { SimulationNode } from '../../types'
+import { parseNode } from '@/lib/riviereTestFixtures'
 const testSourceLocation = {
   repository: 'test-repo',
   filePath: 'src/test.ts',
-};
+}
 
 describe('GraphRenderingSetup', () => {
   describe('extractCoordinates', () => {
@@ -50,12 +50,12 @@ describe('GraphRenderingSetup', () => {
           x: 30,
           y: 40,
         },
-      ];
+      ]
 
-      const result = extractCoordinates(nodes, 'x');
+      const result = extractCoordinates(nodes, 'x')
 
-      expect(result).toEqual([10, 30]);
-    });
+      expect(result).toEqual([10, 30])
+    })
 
     it('returns y coordinates when field is y', () => {
       const nodes: SimulationNode[] = [
@@ -91,12 +91,12 @@ describe('GraphRenderingSetup', () => {
           x: 30,
           y: 40,
         },
-      ];
+      ]
 
-      const result = extractCoordinates(nodes, 'y');
+      const result = extractCoordinates(nodes, 'y')
 
-      expect(result).toEqual([20, 40]);
-    });
+      expect(result).toEqual([20, 40])
+    })
 
     it('throws error when x coordinate is undefined', () => {
       const nodes: SimulationNode[] = [
@@ -115,10 +115,10 @@ describe('GraphRenderingSetup', () => {
           }),
           y: 20,
         },
-      ];
+      ]
 
-      expect(() => extractCoordinates(nodes, 'x')).toThrow('missing layout x coordinate');
-    });
+      expect(() => extractCoordinates(nodes, 'x')).toThrow('missing layout x coordinate')
+    })
 
     it('throws error when y coordinate is undefined', () => {
       const nodes: SimulationNode[] = [
@@ -137,10 +137,10 @@ describe('GraphRenderingSetup', () => {
           }),
           x: 10,
         },
-      ];
+      ]
 
-      expect(() => extractCoordinates(nodes, 'y')).toThrow('missing layout y coordinate');
-    });
+      expect(() => extractCoordinates(nodes, 'y')).toThrow('missing layout y coordinate')
+    })
 
     it('handles multiple nodes with coordinates', () => {
       const nodes: SimulationNode[] = [
@@ -193,11 +193,11 @@ describe('GraphRenderingSetup', () => {
           x: 45,
           y: 55,
         },
-      ];
+      ]
 
-      expect(extractCoordinates(nodes, 'x')).toEqual([5, 25, 45]);
-      expect(extractCoordinates(nodes, 'y')).toEqual([15, 35, 55]);
-    });
+      expect(extractCoordinates(nodes, 'x')).toEqual([5, 25, 45])
+      expect(extractCoordinates(nodes, 'y')).toEqual([15, 35, 55])
+    })
 
     it('handles single node', () => {
       const nodes: SimulationNode[] = [
@@ -217,12 +217,12 @@ describe('GraphRenderingSetup', () => {
           x: 100,
           y: 200,
         },
-      ];
+      ]
 
-      expect(extractCoordinates(nodes, 'x')).toEqual([100]);
-      expect(extractCoordinates(nodes, 'y')).toEqual([200]);
-    });
-  });
+      expect(extractCoordinates(nodes, 'x')).toEqual([100])
+      expect(extractCoordinates(nodes, 'y')).toEqual([200])
+    })
+  })
 
   describe('calculateFitViewportTransform', () => {
     it('returns identity transform for empty nodes', () => {
@@ -233,14 +233,14 @@ describe('GraphRenderingSetup', () => {
           height: 600,
         },
         padding: 80,
-      });
+      })
 
       expect(result).toEqual({
         translateX: 0,
         translateY: 0,
         scale: 1,
-      });
-    });
+      })
+    })
 
     it('centers single node in viewport', () => {
       const nodes: SimulationNode[] = [
@@ -260,7 +260,7 @@ describe('GraphRenderingSetup', () => {
           x: 100,
           y: 100,
         },
-      ];
+      ]
 
       const result = calculateFitViewportTransform({
         nodes,
@@ -269,12 +269,12 @@ describe('GraphRenderingSetup', () => {
           height: 600,
         },
         padding: 80,
-      });
+      })
 
-      expect(result.scale).toBeLessThanOrEqual(1);
-      expect(result.translateX).toBeDefined();
-      expect(result.translateY).toBeDefined();
-    });
+      expect(result.scale).toBeLessThanOrEqual(1)
+      expect(result.translateX).toBeDefined()
+      expect(result.translateY).toBeDefined()
+    })
 
     it('fits multiple nodes with applied padding', () => {
       const nodes: SimulationNode[] = [
@@ -310,7 +310,7 @@ describe('GraphRenderingSetup', () => {
           x: 100,
           y: 100,
         },
-      ];
+      ]
 
       const result = calculateFitViewportTransform({
         nodes,
@@ -319,11 +319,11 @@ describe('GraphRenderingSetup', () => {
           height: 600,
         },
         padding: 80,
-      });
+      })
 
-      expect(result.scale).toBeGreaterThan(0);
-      expect(result.scale).toBeLessThanOrEqual(1);
-    });
+      expect(result.scale).toBeGreaterThan(0)
+      expect(result.scale).toBeLessThanOrEqual(1)
+    })
 
     it('respects max scale of 1', () => {
       const nodes: SimulationNode[] = [
@@ -343,7 +343,7 @@ describe('GraphRenderingSetup', () => {
           x: 10,
           y: 10,
         },
-      ];
+      ]
 
       const result = calculateFitViewportTransform({
         nodes,
@@ -352,11 +352,11 @@ describe('GraphRenderingSetup', () => {
           height: 1000,
         },
         padding: 10,
-      });
+      })
 
-      expect(result.scale).toBeLessThanOrEqual(1);
-    });
-  });
+      expect(result.scale).toBeLessThanOrEqual(1)
+    })
+  })
 
   describe('calculateFocusModeZoom', () => {
     it('returns null when no nodes in focused domain', () => {
@@ -377,7 +377,7 @@ describe('GraphRenderingSetup', () => {
           x: 100,
           y: 100,
         },
-      ];
+      ]
 
       const result = calculateFocusModeZoom({
         nodes,
@@ -386,10 +386,10 @@ describe('GraphRenderingSetup', () => {
           width: 800,
           height: 600,
         },
-      });
+      })
 
-      expect(result).toBeNull();
-    });
+      expect(result).toBeNull()
+    })
 
     it('calculates zoom to focus on domain nodes', () => {
       const nodes: SimulationNode[] = [
@@ -441,7 +441,7 @@ describe('GraphRenderingSetup', () => {
           x: 500,
           y: 500,
         },
-      ];
+      ]
 
       const result = calculateFocusModeZoom({
         nodes,
@@ -450,14 +450,14 @@ describe('GraphRenderingSetup', () => {
           width: 800,
           height: 600,
         },
-      });
+      })
 
-      expect(result).not.toBeNull();
-      expect(result?.scale).toBeGreaterThan(0);
-      expect(result?.scale).toBeLessThanOrEqual(2.5);
-      expect(result?.translateX).toBeDefined();
-      expect(result?.translateY).toBeDefined();
-    });
+      expect(result).not.toBeNull()
+      expect(result?.scale).toBeGreaterThan(0)
+      expect(result?.scale).toBeLessThanOrEqual(2.5)
+      expect(result?.translateX).toBeDefined()
+      expect(result?.translateY).toBeDefined()
+    })
 
     it('caps zoom scale at 2.5', () => {
       const nodes: SimulationNode[] = [
@@ -477,7 +477,7 @@ describe('GraphRenderingSetup', () => {
           x: 50,
           y: 50,
         },
-      ];
+      ]
 
       const result = calculateFocusModeZoom({
         nodes,
@@ -486,11 +486,11 @@ describe('GraphRenderingSetup', () => {
           width: 800,
           height: 600,
         },
-      });
+      })
 
-      expect(result?.scale).toBeLessThanOrEqual(2.5);
-    });
-  });
+      expect(result?.scale).toBeLessThanOrEqual(2.5)
+    })
+  })
 
   describe('applyDagrePositions', () => {
     it('applies positions from map to nodes', () => {
@@ -523,7 +523,7 @@ describe('GraphRenderingSetup', () => {
             module: 'test',
           }),
         },
-      ];
+      ]
 
       const positions = new Map([
         [
@@ -540,18 +540,18 @@ describe('GraphRenderingSetup', () => {
             y: 400,
           },
         ],
-      ]);
+      ])
 
       applyDagrePositions({
         nodes,
         positions,
-      });
+      })
 
-      expect(nodes[0]?.x).toBe(100);
-      expect(nodes[0]?.y).toBe(200);
-      expect(nodes[1]?.x).toBe(300);
-      expect(nodes[1]?.y).toBe(400);
-    });
+      expect(nodes[0]?.x).toBe(100)
+      expect(nodes[0]?.y).toBe(200)
+      expect(nodes[1]?.x).toBe(300)
+      expect(nodes[1]?.y).toBe(400)
+    })
 
     it('skips nodes without positions in map', () => {
       const nodes: SimulationNode[] = [
@@ -583,7 +583,7 @@ describe('GraphRenderingSetup', () => {
             module: 'test',
           }),
         },
-      ];
+      ]
 
       const positions = new Map([
         [
@@ -593,18 +593,18 @@ describe('GraphRenderingSetup', () => {
             y: 200,
           },
         ],
-      ]);
+      ])
 
       applyDagrePositions({
         nodes,
         positions,
-      });
+      })
 
-      expect(nodes[0]?.x).toBe(100);
-      expect(nodes[0]?.y).toBe(200);
-      expect(nodes[1]?.x).toBeUndefined();
-      expect(nodes[1]?.y).toBeUndefined();
-    });
+      expect(nodes[0]?.x).toBe(100)
+      expect(nodes[0]?.y).toBe(200)
+      expect(nodes[1]?.x).toBeUndefined()
+      expect(nodes[1]?.y).toBeUndefined()
+    })
 
     it('handles empty positions map', () => {
       const nodes: SimulationNode[] = [
@@ -622,24 +622,24 @@ describe('GraphRenderingSetup', () => {
             module: 'test',
           }),
         },
-      ];
+      ]
 
       const positions = new Map<
         string,
         {
-          x: number;
-          y: number;
+          x: number
+          y: number
         }
-      >();
+      >()
 
       applyDagrePositions({
         nodes,
         positions,
-      });
+      })
 
-      expect(nodes[0]?.x).toBeUndefined();
-      expect(nodes[0]?.y).toBeUndefined();
-    });
+      expect(nodes[0]?.x).toBeUndefined()
+      expect(nodes[0]?.y).toBeUndefined()
+    })
 
     it('overwrites existing positions', () => {
       const nodes: SimulationNode[] = [
@@ -659,7 +659,7 @@ describe('GraphRenderingSetup', () => {
           x: 10,
           y: 20,
         },
-      ];
+      ]
 
       const positions = new Map([
         [
@@ -669,16 +669,15 @@ describe('GraphRenderingSetup', () => {
             y: 200,
           },
         ],
-      ]);
+      ])
 
       applyDagrePositions({
         nodes,
         positions,
-      });
+      })
 
-      expect(nodes[0]?.x).toBe(100);
-      expect(nodes[0]?.y).toBe(200);
-    });
-  });
-
-});
+      expect(nodes[0]?.x).toBe(100)
+      expect(nodes[0]?.y).toBe(200)
+    })
+  })
+})

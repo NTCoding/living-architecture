@@ -1,12 +1,12 @@
-import { Command } from 'commander';
-import { formatSuccess } from '../../output';
+import { Command } from 'commander'
+import { formatSuccess } from '../../output'
 import {
   withGraph, getDefaultGraphPathDescription 
-} from './load-graph';
+} from './load-graph'
 
 interface EntryPointsOptions {
-  graph?: string;
-  json?: boolean;
+  graph?: string
+  json?: boolean
 }
 
 export function createEntryPointsCommand(): Command {
@@ -24,11 +24,11 @@ Examples:
     .option('--json', 'Output result as JSON')
     .action(async (options: EntryPointsOptions) => {
       await withGraph(options.graph, (query) => {
-        const entryPoints = query.entryPoints();
+        const entryPoints = query.entryPoints()
 
         if (options.json) {
-          console.log(JSON.stringify(formatSuccess({ entryPoints })));
+          console.log(JSON.stringify(formatSuccess({ entryPoints })))
         }
-      });
-    });
+      })
+    })
 }

@@ -1,40 +1,40 @@
 import {
   useEffect, useId 
-} from 'react';
-import type { DomainDetails } from '../../extractDomainDetails';
-import { NodeTypeBadge } from '@/features/flows/components/NodeTypeBadge/NodeTypeBadge';
+} from 'react'
+import type { DomainDetails } from '../../extractDomainDetails'
+import { NodeTypeBadge } from '@/features/flows/components/NodeTypeBadge/NodeTypeBadge'
 
 interface DomainDetailModalProps {
-  readonly domain: DomainDetails | null;
-  readonly onClose: () => void;
+  readonly domain: DomainDetails | null
+  readonly onClose: () => void
 }
 
 export function DomainDetailModal({
   domain,
   onClose,
 }: Readonly<DomainDetailModalProps>): React.ReactElement | null {
-  const titleId = useId();
+  const titleId = useId()
 
   useEffect(() => {
     if (domain === null) {
-      return;
+      return
     }
 
     function handleKeyDown(e: KeyboardEvent): void {
       if (e.key === 'Escape') {
-        onClose();
+        onClose()
       }
     }
 
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [domain, onClose]);
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [domain, onClose])
 
   if (domain === null) {
-    return null;
+    return null
   }
 
-  const hasEvents = domain.events.published.length > 0 || domain.events.consumed.length > 0;
+  const hasEvents = domain.events.published.length > 0 || domain.events.consumed.length > 0
 
   return (
     <div
@@ -49,7 +49,7 @@ export function DomainDetailModal({
         onClick={onClose}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
-            onClose();
+            onClose()
           }
         }}
         role="button"
@@ -230,5 +230,5 @@ export function DomainDetailModal({
         </div>
       </div>
     </div>
-  );
+  )
 }

@@ -1,3 +1,3 @@
 interface SVGElement {
-  getBBox(): DOMRect;
+  getBBox(): DOMRect
 }

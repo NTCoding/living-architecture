@@ -1,84 +1,84 @@
 export class DuplicateDomainError extends Error {
-  readonly domainName: string;
+  readonly domainName: string
 
   constructor(domainName: string) {
-    super(`Domain '${domainName}' already exists`);
-    this.name = 'DuplicateDomainError';
-    this.domainName = domainName;
+    super(`Domain '${domainName}' already exists`)
+    this.name = 'DuplicateDomainError'
+    this.domainName = domainName
   }
 }
 
 export class DomainNotFoundError extends Error {
-  readonly domainName: string;
+  readonly domainName: string
 
   constructor(domainName: string) {
-    super(`Domain '${domainName}' does not exist`);
-    this.name = 'DomainNotFoundError';
-    this.domainName = domainName;
+    super(`Domain '${domainName}' does not exist`)
+    this.name = 'DomainNotFoundError'
+    this.domainName = domainName
   }
 }
 
 export class CustomTypeNotFoundError extends Error {
-  readonly customTypeName: string;
-  readonly definedTypes: string[];
+  readonly customTypeName: string
+  readonly definedTypes: string[]
 
   constructor(customTypeName: string, definedTypes: string[]) {
     const suffix =
       definedTypes.length === 0
         ? 'No custom types have been defined.'
-        : `Defined types: ${definedTypes.join(', ')}`;
-    super(`Custom type '${customTypeName}' not defined. ${suffix}`);
-    this.name = 'CustomTypeNotFoundError';
-    this.customTypeName = customTypeName;
-    this.definedTypes = definedTypes;
+        : `Defined types: ${definedTypes.join(', ')}`
+    super(`Custom type '${customTypeName}' not defined. ${suffix}`)
+    this.name = 'CustomTypeNotFoundError'
+    this.customTypeName = customTypeName
+    this.definedTypes = definedTypes
   }
 }
 
 export class DuplicateComponentError extends Error {
-  readonly componentId: string;
+  readonly componentId: string
 
   constructor(componentId: string) {
-    super(`Component with ID '${componentId}' already exists`);
-    this.name = 'DuplicateComponentError';
-    this.componentId = componentId;
+    super(`Component with ID '${componentId}' already exists`)
+    this.name = 'DuplicateComponentError'
+    this.componentId = componentId
   }
 }
 
 export class ComponentNotFoundError extends Error {
-  readonly componentId: string;
-  readonly suggestions: string[];
+  readonly componentId: string
+  readonly suggestions: string[]
 
   constructor(componentId: string, suggestions: string[] = []) {
-    const baseMessage = `Source component '${componentId}' not found`;
+    const baseMessage = `Source component '${componentId}' not found`
     const message =
       suggestions.length > 0
         ? `${baseMessage}. Did you mean: ${suggestions.join(', ')}?`
-        : baseMessage;
-    super(message);
-    this.name = 'ComponentNotFoundError';
-    this.componentId = componentId;
-    this.suggestions = suggestions;
+        : baseMessage
+    super(message)
+    this.name = 'ComponentNotFoundError'
+    this.componentId = componentId
+    this.suggestions = suggestions
   }
 }
 
 export class InvalidEnrichmentTargetError extends Error {
-  readonly componentId: string;
-  readonly componentType: string;
+  readonly componentId: string
+  readonly componentType: string
 
   constructor(componentId: string, componentType: string) {
-    super(`Only DomainOp components can be enriched. '${componentId}' is type '${componentType}'`);
-    this.name = 'InvalidEnrichmentTargetError';
-    this.componentId = componentId;
-    this.componentType = componentType;
+    super(`Only DomainOp components can be enriched. '${componentId}' is type '${componentType}'`)
+    this.name = 'InvalidEnrichmentTargetError'
+    this.componentId = componentId
+    this.componentType = componentType
   }
 }
 
 export class CustomTypeAlreadyDefinedError extends Error {
-  readonly typeName: string;
+  readonly typeName: string
 
   constructor(typeName: string) {
-    super(`Custom type '${typeName}' already defined`);
-    this.name = 'CustomTypeAlreadyDefinedError';
-    this.typeName = typeName;
+    super(`Custom type '${typeName}' already defined`)
+    this.name = 'CustomTypeAlreadyDefinedError'
+    this.typeName = typeName
   }
 }

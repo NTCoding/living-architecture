@@ -1,19 +1,22 @@
 import {
   describe, expect, test, vi, beforeEach 
-} from 'vitest';
+} from 'vitest'
 import {
   render, screen 
-} from '@testing-library/react';
-import { ForceGraph } from './ForceGraph';
-import type { RiviereGraph } from '@/types/riviere';
-import type { Theme } from '@/types/theme';
+} from '@testing-library/react'
+import { ForceGraph } from './ForceGraph'
+import type { RiviereGraph } from '@/types/riviere'
+import type { Theme } from '@/types/theme'
 import {
-  parseNode, parseEdge, parseDomainKey, parseDomainMetadata 
-} from '@/lib/riviereTestFixtures';
+  parseNode,
+  parseEdge,
+  parseDomainKey,
+  parseDomainMetadata,
+} from '@/lib/riviereTestFixtures'
 const testSourceLocation = {
   repository: 'test-repo',
   filePath: 'src/test.ts',
-};
+}
 
 const mockGraph: RiviereGraph = {
   version: '1.0',
@@ -112,16 +115,16 @@ const mockGraph: RiviereGraph = {
       type: 'async',
     }),
   ],
-};
+}
 
 const mockCallbacks = {
   onNodeClick: vi.fn(),
   onNodeHover: vi.fn(),
   onBackgroundClick: vi.fn(),
-};
+}
 
 vi.mock('d3', async () => {
-  const actual = await vi.importActual<typeof import('d3')>('d3');
+  const actual = await vi.importActual<typeof import('d3')>('d3')
   return {
     ...actual,
     forceSimulation: vi.fn(() => ({
@@ -132,41 +135,41 @@ vi.mock('d3', async () => {
       alphaTarget: vi.fn().mockReturnThis(),
       restart: vi.fn(),
     })),
-  };
-});
+  }
+})
 
 describe('ForceGraph', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
-  });
+    vi.clearAllMocks()
+  })
 
   describe('Rendering', () => {
     test('renders container with correct test id', () => {
-      render(<ForceGraph graph={mockGraph} theme="stream" />);
+      render(<ForceGraph graph={mockGraph} theme="stream" />)
 
-      expect(screen.getByTestId('force-graph-container')).toBeInTheDocument();
-    });
+      expect(screen.getByTestId('force-graph-container')).toBeInTheDocument()
+    })
 
     test('renders SVG element', () => {
-      render(<ForceGraph graph={mockGraph} theme="stream" />);
+      render(<ForceGraph graph={mockGraph} theme="stream" />)
 
-      expect(screen.getByTestId('force-graph-svg')).toBeInTheDocument();
-    });
+      expect(screen.getByTestId('force-graph-svg')).toBeInTheDocument()
+    })
 
     test('renders canvas background', () => {
-      render(<ForceGraph graph={mockGraph} theme="stream" />);
+      render(<ForceGraph graph={mockGraph} theme="stream" />)
 
-      const container = screen.getByTestId('force-graph-container');
-      const background = container.querySelector('.canvas-background');
-      expect(background).toBeInTheDocument();
-    });
+      const container = screen.getByTestId('force-graph-container')
+      const background = container.querySelector('.canvas-background')
+      expect(background).toBeInTheDocument()
+    })
 
     test('passes highlightedNodeId attribute to container', () => {
-      render(<ForceGraph graph={mockGraph} theme="stream" highlightedNodeId="node-1" />);
+      render(<ForceGraph graph={mockGraph} theme="stream" highlightedNodeId="node-1" />)
 
-      const container = screen.getByTestId('force-graph-container');
-      expect(container).toHaveAttribute('data-highlighted-node', 'node-1');
-    });
+      const container = screen.getByTestId('force-graph-container')
+      expect(container).toHaveAttribute('data-highlighted-node', 'node-1')
+    })
 
     test('handles empty graph without crashing', () => {
       const emptyGraph: RiviereGraph = {
@@ -181,77 +184,77 @@ describe('ForceGraph', () => {
         },
         components: [],
         links: [],
-      };
+      }
 
-      render(<ForceGraph graph={emptyGraph} theme="stream" />);
-      expect(screen.getByTestId('force-graph-container')).toBeInTheDocument();
-    });
-  });
+      render(<ForceGraph graph={emptyGraph} theme="stream" />)
+      expect(screen.getByTestId('force-graph-container')).toBeInTheDocument()
+    })
+  })
 
   describe('Theme Support', () => {
     test('accepts all three themes without error', () => {
-      const themes: readonly Theme[] = ['stream', 'voltage', 'circuit'];
+      const themes: readonly Theme[] = ['stream', 'voltage', 'circuit']
 
       for (const theme of themes) {
-        const { unmount } = render(<ForceGraph graph={mockGraph} theme={theme} />);
-        expect(screen.getByTestId('force-graph-container')).toBeInTheDocument();
-        unmount();
+        const { unmount } = render(<ForceGraph graph={mockGraph} theme={theme} />)
+        expect(screen.getByTestId('force-graph-container')).toBeInTheDocument()
+        unmount()
       }
-    });
+    })
 
     test('responds to theme changes', async () => {
-      const { rerender } = render(<ForceGraph graph={mockGraph} theme="stream" />);
+      const { rerender } = render(<ForceGraph graph={mockGraph} theme="stream" />)
 
-      expect(screen.getByTestId('force-graph-container')).toBeInTheDocument();
+      expect(screen.getByTestId('force-graph-container')).toBeInTheDocument()
 
-      rerender(<ForceGraph graph={mockGraph} theme="voltage" />);
+      rerender(<ForceGraph graph={mockGraph} theme="voltage" />)
 
-      expect(screen.getByTestId('force-graph-container')).toBeInTheDocument();
-    });
-  });
+      expect(screen.getByTestId('force-graph-container')).toBeInTheDocument()
+    })
+  })
 
   describe('Node and Edge Filtering', () => {
     test('filters nodes when visibleNodeIds is provided', () => {
-      const visibleIds = new Set(['node-1', 'node-2']);
+      const visibleIds = new Set(['node-1', 'node-2'])
 
-      render(<ForceGraph graph={mockGraph} theme="stream" visibleNodeIds={visibleIds} />);
+      render(<ForceGraph graph={mockGraph} theme="stream" visibleNodeIds={visibleIds} />)
 
-      expect(screen.getByTestId('force-graph-container')).toBeInTheDocument();
-    });
+      expect(screen.getByTestId('force-graph-container')).toBeInTheDocument()
+    })
 
     test('filters edges based on visibleNodeIds', () => {
-      const visibleIds = new Set(['node-1', 'node-2', 'node-3']);
+      const visibleIds = new Set(['node-1', 'node-2', 'node-3'])
 
-      render(<ForceGraph graph={mockGraph} theme="stream" visibleNodeIds={visibleIds} />);
+      render(<ForceGraph graph={mockGraph} theme="stream" visibleNodeIds={visibleIds} />)
 
-      expect(screen.getByTestId('force-graph-container')).toBeInTheDocument();
-    });
+      expect(screen.getByTestId('force-graph-container')).toBeInTheDocument()
+    })
 
     test('handles single node in visibleNodeIds', () => {
-      const visibleIds = new Set(['node-1']);
+      const visibleIds = new Set(['node-1'])
 
-      render(<ForceGraph graph={mockGraph} theme="stream" visibleNodeIds={visibleIds} />);
+      render(<ForceGraph graph={mockGraph} theme="stream" visibleNodeIds={visibleIds} />)
 
-      expect(screen.getByTestId('force-graph-container')).toBeInTheDocument();
-    });
-  });
+      expect(screen.getByTestId('force-graph-container')).toBeInTheDocument()
+    })
+  })
 
   describe('Event Callbacks', () => {
     test('renders without error when onNodeClick callback is provided', () => {
       render(
         <ForceGraph graph={mockGraph} theme="stream" onNodeClick={mockCallbacks.onNodeClick} />,
-      );
+      )
 
-      expect(screen.getByTestId('force-graph-svg')).toBeInTheDocument();
-    });
+      expect(screen.getByTestId('force-graph-svg')).toBeInTheDocument()
+    })
 
     test('renders without error when onNodeHover callback is provided', () => {
       render(
         <ForceGraph graph={mockGraph} theme="stream" onNodeHover={mockCallbacks.onNodeHover} />,
-      );
+      )
 
-      expect(screen.getByTestId('force-graph-svg')).toBeInTheDocument();
-    });
+      expect(screen.getByTestId('force-graph-svg')).toBeInTheDocument()
+    })
 
     test('renders without error when onBackgroundClick callback is provided', () => {
       render(
@@ -260,55 +263,55 @@ describe('ForceGraph', () => {
           theme="stream"
           onBackgroundClick={mockCallbacks.onBackgroundClick}
         />,
-      );
+      )
 
-      expect(screen.getByTestId('force-graph-svg')).toBeInTheDocument();
-    });
-  });
+      expect(screen.getByTestId('force-graph-svg')).toBeInTheDocument()
+    })
+  })
 
   describe('Highlighted Nodes', () => {
     test('applies highlighting when highlightedNodeIds is provided', () => {
-      const highlightedIds = new Set(['node-1', 'node-2']);
+      const highlightedIds = new Set(['node-1', 'node-2'])
 
-      render(<ForceGraph graph={mockGraph} theme="stream" highlightedNodeIds={highlightedIds} />);
+      render(<ForceGraph graph={mockGraph} theme="stream" highlightedNodeIds={highlightedIds} />)
 
-      expect(screen.getByTestId('force-graph-container')).toBeInTheDocument();
-    });
+      expect(screen.getByTestId('force-graph-container')).toBeInTheDocument()
+    })
 
     test('handles empty highlightedNodeIds set', () => {
-      const highlightedIds = new Set<string>();
+      const highlightedIds = new Set<string>()
 
-      render(<ForceGraph graph={mockGraph} theme="stream" highlightedNodeIds={highlightedIds} />);
+      render(<ForceGraph graph={mockGraph} theme="stream" highlightedNodeIds={highlightedIds} />)
 
-      expect(screen.getByTestId('force-graph-container')).toBeInTheDocument();
-    });
+      expect(screen.getByTestId('force-graph-container')).toBeInTheDocument()
+    })
 
     test('handles single highlighted node', () => {
-      const highlightedIds = new Set(['node-1']);
+      const highlightedIds = new Set(['node-1'])
 
-      render(<ForceGraph graph={mockGraph} theme="stream" highlightedNodeIds={highlightedIds} />);
+      render(<ForceGraph graph={mockGraph} theme="stream" highlightedNodeIds={highlightedIds} />)
 
-      expect(screen.getByTestId('force-graph-container')).toBeInTheDocument();
-    });
-  });
+      expect(screen.getByTestId('force-graph-container')).toBeInTheDocument()
+    })
+  })
 
   describe('Focus Mode', () => {
     test('applies focus mode when focusedDomain is provided', () => {
-      render(<ForceGraph graph={mockGraph} theme="stream" focusedDomain="orders" />);
+      render(<ForceGraph graph={mockGraph} theme="stream" focusedDomain="orders" />)
 
-      expect(screen.getByTestId('force-graph-container')).toBeInTheDocument();
-    });
+      expect(screen.getByTestId('force-graph-container')).toBeInTheDocument()
+    })
 
     test('handles null focusedDomain', () => {
-      render(<ForceGraph graph={mockGraph} theme="stream" focusedDomain={null} />);
+      render(<ForceGraph graph={mockGraph} theme="stream" focusedDomain={null} />)
 
-      expect(screen.getByTestId('force-graph-container')).toBeInTheDocument();
-    });
-  });
+      expect(screen.getByTestId('force-graph-container')).toBeInTheDocument()
+    })
+  })
 
   describe('Graph Updates', () => {
     test('updates when graph changes', () => {
-      const { rerender } = render(<ForceGraph graph={mockGraph} theme="stream" />);
+      const { rerender } = render(<ForceGraph graph={mockGraph} theme="stream" />)
 
       const newGraph: RiviereGraph = {
         ...mockGraph,
@@ -323,17 +326,17 @@ describe('ForceGraph', () => {
             module: 'api',
           }),
         ],
-      };
+      }
 
-      rerender(<ForceGraph graph={newGraph} theme="stream" />);
+      rerender(<ForceGraph graph={newGraph} theme="stream" />)
 
-      expect(screen.getByTestId('force-graph-container')).toBeInTheDocument();
-    });
+      expect(screen.getByTestId('force-graph-container')).toBeInTheDocument()
+    })
 
     test('updates when visibleNodeIds change', () => {
       const { rerender } = render(
         <ForceGraph graph={mockGraph} theme="stream" visibleNodeIds={new Set(['node-1'])} />,
-      );
+      )
 
       rerender(
         <ForceGraph
@@ -341,40 +344,40 @@ describe('ForceGraph', () => {
           theme="stream"
           visibleNodeIds={new Set(['node-1', 'node-2'])}
         />,
-      );
+      )
 
-      expect(screen.getByTestId('force-graph-container')).toBeInTheDocument();
-    });
+      expect(screen.getByTestId('force-graph-container')).toBeInTheDocument()
+    })
 
     test('updates when highlightedNodeIds change', () => {
       const { rerender } = render(
         <ForceGraph graph={mockGraph} theme="stream" highlightedNodeIds={new Set(['node-1'])} />,
-      );
+      )
 
       rerender(
         <ForceGraph graph={mockGraph} theme="stream" highlightedNodeIds={new Set(['node-2'])} />,
-      );
+      )
 
-      expect(screen.getByTestId('force-graph-container')).toBeInTheDocument();
-    });
+      expect(screen.getByTestId('force-graph-container')).toBeInTheDocument()
+    })
 
     test('resets zoom to fit viewport when highlight is cleared', () => {
       const { rerender } = render(
         <ForceGraph graph={mockGraph} theme="stream" highlightedNodeIds={new Set(['node-1'])} />,
-      );
+      )
 
-      rerender(<ForceGraph graph={mockGraph} theme="stream" highlightedNodeIds={undefined} />);
+      rerender(<ForceGraph graph={mockGraph} theme="stream" highlightedNodeIds={undefined} />)
 
-      expect(screen.getByTestId('force-graph-container')).toBeInTheDocument();
-    });
-  });
+      expect(screen.getByTestId('force-graph-container')).toBeInTheDocument()
+    })
+  })
 
   describe('All Node Types', () => {
     test('renders all node types correctly', () => {
-      render(<ForceGraph graph={mockGraph} theme="stream" />);
+      render(<ForceGraph graph={mockGraph} theme="stream" />)
 
-      expect(screen.getByTestId('force-graph-container')).toBeInTheDocument();
-    });
+      expect(screen.getByTestId('force-graph-container')).toBeInTheDocument()
+    })
 
     test('handles graph with multiple domains', () => {
       const multiDomainGraph: RiviereGraph = {
@@ -433,29 +436,29 @@ describe('ForceGraph', () => {
             type: 'async',
           }),
         ],
-      };
+      }
 
-      render(<ForceGraph graph={multiDomainGraph} theme="stream" />);
+      render(<ForceGraph graph={multiDomainGraph} theme="stream" />)
 
-      expect(screen.getByTestId('force-graph-container')).toBeInTheDocument();
-    });
-  });
+      expect(screen.getByTestId('force-graph-container')).toBeInTheDocument()
+    })
+  })
 
   describe('Tooltip Clearing on Interaction', () => {
     test('clears tooltip when drag starts', () => {
-      const onNodeHover = vi.fn();
-      render(<ForceGraph graph={mockGraph} theme="stream" onNodeHover={onNodeHover} />);
+      const onNodeHover = vi.fn()
+      render(<ForceGraph graph={mockGraph} theme="stream" onNodeHover={onNodeHover} />)
 
-      expect(screen.getByTestId('force-graph-container')).toBeInTheDocument();
-    });
+      expect(screen.getByTestId('force-graph-container')).toBeInTheDocument()
+    })
 
     test('clears tooltip when zoom/pan starts', () => {
-      const onNodeHover = vi.fn();
-      render(<ForceGraph graph={mockGraph} theme="stream" onNodeHover={onNodeHover} />);
+      const onNodeHover = vi.fn()
+      render(<ForceGraph graph={mockGraph} theme="stream" onNodeHover={onNodeHover} />)
 
-      expect(screen.getByTestId('force-graph-container')).toBeInTheDocument();
-    });
-  });
+      expect(screen.getByTestId('force-graph-container')).toBeInTheDocument()
+    })
+  })
 
   describe('External Links Integration', () => {
     test('creates external nodes when graph has externalLinks', () => {
@@ -466,7 +469,7 @@ describe('ForceGraph', () => {
         name: 'Orders API',
         domain: 'orders',
         module: 'api',
-      }).id;
+      }).id
 
       const graphWithExternalLinks: RiviereGraph = {
         version: '1.0',
@@ -496,12 +499,12 @@ describe('ForceGraph', () => {
             type: 'sync',
           },
         ],
-      };
+      }
 
-      render(<ForceGraph graph={graphWithExternalLinks} theme="stream" />);
+      render(<ForceGraph graph={graphWithExternalLinks} theme="stream" />)
 
-      expect(screen.getByTestId('force-graph-container')).toBeInTheDocument();
-    });
+      expect(screen.getByTestId('force-graph-container')).toBeInTheDocument()
+    })
 
     test('creates external links connecting to external nodes', () => {
       const sourceNodeId = parseNode({
@@ -511,7 +514,7 @@ describe('ForceGraph', () => {
         name: 'Orders API',
         domain: 'orders',
         module: 'api',
-      }).id;
+      }).id
 
       const graphWithExternalLinks: RiviereGraph = {
         version: '1.0',
@@ -549,13 +552,13 @@ describe('ForceGraph', () => {
             type: 'async',
           },
         ],
-      };
+      }
 
-      render(<ForceGraph graph={graphWithExternalLinks} theme="stream" />);
+      render(<ForceGraph graph={graphWithExternalLinks} theme="stream" />)
 
-      expect(screen.getByTestId('force-graph-container')).toBeInTheDocument();
-    });
-  });
+      expect(screen.getByTestId('force-graph-container')).toBeInTheDocument()
+    })
+  })
 
   describe('Edge Cases', () => {
     test('handles graph with only edges and no nodes', () => {
@@ -577,12 +580,12 @@ describe('ForceGraph', () => {
             type: 'sync',
           }),
         ],
-      };
+      }
 
-      render(<ForceGraph graph={edgesOnlyGraph} theme="stream" />);
+      render(<ForceGraph graph={edgesOnlyGraph} theme="stream" />)
 
-      expect(screen.getByTestId('force-graph-container')).toBeInTheDocument();
-    });
+      expect(screen.getByTestId('force-graph-container')).toBeInTheDocument()
+    })
 
     test('handles self-referencing edge', () => {
       const selfRefGraph: RiviereGraph = {
@@ -612,12 +615,12 @@ describe('ForceGraph', () => {
             type: 'sync',
           }),
         ],
-      };
+      }
 
-      render(<ForceGraph graph={selfRefGraph} theme="stream" />);
+      render(<ForceGraph graph={selfRefGraph} theme="stream" />)
 
-      expect(screen.getByTestId('force-graph-container')).toBeInTheDocument();
-    });
+      expect(screen.getByTestId('force-graph-container')).toBeInTheDocument()
+    })
 
     test('handles long node names', () => {
       const longNameGraph: RiviereGraph = {
@@ -642,11 +645,11 @@ describe('ForceGraph', () => {
           }),
         ],
         links: [],
-      };
+      }
 
-      render(<ForceGraph graph={longNameGraph} theme="stream" />);
+      render(<ForceGraph graph={longNameGraph} theme="stream" />)
 
-      expect(screen.getByTestId('force-graph-container')).toBeInTheDocument();
-    });
-  });
-});
+      expect(screen.getByTestId('force-graph-container')).toBeInTheDocument()
+    })
+  })
+})

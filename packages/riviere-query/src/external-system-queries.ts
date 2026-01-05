@@ -1,43 +1,43 @@
-import type { RiviereGraph } from '@living-architecture/riviere-schema';
-import type { ExternalDomain } from './domain-types';
-import { parseDomainName } from './domain-types';
+import type { RiviereGraph } from '@living-architecture/riviere-schema'
+import type { ExternalDomain } from './domain-types'
+import { parseDomainName } from './domain-types'
 
 interface ExternalDomainAccumulator {
-  sourceDomains: Set<string>;
-  connectionCount: number;
+  sourceDomains: Set<string>
+  connectionCount: number
 }
 
 function buildComponentDomainMap(graph: RiviereGraph): Map<string, string> {
-  const componentDomains = new Map<string, string>();
+  const componentDomains = new Map<string, string>()
   for (const component of graph.components) {
-    componentDomains.set(component.id, component.domain);
+    componentDomains.set(component.id, component.domain)
   }
-  return componentDomains;
+  return componentDomains
 }
 
 function aggregateExternalDomains(
   externalLinks: NonNullable<RiviereGraph['externalLinks']>,
   componentDomains: Map<string, string>,
 ): Map<string, ExternalDomainAccumulator> {
-  const domains = new Map<string, ExternalDomainAccumulator>();
+  const domains = new Map<string, ExternalDomainAccumulator>()
 
   for (const extLink of externalLinks) {
-    const sourceDomain = componentDomains.get(extLink.source);
-    if (sourceDomain === undefined) continue;
+    const sourceDomain = componentDomains.get(extLink.source)
+    if (sourceDomain === undefined) continue
 
-    const existing = domains.get(extLink.target.name);
+    const existing = domains.get(extLink.target.name)
     if (existing === undefined) {
       domains.set(extLink.target.name, {
         sourceDomains: new Set([sourceDomain]),
         connectionCount: 1,
-      });
+      })
     } else {
-      existing.sourceDomains.add(sourceDomain);
-      existing.connectionCount += 1;
+      existing.sourceDomains.add(sourceDomain)
+      existing.connectionCount += 1
     }
   }
 
-  return domains;
+  return domains
 }
 
 function convertToExternalDomains(
@@ -49,7 +49,7 @@ function convertToExternalDomains(
       sourceDomains: Array.from(acc.sourceDomains).map((d) => parseDomainName(d)),
       connectionCount: acc.connectionCount,
     }))
-    .sort((a, b) => a.name.localeCompare(b.name));
+    .sort((a, b) => a.name.localeCompare(b.name))
 }
 
 /**
@@ -63,10 +63,10 @@ function convertToExternalDomains(
  */
 export function queryExternalDomains(graph: RiviereGraph): ExternalDomain[] {
   if (graph.externalLinks === undefined || graph.externalLinks.length === 0) {
-    return [];
+    return []
   }
 
-  const componentDomains = buildComponentDomainMap(graph);
-  const domains = aggregateExternalDomains(graph.externalLinks, componentDomains);
-  return convertToExternalDomains(domains);
+  const componentDomains = buildComponentDomainMap(graph)
+  const domains = aggregateExternalDomains(graph.externalLinks, componentDomains)
+  return convertToExternalDomains(domains)
 }

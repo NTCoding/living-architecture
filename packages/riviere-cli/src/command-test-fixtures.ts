@@ -1,39 +1,39 @@
 import {
   mkdtemp, rm, mkdir, writeFile 
-} from 'node:fs/promises';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+} from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import {
   vi, beforeEach, afterEach, expect, it 
-} from 'vitest';
-import { createProgram } from './cli';
+} from 'vitest'
+import { createProgram } from './cli'
 
 export interface ErrorOutput {
-  success: false;
+  success: false
   error: {
-    code: string;
-    message: string;
-    suggestions: string[];
-  };
+    code: string
+    message: string
+    suggestions: string[]
+  }
 }
 
 function isErrorOutput(value: unknown): value is ErrorOutput {
-  if (typeof value !== 'object' || value === null) return false;
-  if (!('success' in value) || value.success !== false) return false;
-  if (!('error' in value) || typeof value.error !== 'object' || value.error === null) return false;
-  return true;
+  if (typeof value !== 'object' || value === null) return false
+  if (!('success' in value) || value.success !== false) return false
+  if (!('error' in value) || typeof value.error !== 'object' || value.error === null) return false
+  return true
 }
 
 export function parseErrorOutput(consoleOutput: string[]): ErrorOutput {
-  const firstLine = consoleOutput[0];
+  const firstLine = consoleOutput[0]
   if (firstLine === undefined) {
-    throw new Error('Expected console output but got empty array');
+    throw new Error('Expected console output but got empty array')
   }
-  const parsed: unknown = JSON.parse(firstLine);
+  const parsed: unknown = JSON.parse(firstLine)
   if (!isErrorOutput(parsed)) {
-    throw new Error('Invalid error output');
+    throw new Error('Invalid error output')
   }
-  return parsed;
+  return parsed
 }
 
 export function parseSuccessOutput<T>(
@@ -41,21 +41,21 @@ export function parseSuccessOutput<T>(
   guard: (value: unknown) => value is T,
   errorMessage: string,
 ): T {
-  const firstLine = consoleOutput[0];
+  const firstLine = consoleOutput[0]
   if (firstLine === undefined) {
-    throw new Error('Expected console output but got empty array');
+    throw new Error('Expected console output but got empty array')
   }
-  const parsed: unknown = JSON.parse(firstLine);
+  const parsed: unknown = JSON.parse(firstLine)
   if (!guard(parsed)) {
-    throw new Error(errorMessage);
+    throw new Error(errorMessage)
   }
-  return parsed;
+  return parsed
 }
 
 export interface TestContext {
-  testDir: string;
-  originalCwd: string;
-  consoleOutput: string[];
+  testDir: string
+  originalCwd: string
+  consoleOutput: string[]
 }
 
 export function createTestContext(): TestContext {
@@ -63,23 +63,23 @@ export function createTestContext(): TestContext {
     testDir: '',
     originalCwd: '',
     consoleOutput: [],
-  };
+  }
 }
 
 export function setupCommandTest(ctx: TestContext): void {
   beforeEach(async () => {
-    ctx.testDir = await mkdtemp(join(tmpdir(), 'riviere-test-'));
-    ctx.originalCwd = process.cwd();
-    ctx.consoleOutput = [];
-    process.chdir(ctx.testDir);
-    vi.spyOn(console, 'log').mockImplementation((msg: string) => ctx.consoleOutput.push(msg));
-  });
+    ctx.testDir = await mkdtemp(join(tmpdir(), 'riviere-test-'))
+    ctx.originalCwd = process.cwd()
+    ctx.consoleOutput = []
+    process.chdir(ctx.testDir)
+    vi.spyOn(console, 'log').mockImplementation((msg: string) => ctx.consoleOutput.push(msg))
+  })
 
   afterEach(async () => {
-    vi.restoreAllMocks();
-    process.chdir(ctx.originalCwd);
-    await rm(ctx.testDir, { recursive: true });
-  });
+    vi.restoreAllMocks()
+    process.chdir(ctx.originalCwd)
+    await rm(ctx.testDir, { recursive: true })
+  })
 }
 
 export async function createGraph(
@@ -87,11 +87,11 @@ export async function createGraph(
   graphData: object,
   subPath = '.riviere',
 ): Promise<string> {
-  const graphDir = join(testDir, subPath);
-  await mkdir(graphDir, { recursive: true });
-  const graphPath = join(graphDir, 'graph.json');
-  await writeFile(graphPath, JSON.stringify(graphData), 'utf-8');
-  return graphPath;
+  const graphDir = join(testDir, subPath)
+  await mkdir(graphDir, { recursive: true })
+  const graphPath = join(graphDir, 'graph.json')
+  await writeFile(graphPath, JSON.stringify(graphData), 'utf-8')
+  return graphPath
 }
 
 export const baseMetadata = {
@@ -102,12 +102,12 @@ export const baseMetadata = {
       systemType: 'domain',
     },
   },
-};
+}
 
 export const sourceLocation = {
   repository: 'https://github.com/org/repo',
   filePath: 'src/orders/handler.ts',
-};
+}
 
 export const useCaseComponent = {
   id: 'orders:checkout:usecase:place-order',
@@ -116,7 +116,7 @@ export const useCaseComponent = {
   domain: 'orders',
   module: 'checkout',
   sourceLocation,
-};
+}
 
 export const apiComponent = {
   id: 'orders:checkout:api:place-order',
@@ -128,7 +128,7 @@ export const apiComponent = {
   apiType: 'REST',
   httpMethod: 'POST',
   path: '/orders',
-};
+}
 
 export const eventHandlerComponent = {
   id: 'orders:checkout:eventhandler:on-order-placed',
@@ -138,18 +138,18 @@ export const eventHandlerComponent = {
   module: 'checkout',
   sourceLocation,
   subscribedEvents: ['OrderPlaced'],
-};
+}
 
 export const validLink = {
   id: 'orders:checkout:api:place-order→orders:checkout:usecase:place-order:sync',
   source: 'orders:checkout:api:place-order',
   target: 'orders:checkout:usecase:place-order',
   type: 'sync',
-};
+}
 
 export async function createGraphWithDomain(testDir: string, domainName: string): Promise<void> {
-  const graphDir = join(testDir, '.riviere');
-  await mkdir(graphDir, { recursive: true });
+  const graphDir = join(testDir, '.riviere')
+  await mkdir(graphDir, { recursive: true })
   const graph = {
     version: '1.0',
     metadata: {
@@ -163,13 +163,13 @@ export async function createGraphWithDomain(testDir: string, domainName: string)
     },
     components: [],
     links: [],
-  };
-  await writeFile(join(graphDir, 'graph.json'), JSON.stringify(graph), 'utf-8');
+  }
+  await writeFile(join(graphDir, 'graph.json'), JSON.stringify(graph), 'utf-8')
 }
 
 export async function createGraphWithSource(testDir: string, repository: string): Promise<void> {
-  const graphDir = join(testDir, '.riviere');
-  await mkdir(graphDir, { recursive: true });
+  const graphDir = join(testDir, '.riviere')
+  await mkdir(graphDir, { recursive: true })
   const graph = {
     version: '1.0',
     metadata: {
@@ -183,13 +183,13 @@ export async function createGraphWithSource(testDir: string, repository: string)
     },
     components: [],
     links: [],
-  };
-  await writeFile(join(graphDir, 'graph.json'), JSON.stringify(graph), 'utf-8');
+  }
+  await writeFile(join(graphDir, 'graph.json'), JSON.stringify(graph), 'utf-8')
 }
 
 export async function createGraphWithComponent(testDir: string, component: object): Promise<void> {
-  const graphDir = join(testDir, '.riviere');
-  await mkdir(graphDir, { recursive: true });
+  const graphDir = join(testDir, '.riviere')
+  await mkdir(graphDir, { recursive: true })
   const graph = {
     version: '1.0',
     metadata: {
@@ -203,26 +203,26 @@ export async function createGraphWithComponent(testDir: string, component: objec
     },
     components: [component],
     links: [],
-  };
-  await writeFile(join(graphDir, 'graph.json'), JSON.stringify(graph), 'utf-8');
+  }
+  await writeFile(join(graphDir, 'graph.json'), JSON.stringify(graph), 'utf-8')
 }
 
 export interface CustomTypeDefinition {
-  description?: string;
+  description?: string
   requiredProperties?: Record<
     string,
     {
-      type: string;
-      description?: string;
+      type: string
+      description?: string
     }
-  >;
+  >
   optionalProperties?: Record<
     string,
     {
-      type: string;
-      description?: string;
+      type: string
+      description?: string
     }
-  >;
+  >
 }
 
 export async function createGraphWithCustomType(
@@ -231,8 +231,8 @@ export async function createGraphWithCustomType(
   customTypeName: string,
   customTypeDefinition: CustomTypeDefinition,
 ): Promise<void> {
-  const graphDir = join(testDir, '.riviere');
-  await mkdir(graphDir, { recursive: true });
+  const graphDir = join(testDir, '.riviere')
+  await mkdir(graphDir, { recursive: true })
   const graph = {
     version: '1.0',
     metadata: {
@@ -247,8 +247,8 @@ export async function createGraphWithCustomType(
     },
     components: [],
     links: [],
-  };
-  await writeFile(join(graphDir, 'graph.json'), JSON.stringify(graph), 'utf-8');
+  }
+  await writeFile(join(graphDir, 'graph.json'), JSON.stringify(graph), 'utf-8')
 }
 
 export const domainOpComponent = {
@@ -262,7 +262,7 @@ export const domainOpComponent = {
     repository: 'https://github.com/org/repo',
     filePath: 'src/domain.ts',
   },
-};
+}
 
 export const simpleUseCaseComponent = {
   id: 'orders:checkout:usecase:place-order',
@@ -274,25 +274,25 @@ export const simpleUseCaseComponent = {
     repository: 'https://github.com/org/repo',
     filePath: 'src/usecase.ts',
   },
-};
+}
 
 export function hasSuccessOutputStructure(value: unknown): value is {
-  success: true;
-  data: object;
+  success: true
+  data: object
 } {
-  if (typeof value !== 'object' || value === null) return false;
-  if (!('success' in value) || value.success !== true) return false;
-  if (!('data' in value) || typeof value.data !== 'object' || value.data === null) return false;
-  return true;
+  if (typeof value !== 'object' || value === null) return false
+  if (!('success' in value) || value.success !== true) return false
+  if (!('data' in value) || typeof value.data !== 'object' || value.data === null) return false
+  return true
 }
 
 export function testCommandRegistration(commandName: string): void {
   it(`registers ${commandName} command under builder`, () => {
-    const program = createProgram();
-    const builderCmd = program.commands.find((cmd) => cmd.name() === 'builder');
-    const cmd = builderCmd?.commands.find((cmd) => cmd.name() === commandName);
-    expect(cmd?.name()).toBe(commandName);
-  });
+    const program = createProgram()
+    const builderCmd = program.commands.find((cmd) => cmd.name() === 'builder')
+    const cmd = builderCmd?.commands.find((cmd) => cmd.name() === commandName)
+    expect(cmd?.name()).toBe(commandName)
+  })
 }
 
 export async function testCustomGraphPath<T>(
@@ -309,7 +309,7 @@ export async function testCustomGraphPath<T>(
       links: [],
     },
     'custom',
-  );
+  )
 
   await createProgram().parseAsync([
     'node',
@@ -318,6 +318,6 @@ export async function testCustomGraphPath<T>(
     '--graph',
     customPath,
     '--json',
-  ]);
-  return parseOutput(ctx.consoleOutput);
+  ])
+  return parseOutput(ctx.consoleOutput)
 }

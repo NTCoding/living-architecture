@@ -1,31 +1,31 @@
-import { Command } from 'commander';
-import { writeFile } from 'node:fs/promises';
-import type { ExternalTarget } from '@living-architecture/riviere-schema';
+import { Command } from 'commander'
+import { writeFile } from 'node:fs/promises'
+import type { ExternalTarget } from '@living-architecture/riviere-schema'
 import {
   getDefaultGraphPathDescription, resolveGraphPath 
-} from '../../graph-path';
-import { fileExists } from '../../file-existence';
-import { formatSuccess } from '../../output';
-import { isValidLinkType } from '../../component-types';
-import { validateLinkType } from '../../validation';
+} from '../../graph-path'
+import { fileExists } from '../../file-existence'
+import { formatSuccess } from '../../output'
+import { isValidLinkType } from '../../component-types'
+import { validateLinkType } from '../../validation'
 import {
   loadGraphBuilder, reportGraphNotFound, tryBuilderOperation 
-} from './link-infrastructure';
+} from './link-infrastructure'
 
 interface ExternalLinkInput {
-  from: string;
-  target: ExternalTarget;
-  type?: 'sync' | 'async';
+  from: string
+  target: ExternalTarget
+  type?: 'sync' | 'async'
 }
 
 interface LinkExternalOptions {
-  from: string;
-  targetName: string;
-  targetDomain?: string;
-  targetUrl?: string;
-  linkType?: string;
-  graph?: string;
-  json?: boolean;
+  from: string
+  targetName: string
+  targetDomain?: string
+  targetUrl?: string
+  linkType?: string
+  graph?: string
+  json?: boolean
 }
 
 function buildExternalTarget(options: LinkExternalOptions): ExternalTarget {
@@ -33,7 +33,7 @@ function buildExternalTarget(options: LinkExternalOptions): ExternalTarget {
     name: options.targetName,
     ...(options.targetDomain && { domain: options.targetDomain }),
     ...(options.targetUrl && { url: options.targetUrl }),
-  };
+  }
 }
 
 export function createLinkExternalCommand(): Command {
@@ -64,41 +64,41 @@ Examples:
     .option('--graph <path>', getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .action(async (options: LinkExternalOptions) => {
-      const linkTypeValidation = validateLinkType(options.linkType);
+      const linkTypeValidation = validateLinkType(options.linkType)
       if (!linkTypeValidation.valid) {
-        console.log(linkTypeValidation.errorJson);
-        return;
+        console.log(linkTypeValidation.errorJson)
+        return
       }
 
-      const graphPath = resolveGraphPath(options.graph);
-      const graphExists = await fileExists(graphPath);
+      const graphPath = resolveGraphPath(options.graph)
+      const graphExists = await fileExists(graphPath)
 
       if (!graphExists) {
-        reportGraphNotFound(graphPath);
-        return;
+        reportGraphNotFound(graphPath)
+        return
       }
 
-      const builder = await loadGraphBuilder(graphPath);
-      const target = buildExternalTarget(options);
+      const builder = await loadGraphBuilder(graphPath)
+      const target = buildExternalTarget(options)
 
       const externalLinkInput: ExternalLinkInput = {
         from: options.from,
         target,
-      };
+      }
 
       if (options.linkType !== undefined && isValidLinkType(options.linkType)) {
-        externalLinkInput.type = options.linkType;
+        externalLinkInput.type = options.linkType
       }
 
-      const externalLink = tryBuilderOperation(() => builder.linkExternal(externalLinkInput));
+      const externalLink = tryBuilderOperation(() => builder.linkExternal(externalLinkInput))
       if (externalLink === undefined) {
-        return;
+        return
       }
 
-      await writeFile(graphPath, builder.serialize(), 'utf-8');
+      await writeFile(graphPath, builder.serialize(), 'utf-8')
 
       if (options.json) {
-        console.log(JSON.stringify(formatSuccess({ externalLink })));
+        console.log(JSON.stringify(formatSuccess({ externalLink })))
       }
-    });
+    })
 }

@@ -1,7 +1,7 @@
-export * from './schema';
+export * from './schema'
 export {
   parseRiviereGraph, isRiviereGraph, formatValidationErrors 
-} from './validation';
+} from './validation'
 export {
   ComponentId, type ComponentIdParts 
-} from './component-id';
+} from './component-id'

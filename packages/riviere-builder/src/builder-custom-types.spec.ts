@@ -1,6 +1,6 @@
 import {
   RiviereBuilder, type BuilderOptions 
-} from './builder';
+} from './builder'
 
 function createValidOptions(): BuilderOptions {
   return {
@@ -16,13 +16,13 @@ function createValidOptions(): BuilderOptions {
         systemType: 'domain',
       },
     },
-  };
+  }
 }
 
 describe('RiviereBuilder custom types', () => {
   describe('defineCustomType', () => {
     it('registers custom type with required properties', () => {
-      const builder = RiviereBuilder.new(createValidOptions());
+      const builder = RiviereBuilder.new(createValidOptions())
 
       builder.defineCustomType({
         name: 'MessageQueue',
@@ -32,7 +32,7 @@ describe('RiviereBuilder custom types', () => {
             description: 'Queue identifier',
           },
         },
-      });
+      })
 
       expect(builder.graph.metadata.customTypes).toEqual({
         MessageQueue: {
@@ -43,11 +43,11 @@ describe('RiviereBuilder custom types', () => {
             },
           },
         },
-      });
-    });
+      })
+    })
 
     it('registers custom type with optional properties and description', () => {
-      const builder = RiviereBuilder.new(createValidOptions());
+      const builder = RiviereBuilder.new(createValidOptions())
 
       builder.defineCustomType({
         name: 'CacheStore',
@@ -58,7 +58,7 @@ describe('RiviereBuilder custom types', () => {
             description: 'Time to live in seconds',
           },
         },
-      });
+      })
 
       expect(builder.graph.metadata.customTypes).toEqual({
         CacheStore: {
@@ -70,23 +70,23 @@ describe('RiviereBuilder custom types', () => {
             },
           },
         },
-      });
-    });
+      })
+    })
 
     it('throws when custom type name already defined', () => {
-      const builder = RiviereBuilder.new(createValidOptions());
-      builder.defineCustomType({ name: 'MessageQueue' });
+      const builder = RiviereBuilder.new(createValidOptions())
+      builder.defineCustomType({ name: 'MessageQueue' })
 
       expect(() => builder.defineCustomType({ name: 'MessageQueue' })).toThrow(
         "Custom type 'MessageQueue' already defined",
-      );
-    });
-  });
+      )
+    })
+  })
 
   describe('addCustom', () => {
     it('returns CustomComponent when type is defined', () => {
-      const builder = RiviereBuilder.new(createValidOptions());
-      builder.defineCustomType({ name: 'MessageQueue' });
+      const builder = RiviereBuilder.new(createValidOptions())
+      builder.defineCustomType({ name: 'MessageQueue' })
 
       const component = builder.addCustom({
         customTypeName: 'MessageQueue',
@@ -97,7 +97,7 @@ describe('RiviereBuilder custom types', () => {
           repository: 'my-org/my-repo',
           filePath: 'src/queues/order-queue.ts',
         },
-      });
+      })
 
       expect(component).toEqual({
         id: 'orders:messaging:custom:order-queue',
@@ -110,12 +110,12 @@ describe('RiviereBuilder custom types', () => {
           repository: 'my-org/my-repo',
           filePath: 'src/queues/order-queue.ts',
         },
-      });
-    });
+      })
+    })
 
     it('includes description when provided', () => {
-      const builder = RiviereBuilder.new(createValidOptions());
-      builder.defineCustomType({ name: 'MessageQueue' });
+      const builder = RiviereBuilder.new(createValidOptions())
+      builder.defineCustomType({ name: 'MessageQueue' })
 
       const component = builder.addCustom({
         customTypeName: 'MessageQueue',
@@ -127,15 +127,15 @@ describe('RiviereBuilder custom types', () => {
           repository: 'my-org/my-repo',
           filePath: 'src/queues/order-queue.ts',
         },
-      });
+      })
 
-      expect(component.description).toBe('Queue for order events');
-    });
+      expect(component.description).toBe('Queue for order events')
+    })
 
     it('throws immediately when custom type is not defined', () => {
-      const builder = RiviereBuilder.new(createValidOptions());
-      builder.defineCustomType({ name: 'MessageQueue' });
-      builder.defineCustomType({ name: 'CacheStore' });
+      const builder = RiviereBuilder.new(createValidOptions())
+      builder.defineCustomType({ name: 'MessageQueue' })
+      builder.defineCustomType({ name: 'CacheStore' })
 
       expect(() =>
         builder.addCustom({
@@ -148,11 +148,11 @@ describe('RiviereBuilder custom types', () => {
             filePath: 'src/some.ts',
           },
         }),
-      ).toThrow("Custom type 'UndefinedType' not defined. Defined types: MessageQueue, CacheStore");
-    });
+      ).toThrow("Custom type 'UndefinedType' not defined. Defined types: MessageQueue, CacheStore")
+    })
 
     it('throws with explicit message when no custom types registered', () => {
-      const builder = RiviereBuilder.new(createValidOptions());
+      const builder = RiviereBuilder.new(createValidOptions())
 
       expect(() =>
         builder.addCustom({
@@ -165,18 +165,18 @@ describe('RiviereBuilder custom types', () => {
             filePath: 'src/some.ts',
           },
         }),
-      ).toThrow("Custom type 'UndefinedType' not defined. No custom types have been defined.");
-    });
+      ).toThrow("Custom type 'UndefinedType' not defined. No custom types have been defined.")
+    })
 
     it('throws immediately when required properties are missing', () => {
-      const builder = RiviereBuilder.new(createValidOptions());
+      const builder = RiviereBuilder.new(createValidOptions())
       builder.defineCustomType({
         name: 'MessageQueue',
         requiredProperties: {
           queueName: { type: 'string' },
           messageType: { type: 'string' },
         },
-      });
+      })
 
       expect(() =>
         builder.addCustom({
@@ -189,7 +189,7 @@ describe('RiviereBuilder custom types', () => {
             filePath: 'src/queues.ts',
           },
         }),
-      ).toThrow("Missing required properties for 'MessageQueue': queueName, messageType");
-    });
-  });
-});
+      ).toThrow("Missing required properties for 'MessageQueue': queueName, messageType")
+    })
+  })
+})

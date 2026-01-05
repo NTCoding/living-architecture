@@ -1,13 +1,13 @@
-import { useCallback } from 'react';
-import type { AggregatedConnection } from '../../extractDomainDetails';
-import { ConnectionItem } from './ConnectionItem';
+import { useCallback } from 'react'
+import type { AggregatedConnection } from '../../extractDomainDetails'
+import { ConnectionItem } from './ConnectionItem'
 
 interface DomainInfoModalProps {
-  readonly nodeId: string;
-  readonly connections: readonly AggregatedConnection[];
-  readonly isCurrent: boolean;
-  readonly currentDomainId: string;
-  readonly onClose: () => void;
+  readonly nodeId: string
+  readonly connections: readonly AggregatedConnection[]
+  readonly isCurrent: boolean
+  readonly currentDomainId: string
+  readonly onClose: () => void
 }
 
 export function DomainInfoModal({
@@ -18,8 +18,8 @@ export function DomainInfoModal({
   onClose,
 }: Readonly<DomainInfoModalProps>): React.ReactElement {
   const handleBackdropClick = useCallback(() => {
-    onClose();
-  }, [onClose]);
+    onClose()
+  }, [onClose])
 
   return (
     <>
@@ -43,13 +43,13 @@ export function DomainInfoModal({
         {!isCurrent && <ModalFooter nodeId={nodeId} />}
       </div>
     </>
-  );
+  )
 }
 
 interface ModalHeaderProps {
-  readonly nodeId: string;
-  readonly isCurrent: boolean;
-  readonly onClose: () => void;
+  readonly nodeId: string
+  readonly isCurrent: boolean
+  readonly onClose: () => void
 }
 
 function ModalHeader({
@@ -86,13 +86,13 @@ function ModalHeader({
         <i className="ph ph-x text-sm" aria-hidden="true" />
       </button>
     </div>
-  );
+  )
 }
 
 interface ModalContentProps {
-  isCurrent: boolean;
-  connections: AggregatedConnection[];
-  currentDomainId: string;
+  isCurrent: boolean
+  connections: AggregatedConnection[]
+  currentDomainId: string
 }
 
 function ModalContent({
@@ -100,8 +100,8 @@ function ModalContent({
   connections,
   currentDomainId,
 }: Readonly<ModalContentProps>): React.ReactElement {
-  const isCurrentDomain = isCurrent;
-  const hasNoConnections = connections.length === 0;
+  const isCurrentDomain = isCurrent
+  const hasNoConnections = connections.length === 0
 
   const renderContent = (): React.ReactElement => {
     if (isCurrentDomain) {
@@ -109,14 +109,14 @@ function ModalContent({
         <p className="text-sm text-[var(--text-secondary)]">
           This is the domain you are currently viewing.
         </p>
-      );
+      )
     }
     if (hasNoConnections) {
       return (
         <p className="text-sm text-[var(--text-secondary)]">
           No direct connections to {currentDomainId}.
         </p>
-      );
+      )
     }
     return (
       <div className="space-y-3">
@@ -132,14 +132,14 @@ function ModalContent({
           />
         ))}
       </div>
-    );
-  };
-  const content = renderContent();
+    )
+  }
+  const content = renderContent()
 
-  return <div className="p-4">{content}</div>;
+  return <div className="p-4">{content}</div>
 }
 
-interface ModalFooterProps {readonly nodeId: string;}
+interface ModalFooterProps {readonly nodeId: string}
 
 function ModalFooter({ nodeId }: Readonly<ModalFooterProps>): React.ReactElement {
   return (
@@ -152,5 +152,5 @@ function ModalFooter({ nodeId }: Readonly<ModalFooterProps>): React.ReactElement
         View Domain Details
       </a>
     </div>
-  );
+  )
 }

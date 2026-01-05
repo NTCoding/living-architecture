@@ -1,49 +1,49 @@
 import {
   useState, useCallback 
-} from 'react';
+} from 'react'
 
-export type FlowFilter = 'all' | 'ui' | 'api' | 'jobs';
+export type FlowFilter = 'all' | 'ui' | 'api' | 'jobs'
 
 interface FlowsState {
-  searchQuery: string;
-  setSearchQuery: (query: string) => void;
-  activeFilter: FlowFilter;
-  setActiveFilter: (filter: FlowFilter) => void;
-  expandedFlowIds: Set<string>;
-  toggleFlow: (flowId: string) => void;
-  activeDomains: Set<string>;
-  toggleDomain: (domain: string) => void;
+  searchQuery: string
+  setSearchQuery: (query: string) => void
+  activeFilter: FlowFilter
+  setActiveFilter: (filter: FlowFilter) => void
+  expandedFlowIds: Set<string>
+  toggleFlow: (flowId: string) => void
+  activeDomains: Set<string>
+  toggleDomain: (domain: string) => void
 }
 
 export function useFlowsState(): FlowsState {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeFilter, setActiveFilter] = useState<FlowFilter>('all');
-  const [expandedFlowIds, setExpandedFlowIds] = useState<Set<string>>(new Set());
-  const [activeDomains, setActiveDomains] = useState<Set<string>>(new Set());
+  const [searchQuery, setSearchQuery] = useState('')
+  const [activeFilter, setActiveFilter] = useState<FlowFilter>('all')
+  const [expandedFlowIds, setExpandedFlowIds] = useState<Set<string>>(new Set())
+  const [activeDomains, setActiveDomains] = useState<Set<string>>(new Set())
 
   const toggleFlow = useCallback((flowId: string) => {
     setExpandedFlowIds((prev) => {
-      const next = new Set(prev);
+      const next = new Set(prev)
       if (next.has(flowId)) {
-        next.delete(flowId);
+        next.delete(flowId)
       } else {
-        next.add(flowId);
+        next.add(flowId)
       }
-      return next;
-    });
-  }, []);
+      return next
+    })
+  }, [])
 
   const toggleDomain = useCallback((domain: string) => {
     setActiveDomains((prev) => {
-      const next = new Set(prev);
+      const next = new Set(prev)
       if (next.has(domain)) {
-        next.delete(domain);
+        next.delete(domain)
       } else {
-        next.add(domain);
+        next.add(domain)
       }
-      return next;
-    });
-  }, []);
+      return next
+    })
+  }, [])
 
   return {
     searchQuery,
@@ -54,5 +54,5 @@ export function useFlowsState(): FlowsState {
     toggleFlow,
     activeDomains,
     toggleDomain,
-  };
+  }
 }

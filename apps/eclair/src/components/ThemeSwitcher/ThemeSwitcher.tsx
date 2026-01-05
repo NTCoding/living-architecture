@@ -1,12 +1,12 @@
-import { useTheme } from '@/contexts/ThemeContext';
+import { useTheme } from '@/contexts/ThemeContext'
 import {
   THEMES, THEME_LABELS 
-} from '@/types/theme';
+} from '@/types/theme'
 
 export function ThemeSwitcher(): React.ReactElement {
   const {
     theme, setTheme 
-  } = useTheme();
+  } = useTheme()
 
   return (
     <div className="flex gap-1.5" role="tablist" aria-label="Theme selection">
@@ -30,5 +30,5 @@ export function ThemeSwitcher(): React.ReactElement {
         </button>
       ))}
     </div>
-  );
+  )
 }

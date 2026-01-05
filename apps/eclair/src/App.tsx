@@ -1,64 +1,64 @@
 import {
   Routes, Route 
-} from 'react-router-dom';
-import { AppShell } from '@/components/AppShell/AppShell';
+} from 'react-router-dom'
+import { AppShell } from '@/components/AppShell/AppShell'
 import {
   GraphProvider, useGraph 
-} from '@/contexts/GraphContext';
-import { ExportProvider } from '@/contexts/ExportContext';
-import { EmptyState } from '@/features/empty-state/EmptyState';
-import type { RiviereGraph } from '@/types/riviere';
-import { OverviewPage } from '@/features/overview/OverviewPage';
-import { FullGraphPage } from '@/features/full-graph/FullGraphPage';
-import { DomainMapPage } from '@/features/domain-map/DomainMapPage';
-import { FlowsPage } from '@/features/flows/FlowsPage';
-import { DomainDetailPage } from '@/features/domains/DomainDetailPage';
-import { EntitiesPage } from '@/features/entities/EntitiesPage';
-import { EventsPage } from '@/features/events/EventsPage';
-import { ComparisonPage } from '@/features/comparison/ComparisonPage';
+} from '@/contexts/GraphContext'
+import { ExportProvider } from '@/contexts/ExportContext'
+import { EmptyState } from '@/features/empty-state/EmptyState'
+import type { RiviereGraph } from '@/types/riviere'
+import { OverviewPage } from '@/features/overview/OverviewPage'
+import { FullGraphPage } from '@/features/full-graph/FullGraphPage'
+import { DomainMapPage } from '@/features/domain-map/DomainMapPage'
+import { FlowsPage } from '@/features/flows/FlowsPage'
+import { DomainDetailPage } from '@/features/domains/DomainDetailPage'
+import { EntitiesPage } from '@/features/entities/EntitiesPage'
+import { EventsPage } from '@/features/events/EventsPage'
+import { ComparisonPage } from '@/features/comparison/ComparisonPage'
 
 function useRequiredGraph(): RiviereGraph {
-  const { graph } = useGraph();
+  const { graph } = useGraph()
   if (graph === null) {
     throw new Error(
       'useRequiredGraph called without a graph. This component should only render when hasGraph is true.',
-    );
+    )
   }
-  return graph;
+  return graph
 }
 
 function Overview(): React.ReactElement {
-  return <OverviewPage graph={useRequiredGraph()} />;
+  return <OverviewPage graph={useRequiredGraph()} />
 }
 
 function FullGraph(): React.ReactElement {
-  return <FullGraphPage graph={useRequiredGraph()} />;
+  return <FullGraphPage graph={useRequiredGraph()} />
 }
 
 function DomainMap(): React.ReactElement {
-  return <DomainMapPage graph={useRequiredGraph()} />;
+  return <DomainMapPage graph={useRequiredGraph()} />
 }
 
 function Flows(): React.ReactElement {
-  return <FlowsPage graph={useRequiredGraph()} />;
+  return <FlowsPage graph={useRequiredGraph()} />
 }
 
 function DomainDetail(): React.ReactElement {
-  return <DomainDetailPage graph={useRequiredGraph()} />;
+  return <DomainDetailPage graph={useRequiredGraph()} />
 }
 
 function Entities(): React.ReactElement {
-  return <EntitiesPage graph={useRequiredGraph()} />;
+  return <EntitiesPage graph={useRequiredGraph()} />
 }
 
 function Events(): React.ReactElement {
-  return <EventsPage graph={useRequiredGraph()} />;
+  return <EventsPage graph={useRequiredGraph()} />
 }
 
 function AppContent(): React.ReactElement {
   const {
     hasGraph, graphName, graph, isLoadingDemo 
-  } = useGraph();
+  } = useGraph()
 
   if (isLoadingDemo) {
     return (
@@ -68,7 +68,7 @@ function AppContent(): React.ReactElement {
           <p className="text-[var(--text-secondary)]">Loading demo graph...</p>
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -84,7 +84,7 @@ function AppContent(): React.ReactElement {
         <Route path="/compare" element={<ComparisonPage />} />
       </Routes>
     </AppShell>
-  );
+  )
 }
 
 export function App(): React.ReactElement {
@@ -94,5 +94,5 @@ export function App(): React.ReactElement {
         <AppContent />
       </ExportProvider>
     </GraphProvider>
-  );
+  )
 }

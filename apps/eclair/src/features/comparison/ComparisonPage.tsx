@@ -1,47 +1,47 @@
 import {
   useState, useCallback 
-} from 'react';
-import type { Node } from '@/types/riviere';
-import { parseRiviereGraph } from '@living-architecture/riviere-schema';
+} from 'react'
+import type { Node } from '@/types/riviere'
+import { parseRiviereGraph } from '@living-architecture/riviere-schema'
 import {
   compareGraphs, type GraphDiff 
-} from './compareGraphs';
+} from './compareGraphs'
 import {
   computeDomainConnectionDiff,
   type DomainConnectionDiffResult,
-} from './computeDomainConnectionDiff';
+} from './computeDomainConnectionDiff'
 import {
   FilterTabs, DomainFilter, TypeFilter, type ChangeFilter 
-} from './ChangeFilters';
-import { StatsBar } from './StatsBar';
-import { DomainConnectionDiff } from './DomainConnectionDiff';
+} from './ChangeFilters'
+import { StatsBar } from './StatsBar'
+import { DomainConnectionDiff } from './DomainConnectionDiff'
 import {
   UploadZone, type UploadState 
-} from './UploadZone';
+} from './UploadZone'
 
-type ResultsViewMode = 'graph' | 'list';
+type ResultsViewMode = 'graph' | 'list'
 
 interface ChangeItemBase {
-  readonly node: Node;
-  readonly changeType: 'added' | 'removed' | 'modified';
-  readonly changedFields?: string[];
+  readonly node: Node
+  readonly changeType: 'added' | 'removed' | 'modified'
+  readonly changedFields?: string[]
 }
 
 function buildChangeItems(diff: GraphDiff): ChangeItemBase[] {
-  const items: ChangeItemBase[] = [];
+  const items: ChangeItemBase[] = []
 
   for (const addition of diff.nodes.added) {
     items.push({
       node: addition.node,
       changeType: 'added',
-    });
+    })
   }
 
   for (const removal of diff.nodes.removed) {
     items.push({
       node: removal.node,
       changeType: 'removed',
-    });
+    })
   }
 
   for (const modification of diff.nodes.modified) {
@@ -49,38 +49,38 @@ function buildChangeItems(diff: GraphDiff): ChangeItemBase[] {
       node: modification.after,
       changeType: 'modified',
       changedFields: modification.changedFields,
-    });
+    })
   }
 
-  return items;
+  return items
 }
 
 function parseGraphFile(content: string, fileName: string): UploadState {
   try {
-    const data: unknown = JSON.parse(content);
-    const graph = parseRiviereGraph(data);
+    const data: unknown = JSON.parse(content)
+    const graph = parseRiviereGraph(data)
     return {
       status: 'loaded',
       file: {
         name: fileName,
         graph,
       },
-    };
+    }
   } catch (e) {
-    const message = e instanceof Error ? e.message : 'Unknown error';
+    const message = e instanceof Error ? e.message : 'Unknown error'
     return {
       status: 'error',
       error: { message },
-    };
+    }
   }
 }
 
-interface ChangeItemProps {readonly item: ChangeItemBase;}
+interface ChangeItemProps {readonly item: ChangeItemBase}
 
 function ChangeItem({ item }: Readonly<ChangeItemProps>): React.ReactElement {
   const {
     node, changeType, changedFields 
-  } = item;
+  } = item
 
   const changeIndicator = {
     added: {
@@ -95,13 +95,13 @@ function ChangeItem({ item }: Readonly<ChangeItemProps>): React.ReactElement {
       text: '~ MODIFIED',
       color: 'text-amber-500',
     },
-  }[changeType];
+  }[changeType]
 
   const borderColor = {
     added: 'border-l-[#1A7F37]',
     removed: 'border-l-[#FF6B6B]',
     modified: 'border-l-amber-500',
-  }[changeType];
+  }[changeType]
 
   return (
     <div
@@ -128,40 +128,40 @@ function ChangeItem({ item }: Readonly<ChangeItemProps>): React.ReactElement {
         </p>
       )}
     </div>
-  );
+  )
 }
 
 function extractUniqueDomains(items: ChangeItemBase[]): string[] {
-  const domains = new Set<string>();
+  const domains = new Set<string>()
   for (const item of items) {
-    domains.add(item.node.domain);
+    domains.add(item.node.domain)
   }
-  return Array.from(domains).sort((a, b) => a.localeCompare(b));
+  return Array.from(domains).sort((a, b) => a.localeCompare(b))
 }
 
 function extractUniqueTypes(items: ChangeItemBase[]): string[] {
-  const types = new Set<string>();
+  const types = new Set<string>()
   for (const item of items) {
-    types.add(item.node.type);
+    types.add(item.node.type)
   }
-  return Array.from(types).sort((a, b) => a.localeCompare(b));
+  return Array.from(types).sort((a, b) => a.localeCompare(b))
 }
 
-interface DetailedChangesProps {readonly diff: GraphDiff;}
+interface DetailedChangesProps {readonly diff: GraphDiff}
 
 function DetailedChanges({ diff }: Readonly<DetailedChangesProps>): React.ReactElement {
-  const [filter, setFilter] = useState<ChangeFilter>('all');
-  const [domainFilter, setDomainFilter] = useState<string | null>(null);
-  const [typeFilter, setTypeFilter] = useState<string | null>(null);
+  const [filter, setFilter] = useState<ChangeFilter>('all')
+  const [domainFilter, setDomainFilter] = useState<string | null>(null)
+  const [typeFilter, setTypeFilter] = useState<string | null>(null)
 
-  const allItems = buildChangeItems(diff);
-  const uniqueDomains = extractUniqueDomains(allItems);
-  const uniqueTypes = extractUniqueTypes(allItems);
+  const allItems = buildChangeItems(diff)
+  const uniqueDomains = extractUniqueDomains(allItems)
+  const uniqueTypes = extractUniqueTypes(allItems)
 
   const filteredItems = allItems
     .filter((item) => filter === 'all' || item.changeType === filter)
     .filter((item) => domainFilter === null || item.node.domain === domainFilter)
-    .filter((item) => typeFilter === null || item.node.type === typeFilter);
+    .filter((item) => typeFilter === null || item.node.type === typeFilter)
 
   return (
     <div className="space-y-4">
@@ -198,74 +198,74 @@ function DetailedChanges({ diff }: Readonly<DetailedChangesProps>): React.ReactE
         )}
       </div>
     </div>
-  );
+  )
 }
 
 export function ComparisonPage(): React.ReactElement {
-  const [beforeState, setBeforeState] = useState<UploadState>({ status: 'empty' });
-  const [afterState, setAfterState] = useState<UploadState>({ status: 'empty' });
-  const [comparisonResult, setComparisonResult] = useState<GraphDiff | null>(null);
-  const [domainDiff, setDomainDiff] = useState<DomainConnectionDiffResult | null>(null);
-  const [viewMode, setViewMode] = useState<ResultsViewMode>('graph');
+  const [beforeState, setBeforeState] = useState<UploadState>({ status: 'empty' })
+  const [afterState, setAfterState] = useState<UploadState>({ status: 'empty' })
+  const [comparisonResult, setComparisonResult] = useState<GraphDiff | null>(null)
+  const [domainDiff, setDomainDiff] = useState<DomainConnectionDiffResult | null>(null)
+  const [viewMode, setViewMode] = useState<ResultsViewMode>('graph')
 
   const handleBeforeFileSelect = useCallback((file: File) => {
-    const reader = new FileReader();
+    const reader = new FileReader()
     reader.onload = (event) => {
-      const content = event.target?.result;
+      const content = event.target?.result
       if (typeof content !== 'string') {
         setBeforeState({
           status: 'error',
           error: { message: 'Failed to read file' },
-        });
-        return;
+        })
+        return
       }
-      setBeforeState(parseGraphFile(content, file.name));
-    };
+      setBeforeState(parseGraphFile(content, file.name))
+    }
     reader.onerror = () => {
       setBeforeState({
         status: 'error',
         error: { message: 'Failed to read file' },
-      });
-    };
-    reader.readAsText(file);
-  }, []);
+      })
+    }
+    reader.readAsText(file)
+  }, [])
 
   const handleAfterFileSelect = useCallback((file: File) => {
-    const reader = new FileReader();
+    const reader = new FileReader()
     reader.onload = (event) => {
-      const content = event.target?.result;
+      const content = event.target?.result
       if (typeof content !== 'string') {
         setAfterState({
           status: 'error',
           error: { message: 'Failed to read file' },
-        });
-        return;
+        })
+        return
       }
-      setAfterState(parseGraphFile(content, file.name));
-    };
+      setAfterState(parseGraphFile(content, file.name))
+    }
     reader.onerror = () => {
       setAfterState({
         status: 'error',
         error: { message: 'Failed to read file' },
-      });
-    };
-    reader.readAsText(file);
-  }, []);
+      })
+    }
+    reader.readAsText(file)
+  }, [])
 
-  const canCompare = beforeState.status === 'loaded' && afterState.status === 'loaded';
+  const canCompare = beforeState.status === 'loaded' && afterState.status === 'loaded'
 
   const handleCompare = useCallback(() => {
-    if (beforeState.status !== 'loaded' || afterState.status !== 'loaded') return;
+    if (beforeState.status !== 'loaded' || afterState.status !== 'loaded') return
 
-    const diff = compareGraphs(beforeState.file.graph, afterState.file.graph);
-    setComparisonResult(diff);
+    const diff = compareGraphs(beforeState.file.graph, afterState.file.graph)
+    setComparisonResult(diff)
 
     const connectionDiff = computeDomainConnectionDiff(
       beforeState.file.graph,
       afterState.file.graph,
-    );
-    setDomainDiff(connectionDiff);
-  }, [beforeState, afterState]);
+    )
+    setDomainDiff(connectionDiff)
+  }, [beforeState, afterState])
 
   return (
     <div className="space-y-8">
@@ -382,5 +382,5 @@ export function ComparisonPage(): React.ReactElement {
         </section>
       )}
     </div>
-  );
+  )
 }

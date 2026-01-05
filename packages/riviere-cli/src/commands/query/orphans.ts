@@ -1,12 +1,12 @@
-import { Command } from 'commander';
-import { formatSuccess } from '../../output';
+import { Command } from 'commander'
+import { formatSuccess } from '../../output'
 import {
   withGraph, getDefaultGraphPathDescription 
-} from './load-graph';
+} from './load-graph'
 
 interface OrphansOptions {
-  graph?: string;
-  json?: boolean;
+  graph?: string
+  json?: boolean
 }
 
 export function createOrphansCommand(): Command {
@@ -24,11 +24,11 @@ Examples:
     .option('--json', 'Output result as JSON')
     .action(async (options: OrphansOptions) => {
       await withGraph(options.graph, (query) => {
-        const orphans = query.detectOrphans();
+        const orphans = query.detectOrphans()
 
         if (options.json) {
-          console.log(JSON.stringify(formatSuccess({ orphans })));
+          console.log(JSON.stringify(formatSuccess({ orphans })))
         }
-      });
-    });
+      })
+    })
 }

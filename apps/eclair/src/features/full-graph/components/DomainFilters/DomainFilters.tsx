@@ -1,18 +1,18 @@
 import {
   useState, useCallback 
-} from 'react';
+} from 'react'
 
 interface DomainInfo {
-  readonly name: string;
-  readonly nodeCount: number;
+  readonly name: string
+  readonly nodeCount: number
 }
 
 interface DomainFiltersProps {
-  readonly domains: readonly DomainInfo[];
-  readonly visibleDomains: Set<string>;
-  readonly onToggleDomain: (domain: string) => void;
-  readonly onShowAll: () => void;
-  readonly onHideAll: () => void;
+  readonly domains: readonly DomainInfo[]
+  readonly visibleDomains: Set<string>
+  readonly onToggleDomain: (domain: string) => void
+  readonly onShowAll: () => void
+  readonly onHideAll: () => void
 }
 
 export function DomainFilters({
@@ -22,14 +22,14 @@ export function DomainFilters({
   onShowAll,
   onHideAll,
 }: Readonly<DomainFiltersProps>): React.ReactElement {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(true)
 
   const toggleOpen = useCallback(() => {
-    setIsOpen((prev) => !prev);
-  }, []);
+    setIsOpen((prev) => !prev)
+  }, [])
 
-  const allVisible = domains.every((d) => visibleDomains.has(d.name));
-  const noneVisible = visibleDomains.size === 0;
+  const allVisible = domains.every((d) => visibleDomains.has(d.name))
+  const noneVisible = visibleDomains.size === 0
 
   return (
     <div
@@ -87,7 +87,7 @@ export function DomainFilters({
 
           <div className="space-y-2">
             {domains.map((domain) => {
-              const isVisible = visibleDomains.has(domain.name);
+              const isVisible = visibleDomains.has(domain.name)
               return (
                 <label
                   key={domain.name}
@@ -103,11 +103,11 @@ export function DomainFilters({
                   <span className="flex-1 text-sm text-[var(--text-primary)]">{domain.name}</span>
                   <span className="text-xs text-[var(--text-tertiary)]">{domain.nodeCount}</span>
                 </label>
-              );
+              )
             })}
           </div>
         </div>
       )}
     </div>
-  );
+  )
 }

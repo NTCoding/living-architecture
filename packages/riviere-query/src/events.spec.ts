@@ -1,22 +1,22 @@
-import { RiviereQuery } from './RiviereQuery';
+import { RiviereQuery } from './RiviereQuery'
 import {
   createMinimalValidGraph,
   createEventComponent,
   createEventHandlerComponent,
-} from './riviere-graph-fixtures';
+} from './riviere-graph-fixtures'
 
 describe('publishedEvents', () => {
   it('returns empty array when no Event components exist', () => {
-    const graph = createMinimalValidGraph();
-    const query = new RiviereQuery(graph);
+    const graph = createMinimalValidGraph()
+    const query = new RiviereQuery(graph)
 
-    const events = query.publishedEvents();
+    const events = query.publishedEvents()
 
-    expect(events).toEqual([]);
-  });
+    expect(events).toEqual([])
+  })
 
   it('returns event with handlers that subscribe to it', () => {
-    const graph = createMinimalValidGraph();
+    const graph = createMinimalValidGraph()
     graph.components.push(
       createEventComponent({
         id: 'orders:events:OrderCreated',
@@ -30,10 +30,10 @@ describe('publishedEvents', () => {
         domain: 'shipping',
         subscribedEvents: ['OrderCreated'],
       }),
-    );
-    const query = new RiviereQuery(graph);
+    )
+    const query = new RiviereQuery(graph)
 
-    const events = query.publishedEvents();
+    const events = query.publishedEvents()
 
     expect(events).toEqual([
       {
@@ -48,19 +48,19 @@ describe('publishedEvents', () => {
           },
         ],
       },
-    ]);
-  });
+    ])
+  })
 
   it('filters events by domain when domainName provided', () => {
-    const graph = createMinimalValidGraph();
+    const graph = createMinimalValidGraph()
     graph.metadata.domains['orders'] = {
       description: 'Orders',
       systemType: 'domain',
-    };
+    }
     graph.metadata.domains['billing'] = {
       description: 'Billing',
       systemType: 'domain',
-    };
+    }
     graph.components.push(
       createEventComponent({
         id: 'orders:events:OrderCreated',
@@ -74,10 +74,10 @@ describe('publishedEvents', () => {
         domain: 'billing',
         eventName: 'InvoiceSent',
       }),
-    );
-    const query = new RiviereQuery(graph);
+    )
+    const query = new RiviereQuery(graph)
 
-    const events = query.publishedEvents('orders');
+    const events = query.publishedEvents('orders')
 
     expect(events).toEqual([
       {
@@ -86,30 +86,30 @@ describe('publishedEvents', () => {
         domain: 'orders',
         handlers: [],
       },
-    ]);
-  });
-});
+    ])
+  })
+})
 
 describe('eventHandlers', () => {
   it('returns empty array when no EventHandler components exist', () => {
-    const graph = createMinimalValidGraph();
-    const query = new RiviereQuery(graph);
+    const graph = createMinimalValidGraph()
+    const query = new RiviereQuery(graph)
 
-    const handlers = query.eventHandlers();
+    const handlers = query.eventHandlers()
 
-    expect(handlers).toEqual([]);
-  });
+    expect(handlers).toEqual([])
+  })
 
   it('returns handler with subscribedEventsWithDomain including source domain', () => {
-    const graph = createMinimalValidGraph();
+    const graph = createMinimalValidGraph()
     graph.metadata.domains['orders'] = {
       description: 'Orders',
       systemType: 'domain',
-    };
+    }
     graph.metadata.domains['shipping'] = {
       description: 'Shipping',
       systemType: 'domain',
-    };
+    }
     graph.components.push(
       createEventComponent({
         id: 'orders:events:OrderCreated',
@@ -123,10 +123,10 @@ describe('eventHandlers', () => {
         domain: 'shipping',
         subscribedEvents: ['OrderCreated'],
       }),
-    );
-    const query = new RiviereQuery(graph);
+    )
+    const query = new RiviereQuery(graph)
 
-    const handlers = query.eventHandlers();
+    const handlers = query.eventHandlers()
 
     expect(handlers).toEqual([
       {
@@ -142,15 +142,15 @@ describe('eventHandlers', () => {
           },
         ],
       },
-    ]);
-  });
+    ])
+  })
 
   it('returns sourceKnown false when event not found in graph', () => {
-    const graph = createMinimalValidGraph();
+    const graph = createMinimalValidGraph()
     graph.metadata.domains['shipping'] = {
       description: 'Shipping',
       systemType: 'domain',
-    };
+    }
     graph.components.push(
       createEventHandlerComponent({
         id: 'shipping:handlers:OnUnknownEvent',
@@ -158,10 +158,10 @@ describe('eventHandlers', () => {
         domain: 'shipping',
         subscribedEvents: ['UnknownEvent'],
       }),
-    );
-    const query = new RiviereQuery(graph);
+    )
+    const query = new RiviereQuery(graph)
 
-    const handlers = query.eventHandlers();
+    const handlers = query.eventHandlers()
 
     expect(handlers).toEqual([
       {
@@ -176,23 +176,23 @@ describe('eventHandlers', () => {
           },
         ],
       },
-    ]);
-  });
+    ])
+  })
 
   it('filters handlers by eventName when provided', () => {
-    const graph = createMinimalValidGraph();
+    const graph = createMinimalValidGraph()
     graph.metadata.domains['orders'] = {
       description: 'Orders',
       systemType: 'domain',
-    };
+    }
     graph.metadata.domains['shipping'] = {
       description: 'Shipping',
       systemType: 'domain',
-    };
+    }
     graph.metadata.domains['billing'] = {
       description: 'Billing',
       systemType: 'domain',
-    };
+    }
     graph.components.push(
       createEventComponent({
         id: 'orders:events:OrderCreated',
@@ -212,10 +212,10 @@ describe('eventHandlers', () => {
         domain: 'billing',
         subscribedEvents: ['PaymentReceived'],
       }),
-    );
-    const query = new RiviereQuery(graph);
+    )
+    const query = new RiviereQuery(graph)
 
-    const handlers = query.eventHandlers('OrderCreated');
+    const handlers = query.eventHandlers('OrderCreated')
 
     expect(handlers).toEqual([
       {
@@ -231,6 +231,6 @@ describe('eventHandlers', () => {
           },
         ],
       },
-    ]);
-  });
-});
+    ])
+  })
+})

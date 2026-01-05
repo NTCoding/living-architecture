@@ -6,27 +6,27 @@ import type {
   Link,
   RiviereGraph,
   SourceInfo,
-} from '@living-architecture/riviere-schema';
+} from '@living-architecture/riviere-schema'
 import {
   RiviereQuery, type ValidationResult 
-} from '@living-architecture/riviere-query';
+} from '@living-architecture/riviere-query'
 import type {
   BuilderStats, BuilderWarning 
-} from './types';
+} from './types'
 
 interface InspectionGraph {
-  version: string;
+  version: string
   metadata: {
-    name?: string;
-    description?: string;
-    generated?: string;
-    sources: SourceInfo[];
-    domains: Record<string, DomainMetadata>;
-    customTypes: Record<string, CustomTypeDefinition>;
-  };
-  components: Component[];
-  links: Link[];
-  externalLinks: ExternalLink[];
+    name?: string
+    description?: string
+    generated?: string
+    sources: SourceInfo[]
+    domains: Record<string, DomainMetadata>
+    customTypes: Record<string, CustomTypeDefinition>
+  }
+  components: Component[]
+  links: Link[]
+  externalLinks: ExternalLink[]
 }
 
 /**
@@ -42,18 +42,18 @@ interface InspectionGraph {
  * ```
  */
 export function findOrphans(graph: InspectionGraph): string[] {
-  const connectedIds = new Set<string>();
+  const connectedIds = new Set<string>()
 
   for (const link of graph.links) {
-    connectedIds.add(link.source);
-    connectedIds.add(link.target);
+    connectedIds.add(link.source)
+    connectedIds.add(link.target)
   }
 
   for (const externalLink of graph.externalLinks) {
-    connectedIds.add(externalLink.source);
+    connectedIds.add(externalLink.source)
   }
 
-  return graph.components.filter((c) => !connectedIds.has(c.id)).map((c) => c.id);
+  return graph.components.filter((c) => !connectedIds.has(c.id)).map((c) => c.id)
 }
 
 /**
@@ -69,7 +69,7 @@ export function findOrphans(graph: InspectionGraph): string[] {
  * ```
  */
 export function calculateStats(graph: InspectionGraph): BuilderStats {
-  const components = graph.components;
+  const components = graph.components
   return {
     componentCount: components.length,
     componentsByType: {
@@ -84,7 +84,7 @@ export function calculateStats(graph: InspectionGraph): BuilderStats {
     linkCount: graph.links.length,
     externalLinkCount: graph.externalLinks.length,
     domainCount: Object.keys(graph.metadata.domains).length,
-  };
+  }
 }
 
 /**
@@ -102,28 +102,28 @@ export function calculateStats(graph: InspectionGraph): BuilderStats {
  * ```
  */
 export function findWarnings(graph: InspectionGraph): BuilderWarning[] {
-  const warnings: BuilderWarning[] = [];
+  const warnings: BuilderWarning[] = []
 
   for (const id of findOrphans(graph)) {
     warnings.push({
       code: 'ORPHAN_COMPONENT',
       message: `Component '${id}' has no incoming or outgoing links`,
       componentId: id,
-    });
+    })
   }
 
-  const usedDomains = new Set(graph.components.map((c) => c.domain));
+  const usedDomains = new Set(graph.components.map((c) => c.domain))
   for (const domain of Object.keys(graph.metadata.domains)) {
     if (!usedDomains.has(domain)) {
       warnings.push({
         code: 'UNUSED_DOMAIN',
         message: `Domain '${domain}' is declared but has no components`,
         domainName: domain,
-      });
+      })
     }
   }
 
-  return warnings;
+  return warnings
 }
 
 /**
@@ -141,8 +141,8 @@ export function findWarnings(graph: InspectionGraph): BuilderWarning[] {
  * ```
  */
 export function toRiviereGraph(graph: InspectionGraph): RiviereGraph {
-  const hasCustomTypes = Object.keys(graph.metadata.customTypes).length > 0;
-  const hasExternalLinks = graph.externalLinks.length > 0;
+  const hasCustomTypes = Object.keys(graph.metadata.customTypes).length > 0
+  const hasExternalLinks = graph.externalLinks.length > 0
 
   return {
     version: graph.version,
@@ -156,7 +156,7 @@ export function toRiviereGraph(graph: InspectionGraph): RiviereGraph {
     components: graph.components,
     links: graph.links,
     ...(hasExternalLinks && { externalLinks: graph.externalLinks }),
-  };
+  }
 }
 
 /**
@@ -174,5 +174,5 @@ export function toRiviereGraph(graph: InspectionGraph): RiviereGraph {
  * ```
  */
 export function validateGraph(graph: InspectionGraph): ValidationResult {
-  return new RiviereQuery(toRiviereGraph(graph)).validate();
+  return new RiviereQuery(toRiviereGraph(graph)).validate()
 }

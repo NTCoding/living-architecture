@@ -1,22 +1,22 @@
 import {
   useState, useRef, useEffect 
-} from 'react';
-import { useCodeLinkSettings } from './useCodeLinkSettings';
-import { ConfigurePathModal } from './ConfigurePathModal';
+} from 'react'
+import { useCodeLinkSettings } from './useCodeLinkSettings'
+import { ConfigurePathModal } from './ConfigurePathModal'
 
 interface CodeLinkMenuProps {
-  filePath: string;
-  lineNumber: number;
-  repository: string;
+  filePath: string
+  lineNumber: number
+  repository: string
 }
 
-type ModalMode = 'vscode' | 'github' | null;
+type ModalMode = 'vscode' | 'github' | null
 
-const MAX_DISPLAY_LENGTH = 30;
+const MAX_DISPLAY_LENGTH = 30
 
 function truncateFromStart(text: string, maxLength: number): string {
-  if (text.length <= maxLength) return text;
-  return '...' + text.slice(-(maxLength - 3));
+  if (text.length <= maxLength) return text
+  return '...' + text.slice(-(maxLength - 3))
 }
 
 function getModalCurrentValue(
@@ -24,9 +24,9 @@ function getModalCurrentValue(
   vscodePath: string | null,
   githubOrg: string | null,
 ): string | null {
-  if (modalMode === 'vscode') return vscodePath;
-  if (modalMode === 'github') return githubOrg;
-  return null;
+  if (modalMode === 'vscode') return vscodePath
+  if (modalMode === 'github') return githubOrg
+  return null
 }
 
 export function CodeLinkMenu({
@@ -34,14 +34,14 @@ export function CodeLinkMenu({
   lineNumber,
   repository,
 }: Readonly<CodeLinkMenuProps>): React.ReactElement {
-  const [isOpen, setIsOpen] = useState(false);
-  const [modalMode, setModalMode] = useState<ModalMode>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
+  const [isOpen, setIsOpen] = useState(false)
+  const [modalMode, setModalMode] = useState<ModalMode>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
 
   const {
     settings, setVscodePath, setGithubOrg, buildVscodeUrl, buildGithubUrl 
   } =
-    useCodeLinkSettings();
+    useCodeLinkSettings()
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent): void {
@@ -50,84 +50,84 @@ export function CodeLinkMenu({
         event.target instanceof Node &&
         !menuRef.current.contains(event.target)
       ) {
-        setIsOpen(false);
+        setIsOpen(false)
       }
     }
 
     if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('mousedown', handleClickOutside)
     }
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isOpen]);
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isOpen])
 
   function handleButtonClick(e: React.MouseEvent): void {
-    e.stopPropagation();
-    setIsOpen((prev) => !prev);
+    e.stopPropagation()
+    setIsOpen((prev) => !prev)
   }
 
   function handleVscodeClick(): void {
     if (settings.vscodePath === null) {
-      setModalMode('vscode');
-      return;
+      setModalMode('vscode')
+      return
     }
 
-    const url = buildVscodeUrl(filePath, lineNumber);
+    const url = buildVscodeUrl(filePath, lineNumber)
     if (url !== null) {
-      window.open(url, '_blank');
+      window.open(url, '_blank')
     }
-    setIsOpen(false);
+    setIsOpen(false)
   }
 
   function handleGithubClick(): void {
     if (settings.githubOrg === null) {
-      setModalMode('github');
-      return;
+      setModalMode('github')
+      return
     }
 
-    const url = buildGithubUrl(repository, filePath, lineNumber);
+    const url = buildGithubUrl(repository, filePath, lineNumber)
     if (url !== null) {
-      window.open(url, '_blank');
+      window.open(url, '_blank')
     }
-    setIsOpen(false);
+    setIsOpen(false)
   }
 
   function ignoreClipboardError(): void {
-    return;
+    return
   }
 
   function handleCopyClick(): void {
-    navigator.clipboard.writeText(`${filePath}:${lineNumber}`).catch(ignoreClipboardError);
-    setIsOpen(false);
+    navigator.clipboard.writeText(`${filePath}:${lineNumber}`).catch(ignoreClipboardError)
+    setIsOpen(false)
   }
 
   function openVSCodeUrl(vscodePath: string): void {
-    setVscodePath(vscodePath);
-    const url = `vscode://file/${vscodePath}/${filePath}:${lineNumber}`;
-    window.open(url, '_blank');
+    setVscodePath(vscodePath)
+    const url = `vscode://file/${vscodePath}/${filePath}:${lineNumber}`
+    window.open(url, '_blank')
   }
 
   function openGithubUrl(baseUrl: string): void {
-    setGithubOrg(baseUrl);
-    const cleanUrl = baseUrl.replace(/\/$/, '');
-    const url = `${cleanUrl}/${repository}/blob/${settings.githubBranch}/${filePath}#L${lineNumber}`;
-    window.open(url, '_blank');
+    setGithubOrg(baseUrl)
+    const cleanUrl = baseUrl.replace(/\/$/, '')
+    const url = `${cleanUrl}/${repository}/blob/${settings.githubBranch}/${filePath}#L${lineNumber}`
+    window.open(url, '_blank')
   }
 
   function handleModalSave(value: string): void {
     if (modalMode === 'vscode') {
-      openVSCodeUrl(value);
+      openVSCodeUrl(value)
     } else if (modalMode === 'github') {
-      openGithubUrl(value);
+      openGithubUrl(value)
     }
-    setModalMode(null);
-    setIsOpen(false);
+    setModalMode(null)
+    setIsOpen(false)
   }
 
   function handleModalClose(): void {
-    setModalMode(null);
+    setModalMode(null)
   }
 
   return (
@@ -167,8 +167,8 @@ export function CodeLinkMenu({
                 type="button"
                 className="px-2 py-2 text-[var(--text-tertiary)] hover:text-[var(--text-primary)]"
                 onClick={(e) => {
-                  e.stopPropagation();
-                  setModalMode('vscode');
+                  e.stopPropagation()
+                  setModalMode('vscode')
                 }}
                 title="Edit VS Code path"
               >
@@ -198,8 +198,8 @@ export function CodeLinkMenu({
                 type="button"
                 className="px-2 py-2 text-[var(--text-tertiary)] hover:text-[var(--text-primary)]"
                 onClick={(e) => {
-                  e.stopPropagation();
-                  setModalMode('github');
+                  e.stopPropagation()
+                  setModalMode('github')
                 }}
                 title="Edit GitHub URL"
               >
@@ -229,5 +229,5 @@ export function CodeLinkMenu({
         currentValue={getModalCurrentValue(modalMode, settings.vscodePath, settings.githubOrg)}
       />
     </div>
-  );
+  )
 }

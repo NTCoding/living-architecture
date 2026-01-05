@@ -1,12 +1,12 @@
-import type { DomainPosition } from './DomainContextGraph';
+import type { DomainPosition } from './DomainContextGraph'
 
 interface EdgeLineProps {
-  readonly from: DomainPosition;
-  readonly to: DomainPosition;
-  readonly fromRadius: number;
-  readonly toRadius: number;
-  readonly testId: string;
-  readonly direction: 'incoming' | 'outgoing';
+  readonly from: DomainPosition
+  readonly to: DomainPosition
+  readonly fromRadius: number
+  readonly toRadius: number
+  readonly testId: string
+  readonly direction: 'incoming' | 'outgoing'
 }
 
 export function EdgeLine({
@@ -17,19 +17,19 @@ export function EdgeLine({
   testId,
   direction,
 }: Readonly<EdgeLineProps>): React.ReactElement {
-  const dx = to.x - from.x;
-  const dy = to.y - from.y;
-  const length = Math.sqrt(dx * dx + dy * dy);
+  const dx = to.x - from.x
+  const dy = to.y - from.y
+  const length = Math.sqrt(dx * dx + dy * dy)
 
-  if (length === 0) return <g data-testid={testId} data-direction={direction} />;
+  if (length === 0) return <g data-testid={testId} data-direction={direction} />
 
-  const startOffset = fromRadius / length;
-  const endOffset = toRadius / length;
+  const startOffset = fromRadius / length
+  const endOffset = toRadius / length
 
-  const startX = from.x + dx * startOffset;
-  const startY = from.y + dy * startOffset;
-  const endX = to.x - dx * endOffset;
-  const endY = to.y - dy * endOffset;
+  const startX = from.x + dx * startOffset
+  const startY = from.y + dy * startOffset
+  const endX = to.x - dx * endOffset
+  const endY = to.y - dy * endOffset
 
   return (
     <g data-testid={testId} data-direction={direction}>
@@ -44,5 +44,5 @@ export function EdgeLine({
         markerEnd="url(#arrow-marker)"
       />
     </g>
-  );
+  )
 }

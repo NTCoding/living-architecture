@@ -1,32 +1,32 @@
 import {
   useCallback, useRef 
-} from 'react';
-import type { RiviereGraph } from '@/types/riviere';
+} from 'react'
+import type { RiviereGraph } from '@/types/riviere'
 
 interface UploadedFile {
-  readonly name: string;
-  readonly graph: RiviereGraph;
+  readonly name: string
+  readonly graph: RiviereGraph
 }
 
-interface UploadError {readonly message: string;}
+interface UploadError {readonly message: string}
 
 export type UploadState =
   | { readonly status: 'empty' }
   | {
-    readonly status: 'loaded';
-    readonly file: UploadedFile;
+    readonly status: 'loaded'
+    readonly file: UploadedFile
   }
   | {
-    readonly status: 'error';
-    readonly error: UploadError;
-  };
+    readonly status: 'error'
+    readonly error: UploadError
+  }
 
 interface UploadZoneProps {
-  readonly label: string;
-  readonly sublabel: string;
-  readonly number: number;
-  readonly state: UploadState;
-  readonly onFileSelect: (file: File) => void;
+  readonly label: string
+  readonly sublabel: string
+  readonly number: number
+  readonly state: UploadState
+  readonly onFileSelect: (file: File) => void
 }
 
 export function UploadZone({
@@ -36,31 +36,31 @@ export function UploadZone({
   state,
   onFileSelect,
 }: UploadZoneProps): React.ReactElement {
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null)
 
   const handleChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files?.[0];
+      const file = event.target.files?.[0]
       if (file) {
-        onFileSelect(file);
+        onFileSelect(file)
       }
     },
     [onFileSelect],
-  );
+  )
 
   const handleClick = useCallback(() => {
-    inputRef.current?.click();
-  }, []);
+    inputRef.current?.click()
+  }, [])
 
   const handleKeyDown = useCallback((event: React.KeyboardEvent) => {
     if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault();
-      inputRef.current?.click();
+      event.preventDefault()
+      inputRef.current?.click()
     }
-  }, []);
+  }, [])
 
-  const isLoaded = state.status === 'loaded';
-  const hasError = state.status === 'error';
+  const isLoaded = state.status === 'loaded'
+  const hasError = state.status === 'error'
 
   return (
     <div className="flex flex-col gap-3">
@@ -75,11 +75,11 @@ export function UploadZone({
       </div>
       {(() => {
         const getBorderColor = (): string => {
-          if (isLoaded) return 'border-green-500 bg-green-50 dark:bg-green-950';
-          if (hasError) return 'border-red-500 bg-red-50 dark:bg-red-950';
-          return 'border-[var(--border-color)] bg-[var(--bg-secondary)]';
-        };
-        const borderColor = getBorderColor();
+          if (isLoaded) return 'border-green-500 bg-green-50 dark:bg-green-950'
+          if (hasError) return 'border-red-500 bg-red-50 dark:bg-red-950'
+          return 'border-[var(--border-color)] bg-[var(--bg-secondary)]'
+        }
+        const borderColor = getBorderColor()
         return (
           <div
             role="button"
@@ -131,8 +131,8 @@ export function UploadZone({
               </>
             )}
           </div>
-        );
+        )
       })()}
     </div>
-  );
+  )
 }

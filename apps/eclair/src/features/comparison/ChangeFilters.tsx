@@ -1,16 +1,16 @@
-type ChangeFilter = 'all' | 'added' | 'removed' | 'modified';
+type ChangeFilter = 'all' | 'added' | 'removed' | 'modified'
 
 interface FilterTabsProps {
-  readonly activeFilter: ChangeFilter;
-  readonly onFilterChange: (filter: ChangeFilter) => void;
+  readonly activeFilter: ChangeFilter
+  readonly onFilterChange: (filter: ChangeFilter) => void
 }
 
 export function FilterTabs({
   activeFilter, onFilterChange 
 }: FilterTabsProps): React.ReactElement {
   const filters: Array<{
-    key: ChangeFilter;
-    label: string;
+    key: ChangeFilter
+    label: string
   }> = [
     {
       key: 'all',
@@ -28,7 +28,7 @@ export function FilterTabs({
       key: 'modified',
       label: 'Modified',
     },
-  ];
+  ]
 
   return (
     <div className="flex gap-2">
@@ -47,13 +47,13 @@ export function FilterTabs({
         </button>
       ))}
     </div>
-  );
+  )
 }
 
 interface DomainFilterProps {
-  readonly domains: string[];
-  readonly activeDomain: string | null;
-  readonly onDomainChange: (domain: string | null) => void;
+  readonly domains: string[]
+  readonly activeDomain: string | null
+  readonly onDomainChange: (domain: string | null) => void
 }
 
 export function DomainFilter({
@@ -78,13 +78,13 @@ export function DomainFilter({
         </button>
       ))}
     </div>
-  );
+  )
 }
 
 interface TypeFilterProps {
-  readonly types: string[];
-  readonly activeType: string | null;
-  readonly onTypeChange: (type: string | null) => void;
+  readonly types: string[]
+  readonly activeType: string | null
+  readonly onTypeChange: (type: string | null) => void
 }
 
 export function TypeFilter({
@@ -109,7 +109,7 @@ export function TypeFilter({
         </button>
       ))}
     </div>
-  );
+  )
 }
 
-export type { ChangeFilter };
+export type { ChangeFilter }

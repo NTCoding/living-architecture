@@ -1,14 +1,14 @@
-import { useMemo } from 'react';
-import type { NodeType } from '@/types/riviere';
-import type { DomainDetails } from './extractDomainDetails';
-import { NodeTypeBadge } from '@/features/flows/components/NodeTypeBadge/NodeTypeBadge';
-import { CodeLinkMenu } from '@/features/flows/components/CodeLinkMenu/CodeLinkMenu';
-import { EntityAccordion } from './components/EntityAccordion/EntityAccordion';
-import { EventsSection } from './DomainDetailViewEvents';
+import { useMemo } from 'react'
+import type { NodeType } from '@/types/riviere'
+import type { DomainDetails } from './extractDomainDetails'
+import { NodeTypeBadge } from '@/features/flows/components/NodeTypeBadge/NodeTypeBadge'
+import { CodeLinkMenu } from '@/features/flows/components/CodeLinkMenu/CodeLinkMenu'
+import { EntityAccordion } from './components/EntityAccordion/EntityAccordion'
+import { EventsSection } from './DomainDetailViewEvents'
 
-type DomainDetailsNode = DomainDetails['nodes'][number];
-type DomainDetailsEntity = DomainDetails['entities'][number];
-export type NodeTypeFilter = NodeType | 'all';
+type DomainDetailsNode = DomainDetails['nodes'][number]
+type DomainDetailsEntity = DomainDetails['entities'][number]
+export type NodeTypeFilter = NodeType | 'all'
 const NODE_TYPES: NodeType[] = [
   'UI',
   'API',
@@ -17,17 +17,17 @@ const NODE_TYPES: NodeType[] = [
   'Event',
   'EventHandler',
   'Custom',
-];
+]
 interface DomainDetailViewProps {
-  readonly domain: DomainDetails;
-  readonly nodeSearch: string;
-  readonly setNodeSearch: (search: string) => void;
-  readonly nodeTypeFilter: NodeTypeFilter;
-  readonly setNodeTypeFilter: (filter: NodeTypeFilter) => void;
-  readonly entitySearch: string;
-  readonly setEntitySearch: (search: string) => void;
-  readonly eventSearch: string;
-  readonly setEventSearch: (search: string) => void;
+  readonly domain: DomainDetails
+  readonly nodeSearch: string
+  readonly setNodeSearch: (search: string) => void
+  readonly nodeTypeFilter: NodeTypeFilter
+  readonly setNodeTypeFilter: (filter: NodeTypeFilter) => void
+  readonly entitySearch: string
+  readonly setEntitySearch: (search: string) => void
+  readonly eventSearch: string
+  readonly setEventSearch: (search: string) => void
 }
 
 export function DomainDetailView({
@@ -44,27 +44,27 @@ export function DomainDetailView({
   const filteredNodes = useMemo(() => {
     return domain.nodes.filter((node) => {
       const matchesSearch =
-        nodeSearch === '' || node.name.toLowerCase().includes(nodeSearch.toLowerCase());
-      const matchesType = nodeTypeFilter === 'all' || node.type === nodeTypeFilter;
-      return matchesSearch && matchesType;
-    });
-  }, [domain.nodes, nodeSearch, nodeTypeFilter]);
+        nodeSearch === '' || node.name.toLowerCase().includes(nodeSearch.toLowerCase())
+      const matchesType = nodeTypeFilter === 'all' || node.type === nodeTypeFilter
+      return matchesSearch && matchesType
+    })
+  }, [domain.nodes, nodeSearch, nodeTypeFilter])
 
   const filteredEntities = useMemo(() => {
     return entitySearch === ''
       ? domain.entities
       : domain.entities.filter((entity) =>
         entity.name.toLowerCase().includes(entitySearch.toLowerCase()),
-      );
-  }, [domain.entities, entitySearch]);
+      )
+  }, [domain.entities, entitySearch])
 
   const filteredPublishedEvents = useMemo(() => {
     return eventSearch === ''
       ? domain.events.published
       : domain.events.published.filter((evt) =>
         evt.eventName.toLowerCase().includes(eventSearch.toLowerCase()),
-      );
-  }, [domain.events.published, eventSearch]);
+      )
+  }, [domain.events.published, eventSearch])
 
   const filteredConsumedEvents = useMemo(() => {
     return eventSearch === ''
@@ -75,12 +75,12 @@ export function DomainDetailView({
             handler.subscribedEvents.some((e) =>
               e.toLowerCase().includes(eventSearch.toLowerCase()),
             ),
-      );
-  }, [domain.events.consumed, eventSearch]);
+      )
+  }, [domain.events.consumed, eventSearch])
 
-  const hasEvents = domain.events.published.length > 0 || domain.events.consumed.length > 0;
-  const operationsCount = domain.entities.reduce((sum, e) => sum + e.operations.length, 0);
-  const eventsCount = domain.events.published.length + domain.events.consumed.length;
+  const hasEvents = domain.events.published.length > 0 || domain.events.consumed.length > 0
+  const operationsCount = domain.entities.reduce((sum, e) => sum + e.operations.length, 0)
+  const eventsCount = domain.events.published.length + domain.events.consumed.length
 
   return (
     <>
@@ -111,12 +111,12 @@ export function DomainDetailView({
         filteredConsumedEvents={filteredConsumedEvents}
       />
     </>
-  );
+  )
 }
 interface StatisticsRowProps {
-  readonly entities: number;
-  readonly operations: number;
-  readonly events: number;
+  readonly entities: number
+  readonly operations: number
+  readonly events: number
 }
 function StatisticsRow({
   entities, operations, events 
@@ -160,15 +160,15 @@ function StatisticsRow({
         </div>
       </div>
     </div>
-  );
+  )
 }
 interface NodesSectionProps {
-  readonly filteredNodes: Array<DomainDetailsNode>;
-  readonly domain: DomainDetails;
-  readonly nodeSearch: string;
-  readonly setNodeSearch: (search: string) => void;
-  readonly nodeTypeFilter: NodeTypeFilter;
-  readonly setNodeTypeFilter: (filter: NodeTypeFilter) => void;
+  readonly filteredNodes: Array<DomainDetailsNode>
+  readonly domain: DomainDetails
+  readonly nodeSearch: string
+  readonly setNodeSearch: (search: string) => void
+  readonly nodeTypeFilter: NodeTypeFilter
+  readonly setNodeTypeFilter: (filter: NodeTypeFilter) => void
 }
 function NodesSection({
   filteredNodes,
@@ -193,14 +193,14 @@ function NodesSection({
       />
       <NodesListOrEmpty filteredNodes={filteredNodes} domain={domain} />
     </section>
-  );
+  )
 }
 
 interface NodeFilterBarProps {
-  readonly nodeSearch: string;
-  readonly setNodeSearch: (search: string) => void;
-  readonly nodeTypeFilter: NodeTypeFilter;
-  readonly setNodeTypeFilter: (filter: NodeTypeFilter) => void;
+  readonly nodeSearch: string
+  readonly setNodeSearch: (search: string) => void
+  readonly nodeTypeFilter: NodeTypeFilter
+  readonly setNodeTypeFilter: (filter: NodeTypeFilter) => void
 }
 function NodeFilterBar({
   nodeSearch,
@@ -242,12 +242,12 @@ function NodeFilterBar({
         ))}
       </div>
     </div>
-  );
+  )
 }
 
 interface NodesListOrEmptyProps {
-  readonly filteredNodes: Array<DomainDetailsNode>;
-  readonly domain: DomainDetails;
+  readonly filteredNodes: Array<DomainDetailsNode>
+  readonly domain: DomainDetails
 }
 function NodesListOrEmpty({
   filteredNodes, domain 
@@ -259,24 +259,24 @@ function NodesListOrEmpty({
           <NodeListItem key={node.id} node={node} />
         ))}
       </div>
-    );
+    )
   }
 
   return (
     <p className="text-sm italic text-[var(--text-tertiary)]">
       {domain.nodes.length > 0 ? 'No nodes match your search' : 'No nodes in this domain'}
     </p>
-  );
+  )
 }
 
-interface NodeListItemProps {readonly node: DomainDetailsNode;}
+interface NodeListItemProps {readonly node: DomainDetailsNode}
 function NodeListItem({ node }: NodeListItemProps): React.ReactElement {
-  const sourceLocation = node.sourceLocation;
-  const hasSourceLocation = sourceLocation !== undefined && sourceLocation.lineNumber !== undefined;
-  const hasNodeLocation = node.location !== undefined;
+  const sourceLocation = node.sourceLocation
+  const hasSourceLocation = sourceLocation !== undefined && sourceLocation.lineNumber !== undefined
+  const hasNodeLocation = node.location !== undefined
 
-  const showCodeLink = hasSourceLocation;
-  const showNodeLocation = !hasSourceLocation && hasNodeLocation;
+  const showCodeLink = hasSourceLocation
+  const showNodeLocation = !hasSourceLocation && hasNodeLocation
 
   const renderNodeAction = (): React.ReactElement | null => {
     if (showCodeLink) {
@@ -286,7 +286,7 @@ function NodeListItem({ node }: NodeListItemProps): React.ReactElement {
           lineNumber={sourceLocation.lineNumber}
           repository={sourceLocation.repository}
         />
-      );
+      )
     }
     if (showNodeLocation) {
       return (
@@ -296,11 +296,11 @@ function NodeListItem({ node }: NodeListItemProps): React.ReactElement {
         >
           {node.location}
         </span>
-      );
+      )
     }
-    return null;
-  };
-  const nodeAction = renderNodeAction();
+    return null
+  }
+  const nodeAction = renderNodeAction()
 
   return (
     <div className="flex items-center justify-between gap-4 rounded-[var(--radius)] border border-[var(--border-color)] bg-[var(--bg-secondary)] px-3 py-2 shadow-sm">
@@ -310,14 +310,14 @@ function NodeListItem({ node }: NodeListItemProps): React.ReactElement {
       </div>
       {nodeAction}
     </div>
-  );
+  )
 }
 
 interface EntitiesSectionProps {
-  readonly filteredEntities: Array<DomainDetailsEntity>;
-  readonly domain: DomainDetails;
-  readonly entitySearch: string;
-  readonly setEntitySearch: (search: string) => void;
+  readonly filteredEntities: Array<DomainDetailsEntity>
+  readonly domain: DomainDetails
+  readonly entitySearch: string
+  readonly setEntitySearch: (search: string) => void
 }
 function EntitiesSection({
   filteredEntities,
@@ -348,12 +348,12 @@ function EntitiesSection({
       )}
       <EntitiesListOrEmpty filteredEntities={filteredEntities} domain={domain} />
     </section>
-  );
+  )
 }
 
 interface EntitiesListOrEmptyProps {
-  readonly filteredEntities: Array<DomainDetailsEntity>;
-  readonly domain: DomainDetails;
+  readonly filteredEntities: Array<DomainDetailsEntity>
+  readonly domain: DomainDetails
 }
 function EntitiesListOrEmpty({
   filteredEntities,
@@ -366,15 +366,14 @@ function EntitiesListOrEmpty({
           <EntityAccordion key={entity.name} entity={entity} />
         ))}
       </div>
-    );
+    )
   }
 
   if (domain.entities.length > 0) {
     return (
       <p className="text-sm italic text-[var(--text-tertiary)]">No entities match your search</p>
-    );
+    )
   }
 
-  return <p className="text-sm italic text-[var(--text-tertiary)]">No entities in this domain</p>;
+  return <p className="text-sm italic text-[var(--text-tertiary)]">No entities in this domain</p>
 }
-

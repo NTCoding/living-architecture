@@ -1,13 +1,13 @@
 import type {
   CustomTypeDefinition, DomainMetadata 
-} from '@living-architecture/riviere-schema';
+} from '@living-architecture/riviere-schema'
 import {
   CustomTypeNotFoundError, DomainNotFoundError 
-} from './errors';
+} from './errors'
 
 export function assertDomainExists(domains: Record<string, DomainMetadata>, domain: string): void {
   if (!domains[domain]) {
-    throw new DomainNotFoundError(domain);
+    throw new DomainNotFoundError(domain)
   }
 }
 
@@ -16,8 +16,8 @@ export function assertCustomTypeExists(
   customTypeName: string,
 ): void {
   if (!customTypes[customTypeName]) {
-    const definedTypes = Object.keys(customTypes);
-    throw new CustomTypeNotFoundError(customTypeName, definedTypes);
+    const definedTypes = Object.keys(customTypes)
+    throw new CustomTypeNotFoundError(customTypeName, definedTypes)
   }
 }
 
@@ -26,18 +26,18 @@ export function assertRequiredPropertiesProvided(
   customTypeName: string,
   metadata: Record<string, unknown> | undefined,
 ): void {
-  const typeDefinition = customTypes[customTypeName];
+  const typeDefinition = customTypes[customTypeName]
   if (!typeDefinition?.requiredProperties) {
-    return;
+    return
   }
 
-  const requiredKeys = Object.keys(typeDefinition.requiredProperties);
-  const providedKeys = metadata ? Object.keys(metadata) : [];
-  const missingKeys = requiredKeys.filter((key) => !providedKeys.includes(key));
+  const requiredKeys = Object.keys(typeDefinition.requiredProperties)
+  const providedKeys = metadata ? Object.keys(metadata) : []
+  const missingKeys = requiredKeys.filter((key) => !providedKeys.includes(key))
 
   if (missingKeys.length > 0) {
     throw new Error(
       `Missing required properties for '${customTypeName}': ${missingKeys.join(', ')}`,
-    );
+    )
   }
 }

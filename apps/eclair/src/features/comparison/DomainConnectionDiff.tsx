@@ -1,61 +1,61 @@
 import {
   useMemo, useState, useCallback 
-} from 'react';
+} from 'react'
 import {
   ReactFlow, Background, Controls 
-} from '@xyflow/react';
+} from '@xyflow/react'
 import type {
   Node, Edge, EdgeMouseHandler 
-} from '@xyflow/react';
-import '@xyflow/react/dist/style.css';
-import dagre from 'dagre';
+} from '@xyflow/react'
+import '@xyflow/react/dist/style.css'
+import dagre from 'dagre'
 import type {
   DomainConnectionDiffResult,
   DomainConnection,
   EdgeDetail,
-} from './computeDomainConnectionDiff';
-import { DomainNode } from '../domain-map/components/DomainNode/DomainNode';
-import { getClosestHandle } from '@/lib/handlePositioning';
+} from './computeDomainConnectionDiff'
+import { DomainNode } from '../domain-map/components/DomainNode/DomainNode'
+import { getClosestHandle } from '@/lib/handlePositioning'
 
-interface DomainConnectionDiffProps {readonly diff: DomainConnectionDiffResult;}
+interface DomainConnectionDiffProps {readonly diff: DomainConnectionDiffResult}
 
-type ConnectionStatus = 'added' | 'removed' | 'unchanged';
+type ConnectionStatus = 'added' | 'removed' | 'unchanged'
 
 interface DiffNodeData extends Record<string, unknown> {
-  label: string;
-  nodeCount: number;
-  dimmed?: boolean;
+  label: string
+  nodeCount: number
+  dimmed?: boolean
 }
 
 interface DiffEdgeData extends Record<string, unknown> {
-  status: ConnectionStatus;
-  sourceDomain: string;
-  targetDomain: string;
-  edges: EdgeDetail[];
+  status: ConnectionStatus
+  sourceDomain: string
+  targetDomain: string
+  edges: EdgeDetail[]
 }
 
-const nodeTypes = { domain: DomainNode };
+const nodeTypes = { domain: DomainNode }
 
 const STATUS_COLORS = {
   added: '#1A7F37',
   removed: '#FF6B6B',
   unchanged: 'var(--border-color)',
-};
+}
 
 function computeDagreLayout(
   domainIds: string[],
   edges: Array<{
-    source: string;
-    target: string;
+    source: string
+    target: string
   }>,
 ): Map<
   string,
   {
-    x: number;
-    y: number;
+    x: number
+    y: number
   }
 > {
-  const layoutGraph = new dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
+  const layoutGraph = new dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}))
 
   layoutGraph.setGraph({
     rankdir: 'LR',
@@ -63,37 +63,37 @@ function computeDagreLayout(
     ranksep: 80,
     marginx: 20,
     marginy: 20,
-  });
+  })
 
   for (const domainId of domainIds) {
     layoutGraph.setNode(domainId, {
       width: 80,
       height: 80,
-    });
+    })
   }
 
   for (const edge of edges) {
-    layoutGraph.setEdge(edge.source, edge.target);
+    layoutGraph.setEdge(edge.source, edge.target)
   }
 
-  dagre.layout(layoutGraph);
+  dagre.layout(layoutGraph)
 
   const positions = new Map<
     string,
     {
-      x: number;
-      y: number;
+      x: number
+      y: number
     }
-  >();
+  >()
   for (const domainId of domainIds) {
-    const node = layoutGraph.node(domainId);
+    const node = layoutGraph.node(domainId)
     positions.set(domainId, {
       x: node.x,
       y: node.y,
-    });
+    })
   }
 
-  return positions;
+  return positions
 }
 
 function buildNodes(
@@ -101,18 +101,18 @@ function buildNodes(
   positions: Map<
     string,
     {
-      x: number;
-      y: number;
+      x: number
+      y: number
     }
   >,
   domainsWithChanges: Set<string>,
 ): Node<DiffNodeData>[] {
   return domains.map((domain) => {
-    const position = positions.get(domain);
+    const position = positions.get(domain)
     if (position === undefined) {
-      throw new Error(`Domain ${domain} missing from layout computation`);
+      throw new Error(`Domain ${domain} missing from layout computation`)
     }
-    const hasChanges = domainsWithChanges.has(domain);
+    const hasChanges = domainsWithChanges.has(domain)
     return {
       id: domain,
       type: 'domain',
@@ -122,8 +122,8 @@ function buildNodes(
         nodeCount: 0,
         dimmed: !hasChanges,
       },
-    };
-  });
+    }
+  })
 }
 
 function buildEdges(
@@ -132,20 +132,20 @@ function buildEdges(
   positions: Map<
     string,
     {
-      x: number;
-      y: number;
+      x: number
+      y: number
     }
   >,
 ): Edge<DiffEdgeData>[] {
   return connections.map((conn) => {
-    const sourcePos = positions.get(conn.source);
-    const targetPos = positions.get(conn.target);
+    const sourcePos = positions.get(conn.source)
+    const targetPos = positions.get(conn.target)
     if (sourcePos === undefined || targetPos === undefined) {
-      throw new Error(`Edge references missing position: ${conn.source} -> ${conn.target}`);
+      throw new Error(`Edge references missing position: ${conn.source} -> ${conn.target}`)
     }
-    const handles = getClosestHandle(sourcePos, targetPos);
-    const color = STATUS_COLORS[status];
-    const opacity = status === 'unchanged' ? 0.5 : 1;
+    const handles = getClosestHandle(sourcePos, targetPos)
+    const color = STATUS_COLORS[status]
+    const opacity = status === 'unchanged' ? 0.5 : 1
 
     return {
       id: `${conn.source}->${conn.target}`,
@@ -167,13 +167,13 @@ function buildEdges(
       },
       animated: false,
       interactionWidth: 20,
-    };
-  });
+    }
+  })
 }
 
 function Legend({ className }: { readonly className?: string }): React.ReactElement {
-  const classNameString = className === undefined ? '' : ` ${className}`;
-  const divClassName = `flex flex-col gap-2 rounded-md border border-[var(--border-color)] bg-[var(--bg-primary)] p-3 text-xs${classNameString}`;
+  const classNameString = className === undefined ? '' : ` ${className}`
+  const divClassName = `flex flex-col gap-2 rounded-md border border-[var(--border-color)] bg-[var(--bg-primary)] p-3 text-xs${classNameString}`
   return (
     <div className={divClassName}>
       <div className="flex items-center gap-2">
@@ -192,28 +192,28 @@ function Legend({ className }: { readonly className?: string }): React.ReactElem
         <span>Unchanged</span>
       </div>
     </div>
-  );
+  )
 }
 
 interface TooltipData {
-  x: number;
-  y: number;
-  status: ConnectionStatus;
-  sourceDomain: string;
-  targetDomain: string;
-  edges: EdgeDetail[];
+  x: number
+  y: number
+  status: ConnectionStatus
+  sourceDomain: string
+  targetDomain: string
+  edges: EdgeDetail[]
 }
 
-interface EdgeTooltipProps {readonly data: TooltipData;}
+interface EdgeTooltipProps {readonly data: TooltipData}
 
 function EdgeTooltip({ data }: Readonly<EdgeTooltipProps>): React.ReactElement {
   const statusLabel = {
     added: 'Added Connection',
     removed: 'Removed Connection',
     unchanged: 'Unchanged Connection',
-  }[data.status];
+  }[data.status]
 
-  const statusColor = STATUS_COLORS[data.status];
+  const statusColor = STATUS_COLORS[data.status]
 
   return (
     <div
@@ -252,16 +252,16 @@ function EdgeTooltip({ data }: Readonly<EdgeTooltipProps>): React.ReactElement {
         </div>
       )}
     </div>
-  );
+  )
 }
 
 interface FullscreenModalProps {
-  readonly nodes: readonly Node<DiffNodeData>[];
-  readonly edges: readonly Edge<DiffEdgeData>[];
-  readonly onClose: () => void;
-  readonly onEdgeMouseEnter: EdgeMouseHandler<Edge<DiffEdgeData>>;
-  readonly onEdgeMouseLeave: () => void;
-  readonly tooltip: TooltipData | null;
+  readonly nodes: readonly Node<DiffNodeData>[]
+  readonly edges: readonly Edge<DiffEdgeData>[]
+  readonly onClose: () => void
+  readonly onEdgeMouseEnter: EdgeMouseHandler<Edge<DiffEdgeData>>
+  readonly onEdgeMouseLeave: () => void
+  readonly tooltip: TooltipData | null
 }
 
 function FullscreenModal({
@@ -307,27 +307,27 @@ function FullscreenModal({
         {tooltip !== null && <EdgeTooltip data={tooltip} />}
       </div>
     </div>
-  );
+  )
 }
 
 function collectDomainsWithChanges(
   connections: DomainConnectionDiffResult['connections'],
 ): Set<string> {
-  const domains = new Set<string>();
+  const domains = new Set<string>()
   for (const conn of connections.added) {
-    domains.add(conn.source);
-    domains.add(conn.target);
+    domains.add(conn.source)
+    domains.add(conn.target)
   }
   for (const conn of connections.removed) {
-    domains.add(conn.source);
-    domains.add(conn.target);
+    domains.add(conn.source)
+    domains.add(conn.target)
   }
-  return domains;
+  return domains
 }
 
 export function DomainConnectionDiff({ diff }: DomainConnectionDiffProps): React.ReactElement {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [tooltip, setTooltip] = useState<TooltipData | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [tooltip, setTooltip] = useState<TooltipData | null>(null)
 
   const positions = useMemo(() => {
     const allEdges = [
@@ -343,19 +343,19 @@ export function DomainConnectionDiff({ diff }: DomainConnectionDiffProps): React
         source: c.source,
         target: c.target,
       })),
-    ];
-    return computeDagreLayout(diff.domains, allEdges);
-  }, [diff.domains, diff.connections]);
+    ]
+    return computeDagreLayout(diff.domains, allEdges)
+  }, [diff.domains, diff.connections])
 
   const domainsWithChanges = useMemo(
     () => collectDomainsWithChanges(diff.connections),
     [diff.connections],
-  );
+  )
 
   const nodes = useMemo(
     () => buildNodes(diff.domains, positions, domainsWithChanges),
     [diff.domains, positions, domainsWithChanges],
-  );
+  )
 
   const edges = useMemo(
     () => [
@@ -364,10 +364,10 @@ export function DomainConnectionDiff({ diff }: DomainConnectionDiffProps): React
       ...buildEdges(diff.connections.added, 'added', positions),
     ],
     [diff.connections, positions],
-  );
+  )
 
   const handleEdgeMouseEnter: EdgeMouseHandler<Edge<DiffEdgeData>> = useCallback((event, edge) => {
-    if (edge.data === undefined) return;
+    if (edge.data === undefined) return
     setTooltip({
       x: event.clientX,
       y: event.clientY,
@@ -375,12 +375,12 @@ export function DomainConnectionDiff({ diff }: DomainConnectionDiffProps): React
       sourceDomain: edge.data.sourceDomain,
       targetDomain: edge.data.targetDomain,
       edges: edge.data.edges,
-    });
-  }, []);
+    })
+  }, [])
 
   const handleEdgeMouseLeave = useCallback(() => {
-    setTooltip(null);
-  }, []);
+    setTooltip(null)
+  }, [])
 
   return (
     <>
@@ -422,5 +422,5 @@ export function DomainConnectionDiff({ diff }: DomainConnectionDiffProps): React
         />
       )}
     </>
-  );
+  )
 }

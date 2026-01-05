@@ -1,21 +1,21 @@
 import {
   describe, it, expect, vi 
-} from 'vitest';
-import { createProgram } from '../../cli';
-import { CliErrorCode } from '../../error-codes';
-import type { TestContext } from '../../command-test-fixtures';
+} from 'vitest'
+import { createProgram } from '../../cli'
+import { CliErrorCode } from '../../error-codes'
+import type { TestContext } from '../../command-test-fixtures'
 import {
   createTestContext, setupCommandTest, createGraph 
-} from '../../command-test-fixtures';
+} from '../../command-test-fixtures'
 
 describe('riviere query components - error handling', () => {
-  const ctx: TestContext = createTestContext();
-  setupCommandTest(ctx);
+  const ctx: TestContext = createTestContext()
+  setupCommandTest(ctx)
 
   it('returns GRAPH_NOT_FOUND when no graph exists', async () => {
-    await createProgram().parseAsync(['node', 'riviere', 'query', 'components', '--json']);
-    expect(ctx.consoleOutput.join('\n')).toContain(CliErrorCode.GraphNotFound);
-  });
+    await createProgram().parseAsync(['node', 'riviere', 'query', 'components', '--json'])
+    expect(ctx.consoleOutput.join('\n')).toContain(CliErrorCode.GraphNotFound)
+  })
 
   it('returns VALIDATION_ERROR when --type value is invalid', async () => {
     await createGraph(ctx.testDir, {
@@ -31,7 +31,7 @@ describe('riviere query components - error handling', () => {
       },
       components: [],
       links: [],
-    });
+    })
 
     await createProgram().parseAsync([
       'node',
@@ -41,9 +41,9 @@ describe('riviere query components - error handling', () => {
       '--type',
       'InvalidType',
       '--json',
-    ]);
-    expect(ctx.consoleOutput.join('\n')).toContain(CliErrorCode.ValidationError);
-  });
+    ])
+    expect(ctx.consoleOutput.join('\n')).toContain(CliErrorCode.ValidationError)
+  })
 
   it('outputs error to stderr when --type is invalid and --json not provided', async () => {
     await createGraph(ctx.testDir, {
@@ -59,12 +59,12 @@ describe('riviere query components - error handling', () => {
       },
       components: [],
       links: [],
-    });
+    })
 
-    const errorOutput: string[] = [];
+    const errorOutput: string[] = []
     const errorSpy = vi
       .spyOn(console, 'error')
-      .mockImplementation((msg: string) => errorOutput.push(msg));
+      .mockImplementation((msg: string) => errorOutput.push(msg))
 
     await createProgram().parseAsync([
       'node',
@@ -73,10 +73,10 @@ describe('riviere query components - error handling', () => {
       'components',
       '--type',
       'InvalidType',
-    ]);
+    ])
 
-    expect(errorOutput).toHaveLength(1);
-    expect(errorOutput[0]).toContain('Invalid component type: InvalidType');
-    errorSpy.mockRestore();
-  });
-});
+    expect(errorOutput).toHaveLength(1)
+    expect(errorOutput[0]).toContain('Invalid component type: InvalidType')
+    errorSpy.mockRestore()
+  })
+})

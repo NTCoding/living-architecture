@@ -1,18 +1,18 @@
 import {
   describe, it, expect 
-} from 'vitest';
-import { computeGraphStats } from './graphStats';
+} from 'vitest'
+import { computeGraphStats } from './graphStats'
 import type {
   RiviereGraph, SourceLocation 
-} from '@/types/riviere';
+} from '@/types/riviere'
 import {
   parseNode, parseEdge, parseDomainKey, parseDomainMetadata 
-} from './riviereTestFixtures';
+} from './riviereTestFixtures'
 
 const testSourceLocation: SourceLocation = {
   repository: 'test-repo',
   filePath: 'src/test.ts',
-};
+}
 
 function createMinimalGraph(overrides: Partial<RiviereGraph> = {}): RiviereGraph {
   return {
@@ -29,14 +29,14 @@ function createMinimalGraph(overrides: Partial<RiviereGraph> = {}): RiviereGraph
     components: [],
     links: [],
     ...overrides,
-  };
+  }
 }
 
 describe('computeGraphStats', () => {
   it('returns zero counts for empty graph', () => {
-    const graph = createMinimalGraph();
+    const graph = createMinimalGraph()
 
-    const stats = computeGraphStats(graph);
+    const stats = computeGraphStats(graph)
 
     expect(stats).toEqual({
       totalNodes: 0,
@@ -45,8 +45,8 @@ describe('computeGraphStats', () => {
       totalEntities: 0,
       totalEvents: 0,
       totalEdges: 0,
-    });
-  });
+    })
+  })
 
   it('counts total nodes correctly', () => {
     const graph = createMinimalGraph({
@@ -77,12 +77,12 @@ describe('computeGraphStats', () => {
           module: 'm1',
         }),
       ],
-    });
+    })
 
-    const stats = computeGraphStats(graph);
+    const stats = computeGraphStats(graph)
 
-    expect(stats.totalNodes).toBe(3);
-  });
+    expect(stats.totalNodes).toBe(3)
+  })
 
   it('counts unique domains from metadata', () => {
     const graph = createMinimalGraph({
@@ -102,12 +102,12 @@ describe('computeGraphStats', () => {
           },
         },
       },
-    });
+    })
 
-    const stats = computeGraphStats(graph);
+    const stats = computeGraphStats(graph)
 
-    expect(stats.totalDomains).toBe(3);
-  });
+    expect(stats.totalDomains).toBe(3)
+  })
 
   it('counts API nodes correctly', () => {
     const graph = createMinimalGraph({
@@ -146,12 +146,12 @@ describe('computeGraphStats', () => {
           module: 'm1',
         }),
       ],
-    });
+    })
 
-    const stats = computeGraphStats(graph);
+    const stats = computeGraphStats(graph)
 
-    expect(stats.totalApis).toBe(2);
-  });
+    expect(stats.totalApis).toBe(2)
+  })
 
   it('counts unique entities from DomainOp nodes', () => {
     const graph = createMinimalGraph({
@@ -195,12 +195,12 @@ describe('computeGraphStats', () => {
           module: 'm1',
         }),
       ],
-    });
+    })
 
-    const stats = computeGraphStats(graph);
+    const stats = computeGraphStats(graph)
 
-    expect(stats.totalEntities).toBe(2);
-  });
+    expect(stats.totalEntities).toBe(2)
+  })
 
   it('counts Event nodes correctly', () => {
     const graph = createMinimalGraph({
@@ -242,12 +242,12 @@ describe('computeGraphStats', () => {
           subscribedEvents: ['OrderPlaced'],
         }),
       ],
-    });
+    })
 
-    const stats = computeGraphStats(graph);
+    const stats = computeGraphStats(graph)
 
-    expect(stats.totalEvents).toBe(3);
-  });
+    expect(stats.totalEvents).toBe(3)
+  })
 
   it('counts total edges correctly', () => {
     const graph = createMinimalGraph({
@@ -280,10 +280,10 @@ describe('computeGraphStats', () => {
           target: 'n1',
         }),
       ],
-    });
+    })
 
-    const stats = computeGraphStats(graph);
+    const stats = computeGraphStats(graph)
 
-    expect(stats.totalEdges).toBe(2);
-  });
-});
+    expect(stats.totalEdges).toBe(2)
+  })
+})

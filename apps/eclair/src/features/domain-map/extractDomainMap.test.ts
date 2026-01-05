@@ -1,19 +1,19 @@
 import {
   describe, it, expect 
-} from 'vitest';
+} from 'vitest'
 import {
   extractDomainMap, getConnectedDomains 
-} from './extractDomainMap';
-import type { DomainEdge } from './extractDomainMap';
-import type { RiviereGraph } from '@/types/riviere';
+} from './extractDomainMap'
+import type { DomainEdge } from './extractDomainMap'
+import type { RiviereGraph } from '@/types/riviere'
 import {
   parseNode, parseEdge, parseDomainMetadata 
-} from '@/lib/riviereTestFixtures';
+} from '@/lib/riviereTestFixtures'
 
 const testSourceLocation = {
   repository: 'test-repo',
   filePath: 'src/test.ts',
-};
+}
 
 function createMinimalGraph(overrides: Partial<RiviereGraph> = {}): RiviereGraph {
   return {
@@ -29,19 +29,19 @@ function createMinimalGraph(overrides: Partial<RiviereGraph> = {}): RiviereGraph
     components: [],
     links: [],
     ...overrides,
-  };
+  }
 }
 
 describe('extractDomainMap', () => {
   describe('domain node extraction', () => {
     it('returns empty arrays when graph has no nodes', () => {
-      const graph = createMinimalGraph();
+      const graph = createMinimalGraph()
 
-      const result = extractDomainMap(graph);
+      const result = extractDomainMap(graph)
 
-      expect(result.domainNodes).toEqual([]);
-      expect(result.domainEdges).toEqual([]);
-    });
+      expect(result.domainNodes).toEqual([])
+      expect(result.domainEdges).toEqual([])
+    })
 
     it('creates one domain node per unique domain', () => {
       const graph = createMinimalGraph({
@@ -72,16 +72,16 @@ describe('extractDomainMap', () => {
             eventName: 'Ev1',
           }),
         ],
-      });
+      })
 
-      const result = extractDomainMap(graph);
+      const result = extractDomainMap(graph)
 
-      expect(result.domainNodes).toHaveLength(2);
+      expect(result.domainNodes).toHaveLength(2)
       expect(result.domainNodes.map((d) => d.id).sort((a, b) => a.localeCompare(b))).toEqual([
         'orders',
         'payments',
-      ]);
-    });
+      ])
+    })
 
     it('counts nodes per domain correctly', () => {
       const graph = createMinimalGraph({
@@ -121,16 +121,16 @@ describe('extractDomainMap', () => {
             eventName: 'Ev1',
           }),
         ],
-      });
+      })
 
-      const result = extractDomainMap(graph);
+      const result = extractDomainMap(graph)
 
-      const ordersNode = result.domainNodes.find((d) => d.id === 'orders');
-      const paymentsNode = result.domainNodes.find((d) => d.id === 'payments');
+      const ordersNode = result.domainNodes.find((d) => d.id === 'orders')
+      const paymentsNode = result.domainNodes.find((d) => d.id === 'payments')
 
-      expect(ordersNode?.data.nodeCount).toBe(3);
-      expect(paymentsNode?.data.nodeCount).toBe(1);
-    });
+      expect(ordersNode?.data.nodeCount).toBe(3)
+      expect(paymentsNode?.data.nodeCount).toBe(1)
+    })
 
     it('includes domain label in node data', () => {
       const graph = createMinimalGraph({
@@ -144,13 +144,13 @@ describe('extractDomainMap', () => {
             module: 'm1',
           }),
         ],
-      });
+      })
 
-      const result = extractDomainMap(graph);
+      const result = extractDomainMap(graph)
 
-      expect(result.domainNodes[0]?.data.label).toBe('orders');
-    });
-  });
+      expect(result.domainNodes[0]?.data.label).toBe('orders')
+    })
+  })
 
   describe('domain edge extraction', () => {
     it('aggregates edges between domains', () => {
@@ -180,14 +180,14 @@ describe('extractDomainMap', () => {
             type: 'sync',
           }),
         ],
-      });
+      })
 
-      const result = extractDomainMap(graph);
+      const result = extractDomainMap(graph)
 
-      expect(result.domainEdges).toHaveLength(1);
-      expect(result.domainEdges[0]?.source).toBe('orders');
-      expect(result.domainEdges[0]?.target).toBe('payments');
-    });
+      expect(result.domainEdges).toHaveLength(1)
+      expect(result.domainEdges[0]?.source).toBe('orders')
+      expect(result.domainEdges[0]?.target).toBe('payments')
+    })
 
     it('excludes edges within the same domain', () => {
       const graph = createMinimalGraph({
@@ -216,12 +216,12 @@ describe('extractDomainMap', () => {
             type: 'sync',
           }),
         ],
-      });
+      })
 
-      const result = extractDomainMap(graph);
+      const result = extractDomainMap(graph)
 
-      expect(result.domainEdges).toEqual([]);
-    });
+      expect(result.domainEdges).toEqual([])
+    })
 
     it('counts API calls between domains', () => {
       const graph = createMinimalGraph({
@@ -263,14 +263,14 @@ describe('extractDomainMap', () => {
             type: 'sync',
           }),
         ],
-      });
+      })
 
-      const result = extractDomainMap(graph);
+      const result = extractDomainMap(graph)
 
-      expect(result.domainEdges).toHaveLength(1);
-      expect(result.domainEdges[0]?.data?.apiCount).toBe(2);
-      expect(result.domainEdges[0]?.data?.eventCount).toBe(0);
-    });
+      expect(result.domainEdges).toHaveLength(1)
+      expect(result.domainEdges[0]?.data?.apiCount).toBe(2)
+      expect(result.domainEdges[0]?.data?.eventCount).toBe(0)
+    })
 
     it('counts event flows between domains', () => {
       const graph = createMinimalGraph({
@@ -301,13 +301,13 @@ describe('extractDomainMap', () => {
             type: 'async',
           }),
         ],
-      });
+      })
 
-      const result = extractDomainMap(graph);
+      const result = extractDomainMap(graph)
 
-      expect(result.domainEdges[0]?.data?.eventCount).toBe(1);
-      expect(result.domainEdges[0]?.data?.apiCount).toBe(0);
-    });
+      expect(result.domainEdges[0]?.data?.eventCount).toBe(1)
+      expect(result.domainEdges[0]?.data?.apiCount).toBe(0)
+    })
 
     it('handles edges with unknown type', () => {
       const graph = createMinimalGraph({
@@ -335,15 +335,15 @@ describe('extractDomainMap', () => {
             target: 'n2',
           }),
         ],
-      });
+      })
 
-      const result = extractDomainMap(graph);
+      const result = extractDomainMap(graph)
 
-      expect(result.domainEdges).toHaveLength(1);
-      expect(result.domainEdges[0]?.data?.connections[0]?.type).toBe('unknown');
-    });
-  });
-});
+      expect(result.domainEdges).toHaveLength(1)
+      expect(result.domainEdges[0]?.data?.connections[0]?.type).toBe('unknown')
+    })
+  })
+})
 
 describe('external edges', () => {
   it('populates connection details for external edges', () => {
@@ -385,35 +385,35 @@ describe('external edges', () => {
           type: 'async',
         },
       ],
-    });
+    })
 
-    const result = extractDomainMap(graph);
+    const result = extractDomainMap(graph)
 
-    const stripeEdge = result.domainEdges.find((e) => e.target === 'external:Stripe');
-    expect(stripeEdge?.data?.connections).toHaveLength(2);
+    const stripeEdge = result.domainEdges.find((e) => e.target === 'external:Stripe')
+    expect(stripeEdge?.data?.connections).toHaveLength(2)
     expect(stripeEdge?.data?.connections).toContainEqual({
       sourceName: 'PlaceOrder',
       targetName: 'Stripe',
       type: 'sync',
       targetNodeType: 'External',
-    });
+    })
     expect(stripeEdge?.data?.connections).toContainEqual({
       sourceName: 'CreatePayment',
       targetName: 'Stripe',
       type: 'async',
       targetNodeType: 'External',
-    });
-  });
-});
+    })
+  })
+})
 
 describe('getConnectedDomains', () => {
   it('returns empty set when domain has no connections', () => {
-    const edges: DomainEdge[] = [];
+    const edges: DomainEdge[] = []
 
-    const result = getConnectedDomains('orders', edges);
+    const result = getConnectedDomains('orders', edges)
 
-    expect(result.size).toBe(0);
-  });
+    expect(result.size).toBe(0)
+  })
 
   it('returns domains that the source domain connects to', () => {
     const edges: DomainEdge[] = [
@@ -437,13 +437,13 @@ describe('getConnectedDomains', () => {
           connections: [],
         },
       },
-    ];
+    ]
 
-    const result = getConnectedDomains('orders', edges);
+    const result = getConnectedDomains('orders', edges)
 
-    expect(result).toContain('payments');
-    expect(result).toContain('shipping');
-  });
+    expect(result).toContain('payments')
+    expect(result).toContain('shipping')
+  })
 
   it('returns domains that connect to the target domain', () => {
     const edges: DomainEdge[] = [
@@ -467,13 +467,13 @@ describe('getConnectedDomains', () => {
           connections: [],
         },
       },
-    ];
+    ]
 
-    const result = getConnectedDomains('payments', edges);
+    const result = getConnectedDomains('payments', edges)
 
-    expect(result).toContain('orders');
-    expect(result).toContain('shipping');
-  });
+    expect(result).toContain('orders')
+    expect(result).toContain('shipping')
+  })
 
   it('returns both incoming and outgoing connections', () => {
     const edges: DomainEdge[] = [
@@ -497,11 +497,11 @@ describe('getConnectedDomains', () => {
           connections: [],
         },
       },
-    ];
+    ]
 
-    const result = getConnectedDomains('payments', edges);
+    const result = getConnectedDomains('payments', edges)
 
-    expect(result).toContain('orders');
-    expect(result).toContain('notifications');
-  });
-});
+    expect(result).toContain('orders')
+    expect(result).toContain('notifications')
+  })
+})
