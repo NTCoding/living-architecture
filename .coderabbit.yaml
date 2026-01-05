@@ -6,11 +6,22 @@ language: en-US
 reviews:
   profile: assertive
   request_changes_workflow: true
+  sequence_diagrams: true
   auto_review:
     enabled: true
   pre_merge_checks:
     docstrings:
       mode: "off"
+    linked_issue:
+      mode: "warning"
+
+tools:
+  gitleaks:
+    enabled: true
+  semgrep:
+    enabled: true
+  actionlint:
+    enabled: true
 
 knowledge_base:
   code_guidelines:
