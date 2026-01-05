@@ -1,6 +1,10 @@
-import { Routes, Route } from 'react-router-dom'
+import {
+  Routes, Route 
+} from 'react-router-dom'
 import { AppShell } from '@/components/AppShell/AppShell'
-import { GraphProvider, useGraph } from '@/contexts/GraphContext'
+import {
+  GraphProvider, useGraph 
+} from '@/contexts/GraphContext'
 import { ExportProvider } from '@/contexts/ExportContext'
 import { EmptyState } from '@/features/empty-state/EmptyState'
 import type { RiviereGraph } from '@/types/riviere'
@@ -16,7 +20,9 @@ import { ComparisonPage } from '@/features/comparison/ComparisonPage'
 function useRequiredGraph(): RiviereGraph {
   const { graph } = useGraph()
   if (graph === null) {
-    throw new Error('useRequiredGraph called without a graph. This component should only render when hasGraph is true.')
+    throw new Error(
+      'useRequiredGraph called without a graph. This component should only render when hasGraph is true.',
+    )
   }
   return graph
 }
@@ -50,7 +56,9 @@ function Events(): React.ReactElement {
 }
 
 function AppContent(): React.ReactElement {
-  const { hasGraph, graphName, graph, isLoadingDemo } = useGraph()
+  const {
+    hasGraph, graphName, graph, isLoadingDemo 
+  } = useGraph()
 
   if (isLoadingDemo) {
     return (
@@ -67,34 +75,13 @@ function AppContent(): React.ReactElement {
     <AppShell hasGraph={hasGraph} graphName={graphName} graph={graph}>
       <Routes>
         <Route path="/" element={hasGraph ? <Overview /> : <EmptyState />} />
-        <Route
-          path="/full-graph"
-          element={hasGraph ? <FullGraph /> : <EmptyState />}
-        />
-        <Route
-          path="/domains"
-          element={hasGraph ? <DomainMap /> : <EmptyState />}
-        />
-        <Route
-          path="/flows"
-          element={hasGraph ? <Flows /> : <EmptyState />}
-        />
-        <Route
-          path="/entities"
-          element={hasGraph ? <Entities /> : <EmptyState />}
-        />
-        <Route
-          path="/events"
-          element={hasGraph ? <Events /> : <EmptyState />}
-        />
-        <Route
-          path="/domains/:domainId"
-          element={hasGraph ? <DomainDetail /> : <EmptyState />}
-        />
-        <Route
-          path="/compare"
-          element={<ComparisonPage />}
-        />
+        <Route path="/full-graph" element={hasGraph ? <FullGraph /> : <EmptyState />} />
+        <Route path="/domains" element={hasGraph ? <DomainMap /> : <EmptyState />} />
+        <Route path="/flows" element={hasGraph ? <Flows /> : <EmptyState />} />
+        <Route path="/entities" element={hasGraph ? <Entities /> : <EmptyState />} />
+        <Route path="/events" element={hasGraph ? <Events /> : <EmptyState />} />
+        <Route path="/domains/:domainId" element={hasGraph ? <DomainDetail /> : <EmptyState />} />
+        <Route path="/compare" element={<ComparisonPage />} />
       </Routes>
     </AppShell>
   )

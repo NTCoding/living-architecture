@@ -1,11 +1,22 @@
-import { describe, it, expect, vi } from 'vitest'
-import { render, screen, waitFor, within, fireEvent } from '@testing-library/react'
+import {
+  describe, it, expect, vi 
+} from 'vitest'
+import {
+  render, screen, waitFor, within, fireEvent 
+} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { SchemaModal } from './SchemaModal'
-import type { RiviereGraph, GraphName } from '@/types/riviere'
-import { nodeIdSchema, domainNameSchema, moduleNameSchema, graphNameSchema } from '@/types/riviere'
+import type {
+  RiviereGraph, GraphName 
+} from '@/types/riviere'
+import {
+  nodeIdSchema, domainNameSchema, moduleNameSchema, graphNameSchema 
+} from '@/types/riviere'
 
-const testSourceLocation = { repository: 'test-repo', filePath: 'src/test.ts' }
+const testSourceLocation = {
+  repository: 'test-repo',
+  filePath: 'src/test.ts',
+}
 
 function createGraphName(name: string): GraphName {
   return graphNameSchema.parse(name)
@@ -19,11 +30,11 @@ function createTestGraph(overrides: Partial<RiviereGraph> = {}): RiviereGraph {
       description: 'Test graph description',
       generated: '2024-01-15T10:30:00Z',
       domains: {
-        'orders': {
+        orders: {
           description: 'Order management',
           systemType: 'domain',
         },
-        'inventory': {
+        inventory: {
           description: 'Inventory management',
           systemType: 'domain',
         },
@@ -63,7 +74,7 @@ describe('SchemaModal', () => {
   describe('when not open', () => {
     it('renders nothing when graph is null', () => {
       const { container } = render(
-        <SchemaModal graph={null} graphName={undefined} isOpen={true} onClose={vi.fn()} />
+        <SchemaModal graph={null} graphName={undefined} isOpen={true} onClose={vi.fn()} />,
       )
 
       expect(container.firstChild).toBeNull()
@@ -71,7 +82,12 @@ describe('SchemaModal', () => {
 
     it('renders nothing when isOpen is false', () => {
       const { container } = render(
-        <SchemaModal graph={createTestGraph()} graphName={createGraphName('test.json')} isOpen={false} onClose={vi.fn()} />
+        <SchemaModal
+          graph={createTestGraph()}
+          graphName={createGraphName('test.json')}
+          isOpen={false}
+          onClose={vi.fn()}
+        />,
       )
 
       expect(container.firstChild).toBeNull()
@@ -82,7 +98,12 @@ describe('SchemaModal', () => {
     describe('header', () => {
       it('renders filename in title', () => {
         render(
-          <SchemaModal graph={createTestGraph()} graphName={createGraphName('ecommerce-complete.json')} isOpen={true} onClose={vi.fn()} />
+          <SchemaModal
+            graph={createTestGraph()}
+            graphName={createGraphName('ecommerce-complete.json')}
+            isOpen={true}
+            onClose={vi.fn()}
+          />,
         )
 
         expect(screen.getByText('ecommerce-complete.json')).toBeInTheDocument()
@@ -90,7 +111,12 @@ describe('SchemaModal', () => {
 
       it('renders empty title when graphName undefined', () => {
         render(
-          <SchemaModal graph={createTestGraph()} graphName={undefined} isOpen={true} onClose={vi.fn()} />
+          <SchemaModal
+            graph={createTestGraph()}
+            graphName={undefined}
+            isOpen={true}
+            onClose={vi.fn()}
+          />,
         )
 
         const dialog = screen.getByRole('dialog')
@@ -105,7 +131,12 @@ describe('SchemaModal', () => {
 
       it('renders close button', () => {
         render(
-          <SchemaModal graph={createTestGraph()} graphName={createGraphName('test.json')} isOpen={true} onClose={vi.fn()} />
+          <SchemaModal
+            graph={createTestGraph()}
+            graphName={createGraphName('test.json')}
+            isOpen={true}
+            onClose={vi.fn()}
+          />,
         )
 
         expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument()
@@ -116,7 +147,12 @@ describe('SchemaModal', () => {
         const onClose = vi.fn()
 
         render(
-          <SchemaModal graph={createTestGraph()} graphName={createGraphName('test.json')} isOpen={true} onClose={onClose} />
+          <SchemaModal
+            graph={createTestGraph()}
+            graphName={createGraphName('test.json')}
+            isOpen={true}
+            onClose={onClose}
+          />,
         )
 
         await user.click(screen.getByRole('button', { name: 'Close' }))
@@ -126,7 +162,12 @@ describe('SchemaModal', () => {
 
       it('renders copy button', () => {
         render(
-          <SchemaModal graph={createTestGraph()} graphName={createGraphName('test.json')} isOpen={true} onClose={vi.fn()} />
+          <SchemaModal
+            graph={createTestGraph()}
+            graphName={createGraphName('test.json')}
+            isOpen={true}
+            onClose={vi.fn()}
+          />,
         )
 
         expect(screen.getByRole('button', { name: /copy/i })).toBeInTheDocument()
@@ -134,7 +175,12 @@ describe('SchemaModal', () => {
 
       it('renders download button', () => {
         render(
-          <SchemaModal graph={createTestGraph()} graphName={createGraphName('test.json')} isOpen={true} onClose={vi.fn()} />
+          <SchemaModal
+            graph={createTestGraph()}
+            graphName={createGraphName('test.json')}
+            isOpen={true}
+            onClose={vi.fn()}
+          />,
         )
 
         expect(screen.getByRole('button', { name: /download/i })).toBeInTheDocument()
@@ -146,7 +192,12 @@ describe('SchemaModal', () => {
         const graph = createTestGraph({ version: '2.5.0' })
 
         render(
-          <SchemaModal graph={graph} graphName={createGraphName('test.json')} isOpen={true} onClose={vi.fn()} />
+          <SchemaModal
+            graph={graph}
+            graphName={createGraphName('test.json')}
+            isOpen={true}
+            onClose={vi.fn()}
+          />,
         )
 
         expect(screen.getByText('Schema Version')).toBeInTheDocument()
@@ -186,7 +237,12 @@ describe('SchemaModal', () => {
         })
 
         render(
-          <SchemaModal graph={graph} graphName={createGraphName('test.json')} isOpen={true} onClose={vi.fn()} />
+          <SchemaModal
+            graph={graph}
+            graphName={createGraphName('test.json')}
+            isOpen={true}
+            onClose={vi.fn()}
+          />,
         )
 
         expect(screen.getByText('Total Nodes')).toBeInTheDocument()
@@ -195,7 +251,12 @@ describe('SchemaModal', () => {
 
       it('renders edge count', () => {
         render(
-          <SchemaModal graph={createTestGraph()} graphName={createGraphName('test.json')} isOpen={true} onClose={vi.fn()} />
+          <SchemaModal
+            graph={createTestGraph()}
+            graphName={createGraphName('test.json')}
+            isOpen={true}
+            onClose={vi.fn()}
+          />,
         )
 
         expect(screen.getByText('Total Edges')).toBeInTheDocument()
@@ -209,16 +270,33 @@ describe('SchemaModal', () => {
             description: 'Test',
             generated: '2024-01-15T10:30:00Z',
             domains: {
-              'orders': { description: 'Order', systemType: 'domain' },
-              'inventory': { description: 'Inventory', systemType: 'domain' },
-              'shipping': { description: 'Shipping', systemType: 'domain' },
-              'payments': { description: 'Payments', systemType: 'domain' },
+              orders: {
+                description: 'Order',
+                systemType: 'domain',
+              },
+              inventory: {
+                description: 'Inventory',
+                systemType: 'domain',
+              },
+              shipping: {
+                description: 'Shipping',
+                systemType: 'domain',
+              },
+              payments: {
+                description: 'Payments',
+                systemType: 'domain',
+              },
             },
           },
         })
 
         render(
-          <SchemaModal graph={graph} graphName={createGraphName('test.json')} isOpen={true} onClose={vi.fn()} />
+          <SchemaModal
+            graph={graph}
+            graphName={createGraphName('test.json')}
+            isOpen={true}
+            onClose={vi.fn()}
+          />,
         )
 
         expect(screen.getByText('Domains')).toBeInTheDocument()
@@ -230,7 +308,12 @@ describe('SchemaModal', () => {
         graph.metadata.generated = '2024-06-15T14:30:00Z'
 
         render(
-          <SchemaModal graph={graph} graphName={createGraphName('test.json')} isOpen={true} onClose={vi.fn()} />
+          <SchemaModal
+            graph={graph}
+            graphName={createGraphName('test.json')}
+            isOpen={true}
+            onClose={vi.fn()}
+          />,
         )
 
         expect(screen.getByText('Generated')).toBeInTheDocument()
@@ -242,7 +325,12 @@ describe('SchemaModal', () => {
         delete graph.metadata.generated
 
         render(
-          <SchemaModal graph={graph} graphName={createGraphName('test.json')} isOpen={true} onClose={vi.fn()} />
+          <SchemaModal
+            graph={graph}
+            graphName={createGraphName('test.json')}
+            isOpen={true}
+            onClose={vi.fn()}
+          />,
         )
 
         expect(screen.getByText('Generated')).toBeInTheDocument()
@@ -253,7 +341,12 @@ describe('SchemaModal', () => {
     describe('JSON viewer', () => {
       it('renders formatted JSON content', () => {
         render(
-          <SchemaModal graph={createTestGraph()} graphName={createGraphName('test.json')} isOpen={true} onClose={vi.fn()} />
+          <SchemaModal
+            graph={createTestGraph()}
+            graphName={createGraphName('test.json')}
+            isOpen={true}
+            onClose={vi.fn()}
+          />,
         )
 
         const jsonViewer = screen.getByTestId('json-viewer')
@@ -264,7 +357,12 @@ describe('SchemaModal', () => {
 
       it('renders JSON as collapsible tree', () => {
         render(
-          <SchemaModal graph={createTestGraph()} graphName={createGraphName('test.json')} isOpen={true} onClose={vi.fn()} />
+          <SchemaModal
+            graph={createTestGraph()}
+            graphName={createGraphName('test.json')}
+            isOpen={true}
+            onClose={vi.fn()}
+          />,
         )
 
         const jsonViewer = screen.getByTestId('json-viewer')
@@ -276,12 +374,15 @@ describe('SchemaModal', () => {
     it('copy: copies JSON to clipboard when copy clicked', async () => {
       const user = userEvent.setup()
       const writeText = vi.fn().mockResolvedValue(undefined)
-      vi.stubGlobal('navigator', {
-        clipboard: { writeText },
-      })
+      vi.stubGlobal('navigator', { clipboard: { writeText } })
 
       render(
-        <SchemaModal graph={createTestGraph()} graphName={createGraphName('test.json')} isOpen={true} onClose={vi.fn()} />
+        <SchemaModal
+          graph={createTestGraph()}
+          graphName={createGraphName('test.json')}
+          isOpen={true}
+          onClose={vi.fn()}
+        />,
       )
 
       await user.click(screen.getByRole('button', { name: /copy/i }))
@@ -300,12 +401,15 @@ describe('SchemaModal', () => {
     it('copy: shows success feedback after copy', async () => {
       const user = userEvent.setup()
       const writeText = vi.fn().mockResolvedValue(undefined)
-      vi.stubGlobal('navigator', {
-        clipboard: { writeText },
-      })
+      vi.stubGlobal('navigator', { clipboard: { writeText } })
 
       render(
-        <SchemaModal graph={createTestGraph()} graphName={createGraphName('test.json')} isOpen={true} onClose={vi.fn()} />
+        <SchemaModal
+          graph={createTestGraph()}
+          graphName={createGraphName('test.json')}
+          isOpen={true}
+          onClose={vi.fn()}
+        />,
       )
 
       await user.click(screen.getByRole('button', { name: /copy/i }))
@@ -320,12 +424,15 @@ describe('SchemaModal', () => {
     it('copy: clears copy feedback after timeout', async () => {
       vi.useFakeTimers()
       const writeText = vi.fn().mockResolvedValue(undefined)
-      vi.stubGlobal('navigator', {
-        clipboard: { writeText },
-      })
+      vi.stubGlobal('navigator', { clipboard: { writeText } })
 
       render(
-        <SchemaModal graph={createTestGraph()} graphName={createGraphName('test.json')} isOpen={true} onClose={vi.fn()} />
+        <SchemaModal
+          graph={createTestGraph()}
+          graphName={createGraphName('test.json')}
+          isOpen={true}
+          onClose={vi.fn()}
+        />,
       )
 
       const copyButton = screen.getByRole('button', { name: /copy/i })
@@ -363,7 +470,12 @@ describe('SchemaModal', () => {
       })
 
       render(
-        <SchemaModal graph={createTestGraph()} graphName={createGraphName('my-schema.json')} isOpen={true} onClose={vi.fn()} />
+        <SchemaModal
+          graph={createTestGraph()}
+          graphName={createGraphName('my-schema.json')}
+          isOpen={true}
+          onClose={vi.fn()}
+        />,
       )
 
       await user.click(screen.getByRole('button', { name: /download/i }))
@@ -377,7 +489,12 @@ describe('SchemaModal', () => {
 
     it('download: disables download button when graphName is undefined', () => {
       render(
-        <SchemaModal graph={createTestGraph()} graphName={undefined} isOpen={true} onClose={vi.fn()} />
+        <SchemaModal
+          graph={createTestGraph()}
+          graphName={undefined}
+          isOpen={true}
+          onClose={vi.fn()}
+        />,
       )
 
       const downloadButton = screen.getByRole('button', { name: /download/i })
@@ -390,7 +507,12 @@ describe('SchemaModal', () => {
         const onClose = vi.fn()
 
         render(
-          <SchemaModal graph={createTestGraph()} graphName={createGraphName('test.json')} isOpen={true} onClose={onClose} />
+          <SchemaModal
+            graph={createTestGraph()}
+            graphName={createGraphName('test.json')}
+            isOpen={true}
+            onClose={onClose}
+          />,
         )
 
         await user.click(screen.getByTestId('modal-backdrop'))
@@ -398,39 +520,30 @@ describe('SchemaModal', () => {
         expect(onClose).toHaveBeenCalled()
       })
 
-      it('calls onClose when Enter pressed on backdrop', async () => {
-        const onClose = vi.fn()
-
+      it('backdrop is a button element for native keyboard accessibility', async () => {
         render(
-          <SchemaModal graph={createTestGraph()} graphName={createGraphName('test.json')} isOpen={true} onClose={onClose} />
+          <SchemaModal
+            graph={createTestGraph()}
+            graphName={createGraphName('test.json')}
+            isOpen={true}
+            onClose={vi.fn()}
+          />,
         )
 
         const backdrop = screen.getByTestId('modal-backdrop')
-        backdrop.focus()
-        fireEvent.keyDown(backdrop, { key: 'Enter' })
-
-        expect(onClose).toHaveBeenCalled()
-      })
-
-      it('calls onClose when Space pressed on backdrop', async () => {
-        const onClose = vi.fn()
-
-        render(
-          <SchemaModal graph={createTestGraph()} graphName={createGraphName('test.json')} isOpen={true} onClose={onClose} />
-        )
-
-        const backdrop = screen.getByTestId('modal-backdrop')
-        backdrop.focus()
-        fireEvent.keyDown(backdrop, { key: ' ' })
-
-        expect(onClose).toHaveBeenCalled()
+        expect(backdrop.tagName).toBe('BUTTON')
       })
 
       it('does not close on other keys pressed on backdrop', () => {
         const onClose = vi.fn()
 
         render(
-          <SchemaModal graph={createTestGraph()} graphName={createGraphName('test.json')} isOpen={true} onClose={onClose} />
+          <SchemaModal
+            graph={createTestGraph()}
+            graphName={createGraphName('test.json')}
+            isOpen={true}
+            onClose={onClose}
+          />,
         )
 
         const backdrop = screen.getByTestId('modal-backdrop')
@@ -444,7 +557,12 @@ describe('SchemaModal', () => {
         const onClose = vi.fn()
 
         render(
-          <SchemaModal graph={createTestGraph()} graphName={createGraphName('test.json')} isOpen={true} onClose={onClose} />
+          <SchemaModal
+            graph={createTestGraph()}
+            graphName={createGraphName('test.json')}
+            isOpen={true}
+            onClose={onClose}
+          />,
         )
 
         await user.click(screen.getByTestId('json-viewer'))
@@ -459,7 +577,12 @@ describe('SchemaModal', () => {
         const onClose = vi.fn()
 
         render(
-          <SchemaModal graph={createTestGraph()} graphName={createGraphName('test.json')} isOpen={true} onClose={onClose} />
+          <SchemaModal
+            graph={createTestGraph()}
+            graphName={createGraphName('test.json')}
+            isOpen={true}
+            onClose={onClose}
+          />,
         )
 
         await user.keyboard('{Escape}')
@@ -471,23 +594,39 @@ describe('SchemaModal', () => {
     describe('accessibility', () => {
       it('has role dialog', () => {
         render(
-          <SchemaModal graph={createTestGraph()} graphName={createGraphName('test.json')} isOpen={true} onClose={vi.fn()} />
+          <SchemaModal
+            graph={createTestGraph()}
+            graphName={createGraphName('test.json')}
+            isOpen={true}
+            onClose={vi.fn()}
+          />,
         )
 
         expect(screen.getByRole('dialog')).toBeInTheDocument()
       })
 
-      it('has aria-modal true', () => {
+      it('uses semantic dialog element', () => {
         render(
-          <SchemaModal graph={createTestGraph()} graphName={createGraphName('test.json')} isOpen={true} onClose={vi.fn()} />
+          <SchemaModal
+            graph={createTestGraph()}
+            graphName={createGraphName('test.json')}
+            isOpen={true}
+            onClose={vi.fn()}
+          />,
         )
 
-        expect(screen.getByRole('dialog')).toHaveAttribute('aria-modal', 'true')
+        const dialog = screen.getByRole('dialog')
+        expect(dialog.tagName).toBe('DIALOG')
       })
 
       it('has aria-labelledby pointing to title', () => {
         render(
-          <SchemaModal graph={createTestGraph()} graphName={createGraphName('test.json')} isOpen={true} onClose={vi.fn()} />
+          <SchemaModal
+            graph={createTestGraph()}
+            graphName={createGraphName('test.json')}
+            isOpen={true}
+            onClose={vi.fn()}
+          />,
         )
 
         const dialog = screen.getByRole('dialog')

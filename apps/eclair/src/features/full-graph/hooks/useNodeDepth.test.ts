@@ -1,4 +1,6 @@
-import { describe, expect, test } from 'vitest'
+import {
+  describe, expect, test 
+} from 'vitest'
 import { calculateNodeDepths } from './useNodeDepth'
 
 interface TestEdge {
@@ -9,7 +11,12 @@ interface TestEdge {
 describe('calculateNodeDepths', () => {
   test('returns depth 0 for nodes with no incoming edges', () => {
     const nodeIds = ['A', 'B']
-    const edges: TestEdge[] = [{ source: 'A', target: 'B' }]
+    const edges: TestEdge[] = [
+      {
+        source: 'A',
+        target: 'B',
+      },
+    ]
 
     const depths = calculateNodeDepths(nodeIds, edges)
 
@@ -18,7 +25,12 @@ describe('calculateNodeDepths', () => {
 
   test('returns depth 1 for nodes one step from entry point', () => {
     const nodeIds = ['A', 'B']
-    const edges: TestEdge[] = [{ source: 'A', target: 'B' }]
+    const edges: TestEdge[] = [
+      {
+        source: 'A',
+        target: 'B',
+      },
+    ]
 
     const depths = calculateNodeDepths(nodeIds, edges)
 
@@ -28,9 +40,18 @@ describe('calculateNodeDepths', () => {
   test('returns correct depths for linear chain', () => {
     const nodeIds = ['A', 'B', 'C', 'D']
     const edges: TestEdge[] = [
-      { source: 'A', target: 'B' },
-      { source: 'B', target: 'C' },
-      { source: 'C', target: 'D' },
+      {
+        source: 'A',
+        target: 'B',
+      },
+      {
+        source: 'B',
+        target: 'C',
+      },
+      {
+        source: 'C',
+        target: 'D',
+      },
     ]
 
     const depths = calculateNodeDepths(nodeIds, edges)
@@ -44,10 +65,22 @@ describe('calculateNodeDepths', () => {
   test('uses max depth when node has multiple incoming paths', () => {
     const nodeIds = ['A', 'B', 'C', 'D']
     const edges: TestEdge[] = [
-      { source: 'A', target: 'B' },
-      { source: 'A', target: 'C' },
-      { source: 'B', target: 'D' },
-      { source: 'C', target: 'D' },
+      {
+        source: 'A',
+        target: 'B',
+      },
+      {
+        source: 'A',
+        target: 'C',
+      },
+      {
+        source: 'B',
+        target: 'D',
+      },
+      {
+        source: 'C',
+        target: 'D',
+      },
     ]
 
     const depths = calculateNodeDepths(nodeIds, edges)
@@ -61,8 +94,14 @@ describe('calculateNodeDepths', () => {
   test('handles multiple entry points (no incoming edges)', () => {
     const nodeIds = ['A', 'B', 'C']
     const edges: TestEdge[] = [
-      { source: 'A', target: 'C' },
-      { source: 'B', target: 'C' },
+      {
+        source: 'A',
+        target: 'C',
+      },
+      {
+        source: 'B',
+        target: 'C',
+      },
     ]
 
     const depths = calculateNodeDepths(nodeIds, edges)
@@ -75,9 +114,18 @@ describe('calculateNodeDepths', () => {
   test('handles cycles without infinite loop', () => {
     const nodeIds = ['A', 'B', 'C']
     const edges: TestEdge[] = [
-      { source: 'A', target: 'B' },
-      { source: 'B', target: 'C' },
-      { source: 'C', target: 'A' },
+      {
+        source: 'A',
+        target: 'B',
+      },
+      {
+        source: 'B',
+        target: 'C',
+      },
+      {
+        source: 'C',
+        target: 'A',
+      },
     ]
 
     const depths = calculateNodeDepths(nodeIds, edges)
@@ -109,11 +157,26 @@ describe('calculateNodeDepths', () => {
   test('handles diamond pattern with correct max depth', () => {
     const nodeIds = ['A', 'B', 'C', 'D', 'E']
     const edges: TestEdge[] = [
-      { source: 'A', target: 'B' },
-      { source: 'A', target: 'C' },
-      { source: 'B', target: 'D' },
-      { source: 'C', target: 'D' },
-      { source: 'D', target: 'E' },
+      {
+        source: 'A',
+        target: 'B',
+      },
+      {
+        source: 'A',
+        target: 'C',
+      },
+      {
+        source: 'B',
+        target: 'D',
+      },
+      {
+        source: 'C',
+        target: 'D',
+      },
+      {
+        source: 'D',
+        target: 'E',
+      },
     ]
 
     const depths = calculateNodeDepths(nodeIds, edges)

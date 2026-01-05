@@ -1,59 +1,74 @@
-import { Command } from 'commander';
-import { writeFile } from 'node:fs/promises';
-import { ComponentId } from '@living-architecture/riviere-builder';
-import { RiviereQuery } from '@living-architecture/riviere-query';
-import type { Component, HttpMethod, RiviereGraph } from '@living-architecture/riviere-schema';
-import { getDefaultGraphPathDescription, resolveGraphPath } from '../../graph-path';
-import { fileExists } from '../../file-existence';
-import { formatError, formatSuccess } from '../../output';
-import { CliErrorCode } from '../../error-codes';
-import { isValidLinkType, normalizeComponentType } from '../../component-types';
-import { isValidHttpMethod, validateComponentType, validateHttpMethod, validateLinkType } from '../../validation';
-import { loadGraphBuilder, reportGraphNotFound } from './link-infrastructure';
+import { Command } from 'commander'
+import { writeFile } from 'node:fs/promises'
+import { ComponentId } from '@living-architecture/riviere-builder'
+import { RiviereQuery } from '@living-architecture/riviere-query'
+import type {
+  Component, HttpMethod, RiviereGraph 
+} from '@living-architecture/riviere-schema'
+import {
+  getDefaultGraphPathDescription, resolveGraphPath 
+} from '../../graph-path'
+import { fileExists } from '../../file-existence'
+import {
+  formatError, formatSuccess 
+} from '../../output'
+import { CliErrorCode } from '../../error-codes'
+import {
+  isValidLinkType, normalizeComponentType 
+} from '../../component-types'
+import {
+  isValidHttpMethod,
+  validateComponentType,
+  validateHttpMethod,
+  validateLinkType,
+} from '../../validation'
+import {
+  loadGraphBuilder, reportGraphNotFound 
+} from './link-infrastructure'
 
 interface ApiComponent {
-  id: string;
-  type: 'API';
-  name: string;
-  domain: string;
-  path: string;
-  httpMethod: HttpMethod;
+  id: string
+  type: 'API'
+  name: string
+  domain: string
+  path: string
+  httpMethod: HttpMethod
 }
 
 function isRestApiWithPath(component: Component): component is Component & ApiComponent {
-  return component.type === 'API' && 'path' in component && 'httpMethod' in component;
+  return component.type === 'API' && 'path' in component && 'httpMethod' in component
 }
 
 function findApisByPath(graph: RiviereGraph, path: string, method?: HttpMethod): ApiComponent[] {
-  const query = new RiviereQuery(graph);
-  const allComponents = query.componentsByType('API');
-  const apis = allComponents.filter(isRestApiWithPath);
-  const matchingPath = apis.filter((api) => api.path === path);
+  const query = new RiviereQuery(graph)
+  const allComponents = query.componentsByType('API')
+  const apis = allComponents.filter(isRestApiWithPath)
+  const matchingPath = apis.filter((api) => api.path === path)
 
   if (method) {
-    return matchingPath.filter((api) => api.httpMethod === method);
+    return matchingPath.filter((api) => api.httpMethod === method)
   }
 
-  return matchingPath;
+  return matchingPath
 }
 
 function getAllApiPaths(graph: RiviereGraph): string[] {
-  const query = new RiviereQuery(graph);
-  const allComponents = query.componentsByType('API');
-  const apis = allComponents.filter(isRestApiWithPath);
-  return [...new Set(apis.map((api) => api.path))];
+  const query = new RiviereQuery(graph)
+  const allComponents = query.componentsByType('API')
+  const apis = allComponents.filter(isRestApiWithPath)
+  return [...new Set(apis.map((api) => api.path))]
 }
 
 interface LinkHttpOptions {
-  path: string;
-  toDomain: string;
-  toModule: string;
-  toType: string;
-  toName: string;
-  method?: string;
-  linkType?: string;
-  graph?: string;
-  json?: boolean;
+  path: string
+  toDomain: string
+  toModule: string
+  toType: string
+  toName: string
+  method?: string
+  linkType?: string
+  graph?: string
+  json?: boolean
 }
 
 function reportNoApiFoundForPath(path: string, availablePaths: string[]): void {
@@ -62,40 +77,42 @@ function reportNoApiFoundForPath(path: string, availablePaths: string[]): void {
       formatError(
         CliErrorCode.ComponentNotFound,
         `No API found with path '${path}'`,
-        availablePaths.length > 0 ? [`Available paths: ${availablePaths.join(', ')}`] : []
-      )
-    )
-  );
+        availablePaths.length > 0 ? [`Available paths: ${availablePaths.join(', ')}`] : [],
+      ),
+    ),
+  )
 }
 
 function reportAmbiguousApiMatch(path: string, matchingApis: ApiComponent[]): void {
-  const apiList = matchingApis.map((api) => `${api.id} (${api.httpMethod})`).join(', ');
+  const apiList = matchingApis.map((api) => `${api.id} (${api.httpMethod})`).join(', ')
   console.log(
     JSON.stringify(
-      formatError(CliErrorCode.AmbiguousApiMatch, `Multiple APIs match path '${path}': ${apiList}`, [
-        'Add --method flag to disambiguate',
-      ])
-    )
-  );
+      formatError(
+        CliErrorCode.AmbiguousApiMatch,
+        `Multiple APIs match path '${path}': ${apiList}`,
+        ['Add --method flag to disambiguate'],
+      ),
+    ),
+  )
 }
 
 function validateOptions(options: LinkHttpOptions): string | undefined {
-  const componentTypeValidation = validateComponentType(options.toType);
+  const componentTypeValidation = validateComponentType(options.toType)
   if (!componentTypeValidation.valid) {
-    return componentTypeValidation.errorJson;
+    return componentTypeValidation.errorJson
   }
 
-  const httpMethodValidation = validateHttpMethod(options.method);
+  const httpMethodValidation = validateHttpMethod(options.method)
   if (!httpMethodValidation.valid) {
-    return httpMethodValidation.errorJson;
+    return httpMethodValidation.errorJson
   }
 
-  const linkTypeValidation = validateLinkType(options.linkType);
+  const linkTypeValidation = validateLinkType(options.linkType)
   if (!linkTypeValidation.valid) {
-    return linkTypeValidation.errorJson;
+    return linkTypeValidation.errorJson
   }
 
-  return undefined;
+  return undefined
 }
 
 export function createLinkHttpCommand(): Command {
@@ -113,7 +130,7 @@ Examples:
       --path "/users/{id}" --method GET \\
       --to-domain users --to-module queries --to-type UseCase --to-name "get-user" \\
       --link-type sync
-`
+`,
     )
     .requiredOption('--path <http-path>', 'HTTP path to match')
     .requiredOption('--to-domain <domain>', 'Target domain')
@@ -125,37 +142,38 @@ Examples:
     .option('--graph <path>', getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .action(async (options: LinkHttpOptions) => {
-      const validationError = validateOptions(options);
+      const validationError = validateOptions(options)
       if (validationError) {
-        console.log(validationError);
-        return;
+        console.log(validationError)
+        return
       }
 
-      const graphPath = resolveGraphPath(options.graph);
-      const graphExists = await fileExists(graphPath);
+      const graphPath = resolveGraphPath(options.graph)
+      const graphExists = await fileExists(graphPath)
 
       if (!graphExists) {
-        reportGraphNotFound(graphPath);
-        return;
+        reportGraphNotFound(graphPath)
+        return
       }
 
-      const builder = await loadGraphBuilder(graphPath);
-      const graph = builder.build();
+      const builder = await loadGraphBuilder(graphPath)
+      const graph = builder.build()
 
-      const normalizedMethod = options.method?.toUpperCase();
-      const httpMethod = normalizedMethod && isValidHttpMethod(normalizedMethod) ? normalizedMethod : undefined;
-      const matchingApis = findApisByPath(graph, options.path, httpMethod);
+      const normalizedMethod = options.method?.toUpperCase()
+      const httpMethod =
+        normalizedMethod && isValidHttpMethod(normalizedMethod) ? normalizedMethod : undefined
+      const matchingApis = findApisByPath(graph, options.path, httpMethod)
 
-      const [matchedApi, ...otherApis] = matchingApis;
+      const [matchedApi, ...otherApis] = matchingApis
 
       if (!matchedApi) {
-        reportNoApiFoundForPath(options.path, getAllApiPaths(graph));
-        return;
+        reportNoApiFoundForPath(options.path, getAllApiPaths(graph))
+        return
       }
 
       if (otherApis.length > 0) {
-        reportAmbiguousApiMatch(options.path, matchingApis);
-        return;
+        reportAmbiguousApiMatch(options.path, matchingApis)
+        return
       }
 
       const targetId = ComponentId.create({
@@ -163,20 +181,24 @@ Examples:
         module: options.toModule,
         type: normalizeComponentType(options.toType),
         name: options.toName,
-      }).toString();
+      }).toString()
 
-      const linkInput: { from: string; to: string; type?: 'sync' | 'async' } = {
+      const linkInput: {
+        from: string
+        to: string
+        type?: 'sync' | 'async'
+      } = {
         from: matchedApi.id,
         to: targetId,
-      };
-
-      if (options.linkType !== undefined && isValidLinkType(options.linkType)) {
-        linkInput.type = options.linkType;
       }
 
-      const link = builder.link(linkInput);
+      if (options.linkType !== undefined && isValidLinkType(options.linkType)) {
+        linkInput.type = options.linkType
+      }
 
-      await writeFile(graphPath, builder.serialize(), 'utf-8');
+      const link = builder.link(linkInput)
+
+      await writeFile(graphPath, builder.serialize(), 'utf-8')
 
       if (options.json) {
         console.log(
@@ -188,9 +210,9 @@ Examples:
                 path: matchedApi.path,
                 method: matchedApi.httpMethod,
               },
-            })
-          )
-        );
+            }),
+          ),
+        )
       }
-    });
+    })
 }

@@ -51,7 +51,9 @@ export class ComponentNotFoundError extends Error {
   constructor(componentId: string, suggestions: string[] = []) {
     const baseMessage = `Source component '${componentId}' not found`
     const message =
-      suggestions.length > 0 ? `${baseMessage}. Did you mean: ${suggestions.join(', ')}?` : baseMessage
+      suggestions.length > 0
+        ? `${baseMessage}. Did you mean: ${suggestions.join(', ')}?`
+        : baseMessage
     super(message)
     this.name = 'ComponentNotFoundError'
     this.componentId = componentId

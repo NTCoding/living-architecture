@@ -1,5 +1,9 @@
-import { describe, it, expect } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import {
+  describe, it, expect 
+} from 'vitest'
+import {
+  render, screen 
+} from '@testing-library/react'
 import { ConnectionItem } from './ConnectionItem'
 import type { AggregatedConnection } from '../../extractDomainDetails'
 
@@ -17,7 +21,7 @@ describe('ConnectionItem', () => {
         connection={connection}
         currentDomainId="orders"
         targetDomainId="inventory"
-      />
+      />,
     )
 
     expect(screen.getByText('orders')).toBeInTheDocument()
@@ -37,7 +41,7 @@ describe('ConnectionItem', () => {
         connection={connection}
         currentDomainId="orders"
         targetDomainId="inventory"
-      />
+      />,
     )
 
     expect(screen.getByText('2 API calls')).toBeInTheDocument()
@@ -52,11 +56,7 @@ describe('ConnectionItem', () => {
     }
 
     render(
-      <ConnectionItem
-        connection={connection}
-        currentDomainId="orders"
-        targetDomainId="shipping"
-      />
+      <ConnectionItem connection={connection} currentDomainId="orders" targetDomainId="shipping" />,
     )
 
     expect(screen.getByText('1 event')).toBeInTheDocument()
@@ -75,7 +75,7 @@ describe('ConnectionItem', () => {
         connection={connection}
         currentDomainId="orders"
         targetDomainId="inventory"
-      />
+      />,
     )
 
     expect(screen.getByText('1 API call')).toBeInTheDocument()

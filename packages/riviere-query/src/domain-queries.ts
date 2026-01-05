@@ -1,8 +1,14 @@
-import type { RiviereGraph, DomainOpComponent } from '@living-architecture/riviere-schema'
+import type {
+  RiviereGraph, DomainOpComponent 
+} from '@living-architecture/riviere-schema'
 import { Entity } from './event-types'
 import type { EntityTransition } from './event-types'
-import type { State, Domain, ComponentCounts } from './domain-types'
-import { parseEntityName, parseDomainName, parseState, parseOperationName } from './domain-types'
+import type {
+  State, Domain, ComponentCounts 
+} from './domain-types'
+import {
+  parseEntityName, parseDomainName, parseState, parseOperationName 
+} from './domain-types'
 import { componentsInDomain } from './component-queries'
 
 export function queryDomains(graph: RiviereGraph): Domain[] {
@@ -10,15 +16,28 @@ export function queryDomains(graph: RiviereGraph): Domain[] {
     const dc = componentsInDomain(graph, name)
     const count = (type: string): number => dc.filter((c) => c.type === type).length
     const componentCounts: ComponentCounts = {
-      UI: count('UI'), API: count('API'), UseCase: count('UseCase'), DomainOp: count('DomainOp'),
-      Event: count('Event'), EventHandler: count('EventHandler'), Custom: count('Custom'), total: dc.length,
+      UI: count('UI'),
+      API: count('API'),
+      UseCase: count('UseCase'),
+      DomainOp: count('DomainOp'),
+      Event: count('Event'),
+      EventHandler: count('EventHandler'),
+      Custom: count('Custom'),
+      total: dc.length,
     }
-    return { name, description: metadata.description, systemType: metadata.systemType, componentCounts }
+    return {
+      name,
+      description: metadata.description,
+      systemType: metadata.systemType,
+      componentCounts,
+    }
   })
 }
 
 export function operationsForEntity(graph: RiviereGraph, entityName: string): DomainOpComponent[] {
-  return graph.components.filter((c): c is DomainOpComponent => c.type === 'DomainOp' && c.entity === entityName)
+  return graph.components.filter(
+    (c): c is DomainOpComponent => c.type === 'DomainOp' && c.entity === entityName,
+  )
 }
 
 interface PartialEntity {
@@ -28,16 +47,26 @@ interface PartialEntity {
 }
 
 export function queryEntities(graph: RiviereGraph, domainName?: string): Entity[] {
-  const domainOps = graph.components.filter((c): c is DomainOpComponent & { entity: string } => c.type === 'DomainOp' && c.entity !== undefined)
+  const domainOps = graph.components.filter(
+    (c): c is DomainOpComponent & { entity: string } =>
+      c.type === 'DomainOp' && c.entity !== undefined,
+  )
   const filtered = domainName ? domainOps.filter((op) => op.domain === domainName) : domainOps
   const entityMap = new Map<string, PartialEntity>()
   for (const op of filtered) {
     const key = `${op.domain}:${op.entity}`
     const existing = entityMap.get(key)
     if (existing === undefined) {
-      entityMap.set(key, { name: op.entity, domain: op.domain, operations: [op] })
+      entityMap.set(key, {
+        name: op.entity,
+        domain: op.domain,
+        operations: [op],
+      })
     } else {
-      entityMap.set(key, { ...existing, operations: [...existing.operations, op] })
+      entityMap.set(key, {
+        ...existing,
+        operations: [...existing.operations, op],
+      })
     }
   }
   return Array.from(entityMap.values())
@@ -46,7 +75,9 @@ export function queryEntities(graph: RiviereGraph, domainName?: string): Entity[
 }
 
 function createEntity(graph: RiviereGraph, partial: PartialEntity): Entity {
-  const sortedOperations = [...partial.operations].sort((a, b) => a.operationName.localeCompare(b.operationName))
+  const sortedOperations = [...partial.operations].sort((a, b) =>
+    a.operationName.localeCompare(b.operationName),
+  )
   return new Entity(
     parseEntityName(partial.name),
     parseDomainName(partial.domain),
@@ -73,7 +104,11 @@ export function transitionsForEntity(graph: RiviereGraph, entityName: string): E
   for (const op of operations) {
     if (op.stateChanges === undefined) continue
     for (const sc of op.stateChanges) {
-      transitions.push({ from: parseState(sc.from), to: parseState(sc.to), triggeredBy: parseOperationName(op.operationName) })
+      transitions.push({
+        from: parseState(sc.from),
+        to: parseState(sc.to),
+        triggeredBy: parseOperationName(op.operationName),
+      })
     }
   }
   return transitions

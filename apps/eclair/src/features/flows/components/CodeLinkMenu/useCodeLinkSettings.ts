@@ -1,4 +1,6 @@
-import { useState, useCallback } from 'react'
+import {
+  useState, useCallback 
+} from 'react'
 import { z } from 'zod'
 
 const STORAGE_KEY = 'eclair-code-link-settings'
@@ -43,7 +45,10 @@ export function useCodeLinkSettings(): UseCodeLinkSettingsReturn {
 
   const setVscodePath = useCallback((path: string) => {
     setSettings((prev) => {
-      const next = { ...prev, vscodePath: path }
+      const next = {
+        ...prev,
+        vscodePath: path,
+      }
       saveSettings(next)
       return next
     })
@@ -51,7 +56,10 @@ export function useCodeLinkSettings(): UseCodeLinkSettingsReturn {
 
   const setGithubOrg = useCallback((org: string) => {
     setSettings((prev) => {
-      const next = { ...prev, githubOrg: org }
+      const next = {
+        ...prev,
+        githubOrg: org,
+      }
       saveSettings(next)
       return next
     })
@@ -59,7 +67,10 @@ export function useCodeLinkSettings(): UseCodeLinkSettingsReturn {
 
   const setGithubBranch = useCallback((branch: string) => {
     setSettings((prev) => {
-      const next = { ...prev, githubBranch: branch }
+      const next = {
+        ...prev,
+        githubBranch: branch,
+      }
       saveSettings(next)
       return next
     })
@@ -72,7 +83,7 @@ export function useCodeLinkSettings(): UseCodeLinkSettingsReturn {
       }
       return `vscode://file/${settings.vscodePath}/${filePath}:${lineNumber}`
     },
-    [settings.vscodePath]
+    [settings.vscodePath],
   )
 
   const buildGithubUrl = useCallback(
@@ -83,7 +94,7 @@ export function useCodeLinkSettings(): UseCodeLinkSettingsReturn {
       const baseUrl = settings.githubOrg.replace(/\/$/, '')
       return `${baseUrl}/${repository}/blob/${settings.githubBranch}/${filePath}#L${lineNumber}`
     },
-    [settings.githubOrg, settings.githubBranch]
+    [settings.githubOrg, settings.githubBranch],
   )
 
   return {

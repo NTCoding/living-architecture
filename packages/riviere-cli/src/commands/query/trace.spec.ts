@@ -1,4 +1,6 @@
-import { describe, it, expect } from 'vitest'
+import {
+  describe, it, expect 
+} from 'vitest'
 import { createProgram } from '../../cli'
 import { CliErrorCode } from '../../error-codes'
 import type { TestContext } from '../../command-test-fixtures'
@@ -112,9 +114,11 @@ describe('riviere query trace', () => {
       const output = expectSuccessOutput(parseOutput(ctx.consoleOutput))
 
       expect(new Set(output.data.componentIds)).toEqual(
-        new Set(['orders:checkout:api:place-order', 'orders:checkout:usecase:place-order'])
+        new Set(['orders:checkout:api:place-order', 'orders:checkout:usecase:place-order']),
       )
-      expect(output.data.linkIds).toEqual(['orders:checkout:api:place-order->orders:checkout:usecase:place-order'])
+      expect(output.data.linkIds).toEqual([
+        'orders:checkout:api:place-order->orders:checkout:usecase:place-order',
+      ])
     })
 
     it('returns only starting component when isolated', async () => {
@@ -148,7 +152,13 @@ describe('riviere query trace', () => {
         links: [],
       })
 
-      await createProgram().parseAsync(['node', 'riviere', 'query', 'trace', 'orders:checkout:api:place-order'])
+      await createProgram().parseAsync([
+        'node',
+        'riviere',
+        'query',
+        'trace',
+        'orders:checkout:api:place-order',
+      ])
       expect(ctx.consoleOutput).toHaveLength(0)
     })
   })
@@ -220,7 +230,7 @@ describe('riviere query trace', () => {
             'trace',
             'orders:checkout:api:place-order',
             '--json',
-          ])
+          ]),
         ).rejects.toThrow('Unexpected internal error')
       } finally {
         queryClass.prototype.traceFlow = originalTraceFlow

@@ -1,15 +1,26 @@
 import * as d3 from 'd3'
 import type { NodeType } from '@/types/riviere'
-import type { SimulationNode, SimulationLink } from '../../types'
+import type {
+  SimulationNode, SimulationLink 
+} from '../../types'
 
 export interface FocusModeCircleParams {
   node: d3.Selection<SVGGElement, SimulationNode, SVGGElement, unknown>
   focusedDomain: string
   focusColors: { glowColor: string }
   transitionDuration: number
-  nodeRadiusScale: { focusedRadius: number; unfocusedRadius: number }
-  opacityValues: { focusedNode: number; unfocusedNode: number }
-  strokeWidths: { focusedNodeWidth: number; unfocusedNodeWidth: number }
+  nodeRadiusScale: {
+    focusedRadius: number
+    unfocusedRadius: number
+  }
+  opacityValues: {
+    focusedNode: number
+    unfocusedNode: number
+  }
+  strokeWidths: {
+    focusedNodeWidth: number
+    unfocusedNodeWidth: number
+  }
   getNodeRadius: (type: NodeType) => number
   unfocusedStrokeColor: string
 }
@@ -25,7 +36,8 @@ export function applyFocusModeCircleStyles({
   getNodeRadius,
   unfocusedStrokeColor,
 }: FocusModeCircleParams): void {
-  node.selectAll<SVGCircleElement, SimulationNode>('circle')
+  node
+    .selectAll<SVGCircleElement, SimulationNode>('circle')
     .transition()
     .duration(transitionDuration)
     .attr('r', (d) => {
@@ -35,18 +47,16 @@ export function applyFocusModeCircleStyles({
         : baseRadius * nodeRadiusScale.unfocusedRadius
     })
     .attr('opacity', (d) =>
-      d.domain === focusedDomain
-        ? opacityValues.focusedNode
-        : opacityValues.unfocusedNode
+      d.domain === focusedDomain ? opacityValues.focusedNode : opacityValues.unfocusedNode,
     )
     .attr('stroke-width', (d) =>
-      d.domain === focusedDomain
-        ? strokeWidths.focusedNodeWidth
-        : strokeWidths.unfocusedNodeWidth
+      d.domain === focusedDomain ? strokeWidths.focusedNodeWidth : strokeWidths.unfocusedNodeWidth,
     )
-    .attr('stroke', (d) => d.domain === focusedDomain ? focusColors.glowColor : unfocusedStrokeColor)
+    .attr('stroke', (d) =>
+      d.domain === focusedDomain ? focusColors.glowColor : unfocusedStrokeColor,
+    )
     .attr('filter', (d) =>
-      d.domain === focusedDomain ? 'url(#focused-glow)' : 'url(#blur-background)'
+      d.domain === focusedDomain ? 'url(#focused-glow)' : 'url(#blur-background)',
     )
 }
 
@@ -61,7 +71,8 @@ export function applyResetModeCircleStyles({
   transitionDuration,
   getNodeRadius,
 }: ResetModeCircleParams): void {
-  node.selectAll<SVGCircleElement, SimulationNode>('circle')
+  node
+    .selectAll<SVGCircleElement, SimulationNode>('circle')
     .transition()
     .duration(transitionDuration)
     .attr('r', (d) => getNodeRadius(d.type))
@@ -103,24 +114,21 @@ export function applyFocusModeLinkStyles({
       const sourceNode = nodes.find((n) => n.id === getLinkNodeId(d.source))
       const targetNode = nodes.find((n) => n.id === getLinkNodeId(d.target))
       const isInFocusedDomain =
-        sourceNode?.domain === focusedDomain ||
-        targetNode?.domain === focusedDomain
+        sourceNode?.domain === focusedDomain || targetNode?.domain === focusedDomain
       return isInFocusedDomain ? focusedOpacity : unfocusedOpacity
     })
     .attr('stroke-width', (d) => {
       const sourceNode = nodes.find((n) => n.id === getLinkNodeId(d.source))
       const targetNode = nodes.find((n) => n.id === getLinkNodeId(d.target))
       const bothInDomain =
-        sourceNode?.domain === focusedDomain &&
-        targetNode?.domain === focusedDomain
+        sourceNode?.domain === focusedDomain && targetNode?.domain === focusedDomain
       return bothInDomain ? focusedStrokeWidth : unfocusedStrokeWidth
     })
     .attr('filter', (d) => {
       const sourceNode = nodes.find((n) => n.id === getLinkNodeId(d.source))
       const targetNode = nodes.find((n) => n.id === getLinkNodeId(d.target))
       const isInFocusedDomain =
-        sourceNode?.domain === focusedDomain ||
-        targetNode?.domain === focusedDomain
+        sourceNode?.domain === focusedDomain || targetNode?.domain === focusedDomain
       return isInFocusedDomain ? 'none' : 'url(#blur-background)'
     })
 }
@@ -131,8 +139,7 @@ export interface ResetModeLinkParams {
 }
 
 export function applyResetModeLinkStyles({
-  link,
-  transitionDuration,
+  link, transitionDuration 
 }: ResetModeLinkParams): void {
   link
     .transition()
@@ -165,15 +172,14 @@ export function applyFocusModeTextStyles({
   unfocusedFontSize,
   unfocusedFontWeight,
 }: FocusModeTextParams): void {
-  node.selectAll<SVGTextElement, SimulationNode>(selector)
+  node
+    .selectAll<SVGTextElement, SimulationNode>(selector)
     .transition()
     .duration(transitionDuration)
     .attr('opacity', (d) => (d.domain === focusedDomain ? focusedOpacity : 0))
-    .attr('font-size', (d) =>
-      d.domain === focusedDomain ? focusedFontSize : unfocusedFontSize
-    )
+    .attr('font-size', (d) => (d.domain === focusedDomain ? focusedFontSize : unfocusedFontSize))
     .attr('font-weight', (d) =>
-      d.domain === focusedDomain ? focusedFontWeight : unfocusedFontWeight
+      d.domain === focusedDomain ? focusedFontWeight : unfocusedFontWeight,
     )
 }
 
@@ -194,7 +200,8 @@ export function applyResetModeTextStyles({
   fontSize,
   fontWeight,
 }: ResetModeTextParams): void {
-  node.selectAll<SVGTextElement, SimulationNode>(selector)
+  node
+    .selectAll<SVGTextElement, SimulationNode>(selector)
     .transition()
     .duration(transitionDuration)
     .attr('opacity', opacity)

@@ -1,6 +1,10 @@
-import { useState, useCallback } from 'react'
+import {
+  useState, useCallback 
+} from 'react'
 import type { ConnectionDetail } from '../extractDomainMap'
-import { pluralizeComponent, pluralizeConnection } from '../pluralize'
+import {
+  pluralizeComponent, pluralizeConnection 
+} from '../pluralize'
 
 interface TooltipState {
   visible: boolean
@@ -21,9 +25,7 @@ interface InspectorState {
   connections: ConnectionDetail[]
 }
 
-interface UseDomainMapInteractionsOptions {
-  initialFocusedDomain?: string | null
-}
+interface UseDomainMapInteractionsOptions {initialFocusedDomain?: string | null}
 
 interface UseDomainMapInteractionsResult {
   tooltip: TooltipState
@@ -31,9 +33,24 @@ interface UseDomainMapInteractionsResult {
   focusedDomain: string | null
   showNodeTooltip: (x: number, y: number, label: string, nodeCount: number) => void
   showExternalNodeTooltip: (x: number, y: number, label: string, connectionCount: number) => void
-  showEdgeTooltip: (x: number, y: number, source: string, target: string, apiCount: number, eventCount: number) => void
+  showEdgeTooltip: (
+    x: number,
+    y: number,
+    source: string,
+    target: string,
+    apiCount: number,
+    eventCount: number,
+  ) => void
   hideTooltip: () => void
-  selectEdge: (source: string, target: string, apiCount: number, eventCount: number, sourceNodeCount: number, targetNodeCount: number, connections: ConnectionDetail[]) => void
+  selectEdge: (
+    source: string,
+    target: string,
+    apiCount: number,
+    eventCount: number,
+    sourceNodeCount: number,
+    targetNodeCount: number,
+    connections: ConnectionDetail[],
+  ) => void
   closeInspector: () => void
   selectDomain: (domain: string) => void
   clearFocus: () => void
@@ -42,7 +59,9 @@ interface UseDomainMapInteractionsResult {
 const TOOLTIP_OFFSET_X = 14
 const TOOLTIP_OFFSET_Y = -14
 
-export function useDomainMapInteractions(options: UseDomainMapInteractionsOptions = {}): UseDomainMapInteractionsResult {
+export function useDomainMapInteractions(
+  options: UseDomainMapInteractionsOptions = {},
+): UseDomainMapInteractionsResult {
   const { initialFocusedDomain = null } = options
 
   const [tooltip, setTooltip] = useState<TooltipState>({
@@ -76,47 +95,80 @@ export function useDomainMapInteractions(options: UseDomainMapInteractionsOption
     })
   }, [])
 
-  const showExternalNodeTooltip = useCallback((x: number, y: number, label: string, connectionCount: number) => {
-    setTooltip({
-      visible: true,
-      x: x + TOOLTIP_OFFSET_X,
-      y: y + TOOLTIP_OFFSET_Y,
-      title: label,
-      detail: `External System · ${pluralizeConnection(connectionCount)}`,
-    })
-  }, [])
+  const showExternalNodeTooltip = useCallback(
+    (x: number, y: number, label: string, connectionCount: number) => {
+      setTooltip({
+        visible: true,
+        x: x + TOOLTIP_OFFSET_X,
+        y: y + TOOLTIP_OFFSET_Y,
+        title: label,
+        detail: `External System · ${pluralizeConnection(connectionCount)}`,
+      })
+    },
+    [],
+  )
 
-  const showEdgeTooltip = useCallback((x: number, y: number, source: string, target: string, apiCount: number, eventCount: number) => {
-    const total = apiCount + eventCount
-    setTooltip({
-      visible: true,
-      x: x + TOOLTIP_OFFSET_X,
-      y: y + TOOLTIP_OFFSET_Y,
-      title: `${source} → ${target}`,
-      detail: `${pluralizeConnection(total)} · Click for details`,
-    })
-  }, [])
+  const showEdgeTooltip = useCallback(
+    (
+      x: number,
+      y: number,
+      source: string,
+      target: string,
+      apiCount: number,
+      eventCount: number,
+    ) => {
+      const total = apiCount + eventCount
+      setTooltip({
+        visible: true,
+        x: x + TOOLTIP_OFFSET_X,
+        y: y + TOOLTIP_OFFSET_Y,
+        title: `${source} → ${target}`,
+        detail: `${pluralizeConnection(total)} · Click for details`,
+      })
+    },
+    [],
+  )
 
   const hideTooltip = useCallback(() => {
-    setTooltip((prev) => ({ ...prev, visible: false }))
+    setTooltip((prev) => ({
+      ...prev,
+      visible: false,
+    }))
   }, [])
 
-  const selectEdge = useCallback((source: string, target: string, apiCount: number, eventCount: number, sourceNodeCount: number, targetNodeCount: number, connections: ConnectionDetail[]) => {
-    setTooltip((prev) => ({ ...prev, visible: false }))
-    setInspector({
-      visible: true,
-      source,
-      target,
-      apiCount,
-      eventCount,
-      sourceNodeCount,
-      targetNodeCount,
-      connections,
-    })
-  }, [])
+  const selectEdge = useCallback(
+    (
+      source: string,
+      target: string,
+      apiCount: number,
+      eventCount: number,
+      sourceNodeCount: number,
+      targetNodeCount: number,
+      connections: ConnectionDetail[],
+    ) => {
+      setTooltip((prev) => ({
+        ...prev,
+        visible: false,
+      }))
+      setInspector({
+        visible: true,
+        source,
+        target,
+        apiCount,
+        eventCount,
+        sourceNodeCount,
+        targetNodeCount,
+        connections,
+      })
+    },
+    [],
+  )
 
   const closeInspector = useCallback(() => {
-    setInspector((prev) => ({ ...prev, visible: false }))
+    setInspector((prev) => ({
+      ...prev,
+      visible: false,
+    }))
   }, [])
 
   const selectDomain = useCallback((domain: string) => {

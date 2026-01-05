@@ -53,8 +53,14 @@ describe('publishedEvents', () => {
 
   it('filters events by domain when domainName provided', () => {
     const graph = createMinimalValidGraph()
-    graph.metadata.domains['orders'] = { description: 'Orders', systemType: 'domain' }
-    graph.metadata.domains['billing'] = { description: 'Billing', systemType: 'domain' }
+    graph.metadata.domains['orders'] = {
+      description: 'Orders',
+      systemType: 'domain',
+    }
+    graph.metadata.domains['billing'] = {
+      description: 'Billing',
+      systemType: 'domain',
+    }
     graph.components.push(
       createEventComponent({
         id: 'orders:events:OrderCreated',
@@ -96,8 +102,14 @@ describe('eventHandlers', () => {
 
   it('returns handler with subscribedEventsWithDomain including source domain', () => {
     const graph = createMinimalValidGraph()
-    graph.metadata.domains['orders'] = { description: 'Orders', systemType: 'domain' }
-    graph.metadata.domains['shipping'] = { description: 'Shipping', systemType: 'domain' }
+    graph.metadata.domains['orders'] = {
+      description: 'Orders',
+      systemType: 'domain',
+    }
+    graph.metadata.domains['shipping'] = {
+      description: 'Shipping',
+      systemType: 'domain',
+    }
     graph.components.push(
       createEventComponent({
         id: 'orders:events:OrderCreated',
@@ -135,7 +147,10 @@ describe('eventHandlers', () => {
 
   it('returns sourceKnown false when event not found in graph', () => {
     const graph = createMinimalValidGraph()
-    graph.metadata.domains['shipping'] = { description: 'Shipping', systemType: 'domain' }
+    graph.metadata.domains['shipping'] = {
+      description: 'Shipping',
+      systemType: 'domain',
+    }
     graph.components.push(
       createEventHandlerComponent({
         id: 'shipping:handlers:OnUnknownEvent',
@@ -166,9 +181,18 @@ describe('eventHandlers', () => {
 
   it('filters handlers by eventName when provided', () => {
     const graph = createMinimalValidGraph()
-    graph.metadata.domains['orders'] = { description: 'Orders', systemType: 'domain' }
-    graph.metadata.domains['shipping'] = { description: 'Shipping', systemType: 'domain' }
-    graph.metadata.domains['billing'] = { description: 'Billing', systemType: 'domain' }
+    graph.metadata.domains['orders'] = {
+      description: 'Orders',
+      systemType: 'domain',
+    }
+    graph.metadata.domains['shipping'] = {
+      description: 'Shipping',
+      systemType: 'domain',
+    }
+    graph.metadata.domains['billing'] = {
+      description: 'Billing',
+      systemType: 'domain',
+    }
     graph.components.push(
       createEventComponent({
         id: 'orders:events:OrderCreated',

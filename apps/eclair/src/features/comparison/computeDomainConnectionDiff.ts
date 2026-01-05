@@ -1,4 +1,6 @@
-import type { RiviereGraph, Node, NodeType } from '@/types/riviere'
+import type {
+  RiviereGraph, Node, NodeType 
+} from '@/types/riviere'
 
 export interface EdgeDetail {
   sourceNodeName: string
@@ -32,7 +34,11 @@ interface NodeInfo {
 function buildNodeInfoMap(nodes: Node[]): Map<string, NodeInfo> {
   const map = new Map<string, NodeInfo>()
   for (const node of nodes) {
-    map.set(node.id, { domain: node.domain, name: node.name, type: node.type })
+    map.set(node.id, {
+      domain: node.domain,
+      name: node.name,
+      type: node.type,
+    })
   }
   return map
 }
@@ -68,7 +74,7 @@ function parseEdgeType(type: string | undefined): EdgeType {
 function createNewAggregation(
   sourceInfo: NodeInfo,
   targetInfo: NodeInfo,
-  edgeDetail: EdgeDetail
+  edgeDetail: EdgeDetail,
 ): ConnectionAggregation {
   return {
     source: sourceInfo.domain,
@@ -82,7 +88,7 @@ function createNewAggregation(
 function updateExistingAggregation(
   existing: ConnectionAggregation,
   targetType: NodeType,
-  edgeDetail: EdgeDetail
+  edgeDetail: EdgeDetail,
 ): void {
   if (targetType === 'API') existing.apiCount += 1
   if (targetType === 'EventHandler') existing.eventCount += 1
@@ -119,7 +125,7 @@ function aggregateDomainConnections(graph: RiviereGraph): Map<string, Connection
 
 export function computeDomainConnectionDiff(
   before: RiviereGraph,
-  after: RiviereGraph
+  after: RiviereGraph,
 ): DomainConnectionDiffResult {
   const beforeDomains = extractDomains(before)
   const afterDomains = extractDomains(after)
@@ -148,6 +154,10 @@ export function computeDomainConnectionDiff(
 
   return {
     domains: Array.from(allDomains),
-    connections: { added, removed, unchanged },
+    connections: {
+      added,
+      removed,
+      unchanged,
+    },
   }
 }

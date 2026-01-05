@@ -9,13 +9,21 @@ import type {
   SourceLocation,
 } from '@living-architecture/riviere-schema'
 
-export const defaultSourceLocation: SourceLocation = { repository: 'test-repo', filePath: 'test.ts' }
+export const defaultSourceLocation: SourceLocation = {
+  repository: 'test-repo',
+  filePath: 'test.ts',
+}
 
 export function createMinimalValidGraph(): RiviereGraph {
   return {
     version: '1.0',
     metadata: {
-      domains: { test: { description: 'Test domain', systemType: 'domain' } },
+      domains: {
+        test: {
+          description: 'Test domain',
+          systemType: 'domain',
+        },
+      },
     },
     components: [
       {
@@ -33,7 +41,11 @@ export function createMinimalValidGraph(): RiviereGraph {
 }
 
 export function createAPIComponent(
-  overrides: Partial<APIComponent> & { id: string; name: string; domain: string },
+  overrides: Partial<APIComponent> & {
+    id: string
+    name: string
+    domain: string
+  },
 ): APIComponent {
   return {
     type: 'API',
@@ -47,7 +59,12 @@ export function createAPIComponent(
 }
 
 export function createEventComponent(
-  overrides: Partial<EventComponent> & { id: string; name: string; domain: string; eventName: string },
+  overrides: Partial<EventComponent> & {
+    id: string
+    name: string
+    domain: string
+    eventName: string
+  },
 ): EventComponent {
   return {
     type: 'Event',
@@ -58,7 +75,11 @@ export function createEventComponent(
 }
 
 export function createEventHandlerComponent(
-  overrides: Partial<EventHandlerComponent> & { id: string; name: string; domain: string },
+  overrides: Partial<EventHandlerComponent> & {
+    id: string
+    name: string
+    domain: string
+  },
 ): EventHandlerComponent {
   return {
     type: 'EventHandler',
@@ -70,7 +91,12 @@ export function createEventHandlerComponent(
 }
 
 export function createCustomComponent(
-  overrides: Partial<CustomComponent> & { id: string; name: string; domain: string; customTypeName: string },
+  overrides: Partial<CustomComponent> & {
+    id: string
+    name: string
+    domain: string
+    customTypeName: string
+  },
 ): CustomComponent {
   return {
     type: 'Custom',
@@ -81,7 +107,11 @@ export function createCustomComponent(
 }
 
 export function createUseCaseComponent(
-  overrides: Partial<UseCaseComponent> & { id: string; name: string; domain: string },
+  overrides: Partial<UseCaseComponent> & {
+    id: string
+    name: string
+    domain: string
+  },
 ): UseCaseComponent {
   return {
     type: 'UseCase',
@@ -92,7 +122,12 @@ export function createUseCaseComponent(
 }
 
 export function createDomainOpComponent(
-  overrides: Partial<DomainOpComponent> & { id: string; name: string; domain: string; operationName: string },
+  overrides: Partial<DomainOpComponent> & {
+    id: string
+    name: string
+    domain: string
+    operationName: string
+  },
 ): DomainOpComponent {
   return {
     type: 'DomainOp',

@@ -1,4 +1,6 @@
-import { Link, useLocation } from 'react-router-dom'
+import {
+  Link, useLocation 
+} from 'react-router-dom'
 import { Logo } from '@/components/Logo/Logo'
 import { ThemeSwitcher } from '@/components/ThemeSwitcher/ThemeSwitcher'
 
@@ -16,7 +18,9 @@ interface NavItemContentProps {
   readonly collapsed: boolean
 }
 
-function NavItemContent({ icon, label, collapsed }: NavItemContentProps): React.ReactElement {
+function NavItemContent({
+  icon, label, collapsed 
+}: NavItemContentProps): React.ReactElement {
   return (
     <>
       <i className={`ph ph-${icon} text-lg`} aria-hidden="true" />
@@ -57,20 +61,35 @@ function getTooltipTitle(collapsed: boolean, label: string): string | undefined 
   return undefined
 }
 
-function NavItem({ icon, label, to, disabled = false, active = false, collapsed = false }: NavItemProps): React.ReactElement {
+function NavItem({
+  icon,
+  label,
+  to,
+  disabled = false,
+  active = false,
+  collapsed = false,
+}: NavItemProps): React.ReactElement {
   const baseClasses = collapsed ? getCollapsedNavItemClasses() : getExpandedNavItemClasses()
   const stateClasses = getNavItemStateClasses(disabled, active)
 
   if (disabled) {
     return (
-      <span className={`${baseClasses} ${stateClasses}`} aria-disabled="true" title={getTooltipTitle(collapsed, label)}>
+      <span
+        className={`${baseClasses} ${stateClasses}`}
+        aria-disabled="true"
+        title={getTooltipTitle(collapsed, label)}
+      >
         <NavItemContent icon={icon} label={label} collapsed={collapsed} />
       </span>
     )
   }
 
   return (
-    <Link to={to} className={`${baseClasses} ${stateClasses}`} title={getTooltipTitle(collapsed, label)}>
+    <Link
+      to={to}
+      className={`${baseClasses} ${stateClasses}`}
+      title={getTooltipTitle(collapsed, label)}
+    >
       <NavItemContent icon={icon} label={label} collapsed={collapsed} />
     </Link>
   )
@@ -83,7 +102,12 @@ interface ExternalLinkProps {
   readonly collapsed?: boolean
 }
 
-function ExternalLink({ icon, label, href, collapsed = false }: ExternalLinkProps): React.ReactElement {
+function ExternalLink({
+  icon,
+  label,
+  href,
+  collapsed = false,
+}: ExternalLinkProps): React.ReactElement {
   const baseClasses = collapsed ? getCollapsedNavItemClasses() : getExpandedNavItemClasses()
 
   return (
@@ -105,30 +129,90 @@ interface SidebarProps {
   readonly onToggleCollapse?: () => void
 }
 
-export function Sidebar({ hasGraph, collapsed = false, onToggleCollapse }: SidebarProps): React.ReactElement {
+export function Sidebar({
+  hasGraph,
+  collapsed = false,
+  onToggleCollapse,
+}: SidebarProps): React.ReactElement {
   const location = useLocation()
   const currentPath = location.pathname
 
   const sidebarWidth = collapsed ? 'w-16' : 'w-60'
 
   return (
-    <aside className={`${sidebarWidth} flex flex-col bg-[var(--bg-secondary)] border-r border-[var(--border-color)] transition-all duration-300`}>
-      <div className={`h-16 ${collapsed ? 'px-3 justify-center' : 'px-5'} flex items-center gap-2.5 border-b border-[var(--border-color)] shrink-0`}>
+    <aside
+      className={`${sidebarWidth} flex flex-col bg-[var(--bg-secondary)] border-r border-[var(--border-color)] transition-all duration-300`}
+    >
+      <div
+        className={`h-16 ${collapsed ? 'px-3 justify-center' : 'px-5'} flex items-center gap-2.5 border-b border-[var(--border-color)] shrink-0`}
+      >
         <Logo />
         {!collapsed && <span className="logo-text">Éclair</span>}
       </div>
 
       <nav className={`flex-1 ${collapsed ? 'px-2' : 'px-3'} py-4 space-y-1`}>
-        <NavItem icon="house" label="Overview" to="/" active={currentPath === '/'} collapsed={collapsed} />
-        <NavItem icon="flow-arrow" label="Flows" to="/flows" active={currentPath === '/flows'} disabled={!hasGraph} collapsed={collapsed} />
-        <NavItem icon="circles-three" label="Domain Map" to="/domains" active={currentPath === '/domains'} disabled={!hasGraph} collapsed={collapsed} />
-        <NavItem icon="graph" label="Full Graph" to="/full-graph" active={currentPath === '/full-graph'} disabled={!hasGraph} collapsed={collapsed} />
-        <NavItem icon="cube" label="Entities" to="/entities" active={currentPath === '/entities'} disabled={!hasGraph} collapsed={collapsed} />
-        <NavItem icon="broadcast" label="Events" to="/events" active={currentPath === '/events'} disabled={!hasGraph} collapsed={collapsed} />
-        <NavItem icon="git-diff" label="Compare" to="/compare" active={currentPath === '/compare'} collapsed={collapsed} />
+        <NavItem
+          icon="house"
+          label="Overview"
+          to="/"
+          active={currentPath === '/'}
+          collapsed={collapsed}
+        />
+        <NavItem
+          icon="flow-arrow"
+          label="Flows"
+          to="/flows"
+          active={currentPath === '/flows'}
+          disabled={!hasGraph}
+          collapsed={collapsed}
+        />
+        <NavItem
+          icon="circles-three"
+          label="Domain Map"
+          to="/domains"
+          active={currentPath === '/domains'}
+          disabled={!hasGraph}
+          collapsed={collapsed}
+        />
+        <NavItem
+          icon="graph"
+          label="Full Graph"
+          to="/full-graph"
+          active={currentPath === '/full-graph'}
+          disabled={!hasGraph}
+          collapsed={collapsed}
+        />
+        <NavItem
+          icon="cube"
+          label="Entities"
+          to="/entities"
+          active={currentPath === '/entities'}
+          disabled={!hasGraph}
+          collapsed={collapsed}
+        />
+        <NavItem
+          icon="broadcast"
+          label="Events"
+          to="/events"
+          active={currentPath === '/events'}
+          disabled={!hasGraph}
+          collapsed={collapsed}
+        />
+        <NavItem
+          icon="git-diff"
+          label="Compare"
+          to="/compare"
+          active={currentPath === '/compare'}
+          collapsed={collapsed}
+        />
 
         <div className="my-3 border-t border-[var(--border-color)]" />
-        <ExternalLink icon="info" label="About Rivière" href="https://living-architecture.dev" collapsed={collapsed} />
+        <ExternalLink
+          icon="info"
+          label="About Rivière"
+          href="https://living-architecture.dev"
+          collapsed={collapsed}
+        />
       </nav>
 
       {!collapsed && (

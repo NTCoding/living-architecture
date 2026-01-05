@@ -16,13 +16,28 @@ import type {
   UIComponent,
   UseCaseComponent,
 } from '@living-architecture/riviere-schema'
-import { RiviereQuery, type ValidationResult } from '@living-architecture/riviere-query'
-import { calculateStats, findOrphans, findWarnings, toRiviereGraph, validateGraph } from './inspection'
-import { assertCustomTypeExists, assertDomainExists, assertRequiredPropertiesProvided } from './builder-assertions'
-import { ComponentId } from '@living-architecture/riviere-schema'
-import { createSourceNotFoundError, findNearMatches } from './component-suggestion'
+import {
+  RiviereQuery, type ValidationResult 
+} from '@living-architecture/riviere-query'
+import {
+  calculateStats,
+  findOrphans,
+  findWarnings,
+  toRiviereGraph,
+  validateGraph,
+} from './inspection'
+import { findNearMatches } from './component-suggestion'
+import {
+  createComponentNotFoundError,
+  generateComponentId,
+  validateCustomType,
+  validateDomainExists,
+  validateRequiredProperties,
+} from './builder-internals'
 import { mergeBehavior } from './merge-behavior'
-import { deduplicateStrings, deduplicateStateTransitions } from './deduplicate'
+import {
+  deduplicateStrings, deduplicateStateTransitions 
+} from './deduplicate'
 import {
   CustomTypeAlreadyDefinedError,
   DuplicateComponentError,
@@ -260,8 +275,8 @@ export class RiviereBuilder {
    * ```
    */
   addUI(input: UIInput): UIComponent {
-    this.validateDomainExists(input.domain)
-    const id = this.generateComponentId(input.domain, input.module, 'ui', input.name)
+    validateDomainExists(this.graph.metadata.domains, input.domain)
+    const id = generateComponentId(input.domain, input.module, 'ui', input.name)
 
     const component: UIComponent = {
       id,
@@ -297,8 +312,8 @@ export class RiviereBuilder {
    * ```
    */
   addApi(input: APIInput): APIComponent {
-    this.validateDomainExists(input.domain)
-    const id = this.generateComponentId(input.domain, input.module, 'api', input.name)
+    validateDomainExists(this.graph.metadata.domains, input.domain)
+    const id = generateComponentId(input.domain, input.module, 'api', input.name)
 
     const component: APIComponent = {
       id,
@@ -334,8 +349,8 @@ export class RiviereBuilder {
    * ```
    */
   addUseCase(input: UseCaseInput): UseCaseComponent {
-    this.validateDomainExists(input.domain)
-    const id = this.generateComponentId(input.domain, input.module, 'usecase', input.name)
+    validateDomainExists(this.graph.metadata.domains, input.domain)
+    const id = generateComponentId(input.domain, input.module, 'usecase', input.name)
 
     const component: UseCaseComponent = {
       id,
@@ -372,8 +387,8 @@ export class RiviereBuilder {
    * ```
    */
   addDomainOp(input: DomainOpInput): DomainOpComponent {
-    this.validateDomainExists(input.domain)
-    const id = this.generateComponentId(input.domain, input.module, 'domainop', input.name)
+    validateDomainExists(this.graph.metadata.domains, input.domain)
+    const id = generateComponentId(input.domain, input.module, 'domainop', input.name)
 
     const component: DomainOpComponent = {
       id,
@@ -412,8 +427,8 @@ export class RiviereBuilder {
    * ```
    */
   addEvent(input: EventInput): EventComponent {
-    this.validateDomainExists(input.domain)
-    const id = this.generateComponentId(input.domain, input.module, 'event', input.name)
+    validateDomainExists(this.graph.metadata.domains, input.domain)
+    const id = generateComponentId(input.domain, input.module, 'event', input.name)
 
     const component: EventComponent = {
       id,
@@ -448,8 +463,8 @@ export class RiviereBuilder {
    * ```
    */
   addEventHandler(input: EventHandlerInput): EventHandlerComponent {
-    this.validateDomainExists(input.domain)
-    const id = this.generateComponentId(input.domain, input.module, 'eventhandler', input.name)
+    validateDomainExists(this.graph.metadata.domains, input.domain)
+    const id = generateComponentId(input.domain, input.module, 'eventhandler', input.name)
 
     const component: EventHandlerComponent = {
       id,
@@ -492,8 +507,8 @@ export class RiviereBuilder {
     }
 
     customTypes[input.name] = {
-      ...(input.requiredProperties !== undefined && { requiredProperties: input.requiredProperties }),
-      ...(input.optionalProperties !== undefined && { optionalProperties: input.optionalProperties }),
+      ...(input.requiredProperties !== undefined && {requiredProperties: input.requiredProperties,}),
+      ...(input.optionalProperties !== undefined && {optionalProperties: input.optionalProperties,}),
       ...(input.description !== undefined && { description: input.description }),
     }
   }
@@ -523,10 +538,14 @@ export class RiviereBuilder {
    * ```
    */
   addCustom(input: CustomInput): CustomComponent {
-    this.validateDomainExists(input.domain)
-    this.validateCustomType(input.customTypeName)
-    this.validateRequiredProperties(input.customTypeName, input.metadata)
-    const id = this.generateComponentId(input.domain, input.module, 'custom', input.name)
+    validateDomainExists(this.graph.metadata.domains, input.domain)
+    validateCustomType(this.graph.metadata.customTypes, input.customTypeName)
+    validateRequiredProperties(
+      this.graph.metadata.customTypes,
+      input.customTypeName,
+      input.metadata,
+    )
+    const id = generateComponentId(input.domain, input.module, 'custom', input.name)
 
     const component: CustomComponent = {
       id,
@@ -565,7 +584,7 @@ export class RiviereBuilder {
   enrichComponent(id: string, enrichment: EnrichmentInput): void {
     const component = this.graph.components.find((c) => c.id === id)
     if (!component) {
-      throw this.componentNotFoundError(id)
+      throw createComponentNotFoundError(this.graph.components, id)
     }
     if (component.type !== 'DomainOp') {
       throw new InvalidEnrichmentTargetError(id, component.type)
@@ -589,30 +608,6 @@ export class RiviereBuilder {
     if (enrichment.signature !== undefined) {
       component.signature = enrichment.signature
     }
-  }
-
-  private componentNotFoundError(id: string): Error {
-    return createSourceNotFoundError(this.graph.components, ComponentId.parse(id))
-  }
-
-  private validateDomainExists(domain: string): void {
-    assertDomainExists(this.graph.metadata.domains, domain)
-  }
-
-  private validateCustomType(customTypeName: string): void {
-    assertCustomTypeExists(this.graph.metadata.customTypes, customTypeName)
-  }
-
-  private validateRequiredProperties(
-    customTypeName: string,
-    metadata: Record<string, unknown> | undefined
-  ): void {
-    assertRequiredPropertiesProvided(this.graph.metadata.customTypes, customTypeName, metadata)
-  }
-
-  private generateComponentId(domain: string, module: string, type: string, name: string): string {
-    const nameSegment = name.toLowerCase().replace(/\s+/g, '-')
-    return `${domain}:${module}:${type}:${nameSegment}`
   }
 
   private registerComponent<T extends Component>(component: T): T {
@@ -665,7 +660,7 @@ export class RiviereBuilder {
   link(input: LinkInput): Link {
     const sourceExists = this.graph.components.some((c) => c.id === input.from)
     if (!sourceExists) {
-      throw this.sourceNotFoundError(input.from)
+      throw createComponentNotFoundError(this.graph.components, input.from)
     }
 
     const link: Link = {
@@ -699,7 +694,7 @@ export class RiviereBuilder {
   linkExternal(input: ExternalLinkInput): ExternalLink {
     const sourceExists = this.graph.components.some((c) => c.id === input.from)
     if (!sourceExists) {
-      throw this.sourceNotFoundError(input.from)
+      throw createComponentNotFoundError(this.graph.components, input.from)
     }
 
     const externalLink: ExternalLink = {
@@ -873,9 +868,5 @@ export class RiviereBuilder {
 
     const json = JSON.stringify(graph, null, 2)
     await fs.writeFile(path, json, 'utf-8')
-  }
-
-  private sourceNotFoundError(id: string): Error {
-    return createSourceNotFoundError(this.graph.components, ComponentId.parse(id))
   }
 }

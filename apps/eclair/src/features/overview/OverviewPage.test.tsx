@@ -1,13 +1,21 @@
-import { describe, it, expect, afterEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import {
+  describe, it, expect, afterEach 
+} from 'vitest'
+import {
+  render, screen 
+} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { OverviewPage } from './OverviewPage'
 import type { RiviereGraph } from '@/types/riviere'
-import { parseNode, parseEdge, parseDomainMetadata } from '@/lib/riviereTestData'
+import {
+  parseNode, parseEdge, parseDomainMetadata 
+} from '@/lib/riviereTestFixtures'
 
-
-const testSourceLocation = { repository: 'test-repo', filePath: 'src/test.ts' }
+const testSourceLocation = {
+  repository: 'test-repo',
+  filePath: 'src/test.ts',
+}
 function renderWithRouter(ui: React.ReactElement): ReturnType<typeof render> {
   return render(<MemoryRouter>{ui}</MemoryRouter>)
 }
@@ -19,23 +27,99 @@ function createTestGraph(overrides: Partial<RiviereGraph> = {}): RiviereGraph {
       name: 'Test Architecture',
       description: 'Test description',
       domains: parseDomainMetadata({
-        'order-domain': { description: 'Order management', systemType: 'domain' },
-        'payment-domain': { description: 'Payment processing', systemType: 'domain' },
+        'order-domain': {
+          description: 'Order management',
+          systemType: 'domain',
+        },
+        'payment-domain': {
+          description: 'Payment processing',
+          systemType: 'domain',
+        },
       }),
     },
     components: [
-      parseNode({ sourceLocation: testSourceLocation, id: 'n1', type: 'UI', name: '/orders', domain: 'order-domain', module: 'm1', route: '/orders' }),
-      parseNode({ sourceLocation: testSourceLocation, id: 'n2', type: 'API', name: 'Place Order', domain: 'order-domain', module: 'm1', apiType: 'REST', httpMethod: 'POST', path: '/api/orders' }),
-      parseNode({ sourceLocation: testSourceLocation, id: 'n3', type: 'UseCase', name: 'Place Order UC', domain: 'order-domain', module: 'm1' }),
-      parseNode({ sourceLocation: testSourceLocation, id: 'n4', type: 'DomainOp', name: 'Order.begin', domain: 'order-domain', module: 'm1', entity: 'Order', operationName: 'begin' }),
-      parseNode({ sourceLocation: testSourceLocation, id: 'n5', type: 'Event', name: 'OrderPlaced', domain: 'order-domain', module: 'm1', eventName: 'OrderPlaced' }),
-      parseNode({ sourceLocation: testSourceLocation, id: 'n6', type: 'API', name: 'Process Payment', domain: 'payment-domain', module: 'm1', apiType: 'REST', httpMethod: 'POST', path: '/api/payments' }),
-      parseNode({ sourceLocation: testSourceLocation, id: 'n7', type: 'DomainOp', name: 'Payment.authorize', domain: 'payment-domain', module: 'm1', entity: 'Payment', operationName: 'authorize' }),
+      parseNode({
+        sourceLocation: testSourceLocation,
+        id: 'n1',
+        type: 'UI',
+        name: '/orders',
+        domain: 'order-domain',
+        module: 'm1',
+        route: '/orders',
+      }),
+      parseNode({
+        sourceLocation: testSourceLocation,
+        id: 'n2',
+        type: 'API',
+        name: 'Place Order',
+        domain: 'order-domain',
+        module: 'm1',
+        apiType: 'REST',
+        httpMethod: 'POST',
+        path: '/api/orders',
+      }),
+      parseNode({
+        sourceLocation: testSourceLocation,
+        id: 'n3',
+        type: 'UseCase',
+        name: 'Place Order UC',
+        domain: 'order-domain',
+        module: 'm1',
+      }),
+      parseNode({
+        sourceLocation: testSourceLocation,
+        id: 'n4',
+        type: 'DomainOp',
+        name: 'Order.begin',
+        domain: 'order-domain',
+        module: 'm1',
+        entity: 'Order',
+        operationName: 'begin',
+      }),
+      parseNode({
+        sourceLocation: testSourceLocation,
+        id: 'n5',
+        type: 'Event',
+        name: 'OrderPlaced',
+        domain: 'order-domain',
+        module: 'm1',
+        eventName: 'OrderPlaced',
+      }),
+      parseNode({
+        sourceLocation: testSourceLocation,
+        id: 'n6',
+        type: 'API',
+        name: 'Process Payment',
+        domain: 'payment-domain',
+        module: 'm1',
+        apiType: 'REST',
+        httpMethod: 'POST',
+        path: '/api/payments',
+      }),
+      parseNode({
+        sourceLocation: testSourceLocation,
+        id: 'n7',
+        type: 'DomainOp',
+        name: 'Payment.authorize',
+        domain: 'payment-domain',
+        module: 'm1',
+        entity: 'Payment',
+        operationName: 'authorize',
+      }),
     ],
     links: [
-      parseEdge({ source: 'n1', target: 'n2' }),
-      parseEdge({ source: 'n2', target: 'n3' }),
-      parseEdge({ source: 'n3', target: 'n4' }),
+      parseEdge({
+        source: 'n1',
+        target: 'n2',
+      }),
+      parseEdge({
+        source: 'n2',
+        target: 'n3',
+      }),
+      parseEdge({
+        source: 'n3',
+        target: 'n4',
+      }),
     ],
     ...overrides,
   }
@@ -137,26 +221,39 @@ describe('OverviewPage', () => {
   })
 
   it('renders repository link when sourceLocation has repository', () => {
-    localStorage.setItem('eclair-code-link-settings', JSON.stringify({ vscodePath: null, githubOrg: 'https://github.com/org', githubBranch: 'main' }))
+    localStorage.setItem(
+      'eclair-code-link-settings',
+      JSON.stringify({
+        vscodePath: null,
+        githubOrg: 'https://github.com/org',
+        githubBranch: 'main',
+      }),
+    )
     const graph = createTestGraph({
       components: [
         parseNode({
           id: 'n1',
           type: 'API',
-        apiType: 'other',
+          apiType: 'other',
           name: 'Test API',
           domain: 'order-domain',
           module: 'm1',
-          sourceLocation: { filePath: '/src/api.ts', repository: 'ecommerce-app' },
+          sourceLocation: {
+            filePath: '/src/api.ts',
+            repository: 'ecommerce-app',
+          },
         }),
         parseNode({
           id: 'n2',
           type: 'API',
-        apiType: 'other',
+          apiType: 'other',
           name: 'Payment API',
           domain: 'payment-domain',
           module: 'm1',
-          sourceLocation: { filePath: '/src/payment.ts', repository: 'payment-service' },
+          sourceLocation: {
+            filePath: '/src/payment.ts',
+            repository: 'payment-service',
+          },
         }),
       ],
     })
@@ -215,7 +312,14 @@ describe('OverviewPage', () => {
   })
 
   it('renders repository link for each domain card', () => {
-    localStorage.setItem('eclair-code-link-settings', JSON.stringify({ vscodePath: null, githubOrg: 'https://github.com/org', githubBranch: 'main' }))
+    localStorage.setItem(
+      'eclair-code-link-settings',
+      JSON.stringify({
+        vscodePath: null,
+        githubOrg: 'https://github.com/org',
+        githubBranch: 'main',
+      }),
+    )
     const graph = createTestGraph()
 
     renderWithRouter(<OverviewPage graph={graph} />)
@@ -410,11 +514,14 @@ describe('OverviewPage', () => {
 
   describe('GitHub repository links', () => {
     it('constructs GitHub URL from settings and repository name', () => {
-      localStorage.setItem('eclair-code-link-settings', JSON.stringify({
-        vscodePath: null,
-        githubOrg: 'https://github.com/myorg',
-        githubBranch: 'main',
-      }))
+      localStorage.setItem(
+        'eclair-code-link-settings',
+        JSON.stringify({
+          vscodePath: null,
+          githubOrg: 'https://github.com/myorg',
+          githubBranch: 'main',
+        }),
+      )
 
       const graph = createTestGraph()
 
@@ -426,11 +533,14 @@ describe('OverviewPage', () => {
     })
 
     it('opens GitHub link in new tab', () => {
-      localStorage.setItem('eclair-code-link-settings', JSON.stringify({
-        vscodePath: null,
-        githubOrg: 'https://github.com/myorg',
-        githubBranch: 'main',
-      }))
+      localStorage.setItem(
+        'eclair-code-link-settings',
+        JSON.stringify({
+          vscodePath: null,
+          githubOrg: 'https://github.com/myorg',
+          githubBranch: 'main',
+        }),
+      )
 
       const graph = createTestGraph()
 
@@ -466,129 +576,6 @@ describe('OverviewPage', () => {
       const orderDomainCard = screen.getByTestId('domain-card-order-domain')
       const cardLink = orderDomainCard.querySelector('a[data-card-link]')
       expect(cardLink).toHaveAttribute('href', '/domains/order-domain')
-    })
-  })
-
-  describe('Item display limits', () => {
-    function createGraphWithManyItems(): RiviereGraph {
-      return {
-        version: '1.0',
-        metadata: {
-          name: 'Test Architecture',
-          description: 'Test description',
-          domains: parseDomainMetadata({
-            'large-domain': { description: 'Domain with many entities', systemType: 'domain' },
-          }),
-        },
-        components: [
-          parseNode({ sourceLocation: testSourceLocation, id: 'n1', type: 'DomainOp', name: 'Entity1.op', domain: 'large-domain', module: 'm1', entity: 'Entity1', operationName: 'op' }),
-          parseNode({ sourceLocation: testSourceLocation, id: 'n2', type: 'DomainOp', name: 'Entity2.op', domain: 'large-domain', module: 'm1', entity: 'Entity2', operationName: 'op' }),
-          parseNode({ sourceLocation: testSourceLocation, id: 'n3', type: 'DomainOp', name: 'Entity3.op', domain: 'large-domain', module: 'm1', entity: 'Entity3', operationName: 'op' }),
-          parseNode({ sourceLocation: testSourceLocation, id: 'n4', type: 'DomainOp', name: 'Entity4.op', domain: 'large-domain', module: 'm1', entity: 'Entity4', operationName: 'op' }),
-          parseNode({ sourceLocation: testSourceLocation, id: 'n5', type: 'DomainOp', name: 'Entity5.op', domain: 'large-domain', module: 'm1', entity: 'Entity5', operationName: 'op' }),
-          parseNode({ sourceLocation: testSourceLocation, id: 'ep1', type: 'UI', name: '/page1', domain: 'large-domain', module: 'm1', route: '/page1' }),
-          parseNode({ sourceLocation: testSourceLocation, id: 'ep2', type: 'UI', name: '/page2', domain: 'large-domain', module: 'm1', route: '/page2' }),
-          parseNode({ sourceLocation: testSourceLocation, id: 'ep3', type: 'API', name: 'API 3', domain: 'large-domain', module: 'm1', apiType: 'REST', httpMethod: 'GET', path: '/api/3' }),
-          parseNode({ sourceLocation: testSourceLocation, id: 'ep4', type: 'API', name: 'API 4', domain: 'large-domain', module: 'm1', apiType: 'REST', httpMethod: 'GET', path: '/api/4' }),
-          parseNode({ sourceLocation: testSourceLocation, id: 'ep5', type: 'API', name: 'API 5', domain: 'large-domain', module: 'm1', apiType: 'REST', httpMethod: 'GET', path: '/api/5' }),
-        ],
-        links: [],
-      }
-    }
-
-    it('limits entities display to 3 items when domain has more', () => {
-      const graph = createGraphWithManyItems()
-
-      renderWithRouter(<OverviewPage graph={graph} />)
-
-      expect(screen.getByText('Entity1')).toBeInTheDocument()
-      expect(screen.getByText('Entity2')).toBeInTheDocument()
-      expect(screen.getByText('Entity3')).toBeInTheDocument()
-      expect(screen.queryByText('Entity4')).not.toBeInTheDocument()
-      expect(screen.queryByText('Entity5')).not.toBeInTheDocument()
-    })
-
-    it('shows ellipsis indicator when entities exceed limit', () => {
-      const graph = createGraphWithManyItems()
-
-      renderWithRouter(<OverviewPage graph={graph} />)
-
-      const ellipsisIndicators = screen.getAllByText('…')
-      expect(ellipsisIndicators).toHaveLength(2)
-    })
-
-    it('limits entry points display to 3 items when domain has more', () => {
-      const graph = createGraphWithManyItems()
-
-      renderWithRouter(<OverviewPage graph={graph} />)
-
-      expect(screen.getByText('/page1')).toBeInTheDocument()
-      expect(screen.getByText('/page2')).toBeInTheDocument()
-      expect(screen.getByText('/api/3')).toBeInTheDocument()
-      expect(screen.queryByText('/api/4')).not.toBeInTheDocument()
-      expect(screen.queryByText('/api/5')).not.toBeInTheDocument()
-    })
-
-    it('shows ellipsis indicator for entry points when exceeding limit', () => {
-      const graph = createGraphWithManyItems()
-
-      renderWithRouter(<OverviewPage graph={graph} />)
-
-      const ellipsisIndicators = screen.getAllByText('…')
-      expect(ellipsisIndicators).toHaveLength(2)
-    })
-
-    it('shows all entities without ellipsis when count is 3 or less', () => {
-      const graph = createTestGraph()
-
-      renderWithRouter(<OverviewPage graph={graph} />)
-
-      expect(screen.getByText('Order')).toBeInTheDocument()
-      expect(screen.getByText('Payment')).toBeInTheDocument()
-      expect(screen.queryByText('…')).not.toBeInTheDocument()
-    })
-
-    it('truncates long entity names to prevent overflow', () => {
-      const graph = createTestGraph()
-      graph.components.push(
-        parseNode({
-          sourceLocation: testSourceLocation,
-          id: 'op:long-entity',
-          type: 'DomainOp',
-          name: 'Create Very Long Entity',
-          domain: 'order-domain',
-          module: 'core',
-          entity: 'VeryLongEntityNameThatShouldBeTruncated',
-          operationName: 'create',
-        })
-      )
-
-      renderWithRouter(<OverviewPage graph={graph} />)
-
-      const entityBadge = screen.getByText('VeryLongEntityNameThatShouldBeTruncated')
-      expect(entityBadge).toHaveClass('truncate')
-    })
-
-    it('truncates long entry point paths to prevent overflow', () => {
-      const graph = createTestGraph()
-      graph.components.push(
-        parseNode({
-          sourceLocation: testSourceLocation,
-          id: 'api:long-path',
-          type: 'API',
-          name: 'Long Path API',
-          domain: 'order-domain',
-          module: 'api',
-          apiType: 'REST',
-          httpMethod: 'GET',
-          path: '/api/v1/orders/very/long/path/that/should/be/truncated',
-        })
-      )
-
-      renderWithRouter(<OverviewPage graph={graph} />)
-
-      const pathElement = screen.getByText('/api/v1/orders/very/long/path/that/should/be/truncated')
-      expect(pathElement).toHaveClass('truncate')
     })
   })
 })

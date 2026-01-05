@@ -1,9 +1,15 @@
 import * as d3 from 'd3'
-import type { SimulationNode, SimulationLink } from '../../types'
-import type { Edge, NodeType } from '@/types/riviere'
+import type {
+  SimulationNode, SimulationLink 
+} from '../../types'
+import type {
+  Edge, NodeType 
+} from '@/types/riviere'
 import type { Theme } from '@/types/theme'
 import { traceFlow } from '../../hooks/useFlowTracing'
-import { EDGE_COLORS, SEMANTIC_EDGE_COLORS } from '../../types'
+import {
+  EDGE_COLORS, SEMANTIC_EDGE_COLORS 
+} from '../../types'
 import { getLinkNodeId } from './FocusModeStyling'
 
 export {
@@ -34,7 +40,12 @@ export function extractCoordinates(nodes: SimulationNode[], field: 'x' | 'y'): n
   })
 }
 
-export function updateHighlight({ node, link, filteredEdges, highlightedNodeIds }: UpdateHighlightParams): void {
+export function updateHighlight({
+  node,
+  link,
+  filteredEdges,
+  highlightedNodeIds,
+}: UpdateHighlightParams): void {
   if (!highlightedNodeIds || highlightedNodeIds.size === 0) {
     node.attr('opacity', 1)
     link.attr('opacity', 0.6)
@@ -46,9 +57,7 @@ export function updateHighlight({ node, link, filteredEdges, highlightedNodeIds 
 
   const highlightedFlow = traceFlow(firstHighlightedNodeId, filteredEdges)
 
-  node.attr('opacity', (d) =>
-    highlightedFlow.nodeIds.has(d.id) ? 1 : 0.2
-  )
+  node.attr('opacity', (d) => (highlightedFlow.nodeIds.has(d.id) ? 1 : 0.2))
 
   link.attr('opacity', (d) => {
     const sourceId = getLinkNodeId(d.source)
@@ -61,7 +70,7 @@ export function updateHighlight({ node, link, filteredEdges, highlightedNodeIds 
 function appendArrowMarker(
   defs: d3.Selection<SVGDefsElement, unknown, d3.BaseType, unknown>,
   id: string,
-  fill: string
+  fill: string,
 ): void {
   defs
     .append('marker')
@@ -77,7 +86,10 @@ function appendArrowMarker(
     .attr('fill', fill)
 }
 
-export function setupSVGFiltersAndMarkers(defs: d3.Selection<SVGDefsElement, unknown, d3.BaseType, unknown>, theme: Theme): void {
+export function setupSVGFiltersAndMarkers(
+  defs: d3.Selection<SVGDefsElement, unknown, d3.BaseType, unknown>,
+  theme: Theme,
+): void {
   defs
     .append('filter')
     .attr('id', 'blur-background')
@@ -92,12 +104,10 @@ export function setupSVGFiltersAndMarkers(defs: d3.Selection<SVGDefsElement, unk
     .attr('result', 'coloredBlur')
 
   const glowFilter = defs.select('#focused-glow')
-  glowFilter
-    .append('feMerge')
-    .call((merge) => {
-      merge.append('feMergeNode').attr('in', 'coloredBlur')
-      merge.append('feMergeNode').attr('in', 'SourceGraphic')
-    })
+  glowFilter.append('feMerge').call((merge) => {
+    merge.append('feMergeNode').attr('in', 'coloredBlur')
+    merge.append('feMergeNode').attr('in', 'SourceGraphic')
+  })
 
   appendArrowMarker(defs, 'arrowhead-sync', EDGE_COLORS[theme].sync)
   appendArrowMarker(defs, 'arrowhead-async', EDGE_COLORS[theme].async)
@@ -110,13 +120,24 @@ export function setupSVGFiltersAndMarkers(defs: d3.Selection<SVGDefsElement, unk
 
 export interface FitViewportParams {
   nodes: SimulationNode[]
-  dimensions: { width: number; height: number }
+  dimensions: {
+    width: number
+    height: number
+  }
   padding: number
 }
 
-export function calculateFitViewportTransform(params: FitViewportParams): { translateX: number; translateY: number; scale: number } {
+export function calculateFitViewportTransform(params: FitViewportParams): {
+  translateX: number
+  translateY: number
+  scale: number
+} {
   if (params.nodes.length === 0) {
-    return { translateX: 0, translateY: 0, scale: 1 }
+    return {
+      translateX: 0,
+      translateY: 0,
+      scale: 1,
+    }
   }
 
   const xs = extractCoordinates(params.nodes, 'x')
@@ -132,12 +153,16 @@ export function calculateFitViewportTransform(params: FitViewportParams): { tran
   const scale = Math.min(
     params.dimensions.width / graphWidth,
     params.dimensions.height / graphHeight,
-    1
+    1,
   )
   const translateX = (params.dimensions.width - graphWidth * scale) / 2 - minX * scale
   const translateY = (params.dimensions.height - graphHeight * scale) / 2 - minY * scale
 
-  return { translateX, translateY, scale }
+  return {
+    translateX,
+    translateY,
+    scale,
+  }
 }
 
 type SemanticEdgeType = 'event' | 'eventHandler' | 'external' | 'default'
@@ -271,7 +296,9 @@ export interface UpdatePositionsParams {
 }
 
 export function createUpdatePositionsFunction(params: UpdatePositionsParams): () => void {
-  const { link, node, nodePositionMap, getNodeRadius } = params
+  const {
+    link, node, nodePositionMap, getNodeRadius 
+  } = params
 
   return function updatePositions(): void {
     link.attr('d', (d) => {
@@ -281,16 +308,24 @@ export function createUpdatePositionsFunction(params: UpdatePositionsParams): ()
       const targetNode = nodePositionMap.get(targetId)
 
       if (!sourceNode) {
-        throw new Error(`Link source node '${sourceId}' not found in position map. Available nodes: [${[...nodePositionMap.keys()].join(', ')}]`)
+        throw new Error(
+          `Link source node '${sourceId}' not found in position map. Available nodes: [${[...nodePositionMap.keys()].join(', ')}]`,
+        )
       }
       if (!targetNode) {
-        throw new Error(`Link target node '${targetId}' not found in position map. Available nodes: [${[...nodePositionMap.keys()].join(', ')}]`)
+        throw new Error(
+          `Link target node '${targetId}' not found in position map. Available nodes: [${[...nodePositionMap.keys()].join(', ')}]`,
+        )
       }
       if (sourceNode.x === undefined || sourceNode.y === undefined) {
-        throw new Error(`Source node '${sourceId}' missing coordinates. Node: ${JSON.stringify(sourceNode)}`)
+        throw new Error(
+          `Source node '${sourceId}' missing coordinates. Node: ${JSON.stringify(sourceNode)}`,
+        )
       }
       if (targetNode.x === undefined || targetNode.y === undefined) {
-        throw new Error(`Target node '${targetId}' missing coordinates. Node: ${JSON.stringify(targetNode)}`)
+        throw new Error(
+          `Target node '${targetId}' missing coordinates. Node: ${JSON.stringify(targetNode)}`,
+        )
       }
 
       const sourceX = sourceNode.x
@@ -327,11 +362,20 @@ export function createUpdatePositionsFunction(params: UpdatePositionsParams): ()
 export interface FocusModeZoomParams {
   nodes: SimulationNode[]
   focusedDomain: string
-  dimensions: { width: number; height: number }
+  dimensions: {
+    width: number
+    height: number
+  }
 }
 
-export function calculateFocusModeZoom(params: FocusModeZoomParams): { translateX: number; translateY: number; scale: number } | null {
-  const { nodes, focusedDomain, dimensions } = params
+export function calculateFocusModeZoom(params: FocusModeZoomParams): {
+  translateX: number
+  translateY: number
+  scale: number
+} | null {
+  const {
+    nodes, focusedDomain, dimensions 
+  } = params
   const focusedNodes = nodes.filter((n) => n.domain === focusedDomain)
 
   if (focusedNodes.length === 0) return null
@@ -349,25 +393,33 @@ export function calculateFocusModeZoom(params: FocusModeZoomParams): { translate
   const width = maxX - minX + 200
   const height = maxY - minY + 200
 
-  const scale = Math.min(
-    dimensions.width / width,
-    dimensions.height / height,
-    2.5
-  )
+  const scale = Math.min(dimensions.width / width, dimensions.height / height, 2.5)
 
   const translateX = dimensions.width / 2 - centerX * scale
   const translateY = dimensions.height / 2 - centerY * scale
 
-  return { translateX, translateY, scale }
+  return {
+    translateX,
+    translateY,
+    scale,
+  }
 }
 
 export interface ApplyDagrePositionsParams {
   nodes: SimulationNode[]
-  positions: Map<string, { x: number; y: number }>
+  positions: Map<
+    string,
+    {
+      x: number
+      y: number
+    }
+  >
 }
 
 export function applyDagrePositions(params: ApplyDagrePositionsParams): void {
-  const { nodes, positions } = params
+  const {
+    nodes, positions 
+  } = params
 
   for (const node of nodes) {
     const pos = positions.get(node.id)
@@ -378,14 +430,12 @@ export function applyDagrePositions(params: ApplyDagrePositionsParams): void {
   }
 }
 
-export interface ZoomBehaviorOptions {
-  onInteractionStart?: () => void
-}
+export interface ZoomBehaviorOptions {onInteractionStart?: () => void}
 
 export function setupZoomBehavior(
   svg: d3.Selection<SVGSVGElement, unknown, d3.BaseType, unknown>,
   g: d3.Selection<SVGGElement, unknown, d3.BaseType, unknown>,
-  options?: ZoomBehaviorOptions
+  options?: ZoomBehaviorOptions,
 ): ReturnType<typeof d3.zoom<SVGSVGElement, unknown>> {
   const zoom = d3
     .zoom<SVGSVGElement, unknown>()

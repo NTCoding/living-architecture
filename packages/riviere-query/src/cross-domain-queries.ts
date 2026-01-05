@@ -1,5 +1,7 @@
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
-import type { CrossDomainLink, DomainConnection } from './domain-types'
+import type {
+  CrossDomainLink, DomainConnection 
+} from './domain-types'
 import { parseDomainName } from './domain-types'
 
 function buildNodeIdToDomain(graph: RiviereGraph): Map<string, string> {
@@ -23,7 +25,7 @@ export function queryCrossDomainLinks(graph: RiviereGraph, domainName: string): 
       continue
     }
 
-    const linkTypeKey = link.type === undefined ? 'UNDEFINED_LINK_TYPE' : link.type
+    const linkTypeKey = link.type ?? 'UNDEFINED_LINK_TYPE'
     const key = `${targetDomain}:${linkTypeKey}`
     if (seen.has(key)) {
       continue
@@ -58,10 +60,16 @@ interface ConnectionCounts {
 }
 
 function initializeConnectionCounts(): ConnectionCounts {
-  return { apiCount: 0, eventCount: 0 }
+  return {
+    apiCount: 0,
+    eventCount: 0,
+  }
 }
 
-function getOrInitializeConnectionCounts(map: Map<string, ConnectionCounts>, domain: string): ConnectionCounts {
+function getOrInitializeConnectionCounts(
+  map: Map<string, ConnectionCounts>,
+  domain: string,
+): ConnectionCounts {
   const existing = map.get(domain)
   if (existing !== undefined) {
     return existing
@@ -71,7 +79,11 @@ function getOrInitializeConnectionCounts(map: Map<string, ConnectionCounts>, dom
   return counts
 }
 
-function incrementConnectionCount(map: Map<string, ConnectionCounts>, domain: string, targetType: string | undefined): void {
+function incrementConnectionCount(
+  map: Map<string, ConnectionCounts>,
+  domain: string,
+  targetType: string | undefined,
+): void {
   const counts = getOrInitializeConnectionCounts(map, domain)
   if (targetType === 'API') counts.apiCount++
   if (targetType === 'EventHandler') counts.eventCount++
@@ -82,7 +94,10 @@ function collectConnections(
   domainName: string,
   nodeIdToDomain: Map<string, string>,
   nodeById: Map<string, { type: string }>,
-): { outgoing: Map<string, ConnectionCounts>; incoming: Map<string, ConnectionCounts> } {
+): {
+  outgoing: Map<string, ConnectionCounts>
+  incoming: Map<string, ConnectionCounts>
+} {
   const outgoing = new Map<string, ConnectionCounts>()
   const incoming = new Map<string, ConnectionCounts>()
 
@@ -100,7 +115,10 @@ function collectConnections(
     }
   }
 
-  return { outgoing, incoming }
+  return {
+    outgoing,
+    incoming,
+  }
 }
 
 function toConnectionResults(
@@ -115,11 +133,19 @@ function toConnectionResults(
   }))
 }
 
-export function queryDomainConnections(graph: RiviereGraph, domainName: string): DomainConnection[] {
+export function queryDomainConnections(
+  graph: RiviereGraph,
+  domainName: string,
+): DomainConnection[] {
   const nodeIdToDomain = buildNodeIdToDomain(graph)
   const nodeById = new Map(graph.components.map((c) => [c.id, { type: c.type }]))
-  const { outgoing, incoming } = collectConnections(graph, domainName, nodeIdToDomain, nodeById)
+  const {
+    outgoing, incoming 
+  } = collectConnections(graph, domainName, nodeIdToDomain, nodeById)
 
-  const results = [...toConnectionResults(outgoing, 'outgoing'), ...toConnectionResults(incoming, 'incoming')]
+  const results = [
+    ...toConnectionResults(outgoing, 'outgoing'),
+    ...toConnectionResults(incoming, 'incoming'),
+  ]
   return results.sort((a, b) => a.targetDomain.localeCompare(b.targetDomain))
 }

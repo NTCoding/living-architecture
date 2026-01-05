@@ -1,6 +1,4 @@
-interface DomainBadgeProps {
-  readonly domain: string
-}
+interface DomainBadgeProps {readonly domain: string}
 
 function hashString(str: string): number {
   const hash = Array.from(str).reduce((acc, char) => {

@@ -1,8 +1,16 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import { GraphProvider, useGraph } from '@/contexts/GraphContext'
+import {
+  render, screen, fireEvent, waitFor 
+} from '@testing-library/react'
+import {
+  GraphProvider, useGraph 
+} from '@/contexts/GraphContext'
 import { EmptyState } from './EmptyState'
-import { parseNode, parseDomainMetadata } from '@/lib/riviereTestData'
-import type { RiviereGraph, SourceLocation } from '@/types/riviere'
+import {
+  parseNode, parseDomainMetadata 
+} from '@/lib/riviereTestFixtures'
+import type {
+  RiviereGraph, SourceLocation 
+} from '@/types/riviere'
 
 const testSourceLocation: SourceLocation = {
   repository: 'test-repo',
@@ -14,11 +22,21 @@ const validGraph: RiviereGraph = {
   metadata: {
     name: 'Test Graph',
     domains: parseDomainMetadata({
-      test: { description: 'Test', systemType: 'domain' },
+      test: {
+        description: 'Test',
+        systemType: 'domain',
+      },
     }),
   },
   components: [
-    parseNode({ sourceLocation: testSourceLocation, id: 'n1', type: 'UseCase', name: 'Test', domain: 'test', module: 'test' }),
+    parseNode({
+      sourceLocation: testSourceLocation,
+      id: 'n1',
+      type: 'UseCase',
+      name: 'Test',
+      domain: 'test',
+      module: 'test',
+    }),
   ],
   links: [],
 }
@@ -29,20 +47,30 @@ function createFile(name: string, content: string): File {
 
 interface MockDataTransfer {
   files: File[]
-  items: Array<{ kind: string; type: string; getAsFile: () => File }>
+  items: Array<{
+    kind: string
+    type: string
+    getAsFile: () => File
+  }>
   types: string[]
 }
 
 function createDataTransfer(files: File[]): MockDataTransfer {
   return {
     files,
-    items: files.map((file) => ({ kind: 'file', type: file.type, getAsFile: () => file })),
+    items: files.map((file) => ({
+      kind: 'file',
+      type: file.type,
+      getAsFile: () => file,
+    })),
     types: ['Files'],
   }
 }
 
 function GraphStateDisplay(): React.ReactElement {
-  const { hasGraph, graphName } = useGraph()
+  const {
+    hasGraph, graphName 
+  } = useGraph()
   return (
     <div>
       <span data-testid="has-graph">{hasGraph ? 'yes' : 'no'}</span>
@@ -56,7 +84,7 @@ function renderEmptyState(): void {
     <GraphProvider>
       <EmptyState />
       <GraphStateDisplay />
-    </GraphProvider>
+    </GraphProvider>,
   )
 }
 
@@ -79,7 +107,9 @@ describe('EmptyState', () => {
     renderEmptyState()
 
     expect(screen.getByText(/what is a rivière graph/i)).toBeInTheDocument()
-    expect(screen.getByText(/json format for describing flow-based software architecture/i)).toBeInTheDocument()
+    expect(
+      screen.getByText(/json format for describing flow-based software architecture/i),
+    ).toBeInTheDocument()
   })
 
   it('shows error when file validation fails', async () => {
@@ -96,7 +126,9 @@ describe('EmptyState', () => {
 
     renderEmptyState()
 
-    const dropZone = screen.getByRole('button', { name: /select file/i }).closest('div[class*="border-"]')
+    const dropZone = screen
+      .getByRole('button', { name: /select file/i })
+      .closest('div[class*="border-"]')
     if (dropZone === null) {
       throw new Error('Drop zone not found')
     }
@@ -128,7 +160,9 @@ describe('EmptyState', () => {
 
     expect(screen.getByTestId('has-graph')).toHaveTextContent('no')
 
-    const dropZone = screen.getByRole('button', { name: /select file/i }).closest('div[class*="border-"]')
+    const dropZone = screen
+      .getByRole('button', { name: /select file/i })
+      .closest('div[class*="border-"]')
     if (dropZone === null) {
       throw new Error('Drop zone not found')
     }
@@ -161,19 +195,21 @@ describe('EmptyState', () => {
 
     renderEmptyState()
 
-    const dropZone = screen.getByRole('button', { name: /select file/i }).closest('div[class*="border-"]')
+    const dropZone = screen
+      .getByRole('button', { name: /select file/i })
+      .closest('div[class*="border-"]')
     if (dropZone === null) {
       throw new Error('Drop zone not found')
     }
 
-    fireEvent.drop(dropZone, { dataTransfer: createDataTransfer([createFile('bad.json', invalidJson)]) })
+    fireEvent.drop(dropZone, {dataTransfer: createDataTransfer([createFile('bad.json', invalidJson)]),})
 
     await waitFor(() => {
       expect(screen.getByText(/validation failed/i)).toBeInTheDocument()
     })
 
     state.fileContent = validJsonString
-    fireEvent.drop(dropZone, { dataTransfer: createDataTransfer([createFile('valid.json', validJsonString)]) })
+    fireEvent.drop(dropZone, {dataTransfer: createDataTransfer([createFile('valid.json', validJsonString)]),})
 
     await waitFor(() => {
       expect(screen.queryByText(/validation failed/i)).not.toBeInTheDocument()

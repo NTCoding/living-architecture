@@ -1,20 +1,25 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, act, fireEvent } from '@testing-library/react'
+import {
+  describe, it, expect, vi, beforeEach, afterEach 
+} from 'vitest'
+import {
+  render, screen, act, fireEvent 
+} from '@testing-library/react'
 import { FlowGraphView } from './FlowGraphView'
-import { parseNode, parseEdge, parseDomainMetadata } from '@/lib/riviereTestData'
+import {
+  parseNode, parseEdge, parseDomainMetadata 
+} from '@/lib/riviereTestFixtures'
 import type { FlowStep } from '../../extractFlows'
 import type { RiviereGraph } from '@/types/riviere'
 import type { TooltipData } from '@/features/full-graph/types'
 
-const testSourceLocation = { repository: 'test-repo', filePath: 'src/test.ts' }
-
-vi.mock('@/contexts/ThemeContext', () => ({
-  useTheme: () => ({ theme: 'stream' }),
-}))
-
-interface MockState {
-  onNodeHover: ((data: TooltipData | null) => void) | undefined
+const testSourceLocation = {
+  repository: 'test-repo',
+  filePath: 'src/test.ts',
 }
+
+vi.mock('@/contexts/ThemeContext', () => ({ useTheme: () => ({ theme: 'stream' }) }))
+
+interface MockState {onNodeHover: ((data: TooltipData | null) => void) | undefined}
 
 const mockState: MockState = { onNodeHover: undefined }
 
@@ -61,13 +66,30 @@ vi.mock('@/features/full-graph/components/GraphTooltip/GraphTooltip', () => ({
 function createTestSteps(): FlowStep[] {
   return [
     {
-      node: parseNode({ sourceLocation: testSourceLocation, id: 'ui-1', type: 'UI', name: 'Order Form', domain: 'checkout', module: 'ui', route: '/orders' }),
+      node: parseNode({
+        sourceLocation: testSourceLocation,
+        id: 'ui-1',
+        type: 'UI',
+        name: 'Order Form',
+        domain: 'checkout',
+        module: 'ui',
+        route: '/orders',
+      }),
       edgeType: 'sync',
       depth: 0,
       externalLinks: [],
     },
     {
-      node: parseNode({ sourceLocation: testSourceLocation, id: 'api-1', type: 'API', name: 'POST /orders', domain: 'orders', module: 'api', httpMethod: 'POST', path: '/orders' }),
+      node: parseNode({
+        sourceLocation: testSourceLocation,
+        id: 'api-1',
+        type: 'API',
+        name: 'POST /orders',
+        domain: 'orders',
+        module: 'api',
+        httpMethod: 'POST',
+        path: '/orders',
+      }),
       edgeType: null,
       depth: 1,
       externalLinks: [],
@@ -78,15 +100,54 @@ function createTestSteps(): FlowStep[] {
 function createTestGraph(): RiviereGraph {
   return {
     version: '1.0',
-    metadata: { domains: parseDomainMetadata({ 'test-domain': { description: 'Test domain', systemType: 'domain' } }) },
+    metadata: {
+      domains: parseDomainMetadata({
+        'test-domain': {
+          description: 'Test domain',
+          systemType: 'domain',
+        },
+      }),
+    },
     components: [
-      parseNode({ sourceLocation: testSourceLocation, id: 'ui-1', type: 'UI', name: 'Order Form', domain: 'checkout', module: 'ui', route: '/orders' }),
-      parseNode({ sourceLocation: testSourceLocation, id: 'api-1', type: 'API', name: 'POST /orders', domain: 'orders', module: 'api', httpMethod: 'POST', path: '/orders' }),
-      parseNode({ sourceLocation: testSourceLocation, id: 'other-node', type: 'UseCase', name: 'Other', domain: 'other', module: 'other' }),
+      parseNode({
+        sourceLocation: testSourceLocation,
+        id: 'ui-1',
+        type: 'UI',
+        name: 'Order Form',
+        domain: 'checkout',
+        module: 'ui',
+        route: '/orders',
+      }),
+      parseNode({
+        sourceLocation: testSourceLocation,
+        id: 'api-1',
+        type: 'API',
+        name: 'POST /orders',
+        domain: 'orders',
+        module: 'api',
+        httpMethod: 'POST',
+        path: '/orders',
+      }),
+      parseNode({
+        sourceLocation: testSourceLocation,
+        id: 'other-node',
+        type: 'UseCase',
+        name: 'Other',
+        domain: 'other',
+        module: 'other',
+      }),
     ],
     links: [
-      parseEdge({ source: 'ui-1', target: 'api-1', type: 'sync' }),
-      parseEdge({ source: 'api-1', target: 'other-node', type: 'sync' }),
+      parseEdge({
+        source: 'ui-1',
+        target: 'api-1',
+        type: 'sync',
+      }),
+      parseEdge({
+        source: 'api-1',
+        target: 'other-node',
+        type: 'sync',
+      }),
     ],
   }
 }

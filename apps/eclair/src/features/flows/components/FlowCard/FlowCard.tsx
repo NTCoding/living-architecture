@@ -12,7 +12,12 @@ interface FlowCardProps {
   readonly onToggle: () => void
 }
 
-export function FlowCard({ flow, graph, expanded, onToggle }: Readonly<FlowCardProps>): React.ReactElement {
+export function FlowCard({
+  flow,
+  graph,
+  expanded,
+  onToggle,
+}: Readonly<FlowCardProps>): React.ReactElement {
   const navigate = useNavigate()
   const { entryPoint } = flow
 
@@ -23,22 +28,17 @@ export function FlowCard({ flow, graph, expanded, onToggle }: Readonly<FlowCardP
 
   return (
     <div data-testid="flow-card" className="flow-item">
-      <div
+      <button
+        type="button"
         data-testid="flow-card-header"
         onClick={onToggle}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault()
-            onToggle()
-          }
-        }}
-        role="button"
-        tabIndex={0}
         className="flow-item-header"
       >
         <div data-testid="flow-item-left" className="flow-item-left">
           <NodeTypeBadge type={entryPoint.type} />
-          <span className="flow-item-title" title={entryPoint.name}>{entryPoint.name}</span>
+          <span className="flow-item-title" title={entryPoint.name}>
+            {entryPoint.name}
+          </span>
           <span className="flow-item-domain">{entryPoint.domain}</span>
         </div>
         <div data-testid="flow-item-actions" className="flow-item-actions">
@@ -64,7 +64,7 @@ export function FlowCard({ flow, graph, expanded, onToggle }: Readonly<FlowCardP
             aria-hidden="true"
           />
         </div>
-      </div>
+      </button>
       {expanded && <FlowTrace steps={flow.steps} graph={graph} />}
     </div>
   )

@@ -1,9 +1,15 @@
-import { render, screen } from '@testing-library/react'
+import {
+  render, screen 
+} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { ThemeProvider, useTheme } from './ThemeContext'
+import {
+  ThemeProvider, useTheme 
+} from './ThemeContext'
 
 function TestConsumer(): React.ReactElement {
-  const { theme, setTheme } = useTheme()
+  const {
+    theme, setTheme 
+  } = useTheme()
   return (
     <div>
       <span data-testid="current-theme">{theme}</span>
@@ -24,7 +30,7 @@ describe('ThemeContext', () => {
     render(
       <ThemeProvider>
         <TestConsumer />
-      </ThemeProvider>
+      </ThemeProvider>,
     )
 
     expect(screen.getByTestId('current-theme')).toHaveTextContent('stream')
@@ -34,7 +40,7 @@ describe('ThemeContext', () => {
     render(
       <ThemeProvider>
         <TestConsumer />
-      </ThemeProvider>
+      </ThemeProvider>,
     )
 
     expect(document.body.classList.contains('theme-stream')).toBe(true)
@@ -46,7 +52,7 @@ describe('ThemeContext', () => {
     render(
       <ThemeProvider>
         <TestConsumer />
-      </ThemeProvider>
+      </ThemeProvider>,
     )
 
     await user.click(screen.getByRole('button', { name: 'Set Voltage' }))
@@ -62,7 +68,7 @@ describe('ThemeContext', () => {
     render(
       <ThemeProvider>
         <TestConsumer />
-      </ThemeProvider>
+      </ThemeProvider>,
     )
 
     await user.click(screen.getByRole('button', { name: 'Set Circuit' }))
@@ -76,7 +82,7 @@ describe('ThemeContext', () => {
     render(
       <ThemeProvider>
         <TestConsumer />
-      </ThemeProvider>
+      </ThemeProvider>,
     )
 
     expect(screen.getByTestId('current-theme')).toHaveTextContent('voltage')
@@ -89,7 +95,7 @@ describe('ThemeContext', () => {
     render(
       <ThemeProvider>
         <TestConsumer />
-      </ThemeProvider>
+      </ThemeProvider>,
     )
 
     expect(screen.getByTestId('current-theme')).toHaveTextContent('stream')

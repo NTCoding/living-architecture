@@ -1,15 +1,36 @@
-import { describe, it, expect } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import {
+  describe, it, expect 
+} from 'vitest'
+import {
+  render, screen 
+} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { BrowserRouter } from 'react-router-dom'
 import { DomainContextGraph } from './DomainContextGraph'
 import type { AggregatedConnection } from '../../extractDomainDetails'
 
-function createConnections(overrides: Partial<AggregatedConnection>[] = []): AggregatedConnection[] {
+function createConnections(
+  overrides: Partial<AggregatedConnection>[] = [],
+): AggregatedConnection[] {
   const defaults: AggregatedConnection[] = [
-    { targetDomain: 'inventory-domain', direction: 'outgoing', apiCount: 2, eventCount: 1 },
-    { targetDomain: 'payment-domain', direction: 'outgoing', apiCount: 1, eventCount: 0 },
-    { targetDomain: 'shipping-domain', direction: 'incoming', apiCount: 0, eventCount: 2 },
+    {
+      targetDomain: 'inventory-domain',
+      direction: 'outgoing',
+      apiCount: 2,
+      eventCount: 1,
+    },
+    {
+      targetDomain: 'payment-domain',
+      direction: 'outgoing',
+      apiCount: 1,
+      eventCount: 0,
+    },
+    {
+      targetDomain: 'shipping-domain',
+      direction: 'incoming',
+      apiCount: 0,
+      eventCount: 2,
+    },
   ]
   if (overrides.length === 0) return defaults
   return overrides.map((o, i) => {
@@ -17,7 +38,10 @@ function createConnections(overrides: Partial<AggregatedConnection>[] = []): Agg
     if (base === undefined) {
       throw new Error('Default connection not found')
     }
-    return { ...base, ...o }
+    return {
+      ...base,
+      ...o,
+    }
   })
 }
 
@@ -28,12 +52,7 @@ function renderWithRouter(ui: React.ReactElement): ReturnType<typeof render> {
 describe('DomainContextGraph', () => {
   describe('rendering', () => {
     it('renders current domain in center', () => {
-      renderWithRouter(
-        <DomainContextGraph
-          domainId="order-domain"
-          connections={[]}
-        />
-      )
+      renderWithRouter(<DomainContextGraph domainId="order-domain" connections={[]} />)
 
       expect(screen.getByText('order-domain')).toBeInTheDocument()
     })
@@ -41,12 +60,7 @@ describe('DomainContextGraph', () => {
     it('renders connected domains', () => {
       const connections = createConnections()
 
-      renderWithRouter(
-        <DomainContextGraph
-          domainId="order-domain"
-          connections={connections}
-        />
-      )
+      renderWithRouter(<DomainContextGraph domainId="order-domain" connections={connections} />)
 
       expect(screen.getByText('inventory-domain')).toBeInTheDocument()
       expect(screen.getByText('payment-domain')).toBeInTheDocument()
@@ -54,12 +68,7 @@ describe('DomainContextGraph', () => {
     })
 
     it('renders svg element', () => {
-      renderWithRouter(
-        <DomainContextGraph
-          domainId="order-domain"
-          connections={[]}
-        />
-      )
+      renderWithRouter(<DomainContextGraph domainId="order-domain" connections={[]} />)
 
       expect(document.querySelector('svg')).toBeInTheDocument()
     })
@@ -67,12 +76,7 @@ describe('DomainContextGraph', () => {
     it('highlights current domain differently from connected domains', () => {
       const connections = createConnections()
 
-      renderWithRouter(
-        <DomainContextGraph
-          domainId="order-domain"
-          connections={connections}
-        />
-      )
+      renderWithRouter(<DomainContextGraph domainId="order-domain" connections={connections} />)
 
       const currentDomainNode = screen.getByTestId('domain-node-order-domain')
       const connectedDomainNode = screen.getByTestId('domain-node-inventory-domain')
@@ -85,30 +89,30 @@ describe('DomainContextGraph', () => {
   describe('edges', () => {
     it('renders edges between domains', () => {
       const connections = createConnections([
-        { targetDomain: 'inventory-domain', direction: 'outgoing', apiCount: 1, eventCount: 0 },
+        {
+          targetDomain: 'inventory-domain',
+          direction: 'outgoing',
+          apiCount: 1,
+          eventCount: 0,
+        },
       ])
 
-      renderWithRouter(
-        <DomainContextGraph
-          domainId="order-domain"
-          connections={connections}
-        />
-      )
+      renderWithRouter(<DomainContextGraph domainId="order-domain" connections={connections} />)
 
       expect(screen.getByTestId('edge-order-domain-inventory-domain')).toBeInTheDocument()
     })
 
     it('renders edge with correct direction for outgoing', () => {
       const connections = createConnections([
-        { targetDomain: 'inventory-domain', direction: 'outgoing', apiCount: 1, eventCount: 0 },
+        {
+          targetDomain: 'inventory-domain',
+          direction: 'outgoing',
+          apiCount: 1,
+          eventCount: 0,
+        },
       ])
 
-      renderWithRouter(
-        <DomainContextGraph
-          domainId="order-domain"
-          connections={connections}
-        />
-      )
+      renderWithRouter(<DomainContextGraph domainId="order-domain" connections={connections} />)
 
       const edge = screen.getByTestId('edge-order-domain-inventory-domain')
       expect(edge).toHaveAttribute('data-direction', 'outgoing')
@@ -116,15 +120,15 @@ describe('DomainContextGraph', () => {
 
     it('renders edge with correct direction for incoming', () => {
       const connections = createConnections([
-        { targetDomain: 'shipping-domain', direction: 'incoming', apiCount: 0, eventCount: 1 },
+        {
+          targetDomain: 'shipping-domain',
+          direction: 'incoming',
+          apiCount: 0,
+          eventCount: 1,
+        },
       ])
 
-      renderWithRouter(
-        <DomainContextGraph
-          domainId="order-domain"
-          connections={connections}
-        />
-      )
+      renderWithRouter(<DomainContextGraph domainId="order-domain" connections={connections} />)
 
       const edge = screen.getByTestId('edge-order-domain-shipping-domain')
       expect(edge).toHaveAttribute('data-direction', 'incoming')
@@ -135,15 +139,15 @@ describe('DomainContextGraph', () => {
     it('shows tooltip when connected domain is clicked', async () => {
       const user = userEvent.setup()
       const connections = createConnections([
-        { targetDomain: 'inventory-domain', direction: 'outgoing', apiCount: 2, eventCount: 1 },
+        {
+          targetDomain: 'inventory-domain',
+          direction: 'outgoing',
+          apiCount: 2,
+          eventCount: 1,
+        },
       ])
 
-      renderWithRouter(
-        <DomainContextGraph
-          domainId="order-domain"
-          connections={connections}
-        />
-      )
+      renderWithRouter(<DomainContextGraph domainId="order-domain" connections={connections} />)
 
       expect(screen.queryByTestId('tooltip-inventory-domain')).not.toBeInTheDocument()
 
@@ -155,12 +159,7 @@ describe('DomainContextGraph', () => {
     it('shows tooltip when current domain is clicked', async () => {
       const user = userEvent.setup()
 
-      renderWithRouter(
-        <DomainContextGraph
-          domainId="order-domain"
-          connections={[]}
-        />
-      )
+      renderWithRouter(<DomainContextGraph domainId="order-domain" connections={[]} />)
 
       expect(screen.queryByTestId('tooltip-order-domain')).not.toBeInTheDocument()
 
@@ -172,15 +171,15 @@ describe('DomainContextGraph', () => {
     it('hides tooltip when clicking same domain again', async () => {
       const user = userEvent.setup()
       const connections = createConnections([
-        { targetDomain: 'inventory-domain', direction: 'outgoing', apiCount: 1, eventCount: 0 },
+        {
+          targetDomain: 'inventory-domain',
+          direction: 'outgoing',
+          apiCount: 1,
+          eventCount: 0,
+        },
       ])
 
-      renderWithRouter(
-        <DomainContextGraph
-          domainId="order-domain"
-          connections={connections}
-        />
-      )
+      renderWithRouter(<DomainContextGraph domainId="order-domain" connections={connections} />)
 
       await user.click(screen.getByTestId('domain-node-inventory-domain'))
       expect(screen.getByTestId('tooltip-inventory-domain')).toBeInTheDocument()
@@ -192,15 +191,15 @@ describe('DomainContextGraph', () => {
     it('shows connection info in tooltip for connected domain', async () => {
       const user = userEvent.setup()
       const connections = createConnections([
-        { targetDomain: 'inventory-domain', direction: 'outgoing', apiCount: 2, eventCount: 1 },
+        {
+          targetDomain: 'inventory-domain',
+          direction: 'outgoing',
+          apiCount: 2,
+          eventCount: 1,
+        },
       ])
 
-      renderWithRouter(
-        <DomainContextGraph
-          domainId="order-domain"
-          connections={connections}
-        />
-      )
+      renderWithRouter(<DomainContextGraph domainId="order-domain" connections={connections} />)
 
       await user.click(screen.getByText('inventory-domain'))
 
@@ -213,12 +212,7 @@ describe('DomainContextGraph', () => {
 
   describe('empty state', () => {
     it('renders only current domain when no connections', () => {
-      renderWithRouter(
-        <DomainContextGraph
-          domainId="order-domain"
-          connections={[]}
-        />
-      )
+      renderWithRouter(<DomainContextGraph domainId="order-domain" connections={[]} />)
 
       expect(screen.getByText('order-domain')).toBeInTheDocument()
       expect(screen.queryByTestId(/edge-/)).not.toBeInTheDocument()
@@ -227,12 +221,7 @@ describe('DomainContextGraph', () => {
 
   describe('accessibility', () => {
     it('has accessible name for svg', () => {
-      renderWithRouter(
-        <DomainContextGraph
-          domainId="order-domain"
-          connections={[]}
-        />
-      )
+      renderWithRouter(<DomainContextGraph domainId="order-domain" connections={[]} />)
 
       const svg = document.querySelector('svg')
       expect(svg).toHaveAttribute('aria-label', 'Domain context graph for order-domain')

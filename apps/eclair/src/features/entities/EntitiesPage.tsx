@@ -1,22 +1,25 @@
-import { useState, useMemo, useCallback } from 'react'
+import {
+  useState, useMemo, useCallback 
+} from 'react'
 import { useNavigate } from 'react-router-dom'
 import { RiviereQuery } from '@living-architecture/riviere-query'
 import type { Entity } from '@living-architecture/riviere-query'
 import type { RiviereGraph } from '@/types/riviere'
 import { EntityAccordion } from '../domains/components/EntityAccordion/EntityAccordion'
 
-interface EntitiesPageProps {
-  readonly graph: RiviereGraph
-}
+interface EntitiesPageProps {readonly graph: RiviereGraph}
 
 export function EntitiesPage({ graph }: Readonly<EntitiesPageProps>): React.ReactElement {
   const navigate = useNavigate()
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedDomain, setSelectedDomain] = useState<string>('all')
 
-  const handleViewOnGraph = useCallback((nodeId: string) => {
-    navigate(`/full-graph?node=${nodeId}`)
-  }, [navigate])
+  const handleViewOnGraph = useCallback(
+    (nodeId: string) => {
+      navigate(`/full-graph?node=${nodeId}`)
+    },
+    [navigate],
+  )
 
   const entities = useMemo<Entity[]>(() => {
     const query = new RiviereQuery(graph)
@@ -107,13 +110,20 @@ export function EntitiesPage({ graph }: Readonly<EntitiesPageProps>): React.Reac
 
       {filteredEntities.length === 0 ? (
         <div className="flex flex-col items-center justify-center gap-4 py-12">
-          <i className="ph ph-magnifying-glass text-4xl text-[var(--text-tertiary)]" aria-hidden="true" />
+          <i
+            className="ph ph-magnifying-glass text-4xl text-[var(--text-tertiary)]"
+            aria-hidden="true"
+          />
           <p className="text-[var(--text-secondary)]">No entities found</p>
         </div>
       ) : (
         <div data-testid="entities-list" className="space-y-4">
           {filteredEntities.map((entity) => (
-            <EntityAccordion key={`${entity.domain}-${entity.name}`} entity={entity} onViewOnGraph={handleViewOnGraph} />
+            <EntityAccordion
+              key={`${entity.domain}-${entity.name}`}
+              entity={entity}
+              onViewOnGraph={handleViewOnGraph}
+            />
           ))}
         </div>
       )}

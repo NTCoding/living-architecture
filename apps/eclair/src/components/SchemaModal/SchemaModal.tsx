@@ -1,7 +1,13 @@
-import { useCallback, useEffect, useId, useState } from 'react'
-import { JsonView, collapseAllNested } from 'react-json-view-lite'
+import {
+  useCallback, useEffect, useId, useState 
+} from 'react'
+import {
+  JsonView, collapseAllNested 
+} from 'react-json-view-lite'
 import 'react-json-view-lite/dist/index.css'
-import type { RiviereGraph, GraphName } from '@/types/riviere'
+import type {
+  RiviereGraph, GraphName 
+} from '@/types/riviere'
 import styles from './SchemaModal.module.css'
 
 function getStyle(name: string): string {
@@ -52,10 +58,7 @@ export function SchemaModal({
 }: SchemaModalProps): React.ReactElement | null {
   const titleId = useId()
   const [copyFeedback, setCopyFeedback] = useState(false)
-  const shouldExpandNode = useCallback(
-    (level: number) => collapseAllNested(level),
-    []
-  )
+  const shouldExpandNode = useCallback((level: number) => collapseAllNested(level), [])
 
   useEffect(() => {
     if (graph === null || !isOpen) {
@@ -86,7 +89,9 @@ export function SchemaModal({
 
   const downloadSchemaAsJson = (): void => {
     if (graphName === undefined) {
-      throw new Error('Cannot download: graphName is required. Button should be disabled when graphName is undefined.')
+      throw new Error(
+        'Cannot download: graphName is required. Button should be disabled when graphName is undefined.',
+      )
     }
     const blob = new Blob([jsonContent], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
@@ -108,7 +113,9 @@ export function SchemaModal({
     const parts = isoDateString.split('T')
     const datePart = parts[0]
     if (datePart === undefined || datePart === '') {
-      throw new Error(`Invalid ISO date string: "${isoDateString}". Expected format like "2024-01-15T10:30:00Z".`)
+      throw new Error(
+        `Invalid ISO date string: "${isoDateString}". Expected format like "2024-01-15T10:30:00Z".`,
+      )
     }
     return datePart
   }
@@ -116,24 +123,17 @@ export function SchemaModal({
   const generatedDate = formatGeneratedDate(graph.metadata.generated)
 
   return (
-    <div
-      role="dialog"
+    <dialog
+      open
       aria-labelledby={titleId}
-      aria-modal="true"
-      className="fixed inset-0 z-[10000] flex items-center justify-center p-10"
+      className="fixed inset-0 z-[10000] m-0 flex h-full w-full max-w-none items-center justify-center border-0 bg-transparent p-10"
     >
-      <div
+      <button
+        type="button"
         data-testid="modal-backdrop"
         onClick={onClose}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            onClose()
-          }
-        }}
-        role="button"
-        tabIndex={-1}
         aria-label="Close modal"
-        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+        className="absolute inset-0 cursor-default border-0 bg-black/70 backdrop-blur-sm"
       />
       <div
         onClick={(e) => e.stopPropagation()}
@@ -223,14 +223,10 @@ export function SchemaModal({
             data-testid="json-viewer"
             className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-lg p-5 font-mono text-xs leading-relaxed overflow-x-auto"
           >
-            <JsonView
-              data={graph}
-              shouldExpandNode={shouldExpandNode}
-              style={jsonViewStyles}
-            />
+            <JsonView data={graph} shouldExpandNode={shouldExpandNode} style={jsonViewStyles} />
           </div>
         </div>
       </div>
-    </div>
+    </dialog>
   )
 }

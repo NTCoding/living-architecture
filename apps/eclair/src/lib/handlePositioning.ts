@@ -31,8 +31,7 @@ function getHandleForAngle(angle: number): {
   targetHandle: string
 } {
   for (const range of ANGLE_RANGES) {
-    const inRange =
-      angle > range.minAngle && angle <= range.maxAngle
+    const inRange = angle > range.minAngle && angle <= range.maxAngle
     if (inRange) {
       return {
         sourceHandle: range.sourceHandle,
@@ -48,9 +47,18 @@ function getHandleForAngle(angle: number): {
 }
 
 export function getClosestHandle(
-  sourcePos: { x: number; y: number },
-  targetPos: { x: number; y: number }
-): { sourceHandle: string; targetHandle: string } {
+  sourcePos: {
+    x: number
+    y: number
+  },
+  targetPos: {
+    x: number
+    y: number
+  },
+): {
+  sourceHandle: string
+  targetHandle: string
+} {
   const dx = targetPos.x - sourcePos.x
   const dy = targetPos.y - sourcePos.y
   const angle = Math.atan2(dy, dx)

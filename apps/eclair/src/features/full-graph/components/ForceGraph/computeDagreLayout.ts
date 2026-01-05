@@ -4,10 +4,19 @@ import { NODE_RADII } from '../../types'
 
 interface DagreLayoutInput {
   nodes: SimulationNode[]
-  edges: Array<{ source: string; target: string }>
+  edges: Array<{
+    source: string
+    target: string
+  }>
 }
 
-export function computeDagreLayout(input: DagreLayoutInput): Map<string, { x: number; y: number }> {
+export function computeDagreLayout(input: DagreLayoutInput): Map<
+  string,
+  {
+    x: number
+    y: number
+  }
+> {
   const g = new dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}))
 
   g.setGraph({
@@ -21,7 +30,10 @@ export function computeDagreLayout(input: DagreLayoutInput): Map<string, { x: nu
   for (const node of input.nodes) {
     const radius = NODE_RADII[node.type]
     const size = radius * 2 + 40
-    g.setNode(node.id, { width: size, height: size })
+    g.setNode(node.id, {
+      width: size,
+      height: size,
+    })
   }
 
   for (const edge of input.edges) {
@@ -30,10 +42,19 @@ export function computeDagreLayout(input: DagreLayoutInput): Map<string, { x: nu
 
   dagre.layout(g)
 
-  const positions = new Map<string, { x: number; y: number }>()
+  const positions = new Map<
+    string,
+    {
+      x: number
+      y: number
+    }
+  >()
   for (const node of input.nodes) {
     const layoutNode = g.node(node.id)
-    positions.set(node.id, { x: layoutNode.x, y: layoutNode.y })
+    positions.set(node.id, {
+      x: layoutNode.x,
+      y: layoutNode.y,
+    })
   }
 
   return positions

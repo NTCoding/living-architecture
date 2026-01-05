@@ -1,4 +1,6 @@
-import { useState, useCallback } from 'react'
+import {
+  useState, useCallback 
+} from 'react'
 
 interface DomainInfo {
   readonly name: string
@@ -42,9 +44,7 @@ export function DomainFilters({
         aria-controls="domain-filter-list"
         data-testid="domain-filters-toggle"
       >
-        <span className="text-sm font-semibold text-[var(--text-primary)]">
-          Domain Filters
-        </span>
+        <span className="text-sm font-semibold text-[var(--text-primary)]">Domain Filters</span>
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="16"
@@ -63,10 +63,7 @@ export function DomainFilters({
       </button>
 
       {isOpen && (
-        <div
-          id="domain-filter-list"
-          className="border-t border-[var(--border-color)] p-4"
-        >
+        <div id="domain-filter-list" className="border-t border-[var(--border-color)] p-4">
           <div className="mb-3 flex gap-2">
             <button
               type="button"
@@ -103,12 +100,8 @@ export function DomainFilters({
                     className="h-4 w-4 rounded border-[var(--border-color)] accent-[var(--primary)]"
                     data-testid={`domain-checkbox-${domain.name}`}
                   />
-                  <span className="flex-1 text-sm text-[var(--text-primary)]">
-                    {domain.name}
-                  </span>
-                  <span className="text-xs text-[var(--text-tertiary)]">
-                    {domain.nodeCount}
-                  </span>
+                  <span className="flex-1 text-sm text-[var(--text-primary)]">{domain.name}</span>
+                  <span className="text-xs text-[var(--text-tertiary)]">{domain.nodeCount}</span>
                 </label>
               )
             })}

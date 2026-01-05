@@ -1,5 +1,9 @@
-import { describe, it, expect } from 'vitest'
-import { levenshteinDistance, similarityScore } from './string-similarity'
+import {
+  describe, it, expect 
+} from 'vitest'
+import {
+  levenshteinDistance, similarityScore 
+} from './string-similarity'
 
 describe('levenshteinDistance', () => {
   it.each([

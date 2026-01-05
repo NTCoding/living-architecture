@@ -1,6 +1,12 @@
-import { describe, it, expect } from 'vitest'
+import {
+  describe, it, expect 
+} from 'vitest'
 import { RiviereQuery } from './RiviereQuery'
-import { createMinimalValidGraph, createAPIComponent, createUseCaseComponent } from './riviere-graph-fixtures'
+import {
+  createMinimalValidGraph,
+  createAPIComponent,
+  createUseCaseComponent,
+} from './riviere-graph-fixtures'
 
 describe('domains', () => {
   it('returns domain with name, description, and systemType from metadata', () => {
@@ -30,13 +36,35 @@ describe('domains', () => {
 
   it('returns multiple domains with correct component counts per type', () => {
     const graph = createMinimalValidGraph()
-    graph.metadata.domains['orders'] = { description: 'Order management', systemType: 'domain' }
-    graph.metadata.domains['shipping'] = { description: 'Shipping integration', systemType: 'bff' }
+    graph.metadata.domains['orders'] = {
+      description: 'Order management',
+      systemType: 'domain',
+    }
+    graph.metadata.domains['shipping'] = {
+      description: 'Shipping integration',
+      systemType: 'bff',
+    }
     graph.components.push(
-      createAPIComponent({ id: 'orders:api:create', name: 'Create Order', domain: 'orders' }),
-      createAPIComponent({ id: 'orders:api:get', name: 'Get Order', domain: 'orders' }),
-      createUseCaseComponent({ id: 'orders:usecase:checkout', name: 'Checkout', domain: 'orders' }),
-      createAPIComponent({ id: 'shipping:api:track', name: 'Track', domain: 'shipping' }),
+      createAPIComponent({
+        id: 'orders:api:create',
+        name: 'Create Order',
+        domain: 'orders',
+      }),
+      createAPIComponent({
+        id: 'orders:api:get',
+        name: 'Get Order',
+        domain: 'orders',
+      }),
+      createUseCaseComponent({
+        id: 'orders:usecase:checkout',
+        name: 'Checkout',
+        domain: 'orders',
+      }),
+      createAPIComponent({
+        id: 'shipping:api:track',
+        name: 'Track',
+        domain: 'shipping',
+      }),
     )
     const query = new RiviereQuery(graph)
 
@@ -76,8 +104,16 @@ describe('domains', () => {
   it('does not include external systems in domains (use externalSystems() instead)', () => {
     const graph = createMinimalValidGraph()
     graph.externalLinks = [
-      { source: 'test:mod:ui:page', target: { name: 'Stripe' }, type: 'sync' },
-      { source: 'test:mod:ui:page', target: { name: 'Twilio' }, type: 'async' },
+      {
+        source: 'test:mod:ui:page',
+        target: { name: 'Stripe' },
+        type: 'sync',
+      },
+      {
+        source: 'test:mod:ui:page',
+        target: { name: 'Twilio' },
+        type: 'async',
+      },
     ]
     const query = new RiviereQuery(graph)
 

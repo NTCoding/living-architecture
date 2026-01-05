@@ -12,11 +12,8 @@ function formatTimestamp(date: Date): string {
   return `${year}${month}${day}-${hours}${minutes}${seconds}`
 }
 
-export function generateExportFilename(
-  graphName: string,
-  extension: 'png' | 'svg'
-): string {
-  const sanitizedName = graphName.replace(/ /g, '-')
+export function generateExportFilename(graphName: string, extension: 'png' | 'svg'): string {
+  const sanitizedName = graphName.replaceAll(' ', '-')
   const timestamp = formatTimestamp(new Date())
   return `${sanitizedName}-${timestamp}.${extension}`
 }
@@ -36,14 +33,12 @@ export function exportSvgAsFile(svg: SVGSVGElement, filename: string): void {
   downloadBlob(blob, filename)
 }
 
-interface PngExportOptions {
-  backgroundColor?: string
-}
+interface PngExportOptions {backgroundColor?: string}
 
 export async function exportElementAsPng(
   element: HTMLElement,
   filename: string,
-  options: PngExportOptions = {}
+  options: PngExportOptions = {},
 ): Promise<void> {
   const dataUrl = await toPng(element, options)
   const link = document.createElement('a')

@@ -1,10 +1,18 @@
-import type { RiviereGraph, Component, ComponentType } from '@living-architecture/riviere-schema'
+import type {
+  RiviereGraph, Component, ComponentType 
+} from '@living-architecture/riviere-schema'
 
-export function findComponent(graph: RiviereGraph, predicate: (component: Component) => boolean): Component | undefined {
+export function findComponent(
+  graph: RiviereGraph,
+  predicate: (component: Component) => boolean,
+): Component | undefined {
   return graph.components.find(predicate)
 }
 
-export function findAllComponents(graph: RiviereGraph, predicate: (component: Component) => boolean): Component[] {
+export function findAllComponents(
+  graph: RiviereGraph,
+  predicate: (component: Component) => boolean,
+): Component[] {
   return graph.components.filter(predicate)
 }
 
@@ -17,10 +25,12 @@ export function searchComponents(graph: RiviereGraph, query: string): Component[
     return []
   }
   const lowerQuery = query.toLowerCase()
-  return findAllComponents(graph, (c) =>
-    c.name.toLowerCase().includes(lowerQuery) ||
-    c.domain.toLowerCase().includes(lowerQuery) ||
-    c.type.toLowerCase().includes(lowerQuery)
+  return findAllComponents(
+    graph,
+    (c) =>
+      c.name.toLowerCase().includes(lowerQuery) ||
+      c.domain.toLowerCase().includes(lowerQuery) ||
+      c.type.toLowerCase().includes(lowerQuery),
   )
 }
 

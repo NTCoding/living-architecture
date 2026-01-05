@@ -1,9 +1,13 @@
-import { describe, it, expect, afterEach } from 'vitest'
+import {
+  describe, it, expect, afterEach 
+} from 'vitest'
 import { promises as fs } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { RiviereBuilder } from './builder'
-import { createValidOptions, createSourceLocation } from './builder-test-fixtures'
+import {
+  createValidOptions, createSourceLocation 
+} from './builder-test-fixtures'
 
 describe('RiviereBuilder', () => {
   describe('build', () => {
@@ -29,28 +33,46 @@ describe('RiviereBuilder', () => {
         sourceLocation: createSourceLocation(),
       })
 
-      builder.link({ from: source.id, to: target.id })
+      builder.link({
+        from: source.id,
+        to: target.id,
+      })
 
       const graph = builder.build()
 
       expect(graph.version).toBe('1.0')
       expect(graph.metadata.name).toBe('test-graph')
       expect(graph.metadata.description).toBe('A test graph')
-      expect(graph.metadata.sources).toEqual([{ repository: 'test/repo', commit: 'abc123' }])
+      expect(graph.metadata.sources).toEqual([
+        {
+          repository: 'test/repo',
+          commit: 'abc123',
+        },
+      ])
       expect(graph.metadata.domains).toEqual({
-        orders: { description: 'Order domain', systemType: 'domain' },
-        shipping: { description: 'Shipping domain', systemType: 'domain' },
+        orders: {
+          description: 'Order domain',
+          systemType: 'domain',
+        },
+        shipping: {
+          description: 'Shipping domain',
+          systemType: 'domain',
+        },
       })
-      expect(graph.components).toContainEqual(expect.objectContaining({
-        id: source.id,
-        name: 'Create Order',
-        type: 'UseCase',
-      }))
-      expect(graph.components).toContainEqual(expect.objectContaining({
-        id: target.id,
-        name: 'Save Order',
-        type: 'DomainOp',
-      }))
+      expect(graph.components).toContainEqual(
+        expect.objectContaining({
+          id: source.id,
+          name: 'Create Order',
+          type: 'UseCase',
+        }),
+      )
+      expect(graph.components).toContainEqual(
+        expect.objectContaining({
+          id: target.id,
+          name: 'Save Order',
+          type: 'DomainOp',
+        }),
+      )
       expect(graph.links).toContainEqual({
         source: source.id,
         target: target.id,
@@ -67,7 +89,10 @@ describe('RiviereBuilder', () => {
         sourceLocation: createSourceLocation(),
       })
 
-      builder.link({ from: source.id, to: 'nonexistent:component:id' })
+      builder.link({
+        from: source.id,
+        to: 'nonexistent:component:id',
+      })
 
       expect(() => builder.build()).toThrow(/validation failed/i)
     })
@@ -102,7 +127,10 @@ describe('RiviereBuilder', () => {
       builder.defineCustomType({
         name: 'Repository',
         requiredProperties: {
-          entityName: { type: 'string', description: 'Entity managed by this repository' },
+          entityName: {
+            type: 'string',
+            description: 'Entity managed by this repository',
+          },
         },
       })
 
@@ -111,7 +139,10 @@ describe('RiviereBuilder', () => {
       expect(graph.metadata.customTypes).toEqual({
         Repository: {
           requiredProperties: {
-            entityName: { type: 'string', description: 'Entity managed by this repository' },
+            entityName: {
+              type: 'string',
+              description: 'Entity managed by this repository',
+            },
           },
         },
       })
@@ -135,7 +166,10 @@ describe('RiviereBuilder', () => {
         sourceLocation: createSourceLocation(),
       })
 
-      builder.link({ from: source.id, to: target.id })
+      builder.link({
+        from: source.id,
+        to: target.id,
+      })
 
       const graph = builder.build()
 
@@ -152,12 +186,18 @@ describe('RiviereBuilder', () => {
         sourceLocation: createSourceLocation(),
       })
 
-      builder.linkExternal({ from: source.id, target: { name: 'Stripe API' } })
+      builder.linkExternal({
+        from: source.id,
+        target: { name: 'Stripe API' },
+      })
 
       const graph = builder.build()
 
       expect(graph.externalLinks).toEqual([
-        { source: source.id, target: { name: 'Stripe API' } },
+        {
+          source: source.id,
+          target: { name: 'Stripe API' },
+        },
       ])
     })
   })
@@ -190,7 +230,10 @@ describe('RiviereBuilder', () => {
         sourceLocation: createSourceLocation(),
       })
 
-      builder.link({ from: source.id, to: target.id })
+      builder.link({
+        from: source.id,
+        to: target.id,
+      })
 
       const filePath = join(tmpdir(), `riviere-test-${Date.now()}.json`)
       tempFiles.push(filePath)
@@ -214,7 +257,10 @@ describe('RiviereBuilder', () => {
         sourceLocation: createSourceLocation(),
       })
 
-      builder.link({ from: source.id, to: 'nonexistent:component:id' })
+      builder.link({
+        from: source.id,
+        to: 'nonexistent:component:id',
+      })
 
       const filePath = join(tmpdir(), `riviere-test-invalid-${Date.now()}.json`)
       tempFiles.push(filePath)
@@ -241,7 +287,10 @@ describe('RiviereBuilder', () => {
         sourceLocation: createSourceLocation(),
       })
 
-      builder.link({ from: source.id, to: target.id })
+      builder.link({
+        from: source.id,
+        to: target.id,
+      })
 
       const filePath = '/nonexistent-directory-xyz/output.json'
 

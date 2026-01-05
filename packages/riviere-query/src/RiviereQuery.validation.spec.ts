@@ -12,7 +12,12 @@ describe('RiviereQuery validate()', () => {
 
   it('returns INVALID_LINK_SOURCE when link references non-existent source', () => {
     const graph = createMinimalValidGraph()
-    graph.links = [{ source: 'does-not-exist', target: 'test:mod:ui:page' }]
+    graph.links = [
+      {
+        source: 'does-not-exist',
+        target: 'test:mod:ui:page',
+      },
+    ]
     const query = new RiviereQuery(graph)
     const result = query.validate()
     expect(result.valid).toBe(false)
@@ -23,7 +28,12 @@ describe('RiviereQuery validate()', () => {
 
   it('returns INVALID_LINK_TARGET when link references non-existent target', () => {
     const graph = createMinimalValidGraph()
-    graph.links = [{ source: 'test:mod:ui:page', target: 'does-not-exist' }]
+    graph.links = [
+      {
+        source: 'test:mod:ui:page',
+        target: 'does-not-exist',
+      },
+    ]
     const query = new RiviereQuery(graph)
     const result = query.validate()
     expect(result.valid).toBe(false)
@@ -35,8 +45,14 @@ describe('RiviereQuery validate()', () => {
   it('returns multiple errors when graph has multiple issues', () => {
     const graph = createMinimalValidGraph()
     graph.links = [
-      { source: 'bad-source-1', target: 'bad-target-1' },
-      { source: 'bad-source-2', target: 'test:mod:ui:page' },
+      {
+        source: 'bad-source-1',
+        target: 'bad-target-1',
+      },
+      {
+        source: 'bad-source-2',
+        target: 'test:mod:ui:page',
+      },
     ]
     const query = new RiviereQuery(graph)
     const result = query.validate()
@@ -53,7 +69,10 @@ describe('RiviereQuery validate()', () => {
       name: 'Update Tracking Cron',
       domain: 'test',
       module: 'mod',
-      sourceLocation: { repository: 'test-repo', filePath: 'cron.ts' },
+      sourceLocation: {
+        repository: 'test-repo',
+        filePath: 'cron.ts',
+      },
     })
     const query = new RiviereQuery(graph)
     const result = query.validate()
@@ -66,9 +85,7 @@ describe('RiviereQuery validate()', () => {
 
   it('returns valid when Custom type has no requiredProperties', () => {
     const graph = createMinimalValidGraph()
-    graph.metadata.customTypes = {
-      SimpleJob: { description: 'A simple job with no required properties' },
-    }
+    graph.metadata.customTypes = {SimpleJob: { description: 'A simple job with no required properties' },}
     graph.components.push({
       id: 'test:mod:custom:simplejob',
       type: 'Custom',
@@ -76,7 +93,10 @@ describe('RiviereQuery validate()', () => {
       name: 'Simple Job',
       domain: 'test',
       module: 'mod',
-      sourceLocation: { repository: 'test-repo', filePath: 'job.ts' },
+      sourceLocation: {
+        repository: 'test-repo',
+        filePath: 'job.ts',
+      },
     })
     const query = new RiviereQuery(graph)
     const result = query.validate()

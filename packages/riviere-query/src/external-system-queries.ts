@@ -17,7 +17,7 @@ function buildComponentDomainMap(graph: RiviereGraph): Map<string, string> {
 
 function aggregateExternalDomains(
   externalLinks: NonNullable<RiviereGraph['externalLinks']>,
-  componentDomains: Map<string, string>
+  componentDomains: Map<string, string>,
 ): Map<string, ExternalDomainAccumulator> {
   const domains = new Map<string, ExternalDomainAccumulator>()
 
@@ -40,7 +40,9 @@ function aggregateExternalDomains(
   return domains
 }
 
-function convertToExternalDomains(domains: Map<string, ExternalDomainAccumulator>): ExternalDomain[] {
+function convertToExternalDomains(
+  domains: Map<string, ExternalDomainAccumulator>,
+): ExternalDomain[] {
   return Array.from(domains.entries())
     .map(([name, acc]) => ({
       name,

@@ -1,6 +1,12 @@
-import { describe, it, expect } from 'vitest'
+import {
+  describe, it, expect 
+} from 'vitest'
 import { RiviereQuery } from './RiviereQuery'
-import { createMinimalValidGraph, defaultSourceLocation, createAPIComponent } from './riviere-graph-fixtures'
+import {
+  createMinimalValidGraph,
+  defaultSourceLocation,
+  createAPIComponent,
+} from './riviere-graph-fixtures'
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
 
 describe('diff', () => {
@@ -87,11 +93,22 @@ describe('diff', () => {
   describe('links', () => {
     it('returns link in links.added when new link exists in other graph', () => {
       const baseGraph = createMinimalValidGraph()
-      baseGraph.components.push(createAPIComponent({ id: 'test:mod:api:endpoint', name: 'Test API', domain: 'test' }))
+      baseGraph.components.push(
+        createAPIComponent({
+          id: 'test:mod:api:endpoint',
+          name: 'Test API',
+          domain: 'test',
+        }),
+      )
       const otherGraph: RiviereGraph = {
         ...baseGraph,
         components: [...baseGraph.components],
-        links: [{ source: 'test:mod:ui:page', target: 'test:mod:api:endpoint' }],
+        links: [
+          {
+            source: 'test:mod:ui:page',
+            target: 'test:mod:api:endpoint',
+          },
+        ],
       }
 
       const query = new RiviereQuery(baseGraph)
@@ -104,8 +121,19 @@ describe('diff', () => {
 
     it('returns link in links.removed when link missing from other graph', () => {
       const baseGraph = createMinimalValidGraph()
-      baseGraph.components.push(createAPIComponent({ id: 'test:mod:api:endpoint', name: 'Test API', domain: 'test' }))
-      baseGraph.links = [{ source: 'test:mod:ui:page', target: 'test:mod:api:endpoint' }]
+      baseGraph.components.push(
+        createAPIComponent({
+          id: 'test:mod:api:endpoint',
+          name: 'Test API',
+          domain: 'test',
+        }),
+      )
+      baseGraph.links = [
+        {
+          source: 'test:mod:ui:page',
+          target: 'test:mod:api:endpoint',
+        },
+      ]
       const otherGraph: RiviereGraph = {
         ...baseGraph,
         components: [...baseGraph.components],
@@ -122,12 +150,30 @@ describe('diff', () => {
 
     it('uses link id for comparison when link has explicit id', () => {
       const baseGraph = createMinimalValidGraph()
-      baseGraph.components.push(createAPIComponent({ id: 'test:mod:api:endpoint', name: 'Test API', domain: 'test' }))
-      baseGraph.links = [{ id: 'link-1', source: 'test:mod:ui:page', target: 'test:mod:api:endpoint' }]
+      baseGraph.components.push(
+        createAPIComponent({
+          id: 'test:mod:api:endpoint',
+          name: 'Test API',
+          domain: 'test',
+        }),
+      )
+      baseGraph.links = [
+        {
+          id: 'link-1',
+          source: 'test:mod:ui:page',
+          target: 'test:mod:api:endpoint',
+        },
+      ]
       const otherGraph: RiviereGraph = {
         ...baseGraph,
         components: [...baseGraph.components],
-        links: [{ id: 'link-1', source: 'test:mod:ui:page', target: 'test:mod:api:endpoint' }],
+        links: [
+          {
+            id: 'link-1',
+            source: 'test:mod:ui:page',
+            target: 'test:mod:api:endpoint',
+          },
+        ],
       }
 
       const query = new RiviereQuery(baseGraph)

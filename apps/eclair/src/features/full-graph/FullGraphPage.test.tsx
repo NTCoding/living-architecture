@@ -1,18 +1,34 @@
-import { describe, expect, test, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent, act } from '@testing-library/react'
+import {
+  describe, expect, test, vi, beforeEach 
+} from 'vitest'
+import {
+  render, screen, fireEvent, act 
+} from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { FullGraphPage } from './FullGraphPage'
 import { ExportProvider } from '@/contexts/ExportContext'
 import type { RiviereGraph } from '@/types/riviere'
-import { parseNode, parseEdge, parseDomainKey } from '@/lib/riviereTestData'
-import type { TooltipData, SimulationNode } from './types'
-const testSourceLocation = { repository: 'test-repo', filePath: 'src/test.ts' }
+import {
+  parseNode, parseEdge, parseDomainKey 
+} from '@/lib/riviereTestFixtures'
+import type {
+  TooltipData, SimulationNode 
+} from './types'
+const testSourceLocation = {
+  repository: 'test-repo',
+  filePath: 'src/test.ts',
+}
 
-const { capturedOnNodeHover, capturedOnBackgroundClick } = vi.hoisted(() => {
-  const hoverRef: { current: ((data: TooltipData | null) => void) | undefined } = { current: undefined }
+const {
+  capturedOnNodeHover, capturedOnBackgroundClick 
+} = vi.hoisted(() => {
+  const hoverRef: { current: ((data: TooltipData | null) => void) | undefined } = {current: undefined,}
   const backgroundClickRef: { current: (() => void) | undefined } = { current: undefined }
-  return { capturedOnNodeHover: hoverRef, capturedOnBackgroundClick: backgroundClickRef }
+  return {
+    capturedOnNodeHover: hoverRef,
+    capturedOnBackgroundClick: backgroundClickRef,
+  }
 })
 
 const mockGraph: RiviereGraph = {
@@ -20,23 +36,62 @@ const mockGraph: RiviereGraph = {
   metadata: {
     name: 'Test Graph',
     domains: {
-      [parseDomainKey('orders')]: { description: 'Orders domain', systemType: 'domain' },
-      [parseDomainKey('shipping')]: { description: 'Shipping domain', systemType: 'domain' },
+      [parseDomainKey('orders')]: {
+        description: 'Orders domain',
+        systemType: 'domain',
+      },
+      [parseDomainKey('shipping')]: {
+        description: 'Shipping domain',
+        systemType: 'domain',
+      },
     },
   },
   components: [
-    parseNode({ sourceLocation: testSourceLocation, id: 'node-1', type: 'API', name: 'Test API', domain: 'orders', module: 'api' }),
-    parseNode({ sourceLocation: testSourceLocation, id: 'node-2', type: 'UseCase', name: 'Test UseCase', domain: 'orders', module: 'core' }),
-    parseNode({ sourceLocation: testSourceLocation, id: 'node-3', type: 'DomainOp', name: 'Ship Order', domain: 'shipping', module: 'core', operationName: 'ship' }),
+    parseNode({
+      sourceLocation: testSourceLocation,
+      id: 'node-1',
+      type: 'API',
+      name: 'Test API',
+      domain: 'orders',
+      module: 'api',
+    }),
+    parseNode({
+      sourceLocation: testSourceLocation,
+      id: 'node-2',
+      type: 'UseCase',
+      name: 'Test UseCase',
+      domain: 'orders',
+      module: 'core',
+    }),
+    parseNode({
+      sourceLocation: testSourceLocation,
+      id: 'node-3',
+      type: 'DomainOp',
+      name: 'Ship Order',
+      domain: 'shipping',
+      module: 'core',
+      operationName: 'ship',
+    }),
   ],
   links: [
-    parseEdge({ source: 'node-1', target: 'node-2', type: 'sync' }),
-    parseEdge({ source: 'node-2', target: 'node-3', type: 'async' }),
+    parseEdge({
+      source: 'node-1',
+      target: 'node-2',
+      type: 'sync',
+    }),
+    parseEdge({
+      source: 'node-2',
+      target: 'node-3',
+      type: 'async',
+    }),
   ],
 }
 
 vi.mock('@/contexts/ThemeContext', () => ({
-  useTheme: () => ({ theme: 'stream', setTheme: vi.fn() }),
+  useTheme: () => ({
+    theme: 'stream',
+    setTheme: vi.fn(),
+  }),
 }))
 
 vi.mock('./components/ForceGraph/ForceGraph', () => ({
@@ -52,10 +107,7 @@ vi.mock('./components/ForceGraph/ForceGraph', () => ({
       capturedOnBackgroundClick.current = props.onBackgroundClick
     }
     return (
-      <div
-        data-testid="force-graph-container"
-        data-highlighted-node={props.highlightedNodeId}
-      />
+      <div data-testid="force-graph-container" data-highlighted-node={props.highlightedNodeId} />
     )
   },
 }))
@@ -81,7 +133,7 @@ function renderWithRouter(initialEntries: string[] = ['/']) {
       <ExportProvider>
         <FullGraphPage graph={mockGraph} />
       </ExportProvider>
-    </MemoryRouter>
+    </MemoryRouter>,
   )
 }
 
@@ -115,30 +167,45 @@ describe('FullGraphPage', () => {
 
   test('highlights node from URL query param', () => {
     renderWithRouter(['/full-graph?node=node-1'])
-    expect(screen.getByTestId('force-graph-container')).toHaveAttribute('data-highlighted-node', 'node-1')
+    expect(screen.getByTestId('force-graph-container')).toHaveAttribute(
+      'data-highlighted-node',
+      'node-1',
+    )
   })
 
   test('clears highlighted node when background is clicked', () => {
     renderWithRouter(['/full-graph?node=node-1'])
 
-    expect(screen.getByTestId('force-graph-container')).toHaveAttribute('data-highlighted-node', 'node-1')
+    expect(screen.getByTestId('force-graph-container')).toHaveAttribute(
+      'data-highlighted-node',
+      'node-1',
+    )
 
     act(() => {
       capturedOnBackgroundClick.current?.()
     })
 
-    expect(screen.getByTestId('force-graph-container')).not.toHaveAttribute('data-highlighted-node', 'node-1')
+    expect(screen.getByTestId('force-graph-container')).not.toHaveAttribute(
+      'data-highlighted-node',
+      'node-1',
+    )
   })
 
   test('ignores node param when node ID does not exist in graph', () => {
     renderWithRouter(['/full-graph?node=non-existent-node'])
 
-    expect(screen.getByTestId('force-graph-container')).not.toHaveAttribute('data-highlighted-node', 'non-existent-node')
+    expect(screen.getByTestId('force-graph-container')).not.toHaveAttribute(
+      'data-highlighted-node',
+      'non-existent-node',
+    )
   })
 
   test('validates node exists before highlighting from URL param', () => {
     renderWithRouter(['/full-graph?node=node-1'])
-    expect(screen.getByTestId('force-graph-container')).toHaveAttribute('data-highlighted-node', 'node-1')
+    expect(screen.getByTestId('force-graph-container')).toHaveAttribute(
+      'data-highlighted-node',
+      'node-1',
+    )
   })
 
   describe('focused domain feature', () => {
@@ -315,7 +382,10 @@ describe('FullGraphPage', () => {
       externalLinks: [
         {
           source: 'node-1',
-          target: { name: 'Stripe', url: 'https://api.stripe.com' },
+          target: {
+            name: 'Stripe',
+            url: 'https://api.stripe.com',
+          },
           type: 'sync',
         },
       ],
@@ -327,7 +397,7 @@ describe('FullGraphPage', () => {
           <ExportProvider>
             <FullGraphPage graph={mockGraphWithExternals} />
           </ExportProvider>
-        </MemoryRouter>
+        </MemoryRouter>,
       )
     }
 
@@ -382,7 +452,7 @@ describe('FullGraphPage', () => {
     const mockSimulationNode: SimulationNode = {
       id: 'node-1',
       type: 'API',
-        apiType: 'other',
+      apiType: 'other',
       name: 'Test API',
       domain: 'orders',
       originalNode: parseNode({

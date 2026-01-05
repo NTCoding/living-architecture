@@ -1,5 +1,16 @@
-import { createContext, useContext, useState, useCallback, useEffect, useRef, useSyncExternalStore, useMemo } from 'react'
-import type { RiviereGraph, GraphName } from '@/types/riviere'
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useEffect,
+  useRef,
+  useSyncExternalStore,
+  useMemo,
+} from 'react'
+import type {
+  RiviereGraph, GraphName 
+} from '@/types/riviere'
 import { graphNameSchema } from '@/types/riviere'
 import { parseRiviereGraph } from '@living-architecture/riviere-schema'
 
@@ -21,7 +32,9 @@ export function buildDemoGraphUrl(): string {
   return `${import.meta.env.BASE_URL}${DEMO_GRAPH_FILENAME}`
 }
 
-export async function fetchAndValidateDemoGraph(url: string = buildDemoGraphUrl()): Promise<RiviereGraph> {
+export async function fetchAndValidateDemoGraph(
+  url: string = buildDemoGraphUrl(),
+): Promise<RiviereGraph> {
   const response = await fetch(url)
   if (!response.ok) {
     throw new Error(`Failed to fetch demo graph: ${response.status}`)
@@ -49,9 +62,7 @@ function useIsDemoMode(): boolean {
   return useSyncExternalStore(subscribeToNothing, getIsDemoMode, () => false)
 }
 
-interface GraphProviderProps {
-  readonly children: React.ReactNode
-}
+interface GraphProviderProps {readonly children: React.ReactNode}
 
 export function GraphProvider({ children }: GraphProviderProps): React.ReactElement {
   const isDemoMode = useIsDemoMode()
@@ -74,11 +85,14 @@ export function GraphProvider({ children }: GraphProviderProps): React.ReactElem
 
     hasFetchedDemo.current = true
 
-    localStorage.setItem('eclair-code-link-settings', JSON.stringify({
-      vscodePath: null,
-      githubOrg: DEFAULT_GITHUB_ORG,
-      githubBranch: 'main',
-    }))
+    localStorage.setItem(
+      'eclair-code-link-settings',
+      JSON.stringify({
+        vscodePath: null,
+        githubOrg: DEFAULT_GITHUB_ORG,
+        githubBranch: 'main',
+      }),
+    )
 
     fetchAndValidateDemoGraph()
       .then((graph) => {
@@ -93,20 +107,22 @@ export function GraphProvider({ children }: GraphProviderProps): React.ReactElem
   }, [isDemoMode])
 
   const hasGraph = graph !== null
-  const graphName = graph?.metadata.name === undefined
-    ? undefined
-    : graphNameSchema.parse(graph.metadata.name)
+  const graphName =
+    graph?.metadata.name === undefined ? undefined : graphNameSchema.parse(graph.metadata.name)
 
   const contextValue = useMemo(
-    () => ({ graph, setGraph, clearGraph, hasGraph, graphName, isLoadingDemo }),
-    [graph, setGraph, clearGraph, hasGraph, graphName, isLoadingDemo]
+    () => ({
+      graph,
+      setGraph,
+      clearGraph,
+      hasGraph,
+      graphName,
+      isLoadingDemo,
+    }),
+    [graph, setGraph, clearGraph, hasGraph, graphName, isLoadingDemo],
   )
 
-  return (
-    <graphContext.Provider value={contextValue}>
-      {children}
-    </graphContext.Provider>
-  )
+  return <graphContext.Provider value={contextValue}>{children}</graphContext.Provider>
 }
 
 export function useGraph(): GraphContextValue {

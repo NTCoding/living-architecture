@@ -2,14 +2,23 @@ import { useMemo } from 'react'
 import type { RiviereGraph } from '@/types/riviere'
 import { extractFlows } from './extractFlows'
 import { FlowCard } from './components/FlowCard/FlowCard'
-import { useFlowsState, type FlowFilter } from './hooks/useFlowsState'
+import {
+  useFlowsState, type FlowFilter 
+} from './hooks/useFlowsState'
 
-interface FlowsPageProps {
-  readonly graph: RiviereGraph
-}
+interface FlowsPageProps {readonly graph: RiviereGraph}
 
 export function FlowsPage({ graph }: Readonly<FlowsPageProps>): React.ReactElement {
-  const { searchQuery, setSearchQuery, activeFilter, setActiveFilter, expandedFlowIds, toggleFlow, activeDomains, toggleDomain } = useFlowsState()
+  const {
+    searchQuery,
+    setSearchQuery,
+    activeFilter,
+    setActiveFilter,
+    expandedFlowIds,
+    toggleFlow,
+    activeDomains,
+    toggleDomain,
+  } = useFlowsState()
 
   const flows = useMemo(() => extractFlows(graph), [graph])
 
@@ -38,11 +47,26 @@ export function FlowsPage({ graph }: Readonly<FlowsPageProps>): React.ReactEleme
   const apiCount = flows.filter((f) => f.entryPoint.type === 'API').length
   const jobsCount = flows.filter((f) => f.entryPoint.type === 'Custom').length
 
-  const filters: Array<{ key: FlowFilter; label: string }> = [
-    { key: 'all', label: 'All' },
-    { key: 'ui', label: 'UI' },
-    { key: 'api', label: 'API' },
-    { key: 'jobs', label: 'Jobs' },
+  const filters: Array<{
+    key: FlowFilter
+    label: string
+  }> = [
+    {
+      key: 'all',
+      label: 'All',
+    },
+    {
+      key: 'ui',
+      label: 'UI',
+    },
+    {
+      key: 'api',
+      label: 'API',
+    },
+    {
+      key: 'jobs',
+      label: 'Jobs',
+    },
   ]
 
   return (
@@ -57,28 +81,36 @@ export function FlowsPage({ graph }: Readonly<FlowsPageProps>): React.ReactEleme
           <i className="ph ph-flow-arrow stats-bar-icon" aria-hidden="true" />
           <div className="stats-bar-content">
             <div className="stats-bar-label">Total Flows</div>
-            <div data-testid="stat-total-flows" className="stats-bar-value">{flows.length}</div>
+            <div data-testid="stat-total-flows" className="stats-bar-value">
+              {flows.length}
+            </div>
           </div>
         </div>
         <div className="stats-bar-item">
           <i className="ph ph-browser stats-bar-icon" aria-hidden="true" />
           <div className="stats-bar-content">
             <div className="stats-bar-label">UI Entries</div>
-            <div data-testid="stat-ui-entries" className="stats-bar-value">{uiCount}</div>
+            <div data-testid="stat-ui-entries" className="stats-bar-value">
+              {uiCount}
+            </div>
           </div>
         </div>
         <div className="stats-bar-item">
           <i className="ph ph-plug stats-bar-icon" aria-hidden="true" />
           <div className="stats-bar-content">
             <div className="stats-bar-label">API Entries</div>
-            <div data-testid="stat-api-entries" className="stats-bar-value">{apiCount}</div>
+            <div data-testid="stat-api-entries" className="stats-bar-value">
+              {apiCount}
+            </div>
           </div>
         </div>
         <div className="stats-bar-item">
           <i className="ph ph-clock stats-bar-icon" aria-hidden="true" />
           <div className="stats-bar-content">
             <div className="stats-bar-label">Scheduled Jobs</div>
-            <div data-testid="stat-scheduled-jobs" className="stats-bar-value">{jobsCount}</div>
+            <div data-testid="stat-scheduled-jobs" className="stats-bar-value">
+              {jobsCount}
+            </div>
           </div>
         </div>
       </div>

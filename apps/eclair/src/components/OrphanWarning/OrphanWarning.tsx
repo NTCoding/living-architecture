@@ -12,7 +12,9 @@ interface OrphanWarningProps {
   readonly nodes: Node[]
 }
 
-export function OrphanWarning({ result, nodes }: OrphanWarningProps): React.ReactElement | null {
+export function OrphanWarning({
+  result, nodes 
+}: OrphanWarningProps): React.ReactElement | null {
   const [isOpen, setIsOpen] = useState(false)
   const [isDismissed, setIsDismissed] = useState(false)
 
@@ -39,7 +41,8 @@ export function OrphanWarning({ result, nodes }: OrphanWarningProps): React.Reac
               onClick={() => setIsOpen(true)}
               className="text-sm text-amber-900 dark:text-amber-100 circuit:text-amber-950 text-left hover:underline cursor-pointer"
             >
-              <strong>Warning:</strong> {result.orphanCount} {nodeText} no connections. Click to view details.
+              <strong>Warning:</strong> {result.orphanCount} {nodeText} no connections. Click to
+              view details.
             </button>
           </div>
           <button

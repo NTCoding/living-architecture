@@ -2,7 +2,8 @@ module.exports = {
   meta: {
     type: 'problem',
     docs: {
-      description: 'Forbid generic names (Utils, Helper, Service, Handler, etc) in filenames, class names, and exports',
+      description:
+        'Forbid generic names (Utils, Helper, Service, Handler, etc) in filenames, class names, and exports',
       recommended: true,
     },
   },
@@ -10,39 +11,35 @@ module.exports = {
     const filename = context.getFilename()
 
     const forbiddenWordsWithSuggestions = {
-      'utils': 'Use domain-specific name describing what it does',
-      'helpers': 'Try "fixtures" for test data, or name by purpose',
-      'helper': 'Try "fixtures" for test data, or name by purpose',
-      'service': 'Name by domain action (e.g., OrderSubmitter, PaymentGateway)',
-      'services': 'Name by domain action (e.g., OrderSubmitter, PaymentGateway)',
-      'manager': 'Name by responsibility (e.g., ConnectionPool, SessionStore)',
-      'managers': 'Name by responsibility (e.g., ConnectionPool, SessionStore)',
-      'processor': 'Name by what it processes (e.g., OrderFulfiller, EventDispatcher)',
-      'processors': 'Name by what it processes (e.g., OrderFulfiller, EventDispatcher)',
-      'data': 'Name by domain concept (e.g., OrderDetails, CustomerProfile)',
+      utils: 'Use domain-specific name describing what it does',
+      helpers: 'Try "fixtures" for test data, or name by purpose',
+      helper: 'Try "fixtures" for test data, or name by purpose',
+      service: 'Name by domain action (e.g., OrderSubmitter, PaymentGateway)',
+      services: 'Name by domain action (e.g., OrderSubmitter, PaymentGateway)',
+      manager: 'Name by responsibility (e.g., ConnectionPool, SessionStore)',
+      managers: 'Name by responsibility (e.g., ConnectionPool, SessionStore)',
+      processor: 'Name by what it processes (e.g., OrderFulfiller, EventDispatcher)',
+      processors: 'Name by what it processes (e.g., OrderFulfiller, EventDispatcher)',
+      data: 'Name by domain concept (e.g., OrderDetails, CustomerProfile)',
     }
 
     const forbiddenWords = Object.keys(forbiddenWordsWithSuggestions)
     const forbiddenPattern = new RegExp(
-      `(^|/|-)(${ forbiddenWords.join('|') })(-|[.]ts$|[.]tsx$|/|$)`,
-      'i'
+      `(^|/|-|[a-z])(${forbiddenWords.join('|')})(-|[.]ts$|[.]tsx$|/|$)`,
+      'i',
     )
 
     const findForbiddenWord = (text) => {
       const lowerText = text.toLowerCase()
-      return forbiddenWords.find(word => lowerText.includes(word))
+      return forbiddenWords.find((word) => lowerText.includes(word))
     }
 
     const isForbiddenName = (name) => {
       if (!name) return false
 
-      return forbiddenWords.some(word => {
+      return forbiddenWords.some((word) => {
         const lowerName = name.toLowerCase()
-        return (
-          lowerName === word ||
-          lowerName.startsWith(word) ||
-          lowerName.endsWith(word)
-        )
+        return lowerName === word || lowerName.startsWith(word) || lowerName.endsWith(word)
       })
     }
 

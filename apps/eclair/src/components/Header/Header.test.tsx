@@ -1,23 +1,30 @@
-import { render, screen } from '@testing-library/react'
+import {
+  render, screen 
+} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it, vi } from 'vitest'
+import {
+  describe, expect, it, vi 
+} from 'vitest'
 import { Header } from './Header'
-import type { RiviereGraph, GraphName } from '@/types/riviere'
-import { nodeIdSchema, domainNameSchema, moduleNameSchema, graphNameSchema } from '@/types/riviere'
-import { parseDomainMetadata } from '@/lib/riviereTestData'
+import type {
+  RiviereGraph, GraphName 
+} from '@/types/riviere'
+import {
+  nodeIdSchema, domainNameSchema, moduleNameSchema, graphNameSchema 
+} from '@/types/riviere'
+import { parseDomainMetadata } from '@/lib/riviereTestFixtures'
 
 const mockNavigate = vi.fn()
 const mockClearGraph = vi.fn()
 
-vi.mock('react-router-dom', () => ({
-  useNavigate: () => mockNavigate,
-}))
+vi.mock('react-router-dom', () => ({ useNavigate: () => mockNavigate }))
 
-vi.mock('@/contexts/GraphContext', () => ({
-  useGraph: () => ({ clearGraph: mockClearGraph }),
-}))
+vi.mock('@/contexts/GraphContext', () => ({ useGraph: () => ({ clearGraph: mockClearGraph }) }))
 
-const testSourceLocation = { repository: 'test-repo', filePath: 'src/test.ts' }
+const testSourceLocation = {
+  repository: 'test-repo',
+  filePath: 'src/test.ts',
+}
 
 function createGraphName(name: string): GraphName {
   return graphNameSchema.parse(name)
@@ -31,7 +38,10 @@ function createTestGraph(): RiviereGraph {
       description: 'Test graph',
       generated: '2024-01-15T10:30:00Z',
       domains: parseDomainMetadata({
-        orders: { description: 'Order management', systemType: 'domain' },
+        orders: {
+          description: 'Order management',
+          systemType: 'domain',
+        },
       }),
     },
     components: [
@@ -159,7 +169,7 @@ describe('Header', () => {
           graphName={createGraphName('test.json')}
           graph={createTestGraph()}
           onExportPng={vi.fn()}
-        />
+        />,
       )
 
       expect(screen.getByRole('button', { name: /export/i })).toBeInTheDocument()
@@ -186,7 +196,7 @@ describe('Header', () => {
           graph={createTestGraph()}
           onExportPng={vi.fn()}
           onExportSvg={vi.fn()}
-        />
+        />,
       )
 
       await user.click(screen.getByRole('button', { name: /export/i }))
@@ -203,7 +213,7 @@ describe('Header', () => {
           graphName={createGraphName('test.json')}
           graph={createTestGraph()}
           onExportPng={vi.fn()}
-        />
+        />,
       )
 
       await user.click(screen.getByRole('button', { name: /export/i }))
@@ -221,7 +231,7 @@ describe('Header', () => {
           graphName={createGraphName('test.json')}
           graph={createTestGraph()}
           onExportPng={vi.fn()}
-        />
+        />,
       )
 
       await user.click(screen.getByRole('button', { name: /export/i }))
@@ -240,7 +250,7 @@ describe('Header', () => {
           graphName={createGraphName('test.json')}
           graph={createTestGraph()}
           onExportPng={mockOnExportPng}
-        />
+        />,
       )
 
       await user.click(screen.getByRole('button', { name: /export/i }))
@@ -258,7 +268,7 @@ describe('Header', () => {
           graphName={createGraphName('test.json')}
           graph={createTestGraph()}
           onExportSvg={mockOnExportSvg}
-        />
+        />,
       )
 
       await user.click(screen.getByRole('button', { name: /export/i }))
@@ -277,7 +287,10 @@ describe('Header', () => {
           description: 'Test graph with orphans',
           generated: '2024-01-15T10:30:00Z',
           domains: {
-            orders: { description: 'Order management', systemType: 'domain' },
+            orders: {
+              description: 'Order management',
+              systemType: 'domain',
+            },
           },
         },
         components: [
@@ -319,7 +332,10 @@ describe('Header', () => {
           description: 'Test graph without orphans',
           generated: '2024-01-15T10:30:00Z',
           domains: {
-            orders: { description: 'Order management', systemType: 'domain' },
+            orders: {
+              description: 'Order management',
+              systemType: 'domain',
+            },
           },
         },
         components: [
@@ -367,7 +383,10 @@ describe('Header', () => {
           description: 'Test graph',
           generated: '2024-01-15T10:30:00Z',
           domains: {
-            orders: { description: 'Order management', systemType: 'domain' },
+            orders: {
+              description: 'Order management',
+              systemType: 'domain',
+            },
           },
         },
         components: [
@@ -398,7 +417,10 @@ describe('Header', () => {
           description: 'Test graph with orphans',
           generated: '2024-01-15T10:30:00Z',
           domains: {
-            orders: { description: 'Order management', systemType: 'domain' },
+            orders: {
+              description: 'Order management',
+              systemType: 'domain',
+            },
           },
         },
         components: [
@@ -444,7 +466,10 @@ describe('Header', () => {
           description: 'Test graph with orphans',
           generated: '2024-01-15T10:30:00Z',
           domains: {
-            orders: { description: 'Order management', systemType: 'domain' },
+            orders: {
+              description: 'Order management',
+              systemType: 'domain',
+            },
           },
         },
         components: [
@@ -492,7 +517,10 @@ describe('Header', () => {
           description: 'Test graph with orphans',
           generated: '2024-01-15T10:30:00Z',
           domains: {
-            orders: { description: 'Order management', systemType: 'domain' },
+            orders: {
+              description: 'Order management',
+              systemType: 'domain',
+            },
           },
         },
         components: [

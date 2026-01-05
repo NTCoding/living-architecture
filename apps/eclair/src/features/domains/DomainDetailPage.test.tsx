@@ -1,12 +1,23 @@
-import { describe, it, expect } from 'vitest'
-import { render, screen, within } from '@testing-library/react'
+import {
+  describe, it, expect 
+} from 'vitest'
+import {
+  render, screen, within 
+} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter, Routes, Route } from 'react-router-dom'
+import {
+  MemoryRouter, Routes, Route 
+} from 'react-router-dom'
 import { DomainDetailPage } from './DomainDetailPage'
-import { parseNode, parseEdge, parseDomainMetadata } from '@/lib/riviereTestData'
+import {
+  parseNode, parseEdge, parseDomainMetadata 
+} from '@/lib/riviereTestFixtures'
 import type { RiviereGraph } from '@/types/riviere'
 
-const testSourceLocation = { repository: 'test-repo', filePath: 'src/test.ts' }
+const testSourceLocation = {
+  repository: 'test-repo',
+  filePath: 'src/test.ts',
+}
 
 function createTestGraph(): RiviereGraph {
   return {
@@ -15,18 +26,61 @@ function createTestGraph(): RiviereGraph {
       name: 'Test Architecture',
       description: 'Test description',
       domains: parseDomainMetadata({
-        'order-domain': { description: 'Order management', systemType: 'domain' },
+        'order-domain': {
+          description: 'Order management',
+          systemType: 'domain',
+        },
       }),
     },
     components: [
-      parseNode({ sourceLocation: testSourceLocation, id: 'n1', type: 'API', name: 'Place Order', domain: 'order-domain', module: 'm1', apiType: 'REST', httpMethod: 'POST', path: '/api/orders' }),
-      parseNode({ sourceLocation: testSourceLocation, id: 'n2', type: 'UseCase', name: 'Place Order UC', domain: 'order-domain', module: 'm1' }),
-      parseNode({ sourceLocation: testSourceLocation, id: 'n3', type: 'DomainOp', name: 'Order.begin', domain: 'order-domain', module: 'm1', entity: 'Order', operationName: 'begin' }),
-      parseNode({ sourceLocation: testSourceLocation, id: 'n4', type: 'Event', name: 'OrderPlaced', domain: 'order-domain', module: 'm1', eventName: 'OrderPlaced' }),
+      parseNode({
+        sourceLocation: testSourceLocation,
+        id: 'n1',
+        type: 'API',
+        name: 'Place Order',
+        domain: 'order-domain',
+        module: 'm1',
+        apiType: 'REST',
+        httpMethod: 'POST',
+        path: '/api/orders',
+      }),
+      parseNode({
+        sourceLocation: testSourceLocation,
+        id: 'n2',
+        type: 'UseCase',
+        name: 'Place Order UC',
+        domain: 'order-domain',
+        module: 'm1',
+      }),
+      parseNode({
+        sourceLocation: testSourceLocation,
+        id: 'n3',
+        type: 'DomainOp',
+        name: 'Order.begin',
+        domain: 'order-domain',
+        module: 'm1',
+        entity: 'Order',
+        operationName: 'begin',
+      }),
+      parseNode({
+        sourceLocation: testSourceLocation,
+        id: 'n4',
+        type: 'Event',
+        name: 'OrderPlaced',
+        domain: 'order-domain',
+        module: 'm1',
+        eventName: 'OrderPlaced',
+      }),
     ],
     links: [
-      parseEdge({ source: 'n1', target: 'n2' }),
-      parseEdge({ source: 'n2', target: 'n3' }),
+      parseEdge({
+        source: 'n1',
+        target: 'n2',
+      }),
+      parseEdge({
+        source: 'n2',
+        target: 'n3',
+      }),
     ],
   }
 }
@@ -37,7 +91,7 @@ function renderAtRoute(graph: RiviereGraph, path: string): ReturnType<typeof ren
       <Routes>
         <Route path="/domains/:domainId" element={<DomainDetailPage graph={graph} />} />
       </Routes>
-    </MemoryRouter>
+    </MemoryRouter>,
   )
 }
 
@@ -126,13 +180,15 @@ describe('DomainDetailPage', () => {
     it('renders consumed events with ear icon', () => {
       const graph = createTestGraph()
       graph.components.push(
-        parseNode({ sourceLocation: testSourceLocation,           id: 'n5',
+        parseNode({
+          sourceLocation: testSourceLocation,
+          id: 'n5',
           type: 'EventHandler',
           name: 'Handle Payment',
           domain: 'order-domain',
           module: 'm1',
           subscribedEvents: ['PaymentReceived'],
-        })
+        }),
       )
 
       renderAtRoute(graph, '/domains/order-domain')
@@ -143,7 +199,6 @@ describe('DomainDetailPage', () => {
     })
   })
 
-
   it('shows error message when domain not found', () => {
     const graph = createTestGraph()
 
@@ -151,7 +206,6 @@ describe('DomainDetailPage', () => {
 
     expect(screen.getByText(/domain not found/i)).toBeInTheDocument()
   })
-
 
   describe('view switcher', () => {
     it('renders view switcher with two options', () => {
@@ -183,7 +237,10 @@ describe('DomainDetailPage', () => {
       await user.click(screen.getByRole('tab', { name: /graph/i }))
 
       expect(screen.getByRole('tab', { name: /graph/i })).toHaveAttribute('aria-selected', 'true')
-      expect(screen.getByRole('tab', { name: /details/i })).toHaveAttribute('aria-selected', 'false')
+      expect(screen.getByRole('tab', { name: /details/i })).toHaveAttribute(
+        'aria-selected',
+        'false',
+      )
     })
 
     it('is keyboard accessible via arrow keys', async () => {
@@ -259,7 +316,9 @@ describe('DomainDetailPage', () => {
       renderAtRoute(graph, '/domains/order-domain')
 
       expect(screen.getByPlaceholderText('Search nodes...')).toBeInTheDocument()
-      expect(screen.getByTestId('filters-section').querySelector('.ph-magnifying-glass')).toBeInTheDocument()
+      expect(
+        screen.getByTestId('filters-section').querySelector('.ph-magnifying-glass'),
+      ).toBeInTheDocument()
     })
 
     it('renders filter tags for node types', () => {

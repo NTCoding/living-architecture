@@ -1,5 +1,9 @@
-import { describe, expect, test } from 'vitest'
-import { NODE_COLORS, NODE_RADII, EDGE_COLORS, getDomainColor } from './types'
+import {
+  describe, expect, test 
+} from 'vitest'
+import {
+  NODE_COLORS, NODE_RADII, EDGE_COLORS, getDomainColor 
+} from './types'
 import type { Theme } from '@/types/theme'
 import type { NodeType } from '@/types/riviere'
 
@@ -11,7 +15,15 @@ describe('graph constants', () => {
   })
 
   test('NODE_COLORS has all node types for each theme', () => {
-    const nodeTypes: readonly NodeType[] = ['UI', 'API', 'UseCase', 'DomainOp', 'Event', 'EventHandler', 'Custom']
+    const nodeTypes: readonly NodeType[] = [
+      'UI',
+      'API',
+      'UseCase',
+      'DomainOp',
+      'Event',
+      'EventHandler',
+      'Custom',
+    ]
     const themes: readonly Theme[] = ['stream', 'voltage', 'circuit']
 
     for (const theme of themes) {
@@ -22,7 +34,15 @@ describe('graph constants', () => {
   })
 
   test('NODE_RADII has all node types', () => {
-    const nodeTypes: readonly NodeType[] = ['UI', 'API', 'UseCase', 'DomainOp', 'Event', 'EventHandler', 'Custom']
+    const nodeTypes: readonly NodeType[] = [
+      'UI',
+      'API',
+      'UseCase',
+      'DomainOp',
+      'Event',
+      'EventHandler',
+      'Custom',
+    ]
 
     for (const nodeType of nodeTypes) {
       expect(NODE_RADII[nodeType]).toBeGreaterThan(0)

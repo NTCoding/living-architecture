@@ -10,7 +10,7 @@ export function calculateTooltipPositionWithViewportClipping(
   x: number,
   y: number,
   viewportWidth: number = window.innerWidth,
-  viewportHeight: number = window.innerHeight
+  viewportHeight: number = window.innerHeight,
 ): TooltipPosition {
   const wouldOverflowRight = x + TOOLTIP_WIDTH > viewportWidth
   const wouldOverflowBottom = y + TOOLTIP_HEIGHT > viewportHeight
@@ -18,5 +18,8 @@ export function calculateTooltipPositionWithViewportClipping(
   const left = wouldOverflowRight ? x - TOOLTIP_WIDTH - 10 : x
   const top = wouldOverflowBottom ? y - TOOLTIP_HEIGHT - 10 : y
 
-  return { left, top }
+  return {
+    left,
+    top,
+  }
 }

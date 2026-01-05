@@ -1,10 +1,21 @@
-import { describe, it, expect, vi } from 'vitest'
+import {
+  describe, it, expect, vi 
+} from 'vitest'
 import * as d3 from 'd3'
-import { applyFocusMode, applyResetMode } from './applyFocusModeBehavior'
-import type { SimulationNode, SimulationLink } from '../../types'
-import { parseNode, parseEdge } from '@/lib/riviereTestData'
+import {
+  applyFocusMode, applyResetMode 
+} from './applyFocusModeBehavior'
+import type {
+  SimulationNode, SimulationLink 
+} from '../../types'
+import {
+  parseNode, parseEdge 
+} from '@/lib/riviereTestFixtures'
 
-const testSourceLocation = { repository: 'test-repo', filePath: 'src/test.ts' }
+const testSourceLocation = {
+  repository: 'test-repo',
+  filePath: 'src/test.ts',
+}
 
 function createTestNode(id: string, type: SimulationNode['type'], domain: string): SimulationNode {
   return {
@@ -32,7 +43,11 @@ function createTestLink(sourceId: string, targetId: string): SimulationLink {
     source: sourceId,
     target: targetId,
     type: 'sync',
-    originalEdge: parseEdge({ source: sourceId, target: targetId, type: 'sync' }),
+    originalEdge: parseEdge({
+      source: sourceId,
+      target: targetId,
+      type: 'sync',
+    }),
   }
 }
 
@@ -63,7 +78,13 @@ function createTestContext(): TestContext {
     return t
   })
 
-  return { svgElement, svg, nodeGroup, linkGroup, zoom }
+  return {
+    svgElement,
+    svg,
+    nodeGroup,
+    linkGroup,
+    zoom,
+  }
 }
 
 function cleanupContext(ctx: TestContext): void {
@@ -104,8 +125,11 @@ describe('applyFocusModeBehavior', () => {
           nodes,
           domain: 'orders',
           theme: 'stream',
-          dimensions: { width: 800, height: 600 },
-        })
+          dimensions: {
+            width: 800,
+            height: 600,
+          },
+        }),
       ).not.toThrow()
 
       cleanupContext(ctx)
@@ -114,8 +138,14 @@ describe('applyFocusModeBehavior', () => {
     it('handles empty nodes array', () => {
       const ctx = createTestContext()
       const nodes: SimulationNode[] = []
-      const nodeSelection = ctx.nodeGroup.selectAll<SVGGElement, SimulationNode>('g').data(nodes).join('g')
-      const linkSelection = ctx.linkGroup.selectAll<SVGPathElement, SimulationLink>('path').data([]).join('path')
+      const nodeSelection = ctx.nodeGroup
+        .selectAll<SVGGElement, SimulationNode>('g')
+        .data(nodes)
+        .join('g')
+      const linkSelection = ctx.linkGroup
+        .selectAll<SVGPathElement, SimulationLink>('path')
+        .data([])
+        .join('path')
 
       expect(() =>
         applyFocusMode({
@@ -126,8 +156,11 @@ describe('applyFocusModeBehavior', () => {
           nodes,
           domain: 'nonexistent',
           theme: 'stream',
-          dimensions: { width: 800, height: 600 },
-        })
+          dimensions: {
+            width: 800,
+            height: 600,
+          },
+        }),
       ).not.toThrow()
 
       cleanupContext(ctx)
@@ -136,11 +169,17 @@ describe('applyFocusModeBehavior', () => {
     it('applies focus mode with voltage theme', () => {
       const ctx = createTestContext()
       const nodes: SimulationNode[] = [createTestNode('api-1', 'API', 'orders')]
-      const nodeSelection = ctx.nodeGroup.selectAll<SVGGElement, SimulationNode>('g').data(nodes).join('g')
+      const nodeSelection = ctx.nodeGroup
+        .selectAll<SVGGElement, SimulationNode>('g')
+        .data(nodes)
+        .join('g')
       nodeSelection.append('circle').attr('class', 'node-circle')
       nodeSelection.append('text').attr('class', 'node-label')
       nodeSelection.append('text').attr('class', 'node-domain-label')
-      const linkSelection = ctx.linkGroup.selectAll<SVGPathElement, SimulationLink>('path').data([]).join('path')
+      const linkSelection = ctx.linkGroup
+        .selectAll<SVGPathElement, SimulationLink>('path')
+        .data([])
+        .join('path')
 
       expect(() =>
         applyFocusMode({
@@ -151,8 +190,11 @@ describe('applyFocusModeBehavior', () => {
           nodes,
           domain: 'orders',
           theme: 'voltage',
-          dimensions: { width: 800, height: 600 },
-        })
+          dimensions: {
+            width: 800,
+            height: 600,
+          },
+        }),
       ).not.toThrow()
 
       cleanupContext(ctx)
@@ -161,11 +203,17 @@ describe('applyFocusModeBehavior', () => {
     it('applies focus mode with circuit theme', () => {
       const ctx = createTestContext()
       const nodes: SimulationNode[] = [createTestNode('api-1', 'API', 'orders')]
-      const nodeSelection = ctx.nodeGroup.selectAll<SVGGElement, SimulationNode>('g').data(nodes).join('g')
+      const nodeSelection = ctx.nodeGroup
+        .selectAll<SVGGElement, SimulationNode>('g')
+        .data(nodes)
+        .join('g')
       nodeSelection.append('circle').attr('class', 'node-circle')
       nodeSelection.append('text').attr('class', 'node-label')
       nodeSelection.append('text').attr('class', 'node-domain-label')
-      const linkSelection = ctx.linkGroup.selectAll<SVGPathElement, SimulationLink>('path').data([]).join('path')
+      const linkSelection = ctx.linkGroup
+        .selectAll<SVGPathElement, SimulationLink>('path')
+        .data([])
+        .join('path')
 
       expect(() =>
         applyFocusMode({
@@ -176,8 +224,11 @@ describe('applyFocusModeBehavior', () => {
           nodes,
           domain: 'orders',
           theme: 'circuit',
-          dimensions: { width: 800, height: 600 },
-        })
+          dimensions: {
+            width: 800,
+            height: 600,
+          },
+        }),
       ).not.toThrow()
 
       cleanupContext(ctx)
@@ -189,11 +240,17 @@ describe('applyFocusModeBehavior', () => {
         createTestNode('api-1', 'API', 'orders'),
         createTestNode('usecase-1', 'UseCase', 'payments'),
       ]
-      const nodeSelection = ctx.nodeGroup.selectAll<SVGGElement, SimulationNode>('g').data(nodes).join('g')
+      const nodeSelection = ctx.nodeGroup
+        .selectAll<SVGGElement, SimulationNode>('g')
+        .data(nodes)
+        .join('g')
       nodeSelection.append('circle').attr('class', 'node-circle')
       nodeSelection.append('text').attr('class', 'node-label')
       nodeSelection.append('text').attr('class', 'node-domain-label')
-      const linkSelection = ctx.linkGroup.selectAll<SVGPathElement, SimulationLink>('path').data([]).join('path')
+      const linkSelection = ctx.linkGroup
+        .selectAll<SVGPathElement, SimulationLink>('path')
+        .data([])
+        .join('path')
 
       expect(() =>
         applyFocusMode({
@@ -204,8 +261,11 @@ describe('applyFocusModeBehavior', () => {
           nodes,
           domain: 'nonexistent',
           theme: 'stream',
-          dimensions: { width: 800, height: 600 },
-        })
+          dimensions: {
+            width: 800,
+            height: 600,
+          },
+        }),
       ).not.toThrow()
 
       cleanupContext(ctx)
@@ -239,7 +299,7 @@ describe('applyFocusModeBehavior', () => {
         applyResetMode({
           node: nodeSelection,
           link: linkSelection,
-        })
+        }),
       ).not.toThrow()
 
       cleanupContext(ctx)
@@ -247,14 +307,20 @@ describe('applyFocusModeBehavior', () => {
 
     it('handles empty selections', () => {
       const ctx = createTestContext()
-      const nodeSelection = ctx.nodeGroup.selectAll<SVGGElement, SimulationNode>('g').data([]).join('g')
-      const linkSelection = ctx.linkGroup.selectAll<SVGPathElement, SimulationLink>('path').data([]).join('path')
+      const nodeSelection = ctx.nodeGroup
+        .selectAll<SVGGElement, SimulationNode>('g')
+        .data([])
+        .join('g')
+      const linkSelection = ctx.linkGroup
+        .selectAll<SVGPathElement, SimulationLink>('path')
+        .data([])
+        .join('path')
 
       expect(() =>
         applyResetMode({
           node: nodeSelection,
           link: linkSelection,
-        })
+        }),
       ).not.toThrow()
 
       cleanupContext(ctx)
@@ -276,7 +342,10 @@ describe('applyFocusModeBehavior', () => {
       nodeSelection.append('text').attr('class', 'node-label')
       nodeSelection.append('text').attr('class', 'node-domain-label')
 
-      const linkSelection = ctx.linkGroup.selectAll<SVGPathElement, SimulationLink>('path').data([]).join('path')
+      const linkSelection = ctx.linkGroup
+        .selectAll<SVGPathElement, SimulationLink>('path')
+        .data([])
+        .join('path')
 
       applyFocusMode({
         svg: ctx.svg,
@@ -286,14 +355,17 @@ describe('applyFocusModeBehavior', () => {
         nodes,
         domain: 'orders',
         theme: 'stream',
-        dimensions: { width: 800, height: 600 },
+        dimensions: {
+          width: 800,
+          height: 600,
+        },
       })
 
       expect(() =>
         applyResetMode({
           node: nodeSelection,
           link: linkSelection,
-        })
+        }),
       ).not.toThrow()
 
       cleanupContext(ctx)

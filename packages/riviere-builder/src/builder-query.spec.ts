@@ -1,11 +1,21 @@
 import { RiviereQuery } from '@living-architecture/riviere-query'
-import { RiviereBuilder, type BuilderOptions } from './builder'
+import {
+  RiviereBuilder, type BuilderOptions 
+} from './builder'
 
 function createValidOptions(): BuilderOptions {
   return {
-    sources: [{ repository: 'my-org/my-repo', commit: 'abc123' }],
+    sources: [
+      {
+        repository: 'my-org/my-repo',
+        commit: 'abc123',
+      },
+    ],
     domains: {
-      orders: { description: 'Order management', systemType: 'domain' },
+      orders: {
+        description: 'Order management',
+        systemType: 'domain',
+      },
     },
   }
 }
@@ -20,7 +30,10 @@ describe('query', () => {
       apiType: 'REST',
       httpMethod: 'POST',
       path: '/orders',
-      sourceLocation: { repository: 'my-org/my-repo', filePath: 'src/orders.ts' },
+      sourceLocation: {
+        repository: 'my-org/my-repo',
+        filePath: 'src/orders.ts',
+      },
     })
 
     const result = builder.query()
@@ -37,7 +50,10 @@ describe('query', () => {
       apiType: 'REST',
       httpMethod: 'POST',
       path: '/orders',
-      sourceLocation: { repository: 'my-org/my-repo', filePath: 'src/orders.ts' },
+      sourceLocation: {
+        repository: 'my-org/my-repo',
+        filePath: 'src/orders.ts',
+      },
     })
 
     const apis = builder.query().componentsByType('API')
@@ -55,7 +71,10 @@ describe('query', () => {
       apiType: 'REST',
       httpMethod: 'GET',
       path: '/orphan',
-      sourceLocation: { repository: 'my-org/my-repo', filePath: 'src/orphan.ts' },
+      sourceLocation: {
+        repository: 'my-org/my-repo',
+        filePath: 'src/orphan.ts',
+      },
     })
 
     expect(() => builder.query()).not.toThrow()
@@ -74,7 +93,10 @@ describe('query', () => {
       apiType: 'REST',
       httpMethod: 'POST',
       path: '/new',
-      sourceLocation: { repository: 'my-org/my-repo', filePath: 'src/new.ts' },
+      sourceLocation: {
+        repository: 'my-org/my-repo',
+        filePath: 'src/new.ts',
+      },
     })
 
     const afterApis = builder.query().componentsByType('API')
@@ -94,7 +116,10 @@ describe('query', () => {
       apiType: 'REST',
       httpMethod: 'GET',
       path: '/first',
-      sourceLocation: { repository: 'my-org/my-repo', filePath: 'src/first.ts' },
+      sourceLocation: {
+        repository: 'my-org/my-repo',
+        filePath: 'src/first.ts',
+      },
     })
 
     expect(builder.query().componentsByType('API')).toHaveLength(1)
@@ -106,7 +131,10 @@ describe('query', () => {
       apiType: 'REST',
       httpMethod: 'GET',
       path: '/second',
-      sourceLocation: { repository: 'my-org/my-repo', filePath: 'src/second.ts' },
+      sourceLocation: {
+        repository: 'my-org/my-repo',
+        filePath: 'src/second.ts',
+      },
     })
 
     expect(builder.query().componentsByType('API')).toHaveLength(2)

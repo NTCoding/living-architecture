@@ -1,6 +1,13 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import {
+  describe, it, expect, vi, beforeEach, afterEach 
+} from 'vitest'
 import { toPng } from 'html-to-image'
-import { generateExportFilename, downloadBlob, exportSvgAsFile, exportElementAsPng } from './exportGraph'
+import {
+  generateExportFilename,
+  downloadBlob,
+  exportSvgAsFile,
+  exportElementAsPng,
+} from './exportGraph'
 
 describe('generateExportFilename', () => {
   beforeEach(() => {
@@ -96,7 +103,13 @@ describe('downloadBlob', () => {
 
 describe('exportSvgAsFile', () => {
   it('serializes SVG element and triggers download with correct blob type', () => {
-    const captured: { blob: Blob | null; filename: string } = { blob: null, filename: '' }
+    const captured: {
+      blob: Blob | null
+      filename: string
+    } = {
+      blob: null,
+      filename: '',
+    }
 
     const mockCreateObjectURL = vi.fn((blob: Blob) => {
       captured.blob = blob
@@ -142,9 +155,7 @@ describe('exportSvgAsFile', () => {
   })
 })
 
-vi.mock('html-to-image', () => ({
-  toPng: vi.fn(),
-}))
+vi.mock('html-to-image', () => ({ toPng: vi.fn() }))
 
 describe('exportElementAsPng', () => {
   const originalCreateElement = document.createElement.bind(document)
@@ -157,7 +168,13 @@ describe('exportElementAsPng', () => {
     const mockedToPng = vi.mocked(toPng)
     mockedToPng.mockResolvedValue('data:image/png;base64,testbase64data')
 
-    const captured: { filename: string; href: string } = { filename: '', href: '' }
+    const captured: {
+      filename: string
+      href: string
+    } = {
+      filename: '',
+      href: '',
+    }
 
     vi.spyOn(document, 'createElement').mockImplementation((tagName: string) => {
       if (tagName === 'a') {

@@ -1,7 +1,13 @@
-import { render, screen } from '@testing-library/react'
+import {
+  render, screen 
+} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter, Routes, Route, useLocation } from 'react-router-dom'
-import { describe, expect, it, vi } from 'vitest'
+import {
+  MemoryRouter, Routes, Route, useLocation 
+} from 'react-router-dom'
+import {
+  describe, expect, it, vi 
+} from 'vitest'
 import { Sidebar } from './Sidebar'
 
 function LocationDisplay(): React.ReactElement {
@@ -10,16 +16,15 @@ function LocationDisplay(): React.ReactElement {
 }
 
 vi.mock('@/contexts/ThemeContext', () => ({
-  useTheme: () => ({ theme: 'stream', setTheme: vi.fn() }),
+  useTheme: () => ({
+    theme: 'stream',
+    setTheme: vi.fn(),
+  }),
 }))
 
-vi.mock('@/components/Logo/Logo', () => ({
-  Logo: () => <div data-testid="logo">Logo</div>,
-}))
+vi.mock('@/components/Logo/Logo', () => ({ Logo: () => <div data-testid="logo">Logo</div> }))
 
-vi.mock('@/components/ThemeSwitcher/ThemeSwitcher', () => ({
-  ThemeSwitcher: () => <div data-testid="theme-switcher">ThemeSwitcher</div>,
-}))
+vi.mock('@/components/ThemeSwitcher/ThemeSwitcher', () => ({ThemeSwitcher: () => <div data-testid="theme-switcher">ThemeSwitcher</div>,}))
 
 function renderWithRouter(ui: React.ReactElement, initialPath = '/'): ReturnType<typeof render> {
   return render(<MemoryRouter initialEntries={[initialPath]}>{ui}</MemoryRouter>)
@@ -61,11 +66,26 @@ describe('Sidebar', () => {
     renderWithRouter(<Sidebar hasGraph={false} />)
 
     expect(screen.getByRole('link', { name: /Overview/i })).toBeInTheDocument()
-    expect(screen.getByText('Flows').closest('span[aria-disabled]')).toHaveAttribute('aria-disabled', 'true')
-    expect(screen.getByText('Domain Map').closest('span[aria-disabled]')).toHaveAttribute('aria-disabled', 'true')
-    expect(screen.getByText('Full Graph').closest('span[aria-disabled]')).toHaveAttribute('aria-disabled', 'true')
-    expect(screen.getByText('Entities').closest('span[aria-disabled]')).toHaveAttribute('aria-disabled', 'true')
-    expect(screen.getByText('Events').closest('span[aria-disabled]')).toHaveAttribute('aria-disabled', 'true')
+    expect(screen.getByText('Flows').closest('span[aria-disabled]')).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    )
+    expect(screen.getByText('Domain Map').closest('span[aria-disabled]')).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    )
+    expect(screen.getByText('Full Graph').closest('span[aria-disabled]')).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    )
+    expect(screen.getByText('Entities').closest('span[aria-disabled]')).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    )
+    expect(screen.getByText('Events').closest('span[aria-disabled]')).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    )
   })
 
   it('enables graph-dependent items when graph is loaded', () => {
@@ -101,7 +121,7 @@ describe('Sidebar', () => {
         <Routes>
           <Route path="*" element={<LocationDisplay />} />
         </Routes>
-      </MemoryRouter>
+      </MemoryRouter>,
     )
 
     expect(screen.getByTestId('location')).toHaveTextContent('/')

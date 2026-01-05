@@ -1,4 +1,6 @@
-import { useState, useCallback } from 'react'
+import {
+  useState, useCallback 
+} from 'react'
 import type { NodeType } from '@/types/riviere'
 
 interface NodeTypeInfo {
@@ -43,9 +45,7 @@ export function NodeTypeFilters({
         aria-controls="node-type-filter-list"
         data-testid="node-type-filters-toggle"
       >
-        <span className="text-sm font-semibold text-[var(--text-primary)]">
-          Node Type Filters
-        </span>
+        <span className="text-sm font-semibold text-[var(--text-primary)]">Node Type Filters</span>
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="16"
@@ -64,10 +64,7 @@ export function NodeTypeFilters({
       </button>
 
       {isOpen && (
-        <div
-          id="node-type-filter-list"
-          className="border-t border-[var(--border-color)] p-4"
-        >
+        <div id="node-type-filter-list" className="border-t border-[var(--border-color)] p-4">
           <div className="mb-3 flex gap-2">
             <button
               type="button"
@@ -104,12 +101,8 @@ export function NodeTypeFilters({
                     className="h-4 w-4 rounded border-[var(--border-color)] accent-[var(--primary)]"
                     data-testid={`node-type-checkbox-${nodeType.type}`}
                   />
-                  <span className="flex-1 text-sm text-[var(--text-primary)]">
-                    {nodeType.type}
-                  </span>
-                  <span className="text-xs text-[var(--text-tertiary)]">
-                    {nodeType.nodeCount}
-                  </span>
+                  <span className="flex-1 text-sm text-[var(--text-primary)]">{nodeType.type}</span>
+                  <span className="text-xs text-[var(--text-tertiary)]">{nodeType.nodeCount}</span>
                 </label>
               )
             })}

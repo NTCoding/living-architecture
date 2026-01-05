@@ -44,6 +44,37 @@ living-architecture/
 
 **No generic folders.** Every folder has domain meaning. Forbidden: `utils/`, `helpers/`, `common/`, `shared/`, `core/`, `lib/`.
 
+**Organize by usage, not by type.** Files that are used together should live together. Avoid grouping by category (types/, models/, assertions/, validators/). Instead, co-locate related code within features or individual units.
+
+❌ **Avoid:**
+```text
+feature/
+├── types/
+│   ├── user.ts
+│   └── order.ts
+├── validators/
+│   ├── user-validator.ts
+│   └── order-validator.ts
+└── services/
+    ├── user-service.ts
+    └── order-service.ts
+```
+
+✅ **Prefer:**
+```text
+feature/
+├── user/
+│   ├── user.ts           # type + validator + service together
+│   └── user.test.ts
+└── order/
+    ├── order.ts
+    └── order.test.ts
+```
+
+**Priority:** Feature boundaries → Individual units → Type grouping (last resort)
+
+**Exception:** Shared test fixtures used across multiple test files may be grouped (e.g., `test-fixtures.ts`).
+
 **Cross-project imports use package names.** Import from `@living-architecture/[pkg-name]`, not relative paths like `../../packages/[pkg-name]`.
 
 **Add workspace dependencies explicitly.** When importing from another project, add `"@living-architecture/[pkg-name]": "workspace:*"` to package.json.

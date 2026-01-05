@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { Entity } from '@living-architecture/riviere-query'
 import type { DomainOpComponent } from '@living-architecture/riviere-schema'
 import { CodeLinkMenu } from '@/features/flows/components/CodeLinkMenu/CodeLinkMenu'
+import { MethodCardChevron } from './MethodCardChevron'
 
 interface EntityAccordionProps {
   readonly entity: Entity
@@ -15,7 +16,11 @@ interface EntityHeaderActionsProps {
   readonly onViewOnGraph: ((nodeId: string) => void) | undefined
 }
 
-function EntityHeaderActions({ entity, isExpanded, onViewOnGraph }: Readonly<EntityHeaderActionsProps>): React.ReactElement {
+function EntityHeaderActions({
+  entity,
+  isExpanded,
+  onViewOnGraph,
+}: Readonly<EntityHeaderActionsProps>): React.ReactElement {
   const firstOp = entity.operations[0]
   const firstOpId = entity.firstOperationId()
 
@@ -87,7 +92,11 @@ export function EntityAccordion({
             </span>
           </div>
         </button>
-        <EntityHeaderActions entity={entity} isExpanded={isExpanded} onViewOnGraph={onViewOnGraph} />
+        <EntityHeaderActions
+          entity={entity}
+          isExpanded={isExpanded}
+          onViewOnGraph={onViewOnGraph}
+        />
       </div>
 
       {isExpanded && (
@@ -101,14 +110,18 @@ export function EntityAccordion({
               <div className="flex flex-wrap items-center gap-2 rounded-lg bg-[var(--bg-tertiary)] p-3">
                 {entity.states.map((state, index) => {
                   const getStateBorderClass = (): string => {
-                    if (index === 0) return 'border-[var(--green)] bg-[rgba(16,185,129,0.1)] text-[var(--text-primary)]'
-                    if (index === entity.states.length - 1) return 'border-[var(--node-domainop)] bg-[rgba(245,158,11,0.1)] text-[var(--text-primary)]'
+                    if (index === 0)
+                      return 'border-[var(--green)] bg-[rgba(16,185,129,0.1)] text-[var(--text-primary)]'
+                    if (index === entity.states.length - 1)
+                      return 'border-[var(--node-domainop)] bg-[rgba(245,158,11,0.1)] text-[var(--text-primary)]'
                     return 'border-[var(--border-color)] bg-[var(--bg-secondary)] text-[var(--text-primary)]'
                   }
                   const borderClass = getStateBorderClass()
                   return (
                     <div key={state} className="flex items-center gap-2">
-                      <span className={`rounded-lg border px-3 py-1.5 text-xs font-semibold ${borderClass}`}>
+                      <span
+                        className={`rounded-lg border px-3 py-1.5 text-xs font-semibold ${borderClass}`}
+                      >
                         {state}
                       </span>
                       {index < entity.states.length - 1 && (
@@ -131,7 +144,11 @@ export function EntityAccordion({
                   </div>
                   <div className="space-y-3">
                     {entity.operations.map((op) => (
-                      <MethodCard key={op.id} operation={op} businessRules={op.businessRules ?? []} />
+                      <MethodCard
+                        key={op.id}
+                        operation={op}
+                        businessRules={op.businessRules ?? []}
+                      />
                     ))}
                   </div>
                 </div>
@@ -157,15 +174,19 @@ interface MethodCardProps {
   readonly businessRules: readonly string[]
 }
 
-function MethodCard({ operation, businessRules }: Readonly<MethodCardProps>): React.ReactElement {
+function MethodCard({
+  operation, businessRules 
+}: Readonly<MethodCardProps>): React.ReactElement {
   const [isExpanded, setIsExpanded] = useState(false)
 
   return (
     <div className="rounded-lg bg-[var(--bg-secondary)] shadow-sm">
-      <MethodCardHeader operation={operation} isExpanded={isExpanded} onToggle={() => setIsExpanded(!isExpanded)} />
-      {isExpanded && (
-        <MethodCardContent operation={operation} businessRules={businessRules} />
-      )}
+      <MethodCardHeader
+        operation={operation}
+        isExpanded={isExpanded}
+        onToggle={() => setIsExpanded(!isExpanded)}
+      />
+      {isExpanded && <MethodCardContent operation={operation} businessRules={businessRules} />}
     </div>
   )
 }
@@ -176,7 +197,11 @@ interface MethodCardHeaderProps {
   readonly onToggle: () => void
 }
 
-function MethodCardHeader({ operation, isExpanded, onToggle }: Readonly<MethodCardHeaderProps>): React.ReactElement {
+function MethodCardHeader({
+  operation,
+  isExpanded,
+  onToggle,
+}: Readonly<MethodCardHeaderProps>): React.ReactElement {
   return (
     <div
       className={`flex w-full items-center justify-between gap-4 px-4 py-3 transition-colors ${
@@ -195,7 +220,11 @@ interface MethodCardButtonProps {
   readonly onToggle: () => void
 }
 
-function MethodCardButton({ operation, isExpanded, onToggle }: Readonly<MethodCardButtonProps>): React.ReactElement {
+function MethodCardButton({
+  operation,
+  isExpanded,
+  onToggle,
+}: Readonly<MethodCardButtonProps>): React.ReactElement {
   return (
     <button
       type="button"
@@ -210,15 +239,15 @@ function MethodCardButton({ operation, isExpanded, onToggle }: Readonly<MethodCa
   )
 }
 
-interface MethodSignatureProps {
-  readonly operation: DomainOpComponent
-}
+interface MethodSignatureProps {readonly operation: DomainOpComponent}
 
-function formatParameters(signature: NonNullable<MethodSignatureProps['operation']['signature']>): string {
+function formatParameters(
+  signature: NonNullable<MethodSignatureProps['operation']['signature']>,
+): string {
   if (signature.parameters === undefined) {
     return ''
   }
-  return signature.parameters.map(p => `${p.name}: ${p.type}`).join(', ')
+  return signature.parameters.map((p) => `${p.name}: ${p.type}`).join(', ')
 }
 
 function MethodSignature({ operation }: Readonly<MethodSignatureProps>): React.ReactElement {
@@ -227,7 +256,9 @@ function MethodSignature({ operation }: Readonly<MethodSignatureProps>): React.R
       <span className="font-semibold text-[var(--primary)]">{operation.operationName}</span>
       {operation.signature !== undefined && (
         <>
-          <span className="text-[var(--text-secondary)]">({formatParameters(operation.signature)})</span>
+          <span className="text-[var(--text-secondary)]">
+            ({formatParameters(operation.signature)})
+          </span>
           {operation.signature.returnType !== undefined && (
             <span className="text-[var(--node-domainop)]">: {operation.signature.returnType}</span>
           )}
@@ -237,13 +268,11 @@ function MethodSignature({ operation }: Readonly<MethodSignatureProps>): React.R
   )
 }
 
-interface StateChangesTagProps {
-  readonly operation: DomainOpComponent
-}
+interface StateChangesTagProps {readonly operation: DomainOpComponent}
 
 function hasStateChanges(
-  operation: DomainOpComponent
-): operation is DomainOpComponent & { stateChanges: NonNullable<DomainOpComponent['stateChanges']> } {
+  operation: DomainOpComponent,
+): operation is DomainOpComponent & {stateChanges: NonNullable<DomainOpComponent['stateChanges']>} {
   return operation.stateChanges !== undefined && operation.stateChanges.length > 0
 }
 
@@ -262,22 +291,7 @@ function StateChangesTag({ operation }: Readonly<StateChangesTagProps>): React.R
   )
 }
 
-interface MethodCardChevronProps {
-  readonly isExpanded: boolean
-}
-
-function MethodCardChevron({ isExpanded }: Readonly<MethodCardChevronProps>): React.ReactElement {
-  return (
-    <i
-      className={`ph ${isExpanded ? 'ph-caret-up' : 'ph-caret-down'} shrink-0 text-[var(--text-tertiary)]`}
-      aria-hidden="true"
-    />
-  )
-}
-
-interface MethodCardActionProps {
-  readonly operation: DomainOpComponent
-}
+interface MethodCardActionProps {readonly operation: DomainOpComponent}
 
 function MethodCardAction({ operation }: Readonly<MethodCardActionProps>): React.ReactElement {
   const sourceLocation = operation.sourceLocation
@@ -300,7 +314,10 @@ interface MethodCardContentProps {
   readonly businessRules: readonly string[]
 }
 
-function MethodCardContent({ operation, businessRules }: Readonly<MethodCardContentProps>): React.ReactElement {
+function MethodCardContent({
+  operation,
+  businessRules,
+}: Readonly<MethodCardContentProps>): React.ReactElement {
   const hasRulesToShow = businessRules.length > 0
   const hasBehavior = operation.behavior !== undefined
   const hasAnyContent = hasRulesToShow || hasBehavior
@@ -314,8 +331,11 @@ function MethodCardContent({ operation, businessRules }: Readonly<MethodCardCont
             Governed by
           </div>
           <div className="space-y-1">
-            {businessRules.map((rule, index) => (
-              <div key={index} className="flex items-start gap-2 text-sm text-[var(--text-secondary)]">
+            {businessRules.map((rule) => (
+              <div
+                key={rule}
+                className="flex items-start gap-2 text-sm text-[var(--text-secondary)]"
+              >
                 <i className="ph ph-check-circle shrink-0 text-[var(--amber)]" aria-hidden="true" />
                 <span>{rule}</span>
               </div>
@@ -325,10 +345,30 @@ function MethodCardContent({ operation, businessRules }: Readonly<MethodCardCont
       )}
       {hasBehavior && (
         <div className="grid grid-cols-2 gap-3">
-          <BehaviorBox label="Reads" items={operation.behavior.reads} icon="ph-book-open" color="blue" />
-          <BehaviorBox label="Validates" items={operation.behavior.validates} icon="ph-shield-check" color="amber" />
-          <BehaviorBox label="Modifies" items={operation.behavior.modifies} icon="ph-pencil-simple" color="green" />
-          <BehaviorBox label="Emits" items={operation.behavior.emits} icon="ph-broadcast" color="purple" />
+          <BehaviorBox
+            label="Reads"
+            items={operation.behavior.reads}
+            icon="ph-book-open"
+            color="blue"
+          />
+          <BehaviorBox
+            label="Validates"
+            items={operation.behavior.validates}
+            icon="ph-shield-check"
+            color="amber"
+          />
+          <BehaviorBox
+            label="Modifies"
+            items={operation.behavior.modifies}
+            icon="ph-pencil-simple"
+            color="green"
+          />
+          <BehaviorBox
+            label="Emits"
+            items={operation.behavior.emits}
+            icon="ph-broadcast"
+            color="purple"
+          />
         </div>
       )}
       {!hasAnyContent && (
@@ -355,13 +395,20 @@ const colorStyles: Record<BehaviorBoxProps['color'], string> = {
   purple: 'border-l-[var(--purple)]',
 }
 
-function BehaviorBox({ label, items, icon, color }: Readonly<BehaviorBoxProps>): React.ReactElement {
+function BehaviorBox({
+  label,
+  items,
+  icon,
+  color,
+}: Readonly<BehaviorBoxProps>): React.ReactElement {
   const hasItems = items !== undefined && items.length > 0
 
   return (
-    <div className={`overflow-hidden rounded border-l-4 bg-[var(--bg-secondary)] p-3 ${colorStyles[color]} ${
-      hasItems ? '' : 'opacity-50'
-    }`}>
+    <div
+      className={`overflow-hidden rounded border-l-4 bg-[var(--bg-secondary)] p-3 ${colorStyles[color]} ${
+        hasItems ? '' : 'opacity-50'
+      }`}
+    >
       <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-[var(--text-tertiary)]">
         <i className={`ph ${icon}`} aria-hidden="true" />
         {label}
@@ -369,7 +416,9 @@ function BehaviorBox({ label, items, icon, color }: Readonly<BehaviorBoxProps>):
       {hasItems && (
         <ul className="space-y-1 text-sm text-[var(--text-secondary)]">
           {items.map((item) => (
-            <li key={item} className="truncate" title={item}>{item}</li>
+            <li key={item} className="truncate" title={item}>
+              {item}
+            </li>
           ))}
         </ul>
       )}

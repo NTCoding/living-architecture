@@ -1,35 +1,44 @@
-import { describe, it, expect } from 'vitest';
-import { mkdir, writeFile, readFile } from 'node:fs/promises';
-import { join } from 'node:path';
-import { createProgram } from '../../cli';
-import { CliErrorCode } from '../../error-codes';
-import type { TestContext } from '../../command-test-fixtures';
-import { createTestContext, setupCommandTest } from '../../command-test-fixtures';
+import {
+  describe, it, expect 
+} from 'vitest'
+import {
+  mkdir, writeFile, readFile 
+} from 'node:fs/promises'
+import { join } from 'node:path'
+import { createProgram } from '../../cli'
+import { CliErrorCode } from '../../error-codes'
+import type { TestContext } from '../../command-test-fixtures'
+import {
+  createTestContext, setupCommandTest 
+} from '../../command-test-fixtures'
 
 describe('riviere builder link-external', () => {
   describe('command registration', () => {
     it('registers link-external command under builder', () => {
-      const program = createProgram();
-      const builderCmd = program.commands.find((cmd) => cmd.name() === 'builder');
-      const linkExternalCmd = builderCmd?.commands.find((cmd) => cmd.name() === 'link-external');
+      const program = createProgram()
+      const builderCmd = program.commands.find((cmd) => cmd.name() === 'builder')
+      const linkExternalCmd = builderCmd?.commands.find((cmd) => cmd.name() === 'link-external')
 
-      expect(linkExternalCmd?.name()).toBe('link-external');
-    });
-  });
+      expect(linkExternalCmd?.name()).toBe('link-external')
+    })
+  })
 
   describe('creating external links', () => {
-    const ctx: TestContext = createTestContext();
-    setupCommandTest(ctx);
+    const ctx: TestContext = createTestContext()
+    setupCommandTest(ctx)
 
     async function createGraphWithComponent(): Promise<void> {
-      const graphDir = join(ctx.testDir, '.riviere');
-      await mkdir(graphDir, { recursive: true });
+      const graphDir = join(ctx.testDir, '.riviere')
+      await mkdir(graphDir, { recursive: true })
       const graph = {
         version: '1.0',
         metadata: {
           sources: [{ repository: 'https://github.com/org/repo' }],
           domains: {
-            orders: { description: 'Order management', systemType: 'domain' },
+            orders: {
+              description: 'Order management',
+              systemType: 'domain',
+            },
           },
         },
         components: [
@@ -42,19 +51,22 @@ describe('riviere builder link-external', () => {
             apiType: 'REST',
             httpMethod: 'POST',
             path: '/payments',
-            sourceLocation: { repository: 'https://github.com/org/repo', filePath: 'src/api/payments.ts' },
+            sourceLocation: {
+              repository: 'https://github.com/org/repo',
+              filePath: 'src/api/payments.ts',
+            },
           },
         ],
         links: [],
         externalLinks: [],
-      };
-      await writeFile(join(graphDir, 'graph.json'), JSON.stringify(graph), 'utf-8');
+      }
+      await writeFile(join(graphDir, 'graph.json'), JSON.stringify(graph), 'utf-8')
     }
 
     it('creates external link when source component exists', async () => {
-      await createGraphWithComponent();
+      await createGraphWithComponent()
 
-      const program = createProgram();
+      const program = createProgram()
       await program.parseAsync([
         'node',
         'riviere',
@@ -65,26 +77,24 @@ describe('riviere builder link-external', () => {
         '--target-name',
         'Stripe API',
         '--json',
-      ]);
+      ])
 
-      const graphPath = join(ctx.testDir, '.riviere', 'graph.json');
-      const content = await readFile(graphPath, 'utf-8');
-      const graph: unknown = JSON.parse(content);
+      const graphPath = join(ctx.testDir, '.riviere', 'graph.json')
+      const content = await readFile(graphPath, 'utf-8')
+      const graph: unknown = JSON.parse(content)
 
       expect(graph).toMatchObject({
         externalLinks: [
           {
             source: 'orders:checkout:api:pay',
-            target: {
-              name: 'Stripe API',
-            },
+            target: { name: 'Stripe API' },
           },
         ],
-      });
-    });
+      })
+    })
 
     it('returns GRAPH_NOT_FOUND when no graph exists', async () => {
-      const program = createProgram();
+      const program = createProgram()
       await program.parseAsync([
         'node',
         'riviere',
@@ -94,16 +104,16 @@ describe('riviere builder link-external', () => {
         'orders:checkout:api:pay',
         '--target-name',
         'Stripe API',
-      ]);
+      ])
 
-      const output = ctx.consoleOutput.join('\n');
-      expect(output).toContain(CliErrorCode.GraphNotFound);
-    });
+      const output = ctx.consoleOutput.join('\n')
+      expect(output).toContain(CliErrorCode.GraphNotFound)
+    })
 
     it('returns COMPONENT_NOT_FOUND with suggestions when source does not exist', async () => {
-      await createGraphWithComponent();
+      await createGraphWithComponent()
 
-      const program = createProgram();
+      const program = createProgram()
       await program.parseAsync([
         'node',
         'riviere',
@@ -114,22 +124,20 @@ describe('riviere builder link-external', () => {
         '--target-name',
         'Stripe API',
         '--json',
-      ]);
+      ])
 
-      expect(ctx.consoleOutput).toHaveLength(1);
-      const output: unknown = JSON.parse(ctx.consoleOutput[0] ?? '');
+      expect(ctx.consoleOutput).toHaveLength(1)
+      const output: unknown = JSON.parse(ctx.consoleOutput[0] ?? '')
       expect(output).toMatchObject({
         success: false,
-        error: {
-          code: CliErrorCode.ComponentNotFound,
-        },
-      });
-    });
+        error: { code: CliErrorCode.ComponentNotFound },
+      })
+    })
 
     it('includes optional target fields when provided', async () => {
-      await createGraphWithComponent();
+      await createGraphWithComponent()
 
-      const program = createProgram();
+      const program = createProgram()
       await program.parseAsync([
         'node',
         'riviere',
@@ -146,11 +154,11 @@ describe('riviere builder link-external', () => {
         '--link-type',
         'async',
         '--json',
-      ]);
+      ])
 
-      const graphPath = join(ctx.testDir, '.riviere', 'graph.json');
-      const content = await readFile(graphPath, 'utf-8');
-      const graph: unknown = JSON.parse(content);
+      const graphPath = join(ctx.testDir, '.riviere', 'graph.json')
+      const content = await readFile(graphPath, 'utf-8')
+      const graph: unknown = JSON.parse(content)
 
       expect(graph).toMatchObject({
         externalLinks: [
@@ -164,13 +172,13 @@ describe('riviere builder link-external', () => {
             type: 'async',
           },
         ],
-      });
-    });
+      })
+    })
 
     it('outputs success JSON with external link details when --json flag provided', async () => {
-      await createGraphWithComponent();
+      await createGraphWithComponent()
 
-      const program = createProgram();
+      const program = createProgram()
       await program.parseAsync([
         'node',
         'riviere',
@@ -181,27 +189,25 @@ describe('riviere builder link-external', () => {
         '--target-name',
         'Stripe API',
         '--json',
-      ]);
+      ])
 
-      expect(ctx.consoleOutput).toHaveLength(1);
-      const output: unknown = JSON.parse(ctx.consoleOutput[0] ?? '');
+      expect(ctx.consoleOutput).toHaveLength(1)
+      const output: unknown = JSON.parse(ctx.consoleOutput[0] ?? '')
       expect(output).toMatchObject({
         success: true,
         data: {
           externalLink: {
             source: 'orders:checkout:api:pay',
-            target: {
-              name: 'Stripe API',
-            },
+            target: { name: 'Stripe API' },
           },
         },
-      });
-    });
+      })
+    })
 
     it('creates external link without output when --json not provided', async () => {
-      await createGraphWithComponent();
+      await createGraphWithComponent()
 
-      const program = createProgram();
+      const program = createProgram()
       await program.parseAsync([
         'node',
         'riviere',
@@ -211,21 +217,26 @@ describe('riviere builder link-external', () => {
         'orders:checkout:api:pay',
         '--target-name',
         'Stripe API',
-      ]);
+      ])
 
-      expect(ctx.consoleOutput).toHaveLength(0);
-      const graphPath = join(ctx.testDir, '.riviere', 'graph.json');
-      const content = await readFile(graphPath, 'utf-8');
-      const graph: unknown = JSON.parse(content);
+      expect(ctx.consoleOutput).toHaveLength(0)
+      const graphPath = join(ctx.testDir, '.riviere', 'graph.json')
+      const content = await readFile(graphPath, 'utf-8')
+      const graph: unknown = JSON.parse(content)
       expect(graph).toMatchObject({
-        externalLinks: [{ source: 'orders:checkout:api:pay', target: { name: 'Stripe API' } }],
-      });
-    });
+        externalLinks: [
+          {
+            source: 'orders:checkout:api:pay',
+            target: { name: 'Stripe API' },
+          },
+        ],
+      })
+    })
 
     it('propagates error when source ID format is malformed', async () => {
-      await createGraphWithComponent();
+      await createGraphWithComponent()
 
-      const program = createProgram();
+      const program = createProgram()
 
       await expect(
         program.parseAsync([
@@ -237,14 +248,14 @@ describe('riviere builder link-external', () => {
           'malformed-id',
           '--target-name',
           'Stripe API',
-        ])
-      ).rejects.toThrow(/Invalid component ID format/);
-    });
+        ]),
+      ).rejects.toThrow(/Invalid component ID format/)
+    })
 
     it('returns VALIDATION_ERROR when link type is invalid', async () => {
-      await createGraphWithComponent();
+      await createGraphWithComponent()
 
-      const program = createProgram();
+      const program = createProgram()
       await program.parseAsync([
         'node',
         'riviere',
@@ -257,17 +268,17 @@ describe('riviere builder link-external', () => {
         '--link-type',
         'invalid',
         '--json',
-      ]);
+      ])
 
-      expect(ctx.consoleOutput).toHaveLength(1);
-      const output: unknown = JSON.parse(ctx.consoleOutput[0] ?? '');
+      expect(ctx.consoleOutput).toHaveLength(1)
+      const output: unknown = JSON.parse(ctx.consoleOutput[0] ?? '')
       expect(output).toMatchObject({
         success: false,
         error: {
           code: CliErrorCode.ValidationError,
           message: 'Invalid link type: invalid',
         },
-      });
-    });
-  });
-});
+      })
+    })
+  })
+})

@@ -4,65 +4,67 @@
  * Fails build if docs reference non-existent commands.
  */
 
-import { readdirSync, readFileSync, statSync } from 'node:fs';
-import { join } from 'node:path';
-import { createProgram } from '../../../packages/riviere-cli/src/cli';
+import {
+  readdirSync, readFileSync, statSync 
+} from 'node:fs'
+import { join } from 'node:path'
+import { createProgram } from '../../../packages/riviere-cli/src/cli'
 
 interface ValidationError {
-  file: string;
-  line: number;
-  command: string;
-  context: string;
+  file: string
+  line: number
+  command: string
+  context: string
 }
 
-const FALSE_POSITIVES = new Set(['command', 'options', 'type']);
+const FALSE_POSITIVES = new Set(['command', 'options', 'type'])
 
 function getValidCommands(): Set<string> {
-  const program = createProgram();
-  const commands = new Set<string>();
+  const program = createProgram()
+  const commands = new Set<string>()
 
   for (const cmd of program.commands) {
     for (const subCmd of cmd.commands) {
-      commands.add(subCmd.name());
+      commands.add(subCmd.name())
     }
   }
 
-  return commands;
+  return commands
 }
 
 function findMarkdownFiles(dir: string): string[] {
-  const files: string[] = [];
+  const files: string[] = []
 
   for (const entry of readdirSync(dir)) {
-    const fullPath = join(dir, entry);
-    const stat = statSync(fullPath);
+    const fullPath = join(dir, entry)
+    const stat = statSync(fullPath)
 
     if (stat.isDirectory()) {
       if (!entry.startsWith('.') && entry !== 'node_modules' && entry !== 'api') {
-        files.push(...findMarkdownFiles(fullPath));
+        files.push(...findMarkdownFiles(fullPath))
       }
     } else if (entry.endsWith('.md')) {
-      files.push(fullPath);
+      files.push(fullPath)
     }
   }
 
-  return files;
+  return files
 }
 
 function isValidOrFalsePositive(command: string, validCommands: Set<string>): boolean {
-  return validCommands.has(command) || FALSE_POSITIVES.has(command);
+  return validCommands.has(command) || FALSE_POSITIVES.has(command)
 }
 
 function extractCommandsFromLine(line: string, pattern: RegExp): string[] {
-  const commands: string[] = [];
-  const regex = new RegExp(pattern.source, pattern.flags);
+  const commands: string[] = []
+  const regex = new RegExp(pattern.source, pattern.flags)
 
-  const matches = line.matchAll(regex);
+  const matches = line.matchAll(regex)
   for (const match of matches) {
-    commands.push(match[1]);
+    commands.push(match[1])
   }
 
-  return commands;
+  return commands
 }
 
 function validateLine(
@@ -70,12 +72,12 @@ function validateLine(
   lineNumber: number,
   filePath: string,
   validCommands: Set<string>,
-  patterns: readonly RegExp[]
+  patterns: readonly RegExp[],
 ): ValidationError[] {
-  const errors: ValidationError[] = [];
+  const errors: ValidationError[] = []
 
   for (const pattern of patterns) {
-    const commands = extractCommandsFromLine(line, pattern);
+    const commands = extractCommandsFromLine(line, pattern)
 
     for (const command of commands) {
       if (!isValidOrFalsePositive(command, validCommands)) {
@@ -84,54 +86,53 @@ function validateLine(
           line: lineNumber,
           command,
           context: line.trim().slice(0, 80),
-        });
+        })
       }
     }
   }
 
-  return errors;
+  return errors
 }
 
 function validateFile(filePath: string, validCommands: Set<string>): ValidationError[] {
-  const content = readFileSync(filePath, 'utf-8');
-  const lines = content.split('\n');
+  const content = readFileSync(filePath, 'utf-8')
+  const lines = content.split('\n')
 
-  const patterns = [
-    /riviere\s+builder\s+([a-z-]+)/g,
-    /cli-reference#([a-z-]+)/g,
-  ] as const;
+  const patterns = [/riviere\s+builder\s+([a-z-]+)/g, /cli-reference#([a-z-]+)/g] as const
 
   return lines.flatMap((line, index) =>
-    validateLine(line, index + 1, filePath, validCommands, patterns)
-  );
+    validateLine(line, index + 1, filePath, validCommands, patterns),
+  )
 }
 
 function main(): void {
-  const docsDir = join(import.meta.dirname, '..');
+  const docsDir = join(import.meta.dirname, '..')
 
-  console.log('Validating CLI command references in docs...\n');
+  console.log('Validating CLI command references in docs...\n')
 
-  const validCommands = getValidCommands();
-  console.log(`Valid commands: ${[...validCommands].sort((a, b) => a.localeCompare(b)).join(', ')}\n`);
+  const validCommands = getValidCommands()
+  console.log(
+    `Valid commands: ${[...validCommands].sort((a, b) => a.localeCompare(b)).join(', ')}\n`,
+  )
 
-  const files = findMarkdownFiles(docsDir);
-  const allErrors = files.flatMap((file) => validateFile(file, validCommands));
+  const files = findMarkdownFiles(docsDir)
+  const allErrors = files.flatMap((file) => validateFile(file, validCommands))
 
   if (allErrors.length === 0) {
-    console.log(`✓ All CLI references valid (checked ${files.length} files)`);
-    process.exit(0);
+    console.log(`✓ All CLI references valid (checked ${files.length} files)`)
+    process.exit(0)
   }
 
-  console.error(`✗ Found ${allErrors.length} invalid CLI command references:\n`);
+  console.error(`✗ Found ${allErrors.length} invalid CLI command references:\n`)
 
   for (const error of allErrors) {
-    const relativePath = error.file.replace(docsDir + '/', '');
-    console.error(`  ${relativePath}:${error.line}`);
-    console.error(`    Invalid command: "${error.command}"`);
-    console.error(`    Context: ${error.context}\n`);
+    const relativePath = error.file.replace(docsDir + '/', '')
+    console.error(`  ${relativePath}:${error.line}`)
+    console.error(`    Invalid command: "${error.command}"`)
+    console.error(`    Context: ${error.context}\n`)
   }
 
-  process.exit(1);
+  process.exit(1)
 }
 
-main();
+main()

@@ -7,8 +7,12 @@ import type {
   RiviereGraph,
   SourceInfo,
 } from '@living-architecture/riviere-schema'
-import { RiviereQuery, type ValidationResult } from '@living-architecture/riviere-query'
-import type { BuilderStats, BuilderWarning } from './types'
+import {
+  RiviereQuery, type ValidationResult 
+} from '@living-architecture/riviere-query'
+import type {
+  BuilderStats, BuilderWarning 
+} from './types'
 
 interface InspectionGraph {
   version: string

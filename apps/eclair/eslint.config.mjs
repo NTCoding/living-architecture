@@ -1,10 +1,19 @@
 import baseConfig from '../../eslint.config.mjs';
+import react from 'eslint-plugin-react';
+import jsxA11y from 'eslint-plugin-jsx-a11y';
 
 export default [
   ...baseConfig,
   {
     files: ['**/*.tsx'],
+    plugins: {
+      react,
+      'jsx-a11y': jsxA11y,
+    },
     rules: {
+      'react/no-array-index-key': 'error',
+      'jsx-a11y/prefer-tag-over-role': 'error',
+      'jsx-a11y/anchor-is-valid': 'error',
       '@typescript-eslint/naming-convention': [
         'error',
         {

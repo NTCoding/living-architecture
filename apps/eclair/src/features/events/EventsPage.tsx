@@ -1,26 +1,24 @@
-import { useMemo, useState, useCallback } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import {
+  useMemo, useState, useCallback 
+} from 'react'
+import {
+  useNavigate, useSearchParams 
+} from 'react-router-dom'
 import type { RiviereGraph } from '@/types/riviere'
 import { EventAccordion } from '@/features/domains/components/EventAccordion/EventAccordion'
 import type { DomainEvent } from '@/features/domains/extractDomainDetails'
 
-interface EventsPageProps {
-  readonly graph: RiviereGraph
-}
+interface EventsPageProps {readonly graph: RiviereGraph}
 
-interface PublishedEvent extends DomainEvent {
-  domain: string
-}
+interface PublishedEvent extends DomainEvent {domain: string}
 
 function handlerSubscribesToEvent(
   subscribedEvents: string[] | undefined,
   eventName: string,
-  eventId: string
+  eventId: string,
 ): boolean {
   if (subscribedEvents === undefined) return false
-  return subscribedEvents.some(
-    (name) => name === eventName || eventId.includes(name)
-  )
+  return subscribedEvents.some((name) => name === eventName || eventId.includes(name))
 }
 
 export function EventsPage({ graph }: Readonly<EventsPageProps>): React.ReactElement {
@@ -29,24 +27,41 @@ export function EventsPage({ graph }: Readonly<EventsPageProps>): React.ReactEle
   const [searchQuery, setSearchQuery] = useState('')
   const [activeDomains, setActiveDomains] = useState<Set<string>>(new Set())
 
-  const handleViewOnGraph = useCallback((eventId: string) => {
-    const demo = searchParams.get('demo')
-    const demoParam = demo === 'true' ? '&demo=true' : ''
-    navigate(`/full-graph?node=${eventId}${demoParam}`)
-  }, [navigate, searchParams])
-
-  const handleViewHandlerOnGraph = useCallback((handler: { domain: string; handlerName: string }) => {
-    const handlerNode = graph.components.find(
-      (node) => node.type === 'EventHandler' && node.domain === handler.domain && node.name === handler.handlerName
-    )
-    if (handlerNode) {
+  const handleViewOnGraph = useCallback(
+    (eventId: string) => {
       const demo = searchParams.get('demo')
       const demoParam = demo === 'true' ? '&demo=true' : ''
-      navigate(`/full-graph?node=${handlerNode.id}${demoParam}`)
-    }
-  }, [graph.components, navigate, searchParams])
+      navigate(`/full-graph?node=${eventId}${demoParam}`)
+    },
+    [navigate, searchParams],
+  )
 
-  const { publishedEvents, domains } = useMemo((): { publishedEvents: PublishedEvent[]; domains: string[] } => {
+  const handleViewHandlerOnGraph = useCallback(
+    (handler: {
+      domain: string;
+      handlerName: string 
+    }) => {
+      const handlerNode = graph.components.find(
+        (node) =>
+          node.type === 'EventHandler' &&
+          node.domain === handler.domain &&
+          node.name === handler.handlerName,
+      )
+      if (handlerNode) {
+        const demo = searchParams.get('demo')
+        const demoParam = demo === 'true' ? '&demo=true' : ''
+        navigate(`/full-graph?node=${handlerNode.id}${demoParam}`)
+      }
+    },
+    [graph.components, navigate, searchParams],
+  )
+
+  const {
+    publishedEvents, domains 
+  } = useMemo((): {
+    publishedEvents: PublishedEvent[]
+    domains: string[]
+  } => {
     const published: PublishedEvent[] = []
     const domainSet = new Set<string>()
 
@@ -58,7 +73,7 @@ export function EventsPage({ graph }: Readonly<EventsPageProps>): React.ReactEle
 
       const eventHandlers = eventHandlerNodes
         .filter((handler) =>
-          handlerSubscribesToEvent(handler.subscribedEvents, eventNode.name, eventNode.id)
+          handlerSubscribesToEvent(handler.subscribedEvents, eventNode.name, eventNode.id),
         )
         .map((h) => ({
           domain: h.domain,
@@ -88,20 +103,16 @@ export function EventsPage({ graph }: Readonly<EventsPageProps>): React.ReactEle
   const filteredPublished = useMemo((): PublishedEvent[] => {
     return publishedEvents.filter((event) => {
       const matchesSearch =
-        searchQuery === '' ||
-        event.eventName.toLowerCase().includes(searchQuery.toLowerCase())
-      const matchesDomain =
-        activeDomains.size === 0 || activeDomains.has(event.domain)
+        searchQuery === '' || event.eventName.toLowerCase().includes(searchQuery.toLowerCase())
+      const matchesDomain = activeDomains.size === 0 || activeDomains.has(event.domain)
       return matchesSearch && matchesDomain
     })
   }, [publishedEvents, searchQuery, activeDomains])
 
   const totalEvents = publishedEvents.length
-  const eventNodeIds = new Set(graph.components.filter(n => n.type === 'Event').map(n => n.id))
+  const eventNodeIds = new Set(graph.components.filter((n) => n.type === 'Event').map((n) => n.id))
   const uniquePublishers = new Set(
-    graph.links
-      .filter((edge) => eventNodeIds.has(edge.target))
-      .map((edge) => edge.source)
+    graph.links.filter((edge) => eventNodeIds.has(edge.target)).map((edge) => edge.source),
   ).size
 
   const toggleDomain = (domain: string): void => {
@@ -180,15 +191,18 @@ export function EventsPage({ graph }: Readonly<EventsPageProps>): React.ReactEle
           <section data-testid="published-events">
             <div className="space-y-3">
               {filteredPublished.map((event) => (
-                <EventAccordion key={event.id} event={event} onViewOnGraph={handleViewOnGraph} onViewHandlerOnGraph={handleViewHandlerOnGraph} />
+                <EventAccordion
+                  key={event.id}
+                  event={event}
+                  onViewOnGraph={handleViewOnGraph}
+                  onViewHandlerOnGraph={handleViewHandlerOnGraph}
+                />
               ))}
             </div>
           </section>
         ) : (
           <p className="text-sm italic text-[var(--text-tertiary)]">
-            {publishedEvents.length > 0
-              ? 'No events match your search'
-              : 'No events in this graph'}
+            {publishedEvents.length > 0 ? 'No events match your search' : 'No events in this graph'}
           </p>
         )}
       </div>

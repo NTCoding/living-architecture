@@ -69,7 +69,10 @@ export interface RawEdge {
   source: string
   target: string
   type?: EdgeType
-  payload?: { type?: string; schema?: string }
+  payload?: {
+    type?: string
+    schema?: string
+  }
   sourceLocation?: SourceLocation
   metadata?: Record<string, unknown>
 }
@@ -93,7 +96,11 @@ function parseOperationParameter(p: RawOperationParameter): {
   type: ReturnType<typeof parameterTypeSchema.parse>
   description?: string
 } {
-  const param: { name: string; type: ReturnType<typeof parameterTypeSchema.parse>; description?: string } = {
+  const param: {
+    name: string
+    type: ReturnType<typeof parameterTypeSchema.parse>
+    description?: string
+  } = {
     name: p.name,
     type: parameterTypeSchema.parse(p.type),
   }
@@ -130,7 +137,11 @@ function parseUINode(data: RawNode, base: BaseNodeFields): Node {
   if (data.route === undefined) {
     throw new Error(`UI node requires route: ${data.id}`)
   }
-  return { ...base, type: 'UI', route: data.route }
+  return {
+    ...base,
+    type: 'UI',
+    route: data.route,
+  }
 }
 
 function parseAPINode(data: RawNode, base: BaseNodeFields): Node {
@@ -138,7 +149,11 @@ function parseAPINode(data: RawNode, base: BaseNodeFields): Node {
   // This avoids requiring httpMethod/path for all API test fixtures
   const hasRestProperties = data.httpMethod !== undefined || data.path !== undefined
   const apiType = data.apiType ?? (hasRestProperties ? 'REST' : 'other')
-  const node: APINode = { ...base, type: 'API', apiType }
+  const node: APINode = {
+    ...base,
+    type: 'API',
+    apiType,
+  }
   if (data.httpMethod !== undefined) node.httpMethod = data.httpMethod
   if (data.path !== undefined) node.path = data.path
   if (data.operationName !== undefined) node.operationName = data.operationName
@@ -158,7 +173,7 @@ function parseDomainOpNode(data: RawNode, base: BaseNodeFields): Node {
   if (data.signature !== undefined) node.signature = parseOperationSignature(data.signature)
   if (data.behavior !== undefined) node.behavior = data.behavior
   if (data.stateChanges !== undefined) {
-    node.stateChanges = data.stateChanges.map(sc => ({
+    node.stateChanges = data.stateChanges.map((sc) => ({
       from: stateNameSchema.parse(sc.from),
       to: stateNameSchema.parse(sc.to),
       ...(sc.trigger === undefined ? {} : { trigger: sc.trigger }),
@@ -187,7 +202,7 @@ function parseEventHandlerNode(data: RawNode, base: BaseNodeFields): Node {
   return {
     ...base,
     type: 'EventHandler',
-    subscribedEvents: data.subscribedEvents.map(e => eventNameSchema.parse(e)),
+    subscribedEvents: data.subscribedEvents.map((e) => eventNameSchema.parse(e)),
   }
 }
 
@@ -195,17 +210,30 @@ export function parseNode(data: RawNode): Node {
   const base = parseBaseFields(data)
 
   switch (data.type) {
-    case 'UI': return parseUINode(data, base)
-    case 'API': return parseAPINode(data, base)
-    case 'UseCase': return { ...base, type: 'UseCase' }
-    case 'DomainOp': return parseDomainOpNode(data, base)
-    case 'Event': return parseEventNode(data, base)
-    case 'EventHandler': return parseEventHandlerNode(data, base)
+    case 'UI':
+      return parseUINode(data, base)
+    case 'API':
+      return parseAPINode(data, base)
+    case 'UseCase':
+      return {
+        ...base,
+        type: 'UseCase',
+      }
+    case 'DomainOp':
+      return parseDomainOpNode(data, base)
+    case 'Event':
+      return parseEventNode(data, base)
+    case 'EventHandler':
+      return parseEventHandlerNode(data, base)
     case 'Custom': {
       if (data.customTypeName === undefined) {
         throw new Error(`Custom node requires customTypeName: ${data.id}`)
       }
-      return { ...base, type: 'Custom', customTypeName: data.customTypeName }
+      return {
+        ...base,
+        type: 'Custom',
+        customTypeName: data.customTypeName,
+      }
     }
   }
 }
@@ -231,21 +259,23 @@ export function parseDomainKey(key: string): ReturnType<typeof domainNameSchema.
   return domainNameSchema.parse(key)
 }
 
-
-export function parseDomainMetadata(raw: Record<string, RawDomainMetadata>): Record<ReturnType<typeof domainNameSchema.parse>, DomainMetadata> {
+export function parseDomainMetadata(
+  raw: Record<string, RawDomainMetadata>,
+): Record<ReturnType<typeof domainNameSchema.parse>, DomainMetadata> {
   type ParsedDomainName = ReturnType<typeof domainNameSchema.parse>
   const result: Record<ParsedDomainName, DomainMetadata> = {}
 
   Object.entries(raw).forEach(([key, value]) => {
     const parsedKey: ParsedDomainName = domainNameSchema.parse(key)
-    const entities: Record<ReturnType<typeof entityNameSchema.parse>, EntityDefinition> | undefined =
-      value.entities
+    const entities:
+      | Record<ReturnType<typeof entityNameSchema.parse>, EntityDefinition>
+      | undefined = value.entities
         ? Object.fromEntries(
-            Object.entries(value.entities).map(([entityName, definition]) => [
-              entityNameSchema.parse(entityName),
-              definition,
-            ]),
-          )
+          Object.entries(value.entities).map(([entityName, definition]) => [
+            entityNameSchema.parse(entityName),
+            definition,
+          ]),
+        )
         : undefined
 
     const parsedValue: DomainMetadata = {
@@ -268,4 +298,3 @@ export interface RawDomainMetadata {
 export function parseNodeId(id: string): ReturnType<typeof nodeIdSchema.parse> {
   return nodeIdSchema.parse(id)
 }
-

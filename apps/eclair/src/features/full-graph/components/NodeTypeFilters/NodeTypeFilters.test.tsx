@@ -1,5 +1,9 @@
-import { describe, expect, test, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import {
+  describe, expect, test, vi 
+} from 'vitest'
+import {
+  render, screen 
+} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { NodeTypeFilters } from './NodeTypeFilters'
 import type { NodeType } from '@/types/riviere'
@@ -11,9 +15,18 @@ interface NodeTypeInfo {
 
 describe('NodeTypeFilters', () => {
   const mockNodeTypes: NodeTypeInfo[] = [
-    { type: 'API', nodeCount: 5 },
-    { type: 'UseCase', nodeCount: 3 },
-    { type: 'DomainOp', nodeCount: 8 },
+    {
+      type: 'API',
+      nodeCount: 5,
+    },
+    {
+      type: 'UseCase',
+      nodeCount: 3,
+    },
+    {
+      type: 'DomainOp',
+      nodeCount: 8,
+    },
   ]
 
   test('renders with node type filters heading', () => {
@@ -24,7 +37,7 @@ describe('NodeTypeFilters', () => {
         onToggleType={vi.fn()}
         onShowAll={vi.fn()}
         onHideAll={vi.fn()}
-      />
+      />,
     )
 
     expect(screen.getByText('Node Type Filters')).toBeInTheDocument()
@@ -38,7 +51,7 @@ describe('NodeTypeFilters', () => {
         onToggleType={vi.fn()}
         onShowAll={vi.fn()}
         onHideAll={vi.fn()}
-      />
+      />,
     )
 
     expect(screen.getByText('API')).toBeInTheDocument()
@@ -57,7 +70,7 @@ describe('NodeTypeFilters', () => {
         onToggleType={vi.fn()}
         onShowAll={vi.fn()}
         onHideAll={vi.fn()}
-      />
+      />,
     )
 
     expect(screen.getByTestId('node-type-checkbox-API')).toBeChecked()
@@ -76,7 +89,7 @@ describe('NodeTypeFilters', () => {
         onToggleType={onToggleType}
         onShowAll={vi.fn()}
         onHideAll={vi.fn()}
-      />
+      />,
     )
 
     await user.click(screen.getByTestId('node-type-checkbox-API'))
@@ -95,7 +108,7 @@ describe('NodeTypeFilters', () => {
         onToggleType={vi.fn()}
         onShowAll={onShowAll}
         onHideAll={vi.fn()}
-      />
+      />,
     )
 
     await user.click(screen.getByTestId('node-type-filters-show-all'))
@@ -114,7 +127,7 @@ describe('NodeTypeFilters', () => {
         onToggleType={vi.fn()}
         onShowAll={vi.fn()}
         onHideAll={onHideAll}
-      />
+      />,
     )
 
     await user.click(screen.getByTestId('node-type-filters-hide-all'))
@@ -130,7 +143,7 @@ describe('NodeTypeFilters', () => {
         onToggleType={vi.fn()}
         onShowAll={vi.fn()}
         onHideAll={vi.fn()}
-      />
+      />,
     )
 
     expect(screen.getByTestId('node-type-filters-show-all')).toBeDisabled()
@@ -144,7 +157,7 @@ describe('NodeTypeFilters', () => {
         onToggleType={vi.fn()}
         onShowAll={vi.fn()}
         onHideAll={vi.fn()}
-      />
+      />,
     )
 
     expect(screen.getByTestId('node-type-filters-hide-all')).toBeDisabled()
@@ -160,7 +173,7 @@ describe('NodeTypeFilters', () => {
         onToggleType={vi.fn()}
         onShowAll={vi.fn()}
         onHideAll={vi.fn()}
-      />
+      />,
     )
 
     expect(screen.getByTestId('node-type-filters-show-all')).toBeVisible()

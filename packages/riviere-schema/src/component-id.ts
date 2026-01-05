@@ -50,7 +50,7 @@ export class ComponentId {
    * ```
    */
   static create(parts: ComponentIdParts): ComponentId {
-    const nameSegment = parts.name.toLowerCase().replace(/\s+/g, '-')
+    const nameSegment = parts.name.toLowerCase().replaceAll(/\s+/g, '-')
     const value = `${parts.domain}:${parts.module}:${parts.type}:${nameSegment}`
     return new ComponentId(nameSegment, value)
   }

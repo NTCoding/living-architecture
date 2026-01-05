@@ -1,24 +1,34 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import {
+  describe, it, expect, beforeEach, vi 
+} from 'vitest'
+import {
+  render, screen 
+} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { CodeLinkMenu } from './CodeLinkMenu'
 
 const STORAGE_KEY = 'eclair-code-link-settings'
 
 function setVSCodePath(path: string): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({
-    vscodePath: path,
-    githubOrg: null,
-    githubBranch: 'main',
-  }))
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify({
+      vscodePath: path,
+      githubOrg: null,
+      githubBranch: 'main',
+    }),
+  )
 }
 
 function setGitHubOrg(org: string): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({
-    vscodePath: null,
-    githubOrg: org,
-    githubBranch: 'main',
-  }))
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify({
+      vscodePath: null,
+      githubOrg: org,
+      githubBranch: 'main',
+    }),
+  )
 }
 
 describe('CodeLinkMenu', () => {
@@ -78,7 +88,7 @@ describe('CodeLinkMenu', () => {
         <div>
           <CodeLinkMenu filePath="src/file.ts" lineNumber={42} repository="test-repo" />
           <button type="button">Outside</button>
-        </div>
+        </div>,
       )
 
       await user.click(screen.getByRole('button', { name: /src\/file\.ts/ }))

@@ -36,7 +36,15 @@ type StateName = z.infer<typeof stateNameSchema>
 export const entryPointSchema = z.string().min(1).brand<'EntryPoint'>()
 export type EntryPoint = z.infer<typeof entryPointSchema>
 
-export type NodeType = 'UI' | 'API' | 'UseCase' | 'DomainOp' | 'Event' | 'EventHandler' | 'Custom' | 'External'
+export type NodeType =
+  | 'UI'
+  | 'API'
+  | 'UseCase'
+  | 'DomainOp'
+  | 'Event'
+  | 'EventHandler'
+  | 'Custom'
+  | 'External'
 
 export type SystemType = 'domain' | 'bff' | 'ui' | 'other'
 
@@ -114,9 +122,7 @@ export interface APINode extends BaseNode {
   operationName?: string
 }
 
-interface UseCaseNode extends BaseNode {
-  type: 'UseCase'
-}
+interface UseCaseNode extends BaseNode {type: 'UseCase'}
 
 interface DomainOpNode extends BaseNode {
   type: 'DomainOp'

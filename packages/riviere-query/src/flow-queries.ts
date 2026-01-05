@@ -1,7 +1,19 @@
-import type { RiviereGraph, Component, ComponentType, Link, ExternalLink } from '@living-architecture/riviere-schema'
-import type { ComponentId, LinkId, Flow, SearchWithFlowResult } from './domain-types'
-import { parseComponentId, parseLinkId } from './domain-types'
-import { componentById, searchComponents } from './component-queries'
+import type {
+  RiviereGraph,
+  Component,
+  ComponentType,
+  Link,
+  ExternalLink,
+} from '@living-architecture/riviere-schema'
+import type {
+  ComponentId, LinkId, Flow, SearchWithFlowResult 
+} from './domain-types'
+import {
+  parseComponentId, parseLinkId 
+} from './domain-types'
+import {
+  componentById, searchComponents 
+} from './component-queries'
 import { ComponentNotFoundError } from './errors'
 
 export function findEntryPoints(graph: RiviereGraph): Component[] {
@@ -10,7 +22,13 @@ export function findEntryPoints(graph: RiviereGraph): Component[] {
   return graph.components.filter((c) => entryPointTypes.has(c.type) && !targets.has(c.id))
 }
 
-export function traceFlowFrom(graph: RiviereGraph, startComponentId: ComponentId): { componentIds: ComponentId[]; linkIds: LinkId[] } {
+export function traceFlowFrom(
+  graph: RiviereGraph,
+  startComponentId: ComponentId,
+): {
+  componentIds: ComponentId[]
+  linkIds: LinkId[]
+} {
   const component = componentById(graph, startComponentId)
   if (!component) {
     throw new ComponentNotFoundError(startComponentId)
@@ -39,7 +57,10 @@ export function traceFlowFrom(graph: RiviereGraph, startComponentId: ComponentId
     }
   }
 
-  return { componentIds: Array.from(visited), linkIds: Array.from(visitedLinks) }
+  return {
+    componentIds: Array.from(visited),
+    linkIds: Array.from(visitedLinks),
+  }
 }
 
 function createLinkKey(link: Link): LinkId {
@@ -70,7 +91,12 @@ export function queryFlows(graph: RiviereGraph): Flow[] {
       const linkType = firstEdge === undefined ? undefined : firstEdge.type
       const externalLinks = externalLinksBySource.get(nodeId) ?? []
 
-      steps.push({ component, linkType, depth, externalLinks })
+      steps.push({
+        component,
+        linkType,
+        depth,
+        externalLinks,
+      })
 
       if (edges) {
         for (const edge of edges) {
@@ -105,10 +131,25 @@ function buildExternalLinksBySource(graph: RiviereGraph): Map<string, ExternalLi
   return bySource
 }
 
-function buildOutgoingEdges(graph: RiviereGraph): Map<string, Array<{ target: string; type: 'sync' | 'async' | undefined }>> {
-  const edges = new Map<string, Array<{ target: string; type: 'sync' | 'async' | undefined }>>()
+function buildOutgoingEdges(graph: RiviereGraph): Map<
+  string,
+  Array<{
+    target: string
+    type: 'sync' | 'async' | undefined
+  }>
+> {
+  const edges = new Map<
+    string,
+    Array<{
+      target: string
+      type: 'sync' | 'async' | undefined
+    }>
+  >()
   for (const link of graph.links) {
-    const entry = { target: link.target, type: link.type }
+    const entry = {
+      target: link.target,
+      type: link.type,
+    }
     const existing = edges.get(link.source)
     if (existing) {
       existing.push(entry)
@@ -138,14 +179,23 @@ export function searchWithFlowContext(
   if (isEmptyQuery) {
     if (options.returnAllOnEmptyQuery) {
       const allIds = graph.components.map((c) => parseComponentId(c.id))
-      return { matchingIds: allIds, visibleIds: allIds }
+      return {
+        matchingIds: allIds,
+        visibleIds: allIds,
+      }
     }
-    return { matchingIds: [], visibleIds: [] }
+    return {
+      matchingIds: [],
+      visibleIds: [],
+    }
   }
 
   const matchingComponents = searchComponents(graph, query)
   if (matchingComponents.length === 0) {
-    return { matchingIds: [], visibleIds: [] }
+    return {
+      matchingIds: [],
+      visibleIds: [],
+    }
   }
 
   const matchingIds = matchingComponents.map((c) => parseComponentId(c.id))
@@ -158,5 +208,8 @@ export function searchWithFlowContext(
     }
   }
 
-  return { matchingIds, visibleIds: Array.from(visibleIds) }
+  return {
+    matchingIds,
+    visibleIds: Array.from(visibleIds),
+  }
 }

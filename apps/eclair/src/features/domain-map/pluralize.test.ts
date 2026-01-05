@@ -1,5 +1,9 @@
-import { describe, it, expect } from 'vitest'
-import { pluralize, pluralizeComponent, pluralizeConnection } from './pluralize'
+import {
+  describe, it, expect 
+} from 'vitest'
+import {
+  pluralize, pluralizeComponent, pluralizeConnection 
+} from './pluralize'
 
 describe('pluralize', () => {
   it('returns singular form for count of 1', () => {

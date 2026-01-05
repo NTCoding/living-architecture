@@ -1,5 +1,9 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { renderHook, act } from '@testing-library/react'
+import {
+  describe, it, expect, beforeEach, vi 
+} from 'vitest'
+import {
+  renderHook, act 
+} from '@testing-library/react'
 import { z } from 'zod'
 import { useCodeLinkSettings } from './useCodeLinkSettings'
 
@@ -27,11 +31,14 @@ describe('useCodeLinkSettings', () => {
     })
 
     it('loads existing settings from localStorage', () => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        vscodePath: '/Users/test/code',
-        githubOrg: 'https://github.com/myorg',
-        githubBranch: 'develop',
-      }))
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          vscodePath: '/Users/test/code',
+          githubOrg: 'https://github.com/myorg',
+          githubBranch: 'develop',
+        }),
+      )
 
       const { result } = renderHook(() => useCodeLinkSettings())
 
@@ -51,7 +58,9 @@ describe('useCodeLinkSettings', () => {
 
       expect(result.current.settings.vscodePath).toBe('/Users/nicko/projects')
 
-      const stored = storedSettingsSchema.parse(JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}'))
+      const stored = storedSettingsSchema.parse(
+        JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}'),
+      )
       expect(stored.vscodePath).toBe('/Users/nicko/projects')
     })
   })
@@ -66,7 +75,9 @@ describe('useCodeLinkSettings', () => {
 
       expect(result.current.settings.githubOrg).toBe('https://github.com/myorg')
 
-      const stored = storedSettingsSchema.parse(JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}'))
+      const stored = storedSettingsSchema.parse(
+        JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}'),
+      )
       expect(stored.githubOrg).toBe('https://github.com/myorg')
     })
   })
@@ -81,7 +92,9 @@ describe('useCodeLinkSettings', () => {
 
       expect(result.current.settings.githubBranch).toBe('feature/test')
 
-      const stored = storedSettingsSchema.parse(JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}'))
+      const stored = storedSettingsSchema.parse(
+        JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}'),
+      )
       expect(stored.githubBranch).toBe('feature/test')
     })
   })
@@ -94,16 +107,19 @@ describe('useCodeLinkSettings', () => {
     })
 
     it('builds correct vscode URL when path is set', () => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        vscodePath: '/Users/test/code',
-        githubOrg: null,
-        githubBranch: 'main',
-      }))
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          vscodePath: '/Users/test/code',
+          githubOrg: null,
+          githubBranch: 'main',
+        }),
+      )
 
       const { result } = renderHook(() => useCodeLinkSettings())
 
       expect(result.current.buildVscodeUrl('src/file.ts', 42)).toBe(
-        'vscode://file//Users/test/code/src/file.ts:42'
+        'vscode://file//Users/test/code/src/file.ts:42',
       )
     })
   })
@@ -115,57 +131,68 @@ describe('useCodeLinkSettings', () => {
       expect(result.current.buildGithubUrl('my-repo', 'src/file.ts', 42)).toBeNull()
     })
 
-
     it('builds correct GitHub URL with org and repository', () => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        vscodePath: null,
-        githubOrg: 'https://github.com/myorg',
-        githubBranch: 'main',
-      }))
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          vscodePath: null,
+          githubOrg: 'https://github.com/myorg',
+          githubBranch: 'main',
+        }),
+      )
 
       const { result } = renderHook(() => useCodeLinkSettings())
 
       expect(result.current.buildGithubUrl('my-repo', 'src/file.ts', 42)).toBe(
-        'https://github.com/myorg/my-repo/blob/main/src/file.ts#L42'
+        'https://github.com/myorg/my-repo/blob/main/src/file.ts#L42',
       )
     })
 
     it('uses configured branch in URL', () => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        vscodePath: null,
-        githubOrg: 'https://github.com/myorg',
-        githubBranch: 'develop',
-      }))
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          vscodePath: null,
+          githubOrg: 'https://github.com/myorg',
+          githubBranch: 'develop',
+        }),
+      )
 
       const { result } = renderHook(() => useCodeLinkSettings())
 
       expect(result.current.buildGithubUrl('my-repo', 'src/file.ts', 10)).toBe(
-        'https://github.com/myorg/my-repo/blob/develop/src/file.ts#L10'
+        'https://github.com/myorg/my-repo/blob/develop/src/file.ts#L10',
       )
     })
 
     it('strips trailing slash from githubOrg', () => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        vscodePath: null,
-        githubOrg: 'https://github.com/myorg/',
-        githubBranch: 'main',
-      }))
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          vscodePath: null,
+          githubOrg: 'https://github.com/myorg/',
+          githubBranch: 'main',
+        }),
+      )
 
       const { result } = renderHook(() => useCodeLinkSettings())
 
       expect(result.current.buildGithubUrl('my-repo', 'src/file.ts', 1)).toBe(
-        'https://github.com/myorg/my-repo/blob/main/src/file.ts#L1'
+        'https://github.com/myorg/my-repo/blob/main/src/file.ts#L1',
       )
     })
   })
 
   describe('pre-configured settings', () => {
     it('reads GitHub settings from localStorage when pre-configured', () => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        vscodePath: null,
-        githubOrg: 'https://github.com/NTCoding',
-        githubBranch: 'main',
-      }))
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          vscodePath: null,
+          githubOrg: 'https://github.com/NTCoding',
+          githubBranch: 'main',
+        }),
+      )
 
       const { result } = renderHook(() => useCodeLinkSettings())
 
@@ -174,25 +201,31 @@ describe('useCodeLinkSettings', () => {
     })
 
     it('builds GitHub URL when settings are pre-configured', () => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        vscodePath: null,
-        githubOrg: 'https://github.com/NTCoding',
-        githubBranch: 'main',
-      }))
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          vscodePath: null,
+          githubOrg: 'https://github.com/NTCoding',
+          githubBranch: 'main',
+        }),
+      )
 
       const { result } = renderHook(() => useCodeLinkSettings())
 
       expect(result.current.buildGithubUrl('ecommerce-demo-app', 'src/file.ts', 42)).toBe(
-        'https://github.com/NTCoding/ecommerce-demo-app/blob/main/src/file.ts#L42'
+        'https://github.com/NTCoding/ecommerce-demo-app/blob/main/src/file.ts#L42',
       )
     })
 
     it('allows user to override pre-configured settings', () => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        vscodePath: null,
-        githubOrg: 'https://github.com/NTCoding',
-        githubBranch: 'main',
-      }))
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          vscodePath: null,
+          githubOrg: 'https://github.com/NTCoding',
+          githubBranch: 'main',
+        }),
+      )
 
       const { result } = renderHook(() => useCodeLinkSettings())
 

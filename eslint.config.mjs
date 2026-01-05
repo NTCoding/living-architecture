@@ -1,10 +1,14 @@
-import nx from '@nx/eslint-plugin';
-import tseslint from 'typescript-eslint';
-import noGenericNames from './.eslint-rules/no-generic-names.js';
-import eslintComments from '@eslint-community/eslint-plugin-eslint-comments/configs';
-import importPlugin from 'eslint-plugin-import';
-import sonarjs from 'eslint-plugin-sonarjs';
-import jsdoc from 'eslint-plugin-jsdoc';
+import nx from '@nx/eslint-plugin'
+import tseslint from 'typescript-eslint'
+import noGenericNames from './.eslint-rules/no-generic-names.js'
+import eslintComments from '@eslint-community/eslint-plugin-eslint-comments/configs'
+import importPlugin from 'eslint-plugin-import'
+import sonarjs from 'eslint-plugin-sonarjs'
+import jsdoc from 'eslint-plugin-jsdoc'
+import stylistic from '@stylistic/eslint-plugin'
+import react from 'eslint-plugin-react'
+import jsxA11y from 'eslint-plugin-jsx-a11y'
+import unicorn from 'eslint-plugin-unicorn'
 
 const customRules = {
   plugins: {
@@ -13,9 +17,9 @@ const customRules = {
         'no-generic-names': noGenericNames,
       },
     },
-    import: importPlugin
+    import: importPlugin,
   },
-};
+}
 
 export default tseslint.config(
   ...nx.configs['flat/base'],
@@ -86,13 +90,15 @@ export default tseslint.config(
       '@typescript-eslint/no-unsafe-return': 'error',
 
       // No type assertions - fix the types instead
-      '@typescript-eslint/consistent-type-assertions': [
-        'error',
-        { assertionStyle: 'never' },
-      ],
+      '@typescript-eslint/consistent-type-assertions': ['error', { assertionStyle: 'never' }],
 
       // No non-null assertions - handle errors properly
       '@typescript-eslint/no-non-null-assertion': 'error',
+
+      // SonarCloud rule equivalents
+      '@typescript-eslint/prefer-includes': 'error',
+      '@typescript-eslint/prefer-nullish-coalescing': 'error',
+      'import/no-duplicates': 'error',
 
       // Ban generic folder imports (not lib - that's NX convention)
       'no-restricted-imports': [
@@ -128,10 +134,7 @@ export default tseslint.config(
       ],
 
       // Complexity limits
-      'max-lines': [
-        'error',
-        { max: 400, skipBlankLines: true, skipComments: true },
-      ],
+      'max-lines': ['error', { max: 400, skipBlankLines: true, skipComments: true }],
       'max-depth': ['error', 3],
       complexity: ['error', 12],
 
@@ -181,21 +184,86 @@ export default tseslint.config(
     },
   },
   // JSDoc enforcement for RiviereBuilder public API only
-    {
-      files: ['packages/riviere-builder/src/builder.ts'],
-      plugins: { jsdoc },
-      rules: {
-        'jsdoc/require-jsdoc': ['error', {
+  {
+    files: ['packages/riviere-builder/src/builder.ts'],
+    plugins: { jsdoc },
+    rules: {
+      'jsdoc/require-jsdoc': [
+        'error',
+        {
           publicOnly: { ancestorsOnly: true },
           require: {
             ClassDeclaration: true,
             MethodDefinition: true,
           },
-        }],
-        'jsdoc/require-param': 'error',
-        'jsdoc/require-param-description': 'error',
-        'jsdoc/require-returns': 'error',
-        'jsdoc/require-returns-description': 'error',
-      },
+        },
+      ],
+      'jsdoc/require-param': 'error',
+      'jsdoc/require-param-description': 'error',
+      'jsdoc/require-returns': 'error',
+      'jsdoc/require-returns-description': 'error',
     },
-);
+  },
+  {
+    plugins: {
+      '@stylistic': stylistic,
+    },
+    rules: {
+      '@stylistic/indent': ['error', 2],
+      '@stylistic/object-curly-newline': [
+        'error',
+        {
+          multiline: true,
+          minProperties: 2,
+        },
+      ],
+      '@stylistic/object-property-newline': [
+        'error',
+        {
+          allowAllPropertiesOnSameLine: false,
+        },
+      ],
+    },
+  },
+  // Unicorn rules (code quality)
+  {
+    files: ['**/*.ts', '**/*.tsx'],
+    plugins: { unicorn },
+    rules: {
+      'unicorn/prefer-string-replace-all': 'error',
+      'unicorn/prefer-type-error': 'error',
+    },
+  },
+  // React and accessibility rules (eclair only)
+  {
+    files: ['apps/eclair/**/*.tsx'],
+    plugins: {
+      react,
+      'jsx-a11y': jsxA11y,
+    },
+    rules: {
+      'react/no-array-index-key': 'error',
+      'jsx-a11y/prefer-tag-over-role': 'error',
+      'jsx-a11y/anchor-is-valid': 'error',
+    },
+  },
+  // Eclair test files: larger limit for lint-staged compatibility
+  {
+    files: [
+      'apps/eclair/**/*.test.ts',
+      'apps/eclair/**/*.test.tsx',
+      'apps/eclair/**/*.spec.ts',
+      'apps/eclair/**/*.spec.tsx',
+    ],
+    rules: {
+      'max-lines': [
+        'error',
+        {
+          max: 730,
+          skipBlankLines: true,
+          skipComments: true,
+        },
+      ],
+    },
+  },
+)

@@ -1,6 +1,10 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import {
+  render, screen, fireEvent, waitFor 
+} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it, vi } from 'vitest'
+import {
+  describe, expect, it, vi 
+} from 'vitest'
 import { FileUpload } from './FileUpload'
 
 function createFile(name: string, content: string, type = 'application/json'): File {
@@ -9,25 +13,35 @@ function createFile(name: string, content: string, type = 'application/json'): F
 
 interface MockDataTransfer {
   files: File[]
-  items: Array<{ kind: string; type: string; getAsFile: () => File }>
+  items: Array<{
+    kind: string
+    type: string
+    getAsFile: () => File
+  }>
   types: string[]
 }
 
 function createDataTransfer(files: File[]): MockDataTransfer {
   return {
     files,
-    items: files.map((file) => ({ kind: 'file', type: file.type, getAsFile: () => file })),
+    items: files.map((file) => ({
+      kind: 'file',
+      type: file.type,
+      getAsFile: () => file,
+    })),
     types: ['Files'],
   }
 }
 
 function getDropZone(): HTMLElement {
-  const dropZone = screen.getByRole('button', { name: /select file/i }).closest('div[class*="border-"]')
+  const dropZone = screen
+    .getByRole('button', { name: /select file/i })
+    .closest('div[class*="border-"]')
   if (dropZone === null) {
     throw new Error('Drop zone not found')
   }
   if (!(dropZone instanceof HTMLElement)) {
-    throw new Error('Drop zone is not an HTMLElement')
+    throw new TypeError('Drop zone is not an HTMLElement')
   }
   return dropZone
 }
@@ -115,7 +129,7 @@ describe('FileUpload', () => {
 
     const fileInput = document.querySelector('input[type="file"]')
     if (!(fileInput instanceof HTMLInputElement)) {
-      throw new Error('File input not found')
+      throw new TypeError('File input not found')
     }
     const clickSpy = vi.spyOn(fileInput, 'click')
 
@@ -140,7 +154,7 @@ describe('FileUpload', () => {
     const button = screen.getByRole('button', { name: /select file/i })
     const fileInput = document.querySelector('input[type="file"]')
     if (!(fileInput instanceof HTMLInputElement)) {
-      throw new Error('File input not found')
+      throw new TypeError('File input not found')
     }
     const clickSpy = vi.spyOn(fileInput, 'click')
 

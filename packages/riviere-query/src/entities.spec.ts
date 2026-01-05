@@ -1,5 +1,7 @@
 import { RiviereQuery } from './RiviereQuery'
-import { createMinimalValidGraph, createDomainOpComponent } from './riviere-graph-fixtures'
+import {
+  createMinimalValidGraph, createDomainOpComponent 
+} from './riviere-graph-fixtures'
 
 describe('operationsFor', () => {
   it('returns empty array when entity does not exist', () => {
@@ -144,7 +146,12 @@ describe('entities', () => {
       domain: 'orders',
       operationName: 'begin',
       entity: 'Order',
-      stateChanges: [{ from: 'Draft', to: 'Placed' }],
+      stateChanges: [
+        {
+          from: 'Draft',
+          to: 'Placed',
+        },
+      ],
     })
     const confirmOp = createDomainOpComponent({
       id: 'orders:checkout:domainop:order.confirm',
@@ -152,7 +159,12 @@ describe('entities', () => {
       domain: 'orders',
       operationName: 'confirm',
       entity: 'Order',
-      stateChanges: [{ from: 'Placed', to: 'Confirmed' }],
+      stateChanges: [
+        {
+          from: 'Placed',
+          to: 'Confirmed',
+        },
+      ],
     })
     graph.components.push(beginOp, confirmOp)
     const query = new RiviereQuery(graph)
@@ -171,7 +183,12 @@ describe('entities', () => {
       domain: 'orders',
       operationName: 'begin',
       entity: 'Order',
-      stateChanges: [{ from: 'Draft', to: 'Placed' }],
+      stateChanges: [
+        {
+          from: 'Draft',
+          to: 'Placed',
+        },
+      ],
     })
     graph.components.push(beginOp)
     const query = new RiviereQuery(graph)
@@ -180,7 +197,11 @@ describe('entities', () => {
 
     expect(entities).toHaveLength(1)
     expect(entities[0]?.transitions).toEqual([
-      { from: 'Draft', to: 'Placed', triggeredBy: 'begin' },
+      {
+        from: 'Draft',
+        to: 'Placed',
+        triggeredBy: 'begin',
+      },
     ])
   })
 
@@ -226,7 +247,12 @@ describe('Entity methods', () => {
         domain: 'orders',
         operationName: 'begin',
         entity: 'Order',
-        stateChanges: [{ from: 'Draft', to: 'Placed' }],
+        stateChanges: [
+          {
+            from: 'Draft',
+            to: 'Placed',
+          },
+        ],
       }),
     )
     const query = new RiviereQuery(graph)

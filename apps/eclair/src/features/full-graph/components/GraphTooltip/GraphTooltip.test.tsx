@@ -1,21 +1,32 @@
-import { describe, expect, test, beforeEach, afterEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
-import { GraphTooltip, TOOLTIP_WIDTH, TOOLTIP_HEIGHT } from './GraphTooltip'
-import type { TooltipData, SimulationNode } from '../../types'
-import { parseNode } from '@/lib/riviereTestData'
-const testSourceLocation = { repository: 'test-repo', filePath: 'src/test.ts' }
+import {
+  describe, expect, test, beforeEach, afterEach 
+} from 'vitest'
+import {
+  render, screen 
+} from '@testing-library/react'
+import {
+  GraphTooltip, TOOLTIP_WIDTH, TOOLTIP_HEIGHT 
+} from './GraphTooltip'
+import type {
+  TooltipData, SimulationNode 
+} from '../../types'
+import { parseNode } from '@/lib/riviereTestFixtures'
+const testSourceLocation = {
+  repository: 'test-repo',
+  filePath: 'src/test.ts',
+}
 
 const mockNode: SimulationNode = {
   id: 'test-node',
   type: 'API',
-        apiType: 'other',
+  apiType: 'other',
   name: 'Test API Node',
   domain: 'orders',
   originalNode: parseNode({
     sourceLocation: testSourceLocation,
     id: 'test-node',
     type: 'API',
-        apiType: 'other',
+    apiType: 'other',
     name: 'Test API Node',
     domain: 'orders',
     module: 'api',
@@ -81,7 +92,10 @@ describe('GraphTooltip', () => {
     render(<GraphTooltip data={mockTooltipData} />)
     const tooltip = screen.getByTestId('graph-tooltip')
 
-    expect(tooltip).toHaveStyle({ left: '110px', top: '190px' })
+    expect(tooltip).toHaveStyle({
+      left: '110px',
+      top: '190px',
+    })
   })
 
   test('has tooltip role for accessibility', () => {
@@ -98,7 +112,7 @@ describe('GraphTooltip', () => {
     const nodeWithSource: SimulationNode = {
       id: 'node-with-source',
       type: 'API',
-        apiType: 'other',
+      apiType: 'other',
       name: 'API with Source',
       domain: 'orders',
       originalNode: parseNode({
@@ -135,13 +149,29 @@ describe('GraphTooltip', () => {
     const originalInnerHeight = window.innerHeight
 
     beforeEach(() => {
-      Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: 1024 })
-      Object.defineProperty(window, 'innerHeight', { writable: true, configurable: true, value: 768 })
+      Object.defineProperty(window, 'innerWidth', {
+        writable: true,
+        configurable: true,
+        value: 1024,
+      })
+      Object.defineProperty(window, 'innerHeight', {
+        writable: true,
+        configurable: true,
+        value: 768,
+      })
     })
 
     afterEach(() => {
-      Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: originalInnerWidth })
-      Object.defineProperty(window, 'innerHeight', { writable: true, configurable: true, value: originalInnerHeight })
+      Object.defineProperty(window, 'innerWidth', {
+        writable: true,
+        configurable: true,
+        value: originalInnerWidth,
+      })
+      Object.defineProperty(window, 'innerHeight', {
+        writable: true,
+        configurable: true,
+        value: originalInnerHeight,
+      })
     })
 
     test('repositions tooltip to the left when near right viewport edge', () => {
@@ -202,7 +232,10 @@ describe('GraphTooltip', () => {
       const tooltip = screen.getByTestId('graph-tooltip')
 
       // Normal positioning: x+10, y-10
-      expect(tooltip).toHaveStyle({ left: '110px', top: '190px' })
+      expect(tooltip).toHaveStyle({
+        left: '110px',
+        top: '190px',
+      })
     })
   })
 })

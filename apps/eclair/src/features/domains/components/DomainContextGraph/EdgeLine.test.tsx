@@ -1,11 +1,23 @@
-import { describe, it, expect } from 'vitest'
+import {
+  describe, it, expect 
+} from 'vitest'
 import { render } from '@testing-library/react'
 import { EdgeLine } from './EdgeLine'
 import type { DomainPosition } from './DomainContextGraph'
 
 describe('EdgeLine', () => {
-  const from: DomainPosition = { id: 'orders', x: 100, y: 100, isCurrent: true }
-  const to: DomainPosition = { id: 'inventory', x: 200, y: 200, isCurrent: false }
+  const from: DomainPosition = {
+    id: 'orders',
+    x: 100,
+    y: 100,
+    isCurrent: true,
+  }
+  const to: DomainPosition = {
+    id: 'inventory',
+    x: 200,
+    y: 200,
+    isCurrent: false,
+  }
 
   it('renders SVG group element', () => {
     const { container } = render(
@@ -18,7 +30,7 @@ describe('EdgeLine', () => {
           testId="test-edge"
           direction="outgoing"
         />
-      </svg>
+      </svg>,
     )
 
     const group = container.querySelector('[data-testid="test-edge"]')
@@ -26,7 +38,12 @@ describe('EdgeLine', () => {
   })
 
   it('returns empty group when positions are identical', () => {
-    const same: DomainPosition = { id: 'test', x: 100, y: 100, isCurrent: true }
+    const same: DomainPosition = {
+      id: 'test',
+      x: 100,
+      y: 100,
+      isCurrent: true,
+    }
 
     const { container } = render(
       <svg>
@@ -38,7 +55,7 @@ describe('EdgeLine', () => {
           testId="same-edge"
           direction="outgoing"
         />
-      </svg>
+      </svg>,
     )
 
     const group = container.querySelector('[data-testid="same-edge"]')
@@ -57,7 +74,7 @@ describe('EdgeLine', () => {
           testId="directed-edge"
           direction="incoming"
         />
-      </svg>
+      </svg>,
     )
 
     const group = container.querySelector('[data-direction="incoming"]')

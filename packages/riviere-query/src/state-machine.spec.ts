@@ -1,5 +1,7 @@
 import { RiviereQuery } from './RiviereQuery'
-import { createMinimalValidGraph, createDomainOpComponent } from './riviere-graph-fixtures'
+import {
+  createMinimalValidGraph, createDomainOpComponent 
+} from './riviere-graph-fixtures'
 
 describe('transitionsFor', () => {
   it('returns empty array for nonexistent entity but transitions for existing entity', () => {
@@ -11,7 +13,12 @@ describe('transitionsFor', () => {
         domain: 'orders',
         operationName: 'begin',
         entity: 'Order',
-        stateChanges: [{ from: 'Draft', to: 'Placed' }],
+        stateChanges: [
+          {
+            from: 'Draft',
+            to: 'Placed',
+          },
+        ],
       }),
     )
     const query = new RiviereQuery(graph)
@@ -32,7 +39,12 @@ describe('transitionsFor', () => {
         domain: 'orders',
         operationName: 'begin',
         entity: 'Order',
-        stateChanges: [{ from: 'Draft', to: 'Placed' }],
+        stateChanges: [
+          {
+            from: 'Draft',
+            to: 'Placed',
+          },
+        ],
       }),
       createDomainOpComponent({
         id: 'orders:checkout:domainop:order.confirm',
@@ -40,7 +52,12 @@ describe('transitionsFor', () => {
         domain: 'orders',
         operationName: 'confirm',
         entity: 'Order',
-        stateChanges: [{ from: 'Placed', to: 'Confirmed' }],
+        stateChanges: [
+          {
+            from: 'Placed',
+            to: 'Confirmed',
+          },
+        ],
       }),
     )
     const query = new RiviereQuery(graph)
@@ -48,8 +65,16 @@ describe('transitionsFor', () => {
     const transitions = query.transitionsFor('Order')
 
     expect(transitions).toEqual([
-      { from: 'Draft', to: 'Placed', triggeredBy: 'begin' },
-      { from: 'Placed', to: 'Confirmed', triggeredBy: 'confirm' },
+      {
+        from: 'Draft',
+        to: 'Placed',
+        triggeredBy: 'begin',
+      },
+      {
+        from: 'Placed',
+        to: 'Confirmed',
+        triggeredBy: 'confirm',
+      },
     ])
   })
 
@@ -62,14 +87,25 @@ describe('transitionsFor', () => {
         domain: 'orders',
         operationName: 'cancel',
         entity: 'Order',
-        stateChanges: [{ from: '*', to: 'Cancelled' }],
+        stateChanges: [
+          {
+            from: '*',
+            to: 'Cancelled',
+          },
+        ],
       }),
     )
     const query = new RiviereQuery(graph)
 
     const transitions = query.transitionsFor('Order')
 
-    expect(transitions).toEqual([{ from: '*', to: 'Cancelled', triggeredBy: 'cancel' }])
+    expect(transitions).toEqual([
+      {
+        from: '*',
+        to: 'Cancelled',
+        triggeredBy: 'cancel',
+      },
+    ])
   })
 
   it('ignores operations without stateChanges', () => {
@@ -88,14 +124,25 @@ describe('transitionsFor', () => {
         domain: 'orders',
         operationName: 'begin',
         entity: 'Order',
-        stateChanges: [{ from: 'Draft', to: 'Placed' }],
+        stateChanges: [
+          {
+            from: 'Draft',
+            to: 'Placed',
+          },
+        ],
       }),
     )
     const query = new RiviereQuery(graph)
 
     const transitions = query.transitionsFor('Order')
 
-    expect(transitions).toEqual([{ from: 'Draft', to: 'Placed', triggeredBy: 'begin' }])
+    expect(transitions).toEqual([
+      {
+        from: 'Draft',
+        to: 'Placed',
+        triggeredBy: 'begin',
+      },
+    ])
   })
 })
 
@@ -109,7 +156,12 @@ describe('statesFor', () => {
         domain: 'orders',
         operationName: 'begin',
         entity: 'Order',
-        stateChanges: [{ from: 'Draft', to: 'Placed' }],
+        stateChanges: [
+          {
+            from: 'Draft',
+            to: 'Placed',
+          },
+        ],
       }),
     )
     const query = new RiviereQuery(graph)
@@ -130,7 +182,12 @@ describe('statesFor', () => {
         domain: 'orders',
         operationName: 'begin',
         entity: 'Order',
-        stateChanges: [{ from: 'Draft', to: 'Placed' }],
+        stateChanges: [
+          {
+            from: 'Draft',
+            to: 'Placed',
+          },
+        ],
       }),
       createDomainOpComponent({
         id: 'orders:checkout:domainop:order.confirm',
@@ -138,7 +195,12 @@ describe('statesFor', () => {
         domain: 'orders',
         operationName: 'confirm',
         entity: 'Order',
-        stateChanges: [{ from: 'Placed', to: 'Confirmed' }],
+        stateChanges: [
+          {
+            from: 'Placed',
+            to: 'Confirmed',
+          },
+        ],
       }),
     )
     const query = new RiviereQuery(graph)
@@ -160,7 +222,12 @@ describe('statesFor', () => {
         domain: 'orders',
         operationName: 'confirm',
         entity: 'Order',
-        stateChanges: [{ from: 'Placed', to: 'Confirmed' }],
+        stateChanges: [
+          {
+            from: 'Placed',
+            to: 'Confirmed',
+          },
+        ],
       }),
       createDomainOpComponent({
         id: 'orders:checkout:domainop:order.begin',
@@ -168,7 +235,12 @@ describe('statesFor', () => {
         domain: 'orders',
         operationName: 'begin',
         entity: 'Order',
-        stateChanges: [{ from: 'Draft', to: 'Placed' }],
+        stateChanges: [
+          {
+            from: 'Draft',
+            to: 'Placed',
+          },
+        ],
       }),
       createDomainOpComponent({
         id: 'orders:checkout:domainop:order.ship',
@@ -176,7 +248,12 @@ describe('statesFor', () => {
         domain: 'orders',
         operationName: 'ship',
         entity: 'Order',
-        stateChanges: [{ from: 'Confirmed', to: 'Shipped' }],
+        stateChanges: [
+          {
+            from: 'Confirmed',
+            to: 'Shipped',
+          },
+        ],
       }),
     )
     const query = new RiviereQuery(graph)
@@ -195,7 +272,12 @@ describe('statesFor', () => {
         domain: 'orders',
         operationName: 'begin',
         entity: 'Order',
-        stateChanges: [{ from: 'Draft', to: 'Placed' }],
+        stateChanges: [
+          {
+            from: 'Draft',
+            to: 'Placed',
+          },
+        ],
       }),
       createDomainOpComponent({
         id: 'orders:checkout:domainop:order.cancel',
@@ -203,7 +285,12 @@ describe('statesFor', () => {
         domain: 'orders',
         operationName: 'cancel',
         entity: 'Order',
-        stateChanges: [{ from: '*', to: 'Cancelled' }],
+        stateChanges: [
+          {
+            from: '*',
+            to: 'Cancelled',
+          },
+        ],
       }),
     )
     const query = new RiviereQuery(graph)
@@ -230,7 +317,12 @@ describe('statesFor', () => {
         domain: 'orders',
         operationName: 'begin',
         entity: 'Order',
-        stateChanges: [{ from: 'Draft', to: 'Placed' }],
+        stateChanges: [
+          {
+            from: 'Draft',
+            to: 'Placed',
+          },
+        ],
       }),
     )
     const query = new RiviereQuery(graph)
@@ -249,7 +341,12 @@ describe('statesFor', () => {
         domain: 'orders',
         operationName: 'begin',
         entity: 'Order',
-        stateChanges: [{ from: 'Draft', to: 'Active' }],
+        stateChanges: [
+          {
+            from: 'Draft',
+            to: 'Active',
+          },
+        ],
       }),
       createDomainOpComponent({
         id: 'orders:checkout:domainop:order.retry',
@@ -257,7 +354,12 @@ describe('statesFor', () => {
         domain: 'orders',
         operationName: 'retry',
         entity: 'Order',
-        stateChanges: [{ from: 'Active', to: 'Draft' }],
+        stateChanges: [
+          {
+            from: 'Active',
+            to: 'Draft',
+          },
+        ],
       }),
     )
     const query = new RiviereQuery(graph)
@@ -278,7 +380,12 @@ describe('statesFor', () => {
         domain: 'orders',
         operationName: 'begin',
         entity: 'Order',
-        stateChanges: [{ from: 'Draft', to: 'Active' }],
+        stateChanges: [
+          {
+            from: 'Draft',
+            to: 'Active',
+          },
+        ],
       }),
       createDomainOpComponent({
         id: 'orders:checkout:domainop:order.process',
@@ -286,7 +393,12 @@ describe('statesFor', () => {
         domain: 'orders',
         operationName: 'process',
         entity: 'Order',
-        stateChanges: [{ from: 'Active', to: 'Processing' }],
+        stateChanges: [
+          {
+            from: 'Active',
+            to: 'Processing',
+          },
+        ],
       }),
       createDomainOpComponent({
         id: 'orders:checkout:domainop:order.retry',
@@ -294,7 +406,12 @@ describe('statesFor', () => {
         domain: 'orders',
         operationName: 'retry',
         entity: 'Order',
-        stateChanges: [{ from: 'Processing', to: 'Active' }],
+        stateChanges: [
+          {
+            from: 'Processing',
+            to: 'Active',
+          },
+        ],
       }),
     )
     const query = new RiviereQuery(graph)

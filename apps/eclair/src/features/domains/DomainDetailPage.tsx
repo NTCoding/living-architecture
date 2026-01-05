@@ -1,16 +1,20 @@
-import { useState, useRef, useCallback, forwardRef } from 'react'
+import {
+  useState, useRef, useCallback, forwardRef 
+} from 'react'
 import { useParams } from 'react-router-dom'
 import type { RiviereGraph } from '@/types/riviere'
-import { extractDomainDetails, type DomainDetails } from './extractDomainDetails'
-import { parseDomainKey } from '@/lib/riviereTestData'
+import {
+  extractDomainDetails, type DomainDetails 
+} from './extractDomainDetails'
+import { parseDomainKey } from '@/lib/riviereTestFixtures'
 import { DomainContextGraph } from './components/DomainContextGraph/DomainContextGraph'
-import { DomainDetailView, type NodeTypeFilter } from './DomainDetailView'
+import {
+  DomainDetailView, type NodeTypeFilter 
+} from './DomainDetailView'
 
 type ViewMode = 'graph' | 'detail'
 
-interface DomainDetailPageProps {
-  readonly graph: RiviereGraph
-}
+interface DomainDetailPageProps {readonly graph: RiviereGraph}
 
 export function DomainDetailPage({ graph }: DomainDetailPageProps): React.ReactElement {
   const { domainId } = useParams<{ domainId: string }>()
@@ -29,9 +33,7 @@ export function DomainDetailPage({ graph }: DomainDetailPageProps): React.ReactE
   return <DomainDetailContent domain={domain} />
 }
 
-interface DomainDetailContentProps {
-  readonly domain: DomainDetails
-}
+interface DomainDetailContentProps {readonly domain: DomainDetails}
 
 function DomainDetailContent({ domain }: DomainDetailContentProps): React.ReactElement {
   const [viewMode, setViewMode] = useState<ViewMode>('detail')
@@ -42,43 +44,52 @@ function DomainDetailContent({ domain }: DomainDetailContentProps): React.ReactE
   const [entitySearch, setEntitySearch] = useState('')
   const [eventSearch, setEventSearch] = useState('')
 
-  const setTabRef = useCallback((mode: ViewMode) => (el: HTMLButtonElement | null) => {
-    tabRefs.current.set(mode, el)
-  }, [])
+  const setTabRef = useCallback(
+    (mode: ViewMode) => (el: HTMLButtonElement | null) => {
+      tabRefs.current.set(mode, el)
+    },
+    [],
+  )
 
-  const handleKeyDown = useCallback((event: React.KeyboardEvent<HTMLButtonElement>) => {
-    const modes: ViewMode[] = ['graph', 'detail']
-    const currentIndex = modes.indexOf(viewMode)
+  const handleKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLButtonElement>) => {
+      const modes: ViewMode[] = ['graph', 'detail']
+      const currentIndex = modes.indexOf(viewMode)
 
-    const isArrowRight = event.key === 'ArrowRight'
-    const isArrowLeft = event.key === 'ArrowLeft'
+      const isArrowRight = event.key === 'ArrowRight'
+      const isArrowLeft = event.key === 'ArrowLeft'
 
-    const computeNewIndex = (): number | undefined => {
-      if (isArrowRight) return (currentIndex + 1) % modes.length
-      if (isArrowLeft) return (currentIndex - 1 + modes.length) % modes.length
-      return undefined
-    }
-    const newIndex = computeNewIndex()
+      const computeNewIndex = (): number | undefined => {
+        if (isArrowRight) return (currentIndex + 1) % modes.length
+        if (isArrowLeft) return (currentIndex - 1 + modes.length) % modes.length
+        return undefined
+      }
+      const newIndex = computeNewIndex()
 
-    if (newIndex === undefined) return
+      if (newIndex === undefined) return
 
-    const newMode = modes[newIndex]
-    if (newMode !== undefined) {
-      setViewMode(newMode)
-      tabRefs.current.get(newMode)?.focus()
-    }
-  }, [viewMode])
+      const newMode = modes[newIndex]
+      if (newMode !== undefined) {
+        setViewMode(newMode)
+        tabRefs.current.get(newMode)?.focus()
+      }
+    },
+    [viewMode],
+  )
 
   return (
     <div className="space-y-6">
-      <DomainHeader domain={domain} viewMode={viewMode} setViewMode={setViewMode} onKeyDown={handleKeyDown} setTabRef={setTabRef} />
+      <DomainHeader
+        domain={domain}
+        viewMode={viewMode}
+        setViewMode={setViewMode}
+        onKeyDown={handleKeyDown}
+        setTabRef={setTabRef}
+      />
 
       {viewMode === 'graph' ? (
         <div data-testid="graph-panel">
-          <DomainContextGraph
-            domainId={domain.id}
-            connections={domain.aggregatedConnections}
-          />
+          <DomainContextGraph domainId={domain.id} connections={domain.aggregatedConnections} />
         </div>
       ) : (
         <DomainDetailView
@@ -105,7 +116,13 @@ interface DomainHeaderProps {
   readonly setTabRef: (mode: ViewMode) => (el: HTMLButtonElement | null) => void
 }
 
-function DomainHeader({ domain, viewMode, setViewMode, onKeyDown, setTabRef }: DomainHeaderProps): React.ReactElement {
+function DomainHeader({
+  domain,
+  viewMode,
+  setViewMode,
+  onKeyDown,
+  setTabRef,
+}: DomainHeaderProps): React.ReactElement {
   return (
     <header data-testid="domain-header">
       <div className="flex items-center justify-between">
@@ -142,13 +159,10 @@ function DomainHeader({ domain, viewMode, setViewMode, onKeyDown, setTabRef }: D
           />
         </div>
       </div>
-      <p className="mt-1 text-[var(--text-secondary)]">
-        {domain.description}
-      </p>
+      <p className="mt-1 text-[var(--text-secondary)]">{domain.description}</p>
     </header>
   )
 }
-
 
 interface ViewModeTabProps {
   readonly mode: ViewMode
@@ -160,8 +174,10 @@ interface ViewModeTabProps {
 }
 
 const ViewModeTab = forwardRef<HTMLButtonElement, ViewModeTabProps>(function ViewModeTab(
-  { label, icon, isSelected, onClick, onKeyDown },
-  ref
+  {
+    label, icon, isSelected, onClick, onKeyDown 
+  },
+  ref,
 ) {
   return (
     <button

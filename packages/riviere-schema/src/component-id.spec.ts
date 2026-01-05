@@ -46,19 +46,19 @@ describe('ComponentId', () => {
 
     it('throws on invalid format with too few segments', () => {
       expect(() => ComponentId.parse('orders:checkout')).toThrow(
-        "Invalid component ID format: 'orders:checkout'. Expected 'domain:module:type:name'"
+        "Invalid component ID format: 'orders:checkout'. Expected 'domain:module:type:name'",
       )
     })
 
     it('throws on invalid format with too many segments', () => {
       expect(() => ComponentId.parse('orders:checkout:domainop:place:order')).toThrow(
-        "Invalid component ID format: 'orders:checkout:domainop:place:order'. Expected 'domain:module:type:name'"
+        "Invalid component ID format: 'orders:checkout:domainop:place:order'. Expected 'domain:module:type:name'",
       )
     })
 
     it('throws on empty string', () => {
       expect(() => ComponentId.parse('')).toThrow(
-        "Invalid component ID format: ''. Expected 'domain:module:type:name'"
+        "Invalid component ID format: ''. Expected 'domain:module:type:name'",
       )
     })
   })

@@ -1,11 +1,23 @@
-import { describe, it, expect } from 'vitest'
-import { RiviereBuilder, type BuilderOptions } from './builder'
+import {
+  describe, it, expect 
+} from 'vitest'
+import {
+  RiviereBuilder, type BuilderOptions 
+} from './builder'
 
 function createValidOptions(): BuilderOptions {
   return {
-    sources: [{ repository: 'test/repo', commit: 'abc123' }],
+    sources: [
+      {
+        repository: 'test/repo',
+        commit: 'abc123',
+      },
+    ],
     domains: {
-      orders: { description: 'Order domain', systemType: 'domain' },
+      orders: {
+        description: 'Order domain',
+        systemType: 'domain',
+      },
     },
   }
 }
@@ -19,7 +31,10 @@ describe('RiviereBuilder', () => {
         name: 'Create Order',
         domain: 'orders',
         module: 'checkout',
-        sourceLocation: { repository: 'test/repo', filePath: 'src/create-order.ts' },
+        sourceLocation: {
+          repository: 'test/repo',
+          filePath: 'src/create-order.ts',
+        },
       })
 
       const target = builder.addDomainOp({
@@ -27,10 +42,16 @@ describe('RiviereBuilder', () => {
         domain: 'orders',
         module: 'checkout',
         operationName: 'saveOrder',
-        sourceLocation: { repository: 'test/repo', filePath: 'src/save-order.ts' },
+        sourceLocation: {
+          repository: 'test/repo',
+          filePath: 'src/save-order.ts',
+        },
       })
 
-      const link = builder.link({ from: source.id, to: target.id })
+      const link = builder.link({
+        from: source.id,
+        to: target.id,
+      })
 
       expect(link.source).toBe(source.id)
       expect(link.target).toBe(target.id)
@@ -40,7 +61,10 @@ describe('RiviereBuilder', () => {
       const builder = RiviereBuilder.new(createValidOptions())
 
       expect(() =>
-        builder.link({ from: 'nonexistent:module:usecase:foo', to: 'any:target:id' })
+        builder.link({
+          from: 'nonexistent:module:usecase:foo',
+          to: 'any:target:id',
+        }),
       ).toThrow("Source component 'nonexistent:module:usecase:foo' not found")
     })
 
@@ -51,11 +75,17 @@ describe('RiviereBuilder', () => {
         name: 'Create Order',
         domain: 'orders',
         module: 'checkout',
-        sourceLocation: { repository: 'test/repo', filePath: 'src/create-order.ts' },
+        sourceLocation: {
+          repository: 'test/repo',
+          filePath: 'src/create-order.ts',
+        },
       })
 
       expect(() =>
-        builder.link({ from: 'orders:checkout:usecase:create-ordr', to: 'any:target:id' })
+        builder.link({
+          from: 'orders:checkout:usecase:create-ordr',
+          to: 'any:target:id',
+        }),
       ).toThrow(/Did you mean:.*orders:checkout:usecase:create-order/)
     })
 
@@ -66,10 +96,16 @@ describe('RiviereBuilder', () => {
         name: 'Create Order',
         domain: 'orders',
         module: 'checkout',
-        sourceLocation: { repository: 'test/repo', filePath: 'src/create-order.ts' },
+        sourceLocation: {
+          repository: 'test/repo',
+          filePath: 'src/create-order.ts',
+        },
       })
 
-      const link = builder.link({ from: source.id, to: 'nonexistent:target:id' })
+      const link = builder.link({
+        from: source.id,
+        to: 'nonexistent:target:id',
+      })
 
       expect(link.source).toBe(source.id)
       expect(link.target).toBe('nonexistent:target:id')
@@ -82,10 +118,17 @@ describe('RiviereBuilder', () => {
         name: 'Create Order',
         domain: 'orders',
         module: 'checkout',
-        sourceLocation: { repository: 'test/repo', filePath: 'src/create-order.ts' },
+        sourceLocation: {
+          repository: 'test/repo',
+          filePath: 'src/create-order.ts',
+        },
       })
 
-      const link = builder.link({ from: source.id, to: 'any:target:id', type: 'sync' })
+      const link = builder.link({
+        from: source.id,
+        to: 'any:target:id',
+        type: 'sync',
+      })
 
       expect(link.type).toBe('sync')
     })
@@ -97,10 +140,17 @@ describe('RiviereBuilder', () => {
         name: 'Create Order',
         domain: 'orders',
         module: 'checkout',
-        sourceLocation: { repository: 'test/repo', filePath: 'src/create-order.ts' },
+        sourceLocation: {
+          repository: 'test/repo',
+          filePath: 'src/create-order.ts',
+        },
       })
 
-      const link = builder.link({ from: source.id, to: 'any:target:id', type: 'async' })
+      const link = builder.link({
+        from: source.id,
+        to: 'any:target:id',
+        type: 'async',
+      })
 
       expect(link.type).toBe('async')
     })
@@ -112,10 +162,16 @@ describe('RiviereBuilder', () => {
         name: 'Create Order',
         domain: 'orders',
         module: 'checkout',
-        sourceLocation: { repository: 'test/repo', filePath: 'src/create-order.ts' },
+        sourceLocation: {
+          repository: 'test/repo',
+          filePath: 'src/create-order.ts',
+        },
       })
 
-      const link = builder.link({ from: source.id, to: 'any:target:id' })
+      const link = builder.link({
+        from: source.id,
+        to: 'any:target:id',
+      })
 
       expect(link.type).toBeUndefined()
     })
@@ -129,12 +185,18 @@ describe('RiviereBuilder', () => {
         name: 'Create Order',
         domain: 'orders',
         module: 'checkout',
-        sourceLocation: { repository: 'test/repo', filePath: 'src/create-order.ts' },
+        sourceLocation: {
+          repository: 'test/repo',
+          filePath: 'src/create-order.ts',
+        },
       })
 
       const externalLink = builder.linkExternal({
         from: source.id,
-        target: { name: 'Stripe API', domain: 'payments' },
+        target: {
+          name: 'Stripe API',
+          domain: 'payments',
+        },
       })
 
       expect(externalLink.source).toBe(source.id)
@@ -149,14 +211,17 @@ describe('RiviereBuilder', () => {
         name: 'Create Order',
         domain: 'orders',
         module: 'checkout',
-        sourceLocation: { repository: 'test/repo', filePath: 'src/create-order.ts' },
+        sourceLocation: {
+          repository: 'test/repo',
+          filePath: 'src/create-order.ts',
+        },
       })
 
       expect(() =>
         builder.linkExternal({
           from: 'orders:checkout:usecase:create-ordr',
           target: { name: 'Stripe API' },
-        })
+        }),
       ).toThrow(/Did you mean:.*orders:checkout:usecase:create-order/)
     })
 
@@ -167,12 +232,18 @@ describe('RiviereBuilder', () => {
         name: 'Create Order',
         domain: 'orders',
         module: 'checkout',
-        sourceLocation: { repository: 'test/repo', filePath: 'src/create-order.ts' },
+        sourceLocation: {
+          repository: 'test/repo',
+          filePath: 'src/create-order.ts',
+        },
       })
 
       const externalLink = builder.linkExternal({
         from: source.id,
-        target: { name: 'Stripe API', url: 'https://stripe.com/api' },
+        target: {
+          name: 'Stripe API',
+          url: 'https://stripe.com/api',
+        },
       })
 
       expect(externalLink.target.url).toBe('https://stripe.com/api')
@@ -185,7 +256,10 @@ describe('RiviereBuilder', () => {
         name: 'Create Order',
         domain: 'orders',
         module: 'checkout',
-        sourceLocation: { repository: 'test/repo', filePath: 'src/create-order.ts' },
+        sourceLocation: {
+          repository: 'test/repo',
+          filePath: 'src/create-order.ts',
+        },
       })
 
       const externalLink = builder.linkExternal({
@@ -193,7 +267,10 @@ describe('RiviereBuilder', () => {
         target: { name: 'Stripe API' },
         type: 'async',
         description: 'Payment processing',
-        sourceLocation: { repository: 'test/repo', filePath: 'src/stripe.ts' },
+        sourceLocation: {
+          repository: 'test/repo',
+          filePath: 'src/stripe.ts',
+        },
       })
 
       expect(externalLink.type).toBe('async')

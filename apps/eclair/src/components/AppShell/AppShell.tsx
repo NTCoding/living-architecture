@@ -1,9 +1,13 @@
-import { useState, useCallback } from 'react'
+import {
+  useState, useCallback 
+} from 'react'
 import { useLocation } from 'react-router-dom'
 import { Header } from '@/components/Header/Header'
 import { Sidebar } from '@/components/Sidebar/Sidebar'
 import { useExport } from '@/contexts/ExportContext'
-import type { RiviereGraph, GraphName } from '@/types/riviere'
+import type {
+  RiviereGraph, GraphName 
+} from '@/types/riviere'
 
 interface AppShellProps {
   readonly children: React.ReactNode
@@ -20,11 +24,16 @@ function isMobileViewport(): boolean {
   return window.innerWidth < MOBILE_BREAKPOINT
 }
 
-export function AppShell({ children, hasGraph, graphName, graph }: AppShellProps): React.ReactElement {
+export function AppShell({
+  children,
+  hasGraph,
+  graphName,
+  graph,
+}: AppShellProps): React.ReactElement {
   const location = useLocation()
   const { exportHandlers } = useExport()
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(() =>
-    isMobileViewport() || COLLAPSED_BY_DEFAULT_ROUTES.includes(location.pathname)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(
+    () => isMobileViewport() || COLLAPSED_BY_DEFAULT_ROUTES.includes(location.pathname),
   )
 
   const toggleSidebarCollapsedState = useCallback(() => {
@@ -33,7 +42,11 @@ export function AppShell({ children, hasGraph, graphName, graph }: AppShellProps
 
   return (
     <div className="h-screen flex overflow-hidden bg-[var(--bg-primary)]">
-      <Sidebar hasGraph={hasGraph} collapsed={sidebarCollapsed} onToggleCollapse={toggleSidebarCollapsedState} />
+      <Sidebar
+        hasGraph={hasGraph}
+        collapsed={sidebarCollapsed}
+        onToggleCollapse={toggleSidebarCollapsedState}
+      />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header
           graphName={graphName}
@@ -41,9 +54,7 @@ export function AppShell({ children, hasGraph, graphName, graph }: AppShellProps
           {...(exportHandlers.onPng !== null && { onExportPng: exportHandlers.onPng })}
           {...(exportHandlers.onSvg !== null && { onExportSvg: exportHandlers.onSvg })}
         />
-        <main className="flex-1 min-h-0 overflow-auto p-6">
-          {children}
-        </main>
+        <main className="flex-1 min-h-0 overflow-auto p-6">{children}</main>
         <footer className="shrink-0 px-6 py-3 border-t border-[var(--border-color)] bg-[var(--bg-secondary)]">
           <p className="text-xs text-[var(--text-tertiary)] text-center">
             Created by{' '}
@@ -55,7 +66,6 @@ export function AppShell({ children, hasGraph, graphName, graph }: AppShellProps
             >
               Nick Tune
             </a>
-
             {' ('}
             <a
               href="https://bsky.app/profile/nick-tune.me"

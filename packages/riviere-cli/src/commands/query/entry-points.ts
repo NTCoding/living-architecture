@@ -1,6 +1,8 @@
 import { Command } from 'commander'
 import { formatSuccess } from '../../output'
-import { withGraph, getDefaultGraphPathDescription } from './load-graph'
+import {
+  withGraph, getDefaultGraphPathDescription 
+} from './load-graph'
 
 interface EntryPointsOptions {
   graph?: string
@@ -16,7 +18,7 @@ export function createEntryPointsCommand(): Command {
 Examples:
   $ riviere query entry-points
   $ riviere query entry-points --json
-`
+`,
     )
     .option('--graph <path>', getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')

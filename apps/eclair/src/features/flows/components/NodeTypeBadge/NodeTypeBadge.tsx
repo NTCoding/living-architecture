@@ -1,8 +1,6 @@
 import type { NodeType } from '@/types/riviere'
 
-interface NodeTypeBadgeProps {
-  readonly type: NodeType
-}
+interface NodeTypeBadgeProps {readonly type: NodeType}
 
 function getBadgeClass(type: NodeType): string {
   switch (type) {
@@ -32,10 +30,7 @@ export function NodeTypeBadge({ type }: Readonly<NodeTypeBadgeProps>): React.Rea
   const badgeClass = getBadgeClass(type)
 
   return (
-    <span
-      data-testid="node-type-badge"
-      className={`node-type-badge ${badgeClass}`}
-    >
+    <span data-testid="node-type-badge" className={`node-type-badge ${badgeClass}`}>
       {getDisplayLabel(type)}
     </span>
   )

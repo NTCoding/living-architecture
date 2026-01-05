@@ -1,4 +1,6 @@
-import { useState, useRef, useEffect } from 'react'
+import {
+  useState, useRef, useEffect 
+} from 'react'
 import { useCodeLinkSettings } from './useCodeLinkSettings'
 import { ConfigurePathModal } from './ConfigurePathModal'
 
@@ -20,29 +22,34 @@ function truncateFromStart(text: string, maxLength: number): string {
 function getModalCurrentValue(
   modalMode: ModalMode,
   vscodePath: string | null,
-  githubOrg: string | null
+  githubOrg: string | null,
 ): string | null {
   if (modalMode === 'vscode') return vscodePath
   if (modalMode === 'github') return githubOrg
   return null
 }
 
-export function CodeLinkMenu({ filePath, lineNumber, repository }: Readonly<CodeLinkMenuProps>): React.ReactElement {
+export function CodeLinkMenu({
+  filePath,
+  lineNumber,
+  repository,
+}: Readonly<CodeLinkMenuProps>): React.ReactElement {
   const [isOpen, setIsOpen] = useState(false)
   const [modalMode, setModalMode] = useState<ModalMode>(null)
   const menuRef = useRef<HTMLDivElement>(null)
 
   const {
-    settings,
-    setVscodePath,
-    setGithubOrg,
-    buildVscodeUrl,
-    buildGithubUrl,
-  } = useCodeLinkSettings()
+    settings, setVscodePath, setGithubOrg, buildVscodeUrl, buildGithubUrl 
+  } =
+    useCodeLinkSettings()
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent): void {
-      if (menuRef.current !== null && event.target instanceof Node && !menuRef.current.contains(event.target)) {
+      if (
+        menuRef.current !== null &&
+        event.target instanceof Node &&
+        !menuRef.current.contains(event.target)
+      ) {
         setIsOpen(false)
       }
     }
@@ -132,7 +139,9 @@ export function CodeLinkMenu({ filePath, lineNumber, repository }: Readonly<Code
         title={`${filePath}:${lineNumber}`}
       >
         <i className="ph ph-code" aria-hidden="true" />
-        <span className="code-link-text" data-testid="code-link-path">{truncateFromStart(`${filePath}:${lineNumber}`, MAX_DISPLAY_LENGTH)}</span>
+        <span className="code-link-text" data-testid="code-link-path">
+          {truncateFromStart(`${filePath}:${lineNumber}`, MAX_DISPLAY_LENGTH)}
+        </span>
       </button>
 
       {isOpen && (

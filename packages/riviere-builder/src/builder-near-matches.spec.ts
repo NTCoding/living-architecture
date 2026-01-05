@@ -1,12 +1,25 @@
-import { describe, it, expect } from 'vitest'
+import {
+  describe, it, expect 
+} from 'vitest'
 import { RiviereBuilder } from './builder'
 
 function createBuilderWithComponents(): RiviereBuilder {
   const builder = RiviereBuilder.new({
-    sources: [{ repository: 'test/repo', commit: 'abc123' }],
+    sources: [
+      {
+        repository: 'test/repo',
+        commit: 'abc123',
+      },
+    ],
     domains: {
-      orders: { description: 'Order domain', systemType: 'domain' },
-      shipping: { description: 'Shipping domain', systemType: 'domain' },
+      orders: {
+        description: 'Order domain',
+        systemType: 'domain',
+      },
+      shipping: {
+        description: 'Shipping domain',
+        systemType: 'domain',
+      },
     },
   })
 
@@ -14,14 +27,22 @@ function createBuilderWithComponents(): RiviereBuilder {
     name: 'OrderService',
     domain: 'orders',
     module: 'core',
-    sourceLocation: { repository: 'test/repo', filePath: 'src/order.ts', lineNumber: 1 },
+    sourceLocation: {
+      repository: 'test/repo',
+      filePath: 'src/order.ts',
+      lineNumber: 1,
+    },
   })
 
   builder.addUseCase({
     name: 'PaymentService',
     domain: 'orders',
     module: 'core',
-    sourceLocation: { repository: 'test/repo', filePath: 'src/payment.ts', lineNumber: 1 },
+    sourceLocation: {
+      repository: 'test/repo',
+      filePath: 'src/payment.ts',
+      lineNumber: 1,
+    },
   })
 
   builder.addEvent({
@@ -29,14 +50,22 @@ function createBuilderWithComponents(): RiviereBuilder {
     domain: 'orders',
     module: 'events',
     eventName: 'OrderPlaced',
-    sourceLocation: { repository: 'test/repo', filePath: 'src/events.ts', lineNumber: 1 },
+    sourceLocation: {
+      repository: 'test/repo',
+      filePath: 'src/events.ts',
+      lineNumber: 1,
+    },
   })
 
   builder.addUseCase({
     name: 'ShippingService',
     domain: 'shipping',
     module: 'core',
-    sourceLocation: { repository: 'test/repo', filePath: 'src/shipping.ts', lineNumber: 1 },
+    sourceLocation: {
+      repository: 'test/repo',
+      filePath: 'src/shipping.ts',
+      lineNumber: 1,
+    },
   })
 
   return builder
@@ -52,7 +81,10 @@ describe('RiviereBuilder.nearMatches', () => {
   describe('same name, wrong type (most common mistake)', () => {
     it('exact name with wrong type returns match with type mismatch', () => {
       const builder = createBuilderWithComponents()
-      const query = { name: 'OrderPlaced', type: 'UseCase' as const }
+      const query = {
+        name: 'OrderPlaced',
+        type: 'UseCase' as const,
+      }
       const results = builder.nearMatches(query)
 
       expect(results.length).toBeGreaterThan(0)
@@ -68,7 +100,10 @@ describe('RiviereBuilder.nearMatches', () => {
 
     it('UseCase found when Event expected', () => {
       const builder = createBuilderWithComponents()
-      const query = { name: 'OrderService', type: 'Event' as const }
+      const query = {
+        name: 'OrderService',
+        type: 'Event' as const,
+      }
       const results = builder.nearMatches(query)
 
       expect(results.length).toBeGreaterThan(0)
@@ -86,8 +121,15 @@ describe('RiviereBuilder.nearMatches', () => {
   describe('same name, wrong domain (common mistake)', () => {
     it.each([
       [
-        { name: 'OrderService', domain: 'shipping' },
-        { expectedName: 'OrderService', expectedDomain: 'orders', mismatchField: 'domain' },
+        {
+          name: 'OrderService',
+          domain: 'shipping',
+        },
+        {
+          expectedName: 'OrderService',
+          expectedDomain: 'orders',
+          mismatchField: 'domain',
+        },
         'exact name with wrong domain returns match with domain mismatch',
       ],
     ])('nearMatches(%o) - %s', (query, expected) => {

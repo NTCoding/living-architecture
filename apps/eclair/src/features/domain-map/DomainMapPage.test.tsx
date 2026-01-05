@@ -1,22 +1,58 @@
-import { describe, it, expect } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import {
+  describe, it, expect 
+} from 'vitest'
+import {
+  render, screen 
+} from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { DomainMapPage } from './DomainMapPage'
 import { ExportProvider } from '@/contexts/ExportContext'
 import type { RiviereGraph } from '@/types/riviere'
-import { parseNode, parseEdge, parseDomainMetadata } from '@/lib/riviereTestData'
+import {
+  parseNode, parseEdge, parseDomainMetadata 
+} from '@/lib/riviereTestFixtures'
 
-const testSourceLocation = { repository: 'test-repo', filePath: 'src/test.ts' }
+const testSourceLocation = {
+  repository: 'test-repo',
+  filePath: 'src/test.ts',
+}
 
 function createTestGraph(): RiviereGraph {
   return {
     version: '1.0',
-    metadata: { domains: parseDomainMetadata({ 'test-domain': { description: 'Test domain', systemType: 'domain' } }) },
+    metadata: {
+      domains: parseDomainMetadata({
+        'test-domain': {
+          description: 'Test domain',
+          systemType: 'domain',
+        },
+      }),
+    },
     components: [
-      parseNode({ sourceLocation: testSourceLocation, id: 'n1', type: 'API', name: 'API 1', domain: 'orders', module: 'm1' }),
-      parseNode({ sourceLocation: testSourceLocation, id: 'n2', type: 'UseCase', name: 'UC 1', domain: 'payments', module: 'm2' }),
+      parseNode({
+        sourceLocation: testSourceLocation,
+        id: 'n1',
+        type: 'API',
+        name: 'API 1',
+        domain: 'orders',
+        module: 'm1',
+      }),
+      parseNode({
+        sourceLocation: testSourceLocation,
+        id: 'n2',
+        type: 'UseCase',
+        name: 'UC 1',
+        domain: 'payments',
+        module: 'm2',
+      }),
     ],
-    links: [parseEdge({ source: 'n1', target: 'n2', type: 'sync' })],
+    links: [
+      parseEdge({
+        source: 'n1',
+        target: 'n2',
+        type: 'sync',
+      }),
+    ],
   }
 }
 
@@ -26,7 +62,7 @@ function renderWithRouter(graph: RiviereGraph, initialEntry = '/'): ReturnType<t
       <ExportProvider>
         <DomainMapPage graph={graph} />
       </ExportProvider>
-    </MemoryRouter>
+    </MemoryRouter>,
   )
 }
 

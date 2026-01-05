@@ -1,5 +1,9 @@
-import type { RiviereGraph, CustomComponent } from '@living-architecture/riviere-schema'
-import type { ComponentId, ValidationError, ValidationResult } from './domain-types'
+import type {
+  RiviereGraph, CustomComponent 
+} from '@living-architecture/riviere-schema'
+import type {
+  ComponentId, ValidationError, ValidationResult 
+} from './domain-types'
 import { parseComponentId } from './domain-types'
 
 function isCustomComponent(component: { type: string }): component is CustomComponent {
@@ -29,7 +33,10 @@ export function validateGraph(graph: RiviereGraph): ValidationResult {
 
   errors.push(...validateCustomTypes(graph))
 
-  return { valid: errors.length === 0, errors }
+  return {
+    valid: errors.length === 0,
+    errors,
+  }
 }
 
 function validateCustomTypes(graph: RiviereGraph): ValidationError[] {

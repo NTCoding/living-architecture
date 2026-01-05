@@ -1,4 +1,6 @@
-import { describe, it, expect } from 'vitest'
+import {
+  describe, it, expect 
+} from 'vitest'
 import { createProgram } from '../../cli'
 import { CliErrorCode } from '../../error-codes'
 import type { TestContext } from '../../command-test-fixtures'
@@ -13,9 +15,7 @@ import {
 
 interface OrphansSuccessOutput {
   success: true
-  data: {
-    orphans: string[]
-  }
+  data: { orphans: string[] }
   warnings: string[]
 }
 

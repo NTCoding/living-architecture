@@ -1,4 +1,6 @@
-import type { RiviereGraph, ComponentType } from '@living-architecture/riviere-schema'
+import type {
+  RiviereGraph, ComponentType 
+} from '@living-architecture/riviere-schema'
 import type { ComponentId } from './domain-types'
 import { parseComponentId } from './domain-types'
 
@@ -16,7 +18,10 @@ export function queryNodeDepths(graph: RiviereGraph): Map<ComponentId, number> {
   }
 
   const outgoingEdges = buildOutgoingEdges(graph)
-  const queue: DepthQueueEntry[] = entryPoints.map((id) => ({ id, depth: 0 }))
+  const queue: DepthQueueEntry[] = entryPoints.map((id) => ({
+    id,
+    depth: 0,
+  }))
 
   processQueue(queue, depths, outgoingEdges)
 
@@ -50,7 +55,10 @@ function enqueueChildren(
   const edges = outgoingEdges.get(current.id)
   if (edges) {
     for (const targetId of edges) {
-      queue.push({ id: targetId, depth: current.depth + 1 })
+      queue.push({
+        id: targetId,
+        depth: current.depth + 1,
+      })
     }
   }
 }

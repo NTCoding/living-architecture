@@ -1,10 +1,14 @@
 import { useTheme } from '@/contexts/ThemeContext'
 
-interface LogoProps {
-  readonly size?: number
-}
+interface LogoProps {readonly size?: number}
 
-function StreamLogo({ size, gradientId }: { readonly size: number; readonly gradientId: string }): React.ReactElement {
+function StreamLogo({
+  size,
+  gradientId,
+}: {
+  readonly size: number
+  readonly gradientId: string
+}): React.ReactElement {
   return (
     <svg width={size} height={size} viewBox="0 0 40 40" fill="none">
       <defs>

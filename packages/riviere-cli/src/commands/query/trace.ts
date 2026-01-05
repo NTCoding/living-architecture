@@ -1,9 +1,17 @@
 import { Command } from 'commander'
-import { ComponentNotFoundError, parseComponentId } from '@living-architecture/riviere-query'
-import { findNearMatches, ComponentId } from '@living-architecture/riviere-builder'
-import { formatError, formatSuccess } from '../../output'
+import {
+  ComponentNotFoundError, parseComponentId 
+} from '@living-architecture/riviere-query'
+import {
+  findNearMatches, ComponentId 
+} from '@living-architecture/riviere-builder'
+import {
+  formatError, formatSuccess 
+} from '../../output'
 import { CliErrorCode } from '../../error-codes'
-import { withGraph, getDefaultGraphPathDescription } from './load-graph'
+import {
+  withGraph, getDefaultGraphPathDescription 
+} from './load-graph'
 
 interface TraceOptions {
   graph?: string
@@ -19,7 +27,7 @@ export function createTraceCommand(): Command {
 Examples:
   $ riviere query trace "orders:api:api:postorders"
   $ riviere query trace "orders:checkout:usecase:placeorder" --json
-`
+`,
     )
     .argument('<componentId>', 'Component ID to trace from')
     .option('--graph <path>', getDefaultGraphPathDescription())
@@ -36,14 +44,18 @@ Examples:
         } catch (error) {
           if (error instanceof ComponentNotFoundError) {
             const parsedId = ComponentId.parse(componentIdArg)
-            const matches = findNearMatches(query.components(), { name: parsedId.name() }, { limit: 3 })
+            const matches = findNearMatches(
+              query.components(),
+              { name: parsedId.name() },
+              { limit: 3 },
+            )
             /* v8 ignore next -- @preserve v8 fails to track inline arrow function coverage despite test execution */
             const suggestions = matches.map((m) => m.component.id)
 
             console.log(
               JSON.stringify(
-                formatError(CliErrorCode.ComponentNotFound, error.message, suggestions)
-              )
+                formatError(CliErrorCode.ComponentNotFound, error.message, suggestions),
+              ),
             )
             return
           }

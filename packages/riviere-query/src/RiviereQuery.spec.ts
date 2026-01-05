@@ -1,4 +1,6 @@
-import { RiviereQuery, parseComponentId } from './RiviereQuery'
+import {
+  RiviereQuery, parseComponentId 
+} from './RiviereQuery'
 import {
   createMinimalValidGraph,
   createAPIComponent,
@@ -49,7 +51,12 @@ describe('RiviereQuery', () => {
   describe('links()', () => {
     it('returns all links from the graph', () => {
       const graph = createMinimalValidGraph()
-      graph.links = [{ source: 'a', target: 'b' }]
+      graph.links = [
+        {
+          source: 'a',
+          target: 'b',
+        },
+      ]
       const query = new RiviereQuery(graph)
 
       const links = query.links()
@@ -62,8 +69,19 @@ describe('RiviereQuery', () => {
   describe('detectOrphans()', () => {
     it('returns empty array when all components are connected', () => {
       const graph = createMinimalValidGraph()
-      graph.components.push(createAPIComponent({ id: 'test:mod:api:endpoint', name: 'Test API', domain: 'test' }))
-      graph.links = [{ source: 'test:mod:ui:page', target: 'test:mod:api:endpoint' }]
+      graph.components.push(
+        createAPIComponent({
+          id: 'test:mod:api:endpoint',
+          name: 'Test API',
+          domain: 'test',
+        }),
+      )
+      graph.links = [
+        {
+          source: 'test:mod:ui:page',
+          target: 'test:mod:api:endpoint',
+        },
+      ]
 
       const query = new RiviereQuery(graph)
 
@@ -80,10 +98,23 @@ describe('RiviereQuery', () => {
     it('considers both source and target links as connected', () => {
       const graph = createMinimalValidGraph()
       graph.components.push(
-        createAPIComponent({ id: 'test:mod:api:a', name: 'API A', domain: 'test' }),
-        createAPIComponent({ id: 'test:mod:api:b', name: 'API B', domain: 'test' }),
+        createAPIComponent({
+          id: 'test:mod:api:a',
+          name: 'API A',
+          domain: 'test',
+        }),
+        createAPIComponent({
+          id: 'test:mod:api:b',
+          name: 'API B',
+          domain: 'test',
+        }),
       )
-      graph.links = [{ source: 'test:mod:api:a', target: 'test:mod:api:b' }]
+      graph.links = [
+        {
+          source: 'test:mod:api:a',
+          target: 'test:mod:api:b',
+        },
+      ]
 
       const query = new RiviereQuery(graph)
 
@@ -94,7 +125,13 @@ describe('RiviereQuery', () => {
   describe('find()', () => {
     it('returns first matching component', () => {
       const graph = createMinimalValidGraph()
-      graph.components.push(createAPIComponent({ id: 'test:mod:api:endpoint', name: 'Test API', domain: 'test' }))
+      graph.components.push(
+        createAPIComponent({
+          id: 'test:mod:api:endpoint',
+          name: 'Test API',
+          domain: 'test',
+        }),
+      )
       const query = new RiviereQuery(graph)
 
       expect(query.find((c) => c.type === 'API')?.id).toBe('test:mod:api:endpoint')
@@ -111,16 +148,31 @@ describe('RiviereQuery', () => {
   describe('findAll()', () => {
     it('returns all matching components', () => {
       const graph = createMinimalValidGraph()
-      graph.metadata.domains['orders'] = { description: 'Orders', systemType: 'domain' }
+      graph.metadata.domains['orders'] = {
+        description: 'Orders',
+        systemType: 'domain',
+      }
       graph.components.push(
-        createAPIComponent({ id: 'orders:checkout:api:post', name: 'Create Order', domain: 'orders', httpMethod: 'POST' }),
-        createAPIComponent({ id: 'orders:fulfillment:api:get', name: 'Get Order', domain: 'orders' }),
+        createAPIComponent({
+          id: 'orders:checkout:api:post',
+          name: 'Create Order',
+          domain: 'orders',
+          httpMethod: 'POST',
+        }),
+        createAPIComponent({
+          id: 'orders:fulfillment:api:get',
+          name: 'Get Order',
+          domain: 'orders',
+        }),
       )
       const query = new RiviereQuery(graph)
 
       const result = query.findAll((c) => c.domain === 'orders')
 
-      expect(result.map((c) => c.id)).toEqual(['orders:checkout:api:post', 'orders:fulfillment:api:get'])
+      expect(result.map((c) => c.id)).toEqual([
+        'orders:checkout:api:post',
+        'orders:fulfillment:api:get',
+      ])
     })
 
     it('returns empty array when no components match', () => {
@@ -149,16 +201,34 @@ describe('RiviereQuery', () => {
   describe('search()', () => {
     it('returns components matching name case-insensitively', () => {
       const graph = createMinimalValidGraph()
-      graph.metadata.domains['orders'] = { description: 'Orders', systemType: 'domain' }
-      graph.components.push(createAPIComponent({ id: 'orders:api:create', name: 'Create Order', domain: 'orders' }))
+      graph.metadata.domains['orders'] = {
+        description: 'Orders',
+        systemType: 'domain',
+      }
+      graph.components.push(
+        createAPIComponent({
+          id: 'orders:api:create',
+          name: 'Create Order',
+          domain: 'orders',
+        }),
+      )
 
       expect(new RiviereQuery(graph).search('ORDER')[0]?.id).toBe('orders:api:create')
     })
 
     it('returns components matching domain', () => {
       const graph = createMinimalValidGraph()
-      graph.metadata.domains['shipping'] = { description: 'Shipping', systemType: 'domain' }
-      graph.components.push(createAPIComponent({ id: 'shipping:api:track', name: 'Track', domain: 'shipping' }))
+      graph.metadata.domains['shipping'] = {
+        description: 'Shipping',
+        systemType: 'domain',
+      }
+      graph.components.push(
+        createAPIComponent({
+          id: 'shipping:api:track',
+          name: 'Track',
+          domain: 'shipping',
+        }),
+      )
 
       expect(new RiviereQuery(graph).search('shipping')[0]?.id).toBe('shipping:api:track')
     })
@@ -179,10 +249,21 @@ describe('RiviereQuery', () => {
   describe('componentsInDomain()', () => {
     it('returns all components in specified domain', () => {
       const graph = createMinimalValidGraph()
-      graph.metadata.domains['shipping'] = { description: 'Shipping', systemType: 'domain' }
+      graph.metadata.domains['shipping'] = {
+        description: 'Shipping',
+        systemType: 'domain',
+      }
       graph.components.push(
-        createAPIComponent({ id: 'shipping:api:a', name: 'A', domain: 'shipping' }),
-        createAPIComponent({ id: 'shipping:api:b', name: 'B', domain: 'shipping' }),
+        createAPIComponent({
+          id: 'shipping:api:a',
+          name: 'A',
+          domain: 'shipping',
+        }),
+        createAPIComponent({
+          id: 'shipping:api:b',
+          name: 'B',
+          domain: 'shipping',
+        }),
       )
       const query = new RiviereQuery(graph)
 
@@ -192,14 +273,22 @@ describe('RiviereQuery', () => {
     })
 
     it('returns empty array when domain has no components', () => {
-      expect(new RiviereQuery(createMinimalValidGraph()).componentsInDomain('nonexistent')).toEqual([])
+      expect(new RiviereQuery(createMinimalValidGraph()).componentsInDomain('nonexistent')).toEqual(
+        [],
+      )
     })
   })
 
   describe('componentsByType()', () => {
     it('returns all components of specified type', () => {
       const graph = createMinimalValidGraph()
-      graph.components.push(createAPIComponent({ id: 'test:api:a', name: 'A', domain: 'test' }))
+      graph.components.push(
+        createAPIComponent({
+          id: 'test:api:a',
+          name: 'A',
+          domain: 'test',
+        }),
+      )
 
       const result = new RiviereQuery(graph).componentsByType('API')
 
@@ -219,12 +308,20 @@ describe('RiviereQuery', () => {
     it('returns external links from the graph', () => {
       const graph = createMinimalValidGraph()
       graph.externalLinks = [
-        { source: 'test:mod:ui:page', target: { name: 'Stripe' }, type: 'sync' },
-        { source: 'test:mod:ui:page', target: { name: 'Twilio' }, type: 'async' },
+        {
+          source: 'test:mod:ui:page',
+          target: { name: 'Stripe' },
+          type: 'sync',
+        },
+        {
+          source: 'test:mod:ui:page',
+          target: { name: 'Twilio' },
+          type: 'async',
+        },
       ]
       const result = new RiviereQuery(graph).externalLinks()
       expect(result).toHaveLength(2)
-      expect(result.map(l => l.target.name)).toEqual(['Stripe', 'Twilio'])
+      expect(result.map((l) => l.target.name)).toEqual(['Stripe', 'Twilio'])
     })
   })
 
@@ -240,7 +337,13 @@ describe('RiviereQuery', () => {
 
     it('includes API component when it has no incoming links', () => {
       const graph = createMinimalValidGraph()
-      graph.components = [createAPIComponent({ id: 'test:api:create', name: 'Create', domain: 'test' })]
+      graph.components = [
+        createAPIComponent({
+          id: 'test:api:create',
+          name: 'Create',
+          domain: 'test',
+        }),
+      ]
       const query = new RiviereQuery(graph)
 
       const result = query.entryPoints()
@@ -250,7 +353,13 @@ describe('RiviereQuery', () => {
 
     it('includes EventHandler component when it has no incoming links', () => {
       const graph = createMinimalValidGraph()
-      graph.components = [createEventHandlerComponent({ id: 'test:handler:order', name: 'Order Handler', domain: 'test' })]
+      graph.components = [
+        createEventHandlerComponent({
+          id: 'test:handler:order',
+          name: 'Order Handler',
+          domain: 'test',
+        }),
+      ]
       const query = new RiviereQuery(graph)
 
       const result = query.entryPoints()
@@ -261,7 +370,14 @@ describe('RiviereQuery', () => {
     it('includes Custom component when it has no incoming links', () => {
       const graph = createMinimalValidGraph()
       graph.metadata.customTypes = { CronJob: { description: 'Scheduled job' } }
-      graph.components = [createCustomComponent({ id: 'test:cron:nightly', name: 'Nightly Sync', domain: 'test', customTypeName: 'CronJob' })]
+      graph.components = [
+        createCustomComponent({
+          id: 'test:cron:nightly',
+          name: 'Nightly Sync',
+          domain: 'test',
+          customTypeName: 'CronJob',
+        }),
+      ]
       const query = new RiviereQuery(graph)
 
       const result = query.entryPoints()
@@ -271,8 +387,19 @@ describe('RiviereQuery', () => {
 
     it('excludes API component when it has incoming link', () => {
       const graph = createMinimalValidGraph()
-      graph.components.push(createAPIComponent({ id: 'test:api:create', name: 'Create', domain: 'test' }))
-      graph.links = [{ source: 'test:mod:ui:page', target: 'test:api:create' }]
+      graph.components.push(
+        createAPIComponent({
+          id: 'test:api:create',
+          name: 'Create',
+          domain: 'test',
+        }),
+      )
+      graph.links = [
+        {
+          source: 'test:mod:ui:page',
+          target: 'test:api:create',
+        },
+      ]
       const query = new RiviereQuery(graph)
 
       const result = query.entryPoints()
@@ -282,7 +409,13 @@ describe('RiviereQuery', () => {
 
     it('excludes UseCase component even when it has no incoming links', () => {
       const graph = createMinimalValidGraph()
-      graph.components = [createUseCaseComponent({ id: 'test:usecase:order', name: 'Create Order', domain: 'test' })]
+      graph.components = [
+        createUseCaseComponent({
+          id: 'test:usecase:order',
+          name: 'Create Order',
+          domain: 'test',
+        }),
+      ]
       const query = new RiviereQuery(graph)
 
       const result = query.entryPoints()
@@ -298,12 +431,17 @@ describe('RiviereQuery', () => {
 
     it('returns external domains with connection counts', () => {
       const graph = createMinimalValidGraph()
-      graph.externalLinks = [{ source: 'test:mod:ui:page', target: { name: 'Stripe' }, type: 'sync' }]
+      graph.externalLinks = [
+        {
+          source: 'test:mod:ui:page',
+          target: { name: 'Stripe' },
+          type: 'sync',
+        },
+      ]
       const result = new RiviereQuery(graph).externalDomains()
       expect(result).toHaveLength(1)
       expect(result[0]?.name).toBe('Stripe')
       expect(result[0]?.connectionCount).toBe(1)
     })
   })
-
 })

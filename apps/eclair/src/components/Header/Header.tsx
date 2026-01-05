@@ -1,9 +1,15 @@
-import { useState, useRef, useEffect } from 'react'
+import {
+  useState, useRef, useEffect 
+} from 'react'
 import { useNavigate } from 'react-router-dom'
-import type { RiviereGraph, GraphName } from '@/types/riviere'
+import type {
+  RiviereGraph, GraphName 
+} from '@/types/riviere'
 import { SchemaModal } from '@/components/SchemaModal/SchemaModal'
 import { useGraph } from '@/contexts/GraphContext'
-import { OrphanWarning, type OrphanDetectionResult } from '@/components/OrphanWarning/OrphanWarning'
+import {
+  OrphanWarning, type OrphanDetectionResult 
+} from '@/components/OrphanWarning/OrphanWarning'
 import { useRiviereQuery } from '@/hooks/useRiviereQuery'
 
 interface HeaderProps {
@@ -13,7 +19,12 @@ interface HeaderProps {
   readonly onExportSvg?: () => void
 }
 
-export function Header({ graphName, graph, onExportPng, onExportSvg }: HeaderProps): React.ReactElement {
+export function Header({
+  graphName,
+  graph,
+  onExportPng,
+  onExportSvg,
+}: HeaderProps): React.ReactElement {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isExportOpen, setIsExportOpen] = useState(false)
   const exportRef = useRef<HTMLDivElement>(null)
@@ -21,9 +32,10 @@ export function Header({ graphName, graph, onExportPng, onExportSvg }: HeaderPro
   const { clearGraph } = useGraph()
   const query = useRiviereQuery(graph)
 
-  const orphanResult: OrphanDetectionResult | null = query === null
-    ? null
-    : (() => {
+  const orphanResult: OrphanDetectionResult | null =
+    query === null
+      ? null
+      : (() => {
         const orphanIds = query.detectOrphans()
         return {
           hasOrphans: orphanIds.length > 0,
@@ -37,7 +49,11 @@ export function Header({ graphName, graph, onExportPng, onExportSvg }: HeaderPro
 
     function handleClickOutside(event: MouseEvent): void {
       const target = event.target
-      if (exportRef.current !== null && target instanceof Node && !exportRef.current.contains(target)) {
+      if (
+        exportRef.current !== null &&
+        target instanceof Node &&
+        !exportRef.current.contains(target)
+      ) {
         setIsExportOpen(false)
       }
     }
@@ -138,9 +154,11 @@ export function Header({ graphName, graph, onExportPng, onExportSvg }: HeaderPro
               <span>Upload Graph</span>
             </button>
           </div>
-      </header>
+        </header>
       </div>
-      {orphanResult && graph !== null && <OrphanWarning result={orphanResult} nodes={graph.components} />}
+      {orphanResult && graph !== null && (
+        <OrphanWarning result={orphanResult} nodes={graph.components} />
+      )}
       <SchemaModal
         graph={graph}
         graphName={graphName}

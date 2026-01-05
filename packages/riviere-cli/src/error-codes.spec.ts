@@ -1,4 +1,4 @@
-import { CliErrorCode } from './error-codes';
+import { CliErrorCode } from './error-codes'
 
 describe('CliErrorCode', () => {
   it.each([
@@ -12,6 +12,6 @@ describe('CliErrorCode', () => {
     ['GraphCorrupted', 'GRAPH_CORRUPTED'],
     ['GraphExists', 'GRAPH_EXISTS'],
   ] as const)('defines %s error code with value %s', (member, value) => {
-    expect(CliErrorCode[member]).toBe(value);
-  });
-});
+    expect(CliErrorCode[member]).toBe(value)
+  })
+})

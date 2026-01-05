@@ -1,5 +1,9 @@
-import { Handle, Position } from '@xyflow/react'
-import type { NodeProps, Node } from '@xyflow/react'
+import {
+  Handle, Position 
+} from '@xyflow/react'
+import type {
+  NodeProps, Node 
+} from '@xyflow/react'
 import type { DomainNodeData } from '../../extractDomainMap'
 
 type DomainNodeProps = NodeProps<Node<DomainNodeData>>
@@ -23,7 +27,8 @@ export function DomainNode(props: DomainNodeProps): React.ReactElement {
   // Show full label - circles are sized to accommodate typical domain names
   const displayLabel = data.label
 
-  const baseClasses = 'flex items-center justify-center rounded-full border-2 text-center shadow-lg transition-all hover:shadow-xl'
+  const baseClasses =
+    'flex items-center justify-center rounded-full border-2 text-center shadow-lg transition-all hover:shadow-xl'
   const internalClasses = 'border-[var(--primary)] bg-[var(--bg-secondary)]'
   const externalClasses = 'domain-node-external'
   const domainNodeClasses = `${baseClasses} ${isExternal ? externalClasses : internalClasses}`
@@ -40,7 +45,11 @@ export function DomainNode(props: DomainNodeProps): React.ReactElement {
       <Handle id="right-source" type="source" position={Position.Right} className="invisible" />
       <div
         className={domainNodeClasses}
-        style={{ width: size, height: size, opacity }}
+        style={{
+          width: size,
+          height: size,
+          opacity,
+        }}
         title={data.label}
       >
         {isExternal ? (

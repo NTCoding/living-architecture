@@ -1,9 +1,16 @@
-import type { Component, ComponentId } from '@living-architecture/riviere-schema'
+import type {
+  Component, ComponentId 
+} from '@living-architecture/riviere-schema'
 import { ComponentNotFoundError } from './errors'
 import { similarityScore } from './string-similarity'
-import type { NearMatchMismatch, NearMatchOptions, NearMatchQuery, NearMatchResult } from './types'
+import type {
+  NearMatchMismatch, NearMatchOptions, NearMatchQuery, NearMatchResult 
+} from './types'
 
-function detectMismatch(query: NearMatchQuery, component: Component): NearMatchMismatch | undefined {
+function detectMismatch(
+  query: NearMatchQuery,
+  component: Component,
+): NearMatchMismatch | undefined {
   const nameMatches = query.name.toLowerCase() === component.name.toLowerCase()
 
   if (!nameMatches) {
@@ -11,11 +18,19 @@ function detectMismatch(query: NearMatchQuery, component: Component): NearMatchM
   }
 
   if (query.type !== undefined && query.type !== component.type) {
-    return { field: 'type', expected: query.type, actual: component.type }
+    return {
+      field: 'type',
+      expected: query.type,
+      actual: component.type,
+    }
   }
 
   if (query.domain !== undefined && query.domain !== component.domain) {
-    return { field: 'domain', expected: query.domain, actual: component.domain }
+    return {
+      field: 'domain',
+      expected: query.domain,
+      actual: component.domain,
+    }
   }
 
   return undefined
@@ -40,7 +55,7 @@ function detectMismatch(query: NearMatchQuery, component: Component): NearMatchM
 export function findNearMatches(
   components: Component[],
   query: NearMatchQuery,
-  options?: NearMatchOptions
+  options?: NearMatchOptions,
 ): NearMatchResult[] {
   if (query.name === '') {
     return []
@@ -53,7 +68,11 @@ export function findNearMatches(
     .map((component): NearMatchResult => {
       const score = similarityScore(query.name, component.name)
       const mismatch = detectMismatch(query, component)
-      return { component, score, mismatch }
+      return {
+        component,
+        score,
+        mismatch,
+      }
     })
     .filter((result) => result.score >= threshold || result.mismatch !== undefined)
     .sort((a, b) => b.score - a.score)
@@ -75,7 +94,10 @@ export function findNearMatches(
  * // ComponentNotFoundError with suggestions: ['orders:checkout:api:create-order']
  * ```
  */
-export function createSourceNotFoundError(components: Component[], id: ComponentId): ComponentNotFoundError {
+export function createSourceNotFoundError(
+  components: Component[],
+  id: ComponentId,
+): ComponentNotFoundError {
   const matches = findNearMatches(components, { name: id.name() }, { limit: 3 })
   const suggestions = matches.map((s) => s.component.id)
   return new ComponentNotFoundError(id.toString(), suggestions)

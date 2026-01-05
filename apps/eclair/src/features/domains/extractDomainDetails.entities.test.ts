@@ -1,9 +1,19 @@
-import { describe, it, expect } from 'vitest'
+import {
+  describe, it, expect 
+} from 'vitest'
 import { extractDomainDetails } from './extractDomainDetails'
-import { parseNode, parseDomainMetadata, parseDomainKey, type RawNode } from '@/lib/riviereTestData'
+import {
+  parseNode,
+  parseDomainMetadata,
+  parseDomainKey,
+  type RawNode,
+} from '@/lib/riviereTestFixtures'
 import type { RiviereGraph } from '@/types/riviere'
 
-const testSourceLocation = { repository: 'test-repo', filePath: 'src/test.ts' }
+const testSourceLocation = {
+  repository: 'test-repo',
+  filePath: 'src/test.ts',
+}
 
 function createMinimalGraph(overrides: Partial<RiviereGraph> = {}): RiviereGraph {
   return {
@@ -28,14 +38,22 @@ function createNode(overrides: Partial<RawNode> = {}): ReturnType<typeof parseNo
     domain: 'test-domain',
     module: 'test-module',
   }
-  return parseNode({ ...defaults, ...overrides })
+  return parseNode({
+    ...defaults,
+    ...overrides,
+  })
 }
 
 describe('extractDomainDetails entities extraction', () => {
   it('extracts unique entities with their operations', () => {
     const graph = createMinimalGraph({
       metadata: {
-        domains: parseDomainMetadata({ 'order-domain': { description: 'Orders', systemType: 'domain' } }),
+        domains: parseDomainMetadata({
+          'order-domain': {
+            description: 'Orders',
+            systemType: 'domain',
+          },
+        }),
       },
       components: [
         createNode({
@@ -70,37 +88,73 @@ describe('extractDomainDetails entities extraction', () => {
     expect(result?.entities).toHaveLength(2)
 
     const orderEntity = result?.entities.find((e) => e.name === 'Order')
-    expect(orderEntity?.operations.map(op => op.operationName)).toEqual(['begin', 'confirm'])
+    expect(orderEntity?.operations.map((op) => op.operationName)).toEqual(['begin', 'confirm'])
 
     const orderItemEntity = result?.entities.find((e) => e.name === 'OrderItem')
-    expect(orderItemEntity?.operations.map(op => op.operationName)).toEqual(['add'])
+    expect(orderItemEntity?.operations.map((op) => op.operationName)).toEqual(['add'])
   })
 
   it('sorts entities alphabetically and operations alphabetically', () => {
     const graph = createMinimalGraph({
       metadata: {
-        domains: parseDomainMetadata({ 'order-domain': { description: 'Orders', systemType: 'domain' } }),
+        domains: parseDomainMetadata({
+          'order-domain': {
+            description: 'Orders',
+            systemType: 'domain',
+          },
+        }),
       },
       components: [
-        createNode({ id: 'op-1', type: 'DomainOp', name: 'Zebra.z()', domain: 'order-domain', entity: 'Zebra', operationName: 'z' }),
-        createNode({ id: 'op-2', type: 'DomainOp', name: 'Apple.b()', domain: 'order-domain', entity: 'Apple', operationName: 'b' }),
-        createNode({ id: 'op-3', type: 'DomainOp', name: 'Apple.a()', domain: 'order-domain', entity: 'Apple', operationName: 'a' }),
+        createNode({
+          id: 'op-1',
+          type: 'DomainOp',
+          name: 'Zebra.z()',
+          domain: 'order-domain',
+          entity: 'Zebra',
+          operationName: 'z',
+        }),
+        createNode({
+          id: 'op-2',
+          type: 'DomainOp',
+          name: 'Apple.b()',
+          domain: 'order-domain',
+          entity: 'Apple',
+          operationName: 'b',
+        }),
+        createNode({
+          id: 'op-3',
+          type: 'DomainOp',
+          name: 'Apple.a()',
+          domain: 'order-domain',
+          entity: 'Apple',
+          operationName: 'a',
+        }),
       ],
     })
 
     const result = extractDomainDetails(graph, parseDomainKey('order-domain'))
 
     expect(result?.entities.map((e) => e.name)).toEqual(['Apple', 'Zebra'])
-    expect(result?.entities[0]?.operations.map(op => op.operationName)).toEqual(['a', 'b'])
+    expect(result?.entities[0]?.operations.map((op) => op.operationName)).toEqual(['a', 'b'])
   })
 
   it('returns empty array when no entities', () => {
     const graph = createMinimalGraph({
       metadata: {
-        domains: parseDomainMetadata({ 'order-domain': { description: 'Orders', systemType: 'domain' } }),
+        domains: parseDomainMetadata({
+          'order-domain': {
+            description: 'Orders',
+            systemType: 'domain',
+          },
+        }),
       },
       components: [
-        createNode({ id: 'api-1', type: 'API', name: 'API', domain: 'order-domain' }),
+        createNode({
+          id: 'api-1',
+          type: 'API',
+          name: 'API',
+          domain: 'order-domain',
+        }),
       ],
     })
 
@@ -112,7 +166,12 @@ describe('extractDomainDetails entities extraction', () => {
   it('includes sourceLocation on first operation', () => {
     const graph = createMinimalGraph({
       metadata: {
-        domains: parseDomainMetadata({ 'order-domain': { description: 'Orders', systemType: 'domain' } }),
+        domains: parseDomainMetadata({
+          'order-domain': {
+            description: 'Orders',
+            systemType: 'domain',
+          },
+        }),
       },
       components: [
         createNode({
@@ -122,7 +181,11 @@ describe('extractDomainDetails entities extraction', () => {
           domain: 'order-domain',
           entity: 'Order',
           operationName: 'begin',
-          sourceLocation: { repository: 'test-repo', filePath: 'src/Order.ts', lineNumber: 10 },
+          sourceLocation: {
+            repository: 'test-repo',
+            filePath: 'src/Order.ts',
+            lineNumber: 10,
+          },
         }),
         createNode({
           id: 'op-2',
@@ -131,7 +194,11 @@ describe('extractDomainDetails entities extraction', () => {
           domain: 'order-domain',
           entity: 'Order',
           operationName: 'confirm',
-          sourceLocation: { repository: 'test-repo', filePath: 'src/Order.ts', lineNumber: 30 },
+          sourceLocation: {
+            repository: 'test-repo',
+            filePath: 'src/Order.ts',
+            lineNumber: 30,
+          },
         }),
       ],
     })
@@ -139,7 +206,11 @@ describe('extractDomainDetails entities extraction', () => {
     const result = extractDomainDetails(graph, parseDomainKey('order-domain'))
     const orderEntity = result?.entities.find((e) => e.name === 'Order')
 
-    expect(orderEntity?.operations[0]?.sourceLocation).toEqual({ repository: 'test-repo', filePath: 'src/Order.ts', lineNumber: 10 })
+    expect(orderEntity?.operations[0]?.sourceLocation).toEqual({
+      repository: 'test-repo',
+      filePath: 'src/Order.ts',
+      lineNumber: 10,
+    })
   })
 
   it('handles entity with minimal sourceLocation', () => {
@@ -151,11 +222,19 @@ describe('extractDomainDetails entities extraction', () => {
       module: 'test-module',
       entity: 'Order',
       operationName: 'begin',
-      sourceLocation: { repository: 'test-repo', filePath: 'unknown' },
+      sourceLocation: {
+        repository: 'test-repo',
+        filePath: 'unknown',
+      },
     }
     const graph = createMinimalGraph({
       metadata: {
-        domains: parseDomainMetadata({ 'order-domain': { description: 'Orders', systemType: 'domain' } }),
+        domains: parseDomainMetadata({
+          'order-domain': {
+            description: 'Orders',
+            systemType: 'domain',
+          },
+        }),
       },
       components: [parseNode(rawNode)],
     })
@@ -163,14 +242,20 @@ describe('extractDomainDetails entities extraction', () => {
     const result = extractDomainDetails(graph, parseDomainKey('order-domain'))
     const orderEntity = result?.entities.find((e) => e.name === 'Order')
 
-    expect(orderEntity?.operations[0]?.sourceLocation).toEqual({ repository: 'test-repo', filePath: 'unknown' })
+    expect(orderEntity?.operations[0]?.sourceLocation).toEqual({
+      repository: 'test-repo',
+      filePath: 'unknown',
+    })
   })
 
   it('returns empty businessRules when operations have no businessRules', () => {
     const graph = createMinimalGraph({
       metadata: {
         domains: parseDomainMetadata({
-          'order-domain': { description: 'Orders', systemType: 'domain' },
+          'order-domain': {
+            description: 'Orders',
+            systemType: 'domain',
+          },
         }),
       },
       components: [

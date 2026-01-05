@@ -1,6 +1,8 @@
 import { Command } from 'commander'
 import { formatSuccess } from '../../output'
-import { withGraph, getDefaultGraphPathDescription } from './load-graph'
+import {
+  withGraph, getDefaultGraphPathDescription 
+} from './load-graph'
 
 interface DomainsOptions {
   graph?: string
@@ -16,7 +18,7 @@ export function createDomainsCommand(): Command {
 Examples:
   $ riviere query domains
   $ riviere query domains --json
-`
+`,
     )
     .option('--graph <path>', getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')

@@ -1,16 +1,26 @@
-import { render, screen } from '@testing-library/react'
+import {
+  render, screen 
+} from '@testing-library/react'
 import type { RenderResult } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
-import { describe, expect, it, vi } from 'vitest'
+import {
+  describe, expect, it, vi 
+} from 'vitest'
 import { AppShell } from './AppShell'
 import { ExportProvider } from '@/contexts/ExportContext'
-import type { GraphName, RiviereGraph } from '@/types/riviere'
-import { graphNameSchema, nodeIdSchema, domainNameSchema, moduleNameSchema } from '@/types/riviere'
-import { parseDomainMetadata } from '@/lib/riviereTestData'
+import type {
+  GraphName, RiviereGraph 
+} from '@/types/riviere'
+import {
+  graphNameSchema, nodeIdSchema, domainNameSchema, moduleNameSchema 
+} from '@/types/riviere'
+import { parseDomainMetadata } from '@/lib/riviereTestFixtures'
 
-
-const testSourceLocation = { repository: 'test-repo', filePath: 'src/test.ts' }
+const testSourceLocation = {
+  repository: 'test-repo',
+  filePath: 'src/test.ts',
+}
 function createGraphName(name: string): GraphName {
   return graphNameSchema.parse(name)
 }
@@ -23,7 +33,10 @@ function createTestGraph(name: string): RiviereGraph {
       description: 'Test graph',
       generated: '2024-01-15T10:30:00Z',
       domains: parseDomainMetadata({
-        orders: { description: 'Order management', systemType: 'domain' },
+        orders: {
+          description: 'Order management',
+          systemType: 'domain',
+        },
       }),
     },
     components: [
@@ -44,23 +57,24 @@ function createTestGraph(name: string): RiviereGraph {
 }
 
 vi.mock('@/contexts/ThemeContext', () => ({
-  useTheme: () => ({ theme: 'stream', setTheme: vi.fn() }),
+  useTheme: () => ({
+    theme: 'stream',
+    setTheme: vi.fn(),
+  }),
 }))
 
-vi.mock('@/contexts/GraphContext', () => ({
-  useGraph: () => ({ clearGraph: vi.fn() }),
-}))
+vi.mock('@/contexts/GraphContext', () => ({ useGraph: () => ({ clearGraph: vi.fn() }) }))
 
-vi.mock('@/components/Logo/Logo', () => ({
-  Logo: () => <div data-testid="logo">Logo</div>,
-}))
+vi.mock('@/components/Logo/Logo', () => ({ Logo: () => <div data-testid="logo">Logo</div> }))
 
-vi.mock('@/components/ThemeSwitcher/ThemeSwitcher', () => ({
-  ThemeSwitcher: () => <div data-testid="theme-switcher">ThemeSwitcher</div>,
-}))
+vi.mock('@/components/ThemeSwitcher/ThemeSwitcher', () => ({ThemeSwitcher: () => <div data-testid="theme-switcher">ThemeSwitcher</div>,}))
 
 function renderWithRouter(ui: React.ReactElement): RenderResult {
-  return render(<MemoryRouter><ExportProvider>{ui}</ExportProvider></MemoryRouter>)
+  return render(
+    <MemoryRouter>
+      <ExportProvider>{ui}</ExportProvider>
+    </MemoryRouter>,
+  )
 }
 
 function setViewportWidth(width: number): void {
@@ -82,7 +96,7 @@ describe('AppShell', () => {
             <div>Content</div>
           </AppShell>
         </ExportProvider>
-      </MemoryRouter>
+      </MemoryRouter>,
     )
 
     const sidebar = screen.getByRole('complementary')
@@ -99,7 +113,7 @@ describe('AppShell', () => {
             <div>Content</div>
           </AppShell>
         </ExportProvider>
-      </MemoryRouter>
+      </MemoryRouter>,
     )
 
     const sidebar = screen.getByRole('complementary')
@@ -116,7 +130,7 @@ describe('AppShell', () => {
             <div>Content</div>
           </AppShell>
         </ExportProvider>
-      </MemoryRouter>
+      </MemoryRouter>,
     )
 
     const sidebar = screen.getByRole('complementary')
@@ -127,7 +141,7 @@ describe('AppShell', () => {
     renderWithRouter(
       <AppShell hasGraph={false} graphName={undefined} graph={null}>
         <div data-testid="child-content">Main Content</div>
-      </AppShell>
+      </AppShell>,
     )
 
     const childContent = screen.getByTestId('child-content')
@@ -140,7 +154,7 @@ describe('AppShell', () => {
     renderWithRouter(
       <AppShell hasGraph={false} graphName={undefined} graph={null}>
         <div>Content</div>
-      </AppShell>
+      </AppShell>,
     )
 
     const eclairText = screen.getByText('Éclair')
@@ -153,7 +167,7 @@ describe('AppShell', () => {
     renderWithRouter(
       <AppShell hasGraph={false} graphName={undefined} graph={null}>
         <div>Content</div>
-      </AppShell>
+      </AppShell>,
     )
 
     const uploadButton = screen.getByRole('button', { name: /Upload Graph/i })
@@ -165,7 +179,7 @@ describe('AppShell', () => {
     renderWithRouter(
       <AppShell hasGraph={true} graphName={createGraphName('test-graph.json')} graph={graph}>
         <div>Content</div>
-      </AppShell>
+      </AppShell>,
     )
 
     const graphName = screen.getByText('Test Graph')
@@ -176,7 +190,7 @@ describe('AppShell', () => {
     renderWithRouter(
       <AppShell hasGraph={false} graphName={undefined} graph={null}>
         <div>Content</div>
-      </AppShell>
+      </AppShell>,
     )
 
     const flowsText = screen.getByText('Flows')
@@ -191,7 +205,7 @@ describe('AppShell', () => {
     renderWithRouter(
       <AppShell hasGraph={false} graphName={undefined} graph={null}>
         <div>Content</div>
-      </AppShell>
+      </AppShell>,
     )
 
     const main = document.querySelector('main')
@@ -204,7 +218,7 @@ describe('AppShell', () => {
     renderWithRouter(
       <AppShell hasGraph={false} graphName={undefined} graph={null}>
         <div>Content</div>
-      </AppShell>
+      </AppShell>,
     )
 
     const toggleButton = screen.getByTestId('sidebar-toggle')
@@ -217,7 +231,7 @@ describe('AppShell', () => {
     renderWithRouter(
       <AppShell hasGraph={false} graphName={undefined} graph={null}>
         <div>Content</div>
-      </AppShell>
+      </AppShell>,
     )
 
     const footer = document.querySelector('footer')

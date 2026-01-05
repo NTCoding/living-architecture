@@ -1,10 +1,20 @@
-import { RiviereBuilder, type BuilderOptions } from './builder'
+import {
+  RiviereBuilder, type BuilderOptions 
+} from './builder'
 
 function createValidOptions(): BuilderOptions {
   return {
-    sources: [{ repository: 'my-org/my-repo', commit: 'abc123' }],
+    sources: [
+      {
+        repository: 'my-org/my-repo',
+        commit: 'abc123',
+      },
+    ],
     domains: {
-      orders: { description: 'Order management', systemType: 'domain' },
+      orders: {
+        description: 'Order management',
+        systemType: 'domain',
+      },
     },
   }
 }
@@ -17,14 +27,20 @@ describe('RiviereBuilder custom types', () => {
       builder.defineCustomType({
         name: 'MessageQueue',
         requiredProperties: {
-          queueName: { type: 'string', description: 'Queue identifier' },
+          queueName: {
+            type: 'string',
+            description: 'Queue identifier',
+          },
         },
       })
 
       expect(builder.graph.metadata.customTypes).toEqual({
         MessageQueue: {
           requiredProperties: {
-            queueName: { type: 'string', description: 'Queue identifier' },
+            queueName: {
+              type: 'string',
+              description: 'Queue identifier',
+            },
           },
         },
       })
@@ -37,7 +53,10 @@ describe('RiviereBuilder custom types', () => {
         name: 'CacheStore',
         description: 'In-memory cache',
         optionalProperties: {
-          ttl: { type: 'number', description: 'Time to live in seconds' },
+          ttl: {
+            type: 'number',
+            description: 'Time to live in seconds',
+          },
         },
       })
 
@@ -45,7 +64,10 @@ describe('RiviereBuilder custom types', () => {
         CacheStore: {
           description: 'In-memory cache',
           optionalProperties: {
-            ttl: { type: 'number', description: 'Time to live in seconds' },
+            ttl: {
+              type: 'number',
+              description: 'Time to live in seconds',
+            },
           },
         },
       })
@@ -56,7 +78,7 @@ describe('RiviereBuilder custom types', () => {
       builder.defineCustomType({ name: 'MessageQueue' })
 
       expect(() => builder.defineCustomType({ name: 'MessageQueue' })).toThrow(
-        "Custom type 'MessageQueue' already defined"
+        "Custom type 'MessageQueue' already defined",
       )
     })
   })
@@ -71,7 +93,10 @@ describe('RiviereBuilder custom types', () => {
         name: 'Order Queue',
         domain: 'orders',
         module: 'messaging',
-        sourceLocation: { repository: 'my-org/my-repo', filePath: 'src/queues/order-queue.ts' },
+        sourceLocation: {
+          repository: 'my-org/my-repo',
+          filePath: 'src/queues/order-queue.ts',
+        },
       })
 
       expect(component).toEqual({
@@ -81,7 +106,10 @@ describe('RiviereBuilder custom types', () => {
         name: 'Order Queue',
         domain: 'orders',
         module: 'messaging',
-        sourceLocation: { repository: 'my-org/my-repo', filePath: 'src/queues/order-queue.ts' },
+        sourceLocation: {
+          repository: 'my-org/my-repo',
+          filePath: 'src/queues/order-queue.ts',
+        },
       })
     })
 
@@ -95,7 +123,10 @@ describe('RiviereBuilder custom types', () => {
         domain: 'orders',
         module: 'messaging',
         description: 'Queue for order events',
-        sourceLocation: { repository: 'my-org/my-repo', filePath: 'src/queues/order-queue.ts' },
+        sourceLocation: {
+          repository: 'my-org/my-repo',
+          filePath: 'src/queues/order-queue.ts',
+        },
       })
 
       expect(component.description).toBe('Queue for order events')
@@ -112,8 +143,11 @@ describe('RiviereBuilder custom types', () => {
           name: 'Some Component',
           domain: 'orders',
           module: 'messaging',
-          sourceLocation: { repository: 'my-org/my-repo', filePath: 'src/some.ts' },
-        })
+          sourceLocation: {
+            repository: 'my-org/my-repo',
+            filePath: 'src/some.ts',
+          },
+        }),
       ).toThrow("Custom type 'UndefinedType' not defined. Defined types: MessageQueue, CacheStore")
     })
 
@@ -126,8 +160,11 @@ describe('RiviereBuilder custom types', () => {
           name: 'Some Component',
           domain: 'orders',
           module: 'messaging',
-          sourceLocation: { repository: 'my-org/my-repo', filePath: 'src/some.ts' },
-        })
+          sourceLocation: {
+            repository: 'my-org/my-repo',
+            filePath: 'src/some.ts',
+          },
+        }),
       ).toThrow("Custom type 'UndefinedType' not defined. No custom types have been defined.")
     })
 
@@ -147,8 +184,11 @@ describe('RiviereBuilder custom types', () => {
           name: 'Order Queue',
           domain: 'orders',
           module: 'messaging',
-          sourceLocation: { repository: 'my-org/my-repo', filePath: 'src/queues.ts' },
-        })
+          sourceLocation: {
+            repository: 'my-org/my-repo',
+            filePath: 'src/queues.ts',
+          },
+        }),
       ).toThrow("Missing required properties for 'MessageQueue': queueName, messageType")
     })
   })

@@ -6,12 +6,14 @@ interface DomainNodeProps {
   readonly onClick: () => void
 }
 
-export function DomainNode({ position, isSelected, onClick }: Readonly<DomainNodeProps>): React.ReactElement {
+export function DomainNode({
+  position,
+  isSelected,
+  onClick,
+}: Readonly<DomainNodeProps>): React.ReactElement {
   const nodeRadius = position.isCurrent ? 40 : 30
 
-  const fillStyle = position.isCurrent
-    ? { fill: 'var(--primary)' }
-    : { fill: 'var(--bg-tertiary)' }
+  const fillStyle = position.isCurrent ? { fill: 'var(--primary)' } : { fill: 'var(--bg-tertiary)' }
 
   const getStrokeStyle = (): Record<string, string> => {
     if (isSelected) return { stroke: 'var(--primary)' }
@@ -21,9 +23,7 @@ export function DomainNode({ position, isSelected, onClick }: Readonly<DomainNod
 
   const strokeStyle = getStrokeStyle()
 
-  const textStyle = position.isCurrent
-    ? { fill: 'white' }
-    : { fill: 'var(--text-primary)' }
+  const textStyle = position.isCurrent ? { fill: 'white' } : { fill: 'var(--text-primary)' }
 
   return (
     <g
@@ -39,7 +39,10 @@ export function DomainNode({ position, isSelected, onClick }: Readonly<DomainNod
         cx={position.x}
         cy={position.y}
         r={nodeRadius}
-        style={{ ...fillStyle, ...strokeStyle }}
+        style={{
+          ...fillStyle,
+          ...strokeStyle,
+        }}
         strokeWidth={isSelected ? '3' : '2'}
       />
       <text

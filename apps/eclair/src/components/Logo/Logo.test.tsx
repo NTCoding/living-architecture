@@ -1,11 +1,16 @@
 import { render } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import {
+  describe, expect, it, vi 
+} from 'vitest'
 import { Logo } from './Logo'
 
 const mockSetTheme = vi.fn()
 
 vi.mock('@/contexts/ThemeContext', () => ({
-  useTheme: vi.fn(() => ({ theme: 'stream', setTheme: mockSetTheme })),
+  useTheme: vi.fn(() => ({
+    theme: 'stream',
+    setTheme: mockSetTheme,
+  })),
 }))
 
 import { useTheme } from '@/contexts/ThemeContext'
@@ -37,7 +42,10 @@ describe('Logo', () => {
   })
 
   it('renders Stream logo with teal gradient when theme is stream', () => {
-    mockUseTheme.mockReturnValue({ theme: 'stream', setTheme: mockSetTheme })
+    mockUseTheme.mockReturnValue({
+      theme: 'stream',
+      setTheme: mockSetTheme,
+    })
     render(<Logo />)
 
     const gradient = document.querySelector('linearGradient')
@@ -49,15 +57,18 @@ describe('Logo', () => {
   })
 
   it('renders Voltage logo with colored nodes when theme is voltage', () => {
-    mockUseTheme.mockReturnValue({ theme: 'voltage', setTheme: mockSetTheme })
+    mockUseTheme.mockReturnValue({
+      theme: 'voltage',
+      setTheme: mockSetTheme,
+    })
     render(<Logo />)
 
     const circles = document.querySelectorAll('circle')
     expect(circles.length).toBe(5)
 
-    const cyanNodes = Array.from(circles).filter(c => c.getAttribute('fill') === '#00D4FF')
-    const pinkNode = Array.from(circles).filter(c => c.getAttribute('fill') === '#FF006E')
-    const greenNode = Array.from(circles).filter(c => c.getAttribute('fill') === '#39FF14')
+    const cyanNodes = Array.from(circles).filter((c) => c.getAttribute('fill') === '#00D4FF')
+    const pinkNode = Array.from(circles).filter((c) => c.getAttribute('fill') === '#FF006E')
+    const greenNode = Array.from(circles).filter((c) => c.getAttribute('fill') === '#39FF14')
 
     expect(cyanNodes.length).toBe(3)
     expect(pinkNode.length).toBe(1)
@@ -65,14 +76,17 @@ describe('Logo', () => {
   })
 
   it('renders Circuit logo with black background when theme is circuit', () => {
-    mockUseTheme.mockReturnValue({ theme: 'circuit', setTheme: mockSetTheme })
+    mockUseTheme.mockReturnValue({
+      theme: 'circuit',
+      setTheme: mockSetTheme,
+    })
     render(<Logo />)
 
     const rect = document.querySelector('rect')
     expect(rect).toHaveAttribute('fill', '#000000')
 
     const circles = document.querySelectorAll('circle')
-    const whiteNodes = Array.from(circles).filter(c => c.getAttribute('fill') === 'white')
+    const whiteNodes = Array.from(circles).filter((c) => c.getAttribute('fill') === 'white')
     expect(whiteNodes.length).toBe(5)
   })
 

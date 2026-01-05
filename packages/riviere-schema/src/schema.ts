@@ -65,9 +65,7 @@ export interface APIComponent extends ComponentBase {
   operationName?: string
 }
 
-export interface UseCaseComponent extends ComponentBase {
-  type: 'UseCase'
-}
+export interface UseCaseComponent extends ComponentBase {type: 'UseCase'}
 
 export interface DomainOpComponent extends ComponentBase {
   type: 'DomainOp'

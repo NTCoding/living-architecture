@@ -1,5 +1,9 @@
-import { describe, it, expect } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import {
+  describe, it, expect 
+} from 'vitest'
+import {
+  render, screen 
+} from '@testing-library/react'
 import { DomainBadge } from './DomainBadge'
 
 describe('DomainBadge', () => {
@@ -101,9 +105,7 @@ describe('DomainBadge', () => {
 
     const badge = screen.getByTestId('domain-badge')
     expect(badge.className).toContain('domain-badge')
-    const hasColorClass = badge.className
-      .split(' ')
-      .some((cls) => cls.startsWith('domain-badge-'))
+    const hasColorClass = badge.className.split(' ').some((cls) => cls.startsWith('domain-badge-'))
     expect(hasColorClass).toBe(true)
   })
 })

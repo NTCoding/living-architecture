@@ -1,5 +1,7 @@
 import * as d3 from 'd3'
-import type { SimulationNode, SimulationLink } from '../../types'
+import type {
+  SimulationNode, SimulationLink 
+} from '../../types'
 import type { Theme } from '@/types/theme'
 import { getThemeFocusColors } from '../../graphFocusing/themeFocusColors'
 import {
@@ -29,11 +31,16 @@ export interface ApplyFocusModeParams {
   nodes: SimulationNode[]
   domain: string
   theme: Theme
-  dimensions: { width: number; height: number }
+  dimensions: {
+    width: number
+    height: number
+  }
 }
 
 export function applyFocusMode(params: ApplyFocusModeParams): void {
-  const { svg, node, link, zoom, nodes, domain, theme, dimensions } = params
+  const {
+    svg, node, link, zoom, nodes, domain, theme, dimensions 
+  } = params
   const focusColors = getThemeFocusColors(theme)
 
   applyFocusModeCircleStyles({
@@ -83,7 +90,11 @@ export function applyFocusMode(params: ApplyFocusModeParams): void {
     unfocusedStrokeWidth: FOCUS_MODE_STROKES.unfocusedEdgeWidth,
   })
 
-  const focusZoom = calculateFocusModeZoom({ nodes, focusedDomain: domain, dimensions })
+  const focusZoom = calculateFocusModeZoom({
+    nodes,
+    focusedDomain: domain,
+    dimensions,
+  })
 
   if (focusZoom) {
     svg
@@ -91,7 +102,9 @@ export function applyFocusMode(params: ApplyFocusModeParams): void {
       .duration(FOCUS_MODE_TRANSITIONS.zoomAnimation)
       .call(
         zoom.transform,
-        d3.zoomIdentity.translate(focusZoom.translateX, focusZoom.translateY).scale(focusZoom.scale)
+        d3.zoomIdentity
+          .translate(focusZoom.translateX, focusZoom.translateY)
+          .scale(focusZoom.scale),
       )
   }
 }
@@ -102,7 +115,9 @@ export interface ApplyResetModeParams {
 }
 
 export function applyResetMode(params: ApplyResetModeParams): void {
-  const { node, link } = params
+  const {
+    node, link 
+  } = params
 
   applyResetModeCircleStyles({
     node,

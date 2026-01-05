@@ -1,11 +1,22 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import {
+  render, screen, waitFor 
+} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { GraphProvider, useGraph, fetchAndValidateDemoGraph, buildDemoGraphUrl } from './GraphContext'
+import {
+  GraphProvider,
+  useGraph,
+  fetchAndValidateDemoGraph,
+  buildDemoGraphUrl,
+} from './GraphContext'
 import type { RiviereGraph } from '@/types/riviere'
-import { parseNode, parseDomainKey } from '@/lib/riviereTestData'
+import {
+  parseNode, parseDomainKey 
+} from '@/lib/riviereTestFixtures'
 
-
-const testSourceLocation = { repository: 'test-repo', filePath: 'src/test.ts' }
+const testSourceLocation = {
+  repository: 'test-repo',
+  filePath: 'src/test.ts',
+}
 const CODE_LINK_SETTINGS_KEY = 'eclair-code-link-settings'
 
 const testGraph: RiviereGraph = {
@@ -21,7 +32,8 @@ const testGraph: RiviereGraph = {
     },
   },
   components: [
-    parseNode({ sourceLocation: testSourceLocation,
+    parseNode({
+      sourceLocation: testSourceLocation,
       id: 'node-1',
       type: 'API',
       name: 'Test API',
@@ -51,7 +63,9 @@ const anotherGraph: RiviereGraph = {
 }
 
 function TestConsumer(): React.ReactElement {
-  const { graph, setGraph, clearGraph, hasGraph, graphName } = useGraph()
+  const {
+    graph, setGraph, clearGraph, hasGraph, graphName 
+  } = useGraph()
   return (
     <div>
       <span data-testid="has-graph">{hasGraph ? 'yes' : 'no'}</span>
@@ -69,7 +83,7 @@ describe('GraphContext', () => {
     render(
       <GraphProvider>
         <TestConsumer />
-      </GraphProvider>
+      </GraphProvider>,
     )
 
     expect(screen.getByTestId('has-graph')).toHaveTextContent('no')
@@ -83,7 +97,7 @@ describe('GraphContext', () => {
     render(
       <GraphProvider>
         <TestConsumer />
-      </GraphProvider>
+      </GraphProvider>,
     )
 
     await user.click(screen.getByRole('button', { name: 'Load Test Graph' }))
@@ -99,7 +113,7 @@ describe('GraphContext', () => {
     render(
       <GraphProvider>
         <TestConsumer />
-      </GraphProvider>
+      </GraphProvider>,
     )
 
     await user.click(screen.getByRole('button', { name: 'Load Test Graph' }))
@@ -116,7 +130,7 @@ describe('GraphContext', () => {
     render(
       <GraphProvider>
         <TestConsumer />
-      </GraphProvider>
+      </GraphProvider>,
     )
 
     expect(screen.getByTestId('has-graph')).toHaveTextContent('no')
@@ -134,7 +148,7 @@ describe('GraphContext', () => {
     render(
       <GraphProvider>
         <TestConsumer />
-      </GraphProvider>
+      </GraphProvider>,
     )
 
     await user.click(screen.getByRole('button', { name: 'Load Another Graph' }))
@@ -161,12 +175,18 @@ describe('GraphContext', () => {
     })
 
     it('sets GitHub org in localStorage when demo mode detected', async () => {
-      vi.stubGlobal('location', { ...window.location, search: '?demo=true' })
+      vi.stubGlobal('location', {
+        ...window.location,
+        search: '?demo=true',
+      })
 
-      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-        ok: true,
-        text: () => Promise.resolve(JSON.stringify(testGraph)),
-      }))
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({
+          ok: true,
+          text: () => Promise.resolve(JSON.stringify(testGraph)),
+        }),
+      )
 
       function DemoTestConsumer(): React.ReactElement {
         const { isLoadingDemo } = useGraph()
@@ -176,7 +196,7 @@ describe('GraphContext', () => {
       render(
         <GraphProvider>
           <DemoTestConsumer />
-        </GraphProvider>
+        </GraphProvider>,
       )
 
       await waitFor(() => {
@@ -189,15 +209,23 @@ describe('GraphContext', () => {
     })
 
     it('loads graph when demo mode detected', async () => {
-      vi.stubGlobal('location', { ...window.location, search: '?demo=true' })
+      vi.stubGlobal('location', {
+        ...window.location,
+        search: '?demo=true',
+      })
 
-      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-        ok: true,
-        text: () => Promise.resolve(JSON.stringify(testGraph)),
-      }))
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({
+          ok: true,
+          text: () => Promise.resolve(JSON.stringify(testGraph)),
+        }),
+      )
 
       function DemoTestConsumer(): React.ReactElement {
-        const { hasGraph, graphName, isLoadingDemo } = useGraph()
+        const {
+          hasGraph, graphName, isLoadingDemo 
+        } = useGraph()
         return (
           <div>
             <span data-testid="loading">{isLoadingDemo ? 'loading' : 'done'}</span>
@@ -210,7 +238,7 @@ describe('GraphContext', () => {
       render(
         <GraphProvider>
           <DemoTestConsumer />
-        </GraphProvider>
+        </GraphProvider>,
       )
 
       await waitFor(() => {
@@ -229,12 +257,18 @@ describe('GraphContext', () => {
       })
 
       const mockReplaceState = vi.fn()
-      vi.stubGlobal('history', { ...window.history, replaceState: mockReplaceState })
+      vi.stubGlobal('history', {
+        ...window.history,
+        replaceState: mockReplaceState,
+      })
 
-      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-        ok: true,
-        text: () => Promise.resolve(JSON.stringify(testGraph)),
-      }))
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({
+          ok: true,
+          text: () => Promise.resolve(JSON.stringify(testGraph)),
+        }),
+      )
 
       function DemoTestConsumer(): React.ReactElement {
         const { isLoadingDemo } = useGraph()
@@ -244,7 +278,7 @@ describe('GraphContext', () => {
       render(
         <GraphProvider>
           <DemoTestConsumer />
-        </GraphProvider>
+        </GraphProvider>,
       )
 
       await waitFor(() => {
@@ -272,10 +306,13 @@ describe('GraphContext', () => {
     })
 
     it('returns graph when fetch and validation succeed', async () => {
-      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-        ok: true,
-        text: () => Promise.resolve(JSON.stringify(testGraph)),
-      }))
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({
+          ok: true,
+          text: () => Promise.resolve(JSON.stringify(testGraph)),
+        }),
+      )
 
       const result = await fetchAndValidateDemoGraph('/test.json')
 
@@ -283,29 +320,48 @@ describe('GraphContext', () => {
     })
 
     it('throws error when fetch fails', async () => {
-      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-        ok: false,
-        status: 404,
-      }))
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({
+          ok: false,
+          status: 404,
+        }),
+      )
 
-      await expect(fetchAndValidateDemoGraph('/test.json')).rejects.toThrow('Failed to fetch demo graph: 404')
+      await expect(fetchAndValidateDemoGraph('/test.json')).rejects.toThrow(
+        'Failed to fetch demo graph: 404',
+      )
     })
 
     it('throws error when validation fails', async () => {
       const invalidGraph = {
         version: '1.0',
-        metadata: { domains: { 'test': { description: 'test', systemType: 'domain' } } },
-        components: [{ id: 'bad-node', type: 'InvalidType' }],
+        metadata: {
+          domains: {
+            test: {
+              description: 'test',
+              systemType: 'domain',
+            },
+          },
+        },
+        components: [
+          {
+            id: 'bad-node',
+            type: 'InvalidType',
+          },
+        ],
         links: [],
       }
 
-      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-        ok: true,
-        text: () => Promise.resolve(JSON.stringify(invalidGraph)),
-      }))
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({
+          ok: true,
+          text: () => Promise.resolve(JSON.stringify(invalidGraph)),
+        }),
+      )
 
       await expect(fetchAndValidateDemoGraph('/test.json')).rejects.toThrow(/Invalid RiviereGraph/)
     })
   })
-
 })

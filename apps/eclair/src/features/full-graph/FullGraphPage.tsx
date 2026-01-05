@@ -1,6 +1,12 @@
-import { useState, useCallback, useMemo, useRef, useEffect } from 'react'
+import {
+  useState, useCallback, useMemo, useRef, useEffect 
+} from 'react'
 import { useSearchParams } from 'react-router-dom'
-import type { RiviereGraph, NodeType } from '@/types/riviere'
+import type {
+  RiviereGraph, NodeType 
+  ,
+  Node, Edge 
+} from '@/types/riviere'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useExport } from '@/contexts/ExportContext'
 import {
@@ -16,7 +22,6 @@ import { NodeTypeFilters } from './components/NodeTypeFilters/NodeTypeFilters'
 import { filterByNodeType } from './graphFocusing/filterByNodeType'
 import { getThemeFocusColors } from './graphFocusing/themeFocusColors'
 import type { TooltipData } from './types'
-import type { Node, Edge } from '@/types/riviere'
 
 function findOrphanNodeIds(nodes: Node[], edges: Edge[]): Set<string> {
   const connectedNodeIds = new Set<string>()
@@ -34,9 +39,7 @@ function findOrphanNodeIds(nodes: Node[], edges: Edge[]): Set<string> {
   return orphanIds
 }
 
-interface FullGraphPageProps {
-  readonly graph: RiviereGraph
-}
+interface FullGraphPageProps {readonly graph: RiviereGraph}
 
 interface DomainInfo {
   name: string
@@ -57,7 +60,10 @@ function extractDomains(graph: RiviereGraph): DomainInfo[] {
   }
 
   return Array.from(domainCounts.entries())
-    .map(([name, nodeCount]) => ({ name, nodeCount }))
+    .map(([name, nodeCount]) => ({
+      name,
+      nodeCount,
+    }))
     .sort((a, b) => a.name.localeCompare(b.name))
 }
 
@@ -75,13 +81,18 @@ function extractNodeTypes(graph: RiviereGraph): NodeTypeInfo[] {
   }
 
   return Array.from(typeCounts.entries())
-    .map(([type, nodeCount]) => ({ type, nodeCount }))
+    .map(([type, nodeCount]) => ({
+      type,
+      nodeCount,
+    }))
     .sort((a, b) => a.type.localeCompare(b.type))
 }
 
 export function FullGraphPage({ graph }: Readonly<FullGraphPageProps>): React.ReactElement {
   const { theme } = useTheme()
-  const { registerExportHandlers, clearExportHandlers } = useExport()
+  const {
+    registerExportHandlers, clearExportHandlers 
+  } = useExport()
   const [searchParams] = useSearchParams()
   const [tooltipData, setTooltipData] = useState<TooltipData | null>(null)
   const tooltipHideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -113,20 +124,14 @@ export function FullGraphPage({ graph }: Readonly<FullGraphPageProps>): React.Re
   const domainCount = new Set(graph.components.map((n) => n.domain)).size
 
   const filteredGraph = useMemo(() => {
-    const typeFiltered = filterByNodeType(
-      graph.components,
-      graph.links,
-      visibleTypes
-    )
+    const typeFiltered = filterByNodeType(graph.components, graph.links, visibleTypes)
 
     const orphanNodeIds = findOrphanNodeIds(typeFiltered.nodes, typeFiltered.edges)
 
-    const nonOrphanNodes = typeFiltered.nodes.filter(
-      (n) => !orphanNodeIds.has(n.id)
-    )
+    const nonOrphanNodes = typeFiltered.nodes.filter((n) => !orphanNodeIds.has(n.id))
 
     const nonOrphanEdges = typeFiltered.edges.filter(
-      (e) => !orphanNodeIds.has(e.source) && !orphanNodeIds.has(e.target)
+      (e) => !orphanNodeIds.has(e.source) && !orphanNodeIds.has(e.target),
     )
 
     return {
@@ -229,7 +234,9 @@ export function FullGraphPage({ graph }: Readonly<FullGraphPageProps>): React.Re
         const backgroundColor = getComputedStyle(document.documentElement)
           .getPropertyValue('--bg-primary')
           .trim()
-        exportElementAsPng(exportContainerRef.current, filename, { backgroundColor }).catch(console.error)
+        exportElementAsPng(exportContainerRef.current, filename, { backgroundColor }).catch(
+          console.error,
+        )
       }
     }
 
@@ -241,21 +248,26 @@ export function FullGraphPage({ graph }: Readonly<FullGraphPageProps>): React.Re
       }
     }
 
-    registerExportHandlers({ onPng: handleExportPng, onSvg: handleExportSvg })
+    registerExportHandlers({
+      onPng: handleExportPng,
+      onSvg: handleExportSvg,
+    })
 
     return () => {
       clearExportHandlers()
     }
   }, [graph.metadata.name, registerExportHandlers, clearExportHandlers])
 
-  const highlightedNodeIds = highlightedNodeId
-    ? new Set([highlightedNodeId])
-    : undefined
+  const highlightedNodeIds = highlightedNodeId ? new Set([highlightedNodeId]) : undefined
 
   return (
     <div ref={exportContainerRef} className="relative h-full w-full" data-testid="full-graph-page">
       <ForceGraph
-        graph={{ ...graph, components: filteredGraph.nodes, links: filteredGraph.edges }}
+        graph={{
+          ...graph,
+          components: filteredGraph.nodes,
+          links: filteredGraph.edges,
+        }}
         theme={theme}
         highlightedNodeIds={highlightedNodeIds}
         highlightedNodeId={highlightedNodeId}
@@ -268,9 +280,7 @@ export function FullGraphPage({ graph }: Readonly<FullGraphPageProps>): React.Re
       {focusedDomain !== null && focusedDomain !== HIDE_ALL_DOMAINS && (
         <div
           className="pointer-events-none absolute inset-0 transition-opacity duration-600"
-          style={{
-            backgroundColor: focusColors.overlayBackground,
-          }}
+          style={{ backgroundColor: focusColors.overlayBackground }}
         />
       )}
 
@@ -312,9 +322,7 @@ export function FullGraphPage({ graph }: Readonly<FullGraphPageProps>): React.Re
             type="button"
             onClick={handleShowAllDomains}
             className="mt-4 flex items-center gap-2 text-sm font-medium transition-colors"
-            style={{
-              color: focusColors.borderColor,
-            }}
+            style={{ color: focusColors.borderColor }}
           >
             <i className="ph ph-x-circle text-base" />
             <span>Clear focus</span>
@@ -323,13 +331,8 @@ export function FullGraphPage({ graph }: Readonly<FullGraphPageProps>): React.Re
       )}
 
       {!focusedDomain && (
-        <div
-          className="floating-panel absolute left-2 top-4 md:left-4"
-          data-testid="stats-panel"
-        >
-          <h1 className="mb-1 text-sm font-semibold text-[var(--text-primary)]">
-            Full Graph
-          </h1>
+        <div className="floating-panel absolute left-2 top-4 md:left-4" data-testid="stats-panel">
+          <h1 className="mb-1 text-sm font-semibold text-[var(--text-primary)]">Full Graph</h1>
           <div className="flex flex-wrap gap-2 text-xs text-[var(--text-secondary)] md:gap-4">
             <span>{filteredGraph.nodes.length} nodes</span>
             <span>{filteredGraph.edges.length} edges</span>

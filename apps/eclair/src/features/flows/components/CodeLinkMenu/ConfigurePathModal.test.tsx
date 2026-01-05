@@ -1,5 +1,9 @@
-import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import {
+  describe, it, expect, vi 
+} from 'vitest'
+import {
+  render, screen 
+} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ConfigurePathModal } from './ConfigurePathModal'
 
@@ -11,16 +15,16 @@ describe('ConfigurePathModal', () => {
           <ConfigurePathModal
             mode="vscode"
             isOpen={true}
-            onClose={() => {}}
-            onSave={() => {}}
+            onClose={vi.fn()}
+            onSave={vi.fn()}
             currentValue={null}
           />
-        </div>
+        </div>,
       )
 
-      const modalBackdrop = baseElement.querySelector('[role="presentation"]')
-      expect(modalBackdrop).not.toBeNull()
-      expect(modalBackdrop?.parentElement).toBe(document.body)
+      const dialog = baseElement.querySelector('dialog')
+      expect(dialog).not.toBeNull()
+      expect(dialog?.closest('body > div')).not.toBeNull()
     })
   })
   describe('vscode mode', () => {
@@ -32,7 +36,7 @@ describe('ConfigurePathModal', () => {
           onClose={() => {}}
           onSave={() => {}}
           currentValue={null}
-        />
+        />,
       )
 
       expect(screen.getByText('Configure VS Code Path')).toBeInTheDocument()
@@ -46,7 +50,7 @@ describe('ConfigurePathModal', () => {
           onClose={() => {}}
           onSave={() => {}}
           currentValue={null}
-        />
+        />,
       )
 
       expect(screen.getByPlaceholderText('/Users/you/code/project')).toBeInTheDocument()
@@ -60,7 +64,7 @@ describe('ConfigurePathModal', () => {
           onClose={() => {}}
           onSave={() => {}}
           currentValue="/existing/path"
-        />
+        />,
       )
 
       expect(screen.getByDisplayValue('/existing/path')).toBeInTheDocument()
@@ -76,7 +80,7 @@ describe('ConfigurePathModal', () => {
           onClose={() => {}}
           onSave={() => {}}
           currentValue={null}
-        />
+        />,
       )
 
       expect(screen.getByText('Configure GitHub Organization')).toBeInTheDocument()
@@ -90,7 +94,7 @@ describe('ConfigurePathModal', () => {
           onClose={() => {}}
           onSave={() => {}}
           currentValue={null}
-        />
+        />,
       )
 
       expect(screen.getByPlaceholderText('https://github.com/myorg')).toBeInTheDocument()
@@ -109,7 +113,7 @@ describe('ConfigurePathModal', () => {
           onClose={onClose}
           onSave={() => {}}
           currentValue={null}
-        />
+        />,
       )
 
       await user.click(screen.getByRole('button', { name: 'Cancel' }))
@@ -128,7 +132,7 @@ describe('ConfigurePathModal', () => {
           onClose={() => {}}
           onSave={onSave}
           currentValue={null}
-        />
+        />,
       )
 
       await user.type(screen.getByRole('textbox'), '/my/new/path')
@@ -145,7 +149,7 @@ describe('ConfigurePathModal', () => {
           onClose={() => {}}
           onSave={() => {}}
           currentValue={null}
-        />
+        />,
       )
 
       expect(screen.queryByText('Configure VS Code Path')).not.toBeInTheDocument()
@@ -159,7 +163,7 @@ describe('ConfigurePathModal', () => {
           onClose={() => {}}
           onSave={() => {}}
           currentValue={null}
-        />
+        />,
       )
 
       expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled()
@@ -175,7 +179,7 @@ describe('ConfigurePathModal', () => {
           onClose={() => {}}
           onSave={() => {}}
           currentValue={null}
-        />
+        />,
       )
 
       await user.type(screen.getByRole('textbox'), '/path')

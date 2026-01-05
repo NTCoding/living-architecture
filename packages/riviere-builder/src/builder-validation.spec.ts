@@ -1,6 +1,10 @@
-import { describe, it, expect } from 'vitest'
+import {
+  describe, it, expect 
+} from 'vitest'
 import { RiviereBuilder } from './builder'
-import { createValidOptions, createSourceLocation } from './builder-test-fixtures'
+import {
+  createValidOptions, createSourceLocation 
+} from './builder-test-fixtures'
 
 describe('RiviereBuilder', () => {
   describe('validate', () => {
@@ -22,7 +26,10 @@ describe('RiviereBuilder', () => {
         sourceLocation: createSourceLocation(),
       })
 
-      builder.link({ from: source.id, to: target.id })
+      builder.link({
+        from: source.id,
+        to: target.id,
+      })
 
       const result = builder.validate()
 
@@ -40,7 +47,10 @@ describe('RiviereBuilder', () => {
         sourceLocation: createSourceLocation(),
       })
 
-      builder.link({ from: source.id, to: 'nonexistent:target:id' })
+      builder.link({
+        from: source.id,
+        to: 'nonexistent:target:id',
+      })
 
       const result = builder.validate()
 
@@ -62,8 +72,14 @@ describe('RiviereBuilder', () => {
         sourceLocation: createSourceLocation(),
       })
 
-      builder.link({ from: source.id, to: 'bad:target:one' })
-      builder.link({ from: source.id, to: 'bad:target:two' })
+      builder.link({
+        from: source.id,
+        to: 'bad:target:one',
+      })
+      builder.link({
+        from: source.id,
+        to: 'bad:target:two',
+      })
 
       const result = builder.validate()
 
@@ -104,7 +120,10 @@ describe('RiviereBuilder', () => {
         sourceLocation: createSourceLocation(),
       })
 
-      builder.link({ from: source.id, to: target.id })
+      builder.link({
+        from: source.id,
+        to: target.id,
+      })
 
       const result = builder.validate()
 

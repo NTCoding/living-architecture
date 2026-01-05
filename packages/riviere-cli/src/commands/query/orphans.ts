@@ -1,6 +1,8 @@
 import { Command } from 'commander'
 import { formatSuccess } from '../../output'
-import { withGraph, getDefaultGraphPathDescription } from './load-graph'
+import {
+  withGraph, getDefaultGraphPathDescription 
+} from './load-graph'
 
 interface OrphansOptions {
   graph?: string
@@ -16,7 +18,7 @@ export function createOrphansCommand(): Command {
 Examples:
   $ riviere query orphans
   $ riviere query orphans --json
-`
+`,
     )
     .option('--graph <path>', getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')

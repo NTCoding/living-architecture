@@ -9,9 +9,13 @@ import type {
   NodeId,
 } from '@/types/riviere'
 import { nodeIdSchema } from '@/types/riviere'
-import { RiviereQuery, type Entity } from '@living-architecture/riviere-query'
+import {
+  RiviereQuery, type Entity 
+} from '@living-architecture/riviere-query'
 import type { NodeBreakdown } from './domainNodeBreakdown'
-import { countNodesByType, formatDomainNodes, extractEntryPoints } from './domainNodeBreakdown'
+import {
+  countNodesByType, formatDomainNodes, extractEntryPoints 
+} from './domainNodeBreakdown'
 
 export interface DomainNode {
   id: string
@@ -87,10 +91,7 @@ export interface DomainDetails {
   repository: string | undefined
 }
 
-function buildCrossDomainEdges(
-  graph: RiviereGraph,
-  domainId: DomainName
-): CrossDomainEdge[] {
+function buildCrossDomainEdges(graph: RiviereGraph, domainId: DomainName): CrossDomainEdge[] {
   const nodeIdToDomain = new Map<string, string>()
   for (const node of graph.components) {
     nodeIdToDomain.set(node.id, node.domain)
@@ -120,7 +121,10 @@ function buildCrossDomainEdges(
   return crossDomainEdges.sort((a, b) => a.targetDomain.localeCompare(b.targetDomain))
 }
 
-export function extractDomainDetails(graph: RiviereGraph, domainId: DomainName): DomainDetails | null {
+export function extractDomainDetails(
+  graph: RiviereGraph,
+  domainId: DomainName,
+): DomainDetails | null {
   const domainMeta = graph.metadata.domains[domainId]
   if (domainMeta === undefined) {
     return null
@@ -136,7 +140,7 @@ export function extractDomainDetails(graph: RiviereGraph, domainId: DomainName):
   const queryPublished = query.publishedEvents(domainId)
   const queryHandlers = query.eventHandlers()
   const componentById = new Map<NodeId, RiviereGraph['components'][number]>(
-    graph.components.map((c) => [c.id, c])
+    graph.components.map((c) => [c.id, c]),
   )
 
   const publishedEvents: DomainEvent[] = queryPublished.map((pe) => {
@@ -156,9 +160,10 @@ export function extractDomainDetails(graph: RiviereGraph, domainId: DomainName):
   const consumedHandlers: DomainEventHandler[] = domainHandlers.map((h) => {
     const nodeId = nodeIdSchema.parse(h.id)
     const component = componentById.get(nodeId)
-    const description = component?.description !== undefined && typeof component?.description === 'string'
-      ? component.description
-      : undefined
+    const description =
+      component?.description !== undefined && typeof component?.description === 'string'
+        ? component.description
+        : undefined
     return {
       id: h.id,
       handlerName: h.handlerName,
@@ -170,17 +175,20 @@ export function extractDomainDetails(graph: RiviereGraph, domainId: DomainName):
   })
 
   const events: DomainEvents = {
-    published: publishedEvents.toSorted((a: DomainEvent, b: DomainEvent) => a.eventName.localeCompare(b.eventName)),
-    consumed: consumedHandlers.toSorted((a: DomainEventHandler, b: DomainEventHandler) => a.handlerName.localeCompare(b.handlerName)),
+    published: publishedEvents.toSorted((a: DomainEvent, b: DomainEvent) =>
+      a.eventName.localeCompare(b.eventName),
+    ),
+    consumed: consumedHandlers.toSorted((a: DomainEventHandler, b: DomainEventHandler) =>
+      a.handlerName.localeCompare(b.handlerName),
+    ),
   }
 
   const crossDomainEdges = buildCrossDomainEdges(graph, domainId)
   const aggregatedConnections = query.domainConnections(domainId)
   const entryPoints = extractEntryPoints(domainNodes)
 
-  const repository = domainNodes
-    .find((node) => node.sourceLocation?.repository)
-    ?.sourceLocation?.repository
+  const repository = domainNodes.find((node) => node.sourceLocation?.repository)?.sourceLocation
+    ?.repository
 
   return {
     id: domainId,

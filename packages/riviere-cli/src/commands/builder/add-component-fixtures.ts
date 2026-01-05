@@ -1,11 +1,11 @@
 interface AddComponentArgsOptions {
-  type?: string;
-  name?: string;
-  domain?: string;
-  module?: string;
-  repository?: string;
-  filePath?: string;
-  extraArgs?: string[];
+  type?: string
+  name?: string
+  domain?: string
+  module?: string
+  repository?: string
+  filePath?: string
+  extraArgs?: string[]
 }
 
 const DEFAULTS = {
@@ -15,10 +15,21 @@ const DEFAULTS = {
   module: 'checkout',
   repository: 'https://github.com/org/repo',
   filePath: 'src/test.ts',
-} as const;
+} as const
 
 export function buildAddComponentArgs(options: AddComponentArgsOptions = {}): string[] {
-  const { type, name, domain, module, repository, filePath, extraArgs = [] } = { ...DEFAULTS, ...options };
+  const {
+    type,
+    name,
+    domain,
+    module,
+    repository,
+    filePath,
+    extraArgs = [],
+  } = {
+    ...DEFAULTS,
+    ...options,
+  }
   return [
     'node',
     'riviere',
@@ -37,5 +48,5 @@ export function buildAddComponentArgs(options: AddComponentArgsOptions = {}): st
     '--file-path',
     filePath,
     ...extraArgs,
-  ];
+  ]
 }

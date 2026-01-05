@@ -1,21 +1,90 @@
-import type { RiviereGraph, Component, Link, ComponentType, DomainOpComponent, ExternalLink } from '@living-architecture/riviere-schema'
-import type { Entity, EntityTransition, PublishedEvent, EventHandlerInfo } from './event-types'
-import type { State, ComponentId, LinkId, ValidationResult, GraphDiff, Domain, Flow, SearchWithFlowResult, CrossDomainLink, DomainConnection, GraphStats, ExternalDomain } from './domain-types'
+import type {
+  RiviereGraph,
+  Component,
+  Link,
+  ComponentType,
+  DomainOpComponent,
+  ExternalLink,
+} from '@living-architecture/riviere-schema'
+import type {
+  Entity, EntityTransition, PublishedEvent, EventHandlerInfo 
+} from './event-types'
+import type {
+  State,
+  ComponentId,
+  LinkId,
+  ValidationResult,
+  GraphDiff,
+  Domain,
+  Flow,
+  SearchWithFlowResult,
+  CrossDomainLink,
+  DomainConnection,
+  GraphStats,
+  ExternalDomain,
+} from './domain-types'
 import { parseRiviereGraph } from '@living-architecture/riviere-schema'
 
-import { findComponent, findAllComponents, componentById as lookupComponentById, searchComponents, componentsInDomain as filterByDomain, componentsByType as filterByType } from './component-queries'
-import { queryDomains, operationsForEntity, queryEntities, businessRulesForEntity, transitionsForEntity, statesForEntity } from './domain-queries'
+import {
+  findComponent,
+  findAllComponents,
+  componentById as lookupComponentById,
+  searchComponents,
+  componentsInDomain as filterByDomain,
+  componentsByType as filterByType,
+} from './component-queries'
+import {
+  queryDomains,
+  operationsForEntity,
+  queryEntities,
+  businessRulesForEntity,
+  transitionsForEntity,
+  statesForEntity,
+} from './domain-queries'
 import { queryExternalDomains } from './external-system-queries'
-import { findEntryPoints, traceFlowFrom, queryFlows, searchWithFlowContext, type SearchWithFlowOptions } from './flow-queries'
-import { queryCrossDomainLinks, queryDomainConnections } from './cross-domain-queries'
-import { queryPublishedEvents, queryEventHandlers } from './event-queries'
-import { validateGraph, detectOrphanComponents } from './graph-validation'
+import {
+  findEntryPoints,
+  traceFlowFrom,
+  queryFlows,
+  searchWithFlowContext,
+  type SearchWithFlowOptions,
+} from './flow-queries'
+import {
+  queryCrossDomainLinks, queryDomainConnections 
+} from './cross-domain-queries'
+import {
+  queryPublishedEvents, queryEventHandlers 
+} from './event-queries'
+import {
+  validateGraph, detectOrphanComponents 
+} from './graph-validation'
 import { diffGraphs } from './graph-diff'
 import { queryStats } from './stats-queries'
 import { queryNodeDepths } from './depth-queries'
 
-export type { Entity, EntityTransition } from './event-types'
-export type { ComponentId, LinkId, ValidationErrorCode, ValidationError, ValidationResult, Domain, ComponentCounts, ComponentModification, DiffStats, GraphDiff, Flow, FlowStep, LinkType, SearchWithFlowResult, CrossDomainLink, DomainConnection, GraphStats, ExternalDomain } from './domain-types'
+export type {
+  Entity, EntityTransition 
+} from './event-types'
+export type {
+  ComponentId,
+  LinkId,
+  ValidationErrorCode,
+  ValidationError,
+  ValidationResult,
+  Domain,
+  ComponentCounts,
+  ComponentModification,
+  DiffStats,
+  GraphDiff,
+  Flow,
+  FlowStep,
+  LinkType,
+  SearchWithFlowResult,
+  CrossDomainLink,
+  DomainConnection,
+  GraphStats,
+  ExternalDomain,
+} from './domain-types'
 export type { SearchWithFlowOptions } from './flow-queries'
 export { parseComponentId } from './domain-types'
 export { ComponentNotFoundError } from './errors'
@@ -377,7 +446,10 @@ export class RiviereQuery {
    * console.log(`Flow includes ${flow.componentIds.length} nodes`)
    * ```
    */
-  traceFlow(startComponentId: ComponentId): { componentIds: ComponentId[]; linkIds: LinkId[] } {
+  traceFlow(startComponentId: ComponentId): {
+    componentIds: ComponentId[]
+    linkIds: LinkId[]
+  } {
     return traceFlowFrom(this.graph, startComponentId)
   }
 

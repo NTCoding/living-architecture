@@ -1,57 +1,82 @@
-import { Command } from 'commander';
-import { writeFile } from 'node:fs/promises';
-import { InvalidEnrichmentTargetError } from '@living-architecture/riviere-builder';
-import { withGraphBuilder, handleComponentNotFoundError } from './link-infrastructure';
-import { formatError, formatSuccess } from '../../output';
-import { CliErrorCode } from '../../error-codes';
-import { getDefaultGraphPathDescription } from '../../graph-path';
-import type { StateTransition, OperationSignature, OperationParameter } from '@living-architecture/riviere-schema';
+import { Command } from 'commander'
+import { writeFile } from 'node:fs/promises'
+import { InvalidEnrichmentTargetError } from '@living-architecture/riviere-builder'
+import {
+  withGraphBuilder, handleComponentNotFoundError 
+} from './link-infrastructure'
+import {
+  formatError, formatSuccess 
+} from '../../output'
+import { CliErrorCode } from '../../error-codes'
+import { getDefaultGraphPathDescription } from '../../graph-path'
+import type {
+  StateTransition,
+  OperationSignature,
+  OperationParameter,
+} from '@living-architecture/riviere-schema'
 
 interface EnrichOptions {
-  id: string;
-  entity?: string;
-  stateChange: string[];
-  businessRule: string[];
-  reads: string[];
-  validates: string[];
-  modifies: string[];
-  emits: string[];
-  signature?: string;
-  graph?: string;
-  json?: boolean;
+  id: string
+  entity?: string
+  stateChange: string[]
+  businessRule: string[]
+  reads: string[]
+  validates: string[]
+  modifies: string[]
+  emits: string[]
+  signature?: string
+  graph?: string
+  json?: boolean
 }
 
 function collectOption(value: string, previous: string[]): string[] {
-  return [...previous, value];
+  return [...previous, value]
 }
 
 function parseStateChange(input: string): StateTransition | undefined {
-  const [from, to, ...rest] = input.split(':');
+  const [from, to, ...rest] = input.split(':')
   if (from === undefined || to === undefined || rest.length > 0) {
-    return undefined;
+    return undefined
   }
-  return { from, to };
+  return {
+    from,
+    to,
+  }
 }
 
-type ParseResult = { success: true; stateChanges: StateTransition[] } | { success: false; invalidInput: string };
+type ParseResult =
+  | {
+    success: true
+    stateChanges: StateTransition[]
+  }
+  | {
+    success: false
+    invalidInput: string
+  }
 
 function parseStateChanges(inputs: string[]): ParseResult {
-  const stateChanges: StateTransition[] = [];
+  const stateChanges: StateTransition[] = []
   for (const sc of inputs) {
-    const parsed = parseStateChange(sc);
+    const parsed = parseStateChange(sc)
     if (parsed === undefined) {
-      return { success: false, invalidInput: sc };
+      return {
+        success: false,
+        invalidInput: sc,
+      }
     }
-    stateChanges.push(parsed);
+    stateChanges.push(parsed)
   }
-  return { success: true, stateChanges };
+  return {
+    success: true,
+    stateChanges,
+  }
 }
 
 interface BehaviorOptions {
-  reads: string[];
-  validates: string[];
-  modifies: string[];
-  emits: string[];
+  reads: string[]
+  validates: string[]
+  modifies: string[]
+  emits: string[]
 }
 
 function buildBehavior(options: BehaviorOptions): { behavior: object } | Record<string, never> {
@@ -59,10 +84,10 @@ function buildBehavior(options: BehaviorOptions): { behavior: object } | Record<
     options.reads.length > 0 ||
     options.validates.length > 0 ||
     options.modifies.length > 0 ||
-    options.emits.length > 0;
+    options.emits.length > 0
 
   if (!hasBehavior) {
-    return {};
+    return {}
   }
 
   return {
@@ -72,104 +97,140 @@ function buildBehavior(options: BehaviorOptions): { behavior: object } | Record<
       ...(options.modifies.length > 0 && { modifies: options.modifies }),
       ...(options.emits.length > 0 && { emits: options.emits }),
     },
-  };
+  }
 }
 
 function parseParameter(input: string): OperationParameter | undefined {
-  const parts = input.split(':');
+  const parts = input.split(':')
   if (parts.length < 2 || parts.length > 3) {
-    return undefined;
+    return undefined
   }
-  const [name, type, description] = parts;
+  const [name, type, description] = parts
   if (name === undefined || name === '' || type === undefined || type === '') {
-    return undefined;
+    return undefined
   }
   return {
     name: name.trim(),
     type: type.trim(),
     ...(description !== undefined && description !== '' && { description: description.trim() }),
-  };
+  }
 }
 
 type SignatureParseResult =
-  | { success: true; signature: OperationSignature }
-  | { success: false; error: string };
+  | {
+    success: true
+    signature: OperationSignature
+  }
+  | {
+    success: false
+    error: string
+  }
 
 type ParametersParseResult =
-  | { success: true; parameters: OperationParameter[] }
-  | { success: false; error: string };
+  | {
+    success: true
+    parameters: OperationParameter[]
+  }
+  | {
+    success: false
+    error: string
+  }
 
 function parseParameters(paramsPart: string): ParametersParseResult {
   if (paramsPart === '') {
-    return { success: true, parameters: [] };
-  }
-  const paramStrings = paramsPart.split(',').map((p) => p.trim());
-  const parameters: OperationParameter[] = [];
-  for (const paramStr of paramStrings) {
-    const param = parseParameter(paramStr);
-    if (param === undefined) {
-      return { success: false, error: `Invalid parameter format: '${paramStr}'. Expected 'name:type' or 'name:type:description'.` };
+    return {
+      success: true,
+      parameters: [],
     }
-    parameters.push(param);
   }
-  return { success: true, parameters };
+  const paramStrings = paramsPart.split(',').map((p) => p.trim())
+  const parameters: OperationParameter[] = []
+  for (const paramStr of paramStrings) {
+    const param = parseParameter(paramStr)
+    if (param === undefined) {
+      return {
+        success: false,
+        error: `Invalid parameter format: '${paramStr}'. Expected 'name:type' or 'name:type:description'.`,
+      }
+    }
+    parameters.push(param)
+  }
+  return {
+    success: true,
+    parameters,
+  }
 }
 
-function buildSignatureObject(parameters: OperationParameter[], returnType: string | undefined): OperationSignature {
-  const signature: OperationSignature = {};
+function buildSignatureObject(
+  parameters: OperationParameter[],
+  returnType: string | undefined,
+): OperationSignature {
+  const signature: OperationSignature = {}
   if (parameters.length > 0) {
-    signature.parameters = parameters;
+    signature.parameters = parameters
   }
   if (returnType !== undefined && returnType !== '') {
-    signature.returnType = returnType;
+    signature.returnType = returnType
   }
-  return signature;
+  return signature
 }
 
 function parseSignature(input: string): SignatureParseResult {
-  const trimmed = input.trim();
+  const trimmed = input.trim()
 
   // Handle "-> ReturnType" (return type only, no parameters)
   if (trimmed.startsWith('->')) {
-    const returnType = trimmed.slice(2).trim();
+    const returnType = trimmed.slice(2).trim()
     return returnType === ''
-      ? { success: false, error: `Invalid signature format: '${input}'. Return type cannot be empty.` }
-      : { success: true, signature: { returnType } };
+      ? {
+        success: false,
+        error: `Invalid signature format: '${input}'. Return type cannot be empty.`,
+      }
+      : {
+        success: true,
+        signature: { returnType },
+      }
   }
 
   // Split on " -> " to separate parameters from return type
-  const arrowIndex = trimmed.indexOf(' -> ');
-  const paramsPart = arrowIndex === -1 ? trimmed : trimmed.slice(0, arrowIndex).trim();
-  const returnType = arrowIndex === -1 ? undefined : trimmed.slice(arrowIndex + 4).trim();
+  const arrowIndex = trimmed.indexOf(' -> ')
+  const paramsPart = arrowIndex === -1 ? trimmed : trimmed.slice(0, arrowIndex).trim()
+  const returnType = arrowIndex === -1 ? undefined : trimmed.slice(arrowIndex + 4).trim()
 
-  const paramsResult = parseParameters(paramsPart);
+  const paramsResult = parseParameters(paramsPart)
   if (!paramsResult.success) {
-    return paramsResult;
+    return paramsResult
   }
 
-  const signature = buildSignatureObject(paramsResult.parameters, returnType);
+  const signature = buildSignatureObject(paramsResult.parameters, returnType)
 
   // Must have at least parameters or returnType
   if (paramsResult.parameters.length === 0 && returnType === undefined) {
-    return { success: false, error: `Invalid signature format: '${input}'. Expected 'param:type, ... -> ReturnType' or '-> ReturnType' or 'param:type'.` };
+    return {
+      success: false,
+      error: `Invalid signature format: '${input}'. Expected 'param:type, ... -> ReturnType' or '-> ReturnType' or 'param:type'.`,
+    }
   }
 
-  return { success: true, signature };
+  return {
+    success: true,
+    signature,
+  }
 }
 
 function handleEnrichmentError(error: unknown): void {
   if (error instanceof InvalidEnrichmentTargetError) {
-    console.log(JSON.stringify(formatError(CliErrorCode.InvalidComponentType, error.message, [])));
-    return;
+    console.log(JSON.stringify(formatError(CliErrorCode.InvalidComponentType, error.message, [])))
+    return
   }
-  handleComponentNotFoundError(error);
+  handleComponentNotFoundError(error)
 }
 
 export function createEnrichCommand(): Command {
   return new Command('enrich')
     .description(
       'Enrich a DomainOp component with semantic information. ' +
-        'Note: Enrichment is additive — running multiple times accumulates values.'
+        'Note: Enrichment is additive — running multiple times accumulates values.',
     )
     .addHelpText(
       'after',
@@ -191,7 +252,7 @@ Examples:
       --reads "amount parameter" \\
       --validates "amount > 0" \\
       --modifies "this.status <- Processing"
-`
+`,
     )
     .requiredOption('--id <component-id>', 'Component ID to enrich')
     .option('--entity <name>', 'Entity name')
@@ -201,23 +262,30 @@ Examples:
     .option('--validates <value>', 'What the operation validates (repeatable)', collectOption, [])
     .option('--modifies <value>', 'What the operation modifies (repeatable)', collectOption, [])
     .option('--emits <value>', 'What the operation emits (repeatable)', collectOption, [])
-    .option('--signature <dsl>', 'Operation signature (e.g., "orderId:string, amount:number -> Order")')
+    .option(
+      '--signature <dsl>',
+      'Operation signature (e.g., "orderId:string, amount:number -> Order")',
+    )
     .option('--graph <path>', getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .action(async (options: EnrichOptions) => {
-      const parseResult = parseStateChanges(options.stateChange);
+      const parseResult = parseStateChanges(options.stateChange)
       if (!parseResult.success) {
-        const msg = `Invalid state-change format: '${parseResult.invalidInput}'. Expected 'from:to'.`;
-        console.log(JSON.stringify(formatError(CliErrorCode.ValidationError, msg, [])));
-        return;
+        const msg = `Invalid state-change format: '${parseResult.invalidInput}'. Expected 'from:to'.`
+        console.log(JSON.stringify(formatError(CliErrorCode.ValidationError, msg, [])))
+        return
       }
 
-      const signatureResult = options.signature === undefined ? undefined : parseSignature(options.signature);
+      const signatureResult =
+        options.signature === undefined ? undefined : parseSignature(options.signature)
       if (signatureResult !== undefined && !signatureResult.success) {
-        console.log(JSON.stringify(formatError(CliErrorCode.ValidationError, signatureResult.error, [])));
-        return;
+        console.log(
+          JSON.stringify(formatError(CliErrorCode.ValidationError, signatureResult.error, [])),
+        )
+        return
       }
-      const parsedSignature = signatureResult?.success === true ? signatureResult.signature : undefined;
+      const parsedSignature =
+        signatureResult?.success === true ? signatureResult.signature : undefined
 
       await withGraphBuilder(options.graph, async (builder, graphPath) => {
         try {
@@ -227,17 +295,17 @@ Examples:
             ...(options.businessRule.length > 0 && { businessRules: options.businessRule }),
             ...buildBehavior(options),
             ...(parsedSignature !== undefined && { signature: parsedSignature }),
-          });
+          })
         } catch (error) {
-          handleEnrichmentError(error);
-          return;
+          handleEnrichmentError(error)
+          return
         }
 
-        await writeFile(graphPath, builder.serialize(), 'utf-8');
+        await writeFile(graphPath, builder.serialize(), 'utf-8')
 
         if (options.json === true) {
-          console.log(JSON.stringify(formatSuccess({ componentId: options.id })));
+          console.log(JSON.stringify(formatSuccess({ componentId: options.id })))
         }
-      });
-    });
+      })
+    })
 }

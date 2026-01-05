@@ -27,7 +27,17 @@ describe('mergeBehavior', () => {
   })
 
   it('preserves existing fields when adding new ones', () => {
-    const result = mergeBehavior({ reads: ['a'], validates: ['v'] }, { modifies: ['m'] })
-    expect(result).toEqual({ reads: ['a'], validates: ['v'], modifies: ['m'] })
+    const result = mergeBehavior(
+      {
+        reads: ['a'],
+        validates: ['v'],
+      },
+      { modifies: ['m'] },
+    )
+    expect(result).toEqual({
+      reads: ['a'],
+      validates: ['v'],
+      modifies: ['m'],
+    })
   })
 })

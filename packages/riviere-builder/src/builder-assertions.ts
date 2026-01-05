@@ -1,5 +1,9 @@
-import type { CustomTypeDefinition, DomainMetadata } from '@living-architecture/riviere-schema'
-import { CustomTypeNotFoundError, DomainNotFoundError } from './errors'
+import type {
+  CustomTypeDefinition, DomainMetadata 
+} from '@living-architecture/riviere-schema'
+import {
+  CustomTypeNotFoundError, DomainNotFoundError 
+} from './errors'
 
 export function assertDomainExists(domains: Record<string, DomainMetadata>, domain: string): void {
   if (!domains[domain]) {
@@ -9,7 +13,7 @@ export function assertDomainExists(domains: Record<string, DomainMetadata>, doma
 
 export function assertCustomTypeExists(
   customTypes: Record<string, CustomTypeDefinition>,
-  customTypeName: string
+  customTypeName: string,
 ): void {
   if (!customTypes[customTypeName]) {
     const definedTypes = Object.keys(customTypes)
@@ -20,7 +24,7 @@ export function assertCustomTypeExists(
 export function assertRequiredPropertiesProvided(
   customTypes: Record<string, CustomTypeDefinition>,
   customTypeName: string,
-  metadata: Record<string, unknown> | undefined
+  metadata: Record<string, unknown> | undefined,
 ): void {
   const typeDefinition = customTypes[customTypeName]
   if (!typeDefinition?.requiredProperties) {
@@ -32,6 +36,8 @@ export function assertRequiredPropertiesProvided(
   const missingKeys = requiredKeys.filter((key) => !providedKeys.includes(key))
 
   if (missingKeys.length > 0) {
-    throw new Error(`Missing required properties for '${customTypeName}': ${missingKeys.join(', ')}`)
+    throw new Error(
+      `Missing required properties for '${customTypeName}': ${missingKeys.join(', ')}`,
+    )
   }
 }

@@ -1,4 +1,6 @@
-import { describe, it, expect } from 'vitest'
+import {
+  describe, it, expect 
+} from 'vitest'
 import {
   ComponentNotFoundError,
   CustomTypeNotFoundError,
@@ -41,7 +43,9 @@ describe('errors', () => {
     it('handles empty defined types', () => {
       const error = new CustomTypeNotFoundError('Queue', [])
 
-      expect(error.message).toBe("Custom type 'Queue' not defined. No custom types have been defined.")
+      expect(error.message).toBe(
+        "Custom type 'Queue' not defined. No custom types have been defined.",
+      )
     })
   })
 
@@ -49,7 +53,9 @@ describe('errors', () => {
     it('includes component ID in message', () => {
       const error = new DuplicateComponentError('orders:checkout:api:create-order')
 
-      expect(error.message).toBe("Component with ID 'orders:checkout:api:create-order' already exists")
+      expect(error.message).toBe(
+        "Component with ID 'orders:checkout:api:create-order' already exists",
+      )
       expect(error.componentId).toBe('orders:checkout:api:create-order')
       expect(error.name).toBe('DuplicateComponentError')
     })
@@ -72,7 +78,7 @@ describe('errors', () => {
       ])
 
       expect(error.message).toBe(
-        "Source component 'orders:checkout:api:create-ordr' not found. Did you mean: orders:checkout:api:create-order, orders:checkout:api:update-order?"
+        "Source component 'orders:checkout:api:create-ordr' not found. Did you mean: orders:checkout:api:create-order, orders:checkout:api:update-order?",
       )
       expect(error.suggestions).toEqual([
         'orders:checkout:api:create-order',

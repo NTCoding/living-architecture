@@ -1,4 +1,6 @@
-import { useMemo, useState, useCallback, useRef } from 'react'
+import {
+  useMemo, useState, useCallback, useRef 
+} from 'react'
 import { useTheme } from '@/contexts/ThemeContext'
 import { ForceGraph } from '@/features/full-graph/components/ForceGraph/ForceGraph'
 import { GraphTooltip } from '@/features/full-graph/components/GraphTooltip/GraphTooltip'
@@ -26,7 +28,9 @@ function extractSubgraph(steps: FlowStep[], graph: RiviereGraph): RiviereGraph {
   }
 }
 
-export function FlowGraphView({ steps, graph }: Readonly<FlowGraphViewProps>): React.ReactElement {
+export function FlowGraphView({
+  steps, graph 
+}: Readonly<FlowGraphViewProps>): React.ReactElement {
   const { theme } = useTheme()
   const subgraph = useMemo(() => extractSubgraph(steps, graph), [steps, graph])
   const [tooltipData, setTooltipData] = useState<TooltipData | null>(null)

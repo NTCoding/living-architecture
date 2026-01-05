@@ -1,11 +1,20 @@
-import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import {
+  describe, it, expect, vi 
+} from 'vitest'
+import {
+  render, screen 
+} from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import userEvent from '@testing-library/user-event'
 import { EntitiesPage } from './EntitiesPage'
-import { parseNode, parseEdge, parseDomainMetadata } from '@/lib/riviereTestData'
+import {
+  parseNode, parseEdge, parseDomainMetadata 
+} from '@/lib/riviereTestFixtures'
 import type { RiviereGraph } from '@/types/riviere'
-const testSourceLocation = { repository: 'test-repo', filePath: 'src/test.ts' }
+const testSourceLocation = {
+  repository: 'test-repo',
+  filePath: 'src/test.ts',
+}
 
 const mockNavigate = vi.fn()
 vi.mock('react-router-dom', async () => {
@@ -23,13 +32,28 @@ function createTestGraph(): RiviereGraph {
       name: 'Test Architecture',
       description: 'Test description',
       domains: parseDomainMetadata({
-        'order-domain': { description: 'Order management', systemType: 'domain' },
-        'payment-domain': { description: 'Payment processing', systemType: 'domain' },
+        'order-domain': {
+          description: 'Order management',
+          systemType: 'domain',
+        },
+        'payment-domain': {
+          description: 'Payment processing',
+          systemType: 'domain',
+        },
       }),
     },
     components: [
       // Order domain - API and Order entity
-      parseNode({ sourceLocation: testSourceLocation, id: 'n1', type: 'API', name: 'Place Order', domain: 'order-domain', module: 'm1', httpMethod: 'POST', path: '/api/orders' }),
+      parseNode({
+        sourceLocation: testSourceLocation,
+        id: 'n1',
+        type: 'API',
+        name: 'Place Order',
+        domain: 'order-domain',
+        module: 'm1',
+        httpMethod: 'POST',
+        path: '/api/orders',
+      }),
       parseNode({
         sourceLocation: testSourceLocation,
         id: 'n2',
@@ -39,7 +63,12 @@ function createTestGraph(): RiviereGraph {
         module: 'm1',
         entity: 'Order',
         operationName: 'begin',
-        stateChanges: [{ from: 'Draft', to: 'Pending' }],
+        stateChanges: [
+          {
+            from: 'Draft',
+            to: 'Pending',
+          },
+        ],
       }),
       parseNode({
         sourceLocation: testSourceLocation,
@@ -50,7 +79,12 @@ function createTestGraph(): RiviereGraph {
         module: 'm1',
         entity: 'Order',
         operationName: 'confirm',
-        stateChanges: [{ from: 'Pending', to: 'Confirmed' }],
+        stateChanges: [
+          {
+            from: 'Pending',
+            to: 'Confirmed',
+          },
+        ],
       }),
       // Payment domain - Payment entity
       parseNode({
@@ -76,7 +110,10 @@ function createTestGraph(): RiviereGraph {
       }),
     ],
     links: [
-      parseEdge({ source: 'n1', target: 'n2' }),
+      parseEdge({
+        source: 'n1',
+        target: 'n2',
+      }),
     ],
   }
 }
@@ -115,7 +152,7 @@ describe('EntitiesPage', () => {
     expect(screen.queryByText('Pending')).not.toBeInTheDocument()
 
     const entityButton = screen.getByText('Order')
-    await user.click(entityButton.closest('button') || entityButton)
+    await user.click(entityButton.closest('button') ?? entityButton)
 
     expect(screen.getByText('Draft')).toBeInTheDocument()
     expect(screen.getByText('Pending')).toBeInTheDocument()
@@ -130,7 +167,7 @@ describe('EntitiesPage', () => {
     expect(screen.queryByText(/begin/)).not.toBeInTheDocument()
 
     const entityButton = screen.getByText('Order')
-    await user.click(entityButton.closest('button') || entityButton)
+    await user.click(entityButton.closest('button') ?? entityButton)
 
     expect(screen.getByText(/begin/)).toBeInTheDocument()
     expect(screen.getByText(/confirm/)).toBeInTheDocument()
@@ -169,7 +206,7 @@ describe('EntitiesPage', () => {
     render(
       <MemoryRouter>
         <EntitiesPage graph={graph} />
-      </MemoryRouter>
+      </MemoryRouter>,
     )
 
     // Entities sorted alphabetically: Invoice, Order, Payment - click first one (Invoice)

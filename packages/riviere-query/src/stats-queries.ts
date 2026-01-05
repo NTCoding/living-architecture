@@ -1,4 +1,6 @@
-import type { RiviereGraph, DomainOpComponent } from '@living-architecture/riviere-schema'
+import type {
+  RiviereGraph, DomainOpComponent 
+} from '@living-architecture/riviere-schema'
 import type { GraphStats } from './domain-types'
 
 export function queryStats(graph: RiviereGraph): GraphStats {

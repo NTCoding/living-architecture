@@ -1,5 +1,5 @@
 /// <reference types='vitest' />
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vite'
 
 export default defineConfig(() => ({
   root: import.meta.dirname,
@@ -21,4 +21,4 @@ export default defineConfig(() => ({
       provider: 'v8' as const,
     },
   },
-}));
+}))

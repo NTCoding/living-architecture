@@ -1,4 +1,6 @@
-import { describe, it, expect } from 'vitest'
+import {
+  describe, it, expect 
+} from 'vitest'
 import { RiviereQuery } from './RiviereQuery'
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
 import {
@@ -13,7 +15,11 @@ describe('stats', () => {
   it('returns componentCount matching number of components', () => {
     const graph = createMinimalValidGraph()
     graph.components.push(
-      createAPIComponent({ id: 'test:mod:api:one', name: 'API One', domain: 'test' }),
+      createAPIComponent({
+        id: 'test:mod:api:one',
+        name: 'API One',
+        domain: 'test',
+      }),
     )
 
     const query = new RiviereQuery(graph)
@@ -25,11 +31,21 @@ describe('stats', () => {
   it('returns linkCount matching number of links', () => {
     const graph = createMinimalValidGraph()
     graph.components.push(
-      createAPIComponent({ id: 'test:mod:api:one', name: 'API One', domain: 'test' }),
+      createAPIComponent({
+        id: 'test:mod:api:one',
+        name: 'API One',
+        domain: 'test',
+      }),
     )
     graph.links = [
-      { source: 'test:mod:ui:page', target: 'test:mod:api:one' },
-      { source: 'test:mod:api:one', target: 'test:mod:ui:page' },
+      {
+        source: 'test:mod:ui:page',
+        target: 'test:mod:api:one',
+      },
+      {
+        source: 'test:mod:api:one',
+        target: 'test:mod:ui:page',
+      },
     ]
 
     const query = new RiviereQuery(graph)
@@ -43,14 +59,44 @@ describe('stats', () => {
       version: '1.0',
       metadata: {
         domains: {
-          orders: { description: 'Orders domain', systemType: 'domain' },
-          shipping: { description: 'Shipping domain', systemType: 'domain' },
+          orders: {
+            description: 'Orders domain',
+            systemType: 'domain',
+          },
+          shipping: {
+            description: 'Shipping domain',
+            systemType: 'domain',
+          },
         },
       },
       components: [
-        { id: 'orders:mod:ui:page1', type: 'UI', name: 'Page 1', domain: 'orders', module: 'mod', route: '/p1', sourceLocation: defaultSourceLocation },
-        { id: 'orders:mod:ui:page2', type: 'UI', name: 'Page 2', domain: 'orders', module: 'mod', route: '/p2', sourceLocation: defaultSourceLocation },
-        { id: 'shipping:mod:ui:page3', type: 'UI', name: 'Page 3', domain: 'shipping', module: 'mod', route: '/p3', sourceLocation: defaultSourceLocation },
+        {
+          id: 'orders:mod:ui:page1',
+          type: 'UI',
+          name: 'Page 1',
+          domain: 'orders',
+          module: 'mod',
+          route: '/p1',
+          sourceLocation: defaultSourceLocation,
+        },
+        {
+          id: 'orders:mod:ui:page2',
+          type: 'UI',
+          name: 'Page 2',
+          domain: 'orders',
+          module: 'mod',
+          route: '/p2',
+          sourceLocation: defaultSourceLocation,
+        },
+        {
+          id: 'shipping:mod:ui:page3',
+          type: 'UI',
+          name: 'Page 3',
+          domain: 'shipping',
+          module: 'mod',
+          route: '/p3',
+          sourceLocation: defaultSourceLocation,
+        },
       ],
       links: [],
     }
@@ -64,8 +110,16 @@ describe('stats', () => {
   it('returns apiCount counting only API components', () => {
     const graph = createMinimalValidGraph()
     graph.components.push(
-      createAPIComponent({ id: 'test:mod:api:one', name: 'API One', domain: 'test' }),
-      createAPIComponent({ id: 'test:mod:api:two', name: 'API Two', domain: 'test' }),
+      createAPIComponent({
+        id: 'test:mod:api:one',
+        name: 'API One',
+        domain: 'test',
+      }),
+      createAPIComponent({
+        id: 'test:mod:api:two',
+        name: 'API Two',
+        domain: 'test',
+      }),
     )
 
     const query = new RiviereQuery(graph)
@@ -77,9 +131,27 @@ describe('stats', () => {
   it('returns entityCount counting unique entities from DomainOp components', () => {
     const graph = createMinimalValidGraph()
     graph.components.push(
-      createDomainOpComponent({ id: 'test:mod:op:create', name: 'Create Order', domain: 'test', operationName: 'create', entity: 'Order' }),
-      createDomainOpComponent({ id: 'test:mod:op:update', name: 'Update Order', domain: 'test', operationName: 'update', entity: 'Order' }),
-      createDomainOpComponent({ id: 'test:mod:op:ship', name: 'Create Shipment', domain: 'test', operationName: 'create', entity: 'Shipment' }),
+      createDomainOpComponent({
+        id: 'test:mod:op:create',
+        name: 'Create Order',
+        domain: 'test',
+        operationName: 'create',
+        entity: 'Order',
+      }),
+      createDomainOpComponent({
+        id: 'test:mod:op:update',
+        name: 'Update Order',
+        domain: 'test',
+        operationName: 'update',
+        entity: 'Order',
+      }),
+      createDomainOpComponent({
+        id: 'test:mod:op:ship',
+        name: 'Create Shipment',
+        domain: 'test',
+        operationName: 'create',
+        entity: 'Shipment',
+      }),
     )
 
     const query = new RiviereQuery(graph)
@@ -91,8 +163,18 @@ describe('stats', () => {
   it('returns eventCount counting only Event components', () => {
     const graph = createMinimalValidGraph()
     graph.components.push(
-      createEventComponent({ id: 'test:mod:event:one', name: 'Order Created', domain: 'test', eventName: 'OrderCreated' }),
-      createEventComponent({ id: 'test:mod:event:two', name: 'Order Shipped', domain: 'test', eventName: 'OrderShipped' }),
+      createEventComponent({
+        id: 'test:mod:event:one',
+        name: 'Order Created',
+        domain: 'test',
+        eventName: 'OrderCreated',
+      }),
+      createEventComponent({
+        id: 'test:mod:event:two',
+        name: 'Order Shipped',
+        domain: 'test',
+        eventName: 'OrderShipped',
+      }),
     )
 
     const query = new RiviereQuery(graph)
@@ -104,7 +186,14 @@ describe('stats', () => {
   it('returns zeros for graph with no components', () => {
     const graph: RiviereGraph = {
       version: '1.0',
-      metadata: { domains: { test: { description: 'Test', systemType: 'domain' } } },
+      metadata: {
+        domains: {
+          test: {
+            description: 'Test',
+            systemType: 'domain',
+          },
+        },
+      },
       components: [],
       links: [],
     }

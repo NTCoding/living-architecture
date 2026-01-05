@@ -1,17 +1,30 @@
-import { describe, it, expect } from 'vitest'
-import { mkdir, writeFile } from 'node:fs/promises'
+import {
+  describe, it, expect 
+} from 'vitest'
+import {
+  mkdir, writeFile 
+} from 'node:fs/promises'
 import { join } from 'node:path'
 import { RiviereQuery } from '@living-architecture/riviere-query'
-import { loadGraph, isLoadGraphError, withGraph } from './load-graph'
+import {
+  loadGraph, isLoadGraphError, withGraph 
+} from './load-graph'
 import { CliErrorCode } from '../../error-codes'
 import type { TestContext } from '../../command-test-fixtures'
-import { createTestContext, setupCommandTest } from '../../command-test-fixtures'
+import {
+  createTestContext, setupCommandTest 
+} from '../../command-test-fixtures'
 
 const validGraph = {
   version: '1.0',
   metadata: {
     sources: [{ repository: 'https://github.com/org/repo' }],
-    domains: { test: { description: 'Test domain', systemType: 'domain' } },
+    domains: {
+      test: {
+        description: 'Test domain',
+        systemType: 'domain',
+      },
+    },
   },
   components: [],
   links: [],

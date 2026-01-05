@@ -1,12 +1,25 @@
-import { describe, expect, test, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import {
+  describe, expect, test, vi 
+} from 'vitest'
+import {
+  render, screen 
+} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { DomainFilters } from './DomainFilters'
 
 const mockDomains = [
-  { name: 'orders', nodeCount: 5 },
-  { name: 'inventory', nodeCount: 3 },
-  { name: 'shipping', nodeCount: 4 },
+  {
+    name: 'orders',
+    nodeCount: 5,
+  },
+  {
+    name: 'inventory',
+    nodeCount: 3,
+  },
+  {
+    name: 'shipping',
+    nodeCount: 4,
+  },
 ]
 
 describe('DomainFilters', () => {
@@ -18,7 +31,7 @@ describe('DomainFilters', () => {
         onToggleDomain={vi.fn()}
         onShowAll={vi.fn()}
         onHideAll={vi.fn()}
-      />
+      />,
     )
     expect(screen.getByTestId('domain-filters')).toBeInTheDocument()
   })
@@ -31,7 +44,7 @@ describe('DomainFilters', () => {
         onToggleDomain={vi.fn()}
         onShowAll={vi.fn()}
         onHideAll={vi.fn()}
-      />
+      />,
     )
     expect(screen.getByText('orders')).toBeInTheDocument()
     expect(screen.getByText('inventory')).toBeInTheDocument()
@@ -46,7 +59,7 @@ describe('DomainFilters', () => {
         onToggleDomain={vi.fn()}
         onShowAll={vi.fn()}
         onHideAll={vi.fn()}
-      />
+      />,
     )
     expect(screen.getByText('5')).toBeInTheDocument()
     expect(screen.getByText('3')).toBeInTheDocument()
@@ -61,7 +74,7 @@ describe('DomainFilters', () => {
         onToggleDomain={vi.fn()}
         onShowAll={vi.fn()}
         onHideAll={vi.fn()}
-      />
+      />,
     )
 
     expect(screen.getByTestId('domain-checkbox-orders')).toBeChecked()
@@ -80,7 +93,7 @@ describe('DomainFilters', () => {
         onToggleDomain={onToggleDomain}
         onShowAll={vi.fn()}
         onHideAll={vi.fn()}
-      />
+      />,
     )
 
     await user.click(screen.getByTestId('domain-checkbox-orders'))
@@ -98,7 +111,7 @@ describe('DomainFilters', () => {
         onToggleDomain={vi.fn()}
         onShowAll={onShowAll}
         onHideAll={vi.fn()}
-      />
+      />,
     )
 
     await user.click(screen.getByTestId('domain-filters-show-all'))
@@ -116,7 +129,7 @@ describe('DomainFilters', () => {
         onToggleDomain={vi.fn()}
         onShowAll={vi.fn()}
         onHideAll={onHideAll}
-      />
+      />,
     )
 
     await user.click(screen.getByTestId('domain-filters-hide-all'))
@@ -133,7 +146,7 @@ describe('DomainFilters', () => {
         onToggleDomain={vi.fn()}
         onShowAll={vi.fn()}
         onHideAll={vi.fn()}
-      />
+      />,
     )
 
     expect(screen.getByText('orders')).toBeVisible()
@@ -153,7 +166,7 @@ describe('DomainFilters', () => {
         onToggleDomain={vi.fn()}
         onShowAll={vi.fn()}
         onHideAll={vi.fn()}
-      />
+      />,
     )
 
     expect(screen.getByTestId('domain-filters-show-all')).toBeDisabled()
@@ -167,7 +180,7 @@ describe('DomainFilters', () => {
         onToggleDomain={vi.fn()}
         onShowAll={vi.fn()}
         onHideAll={vi.fn()}
-      />
+      />,
     )
 
     expect(screen.getByTestId('domain-filters-hide-all')).toBeDisabled()

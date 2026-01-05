@@ -1,6 +1,10 @@
-import { describe, it, expect } from 'vitest'
+import {
+  describe, it, expect 
+} from 'vitest'
 import { RiviereBuilder } from './builder'
-import { createValidOptions, createSourceLocation } from './builder-test-fixtures'
+import {
+  createValidOptions, createSourceLocation 
+} from './builder-test-fixtures'
 
 describe('RiviereBuilder', () => {
   describe('stats', () => {
@@ -76,7 +80,10 @@ describe('RiviereBuilder', () => {
         sourceLocation: createSourceLocation(),
       })
 
-      builder.link({ from: source.id, to: target.id })
+      builder.link({
+        from: source.id,
+        to: target.id,
+      })
 
       const stats = builder.stats()
 
@@ -136,7 +143,10 @@ describe('RiviereBuilder', () => {
         sourceLocation: createSourceLocation(),
       })
 
-      builder.link({ from: source.id, to: target.id })
+      builder.link({
+        from: source.id,
+        to: target.id,
+      })
 
       const warnings = builder.warnings()
 
@@ -159,7 +169,10 @@ describe('RiviereBuilder', () => {
         module: 'core',
         sourceLocation: createSourceLocation(),
       })
-      builder.linkExternal({ from: linked.id, target: { name: 'External' } })
+      builder.linkExternal({
+        from: linked.id,
+        target: { name: 'External' },
+      })
 
       const warnings = builder.warnings()
 
@@ -262,7 +275,10 @@ describe('RiviereBuilder', () => {
         sourceLocation: createSourceLocation(),
       })
 
-      builder.link({ from: source.id, to: target.id })
+      builder.link({
+        from: source.id,
+        to: target.id,
+      })
 
       const warnings = builder.warnings()
 
@@ -287,7 +303,10 @@ describe('RiviereBuilder', () => {
         operationName: 'saveOrder',
         sourceLocation: createSourceLocation(),
       })
-      builder.link({ from: source.id, to: target.id })
+      builder.link({
+        from: source.id,
+        to: target.id,
+      })
       expect(builder.orphans()).toEqual([])
     })
 
@@ -310,7 +329,10 @@ describe('RiviereBuilder', () => {
         module: 'core',
         sourceLocation: createSourceLocation(),
       })
-      builder.link({ from: source.id, to: 'nonexistent:target:id' })
+      builder.link({
+        from: source.id,
+        to: 'nonexistent:target:id',
+      })
       expect(builder.orphans()).toEqual([])
     })
 
@@ -329,7 +351,10 @@ describe('RiviereBuilder', () => {
         module: 'core',
         sourceLocation: createSourceLocation(),
       })
-      builder.link({ from: source.id, to: target.id })
+      builder.link({
+        from: source.id,
+        to: target.id,
+      })
       expect(builder.orphans()).toEqual([])
     })
 
@@ -341,7 +366,10 @@ describe('RiviereBuilder', () => {
         module: 'core',
         sourceLocation: createSourceLocation(),
       })
-      builder.linkExternal({ from: source.id, target: { name: 'Stripe API' } })
+      builder.linkExternal({
+        from: source.id,
+        target: { name: 'Stripe API' },
+      })
       expect(builder.orphans()).toEqual([])
     })
 

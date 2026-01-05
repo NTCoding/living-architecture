@@ -1,7 +1,13 @@
-import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import {
+  describe, it, expect, vi 
+} from 'vitest'
+import {
+  render, screen 
+} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { FilterTabs, DomainFilter, TypeFilter } from './ChangeFilters'
+import {
+  FilterTabs, DomainFilter, TypeFilter 
+} from './ChangeFilters'
 
 describe('FilterTabs', () => {
   it('renders all filter options', () => {
@@ -55,7 +61,9 @@ describe('DomainFilter', () => {
   it('calls onDomainChange with null when active domain is clicked again', async () => {
     const user = userEvent.setup()
     const onDomainChange = vi.fn()
-    render(<DomainFilter domains={domains} activeDomain="shipping" onDomainChange={onDomainChange} />)
+    render(
+      <DomainFilter domains={domains} activeDomain="shipping" onDomainChange={onDomainChange} />,
+    )
 
     await user.click(screen.getByRole('button', { name: 'shipping' }))
 

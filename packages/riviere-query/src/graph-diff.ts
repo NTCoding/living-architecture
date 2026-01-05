@@ -1,6 +1,12 @@
-import type { RiviereGraph, Component, Link } from '@living-architecture/riviere-schema'
-import type { ComponentModification, GraphDiff, LinkId } from './domain-types'
-import { parseComponentId, parseLinkId } from './domain-types'
+import type {
+  RiviereGraph, Component, Link 
+} from '@living-architecture/riviere-schema'
+import type {
+  ComponentModification, GraphDiff, LinkId 
+} from './domain-types'
+import {
+  parseComponentId, parseLinkId 
+} from './domain-types'
 
 export function diffGraphs(current: RiviereGraph, other: RiviereGraph): GraphDiff {
   const thisIds = new Set(current.components.map((c) => c.id))
@@ -16,7 +22,12 @@ export function diffGraphs(current: RiviereGraph, other: RiviereGraph): GraphDif
     if (oc === undefined) continue
     const changedFields = findChangedFields(tc, oc)
     if (changedFields.length > 0) {
-      modified.push({ id: parseComponentId(tc.id), before: tc, after: oc, changedFields })
+      modified.push({
+        id: parseComponentId(tc.id),
+        before: tc,
+        after: oc,
+        changedFields,
+      })
     }
   }
 
@@ -26,8 +37,15 @@ export function diffGraphs(current: RiviereGraph, other: RiviereGraph): GraphDif
   const linksRemoved = current.links.filter((l) => !otherLinkKeys.has(createLinkKey(l)))
 
   return {
-    components: { added, removed, modified },
-    links: { added: linksAdded, removed: linksRemoved },
+    components: {
+      added,
+      removed,
+      modified,
+    },
+    links: {
+      added: linksAdded,
+      removed: linksRemoved,
+    },
     stats: {
       componentsAdded: added.length,
       componentsRemoved: removed.length,

@@ -1,5 +1,9 @@
-import { describe, it, expect } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import {
+  describe, it, expect 
+} from 'vitest'
+import {
+  render, screen 
+} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { DomainConnectionDiff } from './DomainConnectionDiff'
 import type { DomainConnectionDiffResult } from './computeDomainConnectionDiff'
@@ -27,7 +31,14 @@ function createMinimalDiff(input: MinimalDiffInput): DomainConnectionDiffResult 
 describe('DomainConnectionDiff', () => {
   describe('rendering', () => {
     it('renders ReactFlow container', () => {
-      const diff = createMinimalDiff({ domains: ['orders', 'payments'], connections: { added: [], removed: [], unchanged: [] } })
+      const diff = createMinimalDiff({
+        domains: ['orders', 'payments'],
+        connections: {
+          added: [],
+          removed: [],
+          unchanged: [],
+        },
+      })
 
       render(<DomainConnectionDiff diff={diff} />)
 
@@ -35,7 +46,14 @@ describe('DomainConnectionDiff', () => {
     })
 
     it('displays legend with change types', () => {
-      const diff = createMinimalDiff({ domains: ['orders'], connections: { added: [], removed: [], unchanged: [] } })
+      const diff = createMinimalDiff({
+        domains: ['orders'],
+        connections: {
+          added: [],
+          removed: [],
+          unchanged: [],
+        },
+      })
 
       render(<DomainConnectionDiff diff={diff} />)
 
@@ -50,7 +68,21 @@ describe('DomainConnectionDiff', () => {
       const diff = createMinimalDiff({
         domains: ['orders', 'payments'],
         connections: {
-          added: [{ source: 'orders', target: 'payments', apiCount: 1, eventCount: 0, edges: [{ sourceNodeName: 'POST /orders', targetNodeName: 'Process Payment', type: 'sync' }] }],
+          added: [
+            {
+              source: 'orders',
+              target: 'payments',
+              apiCount: 1,
+              eventCount: 0,
+              edges: [
+                {
+                  sourceNodeName: 'POST /orders',
+                  targetNodeName: 'Process Payment',
+                  type: 'sync',
+                },
+              ],
+            },
+          ],
           removed: [],
           unchanged: [],
         },
@@ -66,7 +98,21 @@ describe('DomainConnectionDiff', () => {
         domains: ['orders', 'shipping'],
         connections: {
           added: [],
-          removed: [{ source: 'orders', target: 'shipping', apiCount: 2, eventCount: 1, edges: [{ sourceNodeName: 'Ship Order', targetNodeName: 'Create Shipment', type: 'sync' }] }],
+          removed: [
+            {
+              source: 'orders',
+              target: 'shipping',
+              apiCount: 2,
+              eventCount: 1,
+              edges: [
+                {
+                  sourceNodeName: 'Ship Order',
+                  targetNodeName: 'Create Shipment',
+                  type: 'sync',
+                },
+              ],
+            },
+          ],
           unchanged: [],
         },
       })
@@ -82,7 +128,21 @@ describe('DomainConnectionDiff', () => {
         connections: {
           added: [],
           removed: [],
-          unchanged: [{ source: 'inventory', target: 'warehouse', apiCount: 1, eventCount: 2, edges: [{ sourceNodeName: 'Check Stock', targetNodeName: 'Get Inventory', type: 'sync' }] }],
+          unchanged: [
+            {
+              source: 'inventory',
+              target: 'warehouse',
+              apiCount: 1,
+              eventCount: 2,
+              edges: [
+                {
+                  sourceNodeName: 'Check Stock',
+                  targetNodeName: 'Get Inventory',
+                  type: 'sync',
+                },
+              ],
+            },
+          ],
         },
       })
 
@@ -95,9 +155,51 @@ describe('DomainConnectionDiff', () => {
       const diff = createMinimalDiff({
         domains: ['orders', 'payments', 'shipping', 'inventory'],
         connections: {
-          added: [{ source: 'orders', target: 'payments', apiCount: 1, eventCount: 0, edges: [{ sourceNodeName: 'POST /orders', targetNodeName: 'Process Payment', type: 'sync' }] }],
-          removed: [{ source: 'orders', target: 'shipping', apiCount: 1, eventCount: 0, edges: [{ sourceNodeName: 'Ship Order', targetNodeName: 'Create Shipment', type: 'sync' }] }],
-          unchanged: [{ source: 'inventory', target: 'shipping', apiCount: 0, eventCount: 1, edges: [{ sourceNodeName: 'InventoryUpdated', targetNodeName: 'Handle Inventory', type: 'async' }] }],
+          added: [
+            {
+              source: 'orders',
+              target: 'payments',
+              apiCount: 1,
+              eventCount: 0,
+              edges: [
+                {
+                  sourceNodeName: 'POST /orders',
+                  targetNodeName: 'Process Payment',
+                  type: 'sync',
+                },
+              ],
+            },
+          ],
+          removed: [
+            {
+              source: 'orders',
+              target: 'shipping',
+              apiCount: 1,
+              eventCount: 0,
+              edges: [
+                {
+                  sourceNodeName: 'Ship Order',
+                  targetNodeName: 'Create Shipment',
+                  type: 'sync',
+                },
+              ],
+            },
+          ],
+          unchanged: [
+            {
+              source: 'inventory',
+              target: 'shipping',
+              apiCount: 0,
+              eventCount: 1,
+              edges: [
+                {
+                  sourceNodeName: 'InventoryUpdated',
+                  targetNodeName: 'Handle Inventory',
+                  type: 'async',
+                },
+              ],
+            },
+          ],
         },
       })
 
@@ -110,7 +212,21 @@ describe('DomainConnectionDiff', () => {
       const diff = createMinimalDiff({
         domains: ['order-management-system', 'payment-processing'],
         connections: {
-          added: [{ source: 'order-management-system', target: 'payment-processing', apiCount: 1, eventCount: 0, edges: [{ sourceNodeName: 'POST /orders', targetNodeName: 'Process', type: 'sync' }] }],
+          added: [
+            {
+              source: 'order-management-system',
+              target: 'payment-processing',
+              apiCount: 1,
+              eventCount: 0,
+              edges: [
+                {
+                  sourceNodeName: 'POST /orders',
+                  targetNodeName: 'Process',
+                  type: 'sync',
+                },
+              ],
+            },
+          ],
           removed: [],
           unchanged: [],
         },
@@ -125,7 +241,21 @@ describe('DomainConnectionDiff', () => {
       const diff = createMinimalDiff({
         domains: ['orders', 'payments', 'shipping'],
         connections: {
-          added: [{ source: 'orders', target: 'payments', apiCount: 1, eventCount: 0, edges: [{ sourceNodeName: 'POST /orders', targetNodeName: 'Process Payment', type: 'sync' }] }],
+          added: [
+            {
+              source: 'orders',
+              target: 'payments',
+              apiCount: 1,
+              eventCount: 0,
+              edges: [
+                {
+                  sourceNodeName: 'POST /orders',
+                  targetNodeName: 'Process Payment',
+                  type: 'sync',
+                },
+              ],
+            },
+          ],
           removed: [],
           unchanged: [],
         },
@@ -139,7 +269,14 @@ describe('DomainConnectionDiff', () => {
 
   describe('legend styling', () => {
     it('applies custom className when provided', () => {
-      const diff = createMinimalDiff({ domains: ['orders'], connections: { added: [], removed: [], unchanged: [] } })
+      const diff = createMinimalDiff({
+        domains: ['orders'],
+        connections: {
+          added: [],
+          removed: [],
+          unchanged: [],
+        },
+      })
 
       const { container } = render(<DomainConnectionDiff diff={diff} />)
 
@@ -153,16 +290,26 @@ describe('DomainConnectionDiff', () => {
       const diff = createMinimalDiff({
         domains: ['orders', 'payments'],
         connections: {
-          added: [{
-            source: 'orders',
-            target: 'payments',
-            apiCount: 1,
-            eventCount: 1,
-            edges: [
-              { sourceNodeName: 'POST /orders', targetNodeName: 'Process Payment', type: 'sync' },
-              { sourceNodeName: 'OrderPlaced', targetNodeName: 'HandleOrder', type: 'async' },
-            ],
-          }],
+          added: [
+            {
+              source: 'orders',
+              target: 'payments',
+              apiCount: 1,
+              eventCount: 1,
+              edges: [
+                {
+                  sourceNodeName: 'POST /orders',
+                  targetNodeName: 'Process Payment',
+                  type: 'sync',
+                },
+                {
+                  sourceNodeName: 'OrderPlaced',
+                  targetNodeName: 'HandleOrder',
+                  type: 'async',
+                },
+              ],
+            },
+          ],
           removed: [],
           unchanged: [],
         },
@@ -184,13 +331,15 @@ describe('DomainConnectionDiff', () => {
       const diff = createMinimalDiff({
         domains: ['orders', 'payments'],
         connections: {
-          added: [{
-            source: 'orders',
-            target: 'payments',
-            apiCount: 7,
-            eventCount: 0,
-            edges: manyEdges,
-          }],
+          added: [
+            {
+              source: 'orders',
+              target: 'payments',
+              apiCount: 7,
+              eventCount: 0,
+              edges: manyEdges,
+            },
+          ],
           removed: [],
           unchanged: [],
         },
@@ -205,13 +354,15 @@ describe('DomainConnectionDiff', () => {
       const diff = createMinimalDiff({
         domains: ['orders', 'payments'],
         connections: {
-          added: [{
-            source: 'orders',
-            target: 'payments',
-            apiCount: 0,
-            eventCount: 0,
-            edges: [],
-          }],
+          added: [
+            {
+              source: 'orders',
+              target: 'payments',
+              apiCount: 0,
+              eventCount: 0,
+              edges: [],
+            },
+          ],
           removed: [],
           unchanged: [],
         },
@@ -228,13 +379,21 @@ describe('DomainConnectionDiff', () => {
       const diff = createMinimalDiff({
         domains: ['orders', 'payments'],
         connections: {
-          added: [{
-            source: 'orders',
-            target: 'payments',
-            apiCount: 1,
-            eventCount: 0,
-            edges: [{ sourceNodeName: 'POST /orders', targetNodeName: 'Process Payment', type: 'sync' }],
-          }],
+          added: [
+            {
+              source: 'orders',
+              target: 'payments',
+              apiCount: 1,
+              eventCount: 0,
+              edges: [
+                {
+                  sourceNodeName: 'POST /orders',
+                  targetNodeName: 'Process Payment',
+                  type: 'sync',
+                },
+              ],
+            },
+          ],
           removed: [],
           unchanged: [],
         },
@@ -250,13 +409,21 @@ describe('DomainConnectionDiff', () => {
       const diff = createMinimalDiff({
         domains: ['orders', 'payments'],
         connections: {
-          added: [{
-            source: 'orders',
-            target: 'payments',
-            apiCount: 1,
-            eventCount: 0,
-            edges: [{ sourceNodeName: 'POST /orders', targetNodeName: 'Process Payment', type: 'sync' }],
-          }],
+          added: [
+            {
+              source: 'orders',
+              target: 'payments',
+              apiCount: 1,
+              eventCount: 0,
+              edges: [
+                {
+                  sourceNodeName: 'POST /orders',
+                  targetNodeName: 'Process Payment',
+                  type: 'sync',
+                },
+              ],
+            },
+          ],
           removed: [],
           unchanged: [],
         },
@@ -274,13 +441,21 @@ describe('DomainConnectionDiff', () => {
       const diff = createMinimalDiff({
         domains: ['orders', 'payments'],
         connections: {
-          added: [{
-            source: 'orders',
-            target: 'payments',
-            apiCount: 1,
-            eventCount: 0,
-            edges: [{ sourceNodeName: 'POST /orders', targetNodeName: 'Process Payment', type: 'sync' }],
-          }],
+          added: [
+            {
+              source: 'orders',
+              target: 'payments',
+              apiCount: 1,
+              eventCount: 0,
+              edges: [
+                {
+                  sourceNodeName: 'POST /orders',
+                  targetNodeName: 'Process Payment',
+                  type: 'sync',
+                },
+              ],
+            },
+          ],
           removed: [],
           unchanged: [],
         },

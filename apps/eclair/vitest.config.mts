@@ -6,11 +6,7 @@ export default defineConfig(() => ({
   root: __dirname,
   cacheDir: '../../node_modules/.vite/apps/eclair',
   plugins: [react()],
-  resolve: {
-    alias: {
-      '@': resolve(__dirname, './src'),
-    },
-  },
+  resolve: {alias: {'@': resolve(__dirname, './src'),},},
   test: {
     name: '@living-architecture/eclair',
     watch: false,
@@ -25,13 +21,23 @@ export default defineConfig(() => ({
       provider: 'v8' as const,
       reporter: ['text', 'lcov'],
       exclude: [
-        '**/riviereTestData.ts',
+        '**/riviereTestFixtures.ts',
         '**/ForceGraph/ForceGraph.tsx',
         '**/ForceGraph/GraphRenderingSetup.ts',
       ],
       thresholds: {
-        '**/*.ts': { lines: 94, statements: 94, functions: 100, branches: 74 },
-        '**/*.tsx': { lines: 80, statements: 80, functions: 80, branches: 75 },
+        '**/*.ts': {
+          lines: 94,
+          statements: 94,
+          functions: 100,
+          branches: 74 
+        },
+        '**/*.tsx': {
+          lines: 80,
+          statements: 80,
+          functions: 80,
+          branches: 75 
+        },
       },
     },
   },

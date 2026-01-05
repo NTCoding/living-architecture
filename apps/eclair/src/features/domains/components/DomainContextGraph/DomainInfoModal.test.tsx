@@ -1,12 +1,21 @@
-import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import {
+  describe, it, expect, vi 
+} from 'vitest'
+import {
+  render, screen 
+} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { DomainInfoModal } from './DomainInfoModal'
 import type { AggregatedConnection } from '../../extractDomainDetails'
 
 describe('DomainInfoModal', () => {
   const mockConnections: AggregatedConnection[] = [
-    { targetDomain: 'inventory', direction: 'outgoing', apiCount: 1, eventCount: 0 },
+    {
+      targetDomain: 'inventory',
+      direction: 'outgoing',
+      apiCount: 1,
+      eventCount: 0,
+    },
   ]
 
   it('renders domain name and label', () => {
@@ -18,7 +27,7 @@ describe('DomainInfoModal', () => {
         isCurrent={true}
         currentDomainId="orders"
         onClose={onClose}
-      />
+      />,
     )
 
     expect(screen.getByText('orders')).toBeInTheDocument()
@@ -34,7 +43,7 @@ describe('DomainInfoModal', () => {
         isCurrent={false}
         currentDomainId="orders"
         onClose={onClose}
-      />
+      />,
     )
 
     expect(screen.getByText('Connected domain')).toBeInTheDocument()
@@ -51,7 +60,7 @@ describe('DomainInfoModal', () => {
         isCurrent={true}
         currentDomainId="orders"
         onClose={onClose}
-      />
+      />,
     )
 
     const closeButton = screen.getByLabelText('Close')
@@ -68,7 +77,7 @@ describe('DomainInfoModal', () => {
         isCurrent={false}
         currentDomainId="orders"
         onClose={onClose}
-      />
+      />,
     )
 
     const link = screen.getByText('View Domain Details')
@@ -85,7 +94,7 @@ describe('DomainInfoModal', () => {
         isCurrent={false}
         currentDomainId="orders"
         onClose={onClose}
-      />
+      />,
     )
 
     expect(screen.getByText('Connections')).toBeInTheDocument()

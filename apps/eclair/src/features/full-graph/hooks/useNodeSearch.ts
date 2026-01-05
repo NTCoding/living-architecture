@@ -1,4 +1,6 @@
-import type { Node, Edge } from '@/types/riviere'
+import type {
+  Node, Edge 
+} from '@/types/riviere'
 import { traceFlow } from './useFlowTracing'
 
 export interface SearchResult {
@@ -15,11 +17,7 @@ function nodeMatchesQuery(node: Node, query: string): boolean {
   )
 }
 
-export function filterNodesBySearch(
-  query: string,
-  nodes: Node[],
-  edges: Edge[]
-): SearchResult {
+export function filterNodesBySearch(query: string, nodes: Node[], edges: Edge[]): SearchResult {
   const trimmedQuery = query.trim()
 
   if (trimmedQuery === '') {
@@ -52,5 +50,8 @@ export function filterNodesBySearch(
     }
   }
 
-  return { matchingNodeIds, visibleNodeIds }
+  return {
+    matchingNodeIds,
+    visibleNodeIds,
+  }
 }

@@ -5,5 +5,5 @@
  * Generates markdown documentation from Commander.js command definitions.
  * Run with: pnpm exec tsx scripts/generate-docs.ts
  */
-export {};
+export {}
 //# sourceMappingURL=generate-docs.d.ts.map

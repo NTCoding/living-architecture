@@ -1,4 +1,6 @@
-import { useState, useCallback, useEffect, useRef } from 'react'
+import {
+  useState, useCallback, useEffect, useRef 
+} from 'react'
 
 interface GraphSearchProps {
   readonly onSearch: (query: string) => void
@@ -18,7 +20,7 @@ export function GraphSearch({
       setQuery(value)
       onSearch(value)
     },
-    [onSearch]
+    [onSearch],
   )
 
   const handleClear = useCallback(() => {
@@ -33,7 +35,7 @@ export function GraphSearch({
         handleClear()
       }
     },
-    [handleClear]
+    [handleClear],
   )
 
   useEffect(() => {

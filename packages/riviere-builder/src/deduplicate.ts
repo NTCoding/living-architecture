@@ -7,12 +7,10 @@ export function deduplicateStrings(existing: string[], incoming: string[]): stri
 
 export function deduplicateStateTransitions(
   existing: StateTransition[],
-  incoming: StateTransition[]
+  incoming: StateTransition[],
 ): StateTransition[] {
   return incoming.filter(
     (item) =>
-      !existing.some(
-        (e) => e.from === item.from && e.to === item.to && e.trigger === item.trigger
-      )
+      !existing.some((e) => e.from === item.from && e.to === item.to && e.trigger === item.trigger),
   )
 }

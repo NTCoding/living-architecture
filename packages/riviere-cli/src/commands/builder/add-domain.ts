@@ -1,18 +1,22 @@
-import { Command } from 'commander';
-import { writeFile } from 'node:fs/promises';
-import { DuplicateDomainError } from '@living-architecture/riviere-builder';
-import { formatError, formatSuccess } from '../../output';
-import { CliErrorCode } from '../../error-codes';
-import { getDefaultGraphPathDescription } from '../../graph-path';
-import { isValidSystemType, VALID_SYSTEM_TYPES } from '../../component-types';
-import { withGraphBuilder } from './link-infrastructure';
+import { Command } from 'commander'
+import { writeFile } from 'node:fs/promises'
+import { DuplicateDomainError } from '@living-architecture/riviere-builder'
+import {
+  formatError, formatSuccess 
+} from '../../output'
+import { CliErrorCode } from '../../error-codes'
+import { getDefaultGraphPathDescription } from '../../graph-path'
+import {
+  isValidSystemType, VALID_SYSTEM_TYPES 
+} from '../../component-types'
+import { withGraphBuilder } from './link-infrastructure'
 
 interface AddDomainOptions {
-  name: string;
-  description: string;
-  systemType: string;
-  graph?: string;
-  json?: boolean;
+  name: string
+  description: string
+  systemType: string
+  graph?: string
+  json?: boolean
 }
 
 export function createAddDomainCommand(): Command {
@@ -27,7 +31,7 @@ Examples:
 
   $ riviere builder add-domain --name checkout-bff --system-type bff \\
       --description "Checkout backend-for-frontend"
-`
+`,
     )
     .requiredOption('--name <name>', 'Domain name')
     .requiredOption('--description <description>', 'Domain description')
@@ -41,13 +45,13 @@ Examples:
             formatError(
               CliErrorCode.ValidationError,
               `Invalid system type: ${options.systemType}`,
-              [`Valid types: ${VALID_SYSTEM_TYPES.join(', ')}`]
-            )
-          )
-        );
-        return;
+              [`Valid types: ${VALID_SYSTEM_TYPES.join(', ')}`],
+            ),
+          ),
+        )
+        return
       }
-      const systemType = options.systemType;
+      const systemType = options.systemType
 
       await withGraphBuilder(options.graph, async (builder, graphPath) => {
         try {
@@ -55,20 +59,22 @@ Examples:
             name: options.name,
             description: options.description,
             systemType,
-          });
+          })
         } catch (error) {
           if (error instanceof DuplicateDomainError) {
             console.log(
               JSON.stringify(
-                formatError(CliErrorCode.DuplicateDomain, error.message, ['Use a different domain name'])
-              )
-            );
-            return;
+                formatError(CliErrorCode.DuplicateDomain, error.message, [
+                  'Use a different domain name',
+                ]),
+              ),
+            )
+            return
           }
-          throw error;
+          throw error
         }
 
-        await writeFile(graphPath, builder.serialize(), 'utf-8');
+        await writeFile(graphPath, builder.serialize(), 'utf-8')
 
         if (options.json === true) {
           console.log(
@@ -77,10 +83,10 @@ Examples:
                 name: options.name,
                 description: options.description,
                 systemType: options.systemType,
-              })
-            )
-          );
+              }),
+            ),
+          )
         }
-      });
-    });
+      })
+    })
 }
