@@ -4,9 +4,13 @@
 language: en-US
 
 reviews:
+  profile: assertive
   request_changes_workflow: true
   auto_review:
     enabled: true
+  pre_merge_checks:
+    docstrings:
+      mode: "off"
 
 knowledge_base:
   code_guidelines:
