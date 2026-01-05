@@ -237,8 +237,8 @@ function EdgeTooltip({ data }: Readonly<EdgeTooltipProps>): React.ReactElement {
         <div className="space-y-1">
           <div className="text-xs font-semibold uppercase text-[var(--text-tertiary)]">Edges</div>
           <ul className="space-y-0.5 text-xs text-[var(--text-secondary)]">
-            {data.edges.slice(0, 5).map((edge, index) => (
-              <li key={index} className="flex items-center gap-1">
+            {data.edges.slice(0, 5).map((edge) => (
+              <li key={`${edge.sourceNodeName}-${edge.targetNodeName}-${edge.type}`} className="flex items-center gap-1">
                 <span className="text-[var(--text-tertiary)]">
                   {edge.type === 'async' ? '⚡' : '→'}
                 </span>
@@ -273,11 +273,10 @@ function FullscreenModal({
   tooltip,
 }: Readonly<FullscreenModalProps>): React.ReactElement {
   return (
-    <div
-      role="dialog"
+    <dialog
+      open
       aria-label="Domain Connection Changes"
-      aria-modal="true"
-      className="fixed inset-0 z-50 flex flex-col bg-[var(--bg-primary)]"
+      className="fixed inset-0 z-50 m-0 flex h-full w-full max-w-none flex-col border-0 bg-[var(--bg-primary)] p-0"
     >
       <div className="flex items-center justify-between border-b border-[var(--border-color)] px-4 py-3">
         <h2 className="text-lg font-bold text-[var(--text-primary)]">Domain Connection Changes</h2>
@@ -306,7 +305,7 @@ function FullscreenModal({
         <Legend className="absolute left-4 top-4 z-10" />
         {tooltip !== null && <EdgeTooltip data={tooltip} />}
       </div>
-    </div>
+    </dialog>
   )
 }
 

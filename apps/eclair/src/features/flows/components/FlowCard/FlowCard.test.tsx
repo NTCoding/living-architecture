@@ -373,18 +373,11 @@ describe('FlowCard', () => {
       expect(onToggle).toHaveBeenCalledTimes(1)
     })
 
-    it('header is keyboard accessible with tabIndex', () => {
+    it('header uses semantic button element for native keyboard accessibility', () => {
       renderWithRouter()
 
       const header = screen.getByTestId('flow-card-header')
-      expect(header).toHaveAttribute('tabIndex', '0')
-    })
-
-    it('header has button role', () => {
-      renderWithRouter()
-
-      const header = screen.getByTestId('flow-card-header')
-      expect(header).toHaveAttribute('role', 'button')
+      expect(header.tagName).toBe('BUTTON')
     })
 
     it('toggles expanded state multiple times', async () => {

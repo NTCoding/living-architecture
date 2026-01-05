@@ -23,16 +23,17 @@ export function DomainInfoModal({
 
   return (
     <>
-      <div
-        className="fixed inset-0 z-40 bg-black/20"
+      <button
+        type="button"
+        className="fixed inset-0 z-40 cursor-default border-0 bg-black/20"
         onClick={handleBackdropClick}
-        aria-hidden="true"
+        aria-label="Close modal"
       />
-      <div
+      <dialog
+        open
         data-testid={`tooltip-${nodeId}`}
-        role="dialog"
         aria-labelledby={`modal-title-${nodeId}`}
-        className="absolute left-1/2 top-1/2 z-50 w-80 -translate-x-1/2 -translate-y-1/2 rounded-lg border border-[var(--border-color)] bg-[var(--bg-secondary)] shadow-xl"
+        className="absolute left-1/2 top-1/2 z-50 m-0 w-80 -translate-x-1/2 -translate-y-1/2 rounded-lg border border-[var(--border-color)] bg-[var(--bg-secondary)] p-0 shadow-xl"
       >
         <ModalHeader nodeId={nodeId} isCurrent={isCurrent} onClose={onClose} />
         <ModalContent
@@ -41,7 +42,7 @@ export function DomainInfoModal({
           currentDomainId={currentDomainId}
         />
         {!isCurrent && <ModalFooter nodeId={nodeId} />}
-      </div>
+      </dialog>
     </>
   )
 }

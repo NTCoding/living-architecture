@@ -123,24 +123,17 @@ export function SchemaModal({
   const generatedDate = formatGeneratedDate(graph.metadata.generated)
 
   return (
-    <div
-      role="dialog"
+    <dialog
+      open
       aria-labelledby={titleId}
-      aria-modal="true"
-      className="fixed inset-0 z-[10000] flex items-center justify-center p-10"
+      className="fixed inset-0 z-[10000] m-0 flex h-full w-full max-w-none items-center justify-center border-0 bg-transparent p-10"
     >
-      <div
+      <button
+        type="button"
         data-testid="modal-backdrop"
         onClick={onClose}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            onClose()
-          }
-        }}
-        role="button"
-        tabIndex={-1}
         aria-label="Close modal"
-        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+        className="absolute inset-0 cursor-default border-0 bg-black/70 backdrop-blur-sm"
       />
       <div
         onClick={(e) => e.stopPropagation()}
@@ -234,6 +227,6 @@ export function SchemaModal({
           </div>
         </div>
       </div>
-    </div>
+    </dialog>
   )
 }

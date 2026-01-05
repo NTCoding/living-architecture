@@ -28,17 +28,10 @@ export function FlowCard({
 
   return (
     <div data-testid="flow-card" className="flow-item">
-      <div
+      <button
+        type="button"
         data-testid="flow-card-header"
         onClick={onToggle}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault()
-            onToggle()
-          }
-        }}
-        role="button"
-        tabIndex={0}
         className="flow-item-header"
       >
         <div data-testid="flow-item-left" className="flow-item-left">
@@ -71,7 +64,7 @@ export function FlowCard({
             aria-hidden="true"
           />
         </div>
-      </div>
+      </button>
       {expanded && <FlowTrace steps={flow.steps} graph={graph} />}
     </div>
   )

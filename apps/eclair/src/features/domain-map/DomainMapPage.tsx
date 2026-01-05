@@ -326,11 +326,11 @@ export function DomainMapPage({ graph }: DomainMapPageProps): React.ReactElement
           <div className="inspector-section">
             <div className="inspector-section-title">Connections</div>
             <div className="inspector-connection-list">
-              {inspector.connections.map((conn, index) => {
+              {inspector.connections.map((conn) => {
                 const isEvent = conn.targetNodeType === 'EventHandler'
                 return (
                   <div
-                    key={`${conn.sourceName}-${conn.targetName}-${index}`}
+                    key={`${conn.sourceName}-${conn.targetName}-${conn.type}-${conn.targetNodeType}`}
                     className="inspector-connection-item"
                   >
                     <div className="flex items-center gap-2">

@@ -37,23 +37,16 @@ export function DomainDetailModal({
   const hasEvents = domain.events.published.length > 0 || domain.events.consumed.length > 0
 
   return (
-    <div
+    <dialog
+      open
       className="domain-detail-modal active"
-      role="dialog"
       aria-labelledby={titleId}
-      aria-modal="true"
     >
-      <div
+      <button
+        type="button"
         data-testid="modal-backdrop"
         className="domain-detail-backdrop"
         onClick={onClose}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            onClose()
-          }
-        }}
-        role="button"
-        tabIndex={-1}
         aria-label="Close modal"
       />
       <div className="domain-detail-panel">
@@ -88,14 +81,13 @@ export function DomainDetailModal({
                       <span className="domain-node-name">{node.name}</span>
                     </div>
                     {node.location !== undefined && (
-                      <a
-                        href="#"
+                      <span
                         className="code-link code-link-responsive"
                         style={{ fontSize: '11px' }}
                       >
                         <i className="ph ph-code" aria-hidden="true" />
                         <span className="code-link-text">{node.location}</span>
-                      </a>
+                      </span>
                     )}
                   </div>
                 ))}
@@ -229,6 +221,6 @@ export function DomainDetailModal({
           </div>
         </div>
       </div>
-    </div>
+    </dialog>
   )
 }

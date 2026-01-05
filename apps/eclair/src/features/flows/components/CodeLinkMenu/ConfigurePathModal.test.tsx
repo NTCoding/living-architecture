@@ -15,16 +15,16 @@ describe('ConfigurePathModal', () => {
           <ConfigurePathModal
             mode="vscode"
             isOpen={true}
-            onClose={() => {}}
-            onSave={() => {}}
+            onClose={vi.fn()}
+            onSave={vi.fn()}
             currentValue={null}
           />
         </div>,
       )
 
-      const modalBackdrop = baseElement.querySelector('[role="presentation"]')
-      expect(modalBackdrop).not.toBeNull()
-      expect(modalBackdrop?.parentElement).toBe(document.body)
+      const dialog = baseElement.querySelector('dialog')
+      expect(dialog).not.toBeNull()
+      expect(dialog?.closest('body > div')).not.toBeNull()
     })
   })
   describe('vscode mode', () => {

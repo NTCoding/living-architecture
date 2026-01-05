@@ -81,12 +81,11 @@ export function UploadZone({
         }
         const borderColor = getBorderColor()
         return (
-          <div
-            role="button"
-            tabIndex={0}
+          <button
+            type="button"
             onClick={handleClick}
             onKeyDown={handleKeyDown}
-            className={`flex min-h-[140px] cursor-pointer flex-col items-center justify-center gap-2 rounded-[var(--radius)] border-2 border-dashed p-6 transition-all hover:border-[var(--primary)] hover:bg-[var(--bg-tertiary)] ${borderColor}`}
+            className={`flex min-h-[140px] w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-[var(--radius)] border-2 border-dashed p-6 transition-all hover:border-[var(--primary)] hover:bg-[var(--bg-tertiary)] ${borderColor}`}
           >
             <input
               ref={inputRef}
@@ -130,7 +129,7 @@ export function UploadZone({
                 </div>
               </>
             )}
-          </div>
+          </button>
         )
       })()}
     </div>

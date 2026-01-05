@@ -57,19 +57,16 @@ function ModalContent({
   }
 
   return (
-    <div
-      className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/50"
-      onClick={onClose}
-      onKeyDown={(e) => {
-        if (e.key === 'Escape') onClose()
-      }}
-      role="presentation"
-    >
-      <div
-        className="w-full max-w-md rounded-lg border border-[var(--border-color)] bg-[var(--bg-primary)] p-6 shadow-xl"
-        onClick={(e) => e.stopPropagation()}
-        role="dialog"
-        aria-modal="true"
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center">
+      <button
+        type="button"
+        className="absolute inset-0 cursor-default border-0 bg-black/50"
+        onClick={onClose}
+        aria-label="Close modal"
+      />
+      <dialog
+        open
+        className="relative z-10 m-0 w-full max-w-md rounded-lg border border-[var(--border-color)] bg-[var(--bg-primary)] p-6 shadow-xl"
         aria-labelledby="modal-title"
       >
         <h2 id="modal-title" className="mb-2 text-lg font-semibold text-[var(--text-primary)]">
@@ -103,7 +100,7 @@ function ModalContent({
             Save
           </button>
         </div>
-      </div>
+      </dialog>
     </div>
   )
 }

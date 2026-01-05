@@ -331,9 +331,9 @@ function MethodCardContent({
             Governed by
           </div>
           <div className="space-y-1">
-            {businessRules.map((rule, index) => (
+            {businessRules.map((rule) => (
               <div
-                key={index}
+                key={rule}
                 className="flex items-start gap-2 text-sm text-[var(--text-secondary)]"
               >
                 <i className="ph ph-check-circle shrink-0 text-[var(--amber)]" aria-hidden="true" />

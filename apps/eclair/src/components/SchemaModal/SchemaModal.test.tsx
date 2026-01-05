@@ -520,42 +520,18 @@ describe('SchemaModal', () => {
         expect(onClose).toHaveBeenCalled()
       })
 
-      it('calls onClose when Enter pressed on backdrop', async () => {
-        const onClose = vi.fn()
-
+      it('backdrop is a button element for native keyboard accessibility', async () => {
         render(
           <SchemaModal
             graph={createTestGraph()}
             graphName={createGraphName('test.json')}
             isOpen={true}
-            onClose={onClose}
+            onClose={vi.fn()}
           />,
         )
 
         const backdrop = screen.getByTestId('modal-backdrop')
-        backdrop.focus()
-        fireEvent.keyDown(backdrop, { key: 'Enter' })
-
-        expect(onClose).toHaveBeenCalled()
-      })
-
-      it('calls onClose when Space pressed on backdrop', async () => {
-        const onClose = vi.fn()
-
-        render(
-          <SchemaModal
-            graph={createTestGraph()}
-            graphName={createGraphName('test.json')}
-            isOpen={true}
-            onClose={onClose}
-          />,
-        )
-
-        const backdrop = screen.getByTestId('modal-backdrop')
-        backdrop.focus()
-        fireEvent.keyDown(backdrop, { key: ' ' })
-
-        expect(onClose).toHaveBeenCalled()
+        expect(backdrop.tagName).toBe('BUTTON')
       })
 
       it('does not close on other keys pressed on backdrop', () => {
@@ -629,7 +605,7 @@ describe('SchemaModal', () => {
         expect(screen.getByRole('dialog')).toBeInTheDocument()
       })
 
-      it('has aria-modal true', () => {
+      it('uses semantic dialog element', () => {
         render(
           <SchemaModal
             graph={createTestGraph()}
@@ -639,7 +615,8 @@ describe('SchemaModal', () => {
           />,
         )
 
-        expect(screen.getByRole('dialog')).toHaveAttribute('aria-modal', 'true')
+        const dialog = screen.getByRole('dialog')
+        expect(dialog.tagName).toBe('DIALOG')
       })
 
       it('has aria-labelledby pointing to title', () => {
