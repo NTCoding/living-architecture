@@ -16,7 +16,8 @@ const initZoom = (): void => {
 }
 
 const isEclairPath = (href: string): boolean => {
-  return href === '/eclair' || href.startsWith('/eclair/') || href.startsWith('/eclair?')
+  const basePath = href.split('#')[0]
+  return basePath === '/eclair' || basePath.startsWith('/eclair/') || basePath.startsWith('/eclair?') || href.startsWith('/eclair#')
 }
 
 const initEclairLinkHandler = (): (() => void) => {

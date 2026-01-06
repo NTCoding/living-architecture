@@ -12,6 +12,14 @@
 
 set -e
 
+# Verify required tools are available
+for cmd in gh jq; do
+    if ! command -v "$cmd" &>/dev/null; then
+        echo "Error: Required command '$cmd' not found" >&2
+        exit 1
+    fi
+done
+
 PR_NUMBER="${1:-}"
 
 # Get repo info
@@ -81,7 +89,7 @@ echo "$UNRESOLVED_THREADS" | jq -c '.[]' | while read -r thread; do
     BODY=$(echo "$thread" | jq -r '.comments.nodes[0].body // ""')
 
     # Extract severity from body (CodeRabbit format)
-    if echo "$BODY" | grep -q "_⚠️ Potential issue_ | _🔴"; then
+    if echo "$BODY" | grep -q "_⚠️ Potential issue_ | _🔴 Critical_"; then
         SEVERITY="critical"
         ICON="●"
     elif echo "$BODY" | grep -q "_⚠️ Potential issue_ | _🟠 Major_"; then
