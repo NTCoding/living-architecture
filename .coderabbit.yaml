@@ -12,7 +12,7 @@ reviews:
   pre_merge_checks:
     docstrings:
       mode: "off"
-    linked_issue:
+    issue_assessment:
       mode: "warning"
 
 tools:

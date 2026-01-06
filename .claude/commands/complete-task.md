@@ -86,3 +86,17 @@ Run this pipeline directly (do NOT spawn a subagent to orchestrate - subagents c
      <raw-output>
      [paste the COMPLETE raw output here - do not summarize]
      </raw-output>
+
+## Debugging SonarCloud Failures
+
+When SonarCloud fails with coverage issues:
+
+1. **Get the exact failure details** - Do NOT guess. Query the SonarCloud API:
+   ```bash
+   curl -s "https://sonarcloud.io/api/measures/component_tree?component=NTCoding_living-architecture&pullRequest=<PR_NUMBER>&metricKeys=new_coverage&strategy=leaves&ps=100" | jq '.components[] | select(.measures[0].value == "0.0" or .measures[0].value == null) | {path: .path, coverage: .measures[0].value}'
+   ```
+
+2. **Identify the root cause** based on actual data:
+   - Files with `null` coverage = lcov.info paths not matching source files
+   - Files with `0.0` coverage = tests not covering the code
+   - Type-only files (interfaces, types) = exclude from coverage in sonar-project.properties
