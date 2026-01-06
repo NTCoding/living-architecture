@@ -277,6 +277,29 @@ describe('Other decorators', () => {
 
       expect(getCustomType(DotType)).toBe('Order.Manager')
     })
+
+    it('last decorator wins when multiple Custom decorators applied to class', () => {
+      @Custom('First')
+      @Custom('Second')
+      class MultiCustom {
+        readonly id: string = '1'
+      }
+
+      expect(getCustomType(MultiCustom)).toBe('First')
+    })
+
+    it('last decorator wins when multiple Custom decorators applied to method', () => {
+      class MultiMethod {
+        @Custom('First')
+        @Custom('Second')
+        multiMethod(): string {
+          return 'multi'
+        }
+      }
+
+      const instance = new MultiMethod()
+      expect(getCustomType(instance.multiMethod)).toBe('First')
+    })
   })
 
   describe('Ignore', () => {
