@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import DefaultTheme from 'vitepress/theme'
-import { onMounted } from 'vue'
+import { onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vitepress'
 import mediumZoom from 'medium-zoom'
 
 const { Layout } = DefaultTheme
 const router = useRouter()
+
+let cleanupEclairHandler: (() => void) | null = null
 
 const initZoom = (): void => {
   mediumZoom('.vp-doc img, .VPHero .image-container img', {
@@ -13,8 +15,8 @@ const initZoom = (): void => {
   })
 }
 
-const initEclairLinkHandler = (): void => {
-  document.addEventListener('click', (event) => {
+const initEclairLinkHandler = (): (() => void) => {
+  const handler = (event: MouseEvent): void => {
     const target = event.target as HTMLElement
     const link = target.closest('a')
     if (link === null) return
@@ -24,13 +26,24 @@ const initEclairLinkHandler = (): void => {
 
     event.preventDefault()
     window.location.href = href
-  })
+  }
+
+  document.addEventListener('click', handler)
+  return () => document.removeEventListener('click', handler)
 }
 
 onMounted(() => {
   initZoom()
-  initEclairLinkHandler()
+  cleanupEclairHandler = initEclairLinkHandler()
 })
+
+onUnmounted(() => {
+  if (cleanupEclairHandler !== null) {
+    cleanupEclairHandler()
+    cleanupEclairHandler = null
+  }
+})
+
 router.onAfterRouteChanged = initZoom
 </script>
 
