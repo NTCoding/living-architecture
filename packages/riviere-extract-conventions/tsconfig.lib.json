@@ -23,5 +23,9 @@
     "src/**/*.test.jsx",
     "src/**/*.spec.jsx"
   ],
-  "references": []
+  "references": [
+    {
+      "path": "../riviere-extract-config/tsconfig.lib.json"
+    }
+  ]
 }

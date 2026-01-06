@@ -4,9 +4,13 @@
 
 ## Goal
 
-Work through the entire lifecycle autonomously. Present the user with a completed pull request that is green and ready for review. Do not stop to ask the user unless absolutely necessary.
+Work through the entire lifecycle autonomously until you have a mergeable PR or are blocked. Present the user with a completed pull request that is green and ready for review.
+
+*CRUCIAL*: Do not stop to ask the user for permission to do steps you are empowered to do autonomously.
 
 ## Lifecycle Steps
+
+Autonomous = you can do this without user permission. Do not ask for permission, just do it.
 
 | Step | Command | Permission |
 |------|---------|------------|

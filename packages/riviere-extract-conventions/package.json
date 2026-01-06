@@ -15,10 +15,15 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "default": "./dist/index.js"
-    }
+    },
+    "./default-config": "./src/default-extraction.config.json"
   },
   "files": [
     "dist",
+    "src/default-extraction.config.json",
     "!**/*.tsbuildinfo"
-  ]
+  ],
+  "dependencies": {
+    "@living-architecture/riviere-extract-config": "workspace:*"
+  }
 }
