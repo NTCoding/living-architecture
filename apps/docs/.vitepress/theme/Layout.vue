@@ -21,8 +21,9 @@ const isEclairPath = (href: string): boolean => {
 
 const initEclairLinkHandler = (): (() => void) => {
   const handler = (event: MouseEvent): void => {
-    // Let browser handle modifier keys and middle-click for standard UX
-    if (event.ctrlKey || event.metaKey || event.shiftKey || event.button !== 0) return
+    // Let browser handle modifier keys, middle-click, and already-handled events
+    if (event.defaultPrevented) return
+    if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey || event.button !== 0) return
 
     const target = event.target
     if (!(target instanceof Element)) return

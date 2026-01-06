@@ -6,6 +6,14 @@
 
 set -e
 
+# Verify required tools are available
+for cmd in gh jq; do
+    if ! command -v "$cmd" &>/dev/null; then
+        echo "Error: Required command '$cmd' not found" >&2
+        exit 1
+    fi
+done
+
 # Parse arguments
 MODE=""
 TITLE=""
@@ -45,6 +53,10 @@ fi
 show_pr_feedback() {
     local pr_number=$1
     echo ""
+    if [[ ! -x "./scripts/get-pr-feedback.sh" ]]; then
+        echo "  (could not fetch feedback: get-pr-feedback.sh not found or not executable)"
+        return
+    fi
     ./scripts/get-pr-feedback.sh "$pr_number" 2>/dev/null || echo "  (could not fetch feedback)"
 }
 

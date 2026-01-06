@@ -76,10 +76,8 @@ fi
 
 # Process each unresolved thread
 echo "$UNRESOLVED_THREADS" | jq -c '.[]' | while read -r thread; do
-    THREAD_ID=$(echo "$thread" | jq -r '.id // ""')
     PATH_FILE=$(echo "$thread" | jq -r '.path // "unknown"')
     LINE=$(echo "$thread" | jq -r '.line // "?"')
-    AUTHOR=$(echo "$thread" | jq -r '.comments.nodes[0].author.login // "unknown"')
     BODY=$(echo "$thread" | jq -r '.comments.nodes[0].body // ""')
 
     # Extract severity from body (CodeRabbit format)

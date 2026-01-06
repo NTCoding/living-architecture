@@ -87,13 +87,13 @@ Run this pipeline directly (do NOT spawn a subagent to orchestrate - subagents c
 
 5. **Resolve CodeRabbit feedback** (principles: CHANGES_REQUESTED means not mergeable; nitpicks contain valuable information; every unresolved item must be addressed):
    - Run `./scripts/get-pr-feedback.sh` to get unresolved feedback using GitHub's native GraphQL API
-   - If "Unresolved Items: 0" → skip to SUCCESS
+   - If "✓ No unresolved feedback" → skip to SUCCESS
    - For EACH unresolved item (CRITICAL, MAJOR, or NITPICK):
      - Either: Apply the fix (use the AI Prompt provided)
      - Or: Reply to the thread on GitHub explaining why not fixing
    - After addressing all items: commit, push, run `./scripts/submit-pr.sh --update`
    - Run `./scripts/get-pr-feedback.sh` again to verify no unresolved items remain
-   - Repeat until "Unresolved Items: 0"
+   - Repeat until "✓ No unresolved feedback"
    - SUCCESS → return structured message:
 
      PR READY FOR REVIEW
