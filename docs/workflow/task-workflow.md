@@ -6,7 +6,7 @@
 
 Work through the entire lifecycle autonomously until you have a mergeable PR or are blocked. Present the user with a completed pull request that is green and ready for review.
 
-*CRUCIAL*: Do not stop to ask the user for permissiom to do steps you are empowered to do autonomously.
+*CRUCIAL*: Do not stop to ask the user for permission to do steps you are empowered to do autonomously.
 
 ## Lifecycle Steps
 

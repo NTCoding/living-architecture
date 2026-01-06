@@ -51,7 +51,7 @@ This does NOT mean "find classes then extract methods" — that's an implementat
 **Wrong interpretation:** "Decorators are on classes, so config should say `find: 'classes'`"
 **Correct interpretation:** "User wants methods as components, so config says `find: 'methods'`"
 
-The extractor will find the decorated classes (implementation detail), but the config describes what the user wants extracted (methods).
+The extractor will locate the decorated classes as an implementation detail, while the config specifies the components the user wants extracted (methods).
 
 ## Principles
 

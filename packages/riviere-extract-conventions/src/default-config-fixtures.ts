@@ -1,12 +1,17 @@
 import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
+import {
+  join, dirname 
+} from 'node:path'
+import { fileURLToPath } from 'node:url'
 import {
   isValidExtractionConfig,
   type ExtractionConfig,
 } from '@living-architecture/riviere-extract-config'
 
+const CURRENT_DIR = dirname(fileURLToPath(import.meta.url))
+
 export function loadDefaultConfig(): unknown {
-  const configPath = join(__dirname, 'default-extraction.config.json')
+  const configPath = join(CURRENT_DIR, 'default-extraction.config.json')
   const configContent = readFileSync(configPath, 'utf-8')
   return JSON.parse(configContent)
 }

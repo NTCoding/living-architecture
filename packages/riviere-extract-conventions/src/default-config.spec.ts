@@ -75,7 +75,9 @@ describe('Default extraction config', () => {
     const module = getFirstModule(config)
 
     const requiredKeys = ['api', 'useCase', 'domainOp', 'event', 'eventHandler', 'ui']
-    expect(Object.keys(module)).toEqual(expect.arrayContaining(requiredKeys))
+    const moduleKeys = Object.keys(module)
+    expect(moduleKeys).toEqual(expect.arrayContaining(requiredKeys))
+    expect(moduleKeys).toHaveLength(7)
   })
 
   it.each([

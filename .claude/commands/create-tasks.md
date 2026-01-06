@@ -4,21 +4,24 @@ Generate well-formed tasks from PRD deliverables and add them to GitHub.
 
 ## Overview
 
-This skill guides creating well-structured engineering tasks with sufficient context for independent implementation. The core principle: **slice work first, then document thoroughly**.
+This skill guides creating well-structured engineering tasks with sufficient context for independent implementation. The core principle: **slice work first, then document thoroughly with full architectural context**.
 
 ## Essential Requirements
 
-Every task must include 8 sections:
-1. **Deliverable** — What the user/stakeholder will see
-2. **Context** — Why it matters, with explicit file paths or URLs for referenced documents
-3. **Key Decisions and Principles** — Implementation constraints with rationale
-4. **Delivers** — Specific outcome in user-facing terms
-5. **Acceptance Criteria** — Given-When-Then formatted scenarios
-6. **Dependencies** — Prerequisites that must exist first
-7. **Related Code** — File paths showing patterns to follow
-8. **Verification** — Commands/tests proving completion
+Every task must include 10 sections:
 
-**Critical:** You MUST provide the specific file path or URL for any referenced files like a PRD or bug report — don't assume the engineer knows where things are stored.
+1. **Deliverable** — User-visible outcome
+2. **Context** — Business/architectural motivation with PRD file path
+3. **Traceability** — Links to PRD sections, requirements, success criteria
+4. **Acceptance Criteria** — Checkboxes for happy path + key validations
+5. **Edge Case Scenarios** — Condition → expected behavior (separate from acceptance criteria)
+6. **Implementation Guidelines** — Technical approach, architectural constraints, pattern references
+7. **Embedded Reasoning** — Structured why/what/how
+8. **Testing Strategy** — Categorized by test type (unit/integration/edge/performance)
+9. **Dependencies** — Prerequisites that must exist first
+10. **Verification** — Commands/tests proving completion
+
+**Critical:** You MUST provide specific file paths for any referenced documents. The engineer must be able to implement without clarification.
 
 ---
 
@@ -34,13 +37,22 @@ Transform requirements into executable specifications using four card types:
 
 **Questions Card:** Surface unknowns; resolve or spike before proceeding
 
-### Systematic Edge Case Review
+### Edge Case Discovery Process
 
-Examine three dimensions for each rule:
+Before finalizing tasks, systematically identify edge case scenarios using the checklists in `docs/conventions/testing.md`.
 
-- **Input variations:** null values, boundary conditions, special characters, encoding, length limits
-- **State concerns:** concurrent modifications, race conditions, sequence violations, existence checks
-- **Error scenarios:** connectivity problems, timeouts, partial failures, authorization issues, rate limits
+**Apply Testing Heuristics:**
+
+| Heuristic | What to Check |
+|-----------|---------------|
+| **Count** | 0, 1, Many — empty collections, single item, multiple items |
+| **Boundary** | Min/max values, just before/after limits, off-by-one |
+| **Data Types** | null, undefined, empty string, whitespace, special chars, Unicode |
+| **State** | Concurrent modifications, race conditions, sequence violations |
+
+**Reference:** See `docs/conventions/testing.md` → "Edge Case Checklists" for comprehensive lists by data type (Numbers, Strings, Collections, Dates, Null/Undefined, Domain-Specific, Violated Domain Constraints).
+
+**Output Format:** Edge Case Scenarios section using condition → expected behavior format.
 
 ---
 
@@ -110,22 +122,42 @@ Confirm all criteria before task creation:
 ### Context
 **PRD:** `docs/project/PRD/active/[PRD-filename].md` — [Section reference, e.g., M2 D2.1]
 
-[Origin, relevance, why this matters]
+[Business/architectural motivation - why this task matters]
 
-### Key Decisions and Principles
-- [Decision/Principle] — [Rationale]
-
-### Delivers
-[User-centric result description]
+### Traceability
+- **PRD Section:** [e.g., M2-D2-2 "Create default extraction config"]
+- **Functional Requirement:** [e.g., FR-003 "Support zero-config extraction"]
+- **Success Criteria:** [e.g., SC-002 "Developer can extract without custom config"]
 
 ### Acceptance Criteria
-- Given [Precondition] When [Action] Then [Result]
+- ✓ [Happy path requirement]
+- ✓ [Key validation]
+- ✓ [Essential behavior]
+
+### Edge Case Scenarios
+- [Condition] → [Expected behavior]
+- [Condition] → [Expected behavior]
+- [Condition] → [Expected behavior]
+
+### Implementation Guidelines
+- Use [existing pattern] from `path/to/file`
+- Follow [architectural constraint] (see `docs/architecture/[doc].md`)
+- Apply [design principle] from `docs/conventions/software-design.md`
+- [Technical approach with rationale]
+
+### Embedded Reasoning
+**Why:** [Business motivation]
+**What:** [Technical solution description]
+**How:** [Implementation approach]
+
+### Testing Strategy
+- **Unit:** [What to unit test]
+- **Integration:** [What to integration test]
+- **Edge Cases:** [Specific edge case tests from Edge Case Scenarios]
+- **Performance:** [Performance benchmarks if applicable]
 
 ### Dependencies
 Depends on #X #Y
-
-### Related Code
-- `path/to/file` — [Pattern/Implementation reference]
 
 ### Verification
 [Specific test commands or demonstration steps]
@@ -133,19 +165,49 @@ Depends on #X #Y
 
 ---
 
+## Validation Gate: Push Back When Incomplete
+
+**CRITICAL:** If you cannot complete ALL 10 sections with specific details, STOP.
+
+Do NOT create the task. Instead, push back:
+
+```text
+Cannot create task '[task name]' - insufficient detail in PRD.
+
+Missing information for:
+- [Section name]: [Specific questions that need answers]
+
+Please update PRD to clarify these points before task creation.
+```
+
+**This gate prevents:**
+- Half-baked tasks
+- Mid-implementation discovery
+- Unclear requirements
+- Missing edge cases
+
+**Examples of insufficient detail:**
+- Cannot fill Implementation Guidelines → Architecture not defined in PRD
+- Cannot fill Edge Case Scenarios → Requirements don't clarify behavior for boundary conditions
+- Cannot fill Embedded Reasoning → "Why" is unclear
+- Cannot fill Testing Strategy → Acceptance criteria too vague
+
+**Action:** Update PRD, then retry task creation.
+
+---
+
 ## Implementation Workflow
 
-1. Read the active PRD from `docs/project/PRD/active/`
-2. Map requirements using Example Mapping framework
-3. Generate acceptance criteria: happy path plus all edge cases
-4. Apply specific, action-oriented naming with `[M#-D#.#]` prefix
-5. Validate against INVEST criteria
-6. Gather supporting documentation with concrete file references
-7. Identify implementation principles from PRD
-8. Locate related codebase patterns
-9. Define reproducible verification steps
-10. Complete using provided template format
-11. Perform final checkpoint review
+1. **Read context:** Active PRD from `docs/project/PRD/active/` + architecture docs referenced in PRD
+2. **Apply Example Mapping:** Map requirements using Story/Rules/Examples/Questions framework
+3. **Validate architecture:** Confirm PRD contains sufficient architectural detail
+4. **Discover edge cases:** Apply checklists from `docs/conventions/testing.md`
+5. **Embed architectural context:** Extract constraints, patterns, and references from PRD + architecture docs
+6. **Structure acceptance criteria:** Happy path as checkboxes (separate from edge cases)
+7. **Complete all 10 sections:** Follow Standard Task Document Format
+8. **Apply validation gate:** If ANY section incomplete → STOP and push back
+9. **Validate against INVEST:** Confirm Independence, Negotiability, Value, Estimability, Smallness, Testability
+10. **Create task:** Run `./scripts/create-task.sh` with completed content
 
 ---
 
@@ -159,6 +221,8 @@ Confirm before task completion:
 - **Standards:** Passes all six INVEST criteria
 - **Documentation:** Engineer can implement without clarification
 - **PRD Reference:** Explicit file path included in Context section
+- **Edge Cases:** Comprehensive scenarios identified (not just happy path)
+- **Traceability:** Clear links to PRD sections and requirements
 
 ---
 
