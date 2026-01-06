@@ -58,11 +58,21 @@ Run this pipeline directly (do NOT spawn a subagent to orchestrate - subagents c
    - Check if `/tmp/task-check-done-<branch>.marker` exists
    - If marker exists → skip to step 4
    - If missing:
+     - Fetch issue details: `gh issue view <issue-number> --json title,body --jq '{title: .title, body: .body}'`
      - Build work summary: list changed files via `git diff --name-only main`
      - Use Task tool with subagent_type: "task-check:task-check", prompt:
        ```text
        Task ID: <issue-number>
-       Task location: gh issue view <issue-number>
+       Task location: Inline (see task definition below)
+
+       Task definition (fetched from gh issue view <issue-number>):
+       <task-details>
+       {
+         "title": "<title from gh output>",
+         "body": "<body from gh output>"
+       }
+       </task-details>
+
        Work summary: Modified files: <list of changed files>
        Attempt: 1
        ```

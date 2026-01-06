@@ -1,0 +1,68 @@
+{
+  "$schema": "https://living-architecture.dev/schemas/extraction-config.schema.json",
+  "modules": [
+    {
+      "path": "**/*.ts",
+      "api": {
+        "find": "methods",
+        "where": {
+          "inClassWith": {
+            "hasDecorator": {
+              "name": "APIContainer",
+              "from": "@living-architecture/riviere-extract-conventions"
+            }
+          }
+        }
+      },
+      "useCase": {
+        "find": "classes",
+        "where": {
+          "hasDecorator": {
+            "name": "UseCase",
+            "from": "@living-architecture/riviere-extract-conventions"
+          }
+        }
+      },
+      "domainOp": {
+        "find": "methods",
+        "where": {
+          "inClassWith": {
+            "hasDecorator": {
+              "name": "DomainOpContainer",
+              "from": "@living-architecture/riviere-extract-conventions"
+            }
+          }
+        }
+      },
+      "event": {
+        "find": "classes",
+        "where": {
+          "hasDecorator": {
+            "name": "Event",
+            "from": "@living-architecture/riviere-extract-conventions"
+          }
+        }
+      },
+      "eventHandler": {
+        "find": "methods",
+        "where": {
+          "inClassWith": {
+            "hasDecorator": {
+              "name": "EventHandlerContainer",
+              "from": "@living-architecture/riviere-extract-conventions"
+            }
+          }
+        }
+      },
+      "ui": {
+        "find": "classes",
+        "where": {
+          "hasDecorator": {
+            "name": "UI",
+            "from": "@living-architecture/riviere-extract-conventions"
+          }
+        }
+      }
+    }
+  ]
+}

@@ -5,7 +5,7 @@ model: sonnet
 color: purple
 ---
 
-Perform semantic code review on changed files following project conventions.
+Perform semantic code review on changed files following project conventions. Be critical, if in doubt flag it.
 
 ## Instructions
 
@@ -13,11 +13,16 @@ Read and apply the rules in @/docs/workflow/code-review.md
 
 ## Scope
 
-Review all changed files (committed and uncommitted) since main:
+Review ALL uncommitted changes (staged, unstaged, and untracked):
 
 ```bash
-git diff --name-only main
+git diff --name-only HEAD; git ls-files --others --exclude-standard
 ```
+
+This captures:
+- Staged changes: `git diff --name-only --cached`
+- Unstaged changes: `git diff --name-only`
+- Untracked files: `git ls-files --others --exclude-standard`
 
 Filter to `.ts` and `.tsx` files only. If no files match, return PASS immediately.
 
