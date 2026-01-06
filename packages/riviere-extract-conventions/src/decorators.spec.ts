@@ -187,6 +187,46 @@ describe('Other decorators', () => {
 
       expect(new OrderQuery().findAll()).toEqual(['item1'])
     })
+
+    it('returns undefined for undecorated class', () => {
+      class UndecoratedOrder {
+        readonly id: string = 'order-1'
+      }
+
+      expect(getCustomType(UndecoratedOrder)).toBeUndefined()
+    })
+
+    it('stores custom type for method extraction', () => {
+      class OrderQueries {
+        @Custom('Query')
+        findById(): string {
+          return 'order-1'
+        }
+      }
+
+      const instance = new OrderQueries()
+      expect(getCustomType(instance.findById)).toBe('Query')
+    })
+
+    it('allows empty string as custom type', () => {
+      @Custom('')
+      class EmptyTypeOrder {
+        readonly id: string = 'order-1'
+      }
+
+      expect(getCustomType(EmptyTypeOrder)).toBe('')
+    })
+
+    it('uses last decorator when applied multiple times', () => {
+      @Custom('First')
+      @Custom('Second')
+      class MultiDecoratedOrder {
+        readonly id: string = 'order-1'
+      }
+
+      // First is applied last (decorators execute bottom-up), so 'First' wins
+      expect(getCustomType(MultiDecoratedOrder)).toBe('First')
+    })
   })
 
   describe('Ignore', () => {
