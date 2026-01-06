@@ -26,8 +26,8 @@ if [[ -z "$MESSAGE" ]]; then
     exit 1
 fi
 
-# Add Claude Code signature
-SIGNATURE="🤖 *Via [Claude Code](https://claude.ai/claude-code)*"
+# Add Claude Code signature - must be explicit this is fully automated
+SIGNATURE="🤖 *This is an automated response from [Claude Code](https://claude.ai/claude-code). The repository owner did not write this message.*"
 FULL_MESSAGE="${MESSAGE}
 
 ${SIGNATURE}"
