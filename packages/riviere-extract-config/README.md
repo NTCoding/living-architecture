@@ -25,6 +25,11 @@ if (result.valid) {
 }
 ```
 
+## Documentation
+
+- [CLAUDE.md](./CLAUDE.md) — Design principles and schema overview
+- [extraction-config.schema.json](./extraction-config.schema.json) — JSON Schema reference
+
 ## Building
 
 Run `nx build riviere-extract-config` to build the library.
