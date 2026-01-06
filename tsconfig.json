@@ -23,6 +23,9 @@
     },
     {
       "path": "./packages/riviere-extract-config"
+    },
+    {
+      "path": "./packages/riviere-extract-conventions"
     }
   ]
 }
