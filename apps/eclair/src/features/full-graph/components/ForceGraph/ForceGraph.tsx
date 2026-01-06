@@ -153,12 +153,6 @@ export function ForceGraph({
         padding: 80,
       })
 
-      const svgElement = svg.node()
-      if (!svgElement?.viewBox?.baseVal) {
-        throw new Error(
-          'SVG element does not support viewBox.baseVal - zoom requires full SVG support',
-        )
-      }
       svg.call(zoom.transform, d3.zoomIdentity.translate(translateX, translateY).scale(scale))
     },
     [dimensions],

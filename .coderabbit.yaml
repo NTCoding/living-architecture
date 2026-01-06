@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
 # CodeRabbit Configuration
 # Docs: https://docs.coderabbit.ai/reference/configuration
 
@@ -14,14 +15,13 @@ reviews:
       mode: "off"
     issue_assessment:
       mode: "warning"
-
-tools:
-  gitleaks:
-    enabled: true
-  semgrep:
-    enabled: true
-  actionlint:
-    enabled: true
+  tools:
+    gitleaks:
+      enabled: true
+    semgrep:
+      enabled: true
+    actionlint:
+      enabled: true
 
 knowledge_base:
   code_guidelines:
