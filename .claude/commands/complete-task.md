@@ -12,9 +12,10 @@ Main agent runs pipeline directly
     ├── code-review subagent → FAIL → return findings + next steps
     ├── Task-check subagent → FAIL → return issues
     ├── submit-pr subagent → captures output
-    ├── Parse nitpicks from output
-    ├── Fix nitpicks (or document why not)
-    └── Return SUCCESS with structured status
+    ├── Check reviewDecision (CHANGES_REQUESTED = not mergeable)
+    ├── Address ALL CodeRabbit feedback (comments + nitpicks)
+    ├── Re-run submit-pr if fixes made
+    └── Return SUCCESS with PR ready to merge
 ```
 
 ## Usage
@@ -84,11 +85,17 @@ Run this pipeline directly (do NOT spawn a subagent to orchestrate - subagents c
      NEXT STEPS: Address the issues and re-run /complete-task
      LOOP CONTROL: If this is your third successive attempt, ask the user for help.
 
-5. **Resolve nitpicks** (principle: nitpicks contain valuable information and should not be ignored):
+5. **Resolve CodeRabbit feedback** (principles: CHANGES_REQUESTED means not mergeable; nitpicks contain valuable information):
+   - Get PR number: `gh pr view --json number -q .number`
+   - Check reviewDecision: `gh pr view --json reviewDecision -q .reviewDecision`
+   - If CHANGES_REQUESTED:
+     - Get CodeRabbit comments: `gh api repos/NTCoding/living-architecture/pulls/<PR>/comments --jq '.[] | select(.user.login | startswith("coderabbitai"))'`
+     - For each comment: fix it OR document why not fixing (with reason)
+     - Commit, push, run `./scripts/submit-pr.sh --update`
+     - Repeat until reviewDecision is not CHANGES_REQUESTED
    - Parse nitpicks from submit-pr output (look for "## Nitpicks to Consider")
-   - If nitpicks exist:
-     - For each nitpick: fix it OR document why not fixing (with reason)
-     - If fixes made: commit, push, and run `./scripts/submit-pr.sh --update` to re-verify CI
+   - For each nitpick: fix it OR document why not fixing (with reason)
+   - If any fixes made: commit, push, run `./scripts/submit-pr.sh --update`
    - SUCCESS → return structured message:
 
      PR READY FOR REVIEW
@@ -98,13 +105,14 @@ Run this pipeline directly (do NOT spawn a subagent to orchestrate - subagents c
      - Code review: PASS [or SKIPPED if --feedback-rejected]
      - Task check: PASS [or SKIPPED if no issue]
      - CI checks: PASS
+     - CodeRabbit: APPROVED [or COMMENTED - no blocking issues]
 
-     ## Nitpicks
-     [For each nitpick, list: file:line - summary - FIXED or NOT FIXING: reason]
+     ## CodeRabbit Feedback Addressed
+     [For each comment/nitpick: file:line - summary - FIXED or NOT FIXING: reason]
      OR "None"
 
      ## PR
-     <url>
+     <url> (ready to merge)
 
 ## Debugging SonarCloud Failures
 
@@ -112,6 +120,7 @@ When SonarCloud fails with coverage issues:
 
 1. **Get the exact failure details** - Do NOT guess. Query the SonarCloud API:
    ```bash
+   # Get PR number: gh pr view --json number -q .number
    curl -s "https://sonarcloud.io/api/measures/component_tree?component=NTCoding_living-architecture&pullRequest=<PR_NUMBER>&metricKeys=new_coverage&strategy=leaves&ps=100" | jq '.components[] | select(.measures[0].value == "0.0" or .measures[0].value == null) | {path: .path, coverage: .measures[0].value}'
    ```
 
