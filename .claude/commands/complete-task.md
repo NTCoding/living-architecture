@@ -85,17 +85,15 @@ Run this pipeline directly (do NOT spawn a subagent to orchestrate - subagents c
      NEXT STEPS: Address the issues and re-run /complete-task
      LOOP CONTROL: If this is your third successive attempt, ask the user for help.
 
-5. **Resolve CodeRabbit feedback** (principles: CHANGES_REQUESTED means not mergeable; nitpicks contain valuable information):
-   - Get PR number: `gh pr view --json number -q .number`
-   - Check reviewDecision: `gh pr view --json reviewDecision -q .reviewDecision`
-   - If CHANGES_REQUESTED:
-     - Get CodeRabbit comments: `gh api repos/NTCoding/living-architecture/pulls/<PR>/comments --jq '.[] | select(.user.login | startswith("coderabbitai"))'`
-     - For each comment: fix it OR document why not fixing (with reason)
-     - Commit, push, run `./scripts/submit-pr.sh --update`
-     - Repeat until reviewDecision is not CHANGES_REQUESTED
-   - Parse nitpicks from submit-pr output (look for "## Nitpicks to Consider")
-   - For each nitpick: fix it OR document why not fixing (with reason)
-   - If any fixes made: commit, push, run `./scripts/submit-pr.sh --update`
+5. **Resolve CodeRabbit feedback** (principles: CHANGES_REQUESTED means not mergeable; nitpicks contain valuable information; every unresolved item must be addressed):
+   - Run `./scripts/get-pr-feedback.sh` to get unresolved feedback using GitHub's native GraphQL API
+   - If "Unresolved Items: 0" → skip to SUCCESS
+   - For EACH unresolved item (CRITICAL, MAJOR, or NITPICK):
+     - Either: Apply the fix (use the AI Prompt provided)
+     - Or: Reply to the thread on GitHub explaining why not fixing
+   - After addressing all items: commit, push, run `./scripts/submit-pr.sh --update`
+   - Run `./scripts/get-pr-feedback.sh` again to verify no unresolved items remain
+   - Repeat until "Unresolved Items: 0"
    - SUCCESS → return structured message:
 
      PR READY FOR REVIEW

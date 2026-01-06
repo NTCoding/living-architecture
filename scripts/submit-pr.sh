@@ -76,82 +76,11 @@ wait_for_coderabbit_review() {
     return 1
 }
 
-# Get latest CodeRabbit review body
-get_latest_review_body() {
+# Show unresolved feedback using the dedicated script
+show_pr_feedback() {
     local pr_number=$1
-    gh api "repos/${REPO}/pulls/${pr_number}/reviews" \
-        --jq '[.[] | select(.user.login | startswith("coderabbitai"))] | last | .body // empty' 2>/dev/null
-}
-
-# Get nitpick count from review body
-get_nitpick_count() {
-    local pr_number=$1
-    local review_body
-    review_body=$(get_latest_review_body "$pr_number")
-    if [[ -n "$review_body" ]]; then
-        local count
-        count=$(echo "$review_body" | sed -n 's/.*🧹 Nitpick comments (\([0-9]*\)).*/\1/p' | head -1)
-        echo "${count:-0}"
-    else
-        echo "0"
-    fi
-}
-
-# Get nitpick content from review body
-get_nitpick_content() {
-    local pr_number=$1
-    local review_body
-    review_body=$(get_latest_review_body "$pr_number")
-
-    if [[ -n "$review_body" ]]; then
-        # Extract content between 🧹 Nitpick comments section
-        # The format is: <summary>🧹 Nitpick comments (N)</summary><blockquote>...content...</blockquote></details>
-        echo "$review_body" | sed -n '/🧹 Nitpick comments/,/<\/details>/p' | \
-            sed 's/<[^>]*>//g' | \
-            sed 's/&nbsp;/ /g' | \
-            grep -v "^$" | \
-            grep -v "🧹 Nitpick comments"
-    fi
-}
-
-# Get CodeRabbit feedback (inline comments and nitpicks)
-get_coderabbit_feedback() {
-    local pr_number=$1
-
-    # Get inline review comments from CodeRabbit
-    echo "## Inline Comments"
-    gh api "repos/${REPO}/pulls/${pr_number}/comments" \
-        --jq '.[] | select(.user.login | startswith("coderabbitai")) | "- \(.path):\(.line // .original_line // "?") \(.body | split("\n")[0] | gsub("^_⚠️ Potential issue_ \\| _🟡 Minor_"; "[MINOR]") | gsub("^_⚠️ Potential issue_ \\| _🔴 Major_"; "[MAJOR]"))"' 2>/dev/null || echo "  (none)"
-
     echo ""
-
-    # Get review body and extract stats
-    local review_body
-    review_body=$(get_latest_review_body "$pr_number")
-
-    if [[ -n "$review_body" ]]; then
-        # Extract actionable count (macOS-compatible)
-        local actionable
-        actionable=$(echo "$review_body" | sed -n 's/.*Actionable comments posted: \([0-9]*\).*/\1/p' | head -1)
-        actionable="${actionable:-0}"
-        echo "Actionable comments: $actionable"
-    fi
-}
-
-# Show nitpicks with actual content
-show_nitpicks() {
-    local pr_number=$1
-    local nitpick_count
-    nitpick_count=$(get_nitpick_count "$pr_number")
-
-    if [[ "$nitpick_count" != "0" && -n "$nitpick_count" ]]; then
-        echo ""
-        echo "## Nitpicks to Consider ($nitpick_count)"
-        echo ""
-        get_nitpick_content "$pr_number"
-        echo ""
-        echo "You are encouraged to address all nitpicks where possible unless there's a good reason not to."
-    fi
+    ./scripts/get-pr-feedback.sh "$pr_number" 2>/dev/null || echo "  (could not fetch feedback)"
 }
 
 # Precondition: check for uncommitted changes
@@ -238,9 +167,7 @@ if [[ "$CHECK_STATUS" == "pass" ]]; then
             echo "=========================================="
             echo "CodeRabbit requested changes"
             echo "=========================================="
-            echo ""
-            get_coderabbit_feedback "$PR_NUMBER"
-            show_nitpicks "$PR_NUMBER"
+            show_pr_feedback "$PR_NUMBER"
             echo ""
             echo "PR #$PR_NUMBER: $PR_URL"
             echo ""
@@ -254,14 +181,12 @@ if [[ "$CHECK_STATUS" == "pass" ]]; then
     echo "=========================================="
     echo "All checks passed! PR ready for review."
     echo "=========================================="
-    show_nitpicks "$PR_NUMBER"
+    show_pr_feedback "$PR_NUMBER"
     echo ""
     echo "PR #$PR_NUMBER: $PR_URL"
 else
     echo "CI checks failed."
-    echo ""
-    get_coderabbit_feedback "$PR_NUMBER"
-    show_nitpicks "$PR_NUMBER"
+    show_pr_feedback "$PR_NUMBER"
     echo ""
     echo "PR #$PR_NUMBER: $PR_URL"
     echo ""
