@@ -96,6 +96,8 @@ const customTypes = new WeakMap<Constructor | Method, string>()
 /**
  * Marks a class or method with a custom component type.
  * Use when standard component types don't fit.
+ *
+ * @throws TypeError if type is empty or whitespace-only
  */
 export function Custom(
   type: string,
@@ -103,11 +105,15 @@ export function Custom(
   target: T,
   context: ClassDecoratorContext | ClassMethodDecoratorContext,
 ) => T {
+  const trimmed = type.trim()
+  if (trimmed.length === 0) {
+    throw new TypeError('Custom component type cannot be empty or whitespace-only')
+  }
   return function <T extends Constructor | Method>(
     target: T,
     _: ClassDecoratorContext | ClassMethodDecoratorContext,
   ): T {
-    customTypes.set(target, type)
+    customTypes.set(target, trimmed)
     return target
   }
 }

@@ -208,24 +208,25 @@ describe('Other decorators', () => {
       expect(getCustomType(instance.findById)).toBe('Query')
     })
 
-    it('allows empty string as custom type', () => {
-      @Custom('')
-      class EmptyTypeOrder {
-        readonly id: string = 'order-1'
-      }
-
-      expect(getCustomType(EmptyTypeOrder)).toBe('')
+    it('throws TypeError for empty string type', () => {
+      expect(() => Custom('')).toThrow(TypeError)
+      expect(() => Custom('')).toThrow('Custom component type cannot be empty or whitespace-only')
     })
 
-    it('uses last decorator when applied multiple times', () => {
-      @Custom('First')
-      @Custom('Second')
-      class MultiDecoratedOrder {
+    it('throws TypeError for whitespace-only type', () => {
+      expect(() => Custom('   ')).toThrow(TypeError)
+      expect(() => Custom('   ')).toThrow(
+        'Custom component type cannot be empty or whitespace-only',
+      )
+    })
+
+    it('trims whitespace from type parameter', () => {
+      @Custom('  Aggregate  ')
+      class TrimmedOrder {
         readonly id: string = 'order-1'
       }
 
-      // First is applied last (decorators execute bottom-up), so 'First' wins
-      expect(getCustomType(MultiDecoratedOrder)).toBe('First')
+      expect(getCustomType(TrimmedOrder)).toBe('Aggregate')
     })
   })
 
