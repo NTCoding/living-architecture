@@ -6,7 +6,7 @@ import rawSchema from '../extraction-config.schema.json' with { type: 'json' }
 const ajv = new Ajv({ allErrors: true })
 addFormats(ajv)
 
-const validate = ajv.compile(rawSchema)
+const validate = ajv.compile<ExtractionConfig>(rawSchema)
 
 export function isValidExtractionConfig(data: unknown): data is ExtractionConfig {
   return validate(data) === true
