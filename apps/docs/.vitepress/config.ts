@@ -4,6 +4,9 @@ export default defineConfig({
   title: 'Rivière',
   description: 'Living Architecture - See how operations flow through your system',
 
+  // Ignore /eclair/ links - they're valid but point to a separate app on the same domain
+  ignoreDeadLinks: [/^\/eclair\//],
+
   head: [
     [
       'link',

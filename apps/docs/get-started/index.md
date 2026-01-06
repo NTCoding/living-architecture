@@ -1,10 +1,10 @@
 # Get Started with Rivière
 
-Rivière is a [graph-based schema](/reference/schema/graph-structure) and tools for constructing and querying architecture graphs. [Éclair](https://living-architecture.dev/eclair/) is a web-based visualization tool for exploring software architectures expressed as Rivière graphs.
+Rivière is a [graph-based schema](/reference/schema/graph-structure) and tools for constructing and querying architecture graphs. [Éclair](/eclair/) is a web-based visualization tool for exploring software architectures expressed as Rivière graphs.
 
 ## Quick Start
 
-- **[Try Éclair Demo →](https://living-architecture.dev/eclair/?demo=true)** — Explore a sample e-commerce architecture
+- **[Try Éclair Demo →](/eclair/?demo=true)** — Explore a sample e-commerce architecture
 - **[View Sample Graph](https://raw.githubusercontent.com/NTCoding/living-architecture/main/apps/eclair/public/ecommerce-complete.json)** — Download the raw JSON
 - **[Run Éclair Locally](/visualize/getting-started#run-locally)** — Set up the visualizer on your machine
 

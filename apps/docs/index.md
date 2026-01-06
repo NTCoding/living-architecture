@@ -14,7 +14,7 @@ hero:
       link: /get-started/
     - theme: alt
       text: View Demo
-      link: https://living-architecture.dev/eclair/?demo=true
+      link: /eclair/?demo=true
     - theme: alt
       text: GitHub
       link: https://github.com/ntcoding/living-architecture
@@ -60,7 +60,7 @@ Build schemas programmatically in TypeScript. Integrate into build pipelines or 
 
 Load your schema into Éclair. Filter by domain, trace flows end-to-end, see which services publish and subscribe to events.
 
-**[Explore the Demo →](https://living-architecture.dev/eclair/?demo=true)**
+**[Explore the Demo →](/eclair/?demo=true)**
 
 </div>
 
@@ -111,7 +111,7 @@ Open `http://localhost:5173/eclair/`
 | Build graphs programmatically | [Library Quick Start](/get-started/quick-start) |
 | View an architecture graph | [Éclair Guide](/visualize/) |
 | Understand the schema format | [Schema Reference](/reference/schema/graph-structure) |
-| Try it with a demo graph | [View Demo](https://living-architecture.dev/eclair/?demo=true) |
+| Try it with a demo graph | [View Demo](/eclair/?demo=true) |
 | Run Éclair locally | [Run Locally](/get-started/#run-locally) |
 
 ## Packages

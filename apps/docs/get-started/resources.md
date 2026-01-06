@@ -12,7 +12,7 @@ Defines the complete structure of a Rivière graph—component types, link types
 
 **[ecommerce-complete.json](https://raw.githubusercontent.com/NTCoding/living-architecture/main/apps/eclair/public/ecommerce-complete.json)** — Full e-commerce system with multiple domains and cross-domain events.
 
-[View in Éclair →](https://living-architecture.dev/eclair/?demo=true)
+[View in Éclair →](/eclair/?demo=true)
 
 ## See Also
 

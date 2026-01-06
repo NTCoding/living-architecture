@@ -2,7 +2,7 @@
 
 ## Try the Demo
 
-**[Open Éclair Demo →](https://living-architecture.dev/eclair/?demo=true)** — Explore a sample e-commerce architecture
+**[Open Éclair Demo →](/eclair/?demo=true)** — Explore a sample e-commerce architecture
 
 ## Run Locally {#run-locally}
 
