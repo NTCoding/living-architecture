@@ -17,7 +17,9 @@ const initZoom = (): void => {
 
 const initEclairLinkHandler = (): (() => void) => {
   const handler = (event: MouseEvent): void => {
-    const target = event.target as HTMLElement
+    const target = event.target
+    if (!(target instanceof Element)) return
+
     const link = target.closest('a')
     if (link === null) return
 
