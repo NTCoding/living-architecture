@@ -54,6 +54,17 @@ describe('Container decorators', () => {
       expect(OrderController).toBeDefined()
       expect(new OrderController().getOrders).toBeDefined()
     })
+
+    it('returns the original class', () => {
+      class Original {
+        value = 42
+      }
+
+      @APIContainer
+      class Decorated extends Original {}
+
+      expect(new Decorated().value).toBe(42)
+    })
   })
 
   describe('EventHandlerContainer', () => {
@@ -67,6 +78,17 @@ describe('Container decorators', () => {
 
       expect(OrderEventListener).toBeDefined()
       expect(new OrderEventListener().onOrderCreated).toBeDefined()
+    })
+
+    it('returns the original class', () => {
+      class Original {
+        value = 42
+      }
+
+      @EventHandlerContainer
+      class Decorated extends Original {}
+
+      expect(new Decorated().value).toBe(42)
     })
   })
 })
