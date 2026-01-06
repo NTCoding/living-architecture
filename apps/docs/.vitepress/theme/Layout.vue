@@ -15,8 +15,15 @@ const initZoom = (): void => {
   })
 }
 
+const isEclairPath = (href: string): boolean => {
+  return href === '/eclair' || href.startsWith('/eclair/') || href.startsWith('/eclair?')
+}
+
 const initEclairLinkHandler = (): (() => void) => {
   const handler = (event: MouseEvent): void => {
+    // Let browser handle modifier keys and middle-click for standard UX
+    if (event.ctrlKey || event.metaKey || event.shiftKey || event.button !== 0) return
+
     const target = event.target
     if (!(target instanceof Element)) return
 
@@ -24,7 +31,7 @@ const initEclairLinkHandler = (): (() => void) => {
     if (link === null) return
 
     const href = link.getAttribute('href')
-    if (href === null || !href.startsWith('/eclair/')) return
+    if (href === null || !isEclairPath(href)) return
 
     event.preventDefault()
     window.location.href = href
