@@ -26,11 +26,18 @@ if [[ -z "$MESSAGE" ]]; then
     exit 1
 fi
 
-# Escape quotes in message for JSON
-ESCAPED_MESSAGE=$(echo "$MESSAGE" | sed 's/"/\\"/g')
+# Add Claude Code signature
+SIGNATURE="🤖 *Via [Claude Code](https://claude.ai/claude-code)*"
+FULL_MESSAGE="${MESSAGE}
 
-# Reply to the thread using GraphQL mutation
-RESPONSE=$(echo "{\"query\":\"mutation{addPullRequestReviewThreadReply(input:{pullRequestReviewThreadId:\\\"$THREAD_ID\\\",body:\\\"$ESCAPED_MESSAGE\\\"}){comment{id url}}}\"}" | gh api graphql --input -)
+${SIGNATURE}"
+
+# Build the GraphQL mutation using jq for proper JSON escaping
+RESPONSE=$(jq -n \
+  --arg threadId "$THREAD_ID" \
+  --arg body "$FULL_MESSAGE" \
+  '{query: "mutation($threadId: ID!, $body: String!) { addPullRequestReviewThreadReply(input: {pullRequestReviewThreadId: $threadId, body: $body}) { comment { id url } } }", variables: {threadId: $threadId, body: $body}}' \
+  | gh api graphql --input -)
 
 # Check for errors
 if echo "$RESPONSE" | jq -e '.errors' >/dev/null 2>&1; then
