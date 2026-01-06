@@ -44,7 +44,7 @@ fi
 # Execute GraphQL query
 RESPONSE=$(cat << 'GRAPHQL_INPUT' | sed "s/OWNER_PLACEHOLDER/$OWNER/g; s/REPO_PLACEHOLDER/$REPO_NAME/g; s/PR_PLACEHOLDER/$PR_NUMBER/g" | gh api graphql --input -
 {
-  "query": "query($owner: String!, $repo: String!, $pr: Int!) { repository(owner: $owner, name: $repo) { pullRequest(number: $pr) { reviewDecision reviewThreads(first: 100) { nodes { isResolved isOutdated path line comments(first: 1) { nodes { author { login } body } } } } } } }",
+  "query": "query($owner: String!, $repo: String!, $pr: Int!) { repository(owner: $owner, name: $repo) { pullRequest(number: $pr) { reviewDecision reviewThreads(first: 100) { nodes { id isResolved isOutdated path line comments(first: 1) { nodes { author { login } body } } } } } } }",
   "variables": {
     "owner": "OWNER_PLACEHOLDER",
     "repo": "REPO_PLACEHOLDER",
@@ -84,8 +84,10 @@ fi
 
 # Process each unresolved thread
 echo "$UNRESOLVED_THREADS" | jq -c '.[]' | while read -r thread; do
+    THREAD_ID=$(echo "$thread" | jq -r '.id // ""')
     PATH_FILE=$(echo "$thread" | jq -r '.path // "unknown"')
     LINE=$(echo "$thread" | jq -r '.line // "?"')
+    AUTHOR=$(echo "$thread" | jq -r '.comments.nodes[0].author.login // "unknown"')
     BODY=$(echo "$thread" | jq -r '.comments.nodes[0].body // ""')
 
     # Extract severity from body (CodeRabbit format)
@@ -115,9 +117,10 @@ echo "$UNRESOLVED_THREADS" | jq -c '.[]' | while read -r thread; do
     # Extract AI prompt if present
     AI_PROMPT=$(echo "$BODY" | grep -A 20 "🤖 Prompt for AI Agents" | grep -v "🤖 Prompt" | grep -v "^<" | grep -v "^$" | grep -v '```' | head -12)
 
-    printf "  %s %s\n" "$ICON" "$SEVERITY"
+    printf "  %s %s (%s)\n" "$ICON" "$SEVERITY" "$AUTHOR"
     printf "    %s:%s\n" "$PATH_FILE" "$LINE"
     printf "    %s\n" "$TITLE"
+    printf "    Thread: %s\n" "$THREAD_ID"
     printf "\n"
 
     if [[ -n "$AI_PROMPT" ]]; then
@@ -127,13 +130,18 @@ echo "$UNRESOLVED_THREADS" | jq -c '.[]' | while read -r thread; do
         done
         printf "\n"
     fi
+
+    # Show decline command for this specific thread
+    printf "    Reply: ./scripts/reply-to-thread.sh %s \"Not fixing: <reason>\"\n" "$THREAD_ID"
+    printf "\n"
 done
 
 printf "  ─────────────────────────────────────────────────────────\n"
 printf "\n"
-printf "  Actions:\n"
-printf "    1. Fix it (use the prompt above)\n"
-printf "    2. Decline with: gh pr comment %s --body \"Not fixing: <reason>\"\n" "$PR_NUMBER"
+printf "  For each item:\n"
+printf "    • Fix it (use the Prompt if provided)\n"
+printf "    • Or reply explaining why not fixing (Reply command above)\n"
+printf "      The reviewer can then resolve the thread on GitHub\n"
 printf "\n"
 printf "  Then: ./scripts/submit-pr.sh --update\n"
 printf "\n"
