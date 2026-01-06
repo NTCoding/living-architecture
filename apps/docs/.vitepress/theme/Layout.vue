@@ -13,7 +13,24 @@ const initZoom = (): void => {
   })
 }
 
-onMounted(initZoom)
+const initEclairLinkHandler = (): void => {
+  document.addEventListener('click', (event) => {
+    const target = event.target as HTMLElement
+    const link = target.closest('a')
+    if (link === null) return
+
+    const href = link.getAttribute('href')
+    if (href === null || !href.startsWith('/eclair/')) return
+
+    event.preventDefault()
+    window.location.href = href
+  })
+}
+
+onMounted(() => {
+  initZoom()
+  initEclairLinkHandler()
+})
 router.onAfterRouteChanged = initZoom
 </script>
 
