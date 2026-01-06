@@ -11,8 +11,10 @@ Main agent runs pipeline directly
     ├── Verify gate → FAIL → return to main
     ├── code-review subagent → FAIL → return findings + next steps
     ├── Task-check subagent → FAIL → return issues
-    ├── submit-pr subagent → FAIL → return issues
-    └── Return SUCCESS with PR URL
+    ├── submit-pr subagent → captures output
+    ├── Parse nitpicks from output
+    ├── Fix nitpicks (or document why not)
+    └── Return SUCCESS with structured status
 ```
 
 ## Usage
@@ -81,11 +83,28 @@ Run this pipeline directly (do NOT spawn a subagent to orchestrate - subagents c
      </raw-output>
      NEXT STEPS: Address the issues and re-run /complete-task
      LOOP CONTROL: If this is your third successive attempt, ask the user for help.
-   - SUCCESS → return:
+
+5. **Resolve nitpicks** (principle: nitpicks contain valuable information and should not be ignored):
+   - Parse nitpicks from submit-pr output (look for "## Nitpicks to Consider")
+   - If nitpicks exist:
+     - For each nitpick: fix it OR document why not fixing (with reason)
+     - If fixes made: commit, push, and run `./scripts/submit-pr.sh --update` to re-verify CI
+   - SUCCESS → return structured message:
+
      PR READY FOR REVIEW
-     <raw-output>
-     [paste the COMPLETE raw output here - do not summarize]
-     </raw-output>
+
+     ## Pipeline Status
+     - Verify gate: PASS
+     - Code review: PASS [or SKIPPED if --feedback-rejected]
+     - Task check: PASS [or SKIPPED if no issue]
+     - CI checks: PASS
+
+     ## Nitpicks
+     [For each nitpick, list: file:line - summary - FIXED or NOT FIXING: reason]
+     OR "None"
+
+     ## PR
+     <url>
 
 ## Debugging SonarCloud Failures
 
