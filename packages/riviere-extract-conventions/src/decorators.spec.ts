@@ -228,6 +228,33 @@ describe('Other decorators', () => {
 
       expect(getCustomType(TrimmedOrder)).toBe('Aggregate')
     })
+
+    it('accepts type with forward slash', () => {
+      @Custom('Order/Manager')
+      class SlashType {
+        readonly id: string = '1'
+      }
+
+      expect(getCustomType(SlashType)).toBe('Order/Manager')
+    })
+
+    it('accepts type with hyphen', () => {
+      @Custom('Order-Manager')
+      class HyphenType {
+        readonly id: string = '1'
+      }
+
+      expect(getCustomType(HyphenType)).toBe('Order-Manager')
+    })
+
+    it('accepts type with dot', () => {
+      @Custom('Order.Manager')
+      class DotType {
+        readonly id: string = '1'
+      }
+
+      expect(getCustomType(DotType)).toBe('Order.Manager')
+    })
   })
 
   describe('Ignore', () => {
