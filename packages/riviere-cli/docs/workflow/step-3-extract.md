@@ -105,7 +105,7 @@ UseCases (extends BaseUseCase): 8 matches → 8 use cases extracted
 
 Generate summary:
 ```bash
-npx riviere builder component-summary --output ".riviere/step-3-summary.md"
+npx riviere builder component-summary --json > ".riviere/step-3-summary.md"
 ```
 
 Check for:
