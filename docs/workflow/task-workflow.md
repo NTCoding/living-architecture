@@ -6,11 +6,11 @@
 
 Work through the entire lifecycle autonomously until you have a mergeable PR or are blocked. Present the user with a completed pull request that is green and ready for review.
 
-*CRUCIAL*: Do not stop to ask the user for permission to do steps you are empowered to do autonomously.
+*CRUCIAL*: Do not stop to ask the user for permission to do steps you are empowered to do autonomously. Never ask things like "Ready for /complete-task ?" - just do it if you have autonomy as defined in the table below.
 
 ## Lifecycle Steps
 
-Autonomous = you can do this without user permission. Do not ask for permission, just do it.
+Autonomous = you can do this without user permission. Do not ask for permission if , just do it.
 
 | Step | Command | Permission |
 |------|---------|------------|

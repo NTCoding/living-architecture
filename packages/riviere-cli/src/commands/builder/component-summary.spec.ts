@@ -14,7 +14,6 @@ import {
   parseSuccessOutput,
   hasSuccessOutputStructure,
   testCommandRegistration,
-  testCustomGraphPath,
 } from '../../command-test-fixtures'
 
 interface ComponentSummaryOutput {
@@ -63,28 +62,36 @@ describe('riviere builder component-summary', () => {
     setupCommandTest(ctx)
 
     it('returns GRAPH_NOT_FOUND when no graph exists', async () => {
-      await createProgram().parseAsync([
-        'node',
-        'riviere',
-        'builder',
-        'component-summary',
-        '--json',
-      ])
+      await createProgram().parseAsync(['node', 'riviere', 'builder', 'component-summary'])
       const output = parseErrorOutput(ctx.consoleOutput)
       expect(output.error.code).toBe(CliErrorCode.GraphNotFound)
     })
 
     it('uses custom graph path when --graph provided', async () => {
-      const output = await testCustomGraphPath(
-        ctx,
-        ['builder', 'component-summary'],
-        parseSummaryOutput,
+      const customPath = await createGraph(
+        ctx.testDir,
+        {
+          version: '1.0',
+          metadata: baseMetadata,
+          components: [],
+          links: [],
+        },
+        'custom',
       )
+      await createProgram().parseAsync([
+        'node',
+        'riviere',
+        'builder',
+        'component-summary',
+        '--graph',
+        customPath,
+      ])
+      const output = parseSummaryOutput(ctx.consoleOutput)
       expect(output.success).toBe(true)
     })
   })
 
-  describe('statistics output (--json)', () => {
+  describe('statistics output', () => {
     const ctx: TestContext = createTestContext()
     setupCommandTest(ctx)
 
@@ -123,13 +130,7 @@ describe('riviere builder component-summary', () => {
         ],
       })
 
-      await createProgram().parseAsync([
-        'node',
-        'riviere',
-        'builder',
-        'component-summary',
-        '--json',
-      ])
+      await createProgram().parseAsync(['node', 'riviere', 'builder', 'component-summary'])
       const output = parseSummaryOutput(ctx.consoleOutput)
 
       expect(output.data.componentCount).toBe(2)
@@ -147,13 +148,7 @@ describe('riviere builder component-summary', () => {
         links: [],
       })
 
-      await createProgram().parseAsync([
-        'node',
-        'riviere',
-        'builder',
-        'component-summary',
-        '--json',
-      ])
+      await createProgram().parseAsync(['node', 'riviere', 'builder', 'component-summary'])
       const output = parseSummaryOutput(ctx.consoleOutput)
 
       expect(output.data.componentsByType).toEqual({
@@ -175,35 +170,12 @@ describe('riviere builder component-summary', () => {
         links: [],
       })
 
-      await createProgram().parseAsync([
-        'node',
-        'riviere',
-        'builder',
-        'component-summary',
-        '--json',
-      ])
+      await createProgram().parseAsync(['node', 'riviere', 'builder', 'component-summary'])
       const output = parseSummaryOutput(ctx.consoleOutput)
 
       expect(output.data.componentCount).toBe(0)
       expect(output.data.linkCount).toBe(0)
       expect(output.data.externalLinkCount).toBe(0)
-    })
-  })
-
-  describe('human output (no --json)', () => {
-    const ctx: TestContext = createTestContext()
-    setupCommandTest(ctx)
-
-    it('produces no output when --json flag not provided', async () => {
-      await createGraph(ctx.testDir, {
-        version: '1.0',
-        metadata: baseMetadata,
-        components: [],
-        links: [],
-      })
-
-      await createProgram().parseAsync(['node', 'riviere', 'builder', 'component-summary'])
-      expect(ctx.consoleOutput).toHaveLength(0)
     })
   })
 })

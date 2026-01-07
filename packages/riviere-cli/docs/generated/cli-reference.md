@@ -417,15 +417,10 @@ riviere builder component-summary [options]
 |------|-------------|
 | `--graph <path>` | Custom graph file path (default: .riviere/graph.json) |
 
-**Optional:**
-| Flag | Description |
-|------|-------------|
-| `--json` | Output result as JSON |
-
 **Examples:**
 ```bash
 riviere builder component-summary
-riviere builder component-summary --json
+riviere builder component-summary > summary.json
 ```
 
 ---

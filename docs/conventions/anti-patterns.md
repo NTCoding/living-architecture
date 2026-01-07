@@ -81,7 +81,7 @@ const result = items
 
 ---
 
-## Exceptions
+## Parsing strings in exception messages
 
 Only when 100% unavoidable (e.g., third-party library limitations):
 
@@ -91,3 +91,25 @@ Only when 100% unavoidable (e.g., third-party library limitations):
 // Tracking: Issue #123 / requested upstream fix
 if (error.message.includes('...')) { ... }
 ```
+
+---
+
+## Changing test assertions when tests fail
+
+When a new change breaks an existing test it is never acceptable to change the assertion to make the tests pass. You must first understand if the test is failing because a regression was introduced (do not update the assertion) or if the existing test actually represents a desired change in behaviour (ok to update the assertion).
+
+---
+
+## Passing empty strings into parameters of type string
+
+If a method takes a parameter of type string and code is passing an empty string value, it's a red flag. An empty strings represents no value hinting at a implicit concept (how to properly handle a missing value: fail fast? create a proper type instead?)
+
+Warning sign: unit test that verifies that a method that takes a string treats an empty string as a valid and expected scenario.
+
+```typescript
+it('should return empty string when empty string provided', () => {
+  expect(doThing('')).toEqual('')
+})
+```
+
+It is probably better to not call the method or to throw an error if a real value is expected. Or look at the design more closely - could the string be represented by a proper type.
