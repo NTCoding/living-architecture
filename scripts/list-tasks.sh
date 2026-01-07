@@ -32,7 +32,7 @@ if [[ ! -d "$PRD_DIR" ]]; then
     exit 1
 fi
 
-PRD_FILE=$(find "$PRD_DIR" -maxdepth 1 -name "*.md" -type f 2>/dev/null | head -1)
+PRD_FILE=$(find "$PRD_DIR" -maxdepth 1 -name "*.md" -type f -print -quit 2>/dev/null)
 if [[ -z "$PRD_FILE" ]]; then
     echo "Error: No active PRD found in $PRD_DIR" >&2
     exit 1
