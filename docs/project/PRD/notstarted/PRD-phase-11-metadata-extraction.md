@@ -16,6 +16,8 @@ Phase 10 extracts component identity (type, name, location). We now need to extr
 
 This metadata enriches the draft components from Phase 10 into more complete component definitions.
 
+*IDEA*: Use these commands as part of a pull-request. Extract only the entities, events, apis (components) modified in the pull request and provide a diff of how the model has changed. As part of this PRD it can just be structure - e.g. entity has new/updated method, new event added. With the next PRD it could also include connections. Specialised CLI commands and UI may be needed.
+
 ---
 
 ## 2. Design Principles
