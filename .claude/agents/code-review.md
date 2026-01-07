@@ -24,7 +24,7 @@ This captures:
 - Unstaged changes: `git diff --name-only`
 - Untracked files: `git ls-files --others --exclude-standard`
 
-Filter to `.ts` and `.tsx` files only. If no files match, return PASS immediately.
+Filter to `.ts`, `.tsx`, and `.sh` files. If no files match, return PASS immediately.
 
 ## Output Format
 

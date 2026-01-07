@@ -167,6 +167,36 @@ Claude Code has a very bad habit of duplicating code. If near-identical code is 
 
 Don't spend too long looking across the whole codebase for duplicated code but do look in related files that might contain the same code and do use search patterns that can identify duplication quickly.
 
+## Shell Scripts
+
+Check all `.sh` files against these patterns:
+
+### JSON Construction
+
+When building JSON in bash, use `jq` instead of manual string escaping. Manual escaping typically misses backslashes, newlines, and tabs.
+
+**Bad:** Manual escaping (incomplete)
+```bash
+BODY="${MESSAGE//\"/\\\"}"
+gh api ... --field body="$BODY"
+```
+
+**Good:** Use jq for JSON construction
+```bash
+BODY=$(jq -n --arg msg "$MESSAGE" '{body: $msg}')
+gh api ... --input - <<< "$BODY"
+```
+
+### Unused Variables
+
+Flag any variables that are extracted or assigned but never used.
+
+```plaintext
+Shell Script Violation: Unused variable
+Code: [show variable assignment and lack of usage]
+Fix: Remove the variable or use it
+```
+
 ## Suggest updates
 
 How can we update our coding conventions, documents and processes to prevent the type of errors you've identified? Provide suggestions if they seem relevant and useful.

@@ -138,6 +138,19 @@ export default tseslint.config(
       'max-depth': ['error', 3],
       complexity: ['error', 12],
 
+      // ESM compatibility - ban CommonJS globals
+        'no-restricted-globals': [
+          'error',
+          {
+            name: '__dirname',
+            message: 'Use dirname(fileURLToPath(import.meta.url)) in ESM',
+          },
+          {
+            name: '__filename',
+            message: 'Use fileURLToPath(import.meta.url) in ESM',
+          },
+        ],
+
       // Naming conventions
       '@typescript-eslint/naming-convention': [
         'error',

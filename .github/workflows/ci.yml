@@ -105,6 +105,18 @@ jobs:
       - name: Check markdown formatting
         run: pnpm lint:md
 
+  shellcheck:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: ShellCheck
+        uses: ludeeus/action-shellcheck@master
+        with:
+          ignore_paths: '.husky --help'
+
   publish:
     needs: [main]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'

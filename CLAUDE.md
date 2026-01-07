@@ -113,7 +113,7 @@ When writing, editing, refactoring, or reviewing code:
 
 Code review runs via `/code-review` and `/complete-task` commands (see `.claude/automatic-code-review/rules.md` for rules)
 
-Code quality is of highest importance. Rushing or taking shortcuts is never acceptable.
+Code quality is of highest importance. Rushing or taking shortcuts is never acceptable. We have strong lint rules on this project so always read `eslint.config.mjs`.
 
 ## Brand Identity, theme, design, UI, UX
 
