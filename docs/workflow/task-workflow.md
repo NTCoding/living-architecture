@@ -10,7 +10,7 @@ Work through the entire lifecycle autonomously until you have a mergeable PR or 
 
 ## Lifecycle Steps
 
-Autonomous = you can do this without user permission. Do not ask for permission if , just do it.
+Autonomous = you can do this without user permission. Do not ask for permission, just do it.
 
 | Step | Command | Permission |
 |------|---------|------------|
