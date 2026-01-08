@@ -42,17 +42,6 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - name: Cache Playwright browsers
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            playwright-${{ runner.os }}-
-
-      - name: Install Playwright browsers with dependencies
-        run: pnpm --filter @living-architecture/eclair exec playwright install --with-deps chromium firefox webkit
-
       # Prepend any command with "nx-cloud record --" to record its logs to Nx Cloud
       # - run: pnpm exec nx-cloud record -- echo Hello World
       # PRs: test affected only (faster feedback)
@@ -60,34 +49,10 @@ jobs:
         if: github.event_name == 'pull_request'
         run: pnpm exec nx affected -t lint test build typecheck check-generated-docs --verbose
 
-      - name: Browser tests - Chromium (PR)
-        if: github.event_name == 'pull_request'
-        run: BROWSER=chromium pnpm exec nx affected -t test:browser --verbose
-
-      - name: Browser tests - Firefox (PR)
-        if: github.event_name == 'pull_request'
-        run: BROWSER=firefox pnpm exec nx affected -t test:browser --verbose
-
-      - name: Browser tests - WebKit (PR)
-        if: github.event_name == 'pull_request'
-        run: BROWSER=webkit pnpm exec nx affected -t test:browser --verbose
-
       # Main: test everything (ensures coverage files exist for SonarCloud)
       - name: Test all (main)
         if: github.ref == 'refs/heads/main'
         run: pnpm exec nx run-many -t lint test build typecheck --verbose
-
-      - name: Browser tests - Chromium (main)
-        if: github.ref == 'refs/heads/main'
-        run: BROWSER=chromium pnpm exec nx run-many -t test:browser --verbose
-
-      - name: Browser tests - Firefox (main)
-        if: github.ref == 'refs/heads/main'
-        run: BROWSER=firefox pnpm exec nx run-many -t test:browser --verbose
-
-      - name: Browser tests - WebKit (main)
-        if: github.ref == 'refs/heads/main'
-        run: BROWSER=webkit pnpm exec nx run-many -t test:browser --verbose
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@a31c9398be7ace6bbfaf30c0bd5d415f843d45e9
@@ -96,6 +61,57 @@ jobs:
         with:
           args: >
             -Dsonar.qualitygate.wait=true
+
+  browser-tests:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+    concurrency:
+      group: browser-${{ matrix.browser }}-${{ github.ref }}
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: nrwl/nx-set-shas@v4
+
+      - uses: pnpm/action-setup@v4
+        name: Install pnpm
+        with:
+          version: 10.26.2
+          run_install: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ matrix.browser }}-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            playwright-${{ matrix.browser }}-${{ runner.os }}-
+
+      - name: Install Playwright browser with dependencies
+        run: pnpm --filter @living-architecture/eclair exec playwright install --with-deps ${{ matrix.browser }}
+
+      - name: Browser tests (PR)
+        if: github.event_name == 'pull_request'
+        run: BROWSER=${{ matrix.browser }} pnpm exec nx affected -t test:browser --verbose
+
+      - name: Browser tests (main)
+        if: github.ref == 'refs/heads/main'
+        run: BROWSER=${{ matrix.browser }} pnpm exec nx run-many -t test:browser --verbose
 
   knip:
     runs-on: ubuntu-latest
