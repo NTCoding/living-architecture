@@ -21,6 +21,17 @@ export default defineConfig(() => ({
     globals: true,
     include: ['{src,tests}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     exclude: testsUsingJsdomSpecificMocking,
+    coverage: {
+      enabled: true,
+      reportsDirectory: '../../coverage/apps/eclair-browser',
+      provider: 'v8' as const,
+      reporter: ['text', 'lcov'],
+      exclude: [
+        '**/riviereTestFixtures.ts',
+        '**/ForceGraph/ForceGraph.tsx',
+        '**/ForceGraph/GraphRenderingSetup.ts',
+      ],
+    },
     browser: {
       enabled: true,
       provider: playwright(),

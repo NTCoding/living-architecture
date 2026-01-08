@@ -71,7 +71,7 @@
     "@vitejs/plugin-react": "^5.1.1",
     "@vitest/browser-playwright": "^4.0.16",
     "@vitest/ui": "^4.0.16",
-    "jsdom": "^26.0.0",
+    "jsdom": "^27.4.0",
     "playwright": "^1.57.0",
     "tailwindcss": "^4.1.17",
     "vite": "^7.2.4",
