@@ -8,6 +8,7 @@ const testsUsingJsdomSpecificMocking = [
   '**/FileUpload.test.tsx',
   '**/EmptyState.test.tsx',
   '**/App.test.tsx',
+  '**/SchemaModal.test.tsx',
 ];
 
 const ALLOWED_BROWSERS = ['chromium', 'firefox', 'webkit'] as const;
