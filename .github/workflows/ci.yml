@@ -60,18 +60,34 @@ jobs:
         if: github.event_name == 'pull_request'
         run: pnpm exec nx affected -t lint test build typecheck check-generated-docs --verbose
 
-      - name: Browser tests (PR)
+      - name: Browser tests - Chromium (PR)
         if: github.event_name == 'pull_request'
-        run: pnpm exec nx affected -t test:browser --verbose
+        run: BROWSER=chromium pnpm exec nx affected -t test:browser --verbose
+
+      - name: Browser tests - Firefox (PR)
+        if: github.event_name == 'pull_request'
+        run: BROWSER=firefox pnpm exec nx affected -t test:browser --verbose
+
+      - name: Browser tests - WebKit (PR)
+        if: github.event_name == 'pull_request'
+        run: BROWSER=webkit pnpm exec nx affected -t test:browser --verbose
 
       # Main: test everything (ensures coverage files exist for SonarCloud)
       - name: Test all (main)
         if: github.ref == 'refs/heads/main'
         run: pnpm exec nx run-many -t lint test build typecheck --verbose
 
-      - name: Browser tests (main)
+      - name: Browser tests - Chromium (main)
         if: github.ref == 'refs/heads/main'
-        run: pnpm exec nx run-many -t test:browser --verbose
+        run: BROWSER=chromium pnpm exec nx run-many -t test:browser --verbose
+
+      - name: Browser tests - Firefox (main)
+        if: github.ref == 'refs/heads/main'
+        run: BROWSER=firefox pnpm exec nx run-many -t test:browser --verbose
+
+      - name: Browser tests - WebKit (main)
+        if: github.ref == 'refs/heads/main'
+        run: BROWSER=webkit pnpm exec nx run-many -t test:browser --verbose
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@a31c9398be7ace6bbfaf30c0bd5d415f843d45e9

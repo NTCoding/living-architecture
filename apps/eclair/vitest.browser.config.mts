@@ -28,11 +28,15 @@ export default defineConfig(() => ({
       enabled: true,
       headless: true,
       provider: playwright(),
-      instances: [
-        { browser: 'chromium' },
-        { browser: 'firefox' },
-        { browser: 'webkit' },
-      ],
+      // In CI, run one browser at a time (specified via BROWSER env) for stability
+      // Locally, run all browsers
+      instances: process.env.BROWSER
+        ? [{ browser: process.env.BROWSER as 'chromium' | 'firefox' | 'webkit' }]
+        : [
+          { browser: 'chromium' },
+          { browser: 'firefox' },
+          { browser: 'webkit' },
+        ],
     },
   },
 }));
