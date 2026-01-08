@@ -33,8 +33,21 @@ const COMPONENT_TYPES: ComponentType[] = [
   'ui',
 ]
 
+const FIND_TARGETS: readonly string[] = ['classes', 'methods', 'functions']
+
+function hasProperty<K extends string>(obj: object, key: K): obj is object & Record<K, unknown> {
+  return key in obj
+}
+
 function isDetectionRule(rule: unknown): rule is DetectionRule {
-  return typeof rule === 'object' && rule !== null && 'find' in rule && 'where' in rule
+  /* istanbul ignore if -- @preserve: unreachable with typed ExtractionConfig; defensive guard */
+  if (typeof rule !== 'object' || rule === null) {
+    return false
+  }
+  if (!hasProperty(rule, 'find') || !hasProperty(rule, 'where')) {
+    return false
+  }
+  return typeof rule.find === 'string' && FIND_TARGETS.includes(rule.find)
 }
 
 export function extractComponents(
