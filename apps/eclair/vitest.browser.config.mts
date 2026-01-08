@@ -21,6 +21,9 @@ export default defineConfig(() => ({
     globals: true,
     include: ['{src,tests}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     exclude: testsUsingJsdomSpecificMocking,
+    // Disable file parallelism in CI for stability with multiple browsers
+    fileParallelism: !process.env.CI,
+    retry: process.env.CI ? 2 : 0,
     browser: {
       enabled: true,
       headless: true,
