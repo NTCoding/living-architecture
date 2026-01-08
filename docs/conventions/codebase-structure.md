@@ -136,22 +136,10 @@ Each app/package needs a 3-file tsconfig structure:
 ```
 
 **tsconfig.spec.json** (tests):
-```json
-{
-  "extends": "../../tsconfig.base.json",
-  "compilerOptions": {
-    "outDir": "./dist-test",
-    "rootDir": "./src",
-    "types": ["vitest/globals"]
-  },
-  "include": ["src/**/*.test.ts"],
-  "references": [
-    { "path": "./tsconfig.lib.json" }
-  ]
-}
-```
 
-The `references` arrays are automatically maintained by `nx sync`.
+See `packages/riviere-schema/tsconfig.spec.json` for the canonical example. The `references` array may include additional project references for test dependencies. The eclair app includes React-specific additions (jsx, lib, testing-library types).
+
+The `references` arrays are automatically maintained by `pnpm nx sync`.
 
 ## Adding Projects
 
@@ -159,19 +147,19 @@ Use NX generators - don't create project folders manually.
 
 **Add application:**
 ```bash
-nx g @nx/node:application apps/[app-name]
+pnpm nx g @nx/node:application apps/[app-name]
 ```
 
 **Add publishable package:**
 ```bash
-nx g @nx/js:library packages/[pkg-name] --publishable --importPath=@living-architecture/[pkg-name]
+pnpm nx g @nx/js:library packages/[pkg-name] --publishable --importPath=@living-architecture/[pkg-name]
 ```
 
 After generation:
 1. Verify/update package.json name: `@living-architecture/[project-name]`
 2. Create 3-file tsconfig structure (see above)
 3. Add vitest.config.ts with 100% coverage thresholds
-4. Run `nx sync`
+4. Run `pnpm nx sync`
 5. Update CLAUDE.md "Current packages" section
 
 **Adding dependencies between projects:**
@@ -182,4 +170,4 @@ After generation:
   }
 }
 ```
-Then run `pnpm install` and `nx sync`.
+Then run `pnpm install` and `pnpm nx sync`.
