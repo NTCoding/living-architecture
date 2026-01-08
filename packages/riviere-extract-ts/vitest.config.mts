@@ -1,10 +1,10 @@
-import path from 'node:path'
-import { defineConfig } from 'vitest/config'
+import path from 'node:path';
+import { defineConfig } from 'vitest/config';
 
-const repoRoot = path.resolve(import.meta.dirname, '../..')
+const repoRoot = path.resolve(__dirname, '../..');
 
 export default defineConfig(() => ({
-  root: import.meta.dirname,
+  root: __dirname,
   cacheDir: '../../node_modules/.vite/packages/riviere-extract-ts',
   test: {
     name: '@living-architecture/riviere-extract-ts',
@@ -34,4 +34,4 @@ export default defineConfig(() => ({
       },
     },
   },
-}))
+}));
