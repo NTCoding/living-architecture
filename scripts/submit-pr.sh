@@ -18,6 +18,7 @@ done
 MODE=""
 TITLE=""
 BODY=""
+NO_ISSUE=false
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -34,10 +35,14 @@ while [[ $# -gt 0 ]]; do
             MODE="update"
             shift
             ;;
+        --no-issue)
+            NO_ISSUE=true
+            shift
+            ;;
         *)
             echo "Unknown option: $1" >&2
             echo "Usage:" >&2
-            echo "  ./scripts/submit-pr.sh --title \"...\" --body \"...\"" >&2
+            echo "  ./scripts/submit-pr.sh --title \"...\" --body \"...\" [--no-issue]" >&2
             echo "  ./scripts/submit-pr.sh --update" >&2
             exit 1
             ;;
@@ -106,6 +111,22 @@ elif [[ "$MODE" == "create" ]]; then
     if [[ -z "$TITLE" ]]; then
         echo "Error: --title is required for creating a PR" >&2
         exit 1
+    fi
+
+    # Extract issue number from branch name (e.g., issue-40-description -> 40)
+    ISSUE_NUM=$(echo "$CURRENT_BRANCH" | sed -n 's/^issue-\([0-9]*\).*/\1/p')
+    if [[ -z "$ISSUE_NUM" ]] && [[ "$NO_ISSUE" == false ]]; then
+        echo "Error: Branch name must include issue number (e.g., issue-40-description)" >&2
+        echo "Current branch: $CURRENT_BRANCH" >&2
+        echo "Use --no-issue flag to create PR without linking to an issue" >&2
+        exit 1
+    fi
+
+    # Prepend "Closes #<issue>" to body if issue number found
+    if [[ -n "$ISSUE_NUM" ]]; then
+        BODY="Closes #${ISSUE_NUM}
+
+$BODY"
     fi
 
     echo "Creating PR..."
