@@ -84,6 +84,34 @@ The default config is a starting point. Teams can:
 2. Add additional modules for different paths
 3. Combine with other detection strategies (JSDoc, naming conventions)
 
+## ESLint Enforcement
+
+An ESLint plugin ensures all classes have component decorators.
+
+### Setup
+
+```javascript
+import conventionsPlugin from '@living-architecture/riviere-extract-conventions/eslint-plugin'
+
+export default [
+  {
+    files: ['src/domain/**/*.ts'],
+    plugins: { conventions: conventionsPlugin },
+    rules: { 'conventions/require-component-decorator': 'error' },
+  },
+]
+```
+
+### What It Checks
+
+The `require-component-decorator` rule reports errors when classes lack component decorators:
+
+**Valid decorators:** `@UseCase`, `@Event`, `@UI`, `@DomainOpContainer`, `@APIContainer`, `@EventHandlerContainer`, `@Custom('type')`, `@Ignore`
+
+**Ignored:** Functions, interfaces, type aliases, anonymous classes
+
+Use ESLint's `files` config to scope enforcement to specific paths.
+
 ## Principles
 
 1. **Pure markers** - Decorators have no runtime behavior; they exist only for extraction

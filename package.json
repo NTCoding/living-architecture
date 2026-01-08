@@ -34,6 +34,7 @@
     "@swc-node/register": "~1.9.1",
     "@swc/core": "~1.5.7",
     "@types/node": "20.19.9",
+    "@typescript-eslint/rule-tester": "8.50.1",
     "@vitest/coverage-v8": "^4.0.16",
     "esbuild": "^0.21.0",
     "eslint": "^9.39.0",

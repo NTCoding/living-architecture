@@ -16,11 +16,18 @@
       "import": "./dist/index.js",
       "default": "./dist/index.js"
     },
-    "./default-config": "./src/default-extraction.config.json"
+    "./default-config": "./src/default-extraction.config.json",
+    "./eslint-plugin": {
+      "types": "./src/eslint/index.d.ts",
+      "require": "./src/eslint/index.js",
+      "default": "./src/eslint/index.js"
+    }
   },
   "files": [
     "dist",
     "src/default-extraction.config.json",
+    "src/eslint/*.js",
+    "src/eslint/*.d.ts",
     "!**/*.tsbuildinfo"
   ],
   "dependencies": {
