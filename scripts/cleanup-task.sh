@@ -24,6 +24,17 @@ echo "Branch: $BRANCH_NAME"
 echo "Main repo: $MAIN_REPO"
 echo ""
 
+# Remove worktree from Claude Code permissions
+SETTINGS_LOCAL="$MAIN_REPO/.claude/settings.local.json"
+if [[ -f "$SETTINGS_LOCAL" ]] && command -v jq &> /dev/null; then
+    jq --arg dir "$WORKTREE_PATH" '
+      .permissions.additionalDirectories = (
+        (.permissions.additionalDirectories // []) | map(select(. != $dir))
+      )
+    ' "$SETTINGS_LOCAL" > "$SETTINGS_LOCAL.tmp" && mv "$SETTINGS_LOCAL.tmp" "$SETTINGS_LOCAL"
+    echo "Removed worktree from Claude Code permissions"
+fi
+
 # Check for uncommitted changes
 UNCOMMITTED=$(git status --porcelain)
 if [[ -n "$UNCOMMITTED" ]]; then
