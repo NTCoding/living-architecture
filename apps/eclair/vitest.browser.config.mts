@@ -24,6 +24,18 @@ function parseBrowser(value: string | undefined): BrowserName | undefined {
   return value as BrowserName;
 }
 
+function getBrowserInstances(): { browser: BrowserName }[] {
+  const browser = parseBrowser(process.env.BROWSER);
+  if (browser) {
+    return [{ browser }];
+  }
+  return [
+    { browser: 'chromium' },
+    { browser: 'firefox' },
+    { browser: 'webkit' },
+  ];
+}
+
 export default defineConfig(() => ({
   root: __dirname,
   cacheDir: '../../node_modules/.vite/apps/eclair-browser',
@@ -35,25 +47,13 @@ export default defineConfig(() => ({
     globals: true,
     include: ['{src,tests}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     exclude: testsUsingJsdomSpecificMocking,
-    // Disable file parallelism in CI for stability with multiple browsers
     fileParallelism: !process.env.CI,
     retry: process.env.CI ? 2 : 0,
     browser: {
       enabled: true,
       headless: true,
       provider: playwright(),
-      // In CI, run one browser at a time (specified via BROWSER env) for stability
-      // Locally, run all browsers
-      instances: (() => {
-        const browser = parseBrowser(process.env.BROWSER);
-        return browser
-          ? [{ browser }]
-          : [
-            { browser: 'chromium' as const },
-            { browser: 'firefox' as const },
-            { browser: 'webkit' as const },
-          ];
-      })(),
+      instances: getBrowserInstances(),
     },
   },
 }));
