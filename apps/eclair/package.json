@@ -18,7 +18,9 @@
       "serve": {
         "executor": "nx:run-commands",
         "continuous": true,
-        "dependsOn": ["^build"],
+        "dependsOn": [
+          "^build"
+        ],
         "options": {
           "command": "vite",
           "cwd": "apps/eclair"
@@ -31,6 +33,14 @@
         ],
         "options": {
           "command": "vite preview",
+          "cwd": "apps/eclair"
+        }
+      },
+      "test:browser": {
+        "executor": "nx:run-commands",
+        "dependsOn": ["^build"],
+        "options": {
+          "command": "vitest run --config vitest.browser.config.mts",
           "cwd": "apps/eclair"
         }
       }
@@ -60,8 +70,10 @@
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.1",
+    "@vitest/browser-playwright": "^4.0.16",
     "@vitest/ui": "^4.0.16",
-    "jsdom": "^26.0.0",
+    "jsdom": "^27.4.0",
+    "playwright": "^1.57.0",
     "tailwindcss": "^4.1.17",
     "vite": "^7.2.4",
     "vitest": "^4.0.16"
