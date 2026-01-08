@@ -23,6 +23,7 @@ export default defineConfig(() => ({
     exclude: testsUsingJsdomSpecificMocking,
     browser: {
       enabled: true,
+      headless: true,
       provider: playwright(),
       instances: [
         { browser: 'chromium' },
