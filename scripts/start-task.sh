@@ -95,28 +95,6 @@ if [[ "$USE_WORKTREE" == true ]]; then
     echo "Creating worktree: $WORKTREE_DIR"
     git worktree add -b "$BRANCH_NAME" "$WORKTREE_DIR"
 
-    # Register worktree in Claude Code permissions
-    SETTINGS_LOCAL="$REPO_ROOT/.claude/settings.local.json"
-    WORKTREE_ABS=$(cd "$WORKTREE_DIR" && pwd)
-
-    if command -v jq &> /dev/null; then
-        for dir in "$WORKTREE_ABS" "/tmp"; do
-            if [[ -f "$SETTINGS_LOCAL" ]]; then
-                jq --arg dir "$dir" '
-                  .permissions.additionalDirectories = (
-                    (.permissions.additionalDirectories // []) + [$dir] | unique
-                  )
-                ' "$SETTINGS_LOCAL" > "$SETTINGS_LOCAL.tmp" && mv "$SETTINGS_LOCAL.tmp" "$SETTINGS_LOCAL"
-            else
-                mkdir -p "$(dirname "$SETTINGS_LOCAL")"
-                jq -n --arg dir "$dir" '{"permissions":{"additionalDirectories":[$dir]}}' > "$SETTINGS_LOCAL"
-            fi
-        done
-        echo "Registered worktree and /tmp in Claude Code permissions"
-    else
-        echo "Note: Install jq to auto-register worktrees in Claude Code permissions"
-        echo "  Or run: /add-dir $WORKTREE_ABS"
-    fi
 else
     echo "Creating branch: $BRANCH_NAME"
     git checkout -b "$BRANCH_NAME"
