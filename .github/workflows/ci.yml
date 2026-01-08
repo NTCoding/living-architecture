@@ -50,8 +50,8 @@ jobs:
           restore-keys: |
             playwright-${{ runner.os }}-
 
-      - name: Install Playwright browsers
-        run: pnpm --filter @living-architecture/eclair exec playwright install chromium firefox webkit
+      - name: Install Playwright browsers with dependencies
+        run: pnpm --filter @living-architecture/eclair exec playwright install --with-deps chromium firefox webkit
 
       # Prepend any command with "nx-cloud record --" to record its logs to Nx Cloud
       # - run: pnpm exec nx-cloud record -- echo Hello World
