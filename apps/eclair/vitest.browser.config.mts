@@ -3,12 +3,11 @@ import { playwright } from '@vitest/browser-playwright';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
 
-const testsUsingJsdomSpecificMocking = [
+const testsRequiringJsdom = [
+  '**/App.test.tsx',
   '**/GraphContext.test.tsx',
   '**/FileUpload.test.tsx',
   '**/EmptyState.test.tsx',
-  '**/App.test.tsx',
-  '**/SchemaModal.test.tsx',
 ];
 
 const ALLOWED_BROWSERS = ['chromium', 'firefox', 'webkit'] as const;
@@ -46,7 +45,7 @@ export default defineConfig(() => ({
     watch: false,
     globals: true,
     include: ['{src,tests}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
-    exclude: testsUsingJsdomSpecificMocking,
+    exclude: testsRequiringJsdom,
     fileParallelism: !process.env.CI,
     retry: process.env.CI ? 2 : 0,
     browser: {
