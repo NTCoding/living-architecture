@@ -114,7 +114,7 @@ elif [[ "$MODE" == "create" ]]; then
     fi
 
     # Extract issue number from branch name (e.g., issue-40-description -> 40)
-    ISSUE_NUM=$(echo "$CURRENT_BRANCH" | sed -n 's/^issue-\([0-9]*\).*/\1/p')
+    ISSUE_NUM=$(echo "$CURRENT_BRANCH" | sed -n 's/^issue-\([0-9][0-9]*\).*/\1/p')
     if [[ -z "$ISSUE_NUM" ]] && [[ "$NO_ISSUE" == false ]]; then
         echo "Error: Branch name must include issue number (e.g., issue-40-description)" >&2
         echo "Current branch: $CURRENT_BRANCH" >&2
