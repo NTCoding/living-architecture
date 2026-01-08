@@ -58,6 +58,49 @@ describe('extractComponents', () => {
       expect(result).toEqual([])
     })
 
+    it('matches module path when file path uses Windows backslashes', () => {
+      const project = createTestProject()
+      project.createSourceFile(
+        'orders\\use-cases\\create-order.ts',
+        `
+        function UseCase() { return (target: any) => target }
+        @UseCase
+        export class CreateOrder {}
+      `,
+      )
+      const config: ExtractionConfig = {
+        modules: [
+          {
+            name: 'orders',
+            path: 'orders/**',
+            api: { notUsed: true },
+            useCase: {
+              find: 'classes',
+              where: { hasDecorator: { name: 'UseCase' } },
+            },
+            domainOp: { notUsed: true },
+            event: { notUsed: true },
+            eventHandler: { notUsed: true },
+            ui: { notUsed: true },
+          },
+        ],
+      }
+
+      const result = extractComponents(project, ['orders\\use-cases\\create-order.ts'], config)
+
+      expect(result).toEqual([
+        {
+          type: 'useCase',
+          name: 'CreateOrder',
+          location: {
+            file: 'orders\\use-cases\\create-order.ts',
+            line: 3,
+          },
+          domain: 'orders',
+        },
+      ])
+    })
+
     it('skips anonymous classes without names', () => {
       const project = createTestProject()
       project.createSourceFile(

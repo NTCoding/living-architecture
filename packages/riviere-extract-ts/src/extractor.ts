@@ -224,5 +224,6 @@ function createFunctionComponent(
 }
 
 function findMatchingModule(filePath: string, modules: Module[]): Module | undefined {
-  return modules.find((m) => minimatch(filePath, m.path))
+  const normalized = filePath.replaceAll(/\\+/g, '/')
+  return modules.find((m) => minimatch(normalized, m.path))
 }

@@ -293,6 +293,31 @@ function calculateDiscount(price: PositiveNumber, rate: number): Money {
 }
 ```
 
+## Parse, Don't Validate
+
+**Principle:** Use Zod schemas at system boundaries to parse external data once. Don't scatter `isX(unknown): x is T` type guards throughout the codebase.
+
+```typescript
+// ✅ PARSE AT BOUNDARY - Zod schema defines both type and validation
+const DetectionRuleSchema = z.object({
+  find: z.enum(['class', 'function', 'decorator']),
+  where: z.object({ nameMatches: z.string() })
+})
+type DetectionRule = z.infer<typeof DetectionRuleSchema>
+
+// Config loader parses once at the boundary
+function loadConfig(raw: unknown): Config {
+  return ConfigSchema.parse(raw)  // Validated, typed, done
+}
+
+// ❌ SCATTERED VALIDATION - type guard validates unknown deep in code
+function isDetectionRule(rule: unknown): rule is DetectionRule {
+  return typeof rule === 'object' && rule !== null && 'find' in rule && 'where' in rule
+}
+```
+
+**The test:** Is the input `unknown` or external data? Parse with Zod at the boundary, not with scattered type guards.
+
 ## Prefer Immutability
 
 **Principle:** Default to immutable data. Mutation is a source of bugs—unexpected changes, race conditions, and difficult debugging.
