@@ -100,19 +100,19 @@ if [[ "$USE_WORKTREE" == true ]]; then
     WORKTREE_ABS=$(cd "$WORKTREE_DIR" && pwd)
 
     if command -v jq &> /dev/null; then
-        if [[ -f "$SETTINGS_LOCAL" ]]; then
-            # Add to existing additionalDirectories array (or create it)
-            jq --arg dir "$WORKTREE_ABS" '
-              .permissions.additionalDirectories = (
-                (.permissions.additionalDirectories // []) + [$dir] | unique
-              )
-            ' "$SETTINGS_LOCAL" > "$SETTINGS_LOCAL.tmp" && mv "$SETTINGS_LOCAL.tmp" "$SETTINGS_LOCAL"
-        else
-            # Create new settings.local.json (ensure directory exists first)
-            mkdir -p "$(dirname "$SETTINGS_LOCAL")"
-            jq -n --arg dir "$WORKTREE_ABS" '{"permissions":{"additionalDirectories":[$dir]}}' > "$SETTINGS_LOCAL"
-        fi
-        echo "Registered worktree in Claude Code permissions"
+        for dir in "$WORKTREE_ABS" "/tmp"; do
+            if [[ -f "$SETTINGS_LOCAL" ]]; then
+                jq --arg dir "$dir" '
+                  .permissions.additionalDirectories = (
+                    (.permissions.additionalDirectories // []) + [$dir] | unique
+                  )
+                ' "$SETTINGS_LOCAL" > "$SETTINGS_LOCAL.tmp" && mv "$SETTINGS_LOCAL.tmp" "$SETTINGS_LOCAL"
+            else
+                mkdir -p "$(dirname "$SETTINGS_LOCAL")"
+                jq -n --arg dir "$dir" '{"permissions":{"additionalDirectories":[$dir]}}' > "$SETTINGS_LOCAL"
+            fi
+        done
+        echo "Registered worktree and /tmp in Claude Code permissions"
     else
         echo "Note: Install jq to auto-register worktrees in Claude Code permissions"
         echo "  Or run: /add-dir $WORKTREE_ABS"
