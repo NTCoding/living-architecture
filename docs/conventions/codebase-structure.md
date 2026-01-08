@@ -137,7 +137,11 @@ Each app/package needs a 3-file tsconfig structure:
 
 **tsconfig.spec.json** (tests):
 
-See `packages/riviere-schema/tsconfig.spec.json` for the canonical example. The `references` array may include additional project references for test dependencies. The eclair app includes React-specific additions (jsx, lib, testing-library types).
+See `packages/riviere-schema/tsconfig.spec.json` for the canonical example. This uses the expanded pattern with full vitest ecosystem support (`types: ["vitest/globals", "vitest/importMeta", "vite/client", "node", "vitest"]`) and comprehensive include patterns for `.test.*`, `.spec.*`, config files, and `.d.ts` files.
+
+The `references` array may include additional project references for test dependencies. The eclair app includes React-specific additions (jsx, lib, testing-library types).
+
+> **Maintenance note:** When modifying test tsconfigs, verify changes against the canonical file. If `packages/riviere-schema/tsconfig.spec.json` changes, update this documentation or ensure all packages follow the new pattern.
 
 The `references` arrays are automatically maintained by `pnpm nx sync`.
 
