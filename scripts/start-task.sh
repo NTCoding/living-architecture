@@ -108,8 +108,9 @@ if [[ "$USE_WORKTREE" == true ]]; then
               )
             ' "$SETTINGS_LOCAL" > "$SETTINGS_LOCAL.tmp" && mv "$SETTINGS_LOCAL.tmp" "$SETTINGS_LOCAL"
         else
-            # Create new settings.local.json
-            echo "{\"permissions\":{\"additionalDirectories\":[\"$WORKTREE_ABS\"]}}" | jq . > "$SETTINGS_LOCAL"
+            # Create new settings.local.json (ensure directory exists first)
+            mkdir -p "$(dirname "$SETTINGS_LOCAL")"
+            jq -n --arg dir "$WORKTREE_ABS" '{"permissions":{"additionalDirectories":[$dir]}}' > "$SETTINGS_LOCAL"
         fi
         echo "Registered worktree in Claude Code permissions"
     else
