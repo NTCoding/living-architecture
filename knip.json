@@ -3,6 +3,9 @@
   "ignoreDependencies": [
     "tailwindcss"
   ],
+  "ignoreBinaries": [
+    "playwright"
+  ],
   "workspaces": {
     "apps/eclair": {
       "entry": [

@@ -41,6 +41,10 @@ jobs:
           cache: 'pnpm'
 
       - run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium firefox webkit
+
       # Prepend any command with "nx-cloud record --" to record its logs to Nx Cloud
       # - run: pnpm exec nx-cloud record -- echo Hello World
       # PRs: test affected only (faster feedback)
@@ -48,10 +52,18 @@ jobs:
         if: github.event_name == 'pull_request'
         run: pnpm exec nx affected -t lint test build typecheck check-generated-docs --verbose
 
+      - name: Browser tests (PR)
+        if: github.event_name == 'pull_request'
+        run: pnpm exec nx affected -t test:browser --verbose
+
       # Main: test everything (ensures coverage files exist for SonarCloud)
       - name: Test all (main)
         if: github.ref == 'refs/heads/main'
         run: pnpm exec nx run-many -t lint test build typecheck --verbose
+
+      - name: Browser tests (main)
+        if: github.ref == 'refs/heads/main'
+        run: pnpm exec nx run-many -t test:browser --verbose
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@a31c9398be7ace6bbfaf30c0bd5d415f843d45e9
