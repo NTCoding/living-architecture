@@ -1,8 +1,8 @@
-import type { RuleModule } from '@typescript-eslint/rule-tester'
+import type { TSESLint } from '@typescript-eslint/utils'
 
 interface Plugin {
   rules: {
-    'require-component-decorator': RuleModule<'missingDecorator'>
+    'require-component-decorator': TSESLint.RuleModule<'missingDecorator'>
   }
 }
 

@@ -19,15 +19,16 @@
     "./default-config": "./src/default-extraction.config.json",
     "./eslint-plugin": {
       "types": "./src/eslint/index.d.ts",
-      "require": "./src/eslint/index.js",
-      "default": "./src/eslint/index.js"
+      "require": "./src/eslint/index.cjs",
+      "default": "./src/eslint/index.cjs"
     }
   },
   "files": [
     "dist",
     "src/default-extraction.config.json",
-    "src/eslint/*.js",
+    "src/eslint/*.cjs",
     "src/eslint/*.d.ts",
+    "src/eslint/*.d.cts",
     "!**/*.tsbuildinfo"
   ],
   "dependencies": {

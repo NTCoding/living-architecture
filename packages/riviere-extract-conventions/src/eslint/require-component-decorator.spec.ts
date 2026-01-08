@@ -2,7 +2,7 @@ import {
   afterAll, describe, expect, it 
 } from 'vitest'
 import { RuleTester } from '@typescript-eslint/rule-tester'
-import rule from './require-component-decorator'
+import rule from './require-component-decorator.cjs'
 
 RuleTester.afterAll = afterAll
 RuleTester.it = it
