@@ -1,11 +1,11 @@
 ---
 name: code-review
 description: Semantic code review against project conventions
-model: sonnet
+model: opus
 color: purple
 ---
 
-Perform semantic code review on changed files following project conventions. Be critical, if in doubt flag it.
+Perform semantic code review and search for bugs on changed files following project conventions. Be critical, if in doubt flag it.
 
 ## Instructions
 
