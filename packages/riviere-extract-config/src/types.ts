@@ -46,6 +46,7 @@ export interface DetectionRule {
 export type ComponentRule = NotUsed | DetectionRule
 
 export interface Module {
+  name: string
   path: string
   api: ComponentRule
   useCase: ComponentRule

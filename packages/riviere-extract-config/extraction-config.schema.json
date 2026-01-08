@@ -24,9 +24,14 @@
     "module": {
       "type": "object",
       "description": "A module defines extraction rules for a path pattern",
-      "required": ["path", "api", "useCase", "domainOp", "event", "eventHandler", "ui"],
+      "required": ["name", "path", "api", "useCase", "domainOp", "event", "eventHandler", "ui"],
       "additionalProperties": false,
       "properties": {
+        "name": {
+          "type": "string",
+          "description": "Module name, used as the domain for extracted components",
+          "minLength": 1
+        },
         "path": {
           "type": "string",
           "description": "Glob pattern for files in this module",

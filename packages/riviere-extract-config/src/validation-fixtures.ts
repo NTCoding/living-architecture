@@ -4,6 +4,7 @@ import type {
 
 export function createModuleWithoutPath(): Omit<Module, 'path'> {
   return {
+    name: 'test',
     api: { notUsed: true },
     useCase: { notUsed: true },
     domainOp: { notUsed: true },
@@ -15,6 +16,7 @@ export function createModuleWithoutPath(): Omit<Module, 'path'> {
 
 export function createModuleWithoutApi(): Omit<Module, 'api'> {
   return {
+    name: 'test',
     path: 'src/**',
     useCase: { notUsed: true },
     domainOp: { notUsed: true },
@@ -26,6 +28,7 @@ export function createModuleWithoutApi(): Omit<Module, 'api'> {
 
 export function createMinimalModule(): Module {
   return {
+    name: 'test',
     path: 'src/**',
     api: { notUsed: true },
     useCase: { notUsed: true },
@@ -56,6 +59,7 @@ export function createFullConfig(): ExtractionConfig {
   return {
     modules: [
       {
+        name: 'orders',
         path: 'orders/**',
         api: {
           find: 'methods',

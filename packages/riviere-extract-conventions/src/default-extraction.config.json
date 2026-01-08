@@ -2,6 +2,7 @@
   "$schema": "https://living-architecture.dev/schemas/extraction-config.schema.json",
   "modules": [
     {
+      "name": "default",
       "path": "**/*.ts",
       "api": {
         "find": "methods",

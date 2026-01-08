@@ -23,6 +23,7 @@
   ],
   "dependencies": {
     "@living-architecture/riviere-extract-config": "workspace:*",
+    "minimatch": "^10.0.1",
     "ts-morph": "^24.0.0"
   }
 }
