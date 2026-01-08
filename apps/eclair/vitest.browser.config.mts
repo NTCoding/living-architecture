@@ -10,6 +10,19 @@ const testsUsingJsdomSpecificMocking = [
   '**/App.test.tsx',
 ];
 
+const ALLOWED_BROWSERS = ['chromium', 'firefox', 'webkit'] as const;
+type BrowserName = (typeof ALLOWED_BROWSERS)[number];
+
+function parseBrowser(value: string | undefined): BrowserName | undefined {
+  if (!value) return undefined;
+  if (!ALLOWED_BROWSERS.includes(value as BrowserName)) {
+    throw new Error(
+      `Invalid BROWSER environment variable: '${value}'. Allowed values: ${ALLOWED_BROWSERS.join(', ')}`,
+    );
+  }
+  return value as BrowserName;
+}
+
 export default defineConfig(() => ({
   root: __dirname,
   cacheDir: '../../node_modules/.vite/apps/eclair-browser',
@@ -30,13 +43,16 @@ export default defineConfig(() => ({
       provider: playwright(),
       // In CI, run one browser at a time (specified via BROWSER env) for stability
       // Locally, run all browsers
-      instances: process.env.BROWSER
-        ? [{ browser: process.env.BROWSER as 'chromium' | 'firefox' | 'webkit' }]
-        : [
-          { browser: 'chromium' },
-          { browser: 'firefox' },
-          { browser: 'webkit' },
-        ],
+      instances: (() => {
+        const browser = parseBrowser(process.env.BROWSER);
+        return browser
+          ? [{ browser }]
+          : [
+            { browser: 'chromium' as const },
+            { browser: 'firefox' as const },
+            { browser: 'webkit' as const },
+          ];
+      })(),
     },
   },
 }));
