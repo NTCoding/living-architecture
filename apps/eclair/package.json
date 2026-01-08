@@ -18,7 +18,9 @@
       "serve": {
         "executor": "nx:run-commands",
         "continuous": true,
-        "dependsOn": ["^build"],
+        "dependsOn": [
+          "^build"
+        ],
         "options": {
           "command": "vite",
           "cwd": "apps/eclair"
@@ -70,6 +72,7 @@
     "@vitest/browser-playwright": "^4.0.16",
     "@vitest/ui": "^4.0.16",
     "jsdom": "^26.0.0",
+    "playwright": "^1.57.0",
     "tailwindcss": "^4.1.17",
     "vite": "^7.2.4",
     "vitest": "^4.0.16"
