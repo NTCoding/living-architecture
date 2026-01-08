@@ -62,3 +62,6 @@ contexts:
 
       - name: Enforcement
         definition: A mechanism ensuring all code follows conventions. Typically ESLint rules or CI checks that fail when components lack required markers.
+
+      - name: Draft Component
+        definition: A component in a minimal state that has not been added to a graph yet because it lacks information, possibly including required fields. Draft components are not validated against the schema because they will likely fail validation.
