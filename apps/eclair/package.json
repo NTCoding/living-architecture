@@ -38,7 +38,9 @@
       },
       "test:browser": {
         "executor": "nx:run-commands",
-        "dependsOn": ["^build"],
+        "dependsOn": [
+          "^build"
+        ],
         "options": {
           "command": "vitest run --config vitest.browser.config.mts",
           "cwd": "apps/eclair"
@@ -73,6 +75,7 @@
     "@vitest/browser-playwright": "^4.0.16",
     "@vitest/ui": "^4.0.16",
     "jsdom": "^27.4.0",
+    "msw": "^2.12.7",
     "playwright": "^1.57.0",
     "tailwindcss": "^4.1.17",
     "vite": "^7.2.4",

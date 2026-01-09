@@ -1,7 +1,10 @@
 import {
-  render, screen, waitFor 
+  render, screen, waitFor
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import {
+  afterEach, beforeEach, describe, expect, it, vi
+} from 'vitest'
 import {
   GraphProvider,
   useGraph,
@@ -10,8 +13,9 @@ import {
 } from './GraphContext'
 import type { RiviereGraph } from '@/types/riviere'
 import {
-  parseNode, parseDomainKey 
+  parseNode, parseDomainKey
 } from '@/lib/riviereTestFixtures'
+import { isBrowserEnv } from '@/test/setup'
 
 const testSourceLocation = {
   repository: 'test-repo',
@@ -166,28 +170,27 @@ describe('GraphContext', () => {
   })
 
   describe('demo mode', () => {
+    const testState = {originalHref: '',}
+
     beforeEach(() => {
       localStorage.clear()
+      testState.originalHref = window.location.href
+      window.history.pushState({}, '', '?demo=true')
+      vi.spyOn(window, 'fetch').mockResolvedValue(
+        new Response(JSON.stringify(testGraph), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        }),
+      )
+      vi.spyOn(window.history, 'replaceState')
     })
 
     afterEach(() => {
-      vi.unstubAllGlobals()
+      vi.restoreAllMocks()
+      window.history.pushState({}, '', testState.originalHref)
     })
 
     it('sets GitHub org in localStorage when demo mode detected', async () => {
-      vi.stubGlobal('location', {
-        ...window.location,
-        search: '?demo=true',
-      })
-
-      vi.stubGlobal(
-        'fetch',
-        vi.fn().mockResolvedValue({
-          ok: true,
-          text: () => Promise.resolve(JSON.stringify(testGraph)),
-        }),
-      )
-
       function DemoTestConsumer(): React.ReactElement {
         const { isLoadingDemo } = useGraph()
         return <span data-testid="loading">{isLoadingDemo ? 'loading' : 'done'}</span>
@@ -209,22 +212,9 @@ describe('GraphContext', () => {
     })
 
     it('loads graph when demo mode detected', async () => {
-      vi.stubGlobal('location', {
-        ...window.location,
-        search: '?demo=true',
-      })
-
-      vi.stubGlobal(
-        'fetch',
-        vi.fn().mockResolvedValue({
-          ok: true,
-          text: () => Promise.resolve(JSON.stringify(testGraph)),
-        }),
-      )
-
       function DemoTestConsumer(): React.ReactElement {
         const {
-          hasGraph, graphName, isLoadingDemo 
+          hasGraph, graphName, isLoadingDemo
         } = useGraph()
         return (
           <div>
@@ -250,26 +240,6 @@ describe('GraphContext', () => {
     })
 
     it('clears demo param from URL after loading demo graph', async () => {
-      vi.stubGlobal('location', {
-        ...window.location,
-        href: 'http://localhost:3000/?demo=true',
-        search: '?demo=true',
-      })
-
-      const mockReplaceState = vi.fn()
-      vi.stubGlobal('history', {
-        ...window.history,
-        replaceState: mockReplaceState,
-      })
-
-      vi.stubGlobal(
-        'fetch',
-        vi.fn().mockResolvedValue({
-          ok: true,
-          text: () => Promise.resolve(JSON.stringify(testGraph)),
-        }),
-      )
-
       function DemoTestConsumer(): React.ReactElement {
         const { isLoadingDemo } = useGraph()
         return <span data-testid="loading">{isLoadingDemo ? 'loading' : 'done'}</span>
@@ -285,11 +255,14 @@ describe('GraphContext', () => {
         expect(screen.getByTestId('loading')).toHaveTextContent('done')
       })
 
-      expect(mockReplaceState).toHaveBeenCalledWith({}, '', 'http://localhost:3000/')
+      expect(window.history.replaceState).toHaveBeenCalled()
+      const mockedReplaceState = vi.mocked(window.history.replaceState)
+      const lastCall = mockedReplaceState.mock.calls.at(-1)
+      expect(lastCall?.[2]).toMatch(/\/$/)
     })
   })
 
-  describe('buildDemoGraphUrl', () => {
+  describe.skipIf(isBrowserEnv)('buildDemoGraphUrl (jsdom only)', () => {
     afterEach(() => {
       vi.unstubAllEnvs()
     })
@@ -302,15 +275,14 @@ describe('GraphContext', () => {
 
   describe('fetchAndValidateDemoGraph', () => {
     afterEach(() => {
-      vi.unstubAllGlobals()
+      vi.restoreAllMocks()
     })
 
     it('returns graph when fetch and validation succeed', async () => {
-      vi.stubGlobal(
-        'fetch',
-        vi.fn().mockResolvedValue({
-          ok: true,
-          text: () => Promise.resolve(JSON.stringify(testGraph)),
+      vi.spyOn(window, 'fetch').mockResolvedValue(
+        new Response(JSON.stringify(testGraph), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
         }),
       )
 
@@ -320,12 +292,8 @@ describe('GraphContext', () => {
     })
 
     it('throws error when fetch fails', async () => {
-      vi.stubGlobal(
-        'fetch',
-        vi.fn().mockResolvedValue({
-          ok: false,
-          status: 404,
-        }),
+      vi.spyOn(window, 'fetch').mockResolvedValue(
+        new Response(null, { status: 404 }),
       )
 
       await expect(fetchAndValidateDemoGraph('/test.json')).rejects.toThrow(
@@ -353,11 +321,10 @@ describe('GraphContext', () => {
         links: [],
       }
 
-      vi.stubGlobal(
-        'fetch',
-        vi.fn().mockResolvedValue({
-          ok: true,
-          text: () => Promise.resolve(JSON.stringify(invalidGraph)),
+      vi.spyOn(window, 'fetch').mockResolvedValue(
+        new Response(JSON.stringify(invalidGraph), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
         }),
       )
 

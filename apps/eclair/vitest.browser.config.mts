@@ -3,10 +3,7 @@ import { playwright } from '@vitest/browser-playwright';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
 
-const testsRequiringJsdom = [
-  '**/App.test.tsx',
-  '**/GraphContext.test.tsx',
-];
+const testsRequiringJsdom: string[] = [];
 
 const ALLOWED_BROWSERS = ['chromium', 'firefox', 'webkit'] as const;
 type BrowserName = (typeof ALLOWED_BROWSERS)[number];

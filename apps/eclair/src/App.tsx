@@ -55,7 +55,7 @@ function Events(): React.ReactElement {
   return <EventsPage graph={useRequiredGraph()} />
 }
 
-function AppContent(): React.ReactElement {
+export function AppContent(): React.ReactElement {
   const {
     hasGraph, graphName, graph, isLoadingDemo 
   } = useGraph()
