@@ -60,8 +60,7 @@ Run `pnpm nx run-many -t lint,typecheck,test` (use 5 minute timeout)
 ### 2. Setup and Determine Agents to Run
 
 ```bash
-BRANCH=$(git branch --show-current)
-mkdir -p reviews/$BRANCH
+BRANCH=$(./scripts/setup-review-dir.sh)
 ```
 
 **Determine which agents to run:**
@@ -74,7 +73,7 @@ mkdir -p reviews/$BRANCH
 
 **Issue number extraction:**
 ```bash
-ISSUE_NUM=$(echo "$BRANCH" | grep -oE 'issue-[0-9]+' | head -1 | grep -oE '[0-9]+')
+ISSUE_NUM=$(./scripts/get-issue-number.sh)
 ```
 Search anywhere in the branch name for `issue-<digits>` pattern (case-sensitive). Use the first match if multiple exist. If `ISSUE_NUM` is empty → skip task-check.
 
