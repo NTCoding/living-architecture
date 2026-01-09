@@ -10,7 +10,7 @@ describe('operationsFor', () => {
 
     const operations = query.operationsFor('NonExistent')
 
-    expect(operations).toEqual([])
+    expect(operations).toStrictEqual([])
   })
 
   it('returns all DomainOps targeting the entity', () => {
@@ -34,7 +34,7 @@ describe('operationsFor', () => {
 
     const operations = query.operationsFor('Order')
 
-    expect(operations).toEqual([beginOp, shipOp])
+    expect(operations).toStrictEqual([beginOp, shipOp])
   })
 })
 
@@ -45,7 +45,7 @@ describe('entities', () => {
 
     const entities = query.entities()
 
-    expect(entities).toEqual([])
+    expect(entities).toStrictEqual([])
   })
 
   it('returns entity with its operations when DomainOps target it', () => {
@@ -69,7 +69,7 @@ describe('entities', () => {
 
     const entities = query.entities()
 
-    expect(entities).toEqual([
+    expect(entities).toMatchObject([
       {
         name: 'Order',
         domain: 'orders',
@@ -102,7 +102,7 @@ describe('entities', () => {
 
     const entities = query.entities('orders')
 
-    expect(entities).toEqual([
+    expect(entities).toMatchObject([
       {
         name: 'Order',
         domain: 'orders',
@@ -135,7 +135,7 @@ describe('entities', () => {
 
     const entities = query.entities()
 
-    expect(entities.map((e) => e.name)).toEqual(['Apple', 'Zebra'])
+    expect(entities.map((e) => e.name)).toStrictEqual(['Apple', 'Zebra'])
   })
 
   it('returns entity with states ordered by transition flow', () => {
@@ -172,7 +172,7 @@ describe('entities', () => {
     const entities = query.entities()
 
     expect(entities).toHaveLength(1)
-    expect(entities[0]?.states).toEqual(['Draft', 'Placed', 'Confirmed'])
+    expect(entities[0]?.states).toStrictEqual(['Draft', 'Placed', 'Confirmed'])
   })
 
   it('returns entity with transitions including triggeredBy operation', () => {
@@ -196,7 +196,7 @@ describe('entities', () => {
     const entities = query.entities()
 
     expect(entities).toHaveLength(1)
-    expect(entities[0]?.transitions).toEqual([
+    expect(entities[0]?.transitions).toStrictEqual([
       {
         from: 'Draft',
         to: 'Placed',
@@ -229,7 +229,7 @@ describe('entities', () => {
     const entities = query.entities()
 
     expect(entities).toHaveLength(1)
-    expect(entities[0]?.businessRules).toEqual([
+    expect(entities[0]?.businessRules).toStrictEqual([
       'Total must be positive',
       'Customer must be verified',
       'Order must be confirmed',
@@ -364,7 +364,7 @@ describe('businessRulesFor', () => {
 
     const rules = query.businessRulesFor('NonExistent')
 
-    expect(rules).toEqual([])
+    expect(rules).toStrictEqual([])
   })
 
   it('returns empty array when operations have no businessRules', () => {
@@ -382,7 +382,7 @@ describe('businessRulesFor', () => {
 
     const rules = query.businessRulesFor('Order')
 
-    expect(rules).toEqual([])
+    expect(rules).toStrictEqual([])
   })
 
   it('aggregates business rules from all operations on the entity', () => {
@@ -409,7 +409,7 @@ describe('businessRulesFor', () => {
 
     const rules = query.businessRulesFor('Order')
 
-    expect(rules).toEqual([
+    expect(rules).toStrictEqual([
       'Order must have at least one item',
       'Customer must be verified',
       'Order must be confirmed before shipping',

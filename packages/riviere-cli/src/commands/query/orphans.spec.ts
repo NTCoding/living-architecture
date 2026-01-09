@@ -97,7 +97,7 @@ describe('riviere query orphans', () => {
       const output = assertSuccess(parseOutput(ctx.consoleOutput))
 
       expect(output.success).toBe(true)
-      expect(getSortedOrphans(output)).toEqual([
+      expect(getSortedOrphans(output)).toStrictEqual([
         'orders:checkout:api:place-order',
         'orders:checkout:usecase:place-order',
       ])
@@ -121,9 +121,8 @@ describe('riviere query orphans', () => {
       await createProgram().parseAsync(['node', 'riviere', 'query', 'orphans', '--json'])
 
       const output = parseOutput(ctx.consoleOutput)
-
-      if (!isOrphansSuccessOutput(output)) throw new Error('Expected success output')
-      expect(output.data.orphans).toEqual([])
+      expect(isOrphansSuccessOutput(output)).toBe(true)
+      expect(output).toMatchObject({ data: { orphans: [] } })
     })
 
     it('produces no output when --json flag is not provided', async () => {
@@ -147,9 +146,8 @@ describe('riviere query orphans', () => {
       await createProgram().parseAsync(['node', 'riviere', 'query', 'orphans', '--json'])
 
       const output = parseOutput(ctx.consoleOutput)
-      if (!isOrphansErrorOutput(output)) throw new Error('Expected error output')
-
-      expect(output.error.code).toBe(CliErrorCode.GraphNotFound)
+      expect(isOrphansErrorOutput(output)).toBe(true)
+      expect(output).toMatchObject({ error: { code: CliErrorCode.GraphNotFound } })
     })
   })
 })

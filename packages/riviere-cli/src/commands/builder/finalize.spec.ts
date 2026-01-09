@@ -47,6 +47,20 @@ function isFinalizeError(value: unknown): value is FinalizeErrorOutput {
   return true
 }
 
+function assertFinalizeSuccess(value: unknown): FinalizeSuccessOutput {
+  if (!isFinalizeSuccess(value)) {
+    throw new Error('Expected FinalizeSuccessOutput')
+  }
+  return value
+}
+
+function assertFinalizeError(value: unknown): FinalizeErrorOutput {
+  if (!isFinalizeError(value)) {
+    throw new Error('Expected FinalizeErrorOutput')
+  }
+  return value
+}
+
 async function fileExists(path: string): Promise<boolean> {
   try {
     await access(path)
@@ -127,10 +141,7 @@ describe('riviere builder finalize', () => {
       await createProgram().parseAsync(['node', 'riviere', 'builder', 'finalize', '--json'])
 
       expect(ctx.consoleOutput).toHaveLength(1)
-      const parsed: unknown = JSON.parse(ctx.consoleOutput[0] ?? '{}')
-      if (!isFinalizeSuccess(parsed)) {
-        throw new Error('Expected success output')
-      }
+      const parsed = assertFinalizeSuccess(JSON.parse(ctx.consoleOutput[0] ?? '{}'))
       expect(parsed.success).toBe(true)
       expect(parsed.data.path).toContain('.riviere/graph.json')
     })
@@ -200,10 +211,7 @@ describe('riviere builder finalize', () => {
 
       await createProgram().parseAsync(['node', 'riviere', 'builder', 'finalize'])
 
-      const parsed: unknown = JSON.parse(ctx.consoleOutput[0] ?? '{}')
-      if (!isFinalizeError(parsed)) {
-        throw new Error('Expected error output')
-      }
+      const parsed = assertFinalizeError(JSON.parse(ctx.consoleOutput[0] ?? '{}'))
       expect(parsed.error.code).toBe(CliErrorCode.ValidationError)
       expect(parsed.error.message).toContain('Validation failed')
     })
@@ -241,10 +249,8 @@ describe('riviere builder finalize', () => {
       ])
 
       const parsed: unknown = JSON.parse(ctx.consoleOutput[0] ?? '{}')
-      if (!isFinalizeSuccess(parsed)) {
-        throw new Error('Expected success output')
-      }
-      expect(parsed.success).toBe(true)
+      expect(isFinalizeSuccess(parsed)).toBe(true)
+      expect(parsed).toMatchObject({ success: true })
     })
   })
 })

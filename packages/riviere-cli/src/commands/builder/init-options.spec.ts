@@ -9,6 +9,30 @@ import { join } from 'node:path'
 import { createProgram } from '../../cli'
 import { CliErrorCode } from '../../error-codes'
 
+interface InitSuccessOutput {
+  success: true
+  data: {
+    sources: number
+    domains: string[]
+    path: string
+  }
+}
+
+function isInitSuccessOutput(value: unknown): value is InitSuccessOutput {
+  if (typeof value !== 'object' || value === null) return false
+  if (!('success' in value) || value.success !== true) return false
+  if (!('data' in value) || typeof value.data !== 'object' || value.data === null) return false
+  if (!('path' in value.data) || typeof value.data.path !== 'string') return false
+  return true
+}
+
+function assertInitSuccess(value: unknown): InitSuccessOutput {
+  if (!isInitSuccessOutput(value)) {
+    throw new Error('Expected InitSuccessOutput')
+  }
+  return value
+}
+
 describe('riviere builder init options', () => {
   describe('--graph custom path', () => {
     const testContext = {
@@ -70,7 +94,7 @@ describe('riviere builder init options', () => {
       ])
 
       const riviereDir = join(testContext.testDir, '.riviere')
-      await expect(stat(riviereDir)).rejects.toThrow()
+      await expect(stat(riviereDir)).rejects.toThrow(/ENOENT/)
     })
   })
 
@@ -120,28 +144,12 @@ describe('riviere builder init options', () => {
       ])
 
       const output = testContext.consoleOutput.join('\n')
-      const parsed: unknown = JSON.parse(output)
+      const parsed = assertInitSuccess(JSON.parse(output))
 
-      expect(parsed).toMatchObject({
-        success: true,
-        data: {
-          sources: 1,
-          domains: ['orders', 'payments'],
-        },
-      })
-
-      expect(parsed).toHaveProperty('data.path')
-      if (
-        typeof parsed === 'object' &&
-        parsed !== null &&
-        'data' in parsed &&
-        typeof parsed.data === 'object' &&
-        parsed.data !== null &&
-        'path' in parsed.data &&
-        typeof parsed.data.path === 'string'
-      ) {
-        expect(parsed.data.path).toContain('.riviere/graph.json')
-      }
+      expect(parsed.success).toBe(true)
+      expect(parsed.data.sources).toBe(1)
+      expect(parsed.data.domains).toStrictEqual(['orders', 'payments'])
+      expect(parsed.data.path).toContain('.riviere/graph.json')
     })
   })
 

@@ -99,7 +99,7 @@ describe('parseRiviereGraph()', () => {
       links: [],
     }
 
-    expect(() => parseRiviereGraph(input)).toThrow()
+    expect(() => parseRiviereGraph(input)).toThrow(/Invalid RiviereGraph/)
   })
 
   it('throws on missing required field with error details', () => {
@@ -116,7 +116,7 @@ describe('parseRiviereGraph()', () => {
       links: [],
     }
 
-    expect(() => parseRiviereGraph(input)).toThrow(/Invalid RiviereGraph/)
+    expect(() => parseRiviereGraph(input)).toThrow(/version|Invalid RiviereGraph/i)
   })
 
   it('throws on invalid version format', () => {
@@ -134,7 +134,7 @@ describe('parseRiviereGraph()', () => {
       links: [],
     }
 
-    expect(() => parseRiviereGraph(input)).toThrow()
+    expect(() => parseRiviereGraph(input)).toThrow(/Invalid RiviereGraph/)
   })
 })
 

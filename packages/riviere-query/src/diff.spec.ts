@@ -6,6 +6,7 @@ import {
   createMinimalValidGraph,
   defaultSourceLocation,
   createAPIComponent,
+  assertDefined,
 } from './riviere-graph-fixtures'
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
 
@@ -52,10 +53,10 @@ describe('diff', () => {
 
     it('returns component in modified with changedFields when component name changes', () => {
       const baseGraph = createMinimalValidGraph()
-      const originalComponent = baseGraph.components[0]
-      if (!originalComponent) {
-        throw new Error('Expected component to exist')
-      }
+      const originalComponent = assertDefined(
+        baseGraph.components[0],
+        'Expected component to exist',
+      )
       const otherGraph: RiviereGraph = {
         ...baseGraph,
         components: [

@@ -16,7 +16,7 @@ describe('domainConnections', () => {
 
     const result = query.domainConnections('test')
 
-    expect(result).toEqual([])
+    expect(result).toStrictEqual([])
   })
 
   it('returns outgoing connections with API counts when calling other domain APIs', () => {
@@ -58,7 +58,7 @@ describe('domainConnections', () => {
 
     const result = query.domainConnections('test')
 
-    expect(result).toEqual([
+    expect(result).toStrictEqual([
       {
         targetDomain: 'orders',
         direction: 'outgoing',
@@ -95,7 +95,7 @@ describe('domainConnections', () => {
 
     const result = query.domainConnections('test')
 
-    expect(result).toEqual([
+    expect(result).toStrictEqual([
       {
         targetDomain: 'notifications',
         direction: 'outgoing',
@@ -132,7 +132,7 @@ describe('domainConnections', () => {
 
     const result = query.domainConnections('test')
 
-    expect(result).toEqual([
+    expect(result).toStrictEqual([
       {
         targetDomain: 'orders',
         direction: 'incoming',
@@ -243,7 +243,7 @@ describe('domainConnections', () => {
 
     const result = query.domainConnections('test')
 
-    expect(result.map((c) => c.targetDomain)).toEqual(['alpha', 'zebra'])
+    expect(result.map((c) => c.targetDomain)).toStrictEqual(['alpha', 'zebra'])
   })
 
   it('excludes links within the same domain from counts', () => {
@@ -269,6 +269,6 @@ describe('domainConnections', () => {
 
     const result = query.domainConnections('test')
 
-    expect(result).toEqual([])
+    expect(result).toStrictEqual([])
   })
 })

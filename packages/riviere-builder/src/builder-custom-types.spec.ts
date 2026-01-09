@@ -34,7 +34,7 @@ describe('RiviereBuilder custom types', () => {
         },
       })
 
-      expect(builder.graph.metadata.customTypes).toEqual({
+      expect(builder.graph.metadata.customTypes).toStrictEqual({
         MessageQueue: {
           requiredProperties: {
             queueName: {
@@ -60,7 +60,7 @@ describe('RiviereBuilder custom types', () => {
         },
       })
 
-      expect(builder.graph.metadata.customTypes).toEqual({
+      expect(builder.graph.metadata.customTypes).toStrictEqual({
         CacheStore: {
           description: 'In-memory cache',
           optionalProperties: {
@@ -99,7 +99,7 @@ describe('RiviereBuilder custom types', () => {
         },
       })
 
-      expect(component).toEqual({
+      expect(component).toStrictEqual({
         id: 'orders:messaging:custom:order-queue',
         type: 'Custom',
         customTypeName: 'MessageQueue',

@@ -13,11 +13,11 @@ import { CliErrorCode } from './error-codes'
 describe('validation', () => {
   describe('validateComponentType', () => {
     it('returns valid for UI component type', () => {
-      expect(validateComponentType('UI')).toEqual({ valid: true })
+      expect(validateComponentType('UI')).toStrictEqual({ valid: true })
     })
 
     it('returns valid for lowercase component type', () => {
-      expect(validateComponentType('api')).toEqual({ valid: true })
+      expect(validateComponentType('api')).toStrictEqual({ valid: true })
     })
 
     it('returns invalid with error for unknown type', () => {
@@ -37,15 +37,15 @@ describe('validation', () => {
 
   describe('validateLinkType', () => {
     it('returns valid for undefined link type', () => {
-      expect(validateLinkType(undefined)).toEqual({ valid: true })
+      expect(validateLinkType(undefined)).toStrictEqual({ valid: true })
     })
 
     it('returns valid for sync link type', () => {
-      expect(validateLinkType('sync')).toEqual({ valid: true })
+      expect(validateLinkType('sync')).toStrictEqual({ valid: true })
     })
 
     it('returns valid for async link type', () => {
-      expect(validateLinkType('async')).toEqual({ valid: true })
+      expect(validateLinkType('async')).toStrictEqual({ valid: true })
     })
 
     it('returns invalid with error for unknown link type', () => {
@@ -65,18 +65,18 @@ describe('validation', () => {
 
   describe('validateHttpMethod', () => {
     it('returns valid for undefined method', () => {
-      expect(validateHttpMethod(undefined)).toEqual({ valid: true })
+      expect(validateHttpMethod(undefined)).toStrictEqual({ valid: true })
     })
 
     it.each(['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'])(
       'returns valid for %s',
       (method) => {
-        expect(validateHttpMethod(method)).toEqual({ valid: true })
+        expect(validateHttpMethod(method)).toStrictEqual({ valid: true })
       },
     )
 
     it('returns valid for lowercase method', () => {
-      expect(validateHttpMethod('get')).toEqual({ valid: true })
+      expect(validateHttpMethod('get')).toStrictEqual({ valid: true })
     })
 
     it('returns invalid with error for unknown method', () => {
@@ -107,7 +107,7 @@ describe('validation', () => {
 
   describe('validateSystemType', () => {
     it.each(['domain', 'bff', 'ui', 'other'])('returns valid for %s', (type) => {
-      expect(validateSystemType(type)).toEqual({ valid: true })
+      expect(validateSystemType(type)).toStrictEqual({ valid: true })
     })
 
     it('returns invalid with error for unknown system type', () => {

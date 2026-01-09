@@ -36,7 +36,7 @@ describe('errors', () => {
 
       expect(error.message).toBe("Custom type 'Queue' not defined. Defined types: Worker, Cache")
       expect(error.customTypeName).toBe('Queue')
-      expect(error.definedTypes).toEqual(['Worker', 'Cache'])
+      expect(error.definedTypes).toStrictEqual(['Worker', 'Cache'])
       expect(error.name).toBe('CustomTypeNotFoundError')
     })
 
@@ -67,7 +67,7 @@ describe('errors', () => {
 
       expect(error.message).toBe("Source component 'orders:checkout:api:create-ordr' not found")
       expect(error.componentId).toBe('orders:checkout:api:create-ordr')
-      expect(error.suggestions).toEqual([])
+      expect(error.suggestions).toStrictEqual([])
       expect(error.name).toBe('ComponentNotFoundError')
     })
 
@@ -80,7 +80,7 @@ describe('errors', () => {
       expect(error.message).toBe(
         "Source component 'orders:checkout:api:create-ordr' not found. Did you mean: orders:checkout:api:create-order, orders:checkout:api:update-order?",
       )
-      expect(error.suggestions).toEqual([
+      expect(error.suggestions).toStrictEqual([
         'orders:checkout:api:create-order',
         'orders:checkout:api:update-order',
       ])

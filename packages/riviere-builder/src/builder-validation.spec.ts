@@ -34,7 +34,7 @@ describe('RiviereBuilder', () => {
       const result = builder.validate()
 
       expect(result.valid).toBe(true)
-      expect(result.errors).toEqual([])
+      expect(result.errors).toStrictEqual([])
     })
 
     it('returns INVALID_LINK_TARGET error when link references non-existent target', () => {
@@ -93,7 +93,7 @@ describe('RiviereBuilder', () => {
       const result = builder.validate()
 
       expect(result.valid).toBe(true)
-      expect(result.errors).toEqual([])
+      expect(result.errors).toStrictEqual([])
     })
 
     it('returns valid=true when graph has custom types defined', () => {
@@ -128,7 +128,7 @@ describe('RiviereBuilder', () => {
       const result = builder.validate()
 
       expect(result.valid).toBe(true)
-      expect(result.errors).toEqual([])
+      expect(result.errors).toStrictEqual([])
     })
 
     it('returns valid=true when graph has external links', () => {
@@ -149,7 +149,7 @@ describe('RiviereBuilder', () => {
       const result = builder.validate()
 
       expect(result.valid).toBe(true)
-      expect(result.errors).toEqual([])
+      expect(result.errors).toStrictEqual([])
     })
   })
 })

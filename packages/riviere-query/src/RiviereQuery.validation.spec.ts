@@ -7,7 +7,7 @@ describe('RiviereQuery validate()', () => {
     const query = new RiviereQuery(graph)
     const result = query.validate()
     expect(result.valid).toBe(true)
-    expect(result.errors).toEqual([])
+    expect(result.errors).toStrictEqual([])
   })
 
   it('returns INVALID_LINK_SOURCE when link references non-existent source', () => {
@@ -101,6 +101,6 @@ describe('RiviereQuery validate()', () => {
     const query = new RiviereQuery(graph)
     const result = query.validate()
     expect(result.valid).toBe(true)
-    expect(result.errors).toEqual([])
+    expect(result.errors).toStrictEqual([])
   })
 })

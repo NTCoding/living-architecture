@@ -54,7 +54,7 @@ describe('validateExtractionConfig', () => {
     it('returns valid=true and empty errors when config is valid', () => {
       const result = validateExtractionConfig(createMinimalConfig())
       expect(result.valid).toBe(true)
-      expect(result.errors).toEqual([])
+      expect(result.errors).toStrictEqual([])
     })
 
     it('returns valid=true when using nameEndsWith predicate', () => {
@@ -326,14 +326,14 @@ describe('formatValidationErrors', () => {
     ])
     expect(result).toContain('/modules/0/path:')
     expect(result).toContain('/modules/0/api:')
-    expect(result.split('\n').length).toBe(2)
+    expect(result.split('\n')).toHaveLength(2)
   })
 })
 
 describe('parseExtractionConfig', () => {
   it('returns config when valid', () => {
     const config = createMinimalConfig()
-    expect(parseExtractionConfig(config)).toEqual(config)
+    expect(parseExtractionConfig(config)).toStrictEqual(config)
   })
 
   it('throws Error when config is invalid', () => {
@@ -351,11 +351,11 @@ describe('parseExtractionConfig', () => {
 
 describe('mapAjvErrors', () => {
   it('returns empty array when errors is null', () => {
-    expect(mapAjvErrors(null)).toEqual([])
+    expect(mapAjvErrors(null)).toStrictEqual([])
   })
 
   it('returns empty array when errors is undefined', () => {
-    expect(mapAjvErrors(undefined)).toEqual([])
+    expect(mapAjvErrors(undefined)).toStrictEqual([])
   })
 
   it('maps instancePath to path', () => {

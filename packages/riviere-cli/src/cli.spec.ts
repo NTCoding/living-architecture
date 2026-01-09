@@ -7,7 +7,7 @@ describe('parsePackageJson', () => {
   it('returns version when package.json is valid', () => {
     const result = parsePackageJson({ version: '1.2.3' })
 
-    expect(result).toEqual({ version: '1.2.3' })
+    expect(result).toStrictEqual({ version: '1.2.3' })
   })
 
   it('throws when input is null', () => {

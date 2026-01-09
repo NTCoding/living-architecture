@@ -17,7 +17,7 @@ describe('crossDomainLinks', () => {
 
     const result = query.crossDomainLinks('test')
 
-    expect(result).toEqual([])
+    expect(result).toStrictEqual([])
   })
 
   it('returns unique outgoing links to other domains with link type', () => {
@@ -63,7 +63,7 @@ describe('crossDomainLinks', () => {
 
     const result = query.crossDomainLinks('test')
 
-    expect(result).toEqual([
+    expect(result).toStrictEqual([
       {
         targetDomain: 'orders',
         linkType: 'sync',
@@ -119,7 +119,7 @@ describe('crossDomainLinks', () => {
 
     const result = query.crossDomainLinks('test')
 
-    expect(result).toEqual([
+    expect(result).toStrictEqual([
       {
         targetDomain: 'orders',
         linkType: 'sync',
@@ -171,7 +171,7 @@ describe('crossDomainLinks', () => {
 
     const result = query.crossDomainLinks('test')
 
-    expect(result).toEqual([
+    expect(result).toStrictEqual([
       {
         targetDomain: 'orders',
         linkType: 'async',
@@ -206,7 +206,7 @@ describe('crossDomainLinks', () => {
 
     const result = query.crossDomainLinks('test')
 
-    expect(result).toEqual([])
+    expect(result).toStrictEqual([])
   })
 
   it('returns results sorted by targetDomain', () => {
@@ -252,7 +252,7 @@ describe('crossDomainLinks', () => {
 
     const result = query.crossDomainLinks('test')
 
-    expect(result.map((l) => l.targetDomain)).toEqual(['alpha', 'zebra'])
+    expect(result.map((l) => l.targetDomain)).toStrictEqual(['alpha', 'zebra'])
   })
 
   it('ignores links to non-existent components (defensive check)', () => {
@@ -290,7 +290,7 @@ describe('crossDomainLinks', () => {
 
     const result = queryCrossDomainLinks(graph, 'test')
 
-    expect(result).toEqual([])
+    expect(result).toStrictEqual([])
   })
 
   it('handles links with no explicit type (undefined linkType)', () => {
@@ -319,7 +319,7 @@ describe('crossDomainLinks', () => {
 
     const result = query.crossDomainLinks('test')
 
-    expect(result).toEqual([
+    expect(result).toStrictEqual([
       {
         targetDomain: 'orders',
         linkType: undefined,
@@ -388,7 +388,7 @@ describe('crossDomainLinks', () => {
 
     const result = query.crossDomainLinks('test')
 
-    expect(result).toEqual([
+    expect(result).toStrictEqual([
       {
         targetDomain: 'orders',
         linkType: undefined,

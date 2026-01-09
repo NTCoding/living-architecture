@@ -165,10 +165,9 @@ describe('riviere query domains', () => {
       await createProgram().parseAsync(['node', 'riviere', 'query', 'domains', '--json'])
       const output = parseOutput(ctx.consoleOutput)
       expect(output.data.domains).toHaveLength(2)
-      expect(output.data.domains.map((d) => d.name).sort((a, b) => a.localeCompare(b))).toEqual([
-        'orders',
-        'payments',
-      ])
+      expect(
+        output.data.domains.map((d) => d.name).sort((a, b) => a.localeCompare(b)),
+      ).toStrictEqual(['orders', 'payments'])
     })
 
     it('produces no output when --json flag is not provided', async () => {
