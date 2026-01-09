@@ -17,8 +17,8 @@ Current packages:
 - `living-architecture/riviere-cli` - CLI tool with binary "riviere" (depends on riviere-builder)
 - `@living-architecture/riviere-schema` - Riviere schema definitions
 - `@living-architecture/riviere-extract-config` - JSON Schema and validation for extraction config DSL
-- `@living-architecture/riviere-extract-conventions` - Decorators for marking architectural components
-- `@living-architecture/riviere-extract-ts` - TypeScript component extractor using ts-morph for AST parsing
+- `@living-architecture/riviere-extract-conventions` - Decorators for marking architectural components (depends on riviere-extract-config)
+- `@living-architecture/riviere-extract-ts` - TypeScript component extractor using ts-morph for AST parsing (depends on riviere-extract-config)
 
 Apps:
 - `living-architecture/eclair` - Web app for viewing your software architecture via Riviere a schema
