@@ -39,8 +39,8 @@ const initEclairLinkHandler = (): (() => void) => {
     window.location.href = href
   }
 
-  document.addEventListener('click', handler)
-  return () => document.removeEventListener('click', handler)
+  document.addEventListener('click', handler, true)
+  return () => document.removeEventListener('click', handler, true)
 }
 
 onMounted(() => {
