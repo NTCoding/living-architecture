@@ -28,7 +28,7 @@ Autonomous = you can do this without user permission. Do not ask for permission,
 | Amend Task | `./scripts/amend-task.sh <issue-number> "Amendment"` | Autonomous |
 | Complete Task | `/complete-task` | Autonomous |
 | Re-check PR | `/complete-task` | Autonomous |
-| Cleanup Task | `./scripts/cleanup-task.sh` | Autonomous |
+| Post-Merge Completion | `/post-merge-completion` | Autonomous |
 | Activate PRD | `./scripts/activate-prd.sh <prd-name>` | **User confirmation required** |
 | Archive PRD | `./scripts/archive-prd.sh <prd-name>` | **User confirmation required** |
 
@@ -48,7 +48,7 @@ Autonomous = you can do this without user permission. Do not ask for permission,
 
 **Re-check PR** — PR feedback addressed, needs CI verification. Run `/complete-task` again to re-run the full pipeline.
 
-**Cleanup Task** — After PR is merged, remove the worktree. Run from within the worktree directory.
+**Post-Merge Completion** — After PR is merged, run `/post-merge-completion` to reflect on feedback, suggest process improvements, and clean up the worktree.
 
 **Activate PRD** — Moving a PRD from not started to active.
 

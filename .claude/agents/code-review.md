@@ -5,7 +5,9 @@ model: opus
 color: purple
 ---
 
-Perform semantic code review and search for bugs on changed files following project conventions. Be critical, if in doubt flag it.
+Perform semantic code review against project conventions. Be critical, if in doubt flag it.
+
+Bug scanning is handled by the bug-scanner agent - do not duplicate that work here.
 
 ## Instructions
 
@@ -26,25 +28,29 @@ This captures:
 
 Filter to `.ts`, `.tsx`, and `.sh` files. If no files match, return PASS immediately.
 
-## Output Format
+## Output
 
-### On PASS (no findings)
+Write the COMPLETE report to the file path provided in the prompt. Include:
+- All findings using the format specified in docs/workflow/code-review.md
+- The evaluation framework below
+
+Then return ONLY:
 
 ```text
 CODE REVIEW: PASS
 ```
 
-### On FAIL (findings detected)
+or
 
 ```text
 CODE REVIEW: FAIL
+```
 
-## Findings
-
-[list each finding using the format specified in docs/workflow/code-review.md]
+The full report is in the file. Do not summarize findings in the return value.
 
 ---
-EVALUATION FRAMEWORK
+
+## Evaluation Framework (include in report file)
 
 Heuristic: "What results in highest quality code?"
 
@@ -59,4 +65,3 @@ Invalid Excuses:
 - "Would require large refactor"
 
 Decision: Fix by default. Skip only with valid reason. Ask user if uncertain.
-```
