@@ -100,13 +100,19 @@ else
     git checkout -b "$BRANCH_NAME"
 fi
 
-# Step 6: Assign issue to self (only if issue mode)
+# Step 6: Install dependencies (worktree only)
+if [[ "$USE_WORKTREE" == true ]]; then
+    echo "Installing dependencies in worktree..."
+    (cd "$WORKTREE_DIR" && pnpm install)
+fi
+
+# Step 7: Assign issue to self (only if issue mode)
 if [[ -n "$ISSUE_NUMBER" ]]; then
     echo "Assigning issue to @me..."
     gh issue edit "$ISSUE_NUMBER" --add-assignee @me
 fi
 
-# Step 7: Output summary
+# Step 8: Output summary
 echo ""
 echo "=========================================="
 echo "Branch: $BRANCH_NAME"
