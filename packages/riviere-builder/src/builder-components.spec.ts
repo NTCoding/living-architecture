@@ -35,7 +35,7 @@ describe('RiviereBuilder components', () => {
         },
       })
 
-      expect(component).toEqual({
+      expect(component).toStrictEqual({
         id: 'orders:checkout:ui:checkout-page',
         type: 'UI',
         name: 'Checkout Page',
@@ -122,7 +122,7 @@ describe('RiviereBuilder components', () => {
         },
       })
 
-      expect(component).toEqual({
+      expect(component).toStrictEqual({
         id: 'orders:api:api:create-order',
         type: 'API',
         name: 'Create Order',
@@ -153,7 +153,7 @@ describe('RiviereBuilder components', () => {
         },
       })
 
-      expect(component).toEqual({
+      expect(component).toStrictEqual({
         id: 'orders:graphql:api:create-order-mutation',
         type: 'API',
         name: 'Create Order Mutation',
@@ -203,7 +203,7 @@ describe('RiviereBuilder components', () => {
         },
       })
 
-      expect(component).toEqual({
+      expect(component).toStrictEqual({
         id: 'orders:checkout:usecase:place-order',
         type: 'UseCase',
         name: 'Place Order',
@@ -250,7 +250,7 @@ describe('RiviereBuilder components', () => {
         },
       })
 
-      expect(component).toEqual({
+      expect(component).toStrictEqual({
         id: 'orders:domain:domainop:place-order',
         type: 'DomainOp',
         name: 'Place Order',
@@ -301,7 +301,7 @@ describe('RiviereBuilder components', () => {
         },
       })
 
-      expect(component.signature).toEqual({
+      expect(component.signature).toStrictEqual({
         parameters: [
           {
             name: 'orderId',
@@ -310,17 +310,17 @@ describe('RiviereBuilder components', () => {
         ],
         returnType: 'Order',
       })
-      expect(component.behavior).toEqual({
+      expect(component.behavior).toStrictEqual({
         reads: ['inventory'],
         modifies: ['orders'],
       })
-      expect(component.stateChanges).toEqual([
+      expect(component.stateChanges).toStrictEqual([
         {
           from: 'draft',
           to: 'placed',
         },
       ])
-      expect(component.businessRules).toEqual(['Order must have items'])
+      expect(component.businessRules).toStrictEqual(['Order must have items'])
       expect(component.description).toBe('Places an order')
     })
   })
@@ -340,7 +340,7 @@ describe('RiviereBuilder components', () => {
         },
       })
 
-      expect(component).toEqual({
+      expect(component).toStrictEqual({
         id: 'orders:events:event:order-placed',
         type: 'Event',
         name: 'Order Placed',
@@ -390,7 +390,7 @@ describe('RiviereBuilder components', () => {
         },
       })
 
-      expect(component).toEqual({
+      expect(component).toStrictEqual({
         id: 'orders:handlers:eventhandler:send-order-confirmation',
         type: 'EventHandler',
         name: 'Send Order Confirmation',

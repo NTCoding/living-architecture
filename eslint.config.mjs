@@ -9,6 +9,7 @@ import stylistic from '@stylistic/eslint-plugin'
 import react from 'eslint-plugin-react'
 import jsxA11y from 'eslint-plugin-jsx-a11y'
 import unicorn from 'eslint-plugin-unicorn'
+import vitest from 'eslint-plugin-vitest'
 
 const customRules = {
   plugins: {
@@ -277,6 +278,24 @@ export default tseslint.config(
           skipComments: true,
         },
       ],
+    },
+  },
+  {
+    files: ['**/*.spec.ts', '**/*.spec.tsx', '**/*.test.ts', '**/*.test.tsx'],
+    plugins: { vitest },
+    rules: {
+      'vitest/no-conditional-expect': 'error',
+      'vitest/no-conditional-in-test': 'error',
+      'vitest/prefer-strict-equal': 'error',
+      'vitest/consistent-test-it': ['error', { fn: 'it' }],
+      'vitest/consistent-test-filename': ['error', { pattern: '.*\\.spec\\.[tj]sx?$' }],
+      'vitest/max-expects': ['error', { max: 9 }],
+      'vitest/prefer-called-with': 'error',
+      'vitest/prefer-to-have-length': 'error',
+      'vitest/require-to-throw-message': 'error',
+      'vitest/prefer-spy-on': 'error',
+      // Allow expect.any() matchers in tests (returns any by design)
+      '@typescript-eslint/no-unsafe-assignment': 'off'
     },
   },
 )

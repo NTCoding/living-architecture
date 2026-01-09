@@ -113,10 +113,10 @@ describe('riviere query trace', () => {
 
       const output = expectSuccessOutput(parseOutput(ctx.consoleOutput))
 
-      expect(new Set(output.data.componentIds)).toEqual(
+      expect(new Set(output.data.componentIds)).toStrictEqual(
         new Set(['orders:checkout:api:place-order', 'orders:checkout:usecase:place-order']),
       )
-      expect(output.data.linkIds).toEqual([
+      expect(output.data.linkIds).toStrictEqual([
         'orders:checkout:api:place-order->orders:checkout:usecase:place-order',
       ])
     })
@@ -140,8 +140,8 @@ describe('riviere query trace', () => {
 
       const output = expectSuccessOutput(parseOutput(ctx.consoleOutput))
 
-      expect(output.data.componentIds).toEqual(['orders:checkout:api:place-order'])
-      expect(output.data.linkIds).toEqual([])
+      expect(output.data.componentIds).toStrictEqual(['orders:checkout:api:place-order'])
+      expect(output.data.linkIds).toStrictEqual([])
     })
 
     it('produces no output when --json flag is not provided', async () => {

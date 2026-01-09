@@ -4,10 +4,10 @@ import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
 
 const testsRequiringJsdom = [
-  '**/App.test.tsx',
-  '**/GraphContext.test.tsx',
-  '**/FileUpload.test.tsx',
-  '**/EmptyState.test.tsx',
+  '**/App.spec.tsx',
+  '**/GraphContext.spec.tsx',
+  '**/FileUpload.spec.tsx',
+  '**/EmptyState.spec.tsx',
 ];
 
 const ALLOWED_BROWSERS = ['chromium', 'firefox', 'webkit'] as const;

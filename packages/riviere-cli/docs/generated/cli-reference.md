@@ -20,6 +20,7 @@ npm install @living-architecture/riviere-cli
 ```bash
 riviere builder <command> [options]  # Graph building commands
 riviere query <command> [options]    # Graph query commands
+riviere extract <command> [options]  # Component extraction commands
 ```
 
 ## Exit Codes
@@ -674,6 +675,25 @@ riviere query search <term> [options]
 riviere query search order
 riviere query search "place-order" --json
 ```
+
+---
+
+## Extract Commands
+
+Commands for extracting architectural components from source code.
+
+### `extract`
+
+Extract architectural components from source code
+
+```bash
+riviere extract [options]
+```
+
+**Required:**
+| Flag | Description |
+|------|-------------|
+| `--config <path>` | Path to extraction config file |
 
 ---
 

@@ -8,6 +8,13 @@ import {
 } from 'vitest'
 import { createProgram } from './cli'
 
+class ProcessExitError extends Error {
+  constructor(public exitCode: number) {
+    super(`process.exit(${exitCode})`)
+    this.name = 'ProcessExitError'
+  }
+}
+
 export interface ErrorOutput {
   success: false
   error: {
@@ -73,6 +80,9 @@ export function setupCommandTest(ctx: TestContext): void {
     ctx.consoleOutput = []
     process.chdir(ctx.testDir)
     vi.spyOn(console, 'log').mockImplementation((msg: string) => ctx.consoleOutput.push(msg))
+    vi.spyOn(process, 'exit').mockImplementation((code?: string | number | null | undefined) => {
+      throw new ProcessExitError(typeof code === 'number' ? code : 0)
+    })
   })
 
   afterEach(async () => {
@@ -320,4 +330,14 @@ export async function testCustomGraphPath<T>(
     '--json',
   ])
   return parseOutput(ctx.consoleOutput)
+}
+
+export function assertDefined<T>(
+  value: T | undefined | null,
+  message = 'Expected value to be defined',
+): T {
+  if (value === undefined || value === null) {
+    throw new Error(message)
+  }
+  return value
 }

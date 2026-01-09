@@ -6,6 +6,7 @@ import {
   createMinimalValidGraph,
   createAPIComponent,
   createUseCaseComponent,
+  assertDefined,
 } from './riviere-graph-fixtures'
 
 describe('domains', () => {
@@ -15,7 +16,7 @@ describe('domains', () => {
 
     const result = query.domains()
 
-    expect(result).toEqual([
+    expect(result).toStrictEqual([
       {
         name: 'test',
         description: 'Test domain',
@@ -71,7 +72,7 @@ describe('domains', () => {
     const result = query.domains()
 
     const orders = result.find((d) => d.name === 'orders')
-    expect(orders).toEqual({
+    expect(orders).toStrictEqual({
       name: 'orders',
       description: 'Order management',
       systemType: 'domain',
@@ -98,7 +99,7 @@ describe('domains', () => {
     graph.metadata.domains = {}
     graph.components = []
 
-    expect(() => new RiviereQuery(graph)).toThrow()
+    expect(() => new RiviereQuery(graph)).toThrow(/must NOT have fewer than 1 properties/i)
   })
 
   it('does not include external systems in domains (use externalSystems() instead)', () => {
@@ -122,5 +123,25 @@ describe('domains', () => {
     expect(result.find((d) => d.name === 'external')).toBeUndefined()
     expect(result.find((d) => d.name === 'Stripe')).toBeUndefined()
     expect(result.find((d) => d.name === 'Twilio')).toBeUndefined()
+  })
+})
+
+describe('assertDefined', () => {
+  it('returns value when defined', () => {
+    const value = assertDefined('test')
+
+    expect(value).toBe('test')
+  })
+
+  it('throws when value is undefined', () => {
+    expect(() => assertDefined(undefined)).toThrow('Expected value to be defined')
+  })
+
+  it('throws when value is null', () => {
+    expect(() => assertDefined(null)).toThrow('Expected value to be defined')
+  })
+
+  it('throws with custom message', () => {
+    expect(() => assertDefined(null, 'Custom error')).toThrow('Custom error')
   })
 })

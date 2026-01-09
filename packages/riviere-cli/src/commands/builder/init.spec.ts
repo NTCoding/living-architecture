@@ -282,7 +282,7 @@ describe('riviere builder init', () => {
           '--domain',
           'not valid json',
         ]),
-      ).rejects.toThrow()
+      ).rejects.toThrow(/JSON/i)
     })
 
     it('throws when domain JSON is not an object', async () => {

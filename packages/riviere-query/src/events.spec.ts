@@ -12,7 +12,7 @@ describe('publishedEvents', () => {
 
     const events = query.publishedEvents()
 
-    expect(events).toEqual([])
+    expect(events).toStrictEqual([])
   })
 
   it('returns event with handlers that subscribe to it', () => {
@@ -35,7 +35,7 @@ describe('publishedEvents', () => {
 
     const events = query.publishedEvents()
 
-    expect(events).toEqual([
+    expect(events).toStrictEqual([
       {
         id: 'orders:events:OrderCreated',
         eventName: 'OrderCreated',
@@ -79,7 +79,7 @@ describe('publishedEvents', () => {
 
     const events = query.publishedEvents('orders')
 
-    expect(events).toEqual([
+    expect(events).toStrictEqual([
       {
         id: 'orders:events:OrderCreated',
         eventName: 'OrderCreated',
@@ -97,7 +97,7 @@ describe('eventHandlers', () => {
 
     const handlers = query.eventHandlers()
 
-    expect(handlers).toEqual([])
+    expect(handlers).toStrictEqual([])
   })
 
   it('returns handler with subscribedEventsWithDomain including source domain', () => {
@@ -128,7 +128,7 @@ describe('eventHandlers', () => {
 
     const handlers = query.eventHandlers()
 
-    expect(handlers).toEqual([
+    expect(handlers).toStrictEqual([
       {
         id: 'shipping:handlers:OnOrderCreated',
         handlerName: 'On Order Created',
@@ -163,7 +163,7 @@ describe('eventHandlers', () => {
 
     const handlers = query.eventHandlers()
 
-    expect(handlers).toEqual([
+    expect(handlers).toStrictEqual([
       {
         id: 'shipping:handlers:OnUnknownEvent',
         handlerName: 'On Unknown Event',
@@ -217,7 +217,7 @@ describe('eventHandlers', () => {
 
     const handlers = query.eventHandlers('OrderCreated')
 
-    expect(handlers).toEqual([
+    expect(handlers).toStrictEqual([
       {
         id: 'shipping:handlers:OnOrderCreated',
         handlerName: 'On Order Created',

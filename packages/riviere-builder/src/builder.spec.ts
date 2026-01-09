@@ -87,13 +87,13 @@ describe('RiviereBuilder', () => {
 
       expect(builder.graph.metadata.name).toBe('my-service')
       expect(builder.graph.metadata.description).toBe('Service description')
-      expect(builder.graph.metadata.sources).toEqual([
+      expect(builder.graph.metadata.sources).toStrictEqual([
         {
           repository: 'my-org/my-repo',
           commit: 'abc123',
         },
       ])
-      expect(builder.graph.metadata.domains).toEqual({
+      expect(builder.graph.metadata.domains).toStrictEqual({
         orders: {
           description: 'Order management',
           systemType: 'domain',
@@ -111,7 +111,7 @@ describe('RiviereBuilder', () => {
         commit: 'def456',
       })
 
-      expect(builder.graph.metadata.sources).toEqual([
+      expect(builder.graph.metadata.sources).toStrictEqual([
         {
           repository: 'my-org/my-repo',
           commit: 'abc123',
@@ -142,7 +142,7 @@ describe('RiviereBuilder', () => {
         systemType: 'domain',
       })
 
-      expect(builder.graph.metadata.domains['shipping']).toEqual({
+      expect(builder.graph.metadata.domains['shipping']).toStrictEqual({
         description: 'Shipping operations',
         systemType: 'domain',
       })

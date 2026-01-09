@@ -5,17 +5,17 @@ import {
 describe('deduplicateStrings', () => {
   it('returns all incoming when no existing', () => {
     const result = deduplicateStrings([], ['a', 'b'])
-    expect(result).toEqual(['a', 'b'])
+    expect(result).toStrictEqual(['a', 'b'])
   })
 
   it('filters out duplicates', () => {
     const result = deduplicateStrings(['a', 'b'], ['b', 'c'])
-    expect(result).toEqual(['c'])
+    expect(result).toStrictEqual(['c'])
   })
 
   it('returns empty when all duplicates', () => {
     const result = deduplicateStrings(['a', 'b'], ['a', 'b'])
-    expect(result).toEqual([])
+    expect(result).toStrictEqual([])
   })
 })
 
@@ -30,7 +30,7 @@ describe('deduplicateStateTransitions', () => {
         },
       ],
     )
-    expect(result).toEqual([
+    expect(result).toStrictEqual([
       {
         from: 'a',
         to: 'b',
@@ -57,7 +57,7 @@ describe('deduplicateStateTransitions', () => {
         },
       ],
     )
-    expect(result).toEqual([
+    expect(result).toStrictEqual([
       {
         from: 'b',
         to: 'c',
@@ -81,7 +81,7 @@ describe('deduplicateStateTransitions', () => {
         },
       ],
     )
-    expect(result).toEqual([
+    expect(result).toStrictEqual([
       {
         from: 'a',
         to: 'b',
@@ -107,7 +107,7 @@ describe('deduplicateStateTransitions', () => {
         },
       ],
     )
-    expect(result).toEqual([])
+    expect(result).toStrictEqual([])
   })
 
   it('returns empty when all duplicates', () => {
@@ -133,6 +133,6 @@ describe('deduplicateStateTransitions', () => {
         },
       ],
     )
-    expect(result).toEqual([])
+    expect(result).toStrictEqual([])
   })
 })

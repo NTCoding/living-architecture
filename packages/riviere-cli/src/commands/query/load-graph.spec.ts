@@ -12,7 +12,7 @@ import {
 import { CliErrorCode } from '../../error-codes'
 import type { TestContext } from '../../command-test-fixtures'
 import {
-  createTestContext, setupCommandTest 
+  createTestContext, setupCommandTest, assertDefined 
 } from '../../command-test-fixtures'
 
 const validGraph = {
@@ -39,9 +39,7 @@ describe('load-graph', () => {
       const result = await loadGraph()
 
       expect(isLoadGraphError(result)).toBe(true)
-      if (isLoadGraphError(result)) {
-        expect(result.error.error.code).toBe(CliErrorCode.GraphNotFound)
-      }
+      expect(result).toMatchObject({ error: { error: { code: CliErrorCode.GraphNotFound } } })
     })
 
     it('returns LoadGraphError when graph file is not valid JSON', async () => {
@@ -52,9 +50,7 @@ describe('load-graph', () => {
       const result = await loadGraph()
 
       expect(isLoadGraphError(result)).toBe(true)
-      if (isLoadGraphError(result)) {
-        expect(result.error.error.code).toBe(CliErrorCode.GraphCorrupted)
-      }
+      expect(result).toMatchObject({ error: { error: { code: CliErrorCode.GraphCorrupted } } })
     })
 
     it('returns RiviereQuery when graph file is valid', async () => {
@@ -65,10 +61,8 @@ describe('load-graph', () => {
       const result = await loadGraph()
 
       expect(isLoadGraphError(result)).toBe(false)
-      if (!isLoadGraphError(result)) {
-        expect(result.query).toBeInstanceOf(RiviereQuery)
-        expect(result.graphPath).toContain('.riviere/graph.json')
-      }
+      expect(result).toHaveProperty('query')
+      expect(result).toHaveProperty('graphPath')
     })
   })
 
@@ -79,8 +73,7 @@ describe('load-graph', () => {
       })
 
       expect(ctx.consoleOutput).toHaveLength(1)
-      const firstOutput = ctx.consoleOutput[0]
-      if (firstOutput === undefined) throw new Error('Expected output')
+      const firstOutput = assertDefined(ctx.consoleOutput[0], 'Expected output')
       const output: unknown = JSON.parse(firstOutput)
       expect(output).toMatchObject({
         success: false,

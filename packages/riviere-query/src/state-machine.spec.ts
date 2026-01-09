@@ -26,7 +26,7 @@ describe('transitionsFor', () => {
     const nonExistent = query.transitionsFor('NonExistent')
     const existing = query.transitionsFor('Order')
 
-    expect(nonExistent).toEqual([])
+    expect(nonExistent).toStrictEqual([])
     expect(existing).toHaveLength(1)
   })
 
@@ -64,7 +64,7 @@ describe('transitionsFor', () => {
 
     const transitions = query.transitionsFor('Order')
 
-    expect(transitions).toEqual([
+    expect(transitions).toStrictEqual([
       {
         from: 'Draft',
         to: 'Placed',
@@ -99,7 +99,7 @@ describe('transitionsFor', () => {
 
     const transitions = query.transitionsFor('Order')
 
-    expect(transitions).toEqual([
+    expect(transitions).toStrictEqual([
       {
         from: '*',
         to: 'Cancelled',
@@ -136,7 +136,7 @@ describe('transitionsFor', () => {
 
     const transitions = query.transitionsFor('Order')
 
-    expect(transitions).toEqual([
+    expect(transitions).toStrictEqual([
       {
         from: 'Draft',
         to: 'Placed',
@@ -169,7 +169,7 @@ describe('statesFor', () => {
     const nonExistent = query.statesFor('NonExistent')
     const existing = query.statesFor('Order')
 
-    expect(nonExistent).toEqual([])
+    expect(nonExistent).toStrictEqual([])
     expect(existing).toHaveLength(2)
   })
 
@@ -260,7 +260,7 @@ describe('statesFor', () => {
 
     const states = query.statesFor('Order')
 
-    expect(states).toEqual(['Draft', 'Placed', 'Confirmed', 'Shipped'])
+    expect(states).toStrictEqual(['Draft', 'Placed', 'Confirmed', 'Shipped'])
   })
 
   it('excludes wildcard from states but includes target states', () => {
@@ -329,7 +329,7 @@ describe('statesFor', () => {
 
     const states = query.statesFor('Order')
 
-    expect(states).toEqual(['Draft', 'Placed'])
+    expect(states).toStrictEqual(['Draft', 'Placed'])
   })
 
   it('handles cycles in state transitions', () => {

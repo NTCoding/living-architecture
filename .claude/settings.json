@@ -1,8 +1,5 @@
 {
   "permissions": {
-    "allow": [
-        "Bash(./scripts/submit-pr.sh:*)"
-    ],
     "deny": [
       "Edit(./tsconfig.base.json)",
       "Edit(./tsconfig.json)",
