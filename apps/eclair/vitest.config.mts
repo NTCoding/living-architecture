@@ -30,13 +30,13 @@ export default defineConfig(() => ({
           lines: 94,
           statements: 94,
           functions: 100,
-          branches: 74 
+          branches: 74
         },
         '**/*.tsx': {
           lines: 80,
           statements: 80,
           functions: 80,
-          branches: 75 
+          branches: 75
         },
       },
     },

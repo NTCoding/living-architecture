@@ -1,5 +1,5 @@
 import {
-  render, screen, fireEvent, waitFor
+  render, screen, waitFor
 } from '@testing-library/react'
 import {
   GraphProvider, useGraph
@@ -11,7 +11,9 @@ import {
 import type {
   RiviereGraph, SourceLocation
 } from '@/types/riviere'
-import { assertDefined } from '@/test-assertions'
+import {
+  dropFilesOnElement, getDropZone
+} from '@/test/setup'
 
 const testSourceLocation: SourceLocation = {
   repository: 'test-repo',
@@ -42,35 +44,9 @@ const validGraph: RiviereGraph = {
   links: [],
 }
 
-function createFile(name: string, content: string): File {
-  return new File([content], name, { type: 'application/json' })
-}
-
-interface MockDataTransfer {
-  files: File[]
-  items: Array<{
-    kind: string
-    type: string
-    getAsFile: () => File
-  }>
-  types: string[]
-}
-
-function createDataTransfer(files: File[]): MockDataTransfer {
-  return {
-    files,
-    items: files.map((file) => ({
-      kind: 'file',
-      type: file.type,
-      getAsFile: () => file,
-    })),
-    types: ['Files'],
-  }
-}
-
 function GraphStateDisplay(): React.ReactElement {
   const {
-    hasGraph, graphName 
+    hasGraph, graphName
   } = useGraph()
   return (
     <div>
@@ -114,103 +90,77 @@ describe('EmptyState', () => {
   })
 
   it('shows error when file validation fails', async () => {
-    class MockFileReader {
-      result: string | null = null
-      onload: ((event: { target: { result: string } }) => void) | null = null
-      readAsText(): void {
-        const invalidJson = '{"not": "valid graph"}'
-        this.result = invalidJson
-        this.onload?.({ target: { result: invalidJson } })
-      }
-    }
-    vi.stubGlobal('FileReader', MockFileReader)
-
     renderEmptyState()
 
-    const dropZone = assertDefined(
-      screen.getByRole('button', { name: /select file/i }).closest('div[class*="border-"]'),
-      'Drop zone not found',
-    )
-    const file = createFile('bad.json', '{"not": "valid graph"}')
+    const dropZone = getDropZone()
 
-    fireEvent.drop(dropZone, { dataTransfer: createDataTransfer([file]) })
+    await dropFilesOnElement(dropZone, [
+      {
+        name: 'bad.json',
+        content: '{"not": "valid graph"}',
+        type: 'application/json' 
+      },
+    ])
 
     await waitFor(() => {
       expect(screen.getByText(/validation failed/i)).toBeInTheDocument()
     })
-
-    vi.unstubAllGlobals()
   })
 
   it('sets graph in context when valid file loaded', async () => {
     const validJsonString = JSON.stringify(validGraph)
 
-    class MockFileReader {
-      result: string | null = null
-      onload: ((event: { target: { result: string } }) => void) | null = null
-      readAsText(): void {
-        this.result = validJsonString
-        this.onload?.({ target: { result: validJsonString } })
-      }
-    }
-    vi.stubGlobal('FileReader', MockFileReader)
-
     renderEmptyState()
 
     expect(screen.getByTestId('has-graph')).toHaveTextContent('no')
 
-    const dropZone = assertDefined(
-      screen.getByRole('button', { name: /select file/i }).closest('div[class*="border-"]'),
-      'Drop zone not found',
-    )
-    const file = createFile('valid.json', validJsonString)
+    const dropZone = getDropZone()
 
-    fireEvent.drop(dropZone, { dataTransfer: createDataTransfer([file]) })
+    await dropFilesOnElement(dropZone, [
+      {
+        name: 'valid.json',
+        content: validJsonString,
+        type: 'application/json' 
+      },
+    ])
 
     await waitFor(() => {
       expect(screen.getByTestId('has-graph')).toHaveTextContent('yes')
     })
     expect(screen.getByTestId('graph-name')).toHaveTextContent('Test Graph')
-
-    vi.unstubAllGlobals()
   })
 
   it('clears previous error when new valid file loaded', async () => {
     const invalidJson = '{"not": "valid"}'
     const validJsonString = JSON.stringify(validGraph)
-    const state = { fileContent: invalidJson }
-
-    class MockFileReader {
-      result: string | null = null
-      onload: ((event: { target: { result: string } }) => void) | null = null
-      readAsText(): void {
-        this.result = state.fileContent
-        this.onload?.({ target: { result: state.fileContent } })
-      }
-    }
-    vi.stubGlobal('FileReader', MockFileReader)
 
     renderEmptyState()
 
-    const dropZone = assertDefined(
-      screen.getByRole('button', { name: /select file/i }).closest('div[class*="border-"]'),
-      'Drop zone not found',
-    )
+    const dropZone = getDropZone()
 
-    fireEvent.drop(dropZone, {dataTransfer: createDataTransfer([createFile('bad.json', invalidJson)]),})
+    await dropFilesOnElement(dropZone, [
+      {
+        name: 'bad.json',
+        content: invalidJson,
+        type: 'application/json' 
+      },
+    ])
 
     await waitFor(() => {
       expect(screen.getByText(/validation failed/i)).toBeInTheDocument()
     })
 
-    state.fileContent = validJsonString
-    fireEvent.drop(dropZone, {dataTransfer: createDataTransfer([createFile('valid.json', validJsonString)]),})
+    await dropFilesOnElement(dropZone, [
+      {
+        name: 'valid.json',
+        content: validJsonString,
+        type: 'application/json' 
+      },
+    ])
 
     await waitFor(() => {
       expect(screen.queryByText(/validation failed/i)).not.toBeInTheDocument()
     })
-
-    vi.unstubAllGlobals()
   })
 
   describe('View Demo', () => {

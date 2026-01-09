@@ -99,6 +99,7 @@ export default tseslint.config(
       // SonarCloud rule equivalents
       '@typescript-eslint/prefer-includes': 'error',
       '@typescript-eslint/prefer-nullish-coalescing': 'error',
+      '@typescript-eslint/prefer-optional-chain': 'error',
       'import/no-duplicates': 'error',
 
       // Ban generic folder imports (not lib - that's NX convention)
@@ -107,7 +108,7 @@ export default tseslint.config(
         {
           patterns: [
             {
-              group: ['*/utils/*', '*/utils'],
+              group: ['*/utils/*', '*/utils', '*/utilities'],
               message: 'No utils folders. Use domain-specific names.',
             },
             {

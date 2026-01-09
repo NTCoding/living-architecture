@@ -128,7 +128,7 @@ export function EventAccordion({
           </div>
         </button>
         <div className="flex items-center gap-2">
-          {event.sourceLocation !== undefined && event.sourceLocation.lineNumber !== undefined && (
+          {event.sourceLocation?.lineNumber !== undefined && (
             <CodeLinkMenu
               filePath={event.sourceLocation.filePath}
               lineNumber={event.sourceLocation.lineNumber}

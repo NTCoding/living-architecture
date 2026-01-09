@@ -36,9 +36,21 @@
           "cwd": "apps/eclair"
         }
       },
+      "test": {
+        "executor": "nx:run-commands",
+        "dependsOn": [
+          "^build"
+        ],
+        "options": {
+          "command": "vitest run --config vitest.browser.config.mts",
+          "cwd": "apps/eclair"
+        }
+      },
       "test:browser": {
         "executor": "nx:run-commands",
-        "dependsOn": ["^build"],
+        "dependsOn": [
+          "^build"
+        ],
         "options": {
           "command": "vitest run --config vitest.browser.config.mts",
           "cwd": "apps/eclair"
