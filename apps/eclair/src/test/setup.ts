@@ -11,14 +11,14 @@ export const isBrowserEnv =
   typeof DataTransfer !== 'undefined' &&
   DataTransfer.name === 'DataTransfer'
 
-export async function dropFilesOnElement(
+export function dropFilesOnElement(
   element: HTMLElement,
   files: Array<{
     name: string
     content: string
     type: string
   }>,
-): Promise<void> {
+): void {
   const dataTransfer = new DataTransfer()
   for (const f of files) {
     dataTransfer.items.add(new File([f.content], f.name, { type: f.type }))
