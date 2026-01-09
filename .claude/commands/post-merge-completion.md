@@ -1,0 +1,164 @@
+# Post-Merge Completion
+
+Run after a PR is merged to reflect on the task and clean up the worktree.
+
+## Usage
+
+```bash
+/post-merge-completion
+```
+
+## Instructions
+
+### 1. Verify PR is Merged
+
+```bash
+gh pr view --json state -q .state
+```
+
+If not "MERGED", stop and inform the user:
+```text
+PR is not merged yet. Current state: <state>
+Run /post-merge-completion after the PR is merged.
+```
+
+### 2. Reflect
+
+Analyze the completed task and suggest process improvements.
+
+#### Gather Feedback
+
+```bash
+BRANCH=$(git branch --show-current)
+```
+
+**Local review reports** (in `reviews/<branch>/`):
+- `code-review.md` - Convention violations, architecture issues
+- `bug-scanner.md` - Bugs, security issues, framework misuse
+- `task-check.md` - Task completion verification
+- `doc-suggestions.md` - Documentation drift and missing docs (informational)
+
+**PR feedback** (from GitHub):
+```bash
+./scripts/get-pr-feedback.sh
+```
+This includes CodeRabbit comments, human reviewer feedback, and CI results.
+
+**Git history** - What was fixed between iterations:
+```bash
+git log --oneline main..<branch>
+```
+
+**Conversation history** - Issues that came up during development, things that took multiple attempts.
+
+#### Identify Patterns
+
+Look for recurring themes:
+
+- **Process friction** - Steps that were confusing, commands that failed, missing docs
+- **Code quality patterns** - Issues that kept coming up, conventions violated
+- **Tool/workflow gaps** - Manual steps that could be automated, checks that should have caught issues earlier
+
+#### Generate Suggestions
+
+For each pattern, propose a specific improvement:
+
+| Priority | Problem | Suggestion | Files to Update |
+|----------|---------|------------|-----------------|
+| HIGH | [issue] | [fix] | [files] |
+| MEDIUM | [issue] | [fix] | [files] |
+| LOW | [issue] | [fix] | [files] |
+
+Priority guide:
+- **HIGH** - Prevents bugs or significant time waste
+- **MEDIUM** - Improves clarity or efficiency
+- **LOW** - Nice to have
+
+### 3. Present Reflection
+
+```markdown
+# Task Reflection: <branch-name>
+
+## Summary
+[1-2 sentences on how the task went]
+
+## Feedback Addressed
+
+### Local Reviews
+| Source | Findings | Fixed | Skipped (with reason) |
+|--------|----------|-------|----------------------|
+| code-review.md | X | Y | Z |
+| bug-scanner.md | X | Y | Z |
+| task-check.md | PASS/FAIL | - | - |
+
+### Documentation Suggestions (from doc-suggestions.md)
+| Type | Description | Action |
+|------|-------------|--------|
+| Drift | [doc is now incorrect] | [fix now / create issue / skip] |
+| Missing | [new feature undocumented] | [fix now / create issue / skip] |
+
+### PR Feedback
+| Reviewer | Comments | Resolved | How |
+|----------|----------|----------|-----|
+| CodeRabbit | X | Y | [brief description] |
+| [Human] | X | Y | [brief description] |
+
+### Iterations
+[How many /complete-task runs? What failed and was fixed?]
+
+## Patterns Identified
+[What types of issues kept coming up?]
+
+## Suggested Improvements
+
+| Priority | Problem | Evidence | Suggestion | Files |
+|----------|---------|----------|------------|-------|
+| HIGH | ... | ... | ... | ... |
+| MEDIUM | ... | ... | ... | ... |
+| LOW | ... | ... | ... | ... |
+
+## Action Items
+Would you like me to:
+1. Implement HIGH priority improvements now
+2. Create GitHub issues for improvements
+3. Skip and proceed to cleanup
+```
+
+### 4. Handle User Choice
+
+**If implementing improvements:**
+- Make the changes
+- Commit to main (or create a new task if significant)
+
+**If creating issues:**
+- Use `./scripts/create-task.sh` for each improvement
+
+**If skipping:**
+- Proceed to cleanup
+
+### 5. Cleanup
+
+Run the cleanup script:
+
+```bash
+./scripts/cleanup-task.sh
+```
+
+### 6. Complete
+
+```markdown
+# Post-Merge Complete
+
+## Reflection
+[Summary of what was analyzed]
+
+## Improvements
+- Implemented: [list or "None"]
+- Issues created: [list or "None"]
+
+## Cleanup
+Worktree removed: <path>
+
+---
+Ready for next task. Run `./scripts/list-tasks.sh` to see available work.
+```
