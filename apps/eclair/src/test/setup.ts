@@ -36,28 +36,14 @@ export function dropFilesOnElement(
   }
 }
 
-/**
- * Triggers a drag-over event on the specified element.
- * @param element - The HTML element to trigger the drag-over event on
- */
 export function triggerDragOver(element: HTMLElement): void {
   fireEvent.dragOver(element)
 }
 
-/**
- * Triggers a drag-leave event on the specified element.
- * @param element - The HTML element to trigger the drag-leave event on
- */
 export function triggerDragLeave(element: HTMLElement): void {
   fireEvent.dragLeave(element)
 }
 
-/**
- * Locates and returns the file drop zone element in the UI.
- * @returns The drop zone HTML element
- * @throws {Error} When the drop zone cannot be found in the DOM
- * @throws {TypeError} When the located element is not an HTMLElement
- */
 export function getDropZone(): HTMLElement {
   const dropZone = screen
     .getByRole('button', { name: /select file/i })

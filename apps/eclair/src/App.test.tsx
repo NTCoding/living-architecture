@@ -1,5 +1,5 @@
 import {
-  render, screen, waitFor
+  render, screen
 } from '@testing-library/react'
 import type { RenderResult } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
@@ -87,52 +87,40 @@ describe('App routing', () => {
   it('renders FlowsPage at /flows route', async () => {
     renderWithRouter('/flows', { graph: mockGraph })
 
-    await waitFor(() => {
-      expect(screen.getByRole('heading', { name: 'Flows' })).toBeInTheDocument()
-    })
+    await screen.findByRole('heading', { name: 'Flows' })
     expect(screen.getByPlaceholderText('Search flows...')).toBeInTheDocument()
   })
 
   it('renders OverviewPage at / route', async () => {
     renderWithRouter('/', { graph: mockGraph })
 
-    await waitFor(() => {
-      expect(screen.getByRole('heading', { name: 'Overview' })).toBeInTheDocument()
-    })
+    expect(await screen.findByRole('heading', { name: 'Overview' })).toBeInTheDocument()
   })
 
   it('renders FullGraphPage at /full-graph route', async () => {
     renderWithRouter('/full-graph', { graph: mockGraph })
 
-    await waitFor(() => {
-      expect(screen.getByTestId('force-graph-container')).toBeInTheDocument()
-    })
+    expect(await screen.findByTestId('force-graph-container')).toBeInTheDocument()
   })
 
   it('renders DomainMapPage component at /domains route', async () => {
     renderWithRouter('/domains', { graph: mockGraph })
 
-    await waitFor(() => {
-      const links = screen.getAllByRole('link')
-      expect(links.length).toBeGreaterThan(0)
-    })
+    const links = await screen.findAllByRole('link')
+    expect(links.length).toBeGreaterThan(0)
   })
 
   it('renders with app shell sidebar', async () => {
     renderWithRouter('/flows', { graph: mockGraph })
 
-    await waitFor(() => {
-      expect(screen.getByRole('heading', { name: 'Flows' })).toBeInTheDocument()
-    })
+    await screen.findByRole('heading', { name: 'Flows' })
     expect(screen.getByRole('complementary')).toBeInTheDocument()
   })
 
   it('renders app shell with sidebar toggle', async () => {
     renderWithRouter('/flows', { graph: mockGraph })
 
-    await waitFor(() => {
-      expect(screen.getByRole('heading', { name: 'Flows' })).toBeInTheDocument()
-    })
+    await screen.findByRole('heading', { name: 'Flows' })
     expect(screen.getByTestId('sidebar-toggle')).toBeInTheDocument()
   })
 })
