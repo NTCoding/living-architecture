@@ -8,7 +8,10 @@ import {
 import { createProgram } from '../../cli'
 import type { TestContext } from '../../command-test-fixtures'
 import {
-  createTestContext, setupCommandTest, parseErrorOutput 
+  createTestContext,
+  setupCommandTest,
+  parseErrorOutput,
+  ProcessExitError,
 } from '../../command-test-fixtures'
 import { CliErrorCode } from '../../error-codes'
 
@@ -60,13 +63,20 @@ describe('riviere extract', () => {
     setupCommandTest(ctx)
 
     it('returns error when config file does not exist', async () => {
-      await createProgram().parseAsync([
-        'node',
-        'riviere',
-        'extract',
-        '--config',
-        './nonexistent.yaml',
-      ])
+      try {
+        await createProgram().parseAsync([
+          'node',
+          'riviere',
+          'extract',
+          '--config',
+          './nonexistent.yaml',
+        ])
+      } catch (error) {
+        if (!(error instanceof ProcessExitError)) {
+          throw error
+        }
+        expect(error.exitCode).toBe(1)
+      }
 
       const output = parseErrorOutput(ctx.consoleOutput)
       expect(output.success).toBe(false)
@@ -78,7 +88,14 @@ describe('riviere extract', () => {
       const configPath = join(ctx.testDir, 'invalid.yaml')
       await writeFile(configPath, 'invalid: yaml: content: [')
 
-      await createProgram().parseAsync(['node', 'riviere', 'extract', '--config', configPath])
+      try {
+        await createProgram().parseAsync(['node', 'riviere', 'extract', '--config', configPath])
+      } catch (error) {
+        if (!(error instanceof ProcessExitError)) {
+          throw error
+        }
+        expect(error.exitCode).toBe(1)
+      }
 
       const output = parseErrorOutput(ctx.consoleOutput)
       expect(output.success).toBe(false)
@@ -89,7 +106,14 @@ describe('riviere extract', () => {
       const configPath = join(ctx.testDir, 'invalid-schema.yaml')
       await writeFile(configPath, 'modules: "not an array"')
 
-      await createProgram().parseAsync(['node', 'riviere', 'extract', '--config', configPath])
+      try {
+        await createProgram().parseAsync(['node', 'riviere', 'extract', '--config', configPath])
+      } catch (error) {
+        if (!(error instanceof ProcessExitError)) {
+          throw error
+        }
+        expect(error.exitCode).toBe(1)
+      }
 
       const output = parseErrorOutput(ctx.consoleOutput)
       expect(output.success).toBe(false)
@@ -114,7 +138,14 @@ modules:
 `,
       )
 
-      await createProgram().parseAsync(['node', 'riviere', 'extract', '--config', configPath])
+      try {
+        await createProgram().parseAsync(['node', 'riviere', 'extract', '--config', configPath])
+      } catch (error) {
+        if (!(error instanceof ProcessExitError)) {
+          throw error
+        }
+        expect(error.exitCode).toBe(1)
+      }
 
       const output = parseErrorOutput(ctx.consoleOutput)
       expect(output.success).toBe(false)

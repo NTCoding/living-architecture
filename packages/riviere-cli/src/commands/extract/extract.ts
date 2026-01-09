@@ -58,7 +58,7 @@ export function createExtractCommand(): Command {
             formatError(CliErrorCode.ConfigNotFound, `Config file not found: ${options.config}`),
           ),
         )
-        return
+        process.exit(1)
       }
 
       const content = readFileSync(options.config, 'utf-8')
@@ -70,7 +70,7 @@ export function createExtractCommand(): Command {
             formatError(CliErrorCode.ValidationError, `Invalid config file: ${parseResult.error}`),
           ),
         )
-        return
+        process.exit(1)
       }
 
       if (!isValidExtractionConfig(parseResult.data)) {
@@ -83,7 +83,7 @@ export function createExtractCommand(): Command {
             ),
           ),
         )
-        return
+        process.exit(1)
       }
 
       const config = parseResult.data
@@ -103,7 +103,7 @@ export function createExtractCommand(): Command {
             ),
           ),
         )
-        return
+        process.exit(1)
       }
 
       const project = new Project()

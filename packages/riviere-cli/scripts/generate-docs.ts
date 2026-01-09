@@ -253,6 +253,7 @@ function generateReference(): string {
 
   const builderCommands = allCommands.filter((c) => c.fullName.startsWith('riviere builder'))
   const queryCommands = allCommands.filter((c) => c.fullName.startsWith('riviere query'))
+  const extractCommands = allCommands.filter((c) => c.fullName.startsWith('riviere extract'))
 
   const lines: string[] = []
 
@@ -280,6 +281,7 @@ function generateReference(): string {
   lines.push('```bash')
   lines.push('riviere builder <command> [options]  # Graph building commands')
   lines.push('riviere query <command> [options]    # Graph query commands')
+  lines.push('riviere extract <command> [options]  # Component extraction commands')
   lines.push('```')
   lines.push('')
 
@@ -306,6 +308,15 @@ function generateReference(): string {
   lines.push('')
 
   for (const cmd of queryCommands) {
+    lines.push(generateCommandMarkdown(cmd))
+  }
+
+  lines.push('## Extract Commands')
+  lines.push('')
+  lines.push('Commands for extracting architectural components from source code.')
+  lines.push('')
+
+  for (const cmd of extractCommands) {
     lines.push(generateCommandMarkdown(cmd))
   }
 
