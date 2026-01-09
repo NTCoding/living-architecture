@@ -96,7 +96,7 @@ class JsdomTransferItemList {
 
   remove(index: number): void {
     const item = this.items[index]
-    if (item !== undefined && item.kind === 'file') {
+    if (item?.kind === 'file') {
       const file = item.getAsFile()
       if (file !== null) {
         const fileIndex = this.fileList.indexOf(file)

@@ -272,7 +272,7 @@ function NodesListOrEmpty({
 interface NodeListItemProps {readonly node: DomainDetailsNode}
 function NodeListItem({ node }: NodeListItemProps): React.ReactElement {
   const sourceLocation = node.sourceLocation
-  const hasSourceLocation = sourceLocation !== undefined && sourceLocation.lineNumber !== undefined
+  const hasSourceLocation = sourceLocation?.lineNumber !== undefined
   const hasNodeLocation = node.location !== undefined
 
   const showCodeLink = hasSourceLocation

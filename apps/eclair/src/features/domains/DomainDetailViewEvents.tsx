@@ -142,7 +142,7 @@ function ConsumedEventItem({ handler }: ConsumedEventItemProps): React.ReactElem
             )}
           </div>
         </div>
-        {sourceLocation !== undefined && sourceLocation.lineNumber !== undefined && (
+        {sourceLocation?.lineNumber !== undefined && (
           <CodeLinkMenu
             filePath={sourceLocation.filePath}
             lineNumber={sourceLocation.lineNumber}
