@@ -8,7 +8,7 @@ import {
 } from 'vitest'
 import { createProgram } from './cli'
 
-export class ProcessExitError extends Error {
+class ProcessExitError extends Error {
   constructor(public exitCode: number) {
     super(`process.exit(${exitCode})`)
     this.name = 'ProcessExitError'
