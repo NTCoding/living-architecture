@@ -96,6 +96,32 @@ describe('riviere extract', () => {
       expect(output.error.code).toBe(CliErrorCode.ValidationError)
       expect(output.error.message).toContain('modules')
     })
+
+    it('returns validation error when no files match glob patterns', async () => {
+      const configPath = join(ctx.testDir, 'no-match.yaml')
+      await writeFile(
+        configPath,
+        `
+modules:
+  - name: orders
+    path: "**/*.nonexistent"
+    api: { notUsed: true }
+    useCase: { notUsed: true }
+    domainOp: { notUsed: true }
+    event: { notUsed: true }
+    eventHandler: { notUsed: true }
+    ui: { notUsed: true }
+`,
+      )
+
+      await createProgram().parseAsync(['node', 'riviere', 'extract', '--config', configPath])
+
+      const output = parseErrorOutput(ctx.consoleOutput)
+      expect(output.success).toBe(false)
+      expect(output.error.code).toBe(CliErrorCode.ValidationError)
+      expect(output.error.message).toContain('No files matched')
+      expect(output.error.message).toContain('**/*.nonexistent')
+    })
   })
 
   describe('successful extraction', () => {

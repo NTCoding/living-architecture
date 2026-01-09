@@ -93,10 +93,21 @@ export function createExtractCommand(): Command {
         .flatMap((module) => globSync(module.path, { cwd: configDir }))
         .map((filePath) => resolve(configDir, filePath))
 
-      const project = new Project()
-      for (const filePath of sourceFilePaths) {
-        project.addSourceFileAtPath(filePath)
+      if (sourceFilePaths.length === 0) {
+        const patterns = config.modules.map((m) => m.path).join(', ')
+        console.log(
+          JSON.stringify(
+            formatError(
+              CliErrorCode.ValidationError,
+              `No files matched extraction patterns: ${patterns}\nConfig directory: ${configDir}`,
+            ),
+          ),
+        )
+        return
       }
+
+      const project = new Project()
+      project.addSourceFilesAtPaths(sourceFilePaths)
 
       const components = extractComponents(project, sourceFilePaths, config)
 
