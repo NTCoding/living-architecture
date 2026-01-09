@@ -72,8 +72,11 @@ mkdir -p reviews/$BRANCH
 | bug-scanner | Never skipped |
 | task-check | Marker exists: `reviews/<branch>/task-check.marker` OR no issue number in branch |
 
-Extract issue number from branch pattern: `issue-<NUMBER>-...`
-If no issue number found → skip task-check.
+**Issue number extraction:**
+```bash
+ISSUE_NUM=$(echo "$BRANCH" | grep -oE 'issue-[0-9]+' | head -1 | grep -oE '[0-9]+')
+```
+Search anywhere in the branch name for `issue-<digits>` pattern (case-sensitive). Use the first match if multiple exist. If `ISSUE_NUM` is empty → skip task-check.
 
 ### 3. Parallel Review Agents
 
@@ -123,11 +126,15 @@ Return only TASK CHECK: PASS or TASK CHECK: FAIL
 
 Collect the PASS/FAIL results from each agent that ran.
 
-**First: If task-check ran and returned PASS, create the marker immediately:**
-```bash
-date > reviews/<branch>/task-check.marker
-```
-This ensures task-check won't re-run on subsequent attempts even if other agents failed.
+**First: Handle task-check marker:**
+
+| Scenario | Action |
+|----------|--------|
+| task-check ran and returned PASS | Create marker: `date > reviews/<branch>/task-check.marker` |
+| task-check skipped (marker already exists) | Do not create/recreate marker |
+| task-check skipped (no issue number) | Do not create marker |
+
+The marker ensures task-check won't re-run on subsequent attempts even if other agents failed.
 
 **Then evaluate overall results:**
 

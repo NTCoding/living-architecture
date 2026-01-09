@@ -178,6 +178,8 @@ Check if changed code might benefit from documentation updates.
 
 Write suggestions to: `reviews/<branch>/doc-suggestions.md`
 
+**Only create this file if there are actual suggestions.** Do not create an empty file. An absent file means "no documentation suggestions" - consumers should interpret a missing file as having nothing to report.
+
 ### What to Look For
 
 Search for docs that reference changed files:
