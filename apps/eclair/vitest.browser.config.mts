@@ -6,8 +6,6 @@ import { resolve } from 'path';
 const testsRequiringJsdom = [
   '**/App.test.tsx',
   '**/GraphContext.test.tsx',
-  '**/FileUpload.test.tsx',
-  '**/EmptyState.test.tsx',
 ];
 
 const ALLOWED_BROWSERS = ['chromium', 'firefox', 'webkit'] as const;
