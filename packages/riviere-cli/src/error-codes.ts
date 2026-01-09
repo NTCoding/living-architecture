@@ -11,4 +11,5 @@ export enum CliErrorCode {
   GraphCorrupted = 'GRAPH_CORRUPTED',
   GraphExists = 'GRAPH_EXISTS',
   AmbiguousApiMatch = 'AMBIGUOUS_API_MATCH',
+  ConfigNotFound = 'CONFIG_NOT_FOUND',
 }
