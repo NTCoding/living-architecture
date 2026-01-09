@@ -22,8 +22,7 @@ const isEclairPath = (href: string): boolean => {
 
 const initEclairLinkHandler = (): (() => void) => {
   const handler = (event: MouseEvent): void => {
-    // Let browser handle modifier keys, middle-click, and already-handled events
-    if (event.defaultPrevented) return
+    // Let browser handle modifier keys and middle-click
     if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey || event.button !== 0) return
 
     const target = event.target
@@ -35,12 +34,14 @@ const initEclairLinkHandler = (): (() => void) => {
     const href = link.getAttribute('href')
     if (href === null || !isEclairPath(href)) return
 
+    // Force full page navigation to eclair, bypassing VitePress router
     event.preventDefault()
+    event.stopImmediatePropagation()
     window.location.href = href
   }
 
-  document.addEventListener('click', handler)
-  return () => document.removeEventListener('click', handler)
+  document.addEventListener('click', handler, true)
+  return () => document.removeEventListener('click', handler, true)
 }
 
 onMounted(() => {
