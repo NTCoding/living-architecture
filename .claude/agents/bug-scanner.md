@@ -12,7 +12,7 @@ Scan changed files for bugs and dangerous patterns. Be paranoid - if something l
 Review ALL uncommitted changes:
 
 ```bash
-git diff --name-only HEAD; git ls-files --others --exclude-standard
+./scripts/get-changed-files.sh
 ```
 
 Write the COMPLETE report to the file path provided in the prompt.

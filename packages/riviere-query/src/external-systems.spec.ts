@@ -15,7 +15,7 @@ describe('queryExternalDomains', () => {
 
     const result = queryExternalDomains(graph)
 
-    expect(result).toEqual([])
+    expect(result).toStrictEqual([])
   })
 
   it('returns each external target as a separate external domain', () => {
@@ -43,7 +43,7 @@ describe('queryExternalDomains', () => {
     const result = queryExternalDomains(graph)
 
     expect(result).toHaveLength(2)
-    expect(result.map((d) => d.name).sort((a, b) => a.localeCompare(b))).toEqual([
+    expect(result.map((d) => d.name).sort((a, b) => a.localeCompare(b))).toStrictEqual([
       'Stripe',
       'Twilio',
     ])
@@ -68,7 +68,7 @@ describe('queryExternalDomains', () => {
 
     const result = queryExternalDomains(graph)
 
-    expect(result[0]?.sourceDomains).toEqual([parseDomainName('orders')])
+    expect(result[0]?.sourceDomains).toStrictEqual([parseDomainName('orders')])
   })
 
   it('aggregates multiple source domains for same external domain', () => {
@@ -106,7 +106,7 @@ describe('queryExternalDomains', () => {
 
     expect(result).toHaveLength(1)
     expect(result[0]?.name).toBe('Stripe')
-    expect(result[0]?.sourceDomains.sort((a, b) => a.localeCompare(b))).toEqual(
+    expect(result[0]?.sourceDomains.sort((a, b) => a.localeCompare(b))).toStrictEqual(
       [parseDomainName('orders'), parseDomainName('payments')].sort((a, b) => a.localeCompare(b)),
     )
   })
@@ -181,7 +181,7 @@ describe('queryExternalDomains', () => {
 
     const result = queryExternalDomains(graph)
 
-    expect(result[0]?.sourceDomains).toEqual([parseDomainName('orders')])
+    expect(result[0]?.sourceDomains).toStrictEqual([parseDomainName('orders')])
   })
 
   it('skips external links with unknown source component', () => {
@@ -196,7 +196,7 @@ describe('queryExternalDomains', () => {
 
     const result = queryExternalDomains(graph)
 
-    expect(result).toEqual([])
+    expect(result).toStrictEqual([])
   })
 
   it('sorts external domains alphabetically by name', () => {
@@ -228,6 +228,6 @@ describe('queryExternalDomains', () => {
 
     const result = queryExternalDomains(graph)
 
-    expect(result.map((d) => d.name)).toEqual(['AWS', 'Stripe', 'Twilio'])
+    expect(result.map((d) => d.name)).toStrictEqual(['AWS', 'Stripe', 'Twilio'])
   })
 })

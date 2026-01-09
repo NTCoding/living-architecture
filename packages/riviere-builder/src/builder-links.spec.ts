@@ -275,7 +275,7 @@ describe('RiviereBuilder', () => {
 
       expect(externalLink.type).toBe('async')
       expect(externalLink.description).toBe('Payment processing')
-      expect(externalLink.sourceLocation).toEqual({
+      expect(externalLink.sourceLocation).toStrictEqual({
         repository: 'test/repo',
         filePath: 'src/stripe.ts',
       })

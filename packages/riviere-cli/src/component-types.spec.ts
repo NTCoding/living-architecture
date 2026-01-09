@@ -17,7 +17,7 @@ import {
 describe('component-types', () => {
   describe('VALID_COMPONENT_TYPES', () => {
     it('contains all expected component types', () => {
-      expect(VALID_COMPONENT_TYPES).toEqual([
+      expect(VALID_COMPONENT_TYPES).toStrictEqual([
         'UI',
         'API',
         'UseCase',
@@ -91,7 +91,7 @@ describe('component-types', () => {
 
   describe('VALID_SYSTEM_TYPES', () => {
     it('contains domain, bff, ui, and other', () => {
-      expect(VALID_SYSTEM_TYPES).toEqual(['domain', 'bff', 'ui', 'other'])
+      expect(VALID_SYSTEM_TYPES).toStrictEqual(['domain', 'bff', 'ui', 'other'])
     })
   })
 
@@ -109,7 +109,7 @@ describe('component-types', () => {
 
   describe('VALID_API_TYPES', () => {
     it('contains REST, GraphQL, and other', () => {
-      expect(VALID_API_TYPES).toEqual(['REST', 'GraphQL', 'other'])
+      expect(VALID_API_TYPES).toStrictEqual(['REST', 'GraphQL', 'other'])
     })
   })
 
@@ -131,7 +131,7 @@ describe('component-types', () => {
 
   describe('VALID_LINK_TYPES', () => {
     it('contains sync and async', () => {
-      expect(VALID_LINK_TYPES).toEqual(['sync', 'async'])
+      expect(VALID_LINK_TYPES).toStrictEqual(['sync', 'async'])
     })
   })
 

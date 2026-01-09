@@ -158,7 +158,7 @@ describe('Method-level decorators', () => {
         }
       }
 
-      expect(new OrderController().getOrders()).toEqual(['order1'])
+      expect(new OrderController().getOrders()).toStrictEqual(['order1'])
     })
   })
 
@@ -207,7 +207,7 @@ describe('Other decorators', () => {
         }
       }
 
-      expect(new OrderQuery().findAll()).toEqual(['item1'])
+      expect(new OrderQuery().findAll()).toStrictEqual(['item1'])
     })
 
     it('returns undefined for undecorated class', () => {
@@ -344,7 +344,7 @@ describe('Decorator combinations', () => {
     }
 
     const controller = new OrderController()
-    expect(controller.getOrders()).toEqual([])
+    expect(controller.getOrders()).toStrictEqual([])
     expect(controller.healthCheck()).toBe(true)
   })
 

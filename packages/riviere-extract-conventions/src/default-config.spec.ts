@@ -41,7 +41,7 @@ function assertContainerDecorator(rule: unknown, expectedDecorator: string): voi
     throw new Error('Expected HasDecoratorPredicate')
   }
 
-  expect(rule.where.inClassWith.hasDecorator).toEqual({
+  expect(rule.where.inClassWith.hasDecorator).toStrictEqual({
     name: expectedDecorator,
     from: '@living-architecture/riviere-extract-conventions',
   })
@@ -55,7 +55,7 @@ function assertDirectDecorator(rule: unknown, expectedDecorator: string): void {
     throw new Error('Expected HasDecoratorPredicate')
   }
 
-  expect(rule.where.hasDecorator).toEqual({
+  expect(rule.where.hasDecorator).toStrictEqual({
     name: expectedDecorator,
     from: '@living-architecture/riviere-extract-conventions',
   })
@@ -85,7 +85,7 @@ describe('Default extraction config', () => {
       'ui',
     ]
     const moduleKeys = Object.keys(module)
-    expect(moduleKeys).toEqual(expect.arrayContaining(requiredKeys))
+    expect(moduleKeys).toStrictEqual(expect.arrayContaining(requiredKeys))
     expect(moduleKeys).toHaveLength(8)
   })
 

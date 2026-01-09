@@ -43,13 +43,13 @@ describe('RiviereBuilder', () => {
       expect(graph.version).toBe('1.0')
       expect(graph.metadata.name).toBe('test-graph')
       expect(graph.metadata.description).toBe('A test graph')
-      expect(graph.metadata.sources).toEqual([
+      expect(graph.metadata.sources).toStrictEqual([
         {
           repository: 'test/repo',
           commit: 'abc123',
         },
       ])
-      expect(graph.metadata.domains).toEqual({
+      expect(graph.metadata.domains).toStrictEqual({
         orders: {
           description: 'Order domain',
           systemType: 'domain',
@@ -136,7 +136,7 @@ describe('RiviereBuilder', () => {
 
       const graph = builder.build()
 
-      expect(graph.metadata.customTypes).toEqual({
+      expect(graph.metadata.customTypes).toStrictEqual({
         Repository: {
           requiredProperties: {
             entityName: {
@@ -193,7 +193,7 @@ describe('RiviereBuilder', () => {
 
       const graph = builder.build()
 
-      expect(graph.externalLinks).toEqual([
+      expect(graph.externalLinks).toStrictEqual([
         {
           source: source.id,
           target: { name: 'Stripe API' },
@@ -266,7 +266,7 @@ describe('RiviereBuilder', () => {
       tempFiles.push(filePath)
 
       await expect(builder.save(filePath)).rejects.toThrow(/validation failed/i)
-      await expect(fs.access(filePath)).rejects.toThrow()
+      await expect(fs.access(filePath)).rejects.toThrow(/ENOENT/)
     })
 
     it('throws when directory does not exist', async () => {

@@ -14,7 +14,7 @@ describe('RiviereBuilder', () => {
       const stats = builder.stats()
 
       expect(stats.componentCount).toBe(0)
-      expect(stats.componentsByType).toEqual({
+      expect(stats.componentsByType).toStrictEqual({
         UI: 0,
         API: 0,
         UseCase: 0,
@@ -150,7 +150,7 @@ describe('RiviereBuilder', () => {
 
       const warnings = builder.warnings()
 
-      expect(warnings).toEqual([])
+      expect(warnings).toStrictEqual([])
     })
 
     it('returns ORPHAN_COMPONENT warning for unlinked component', () => {
@@ -307,7 +307,7 @@ describe('RiviereBuilder', () => {
         from: source.id,
         to: target.id,
       })
-      expect(builder.orphans()).toEqual([])
+      expect(builder.orphans()).toStrictEqual([])
     })
 
     it('returns component ID when component has no links', () => {
@@ -318,7 +318,7 @@ describe('RiviereBuilder', () => {
         module: 'core',
         sourceLocation: createSourceLocation(),
       })
-      expect(builder.orphans()).toEqual([orphan.id])
+      expect(builder.orphans()).toStrictEqual([orphan.id])
     })
 
     it('excludes component that is link source', () => {
@@ -333,7 +333,7 @@ describe('RiviereBuilder', () => {
         from: source.id,
         to: 'nonexistent:target:id',
       })
-      expect(builder.orphans()).toEqual([])
+      expect(builder.orphans()).toStrictEqual([])
     })
 
     it('excludes component that is link target', () => {
@@ -355,7 +355,7 @@ describe('RiviereBuilder', () => {
         from: source.id,
         to: target.id,
       })
-      expect(builder.orphans()).toEqual([])
+      expect(builder.orphans()).toStrictEqual([])
     })
 
     it('excludes component that has external link only', () => {
@@ -370,7 +370,7 @@ describe('RiviereBuilder', () => {
         from: source.id,
         target: { name: 'Stripe API' },
       })
-      expect(builder.orphans()).toEqual([])
+      expect(builder.orphans()).toStrictEqual([])
     })
 
     it('returns multiple IDs when multiple components have no links', () => {

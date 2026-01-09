@@ -97,7 +97,7 @@ describe('riviere query components', () => {
       const output = parseOutput(ctx.consoleOutput)
       expect(output.success).toBe(true)
       expect(output.data.components).toHaveLength(2)
-      expect(output.data.components[0]).toEqual({
+      expect(output.data.components[0]).toStrictEqual({
         id: 'orders:checkout:api:place-order',
         type: 'API',
         name: 'place-order',

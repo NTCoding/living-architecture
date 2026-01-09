@@ -151,7 +151,7 @@ describe('riviere builder component-summary', () => {
       await createProgram().parseAsync(['node', 'riviere', 'builder', 'component-summary'])
       const output = parseSummaryOutput(ctx.consoleOutput)
 
-      expect(output.data.componentsByType).toEqual({
+      expect(output.data.componentsByType).toStrictEqual({
         UI: 0,
         API: 0,
         UseCase: 0,

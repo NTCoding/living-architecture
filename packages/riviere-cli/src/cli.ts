@@ -20,6 +20,7 @@ import { createTraceCommand } from './commands/query/trace'
 import { createOrphansCommand } from './commands/query/orphans'
 import { createComponentsCommand } from './commands/query/components'
 import { createSearchCommand } from './commands/query/search'
+import { createExtractCommand } from './commands/extract/extract'
 
 interface PackageJson {version: string}
 
@@ -70,6 +71,8 @@ export function createProgram(): Command {
   queryCmd.addCommand(createOrphansCommand())
   queryCmd.addCommand(createComponentsCommand())
   queryCmd.addCommand(createSearchCommand())
+
+  program.addCommand(createExtractCommand())
 
   return program
 }

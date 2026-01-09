@@ -24,7 +24,7 @@ describe('RiviereQuery', () => {
     it('throws on invalid graph schema', () => {
       const invalidGraph = { notAValidGraph: true }
 
-      expect(() => RiviereQuery.fromJSON(invalidGraph)).toThrow()
+      expect(() => RiviereQuery.fromJSON(invalidGraph)).toThrow(/Invalid RiviereGraph/)
     })
 
     it('returns RiviereQuery for valid graph', () => {
@@ -85,14 +85,14 @@ describe('RiviereQuery', () => {
 
       const query = new RiviereQuery(graph)
 
-      expect(query.detectOrphans()).toEqual([])
+      expect(query.detectOrphans()).toStrictEqual([])
     })
 
     it('returns orphan IDs when components have no links', () => {
       const graph = createMinimalValidGraph()
       const query = new RiviereQuery(graph)
 
-      expect(query.detectOrphans()).toEqual(['test:mod:ui:page'])
+      expect(query.detectOrphans()).toStrictEqual(['test:mod:ui:page'])
     })
 
     it('considers both source and target links as connected', () => {
@@ -118,7 +118,7 @@ describe('RiviereQuery', () => {
 
       const query = new RiviereQuery(graph)
 
-      expect(query.detectOrphans()).toEqual(['test:mod:ui:page'])
+      expect(query.detectOrphans()).toStrictEqual(['test:mod:ui:page'])
     })
   })
 
@@ -169,7 +169,7 @@ describe('RiviereQuery', () => {
 
       const result = query.findAll((c) => c.domain === 'orders')
 
-      expect(result.map((c) => c.id)).toEqual([
+      expect(result.map((c) => c.id)).toStrictEqual([
         'orders:checkout:api:post',
         'orders:fulfillment:api:get',
       ])
@@ -178,7 +178,7 @@ describe('RiviereQuery', () => {
     it('returns empty array when no components match', () => {
       const query = new RiviereQuery(createMinimalValidGraph())
 
-      expect(query.findAll((c) => c.domain === 'nonexistent')).toEqual([])
+      expect(query.findAll((c) => c.domain === 'nonexistent')).toStrictEqual([])
     })
   })
 
@@ -238,11 +238,11 @@ describe('RiviereQuery', () => {
     })
 
     it('returns empty array for empty query string', () => {
-      expect(new RiviereQuery(createMinimalValidGraph()).search('')).toEqual([])
+      expect(new RiviereQuery(createMinimalValidGraph()).search('')).toStrictEqual([])
     })
 
     it('returns empty array when no match found', () => {
-      expect(new RiviereQuery(createMinimalValidGraph()).search('nonexistent')).toEqual([])
+      expect(new RiviereQuery(createMinimalValidGraph()).search('nonexistent')).toStrictEqual([])
     })
   })
 
@@ -269,13 +269,13 @@ describe('RiviereQuery', () => {
 
       const result = query.componentsInDomain('shipping')
 
-      expect(result.map((c) => c.id)).toEqual(['shipping:api:a', 'shipping:api:b'])
+      expect(result.map((c) => c.id)).toStrictEqual(['shipping:api:a', 'shipping:api:b'])
     })
 
     it('returns empty array when domain has no components', () => {
-      expect(new RiviereQuery(createMinimalValidGraph()).componentsInDomain('nonexistent')).toEqual(
-        [],
-      )
+      expect(
+        new RiviereQuery(createMinimalValidGraph()).componentsInDomain('nonexistent'),
+      ).toStrictEqual([])
     })
   })
 
@@ -292,17 +292,19 @@ describe('RiviereQuery', () => {
 
       const result = new RiviereQuery(graph).componentsByType('API')
 
-      expect(result.map((c) => c.id)).toEqual(['test:api:a'])
+      expect(result.map((c) => c.id)).toStrictEqual(['test:api:a'])
     })
 
     it('returns empty array when no components of type exist', () => {
-      expect(new RiviereQuery(createMinimalValidGraph()).componentsByType('Event')).toEqual([])
+      expect(new RiviereQuery(createMinimalValidGraph()).componentsByType('Event')).toStrictEqual(
+        [],
+      )
     })
   })
 
   describe('externalLinks()', () => {
     it('returns empty array when graph has no external links', () => {
-      expect(new RiviereQuery(createMinimalValidGraph()).externalLinks()).toEqual([])
+      expect(new RiviereQuery(createMinimalValidGraph()).externalLinks()).toStrictEqual([])
     })
 
     it('returns external links from the graph', () => {
@@ -321,7 +323,7 @@ describe('RiviereQuery', () => {
       ]
       const result = new RiviereQuery(graph).externalLinks()
       expect(result).toHaveLength(2)
-      expect(result.map((l) => l.target.name)).toEqual(['Stripe', 'Twilio'])
+      expect(result.map((l) => l.target.name)).toStrictEqual(['Stripe', 'Twilio'])
     })
   })
 
@@ -332,7 +334,7 @@ describe('RiviereQuery', () => {
 
       const result = query.entryPoints()
 
-      expect(result.map((c) => c.id)).toEqual(['test:mod:ui:page'])
+      expect(result.map((c) => c.id)).toStrictEqual(['test:mod:ui:page'])
     })
 
     it('includes API component when it has no incoming links', () => {
@@ -348,7 +350,7 @@ describe('RiviereQuery', () => {
 
       const result = query.entryPoints()
 
-      expect(result.map((c) => c.id)).toEqual(['test:api:create'])
+      expect(result.map((c) => c.id)).toStrictEqual(['test:api:create'])
     })
 
     it('includes EventHandler component when it has no incoming links', () => {
@@ -364,7 +366,7 @@ describe('RiviereQuery', () => {
 
       const result = query.entryPoints()
 
-      expect(result.map((c) => c.id)).toEqual(['test:handler:order'])
+      expect(result.map((c) => c.id)).toStrictEqual(['test:handler:order'])
     })
 
     it('includes Custom component when it has no incoming links', () => {
@@ -382,7 +384,7 @@ describe('RiviereQuery', () => {
 
       const result = query.entryPoints()
 
-      expect(result.map((c) => c.id)).toEqual(['test:cron:nightly'])
+      expect(result.map((c) => c.id)).toStrictEqual(['test:cron:nightly'])
     })
 
     it('excludes API component when it has incoming link', () => {
@@ -404,7 +406,7 @@ describe('RiviereQuery', () => {
 
       const result = query.entryPoints()
 
-      expect(result.map((c) => c.id)).toEqual(['test:mod:ui:page'])
+      expect(result.map((c) => c.id)).toStrictEqual(['test:mod:ui:page'])
     })
 
     it('excludes UseCase component even when it has no incoming links', () => {
@@ -420,13 +422,13 @@ describe('RiviereQuery', () => {
 
       const result = query.entryPoints()
 
-      expect(result).toEqual([])
+      expect(result).toStrictEqual([])
     })
   })
 
   describe('externalDomains()', () => {
     it('returns empty array when graph has no external links', () => {
-      expect(new RiviereQuery(createMinimalValidGraph()).externalDomains()).toEqual([])
+      expect(new RiviereQuery(createMinimalValidGraph()).externalDomains()).toStrictEqual([])
     })
 
     it('returns external domains with connection counts', () => {

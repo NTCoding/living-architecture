@@ -91,7 +91,7 @@ describe('RiviereBuilder.nearMatches', () => {
       const first = firstResult(results)
       expect(first.component.name).toBe('OrderPlaced')
       expect(first.component.type).toBe('Event')
-      expect(first.mismatch).toEqual({
+      expect(first.mismatch).toStrictEqual({
         field: 'type',
         expected: 'UseCase',
         actual: 'Event',
@@ -110,7 +110,7 @@ describe('RiviereBuilder.nearMatches', () => {
       const first = firstResult(results)
       expect(first.component.name).toBe('OrderService')
       expect(first.component.type).toBe('UseCase')
-      expect(first.mismatch).toEqual({
+      expect(first.mismatch).toStrictEqual({
         field: 'type',
         expected: 'Event',
         actual: 'UseCase',
@@ -140,7 +140,7 @@ describe('RiviereBuilder.nearMatches', () => {
       const first = firstResult(results)
       expect(first.component.name).toBe(expected.expectedName)
       expect(first.component.domain).toBe(expected.expectedDomain)
-      expect(first.mismatch).toEqual({
+      expect(first.mismatch).toStrictEqual({
         field: expected.mismatchField,
         expected: query.domain,
         actual: expected.expectedDomain,
@@ -174,7 +174,7 @@ describe('RiviereBuilder.nearMatches', () => {
       const builder = createBuilderWithComponents()
       const results = builder.nearMatches(query)
 
-      expect(results).toEqual([])
+      expect(results).toStrictEqual([])
     })
   })
 
@@ -183,8 +183,8 @@ describe('RiviereBuilder.nearMatches', () => {
       const builder = createBuilderWithComponents()
       const results = builder.nearMatches({ name: 'Service' }, { threshold: 0.3 })
 
-      expect(results.length).toBe(4)
-      expect(results.map((r) => r.component.name)).toEqual([
+      expect(results).toHaveLength(4)
+      expect(results.map((r) => r.component.name)).toStrictEqual([
         'OrderService',
         'PaymentService',
         'ShippingService',
@@ -219,7 +219,7 @@ describe('RiviereBuilder.nearMatches', () => {
       // Very high threshold should exclude partial matches
       const results = builder.nearMatches({ name: 'OrderServic' }, { threshold: 0.99 })
 
-      expect(results).toEqual([])
+      expect(results).toStrictEqual([])
     })
 
     it('respects limit option', () => {
@@ -227,7 +227,7 @@ describe('RiviereBuilder.nearMatches', () => {
       // Lower threshold to get multiple matches, then limit to 1
       const results = builder.nearMatches({ name: 'OrderService' }, { limit: 1 })
 
-      expect(results.length).toBe(1)
+      expect(results).toHaveLength(1)
     })
   })
 })

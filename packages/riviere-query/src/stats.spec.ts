@@ -201,7 +201,7 @@ describe('stats', () => {
     const query = new RiviereQuery(graph)
     const result = query.stats()
 
-    expect(result).toEqual({
+    expect(result).toStrictEqual({
       componentCount: 0,
       linkCount: 0,
       domainCount: 0,

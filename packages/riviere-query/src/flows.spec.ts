@@ -3,6 +3,7 @@ import {
   createMinimalValidGraph,
   createAPIComponent,
   createUseCaseComponent,
+  assertDefined,
 } from './riviere-graph-fixtures'
 
 describe('RiviereQuery.flows()', () => {
@@ -12,12 +13,10 @@ describe('RiviereQuery.flows()', () => {
     const result = query.flows()
 
     expect(result).toHaveLength(1)
-    const flow = result[0]
-    if (!flow) throw new Error('Expected flow to exist')
+    const flow = assertDefined(result[0], 'Expected flow to exist')
     expect(flow.entryPoint.id).toBe('test:mod:ui:page')
     expect(flow.steps).toHaveLength(1)
-    const firstStep = flow.steps[0]
-    if (!firstStep) throw new Error('Expected first step to exist')
+    const firstStep = assertDefined(flow.steps[0], 'Expected first step to exist')
     expect(firstStep.component.id).toBe('test:mod:ui:page')
     expect(firstStep.linkType).toBeUndefined()
     expect(firstStep.depth).toBe(0)
@@ -52,11 +51,11 @@ describe('RiviereQuery.flows()', () => {
     const result = query.flows()
 
     expect(result).toHaveLength(1)
-    const flow = result[0]
-    if (!flow) throw new Error('Expected flow to exist')
+    const flow = assertDefined(result[0], 'Expected flow to exist')
     expect(flow.steps).toHaveLength(3)
-    const [step0, step1, step2] = flow.steps
-    if (!step0 || !step1 || !step2) throw new Error('Expected 3 steps')
+    const step0 = assertDefined(flow.steps[0], 'Expected step 0')
+    const step1 = assertDefined(flow.steps[1], 'Expected step 1')
+    const step2 = assertDefined(flow.steps[2], 'Expected step 2')
     expect(step0.depth).toBe(0)
     expect(step0.component.id).toBe('test:mod:ui:page')
     expect(step1.depth).toBe(1)
@@ -96,10 +95,10 @@ describe('RiviereQuery.flows()', () => {
     const result = query.flows()
 
     expect(result).toHaveLength(1)
-    const flow = result[0]
-    if (!flow) throw new Error('Expected flow to exist')
-    const [step0, step1, step2] = flow.steps
-    if (!step0 || !step1 || !step2) throw new Error('Expected 3 steps')
+    const flow = assertDefined(result[0], 'Expected flow to exist')
+    const step0 = assertDefined(flow.steps[0], 'Expected step 0')
+    const step1 = assertDefined(flow.steps[1], 'Expected step 1')
+    const step2 = assertDefined(flow.steps[2], 'Expected step 2')
     expect(step0.linkType).toBe('sync')
     expect(step1.linkType).toBe('async')
     expect(step2.linkType).toBeUndefined()
@@ -123,7 +122,7 @@ describe('RiviereQuery.flows()', () => {
       .map((f) => f.entryPoint.id)
       .slice()
       .sort((a, b) => a.localeCompare(b))
-    expect(entryPointIds).toEqual(['test:api:endpoint', 'test:mod:ui:page'])
+    expect(entryPointIds).toStrictEqual(['test:api:endpoint', 'test:mod:ui:page'])
   })
 
   it('visits each component once when graph contains cycle between API and UseCase', () => {
@@ -160,8 +159,7 @@ describe('RiviereQuery.flows()', () => {
     const result = query.flows()
 
     expect(result).toHaveLength(1)
-    const flow = result[0]
-    if (!flow) throw new Error('Expected flow to exist')
+    const flow = assertDefined(result[0], 'Expected flow to exist')
     expect(flow.steps).toHaveLength(3)
   })
 
@@ -194,14 +192,13 @@ describe('RiviereQuery.flows()', () => {
     const result = query.flows()
 
     expect(result).toHaveLength(1)
-    const flow = result[0]
-    if (!flow) throw new Error('Expected flow to exist')
+    const flow = assertDefined(result[0], 'Expected flow to exist')
     expect(flow.steps).toHaveLength(3)
     const stepIds = flow.steps
       .map((s) => s.component.id)
       .slice()
       .sort((a, b) => a.localeCompare(b))
-    expect(stepIds).toEqual(['test:api:a', 'test:api:b', 'test:mod:ui:page'])
+    expect(stepIds).toStrictEqual(['test:api:a', 'test:api:b', 'test:mod:ui:page'])
   })
 
   it('returns only entry point step when link targets non-existent component', () => {
@@ -216,11 +213,9 @@ describe('RiviereQuery.flows()', () => {
     const result = query.flows()
 
     expect(result).toHaveLength(1)
-    const flow = result[0]
-    if (!flow) throw new Error('Expected flow to exist')
+    const flow = assertDefined(result[0], 'Expected flow to exist')
     expect(flow.steps).toHaveLength(1)
-    const step = flow.steps[0]
-    if (!step) throw new Error('Expected step to exist')
+    const step = assertDefined(flow.steps[0], 'Expected step to exist')
     expect(step.component.id).toBe('test:mod:ui:page')
   })
 
@@ -254,10 +249,11 @@ describe('RiviereQuery.flows()', () => {
     const result = query.flows()
 
     expect(result).toHaveLength(1)
-    const flow = result[0]
-    if (!flow) throw new Error('Expected flow to exist')
-    const paymentStep = flow.steps.find((s) => s.component.id === 'test:api:payment')
-    if (!paymentStep) throw new Error('Expected payment step to exist')
+    const flow = assertDefined(result[0], 'Expected flow to exist')
+    const paymentStep = assertDefined(
+      flow.steps.find((s) => s.component.id === 'test:api:payment'),
+      'Expected payment step to exist',
+    )
     expect(paymentStep.externalLinks).toHaveLength(1)
     expect(paymentStep.externalLinks[0]?.target.name).toBe('Stripe')
   })
@@ -269,11 +265,9 @@ describe('RiviereQuery.flows()', () => {
     const result = query.flows()
 
     expect(result).toHaveLength(1)
-    const flow = result[0]
-    if (!flow) throw new Error('Expected flow to exist')
-    const step = flow.steps[0]
-    if (!step) throw new Error('Expected step to exist')
-    expect(step.externalLinks).toEqual([])
+    const flow = assertDefined(result[0], 'Expected flow to exist')
+    const step = assertDefined(flow.steps[0], 'Expected step to exist')
+    expect(step.externalLinks).toStrictEqual([])
   })
 
   it('includes multiple external links for same component', () => {
@@ -295,16 +289,14 @@ describe('RiviereQuery.flows()', () => {
     const result = query.flows()
 
     expect(result).toHaveLength(1)
-    const flow = result[0]
-    if (!flow) throw new Error('Expected flow to exist')
-    const step = flow.steps[0]
-    if (!step) throw new Error('Expected step to exist')
+    const flow = assertDefined(result[0], 'Expected flow to exist')
+    const step = assertDefined(flow.steps[0], 'Expected step to exist')
     expect(step.externalLinks).toHaveLength(2)
     const names = step.externalLinks
       .map((l) => l.target.name)
       .slice()
       .sort((a, b) => a.localeCompare(b))
-    expect(names).toEqual(['Analytics', 'CDN'])
+    expect(names).toStrictEqual(['Analytics', 'CDN'])
   })
 })
 
@@ -322,11 +314,11 @@ describe('RiviereQuery.searchWithFlow()', () => {
 
     const result = query.searchWithFlow('', { returnAllOnEmptyQuery: true })
 
-    expect(result.matchingIds.slice().sort((a, b) => a.localeCompare(b))).toEqual([
+    expect(result.matchingIds.slice().sort((a, b) => a.localeCompare(b))).toStrictEqual([
       'test:api:a',
       'test:mod:ui:page',
     ])
-    expect(result.visibleIds.slice().sort((a, b) => a.localeCompare(b))).toEqual([
+    expect(result.visibleIds.slice().sort((a, b) => a.localeCompare(b))).toStrictEqual([
       'test:api:a',
       'test:mod:ui:page',
     ])
@@ -345,8 +337,8 @@ describe('RiviereQuery.searchWithFlow()', () => {
 
     const result = query.searchWithFlow('', { returnAllOnEmptyQuery: false })
 
-    expect(result.matchingIds).toEqual([])
-    expect(result.visibleIds).toEqual([])
+    expect(result.matchingIds).toStrictEqual([])
+    expect(result.visibleIds).toStrictEqual([])
   })
 
   it('returns matching component ID and all connected component IDs as visible', () => {
@@ -377,8 +369,8 @@ describe('RiviereQuery.searchWithFlow()', () => {
 
     const result = query.searchWithFlow('API A', { returnAllOnEmptyQuery: false })
 
-    expect(result.matchingIds).toEqual(['test:api:a'])
-    expect(result.visibleIds.slice().sort((a, b) => a.localeCompare(b))).toEqual([
+    expect(result.matchingIds).toStrictEqual(['test:api:a'])
+    expect(result.visibleIds.slice().sort((a, b) => a.localeCompare(b))).toStrictEqual([
       'test:api:a',
       'test:mod:ui:page',
       'test:uc:b',
@@ -390,7 +382,7 @@ describe('RiviereQuery.searchWithFlow()', () => {
 
     const result = query.searchWithFlow('nonexistent', { returnAllOnEmptyQuery: false })
 
-    expect(result.matchingIds).toEqual([])
-    expect(result.visibleIds).toEqual([])
+    expect(result.matchingIds).toStrictEqual([])
+    expect(result.visibleIds).toStrictEqual([])
   })
 })

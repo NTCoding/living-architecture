@@ -19,7 +19,7 @@ describe('extractComponents', () => {
 
     const result = extractComponents(project, [], config)
 
-    expect(result).toEqual([])
+    expect(result).toStrictEqual([])
   })
 
   describe('edge cases', () => {
@@ -29,7 +29,7 @@ describe('extractComponents', () => {
 
       const result = extractComponents(project, ['nonexistent.ts'], config)
 
-      expect(result).toEqual([])
+      expect(result).toStrictEqual([])
     })
 
     it('returns empty array when file path does not match any module', () => {
@@ -55,7 +55,7 @@ describe('extractComponents', () => {
 
       const result = extractComponents(project, ['unmatched/file.ts'], config)
 
-      expect(result).toEqual([])
+      expect(result).toStrictEqual([])
     })
 
     it('matches module path when file path uses Windows backslashes', () => {
@@ -88,7 +88,7 @@ describe('extractComponents', () => {
 
       const result = extractComponents(project, ['orders\\use-cases\\create-order.ts'], config)
 
-      expect(result).toEqual([
+      expect(result).toStrictEqual([
         {
           type: 'useCase',
           name: 'CreateOrder',
@@ -131,7 +131,7 @@ describe('extractComponents', () => {
 
       const result = extractComponents(project, ['orders/anon.ts'], config)
 
-      expect(result).toEqual([])
+      expect(result).toStrictEqual([])
     })
   })
 
@@ -168,7 +168,7 @@ describe('extractComponents', () => {
 
       const result = extractComponents(project, ['orders/api/controller.ts'], config)
 
-      expect(result).toEqual([
+      expect(result).toStrictEqual([
         {
           type: 'api',
           name: 'createOrder',
@@ -212,7 +212,7 @@ describe('extractComponents', () => {
 
       const result = extractComponents(project, ['orders/domain/process-order.ts'], config)
 
-      expect(result).toEqual([
+      expect(result).toStrictEqual([
         {
           type: 'domainOp',
           name: 'processOrder',
@@ -254,7 +254,7 @@ describe('extractComponents', () => {
 
       const result = extractComponents(project, ['orders/domain/anon-func.ts'], config)
 
-      expect(result).toEqual([])
+      expect(result).toStrictEqual([])
     })
   })
 
@@ -289,7 +289,7 @@ describe('extractComponents', () => {
 
       const result = extractComponents(project, ['orders/use-cases/create-order.ts'], config)
 
-      expect(result).toEqual([
+      expect(result).toStrictEqual([
         {
           type: 'useCase',
           name: 'CreateOrder',
@@ -332,7 +332,7 @@ describe('extractComponents', () => {
 
       const result = extractComponents(project, ['shipping/handlers/ship-order.ts'], config)
 
-      expect(result).toEqual([
+      expect(result).toStrictEqual([
         {
           type: 'eventHandler',
           name: 'ShipOrder',

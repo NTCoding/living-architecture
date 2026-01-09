@@ -18,15 +18,10 @@ Read and apply the rules in @/docs/workflow/code-review.md
 Review ALL uncommitted changes (staged, unstaged, and untracked):
 
 ```bash
-git diff --name-only HEAD; git ls-files --others --exclude-standard
+./scripts/get-changed-files.sh --filter '\.(ts|tsx|sh)$'
 ```
 
-This captures:
-- Staged changes: `git diff --name-only --cached`
-- Unstaged changes: `git diff --name-only`
-- Untracked files: `git ls-files --others --exclude-standard`
-
-Filter to `.ts`, `.tsx`, and `.sh` files. If no files match, return PASS immediately.
+If no files match, return PASS immediately.
 
 ## Output
 

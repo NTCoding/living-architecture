@@ -9,7 +9,7 @@ describe('formatSuccess', () => {
 
     const result = formatSuccess(data)
 
-    expect(result).toEqual({
+    expect(result).toStrictEqual({
       success: true,
       data: { count: 5 },
       warnings: [],
@@ -22,7 +22,7 @@ describe('formatSuccess', () => {
 
     const result = formatSuccess(data, warnings)
 
-    expect(result).toEqual({
+    expect(result).toStrictEqual({
       success: true,
       data: { name: 'test' },
       warnings: ['Deprecated field used'],
@@ -34,7 +34,7 @@ describe('formatError', () => {
   it('returns error output with code and message', () => {
     const result = formatError(CliErrorCode.GraphNotFound, 'No graph found at .riviere/graph.json')
 
-    expect(result).toEqual({
+    expect(result).toStrictEqual({
       success: false,
       error: {
         code: 'GRAPH_NOT_FOUND',
@@ -51,7 +51,7 @@ describe('formatError', () => {
       ['orders:api:place-order', 'orders:api:get-order'],
     )
 
-    expect(result).toEqual({
+    expect(result).toStrictEqual({
       success: false,
       error: {
         code: 'COMPONENT_NOT_FOUND',

@@ -23,7 +23,7 @@ describe('getFirstModule', () => {
 
     const result = getFirstModule(validConfig)
 
-    expect(result).toEqual({
+    expect(result).toStrictEqual({
       path: '**/*.ts',
       api: { find: 'methods' },
     })
