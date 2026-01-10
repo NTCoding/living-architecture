@@ -158,3 +158,4 @@ Installed from `ntcoding/claude-skillz`:
 - **Use NX commands** for all build, test, and lint operations. Do not run npm/pnpm directly in project folders.
 - **Cross-project imports** use package names (e.g., `import { X } from '@living-architecture/[pkg-name]'`), not relative paths.
 - **Adding dependencies between projects** requires adding `"@living-architecture/[pkg-name]": "workspace:*"` to the consuming project's package.json.
+- **Browser debugging** - When building new UI features or debugging browser issues, use Chrome MCP tools instead of guessing from code inspection.
