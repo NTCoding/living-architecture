@@ -85,6 +85,7 @@ describe('compareGraphs', () => {
         edges: {
           added: [],
           removed: [],
+          modified: [],
         },
       })
       expect(diff.nodes.unchanged).toHaveLength(1)
@@ -166,10 +167,12 @@ describe('compareGraphs', () => {
       expect(diff.nodes.modified).toHaveLength(1)
       expect(diff.nodes.modified[0]).toMatchObject({
         before: {
+          id: 'node-1',
           name: 'Original Name',
           description: 'old',
         },
         after: {
+          id: 'node-1',
           name: 'Updated Name',
           description: 'new',
         },
