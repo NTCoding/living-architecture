@@ -2,7 +2,7 @@
 # archive-prd.sh - Move a PRD from active to archived and close milestone
 # Usage: ./scripts/archive-prd.sh <prd-name>
 
-set -e
+set -euo pipefail
 
 if [[ -z "$1" ]]; then
     echo "Usage: ./scripts/archive-prd.sh <prd-name>" >&2

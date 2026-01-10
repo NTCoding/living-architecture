@@ -10,7 +10,7 @@
 #   0 - Success (output may be empty if no unresolved items)
 #   1 - Error (no PR, API failure, etc.)
 
-set -e
+set -euo pipefail
 
 # Verify required tools are available
 for cmd in gh jq; do

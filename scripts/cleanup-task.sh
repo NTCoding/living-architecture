@@ -4,7 +4,7 @@
 #
 # Must be run from within a worktree directory.
 
-set -e
+set -euo pipefail
 
 # Get current worktree info
 WORKTREE_PATH=$(git rev-parse --show-toplevel)

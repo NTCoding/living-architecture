@@ -2,7 +2,7 @@
 # activate-prd.sh - Move a PRD from notstarted to active and create milestone
 # Usage: ./scripts/activate-prd.sh <prd-name>
 
-set -e
+set -euo pipefail
 
 if [[ -z "$1" ]]; then
     echo "Usage: ./scripts/activate-prd.sh <prd-name>" >&2

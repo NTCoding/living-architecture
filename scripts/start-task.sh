@@ -7,7 +7,7 @@
 # Use --no-worktree to create a branch in the current repo instead.
 # Use --no-issue=<name> to start a task without a GitHub issue.
 
-set -e
+set -euo pipefail
 
 # Parse arguments
 ISSUE_NUMBER=""

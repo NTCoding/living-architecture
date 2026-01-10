@@ -24,7 +24,7 @@ Autonomous = you can do this without user permission. Do not ask for permission,
 |------|---------|------------|
 | Create Tasks | `/create-tasks` | **User confirmation required** |
 | List Milestone Tasks | `./scripts/list-tasks.sh` | Autonomous |
-| List Non-Milestone Tasks | `./scripts/list-tasks.sh --ideas\|--bugs\|--tech` | Autonomous |
+| List Non-Milestone Tasks | `./scripts/list-tasks.sh --ideas` (or `--bugs`, `--tech`) | Autonomous |
 | Start Task | `./scripts/start-task.sh <issue-number>` | **User confirmation required** |
 | Amend Task | `./scripts/amend-task.sh <issue-number> "Amendment"` | Autonomous |
 | Complete Task | `/complete-task` | Autonomous |
@@ -55,7 +55,7 @@ Independent work not tied to a PRD. Three categories:
 | Bugs | `bug` | `./scripts/list-tasks.sh --bugs` |
 | Tech Improvements | `tech improvement` | `./scripts/list-tasks.sh --tech` |
 
-- **Create:** `./scripts/create-tech-improvement-task.sh` (applies appropriate label)
+- **Create:** `./scripts/create-non-milestone-task.sh --type <idea|bug|tech>`
 - **When:** Fixes, refactoring, tech debt, performance, exploratory work
 
 ---
@@ -72,10 +72,10 @@ Independent work not tied to a PRD. Three categories:
 
 Body must contain all 10 sections (see `/create-tasks` skill documentation).
 
-### Tech Improvement Task
+### Non-Milestone Task
 
 ```bash
-./scripts/create-tech-improvement-task.sh \
+./scripts/create-non-milestone-task.sh --type <idea|bug|tech> \
   <title> \
   <references> \
   <summary> \
@@ -84,6 +84,7 @@ Body must contain all 10 sections (see `/create-tasks` skill documentation).
 ```
 
 Parameters:
+- `--type` - Task type: `idea`, `bug`, or `tech`
 - `title` - Concise task title
 - `references` - GitHub issues (#123), PRs (#456), or explanation of origin
 - `summary` - One paragraph: what and why
@@ -98,7 +99,7 @@ Parameters:
 
 **List Tasks** — User says "next task" or asks what's available:
 - Milestone tasks: `./scripts/list-tasks.sh`
-- Non-milestone: `./scripts/list-tasks.sh --ideas|--bugs|--tech`
+- Non-milestone: `./scripts/list-tasks.sh --ideas` (or `--bugs`, `--tech`)
 
 Propose the first task to the user and ask them to confirm. Once confirmed, start the task (which provides the details), then create a plan. Do not create a plan before starting.
 

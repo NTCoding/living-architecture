@@ -5,21 +5,32 @@
 #        ./scripts/list-tasks.sh --bugs       # Non-milestone: bug label
 #        ./scripts/list-tasks.sh --tech       # Non-milestone: tech improvement label
 
-set -e
+set -euo pipefail
 
 # Parse arguments
 NON_MILESTONE_LABEL=""
+
+check_exclusive() {
+    if [[ -n "$NON_MILESTONE_LABEL" ]]; then
+        echo "Error: Only one of --ideas, --bugs, or --tech can be specified" >&2
+        exit 1
+    fi
+}
+
 while [[ $# -gt 0 ]]; do
     case $1 in
         --ideas)
+            check_exclusive
             NON_MILESTONE_LABEL="idea"
             shift
             ;;
         --bugs)
+            check_exclusive
             NON_MILESTONE_LABEL="bug"
             shift
             ;;
         --tech)
+            check_exclusive
             NON_MILESTONE_LABEL="tech improvement"
             shift
             ;;

@@ -4,7 +4,7 @@
 #   ./scripts/submit-pr.sh --title "..." --body "..."  (create new PR)
 #   ./scripts/submit-pr.sh --update                     (re-check existing PR)
 
-set -e
+set -euo pipefail
 
 # Verify required tools are available
 for cmd in gh jq; do

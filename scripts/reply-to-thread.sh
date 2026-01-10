@@ -9,7 +9,7 @@
 #
 # The thread ID is shown in the output of get-pr-feedback.sh
 
-set -e
+set -euo pipefail
 
 THREAD_ID="${1:-}"
 MESSAGE="${2:-}"
