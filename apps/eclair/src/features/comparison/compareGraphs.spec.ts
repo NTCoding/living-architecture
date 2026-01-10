@@ -76,12 +76,19 @@ describe('compareGraphs', () => {
 
       const diff = compareGraphs(before, after)
 
-      expect(diff.nodes.added).toHaveLength(0)
-      expect(diff.nodes.removed).toHaveLength(0)
-      expect(diff.nodes.modified).toHaveLength(0)
+      expect(diff).toMatchObject({
+        nodes: {
+          added: [],
+          removed: [],
+          modified: [],
+        },
+        edges: {
+          added: [],
+          removed: [],
+          modified: [],
+        },
+      })
       expect(diff.nodes.unchanged).toHaveLength(1)
-      expect(diff.edges.added).toHaveLength(0)
-      expect(diff.edges.removed).toHaveLength(0)
       expect(diff.edges.unchanged).toHaveLength(1)
     })
   })
@@ -158,10 +165,21 @@ describe('compareGraphs', () => {
       const diff = compareGraphs(before, after)
 
       expect(diff.nodes.modified).toHaveLength(1)
-      expect(diff.nodes.modified[0]?.before.name).toBe('Original Name')
-      expect(diff.nodes.modified[0]?.after.name).toBe('Updated Name')
-      expect(diff.nodes.modified[0]?.changedFields).toContain('name')
-      expect(diff.nodes.modified[0]?.changedFields).toContain('description')
+      expect(diff.nodes.modified[0]).toMatchObject({
+        before: {
+          id: 'node-1',
+          name: 'Original Name',
+          description: 'old',
+        },
+        after: {
+          id: 'node-1',
+          name: 'Updated Name',
+          description: 'new',
+        },
+      })
+      expect(new Set(diff.nodes.modified[0]?.changedFields)).toStrictEqual(
+        new Set(['name', 'description']),
+      )
     })
 
     it('does not flag nodes as modified when only ID matches and all fields are same', () => {

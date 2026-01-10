@@ -54,12 +54,10 @@ describe('NodeTypeFilters', () => {
       />,
     )
 
-    expect(screen.getByText('API')).toBeInTheDocument()
-    expect(screen.getByText('5')).toBeInTheDocument()
-    expect(screen.getByText('UseCase')).toBeInTheDocument()
-    expect(screen.getByText('3')).toBeInTheDocument()
-    expect(screen.getByText('DomainOp')).toBeInTheDocument()
-    expect(screen.getByText('8')).toBeInTheDocument()
+    const expectedLabelsAndCounts = ['API', '5', 'UseCase', '3', 'DomainOp', '8']
+    expectedLabelsAndCounts.forEach((text) => {
+      expect(screen.getByText(text)).toBeInTheDocument()
+    })
   })
 
   it('shows checkboxes as checked for visible types', () => {

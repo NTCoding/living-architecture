@@ -227,30 +227,44 @@ describe('AppShell', () => {
     expect(toggleButton).toBeInTheDocument()
   })
 
-  it('renders author attribution footer with links', () => {
+  it('renders author attribution footer', () => {
     renderWithRouter(
       <AppShell hasGraph={false} graphName={undefined} graph={null}>
         <div>Content</div>
       </AppShell>,
     )
 
-    const footer = document.querySelector('footer')
-    expect(footer).toBeInTheDocument()
+    expect(document.querySelector('footer')).toBeInTheDocument()
+  })
 
-    const nickTuneLink = screen.getByRole('link', { name: 'Nick Tune' })
-    expect(nickTuneLink).toHaveAttribute('href', 'https://nick-tune.me')
-    expect(nickTuneLink).toHaveAttribute('target', '_blank')
+  it.each([
+    {
+      name: 'Nick Tune',
+      href: 'https://nick-tune.me',
+    },
+    {
+      name: 'LinkedIn',
+      href: 'https://linkedin.com/in/nick-tune',
+    },
+    {
+      name: 'GitHub',
+      href: 'https://github.com/ntcoding',
+    },
+    {
+      name: 'Bluesky',
+      href: 'https://bsky.app/profile/nick-tune.me',
+    },
+  ])('renders $name footer link with correct href', ({
+    name, href,
+  }) => {
+    renderWithRouter(
+      <AppShell hasGraph={false} graphName={undefined} graph={null}>
+        <div>Content</div>
+      </AppShell>,
+    )
 
-    const linkedInLink = screen.getByRole('link', { name: 'LinkedIn' })
-    expect(linkedInLink).toHaveAttribute('href', 'https://linkedin.com/in/nick-tune')
-    expect(linkedInLink).toHaveAttribute('target', '_blank')
-
-    const githubLink = screen.getByRole('link', { name: 'GitHub' })
-    expect(githubLink).toHaveAttribute('href', 'https://github.com/ntcoding')
-    expect(githubLink).toHaveAttribute('target', '_blank')
-
-    const blueskyLink = screen.getByRole('link', { name: 'Bluesky' })
-    expect(blueskyLink).toHaveAttribute('href', 'https://bsky.app/profile/nick-tune.me')
-    expect(blueskyLink).toHaveAttribute('target', '_blank')
+    const link = screen.getByRole('link', { name })
+    expect(link).toHaveAttribute('href', href)
+    expect(link).toHaveAttribute('target', '_blank')
   })
 })

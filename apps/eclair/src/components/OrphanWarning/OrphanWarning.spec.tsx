@@ -120,7 +120,28 @@ describe('OrphanWarning', () => {
     expect(screen.getByText('Node 2')).toBeInTheDocument()
   })
 
-  it('displays orphan node details in modal', async () => {
+  it.each([
+    {
+      label: 'node name',
+      expectedText: 'GET /users',
+    },
+    {
+      label: 'node ID',
+      expectedText: /ID: api-node/,
+    },
+    {
+      label: 'node type',
+      expectedText: /Type: API/,
+    },
+    {
+      label: 'domain',
+      expectedText: /Domain: orders/,
+    },
+    {
+      label: 'source location',
+      expectedText: /test.ts:42/,
+    },
+  ])('displays $label in orphan node modal', async ({ expectedText }) => {
     const user = userEvent.setup()
     const result: OrphanDetectionResult = {
       hasOrphans: true,
@@ -133,11 +154,7 @@ describe('OrphanWarning', () => {
 
     await user.click(screen.getByText(/Click to view details/))
 
-    expect(screen.getByText('GET /users')).toBeInTheDocument()
-    expect(screen.getByText(/ID: api-node/)).toBeInTheDocument()
-    expect(screen.getByText(/Type: API/)).toBeInTheDocument()
-    expect(screen.getByText(/Domain: orders/)).toBeInTheDocument()
-    expect(screen.getByText(/test.ts:42/)).toBeInTheDocument()
+    expect(screen.getByText(expectedText)).toBeInTheDocument()
   })
 
   it('closes modal when close button is clicked', async () => {

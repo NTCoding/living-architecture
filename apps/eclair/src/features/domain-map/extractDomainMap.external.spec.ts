@@ -69,12 +69,14 @@ describe('extractDomainMap external links integration', () => {
 
     const stripeNode = result.domainNodes.find((n) => n.id === 'external:Stripe')
     const twilioNode = result.domainNodes.find((n) => n.id === 'external:Twilio')
-    expect(stripeNode).toBeDefined()
-    expect(stripeNode?.data.label).toBe('Stripe')
-    expect(stripeNode?.data.isExternal).toBe(true)
-    expect(twilioNode).toBeDefined()
-    expect(twilioNode?.data.label).toBe('Twilio')
-    expect(twilioNode?.data.isExternal).toBe(true)
+    expect(stripeNode?.data).toMatchObject({
+      label: 'Stripe',
+      isExternal: true,
+    })
+    expect(twilioNode?.data).toMatchObject({
+      label: 'Twilio',
+      isExternal: true,
+    })
   })
 
   it('does not create external nodes when no externalLinks', () => {

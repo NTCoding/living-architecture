@@ -31,16 +31,18 @@ function renderWithRouter(ui: React.ReactElement, initialPath = '/'): ReturnType
 }
 
 describe('Sidebar', () => {
-  it('renders all expected navigation items', () => {
+  it.each([
+    'Overview',
+    'Flows',
+    'Domain Map',
+    'Full Graph',
+    'Entities',
+    'Events',
+    'About Rivière',
+  ])('renders %s navigation link', (linkName) => {
     renderWithRouter(<Sidebar hasGraph={true} />)
 
-    expect(screen.getByRole('link', { name: /Overview/i })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /Flows/i })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /Domain Map/i })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /Full Graph/i })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /Entities/i })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /Events/i })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /About Rivière/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: new RegExp(linkName, 'i') })).toBeInTheDocument()
   })
 
   it('renders Éclair brand name', () => {
@@ -62,41 +64,32 @@ describe('Sidebar', () => {
     expect(screen.getByText('Theme')).toBeInTheDocument()
   })
 
-  it('disables graph-dependent items when no graph loaded', () => {
+  it.each([
+    'Flows',
+    'Domain Map',
+    'Full Graph',
+    'Entities',
+    'Events',
+  ])('disables %s when no graph loaded', (itemName) => {
     renderWithRouter(<Sidebar hasGraph={false} />)
 
-    expect(screen.getByRole('link', { name: /Overview/i })).toBeInTheDocument()
-    expect(screen.getByText('Flows').closest('span[aria-disabled]')).toHaveAttribute(
-      'aria-disabled',
-      'true',
-    )
-    expect(screen.getByText('Domain Map').closest('span[aria-disabled]')).toHaveAttribute(
-      'aria-disabled',
-      'true',
-    )
-    expect(screen.getByText('Full Graph').closest('span[aria-disabled]')).toHaveAttribute(
-      'aria-disabled',
-      'true',
-    )
-    expect(screen.getByText('Entities').closest('span[aria-disabled]')).toHaveAttribute(
-      'aria-disabled',
-      'true',
-    )
-    expect(screen.getByText('Events').closest('span[aria-disabled]')).toHaveAttribute(
+    expect(screen.getByText(itemName).closest('span[aria-disabled]')).toHaveAttribute(
       'aria-disabled',
       'true',
     )
   })
 
-  it('enables graph-dependent items when graph is loaded', () => {
+  it.each([
+    'Overview',
+    'Flows',
+    'Domain Map',
+    'Full Graph',
+    'Entities',
+    'Events',
+  ])('enables %s link when graph is loaded', (linkName) => {
     renderWithRouter(<Sidebar hasGraph={true} />)
 
-    expect(screen.getByRole('link', { name: /Overview/i })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /Flows/i })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /Domain Map/i })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /Full Graph/i })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /Entities/i })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /Events/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: new RegExp(linkName, 'i') })).toBeInTheDocument()
   })
 
   it('always enables non-graph items', () => {
