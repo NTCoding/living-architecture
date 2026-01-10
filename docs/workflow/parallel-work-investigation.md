@@ -187,7 +187,7 @@
 | Approach | How It Works | Source |
 |----------|--------------|--------|
 | **Batch review** | Review multiple independent PRs in single session. | [Simon Willison](https://simonwillison.net/2025/Oct/5/parallel-coding-agents/) |
-| **Tiered review** | Low-stakes PRs get lighter review. High-stakes get deep review. Throughput increases. | [Simon Willison](https://simonwillison.net/2025/Oct/5/parallel-coding-agents/) |
+| **Tiered review** | Low-stakes PRs get lighter review. High-stakes PRs receive thorough review. Throughput increases. | [Simon Willison](https://simonwillison.net/2025/Oct/5/parallel-coding-agents/) |
 | **Pre-review by agent** | Agent does thorough self-review before human sees it. Human reviews agent's review. | Current `/complete-task` already does this |
 
 ---
