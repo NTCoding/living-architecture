@@ -59,6 +59,18 @@ Look for recurring themes:
 - **Code quality patterns** - Issues that kept coming up, conventions violated
 - **Tool/workflow gaps** - Manual steps that could be automated, checks that should have caught issues earlier
 
+#### Capture Review Feedback Learnings
+
+**Principle:** Any PR feedback requiring implementation is a process failure. External reviewers (CodeRabbit, humans) catching issues means our local checks missed them.
+
+When PR feedback reveals a generalizable pattern:
+
+1. Add a new check to `docs/conventions/review-feedback-checks.md`
+2. Follow the RFC format (Source, Pattern, Bad/Good examples, Detection)
+3. Bug-scanner will apply the check to future PRs
+
+This creates a feedback loop: PR feedback → update conventions → catch locally next time.
+
 #### Generate Suggestions
 
 For each pattern, propose a specific improvement:
