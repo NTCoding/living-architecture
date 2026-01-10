@@ -5,6 +5,14 @@
   "type": "module",
   "nx": {
     "targets": {
+      "test": {
+        "executor": "nx:run-commands",
+        "outputs": ["{projectRoot}/test-output/vitest"],
+        "options": {
+          "command": "vitest",
+          "cwd": "apps/docs"
+        }
+      },
       "build": {
         "executor": "nx:run-commands",
         "dependsOn": [
@@ -59,5 +67,6 @@
     "vitepress": "^1.5.0"
   },
   "devDependencies": {
+    "jsdom": "^26.1.0"
   }
 }

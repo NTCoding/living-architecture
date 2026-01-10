@@ -4,9 +4,11 @@
     "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "bundler",
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "types": ["vitepress/client", "vue"]
   },
   "include": [".vitepress/**/*.ts", ".vitepress/**/*.d.ts"],
+  "exclude": [".vitepress/**/*.spec.ts"],
   "references": [
     {
       "path": "../../packages/riviere-cli/tsconfig.lib.json"
