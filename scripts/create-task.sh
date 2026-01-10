@@ -2,7 +2,7 @@
 # create-task.sh - Create a GitHub issue for a task
 # Usage: ./scripts/create-task.sh <milestone> <title> <body>
 
-set -e
+set -euo pipefail
 
 if [[ -z "$1" || -z "$2" || -z "$3" ]]; then
     echo "Usage: ./scripts/create-task.sh <milestone> <title> <body>" >&2

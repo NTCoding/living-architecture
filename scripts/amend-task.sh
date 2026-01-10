@@ -2,7 +2,7 @@
 # amend-task.sh - Add an amendment to a task (clarification, not replacement)
 # Usage: ./scripts/amend-task.sh <issue-number> "Amendment content"
 
-set -e
+set -euo pipefail
 
 if [[ -z "$1" || -z "$2" ]]; then
     echo "Usage: ./scripts/amend-task.sh <issue-number> \"Amendment content\"" >&2
