@@ -34,18 +34,12 @@ gh api "repos/${REPO}/milestones" \
     --field title="$PRD_NAME" \
     --field description="See https://github.com/${REPO}/blob/main/${DEST}"
 
-# Create the PRD label for filtering in Linear
+# Create the PRD label for filtering in Linear (--force updates if exists)
 LABEL_NAME="prd:${PRD_NAME}"
-if ! LABEL_OUTPUT=$(gh label create "$LABEL_NAME" \
+gh label create "$LABEL_NAME" \
     --description "PRD: ${PRD_NAME}" \
-    --color 0052CC 2>&1); then
-    if echo "$LABEL_OUTPUT" | grep -qiE "(already exists|duplicate)"; then
-        echo "Label $LABEL_NAME already exists"
-    else
-        echo "Error creating label: $LABEL_OUTPUT" >&2
-        exit 1
-    fi
-fi
+    --color 0052CC \
+    --force
 
 # Commit only the moved file
 git commit -m "chore: activate PRD $PRD_NAME"
