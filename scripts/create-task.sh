@@ -13,11 +13,14 @@ MILESTONE="$1"
 TITLE="$2"
 BODY="$3"
 
+LABEL_NAME="prd:${MILESTONE}"
+
 echo "Creating task in milestone: $MILESTONE"
 gh issue create \
     --title "$TITLE" \
     --body "$BODY" \
-    --milestone "$MILESTONE"
+    --milestone "$MILESTONE" \
+    --label "$LABEL_NAME"
 
 echo ""
 echo "Task created."
