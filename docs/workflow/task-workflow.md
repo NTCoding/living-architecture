@@ -34,6 +34,49 @@ Autonomous = you can do this without user permission. Do not ask for permission,
 
 ---
 
+## Task Creation
+
+**MANDATORY:** All tasks MUST be created using approved scripts. Never use `gh issue create` or GitHub UI directly.
+
+### Two Types of Tasks
+
+**1. PRD Tasks** — Milestone-driven work from Product Requirements Documents
+- Use: `./scripts/create-task.sh`
+- When: Breaking down PRD deliverables into implementable tasks
+- Links to: Milestone, PRD sections, functional requirements
+
+**2. Tech Improvement Tasks** — Quality, debt, bugs, improvements
+- Use: `./scripts/create-tech-improvement-task.sh`
+- When: Fixes, refactoring, tech debt, performance, tests
+- Links to: Issues, PRs, or ad-hoc requests (no milestone)
+
+### Commands
+
+**PRD Task:**
+```bash
+./scripts/create-task.sh <milestone> <title> <body>
+```
+Body must contain all 10 sections (see `/create-tasks` skill documentation).
+
+**Tech Improvement Task:**
+```bash
+./scripts/create-tech-improvement-task.sh \
+  <title> \
+  <references> \
+  <summary> \
+  <full-details> \
+  <acceptance-criteria>
+```
+
+Parameters:
+- `title` - Concise task title
+- `references` - GitHub issues (#123), PRs (#456), or explanation of origin
+- `summary` - One paragraph: what and why
+- `full-details` - Implementation approach, affected files, architectural context
+- `acceptance-criteria` - Checkboxes defining "done"
+
+---
+
 ## When to Use Each Step
 
 **Create Tasks** — New work identified from a PRD. Break down deliverables into tasks.
