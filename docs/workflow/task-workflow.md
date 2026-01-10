@@ -48,7 +48,7 @@ Autonomous = you can do this without user permission. Do not ask for permission,
 
 **Re-check PR** — PR feedback addressed, needs CI verification. Run `/complete-task` again to re-run the full pipeline.
 
-**Post-Merge Completion** — After PR is merged, run `/post-merge-completion` to reflect on feedback, suggest process improvements, and clean up the worktree.
+**Post-Merge Completion** — After PR is merged: (1) Run `/post-merge-completion` from the worktree to reflect on feedback (needs review files). (2) Create GitHub issues for any improvement opportunities identified. (3) Run `cleanup-task.sh` to remove the worktree. (4) Implement improvements by starting the new task via normal workflow—**never reuse the merged branch** (squash merges create stale merge bases).
 
 **Activate PRD** — Moving a PRD from not started to active.
 
