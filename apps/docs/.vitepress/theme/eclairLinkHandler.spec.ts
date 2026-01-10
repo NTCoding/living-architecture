@@ -254,9 +254,11 @@ describe('initEclairLinkHandler', () => {
     const addEventListenerSpy = vi.spyOn(document, 'addEventListener')
 
     try {
-      initEclairLinkHandler()
+      const cleanup = initEclairLinkHandler()
 
       expect(addEventListenerSpy).toHaveBeenCalledWith('click', expect.any(Function), true)
+
+      cleanup()
     } finally {
       addEventListenerSpy.mockRestore()
     }
