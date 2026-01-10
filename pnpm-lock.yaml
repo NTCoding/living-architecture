@@ -176,7 +176,7 @@ importers:
         version: 7.12.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       zod:
         specifier: ^4.1.13
-        version: 4.2.1
+        version: 4.3.5
     devDependencies:
       '@tailwindcss/vite':
         specifier: ^4.1.17
@@ -303,7 +303,7 @@ importers:
         version: link:../riviere-schema
       zod:
         specifier: ^4.2.1
-        version: 4.2.1
+        version: 4.3.5
 
   packages/riviere-schema:
     dependencies:
