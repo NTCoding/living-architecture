@@ -168,6 +168,19 @@ Risk: [what could be exploited]
 Fix: [required remediation]
 ```
 
+## Priority 5: Review Feedback Checks
+
+Read `docs/conventions/review-feedback-checks.md` and apply each RFC check to changed code.
+
+**Format:**
+```plaintext
+REVIEW FEEDBACK: [RFC-NNN title]
+File: [file:line]
+Code: [show the problematic code]
+Pattern: [which RFC pattern was violated]
+Fix: [suggested fix]
+```
+
 ## Documentation Suggestions (Informational - Does Not Fail)
 
 Check if changed code might benefit from documentation updates.
