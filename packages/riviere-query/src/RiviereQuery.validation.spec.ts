@@ -92,8 +92,12 @@ describe('RiviereQuery validate()', () => {
 
       const result = query.validate()
 
-      expect(result.errors[0]?.code).toBe('INVALID_TYPE')
-      expect(result.errors[0]?.path).toBe('/components/1/customTypeName')
+      expect(result.valid).toBe(false)
+      expect(result.errors).toHaveLength(1)
+      expect(result.errors[0]).toMatchObject({
+        code: 'INVALID_TYPE',
+        path: '/components/1/customTypeName',
+      })
       expect(result.errors[0]?.message).toContain('CronJob')
     })
   })

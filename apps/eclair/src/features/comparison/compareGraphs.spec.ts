@@ -165,11 +165,17 @@ describe('compareGraphs', () => {
 
       expect(diff.nodes.modified).toHaveLength(1)
       expect(diff.nodes.modified[0]).toMatchObject({
-        before: { name: 'Original Name' },
-        after: { name: 'Updated Name' },
+        before: {
+          name: 'Original Name',
+          description: 'old',
+        },
+        after: {
+          name: 'Updated Name',
+          description: 'new',
+        },
       })
-      expect(diff.nodes.modified[0]?.changedFields).toStrictEqual(
-        expect.arrayContaining(['name', 'description']),
+      expect(new Set(diff.nodes.modified[0]?.changedFields)).toStrictEqual(
+        new Set(['name', 'description']),
       )
     })
 

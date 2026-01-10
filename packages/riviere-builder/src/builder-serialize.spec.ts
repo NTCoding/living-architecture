@@ -134,7 +134,7 @@ describe('RiviereBuilder', () => {
       expect(serialized).toContain('Order must have at least one item')
     })
 
-    it('serializes stateChanges and businessRules arrays', () => {
+    it('serializes empty stateChanges and businessRules arrays', () => {
       const builder = RiviereBuilder.new(createValidOptions())
       const op = builder.addDomainOp({
         name: 'Save Order',
@@ -145,19 +145,14 @@ describe('RiviereBuilder', () => {
       })
       builder.enrichComponent(op.id, {
         entity: 'Order',
-        stateChanges: [
-          {
-            from: 'draft',
-            to: 'pending',
-          },
-        ],
-        businessRules: ['Order must have at least one item'],
+        stateChanges: [],
+        businessRules: [],
       })
 
       const serialized = builder.serialize()
 
-      expect(serialized).toContain('"stateChanges"')
-      expect(serialized).toContain('"businessRules"')
+      expect(serialized).toContain('"stateChanges": []')
+      expect(serialized).toContain('"businessRules": []')
     })
 
     it('returns pretty-printed JSON with 2-space indentation', () => {
