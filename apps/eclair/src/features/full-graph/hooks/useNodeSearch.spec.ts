@@ -127,11 +127,9 @@ describe('filterNodesBySearch', () => {
     const result = filterNodesBySearch('PlaceOrderUseCase', testNodes, testEdges)
 
     expect(result.matchingNodeIds).toStrictEqual(new Set(['usecase-1']))
-    expect(result.visibleNodeIds).toContain('ui-1')
-    expect(result.visibleNodeIds).toContain('api-1')
-    expect(result.visibleNodeIds).toContain('usecase-1')
-    expect(result.visibleNodeIds).toContain('event-1')
-    expect(result.visibleNodeIds).toContain('handler-1')
+    expect([...result.visibleNodeIds]).toStrictEqual(
+      expect.arrayContaining(['ui-1', 'api-1', 'usecase-1', 'event-1', 'handler-1']),
+    )
   })
 
   it('excludes unconnected nodes from visible set when filtering', () => {
@@ -151,9 +149,8 @@ describe('filterNodesBySearch', () => {
     const result = filterNodesBySearch('API', testNodes, testEdges)
 
     expect(result.matchingNodeIds).toStrictEqual(new Set(['api-1', 'api-2']))
-    expect(result.visibleNodeIds).toContain('ui-1')
-    expect(result.visibleNodeIds).toContain('api-1')
-    expect(result.visibleNodeIds).toContain('usecase-1')
-    expect(result.visibleNodeIds).toContain('api-2')
+    expect([...result.visibleNodeIds]).toStrictEqual(
+      expect.arrayContaining(['ui-1', 'api-1', 'usecase-1', 'api-2']),
+    )
   })
 })

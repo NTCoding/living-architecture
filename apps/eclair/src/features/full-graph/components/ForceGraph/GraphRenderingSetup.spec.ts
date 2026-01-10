@@ -452,11 +452,13 @@ describe('GraphRenderingSetup', () => {
         },
       })
 
-      expect(result).not.toBeNull()
+      expect(result).toMatchObject({
+        scale: expect.any(Number),
+        translateX: expect.any(Number),
+        translateY: expect.any(Number),
+      })
       expect(result?.scale).toBeGreaterThan(0)
       expect(result?.scale).toBeLessThanOrEqual(2.5)
-      expect(result?.translateX).toBeDefined()
-      expect(result?.translateY).toBeDefined()
     })
 
     it('caps zoom scale at 2.5', () => {

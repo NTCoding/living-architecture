@@ -326,14 +326,19 @@ describe('EntityAccordion', () => {
 
       await user.click(screen.getByRole('button', { name: /begin/i }))
 
-      expect(screen.getByText('Reads')).toBeInTheDocument()
-      expect(screen.getByText('inventory')).toBeInTheDocument()
-      expect(screen.getByText('Validates')).toBeInTheDocument()
-      expect(screen.getByText('stock')).toBeInTheDocument()
-      expect(screen.getByText('Modifies')).toBeInTheDocument()
-      expect(screen.getByText('order')).toBeInTheDocument()
-      expect(screen.getByText('Emits')).toBeInTheDocument()
-      expect(screen.getByText('OrderStarted')).toBeInTheDocument()
+      const expectedTexts = [
+        'Reads',
+        'inventory',
+        'Validates',
+        'stock',
+        'Modifies',
+        'order',
+        'Emits',
+        'OrderStarted',
+      ]
+      expectedTexts.forEach((text) => {
+        expect(screen.getByText(text)).toBeInTheDocument()
+      })
     })
 
     it('does not render behavior sections when operation has no behavior', async () => {

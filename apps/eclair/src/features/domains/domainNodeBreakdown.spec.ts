@@ -85,13 +85,15 @@ describe('domainNodeBreakdown', () => {
 
       const result = countNodesByType(nodes)
 
-      expect(result.UI).toBe(1)
-      expect(result.API).toBe(1)
-      expect(result.UseCase).toBe(1)
-      expect(result.DomainOp).toBe(1)
-      expect(result.Event).toBe(1)
-      expect(result.EventHandler).toBe(1)
-      expect(result.Custom).toBe(1)
+      expect(result).toStrictEqual({
+        UI: 1,
+        API: 1,
+        UseCase: 1,
+        DomainOp: 1,
+        Event: 1,
+        EventHandler: 1,
+        Custom: 1,
+      })
     })
 
     it('counts multiple nodes of same type', () => {
@@ -145,11 +147,13 @@ describe('domainNodeBreakdown', () => {
 
       const result = countNodesByType(nodes)
 
-      expect(result.UI).toBe(1)
-      expect(result.API).toBe(2)
-      expect(result.Event).toBe(1)
-      expect(result.EventHandler).toBe(1)
-      expect(result.UseCase).toBe(0)
+      expect(result).toMatchObject({
+        UI: 1,
+        API: 2,
+        Event: 1,
+        EventHandler: 1,
+        UseCase: 0,
+      })
     })
   })
 
@@ -250,13 +254,16 @@ describe('domainNodeBreakdown', () => {
 
       const result = formatDomainNodes(nodes)
 
-      expect(result[0]?.type).toBe('UI')
-      expect(result[1]?.type).toBe('API')
-      expect(result[2]?.type).toBe('UseCase')
-      expect(result[3]?.type).toBe('DomainOp')
-      expect(result[4]?.type).toBe('Event')
-      expect(result[5]?.type).toBe('EventHandler')
-      expect(result[6]?.type).toBe('Custom')
+      const types = result.map((n) => n.type)
+      expect(types).toStrictEqual([
+        'UI',
+        'API',
+        'UseCase',
+        'DomainOp',
+        'Event',
+        'EventHandler',
+        'Custom',
+      ])
     })
 
     it('preserves node id, type, name, and sourceLocation', () => {

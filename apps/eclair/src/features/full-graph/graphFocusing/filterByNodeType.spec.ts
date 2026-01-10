@@ -165,11 +165,13 @@ describe('filterByNodeType', () => {
 
     const result = filterByNodeType(nodes, edges, new Set(['API', 'DomainOp']))
 
-    expect(result.nodes).toHaveLength(2)
     expect(result.nodes.map((n) => n.id)).toStrictEqual(['1', '3'])
-    expect(result.edges).toHaveLength(1)
-    expect(result.edges[0]?.source).toBe('1')
-    expect(result.edges[0]?.target).toBe('3')
+    expect(result.edges).toStrictEqual([
+      expect.objectContaining({
+        source: '1',
+        target: '3',
+      }),
+    ])
   })
 
   it('rewires edges through multiple hidden nodes', () => {

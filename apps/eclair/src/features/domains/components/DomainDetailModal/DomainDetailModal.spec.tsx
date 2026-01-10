@@ -257,8 +257,8 @@ describe('DomainDetailModal', () => {
     })
 
     describe('entities section', () => {
-      it('renders entities with their operations', () => {
-        const domain = createDomainDetails({
+      function createDomainWithEntities(): DomainDetails {
+        return createDomainDetails({
           entities: [
             {
               name: 'Order',
@@ -280,15 +280,18 @@ describe('DomainDetailModal', () => {
             },
           ],
         })
+      }
 
-        renderWithRouter(<DomainDetailModal domain={domain} onClose={vi.fn()} />)
-
-        expect(screen.getByText('Entities')).toBeInTheDocument()
-        expect(screen.getByText('Order')).toBeInTheDocument()
-        expect(screen.getByText('begin')).toBeInTheDocument()
-        expect(screen.getByText('confirm')).toBeInTheDocument()
-        expect(screen.getByText('Payment')).toBeInTheDocument()
-        expect(screen.getByText('authorize')).toBeInTheDocument()
+      it.each([
+        'Entities',
+        'Order',
+        'begin',
+        'confirm',
+        'Payment',
+        'authorize',
+      ])('renders %s in entities section', (text) => {
+        renderWithRouter(<DomainDetailModal domain={createDomainWithEntities()} onClose={vi.fn()} />)
+        expect(screen.getByText(text)).toBeInTheDocument()
       })
 
       it('renders empty state when no entities', () => {
@@ -379,8 +382,8 @@ describe('DomainDetailModal', () => {
     })
 
     describe('cross-domain edges section', () => {
-      it('renders outgoing edges with target domain and type', () => {
-        const domain = createDomainDetails({
+      function createDomainWithCrossDomainEdges(): DomainDetails {
+        return createDomainDetails({
           crossDomainEdges: [
             {
               targetDomain: 'inventory-domain',
@@ -392,14 +395,19 @@ describe('DomainDetailModal', () => {
             },
           ],
         })
+      }
 
-        renderWithRouter(<DomainDetailModal domain={domain} onClose={vi.fn()} />)
-
-        expect(screen.getByText('Cross-Domain Connections')).toBeInTheDocument()
-        expect(screen.getByText('inventory-domain')).toBeInTheDocument()
-        expect(screen.getByText('async')).toBeInTheDocument()
-        expect(screen.getByText('payment-domain')).toBeInTheDocument()
-        expect(screen.getByText('sync')).toBeInTheDocument()
+      it.each([
+        'Cross-Domain Connections',
+        'inventory-domain',
+        'async',
+        'payment-domain',
+        'sync',
+      ])('renders %s in cross-domain edges section', (text) => {
+        renderWithRouter(
+          <DomainDetailModal domain={createDomainWithCrossDomainEdges()} onClose={vi.fn()} />,
+        )
+        expect(screen.getByText(text)).toBeInTheDocument()
       })
 
       it('renders empty state when no cross-domain edges', () => {

@@ -11,71 +11,95 @@ import {
 
 describe('RiviereBuilder', () => {
   describe('build', () => {
-    it('returns RiviereGraph with correct structure when valid', () => {
-      const builder = RiviereBuilder.new({
-        ...createValidOptions(),
-        name: 'test-graph',
-        description: 'A test graph',
-      })
+    describe('when building valid graph', () => {
+      function buildValidGraph() {
+        const builder = RiviereBuilder.new({
+          ...createValidOptions(),
+          name: 'test-graph',
+          description: 'A test graph',
+        })
 
-      const source = builder.addUseCase({
-        name: 'Create Order',
-        domain: 'orders',
-        module: 'checkout',
-        sourceLocation: createSourceLocation(),
-      })
-
-      const target = builder.addDomainOp({
-        name: 'Save Order',
-        domain: 'orders',
-        module: 'checkout',
-        operationName: 'saveOrder',
-        sourceLocation: createSourceLocation(),
-      })
-
-      builder.link({
-        from: source.id,
-        to: target.id,
-      })
-
-      const graph = builder.build()
-
-      expect(graph.version).toBe('1.0')
-      expect(graph.metadata.name).toBe('test-graph')
-      expect(graph.metadata.description).toBe('A test graph')
-      expect(graph.metadata.sources).toStrictEqual([
-        {
-          repository: 'test/repo',
-          commit: 'abc123',
-        },
-      ])
-      expect(graph.metadata.domains).toStrictEqual({
-        orders: {
-          description: 'Order domain',
-          systemType: 'domain',
-        },
-        shipping: {
-          description: 'Shipping domain',
-          systemType: 'domain',
-        },
-      })
-      expect(graph.components).toContainEqual(
-        expect.objectContaining({
-          id: source.id,
+        const source = builder.addUseCase({
           name: 'Create Order',
-          type: 'UseCase',
-        }),
-      )
-      expect(graph.components).toContainEqual(
-        expect.objectContaining({
-          id: target.id,
+          domain: 'orders',
+          module: 'checkout',
+          sourceLocation: createSourceLocation(),
+        })
+
+        const target = builder.addDomainOp({
           name: 'Save Order',
-          type: 'DomainOp',
-        }),
-      )
-      expect(graph.links).toContainEqual({
-        source: source.id,
-        target: target.id,
+          domain: 'orders',
+          module: 'checkout',
+          operationName: 'saveOrder',
+          sourceLocation: createSourceLocation(),
+        })
+
+        builder.link({
+          from: source.id,
+          to: target.id,
+        })
+
+        return {
+          graph: builder.build(),
+          sourceId: source.id,
+          targetId: target.id,
+        }
+      }
+
+      it('returns graph with correct version and metadata', () => {
+        const { graph } = buildValidGraph()
+
+        expect(graph.version).toBe('1.0')
+        expect(graph.metadata).toMatchObject({
+          name: 'test-graph',
+          description: 'A test graph',
+        })
+      })
+
+      it('includes sources and domains in metadata', () => {
+        const { graph } = buildValidGraph()
+
+        expect(graph.metadata.sources).toStrictEqual([
+          {
+            repository: 'test/repo',
+            commit: 'abc123',
+          },
+        ])
+        expect(graph.metadata.domains).toStrictEqual({
+          orders: {
+            description: 'Order domain',
+            systemType: 'domain',
+          },
+          shipping: {
+            description: 'Shipping domain',
+            systemType: 'domain',
+          },
+        })
+      })
+
+      it('includes components and links', () => {
+        const {
+          graph, sourceId, targetId 
+        } = buildValidGraph()
+
+        expect(graph.components).toContainEqual(
+          expect.objectContaining({
+            id: sourceId,
+            name: 'Create Order',
+            type: 'UseCase',
+          }),
+        )
+        expect(graph.components).toContainEqual(
+          expect.objectContaining({
+            id: targetId,
+            name: 'Save Order',
+            type: 'DomainOp',
+          }),
+        )
+        expect(graph.links).toContainEqual({
+          source: sourceId,
+          target: targetId,
+        })
       })
     })
 

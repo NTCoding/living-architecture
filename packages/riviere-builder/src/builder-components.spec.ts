@@ -301,27 +301,29 @@ describe('RiviereBuilder components', () => {
         },
       })
 
-      expect(component.signature).toStrictEqual({
-        parameters: [
+      expect(component).toMatchObject({
+        signature: {
+          parameters: [
+            {
+              name: 'orderId',
+              type: 'string',
+            },
+          ],
+          returnType: 'Order',
+        },
+        behavior: {
+          reads: ['inventory'],
+          modifies: ['orders'],
+        },
+        stateChanges: [
           {
-            name: 'orderId',
-            type: 'string',
+            from: 'draft',
+            to: 'placed',
           },
         ],
-        returnType: 'Order',
+        businessRules: ['Order must have items'],
+        description: 'Places an order',
       })
-      expect(component.behavior).toStrictEqual({
-        reads: ['inventory'],
-        modifies: ['orders'],
-      })
-      expect(component.stateChanges).toStrictEqual([
-        {
-          from: 'draft',
-          to: 'placed',
-        },
-      ])
-      expect(component.businessRules).toStrictEqual(['Order must have items'])
-      expect(component.description).toBe('Places an order')
     })
   })
 

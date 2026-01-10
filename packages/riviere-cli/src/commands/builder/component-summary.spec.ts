@@ -133,11 +133,15 @@ describe('riviere builder component-summary', () => {
       await createProgram().parseAsync(['node', 'riviere', 'builder', 'component-summary'])
       const output = parseSummaryOutput(ctx.consoleOutput)
 
-      expect(output.data.componentCount).toBe(2)
-      expect(output.data.linkCount).toBe(1)
-      expect(output.data.domainCount).toBe(1)
-      expect(output.data.componentsByType.API).toBe(1)
-      expect(output.data.componentsByType.UseCase).toBe(1)
+      expect(output.data).toMatchObject({
+        componentCount: 2,
+        linkCount: 1,
+        domainCount: 1,
+        componentsByType: {
+          API: 1,
+          UseCase: 1,
+        },
+      })
     })
 
     it('returns componentsByType with all 7 type counts', async () => {
