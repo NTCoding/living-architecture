@@ -262,7 +262,13 @@ describe('initEclairLinkHandler', () => {
     }
   })
 
-  it('returns cleanup function that removes the listener', () => {
+  it('returns cleanup function that removes the same handler instance', () => {
+    const captured: { handler?: EventListenerOrEventListenerObject | null } = {}
+    const addEventListenerSpy = vi
+      .spyOn(document, 'addEventListener')
+      .mockImplementation((_type, handler) => {
+        captured.handler = handler
+      })
     const removeEventListenerSpy = vi.spyOn(document, 'removeEventListener')
 
     try {
@@ -270,8 +276,10 @@ describe('initEclairLinkHandler', () => {
 
       cleanup()
 
-      expect(removeEventListenerSpy).toHaveBeenCalledWith('click', expect.any(Function), true)
+      expect(captured.handler).toBeDefined()
+      expect(removeEventListenerSpy).toHaveBeenCalledWith('click', captured.handler, true)
     } finally {
+      addEventListenerSpy.mockRestore()
       removeEventListenerSpy.mockRestore()
     }
   })
