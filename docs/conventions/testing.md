@@ -279,3 +279,10 @@ it('handles custom value', async () => {
 - Tests show only what's relevant to the test case
 - Defaults defined once, not repeated
 - Changes to common structure happen in one place
+
+### jsdom Limitations
+
+When testing browser code with jsdom:
+
+- **Cannot spy on `window.location.assign`** - Use `Object.defineProperty` to mock `window.location` with a setter that captures values, and restore in `afterEach`
+- **Cannot spy on native MouseEvent methods** - Use `vi.spyOn(event, 'preventDefault')` after creating the event with `new MouseEvent()`
