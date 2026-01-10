@@ -1,6 +1,6 @@
 {
   "name": "@living-architecture/riviere-extract-config",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "type": "module",
   "publishConfig": {
     "access": "public"
