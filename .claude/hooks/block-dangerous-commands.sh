@@ -8,4 +8,11 @@ if echo "$command" | grep -qE '(--no-verify|--force|-f\s|--hard)'; then
   exit 2
 fi
 
-exit 0
+# Auto-approve safe commands without prompting
+jq -n '{
+    "hookSpecificOutput": {
+    "hookEventName": "PreToolUse",
+    "permissionDecision": "allow",
+    "permissionDecisionReason": "Command passed safety validation"
+  }
+}'

@@ -77,7 +77,7 @@ describe('RiviereBuilder', () => {
         })
       })
 
-      it('includes components and links', () => {
+      it('includes components', () => {
         const {
           graph, sourceId, targetId 
         } = buildValidGraph()
@@ -96,6 +96,13 @@ describe('RiviereBuilder', () => {
             type: 'DomainOp',
           }),
         )
+      })
+
+      it('includes links', () => {
+        const {
+          graph, sourceId, targetId 
+        } = buildValidGraph()
+
         expect(graph.links).toContainEqual({
           source: sourceId,
           target: targetId,

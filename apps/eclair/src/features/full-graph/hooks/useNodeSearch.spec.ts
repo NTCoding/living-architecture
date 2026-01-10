@@ -127,8 +127,8 @@ describe('filterNodesBySearch', () => {
     const result = filterNodesBySearch('PlaceOrderUseCase', testNodes, testEdges)
 
     expect(result.matchingNodeIds).toStrictEqual(new Set(['usecase-1']))
-    expect([...result.visibleNodeIds]).toStrictEqual(
-      expect.arrayContaining(['ui-1', 'api-1', 'usecase-1', 'event-1', 'handler-1']),
+    expect(result.visibleNodeIds).toStrictEqual(
+      new Set(['ui-1', 'api-1', 'usecase-1', 'event-1', 'handler-1']),
     )
   })
 
@@ -149,8 +149,8 @@ describe('filterNodesBySearch', () => {
     const result = filterNodesBySearch('API', testNodes, testEdges)
 
     expect(result.matchingNodeIds).toStrictEqual(new Set(['api-1', 'api-2']))
-    expect([...result.visibleNodeIds]).toStrictEqual(
-      expect.arrayContaining(['ui-1', 'api-1', 'usecase-1', 'api-2']),
+    expect(result.visibleNodeIds).toStrictEqual(
+      new Set(['ui-1', 'api-1', 'usecase-1', 'event-1', 'handler-1', 'api-2']),
     )
   })
 })

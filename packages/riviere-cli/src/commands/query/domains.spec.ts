@@ -115,6 +115,8 @@ describe('riviere query domains', () => {
       expect(output.data.domains).toHaveLength(1)
       expect(output.data.domains[0]).toMatchObject({
         name: 'orders',
+        description: 'Order management',
+        systemType: 'domain',
         componentCounts: {
           API: 1,
           UseCase: 2,

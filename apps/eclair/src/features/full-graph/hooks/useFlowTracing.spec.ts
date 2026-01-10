@@ -143,11 +143,7 @@ describe('traceFlow', () => {
 
     const result = traceFlow('external:Stripe', edgesWithExternal)
 
-    expect([...result.nodeIds]).toStrictEqual(
-      expect.arrayContaining(['external:Stripe', 'usecase', 'api']),
-    )
-    expect([...result.edgeKeys]).toStrictEqual(
-      expect.arrayContaining(['usecase->external:Stripe', 'api->usecase']),
-    )
+    expect(result.nodeIds).toStrictEqual(new Set(['external:Stripe', 'usecase', 'api']))
+    expect(result.edgeKeys).toStrictEqual(new Set(['usecase->external:Stripe', 'api->usecase']))
   })
 })
