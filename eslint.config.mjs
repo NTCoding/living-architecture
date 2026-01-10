@@ -290,7 +290,7 @@ export default tseslint.config(
       'vitest/prefer-strict-equal': 'error',
       'vitest/consistent-test-it': ['error', { fn: 'it' }],
       'vitest/consistent-test-filename': ['error', { pattern: '.*\\.spec\\.[tj]sx?$' }],
-      'vitest/max-expects': ['error', { max: 9 }],
+      'vitest/max-expects': ['error', { max: 4 }],
       'vitest/prefer-called-with': 'error',
       'vitest/prefer-to-have-length': 'error',
       'vitest/require-to-throw-message': 'error',

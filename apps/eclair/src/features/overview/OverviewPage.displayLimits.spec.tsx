@@ -185,11 +185,12 @@ describe('OverviewPage - Item display limits', () => {
 
     renderWithRouter(<OverviewPage graph={graph} />)
 
-    expect(screen.getByText('Entity1')).toBeInTheDocument()
-    expect(screen.getByText('Entity2')).toBeInTheDocument()
-    expect(screen.getByText('Entity3')).toBeInTheDocument()
-    expect(screen.queryByText('Entity4')).not.toBeInTheDocument()
-    expect(screen.queryByText('Entity5')).not.toBeInTheDocument()
+    ;['Entity1', 'Entity2', 'Entity3'].forEach((entity) => {
+      expect(screen.getByText(entity)).toBeInTheDocument()
+    })
+    ;['Entity4', 'Entity5'].forEach((entity) => {
+      expect(screen.queryByText(entity)).not.toBeInTheDocument()
+    })
   })
 
   it('shows ellipsis indicator when entities exceed limit', () => {
@@ -206,11 +207,12 @@ describe('OverviewPage - Item display limits', () => {
 
     renderWithRouter(<OverviewPage graph={graph} />)
 
-    expect(screen.getByText('/page1')).toBeInTheDocument()
-    expect(screen.getByText('/page2')).toBeInTheDocument()
-    expect(screen.getByText('/api/3')).toBeInTheDocument()
-    expect(screen.queryByText('/api/4')).not.toBeInTheDocument()
-    expect(screen.queryByText('/api/5')).not.toBeInTheDocument()
+    ;['/page1', '/page2', '/api/3'].forEach((path) => {
+      expect(screen.getByText(path)).toBeInTheDocument()
+    })
+    ;['/api/4', '/api/5'].forEach((path) => {
+      expect(screen.queryByText(path)).not.toBeInTheDocument()
+    })
   })
 
   it('shows ellipsis indicator for entry points when exceeding limit', () => {

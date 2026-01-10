@@ -27,16 +27,16 @@ export default defineConfig(() => ({
       ],
       thresholds: {
         '**/*.ts': {
-          lines: 94,
-          statements: 94,
+          lines: 95,
+          statements: 95,
           functions: 100,
-          branches: 74
+          branches: 93
         },
         '**/*.tsx': {
-          lines: 80,
-          statements: 80,
-          functions: 80,
-          branches: 75
+          lines: 90,
+          statements: 90,
+          functions: 88,
+          branches: 83
         },
       },
     },

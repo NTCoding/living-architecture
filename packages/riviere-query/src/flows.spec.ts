@@ -7,61 +7,103 @@ import {
 } from './riviere-graph-fixtures'
 
 describe('RiviereQuery.flows()', () => {
-  it('returns one flow with entry point as first step at depth 0 when graph has single entry point', () => {
+  it('returns single flow when graph has one entry point', () => {
     const query = new RiviereQuery(createMinimalValidGraph())
 
     const result = query.flows()
 
     expect(result).toHaveLength(1)
-    const flow = assertDefined(result[0], 'Expected flow to exist')
-    expect(flow.entryPoint.id).toBe('test:mod:ui:page')
-    expect(flow.steps).toHaveLength(1)
-    const firstStep = assertDefined(flow.steps[0], 'Expected first step to exist')
-    expect(firstStep.component.id).toBe('test:mod:ui:page')
-    expect(firstStep.linkType).toBeUndefined()
-    expect(firstStep.depth).toBe(0)
   })
 
-  it('traces downstream components with increasing depth when entry point has outgoing links', () => {
-    const graph = createMinimalValidGraph()
-    graph.components.push(
-      createAPIComponent({
-        id: 'test:api:create',
-        name: 'Create API',
-        domain: 'test',
-      }),
-      createUseCaseComponent({
-        id: 'test:uc:create',
-        name: 'Create UseCase',
-        domain: 'test',
-      }),
-    )
-    graph.links = [
-      {
-        source: 'test:mod:ui:page',
-        target: 'test:api:create',
-      },
-      {
-        source: 'test:api:create',
-        target: 'test:uc:create',
-      },
-    ]
-    const query = new RiviereQuery(graph)
+  it('sets entry point to match first step component', () => {
+    const query = new RiviereQuery(createMinimalValidGraph())
 
     const result = query.flows()
 
-    expect(result).toHaveLength(1)
     const flow = assertDefined(result[0], 'Expected flow to exist')
-    expect(flow.steps).toHaveLength(3)
-    const step0 = assertDefined(flow.steps[0], 'Expected step 0')
-    const step1 = assertDefined(flow.steps[1], 'Expected step 1')
-    const step2 = assertDefined(flow.steps[2], 'Expected step 2')
-    expect(step0.depth).toBe(0)
-    expect(step0.component.id).toBe('test:mod:ui:page')
-    expect(step1.depth).toBe(1)
-    expect(step1.component.id).toBe('test:api:create')
-    expect(step2.depth).toBe(2)
-    expect(step2.component.id).toBe('test:uc:create')
+    expect(flow.entryPoint.id).toBe('test:mod:ui:page')
+    expect(flow.steps[0]?.component.id).toBe('test:mod:ui:page')
+  })
+
+  it('sets first step depth to 0 with undefined linkType', () => {
+    const query = new RiviereQuery(createMinimalValidGraph())
+
+    const result = query.flows()
+
+    const flow = assertDefined(result[0], 'Expected flow to exist')
+    const firstStep = assertDefined(flow.steps[0], 'Expected first step to exist')
+    expect(firstStep.depth).toBe(0)
+    expect(firstStep.linkType).toBeUndefined()
+  })
+
+  describe('when entry point has outgoing links', () => {
+    function createLinkedGraph() {
+      const graph = createMinimalValidGraph()
+      graph.components.push(
+        createAPIComponent({
+          id: 'test:api:create',
+          name: 'Create API',
+          domain: 'test',
+        }),
+        createUseCaseComponent({
+          id: 'test:uc:create',
+          name: 'Create UseCase',
+          domain: 'test',
+        }),
+      )
+      graph.links = [
+        {
+          source: 'test:mod:ui:page',
+          target: 'test:api:create',
+        },
+        {
+          source: 'test:api:create',
+          target: 'test:uc:create',
+        },
+      ]
+      return graph
+    }
+
+    it('includes all downstream components in steps', () => {
+      const query = new RiviereQuery(createLinkedGraph())
+
+      const result = query.flows()
+
+      const flow = assertDefined(result[0], 'Expected flow to exist')
+      expect(flow.steps).toHaveLength(3)
+    })
+
+    it.each([
+      {
+        stepIndex: 0,
+        expectedId: 'test:mod:ui:page',
+        expectedDepth: 0,
+      },
+      {
+        stepIndex: 1,
+        expectedId: 'test:api:create',
+        expectedDepth: 1,
+      },
+      {
+        stepIndex: 2,
+        expectedId: 'test:uc:create',
+        expectedDepth: 2,
+      },
+    ])(
+      'sets step $stepIndex to $expectedId with depth $expectedDepth',
+      ({
+        stepIndex, expectedId, expectedDepth 
+      }) => {
+        const query = new RiviereQuery(createLinkedGraph())
+
+        const result = query.flows()
+
+        const flow = assertDefined(result[0], 'Expected flow to exist')
+        const step = assertDefined(flow.steps[stepIndex], `Expected step ${stepIndex}`)
+        expect(step.component.id).toBe(expectedId)
+        expect(step.depth).toBe(expectedDepth)
+      },
+    )
   })
 
   it('sets linkType from outgoing link and undefined for last step', () => {

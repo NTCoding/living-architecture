@@ -60,27 +60,37 @@ describe('RiviereQuery validate()', () => {
     expect(result.errors.length).toBeGreaterThanOrEqual(3)
   })
 
-  it('returns INVALID_TYPE when Custom component references undefined custom type', () => {
-    const graph = createMinimalValidGraph()
-    graph.components.push({
-      id: 'test:mod:custom:cronjob',
-      type: 'Custom',
-      customTypeName: 'CronJob',
-      name: 'Update Tracking Cron',
-      domain: 'test',
-      module: 'mod',
-      sourceLocation: {
-        repository: 'test-repo',
-        filePath: 'cron.ts',
-      },
+  describe('when Custom component references undefined custom type', () => {
+    function createGraphWithUndefinedCustomType() {
+      const graph = createMinimalValidGraph()
+      graph.components.push({
+        id: 'test:mod:custom:cronjob',
+        type: 'Custom',
+        customTypeName: 'CronJob',
+        name: 'Update Tracking Cron',
+        domain: 'test',
+        module: 'mod',
+        sourceLocation: {
+          repository: 'test-repo',
+          filePath: 'cron.ts',
+        },
+      })
+      return graph
+    }
+
+    it('returns INVALID_TYPE error with path to customTypeName', () => {
+      const query = new RiviereQuery(createGraphWithUndefinedCustomType())
+
+      const result = query.validate()
+
+      expect(result.valid).toBe(false)
+      expect(result.errors).toHaveLength(1)
+      expect(result.errors[0]).toMatchObject({
+        code: 'INVALID_TYPE',
+        path: '/components/1/customTypeName',
+        message: expect.stringContaining('CronJob'),
+      })
     })
-    const query = new RiviereQuery(graph)
-    const result = query.validate()
-    expect(result.valid).toBe(false)
-    expect(result.errors).toHaveLength(1)
-    expect(result.errors[0]?.code).toBe('INVALID_TYPE')
-    expect(result.errors[0]?.path).toBe('/components/1/customTypeName')
-    expect(result.errors[0]?.message).toContain('CronJob')
   })
 
   it('returns valid when Custom type has no requiredProperties', () => {

@@ -44,10 +44,12 @@ describe('VisualizationDataAdapters', () => {
       const result = createSimulationNodes(nodes)
 
       expect(result).toHaveLength(1)
-      expect(result[0]?.id).toBe('1')
-      expect(result[0]?.type).toBe('API')
-      expect(result[0]?.name).toBe('Test API')
-      expect(result[0]?.domain).toBe('test')
+      expect(result[0]).toMatchObject({
+        id: '1',
+        type: 'API',
+        name: 'Test API',
+        domain: 'test',
+      })
       expect(result[0]?.originalNode).toBeDefined()
     })
   })
@@ -65,9 +67,11 @@ describe('VisualizationDataAdapters', () => {
       const result = createSimulationLinks(edges)
 
       expect(result).toHaveLength(1)
-      expect(result[0]?.source).toBe('1')
-      expect(result[0]?.target).toBe('2')
-      expect(result[0]?.type).toBe('sync')
+      expect(result[0]).toMatchObject({
+        source: '1',
+        target: '2',
+        type: 'sync',
+      })
       expect(result[0]?.originalEdge).toBeDefined()
     })
   })
@@ -240,14 +244,17 @@ describe('VisualizationDataAdapters', () => {
       const result = createExternalNodes(externalLinks)
 
       expect(result).toHaveLength(1)
-      expect(result[0]?.id).toBe('external:Stripe')
-      expect(result[0]?.type).toBe('External')
-      expect(result[0]?.name).toBe('Stripe')
-      expect(result[0]?.domain).toBe('external')
-      expect(result[0]?.originalNode).toBeDefined()
-      expect(result[0]?.originalNode.id).toBe('external:Stripe')
-      expect(result[0]?.originalNode.type).toBe('External')
-      expect(result[0]?.originalNode.name).toBe('Stripe')
+      expect(result[0]).toMatchObject({
+        id: 'external:Stripe',
+        type: 'External',
+        name: 'Stripe',
+        domain: 'external',
+      })
+      expect(result[0]?.originalNode).toMatchObject({
+        id: 'external:Stripe',
+        type: 'External',
+        name: 'Stripe',
+      })
     })
 
     it('deduplicates external nodes with same name', () => {
@@ -298,12 +305,15 @@ describe('VisualizationDataAdapters', () => {
       const result = createExternalLinks(externalLinks)
 
       expect(result).toHaveLength(1)
-      expect(result[0]?.source).toBe('payment:usecase:processpayment')
-      expect(result[0]?.target).toBe('external:Stripe')
-      expect(result[0]?.type).toBe('sync')
-      expect(result[0]?.originalEdge).toBeDefined()
-      expect(result[0]?.originalEdge.source).toBe('payment:usecase:processpayment')
-      expect(result[0]?.originalEdge.target).toBe('external:Stripe')
+      expect(result[0]).toMatchObject({
+        source: 'payment:usecase:processpayment',
+        target: 'external:Stripe',
+        type: 'sync',
+      })
+      expect(result[0]?.originalEdge).toMatchObject({
+        source: 'payment:usecase:processpayment',
+        target: 'external:Stripe',
+      })
     })
 
     it('creates multiple links for same external target', () => {

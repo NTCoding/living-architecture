@@ -181,10 +181,12 @@ describe('calculateNodeDepths', () => {
 
     const depths = calculateNodeDepths(nodeIds, edges)
 
-    expect(depths.get('A')).toBe(0)
-    expect(depths.get('B')).toBe(1)
-    expect(depths.get('C')).toBe(1)
-    expect(depths.get('D')).toBe(2)
-    expect(depths.get('E')).toBe(3)
+    expect(Object.fromEntries(depths)).toStrictEqual({
+      A: 0,
+      B: 1,
+      C: 1,
+      D: 2,
+      E: 3,
+    })
   })
 })

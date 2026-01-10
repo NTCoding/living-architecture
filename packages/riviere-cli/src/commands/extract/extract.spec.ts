@@ -127,8 +127,7 @@ modules:
       const output = parseErrorOutput(ctx.consoleOutput)
       expect(output.success).toBe(false)
       expect(output.error.code).toBe(CliErrorCode.ValidationError)
-      expect(output.error.message).toContain('No files matched')
-      expect(output.error.message).toContain('**/*.nonexistent')
+      expect(output.error.message).toMatch(/No files matched.*\*\*\/\*\.nonexistent/)
     })
   })
 

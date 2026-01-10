@@ -51,7 +51,7 @@ describe('diff', () => {
       expect(result.components.removed[0]?.id).toBe('test:mod:ui:page')
     })
 
-    it('returns component in modified with changedFields when component name changes', () => {
+    it('returns component in modified when component name changes', () => {
       const baseGraph = createMinimalValidGraph()
       const originalComponent = assertDefined(
         baseGraph.components[0],
@@ -72,6 +72,27 @@ describe('diff', () => {
 
       expect(result.components.modified).toHaveLength(1)
       expect(result.components.modified[0]?.id).toBe('test:mod:ui:page')
+    })
+
+    it('includes name in changedFields when component name changes', () => {
+      const baseGraph = createMinimalValidGraph()
+      const originalComponent = assertDefined(
+        baseGraph.components[0],
+        'Expected component to exist',
+      )
+      const otherGraph: RiviereGraph = {
+        ...baseGraph,
+        components: [
+          {
+            ...originalComponent,
+            name: 'Renamed Page',
+          },
+        ],
+      }
+
+      const query = new RiviereQuery(baseGraph)
+      const result = query.diff(otherGraph)
+
       expect(result.components.modified[0]?.changedFields).toContain('name')
       expect(result.components.modified[0]?.before.name).toBe('Test Page')
       expect(result.components.modified[0]?.after.name).toBe('Renamed Page')
@@ -83,11 +104,24 @@ describe('diff', () => {
       const query = new RiviereQuery(graph)
       const result = query.diff(graph)
 
-      expect(result.components.added).toHaveLength(0)
-      expect(result.components.removed).toHaveLength(0)
-      expect(result.components.modified).toHaveLength(0)
-      expect(result.links.added).toHaveLength(0)
-      expect(result.links.removed).toHaveLength(0)
+      expect(result).toStrictEqual({
+        components: {
+          added: [],
+          removed: [],
+          modified: [],
+        },
+        links: {
+          added: [],
+          removed: [],
+        },
+        stats: {
+          componentsAdded: 0,
+          componentsModified: 0,
+          componentsRemoved: 0,
+          linksAdded: 0,
+          linksRemoved: 0,
+        },
+      })
     })
   })
 

@@ -113,10 +113,16 @@ describe('riviere query domains', () => {
       const output = parseOutput(ctx.consoleOutput)
       expect(output.success).toBe(true)
       expect(output.data.domains).toHaveLength(1)
-      expect(output.data.domains[0]?.name).toBe('orders')
-      expect(output.data.domains[0]?.componentCounts.API).toBe(1)
-      expect(output.data.domains[0]?.componentCounts.UseCase).toBe(2)
-      expect(output.data.domains[0]?.componentCounts.total).toBe(3)
+      expect(output.data.domains[0]).toMatchObject({
+        name: 'orders',
+        description: 'Order management',
+        systemType: 'domain',
+        componentCounts: {
+          API: 1,
+          UseCase: 2,
+          total: 3,
+        },
+      })
     })
 
     it('returns all domains from graph metadata', async () => {

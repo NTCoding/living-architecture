@@ -109,13 +109,15 @@ describe('useDomainMapInteractions', () => {
         result.current.selectEdge('orders', 'payments', 3, 2, 10, 5, [])
       })
 
-      expect(result.current.inspector.visible).toBe(true)
-      expect(result.current.inspector.source).toBe('orders')
-      expect(result.current.inspector.target).toBe('payments')
-      expect(result.current.inspector.apiCount).toBe(3)
-      expect(result.current.inspector.eventCount).toBe(2)
-      expect(result.current.inspector.sourceNodeCount).toBe(10)
-      expect(result.current.inspector.targetNodeCount).toBe(5)
+      expect(result.current.inspector).toMatchObject({
+        visible: true,
+        source: 'orders',
+        target: 'payments',
+        apiCount: 3,
+        eventCount: 2,
+        sourceNodeCount: 10,
+        targetNodeCount: 5,
+      })
     })
 
     it('hides tooltip when opening inspector', () => {
