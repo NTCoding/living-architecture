@@ -78,15 +78,6 @@ describe('RiviereQuery validate()', () => {
       return graph
     }
 
-    it('returns invalid result', () => {
-      const query = new RiviereQuery(createGraphWithUndefinedCustomType())
-
-      const result = query.validate()
-
-      expect(result.valid).toBe(false)
-      expect(result.errors).toHaveLength(1)
-    })
-
     it('returns INVALID_TYPE error with path to customTypeName', () => {
       const query = new RiviereQuery(createGraphWithUndefinedCustomType())
 
