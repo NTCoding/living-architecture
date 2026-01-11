@@ -7,7 +7,9 @@ import type {
   GraphMetadata,
 } from './schema'
 import {
-  parseRiviereGraph, formatValidationErrors 
+  parseRiviereGraph,
+  formatValidationErrors,
+  RiviereSchemaValidationError,
 } from './validation'
 
 describe('formatValidationErrors()', () => {
@@ -72,7 +74,7 @@ describe('parseRiviereGraph()', () => {
     expect(result.components).toHaveLength(0)
   })
 
-  it('throws on invalid component type', () => {
+  it('throws RiviereSchemaValidationError on invalid component type', () => {
     const input = {
       version: '1.0',
       metadata: {
@@ -99,10 +101,11 @@ describe('parseRiviereGraph()', () => {
       links: [],
     }
 
+    expect(() => parseRiviereGraph(input)).toThrow(RiviereSchemaValidationError)
     expect(() => parseRiviereGraph(input)).toThrow(/Invalid RiviereGraph/)
   })
 
-  it('throws on missing required field with error details', () => {
+  it('throws RiviereSchemaValidationError on missing required field', () => {
     const input = {
       metadata: {
         domains: {
@@ -116,10 +119,11 @@ describe('parseRiviereGraph()', () => {
       links: [],
     }
 
+    expect(() => parseRiviereGraph(input)).toThrow(RiviereSchemaValidationError)
     expect(() => parseRiviereGraph(input)).toThrow(/version|Invalid RiviereGraph/i)
   })
 
-  it('throws on invalid version format', () => {
+  it('throws RiviereSchemaValidationError on invalid version format', () => {
     const input = {
       version: 'not-a-version',
       metadata: {
@@ -134,6 +138,7 @@ describe('parseRiviereGraph()', () => {
       links: [],
     }
 
+    expect(() => parseRiviereGraph(input)).toThrow(RiviereSchemaValidationError)
     expect(() => parseRiviereGraph(input)).toThrow(/Invalid RiviereGraph/)
   })
 })

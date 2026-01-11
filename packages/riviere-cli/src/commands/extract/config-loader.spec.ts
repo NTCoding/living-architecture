@@ -5,6 +5,12 @@ import {
   existsSync, readFileSync 
 } from 'node:fs'
 import { createConfigLoader } from './config-loader'
+import {
+  ConfigFileNotFoundError,
+  ConfigSchemaValidationError,
+  InvalidConfigFormatError,
+  PackageResolveError,
+} from '../../errors'
 
 vi.mock('node:fs')
 
@@ -44,44 +50,48 @@ describe('createConfigLoader', () => {
       expect(readFileSync).toHaveBeenCalledWith('/project/shared/base.json', 'utf-8')
     })
 
-    it('throws error when file does not exist', () => {
+    it('throws ConfigFileNotFoundError when file does not exist', () => {
       vi.mocked(existsSync).mockReturnValue(false)
 
       const loader = createConfigLoader('/project')
 
+      expect(() => loader('./missing.json')).toThrow(ConfigFileNotFoundError)
       expect(() => loader('./missing.json')).toThrow(
         "Cannot resolve extends reference './missing.json'",
       )
     })
 
-    it('throws error when config content is invalid', () => {
+    it('throws InvalidConfigFormatError when config content is invalid', () => {
       vi.mocked(existsSync).mockReturnValue(true)
       vi.mocked(readFileSync).mockReturnValue('null')
 
       const loader = createConfigLoader('/project')
 
+      expect(() => loader('./invalid.json')).toThrow(InvalidConfigFormatError)
       expect(() => loader('./invalid.json')).toThrow('Invalid extended config format')
     })
 
-    it('throws error when modules is not an array', () => {
+    it('throws InvalidConfigFormatError when modules is not an array', () => {
       vi.mocked(existsSync).mockReturnValue(true)
       vi.mocked(readFileSync).mockReturnValue(JSON.stringify({ modules: 'not-an-array' }))
 
       const loader = createConfigLoader('/project')
 
+      expect(() => loader('./invalid.json')).toThrow(InvalidConfigFormatError)
       expect(() => loader('./invalid.json')).toThrow('Invalid extended config format')
     })
 
-    it('throws error when modules array is empty', () => {
+    it('throws ConfigSchemaValidationError when modules array is empty', () => {
       vi.mocked(existsSync).mockReturnValue(true)
       vi.mocked(readFileSync).mockReturnValue(JSON.stringify({ modules: [] }))
 
       const loader = createConfigLoader('/project')
 
+      expect(() => loader('./empty-modules.json')).toThrow(ConfigSchemaValidationError)
       expect(() => loader('./empty-modules.json')).toThrow('must NOT have fewer than 1 items')
     })
 
-    it('throws error when module in modules array has invalid schema', () => {
+    it('throws ConfigSchemaValidationError when module has invalid schema', () => {
       const invalidConfig = {
         modules: [
           {
@@ -95,6 +105,7 @@ describe('createConfigLoader', () => {
 
       const loader = createConfigLoader('/project')
 
+      expect(() => loader('./invalid-module.json')).toThrow(ConfigSchemaValidationError)
       expect(() => loader('./invalid-module.json')).toThrow('Invalid extended config')
     })
   })
@@ -201,9 +212,10 @@ describe('createConfigLoader', () => {
   })
 
   describe('package resolution', () => {
-    it('throws error when package cannot be resolved', () => {
+    it('throws PackageResolveError when package cannot be resolved', () => {
       const loader = createConfigLoader('/project')
 
+      expect(() => loader('@nonexistent/package')).toThrow(PackageResolveError)
       expect(() => loader('@nonexistent/package')).toThrow(
         "Cannot resolve package '@nonexistent/package'",
       )

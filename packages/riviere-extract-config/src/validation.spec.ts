@@ -4,6 +4,7 @@ import {
   parseExtractionConfig,
   formatValidationErrors,
   mapAjvErrors,
+  ExtractionConfigValidationError,
 } from './validation'
 import type { ExtractionConfig } from './types'
 import {
@@ -341,8 +342,8 @@ describe('parseExtractionConfig', () => {
     expect(parseExtractionConfig(config)).toStrictEqual(config)
   })
 
-  it('throws Error when config is invalid', () => {
-    expect(() => parseExtractionConfig({})).toThrow(Error)
+  it('throws ExtractionConfigValidationError when config is invalid', () => {
+    expect(() => parseExtractionConfig({})).toThrow(ExtractionConfigValidationError)
   })
 
   it('includes validation errors in thrown error message', () => {
