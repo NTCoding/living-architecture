@@ -57,7 +57,7 @@ The conventions package includes a ready-to-use extraction config that detects a
 
 ```bash
 npx riviere extract \
-  --config node_modules/@living-architecture/riviere-extract-conventions/src/default-extraction.config.json
+  --config @living-architecture/riviere-extract-conventions/default-config
 ```
 
 **Output (draft components JSON):**
@@ -106,7 +106,7 @@ Use `--dry-run` for a quick summary:
 
 ```bash
 npx riviere extract \
-  --config node_modules/@living-architecture/riviere-extract-conventions/src/default-extraction.config.json \
+  --config @living-architecture/riviere-extract-conventions/default-config \
   --dry-run
 ```
 
