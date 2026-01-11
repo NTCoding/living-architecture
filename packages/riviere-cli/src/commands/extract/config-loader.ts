@@ -4,6 +4,7 @@ import {
 import {
   existsSync, readFileSync 
 } from 'node:fs'
+import { createRequire } from 'node:module'
 import { parse as parseYaml } from 'yaml'
 import {
   type Module, parseExtractionConfig 
@@ -49,7 +50,9 @@ function hasModulesArray(value: unknown): value is { modules: unknown[] } {
 }
 
 function isTopLevelRulesConfig(value: unknown): value is TopLevelRulesConfig {
-  return typeof value === 'object' && value !== null && !('modules' in value)
+  return (
+    typeof value === 'object' && value !== null && !Array.isArray(value) && !('modules' in value)
+  )
 }
 
 function parseConfigContent(content: string, source: string): Module {
@@ -93,7 +96,8 @@ function isPackageReference(source: string): boolean {
   return !source.startsWith('.') && !source.startsWith('/')
 }
 
-function resolvePackagePath(packageName: string): string {
+function resolvePackagePath(packageName: string, configDir: string): string {
+  const require = createRequire(resolve(configDir, 'package.json'))
   try {
     const packageJsonPath = require.resolve(`${packageName}/package.json`)
     const packageDir = dirname(packageJsonPath)
@@ -122,7 +126,7 @@ function loadConfigFile(filePath: string, source: string): Module {
 export function createConfigLoader(configDir: string): ConfigLoader {
   return (source: string): Module => {
     const filePath = isPackageReference(source)
-      ? resolvePackagePath(source)
+      ? resolvePackagePath(source, configDir)
       : resolve(configDir, source)
 
     return loadConfigFile(filePath, source)

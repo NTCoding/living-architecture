@@ -18,7 +18,7 @@ import { EventsPage } from '@/features/events/EventsPage'
 import { ComparisonPage } from '@/features/comparison/ComparisonPage'
 import { GraphError } from '@/errors'
 
-function useRequiredGraph(): RiviereGraph {
+export function useRequiredGraph(): RiviereGraph {
   const { graph } = useGraph()
   if (graph === null) {
     throw new GraphError(
