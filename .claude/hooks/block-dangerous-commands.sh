@@ -15,7 +15,7 @@ if echo "$command" | grep -qE '(--no-verify|--force|-f\s|--hard)'; then
 fi
 
 # Block direct git push - agents must use /complete-task workflow
-if echo "$command" | grep -qE '^git push'; then
+if [[ "$command" =~ (^|[[:space:]])git[[:space:]]+push($|[[:space:]]) ]]; then
     jq -n '{
       "hookSpecificOutput": {
         "hookEventName": "PreToolUse",
