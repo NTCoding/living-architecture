@@ -11,11 +11,9 @@ vi.mock('./SchemaModal.module.css', () => ({
 }))
 
 describe('SchemaModal CSS module validation', () => {
-  it('throws CSSModuleError when required CSS class is missing', async () => {
-    await expect(async () => import('./SchemaModal')).rejects.toThrow(CSSModuleError)
-  })
-
-  it('throws CSSModuleError with class name in message', async () => {
-    await expect(async () => import('./SchemaModal')).rejects.toThrow('jsonBasicChild')
+  it('throws CSSModuleError with class name when required CSS class is missing', async () => {
+    const importAttempt = import('./SchemaModal')
+    await expect(importAttempt).rejects.toThrow(CSSModuleError)
+    await expect(importAttempt).rejects.toThrow('jsonBasicChild')
   })
 })
