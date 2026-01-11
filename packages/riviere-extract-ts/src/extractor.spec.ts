@@ -1,12 +1,10 @@
 import {
   describe, it, expect 
 } from 'vitest'
-import {
-  type ResolvedExtractionConfig,
-  createResolvedConfig,
-} from '@living-architecture/riviere-extract-config'
+import type { ResolvedExtractionConfig } from '@living-architecture/riviere-extract-config'
 import { Project } from 'ts-morph'
 import { extractComponents } from './extractor'
+import { createResolvedConfig } from './test-fixtures'
 
 function createTestProject() {
   return new Project({ useInMemoryFileSystem: true })

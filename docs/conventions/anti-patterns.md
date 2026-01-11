@@ -128,3 +128,38 @@ it('should return empty string when empty string provided', () => {
 ```
 
 It is probably better to not call the method or to throw an error if a real value is expected. Or look at the design more closely - could the string be represented by a proper type.
+
+---
+
+## Sharing test fixtures across packages
+
+🚨 **Never export test fixtures from a package for use by other packages.**
+
+Test fixtures are hardcoded test data values specific to a package's tests. Sharing them across packages:
+- Makes internal test setup part of the public API
+- Creates fragile coupling (fixture changes break other packages)
+- Forces unnecessary exports
+
+### ❌ Bad
+
+```typescript
+// packages/config/src/index.ts
+export { createMinimalConfig, createMinimalModule } from './test-fixtures'
+
+// packages/extractor/src/extractor.spec.ts
+import { createMinimalConfig } from '@my-org/config'  // Cross-package fixture import
+```
+
+### ✓ Good
+
+Each package creates its own test fixtures:
+
+```typescript
+// packages/config/src/test-fixtures.ts (NOT exported from index.ts)
+export function createMinimalConfig(): Config { ... }
+
+// packages/extractor/src/test-fixtures.ts (separate, local fixtures)
+export function createTestConfig(): Config { ... }
+```
+
+**Note:** This applies to raw test data fixtures, not shared test utilities or test-data-builders that provide genuine reusable logic.

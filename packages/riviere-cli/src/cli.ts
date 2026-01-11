@@ -24,6 +24,12 @@ import { createExtractCommand } from './commands/extract/extract'
 
 interface PackageJson {version: string}
 
+/**
+ * Parses and validates package.json data.
+ * @param pkg - Raw package.json content.
+ * @returns Validated package.json with version.
+ * @throws Error if package.json is invalid.
+ */
 export function parsePackageJson(pkg: unknown): PackageJson {
   if (typeof pkg !== 'object' || pkg === null || !('version' in pkg)) {
     throw new Error('Invalid package.json: missing version field')
@@ -41,6 +47,10 @@ function loadPackageJson(): PackageJson {
 
 const packageJson = loadPackageJson()
 
+/**
+ * Creates and configures the CLI program with all commands.
+ * @returns Configured Commander program.
+ */
 export function createProgram(): Command {
   const program = new Command()
 

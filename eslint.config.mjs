@@ -198,27 +198,43 @@ export default tseslint.config(
       },
     },
   },
-  // JSDoc enforcement for RiviereBuilder public API only
-  {
-    files: ['packages/riviere-builder/src/builder.ts'],
-    plugins: { jsdoc },
-    rules: {
-      'jsdoc/require-jsdoc': [
-        'error',
-        {
-          publicOnly: { ancestorsOnly: true },
-          require: {
-            ClassDeclaration: true,
-            MethodDefinition: true,
-          },
-        },
+  // JSDoc enforcement for public library APIs
+    {
+      files: [
+      'packages/riviere-builder/src/builder.ts',
+    'packages/riviere-cli/src/cli.ts',
+    'packages/riviere-cli/src/error-codes.ts',
+    'packages/riviere-cli/src/output.ts',
+    'packages/riviere-extract-config/src/types.ts',
+    'packages/riviere-extract-config/src/validation.ts',
+    'packages/riviere-extract-ts/src/extractor.ts',
+    'packages/riviere-extract-ts/src/resolve-config.ts',
+    'packages/riviere-extract-ts/src/predicates/evaluate-predicate.ts',
       ],
-      'jsdoc/require-param': 'error',
-      'jsdoc/require-param-description': 'error',
-      'jsdoc/require-returns': 'error',
-      'jsdoc/require-returns-description': 'error',
+      ignores: ['**/*.spec.ts'],
+      plugins: { jsdoc },
+      rules: {
+        'jsdoc/require-jsdoc': [
+          'error',
+          {
+            publicOnly: true,
+            require: {
+              ClassDeclaration: true,
+              MethodDefinition: true,
+              FunctionDeclaration: true,
+            },
+            contexts: [
+              'TSInterfaceDeclaration',
+              'TSTypeAliasDeclaration',
+            ],
+          },
+        ],
+        'jsdoc/require-param': 'error',
+        'jsdoc/require-param-description': 'error',
+        'jsdoc/require-returns': 'error',
+        'jsdoc/require-returns-description': 'error',
+      },
     },
-  },
   {
     plugins: {
       '@stylistic': stylistic,

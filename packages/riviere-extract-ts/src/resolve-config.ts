@@ -6,8 +6,15 @@ import type {
   ComponentRule,
 } from '@living-architecture/riviere-extract-config'
 
+/** Function that loads a base module config from a source path. */
 export type ConfigLoader = (source: string) => Module
 
+/**
+ * Resolves an extraction config by expanding extends references.
+ * @param config - The extraction config with optional extends.
+ * @param loader - Optional loader for resolving extends references.
+ * @returns Fully resolved config with all modules complete.
+ */
 export function resolveConfig(
   config: ExtractionConfig,
   loader?: ConfigLoader,

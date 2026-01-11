@@ -8,8 +8,3 @@ export {
   type ValidationError,
   type ValidationResult,
 } from './validation'
-export {
-  createMinimalConfig,
-  createMinimalModule,
-  createResolvedConfig,
-} from './validation-fixtures'

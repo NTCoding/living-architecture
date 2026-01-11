@@ -14,6 +14,7 @@ import type {
 } from '@living-architecture/riviere-extract-config'
 import { evaluatePredicate } from './predicates'
 
+/** An extracted component before connection detection. */
 export interface DraftComponent {
   type: ComponentType
   name: string
@@ -50,6 +51,13 @@ function isDetectionRule(rule: unknown): rule is DetectionRule {
   return typeof rule.find === 'string' && FIND_TARGETS.includes(rule.find)
 }
 
+/**
+ * Extracts architectural components from source files.
+ * @param project - ts-morph Project instance.
+ * @param sourceFilePaths - Paths to source files to extract from.
+ * @param config - Resolved extraction config with detection rules.
+ * @returns Array of extracted draft components.
+ */
 export function extractComponents(
   project: Project,
   sourceFilePaths: string[],
