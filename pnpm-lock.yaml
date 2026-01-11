@@ -196,9 +196,6 @@ importers:
       '@types/dagre':
         specifier: ^0.7.53
         version: 0.7.53
-      '@types/node':
-        specifier: ^24.10.1
-        version: 24.10.6
       '@types/react':
         specifier: ^19.2.5
         version: 19.2.8
@@ -223,12 +220,6 @@ importers:
       tailwindcss:
         specifier: ^4.1.17
         version: 4.1.18
-      vite:
-        specifier: ^7.2.4
-        version: 7.3.1(@types/node@24.10.6)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2)
-      vitest:
-        specifier: ^4.0.16
-        version: 4.0.16(@types/node@24.10.6)(@vitest/browser-playwright@4.0.16)(@vitest/ui@4.0.16)(jiti@2.6.1)(jsdom@27.4.0)(lightningcss@1.30.2)(msw@2.12.7(@types/node@24.10.6)(typescript@5.9.3))(tsx@4.21.0)(yaml@2.8.2)
 
   packages/riviere-builder:
     dependencies:
