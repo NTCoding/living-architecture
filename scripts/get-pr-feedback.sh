@@ -79,10 +79,8 @@ printf "\n"
 
 if [[ "$UNRESOLVED_COUNT" -eq 0 ]]; then
     printf "  ✓ No unresolved feedback\n\n"
-    exit 0
-fi
-
-# Process each unresolved thread
+else
+    # Process each unresolved thread
 echo "$UNRESOLVED_THREADS" | jq -c '.[]' | while read -r thread; do
     THREAD_ID=$(echo "$thread" | jq -r '.id // ""')
     PATH_FILE=$(echo "$thread" | jq -r '.path // "unknown"')
@@ -145,3 +143,26 @@ printf "      The reviewer can then resolve the thread on GitHub\n"
 printf "\n"
 printf "  Then: ./scripts/submit-pr.sh --update\n"
 printf "\n"
+fi
+
+# ─────────────────────────────────────────────────────────────────────────────
+# SonarCloud Coverage Link
+# ─────────────────────────────────────────────────────────────────────────────
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+SONAR_PROPS="$REPO_ROOT/sonar-project.properties"
+
+if [[ -f "$SONAR_PROPS" ]]; then
+    SONAR_PROJECT_KEY=$(grep -E '^sonar\.projectKey=' "$SONAR_PROPS" | cut -d'=' -f2 | tr -d '[:space:]')
+
+    if [[ -n "$SONAR_PROJECT_KEY" ]]; then
+        printf "  ═══════════════════════════════════════════════════════════\n"
+        printf "  SonarCloud Coverage\n"
+        printf "  ═══════════════════════════════════════════════════════════\n"
+        printf "\n"
+        printf "  If SonarCloud quality gate fails, check coverage here:\n"
+        printf "  https://sonarcloud.io/component_measures?id=%s&pullRequest=%s&metric=new_coverage&view=list\n" "$SONAR_PROJECT_KEY" "$PR_NUMBER"
+        printf "\n"
+    fi
+fi
