@@ -9,7 +9,7 @@ import type {
   SourceLocation,
 } from '@living-architecture/riviere-schema'
 
-export class TestAssertionError extends Error {
+class TestAssertionError extends Error {
   constructor(message: string) {
     super(message)
     this.name = 'TestAssertionError'

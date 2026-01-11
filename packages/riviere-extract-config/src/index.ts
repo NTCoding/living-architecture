@@ -5,6 +5,7 @@ export {
   parseExtractionConfig,
   formatValidationErrors,
   mapAjvErrors,
+  ExtractionConfigValidationError,
   type ValidationError,
   type ValidationResult,
 } from './validation'

@@ -1,7 +1,10 @@
 export * from './schema'
 export {
-  parseRiviereGraph, isRiviereGraph, formatValidationErrors 
+  parseRiviereGraph,
+  isRiviereGraph,
+  formatValidationErrors,
+  RiviereSchemaValidationError,
 } from './validation'
 export {
-  ComponentId, type ComponentIdParts 
+  ComponentId, InvalidComponentIdError, type ComponentIdParts 
 } from './component-id'
