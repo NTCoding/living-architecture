@@ -1,5 +1,5 @@
 import type {
-  ExtractionConfig, Module 
+  ExtractionConfig, ResolvedExtractionConfig, Module 
 } from './types'
 
 export function createModuleWithoutPath(): Omit<Module, 'path'> {
@@ -40,6 +40,10 @@ export function createMinimalModule(): Module {
 }
 
 export function createMinimalConfig(): ExtractionConfig {
+  return { modules: [createMinimalModule()] }
+}
+
+export function createResolvedConfig(): ResolvedExtractionConfig {
   return { modules: [createMinimalModule()] }
 }
 

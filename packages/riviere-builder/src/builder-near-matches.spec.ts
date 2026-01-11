@@ -3,6 +3,13 @@ import {
 } from 'vitest'
 import { RiviereBuilder } from './builder'
 
+class TestAssertionError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'TestAssertionError'
+  }
+}
+
 function createBuilderWithComponents(): RiviereBuilder {
   const builder = RiviereBuilder.new({
     sources: [
@@ -73,7 +80,7 @@ function createBuilderWithComponents(): RiviereBuilder {
 
 function firstResult<T>(results: T[]): T {
   const first = results[0]
-  if (first === undefined) throw new Error('Expected at least one result')
+  if (first === undefined) throw new TestAssertionError('Expected at least one result')
   return first
 }
 

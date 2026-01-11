@@ -1,10 +1,11 @@
 import {
-  createContext, useContext, useEffect, useState, useCallback, useMemo 
+  createContext, useContext, useEffect, useState, useCallback, useMemo
 } from 'react'
 import type { Theme } from '@/types/theme'
 import {
-  DEFAULT_THEME, THEME_STORAGE_KEY 
+  DEFAULT_THEME, THEME_STORAGE_KEY
 } from '@/types/theme'
+import { ContextError } from '@/errors'
 
 interface ThemeContextValue {
   readonly theme: Theme
@@ -58,7 +59,7 @@ export function ThemeProvider({ children }: ThemeProviderProps): React.ReactElem
 export function useTheme(): ThemeContextValue {
   const context = useContext(themeContext)
   if (context === null) {
-    throw new Error('useTheme must be used within a ThemeProvider')
+    throw new ContextError('useTheme', 'ThemeProvider')
   }
   return context
 }

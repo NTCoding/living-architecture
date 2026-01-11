@@ -11,6 +11,9 @@ import {
   EDGE_COLORS, SEMANTIC_EDGE_COLORS 
 } from '../../types'
 import { getLinkNodeId } from './FocusModeStyling'
+import {
+  LayoutError, RenderingError 
+} from '@/errors'
 
 export {
   getLinkNodeId,
@@ -34,7 +37,7 @@ export function extractCoordinates(nodes: SimulationNode[], field: 'x' | 'y'): n
     const value = field === 'x' ? n.x : n.y
     if (value === undefined) {
       const coord = field === 'x' ? 'x' : 'y'
-      throw new Error(`Node ${n.id} missing layout ${coord} coordinate`)
+      throw new LayoutError(`Node ${n.id} missing layout ${coord} coordinate`)
     }
     return value
   })
@@ -179,8 +182,9 @@ export interface SetupLinksParams {
 
 function getNodeType(nodeId: string, nodeMap: Map<string, SimulationNode>): NodeType {
   const node = nodeMap.get(nodeId)
+  /* v8 ignore next -- @preserve defensive: link references only valid node IDs */
   if (!node) {
-    throw new Error(`Node ${nodeId} not found in node map`)
+    throw new RenderingError(`Node ${nodeId} not found in node map`)
   }
   return node.type
 }
@@ -307,23 +311,27 @@ export function createUpdatePositionsFunction(params: UpdatePositionsParams): ()
       const sourceNode = nodePositionMap.get(sourceId)
       const targetNode = nodePositionMap.get(targetId)
 
+      /* v8 ignore next 3 -- @preserve defensive: D3 callback, position map built from same nodes */
       if (!sourceNode) {
-        throw new Error(
+        throw new RenderingError(
           `Link source node '${sourceId}' not found in position map. Available nodes: [${[...nodePositionMap.keys()].join(', ')}]`,
         )
       }
+      /* v8 ignore next 3 -- @preserve defensive: D3 callback, position map built from same nodes */
       if (!targetNode) {
-        throw new Error(
+        throw new RenderingError(
           `Link target node '${targetId}' not found in position map. Available nodes: [${[...nodePositionMap.keys()].join(', ')}]`,
         )
       }
+      /* v8 ignore next 3 -- @preserve defensive: D3 callback, coordinates set by simulation */
       if (sourceNode.x === undefined || sourceNode.y === undefined) {
-        throw new Error(
+        throw new LayoutError(
           `Source node '${sourceId}' missing coordinates. Node: ${JSON.stringify(sourceNode)}`,
         )
       }
+      /* v8 ignore next 3 -- @preserve defensive: D3 callback, coordinates set by simulation */
       if (targetNode.x === undefined || targetNode.y === undefined) {
-        throw new Error(
+        throw new LayoutError(
           `Target node '${targetId}' missing coordinates. Node: ${JSON.stringify(targetNode)}`,
         )
       }
@@ -351,8 +359,9 @@ export function createUpdatePositionsFunction(params: UpdatePositionsParams): ()
     })
 
     node.attr('transform', (d) => {
+      /* v8 ignore next 3 -- @preserve defensive: D3 callback, coordinates set by simulation */
       if (d.x === undefined || d.y === undefined) {
-        throw new Error(`Node ${d.id} missing layout coordinates after layout computation`)
+        throw new LayoutError(`Node ${d.id} missing layout coordinates after layout computation`)
       }
       return `translate(${d.x},${d.y})`
     })

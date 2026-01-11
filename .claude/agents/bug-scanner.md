@@ -17,7 +17,9 @@ Review ALL uncommitted changes:
 
 Write the COMPLETE report to the file path provided in the prompt.
 
-## Priority 1: Bug Patterns
+## Priority 1: Bug Patterns & Anti-Patterns
+
+Review `docs/conventions/anti-patterns.md` for codebase-specific anti-patterns to detect.
 
 ### Silent Error Swallowing
 

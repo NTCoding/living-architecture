@@ -7,13 +7,14 @@ import type {
 } from 'ts-morph'
 import { minimatch } from 'minimatch'
 import type {
-  ExtractionConfig,
+  ResolvedExtractionConfig,
   ComponentType,
   Module,
   DetectionRule,
 } from '@living-architecture/riviere-extract-config'
 import { evaluatePredicate } from './predicates'
 
+/** An extracted component before connection detection. */
 export interface DraftComponent {
   type: ComponentType
   name: string
@@ -40,7 +41,7 @@ function hasProperty<K extends string>(obj: object, key: K): obj is object & Rec
 }
 
 function isDetectionRule(rule: unknown): rule is DetectionRule {
-  /* istanbul ignore if -- @preserve: unreachable with typed ExtractionConfig; defensive guard */
+  /* istanbul ignore if -- @preserve: unreachable with typed ResolvedExtractionConfig; defensive guard */
   if (typeof rule !== 'object' || rule === null) {
     return false
   }
@@ -50,10 +51,17 @@ function isDetectionRule(rule: unknown): rule is DetectionRule {
   return typeof rule.find === 'string' && FIND_TARGETS.includes(rule.find)
 }
 
+/**
+ * Extracts architectural components from source files.
+ * @param project - ts-morph Project instance.
+ * @param sourceFilePaths - Paths to source files to extract from.
+ * @param config - Resolved extraction config with detection rules.
+ * @returns Array of extracted draft components.
+ */
 export function extractComponents(
   project: Project,
   sourceFilePaths: string[],
-  config: ExtractionConfig,
+  config: ResolvedExtractionConfig,
 ): DraftComponent[] {
   return sourceFilePaths.flatMap((filePath) => extractFromFile(project, filePath, config))
 }
@@ -61,7 +69,7 @@ export function extractComponents(
 function extractFromFile(
   project: Project,
   filePath: string,
-  config: ExtractionConfig,
+  config: ResolvedExtractionConfig,
 ): DraftComponent[] {
   const sourceFile = project.getSourceFile(filePath)
   if (sourceFile === undefined) {

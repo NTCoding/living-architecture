@@ -181,6 +181,61 @@ import { type DraftComponent } from '@living-architecture/riviere-extract-ts'
 
 ---
 
+## RFC-007: String-Based Error Detection
+
+**Source:** PR #129 (Code review miss - anti-pattern not caught)
+
+**Pattern:** Making decisions based on error message content. This is brittle because error messages can change without notice, are not part of any contract, and vary by locale/environment.
+
+**Critical:** Even checking `error instanceof Error && error.message.includes('...')` is still string-based detection. The `instanceof Error` only confirms it's an error - you're still making decisions based on message content.
+
+**Example (BAD):**
+```typescript
+// String matching on error message - HARD FAIL
+if (error instanceof Error && error.message.includes('does not contain')) {
+  throw error
+}
+
+// Also bad - any form of message inspection for control flow
+if (error.message.startsWith('Custom type')) { ... }
+const match = error.message.match(/Did you mean: (.+)\?/)
+```
+
+**Example (GOOD):**
+```typescript
+// Custom error class with typed identification
+class PackageConfigNotFoundError extends Error {
+  readonly name = 'PackageConfigNotFoundError'
+  constructor(public readonly packageName: string) {
+    super(`Package '${packageName}' does not contain config`)
+  }
+}
+
+// Use instanceof for type checking
+if (error instanceof PackageConfigNotFoundError) {
+  throw error
+}
+```
+
+**Detection patterns (HARD FAIL):**
+- `.message.includes(`
+- `.message.startsWith(`
+- `.message.match(`
+- `.message.endsWith(`
+- `error.message ===`
+- `error.message !==`
+- Any regex on `error.message`
+
+**Exception:** Only acceptable when handling third-party library errors that don't expose typed errors. Must include justification comment:
+```typescript
+// ANTI-PATTERN EXCEPTION: String-Based Error Detection
+// Justification: Library X doesn't expose typed errors
+// Tracking: Issue #NNN / requested upstream fix
+if (error.message.includes('...')) { ... }
+```
+
+---
+
 ## Adding New Checks
 
 When external review feedback reveals a pattern:

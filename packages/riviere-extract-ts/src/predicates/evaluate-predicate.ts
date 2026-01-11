@@ -34,6 +34,12 @@ function isNameableNode(node: Node): node is NameableNode {
   )
 }
 
+/**
+ * Evaluates a predicate against an AST node.
+ * @param node - The AST node to test.
+ * @param predicate - The predicate to evaluate.
+ * @returns True if the node matches the predicate.
+ */
 export function evaluatePredicate(node: Node, predicate: Predicate): boolean {
   if ('hasDecorator' in predicate) {
     return evaluateHasDecorator(node, predicate.hasDecorator.name, predicate.hasDecorator.from)

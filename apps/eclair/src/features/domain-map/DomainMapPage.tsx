@@ -1,12 +1,13 @@
 import {
-  useMemo, useCallback, useEffect, useRef 
+  useMemo, useCallback, useEffect, useRef
 } from 'react'
 import {
-  useSearchParams, useNavigate 
+  useSearchParams, useNavigate
 } from 'react-router-dom'
 import {
-  ReactFlow, Background, Controls, useNodesState, useEdgesState 
+  ReactFlow, Background, Controls, useNodesState, useEdgesState
 } from '@xyflow/react'
+import { GraphError } from '@/errors'
 import type {
   Node, Edge, NodeMouseHandler, EdgeMouseHandler 
 } from '@xyflow/react'
@@ -120,7 +121,7 @@ export function DomainMapPage({ graph }: DomainMapPageProps): React.ReactElement
       const sourceNodeCount = nodeCountMap.get(edge.source)
       const targetNodeCount = nodeCountMap.get(edge.target)
       if (sourceNodeCount === undefined || targetNodeCount === undefined) {
-        throw new Error(`Edge references missing node: source=${edge.source} target=${edge.target}`)
+        throw new GraphError(`Edge references missing node: source=${edge.source} target=${edge.target}`)
       }
       selectEdge(
         edge.source,

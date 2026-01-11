@@ -5,7 +5,9 @@ import {
   render, screen, waitFor, within, fireEvent
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { SchemaModal } from './SchemaModal'
+import {
+  SchemaModal, validateDownloadGraphName
+} from './SchemaModal'
 import type {
   RiviereGraph, GraphName
 } from '@/types/riviere'
@@ -13,6 +15,7 @@ import {
   nodeIdSchema, domainNameSchema, moduleNameSchema, graphNameSchema
 } from '@/types/riviere'
 import { assertDefined } from '@/test-assertions'
+import { SchemaError } from '@/errors'
 
 const testSourceLocation = {
   repository: 'test-repo',
@@ -21,6 +24,12 @@ const testSourceLocation = {
 
 function createGraphName(name: string): GraphName {
   return graphNameSchema.parse(name)
+}
+
+function renderSchemaModalWithGraph(graph: RiviereGraph): void {
+  render(
+    <SchemaModal graph={graph} graphName={createGraphName('test.json')} isOpen={true} onClose={vi.fn()} />,
+  )
 }
 
 function createTestGraph(overrides: Partial<RiviereGraph> = {}): RiviereGraph {
@@ -92,6 +101,22 @@ describe('SchemaModal', () => {
       )
 
       expect(container.firstChild).toBeNull()
+    })
+  })
+
+  describe('generated date validation', () => {
+    it('throws SchemaError when date part is empty', () => {
+      const graph = createTestGraph()
+      graph.metadata.generated = 'T10:30:00Z'
+
+      expect(() => renderSchemaModalWithGraph(graph)).toThrow(SchemaError)
+    })
+
+    it('throws SchemaError with descriptive message for invalid date', () => {
+      const graph = createTestGraph()
+      graph.metadata.generated = 'T10:30:00Z'
+
+      expect(() => renderSchemaModalWithGraph(graph)).toThrow('Invalid ISO date string')
     })
   })
 
@@ -500,6 +525,18 @@ describe('SchemaModal', () => {
 
       const downloadButton = screen.getByRole('button', { name: /download/i })
       expect(downloadButton).toBeDisabled()
+    })
+
+    it('download: throws SchemaError when graphName is undefined', () => {
+      expect(() => validateDownloadGraphName(undefined)).toThrow(SchemaError)
+    })
+
+    it('download: throws SchemaError with descriptive message', () => {
+      expect(() => validateDownloadGraphName(undefined)).toThrow('Cannot download: graphName is required')
+    })
+
+    it('download: passes validation when graphName is defined', () => {
+      expect(() => validateDownloadGraphName('test.json')).not.toThrow()
     })
 
     describe('backdrop interaction', () => {

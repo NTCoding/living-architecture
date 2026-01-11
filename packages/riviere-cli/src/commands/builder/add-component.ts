@@ -13,6 +13,9 @@ import { parseRiviereGraph } from '@living-architecture/riviere-schema'
 import {
   getDefaultGraphPathDescription, resolveGraphPath 
 } from '../../graph-path'
+import {
+  InvalidCustomPropertyError, MissingRequiredOptionError 
+} from '../../errors'
 import { fileExists } from '../../file-existence'
 import {
   formatError, formatSuccess 
@@ -75,7 +78,7 @@ function parseCustomProperties(
   for (const prop of properties) {
     const colonIndex = prop.indexOf(':')
     if (colonIndex === -1) {
-      throw new Error(`Invalid custom property format: ${prop}. Expected 'key:value'`)
+      throw new InvalidCustomPropertyError(prop)
     }
     const key = prop.slice(0, colonIndex)
     const value = prop.slice(colonIndex + 1)
@@ -90,7 +93,7 @@ function addUIComponent(
   options: AddComponentOptions,
 ): string {
   if (!options.route) {
-    throw new Error('--route is required for UI component')
+    throw new MissingRequiredOptionError('route', 'UI')
   }
   const component = builder.addUI({
     ...common,
@@ -105,7 +108,7 @@ function addAPIComponent(
   options: AddComponentOptions,
 ): string {
   if (!options.apiType || !isValidApiType(options.apiType)) {
-    throw new Error('--api-type is required for API component')
+    throw new MissingRequiredOptionError('api-type', 'API')
   }
   const input: Parameters<RiviereBuilder['addApi']>[0] = {
     ...common,
@@ -132,7 +135,7 @@ function addDomainOpComponent(
   options: AddComponentOptions,
 ): string {
   if (!options.operationName) {
-    throw new Error('--operation-name is required for DomainOp component')
+    throw new MissingRequiredOptionError('operation-name', 'DomainOp')
   }
   const input = {
     ...common,
@@ -153,7 +156,7 @@ function addEventComponent(
   options: AddComponentOptions,
 ): string {
   if (!options.eventName) {
-    throw new Error('--event-name is required for Event component')
+    throw new MissingRequiredOptionError('event-name', 'Event')
   }
   const component = builder.addEvent({
     ...common,
@@ -169,7 +172,7 @@ function addEventHandlerComponent(
   options: AddComponentOptions,
 ): string {
   if (!options.subscribedEvents) {
-    throw new Error('--subscribed-events is required for EventHandler component')
+    throw new MissingRequiredOptionError('subscribed-events', 'EventHandler')
   }
   const component = builder.addEventHandler({
     ...common,
@@ -196,7 +199,7 @@ const componentAdders: Record<ComponentTypeFlag, ComponentAdder> = {
   EventHandler: addEventHandlerComponent,
   Custom: (builder, common, options) => {
     if (!options.customType) {
-      throw new Error('--custom-type is required for Custom component')
+      throw new MissingRequiredOptionError('custom-type', 'Custom')
     }
     const metadata = parseCustomProperties(options.customProperty)
     const input = {

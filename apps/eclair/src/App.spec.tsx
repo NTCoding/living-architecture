@@ -7,7 +7,10 @@ import {useEffect} from 'react'
 import {
   beforeEach, describe, expect, it
 } from 'vitest'
-import { AppContent } from './App'
+import {
+  AppContent, useRequiredGraph
+} from './App'
+import { GraphError } from '@/errors'
 import {
   GraphProvider, useGraph
 } from '@/contexts/GraphContext'
@@ -171,4 +174,36 @@ describe('App routing without graph', () => {
 
     expect(screen.getByText(/welcome to éclair/i)).toBeInTheDocument()
   })
+})
+
+describe('useRequiredGraph', () => {
+  function TestComponent(): React.ReactElement {
+    const graph = useRequiredGraph()
+    return <div>{graph.version}</div>
+  }
+
+  it('throws GraphError when graph is null', () => {
+    expect(() => {
+      render(
+        <ThemeProvider>
+          <GraphProvider>
+            <TestComponent />
+          </GraphProvider>
+        </ThemeProvider>,
+      )
+    }).toThrow(GraphError)
+  })
+
+  it('throws with descriptive message when graph is null', () => {
+    expect(() => {
+      render(
+        <ThemeProvider>
+          <GraphProvider>
+            <TestComponent />
+          </GraphProvider>
+        </ThemeProvider>,
+      )
+    }).toThrow('useRequiredGraph called without a graph')
+  })
+
 })

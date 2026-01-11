@@ -1,10 +1,11 @@
 import {
-  useState, useEffect, useCallback, useRef 
+  useState, useEffect, useCallback, useRef
 } from 'react'
 import type { AggregatedConnection } from '../../extractDomainDetails'
 import { EdgeLine } from './EdgeLine'
 import { DomainNode } from './DomainNode'
 import { DomainInfoModal } from './DomainInfoModal'
+import { LayoutError } from '@/errors'
 
 interface ViewTransform {
   scale: number
@@ -100,7 +101,7 @@ export function DomainContextGraph({
   const viewBox = calculateViewBox(positions)
 
   if (currentPosition === undefined) {
-    throw new Error(`Expected position for current domain ${domainId}`)
+    throw new LayoutError(`Expected position for current domain ${domainId}`)
   }
 
   const handleNodeClick = (nodeId: string): void => {

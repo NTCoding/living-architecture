@@ -4,6 +4,7 @@ import {
   parseExtractionConfig,
   formatValidationErrors,
   mapAjvErrors,
+  ExtractionConfigValidationError,
 } from './validation'
 import type { ExtractionConfig } from './types'
 import {
@@ -13,11 +14,16 @@ import {
   createModuleWithoutPath,
   createModuleWithoutApi,
   createMutableConfig,
+  createResolvedConfig,
 } from './validation-fixtures'
 
 describe('isValidExtractionConfig', () => {
   it('returns true when config is minimal valid', () => {
     expect(isValidExtractionConfig(createMinimalConfig())).toBe(true)
+  })
+
+  it('returns true when using createResolvedConfig', () => {
+    expect(isValidExtractionConfig(createResolvedConfig())).toBe(true)
   })
 
   it('returns true when config uses all component types', () => {
@@ -336,8 +342,8 @@ describe('parseExtractionConfig', () => {
     expect(parseExtractionConfig(config)).toStrictEqual(config)
   })
 
-  it('throws Error when config is invalid', () => {
-    expect(() => parseExtractionConfig({})).toThrow(Error)
+  it('throws ExtractionConfigValidationError when config is invalid', () => {
+    expect(() => parseExtractionConfig({})).toThrow(ExtractionConfigValidationError)
   })
 
   it('includes validation errors in thrown error message', () => {

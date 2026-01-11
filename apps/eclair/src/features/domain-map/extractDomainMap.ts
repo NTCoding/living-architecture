@@ -12,6 +12,7 @@ import {
   type ConnectionDetail,
   type EdgeAggregation,
 } from './edgeAggregation'
+import { LayoutError } from '@/errors'
 
 export type { ConnectionDetail } from './edgeAggregation'
 
@@ -163,7 +164,7 @@ function computeDagreLayout(input: LayoutInput): Map<
   for (const domainId of input.domainIds) {
     const size = input.nodeSizes.get(domainId)
     if (size === undefined) {
-      throw new Error(`Domain ${domainId} missing from nodeSizes`)
+      throw new LayoutError(`Domain ${domainId} missing from nodeSizes`)
     }
     g.setNode(domainId, {
       width: size,
@@ -264,7 +265,7 @@ export function extractDomainMap(graph: RiviereGraph): DomainMapData {
   const domainNodes: DomainNode[] = domains.map(([domain, nodeCount]) => {
     const position = domainPositions.get(domain)
     if (position === undefined) {
-      throw new Error(`Domain ${domain} missing from layout computation`)
+      throw new LayoutError(`Domain ${domain} missing from layout computation`)
     }
     const calculatedSize = nodeSizes.get(domain)
     return {
@@ -284,7 +285,7 @@ export function extractDomainMap(graph: RiviereGraph): DomainMapData {
     const nodeId = createExternalNodeId(ed.name)
     const position = domainPositions.get(nodeId)
     if (position === undefined) {
-      throw new Error(`External domain ${ed.name} missing from layout computation`)
+      throw new LayoutError(`External domain ${ed.name} missing from layout computation`)
     }
     const calculatedSize = nodeSizes.get(nodeId)
     return {
@@ -306,7 +307,7 @@ export function extractDomainMap(graph: RiviereGraph): DomainMapData {
     const sourcePos = domainPositions.get(agg.source)
     const targetPos = domainPositions.get(agg.target)
     if (sourcePos === undefined || targetPos === undefined) {
-      throw new Error(
+      throw new LayoutError(
         `Edge references missing domain position: source=${agg.source} target=${agg.target}`,
       )
     }
@@ -351,7 +352,9 @@ export function extractDomainMap(graph: RiviereGraph): DomainMapData {
     const sourcePos = domainPositions.get(e.sourceDomain)
     const targetPos = domainPositions.get(targetId)
     if (sourcePos === undefined || targetPos === undefined) {
-      throw new Error(`External edge missing position: source=${e.sourceDomain} target=${targetId}`)
+      throw new LayoutError(
+        `External edge missing position: source=${e.sourceDomain} target=${targetId}`,
+      )
     }
     const handles = getClosestHandle(sourcePos, targetPos)
 

@@ -9,6 +9,16 @@ export interface ComponentIdParts {
 }
 
 /**
+ * Error thrown when parsing an invalid component ID string.
+ */
+export class InvalidComponentIdError extends Error {
+  constructor(public readonly invalidId: string) {
+    super(`Invalid component ID format: '${invalidId}'. Expected 'domain:module:type:name'`)
+    this.name = 'InvalidComponentIdError'
+  }
+}
+
+/**
  * Represents a structured component identifier.
  *
  * Component IDs follow the format `{domain}:{module}:{type}:{name}` in kebab-case.
@@ -72,7 +82,7 @@ export class ComponentId {
     const parts = id.split(':')
     const name = parts[3]
     if (parts.length !== 4 || name === undefined) {
-      throw new Error(`Invalid component ID format: '${id}'. Expected 'domain:module:type:name'`)
+      throw new InvalidComponentIdError(id)
     }
     return new ComponentId(name, id)
   }

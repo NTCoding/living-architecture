@@ -313,3 +313,14 @@ it('calls clearTimeout when component unmounts with pending timeout', () => {
 ```
 
 **Always restore spies** in the same test or in `afterEach` to prevent leaks between tests.
+
+### Testing Errors
+
+Test both error type and message in a single test—they represent one error condition.
+
+```typescript
+it('throws ConfigurationError when config file is missing', () => {
+  expect(() => loadConfig('nonexistent.json')).toThrow(ConfigurationError)
+  expect(() => loadConfig('nonexistent.json')).toThrow('Config file not found')
+})
+```

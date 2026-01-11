@@ -12,7 +12,10 @@ import {
 import { CliErrorCode } from '../../error-codes'
 import type { TestContext } from '../../command-test-fixtures'
 import {
-  createTestContext, setupCommandTest, assertDefined 
+  createTestContext,
+  setupCommandTest,
+  assertDefined,
+  TestAssertionError,
 } from '../../command-test-fixtures'
 
 const validGraph = {
@@ -69,7 +72,7 @@ describe('load-graph', () => {
   describe('withGraph', () => {
     it('outputs error JSON when graph does not exist', async () => {
       await withGraph(undefined, () => {
-        throw new Error('Handler should not be called')
+        throw new TestAssertionError('Handler should not be called')
       })
 
       expect(ctx.consoleOutput).toHaveLength(1)

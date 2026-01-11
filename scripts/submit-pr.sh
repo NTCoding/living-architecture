@@ -68,9 +68,17 @@ show_pr_feedback() {
 # Precondition: check for uncommitted changes
 UNCOMMITTED=$(git status --porcelain)
 if [[ -n "$UNCOMMITTED" ]]; then
-    echo "Error: Uncommitted changes detected. Commit and push first." >&2
+    echo "Error: Uncommitted changes detected. Commit your changes then try again." >&2
     echo "$UNCOMMITTED" >&2
     exit 1
+fi
+
+# Push changes
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+AHEAD=$(git rev-list --count origin/"$BRANCH"..HEAD 2>/dev/null || echo "new")
+if [[ "$AHEAD" != "0" ]]; then
+    echo "Pushing $AHEAD commit(s) to origin..."
+    git push -u origin "$BRANCH"
 fi
 
 # Precondition: ensure branch is up-to-date with main

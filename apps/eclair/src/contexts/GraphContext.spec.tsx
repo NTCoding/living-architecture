@@ -16,6 +16,7 @@ import {
   parseNode, parseDomainKey
 } from '@/lib/riviereTestFixtures'
 import { isBrowserEnv } from '@/test/setup'
+import { ContextError } from '@/errors'
 
 const testSourceLocation = {
   repository: 'test-repo',
@@ -159,7 +160,17 @@ describe('GraphContext', () => {
     expect(screen.getByTestId('graph-name')).toHaveTextContent('Another Graph')
   })
 
-  it('throws error when useGraph called outside provider', () => {
+  it('throws ContextError when useGraph called outside provider', () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    expect(() => {
+      render(<TestConsumer />)
+    }).toThrow(ContextError)
+
+    consoleError.mockRestore()
+  })
+
+  it('throws with descriptive message when useGraph called outside provider', () => {
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
 
     expect(() => {

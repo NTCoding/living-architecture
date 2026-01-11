@@ -9,6 +9,7 @@ import {
   setupCommandTest,
   createGraph,
   sourceLocation,
+  TestAssertionError,
 } from '../../command-test-fixtures'
 
 interface ComponentInfo {
@@ -35,7 +36,7 @@ function isSearchOutput(value: unknown): value is SearchOutput {
 function parseOutput(consoleOutput: string[]): SearchOutput {
   const parsed: unknown = JSON.parse(consoleOutput[0] ?? '{}')
   if (!isSearchOutput(parsed)) {
-    throw new Error(`Invalid search output: ${consoleOutput[0]}`)
+    throw new TestAssertionError(`Invalid search output: ${consoleOutput[0]}`)
   }
   return parsed
 }
