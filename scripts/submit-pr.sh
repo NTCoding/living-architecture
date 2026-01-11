@@ -73,6 +73,14 @@ if [[ -n "$UNCOMMITTED" ]]; then
     exit 1
 fi
 
+# Push changes
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+AHEAD=$(git rev-list --count origin/"$BRANCH"..HEAD 2>/dev/null || echo "new")
+if [[ "$AHEAD" != "0" ]]; then
+    echo "Pushing $AHEAD commit(s) to origin..."
+    git push -u origin "$BRANCH"
+fi
+
 # Precondition: ensure branch is up-to-date with main
 echo "Checking if branch is up-to-date with main..."
 git fetch origin main --quiet
