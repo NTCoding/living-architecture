@@ -140,10 +140,14 @@ export default defineConfig({
               text: 'Overview',
               link: '/extract/',
             },
+            {
+              text: 'Enforcement',
+              link: '/extract/deterministic/enforcement',
+            },
           ],
         },
         {
-          text: 'Extraction Steps',
+          text: 'AI-Assisted Extraction',
           items: [
             {
               text: 'Workflow',
@@ -172,6 +176,31 @@ export default defineConfig({
             {
               text: 'Step 6: Validate',
               link: '/extract/steps/step-6-validate',
+            },
+          ],
+        },
+        {
+          text: 'Deterministic Extraction',
+          items: [
+            {
+              text: 'Overview',
+              link: '/extract/deterministic/',
+            },
+            {
+              text: 'TypeScript: Getting Started',
+              link: '/extract/deterministic/typescript/getting-started',
+            },
+            {
+              text: 'TypeScript: Decorators',
+              link: '/extract/deterministic/typescript/decorators',
+            },
+            {
+              text: 'TypeScript: Enforcement',
+              link: '/extract/deterministic/typescript/enforcement',
+            },
+            {
+              text: 'TypeScript: Examples',
+              link: '/extract/deterministic/typescript/examples',
             },
           ],
         },
@@ -235,6 +264,19 @@ export default defineConfig({
             {
               text: 'Graph Structure',
               link: '/reference/schema/graph-structure',
+            },
+          ],
+        },
+        {
+          text: 'Extraction Config',
+          items: [
+            {
+              text: 'Schema',
+              link: '/reference/extraction-config/schema',
+            },
+            {
+              text: 'Predicates',
+              link: '/reference/extraction-config/predicates',
             },
           ],
         },

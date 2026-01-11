@@ -1,6 +1,6 @@
 # Class: RiviereBuilder
 
-Defined in: [packages/riviere-builder/src/builder.ts:111](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L111)
+Defined in: [packages/riviere-builder/src/builder.ts:127](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L127)
 
 Programmatically construct Rivière architecture graphs.
 
@@ -34,7 +34,7 @@ const graph = builder.build()
 
 > **graph**: `BuilderGraph`
 
-Defined in: [packages/riviere-builder/src/builder.ts:112](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L112)
+Defined in: [packages/riviere-builder/src/builder.ts:128](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L128)
 
 ## Methods
 
@@ -42,7 +42,7 @@ Defined in: [packages/riviere-builder/src/builder.ts:112](https://github.com/NTC
 
 > **addApi**(`input`): `APIComponent`
 
-Defined in: [packages/riviere-builder/src/builder.ts:298](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L298)
+Defined in: [packages/riviere-builder/src/builder.ts:314](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L314)
 
 Adds an API component to the graph.
 
@@ -84,7 +84,7 @@ const api = builder.addApi({
 
 > **addCustom**(`input`): `CustomComponent`
 
-Defined in: [packages/riviere-builder/src/builder.ts:524](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L524)
+Defined in: [packages/riviere-builder/src/builder.ts:540](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L540)
 
 Adds a Custom component to the graph.
 
@@ -136,7 +136,7 @@ const queue = builder.addCustom({
 
 > **addDomain**(`input`): `void`
 
-Defined in: [packages/riviere-builder/src/builder.ts:232](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L232)
+Defined in: [packages/riviere-builder/src/builder.ts:248](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L248)
 
 Adds a new domain to the graph.
 
@@ -171,7 +171,7 @@ builder.addDomain({
 
 > **addDomainOp**(`input`): `DomainOpComponent`
 
-Defined in: [packages/riviere-builder/src/builder.ts:373](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L373)
+Defined in: [packages/riviere-builder/src/builder.ts:389](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L389)
 
 Adds a DomainOp component to the graph.
 
@@ -215,7 +215,7 @@ const domainOp = builder.addDomainOp({
 
 > **addEvent**(`input`): `EventComponent`
 
-Defined in: [packages/riviere-builder/src/builder.ts:413](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L413)
+Defined in: [packages/riviere-builder/src/builder.ts:429](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L429)
 
 Adds an Event component to the graph.
 
@@ -255,7 +255,7 @@ const event = builder.addEvent({
 
 > **addEventHandler**(`input`): `EventHandlerComponent`
 
-Defined in: [packages/riviere-builder/src/builder.ts:449](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L449)
+Defined in: [packages/riviere-builder/src/builder.ts:465](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L465)
 
 Adds an EventHandler component to the graph.
 
@@ -295,7 +295,7 @@ const handler = builder.addEventHandler({
 
 > **addSource**(`source`): `void`
 
-Defined in: [packages/riviere-builder/src/builder.ts:214](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L214)
+Defined in: [packages/riviere-builder/src/builder.ts:230](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L230)
 
 Adds an additional source repository to the graph.
 
@@ -326,7 +326,7 @@ builder.addSource({
 
 > **addUI**(`input`): `UIComponent`
 
-Defined in: [packages/riviere-builder/src/builder.ts:261](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L261)
+Defined in: [packages/riviere-builder/src/builder.ts:277](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L277)
 
 Adds a UI component to the graph.
 
@@ -366,7 +366,7 @@ const ui = builder.addUI({
 
 > **addUseCase**(`input`): `UseCaseComponent`
 
-Defined in: [packages/riviere-builder/src/builder.ts:335](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L335)
+Defined in: [packages/riviere-builder/src/builder.ts:351](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L351)
 
 Adds a UseCase component to the graph.
 
@@ -436,7 +436,7 @@ try {
 
 > **defineCustomType**(`input`): `void`
 
-Defined in: [packages/riviere-builder/src/builder.ts:486](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L486)
+Defined in: [packages/riviere-builder/src/builder.ts:502](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L502)
 
 Defines a custom component type for the graph.
 
@@ -477,7 +477,7 @@ builder.defineCustomType({
 
 > **enrichComponent**(`id`, `enrichment`): `void`
 
-Defined in: [packages/riviere-builder/src/builder.ts:564](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L564)
+Defined in: [packages/riviere-builder/src/builder.ts:584](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L584)
 
 Enriches a DomainOp component with additional domain details.
 
@@ -846,7 +846,7 @@ for (const w of warnings) {
 
 > `static` **new**(`options`): `RiviereBuilder`
 
-Defined in: [packages/riviere-builder/src/builder.ts:175](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L175)
+Defined in: [packages/riviere-builder/src/builder.ts:191](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L191)
 
 Creates a new builder with initial configuration.
 
@@ -891,7 +891,7 @@ const builder = RiviereBuilder.new({
 
 > `static` **resume**(`graph`): `RiviereBuilder`
 
-Defined in: [packages/riviere-builder/src/builder.ts:136](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L136)
+Defined in: [packages/riviere-builder/src/builder.ts:152](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L152)
 
 Restores a builder from a previously serialized graph.
 

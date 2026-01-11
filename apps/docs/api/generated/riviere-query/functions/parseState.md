@@ -2,7 +2,7 @@
 
 > **parseState**(`value`): `string` & `$brand`\<`"State"`\>
 
-Defined in: [packages/riviere-query/src/domain-types.ts:310](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/domain-types.ts#L310)
+Defined in: [packages/riviere-query/src/domain-types.ts:312](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/domain-types.ts#L312)
 
 Parses a string as a State.
 

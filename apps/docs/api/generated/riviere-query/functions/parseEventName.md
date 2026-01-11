@@ -2,7 +2,7 @@
 
 > **parseEventName**(`value`): `string` & `$brand`\<`"EventName"`\>
 
-Defined in: [packages/riviere-query/src/domain-types.ts:340](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/domain-types.ts#L340)
+Defined in: [packages/riviere-query/src/domain-types.ts:342](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/domain-types.ts#L342)
 
 Parses a string as an EventName.
 

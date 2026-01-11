@@ -22,8 +22,8 @@ hero:
 features:
   - title: Flow-Based, Not Dependency-Based
     details: Trace how operations execute through your system—from UI to API to domain logic to events—not just what imports what.
-  - title: AI-Assisted Extraction
-    details: AI analyzes your code and calls CLI commands. The CLI validates and catches mistakes. Together they extract accurate architecture.
+  - title: Flexible Extraction
+    details: AI-assisted extraction works for any codebase. Config-based extraction provides speed and repeatability when you follow architectural conventions.
   - title: Interactive Visualization
     details: Explore your architecture in Éclair. Filter by domain, trace flows, compare versions, and understand your system at any level.
   - title: 100% Open Source
@@ -118,6 +118,9 @@ Open `http://localhost:5173/eclair/`
 
 | Package | Description |
 |---------|-------------|
-| `@living-architecture/riviere-cli` | CLI for AI-assisted extraction |
+| `@living-architecture/riviere-cli` | CLI for extraction and graph building |
 | `@living-architecture/riviere-builder` | Node.js library for building graphs |
 | `@living-architecture/riviere-query` | Browser-safe library for querying graphs |
+| `@living-architecture/riviere-extract-config` | Extraction config schema and validation |
+| `@living-architecture/riviere-extract-conventions` | TypeScript decorators for component marking |
+| `@living-architecture/riviere-extract-ts` | TypeScript component extractor |

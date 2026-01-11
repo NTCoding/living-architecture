@@ -1,3 +1,24 @@
 {
-  "name": "riviere-extract-config"
+  "name": "riviere-extract-config",
+  "targets": {
+    "generate-docs": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm exec npx tsx packages/riviere-extract-config/scripts/generate-docs.ts",
+        "cwd": "{workspaceRoot}"
+      },
+      "outputs": ["{projectRoot}/docs/generated"]
+    },
+    "check-generated-docs": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "pnpm exec npx tsx packages/riviere-extract-config/scripts/generate-docs.ts",
+          "git diff --exit-code packages/riviere-extract-config/docs/generated/ || (echo 'Generated docs are stale. Run: pnpm nx generate-docs riviere-extract-config' && exit 1)"
+        ],
+        "cwd": "{workspaceRoot}",
+        "parallel": false
+      }
+    }
+  }
 }

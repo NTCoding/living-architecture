@@ -2,7 +2,7 @@
 
 > **parseHandlerId**(`value`): `string` & `$brand`\<`"HandlerId"`\>
 
-Defined in: [packages/riviere-query/src/domain-types.ts:350](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/domain-types.ts#L350)
+Defined in: [packages/riviere-query/src/domain-types.ts:352](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/domain-types.ts#L352)
 
 Parses a string as a HandlerId.
 
