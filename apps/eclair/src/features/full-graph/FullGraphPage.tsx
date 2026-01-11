@@ -187,6 +187,14 @@ export function FullGraphPage({ graph }: Readonly<FullGraphPageProps>): React.Re
     }, 200)
   }, [])
 
+  useEffect(() => {
+    return () => {
+      if (tooltipHideTimeoutRef.current) {
+        clearTimeout(tooltipHideTimeoutRef.current)
+      }
+    }
+  }, [])
+
   const handleToggleDomain = useCallback((domain: string) => {
     setFocusedDomain((prev) => (prev === domain ? null : domain))
   }, [])

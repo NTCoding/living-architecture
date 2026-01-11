@@ -553,4 +553,60 @@ describe('FullGraphPage', () => {
       vi.useRealTimers()
     })
   })
+
+  describe('useEffect cleanup', () => {
+    it('calls clearTimeout when component unmounts with pending timeout', () => {
+      const mockSimulationNode: SimulationNode = {
+        id: 'node-1',
+        type: 'API',
+        apiType: 'other',
+        name: 'Test API',
+        domain: 'orders',
+        originalNode: parseNode({
+          sourceLocation: testSourceLocation,
+          id: 'node-1',
+          type: 'API',
+          apiType: 'other',
+          name: 'Test API',
+          domain: 'orders',
+          module: 'api',
+        }),
+      }
+
+      const mockTooltipData: TooltipData = {
+        node: mockSimulationNode,
+        x: 100,
+        y: 200,
+        incomingCount: 1,
+        outgoingCount: 2,
+      }
+
+      vi.useFakeTimers()
+      const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout')
+
+      const { unmount } = renderWithRouter()
+
+      act(() => {
+        capturedOnNodeHover.current?.(mockTooltipData)
+      })
+
+      const tooltip = screen.getByTestId('graph-tooltip')
+      fireEvent.mouseLeave(tooltip)
+
+      const callCountBeforeUnmount = clearTimeoutSpy.mock.calls.length
+
+      unmount()
+
+      expect(clearTimeoutSpy).toHaveBeenCalledTimes(callCountBeforeUnmount + 1)
+
+      clearTimeoutSpy.mockRestore()
+      vi.useRealTimers()
+    })
+
+    it('does not throw when unmounting with no pending timeout', () => {
+      const { unmount } = renderWithRouter()
+
+      expect(() => unmount()).not.toThrow()
+    })
+  })
 })
