@@ -1,6 +1,6 @@
 {
   "name": "@living-architecture/riviere-schema",
-  "version": "0.4.14",
+  "version": "0.4.15",
   "type": "module",
   "publishConfig": {
     "access": "public"
