@@ -1,6 +1,9 @@
+import path from 'node:path';
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
+
+const repoRoot = path.resolve(__dirname, '../..');
 
 export default defineConfig(() => ({
   root: __dirname,
@@ -19,7 +22,7 @@ export default defineConfig(() => ({
       enabled: true,
       reportsDirectory: './test-output/vitest/coverage',
       provider: 'v8' as const,
-      reporter: ['text', 'lcov'],
+      reporter: ['text', ['lcov', { projectRoot: repoRoot }]] as ['text', ['lcov', { projectRoot: string }]],
       exclude: [
         '**/riviereTestFixtures.ts',
         '**/ForceGraph/ForceGraph.tsx',
