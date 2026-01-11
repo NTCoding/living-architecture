@@ -13,7 +13,7 @@ import {
   CSSModuleError, SchemaError
 } from '@/errors'
 
-export function getStyle(name: string): string {
+function getStyle(name: string): string {
   const value = styles[name]
   if (value === undefined) {
     throw new CSSModuleError(name, 'SchemaModal.module.css')
