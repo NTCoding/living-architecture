@@ -36,6 +36,14 @@ type ParseResult =
     error: string
   }
 
+/* v8 ignore start -- @preserve: trivial comparator, Map keys guarantee a !== b */
+function compareByCodePoint(a: string, b: string): number {
+  if (a < b) return -1
+  if (a > b) return 1
+  return 0
+}
+/* v8 ignore stop */
+
 function formatDryRunOutput(components: DraftComponent[]): string[] {
   const countsByDomain = new Map<string, Map<string, number>>()
 
@@ -49,11 +57,11 @@ function formatDryRunOutput(components: DraftComponent[]): string[] {
     typeCounts.set(component.type, currentCount + 1)
   }
 
-  const sortedDomains = [...countsByDomain.entries()].sort(([a], [b]) => a.localeCompare(b))
+  const sortedDomains = [...countsByDomain.entries()].sort(([a], [b]) => compareByCodePoint(a, b))
   const lines: string[] = []
   for (const [domain, typeCounts] of sortedDomains) {
     const typeStrings = [...typeCounts.entries()]
-      .sort(([a], [b]) => a.localeCompare(b))
+      .sort(([a], [b]) => compareByCodePoint(a, b))
       .map(([type, count]) => `${type}(${count})`)
     lines.push(`${domain}: ${typeStrings.join(', ')}`)
   }

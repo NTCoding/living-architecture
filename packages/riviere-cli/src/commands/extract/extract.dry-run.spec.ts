@@ -10,6 +10,7 @@ import type { TestContext } from '../../command-test-fixtures'
 import {
   createTestContext, setupCommandTest, assertDefined 
 } from '../../command-test-fixtures'
+import { type DraftComponent } from '@living-architecture/riviere-extract-ts'
 
 describe('riviere extract --dry-run', () => {
   const ctx: TestContext = createTestContext()
@@ -318,16 +319,6 @@ modules:
     expect(ctx.consoleOutput).toHaveLength(0)
   })
 })
-
-interface DraftComponent {
-  type: string
-  name: string
-  domain: string
-  location: {
-    file: string
-    line: number
-  }
-}
 
 interface ExtractionOutput {
   success: true
