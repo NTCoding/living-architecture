@@ -76,6 +76,11 @@ The rule accepts these decorators as valid:
 - `@Event`
 - `@UI`
 
+**Method-level decorators:**
+- `@APIEndpoint`
+- `@DomainOp`
+- `@EventHandler`
+
 **Other:**
 - `@Custom('type')` — Custom component types
 - `@Ignore` — Explicitly excluded

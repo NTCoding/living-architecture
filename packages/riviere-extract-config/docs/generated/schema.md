@@ -79,6 +79,12 @@ Rule for detecting components of this type
 
 The code construct to search for
 
+**Values:**
+
+- `"classes"`
+- `"methods"`
+- `"functions"`
+
 ---
 
 ## See Also

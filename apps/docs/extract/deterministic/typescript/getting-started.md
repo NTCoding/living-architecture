@@ -76,7 +76,7 @@ npx riviere extract \
 ```json
 {
   "success": true,
-  "components": [
+  "data": [
     {
       "type": "api",
       "name": "createOrder",
@@ -104,9 +104,12 @@ npx riviere extract \
       },
       "domain": "default"
     }
-  ]
+  ],
+  "warnings": []
 }
 ```
+
+The `domain` field comes from the module `name` in your config. The default config uses "default" as the module name.
 
 ## Step 4: Verify Results
 
@@ -129,7 +132,12 @@ Total: 3 components
 
 ### Customize Your Config
 
-Create your own config for multi-module projects or custom rules. Configs can be **JSON or YAML** — the CLI accepts both.
+The default config works for single-module projects using Rivière decorators. **Customization is only required** for:
+- Multi-module projects with separate domains (orders, shipping, etc.)
+- Projects using framework decorators (NestJS, custom patterns)
+- Projects with non-standard component detection rules
+
+Start by copying the default config and editing the `modules` array. Configs can be **JSON or YAML** — the CLI accepts both.
 
 ```yaml
 modules:

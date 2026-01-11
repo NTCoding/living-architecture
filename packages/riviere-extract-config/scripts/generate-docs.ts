@@ -32,6 +32,9 @@ interface SchemaDef {
   properties?: Record<string, SchemaProperty>
   oneOf?: SchemaProperty[]
   items?: SchemaProperty
+  enum?: string[]
+  $ref?: string
+  minItems?: number
 }
 
 interface Schema {
@@ -40,6 +43,10 @@ interface Schema {
   description?: string
   properties?: Record<string, SchemaProperty>
   required?: string[]
+}
+
+function escapePipes(str: string): string {
+  return str.replaceAll('|', '\\|')
 }
 
 function resolveRef(schema: Schema, ref: string): SchemaDef | undefined {
@@ -77,7 +84,7 @@ function getTypeString(prop: SchemaProperty): string {
     return `\`${prop.items.type}[]\``
   }
   if (prop.enum) {
-    return prop.enum.map((e) => `\`"${e}"\``).join(' | ')
+    return prop.enum.map((e) => `\`"${e}"\``).join(' \\| ')
   }
   return `\`${prop.type ?? 'any'}\``
 }
@@ -93,7 +100,7 @@ function generatePropertiesTable(
   for (const [propName, prop] of Object.entries(properties)) {
     const isRequired = required.includes(propName) ? '**Yes**' : 'No'
     const type = getTypeString(prop)
-    const desc = prop.description ?? ''
+    const desc = escapePipes(prop.description ?? '')
     lines.push(`| \`${propName}\` | ${type} | ${isRequired} | ${desc} |`)
   }
   return lines
@@ -106,6 +113,16 @@ function generateDefMarkdown(name: string, def: SchemaDef, schema: Schema): stri
   lines.push('')
   if (def.description) {
     lines.push(def.description)
+    lines.push('')
+  }
+
+  // Handle enum type definitions (like findTarget)
+  if (def.enum) {
+    lines.push('**Values:**')
+    lines.push('')
+    for (const val of def.enum) {
+      lines.push(`- \`"${val}"\``)
+    }
     lines.push('')
   }
 
@@ -123,7 +140,7 @@ function generateDefMarkdown(name: string, def: SchemaDef, schema: Schema): stri
       if (option.$ref) {
         const refName = getRefTypeName(option.$ref)
         const refDef = resolveRef(schema, option.$ref)
-        lines.push(`- \`${refName}\` — ${refDef?.description ?? ''}`)
+        lines.push(`- \`${refName}\` — ${escapePipes(refDef?.description ?? '')}`)
       }
     }
     lines.push('')
@@ -154,7 +171,7 @@ function generatePredicateOverview(predicateDef: SchemaDef, schema: Schema): str
       const refDef = resolveRef(schema, option.$ref)
       const predicateKey = refName.replace('Predicate', '')
       const key = predicateKey.charAt(0).toLowerCase() + predicateKey.slice(1)
-      lines.push(`| \`${key}\` | ${refDef?.description ?? ''} |`)
+      lines.push(`| \`${key}\` | ${escapePipes(refDef?.description ?? '')} |`)
     }
   }
   lines.push('')
@@ -168,29 +185,68 @@ function isSchemaDef(value: unknown): value is SchemaDef {
   return (
     typeof value === 'object' &&
     value !== null &&
-    ('properties' in value || 'type' in value || 'oneOf' in value)
+    ('properties' in value || 'type' in value || 'oneOf' in value || '$ref' in value)
   )
 }
 
-function generatePredicateParameters(def: SchemaDef): string[] {
+function generateRefPredicateTable(innerProp: SchemaDef): string[] {
   const lines: string[] = []
+  lines.push('**Parameters:**')
+  lines.push('')
+  lines.push('| Field | Type | Required | Description |')
+  lines.push('|-------|------|----------|-------------|')
+  const refName = getRefTypeName(innerProp.$ref ?? '')
+  const desc = escapePipes(innerProp.description ?? `Nested ${refName}`)
+  lines.push(`| (nested) | \`${refName}\` | **Yes** | ${desc} |`)
+  lines.push('')
+  return lines
+}
+
+function generateArrayPredicateTable(innerProp: SchemaDef): string[] {
+  const lines: string[] = []
+  lines.push('**Parameters:**')
+  lines.push('')
+  lines.push('| Field | Type | Required | Description |')
+  lines.push('|-------|------|----------|-------------|')
+  const itemType = innerProp.items?.$ref
+    ? getRefTypeName(innerProp.items.$ref)
+    : (innerProp.items?.type ?? 'any')
+  const minItems = innerProp.minItems ?? 1
+  const desc = escapePipes(innerProp.description ?? `Array of ${itemType}`)
+  lines.push(`| (array) | \`${itemType}[]\` | **Yes** (min: ${minItems}) | ${desc} |`)
+  lines.push('')
+  return lines
+}
+
+function generatePredicateParameters(def: SchemaDef): string[] {
   const outerProps = def.properties ?? {}
   const innerPropName = Object.keys(outerProps)[0]
-  if (!innerPropName) return lines
+  if (!innerPropName) return []
 
   const innerProp = outerProps[innerPropName]
-  if (!isSchemaDef(innerProp)) return lines
+  if (!isSchemaDef(innerProp)) return []
 
-  if (!innerProp.properties || Object.keys(innerProp.properties).length === 0) {
+  // Handle nested object with properties (hasDecorator, hasJSDoc, etc.)
+  if (innerProp.properties && Object.keys(innerProp.properties).length > 0) {
+    const lines: string[] = []
+    lines.push('**Parameters:**')
+    lines.push('')
+    lines.push(...generatePropertiesTable(innerProp.properties, innerProp.required))
+    lines.push('')
     return lines
   }
 
-  lines.push('**Parameters:**')
-  lines.push('')
-  lines.push(...generatePropertiesTable(innerProp.properties, innerProp.required))
-  lines.push('')
+  // Handle $ref predicates (inClassWith)
+  if (innerProp.$ref) {
+    return generateRefPredicateTable(innerProp)
+  }
 
-  return lines
+  // Handle array predicates (and, or)
+  if (innerProp.type === 'array' && innerProp.items) {
+    return generateArrayPredicateTable(innerProp)
+  }
+
+  return []
 }
 
 function generatePredicateSection(name: string, def: SchemaDef): string[] {

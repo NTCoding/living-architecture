@@ -3,7 +3,10 @@
   "compilerOptions": {
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "types": ["node"]
+    "types": ["node"],
+    "declaration": false,
+    "declarationMap": false,
+    "noEmit": true
   },
   "include": ["scripts/**/*.ts"],
   "references": [
