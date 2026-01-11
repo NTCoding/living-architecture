@@ -15,15 +15,11 @@ Two approaches to extract architecture from code:
 
 **AI-Assisted** — AI analyzes code (any language) and calls CLI commands. Works for any codebase without setup. Best for initial extraction or dynamic codebases.
 
+[Start the AI Extraction Workflow →](/extract/steps/)
+
 **Deterministic** — Same code always produces the same graph. Language-specific extractor parses code via AST. Faster, CI-ready. Best for codebases following architectural conventions.
 
 [Learn about Deterministic Extraction →](/extract/deterministic/)
-
-## How AI-Assisted Extraction Works
-
-AI analyzes your code and calls CLI commands to build the graph. The CLI handles ID generation, validation, and error recovery. When AI makes mistakes, the CLI suggests corrections.
-
-**[Start the AI Extraction Workflow →](./steps/)**
 
 ## Extraction and Enforcement
 
