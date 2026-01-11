@@ -419,7 +419,7 @@ modules:
 
       const fullOutput = parseExtractionOutput(ctx.consoleOutput)
       const fullCount = fullOutput.data.length
-      ctx.consoleOutput.length = 0
+      ctx.consoleOutput.splice(0)
 
       await createProgram().parseAsync([
         'node',

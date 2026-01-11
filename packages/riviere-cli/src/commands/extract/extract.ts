@@ -49,8 +49,9 @@ function formatDryRunOutput(components: DraftComponent[]): string[] {
     typeCounts.set(component.type, currentCount + 1)
   }
 
+  const sortedDomains = [...countsByDomain.entries()].sort(([a], [b]) => a.localeCompare(b))
   const lines: string[] = []
-  for (const [domain, typeCounts] of countsByDomain) {
+  for (const [domain, typeCounts] of sortedDomains) {
     const typeStrings = [...typeCounts.entries()]
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([type, count]) => `${type}(${count})`)
