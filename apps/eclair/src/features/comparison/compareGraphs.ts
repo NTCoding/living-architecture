@@ -209,6 +209,7 @@ function ensureNodeTypeEntry(acc: ByNodeTypeAccumulator, nodeType: NodeType): No
     acc.data.set(nodeType, initializeChanges())
   }
   const entry = acc.data.get(nodeType)
+  /* v8 ignore next -- @preserve defensive: Map.get after Map.set */
   if (entry === undefined) {
     throw new GraphError(`Failed to initialize NodeTypeChanges for ${nodeType}`)
   }

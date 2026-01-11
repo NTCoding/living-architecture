@@ -182,6 +182,7 @@ export interface SetupLinksParams {
 
 function getNodeType(nodeId: string, nodeMap: Map<string, SimulationNode>): NodeType {
   const node = nodeMap.get(nodeId)
+  /* v8 ignore next -- @preserve defensive: link references only valid node IDs */
   if (!node) {
     throw new RenderingError(`Node ${nodeId} not found in node map`)
   }
@@ -310,21 +311,25 @@ export function createUpdatePositionsFunction(params: UpdatePositionsParams): ()
       const sourceNode = nodePositionMap.get(sourceId)
       const targetNode = nodePositionMap.get(targetId)
 
+      /* v8 ignore next 3 -- @preserve defensive: D3 callback, position map built from same nodes */
       if (!sourceNode) {
         throw new RenderingError(
           `Link source node '${sourceId}' not found in position map. Available nodes: [${[...nodePositionMap.keys()].join(', ')}]`,
         )
       }
+      /* v8 ignore next 3 -- @preserve defensive: D3 callback, position map built from same nodes */
       if (!targetNode) {
         throw new RenderingError(
           `Link target node '${targetId}' not found in position map. Available nodes: [${[...nodePositionMap.keys()].join(', ')}]`,
         )
       }
+      /* v8 ignore next 3 -- @preserve defensive: D3 callback, coordinates set by simulation */
       if (sourceNode.x === undefined || sourceNode.y === undefined) {
         throw new LayoutError(
           `Source node '${sourceId}' missing coordinates. Node: ${JSON.stringify(sourceNode)}`,
         )
       }
+      /* v8 ignore next 3 -- @preserve defensive: D3 callback, coordinates set by simulation */
       if (targetNode.x === undefined || targetNode.y === undefined) {
         throw new LayoutError(
           `Target node '${targetId}' missing coordinates. Node: ${JSON.stringify(targetNode)}`,
@@ -354,6 +359,7 @@ export function createUpdatePositionsFunction(params: UpdatePositionsParams): ()
     })
 
     node.attr('transform', (d) => {
+      /* v8 ignore next 3 -- @preserve defensive: D3 callback, coordinates set by simulation */
       if (d.x === undefined || d.y === undefined) {
         throw new LayoutError(`Node ${d.id} missing layout coordinates after layout computation`)
       }

@@ -9,6 +9,7 @@ import {
 } from './GraphRenderingSetup'
 import type { SimulationNode } from '../../types'
 import { parseNode } from '@/lib/riviereTestFixtures'
+import { LayoutError } from '@/errors'
 const testSourceLocation = {
   repository: 'test-repo',
   filePath: 'src/test.ts',
@@ -98,7 +99,7 @@ describe('GraphRenderingSetup', () => {
       expect(result).toStrictEqual([20, 40])
     })
 
-    it('throws error when x coordinate is undefined', () => {
+    it('throws LayoutError when x coordinate is undefined', () => {
       const nodes: SimulationNode[] = [
         {
           id: '1',
@@ -117,10 +118,10 @@ describe('GraphRenderingSetup', () => {
         },
       ]
 
-      expect(() => extractCoordinates(nodes, 'x')).toThrow('missing layout x coordinate')
+      expect(() => extractCoordinates(nodes, 'x')).toThrow(LayoutError)
     })
 
-    it('throws error when y coordinate is undefined', () => {
+    it('throws LayoutError when y coordinate is undefined', () => {
       const nodes: SimulationNode[] = [
         {
           id: '1',
@@ -139,7 +140,7 @@ describe('GraphRenderingSetup', () => {
         },
       ]
 
-      expect(() => extractCoordinates(nodes, 'y')).toThrow('missing layout y coordinate')
+      expect(() => extractCoordinates(nodes, 'y')).toThrow(LayoutError)
     })
 
     it('handles multiple nodes with coordinates', () => {

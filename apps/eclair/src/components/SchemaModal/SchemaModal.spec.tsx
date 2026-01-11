@@ -13,6 +13,7 @@ import {
   nodeIdSchema, domainNameSchema, moduleNameSchema, graphNameSchema
 } from '@/types/riviere'
 import { assertDefined } from '@/test-assertions'
+import { SchemaError } from '@/errors'
 
 const testSourceLocation = {
   repository: 'test-repo',
@@ -21,6 +22,12 @@ const testSourceLocation = {
 
 function createGraphName(name: string): GraphName {
   return graphNameSchema.parse(name)
+}
+
+function renderSchemaModalWithGraph(graph: RiviereGraph): void {
+  render(
+    <SchemaModal graph={graph} graphName={createGraphName('test.json')} isOpen={true} onClose={vi.fn()} />,
+  )
 }
 
 function createTestGraph(overrides: Partial<RiviereGraph> = {}): RiviereGraph {
@@ -92,6 +99,22 @@ describe('SchemaModal', () => {
       )
 
       expect(container.firstChild).toBeNull()
+    })
+  })
+
+  describe('generated date validation', () => {
+    it('throws SchemaError when date part is empty', () => {
+      const graph = createTestGraph()
+      graph.metadata.generated = 'T10:30:00Z'
+
+      expect(() => renderSchemaModalWithGraph(graph)).toThrow(SchemaError)
+    })
+
+    it('throws SchemaError with descriptive message for invalid date', () => {
+      const graph = createTestGraph()
+      graph.metadata.generated = 'T10:30:00Z'
+
+      expect(() => renderSchemaModalWithGraph(graph)).toThrow('Invalid ISO date string')
     })
   })
 
