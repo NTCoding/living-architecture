@@ -45,6 +45,27 @@ export interface DetectionRule {
 
 export type ComponentRule = NotUsed | DetectionRule
 
+/**
+ * A module config as written in the extraction config file.
+ * When `extends` is present, component rules are inherited from the extended config.
+ * Local rules override inherited rules.
+ */
+export interface ModuleConfig {
+  name: string
+  path: string
+  extends?: string
+  api?: ComponentRule
+  useCase?: ComponentRule
+  domainOp?: ComponentRule
+  event?: ComponentRule
+  eventHandler?: ComponentRule
+  ui?: ComponentRule
+}
+
+/**
+ * A fully resolved module with all component rules.
+ * This is what the extractor uses after config resolution.
+ */
 export interface Module {
   name: string
   path: string
@@ -56,7 +77,20 @@ export interface Module {
   ui: ComponentRule
 }
 
+/**
+ * Extraction config as written in the config file.
+ * Modules may use `extends` to inherit rules from other configs.
+ */
 export interface ExtractionConfig {
+  $schema?: string
+  modules: ModuleConfig[]
+}
+
+/**
+ * Fully resolved extraction config ready for the extractor.
+ * All extends references resolved, all modules have complete rules.
+ */
+export interface ResolvedExtractionConfig {
   $schema?: string
   modules: Module[]
 }

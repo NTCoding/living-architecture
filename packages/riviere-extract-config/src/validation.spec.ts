@@ -13,11 +13,16 @@ import {
   createModuleWithoutPath,
   createModuleWithoutApi,
   createMutableConfig,
+  createResolvedConfig,
 } from './validation-fixtures'
 
 describe('isValidExtractionConfig', () => {
   it('returns true when config is minimal valid', () => {
     expect(isValidExtractionConfig(createMinimalConfig())).toBe(true)
+  })
+
+  it('returns true when using createResolvedConfig', () => {
+    expect(isValidExtractionConfig(createResolvedConfig())).toBe(true)
   })
 
   it('returns true when config uses all component types', () => {

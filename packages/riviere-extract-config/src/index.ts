@@ -9,5 +9,7 @@ export {
   type ValidationResult,
 } from './validation'
 export {
-  createMinimalConfig, createMinimalModule 
+  createMinimalConfig,
+  createMinimalModule,
+  createResolvedConfig,
 } from './validation-fixtures'
