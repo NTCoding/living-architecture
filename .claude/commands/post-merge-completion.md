@@ -2,6 +2,45 @@
 
 Run after a PR is merged to reflect on the task and clean up the worktree.
 
+## Workflow
+
+```text
+/post-merge-completion
+    │
+    ▼
+Verify PR is merged
+    │
+    ├── NOT MERGED → stop, inform user
+    │
+    ▼
+Gather feedback:
+    ├─ Local reviews (reviews/<branch>/*.md)
+    ├─ PR feedback (./scripts/get-pr-feedback.sh)
+    ├─ Git history (git log --oneline main..<branch>)
+    └─ Conversation history
+    │
+    ▼
+Identify patterns and generate suggestions
+    │
+    ▼
+Present reflection to user with options:
+    1. Implement improvements → create GitHub issues
+    2. Skip → proceed to cleanup
+    │
+    ▼
+Handle user choice:
+    ├─ Implement → create issues via ./scripts/create-non-milestone-task.sh
+    └─ Skip → continue
+    │
+    ▼
+Cleanup worktree (./scripts/cleanup-task.sh)
+    │
+    ▼
+Ask user: Start improvement task now?
+    ├─ Yes → ./scripts/start-task.sh <issue-number>
+    └─ No → Ready for next task
+```
+
 ## Usage
 
 ```bash
@@ -131,19 +170,15 @@ Priority guide:
 
 ## Action Items
 Would you like me to:
-1. Implement HIGH priority improvements now
-2. Create GitHub issues for improvements
-3. Skip and proceed to cleanup
+1. Create GitHub issues for improvements (then implement via normal workflow)
+2. Skip and proceed to cleanup
 ```
 
 ### 4. Handle User Choice
 
 **If implementing improvements:**
-- Make the changes
-- Commit to main (or create a new task if significant)
-
-**If creating issues:**
-- Use `./scripts/create-task.sh` for each improvement
+- Create GitHub issues using `./scripts/create-non-milestone-task.sh --type tech`
+- Proceed to cleanup
 
 **If skipping:**
 - Proceed to cleanup
@@ -165,12 +200,15 @@ Run the cleanup script:
 [Summary of what was analyzed]
 
 ## Improvements
-- Implemented: [list or "None"]
-- Issues created: [list or "None"]
+- Issues created: [list with issue numbers, or "None"]
 
 ## Cleanup
 Worktree removed: <path>
 
 ---
-Ready for next task. Run `./scripts/list-tasks.sh` to see available work.
+Would you like to start working on one of the improvement tasks now?
+- Yes → I'll run `./scripts/start-task.sh <issue-number>`
+- No → Ready for next task. Run `./scripts/list-tasks.sh` to see available work.
 ```
+
+If user chooses yes, run `./scripts/start-task.sh <issue-number>` to begin the improvement task via normal workflow.

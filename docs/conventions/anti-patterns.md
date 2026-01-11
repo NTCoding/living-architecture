@@ -37,9 +37,16 @@ if (error instanceof CustomTypeNotDefinedError) {
 
 ---
 
-## Sacrificing Readability for File Length Limits
+## Sacrificing Quality for File Length Limits
 
-🚨 **Never sacrifice readability to satisfy linting rules or file length limits.**
+🚨 **Never sacrifice code quality, test coverage, or readability to satisfy linting rules or file length limits.**
+
+This includes:
+- Cramming code onto fewer lines
+- Removing whitespace or collapsing structure
+- **Deleting tests or skipping test coverage**
+- Not adding needed tests because "it would exceed the limit"
+- Creating helper functions solely to reduce line count (not for reuse)
 
 ### ❌ Bad
 
@@ -50,6 +57,9 @@ if (error instanceof CustomTypeNotDefinedError) {
 
 // Removing whitespace or collapsing structure
 const result = items.map(x => ({ id: x.id, name: x.name, value: x.value })).filter(x => x.value > 0);
+
+// Skipping tests because file is "too long"
+// "NOT FIXING: max-lines limit (400)" ← NEVER acceptable for test coverage
 ```
 
 ### ✓ Good
@@ -74,10 +84,15 @@ const result = items
 ```
 
 **Solutions when hitting max-lines:**
+- **Split the file** - Create focused files for related functionality (e.g., `foo.spec.ts` and `foo.edge-cases.spec.ts`)
 - Look for duplicated code - extract into shared modules (often the real cause of bloat)
 - Extract duplicated test fixtures or setup code into shared fixtures
 - Use `it.each` or `describe.each` for parameterized tests
-- Split the file into multiple focused files
+
+**Never:**
+- Skip adding tests
+- Delete existing tests
+- Compress code to fit limits
 
 ---
 
