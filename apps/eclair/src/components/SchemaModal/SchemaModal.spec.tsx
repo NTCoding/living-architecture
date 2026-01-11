@@ -5,7 +5,9 @@ import {
   render, screen, waitFor, within, fireEvent
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { SchemaModal } from './SchemaModal'
+import {
+  SchemaModal, validateDownloadGraphName
+} from './SchemaModal'
 import type {
   RiviereGraph, GraphName
 } from '@/types/riviere'
@@ -523,6 +525,18 @@ describe('SchemaModal', () => {
 
       const downloadButton = screen.getByRole('button', { name: /download/i })
       expect(downloadButton).toBeDisabled()
+    })
+
+    it('download: throws SchemaError when graphName is undefined', () => {
+      expect(() => validateDownloadGraphName(undefined)).toThrow(SchemaError)
+    })
+
+    it('download: throws SchemaError with descriptive message', () => {
+      expect(() => validateDownloadGraphName(undefined)).toThrow('Cannot download: graphName is required')
+    })
+
+    it('download: passes validation when graphName is defined', () => {
+      expect(() => validateDownloadGraphName('test.json')).not.toThrow()
     })
 
     describe('backdrop interaction', () => {

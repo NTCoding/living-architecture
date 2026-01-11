@@ -13,13 +13,20 @@ import {
   CSSModuleError, SchemaError
 } from '@/errors'
 
-function getStyle(name: string): string {
+export function getStyle(name: string): string {
   const value = styles[name]
-  /* v8 ignore next -- @preserve defensive: CSS module class should exist at build time */
   if (value === undefined) {
     throw new CSSModuleError(name, 'SchemaModal.module.css')
   }
   return value
+}
+
+export function validateDownloadGraphName(graphName: string | undefined): asserts graphName is string {
+  if (graphName === undefined) {
+    throw new SchemaError(
+      'Cannot download: graphName is required. Button should be disabled when graphName is undefined.',
+    )
+  }
 }
 
 const jsonViewStyles = {
@@ -92,12 +99,7 @@ export function SchemaModal({
   }
 
   const downloadSchemaAsJson = (): void => {
-    /* v8 ignore next -- @preserve defensive: button disabled when graphName undefined */
-    if (graphName === undefined) {
-      throw new SchemaError(
-        'Cannot download: graphName is required. Button should be disabled when graphName is undefined.',
-      )
-    }
+    validateDownloadGraphName(graphName)
     const blob = new Blob([jsonContent], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')

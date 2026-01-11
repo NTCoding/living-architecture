@@ -163,3 +163,59 @@ export function createTestConfig(): Config { ... }
 ```
 
 **Note:** This applies to raw test data fixtures, not shared test utilities or test-data-builders that provide genuine reusable logic.
+
+---
+
+## Lazy Coverage Ignore Comments
+
+🚨 **Never add coverage ignore comments (`/* v8 ignore */`, `/* istanbul ignore */`) without full justification.**
+
+Coverage ignore comments are acceptable ONLY when code is genuinely unreachable through any test. Before adding an ignore comment, you MUST:
+
+1. **Attempt to write a test first** - Most "defensive" code CAN be tested
+2. **Document WHY it's untestable** - The comment must explain the specific reason
+3. **Verify it's truly unreachable** - Not just "hard to test" or "unlikely to happen"
+
+### ❌ Bad - Lazy Justifications
+
+```typescript
+/* v8 ignore next -- defensive code */
+if (value === undefined) { throw new Error('...') }
+
+/* v8 ignore next -- button is disabled */
+if (!canProceed) { throw new Error('...') }
+
+/* v8 ignore next -- should never happen */
+if (item === null) { throw new Error('...') }
+```
+
+### ✓ Good - Fully Justified
+
+```typescript
+/* v8 ignore next -- @preserve defensive: Map.get immediately after Map.set */
+// This is structurally unreachable - we just called map.set(key, value)
+const entry = map.get(key)
+if (entry === undefined) { throw new GraphError('...') }
+
+/* v8 ignore next 3 -- @preserve defensive: D3 callback, coordinates set by simulation */
+// D3 simulation always provides coordinates before calling this callback
+// Testing would require mocking D3's internal tick mechanism
+if (node.x === undefined) { throw new LayoutError('...') }
+```
+
+### When to Write Tests Instead
+
+| Scenario | Solution |
+|----------|----------|
+| "Button is disabled so handler can't be called" | Extract validation to testable function |
+| "CSS module class should always exist" | Mock the module import in a separate test file |
+| "External API always returns valid data" | Test with mocked invalid responses |
+| "Internal function only called with valid input" | Export and test directly, or test via integration |
+
+### Valid Ignore Scenarios
+
+- **Structural impossibility**: Code after `Map.set()` checking if `Map.get()` returns undefined
+- **Framework internals**: D3/React callbacks that can't be invoked without framework machinery
+- **Platform guards**: Code paths only reachable on specific platforms (e.g., browser vs Node.js)
+
+**Rule**: If you can write a test, you MUST write a test. "Hard to test" is not a valid excuse.
