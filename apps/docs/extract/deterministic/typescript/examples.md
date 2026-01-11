@@ -6,7 +6,7 @@ Real-world extraction configs for different architectural patterns.
 
 See a working example in the ecommerce demo app:
 
-[View ecommerce-demo-app →](https://github.com/NTCoding/ecommerce-demo-app/tree/main/.riviere)
+[View ecommerce-demo-app →](https://github.com/NTCoding/ecommerce-demo-app)
 
 ## NestJS Project
 

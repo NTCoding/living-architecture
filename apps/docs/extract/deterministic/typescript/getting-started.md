@@ -200,7 +200,7 @@ Draft components are a starting point. Use CLI commands to build the complete Ri
 
 See a complete example in the ecommerce demo app:
 
-[View ecommerce-demo-app →](https://github.com/NTCoding/ecommerce-demo-app/tree/main/.riviere)
+[View ecommerce-demo-app →](https://github.com/NTCoding/ecommerce-demo-app)
 
 ## See Also
 
