@@ -78,16 +78,12 @@
     "@testing-library/user-event": "^14.6.1",
     "@types/d3": "^7.4.3",
     "@types/dagre": "^0.7.53",
-    "@types/node": "^24.10.1",
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.1",
     "@vitest/browser-playwright": "^4.0.16",
-    "@vitest/ui": "^4.0.16",
     "jsdom": "^27.4.0",
     "playwright": "^1.57.0",
-    "tailwindcss": "^4.1.17",
-    "vite": "^7.2.4",
-    "vitest": "^4.0.16"
+    "tailwindcss": "^4.1.17"
   }
 }
