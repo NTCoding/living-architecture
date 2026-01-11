@@ -6,7 +6,9 @@ import {
 } from './types'
 import type { Theme } from '@/types/theme'
 import type { NodeType } from '@/types/riviere'
-import { assertDefined } from '@/test-assertions'
+import {
+  assertDefined, TestAssertionError 
+} from '@/test-assertions'
 
 describe('graph constants', () => {
   it('NODE_COLORS has all themes', () => {
@@ -121,7 +123,8 @@ describe('getDomainColor', () => {
     ]
     domains.forEach((domain, i) => {
       const expected = expectedColors[i]
-      if (expected === undefined) throw new Error(`Missing expected color at index ${i}`)
+      if (expected === undefined)
+        throw new TestAssertionError(`Missing expected color at index ${i}`)
       expect(getDomainColor(domain, domains)).toBe(expected)
     })
   })

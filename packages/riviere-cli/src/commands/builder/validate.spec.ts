@@ -13,6 +13,7 @@ import {
   useCaseComponent,
   apiComponent,
   validLink,
+  TestAssertionError,
 } from '../../command-test-fixtures'
 
 interface ValidationOutput {
@@ -45,7 +46,7 @@ function isValidationOutput(value: unknown): value is ValidationOutput {
 function parseOutput(consoleOutput: string[]): ValidationOutput {
   const parsed: unknown = JSON.parse(consoleOutput[0] ?? '{}')
   if (!isValidationOutput(parsed)) {
-    throw new Error('Invalid validation output')
+    throw new TestAssertionError('Invalid validation output')
   }
   return parsed
 }

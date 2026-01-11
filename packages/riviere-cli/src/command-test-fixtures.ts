@@ -15,6 +15,20 @@ class ProcessExitError extends Error {
   }
 }
 
+export class TestAssertionError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'TestAssertionError'
+  }
+}
+
+export class MockError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'MockError'
+  }
+}
+
 export interface ErrorOutput {
   success: false
   error: {
@@ -34,11 +48,11 @@ function isErrorOutput(value: unknown): value is ErrorOutput {
 export function parseErrorOutput(consoleOutput: string[]): ErrorOutput {
   const firstLine = consoleOutput[0]
   if (firstLine === undefined) {
-    throw new Error('Expected console output but got empty array')
+    throw new TestAssertionError('Expected console output but got empty array')
   }
   const parsed: unknown = JSON.parse(firstLine)
   if (!isErrorOutput(parsed)) {
-    throw new Error('Invalid error output')
+    throw new TestAssertionError('Invalid error output')
   }
   return parsed
 }
@@ -50,11 +64,11 @@ export function parseSuccessOutput<T>(
 ): T {
   const firstLine = consoleOutput[0]
   if (firstLine === undefined) {
-    throw new Error('Expected console output but got empty array')
+    throw new TestAssertionError('Expected console output but got empty array')
   }
   const parsed: unknown = JSON.parse(firstLine)
   if (!guard(parsed)) {
-    throw new Error(errorMessage)
+    throw new TestAssertionError(errorMessage)
   }
   return parsed
 }
@@ -337,7 +351,7 @@ export function assertDefined<T>(
   message = 'Expected value to be defined',
 ): T {
   if (value === undefined || value === null) {
-    throw new Error(message)
+    throw new TestAssertionError(message)
   }
   return value
 }

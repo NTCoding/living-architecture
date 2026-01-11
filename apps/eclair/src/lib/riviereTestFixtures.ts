@@ -23,6 +23,13 @@ import {
   type EntityDefinition,
 } from '@/types/riviere'
 
+class TestAssertionError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'TestAssertionError'
+  }
+}
+
 interface RawOperationParameter {
   name: string
   type: string
@@ -135,7 +142,7 @@ function parseBaseFields(data: RawNode): BaseNodeFields {
 
 function parseUINode(data: RawNode, base: BaseNodeFields): Node {
   if (data.route === undefined) {
-    throw new Error(`UI node requires route: ${data.id}`)
+    throw new TestAssertionError(`UI node requires route: ${data.id}`)
   }
   return {
     ...base,
@@ -162,7 +169,7 @@ function parseAPINode(data: RawNode, base: BaseNodeFields): Node {
 
 function parseDomainOpNode(data: RawNode, base: BaseNodeFields): Node {
   if (data.operationName === undefined) {
-    throw new Error(`DomainOp node requires operationName: ${data.id}`)
+    throw new TestAssertionError(`DomainOp node requires operationName: ${data.id}`)
   }
   const node: Node = {
     ...base,
@@ -184,7 +191,7 @@ function parseDomainOpNode(data: RawNode, base: BaseNodeFields): Node {
 
 function parseEventNode(data: RawNode, base: BaseNodeFields): Node {
   if (data.eventName === undefined) {
-    throw new Error(`Event node requires eventName: ${data.id}`)
+    throw new TestAssertionError(`Event node requires eventName: ${data.id}`)
   }
   const node: Node = {
     ...base,
@@ -197,7 +204,7 @@ function parseEventNode(data: RawNode, base: BaseNodeFields): Node {
 
 function parseEventHandlerNode(data: RawNode, base: BaseNodeFields): Node {
   if (data.subscribedEvents === undefined) {
-    throw new Error(`EventHandler node requires subscribedEvents: ${data.id}`)
+    throw new TestAssertionError(`EventHandler node requires subscribedEvents: ${data.id}`)
   }
   return {
     ...base,
@@ -227,7 +234,7 @@ export function parseNode(data: RawNode): Node {
       return parseEventHandlerNode(data, base)
     case 'Custom': {
       if (data.customTypeName === undefined) {
-        throw new Error(`Custom node requires customTypeName: ${data.id}`)
+        throw new TestAssertionError(`Custom node requires customTypeName: ${data.id}`)
       }
       return {
         ...base,

@@ -26,9 +26,16 @@ function isInitSuccessOutput(value: unknown): value is InitSuccessOutput {
   return true
 }
 
+class TestAssertionError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'TestAssertionError'
+  }
+}
+
 function assertInitSuccess(value: unknown): InitSuccessOutput {
   if (!isInitSuccessOutput(value)) {
-    throw new Error('Expected InitSuccessOutput')
+    throw new TestAssertionError('Expected InitSuccessOutput')
   }
   return value
 }

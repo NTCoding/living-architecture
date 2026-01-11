@@ -11,6 +11,7 @@ import {
   baseMetadata,
   apiComponent,
   useCaseComponent,
+  TestAssertionError,
 } from '../../command-test-fixtures'
 
 interface TraceSuccessOutput {
@@ -53,23 +54,23 @@ function isTraceErrorOutput(value: unknown): value is TraceErrorOutput {
 function parseOutput(consoleOutput: string[]): TraceOutput {
   const firstOutput = consoleOutput[0]
   if (firstOutput === undefined) {
-    throw new Error('Expected console output but got none')
+    throw new TestAssertionError('Expected console output but got none')
   }
   const parsed: unknown = JSON.parse(firstOutput)
   if (isTraceSuccessOutput(parsed)) return parsed
   if (isTraceErrorOutput(parsed)) return parsed
-  throw new Error(`Invalid trace output: ${firstOutput}`)
+  throw new TestAssertionError(`Invalid trace output: ${firstOutput}`)
 }
 
 function expectSuccessOutput(output: TraceOutput): TraceSuccessOutput {
   expect(output.success).toBe(true)
-  if (!isTraceSuccessOutput(output)) throw new Error('Type narrowing failed')
+  if (!isTraceSuccessOutput(output)) throw new TestAssertionError('Type narrowing failed')
   return output
 }
 
 function expectErrorOutput(output: TraceOutput): TraceErrorOutput {
   expect(output.success).toBe(false)
-  if (!isTraceErrorOutput(output)) throw new Error('Type narrowing failed')
+  if (!isTraceErrorOutput(output)) throw new TestAssertionError('Type narrowing failed')
   return output
 }
 
@@ -218,7 +219,7 @@ describe('riviere query trace', () => {
       const originalTraceFlow = queryClass.prototype.traceFlow
 
       queryClass.prototype.traceFlow = () => {
-        throw new Error('Unexpected internal error')
+        throw new TestAssertionError('Unexpected internal error')
       }
 
       try {

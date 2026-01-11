@@ -82,3 +82,56 @@ export class CustomTypeAlreadyDefinedError extends Error {
     this.typeName = typeName
   }
 }
+
+export class MissingRequiredPropertiesError extends Error {
+  readonly customTypeName: string
+  readonly missingKeys: string[]
+
+  constructor(customTypeName: string, missingKeys: string[]) {
+    super(`Missing required properties for '${customTypeName}': ${missingKeys.join(', ')}`)
+    this.name = 'MissingRequiredPropertiesError'
+    this.customTypeName = customTypeName
+    this.missingKeys = missingKeys
+  }
+}
+
+export class InvalidGraphError extends Error {
+  constructor(reason: string) {
+    super(`Invalid graph: ${reason}`)
+    this.name = 'InvalidGraphError'
+  }
+}
+
+export class MissingSourcesError extends Error {
+  constructor() {
+    super('At least one source required')
+    this.name = 'MissingSourcesError'
+  }
+}
+
+export class MissingDomainsError extends Error {
+  constructor() {
+    super('At least one domain required')
+    this.name = 'MissingDomainsError'
+  }
+}
+
+export class BuildValidationError extends Error {
+  readonly validationMessages: string[]
+
+  constructor(messages: string[]) {
+    super(`Validation failed: ${messages.join('; ')}`)
+    this.name = 'BuildValidationError'
+    this.validationMessages = messages
+  }
+}
+
+export class DirectoryNotFoundError extends Error {
+  readonly directory: string
+
+  constructor(directory: string) {
+    super(`Directory does not exist: ${directory}`)
+    this.name = 'DirectoryNotFoundError'
+    this.directory = directory
+  }
+}

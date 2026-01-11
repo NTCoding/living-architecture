@@ -1,9 +1,9 @@
 import {
-  Routes, Route 
+  Routes, Route
 } from 'react-router-dom'
 import { AppShell } from '@/components/AppShell/AppShell'
 import {
-  GraphProvider, useGraph 
+  GraphProvider, useGraph
 } from '@/contexts/GraphContext'
 import { ExportProvider } from '@/contexts/ExportContext'
 import { EmptyState } from '@/features/empty-state/EmptyState'
@@ -16,11 +16,12 @@ import { DomainDetailPage } from '@/features/domains/DomainDetailPage'
 import { EntitiesPage } from '@/features/entities/EntitiesPage'
 import { EventsPage } from '@/features/events/EventsPage'
 import { ComparisonPage } from '@/features/comparison/ComparisonPage'
+import { GraphError } from '@/errors'
 
 function useRequiredGraph(): RiviereGraph {
   const { graph } = useGraph()
   if (graph === null) {
-    throw new Error(
+    throw new GraphError(
       'useRequiredGraph called without a graph. This component should only render when hasGraph is true.',
     )
   }

@@ -11,6 +11,9 @@ import {
   EDGE_COLORS, SEMANTIC_EDGE_COLORS 
 } from '../../types'
 import { getLinkNodeId } from './FocusModeStyling'
+import {
+  LayoutError, RenderingError 
+} from '@/errors'
 
 export {
   getLinkNodeId,
@@ -34,7 +37,7 @@ export function extractCoordinates(nodes: SimulationNode[], field: 'x' | 'y'): n
     const value = field === 'x' ? n.x : n.y
     if (value === undefined) {
       const coord = field === 'x' ? 'x' : 'y'
-      throw new Error(`Node ${n.id} missing layout ${coord} coordinate`)
+      throw new LayoutError(`Node ${n.id} missing layout ${coord} coordinate`)
     }
     return value
   })
@@ -180,7 +183,7 @@ export interface SetupLinksParams {
 function getNodeType(nodeId: string, nodeMap: Map<string, SimulationNode>): NodeType {
   const node = nodeMap.get(nodeId)
   if (!node) {
-    throw new Error(`Node ${nodeId} not found in node map`)
+    throw new RenderingError(`Node ${nodeId} not found in node map`)
   }
   return node.type
 }
@@ -308,22 +311,22 @@ export function createUpdatePositionsFunction(params: UpdatePositionsParams): ()
       const targetNode = nodePositionMap.get(targetId)
 
       if (!sourceNode) {
-        throw new Error(
+        throw new RenderingError(
           `Link source node '${sourceId}' not found in position map. Available nodes: [${[...nodePositionMap.keys()].join(', ')}]`,
         )
       }
       if (!targetNode) {
-        throw new Error(
+        throw new RenderingError(
           `Link target node '${targetId}' not found in position map. Available nodes: [${[...nodePositionMap.keys()].join(', ')}]`,
         )
       }
       if (sourceNode.x === undefined || sourceNode.y === undefined) {
-        throw new Error(
+        throw new LayoutError(
           `Source node '${sourceId}' missing coordinates. Node: ${JSON.stringify(sourceNode)}`,
         )
       }
       if (targetNode.x === undefined || targetNode.y === undefined) {
-        throw new Error(
+        throw new LayoutError(
           `Target node '${targetId}' missing coordinates. Node: ${JSON.stringify(targetNode)}`,
         )
       }
@@ -352,7 +355,7 @@ export function createUpdatePositionsFunction(params: UpdatePositionsParams): ()
 
     node.attr('transform', (d) => {
       if (d.x === undefined || d.y === undefined) {
-        throw new Error(`Node ${d.id} missing layout coordinates after layout computation`)
+        throw new LayoutError(`Node ${d.id} missing layout coordinates after layout computation`)
       }
       return `translate(${d.x},${d.y})`
     })

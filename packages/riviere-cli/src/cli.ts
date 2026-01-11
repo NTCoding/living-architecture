@@ -1,5 +1,6 @@
 import { Command } from 'commander'
 import { createRequire } from 'module'
+import { InvalidPackageJsonError } from './errors'
 import { createAddComponentCommand } from './commands/builder/add-component'
 import { createAddDomainCommand } from './commands/builder/add-domain'
 import { createAddSourceCommand } from './commands/builder/add-source'
@@ -32,10 +33,10 @@ interface PackageJson {version: string}
  */
 export function parsePackageJson(pkg: unknown): PackageJson {
   if (typeof pkg !== 'object' || pkg === null || !('version' in pkg)) {
-    throw new Error('Invalid package.json: missing version field')
+    throw new InvalidPackageJsonError('missing version field')
   }
   if (typeof pkg.version !== 'string') {
-    throw new TypeError('Invalid package.json: version must be a string')
+    throw new InvalidPackageJsonError('version must be a string')
   }
   return { version: pkg.version }
 }

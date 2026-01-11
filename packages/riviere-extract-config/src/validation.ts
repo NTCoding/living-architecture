@@ -29,6 +29,22 @@ export interface ValidationResult {
   errors: ValidationError[]
 }
 
+/** Error thrown when extraction config validation fails. */
+export class ExtractionConfigValidationError extends Error {
+  /** @param errors - Validation errors that caused this exception */
+  constructor(public readonly errors: ValidationError[]) {
+    super(`Invalid extraction config:\n${formatValidationErrorsInternal(errors)}`)
+    this.name = 'ExtractionConfigValidationError'
+  }
+}
+
+function formatValidationErrorsInternal(errors: ValidationError[]): string {
+  if (errors.length === 0) {
+    return 'validation failed without specific errors'
+  }
+  return errors.map((e) => `${e.path}: ${e.message}`).join('\n')
+}
+
 interface AjvErrorLike {
   instancePath: string
   message?: string
@@ -75,22 +91,19 @@ export function validateExtractionConfig(data: unknown): ValidationResult {
  * @returns Formatted error message.
  */
 export function formatValidationErrors(errors: ValidationError[]): string {
-  if (errors.length === 0) {
-    return 'validation failed without specific errors'
-  }
-  return errors.map((e) => `${e.path}: ${e.message}`).join('\n')
+  return formatValidationErrorsInternal(errors)
 }
 
 /**
  * Parses and validates data as an ExtractionConfig.
  * @param data - Data to parse.
  * @returns Validated ExtractionConfig.
- * @throws Error if validation fails.
+ * @throws ExtractionConfigValidationError if validation fails.
  */
 export function parseExtractionConfig(data: unknown): ExtractionConfig {
   if (isValidExtractionConfig(data)) {
     return data
   }
   const result = validateExtractionConfig(data)
-  throw new Error(`Invalid extraction config:\n${formatValidationErrors(result.errors)}`)
+  throw new ExtractionConfigValidationError(result.errors)
 }

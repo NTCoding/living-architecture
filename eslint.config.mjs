@@ -72,13 +72,17 @@ export default tseslint.config(
       // Prefer positive conditions in if/else and ternaries (SonarCloud S7735)
       'no-negated-condition': 'error',
 
-      // Ban let - use const only
+      // Ban let - use const only 
       'no-restricted-syntax': [
         'error',
         {
           selector: 'VariableDeclaration[kind="let"]',
           message: 'Use const. Avoid mutation.',
         },
+        {
+          selector: 'NewExpression[callee.name="Error"]',
+          message: 'Use custom precise error classes instead of generic Error or fail assertions in tests.',
+        }
       ],
       'prefer-const': 'error',
       'no-var': 'error',

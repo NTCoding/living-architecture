@@ -9,6 +9,13 @@ import type {
   SourceLocation,
 } from '@living-architecture/riviere-schema'
 
+export class TestAssertionError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'TestAssertionError'
+  }
+}
+
 export const defaultSourceLocation: SourceLocation = {
   repository: 'test-repo',
   filePath: 'test.ts',
@@ -142,7 +149,7 @@ export function assertDefined<T>(
   message = 'Expected value to be defined',
 ): T {
   if (value === undefined || value === null) {
-    throw new Error(message)
+    throw new TestAssertionError(message)
   }
   return value
 }

@@ -1,19 +1,22 @@
 import {
-  useCallback, useEffect, useId, useState 
+  useCallback, useEffect, useId, useState
 } from 'react'
 import {
-  JsonView, collapseAllNested 
+  JsonView, collapseAllNested
 } from 'react-json-view-lite'
 import 'react-json-view-lite/dist/index.css'
 import type {
-  RiviereGraph, GraphName 
+  RiviereGraph, GraphName
 } from '@/types/riviere'
 import styles from './SchemaModal.module.css'
+import {
+  CSSModuleError, SchemaError
+} from '@/errors'
 
 function getStyle(name: string): string {
   const value = styles[name]
   if (value === undefined) {
-    throw new Error(`CSS module class "${name}" not found in SchemaModal.module.css`)
+    throw new CSSModuleError(name, 'SchemaModal.module.css')
   }
   return value
 }
@@ -89,7 +92,7 @@ export function SchemaModal({
 
   const downloadSchemaAsJson = (): void => {
     if (graphName === undefined) {
-      throw new Error(
+      throw new SchemaError(
         'Cannot download: graphName is required. Button should be disabled when graphName is undefined.',
       )
     }
@@ -113,7 +116,7 @@ export function SchemaModal({
     const parts = isoDateString.split('T')
     const datePart = parts[0]
     if (datePart === undefined || datePart === '') {
-      throw new Error(
+      throw new SchemaError(
         `Invalid ISO date string: "${isoDateString}". Expected format like "2024-01-15T10:30:00Z".`,
       )
     }

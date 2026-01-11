@@ -71,6 +71,32 @@ describe('createConfigLoader', () => {
 
       expect(() => loader('./invalid.json')).toThrow('Invalid extended config format')
     })
+
+    it('throws error when modules array is empty', () => {
+      vi.mocked(existsSync).mockReturnValue(true)
+      vi.mocked(readFileSync).mockReturnValue(JSON.stringify({ modules: [] }))
+
+      const loader = createConfigLoader('/project')
+
+      expect(() => loader('./empty-modules.json')).toThrow('must NOT have fewer than 1 items')
+    })
+
+    it('throws error when module in modules array has invalid schema', () => {
+      const invalidConfig = {
+        modules: [
+          {
+            name: 'test',
+            path: '**',
+          },
+        ],
+      }
+      vi.mocked(existsSync).mockReturnValue(true)
+      vi.mocked(readFileSync).mockReturnValue(JSON.stringify(invalidConfig))
+
+      const loader = createConfigLoader('/project')
+
+      expect(() => loader('./invalid-module.json')).toThrow('Invalid extended config')
+    })
   })
 
   describe('config extraction', () => {

@@ -5,6 +5,9 @@ import type {
   ModuleConfig,
   ComponentRule,
 } from '@living-architecture/riviere-extract-config'
+import {
+  ConfigLoaderRequiredError, MissingComponentRuleError 
+} from './errors'
 
 /** Function that loads a base module config from a source path. */
 export type ConfigLoader = (source: string) => Module
@@ -49,7 +52,7 @@ function resolveModuleWithExtends(
   loader?: ConfigLoader,
 ): Module {
   if (loader === undefined) {
-    throw new Error(`Module '${moduleConfig.name}' uses extends but no config loader was provided.`)
+    throw new ConfigLoaderRequiredError(moduleConfig.name)
   }
 
   const baseModule = loader(extendsSource)
@@ -71,10 +74,7 @@ function requireRule(
   moduleName: string,
 ): ComponentRule {
   if (rule === undefined) {
-    throw new Error(
-      `Module '${moduleName}' is missing required rule '${ruleName}'. ` +
-        `Either provide the rule or use extends to inherit from a base config.`,
-    )
+    throw new MissingComponentRuleError(moduleName, ruleName)
   }
   return rule
 }

@@ -5,11 +5,21 @@ import {
   existsSync, readFileSync 
 } from 'node:fs'
 import { parse as parseYaml } from 'yaml'
-import type { Module } from '@living-architecture/riviere-extract-config'
-import type { ConfigLoader } from '@living-architecture/riviere-extract-ts'
+import {
+  type Module, parseExtractionConfig 
+} from '@living-architecture/riviere-extract-config'
+import {
+  type ConfigLoader, resolveConfig 
+} from '@living-architecture/riviere-extract-ts'
+import {
+  ConfigFileNotFoundError,
+  ConfigSchemaValidationError,
+  InternalSchemaValidationError,
+  InvalidConfigFormatError,
+  PackageResolveError,
+} from '../../errors'
 
-interface ExtendedConfig {
-  modules?: Module[]
+interface TopLevelRulesConfig {
   api?: Module['api']
   useCase?: Module['useCase']
   domainOp?: Module['domainOp']
@@ -28,50 +38,55 @@ class PackageConfigNotFoundError extends Error {
   }
 }
 
-function isExtendedConfig(value: unknown): value is ExtendedConfig {
+function hasModulesArray(value: unknown): value is { modules: unknown[] } {
   if (typeof value !== 'object' || value === null) {
     return false
   }
-  if ('modules' in value && !Array.isArray(value.modules)) {
+  if (!('modules' in value)) {
     return false
   }
-  return true
+  return Array.isArray(value.modules)
 }
 
-function parseConfigContent(content: string, source: string): ExtendedConfig {
+function isTopLevelRulesConfig(value: unknown): value is TopLevelRulesConfig {
+  return typeof value === 'object' && value !== null && !('modules' in value)
+}
+
+function parseConfigContent(content: string, source: string): Module {
   const parsed: unknown = parseYaml(content)
-  if (!isExtendedConfig(parsed)) {
-    const preview = JSON.stringify(parsed, null, 2).slice(0, 200)
-    throw new Error(
-      `Invalid extended config format in '${source}'. ` +
-        `Expected object with optional 'modules' array. Got: ${preview}`,
-    )
-  }
-  return parsed
-}
 
-/**
- * Extracts a single Module from an ExtendedConfig.
- * If config has modules array, uses the first module only (extends references
- * are designed for single-module inheritance, not multi-module configs).
- * Otherwise, constructs a Module from top-level component rules.
- */
-function extractModuleFromConfig(config: ExtendedConfig): Module {
-  const firstModule = config.modules?.[0]
-  if (firstModule !== undefined) {
-    return firstModule
+  if (hasModulesArray(parsed)) {
+    try {
+      const config = parseExtractionConfig(parsed)
+      const resolved = resolveConfig(config)
+      const firstModule = resolved.modules[0]
+      /* v8 ignore next -- @preserve */
+      if (firstModule === undefined) {
+        throw new InternalSchemaValidationError()
+      }
+      return firstModule
+    } catch (error) {
+      /* v8 ignore next -- @preserve defensive for non-Error throws */
+      const message = error instanceof Error ? error.message : String(error)
+      throw new ConfigSchemaValidationError(source, message)
+    }
   }
 
-  return {
-    name: 'extended',
-    path: '**',
-    api: config.api ?? { notUsed: true },
-    useCase: config.useCase ?? { notUsed: true },
-    domainOp: config.domainOp ?? { notUsed: true },
-    event: config.event ?? { notUsed: true },
-    eventHandler: config.eventHandler ?? { notUsed: true },
-    ui: config.ui ?? { notUsed: true },
+  if (isTopLevelRulesConfig(parsed)) {
+    return {
+      name: 'extended',
+      path: '**',
+      api: parsed.api ?? { notUsed: true },
+      useCase: parsed.useCase ?? { notUsed: true },
+      domainOp: parsed.domainOp ?? { notUsed: true },
+      event: parsed.event ?? { notUsed: true },
+      eventHandler: parsed.eventHandler ?? { notUsed: true },
+      ui: parsed.ui ?? { notUsed: true },
+    }
   }
+
+  const preview = JSON.stringify(parsed, null, 2).slice(0, 200)
+  throw new InvalidConfigFormatError(source, preview)
 }
 
 function isPackageReference(source: string): boolean {
@@ -91,18 +106,13 @@ function resolvePackagePath(packageName: string): string {
     if (error instanceof PackageConfigNotFoundError) {
       throw error
     }
-    throw new Error(
-      `Cannot resolve package '${packageName}'. ` +
-        `Ensure the package is installed in node_modules.`,
-    )
+    throw new PackageResolveError(packageName)
   }
 }
 
-function loadConfigFile(filePath: string, source: string): ExtendedConfig {
+function loadConfigFile(filePath: string, source: string): Module {
   if (!existsSync(filePath)) {
-    throw new Error(
-      `Cannot resolve extends reference '${source}'. ` + `File not found: ${filePath}`,
-    )
+    throw new ConfigFileNotFoundError(source, filePath)
   }
 
   const content = readFileSync(filePath, 'utf-8')
@@ -115,7 +125,6 @@ export function createConfigLoader(configDir: string): ConfigLoader {
       ? resolvePackagePath(source)
       : resolve(configDir, source)
 
-    const config = loadConfigFile(filePath, source)
-    return extractModuleFromConfig(config)
+    return loadConfigFile(filePath, source)
   }
 }

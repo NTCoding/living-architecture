@@ -8,7 +8,10 @@ import {
 import { createProgram } from '../../cli'
 import type { TestContext } from '../../command-test-fixtures'
 import {
-  createTestContext, setupCommandTest, assertDefined 
+  createTestContext,
+  setupCommandTest,
+  assertDefined,
+  TestAssertionError,
 } from '../../command-test-fixtures'
 import { type DraftComponent } from '@living-architecture/riviere-extract-ts'
 
@@ -335,11 +338,11 @@ function isExtractionOutput(value: unknown): value is ExtractionOutput {
 function parseExtractionOutput(consoleOutput: string[]): ExtractionOutput {
   const firstLine = consoleOutput[0]
   if (firstLine === undefined) {
-    throw new Error('Expected console output but got empty array')
+    throw new TestAssertionError('Expected console output but got empty array')
   }
   const parsed: unknown = JSON.parse(firstLine)
   if (!isExtractionOutput(parsed)) {
-    throw new Error('Invalid extraction output')
+    throw new TestAssertionError('Invalid extraction output')
   }
   return parsed
 }

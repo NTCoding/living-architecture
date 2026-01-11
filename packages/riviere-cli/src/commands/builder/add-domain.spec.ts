@@ -13,6 +13,7 @@ import {
   createTestContext,
   setupCommandTest,
   createGraphWithDomain,
+  MockError,
 } from '../../command-test-fixtures'
 
 describe('riviere builder add-domain', () => {
@@ -247,7 +248,7 @@ describe('riviere builder add-domain', () => {
     it('rethrows unexpected errors from builder', async () => {
       await createGraphWithDomain(mockContext.testDir, 'orders')
 
-      const unexpectedError = new Error('Unexpected database error')
+      const unexpectedError = new MockError('Unexpected database error')
       const throwUnexpectedError = () => {
         throw unexpectedError
       }
