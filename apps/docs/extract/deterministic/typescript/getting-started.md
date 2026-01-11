@@ -5,7 +5,7 @@ Extract architecture from TypeScript code in 10 minutes using decorators and con
 ## Prerequisites
 
 **Requirements:**
-- Node.js 24+
+- Node.js 20+
 - TypeScript 5.0+ (for decorator support)
 
 **Install the CLI and conventions package:**
