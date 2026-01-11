@@ -18,18 +18,44 @@ interface ExtendedConfig {
   ui?: Module['ui']
 }
 
-function isExtendedConfig(value: unknown): value is ExtendedConfig {
-  return typeof value === 'object' && value !== null
+class PackageConfigNotFoundError extends Error {
+  constructor(packageName: string) {
+    super(
+      `Package '${packageName}' does not contain 'src/default-extraction.config.json'. ` +
+        `Ensure the package exports a default extraction config.`,
+    )
+    this.name = 'PackageConfigNotFoundError'
+  }
 }
 
-function parseConfigContent(content: string): ExtendedConfig {
+function isExtendedConfig(value: unknown): value is ExtendedConfig {
+  if (typeof value !== 'object' || value === null) {
+    return false
+  }
+  if ('modules' in value && !Array.isArray(value.modules)) {
+    return false
+  }
+  return true
+}
+
+function parseConfigContent(content: string, source: string): ExtendedConfig {
   const parsed: unknown = parseYaml(content)
   if (!isExtendedConfig(parsed)) {
-    throw new Error('Invalid extended config format')
+    const preview = JSON.stringify(parsed, null, 2).slice(0, 200)
+    throw new Error(
+      `Invalid extended config format in '${source}'. ` +
+        `Expected object with optional 'modules' array. Got: ${preview}`,
+    )
   }
   return parsed
 }
 
+/**
+ * Extracts a single Module from an ExtendedConfig.
+ * If config has modules array, uses the first module only (extends references
+ * are designed for single-module inheritance, not multi-module configs).
+ * Otherwise, constructs a Module from top-level component rules.
+ */
 function extractModuleFromConfig(config: ExtendedConfig): Module {
   const firstModule = config.modules?.[0]
   if (firstModule !== undefined) {
@@ -60,12 +86,9 @@ function resolvePackagePath(packageName: string): string {
     if (existsSync(defaultConfigPath)) {
       return defaultConfigPath
     }
-    throw new Error(
-      `Package '${packageName}' does not contain 'src/default-extraction.config.json'. ` +
-        `Ensure the package exports a default extraction config.`,
-    )
+    throw new PackageConfigNotFoundError(packageName)
   } catch (error) {
-    if (error instanceof Error && error.message.includes('does not contain')) {
+    if (error instanceof PackageConfigNotFoundError) {
       throw error
     }
     throw new Error(
@@ -83,7 +106,7 @@ function loadConfigFile(filePath: string, source: string): ExtendedConfig {
   }
 
   const content = readFileSync(filePath, 'utf-8')
-  return parseConfigContent(content)
+  return parseConfigContent(content, source)
 }
 
 export function createConfigLoader(configDir: string): ConfigLoader {

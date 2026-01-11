@@ -62,6 +62,15 @@ describe('createConfigLoader', () => {
 
       expect(() => loader('./invalid.json')).toThrow('Invalid extended config format')
     })
+
+    it('throws error when modules is not an array', () => {
+      vi.mocked(existsSync).mockReturnValue(true)
+      vi.mocked(readFileSync).mockReturnValue(JSON.stringify({ modules: 'not-an-array' }))
+
+      const loader = createConfigLoader('/project')
+
+      expect(() => loader('./invalid.json')).toThrow('Invalid extended config format')
+    })
   })
 
   describe('config extraction', () => {
