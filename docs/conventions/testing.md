@@ -286,3 +286,30 @@ When testing browser code with jsdom:
 
 - **Cannot spy on `window.location.assign`** - Use `Object.defineProperty` to mock `window.location` with a setter that captures values, and restore in `afterEach`
 - **Cannot spy on native MouseEvent methods** - Use `vi.spyOn(event, 'preventDefault')` after creating the event with `new MouseEvent()`
+
+### Testing Cleanup Functions (Resource Management)
+
+**General rule:** Test behavior, not implementation ([Testing Library philosophy](https://kentcdodds.com/blog/common-mistakes-with-react-testing-library)).
+
+**Exception for resource cleanup:** When testing cleanup of resources (timers, event listeners, subscriptions), verify the cleanup mechanism was called using spies.
+
+**Why:** Memory leaks and resource leaks have no observable behavior in tests. The cleanup mechanism IS the important behavior to verify ([React cleanup guidance](https://moldstud.com/articles/p-expert-tips-for-handling-component-cleanup-in-react-lifecycle)).
+
+**How:** Use [test spies](https://martinfowler.com/bliki/TestDouble.html) to verify cleanup functions were called:
+
+```typescript
+it('calls clearTimeout when component unmounts with pending timeout', () => {
+  const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout')
+
+  const { unmount } = render(<Component />)
+  // ... trigger timeout creation ...
+
+  const callCountBefore = clearTimeoutSpy.mock.calls.length
+  unmount()
+
+  expect(clearTimeoutSpy).toHaveBeenCalledTimes(callCountBefore + 1)
+  clearTimeoutSpy.mockRestore()
+})
+```
+
+**Always restore spies** in the same test or in `afterEach` to prevent leaks between tests.
