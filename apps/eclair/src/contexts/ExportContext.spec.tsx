@@ -5,8 +5,9 @@ import {
   describe, it, expect, vi 
 } from 'vitest'
 import {
-  ExportProvider, useExport 
+  ExportProvider, useExport
 } from './ExportContext'
+import { ContextError } from '@/errors'
 
 function TestConsumer(): React.ReactElement {
   const { exportHandlers } = useExport()
@@ -122,5 +123,17 @@ describe('ExportContext', () => {
       screen.getByText('Clear').click()
     })
     expect(screen.getByTestId('has-png')).toHaveTextContent('no')
+  })
+
+  it('throws ContextError when useExport is used outside ExportProvider', () => {
+    expect(() => {
+      render(<TestConsumer />)
+    }).toThrow(ContextError)
+  })
+
+  it('throws with descriptive message when used outside provider', () => {
+    expect(() => {
+      render(<TestConsumer />)
+    }).toThrow('useExport must be used within a ExportProvider')
   })
 })
