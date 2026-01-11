@@ -126,7 +126,38 @@ The default config works for single-module projects using Rivière decorators. *
 - Projects using framework decorators (NestJS, custom patterns)
 - Projects with non-standard component detection rules
 
-Start by copying the default config and editing the `modules` array. Configs can be **JSON or YAML** — the CLI accepts both.
+#### Using `extends` for Multi-Module Projects
+
+The simplest way to add multiple modules is with `extends`. Inherit all detection rules from the conventions package and just specify module names and paths:
+
+```yaml
+modules:
+  - name: "orders"
+    path: "src/orders/**/*.ts"
+    extends: "@living-architecture/riviere-extract-conventions"
+
+  - name: "shipping"
+    path: "src/shipping/**/*.ts"
+    extends: "@living-architecture/riviere-extract-conventions"
+
+  - name: "inventory"
+    path: "src/inventory/**/*.ts"
+    extends: "@living-architecture/riviere-extract-conventions"
+```
+
+Override specific rules when needed:
+
+```yaml
+modules:
+  - name: "orders"
+    path: "src/orders/**/*.ts"
+    extends: "@living-architecture/riviere-extract-conventions"
+    event: { notUsed: true }  # Override: no events in this module
+```
+
+#### Full Custom Config
+
+For complete control, define all component rules explicitly. Configs can be **JSON or YAML** — the CLI accepts both.
 
 ```yaml
 modules:
@@ -149,10 +180,6 @@ modules:
     event: { notUsed: true }
     eventHandler: { notUsed: true }
     ui: { notUsed: true }
-
-  - name: "shipping"
-    path: "src/shipping/**/*.ts"
-    # ... different rules
 ```
 
 [See Examples →](/extract/deterministic/typescript/examples)

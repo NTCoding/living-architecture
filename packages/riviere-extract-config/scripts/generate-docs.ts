@@ -12,6 +12,14 @@ import {
 } from 'node:fs'
 import { join } from 'node:path'
 
+/** Error thrown when schema JSON does not match expected structure. */
+class InvalidSchemaFormatError extends Error {
+  constructor() {
+    super('Invalid schema format')
+    this.name = 'InvalidSchemaFormatError'
+  }
+}
+
 interface SchemaProperty {
   type?: string
   description?: string
@@ -362,7 +370,7 @@ const schemaPath = join(import.meta.dirname, '..', 'extraction-config.schema.jso
 const schemaContent = readFileSync(schemaPath, 'utf-8')
 const parsed: unknown = JSON.parse(schemaContent)
 if (!isSchema(parsed)) {
-  throw new Error('Invalid schema format')
+  throw new InvalidSchemaFormatError()
 }
 const schema = parsed
 

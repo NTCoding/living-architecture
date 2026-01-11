@@ -32,12 +32,13 @@ A module defines extraction rules for a path pattern
 |-------|------|----------|-------------|
 | `name` | `string` | **Yes** | Module name, used as the domain for extracted components |
 | `path` | `string` | **Yes** | Glob pattern for files in this module |
-| `api` | `componentRule` | **Yes** | Detection rule for API components |
-| `useCase` | `componentRule` | **Yes** | Detection rule for UseCase components |
-| `domainOp` | `componentRule` | **Yes** | Detection rule for DomainOp components |
-| `event` | `componentRule` | **Yes** | Detection rule for Event components |
-| `eventHandler` | `componentRule` | **Yes** | Detection rule for EventHandler components |
-| `ui` | `componentRule` | **Yes** | Detection rule for UI components |
+| `extends` | `string` | No | Package name or file path to inherit component rules from |
+| `api` | `componentRule` | No | Detection rule for API components |
+| `useCase` | `componentRule` | No | Detection rule for UseCase components |
+| `domainOp` | `componentRule` | No | Detection rule for DomainOp components |
+| `event` | `componentRule` | No | Detection rule for Event components |
+| `eventHandler` | `componentRule` | No | Detection rule for EventHandler components |
+| `ui` | `componentRule` | No | Detection rule for UI components |
 
 ---
 

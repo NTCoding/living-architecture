@@ -335,6 +335,39 @@ modules:
     ui: { notUsed: true }
 ```
 
+## Multi-Module with Extends
+
+Use `extends` for consistent decorator-based detection across modules with minimal config:
+
+```yaml
+modules:
+  # All modules inherit detection rules from the conventions package
+  - name: "orders"
+    path: "src/orders/**/*.ts"
+    extends: "@living-architecture/riviere-extract-conventions"
+
+  - name: "shipping"
+    path: "src/shipping/**/*.ts"
+    extends: "@living-architecture/riviere-extract-conventions"
+
+  - name: "inventory"
+    path: "src/inventory/**/*.ts"
+    extends: "@living-architecture/riviere-extract-conventions"
+
+  # Override specific rules when needed
+  - name: "payments"
+    path: "src/payments/**/*.ts"
+    extends: "@living-architecture/riviere-extract-conventions"
+    event: { notUsed: true }  # No events in payments module
+    ui: { notUsed: true }      # No UI in payments module
+```
+
+**Benefits:**
+- Minimal boilerplate — just name, path, and extends
+- Consistent detection rules across all modules
+- Selective overrides where needed
+- Easy to add new modules
+
 ## See Also
 
 - [Config Reference](/reference/extraction-config/schema) — Complete DSL specification
