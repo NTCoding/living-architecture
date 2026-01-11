@@ -51,20 +51,9 @@ class PlaceOrderUseCase {
 
 [See all decorators →](/extract/deterministic/typescript/decorators)
 
-## Step 2: Use the Default Config
+## Step 2: Run Extraction
 
-The conventions package includes a ready-to-use extraction config that detects all decorator types.
-
-No config file needed — reference it directly:
-
-```bash
-npx riviere extract \
-  --config node_modules/@living-architecture/riviere-extract-conventions/src/default-extraction.config.json
-```
-
-## Step 3: Run Extraction
-
-Execute the command:
+The conventions package includes a ready-to-use extraction config that detects all decorator types. No config file needed — reference it directly:
 
 ```bash
 npx riviere extract \
@@ -111,7 +100,7 @@ npx riviere extract \
 
 The `domain` field comes from the module `name` in your config. The default config uses "default" as the module name.
 
-## Step 4: Verify Results
+## Step 3: Verify Results
 
 Use `--dry-run` for a quick summary:
 
