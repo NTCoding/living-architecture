@@ -1,13 +1,14 @@
 import {
-  useMemo, useState, useCallback 
+  useMemo, useState, useCallback
 } from 'react'
 import {
-  ReactFlow, Background, Controls 
+  ReactFlow, Background, Controls
 } from '@xyflow/react'
 import type {
-  Node, Edge, EdgeMouseHandler 
+  Node, Edge, EdgeMouseHandler
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
+import { LayoutError } from '@/errors'
 import dagre from 'dagre'
 import type {
   DomainConnectionDiffResult,
@@ -110,7 +111,7 @@ function buildNodes(
   return domains.map((domain) => {
     const position = positions.get(domain)
     if (position === undefined) {
-      throw new Error(`Domain ${domain} missing from layout computation`)
+      throw new LayoutError(`Domain ${domain} missing from layout computation`)
     }
     const hasChanges = domainsWithChanges.has(domain)
     return {
@@ -141,7 +142,7 @@ function buildEdges(
     const sourcePos = positions.get(conn.source)
     const targetPos = positions.get(conn.target)
     if (sourcePos === undefined || targetPos === undefined) {
-      throw new Error(`Edge references missing position: ${conn.source} -> ${conn.target}`)
+      throw new LayoutError(`Edge references missing position: ${conn.source} -> ${conn.target}`)
     }
     const handles = getClosestHandle(sourcePos, targetPos)
     const color = STATUS_COLORS[status]

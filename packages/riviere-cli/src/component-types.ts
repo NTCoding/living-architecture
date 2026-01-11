@@ -1,3 +1,7 @@
+import {
+  InvalidComponentTypeError, InvalidNormalizedComponentTypeError 
+} from './errors'
+
 export const VALID_COMPONENT_TYPES = [
   'UI',
   'API',
@@ -16,9 +20,7 @@ export function isValidComponentType(value: string): value is ComponentTypeFlag 
 export function normalizeToSchemaComponentType(value: string): ComponentTypeFlag {
   const found = VALID_COMPONENT_TYPES.find((t) => t.toLowerCase() === value.toLowerCase())
   if (found === undefined) {
-    throw new Error(
-      `Expected valid ComponentType. Got: ${value}. Valid types: ${VALID_COMPONENT_TYPES.join(', ')}`,
-    )
+    throw new InvalidComponentTypeError(value, VALID_COMPONENT_TYPES)
   }
   return found
 }
@@ -35,9 +37,7 @@ export function normalizeComponentType(value: string): string {
   }
   const normalized = typeMap[value.toLowerCase()]
   if (normalized === undefined) {
-    throw new Error(
-      `Invalid component type: ${value}. Valid types: ${Object.keys(typeMap).join(', ')}`,
-    )
+    throw new InvalidNormalizedComponentTypeError(value, Object.keys(typeMap))
   }
   return normalized
 }

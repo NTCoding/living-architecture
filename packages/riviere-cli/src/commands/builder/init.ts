@@ -13,6 +13,7 @@ import { fileExists } from '../../file-existence'
 import {
   resolveGraphPath, getDefaultGraphPathDescription 
 } from '../../graph-path'
+import { InvalidDomainJsonError } from '../../errors'
 import type { SystemType } from '@living-architecture/riviere-schema'
 import { isValidSystemType } from '../../component-types'
 
@@ -40,7 +41,7 @@ function isDomainInputParsed(value: unknown): value is DomainInputParsed {
 function parseDomainJson(value: string, previous: DomainInputParsed[]): DomainInputParsed[] {
   const parsed: unknown = JSON.parse(value)
   if (!isDomainInputParsed(parsed)) {
-    throw new Error(`Invalid domain JSON: ${value}`)
+    throw new InvalidDomainJsonError(value)
   }
   return [...previous, parsed]
 }

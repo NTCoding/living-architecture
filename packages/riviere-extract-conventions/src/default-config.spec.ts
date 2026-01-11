@@ -8,7 +8,7 @@ import {
   type HasDecoratorPredicate,
 } from '@living-architecture/riviere-extract-config'
 import {
-  loadDefaultConfig, getFirstModule 
+  loadDefaultConfig, getFirstModule, TestAssertionError 
 } from './default-config-fixtures'
 
 function hasProperty<T extends string>(
@@ -32,13 +32,13 @@ function isHasDecoratorPredicate(predicate: unknown): predicate is HasDecoratorP
 
 function assertContainerDecorator(rule: unknown, expectedDecorator: string): void {
   if (!isDetectionRule(rule)) {
-    throw new Error('Expected DetectionRule')
+    throw new TestAssertionError('Expected DetectionRule')
   }
   if (!isInClassWithPredicate(rule.where)) {
-    throw new Error('Expected InClassWithPredicate')
+    throw new TestAssertionError('Expected InClassWithPredicate')
   }
   if (!isHasDecoratorPredicate(rule.where.inClassWith)) {
-    throw new Error('Expected HasDecoratorPredicate')
+    throw new TestAssertionError('Expected HasDecoratorPredicate')
   }
 
   expect(rule.where.inClassWith.hasDecorator).toStrictEqual({
@@ -49,10 +49,10 @@ function assertContainerDecorator(rule: unknown, expectedDecorator: string): voi
 
 function assertDirectDecorator(rule: unknown, expectedDecorator: string): void {
   if (!isDetectionRule(rule)) {
-    throw new Error('Expected DetectionRule')
+    throw new TestAssertionError('Expected DetectionRule')
   }
   if (!isHasDecoratorPredicate(rule.where)) {
-    throw new Error('Expected HasDecoratorPredicate')
+    throw new TestAssertionError('Expected HasDecoratorPredicate')
   }
 
   expect(rule.where.hasDecorator).toStrictEqual({

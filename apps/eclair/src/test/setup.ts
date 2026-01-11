@@ -3,6 +3,7 @@ import * as matchers from '@testing-library/jest-dom/matchers'
 import {
   fireEvent, screen 
 } from '@testing-library/react'
+import { TestAssertionError } from '@/test-assertions'
 
 expect.extend(matchers)
 
@@ -49,7 +50,7 @@ export function getDropZone(): HTMLElement {
     .getByRole('button', { name: /select file/i })
     .closest('div[class*="border-"]')
   if (dropZone === null) {
-    throw new Error('Drop zone not found')
+    throw new TestAssertionError('Drop zone not found')
   }
   if (!(dropZone instanceof HTMLElement)) {
     throw new TypeError('Drop zone is not an HTMLElement')

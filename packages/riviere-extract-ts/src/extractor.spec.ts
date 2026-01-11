@@ -1,12 +1,10 @@
 import {
   describe, it, expect 
 } from 'vitest'
-import {
-  type ExtractionConfig,
-  createMinimalConfig,
-} from '@living-architecture/riviere-extract-config'
+import type { ResolvedExtractionConfig } from '@living-architecture/riviere-extract-config'
 import { Project } from 'ts-morph'
 import { extractComponents } from './extractor'
+import { createResolvedConfig } from './test-fixtures'
 
 function createTestProject() {
   return new Project({ useInMemoryFileSystem: true })
@@ -14,7 +12,7 @@ function createTestProject() {
 
 describe('extractComponents', () => {
   it('returns empty array when no source files provided', () => {
-    const config: ExtractionConfig = createMinimalConfig()
+    const config = createResolvedConfig()
     const project = createTestProject()
 
     const result = extractComponents(project, [], config)
@@ -25,7 +23,7 @@ describe('extractComponents', () => {
   describe('edge cases', () => {
     it('returns empty array when file path not found in project', () => {
       const project = createTestProject()
-      const config = createMinimalConfig()
+      const config = createResolvedConfig()
 
       const result = extractComponents(project, ['nonexistent.ts'], config)
 
@@ -35,7 +33,7 @@ describe('extractComponents', () => {
     it('returns empty array when file path does not match any module', () => {
       const project = createTestProject()
       project.createSourceFile('unmatched/file.ts', 'export class Foo {}')
-      const config: ExtractionConfig = {
+      const config: ResolvedExtractionConfig = {
         modules: [
           {
             name: 'orders',
@@ -68,7 +66,7 @@ describe('extractComponents', () => {
         export class CreateOrder {}
       `,
       )
-      const config: ExtractionConfig = {
+      const config: ResolvedExtractionConfig = {
         modules: [
           {
             name: 'orders',
@@ -111,7 +109,7 @@ describe('extractComponents', () => {
         export default class {}
       `,
       )
-      const config: ExtractionConfig = {
+      const config: ResolvedExtractionConfig = {
         modules: [
           {
             name: 'orders',
@@ -148,7 +146,7 @@ describe('extractComponents', () => {
         }
       `,
       )
-      const config: ExtractionConfig = {
+      const config: ResolvedExtractionConfig = {
         modules: [
           {
             name: 'orders',
@@ -192,7 +190,7 @@ describe('extractComponents', () => {
         export function processOrder() {}
       `,
       )
-      const config: ExtractionConfig = {
+      const config: ResolvedExtractionConfig = {
         modules: [
           {
             name: 'orders',
@@ -234,7 +232,7 @@ describe('extractComponents', () => {
         export default function() {}
       `,
       )
-      const config: ExtractionConfig = {
+      const config: ResolvedExtractionConfig = {
         modules: [
           {
             name: 'orders',
@@ -269,7 +267,7 @@ describe('extractComponents', () => {
         export class CreateOrder {}
       `,
       )
-      const config: ExtractionConfig = {
+      const config: ResolvedExtractionConfig = {
         modules: [
           {
             name: 'orders',
@@ -312,7 +310,7 @@ describe('extractComponents', () => {
         export class ShipOrder {}
       `,
       )
-      const config: ExtractionConfig = {
+      const config: ResolvedExtractionConfig = {
         modules: [
           {
             name: 'shipping',

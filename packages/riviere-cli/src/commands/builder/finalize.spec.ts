@@ -47,16 +47,23 @@ function isFinalizeError(value: unknown): value is FinalizeErrorOutput {
   return true
 }
 
+class TestAssertionError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'TestAssertionError'
+  }
+}
+
 function assertFinalizeSuccess(value: unknown): FinalizeSuccessOutput {
   if (!isFinalizeSuccess(value)) {
-    throw new Error('Expected FinalizeSuccessOutput')
+    throw new TestAssertionError('Expected FinalizeSuccessOutput')
   }
   return value
 }
 
 function assertFinalizeError(value: unknown): FinalizeErrorOutput {
   if (!isFinalizeError(value)) {
-    throw new Error('Expected FinalizeErrorOutput')
+    throw new TestAssertionError('Expected FinalizeErrorOutput')
   }
   return value
 }

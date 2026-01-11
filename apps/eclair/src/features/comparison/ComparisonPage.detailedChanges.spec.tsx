@@ -1,12 +1,13 @@
 import {
-  describe, it, expect, vi, afterEach 
+  describe, it, expect, vi, afterEach
 } from 'vitest'
 import {
-  render, screen, waitFor 
+  render, screen, waitFor
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { ComparisonPage } from './ComparisonPage'
+import { TestAssertionError } from '@/test-assertions'
 
 function renderPage(): ReturnType<typeof render> {
   return render(
@@ -25,7 +26,7 @@ function stubFileReaderWithMultipleContents(contentArray: string[]): void {
     readAsText(): void {
       const content = contentArray[callCounter.index]
       if (content === undefined) {
-        throw new Error(
+        throw new TestAssertionError(
           `Mock FileReader called ${callCounter.index + 1} times but only ${contentArray.length} contents provided`,
         )
       }

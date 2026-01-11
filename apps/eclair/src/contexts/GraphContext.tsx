@@ -9,10 +9,13 @@ import {
   useMemo,
 } from 'react'
 import type {
-  RiviereGraph, GraphName 
+  RiviereGraph, GraphName
 } from '@/types/riviere'
 import { graphNameSchema } from '@/types/riviere'
 import { parseRiviereGraph } from '@living-architecture/riviere-schema'
+import {
+  GraphError, ContextError
+} from '@/errors'
 
 interface GraphContextValue {
   readonly graph: RiviereGraph | null
@@ -37,7 +40,7 @@ export async function fetchAndValidateDemoGraph(
 ): Promise<RiviereGraph> {
   const response = await fetch(url)
   if (!response.ok) {
-    throw new Error(`Failed to fetch demo graph: ${response.status}`)
+    throw new GraphError(`Failed to fetch demo graph: ${response.status}`)
   }
   const content = await response.text()
   const data: unknown = JSON.parse(content)
@@ -128,7 +131,7 @@ export function GraphProvider({ children }: GraphProviderProps): React.ReactElem
 export function useGraph(): GraphContextValue {
   const context = useContext(graphContext)
   if (context === null) {
-    throw new Error('useGraph must be used within a GraphProvider')
+    throw new ContextError('useGraph', 'GraphProvider')
   }
   return context
 }

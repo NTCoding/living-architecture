@@ -24,7 +24,7 @@
     "module": {
       "type": "object",
       "description": "A module defines extraction rules for a path pattern",
-      "required": ["name", "path", "api", "useCase", "domainOp", "event", "eventHandler", "ui"],
+      "required": ["name", "path"],
       "additionalProperties": false,
       "properties": {
         "name": {
@@ -35,6 +35,11 @@
         "path": {
           "type": "string",
           "description": "Glob pattern for files in this module",
+          "minLength": 1
+        },
+        "extends": {
+          "type": "string",
+          "description": "Package name or file path to inherit component rules from",
           "minLength": 1
         },
         "api": {
@@ -61,6 +66,14 @@
           "$ref": "#/$defs/componentRule",
           "description": "Detection rule for UI components"
         }
+      },
+      "if": {
+        "not": {
+          "required": ["extends"]
+        }
+      },
+      "then": {
+        "required": ["api", "useCase", "domainOp", "event", "eventHandler", "ui"]
       }
     },
     "componentRule": {

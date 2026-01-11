@@ -9,6 +9,7 @@ import {
   setupCommandTest,
   createGraph,
   sourceLocation,
+  TestAssertionError,
 } from '../../command-test-fixtures'
 
 interface ComponentCounts {
@@ -46,7 +47,7 @@ function isDomainsOutput(value: unknown): value is DomainsOutput {
 function parseOutput(consoleOutput: string[]): DomainsOutput {
   const parsed: unknown = JSON.parse(consoleOutput[0] ?? '{}')
   if (!isDomainsOutput(parsed)) {
-    throw new Error(`Invalid domains output: ${consoleOutput[0]}`)
+    throw new TestAssertionError(`Invalid domains output: ${consoleOutput[0]}`)
   }
   return parsed
 }

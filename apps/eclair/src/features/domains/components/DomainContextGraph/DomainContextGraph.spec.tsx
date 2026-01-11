@@ -1,13 +1,14 @@
 import {
-  describe, it, expect 
+  describe, it, expect
 } from 'vitest'
 import {
-  render, screen 
+  render, screen
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { BrowserRouter } from 'react-router-dom'
 import { DomainContextGraph } from './DomainContextGraph'
 import type { AggregatedConnection } from '../../extractDomainDetails'
+import { TestAssertionError } from '@/test-assertions'
 
 function createConnections(
   overrides: Partial<AggregatedConnection>[] = [],
@@ -36,7 +37,7 @@ function createConnections(
   return overrides.map((o, i) => {
     const base = defaults[i % defaults.length]
     if (base === undefined) {
-      throw new Error('Default connection not found')
+      throw new TestAssertionError('Default connection not found')
     }
     return {
       ...base,

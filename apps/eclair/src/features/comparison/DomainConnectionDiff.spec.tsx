@@ -1,12 +1,13 @@
 import {
-  describe, it, expect 
+  describe, it, expect
 } from 'vitest'
 import {
-  render, screen 
+  render, screen
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { DomainConnectionDiff } from './DomainConnectionDiff'
 import type { DomainConnectionDiffResult } from './computeDomainConnectionDiff'
+import { LayoutError } from '@/errors'
 
 interface MinimalDiffInput {
   domains: string[]
@@ -371,6 +372,52 @@ describe('DomainConnectionDiff', () => {
       render(<DomainConnectionDiff diff={diff} />)
 
       expect(screen.getByTestId('domain-connection-diff')).toBeInTheDocument()
+    })
+  })
+
+  describe('error handling', () => {
+    it('throws LayoutError when connection references missing domain', () => {
+      const diff = createMinimalDiff({
+        domains: ['orders'],
+        connections: {
+          added: [
+            {
+              source: 'orders',
+              target: 'nonexistent-domain',
+              apiCount: 1,
+              eventCount: 0,
+              edges: [],
+            },
+          ],
+          removed: [],
+          unchanged: [],
+        },
+      })
+
+      expect(() => render(<DomainConnectionDiff diff={diff} />)).toThrow(LayoutError)
+    })
+
+    it('throws LayoutError with descriptive message for missing position', () => {
+      const diff = createMinimalDiff({
+        domains: ['orders'],
+        connections: {
+          added: [
+            {
+              source: 'orders',
+              target: 'missing',
+              apiCount: 1,
+              eventCount: 0,
+              edges: [],
+            },
+          ],
+          removed: [],
+          unchanged: [],
+        },
+      })
+
+      expect(() => render(<DomainConnectionDiff diff={diff} />)).toThrow(
+        'Edge references missing position',
+      )
     })
   })
 

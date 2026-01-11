@@ -1,5 +1,6 @@
 import { Command } from 'commander'
 import { createRequire } from 'module'
+import { InvalidPackageJsonError } from './errors'
 import { createAddComponentCommand } from './commands/builder/add-component'
 import { createAddDomainCommand } from './commands/builder/add-domain'
 import { createAddSourceCommand } from './commands/builder/add-source'
@@ -24,12 +25,18 @@ import { createExtractCommand } from './commands/extract/extract'
 
 interface PackageJson {version: string}
 
+/**
+ * Parses and validates package.json data.
+ * @param pkg - Raw package.json content.
+ * @returns Validated package.json with version.
+ * @throws Error if package.json is invalid.
+ */
 export function parsePackageJson(pkg: unknown): PackageJson {
   if (typeof pkg !== 'object' || pkg === null || !('version' in pkg)) {
-    throw new Error('Invalid package.json: missing version field')
+    throw new InvalidPackageJsonError('missing version field')
   }
   if (typeof pkg.version !== 'string') {
-    throw new TypeError('Invalid package.json: version must be a string')
+    throw new InvalidPackageJsonError('version must be a string')
   }
   return { version: pkg.version }
 }
@@ -41,6 +48,10 @@ function loadPackageJson(): PackageJson {
 
 const packageJson = loadPackageJson()
 
+/**
+ * Creates and configures the CLI program with all commands.
+ * @returns Configured Commander program.
+ */
 export function createProgram(): Command {
   const program = new Command()
 

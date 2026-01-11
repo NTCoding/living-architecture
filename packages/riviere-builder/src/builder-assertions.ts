@@ -2,7 +2,9 @@ import type {
   CustomTypeDefinition, DomainMetadata 
 } from '@living-architecture/riviere-schema'
 import {
-  CustomTypeNotFoundError, DomainNotFoundError 
+  CustomTypeNotFoundError,
+  DomainNotFoundError,
+  MissingRequiredPropertiesError,
 } from './errors'
 
 export function assertDomainExists(domains: Record<string, DomainMetadata>, domain: string): void {
@@ -36,8 +38,6 @@ export function assertRequiredPropertiesProvided(
   const missingKeys = requiredKeys.filter((key) => !providedKeys.includes(key))
 
   if (missingKeys.length > 0) {
-    throw new Error(
-      `Missing required properties for '${customTypeName}': ${missingKeys.join(', ')}`,
-    )
+    throw new MissingRequiredPropertiesError(customTypeName, missingKeys)
   }
 }

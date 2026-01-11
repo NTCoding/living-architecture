@@ -13,6 +13,7 @@ import {
   apiComponent,
   useCaseComponent,
   eventHandlerComponent,
+  TestAssertionError,
 } from '../../command-test-fixtures'
 
 interface EntryPointsOutput {
@@ -39,7 +40,7 @@ function isEntryPointsOutput(value: unknown): value is EntryPointsOutput {
 function parseOutput(consoleOutput: string[]): EntryPointsOutput {
   const parsed: unknown = JSON.parse(consoleOutput[0] ?? '{}')
   if (!isEntryPointsOutput(parsed)) {
-    throw new Error(`Invalid entry-points output: ${consoleOutput[0]}`)
+    throw new TestAssertionError(`Invalid entry-points output: ${consoleOutput[0]}`)
   }
   return parsed
 }

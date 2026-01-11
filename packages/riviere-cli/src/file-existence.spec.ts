@@ -6,6 +6,7 @@ import {
 } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { MockError } from './command-test-fixtures'
 
 describe('fileExists', () => {
   const testContext: { testDir: string } = { testDir: '' }
@@ -40,7 +41,7 @@ describe('fileExists', () => {
   })
 
   it('rethrows non-ENOENT errors', async () => {
-    const permissionError = new Error('Permission denied')
+    const permissionError = new MockError('Permission denied')
     Object.assign(permissionError, { code: 'EACCES' })
 
     vi.doMock('node:fs/promises', () => ({ access: vi.fn().mockRejectedValue(permissionError) }))

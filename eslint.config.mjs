@@ -72,13 +72,17 @@ export default tseslint.config(
       // Prefer positive conditions in if/else and ternaries (SonarCloud S7735)
       'no-negated-condition': 'error',
 
-      // Ban let - use const only
+      // Ban let - use const only 
       'no-restricted-syntax': [
         'error',
         {
           selector: 'VariableDeclaration[kind="let"]',
           message: 'Use const. Avoid mutation.',
         },
+        {
+          selector: 'NewExpression[callee.name="Error"]',
+          message: 'Use custom precise error classes instead of generic Error or fail assertions in tests.',
+        }
       ],
       'prefer-const': 'error',
       'no-var': 'error',
@@ -198,27 +202,43 @@ export default tseslint.config(
       },
     },
   },
-  // JSDoc enforcement for RiviereBuilder public API only
-  {
-    files: ['packages/riviere-builder/src/builder.ts'],
-    plugins: { jsdoc },
-    rules: {
-      'jsdoc/require-jsdoc': [
-        'error',
-        {
-          publicOnly: { ancestorsOnly: true },
-          require: {
-            ClassDeclaration: true,
-            MethodDefinition: true,
-          },
-        },
+  // JSDoc enforcement for public library APIs
+    {
+      files: [
+      'packages/riviere-builder/src/builder.ts',
+    'packages/riviere-cli/src/cli.ts',
+    'packages/riviere-cli/src/error-codes.ts',
+    'packages/riviere-cli/src/output.ts',
+    'packages/riviere-extract-config/src/types.ts',
+    'packages/riviere-extract-config/src/validation.ts',
+    'packages/riviere-extract-ts/src/extractor.ts',
+    'packages/riviere-extract-ts/src/resolve-config.ts',
+    'packages/riviere-extract-ts/src/predicates/evaluate-predicate.ts',
       ],
-      'jsdoc/require-param': 'error',
-      'jsdoc/require-param-description': 'error',
-      'jsdoc/require-returns': 'error',
-      'jsdoc/require-returns-description': 'error',
+      ignores: ['**/*.spec.ts'],
+      plugins: { jsdoc },
+      rules: {
+        'jsdoc/require-jsdoc': [
+          'error',
+          {
+            publicOnly: true,
+            require: {
+              ClassDeclaration: true,
+              MethodDefinition: true,
+              FunctionDeclaration: true,
+            },
+            contexts: [
+              'TSInterfaceDeclaration',
+              'TSTypeAliasDeclaration',
+            ],
+          },
+        ],
+        'jsdoc/require-param': 'error',
+        'jsdoc/require-param-description': 'error',
+        'jsdoc/require-returns': 'error',
+        'jsdoc/require-returns-description': 'error',
+      },
     },
-  },
   {
     plugins: {
       '@stylistic': stylistic,

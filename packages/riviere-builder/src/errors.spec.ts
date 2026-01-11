@@ -7,6 +7,14 @@ import {
   DomainNotFoundError,
   DuplicateComponentError,
   DuplicateDomainError,
+  InvalidEnrichmentTargetError,
+  CustomTypeAlreadyDefinedError,
+  MissingRequiredPropertiesError,
+  InvalidGraphError,
+  MissingSourcesError,
+  MissingDomainsError,
+  BuildValidationError,
+  DirectoryNotFoundError,
 } from './errors'
 
 describe('errors', () => {
@@ -84,6 +92,87 @@ describe('errors', () => {
         'orders:checkout:api:create-order',
         'orders:checkout:api:update-order',
       ])
+    })
+  })
+
+  describe('InvalidEnrichmentTargetError', () => {
+    it('includes component ID and type in message', () => {
+      const error = new InvalidEnrichmentTargetError('orders:api:create', 'API')
+
+      expect(error.message).toBe(
+        "Only DomainOp components can be enriched. 'orders:api:create' is type 'API'",
+      )
+      expect(error.componentId).toBe('orders:api:create')
+      expect(error.componentType).toBe('API')
+      expect(error.name).toBe('InvalidEnrichmentTargetError')
+    })
+  })
+
+  describe('CustomTypeAlreadyDefinedError', () => {
+    it('includes type name in message', () => {
+      const error = new CustomTypeAlreadyDefinedError('Worker')
+
+      expect(error.message).toBe("Custom type 'Worker' already defined")
+      expect(error.typeName).toBe('Worker')
+      expect(error.name).toBe('CustomTypeAlreadyDefinedError')
+    })
+  })
+
+  describe('MissingRequiredPropertiesError', () => {
+    it('includes custom type name and missing keys in message', () => {
+      const error = new MissingRequiredPropertiesError('Worker', ['queueName', 'concurrency'])
+
+      expect(error.message).toBe("Missing required properties for 'Worker': queueName, concurrency")
+      expect(error.customTypeName).toBe('Worker')
+      expect(error.missingKeys).toStrictEqual(['queueName', 'concurrency'])
+      expect(error.name).toBe('MissingRequiredPropertiesError')
+    })
+  })
+
+  describe('InvalidGraphError', () => {
+    it('includes reason in message', () => {
+      const error = new InvalidGraphError('missing version')
+
+      expect(error.message).toBe('Invalid graph: missing version')
+      expect(error.name).toBe('InvalidGraphError')
+    })
+  })
+
+  describe('MissingSourcesError', () => {
+    it('sets message', () => {
+      const error = new MissingSourcesError()
+
+      expect(error.message).toBe('At least one source required')
+      expect(error.name).toBe('MissingSourcesError')
+    })
+  })
+
+  describe('MissingDomainsError', () => {
+    it('sets message', () => {
+      const error = new MissingDomainsError()
+
+      expect(error.message).toBe('At least one domain required')
+      expect(error.name).toBe('MissingDomainsError')
+    })
+  })
+
+  describe('BuildValidationError', () => {
+    it('includes validation messages in message', () => {
+      const error = new BuildValidationError(['error 1', 'error 2'])
+
+      expect(error.message).toBe('Validation failed: error 1; error 2')
+      expect(error.validationMessages).toStrictEqual(['error 1', 'error 2'])
+      expect(error.name).toBe('BuildValidationError')
+    })
+  })
+
+  describe('DirectoryNotFoundError', () => {
+    it('includes directory in message', () => {
+      const error = new DirectoryNotFoundError('/path/to/dir')
+
+      expect(error.message).toBe('Directory does not exist: /path/to/dir')
+      expect(error.directory).toBe('/path/to/dir')
+      expect(error.name).toBe('DirectoryNotFoundError')
     })
   })
 })

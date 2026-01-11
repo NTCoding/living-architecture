@@ -14,12 +14,15 @@ import {
   isValidExtractionConfig,
 } from '@living-architecture/riviere-extract-config'
 import {
-  extractComponents, type DraftComponent 
+  extractComponents,
+  resolveConfig,
+  type DraftComponent,
 } from '@living-architecture/riviere-extract-ts'
 import {
   formatError, formatSuccess 
 } from '../../output'
 import { CliErrorCode } from '../../error-codes'
+import { createConfigLoader } from './config-loader'
 
 interface ExtractOptions {
   config: string
@@ -124,15 +127,17 @@ export function createExtractCommand(): Command {
         process.exit(1)
       }
 
-      const config = parseResult.data
+      const unresolvedConfig = parseResult.data
       const configDir = dirname(resolve(options.config))
+      const configLoader = createConfigLoader(configDir)
+      const resolvedConfig = resolveConfig(unresolvedConfig, configLoader)
 
-      const sourceFilePaths = config.modules
+      const sourceFilePaths = resolvedConfig.modules
         .flatMap((module) => globSync(module.path, { cwd: configDir }))
         .map((filePath) => resolve(configDir, filePath))
 
       if (sourceFilePaths.length === 0) {
-        const patterns = config.modules.map((m) => m.path).join(', ')
+        const patterns = resolvedConfig.modules.map((m) => m.path).join(', ')
         console.log(
           JSON.stringify(
             formatError(
@@ -147,7 +152,7 @@ export function createExtractCommand(): Command {
       const project = new Project()
       project.addSourceFilesAtPaths(sourceFilePaths)
 
-      const components = extractComponents(project, sourceFilePaths, config)
+      const components = extractComponents(project, sourceFilePaths, resolvedConfig)
 
       if (options.dryRun) {
         const lines = formatDryRunOutput(components)

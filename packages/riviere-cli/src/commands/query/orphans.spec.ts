@@ -11,6 +11,7 @@ import {
   baseMetadata,
   apiComponent,
   useCaseComponent,
+  TestAssertionError,
 } from '../../command-test-fixtures'
 
 interface OrphansSuccessOutput {
@@ -55,14 +56,14 @@ function parseOutput(consoleOutput: string[]): OrphansSuccessOutput | OrphansErr
   const parsed: unknown = JSON.parse(consoleOutput[0] ?? '{}')
   if (isOrphansSuccessOutput(parsed)) return parsed
   if (isOrphansErrorOutput(parsed)) return parsed
-  throw new Error(`Invalid orphans output: ${consoleOutput[0]}`)
+  throw new TestAssertionError(`Invalid orphans output: ${consoleOutput[0]}`)
 }
 
 function assertSuccess(output: OrphansSuccessOutput | OrphansErrorOutput): OrphansSuccessOutput {
   if (isOrphansSuccessOutput(output)) {
     return output
   }
-  throw new Error('Expected success output')
+  throw new TestAssertionError('Expected success output')
 }
 
 function getSortedOrphans(output: OrphansSuccessOutput): string[] {

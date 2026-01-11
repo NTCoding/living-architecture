@@ -39,10 +39,15 @@ import {
   deduplicateStrings, deduplicateStateTransitions 
 } from './deduplicate'
 import {
+  BuildValidationError,
   CustomTypeAlreadyDefinedError,
+  DirectoryNotFoundError,
   DuplicateComponentError,
   DuplicateDomainError,
   InvalidEnrichmentTargetError,
+  InvalidGraphError,
+  MissingDomainsError,
+  MissingSourcesError,
 } from './errors'
 import type {
   APIInput,
@@ -151,7 +156,7 @@ export class RiviereBuilder {
    */
   static resume(graph: RiviereGraph): RiviereBuilder {
     if (!graph.metadata.sources || graph.metadata.sources.length === 0) {
-      throw new Error('Invalid graph: missing sources')
+      throw new InvalidGraphError('missing sources')
     }
 
     const builderGraph: BuilderGraph = {
@@ -190,11 +195,11 @@ export class RiviereBuilder {
    */
   static new(options: BuilderOptions): RiviereBuilder {
     if (options.sources.length === 0) {
-      throw new Error('At least one source required')
+      throw new MissingSourcesError()
     }
 
     if (Object.keys(options.domains).length === 0) {
-      throw new Error('At least one domain required')
+      throw new MissingDomainsError()
     }
 
     const graph: BuilderGraph = {
@@ -837,8 +842,8 @@ export class RiviereBuilder {
   build(): RiviereGraph {
     const result = this.validate()
     if (!result.valid) {
-      const messages = result.errors.map((e) => e.message).join('; ')
-      throw new Error(`Validation failed: ${messages}`)
+      const messages = result.errors.map((e) => e.message)
+      throw new BuildValidationError(messages)
     }
     return toRiviereGraph(this.graph)
   }
@@ -863,7 +868,7 @@ export class RiviereBuilder {
     try {
       await fs.access(dir)
     } catch {
-      throw new Error(`Directory does not exist: ${dir}`)
+      throw new DirectoryNotFoundError(dir)
     }
 
     const json = JSON.stringify(graph, null, 2)

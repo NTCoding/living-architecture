@@ -11,6 +11,7 @@ import {
   createTestContext,
   setupCommandTest,
   createGraphWithDomain,
+  MockError,
 } from '../../command-test-fixtures'
 import { buildAddComponentArgs } from './add-component-fixtures'
 
@@ -351,7 +352,7 @@ describe('riviere builder add-component', () => {
 
   describe('getErrorMessage', () => {
     it('returns message from Error instance', () =>
-      expect(getErrorMessage(new Error('test error'))).toBe('test error'))
+      expect(getErrorMessage(new MockError('test error'))).toBe('test error'))
     it('returns Unknown error when input is string', () =>
       expect(getErrorMessage('string error')).toBe('Unknown error'))
     it('returns Unknown error when input is null', () =>

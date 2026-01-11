@@ -1,6 +1,7 @@
 import type {
   RiviereGraph, Node, Edge, NodeType, NodeId 
 } from '@/types/riviere'
+import { GraphError } from '@/errors'
 
 interface NodeAddition {node: Node}
 
@@ -208,8 +209,9 @@ function ensureNodeTypeEntry(acc: ByNodeTypeAccumulator, nodeType: NodeType): No
     acc.data.set(nodeType, initializeChanges())
   }
   const entry = acc.data.get(nodeType)
+  /* v8 ignore next -- @preserve defensive: Map.get after Map.set */
   if (entry === undefined) {
-    throw new Error(`Failed to initialize NodeTypeChanges for ${nodeType}`)
+    throw new GraphError(`Failed to initialize NodeTypeChanges for ${nodeType}`)
   }
   return entry
 }
