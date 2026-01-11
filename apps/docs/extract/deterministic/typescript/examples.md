@@ -108,7 +108,7 @@ class OrderPlaced extends DomainEvent {
   // Extracted as: event "OrderPlaced"
 }
 
-class Order {
+class OrderEntity {
   begin(): void {
     // Extracted as: domainOp "begin"
   }
@@ -205,6 +205,7 @@ modules:
       find: "methods"
       where:
         inClassWith:
+          # Example pattern - adjust to match your entity class names
           nameMatches:
             pattern: "^(Order|Product|Customer)$"
     event:
@@ -233,7 +234,7 @@ class PlaceOrderUseCase {
   // Extracted as: useCase "PlaceOrderUseCase"
 }
 
-class Order {
+class OrderEntity {
   begin(): void {
     // Extracted as: domainOp "begin"
   }

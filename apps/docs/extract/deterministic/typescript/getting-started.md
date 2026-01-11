@@ -98,7 +98,7 @@ npx riviere extract \
 }
 ```
 
-The `domain` field comes from the module `name` in your config. The default config uses "default" as the module name.
+The `domain` field comes from the module `name` in your config. The default config uses "default" as the module name — customize it to use domain-specific names like "orders" or "shipping" (see [Customize Your Config](#customize-your-config) below).
 
 ## Step 3: Verify Results
 

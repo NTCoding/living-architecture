@@ -366,25 +366,35 @@ function isSchema(value: unknown): value is Schema {
 }
 
 // Main execution
-const schemaPath = join(import.meta.dirname, '..', 'extraction-config.schema.json')
-const schemaContent = readFileSync(schemaPath, 'utf-8')
-const parsed: unknown = JSON.parse(schemaContent)
-if (!isSchema(parsed)) {
-  throw new InvalidSchemaFormatError()
+try {
+  const schemaPath = join(import.meta.dirname, '..', 'extraction-config.schema.json')
+  const schemaContent = readFileSync(schemaPath, 'utf-8')
+  const parsed: unknown = JSON.parse(schemaContent)
+  if (!isSchema(parsed)) {
+    throw new InvalidSchemaFormatError()
+  }
+  const schema = parsed
+
+  const outputDir = join(import.meta.dirname, '..', 'docs', 'generated')
+  mkdirSync(outputDir, { recursive: true })
+
+  const predicatesContent = generatePredicatesReference(schema)
+  const predicatesPath = join(outputDir, 'predicates.md')
+  writeFileSync(predicatesPath, predicatesContent, 'utf-8')
+  console.log(`Generated: ${predicatesPath}`)
+  console.log(`Lines: ${predicatesContent.split('\n').length}`)
+
+  const schemaRefContent = generateSchemaReference(schema)
+  const schemaRefPath = join(outputDir, 'schema.md')
+  writeFileSync(schemaRefPath, schemaRefContent, 'utf-8')
+  console.log(`Generated: ${schemaRefPath}`)
+  console.log(`Lines: ${schemaRefContent.split('\n').length}`)
+} catch (error) {
+  const message = error instanceof Error ? error.message : String(error)
+  const stack = error instanceof Error ? error.stack : undefined
+  console.error('Documentation generation failed:', message)
+  if (stack) {
+    console.error(stack)
+  }
+  process.exit(1)
 }
-const schema = parsed
-
-const outputDir = join(import.meta.dirname, '..', 'docs', 'generated')
-mkdirSync(outputDir, { recursive: true })
-
-const predicatesContent = generatePredicatesReference(schema)
-const predicatesPath = join(outputDir, 'predicates.md')
-writeFileSync(predicatesPath, predicatesContent, 'utf-8')
-console.log(`Generated: ${predicatesPath}`)
-console.log(`Lines: ${predicatesContent.split('\n').length}`)
-
-const schemaRefContent = generateSchemaReference(schema)
-const schemaRefPath = join(outputDir, 'schema.md')
-writeFileSync(schemaRefPath, schemaRefContent, 'utf-8')
-console.log(`Generated: ${schemaRefPath}`)
-console.log(`Lines: ${schemaRefContent.split('\n').length}`)
