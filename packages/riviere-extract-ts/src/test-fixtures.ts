@@ -2,8 +2,8 @@ import type {
   ResolvedExtractionConfig, Module 
 } from '@living-architecture/riviere-extract-config'
 
-export function createMinimalModule(): Module {
-  return {
+export function createResolvedConfig(): ResolvedExtractionConfig {
+  const minimalModule: Module = {
     name: 'test',
     path: 'src/**',
     api: { notUsed: true },
@@ -13,8 +13,5 @@ export function createMinimalModule(): Module {
     eventHandler: { notUsed: true },
     ui: { notUsed: true },
   }
-}
-
-export function createResolvedConfig(): ResolvedExtractionConfig {
-  return { modules: [createMinimalModule()] }
+  return { modules: [minimalModule] }
 }
