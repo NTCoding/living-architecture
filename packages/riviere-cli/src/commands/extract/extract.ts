@@ -13,13 +13,18 @@ import {
   formatValidationErrors,
   isValidExtractionConfig,
 } from '@living-architecture/riviere-extract-config'
-import { extractComponents } from '@living-architecture/riviere-extract-ts'
+import {
+  extractComponents, type DraftComponent 
+} from '@living-architecture/riviere-extract-ts'
 import {
   formatError, formatSuccess 
 } from '../../output'
 import { CliErrorCode } from '../../error-codes'
 
-interface ExtractOptions {config: string}
+interface ExtractOptions {
+  config: string
+  dryRun?: boolean
+}
 
 type ParseResult =
   | {
@@ -30,6 +35,38 @@ type ParseResult =
     success: false
     error: string
   }
+
+/* v8 ignore start -- @preserve: trivial comparator, Map keys guarantee a !== b */
+function compareByCodePoint(a: string, b: string): number {
+  if (a < b) return -1
+  if (a > b) return 1
+  return 0
+}
+/* v8 ignore stop */
+
+function formatDryRunOutput(components: DraftComponent[]): string[] {
+  const countsByDomain = new Map<string, Map<string, number>>()
+
+  for (const component of components) {
+    const existingTypeCounts = countsByDomain.get(component.domain)
+    const typeCounts = existingTypeCounts ?? new Map<string, number>()
+    if (existingTypeCounts === undefined) {
+      countsByDomain.set(component.domain, typeCounts)
+    }
+    const currentCount = typeCounts.get(component.type) ?? 0
+    typeCounts.set(component.type, currentCount + 1)
+  }
+
+  const sortedDomains = [...countsByDomain.entries()].sort(([a], [b]) => compareByCodePoint(a, b))
+  const lines: string[] = []
+  for (const [domain, typeCounts] of sortedDomains) {
+    const typeStrings = [...typeCounts.entries()]
+      .sort(([a], [b]) => compareByCodePoint(a, b))
+      .map(([type, count]) => `${type}(${count})`)
+    lines.push(`${domain}: ${typeStrings.join(', ')}`)
+  }
+  return lines
+}
 
 function parseConfigFile(content: string): ParseResult {
   try {
@@ -51,6 +88,7 @@ export function createExtractCommand(): Command {
   return new Command('extract')
     .description('Extract architectural components from source code')
     .requiredOption('--config <path>', 'Path to extraction config file')
+    .option('--dry-run', 'Show component counts per domain without full output')
     .action((options: ExtractOptions) => {
       if (!existsSync(options.config)) {
         console.log(
@@ -110,6 +148,14 @@ export function createExtractCommand(): Command {
       project.addSourceFilesAtPaths(sourceFilePaths)
 
       const components = extractComponents(project, sourceFilePaths, config)
+
+      if (options.dryRun) {
+        const lines = formatDryRunOutput(components)
+        for (const line of lines) {
+          console.log(line)
+        }
+        return
+      }
 
       console.log(JSON.stringify(formatSuccess(components)))
     })

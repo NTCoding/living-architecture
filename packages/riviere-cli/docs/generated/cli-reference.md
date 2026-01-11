@@ -695,6 +695,11 @@ riviere extract [options]
 |------|-------------|
 | `--config <path>` | Path to extraction config file |
 
+**Optional:**
+| Flag | Description |
+|------|-------------|
+| `--dry-run` | Show component counts per domain without full output |
+
 ---
 
 ## See Also
