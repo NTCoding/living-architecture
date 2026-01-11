@@ -68,7 +68,7 @@ show_pr_feedback() {
 # Precondition: check for uncommitted changes
 UNCOMMITTED=$(git status --porcelain)
 if [[ -n "$UNCOMMITTED" ]]; then
-    echo "Error: Uncommitted changes detected. Commit and push first." >&2
+    echo "Error: Uncommitted changes detected. Commit your changes then try again." >&2
     echo "$UNCOMMITTED" >&2
     exit 1
 fi
