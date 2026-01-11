@@ -81,6 +81,106 @@ gh issue list --label "idea" --milestone "" --state open
 
 ---
 
+## RFC-004: Non-Deterministic String Sorting
+
+**Source:** PR #123 (CodeRabbit)
+
+**Pattern:** Using `localeCompare()` for sorting produces environment-dependent results. Different locales sort strings differently, making output non-deterministic across machines.
+
+**Example (BAD):**
+```typescript
+const sorted = domains.sort((a, b) => a.localeCompare(b))
+// Output varies by environment locale settings
+```
+
+**Example (GOOD):**
+```typescript
+function compareByCodePoint(a: string, b: string): number {
+  if (a < b) return -1
+  if (a > b) return 1
+  return 0
+}
+
+const sorted = domains.sort(compareByCodePoint)
+// Output is deterministic across all environments
+```
+
+**Detection:** Any use of `.localeCompare()` in sorting or comparison logic. Only acceptable when locale-specific sorting is explicitly required (e.g., user-facing alphabetical lists where locale matters).
+
+---
+
+## RFC-005: Type Redefinition Instead of Import
+
+**Source:** PR #123 (CodeRabbit)
+
+**Pattern:** Locally defining a type that's already exported from another package, creating maintenance burden and potential drift.
+
+**When it's bad (this case):**
+```typescript
+// In test file
+interface DraftComponent {
+  type: string
+  name: string
+  domain: string
+  location: { file: string; line: number }
+}
+```
+The type is identical to what's exported from `@living-architecture/riviere-extract-ts`. This creates:
+- Maintenance burden: changes in source require manual sync
+- Potential drift: types can diverge silently
+- Wasted code: duplication with no benefit
+
+**When local definition is acceptable:**
+- The type is a subset (only needs some fields)
+- The type has different semantics (same shape, different meaning)
+- Importing would create circular dependencies
+- Test-specific extension that adds test helpers
+
+**Example (BAD):**
+```typescript
+// Exact copy of exported type - just import it
+interface DraftComponent {
+  type: string
+  name: string
+  domain: string
+  location: { file: string; line: number }
+}
+```
+
+**Example (GOOD):**
+```typescript
+import { type DraftComponent } from '@living-architecture/riviere-extract-ts'
+```
+
+**Detection:** Local interface/type definitions that match exported types from project packages. Check if the local definition could be replaced with an import.
+
+---
+
+## RFC-006: Incorrect Workflow Instructions
+
+**Source:** PR #123 (User feedback during post-merge-completion)
+
+**Pattern:** Workflow documentation instructs direct commits/pushes to main, which is blocked by project rules.
+
+**Example (BAD):**
+```markdown
+**If implementing improvements:**
+- Make the changes
+- Commit to main (or create a new task if significant)
+```
+
+**Example (GOOD):**
+```markdown
+**If implementing improvements:**
+- Create a GitHub issue using `./scripts/create-non-milestone-task.sh --type tech`
+- Proceed to cleanup
+- After cleanup, start the new task via normal workflow
+```
+
+**Detection:** Any workflow/command documentation that suggests committing or pushing directly to main. All changes must go through PRs.
+
+---
+
 ## Adding New Checks
 
 When external review feedback reveals a pattern:
