@@ -33,6 +33,18 @@
         "parallel": false
       },
       "dependsOn": ["build"]
+    },
+    "smoke-test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "node dist/bin.js --help",
+          "node dist/bin.js extract --help"
+        ],
+        "cwd": "{projectRoot}",
+        "parallel": false
+      },
+      "dependsOn": ["build"]
     }
   }
 }

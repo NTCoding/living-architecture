@@ -1,14 +1,11 @@
 import * as esbuild from 'esbuild'
+import { readFileSync } from 'fs'
 
-// npm dependencies that must be external (not bundled)
-// These use CommonJS patterns that fail when bundled into ESM
-const externalDependencies = [
-  'commander',
-  'glob',
-  'ts-morph',
-  'tslib',
-  'yaml',
-]
+// Auto-derive external dependencies from package.json
+// This prevents drift between declared dependencies and bundler config
+const pkg = JSON.parse(readFileSync('./package.json', 'utf-8'))
+const externalDependencies = Object.keys(pkg.dependencies || {})
+  .filter(dep => !dep.startsWith('@living-architecture/')) // Bundle workspace packages
 
 // CLI binary entry point
 await esbuild.build({
