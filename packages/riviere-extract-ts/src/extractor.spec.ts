@@ -4,7 +4,9 @@ import {
 import type { ResolvedExtractionConfig } from '@living-architecture/riviere-extract-config'
 import { Project } from 'ts-morph'
 import { extractComponents } from './extractor'
-import { createResolvedConfig } from './test-fixtures'
+import {
+  createResolvedConfig, createOrdersUseCaseConfig 
+} from './test-fixtures'
 
 function createTestProject() {
   return new Project({ useInMemoryFileSystem: true })
@@ -92,6 +94,92 @@ describe('extractComponents', () => {
           name: 'CreateOrder',
           location: {
             file: 'orders\\use-cases\\create-order.ts',
+            line: 3,
+          },
+          domain: 'orders',
+        },
+      ])
+    })
+
+    it('extracts components when source file paths are absolute and module paths are relative', () => {
+      const project = createTestProject()
+      const absolutePath = '/project/root/orders/use-cases/create-order.ts'
+      project.createSourceFile(
+        absolutePath,
+        `
+        function UseCase() { return (target: any) => target }
+        @UseCase
+        export class CreateOrder {}
+      `,
+      )
+
+      const result = extractComponents(
+        project,
+        [absolutePath],
+        createOrdersUseCaseConfig(),
+        '/project/root',
+      )
+
+      expect(result).toStrictEqual([
+        {
+          type: 'useCase',
+          name: 'CreateOrder',
+          location: {
+            file: absolutePath,
+            line: 3,
+          },
+          domain: 'orders',
+        },
+      ])
+    })
+
+    it('returns empty when absolute file path is outside configDir', () => {
+      const project = createTestProject()
+      const absolutePath = '/other/project/orders/use-cases/create-order.ts'
+      project.createSourceFile(
+        absolutePath,
+        `
+        function UseCase() { return (target: any) => target }
+        @UseCase
+        export class CreateOrder {}
+      `,
+      )
+
+      const result = extractComponents(
+        project,
+        [absolutePath],
+        createOrdersUseCaseConfig(),
+        '/project/root',
+      )
+
+      expect(result).toStrictEqual([])
+    })
+
+    it('extracts components when Windows absolute paths used with configDir', () => {
+      const project = createTestProject()
+      const absolutePath = 'C:\\project\\root\\orders\\use-cases\\create-order.ts'
+      project.createSourceFile(
+        absolutePath,
+        `
+        function UseCase() { return (target: any) => target }
+        @UseCase
+        export class CreateOrder {}
+      `,
+      )
+
+      const result = extractComponents(
+        project,
+        [absolutePath],
+        createOrdersUseCaseConfig(),
+        'C:\\project\\root',
+      )
+
+      expect(result).toStrictEqual([
+        {
+          type: 'useCase',
+          name: 'CreateOrder',
+          location: {
+            file: absolutePath,
             line: 3,
           },
           domain: 'orders',

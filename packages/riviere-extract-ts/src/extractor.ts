@@ -6,6 +6,7 @@ import type {
   SourceFile,
 } from 'ts-morph'
 import { minimatch } from 'minimatch'
+import { posix } from 'node:path'
 import type {
   ResolvedExtractionConfig,
   ComponentType,
@@ -56,27 +57,32 @@ function isDetectionRule(rule: unknown): rule is DetectionRule {
  * @param project - ts-morph Project instance.
  * @param sourceFilePaths - Paths to source files to extract from.
  * @param config - Resolved extraction config with detection rules.
+ * @param configDir - Optional base directory for resolving relative module paths.
  * @returns Array of extracted draft components.
  */
 export function extractComponents(
   project: Project,
   sourceFilePaths: string[],
   config: ResolvedExtractionConfig,
+  configDir?: string,
 ): DraftComponent[] {
-  return sourceFilePaths.flatMap((filePath) => extractFromFile(project, filePath, config))
+  return sourceFilePaths.flatMap((filePath) =>
+    extractFromFile(project, filePath, config, configDir),
+  )
 }
 
 function extractFromFile(
   project: Project,
   filePath: string,
   config: ResolvedExtractionConfig,
+  configDir?: string,
 ): DraftComponent[] {
   const sourceFile = project.getSourceFile(filePath)
   if (sourceFile === undefined) {
     return []
   }
 
-  const matchingModule = findMatchingModule(filePath, config.modules)
+  const matchingModule = findMatchingModule(filePath, config.modules, configDir)
   if (matchingModule === undefined) {
     return []
   }
@@ -231,7 +237,16 @@ function createFunctionComponent(
   ]
 }
 
-function findMatchingModule(filePath: string, modules: Module[]): Module | undefined {
+function findMatchingModule(
+  filePath: string,
+  modules: Module[],
+  configDir?: string,
+): Module | undefined {
   const normalized = filePath.replaceAll(/\\+/g, '/')
-  return modules.find((m) => minimatch(normalized, m.path))
+  if (configDir === undefined) {
+    return modules.find((m) => minimatch(normalized, m.path))
+  }
+  const normalizedConfigDir = configDir.replaceAll(/\\+/g, '/')
+  const pathToMatch = posix.relative(normalizedConfigDir, normalized)
+  return modules.find((m) => minimatch(pathToMatch, m.path))
 }
