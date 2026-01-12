@@ -1,5 +1,5 @@
 import * as esbuild from 'esbuild'
-import { readFileSync } from 'fs'
+import { readFileSync } from 'node:fs'
 
 // Auto-derive external dependencies from package.json
 // This prevents drift between declared dependencies and bundler config
