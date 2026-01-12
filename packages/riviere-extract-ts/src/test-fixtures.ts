@@ -15,3 +15,23 @@ export function createResolvedConfig(): ResolvedExtractionConfig {
   }
   return { modules: [minimalModule] }
 }
+
+export function createOrdersUseCaseConfig(modulePath = 'orders/**'): ResolvedExtractionConfig {
+  return {
+    modules: [
+      {
+        name: 'orders',
+        path: modulePath,
+        api: { notUsed: true },
+        useCase: {
+          find: 'classes',
+          where: { hasDecorator: { name: 'UseCase' } },
+        },
+        domainOp: { notUsed: true },
+        event: { notUsed: true },
+        eventHandler: { notUsed: true },
+        ui: { notUsed: true },
+      },
+    ],
+  }
+}
