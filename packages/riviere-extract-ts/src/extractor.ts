@@ -6,7 +6,7 @@ import type {
   SourceFile,
 } from 'ts-morph'
 import { minimatch } from 'minimatch'
-import { relative } from 'node:path'
+import { posix } from 'node:path'
 import type {
   ResolvedExtractionConfig,
   ComponentType,
@@ -247,6 +247,6 @@ function findMatchingModule(
     return modules.find((m) => minimatch(normalized, m.path))
   }
   const normalizedConfigDir = configDir.replaceAll(/\\+/g, '/')
-  const pathToMatch = relative(normalizedConfigDir, normalized).replaceAll(/\\+/g, '/')
+  const pathToMatch = posix.relative(normalizedConfigDir, normalized)
   return modules.find((m) => minimatch(pathToMatch, m.path))
 }
