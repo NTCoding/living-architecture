@@ -1,9 +1,17 @@
 import * as esbuild from 'esbuild'
 import { readFileSync } from 'node:fs'
+import {
+  dirname,
+  join,
+} from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+// Resolve package.json relative to this config file, not CWD
+const __dirname = dirname(fileURLToPath(import.meta.url))
+const pkg = JSON.parse(readFileSync(join(__dirname, 'package.json'), 'utf-8'))
 
 // Auto-derive external dependencies from package.json
 // This prevents drift between declared dependencies and bundler config
-const pkg = JSON.parse(readFileSync('./package.json', 'utf-8'))
 const externalDependencies = Object.keys(pkg.dependencies || {})
   .filter(dep => !dep.startsWith('@living-architecture/')) // Bundle workspace packages
 
