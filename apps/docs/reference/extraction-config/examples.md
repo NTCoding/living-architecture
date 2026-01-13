@@ -234,9 +234,9 @@ class PlaceOrderUseCase {
   // Extracted as: useCase "PlaceOrderUseCase"
 }
 
-class OrderEntity {
+class Order {
   begin(): void {
-    // Extracted as: domainOp "begin"
+    // Extracted as: domainOp "begin" (matched by nameMatches pattern)
   }
 }
 

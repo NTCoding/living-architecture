@@ -37,25 +37,15 @@ Then use `npx riviere ...`
 
 ### Step 1: Understand
 
-1. Open Claude Code (or other) in your project directory
-2. Type:
-   ```text
-   Fetch https://raw.githubusercontent.com/NTCoding/living-architecture/main/packages/riviere-cli/docs/workflow/step-1-understand.md and follow the instructions
-   ```
-3. Claude analyzes your codebase and creates `.riviere/config/metadata.md`
-4. Review the domains Claude identified. Give corrections if needed.
-5. Close this Claude session
+Follow the AI-assisted workflow for this step. Deterministic tooling is planned for a future release.
+
+**[Step 1: Understand →](/extract/deterministic/typescript/workflow/step-1-understand)**
 
 ### Step 2: Define
 
-1. Open a new Claude Code (or other) session in your project directory
-2. Type:
-   ```text
-   Fetch https://raw.githubusercontent.com/NTCoding/living-architecture/main/packages/riviere-cli/docs/workflow/step-2-define-components.md and follow the instructions
-   ```
-3. Claude creates extraction rules in `.riviere/config/component-definitions.md`
-4. Review the rules. Give corrections if needed.
-5. Close this Claude session
+Follow the AI-assisted workflow for this step. Deterministic tooling is planned for a future release.
+
+**[Step 2: Define →](/extract/deterministic/typescript/workflow/step-2-define)**
 
 ### Step 3: Extract (Deterministic)
 
@@ -118,36 +108,21 @@ This step uses the TypeScript extractor instead of AI.
 
 ### Step 4: Link
 
-1. Open a new Claude Code (or other) session in your project directory
-2. Type:
-   ```text
-   Fetch https://raw.githubusercontent.com/NTCoding/living-architecture/main/packages/riviere-cli/docs/workflow/step-4-link.md and follow the instructions
-   ```
-3. Claude traces flows between components and creates links
-4. Review the links
-5. Close this Claude session
+Follow the AI-assisted workflow for this step. Deterministic tooling is planned for a future release.
+
+**[Step 4: Link →](/extract/deterministic/typescript/workflow/step-4-link)**
 
 ### Step 5: Enrich
 
-1. Open a new Claude Code (or other) session in your project directory
-2. Type:
-   ```text
-   Fetch https://raw.githubusercontent.com/NTCoding/living-architecture/main/packages/riviere-cli/docs/workflow/step-5-enrich.md and follow the instructions
-   ```
-3. Claude adds state changes and business rules to DomainOp components
-4. Review the enrichments
-5. Close this Claude session
+Follow the AI-assisted workflow for this step. Deterministic tooling is planned for a future release.
+
+**[Step 5: Enrich →](/extract/deterministic/typescript/workflow/step-5-enrich)**
 
 ### Step 6: Validate
 
-1. Open a new Claude Code (or other) session in your project directory
-2. Type:
-   ```text
-   Fetch https://raw.githubusercontent.com/NTCoding/living-architecture/main/packages/riviere-cli/docs/workflow/step-6-validate.md and follow the instructions
-   ```
-3. Claude checks for orphans and validates the graph
-4. Fix any issues
-5. Your graph is complete at `.riviere/graph.json`
+Follow the AI-assisted workflow for this step. Deterministic tooling is planned for a future release.
+
+**[Step 6: Validate →](/extract/deterministic/typescript/workflow/step-6-validate)**
 
 ## Output
 

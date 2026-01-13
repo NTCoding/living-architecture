@@ -215,11 +215,13 @@ class TestHelper {
 
 ## Default Config
 
-The conventions package provides a default config that detects all decorator types across all TypeScript files:
+The conventions package provides a default config that detects all decorator types. Use `extends` in your config:
 
-```bash
-npx riviere extract \
-  --config node_modules/@living-architecture/riviere-extract-conventions/src/default-extraction.config.json
+```yaml
+modules:
+  - name: "orders"
+    path: "src/orders/**/*.ts"
+    extends: "@living-architecture/riviere-extract-conventions"
 ```
 
 [View Default Config Source](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-extract-conventions/src/default-extraction.config.json)
