@@ -67,7 +67,8 @@
     "version": {
       "preVersionCommand": "pnpm exec nx run-many -t build --projects=packages/*",
       "conventionalCommits": true,
-      "fallbackCurrentVersionResolver": "disk"
+      "fallbackCurrentVersionResolver": "disk",
+      "updateDependents": "auto"
     },
     "changelog": {
       "projectChangelogs": false,
