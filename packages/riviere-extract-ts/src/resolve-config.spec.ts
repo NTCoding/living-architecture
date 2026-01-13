@@ -224,6 +224,39 @@ describe('resolveConfig', () => {
       })
     })
 
+    it('inherits customTypes from base module when local has none', () => {
+      const baseWithCustomTypes: Module = {
+        ...createBaseModule(),
+        customTypes: {
+          service: {
+            find: 'classes',
+            where: { nameEndsWith: { suffix: 'Service' } },
+          },
+        },
+      }
+
+      const config: ExtractionConfig = {
+        modules: [
+          {
+            name: 'orders',
+            path: 'orders/**',
+            extends: '@living-architecture/riviere-extract-conventions',
+          },
+        ],
+      }
+
+      const loader: ConfigLoader = vi.fn().mockReturnValue(baseWithCustomTypes)
+
+      const result = resolveConfig(config, loader)
+
+      expect(result.modules[0]?.customTypes).toStrictEqual({
+        service: {
+          find: 'classes',
+          where: { nameEndsWith: { suffix: 'Service' } },
+        },
+      })
+    })
+
     it('merges customTypes from local and base module', () => {
       const baseWithCustomTypes: Module = {
         ...createBaseModule(),
