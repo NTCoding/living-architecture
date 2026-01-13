@@ -152,7 +152,7 @@ export function createExtractCommand(): Command {
       const project = new Project()
       project.addSourceFilesAtPaths(sourceFilePaths)
 
-      const components = extractComponents(project, sourceFilePaths, resolvedConfig)
+      const components = extractComponents(project, sourceFilePaths, resolvedConfig, configDir)
 
       if (options.dryRun) {
         const lines = formatDryRunOutput(components)

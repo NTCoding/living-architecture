@@ -17,10 +17,10 @@ nx run-many -t build    # Verify setup works
 ## Commands
 
 ```bash
-nx run-many -t build              # Build all
-nx run-many -t test               # Test all
-nx run-many -t lint               # Lint all
-nx run-many -t lint,typecheck,test --coverage   # Full verification
+pnpm nx run-many -t build              # Build all
+pnpm nx run-many -t test               # Test all
+pnpm nx run-many -t lint               # Lint all
+pnpm verify                            # Full verification
 ```
 
 Single project:
@@ -54,7 +54,7 @@ Follow the conventions in [`docs/conventions/`](docs/conventions/):
 100% test coverage is mandatory. All commits must pass:
 
 ```bash
-nx run-many -t lint,typecheck,test --coverage
+pnpm verify
 ```
 
 ## Pull Request Process

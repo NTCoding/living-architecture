@@ -1,4 +1,19 @@
 import * as esbuild from 'esbuild'
+import { readFileSync } from 'node:fs'
+import {
+  dirname,
+  join,
+} from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+// Resolve package.json relative to this config file, not CWD
+const __dirname = dirname(fileURLToPath(import.meta.url))
+const pkg = JSON.parse(readFileSync(join(__dirname, 'package.json'), 'utf-8'))
+
+// Auto-derive external dependencies from package.json
+// This prevents drift between declared dependencies and bundler config
+const externalDependencies = Object.keys(pkg.dependencies || {})
+  .filter(dep => !dep.startsWith('@living-architecture/')) // Bundle workspace packages
 
 // CLI binary entry point
 await esbuild.build({
@@ -9,11 +24,10 @@ await esbuild.build({
   format: 'esm',
   outfile: 'dist/bin.js',
   banner: {js: '#!/usr/bin/env node',},
-  // Bundle workspace packages into CLI to avoid ESM resolution issues
-  external: [
-    'commander',
-    'tslib',
-  ],
+  // Bundle workspace packages (@living-architecture/*) into CLI
+  // Externalize npm dependencies because many use CommonJS patterns
+  // that fail when bundled into ESM (e.g., yaml, ts-morph)
+  external: externalDependencies,
 })
 
 // Library entry point (no side effects)
@@ -24,8 +38,5 @@ await esbuild.build({
   target: 'node18',
   format: 'esm',
   outfile: 'dist/index.js',
-  external: [
-    'commander',
-    'tslib',
-  ],
+  external: externalDependencies,
 })

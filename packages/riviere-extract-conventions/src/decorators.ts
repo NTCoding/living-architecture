@@ -5,7 +5,6 @@
  * They exist to be detected by the riviere-extract-ts extractor.
  */
 
-type Constructor = new (...args: unknown[]) => object
 type Method = (...args: unknown[]) => unknown
 
 // ============================================================================
@@ -15,24 +14,21 @@ type Method = (...args: unknown[]) => unknown
 /**
  * Marks a class as a container where all public methods are domain operations.
  */
-export function DomainOpContainer<T extends Constructor>(target: T, _: ClassDecoratorContext): T {
+export function DomainOpContainer<T>(target: T, _: ClassDecoratorContext): T {
   return target
 }
 
 /**
  * Marks a class as a container where all public methods are API endpoints.
  */
-export function APIContainer<T extends Constructor>(target: T, _: ClassDecoratorContext): T {
+export function APIContainer<T>(target: T, _: ClassDecoratorContext): T {
   return target
 }
 
 /**
  * Marks a class as a container where all public methods are event handlers.
  */
-export function EventHandlerContainer<T extends Constructor>(
-  target: T,
-  _: ClassDecoratorContext,
-): T {
+export function EventHandlerContainer<T>(target: T, _: ClassDecoratorContext): T {
   return target
 }
 
@@ -43,21 +39,21 @@ export function EventHandlerContainer<T extends Constructor>(
 /**
  * Marks a class as a use case component.
  */
-export function UseCase<T extends Constructor>(target: T, _: ClassDecoratorContext): T {
+export function UseCase<T>(target: T, _: ClassDecoratorContext): T {
   return target
 }
 
 /**
  * Marks a class as a domain event.
  */
-export function Event<T extends Constructor>(target: T, _: ClassDecoratorContext): T {
+export function Event<T>(target: T, _: ClassDecoratorContext): T {
   return target
 }
 
 /**
  * Marks a class as a UI component.
  */
-export function UI<T extends Constructor>(target: T, _: ClassDecoratorContext): T {
+export function UI<T>(target: T, _: ClassDecoratorContext): T {
   return target
 }
 
@@ -90,8 +86,8 @@ export function EventHandler<T extends Method>(target: T, _: ClassMethodDecorato
 // Other Decorators
 // ============================================================================
 
-// WeakMap to store custom types for extraction
-const customTypes = new WeakMap<Constructor | Method, string>()
+// Symbol for storing custom types on decorated targets
+const CUSTOM_TYPE_SYMBOL = Symbol.for('@living-architecture/riviere-extract-conventions.customType')
 
 /**
  * Marks a class or method with a custom component type.
@@ -101,19 +97,20 @@ const customTypes = new WeakMap<Constructor | Method, string>()
  */
 export function Custom(
   type: string,
-): <T extends Constructor | Method>(
-  target: T,
-  context: ClassDecoratorContext | ClassMethodDecoratorContext,
-) => T {
+): <T>(target: T, context: ClassDecoratorContext | ClassMethodDecoratorContext) => T {
   const trimmed = type.trim()
   if (trimmed.length === 0) {
     throw new TypeError('Custom component type cannot be empty or whitespace-only')
   }
-  return function <T extends Constructor | Method>(
-    target: T,
-    _: ClassDecoratorContext | ClassMethodDecoratorContext,
-  ): T {
-    customTypes.set(target, trimmed)
+  return function <T>(target: T, _: ClassDecoratorContext | ClassMethodDecoratorContext): T {
+    try {
+      Object.defineProperty(target, CUSTOM_TYPE_SYMBOL, {
+        value: trimmed,
+        configurable: true,
+      })
+    } catch {
+      // Ignore errors when setting property on non-objects
+    }
     return target
   }
 }
@@ -122,10 +119,7 @@ export function Custom(
  * Excludes a class or method from architectural analysis.
  * Use for infrastructure code, utilities, or code that shouldn't appear in the architecture.
  */
-export function Ignore<T extends Constructor | Method>(
-  target: T,
-  _: ClassDecoratorContext | ClassMethodDecoratorContext,
-): T {
+export function Ignore<T>(target: T, _: ClassDecoratorContext | ClassMethodDecoratorContext): T {
   return target
 }
 
@@ -133,6 +127,12 @@ export function Ignore<T extends Constructor | Method>(
  * Gets the custom type for a decorated target.
  * Used by the extractor to read custom component types.
  */
-export function getCustomType(target: Constructor | Method): string | undefined {
-  return customTypes.get(target)
+export function getCustomType(target: unknown): string | undefined {
+  if (target == null) return undefined
+  if (typeof target !== 'object' && typeof target !== 'function') return undefined
+  const descriptor = Object.getOwnPropertyDescriptor(target, CUSTOM_TYPE_SYMBOL)
+  if (descriptor && typeof descriptor.value === 'string') {
+    return descriptor.value
+  }
+  return undefined
 }

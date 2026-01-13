@@ -1,38 +1,55 @@
 ---
 name: submit-pr
-description: Commit changes, push to remote, and create/update PR
-model: sonnet
-color: green
+description: Commit changes, push to remote, and create PR
+model: haiku
+tools:
+  - Bash
 ---
 
-Submit PR.
+## Workflow
 
-## Steps
+```text
+submit-pr
+    │
+    ▼
+git add -A && git commit
+    │
+    ▼
+./scripts/submit-pr.sh --title "<title>" --body "<body>"
+(script handles: push, merge main, create PR, watch CI)
+    │
+    ▼
+Return raw output (PASS or FAIL)
+```
 
-1. Commit changes
-2. Push to remote
-3. Derive PR title (conventional commit format: `type(scope): description`, e.g., `feat(auth): add login flow`)
-4. Run `./scripts/submit-pr.sh --title "<title>" --body "<body>"` (use 10-minute timeout - script waits for CI)
-5. Capture the COMPLETE raw output from the script
+## Critical Rules
 
-## Output Format
+**NEVER modify code.** Only commit and push existing changes. No code review, no analysis, no fixes.
 
-### On SUCCESS
+## Instructions
+
+1. Stage and commit: `git add -A && git commit -m "type(scope): description"`
+2. Run script: `./scripts/submit-pr.sh --title "<title>" --body "<body>"` (10-minute timeout)
+3. Return raw output
+
+Title format: conventional commit (`feat(scope): description`, `fix(scope): description`)
+
+## Output
 
 ```text
 SUBMIT PR: PASS
 
 <raw-output>
-[paste the COMPLETE raw output from submit-pr.sh here - do not summarize]
+[complete output from submit-pr.sh]
 </raw-output>
 ```
 
-### On FAILURE
+Or:
 
 ```text
 SUBMIT PR: FAIL
 
 <raw-output>
-[paste the COMPLETE raw output from submit-pr.sh here - do not summarize]
+[complete output from submit-pr.sh]
 </raw-output>
 ```

@@ -65,6 +65,13 @@
         "ui": {
           "$ref": "#/$defs/componentRule",
           "description": "Detection rule for UI components"
+        },
+        "customTypes": {
+          "type": "object",
+          "description": "User-defined component types with their detection rules",
+          "additionalProperties": {
+            "$ref": "#/$defs/detectionRule"
+          }
         }
       },
       "if": {
