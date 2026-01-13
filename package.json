@@ -11,7 +11,7 @@
     "typecheck": "nx run-many -t typecheck",
     "knip": "knip",
     "lint:md": "markdownlint-cli2 \"**/*.md\" \"!**/node_modules/**\"",
-    "verify": "pnpm lint:md && nx run-many -t lint,typecheck && nx run-many -t test,check-generated-docs",
+    "verify": "pnpm lint:md && nx run-many -t lint,typecheck,test,check-generated-docs",
     "prepare": "husky"
   },
   "lint-staged": {

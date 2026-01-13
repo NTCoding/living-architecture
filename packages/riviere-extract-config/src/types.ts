@@ -1,4 +1,6 @@
-/** AST element type to search for during extraction. */
+/**
+ * AST element type to search for during extraction.
+ */
 export type FindTarget = 'classes' | 'methods' | 'functions'
 
 /** Architectural component types recognized by the extractor. */
