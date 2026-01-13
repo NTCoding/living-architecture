@@ -43,6 +43,7 @@ function resolveModule(moduleConfig: ModuleConfig, loader?: ConfigLoader): Modul
     event: requireRule(moduleConfig.event, 'event', moduleConfig.name),
     eventHandler: requireRule(moduleConfig.eventHandler, 'eventHandler', moduleConfig.name),
     ui: requireRule(moduleConfig.ui, 'ui', moduleConfig.name),
+    ...(moduleConfig.customTypes !== undefined && { customTypes: moduleConfig.customTypes }),
   }
 }
 
@@ -56,6 +57,7 @@ function resolveModuleWithExtends(
   }
 
   const baseModule = loader(extendsSource)
+  const mergedCustomTypes = mergeCustomTypes(baseModule.customTypes, moduleConfig.customTypes)
   return {
     name: moduleConfig.name,
     path: moduleConfig.path,
@@ -65,6 +67,20 @@ function resolveModuleWithExtends(
     event: moduleConfig.event ?? baseModule.event,
     eventHandler: moduleConfig.eventHandler ?? baseModule.eventHandler,
     ui: moduleConfig.ui ?? baseModule.ui,
+    ...(mergedCustomTypes !== undefined && { customTypes: mergedCustomTypes }),
+  }
+}
+
+function mergeCustomTypes(
+  base: Module['customTypes'],
+  local: ModuleConfig['customTypes'],
+): Module['customTypes'] {
+  if (base === undefined && local === undefined) {
+    return undefined
+  }
+  return {
+    ...base,
+    ...local,
   }
 }
 
