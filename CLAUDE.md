@@ -67,7 +67,7 @@ pnpm nx test [project-name] -- --testNamePattern "should validate"
 ### Verify (Full Gate)
 
 ```bash
-pnpm nx run-many -t lint,typecheck,test --coverage
+pnpm verify
 ```
 
 ### Dependency Graph

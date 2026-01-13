@@ -68,8 +68,8 @@ pnpm nx test riviere-extract-ts
 # Build
 pnpm nx build riviere-extract-ts
 
-# Coverage
-pnpm nx test riviere-extract-ts --coverage
+# Tests (coverage enabled by default)
+pnpm nx test riviere-extract-ts
 ```
 
 ## Related Packages
