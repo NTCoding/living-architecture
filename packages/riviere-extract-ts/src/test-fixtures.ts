@@ -7,7 +7,7 @@ import type {
 
 const NOT_USED = { notUsed: true } as const
 
-export function createMinimalModule(overrides: Partial<Module> = {}): Module {
+function createMinimalModule(overrides: Partial<Module> = {}): Module {
   return {
     name: 'test',
     path: 'src/**',
