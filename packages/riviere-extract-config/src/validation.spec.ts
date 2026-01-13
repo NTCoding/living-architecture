@@ -154,6 +154,23 @@ describe('validateExtractionConfig', () => {
       }
       expect(validateExtractionConfig(config).valid).toBe(true)
     })
+
+    it('returns valid=true when module has customTypes with detection rule', () => {
+      const result = validateExtractionConfig({
+        modules: [
+          {
+            ...createMinimalModule(),
+            customTypes: {
+              backgroundJob: {
+                find: 'functions',
+                where: { hasJSDoc: { tag: 'backgroundJob' } },
+              },
+            },
+          },
+        ],
+      })
+      expect(result.valid).toBe(true)
+    })
   })
 
   describe('invalid configs', () => {

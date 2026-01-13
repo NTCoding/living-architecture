@@ -17,7 +17,7 @@ import { evaluatePredicate } from './predicates'
 
 /** An extracted component before connection detection. */
 export interface DraftComponent {
-  type: ComponentType
+  type: string
   name: string
   location: {
     file: string
@@ -95,9 +95,45 @@ function extractFromModule(
   filePath: string,
   module: Module,
 ): DraftComponent[] {
-  return COMPONENT_TYPES.flatMap((componentType) =>
+  const builtInComponents = COMPONENT_TYPES.flatMap((componentType) =>
     extractComponentType(sourceFile, filePath, module, componentType),
   )
+  const customComponents = extractCustomTypes(sourceFile, filePath, module)
+  return [...builtInComponents, ...customComponents]
+}
+
+function extractCustomTypes(
+  sourceFile: SourceFile,
+  filePath: string,
+  module: Module,
+): DraftComponent[] {
+  if (module.customTypes === undefined) {
+    return []
+  }
+  return Object.entries(module.customTypes).flatMap(([typeName, rule]) =>
+    extractWithRule(sourceFile, filePath, module.name, typeName, rule),
+  )
+}
+
+function extractWithRule(
+  sourceFile: SourceFile,
+  filePath: string,
+  domain: string,
+  componentType: string,
+  rule: DetectionRule,
+): DraftComponent[] {
+  if (rule.find === 'classes') {
+    return extractClasses(sourceFile, filePath, domain, componentType, rule)
+  }
+  if (rule.find === 'methods') {
+    return extractMethods(sourceFile, filePath, domain, componentType, rule)
+  }
+  /* istanbul ignore else -- @preserve: false branch is unreachable; FindTarget is exhaustive */
+  if (rule.find === 'functions') {
+    return extractFunctions(sourceFile, filePath, domain, componentType, rule)
+  }
+  /* istanbul ignore next -- @preserve: unreachable with valid FindTarget type; defensive fallback */
+  return []
 }
 
 function extractComponentType(
@@ -110,29 +146,14 @@ function extractComponentType(
   if (!isDetectionRule(rule)) {
     return []
   }
-
-  if (rule.find === 'classes') {
-    return extractClasses(sourceFile, filePath, module.name, componentType, rule)
-  }
-
-  if (rule.find === 'methods') {
-    return extractMethods(sourceFile, filePath, module.name, componentType, rule)
-  }
-
-  /* istanbul ignore else -- @preserve: false branch is unreachable; FindTarget is exhaustive */
-  if (rule.find === 'functions') {
-    return extractFunctions(sourceFile, filePath, module.name, componentType, rule)
-  }
-
-  /* istanbul ignore next -- @preserve: unreachable with valid FindTarget type; defensive fallback */
-  return []
+  return extractWithRule(sourceFile, filePath, module.name, componentType, rule)
 }
 
 function extractClasses(
   sourceFile: SourceFile,
   filePath: string,
   domain: string,
-  componentType: ComponentType,
+  componentType: string,
   rule: DetectionRule,
 ): DraftComponent[] {
   return sourceFile
@@ -145,7 +166,7 @@ function extractMethods(
   sourceFile: SourceFile,
   filePath: string,
   domain: string,
-  componentType: ComponentType,
+  componentType: string,
   rule: DetectionRule,
 ): DraftComponent[] {
   return sourceFile
@@ -159,7 +180,7 @@ function extractFunctions(
   sourceFile: SourceFile,
   filePath: string,
   domain: string,
-  componentType: ComponentType,
+  componentType: string,
   rule: DetectionRule,
 ): DraftComponent[] {
   return sourceFile
@@ -172,7 +193,7 @@ function createClassComponent(
   classDecl: ClassDeclaration,
   filePath: string,
   domain: string,
-  componentType: ComponentType,
+  componentType: string,
 ): DraftComponent[] {
   const name = classDecl.getName()
   if (name === undefined) {
@@ -196,7 +217,7 @@ function createMethodComponent(
   method: MethodDeclaration,
   filePath: string,
   domain: string,
-  componentType: ComponentType,
+  componentType: string,
 ): DraftComponent[] {
   const name = method.getName()
 
@@ -217,7 +238,7 @@ function createFunctionComponent(
   func: FunctionDeclaration,
   filePath: string,
   domain: string,
-  componentType: ComponentType,
+  componentType: string,
 ): DraftComponent[] {
   const name = func.getName()
   if (name === undefined) {
