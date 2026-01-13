@@ -1,6 +1,6 @@
 {
   "name": "@living-architecture/riviere-extract-conventions",
-  "version": "0.3.20",
+  "version": "0.3.21",
   "type": "module",
   "publishConfig": {
     "access": "public"
