@@ -1,6 +1,6 @@
 ---
 name: submit-pr
-description: Commit changes, push to remote, and create PR
+description: Commit changes and run submit-pr.sh script (script handles push)
 model: haiku
 tools:
   - Bash
@@ -24,7 +24,7 @@ Return raw output (PASS or FAIL)
 
 ## Critical Rules
 
-**NEVER modify code.** Only commit and push existing changes. No code review, no analysis, no fixes.
+**NEVER modify code.** Only commit existing changes. No code review, no analysis, no fixes. Do not `git push` manually - it is blocked, you must `./scripts/submit-pr.sh`
 
 ## Instructions
 

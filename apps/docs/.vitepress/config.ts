@@ -134,7 +134,7 @@ export default defineConfig({
       ],
       '/extract/': [
         {
-          text: 'Rivière Extraction',
+          text: 'Extraction',
           items: [
             {
               text: 'Overview',
@@ -143,7 +143,7 @@ export default defineConfig({
           ],
         },
         {
-          text: 'Extraction Steps',
+          text: 'AI-Assisted Extraction',
           items: [
             {
               text: 'Workflow',
@@ -172,6 +172,43 @@ export default defineConfig({
             {
               text: 'Step 6: Validate',
               link: '/extract/steps/step-6-validate',
+            },
+          ],
+        },
+        {
+          text: 'TypeScript Extraction',
+          items: [
+            {
+              text: 'Workflow',
+              link: '/extract/deterministic/typescript/workflow/',
+            },
+            {
+              text: 'Step 1: Understand',
+              link: '/extract/deterministic/typescript/workflow/step-1-understand',
+            },
+            {
+              text: 'Step 2: Define',
+              link: '/extract/deterministic/typescript/workflow/step-2-define',
+            },
+            {
+              text: 'Step 3: Extract',
+              link: '/extract/deterministic/typescript/workflow/step-3-extract',
+            },
+            {
+              text: 'Step 4: Link',
+              link: '/extract/deterministic/typescript/workflow/step-4-link',
+            },
+            {
+              text: 'Step 5: Enrich',
+              link: '/extract/deterministic/typescript/workflow/step-5-enrich',
+            },
+            {
+              text: 'Step 6: Validate',
+              link: '/extract/deterministic/typescript/workflow/step-6-validate',
+            },
+            {
+              text: 'Enforcement',
+              link: '/extract/deterministic/typescript/enforcement',
             },
           ],
         },
@@ -235,6 +272,27 @@ export default defineConfig({
             {
               text: 'Graph Structure',
               link: '/reference/schema/graph-structure',
+            },
+          ],
+        },
+        {
+          text: 'Extraction Config',
+          items: [
+            {
+              text: 'Schema',
+              link: '/reference/extraction-config/schema',
+            },
+            {
+              text: 'Predicates',
+              link: '/reference/extraction-config/predicates',
+            },
+            {
+              text: 'Decorators',
+              link: '/reference/extraction-config/decorators',
+            },
+            {
+              text: 'Examples',
+              link: '/reference/extraction-config/examples',
             },
           ],
         },

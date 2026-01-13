@@ -20,6 +20,7 @@ npm install @living-architecture/riviere-cli
 ```bash
 riviere builder <command> [options]  # Graph building commands
 riviere query <command> [options]    # Graph query commands
+riviere extract <command> [options]  # Component extraction commands
 ```
 
 ## Exit Codes
@@ -57,6 +58,7 @@ riviere builder add-component [options]
 | `--operation-name <name>` | Operation name (DomainOp) |
 | `--entity <entity>` | Entity name (DomainOp) |
 | `--event-name <name>` | Event name |
+| `--event-schema <schema>` | Event schema definition |
 | `--subscribed-events <events>` | Comma-separated subscribed event names |
 | `--custom-type <name>` | Custom type name |
 | `--custom-property <key:value>` | Custom property (repeatable) |
@@ -87,7 +89,8 @@ riviere builder add-component --type DomainOp --name "order-begin" \
 # Add an Event
 riviere builder add-component --type Event --name "order-placed" \
   --domain orders --module events --repository ecommerce \
-  --file-path src/events/OrderPlaced.ts --event-name "order-placed"
+  --file-path src/events/OrderPlaced.ts --event-name "order-placed" \
+  --event-schema "{ orderId: string, total: number }"
 ```
 
 ---
@@ -415,15 +418,10 @@ riviere builder component-summary [options]
 |------|-------------|
 | `--graph <path>` | Custom graph file path (default: .riviere/graph.json) |
 
-**Optional:**
-| Flag | Description |
-|------|-------------|
-| `--json` | Output result as JSON |
-
 **Examples:**
 ```bash
 riviere builder component-summary
-riviere builder component-summary --json
+riviere builder component-summary > summary.json
 ```
 
 ---
@@ -677,6 +675,30 @@ riviere query search <term> [options]
 riviere query search order
 riviere query search "place-order" --json
 ```
+
+---
+
+## Extract Commands
+
+Commands for extracting architectural components from source code.
+
+### `extract`
+
+Extract architectural components from source code
+
+```bash
+riviere extract [options]
+```
+
+**Required:**
+| Flag | Description |
+|------|-------------|
+| `--config <path>` | Path to extraction config file |
+
+**Optional:**
+| Flag | Description |
+|------|-------------|
+| `--dry-run` | Show component counts per domain without full output |
 
 ---
 

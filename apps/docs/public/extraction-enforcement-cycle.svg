@@ -1,0 +1,375 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="461.59314"
+   height="328.79437"
+   viewBox="0 0 461.59314 328.79437"
+   fill="none"
+   version="1.1"
+   id="svg16"
+   sodipodi:docname="extraction-enforcement-cycle.svg"
+   inkscape:version="1.4.3 (0d15f75, 2025-12-25)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview16"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="7.168"
+     inkscape:cx="234.86328"
+     inkscape:cy="96.958705"
+     inkscape:window-width="1767"
+     inkscape:window-height="1021"
+     inkscape:window-x="0"
+     inkscape:window-y="31"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg16" />
+  <defs
+     id="defs2">
+    <marker
+       id="arrow-teal"
+       markerWidth="8"
+       markerHeight="6"
+       refX="7"
+       refY="3"
+       orient="auto"
+       viewBox="0 0 8 6"
+       preserveAspectRatio="xMidYMid">
+      <polygon
+         points="8,3 0,6 0,0 "
+         fill="#14b8a6"
+         id="polygon1" />
+    </marker>
+    <marker
+       id="arrow-gray"
+       markerWidth="8"
+       markerHeight="6"
+       refX="7"
+       refY="3"
+       orient="auto-start-reverse"
+       viewBox="0 0 8 6"
+       preserveAspectRatio="xMidYMid">
+      <polygon
+         points="0,6 0,0 8,3 "
+         fill="#94a3b8"
+         id="polygon2" />
+    </marker>
+  </defs>
+  <!-- TOP: Architecture Component Definitions -->
+  <g
+     transform="translate(229.52705,9)"
+     id="g4">
+    <g
+       transform="translate(-12,-12)"
+       id="g3">
+      <!-- Lucide list-checks icon -->
+      <path
+         d="M 10,6 H 21 M 10,12 H 21 M 10,18 H 21"
+         fill="none"
+         stroke="#0d9488"
+         stroke-width="2"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         id="path2" />
+      <path
+         d="M 3,6 5,8 9,4 m -6,8 2,2 4,-4 m -6,8 2,2 4,-4"
+         fill="none"
+         stroke="#0d9488"
+         stroke-width="2"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         id="path3" />
+    </g>
+    <text
+       x="0"
+       y="32"
+       font-family="Rubik, sans-serif"
+       font-size="12px"
+       font-weight="600"
+       fill="#0d9488"
+       text-anchor="middle"
+       id="text3">Architecture</text>
+    <text
+       x="0"
+       y="46"
+       font-family="Rubik, sans-serif"
+       font-size="12px"
+       font-weight="600"
+       fill="#0d9488"
+       text-anchor="middle"
+       id="text4">Component Definitions</text>
+  </g>
+  <!-- CENTER: Code -->
+  <g
+     transform="translate(227.85294,151.70091)"
+     id="g8">
+    <g
+       transform="translate(-12,-12)"
+       id="g7">
+      <!-- Lucide file-code icon -->
+      <path
+         d="M 6,22 A 2,2 0 0 1 4,20 V 4 A 2,2 0 0 1 6,2 h 8 a 2.4,2.4 0 0 1 1.704,0.706 l 3.588,3.588 A 2.4,2.4 0 0 1 20,8 v 12 a 2,2 0 0 1 -2,2 z"
+         fill="none"
+         stroke="#64748b"
+         stroke-width="2"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         id="path4" />
+      <path
+         d="m 14,2 v 5 a 1,1 0 0 0 1,1 h 5"
+         fill="none"
+         stroke="#64748b"
+         stroke-width="2"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         id="path5" />
+      <path
+         d="M 10,12.5 8,15 10,17.5"
+         fill="none"
+         stroke="#64748b"
+         stroke-width="2"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         id="path6" />
+      <path
+         d="m 14,12.5 2,2.5 -2,2.5"
+         fill="none"
+         stroke="#64748b"
+         stroke-width="2"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         id="path7" />
+    </g>
+    <text
+       x="0"
+       y="32"
+       font-family="Rubik, sans-serif"
+       font-size="12px"
+       font-weight="600"
+       fill="#334155"
+       text-anchor="middle"
+       id="text7">Code</text>
+  </g>
+  <!-- BOTTOM-LEFT: Extraction -->
+  <g
+     transform="translate(58.410993,296.5893)"
+     id="g10">
+    <g
+       transform="translate(-12,-12)"
+       id="g9">
+      <!-- Lucide scan icon -->
+      <path
+         d="M 3,7 V 5 A 2,2 0 0 1 5,3 h 2 m 10,0 h 2 a 2,2 0 0 1 2,2 v 2 m 0,10 v 2 a 2,2 0 0 1 -2,2 H 17 M 7,21 H 5 A 2,2 0 0 1 3,19 v -2"
+         fill="none"
+         stroke="#0d9488"
+         stroke-width="2"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         id="path8" />
+      <path
+         d="m 8,12 h 8"
+         fill="none"
+         stroke="#0d9488"
+         stroke-width="2"
+         stroke-linecap="round"
+         id="path9" />
+    </g>
+    <text
+       x="0"
+       y="32"
+       font-family="Rubik, sans-serif"
+       font-size="12px"
+       font-weight="600"
+       fill="#0d9488"
+       text-anchor="middle"
+       id="text9">Extraction</text>
+  </g>
+  <!-- BOTTOM-RIGHT: Enforcement -->
+  <g
+     transform="translate(398.41098,296.5893)"
+     id="g12">
+    <g
+       transform="translate(-12,-12)"
+       id="g11">
+      <!-- Lucide shield-check icon -->
+      <path
+         d="m 20,13 c 0,5 -3.5,7.5 -7.66,8.95 A 1,1 0 0 1 11.67,21.94 C 7.5,20.5 4,18 4,13 V 6 A 1,1 0 0 1 5,5 C 7,5 9.5,3.8 11.24,2.28 a 1.17,1.17 0 0 1 1.52,0 C 14.51,3.81 17,5 19,5 a 1,1 0 0 1 1,1 z"
+         fill="none"
+         stroke="#0d9488"
+         stroke-width="2"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         id="path10" />
+      <path
+         d="m 9,12 2,2 4,-4"
+         fill="none"
+         stroke="#0d9488"
+         stroke-width="2"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         id="path11" />
+    </g>
+    <text
+       x="0"
+       y="32"
+       font-family="Rubik, sans-serif"
+       font-size="12px"
+       font-weight="600"
+       fill="#0d9488"
+       text-anchor="middle"
+       id="text11">Enforcement</text>
+  </g>
+  <!-- ARROW 1: Code → Definitions (code built following definitions) -->
+  <path
+     d="M 228.5,135.13951 228.38393,69.603795"
+     stroke="#94a3b8"
+     stroke-width="1.5"
+     stroke-dasharray="6, 4"
+     stroke-linecap="round"
+     fill="none"
+     marker-end="url(#arrow-gray)"
+     id="path12"
+     sodipodi:nodetypes="cc" />
+  <!-- Label: to the right of the line -->
+  <text
+     x="240.62082"
+     y="105.11607"
+     font-family="Rubik, sans-serif"
+     font-size="10px"
+     font-weight="500"
+     fill="#64748b"
+     text-anchor="start"
+     id="text12"><tspan
+       sodipodi:role="line"
+       id="tspan44"
+       x="240.62082"
+       y="105.11607">built</tspan><tspan
+       sodipodi:role="line"
+       id="tspan45"
+       x="240.62082"
+       y="117.61607">following</tspan></text>
+  <!-- ARROW 2: Extraction → Definitions (extraction uses definitions) -->
+  <path
+     d="M 58,270 Q 55,140 200,65"
+     stroke="#14b8a6"
+     stroke-width="1.5"
+     stroke-dasharray="6, 4"
+     stroke-linecap="round"
+     fill="none"
+     marker-end="url(#arrow-teal)"
+     id="path13"
+     style="stroke-width:1.1;stroke-dasharray:4.4,2.93333326;stroke-dashoffset:0" />
+  <!-- Label: far left, next to the line -->
+  <text
+     x="-0.51757812"
+     y="195.18301"
+     font-family="Rubik, sans-serif"
+     font-size="10px"
+     font-weight="500"
+     fill="#0d9488"
+     text-anchor="start"
+     id="text13"><tspan
+       sodipodi:role="line"
+       id="tspan48"
+       x="-0.51757812"
+       y="195.18301">extracts</tspan><tspan
+       sodipodi:role="line"
+       id="tspan49"
+       x="-0.51757812"
+       y="207.68301">by following</tspan></text>
+  <!-- ARROW 3: Enforcement → Definitions (enforcement uses definitions) -->
+  <path
+     d="M 398,270 Q 405,140 260,65"
+     stroke="#14b8a6"
+     stroke-width="1.5"
+     stroke-dasharray="6, 4"
+     stroke-linecap="round"
+     fill="none"
+     marker-end="url(#arrow-teal)"
+     id="path14"
+     style="stroke-width:1.1;stroke-dasharray:4.4,2.93333326;stroke-dashoffset:0" />
+  <!-- Label: far right, next to the line -->
+  <text
+     x="402.22791"
+     y="199.08926"
+     font-family="Rubik, sans-serif"
+     font-size="10px"
+     font-weight="500"
+     fill="#0d9488"
+     text-anchor="start"
+     id="text14"><tspan
+       sodipodi:role="line"
+       id="tspan50"
+       x="402.22791"
+       y="199.08926">enforces</tspan><tspan
+       sodipodi:role="line"
+       id="tspan51"
+       x="402.22791"
+       y="211.58926">by following</tspan></text>
+  <!-- ARROW 4: Extraction → Code (extracts from) -->
+  <path
+     d="M 85,270 Q 140,220 200,175"
+     stroke="#14b8a6"
+     stroke-width="1.5"
+     stroke-dasharray="6, 4"
+     stroke-linecap="round"
+     fill="none"
+     marker-end="url(#arrow-teal)"
+     id="path15"
+     style="stroke-width:1.1;stroke-dasharray:4.4,2.93333326;stroke-dashoffset:0" />
+  <!-- Label: below the line, to the left -->
+  <text
+     x="133.56726"
+     y="241.65625"
+     font-family="Rubik, sans-serif"
+     font-size="10px"
+     font-weight="500"
+     fill="#0d9488"
+     text-anchor="start"
+     id="text15"><tspan
+       sodipodi:role="line"
+       id="tspan46"
+       x="133.56726"
+       y="241.65625">extracts</tspan><tspan
+       sodipodi:role="line"
+       id="tspan47"
+       x="133.56726"
+       y="254.15625">from</tspan></text>
+  <!-- ARROW 5: Enforcement → Code (ensures correct) -->
+  <path
+     d="M 370,270 C 336.66667,236.66667 301.12351,205.55804 257.79018,175.55804"
+     stroke="#14b8a6"
+     stroke-width="1.5"
+     stroke-dasharray="6, 4"
+     stroke-linecap="round"
+     fill="none"
+     marker-end="url(#arrow-teal)"
+     id="path16"
+     sodipodi:nodetypes="cc"
+     style="stroke-width:1.1;stroke-dasharray:4.4,2.93333326;stroke-dashoffset:0" />
+  <!-- Label: below the line, to the right -->
+  <text
+     x="283.68304"
+     y="308.58002"
+     font-family="Rubik, sans-serif"
+     font-size="10px"
+     font-weight="500"
+     fill="#0d9488"
+     text-anchor="start"
+     id="text16"
+     transform="matrix(1,0.01285048,0,1,-21.030971,-70.017857)"
+     style="white-space:pre;inline-size:89.4378;display:inline"
+     xml:space="preserve"><tspan
+       x="283.68304"
+       y="308.58002"
+       id="tspan1">checks for </tspan><tspan
+       x="283.68304"
+       y="321.08003"
+       id="tspan2">compliance</tspan></text>
+</svg>

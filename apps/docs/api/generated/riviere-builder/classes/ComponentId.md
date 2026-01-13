@@ -1,6 +1,6 @@
 # Class: ComponentId
 
-Defined in: packages/riviere-schema/dist/component-id.d.ts:26
+Defined in: packages/riviere-schema/dist/component-id.d.ts:33
 
 Represents a structured component identifier.
 
@@ -24,7 +24,7 @@ id.toString() // 'orders:checkout:api:create-order'
 
 > **name**(): `string`
 
-Defined in: packages/riviere-schema/dist/component-id.d.ts:72
+Defined in: packages/riviere-schema/dist/component-id.d.ts:79
 
 Returns the name segment of the component ID.
 
@@ -40,7 +40,7 @@ The kebab-case name portion
 
 > **toString**(): `string`
 
-Defined in: packages/riviere-schema/dist/component-id.d.ts:66
+Defined in: packages/riviere-schema/dist/component-id.d.ts:73
 
 Returns the full component ID string.
 
@@ -56,7 +56,7 @@ Full ID in format `domain:module:type:name`
 
 > `static` **create**(`parts`): `ComponentId`
 
-Defined in: packages/riviere-schema/dist/component-id.d.ts:46
+Defined in: packages/riviere-schema/dist/component-id.d.ts:53
 
 Creates a ComponentId from individual parts.
 
@@ -91,7 +91,7 @@ const id = ComponentId.create({
 
 > `static` **parse**(`id`): `ComponentId`
 
-Defined in: packages/riviere-schema/dist/component-id.d.ts:60
+Defined in: packages/riviere-schema/dist/component-id.d.ts:67
 
 Parses a string ID into a ComponentId instance.
 

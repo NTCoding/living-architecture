@@ -1,6 +1,6 @@
 # Interface: SearchWithFlowOptions
 
-Defined in: [packages/riviere-query/src/flow-queries.ts:125](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/flow-queries.ts#L125)
+Defined in: [packages/riviere-query/src/flow-queries.ts:166](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/flow-queries.ts#L166)
 
 Options for searchWithFlow.
 
@@ -10,6 +10,6 @@ Options for searchWithFlow.
 
 > **returnAllOnEmptyQuery**: `boolean`
 
-Defined in: [packages/riviere-query/src/flow-queries.ts:127](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/flow-queries.ts#L127)
+Defined in: [packages/riviere-query/src/flow-queries.ts:168](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/flow-queries.ts#L168)
 
 If true, returns all components when the query is empty.

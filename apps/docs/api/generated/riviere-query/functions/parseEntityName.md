@@ -2,7 +2,7 @@
 
 > **parseEntityName**(`value`): `string` & `$brand`\<`"EntityName"`\>
 
-Defined in: [packages/riviere-query/src/domain-types.ts:290](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/domain-types.ts#L290)
+Defined in: [packages/riviere-query/src/domain-types.ts:292](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/domain-types.ts#L292)
 
 Parses a string as an EntityName.
 

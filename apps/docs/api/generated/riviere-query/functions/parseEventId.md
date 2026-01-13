@@ -2,7 +2,7 @@
 
 > **parseEventId**(`value`): `string` & `$brand`\<`"EventId"`\>
 
-Defined in: [packages/riviere-query/src/domain-types.ts:330](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/domain-types.ts#L330)
+Defined in: [packages/riviere-query/src/domain-types.ts:332](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/domain-types.ts#L332)
 
 Parses a string as an EventId.
 

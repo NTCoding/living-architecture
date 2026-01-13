@@ -2,7 +2,7 @@
 
 > **parseDomainName**(`value`): `string` & `$brand`\<`"DomainName"`\>
 
-Defined in: [packages/riviere-query/src/domain-types.ts:300](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/domain-types.ts#L300)
+Defined in: [packages/riviere-query/src/domain-types.ts:302](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/domain-types.ts#L302)
 
 Parses a string as a DomainName.
 
