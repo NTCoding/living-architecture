@@ -16,11 +16,27 @@
       "description": "Module definitions for component extraction",
       "minItems": 1,
       "items": {
-        "$ref": "#/$defs/module"
+        "oneOf": [
+          { "$ref": "#/$defs/module" },
+          { "$ref": "#/$defs/moduleRef" }
+        ]
       }
     }
   },
   "$defs": {
+    "moduleRef": {
+      "type": "object",
+      "description": "Reference to an external module definition file",
+      "required": ["$ref"],
+      "additionalProperties": false,
+      "properties": {
+        "$ref": {
+          "type": "string",
+          "description": "File path to a module definition (relative to this config file)",
+          "minLength": 1
+        }
+      }
+    },
     "module": {
       "type": "object",
       "description": "A module defines extraction rules for a path pattern",

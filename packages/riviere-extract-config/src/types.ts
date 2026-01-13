@@ -69,6 +69,12 @@ export type ComponentRule = NotUsed | DetectionRule
 export type CustomTypes = Record<string, DetectionRule>
 
 /**
+ * Reference to an external module definition file.
+ * The CLI expands these references before extraction by loading the referenced file.
+ */
+export interface ModuleRef {$ref: string}
+
+/**
  * A module config as written in the extraction config file.
  * When `extends` is present, component rules are inherited from the extended config.
  * Local rules override inherited rules.
