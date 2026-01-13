@@ -23,6 +23,7 @@ import {
 } from '../../output'
 import { CliErrorCode } from '../../error-codes'
 import { createConfigLoader } from './config-loader'
+import { expandModuleRefs } from './expand-module-refs'
 
 interface ExtractOptions {
   config: string
@@ -114,8 +115,11 @@ export function createExtractCommand(): Command {
         process.exit(1)
       }
 
-      if (!isValidExtractionConfig(parseResult.data)) {
-        const validationResult = validateExtractionConfig(parseResult.data)
+      const configDir = dirname(resolve(options.config))
+      const expandedData = expandModuleRefs(parseResult.data, configDir)
+
+      if (!isValidExtractionConfig(expandedData)) {
+        const validationResult = validateExtractionConfig(expandedData)
         console.log(
           JSON.stringify(
             formatError(
@@ -127,8 +131,7 @@ export function createExtractCommand(): Command {
         process.exit(1)
       }
 
-      const unresolvedConfig = parseResult.data
-      const configDir = dirname(resolve(options.config))
+      const unresolvedConfig = expandedData
       const configLoader = createConfigLoader(configDir)
       const resolvedConfig = resolveConfig(unresolvedConfig, configLoader)
 

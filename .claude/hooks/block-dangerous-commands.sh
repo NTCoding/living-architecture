@@ -26,6 +26,18 @@ if [[ "$command" =~ (^|[[:space:]])git[[:space:]]+push($|[[:space:]]) ]]; then
     exit 0
 fi
 
+# Block direct gh pr create - must use /complete-task workflow
+if [[ "$command" =~ (^|[[:space:]])gh[[:space:]]+pr[[:space:]]+create($|[[:space:]]) ]]; then
+    jq -n '{
+      "hookSpecificOutput": {
+        "hookEventName": "PreToolUse",
+        "permissionDecision": "deny",
+        "permissionDecisionReason": "Blocked: Direct gh pr create bypasses issue linking. Use /complete-task command instead, which automatically links PRs to issues based on branch name."
+      }
+    }'
+    exit 0
+fi
+
 # Auto-approve safe commands without prompting
 jq -n '{
     "hookSpecificOutput": {

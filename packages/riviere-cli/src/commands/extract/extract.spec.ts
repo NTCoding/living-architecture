@@ -134,6 +134,68 @@ modules:
     })
   })
 
+  describe('$ref module references', () => {
+    const ctx: TestContext = createTestContext()
+    setupCommandTest(ctx)
+
+    it('expands $ref references before validation', async () => {
+      const srcDir = join(ctx.testDir, 'src')
+      await mkdir(srcDir, { recursive: true })
+
+      const sourceFile = join(srcDir, 'order-service.ts')
+      await writeFile(
+        sourceFile,
+        `
+/** @useCase */
+export class PlaceOrder {
+  execute() {}
+}
+`,
+      )
+
+      const domainsDir = join(ctx.testDir, 'domains')
+      await mkdir(domainsDir, { recursive: true })
+
+      const ordersModule = join(domainsDir, 'orders.extraction.json')
+      await writeFile(
+        ordersModule,
+        JSON.stringify({
+          name: 'orders',
+          path: '**/src/**/*.ts',
+          api: { notUsed: true },
+          useCase: {
+            find: 'classes',
+            where: { hasJSDoc: { tag: 'useCase' } },
+          },
+          domainOp: { notUsed: true },
+          event: { notUsed: true },
+          eventHandler: { notUsed: true },
+          ui: { notUsed: true },
+        }),
+      )
+
+      const configPath = join(ctx.testDir, 'extract.yaml')
+      await writeFile(
+        configPath,
+        `
+modules:
+  - $ref: ./domains/orders.extraction.json
+`,
+      )
+
+      await createProgram().parseAsync(['node', 'riviere', 'extract', '--config', configPath])
+
+      const output = parseExtractionOutput(ctx.consoleOutput)
+      expect(output.success).toBe(true)
+      expect(output.data).toHaveLength(1)
+      expect(output.data[0]).toMatchObject({
+        type: 'useCase',
+        name: 'PlaceOrder',
+        domain: 'orders',
+      })
+    })
+  })
+
   describe('successful extraction', () => {
     const ctx: TestContext = createTestContext()
     setupCommandTest(ctx)

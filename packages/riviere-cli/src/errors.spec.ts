@@ -13,6 +13,7 @@ import {
   PackageResolveError,
   ConfigFileNotFoundError,
   InternalSchemaValidationError,
+  ModuleRefNotFoundError,
 } from './errors'
 
 describe('errors', () => {
@@ -202,6 +203,30 @@ describe('errors', () => {
     it('sets name', () => {
       const error = new InternalSchemaValidationError()
       expect(error.name).toBe('InternalSchemaValidationError')
+    })
+  })
+
+  describe('ModuleRefNotFoundError', () => {
+    it('sets message with ref and file path', () => {
+      const error = new ModuleRefNotFoundError('./domains/orders.json', '/project/domains/orders.json')
+      expect(error.message).toBe(
+        "Cannot resolve module reference './domains/orders.json'. File not found: /project/domains/orders.json",
+      )
+    })
+
+    it('sets name', () => {
+      const error = new ModuleRefNotFoundError('./ref', '/path')
+      expect(error.name).toBe('ModuleRefNotFoundError')
+    })
+
+    it('sets ref property', () => {
+      const error = new ModuleRefNotFoundError('./domains/orders.json', '/project/domains/orders.json')
+      expect(error.ref).toBe('./domains/orders.json')
+    })
+
+    it('sets filePath property', () => {
+      const error = new ModuleRefNotFoundError('./domains/orders.json', '/project/domains/orders.json')
+      expect(error.filePath).toBe('/project/domains/orders.json')
     })
   })
 })

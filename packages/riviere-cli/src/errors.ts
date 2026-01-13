@@ -114,3 +114,15 @@ export class InternalSchemaValidationError extends Error {
     this.name = 'InternalSchemaValidationError'
   }
 }
+
+export class ModuleRefNotFoundError extends Error {
+  readonly ref: string
+  readonly filePath: string
+
+  constructor(ref: string, filePath: string) {
+    super(`Cannot resolve module reference '${ref}'. File not found: ${filePath}`)
+    this.name = 'ModuleRefNotFoundError'
+    this.ref = ref
+    this.filePath = filePath
+  }
+}
