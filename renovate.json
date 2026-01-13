@@ -13,23 +13,23 @@
     },
     {
       "description": "Group all NX packages",
-      "matchPackagePatterns": ["^@nx/", "^nx$"],
-      "groupName": "nx"
+      "groupName": "nx",
+      "matchPackageNames": ["/^@nx//", "/^nx$/"]
     },
     {
       "description": "Group all type definitions",
-      "matchPackagePatterns": ["^@types/"],
-      "groupName": "types"
+      "groupName": "types",
+      "matchPackageNames": ["/^@types//"]
     },
     {
       "description": "Group ESLint packages",
-      "matchPackagePatterns": ["^eslint$", "^@eslint/", "^eslint-"],
-      "groupName": "eslint"
+      "groupName": "eslint",
+      "matchPackageNames": ["/^eslint$/", "/^@eslint//", "/^eslint-/"]
     },
     {
       "description": "Group Vitest packages",
-      "matchPackagePatterns": ["^vitest$", "^@vitest/"],
-      "groupName": "vitest"
+      "groupName": "vitest",
+      "matchPackageNames": ["/^vitest$/", "/^@vitest//"]
     }
   ]
 }
