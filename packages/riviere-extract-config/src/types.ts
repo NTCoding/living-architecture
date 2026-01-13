@@ -3,7 +3,10 @@
  */
 export type FindTarget = 'classes' | 'methods' | 'functions'
 
-/** Architectural component types recognized by the extractor. */
+/**
+ * Standard architectural component types recognized by the Riviere extractor.
+ * Each type represents a distinct role in the system's flow-based architecture.
+ */
 export type ComponentType = 'api' | 'useCase' | 'domainOp' | 'event' | 'eventHandler' | 'ui'
 
 /** Matches elements with a specific decorator. */
