@@ -100,17 +100,35 @@ Matches if the target name matches a regex pattern
 
 Matches if the method is in a class matching the predicate
 
+**Parameters:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| (nested) | `predicate` | **Yes** | Predicate the containing class must satisfy |
+
 ---
 
 ### `and`
 
 Matches if all predicates match
 
+**Parameters:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| (array) | `predicate[]` | **Yes** (min: 2) | All predicates must match |
+
 ---
 
 ### `or`
 
 Matches if any predicate matches
+
+**Parameters:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| (array) | `predicate[]` | **Yes** (min: 2) | Any predicate must match |
 
 ---
 

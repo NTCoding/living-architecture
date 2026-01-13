@@ -233,5 +233,5 @@ Ensure all classes have component decorators using ESLint:
 ## See Also
 
 - [Getting Started](/extract/deterministic/typescript/getting-started) — 10-minute tutorial
-- [Examples](/extract/deterministic/typescript/examples) — Real-world configs
+- [Examples](/reference/extraction-config/examples) — Real-world configs
 - [Config Reference](/reference/extraction-config/schema) — Complete DSL

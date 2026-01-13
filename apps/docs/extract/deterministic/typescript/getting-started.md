@@ -49,7 +49,7 @@ class PlaceOrderUseCase {
 }
 ```
 
-[See all decorators →](/extract/deterministic/typescript/decorators)
+[See all decorators →](/reference/extraction-config/decorators)
 
 ## Step 2: Run Extraction
 
@@ -182,7 +182,7 @@ modules:
     ui: { notUsed: true }
 ```
 
-[See Examples →](/extract/deterministic/typescript/examples)
+[See Examples →](/reference/extraction-config/examples)
 
 ### Enable Enforcement
 
@@ -192,7 +192,11 @@ Add ESLint enforcement to ensure all classes have decorators:
 
 ### Build the Full Graph
 
-Draft components are a starting point. Use CLI commands to build the complete Rivière graph with connections:
+Draft components are a starting point. Follow the complete 6-step workflow to build the full Rivière graph with connections:
+
+**[Full Workflow →](/extract/deterministic/typescript/workflow/)**
+
+Or use CLI commands directly:
 
 [CLI Reference →](/reference/cli/cli-reference)
 
@@ -204,6 +208,6 @@ See a complete example in the ecommerce demo app:
 
 ## See Also
 
-- [Decorators Reference](/extract/deterministic/typescript/decorators) — All 11 decorators
+- [Decorators Reference](/reference/extraction-config/decorators) — All 11 decorators
 - [Config Reference](/reference/extraction-config/schema) — Complete DSL specification
-- [Examples](/extract/deterministic/typescript/examples) — Real-world configs
+- [Examples](/reference/extraction-config/examples) — Real-world configs

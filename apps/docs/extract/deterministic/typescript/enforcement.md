@@ -163,6 +163,6 @@ This is the TypeScript implementation of architectural enforcement. Other langua
 
 ## See Also
 
-- [Decorators Reference](/extract/deterministic/typescript/decorators) — All 11 decorators
+- [Decorators Reference](/reference/extraction-config/decorators) — All 11 decorators
 - [Getting Started](/extract/deterministic/typescript/getting-started) — Setup tutorial
 - [Enforcement Concept](/extract/deterministic/enforcement) — Language-agnostic principles

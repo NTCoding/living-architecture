@@ -1,40 +1,60 @@
-# Rivière Extraction
+# Extraction
 
-Extract architecture from your codebase into a Rivière graph showing how operations flow through your system.
+Extract architecture from your codebase into a Rivière graph.
 
-## What You Get
+## Why Extract?
 
-A Rivière graph (`.riviere/graph.json`) containing:
-- **Components**: APIs, UseCases, DomainOps, Events, EventHandlers
-- **Links**: Sync and async connections showing operational flow
-- **Metadata**: Domains, state machines, business rules
+Your codebase contains architectural knowledge—APIs, use cases, domain operations, events. Extraction makes this explicit by producing a graph you can visualize, query, and validate.
 
-## Extraction Methods
+## Choose Your Workflow
 
-Two approaches to extract architecture from code:
+### AI-Assisted Extraction
 
-**AI-Assisted** — AI analyzes code (any language) and calls CLI commands. Works for any codebase without setup. Best for initial extraction or dynamic codebases.
+For any language or codebase. AI analyzes your code and builds the graph.
 
-[Start the AI Extraction Workflow →](/extract/steps/)
+**Best for:**
+- Any programming language
+- Codebases without architectural conventions
+- Initial extraction to understand existing systems
 
-**Deterministic** — Same code always produces the same graph. Language-specific extractor parses code via AST. Faster, CI-ready. Best for codebases following architectural conventions.
+**[Start AI-Assisted Workflow →](/extract/steps/)**
 
-[Learn about Deterministic Extraction →](/extract/deterministic/)
+---
+
+### TypeScript Extraction
+
+For TypeScript codebases. Config-driven detection via decorators, JSDoc, or naming conventions.
+
+**Best for:**
+- TypeScript projects
+- Codebases with architectural conventions
+- CI integration and repeatable extraction
+
+**[Start TypeScript Workflow →](/extract/deterministic/typescript/workflow/)**
+
+---
 
 ## Extraction and Enforcement
 
-Reliable extraction works best with clear architectural conventions:
+Extraction and enforcement form a reinforcing cycle:
 
-1. **Define Components** — Establish what constitutes an API, UseCase, DomainOp, Event, EventHandler, UI
-2. **Build Codebase** — Implement features using those patterns
-3. **Extract Architecture** — Identify components from code
-4. **Enforce Conventions** — Ensure code follows definitions
+<div style="text-align: center; margin: 2rem 0;">
+  <img src="/extraction-enforcement-cycle.svg" alt="Extraction-Enforcement Cycle: Architecture Definitions guide Codebase, Codebase parsed by Extraction, Extraction validates Enforcement, Enforcement ensures Definitions" style="max-width: 500px;">
+</div>
 
-Enforcement makes extraction reliable. Extraction validates enforcement is working.
+1. **Define** — Establish component conventions (what's an API, UseCase, etc.)
+2. **Build** — Write code following those conventions
+3. **Extract** — Identify components from code
+4. **Enforce** — Ensure new code follows conventions
 
-[Learn about Enforcement →](/extract/deterministic/enforcement)
+Enforcement makes extraction reliable. Extraction validates enforcement works.
 
-## See Also
+[Learn about Enforcement →](/extract/deterministic/typescript/enforcement)
 
-- [CLI Reference](/reference/cli/cli-reference) — All commands with examples
-- [Graph Structure](/reference/schema/graph-structure) — Components and links explained
+---
+
+## Reference
+
+- [CLI Commands](/reference/cli/cli-reference) — All extraction commands
+- [Config Schema](/reference/extraction-config/schema) — Extraction config DSL
+- [Decorators](/reference/extraction-config/decorators) — TypeScript decorator reference

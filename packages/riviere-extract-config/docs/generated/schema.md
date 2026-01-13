@@ -39,6 +39,7 @@ A module defines extraction rules for a path pattern
 | `event` | `componentRule` | No | Detection rule for Event components |
 | `eventHandler` | `componentRule` | No | Detection rule for EventHandler components |
 | `ui` | `componentRule` | No | Detection rule for UI components |
+| `customTypes` | `object` | No | User-defined component types with their detection rules |
 
 ---
 

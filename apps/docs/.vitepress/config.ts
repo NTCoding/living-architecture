@@ -134,15 +134,11 @@ export default defineConfig({
       ],
       '/extract/': [
         {
-          text: 'Rivière Extraction',
+          text: 'Extraction',
           items: [
             {
               text: 'Overview',
               link: '/extract/',
-            },
-            {
-              text: 'Enforcement',
-              link: '/extract/deterministic/enforcement',
             },
           ],
         },
@@ -180,27 +176,39 @@ export default defineConfig({
           ],
         },
         {
-          text: 'Deterministic Extraction',
+          text: 'TypeScript Extraction',
           items: [
             {
-              text: 'Overview',
-              link: '/extract/deterministic/',
+              text: 'Workflow',
+              link: '/extract/deterministic/typescript/workflow/',
             },
             {
-              text: 'TypeScript: Getting Started',
-              link: '/extract/deterministic/typescript/getting-started',
+              text: 'Step 1: Understand',
+              link: '/extract/deterministic/typescript/workflow/step-1-understand',
             },
             {
-              text: 'TypeScript: Decorators',
-              link: '/extract/deterministic/typescript/decorators',
+              text: 'Step 2: Define',
+              link: '/extract/deterministic/typescript/workflow/step-2-define',
             },
             {
-              text: 'TypeScript: Enforcement',
+              text: 'Step 3: Extract',
+              link: '/extract/deterministic/typescript/workflow/step-3-extract',
+            },
+            {
+              text: 'Step 4: Link',
+              link: '/extract/deterministic/typescript/workflow/step-4-link',
+            },
+            {
+              text: 'Step 5: Enrich',
+              link: '/extract/deterministic/typescript/workflow/step-5-enrich',
+            },
+            {
+              text: 'Step 6: Validate',
+              link: '/extract/deterministic/typescript/workflow/step-6-validate',
+            },
+            {
+              text: 'Enforcement',
               link: '/extract/deterministic/typescript/enforcement',
-            },
-            {
-              text: 'TypeScript: Examples',
-              link: '/extract/deterministic/typescript/examples',
             },
           ],
         },
@@ -277,6 +285,14 @@ export default defineConfig({
             {
               text: 'Predicates',
               link: '/reference/extraction-config/predicates',
+            },
+            {
+              text: 'Decorators',
+              link: '/reference/extraction-config/decorators',
+            },
+            {
+              text: 'Examples',
+              link: '/reference/extraction-config/examples',
             },
           ],
         },
