@@ -3,6 +3,7 @@ import type {
   Module,
   DetectionRule,
   CustomTypes,
+  ComponentType,
 } from '@living-architecture/riviere-extract-config'
 
 const NOT_USED = { notUsed: true } as const
@@ -44,7 +45,7 @@ export function createConfigWithCustomTypes(
 export function createConfigWithRule(
   moduleName: string,
   modulePath: string,
-  componentType: keyof Module,
+  componentType: ComponentType,
   rule: DetectionRule,
 ): ResolvedExtractionConfig {
   return {
