@@ -1,6 +1,6 @@
 ---
 name: submit-pr
-description: Commit changes, push to remote, and create/update PR
+description: Commit changes, push to remote, and create PR
 model: haiku
 tools:
   - Bash
@@ -22,9 +22,11 @@ git add -A && git commit
 Return raw output (PASS or FAIL)
 ```
 
-## Instructions
+## Critical Rules
 
-Commit and create PR. No code review or analysis.
+**NEVER modify code.** Only commit and push existing changes. No code review, no analysis, no fixes.
+
+## Instructions
 
 1. Stage and commit: `git add -A && git commit -m "type(scope): description"`
 2. Run script: `./scripts/submit-pr.sh --title "<title>" --body "<body>"` (10-minute timeout)
