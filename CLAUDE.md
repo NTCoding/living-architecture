@@ -145,6 +145,26 @@ Installed from `ntcoding/claude-skillz`:
 - **Run `pnpm nx sync`** - After modifying tsconfig references or adding dependencies between projects.
 - **Debugging stale cache** - If something seems stale, run `pnpm nx reset` to clear the cache.
 
+## Release Strategy
+
+### Bundled Package Updates
+
+The CLI (`riviere-cli`) bundles several packages via esbuild. To ensure users always get the latest bundled content, we use NX's `updateDependents: "auto"` configuration.
+
+**How it works:**
+- When a bundled package (e.g., `riviere-extract-config`) gets released, NX automatically triggers a patch bump for `riviere-cli`
+- This ensures CLI users receive updated schemas and features without manual intervention
+- Only packages within the release group are updated (not external dependencies)
+
+**Example:**
+1. `riviere-extract-config` v0.2.0 → v0.2.1 (bug fix or feature)
+2. NX detects that `riviere-cli` bundles `riviere-extract-config`
+3. `riviere-cli` v0.7.16 → v0.7.17 automatically (with latest config schema bundled)
+
+**Configuration:** See `nx.json` release.version section, `updateDependents: "auto"` field.
+
+**Reference:** Follows the same pattern as employee-management repo. For details, see [NX updateDependents docs](https://nx.dev/docs/guides/nx-release/update-dependents).
+
 ## General Guidelines
 
 - **Process before fix** - When you encounter a problem, improve the process/tooling first, then apply the fix. This ensures the same issue won't recur and benefits future work. Never just fix the symptom without addressing the root cause.
