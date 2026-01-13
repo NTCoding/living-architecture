@@ -1,37 +1,67 @@
 import type {
-  ResolvedExtractionConfig, Module 
+  ResolvedExtractionConfig,
+  Module,
+  DetectionRule,
+  CustomTypes,
+  ComponentType,
 } from '@living-architecture/riviere-extract-config'
 
-export function createResolvedConfig(): ResolvedExtractionConfig {
-  const minimalModule: Module = {
+const NOT_USED = { notUsed: true } as const
+
+function createMinimalModule(overrides: Partial<Module> = {}): Module {
+  return {
     name: 'test',
     path: 'src/**',
-    api: { notUsed: true },
-    useCase: { notUsed: true },
-    domainOp: { notUsed: true },
-    event: { notUsed: true },
-    eventHandler: { notUsed: true },
-    ui: { notUsed: true },
+    api: NOT_USED,
+    useCase: NOT_USED,
+    domainOp: NOT_USED,
+    event: NOT_USED,
+    eventHandler: NOT_USED,
+    ui: NOT_USED,
+    ...overrides,
   }
-  return { modules: [minimalModule] }
+}
+
+export function createResolvedConfig(): ResolvedExtractionConfig {
+  return { modules: [createMinimalModule()] }
+}
+
+export function createConfigWithCustomTypes(
+  moduleName: string,
+  modulePath: string,
+  customTypes: CustomTypes,
+): ResolvedExtractionConfig {
+  return {
+    modules: [
+      createMinimalModule({
+        name: moduleName,
+        path: modulePath,
+        customTypes,
+      }),
+    ],
+  }
+}
+
+export function createConfigWithRule(
+  moduleName: string,
+  modulePath: string,
+  componentType: ComponentType,
+  rule: DetectionRule,
+): ResolvedExtractionConfig {
+  return {
+    modules: [
+      createMinimalModule({
+        name: moduleName,
+        path: modulePath,
+        [componentType]: rule,
+      }),
+    ],
+  }
 }
 
 export function createOrdersUseCaseConfig(modulePath = 'orders/**'): ResolvedExtractionConfig {
-  return {
-    modules: [
-      {
-        name: 'orders',
-        path: modulePath,
-        api: { notUsed: true },
-        useCase: {
-          find: 'classes',
-          where: { hasDecorator: { name: 'UseCase' } },
-        },
-        domainOp: { notUsed: true },
-        event: { notUsed: true },
-        eventHandler: { notUsed: true },
-        ui: { notUsed: true },
-      },
-    ],
-  }
+  return createConfigWithRule('orders', modulePath, 'useCase', {
+    find: 'classes',
+    where: { hasDecorator: { name: 'UseCase' } },
+  })
 }

@@ -60,6 +60,9 @@ export interface DetectionRule {
 /** Either a detection rule or a marker that the component type is unused. */
 export type ComponentRule = NotUsed | DetectionRule
 
+/** User-defined component types with their detection rules. */
+export type CustomTypes = Record<string, DetectionRule>
+
 /**
  * A module config as written in the extraction config file.
  * When `extends` is present, component rules are inherited from the extended config.
@@ -75,6 +78,7 @@ export interface ModuleConfig {
   event?: ComponentRule
   eventHandler?: ComponentRule
   ui?: ComponentRule
+  customTypes?: CustomTypes
 }
 
 /**
@@ -90,6 +94,7 @@ export interface Module {
   event: ComponentRule
   eventHandler: ComponentRule
   ui: ComponentRule
+  customTypes?: CustomTypes
 }
 
 /**

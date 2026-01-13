@@ -38,20 +38,13 @@ describe('isValidExtractionConfig', () => {
     expect(isValidExtractionConfig(config)).toBe(true)
   })
 
-  it('returns false when data is null', () => {
-    expect(isValidExtractionConfig(null)).toBe(false)
-  })
-
-  it('returns false when data is not an object', () => {
-    expect(isValidExtractionConfig('invalid')).toBe(false)
-  })
-
-  it('returns false when modules is missing', () => {
-    expect(isValidExtractionConfig({})).toBe(false)
-  })
-
-  it('returns false when modules is empty', () => {
-    expect(isValidExtractionConfig({ modules: [] })).toBe(false)
+  it.each([
+    ['null', null],
+    ['string', 'invalid'],
+    ['missing modules', {}],
+    ['empty modules', { modules: [] }],
+  ])('returns false when data is %s', (_, input) => {
+    expect(isValidExtractionConfig(input)).toBe(false)
   })
 })
 
@@ -154,6 +147,35 @@ describe('validateExtractionConfig', () => {
       }
       expect(validateExtractionConfig(config).valid).toBe(true)
     })
+
+    it('returns valid=true when module has customTypes with detection rule', () => {
+      const result = validateExtractionConfig({
+        modules: [
+          {
+            ...createMinimalModule(),
+            customTypes: {
+              backgroundJob: {
+                find: 'functions',
+                where: { hasJSDoc: { tag: 'backgroundJob' } },
+              },
+            },
+          },
+        ],
+      })
+      expect(result.valid).toBe(true)
+    })
+
+    it('returns valid=true when customTypes is empty object', () => {
+      const result = validateExtractionConfig({
+        modules: [
+          {
+            ...createMinimalModule(),
+            customTypes: {},
+          },
+        ],
+      })
+      expect(result.valid).toBe(true)
+    })
   })
 
   describe('invalid configs', () => {
@@ -234,29 +256,17 @@ describe('validateExtractionConfig', () => {
       expect(result.valid).toBe(false)
     })
 
-    it('returns error when and predicate has less than 2 items', () => {
+    it.each([
+      ['and', { and: [{ hasDecorator: { name: 'Get' } }] }],
+      ['or', { or: [{ hasDecorator: { name: 'Get' } }] }],
+    ])('returns error when %s predicate has less than 2 items', (_, predicate) => {
       const result = validateExtractionConfig({
         modules: [
           {
             ...createMinimalModule(),
             api: {
               find: 'classes',
-              where: { and: [{ hasDecorator: { name: 'Get' } }] },
-            },
-          },
-        ],
-      })
-      expect(result.valid).toBe(false)
-    })
-
-    it('returns error when or predicate has less than 2 items', () => {
-      const result = validateExtractionConfig({
-        modules: [
-          {
-            ...createMinimalModule(),
-            api: {
-              find: 'classes',
-              where: { or: [{ hasDecorator: { name: 'Get' } }] },
+              where: predicate,
             },
           },
         ],
@@ -301,6 +311,29 @@ describe('validateExtractionConfig', () => {
       expect(result.valid).toBe(false)
       expect(result.errors.length).toBeGreaterThan(1)
     })
+
+    it.each([
+      ['missing find property', { where: { hasJSDoc: { tag: 'job' } } }],
+      ['missing where property', { find: 'functions' }],
+      [
+        'invalid find value',
+        {
+          find: 'invalid',
+          where: { hasJSDoc: { tag: 'job' } },
+        },
+      ],
+    ])('returns error when customTypes entry has %s', (_, invalidRule) => {
+      const result = validateExtractionConfig({
+        modules: [
+          {
+            ...createMinimalModule(),
+            customTypes: { job: invalidRule },
+          },
+        ],
+      })
+      expect(result.valid).toBe(false)
+      expect(result.errors.some((e) => e.path.includes('customTypes'))).toBe(true)
+    })
   })
 })
 
@@ -342,50 +375,35 @@ describe('parseExtractionConfig', () => {
     expect(parseExtractionConfig(config)).toStrictEqual(config)
   })
 
-  it('throws ExtractionConfigValidationError when config is invalid', () => {
+  it('throws ExtractionConfigValidationError with error details when invalid', () => {
     expect(() => parseExtractionConfig({})).toThrow(ExtractionConfigValidationError)
-  })
-
-  it('includes validation errors in thrown error message', () => {
     expect(() => parseExtractionConfig({})).toThrow(/Invalid extraction config/)
-  })
-
-  it('includes specific error paths in thrown error message', () => {
     expect(() => parseExtractionConfig({ modules: [] })).toThrow('/modules')
   })
 })
 
 describe('mapAjvErrors', () => {
-  it('returns empty array when errors is null', () => {
-    expect(mapAjvErrors(null)).toStrictEqual([])
+  it.each([[null], [undefined]])('returns empty array when errors is %s', (input) => {
+    expect(mapAjvErrors(input)).toStrictEqual([])
   })
 
-  it('returns empty array when errors is undefined', () => {
-    expect(mapAjvErrors(undefined)).toStrictEqual([])
-  })
-
-  it('maps instancePath to path', () => {
-    const result = mapAjvErrors([
-      {
-        instancePath: '/modules/0',
-        message: 'test',
-      },
-    ])
-    expect(result[0]?.path).toBe('/modules/0')
-  })
-
-  it('uses / as path when instancePath is empty', () => {
-    const result = mapAjvErrors([
-      {
-        instancePath: '',
-        message: 'test',
-      },
-    ])
-    expect(result[0]?.path).toBe('/')
-  })
-
-  it('uses unknown error when message is undefined', () => {
-    const result = mapAjvErrors([{ instancePath: '/test' }])
-    expect(result[0]?.message).toBe('unknown error')
+  it('maps AJV errors to path/message format', () => {
+    expect(
+      mapAjvErrors([
+        {
+          instancePath: '/modules/0',
+          message: 'test',
+        },
+      ])[0]?.path,
+    ).toBe('/modules/0')
+    expect(
+      mapAjvErrors([
+        {
+          instancePath: '',
+          message: 'test',
+        },
+      ])[0]?.path,
+    ).toBe('/')
+    expect(mapAjvErrors([{ instancePath: '/test' }])[0]?.message).toBe('unknown error')
   })
 })
