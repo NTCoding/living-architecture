@@ -4,9 +4,6 @@ pageClass: reference
 
 # Extraction Config
 
-> This file is auto-generated from JSON Schema definitions.
-> Do not edit manually. Run `nx generate-docs riviere-extract-config` to regenerate.
-
 Configuration for extracting architectural components from source code
 
 **Format:** JSON or YAML

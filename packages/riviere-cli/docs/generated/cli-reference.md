@@ -4,9 +4,6 @@ pageClass: reference
 
 # CLI Command Reference
 
-> This file is auto-generated from CLI command definitions.
-> Do not edit manually. Run `nx generate-docs riviere-cli` to regenerate.
-
 Complete documentation for all Riviere CLI commands.
 
 ## Installation

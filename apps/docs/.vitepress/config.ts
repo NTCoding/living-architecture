@@ -105,6 +105,34 @@ export default defineConfig({
     ],
 
     sidebar: {
+      '/api/': [
+        {
+          text: 'riviere-builder',
+          items: [
+            {
+              text: 'RiviereBuilder',
+              link: '/api/generated/riviere-builder/classes/RiviereBuilder',
+            },
+            {
+              text: 'Interfaces',
+              link: '/api/generated/riviere-builder/README',
+            },
+          ],
+        },
+        {
+          text: 'riviere-query',
+          items: [
+            {
+              text: 'RiviereQuery',
+              link: '/api/generated/riviere-query/classes/RiviereQuery',
+            },
+            {
+              text: 'Types',
+              link: '/api/generated/riviere-query/README',
+            },
+          ],
+        },
+      ],
       '/get-started/': [
         {
           text: 'Get Started',

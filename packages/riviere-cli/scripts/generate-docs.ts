@@ -263,9 +263,6 @@ function generateReference(): string {
   lines.push('')
   lines.push('# CLI Command Reference')
   lines.push('')
-  lines.push('> This file is auto-generated from CLI command definitions.')
-  lines.push('> Do not edit manually. Run `nx generate-docs riviere-cli` to regenerate.')
-  lines.push('')
   lines.push('Complete documentation for all Riviere CLI commands.')
   lines.push('')
 

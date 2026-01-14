@@ -285,9 +285,6 @@ function generatePredicatesReference(schema: Schema): string {
   lines.push('')
   lines.push('# Predicate Reference')
   lines.push('')
-  lines.push('> This file is auto-generated from JSON Schema definitions.')
-  lines.push('> Do not edit manually. Run `nx generate-docs riviere-extract-config` to regenerate.')
-  lines.push('')
 
   const predicateDef = schema.$defs['predicate']
   if (predicateDef) {
@@ -317,9 +314,6 @@ function generateSchemaReference(schema: Schema): string {
   lines.push('---')
   lines.push('')
   lines.push(`# ${schema.title ?? 'Extraction Config Schema'}`)
-  lines.push('')
-  lines.push('> This file is auto-generated from JSON Schema definitions.')
-  lines.push('> Do not edit manually. Run `nx generate-docs riviere-extract-config` to regenerate.')
   lines.push('')
   if (schema.description) {
     lines.push(schema.description)
