@@ -107,21 +107,16 @@ export default defineConfig({
     sidebar: {
       '/api/': [
         {
-          text: 'riviere-builder',
+          text: 'Library API',
           items: [
+            {
+              text: 'Overview',
+              link: '/reference/api/',
+            },
             {
               text: 'RiviereBuilder',
               link: '/api/generated/riviere-builder/classes/RiviereBuilder',
             },
-            {
-              text: 'Interfaces',
-              link: '/api/generated/riviere-builder/README',
-            },
-          ],
-        },
-        {
-          text: 'riviere-query',
-          items: [
             {
               text: 'RiviereQuery',
               link: '/api/generated/riviere-query/classes/RiviereQuery',
@@ -129,6 +124,18 @@ export default defineConfig({
             {
               text: 'Types',
               link: '/api/generated/riviere-query/README',
+            },
+            {
+              text: 'ID Generation',
+              link: '/reference/api/id-generation',
+            },
+            {
+              text: 'Validation Rules',
+              link: '/reference/api/validation-rules',
+            },
+            {
+              text: 'Error Messages',
+              link: '/reference/api/error-messages',
             },
           ],
         },
