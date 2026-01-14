@@ -20,23 +20,23 @@ Gather feedback:
     └─ Conversation history
     │
     ▼
-Identify patterns and generate suggestions
+Analyze failures (5 whys for external review issues)
     │
     ▼
 Present reflection to user with options:
-    1. Implement improvements → create GitHub issues
+    1. Create process fix issues → create GitHub issues
     2. Skip → proceed to cleanup
     │
     ▼
 Handle user choice:
-    ├─ Implement → create issues via ./scripts/create-non-milestone-task.sh
+    ├─ Create issues → ./scripts/create-non-milestone-task.sh
     └─ Skip → continue
     │
     ▼
 Cleanup worktree (./scripts/cleanup-task.sh)
     │
     ▼
-Ask user: Start improvement task now?
+Ask user: Start process fix task now?
     ├─ Yes → ./scripts/start-task.sh <issue-number>
     └─ No → Ready for next task
 ```
@@ -61,9 +61,9 @@ PR is not merged yet. Current state: <state>
 Run /post-merge-completion after the PR is merged.
 ```
 
-### 2. Reflect
+### 2. Analyze Failures
 
-Analyze the completed task and suggest process improvements.
+Analyze the completed task. Focus on what failed, not what could be improved.
 
 #### Gather Feedback
 
@@ -90,40 +90,72 @@ git log --oneline main..<branch>
 
 **Conversation history** - Issues that came up during development, things that took multiple attempts.
 
-#### Identify Patterns
+#### Identify Process Failures
 
-Look for recurring themes:
+Analyze feedback with failure-first framing. Ask: "What failed?" not "What could be improved?"
 
-- **Process friction** - Steps that were confusing, commands that failed, missing docs
-- **Code quality patterns** - Issues that kept coming up, conventions violated
-- **Tool/workflow gaps** - Manual steps that could be automated, checks that should have caught issues earlier
+**Types of failures:**
 
-#### Capture Review Feedback Learnings
+- **Detection failures** - Issues that should have been caught locally but weren't
+- **Knowledge failures** - Principles violated because they weren't known or remembered
+- **Process failures** - Missing checks, unclear workflows, gaps in tooling
 
-**Principle:** Any PR feedback requiring implementation is a process failure. External reviewers (CodeRabbit, humans) catching issues means our local checks missed them.
+#### External Review = Process Failure
+
+**Definition:** Any issue caught by an external reviewer (CodeRabbit, human) is a **process failure by definition**. This is not an "improvement opportunity" - it's a failure to catch the issue locally.
+
+**Why this matters:**
+- External reviewers are the last line of defense before shipping
+- If they catch something, our local checks failed
+- Framing as "improvement" minimizes the failure and reduces learning
+
+**Mandatory response:** Every external review finding requires:
+1. 5 Whys analysis (see section below)
+2. Self-reflection: "Why did I write code that violated best practices I know?"
+3. Process fix to prevent recurrence
 
 When PR feedback reveals a generalizable pattern:
-
 1. Add a new check to `docs/conventions/review-feedback-checks.md`
 2. Follow the RFC format (Source, Pattern, Bad/Good examples, Detection)
 3. Bug-scanner will apply the check to future PRs
 
-This creates a feedback loop: PR feedback → update conventions → catch locally next time.
+This creates a feedback loop: PR feedback → failure analysis → process fix → catch locally next time.
 
-#### Generate Suggestions
+#### 5 Whys Analysis
 
-For each pattern, propose a specific improvement:
+For each issue caught by external review, perform 5 Whys analysis:
 
-| Priority | Problem | Suggestion | Files to Update |
-|----------|---------|------------|-----------------|
-| HIGH | [issue] | [fix] | [files] |
-| MEDIUM | [issue] | [fix] | [files] |
-| LOW | [issue] | [fix] | [files] |
+```markdown
+#### Failure: [Issue Title]
 
-Priority guide:
-- **HIGH** - Prevents bugs or significant time waste
-- **MEDIUM** - Improves clarity or efficiency
-- **LOW** - Nice to have
+1. **Why did external review catch this?**
+   [What the reviewer found]
+
+2. **Why didn't local checks catch it?**
+   [Missing lint rule, test, code review check, etc.]
+
+3. **Why was the code written this way?**
+   [What led to the problematic implementation]
+
+4. **Why didn't I apply the correct approach?**
+   [Knowledge gap, application gap, or process gap]
+
+5. **Why doesn't our process prevent this?**
+   [What's missing from our workflow/tooling]
+
+**Root Cause:** [One sentence conclusion]
+**Process Fix:** [Specific change to prevent recurrence]
+```
+
+#### Analyze Failures
+
+For each failure, answer: **Would this have shipped broken?**
+
+| Failure | Would This Have Shipped Broken? | Self-Reflection | Process Fix |
+|---------|--------------------------------|-----------------|-------------|
+| [issue] | Yes/No - [why] | Why did I violate principles I know? | [fix] |
+
+**Severity is binary:** Either the code would have shipped broken, or it wouldn't.
 
 ### 3. Present Reflection
 
@@ -157,26 +189,40 @@ Priority guide:
 ### Iterations
 [How many /complete-task runs? What failed and was fixed?]
 
-## Patterns Identified
-[What types of issues kept coming up?]
+## Failure Analysis
 
-## Suggested Improvements
+### External Review Failures
+Any issue caught by external reviewers is a process failure.
 
-| Priority | Problem | Evidence | Suggestion | Files |
-|----------|---------|----------|------------|-------|
-| HIGH | ... | ... | ... | ... |
-| MEDIUM | ... | ... | ... | ... |
-| LOW | ... | ... | ... | ... |
+| Failure | Would This Have Shipped Broken? | Self-Reflection | Process Fix |
+|---------|--------------------------------|-----------------|-------------|
+| [issue] | Yes/No - [why] | Why did I violate principles I know? | [fix] |
+
+### 5 Whys Analysis
+[Required for each external review failure]
+
+#### Failure: [title]
+1. **Why did external review catch this?** [answer]
+2. **Why didn't local checks catch it?** [answer]
+3. **Why was the code written this way?** [answer]
+4. **Why didn't I apply the correct approach?** [answer]
+5. **Why doesn't our process prevent this?** [answer]
+
+**Root Cause:** [one sentence]
+**Process Fix:** [specific change]
+
+### Process Friction
+[Steps that were confusing, commands that failed, missing docs]
 
 ## Action Items
 Would you like me to:
-1. Create GitHub issues for improvements (then implement via normal workflow)
+1. Create GitHub issues for process fixes (then implement via normal workflow)
 2. Skip and proceed to cleanup
 ```
 
 ### 4. Handle User Choice
 
-**If implementing improvements:**
+**If implementing process fixes:**
 - Create GitHub issues using `./scripts/create-non-milestone-task.sh --type tech`
 - Proceed to cleanup
 
@@ -197,18 +243,18 @@ Run the cleanup script:
 # Post-Merge Complete
 
 ## Reflection
-[Summary of what was analyzed]
+[Summary of failures analyzed]
 
-## Improvements
+## Process Fixes
 - Issues created: [list with issue numbers, or "None"]
 
 ## Cleanup
 Worktree removed: <path>
 
 ---
-Would you like to start working on one of the improvement tasks now?
+Would you like to start working on one of the process fix tasks now?
 - Yes → I'll run `./scripts/start-task.sh <issue-number>`
 - No → Ready for next task. Run `./scripts/list-tasks.sh` to see available work.
 ```
 
-If user chooses yes, run `./scripts/start-task.sh <issue-number>` to begin the improvement task via normal workflow.
+If user chooses yes, run `./scripts/start-task.sh <issue-number>` to begin the process fix task via normal workflow.
