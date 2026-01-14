@@ -4,9 +4,6 @@ pageClass: reference
 
 # Predicate Reference
 
-> This file is auto-generated from JSON Schema definitions.
-> Do not edit manually. Run `nx generate-docs riviere-extract-config` to regenerate.
-
 ## Overview
 
 | Predicate | Description |

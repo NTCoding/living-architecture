@@ -14,7 +14,7 @@
   },
   "ignores": [
     "**/node_modules/**",
-    "apps/docs/api/generated/**",
+    "apps/docs/reference/api/generated/**",
     "CHANGELOG.md"
   ]
 }

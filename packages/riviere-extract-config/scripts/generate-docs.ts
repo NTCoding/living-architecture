@@ -30,6 +30,7 @@ interface SchemaProperty {
   minItems?: number
   items?: SchemaProperty
   enum?: string[]
+  additionalProperties?: SchemaProperty | boolean
 }
 
 interface SchemaDef {
@@ -66,18 +67,38 @@ function getRefTypeName(ref: string): string {
   return ref.replace('#/$defs/', '')
 }
 
+function extractOneOfTypeNames(oneOf: SchemaProperty[]): string[] {
+  return oneOf.map((o) => {
+    if (o.$ref) return getRefTypeName(o.$ref)
+    if (o.type === 'array' && o.items) {
+      if (o.items.$ref) return `${getRefTypeName(o.items.$ref)}[]`
+      return `${o.items.type}[]`
+    }
+    return o.type ?? 'any'
+  })
+}
+
 function formatOneOfType(prop: SchemaProperty): string {
   if (!prop.oneOf) return '`any`'
-  return prop.oneOf
-    .map((o) => {
-      if (o.$ref) return `\`${getRefTypeName(o.$ref)}\``
-      if (o.type === 'array' && o.items) {
-        if (o.items.$ref) return `\`${getRefTypeName(o.items.$ref)}[]\``
-        return `\`${o.items.type}[]\``
-      }
-      return `\`${o.type}\``
-    })
+  return extractOneOfTypeNames(prop.oneOf)
+    .map((t) => `\`${t}\``)
     .join(' \\| ')
+}
+
+function formatArrayType(items: SchemaProperty): string {
+  if (items.$ref) return `\`${getRefTypeName(items.$ref)}[]\``
+  if (items.oneOf) {
+    const types = extractOneOfTypeNames(items.oneOf)
+    return `\`(${types.join(' \\| ')})[]\``
+  }
+  return `\`${items.type}[]\``
+}
+
+function formatRecordType(additionalProperties: SchemaProperty): string {
+  const valueType = additionalProperties.$ref
+    ? getRefTypeName(additionalProperties.$ref)
+    : (additionalProperties.type ?? 'unknown')
+  return `\`Record<string, ${valueType}>\``
 }
 
 function getTypeString(prop: SchemaProperty): string {
@@ -88,11 +109,13 @@ function getTypeString(prop: SchemaProperty): string {
     return formatOneOfType(prop)
   }
   if (prop.type === 'array' && prop.items) {
-    if (prop.items.$ref) return `\`${getRefTypeName(prop.items.$ref)}[]\``
-    return `\`${prop.items.type}[]\``
+    return formatArrayType(prop.items)
   }
   if (prop.enum) {
     return prop.enum.map((e) => `\`"${e}"\``).join(' \\| ')
+  }
+  if (prop.type === 'object' && typeof prop.additionalProperties === 'object') {
+    return formatRecordType(prop.additionalProperties)
   }
   return `\`${prop.type ?? 'any'}\``
 }
@@ -285,9 +308,6 @@ function generatePredicatesReference(schema: Schema): string {
   lines.push('')
   lines.push('# Predicate Reference')
   lines.push('')
-  lines.push('> This file is auto-generated from JSON Schema definitions.')
-  lines.push('> Do not edit manually. Run `nx generate-docs riviere-extract-config` to regenerate.')
-  lines.push('')
 
   const predicateDef = schema.$defs['predicate']
   if (predicateDef) {
@@ -317,9 +337,6 @@ function generateSchemaReference(schema: Schema): string {
   lines.push('---')
   lines.push('')
   lines.push(`# ${schema.title ?? 'Extraction Config Schema'}`)
-  lines.push('')
-  lines.push('> This file is auto-generated from JSON Schema definitions.')
-  lines.push('> Do not edit manually. Run `nx generate-docs riviere-extract-config` to regenerate.')
   lines.push('')
   if (schema.description) {
     lines.push(schema.description)

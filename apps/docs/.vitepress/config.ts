@@ -318,15 +318,15 @@ export default defineConfig({
             },
             {
               text: 'RiviereBuilder',
-              link: '/api/generated/riviere-builder/classes/RiviereBuilder',
+              link: '/reference/api/generated/riviere-builder/classes/RiviereBuilder',
             },
             {
               text: 'RiviereQuery',
-              link: '/api/generated/riviere-query/classes/RiviereQuery',
+              link: '/reference/api/generated/riviere-query/classes/RiviereQuery',
             },
             {
               text: 'Types',
-              link: '/api/generated/riviere-query/README',
+              link: '/reference/api/generated/riviere-query/README',
             },
             {
               text: 'ID Generation',
