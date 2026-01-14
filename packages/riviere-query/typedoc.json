@@ -1,7 +1,7 @@
 {
   "$schema": "https://typedoc.org/schema.json",
   "entryPoints": ["./src/index.ts"],
-  "out": "../../apps/docs/api/generated/riviere-query",
+  "out": "../../apps/docs/reference/api/generated/riviere-query",
   "plugin": ["typedoc-plugin-markdown"],
   "name": "@living-architecture/riviere-query",
   "readme": "none",

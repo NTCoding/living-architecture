@@ -1,7 +1,7 @@
 {
   "$schema": "https://typedoc.org/schema.json",
   "entryPoints": ["./src/index.ts"],
-  "out": "../../apps/docs/api/generated/riviere-builder",
+  "out": "../../apps/docs/reference/api/generated/riviere-builder",
   "plugin": ["typedoc-plugin-markdown"],
   "name": "@living-architecture/riviere-builder",
   "readme": "none",
