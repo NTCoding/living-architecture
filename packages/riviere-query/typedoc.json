@@ -2,7 +2,10 @@
   "$schema": "https://typedoc.org/schema.json",
   "entryPoints": ["./src/index.ts"],
   "out": "../../apps/docs/reference/api/generated/riviere-query",
-  "plugin": ["typedoc-plugin-markdown"],
+  "plugin": ["typedoc-plugin-markdown", "typedoc-plugin-frontmatter"],
+  "frontmatterGlobals": {
+    "pageClass": "reference"
+  },
   "name": "@living-architecture/riviere-query",
   "readme": "none",
   "excludePrivate": true,

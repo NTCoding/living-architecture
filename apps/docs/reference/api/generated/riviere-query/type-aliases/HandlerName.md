@@ -1,3 +1,7 @@
+---
+pageClass: reference
+---
+
 # Type Alias: HandlerName
 
 > **HandlerName** = `z.infer`\<*typeof* `handlerNameSchema`\>

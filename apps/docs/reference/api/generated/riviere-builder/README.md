@@ -1,3 +1,7 @@
+---
+pageClass: reference
+---
+
 # @living-architecture/riviere-builder
 
 ## Classes

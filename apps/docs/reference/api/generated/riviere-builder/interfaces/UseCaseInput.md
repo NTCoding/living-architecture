@@ -1,3 +1,7 @@
+---
+pageClass: reference
+---
+
 # Interface: UseCaseInput
 
 Defined in: [packages/riviere-builder/src/types.ts:53](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/types.ts#L53)

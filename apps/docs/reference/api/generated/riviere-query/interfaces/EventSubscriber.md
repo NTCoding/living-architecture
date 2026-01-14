@@ -1,3 +1,7 @@
+---
+pageClass: reference
+---
+
 # Interface: EventSubscriber
 
 Defined in: [packages/riviere-query/src/event-types.ts:60](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/event-types.ts#L60)

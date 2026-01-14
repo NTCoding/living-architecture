@@ -1,3 +1,7 @@
+---
+pageClass: reference
+---
+
 # Class: ComponentId
 
 Defined in: packages/riviere-schema/dist/component-id.d.ts:33

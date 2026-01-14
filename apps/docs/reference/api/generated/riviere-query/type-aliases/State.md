@@ -1,3 +1,7 @@
+---
+pageClass: reference
+---
+
 # Type Alias: State
 
 > **State** = `z.infer`\<*typeof* `stateSchema`\>

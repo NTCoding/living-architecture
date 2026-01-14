@@ -1,3 +1,7 @@
+---
+pageClass: reference
+---
+
 # Interface: BuilderOptions
 
 Defined in: [packages/riviere-builder/src/types.ts:17](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/types.ts#L17)

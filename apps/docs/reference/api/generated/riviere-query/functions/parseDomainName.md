@@ -1,3 +1,7 @@
+---
+pageClass: reference
+---
+
 # Function: parseDomainName()
 
 > **parseDomainName**(`value`): `string` & `$brand`\<`"DomainName"`\>

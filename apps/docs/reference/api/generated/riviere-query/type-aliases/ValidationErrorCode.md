@@ -1,3 +1,7 @@
+---
+pageClass: reference
+---
+
 # Type Alias: ValidationErrorCode
 
 > **ValidationErrorCode** = `"INVALID_LINK_SOURCE"` \| `"INVALID_LINK_TARGET"` \| `"INVALID_TYPE"`

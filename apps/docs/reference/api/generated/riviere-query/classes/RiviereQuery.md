@@ -1,3 +1,7 @@
+---
+pageClass: reference
+---
+
 # Class: RiviereQuery
 
 Defined in: [packages/riviere-query/src/RiviereQuery.ts:117](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/RiviereQuery.ts#L117)

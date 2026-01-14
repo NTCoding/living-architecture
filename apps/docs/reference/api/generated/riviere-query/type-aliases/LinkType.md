@@ -1,3 +1,7 @@
+---
+pageClass: reference
+---
+
 # Type Alias: LinkType
 
 > **LinkType** = `"sync"` \| `"async"`

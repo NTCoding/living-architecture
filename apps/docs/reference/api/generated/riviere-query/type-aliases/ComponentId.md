@@ -1,3 +1,7 @@
+---
+pageClass: reference
+---
+
 # Type Alias: ComponentId
 
 > **ComponentId** = `z.infer`\<*typeof* `componentIdSchema`\>

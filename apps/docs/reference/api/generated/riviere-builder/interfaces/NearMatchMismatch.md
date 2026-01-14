@@ -1,3 +1,7 @@
+---
+pageClass: reference
+---
+
 # Interface: NearMatchMismatch
 
 Defined in: [packages/riviere-builder/src/types.ts:136](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/types.ts#L136)

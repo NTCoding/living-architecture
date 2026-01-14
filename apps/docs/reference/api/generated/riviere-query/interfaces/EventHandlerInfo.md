@@ -1,3 +1,7 @@
+---
+pageClass: reference
+---
+
 # Interface: EventHandlerInfo
 
 Defined in: [packages/riviere-query/src/event-types.ts:113](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/event-types.ts#L113)

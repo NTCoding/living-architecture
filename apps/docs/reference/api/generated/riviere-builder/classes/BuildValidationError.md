@@ -1,3 +1,7 @@
+---
+pageClass: reference
+---
+
 # Class: BuildValidationError
 
 Defined in: [packages/riviere-builder/src/errors.ts:119](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/errors.ts#L119)

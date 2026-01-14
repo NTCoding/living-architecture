@@ -1,3 +1,7 @@
+---
+pageClass: reference
+---
+
 # Class: ComponentNotFoundError
 
 Defined in: [packages/riviere-builder/src/errors.ts:47](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/errors.ts#L47)

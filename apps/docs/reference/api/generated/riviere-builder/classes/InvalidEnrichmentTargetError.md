@@ -1,3 +1,7 @@
+---
+pageClass: reference
+---
+
 # Class: InvalidEnrichmentTargetError
 
 Defined in: [packages/riviere-builder/src/errors.ts:64](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/errors.ts#L64)

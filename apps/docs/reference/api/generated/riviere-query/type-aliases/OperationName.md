@@ -1,3 +1,7 @@
+---
+pageClass: reference
+---
+
 # Type Alias: OperationName
 
 > **OperationName** = `z.infer`\<*typeof* `operationNameSchema`\>

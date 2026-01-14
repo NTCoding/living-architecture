@@ -1,3 +1,7 @@
+---
+pageClass: reference
+---
+
 # Function: parseComponentId()
 
 > **parseComponentId**(`id`): `string` & `$brand`\<`"ComponentId"`\>

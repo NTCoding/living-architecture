@@ -1,3 +1,7 @@
+---
+pageClass: reference
+---
+
 # Interface: ComponentIdParts
 
 Defined in: packages/riviere-schema/dist/component-id.d.ts:4

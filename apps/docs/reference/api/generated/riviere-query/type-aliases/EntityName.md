@@ -1,3 +1,7 @@
+---
+pageClass: reference
+---
+
 # Type Alias: EntityName
 
 > **EntityName** = `z.infer`\<*typeof* `entityNameSchema`\>

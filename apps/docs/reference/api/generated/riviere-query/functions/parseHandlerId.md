@@ -1,3 +1,7 @@
+---
+pageClass: reference
+---
+
 # Function: parseHandlerId()
 
 > **parseHandlerId**(`value`): `string` & `$brand`\<`"HandlerId"`\>

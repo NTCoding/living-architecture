@@ -1,3 +1,7 @@
+---
+pageClass: reference
+---
+
 # Class: CustomTypeAlreadyDefinedError
 
 Defined in: [packages/riviere-builder/src/errors.ts:76](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/errors.ts#L76)

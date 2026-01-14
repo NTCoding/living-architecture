@@ -1,3 +1,7 @@
+---
+pageClass: reference
+---
+
 # Type Alias: DomainName
 
 > **DomainName** = `z.infer`\<*typeof* `domainNameSchema`\>

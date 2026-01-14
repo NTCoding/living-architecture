@@ -1,3 +1,7 @@
+---
+pageClass: reference
+---
+
 # Function: parseLinkId()
 
 > **parseLinkId**(`id`): `string` & `$brand`\<`"LinkId"`\>

@@ -1,3 +1,7 @@
+---
+pageClass: reference
+---
+
 # Interface: ValidationResult
 
 Defined in: [packages/riviere-query/src/domain-types.ts:75](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/domain-types.ts#L75)

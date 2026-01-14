@@ -1,3 +1,7 @@
+---
+pageClass: reference
+---
+
 # Class: RiviereBuilder
 
 Defined in: [packages/riviere-builder/src/builder.ts:132](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L132)

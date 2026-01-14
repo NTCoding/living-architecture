@@ -1,3 +1,7 @@
+---
+pageClass: reference
+---
+
 # Interface: APIInput
 
 Defined in: [packages/riviere-builder/src/types.ts:40](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/types.ts#L40)

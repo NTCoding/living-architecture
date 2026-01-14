@@ -1,3 +1,7 @@
+---
+pageClass: reference
+---
+
 # Interface: DomainInput
 
 Defined in: [packages/riviere-builder/src/types.ts:24](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/types.ts#L24)

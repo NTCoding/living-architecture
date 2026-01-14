@@ -1,3 +1,7 @@
+---
+pageClass: reference
+---
+
 # Class: MissingSourcesError
 
 Defined in: [packages/riviere-builder/src/errors.ts:105](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/errors.ts#L105)

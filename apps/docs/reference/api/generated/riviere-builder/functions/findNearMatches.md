@@ -1,3 +1,7 @@
+---
+pageClass: reference
+---
+
 # Function: findNearMatches()
 
 > **findNearMatches**(`components`, `query`, `options?`): [`NearMatchResult`](../interfaces/NearMatchResult.md)[]

@@ -1,3 +1,7 @@
+---
+pageClass: reference
+---
+
 # Class: MissingRequiredPropertiesError
 
 Defined in: [packages/riviere-builder/src/errors.ts:86](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/errors.ts#L86)

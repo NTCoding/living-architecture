@@ -1,3 +1,7 @@
+---
+pageClass: reference
+---
+
 # Interface: BuilderWarning
 
 Defined in: [packages/riviere-builder/src/types.ts:171](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/types.ts#L171)

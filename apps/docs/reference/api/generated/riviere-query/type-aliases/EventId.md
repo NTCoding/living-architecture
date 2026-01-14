@@ -1,3 +1,7 @@
+---
+pageClass: reference
+---
+
 # Type Alias: EventId
 
 > **EventId** = `z.infer`\<*typeof* `eventIdSchema`\>

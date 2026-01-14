@@ -1,3 +1,7 @@
+---
+pageClass: reference
+---
+
 # Class: CustomTypeNotFoundError
 
 Defined in: [packages/riviere-builder/src/errors.ts:21](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/errors.ts#L21)

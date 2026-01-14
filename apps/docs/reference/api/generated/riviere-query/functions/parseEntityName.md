@@ -1,3 +1,7 @@
+---
+pageClass: reference
+---
+
 # Function: parseEntityName()
 
 > **parseEntityName**(`value`): `string` & `$brand`\<`"EntityName"`\>

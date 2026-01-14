@@ -1,3 +1,7 @@
+---
+pageClass: reference
+---
+
 # Type Alias: SubscribedEventWithDomain
 
 > **SubscribedEventWithDomain** = [`KnownSourceEvent`](../interfaces/KnownSourceEvent.md) \| [`UnknownSourceEvent`](../interfaces/UnknownSourceEvent.md)

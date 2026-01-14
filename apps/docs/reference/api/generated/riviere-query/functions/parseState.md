@@ -1,3 +1,7 @@
+---
+pageClass: reference
+---
+
 # Function: parseState()
 
 > **parseState**(`value`): `string` & `$brand`\<`"State"`\>

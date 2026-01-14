@@ -1,3 +1,7 @@
+---
+pageClass: reference
+---
+
 # Interface: LinkInput
 
 Defined in: [packages/riviere-builder/src/types.ts:115](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/types.ts#L115)

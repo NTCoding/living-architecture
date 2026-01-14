@@ -1,3 +1,7 @@
+---
+pageClass: reference
+---
+
 # Interface: NearMatchResult
 
 Defined in: [packages/riviere-builder/src/types.ts:142](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/types.ts#L142)

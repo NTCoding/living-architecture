@@ -1,3 +1,7 @@
+---
+pageClass: reference
+---
+
 # Class: ComponentNotFoundError
 
 Defined in: [packages/riviere-query/src/errors.ts:1](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/errors.ts#L1)

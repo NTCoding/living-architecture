@@ -1,3 +1,7 @@
+---
+pageClass: reference
+---
+
 # Interface: EventHandlerInput
 
 Defined in: [packages/riviere-builder/src/types.ts:88](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/types.ts#L88)

@@ -1,3 +1,7 @@
+---
+pageClass: reference
+---
+
 # Interface: CustomInput
 
 Defined in: [packages/riviere-builder/src/types.ts:105](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/types.ts#L105)

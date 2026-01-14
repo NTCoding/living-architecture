@@ -1,3 +1,7 @@
+---
+pageClass: reference
+---
+
 # Interface: SearchWithFlowOptions
 
 Defined in: [packages/riviere-query/src/flow-queries.ts:166](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/flow-queries.ts#L166)

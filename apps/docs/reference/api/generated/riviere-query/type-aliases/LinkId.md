@@ -1,3 +1,7 @@
+---
+pageClass: reference
+---
+
 # Type Alias: LinkId
 
 > **LinkId** = `z.infer`\<*typeof* `linkIdSchema`\>

@@ -1,3 +1,7 @@
+---
+pageClass: reference
+---
+
 # Class: InvalidGraphError
 
 Defined in: [packages/riviere-builder/src/errors.ts:98](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/errors.ts#L98)

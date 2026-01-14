@@ -1,3 +1,7 @@
+---
+pageClass: reference
+---
+
 # Function: parseOperationName()
 
 > **parseOperationName**(`value`): `string` & `$brand`\<`"OperationName"`\>

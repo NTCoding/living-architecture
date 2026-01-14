@@ -1,3 +1,7 @@
+---
+pageClass: reference
+---
+
 # Class: DomainNotFoundError
 
 Defined in: [packages/riviere-builder/src/errors.ts:11](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/errors.ts#L11)

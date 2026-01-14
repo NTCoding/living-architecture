@@ -1,3 +1,7 @@
+---
+pageClass: reference
+---
+
 # Class: DirectoryNotFoundError
 
 Defined in: [packages/riviere-builder/src/errors.ts:129](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/errors.ts#L129)

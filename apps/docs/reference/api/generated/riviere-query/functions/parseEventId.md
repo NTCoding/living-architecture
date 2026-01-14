@@ -1,3 +1,7 @@
+---
+pageClass: reference
+---
+
 # Function: parseEventId()
 
 > **parseEventId**(`value`): `string` & `$brand`\<`"EventId"`\>

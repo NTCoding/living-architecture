@@ -1,3 +1,7 @@
+---
+pageClass: reference
+---
+
 # Class: DuplicateComponentError
 
 Defined in: [packages/riviere-builder/src/errors.ts:37](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/errors.ts#L37)

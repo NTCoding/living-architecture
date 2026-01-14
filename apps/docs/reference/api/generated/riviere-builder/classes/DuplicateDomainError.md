@@ -1,3 +1,7 @@
+---
+pageClass: reference
+---
+
 # Class: DuplicateDomainError
 
 Defined in: [packages/riviere-builder/src/errors.ts:1](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/errors.ts#L1)
