@@ -81,6 +81,19 @@ function formatOneOfType(prop: SchemaProperty): string {
     .join(' \\| ')
 }
 
+function formatArrayType(items: SchemaProperty): string {
+  if (items.$ref) return `\`${getRefTypeName(items.$ref)}[]\``
+  if (items.oneOf) return `(${formatOneOfType(items)})[]`
+  return `\`${items.type}[]\``
+}
+
+function formatRecordType(additionalProperties: SchemaProperty): string {
+  const valueType = additionalProperties.$ref
+    ? getRefTypeName(additionalProperties.$ref)
+    : (additionalProperties.type ?? 'unknown')
+  return `\`Record<string, ${valueType}>\``
+}
+
 function getTypeString(prop: SchemaProperty): string {
   if (prop.$ref) {
     return `\`${getRefTypeName(prop.$ref)}\``
@@ -89,18 +102,13 @@ function getTypeString(prop: SchemaProperty): string {
     return formatOneOfType(prop)
   }
   if (prop.type === 'array' && prop.items) {
-    if (prop.items.$ref) return `\`${getRefTypeName(prop.items.$ref)}[]\``
-    if (prop.items.oneOf) return `(${formatOneOfType(prop.items)})[]`
-    return `\`${prop.items.type}[]\``
+    return formatArrayType(prop.items)
   }
   if (prop.enum) {
     return prop.enum.map((e) => `\`"${e}"\``).join(' \\| ')
   }
   if (prop.type === 'object' && typeof prop.additionalProperties === 'object') {
-    const valueType = prop.additionalProperties.$ref
-      ? getRefTypeName(prop.additionalProperties.$ref)
-      : 'unknown'
-    return `\`Record<string, ${valueType}>\``
+    return formatRecordType(prop.additionalProperties)
   }
   return `\`${prop.type ?? 'any'}\``
 }
