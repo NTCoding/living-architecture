@@ -105,41 +105,6 @@ export default defineConfig({
     ],
 
     sidebar: {
-      '/api/': [
-        {
-          text: 'Library API',
-          items: [
-            {
-              text: 'Overview',
-              link: '/reference/api/',
-            },
-            {
-              text: 'RiviereBuilder',
-              link: '/api/generated/riviere-builder/classes/RiviereBuilder',
-            },
-            {
-              text: 'RiviereQuery',
-              link: '/api/generated/riviere-query/classes/RiviereQuery',
-            },
-            {
-              text: 'Types',
-              link: '/api/generated/riviere-query/README',
-            },
-            {
-              text: 'ID Generation',
-              link: '/reference/api/id-generation',
-            },
-            {
-              text: 'Validation Rules',
-              link: '/reference/api/validation-rules',
-            },
-            {
-              text: 'Error Messages',
-              link: '/reference/api/error-messages',
-            },
-          ],
-        },
-      ],
       '/get-started/': [
         {
           text: 'Get Started',
@@ -353,15 +318,15 @@ export default defineConfig({
             },
             {
               text: 'RiviereBuilder',
-              link: '/api/generated/riviere-builder/classes/RiviereBuilder',
+              link: '/reference/api/generated/riviere-builder/classes/RiviereBuilder',
             },
             {
               text: 'RiviereQuery',
-              link: '/api/generated/riviere-query/classes/RiviereQuery',
+              link: '/reference/api/generated/riviere-query/classes/RiviereQuery',
             },
             {
               text: 'Types',
-              link: '/api/generated/riviere-query/README',
+              link: '/reference/api/generated/riviere-query/README',
             },
             {
               text: 'ID Generation',
