@@ -67,23 +67,30 @@ function getRefTypeName(ref: string): string {
   return ref.replace('#/$defs/', '')
 }
 
+function extractOneOfTypeNames(oneOf: SchemaProperty[]): string[] {
+  return oneOf.map((o) => {
+    if (o.$ref) return getRefTypeName(o.$ref)
+    if (o.type === 'array' && o.items) {
+      if (o.items.$ref) return `${getRefTypeName(o.items.$ref)}[]`
+      return `${o.items.type}[]`
+    }
+    return o.type ?? 'any'
+  })
+}
+
 function formatOneOfType(prop: SchemaProperty): string {
   if (!prop.oneOf) return '`any`'
-  return prop.oneOf
-    .map((o) => {
-      if (o.$ref) return `\`${getRefTypeName(o.$ref)}\``
-      if (o.type === 'array' && o.items) {
-        if (o.items.$ref) return `\`${getRefTypeName(o.items.$ref)}[]\``
-        return `\`${o.items.type}[]\``
-      }
-      return `\`${o.type}\``
-    })
+  return extractOneOfTypeNames(prop.oneOf)
+    .map((t) => `\`${t}\``)
     .join(' \\| ')
 }
 
 function formatArrayType(items: SchemaProperty): string {
   if (items.$ref) return `\`${getRefTypeName(items.$ref)}[]\``
-  if (items.oneOf) return `(${formatOneOfType(items)})[]`
+  if (items.oneOf) {
+    const types = extractOneOfTypeNames(items.oneOf)
+    return `\`(${types.join(' \\| ')})[]\``
+  }
   return `\`${items.type}[]\``
 }
 
