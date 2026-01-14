@@ -30,6 +30,7 @@ interface SchemaProperty {
   minItems?: number
   items?: SchemaProperty
   enum?: string[]
+  additionalProperties?: SchemaProperty | boolean
 }
 
 interface SchemaDef {
@@ -94,6 +95,12 @@ function getTypeString(prop: SchemaProperty): string {
   }
   if (prop.enum) {
     return prop.enum.map((e) => `\`"${e}"\``).join(' \\| ')
+  }
+  if (prop.type === 'object' && typeof prop.additionalProperties === 'object') {
+    const valueType = prop.additionalProperties.$ref
+      ? getRefTypeName(prop.additionalProperties.$ref)
+      : 'unknown'
+    return `\`Record<string, ${valueType}>\``
   }
   return `\`${prop.type ?? 'any'}\``
 }
