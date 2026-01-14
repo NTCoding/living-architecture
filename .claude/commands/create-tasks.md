@@ -56,16 +56,21 @@ Before finalizing tasks, systematically identify edge case scenarios using the c
 
 ---
 
-## Task Size Indicators (When to Split)
+## Task Size Guidelines
 
-Stop and restructure if the task exhibits these traits:
+**Target size:** Up to one week of effort. Tasks can span multiple deliverables when logically related.
 
-- Cannot be titled with a specific action verb
-- Exceeds one day's effort
-- Requires conjunctions ("and") or enumerates multiple items
-- Contains disparate acceptance criterion clusters
+**Why larger tasks?** Claude Code works best with longer autonomous sessions. Larger tasks reduce:
+- User interruptions for task transitions
+- CodeRabbit review roundtrips (one PR per task vs many small PRs)
+- Context switching overhead
+
+**Split when:**
+- Scope exceeds one week
+- Unrelated concerns are bundled together
+- Explicit blocking dependencies exist between parts
+- Contains disparate acceptance criterion clusters with no logical connection
 - Follows horizontal architecture layers instead of vertical flow
-- Uses language like "full implementation" or "complete system"
 
 ---
 
@@ -109,7 +114,7 @@ Confirm all criteria before task creation:
 | **Negotiability** | Scope adjustable with stakeholders? | Define rigid boundaries |
 | **Value** | User-facing or stakeholder benefit? | Reframe or spike separately |
 | **Estimability** | Confident sizing possible? | Reduce scope |
-| **Smallness** | Completable within one day? | Decompose further |
+| **Smallness** | Completable within one week? | Decompose further |
 | **Testability** | Concrete acceptance criteria exist? | Write verification examples |
 
 ---
@@ -215,7 +220,7 @@ Please update PRD to clarify these points before task creation.
 
 Confirm before task completion:
 
-- **Sizing:** One day maximum effort threshold
+- **Sizing:** One week maximum effort threshold
 - **Naming:** `[M#-D#.#]` + specific verb + target + outcome
 - **Architecture:** Vertical slice through all necessary layers
 - **Standards:** Passes all six INVEST criteria
@@ -242,4 +247,4 @@ If a task depends on another, include `Depends on #X` in the Dependencies sectio
 
 ---
 
-**Critical constraint:** If source material references "full implementation," task decomposition is mandatory rather than optional.
+**Note:** Tasks can include "full implementation" of a feature if it fits within a one-week scope. Decompose only when scope exceeds one week or contains unrelated concerns.
