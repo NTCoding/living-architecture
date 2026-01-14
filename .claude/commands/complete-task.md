@@ -161,17 +161,14 @@ LOOP CONTROL: If this is your third successive attempt, ask the user for help.
 
 ### 5. Submit PR
 
-Use Task tool with subagent_type: "submit-pr", prompt: "Submit the PR"
+Run directly (10-minute timeout):
 
-- FAIL → return:
-  ```text
-  SUBMIT PR FAILED
-  <raw-output>
-  [paste the COMPLETE raw output here - do not summarize]
-  </raw-output>
-  NEXT STEPS: Address the issues and re-run /complete-task
-  LOOP CONTROL: If this is your third successive attempt, ask the user for help.
-  ```
+```bash
+./scripts/submit-pr.sh --title "<type>(scope): description" --body "<summary>"
+```
+
+Title: Use conventional commit format based on the changes.
+Body: Brief summary of what changed and why.
 
 ### 6. Resolve CodeRabbit Feedback
 
