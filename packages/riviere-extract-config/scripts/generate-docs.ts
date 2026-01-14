@@ -89,6 +89,7 @@ function getTypeString(prop: SchemaProperty): string {
   }
   if (prop.type === 'array' && prop.items) {
     if (prop.items.$ref) return `\`${getRefTypeName(prop.items.$ref)}[]\``
+    if (prop.items.oneOf) return `(${formatOneOfType(prop.items)})[]`
     return `\`${prop.items.type}[]\``
   }
   if (prop.enum) {
