@@ -109,8 +109,9 @@ export interface Module {
 }
 
 /**
- * Extraction config as written in the config file.
- * Modules may use `extends` to inherit rules from other configs.
+ * Extraction config after $ref expansion.
+ * At this point all ModuleRef entries have been resolved to ModuleConfig.
+ * This is what the extractor uses for processing.
  */
 export interface ExtractionConfig {
   $schema?: string
