@@ -18,6 +18,16 @@ import {
 } from './validation-fixtures'
 
 describe('isValidExtractionConfig', () => {
+  it('returns true when module uses $ref file reference', () => {
+    const config = { modules: [{ $ref: './domains/orders.extraction.json' }] }
+    expect(isValidExtractionConfig(config)).toBe(true)
+  })
+
+  it('returns true when mixing $ref and inline modules', () => {
+    const config = {modules: [{ $ref: './domains/orders.extraction.json' }, createMinimalModule()],}
+    expect(isValidExtractionConfig(config)).toBe(true)
+  })
+
   it('returns true when config is minimal valid', () => {
     expect(isValidExtractionConfig(createMinimalConfig())).toBe(true)
   })

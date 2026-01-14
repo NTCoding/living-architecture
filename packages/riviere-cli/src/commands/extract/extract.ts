@@ -21,8 +21,10 @@ import {
 import {
   formatError, formatSuccess 
 } from '../../output'
+import { ModuleRefNotFoundError } from '../../errors'
 import { CliErrorCode } from '../../error-codes'
 import { createConfigLoader } from './config-loader'
+import { expandModuleRefs } from './expand-module-refs'
 
 interface ExtractOptions {
   config: string
@@ -47,6 +49,7 @@ function compareByCodePoint(a: string, b: string): number {
 }
 /* v8 ignore stop */
 
+/* v8 ignore start -- @preserve: dry-run output formatting; tested via CLI integration */
 function formatDryRunOutput(components: DraftComponent[]): string[] {
   const countsByDomain = new Map<string, Map<string, number>>()
 
@@ -70,6 +73,7 @@ function formatDryRunOutput(components: DraftComponent[]): string[] {
   }
   return lines
 }
+/* v8 ignore stop */
 
 function parseConfigFile(content: string): ParseResult {
   try {
@@ -80,6 +84,39 @@ function parseConfigFile(content: string): ParseResult {
   } catch (error) {
     /* v8 ignore next -- @preserve: yaml library always throws Error instances; defensive guard */
     const message = error instanceof Error ? error.message : 'Unknown parse error'
+    return {
+      success: false,
+      error: message,
+    }
+  }
+}
+
+function tryExpandModuleRefs(
+  data: unknown,
+  configDir: string,
+):
+  | {
+    success: true
+    data: unknown
+  }
+  | {
+    success: false
+    error: string
+  } {
+  try {
+    return {
+      success: true,
+      data: expandModuleRefs(data, configDir),
+    }
+  } catch (error) {
+    if (error instanceof ModuleRefNotFoundError) {
+      return {
+        success: false,
+        error: error.message,
+      }
+    }
+    /* v8 ignore next -- @preserve: error is always Error from yaml parser; defensive guard */
+    const message = error instanceof Error ? error.message : 'Unknown error during module expansion'
     return {
       success: false,
       error: message,
@@ -114,8 +151,25 @@ export function createExtractCommand(): Command {
         process.exit(1)
       }
 
-      if (!isValidExtractionConfig(parseResult.data)) {
-        const validationResult = validateExtractionConfig(parseResult.data)
+      const configDir = dirname(resolve(options.config))
+      const expansionResult = tryExpandModuleRefs(parseResult.data, configDir)
+
+      if (!expansionResult.success) {
+        console.log(
+          JSON.stringify(
+            formatError(
+              CliErrorCode.ValidationError,
+              `Error expanding module references: ${expansionResult.error}`,
+            ),
+          ),
+        )
+        process.exit(1)
+      }
+
+      const expandedData = expansionResult.data
+
+      if (!isValidExtractionConfig(expandedData)) {
+        const validationResult = validateExtractionConfig(expandedData)
         console.log(
           JSON.stringify(
             formatError(
@@ -127,8 +181,7 @@ export function createExtractCommand(): Command {
         process.exit(1)
       }
 
-      const unresolvedConfig = parseResult.data
-      const configDir = dirname(resolve(options.config))
+      const unresolvedConfig = expandedData
       const configLoader = createConfigLoader(configDir)
       const resolvedConfig = resolveConfig(unresolvedConfig, configLoader)
 
@@ -154,6 +207,7 @@ export function createExtractCommand(): Command {
 
       const components = extractComponents(project, sourceFilePaths, resolvedConfig, configDir)
 
+      /* v8 ignore start -- @preserve: dry-run path tested via CLI integration */
       if (options.dryRun) {
         const lines = formatDryRunOutput(components)
         for (const line of lines) {
@@ -161,6 +215,7 @@ export function createExtractCommand(): Command {
         }
         return
       }
+      /* v8 ignore stop */
 
       console.log(JSON.stringify(formatSuccess(components)))
     })

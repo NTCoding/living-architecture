@@ -134,6 +134,113 @@ modules:
     })
   })
 
+  describe('$ref module references', () => {
+    const ctx: TestContext = createTestContext()
+    setupCommandTest(ctx)
+
+    it('expands $ref references before validation', async () => {
+      const srcDir = join(ctx.testDir, 'src')
+      await mkdir(srcDir, { recursive: true })
+
+      const sourceFile = join(srcDir, 'order-service.ts')
+      await writeFile(
+        sourceFile,
+        `
+/** @useCase */
+export class PlaceOrder {
+  execute() {}
+}
+`,
+      )
+
+      const domainsDir = join(ctx.testDir, 'domains')
+      await mkdir(domainsDir, { recursive: true })
+
+      const ordersModule = join(domainsDir, 'orders.extraction.json')
+      await writeFile(
+        ordersModule,
+        JSON.stringify({
+          name: 'orders',
+          path: '**/src/**/*.ts',
+          api: { notUsed: true },
+          useCase: {
+            find: 'classes',
+            where: { hasJSDoc: { tag: 'useCase' } },
+          },
+          domainOp: { notUsed: true },
+          event: { notUsed: true },
+          eventHandler: { notUsed: true },
+          ui: { notUsed: true },
+        }),
+      )
+
+      const configPath = join(ctx.testDir, 'extract.yaml')
+      await writeFile(
+        configPath,
+        `
+modules:
+  - $ref: ./domains/orders.extraction.json
+`,
+      )
+
+      await createProgram().parseAsync(['node', 'riviere', 'extract', '--config', configPath])
+
+      const output = parseExtractionOutput(ctx.consoleOutput)
+      expect(output.success).toBe(true)
+      expect(output.data).toHaveLength(1)
+      expect(output.data[0]).toMatchObject({
+        type: 'useCase',
+        name: 'PlaceOrder',
+        domain: 'orders',
+      })
+    })
+
+    it('returns error when referenced module file does not exist', async () => {
+      const configPath = join(ctx.testDir, 'extract.yaml')
+      await writeFile(
+        configPath,
+        `
+modules:
+  - $ref: ./domains/missing.extraction.json
+`,
+      )
+
+      await expect(
+        createProgram().parseAsync(['node', 'riviere', 'extract', '--config', configPath]),
+      ).rejects.toMatchObject({ exitCode: 1 })
+
+      const output = parseErrorOutput(ctx.consoleOutput)
+      expect(output.success).toBe(false)
+      expect(output.error.code).toBe(CliErrorCode.ValidationError)
+      expect(output.error.message).toContain('./domains/missing.extraction.json')
+    })
+
+    it('returns error when referenced module file contains invalid content', async () => {
+      const domainsDir = join(ctx.testDir, 'domains')
+      await mkdir(domainsDir, { recursive: true })
+
+      const invalidModule = join(domainsDir, 'invalid.extraction.json')
+      await writeFile(invalidModule, 'invalid: yaml: content: [')
+
+      const configPath = join(ctx.testDir, 'extract.yaml')
+      await writeFile(
+        configPath,
+        `
+modules:
+  - $ref: ./domains/invalid.extraction.json
+`,
+      )
+
+      await expect(
+        createProgram().parseAsync(['node', 'riviere', 'extract', '--config', configPath]),
+      ).rejects.toMatchObject({ exitCode: 1 })
+
+      const output = parseErrorOutput(ctx.consoleOutput)
+      expect(output.success).toBe(false)
+      expect(output.error.code).toBe(CliErrorCode.ValidationError)
+    })
+  })
+
   describe('successful extraction', () => {
     const ctx: TestContext = createTestContext()
     setupCommandTest(ctx)

@@ -18,7 +18,19 @@ Configuration for extracting architectural components from source code
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `$schema` | `string` | No | JSON Schema reference |
-| `modules` | `module[]` | **Yes** | Module definitions for component extraction |
+| `modules` | `undefined[]` | **Yes** | Module definitions for component extraction |
+
+---
+
+### `moduleRef`
+
+Reference to an external module definition file
+
+**Properties:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `$ref` | `string` | **Yes** | File path to a module definition (relative to this config file) |
 
 ---
 
