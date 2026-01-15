@@ -65,8 +65,8 @@ fi
 # Default mode: JSON output with all tasks
 PRD_DIR="docs/project/PRD/active"
 if [[ ! -d "$PRD_DIR" ]]; then
-    echo '{"milestone_tasks":[],"non_milestone_tasks":[],"error":"Active PRD directory not found"}'
-    exit 0
+    echo '{"milestone_tasks":[],"non_milestone_tasks":[],"error":"Active PRD directory not found"}' >&2
+    exit 1
 fi
 
 # Find ALL active PRDs (no -quit)
