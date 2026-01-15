@@ -56,10 +56,113 @@ export type Predicate =
 /** Marker indicating a component type is not used in the module. */
 export interface NotUsed {notUsed: true}
 
+/** Transform operations to apply to extracted values. */
+export interface Transform {
+  stripSuffix?: string
+  stripPrefix?: string
+  toLowerCase?: true
+  toUpperCase?: true
+  kebabToPascal?: true
+  pascalToKebab?: true
+}
+
+/** Extracts a hardcoded literal value. */
+export interface LiteralExtractionRule {literal: string | boolean | number}
+
+/** Extracts value from the class name. */
+export interface FromClassNameExtractionRule {fromClassName: true | { transform?: Transform }}
+
+/** Extracts value from the method name. */
+export interface FromMethodNameExtractionRule {fromMethodName: true | { transform?: Transform }}
+
+/** Extracts value from the file path using regex capture. */
+export interface FromFilePathExtractionRule {
+  fromFilePath: {
+    pattern: string
+    capture: number
+    transform?: Transform
+  }
+}
+
+/** Extracts value from a class property. */
+export interface FromPropertyExtractionRule {
+  fromProperty: {
+    name: string
+    kind: 'static' | 'instance'
+    transform?: Transform
+  }
+}
+
+/** Extracts value from decorator argument. */
+export interface FromDecoratorArgExtractionRule {
+  fromDecoratorArg: {
+    position?: number
+    name?: string
+    transform?: Transform
+  }
+}
+
+/** Extracts value from the decorator name itself. */
+export interface FromDecoratorNameExtractionRule {
+  fromDecoratorName:
+    | true
+    | {
+      mapping?: Record<string, string>
+      transform?: Transform
+    }
+}
+
+/** Extracts value from generic type argument. */
+export interface FromGenericArgExtractionRule {
+  fromGenericArg: {
+    interface: string
+    position: number
+    transform?: Transform
+  }
+}
+
+/** Extracts method parameters and return type. */
+export interface FromMethodSignatureExtractionRule {fromMethodSignature: true}
+
+/** Extracts constructor parameter names and types. */
+export interface FromConstructorParamsExtractionRule {fromConstructorParams: true}
+
+/** Extracts type name of parameter at position. */
+export interface FromParameterTypeExtractionRule {
+  fromParameterType: {
+    position: number
+    transform?: Transform
+  }
+}
+
+/**
+ * Union of all extraction rule types.
+ * Each rule type corresponds to a different source of metadata.
+ */
+export type ExtractionRule =
+  | LiteralExtractionRule
+  | FromClassNameExtractionRule
+  | FromMethodNameExtractionRule
+  | FromFilePathExtractionRule
+  | FromPropertyExtractionRule
+  | FromDecoratorArgExtractionRule
+  | FromDecoratorNameExtractionRule
+  | FromGenericArgExtractionRule
+  | FromMethodSignatureExtractionRule
+  | FromConstructorParamsExtractionRule
+  | FromParameterTypeExtractionRule
+
+/**
+ * Extract block mapping field names to extraction rules.
+ * Each key is a Riviere schema field name (e.g., apiType, httpMethod, path).
+ */
+export type ExtractBlock = Record<string, ExtractionRule>
+
 /** Rule specifying what to find and how to filter matches. */
 export interface DetectionRule {
   find: FindTarget
   where: Predicate
+  extract?: ExtractBlock
 }
 
 /** Either a detection rule or a marker that the component type is unused. */

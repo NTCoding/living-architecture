@@ -62,7 +62,7 @@ function assertDirectDecorator(rule: unknown, expectedDecorator: string): void {
 }
 
 describe('Default extraction config', () => {
-  it('validates against extraction config schema', () => {
+  it('validates against extraction config schema and semantic rules', () => {
     const config = loadDefaultConfig()
 
     const result = validateExtractionConfig(config)

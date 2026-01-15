@@ -65,3 +65,15 @@ contexts:
 
       - name: Draft Component
         definition: A component in a minimal state that has not been added to a graph yet because it lacks information, possibly including required fields. Draft components are not validated against the schema because they will likely fail validation.
+
+      - name: Extraction Rule
+        definition: A rule in an extraction config specifying how to extract a metadata field value from source code. Types include literal, fromClassName, fromMethodName, fromFilePath, fromProperty, fromDecoratorArg, fromDecoratorName, and fromGenericArg.
+
+      - name: Source of Truth
+        definition: The principle that metadata should be extracted from where runtime actually uses it. If runtime reads Controller.route, extraction reads Controller.route. Never duplicate data into annotations that can drift from reality.
+
+      - name: Strict Mode
+        definition: Default extraction behavior where missing required metadata fields cause extraction failure. Forces teams to fix issues at the source rather than downstream. Contrast with Lenient Mode.
+
+      - name: Lenient Mode
+        definition: Optional extraction behavior (--allow-incomplete) where missing required fields are tracked in a _missing array rather than causing failure. Enables incremental adoption and AI-assisted completion workflows. Contrast with Strict Mode.

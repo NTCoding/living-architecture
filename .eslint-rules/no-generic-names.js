@@ -1,3 +1,5 @@
+const path = require('path')
+
 module.exports = {
   meta: {
     type: 'problem',
@@ -8,7 +10,7 @@ module.exports = {
     },
   },
   create(context) {
-    const filename = context.getFilename()
+    const filename = path.basename(context.getFilename() || '')
 
     const forbiddenWordsWithSuggestions = {
       utils: 'Use domain-specific name describing what it does',
