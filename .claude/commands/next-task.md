@@ -31,29 +31,54 @@ TRACK B (Conventions):    D3.1 --> D3.2 --> D4.1
 TRACK C (Research):       R1
 ```
 
-## Recommendation Format
+## Output Format
 
-Present your recommendation in this format:
+Every item uses the same format - PRD tracks and non-milestone categories:
 
 ```text
-## Recommended Task
+Track: PRD12-A (Extraction)
+Status: in progress
+Issue: #165 (@NTCoding)
+────────────────────────────────────────
+Track: PRD12-B (Conventions)
+Status: ready
+Issue: #167
+────────────────────────────────────────
+Track: PRD12-C (Research)
+Status: ready
+Issue: #171
+────────────────────────────────────────
+Track: Tech Improvements
+Status: 1 available
+Issue: #174
+────────────────────────────────────────
+Track: Bugs
+Status: none
+Issue: —
+────────────────────────────────────────
+Track: Ideas
+Status: none
+Issue: —
+────────────────────────────────────────
 
-**Track [X] ([track name])** is idle.
+## Available tracks
 
-#[issue-number]: [title]
-[1-sentence summary from body]
+- PRD12-B: #167 - Create conventions interfaces
+- PRD12-C: #171 - Evaluate local LLM for metadata extraction
+- Tech Improvements: #174 - Add RFC-008 to review checks
 
-### Alternatives
-- Track [Y]: #[issue] - [title]
-- Non-milestone: #[issue] - [title] (bug/idea/tech)
+## Recommendation
 
-### Busy Tracks
-- Track [Z]: #[issue] assigned to [username]
-
----
-
-Confirm to start this task, or specify an alternative.
+PRD12-B: #167 - Create conventions interfaces (earliest PRD track)
 ```
+
+**Status values:**
+- **in progress** - Assigned task (show issue # and @assignee)
+- **blocked by X** - Next task depends on another track
+- **ready** - Unassigned tasks available
+- **idle** - No open tasks for this track
+- **X available** - For non-milestone categories
+- **none** - No tasks in this category
 
 ## Edge Cases
 
