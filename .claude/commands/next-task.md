@@ -85,8 +85,7 @@ PRD12-B: #167 - Create conventions interfaces (earliest PRD track)
 - **PRD without Parallelization section**: List unassigned tasks sequentially (first available)
 - **All tracks busy**: Recommend non-milestone task (bugs/tech/ideas) first
 - **No tasks available**: Report "No unassigned tasks available"
-- **Task doesn't map to any track**: Include in "Unmapped Tasks" section
-- **Multiple active PRDs**: Analyze tracks across all PRDs, prefer diversifying work
+- **Multiple active PRDs**: Analyze tracks across all PRDs, prefer earlier PRD
 - **No active PRD directory**: If `list-tasks.sh` returns an error, report "No active PRDs found" and fall back to non-milestone tasks only
 
 ## After Confirmation
