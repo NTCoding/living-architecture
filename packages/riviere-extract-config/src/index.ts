@@ -2,6 +2,7 @@ export * from './types'
 export {
   isValidExtractionConfig,
   validateExtractionConfig,
+  validateExtractionConfigSchema,
   parseExtractionConfig,
   formatValidationErrors,
   mapAjvErrors,

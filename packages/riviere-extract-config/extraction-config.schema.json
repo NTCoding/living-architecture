@@ -132,6 +132,241 @@
         },
         "where": {
           "$ref": "#/$defs/predicate"
+        },
+        "extract": {
+          "$ref": "#/$defs/extractBlock",
+          "description": "Extraction rules for metadata fields"
+        }
+      }
+    },
+    "extractBlock": {
+      "type": "object",
+      "description": "Extraction rules mapping field names to extraction rules",
+      "additionalProperties": {
+        "$ref": "#/$defs/extractionRule"
+      }
+    },
+    "extractionRule": {
+      "oneOf": [
+        { "$ref": "#/$defs/literalExtractionRule" },
+        { "$ref": "#/$defs/fromClassNameExtractionRule" },
+        { "$ref": "#/$defs/fromMethodNameExtractionRule" },
+        { "$ref": "#/$defs/fromFilePathExtractionRule" },
+        { "$ref": "#/$defs/fromPropertyExtractionRule" },
+        { "$ref": "#/$defs/fromDecoratorArgExtractionRule" },
+        { "$ref": "#/$defs/fromDecoratorNameExtractionRule" },
+        { "$ref": "#/$defs/fromGenericArgExtractionRule" },
+        { "$ref": "#/$defs/fromMethodSignatureExtractionRule" },
+        { "$ref": "#/$defs/fromConstructorParamsExtractionRule" },
+        { "$ref": "#/$defs/fromParameterTypeExtractionRule" }
+      ]
+    },
+    "fromMethodNameExtractionRule": {
+      "type": "object",
+      "description": "Extracts value from the method name",
+      "required": ["fromMethodName"],
+      "additionalProperties": false,
+      "properties": {
+        "fromMethodName": {
+          "oneOf": [
+            { "type": "boolean", "const": true },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "transform": { "$ref": "#/$defs/transform" }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "fromFilePathExtractionRule": {
+      "type": "object",
+      "description": "Extracts value from the file path using regex capture",
+      "required": ["fromFilePath"],
+      "additionalProperties": false,
+      "properties": {
+        "fromFilePath": {
+          "type": "object",
+          "required": ["pattern", "capture"],
+          "additionalProperties": false,
+          "properties": {
+            "pattern": { "type": "string", "minLength": 1 },
+            "capture": { "type": "integer", "minimum": 0 },
+            "transform": { "$ref": "#/$defs/transform" }
+          }
+        }
+      }
+    },
+    "fromPropertyExtractionRule": {
+      "type": "object",
+      "description": "Extracts value from a class property",
+      "required": ["fromProperty"],
+      "additionalProperties": false,
+      "properties": {
+        "fromProperty": {
+          "type": "object",
+          "required": ["name", "kind"],
+          "additionalProperties": false,
+          "properties": {
+            "name": { "type": "string", "minLength": 1 },
+            "kind": { "type": "string", "enum": ["static", "instance"] },
+            "transform": { "$ref": "#/$defs/transform" }
+          }
+        }
+      }
+    },
+    "fromDecoratorArgExtractionRule": {
+      "type": "object",
+      "description": "Extracts value from decorator argument",
+      "required": ["fromDecoratorArg"],
+      "additionalProperties": false,
+      "properties": {
+        "fromDecoratorArg": {
+          "type": "object",
+          "additionalProperties": false,
+          "minProperties": 1,
+          "properties": {
+            "position": { "type": "integer", "minimum": 0 },
+            "name": { "type": "string", "minLength": 1 },
+            "transform": { "$ref": "#/$defs/transform" }
+          }
+        }
+      }
+    },
+    "fromDecoratorNameExtractionRule": {
+      "type": "object",
+      "description": "Extracts value from the decorator name itself",
+      "required": ["fromDecoratorName"],
+      "additionalProperties": false,
+      "properties": {
+        "fromDecoratorName": {
+          "oneOf": [
+            { "type": "boolean", "const": true },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "mapping": {
+                  "type": "object",
+                  "additionalProperties": { "type": "string" },
+                  "minProperties": 1
+                },
+                "transform": { "$ref": "#/$defs/transform" }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "fromGenericArgExtractionRule": {
+      "type": "object",
+      "description": "Extracts value from generic type argument",
+      "required": ["fromGenericArg"],
+      "additionalProperties": false,
+      "properties": {
+        "fromGenericArg": {
+          "type": "object",
+          "required": ["interface", "position"],
+          "additionalProperties": false,
+          "properties": {
+            "interface": { "type": "string", "minLength": 1 },
+            "position": { "type": "integer", "minimum": 0 },
+            "transform": { "$ref": "#/$defs/transform" }
+          }
+        }
+      }
+    },
+    "fromMethodSignatureExtractionRule": {
+      "type": "object",
+      "description": "Extracts method parameters and return type",
+      "required": ["fromMethodSignature"],
+      "additionalProperties": false,
+      "properties": {
+        "fromMethodSignature": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    },
+    "fromConstructorParamsExtractionRule": {
+      "type": "object",
+      "description": "Extracts constructor parameter names and types",
+      "required": ["fromConstructorParams"],
+      "additionalProperties": false,
+      "properties": {
+        "fromConstructorParams": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    },
+    "fromParameterTypeExtractionRule": {
+      "type": "object",
+      "description": "Extracts type name of parameter at position",
+      "required": ["fromParameterType"],
+      "additionalProperties": false,
+      "properties": {
+        "fromParameterType": {
+          "type": "object",
+          "required": ["position"],
+          "additionalProperties": false,
+          "properties": {
+            "position": { "type": "integer", "minimum": 0 },
+            "transform": { "$ref": "#/$defs/transform" }
+          }
+        }
+      }
+    },
+    "fromClassNameExtractionRule": {
+      "type": "object",
+      "description": "Extracts value from the class name",
+      "required": ["fromClassName"],
+      "additionalProperties": false,
+      "properties": {
+        "fromClassName": {
+          "oneOf": [
+            { "type": "boolean", "const": true },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "transform": { "$ref": "#/$defs/transform" }
+              }
+            }
+          ],
+          "description": "Extract from class name, optionally with transform"
+        }
+      }
+    },
+    "transform": {
+      "type": "object",
+      "description": "Transform operations to apply to extracted value",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "stripSuffix": { "type": "string", "minLength": 1 },
+        "stripPrefix": { "type": "string", "minLength": 1 },
+        "toLowerCase": { "type": "boolean", "const": true },
+        "toUpperCase": { "type": "boolean", "const": true },
+        "kebabToPascal": { "type": "boolean", "const": true },
+        "pascalToKebab": { "type": "boolean", "const": true }
+      }
+    },
+    "literalExtractionRule": {
+      "type": "object",
+      "description": "Extracts a hardcoded literal value",
+      "required": ["literal"],
+      "additionalProperties": false,
+      "properties": {
+        "literal": {
+          "oneOf": [
+            { "type": "string", "minLength": 1 },
+            { "type": "boolean" },
+            { "type": "number" }
+          ],
+          "description": "Literal value to use for this field"
         }
       }
     },

@@ -1,7 +1,31 @@
 import Ajv from 'ajv'
 import addFormats from 'ajv-formats'
-import type { ExtractionConfig } from './types'
+import type {
+  ComponentRule, ComponentType, ExtractionConfig, ModuleConfig 
+} from './types'
 import rawSchema from '../extraction-config.schema.json' with { type: 'json' }
+
+/**
+ * Required extraction fields by component type.
+ * These fields must have extraction rules defined (unless notUsed: true).
+ */
+const REQUIRED_FIELDS: Record<ComponentType, string[]> = {
+  api: ['apiType'],
+  event: ['eventName'],
+  eventHandler: ['subscribedEvents'],
+  domainOp: ['operationName'],
+  ui: ['route'],
+  useCase: [],
+}
+
+const COMPONENT_TYPES: ComponentType[] = [
+  'api',
+  'useCase',
+  'domainOp',
+  'event',
+  'eventHandler',
+  'ui',
+]
 
 const ajv = new Ajv({ allErrors: true })
 addFormats(ajv)
@@ -65,23 +89,117 @@ export function mapAjvErrors(errors: AjvErrorLike[] | null | undefined): Validat
   }))
 }
 
+function isNotUsed(rule: ComponentRule | undefined): boolean {
+  return rule !== undefined && 'notUsed' in rule && rule.notUsed === true
+}
+
+function hasDetectionRule(rule: ComponentRule | undefined): boolean {
+  return rule !== undefined && 'find' in rule && 'where' in rule
+}
+
+function getExtractedFields(rule: ComponentRule | undefined): string[] {
+  if (!rule || !('extract' in rule) || !rule.extract) {
+    return []
+  }
+  return Object.keys(rule.extract)
+}
+
+function validateModuleExtractionRules(
+  module: ModuleConfig,
+  moduleIndex: number,
+): ValidationError[] {
+  const errors: ValidationError[] = []
+
+  for (const componentType of COMPONENT_TYPES) {
+    const rule = module[componentType]
+
+    if (isNotUsed(rule)) {
+      continue
+    }
+
+    if (!hasDetectionRule(rule)) {
+      continue
+    }
+
+    const requiredFields = REQUIRED_FIELDS[componentType]
+    if (requiredFields.length === 0) {
+      continue
+    }
+
+    const extractedFields = getExtractedFields(rule)
+    const missingFields = requiredFields.filter((field) => !extractedFields.includes(field))
+
+    if (missingFields.length > 0) {
+      errors.push({
+        path: `/modules/${moduleIndex}/${componentType}`,
+        message:
+          `Missing required extraction rules: ${missingFields.join(', ')}. ` +
+          `Add extraction rules to the 'extract' block or use 'notUsed: true' if not extracting ${componentType} components.`,
+      })
+    }
+  }
+
+  return errors
+}
+
+function validateAllExtractionRules(config: ExtractionConfig): ValidationError[] {
+  return config.modules.flatMap((module, index) => {
+    if ('$ref' in module) {
+      return []
+    }
+    return validateModuleExtractionRules(module, index)
+  })
+}
+
 /**
- * Validates data against the ExtractionConfig schema.
+ * Validates data against the ExtractionConfig JSON Schema only.
+ * Does NOT check semantic rules like required extraction fields.
+ * Use validateExtractionConfig() for full validation.
  * @param data - Data to validate.
  * @returns Validation result with errors if invalid.
  */
-export function validateExtractionConfig(data: unknown): ValidationResult {
-  const valid = validate(data) === true
-  if (valid) {
+export function validateExtractionConfigSchema(data: unknown): ValidationResult {
+  const schemaValid = validate(data) === true
+  if (!schemaValid) {
     return {
-      valid: true,
-      errors: [],
+      valid: false,
+      errors: mapAjvErrors(validate.errors),
     }
   }
 
   return {
-    valid: false,
-    errors: mapAjvErrors(validate.errors),
+    valid: true,
+    errors: [],
+  }
+}
+
+/**
+ * Validates data against the ExtractionConfig schema.
+ * Performs both JSON Schema validation and semantic validation
+ * for required extraction rules.
+ * @param data - Data to validate.
+ * @returns Validation result with errors if invalid.
+ */
+export function validateExtractionConfig(data: unknown): ValidationResult {
+  // Type guard validates schema AND narrows type in one step
+  if (!isValidExtractionConfig(data)) {
+    // Get detailed error messages from schema validation
+    return validateExtractionConfigSchema(data)
+  }
+
+  // data is now narrowed to ExtractionConfig
+  const semanticErrors = validateAllExtractionRules(data)
+
+  if (semanticErrors.length > 0) {
+    return {
+      valid: false,
+      errors: semanticErrors,
+    }
+  }
+
+  return {
+    valid: true,
+    errors: [],
   }
 }
 

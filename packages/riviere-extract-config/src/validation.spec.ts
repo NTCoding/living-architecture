@@ -1,6 +1,7 @@
 import {
   isValidExtractionConfig,
   validateExtractionConfig,
+  validateExtractionConfigSchema,
   parseExtractionConfig,
   formatValidationErrors,
   mapAjvErrors,
@@ -74,7 +75,7 @@ describe('validateExtractionConfig', () => {
         find: 'classes',
         where: { nameEndsWith: { suffix: 'Controller' } },
       }
-      expect(validateExtractionConfig(config).valid).toBe(true)
+      expect(validateExtractionConfigSchema(config).valid).toBe(true)
     })
 
     it('returns valid=true when using nameMatches predicate', () => {
@@ -85,7 +86,7 @@ describe('validateExtractionConfig', () => {
         find: 'classes',
         where: { nameMatches: { pattern: '^.*Controller$' } },
       }
-      expect(validateExtractionConfig(config).valid).toBe(true)
+      expect(validateExtractionConfigSchema(config).valid).toBe(true)
     })
 
     it('returns valid=true when using inClassWith predicate', () => {
@@ -96,7 +97,7 @@ describe('validateExtractionConfig', () => {
         find: 'methods',
         where: { inClassWith: { hasDecorator: { name: 'Controller' } } },
       }
-      expect(validateExtractionConfig(config).valid).toBe(true)
+      expect(validateExtractionConfigSchema(config).valid).toBe(true)
     })
 
     it('returns valid=true when using and predicate', () => {
@@ -112,7 +113,7 @@ describe('validateExtractionConfig', () => {
           ],
         },
       }
-      expect(validateExtractionConfig(config).valid).toBe(true)
+      expect(validateExtractionConfigSchema(config).valid).toBe(true)
     })
 
     it('returns valid=true when using or predicate', () => {
@@ -123,7 +124,7 @@ describe('validateExtractionConfig', () => {
         find: 'methods',
         where: { or: [{ hasDecorator: { name: 'Get' } }, { hasDecorator: { name: 'Post' } }] },
       }
-      expect(validateExtractionConfig(config).valid).toBe(true)
+      expect(validateExtractionConfigSchema(config).valid).toBe(true)
     })
 
     it('returns valid=true when using nested and/or predicates', () => {
@@ -139,7 +140,7 @@ describe('validateExtractionConfig', () => {
           ],
         },
       }
-      expect(validateExtractionConfig(config).valid).toBe(true)
+      expect(validateExtractionConfigSchema(config).valid).toBe(true)
     })
 
     it('returns valid=true with multiple modules', () => {
