@@ -221,8 +221,7 @@ function extractPositionalArg(decorator: Decorator, position: number): string {
     )
   }
 
-  const text = arg.getText()
-  return text.slice(1, -1)
+  return arg.asKindOrThrow(SyntaxKind.StringLiteral).getLiteralValue()
 }
 
 function throwNoArguments(decorator: Decorator, location: DecoratorLocation): never {
@@ -285,8 +284,7 @@ function extractNamedArg(decorator: Decorator, name: string): string {
     )
   }
 
-  const text = initializer.getText()
-  return text.slice(1, -1)
+  return initializer.asKindOrThrow(SyntaxKind.StringLiteral).getLiteralValue()
 }
 
 export function evaluateFromDecoratorArgRule(

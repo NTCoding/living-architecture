@@ -19,6 +19,11 @@ function getInterfaceTypeArgs(
     }
   }
 
+  const baseClass = classDecl.getBaseClass()
+  if (baseClass !== undefined) {
+    return getInterfaceTypeArgs(baseClass, interfaceName)
+  }
+
   return undefined
 }
 

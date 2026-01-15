@@ -190,4 +190,29 @@ describe('evaluateFromGenericArgRule', () => {
     )
     expect(result.value).toStrictEqual(['Events.OrderPlaced'])
   })
+
+  it('finds interface implemented by base class', () => {
+    const project = new Project({ useInMemoryFileSystem: true })
+    const sf = project.createSourceFile(
+      'test.ts',
+      `
+      interface IEventHandler<T> { handle(event: T): void }
+      class BaseHandler implements IEventHandler<OrderPlaced> {
+        handle(event: OrderPlaced): void {}
+      }
+      class DerivedHandler extends BaseHandler {}
+    `,
+    )
+    const derivedClass = sf.getClassOrThrow('DerivedHandler')
+    const result = evaluateFromGenericArgRule(
+      {
+        fromGenericArg: {
+          interface: 'IEventHandler',
+          position: 0,
+        },
+      },
+      derivedClass,
+    )
+    expect(result.value).toStrictEqual(['OrderPlaced'])
+  })
 })
