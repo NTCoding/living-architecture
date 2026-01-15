@@ -4,7 +4,7 @@ const {
   hasStringLiteralValue,
   getLiteralValue,
   getValueTypeDescription,
-} = require('./interface-utils.cjs')
+} = require('./interface-ast-predicates.cjs')
 
 const VALID_HTTP_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
 

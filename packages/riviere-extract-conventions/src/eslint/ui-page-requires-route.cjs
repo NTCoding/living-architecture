@@ -3,7 +3,7 @@ const {
   findInstanceProperty,
   hasStringLiteralValue,
   getValueTypeDescription,
-} = require('./interface-utils.cjs')
+} = require('./interface-ast-predicates.cjs')
 
 module.exports = {
   meta: {
