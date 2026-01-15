@@ -62,6 +62,7 @@ Confirm to start this task, or specify an alternative.
 - **No tasks available**: Report "No unassigned tasks available"
 - **Task doesn't map to any track**: Include in "Unmapped Tasks" section
 - **Multiple active PRDs**: Analyze tracks across all PRDs, prefer diversifying work
+- **No active PRD directory**: If `list-tasks.sh` returns an error, report "No active PRDs found" and fall back to non-milestone tasks only
 
 ## After Confirmation
 

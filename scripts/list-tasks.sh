@@ -70,7 +70,7 @@ if [[ ! -d "$PRD_DIR" ]]; then
 fi
 
 # Find ALL active PRDs (no -quit)
-PRD_FILES=$(find "$PRD_DIR" -maxdepth 1 -name "*.md" -type f 2>/dev/null || true)
+PRD_FILES=$(find "$PRD_DIR" -maxdepth 1 -name "PRD-*.md" -type f 2>/dev/null || true)
 
 # Collect milestone tasks from all active PRDs
 MILESTONE_TASKS="[]"
