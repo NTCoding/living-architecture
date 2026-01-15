@@ -93,9 +93,10 @@ for PRD_FILE in $PRD_FILES; do
 done
 
 # Query non-milestone tasks (bugs, ideas, tech improvements)
+# Exclude issues with milestones to prevent duplication with milestone_tasks
 NON_MILESTONE_TASKS=$(gh issue list --state open \
-    --json number,title,assignees,labels,body \
-    --jq '[.[] | select(.labels | map(.name) | any(. == "bug" or . == "idea" or . == "tech improvement"))]' \
+    --json number,title,assignees,labels,body,milestone \
+    --jq '[.[] | select(.milestone == null) | select(.labels | map(.name) | any(. == "bug" or . == "idea" or . == "tech improvement"))]' \
     2>/dev/null || echo "[]")
 
 # Output combined JSON
