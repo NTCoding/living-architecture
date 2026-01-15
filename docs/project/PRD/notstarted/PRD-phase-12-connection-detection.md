@@ -108,17 +108,15 @@ connections:
 **Pattern: Explicit Event Publishing**
 
 ```typescript
-// Connection detected via publishEvent call with literal event type
-this.eventBus.publishEvent(new OrderPlaced({ ... }));
+// Connection detected via typed publish method signature
+class OrderPublisher {
+  publishOrderPlaced(event: OrderPlacedEvent): void {
+    this.eventBus.publish(event);
+  }
+}
 ```
 
-Config declares the publish pattern:
-```yaml
-connections:
-  eventPublishing:
-    pattern: publishEvent
-    eventArgument: 0  # First argument is the event
-```
+The extractor identifies methods whose parameter types are known Event components.
 
 **Pattern: Event Handler Subscription**
 

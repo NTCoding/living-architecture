@@ -85,7 +85,7 @@ steps:
 
   - name: validate
     type: schema-validate
-    input: merge
+    inputs: [merge]
 
 output:
   format: riviere-schema
