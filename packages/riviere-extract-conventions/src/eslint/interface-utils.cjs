@@ -62,6 +62,19 @@ function hasLiteralValue(property) {
 }
 
 /**
+ * Checks if a property has a string literal value specifically.
+ * @param {object} property - PropertyDefinition AST node
+ * @returns {boolean} True if value is a string literal
+ */
+function hasStringLiteralValue(property) {
+  /* v8 ignore next 3 -- defensive check: rules always check property existence first */
+  if (!property || !property.value) {
+    return false
+  }
+  return property.value.type === 'Literal' && typeof property.value.value === 'string'
+}
+
+/**
  * Checks if a property has an array literal value with only literal elements.
  * @param {object} property - PropertyDefinition AST node
  * @returns {boolean} True if value is an array of literals
@@ -122,6 +135,7 @@ module.exports = {
   implementsInterface,
   findInstanceProperty,
   hasLiteralValue,
+  hasStringLiteralValue,
   hasLiteralArrayValue,
   getLiteralValue,
   getValueTypeDescription,

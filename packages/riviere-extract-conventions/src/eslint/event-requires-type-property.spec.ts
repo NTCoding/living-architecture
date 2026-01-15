@@ -94,6 +94,15 @@ describe('event-requires-type-property', () => {
         `,
         errors: [typeNotLiteralError()],
       },
+      {
+        name: 'reports error when type is a template literal',
+        code: `
+          class OrderPlaced implements EventDef {
+            readonly type = \`OrderPlaced\`
+          }
+        `,
+        errors: [typeNotLiteralError()],
+      },
     ],
   })
 })

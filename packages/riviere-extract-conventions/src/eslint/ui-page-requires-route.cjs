@@ -1,7 +1,7 @@
 const {
   implementsInterface,
   findInstanceProperty,
-  hasLiteralValue,
+  hasStringLiteralValue,
   getValueTypeDescription,
 } = require('./interface-utils.cjs')
 
@@ -31,7 +31,7 @@ module.exports = {
             messageId: 'missingRoute',
             data: { className },
           })
-        } else if (!hasLiteralValue(routeProperty)) {
+        } else if (!hasStringLiteralValue(routeProperty)) {
           context.report({
             node: routeProperty,
             messageId: 'routeNotLiteral',

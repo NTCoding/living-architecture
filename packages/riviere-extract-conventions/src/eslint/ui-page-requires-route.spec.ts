@@ -48,6 +48,14 @@ describe('ui-page-requires-route', () => {
           }
         `,
       },
+      {
+        name: 'passes when class implements qualified interface name',
+        code: `
+          class DashboardPage implements Domain.UIPageDef {
+            readonly route = '/dashboard'
+          }
+        `,
+      },
     ],
     invalid: [
       {

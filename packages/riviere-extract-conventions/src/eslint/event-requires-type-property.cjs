@@ -1,7 +1,7 @@
 const {
   implementsInterface,
   findInstanceProperty,
-  hasLiteralValue,
+  hasStringLiteralValue,
   getValueTypeDescription,
 } = require('./interface-utils.cjs')
 
@@ -31,7 +31,7 @@ module.exports = {
             messageId: 'missingType',
             data: { className },
           })
-        } else if (!hasLiteralValue(typeProperty)) {
+        } else if (!hasStringLiteralValue(typeProperty)) {
           context.report({
             node: typeProperty,
             messageId: 'typeNotLiteral',

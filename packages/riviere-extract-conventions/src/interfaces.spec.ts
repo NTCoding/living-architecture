@@ -15,7 +15,7 @@ describe('interfaces', () => {
     it('accepts all valid HTTP methods', () => {
       const methods: HttpMethod[] = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
 
-      expect(methods).toHaveLength(5)
+      expect(methods).toStrictEqual(['GET', 'POST', 'PUT', 'PATCH', 'DELETE'])
     })
   })
 
@@ -34,6 +34,7 @@ describe('interfaces', () => {
 
       expect(controller.route).toBe('/test')
       expect(controller.method).toBe('GET')
+      expect(typeof controller.handle).toBe('function')
     })
   })
 
@@ -62,6 +63,7 @@ describe('interfaces', () => {
       const handler = new TestHandler()
 
       expect(handler.subscribedEvents).toStrictEqual(['EventA', 'EventB'])
+      expect(typeof handler.handle).toBe('function')
     })
   })
 

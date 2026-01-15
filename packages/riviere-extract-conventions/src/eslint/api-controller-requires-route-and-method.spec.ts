@@ -97,6 +97,16 @@ describe('api-controller-requires-route-and-method', () => {
           }
         `,
       },
+      {
+        name: 'passes when class implements qualified interface name',
+        code: `
+          class OrderController implements Domain.APIControllerDef {
+            readonly route = '/orders'
+            readonly method = 'GET'
+            handle() {}
+          }
+        `,
+      },
     ],
     invalid: [
       {
@@ -172,6 +182,18 @@ describe('api-controller-requires-route-and-method', () => {
           }
         `,
         errors: [missingRouteError('OrderController'), missingMethodError('OrderController')],
+      },
+      {
+        name: 'reports error when route is a template literal',
+        code: `
+          const id = '123'
+          class OrderController implements APIControllerDef {
+            readonly route = \`/orders/\${id}\`
+            readonly method = 'GET'
+            handle() {}
+          }
+        `,
+        errors: [routeNotLiteralError()],
       },
     ],
   })
