@@ -59,8 +59,7 @@ export type LiteralResult =
   }
 
 function extractString(expression: Expression): string {
-  const text = expression.getText()
-  return text.slice(1, -1)
+  return expression.asKindOrThrow(SyntaxKind.StringLiteral).getLiteralValue()
 }
 
 function extractNumber(expression: Expression): number {

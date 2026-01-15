@@ -4,7 +4,7 @@ import type {
   FromParameterTypeExtractionRule,
 } from '@living-architecture/riviere-extract-config'
 import type {
-  ClassDeclaration, MethodDeclaration 
+  ClassDeclaration, MethodDeclaration, ParameterDeclaration 
 } from 'ts-morph'
 import { applyTransforms } from './transforms'
 import { ExtractionError } from './literal-detection'
@@ -23,7 +23,7 @@ type MethodExtractionValue = string | ParameterInfo[] | MethodSignature
 
 export type MethodExtractionResult = { value: MethodExtractionValue }
 
-function extractParameterInfo(param: import('ts-morph').ParameterDeclaration): ParameterInfo {
+function extractParameterInfo(param: ParameterDeclaration): ParameterInfo {
   const typeNode = param.getTypeNode()
   return {
     name: param.getName(),
