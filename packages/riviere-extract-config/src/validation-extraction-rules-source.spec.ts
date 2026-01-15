@@ -1,7 +1,7 @@
 import { validateExtractionConfigSchema } from './validation'
 import { createMutableConfig } from './validation-fixtures'
 
-describe('extraction rules schema validation', () => {
+describe('extraction rules schema validation - source-based rules', () => {
   describe('literal extraction rule', () => {
     it('returns valid when extract block has literal with string value', () => {
       const {
@@ -208,70 +208,20 @@ describe('extraction rules schema validation', () => {
     })
   })
 
-  describe('fromDecoratorArg extraction rule', () => {
-    it('returns valid when fromDecoratorArg has position', () => {
+  describe('transform rules', () => {
+    it('returns valid when multiple transforms applied', () => {
       const {
         config, module 
       } = createMutableConfig()
       module.api = {
-        find: 'methods',
-        where: { hasDecorator: { name: 'Get' } },
-        extract: { path: { fromDecoratorArg: { position: 0 } } },
-      }
-      expect(validateExtractionConfigSchema(config).valid).toBe(true)
-    })
-
-    it('returns valid when fromDecoratorArg has name', () => {
-      const {
-        config, module 
-      } = createMutableConfig()
-      module.api = {
-        find: 'methods',
-        where: { hasDecorator: { name: 'Get' } },
-        extract: { path: { fromDecoratorArg: { name: 'path' } } },
-      }
-      expect(validateExtractionConfigSchema(config).valid).toBe(true)
-    })
-
-    it('returns invalid when fromDecoratorArg is empty', () => {
-      const {
-        config, module 
-      } = createMutableConfig()
-      module.api = {
-        find: 'methods',
-        where: { hasDecorator: { name: 'Get' } },
-        extract: { path: { fromDecoratorArg: {} } },
-      }
-      expect(validateExtractionConfigSchema(config).valid).toBe(false)
-    })
-  })
-
-  describe('fromDecoratorName extraction rule', () => {
-    it('returns valid when fromDecoratorName is true', () => {
-      const {
-        config, module 
-      } = createMutableConfig()
-      module.api = {
-        find: 'methods',
-        where: { hasDecorator: { name: ['Get', 'Post'] } },
-        extract: { httpMethod: { fromDecoratorName: true } },
-      }
-      expect(validateExtractionConfigSchema(config).valid).toBe(true)
-    })
-
-    it('returns valid when fromDecoratorName has mapping', () => {
-      const {
-        config, module 
-      } = createMutableConfig()
-      module.api = {
-        find: 'methods',
-        where: { hasDecorator: { name: ['Get', 'Post'] } },
+        find: 'classes',
+        where: { hasDecorator: { name: 'Controller' } },
         extract: {
-          httpMethod: {
-            fromDecoratorName: {
-              mapping: {
-                Get: 'GET',
-                Post: 'POST',
+          operationName: {
+            fromClassName: {
+              transform: {
+                stripSuffix: 'Controller',
+                toLowerCase: true,
               },
             },
           },
@@ -279,111 +229,15 @@ describe('extraction rules schema validation', () => {
       }
       expect(validateExtractionConfigSchema(config).valid).toBe(true)
     })
-  })
 
-  describe('fromGenericArg extraction rule', () => {
-    it('returns valid when fromGenericArg has interface and position', () => {
-      const {
-        config, module 
-      } = createMutableConfig()
-      module.eventHandler = {
-        find: 'classes',
-        where: { implementsInterface: { name: 'IEventHandler' } },
-        extract: {
-          subscribedEvents: {
-            fromGenericArg: {
-              interface: 'IEventHandler',
-              position: 0,
-            },
-          },
-        },
-      }
-      expect(validateExtractionConfigSchema(config).valid).toBe(true)
-    })
-
-    it('returns invalid when fromGenericArg missing interface', () => {
-      const {
-        config, module 
-      } = createMutableConfig()
-      module.eventHandler = {
-        find: 'classes',
-        where: { implementsInterface: { name: 'IEventHandler' } },
-        extract: { subscribedEvents: { fromGenericArg: { position: 0 } } },
-      }
-      expect(validateExtractionConfigSchema(config).valid).toBe(false)
-    })
-  })
-
-  describe.each([
-    {
-      rule: 'fromMethodSignature',
-      field: 'signature',
-    },
-    {
-      rule: 'fromConstructorParams',
-      field: 'eventSchema',
-    },
-  ])('$rule extraction rule', ({
-    rule, field 
-  }) => {
-    it('returns valid when true', () => {
+    it('returns invalid when unknown transform used', () => {
       const {
         config, module 
       } = createMutableConfig()
       module.api = {
-        find: 'methods',
-        where: { hasDecorator: { name: 'Get' } },
-        extract: { [field]: { [rule]: true } },
-      }
-      expect(validateExtractionConfigSchema(config).valid).toBe(true)
-    })
-
-    it('returns invalid when false', () => {
-      const {
-        config, module 
-      } = createMutableConfig()
-      module.api = {
-        find: 'methods',
-        where: { hasDecorator: { name: 'Get' } },
-        extract: { [field]: { [rule]: false } },
-      }
-      expect(validateExtractionConfigSchema(config).valid).toBe(false)
-    })
-  })
-
-  describe('fromParameterType extraction rule', () => {
-    it('returns valid when fromParameterType has position', () => {
-      const {
-        config, module 
-      } = createMutableConfig()
-      module.useCase = {
-        find: 'methods',
-        where: { hasDecorator: { name: 'Execute' } },
-        extract: { inputType: { fromParameterType: { position: 0 } } },
-      }
-      expect(validateExtractionConfigSchema(config).valid).toBe(true)
-    })
-
-    it('returns invalid when fromParameterType missing position', () => {
-      const {
-        config, module 
-      } = createMutableConfig()
-      module.useCase = {
-        find: 'methods',
-        where: { hasDecorator: { name: 'Execute' } },
-        extract: { inputType: { fromParameterType: {} } },
-      }
-      expect(validateExtractionConfigSchema(config).valid).toBe(false)
-    })
-
-    it('returns invalid when fromParameterType has negative position', () => {
-      const {
-        config, module 
-      } = createMutableConfig()
-      module.useCase = {
-        find: 'methods',
-        where: { hasDecorator: { name: 'Execute' } },
-        extract: { inputType: { fromParameterType: { position: -1 } } },
+        find: 'classes',
+        where: { hasDecorator: { name: 'Controller' } },
+        extract: { operationName: { fromClassName: { transform: { unknownTransform: true } } } },
       }
       expect(validateExtractionConfigSchema(config).valid).toBe(false)
     })
