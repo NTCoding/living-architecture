@@ -1,0 +1,35 @@
+# Qodo PR-Agent configuration
+# Docs: https://qodo-merge-docs.qodo.ai/usage-guide/configuration_options/
+
+[github_app]
+# Commands to run automatically on new PRs
+pr_commands = ["/review", "/improve --pr_code_suggestions.commitable_code_suggestions=true"]
+
+[pr_code_suggestions]
+# Post suggestions as inline review threads (not PR comments)
+# This allows get-pr-feedback.sh to capture them via GraphQL reviewThreads
+commitable_code_suggestions = true
+
+# Include suggestion impact/importance scores
+include_improved_code = true
+
+extra_instructions = """
+Read and apply the coding standards from these repository files:
+- docs/conventions/software-design.md - Core design principles
+- docs/conventions/anti-patterns.md - Patterns to avoid
+- docs/conventions/testing.md - Testing standards
+- docs/conventions/standard-patterns.md - Standard implementation patterns
+- docs/conventions/codebase-structure.md - Project structure rules
+- docs/architecture/overview.md - System architecture
+"""
+
+[pr_reviewer]
+extra_instructions = """
+Read and apply the coding standards from these repository files:
+- docs/conventions/software-design.md - Core design principles
+- docs/conventions/anti-patterns.md - Patterns to avoid
+- docs/conventions/testing.md - Testing standards
+- docs/conventions/standard-patterns.md - Standard implementation patterns
+- docs/conventions/codebase-structure.md - Project structure rules
+- docs/architecture/overview.md - System architecture
+"""

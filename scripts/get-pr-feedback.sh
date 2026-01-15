@@ -88,20 +88,42 @@ echo "$UNRESOLVED_THREADS" | jq -c '.[]' | while read -r thread; do
     AUTHOR=$(echo "$thread" | jq -r '.comments.nodes[0].author.login // "unknown"')
     BODY=$(echo "$thread" | jq -r '.comments.nodes[0].body // ""')
 
-    # Extract severity from body (CodeRabbit format)
-    if echo "$BODY" | grep -q "_⚠️ Potential issue_ | _🔴 Critical_"; then
-        SEVERITY="critical"
-        ICON="●"
-    elif echo "$BODY" | grep -q "_⚠️ Potential issue_ | _🟠 Major_"; then
-        SEVERITY="major"
-        ICON="●"
-    elif echo "$BODY" | grep -q "_🛠️ Refactor suggestion_ | _🟠 Major_"; then
-        SEVERITY="major"
-        ICON="●"
-    elif echo "$BODY" | grep -q "_🧹 Nitpick_ | _🔵 Trivial_"; then
-        SEVERITY="nitpick"
-        ICON="○"
+    # Extract severity from body based on reviewer
+    if [[ "$AUTHOR" == "coderabbitai[bot]" ]]; then
+        # CodeRabbit format
+        if echo "$BODY" | grep -q "_⚠️ Potential issue_ | _🔴 Critical_"; then
+            SEVERITY="critical"
+            ICON="●"
+        elif echo "$BODY" | grep -q "_⚠️ Potential issue_ | _🟠 Major_"; then
+            SEVERITY="major"
+            ICON="●"
+        elif echo "$BODY" | grep -q "_🛠️ Refactor suggestion_ | _🟠 Major_"; then
+            SEVERITY="major"
+            ICON="●"
+        elif echo "$BODY" | grep -q "_🧹 Nitpick_ | _🔵 Trivial_"; then
+            SEVERITY="nitpick"
+            ICON="○"
+        else
+            SEVERITY="info"
+            ICON="·"
+        fi
+    elif [[ "$AUTHOR" == "qodo-code-review[bot]" ]]; then
+        # Qodo format - inline suggestions from /improve command
+        # Qodo suggestions are code improvements, default to major
+        # Look for severity indicators in the body
+        if echo "$BODY" | grep -qi "critical\|security\|vulnerability"; then
+            SEVERITY="critical"
+            ICON="●"
+        elif echo "$BODY" | grep -qi "bug\|error\|fix"; then
+            SEVERITY="major"
+            ICON="●"
+        else
+            # Default Qodo suggestions to "suggestion" severity
+            SEVERITY="suggestion"
+            ICON="◆"
+        fi
     else
+        # Other reviewers (human or other bots)
         SEVERITY="info"
         ICON="·"
     fi

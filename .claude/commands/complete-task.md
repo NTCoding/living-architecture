@@ -176,7 +176,7 @@ Principles: CHANGES_REQUESTED means not mergeable; nitpicks contain valuable inf
 
 - Run `./scripts/get-pr-feedback.sh` to get unresolved feedback
 - If "✓ No unresolved feedback" → skip to SUCCESS
-- For EACH unresolved item (CRITICAL, MAJOR, or NITPICK):
+- For EACH unresolved item (CRITICAL, MAJOR, SUGGESTION, or NITPICK):
   - Either: Apply the fix (use the AI Prompt provided)
   - Or: Reply to the thread on GitHub explaining why not fixing
 - After addressing all items: commit, push, run `./scripts/submit-pr.sh --update`
