@@ -53,13 +53,14 @@ function findInstanceProperty(classNode, propertyName) {
  * @param {object} property - PropertyDefinition AST node
  * @returns {boolean} True if value is a literal
  */
+/* v8 ignore start -- exported utility for consumers, not used internally */
 function hasLiteralValue(property) {
-  /* v8 ignore next 3 -- defensive check: rules always check property existence first */
   if (!property || !property.value) {
     return false
   }
   return property.value.type === 'Literal'
 }
+/* v8 ignore stop */
 
 /**
  * Checks if a property has a string literal value specifically.

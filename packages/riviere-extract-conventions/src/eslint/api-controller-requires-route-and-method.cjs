@@ -1,7 +1,6 @@
 const {
   implementsInterface,
   findInstanceProperty,
-  hasLiteralValue,
   hasStringLiteralValue,
   getLiteralValue,
   getValueTypeDescription,
@@ -58,7 +57,7 @@ module.exports = {
             messageId: 'missingMethod',
             data: { className },
           })
-        } else if (!hasLiteralValue(methodProperty)) {
+        } else if (!hasStringLiteralValue(methodProperty)) {
           context.report({
             node: methodProperty,
             messageId: 'methodNotLiteral',
