@@ -7,6 +7,7 @@ import type {
   ClassDeclaration, MethodDeclaration 
 } from 'ts-morph'
 import { applyTransforms } from './transforms'
+import { ExtractionError } from './literal-detection'
 
 export type ParameterInfo = {
   name: string
@@ -68,8 +69,15 @@ export function evaluateFromParameterTypeRule(
 
   const params = methodDecl.getParameters()
   const param = params[position]
+  if (param === undefined) {
+    throw new ExtractionError(
+      `Parameter position ${position} out of bounds. Method has ${params.length} parameter(s)`,
+      methodDecl.getSourceFile().getFilePath(),
+      methodDecl.getStartLineNumber(),
+    )
+  }
 
-  const typeNode = param?.getTypeNode()
+  const typeNode = param.getTypeNode()
   const typeName = typeNode?.getText() ?? 'unknown'
 
   if (transform === undefined) {

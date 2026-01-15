@@ -7,7 +7,9 @@ import {
   evaluateFromConstructorParamsRule,
   evaluateFromParameterTypeRule,
 } from './evaluate-extraction-rule'
-import { TestFixtureError } from './literal-detection'
+import {
+  ExtractionError, TestFixtureError 
+} from './literal-detection'
 
 function createMethodDeclaration(code: string, methodName: string) {
   const project = new Project({ useInMemoryFileSystem: true })
@@ -237,5 +239,22 @@ describe('evaluateFromParameterTypeRule', () => {
     )
     const result = evaluateFromParameterTypeRule({ fromParameterType: { position: 0 } }, method)
     expect(result.value).toBe('unknown')
+  })
+
+  it('throws ExtractionError when position is out of bounds', () => {
+    const method = createMethodDeclaration(
+      `
+      class OrderService {
+        createOrder(dto: OrderDto): Order { return {} as Order }
+      }
+    `,
+      'createOrder',
+    )
+    expect(() =>
+      evaluateFromParameterTypeRule({ fromParameterType: { position: 5 } }, method),
+    ).toThrow(ExtractionError)
+    expect(() =>
+      evaluateFromParameterTypeRule({ fromParameterType: { position: 5 } }, method),
+    ).toThrow('Parameter position 5 out of bounds. Method has 1 parameter(s)')
   })
 })

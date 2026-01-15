@@ -66,6 +66,14 @@ describe('pascalToKebab', () => {
   it("returns 'place-order' when input is 'PlaceOrder'", () => {
     expect(pascalToKebab('PlaceOrder')).toBe('place-order')
   })
+
+  it("returns 'order-placed' when input is 'orderPlaced' (camelCase)", () => {
+    expect(pascalToKebab('orderPlaced')).toBe('order-placed')
+  })
+
+  it("returns 'lowercase' when input is 'lowercase'", () => {
+    expect(pascalToKebab('lowercase')).toBe('lowercase')
+  })
 })
 
 describe('applyTransforms', () => {

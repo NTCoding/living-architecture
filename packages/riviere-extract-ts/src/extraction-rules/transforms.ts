@@ -50,10 +50,8 @@ export function kebabToPascal(value: string): string {
  * @example 'OrderPlaced' -> 'order-placed'
  */
 export function pascalToKebab(value: string): string {
-  return value
-    .replaceAll(/([A-Z])/g, '-$1')
-    .toLowerCase()
-    .slice(1)
+  const transformed = value.replaceAll(/([A-Z])/g, '-$1').toLowerCase()
+  return transformed.startsWith('-') ? transformed.slice(1) : transformed
 }
 
 type TransformFn = (value: string) => string
