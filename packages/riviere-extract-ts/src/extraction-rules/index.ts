@@ -18,9 +18,4 @@ export {
 
 export { applyTransforms } from './transforms'
 
-export {
-  ExtractionError,
-  TestFixtureError,
-  extractLiteralValue,
-  isLiteralValue,
-} from './literal-detection'
+export { ExtractionError } from './literal-detection'

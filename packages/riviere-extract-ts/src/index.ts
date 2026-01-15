@@ -8,3 +8,22 @@ export {
 export {
   ConfigLoaderRequiredError, MissingComponentRuleError 
 } from './errors'
+export {
+  evaluateLiteralRule,
+  evaluateFromClassNameRule,
+  evaluateFromMethodNameRule,
+  evaluateFromFilePathRule,
+  evaluateFromPropertyRule,
+  evaluateFromDecoratorArgRule,
+  evaluateFromDecoratorNameRule,
+  evaluateFromGenericArgRule,
+  evaluateFromMethodSignatureRule,
+  evaluateFromConstructorParamsRule,
+  evaluateFromParameterTypeRule,
+  applyTransforms,
+  ExtractionError,
+  type ExtractionContext,
+  type ExtractionResult,
+  type ParameterInfo,
+  type MethodSignature,
+} from './extraction-rules'
