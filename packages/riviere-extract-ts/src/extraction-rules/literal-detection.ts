@@ -102,7 +102,7 @@ function throwMissingInitializer(file: string, line: number): never {
 
 function throwNonLiteralValue(expression: Expression, file: string, line: number): never {
   throw new ExtractionError(
-    `Non-literal value detected: ${expression.getText()}. Only inline literals (strings, numbers, booleans) are supported`,
+    `Non-literal value detected (${expression.getKindName()}): ${expression.getText()}. Only inline literals (strings, numbers, booleans) are supported`,
     file,
     line,
   )

@@ -50,12 +50,12 @@ export function evaluateFromConstructorParamsRule(
   _rule: FromConstructorParamsExtractionRule,
   classDecl: ClassDeclaration,
 ): MethodExtractionResult {
-  const constructor = classDecl.getConstructors()[0]
-  if (constructor === undefined) {
+  const ctor = classDecl.getConstructors()[0]
+  if (ctor === undefined) {
     return { value: [] }
   }
 
-  const parameters = constructor.getParameters().map(extractParameterInfo)
+  const parameters = ctor.getParameters().map(extractParameterInfo)
   return { value: parameters }
 }
 

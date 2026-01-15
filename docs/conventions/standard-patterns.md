@@ -4,7 +4,7 @@
 
 When creating branded types, use Zod.
 
-Why: standard library, battle tested, clean API, codebase consistency, avoid building ad-hoc solution
+Why: standard library, battle-tested, clean API, codebase consistency, avoid building ad-hoc solution
 
 ## Discriminated Unions for Mixed Return Types
 
