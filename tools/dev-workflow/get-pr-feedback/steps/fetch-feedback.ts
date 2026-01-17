@@ -4,7 +4,7 @@ import { getRepoInfo } from '../../external-clients/github'
 import { getUnresolvedPRFeedback } from '../../external-clients/pr-feedback'
 import type { GetPRFeedbackContext } from '../get-pr-feedback'
 
-interface PRStatus {
+interface PRFeedbackStatus {
   branch: string
   prNumber: number | undefined
   prUrl?: string
@@ -23,7 +23,7 @@ export const fetchFeedback: Step<GetPRFeedbackContext> = {
   name: 'fetch-feedback',
   execute: async (ctx) => {
     if (!ctx.prNumber) {
-      const status: PRStatus = {
+      const status: PRFeedbackStatus = {
         branch: ctx.branch,
         prNumber: undefined,
         mergeable: false,
@@ -39,7 +39,7 @@ export const fetchFeedback: Step<GetPRFeedbackContext> = {
       getRepoInfo(),
     ])
 
-    const status: PRStatus = {
+    const status: PRFeedbackStatus = {
       branch: ctx.branch,
       prNumber: ctx.prNumber,
       prUrl: `https://github.com/${repoInfo.owner}/${repoInfo.repo}/pull/${ctx.prNumber}`,

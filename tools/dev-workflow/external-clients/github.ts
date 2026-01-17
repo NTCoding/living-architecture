@@ -22,6 +22,8 @@ const getOctokit = (() => {
   }
 })()
 
+const DELETED_USER_PLACEHOLDER = '[deleted]'
+
 type PRState = 'open' | 'closed' | 'merged'
 
 interface PR {
@@ -280,8 +282,7 @@ export const github = {
           threadId: thread.id,
           file: thread.path,
           line: thread.line,
-          // GitHub returns null for deleted users. '[deleted]' matches GitHub UI display convention.
-          author: comment.author?.login ?? '[deleted]',
+          author: comment.author?.login ?? DELETED_USER_PLACEHOLDER,
           body: comment.body,
         }
       })
