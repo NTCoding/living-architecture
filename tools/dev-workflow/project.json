@@ -1,0 +1,13 @@
+{
+  "name": "dev-workflow",
+  "root": "tools/dev-workflow",
+  "targets": {
+    "complete-task": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "./tools/dev-workflow/node_modules/.bin/tsx tools/dev-workflow/complete-task/complete-task.ts",
+        "cwd": "{workspaceRoot}"
+      }
+    }
+  }
+}

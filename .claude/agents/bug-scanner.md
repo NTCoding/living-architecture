@@ -9,13 +9,10 @@ Scan changed files for bugs and dangerous patterns. Be paranoid - if something l
 
 ## Instructions
 
-Review ALL uncommitted changes:
-
-```bash
-./scripts/get-changed-files.sh
-```
-
-Write the COMPLETE report to the file path provided in the prompt.
+1. Review ALL files listed in "Files to Review" below
+2. For each file, read its contents and scan for the patterns described
+3. Check related files as needed to understand context
+4. Output your findings as structured JSON
 
 ## Priority 1: Bug Patterns & Anti-Patterns
 
@@ -74,15 +71,6 @@ if (state.value) { state.value = newValue }
 - Unreachable code
 - Unused variables that should be used
 
-**Format:**
-```plaintext
-BUG: [pattern name]
-File: [file:line]
-Code: [show the problematic code]
-Risk: [what could go wrong]
-Fix: [suggested fix]
-```
-
 ## Priority 2: Framework & Library Misuse
 
 Check if frameworks and libraries are used effectively:
@@ -111,15 +99,6 @@ Check if frameworks and libraries are used effectively:
 - Bypassing framework patterns without justification
 - Mixing paradigms inappropriately
 
-**Format:**
-```plaintext
-FRAMEWORK MISUSE: [pattern name]
-File: [file:line]
-Code: [show the problematic code]
-Library/Framework: [which one]
-Better approach: [what the library/framework provides]
-```
-
 ## Priority 3: Dangerous Config Changes
 
 Protected files that should rarely change:
@@ -133,13 +112,7 @@ Protected files that should rarely change:
 - `.claude/settings.json`
 - `.claude/hooks/*`
 
-**If any protected file is modified:**
-```plaintext
-CONFIG CHANGE: [filename]
-Change: [describe what changed]
-Risk: [what could go wrong]
-Justified: [yes/no - is there clear justification in commit/PR?]
-```
+Flag ANY modification to these files.
 
 ## Priority 4: Security Issues
 
@@ -160,92 +133,37 @@ Justified: [yes/no - is there clear justification in commit/PR?]
 - Unescaped user input in shell commands
 - Template injection
 
-**Format:**
-```plaintext
-SECURITY: [issue type]
-File: [file:line]
-Code: [show the problematic code]
-Severity: [CRITICAL/HIGH/MEDIUM]
-Risk: [what could be exploited]
-Fix: [required remediation]
-```
-
 ## Priority 5: Review Feedback Checks
 
 Read `docs/conventions/review-feedback-checks.md` and apply each RFC check to changed code.
 
-**Format:**
-```plaintext
-REVIEW FEEDBACK: [RFC-NNN title]
-File: [file:line]
-Code: [show the problematic code]
-Pattern: [which RFC pattern was violated]
-Fix: [suggested fix]
+## Severity Levels
+
+- **critical**: Security issues, data loss, crashes. Must fix.
+- **major**: Bugs, dangerous patterns, config changes. Should fix.
+- **minor**: Framework misuse, inefficiencies. Nice to fix.
+
+## Output Format
+
+Return ONLY valid JSON matching this schema:
+
+```json
+{
+  "result": "PASS" | "FAIL",
+  "summary": "One sentence summary of scan",
+  "findings": [
+    {
+      "severity": "critical" | "major" | "minor",
+      "file": "path/to/file.ts",
+      "line": 42,
+      "message": "Description of the issue including pattern name and risk"
+    }
+  ]
+}
 ```
 
-## Documentation Suggestions (Informational - Does Not Fail)
-
-Check if changed code might benefit from documentation updates.
-
-**Important:** These suggestions do NOT cause a FAIL. They are written to a separate file in the reviews folder for the `/post-merge-completion` reflection step.
-
-### Output File
-
-Write suggestions to: `reviews/<branch>/doc-suggestions.md`
-
-**Only create this file if there are actual suggestions.** Do not create an empty file. An absent file means "no documentation suggestions" - consumers should interpret a missing file as having nothing to report.
-
-### What to Look For
-
-Search for docs that reference changed files:
-```bash
-grep -r "changed-file-name" docs/ --include="*.md"
-grep -r "changed-file-name" CLAUDE.md .claude/ --include="*.md"
-```
-
-**Drift (docs are now wrong):**
-- Function signatures changed but docs show old signature
-- Commands/scripts renamed but docs reference old names
-- Removed functionality still documented
-
-**Missing (new functionality undocumented):**
-- New commands or workflows not in docs
-- New config options not documented
-- New files/components not in architecture docs
-
-### Format (in doc-suggestions.md)
-
-```markdown
-# Documentation Suggestions for <branch>
-
-## Drift (docs are incorrect)
-
-### [Title]
-- **Code change:** [what changed]
-- **Affected doc:** [file path]
-- **Current:** [what doc says now]
-- **Should be:** [correct content]
-
-## Missing (new functionality)
-
-### [Title]
-- **New functionality:** [what was added]
-- **Suggested doc:** [where to document]
-- **Content outline:** [brief description]
-```
-
-## Output
-
-Return ONLY:
-
-```text
-BUG SCANNER: PASS
-```
-
-or
-
-```text
-BUG SCANNER: FAIL
-```
-
-The full report is in the file. Do not summarize findings in the return value.
+Rules:
+- result: "FAIL" if any critical or major findings, otherwise "PASS"
+- summary: Brief overview of what you found
+- findings: Array of all issues (can be empty for PASS)
+- line: Optional, include if specific to a line
