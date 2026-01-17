@@ -9,7 +9,7 @@ import {
   agentResponseSchema, type ReviewerResult 
 } from '../../workflow-runner/schemas'
 import { AgentError } from '../../errors'
-import { shouldSkipCodeReview } from '../../workflow-runner/context-builder'
+import { shouldSkipCodeReview } from '../context-builder'
 
 async function readAgentPrompt(agentPath: string): Promise<string> {
   try {

@@ -99,56 +99,62 @@ Each client:
 
 ### Directory Structure: Infrastructure vs Commands
 
-**CRITICAL**: Shared infrastructure lives in dedicated directories. Command directories contain ONLY command-specific code.
+**CRITICAL**: Understand what is shared vs command-specific.
 
 ```text
 dev-workflow/
-├── workflow-runner/         # SHARED INFRASTRUCTURE
-│   ├── workflow-runner.ts   # Core workflow execution
+├── workflow-runner/         # SHARED: Workflow execution mechanics
+│   ├── workflow-runner.ts   # Core workflow types and execution
 │   ├── run-workflow.ts      # Entry point helper
-│   ├── context-builder.ts   # WorkflowContext construction
 │   ├── error-handler.ts     # Standard error handling
 │   └── schemas.ts           # Shared Zod schemas
-├── external-clients/        # SHARED INFRASTRUCTURE
+├── external-clients/        # SHARED: External service clients
 │   ├── cli.ts               # CLI argument parsing
 │   ├── git.ts               # simple-git wrapper
 │   ├── github.ts            # Octokit wrapper
 │   ├── nx.ts                # nx commands
-│   └── claude.ts            # Claude Agent SDK
-├── complete-task/           # COMMAND-SPECIFIC ONLY
+│   ├── claude.ts            # Claude Agent SDK
+│   └── pr-feedback.ts       # PR feedback fetching
+├── complete-task/           # COMMAND: complete-task
 │   ├── complete-task.ts     # Entry point (declarative)
+│   ├── context-builder.ts   # Builds context FOR THIS COMMAND
 │   └── steps/               # Steps unique to this command
-├── get-pr-feedback/         # COMMAND-SPECIFIC ONLY
-│   └── get-pr-feedback.ts   # Entry point
-└── respond-to-feedback/     # COMMAND-SPECIFIC ONLY
+├── get-pr-feedback/         # COMMAND: get-pr-feedback
+│   ├── get-pr-feedback.ts   # Entry point (declarative)
+│   ├── context-builder.ts   # Builds context FOR THIS COMMAND
+│   └── steps/               # Steps unique to this command
+└── respond-to-feedback/     # COMMAND: respond-to-feedback
     └── respond-to-feedback.ts
 ```
 
-**Rule**: If code could be used by multiple commands, it belongs in `workflow-runner/` or `external-clients/`. Command directories contain ONLY:
-- The entry point file
-- Steps/logic unique to that command
+**What goes where:**
+- `workflow-runner/` - Generic workflow execution (running steps, handling results)
+- `external-clients/` - Clients for external services (git, GitHub, nx, Claude)
+- `<command>/` - Everything specific to that command (context builder, steps)
+
+**Context builders are command-specific** - each command knows what context it needs.
 
 **Entry points should:**
-- Import from shared infrastructure
-- Declare which steps to run
-- Be readable at a glance (< 15 lines)
+- Import `runWorkflow` from shared infrastructure
+- Import context builder from same command directory
+- Declare steps on separate lines for readability
 
 ```typescript
-// GOOD - declarative entry point (complete-task.ts)
+// GOOD - declarative entry point
 import { runWorkflow } from '../workflow-runner/run-workflow'
+import { buildWorkflowContext } from './context-builder'
 import { verifyBuild } from './steps/verify-build'
 import { codeReview } from './steps/code-review'
 
-runWorkflow([
-  verifyBuild,
-  codeReview,
-  submitPR,
-  fetchPRFeedback,
-])
-
-// BAD - infrastructure in command directory
-// complete-task/context-builder.ts  ← WRONG! Move to workflow-runner/
-// complete-task/run-workflow.ts     ← WRONG! Move to workflow-runner/
+runWorkflow(
+  [
+    verifyBuild,
+    codeReview,
+    submitPR,
+    fetchPRFeedback,
+  ],
+  buildWorkflowContext,
+)
 ```
 
 ### Error Handling
