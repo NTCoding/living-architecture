@@ -1,6 +1,20 @@
 import { Octokit } from '@octokit/rest'
+import { execFileSync } from 'node:child_process'
 import simpleGit from 'simple-git'
 import { GitHubError } from '../errors'
+
+function getGitHubToken(): string {
+  if (process.env.GITHUB_TOKEN) {
+    return process.env.GITHUB_TOKEN
+  }
+
+  try {
+    // eslint-disable-next-line sonarjs/no-os-command-from-path -- gh CLI is a trusted tool
+    return execFileSync('gh', ['auth', 'token'], { encoding: 'utf-8' }).trim()
+  } catch {
+    throw new GitHubError('GitHub authentication required. Set GITHUB_TOKEN or run: gh auth login')
+  }
+}
 
 const getOctokit = (() => {
   const cache: { instance?: Octokit } = {}
@@ -9,12 +23,7 @@ const getOctokit = (() => {
       return cache.instance
     }
 
-    const token = process.env.GITHUB_TOKEN
-    if (!token) {
-      throw new GitHubError('GITHUB_TOKEN environment variable is required but not set')
-    }
-
-    cache.instance = new Octokit({ auth: token })
+    cache.instance = new Octokit({ auth: getGitHubToken() })
     return cache.instance
   }
 })()
@@ -92,9 +101,7 @@ export const github = {
     title: string
     body: string
   }> {
-    const {
-      owner, repo 
-    } = await getRepoInfo()
+    const { owner, repo } = await getRepoInfo()
 
     const response = await getOctokit().issues.get({
       owner,
@@ -112,9 +119,7 @@ export const github = {
     }
   },
   async createPR(opts: CreatePROptions): Promise<PR> {
-    const {
-      owner, repo 
-    } = await getRepoInfo()
+    const { owner, repo } = await getRepoInfo()
 
     const response = await getOctokit().pulls.create({
       owner,
@@ -132,9 +137,7 @@ export const github = {
   },
 
   async updatePR(prNumber: number): Promise<PR> {
-    const {
-      owner, repo 
-    } = await getRepoInfo()
+    const { owner, repo } = await getRepoInfo()
 
     const response = await getOctokit().pulls.get({
       owner,
@@ -149,9 +152,7 @@ export const github = {
   },
 
   async getUnresolvedFeedback(prNumber: number): Promise<FeedbackItem[]> {
-    const {
-      owner, repo 
-    } = await getRepoInfo()
+    const { owner, repo } = await getRepoInfo()
 
     const query = `
       query($owner: String!, $repo: String!, $pr: Int!) {
@@ -223,9 +224,7 @@ export const github = {
   },
 
   async watchCI(prNumber: number, timeoutMs = 10 * 60 * 1000): Promise<CIResult> {
-    const {
-      owner, repo 
-    } = await getRepoInfo()
+    const { owner, repo } = await getRepoInfo()
     const startTime = Date.now()
     const pollInterval = 30_000
 
