@@ -3,10 +3,14 @@ import {
   success, failure 
 } from '../../workflow-runner/workflow-runner'
 import { getUnresolvedPRFeedback } from '../../external-clients/pr-feedback'
+import type { CompleteTaskContext } from '../complete-task'
 
-export const fetchPRFeedback: Step = async (ctx) => {
+export const fetchPRFeedback: Step<CompleteTaskContext> = async (ctx) => {
   if (!ctx.prNumber) {
-    return failure('fix_errors', 'No PR number available')
+    return failure({
+      type: 'fix_errors',
+      details: 'No PR number available',
+    })
   }
 
   const feedback = await getUnresolvedPRFeedback(ctx.prNumber)
@@ -20,7 +24,10 @@ export const fetchPRFeedback: Step = async (ctx) => {
       })
       .join('\n')
 
-    return failure('resolve_feedback', summary)
+    return failure({
+      type: 'resolve_feedback',
+      details: summary,
+    })
   }
 
   return success()

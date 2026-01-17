@@ -4,6 +4,106 @@ TypeScript orchestration tools for Claude Code development workflow.
 
 ## Architecture Principles
 
+### Strict Responsibility Boundaries
+
+**CRITICAL**: Each directory has ONE responsibility. Mixing concerns is forbidden.
+
+#### Decision Flowchart: Where Does Code Belong?
+
+```text
+START: I have a type, function, or constant
+
+  ↓
+
+Is it generic behavior of an external service?
+(Same for ALL users of git/GitHub/nx - ask: "Would the CEO of that service know what this is?")
+
+  YES → external-clients/
+  NO  ↓
+
+Is it specific to ONE command only?
+(Only makes sense in the context of that single command)
+
+  YES → <command>/ directory
+  NO  ↓
+
+Is it a core workflow concept?
+(Fundamental type/function that workflows use - e.g., what a "task" is, what a "step result" is)
+
+  YES → workflow-runner/
+  NO  ↓
+
+It's a shared convention → conventions/
+(Our decisions about how we use external services - branch naming, commit format, etc.)
+```
+
+#### workflow-runner/ - Generic Execution ONLY
+
+The workflow runner knows NOTHING about:
+- What steps do
+- What failure types mean
+- How to format specific error messages
+- Any command-specific logic
+
+It ONLY knows:
+- How to run steps in sequence
+- Generic success/failure result types
+- How to pass context to steps
+
+```typescript
+// GOOD - generic workflow runner
+export type StepResult =
+  | { type: 'success'; output?: unknown }
+  | { type: 'failure'; details: unknown }
+
+// BAD - step-specific knowledge in workflow runner
+type NextAction = 'fix_errors' | 'fix_review' | 'resolve_feedback'
+function formatInstructions(result) {
+  if (result.nextAction === 'fix_review') { ... } // NO!
+}
+```
+
+#### external-clients/ - Generic External Service Behavior ONLY
+
+Ask: "Is this behavior the same for EVERY user of git/GitHub/nx?"
+- YES → belongs in external-clients
+- NO → does NOT belong in external-clients
+
+```typescript
+// GOOD - generic git behavior (same for everyone)
+git.commit(message)
+git.push()
+github.createPR({ title, body, branch })
+
+// BAD - our convention (not generic)
+git.parseIssueNumberFromBranch() // NO! Our naming convention
+git.formatCommitMessage()         // NO! Our co-author convention
+```
+
+#### conventions/ - OUR Project Conventions
+
+Project-specific decisions about how we use external services:
+- Branch naming: `issue-<number>`
+- Commit format: Co-author line
+- CLI flag meanings
+
+```typescript
+// conventions/branch.ts
+export const ISSUE_BRANCH_PATTERN = /issue-(\d+)/
+export function parseIssueNumber(branch: string): number | undefined
+
+// conventions/commit.ts
+export function formatCommitMessage(title: string): string
+```
+
+#### <command>/ - Command-Specific Code
+
+Everything specific to one command:
+- Context type and builder
+- Steps
+- Result formatting
+- How to interpret step results
+
 ### No Fallback Values
 
 **CRITICAL**: Never use fallback/default values for inputs that Claude should provide explicitly. The orchestrator knows nothing about the work - it only orchestrates.
@@ -97,42 +197,40 @@ Each client:
 - Provides typed methods
 - Throws domain-specific errors (GitError, GitHubError, etc.)
 
-### Directory Structure: Infrastructure vs Commands
-
-**CRITICAL**: Understand what is shared vs command-specific.
+### Directory Structure
 
 ```text
 dev-workflow/
-├── workflow-runner/         # SHARED: Workflow execution mechanics
-│   ├── workflow-runner.ts   # Core workflow types and execution
+├── workflow-runner/         # Generic execution mechanics ONLY
+│   ├── workflow-runner.ts   # Step/workflow types, generic runner
 │   ├── run-workflow.ts      # Entry point helper
-│   ├── error-handler.ts     # Standard error handling
-│   └── schemas.ts           # Shared Zod schemas
-├── external-clients/        # SHARED: External service clients
+│   └── error-handler.ts     # Generic error handling
+├── external-clients/        # Generic external service behavior ONLY
 │   ├── cli.ts               # CLI argument parsing
-│   ├── git.ts               # simple-git wrapper
-│   ├── github.ts            # Octokit wrapper
+│   ├── git.ts               # simple-git wrapper (generic git ops)
+│   ├── github.ts            # Octokit wrapper (generic GitHub ops)
 │   ├── nx.ts                # nx commands
 │   ├── claude.ts            # Claude Agent SDK
 │   └── pr-feedback.ts       # PR feedback fetching
+├── conventions/             # OUR project conventions
+│   ├── branch.ts            # Branch naming (issue-<number>)
+│   └── commit.ts            # Commit message format (co-author)
 ├── complete-task/           # COMMAND: complete-task
-│   ├── complete-task.ts     # Entry point (declarative)
-│   ├── context-builder.ts   # Builds context FOR THIS COMMAND
+│   ├── complete-task.ts     # Entry point, context type, context builder
+│   ├── result-formatter.ts  # Step-specific result formatting
 │   └── steps/               # Steps unique to this command
 ├── get-pr-feedback/         # COMMAND: get-pr-feedback
-│   ├── get-pr-feedback.ts   # Entry point (declarative)
-│   ├── context-builder.ts   # Builds context FOR THIS COMMAND
+│   ├── get-pr-feedback.ts   # Entry point, context type, context builder
 │   └── steps/               # Steps unique to this command
 └── respond-to-feedback/     # COMMAND: respond-to-feedback
     └── respond-to-feedback.ts
 ```
 
 **What goes where:**
-- `workflow-runner/` - Generic workflow execution (running steps, handling results)
-- `external-clients/` - Clients for external services (git, GitHub, nx, Claude)
-- `<command>/` - Everything specific to that command (context builder, steps)
-
-**Context builders are command-specific** - each command knows what context it needs.
+- `workflow-runner/` - Generic execution ONLY (no knowledge of steps or their meaning)
+- `external-clients/` - Generic service behavior (same for every user of git/GitHub/nx)
+- `conventions/` - OUR project-specific conventions (branch naming, commit format)
+- `<command>/` - Everything specific to that command (context, steps, result formatting)
 
 **Entry points should:**
 - Import `runWorkflow` from shared infrastructure

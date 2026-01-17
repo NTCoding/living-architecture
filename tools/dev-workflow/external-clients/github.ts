@@ -42,8 +42,8 @@ interface CreatePROptions {
 
 interface FeedbackItem {
   threadId: string
-  file?: string
-  line?: number
+  file: string | null
+  line: number | null
   severity: string
   author: string
   body: string
@@ -130,9 +130,13 @@ export const github = {
       throw new GitHubError(`Issue #${issueNumber} has no title`)
     }
 
+    if (!response.data.body) {
+      throw new GitHubError(`Issue #${issueNumber} has no body. Task issues require a description.`)
+    }
+
     return {
       title: response.data.title,
-      body: response.data.body ?? '',
+      body: response.data.body,
     }
   },
   async createPR(opts: CreatePROptions): Promise<PR> {
@@ -231,9 +235,10 @@ export const github = {
         const comment = thread.comments.nodes[0]
         return {
           threadId: thread.id,
-          file: thread.path ?? undefined,
-          line: thread.line ?? undefined,
+          file: thread.path,
+          line: thread.line,
           severity: 'info',
+          // GitHub returns null for deleted users. '[deleted]' matches GitHub UI display convention.
           author: comment.author?.login ?? '[deleted]',
           body: comment.body,
         }

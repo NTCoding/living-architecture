@@ -2,6 +2,7 @@ import type { Step } from '../../workflow-runner/workflow-runner'
 import { success } from '../../workflow-runner/workflow-runner'
 import { getRepoInfo } from '../../external-clients/github'
 import { getUnresolvedPRFeedback } from '../../external-clients/pr-feedback'
+import type { GetPRFeedbackContext } from '../get-pr-feedback'
 
 interface PRStatus {
   branch: string
@@ -18,7 +19,7 @@ interface PRStatus {
   message?: string
 }
 
-export const fetchFeedback: Step = async (ctx) => {
+export const fetchFeedback: Step<GetPRFeedbackContext> = async (ctx) => {
   if (!ctx.prNumber) {
     const status: PRStatus = {
       branch: ctx.branch,

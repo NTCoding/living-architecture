@@ -4,10 +4,14 @@ import {
 } from '../../workflow-runner/workflow-runner'
 import { git } from '../../external-clients/git'
 import { github } from '../../external-clients/github'
+import type { CompleteTaskContext } from '../complete-task'
 
-export const submitPR: Step = async (ctx) => {
+export const submitPR: Step<CompleteTaskContext> = async (ctx) => {
   if (!ctx.prTitle || !ctx.prBody || !ctx.commitMessage) {
-    return failure('fix_errors', 'Missing required context: prTitle, prBody, or commitMessage')
+    return failure({
+      type: 'fix_errors',
+      details: 'Missing required context: prTitle, prBody, or commitMessage',
+    })
   }
 
   const uncommitted = await git.uncommittedFiles()
@@ -34,7 +38,10 @@ export const submitPR: Step = async (ctx) => {
   const ciResult = await github.watchCI(pr.number)
 
   if (ciResult.failed) {
-    return failure('fix_errors', ciResult.output)
+    return failure({
+      type: 'fix_errors',
+      details: ciResult.output,
+    })
   }
 
   return success()

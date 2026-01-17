@@ -50,11 +50,15 @@ export const git = {
 
   async baseBranch(): Promise<string> {
     const remotes = await repo.getRemotes(true)
-    if (!remotes.some((r) => r.name === 'origin')) return 'main'
+    if (!remotes.some((r) => r.name === 'origin')) {
+      throw new GitError('No origin remote found. Please configure an origin remote.')
+    }
 
     const refs = await repo.branch(['-r'])
     if (refs.all.includes('origin/main')) return 'main'
     if (refs.all.includes('origin/master')) return 'master'
-    return 'main'
+    throw new GitError(
+      `No base branch found. Expected origin/main or origin/master but found: ${refs.all.filter((r) => r.startsWith('origin/')).join(', ')}`,
+    )
   },
 }

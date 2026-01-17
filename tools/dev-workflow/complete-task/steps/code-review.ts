@@ -5,11 +5,16 @@ import {
 } from '../../workflow-runner/workflow-runner'
 import { claude } from '../../external-clients/claude'
 import { git } from '../../external-clients/git'
+import { cli } from '../../external-clients/cli'
 import {
   agentResponseSchema, type ReviewerResult 
 } from '../../workflow-runner/schemas'
 import { AgentError } from '../../errors'
-import { shouldSkipCodeReview } from '../context-builder'
+import type { CompleteTaskContext } from '../complete-task'
+
+function shouldSkipCodeReview(): boolean {
+  return cli.hasFlag('--reject-review-feedback')
+}
 
 async function readAgentPrompt(agentPath: string): Promise<string> {
   try {
@@ -21,13 +26,16 @@ async function readAgentPrompt(agentPath: string): Promise<string> {
   }
 }
 
-export const codeReview: Step = async (ctx) => {
+export const codeReview: Step<CompleteTaskContext> = async (ctx) => {
   if (shouldSkipCodeReview()) {
     return success()
   }
 
   if (!ctx.reviewDir) {
-    return failure('fix_errors', 'Missing required context: reviewDir')
+    return failure({
+      type: 'fix_errors',
+      details: 'Missing required context: reviewDir',
+    })
   }
 
   const baseBranch = await git.baseBranch()
@@ -42,14 +50,14 @@ export const codeReview: Step = async (ctx) => {
 
   const failures = results.filter((r) => r.result === 'FAIL')
   if (failures.length > 0) {
-    return failure(
-      'fix_review',
-      failures.map((f) => ({
+    return failure({
+      type: 'fix_review',
+      details: failures.map((f) => ({
         name: f.name,
         summary: f.summary,
         reportPath: f.reportPath,
       })),
-    )
+    })
   }
 
   return success()
