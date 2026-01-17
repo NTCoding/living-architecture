@@ -22,10 +22,14 @@ const getOctokit = (() => {
   }
 })()
 
+type PRState = 'open' | 'closed' | 'merged'
+
 interface PR {
   number: number
   url: string
 }
+
+interface PRWithState extends PR {state: PRState}
 
 interface CreatePROptions {
   title: string
@@ -45,6 +49,16 @@ interface FeedbackItem {
 interface CIResult {
   failed: boolean
   output: string
+}
+
+function determinePRState(mergedAt: string | null, state: string): PRState {
+  if (mergedAt) {
+    return 'merged'
+  }
+  if (state === 'open') {
+    return 'open'
+  }
+  return 'closed'
 }
 
 const repo = simpleGit()
@@ -107,6 +121,32 @@ export const github = {
     }
 
     return response.data[0].number
+  },
+
+  async findPRForBranchWithState(branch: string): Promise<PRWithState | undefined> {
+    const {
+      owner, repo 
+    } = await getRepoInfo()
+
+    const response = await getOctokit().pulls.list({
+      owner,
+      repo,
+      head: `${owner}:${branch}`,
+      state: 'all',
+    })
+
+    if (response.data.length === 0) {
+      return undefined
+    }
+
+    const pr = response.data[0]
+    const prState = determinePRState(pr.merged_at, pr.state)
+
+    return {
+      number: pr.number,
+      url: pr.html_url,
+      state: prState,
+    }
   },
 
   async getIssue(issueNumber: number): Promise<{

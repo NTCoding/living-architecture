@@ -222,6 +222,9 @@ dev-workflow/
 ├── get-pr-feedback/         # COMMAND: get-pr-feedback
 │   ├── get-pr-feedback.ts   # Entry point, context type, context builder
 │   └── steps/               # Steps unique to this command
+├── get-pr-status/           # COMMAND: get-pr-status
+│   ├── get-pr-status.ts     # Entry point, context type, context builder
+│   └── steps/               # Steps unique to this command
 └── respond-to-feedback/     # COMMAND: respond-to-feedback
     └── respond-to-feedback.ts
 ```
@@ -358,6 +361,28 @@ Returns:
   ]
 }
 ```
+
+### get-pr-status (read-only)
+
+```bash
+nx run dev-workflow:get-pr-status
+```
+
+Returns PR lifecycle state for the current branch:
+```json
+{
+  "state": "merged",
+  "prNumber": 123,
+  "prUrl": "https://github.com/owner/repo/pull/123",
+  "branch": "issue-123-feature"
+}
+```
+
+Possible states:
+- `merged` - PR was merged
+- `open` - PR is open
+- `closed` - PR was closed without merging
+- `not_found` - No PR exists for this branch
 
 ### respond-to-feedback (write-only)
 

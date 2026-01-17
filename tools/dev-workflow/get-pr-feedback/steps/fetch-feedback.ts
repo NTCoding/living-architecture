@@ -19,32 +19,35 @@ interface PRStatus {
   message?: string
 }
 
-export const fetchFeedback: Step<GetPRFeedbackContext> = async (ctx) => {
-  if (!ctx.prNumber) {
+export const fetchFeedback: Step<GetPRFeedbackContext> = {
+  name: 'fetch-feedback',
+  execute: async (ctx) => {
+    if (!ctx.prNumber) {
+      const status: PRStatus = {
+        branch: ctx.branch,
+        prNumber: undefined,
+        mergeable: false,
+        unresolvedFeedback: [],
+        feedbackCount: 0,
+        message: `No open PR found for branch "${ctx.branch}"`,
+      }
+      return success(status)
+    }
+
+    const [feedback, repoInfo] = await Promise.all([
+      getUnresolvedPRFeedback(ctx.prNumber),
+      getRepoInfo(),
+    ])
+
     const status: PRStatus = {
       branch: ctx.branch,
-      prNumber: undefined,
-      mergeable: false,
-      unresolvedFeedback: [],
-      feedbackCount: 0,
-      message: `No open PR found for branch "${ctx.branch}"`,
+      prNumber: ctx.prNumber,
+      prUrl: `https://github.com/${repoInfo.owner}/${repoInfo.repo}/pull/${ctx.prNumber}`,
+      mergeable: feedback.length === 0,
+      unresolvedFeedback: feedback,
+      feedbackCount: feedback.length,
     }
+
     return success(status)
-  }
-
-  const [feedback, repoInfo] = await Promise.all([
-    getUnresolvedPRFeedback(ctx.prNumber),
-    getRepoInfo(),
-  ])
-
-  const status: PRStatus = {
-    branch: ctx.branch,
-    prNumber: ctx.prNumber,
-    prUrl: `https://github.com/${repoInfo.owner}/${repoInfo.repo}/pull/${ctx.prNumber}`,
-    mergeable: feedback.length === 0,
-    unresolvedFeedback: feedback,
-    feedbackCount: feedback.length,
-  }
-
-  return success(status)
+  },
 }

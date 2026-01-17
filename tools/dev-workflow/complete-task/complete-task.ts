@@ -33,7 +33,7 @@ export type CompleteTaskContext = z.infer<typeof completeTaskContextSchema>
 runWorkflow<CompleteTaskContext>(
   [verifyBuild, codeReview, submitPR, fetchPRFeedback],
   buildCompleteTaskContext,
-  (result: WorkflowResult, ctx: CompleteTaskContext) => formatCompleteTaskResult(result, ctx.prUrl),
+  (result: WorkflowResult, ctx: CompleteTaskContext) => formatCompleteTaskResult(result, ctx),
 )
 
 async function buildCompleteTaskContext(): Promise<CompleteTaskContext> {

@@ -16,6 +16,13 @@
         "cwd": "{workspaceRoot}"
       }
     },
+    "get-pr-status": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "./tools/dev-workflow/node_modules/.bin/tsx tools/dev-workflow/get-pr-status/get-pr-status.ts",
+        "cwd": "{workspaceRoot}"
+      }
+    },
     "respond-to-feedback": {
       "executor": "nx:run-commands",
       "options": {

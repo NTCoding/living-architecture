@@ -26,38 +26,41 @@ async function readAgentPrompt(agentPath: string): Promise<string> {
   }
 }
 
-export const codeReview: Step<CompleteTaskContext> = async (ctx) => {
-  if (shouldSkipCodeReview()) {
+export const codeReview: Step<CompleteTaskContext> = {
+  name: 'code-review',
+  execute: async (ctx) => {
+    if (shouldSkipCodeReview()) {
+      return success()
+    }
+
+    if (!ctx.reviewDir) {
+      return failure({
+        type: 'fix_errors',
+        details: 'Missing required context: reviewDir',
+      })
+    }
+
+    const baseBranch = await git.baseBranch()
+    const filesToReview = await git.diffFiles(baseBranch)
+
+    const reviewerNames = ['code-review', 'bug-scanner', ...(ctx.hasIssue ? ['task-check'] : [])]
+
+    const results = await runReviewers(reviewerNames, filesToReview, ctx.reviewDir, ctx.taskDetails)
+
+    const failures = results.filter((r) => r.result === 'FAIL')
+    if (failures.length > 0) {
+      return failure({
+        type: 'fix_review',
+        details: failures.map((f) => ({
+          name: f.name,
+          summary: f.summary,
+          reportPath: f.reportPath,
+        })),
+      })
+    }
+
     return success()
-  }
-
-  if (!ctx.reviewDir) {
-    return failure({
-      type: 'fix_errors',
-      details: 'Missing required context: reviewDir',
-    })
-  }
-
-  const baseBranch = await git.baseBranch()
-  const filesToReview = await git.diffFiles(baseBranch)
-
-  const reviewerNames = ['code-review', 'bug-scanner', ...(ctx.hasIssue ? ['task-check'] : [])]
-
-  const results = await runReviewers(reviewerNames, filesToReview, ctx.reviewDir, ctx.taskDetails)
-
-  const failures = results.filter((r) => r.result === 'FAIL')
-  if (failures.length > 0) {
-    return failure({
-      type: 'fix_review',
-      details: failures.map((f) => ({
-        name: f.name,
-        summary: f.summary,
-        reportPath: f.reportPath,
-      })),
-    })
-  }
-
-  return success()
+  },
 }
 
 async function runReviewers(

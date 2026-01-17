@@ -1,5 +1,7 @@
 import { z } from 'zod'
+import { writeFileSync } from 'node:fs'
 import type { WorkflowResult } from '../workflow-runner/workflow-runner'
+import type { CompleteTaskContext } from './complete-task'
 
 const nextActionSchema = z.enum(['fix_errors', 'fix_review', 'resolve_feedback', 'done'])
 type NextAction = z.infer<typeof nextActionSchema>
@@ -19,6 +21,8 @@ const completeTaskResultSchema = z.object({
   nextInstructions: z.string(),
   output: z.unknown().optional(),
   prUrl: z.string().optional(),
+  failedStep: z.string().optional(),
+  logFile: z.string().optional(),
   failedReviewers: z.array(failedReviewerSchema).optional(),
 })
 export type CompleteTaskResult = z.infer<typeof completeTaskResultSchema>
@@ -119,14 +123,30 @@ function formatFailureInstructions(error: unknown): {
 
 export function formatCompleteTaskResult(
   result: WorkflowResult,
-  prUrl?: string,
+  ctx: CompleteTaskContext,
 ): CompleteTaskResult {
   if (!result.success) {
     const formatted = formatFailureInstructions(result.error)
+    const failedStep = result.failedStep
+
+    if (formatted.nextAction === 'fix_errors' && failedStep && ctx.reviewDir) {
+      const logFile = `${ctx.reviewDir}/${failedStep}.log`
+      writeFileSync(logFile, formatted.instructions, 'utf-8')
+
+      return {
+        success: false,
+        nextAction: formatted.nextAction,
+        nextInstructions: `Step "${failedStep}" failed. See ${logFile} for details.`,
+        failedStep,
+        logFile,
+      }
+    }
+
     return {
       success: false,
       nextAction: formatted.nextAction,
       nextInstructions: formatted.instructions,
+      failedStep,
       failedReviewers: formatted.failedReviewers,
     }
   }
@@ -141,8 +161,8 @@ export function formatCompleteTaskResult(
   }
 
   const instructions = ['All checks passed. PR is ready for human review.', '']
-  if (prUrl) {
-    instructions.push(`PR URL: ${prUrl}`, '')
+  if (ctx.prUrl) {
+    instructions.push(`PR URL: ${ctx.prUrl}`, '')
   }
   instructions.push('ACTION: Inform the user that the PR is ready for review.')
 
@@ -150,6 +170,6 @@ export function formatCompleteTaskResult(
     success: true,
     nextAction: 'done',
     nextInstructions: instructions.join('\n'),
-    prUrl,
+    prUrl: ctx.prUrl,
   }
 }

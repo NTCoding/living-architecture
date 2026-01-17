@@ -5,15 +5,18 @@ import {
 import { nx } from '../../external-clients/nx'
 import type { CompleteTaskContext } from '../complete-task'
 
-export const verifyBuild: Step<CompleteTaskContext> = async () => {
-  const result = await nx.runMany(['lint', 'typecheck', 'test'])
+export const verifyBuild: Step<CompleteTaskContext> = {
+  name: 'verify-build',
+  execute: async () => {
+    const result = await nx.runMany(['lint', 'typecheck', 'test'])
 
-  if (result.failed) {
-    return failure({
-      type: 'fix_errors',
-      details: result.output,
-    })
-  }
+    if (result.failed) {
+      return failure({
+        type: 'fix_errors',
+        details: result.output,
+      })
+    }
 
-  return success()
+    return success()
+  },
 }
