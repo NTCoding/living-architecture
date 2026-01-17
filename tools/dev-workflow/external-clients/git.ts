@@ -11,7 +11,16 @@ export const git = {
 
   async uncommittedFiles(): Promise<string[]> {
     const status = await repo.status()
-    return [...status.modified, ...status.not_added, ...status.created]
+    const renamed = status.renamed.map((entry) => entry.to)
+    return [
+      ...status.modified,
+      ...status.not_added,
+      ...status.created,
+      ...status.deleted,
+      ...status.conflicted,
+      ...status.staged,
+      ...renamed,
+    ]
   },
 
   async stagedFiles(): Promise<string[]> {
