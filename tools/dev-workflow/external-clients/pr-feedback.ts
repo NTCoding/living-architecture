@@ -1,6 +1,14 @@
 import { z } from 'zod'
 import { github } from './github'
 
+const feedbackItemSchema = z.object({
+  threadId: z.string(),
+  file: z.string().nullish(),
+  line: z.number().nullish(),
+  author: z.string(),
+  body: z.string(),
+})
+
 const formattedFeedbackItemSchema = z.object({
   threadId: z.string(),
   location: z.string(),
@@ -13,14 +21,15 @@ function formatFeedbackLocation(file?: string | null, line?: number | null): str
   if (!file) {
     return 'PR-level'
   }
-  if (!line) {
+  if (line == null) {
     return file
   }
   return `${file}:${line}`
 }
 
 export async function getUnresolvedPRFeedback(prNumber: number): Promise<FormattedFeedbackItem[]> {
-  const feedback = await github.getUnresolvedFeedback(prNumber)
+  const rawFeedback = await github.getUnresolvedFeedback(prNumber)
+  const feedback = z.array(feedbackItemSchema).parse(rawFeedback)
 
   return feedback.map((f) => ({
     threadId: f.threadId,

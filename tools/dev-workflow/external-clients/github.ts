@@ -1,19 +1,13 @@
 import { Octokit } from '@octokit/rest'
-import { execFileSync } from 'node:child_process'
 import simpleGit from 'simple-git'
 import { GitHubError } from '../errors'
 
 function getGitHubToken(): string {
-  if (process.env.GITHUB_TOKEN) {
-    return process.env.GITHUB_TOKEN
+  const token = process.env.GITHUB_TOKEN ?? process.env.GH_TOKEN
+  if (!token) {
+    throw new GitHubError('GITHUB_TOKEN or GH_TOKEN environment variable is required')
   }
-
-  try {
-    // eslint-disable-next-line sonarjs/no-os-command-from-path -- gh CLI is a trusted tool
-    return execFileSync('gh', ['auth', 'token'], { encoding: 'utf-8' }).trim()
-  } catch {
-    throw new GitHubError('GitHub authentication required. Set GITHUB_TOKEN or run: gh auth login')
-  }
+  return token
 }
 
 const getOctokit = (() => {
@@ -44,7 +38,6 @@ interface FeedbackItem {
   threadId: string
   file: string | null
   line: number | null
-  severity: string
   author: string
   body: string
 }
@@ -98,7 +91,9 @@ export async function getRepoInfo(): Promise<{
 
 export const github = {
   async findPRForBranch(branch: string): Promise<number | undefined> {
-    const { owner, repo } = await getRepoInfo()
+    const {
+      owner, repo 
+    } = await getRepoInfo()
 
     const response = await getOctokit().pulls.list({
       owner,
@@ -118,7 +113,9 @@ export const github = {
     title: string
     body: string
   }> {
-    const { owner, repo } = await getRepoInfo()
+    const {
+      owner, repo 
+    } = await getRepoInfo()
 
     const response = await getOctokit().issues.get({
       owner,
@@ -140,7 +137,9 @@ export const github = {
     }
   },
   async createPR(opts: CreatePROptions): Promise<PR> {
-    const { owner, repo } = await getRepoInfo()
+    const {
+      owner, repo 
+    } = await getRepoInfo()
 
     const response = await getOctokit().pulls.create({
       owner,
@@ -158,7 +157,9 @@ export const github = {
   },
 
   async getPR(prNumber: number): Promise<PR> {
-    const { owner, repo } = await getRepoInfo()
+    const {
+      owner, repo 
+    } = await getRepoInfo()
 
     const response = await getOctokit().pulls.get({
       owner,
@@ -173,7 +174,9 @@ export const github = {
   },
 
   async getUnresolvedFeedback(prNumber: number): Promise<FeedbackItem[]> {
-    const { owner, repo } = await getRepoInfo()
+    const {
+      owner, repo 
+    } = await getRepoInfo()
 
     const query = `
       query($owner: String!, $repo: String!, $pr: Int!) {
@@ -237,7 +240,6 @@ export const github = {
           threadId: thread.id,
           file: thread.path,
           line: thread.line,
-          severity: 'info',
           // GitHub returns null for deleted users. '[deleted]' matches GitHub UI display convention.
           author: comment.author?.login ?? '[deleted]',
           body: comment.body,
@@ -246,7 +248,9 @@ export const github = {
   },
 
   async watchCI(prNumber: number, timeoutMs = 10 * 60 * 1000): Promise<CIResult> {
-    const { owner, repo } = await getRepoInfo()
+    const {
+      owner, repo 
+    } = await getRepoInfo()
     const startTime = Date.now()
     const pollInterval = 30_000
 
@@ -309,7 +313,10 @@ export const github = {
       }
     `
 
-    await getOctokit().graphql(mutation, { threadId, body })
+    await getOctokit().graphql(mutation, {
+      threadId,
+      body,
+    })
   },
 
   async resolveThread(threadId: string): Promise<void> {
