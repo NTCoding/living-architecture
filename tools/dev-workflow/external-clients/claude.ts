@@ -9,10 +9,11 @@ interface ClaudeQueryOptions<T> {
   outputPath: string
 }
 
-class ClaudeQueryError extends Error {
+export class ClaudeQueryError extends Error {
   constructor(message: string) {
     super(message)
     this.name = 'ClaudeQueryError'
+    Error.captureStackTrace?.(this, this.constructor)
   }
 }
 

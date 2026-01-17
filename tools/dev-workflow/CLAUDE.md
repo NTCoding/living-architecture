@@ -30,15 +30,39 @@ Commands are either read-only or write-only, never both:
 
 ### Strong Typing with Zod
 
-All inputs and outputs use Zod schemas for validation:
+**MANDATORY**: Use Zod schemas for ALL type validation. Never use manual type guards. Never remove Zod schemas to satisfy static analysis tools like knip.
 
 ```typescript
-// schemas.ts
-export const InputSchema = z.object({
+// schemas.ts - always export schemas even if knip complains
+export const inputSchema = z.object({
   threadId: z.string().min(1, 'threadId is required'),
   action: z.enum(['fixed', 'rejected']),
   message: z.string().min(1, 'message is required'),
 })
+```
+
+For runtime type checking, use Zod's `.safeParse()`:
+
+```typescript
+// GOOD - Zod schema for type validation
+const failedReviewerSchema = z.object({
+  name: z.string(),
+  summary: z.string(),
+  reportPath: z.string(),
+})
+
+const failedReviewerArraySchema = z.array(failedReviewerSchema)
+
+function isFailedReviewerArray(value: unknown): value is FailedReviewer[] {
+  return failedReviewerArraySchema.safeParse(value).success
+}
+
+// BAD - manual type guard (do not use)
+function isFailedReviewerArray(value: unknown): value is FailedReviewer[] {
+  return Array.isArray(value) && value.every(
+    (item) => typeof item === 'object' && 'name' in item
+  )
+}
 ```
 
 ### Fail Fast
@@ -63,7 +87,7 @@ External services (git, GitHub, nx, Claude) are wrapped in dedicated clients:
 external-clients/
 ├── git.ts      # simple-git wrapper
 ├── github.ts   # Octokit wrapper
-├── nx.ts       # pnpm nx commands
+├── nx.ts       # nx commands
 └── claude.ts   # Claude Agent SDK
 ```
 
@@ -72,12 +96,91 @@ Each client:
 - Provides typed methods
 - Throws domain-specific errors (GitError, GitHubError, etc.)
 
+### Error Handling
+
+Custom error classes should use `Error.captureStackTrace` for cleaner stack traces:
+
+```typescript
+export class WorkflowError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'WorkflowError'
+    Error.captureStackTrace?.(this, this.constructor)
+  }
+}
+```
+
+### Export Public Types
+
+Export types and error classes that consumers need for error handling:
+
+```typescript
+// GOOD - consumers can catch specific errors
+export class ClaudeQueryError extends Error { ... }
+
+// BAD - consumers can't distinguish error types
+class ClaudeQueryError extends Error { ... }
+```
+
+### Declarative Workflow Steps
+
+Workflow steps should be decoupled from generic infrastructure. Steps are declarative and domain-focused, while infrastructure handles the mechanics:
+
+```typescript
+// GOOD - declarative step, easy to read
+const verifyStep = createStep('verify', async (ctx) => {
+  const result = await nx.runMany(['lint', 'typecheck', 'test'])
+  if (result.failed) {
+    return failure('fix_errors', result.output)
+  }
+  return success()
+})
+
+// BAD - infrastructure mixed with domain logic
+async function verify(ctx: Context): Promise<void> {
+  try {
+    const proc = spawn('pnpm', ['nx', 'run-many', ...])
+    await new Promise((resolve, reject) => {
+      proc.on('exit', (code) => code === 0 ? resolve() : reject())
+    })
+    ctx.state = 'verified'
+  } catch (e) {
+    ctx.errors.push(e)
+    throw e
+  }
+}
+```
+
+The workflow should read like a high-level description:
+
+```typescript
+// GOOD - workflow is easy to follow
+const workflow = createWorkflow([
+  verifyStep,
+  codeReviewStep,
+  fetchPrFeedbackStep,
+  submitPrStep,
+])
+
+// BAD - workflow buried in infrastructure
+async function run() {
+  const ctx = new Context()
+  try {
+    await verify(ctx)
+    await review(ctx)
+    // ... 50 lines of error handling
+  } finally {
+    await cleanup(ctx)
+  }
+}
+```
+
 ## Commands
 
 ### get-pr-feedback (read-only)
 
 ```bash
-pnpm nx run dev-workflow:get-pr-feedback
+nx run dev-workflow:get-pr-feedback
 ```
 
 Returns:
@@ -100,7 +203,7 @@ Returns:
 ### respond-to-feedback (write-only)
 
 ```bash
-pnpm nx run dev-workflow:respond-to-feedback -- \
+nx run dev-workflow:respond-to-feedback -- \
   --thread-id "PRRT_abc123" \
   --action "fixed" \
   --message "Applied the suggested change"
@@ -113,7 +216,7 @@ Actions:
 ### complete-task
 
 ```bash
-pnpm nx run dev-workflow:complete-task -- \
+nx run dev-workflow:complete-task -- \
   --pr-title "feat: add feature" \
   --pr-body "Description" \
   --commit-message "feat: add feature"

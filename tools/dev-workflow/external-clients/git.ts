@@ -41,8 +41,7 @@ export const git = {
 
   async baseBranch(): Promise<string> {
     const remotes = await repo.getRemotes(true)
-    const origin = remotes.find((r) => r.name === 'origin')
-    if (!origin) return 'main'
+    if (!remotes.some((r) => r.name === 'origin')) return 'main'
 
     const refs = await repo.branch(['-r'])
     if (refs.all.includes('origin/main')) return 'main'

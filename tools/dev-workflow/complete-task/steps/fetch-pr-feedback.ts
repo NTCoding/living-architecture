@@ -25,7 +25,9 @@ export const fetchPRFeedback: Step = async (ctx) => {
     const feedbackSummary = feedback
       .map((f) => {
         const location = formatFeedbackLocation(f.file, f.line)
-        return `- ${location}: ${f.body.slice(0, 100)}...`
+        const truncated = f.body.length > 100
+        const preview = truncated ? `${f.body.slice(0, 100)}...` : f.body
+        return `- ${location}: ${preview}`
       })
       .join('\n')
 

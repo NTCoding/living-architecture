@@ -16,7 +16,7 @@ export const submitPR: Step = async (ctx) => {
   const baseBranch = await git.baseBranch()
 
   const pr = ctx.prNumber
-    ? await github.updatePR(ctx.prNumber)
+    ? await github.getPR(ctx.prNumber)
     : await github.createPR({
       title: ctx.prTitle,
       body: ctx.prBody,
@@ -24,14 +24,14 @@ export const submitPR: Step = async (ctx) => {
       base: baseBranch,
     })
 
+  ctx.prUrl = pr.url
+  ctx.prNumber = pr.number
+
   const ciResult = await github.watchCI(pr.number)
 
   if (ciResult.failed) {
     return failure('fix_errors', ciResult.output)
   }
-
-  ctx.prUrl = pr.url
-  ctx.prNumber = pr.number
 
   return success()
 }

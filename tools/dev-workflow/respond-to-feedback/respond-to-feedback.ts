@@ -56,11 +56,37 @@ async function main(): Promise<void> {
   console.log(JSON.stringify(output, null, 2))
 }
 
+function getActionFromArgs(): 'fixed' | 'rejected' {
+  const actionIndex = process.argv.indexOf('--action')
+  if (actionIndex === -1) {
+    return 'fixed'
+  }
+  const actionArg = process.argv[actionIndex + 1]
+  if (actionArg === 'fixed' || actionArg === 'rejected') {
+    return actionArg
+  }
+  return 'fixed'
+}
+
 main().catch((error: unknown) => {
+  const threadIdIndex = process.argv.indexOf('--thread-id')
+  if (threadIdIndex === -1) {
+    console.error('Error: --thread-id is required')
+    process.exit(1)
+  }
+
+  const threadId = process.argv[threadIdIndex + 1]
+  if (!threadId) {
+    console.error('Error: --thread-id value is missing')
+    process.exit(1)
+  }
+
+  const action = getActionFromArgs()
+
   const output: RespondToFeedbackOutput = {
     success: false,
-    threadId: process.argv[process.argv.indexOf('--thread-id') + 1] ?? 'unknown',
-    action: 'fixed',
+    threadId,
+    action,
     error: error instanceof Error ? error.message : String(error),
   }
   console.error(JSON.stringify(output, null, 2))

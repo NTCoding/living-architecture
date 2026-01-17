@@ -153,7 +153,7 @@ export const github = {
     }
   },
 
-  async updatePR(prNumber: number): Promise<PR> {
+  async getPR(prNumber: number): Promise<PR> {
     const { owner, repo } = await getRepoInfo()
 
     const response = await getOctokit().pulls.get({
@@ -256,9 +256,11 @@ export const github = {
         owner,
         repo,
         ref: pr.head.sha,
+        per_page: 100,
       })
 
-      const allComplete = checks.check_runs.every((run) => run.status === 'completed')
+      const allComplete =
+        checks.check_runs.length > 0 && checks.check_runs.every((run) => run.status === 'completed')
 
       if (allComplete) {
         const failures = checks.check_runs.filter(

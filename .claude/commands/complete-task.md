@@ -4,10 +4,10 @@ Run the complete-task pipeline to verify, review, and submit your work.
 
 ## Instructions
 
-Run this command with a **10 minute timeout** (600000ms):
+Run this command with a **10-minute timeout** (600000ms):
 
 ```bash
-pnpm nx dev-workflow:complete-task
+pnpm nx run dev-workflow:complete-task
 ```
 
 This is a long-running command that:

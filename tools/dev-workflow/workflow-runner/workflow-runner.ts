@@ -1,3 +1,4 @@
+import { z } from 'zod'
 import { WorkflowError } from '../errors'
 
 export type NextAction = 'fix_errors' | 'fix_review' | 'resolve_feedback' | 'done'
@@ -26,7 +27,7 @@ export interface WorkflowContext {
   prUrl?: string
 }
 
-interface FailedReviewer {
+export interface FailedReviewer {
   name: string
   summary: string
   reportPath: string
@@ -54,16 +55,16 @@ export function failure(nextAction: NextAction, details: unknown): StepResult {
   }
 }
 
+const failedReviewerSchema = z.object({
+  name: z.string(),
+  summary: z.string(),
+  reportPath: z.string(),
+})
+
+const failedReviewerArraySchema = z.array(failedReviewerSchema)
+
 function isFailedReviewerArray(value: unknown): value is FailedReviewer[] {
-  if (!Array.isArray(value)) return false
-  return value.every(
-    (item) =>
-      typeof item === 'object' &&
-      item !== null &&
-      'name' in item &&
-      'summary' in item &&
-      'reportPath' in item,
-  )
+  return failedReviewerArraySchema.safeParse(value).success
 }
 
 function formatInstructions(result: StepResult & { type: 'failure' }): string {
