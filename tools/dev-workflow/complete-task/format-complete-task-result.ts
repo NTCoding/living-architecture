@@ -1,19 +1,19 @@
 import { z } from 'zod'
 import type { WorkflowResult } from '../workflow-runner/workflow-runner'
 
-export const nextActionSchema = z.enum(['fix_errors', 'fix_review', 'resolve_feedback', 'done'])
-export type NextAction = z.infer<typeof nextActionSchema>
+const nextActionSchema = z.enum(['fix_errors', 'fix_review', 'resolve_feedback', 'done'])
+type NextAction = z.infer<typeof nextActionSchema>
 
-export const failedReviewerSchema = z.object({
+const failedReviewerSchema = z.object({
   name: z.string(),
   summary: z.string(),
   reportPath: z.string(),
 })
-export type FailedReviewer = z.infer<typeof failedReviewerSchema>
+type FailedReviewer = z.infer<typeof failedReviewerSchema>
 
 const failedReviewerArraySchema = z.array(failedReviewerSchema)
 
-export const completeTaskResultSchema = z.object({
+const completeTaskResultSchema = z.object({
   success: z.boolean(),
   nextAction: nextActionSchema,
   nextInstructions: z.string(),

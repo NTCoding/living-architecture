@@ -22,10 +22,10 @@ const stepFailureSchema = z.object({
   details: z.unknown(),
 })
 
-export const stepResultSchema = z.discriminatedUnion('type', [stepSuccessSchema, stepFailureSchema])
+const stepResultSchema = z.discriminatedUnion('type', [stepSuccessSchema, stepFailureSchema])
 export type StepResult = z.infer<typeof stepResultSchema>
 
-export const workflowResultSchema = z.object({
+const workflowResultSchema = z.object({
   success: z.boolean(),
   output: z.unknown().optional(),
   error: z.unknown().optional(),

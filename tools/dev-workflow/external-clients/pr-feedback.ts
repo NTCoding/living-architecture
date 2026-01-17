@@ -1,24 +1,24 @@
 import { z } from 'zod'
 import { github } from '../external-clients/github'
 
-export const feedbackItemSchema = z.object({
+const feedbackItemSchema = z.object({
   threadId: z.string(),
   file: z.string().nullish(),
   line: z.number().nullish(),
   author: z.string(),
   body: z.string(),
 })
-export type FeedbackItem = z.infer<typeof feedbackItemSchema>
+type FeedbackItem = z.infer<typeof feedbackItemSchema>
 
-export const formattedFeedbackItemSchema = z.object({
+const formattedFeedbackItemSchema = z.object({
   threadId: z.string(),
   location: z.string(),
   author: z.string(),
   body: z.string(),
 })
-export type FormattedFeedbackItem = z.infer<typeof formattedFeedbackItemSchema>
+type FormattedFeedbackItem = z.infer<typeof formattedFeedbackItemSchema>
 
-export function formatFeedbackLocation(file?: string | null, line?: number | null): string {
+function formatFeedbackLocation(file?: string | null, line?: number | null): string {
   if (!file) {
     return 'PR-level'
   }

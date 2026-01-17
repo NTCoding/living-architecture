@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { taskDetailsSchema } from '../workflow-runner/workflow-runner'
 
-export const prDetailsSchema = z.object({
+const prDetailsSchema = z.object({
   prTitle: z.string(),
   prBody: z.string(),
   commitMessage: z.string(),
