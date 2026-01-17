@@ -1,7 +1,8 @@
 {
   "$schema": "https://knip.dev/reference/knip-json",
   "ignoreDependencies": [
-    "tailwindcss"
+    "tailwindcss",
+    "zod"
   ],
   "ignoreBinaries": [
     "playwright"
@@ -37,6 +38,11 @@
     "packages/*": {
       "project": [
         "src/**/*.ts"
+      ]
+    },
+    "tools/dev-workflow": {
+      "project": [
+        "**/*.ts"
       ]
     }
   },

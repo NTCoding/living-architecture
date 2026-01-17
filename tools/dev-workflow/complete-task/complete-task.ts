@@ -42,9 +42,14 @@ interface TaskDetails {
 interface PRDetails {
   prTitle: string
   prBody: string
+  commitMessage: string
   hasIssue: boolean
   issueNumber?: number
   taskDetails?: TaskDetails
+}
+
+function formatCommitMessage(title: string): string {
+  return `${title}\n\nCo-Authored-By: Claude <noreply@anthropic.com>`
 }
 
 function resolvePRDetails(
@@ -53,11 +58,13 @@ function resolvePRDetails(
   taskDetails: TaskDetails | undefined,
   cliPrTitle: string | undefined,
   cliPrBody: string | undefined,
+  cliCommitMessage: string | undefined,
 ): PRDetails {
   if (issueNumber && taskDetails) {
     return {
       prTitle: taskDetails.title,
       prBody: taskDetails.body,
+      commitMessage: formatCommitMessage(taskDetails.title),
       hasIssue: true,
       issueNumber,
       taskDetails,
@@ -65,9 +72,11 @@ function resolvePRDetails(
   }
 
   if (cliPrTitle && cliPrBody) {
+    const commitMsg = cliCommitMessage ?? cliPrTitle
     return {
       prTitle: cliPrTitle,
       prBody: cliPrBody,
+      commitMessage: formatCommitMessage(commitMsg),
       hasIssue: false,
     }
   }
@@ -76,7 +85,8 @@ function resolvePRDetails(
     `Branch "${branch}" is not an issue branch (pattern: issue-<number>).\n` +
       'For non-issue branches, provide explicit PR details:\n' +
       '  --pr-title "Your PR title"\n' +
-      '  --pr-body "Your PR description"',
+      '  --pr-body "Your PR description"\n' +
+      '  --commit-message "Your commit message" (optional, defaults to PR title)',
   )
 }
 
@@ -91,8 +101,16 @@ async function main(): Promise<void> {
 
   const cliPrTitle = parseCliArg('--pr-title')
   const cliPrBody = parseCliArg('--pr-body')
+  const cliCommitMessage = parseCliArg('--commit-message')
 
-  const prDetails = resolvePRDetails(branch, issueNumber, taskDetails, cliPrTitle, cliPrBody)
+  const prDetails = resolvePRDetails(
+    branch,
+    issueNumber,
+    taskDetails,
+    cliPrTitle,
+    cliPrBody,
+    cliCommitMessage,
+  )
   const existingPrNumber = await github.findPRForBranch(branch)
 
   const context: WorkflowContext = {
@@ -101,7 +119,7 @@ async function main(): Promise<void> {
     hasIssue: prDetails.hasIssue,
     issueNumber: prDetails.issueNumber,
     taskDetails: prDetails.taskDetails,
-    commitMessage: `feat: implement changes\n\nCo-Authored-By: Claude <noreply@anthropic.com>`,
+    commitMessage: prDetails.commitMessage,
     prTitle: prDetails.prTitle,
     prBody: prDetails.prBody,
     prNumber: existingPrNumber,

@@ -4,7 +4,7 @@ import { z } from 'zod'
 
 const execFileAsync = promisify(execFile)
 
-export interface NxResult {
+interface NxResult {
   failed: boolean
   output: string
 }

@@ -28,19 +28,19 @@ const getOctokit = (() => {
   }
 })()
 
-export interface PR {
+interface PR {
   number: number
   url: string
 }
 
-export interface CreatePROptions {
+interface CreatePROptions {
   title: string
   body: string
   branch: string
   base?: string
 }
 
-export interface FeedbackItem {
+interface FeedbackItem {
   threadId: string
   file?: string
   line?: number
@@ -49,7 +49,7 @@ export interface FeedbackItem {
   body: string
 }
 
-export interface CIResult {
+interface CIResult {
   failed: boolean
   output: string
 }
