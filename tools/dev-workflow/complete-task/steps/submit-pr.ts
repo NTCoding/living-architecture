@@ -6,8 +6,11 @@ import { git } from '../../external-clients/git'
 import { github } from '../../external-clients/github'
 
 export const submitPR: Step = async (ctx) => {
-  await git.stageAll()
-  await git.commit(ctx.commitMessage)
+  const uncommitted = await git.uncommittedFiles()
+  if (uncommitted.length > 0) {
+    await git.stageAll()
+    await git.commit(ctx.commitMessage)
+  }
   await git.push()
 
   const baseBranch = await git.baseBranch()
