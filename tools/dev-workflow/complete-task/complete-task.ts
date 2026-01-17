@@ -71,22 +71,21 @@ function resolvePRDetails(
     }
   }
 
-  if (cliPrTitle && cliPrBody) {
-    const commitMsg = cliCommitMessage ?? cliPrTitle
+  if (cliPrTitle && cliPrBody && cliCommitMessage) {
     return {
       prTitle: cliPrTitle,
       prBody: cliPrBody,
-      commitMessage: formatCommitMessage(commitMsg),
+      commitMessage: formatCommitMessage(cliCommitMessage),
       hasIssue: false,
     }
   }
 
   throw new WorkflowError(
     `Branch "${branch}" is not an issue branch (pattern: issue-<number>).\n` +
-      'For non-issue branches, provide explicit PR details:\n' +
+      'For non-issue branches, provide ALL of:\n' +
       '  --pr-title "Your PR title"\n' +
       '  --pr-body "Your PR description"\n' +
-      '  --commit-message "Your commit message" (optional, defaults to PR title)',
+      '  --commit-message "Your commit message"',
   )
 }
 

@@ -82,7 +82,7 @@ function parseGitHubUrl(url: string): {
   throw new GitHubError(`Could not parse GitHub URL: ${url}`)
 }
 
-async function getRepoInfo(): Promise<{
+export async function getRepoInfo(): Promise<{
   owner: string
   repo: string
 }> {

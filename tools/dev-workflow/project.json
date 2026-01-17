@@ -8,6 +8,13 @@
         "command": "./tools/dev-workflow/node_modules/.bin/tsx tools/dev-workflow/complete-task/complete-task.ts",
         "cwd": "{workspaceRoot}"
       }
+    },
+    "get-pr-feedback": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "./tools/dev-workflow/node_modules/.bin/tsx tools/dev-workflow/get-pr-feedback/get-pr-feedback.ts",
+        "cwd": "{workspaceRoot}"
+      }
     }
   }
 }
