@@ -26,6 +26,10 @@ export const codeReview: Step = async (ctx) => {
     return success()
   }
 
+  if (!ctx.reviewDir) {
+    return failure('fix_errors', 'Missing required context: reviewDir')
+  }
+
   const baseBranch = await git.baseBranch()
   const filesToReview = await git.diffFiles(baseBranch)
 

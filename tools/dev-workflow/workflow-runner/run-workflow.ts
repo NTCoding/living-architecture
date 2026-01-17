@@ -1,18 +1,22 @@
 import {
-  workflow, type Step 
-} from '../workflow-runner/workflow-runner'
-import { buildWorkflowContext } from './context-builder'
+  workflow, type Step, type WorkflowContext 
+} from './workflow-runner'
 import { handleWorkflowError } from './error-handler'
 
-export function runWorkflow(steps: Step[]): void {
-  executeWorkflow(steps).catch(handleWorkflowError)
+type ContextBuilder = () => Promise<WorkflowContext>
+
+export function runWorkflow(steps: Step[], buildContext: ContextBuilder): void {
+  executeWorkflow(steps, buildContext).catch(handleWorkflowError)
 }
 
-async function executeWorkflow(steps: Step[]): Promise<void> {
-  const context = await buildWorkflowContext()
+async function executeWorkflow(steps: Step[], buildContext: ContextBuilder): Promise<void> {
+  const context = await buildContext()
   const runner = workflow(steps)
   const result = await runner(context)
 
-  console.log(JSON.stringify(result, null, 2))
+  // Print workflow output or full result
+  const output = result.output === undefined ? result : result.output
+  console.log(JSON.stringify(output, null, 2))
+
   process.exit(result.success ? 0 : 1)
 }

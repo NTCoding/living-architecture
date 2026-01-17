@@ -1,10 +1,12 @@
 import { z } from 'zod'
-import { WorkflowError } from '../errors'
 
 export type NextAction = 'fix_errors' | 'fix_review' | 'resolve_feedback' | 'done'
 
 export type StepResult =
-  | { type: 'success' }
+  | {
+    type: 'success'
+    output?: unknown
+  }
   | {
     type: 'failure'
     nextAction: NextAction
@@ -13,18 +15,21 @@ export type StepResult =
 
 export interface WorkflowContext {
   branch: string
-  reviewDir: string
-  hasIssue: boolean
+  prNumber?: number
+  prUrl?: string
+  // Complete-task specific (optional for other commands)
+  reviewDir?: string
+  hasIssue?: boolean
   issueNumber?: number
   taskDetails?: {
     title: string
     body: string
   }
-  commitMessage: string
-  prTitle: string
-  prBody: string
-  prNumber?: number
-  prUrl?: string
+  commitMessage?: string
+  prTitle?: string
+  prBody?: string
+  // Generic output storage
+  output?: unknown
 }
 
 interface FailedReviewer {
@@ -37,14 +42,18 @@ export interface WorkflowResult {
   success: boolean
   nextAction: NextAction
   nextInstructions: string
+  output?: unknown
   prUrl?: string
   failedReviewers?: FailedReviewer[]
 }
 
 export type Step = (ctx: WorkflowContext) => Promise<StepResult>
 
-export function success(): StepResult {
-  return { type: 'success' }
+export function success(output?: unknown): StepResult {
+  return {
+    type: 'success',
+    output,
+  }
 }
 
 export function failure(nextAction: NextAction, details: unknown): StepResult {
@@ -144,12 +153,21 @@ export function workflow(steps: Step[]) {
           failedReviewers,
         }
       }
+
+      // Store step output in context for final result
+      if (result.output !== undefined) {
+        ctx.output = result.output
+      }
     }
 
-    if (!ctx.prUrl) {
-      throw new WorkflowError(
-        'Workflow completed but prUrl was not set. This is a bug in submit-pr step.',
-      )
+    // Return output if workflow produced one, otherwise standard success
+    if (ctx.output !== undefined) {
+      return {
+        success: true,
+        nextAction: 'done',
+        nextInstructions: 'Workflow completed successfully.',
+        output: ctx.output,
+      }
     }
 
     return {

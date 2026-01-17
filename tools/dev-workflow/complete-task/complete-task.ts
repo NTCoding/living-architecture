@@ -1,8 +1,9 @@
 #!/usr/bin/env tsx
 import { runWorkflow } from '../workflow-runner/run-workflow'
+import { buildWorkflowContext } from '../workflow-runner/context-builder'
 import { verifyBuild } from './steps/verify-build'
 import { codeReview } from './steps/code-review'
 import { submitPR } from './steps/submit-pr'
 import { fetchPRFeedback } from './steps/fetch-pr-feedback'
 
-runWorkflow([verifyBuild, codeReview, submitPR, fetchPRFeedback])
+runWorkflow([verifyBuild, codeReview, submitPR, fetchPRFeedback], buildWorkflowContext)

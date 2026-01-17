@@ -6,6 +6,10 @@ import { git } from '../../external-clients/git'
 import { github } from '../../external-clients/github'
 
 export const submitPR: Step = async (ctx) => {
+  if (!ctx.prTitle || !ctx.prBody || !ctx.commitMessage) {
+    return failure('fix_errors', 'Missing required context: prTitle, prBody, or commitMessage')
+  }
+
   const uncommitted = await git.uncommittedFiles()
   if (uncommitted.length > 0) {
     await git.stageAll()
