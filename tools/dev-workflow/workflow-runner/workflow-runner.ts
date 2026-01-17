@@ -27,7 +27,7 @@ export interface WorkflowContext {
   prUrl?: string
 }
 
-export interface FailedReviewer {
+interface FailedReviewer {
   name: string
   summary: string
   reportPath: string

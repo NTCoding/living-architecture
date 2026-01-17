@@ -29,3 +29,11 @@ export class AgentError extends Error {
     Error.captureStackTrace?.(this, this.constructor)
   }
 }
+
+export class ClaudeQueryError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'ClaudeQueryError'
+    Error.captureStackTrace?.(this, this.constructor)
+  }
+}

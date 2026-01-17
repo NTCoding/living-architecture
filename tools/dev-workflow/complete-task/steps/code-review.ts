@@ -9,6 +9,7 @@ import {
   agentResponseSchema, type ReviewerResult 
 } from '../schemas'
 import { AgentError } from '../../errors'
+import { shouldSkipCodeReview } from '../context-builder'
 
 async function readAgentPrompt(agentPath: string): Promise<string> {
   try {
@@ -21,6 +22,10 @@ async function readAgentPrompt(agentPath: string): Promise<string> {
 }
 
 export const codeReview: Step = async (ctx) => {
+  if (shouldSkipCodeReview()) {
+    return success()
+  }
+
   const baseBranch = await git.baseBranch()
   const filesToReview = await git.diffFiles(baseBranch)
 

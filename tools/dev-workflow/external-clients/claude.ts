@@ -1,20 +1,13 @@
 import { query as sdkQuery } from '@anthropic-ai/claude-agent-sdk'
 import { writeFile } from 'node:fs/promises'
 import { z } from 'zod'
+import { ClaudeQueryError } from '../errors'
 
 interface ClaudeQueryOptions<T> {
   prompt: string
   model: 'opus' | 'sonnet' | 'haiku'
   outputSchema: z.ZodSchema<T>
   outputPath: string
-}
-
-export class ClaudeQueryError extends Error {
-  constructor(message: string) {
-    super(message)
-    this.name = 'ClaudeQueryError'
-    Error.captureStackTrace?.(this, this.constructor)
-  }
 }
 
 const resultMessageSchema = z.object({

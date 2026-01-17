@@ -81,10 +81,11 @@ if (!args.threadId) {
 
 ### External Client Isolation
 
-External services (git, GitHub, nx, Claude) are wrapped in dedicated clients:
+External services (git, GitHub, nx, Claude, CLI) are wrapped in dedicated clients:
 
 ```text
 external-clients/
+├── cli.ts      # CLI argument parsing
 ├── git.ts      # simple-git wrapper
 ├── github.ts   # Octokit wrapper
 ├── nx.ts       # nx commands
@@ -95,6 +96,52 @@ Each client:
 - Handles authentication
 - Provides typed methods
 - Throws domain-specific errors (GitError, GitHubError, etc.)
+
+### Separation of Entry Points and Infrastructure
+
+**CRITICAL**: Entry point files (e.g., `complete-task.ts`) must be declarative and contain ONLY high-level orchestration. All parsing, validation, and context-building logic belongs in dedicated modules.
+
+```text
+complete-task/
+├── complete-task.ts     # Entry point - DECLARATIVE ONLY
+├── context-builder.ts   # Context construction logic
+└── steps/               # Workflow step implementations
+```
+
+**Entry points should:**
+- Import and compose high-level components
+- Call a context builder to get workflow context
+- Execute the workflow and output results
+- Be readable at a glance (< 50 lines)
+
+**Entry points must NOT contain:**
+- CLI argument parsing logic
+- Regex patterns or string parsing
+- Complex conditional logic for input resolution
+- Helper functions for formatting or validation
+
+```typescript
+// GOOD - declarative entry point (complete-task.ts)
+const steps = [verifyBuild, codeReview, submitPR, fetchPRFeedback]
+const completeTask = workflow(steps)
+
+async function main(): Promise<void> {
+  const context = await buildWorkflowContext()  // all complexity hidden
+  const result = await completeTask(context)
+  console.log(JSON.stringify(result, null, 2))
+}
+
+// BAD - entry point mixed with parsing logic
+async function main(): Promise<void> {
+  const branch = await git.currentBranch()
+  const issuePattern = /issue-(\d+)/           // parsing in entry point
+  const match = issuePattern.exec(branch)       // parsing in entry point
+  const issueNumber = match ? parseInt(match[1], 10) : undefined
+
+  const cliPrTitle = process.argv.indexOf('--pr-title')  // CLI parsing
+  // ... 50 more lines of setup
+}
+```
 
 ### Error Handling
 
