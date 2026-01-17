@@ -215,6 +215,20 @@ export const github = {
     }
   },
 
+  async getMergeableState(prNumber: number): Promise<string | null> {
+    const {
+      owner, repo 
+    } = await getRepoInfo()
+
+    const response = await getOctokit().pulls.get({
+      owner,
+      repo,
+      pull_number: prNumber,
+    })
+
+    return response.data.mergeable_state ?? null
+  },
+
   async getUnresolvedFeedback(prNumber: number): Promise<FeedbackItem[]> {
     const {
       owner, repo 

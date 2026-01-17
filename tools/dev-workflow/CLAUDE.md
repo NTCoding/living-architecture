@@ -222,9 +222,6 @@ dev-workflow/
 ├── get-pr-feedback/         # COMMAND: get-pr-feedback
 │   ├── get-pr-feedback.ts   # Entry point, context type, context builder
 │   └── steps/               # Steps unique to this command
-├── get-pr-status/           # COMMAND: get-pr-status
-│   ├── get-pr-status.ts     # Entry point, context type, context builder
-│   └── steps/               # Steps unique to this command
 └── respond-to-feedback/     # COMMAND: respond-to-feedback
     └── respond-to-feedback.ts
 ```
@@ -345,44 +342,24 @@ async function run() {
 nx run dev-workflow:get-pr-feedback
 ```
 
-Returns:
+Returns PR state, mergeability, and feedback:
 ```json
 {
   "branch": "feature-x",
-  "prNumber": 123,
-  "mergeable": false,
-  "unresolvedFeedback": [
-    {
-      "threadId": "PRRT_abc123",
-      "location": "file.ts:42",
-      "author": "reviewer",
-      "body": "Please fix this"
-    }
-  ]
-}
-```
-
-### get-pr-status (read-only)
-
-```bash
-nx run dev-workflow:get-pr-status
-```
-
-Returns PR lifecycle state for the current branch:
-```json
-{
-  "state": "merged",
+  "state": "open",
   "prNumber": 123,
   "prUrl": "https://github.com/owner/repo/pull/123",
-  "branch": "issue-123-feature"
+  "mergeableState": "clean",
+  "mergeable": true,
+  "unresolvedFeedback": [],
+  "feedbackCount": 0
 }
 ```
 
-Possible states:
-- `merged` - PR was merged
-- `open` - PR is open
-- `closed` - PR was closed without merging
-- `not_found` - No PR exists for this branch
+Fields:
+- `state` - PR lifecycle: `merged`, `open`, `closed`, `not_found`
+- `mergeableState` - GitHub's merge state: `clean`, `blocked`, `unstable`, `dirty`, etc. (null for merged/closed)
+- `mergeable` - true only if `mergeableState === 'clean'` AND no unresolved feedback
 
 ### respond-to-feedback (write-only)
 

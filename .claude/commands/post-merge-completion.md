@@ -52,7 +52,7 @@ Ask user: Start process fix task now?
 ### 1. Verify PR is Merged
 
 ```bash
-pnpm nx run dev-workflow:get-pr-status
+pnpm nx run dev-workflow:get-pr-feedback
 ```
 
 This returns JSON with a `state` field: `merged`, `open`, `closed`, or `not_found`.

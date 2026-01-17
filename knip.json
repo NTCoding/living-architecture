@@ -44,7 +44,6 @@
       "entry": [
         "complete-task/complete-task.ts",
         "get-pr-feedback/get-pr-feedback.ts",
-        "get-pr-status/get-pr-status.ts",
         "respond-to-feedback/respond-to-feedback.ts"
       ],
       "project": [
