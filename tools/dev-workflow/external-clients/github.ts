@@ -22,10 +22,16 @@ const getOctokit = (() => {
   }
 })()
 
+const DELETED_USER_PLACEHOLDER = '[deleted]'
+
+type PRState = 'open' | 'closed' | 'merged'
+
 interface PR {
   number: number
   url: string
 }
+
+interface PRWithState extends PR {state: PRState}
 
 interface CreatePROptions {
   title: string
@@ -45,6 +51,16 @@ interface FeedbackItem {
 interface CIResult {
   failed: boolean
   output: string
+}
+
+function determinePRState(mergedAt: string | null, state: string): PRState {
+  if (mergedAt) {
+    return 'merged'
+  }
+  if (state === 'open') {
+    return 'open'
+  }
+  return 'closed'
 }
 
 const repo = simpleGit()
@@ -75,7 +91,7 @@ function parseGitHubUrl(url: string): {
   throw new GitHubError(`Could not parse GitHub URL: ${url}`)
 }
 
-export async function getRepoInfo(): Promise<{
+async function getRepoInfo(): Promise<{
   owner: string
   repo: string
 }> {
@@ -107,6 +123,32 @@ export const github = {
     }
 
     return response.data[0].number
+  },
+
+  async findPRForBranchWithState(branch: string): Promise<PRWithState | undefined> {
+    const {
+      owner, repo 
+    } = await getRepoInfo()
+
+    const response = await getOctokit().pulls.list({
+      owner,
+      repo,
+      head: `${owner}:${branch}`,
+      state: 'all',
+    })
+
+    if (response.data.length === 0) {
+      return undefined
+    }
+
+    const pr = response.data[0]
+    const prState = determinePRState(pr.merged_at, pr.state)
+
+    return {
+      number: pr.number,
+      url: pr.html_url,
+      state: prState,
+    }
   },
 
   async getIssue(issueNumber: number): Promise<{
@@ -171,6 +213,20 @@ export const github = {
       number: response.data.number,
       url: response.data.html_url,
     }
+  },
+
+  async getMergeableState(prNumber: number): Promise<string | null> {
+    const {
+      owner, repo 
+    } = await getRepoInfo()
+
+    const response = await getOctokit().pulls.get({
+      owner,
+      repo,
+      pull_number: prNumber,
+    })
+
+    return response.data.mergeable_state ?? null
   },
 
   async getUnresolvedFeedback(prNumber: number): Promise<FeedbackItem[]> {
@@ -240,14 +296,17 @@ export const github = {
           threadId: thread.id,
           file: thread.path,
           line: thread.line,
-          // GitHub returns null for deleted users. '[deleted]' matches GitHub UI display convention.
-          author: comment.author?.login ?? '[deleted]',
+          author: comment.author?.login ?? DELETED_USER_PLACEHOLDER,
           body: comment.body,
         }
       })
   },
 
-  async watchCI(prNumber: number, timeoutMs = 10 * 60 * 1000): Promise<CIResult> {
+  async watchCI(
+    prNumber: number,
+    expectedSha?: string,
+    timeoutMs = 10 * 60 * 1000,
+  ): Promise<CIResult> {
     const {
       owner, repo 
     } = await getRepoInfo()
@@ -261,6 +320,11 @@ export const github = {
         pull_number: prNumber,
       })
 
+      if (expectedSha && pr.head.sha !== expectedSha) {
+        await new Promise((resolve) => setTimeout(resolve, pollInterval))
+        continue
+      }
+
       const { data: checks } = await getOctokit().checks.listForRef({
         owner,
         repo,
@@ -268,22 +332,37 @@ export const github = {
         per_page: 100,
       })
 
+      const completedChecks = checks.check_runs.filter((run) => run.status === 'completed')
+      const failures = completedChecks.filter(
+        (run) => run.conclusion !== 'success' && run.conclusion !== 'skipped',
+      )
+
+      if (failures.length > 0) {
+        const output = failures
+          .map((f) => {
+            const header = `${f.name}: ${f.conclusion}`
+            const summary = f.output?.summary ?? ''
+            const details = f.output?.text ?? ''
+            const detailUrl = f.details_url ?? ''
+
+            const parts = [header]
+            if (summary) parts.push(`Summary: ${summary}`)
+            if (details) parts.push(`Details: ${details}`)
+            if (detailUrl) parts.push(`URL: ${detailUrl}`)
+
+            return parts.join('\n')
+          })
+          .join('\n\n')
+        return {
+          failed: true,
+          output,
+        }
+      }
+
       const allComplete =
         checks.check_runs.length > 0 && checks.check_runs.every((run) => run.status === 'completed')
 
       if (allComplete) {
-        const failures = checks.check_runs.filter(
-          (run) => run.conclusion !== 'success' && run.conclusion !== 'skipped',
-        )
-
-        if (failures.length > 0) {
-          const output = failures.map((f) => `${f.name}: ${f.conclusion}`).join('\n')
-          return {
-            failed: true,
-            output,
-          }
-        }
-
         return {
           failed: false,
           output: 'All checks passed',

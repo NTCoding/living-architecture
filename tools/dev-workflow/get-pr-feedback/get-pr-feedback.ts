@@ -6,16 +6,24 @@ import { git } from '../external-clients/git'
 import { github } from '../external-clients/github'
 import { fetchFeedback } from './steps/fetch-feedback'
 
-export const getPRFeedbackContextSchema = baseContextSchema.extend({prNumber: z.number().optional(),})
+const prStateSchema = z.enum(['merged', 'open', 'closed'])
+
+export const getPRFeedbackContextSchema = baseContextSchema.extend({
+  prNumber: z.number().optional(),
+  prUrl: z.string().optional(),
+  prState: prStateSchema.optional(),
+})
 export type GetPRFeedbackContext = z.infer<typeof getPRFeedbackContextSchema>
 
 runWorkflow<GetPRFeedbackContext>([fetchFeedback], buildGetPRFeedbackContext)
 
 async function buildGetPRFeedbackContext(): Promise<GetPRFeedbackContext> {
   const branch = await git.currentBranch()
-  const prNumber = await github.findPRForBranch(branch)
+  const prInfo = await github.findPRForBranchWithState(branch)
   return {
     branch,
-    prNumber,
+    prNumber: prInfo?.number,
+    prUrl: prInfo?.url,
+    prState: prInfo?.state,
   }
 }

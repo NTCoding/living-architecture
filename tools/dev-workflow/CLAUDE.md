@@ -342,22 +342,24 @@ async function run() {
 nx run dev-workflow:get-pr-feedback
 ```
 
-Returns:
+Returns PR state, mergeability, and feedback:
 ```json
 {
   "branch": "feature-x",
+  "state": "open",
   "prNumber": 123,
-  "mergeable": false,
-  "unresolvedFeedback": [
-    {
-      "threadId": "PRRT_abc123",
-      "location": "file.ts:42",
-      "author": "reviewer",
-      "body": "Please fix this"
-    }
-  ]
+  "prUrl": "https://github.com/owner/repo/pull/123",
+  "mergeableState": "clean",
+  "mergeable": true,
+  "unresolvedFeedback": [],
+  "feedbackCount": 0
 }
 ```
+
+Fields:
+- `state` - PR lifecycle: `merged`, `open`, `closed`, `not_found`
+- `mergeableState` - GitHub's merge state: `clean`, `blocked`, `unstable`, `dirty`, etc. (null for merged/closed)
+- `mergeable` - true only if `mergeableState === 'clean'` AND no unresolved feedback
 
 ### respond-to-feedback (write-only)
 

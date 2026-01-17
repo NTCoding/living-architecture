@@ -52,10 +52,12 @@ Ask user: Start process fix task now?
 ### 1. Verify PR is Merged
 
 ```bash
-gh pr view --json state -q .state
+pnpm nx run dev-workflow:get-pr-feedback
 ```
 
-If not "MERGED", stop and inform the user:
+This returns JSON with a `state` field: `merged`, `open`, `closed`, or `not_found`.
+
+If state is not `merged`, stop and inform the user:
 ```text
 PR is not merged yet. Current state: <state>
 Run /post-merge-completion after the PR is merged.

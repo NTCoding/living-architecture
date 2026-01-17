@@ -29,10 +29,14 @@ const workflowResultSchema = z.object({
   success: z.boolean(),
   output: z.unknown().optional(),
   error: z.unknown().optional(),
+  failedStep: z.string().optional(),
 })
 export type WorkflowResult = z.infer<typeof workflowResultSchema>
 
-export type Step<T extends BaseContext> = (ctx: T) => Promise<StepResult>
+export interface Step<T extends BaseContext> {
+  name: string
+  execute: (ctx: T) => Promise<StepResult>
+}
 
 export function success(output?: unknown): StepResult {
   return {
@@ -51,12 +55,13 @@ export function failure(details: unknown): StepResult {
 export function workflow<T extends BaseContext>(steps: Step<T>[]) {
   return async (ctx: T): Promise<WorkflowResult> => {
     for (const step of steps) {
-      const result = await step(ctx)
+      const result = await step.execute(ctx)
 
       if (result.type === 'failure') {
         return {
           success: false,
           error: result.details,
+          failedStep: step.name,
         }
       }
 
