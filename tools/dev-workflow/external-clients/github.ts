@@ -97,6 +97,23 @@ async function getRepoInfo(): Promise<{
 }
 
 export const github = {
+  async findPRForBranch(branch: string): Promise<number | undefined> {
+    const { owner, repo } = await getRepoInfo()
+
+    const response = await getOctokit().pulls.list({
+      owner,
+      repo,
+      head: `${owner}:${branch}`,
+      state: 'open',
+    })
+
+    if (response.data.length === 0) {
+      return undefined
+    }
+
+    return response.data[0].number
+  },
+
   async getIssue(issueNumber: number): Promise<{
     title: string
     body: string

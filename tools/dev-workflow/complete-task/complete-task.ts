@@ -93,6 +93,7 @@ async function main(): Promise<void> {
   const cliPrBody = parseCliArg('--pr-body')
 
   const prDetails = resolvePRDetails(branch, issueNumber, taskDetails, cliPrTitle, cliPrBody)
+  const existingPrNumber = await github.findPRForBranch(branch)
 
   const context: WorkflowContext = {
     branch,
@@ -103,6 +104,7 @@ async function main(): Promise<void> {
     commitMessage: `feat: implement changes\n\nCo-Authored-By: Claude <noreply@anthropic.com>`,
     prTitle: prDetails.prTitle,
     prBody: prDetails.prBody,
+    prNumber: existingPrNumber,
   }
 
   const result = await completeTask(context)
