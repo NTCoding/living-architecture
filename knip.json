@@ -1,7 +1,8 @@
 {
   "$schema": "https://knip.dev/reference/knip-json",
   "ignoreDependencies": [
-    "tailwindcss"
+    "tailwindcss",
+    "zod"
   ],
   "ignoreBinaries": [
     "playwright"
@@ -37,6 +38,16 @@
     "packages/*": {
       "project": [
         "src/**/*.ts"
+      ]
+    },
+    "tools/dev-workflow": {
+      "entry": [
+        "complete-task/complete-task.ts",
+        "get-pr-feedback/get-pr-feedback.ts",
+        "respond-to-feedback/respond-to-feedback.ts"
+      ],
+      "project": [
+        "**/*.ts"
       ]
     }
   },

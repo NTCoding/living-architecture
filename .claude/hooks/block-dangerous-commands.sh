@@ -26,13 +26,25 @@ if [[ "$command" =~ (^|[[:space:]])git[[:space:]]+push($|[[:space:]]) ]]; then
     exit 0
 fi
 
-# Block direct gh pr create - must use /complete-task workflow
-if [[ "$command" =~ (^|[[:space:]])gh[[:space:]]+pr[[:space:]]+create($|[[:space:]]) ]]; then
+# Block ALL gh pr commands - must use dev-workflow tools
+if [[ "$command" =~ (^|[[:space:]])gh[[:space:]]+pr($|[[:space:]]) ]]; then
     jq -n '{
       "hookSpecificOutput": {
         "hookEventName": "PreToolUse",
         "permissionDecision": "deny",
-        "permissionDecisionReason": "Blocked: Direct gh pr create bypasses issue linking. Use /complete-task command instead, which automatically links PRs to issues based on branch name."
+        "permissionDecisionReason": "Blocked: Do not use gh pr directly. Use:\n- /complete-task - Create/update PR, run reviews, submit, check CI\n- pnpm nx run dev-workflow:get-pr-feedback - Check PR feedback and status (mergeable?)"
+      }
+    }'
+    exit 0
+fi
+
+# Block gh api commands for review threads - must use dev-workflow:respond-to-feedback
+if [[ "$command" =~ (^|[[:space:]])gh[[:space:]]+api ]] && echo "$command" | grep -qiE '(review|thread|comment|resolve)'; then
+    jq -n '{
+      "hookSpecificOutput": {
+        "hookEventName": "PreToolUse",
+        "permissionDecision": "deny",
+        "permissionDecisionReason": "Blocked: Do not use gh api for review threads directly. Use:\n- pnpm nx run dev-workflow:respond-to-feedback --thread-id <id> --action <fixed|rejected> --message <msg>"
       }
     }'
     exit 0

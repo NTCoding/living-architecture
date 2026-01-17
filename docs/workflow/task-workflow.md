@@ -28,6 +28,7 @@ Autonomous = you can do this without user permission. Do not ask for permission,
 | Start Task | `./scripts/start-task.sh <issue-number>` | **User confirmation required** |
 | Amend Task | `./scripts/amend-task.sh <issue-number> "Amendment"` | Autonomous |
 | Complete Task | `/complete-task` | Autonomous |
+| Check PR Feedback | `pnpm nx run dev-workflow:get-pr-feedback` | Autonomous |
 | Re-check PR | `/complete-task` | Autonomous |
 | Post-Merge Completion | `/post-merge-completion` | Autonomous |
 | Activate PRD | `./scripts/activate-prd.sh <prd-name>` | **User confirmation required** |
@@ -108,6 +109,8 @@ Propose the first task to the user and ask them to confirm. Once confirmed, star
 **Amend Task** — Requirements changed or need clarification during development.
 
 **Complete Task** — Implementation done, tests passing. Runs the complete autonomous pipeline: verify gate, code review, task-check, and PR submission.
+
+**Check PR Feedback** — Get current PR status and unresolved feedback. Use this to see what needs addressing before a PR is mergeable.
 
 **Re-check PR** — PR feedback addressed, needs CI verification. Run `/complete-task` again to re-run the full pipeline.
 
