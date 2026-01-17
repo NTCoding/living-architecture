@@ -2,7 +2,7 @@ import type { Step } from '../../workflow-runner/workflow-runner'
 import {
   success, failure 
 } from '../../workflow-runner/workflow-runner'
-import { getUnresolvedPRFeedback } from '../../external-clients/pr-feedback'
+import { getPRFeedback } from '../../external-clients/pr-feedback'
 import type { CompleteTaskContext } from '../complete-task'
 
 export const fetchPRFeedback: Step<CompleteTaskContext> = {
@@ -15,7 +15,7 @@ export const fetchPRFeedback: Step<CompleteTaskContext> = {
       })
     }
 
-    const feedback = await getUnresolvedPRFeedback(ctx.prNumber)
+    const feedback = await getPRFeedback(ctx.prNumber)
 
     if (feedback.length > 0) {
       const summary = feedback

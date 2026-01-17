@@ -215,6 +215,26 @@ export const github = {
     }
   },
 
+  async getPRWithState(prNumber: number): Promise<PRWithState> {
+    const {
+      owner, repo 
+    } = await getRepoInfo()
+
+    const response = await getOctokit().pulls.get({
+      owner,
+      repo,
+      pull_number: prNumber,
+    })
+
+    const prState = determinePRState(response.data.merged_at, response.data.state)
+
+    return {
+      number: response.data.number,
+      url: response.data.html_url,
+      state: prState,
+    }
+  },
+
   async getMergeableState(prNumber: number): Promise<string | null> {
     const {
       owner, repo 
@@ -229,7 +249,10 @@ export const github = {
     return response.data.mergeable_state ?? null
   },
 
-  async getUnresolvedFeedback(prNumber: number): Promise<FeedbackItem[]> {
+  async getFeedback(
+    prNumber: number,
+    options: { includeResolved?: boolean } = {},
+  ): Promise<FeedbackItem[]> {
     const {
       owner, repo 
     } = await getRepoInfo()
@@ -289,7 +312,11 @@ export const github = {
     const threads = response.repository.pullRequest.reviewThreads.nodes
 
     return threads
-      .filter((t) => !t.isResolved && !t.isOutdated && t.comments.nodes.length > 0)
+      .filter((t) => {
+        if (t.comments.nodes.length === 0) return false
+        if (options.includeResolved) return true
+        return !t.isResolved && !t.isOutdated
+      })
       .map((thread) => {
         const comment = thread.comments.nodes[0]
         return {

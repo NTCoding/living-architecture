@@ -9,13 +9,13 @@ const feedbackItemSchema = z.object({
   body: z.string(),
 })
 
-const formattedFeedbackItemSchema = z.object({
+export const formattedFeedbackItemSchema = z.object({
   threadId: z.string(),
   location: z.string(),
   author: z.string(),
   body: z.string(),
 })
-type FormattedFeedbackItem = z.infer<typeof formattedFeedbackItemSchema>
+export type FormattedFeedbackItem = z.infer<typeof formattedFeedbackItemSchema>
 
 function formatFeedbackLocation(file?: string | null, line?: number | null): string {
   if (!file) {
@@ -27,8 +27,11 @@ function formatFeedbackLocation(file?: string | null, line?: number | null): str
   return `${file}:${line}`
 }
 
-export async function getUnresolvedPRFeedback(prNumber: number): Promise<FormattedFeedbackItem[]> {
-  const rawFeedback = await github.getUnresolvedFeedback(prNumber)
+export async function getPRFeedback(
+  prNumber: number,
+  options: { includeResolved?: boolean } = {},
+): Promise<FormattedFeedbackItem[]> {
+  const rawFeedback = await github.getFeedback(prNumber, options)
   const feedback = z.array(feedbackItemSchema).parse(rawFeedback)
 
   return feedback.map((f) => ({

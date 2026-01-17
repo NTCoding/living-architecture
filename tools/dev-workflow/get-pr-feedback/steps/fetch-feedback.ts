@@ -1,7 +1,9 @@
 import type { Step } from '../../workflow-runner/workflow-runner'
 import { success } from '../../workflow-runner/workflow-runner'
 import { github } from '../../external-clients/github'
-import { getUnresolvedPRFeedback } from '../../external-clients/pr-feedback'
+import {
+  getPRFeedback, type FormattedFeedbackItem 
+} from '../../external-clients/pr-feedback'
 import type { GetPRFeedbackContext } from '../get-pr-feedback'
 
 type PRState = 'merged' | 'open' | 'closed' | 'not_found'
@@ -13,12 +15,7 @@ interface PRFeedbackStatus {
   prUrl?: string
   mergeableState: string | null
   mergeable: boolean
-  unresolvedFeedback: Array<{
-    threadId: string
-    location: string
-    author: string
-    body: string
-  }>
+  feedback: FormattedFeedbackItem[]
   feedbackCount: number
 }
 
@@ -31,13 +28,15 @@ export const fetchFeedback: Step<GetPRFeedbackContext> = {
         state: 'not_found',
         mergeableState: null,
         mergeable: false,
-        unresolvedFeedback: [],
+        feedback: [],
         feedbackCount: 0,
       }
       return success(status)
     }
 
-    if (ctx.prState === 'merged' || ctx.prState === 'closed') {
+    const isMergedOrClosed = ctx.prState === 'merged' || ctx.prState === 'closed'
+
+    if (isMergedOrClosed && !ctx.includeResolved) {
       const status: PRFeedbackStatus = {
         branch: ctx.branch,
         state: ctx.prState,
@@ -45,16 +44,14 @@ export const fetchFeedback: Step<GetPRFeedbackContext> = {
         prUrl: ctx.prUrl,
         mergeableState: null,
         mergeable: false,
-        unresolvedFeedback: [],
+        feedback: [],
         feedbackCount: 0,
       }
       return success(status)
     }
 
-    const [feedback, mergeableState] = await Promise.all([
-      getUnresolvedPRFeedback(ctx.prNumber),
-      github.getMergeableState(ctx.prNumber),
-    ])
+    const feedback = await getPRFeedback(ctx.prNumber, { includeResolved: ctx.includeResolved })
+    const mergeableState = isMergedOrClosed ? null : await github.getMergeableState(ctx.prNumber)
 
     const status: PRFeedbackStatus = {
       branch: ctx.branch,
@@ -63,7 +60,7 @@ export const fetchFeedback: Step<GetPRFeedbackContext> = {
       prUrl: ctx.prUrl,
       mergeableState,
       mergeable: mergeableState === 'clean' && feedback.length === 0,
-      unresolvedFeedback: feedback,
+      feedback,
       feedbackCount: feedback.length,
     }
 
