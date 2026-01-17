@@ -1,6 +1,6 @@
 {
   "name": "@living-architecture/riviere-builder",
-  "version": "0.5.22",
+  "version": "0.5.23",
   "publishConfig": {
     "access": "public"
   },
