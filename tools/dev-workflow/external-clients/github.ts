@@ -309,22 +309,37 @@ export const github = {
         per_page: 100,
       })
 
+      const completedChecks = checks.check_runs.filter((run) => run.status === 'completed')
+      const failures = completedChecks.filter(
+        (run) => run.conclusion !== 'success' && run.conclusion !== 'skipped',
+      )
+
+      if (failures.length > 0) {
+        const output = failures
+          .map((f) => {
+            const header = `${f.name}: ${f.conclusion}`
+            const summary = f.output?.summary ?? ''
+            const details = f.output?.text ?? ''
+            const detailUrl = f.details_url ?? ''
+
+            const parts = [header]
+            if (summary) parts.push(`Summary: ${summary}`)
+            if (details) parts.push(`Details: ${details}`)
+            if (detailUrl) parts.push(`URL: ${detailUrl}`)
+
+            return parts.join('\n')
+          })
+          .join('\n\n')
+        return {
+          failed: true,
+          output,
+        }
+      }
+
       const allComplete =
         checks.check_runs.length > 0 && checks.check_runs.every((run) => run.status === 'completed')
 
       if (allComplete) {
-        const failures = checks.check_runs.filter(
-          (run) => run.conclusion !== 'success' && run.conclusion !== 'skipped',
-        )
-
-        if (failures.length > 0) {
-          const output = failures.map((f) => `${f.name}: ${f.conclusion}`).join('\n')
-          return {
-            failed: true,
-            output,
-          }
-        }
-
         return {
           failed: false,
           output: 'All checks passed',

@@ -44,7 +44,7 @@ async function buildCompleteTaskContext(): Promise<CompleteTaskContext> {
 
   const issueNumber = parseIssueNumber(branch)
   const taskDetails = issueNumber ? await github.getIssue(issueNumber) : undefined
-  const prDetails = resolvePRDetails(branch, issueNumber, taskDetails)
+  const prDetails = resolvePRDetails(issueNumber, taskDetails)
   const existingPrNumber = await github.findPRForBranch(branch)
 
   return {
