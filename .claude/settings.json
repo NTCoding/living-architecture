@@ -5,9 +5,11 @@
       "Edit(./tsconfig.json)",
       "Edit(./eslint.config.mjs)",
       "Edit(./nx.json)",
+      "Edit(./.claude/settings.json)",
       "Edit(./.husky/*)",
       "Edit(./pnpm-workspace.yaml)",
       "Edit(./.gitignore)",
+      "Edit(./.claude/hooks/*)",
       "Read(./.env)",
       "Read(./.env.*)",
       "Read(./apps/**/.env)",
@@ -35,16 +37,6 @@
           {
             "type": "command",
             "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/convention-guardrails.sh"
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/task-completion-reminder.sh"
           }
         ]
       }
