@@ -43,7 +43,8 @@
     "tools/dev-workflow": {
       "entry": [
         "complete-task/complete-task.ts",
-        "get-pr-feedback/get-pr-feedback.ts"
+        "get-pr-feedback/get-pr-feedback.ts",
+        "respond-to-feedback/respond-to-feedback.ts"
       ],
       "project": [
         "**/*.ts"

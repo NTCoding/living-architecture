@@ -38,6 +38,18 @@ if [[ "$command" =~ (^|[[:space:]])gh[[:space:]]+pr($|[[:space:]]) ]]; then
     exit 0
 fi
 
+# Block gh api commands for review threads - must use dev-workflow:respond-to-feedback
+if [[ "$command" =~ (^|[[:space:]])gh[[:space:]]+api ]] && echo "$command" | grep -qiE '(review|thread|comment|resolve)'; then
+    jq -n '{
+      "hookSpecificOutput": {
+        "hookEventName": "PreToolUse",
+        "permissionDecision": "deny",
+        "permissionDecisionReason": "Blocked: Do not use gh api for review threads directly. Use:\n- pnpm nx run dev-workflow:respond-to-feedback --thread-id <id> --action <fixed|rejected> --message <msg>"
+      }
+    }'
+    exit 0
+fi
+
 # Auto-approve safe commands without prompting
 jq -n '{
     "hookSpecificOutput": {

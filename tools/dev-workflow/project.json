@@ -15,6 +15,13 @@
         "command": "./tools/dev-workflow/node_modules/.bin/tsx tools/dev-workflow/get-pr-feedback/get-pr-feedback.ts",
         "cwd": "{workspaceRoot}"
       }
+    },
+    "respond-to-feedback": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "./tools/dev-workflow/node_modules/.bin/tsx tools/dev-workflow/respond-to-feedback/respond-to-feedback.ts",
+        "cwd": "{workspaceRoot}"
+      }
     }
   }
 }

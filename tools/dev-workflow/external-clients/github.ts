@@ -287,4 +287,38 @@ export const github = {
       output: 'CI timed out waiting for checks to complete',
     }
   },
+
+  async addThreadReply(threadId: string, body: string): Promise<void> {
+    const mutation = `
+      mutation($threadId: ID!, $body: String!) {
+        addPullRequestReviewThreadReply(input: {
+          pullRequestReviewThreadId: $threadId
+          body: $body
+        }) {
+          comment {
+            id
+          }
+        }
+      }
+    `
+
+    await getOctokit().graphql(mutation, { threadId, body })
+  },
+
+  async resolveThread(threadId: string): Promise<void> {
+    const mutation = `
+      mutation($threadId: ID!) {
+        resolveReviewThread(input: {
+          threadId: $threadId
+        }) {
+          thread {
+            id
+            isResolved
+          }
+        }
+      }
+    `
+
+    await getOctokit().graphql(mutation, { threadId })
+  },
 }

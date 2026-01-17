@@ -5,6 +5,7 @@ import {
 } from '../external-clients/github'
 
 interface PRFeedbackItem {
+  threadId: string
   location: string
   author: string
   body: string
@@ -58,6 +59,7 @@ async function main(): Promise<void> {
     prUrl: `https://github.com/${repoInfo.owner}/${repoInfo.repo}/pull/${prNumber}`,
     mergeable: feedback.length === 0,
     unresolvedFeedback: feedback.map((f) => ({
+      threadId: f.threadId,
       location: formatFeedbackLocation(f.file, f.line),
       author: f.author,
       body: f.body,
