@@ -61,4 +61,9 @@ export const git = {
       `No base branch found. Expected origin/main or origin/master but found: ${refs.all.filter((r) => r.startsWith('origin/')).join(', ')}`,
     )
   },
+
+  async headSha(): Promise<string> {
+    const sha = await repo.revparse(['HEAD'])
+    return sha.trim()
+  },
 }

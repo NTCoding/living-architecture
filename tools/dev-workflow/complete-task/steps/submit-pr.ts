@@ -16,6 +16,7 @@ export const submitPR: Step<CompleteTaskContext> = {
     }
     await git.push()
 
+    const headSha = await git.headSha()
     const baseBranch = await git.baseBranch()
 
     const pr = ctx.prNumber
@@ -30,7 +31,7 @@ export const submitPR: Step<CompleteTaskContext> = {
     ctx.prUrl = pr.url
     ctx.prNumber = pr.number
 
-    const ciResult = await github.watchCI(pr.number)
+    const ciResult = await github.watchCI(pr.number, headSha)
 
     if (ciResult.failed) {
       return failure({

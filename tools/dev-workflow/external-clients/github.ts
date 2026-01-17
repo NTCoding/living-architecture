@@ -288,7 +288,11 @@ export const github = {
       })
   },
 
-  async watchCI(prNumber: number, timeoutMs = 10 * 60 * 1000): Promise<CIResult> {
+  async watchCI(
+    prNumber: number,
+    expectedSha?: string,
+    timeoutMs = 10 * 60 * 1000,
+  ): Promise<CIResult> {
     const {
       owner, repo 
     } = await getRepoInfo()
@@ -301,6 +305,11 @@ export const github = {
         repo,
         pull_number: prNumber,
       })
+
+      if (expectedSha && pr.head.sha !== expectedSha) {
+        await new Promise((resolve) => setTimeout(resolve, pollInterval))
+        continue
+      }
 
       const { data: checks } = await getOctokit().checks.listForRef({
         owner,
