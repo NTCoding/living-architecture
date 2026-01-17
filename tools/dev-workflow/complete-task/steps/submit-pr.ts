@@ -9,13 +9,6 @@ import type { CompleteTaskContext } from '../complete-task'
 export const submitPR: Step<CompleteTaskContext> = {
   name: 'submit-pr',
   execute: async (ctx) => {
-    if (!ctx.prTitle || !ctx.prBody || !ctx.commitMessage) {
-      return failure({
-        type: 'fix_errors',
-        details: 'Missing required context: prTitle, prBody, or commitMessage',
-      })
-    }
-
     const uncommitted = await git.uncommittedFiles()
     if (uncommitted.length > 0) {
       await git.stageAll()
