@@ -7,9 +7,9 @@ import { claude } from '../../external-clients/claude'
 import { git } from '../../external-clients/git'
 import {
   agentResponseSchema, type ReviewerResult 
-} from '../schemas'
+} from '../../workflow-runner/schemas'
 import { AgentError } from '../../errors'
-import { shouldSkipCodeReview } from '../context-builder'
+import { shouldSkipCodeReview } from '../../workflow-runner/context-builder'
 
 async function readAgentPrompt(agentPath: string): Promise<string> {
   try {

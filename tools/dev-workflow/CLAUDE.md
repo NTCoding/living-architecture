@@ -97,50 +97,58 @@ Each client:
 - Provides typed methods
 - Throws domain-specific errors (GitError, GitHubError, etc.)
 
-### Separation of Entry Points and Infrastructure
+### Directory Structure: Infrastructure vs Commands
 
-**CRITICAL**: Entry point files (e.g., `complete-task.ts`) must be declarative and contain ONLY high-level orchestration. All parsing, validation, and context-building logic belongs in dedicated modules.
+**CRITICAL**: Shared infrastructure lives in dedicated directories. Command directories contain ONLY command-specific code.
 
 ```text
-complete-task/
-├── complete-task.ts     # Entry point - DECLARATIVE ONLY
-├── context-builder.ts   # Context construction logic
-└── steps/               # Workflow step implementations
+dev-workflow/
+├── workflow-runner/         # SHARED INFRASTRUCTURE
+│   ├── workflow-runner.ts   # Core workflow execution
+│   ├── run-workflow.ts      # Entry point helper
+│   ├── context-builder.ts   # WorkflowContext construction
+│   ├── error-handler.ts     # Standard error handling
+│   └── schemas.ts           # Shared Zod schemas
+├── external-clients/        # SHARED INFRASTRUCTURE
+│   ├── cli.ts               # CLI argument parsing
+│   ├── git.ts               # simple-git wrapper
+│   ├── github.ts            # Octokit wrapper
+│   ├── nx.ts                # nx commands
+│   └── claude.ts            # Claude Agent SDK
+├── complete-task/           # COMMAND-SPECIFIC ONLY
+│   ├── complete-task.ts     # Entry point (declarative)
+│   └── steps/               # Steps unique to this command
+├── get-pr-feedback/         # COMMAND-SPECIFIC ONLY
+│   └── get-pr-feedback.ts   # Entry point
+└── respond-to-feedback/     # COMMAND-SPECIFIC ONLY
+    └── respond-to-feedback.ts
 ```
 
-**Entry points should:**
-- Import and compose high-level components
-- Call a context builder to get workflow context
-- Execute the workflow and output results
-- Be readable at a glance (< 50 lines)
+**Rule**: If code could be used by multiple commands, it belongs in `workflow-runner/` or `external-clients/`. Command directories contain ONLY:
+- The entry point file
+- Steps/logic unique to that command
 
-**Entry points must NOT contain:**
-- CLI argument parsing logic
-- Regex patterns or string parsing
-- Complex conditional logic for input resolution
-- Helper functions for formatting or validation
+**Entry points should:**
+- Import from shared infrastructure
+- Declare which steps to run
+- Be readable at a glance (< 15 lines)
 
 ```typescript
 // GOOD - declarative entry point (complete-task.ts)
-const steps = [verifyBuild, codeReview, submitPR, fetchPRFeedback]
-const completeTask = workflow(steps)
+import { runWorkflow } from '../workflow-runner/run-workflow'
+import { verifyBuild } from './steps/verify-build'
+import { codeReview } from './steps/code-review'
 
-async function main(): Promise<void> {
-  const context = await buildWorkflowContext()  // all complexity hidden
-  const result = await completeTask(context)
-  console.log(JSON.stringify(result, null, 2))
-}
+runWorkflow([
+  verifyBuild,
+  codeReview,
+  submitPR,
+  fetchPRFeedback,
+])
 
-// BAD - entry point mixed with parsing logic
-async function main(): Promise<void> {
-  const branch = await git.currentBranch()
-  const issuePattern = /issue-(\d+)/           // parsing in entry point
-  const match = issuePattern.exec(branch)       // parsing in entry point
-  const issueNumber = match ? parseInt(match[1], 10) : undefined
-
-  const cliPrTitle = process.argv.indexOf('--pr-title')  // CLI parsing
-  // ... 50 more lines of setup
-}
+// BAD - infrastructure in command directory
+// complete-task/context-builder.ts  ← WRONG! Move to workflow-runner/
+// complete-task/run-workflow.ts     ← WRONG! Move to workflow-runner/
 ```
 
 ### Error Handling
