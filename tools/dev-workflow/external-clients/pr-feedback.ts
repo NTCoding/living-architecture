@@ -1,14 +1,5 @@
 import { z } from 'zod'
-import { github } from '../external-clients/github'
-
-const feedbackItemSchema = z.object({
-  threadId: z.string(),
-  file: z.string().nullish(),
-  line: z.number().nullish(),
-  author: z.string(),
-  body: z.string(),
-})
-type FeedbackItem = z.infer<typeof feedbackItemSchema>
+import { github } from './github'
 
 const formattedFeedbackItemSchema = z.object({
   threadId: z.string(),

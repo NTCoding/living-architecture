@@ -41,10 +41,7 @@ export const codeReview: Step<CompleteTaskContext> = async (ctx) => {
   const baseBranch = await git.baseBranch()
   const filesToReview = await git.diffFiles(baseBranch)
 
-  const reviewerNames = ['code-review', 'bug-scanner']
-  if (ctx.hasIssue) {
-    reviewerNames.push('task-check')
-  }
+  const reviewerNames = ['code-review', 'bug-scanner', ...(ctx.hasIssue ? ['task-check'] : [])]
 
   const results = await runReviewers(reviewerNames, filesToReview, ctx.reviewDir, ctx.taskDetails)
 

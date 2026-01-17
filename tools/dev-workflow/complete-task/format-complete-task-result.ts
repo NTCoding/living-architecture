@@ -140,16 +140,16 @@ export function formatCompleteTaskResult(
     }
   }
 
+  const instructions = ['All checks passed. PR is ready for human review.', '']
+  if (prUrl) {
+    instructions.push(`PR URL: ${prUrl}`, '')
+  }
+  instructions.push('ACTION: Inform the user that the PR is ready for review.')
+
   return {
     success: true,
     nextAction: 'done',
-    nextInstructions: [
-      'All checks passed. PR is ready for human review.',
-      '',
-      `PR URL: ${prUrl}`,
-      '',
-      'ACTION: Inform the user that the PR is ready for review.',
-    ].join('\n'),
+    nextInstructions: instructions.join('\n'),
     prUrl,
   }
 }

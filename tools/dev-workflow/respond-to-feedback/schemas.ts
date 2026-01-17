@@ -3,9 +3,9 @@ import { z } from 'zod'
 const responseActionSchema = z.enum(['fixed', 'rejected'])
 
 export const respondToFeedbackInputSchema = z.object({
-  threadId: z.string().min(1, 'threadId is required'),
+  threadId: z.string().min(1, { error: 'threadId is required' }),
   action: responseActionSchema,
-  message: z.string().min(1, 'message is required'),
+  message: z.string().min(1, { error: 'message is required' }),
 })
 
 const respondToFeedbackOutputSchema = z.object({
