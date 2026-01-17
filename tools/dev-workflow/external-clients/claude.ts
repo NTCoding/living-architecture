@@ -16,6 +16,15 @@ class ClaudeQueryError extends Error {
   }
 }
 
+const resultMessageSchema = z.object({
+  type: z.literal('result'),
+  subtype: z.enum(['success', 'error', 'interrupted']),
+  result: z.string(),
+  structured_output: z.unknown().optional(),
+})
+
+type ResultMessage = z.infer<typeof resultMessageSchema>
+
 function extractJsonFromCodeBlock(text: string): string | null {
   const startMarker = '```json'
   const endMarker = '```'
@@ -42,9 +51,35 @@ function parseJsonFromCodeBlockOrRaw<T>(result: string, schema: z.ZodSchema<T>):
   return schema.parse(parsed)
 }
 
+function isResultMessage(message: unknown): message is ResultMessage {
+  return resultMessageSchema.safeParse(message).success
+}
+
+function hasAsyncIterator(
+  value: object,
+): value is { [Symbol.asyncIterator]: () => AsyncIterator<unknown> } {
+  return Symbol.asyncIterator in value
+}
+
+function isAsyncIterable(value: unknown): value is AsyncIterable<unknown> {
+  if (value === null || typeof value !== 'object') {
+    return false
+  }
+  return hasAsyncIterator(value)
+}
+
+async function* safeAsyncIterable(iterable: unknown): AsyncIterable<unknown> {
+  if (!isAsyncIterable(iterable)) {
+    throw new ClaudeQueryError('SDK query did not return an async iterable')
+  }
+  for await (const item of iterable) {
+    yield item
+  }
+}
+
 export const claude = {
   async query<T>(opts: ClaudeQueryOptions<T>): Promise<T> {
-    for await (const message of sdkQuery({
+    const queryResult = sdkQuery({
       prompt: opts.prompt,
       options: {
         model: opts.model,
@@ -54,8 +89,10 @@ export const claude = {
           schema: z.toJSONSchema(opts.outputSchema),
         },
       },
-    })) {
-      if (message.type !== 'result') {
+    })
+
+    for await (const message of safeAsyncIterable(queryResult)) {
+      if (!isResultMessage(message)) {
         continue
       }
 
