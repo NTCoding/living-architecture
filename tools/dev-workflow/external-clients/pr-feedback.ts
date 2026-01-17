@@ -9,7 +9,7 @@ const feedbackItemSchema = z.object({
   body: z.string(),
 })
 
-export const formattedFeedbackItemSchema = z.object({
+const formattedFeedbackItemSchema = z.object({
   threadId: z.string(),
   location: z.string(),
   author: z.string(),
