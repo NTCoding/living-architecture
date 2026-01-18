@@ -3,14 +3,23 @@ import simpleGit from 'simple-git'
 import { GitHubError } from '../errors'
 
 function getGitHubToken(): string {
-  const token = process.env.GITHUB_TOKEN ?? process.env.GH_TOKEN
-  if (!token) {
-    throw new GitHubError('GITHUB_TOKEN or GH_TOKEN environment variable is required')
+  const githubToken = process.env.GITHUB_TOKEN
+  const ghToken = process.env.GH_TOKEN
+
+  if (githubToken) {
+    return githubToken
   }
-  return token
+
+  if (ghToken) {
+    return ghToken
+  }
+
+  throw new GitHubError(
+    'GitHub token not found. Set GITHUB_TOKEN or GH_TOKEN environment variable.',
+  )
 }
 
-const getOctokit = (() => {
+export const getOctokit = (() => {
   const cache: { instance?: Octokit } = {}
   return (): Octokit => {
     if (cache.instance) {
@@ -22,7 +31,7 @@ const getOctokit = (() => {
   }
 })()
 
-const DELETED_USER_PLACEHOLDER = '[deleted]'
+export const DELETED_USER_PLACEHOLDER = '[deleted]'
 
 type PRState = 'open' | 'closed' | 'merged'
 
@@ -38,14 +47,6 @@ interface CreatePROptions {
   body: string
   branch: string
   base?: string
-}
-
-interface FeedbackItem {
-  threadId: string
-  file: string | null
-  line: number | null
-  author: string
-  body: string
 }
 
 interface CIResult {
@@ -91,7 +92,7 @@ function parseGitHubUrl(url: string): {
   throw new GitHubError(`Could not parse GitHub URL: ${url}`)
 }
 
-async function getRepoInfo(): Promise<{
+export async function getRepoInfo(): Promise<{
   owner: string
   repo: string
 }> {
@@ -215,6 +216,26 @@ export const github = {
     }
   },
 
+  async getPRWithState(prNumber: number): Promise<PRWithState> {
+    const {
+      owner, repo 
+    } = await getRepoInfo()
+
+    const response = await getOctokit().pulls.get({
+      owner,
+      repo,
+      pull_number: prNumber,
+    })
+
+    const prState = determinePRState(response.data.merged_at, response.data.state)
+
+    return {
+      number: response.data.number,
+      url: response.data.html_url,
+      state: prState,
+    }
+  },
+
   async getMergeableState(prNumber: number): Promise<string | null> {
     const {
       owner, repo 
@@ -226,80 +247,7 @@ export const github = {
       pull_number: prNumber,
     })
 
-    return response.data.mergeable_state ?? null
-  },
-
-  async getUnresolvedFeedback(prNumber: number): Promise<FeedbackItem[]> {
-    const {
-      owner, repo 
-    } = await getRepoInfo()
-
-    const query = `
-      query($owner: String!, $repo: String!, $pr: Int!) {
-        repository(owner: $owner, name: $repo) {
-          pullRequest(number: $pr) {
-            reviewThreads(first: 100) {
-              nodes {
-                id
-                isResolved
-                isOutdated
-                path
-                line
-                comments(first: 1) {
-                  nodes {
-                    author { login }
-                    body
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    `
-
-    interface GraphQLResponse {
-      repository: {
-        pullRequest: {
-          reviewThreads: {
-            nodes: Array<{
-              id: string
-              isResolved: boolean
-              isOutdated: boolean
-              path: string | null
-              line: number | null
-              comments: {
-                nodes: Array<{
-                  author: { login: string } | null
-                  body: string
-                }>
-              }
-            }>
-          }
-        }
-      }
-    }
-
-    const response = await getOctokit().graphql<GraphQLResponse>(query, {
-      owner,
-      repo,
-      pr: prNumber,
-    })
-
-    const threads = response.repository.pullRequest.reviewThreads.nodes
-
-    return threads
-      .filter((t) => !t.isResolved && !t.isOutdated && t.comments.nodes.length > 0)
-      .map((thread) => {
-        const comment = thread.comments.nodes[0]
-        return {
-          threadId: thread.id,
-          file: thread.path,
-          line: thread.line,
-          author: comment.author?.login ?? DELETED_USER_PLACEHOLDER,
-          body: comment.body,
-        }
-      })
+    return response.data.mergeable_state
   },
 
   async watchCI(
