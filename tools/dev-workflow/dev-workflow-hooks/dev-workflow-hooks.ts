@@ -1,4 +1,4 @@
-#!/usr/bin/env tsx
+#!/usr/bin/env bun
 
 import * as readline from 'node:readline'
 import { hookInputSchema } from './claude-code-input-schemas'

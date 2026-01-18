@@ -76,6 +76,26 @@ function isAfterHelpCallback(fn: unknown): fn is (ctx: AfterHelpContext) => stri
 }
 
 function callAfterHelpHandler(afterHelp: unknown, cmd: Command): string {
+  // Handle array of callbacks (bun behavior)
+  if (Array.isArray(afterHelp) && afterHelp.length > 0) {
+    const allParts: string[] = []
+    for (const callback of afterHelp) {
+      if (isAfterHelpCallback(callback)) {
+        const parts: string[] = []
+        const context: AfterHelpContext = {
+          command: cmd,
+          write: (str: string) => {
+            parts.push(str)
+          },
+        }
+        const result = callback(context)
+        allParts.push(typeof result === 'string' ? result : parts.join(''))
+      }
+    }
+    return allParts.join('')
+  }
+
+  // Handle single callback (tsx/node behavior)
   if (isAfterHelpCallback(afterHelp)) {
     const parts: string[] = []
     const context: AfterHelpContext = {

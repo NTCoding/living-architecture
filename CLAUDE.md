@@ -4,6 +4,16 @@ Extract software architecture from code as living documentation, using Riviere s
 
 Read `@docs/project/project-overview.md` then check `@docs/project/PRD/active/*.md` for the current PRD.
 
+## Prerequisites
+
+**Required tools:**
+- **Node.js 24+** - Runtime for the monorepo
+- **pnpm 10.28.0** - Package manager (managed via `packageManager` field)
+- **Bun** - TypeScript execution for build scripts and dev workflow tools
+  - Install: `curl -fsSL https://bun.sh/install | bash` or via [official instructions](https://bun.sh/docs/installation)
+  - Used for: doc generation, dev-workflow scripts (complete-task, get-pr-feedback, etc.)
+  - Replaces tsx for faster build-time script execution (see ADR-002)
+
 ## Monorepo Structure
 
 ```text

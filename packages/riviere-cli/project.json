@@ -16,7 +16,7 @@
     "generate-docs": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "pnpm exec npx tsx packages/riviere-cli/scripts/generate-docs.ts",
+        "command": "bun packages/riviere-cli/scripts/generate-docs.ts",
         "cwd": "{workspaceRoot}"
       },
       "dependsOn": ["build"],
@@ -26,7 +26,7 @@
       "executor": "nx:run-commands",
       "options": {
         "commands": [
-          "pnpm exec npx tsx packages/riviere-cli/scripts/generate-docs.ts",
+          "bun packages/riviere-cli/scripts/generate-docs.ts",
           "git diff --exit-code packages/riviere-cli/docs/generated/ || (echo 'Generated docs are stale. Run: pnpm nx generate-docs riviere-cli' && exit 1)"
         ],
         "cwd": "{workspaceRoot}",

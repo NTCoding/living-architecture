@@ -1,4 +1,4 @@
-#!/usr/bin/env tsx
+#!/usr/bin/env bun
 import { z } from 'zod'
 import { mkdir } from 'node:fs/promises'
 import { runWorkflow } from '../workflow-runner/run-workflow'

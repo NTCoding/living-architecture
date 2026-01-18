@@ -1,4 +1,4 @@
-#!/usr/bin/env tsx
+#!/usr/bin/env bun
 import { github } from '../external-clients/github'
 import { WorkflowError } from '../errors'
 import {

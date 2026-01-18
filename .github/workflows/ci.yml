@@ -40,6 +40,10 @@ jobs:
           node-version: 24
           cache: 'pnpm'
 
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
       - run: pnpm install --frozen-lockfile
 
       # Prepend any command with "nx-cloud record --" to record its logs to Nx Cloud
@@ -91,6 +95,10 @@ jobs:
         with:
           node-version: 24
           cache: 'pnpm'
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
 
       - run: pnpm install --frozen-lockfile
 
@@ -200,6 +208,10 @@ jobs:
           node-version: 24
           cache: 'pnpm'
           registry-url: 'https://registry.npmjs.org'
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
 
       - run: pnpm install --frozen-lockfile
 

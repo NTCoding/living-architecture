@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "complete-task": "tsx complete-task/complete-task.ts"
+    "complete-task": "bun complete-task/complete-task.ts"
   },
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "^0.2.0",
@@ -14,7 +14,6 @@
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
-    "tsx": "^4.19.0",
     "typescript": "^5.7.0"
   }
 }
