@@ -27,7 +27,7 @@ const reviewerResultSchema = agentResponseSchema.extend({
   name: z.string(),
   reportPath: z.string(),
 })
-export type ReviewerResult = z.infer<typeof reviewerResultSchema>
+type ReviewerResult = z.infer<typeof reviewerResultSchema>
 
 function shouldSkipCodeReview(): boolean {
   return cli.hasFlag('--reject-review-feedback')
