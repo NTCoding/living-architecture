@@ -137,7 +137,7 @@ PRDs can define parallel tracks in their Parallelization section (Section 10). T
 
 1. Runs `./scripts/list-tasks.sh` to get tasks from all active PRD milestones
 2. Reads active PRD(s) from `docs/project/PRD/active/`
-3. Parses Parallelization section to identify tracks (A, B, C, D, etc.)
+3. Parses YAML track definitions in the Parallelization section (see `docs/conventions/prd-track-format.md`)
 4. Maps tasks to tracks via deliverable references in task body
 5. Identifies busy tracks (tasks with assignees)
 6. Recommends task from idle track first
@@ -152,14 +152,21 @@ Tasks reference deliverables in their body text:
 - `Deliverable: D3.1` — Deliverable 3.1
 - `Research-R1` — Research track
 
-These references map to tracks defined in the PRD Parallelization section:
+These references map to tracks defined in the PRD Parallelization section as YAML:
 
-```text
-TRACK A (Extraction):     M1 --> M2 --> D3.3 --> M5
-TRACK B (Conventions):    D3.1 --> D3.2 --> D4.1
-TRACK C (Research):       R1
+```yaml
+tracks:
+  - id: A
+    name: Extraction
+    deliverables: [M1, M2, D3.3, M5]
+  - id: B
+    name: Conventions
+    deliverables: [D3.1, D3.2, D4.1]
+  - id: C
+    name: Research
+    deliverables: [R1]
 ```
 
-### PRDs Without Parallelization
+### PRDs Without YAML Track Definitions
 
-If a PRD lacks a Parallelization section, tasks are recommended sequentially (first unassigned task).
+If a PRD lacks YAML track definitions in its Parallelization section, `list-tasks` will throw an error indicating which PRD needs track definitions added. See `docs/conventions/prd-track-format.md` for the required format.
