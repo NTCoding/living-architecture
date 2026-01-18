@@ -6,7 +6,7 @@ Find the next available task, considering parallel work streams.
 
 1. Run `./scripts/list-tasks.sh` to get tasks from all active PRD milestones
 2. Read active PRD(s) from `docs/project/PRD/active/`
-3. Parse each PRD's Parallelization section (Section 10) to identify tracks
+3. Parse each PRD's Parallelization section to identify tracks (requires YAML track definitions)
 4. Map tasks to tracks via deliverable refs in task body
 5. Identify busy tracks (tasks with assignees)
 6. Recommend task from idle track
@@ -21,15 +21,22 @@ Look for deliverable references in task body:
 - `Research-R1` or `PRD Section: Research-R1` - Research track
 - Section numbers like `3.4`, `D2.5` - Match to PRD deliverable numbering
 
-Match these to track definitions in the PRD Parallelization section. Tracks are labeled A, B, C, D (or similar) with deliverables listed.
+Match these to track definitions in the PRD Parallelization section. Tracks must be defined in YAML format:
 
-Example PRD Parallelization section:
-
-```text
-TRACK A (Extraction):     M1 --> M2 --> D3.3 --> M5
-TRACK B (Conventions):    D3.1 --> D3.2 --> D4.1
-TRACK C (Research):       R1
+```yaml
+tracks:
+  - id: A
+    name: Extraction
+    deliverables: [M1, M2, D3.3, M5]
+  - id: B
+    name: Conventions
+    deliverables: [D3.1, D3.2, D4.1]
+  - id: C
+    name: Research
+    deliverables: [R1]
 ```
+
+See `docs/conventions/prd-track-format.md` for the full YAML schema.
 
 ## Output Format
 
@@ -82,7 +89,7 @@ PRD12-B: #167 - Create conventions interfaces (earliest PRD track)
 
 ## Edge Cases
 
-- **PRD without Parallelization section**: List unassigned tasks sequentially (first available)
+- **PRD without YAML track definitions**: Error thrown - add YAML tracks to the PRD's Parallelization section
 - **All tracks busy**: Recommend non-milestone task (bugs/tech/ideas) first
 - **No tasks available**: Report "No unassigned tasks available"
 - **Multiple active PRDs**: Analyze tracks across all PRDs, prefer earlier PRD

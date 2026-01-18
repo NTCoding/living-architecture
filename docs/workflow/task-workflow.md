@@ -24,7 +24,7 @@ Autonomous = you can do this without user permission. Do not ask for permission,
 |------|---------|------------|
 | Create Tasks | `/create-tasks` | **User confirmation required** |
 | Next Task (parallel-aware) | `/next-task` | Autonomous |
-| List Milestone Tasks | `./scripts/list-tasks.sh` | Autonomous |
+| List Tasks (JSON) | `./scripts/list-tasks.sh` | Autonomous |
 | List Non-Milestone Tasks | `./scripts/list-tasks.sh --ideas` (or `--bugs`, `--tech`) | Autonomous |
 | Start Task | `./scripts/start-task.sh <issue-number>` | **User confirmation required** |
 | Amend Task | `./scripts/amend-task.sh <issue-number> "Amendment"` | Autonomous |
