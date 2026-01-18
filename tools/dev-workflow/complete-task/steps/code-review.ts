@@ -91,6 +91,7 @@ async function runReviewers(
         model: 'sonnet',
         outputSchema: agentResponseSchema,
         outputPath: reportPath,
+        settingSources: ['project'],
       })
 
       return {

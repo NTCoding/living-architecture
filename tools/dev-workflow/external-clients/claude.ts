@@ -3,11 +3,22 @@ import { writeFile } from 'node:fs/promises'
 import { z } from 'zod'
 import { ClaudeQueryError } from '../errors'
 
+type SettingSource = 'user' | 'project' | 'local'
+
 interface ClaudeQueryOptions<T> {
   prompt: string
   model: 'opus' | 'sonnet' | 'haiku'
   outputSchema: z.ZodSchema<T>
   outputPath: string
+  /**
+   * Control which filesystem settings to load.
+   * - 'user' - Global user settings (~/.claude/settings.json)
+   * - 'project' - Project settings (.claude/settings.json) and CLAUDE.md
+   * - 'local' - Local settings (.claude/settings.local.json)
+   *
+   * Required to load project context, skills, and plugins.
+   */
+  settingSources: SettingSource[]
 }
 
 const resultMessageSchema = z.object({
@@ -78,6 +89,11 @@ export const claude = {
       options: {
         model: opts.model,
         maxTurns: 200,
+        settingSources: opts.settingSources,
+        env: {
+          ...process.env,
+          CLAUDE_SDK_AGENT: 'true',
+        },
         outputFormat: {
           type: 'json_schema',
           schema: z.toJSONSchema(opts.outputSchema),

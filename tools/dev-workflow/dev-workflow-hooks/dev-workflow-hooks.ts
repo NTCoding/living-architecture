@@ -54,7 +54,20 @@ function tryParseJson(input: string): JsonParseResult {
   }
 }
 
+function isRunningAsSDKSpawnedAgent(): boolean {
+  return process.env.CLAUDE_SDK_AGENT === 'true'
+}
+
+function skipHooksForSDKAgents(): void {
+  console.log(JSON.stringify({}))
+}
+
 async function main(): Promise<void> {
+  if (isRunningAsSDKSpawnedAgent()) {
+    skipHooksForSDKAgents()
+    return
+  }
+
   const rawInput = await readStdin()
 
   const jsonResult = tryParseJson(rawInput)

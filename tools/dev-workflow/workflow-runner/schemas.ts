@@ -3,7 +3,7 @@ import { z } from 'zod'
 const findingSchema = z.object({
   severity: z.enum(['critical', 'major', 'minor']),
   file: z.string(),
-  line: z.number().optional(),
+  line: z.number().nullish(),
   message: z.string(),
 })
 
