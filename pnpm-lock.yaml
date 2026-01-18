@@ -311,8 +311,8 @@ importers:
   tools/dev-workflow:
     dependencies:
       '@anthropic-ai/claude-agent-sdk':
-        specifier: ^0.1.0
-        version: 0.1.77(zod@4.3.5)
+        specifier: ^0.2.0
+        version: 0.2.12(zod@4.3.5)
       '@octokit/rest':
         specifier: ^21.0.0
         version: 21.1.1
@@ -417,11 +417,11 @@ packages:
     resolution: {integrity: sha512-4No9iTjr1GZ0JWsFbQJj9aZBnmKyY1sTxOoEud9+SGe3U6iAulF0A0lI4cWi/F/Gcfg8V3jkaddcqSQKDnE45w==}
     engines: {node: '>= 14.0.0'}
 
-  '@anthropic-ai/claude-agent-sdk@0.1.77':
-    resolution: {integrity: sha512-ZEjWQtkoB2MEY6K16DWMmF+8OhywAynH0m08V265cerbZ8xPD/2Ng2jPzbbO40mPeFSsMDJboShL+a3aObP0Jg==}
+  '@anthropic-ai/claude-agent-sdk@0.2.12':
+    resolution: {integrity: sha512-lto5qlffODYa3He4jbSVdXtPCWVWUxEqWFj+8mWp4tSnY6tMsQBXjwalm7Bz8YgBsEbrCZrceYMcKSw0eL7H+A==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
-      zod: ^3.25.0 || ^4.0.0
+      zod: ^4.0.0
 
   '@asamuzakjp/css-color@3.2.0':
     resolution: {integrity: sha512-K1A6z8tS3XsmCMM86xoWdn7Fkdn9m6RSVtocUrJYIwZnFVkng/PvkEoWtOWmP+Scc6saYWHWZYbndEEXxl24jw==}
@@ -6867,7 +6867,7 @@ snapshots:
     dependencies:
       '@algolia/client-common': 5.46.3
 
-  '@anthropic-ai/claude-agent-sdk@0.1.77(zod@4.3.5)':
+  '@anthropic-ai/claude-agent-sdk@0.2.12(zod@4.3.5)':
     dependencies:
       zod: 4.3.5
     optionalDependencies:
