@@ -2,7 +2,9 @@ import type { Step } from '../../workflow-runner/workflow-runner'
 import { success } from '../../workflow-runner/workflow-runner'
 import { github } from '../../external-clients/github'
 import {
-  getPRFeedback, type FormattedFeedbackItem 
+  getPRFeedback,
+  type FormattedFeedbackItem,
+  type ReviewDecision,
 } from '../../external-clients/pr-feedback'
 import type { GetPRFeedbackContext } from '../get-pr-feedback'
 
@@ -14,9 +16,14 @@ interface PRFeedbackStatus {
   prNumber?: number
   prUrl?: string
   mergeableState: string | null
+  reviewDecisions: ReviewDecision[]
   mergeable: boolean
   feedback: FormattedFeedbackItem[]
   feedbackCount: number
+}
+
+function hasNoChangesRequested(decisions: ReviewDecision[]): boolean {
+  return !decisions.some((d) => d.state === 'CHANGES_REQUESTED')
 }
 
 export const fetchFeedback: Step<GetPRFeedbackContext> = {
@@ -27,6 +34,7 @@ export const fetchFeedback: Step<GetPRFeedbackContext> = {
         branch: ctx.branch,
         state: 'not_found',
         mergeableState: null,
+        reviewDecisions: [],
         mergeable: false,
         feedback: [],
         feedbackCount: 0,
@@ -43,6 +51,7 @@ export const fetchFeedback: Step<GetPRFeedbackContext> = {
         prNumber: ctx.prNumber,
         prUrl: ctx.prUrl,
         mergeableState: null,
+        reviewDecisions: [],
         mergeable: false,
         feedback: [],
         feedbackCount: 0,
@@ -50,8 +59,13 @@ export const fetchFeedback: Step<GetPRFeedbackContext> = {
       return success(status)
     }
 
-    const feedback = await getPRFeedback(ctx.prNumber, { includeResolved: ctx.includeResolved })
+    const prFeedback = await getPRFeedback(ctx.prNumber, { includeResolved: ctx.includeResolved })
     const mergeableState = isMergedOrClosed ? null : await github.getMergeableState(ctx.prNumber)
+
+    const isMergeable =
+      mergeableState === 'clean' &&
+      prFeedback.threads.length === 0 &&
+      hasNoChangesRequested(prFeedback.reviewDecisions)
 
     const status: PRFeedbackStatus = {
       branch: ctx.branch,
@@ -59,9 +73,10 @@ export const fetchFeedback: Step<GetPRFeedbackContext> = {
       prNumber: ctx.prNumber,
       prUrl: ctx.prUrl,
       mergeableState,
-      mergeable: mergeableState === 'clean' && feedback.length === 0,
-      feedback,
-      feedbackCount: feedback.length,
+      reviewDecisions: prFeedback.reviewDecisions,
+      mergeable: isMergeable,
+      feedback: prFeedback.threads,
+      feedbackCount: prFeedback.threads.length,
     }
 
     return success(status)

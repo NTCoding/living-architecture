@@ -15,20 +15,34 @@ export const fetchPRFeedback: Step<CompleteTaskContext> = {
       })
     }
 
-    const feedback = await getPRFeedback(ctx.prNumber)
+    const prFeedback = await getPRFeedback(ctx.prNumber)
 
-    if (feedback.length > 0) {
-      const summary = feedback
-        .map((f) => {
-          const truncated = f.body.length > 100
-          const preview = truncated ? `${f.body.slice(0, 100)}...` : f.body
-          return `- ${f.location}: ${preview}`
-        })
-        .join('\n')
+    const changesRequested = prFeedback.reviewDecisions.filter(
+      (d) => d.state === 'CHANGES_REQUESTED',
+    )
+
+    if (changesRequested.length > 0 || prFeedback.threads.length > 0) {
+      const parts: string[] = []
+
+      if (changesRequested.length > 0) {
+        const reviewers = changesRequested.map((d) => d.reviewer).join(', ')
+        parts.push(`Changes requested by: ${reviewers}`)
+      }
+
+      if (prFeedback.threads.length > 0) {
+        const threadSummary = prFeedback.threads
+          .map((f) => {
+            const truncated = f.body.length > 100
+            const preview = truncated ? `${f.body.slice(0, 100)}...` : f.body
+            return `- ${f.location}: ${preview}`
+          })
+          .join('\n')
+        parts.push(`Unresolved threads:\n${threadSummary}`)
+      }
 
       return failure({
         type: 'resolve_feedback',
-        details: summary,
+        details: parts.join('\n\n'),
       })
     }
 

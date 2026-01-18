@@ -19,7 +19,7 @@ function getGitHubToken(): string {
   )
 }
 
-const getOctokit = (() => {
+export const getOctokit = (() => {
   const cache: { instance?: Octokit } = {}
   return (): Octokit => {
     if (cache.instance) {
@@ -31,7 +31,7 @@ const getOctokit = (() => {
   }
 })()
 
-const DELETED_USER_PLACEHOLDER = '[deleted]'
+export const DELETED_USER_PLACEHOLDER = '[deleted]'
 
 type PRState = 'open' | 'closed' | 'merged'
 
@@ -47,14 +47,6 @@ interface CreatePROptions {
   body: string
   branch: string
   base?: string
-}
-
-interface FeedbackItem {
-  threadId: string
-  file: string | null
-  line: number | null
-  author: string
-  body: string
 }
 
 interface CIResult {
@@ -100,7 +92,7 @@ function parseGitHubUrl(url: string): {
   throw new GitHubError(`Could not parse GitHub URL: ${url}`)
 }
 
-async function getRepoInfo(): Promise<{
+export async function getRepoInfo(): Promise<{
   owner: string
   repo: string
 }> {
@@ -256,86 +248,6 @@ export const github = {
     })
 
     return response.data.mergeable_state
-  },
-
-  async getFeedback(
-    prNumber: number,
-    options: { includeResolved?: boolean } = {},
-  ): Promise<FeedbackItem[]> {
-    const {
-      owner, repo 
-    } = await getRepoInfo()
-
-    const query = `
-      query($owner: String!, $repo: String!, $pr: Int!) {
-        repository(owner: $owner, name: $repo) {
-          pullRequest(number: $pr) {
-            reviewThreads(first: 100) {
-              nodes {
-                id
-                isResolved
-                isOutdated
-                path
-                line
-                comments(first: 1) {
-                  nodes {
-                    author { login }
-                    body
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    `
-
-    interface GraphQLResponse {
-      repository: {
-        pullRequest: {
-          reviewThreads: {
-            nodes: Array<{
-              id: string
-              isResolved: boolean
-              isOutdated: boolean
-              path: string | null
-              line: number | null
-              comments: {
-                nodes: Array<{
-                  author: { login: string } | null
-                  body: string
-                }>
-              }
-            }>
-          }
-        }
-      }
-    }
-
-    const response = await getOctokit().graphql<GraphQLResponse>(query, {
-      owner,
-      repo,
-      pr: prNumber,
-    })
-
-    const threads = response.repository.pullRequest.reviewThreads.nodes
-
-    return threads
-      .filter((t) => {
-        if (t.comments.nodes.length === 0) return false
-        if (options.includeResolved) return true
-        return !t.isResolved && !t.isOutdated
-      })
-      .map((thread) => {
-        const comment = thread.comments.nodes[0]
-        return {
-          threadId: thread.id,
-          file: thread.path,
-          line: thread.line,
-          author: comment.author?.login ?? DELETED_USER_PLACEHOLDER,
-          body: comment.body,
-        }
-      })
   },
 
   async watchCI(
