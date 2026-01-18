@@ -98,8 +98,16 @@ async function executeCodeReviewAgents(
     body: string
   },
 ): Promise<ReviewerResult[]> {
+  const validReviewers = new Set(['code-review', 'bug-scanner', 'task-check'])
+
   return Promise.all(
     names.map(async (name) => {
+      if (!validReviewers.has(name)) {
+        throw new AgentError(
+          `Invalid reviewer name: ${name}. Must be one of: ${Array.from(validReviewers).join(', ')}`,
+        )
+      }
+
       const agentPath = `.claude/agents/${name}.md`
       const basePrompt = await loadAgentInstructions(agentPath)
       const reportPath = `${reviewDir}/${name}.md`

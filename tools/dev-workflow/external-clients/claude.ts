@@ -2,18 +2,14 @@ import { query as sdkQuery } from '@anthropic-ai/claude-agent-sdk'
 import { writeFile } from 'node:fs/promises'
 import { z } from 'zod'
 import { ClaudeQueryError } from '../errors'
-
-/**
- * Environment variable used to signal that the hook is being invoked by the Claude Agent SDK.
- * When set to 'true' or '1', the dev-workflow hooks will skip processing and immediately return,
- * preventing hook validation from interfering with SDK agent operations.
- *
- * This is necessary because the Claude Agent SDK spawns the hook script as a subprocess and we
- * need a way to communicate that it's an SDK-spawned agent without requiring changes to the SDK
- * itself. Environment variables are the standard mechanism for subprocess communication.
- */
 export const CLAUDE_SDK_AGENT_ENV_VAR = 'CLAUDE_SDK_AGENT'
 
+/**
+ * Filesystem settings sources to load for the Claude Agent.
+ * - 'user' - Global user settings (~/.claude/settings.json)
+ * - 'project' - Project settings (.claude/settings.json) and CLAUDE.md
+ * - 'local' - Local settings (.claude/settings.local.json)
+ */
 type SettingSource = 'user' | 'project' | 'local'
 
 interface ClaudeQueryOptions<T> {
