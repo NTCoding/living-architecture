@@ -1,8 +1,8 @@
-# PRD: Phase 13 — Graph Merging
+# PRD: Phase 14 — Cross-Repo Linking
 
-**Status:** Draft
+**Status:** Not Started
 
-**Depends on:** Phase 12 (Connection Detection)
+**Depends on:** Phase 13 (Extraction Workflows)
 
 ---
 
@@ -104,8 +104,8 @@ TBD — To be defined during discovery.
 ## 9. Dependencies
 
 **Depends on:**
-- Phase 9 (Launch) — Need stable packages
-- Phase 12 (Connection Detection) — Full graphs with connections needed for merging
+- Phase 12 (Connection Detection) — Single-graph connections needed first
+- Phase 13 (Extraction Workflows) — Workflows enable coordinated multi-repo extraction
 
 **Blocks:**
 - Multi-repo visualization in Eclair
