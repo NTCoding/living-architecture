@@ -2,12 +2,31 @@ import { query as sdkQuery } from '@anthropic-ai/claude-agent-sdk'
 import { writeFile } from 'node:fs/promises'
 import { z } from 'zod'
 import { ClaudeQueryError } from '../errors'
+export const CLAUDE_SDK_AGENT_ENV_VAR = 'CLAUDE_SDK_AGENT'
+
+/**
+ * Filesystem settings sources to load for the Claude Agent.
+ * - 'user' - Global user settings (~/.claude/settings.json)
+ * - 'project' - Project settings (.claude/settings.json) and CLAUDE.md
+ * - 'local' - Local settings (.claude/settings.local.json)
+ */
+type SettingSource = 'user' | 'project' | 'local'
 
 interface ClaudeQueryOptions<T> {
   prompt: string
   model: 'opus' | 'sonnet' | 'haiku'
   outputSchema: z.ZodSchema<T>
   outputPath: string
+  /**
+   * Control which filesystem settings to load.
+   * - 'user' - Global user settings (~/.claude/settings.json)
+   * - 'project' - Project settings (.claude/settings.json) and CLAUDE.md
+   * - 'local' - Local settings (.claude/settings.local.json)
+   *
+   * Required to load project context, skills, and plugins.
+   * @default []
+   */
+  settingSources?: SettingSource[]
 }
 
 const resultMessageSchema = z.object({
@@ -38,10 +57,14 @@ function extractJsonFromCodeBlock(text: string): string | null {
   return text.slice(jsonStart, jsonEnd).trim()
 }
 
-function parseJsonFromCodeBlockOrRaw<T>(result: string, schema: z.ZodSchema<T>): T {
+function parseJsonFromCodeBlock<T>(result: string, schema: z.ZodSchema<T>): T {
   const jsonFromCodeBlock = extractJsonFromCodeBlock(result)
-  const jsonToParse = jsonFromCodeBlock ?? result
-  const parsed: unknown = JSON.parse(jsonToParse)
+  if (jsonFromCodeBlock === null) {
+    throw new ClaudeQueryError(
+      'Response does not contain valid JSON. Expected either a ```json code block or raw JSON.',
+    )
+  }
+  const parsed: unknown = JSON.parse(jsonFromCodeBlock)
   return schema.parse(parsed)
 }
 
@@ -78,6 +101,11 @@ export const claude = {
       options: {
         model: opts.model,
         maxTurns: 200,
+        settingSources: opts.settingSources,
+        env: {
+          ...process.env,
+          [CLAUDE_SDK_AGENT_ENV_VAR]: 'true',
+        },
         outputFormat: {
           type: 'json_schema',
           schema: z.toJSONSchema(opts.outputSchema),
@@ -101,7 +129,7 @@ export const claude = {
       }
 
       try {
-        return parseJsonFromCodeBlockOrRaw(message.result, opts.outputSchema)
+        return parseJsonFromCodeBlock(message.result, opts.outputSchema)
       } catch (parseError) {
         const errorDetail = parseError instanceof Error ? parseError.message : String(parseError)
         throw new ClaudeQueryError(

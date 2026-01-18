@@ -1,5 +1,7 @@
 #!/usr/bin/env tsx
 
+import { CLAUDE_SDK_AGENT_ENV_VAR } from '../external-clients/claude'
+
 import * as readline from 'node:readline'
 import { hookInputSchema } from './claude-code-input-schemas'
 import type {
@@ -54,7 +56,24 @@ function tryParseJson(input: string): JsonParseResult {
   }
 }
 
+function isRunningAsSDKSpawnedAgent(): boolean {
+  const sdkAgentEnv = process.env[CLAUDE_SDK_AGENT_ENV_VAR]
+  if (!sdkAgentEnv) {
+    return false
+  }
+  return sdkAgentEnv.toLowerCase() === 'true' || sdkAgentEnv === '1'
+}
+
+function skipHooksForSDKAgents(): void {
+  console.log(JSON.stringify({}))
+}
+
 async function main(): Promise<void> {
+  if (isRunningAsSDKSpawnedAgent()) {
+    skipHooksForSDKAgents()
+    return
+  }
+
   const rawInput = await readStdin()
 
   const jsonResult = tryParseJson(rawInput)
