@@ -17,8 +17,9 @@ interface ClaudeQueryOptions<T> {
    * - 'local' - Local settings (.claude/settings.local.json)
    *
    * Required to load project context, skills, and plugins.
+   * @default []
    */
-  settingSources: SettingSource[]
+  settingSources?: SettingSource[]
 }
 
 const resultMessageSchema = z.object({

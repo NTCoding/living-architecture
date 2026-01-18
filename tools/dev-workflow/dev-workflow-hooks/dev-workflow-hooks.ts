@@ -55,7 +55,11 @@ function tryParseJson(input: string): JsonParseResult {
 }
 
 function isRunningAsSDKSpawnedAgent(): boolean {
-  return process.env.CLAUDE_SDK_AGENT === 'true'
+  const sdkAgentEnv = process.env.CLAUDE_SDK_AGENT
+  if (!sdkAgentEnv) {
+    return false
+  }
+  return sdkAgentEnv.toLowerCase() === 'true' || sdkAgentEnv === '1'
 }
 
 function skipHooksForSDKAgents(): void {
