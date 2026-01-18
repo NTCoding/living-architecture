@@ -8,21 +8,21 @@ const baseHookInputSchema = z.object({
   hook_event_name: z.string(),
 })
 
-export const preToolUseInputSchema = baseHookInputSchema.extend({
+const preToolUseInputSchema = baseHookInputSchema.extend({
   hook_event_name: z.literal('PreToolUse'),
   tool_name: z.string(),
   tool_input: z.record(z.string(), z.unknown()),
 })
 export type PreToolUseInput = z.infer<typeof preToolUseInputSchema>
 
-export const postToolUseInputSchema = baseHookInputSchema.extend({
+const postToolUseInputSchema = baseHookInputSchema.extend({
   hook_event_name: z.literal('PostToolUse'),
   tool_name: z.string(),
   tool_response: z.record(z.string(), z.unknown()),
 })
 export type PostToolUseInput = z.infer<typeof postToolUseInputSchema>
 
-export const stopInputSchema = baseHookInputSchema.extend({
+const stopInputSchema = baseHookInputSchema.extend({
   hook_event_name: z.literal('Stop'),
   stop_hook_active: z.boolean(),
 })
@@ -33,4 +33,3 @@ export const hookInputSchema = z.discriminatedUnion('hook_event_name', [
   postToolUseInputSchema,
   stopInputSchema,
 ])
-export type HookInput = z.infer<typeof hookInputSchema>
