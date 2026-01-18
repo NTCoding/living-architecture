@@ -61,7 +61,7 @@ function extractJsonFromCodeBlock(text: string): string | null {
   return text.slice(jsonStart, jsonEnd).trim()
 }
 
-function parseJsonFromCodeBlockOrRaw<T>(result: string, schema: z.ZodSchema<T>): T {
+function parseJsonFromCodeBlock<T>(result: string, schema: z.ZodSchema<T>): T {
   const jsonFromCodeBlock = extractJsonFromCodeBlock(result)
   if (jsonFromCodeBlock === null) {
     throw new ClaudeQueryError(
@@ -133,7 +133,7 @@ export const claude = {
       }
 
       try {
-        return parseJsonFromCodeBlockOrRaw(message.result, opts.outputSchema)
+        return parseJsonFromCodeBlock(message.result, opts.outputSchema)
       } catch (parseError) {
         const errorDetail = parseError instanceof Error ? parseError.message : String(parseError)
         throw new ClaudeQueryError(
