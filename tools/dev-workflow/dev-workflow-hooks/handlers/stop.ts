@@ -56,8 +56,21 @@ function extractTextFromContent(content: string | unknown[]): string | undefined
   return textBlockSchema.parse(textBlock).text
 }
 
+function tryParseJson(line: string): unknown | undefined {
+  try {
+    return JSON.parse(line)
+  } catch {
+    return undefined
+  }
+}
+
 function parseTranscriptEntry(line: string): string | undefined {
-  const parseResult = transcriptEntrySchema.safeParse(JSON.parse(line))
+  const parsed = tryParseJson(line)
+  if (parsed === undefined) {
+    return undefined
+  }
+
+  const parseResult = transcriptEntrySchema.safeParse(parsed)
   if (!parseResult.success) {
     return undefined
   }

@@ -2,7 +2,7 @@ import * as fs from 'node:fs'
 import * as os from 'node:os'
 import * as path from 'node:path'
 import {
-  describe, it, expect, afterEach 
+  describe, it, expect, afterEach, afterAll 
 } from 'vitest'
 import { handlePreToolUse } from './handlers/pre-tool-use'
 import { handlePostToolUse } from './handlers/post-tool-use'
@@ -137,6 +137,10 @@ describe('Stop handler', () => {
     for (const file of files) {
       fs.unlinkSync(path.join(tempDir, file))
     }
+  })
+
+  afterAll(() => {
+    fs.rmdirSync(tempDir)
   })
 
   function writeTranscript(lines: object[]): string {
@@ -297,7 +301,7 @@ describe('Stop handler', () => {
     expect(result.decision).toBeUndefined()
   })
 
-  it('skips entries that fail schema validation', () => {
+  it('finds last assistant message when user message is last', () => {
     const transcriptPath = writeTranscript([
       {
         type: 'assistant',
@@ -308,6 +312,18 @@ describe('Stop handler', () => {
         message: { content: 'User message last' },
       },
     ])
+    const input = createStopInput(transcriptPath)
+    const result = handleStop(input)
+
+    expect(result.decision).toBeUndefined()
+  })
+
+  it('handles malformed JSON in transcript lines', () => {
+    const transcriptPath = path.join(tempDir, 'malformed.jsonl')
+    fs.writeFileSync(
+      transcriptPath,
+      '{"type":"assistant","message":{"content":"[Mergeable PR] Done."}}\nnot valid json',
+    )
     const input = createStopInput(transcriptPath)
     const result = handleStop(input)
 
