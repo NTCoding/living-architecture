@@ -12,11 +12,10 @@ Bug scanning is handled by the bug-scanner agent - do not duplicate that work he
 ## Instructions
 
 1. Read the code review rules: `docs/workflow/code-review.md`
-2. Load and apply the `separation-of-concerns` skill (`/development-skills:separation-of-concerns`) to all code being reviewed and related code
-3. Review ALL files listed in "Files to Review" below
-4. For each file, read its contents and analyze against the rules
-5. Check related files as needed (callers, implementations, imports) to understand context
-6. Output your findings as structured JSON
+2. Review ALL files listed in "Files to Review" below
+3. For each file, read its contents and analyze against the rules
+4. Check related files as needed (callers, implementations, imports) to understand context
+5. Output your findings as structured JSON
 
 ## Severity Levels
 

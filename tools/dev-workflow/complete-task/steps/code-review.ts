@@ -1,4 +1,5 @@
 import { readFile } from 'node:fs/promises'
+import { z } from 'zod'
 import type { Step } from '../../workflow-runner/workflow-runner'
 import {
   success, failure 
@@ -6,17 +7,33 @@ import {
 import { claude } from '../../external-clients/claude'
 import { git } from '../../external-clients/git'
 import { cli } from '../../external-clients/cli'
-import {
-  agentResponseSchema, type ReviewerResult 
-} from '../../workflow-runner/schemas'
 import { AgentError } from '../../errors'
 import type { CompleteTaskContext } from '../complete-task'
+
+const findingSchema = z.object({
+  severity: z.enum(['critical', 'major', 'minor']),
+  file: z.string(),
+  line: z.number().nullish(),
+  message: z.string(),
+})
+
+const agentResponseSchema = z.object({
+  result: z.enum(['PASS', 'FAIL']),
+  summary: z.string(),
+  findings: z.array(findingSchema),
+})
+
+const reviewerResultSchema = agentResponseSchema.extend({
+  name: z.string(),
+  reportPath: z.string(),
+})
+export type ReviewerResult = z.infer<typeof reviewerResultSchema>
 
 function shouldSkipCodeReview(): boolean {
   return cli.hasFlag('--reject-review-feedback')
 }
 
-async function readAgentPrompt(agentPath: string): Promise<string> {
+async function loadAgentInstructions(agentPath: string): Promise<string> {
   try {
     return await readFile(agentPath, 'utf-8')
   } catch (error) {
@@ -45,7 +62,12 @@ export const codeReview: Step<CompleteTaskContext> = {
 
     const reviewerNames = ['code-review', 'bug-scanner', ...(ctx.hasIssue ? ['task-check'] : [])]
 
-    const results = await runReviewers(reviewerNames, filesToReview, ctx.reviewDir, ctx.taskDetails)
+    const results = await executeCodeReviewAgents(
+      reviewerNames,
+      filesToReview,
+      ctx.reviewDir,
+      ctx.taskDetails,
+    )
 
     const failures = results.filter((r) => r.result === 'FAIL')
     if (failures.length > 0) {
@@ -63,7 +85,7 @@ export const codeReview: Step<CompleteTaskContext> = {
   },
 }
 
-async function runReviewers(
+async function executeCodeReviewAgents(
   names: readonly string[],
   filesToReview: string[],
   reviewDir: string,
@@ -75,7 +97,7 @@ async function runReviewers(
   return Promise.all(
     names.map(async (name) => {
       const agentPath = `.claude/agents/${name}.md`
-      const basePrompt = await readAgentPrompt(agentPath)
+      const basePrompt = await loadAgentInstructions(agentPath)
       const reportPath = `${reviewDir}/${name}.md`
 
       const promptParts = [basePrompt, '\n\n## Files to Review\n\n', filesToReview.join('\n')]
