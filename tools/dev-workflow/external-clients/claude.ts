@@ -63,8 +63,12 @@ function extractJsonFromCodeBlock(text: string): string | null {
 
 function parseJsonFromCodeBlockOrRaw<T>(result: string, schema: z.ZodSchema<T>): T {
   const jsonFromCodeBlock = extractJsonFromCodeBlock(result)
-  const jsonToParse = jsonFromCodeBlock ?? result
-  const parsed: unknown = JSON.parse(jsonToParse)
+  if (jsonFromCodeBlock === null) {
+    throw new ClaudeQueryError(
+      'Response does not contain valid JSON. Expected either a ```json code block or raw JSON.',
+    )
+  }
+  const parsed: unknown = JSON.parse(jsonFromCodeBlock)
   return schema.parse(parsed)
 }
 

@@ -33,6 +33,10 @@ function shouldSkipCodeReview(): boolean {
   return cli.hasFlag('--reject-review-feedback')
 }
 
+function getReviewerNames(hasIssue: boolean): readonly string[] {
+  return ['code-review', 'bug-scanner', ...(hasIssue ? ['task-check'] : [])]
+}
+
 async function loadAgentInstructions(agentPath: string): Promise<string> {
   try {
     return await readFile(agentPath, 'utf-8')
@@ -60,7 +64,7 @@ export const codeReview: Step<CompleteTaskContext> = {
     const baseBranch = await git.baseBranch()
     const filesToReview = await git.diffFiles(baseBranch)
 
-    const reviewerNames = ['code-review', 'bug-scanner', ...(ctx.hasIssue ? ['task-check'] : [])]
+    const reviewerNames = getReviewerNames(ctx.hasIssue)
 
     const results = await executeCodeReviewAgents(
       reviewerNames,
