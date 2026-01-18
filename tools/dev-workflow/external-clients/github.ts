@@ -3,11 +3,20 @@ import simpleGit from 'simple-git'
 import { GitHubError } from '../errors'
 
 function getGitHubToken(): string {
-  const token = process.env.GITHUB_TOKEN ?? process.env.GH_TOKEN
-  if (!token) {
-    throw new GitHubError('GITHUB_TOKEN or GH_TOKEN environment variable is required')
+  const githubToken = process.env.GITHUB_TOKEN
+  const ghToken = process.env.GH_TOKEN
+
+  if (githubToken) {
+    return githubToken
   }
-  return token
+
+  if (ghToken) {
+    return ghToken
+  }
+
+  throw new GitHubError(
+    'GitHub token not found. Set GITHUB_TOKEN or GH_TOKEN environment variable.',
+  )
 }
 
 const getOctokit = (() => {
@@ -246,7 +255,7 @@ export const github = {
       pull_number: prNumber,
     })
 
-    return response.data.mergeable_state ?? null
+    return response.data.mergeable_state
   },
 
   async getFeedback(
