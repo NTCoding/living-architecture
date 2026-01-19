@@ -14,8 +14,8 @@ Read @/docs/conventions/codebase-structure.md
 Ensure that all code is in the correct place and aligns with boundaries and layering requirements. Look at each line of code and ask "What is the purpose of this code? Is it related to other code? Is it highly cohesive? Should it really be here or would it fit better somewhere else?"
 
 Load and aply the following skills:
-  - development-skills:separation-of-concerns
-  - development-skills:tactical-ddd
+- development-skills:separation-of-concerns
+- development-skills:tactical-ddd
 
 ### Vertical Slice Organization
 
