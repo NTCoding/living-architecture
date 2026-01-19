@@ -5,7 +5,7 @@ model: opus
 color: purple
 ---
 
-Perform semantic code review against project conventions. Be critical - if in doubt, flag it.
+Perform semantic code and architecture review against project conventions. Be critical - if in doubt, flag it.
 
 Bug scanning is handled by the bug-scanner agent - do not duplicate that work here.
 

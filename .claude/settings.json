@@ -52,9 +52,9 @@
   },
   "enabledPlugins": {
     "task-check@claude-skillz": true,
-    "automatic-code-review@claude-skillz": false,
     "development-skills@claude-skillz": true,
-    "full-codebase-review@claude-skillz": true
+    "full-codebase-review@claude-skillz": true,
+    "architect-refine-critique@claude-skillz": true
   },
   "automaticCodeReview": {
     "enabled": false,

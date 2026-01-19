@@ -13,6 +13,10 @@ Read @/docs/conventions/codebase-structure.md
 
 Ensure that all code is in the correct place and aligns with boundaries and layering requirements. Look at each line of code and ask "What is the purpose of this code? Is it related to other code? Is it highly cohesive? Should it really be here or would it fit better somewhere else?"
 
+Load and apply the following skills:
+- development-skills:separation-of-concerns
+- development-skills:tactical-ddd
+
 ### Vertical Slice Organization
 
 Check for type-based organization patterns that violate the "organize by usage" principle.
