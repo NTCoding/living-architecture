@@ -12,9 +12,14 @@ import { codeReview } from '../domain/steps/run-code-review'
 import { submitPR } from '../domain/steps/submit-pull-request'
 import { fetchPRFeedback } from '../domain/steps/fetch-feedback'
 
+function sanitizeBranchNameForPath(branch: string): string {
+  return branch.replaceAll(/[^a-zA-Z0-9_-]/g, '_')
+}
+
 async function buildCompleteTaskContext(): Promise<CompleteTaskContext> {
   const branch = await git.currentBranch()
-  const reviewDir = `reviews/${branch}`
+  const safeBranch = sanitizeBranchNameForPath(branch)
+  const reviewDir = `reviews/${safeBranch}`
 
   await mkdir(reviewDir, { recursive: true })
 
