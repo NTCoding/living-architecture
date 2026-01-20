@@ -1,11 +1,11 @@
-export interface PRLevelLocation {type: 'pr-level'}
+interface PRLevelLocation {type: 'pr-level'}
 
-export interface FileLevelLocation {
+interface FileLevelLocation {
   type: 'file-level'
   file: string
 }
 
-export interface LineLevelLocation {
+interface LineLevelLocation {
   type: 'line-level'
   file: string
   line: number

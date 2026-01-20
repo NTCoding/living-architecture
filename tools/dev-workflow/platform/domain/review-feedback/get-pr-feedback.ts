@@ -6,7 +6,6 @@ import { Reviewer } from './reviewer'
 import { type ReviewDecision } from './review-decision'
 
 export type { FormattedFeedbackItem }
-export type { ReviewDecision }
 
 export async function getPRFeedback(
   prNumber: number,

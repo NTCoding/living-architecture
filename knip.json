@@ -42,13 +42,18 @@
     },
     "tools/dev-workflow": {
       "entry": [
-        "complete-task/complete-task.ts",
-        "get-pr-feedback/get-pr-feedback.ts",
-        "respond-to-feedback/respond-to-feedback.ts",
-        "dev-workflow-hooks/dev-workflow-hooks.ts"
+        "features/complete-task/entrypoint/cli.ts",
+        "features/get-pr-feedback/entrypoint/cli.ts",
+        "features/respond-to-feedback/entrypoint/cli.ts",
+        "features/claude-hooks/entrypoint/hook-router.ts",
+        "features/claude-hooks/claude-hooks.spec.ts",
+        "shell/index.ts"
       ],
       "project": [
         "**/*.ts"
+      ],
+      "ignoreDependencies": [
+        "vitest"
       ]
     }
   },

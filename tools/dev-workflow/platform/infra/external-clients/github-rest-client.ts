@@ -38,8 +38,6 @@ export const getOctokit = (() => {
   }
 })()
 
-export const DELETED_USER_PLACEHOLDER = '[deleted]'
-
 type PRState = 'open' | 'closed' | 'merged'
 
 interface PR {

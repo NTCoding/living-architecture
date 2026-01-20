@@ -36,12 +36,15 @@ const reviewerResultSchema = agentResponseSchema.extend({
 })
 type ReviewerResult = z.infer<typeof reviewerResultSchema>
 
+const VALID_REVIEWERS = ['code-review', 'bug-scanner', 'task-check'] as const
+type ReviewerName = (typeof VALID_REVIEWERS)[number]
+
 function shouldSkipCodeReview(): boolean {
   return cli.hasFlag('--reject-review-feedback')
 }
 
-function getReviewerNames(hasIssue: boolean): readonly string[] {
-  return ['code-review', 'bug-scanner', ...(hasIssue ? ['task-check'] : [])]
+function getReviewerNames(hasIssue: boolean): readonly ReviewerName[] {
+  return ['code-review', 'bug-scanner', ...(hasIssue ? (['task-check'] as const) : [])]
 }
 
 async function loadAgentInstructions(agentPath: string): Promise<string> {
@@ -97,7 +100,7 @@ export const codeReview: Step<CompleteTaskContext> = {
 }
 
 async function executeCodeReviewAgents(
-  names: readonly string[],
+  names: readonly ReviewerName[],
   filesToReview: string[],
   reviewDir: string,
   taskDetails?: {
@@ -105,13 +108,13 @@ async function executeCodeReviewAgents(
     body: string
   },
 ): Promise<ReviewerResult[]> {
-  const validReviewers = new Set(['code-review', 'bug-scanner', 'task-check'])
+  const validReviewerSet = new Set<string>(VALID_REVIEWERS)
 
   return Promise.all(
     names.map(async (name) => {
-      if (!validReviewers.has(name)) {
+      if (!validReviewerSet.has(name)) {
         throw new AgentError(
-          `Invalid reviewer name: ${name}. Must be one of: ${Array.from(validReviewers).join(', ')}`,
+          `Invalid reviewer name: ${name}. Must be one of: ${VALID_REVIEWERS.join(', ')}`,
         )
       }
 

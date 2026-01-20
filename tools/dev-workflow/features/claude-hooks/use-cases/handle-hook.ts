@@ -1,8 +1,34 @@
-import type { HookInput } from '../domain/hook-input-schemas'
+import {
+  hookInputSchema, type HookInput 
+} from '../domain/hook-input-schemas'
 import type { HookOutput } from '../domain/hook-output-schemas'
-import { handlePreToolUse } from '../domain/handlers/pre-tool-use'
-import { handlePostToolUse } from '../domain/handlers/post-tool-use'
-import { handleStop } from '../domain/handlers/stop'
+import { handlePreToolUse } from '../domain/handlers/pre-tool-use-handler'
+import { handlePostToolUse } from '../domain/handlers/post-tool-use-handler'
+import { handleStop } from '../domain/handlers/stop-handler'
+
+type ParseInputResult =
+  | {
+    success: true
+    input: HookInput
+  }
+  | {
+    success: false
+    error: string
+  }
+
+export function parseHookInput(rawJson: unknown): ParseInputResult {
+  const parseResult = hookInputSchema.safeParse(rawJson)
+  if (!parseResult.success) {
+    return {
+      success: false,
+      error: parseResult.error.message,
+    }
+  }
+  return {
+    success: true,
+    input: parseResult.data,
+  }
+}
 
 export function routeToHandler(input: HookInput): HookOutput {
   switch (input.hook_event_name) {

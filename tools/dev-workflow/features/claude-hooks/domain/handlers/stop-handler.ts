@@ -40,12 +40,13 @@ function extractTextFromContent(content: string | unknown[]): string | undefined
     return content
   }
 
-  const textBlock = content.find((block) => textBlockSchema.safeParse(block).success)
-  if (!textBlock) {
-    return undefined
+  for (const block of content) {
+    const parseResult = textBlockSchema.safeParse(block)
+    if (parseResult.success) {
+      return parseResult.data.text
+    }
   }
-
-  return textBlockSchema.parse(textBlock).text
+  return undefined
 }
 
 function tryParseJson(line: string): unknown | undefined {

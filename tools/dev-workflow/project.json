@@ -5,21 +5,21 @@
     "complete-task": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "./tools/dev-workflow/node_modules/.bin/tsx tools/dev-workflow/complete-task/complete-task.ts",
+        "command": "./tools/dev-workflow/node_modules/.bin/tsx tools/dev-workflow/features/complete-task/entrypoint/cli.ts",
         "cwd": "{workspaceRoot}"
       }
     },
     "get-pr-feedback": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "./tools/dev-workflow/node_modules/.bin/tsx tools/dev-workflow/get-pr-feedback/get-pr-feedback.ts",
+        "command": "./tools/dev-workflow/node_modules/.bin/tsx tools/dev-workflow/features/get-pr-feedback/entrypoint/cli.ts",
         "cwd": "{workspaceRoot}"
       }
     },
     "respond-to-feedback": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "./tools/dev-workflow/node_modules/.bin/tsx tools/dev-workflow/respond-to-feedback/respond-to-feedback.ts",
+        "command": "./tools/dev-workflow/node_modules/.bin/tsx tools/dev-workflow/features/respond-to-feedback/entrypoint/cli.ts",
         "cwd": "{workspaceRoot}"
       }
     }

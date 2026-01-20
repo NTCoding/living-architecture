@@ -3,8 +3,9 @@
 import { CLAUDE_SDK_AGENT_ENV_VAR } from '../../../platform/infra/external-clients/claude-agent'
 
 import * as readline from 'node:readline'
-import { hookInputSchema } from '../domain/hook-input-schemas'
-import { routeToHandler } from '../use-cases/handle-hook'
+import {
+  parseHookInput, routeToHandler 
+} from '../use-cases/handle-hook'
 
 async function readStdin(): Promise<string> {
   const rl = readline.createInterface({
@@ -64,13 +65,13 @@ async function main(): Promise<void> {
     process.exit(2)
   }
 
-  const parseResult = hookInputSchema.safeParse(jsonResult.data)
+  const parseResult = parseHookInput(jsonResult.data)
   if (!parseResult.success) {
-    console.error(`Invalid hook input: ${parseResult.error.message}`)
+    console.error(`Invalid hook input: ${parseResult.error}`)
     process.exit(2)
   }
 
-  const output = routeToHandler(parseResult.data)
+  const output = routeToHandler(parseResult.input)
   console.log(JSON.stringify(output))
 }
 

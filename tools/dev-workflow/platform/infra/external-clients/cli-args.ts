@@ -1,4 +1,4 @@
-import { WorkflowError } from '../../../errors'
+import { WorkflowError } from '../../domain/workflow-execution/workflow-runner'
 
 export const cli = {
   parseArg(flag: string): string | undefined {

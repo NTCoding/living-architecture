@@ -4,9 +4,9 @@ import * as path from 'node:path'
 import {
   describe, it, expect, afterEach, afterAll 
 } from 'vitest'
-import { handlePreToolUse } from './domain/handlers/pre-tool-use'
-import { handlePostToolUse } from './domain/handlers/post-tool-use'
-import { handleStop } from './domain/handlers/stop'
+import { handlePreToolUse } from './domain/handlers/pre-tool-use-handler'
+import { handlePostToolUse } from './domain/handlers/post-tool-use-handler'
+import { handleStop } from './domain/handlers/stop-handler'
 import type {
   PreToolUseInput, PostToolUseInput, StopInput 
 } from './domain/hook-input-schemas'

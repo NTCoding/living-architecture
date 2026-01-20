@@ -1,4 +1,4 @@
-export interface BlockedCommand {
+interface BlockedCommand {
   pattern: RegExp
   reason: string
 }

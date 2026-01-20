@@ -5,7 +5,7 @@ import {
 } from './feedback-location'
 import { Reviewer } from './reviewer'
 
-export interface ActiveThread {
+interface ActiveThread {
   type: 'active'
   threadId: string
   location: FeedbackLocation
@@ -13,7 +13,7 @@ export interface ActiveThread {
   body: string
 }
 
-export interface ResolvedThread {
+interface ResolvedThread {
   type: 'resolved'
   threadId: string
   location: FeedbackLocation
@@ -21,7 +21,7 @@ export interface ResolvedThread {
   body: string
 }
 
-export interface OutdatedThread {
+interface OutdatedThread {
   type: 'outdated'
   threadId: string
   location: FeedbackLocation

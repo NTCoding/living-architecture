@@ -46,33 +46,28 @@ const resultMessageSchema = z.object({
 
 type ResultMessage = z.infer<typeof resultMessageSchema>
 
-function extractJsonFromCodeBlock(text: string): string | null {
+function extractJsonFromCodeBlock(text: string): string {
   const startMarker = '```json'
   const endMarker = '```'
   const startIdx = text.indexOf(startMarker)
 
   if (startIdx < 0) {
-    return null
+    throw new ClaudeQueryError('Response does not contain a ```json code block')
   }
 
   const jsonStart = startIdx + startMarker.length
   const jsonEnd = text.indexOf(endMarker, jsonStart)
 
   if (jsonEnd < 0) {
-    return null
+    throw new ClaudeQueryError('Response has unclosed ```json code block')
   }
 
   return text.slice(jsonStart, jsonEnd).trim()
 }
 
 function parseJsonFromCodeBlock<T>(result: string, schema: z.ZodSchema<T>): T {
-  const jsonFromCodeBlock = extractJsonFromCodeBlock(result)
-  if (jsonFromCodeBlock === null) {
-    throw new ClaudeQueryError(
-      'Response does not contain valid JSON. Expected either a ```json code block or raw JSON.',
-    )
-  }
-  const parsed: unknown = JSON.parse(jsonFromCodeBlock)
+  const jsonContent = extractJsonFromCodeBlock(result)
+  const parsed: unknown = JSON.parse(jsonContent)
   return schema.parse(parsed)
 }
 

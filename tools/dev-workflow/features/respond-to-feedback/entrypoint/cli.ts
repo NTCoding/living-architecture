@@ -1,5 +1,5 @@
 #!/usr/bin/env tsx
-import { WorkflowError } from '../../../errors'
+import { WorkflowError } from '../../../platform/domain/workflow-execution/workflow-runner'
 import { respondToFeedback } from '../use-cases/respond-to-feedback'
 
 interface ParsedArgs {

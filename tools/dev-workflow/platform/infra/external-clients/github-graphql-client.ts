@@ -1,10 +1,8 @@
 import {
-  getOctokit, getRepoInfo, DELETED_USER_PLACEHOLDER 
+  getOctokit, getRepoInfo 
 } from './github-rest-client'
 
-export { DELETED_USER_PLACEHOLDER }
-
-export interface RawReviewThread {
+interface RawReviewThread {
   id: string
   isResolved: boolean
   isOutdated: boolean
@@ -18,7 +16,7 @@ export interface RawReviewThread {
   }
 }
 
-export interface RawReviewDecision {
+interface RawReviewDecision {
   author: { login: string } | null
   state: string
 }
