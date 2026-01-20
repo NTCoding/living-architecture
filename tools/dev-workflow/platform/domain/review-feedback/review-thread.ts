@@ -52,7 +52,7 @@ export function classifyThread(raw: RawThreadData): ReviewThread | null {
 
   const comment = raw.comments.nodes[0]
   const location = createFeedbackLocation(raw.path, raw.line)
-  const author = Reviewer.create(comment.author?.login)
+  const author = Reviewer.createFromGitHubLogin(comment.author?.login)
 
   const base = {
     threadId: raw.id,

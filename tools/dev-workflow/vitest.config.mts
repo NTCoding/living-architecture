@@ -15,7 +15,10 @@ export default defineConfig(() => ({
       reportsDirectory: './test-output/vitest/coverage',
       provider: 'v8' as const,
       reporter: ['text', 'lcov'],
-      include: ['dev-workflow-hooks/handlers/**/*.ts'],
+      include: [
+        'features/claude-hooks/domain/handlers/**/*.ts',
+        'features/complete-task/domain/task-check-marker.ts',
+      ],
       exclude: ['**/*.spec.ts', '**/*.test.ts'],
       thresholds: {
         lines: 100,

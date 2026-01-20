@@ -4,9 +4,9 @@ const responseActionSchema = z.enum(['fixed', 'rejected'])
 export type ResponseAction = z.infer<typeof responseActionSchema>
 
 export const respondToFeedbackInputSchema = z.object({
-  threadId: z.string().min(1, { error: 'threadId is required' }),
+  threadId: z.string().min(1, { message: 'threadId is required' }),
   action: responseActionSchema,
-  message: z.string().min(1, { error: 'message is required' }),
+  message: z.string().min(1, { message: 'message is required' }),
 })
 export type RespondToFeedbackInput = z.infer<typeof respondToFeedbackInputSchema>
 

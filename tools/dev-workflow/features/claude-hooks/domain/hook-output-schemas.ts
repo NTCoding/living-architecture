@@ -18,8 +18,8 @@ const postToolUseOutputSchema = z.object({
 export type PostToolUseOutput = z.infer<typeof postToolUseOutputSchema>
 
 const stopOutputSchema = z.object({
-  decision: z.enum(['block', 'continue']).optional(),
-  reason: z.string().optional(),
+  continue: z.boolean().optional(),
+  stopReason: z.string().optional(),
 })
 export type StopOutput = z.infer<typeof stopOutputSchema>
 

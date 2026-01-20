@@ -12,6 +12,9 @@ async function buildGetPRFeedbackContext(): Promise<GetPRFeedbackContext> {
 
   if (prNumberArg) {
     const prNumber = parseInt(prNumberArg, 10)
+    if (Number.isNaN(prNumber)) {
+      throw new TypeError(`Invalid --pr argument: "${prNumberArg}" is not a valid PR number`)
+    }
     const prInfo = await github.getPRWithState(prNumber)
     return {
       branch,

@@ -8,6 +8,9 @@ import { claude } from '../../../../platform/infra/external-clients/claude-agent
 import { git } from '../../../../platform/infra/external-clients/git-client'
 import { cli } from '../../../../platform/infra/external-clients/cli-args'
 import type { CompleteTaskContext } from '../task-to-complete'
+import {
+  taskCheckMarkerExists, createTaskCheckMarker 
+} from '../task-check-marker'
 
 export class AgentError extends Error {
   constructor(message: string) {
@@ -43,8 +46,9 @@ function shouldSkipCodeReview(): boolean {
   return cli.hasFlag('--reject-review-feedback')
 }
 
-function getReviewerNames(hasIssue: boolean): readonly ReviewerName[] {
-  return ['code-review', 'bug-scanner', ...(hasIssue ? (['task-check'] as const) : [])]
+function getReviewerNames(hasIssue: boolean, reviewDir: string): readonly ReviewerName[] {
+  const shouldRunTaskCheck = hasIssue && !taskCheckMarkerExists(reviewDir)
+  return ['code-review', 'bug-scanner', ...(shouldRunTaskCheck ? (['task-check'] as const) : [])]
 }
 
 async function loadAgentInstructions(agentPath: string): Promise<string> {
@@ -74,7 +78,7 @@ export const codeReview: Step<CompleteTaskContext> = {
     const baseBranch = await git.baseBranch()
     const filesToReview = await git.diffFiles(baseBranch)
 
-    const reviewerNames = getReviewerNames(ctx.hasIssue)
+    const reviewerNames = getReviewerNames(ctx.hasIssue, ctx.reviewDir)
 
     const results = await executeCodeReviewAgents(
       reviewerNames,
@@ -137,6 +141,10 @@ async function executeCodeReviewAgents(
         outputPath: reportPath,
         settingSources: ['project'],
       })
+
+      if (name === 'task-check' && response.result === 'PASS') {
+        await createTaskCheckMarker(reviewDir)
+      }
 
       return {
         ...response,

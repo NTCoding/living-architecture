@@ -1,10 +1,8 @@
 #!/usr/bin/env tsx
 
-import { CLAUDE_SDK_AGENT_ENV_VAR } from '../../../platform/infra/external-clients/claude-agent'
-
 import * as readline from 'node:readline'
 import {
-  parseHookInput, routeToHandler 
+  parseHookInput, routeToHandler, shouldSkipHooks 
 } from '../use-cases/handle-hook'
 
 async function readStdin(): Promise<string> {
@@ -39,21 +37,13 @@ function tryParseJson(input: string): JsonParseResult {
   }
 }
 
-function isRunningAsSDKSpawnedAgent(): boolean {
-  const sdkAgentEnv = process.env[CLAUDE_SDK_AGENT_ENV_VAR]
-  if (!sdkAgentEnv) {
-    return false
-  }
-  return sdkAgentEnv.toLowerCase() === 'true' || sdkAgentEnv === '1'
-}
-
-function skipHooksForSDKAgents(): void {
+function skipHooksOutput(): void {
   console.log(JSON.stringify({}))
 }
 
 async function main(): Promise<void> {
-  if (isRunningAsSDKSpawnedAgent()) {
-    skipHooksForSDKAgents()
+  if (shouldSkipHooks()) {
+    skipHooksOutput()
     return
   }
 

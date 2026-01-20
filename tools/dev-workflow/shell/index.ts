@@ -1,16 +1,14 @@
-/**
- * Shell: Public API for dev-workflow tools
- *
- * This module exports the use cases and types for each feature.
- * CLI entry points are separate files that import from this module.
- */
-
 // Use cases
 export { executeCompleteTask } from '../features/complete-task/use-cases/complete-task'
 export { executeGetPRFeedback } from '../features/get-pr-feedback/use-cases/get-pr-feedback'
-export { respondToFeedback } from '../features/respond-to-feedback/use-cases/respond-to-feedback'
 export {
-  parseHookInput, routeToHandler 
+  respondToFeedback,
+  executeRespondToFeedback,
+} from '../features/respond-to-feedback/use-cases/respond-to-feedback'
+export {
+  parseHookInput,
+  routeToHandler,
+  shouldSkipHooks,
 } from '../features/claude-hooks/use-cases/handle-hook'
 
 // Workflow execution

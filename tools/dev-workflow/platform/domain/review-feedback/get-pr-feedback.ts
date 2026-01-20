@@ -26,7 +26,7 @@ export async function getPRFeedback(
     .map(formatThreadForOutput)
 
   const reviewDecisions = rawFeedback.reviewDecisions.map((review) => ({
-    reviewer: Reviewer.create(review.author?.login).value,
+    reviewer: Reviewer.createFromGitHubLogin(review.author?.login).value,
     state: review.state,
   }))
 

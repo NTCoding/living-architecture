@@ -160,7 +160,7 @@ describe('Stop handler', () => {
     const input = createStopInput(transcriptPath)
     const result = handleStop(input)
 
-    expect(result.decision).toBeUndefined()
+    expect(result.continue).toBe(true)
   })
 
   it('allows stop when response starts with [No Mergeable PR', () => {
@@ -173,7 +173,7 @@ describe('Stop handler', () => {
     const input = createStopInput(transcriptPath)
     const result = handleStop(input)
 
-    expect(result.decision).toBeUndefined()
+    expect(result.continue).toBe(true)
   })
 
   it('blocks stop when response lacks required prefix', () => {
@@ -186,8 +186,8 @@ describe('Stop handler', () => {
     const input = createStopInput(transcriptPath)
     const result = handleStop(input)
 
-    expect(result.decision).toBe('block')
-    expect(result.reason).toContain('[Mergeable PR]')
+    expect(result.continue).toBe(false)
+    expect(result.stopReason).toContain('[Mergeable PR]')
   })
 
   it('blocks stop when transcript is empty', () => {
@@ -196,14 +196,14 @@ describe('Stop handler', () => {
     const input = createStopInput(transcriptPath)
     const result = handleStop(input)
 
-    expect(result.decision).toBe('block')
+    expect(result.continue).toBe(false)
   })
 
   it('blocks stop when transcript file does not exist', () => {
     const input = createStopInput('/nonexistent/transcript.jsonl')
     const result = handleStop(input)
 
-    expect(result.decision).toBe('block')
+    expect(result.continue).toBe(false)
   })
 
   it('handles content array format', () => {
@@ -223,7 +223,7 @@ describe('Stop handler', () => {
     const input = createStopInput(transcriptPath)
     const result = handleStop(input)
 
-    expect(result.decision).toBeUndefined()
+    expect(result.continue).toBe(true)
   })
 
   it('finds last assistant message in multi-message transcript', () => {
@@ -248,7 +248,7 @@ describe('Stop handler', () => {
     const input = createStopInput(transcriptPath)
     const result = handleStop(input)
 
-    expect(result.decision).toBeUndefined()
+    expect(result.continue).toBe(true)
   })
 
   it('allows prefix with leading whitespace', () => {
@@ -261,7 +261,7 @@ describe('Stop handler', () => {
     const input = createStopInput(transcriptPath)
     const result = handleStop(input)
 
-    expect(result.decision).toBeUndefined()
+    expect(result.continue).toBe(true)
   })
 
   it('blocks when content array has no text blocks', () => {
@@ -281,7 +281,7 @@ describe('Stop handler', () => {
     const input = createStopInput(transcriptPath)
     const result = handleStop(input)
 
-    expect(result.decision).toBe('block')
+    expect(result.continue).toBe(false)
   })
 
   it('skips non-assistant transcript entries', () => {
@@ -298,7 +298,7 @@ describe('Stop handler', () => {
     const input = createStopInput(transcriptPath)
     const result = handleStop(input)
 
-    expect(result.decision).toBeUndefined()
+    expect(result.continue).toBe(true)
   })
 
   it('finds last assistant message when user message is last', () => {
@@ -315,7 +315,7 @@ describe('Stop handler', () => {
     const input = createStopInput(transcriptPath)
     const result = handleStop(input)
 
-    expect(result.decision).toBeUndefined()
+    expect(result.continue).toBe(true)
   })
 
   it('handles malformed JSON in transcript lines', () => {
@@ -327,6 +327,6 @@ describe('Stop handler', () => {
     const input = createStopInput(transcriptPath)
     const result = handleStop(input)
 
-    expect(result.decision).toBeUndefined()
+    expect(result.continue).toBe(true)
   })
 })

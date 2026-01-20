@@ -23,12 +23,12 @@ export function deny(reason: string): PreToolUseOutput {
 }
 
 export function allowStop(): StopOutput {
-  return {}
+  return { continue: true }
 }
 
 export function blockStop(reason: string): StopOutput {
   return {
-    decision: 'block',
-    reason,
+    continue: false,
+    stopReason: reason,
   }
 }

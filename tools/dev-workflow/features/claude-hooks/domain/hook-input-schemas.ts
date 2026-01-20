@@ -1,15 +1,3 @@
-/**
- * Hook input schemas for Claude SDK hook events.
- *
- * These schemas validate the structured input passed by the Claude SDK to the hook script.
- * They are organized here (with output schemas) as they represent a cross-cutting validation
- * concern used by the main hook router (dev-workflow-hooks.ts) and individual handlers.
- *
- * Organization principle: Shared validation schemas that cross multiple handlers live together
- * for maintainability, even though they're "schemas" by type. The alternative (inlining in each
- * handler) would create duplication and make the base schema relationships unclear.
- */
-
 import { z } from 'zod'
 
 const baseHookInputSchema = z.object({

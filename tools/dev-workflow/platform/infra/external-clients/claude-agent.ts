@@ -12,29 +12,14 @@ export class ClaudeQueryError extends Error {
 
 export const CLAUDE_SDK_AGENT_ENV_VAR = 'CLAUDE_SDK_AGENT'
 
-/**
- * Filesystem settings sources to load for the Claude Agent.
- * - 'user' - Global user settings (~/.claude/settings.json)
- * - 'project' - Project settings (.claude/settings.json) and CLAUDE.md
- * - 'local' - Local settings (.claude/settings.local.json)
- */
-type SettingSource = 'user' | 'project' | 'local'
+type ClaudeSettingSource = 'user' | 'project' | 'local'
 
 interface ClaudeQueryOptions<T> {
   prompt: string
   model: 'opus' | 'sonnet' | 'haiku'
   outputSchema: z.ZodSchema<T>
   outputPath: string
-  /**
-   * Control which filesystem settings to load.
-   * - 'user' - Global user settings (~/.claude/settings.json)
-   * - 'project' - Project settings (.claude/settings.json) and CLAUDE.md
-   * - 'local' - Local settings (.claude/settings.local.json)
-   *
-   * Required to load project context, skills, and plugins.
-   * @default []
-   */
-  settingSources?: SettingSource[]
+  settingSources?: ClaudeSettingSource[]
 }
 
 const resultMessageSchema = z.object({
@@ -46,29 +31,37 @@ const resultMessageSchema = z.object({
 
 type ResultMessage = z.infer<typeof resultMessageSchema>
 
-function extractJsonFromCodeBlock(text: string): string {
+function extractJsonFromCodeBlock(text: string): string | null {
   const startMarker = '```json'
   const endMarker = '```'
   const startIdx = text.indexOf(startMarker)
 
   if (startIdx < 0) {
-    throw new ClaudeQueryError('Response does not contain a ```json code block')
+    return null
   }
 
   const jsonStart = startIdx + startMarker.length
   const jsonEnd = text.indexOf(endMarker, jsonStart)
 
   if (jsonEnd < 0) {
-    throw new ClaudeQueryError('Response has unclosed ```json code block')
+    return null
   }
 
   return text.slice(jsonStart, jsonEnd).trim()
 }
 
-function parseJsonFromCodeBlock<T>(result: string, schema: z.ZodSchema<T>): T {
-  const jsonContent = extractJsonFromCodeBlock(result)
-  const parsed: unknown = JSON.parse(jsonContent)
-  return schema.parse(parsed)
+function parseJsonResponse<T>(result: string, schema: z.ZodSchema<T>): T {
+  const jsonFromCodeBlock = extractJsonFromCodeBlock(result)
+  const jsonText = jsonFromCodeBlock ?? result.trim()
+
+  try {
+    const parsed: unknown = JSON.parse(jsonText)
+    return schema.parse(parsed)
+  } catch {
+    throw new ClaudeQueryError(
+      'Response does not contain valid JSON. Expected either a ```json code block or raw JSON.',
+    )
+  }
 }
 
 function isResultMessage(message: unknown): message is ResultMessage {
@@ -132,7 +125,7 @@ export const claude = {
       }
 
       try {
-        return parseJsonFromCodeBlock(message.result, opts.outputSchema)
+        return parseJsonResponse(message.result, opts.outputSchema)
       } catch (parseError) {
         const errorDetail = parseError instanceof Error ? parseError.message : String(parseError)
         throw new ClaudeQueryError(
