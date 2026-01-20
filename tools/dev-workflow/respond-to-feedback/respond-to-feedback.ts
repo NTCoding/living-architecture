@@ -1,9 +1,9 @@
 #!/usr/bin/env tsx
-import { github } from '../external-clients/github'
+// Re-export from new location - will be removed after full restructure
+export { respondToFeedback } from '../features/respond-to-feedback/use-cases/respond-to-feedback'
+
 import { WorkflowError } from '../errors'
-import {
-  respondToFeedbackInputSchema, type RespondToFeedbackOutput 
-} from './schemas'
+import { respondToFeedback } from '../features/respond-to-feedback/use-cases/respond-to-feedback'
 
 interface ParsedArgs {
   threadId: string
@@ -33,26 +33,20 @@ function parseArgs(): ParsedArgs {
   }
 }
 
-function formatReplyBody(action: string, message: string): string {
-  if (action === 'fixed') {
-    return `✅ **Fixed**: ${message}`
+function validateAction(action: string): 'fixed' | 'rejected' {
+  if (action === 'fixed' || action === 'rejected') {
+    return action
   }
-  return `❌ **Rejected**: ${message}`
+  throw new WorkflowError(`Invalid action: ${action}. Must be 'fixed' or 'rejected'`)
 }
 
 async function main(): Promise<void> {
   const args = parseArgs()
-  const input = respondToFeedbackInputSchema.parse(args)
-
-  await github.addThreadReply(input.threadId, formatReplyBody(input.action, input.message))
-  await github.resolveThread(input.threadId)
-
-  const output: RespondToFeedbackOutput = {
-    success: true,
-    threadId: input.threadId,
-    action: input.action,
-  }
-
+  const output = await respondToFeedback({
+    threadId: args.threadId,
+    action: validateAction(args.action),
+    message: args.message,
+  })
   console.log(JSON.stringify(output, null, 2))
 }
 

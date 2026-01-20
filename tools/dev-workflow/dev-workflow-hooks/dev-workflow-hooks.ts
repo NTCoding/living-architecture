@@ -1,17 +1,13 @@
 #!/usr/bin/env tsx
+// Re-export from new location - will be removed after full restructure
+export { routeToHandler } from '../features/claude-hooks/use-cases/handle-hook'
 
-import { CLAUDE_SDK_AGENT_ENV_VAR } from '../external-clients/claude'
+import { CLAUDE_SDK_AGENT_ENV_VAR } from '../platform/infra/external-clients/claude-agent'
 
 import * as readline from 'node:readline'
-import { hookInputSchema } from './claude-code-input-schemas'
-import type {
-  PreToolUseOutput, PostToolUseOutput, StopOutput 
-} from './claude-code-output-schemas'
-import { handlePreToolUse } from './handlers/pre-tool-use'
-import { handlePostToolUse } from './handlers/post-tool-use'
-import { handleStop } from './handlers/stop'
-
-type HookOutput = PreToolUseOutput | PostToolUseOutput | StopOutput
+import { hookInputSchema } from '../features/claude-hooks/domain/hook-input-schemas'
+import type { HookOutput } from '../features/claude-hooks/domain/hook-output-schemas'
+import { routeToHandler } from '../features/claude-hooks/use-cases/handle-hook'
 
 async function readStdin(): Promise<string> {
   const rl = readline.createInterface({
@@ -25,17 +21,6 @@ async function readStdin(): Promise<string> {
   }
 
   return lines.join('\n')
-}
-
-function routeToHandler(input: ReturnType<typeof hookInputSchema.parse>): HookOutput {
-  switch (input.hook_event_name) {
-    case 'PreToolUse':
-      return handlePreToolUse(input)
-    case 'PostToolUse':
-      return handlePostToolUse(input)
-    case 'Stop':
-      return handleStop(input)
-  }
 }
 
 type JsonParseResult =
@@ -88,7 +73,7 @@ async function main(): Promise<void> {
     process.exit(2)
   }
 
-  const output = routeToHandler(parseResult.data)
+  const output: HookOutput = routeToHandler(parseResult.data)
   console.log(JSON.stringify(output))
 }
 

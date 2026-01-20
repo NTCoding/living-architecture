@@ -1,14 +1,2 @@
-export function handleWorkflowError(error: unknown): never {
-  console.error(
-    JSON.stringify(
-      {
-        success: false,
-        nextAction: 'fix_errors',
-        nextInstructions: `Unexpected error: ${error instanceof Error ? error.message : String(error)}`,
-      },
-      null,
-      2,
-    ),
-  )
-  process.exit(1)
-}
+// Re-export from new location - will be removed after full restructure
+export { handleWorkflowError } from '../platform/domain/workflow-execution/error-handler'

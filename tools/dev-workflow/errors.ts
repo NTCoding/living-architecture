@@ -1,39 +1,6 @@
-export class GitError extends Error {
-  constructor(message: string) {
-    super(message)
-    this.name = 'GitError'
-    Error.captureStackTrace?.(this, this.constructor)
-  }
-}
-
-export class GitHubError extends Error {
-  constructor(message: string) {
-    super(message)
-    this.name = 'GitHubError'
-    Error.captureStackTrace?.(this, this.constructor)
-  }
-}
-
-export class WorkflowError extends Error {
-  constructor(message: string) {
-    super(message)
-    this.name = 'WorkflowError'
-    Error.captureStackTrace?.(this, this.constructor)
-  }
-}
-
-export class AgentError extends Error {
-  constructor(message: string) {
-    super(message)
-    this.name = 'AgentError'
-    Error.captureStackTrace?.(this, this.constructor)
-  }
-}
-
-export class ClaudeQueryError extends Error {
-  constructor(message: string) {
-    super(message)
-    this.name = 'ClaudeQueryError'
-    Error.captureStackTrace?.(this, this.constructor)
-  }
-}
+// Re-export from new locations - will be removed after full restructure
+export { GitError } from './platform/infra/external-clients/git-client'
+export { GitHubError } from './platform/infra/external-clients/github-rest-client'
+export { WorkflowError } from './platform/domain/workflow-execution/workflow-runner'
+export { AgentError } from './features/complete-task/domain/steps/run-code-review'
+export { ClaudeQueryError } from './platform/infra/external-clients/claude-agent'

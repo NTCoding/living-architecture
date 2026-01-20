@@ -1,6 +1,2 @@
-const ISSUE_BRANCH_PATTERN = /issue-(\d+)/
-
-export function parseIssueNumber(branch: string): number | undefined {
-  const match = ISSUE_BRANCH_PATTERN.exec(branch)
-  return match ? parseInt(match[1], 10) : undefined
-}
+// Re-export from new location - will be removed after full restructure
+export { parseIssueNumber } from '../platform/domain/branch-naming/issue-branch-parser'

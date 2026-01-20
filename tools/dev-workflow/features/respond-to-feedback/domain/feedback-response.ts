@@ -1,0 +1,26 @@
+import { z } from 'zod'
+
+const responseActionSchema = z.enum(['fixed', 'rejected'])
+export type ResponseAction = z.infer<typeof responseActionSchema>
+
+export const respondToFeedbackInputSchema = z.object({
+  threadId: z.string().min(1, { error: 'threadId is required' }),
+  action: responseActionSchema,
+  message: z.string().min(1, { error: 'message is required' }),
+})
+export type RespondToFeedbackInput = z.infer<typeof respondToFeedbackInputSchema>
+
+const respondToFeedbackOutputSchema = z.object({
+  success: z.boolean(),
+  threadId: z.string(),
+  action: responseActionSchema,
+  error: z.string().optional(),
+})
+export type RespondToFeedbackOutput = z.infer<typeof respondToFeedbackOutputSchema>
+
+export function formatReplyBody(action: ResponseAction, message: string): string {
+  if (action === 'fixed') {
+    return `✅ **Fixed**: ${message}`
+  }
+  return `❌ **Rejected**: ${message}`
+}

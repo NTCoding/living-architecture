@@ -4,12 +4,12 @@ import * as path from 'node:path'
 import {
   describe, it, expect, afterEach, afterAll 
 } from 'vitest'
-import { handlePreToolUse } from './handlers/pre-tool-use'
-import { handlePostToolUse } from './handlers/post-tool-use'
-import { handleStop } from './handlers/stop'
+import { handlePreToolUse } from './domain/handlers/pre-tool-use'
+import { handlePostToolUse } from './domain/handlers/post-tool-use'
+import { handleStop } from './domain/handlers/stop'
 import type {
   PreToolUseInput, PostToolUseInput, StopInput 
-} from './claude-code-input-schemas'
+} from './domain/hook-input-schemas'
 
 function createPreToolUseInput(command: string): PreToolUseInput {
   return {
