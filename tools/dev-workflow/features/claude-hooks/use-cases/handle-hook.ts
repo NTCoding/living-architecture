@@ -7,7 +7,7 @@ import { handlePostToolUse } from '../domain/handlers/post-tool-use-handler'
 import { handleStop } from '../domain/handlers/stop-handler'
 import { CLAUDE_SDK_AGENT_ENV_VAR } from '../../../platform/infra/external-clients/claude-agent'
 
-export class UnhandledHookEventError extends Error {
+class UnhandledHookEventError extends Error {
   constructor(hookEventName: never) {
     super(`Unhandled hook_event_name: ${hookEventName}`)
     this.name = 'UnhandledHookEventError'
