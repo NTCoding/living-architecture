@@ -15,6 +15,9 @@ const STOP_REMINDER = `MANDATORY: Before stopping, your response MUST start with
    Run: pnpm nx run dev-workflow:get-pr-feedback
    Verify: mergeable=true in output
 
+   CRITICAL: ALL unresolved threads blocking the PR must have a response.
+   Use respond-to-feedback to reply to each thread before claiming mergeable.
+
 2. ${NOT_MERGEABLE_PREFIX} <reason>] - When blocked or not working on a PR
    Examples:
    - [No Mergeable PR: CI failing]

@@ -7,6 +7,14 @@ import { handlePostToolUse } from '../domain/handlers/post-tool-use-handler'
 import { handleStop } from '../domain/handlers/stop-handler'
 import { CLAUDE_SDK_AGENT_ENV_VAR } from '../../../platform/infra/external-clients/claude-agent'
 
+export class UnhandledHookEventError extends Error {
+  constructor(hookEventName: never) {
+    super(`Unhandled hook_event_name: ${hookEventName}`)
+    this.name = 'UnhandledHookEventError'
+    Error.captureStackTrace?.(this, this.constructor)
+  }
+}
+
 export function shouldSkipHooks(): boolean {
   const sdkAgentEnv = process.env[CLAUDE_SDK_AGENT_ENV_VAR]
   if (!sdkAgentEnv) {
@@ -49,7 +57,7 @@ export function routeToHandler(input: HookInput): HookOutput {
       return handleStop(input)
     default: {
       const exhaustiveCheck: never = input
-      throw exhaustiveCheck
+      throw new UnhandledHookEventError(exhaustiveCheck)
     }
   }
 }

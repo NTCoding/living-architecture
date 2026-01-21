@@ -1,8 +1,9 @@
 import { existsSync } from 'node:fs'
 import { writeFile } from 'node:fs/promises'
+import { join } from 'node:path'
 
 export function taskCheckMarkerPath(reviewDir: string): string {
-  return `${reviewDir}/task-check.marker`
+  return join(reviewDir, 'task-check.marker')
 }
 
 export function taskCheckMarkerExists(reviewDir: string): boolean {
