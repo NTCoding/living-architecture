@@ -16,7 +16,7 @@ export class MissingPullRequestDetailsError extends Error {
   }
 }
 
-export class MissingCommitMessageError extends Error {
+class MissingCommitMessageError extends Error {
   constructor() {
     super('--commit-message is required. Do not derive from PR title.')
     this.name = 'MissingCommitMessageError'
