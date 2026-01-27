@@ -10,7 +10,7 @@
 
 ## Refined Structure
 
-```
+```text
 packages/riviere-query/src/
   index.ts                      # Public exports
   riviere-query.ts              # Main facade class (renamed from PascalCase)
@@ -74,7 +74,7 @@ packages/riviere-query/src/
 ```
 
 Test fixtures move out of production source:
-```
+```text
 packages/riviere-query/test/
   fixtures/
     riviere-graph-fixtures.ts   # Test fixtures
@@ -222,7 +222,7 @@ export const ENTRY_POINT_TYPES: ReadonlySet<ComponentType> =
   new Set(['UI', 'API', 'EventHandler', 'Custom'] as const)
 ```
 
-2. **Branded type semantics**
+1. **Branded type semantics**
 ```typescript
 // Before: "parse" suggests transformation
 parseComponentId(id: string): ComponentId
@@ -231,7 +231,7 @@ parseComponentId(id: string): ComponentId
 ComponentId.from(id: string): ComponentId
 ```
 
-3. **Query result discriminated unions**
+1. **Query result discriminated unions**
 ```typescript
 // event-types.ts already uses this pattern well
 export type SubscribedEventWithDomain = KnownSourceEvent | UnknownSourceEvent
@@ -266,7 +266,7 @@ Move `Entity` class from `event-types.ts` to `entity/entity.ts`:
 ### Phase 2: Split domain-types.ts (Medium Risk)
 
 Create focused type modules:
-```
+```text
 branded-types/     <- all branded type definitions
 validation/        <- ValidationError, ValidationResult
 diff/              <- ComponentModification, DiffStats, GraphDiff
@@ -288,7 +288,7 @@ Update imports across all query files.
 ### Phase 4: Add Query Subdirectories (Optional)
 
 Group query files with their types:
-```
+```text
 flow/
   flow-queries.ts
   flow-types.ts

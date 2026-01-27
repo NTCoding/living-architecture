@@ -215,14 +215,14 @@ These are good candidates for value objects but are implemented as branded primi
 
 ### Medium Priority
 
-5. **Make entry point types explicit** as a named constant
-6. **Clarify flow tracing semantics** in function naming
-7. **Consider behavior methods** on key query result types
+1. **Make entry point types explicit** as a named constant
+2. **Clarify flow tracing semantics** in function naming
+3. **Consider behavior methods** on key query result types
 
 ### Low Priority
 
-8. **Naming consistency** (PascalCase vs kebab-case for files)
-9. **Light folder structure** for discoverability (queries/ subdirectory)
+1. **Naming consistency** (PascalCase vs kebab-case for files)
+2. **Light folder structure** for discoverability (queries/ subdirectory)
 
 ### Deferred/Rejected
 
