@@ -23,7 +23,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/tools/dev-workflow/node_modules/.bin/tsx $CLAUDE_PROJECT_DIR/tools/dev-workflow/dev-workflow-hooks/dev-workflow-hooks.ts"
+            "command": "$CLAUDE_PROJECT_DIR/tools/dev-workflow/node_modules/.bin/tsx $CLAUDE_PROJECT_DIR/tools/dev-workflow/features/claude-hooks/entrypoint/hook-router.ts"
           }
         ]
       }
@@ -34,7 +34,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/tools/dev-workflow/node_modules/.bin/tsx $CLAUDE_PROJECT_DIR/tools/dev-workflow/dev-workflow-hooks/dev-workflow-hooks.ts"
+            "command": "$CLAUDE_PROJECT_DIR/tools/dev-workflow/node_modules/.bin/tsx $CLAUDE_PROJECT_DIR/tools/dev-workflow/features/claude-hooks/entrypoint/hook-router.ts"
           }
         ]
       }
@@ -44,7 +44,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/tools/dev-workflow/node_modules/.bin/tsx $CLAUDE_PROJECT_DIR/tools/dev-workflow/dev-workflow-hooks/dev-workflow-hooks.ts"
+            "command": "$CLAUDE_PROJECT_DIR/tools/dev-workflow/node_modules/.bin/tsx $CLAUDE_PROJECT_DIR/tools/dev-workflow/features/claude-hooks/entrypoint/hook-router.ts"
           }
         ]
       }
