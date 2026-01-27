@@ -8,7 +8,7 @@ import { handleStop } from '../domain/handlers/stop-handler'
 import { CLAUDE_SDK_AGENT_ENV_VAR } from '../../../platform/infra/external-clients/claude-agent'
 
 export class UnhandledHookEventError extends Error {
-  constructor(hookEventName: never) {
+  constructor(hookEventName: string) {
     super(`Unhandled hook_event_name: ${hookEventName}`)
     this.name = 'UnhandledHookEventError'
     Error.captureStackTrace?.(this, this.constructor)
@@ -48,16 +48,16 @@ export function parseHookInput(rawJson: unknown): ParseInputResult {
 }
 
 export function routeToHandler(input: HookInput): HookOutput {
-  switch (input.hook_event_name) {
+  const { hook_event_name: hookEventName } = input
+
+  switch (hookEventName) {
     case 'PreToolUse':
       return handlePreToolUse(input)
     case 'PostToolUse':
       return handlePostToolUse(input)
     case 'Stop':
       return handleStop(input)
-    default: {
-      const exhaustiveCheck: never = input
-      throw new UnhandledHookEventError(exhaustiveCheck)
-    }
+    default:
+      throw new UnhandledHookEventError(hookEventName)
   }
 }
