@@ -35,6 +35,8 @@ async function buildGetPRFeedbackContext(): Promise<GetPRFeedbackContext> {
   }
 }
 
+const GET_PR_FEEDBACK_STEPS = [fetchFeedback]
+
 export function executeGetPRFeedback(): void {
-  runWorkflow<GetPRFeedbackContext>([fetchFeedback], buildGetPRFeedbackContext)
+  runWorkflow<GetPRFeedbackContext>(GET_PR_FEEDBACK_STEPS, buildGetPRFeedbackContext)
 }

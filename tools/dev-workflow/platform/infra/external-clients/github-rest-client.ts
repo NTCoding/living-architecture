@@ -51,7 +51,7 @@ interface CreatePROptions {
   title: string
   body: string
   branch: string
-  base?: string
+  base: string
 }
 
 interface CIResult {
@@ -195,7 +195,7 @@ export const github = {
       title: opts.title,
       body: opts.body,
       head: opts.branch,
-      base: opts.base ?? 'main',
+      base: opts.base,
     })
 
     return {
@@ -284,6 +284,13 @@ export const github = {
         ref: pr.head.sha,
         per_page: 100,
       })
+
+      if (checks.check_runs.length === 0) {
+        return {
+          failed: false,
+          output: 'No CI checks configured for this ref - treating as passing',
+        }
+      }
 
       const completedChecks = checks.check_runs.filter((run) => run.status === 'completed')
       const failures = completedChecks.filter(

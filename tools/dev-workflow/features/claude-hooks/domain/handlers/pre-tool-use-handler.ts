@@ -1,3 +1,4 @@
+import { z } from 'zod'
 import type { PreToolUseInput } from '../hook-input-schemas'
 import type { PreToolUseOutput } from '../hook-output-schemas'
 import { DANGEROUS_FLAGS } from '../safety-rules/dangerous-flags'
@@ -6,12 +7,16 @@ import {
   allow, deny 
 } from '../permission-decision'
 
-export function handlePreToolUse(input: PreToolUseInput): PreToolUseOutput {
-  const command = typeof input.tool_input.command === 'string' ? input.tool_input.command : ''
+const bashToolInputSchema = z.object({ command: z.string().min(1) })
 
-  if (!command) {
+export function handlePreToolUse(input: PreToolUseInput): PreToolUseOutput {
+  const parseResult = bashToolInputSchema.safeParse(input.tool_input)
+
+  if (!parseResult.success) {
     return allow('No command to validate')
   }
+
+  const { command } = parseResult.data
 
   for (const flag of DANGEROUS_FLAGS) {
     if (command.includes(flag)) {

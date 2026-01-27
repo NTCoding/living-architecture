@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-const responseActionSchema = z.enum(['fixed', 'rejected'])
+export const responseActionSchema = z.enum(['fixed', 'rejected'])
 export type ResponseAction = z.infer<typeof responseActionSchema>
 
 export const respondToFeedbackInputSchema = z.object({

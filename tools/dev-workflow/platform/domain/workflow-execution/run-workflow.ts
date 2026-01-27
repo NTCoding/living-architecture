@@ -23,7 +23,8 @@ async function executeWorkflow<T extends BaseContext>(
   const runner = workflow(steps)
   const result = await runner(context)
 
-  const output = formatResult ? formatResult(result, context) : (result.output ?? result)
+  const formatted = formatResult ? formatResult(result, context) : undefined
+  const output = formatted ?? result.output ?? result
 
   console.log(JSON.stringify(output, null, 2))
 

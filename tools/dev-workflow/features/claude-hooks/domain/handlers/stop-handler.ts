@@ -7,7 +7,7 @@ import {
 } from '../permission-decision'
 
 const MERGEABLE_PREFIX = '[Mergeable PR]'
-const NOT_MERGEABLE_PREFIX = '[No Mergeable PR'
+const NOT_MERGEABLE_PREFIX = '[No Mergeable PR:'
 
 const STOP_REMINDER = `MANDATORY: Before stopping, your response MUST start with one of:
 
@@ -20,9 +20,9 @@ const STOP_REMINDER = `MANDATORY: Before stopping, your response MUST start with
 
 2. ${NOT_MERGEABLE_PREFIX} <reason>] - When blocked or not working on a PR
    Examples:
-   - [No Mergeable PR: CI failing]
-   - [No Mergeable PR: awaiting user input]
-   - [No Mergeable PR: not a feature task]
+   - ${NOT_MERGEABLE_PREFIX} CI failing]
+   - ${NOT_MERGEABLE_PREFIX} awaiting user input]
+   - ${NOT_MERGEABLE_PREFIX} not a feature task]
 
 Your response did not include the required prefix.`
 

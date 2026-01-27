@@ -16,6 +16,14 @@ export class MissingPullRequestDetailsError extends Error {
   }
 }
 
+export class MissingCommitMessageError extends Error {
+  constructor() {
+    super('--commit-message is required. Do not derive from PR title.')
+    this.name = 'MissingCommitMessageError'
+    Error.captureStackTrace?.(this, this.constructor)
+  }
+}
+
 export interface PRDetails {
   prTitle: string
   prBody: string
@@ -35,10 +43,14 @@ export function resolvePRDetails(
 
   const prTitle = cliPrTitle ?? taskDetails?.title
   const prBody = cliPrBody ?? taskDetails?.body
-  const commitMessage = cliCommitMessage ?? prTitle
+  const commitMessage = cliCommitMessage
 
-  if (!prTitle || !prBody || !commitMessage) {
+  if (!prTitle || !prBody) {
     throw new MissingPullRequestDetailsError()
+  }
+
+  if (!commitMessage) {
+    throw new MissingCommitMessageError()
   }
 
   validateConventionalCommit(prTitle)

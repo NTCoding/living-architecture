@@ -1,45 +1,31 @@
+import { z } from 'zod'
 import { github } from '../../../platform/infra/external-clients/github-rest-client'
-import { WorkflowError } from '../../../platform/domain/workflow-execution/workflow-runner'
 import {
   respondToFeedbackInputSchema,
+  responseActionSchema,
   formatReplyBody,
   type RespondToFeedbackInput,
   type RespondToFeedbackOutput,
 } from '../domain/feedback-response'
 
-interface ParsedArgs {
-  threadId: string
-  action: string
-  message: string
-}
+const cliArgsSchema = z.object({
+  threadId: z.string().min(1, { message: '--thread-id is required' }),
+  action: z.string().min(1, { message: '--action is required (fixed or rejected)' }),
+  message: z.string().min(1, { message: '--message is required' }),
+})
 
-function parseArgs(): ParsedArgs {
+function parseArgs(): z.infer<typeof cliArgsSchema> {
   const threadIdIndex = process.argv.indexOf('--thread-id')
   const actionIndex = process.argv.indexOf('--action')
   const messageIndex = process.argv.indexOf('--message')
 
-  if (threadIdIndex === -1 || threadIdIndex + 1 >= process.argv.length) {
-    throw new WorkflowError('--thread-id is required')
-  }
-  if (actionIndex === -1 || actionIndex + 1 >= process.argv.length) {
-    throw new WorkflowError('--action is required (fixed or rejected)')
-  }
-  if (messageIndex === -1 || messageIndex + 1 >= process.argv.length) {
-    throw new WorkflowError('--message is required')
+  const rawArgs = {
+    threadId: threadIdIndex >= 0 ? process.argv[threadIdIndex + 1] : undefined,
+    action: actionIndex >= 0 ? process.argv[actionIndex + 1] : undefined,
+    message: messageIndex >= 0 ? process.argv[messageIndex + 1] : undefined,
   }
 
-  return {
-    threadId: process.argv[threadIdIndex + 1],
-    action: process.argv[actionIndex + 1],
-    message: process.argv[messageIndex + 1],
-  }
-}
-
-function validateAction(action: string): 'fixed' | 'rejected' {
-  if (action === 'fixed' || action === 'rejected') {
-    return action
-  }
-  throw new WorkflowError(`Invalid action: ${action}. Must be 'fixed' or 'rejected'`)
+  return cliArgsSchema.parse(rawArgs)
 }
 
 export async function respondToFeedback(
@@ -59,9 +45,10 @@ export async function respondToFeedback(
 
 export function executeRespondToFeedback(): void {
   const args = parseArgs()
+  const action = responseActionSchema.parse(args.action)
   respondToFeedback({
     threadId: args.threadId,
-    action: validateAction(args.action),
+    action,
     message: args.message,
   })
     .then((output) => {

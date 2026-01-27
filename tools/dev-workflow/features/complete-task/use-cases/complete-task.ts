@@ -41,9 +41,11 @@ async function buildCompleteTaskContext(): Promise<CompleteTaskContext> {
   }
 }
 
+const COMPLETE_TASK_STEPS = [verifyBuild, codeReview, submitPR, fetchPRFeedback]
+
 export function executeCompleteTask(): void {
   runWorkflow<CompleteTaskContext>(
-    [verifyBuild, codeReview, submitPR, fetchPRFeedback],
+    COMPLETE_TASK_STEPS,
     buildCompleteTaskContext,
     (result: WorkflowResult, ctx: CompleteTaskContext) => formatCompleteTaskResult(result, ctx),
   )
