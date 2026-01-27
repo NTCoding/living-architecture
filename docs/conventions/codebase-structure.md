@@ -7,12 +7,17 @@ living-architecture/
 ├── apps/                    # Deployable applications
 │   └── <app-name>/
 │       ├── src/
-│       │   ├── <feature>/
-│       │   │   ├── domain/       # Domain model only
-│       │   │   ├── application/  # Use cases
-│       │   │   ├── infra/        # Database, external services
-│       │   │   └── api/          # Controllers, endpoints
-│       │   └── main.ts           # Application entry point
+│       │   ├── features/
+│       │   │   └── <feature>/
+│       │   │       ├── entrypoint/   # API/CLI interface
+│       │   │       ├── commands/     # Write operations
+│       │   │       ├── queries/      # Read operations
+│       │   │       └── domain/       # Domain model (if needed)
+│       │   ├── platform/
+│       │   │   ├── domain/           # Shared domain logic
+│       │   │   └── infra/            # External clients, persistence
+│       │   ├── shell/                # Composition root
+│       │   └── main.ts               # Application entry point
 │       ├── package.json
 │       ├── tsconfig.json
 │       ├── tsconfig.lib.json
@@ -83,10 +88,17 @@ feature/
 
 | Layer | Contains | Depends On |
 |-------|----------|------------|
+| entrypoint | API controllers, CLI commands, request/response mapping | commands, queries |
+| commands | Write operation handlers (mutate state) | domain, infra |
+| queries | Read operation handlers (return data) | domain, infra (read-only) |
 | domain | Entities, value objects, domain services, domain events | Nothing |
-| application | Use cases, application services, DTOs | domain |
-| infra | Repositories, external clients, framework adapters | domain, application |
-| api | Controllers, routes, request/response mapping | application |
+| infra | Repositories, external clients, framework adapters | domain |
+
+**Commands vs Queries:**
+- **Commands** orchestrate write operations: load → mutate via domain → persist
+- **Queries** orchestrate read operations: load → query → return
+- Entrypoint calls commands or queries, never domain or infra directly
+- Commands and queries use dependency injection (constructor injection, single `execute` method)
 
 ## Package Guidelines
 
