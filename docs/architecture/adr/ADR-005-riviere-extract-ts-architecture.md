@@ -21,7 +21,7 @@
 Like `riviere-builder` (ADR-004), this is a library, not an application. Libraries have no entrypoint or use-cases layer—they ARE the domain.
 
 **Structure for libraries:**
-```
+```text
 src/
 ├── domain/           # All domain logic, split by concept
 ├── platform/         # Shared utilities and infrastructure wrappers
@@ -32,7 +32,7 @@ src/
 
 Split domain logic into capability-based folders:
 
-```
+```text
 src/
 ├── domain/
 │   ├── predicate-evaluation/

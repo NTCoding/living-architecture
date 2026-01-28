@@ -33,7 +33,7 @@ The CLI's job is: parse input → orchestrate library calls → format output.
 
 ### 2. Package Structure
 
-```
+```text
 packages/riviere-cli/src/
 ├── features/
 │   ├── builder/

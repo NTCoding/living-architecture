@@ -33,7 +33,7 @@ Adapt the features/platform/shell pattern for React applications:
 
 ### 2. Package Structure
 
-```
+```text
 apps/eclair/src/
 ├── features/
 │   ├── comparison/

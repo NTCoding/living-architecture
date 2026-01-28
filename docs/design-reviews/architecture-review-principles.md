@@ -6,7 +6,7 @@ Key principles established during architecture reviews. Apply these to all futur
 
 ### Applications (CLI, APIs)
 
-```
+```text
 features/
 ├── <feature>/
 │   ├── entrypoint/     # External interface (CLI commands, HTTP routes)
@@ -24,7 +24,7 @@ shell/
 
 Adapted for React conventions:
 
-```
+```text
 features/
 ├── <feature>/
 │   ├── entrypoint/     # Page components (route entry points)
@@ -45,7 +45,7 @@ shell/
 
 Libraries that provide domain logic (builders, extractors). They ARE the domain.
 
-```
+```text
 src/
 ├── domain/             # All domain logic, split by concept
 ├── platform/           # Shared utilities
@@ -56,7 +56,7 @@ src/
 
 Libraries that provide read-only query capabilities over external data. No domain of their own.
 
-```
+```text
 src/
 ├── queries/            # All query logic
 ├── platform/           # Shared utilities, test fixtures
@@ -137,7 +137,7 @@ No file over 400 lines. Large classes become facades that delegate to smaller cl
 
 No monolithic `types.ts` or `errors.ts` spanning multiple concerns. Co-locate with usage:
 
-```
+```text
 domain/
 ├── construction/
 │   ├── graph-construction.ts

@@ -22,7 +22,7 @@
 This is a pure query library—there is no domain logic. The library provides read-only query capabilities over an external domain model (Riviere schema).
 
 **Structure for query libraries:**
-```
+```text
 src/
 ├── queries/          # All query logic
 ├── platform/         # Shared utilities, test fixtures
@@ -33,7 +33,7 @@ Use `queries/` instead of `domain/` because that's what this library IS—querie
 
 ### 2. Package Structure
 
-```
+```text
 src/
 ├── queries/
 │   ├── riviere-query.ts

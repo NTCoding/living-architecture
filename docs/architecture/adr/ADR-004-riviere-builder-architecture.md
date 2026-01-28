@@ -21,7 +21,7 @@
 Unlike applications (CLI, web apps), libraries have no entrypoint or use-cases layer. A library IS the domain.
 
 **Structure for libraries:**
-```
+```text
 src/
 ├── domain/           # All domain logic, split by concept
 ├── platform/         # Shared utilities (if any)
@@ -101,7 +101,7 @@ this.replaceComponent(component.id, enrichedComponent)
 
 Co-locate types and errors with their domain concepts:
 
-```
+```text
 domain/
 ├── construction/
 │   ├── graph-construction.ts
