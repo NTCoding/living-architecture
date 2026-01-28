@@ -1,5 +1,4 @@
 import { query as sdkQuery } from '@anthropic-ai/claude-agent-sdk'
-import { writeFile } from 'node:fs/promises'
 import { z } from 'zod'
 
 export class ClaudeQueryError extends Error {
@@ -18,7 +17,6 @@ interface ClaudeQueryOptions<T> {
   prompt: string
   model: 'opus' | 'sonnet' | 'haiku'
   outputSchema: z.ZodSchema<T>
-  outputPath: string
   settingSources?: ClaudeSettingSource[]
 }
 
@@ -50,9 +48,18 @@ function extractJsonFromCodeBlock(text: string): string | null {
   return text.slice(jsonStart, jsonEnd).trim()
 }
 
+function extractJsonBruteForce(text: string): string | null {
+  const firstBrace = text.indexOf('{')
+  const lastBrace = text.lastIndexOf('}')
+  if (firstBrace < 0 || lastBrace <= firstBrace) {
+    return null
+  }
+  return text.slice(firstBrace, lastBrace + 1)
+}
+
 function parseJsonResponse<T>(result: string, schema: z.ZodSchema<T>): T {
   const jsonFromCodeBlock = extractJsonFromCodeBlock(result)
-  const jsonText = jsonFromCodeBlock ?? result.trim()
+  const jsonText = jsonFromCodeBlock ?? extractJsonBruteForce(result) ?? result.trim()
 
   try {
     const parsed: unknown = JSON.parse(jsonText)
@@ -117,8 +124,6 @@ export const claude = {
       if (message.subtype !== 'success') {
         throw new ClaudeQueryError(`Claude query failed: ${message.subtype}`)
       }
-
-      await writeFile(opts.outputPath, message.result)
 
       if (message.structured_output !== undefined) {
         return opts.outputSchema.parse(message.structured_output)

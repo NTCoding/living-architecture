@@ -12,7 +12,8 @@ Scan changed files for bugs and dangerous patterns. Be paranoid - if something l
 1. Review ALL files listed in "Files to Review" below
 2. For each file, read its contents and scan for the patterns described
 3. Check related files as needed to understand context
-4. Output your findings as structured JSON
+4. Write your scan report to the path specified in "Report Path" below
+5. Return your result as structured JSON
 
 ## Priority 1: Bug Patterns & Anti-Patterns
 
@@ -143,27 +144,36 @@ Read `docs/conventions/review-feedback-checks.md` and apply each RFC check to ch
 - **major**: Bugs, dangerous patterns, config changes. Should fix.
 - **minor**: Framework misuse, inefficiencies. Nice to fix.
 
+## Scan Report
+
+Write a markdown report to the path specified in "Report Path". The report must include:
+
+1. A criteria checklist showing every category you scanned:
+   - [ ] Silent Error Swallowing
+   - [ ] Dangerous Type Assertions
+   - [ ] Incomplete Async Error Handling
+   - [ ] Dangerous Fallback Values
+   - [ ] Race Conditions
+   - [ ] Logic Errors
+   - [ ] Framework & Library Misuse
+   - [ ] Dangerous Config Changes
+   - [ ] Security Issues
+   - [ ] Review Feedback Checks
+
+   Use `- [x]` for pass, `- [ ]` for fail, `- [-]` for not applicable.
+
+2. Findings grouped by category, each with severity, file:line, and description.
+
 ## Output Format
 
-Return ONLY valid JSON matching this schema:
+After writing the report, return ONLY valid JSON:
 
 ```json
 {
-  "result": "PASS" | "FAIL",
-  "summary": "One sentence summary of scan",
-  "findings": [
-    {
-      "severity": "critical" | "major" | "minor",
-      "file": "path/to/file.ts",
-      "line": 42,
-      "message": "Description of the issue including pattern name and risk"
-    }
-  ]
+  "result": "PASS" | "FAIL"
 }
 ```
 
 Rules:
 - result: "FAIL" if any critical or major findings, otherwise "PASS"
-- summary: Brief overview of what you found
-- findings: Array of all issues (can be empty for PASS)
-- line: Optional, include if specific to a line
+- Your ENTIRE response must be a single JSON object. No text before or after.

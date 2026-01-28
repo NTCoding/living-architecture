@@ -13,7 +13,8 @@ Verify that the implementation satisfies the task requirements. Be thorough - in
 2. Extract acceptance criteria from the task body
 3. Review ALL files listed in "Files to Review" below
 4. For each acceptance criterion, verify it is satisfied by the implementation
-5. Output your findings as structured JSON
+5. Write your verification report to the path specified in "Report Path" below
+6. Return your result as structured JSON
 
 ## Verification Process
 
@@ -29,28 +30,25 @@ For each acceptance criterion:
 - **major**: Partial implementation. Core functionality exists but incomplete or has gaps.
 - **minor**: Implementation works but doesn't fully match task description (e.g., naming, location).
 
+## Verification Report
+
+Write a markdown report to the path specified in "Report Path". The report must include:
+
+1. A criteria checklist with one entry per acceptance criterion from the task:
+   - Use `- [x]` for met, `- [ ]` for unmet
+
+2. For each unmet criterion: severity, affected file:line, and what's missing.
+
 ## Output Format
 
-Return ONLY valid JSON matching this schema:
+After writing the report, return ONLY valid JSON:
 
 ```json
 {
-  "result": "PASS" | "FAIL",
-  "summary": "One sentence summary of task completion status",
-  "findings": [
-    {
-      "severity": "critical" | "major" | "minor",
-      "file": "path/to/file.ts",
-      "line": 42,
-      "message": "Description of unmet requirement or gap"
-    }
-  ]
+  "result": "PASS" | "FAIL"
 }
 ```
 
 Rules:
 - result: "FAIL" if any critical or major findings, otherwise "PASS"
-- summary: Brief overview of completion status (e.g., "All acceptance criteria met" or "2 of 5 criteria unmet")
-- findings: Array of unmet requirements (can be empty for PASS)
-- file: The file that should contain the missing implementation, or where the gap exists
-- line: Optional, include if specific to a line
+- Your ENTIRE response must be a single JSON object. No text before or after.

@@ -4,6 +4,7 @@ import {
 
 const {
   mockReadFile,
+  mockReaddirSync,
   mockClaude,
   mockGit,
   mockCli,
@@ -11,10 +12,12 @@ const {
   mockCreateTaskCheckMarker,
 } = vi.hoisted(() => ({
   mockReadFile: vi.fn(),
+  mockReaddirSync: vi.fn(),
   mockClaude: { query: vi.fn() },
   mockGit: {
     baseBranch: vi.fn(),
     diffFiles: vi.fn(),
+    unpushedFiles: vi.fn(),
   },
   mockCli: { hasFlag: vi.fn() },
   mockTaskCheckMarkerExists: vi.fn(),
@@ -22,6 +25,7 @@ const {
 }))
 
 vi.mock('node:fs/promises', () => ({ readFile: mockReadFile }))
+vi.mock('node:fs', () => ({ readdirSync: mockReaddirSync }))
 vi.mock('../../../../platform/infra/external-clients/claude-agent', () => ({ claude: mockClaude }))
 vi.mock('../../../../platform/infra/external-clients/git-client', () => ({ git: mockGit }))
 vi.mock('../../../../platform/infra/external-clients/cli-args', () => ({ cli: mockCli }))
@@ -60,15 +64,12 @@ describe('codeReview', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockCli.hasFlag.mockReturnValue(false)
+    mockReaddirSync.mockReturnValue([])
     mockGit.baseBranch.mockResolvedValue('main')
-    mockGit.diffFiles.mockResolvedValue(['file1.ts'])
+    mockGit.unpushedFiles.mockResolvedValue(['file1.ts'])
     mockTaskCheckMarkerExists.mockReturnValue(true)
     mockReadFile.mockResolvedValue('# Agent instructions')
-    mockClaude.query.mockResolvedValue({
-      result: 'PASS',
-      summary: 'All good',
-      findings: [],
-    })
+    mockClaude.query.mockResolvedValue({ result: 'PASS' })
   })
 
   it('returns success when --reject-review-feedback flag is set', async () => {
@@ -128,18 +129,7 @@ describe('codeReview', () => {
   })
 
   it('returns failure when any reviewer fails', async () => {
-    mockClaude.query.mockResolvedValue({
-      result: 'FAIL',
-      summary: 'Issues found',
-      findings: [
-        {
-          severity: 'major',
-          file: 'f.ts',
-          line: 1,
-          message: 'bad',
-        },
-      ],
-    })
+    mockClaude.query.mockResolvedValue({ result: 'FAIL' })
     const ctx = createContext({})
 
     const result = await codeReview.execute(ctx)
@@ -160,5 +150,29 @@ describe('codeReview', () => {
     const ctx = createContext({})
 
     await expect(codeReview.execute(ctx)).rejects.toThrow(AgentError)
+  })
+
+  it('uses round number 2 when round 1 report exists', async () => {
+    mockReaddirSync.mockReturnValue(['code-review-1.md', 'bug-scanner-1.md'])
+    const ctx = createContext({})
+
+    await codeReview.execute(ctx)
+
+    expect(mockClaude.query).toHaveBeenCalledWith(
+      expect.objectContaining({ prompt: expect.stringContaining('code-review-2.md') }),
+    )
+  })
+
+  it('falls back to round 1 when directory does not exist', async () => {
+    mockReaddirSync.mockImplementation(() => {
+      throw new AgentError('ENOENT')
+    })
+    const ctx = createContext({})
+
+    await codeReview.execute(ctx)
+
+    expect(mockClaude.query).toHaveBeenCalledWith(
+      expect.objectContaining({ prompt: expect.stringContaining('code-review-1.md') }),
+    )
   })
 })

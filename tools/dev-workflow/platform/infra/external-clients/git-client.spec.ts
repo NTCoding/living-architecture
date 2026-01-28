@@ -193,6 +193,46 @@ describe('git.baseBranch', () => {
   })
 })
 
+describe('git.unpushedFiles', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('returns files diffed against remote branch when it exists', async () => {
+    mockRepo.status.mockResolvedValue({ current: 'issue-123-feat' })
+    mockRepo.branch.mockResolvedValue({ all: ['origin/main', 'origin/issue-123-feat'] })
+    mockRepo.diff.mockResolvedValue('changed.ts\n')
+
+    const files = await git.unpushedFiles('main')
+
+    expect(files).toStrictEqual(['changed.ts'])
+    expect(mockRepo.diff).toHaveBeenCalledWith(['--name-only', 'origin/issue-123-feat'])
+  })
+
+  it('falls back to base branch diff when no remote tracking branch', async () => {
+    mockRepo.status.mockResolvedValue({ current: 'issue-123-feat' })
+    mockRepo.branch.mockResolvedValue({ all: ['origin/main'] })
+    mockRepo.diff.mockResolvedValue('all-changes.ts\n')
+
+    const files = await git.unpushedFiles('main')
+
+    expect(files).toStrictEqual(['all-changes.ts'])
+    expect(mockRepo.diff).toHaveBeenCalledWith(['--name-only', 'main'])
+  })
+
+  it('falls back to base branch diff when no unpushed changes', async () => {
+    mockRepo.status.mockResolvedValue({ current: 'issue-123-feat' })
+    mockRepo.branch.mockResolvedValue({ all: ['origin/main', 'origin/issue-123-feat'] })
+    mockRepo.diff
+      .mockResolvedValueOnce('')
+      .mockResolvedValueOnce('full-pr.ts\n')
+
+    const files = await git.unpushedFiles('main')
+
+    expect(files).toStrictEqual(['full-pr.ts'])
+  })
+})
+
 describe('git.headSha', () => {
   beforeEach(() => {
     vi.clearAllMocks()
