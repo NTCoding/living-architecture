@@ -3,7 +3,9 @@ import {
   classifyThread, formatThreadForOutput, type FormattedFeedbackItem 
 } from './review-thread'
 import { Reviewer } from './reviewer'
-import { type ReviewDecision } from './review-decision'
+import {
+  reviewDecisionSchema, type ReviewDecision 
+} from './review-decision'
 
 export type { FormattedFeedbackItem }
 
@@ -25,10 +27,12 @@ export async function getPRFeedback(
     })
     .map(formatThreadForOutput)
 
-  const reviewDecisions = rawFeedback.reviewDecisions.map((review) => ({
-    reviewer: Reviewer.createFromGitHubLogin(review.author?.login).value,
-    state: review.state,
-  }))
+  const reviewDecisions = rawFeedback.reviewDecisions.map((review) =>
+    reviewDecisionSchema.parse({
+      reviewer: Reviewer.createFromGitHubLogin(review.author?.login).value,
+      state: review.state,
+    }),
+  )
 
   return {
     threads,

@@ -32,9 +32,11 @@ function tryParseJson(input: string): JsonParseResult {
       success: true,
       data: JSON.parse(input),
     }
+    /* v8 ignore start - JSON parse errors lead to process.exit, tested via integration */
   } catch {
     return { success: false }
   }
+  /* v8 ignore stop */
 }
 
 function skipHooksOutput(): void {
@@ -50,6 +52,7 @@ async function main(): Promise<void> {
   const rawInput = await readStdin()
 
   const jsonResult = tryParseJson(rawInput)
+  /* v8 ignore start - error paths with process.exit, tested via integration */
   if (!jsonResult.success) {
     console.error('Invalid hook input: malformed JSON')
     process.exit(2)
@@ -60,12 +63,15 @@ async function main(): Promise<void> {
     console.error(`Invalid hook input: ${parseResult.error}`)
     process.exit(2)
   }
+  /* v8 ignore stop */
 
   const output = routeToHandler(parseResult.input)
   console.log(JSON.stringify(output))
 }
 
+/* v8 ignore start - error path with process.exit, tested via integration */
 main().catch((error: unknown) => {
   console.error(error instanceof Error ? error.message : String(error))
   process.exit(2)
 })
+/* v8 ignore stop */

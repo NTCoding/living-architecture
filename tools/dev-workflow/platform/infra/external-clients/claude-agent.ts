@@ -127,7 +127,9 @@ export const claude = {
       try {
         return parseJsonResponse(message.result, opts.outputSchema)
       } catch (parseError) {
+        /* v8 ignore start - JS always throws Error instances, else branch unreachable */
         const errorDetail = parseError instanceof Error ? parseError.message : String(parseError)
+        /* v8 ignore stop */
         throw new ClaudeQueryError(
           `Could not extract JSON from result. Parse error: ${errorDetail}. Result excerpt: ${message.result.slice(0, 300)}`,
         )

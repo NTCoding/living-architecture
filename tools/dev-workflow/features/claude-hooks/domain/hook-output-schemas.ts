@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-const preToolUseOutputSchema = z.object({
+export const preToolUseOutputSchema = z.object({
   hookSpecificOutput: z.object({
     hookEventName: z.literal('PreToolUse'),
     permissionDecision: z.enum(['allow', 'deny', 'ask']),
@@ -9,7 +9,7 @@ const preToolUseOutputSchema = z.object({
 })
 export type PreToolUseOutput = z.infer<typeof preToolUseOutputSchema>
 
-const postToolUseOutputSchema = z.object({
+export const postToolUseOutputSchema = z.object({
   hookSpecificOutput: z.object({
     hookEventName: z.literal('PostToolUse'),
     additionalContext: z.string().optional(),
@@ -17,7 +17,7 @@ const postToolUseOutputSchema = z.object({
 })
 export type PostToolUseOutput = z.infer<typeof postToolUseOutputSchema>
 
-const stopOutputSchema = z.object({
+export const stopOutputSchema = z.object({
   continue: z.boolean().optional(),
   stopReason: z.string().optional(),
 })
