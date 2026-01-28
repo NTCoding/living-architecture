@@ -37,8 +37,8 @@ describe('handleStop', () => {
 
     const result = handleStop(baseInput)
 
-    expect(result.continue).toBe(false)
-    expect(result.stopReason).toContain('MANDATORY')
+    expect(result._tag).toBe('block')
+    expect(result._tag === 'block' && result.reason).toContain('MANDATORY')
   })
 
   it('allows stop when message has [Mergeable PR] prefix', () => {
@@ -51,7 +51,7 @@ describe('handleStop', () => {
 
     const result = handleStop(baseInput)
 
-    expect(result.continue).toBe(true)
+    expect(result._tag).toBe('allow')
   })
 
   it('allows stop when message has [No Mergeable PR: prefix', () => {
@@ -64,7 +64,7 @@ describe('handleStop', () => {
 
     const result = handleStop(baseInput)
 
-    expect(result.continue).toBe(true)
+    expect(result._tag).toBe('allow')
   })
 
   it('blocks stop when message lacks required prefix', () => {
@@ -77,8 +77,8 @@ describe('handleStop', () => {
 
     const result = handleStop(baseInput)
 
-    expect(result.continue).toBe(false)
-    expect(result.stopReason).toContain('MANDATORY')
+    expect(result._tag).toBe('block')
+    expect(result._tag === 'block' && result.reason).toContain('MANDATORY')
   })
 
   it('handles content as array of text blocks', () => {
@@ -98,7 +98,7 @@ describe('handleStop', () => {
 
     const result = handleStop(baseInput)
 
-    expect(result.continue).toBe(true)
+    expect(result._tag).toBe('allow')
   })
 
   it('handles multiple lines taking last assistant message', () => {
@@ -123,7 +123,7 @@ describe('handleStop', () => {
 
     const result = handleStop(baseInput)
 
-    expect(result.continue).toBe(true)
+    expect(result._tag).toBe('allow')
   })
 
   it('blocks when no assistant messages found', () => {
@@ -136,7 +136,7 @@ describe('handleStop', () => {
 
     const result = handleStop(baseInput)
 
-    expect(result.continue).toBe(false)
+    expect(result._tag).toBe('block')
   })
 
   it('handles invalid JSON lines gracefully', () => {
@@ -149,7 +149,7 @@ describe('handleStop', () => {
 
     const result = handleStop(baseInput)
 
-    expect(result.continue).toBe(true)
+    expect(result._tag).toBe('allow')
   })
 
   it('allows prefix with leading whitespace', () => {
@@ -162,6 +162,6 @@ describe('handleStop', () => {
 
     const result = handleStop(baseInput)
 
-    expect(result.continue).toBe(true)
+    expect(result._tag).toBe('allow')
   })
 })

@@ -23,13 +23,12 @@ export function deny(reason: string): PreToolUseOutput {
 }
 
 export function allowStop(): StopOutput {
-  return { continue: true }
+  return { _tag: 'allow' }
 }
 
 export function blockStop(reason: string): StopOutput {
   return {
-    outputToUser: { passthrough: false },
-    continue: false,
-    stopReason: reason,
+    _tag: 'block',
+    reason,
   }
 }

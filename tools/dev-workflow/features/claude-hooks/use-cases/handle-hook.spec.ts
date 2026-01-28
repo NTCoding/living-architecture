@@ -128,6 +128,6 @@ describe('routeToHandler', () => {
 
     const result = routeToHandler(input)
 
-    expect(result).toHaveProperty('continue')
+    expect(result).toHaveProperty('_tag')
   })
 })

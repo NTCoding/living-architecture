@@ -17,13 +17,13 @@ export const postToolUseOutputSchema = z.object({
 })
 export type PostToolUseOutput = z.infer<typeof postToolUseOutputSchema>
 
-const outputToUserSchema = z.object({ passthrough: z.literal(false) })
-
-export const stopOutputSchema = z.object({
-  outputToUser: outputToUserSchema.optional(),
-  continue: z.boolean().optional(),
-  stopReason: z.string().optional(),
-})
+export const stopOutputSchema = z.discriminatedUnion('_tag', [
+  z.object({ _tag: z.literal('allow') }),
+  z.object({
+    _tag: z.literal('block'),
+    reason: z.string(),
+  }),
+])
 export type StopOutput = z.infer<typeof stopOutputSchema>
 
 export type HookOutput = PreToolUseOutput | PostToolUseOutput | StopOutput
