@@ -52,6 +52,16 @@ describe('createProgram', () => {
     expect(program.version()).toMatch(/^\d+\.\d+\.\d+/)
   })
 
+  it('uses injected version when INJECTED_VERSION is defined', async () => {
+    vi.stubGlobal('INJECTED_VERSION', '99.88.77')
+    vi.resetModules()
+    const { createProgram: createFresh } = await import('./cli')
+    const program = createFresh()
+
+    expect(program.version()).toBe('99.88.77')
+    vi.unstubAllGlobals()
+  })
+
   it('registers builder subcommand', () => {
     const program = createProgram()
     const builderCmd = program.commands.find((cmd) => cmd.name() === 'builder')

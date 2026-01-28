@@ -35,7 +35,12 @@ export function parsePackageJson(pkg: unknown): PackageJson {
   return { version: pkg.version }
 }
 
+declare const INJECTED_VERSION: string | undefined
+
 function loadPackageJson(): PackageJson {
+  if (typeof INJECTED_VERSION === 'string') {
+    return { version: INJECTED_VERSION }
+  }
   const require = createRequire(import.meta.url)
   return parsePackageJson(require('../../package.json'))
 }
