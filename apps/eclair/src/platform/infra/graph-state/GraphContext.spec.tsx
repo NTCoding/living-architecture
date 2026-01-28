@@ -11,7 +11,7 @@ import {
   fetchAndValidateDemoGraph,
   buildDemoGraphUrl,
 } from './GraphContext'
-import type { RiviereGraph } from '@/types/riviere'
+import type { RiviereGraph } from '@living-architecture/riviere-schema'
 import {
   parseNode, parseDomainKey
 } from '@/platform/infra/__fixtures__/riviere-test-fixtures'

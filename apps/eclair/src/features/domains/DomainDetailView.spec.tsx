@@ -6,7 +6,7 @@ import { extractDomainDetails } from './extractDomainDetails'
 import {
   parseNode, parseDomainMetadata, parseDomainKey
 } from '@/platform/infra/__fixtures__/riviere-test-fixtures'
-import type { RiviereGraph } from '@/types/riviere'
+import type { RiviereGraph } from '@living-architecture/riviere-schema'
 import { assertDefined } from '@/test-assertions'
 const testSourceLocation = {
   repository: 'test-repo',

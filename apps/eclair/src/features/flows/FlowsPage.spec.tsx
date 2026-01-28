@@ -6,8 +6,8 @@ import {
 } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import userEvent from '@testing-library/user-event'
-import { FlowsPage } from './FlowsPage'
-import type { RiviereGraph } from '@/types/riviere'
+import { FlowsPage } from './entrypoint/FlowsPage'
+import type { RiviereGraph } from '@living-architecture/riviere-schema'
 import {
   parseNode, parseEdge, parseDomainMetadata
 } from '@/platform/infra/__fixtures__/riviere-test-fixtures'

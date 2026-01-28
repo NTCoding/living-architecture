@@ -1,4 +1,4 @@
-import type { RiviereGraph } from '@/types/riviere'
+import type { RiviereGraph } from '@living-architecture/riviere-schema'
 import {
   getEdgeType, type ConnectionDetail 
 } from './edgeAggregation'

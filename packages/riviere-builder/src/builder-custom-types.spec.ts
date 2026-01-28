@@ -1,6 +1,12 @@
+import type { RiviereGraph } from '@living-architecture/riviere-schema'
 import {
   RiviereBuilder, type BuilderOptions 
 } from './builder'
+
+function parseGraph(builder: RiviereBuilder): RiviereGraph {
+  const graph: RiviereGraph = JSON.parse(builder.serialize())
+  return graph
+}
 
 function createValidOptions(): BuilderOptions {
   return {
@@ -34,7 +40,7 @@ describe('RiviereBuilder custom types', () => {
         },
       })
 
-      expect(builder.graph.metadata.customTypes).toStrictEqual({
+      expect(parseGraph(builder).metadata.customTypes).toStrictEqual({
         MessageQueue: {
           requiredProperties: {
             queueName: {
@@ -60,7 +66,7 @@ describe('RiviereBuilder custom types', () => {
         },
       })
 
-      expect(builder.graph.metadata.customTypes).toStrictEqual({
+      expect(parseGraph(builder).metadata.customTypes).toStrictEqual({
         CacheStore: {
           description: 'In-memory cache',
           optionalProperties: {

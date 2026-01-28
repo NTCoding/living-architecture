@@ -48,10 +48,16 @@ function linkTypeForSort(linkType: 'sync' | 'async' | undefined): string {
   return linkType
 }
 
+function compareByCodePoint(a: string, b: string): number {
+  if (a < b) return -1
+  if (a > b) return 1
+  return 0
+}
+
 function compareCrossDomainLinks(a: CrossDomainLink, b: CrossDomainLink): number {
-  const domainCompare = a.targetDomain.localeCompare(b.targetDomain)
+  const domainCompare = compareByCodePoint(a.targetDomain, b.targetDomain)
   if (domainCompare !== 0) return domainCompare
-  return linkTypeForSort(a.linkType).localeCompare(linkTypeForSort(b.linkType))
+  return compareByCodePoint(linkTypeForSort(a.linkType), linkTypeForSort(b.linkType))
 }
 
 interface ConnectionCounts {
@@ -147,5 +153,5 @@ export function queryDomainConnections(
     ...toConnectionResults(outgoing, 'outgoing'),
     ...toConnectionResults(incoming, 'incoming'),
   ]
-  return results.sort((a, b) => a.targetDomain.localeCompare(b.targetDomain))
+  return results.sort((a, b) => compareByCodePoint(a.targetDomain, b.targetDomain))
 }

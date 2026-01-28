@@ -11,6 +11,12 @@ import type { Domain } from './domain-types'
 import type { ComponentCounts } from './stats-types'
 import { componentsInDomain } from './component-queries'
 
+function compareByCodePoint(a: string, b: string): number {
+  if (a < b) return -1
+  if (a > b) return 1
+  return 0
+}
+
 export function queryDomains(graph: RiviereGraph): Domain[] {
   return Object.entries(graph.metadata.domains).map(([name, metadata]) => {
     const dc = componentsInDomain(graph, name)
@@ -70,13 +76,13 @@ export function queryEntities(graph: RiviereGraph, domainName?: string): Entity[
     }
   }
   return Array.from(entityMap.values())
-    .sort((a, b) => a.name.localeCompare(b.name))
+    .sort((a, b) => compareByCodePoint(a.name, b.name))
     .map((partial) => createEntity(graph, partial))
 }
 
 function createEntity(graph: RiviereGraph, partial: PartialEntity): Entity {
   const sortedOperations = [...partial.operations].sort((a, b) =>
-    a.operationName.localeCompare(b.operationName),
+    compareByCodePoint(a.operationName, b.operationName),
   )
   return new Entity(
     parseEntityName(partial.name),

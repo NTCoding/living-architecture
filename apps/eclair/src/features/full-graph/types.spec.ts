@@ -5,7 +5,7 @@ import {
   NODE_COLORS, NODE_RADII, EDGE_COLORS, getDomainColor 
 } from './types'
 import type { Theme } from '@/types/theme'
-import type { NodeType } from '@/types/riviere'
+import type { NodeType } from '@/platform/domain/eclair-types'
 import {
   assertDefined, TestAssertionError 
 } from '@/test-assertions'

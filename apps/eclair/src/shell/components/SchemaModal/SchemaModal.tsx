@@ -5,9 +5,8 @@ import {
   JsonView, collapseAllNested
 } from 'react-json-view-lite'
 import 'react-json-view-lite/dist/index.css'
-import type {
-  RiviereGraph, GraphName
-} from '@/types/riviere'
+import type { RiviereGraph } from '@living-architecture/riviere-schema'
+import type { GraphName } from '@/platform/domain/eclair-types'
 import styles from './SchemaModal.module.css'
 import {
   CSSModuleError, SchemaError

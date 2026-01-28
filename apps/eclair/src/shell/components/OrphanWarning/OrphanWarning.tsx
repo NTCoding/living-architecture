@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { Node } from '@/types/riviere'
+import type { Node } from '@/platform/domain/eclair-types'
 
 export interface OrphanDetectionResult {
   readonly hasOrphans: boolean

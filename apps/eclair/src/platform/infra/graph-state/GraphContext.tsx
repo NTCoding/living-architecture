@@ -8,11 +8,12 @@ import {
   useSyncExternalStore,
   useMemo,
 } from 'react'
-import type {
-  RiviereGraph, GraphName
-} from '@/types/riviere'
-import { graphNameSchema } from '@/types/riviere'
-import { parseRiviereGraph } from '@living-architecture/riviere-schema'
+import {
+  parseRiviereGraph, type RiviereGraph
+} from '@living-architecture/riviere-schema'
+import {
+  graphNameSchema, type GraphName
+} from '@/platform/domain/eclair-types'
 import {
   GraphError, ContextError
 } from '@/shell/errors/errors'

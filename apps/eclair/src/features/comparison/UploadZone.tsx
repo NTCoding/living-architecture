@@ -1,7 +1,7 @@
 import {
   useCallback, useRef 
 } from 'react'
-import type { RiviereGraph } from '@/types/riviere'
+import type { RiviereGraph } from '@living-architecture/riviere-schema'
 
 interface UploadedFile {
   readonly name: string

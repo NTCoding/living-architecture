@@ -1,4 +1,4 @@
-import type { Edge } from '@/types/riviere'
+import type { Edge } from '@/platform/domain/eclair-types'
 
 export interface FlowResult {
   nodeIds: Set<string>

@@ -2,9 +2,8 @@ import {
   useState, useRef, useEffect 
 } from 'react'
 import { useNavigate } from 'react-router-dom'
-import type {
-  RiviereGraph, GraphName 
-} from '@/types/riviere'
+import type { RiviereGraph } from '@living-architecture/riviere-schema'
+import type { GraphName } from '@/platform/domain/eclair-types'
 import { SchemaModal } from '@/shell/components/SchemaModal/SchemaModal'
 import { useGraph } from '@/platform/infra/graph-state/GraphContext'
 import {

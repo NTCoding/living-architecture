@@ -1,14 +1,14 @@
 import type {
-  RiviereGraph,
-  DomainName,
-  NodeType,
-  SystemType,
-  EdgeType,
-  SourceLocation,
-  EntryPoint,
-  NodeId,
-} from '@/types/riviere'
-import { nodeIdSchema } from '@/types/riviere'
+  RiviereGraph, SystemType, SourceLocation 
+} from '@living-architecture/riviere-schema'
+import {
+  nodeIdSchema,
+  type DomainName,
+  type NodeType,
+  type EdgeType,
+  type EntryPoint,
+  type NodeId,
+} from '@/platform/domain/eclair-types'
 import {
   RiviereQuery, type Entity 
 } from '@living-architecture/riviere-query'

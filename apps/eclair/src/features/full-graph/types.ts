@@ -1,6 +1,6 @@
 import type {
   Node, Edge, NodeType 
-} from '@/types/riviere'
+} from '@/platform/domain/eclair-types'
 import type {
   SimulationNodeDatum, SimulationLinkDatum 
 } from 'd3'

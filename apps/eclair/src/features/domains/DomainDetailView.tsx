@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import type { NodeType } from '@/types/riviere'
+import type { NodeType } from '@/platform/domain/eclair-types'
 import type { DomainDetails } from './extractDomainDetails'
 import { NodeTypeBadge } from '@/features/flows/components/NodeTypeBadge/NodeTypeBadge'
 import { CodeLinkMenu } from '@/features/flows/components/CodeLinkMenu/CodeLinkMenu'

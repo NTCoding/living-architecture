@@ -5,7 +5,7 @@ import {
   extractDomainMap, getConnectedDomains 
 } from './extractDomainMap'
 import type { DomainEdge } from './extractDomainMap'
-import type { RiviereGraph } from '@/types/riviere'
+import type { RiviereGraph } from '@living-architecture/riviere-schema'
 import {
   parseNode,
   parseEdge,

@@ -2,7 +2,7 @@ import * as d3 from 'd3'
 import type {
   SimulationNode, SimulationLink 
 } from '../../types'
-import type { NodeType } from '@/types/riviere'
+import type { NodeType } from '@/platform/domain/eclair-types'
 import type { Theme } from '@/types/theme'
 import { getLinkNodeId } from './FocusModeStyling'
 import {

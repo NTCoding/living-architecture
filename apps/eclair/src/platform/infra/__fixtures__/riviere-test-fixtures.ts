@@ -1,3 +1,12 @@
+import type {
+  ApiType,
+  HttpMethod,
+  SourceLocation,
+  OperationSignature,
+  OperationBehavior,
+  DomainMetadata,
+  SystemType,
+} from '@living-architecture/riviere-schema'
 import {
   nodeIdSchema,
   edgeIdSchema,
@@ -12,16 +21,9 @@ import {
   type APINode,
   type Edge,
   type NodeType,
-  type ApiType,
-  type HttpMethod,
   type EdgeType,
-  type SourceLocation,
-  type OperationSignature,
-  type OperationBehavior,
-  type DomainMetadata,
-  type SystemType,
   type EntityDefinition,
-} from '@/types/riviere'
+} from '@/platform/domain/eclair-types'
 
 class TestAssertionError extends Error {
   constructor(message: string) {

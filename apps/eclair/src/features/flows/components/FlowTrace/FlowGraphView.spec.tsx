@@ -9,7 +9,7 @@ import {
   parseNode, parseEdge, parseDomainMetadata 
 } from '@/platform/infra/__fixtures__/riviere-test-fixtures'
 import type { FlowStep } from '../../extractFlows'
-import type { RiviereGraph } from '@/types/riviere'
+import type { RiviereGraph } from '@living-architecture/riviere-schema'
 import type { TooltipData } from '@/features/full-graph/types'
 
 const testSourceLocation = {

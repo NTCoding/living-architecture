@@ -8,11 +8,11 @@ import userEvent from '@testing-library/user-event'
 import {
   MemoryRouter, Routes, Route
 } from 'react-router-dom'
-import { DomainDetailPage } from './DomainDetailPage'
+import { DomainDetailPage } from './entrypoint/DomainDetailPage'
 import {
   parseNode, parseEdge, parseDomainMetadata
 } from '@/platform/infra/__fixtures__/riviere-test-fixtures'
-import type { RiviereGraph } from '@/types/riviere'
+import type { RiviereGraph } from '@living-architecture/riviere-schema'
 import { assertDefined } from '@/test-assertions'
 
 const testSourceLocation = {

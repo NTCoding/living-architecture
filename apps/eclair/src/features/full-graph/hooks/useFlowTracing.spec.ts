@@ -2,7 +2,7 @@ import {
   describe, expect, it 
 } from 'vitest'
 import { traceFlow } from './useFlowTracing'
-import type { Edge } from '@/types/riviere'
+import type { Edge } from '@/platform/domain/eclair-types'
 import { parseEdge } from '@/platform/infra/__fixtures__/riviere-test-fixtures'
 
 const testEdges: Edge[] = [

@@ -4,7 +4,7 @@ import {
 import { computeGraphStats } from './compute-graph-stats'
 import type {
   RiviereGraph, SourceLocation 
-} from '@/types/riviere'
+} from '@living-architecture/riviere-schema'
 import {
   parseNode,
   parseEdge,

@@ -6,11 +6,11 @@ import {
 } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import userEvent from '@testing-library/user-event'
-import { EntitiesPage } from './EntitiesPage'
+import { EntitiesPage } from './entrypoint/EntitiesPage'
 import {
   parseNode, parseEdge, parseDomainMetadata 
 } from '@/platform/infra/__fixtures__/riviere-test-fixtures'
-import type { RiviereGraph } from '@/types/riviere'
+import type { RiviereGraph } from '@living-architecture/riviere-schema'
 const testSourceLocation = {
   repository: 'test-repo',
   filePath: 'src/test.ts',

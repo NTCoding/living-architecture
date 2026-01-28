@@ -5,9 +5,8 @@ import { useLocation } from 'react-router-dom'
 import { Header } from '@/shell/components/Header/Header'
 import { Sidebar } from '@/shell/components/Sidebar/Sidebar'
 import { useExport } from '@/platform/infra/export/ExportContext'
-import type {
-  RiviereGraph, GraphName 
-} from '@/types/riviere'
+import type { RiviereGraph } from '@living-architecture/riviere-schema'
+import type { GraphName } from '@/platform/domain/eclair-types'
 
 interface AppShellProps {
   readonly children: React.ReactNode

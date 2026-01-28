@@ -9,12 +9,10 @@ import {
 } from 'vitest'
 import { AppShell } from './AppShell'
 import { ExportProvider } from '@/platform/infra/export/ExportContext'
-import type {
-  GraphName, RiviereGraph 
-} from '@/types/riviere'
+import type { RiviereGraph } from '@living-architecture/riviere-schema'
 import {
-  graphNameSchema, nodeIdSchema, domainNameSchema, moduleNameSchema 
-} from '@/types/riviere'
+  graphNameSchema, nodeIdSchema, domainNameSchema, moduleNameSchema, type GraphName
+} from '@/platform/domain/eclair-types'
 import { parseDomainMetadata } from '@/platform/infra/__fixtures__/riviere-test-fixtures'
 
 const testSourceLocation = {

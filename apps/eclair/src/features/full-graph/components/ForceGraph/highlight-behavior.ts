@@ -2,7 +2,7 @@ import * as d3 from 'd3'
 import type {
   SimulationNode, SimulationLink 
 } from '../../types'
-import type { Edge } from '@/types/riviere'
+import type { Edge } from '@/platform/domain/eclair-types'
 import { traceFlow } from '../../hooks/useFlowTracing'
 import { getLinkNodeId } from './FocusModeStyling'
 import { LayoutError } from '@/shell/errors/errors'

@@ -127,7 +127,7 @@ interface BuilderGraph extends Omit<RiviereGraph, 'metadata' | 'externalLinks'> 
  * ```
  */
 export class RiviereBuilder {
-  graph: BuilderGraph
+  private graph: BuilderGraph
 
   private constructor(graph: BuilderGraph) {
     this.graph = graph

@@ -4,13 +4,13 @@ import {
 import {
   GraphProvider, useGraph
 } from '@/platform/infra/graph-state/GraphContext'
-import { EmptyState } from './EmptyState'
+import { EmptyState } from './entrypoint/EmptyState'
 import {
   parseNode, parseDomainMetadata
 } from '@/platform/infra/__fixtures__/riviere-test-fixtures'
 import type {
   RiviereGraph, SourceLocation
-} from '@/types/riviere'
+} from '@living-architecture/riviere-schema'
 import {
   dropFilesOnElement, getDropZone
 } from '@/test/setup'

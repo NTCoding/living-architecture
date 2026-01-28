@@ -16,7 +16,7 @@ import {
 } from '@/platform/infra/graph-state/GraphContext'
 import { ExportProvider } from '@/platform/infra/export/ExportContext'
 import { ThemeProvider } from '@/platform/infra/theme/ThemeContext'
-import type { RiviereGraph } from '@/types/riviere'
+import type { RiviereGraph } from '@living-architecture/riviere-schema'
 import {
   parseNode, parseDomainMetadata
 } from '@/platform/infra/__fixtures__/riviere-test-fixtures'

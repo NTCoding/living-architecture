@@ -2,7 +2,7 @@ import {
   describe, it, expect 
 } from 'vitest'
 import { extractDomainMap } from './extractDomainMap'
-import type { RiviereGraph } from '@/types/riviere'
+import type { RiviereGraph } from '@living-architecture/riviere-schema'
 import {
   parseNode, parseDomainMetadata 
 } from '@/platform/infra/__fixtures__/riviere-test-fixtures'

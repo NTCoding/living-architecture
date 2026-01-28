@@ -6,12 +6,10 @@ import {
   describe, expect, it, vi 
 } from 'vitest'
 import { Header } from './Header'
-import type {
-  RiviereGraph, GraphName 
-} from '@/types/riviere'
+import type { RiviereGraph } from '@living-architecture/riviere-schema'
 import {
-  nodeIdSchema, domainNameSchema, moduleNameSchema, graphNameSchema 
-} from '@/types/riviere'
+  nodeIdSchema, domainNameSchema, moduleNameSchema, graphNameSchema, type GraphName
+} from '@/platform/domain/eclair-types'
 import { parseDomainMetadata } from '@/platform/infra/__fixtures__/riviere-test-fixtures'
 
 const mockNavigate = vi.fn()

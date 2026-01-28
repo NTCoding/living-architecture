@@ -21,7 +21,7 @@ export class RiviereBuilder {
   readonly inspection: GraphInspection
   readonly errorRecovery: NearMatch
 
-  readonly graph: BuilderGraph
+  private readonly graph: BuilderGraph
 
   private constructor(graph: BuilderGraph) {
     this.graph = graph

@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import type { FlowStep } from '../../extractFlows'
-import type {
-  NodeType, RiviereGraph 
-} from '@/types/riviere'
+import type { RiviereGraph } from '@living-architecture/riviere-schema'
+import type { NodeType } from '@/platform/domain/eclair-types'
 import { FlowGraphView } from './FlowGraphView'
 
 type ViewMode = 'waterfall' | 'graph'

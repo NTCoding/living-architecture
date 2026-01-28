@@ -2,7 +2,7 @@ import {
   describe, it, expect 
 } from 'vitest'
 import { computeDomainConnectionDiff } from './computeDomainConnectionDiff'
-import type { RiviereGraph } from '@/types/riviere'
+import type { RiviereGraph } from '@living-architecture/riviere-schema'
 import {
   parseNode,
   parseEdge,

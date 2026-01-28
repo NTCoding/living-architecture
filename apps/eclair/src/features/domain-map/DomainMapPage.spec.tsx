@@ -5,9 +5,9 @@ import {
   render, screen 
 } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
-import { DomainMapPage } from './DomainMapPage'
+import { DomainMapPage } from './entrypoint/DomainMapPage'
 import { ExportProvider } from '@/platform/infra/export/ExportContext'
-import type { RiviereGraph } from '@/types/riviere'
+import type { RiviereGraph } from '@living-architecture/riviere-schema'
 import {
   parseNode, parseEdge, parseDomainMetadata 
 } from '@/platform/infra/__fixtures__/riviere-test-fixtures'

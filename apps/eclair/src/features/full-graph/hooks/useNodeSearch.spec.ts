@@ -4,7 +4,7 @@ import {
 import { filterNodesBySearch } from './useNodeSearch'
 import type {
   Node, Edge 
-} from '@/types/riviere'
+} from '@/platform/domain/eclair-types'
 import {
   parseNode, parseEdge 
 } from '@/platform/infra/__fixtures__/riviere-test-fixtures'

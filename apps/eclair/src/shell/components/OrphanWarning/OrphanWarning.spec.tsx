@@ -7,10 +7,9 @@ import {
 } from 'vitest'
 import { OrphanWarning } from './OrphanWarning'
 import type { OrphanDetectionResult } from './OrphanWarning'
-import type { Node } from '@/types/riviere'
 import {
-  nodeIdSchema, domainNameSchema, moduleNameSchema, entityNameSchema 
-} from '@/types/riviere'
+  nodeIdSchema, domainNameSchema, moduleNameSchema, entityNameSchema, type Node
+} from '@/platform/domain/eclair-types'
 
 const testSourceLocation = {
   repository: 'test-repo',
