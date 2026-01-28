@@ -28,6 +28,7 @@ export function allowStop(): StopOutput {
 
 export function blockStop(reason: string): StopOutput {
   return {
+    outputToUser: { passthrough: false },
     continue: false,
     stopReason: reason,
   }

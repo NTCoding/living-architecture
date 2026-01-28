@@ -105,6 +105,16 @@ describe('hook output schemas', () => {
 
       expect(output.continue).toBeUndefined()
     })
+
+    it('parses outputToUser with passthrough false', () => {
+      const output = stopOutputSchema.parse({
+        outputToUser: { passthrough: false },
+        continue: false,
+        stopReason: 'blocked',
+      })
+
+      expect(output.outputToUser).toStrictEqual({ passthrough: false })
+    })
   })
 })
 
@@ -186,12 +196,16 @@ describe('hook output types', () => {
           permissionDecisionReason: 'ok',
         },
       }
-      expect(output).toBeDefined()
+      expect('hookSpecificOutput' in output).toBe(true)
+      const parsed = preToolUseOutputSchema.safeParse(output)
+      expect(parsed.success).toBe(true)
     })
 
     it('accepts StopOutput', () => {
       const output: HookOutput = { continue: true }
-      expect(output).toBeDefined()
+      expect('continue' in output).toBe(true)
+      const parsed = stopOutputSchema.safeParse(output)
+      expect(parsed.success).toBe(true)
     })
   })
 })

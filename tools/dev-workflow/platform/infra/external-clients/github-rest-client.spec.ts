@@ -48,10 +48,11 @@ describe('getOctokit', () => {
     process.env.GITHUB_TOKEN = 'test-token'
   })
 
-  it('returns octokit instance when token is set', () => {
+  it('returns octokit instance with expected API methods', () => {
     const octokit = getOctokit()
 
-    expect(octokit).toBeDefined()
+    expect(typeof octokit.pulls.list).toBe('function')
+    expect(typeof octokit.issues.get).toBe('function')
   })
 })
 

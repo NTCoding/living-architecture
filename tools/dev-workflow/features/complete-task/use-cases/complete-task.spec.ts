@@ -78,11 +78,20 @@ describe('executeCompleteTask', () => {
     )
   })
 
-  it('passes four workflow steps', () => {
+  it('passes workflow steps in correct order', () => {
     executeCompleteTask()
 
-    const steps = mockRunWorkflow.mock.calls[0][0]
-    expect(steps).toHaveLength(4)
+    const steps: unknown[] = mockRunWorkflow.mock.calls[0][0]
+    const stepNames = steps.map((s) => {
+      const step = s && typeof s === 'object' && 'name' in s ? s : null
+      return step?.name
+    })
+    expect(stepNames).toStrictEqual([
+      'verify-build',
+      'code-review',
+      'submit-pr',
+      'fetch-pr-feedback',
+    ])
   })
 
   it('context builder creates review directory', async () => {

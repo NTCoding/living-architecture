@@ -65,9 +65,29 @@ describe('fetchRawPRFeedback', () => {
 
     const result = await fetchRawPRFeedback(123)
 
-    expect(result.threads).toHaveLength(1)
-    expect(result.threads[0].id).toBe('thread-1')
-    expect(result.reviewDecisions).toHaveLength(1)
+    expect(result.threads).toStrictEqual([
+      {
+        id: 'thread-1',
+        isResolved: false,
+        isOutdated: false,
+        path: 'src/file.ts',
+        line: 42,
+        comments: {
+          nodes: [
+            {
+              author: { login: 'reviewer' },
+              body: 'Fix this',
+            },
+          ],
+        },
+      },
+    ])
+    expect(result.reviewDecisions).toStrictEqual([
+      {
+        author: { login: 'reviewer' },
+        state: 'CHANGES_REQUESTED',
+      },
+    ])
   })
 
   it('calls graphql with correct parameters', async () => {

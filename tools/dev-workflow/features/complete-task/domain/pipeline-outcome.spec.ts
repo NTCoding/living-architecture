@@ -98,7 +98,13 @@ describe('formatCompleteTaskResult', () => {
       expect(formatted.success).toStrictEqual(false)
       expect(formatted.nextAction).toStrictEqual('fix_review')
       expect(formatted.nextInstructions).toContain('/path/to/report.md')
-      expect(formatted.failedReviewers).toHaveLength(1)
+      expect(formatted.failedReviewers).toStrictEqual([
+        {
+          name: 'reviewer1',
+          summary: 'Found issues',
+          reportPath: '/path/to/report.md',
+        },
+      ])
     })
 
     it('formats fix_review failure without reviewer details', () => {

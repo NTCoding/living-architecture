@@ -36,20 +36,12 @@ describe('handleWorkflowError', () => {
       name: 'TestError',
       message: 'Test error message',
     })
-    try {
-      handleWorkflowError(testError)
-    } catch {
-      // TestExitSignal expected
-    }
+    expect(() => handleWorkflowError(testError)).toThrow(TestExitSignal)
     expect(capturedOutput[0]).toContain('Test error message')
   })
 
   it('logs string error for non-Error value', () => {
-    try {
-      handleWorkflowError('string error')
-    } catch {
-      // TestExitSignal expected
-    }
+    expect(() => handleWorkflowError('string error')).toThrow(TestExitSignal)
     expect(capturedOutput[0]).toContain('string error')
   })
 
@@ -59,11 +51,7 @@ describe('handleWorkflowError', () => {
       name: 'TestError',
       message: 'test',
     })
-    try {
-      handleWorkflowError(testError)
-    } catch {
-      // TestExitSignal expected
-    }
+    expect(() => handleWorkflowError(testError)).toThrow(TestExitSignal)
     expect(mockExit).toHaveBeenCalledWith(1)
   })
 
@@ -76,13 +64,9 @@ describe('handleWorkflowError', () => {
       }
     }
     const testError = new StackError()
-    try {
-      handleWorkflowError(testError)
-    } catch {
-      // TestExitSignal expected
-    }
+    expect(() => handleWorkflowError(testError)).toThrow(TestExitSignal)
     const parsed = errorOutputSchema.parse(JSON.parse(capturedOutput[0] ?? '{}'))
-    expect(parsed.stack).toBeDefined()
+    expect(parsed.stack).toContain('Error: Test error')
   })
 
   it('outputs JSON with fix_errors action', () => {
@@ -92,11 +76,7 @@ describe('handleWorkflowError', () => {
         this.name = 'ActionError'
       }
     }
-    try {
-      handleWorkflowError(new ActionError())
-    } catch {
-      // TestExitSignal expected
-    }
+    expect(() => handleWorkflowError(new ActionError())).toThrow(TestExitSignal)
     const parsed = errorOutputSchema.parse(JSON.parse(capturedOutput[0] ?? '{}'))
     expect(parsed.nextAction).toStrictEqual('fix_errors')
     expect(parsed.success).toStrictEqual(false)

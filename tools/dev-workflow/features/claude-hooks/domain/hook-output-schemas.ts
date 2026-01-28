@@ -17,7 +17,10 @@ export const postToolUseOutputSchema = z.object({
 })
 export type PostToolUseOutput = z.infer<typeof postToolUseOutputSchema>
 
+const outputToUserSchema = z.object({ passthrough: z.literal(false) })
+
 export const stopOutputSchema = z.object({
+  outputToUser: outputToUserSchema.optional(),
   continue: z.boolean().optional(),
   stopReason: z.string().optional(),
 })

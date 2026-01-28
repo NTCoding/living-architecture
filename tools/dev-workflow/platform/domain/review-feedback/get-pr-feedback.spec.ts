@@ -139,6 +139,9 @@ describe('getPRFeedback', () => {
     const result = await getPRFeedback(123, { includeResolved: true })
 
     expect(result.threads).toHaveLength(2)
+    const threadIds = result.threads.map((t) => t.threadId)
+    expect(threadIds).toContain('active')
+    expect(threadIds).toContain('resolved')
   })
 
   it('filters out threads with no comments', async () => {
