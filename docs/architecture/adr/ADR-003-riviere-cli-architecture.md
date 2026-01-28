@@ -183,9 +183,11 @@ Current CLI contains validation logic that belongs in library packages:
 
 | Current Location | Move To |
 |------------------|---------|
-| `component-types.ts` | `riviere-builder` or `riviere-schema` |
-| `validation.ts` | `riviere-builder` or `riviere-schema` |
+| `component-types.ts` | `riviere-schema` (type definitions) |
+| `validation.ts` | `riviere-builder` (invariant validation) |
 | Type-specific error classes | Co-locate with validation |
+
+**Decision criteria:** Schema validation (structural correctness, type definitions) belongs in `riviere-schema`. Business rule validation (builder invariants, duplicate checks) belongs in `riviere-builder`.
 
 The CLI should call library validation, not implement it.
 

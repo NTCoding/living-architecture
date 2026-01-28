@@ -136,6 +136,7 @@ apps/eclair/src/
 ├── shell/
 │   ├── App.tsx
 │   ├── errors/
+│   │   ├── eclair-error.ts
 │   │   ├── graph-errors.ts
 │   │   ├── rendering-errors.ts
 │   │   └── context-errors.ts
