@@ -1,6 +1,7 @@
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
 import type { ExternalDomain } from './domain-types'
 import { parseDomainName } from './domain-types'
+import { compareByCodePoint } from './compare-by-code-point'
 
 interface ExternalDomainAccumulator {
   sourceDomains: Set<string>
@@ -49,7 +50,7 @@ function convertToExternalDomains(
       sourceDomains: Array.from(acc.sourceDomains).map((d) => parseDomainName(d)),
       connectionCount: acc.connectionCount,
     }))
-    .sort((a, b) => a.name.localeCompare(b.name))
+    .sort((a, b) => compareByCodePoint(a.name, b.name))
 }
 
 /**

@@ -3,6 +3,7 @@ import type {
   CrossDomainLink, DomainConnection 
 } from './domain-types'
 import { parseDomainName } from './domain-types'
+import { compareByCodePoint } from './compare-by-code-point'
 
 function buildNodeIdToDomain(graph: RiviereGraph): Map<string, string> {
   return new Map(graph.components.map((c) => [c.id, c.domain]))
@@ -49,9 +50,9 @@ function linkTypeForSort(linkType: 'sync' | 'async' | undefined): string {
 }
 
 function compareCrossDomainLinks(a: CrossDomainLink, b: CrossDomainLink): number {
-  const domainCompare = a.targetDomain.localeCompare(b.targetDomain)
+  const domainCompare = compareByCodePoint(a.targetDomain, b.targetDomain)
   if (domainCompare !== 0) return domainCompare
-  return linkTypeForSort(a.linkType).localeCompare(linkTypeForSort(b.linkType))
+  return compareByCodePoint(linkTypeForSort(a.linkType), linkTypeForSort(b.linkType))
 }
 
 interface ConnectionCounts {
@@ -147,5 +148,5 @@ export function queryDomainConnections(
     ...toConnectionResults(outgoing, 'outgoing'),
     ...toConnectionResults(incoming, 'incoming'),
   ]
-  return results.sort((a, b) => a.targetDomain.localeCompare(b.targetDomain))
+  return results.sort((a, b) => compareByCodePoint(a.targetDomain, b.targetDomain))
 }

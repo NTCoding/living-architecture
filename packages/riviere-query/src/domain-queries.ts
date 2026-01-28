@@ -10,6 +10,7 @@ import {
   parseEntityName, parseDomainName, parseState, parseOperationName 
 } from './domain-types'
 import { componentsInDomain } from './component-queries'
+import { compareByCodePoint } from './compare-by-code-point'
 
 export function queryDomains(graph: RiviereGraph): Domain[] {
   return Object.entries(graph.metadata.domains).map(([name, metadata]) => {
@@ -70,13 +71,13 @@ export function queryEntities(graph: RiviereGraph, domainName?: string): Entity[
     }
   }
   return Array.from(entityMap.values())
-    .sort((a, b) => a.name.localeCompare(b.name))
+    .sort((a, b) => compareByCodePoint(a.name, b.name))
     .map((partial) => createEntity(graph, partial))
 }
 
 function createEntity(graph: RiviereGraph, partial: PartialEntity): Entity {
   const sortedOperations = [...partial.operations].sort((a, b) =>
-    a.operationName.localeCompare(b.operationName),
+    compareByCodePoint(a.operationName, b.operationName),
   )
   return new Entity(
     parseEntityName(partial.name),
