@@ -1,8 +1,7 @@
-import type {
-  RiviereGraph, ComponentType 
-} from '@living-architecture/riviere-schema'
+import type { RiviereGraph } from '@living-architecture/riviere-schema'
 import type { ComponentId } from './domain-types'
 import { parseComponentId } from './domain-types'
+import { ENTRY_POINT_TYPES } from './flow-constants'
 
 interface DepthQueueEntry {
   id: ComponentId
@@ -65,9 +64,8 @@ function enqueueChildren(
 
 function findEntryPointIds(graph: RiviereGraph): ComponentId[] {
   const targets = new Set(graph.links.map((link) => link.target))
-  const entryPointTypes = new Set<ComponentType>(['UI', 'API', 'EventHandler', 'Custom'])
   return graph.components
-    .filter((c) => entryPointTypes.has(c.type) && !targets.has(c.id))
+    .filter((c) => ENTRY_POINT_TYPES.has(c.type) && !targets.has(c.id))
     .map((c) => parseComponentId(c.id))
 }
 

@@ -1,12 +1,11 @@
 import type {
-  RiviereGraph, Component, Link 
+  RiviereGraph, Component 
 } from '@living-architecture/riviere-schema'
 import type {
-  ComponentModification, GraphDiff, LinkId 
+  ComponentModification, GraphDiff 
 } from './domain-types'
-import {
-  parseComponentId, parseLinkId 
-} from './domain-types'
+import { parseComponentId } from './domain-types'
+import { createLinkKey } from './link-key'
 
 export function diffGraphs(current: RiviereGraph, other: RiviereGraph): GraphDiff {
   const thisIds = new Set(current.components.map((c) => c.id))
@@ -54,13 +53,6 @@ export function diffGraphs(current: RiviereGraph, other: RiviereGraph): GraphDif
       linksRemoved: linksRemoved.length,
     },
   }
-}
-
-function createLinkKey(link: Link): LinkId {
-  if (link.id !== undefined) {
-    return parseLinkId(link.id)
-  }
-  return parseLinkId(`${link.source}->${link.target}`)
 }
 
 function findChangedFields(before: Component, after: Component): string[] {

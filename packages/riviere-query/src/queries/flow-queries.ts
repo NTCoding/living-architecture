@@ -1,25 +1,20 @@
 import type {
-  RiviereGraph,
-  Component,
-  ComponentType,
-  Link,
-  ExternalLink,
+  RiviereGraph, Component, ExternalLink 
 } from '@living-architecture/riviere-schema'
 import type {
   ComponentId, LinkId, Flow, SearchWithFlowResult 
 } from './domain-types'
-import {
-  parseComponentId, parseLinkId 
-} from './domain-types'
+import { parseComponentId } from './domain-types'
 import {
   componentById, searchComponents 
 } from './component-queries'
 import { ComponentNotFoundError } from './errors'
+import { createLinkKey } from './link-key'
+import { ENTRY_POINT_TYPES } from './flow-constants'
 
 export function findEntryPoints(graph: RiviereGraph): Component[] {
   const targets = new Set(graph.links.map((link) => link.target))
-  const entryPointTypes = new Set<ComponentType>(['UI', 'API', 'EventHandler', 'Custom'])
-  return graph.components.filter((c) => entryPointTypes.has(c.type) && !targets.has(c.id))
+  return graph.components.filter((c) => ENTRY_POINT_TYPES.has(c.type) && !targets.has(c.id))
 }
 
 export function traceFlowFrom(
@@ -61,13 +56,6 @@ export function traceFlowFrom(
     componentIds: Array.from(visited),
     linkIds: Array.from(visitedLinks),
   }
-}
-
-function createLinkKey(link: Link): LinkId {
-  if (link.id !== undefined) {
-    return parseLinkId(link.id)
-  }
-  return parseLinkId(`${link.source}->${link.target}`)
 }
 
 export function queryFlows(graph: RiviereGraph): Flow[] {
@@ -160,13 +148,7 @@ function buildOutgoingEdges(graph: RiviereGraph): Map<
   return edges
 }
 
-/**
- * Options for searchWithFlow.
- */
-export interface SearchWithFlowOptions {
-  /** If true, returns all components when the query is empty. */
-  returnAllOnEmptyQuery: boolean
-}
+export interface SearchWithFlowOptions {returnAllOnEmptyQuery: boolean}
 
 export function searchWithFlowContext(
   graph: RiviereGraph,

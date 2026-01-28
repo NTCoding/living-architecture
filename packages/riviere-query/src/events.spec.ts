@@ -1,9 +1,9 @@
-import { RiviereQuery } from './RiviereQuery'
+import { RiviereQuery } from './queries/RiviereQuery'
 import {
   createMinimalValidGraph,
   createEventComponent,
   createEventHandlerComponent,
-} from './riviere-graph-fixtures'
+} from './platform/__fixtures__/riviere-graph-fixtures'
 
 describe('publishedEvents', () => {
   it('returns empty array when no Event components exist', () => {

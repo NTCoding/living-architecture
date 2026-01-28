@@ -3,7 +3,7 @@ import type { EnrichmentInput } from './enrichment-types'
 import { InvalidEnrichmentTargetError } from './enrichment-errors'
 import { createComponentNotFoundError } from '../../builder-internals'
 import { deduplicateStateTransitions } from './deduplicate-transitions'
-import { deduplicateStrings } from '../../platform/collection-utils/deduplicate-strings'
+import { deduplicateStrings } from '../../platform/deduplication/deduplicate-strings'
 import { mergeBehavior } from './merge-behavior'
 
 export class GraphEnrichment {

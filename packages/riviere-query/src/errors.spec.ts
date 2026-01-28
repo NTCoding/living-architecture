@@ -1,7 +1,7 @@
 import {
   describe, it, expect 
 } from 'vitest'
-import { ComponentNotFoundError } from './errors'
+import { ComponentNotFoundError } from './queries/errors'
 
 describe('ComponentNotFoundError', () => {
   it('has message containing component ID', () => {

@@ -1,13 +1,13 @@
 import {
   describe, it, expect 
 } from 'vitest'
-import { RiviereQuery } from './RiviereQuery'
+import { RiviereQuery } from './queries/RiviereQuery'
 import {
   createMinimalValidGraph,
   createAPIComponent,
   createUseCaseComponent,
-} from './riviere-graph-fixtures'
-import { queryCrossDomainLinks } from './cross-domain-queries'
+} from './platform/__fixtures__/riviere-graph-fixtures'
+import { queryCrossDomainLinks } from './queries/cross-domain-queries'
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
 
 describe('crossDomainLinks', () => {

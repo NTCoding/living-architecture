@@ -1,13 +1,13 @@
 import {
   describe, it, expect 
 } from 'vitest'
-import { RiviereQuery } from './RiviereQuery'
+import { RiviereQuery } from './queries/RiviereQuery'
 import {
   createMinimalValidGraph,
   createAPIComponent,
   createUseCaseComponent,
   createEventHandlerComponent,
-} from './riviere-graph-fixtures'
+} from './platform/__fixtures__/riviere-graph-fixtures'
 
 describe('domainConnections', () => {
   it('returns empty array when domain has no connections to other domains', () => {

@@ -1,7 +1,7 @@
 import {
   describe, it, expect 
 } from 'vitest'
-import { compareByCodePoint } from './compare-by-code-point'
+import { compareByCodePoint } from './queries/compare-by-code-point'
 
 describe('compareByCodePoint', () => {
   it('returns negative when first string sorts before second', () => {

@@ -1,13 +1,13 @@
 import {
   describe, it, expect 
 } from 'vitest'
-import { RiviereQuery } from './RiviereQuery'
+import { RiviereQuery } from './queries/RiviereQuery'
 import {
   createMinimalValidGraph,
   defaultSourceLocation,
   createAPIComponent,
   assertDefined,
-} from './riviere-graph-fixtures'
+} from './platform/__fixtures__/riviere-graph-fixtures'
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
 
 describe('diff', () => {
