@@ -2,6 +2,8 @@
 
 TypeScript orchestration tools for Claude Code development workflow.
 
+Architecture defined in [ADR-002](../../docs/architecture/adr/ADR-002-dev-workflow-refactoring.md).
+
 ## Architecture Principles
 
 ### Strict Responsibility Boundaries

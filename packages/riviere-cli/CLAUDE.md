@@ -2,6 +2,8 @@
 
 CLI tool for building and querying Rivière architecture graphs.
 
+Architecture defined in [ADR-003](../../docs/architecture/adr/ADR-003-riviere-cli-architecture.md).
+
 ## Workflow Prompts
 
 The `docs/workflow/` directory contains AI extraction workflow prompts (step-1 through step-6). These prompts reference CLI commands directly.

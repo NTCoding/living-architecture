@@ -2,6 +2,8 @@
 
 Eclair is a web application for viewing software architecture. Éclair uses Rivière graphs.
 
+Architecture defined in [ADR-007](../../docs/architecture/adr/ADR-007-eclair-architecture.md).
+
 ## Brand Identity, theme, design
 
 All UI and UX design must conform to:
