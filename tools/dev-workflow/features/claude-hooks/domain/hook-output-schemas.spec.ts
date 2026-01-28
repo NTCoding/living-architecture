@@ -84,36 +84,20 @@ describe('hook output schemas', () => {
   })
 
   describe('stopOutputSchema', () => {
-    it('parses continue true', () => {
-      const output = stopOutputSchema.parse({ continue: true })
+    it('parses allow tag', () => {
+      const output = stopOutputSchema.parse({ _tag: 'allow' })
 
-      expect(output.continue).toStrictEqual(true)
+      expect(output._tag).toBe('allow')
     })
 
-    it('parses continue false with stopReason', () => {
+    it('parses block tag with reason', () => {
       const output = stopOutputSchema.parse({
-        continue: false,
-        stopReason: 'must wait for CI',
+        _tag: 'block',
+        reason: 'must wait for CI',
       })
 
-      expect(output.continue).toStrictEqual(false)
-      expect(output.stopReason).toStrictEqual('must wait for CI')
-    })
-
-    it('parses empty object', () => {
-      const output = stopOutputSchema.parse({})
-
-      expect(output.continue).toBeUndefined()
-    })
-
-    it('parses outputToUser with passthrough false', () => {
-      const output = stopOutputSchema.parse({
-        outputToUser: { passthrough: false },
-        continue: false,
-        stopReason: 'blocked',
-      })
-
-      expect(output.outputToUser).toStrictEqual({ passthrough: false })
+      expect(output._tag).toBe('block')
+      expect(output._tag === 'block' && output.reason).toStrictEqual('must wait for CI')
     })
   })
 })
@@ -172,18 +156,18 @@ describe('hook output types', () => {
   })
 
   describe('StopOutput', () => {
-    it('allows continue true', () => {
-      const output: StopOutput = { continue: true }
-      expect(output.continue).toBe(true)
+    it('allows allow tag', () => {
+      const output: StopOutput = { _tag: 'allow' }
+      expect(output._tag).toBe('allow')
     })
 
-    it('allows continue false with stopReason', () => {
+    it('allows block tag with reason', () => {
       const output: StopOutput = {
-        continue: false,
-        stopReason: 'must wait for CI',
+        _tag: 'block',
+        reason: 'must wait for CI',
       }
-      expect(output.continue).toBe(false)
-      expect(output.stopReason).toBe('must wait for CI')
+      expect(output._tag).toBe('block')
+      expect(output.reason).toBe('must wait for CI')
     })
   })
 
@@ -202,8 +186,11 @@ describe('hook output types', () => {
     })
 
     it('accepts StopOutput', () => {
-      const output: HookOutput = { continue: true }
-      expect('continue' in output).toBe(true)
+      const output: HookOutput = {
+        _tag: 'block',
+        reason: 'test',
+      }
+      expect('_tag' in output).toBe(true)
       const parsed = stopOutputSchema.safeParse(output)
       expect(parsed.success).toBe(true)
     })

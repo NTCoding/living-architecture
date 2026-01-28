@@ -62,6 +62,14 @@ async function main(): Promise<void> {
   }
 
   const output = routeToHandler(parseResult.input)
+  if ('_tag' in output) {
+    if (output._tag === 'block') {
+      console.error(output.reason)
+      process.exit(2)
+    }
+    console.log(JSON.stringify({}))
+    return
+  }
   console.log(JSON.stringify(output))
 }
 
