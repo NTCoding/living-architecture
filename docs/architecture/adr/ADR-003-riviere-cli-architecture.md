@@ -1,7 +1,8 @@
-# ADR: riviere-cli Architecture
+# ADR-003: riviere-cli Architecture
 
-**Status:** Proposed
-**Date:** 2025-01-27
+**Status:** Accepted
+**Date:** 2026-01-27
+**Deciders:** @ntcoding
 
 ## Context
 

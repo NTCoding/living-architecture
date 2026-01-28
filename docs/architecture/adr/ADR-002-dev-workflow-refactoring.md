@@ -3,9 +3,9 @@
 **Status:** Approved (Partially Superseded)
 **Date:** 2026-01-19
 **Deciders:** @ntcoding
-**Superseded By:** ADR for riviere-cli (commands/queries pattern)
+**Superseded By:** ADR-003 (commands/queries pattern)
 
-> **Note:** The `use-cases/` folder pattern in this ADR has been superseded by the `commands/` and `queries/` pattern. See `docs/design-reviews/riviere-cli/adr.md` for the updated approach. New packages should use `commands/` for write operations and `queries/` for read operations instead of `use-cases/`.
+> **Note:** The `use-cases/` folder pattern in this ADR has been superseded by the `commands/` and `queries/` pattern. See ADR-003 for the updated approach. New packages should use `commands/` for write operations and `queries/` for read operations instead of `use-cases/`.
 
 ## Context
 
