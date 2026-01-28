@@ -39,7 +39,6 @@ export const parameterTypeSchema = z.string().min(1).brand<'ParameterType'>()
 export const returnTypeSchema = z.string().min(1).brand<'ReturnType'>()
 
 export const eventNameSchema = z.string().min(1).brand<'EventName'>()
-export type EventName = z.infer<typeof eventNameSchema>
 
 export const graphNameSchema = z.string().min(1).brand<'GraphName'>()
 export type GraphName = z.infer<typeof graphNameSchema>
@@ -48,7 +47,6 @@ export const operationNameSchema = z.string().min(1).brand<'OperationName'>()
 export type OperationName = z.infer<typeof operationNameSchema>
 
 export const stateNameSchema = z.string().min(1).brand<'StateName'>()
-export type StateName = z.infer<typeof stateNameSchema>
 
 export const entryPointSchema = z.string().min(1).brand<'EntryPoint'>()
 export type EntryPoint = z.infer<typeof entryPointSchema>
