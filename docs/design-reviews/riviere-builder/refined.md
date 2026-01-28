@@ -3,7 +3,7 @@
 ## Package Overview
 
 **Package:** `@living-architecture/riviere-builder`
-**Location:** `/Users/nicko/code/living-architecture-issue-203-architecture-review-and-adr-fo/packages/riviere-builder/`
+**Location:** `packages/riviere-builder/`
 **Purpose:** Construct Riviere architecture graphs programmatically via a fluent builder API
 
 ---

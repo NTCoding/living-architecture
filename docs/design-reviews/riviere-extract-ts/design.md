@@ -3,7 +3,7 @@
 ## Package Overview
 
 **Package:** `@living-architecture/riviere-extract-ts`
-**Location:** `/Users/nicko/code/living-architecture-issue-203-architecture-review-and-adr-fo/packages/riviere-extract-ts/`
+**Location:** `packages/riviere-extract-ts/`
 **Purpose:** TypeScript extractor for detecting architectural components from source code using ts-morph AST parsing
 
 ## Current Structure

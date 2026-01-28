@@ -6,7 +6,7 @@ Reviewed: docs/design-reviews/riviere-builder/refined.md
 
 ### save() method still exists with Node.js filesystem imports
 
-- **What's wrong:** The refined design explicitly states "Remove `save()` method from `RiviereBuilder`" to achieve browser compatibility and domain isolation. However, the actual code at `/Users/nicko/code/living-architecture-issue-203-architecture-review-and-adr-fo/packages/riviere-builder/src/builder.ts` lines 1-2 imports `node:fs` and `node:path`, and lines 864-876 implement the `save()` method with filesystem I/O.
+- **What's wrong:** The refined design explicitly states "Remove `save()` method from `RiviereBuilder`" to achieve browser compatibility and domain isolation. However, the actual code at `packages/riviere-builder/src/builder.ts` lines 1-2 imports `node:fs` and `node:path`, and lines 864-876 implement the `save()` method with filesystem I/O.
 - **Why it matters:** This is a direct contradiction between the refined design and implementation. The package cannot be browser-compatible while bundling Node.js filesystem APIs. Infrastructure concerns (filesystem I/O) are polluting the domain, violating DDD principle 1 (isolate domain logic from infrastructure).
 - **Suggested fix:** Remove `save()` method and the Node.js imports. Update documentation to show callers using `builder.build()` followed by their own filesystem write.
 
