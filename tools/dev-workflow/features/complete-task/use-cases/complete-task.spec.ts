@@ -1,6 +1,7 @@
 import {
   describe, it, expect, vi, beforeEach 
 } from 'vitest'
+import { z } from 'zod'
 import type { CompleteTaskContext } from '../domain/task-to-complete'
 import type { WorkflowResult } from '../../../platform/domain/workflow-execution/workflow-runner'
 
@@ -28,28 +29,22 @@ import { executeCompleteTask } from './complete-task'
 type ContextBuilder = () => Promise<CompleteTaskContext>
 type ResultFormatter = (result: WorkflowResult, ctx: CompleteTaskContext) => unknown
 
-function isContextBuilder(value: unknown): value is ContextBuilder {
-  return typeof value === 'function'
-}
+const contextBuilderSchema = z.custom<ContextBuilder>(
+  (val): val is ContextBuilder => typeof val === 'function',
+  { message: 'Expected context builder to be a function' },
+)
 
-function isResultFormatter(value: unknown): value is ResultFormatter {
-  return typeof value === 'function'
-}
+const resultFormatterSchema = z.custom<ResultFormatter>(
+  (val): val is ResultFormatter => typeof val === 'function',
+  { message: 'Expected result formatter to be a function' },
+)
 
 function getContextBuilder(): ContextBuilder {
-  const builder: unknown = mockRunWorkflow.mock.calls[0][1]
-  if (!isContextBuilder(builder)) {
-    throw new TypeError('Expected context builder to be a function')
-  }
-  return builder
+  return contextBuilderSchema.parse(mockRunWorkflow.mock.calls[0][1])
 }
 
 function getResultFormatter(): ResultFormatter {
-  const formatter: unknown = mockRunWorkflow.mock.calls[0][2]
-  if (!isResultFormatter(formatter)) {
-    throw new TypeError('Expected result formatter to be a function')
-  }
-  return formatter
+  return resultFormatterSchema.parse(mockRunWorkflow.mock.calls[0][2])
 }
 
 describe('executeCompleteTask', () => {
