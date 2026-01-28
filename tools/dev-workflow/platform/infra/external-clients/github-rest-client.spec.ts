@@ -1,5 +1,5 @@
 import {
-  describe, it, expect, vi, beforeEach 
+  describe, it, expect, vi, beforeEach, afterEach 
 } from 'vitest'
 
 const {
@@ -43,9 +43,19 @@ describe('GitHubError', () => {
 })
 
 describe('getOctokit', () => {
+  const originalToken = process.env.GITHUB_TOKEN
+
   beforeEach(() => {
     vi.clearAllMocks()
     process.env.GITHUB_TOKEN = 'test-token'
+  })
+
+  afterEach(() => {
+    if (originalToken === undefined) {
+      delete process.env.GITHUB_TOKEN
+    } else {
+      process.env.GITHUB_TOKEN = originalToken
+    }
   })
 
   it('returns octokit instance with expected API methods', () => {
@@ -115,20 +125,13 @@ describe('github.findPRForBranch', () => {
     ])
   })
 
-  it('returns PR number when found', async () => {
-    mockOctokitInstance.pulls.list.mockResolvedValue({ data: [{ number: 123 }] })
-
-    const prNumber = await github.findPRForBranch('feature-branch')
-
-    expect(prNumber).toBe(123)
-  })
-
-  it('returns undefined when no PR found', async () => {
-    mockOctokitInstance.pulls.list.mockResolvedValue({ data: [] })
-
-    const prNumber = await github.findPRForBranch('no-pr-branch')
-
-    expect(prNumber).toBeUndefined()
+  it.each([
+    ['returns PR number when found', [{ number: 123 }], 123],
+    ['returns undefined when no PR found', [], undefined],
+  ])('%s', async (_name, data, expected) => {
+    mockOctokitInstance.pulls.list.mockResolvedValue({ data })
+    const prNumber = await github.findPRForBranch('branch')
+    expect(prNumber).toBe(expected)
   })
 })
 
@@ -158,18 +161,12 @@ describe('github.findPRForBranchWithState', () => {
         },
       ],
     })
-
-    const pr = await github.findPRForBranchWithState('feature')
-
-    expect(pr?.state).toBe(expectedState)
+    expect((await github.findPRForBranchWithState('feature'))?.state).toBe(expectedState)
   })
 
   it('returns undefined when no PR found', async () => {
     mockOctokitInstance.pulls.list.mockResolvedValue({ data: [] })
-
-    const pr = await github.findPRForBranchWithState('no-pr-branch')
-
-    expect(pr).toBeUndefined()
+    expect(await github.findPRForBranchWithState('no-pr-branch')).toBeUndefined()
   })
 })
 
@@ -191,39 +188,28 @@ describe('github.getIssue', () => {
         body: 'Issue body',
       },
     })
-
     const issue = await github.getIssue(42)
-
     expect(issue).toStrictEqual({
       title: 'Issue Title',
       body: 'Issue body',
     })
   })
 
-  it('throws when issue has no title', async () => {
+  it.each([
+    ['no title', '', 'Body', 'has no title'],
+    ['no body', 'Title', '', 'has no body'],
+  ])('throws when issue has %s', async (_name, title, body, expectedError) => {
     mockOctokitInstance.issues.get.mockResolvedValue({
       data: {
-        title: '',
-        body: 'Body',
+        title,
+        body,
       },
     })
-
-    await expect(github.getIssue(42)).rejects.toThrow('has no title')
-  })
-
-  it('throws when issue has no body', async () => {
-    mockOctokitInstance.issues.get.mockResolvedValue({
-      data: {
-        title: 'Title',
-        body: '',
-      },
-    })
-
-    await expect(github.getIssue(42)).rejects.toThrow('has no body')
+    await expect(github.getIssue(42)).rejects.toThrow(expectedError)
   })
 })
 
-describe('github.createPR', () => {
+describe('github PR operations', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockRepo.getRemotes.mockResolvedValue([
@@ -234,68 +220,40 @@ describe('github.createPR', () => {
     ])
   })
 
-  it('creates PR and returns number and URL', async () => {
+  it('createPR returns number and URL', async () => {
     mockOctokitInstance.pulls.create.mockResolvedValue({
       data: {
         number: 100,
         html_url: 'https://github.com/owner/repo/pull/100',
       },
     })
-
     const pr = await github.createPR({
       title: 'My PR',
       body: 'Description',
       branch: 'feature',
       base: 'main',
     })
-
     expect(pr).toStrictEqual({
       number: 100,
       url: 'https://github.com/owner/repo/pull/100',
     })
   })
-})
 
-describe('github.getPR', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-    mockRepo.getRemotes.mockResolvedValue([
-      {
-        name: 'origin',
-        refs: { fetch: 'https://github.com/owner/repo.git' },
-      },
-    ])
-  })
-
-  it('returns PR number and URL', async () => {
+  it('getPR returns PR number and URL', async () => {
     mockOctokitInstance.pulls.get.mockResolvedValue({
       data: {
         number: 50,
         html_url: 'https://github.com/owner/repo/pull/50',
       },
     })
-
     const pr = await github.getPR(50)
-
     expect(pr).toStrictEqual({
       number: 50,
       url: 'https://github.com/owner/repo/pull/50',
     })
   })
-})
 
-describe('github.getPRWithState', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-    mockRepo.getRemotes.mockResolvedValue([
-      {
-        name: 'origin',
-        refs: { fetch: 'https://github.com/owner/repo.git' },
-      },
-    ])
-  })
-
-  it('returns PR with state', async () => {
+  it('getPRWithState returns PR with state', async () => {
     mockOctokitInstance.pulls.get.mockResolvedValue({
       data: {
         number: 60,
@@ -304,43 +262,23 @@ describe('github.getPRWithState', () => {
         state: 'open',
       },
     })
-
-    const pr = await github.getPRWithState(60)
-
-    expect(pr.state).toBe('open')
-  })
-})
-
-describe('github.getMergeableState', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-    mockRepo.getRemotes.mockResolvedValue([
-      {
-        name: 'origin',
-        refs: { fetch: 'https://github.com/owner/repo.git' },
-      },
-    ])
+    expect((await github.getPRWithState(60)).state).toBe('open')
   })
 
-  it('returns mergeable state', async () => {
+  it('getMergeableState returns mergeable state', async () => {
     mockOctokitInstance.pulls.get.mockResolvedValue({ data: { mergeable_state: 'clean' } })
-
-    const state = await github.getMergeableState(70)
-
-    expect(state).toBe('clean')
+    expect(await github.getMergeableState(70)).toBe('clean')
   })
 })
 
-describe('github.addThreadReply', () => {
+describe('github thread operations', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockOctokitInstance.graphql.mockResolvedValue({})
   })
 
-  it('calls graphql with reply mutation', async () => {
-    mockOctokitInstance.graphql.mockResolvedValue({})
-
+  it('addThreadReply calls graphql with reply mutation', async () => {
     await github.addThreadReply('thread-id', 'Reply body')
-
     expect(mockOctokitInstance.graphql).toHaveBeenCalledWith(
       expect.stringContaining('addPullRequestReviewThreadReply'),
       {
@@ -349,18 +287,9 @@ describe('github.addThreadReply', () => {
       },
     )
   })
-})
 
-describe('github.resolveThread', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-  })
-
-  it('calls graphql with resolve mutation', async () => {
-    mockOctokitInstance.graphql.mockResolvedValue({})
-
+  it('resolveThread calls graphql with resolve mutation', async () => {
     await github.resolveThread('thread-id')
-
     expect(mockOctokitInstance.graphql).toHaveBeenCalledWith(
       expect.stringContaining('resolveReviewThread'),
       { threadId: 'thread-id' },
@@ -377,20 +306,55 @@ describe('github.watchCI', () => {
         refs: { fetch: 'https://github.com/owner/repo.git' },
       },
     ])
+    mockOctokitInstance.pulls.get.mockResolvedValue({ data: { head: { sha: 'abc123' } } })
   })
 
-  it('returns success when no CI checks configured', async () => {
-    mockOctokitInstance.pulls.get.mockResolvedValue({ data: { head: { sha: 'abc123' } } })
-    mockOctokitInstance.checks.listForRef.mockResolvedValue({ data: { check_runs: [] } })
-
+  it.each([
+    ['no CI checks configured', [], false, 'No CI checks configured'],
+    [
+      'all checks pass',
+      [
+        {
+          name: 'test',
+          status: 'completed',
+          conclusion: 'success',
+        },
+      ],
+      false,
+      'All checks passed',
+    ],
+    [
+      'skipped checks as passing',
+      [
+        {
+          name: 'opt',
+          status: 'completed',
+          conclusion: 'skipped',
+        },
+      ],
+      false,
+      'All checks passed',
+    ],
+    [
+      'failure with minimal output',
+      [
+        {
+          name: 'lint',
+          status: 'completed',
+          conclusion: 'failure',
+        },
+      ],
+      true,
+      'lint: failure',
+    ],
+  ])('returns %s', async (_name, checkRuns, expectedFailed, expectedOutput) => {
+    mockOctokitInstance.checks.listForRef.mockResolvedValue({ data: { check_runs: checkRuns } })
     const result = await github.watchCI(123)
-
-    expect(result.failed).toBe(false)
-    expect(result.output).toContain('No CI checks configured')
+    expect(result.failed).toBe(expectedFailed)
+    expect(result.output).toContain(expectedOutput)
   })
 
-  it('returns failure when checks fail', async () => {
-    mockOctokitInstance.pulls.get.mockResolvedValue({ data: { head: { sha: 'abc123' } } })
+  it('returns failure when checks fail with details', async () => {
     mockOctokitInstance.checks.listForRef.mockResolvedValue({
       data: {
         check_runs: [
@@ -400,77 +364,15 @@ describe('github.watchCI', () => {
             conclusion: 'failure',
             output: {
               summary: 'Tests failed',
-              text: 'Details here',
+              text: 'Details',
             },
             details_url: 'https://example.com/details',
           },
         ],
       },
     })
-
     const result = await github.watchCI(123)
-
     expect(result.failed).toBe(true)
     expect(result.output).toContain('test: failure')
-  })
-
-  it('returns failure with minimal output when check has no output details', async () => {
-    mockOctokitInstance.pulls.get.mockResolvedValue({ data: { head: { sha: 'abc123' } } })
-    mockOctokitInstance.checks.listForRef.mockResolvedValue({
-      data: {
-        check_runs: [
-          {
-            name: 'lint',
-            status: 'completed',
-            conclusion: 'failure',
-          },
-        ],
-      },
-    })
-
-    const result = await github.watchCI(123)
-
-    expect(result.failed).toBe(true)
-    expect(result.output).toBe('lint: failure')
-  })
-
-  it('returns success when all checks pass', async () => {
-    mockOctokitInstance.pulls.get.mockResolvedValue({ data: { head: { sha: 'abc123' } } })
-    mockOctokitInstance.checks.listForRef.mockResolvedValue({
-      data: {
-        check_runs: [
-          {
-            name: 'test',
-            status: 'completed',
-            conclusion: 'success',
-          },
-        ],
-      },
-    })
-
-    const result = await github.watchCI(123)
-
-    expect(result.failed).toBe(false)
-    expect(result.output).toBe('All checks passed')
-  })
-
-  it('treats skipped checks as passing', async () => {
-    mockOctokitInstance.pulls.get.mockResolvedValue({ data: { head: { sha: 'abc123' } } })
-    mockOctokitInstance.checks.listForRef.mockResolvedValue({
-      data: {
-        check_runs: [
-          {
-            name: 'optional-check',
-            status: 'completed',
-            conclusion: 'skipped',
-          },
-        ],
-      },
-    })
-
-    const result = await github.watchCI(123)
-
-    expect(result.failed).toBe(false)
-    expect(result.output).toBe('All checks passed')
   })
 })

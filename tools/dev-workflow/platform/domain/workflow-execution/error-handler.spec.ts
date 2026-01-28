@@ -1,5 +1,5 @@
 import {
-  describe, it, expect, vi, beforeEach 
+  describe, it, expect, vi, beforeEach, afterEach 
 } from 'vitest'
 import { z } from 'zod'
 import { handleWorkflowError } from './error-handler'
@@ -29,6 +29,10 @@ describe('handleWorkflowError', () => {
     vi.spyOn(console, 'error').mockImplementation((msg: string) => {
       capturedOutput.push(msg)
     })
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
   })
 
   it('logs error message for Error instance', () => {
