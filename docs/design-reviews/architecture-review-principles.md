@@ -1,10 +1,10 @@
 # Architecture Review Principles
 
-Key principles established during riviere-cli (ADR-003) and riviere-builder (ADR-004) reviews. Apply these to all future architecture reviews.
+Key principles established during architecture reviews. Apply these to all future reviews.
 
 ## Application vs Library Structure
 
-### Applications (CLI, Web Apps, APIs)
+### Applications (CLI, APIs)
 
 ```
 features/
@@ -20,14 +20,46 @@ shell/
 └── index.ts            # Composition root, wiring
 ```
 
-### Libraries (Packages)
+### React Applications
 
-Libraries have no entrypoint or use-cases. They ARE the domain.
+Adapted for React conventions:
+
+```
+features/
+├── <feature>/
+│   ├── entrypoint/     # Page components (route entry points)
+│   ├── components/     # UI presentation components
+│   ├── hooks/          # React hooks for this feature
+│   ├── queries/        # Read operations (data transformation)
+│   ├── commands/       # Write operations (if any)
+│   └── domain/         # Domain logic decoupled from UI (if needed)
+platform/
+├── domain/             # Shared domain logic
+└── infra/              # Contexts, browser APIs, utilities
+shell/
+├── App.tsx             # Routing, providers
+└── components/         # Layout: AppShell, Header, Sidebar
+```
+
+### Domain Libraries
+
+Libraries that provide domain logic (builders, extractors). They ARE the domain.
 
 ```
 src/
 ├── domain/             # All domain logic, split by concept
 ├── platform/           # Shared utilities
+└── index.ts            # Public API exports
+```
+
+### Query Libraries
+
+Libraries that provide read-only query capabilities over external data. No domain of their own.
+
+```
+src/
+├── queries/            # All query logic
+├── platform/           # Shared utilities, test fixtures
 └── index.ts            # Public API exports
 ```
 
