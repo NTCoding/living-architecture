@@ -7,7 +7,7 @@ const reviewStateSchema = z.enum([
   'DISMISSED',
   'PENDING',
 ])
-export type ReviewState = z.infer<typeof reviewStateSchema>
+type ReviewState = z.infer<typeof reviewStateSchema>
 
 export const reviewDecisionSchema = z.object({
   reviewer: z.string().min(1),
