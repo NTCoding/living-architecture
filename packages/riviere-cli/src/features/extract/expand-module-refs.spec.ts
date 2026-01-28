@@ -1,8 +1,8 @@
 import {
-  describe, it, expect, vi, beforeEach, afterEach,
+  describe, it, expect, vi, beforeEach, afterEach 
 } from 'vitest'
 import {
-  existsSync, readFileSync,
+  existsSync, readFileSync 
 } from 'node:fs'
 import { expandModuleRefs } from './expand-module-refs'
 import { ModuleRefNotFoundError } from '../../errors'
@@ -97,11 +97,7 @@ describe('expandModuleRefs', () => {
       vi.mocked(existsSync).mockReturnValue(true)
       vi.mocked(readFileSync).mockReturnValue(referencedModuleContent)
 
-      const config = {
-        modules: [
-          { $ref: './domains/orders.extraction.json' },
-        ],
-      }
+      const config = { modules: [{ $ref: './domains/orders.extraction.json' }] }
 
       const result = expandModuleRefs(config, '/project')
 
@@ -119,10 +115,7 @@ describe('expandModuleRefs', () => {
           },
         ],
       })
-      expect(readFileSync).toHaveBeenCalledWith(
-        '/project/domains/orders.extraction.json',
-        'utf-8',
-      )
+      expect(readFileSync).toHaveBeenCalledWith('/project/domains/orders.extraction.json', 'utf-8')
     })
   })
 

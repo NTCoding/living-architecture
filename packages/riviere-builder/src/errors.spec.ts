@@ -14,7 +14,6 @@ import {
   MissingSourcesError,
   MissingDomainsError,
   BuildValidationError,
-  DirectoryNotFoundError,
 } from './errors'
 
 describe('errors', () => {
@@ -163,16 +162,6 @@ describe('errors', () => {
       expect(error.message).toBe('Validation failed: error 1; error 2')
       expect(error.validationMessages).toStrictEqual(['error 1', 'error 2'])
       expect(error.name).toBe('BuildValidationError')
-    })
-  })
-
-  describe('DirectoryNotFoundError', () => {
-    it('includes directory in message', () => {
-      const error = new DirectoryNotFoundError('/path/to/dir')
-
-      expect(error.message).toBe('Directory does not exist: /path/to/dir')
-      expect(error.directory).toBe('/path/to/dir')
-      expect(error.name).toBe('DirectoryNotFoundError')
     })
   })
 })

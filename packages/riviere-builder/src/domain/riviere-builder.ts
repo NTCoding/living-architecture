@@ -1,5 +1,3 @@
-import { promises as fs } from 'node:fs'
-import { dirname } from 'node:path'
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
 import type { BuilderGraph } from './builder-graph'
 import { GraphConstruction } from './construction/graph-construction'
@@ -10,7 +8,6 @@ import { NearMatch } from './error-recovery/near-match'
 import type { BuilderOptions } from './construction/construction-types'
 import {
   BuildValidationError,
-  DirectoryNotFoundError,
   InvalidGraphError,
   MissingDomainsError,
   MissingSourcesError,
@@ -91,19 +88,5 @@ export class RiviereBuilder {
       throw new BuildValidationError(messages)
     }
     return toRiviereGraph(this.graph)
-  }
-
-  async save(path: string): Promise<void> {
-    const graph = this.build()
-
-    const dir = dirname(path)
-    try {
-      await fs.access(dir)
-    } catch {
-      throw new DirectoryNotFoundError(dir)
-    }
-
-    const json = JSON.stringify(graph, null, 2)
-    await fs.writeFile(path, json, 'utf-8')
   }
 }

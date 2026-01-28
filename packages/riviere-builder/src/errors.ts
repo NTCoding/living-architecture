@@ -125,13 +125,3 @@ export class BuildValidationError extends Error {
     this.validationMessages = messages
   }
 }
-
-export class DirectoryNotFoundError extends Error {
-  readonly directory: string
-
-  constructor(directory: string) {
-    super(`Directory does not exist: ${directory}`)
-    this.name = 'DirectoryNotFoundError'
-    this.directory = directory
-  }
-}

@@ -1,5 +1,3 @@
-import { promises as fs } from 'node:fs'
-import { dirname } from 'node:path'
 import type {
   APIComponent,
   Component,
@@ -41,7 +39,6 @@ import {
 import {
   BuildValidationError,
   CustomTypeAlreadyDefinedError,
-  DirectoryNotFoundError,
   DuplicateComponentError,
   DuplicateDomainError,
   InvalidEnrichmentTargetError,
@@ -846,32 +843,5 @@ export class RiviereBuilder {
       throw new BuildValidationError(messages)
     }
     return toRiviereGraph(this.graph)
-  }
-
-  /**
-   * Validates the graph and writes it to a file.
-   *
-   * @param path - Absolute or relative file path to write
-   * @throws If validation fails
-   * @throws If the directory does not exist
-   * @throws If write fails
-   *
-   * @example
-   * ```typescript
-   * await builder.save('./output/architecture.json')
-   * ```
-   */
-  async save(path: string): Promise<void> {
-    const graph = this.build()
-
-    const dir = dirname(path)
-    try {
-      await fs.access(dir)
-    } catch {
-      throw new DirectoryNotFoundError(dir)
-    }
-
-    const json = JSON.stringify(graph, null, 2)
-    await fs.writeFile(path, json, 'utf-8')
   }
 }

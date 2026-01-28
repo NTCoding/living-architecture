@@ -27,6 +27,10 @@ export default defineConfig(() => ({
         '**/riviere-test-fixtures.ts',
         '**/ForceGraph/ForceGraph.tsx',
         '**/ForceGraph/GraphRenderingSetup.ts',
+        '**/ForceGraph/graph-rendering-setup.ts',
+        '**/ForceGraph/zoom-behavior.ts',
+        '**/ForceGraph/highlight-behavior.ts',
+        '**/ForceGraph/svg-filters-markers.ts',
       ],
       thresholds: {
         '**/*.ts': {
