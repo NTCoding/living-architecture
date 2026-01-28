@@ -5,7 +5,6 @@ import type {
   Link,
   Component,
   APIComponent,
-  PayloadDefinition,
 } from '@living-architecture/riviere-schema'
 
 export type NodeType = ComponentType | 'External'
@@ -18,8 +17,6 @@ export type Node = Component
 
 export type APINode = APIComponent
 
-export type EdgePayload = PayloadDefinition
-
 export interface EntityDefinition {
   description?: string
   properties?: Record<string, string>
@@ -29,22 +26,17 @@ export const nodeIdSchema = z.string().min(1).brand<'NodeId'>()
 export type NodeId = z.infer<typeof nodeIdSchema>
 
 export const edgeIdSchema = z.string().min(1).brand<'EdgeId'>()
-export type EdgeId = z.infer<typeof edgeIdSchema>
 
 export const domainNameSchema = z.string().min(1).brand<'DomainName'>()
 export type DomainName = z.infer<typeof domainNameSchema>
 
 export const entityNameSchema = z.string().min(1).brand<'EntityName'>()
-export type EntityName = z.infer<typeof entityNameSchema>
 
 export const moduleNameSchema = z.string().min(1).brand<'ModuleName'>()
-export type ModuleName = z.infer<typeof moduleNameSchema>
 
 export const parameterTypeSchema = z.string().min(1).brand<'ParameterType'>()
-export type ParameterType = z.infer<typeof parameterTypeSchema>
 
 export const returnTypeSchema = z.string().min(1).brand<'ReturnType'>()
-export type ReturnType = z.infer<typeof returnTypeSchema>
 
 export const eventNameSchema = z.string().min(1).brand<'EventName'>()
 export type EventName = z.infer<typeof eventNameSchema>

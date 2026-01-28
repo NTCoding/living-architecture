@@ -8,7 +8,7 @@ import {
   readdirSync, readFileSync, statSync 
 } from 'node:fs'
 import { join } from 'node:path'
-import { createProgram } from '../../../packages/riviere-cli/src/cli'
+import { createProgram } from '../../../packages/riviere-cli/src/shell/cli'
 
 interface ValidationError {
   file: string
