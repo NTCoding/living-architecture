@@ -6,6 +6,7 @@ import {
 } from 'react-router-dom'
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
 import { EventAccordion } from '@/features/domains/components/EventAccordion/EventAccordion'
+import { compareByCodePoint } from '@/platform/domain/compare-by-code-point'
 import type { DomainEvent } from '@/features/domains/extractDomainDetails'
 
 interface EventsPageProps {readonly graph: RiviereGraph}
@@ -92,11 +93,11 @@ export function EventsPage({ graph }: Readonly<EventsPageProps>): React.ReactEle
 
     return {
       publishedEvents: [...published].sort((a: PublishedEvent, b: PublishedEvent) => {
-        const domainCompare = a.domain.localeCompare(b.domain)
+        const domainCompare = compareByCodePoint(a.domain, b.domain)
         if (domainCompare !== 0) return domainCompare
-        return a.eventName.localeCompare(b.eventName)
+        return compareByCodePoint(a.eventName, b.eventName)
       }),
-      domains: Array.from(domainSet).sort((a: string, b: string) => a.localeCompare(b)),
+      domains: Array.from(domainSet).sort(compareByCodePoint),
     }
   }, [graph])
 

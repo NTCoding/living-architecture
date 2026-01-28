@@ -4,6 +4,7 @@ import {
 import * as d3 from 'd3'
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
 import type { Edge } from '@/platform/domain/eclair-types'
+import { compareByCodePoint } from '@/platform/domain/compare-by-code-point'
 import type { Theme } from '@/types/theme'
 import type {
   SimulationNode, SimulationLink, TooltipData 
@@ -237,7 +238,7 @@ export function ForceGraph({
 
     const currentGraphKey = filteredNodes
       .map((n) => n.id)
-      .sort((a, b) => a.localeCompare(b))
+      .sort(compareByCodePoint)
       .join(',')
     const isGraphDataChange = currentGraphKey !== lastGraphKeyRef.current
     lastGraphKeyRef.current = currentGraphKey

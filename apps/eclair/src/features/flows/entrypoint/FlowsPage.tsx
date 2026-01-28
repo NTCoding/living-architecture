@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
+import { compareByCodePoint } from '@/platform/domain/compare-by-code-point'
 import { extractFlows } from '../extractFlows'
 import { FlowCard } from '../components/FlowCard/FlowCard'
 import {
@@ -24,7 +25,7 @@ export function FlowsPage({ graph }: Readonly<FlowsPageProps>): React.ReactEleme
 
   const domains = useMemo(() => {
     const domainSet = new Set(flows.map((f) => f.entryPoint.domain))
-    return Array.from(domainSet).sort((a, b) => a.localeCompare(b))
+    return Array.from(domainSet).sort(compareByCodePoint)
   }, [flows])
 
   const filteredFlows = useMemo(() => {

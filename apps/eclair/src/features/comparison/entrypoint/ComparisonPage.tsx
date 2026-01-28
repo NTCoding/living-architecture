@@ -10,8 +10,9 @@ import {
   computeDomainConnectionDiff,
   type DomainConnectionDiffResult,
 } from '../computeDomainConnectionDiff'
+import { compareByCodePoint } from '@/platform/domain/compare-by-code-point'
 import {
-  FilterTabs, DomainFilter, TypeFilter, type ChangeFilter 
+  FilterTabs, DomainFilter, TypeFilter, type ChangeFilter
 } from '../ChangeFilters'
 import { StatsBar } from '../StatsBar'
 import { DomainConnectionDiff } from '../DomainConnectionDiff'
@@ -136,7 +137,7 @@ function extractUniqueDomains(items: ChangeItemBase[]): string[] {
   for (const item of items) {
     domains.add(item.node.domain)
   }
-  return Array.from(domains).sort((a, b) => a.localeCompare(b))
+  return Array.from(domains).sort(compareByCodePoint)
 }
 
 function extractUniqueTypes(items: ChangeItemBase[]): string[] {
@@ -144,7 +145,7 @@ function extractUniqueTypes(items: ChangeItemBase[]): string[] {
   for (const item of items) {
     types.add(item.node.type)
   }
-  return Array.from(types).sort((a, b) => a.localeCompare(b))
+  return Array.from(types).sort(compareByCodePoint)
 }
 
 interface DetailedChangesProps {readonly diff: GraphDiff}
