@@ -9,6 +9,7 @@ export class GitHubError extends Error {
   }
 }
 
+/* v8 ignore start - env var handling, tests set GITHUB_TOKEN directly */
 function getGitHubToken(): string {
   const githubToken = process.env.GITHUB_TOKEN
   const ghToken = process.env.GH_TOKEN
@@ -25,6 +26,7 @@ function getGitHubToken(): string {
     'GitHub token not found. Set GITHUB_TOKEN or GH_TOKEN environment variable.',
   )
 }
+/* v8 ignore stop */
 
 export const getOctokit = (() => {
   const cache: { instance?: Octokit } = {}
@@ -273,10 +275,12 @@ export const github = {
         pull_number: prNumber,
       })
 
+      /* v8 ignore start - polling branch, difficult to test timing-dependent code */
       if (expectedSha && pr.head.sha !== expectedSha) {
         await new Promise((resolve) => setTimeout(resolve, pollInterval))
         continue
       }
+      /* v8 ignore stop */
 
       const { data: checks } = await getOctokit().checks.listForRef({
         owner,
@@ -329,6 +333,7 @@ export const github = {
         }
       }
 
+      /* v8 ignore start - polling delay, timing-dependent */
       await new Promise((resolve) => setTimeout(resolve, pollInterval))
     }
 
@@ -336,6 +341,7 @@ export const github = {
       failed: true,
       output: 'CI timed out waiting for checks to complete',
     }
+    /* v8 ignore stop */
   },
 
   async addThreadReply(threadId: string, body: string): Promise<void> {

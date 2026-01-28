@@ -43,19 +43,13 @@ export async function respondToFeedback(
   }
 }
 
-export function executeRespondToFeedback(): void {
+export async function executeRespondToFeedback(): Promise<void> {
   const args = parseArgs()
   const action = responseActionSchema.parse(args.action)
-  respondToFeedback({
+  const output = await respondToFeedback({
     threadId: args.threadId,
     action,
     message: args.message,
   })
-    .then((output) => {
-      console.log(JSON.stringify(output, null, 2))
-    })
-    .catch((error: unknown) => {
-      console.error('Error:', error instanceof Error ? error.message : String(error))
-      process.exit(1)
-    })
+  console.log(JSON.stringify(output, null, 2))
 }
