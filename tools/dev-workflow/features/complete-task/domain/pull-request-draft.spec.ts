@@ -46,7 +46,7 @@ describe('resolvePRDetails', () => {
     const result = resolvePRDetails(123, taskDetails)
 
     expect(result.prTitle).toStrictEqual('feat: from task')
-    expect(result.prBody).toStrictEqual('Task body')
+    expect(result.prBody).toStrictEqual('Closes #123\n\nTask body')
     expect(result.hasIssue).toStrictEqual(true)
     expect(result.issueNumber).toStrictEqual(123)
   })

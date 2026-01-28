@@ -42,7 +42,8 @@ export function resolvePRDetails(
   const cliCommitMessage = cli.parseArg('--commit-message')
 
   const prTitle = cliPrTitle ?? taskDetails?.title
-  const prBody = cliPrBody ?? taskDetails?.body
+  const rawBody = cliPrBody ?? taskDetails?.body
+  const prBody = issueNumber ? `Closes #${issueNumber}\n\n${rawBody}` : rawBody
   const commitMessage = cliCommitMessage
 
   if (!prTitle || !prBody) {
