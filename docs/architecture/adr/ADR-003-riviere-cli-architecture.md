@@ -207,6 +207,10 @@ The CLI should call library validation, not implement it.
 - Wiring boilerplate in shell
 - Migration effort to restructure existing code
 
+### Enforcement
+
+Structural and dependency rules are enforced by dependency-cruiser (`.dependency-cruiser.mjs`). Run `pnpm depcruise` to check violations.
+
 ### Mitigations
 
 - Handler classes are small and focused

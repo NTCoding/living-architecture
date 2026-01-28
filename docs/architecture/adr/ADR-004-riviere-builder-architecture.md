@@ -143,6 +143,10 @@ Domain-specific `deduplicateStateTransitions()` stays with enrichment.
 - Callers must handle persistence themselves
 - Migration effort
 
+### Enforcement
+
+Structural and dependency rules are enforced by dependency-cruiser (`.dependency-cruiser.mjs`). Run `pnpm depcruise` to check violations.
+
 ### Mitigations
 
 - Delegate classes are small and focused

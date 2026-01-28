@@ -39,6 +39,10 @@ living-architecture/
 └── pnpm-workspace.yaml      # Workspace definition
 ```
 
+## Enforcement
+
+Structural and dependency rules are enforced by [dependency-cruiser](https://github.com/sverweij/dependency-cruiser) via `.dependency-cruiser.mjs`. Run `pnpm depcruise` to check violations. This runs automatically as part of `pnpm verify`.
+
 ## Principles
 
 **Apps vs Packages.** Apps are deployable units (APIs, CLIs, workers). Packages are shared code published to npm and consumed by apps or other packages.
