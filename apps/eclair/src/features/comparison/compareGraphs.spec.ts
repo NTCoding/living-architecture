@@ -11,7 +11,7 @@ import {
   parseDomainMetadata,
   type RawNode,
   type RawEdge,
-} from '@/lib/riviereTestFixtures'
+} from '@/platform/infra/__fixtures__/riviere-test-fixtures'
 
 const testSourceLocation = {
   repository: 'test-repo',

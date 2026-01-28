@@ -6,7 +6,7 @@ import type { RiviereGraph } from '@/types/riviere'
 import {
   extractDomainDetails, type DomainDetails 
 } from './extractDomainDetails'
-import { parseDomainKey } from '@/lib/riviereTestFixtures'
+import { parseDomainKey } from '@/platform/infra/__fixtures__/riviere-test-fixtures'
 import { DomainContextGraph } from './components/DomainContextGraph/DomainContextGraph'
 import {
   DomainDetailView, type NodeTypeFilter 

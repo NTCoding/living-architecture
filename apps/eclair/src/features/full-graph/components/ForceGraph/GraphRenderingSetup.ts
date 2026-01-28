@@ -13,7 +13,7 @@ import {
 import { getLinkNodeId } from './FocusModeStyling'
 import {
   LayoutError, RenderingError 
-} from '@/errors'
+} from '@/shell/errors/errors'
 
 export {
   getLinkNodeId,

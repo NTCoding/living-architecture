@@ -4,8 +4,11 @@ import {
 import { computeDomainConnectionDiff } from './computeDomainConnectionDiff'
 import type { RiviereGraph } from '@/types/riviere'
 import {
-  parseNode, parseEdge, parseDomainMetadata, parseNodeId 
-} from '@/lib/riviereTestFixtures'
+  parseNode,
+  parseEdge,
+  parseDomainMetadata,
+  parseNodeId,
+} from '@/platform/infra/__fixtures__/riviere-test-fixtures'
 
 const testSourceLocation = {
   repository: 'test-repo',

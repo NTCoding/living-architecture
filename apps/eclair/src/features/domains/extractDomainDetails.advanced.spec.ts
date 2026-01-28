@@ -9,7 +9,7 @@ import {
   parseDomainKey,
   type RawNode,
   type RawEdge,
-} from '@/lib/riviereTestFixtures'
+} from '@/platform/infra/__fixtures__/riviere-test-fixtures'
 import type { RiviereGraph } from '@/types/riviere'
 const testSourceLocation = {
   repository: 'test-repo',

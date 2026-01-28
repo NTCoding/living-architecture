@@ -3,7 +3,7 @@ import type {
   Node, Edge 
 } from '@xyflow/react'
 import dagre from 'dagre'
-import { getClosestHandle } from '@/lib/handlePositioning'
+import { getClosestHandle } from '@/platform/infra/layout/handle-positioning'
 import { RiviereQuery } from '@living-architecture/riviere-query'
 import {
   formatEdgeLabel,
@@ -12,7 +12,7 @@ import {
   type ConnectionDetail,
   type EdgeAggregation,
 } from './edgeAggregation'
-import { LayoutError } from '@/errors'
+import { LayoutError } from '@/shell/errors/errors'
 
 export type { ConnectionDetail } from './edgeAggregation'
 

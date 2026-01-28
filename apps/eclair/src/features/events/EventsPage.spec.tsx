@@ -12,7 +12,7 @@ import type {
 } from '@/types/riviere'
 import {
   parseNode, parseEdge, parseDomainMetadata 
-} from '@/lib/riviereTestFixtures'
+} from '@/platform/infra/__fixtures__/riviere-test-fixtures'
 
 const testSourceLocation: SourceLocation = {
   repository: 'test-repo',

@@ -11,7 +11,7 @@ import {
 import { DomainDetailPage } from './DomainDetailPage'
 import {
   parseNode, parseEdge, parseDomainMetadata
-} from '@/lib/riviereTestFixtures'
+} from '@/platform/infra/__fixtures__/riviere-test-fixtures'
 import type { RiviereGraph } from '@/types/riviere'
 import { assertDefined } from '@/test-assertions'
 

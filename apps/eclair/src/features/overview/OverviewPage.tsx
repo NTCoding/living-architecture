@@ -7,7 +7,7 @@ import type {
 } from '@/types/riviere'
 import { domainNameSchema } from '@/types/riviere'
 import { useRiviereQuery } from '@/hooks/useRiviereQuery'
-import { useCodeLinkSettings } from '@/features/flows/components/CodeLinkMenu/useCodeLinkSettings'
+import { useCodeLinkSettings } from '@/platform/infra/settings/use-code-link-settings'
 import { StatsItem } from './StatsItem'
 import {
   EntitiesSection, EntryPointsSection 

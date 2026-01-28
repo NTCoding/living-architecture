@@ -7,24 +7,24 @@ import {
 import {
   ReactFlow, Background, Controls, useNodesState, useEdgesState
 } from '@xyflow/react'
-import { GraphError } from '@/errors'
+import { GraphError } from '@/shell/errors/errors'
 import type {
   Node, Edge, NodeMouseHandler, EdgeMouseHandler 
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import type { RiviereGraph } from '@/types/riviere'
-import { useExport } from '@/contexts/ExportContext'
+import { useExport } from '@/platform/infra/export/ExportContext'
 import {
   generateExportFilename,
   exportElementAsPng,
   exportSvgAsFile,
   UNNAMED_GRAPH_EXPORT_NAME,
-} from '@/lib/exportGraph'
+} from '@/platform/infra/export/export-graph'
 import {
   extractDomainMap, getConnectedDomains 
 } from './extractDomainMap'
 import { calculateTooltipPositionWithViewportClipping } from './calculateTooltipPosition'
-import { pluralizeConnection } from './pluralize'
+import { pluralizeConnection } from '@/platform/domain/text/pluralize'
 import type {
   DomainNodeData, DomainEdgeData 
 } from './extractDomainMap'

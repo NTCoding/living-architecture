@@ -5,7 +5,7 @@ import { DomainDetailView } from './DomainDetailView'
 import { extractDomainDetails } from './extractDomainDetails'
 import {
   parseNode, parseDomainMetadata, parseDomainKey
-} from '@/lib/riviereTestFixtures'
+} from '@/platform/infra/__fixtures__/riviere-test-fixtures'
 import type { RiviereGraph } from '@/types/riviere'
 import { assertDefined } from '@/test-assertions'
 const testSourceLocation = {

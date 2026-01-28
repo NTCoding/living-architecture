@@ -7,11 +7,11 @@ import {
 import { userEvent } from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { FullGraphPage } from './FullGraphPage'
-import { ExportProvider } from '@/contexts/ExportContext'
+import { ExportProvider } from '@/platform/infra/export/ExportContext'
 import type { RiviereGraph } from '@/types/riviere'
 import {
   parseNode, parseEdge, parseDomainKey 
-} from '@/lib/riviereTestFixtures'
+} from '@/platform/infra/__fixtures__/riviere-test-fixtures'
 import type {
   TooltipData, SimulationNode 
 } from './types'
@@ -87,7 +87,7 @@ const mockGraph: RiviereGraph = {
   ],
 }
 
-vi.mock('@/contexts/ThemeContext', () => ({
+vi.mock('@/platform/infra/theme/ThemeContext', () => ({
   useTheme: () => ({
     theme: 'stream',
     setTheme: vi.fn(),

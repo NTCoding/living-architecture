@@ -4,8 +4,10 @@ import {
 import { extractFlows } from './extractFlows'
 import type { RiviereGraph } from '@/types/riviere'
 import {
-  parseNode, parseEdge, parseDomainMetadata 
-} from '@/lib/riviereTestFixtures'
+  parseNode,
+  parseEdge,
+  parseDomainMetadata,
+} from '@/platform/infra/__fixtures__/riviere-test-fixtures'
 
 const testSourceLocation = {
   repository: 'test-repo',

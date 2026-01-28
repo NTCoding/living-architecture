@@ -12,7 +12,7 @@ import {
   parseEdge,
   parseDomainKey,
   parseDomainMetadata,
-} from '@/lib/riviereTestFixtures'
+} from '@/platform/infra/__fixtures__/riviere-test-fixtures'
 const testSourceLocation = {
   repository: 'test-repo',
   filePath: 'src/test.ts',

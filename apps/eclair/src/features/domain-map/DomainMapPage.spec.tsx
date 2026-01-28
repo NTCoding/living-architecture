@@ -6,11 +6,11 @@ import {
 } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { DomainMapPage } from './DomainMapPage'
-import { ExportProvider } from '@/contexts/ExportContext'
+import { ExportProvider } from '@/platform/infra/export/ExportContext'
 import type { RiviereGraph } from '@/types/riviere'
 import {
   parseNode, parseEdge, parseDomainMetadata 
-} from '@/lib/riviereTestFixtures'
+} from '@/platform/infra/__fixtures__/riviere-test-fixtures'
 
 const testSourceLocation = {
   repository: 'test-repo',

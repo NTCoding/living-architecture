@@ -4,7 +4,7 @@ import {
 import type { ConnectionDetail } from '../extractDomainMap'
 import {
   pluralizeComponent, pluralizeConnection 
-} from '../pluralize'
+} from '@/platform/domain/text/pluralize'
 
 interface TooltipState {
   visible: boolean

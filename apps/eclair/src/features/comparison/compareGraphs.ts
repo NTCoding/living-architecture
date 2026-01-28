@@ -1,7 +1,7 @@
 import type {
   RiviereGraph, Node, Edge, NodeType, NodeId 
 } from '@/types/riviere'
-import { GraphError } from '@/errors'
+import { GraphError } from '@/shell/errors/errors'
 
 interface NodeAddition {node: Node}
 

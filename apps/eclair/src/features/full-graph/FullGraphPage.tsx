@@ -7,14 +7,14 @@ import type {
   ,
   Node, Edge 
 } from '@/types/riviere'
-import { useTheme } from '@/contexts/ThemeContext'
-import { useExport } from '@/contexts/ExportContext'
+import { useTheme } from '@/platform/infra/theme/ThemeContext'
+import { useExport } from '@/platform/infra/export/ExportContext'
 import {
   generateExportFilename,
   exportElementAsPng,
   exportSvgAsFile,
   UNNAMED_GRAPH_EXPORT_NAME,
-} from '@/lib/exportGraph'
+} from '@/platform/infra/export/export-graph'
 import { ForceGraph } from './components/ForceGraph/ForceGraph'
 import { GraphTooltip } from './components/GraphTooltip/GraphTooltip'
 import { DomainFilters } from './components/DomainFilters/DomainFilters'

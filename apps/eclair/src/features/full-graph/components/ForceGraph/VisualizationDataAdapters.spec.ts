@@ -20,8 +20,10 @@ import type {
   Node, Edge, ExternalLink 
 } from '@/types/riviere'
 import {
-  parseNode, parseEdge, parseNodeId 
-} from '@/lib/riviereTestFixtures'
+  parseNode,
+  parseEdge,
+  parseNodeId,
+} from '@/platform/infra/__fixtures__/riviere-test-fixtures'
 const testSourceLocation = {
   repository: 'test-repo',
   filePath: 'src/test.ts',

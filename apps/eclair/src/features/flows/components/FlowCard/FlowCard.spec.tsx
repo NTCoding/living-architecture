@@ -9,7 +9,7 @@ import userEvent from '@testing-library/user-event'
 import { FlowCard } from './FlowCard'
 import {
   parseNode, parseEdge, parseDomainMetadata 
-} from '@/lib/riviereTestFixtures'
+} from '@/platform/infra/__fixtures__/riviere-test-fixtures'
 import type { Flow } from '../../extractFlows'
 import type { RiviereGraph } from '@/types/riviere'
 const testSourceLocation = {

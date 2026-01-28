@@ -10,13 +10,13 @@ import type { FlowStep } from '../../extractFlows'
 import type { RiviereGraph } from '@/types/riviere'
 import {
   parseNode, parseEdge, parseDomainMetadata 
-} from '@/lib/riviereTestFixtures'
+} from '@/platform/infra/__fixtures__/riviere-test-fixtures'
 const testSourceLocation = {
   repository: 'test-repo',
   filePath: 'src/test.ts',
 }
 
-vi.mock('@/contexts/ThemeContext', () => ({ useTheme: () => ({ theme: 'stream' }) }))
+vi.mock('@/platform/infra/theme/ThemeContext', () => ({ useTheme: () => ({ theme: 'stream' }) }))
 
 vi.mock('@/features/full-graph/components/ForceGraph/ForceGraph', () => ({
   ForceGraph: ({ graph }: { graph: { components: Array<{ name: string }> } }) => (

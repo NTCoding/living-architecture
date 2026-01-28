@@ -3,7 +3,7 @@ import {
 } from 'vitest'
 import { traceFlow } from './useFlowTracing'
 import type { Edge } from '@/types/riviere'
-import { parseEdge } from '@/lib/riviereTestFixtures'
+import { parseEdge } from '@/platform/infra/__fixtures__/riviere-test-fixtures'
 
 const testEdges: Edge[] = [
   parseEdge({

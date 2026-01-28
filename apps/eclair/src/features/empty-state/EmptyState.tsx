@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { FileUpload } from '@/components/FileUpload/FileUpload'
-import { useGraph } from '@/contexts/GraphContext'
+import { FileUpload } from '@/shell/components/FileUpload/FileUpload'
+import { useGraph } from '@/platform/infra/graph-state/GraphContext'
 import { parseRiviereGraph } from '@living-architecture/riviere-schema'
 
 export function EmptyState(): React.ReactElement {

@@ -1,7 +1,7 @@
 import {
   useMemo, useState, useCallback, useRef 
 } from 'react'
-import { useTheme } from '@/contexts/ThemeContext'
+import { useTheme } from '@/platform/infra/theme/ThemeContext'
 import { ForceGraph } from '@/features/full-graph/components/ForceGraph/ForceGraph'
 import { GraphTooltip } from '@/features/full-graph/components/GraphTooltip/GraphTooltip'
 import type { TooltipData } from '@/features/full-graph/types'

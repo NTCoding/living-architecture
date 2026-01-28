@@ -10,7 +10,7 @@ import { OverviewPage } from './OverviewPage'
 import type { RiviereGraph } from '@/types/riviere'
 import {
   parseNode, parseEdge, parseDomainMetadata 
-} from '@/lib/riviereTestFixtures'
+} from '@/platform/infra/__fixtures__/riviere-test-fixtures'
 
 const testSourceLocation = {
   repository: 'test-repo',
