@@ -219,6 +219,10 @@ Base `EclairError` class can stay in shell/errors/ as shared base.
 - Migration effort significant (many file moves)
 - Breaking changes to internal imports
 
+### Enforcement
+
+Structural and dependency rules are enforced by dependency-cruiser (`.dependency-cruiser.mjs`). Run `pnpm depcruise` to check violations.
+
 ### Mitigations
 
 - Feature structure already exists, mainly adding platform/ and shell/

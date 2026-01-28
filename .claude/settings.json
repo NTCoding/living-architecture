@@ -8,6 +8,7 @@
       "Edit(./.husky/*)",
       "Edit(./pnpm-workspace.yaml)",
       "Edit(./.gitignore)",
+      "Edit(./.dependency-cruiser.mjs)",
       "Read(./.env)",
       "Read(./.env.*)",
       "Read(./apps/**/.env)",

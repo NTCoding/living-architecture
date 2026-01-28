@@ -148,6 +148,10 @@ Unlike `minimatch`, ts-morph is the domain-appropriate tool for TypeScript AST a
 - Migration effort to restructure
 - Slightly deeper import paths
 
+### Enforcement
+
+Structural and dependency rules are enforced by dependency-cruiser (`.dependency-cruiser.mjs`). Run `pnpm depcruise` to check violations.
+
 ### Mitigations
 
 - Directory structure matches established library pattern (ADR-004)

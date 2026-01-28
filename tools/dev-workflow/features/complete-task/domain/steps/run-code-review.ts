@@ -1,4 +1,5 @@
 import { readFile } from 'node:fs/promises'
+import { readdirSync } from 'node:fs'
 import { z } from 'zod'
 import type { Step } from '../../../../platform/domain/workflow-execution/workflow-runner'
 import {
@@ -20,20 +21,10 @@ export class AgentError extends Error {
   }
 }
 
-const findingSchema = z.object({
-  severity: z.enum(['critical', 'major', 'minor']),
-  file: z.string(),
-  line: z.number().nullish(),
-  message: z.string(),
-})
+const agentResponseSchema = z.object({ result: z.enum(['PASS', 'FAIL']) })
 
-const agentResponseSchema = z.object({
+const reviewerResultSchema = z.object({
   result: z.enum(['PASS', 'FAIL']),
-  summary: z.string(),
-  findings: z.array(findingSchema),
-})
-
-const reviewerResultSchema = agentResponseSchema.extend({
   name: z.string(),
   reportPath: z.string(),
 })
@@ -78,7 +69,7 @@ export const codeReview: Step<CompleteTaskContext> = {
     }
 
     const baseBranch = await git.baseBranch()
-    const filesToReview = await git.diffFiles(baseBranch)
+    const filesToReview = await git.unpushedFiles(baseBranch)
 
     const reviewerNames = getReviewerNames(ctx.hasIssue, ctx.reviewDir)
 
@@ -95,7 +86,6 @@ export const codeReview: Step<CompleteTaskContext> = {
         type: 'fix_review',
         details: failures.map((f) => ({
           name: f.name,
-          summary: f.summary,
           reportPath: f.reportPath,
         })),
       })
@@ -103,6 +93,20 @@ export const codeReview: Step<CompleteTaskContext> = {
 
     return success()
   },
+}
+
+function nextRoundNumber(reviewDir: string, name: string): number {
+  try {
+    const files = readdirSync(reviewDir)
+    const pattern = new RegExp(`^${name}-(\\d+)\\.md$`)
+    const rounds = files
+      .map((file) => pattern.exec(file))
+      .filter((match): match is RegExpExecArray => match !== null)
+      .map((match) => parseInt(match[1], 10))
+    return rounds.length > 0 ? Math.max(...rounds) + 1 : 1
+  } catch {
+    return 1
+  }
 }
 
 async function executeCodeReviewAgents(
@@ -128,9 +132,15 @@ async function executeCodeReviewAgents(
 
       const agentPath = `.claude/agents/${name}.md`
       const basePrompt = await loadAgentInstructions(agentPath)
-      const reportPath = `${reviewDir}/${name}.md`
+      const round = nextRoundNumber(reviewDir, name)
+      const reportPath = `${reviewDir}/${name}-${round}.md`
 
-      const promptParts = [basePrompt, '\n\n## Files to Review\n\n', filesToReview.join('\n')]
+      const promptParts = [
+        basePrompt,
+        `\n\n## Report Path\n\nWrite your review report to: ${reportPath}`,
+        '\n\n## Files to Review\n\n',
+        filesToReview.join('\n'),
+      ]
 
       if (name === 'task-check' && taskDetails) {
         promptParts.push(
@@ -142,7 +152,6 @@ async function executeCodeReviewAgents(
         prompt: promptParts.join(''),
         model: 'sonnet',
         outputSchema: agentResponseSchema,
-        outputPath: reportPath,
         settingSources: ['project'],
       })
 

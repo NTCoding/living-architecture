@@ -69,6 +69,20 @@ export const git = {
     )
   },
 
+  async unpushedFiles(baseBranch: string): Promise<string[]> {
+    const branch = await git.currentBranch()
+    const trackingRef = `origin/${branch}`
+    const refs = await repo.branch(['-r'])
+
+    if (!refs.all.includes(trackingRef)) {
+      return git.diffFiles(baseBranch)
+    }
+
+    const diff = await repo.diff(['--name-only', trackingRef])
+    const files = diff.split('\n').filter(Boolean)
+    return files.length > 0 ? files : git.diffFiles(baseBranch)
+  },
+
   async headSha(): Promise<string> {
     const sha = await repo.revparse(['HEAD'])
     return sha.trim()

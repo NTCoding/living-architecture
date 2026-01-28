@@ -3,16 +3,9 @@ import {
 } from 'vitest'
 import { z } from 'zod'
 
-const {
-  mockSdkQuery, mockWriteFile 
-} = vi.hoisted(() => ({
-  mockSdkQuery: vi.fn(),
-  mockWriteFile: vi.fn(),
-}))
+const { mockSdkQuery } = vi.hoisted(() => ({ mockSdkQuery: vi.fn() }))
 
 vi.mock('@anthropic-ai/claude-agent-sdk', () => ({ query: mockSdkQuery }))
-
-vi.mock('node:fs/promises', () => ({ writeFile: mockWriteFile }))
 
 import {
   claude, ClaudeQueryError, CLAUDE_SDK_AGENT_ENV_VAR 
@@ -41,7 +34,6 @@ describe('claude.query', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    mockWriteFile.mockResolvedValue(undefined)
   })
 
   it('returns parsed result from structured_output', async () => {
@@ -62,37 +54,12 @@ describe('claude.query', () => {
       prompt: 'test prompt',
       model: 'sonnet',
       outputSchema: testSchema,
-      outputPath: './test-output/output.md',
     })
 
     expect(result).toStrictEqual({
       result: 'success',
       score: 100,
     })
-  })
-
-  it('writes result to output path', async () => {
-    async function* mockAsyncIterable(): AsyncGenerator<unknown> {
-      yield {
-        type: 'result',
-        subtype: 'success',
-        result: 'raw result text',
-        structured_output: {
-          result: 'test',
-          score: 50,
-        },
-      }
-    }
-    mockSdkQuery.mockReturnValue(mockAsyncIterable())
-
-    await claude.query({
-      prompt: 'test',
-      model: 'haiku',
-      outputSchema: testSchema,
-      outputPath: './test-output/test-output.md',
-    })
-
-    expect(mockWriteFile).toHaveBeenCalledWith('./test-output/test-output.md', 'raw result text')
   })
 
   it('parses JSON from code block when no structured_output', async () => {
@@ -109,7 +76,6 @@ describe('claude.query', () => {
       prompt: 'test',
       model: 'opus',
       outputSchema: testSchema,
-      outputPath: './test-output/output.md',
     })
 
     expect(result).toStrictEqual({
@@ -132,7 +98,6 @@ describe('claude.query', () => {
       prompt: 'test',
       model: 'sonnet',
       outputSchema: testSchema,
-      outputPath: './test-output/output.md',
     })
 
     expect(result).toStrictEqual({
@@ -156,7 +121,6 @@ describe('claude.query', () => {
         prompt: 'test',
         model: 'sonnet',
         outputSchema: testSchema,
-        outputPath: './test-output/output.md',
       }),
     ).rejects.toThrow('Claude query failed: error')
   })
@@ -176,7 +140,6 @@ describe('claude.query', () => {
         prompt: 'test',
         model: 'sonnet',
         outputSchema: testSchema,
-        outputPath: './test-output/output.md',
       }),
     ).rejects.toThrow('Claude query failed: interrupted')
   })
@@ -195,7 +158,6 @@ describe('claude.query', () => {
         prompt: 'test',
         model: 'sonnet',
         outputSchema: testSchema,
-        outputPath: './test-output/output.md',
       }),
     ).rejects.toThrow('No result message received from Claude')
   })
@@ -208,7 +170,6 @@ describe('claude.query', () => {
         prompt: 'test',
         model: 'sonnet',
         outputSchema: testSchema,
-        outputPath: './test-output/output.md',
       }),
     ).rejects.toThrow('SDK query did not return an async iterable')
   })
@@ -221,7 +182,6 @@ describe('claude.query', () => {
         prompt: 'test',
         model: 'sonnet',
         outputSchema: testSchema,
-        outputPath: './test-output/output.md',
       }),
     ).rejects.toThrow('SDK query did not return an async iterable')
   })
@@ -241,7 +201,6 @@ describe('claude.query', () => {
         prompt: 'test',
         model: 'sonnet',
         outputSchema: testSchema,
-        outputPath: './test-output/output.md',
       }),
     ).rejects.toThrow('Could not extract JSON from result')
   })
@@ -261,7 +220,6 @@ describe('claude.query', () => {
         prompt: 'test',
         model: 'sonnet',
         outputSchema: testSchema,
-        outputPath: './test-output/output.md',
       }),
     ).rejects.toThrow('Could not extract JSON')
   })
@@ -284,7 +242,6 @@ describe('claude.query', () => {
       prompt: 'test',
       model: 'sonnet',
       outputSchema: testSchema,
-      outputPath: './test-output/output.md',
       settingSources: ['user', 'project'],
     })
 

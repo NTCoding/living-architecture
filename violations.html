@@ -1,0 +1,2236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>dependency-cruiser - results</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style type="text/css">
+    body {
+      font-family: sans-serif;
+      margin: 0 auto;
+      max-width: 90%;
+      line-height: 1.6;
+      font-size: 14px;
+      color: #444;
+      padding: 0 10px;
+      background-color: #fff;
+    }
+
+    footer {
+      color: gray;
+      margin-top: 1.4em;
+      border-top: solid 1px currentColor
+    }
+
+    a {
+      text-decoration: none
+    }
+
+    a.noiseless {
+      color: currentColor
+    }
+
+    h1,
+    h2,
+    h3 {
+      line-height: 1.2
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 4px;
+    }
+
+    tbody tr:nth-child(odd) {
+      background-color: rgba(128, 128, 128, 0.2);
+    }
+
+    .error {
+      color: red;
+    }
+
+    .warn {
+      color: orange;
+    }
+
+    .info {
+      color: blue;
+    }
+
+    .ignore {
+      color:gray;
+    }
+
+    .ok {
+      color: limegreen;
+    }
+
+    td.nowrap {
+      white-space: nowrap
+    }
+
+    svg {
+      fill: currentColor
+    }
+
+    #show-unviolated {
+      display: block
+    }
+
+    #hide-unviolated {
+      display: none
+    }
+
+    #show-all-the-rules:target #show-unviolated {
+      display: none
+    }
+
+    #show-all-the-rules:target #hide-unviolated {
+      display: block
+    }
+
+    tr.unviolated {
+      display: none
+    }
+
+    #show-all-the-rules:target tr.unviolated {
+      display: table-row;
+      color: gray;
+    }
+
+    #show-ignored {
+      display: block
+    }
+
+    #hide-ignored {
+      display: none
+    }
+
+    #show-ignored-violations:target #show-ignored {
+      display: none
+    }
+
+    #show-ignored-violations:target #hide-ignored {
+      display: block
+    }
+
+    tr.ignored {
+      display: none
+    }
+
+    #show-ignored-violations:target tr.ignored {
+      display: table-row;
+      color: gray;
+    }
+
+    .p__svg--inline {
+      vertical-align: top;
+      width: 1.2em;
+      height: 1.2em
+    }
+
+    .controls {
+      background-color: #fff;
+      vertical-align: bottom;
+      text-align: center
+    }
+
+    .controls:hover {
+      opacity: 1;
+    }
+
+    .controls a {
+      text-decoration: none;
+      color: gray;
+    }
+
+    .controls a:hover {
+      text-decoration: underline;
+      color: blue;
+    }
+
+    .extra {
+      color: gray;
+    }
+  </style>
+  <style type="text/css" media="print">
+    th,
+    td {
+      border: 1px solid #444;
+    }
+
+    .controls {
+      display: none
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Forbidden dependency check - results</h1>
+  <span id="show-all-the-rules">
+  <h2><svg class="p__svg--inline" viewBox="0 0 14 16" version="1.1" aria-hidden="true">
+      <path fill-rule="evenodd"
+        d="M11.5 8L8.8 5.4 6.6 8.5 5.5 1.6 2.38 8H0v2h3.6l.9-1.8.9 5.4L9 8.5l1.6 1.5H14V8h-2.5z"></path>
+    </svg> Summary</h2>
+  <p>
+    <div style="float:left;padding-right:20px">
+      <strong>253</strong> modules
+    </div>
+    <div style="float:left;padding-right:20px">
+      <strong>633</strong> dependencies
+    </div>
+    <div style="float:left;padding-right:20px">
+      <strong>179</strong> errors
+    </div>
+    <div style="float:left;padding-right:20px">
+      <strong>0</strong> warnings
+    </div>
+    <div style="float:left;padding-right:20px">
+      <strong>0</strong> informational
+    </div>
+    <div style="float:left;padding-right:20px" class="ignore">
+      <strong>0</strong> ignored
+    </div>
+    &nbsp;
+  </p>
+  <table>
+    <tbody>
+      <thead>
+        <tr>
+          <th></th>
+          <th>severity</th>
+          <th>rule</th>
+          <th>violations</th>
+          <th>ignored</th>
+          <th>explanation</th>
+        </tr>
+      </thead>
+      <tr>
+    <td><span class="error">&cross;</span></td>
+    <td>error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-instance"
+         id="feature-structure-definition" 
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><strong>95</strong></td>
+    <td><strong>0</strong></td>
+    <td>Features contain only entrypoint/, commands/, queries/, domain/</td>
+  </tr>
+<tr>
+    <td><span class="error">&cross;</span></td>
+    <td>error</td>
+    <td class="nowrap">
+      <a href="#root-structure-instance"
+         id="root-structure-definition" 
+         class="noiseless">root-structure</a>
+    </td>
+    <td><strong>66</strong></td>
+    <td><strong>0</strong></td>
+    <td>Package root must only contain features/, platform/, shell/</td>
+  </tr>
+<tr>
+    <td><span class="error">&cross;</span></td>
+    <td>error</td>
+    <td class="nowrap">
+      <a href="#no-cross-feature-imports-instance"
+         id="no-cross-feature-imports-definition" 
+         class="noiseless">no-cross-feature-imports</a>
+    </td>
+    <td><strong>15</strong></td>
+    <td><strong>0</strong></td>
+    <td>Features must not import from other features</td>
+  </tr>
+<tr>
+    <td><span class="error">&cross;</span></td>
+    <td>error</td>
+    <td class="nowrap">
+      <a href="#no-circular-instance"
+         id="no-circular-definition" 
+         class="noiseless">no-circular</a>
+    </td>
+    <td><strong>3</strong></td>
+    <td><strong>0</strong></td>
+    <td>No circular dependencies</td>
+  </tr>
+<tr class="unviolated">
+    <td><span class="ok">&check;</span></td>
+    <td>error</td>
+    <td class="nowrap">
+      <a href="#commands-must-use-domain-instance"
+         id="commands-must-use-domain-definition" 
+         class="noiseless">commands-must-use-domain</a>
+    </td>
+    <td><strong>0</strong></td>
+    <td><strong>0</strong></td>
+    <td>Every command MUST import from domain/</td>
+  </tr>
+<tr class="unviolated">
+    <td><span class="ok">&check;</span></td>
+    <td>error</td>
+    <td class="nowrap">
+      <a href="#commands-no-cross-feature-instance"
+         id="commands-no-cross-feature-definition" 
+         class="noiseless">commands-no-cross-feature</a>
+    </td>
+    <td><strong>0</strong></td>
+    <td><strong>0</strong></td>
+    <td>Commands forbidden from other features</td>
+  </tr>
+<tr class="unviolated">
+    <td><span class="ok">&check;</span></td>
+    <td>error</td>
+    <td class="nowrap">
+      <a href="#commands-no-queries-instance"
+         id="commands-no-queries-definition" 
+         class="noiseless">commands-no-queries</a>
+    </td>
+    <td><strong>0</strong></td>
+    <td><strong>0</strong></td>
+    <td>Commands must not import from queries/</td>
+  </tr>
+<tr class="unviolated">
+    <td><span class="ok">&check;</span></td>
+    <td>error</td>
+    <td class="nowrap">
+      <a href="#domain-no-upward-deps-instance"
+         id="domain-no-upward-deps-definition" 
+         class="noiseless">domain-no-upward-deps</a>
+    </td>
+    <td><strong>0</strong></td>
+    <td><strong>0</strong></td>
+    <td>Domain must not import from commands/, queries/, entrypoint/, or shell/</td>
+  </tr>
+<tr class="unviolated">
+    <td><span class="ok">&check;</span></td>
+    <td>error</td>
+    <td class="nowrap">
+      <a href="#entrypoint-no-domain-instance"
+         id="entrypoint-no-domain-definition" 
+         class="noiseless">entrypoint-no-domain</a>
+    </td>
+    <td><strong>0</strong></td>
+    <td><strong>0</strong></td>
+    <td>Entrypoint must never import from domain/</td>
+  </tr>
+<tr class="unviolated">
+    <td><span class="ok">&check;</span></td>
+    <td>error</td>
+    <td class="nowrap">
+      <a href="#entrypoint-restricted-deps-instance"
+         id="entrypoint-restricted-deps-definition" 
+         class="noiseless">entrypoint-restricted-deps</a>
+    </td>
+    <td><strong>0</strong></td>
+    <td><strong>0</strong></td>
+    <td>Entrypoint may only import from commands/, queries/, platform/infra/</td>
+  </tr>
+<tr class="unviolated">
+    <td><span class="ok">&check;</span></td>
+    <td>error</td>
+    <td class="nowrap">
+      <a href="#no-nested-commands-instance"
+         id="no-nested-commands-definition" 
+         class="noiseless">no-nested-commands</a>
+    </td>
+    <td><strong>0</strong></td>
+    <td><strong>0</strong></td>
+    <td>commands/ must be flat — no nested folders</td>
+  </tr>
+<tr class="unviolated">
+    <td><span class="ok">&check;</span></td>
+    <td>error</td>
+    <td class="nowrap">
+      <a href="#no-nested-queries-instance"
+         id="no-nested-queries-definition" 
+         class="noiseless">no-nested-queries</a>
+    </td>
+    <td><strong>0</strong></td>
+    <td><strong>0</strong></td>
+    <td>queries/ must be flat — no nested folders</td>
+  </tr>
+<tr class="unviolated">
+    <td><span class="ok">&check;</span></td>
+    <td>error</td>
+    <td class="nowrap">
+      <a href="#platform-no-features-instance"
+         id="platform-no-features-definition" 
+         class="noiseless">platform-no-features</a>
+    </td>
+    <td><strong>0</strong></td>
+    <td><strong>0</strong></td>
+    <td>Platform must not import from features/</td>
+  </tr>
+<tr class="unviolated">
+    <td><span class="ok">&check;</span></td>
+    <td>error</td>
+    <td class="nowrap">
+      <a href="#platform-structure-instance"
+         id="platform-structure-definition" 
+         class="noiseless">platform-structure</a>
+    </td>
+    <td><strong>0</strong></td>
+    <td><strong>0</strong></td>
+    <td>platform/ contains only domain/ and infra/</td>
+  </tr>
+<tr class="unviolated">
+    <td><span class="ok">&check;</span></td>
+    <td>error</td>
+    <td class="nowrap">
+      <a href="#queries-no-commands-instance"
+         id="queries-no-commands-definition" 
+         class="noiseless">queries-no-commands</a>
+    </td>
+    <td><strong>0</strong></td>
+    <td><strong>0</strong></td>
+    <td>Queries must not import from commands/</td>
+  </tr>
+<tr class="unviolated">
+    <td><span class="ok">&check;</span></td>
+    <td>error</td>
+    <td class="nowrap">
+      <a href="#shell-no-domain-instance"
+         id="shell-no-domain-definition" 
+         class="noiseless">shell-no-domain</a>
+    </td>
+    <td><strong>0</strong></td>
+    <td><strong>0</strong></td>
+    <td>Shell must not import from domain/</td>
+  </tr>
+      <tr>
+        <td colspan="6" class="controls">
+          <div id="show-unviolated">
+            &downarrow; <a href="#show-all-the-rules">also show unviolated rules</a>
+          </div>
+          <div id="hide-unviolated">
+            &uparrow; <a href="">hide unviolated rules</a>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  </span>
+
+  <span id="show-ignored-violations">
+      <h2><svg class="p__svg--inline" viewBox="0 0 12 16" version="1.1" aria-hidden="true">
+        <path fill-rule="evenodd"
+          d="M5.05.31c.81 2.17.41 3.38-.52 4.31C3.55 5.67 1.98 6.45.9 7.98c-1.45 2.05-1.7 6.53 3.53 7.7-2.2-1.16-2.67-4.52-.3-6.61-.61 2.03.53 3.33 1.94 2.86 1.39-.47 2.3.53 2.27 1.67-.02.78-.31 1.44-1.13 1.81 3.42-.59 4.78-3.42 4.78-5.56 0-2.84-2.53-3.22-1.25-5.61-1.52.13-2.03 1.13-1.89 2.75.09 1.08-1.02 1.8-1.86 1.33-.67-.41-.66-1.19-.06-1.78C8.18 5.31 8.68 2.45 5.05.32L5.03.3l.02.01z">
+        </path>
+      </svg> All violations</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>severity</th>
+          <th>rule</th>
+          <th>from</th>
+          <th>to</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/domain-map/components/DomainNode/DomainNode.tsx">apps/eclair/src/features/domain-map/components/DomainNode/DomainNode.tsx</a></td>
+    <td>apps/eclair/src/features/domain-map/extractDomainMap.ts</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/domain-map/hooks/useDomainMapInteractions.ts">apps/eclair/src/features/domain-map/hooks/useDomainMapInteractions.ts</a></td>
+    <td>apps/eclair/src/features/domain-map/extractDomainMap.ts</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/domain-map/hooks/useDomainMapInteractions.ts">apps/eclair/src/features/domain-map/hooks/useDomainMapInteractions.ts</a></td>
+    <td>apps/eclair/src/features/domain-map/pluralize.ts</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/domain-map/hooks/useDomainMapInteractions.ts">apps/eclair/src/features/domain-map/hooks/useDomainMapInteractions.ts</a></td>
+    <td>node_modules/.pnpm/react@19.2.3/node_modules/react/index.js</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/domains/components/DomainContextGraph/ConnectionItem.tsx">apps/eclair/src/features/domains/components/DomainContextGraph/ConnectionItem.tsx</a></td>
+    <td>apps/eclair/src/features/domains/extractDomainDetails.ts</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/domains/components/DomainContextGraph/DomainContextGraph.tsx">apps/eclair/src/features/domains/components/DomainContextGraph/DomainContextGraph.tsx</a></td>
+    <td>@/errors</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/domains/components/DomainContextGraph/DomainContextGraph.tsx">apps/eclair/src/features/domains/components/DomainContextGraph/DomainContextGraph.tsx</a></td>
+    <td>apps/eclair/src/features/domains/components/DomainContextGraph/DomainInfoModal.tsx</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/domains/components/DomainContextGraph/DomainContextGraph.tsx">apps/eclair/src/features/domains/components/DomainContextGraph/DomainContextGraph.tsx</a></td>
+    <td>apps/eclair/src/features/domains/components/DomainContextGraph/DomainNode.tsx</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/domains/components/DomainContextGraph/DomainContextGraph.tsx">apps/eclair/src/features/domains/components/DomainContextGraph/DomainContextGraph.tsx</a></td>
+    <td>apps/eclair/src/features/domains/components/DomainContextGraph/EdgeLine.tsx</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/domains/components/DomainContextGraph/DomainContextGraph.tsx">apps/eclair/src/features/domains/components/DomainContextGraph/DomainContextGraph.tsx</a></td>
+    <td>apps/eclair/src/features/domains/extractDomainDetails.ts</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/domains/components/DomainContextGraph/DomainContextGraph.tsx">apps/eclair/src/features/domains/components/DomainContextGraph/DomainContextGraph.tsx</a></td>
+    <td>node_modules/.pnpm/react@19.2.3/node_modules/react/index.js</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/domains/components/DomainContextGraph/DomainInfoModal.tsx">apps/eclair/src/features/domains/components/DomainContextGraph/DomainInfoModal.tsx</a></td>
+    <td>apps/eclair/src/features/domains/components/DomainContextGraph/ConnectionItem.tsx</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/domains/components/DomainContextGraph/DomainInfoModal.tsx">apps/eclair/src/features/domains/components/DomainContextGraph/DomainInfoModal.tsx</a></td>
+    <td>apps/eclair/src/features/domains/extractDomainDetails.ts</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/domains/components/DomainContextGraph/DomainInfoModal.tsx">apps/eclair/src/features/domains/components/DomainContextGraph/DomainInfoModal.tsx</a></td>
+    <td>node_modules/.pnpm/react@19.2.3/node_modules/react/index.js</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/domains/components/DomainContextGraph/DomainNode.tsx">apps/eclair/src/features/domains/components/DomainContextGraph/DomainNode.tsx</a></td>
+    <td>apps/eclair/src/features/domains/components/DomainContextGraph/DomainContextGraph.tsx</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/domains/components/DomainContextGraph/EdgeLine.tsx">apps/eclair/src/features/domains/components/DomainContextGraph/EdgeLine.tsx</a></td>
+    <td>apps/eclair/src/features/domains/components/DomainContextGraph/DomainContextGraph.tsx</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/domains/components/DomainDetailModal/DomainDetailModal.tsx">apps/eclair/src/features/domains/components/DomainDetailModal/DomainDetailModal.tsx</a></td>
+    <td>@/features/flows/components/NodeTypeBadge/NodeTypeBadge</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/domains/components/DomainDetailModal/DomainDetailModal.tsx">apps/eclair/src/features/domains/components/DomainDetailModal/DomainDetailModal.tsx</a></td>
+    <td>apps/eclair/src/features/domains/extractDomainDetails.ts</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/domains/components/DomainDetailModal/DomainDetailModal.tsx">apps/eclair/src/features/domains/components/DomainDetailModal/DomainDetailModal.tsx</a></td>
+    <td>node_modules/.pnpm/react@19.2.3/node_modules/react/index.js</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/domains/components/EntityAccordion/EntityAccordion.tsx">apps/eclair/src/features/domains/components/EntityAccordion/EntityAccordion.tsx</a></td>
+    <td>@/features/flows/components/CodeLinkMenu/CodeLinkMenu</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/domains/components/EntityAccordion/EntityAccordion.tsx">apps/eclair/src/features/domains/components/EntityAccordion/EntityAccordion.tsx</a></td>
+    <td>@living-architecture/riviere-query</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/domains/components/EntityAccordion/EntityAccordion.tsx">apps/eclair/src/features/domains/components/EntityAccordion/EntityAccordion.tsx</a></td>
+    <td>@living-architecture/riviere-schema</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/domains/components/EntityAccordion/EntityAccordion.tsx">apps/eclair/src/features/domains/components/EntityAccordion/EntityAccordion.tsx</a></td>
+    <td>apps/eclair/src/features/domains/components/EntityAccordion/MethodCardChevron.tsx</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/domains/components/EntityAccordion/EntityAccordion.tsx">apps/eclair/src/features/domains/components/EntityAccordion/EntityAccordion.tsx</a></td>
+    <td>node_modules/.pnpm/react@19.2.3/node_modules/react/index.js</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/domains/components/EventAccordion/EventAccordion.tsx">apps/eclair/src/features/domains/components/EventAccordion/EventAccordion.tsx</a></td>
+    <td>@/features/flows/components/CodeLinkMenu/CodeLinkMenu</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/domains/components/EventAccordion/EventAccordion.tsx">apps/eclair/src/features/domains/components/EventAccordion/EventAccordion.tsx</a></td>
+    <td>apps/eclair/src/features/domains/extractDomainDetails.ts</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/domains/components/EventAccordion/EventAccordion.tsx">apps/eclair/src/features/domains/components/EventAccordion/EventAccordion.tsx</a></td>
+    <td>node_modules/.pnpm/react@19.2.3/node_modules/react/index.js</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/flows/components/CodeLinkMenu/CodeLinkMenu.tsx">apps/eclair/src/features/flows/components/CodeLinkMenu/CodeLinkMenu.tsx</a></td>
+    <td>apps/eclair/src/features/flows/components/CodeLinkMenu/ConfigurePathModal.tsx</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/flows/components/CodeLinkMenu/CodeLinkMenu.tsx">apps/eclair/src/features/flows/components/CodeLinkMenu/CodeLinkMenu.tsx</a></td>
+    <td>apps/eclair/src/features/flows/components/CodeLinkMenu/useCodeLinkSettings.ts</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/flows/components/CodeLinkMenu/CodeLinkMenu.tsx">apps/eclair/src/features/flows/components/CodeLinkMenu/CodeLinkMenu.tsx</a></td>
+    <td>node_modules/.pnpm/react@19.2.3/node_modules/react/index.js</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/flows/components/CodeLinkMenu/ConfigurePathModal.tsx">apps/eclair/src/features/flows/components/CodeLinkMenu/ConfigurePathModal.tsx</a></td>
+    <td>node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/index.js</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/flows/components/CodeLinkMenu/ConfigurePathModal.tsx">apps/eclair/src/features/flows/components/CodeLinkMenu/ConfigurePathModal.tsx</a></td>
+    <td>node_modules/.pnpm/react@19.2.3/node_modules/react/index.js</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/flows/components/CodeLinkMenu/useCodeLinkSettings.ts">apps/eclair/src/features/flows/components/CodeLinkMenu/useCodeLinkSettings.ts</a></td>
+    <td>node_modules/.pnpm/react@19.2.3/node_modules/react/index.js</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/flows/components/CodeLinkMenu/useCodeLinkSettings.ts">apps/eclair/src/features/flows/components/CodeLinkMenu/useCodeLinkSettings.ts</a></td>
+    <td>node_modules/.pnpm/zod@4.3.5/node_modules/zod/index.cjs</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/flows/components/FlowCard/FlowCard.tsx">apps/eclair/src/features/flows/components/FlowCard/FlowCard.tsx</a></td>
+    <td>@/types/riviere</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/flows/components/FlowCard/FlowCard.tsx">apps/eclair/src/features/flows/components/FlowCard/FlowCard.tsx</a></td>
+    <td>apps/eclair/src/features/flows/components/CodeLinkMenu/CodeLinkMenu.tsx</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/flows/components/FlowCard/FlowCard.tsx">apps/eclair/src/features/flows/components/FlowCard/FlowCard.tsx</a></td>
+    <td>apps/eclair/src/features/flows/components/FlowTrace/FlowTrace.tsx</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/flows/components/FlowCard/FlowCard.tsx">apps/eclair/src/features/flows/components/FlowCard/FlowCard.tsx</a></td>
+    <td>apps/eclair/src/features/flows/components/NodeTypeBadge/NodeTypeBadge.tsx</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/flows/components/FlowCard/FlowCard.tsx">apps/eclair/src/features/flows/components/FlowCard/FlowCard.tsx</a></td>
+    <td>apps/eclair/src/features/flows/extractFlows.ts</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/flows/components/FlowCard/FlowCard.tsx">apps/eclair/src/features/flows/components/FlowCard/FlowCard.tsx</a></td>
+    <td>react-router-dom</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/flows/components/FlowTrace/FlowGraphView.tsx">apps/eclair/src/features/flows/components/FlowTrace/FlowGraphView.tsx</a></td>
+    <td>@/contexts/ThemeContext</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/flows/components/FlowTrace/FlowGraphView.tsx">apps/eclair/src/features/flows/components/FlowTrace/FlowGraphView.tsx</a></td>
+    <td>@/features/full-graph/components/ForceGraph/ForceGraph</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/flows/components/FlowTrace/FlowGraphView.tsx">apps/eclair/src/features/flows/components/FlowTrace/FlowGraphView.tsx</a></td>
+    <td>@/features/full-graph/components/GraphTooltip/GraphTooltip</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/flows/components/FlowTrace/FlowGraphView.tsx">apps/eclair/src/features/flows/components/FlowTrace/FlowGraphView.tsx</a></td>
+    <td>@/features/full-graph/types</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/flows/components/FlowTrace/FlowGraphView.tsx">apps/eclair/src/features/flows/components/FlowTrace/FlowGraphView.tsx</a></td>
+    <td>@/types/riviere</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/flows/components/FlowTrace/FlowGraphView.tsx">apps/eclair/src/features/flows/components/FlowTrace/FlowGraphView.tsx</a></td>
+    <td>apps/eclair/src/features/flows/extractFlows.ts</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/flows/components/FlowTrace/FlowGraphView.tsx">apps/eclair/src/features/flows/components/FlowTrace/FlowGraphView.tsx</a></td>
+    <td>node_modules/.pnpm/react@19.2.3/node_modules/react/index.js</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/flows/components/FlowTrace/FlowTrace.tsx">apps/eclair/src/features/flows/components/FlowTrace/FlowTrace.tsx</a></td>
+    <td>@/types/riviere</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/flows/components/FlowTrace/FlowTrace.tsx">apps/eclair/src/features/flows/components/FlowTrace/FlowTrace.tsx</a></td>
+    <td>apps/eclair/src/features/flows/components/FlowTrace/FlowGraphView.tsx</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/flows/components/FlowTrace/FlowTrace.tsx">apps/eclair/src/features/flows/components/FlowTrace/FlowTrace.tsx</a></td>
+    <td>apps/eclair/src/features/flows/extractFlows.ts</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/flows/components/FlowTrace/FlowTrace.tsx">apps/eclair/src/features/flows/components/FlowTrace/FlowTrace.tsx</a></td>
+    <td>node_modules/.pnpm/react@19.2.3/node_modules/react/index.js</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/flows/components/NodeTypeBadge/NodeTypeBadge.tsx">apps/eclair/src/features/flows/components/NodeTypeBadge/NodeTypeBadge.tsx</a></td>
+    <td>@/types/riviere</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/flows/hooks/useFlowsState.ts">apps/eclair/src/features/flows/hooks/useFlowsState.ts</a></td>
+    <td>node_modules/.pnpm/react@19.2.3/node_modules/react/index.js</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/full-graph/components/DomainFilters/DomainFilters.tsx">apps/eclair/src/features/full-graph/components/DomainFilters/DomainFilters.tsx</a></td>
+    <td>node_modules/.pnpm/react@19.2.3/node_modules/react/index.js</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/full-graph/components/ForceGraph/applyFocusModeBehavior.ts">apps/eclair/src/features/full-graph/components/ForceGraph/applyFocusModeBehavior.ts</a></td>
+    <td>@/types/theme</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/full-graph/components/ForceGraph/applyFocusModeBehavior.ts">apps/eclair/src/features/full-graph/components/ForceGraph/applyFocusModeBehavior.ts</a></td>
+    <td>apps/eclair/src/features/full-graph/components/ForceGraph/GraphRenderingSetup.ts</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/full-graph/components/ForceGraph/applyFocusModeBehavior.ts">apps/eclair/src/features/full-graph/components/ForceGraph/applyFocusModeBehavior.ts</a></td>
+    <td>apps/eclair/src/features/full-graph/components/ForceGraph/VisualizationDataAdapters.ts</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/full-graph/components/ForceGraph/applyFocusModeBehavior.ts">apps/eclair/src/features/full-graph/components/ForceGraph/applyFocusModeBehavior.ts</a></td>
+    <td>apps/eclair/src/features/full-graph/graphFocusing/focusModeConstants.ts</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/full-graph/components/ForceGraph/applyFocusModeBehavior.ts">apps/eclair/src/features/full-graph/components/ForceGraph/applyFocusModeBehavior.ts</a></td>
+    <td>apps/eclair/src/features/full-graph/graphFocusing/themeFocusColors.ts</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/full-graph/components/ForceGraph/applyFocusModeBehavior.ts">apps/eclair/src/features/full-graph/components/ForceGraph/applyFocusModeBehavior.ts</a></td>
+    <td>apps/eclair/src/features/full-graph/types.ts</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/full-graph/components/ForceGraph/applyFocusModeBehavior.ts">apps/eclair/src/features/full-graph/components/ForceGraph/applyFocusModeBehavior.ts</a></td>
+    <td>node_modules/.pnpm/d3@7.9.0/node_modules/d3/src/index.js</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/full-graph/components/ForceGraph/computeDagreLayout.ts">apps/eclair/src/features/full-graph/components/ForceGraph/computeDagreLayout.ts</a></td>
+    <td>apps/eclair/src/features/full-graph/types.ts</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/full-graph/components/ForceGraph/computeDagreLayout.ts">apps/eclair/src/features/full-graph/components/ForceGraph/computeDagreLayout.ts</a></td>
+    <td>node_modules/.pnpm/dagre@0.8.5/node_modules/dagre/index.js</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/full-graph/components/ForceGraph/FocusModeStyling.ts">apps/eclair/src/features/full-graph/components/ForceGraph/FocusModeStyling.ts</a></td>
+    <td>@/types/riviere</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/full-graph/components/ForceGraph/FocusModeStyling.ts">apps/eclair/src/features/full-graph/components/ForceGraph/FocusModeStyling.ts</a></td>
+    <td>apps/eclair/src/features/full-graph/types.ts</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/full-graph/components/ForceGraph/FocusModeStyling.ts">apps/eclair/src/features/full-graph/components/ForceGraph/FocusModeStyling.ts</a></td>
+    <td>node_modules/.pnpm/d3@7.9.0/node_modules/d3/src/index.js</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/full-graph/components/ForceGraph/ForceGraph.tsx">apps/eclair/src/features/full-graph/components/ForceGraph/ForceGraph.tsx</a></td>
+    <td>@/types/riviere</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/full-graph/components/ForceGraph/ForceGraph.tsx">apps/eclair/src/features/full-graph/components/ForceGraph/ForceGraph.tsx</a></td>
+    <td>@/types/theme</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/full-graph/components/ForceGraph/ForceGraph.tsx">apps/eclair/src/features/full-graph/components/ForceGraph/ForceGraph.tsx</a></td>
+    <td>apps/eclair/src/features/full-graph/components/ForceGraph/applyFocusModeBehavior.ts</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/full-graph/components/ForceGraph/ForceGraph.tsx">apps/eclair/src/features/full-graph/components/ForceGraph/ForceGraph.tsx</a></td>
+    <td>apps/eclair/src/features/full-graph/components/ForceGraph/computeDagreLayout.ts</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/full-graph/components/ForceGraph/ForceGraph.tsx">apps/eclair/src/features/full-graph/components/ForceGraph/ForceGraph.tsx</a></td>
+    <td>apps/eclair/src/features/full-graph/components/ForceGraph/GraphRenderingSetup.ts</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/full-graph/components/ForceGraph/ForceGraph.tsx">apps/eclair/src/features/full-graph/components/ForceGraph/ForceGraph.tsx</a></td>
+    <td>apps/eclair/src/features/full-graph/components/ForceGraph/VisualizationDataAdapters.ts</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/full-graph/components/ForceGraph/ForceGraph.tsx">apps/eclair/src/features/full-graph/components/ForceGraph/ForceGraph.tsx</a></td>
+    <td>apps/eclair/src/features/full-graph/types.ts</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/full-graph/components/ForceGraph/ForceGraph.tsx">apps/eclair/src/features/full-graph/components/ForceGraph/ForceGraph.tsx</a></td>
+    <td>node_modules/.pnpm/d3@7.9.0/node_modules/d3/src/index.js</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/full-graph/components/ForceGraph/ForceGraph.tsx">apps/eclair/src/features/full-graph/components/ForceGraph/ForceGraph.tsx</a></td>
+    <td>node_modules/.pnpm/react@19.2.3/node_modules/react/index.js</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/full-graph/components/ForceGraph/GraphRenderingSetup.ts">apps/eclair/src/features/full-graph/components/ForceGraph/GraphRenderingSetup.ts</a></td>
+    <td>@/errors</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/full-graph/components/ForceGraph/GraphRenderingSetup.ts">apps/eclair/src/features/full-graph/components/ForceGraph/GraphRenderingSetup.ts</a></td>
+    <td>@/types/riviere</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/full-graph/components/ForceGraph/GraphRenderingSetup.ts">apps/eclair/src/features/full-graph/components/ForceGraph/GraphRenderingSetup.ts</a></td>
+    <td>@/types/theme</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/full-graph/components/ForceGraph/GraphRenderingSetup.ts">apps/eclair/src/features/full-graph/components/ForceGraph/GraphRenderingSetup.ts</a></td>
+    <td>apps/eclair/src/features/full-graph/components/ForceGraph/FocusModeStyling.ts</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/full-graph/components/ForceGraph/GraphRenderingSetup.ts">apps/eclair/src/features/full-graph/components/ForceGraph/GraphRenderingSetup.ts</a></td>
+    <td>apps/eclair/src/features/full-graph/hooks/useFlowTracing.ts</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/full-graph/components/ForceGraph/GraphRenderingSetup.ts">apps/eclair/src/features/full-graph/components/ForceGraph/GraphRenderingSetup.ts</a></td>
+    <td>apps/eclair/src/features/full-graph/types.ts</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/full-graph/components/ForceGraph/GraphRenderingSetup.ts">apps/eclair/src/features/full-graph/components/ForceGraph/GraphRenderingSetup.ts</a></td>
+    <td>node_modules/.pnpm/d3@7.9.0/node_modules/d3/src/index.js</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/full-graph/components/ForceGraph/VisualizationDataAdapters.ts">apps/eclair/src/features/full-graph/components/ForceGraph/VisualizationDataAdapters.ts</a></td>
+    <td>@/types/riviere</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/full-graph/components/ForceGraph/VisualizationDataAdapters.ts">apps/eclair/src/features/full-graph/components/ForceGraph/VisualizationDataAdapters.ts</a></td>
+    <td>@/types/theme</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/full-graph/components/ForceGraph/VisualizationDataAdapters.ts">apps/eclair/src/features/full-graph/components/ForceGraph/VisualizationDataAdapters.ts</a></td>
+    <td>apps/eclair/src/features/full-graph/types.ts</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/full-graph/components/GraphSearch/GraphSearch.tsx">apps/eclair/src/features/full-graph/components/GraphSearch/GraphSearch.tsx</a></td>
+    <td>node_modules/.pnpm/react@19.2.3/node_modules/react/index.js</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/full-graph/components/GraphTooltip/GraphTooltip.tsx">apps/eclair/src/features/full-graph/components/GraphTooltip/GraphTooltip.tsx</a></td>
+    <td>@/features/flows/components/CodeLinkMenu/CodeLinkMenu</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/full-graph/components/GraphTooltip/GraphTooltip.tsx">apps/eclair/src/features/full-graph/components/GraphTooltip/GraphTooltip.tsx</a></td>
+    <td>apps/eclair/src/features/full-graph/types.ts</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/full-graph/components/NodeTypeFilters/NodeTypeFilters.tsx">apps/eclair/src/features/full-graph/components/NodeTypeFilters/NodeTypeFilters.tsx</a></td>
+    <td>@/types/riviere</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/full-graph/components/NodeTypeFilters/NodeTypeFilters.tsx">apps/eclair/src/features/full-graph/components/NodeTypeFilters/NodeTypeFilters.tsx</a></td>
+    <td>node_modules/.pnpm/react@19.2.3/node_modules/react/index.js</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/full-graph/graphFocusing/filterByNodeType.ts">apps/eclair/src/features/full-graph/graphFocusing/filterByNodeType.ts</a></td>
+    <td>@/types/riviere</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/full-graph/graphFocusing/themeFocusColors.ts">apps/eclair/src/features/full-graph/graphFocusing/themeFocusColors.ts</a></td>
+    <td>@/types/theme</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/full-graph/hooks/useFlowTracing.ts">apps/eclair/src/features/full-graph/hooks/useFlowTracing.ts</a></td>
+    <td>@/types/riviere</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/full-graph/hooks/useNodeSearch.ts">apps/eclair/src/features/full-graph/hooks/useNodeSearch.ts</a></td>
+    <td>@/types/riviere</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#feature-structure-definition" 
+         id="feature-structure-instance"
+         class="noiseless">feature-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/features/full-graph/hooks/useNodeSearch.ts">apps/eclair/src/features/full-graph/hooks/useNodeSearch.ts</a></td>
+    <td>apps/eclair/src/features/full-graph/hooks/useFlowTracing.ts</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#no-circular-definition" 
+         id="no-circular-instance"
+         class="noiseless">no-circular</a>
+    </td>
+    <td><a href="apps/eclair/src/features/domains/components/DomainContextGraph/DomainContextGraph.tsx">apps/eclair/src/features/domains/components/DomainContextGraph/DomainContextGraph.tsx</a></td>
+    <td>apps/eclair/src/features/domains/components/DomainContextGraph/DomainNode.tsx &rightarrow;<br/>apps/eclair/src/features/domains/components/DomainContextGraph/DomainContextGraph.tsx</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#no-circular-definition" 
+         id="no-circular-instance"
+         class="noiseless">no-circular</a>
+    </td>
+    <td><a href="apps/eclair/src/features/domains/components/DomainContextGraph/DomainContextGraph.tsx">apps/eclair/src/features/domains/components/DomainContextGraph/DomainContextGraph.tsx</a></td>
+    <td>apps/eclair/src/features/domains/components/DomainContextGraph/EdgeLine.tsx &rightarrow;<br/>apps/eclair/src/features/domains/components/DomainContextGraph/DomainContextGraph.tsx</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#no-circular-definition" 
+         id="no-circular-instance"
+         class="noiseless">no-circular</a>
+    </td>
+    <td><a href="apps/eclair/src/features/domains/domainNodeBreakdown.ts">apps/eclair/src/features/domains/domainNodeBreakdown.ts</a></td>
+    <td>apps/eclair/src/features/domains/extractDomainDetails.ts &rightarrow;<br/>apps/eclair/src/features/domains/domainNodeBreakdown.ts</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#no-cross-feature-imports-definition" 
+         id="no-cross-feature-imports-instance"
+         class="noiseless">no-cross-feature-imports</a>
+    </td>
+    <td><a href="apps/eclair/src/features/comparison/DomainConnectionDiff.tsx">apps/eclair/src/features/comparison/DomainConnectionDiff.tsx</a></td>
+    <td>apps/eclair/src/features/domain-map/components/DomainNode/DomainNode.tsx</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#no-cross-feature-imports-definition" 
+         id="no-cross-feature-imports-instance"
+         class="noiseless">no-cross-feature-imports</a>
+    </td>
+    <td><a href="apps/eclair/src/features/domains/components/DomainDetailModal/DomainDetailModal.tsx">apps/eclair/src/features/domains/components/DomainDetailModal/DomainDetailModal.tsx</a></td>
+    <td>@/features/flows/components/NodeTypeBadge/NodeTypeBadge</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#no-cross-feature-imports-definition" 
+         id="no-cross-feature-imports-instance"
+         class="noiseless">no-cross-feature-imports</a>
+    </td>
+    <td><a href="apps/eclair/src/features/domains/components/EntityAccordion/EntityAccordion.tsx">apps/eclair/src/features/domains/components/EntityAccordion/EntityAccordion.tsx</a></td>
+    <td>@/features/flows/components/CodeLinkMenu/CodeLinkMenu</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#no-cross-feature-imports-definition" 
+         id="no-cross-feature-imports-instance"
+         class="noiseless">no-cross-feature-imports</a>
+    </td>
+    <td><a href="apps/eclair/src/features/domains/components/EventAccordion/EventAccordion.tsx">apps/eclair/src/features/domains/components/EventAccordion/EventAccordion.tsx</a></td>
+    <td>@/features/flows/components/CodeLinkMenu/CodeLinkMenu</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#no-cross-feature-imports-definition" 
+         id="no-cross-feature-imports-instance"
+         class="noiseless">no-cross-feature-imports</a>
+    </td>
+    <td><a href="apps/eclair/src/features/domains/DomainDetailView.tsx">apps/eclair/src/features/domains/DomainDetailView.tsx</a></td>
+    <td>@/features/flows/components/CodeLinkMenu/CodeLinkMenu</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#no-cross-feature-imports-definition" 
+         id="no-cross-feature-imports-instance"
+         class="noiseless">no-cross-feature-imports</a>
+    </td>
+    <td><a href="apps/eclair/src/features/domains/DomainDetailView.tsx">apps/eclair/src/features/domains/DomainDetailView.tsx</a></td>
+    <td>@/features/flows/components/NodeTypeBadge/NodeTypeBadge</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#no-cross-feature-imports-definition" 
+         id="no-cross-feature-imports-instance"
+         class="noiseless">no-cross-feature-imports</a>
+    </td>
+    <td><a href="apps/eclair/src/features/domains/DomainDetailViewEvents.tsx">apps/eclair/src/features/domains/DomainDetailViewEvents.tsx</a></td>
+    <td>@/features/flows/components/CodeLinkMenu/CodeLinkMenu</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#no-cross-feature-imports-definition" 
+         id="no-cross-feature-imports-instance"
+         class="noiseless">no-cross-feature-imports</a>
+    </td>
+    <td><a href="apps/eclair/src/features/entities/EntitiesPage.tsx">apps/eclair/src/features/entities/EntitiesPage.tsx</a></td>
+    <td>apps/eclair/src/features/domains/components/EntityAccordion/EntityAccordion.tsx</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#no-cross-feature-imports-definition" 
+         id="no-cross-feature-imports-instance"
+         class="noiseless">no-cross-feature-imports</a>
+    </td>
+    <td><a href="apps/eclair/src/features/events/EventsPage.tsx">apps/eclair/src/features/events/EventsPage.tsx</a></td>
+    <td>@/features/domains/components/EventAccordion/EventAccordion</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#no-cross-feature-imports-definition" 
+         id="no-cross-feature-imports-instance"
+         class="noiseless">no-cross-feature-imports</a>
+    </td>
+    <td><a href="apps/eclair/src/features/events/EventsPage.tsx">apps/eclair/src/features/events/EventsPage.tsx</a></td>
+    <td>@/features/domains/extractDomainDetails</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#no-cross-feature-imports-definition" 
+         id="no-cross-feature-imports-instance"
+         class="noiseless">no-cross-feature-imports</a>
+    </td>
+    <td><a href="apps/eclair/src/features/flows/components/FlowTrace/FlowGraphView.tsx">apps/eclair/src/features/flows/components/FlowTrace/FlowGraphView.tsx</a></td>
+    <td>@/features/full-graph/components/ForceGraph/ForceGraph</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#no-cross-feature-imports-definition" 
+         id="no-cross-feature-imports-instance"
+         class="noiseless">no-cross-feature-imports</a>
+    </td>
+    <td><a href="apps/eclair/src/features/flows/components/FlowTrace/FlowGraphView.tsx">apps/eclair/src/features/flows/components/FlowTrace/FlowGraphView.tsx</a></td>
+    <td>@/features/full-graph/components/GraphTooltip/GraphTooltip</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#no-cross-feature-imports-definition" 
+         id="no-cross-feature-imports-instance"
+         class="noiseless">no-cross-feature-imports</a>
+    </td>
+    <td><a href="apps/eclair/src/features/flows/components/FlowTrace/FlowGraphView.tsx">apps/eclair/src/features/flows/components/FlowTrace/FlowGraphView.tsx</a></td>
+    <td>@/features/full-graph/types</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#no-cross-feature-imports-definition" 
+         id="no-cross-feature-imports-instance"
+         class="noiseless">no-cross-feature-imports</a>
+    </td>
+    <td><a href="apps/eclair/src/features/full-graph/components/GraphTooltip/GraphTooltip.tsx">apps/eclair/src/features/full-graph/components/GraphTooltip/GraphTooltip.tsx</a></td>
+    <td>@/features/flows/components/CodeLinkMenu/CodeLinkMenu</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#no-cross-feature-imports-definition" 
+         id="no-cross-feature-imports-instance"
+         class="noiseless">no-cross-feature-imports</a>
+    </td>
+    <td><a href="apps/eclair/src/features/overview/OverviewPage.tsx">apps/eclair/src/features/overview/OverviewPage.tsx</a></td>
+    <td>@/features/flows/components/CodeLinkMenu/useCodeLinkSettings</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/App.tsx">apps/eclair/src/App.tsx</a></td>
+    <td>@/components/AppShell/AppShell</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/App.tsx">apps/eclair/src/App.tsx</a></td>
+    <td>@/contexts/ExportContext</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/App.tsx">apps/eclair/src/App.tsx</a></td>
+    <td>@/contexts/GraphContext</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/App.tsx">apps/eclair/src/App.tsx</a></td>
+    <td>@/errors</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/App.tsx">apps/eclair/src/App.tsx</a></td>
+    <td>@/features/comparison/ComparisonPage</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/App.tsx">apps/eclair/src/App.tsx</a></td>
+    <td>@/features/domain-map/DomainMapPage</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/App.tsx">apps/eclair/src/App.tsx</a></td>
+    <td>@/features/domains/DomainDetailPage</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/App.tsx">apps/eclair/src/App.tsx</a></td>
+    <td>@/features/empty-state/EmptyState</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/App.tsx">apps/eclair/src/App.tsx</a></td>
+    <td>@/features/entities/EntitiesPage</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/App.tsx">apps/eclair/src/App.tsx</a></td>
+    <td>@/features/events/EventsPage</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/App.tsx">apps/eclair/src/App.tsx</a></td>
+    <td>@/features/flows/FlowsPage</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/App.tsx">apps/eclair/src/App.tsx</a></td>
+    <td>@/features/full-graph/FullGraphPage</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/App.tsx">apps/eclair/src/App.tsx</a></td>
+    <td>@/features/overview/OverviewPage</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/App.tsx">apps/eclair/src/App.tsx</a></td>
+    <td>@/types/riviere</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/App.tsx">apps/eclair/src/App.tsx</a></td>
+    <td>react-router-dom</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/components/AppShell/AppShell.tsx">apps/eclair/src/components/AppShell/AppShell.tsx</a></td>
+    <td>@/components/Header/Header</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/components/AppShell/AppShell.tsx">apps/eclair/src/components/AppShell/AppShell.tsx</a></td>
+    <td>@/components/Sidebar/Sidebar</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/components/AppShell/AppShell.tsx">apps/eclair/src/components/AppShell/AppShell.tsx</a></td>
+    <td>@/contexts/ExportContext</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/components/AppShell/AppShell.tsx">apps/eclair/src/components/AppShell/AppShell.tsx</a></td>
+    <td>@/types/riviere</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/components/AppShell/AppShell.tsx">apps/eclair/src/components/AppShell/AppShell.tsx</a></td>
+    <td>node_modules/.pnpm/react@19.2.3/node_modules/react/index.js</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/components/AppShell/AppShell.tsx">apps/eclair/src/components/AppShell/AppShell.tsx</a></td>
+    <td>react-router-dom</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/components/FileUpload/FileUpload.tsx">apps/eclair/src/components/FileUpload/FileUpload.tsx</a></td>
+    <td>node_modules/.pnpm/react@19.2.3/node_modules/react/index.js</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/components/Header/Header.tsx">apps/eclair/src/components/Header/Header.tsx</a></td>
+    <td>@/components/OrphanWarning/OrphanWarning</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/components/Header/Header.tsx">apps/eclair/src/components/Header/Header.tsx</a></td>
+    <td>@/components/SchemaModal/SchemaModal</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/components/Header/Header.tsx">apps/eclair/src/components/Header/Header.tsx</a></td>
+    <td>@/contexts/GraphContext</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/components/Header/Header.tsx">apps/eclair/src/components/Header/Header.tsx</a></td>
+    <td>@/hooks/useRiviereQuery</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/components/Header/Header.tsx">apps/eclair/src/components/Header/Header.tsx</a></td>
+    <td>@/types/riviere</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/components/Header/Header.tsx">apps/eclair/src/components/Header/Header.tsx</a></td>
+    <td>node_modules/.pnpm/react@19.2.3/node_modules/react/index.js</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/components/Header/Header.tsx">apps/eclair/src/components/Header/Header.tsx</a></td>
+    <td>react-router-dom</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/components/Logo/Logo.tsx">apps/eclair/src/components/Logo/Logo.tsx</a></td>
+    <td>@/contexts/ThemeContext</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/components/OrphanWarning/OrphanWarning.tsx">apps/eclair/src/components/OrphanWarning/OrphanWarning.tsx</a></td>
+    <td>@/types/riviere</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/components/OrphanWarning/OrphanWarning.tsx">apps/eclair/src/components/OrphanWarning/OrphanWarning.tsx</a></td>
+    <td>node_modules/.pnpm/react@19.2.3/node_modules/react/index.js</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/components/SchemaModal/SchemaModal.tsx">apps/eclair/src/components/SchemaModal/SchemaModal.tsx</a></td>
+    <td>@/errors</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/components/SchemaModal/SchemaModal.tsx">apps/eclair/src/components/SchemaModal/SchemaModal.tsx</a></td>
+    <td>@/types/riviere</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/components/SchemaModal/SchemaModal.tsx">apps/eclair/src/components/SchemaModal/SchemaModal.tsx</a></td>
+    <td>apps/eclair/src/components/SchemaModal/SchemaModal.module.css</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/components/SchemaModal/SchemaModal.tsx">apps/eclair/src/components/SchemaModal/SchemaModal.tsx</a></td>
+    <td>node_modules/.pnpm/react@19.2.3/node_modules/react/index.js</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/components/Sidebar/Sidebar.tsx">apps/eclair/src/components/Sidebar/Sidebar.tsx</a></td>
+    <td>@/components/Logo/Logo</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/components/Sidebar/Sidebar.tsx">apps/eclair/src/components/Sidebar/Sidebar.tsx</a></td>
+    <td>@/components/ThemeSwitcher/ThemeSwitcher</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/components/Sidebar/Sidebar.tsx">apps/eclair/src/components/Sidebar/Sidebar.tsx</a></td>
+    <td>react-router-dom</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/components/ThemeSwitcher/ThemeSwitcher.tsx">apps/eclair/src/components/ThemeSwitcher/ThemeSwitcher.tsx</a></td>
+    <td>@/contexts/ThemeContext</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/components/ThemeSwitcher/ThemeSwitcher.tsx">apps/eclair/src/components/ThemeSwitcher/ThemeSwitcher.tsx</a></td>
+    <td>@/types/theme</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/contexts/ExportContext.tsx">apps/eclair/src/contexts/ExportContext.tsx</a></td>
+    <td>@/errors</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/contexts/ExportContext.tsx">apps/eclair/src/contexts/ExportContext.tsx</a></td>
+    <td>node_modules/.pnpm/react@19.2.3/node_modules/react/index.js</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/contexts/GraphContext.tsx">apps/eclair/src/contexts/GraphContext.tsx</a></td>
+    <td>@/errors</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/contexts/GraphContext.tsx">apps/eclair/src/contexts/GraphContext.tsx</a></td>
+    <td>@/types/riviere</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/contexts/GraphContext.tsx">apps/eclair/src/contexts/GraphContext.tsx</a></td>
+    <td>@living-architecture/riviere-schema</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/contexts/GraphContext.tsx">apps/eclair/src/contexts/GraphContext.tsx</a></td>
+    <td>node_modules/.pnpm/react@19.2.3/node_modules/react/index.js</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/contexts/ThemeContext.tsx">apps/eclair/src/contexts/ThemeContext.tsx</a></td>
+    <td>@/errors</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/contexts/ThemeContext.tsx">apps/eclair/src/contexts/ThemeContext.tsx</a></td>
+    <td>@/types/theme</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/contexts/ThemeContext.tsx">apps/eclair/src/contexts/ThemeContext.tsx</a></td>
+    <td>node_modules/.pnpm/react@19.2.3/node_modules/react/index.js</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/hooks/useRiviereQuery.ts">apps/eclair/src/hooks/useRiviereQuery.ts</a></td>
+    <td>@living-architecture/riviere-query</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/hooks/useRiviereQuery.ts">apps/eclair/src/hooks/useRiviereQuery.ts</a></td>
+    <td>@living-architecture/riviere-schema</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/hooks/useRiviereQuery.ts">apps/eclair/src/hooks/useRiviereQuery.ts</a></td>
+    <td>node_modules/.pnpm/react@19.2.3/node_modules/react/index.js</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/lib/exportGraph.ts">apps/eclair/src/lib/exportGraph.ts</a></td>
+    <td>node_modules/.pnpm/html-to-image@1.11.13/node_modules/html-to-image/lib/index.js</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/lib/graphStats.ts">apps/eclair/src/lib/graphStats.ts</a></td>
+    <td>@/types/riviere</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/lib/riviereTestFixtures.ts">apps/eclair/src/lib/riviereTestFixtures.ts</a></td>
+    <td>@/types/riviere</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/main.tsx">apps/eclair/src/main.tsx</a></td>
+    <td>@/contexts/ThemeContext</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/main.tsx">apps/eclair/src/main.tsx</a></td>
+    <td>@/errors</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/main.tsx">apps/eclair/src/main.tsx</a></td>
+    <td>apps/eclair/src/App.tsx</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/main.tsx">apps/eclair/src/main.tsx</a></td>
+    <td>apps/eclair/src/index.css</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/main.tsx">apps/eclair/src/main.tsx</a></td>
+    <td>node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/client.js</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/main.tsx">apps/eclair/src/main.tsx</a></td>
+    <td>node_modules/.pnpm/react@19.2.3/node_modules/react/index.js</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/main.tsx">apps/eclair/src/main.tsx</a></td>
+    <td>react-router-dom</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/test/setup.ts">apps/eclair/src/test/setup.ts</a></td>
+    <td>@/test-assertions</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/test/setup.ts">apps/eclair/src/test/setup.ts</a></td>
+    <td>node_modules/.pnpm/@testing-library+jest-dom@6.9.1/node_modules/@testing-library/jest-dom/matchers.js</td>
+  </tr>
+  <tr>
+    <td class="error">error</td>
+    <td class="nowrap">
+      <a href="#root-structure-definition" 
+         id="root-structure-instance"
+         class="noiseless">root-structure</a>
+    </td>
+    <td><a href="apps/eclair/src/types/riviere.ts">apps/eclair/src/types/riviere.ts</a></td>
+    <td>node_modules/.pnpm/zod@4.3.5/node_modules/zod/index.cjs</td>
+  </tr>
+      
+      </tbody>
+    </table>
+    </span>
+  <footer>
+    <p><a href="https://github.com/sverweij/dependency-cruiser">dependency-cruiser@17.3.7</a> /
+      2026-01-28T22:19:49.449Z</p>
+  </footer>
+</body>
+</html>

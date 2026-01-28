@@ -11,7 +11,8 @@
     "typecheck": "nx run-many -t typecheck",
     "knip": "knip",
     "lint:md": "markdownlint-cli2 \"**/*.md\" \"!**/node_modules/**\"",
-    "verify": "pnpm lint:md && nx run-many -t lint,typecheck,test,check-generated-docs",
+    "depcruise": "depcruise --config .dependency-cruiser.mjs apps/*/src packages/*/src",
+    "verify": "pnpm lint:md && pnpm depcruise && nx run-many -t lint,typecheck,test,check-generated-docs",
     "prepare": "husky"
   },
   "lint-staged": {
@@ -37,6 +38,7 @@
     "@typescript-eslint/rule-tester": "8.53.0",
     "@vitest/coverage-v8": "^4.0.16",
     "@vitest/eslint-plugin": "^1.0.1",
+    "dependency-cruiser": "^17.3.7",
     "esbuild": "^0.27.0",
     "eslint": "^9.39.0",
     "eslint-plugin-import": "^2.32.0",

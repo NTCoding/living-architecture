@@ -8,7 +8,6 @@ type NextAction = z.infer<typeof nextActionSchema>
 
 const failedReviewerSchema = z.object({
   name: z.string(),
-  summary: z.string(),
   reportPath: z.string(),
 })
 type FailedReviewer = z.infer<typeof failedReviewerSchema>
@@ -74,16 +73,16 @@ function formatFailureInstructions(error: unknown): {
 
   if (type === 'fix_review') {
     if (isFailedReviewerArray(details)) {
-      const reports = details.map((f) => `- ${f.reportPath}: ${f.summary}`).join('\n')
+      const reports = details.map((f) => `- ${f.reportPath}`).join('\n')
       return {
         nextAction: 'fix_review',
         instructions: [
-          'Code review found issues that must be addressed.',
+          'Code review found issues.',
           '',
-          'REVIEW REPORTS:',
+          'FAILED REVIEWS:',
           reports,
           '',
-          'ACTION: Read the review reports above, fix the issues, then re-run /complete-task.',
+          'ACTION: Read each report, fix the issues, then re-run /complete-task.',
           '',
           'DECISION FRAMEWORK:',
           '- Fix automatically if: clear/unambiguous, low risk, mechanical (typos, formatting, simple refactors)',

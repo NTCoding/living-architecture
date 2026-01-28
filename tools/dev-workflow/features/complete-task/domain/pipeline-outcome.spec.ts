@@ -85,7 +85,6 @@ describe('formatCompleteTaskResult', () => {
           details: [
             {
               name: 'reviewer1',
-              summary: 'Found issues',
               reportPath: '/path/to/report.md',
             },
           ],
@@ -101,7 +100,6 @@ describe('formatCompleteTaskResult', () => {
       expect(formatted.failedReviewers).toStrictEqual([
         {
           name: 'reviewer1',
-          summary: 'Found issues',
           reportPath: '/path/to/report.md',
         },
       ])

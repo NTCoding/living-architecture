@@ -148,6 +148,10 @@ export const ENTRY_POINT_TYPES: ReadonlySet<ComponentType> = new Set([
 - More files in queries/ folder
 - Migration effort
 
+### Enforcement
+
+Structural and dependency rules are enforced by dependency-cruiser (`.dependency-cruiser.mjs`). Run `pnpm depcruise` to check violations.
+
 ### Mitigations
 
 - Provide migration guide for API changes
