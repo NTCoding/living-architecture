@@ -4,7 +4,7 @@ pageClass: reference
 
 # Class: InvalidGraphError
 
-Defined in: [packages/riviere-builder/src/errors.ts:98](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/errors.ts#L98)
+Defined in: [packages/riviere-builder/src/domain/construction/construction-errors.ts:86](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/construction/construction-errors.ts#L86)
 
 ## Extends
 
@@ -16,7 +16,7 @@ Defined in: [packages/riviere-builder/src/errors.ts:98](https://github.com/NTCod
 
 > **new InvalidGraphError**(`reason`): `InvalidGraphError`
 
-Defined in: [packages/riviere-builder/src/errors.ts:99](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/errors.ts#L99)
+Defined in: [packages/riviere-builder/src/domain/construction/construction-errors.ts:87](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/construction/construction-errors.ts#L87)
 
 #### Parameters
 

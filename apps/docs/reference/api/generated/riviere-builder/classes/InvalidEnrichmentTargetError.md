@@ -4,7 +4,7 @@ pageClass: reference
 
 # Class: InvalidEnrichmentTargetError
 
-Defined in: [packages/riviere-builder/src/errors.ts:64](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/errors.ts#L64)
+Defined in: [packages/riviere-builder/src/domain/enrichment/enrichment-errors.ts:1](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/enrichment/enrichment-errors.ts#L1)
 
 ## Extends
 
@@ -16,7 +16,7 @@ Defined in: [packages/riviere-builder/src/errors.ts:64](https://github.com/NTCod
 
 > **new InvalidEnrichmentTargetError**(`componentId`, `componentType`): `InvalidEnrichmentTargetError`
 
-Defined in: [packages/riviere-builder/src/errors.ts:68](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/errors.ts#L68)
+Defined in: [packages/riviere-builder/src/domain/enrichment/enrichment-errors.ts:5](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/enrichment/enrichment-errors.ts#L5)
 
 #### Parameters
 
@@ -54,7 +54,7 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 
 > `readonly` **componentId**: `string`
 
-Defined in: [packages/riviere-builder/src/errors.ts:65](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/errors.ts#L65)
+Defined in: [packages/riviere-builder/src/domain/enrichment/enrichment-errors.ts:2](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/enrichment/enrichment-errors.ts#L2)
 
 ***
 
@@ -62,7 +62,7 @@ Defined in: [packages/riviere-builder/src/errors.ts:65](https://github.com/NTCod
 
 > `readonly` **componentType**: `string`
 
-Defined in: [packages/riviere-builder/src/errors.ts:66](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/errors.ts#L66)
+Defined in: [packages/riviere-builder/src/domain/enrichment/enrichment-errors.ts:3](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/enrichment/enrichment-errors.ts#L3)
 
 ***
 

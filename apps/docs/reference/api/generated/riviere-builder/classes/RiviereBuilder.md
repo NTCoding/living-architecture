@@ -4,41 +4,12 @@ pageClass: reference
 
 # Class: RiviereBuilder
 
-Defined in: [packages/riviere-builder/src/builder.ts:129](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L129)
+Defined in: [packages/riviere-builder/src/domain/builder-facade.ts:70](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/builder-facade.ts#L70)
 
-Programmatically construct Rivière architecture graphs.
+Programmatically construct Riviere architecture graphs.
 
-RiviereBuilder provides a fluent API for creating graphs, adding components,
-linking them together, and exporting valid JSON conforming to the Rivière schema.
-
-## Example
-
-```typescript
-import { RiviereBuilder } from '@living-architecture/riviere-builder'
-
-const builder = RiviereBuilder.new({
-  sources: [{ type: 'git', url: 'https://github.com/your-org/your-repo' }],
-  domains: { orders: { description: 'Order management' } }
-})
-
-const api = builder.addApi({
-  name: 'Create Order',
-  domain: 'orders',
-  module: 'checkout',
-  apiType: 'REST',
-  sourceLocation: { file: 'src/api/orders.ts', line: 10 }
-})
-
-const graph = builder.build()
-```
-
-## Properties
-
-### graph
-
-> **graph**: `BuilderGraph`
-
-Defined in: [packages/riviere-builder/src/builder.ts:130](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L130)
+Thin facade preserving the flat public API while delegating
+to focused domain classes internally.
 
 ## Methods
 
@@ -46,7 +17,7 @@ Defined in: [packages/riviere-builder/src/builder.ts:130](https://github.com/NTC
 
 > **addApi**(`input`): `APIComponent`
 
-Defined in: [packages/riviere-builder/src/builder.ts:316](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L316)
+Defined in: [packages/riviere-builder/src/domain/builder-facade.ts:131](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/builder-facade.ts#L131)
 
 Adds an API component to the graph.
 
@@ -56,31 +27,13 @@ Adds an API component to the graph.
 
 [`APIInput`](../interfaces/APIInput.md)
 
-API component properties including type, method, and path
+API component properties
 
 #### Returns
 
 `APIComponent`
 
-The created API component with generated ID
-
-#### Throws
-
-If the specified domain does not exist
-
-#### Example
-
-```typescript
-const api = builder.addApi({
-  name: 'Create Order',
-  domain: 'orders',
-  module: 'checkout',
-  apiType: 'REST',
-  httpMethod: 'POST',
-  path: '/api/orders',
-  sourceLocation: { file: 'src/api/orders.ts', line: 25 }
-})
-```
+The created API component
 
 ***
 
@@ -88,12 +41,9 @@ const api = builder.addApi({
 
 > **addCustom**(`input`): `CustomComponent`
 
-Defined in: [packages/riviere-builder/src/builder.ts:542](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L542)
+Defined in: [packages/riviere-builder/src/domain/builder-facade.ts:190](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/builder-facade.ts#L190)
 
 Adds a Custom component to the graph.
-
-Custom components use types defined via defineCustomType().
-Validates that the custom type exists and required properties are provided.
 
 #### Parameters
 
@@ -101,38 +51,13 @@ Validates that the custom type exists and required properties are provided.
 
 [`CustomInput`](../interfaces/CustomInput.md)
 
-Custom component properties including type name and metadata
+Custom component properties
 
 #### Returns
 
 `CustomComponent`
 
-The created Custom component with generated ID
-
-#### Throws
-
-If the specified domain does not exist
-
-#### Throws
-
-If the custom type has not been defined
-
-#### Throws
-
-If required properties for the custom type are missing
-
-#### Example
-
-```typescript
-const queue = builder.addCustom({
-  customTypeName: 'MessageQueue',
-  name: 'Order Events Queue',
-  domain: 'orders',
-  module: 'messaging',
-  sourceLocation: { file: 'src/queues/orders.ts', line: 5 },
-  metadata: { queueName: 'order-events' }
-})
-```
+The created Custom component
 
 ***
 
@@ -140,7 +65,7 @@ const queue = builder.addCustom({
 
 > **addDomain**(`input`): `void`
 
-Defined in: [packages/riviere-builder/src/builder.ts:250](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L250)
+Defined in: [packages/riviere-builder/src/domain/builder-facade.ts:111](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/builder-facade.ts#L111)
 
 Adds a new domain to the graph.
 
@@ -156,31 +81,15 @@ Domain name and description
 
 `void`
 
-#### Throws
-
-If domain with same name already exists
-
-#### Example
-
-```typescript
-builder.addDomain({
-  name: 'payments',
-  description: 'Payment processing'
-})
-```
-
 ***
 
 ### addDomainOp()
 
 > **addDomainOp**(`input`): `DomainOpComponent`
 
-Defined in: [packages/riviere-builder/src/builder.ts:391](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L391)
+Defined in: [packages/riviere-builder/src/domain/builder-facade.ts:151](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/builder-facade.ts#L151)
 
 Adds a DomainOp component to the graph.
-
-DomainOp represents domain operations that change entity state.
-Can be enriched later with state changes and business rules.
 
 #### Parameters
 
@@ -188,30 +97,13 @@ Can be enriched later with state changes and business rules.
 
 [`DomainOpInput`](../interfaces/DomainOpInput.md)
 
-DomainOp component properties including operation name
+DomainOp component properties
 
 #### Returns
 
 `DomainOpComponent`
 
-The created DomainOp component with generated ID
-
-#### Throws
-
-If the specified domain does not exist
-
-#### Example
-
-```typescript
-const domainOp = builder.addDomainOp({
-  name: 'Confirm Order',
-  domain: 'orders',
-  module: 'fulfillment',
-  operationName: 'confirmOrder',
-  entity: 'Order',
-  sourceLocation: { file: 'src/domain/Order.ts', line: 45 }
-})
-```
+The created DomainOp component
 
 ***
 
@@ -219,7 +111,7 @@ const domainOp = builder.addDomainOp({
 
 > **addEvent**(`input`): `EventComponent`
 
-Defined in: [packages/riviere-builder/src/builder.ts:431](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L431)
+Defined in: [packages/riviere-builder/src/domain/builder-facade.ts:161](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/builder-facade.ts#L161)
 
 Adds an Event component to the graph.
 
@@ -229,29 +121,13 @@ Adds an Event component to the graph.
 
 [`EventInput`](../interfaces/EventInput.md)
 
-Event component properties including event name
+Event component properties
 
 #### Returns
 
 `EventComponent`
 
-The created Event component with generated ID
-
-#### Throws
-
-If the specified domain does not exist
-
-#### Example
-
-```typescript
-const event = builder.addEvent({
-  name: 'Order Placed',
-  domain: 'orders',
-  module: 'checkout',
-  eventName: 'OrderPlaced',
-  sourceLocation: { file: 'src/events/OrderPlaced.ts', line: 5 }
-})
-```
+The created Event component
 
 ***
 
@@ -259,7 +135,7 @@ const event = builder.addEvent({
 
 > **addEventHandler**(`input`): `EventHandlerComponent`
 
-Defined in: [packages/riviere-builder/src/builder.ts:467](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L467)
+Defined in: [packages/riviere-builder/src/domain/builder-facade.ts:171](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/builder-facade.ts#L171)
 
 Adds an EventHandler component to the graph.
 
@@ -269,29 +145,13 @@ Adds an EventHandler component to the graph.
 
 [`EventHandlerInput`](../interfaces/EventHandlerInput.md)
 
-EventHandler component properties including subscribed events
+EventHandler component properties
 
 #### Returns
 
 `EventHandlerComponent`
 
-The created EventHandler component with generated ID
-
-#### Throws
-
-If the specified domain does not exist
-
-#### Example
-
-```typescript
-const handler = builder.addEventHandler({
-  name: 'Send Confirmation Email',
-  domain: 'notifications',
-  module: 'email',
-  subscribedEvents: ['OrderPlaced'],
-  sourceLocation: { file: 'src/handlers/OrderConfirmation.ts', line: 10 }
-})
-```
+The created EventHandler component
 
 ***
 
@@ -299,7 +159,7 @@ const handler = builder.addEventHandler({
 
 > **addSource**(`source`): `void`
 
-Defined in: [packages/riviere-builder/src/builder.ts:232](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L232)
+Defined in: [packages/riviere-builder/src/domain/builder-facade.ts:102](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/builder-facade.ts#L102)
 
 Adds an additional source repository to the graph.
 
@@ -315,22 +175,13 @@ Source repository information
 
 `void`
 
-#### Example
-
-```typescript
-builder.addSource({
-  type: 'git',
-  url: 'https://github.com/your-org/another-repo'
-})
-```
-
 ***
 
 ### addUI()
 
 > **addUI**(`input`): `UIComponent`
 
-Defined in: [packages/riviere-builder/src/builder.ts:279](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L279)
+Defined in: [packages/riviere-builder/src/domain/builder-facade.ts:121](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/builder-facade.ts#L121)
 
 Adds a UI component to the graph.
 
@@ -340,29 +191,13 @@ Adds a UI component to the graph.
 
 [`UIInput`](../interfaces/UIInput.md)
 
-UI component properties including route and source location
+UI component properties
 
 #### Returns
 
 `UIComponent`
 
-The created UI component with generated ID
-
-#### Throws
-
-If the specified domain does not exist
-
-#### Example
-
-```typescript
-const ui = builder.addUI({
-  name: 'Order List',
-  domain: 'orders',
-  module: 'dashboard',
-  route: '/orders',
-  sourceLocation: { file: 'src/pages/OrderList.tsx', line: 15 }
-})
-```
+The created UI component
 
 ***
 
@@ -370,7 +205,7 @@ const ui = builder.addUI({
 
 > **addUseCase**(`input`): `UseCaseComponent`
 
-Defined in: [packages/riviere-builder/src/builder.ts:353](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L353)
+Defined in: [packages/riviere-builder/src/domain/builder-facade.ts:141](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/builder-facade.ts#L141)
 
 Adds a UseCase component to the graph.
 
@@ -386,22 +221,7 @@ UseCase component properties
 
 `UseCaseComponent`
 
-The created UseCase component with generated ID
-
-#### Throws
-
-If the specified domain does not exist
-
-#### Example
-
-```typescript
-const useCase = builder.addUseCase({
-  name: 'Place Order',
-  domain: 'orders',
-  module: 'checkout',
-  sourceLocation: { file: 'src/usecases/PlaceOrder.ts', line: 10 }
-})
-```
+The created UseCase component
 
 ***
 
@@ -409,7 +229,7 @@ const useCase = builder.addUseCase({
 
 > **build**(): `RiviereGraph`
 
-Defined in: [packages/riviere-builder/src/builder.ts:839](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L839)
+Defined in: [packages/riviere-builder/src/domain/builder-facade.ts:294](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/builder-facade.ts#L294)
 
 Validates and returns the completed graph.
 
@@ -419,33 +239,15 @@ Validates and returns the completed graph.
 
 Valid RiviereGraph object
 
-#### Throws
-
-If validation fails with error details
-
-#### Example
-
-```typescript
-try {
-  const graph = builder.build()
-  console.log('Graph built successfully')
-} catch (error) {
-  console.error('Build failed:', error.message)
-}
-```
-
 ***
 
 ### defineCustomType()
 
 > **defineCustomType**(`input`): `void`
 
-Defined in: [packages/riviere-builder/src/builder.ts:504](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L504)
+Defined in: [packages/riviere-builder/src/domain/builder-facade.ts:180](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/builder-facade.ts#L180)
 
 Defines a custom component type for the graph.
-
-Custom types allow extending the schema with domain-specific component kinds.
-Must be defined before adding custom components of that type.
 
 #### Parameters
 
@@ -453,27 +255,11 @@ Must be defined before adding custom components of that type.
 
 [`CustomTypeInput`](../interfaces/CustomTypeInput.md)
 
-Custom type definition with required and optional properties
+Custom type definition
 
 #### Returns
 
 `void`
-
-#### Throws
-
-If a custom type with the same name already exists
-
-#### Example
-
-```typescript
-builder.defineCustomType({
-  name: 'MessageQueue',
-  description: 'Async message queue',
-  requiredProperties: {
-    queueName: { type: 'string', description: 'Queue identifier' }
-  }
-})
-```
 
 ***
 
@@ -481,12 +267,9 @@ builder.defineCustomType({
 
 > **enrichComponent**(`id`, `enrichment`): `void`
 
-Defined in: [packages/riviere-builder/src/builder.ts:586](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L586)
+Defined in: [packages/riviere-builder/src/domain/builder-facade.ts:200](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/builder-facade.ts#L200)
 
 Enriches a DomainOp component with additional domain details.
-
-Adds state changes and business rules to an existing DomainOp.
-Multiple enrichments accumulate rather than replace.
 
 #### Parameters
 
@@ -506,36 +289,15 @@ State changes and business rules to add
 
 `void`
 
-#### Throws
-
-If the component does not exist
-
-#### Throws
-
-If the component is not a DomainOp type
-
-#### Example
-
-```typescript
-builder.enrichComponent('orders:fulfillment:domainop:confirm-order', {
-  entity: 'Order',
-  stateChanges: [{ entity: 'Order', from: 'pending', to: 'confirmed' }],
-  businessRules: ['Order must have valid payment']
-})
-```
-
 ***
 
 ### link()
 
 > **link**(`input`): `Link`
 
-Defined in: [packages/riviere-builder/src/builder.ts:662](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L662)
+Defined in: [packages/riviere-builder/src/domain/builder-facade.ts:221](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/builder-facade.ts#L221)
 
 Creates a link between two components in the graph.
-
-Source component must exist; target validation is deferred to build().
-Use linkExternal() for connections to external systems.
 
 #### Parameters
 
@@ -551,32 +313,15 @@ Link properties including source, target, and type
 
 The created link
 
-#### Throws
-
-If the source component does not exist
-
-#### Example
-
-```typescript
-const link = builder.link({
-  from: 'orders:checkout:api:create-order',
-  to: 'orders:checkout:usecase:place-order',
-  type: 'sync'
-})
-```
-
 ***
 
 ### linkExternal()
 
 > **linkExternal**(`input`): `ExternalLink`
 
-Defined in: [packages/riviere-builder/src/builder.ts:696](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L696)
+Defined in: [packages/riviere-builder/src/domain/builder-facade.ts:231](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/builder-facade.ts#L231)
 
 Creates a link from a component to an external system.
-
-Use this for connections to systems outside the graph,
-such as third-party APIs or external databases.
 
 #### Parameters
 
@@ -592,32 +337,15 @@ External link properties including target system info
 
 The created external link
 
-#### Throws
-
-If the source component does not exist
-
-#### Example
-
-```typescript
-const link = builder.linkExternal({
-  from: 'orders:payments:usecase:process-payment',
-  target: { name: 'Stripe API', domain: 'payments' },
-  type: 'sync'
-})
-```
-
 ***
 
 ### nearMatches()
 
 > **nearMatches**(`query`, `options?`): [`NearMatchResult`](../interfaces/NearMatchResult.md)[]
 
-Defined in: [packages/riviere-builder/src/builder.ts:639](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L639)
+Defined in: [packages/riviere-builder/src/domain/builder-facade.ts:211](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/builder-facade.ts#L211)
 
 Finds components similar to a query for error recovery.
-
-Returns fuzzy matches when an exact component lookup fails,
-enabling actionable error messages with "Did you mean...?" suggestions.
 
 #### Parameters
 
@@ -639,20 +367,13 @@ Optional matching thresholds and limits
 
 Array of similar components with similarity scores
 
-#### Example
-
-```typescript
-const matches = builder.nearMatches({ name: 'Place Ordr' })
-// [{ component: {...}, score: 0.9, mismatches: [...] }]
-```
-
 ***
 
 ### orphans()
 
 > **orphans**(): `string`[]
 
-Defined in: [packages/riviere-builder/src/builder.ts:784](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L784)
+Defined in: [packages/riviere-builder/src/domain/builder-facade.ts:267](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/builder-facade.ts#L267)
 
 Returns IDs of components with no incoming or outgoing links.
 
@@ -662,26 +383,15 @@ Returns IDs of components with no incoming or outgoing links.
 
 Array of orphaned component IDs
 
-#### Example
-
-```typescript
-const orphans = builder.orphans()
-if (orphans.length > 0) {
-  console.warn('Orphaned components:', orphans)
-}
-```
-
 ***
 
 ### query()
 
 > **query**(): `RiviereQuery`
 
-Defined in: [packages/riviere-builder/src/builder.ts:801](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L801)
+Defined in: [packages/riviere-builder/src/domain/builder-facade.ts:276](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/builder-facade.ts#L276)
 
 Returns a RiviereQuery instance for the current graph state.
-
-Enables querying mid-construction without affecting builder state.
 
 #### Returns
 
@@ -689,25 +399,15 @@ Enables querying mid-construction without affecting builder state.
 
 RiviereQuery instance for the current graph
 
-#### Example
-
-```typescript
-const query = builder.query()
-const apis = query.componentsByType('API')
-```
-
 ***
 
 ### serialize()
 
 > **serialize**(): `string`
 
-Defined in: [packages/riviere-builder/src/builder.ts:819](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L819)
+Defined in: [packages/riviere-builder/src/domain/builder-facade.ts:285](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/builder-facade.ts#L285)
 
 Serializes the current graph state as a JSON string.
-
-Does not validate. Use for saving drafts mid-construction
-that can be resumed later with RiviereBuilder.resume().
 
 #### Returns
 
@@ -715,20 +415,13 @@ that can be resumed later with RiviereBuilder.resume().
 
 JSON string representation of the graph
 
-#### Example
-
-```typescript
-const json = builder.serialize()
-await fs.writeFile('draft.json', json)
-```
-
 ***
 
 ### stats()
 
 > **stats**(): [`BuilderStats`](../interfaces/BuilderStats.md)
 
-Defined in: [packages/riviere-builder/src/builder.ts:745](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L745)
+Defined in: [packages/riviere-builder/src/domain/builder-facade.ts:249](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/builder-facade.ts#L249)
 
 Returns statistics about the current graph state.
 
@@ -738,26 +431,15 @@ Returns statistics about the current graph state.
 
 Counts of components by type, domains, and links
 
-#### Example
-
-```typescript
-const stats = builder.stats()
-console.log(`Components: ${stats.componentCount}`)
-console.log(`Links: ${stats.linkCount}`)
-```
-
 ***
 
 ### validate()
 
 > **validate**(): `ValidationResult`
 
-Defined in: [packages/riviere-builder/src/builder.ts:767](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L767)
+Defined in: [packages/riviere-builder/src/domain/builder-facade.ts:258](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/builder-facade.ts#L258)
 
 Runs full validation on the graph.
-
-Checks for dangling references, orphans, and schema compliance.
-Called automatically by build().
 
 #### Returns
 
@@ -765,29 +447,15 @@ Called automatically by build().
 
 Validation result with valid flag and error details
 
-#### Example
-
-```typescript
-const result = builder.validate()
-if (!result.valid) {
-  for (const error of result.errors) {
-    console.error(error.message)
-  }
-}
-```
-
 ***
 
 ### warnings()
 
 > **warnings**(): [`BuilderWarning`](../interfaces/BuilderWarning.md)[]
 
-Defined in: [packages/riviere-builder/src/builder.ts:729](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L729)
+Defined in: [packages/riviere-builder/src/domain/builder-facade.ts:240](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/builder-facade.ts#L240)
 
 Returns non-fatal issues found in the graph.
-
-Warnings indicate potential problems that don't prevent building,
-such as orphaned components or unused domains.
 
 #### Returns
 
@@ -795,22 +463,13 @@ such as orphaned components or unused domains.
 
 Array of warning objects with type and message
 
-#### Example
-
-```typescript
-const warnings = builder.warnings()
-for (const w of warnings) {
-  console.log(`${w.type}: ${w.message}`)
-}
-```
-
 ***
 
 ### new()
 
 > `static` **new**(`options`): `RiviereBuilder`
 
-Defined in: [packages/riviere-builder/src/builder.ts:193](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L193)
+Defined in: [packages/riviere-builder/src/domain/builder-facade.ts:93](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/builder-facade.ts#L93)
 
 Creates a new builder with initial configuration.
 
@@ -828,39 +487,15 @@ Configuration including sources and domains
 
 A new RiviereBuilder instance
 
-#### Throws
-
-If sources array is empty
-
-#### Throws
-
-If domains object is empty
-
-#### Example
-
-```typescript
-const builder = RiviereBuilder.new({
-  name: 'My System',
-  sources: [{ type: 'git', url: 'https://github.com/your-org/your-repo' }],
-  domains: {
-    orders: { description: 'Order management' },
-    users: { description: 'User accounts' }
-  }
-})
-```
-
 ***
 
 ### resume()
 
 > `static` **resume**(`graph`): `RiviereBuilder`
 
-Defined in: [packages/riviere-builder/src/builder.ts:154](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L154)
+Defined in: [packages/riviere-builder/src/domain/builder-facade.ts:83](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/builder-facade.ts#L83)
 
 Restores a builder from a previously serialized graph.
-
-Use this to continue building a graph that was saved mid-construction,
-or to modify an existing graph.
 
 #### Parameters
 
@@ -868,23 +503,10 @@ or to modify an existing graph.
 
 `RiviereGraph`
 
-A valid RiviereGraph object to resume from
+A valid RiviereGraph to resume from
 
 #### Returns
 
 `RiviereBuilder`
 
-A new RiviereBuilder instance with the graph state restored
-
-#### Throws
-
-If the graph is missing required sources
-
-#### Example
-
-```typescript
-const json = await fs.readFile('draft.json', 'utf-8')
-const graph = JSON.parse(json)
-const builder = RiviereBuilder.resume(graph)
-builder.addApi({ ... })
-```
+A new RiviereBuilder with the graph state restored

@@ -4,7 +4,7 @@ pageClass: reference
 
 # Interface: NearMatchMismatch
 
-Defined in: [packages/riviere-builder/src/types.ts:136](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/types.ts#L136)
+Defined in: [packages/riviere-builder/src/domain/error-recovery/match-types.ts:9](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/error-recovery/match-types.ts#L9)
 
 ## Properties
 
@@ -12,7 +12,7 @@ Defined in: [packages/riviere-builder/src/types.ts:136](https://github.com/NTCod
 
 > **actual**: `string`
 
-Defined in: [packages/riviere-builder/src/types.ts:139](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/types.ts#L139)
+Defined in: [packages/riviere-builder/src/domain/error-recovery/match-types.ts:12](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/error-recovery/match-types.ts#L12)
 
 ***
 
@@ -20,7 +20,7 @@ Defined in: [packages/riviere-builder/src/types.ts:139](https://github.com/NTCod
 
 > **expected**: `string`
 
-Defined in: [packages/riviere-builder/src/types.ts:138](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/types.ts#L138)
+Defined in: [packages/riviere-builder/src/domain/error-recovery/match-types.ts:11](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/error-recovery/match-types.ts#L11)
 
 ***
 
@@ -28,4 +28,4 @@ Defined in: [packages/riviere-builder/src/types.ts:138](https://github.com/NTCod
 
 > **field**: `"domain"` \| `"type"`
 
-Defined in: [packages/riviere-builder/src/types.ts:137](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/types.ts#L137)
+Defined in: [packages/riviere-builder/src/domain/error-recovery/match-types.ts:10](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/error-recovery/match-types.ts#L10)

@@ -4,7 +4,7 @@ pageClass: reference
 
 # Interface: CrossDomainLink
 
-Defined in: [packages/riviere-query/src/domain-types.ts:212](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/domain-types.ts#L212)
+Defined in: [packages/riviere-query/src/queries/domain-types.ts:212](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/queries/domain-types.ts#L212)
 
 A link that crosses domain boundaries.
 
@@ -14,7 +14,7 @@ A link that crosses domain boundaries.
 
 > **linkType**: [`LinkType`](../type-aliases/LinkType.md) \| `undefined`
 
-Defined in: [packages/riviere-query/src/domain-types.ts:216](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/domain-types.ts#L216)
+Defined in: [packages/riviere-query/src/queries/domain-types.ts:216](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/queries/domain-types.ts#L216)
 
 Type of the cross-domain link.
 
@@ -24,6 +24,6 @@ Type of the cross-domain link.
 
 > **targetDomain**: `string` & `$brand`\<`"DomainName"`\>
 
-Defined in: [packages/riviere-query/src/domain-types.ts:214](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/domain-types.ts#L214)
+Defined in: [packages/riviere-query/src/queries/domain-types.ts:214](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/queries/domain-types.ts#L214)
 
 The target domain name.

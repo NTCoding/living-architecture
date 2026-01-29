@@ -4,7 +4,7 @@ pageClass: reference
 
 # Class: ComponentNotFoundError
 
-Defined in: [packages/riviere-builder/src/errors.ts:47](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/errors.ts#L47)
+Defined in: [packages/riviere-builder/src/domain/construction/construction-errors.ts:47](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/construction/construction-errors.ts#L47)
 
 ## Extends
 
@@ -16,7 +16,7 @@ Defined in: [packages/riviere-builder/src/errors.ts:47](https://github.com/NTCod
 
 > **new ComponentNotFoundError**(`componentId`, `suggestions`): `ComponentNotFoundError`
 
-Defined in: [packages/riviere-builder/src/errors.ts:51](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/errors.ts#L51)
+Defined in: [packages/riviere-builder/src/domain/construction/construction-errors.ts:51](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/construction/construction-errors.ts#L51)
 
 #### Parameters
 
@@ -54,7 +54,7 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 
 > `readonly` **componentId**: `string`
 
-Defined in: [packages/riviere-builder/src/errors.ts:48](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/errors.ts#L48)
+Defined in: [packages/riviere-builder/src/domain/construction/construction-errors.ts:48](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/construction/construction-errors.ts#L48)
 
 ***
 
@@ -98,7 +98,7 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 
 > `readonly` **suggestions**: `string`[]
 
-Defined in: [packages/riviere-builder/src/errors.ts:49](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/errors.ts#L49)
+Defined in: [packages/riviere-builder/src/domain/construction/construction-errors.ts:49](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/construction/construction-errors.ts#L49)
 
 ***
 

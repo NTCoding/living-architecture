@@ -4,7 +4,7 @@ pageClass: reference
 
 # Class: CustomTypeAlreadyDefinedError
 
-Defined in: [packages/riviere-builder/src/errors.ts:76](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/errors.ts#L76)
+Defined in: [packages/riviere-builder/src/domain/construction/construction-errors.ts:64](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/construction/construction-errors.ts#L64)
 
 ## Extends
 
@@ -16,7 +16,7 @@ Defined in: [packages/riviere-builder/src/errors.ts:76](https://github.com/NTCod
 
 > **new CustomTypeAlreadyDefinedError**(`typeName`): `CustomTypeAlreadyDefinedError`
 
-Defined in: [packages/riviere-builder/src/errors.ts:79](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/errors.ts#L79)
+Defined in: [packages/riviere-builder/src/domain/construction/construction-errors.ts:67](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/construction/construction-errors.ts#L67)
 
 #### Parameters
 
@@ -86,7 +86,7 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 
 > `readonly` **typeName**: `string`
 
-Defined in: [packages/riviere-builder/src/errors.ts:77](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/errors.ts#L77)
+Defined in: [packages/riviere-builder/src/domain/construction/construction-errors.ts:65](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/construction/construction-errors.ts#L65)
 
 ***
 

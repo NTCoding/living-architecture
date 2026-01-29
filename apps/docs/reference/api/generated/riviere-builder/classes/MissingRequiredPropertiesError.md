@@ -4,7 +4,7 @@ pageClass: reference
 
 # Class: MissingRequiredPropertiesError
 
-Defined in: [packages/riviere-builder/src/errors.ts:86](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/errors.ts#L86)
+Defined in: [packages/riviere-builder/src/domain/construction/construction-errors.ts:74](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/construction/construction-errors.ts#L74)
 
 ## Extends
 
@@ -16,7 +16,7 @@ Defined in: [packages/riviere-builder/src/errors.ts:86](https://github.com/NTCod
 
 > **new MissingRequiredPropertiesError**(`customTypeName`, `missingKeys`): `MissingRequiredPropertiesError`
 
-Defined in: [packages/riviere-builder/src/errors.ts:90](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/errors.ts#L90)
+Defined in: [packages/riviere-builder/src/domain/construction/construction-errors.ts:78](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/construction/construction-errors.ts#L78)
 
 #### Parameters
 
@@ -54,7 +54,7 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 
 > `readonly` **customTypeName**: `string`
 
-Defined in: [packages/riviere-builder/src/errors.ts:87](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/errors.ts#L87)
+Defined in: [packages/riviere-builder/src/domain/construction/construction-errors.ts:75](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/construction/construction-errors.ts#L75)
 
 ***
 
@@ -74,7 +74,7 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 
 > `readonly` **missingKeys**: `string`[]
 
-Defined in: [packages/riviere-builder/src/errors.ts:88](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/errors.ts#L88)
+Defined in: [packages/riviere-builder/src/domain/construction/construction-errors.ts:76](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/construction/construction-errors.ts#L76)
 
 ***
 

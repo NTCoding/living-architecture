@@ -4,7 +4,7 @@ pageClass: reference
 
 # Interface: LinkInput
 
-Defined in: [packages/riviere-builder/src/types.ts:115](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/types.ts#L115)
+Defined in: [packages/riviere-builder/src/domain/linking/linking-types.ts:5](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/linking/linking-types.ts#L5)
 
 ## Properties
 
@@ -12,7 +12,7 @@ Defined in: [packages/riviere-builder/src/types.ts:115](https://github.com/NTCod
 
 > **from**: `string`
 
-Defined in: [packages/riviere-builder/src/types.ts:116](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/types.ts#L116)
+Defined in: [packages/riviere-builder/src/domain/linking/linking-types.ts:6](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/linking/linking-types.ts#L6)
 
 ***
 
@@ -20,7 +20,7 @@ Defined in: [packages/riviere-builder/src/types.ts:116](https://github.com/NTCod
 
 > **to**: `string`
 
-Defined in: [packages/riviere-builder/src/types.ts:117](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/types.ts#L117)
+Defined in: [packages/riviere-builder/src/domain/linking/linking-types.ts:7](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/linking/linking-types.ts#L7)
 
 ***
 
@@ -28,4 +28,4 @@ Defined in: [packages/riviere-builder/src/types.ts:117](https://github.com/NTCod
 
 > `optional` **type**: `LinkType`
 
-Defined in: [packages/riviere-builder/src/types.ts:118](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/types.ts#L118)
+Defined in: [packages/riviere-builder/src/domain/linking/linking-types.ts:8](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/linking/linking-types.ts#L8)

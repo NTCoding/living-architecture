@@ -4,7 +4,7 @@ pageClass: reference
 
 # Class: CustomTypeNotFoundError
 
-Defined in: [packages/riviere-builder/src/errors.ts:21](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/errors.ts#L21)
+Defined in: [packages/riviere-builder/src/domain/construction/construction-errors.ts:21](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/construction/construction-errors.ts#L21)
 
 ## Extends
 
@@ -16,7 +16,7 @@ Defined in: [packages/riviere-builder/src/errors.ts:21](https://github.com/NTCod
 
 > **new CustomTypeNotFoundError**(`customTypeName`, `definedTypes`): `CustomTypeNotFoundError`
 
-Defined in: [packages/riviere-builder/src/errors.ts:25](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/errors.ts#L25)
+Defined in: [packages/riviere-builder/src/domain/construction/construction-errors.ts:25](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/construction/construction-errors.ts#L25)
 
 #### Parameters
 
@@ -54,7 +54,7 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 
 > `readonly` **customTypeName**: `string`
 
-Defined in: [packages/riviere-builder/src/errors.ts:22](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/errors.ts#L22)
+Defined in: [packages/riviere-builder/src/domain/construction/construction-errors.ts:22](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/construction/construction-errors.ts#L22)
 
 ***
 
@@ -62,7 +62,7 @@ Defined in: [packages/riviere-builder/src/errors.ts:22](https://github.com/NTCod
 
 > `readonly` **definedTypes**: `string`[]
 
-Defined in: [packages/riviere-builder/src/errors.ts:23](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/errors.ts#L23)
+Defined in: [packages/riviere-builder/src/domain/construction/construction-errors.ts:23](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/construction/construction-errors.ts#L23)
 
 ***
 

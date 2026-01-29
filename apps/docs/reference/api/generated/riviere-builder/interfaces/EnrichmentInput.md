@@ -4,7 +4,7 @@ pageClass: reference
 
 # Interface: EnrichmentInput
 
-Defined in: [packages/riviere-builder/src/types.ts:178](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/types.ts#L178)
+Defined in: [packages/riviere-builder/src/domain/enrichment/enrichment-types.ts:7](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/enrichment/enrichment-types.ts#L7)
 
 ## Properties
 
@@ -12,7 +12,7 @@ Defined in: [packages/riviere-builder/src/types.ts:178](https://github.com/NTCod
 
 > `optional` **behavior**: `OperationBehavior`
 
-Defined in: [packages/riviere-builder/src/types.ts:182](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/types.ts#L182)
+Defined in: [packages/riviere-builder/src/domain/enrichment/enrichment-types.ts:11](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/enrichment/enrichment-types.ts#L11)
 
 ***
 
@@ -20,7 +20,7 @@ Defined in: [packages/riviere-builder/src/types.ts:182](https://github.com/NTCod
 
 > `optional` **businessRules**: `string`[]
 
-Defined in: [packages/riviere-builder/src/types.ts:181](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/types.ts#L181)
+Defined in: [packages/riviere-builder/src/domain/enrichment/enrichment-types.ts:10](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/enrichment/enrichment-types.ts#L10)
 
 ***
 
@@ -28,7 +28,7 @@ Defined in: [packages/riviere-builder/src/types.ts:181](https://github.com/NTCod
 
 > `optional` **entity**: `string`
 
-Defined in: [packages/riviere-builder/src/types.ts:179](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/types.ts#L179)
+Defined in: [packages/riviere-builder/src/domain/enrichment/enrichment-types.ts:8](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/enrichment/enrichment-types.ts#L8)
 
 ***
 
@@ -36,7 +36,7 @@ Defined in: [packages/riviere-builder/src/types.ts:179](https://github.com/NTCod
 
 > `optional` **signature**: `OperationSignature`
 
-Defined in: [packages/riviere-builder/src/types.ts:183](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/types.ts#L183)
+Defined in: [packages/riviere-builder/src/domain/enrichment/enrichment-types.ts:12](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/enrichment/enrichment-types.ts#L12)
 
 ***
 
@@ -44,4 +44,4 @@ Defined in: [packages/riviere-builder/src/types.ts:183](https://github.com/NTCod
 
 > `optional` **stateChanges**: `StateTransition`[]
 
-Defined in: [packages/riviere-builder/src/types.ts:180](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/types.ts#L180)
+Defined in: [packages/riviere-builder/src/domain/enrichment/enrichment-types.ts:9](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/enrichment/enrichment-types.ts#L9)

@@ -4,7 +4,7 @@ pageClass: reference
 
 # Interface: Domain
 
-Defined in: [packages/riviere-query/src/domain-types.ts:107](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/domain-types.ts#L107)
+Defined in: [packages/riviere-query/src/queries/domain-types.ts:107](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/queries/domain-types.ts#L107)
 
 Domain information with metadata and component counts.
 
@@ -14,7 +14,7 @@ Domain information with metadata and component counts.
 
 > **componentCounts**: [`ComponentCounts`](ComponentCounts.md)
 
-Defined in: [packages/riviere-query/src/domain-types.ts:115](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/domain-types.ts#L115)
+Defined in: [packages/riviere-query/src/queries/domain-types.ts:115](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/queries/domain-types.ts#L115)
 
 Counts of components by type.
 
@@ -24,7 +24,7 @@ Counts of components by type.
 
 > **description**: `string`
 
-Defined in: [packages/riviere-query/src/domain-types.ts:111](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/domain-types.ts#L111)
+Defined in: [packages/riviere-query/src/queries/domain-types.ts:111](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/queries/domain-types.ts#L111)
 
 Domain description from graph metadata.
 
@@ -34,7 +34,7 @@ Domain description from graph metadata.
 
 > **name**: `string`
 
-Defined in: [packages/riviere-query/src/domain-types.ts:109](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/domain-types.ts#L109)
+Defined in: [packages/riviere-query/src/queries/domain-types.ts:109](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/queries/domain-types.ts#L109)
 
 Domain name.
 
@@ -44,6 +44,6 @@ Domain name.
 
 > **systemType**: `"domain"` \| `"bff"` \| `"ui"` \| `"other"`
 
-Defined in: [packages/riviere-query/src/domain-types.ts:113](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/domain-types.ts#L113)
+Defined in: [packages/riviere-query/src/queries/domain-types.ts:113](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/queries/domain-types.ts#L113)
 
 System type classification.
