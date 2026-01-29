@@ -236,6 +236,36 @@ if (error.message.includes('...')) { ... }
 
 ---
 
+## RFC-008: Literal Type Validation Must Match Interface Constraints
+
+**Source:** PR #172 (CodeRabbit)
+
+**Pattern:** Using a generic literal check (e.g., `hasLiteralValue()`) when the interface constrains a property to a specific type like `string`. A generic check accepts any literal — `42`, `true`, `'hello'` — even when only string literals are valid.
+
+**Example (BAD):**
+```typescript
+// Interface requires `route: string`, but hasLiteralValue accepts number/boolean literals too
+const routeProperty = findInstanceProperty(node, 'route')
+if (!hasLiteralValue(routeProperty)) {
+  context.report({ message: 'route must be a literal value' })
+}
+// Passes for: route = 42 (wrong type!)
+```
+
+**Example (GOOD):**
+```typescript
+// Use the type-specific predicate that matches the interface constraint
+const routeProperty = findInstanceProperty(node, 'route')
+if (!hasStringLiteralValue(routeProperty)) {
+  context.report({ message: 'route must be a string literal value' })
+}
+// Correctly rejects: route = 42
+```
+
+**Detection:** When validating that a property has a literal value, check whether the interface constrains the property to a specific type (`string`, `number`, `boolean`). If so, use the type-specific validation (e.g., `hasStringLiteralValue`) rather than the generic `hasLiteralValue`. This applies to any validation logic, not just ESLint rules.
+
+---
+
 ## Adding New Checks
 
 When external review feedback reveals a pattern:
