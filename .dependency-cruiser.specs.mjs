@@ -9,6 +9,15 @@ export default {
         pathNot: ["main\\.tsx$", "index\\.ts$", "test/", "test-assertions\\.ts$"]
       },
       to: {}
+    },
+    {
+      name: "feature-structure",
+      severity: "error",
+      comment: "Feature files must live in structural subdirs (entrypoint/, commands/, queries/, domain/, components/, hooks/), not at feature root",
+      from: {
+        path: "features/[^/]+/(?!entrypoint/|commands/|queries/|domain/|components/|hooks/)[^/]+$"
+      },
+      to: {}
     }
   ],
 

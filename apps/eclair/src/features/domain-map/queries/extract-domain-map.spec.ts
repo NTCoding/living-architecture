@@ -3,8 +3,8 @@ import {
 } from 'vitest'
 import {
   extractDomainMap, getConnectedDomains 
-} from '../extract-domain-map'
-import type { DomainEdge } from '../extract-domain-map'
+} from './extract-domain-map'
+import type { DomainEdge } from './extract-domain-map'
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
 import {
   parseNode,

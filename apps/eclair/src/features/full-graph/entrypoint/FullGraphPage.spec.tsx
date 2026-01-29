@@ -6,7 +6,7 @@ import {
 } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
-import { FullGraphPage } from './entrypoint/FullGraphPage'
+import { FullGraphPage } from './FullGraphPage'
 import { ExportProvider } from '@/platform/infra/export/ExportContext'
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
 import {

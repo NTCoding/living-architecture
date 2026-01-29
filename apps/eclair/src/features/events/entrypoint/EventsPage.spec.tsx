@@ -6,7 +6,7 @@ import {
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
-import { EventsPage } from './entrypoint/EventsPage'
+import { EventsPage } from './EventsPage'
 import type {
   RiviereGraph, SourceLocation 
 } from '@living-architecture/riviere-schema'

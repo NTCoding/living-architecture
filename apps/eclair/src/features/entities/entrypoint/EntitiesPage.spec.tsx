@@ -6,7 +6,7 @@ import {
 } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import userEvent from '@testing-library/user-event'
-import { EntitiesPage } from './entrypoint/EntitiesPage'
+import { EntitiesPage } from './EntitiesPage'
 import {
   parseNode, parseEdge, parseDomainMetadata 
 } from '@/platform/infra/__fixtures__/riviere-test-fixtures'

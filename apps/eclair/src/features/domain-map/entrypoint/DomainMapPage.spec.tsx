@@ -5,7 +5,7 @@ import {
   render, screen 
 } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
-import { DomainMapPage } from './entrypoint/DomainMapPage'
+import { DomainMapPage } from './DomainMapPage'
 import { ExportProvider } from '@/platform/infra/export/ExportContext'
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
 import {

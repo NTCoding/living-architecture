@@ -4,12 +4,12 @@ import * as path from 'node:path'
 import {
   describe, it, expect, afterEach, afterAll 
 } from 'vitest'
-import { handlePreToolUse } from './domain/handlers/pre-tool-use-handler'
-import { handlePostToolUse } from './domain/handlers/post-tool-use-handler'
-import { handleStop } from './domain/handlers/stop-handler'
+import { handlePreToolUse } from './handlers/pre-tool-use-handler'
+import { handlePostToolUse } from './handlers/post-tool-use-handler'
+import { handleStop } from './handlers/stop-handler'
 import type {
   PreToolUseInput, PostToolUseInput, StopInput 
-} from './domain/hook-input-schemas'
+} from './hook-input-schemas'
 
 function createPreToolUseInput(command: string): PreToolUseInput {
   return {

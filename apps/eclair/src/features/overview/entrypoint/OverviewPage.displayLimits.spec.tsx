@@ -5,7 +5,7 @@ import {
   render, screen 
 } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
-import { OverviewPage } from './entrypoint/OverviewPage'
+import { OverviewPage } from './OverviewPage'
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
 import {
   parseNode, parseDomainMetadata 

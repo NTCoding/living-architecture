@@ -4,7 +4,7 @@ import {
 import {
   GraphProvider, useGraph
 } from '@/platform/infra/graph-state/GraphContext'
-import { EmptyState } from './entrypoint/EmptyState'
+import { EmptyState } from './EmptyState'
 import {
   parseNode, parseDomainMetadata
 } from '@/platform/infra/__fixtures__/riviere-test-fixtures'

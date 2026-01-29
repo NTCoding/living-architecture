@@ -8,7 +8,7 @@ import userEvent from '@testing-library/user-event'
 import {
   MemoryRouter, Routes, Route
 } from 'react-router-dom'
-import { DomainDetailPage } from './entrypoint/DomainDetailPage'
+import { DomainDetailPage } from './DomainDetailPage'
 import {
   parseNode, parseEdge, parseDomainMetadata
 } from '@/platform/infra/__fixtures__/riviere-test-fixtures'

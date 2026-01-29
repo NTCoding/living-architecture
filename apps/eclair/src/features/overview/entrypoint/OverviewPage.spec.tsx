@@ -6,7 +6,7 @@ import {
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
-import { OverviewPage } from './entrypoint/OverviewPage'
+import { OverviewPage } from './OverviewPage'
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
 import {
   parseNode, parseEdge, parseDomainMetadata 
