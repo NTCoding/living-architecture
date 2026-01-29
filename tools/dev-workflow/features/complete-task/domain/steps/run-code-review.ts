@@ -169,50 +169,49 @@ async function executeCodeReviewAgents(
   },
 ): Promise<ReviewerResult[]> {
   const validReviewerSet = new Set<string>(VALID_REVIEWERS)
-  const results: ReviewerResult[] = []
 
-  for (const name of names) {
-    /* v8 ignore start - defensive check, names from const array are always valid */
-    if (!validReviewerSet.has(name)) {
-      throw new AgentError(
-        `Invalid reviewer name: ${name}. Must be one of: ${VALID_REVIEWERS.join(', ')}`,
-      )
-    }
-    /* v8 ignore stop */
+  return Promise.all(
+    names.map(async (name) => {
+      /* v8 ignore start - defensive check, names from const array are always valid */
+      if (!validReviewerSet.has(name)) {
+        throw new AgentError(
+          `Invalid reviewer name: ${name}. Must be one of: ${VALID_REVIEWERS.join(', ')}`,
+        )
+      }
+      /* v8 ignore stop */
 
-    const agentPath = `.claude/agents/${name}.md`
-    const basePrompt = await loadAgentInstructions(agentPath)
-    const round = nextRoundNumber(reviewDir, name)
-    const reportPath = resolve(`${reviewDir}/${name}-${round}.md`)
+      const agentPath = `.claude/agents/${name}.md`
+      const basePrompt = await loadAgentInstructions(agentPath)
+      const round = nextRoundNumber(reviewDir, name)
+      const reportPath = resolve(`${reviewDir}/${name}-${round}.md`)
 
-    const promptParts = [basePrompt, '\n\n## Files to Review\n\n', filesToReview.join('\n')]
+      const promptParts = [basePrompt, '\n\n## Files to Review\n\n', filesToReview.join('\n')]
 
-    if (name === 'task-check' && taskDetails) {
-      promptParts.push(
-        `\n\n## Task Details\n\nTitle: ${taskDetails.title}\n\nBody:\n${taskDetails.body}`,
-      )
-    }
+      if (name === 'task-check' && taskDetails) {
+        promptParts.push(
+          `\n\n## Task Details\n\nTitle: ${taskDetails.title}\n\nBody:\n${taskDetails.body}`,
+        )
+      }
 
-    const rawResponse = await deps.queryAgentText({
-      prompt: promptParts.join(''),
-      model: 'sonnet',
-      settingSources: ['project'],
-    })
+      const rawResponse = await deps.queryAgentText({
+        prompt: promptParts.join(''),
+        model: 'sonnet',
+        settingSources: ['project'],
+      })
 
-    const parsed = parseAgentResponse(rawResponse)
+      const parsed = parseAgentResponse(rawResponse)
 
-    await writeFile(reportPath, parsed.report, 'utf-8')
+      await writeFile(reportPath, parsed.report, 'utf-8')
 
-    if (name === 'task-check' && parsed.verdict === 'PASS') {
-      await createTaskCheckMarker(reviewDir)
-    }
+      if (name === 'task-check' && parsed.verdict === 'PASS') {
+        await createTaskCheckMarker(reviewDir)
+      }
 
-    results.push({
-      result: parsed.verdict,
-      name,
-      reportPath,
-    })
-  }
-
-  return results
+      return {
+        result: parsed.verdict,
+        name,
+        reportPath,
+      }
+    }),
+  )
 }
