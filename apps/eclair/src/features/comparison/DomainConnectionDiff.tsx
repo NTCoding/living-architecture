@@ -8,7 +8,7 @@ import type {
   Node, Edge, EdgeMouseHandler
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
-import { LayoutError } from '@/errors'
+import { LayoutError } from '@/shell/errors/errors'
 import dagre from 'dagre'
 import type {
   DomainConnectionDiffResult,
@@ -16,7 +16,7 @@ import type {
   EdgeDetail,
 } from './computeDomainConnectionDiff'
 import { DomainNode } from '../domain-map/components/DomainNode/DomainNode'
-import { getClosestHandle } from '@/lib/handlePositioning'
+import { getClosestHandle } from '@/platform/infra/layout/handle-positioning'
 
 interface DomainConnectionDiffProps {readonly diff: DomainConnectionDiffResult}
 

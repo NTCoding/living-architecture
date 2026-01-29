@@ -4,7 +4,7 @@ pageClass: reference
 
 # Class: RiviereBuilder
 
-Defined in: [packages/riviere-builder/src/builder.ts:132](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L132)
+Defined in: [packages/riviere-builder/src/builder.ts:129](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L129)
 
 Programmatically construct Rivière architecture graphs.
 
@@ -38,7 +38,7 @@ const graph = builder.build()
 
 > **graph**: `BuilderGraph`
 
-Defined in: [packages/riviere-builder/src/builder.ts:133](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L133)
+Defined in: [packages/riviere-builder/src/builder.ts:130](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L130)
 
 ## Methods
 
@@ -46,7 +46,7 @@ Defined in: [packages/riviere-builder/src/builder.ts:133](https://github.com/NTC
 
 > **addApi**(`input`): `APIComponent`
 
-Defined in: [packages/riviere-builder/src/builder.ts:319](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L319)
+Defined in: [packages/riviere-builder/src/builder.ts:316](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L316)
 
 Adds an API component to the graph.
 
@@ -88,7 +88,7 @@ const api = builder.addApi({
 
 > **addCustom**(`input`): `CustomComponent`
 
-Defined in: [packages/riviere-builder/src/builder.ts:545](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L545)
+Defined in: [packages/riviere-builder/src/builder.ts:542](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L542)
 
 Adds a Custom component to the graph.
 
@@ -140,7 +140,7 @@ const queue = builder.addCustom({
 
 > **addDomain**(`input`): `void`
 
-Defined in: [packages/riviere-builder/src/builder.ts:253](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L253)
+Defined in: [packages/riviere-builder/src/builder.ts:250](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L250)
 
 Adds a new domain to the graph.
 
@@ -175,7 +175,7 @@ builder.addDomain({
 
 > **addDomainOp**(`input`): `DomainOpComponent`
 
-Defined in: [packages/riviere-builder/src/builder.ts:394](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L394)
+Defined in: [packages/riviere-builder/src/builder.ts:391](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L391)
 
 Adds a DomainOp component to the graph.
 
@@ -219,7 +219,7 @@ const domainOp = builder.addDomainOp({
 
 > **addEvent**(`input`): `EventComponent`
 
-Defined in: [packages/riviere-builder/src/builder.ts:434](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L434)
+Defined in: [packages/riviere-builder/src/builder.ts:431](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L431)
 
 Adds an Event component to the graph.
 
@@ -259,7 +259,7 @@ const event = builder.addEvent({
 
 > **addEventHandler**(`input`): `EventHandlerComponent`
 
-Defined in: [packages/riviere-builder/src/builder.ts:470](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L470)
+Defined in: [packages/riviere-builder/src/builder.ts:467](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L467)
 
 Adds an EventHandler component to the graph.
 
@@ -299,7 +299,7 @@ const handler = builder.addEventHandler({
 
 > **addSource**(`source`): `void`
 
-Defined in: [packages/riviere-builder/src/builder.ts:235](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L235)
+Defined in: [packages/riviere-builder/src/builder.ts:232](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L232)
 
 Adds an additional source repository to the graph.
 
@@ -330,7 +330,7 @@ builder.addSource({
 
 > **addUI**(`input`): `UIComponent`
 
-Defined in: [packages/riviere-builder/src/builder.ts:282](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L282)
+Defined in: [packages/riviere-builder/src/builder.ts:279](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L279)
 
 Adds a UI component to the graph.
 
@@ -370,7 +370,7 @@ const ui = builder.addUI({
 
 > **addUseCase**(`input`): `UseCaseComponent`
 
-Defined in: [packages/riviere-builder/src/builder.ts:356](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L356)
+Defined in: [packages/riviere-builder/src/builder.ts:353](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L353)
 
 Adds a UseCase component to the graph.
 
@@ -409,7 +409,7 @@ const useCase = builder.addUseCase({
 
 > **build**(): `RiviereGraph`
 
-Defined in: [packages/riviere-builder/src/builder.ts:842](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L842)
+Defined in: [packages/riviere-builder/src/builder.ts:839](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L839)
 
 Validates and returns the completed graph.
 
@@ -440,7 +440,7 @@ try {
 
 > **defineCustomType**(`input`): `void`
 
-Defined in: [packages/riviere-builder/src/builder.ts:507](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L507)
+Defined in: [packages/riviere-builder/src/builder.ts:504](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L504)
 
 Defines a custom component type for the graph.
 
@@ -481,7 +481,7 @@ builder.defineCustomType({
 
 > **enrichComponent**(`id`, `enrichment`): `void`
 
-Defined in: [packages/riviere-builder/src/builder.ts:589](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L589)
+Defined in: [packages/riviere-builder/src/builder.ts:586](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L586)
 
 Enriches a DomainOp component with additional domain details.
 
@@ -530,7 +530,7 @@ builder.enrichComponent('orders:fulfillment:domainop:confirm-order', {
 
 > **link**(`input`): `Link`
 
-Defined in: [packages/riviere-builder/src/builder.ts:665](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L665)
+Defined in: [packages/riviere-builder/src/builder.ts:662](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L662)
 
 Creates a link between two components in the graph.
 
@@ -571,7 +571,7 @@ const link = builder.link({
 
 > **linkExternal**(`input`): `ExternalLink`
 
-Defined in: [packages/riviere-builder/src/builder.ts:699](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L699)
+Defined in: [packages/riviere-builder/src/builder.ts:696](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L696)
 
 Creates a link from a component to an external system.
 
@@ -612,7 +612,7 @@ const link = builder.linkExternal({
 
 > **nearMatches**(`query`, `options?`): [`NearMatchResult`](../interfaces/NearMatchResult.md)[]
 
-Defined in: [packages/riviere-builder/src/builder.ts:642](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L642)
+Defined in: [packages/riviere-builder/src/builder.ts:639](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L639)
 
 Finds components similar to a query for error recovery.
 
@@ -652,7 +652,7 @@ const matches = builder.nearMatches({ name: 'Place Ordr' })
 
 > **orphans**(): `string`[]
 
-Defined in: [packages/riviere-builder/src/builder.ts:787](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L787)
+Defined in: [packages/riviere-builder/src/builder.ts:784](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L784)
 
 Returns IDs of components with no incoming or outgoing links.
 
@@ -677,7 +677,7 @@ if (orphans.length > 0) {
 
 > **query**(): `RiviereQuery`
 
-Defined in: [packages/riviere-builder/src/builder.ts:804](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L804)
+Defined in: [packages/riviere-builder/src/builder.ts:801](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L801)
 
 Returns a RiviereQuery instance for the current graph state.
 
@@ -698,51 +698,11 @@ const apis = query.componentsByType('API')
 
 ***
 
-### save()
-
-> **save**(`path`): `Promise`\<`void`\>
-
-Defined in: [packages/riviere-builder/src/builder.ts:864](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L864)
-
-Validates the graph and writes it to a file.
-
-#### Parameters
-
-##### path
-
-`string`
-
-Absolute or relative file path to write
-
-#### Returns
-
-`Promise`\<`void`\>
-
-#### Throws
-
-If validation fails
-
-#### Throws
-
-If the directory does not exist
-
-#### Throws
-
-If write fails
-
-#### Example
-
-```typescript
-await builder.save('./output/architecture.json')
-```
-
-***
-
 ### serialize()
 
 > **serialize**(): `string`
 
-Defined in: [packages/riviere-builder/src/builder.ts:822](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L822)
+Defined in: [packages/riviere-builder/src/builder.ts:819](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L819)
 
 Serializes the current graph state as a JSON string.
 
@@ -768,7 +728,7 @@ await fs.writeFile('draft.json', json)
 
 > **stats**(): [`BuilderStats`](../interfaces/BuilderStats.md)
 
-Defined in: [packages/riviere-builder/src/builder.ts:748](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L748)
+Defined in: [packages/riviere-builder/src/builder.ts:745](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L745)
 
 Returns statistics about the current graph state.
 
@@ -792,7 +752,7 @@ console.log(`Links: ${stats.linkCount}`)
 
 > **validate**(): `ValidationResult`
 
-Defined in: [packages/riviere-builder/src/builder.ts:770](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L770)
+Defined in: [packages/riviere-builder/src/builder.ts:767](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L767)
 
 Runs full validation on the graph.
 
@@ -822,7 +782,7 @@ if (!result.valid) {
 
 > **warnings**(): [`BuilderWarning`](../interfaces/BuilderWarning.md)[]
 
-Defined in: [packages/riviere-builder/src/builder.ts:732](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L732)
+Defined in: [packages/riviere-builder/src/builder.ts:729](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L729)
 
 Returns non-fatal issues found in the graph.
 
@@ -850,7 +810,7 @@ for (const w of warnings) {
 
 > `static` **new**(`options`): `RiviereBuilder`
 
-Defined in: [packages/riviere-builder/src/builder.ts:196](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L196)
+Defined in: [packages/riviere-builder/src/builder.ts:193](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L193)
 
 Creates a new builder with initial configuration.
 
@@ -895,7 +855,7 @@ const builder = RiviereBuilder.new({
 
 > `static` **resume**(`graph`): `RiviereBuilder`
 
-Defined in: [packages/riviere-builder/src/builder.ts:157](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L157)
+Defined in: [packages/riviere-builder/src/builder.ts:154](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/builder.ts#L154)
 
 Restores a builder from a previously serialized graph.
 

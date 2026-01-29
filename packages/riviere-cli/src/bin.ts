@@ -1,4 +1,4 @@
-import { createProgram } from './cli'
+import { createProgram } from './shell/cli'
 
 const program = createProgram()
 program.parseAsync().catch((error: unknown) => {

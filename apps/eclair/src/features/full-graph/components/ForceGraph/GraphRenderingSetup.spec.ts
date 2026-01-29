@@ -8,8 +8,8 @@ import {
   applyDagrePositions,
 } from './GraphRenderingSetup'
 import type { SimulationNode } from '../../types'
-import { parseNode } from '@/lib/riviereTestFixtures'
-import { LayoutError } from '@/errors'
+import { parseNode } from '@/platform/infra/__fixtures__/riviere-test-fixtures'
+import { LayoutError } from '@/shell/errors/errors'
 const testSourceLocation = {
   repository: 'test-repo',
   filePath: 'src/test.ts',

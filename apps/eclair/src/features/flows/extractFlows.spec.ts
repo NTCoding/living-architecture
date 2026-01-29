@@ -2,10 +2,12 @@ import {
   describe, it, expect 
 } from 'vitest'
 import { extractFlows } from './extractFlows'
-import type { RiviereGraph } from '@/types/riviere'
+import type { RiviereGraph } from '@living-architecture/riviere-schema'
 import {
-  parseNode, parseEdge, parseDomainMetadata 
-} from '@/lib/riviereTestFixtures'
+  parseNode,
+  parseEdge,
+  parseDomainMetadata,
+} from '@/platform/infra/__fixtures__/riviere-test-fixtures'
 
 const testSourceLocation = {
   repository: 'test-repo',

@@ -1,7 +1,7 @@
 import {
   useState, useRef, useEffect 
 } from 'react'
-import { useCodeLinkSettings } from './useCodeLinkSettings'
+import { useCodeLinkSettings } from '@/platform/infra/settings/use-code-link-settings'
 import { ConfigurePathModal } from './ConfigurePathModal'
 
 interface CodeLinkMenuProps {

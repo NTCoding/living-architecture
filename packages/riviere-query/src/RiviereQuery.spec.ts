@@ -1,13 +1,13 @@
 import {
   RiviereQuery, parseComponentId 
-} from './RiviereQuery'
+} from './queries/RiviereQuery'
 import {
   createMinimalValidGraph,
   createAPIComponent,
   createEventHandlerComponent,
   createCustomComponent,
   createUseCaseComponent,
-} from './riviere-graph-fixtures'
+} from './platform/__fixtures__/riviere-graph-fixtures'
 
 describe('RiviereQuery', () => {
   describe('constructor', () => {

@@ -4,11 +4,12 @@ import {
   type FlowStep as QueryFlowStep,
 } from '@living-architecture/riviere-query'
 import type {
-  Component, ExternalLink 
+  Component,
+  ExternalLink,
+  RiviereGraph,
+  SourceLocation,
 } from '@living-architecture/riviere-schema'
-import type {
-  RiviereGraph, SourceLocation, NodeType 
-} from '@/types/riviere'
+import type { NodeType } from '@/platform/domain/eclair-types'
 
 export interface EntryPoint {
   id: string

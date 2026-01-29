@@ -16,12 +16,15 @@ import {
   getSemanticEdgeColor,
   getDomainColor,
 } from './VisualizationDataAdapters'
+import type { ExternalLink } from '@living-architecture/riviere-schema'
 import type {
-  Node, Edge, ExternalLink 
-} from '@/types/riviere'
+  Node, Edge 
+} from '@/platform/domain/eclair-types'
 import {
-  parseNode, parseEdge, parseNodeId 
-} from '@/lib/riviereTestFixtures'
+  parseNode,
+  parseEdge,
+  parseNodeId,
+} from '@/platform/infra/__fixtures__/riviere-test-fixtures'
 const testSourceLocation = {
   repository: 'test-repo',
   filePath: 'src/test.ts',

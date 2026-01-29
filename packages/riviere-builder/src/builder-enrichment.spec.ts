@@ -1,6 +1,16 @@
+import type { RiviereGraph } from '@living-architecture/riviere-schema'
 import {
   RiviereBuilder, type BuilderOptions 
 } from './builder'
+
+function parseGraph(builder: RiviereBuilder): RiviereGraph {
+  const graph: RiviereGraph = JSON.parse(builder.serialize())
+  return graph
+}
+
+function findComponent(builder: RiviereBuilder, id: string) {
+  return parseGraph(builder).components.find((c) => c.id === id)
+}
 
 function createValidOptions(): BuilderOptions {
   return {
@@ -47,7 +57,7 @@ describe('RiviereBuilder enrichComponent', () => {
         ],
       })
 
-      const enriched = builder.graph.components.find((c) => c.id === domainOp.id)
+      const enriched = findComponent(builder, domainOp.id)
       expect(enriched).toMatchObject({
         stateChanges: [
           {
@@ -72,7 +82,7 @@ describe('RiviereBuilder enrichComponent', () => {
 
       builder.enrichComponent(domainOp.id, {businessRules: ['Customer must have valid payment', 'Inventory must be available'],})
 
-      const enriched = builder.graph.components.find((c) => c.id === domainOp.id)
+      const enriched = findComponent(builder, domainOp.id)
       expect(enriched).toMatchObject({businessRules: ['Customer must have valid payment', 'Inventory must be available'],})
     })
   })
@@ -90,7 +100,7 @@ describe('RiviereBuilder enrichComponent', () => {
 
       builder.enrichComponent(domainOp.id, { entity: 'Order' })
 
-      const enriched = builder.graph.components.find((c) => c.id === domainOp.id)
+      const enriched = findComponent(builder, domainOp.id)
       expect(enriched).toMatchObject({ entity: 'Order' })
     })
   })
@@ -146,7 +156,7 @@ describe('RiviereBuilder enrichComponent', () => {
 
       builder.enrichComponent(domainOp.id, { businessRules: [] })
 
-      const enriched = builder.graph.components.find((c) => c.id === domainOp.id)
+      const enriched = findComponent(builder, domainOp.id)
       expect(enriched).toMatchObject({ businessRules: [] })
     })
   })
@@ -164,7 +174,7 @@ describe('RiviereBuilder enrichComponent', () => {
 
       builder.enrichComponent(domainOp.id, {behavior: { reads: ['items parameter', 'this.state'] },})
 
-      const enriched = builder.graph.components.find((c) => c.id === domainOp.id)
+      const enriched = findComponent(builder, domainOp.id)
       expect(enriched).toMatchObject({ behavior: { reads: ['items parameter', 'this.state'] } })
     })
 
@@ -187,7 +197,7 @@ describe('RiviereBuilder enrichComponent', () => {
         },
       })
 
-      const enriched = builder.graph.components.find((c) => c.id === domainOp.id)
+      const enriched = findComponent(builder, domainOp.id)
       expect(enriched).toMatchObject({
         behavior: {
           reads: ['items parameter'],
@@ -211,7 +221,7 @@ describe('RiviereBuilder enrichComponent', () => {
 
       builder.enrichComponent(domainOp.id, { behavior: { reads: ['items parameter'] } })
 
-      const enriched = builder.graph.components.find((c) => c.id === domainOp.id)
+      const enriched = findComponent(builder, domainOp.id)
       expect(enriched).toMatchObject({ behavior: { reads: ['this.state', 'items parameter'] } })
     })
   })
@@ -242,7 +252,7 @@ describe('RiviereBuilder enrichComponent', () => {
         ],
       })
 
-      const enriched = builder.graph.components.find((c) => c.id === domainOp.id)
+      const enriched = findComponent(builder, domainOp.id)
       expect(enriched).toMatchObject({
         stateChanges: [
           {
@@ -270,7 +280,7 @@ describe('RiviereBuilder enrichComponent', () => {
 
       builder.enrichComponent(domainOp.id, { businessRules: ['Inventory must be available'] })
 
-      const enriched = builder.graph.components.find((c) => c.id === domainOp.id)
+      const enriched = findComponent(builder, domainOp.id)
       expect(enriched).toMatchObject({businessRules: ['Customer must be authenticated', 'Inventory must be available'],})
     })
   })
@@ -298,7 +308,7 @@ describe('RiviereBuilder enrichComponent', () => {
         },
       })
 
-      const enriched = builder.graph.components.find((c) => c.id === domainOp.id)
+      const enriched = findComponent(builder, domainOp.id)
       expect(enriched).toMatchObject({
         signature: {
           parameters: [
@@ -335,7 +345,7 @@ describe('RiviereBuilder enrichComponent', () => {
         },
       })
 
-      const enriched = builder.graph.components.find((c) => c.id === domainOp.id)
+      const enriched = findComponent(builder, domainOp.id)
       expect(enriched).toMatchObject({
         signature: {
           parameters: [

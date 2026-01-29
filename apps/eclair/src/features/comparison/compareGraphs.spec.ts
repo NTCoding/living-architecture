@@ -2,16 +2,17 @@ import {
   describe, it, expect 
 } from 'vitest'
 import { compareGraphs } from './compareGraphs'
+import type { RiviereGraph } from '@living-architecture/riviere-schema'
 import type {
-  RiviereGraph, Node, Edge 
-} from '@/types/riviere'
+  Node, Edge 
+} from '@/platform/domain/eclair-types'
 import {
   parseNode,
   parseEdge,
   parseDomainMetadata,
   type RawNode,
   type RawEdge,
-} from '@/lib/riviereTestFixtures'
+} from '@/platform/infra/__fixtures__/riviere-test-fixtures'
 
 const testSourceLocation = {
   repository: 'test-repo',

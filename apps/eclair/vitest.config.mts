@@ -24,9 +24,13 @@ export default defineConfig(() => ({
       provider: 'v8' as const,
       reporter: ['text', ['lcov', { projectRoot: repoRoot }]] as ['text', ['lcov', { projectRoot: string }]],
       exclude: [
-        '**/riviereTestFixtures.ts',
+        '**/riviere-test-fixtures.ts',
         '**/ForceGraph/ForceGraph.tsx',
         '**/ForceGraph/GraphRenderingSetup.ts',
+        '**/ForceGraph/graph-rendering-setup.ts',
+        '**/ForceGraph/zoom-behavior.ts',
+        '**/ForceGraph/highlight-behavior.ts',
+        '**/ForceGraph/svg-filters-markers.ts',
       ],
       thresholds: {
         '**/*.ts': {

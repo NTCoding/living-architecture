@@ -1,54 +1,18 @@
-import { promises as fs } from 'node:fs'
-import { dirname } from 'node:path'
 import type {
   APIComponent,
-  Component,
   CustomComponent,
-  CustomTypeDefinition,
   DomainOpComponent,
   EventComponent,
   EventHandlerComponent,
   ExternalLink,
-  GraphMetadata,
   Link,
   RiviereGraph,
   SourceInfo,
   UIComponent,
   UseCaseComponent,
 } from '@living-architecture/riviere-schema'
-import {
-  RiviereQuery, type ValidationResult 
-} from '@living-architecture/riviere-query'
-import {
-  calculateStats,
-  findOrphans,
-  findWarnings,
-  toRiviereGraph,
-  validateGraph,
-} from './inspection'
-import { findNearMatches } from './component-suggestion'
-import {
-  createComponentNotFoundError,
-  generateComponentId,
-  validateCustomType,
-  validateDomainExists,
-  validateRequiredProperties,
-} from './builder-internals'
-import { mergeBehavior } from './merge-behavior'
-import {
-  deduplicateStrings, deduplicateStateTransitions 
-} from './deduplicate'
-import {
-  BuildValidationError,
-  CustomTypeAlreadyDefinedError,
-  DirectoryNotFoundError,
-  DuplicateComponentError,
-  DuplicateDomainError,
-  InvalidEnrichmentTargetError,
-  InvalidGraphError,
-  MissingDomainsError,
-  MissingSourcesError,
-} from './errors'
+import type { ValidationResult } from '@living-architecture/riviere-query'
+import { RiviereBuilder as DomainBuilder } from './domain/riviere-builder'
 import type {
   APIInput,
   BuilderOptions,
@@ -93,84 +57,27 @@ export type {
   UseCaseInput,
 }
 
-interface BuilderMetadata extends Omit<GraphMetadata, 'sources' | 'customTypes'> {
-  sources: SourceInfo[]
-  customTypes: Record<string, CustomTypeDefinition>
-}
-
-interface BuilderGraph extends Omit<RiviereGraph, 'metadata' | 'externalLinks'> {
-  metadata: BuilderMetadata
-  externalLinks: ExternalLink[]
-}
-
 /**
- * Programmatically construct Rivière architecture graphs.
+ * Programmatically construct Riviere architecture graphs.
  *
- * RiviereBuilder provides a fluent API for creating graphs, adding components,
- * linking them together, and exporting valid JSON conforming to the Rivière schema.
- *
- * @example
- * ```typescript
- * import { RiviereBuilder } from '@living-architecture/riviere-builder'
- *
- * const builder = RiviereBuilder.new({
- *   sources: [{ type: 'git', url: 'https://github.com/your-org/your-repo' }],
- *   domains: { orders: { description: 'Order management' } }
- * })
- *
- * const api = builder.addApi({
- *   name: 'Create Order',
- *   domain: 'orders',
- *   module: 'checkout',
- *   apiType: 'REST',
- *   sourceLocation: { file: 'src/api/orders.ts', line: 10 }
- * })
- *
- * const graph = builder.build()
- * ```
+ * Thin facade preserving the flat public API while delegating
+ * to focused domain classes internally.
  */
 export class RiviereBuilder {
-  graph: BuilderGraph
+  private readonly delegate: DomainBuilder
 
-  private constructor(graph: BuilderGraph) {
-    this.graph = graph
+  private constructor(delegate: DomainBuilder) {
+    this.delegate = delegate
   }
 
   /**
    * Restores a builder from a previously serialized graph.
    *
-   * Use this to continue building a graph that was saved mid-construction,
-   * or to modify an existing graph.
-   *
-   * @param graph - A valid RiviereGraph object to resume from
-   * @returns A new RiviereBuilder instance with the graph state restored
-   * @throws If the graph is missing required sources
-   *
-   * @example
-   * ```typescript
-   * const json = await fs.readFile('draft.json', 'utf-8')
-   * const graph = JSON.parse(json)
-   * const builder = RiviereBuilder.resume(graph)
-   * builder.addApi({ ... })
-   * ```
+   * @param graph - A valid RiviereGraph to resume from
+   * @returns A new RiviereBuilder with the graph state restored
    */
   static resume(graph: RiviereGraph): RiviereBuilder {
-    if (!graph.metadata.sources || graph.metadata.sources.length === 0) {
-      throw new InvalidGraphError('missing sources')
-    }
-
-    const builderGraph: BuilderGraph = {
-      version: graph.version,
-      metadata: {
-        ...graph.metadata,
-        sources: graph.metadata.sources,
-        customTypes: graph.metadata.customTypes ?? {},
-      },
-      components: graph.components,
-      links: graph.links,
-      externalLinks: graph.externalLinks ?? [],
-    }
-    return new RiviereBuilder(builderGraph)
+    return new RiviereBuilder(DomainBuilder.resume(graph))
   }
 
   /**
@@ -178,700 +85,209 @@ export class RiviereBuilder {
    *
    * @param options - Configuration including sources and domains
    * @returns A new RiviereBuilder instance
-   * @throws If sources array is empty
-   * @throws If domains object is empty
-   *
-   * @example
-   * ```typescript
-   * const builder = RiviereBuilder.new({
-   *   name: 'My System',
-   *   sources: [{ type: 'git', url: 'https://github.com/your-org/your-repo' }],
-   *   domains: {
-   *     orders: { description: 'Order management' },
-   *     users: { description: 'User accounts' }
-   *   }
-   * })
-   * ```
    */
   static new(options: BuilderOptions): RiviereBuilder {
-    if (options.sources.length === 0) {
-      throw new MissingSourcesError()
-    }
-
-    if (Object.keys(options.domains).length === 0) {
-      throw new MissingDomainsError()
-    }
-
-    const graph: BuilderGraph = {
-      version: '1.0',
-      metadata: {
-        ...(options.name !== undefined && { name: options.name }),
-        ...(options.description !== undefined && { description: options.description }),
-        sources: options.sources,
-        domains: options.domains,
-        customTypes: {},
-      },
-      components: [],
-      links: [],
-      externalLinks: [],
-    }
-
-    return new RiviereBuilder(graph)
+    return new RiviereBuilder(DomainBuilder.new(options))
   }
 
   /**
    * Adds an additional source repository to the graph.
    *
    * @param source - Source repository information
-   *
-   * @example
-   * ```typescript
-   * builder.addSource({
-   *   type: 'git',
-   *   url: 'https://github.com/your-org/another-repo'
-   * })
-   * ```
    */
   addSource(source: SourceInfo): void {
-    this.graph.metadata.sources.push(source)
+    this.delegate.construction.addSource(source)
   }
 
   /**
    * Adds a new domain to the graph.
    *
    * @param input - Domain name and description
-   * @throws If domain with same name already exists
-   *
-   * @example
-   * ```typescript
-   * builder.addDomain({
-   *   name: 'payments',
-   *   description: 'Payment processing'
-   * })
-   * ```
    */
   addDomain(input: DomainInput): void {
-    if (this.graph.metadata.domains[input.name]) {
-      throw new DuplicateDomainError(input.name)
-    }
-
-    this.graph.metadata.domains[input.name] = {
-      description: input.description,
-      systemType: input.systemType,
-    }
+    this.delegate.construction.addDomain(input)
   }
 
   /**
    * Adds a UI component to the graph.
    *
-   * @param input - UI component properties including route and source location
-   * @returns The created UI component with generated ID
-   * @throws If the specified domain does not exist
-   *
-   * @example
-   * ```typescript
-   * const ui = builder.addUI({
-   *   name: 'Order List',
-   *   domain: 'orders',
-   *   module: 'dashboard',
-   *   route: '/orders',
-   *   sourceLocation: { file: 'src/pages/OrderList.tsx', line: 15 }
-   * })
-   * ```
+   * @param input - UI component properties
+   * @returns The created UI component
    */
   addUI(input: UIInput): UIComponent {
-    validateDomainExists(this.graph.metadata.domains, input.domain)
-    const id = generateComponentId(input.domain, input.module, 'ui', input.name)
-
-    const component: UIComponent = {
-      id,
-      type: 'UI',
-      name: input.name,
-      domain: input.domain,
-      module: input.module,
-      route: input.route,
-      sourceLocation: input.sourceLocation,
-      ...(input.description !== undefined && { description: input.description }),
-    }
-    return this.registerComponent(component)
+    return this.delegate.construction.addUI(input)
   }
 
   /**
    * Adds an API component to the graph.
    *
-   * @param input - API component properties including type, method, and path
-   * @returns The created API component with generated ID
-   * @throws If the specified domain does not exist
-   *
-   * @example
-   * ```typescript
-   * const api = builder.addApi({
-   *   name: 'Create Order',
-   *   domain: 'orders',
-   *   module: 'checkout',
-   *   apiType: 'REST',
-   *   httpMethod: 'POST',
-   *   path: '/api/orders',
-   *   sourceLocation: { file: 'src/api/orders.ts', line: 25 }
-   * })
-   * ```
+   * @param input - API component properties
+   * @returns The created API component
    */
   addApi(input: APIInput): APIComponent {
-    validateDomainExists(this.graph.metadata.domains, input.domain)
-    const id = generateComponentId(input.domain, input.module, 'api', input.name)
-
-    const component: APIComponent = {
-      id,
-      type: 'API',
-      name: input.name,
-      domain: input.domain,
-      module: input.module,
-      apiType: input.apiType,
-      sourceLocation: input.sourceLocation,
-      ...(input.httpMethod !== undefined && { httpMethod: input.httpMethod }),
-      ...(input.path !== undefined && { path: input.path }),
-      ...(input.operationName !== undefined && { operationName: input.operationName }),
-      ...(input.description !== undefined && { description: input.description }),
-    }
-    return this.registerComponent(component)
+    return this.delegate.construction.addApi(input)
   }
 
   /**
    * Adds a UseCase component to the graph.
    *
    * @param input - UseCase component properties
-   * @returns The created UseCase component with generated ID
-   * @throws If the specified domain does not exist
-   *
-   * @example
-   * ```typescript
-   * const useCase = builder.addUseCase({
-   *   name: 'Place Order',
-   *   domain: 'orders',
-   *   module: 'checkout',
-   *   sourceLocation: { file: 'src/usecases/PlaceOrder.ts', line: 10 }
-   * })
-   * ```
+   * @returns The created UseCase component
    */
   addUseCase(input: UseCaseInput): UseCaseComponent {
-    validateDomainExists(this.graph.metadata.domains, input.domain)
-    const id = generateComponentId(input.domain, input.module, 'usecase', input.name)
-
-    const component: UseCaseComponent = {
-      id,
-      type: 'UseCase',
-      name: input.name,
-      domain: input.domain,
-      module: input.module,
-      sourceLocation: input.sourceLocation,
-      ...(input.description !== undefined && { description: input.description }),
-    }
-    return this.registerComponent(component)
+    return this.delegate.construction.addUseCase(input)
   }
 
   /**
    * Adds a DomainOp component to the graph.
    *
-   * DomainOp represents domain operations that change entity state.
-   * Can be enriched later with state changes and business rules.
-   *
-   * @param input - DomainOp component properties including operation name
-   * @returns The created DomainOp component with generated ID
-   * @throws If the specified domain does not exist
-   *
-   * @example
-   * ```typescript
-   * const domainOp = builder.addDomainOp({
-   *   name: 'Confirm Order',
-   *   domain: 'orders',
-   *   module: 'fulfillment',
-   *   operationName: 'confirmOrder',
-   *   entity: 'Order',
-   *   sourceLocation: { file: 'src/domain/Order.ts', line: 45 }
-   * })
-   * ```
+   * @param input - DomainOp component properties
+   * @returns The created DomainOp component
    */
   addDomainOp(input: DomainOpInput): DomainOpComponent {
-    validateDomainExists(this.graph.metadata.domains, input.domain)
-    const id = generateComponentId(input.domain, input.module, 'domainop', input.name)
-
-    const component: DomainOpComponent = {
-      id,
-      type: 'DomainOp',
-      name: input.name,
-      domain: input.domain,
-      module: input.module,
-      operationName: input.operationName,
-      sourceLocation: input.sourceLocation,
-      ...(input.entity !== undefined && { entity: input.entity }),
-      ...(input.signature !== undefined && { signature: input.signature }),
-      ...(input.behavior !== undefined && { behavior: input.behavior }),
-      ...(input.stateChanges !== undefined && { stateChanges: input.stateChanges }),
-      ...(input.businessRules !== undefined && { businessRules: input.businessRules }),
-      ...(input.description !== undefined && { description: input.description }),
-    }
-    return this.registerComponent(component)
+    return this.delegate.construction.addDomainOp(input)
   }
 
   /**
    * Adds an Event component to the graph.
    *
-   * @param input - Event component properties including event name
-   * @returns The created Event component with generated ID
-   * @throws If the specified domain does not exist
-   *
-   * @example
-   * ```typescript
-   * const event = builder.addEvent({
-   *   name: 'Order Placed',
-   *   domain: 'orders',
-   *   module: 'checkout',
-   *   eventName: 'OrderPlaced',
-   *   sourceLocation: { file: 'src/events/OrderPlaced.ts', line: 5 }
-   * })
-   * ```
+   * @param input - Event component properties
+   * @returns The created Event component
    */
   addEvent(input: EventInput): EventComponent {
-    validateDomainExists(this.graph.metadata.domains, input.domain)
-    const id = generateComponentId(input.domain, input.module, 'event', input.name)
-
-    const component: EventComponent = {
-      id,
-      type: 'Event',
-      name: input.name,
-      domain: input.domain,
-      module: input.module,
-      eventName: input.eventName,
-      sourceLocation: input.sourceLocation,
-      ...(input.eventSchema !== undefined && { eventSchema: input.eventSchema }),
-      ...(input.description !== undefined && { description: input.description }),
-    }
-    return this.registerComponent(component)
+    return this.delegate.construction.addEvent(input)
   }
 
   /**
    * Adds an EventHandler component to the graph.
    *
-   * @param input - EventHandler component properties including subscribed events
-   * @returns The created EventHandler component with generated ID
-   * @throws If the specified domain does not exist
-   *
-   * @example
-   * ```typescript
-   * const handler = builder.addEventHandler({
-   *   name: 'Send Confirmation Email',
-   *   domain: 'notifications',
-   *   module: 'email',
-   *   subscribedEvents: ['OrderPlaced'],
-   *   sourceLocation: { file: 'src/handlers/OrderConfirmation.ts', line: 10 }
-   * })
-   * ```
+   * @param input - EventHandler component properties
+   * @returns The created EventHandler component
    */
   addEventHandler(input: EventHandlerInput): EventHandlerComponent {
-    validateDomainExists(this.graph.metadata.domains, input.domain)
-    const id = generateComponentId(input.domain, input.module, 'eventhandler', input.name)
-
-    const component: EventHandlerComponent = {
-      id,
-      type: 'EventHandler',
-      name: input.name,
-      domain: input.domain,
-      module: input.module,
-      subscribedEvents: input.subscribedEvents,
-      sourceLocation: input.sourceLocation,
-      ...(input.description !== undefined && { description: input.description }),
-    }
-    return this.registerComponent(component)
+    return this.delegate.construction.addEventHandler(input)
   }
 
   /**
    * Defines a custom component type for the graph.
    *
-   * Custom types allow extending the schema with domain-specific component kinds.
-   * Must be defined before adding custom components of that type.
-   *
-   * @param input - Custom type definition with required and optional properties
-   * @throws If a custom type with the same name already exists
-   *
-   * @example
-   * ```typescript
-   * builder.defineCustomType({
-   *   name: 'MessageQueue',
-   *   description: 'Async message queue',
-   *   requiredProperties: {
-   *     queueName: { type: 'string', description: 'Queue identifier' }
-   *   }
-   * })
-   * ```
+   * @param input - Custom type definition
    */
   defineCustomType(input: CustomTypeInput): void {
-    const customTypes = this.graph.metadata.customTypes
-
-    if (customTypes[input.name]) {
-      throw new CustomTypeAlreadyDefinedError(input.name)
-    }
-
-    customTypes[input.name] = {
-      ...(input.requiredProperties !== undefined && {requiredProperties: input.requiredProperties,}),
-      ...(input.optionalProperties !== undefined && {optionalProperties: input.optionalProperties,}),
-      ...(input.description !== undefined && { description: input.description }),
-    }
+    this.delegate.construction.defineCustomType(input)
   }
 
   /**
    * Adds a Custom component to the graph.
    *
-   * Custom components use types defined via defineCustomType().
-   * Validates that the custom type exists and required properties are provided.
-   *
-   * @param input - Custom component properties including type name and metadata
-   * @returns The created Custom component with generated ID
-   * @throws If the specified domain does not exist
-   * @throws If the custom type has not been defined
-   * @throws If required properties for the custom type are missing
-   *
-   * @example
-   * ```typescript
-   * const queue = builder.addCustom({
-   *   customTypeName: 'MessageQueue',
-   *   name: 'Order Events Queue',
-   *   domain: 'orders',
-   *   module: 'messaging',
-   *   sourceLocation: { file: 'src/queues/orders.ts', line: 5 },
-   *   metadata: { queueName: 'order-events' }
-   * })
-   * ```
+   * @param input - Custom component properties
+   * @returns The created Custom component
    */
   addCustom(input: CustomInput): CustomComponent {
-    validateDomainExists(this.graph.metadata.domains, input.domain)
-    validateCustomType(this.graph.metadata.customTypes, input.customTypeName)
-    validateRequiredProperties(
-      this.graph.metadata.customTypes,
-      input.customTypeName,
-      input.metadata,
-    )
-    const id = generateComponentId(input.domain, input.module, 'custom', input.name)
-
-    const component: CustomComponent = {
-      id,
-      type: 'Custom',
-      customTypeName: input.customTypeName,
-      name: input.name,
-      domain: input.domain,
-      module: input.module,
-      sourceLocation: input.sourceLocation,
-      ...(input.description !== undefined && { description: input.description }),
-      ...input.metadata,
-    }
-    return this.registerComponent(component)
+    return this.delegate.construction.addCustom(input)
   }
 
   /**
    * Enriches a DomainOp component with additional domain details.
    *
-   * Adds state changes and business rules to an existing DomainOp.
-   * Multiple enrichments accumulate rather than replace.
-   *
    * @param id - The component ID to enrich
    * @param enrichment - State changes and business rules to add
-   * @throws If the component does not exist
-   * @throws If the component is not a DomainOp type
-   *
-   * @example
-   * ```typescript
-   * builder.enrichComponent('orders:fulfillment:domainop:confirm-order', {
-   *   entity: 'Order',
-   *   stateChanges: [{ entity: 'Order', from: 'pending', to: 'confirmed' }],
-   *   businessRules: ['Order must have valid payment']
-   * })
-   * ```
    */
   enrichComponent(id: string, enrichment: EnrichmentInput): void {
-    const component = this.graph.components.find((c) => c.id === id)
-    if (!component) {
-      throw createComponentNotFoundError(this.graph.components, id)
-    }
-    if (component.type !== 'DomainOp') {
-      throw new InvalidEnrichmentTargetError(id, component.type)
-    }
-    if (enrichment.entity !== undefined) {
-      component.entity = enrichment.entity
-    }
-    if (enrichment.stateChanges !== undefined) {
-      const existing = component.stateChanges ?? []
-      const newItems = deduplicateStateTransitions(existing, enrichment.stateChanges)
-      component.stateChanges = [...existing, ...newItems]
-    }
-    if (enrichment.businessRules !== undefined) {
-      const existing = component.businessRules ?? []
-      const newItems = deduplicateStrings(existing, enrichment.businessRules)
-      component.businessRules = [...existing, ...newItems]
-    }
-    if (enrichment.behavior !== undefined) {
-      component.behavior = mergeBehavior(component.behavior, enrichment.behavior)
-    }
-    if (enrichment.signature !== undefined) {
-      component.signature = enrichment.signature
-    }
-  }
-
-  private registerComponent<T extends Component>(component: T): T {
-    if (this.graph.components.some((c) => c.id === component.id)) {
-      throw new DuplicateComponentError(component.id)
-    }
-    this.graph.components.push(component)
-    return component
+    this.delegate.enrichment.enrichComponent(id, enrichment)
   }
 
   /**
    * Finds components similar to a query for error recovery.
    *
-   * Returns fuzzy matches when an exact component lookup fails,
-   * enabling actionable error messages with "Did you mean...?" suggestions.
-   *
    * @param query - Search criteria including partial ID, name, type, or domain
    * @param options - Optional matching thresholds and limits
    * @returns Array of similar components with similarity scores
-   *
-   * @example
-   * ```typescript
-   * const matches = builder.nearMatches({ name: 'Place Ordr' })
-   * // [{ component: {...}, score: 0.9, mismatches: [...] }]
-   * ```
    */
   nearMatches(query: NearMatchQuery, options?: NearMatchOptions): NearMatchResult[] {
-    return findNearMatches(this.graph.components, query, options)
+    return this.delegate.errorRecovery.findNearMatches(query, options)
   }
 
   /**
    * Creates a link between two components in the graph.
    *
-   * Source component must exist; target validation is deferred to build().
-   * Use linkExternal() for connections to external systems.
-   *
    * @param input - Link properties including source, target, and type
    * @returns The created link
-   * @throws If the source component does not exist
-   *
-   * @example
-   * ```typescript
-   * const link = builder.link({
-   *   from: 'orders:checkout:api:create-order',
-   *   to: 'orders:checkout:usecase:place-order',
-   *   type: 'sync'
-   * })
-   * ```
    */
   link(input: LinkInput): Link {
-    const sourceExists = this.graph.components.some((c) => c.id === input.from)
-    if (!sourceExists) {
-      throw createComponentNotFoundError(this.graph.components, input.from)
-    }
-
-    const link: Link = {
-      source: input.from,
-      target: input.to,
-      ...(input.type !== undefined && { type: input.type }),
-    }
-    this.graph.links.push(link)
-    return link
+    return this.delegate.linking.link(input)
   }
 
   /**
    * Creates a link from a component to an external system.
    *
-   * Use this for connections to systems outside the graph,
-   * such as third-party APIs or external databases.
-   *
    * @param input - External link properties including target system info
    * @returns The created external link
-   * @throws If the source component does not exist
-   *
-   * @example
-   * ```typescript
-   * const link = builder.linkExternal({
-   *   from: 'orders:payments:usecase:process-payment',
-   *   target: { name: 'Stripe API', domain: 'payments' },
-   *   type: 'sync'
-   * })
-   * ```
    */
   linkExternal(input: ExternalLinkInput): ExternalLink {
-    const sourceExists = this.graph.components.some((c) => c.id === input.from)
-    if (!sourceExists) {
-      throw createComponentNotFoundError(this.graph.components, input.from)
-    }
-
-    const externalLink: ExternalLink = {
-      source: input.from,
-      target: input.target,
-      ...(input.type !== undefined && { type: input.type }),
-      ...(input.description !== undefined && { description: input.description }),
-      ...(input.sourceLocation !== undefined && { sourceLocation: input.sourceLocation }),
-    }
-    this.graph.externalLinks.push(externalLink)
-    return externalLink
+    return this.delegate.linking.linkExternal(input)
   }
 
   /**
    * Returns non-fatal issues found in the graph.
    *
-   * Warnings indicate potential problems that don't prevent building,
-   * such as orphaned components or unused domains.
-   *
    * @returns Array of warning objects with type and message
-   *
-   * @example
-   * ```typescript
-   * const warnings = builder.warnings()
-   * for (const w of warnings) {
-   *   console.log(`${w.type}: ${w.message}`)
-   * }
-   * ```
    */
   warnings(): BuilderWarning[] {
-    return findWarnings(this.graph)
+    return this.delegate.inspection.warnings()
   }
 
   /**
    * Returns statistics about the current graph state.
    *
    * @returns Counts of components by type, domains, and links
-   *
-   * @example
-   * ```typescript
-   * const stats = builder.stats()
-   * console.log(`Components: ${stats.componentCount}`)
-   * console.log(`Links: ${stats.linkCount}`)
-   * ```
    */
   stats(): BuilderStats {
-    return calculateStats(this.graph)
+    return this.delegate.inspection.stats()
   }
 
   /**
    * Runs full validation on the graph.
    *
-   * Checks for dangling references, orphans, and schema compliance.
-   * Called automatically by build().
-   *
    * @returns Validation result with valid flag and error details
-   *
-   * @example
-   * ```typescript
-   * const result = builder.validate()
-   * if (!result.valid) {
-   *   for (const error of result.errors) {
-   *     console.error(error.message)
-   *   }
-   * }
-   * ```
    */
   validate(): ValidationResult {
-    return validateGraph(this.graph)
+    return this.delegate.inspection.validate()
   }
 
   /**
    * Returns IDs of components with no incoming or outgoing links.
    *
    * @returns Array of orphaned component IDs
-   *
-   * @example
-   * ```typescript
-   * const orphans = builder.orphans()
-   * if (orphans.length > 0) {
-   *   console.warn('Orphaned components:', orphans)
-   * }
-   * ```
    */
   orphans(): string[] {
-    return findOrphans(this.graph)
+    return this.delegate.inspection.orphans()
   }
 
   /**
    * Returns a RiviereQuery instance for the current graph state.
    *
-   * Enables querying mid-construction without affecting builder state.
-   *
    * @returns RiviereQuery instance for the current graph
-   *
-   * @example
-   * ```typescript
-   * const query = builder.query()
-   * const apis = query.componentsByType('API')
-   * ```
    */
-  query(): RiviereQuery {
-    return new RiviereQuery(toRiviereGraph(this.graph))
+  query(): import('@living-architecture/riviere-query').RiviereQuery {
+    return this.delegate.inspection.query()
   }
 
   /**
    * Serializes the current graph state as a JSON string.
    *
-   * Does not validate. Use for saving drafts mid-construction
-   * that can be resumed later with RiviereBuilder.resume().
-   *
    * @returns JSON string representation of the graph
-   *
-   * @example
-   * ```typescript
-   * const json = builder.serialize()
-   * await fs.writeFile('draft.json', json)
-   * ```
    */
   serialize(): string {
-    return JSON.stringify(this.graph, null, 2)
+    return this.delegate.serialize()
   }
 
   /**
    * Validates and returns the completed graph.
    *
    * @returns Valid RiviereGraph object
-   * @throws If validation fails with error details
-   *
-   * @example
-   * ```typescript
-   * try {
-   *   const graph = builder.build()
-   *   console.log('Graph built successfully')
-   * } catch (error) {
-   *   console.error('Build failed:', error.message)
-   * }
-   * ```
    */
   build(): RiviereGraph {
-    const result = this.validate()
-    if (!result.valid) {
-      const messages = result.errors.map((e) => e.message)
-      throw new BuildValidationError(messages)
-    }
-    return toRiviereGraph(this.graph)
-  }
-
-  /**
-   * Validates the graph and writes it to a file.
-   *
-   * @param path - Absolute or relative file path to write
-   * @throws If validation fails
-   * @throws If the directory does not exist
-   * @throws If write fails
-   *
-   * @example
-   * ```typescript
-   * await builder.save('./output/architecture.json')
-   * ```
-   */
-  async save(path: string): Promise<void> {
-    const graph = this.build()
-
-    const dir = dirname(path)
-    try {
-      await fs.access(dir)
-    } catch {
-      throw new DirectoryNotFoundError(dir)
-    }
-
-    const json = JSON.stringify(graph, null, 2)
-    await fs.writeFile(path, json, 'utf-8')
+    return this.delegate.build()
   }
 }

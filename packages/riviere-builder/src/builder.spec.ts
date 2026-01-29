@@ -1,6 +1,12 @@
+import type { RiviereGraph } from '@living-architecture/riviere-schema'
 import {
   RiviereBuilder, type BuilderOptions 
 } from './builder'
+
+function parseGraph(builder: RiviereBuilder): RiviereGraph {
+  const graph: RiviereGraph = JSON.parse(builder.serialize())
+  return graph
+}
 
 function createValidOptions(): BuilderOptions {
   return {
@@ -85,15 +91,15 @@ describe('RiviereBuilder', () => {
 
       const builder = RiviereBuilder.new(options)
 
-      expect(builder.graph.metadata.name).toBe('my-service')
-      expect(builder.graph.metadata.description).toBe('Service description')
-      expect(builder.graph.metadata.sources).toStrictEqual([
+      expect(parseGraph(builder).metadata.name).toBe('my-service')
+      expect(parseGraph(builder).metadata.description).toBe('Service description')
+      expect(parseGraph(builder).metadata.sources).toStrictEqual([
         {
           repository: 'my-org/my-repo',
           commit: 'abc123',
         },
       ])
-      expect(builder.graph.metadata.domains).toStrictEqual({
+      expect(parseGraph(builder).metadata.domains).toStrictEqual({
         orders: {
           description: 'Order management',
           systemType: 'domain',
@@ -111,7 +117,7 @@ describe('RiviereBuilder', () => {
         commit: 'def456',
       })
 
-      expect(builder.graph.metadata.sources).toStrictEqual([
+      expect(parseGraph(builder).metadata.sources).toStrictEqual([
         {
           repository: 'my-org/my-repo',
           commit: 'abc123',
@@ -128,7 +134,7 @@ describe('RiviereBuilder', () => {
 
       builder.addSource({ repository: 'no-commit-repo' })
 
-      expect(builder.graph.metadata.sources).toContainEqual({ repository: 'no-commit-repo' })
+      expect(parseGraph(builder).metadata.sources).toContainEqual({ repository: 'no-commit-repo' })
     })
   })
 
@@ -142,7 +148,7 @@ describe('RiviereBuilder', () => {
         systemType: 'domain',
       })
 
-      expect(builder.graph.metadata.domains['shipping']).toStrictEqual({
+      expect(parseGraph(builder).metadata.domains['shipping']).toStrictEqual({
         description: 'Shipping operations',
         systemType: 'domain',
       })

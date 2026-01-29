@@ -7,7 +7,7 @@ import {
 import userEvent from '@testing-library/user-event'
 import { DomainConnectionDiff } from './DomainConnectionDiff'
 import type { DomainConnectionDiffResult } from './computeDomainConnectionDiff'
-import { LayoutError } from '@/errors'
+import { LayoutError } from '@/shell/errors/errors'
 
 interface MinimalDiffInput {
   domains: string[]

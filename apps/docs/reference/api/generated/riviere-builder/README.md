@@ -11,7 +11,6 @@ pageClass: reference
 - [ComponentNotFoundError](classes/ComponentNotFoundError.md)
 - [CustomTypeAlreadyDefinedError](classes/CustomTypeAlreadyDefinedError.md)
 - [CustomTypeNotFoundError](classes/CustomTypeNotFoundError.md)
-- [DirectoryNotFoundError](classes/DirectoryNotFoundError.md)
 - [DomainNotFoundError](classes/DomainNotFoundError.md)
 - [DuplicateComponentError](classes/DuplicateComponentError.md)
 - [DuplicateDomainError](classes/DuplicateDomainError.md)

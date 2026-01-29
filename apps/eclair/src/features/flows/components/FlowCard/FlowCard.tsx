@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import type { RiviereGraph } from '@/types/riviere'
+import type { RiviereGraph } from '@living-architecture/riviere-schema'
 import type { Flow } from '../../extractFlows'
 import { CodeLinkMenu } from '../CodeLinkMenu/CodeLinkMenu'
 import { FlowTrace } from '../FlowTrace/FlowTrace'
