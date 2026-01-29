@@ -19,8 +19,6 @@ import {
   countNodesByType, formatDomainNodes, extractEntryPoints 
 } from './domain-node-breakdown'
 import type { DomainEvent } from '@/platform/domain/domain-event-types'
-export type { DomainEvent } from '@/platform/domain/domain-event-types'
-export type { DomainNode } from './domain-node-breakdown'
 
 export interface AggregatedConnection {
   targetDomain: string

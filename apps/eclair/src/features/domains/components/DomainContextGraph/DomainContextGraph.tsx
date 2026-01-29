@@ -7,7 +7,6 @@ import { DomainNode } from './DomainNode'
 import { DomainInfoModal } from './DomainInfoModal'
 import { LayoutError } from '@/platform/infra/errors/errors'
 import type { DomainPosition } from './domain-position'
-export type { DomainPosition } from './domain-position'
 
 interface ViewTransform {
   scale: number

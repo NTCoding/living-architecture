@@ -1,3 +1,1 @@
-export {
-  traceFlow, type FlowResult 
-} from '@/platform/domain/flow-tracing'
+export { traceFlow } from '@/platform/domain/flow-tracing'

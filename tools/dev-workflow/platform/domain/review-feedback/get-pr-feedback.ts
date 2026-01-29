@@ -27,7 +27,7 @@ interface RawReviewDecision {
   state: string
 }
 
-export interface RawPRFeedbackData {
+interface RawPRFeedbackData {
   threads: RawReviewThread[]
   reviewDecisions: RawReviewDecision[]
 }
