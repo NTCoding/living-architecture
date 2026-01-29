@@ -107,14 +107,15 @@ if [[ "$USE_WORKTREE" == true ]]; then
 
     WORKTREE_ABS=$(cd "$WORKTREE_DIR" && pwd)
     SETTINGS_LOCAL="$REPO_ROOT/.claude/settings.local.json"
+    mkdir -p "$(dirname "$SETTINGS_LOCAL")"
     if command -v jq &> /dev/null; then
         if [[ ! -f "$SETTINGS_LOCAL" ]]; then
             echo '{}' > "$SETTINGS_LOCAL"
         fi
         tmp=$(mktemp)
         if jq --arg dir "$WORKTREE_ABS" '
-          .permissions.additionalDirectories = (
-            ((.permissions.additionalDirectories // []) | map(select(. != $dir))) + [$dir]
+          .permissions.additionalDirectories |= (
+            (. // []) | map(select(. != $dir)) + [$dir]
           )
         ' "$SETTINGS_LOCAL" > "$tmp" && mv "$tmp" "$SETTINGS_LOCAL"; then
             echo "Added worktree to Claude Code permissions"
