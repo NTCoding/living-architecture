@@ -20,6 +20,12 @@ interface ClaudeQueryOptions<T> {
   settingSources?: ClaudeSettingSource[]
 }
 
+interface ClaudeTextQueryOptions {
+  prompt: string
+  model: 'opus' | 'sonnet' | 'haiku'
+  settingSources?: ClaudeSettingSource[]
+}
+
 const resultMessageSchema = z.object({
   type: z.literal('result'),
   subtype: z.enum(['success', 'error', 'interrupted']),
@@ -139,6 +145,35 @@ export const claude = {
           `Could not extract JSON from result. Parse error: ${errorDetail}. Result excerpt: ${message.result.slice(0, 300)}`,
         )
       }
+    }
+
+    throw new ClaudeQueryError('No result message received from Claude')
+  },
+
+  async queryText(opts: ClaudeTextQueryOptions): Promise<string> {
+    const queryResult = sdkQuery({
+      prompt: opts.prompt,
+      options: {
+        model: opts.model,
+        maxTurns: 200,
+        settingSources: opts.settingSources,
+        env: {
+          ...process.env,
+          [CLAUDE_SDK_AGENT_ENV_VAR]: 'true',
+        },
+      },
+    })
+
+    for await (const message of safeAsyncIterable(queryResult)) {
+      if (!isResultMessage(message)) {
+        continue
+      }
+
+      if (message.subtype !== 'success') {
+        throw new ClaudeQueryError(`Claude query failed: ${message.subtype}`)
+      }
+
+      return message.result
     }
 
     throw new ClaudeQueryError('No result message received from Claude')

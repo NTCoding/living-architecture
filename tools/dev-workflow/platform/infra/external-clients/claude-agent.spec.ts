@@ -11,6 +11,21 @@ import {
   claude, ClaudeQueryError, CLAUDE_SDK_AGENT_ENV_VAR 
 } from './claude-agent'
 
+function createResultStream(message: Record<string, unknown>): () => AsyncGenerator<unknown> {
+  return async function* (): AsyncGenerator<unknown> {
+    yield message
+  }
+}
+
+function resultMessage(subtype: string, result: string, extras?: Record<string, unknown>) {
+  return {
+    type: 'result',
+    subtype,
+    result,
+    ...extras,
+  }
+}
+
 describe('ClaudeQueryError', () => {
   it('creates error with name ClaudeQueryError', () => {
     const error = new ClaudeQueryError('test message')
@@ -247,6 +262,77 @@ describe('claude.query', () => {
 
     expect(mockSdkQuery).toHaveBeenCalledWith(
       expect.objectContaining({options: expect.objectContaining({ settingSources: ['user', 'project'] }),}),
+    )
+  })
+})
+
+describe('claude.queryText', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('returns raw result text on success', async () => {
+    async function* mockAsyncIterable(): AsyncGenerator<unknown> {
+      yield {
+        type: 'result',
+        subtype: 'success',
+        result: 'PASS\nAll checks passed.',
+      }
+    }
+    mockSdkQuery.mockReturnValue(mockAsyncIterable())
+
+    const result = await claude.queryText({
+      prompt: 'test prompt',
+      model: 'sonnet',
+    })
+
+    expect(result).toBe('PASS\nAll checks passed.')
+  })
+
+  it('throws ClaudeQueryError when query fails', async () => {
+    mockSdkQuery.mockReturnValue(createResultStream(resultMessage('error', 'Some error'))())
+
+    await expect(
+      claude.queryText({
+        prompt: 'test',
+        model: 'sonnet',
+      }),
+    ).rejects.toThrow('Claude query failed: error')
+  })
+
+  it('throws when no result message received', async () => {
+    mockSdkQuery.mockReturnValue(
+      createResultStream({
+        type: 'progress',
+        content: 'working...',
+      })(),
+    )
+
+    await expect(
+      claude.queryText({
+        prompt: 'test',
+        model: 'sonnet',
+      }),
+    ).rejects.toThrow('No result message received from Claude')
+  })
+
+  it('does not use outputFormat option', async () => {
+    async function* mockAsyncIterable(): AsyncGenerator<unknown> {
+      yield {
+        type: 'result',
+        subtype: 'success',
+        result: 'text output',
+      }
+    }
+    mockSdkQuery.mockReturnValue(mockAsyncIterable())
+
+    await claude.queryText({
+      prompt: 'test',
+      model: 'sonnet',
+    })
+
+    expect(mockSdkQuery).toHaveBeenCalledWith(
+      expect.objectContaining({options: expect.not.objectContaining({ outputFormat: expect.anything() }),}),
     )
   })
 })

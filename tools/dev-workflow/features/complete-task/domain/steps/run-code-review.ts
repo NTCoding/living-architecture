@@ -1,7 +1,8 @@
-import { readFile } from 'node:fs/promises'
+import {
+  readFile, writeFile 
+} from 'node:fs/promises'
 import { readdirSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { z } from 'zod'
 import type { Step } from '../../../../platform/domain/workflow-execution/workflow-runner'
 import {
   success, failure 
@@ -19,10 +20,11 @@ export class AgentError extends Error {
   }
 }
 
-const agentResponseSchema = z.object({ result: z.enum(['PASS', 'FAIL']) })
+const VALID_VERDICTS = ['PASS', 'FAIL'] as const
+type Verdict = (typeof VALID_VERDICTS)[number]
 
 interface ReviewerResult {
-  result: 'PASS' | 'FAIL'
+  result: Verdict
   name: string
   reportPath: string
 }
@@ -34,12 +36,11 @@ export interface CodeReviewDeps {
   skipReview: boolean
   baseBranch: () => Promise<string>
   unpushedFiles: (baseBranch: string) => Promise<string[]>
-  queryAgent: <T>(opts: {
+  queryAgentText: (opts: {
     prompt: string
     model: 'opus' | 'sonnet' | 'haiku'
-    outputSchema: z.ZodSchema<T>
     settingSources?: ('user' | 'project' | 'local')[]
-  }) => Promise<T>
+  }) => Promise<string>
 }
 
 function getReviewerNames(hasIssue: boolean, reviewDir: string): readonly ReviewerName[] {
@@ -56,6 +57,36 @@ async function loadAgentInstructions(agentPath: string): Promise<string> {
       `Failed to read agent prompt at ${agentPath}: ${error instanceof Error ? error.message : String(error)}`,
     )
     /* v8 ignore stop */
+  }
+}
+
+function isVerdict(line: string): line is Verdict {
+  return VALID_VERDICTS.some((v) => v === line)
+}
+
+interface AgentResponse {
+  verdict: Verdict
+  report: string
+}
+
+function parseAgentResponse(raw: string): AgentResponse {
+  const firstNewline = raw.indexOf('\n')
+  if (firstNewline < 0) {
+    throw new AgentError(
+      `Agent response must start with PASS or FAIL on the first line. Got: ${raw.slice(0, 100)}`,
+    )
+  }
+
+  const firstLine = raw.slice(0, firstNewline).trim()
+  if (!isVerdict(firstLine)) {
+    throw new AgentError(
+      `Agent response must start with PASS or FAIL on the first line. Got: "${firstLine}"`,
+    )
+  }
+
+  return {
+    verdict: firstLine,
+    report: raw.slice(firstNewline + 1),
   }
 }
 
@@ -79,15 +110,25 @@ export function createCodeReviewStep(deps: CodeReviewDeps): Step<CompleteTaskCon
 
       const reviewerNames = getReviewerNames(ctx.hasIssue, ctx.reviewDir)
 
-      const results = await executeCodeReviewAgents(
+      const resultsOrFailure = await executeCodeReviewAgents(
         deps,
         reviewerNames,
         filesToReview,
         ctx.reviewDir,
         ctx.taskDetails,
-      )
+      ).catch((error: unknown) => {
+        const message = error instanceof Error ? error.message : String(error)
+        return failure({
+          type: 'fix_errors',
+          details: `Code review agent failed: ${message}. Re-run /complete-task to retry.`,
+        })
+      })
 
-      const failures = results.filter((r) => r.result === 'FAIL')
+      if (!Array.isArray(resultsOrFailure)) {
+        return resultsOrFailure
+      }
+
+      const failures = resultsOrFailure.filter((r) => r.result === 'FAIL')
       if (failures.length > 0) {
         return failure({
           type: 'fix_review',
@@ -129,51 +170,50 @@ async function executeCodeReviewAgents(
   },
 ): Promise<ReviewerResult[]> {
   const validReviewerSet = new Set<string>(VALID_REVIEWERS)
+  const results: ReviewerResult[] = []
 
-  return Promise.all(
-    names.map(async (name) => {
-      /* v8 ignore start - defensive check, names from const array are always valid */
-      if (!validReviewerSet.has(name)) {
-        throw new AgentError(
-          `Invalid reviewer name: ${name}. Must be one of: ${VALID_REVIEWERS.join(', ')}`,
-        )
-      }
-      /* v8 ignore stop */
+  for (const name of names) {
+    /* v8 ignore start - defensive check, names from const array are always valid */
+    if (!validReviewerSet.has(name)) {
+      throw new AgentError(
+        `Invalid reviewer name: ${name}. Must be one of: ${VALID_REVIEWERS.join(', ')}`,
+      )
+    }
+    /* v8 ignore stop */
 
-      const agentPath = `.claude/agents/${name}.md`
-      const basePrompt = await loadAgentInstructions(agentPath)
-      const round = nextRoundNumber(reviewDir, name)
-      const reportPath = resolve(`${reviewDir}/${name}-${round}.md`)
+    const agentPath = `.claude/agents/${name}.md`
+    const basePrompt = await loadAgentInstructions(agentPath)
+    const round = nextRoundNumber(reviewDir, name)
+    const reportPath = resolve(`${reviewDir}/${name}-${round}.md`)
 
-      const promptParts = [
-        basePrompt,
-        `\n\n## Report Path\n\nWrite your review report to: ${reportPath}`,
-        '\n\n## Files to Review\n\n',
-        filesToReview.join('\n'),
-      ]
+    const promptParts = [basePrompt, '\n\n## Files to Review\n\n', filesToReview.join('\n')]
 
-      if (name === 'task-check' && taskDetails) {
-        promptParts.push(
-          `\n\n## Task Details\n\nTitle: ${taskDetails.title}\n\nBody:\n${taskDetails.body}`,
-        )
-      }
+    if (name === 'task-check' && taskDetails) {
+      promptParts.push(
+        `\n\n## Task Details\n\nTitle: ${taskDetails.title}\n\nBody:\n${taskDetails.body}`,
+      )
+    }
 
-      const response = await deps.queryAgent({
-        prompt: promptParts.join(''),
-        model: 'sonnet',
-        outputSchema: agentResponseSchema,
-        settingSources: ['project'],
-      })
+    const rawResponse = await deps.queryAgentText({
+      prompt: promptParts.join(''),
+      model: 'sonnet',
+      settingSources: ['project'],
+    })
 
-      if (name === 'task-check' && response.result === 'PASS') {
-        await createTaskCheckMarker(reviewDir)
-      }
+    const parsed = parseAgentResponse(rawResponse)
 
-      return {
-        ...response,
-        name,
-        reportPath,
-      }
-    }),
-  )
+    await writeFile(reportPath, parsed.report, 'utf-8')
+
+    if (name === 'task-check' && parsed.verdict === 'PASS') {
+      await createTaskCheckMarker(reviewDir)
+    }
+
+    results.push({
+      result: parsed.verdict,
+      name,
+      reportPath,
+    })
+  }
+
+  return results
 }

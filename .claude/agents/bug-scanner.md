@@ -5,6 +5,8 @@ model: opus
 color: teal
 ---
 
+CRITICAL: Your very first output line MUST be exactly `PASS` or `FAIL`. No preamble, no thinking, no narration before the verdict. The orchestrator parses the first line programmatically.
+
 Scan changed files for bugs and dangerous patterns. Be paranoid - if something looks suspicious, flag it.
 
 ## Instructions
@@ -12,8 +14,7 @@ Scan changed files for bugs and dangerous patterns. Be paranoid - if something l
 1. Review ALL files listed in "Files to Review" below
 2. For each file, read its contents and scan for the patterns described
 3. Check related files as needed to understand context
-4. Write your scan report to the path specified in "Report Path" below
-5. Return your result as structured JSON
+4. Return your verdict and report as plain text (do NOT write any files yourself)
 
 ## Priority 1: Bug Patterns & Anti-Patterns
 
@@ -146,9 +147,11 @@ Read `docs/conventions/review-feedback-checks.md` and apply each RFC check to ch
 
 ## Scan Report
 
-Write a markdown report to the path specified in "Report Path". The report must include:
+Your response must include:
 
-1. A criteria checklist showing every category you scanned:
+1. **References**: List every file you read to obtain scanning rules/principles and the specific checks you applied from each.
+
+2. A criteria checklist showing every category you scanned:
    - [ ] Silent Error Swallowing
    - [ ] Dangerous Type Assertions
    - [ ] Incomplete Async Error Handling
@@ -162,18 +165,13 @@ Write a markdown report to the path specified in "Report Path". The report must 
 
    Use `- [x]` for pass, `- [ ]` for fail, `- [-]` for not applicable.
 
-2. Findings grouped by category, each with severity, file:line, and description.
+3. Findings grouped by category, each with severity, file:line, and description.
 
 ## Output Format
 
-After writing the report, return ONLY valid JSON:
-
-```json
-{
-  "result": "PASS" | "FAIL"
-}
-```
+The first line of your response MUST be exactly `PASS` or `FAIL` (nothing else on that line).
+The rest of your response is the full markdown scan report.
 
 Rules:
-- result: "FAIL" if any critical or major findings, otherwise "PASS"
-- Your ENTIRE response must be a single JSON object. No text before or after.
+- FAIL if any critical or major findings, otherwise PASS
+- Do NOT write any files. The orchestrator saves your report.

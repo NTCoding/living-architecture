@@ -63,7 +63,7 @@ function buildSteps() {
       skipReview: cli.hasFlag('--reject-review-feedback'),
       baseBranch: git.baseBranch.bind(git),
       unpushedFiles: git.unpushedFiles.bind(git),
-      queryAgent: claude.query.bind(claude),
+      queryAgentText: claude.queryText.bind(claude),
     }),
     createSubmitPRStep({
       uncommittedFiles: git.uncommittedFiles.bind(git),

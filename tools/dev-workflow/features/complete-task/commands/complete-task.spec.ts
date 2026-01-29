@@ -38,7 +38,10 @@ const {
     parseArg: vi.fn(),
     hasFlag: vi.fn(),
   },
-  mockClaude: { query: vi.fn() },
+  mockClaude: {
+    query: vi.fn(),
+    queryText: vi.fn(),
+  },
   mockNx: { runMany: vi.fn() },
   mockFetchRawPRFeedback: vi.fn(),
 }))

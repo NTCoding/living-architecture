@@ -3,16 +3,23 @@ import {
 } from 'vitest'
 
 const {
-  mockReadFile, mockReaddirSync, mockTaskCheckMarkerExists, mockCreateTaskCheckMarker 
-} =
-  vi.hoisted(() => ({
-    mockReadFile: vi.fn(),
-    mockReaddirSync: vi.fn(),
-    mockTaskCheckMarkerExists: vi.fn(),
-    mockCreateTaskCheckMarker: vi.fn(),
-  }))
+  mockReadFile,
+  mockWriteFile,
+  mockReaddirSync,
+  mockTaskCheckMarkerExists,
+  mockCreateTaskCheckMarker,
+} = vi.hoisted(() => ({
+  mockReadFile: vi.fn(),
+  mockWriteFile: vi.fn(),
+  mockReaddirSync: vi.fn(),
+  mockTaskCheckMarkerExists: vi.fn(),
+  mockCreateTaskCheckMarker: vi.fn(),
+}))
 
-vi.mock('node:fs/promises', () => ({ readFile: mockReadFile }))
+vi.mock('node:fs/promises', () => ({
+  readFile: mockReadFile,
+  writeFile: mockWriteFile,
+}))
 vi.mock('node:fs', () => ({ readdirSync: mockReaddirSync }))
 vi.mock('../task-check-marker', () => ({
   taskCheckMarkerExists: mockTaskCheckMarkerExists,
@@ -22,9 +29,10 @@ vi.mock('../task-check-marker', () => ({
 import {
   createCodeReviewStep, AgentError 
 } from './run-code-review'
+import type { CodeReviewDeps } from './run-code-review'
 import type { CompleteTaskContext } from '../task-to-complete'
 
-const mockQueryAgent = vi.fn()
+const mockQueryAgentText = vi.fn<CodeReviewDeps['queryAgentText']>()
 
 function createContext(overrides: Partial<CompleteTaskContext> = {}): CompleteTaskContext {
   return {
@@ -43,7 +51,7 @@ function createStep(skipReview = false) {
     skipReview,
     baseBranch: vi.fn().mockResolvedValue('main'),
     unpushedFiles: vi.fn().mockResolvedValue(['file1.ts']),
-    queryAgent: mockQueryAgent,
+    queryAgentText: mockQueryAgentText,
   })
 }
 
@@ -62,7 +70,8 @@ describe('codeReview', () => {
     mockReaddirSync.mockReturnValue([])
     mockTaskCheckMarkerExists.mockReturnValue(true)
     mockReadFile.mockResolvedValue('# Agent instructions')
-    mockQueryAgent.mockResolvedValue({ result: 'PASS' })
+    mockWriteFile.mockResolvedValue(undefined)
+    mockQueryAgentText.mockResolvedValue('PASS\nAll checks passed.')
   })
 
   it('returns success when --reject-review-feedback flag is set', async () => {
@@ -72,7 +81,7 @@ describe('codeReview', () => {
     const result = await step.execute(ctx)
 
     expect(result.type).toBe('success')
-    expect(mockQueryAgent).not.toHaveBeenCalled()
+    expect(mockQueryAgentText).not.toHaveBeenCalled()
   })
 
   it('returns failure when reviewDir is missing', async () => {
@@ -90,7 +99,7 @@ describe('codeReview', () => {
 
     await step.execute(ctx)
 
-    expect(mockQueryAgent).toHaveBeenCalledTimes(2)
+    expect(mockQueryAgentText).toHaveBeenCalledTimes(2)
   })
 
   it('runs task-check agent when hasIssue and no marker', async () => {
@@ -106,7 +115,7 @@ describe('codeReview', () => {
 
     await step.execute(ctx)
 
-    expect(mockQueryAgent).toHaveBeenCalledTimes(3)
+    expect(mockQueryAgentText).toHaveBeenCalledTimes(3)
   })
 
   it('creates task-check marker when task-check passes', async () => {
@@ -126,7 +135,7 @@ describe('codeReview', () => {
   })
 
   it('returns failure when any reviewer fails', async () => {
-    mockQueryAgent.mockResolvedValue({ result: 'FAIL' })
+    mockQueryAgentText.mockResolvedValue('FAIL\nIssues found.')
     const step = createStep()
     const ctx = createContext({})
 
@@ -144,22 +153,26 @@ describe('codeReview', () => {
     expect(result.type).toBe('success')
   })
 
-  it('throws AgentError when agent file cannot be read', async () => {
-    mockReadFile.mockRejectedValue('file not found')
+  it('returns failure when agent file cannot be read', async () => {
+    mockReadFile.mockRejectedValue(new AgentError('file not found'))
     const step = createStep()
     const ctx = createContext({})
 
-    await expect(step.execute(ctx)).rejects.toThrow(AgentError)
+    const result = await step.execute(ctx)
+
+    expect(result.type).toBe('failure')
   })
 
-  it('provides absolute report path in prompt', async () => {
+  it('writes report to disk from agent response', async () => {
     const step = createStep()
     const ctx = createContext({})
 
     await step.execute(ctx)
 
-    expect(mockQueryAgent).toHaveBeenCalledWith(
-      expect.objectContaining({ prompt: expect.stringMatching(/Write your review report to: \//) }),
+    expect(mockWriteFile).toHaveBeenCalledWith(
+      expect.stringContaining('code-review-1.md'),
+      'All checks passed.',
+      'utf-8',
     )
   })
 
@@ -170,8 +183,10 @@ describe('codeReview', () => {
 
     await step.execute(ctx)
 
-    expect(mockQueryAgent).toHaveBeenCalledWith(
-      expect.objectContaining({ prompt: expect.stringContaining('code-review-2.md') }),
+    expect(mockWriteFile).toHaveBeenCalledWith(
+      expect.stringContaining('code-review-2.md'),
+      expect.any(String),
+      'utf-8',
     )
   })
 
@@ -184,8 +199,50 @@ describe('codeReview', () => {
 
     await step.execute(ctx)
 
-    expect(mockQueryAgent).toHaveBeenCalledWith(
-      expect.objectContaining({ prompt: expect.stringContaining('code-review-1.md') }),
+    expect(mockWriteFile).toHaveBeenCalledWith(
+      expect.stringContaining('code-review-1.md'),
+      expect.any(String),
+      'utf-8',
     )
+  })
+
+  it('returns retriable failure when agent query throws', async () => {
+    mockQueryAgentText.mockRejectedValue(new AgentError('API Error: 400'))
+    const step = createStep()
+    const ctx = createContext({})
+
+    const result = await step.execute(ctx)
+
+    expect(result.type).toBe('failure')
+  })
+
+  it('returns retriable failure when agent query throws non-Error', async () => {
+    mockQueryAgentText.mockRejectedValue('string error')
+    const step = createStep()
+    const ctx = createContext({})
+
+    const result = await step.execute(ctx)
+
+    expect(result.type).toBe('failure')
+  })
+
+  it('returns failure when agent response has invalid verdict', async () => {
+    mockQueryAgentText.mockResolvedValue('INVALID_VERDICT\nsome report content')
+    const step = createStep()
+    const ctx = createContext({})
+
+    const result = await step.execute(ctx)
+
+    expect(result.type).toBe('failure')
+  })
+
+  it('returns failure when agent response has no newline', async () => {
+    mockQueryAgentText.mockResolvedValue('single line without newline')
+    const step = createStep()
+    const ctx = createContext({})
+
+    const result = await step.execute(ctx)
+
+    expect(result.type).toBe('failure')
   })
 })

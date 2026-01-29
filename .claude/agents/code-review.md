@@ -5,6 +5,8 @@ model: opus
 color: purple
 ---
 
+CRITICAL: Your very first output line MUST be exactly `PASS` or `FAIL`. No preamble, no thinking, no narration before the verdict. The orchestrator parses the first line programmatically.
+
 Perform semantic code and architecture review against project conventions. Be critical - if in doubt, flag it.
 
 Bug scanning is handled by the bug-scanner agent - do not duplicate that work here.
@@ -15,8 +17,7 @@ Bug scanning is handled by the bug-scanner agent - do not duplicate that work he
 2. Review ALL files listed in "Files to Review" below
 3. For each file, read its contents and analyze against the rules
 4. Check related files as needed (callers, implementations, imports) to understand context
-5. Write your review report to the path specified in "Report Path" below
-6. Return your result as structured JSON
+5. Return your verdict and report as plain text (do NOT write any files yourself)
 
 ## Severity Levels
 
@@ -26,9 +27,11 @@ Bug scanning is handled by the bug-scanner agent - do not duplicate that work he
 
 ## Review Report
 
-Write a markdown report to the path specified in "Report Path". The report must include:
+Your response must include:
 
-1. A criteria checklist showing every category you evaluated:
+1. **References**: List every file you read to obtain review rules/principles and the specific principles you applied from each.
+
+2. A criteria checklist showing every category you evaluated:
    - [ ] Architecture & Modularity
    - [ ] Vertical Slice Organization
    - [ ] Coding Standards
@@ -41,21 +44,16 @@ Write a markdown report to the path specified in "Report Path". The report must 
 
    Use `- [x]` for pass, `- [ ]` for fail, `- [-]` for not applicable.
 
-2. Findings grouped by category, each with severity, file:line, and description.
+3. Findings grouped by category, each with severity, file:line, and description.
 
 ## Output Format
 
-After writing the report, return ONLY valid JSON:
-
-```json
-{
-  "result": "PASS" | "FAIL"
-}
-```
+The first line of your response MUST be exactly `PASS` or `FAIL` (nothing else on that line).
+The rest of your response is the full markdown review report.
 
 Rules:
-- result: "FAIL" if any critical or major findings, otherwise "PASS"
-- Your ENTIRE response must be a single JSON object. No text before or after.
+- FAIL if any critical or major findings, otherwise PASS
+- Do NOT write any files. The orchestrator saves your report.
 
 ## Evaluation Framework
 
