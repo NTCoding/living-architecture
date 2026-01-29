@@ -3,6 +3,7 @@ import {
 } from 'node:fs/promises'
 import { readdirSync } from 'node:fs'
 import { resolve } from 'node:path'
+import { z } from 'zod'
 import type { Step } from '../../../../platform/domain/workflow-execution/workflow-runner'
 import {
   success, failure 
@@ -21,7 +22,8 @@ export class AgentError extends Error {
 }
 
 const VALID_VERDICTS = ['PASS', 'FAIL'] as const
-type Verdict = (typeof VALID_VERDICTS)[number]
+const verdictSchema = z.enum(VALID_VERDICTS)
+type Verdict = z.infer<typeof verdictSchema>
 
 interface ReviewerResult {
   result: Verdict
@@ -60,10 +62,6 @@ async function loadAgentInstructions(agentPath: string): Promise<string> {
   }
 }
 
-function isVerdict(line: string): line is Verdict {
-  return VALID_VERDICTS.some((v) => v === line)
-}
-
 interface AgentResponse {
   verdict: Verdict
   report: string
@@ -78,14 +76,15 @@ function parseAgentResponse(raw: string): AgentResponse {
   }
 
   const firstLine = raw.slice(0, firstNewline).trim()
-  if (!isVerdict(firstLine)) {
+  const parsed = verdictSchema.safeParse(firstLine)
+  if (!parsed.success) {
     throw new AgentError(
       `Agent response must start with PASS or FAIL on the first line. Got: "${firstLine}"`,
     )
   }
 
   return {
-    verdict: firstLine,
+    verdict: parsed.data,
     report: raw.slice(firstNewline + 1),
   }
 }

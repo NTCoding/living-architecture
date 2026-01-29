@@ -70,3 +70,15 @@ Invalid Excuses:
 - "Would require large refactor"
 
 Default: Flag issues. Skip only with valid reason.
+
+## Pre-Response Checklist
+
+Before generating your response, verify:
+- [ ] First line is exactly `PASS` or `FAIL` (no other text, no preamble, no narration)
+- [ ] No thinking or commentary before the verdict
+- [ ] Report follows the verdict on subsequent lines
+- [ ] No files written (orchestrator handles file writing)
+
+## REMINDER: Output Format
+
+Your response MUST begin with exactly `PASS` or `FAIL` on the first line. No other text before the verdict. The orchestrator parses the first line programmatically and will reject any response that does not start with PASS or FAIL.
