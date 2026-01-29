@@ -73,6 +73,19 @@ The graph format must work for any programming language. Extractors are language
 ### Flow-Based, Not Dependency-Based
 Focus on operational flow (how operations execute) rather than technical dependencies (what imports what).
 
+**Key principle: Non-components are transparent.**
+
+When tracing flows, we trace through ALL code but only show **components** in the final graph. Non-component classes (repositories, services, utilities) are invisible — we trace through them to find component-to-component connections.
+
+```text
+Code call chain:     UseCase → Repository → Order.begin()
+                               (not a component)
+
+Graph shows:         UseCase → Order
+```
+
+This means extraction must build a complete call graph, then filter to component-to-component edges. The flow exists through the repository, but the repository itself is not architecturally significant unless explicitly marked as a Custom component type.
+
 ### Flexible Node Types
 While we define standard types (UI, API, UseCase, etc.), the system must support custom types for different architectural patterns.
 
