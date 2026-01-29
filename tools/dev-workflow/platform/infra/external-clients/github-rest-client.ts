@@ -71,6 +71,53 @@ function determinePRState(mergedAt: string | null, state: string): PRState {
   return 'closed'
 }
 
+export interface GitHubIssue {
+  number: number
+  title: string
+  assignees: { login: string }[]
+  body: string | null
+  milestone: { title: string } | null
+  labels: { name: string }[]
+}
+
+type OctokitIssueList = Awaited<ReturnType<Octokit['issues']['listForRepo']>>['data']
+
+function extractAssignees(
+  assignees: OctokitIssueList[number]['assignees'],
+): GitHubIssue['assignees'] {
+  return (assignees ?? []).flatMap((a) => {
+    if (a != null && 'login' in a && a.login) {
+      return [{ login: a.login }]
+    }
+    return []
+  })
+}
+
+function extractLabels(labels: OctokitIssueList[number]['labels']): GitHubIssue['labels'] {
+  return labels.flatMap((l) => {
+    if (typeof l === 'string' && l.length > 0) {
+      return [{ name: l }]
+    }
+    if (l != null && typeof l === 'object' && 'name' in l && l.name) {
+      return [{ name: l.name }]
+    }
+    return []
+  })
+}
+
+function extractIssueFields(issues: OctokitIssueList): GitHubIssue[] {
+  return issues
+    .filter((issue) => !issue.pull_request)
+    .map((raw) => ({
+      number: raw.number,
+      title: raw.title,
+      assignees: extractAssignees(raw.assignees),
+      body: raw.body ?? null,
+      milestone: raw.milestone ? { title: raw.milestone.title } : null,
+      labels: extractLabels(raw.labels),
+    }))
+}
+
 const repo = simpleGit()
 
 const GITHUB_HTTPS_URL_PATTERN = /github\.com\/([^/]+)\/([^/]+?)(?:\.git)?$/
@@ -342,6 +389,48 @@ export const github = {
       output: 'CI timed out waiting for checks to complete',
     }
     /* v8 ignore stop */
+  },
+
+  async listIssuesByMilestone(milestoneNumber: number): Promise<GitHubIssue[]> {
+    const {
+      owner, repo 
+    } = await getRepoInfo()
+    const response = await getOctokit().issues.listForRepo({
+      owner,
+      repo,
+      milestone: String(milestoneNumber),
+      state: 'open',
+      per_page: 100,
+    })
+    return extractIssueFields(response.data)
+  },
+
+  async listIssuesByLabel(label: string): Promise<GitHubIssue[]> {
+    const {
+      owner, repo 
+    } = await getRepoInfo()
+    const response = await getOctokit().issues.listForRepo({
+      owner,
+      repo,
+      labels: label,
+      state: 'open',
+      per_page: 100,
+    })
+    return extractIssueFields(response.data)
+  },
+
+  async getMilestoneNumber(milestoneName: string): Promise<number | undefined> {
+    const {
+      owner, repo 
+    } = await getRepoInfo()
+    const response = await getOctokit().issues.listMilestones({
+      owner,
+      repo,
+      state: 'open',
+      per_page: 100,
+    })
+    const milestone = response.data.find((m) => m.title === milestoneName)
+    return milestone?.number
   },
 
   async addThreadReply(threadId: string, body: string): Promise<void> {

@@ -16,6 +16,13 @@
         "cwd": "{workspaceRoot}"
       }
     },
+    "list-tasks": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "./tools/dev-workflow/node_modules/.bin/tsx tools/dev-workflow/features/list-tasks/entrypoint/cli.ts",
+        "cwd": "{workspaceRoot}"
+      }
+    },
     "respond-to-feedback": {
       "executor": "nx:run-commands",
       "options": {

@@ -11,7 +11,10 @@ const {
       get: vi.fn(),
       create: vi.fn(),
     },
-    issues: { get: vi.fn() },
+    issues: {
+      get: vi.fn(),
+      listForRepo: vi.fn(),
+    },
     checks: { listForRef: vi.fn() },
     graphql: vi.fn(),
   },
