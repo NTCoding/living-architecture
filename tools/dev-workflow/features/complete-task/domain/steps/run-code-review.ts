@@ -105,12 +105,13 @@ export function createCodeReviewStep(deps: CodeReviewDeps): Step<CompleteTaskCon
 
 function nextRoundNumber(reviewDir: string, name: string): number {
   try {
+    const prefix = `${name}-`
+    const suffix = '.md'
     const files = readdirSync(reviewDir)
-    const pattern = new RegExp(`^${name}-(\\d+)\\.md$`)
     const rounds = files
-      .map((file) => pattern.exec(file))
-      .filter((match): match is RegExpExecArray => match !== null)
-      .map((match) => parseInt(match[1], 10))
+      .filter((f) => f.startsWith(prefix) && f.endsWith(suffix))
+      .map((f) => parseInt(f.slice(prefix.length, -suffix.length), 10))
+      .filter((n) => !Number.isNaN(n))
     return rounds.length > 0 ? Math.max(...rounds) + 1 : 1
   } catch {
     return 1
