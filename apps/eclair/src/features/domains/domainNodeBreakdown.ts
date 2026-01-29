@@ -1,7 +1,6 @@
-import type {
-  Node, NodeType 
-} from '@/types/riviere'
-import { entryPointSchema } from '@/types/riviere'
+import {
+  entryPointSchema, type Node, type NodeType 
+} from '@/platform/domain/eclair-types'
 import type { DomainNode } from './extractDomainDetails'
 
 export interface NodeBreakdown {

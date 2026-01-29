@@ -6,7 +6,7 @@ import {
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { NodeTypeFilters } from './NodeTypeFilters'
-import type { NodeType } from '@/types/riviere'
+import type { NodeType } from '@/platform/domain/eclair-types'
 
 interface NodeTypeInfo {
   type: NodeType

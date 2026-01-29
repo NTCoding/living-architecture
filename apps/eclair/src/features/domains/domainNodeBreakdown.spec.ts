@@ -7,9 +7,9 @@ import {
   extractEntryPoints,
   type NodeBreakdown,
 } from './domainNodeBreakdown'
-import { parseNode } from '@/lib/riviereTestFixtures'
-import type { SourceLocation } from '@/types/riviere'
-import type { RawNode } from '@/lib/riviereTestFixtures'
+import { parseNode } from '@/platform/infra/__fixtures__/riviere-test-fixtures'
+import type { SourceLocation } from '@living-architecture/riviere-schema'
+import type { RawNode } from '@/platform/infra/__fixtures__/riviere-test-fixtures'
 
 const testSourceLocation = {
   repository: 'test-repo',

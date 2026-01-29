@@ -1,6 +1,6 @@
 import type {
   Node, Edge, NodeType, NodeId 
-} from '@/types/riviere'
+} from '@/platform/domain/eclair-types'
 
 export interface FilteredGraph {
   nodes: Node[]

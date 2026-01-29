@@ -7,8 +7,8 @@ import {
   parseDomainMetadata,
   parseDomainKey,
   type RawNode,
-} from '@/lib/riviereTestFixtures'
-import type { RiviereGraph } from '@/types/riviere'
+} from '@/platform/infra/__fixtures__/riviere-test-fixtures'
+import type { RiviereGraph } from '@living-architecture/riviere-schema'
 
 const testSourceLocation = {
   repository: 'test-repo',

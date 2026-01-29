@@ -1,6 +1,16 @@
+import type { RiviereGraph } from '@living-architecture/riviere-schema'
 import {
   RiviereBuilder, type BuilderOptions 
 } from './builder'
+
+function parseGraph(builder: RiviereBuilder): RiviereGraph {
+  const graph: RiviereGraph = JSON.parse(builder.serialize())
+  return graph
+}
+
+function findComponent(builder: RiviereBuilder, id: string) {
+  return parseGraph(builder).components.find((c) => c.id === id)
+}
 
 function createValidOptions(): BuilderOptions {
   return {
@@ -52,7 +62,7 @@ describe('RiviereBuilder enrichComponent duplicate rejection', () => {
       ],
     })
 
-    const enriched = builder.graph.components.find((c) => c.id === domainOp.id)
+    const enriched = findComponent(builder, domainOp.id)
     expect(enriched).toMatchObject({
       stateChanges: [
         {
@@ -90,7 +100,7 @@ describe('RiviereBuilder enrichComponent duplicate rejection', () => {
       ],
     })
 
-    const enriched = builder.graph.components.find((c) => c.id === domainOp.id)
+    const enriched = findComponent(builder, domainOp.id)
     expect(enriched).toMatchObject({
       stateChanges: [
         {
@@ -128,7 +138,7 @@ describe('RiviereBuilder enrichComponent duplicate rejection', () => {
       ],
     })
 
-    const enriched = builder.graph.components.find((c) => c.id === domainOp.id)
+    const enriched = findComponent(builder, domainOp.id)
     expect(enriched).toMatchObject({
       stateChanges: [
         {
@@ -157,7 +167,7 @@ describe('RiviereBuilder enrichComponent duplicate rejection', () => {
 
     builder.enrichComponent(domainOp.id, { businessRules: ['Order must have items'] })
 
-    const enriched = builder.graph.components.find((c) => c.id === domainOp.id)
+    const enriched = findComponent(builder, domainOp.id)
     expect(enriched).toMatchObject({ businessRules: ['Order must have items'] })
   })
 
@@ -174,7 +184,7 @@ describe('RiviereBuilder enrichComponent duplicate rejection', () => {
 
     builder.enrichComponent(domainOp.id, { behavior: { reads: ['this.state'] } })
 
-    const enriched = builder.graph.components.find((c) => c.id === domainOp.id)
+    const enriched = findComponent(builder, domainOp.id)
     expect(enriched).toMatchObject({ behavior: { reads: ['this.state'] } })
   })
 
@@ -191,7 +201,7 @@ describe('RiviereBuilder enrichComponent duplicate rejection', () => {
 
     builder.enrichComponent(domainOp.id, { behavior: { validates: ['items.length > 0'] } })
 
-    const enriched = builder.graph.components.find((c) => c.id === domainOp.id)
+    const enriched = findComponent(builder, domainOp.id)
     expect(enriched).toMatchObject({ behavior: { validates: ['items.length > 0'] } })
   })
 
@@ -208,7 +218,7 @@ describe('RiviereBuilder enrichComponent duplicate rejection', () => {
 
     builder.enrichComponent(domainOp.id, { behavior: { modifies: ['this.state'] } })
 
-    const enriched = builder.graph.components.find((c) => c.id === domainOp.id)
+    const enriched = findComponent(builder, domainOp.id)
     expect(enriched).toMatchObject({ behavior: { modifies: ['this.state'] } })
   })
 
@@ -225,7 +235,7 @@ describe('RiviereBuilder enrichComponent duplicate rejection', () => {
 
     builder.enrichComponent(domainOp.id, { behavior: { emits: ['OrderPlaced'] } })
 
-    const enriched = builder.graph.components.find((c) => c.id === domainOp.id)
+    const enriched = findComponent(builder, domainOp.id)
     expect(enriched).toMatchObject({ behavior: { emits: ['OrderPlaced'] } })
   })
 
@@ -268,7 +278,7 @@ describe('RiviereBuilder enrichComponent duplicate rejection', () => {
       },
     })
 
-    const enriched = builder.graph.components.find((c) => c.id === domainOp.id)
+    const enriched = findComponent(builder, domainOp.id)
     expect(enriched).toMatchObject({
       businessRules: ['Rule A', 'Rule B', 'Rule C'],
       stateChanges: [

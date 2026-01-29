@@ -1,4 +1,4 @@
-import type { NodeType } from '@/types/riviere'
+import type { NodeType } from '@/platform/domain/eclair-types'
 
 interface NodeTypeBadgeProps {readonly type: NodeType}
 

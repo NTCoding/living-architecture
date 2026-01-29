@@ -1,9 +1,6 @@
 import {
-  describe, it, expect, afterEach 
+  describe, it, expect 
 } from 'vitest'
-import { promises as fs } from 'node:fs'
-import { tmpdir } from 'node:os'
-import { join } from 'node:path'
 import { RiviereBuilder } from './builder'
 import {
   createValidOptions, createSourceLocation 
@@ -230,102 +227,6 @@ describe('RiviereBuilder', () => {
           target: { name: 'Stripe API' },
         },
       ])
-    })
-  })
-
-  describe('save', () => {
-    const tempFiles: string[] = []
-
-    afterEach(async () => {
-      for (const file of tempFiles) {
-        await fs.unlink(file).catch(() => undefined)
-      }
-      tempFiles.length = 0
-    })
-
-    it('writes formatted JSON to file', async () => {
-      const builder = RiviereBuilder.new(createValidOptions())
-
-      const source = builder.addUseCase({
-        name: 'Create Order',
-        domain: 'orders',
-        module: 'checkout',
-        sourceLocation: createSourceLocation(),
-      })
-
-      const target = builder.addDomainOp({
-        name: 'Save Order',
-        domain: 'orders',
-        module: 'checkout',
-        operationName: 'saveOrder',
-        sourceLocation: createSourceLocation(),
-      })
-
-      builder.link({
-        from: source.id,
-        to: target.id,
-      })
-
-      const filePath = join(tmpdir(), `riviere-test-${Date.now()}.json`)
-      tempFiles.push(filePath)
-
-      await builder.save(filePath)
-
-      const content = await fs.readFile(filePath, 'utf-8')
-
-      expect(content).toContain('"version": "1.0"')
-      expect(content).toContain('"name": "Create Order"')
-      expect(content).toContain('  "version"')
-    })
-
-    it('throws without writing when validation fails', async () => {
-      const builder = RiviereBuilder.new(createValidOptions())
-
-      const source = builder.addUseCase({
-        name: 'Create Order',
-        domain: 'orders',
-        module: 'checkout',
-        sourceLocation: createSourceLocation(),
-      })
-
-      builder.link({
-        from: source.id,
-        to: 'nonexistent:component:id',
-      })
-
-      const filePath = join(tmpdir(), `riviere-test-invalid-${Date.now()}.json`)
-      tempFiles.push(filePath)
-
-      await expect(builder.save(filePath)).rejects.toThrow(/validation failed/i)
-      await expect(fs.access(filePath)).rejects.toThrow(/ENOENT/)
-    })
-
-    it('throws when directory does not exist', async () => {
-      const builder = RiviereBuilder.new(createValidOptions())
-
-      const source = builder.addUseCase({
-        name: 'Create Order',
-        domain: 'orders',
-        module: 'checkout',
-        sourceLocation: createSourceLocation(),
-      })
-
-      const target = builder.addDomainOp({
-        name: 'Save Order',
-        domain: 'orders',
-        module: 'checkout',
-        operationName: 'saveOrder',
-        sourceLocation: createSourceLocation(),
-      })
-
-      builder.link({
-        from: source.id,
-        to: target.id,
-      })
-
-      const filePath = '/nonexistent-directory-xyz/output.json'
-
-      await expect(builder.save(filePath)).rejects.toThrow(/directory does not exist/i)
     })
   })
 })

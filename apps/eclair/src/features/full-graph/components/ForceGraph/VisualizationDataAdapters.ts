@@ -1,6 +1,7 @@
+import type { ExternalLink } from '@living-architecture/riviere-schema'
 import type {
-  Node, NodeType, Edge, ExternalLink 
-} from '@/types/riviere'
+  Node, NodeType, Edge 
+} from '@/platform/domain/eclair-types'
 import type {
   SimulationNode, SimulationLink 
 } from '../../types'

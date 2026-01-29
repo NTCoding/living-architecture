@@ -1,17 +1,18 @@
 import type {
-  RiviereGraph,
-  DomainName,
-  NodeType,
-  SystemType,
-  EdgeType,
-  SourceLocation,
-  EntryPoint,
-  NodeId,
-} from '@/types/riviere'
-import { nodeIdSchema } from '@/types/riviere'
+  RiviereGraph, SystemType, SourceLocation 
+} from '@living-architecture/riviere-schema'
+import {
+  nodeIdSchema,
+  type DomainName,
+  type NodeType,
+  type EdgeType,
+  type EntryPoint,
+  type NodeId,
+} from '@/platform/domain/eclair-types'
 import {
   RiviereQuery, type Entity 
 } from '@living-architecture/riviere-query'
+import { compareByCodePoint } from '@/platform/domain/compare-by-code-point'
 import type { NodeBreakdown } from './domainNodeBreakdown'
 import {
   countNodesByType, formatDomainNodes, extractEntryPoints 
@@ -118,7 +119,7 @@ function buildCrossDomainEdges(graph: RiviereGraph, domainId: DomainName): Cross
     })
   }
 
-  return crossDomainEdges.sort((a, b) => a.targetDomain.localeCompare(b.targetDomain))
+  return crossDomainEdges.sort((a, b) => compareByCodePoint(a.targetDomain, b.targetDomain))
 }
 
 export function extractDomainDetails(
@@ -176,10 +177,10 @@ export function extractDomainDetails(
 
   const events: DomainEvents = {
     published: publishedEvents.toSorted((a: DomainEvent, b: DomainEvent) =>
-      a.eventName.localeCompare(b.eventName),
+      compareByCodePoint(a.eventName, b.eventName),
     ),
     consumed: consumedHandlers.toSorted((a: DomainEventHandler, b: DomainEventHandler) =>
-      a.handlerName.localeCompare(b.handlerName),
+      compareByCodePoint(a.handlerName, b.handlerName),
     ),
   }
 

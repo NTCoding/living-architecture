@@ -1,9 +1,10 @@
 import {
   RiviereQuery, parseComponentId, ComponentNotFoundError 
-} from './RiviereQuery'
+} from './queries/RiviereQuery'
 import {
-  createMinimalValidGraph, createAPIComponent 
-} from './riviere-graph-fixtures'
+  createMinimalValidGraph,
+  createAPIComponent,
+} from './platform/__fixtures__/riviere-graph-fixtures'
 
 describe('RiviereQuery.traceFlow()', () => {
   it('throws ComponentNotFoundError when startComponentId does not exist', () => {

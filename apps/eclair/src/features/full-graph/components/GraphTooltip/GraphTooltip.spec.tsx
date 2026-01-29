@@ -10,7 +10,7 @@ import {
 import type {
   TooltipData, SimulationNode 
 } from '../../types'
-import { parseNode } from '@/lib/riviereTestFixtures'
+import { parseNode } from '@/platform/infra/__fixtures__/riviere-test-fixtures'
 const testSourceLocation = {
   repository: 'test-repo',
   filePath: 'src/test.ts',

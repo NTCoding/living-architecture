@@ -3,14 +3,14 @@ import {
 } from '@testing-library/react'
 import {
   GraphProvider, useGraph
-} from '@/contexts/GraphContext'
-import { EmptyState } from './EmptyState'
+} from '@/platform/infra/graph-state/GraphContext'
+import { EmptyState } from './entrypoint/EmptyState'
 import {
   parseNode, parseDomainMetadata
-} from '@/lib/riviereTestFixtures'
+} from '@/platform/infra/__fixtures__/riviere-test-fixtures'
 import type {
   RiviereGraph, SourceLocation
-} from '@/types/riviere'
+} from '@living-architecture/riviere-schema'
 import {
   dropFilesOnElement, getDropZone
 } from '@/test/setup'

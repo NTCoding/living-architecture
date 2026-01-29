@@ -3,7 +3,7 @@ import {
 } from 'vitest'
 import { computeDagreLayout } from './computeDagreLayout'
 import type { SimulationNode } from '../../types'
-import { parseNode } from '@/lib/riviereTestFixtures'
+import { parseNode } from '@/platform/infra/__fixtures__/riviere-test-fixtures'
 
 const testSourceLocation = {
   repository: 'test-repo',

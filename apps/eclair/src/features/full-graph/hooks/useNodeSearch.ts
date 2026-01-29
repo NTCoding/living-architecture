@@ -1,6 +1,6 @@
 import type {
   Node, Edge 
-} from '@/types/riviere'
+} from '@/platform/domain/eclair-types'
 import { traceFlow } from './useFlowTracing'
 
 export interface SearchResult {

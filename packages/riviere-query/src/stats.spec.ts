@@ -1,7 +1,7 @@
 import {
   describe, it, expect 
 } from 'vitest'
-import { RiviereQuery } from './RiviereQuery'
+import { RiviereQuery } from './queries/RiviereQuery'
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
 import {
   createMinimalValidGraph,
@@ -9,7 +9,7 @@ import {
   createEventComponent,
   createDomainOpComponent,
   defaultSourceLocation,
-} from './riviere-graph-fixtures'
+} from './platform/__fixtures__/riviere-graph-fixtures'
 
 describe('stats', () => {
   it('returns componentCount matching number of components', () => {

@@ -24,10 +24,8 @@ await esbuild.build({
   format: 'esm',
   outfile: 'dist/bin.js',
   banner: {js: '#!/usr/bin/env node',},
-  // Bundle workspace packages (@living-architecture/*) into CLI
-  // Externalize npm dependencies because many use CommonJS patterns
-  // that fail when bundled into ESM (e.g., yaml, ts-morph)
   external: externalDependencies,
+  define: { INJECTED_VERSION: JSON.stringify(pkg.version) },
 })
 
 // Library entry point (no side effects)

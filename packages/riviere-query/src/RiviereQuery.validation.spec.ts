@@ -1,5 +1,5 @@
-import { RiviereQuery } from './RiviereQuery'
-import { createMinimalValidGraph } from './riviere-graph-fixtures'
+import { RiviereQuery } from './queries/RiviereQuery'
+import { createMinimalValidGraph } from './platform/__fixtures__/riviere-graph-fixtures'
 
 describe('RiviereQuery validate()', () => {
   it('returns valid=true for a valid minimal graph', () => {

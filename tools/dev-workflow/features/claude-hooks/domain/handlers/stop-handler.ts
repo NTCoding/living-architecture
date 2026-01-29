@@ -38,18 +38,19 @@ const transcriptEntrySchema = z.object({
   message: messageContentSchema,
 })
 
-function extractTextFromContent(content: string | unknown[]): string | undefined {
+function extractAllTextFromContent(content: string | unknown[]): string[] {
   if (typeof content === 'string') {
-    return content
+    return [content]
   }
 
+  const texts: string[] = []
   for (const block of content) {
     const parseResult = textBlockSchema.safeParse(block)
     if (parseResult.success) {
-      return parseResult.data.text
+      texts.push(parseResult.data.text)
     }
   }
-  return undefined
+  return texts
 }
 
 function tryParseJson(line: string): unknown | undefined {
@@ -60,51 +61,55 @@ function tryParseJson(line: string): unknown | undefined {
   }
 }
 
-function parseTranscriptEntry(line: string): string | undefined {
+function parseTranscriptEntryTexts(line: string): string[] {
   const parsed = tryParseJson(line)
   if (parsed === undefined) {
-    return undefined
+    return []
   }
 
   const parseResult = transcriptEntrySchema.safeParse(parsed)
   if (!parseResult.success) {
-    return undefined
+    return []
   }
 
-  return extractTextFromContent(parseResult.data.message.content)
+  return extractAllTextFromContent(parseResult.data.message.content)
 }
 
-function getLastAssistantMessage(transcriptPath: string): string | undefined {
+function getLastAssistantTexts(transcriptPath: string): string[] {
   if (!fs.existsSync(transcriptPath)) {
-    return undefined
+    return []
   }
 
   const content = fs.readFileSync(transcriptPath, 'utf-8')
   const lines = content.trim().split('\n').filter(Boolean).reverse()
 
   for (const line of lines) {
-    const message = parseTranscriptEntry(line)
-    if (message !== undefined) {
-      return message
+    const texts = parseTranscriptEntryTexts(line)
+    if (texts.length > 0) {
+      return texts
     }
   }
 
-  return undefined
+  return []
 }
 
-function hasValidPrefix(message: string): boolean {
-  const trimmed = message.trimStart()
+function hasValidPrefix(text: string): boolean {
+  const trimmed = text.trimStart()
   return trimmed.startsWith(MERGEABLE_PREFIX) || trimmed.startsWith(NOT_MERGEABLE_PREFIX)
 }
 
 export function handleStop(input: StopInput): StopOutput {
-  const lastMessage = getLastAssistantMessage(input.transcript_path)
+  if (input.stop_hook_active) {
+    return allowStop()
+  }
 
-  if (!lastMessage) {
+  const texts = getLastAssistantTexts(input.transcript_path)
+
+  if (texts.length === 0) {
     return blockStop(STOP_REMINDER)
   }
 
-  if (hasValidPrefix(lastMessage)) {
+  if (texts.some(hasValidPrefix)) {
     return allowStop()
   }
 

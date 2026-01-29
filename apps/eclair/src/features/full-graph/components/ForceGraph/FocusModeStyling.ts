@@ -1,5 +1,5 @@
 import * as d3 from 'd3'
-import type { NodeType } from '@/types/riviere'
+import type { NodeType } from '@/platform/domain/eclair-types'
 import type {
   SimulationNode, SimulationLink 
 } from '../../types'

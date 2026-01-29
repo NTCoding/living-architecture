@@ -5,7 +5,7 @@ import type { AggregatedConnection } from '../../extractDomainDetails'
 import { EdgeLine } from './EdgeLine'
 import { DomainNode } from './DomainNode'
 import { DomainInfoModal } from './DomainInfoModal'
-import { LayoutError } from '@/errors'
+import { LayoutError } from '@/shell/errors/errors'
 
 interface ViewTransform {
   scale: number

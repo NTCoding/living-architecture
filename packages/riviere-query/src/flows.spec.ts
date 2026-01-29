@@ -1,10 +1,10 @@
-import { RiviereQuery } from './RiviereQuery'
+import { RiviereQuery } from './queries/RiviereQuery'
 import {
   createMinimalValidGraph,
   createAPIComponent,
   createUseCaseComponent,
   assertDefined,
-} from './riviere-graph-fixtures'
+} from './platform/__fixtures__/riviere-graph-fixtures'
 
 describe('RiviereQuery.flows()', () => {
   it('returns single flow when graph has one entry point', () => {

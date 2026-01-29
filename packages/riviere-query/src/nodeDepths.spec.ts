@@ -3,13 +3,13 @@ import {
 } from 'vitest'
 import {
   RiviereQuery, parseComponentId 
-} from './RiviereQuery'
+} from './queries/RiviereQuery'
 import {
   createMinimalValidGraph,
   createAPIComponent,
   createUseCaseComponent,
   defaultSourceLocation,
-} from './riviere-graph-fixtures'
+} from './platform/__fixtures__/riviere-graph-fixtures'
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
 
 describe('nodeDepths', () => {

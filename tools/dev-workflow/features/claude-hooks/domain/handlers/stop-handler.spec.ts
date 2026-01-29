@@ -164,4 +164,63 @@ describe('handleStop', () => {
 
     expect(result._tag).toBe('allow')
   })
+
+  it('allows stop when prefix is in a later text block', () => {
+    mockReadFileSync.mockReturnValue(
+      JSON.stringify({
+        type: 'assistant',
+        message: {
+          content: [
+            {
+              type: 'text',
+              text: 'Some tool output or other text without prefix.',
+            },
+            {
+              type: 'text',
+              text: '[No Mergeable PR: awaiting user input]',
+            },
+          ],
+        },
+      }),
+    )
+
+    const result = handleStop(baseInput)
+
+    expect(result._tag).toBe('allow')
+  })
+
+  it('blocks when no text blocks have the prefix', () => {
+    mockReadFileSync.mockReturnValue(
+      JSON.stringify({
+        type: 'assistant',
+        message: {
+          content: [
+            {
+              type: 'text',
+              text: 'First block without prefix.',
+            },
+            {
+              type: 'text',
+              text: 'Second block also without prefix.',
+            },
+          ],
+        },
+      }),
+    )
+
+    const result = handleStop(baseInput)
+
+    expect(result._tag).toBe('block')
+  })
+
+  it('allows stop when stop_hook_active is true to prevent infinite loops', () => {
+    const input: StopInput = {
+      ...baseInput,
+      stop_hook_active: true,
+    }
+
+    const result = handleStop(input)
+
+    expect(result._tag).toBe('allow')
+  })
 })

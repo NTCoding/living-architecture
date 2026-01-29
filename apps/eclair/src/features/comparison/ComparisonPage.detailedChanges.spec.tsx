@@ -6,7 +6,7 @@ import {
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
-import { ComparisonPage } from './ComparisonPage'
+import { ComparisonPage } from './entrypoint/ComparisonPage'
 import { TestAssertionError } from '@/test-assertions'
 
 function renderPage(): ReturnType<typeof render> {

@@ -13,7 +13,7 @@ import {
   entryPointSchema,
   type OperationName,
   type EntryPoint,
-} from '@/types/riviere'
+} from '@/platform/domain/eclair-types'
 import { assertDefined } from '@/test-assertions'
 
 const parseOperation = (s: string): OperationName => operationNameSchema.parse(s)

@@ -2,9 +2,9 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { HashRouter } from 'react-router-dom'
 import './index.css'
-import { App } from './App'
-import { ThemeProvider } from '@/contexts/ThemeContext'
-import { DOMError } from '@/errors'
+import { App } from './shell/App'
+import { ThemeProvider } from '@/platform/infra/theme/ThemeContext'
+import { DOMError } from '@/shell/errors/errors'
 
 const rootElement = document.getElementById('root')
 

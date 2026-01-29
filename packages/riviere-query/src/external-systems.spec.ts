@@ -1,13 +1,13 @@
 import {
   describe, it, expect 
 } from 'vitest'
-import { queryExternalDomains } from './external-system-queries'
+import { queryExternalDomains } from './queries/external-system-queries'
 import {
   createMinimalValidGraph,
   createAPIComponent,
   createUseCaseComponent,
-} from './riviere-graph-fixtures'
-import { parseDomainName } from './domain-types'
+} from './platform/__fixtures__/riviere-graph-fixtures'
+import { parseDomainName } from './queries/domain-types'
 
 describe('queryExternalDomains', () => {
   it('returns empty array when graph has no external links', () => {

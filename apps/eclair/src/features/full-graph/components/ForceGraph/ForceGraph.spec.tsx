@@ -5,14 +5,14 @@ import {
   render, screen 
 } from '@testing-library/react'
 import { ForceGraph } from './ForceGraph'
-import type { RiviereGraph } from '@/types/riviere'
+import type { RiviereGraph } from '@living-architecture/riviere-schema'
 import type { Theme } from '@/types/theme'
 import {
   parseNode,
   parseEdge,
   parseDomainKey,
   parseDomainMetadata,
-} from '@/lib/riviereTestFixtures'
+} from '@/platform/infra/__fixtures__/riviere-test-fixtures'
 const testSourceLocation = {
   repository: 'test-repo',
   filePath: 'src/test.ts',
