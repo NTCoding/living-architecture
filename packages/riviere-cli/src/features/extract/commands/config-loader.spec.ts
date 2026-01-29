@@ -10,7 +10,7 @@ import {
   ConfigSchemaValidationError,
   InvalidConfigFormatError,
   PackageResolveError,
-} from '../../../shell/errors/errors'
+} from '../../../platform/infra/errors/errors'
 
 vi.mock('node:fs')
 

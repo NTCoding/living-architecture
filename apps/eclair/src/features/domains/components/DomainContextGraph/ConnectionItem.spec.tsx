@@ -5,7 +5,7 @@ import {
   render, screen 
 } from '@testing-library/react'
 import { ConnectionItem } from './ConnectionItem'
-import type { AggregatedConnection } from '../../extractDomainDetails'
+import type { AggregatedConnection } from '../../queries/extract-domain-details'
 
 describe('ConnectionItem', () => {
   it('renders outgoing connection with domain names', () => {

@@ -1,13 +1,11 @@
 import { readFile } from 'node:fs/promises'
 import { readdirSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { z } from 'zod'
 import type { Step } from '../../../../platform/domain/workflow-execution/workflow-runner'
 import {
   success, failure 
 } from '../../../../platform/domain/workflow-execution/step-result'
-import { claude } from '../../../../platform/infra/external-clients/claude-agent'
-import { git } from '../../../../platform/infra/external-clients/git-client'
-import { cli } from '../../../../platform/infra/external-clients/cli-args'
 import type { CompleteTaskContext } from '../task-to-complete'
 import {
   taskCheckMarkerExists, createTaskCheckMarker 
@@ -23,18 +21,25 @@ export class AgentError extends Error {
 
 const agentResponseSchema = z.object({ result: z.enum(['PASS', 'FAIL']) })
 
-const reviewerResultSchema = z.object({
-  result: z.enum(['PASS', 'FAIL']),
-  name: z.string(),
-  reportPath: z.string(),
-})
-type ReviewerResult = z.infer<typeof reviewerResultSchema>
+interface ReviewerResult {
+  result: 'PASS' | 'FAIL'
+  name: string
+  reportPath: string
+}
 
 const VALID_REVIEWERS = ['code-review', 'bug-scanner', 'task-check'] as const
 type ReviewerName = (typeof VALID_REVIEWERS)[number]
 
-function shouldSkipCodeReview(): boolean {
-  return cli.hasFlag('--reject-review-feedback')
+export interface CodeReviewDeps {
+  skipReview: boolean
+  baseBranch: () => Promise<string>
+  unpushedFiles: (baseBranch: string) => Promise<string[]>
+  queryAgent: <T>(opts: {
+    prompt: string
+    model: 'opus' | 'sonnet' | 'haiku'
+    outputSchema: z.ZodSchema<T>
+    settingSources?: ('user' | 'project' | 'local')[]
+  }) => Promise<T>
 }
 
 function getReviewerNames(hasIssue: boolean, reviewDir: string): readonly ReviewerName[] {
@@ -54,45 +59,48 @@ async function loadAgentInstructions(agentPath: string): Promise<string> {
   }
 }
 
-export const codeReview: Step<CompleteTaskContext> = {
-  name: 'code-review',
-  execute: async (ctx) => {
-    if (shouldSkipCodeReview()) {
+export function createCodeReviewStep(deps: CodeReviewDeps): Step<CompleteTaskContext> {
+  return {
+    name: 'code-review',
+    execute: async (ctx) => {
+      if (deps.skipReview) {
+        return success()
+      }
+
+      if (!ctx.reviewDir) {
+        return failure({
+          type: 'fix_errors',
+          details: 'Missing required context: reviewDir',
+        })
+      }
+
+      const baseBranch = await deps.baseBranch()
+      const filesToReview = await deps.unpushedFiles(baseBranch)
+
+      const reviewerNames = getReviewerNames(ctx.hasIssue, ctx.reviewDir)
+
+      const results = await executeCodeReviewAgents(
+        deps,
+        reviewerNames,
+        filesToReview,
+        ctx.reviewDir,
+        ctx.taskDetails,
+      )
+
+      const failures = results.filter((r) => r.result === 'FAIL')
+      if (failures.length > 0) {
+        return failure({
+          type: 'fix_review',
+          details: failures.map((f) => ({
+            name: f.name,
+            reportPath: f.reportPath,
+          })),
+        })
+      }
+
       return success()
-    }
-
-    if (!ctx.reviewDir) {
-      return failure({
-        type: 'fix_errors',
-        details: 'Missing required context: reviewDir',
-      })
-    }
-
-    const baseBranch = await git.baseBranch()
-    const filesToReview = await git.unpushedFiles(baseBranch)
-
-    const reviewerNames = getReviewerNames(ctx.hasIssue, ctx.reviewDir)
-
-    const results = await executeCodeReviewAgents(
-      reviewerNames,
-      filesToReview,
-      ctx.reviewDir,
-      ctx.taskDetails,
-    )
-
-    const failures = results.filter((r) => r.result === 'FAIL')
-    if (failures.length > 0) {
-      return failure({
-        type: 'fix_review',
-        details: failures.map((f) => ({
-          name: f.name,
-          reportPath: f.reportPath,
-        })),
-      })
-    }
-
-    return success()
-  },
+    },
+  }
 }
 
 function nextRoundNumber(reviewDir: string, name: string): number {
@@ -110,6 +118,7 @@ function nextRoundNumber(reviewDir: string, name: string): number {
 }
 
 async function executeCodeReviewAgents(
+  deps: CodeReviewDeps,
   names: readonly ReviewerName[],
   filesToReview: string[],
   reviewDir: string,
@@ -133,7 +142,7 @@ async function executeCodeReviewAgents(
       const agentPath = `.claude/agents/${name}.md`
       const basePrompt = await loadAgentInstructions(agentPath)
       const round = nextRoundNumber(reviewDir, name)
-      const reportPath = `${reviewDir}/${name}-${round}.md`
+      const reportPath = resolve(`${reviewDir}/${name}-${round}.md`)
 
       const promptParts = [
         basePrompt,
@@ -148,7 +157,7 @@ async function executeCodeReviewAgents(
         )
       }
 
-      const response = await claude.query({
+      const response = await deps.queryAgent({
         prompt: promptParts.join(''),
         model: 'sonnet',
         outputSchema: agentResponseSchema,

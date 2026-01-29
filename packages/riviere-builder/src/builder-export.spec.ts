@@ -1,10 +1,10 @@
 import {
   describe, it, expect 
 } from 'vitest'
-import { RiviereBuilder } from './builder'
+import { RiviereBuilder } from './domain/builder-facade'
 import {
   createValidOptions, createSourceLocation 
-} from './builder-test-fixtures'
+} from './__fixtures__/builder-fixtures'
 
 describe('RiviereBuilder', () => {
   describe('build', () => {

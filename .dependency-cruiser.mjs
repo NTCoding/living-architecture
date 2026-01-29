@@ -3,8 +3,8 @@ export default {
     {
       name: "root-structure",
       severity: "error",
-      comment: "Package root must only contain features/, platform/, shell/",
-      from: { path: "apps/[^/]+/src/(?!features/|platform/|shell/).+" },
+      comment: "src/ root must only contain structural folders (features/, platform/, shell/, domain/, queries/)",
+      from: { path: "(apps|packages|tools)/(?!riviere-schema/|riviere-extract-config/|riviere-extract-conventions/)[^/]+/src/(?!features/|platform/|shell/|domain/|queries/).+" },
       to: {}
     },
     {
@@ -58,6 +58,13 @@ export default {
       comment: "Domain must not import from commands/, queries/, entrypoint/, or shell/",
       from: { path: "features/[^/]+/domain/.+" },
       to: { path: "(features/[^/]+/(commands|queries|entrypoint)/|shell/).+" }
+    },
+    {
+      name: "domain-no-infra",
+      severity: "error",
+      comment: "Domain must not import from platform/infra/",
+      from: { path: "domain/.+" },
+      to: { path: "platform/infra/.+" }
     },
     {
       name: "no-cross-feature-imports",
@@ -116,20 +123,10 @@ export default {
     }
   ],
 
-  required: [
-    {
-      name: "commands-must-use-domain",
-      severity: "error",
-      comment: "Every command MUST import from domain/",
-      module: { path: "features/([^/]+)/commands/[^/]+\\.ts$" },
-      to: { path: "features/$1/domain/.+" }
-    }
-  ],
-
   options: {
     doNotFollow: { path: "node_modules" },
     tsPreCompilationDeps: true,
     tsConfig: { fileName: "tsconfig.base.json" },
-    exclude: ["dist/", "\\.spec\\.", "\\.test\\.", "\\.d\\.ts$"]
+    exclude: ["dist/", "\\.spec\\.", "\\.test\\.", "\\.d\\.ts$", "__fixtures__"]
   }
 };

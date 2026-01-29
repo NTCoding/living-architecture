@@ -7,7 +7,7 @@ import {
 import userEvent from '@testing-library/user-event'
 import { BrowserRouter } from 'react-router-dom'
 import { DomainDetailModal } from './DomainDetailModal'
-import type { DomainDetails } from '../../extractDomainDetails'
+import type { DomainDetails } from '../../queries/extract-domain-details'
 import {
   operationNameSchema,
   entryPointSchema,

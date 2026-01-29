@@ -1,4 +1,4 @@
-import type { DomainPosition } from './DomainContextGraph'
+import type { DomainPosition } from './domain-position'
 
 interface EdgeLineProps {
   readonly from: DomainPosition

@@ -1,5 +1,4 @@
 import type { TaskDetails } from '../../../platform/domain/workflow-execution/workflow-runner'
-import { cli } from '../../../platform/infra/external-clients/cli-args'
 import { validateConventionalCommit } from '../../../platform/domain/commit-format/conventional-commit-title'
 import { formatCommitMessage } from '../../../platform/domain/commit-format/commit-message-formatter'
 
@@ -33,18 +32,21 @@ export interface PRDetails {
   taskDetails?: TaskDetails
 }
 
+export interface PRDetailsCliArgs {
+  prTitle: string | undefined
+  prBody: string | undefined
+  commitMessage: string | undefined
+}
+
 export function resolvePRDetails(
+  cliArgs: PRDetailsCliArgs,
   issueNumber: number | undefined,
   taskDetails: TaskDetails | undefined,
 ): PRDetails {
-  const cliPrTitle = cli.parseArg('--pr-title')
-  const cliPrBody = cli.parseArg('--pr-body')
-  const cliCommitMessage = cli.parseArg('--commit-message')
-
-  const prTitle = cliPrTitle ?? taskDetails?.title
-  const rawBody = cliPrBody ?? taskDetails?.body
+  const prTitle = cliArgs.prTitle ?? taskDetails?.title
+  const rawBody = cliArgs.prBody ?? taskDetails?.body
   const prBody = issueNumber ? `Closes #${issueNumber}\n\n${rawBody}` : rawBody
-  const commitMessage = cliCommitMessage
+  const commitMessage = cliArgs.commitMessage
 
   if (!prTitle || !prBody) {
     throw new MissingPullRequestDetailsError()

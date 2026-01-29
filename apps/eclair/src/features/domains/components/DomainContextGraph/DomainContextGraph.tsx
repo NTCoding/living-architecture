@@ -1,11 +1,13 @@
 import {
   useState, useEffect, useCallback, useRef
 } from 'react'
-import type { AggregatedConnection } from '../../extractDomainDetails'
+import type { AggregatedConnection } from '../../queries/extract-domain-details'
 import { EdgeLine } from './EdgeLine'
 import { DomainNode } from './DomainNode'
 import { DomainInfoModal } from './DomainInfoModal'
-import { LayoutError } from '@/shell/errors/errors'
+import { LayoutError } from '@/platform/infra/errors/errors'
+import type { DomainPosition } from './domain-position'
+export type { DomainPosition } from './domain-position'
 
 interface ViewTransform {
   scale: number
@@ -16,13 +18,6 @@ interface ViewTransform {
 interface DomainContextGraphProps {
   readonly domainId: string
   readonly connections: readonly AggregatedConnection[]
-}
-
-export interface DomainPosition {
-  id: string
-  x: number
-  y: number
-  isCurrent: boolean
 }
 
 function calculatePositions(

@@ -1,30 +1,35 @@
 import {
   describe, it, expect, vi, beforeEach 
 } from 'vitest'
-
-const {
-  mockGit, mockGitHub 
-} = vi.hoisted(() => ({
-  mockGit: {
-    uncommittedFiles: vi.fn(),
-    stageAll: vi.fn(),
-    commit: vi.fn(),
-    push: vi.fn(),
-    headSha: vi.fn(),
-    baseBranch: vi.fn(),
-  },
-  mockGitHub: {
-    getPR: vi.fn(),
-    createPR: vi.fn(),
-    watchCI: vi.fn(),
-  },
-}))
-
-vi.mock('../../../../platform/infra/external-clients/git-client', () => ({ git: mockGit }))
-vi.mock('../../../../platform/infra/external-clients/github-rest-client', () => ({github: mockGitHub,}))
-
-import { submitPR } from './submit-pull-request'
+import { createSubmitPRStep } from './submit-pull-request'
 import type { CompleteTaskContext } from '../task-to-complete'
+
+const mockGit = {
+  uncommittedFiles: vi.fn(),
+  stageAll: vi.fn(),
+  commit: vi.fn(),
+  push: vi.fn(),
+  headSha: vi.fn(),
+  baseBranch: vi.fn(),
+}
+
+const mockGitHub = {
+  getPR: vi.fn(),
+  createPR: vi.fn(),
+  watchCI: vi.fn(),
+}
+
+const submitPR = createSubmitPRStep({
+  uncommittedFiles: mockGit.uncommittedFiles,
+  stageAll: mockGit.stageAll,
+  commit: mockGit.commit,
+  push: mockGit.push,
+  headSha: mockGit.headSha,
+  baseBranch: mockGit.baseBranch,
+  getPR: mockGitHub.getPR,
+  createPR: mockGitHub.createPR,
+  watchCI: mockGitHub.watchCI,
+})
 
 function createContext(overrides: Partial<CompleteTaskContext> = {}): CompleteTaskContext {
   return {

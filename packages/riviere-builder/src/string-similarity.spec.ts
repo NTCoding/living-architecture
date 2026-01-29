@@ -2,8 +2,9 @@ import {
   describe, it, expect 
 } from 'vitest'
 import {
-  levenshteinDistance, similarityScore 
-} from './string-similarity'
+  levenshteinDistance,
+  similarityScore,
+} from './platform/domain/text-similarity/string-similarity'
 
 describe('levenshteinDistance', () => {
   it.each([

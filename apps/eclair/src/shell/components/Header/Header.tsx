@@ -9,7 +9,7 @@ import { useGraph } from '@/platform/infra/graph-state/GraphContext'
 import {
   OrphanWarning, type OrphanDetectionResult
 } from '@/shell/components/OrphanWarning/OrphanWarning'
-import { useRiviereQuery } from '@/hooks/useRiviereQuery'
+import { useRiviereQuery } from '@/platform/infra/riviere-query/useRiviereQuery'
 
 interface HeaderProps {
   readonly graphName: GraphName | undefined

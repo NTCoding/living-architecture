@@ -5,7 +5,7 @@ import type { Theme } from '@/types/theme'
 import {
   DEFAULT_THEME, THEME_STORAGE_KEY
 } from '@/types/theme'
-import { ContextError } from '@/shell/errors/errors'
+import { ContextError } from '@/platform/infra/errors/errors'
 
 interface ThemeContextValue {
   readonly theme: Theme

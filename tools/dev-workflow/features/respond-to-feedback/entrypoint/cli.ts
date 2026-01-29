@@ -1,5 +1,5 @@
 #!/usr/bin/env tsx
-import { executeRespondToFeedback } from '../use-cases/respond-to-feedback'
+import { executeRespondToFeedback } from '../commands/respond-to-feedback'
 
 executeRespondToFeedback().catch((error: unknown) => {
   console.error('Error:', error instanceof Error ? error.message : String(error))

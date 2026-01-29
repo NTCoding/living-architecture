@@ -7,7 +7,7 @@ import {
 import userEvent from '@testing-library/user-event'
 import { BrowserRouter } from 'react-router-dom'
 import { DomainContextGraph } from './DomainContextGraph'
-import type { AggregatedConnection } from '../../extractDomainDetails'
+import type { AggregatedConnection } from '../../queries/extract-domain-details'
 import { TestAssertionError } from '@/test-assertions'
 
 function createConnections(

@@ -1,12 +1,9 @@
 import {
   describe, it, expect, vi, beforeEach 
 } from 'vitest'
-
-const { mockFetchRawPRFeedback } = vi.hoisted(() => ({ mockFetchRawPRFeedback: vi.fn() }))
-
-vi.mock('../../infra/external-clients/github-graphql-client', () => ({fetchRawPRFeedback: mockFetchRawPRFeedback,}))
-
 import { getPRFeedback } from './get-pr-feedback'
+
+const mockFetchRawPRFeedback = vi.fn()
 
 describe('getPRFeedback', () => {
   beforeEach(() => {
@@ -40,7 +37,7 @@ describe('getPRFeedback', () => {
       ],
     })
 
-    const result = await getPRFeedback(123)
+    const result = await getPRFeedback(mockFetchRawPRFeedback, 123)
 
     expect(result.threads).toHaveLength(1)
     expect(result.threads[0]).toMatchObject({
@@ -93,7 +90,7 @@ describe('getPRFeedback', () => {
       reviewDecisions: [],
     })
 
-    const result = await getPRFeedback(123)
+    const result = await getPRFeedback(mockFetchRawPRFeedback, 123)
 
     expect(result.threads).toHaveLength(1)
     expect(result.threads[0]?.threadId).toStrictEqual('active')
@@ -136,7 +133,7 @@ describe('getPRFeedback', () => {
       reviewDecisions: [],
     })
 
-    const result = await getPRFeedback(123, { includeResolved: true })
+    const result = await getPRFeedback(mockFetchRawPRFeedback, 123, { includeResolved: true })
 
     expect(result.threads).toHaveLength(2)
     const threadIds = result.threads.map((t) => t.threadId)
@@ -159,7 +156,7 @@ describe('getPRFeedback', () => {
       reviewDecisions: [],
     })
 
-    const result = await getPRFeedback(123)
+    const result = await getPRFeedback(mockFetchRawPRFeedback, 123)
 
     expect(result.threads).toHaveLength(0)
   })
@@ -175,7 +172,7 @@ describe('getPRFeedback', () => {
       ],
     })
 
-    const result = await getPRFeedback(123)
+    const result = await getPRFeedback(mockFetchRawPRFeedback, 123)
 
     expect(result.reviewDecisions[0]?.reviewer).toStrictEqual('[deleted]')
   })

@@ -1,7 +1,7 @@
 import { RiviereQuery } from '@living-architecture/riviere-query'
 import {
   RiviereBuilder, type BuilderOptions 
-} from './builder'
+} from './domain/builder-facade'
 
 function createValidOptions(): BuilderOptions {
   return {

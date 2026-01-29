@@ -8,9 +8,9 @@ import { FlowGraphView } from './FlowGraphView'
 import {
   parseNode, parseEdge, parseDomainMetadata 
 } from '@/platform/infra/__fixtures__/riviere-test-fixtures'
-import type { FlowStep } from '../../extractFlows'
+import type { FlowStep } from '../../queries/extract-flows'
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
-import type { TooltipData } from '@/features/full-graph/types'
+import type { TooltipData } from '@/platform/infra/graph/graph-types'
 
 const testSourceLocation = {
   repository: 'test-repo',
@@ -23,7 +23,7 @@ interface MockState {onNodeHover: ((data: TooltipData | null) => void) | undefin
 
 const mockState: MockState = { onNodeHover: undefined }
 
-vi.mock('@/features/full-graph/components/ForceGraph/ForceGraph', () => ({
+vi.mock('@/platform/infra/graph/ForceGraph/ForceGraph', () => ({
   ForceGraph: ({
     graph,
     onNodeHover,
@@ -42,7 +42,7 @@ vi.mock('@/features/full-graph/components/ForceGraph/ForceGraph', () => ({
   },
 }))
 
-vi.mock('@/features/full-graph/components/GraphTooltip/GraphTooltip', () => ({
+vi.mock('@/platform/infra/graph/GraphTooltip/GraphTooltip', () => ({
   GraphTooltip: ({
     data,
     onMouseEnter,

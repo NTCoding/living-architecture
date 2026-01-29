@@ -4,7 +4,7 @@ import { HashRouter } from 'react-router-dom'
 import './index.css'
 import { App } from './shell/App'
 import { ThemeProvider } from '@/platform/infra/theme/ThemeContext'
-import { DOMError } from '@/shell/errors/errors'
+import { DOMError } from '@/platform/infra/errors/errors'
 
 const rootElement = document.getElementById('root')
 

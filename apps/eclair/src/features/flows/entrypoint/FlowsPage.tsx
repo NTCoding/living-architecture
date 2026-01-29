@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
-import { compareByCodePoint } from '@/platform/domain/compare-by-code-point'
-import { extractFlows } from '../extractFlows'
+import { compareByCodePoint } from '../queries/compare-by-code-point'
+import { extractFlows } from '../queries/extract-flows'
 import { FlowCard } from '../components/FlowCard/FlowCard'
 import {
   useFlowsState, type FlowFilter 

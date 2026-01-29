@@ -5,9 +5,9 @@ import {
   useNavigate, useSearchParams 
 } from 'react-router-dom'
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
-import { EventAccordion } from '@/features/domains/components/EventAccordion/EventAccordion'
-import { compareByCodePoint } from '@/platform/domain/compare-by-code-point'
-import type { DomainEvent } from '@/features/domains/extractDomainDetails'
+import { EventAccordion } from '@/platform/infra/ui/EventAccordion/EventAccordion'
+import { compareByCodePoint } from '../queries/compare-by-code-point'
+import type { DomainEvent } from '../queries/domain-event-types'
 
 interface EventsPageProps {readonly graph: RiviereGraph}
 

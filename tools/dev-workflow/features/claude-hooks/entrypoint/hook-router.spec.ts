@@ -13,7 +13,7 @@ const {
 
 const mockProcessExit = vi.fn()
 
-vi.mock('../use-cases/handle-hook', () => ({
+vi.mock('../commands/handle-hook', () => ({
   shouldSkipHooks: mockShouldSkipHooks,
   parseHookInput: mockParseHookInput,
   routeToHandler: mockRouteToHandler,
@@ -122,7 +122,7 @@ describe('hook-router', () => {
     })
     mockRouteToHandler.mockReturnValue({
       _tag: 'block',
-      reason: 'missing prefix' 
+      reason: 'missing prefix',
     })
     mockStdin('{"hook_event_name":"Stop"}')
 

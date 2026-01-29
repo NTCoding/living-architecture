@@ -5,7 +5,7 @@ import { useSearchParams } from 'react-router-dom'
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
 import type {
   NodeType, Node, Edge 
-} from '@/platform/domain/eclair-types'
+} from '../queries/eclair-types'
 import { useTheme } from '@/platform/infra/theme/ThemeContext'
 import { useExport } from '@/platform/infra/export/ExportContext'
 import {
@@ -14,13 +14,14 @@ import {
   exportSvgAsFile,
   UNNAMED_GRAPH_EXPORT_NAME,
 } from '@/platform/infra/export/export-graph'
-import { ForceGraph } from '../components/ForceGraph/ForceGraph'
-import { GraphTooltip } from '../components/GraphTooltip/GraphTooltip'
+import { ForceGraph } from '@/platform/infra/graph/ForceGraph/ForceGraph'
+import { GraphTooltip } from '@/platform/infra/graph/GraphTooltip/GraphTooltip'
 import { DomainFilters } from '../components/DomainFilters/DomainFilters'
 import { NodeTypeFilters } from '../components/NodeTypeFilters/NodeTypeFilters'
-import { filterByNodeType } from '../graphFocusing/filterByNodeType'
-import { getThemeFocusColors } from '../graphFocusing/themeFocusColors'
-import type { TooltipData } from '../types'
+import {
+  filterByNodeType, getThemeFocusColors
+} from '../queries/graph-focusing'
+import type { TooltipData } from '@/platform/infra/graph/graph-types'
 
 function compareByCodePoint(a: string, b: string): number {
   if (a < b) return -1

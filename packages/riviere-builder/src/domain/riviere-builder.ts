@@ -12,7 +12,7 @@ import {
   MissingDomainsError,
   MissingSourcesError,
 } from './construction/construction-errors'
-import { toRiviereGraph } from '../inspection'
+import { toRiviereGraph } from './inspection/inspection-functions'
 
 export class RiviereBuilder {
   readonly construction: GraphConstruction

@@ -7,14 +7,14 @@ import {
   DomainNotFoundError,
   DuplicateComponentError,
   DuplicateDomainError,
-  InvalidEnrichmentTargetError,
   CustomTypeAlreadyDefinedError,
   MissingRequiredPropertiesError,
   InvalidGraphError,
   MissingSourcesError,
   MissingDomainsError,
   BuildValidationError,
-} from './errors'
+} from './domain/construction/construction-errors'
+import { InvalidEnrichmentTargetError } from './domain/enrichment/enrichment-errors'
 
 describe('errors', () => {
   describe('DuplicateDomainError', () => {

@@ -5,7 +5,7 @@ import type { BuilderGraph } from '../builder-graph'
 import type {
   ExternalLinkInput, LinkInput 
 } from './linking-types'
-import { createComponentNotFoundError } from '../../builder-internals'
+import { createComponentNotFoundError } from '../construction/builder-internals'
 
 export class GraphLinking {
   private readonly graph: BuilderGraph

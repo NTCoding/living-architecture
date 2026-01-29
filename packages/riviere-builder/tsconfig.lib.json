@@ -30,6 +30,7 @@
     "src/**/*.test.js",
     "src/**/*.spec.js",
     "src/**/*.test.jsx",
-    "src/**/*.spec.jsx"
+    "src/**/*.spec.jsx",
+    "src/__fixtures__/**"
   ]
 }

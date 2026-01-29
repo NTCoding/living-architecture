@@ -18,7 +18,7 @@ import {
   InternalSchemaValidationError,
   InvalidConfigFormatError,
   PackageResolveError,
-} from '../../../shell/errors/errors'
+} from '../../../platform/infra/errors/errors'
 
 interface TopLevelRulesConfig {
   api?: Module['api']

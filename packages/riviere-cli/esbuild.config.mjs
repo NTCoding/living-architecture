@@ -17,7 +17,7 @@ const externalDependencies = Object.keys(pkg.dependencies || {})
 
 // CLI binary entry point
 await esbuild.build({
-  entryPoints: ['src/bin.ts'],
+  entryPoints: ['src/shell/bin.ts'],
   bundle: true,
   platform: 'node',
   target: 'node18',
@@ -30,7 +30,7 @@ await esbuild.build({
 
 // Library entry point (no side effects)
 await esbuild.build({
-  entryPoints: ['src/index.ts'],
+  entryPoints: ['src/shell/index.ts'],
   bundle: true,
   platform: 'node',
   target: 'node18',

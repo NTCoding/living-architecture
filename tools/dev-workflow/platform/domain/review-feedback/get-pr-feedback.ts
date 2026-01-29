@@ -1,4 +1,3 @@
-import { fetchRawPRFeedback } from '../../infra/external-clients/github-graphql-client'
 import {
   classifyThread, formatThreadForOutput, type FormattedFeedbackItem 
 } from './review-thread'
@@ -9,14 +8,41 @@ import {
 
 export type { FormattedFeedbackItem }
 
+interface RawReviewThread {
+  id: string
+  isResolved: boolean
+  isOutdated: boolean
+  path: string | null
+  line: number | null
+  comments: {
+    nodes: Array<{
+      author: { login: string } | null
+      body: string
+    }>
+  }
+}
+
+interface RawReviewDecision {
+  author: { login: string } | null
+  state: string
+}
+
+export interface RawPRFeedbackData {
+  threads: RawReviewThread[]
+  reviewDecisions: RawReviewDecision[]
+}
+
+export type FetchRawPRFeedback = (prNumber: number) => Promise<RawPRFeedbackData>
+
 export async function getPRFeedback(
+  fetchRaw: FetchRawPRFeedback,
   prNumber: number,
   options: { includeResolved?: boolean } = {},
 ): Promise<{
   threads: FormattedFeedbackItem[]
   reviewDecisions: ReviewDecision[]
 }> {
-  const rawFeedback = await fetchRawPRFeedback(prNumber)
+  const rawFeedback = await fetchRaw(prNumber)
 
   const threads = rawFeedback.threads
     .map(classifyThread)

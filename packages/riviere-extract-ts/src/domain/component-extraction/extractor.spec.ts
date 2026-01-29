@@ -3,6 +3,7 @@ import {
 } from 'vitest'
 import { Project } from 'ts-morph'
 import { extractComponents } from './extractor'
+import { matchesGlob } from '../../platform/infra/glob-matching/minimatch-glob'
 import {
   createResolvedConfig,
   createOrdersUseCaseConfig,
@@ -14,24 +15,33 @@ function createTestProject() {
   return new Project({ useInMemoryFileSystem: true })
 }
 
+function extract(
+  project: Project,
+  paths: string[],
+  config: ReturnType<typeof createResolvedConfig>,
+  configDir?: string,
+) {
+  return extractComponents(project, paths, config, matchesGlob, configDir)
+}
+
 describe('extractComponents', () => {
   it('returns empty array when no source files provided', () => {
     const project = createTestProject()
-    const result = extractComponents(project, [], createResolvedConfig())
+    const result = extract(project, [], createResolvedConfig())
     expect(result).toStrictEqual([])
   })
 
   describe('edge cases', () => {
     it('returns empty array when file path not found in project', () => {
       const project = createTestProject()
-      const result = extractComponents(project, ['nonexistent.ts'], createResolvedConfig())
+      const result = extract(project, ['nonexistent.ts'], createResolvedConfig())
       expect(result).toStrictEqual([])
     })
 
     it('returns empty array when file path does not match any module', () => {
       const project = createTestProject()
       project.createSourceFile('unmatched/file.ts', 'export class Foo {}')
-      const result = extractComponents(project, ['unmatched/file.ts'], createOrdersUseCaseConfig())
+      const result = extract(project, ['unmatched/file.ts'], createOrdersUseCaseConfig())
       expect(result).toStrictEqual([])
     })
 
@@ -45,7 +55,7 @@ describe('extractComponents', () => {
         export class CreateOrder {}
       `,
       )
-      const result = extractComponents(
+      const result = extract(
         project,
         ['orders\\use-cases\\create-order.ts'],
         createOrdersUseCaseConfig(),
@@ -74,12 +84,7 @@ describe('extractComponents', () => {
         export class CreateOrder {}
       `,
       )
-      const result = extractComponents(
-        project,
-        [absolutePath],
-        createOrdersUseCaseConfig(),
-        '/project/root',
-      )
+      const result = extract(project, [absolutePath], createOrdersUseCaseConfig(), '/project/root')
       expect(result).toStrictEqual([
         {
           type: 'useCase',
@@ -104,12 +109,7 @@ describe('extractComponents', () => {
         export class CreateOrder {}
       `,
       )
-      const result = extractComponents(
-        project,
-        [absolutePath],
-        createOrdersUseCaseConfig(),
-        '/project/root',
-      )
+      const result = extract(project, [absolutePath], createOrdersUseCaseConfig(), '/project/root')
       expect(result).toStrictEqual([])
     })
 
@@ -124,7 +124,7 @@ describe('extractComponents', () => {
         export class CreateOrder {}
       `,
       )
-      const result = extractComponents(
+      const result = extract(
         project,
         [absolutePath],
         createOrdersUseCaseConfig(),
@@ -153,7 +153,7 @@ describe('extractComponents', () => {
         export default class {}
       `,
       )
-      const result = extractComponents(project, ['orders/anon.ts'], createOrdersUseCaseConfig())
+      const result = extract(project, ['orders/anon.ts'], createOrdersUseCaseConfig())
       expect(result).toStrictEqual([])
     })
   })
@@ -175,7 +175,7 @@ describe('extractComponents', () => {
         find: 'methods',
         where: { hasDecorator: { name: 'API' } },
       })
-      const result = extractComponents(project, ['orders/api/controller.ts'], config)
+      const result = extract(project, ['orders/api/controller.ts'], config)
       expect(result).toStrictEqual([
         {
           type: 'api',
@@ -204,7 +204,7 @@ describe('extractComponents', () => {
         find: 'functions',
         where: { hasJSDoc: { tag: 'domainOp' } },
       })
-      const result = extractComponents(project, ['orders/domain/process-order.ts'], config)
+      const result = extract(project, ['orders/domain/process-order.ts'], config)
       expect(result).toStrictEqual([
         {
           type: 'domainOp',
@@ -231,7 +231,7 @@ describe('extractComponents', () => {
         find: 'functions',
         where: { hasJSDoc: { tag: 'domainOp' } },
       })
-      const result = extractComponents(project, ['orders/domain/anon-func.ts'], config)
+      const result = extract(project, ['orders/domain/anon-func.ts'], config)
       expect(result).toStrictEqual([])
     })
   })
@@ -247,7 +247,7 @@ describe('extractComponents', () => {
         export class CreateOrder {}
       `,
       )
-      const result = extractComponents(
+      const result = extract(
         project,
         ['orders/use-cases/create-order.ts'],
         createOrdersUseCaseConfig(),
@@ -279,7 +279,7 @@ describe('extractComponents', () => {
         find: 'classes',
         where: { hasDecorator: { name: 'EventHandler' } },
       })
-      const result = extractComponents(project, ['shipping/handlers/ship-order.ts'], config)
+      const result = extract(project, ['shipping/handlers/ship-order.ts'], config)
       expect(result).toStrictEqual([
         {
           type: 'eventHandler',
@@ -310,7 +310,7 @@ describe('extractComponents', () => {
           where: { hasJSDoc: { tag: 'backgroundJob' } },
         },
       })
-      const result = extractComponents(project, ['shipping/jobs/tracking-update.ts'], config)
+      const result = extract(project, ['shipping/jobs/tracking-update.ts'], config)
       expect(result).toStrictEqual([
         {
           type: 'backgroundJob',
@@ -333,7 +333,7 @@ describe('extractComponents', () => {
           where: { nameEndsWith: { suffix: 'Saga' } },
         },
       })
-      const result = extractComponents(project, ['orders/sagas/order-saga.ts'], config)
+      const result = extract(project, ['orders/sagas/order-saga.ts'], config)
       expect(result).toStrictEqual([
         {
           type: 'saga',
@@ -365,7 +365,7 @@ describe('extractComponents', () => {
           where: { hasDecorator: { name: 'Policy' } },
         },
       })
-      const result = extractComponents(project, ['orders/policies/policy.ts'], config)
+      const result = extract(project, ['orders/policies/policy.ts'], config)
       expect(result).toStrictEqual([
         {
           type: 'policy',

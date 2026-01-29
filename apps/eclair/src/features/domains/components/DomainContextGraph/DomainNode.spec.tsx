@@ -3,7 +3,7 @@ import {
 } from 'vitest'
 import { render } from '@testing-library/react'
 import { DomainNode } from './DomainNode'
-import type { DomainPosition } from './DomainContextGraph'
+import type { DomainPosition } from './domain-position'
 
 describe('DomainNode', () => {
   it('renders SVG group with domain name', () => {

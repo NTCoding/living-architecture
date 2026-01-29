@@ -3,7 +3,7 @@
 import * as readline from 'node:readline'
 import {
   parseHookInput, routeToHandler, shouldSkipHooks 
-} from '../use-cases/handle-hook'
+} from '../commands/handle-hook'
 
 async function readStdin(): Promise<string> {
   const rl = readline.createInterface({

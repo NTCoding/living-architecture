@@ -16,7 +16,7 @@ import {
 } from '@/platform/domain/eclair-types'
 import {
   GraphError, ContextError
-} from '@/shell/errors/errors'
+} from '@/platform/infra/errors/errors'
 
 interface GraphContextValue {
   readonly graph: RiviereGraph | null

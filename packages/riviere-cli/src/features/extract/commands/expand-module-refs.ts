@@ -4,7 +4,7 @@ import {
 import { resolve } from 'node:path'
 import { parse as parseYaml } from 'yaml'
 import type { ModuleRef } from '@living-architecture/riviere-extract-config'
-import { ModuleRefNotFoundError } from '../../../shell/errors/errors'
+import { ModuleRefNotFoundError } from '../../../platform/infra/errors/errors'
 
 function isModuleRef(value: unknown): value is ModuleRef {
   return (

@@ -1,6 +1,5 @@
-import {
-  deduplicateStrings, deduplicateStateTransitions 
-} from './deduplicate'
+import { deduplicateStrings } from './platform/domain/collection-utils/deduplicate-strings'
+import { deduplicateStateTransitions } from './domain/enrichment/deduplicate-transitions'
 
 describe('deduplicateStrings', () => {
   it('returns all incoming when no existing', () => {

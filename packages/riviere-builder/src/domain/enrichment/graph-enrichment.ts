@@ -1,9 +1,9 @@
 import type { BuilderGraph } from '../builder-graph'
 import type { EnrichmentInput } from './enrichment-types'
 import { InvalidEnrichmentTargetError } from './enrichment-errors'
-import { createComponentNotFoundError } from '../../builder-internals'
+import { createComponentNotFoundError } from '../construction/builder-internals'
 import { deduplicateStateTransitions } from './deduplicate-transitions'
-import { deduplicateStrings } from '../../platform/deduplication/deduplicate-strings'
+import { deduplicateStrings } from '../../platform/domain/collection-utils/deduplicate-strings'
 import { mergeBehavior } from './merge-behavior'
 
 export class GraphEnrichment {

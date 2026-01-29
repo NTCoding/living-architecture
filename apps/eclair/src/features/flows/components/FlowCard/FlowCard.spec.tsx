@@ -10,7 +10,7 @@ import { FlowCard } from './FlowCard'
 import {
   parseNode, parseEdge, parseDomainMetadata 
 } from '@/platform/infra/__fixtures__/riviere-test-fixtures'
-import type { Flow } from '../../extractFlows'
+import type { Flow } from '../../queries/extract-flows'
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
 const testSourceLocation = {
   repository: 'test-repo',

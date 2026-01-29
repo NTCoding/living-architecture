@@ -16,7 +16,7 @@ import { DomainDetailPage } from '@/features/domains/entrypoint/DomainDetailPage
 import { EntitiesPage } from '@/features/entities/entrypoint/EntitiesPage'
 import { EventsPage } from '@/features/events/entrypoint/EventsPage'
 import { ComparisonPage } from '@/features/comparison/entrypoint/ComparisonPage'
-import { GraphError } from '@/shell/errors/errors'
+import { GraphError } from '@/platform/infra/errors/errors'
 
 export function useRequiredGraph(): RiviereGraph {
   const { graph } = useGraph()

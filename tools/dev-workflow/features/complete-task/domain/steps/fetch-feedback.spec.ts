@@ -6,8 +6,12 @@ const { mockGetPRFeedback } = vi.hoisted(() => ({ mockGetPRFeedback: vi.fn() }))
 
 vi.mock('../../../../platform/domain/review-feedback/get-pr-feedback', () => ({getPRFeedback: mockGetPRFeedback,}))
 
-import { fetchPRFeedback } from './fetch-feedback'
+import { createFetchPRFeedbackStep } from './fetch-feedback'
 import type { CompleteTaskContext } from '../task-to-complete'
+
+const mockFetchRawPRFeedback = vi.fn()
+
+const fetchPRFeedback = createFetchPRFeedbackStep({ fetchRawPRFeedback: mockFetchRawPRFeedback })
 
 function createContext(overrides: Partial<CompleteTaskContext> = {}): CompleteTaskContext {
   return {

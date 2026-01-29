@@ -10,7 +10,7 @@ import {
 import {
   AppContent, useRequiredGraph
 } from './App'
-import { GraphError } from '@/shell/errors/errors'
+import { GraphError } from '@/platform/infra/errors/errors'
 import {
   GraphProvider, useGraph
 } from '@/platform/infra/graph-state/GraphContext'

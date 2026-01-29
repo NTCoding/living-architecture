@@ -16,12 +16,13 @@ import {
 import {
   extractComponents,
   resolveConfig,
+  matchesGlob,
   type DraftComponent,
 } from '@living-architecture/riviere-extract-ts'
 import {
   formatError, formatSuccess 
 } from '../../../platform/infra/cli-presentation/output'
-import { ModuleRefNotFoundError } from '../../../shell/errors/errors'
+import { ModuleRefNotFoundError } from '../../../platform/infra/errors/errors'
 import { CliErrorCode } from '../../../platform/infra/cli-presentation/error-codes'
 import { createConfigLoader } from '../commands/config-loader'
 import { expandModuleRefs } from '../commands/expand-module-refs'
@@ -205,7 +206,13 @@ export function createExtractCommand(): Command {
       const project = new Project()
       project.addSourceFilesAtPaths(sourceFilePaths)
 
-      const components = extractComponents(project, sourceFilePaths, resolvedConfig, configDir)
+      const components = extractComponents(
+        project,
+        sourceFilePaths,
+        resolvedConfig,
+        matchesGlob,
+        configDir,
+      )
 
       /* v8 ignore start -- @preserve: dry-run path tested via CLI integration */
       if (options.dryRun) {

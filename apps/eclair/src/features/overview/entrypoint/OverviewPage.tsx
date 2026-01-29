@@ -7,13 +7,13 @@ import type {
 } from '@living-architecture/riviere-schema'
 import {
   domainNameSchema, type DomainName
-} from '@/platform/domain/eclair-types'
-import { useRiviereQuery } from '@/hooks/useRiviereQuery'
+} from '../queries/eclair-domain'
+import { useRiviereQuery } from '@/platform/infra/riviere-query/useRiviereQuery'
 import { useCodeLinkSettings } from '@/platform/infra/settings/use-code-link-settings'
-import { StatsItem } from '../StatsItem'
+import { StatsItem } from '../components/StatsItem'
 import {
   EntitiesSection, EntryPointsSection 
-} from '../DomainCardSections'
+} from '../components/DomainCardSections'
 
 type ViewMode = 'grid' | 'list'
 type FilterType = 'all' | SystemType

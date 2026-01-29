@@ -14,7 +14,7 @@ import {
 } from '@/platform/infra/__fixtures__/riviere-test-fixtures'
 import type {
   TooltipData, SimulationNode 
-} from './types'
+} from '@/platform/infra/graph/graph-types'
 const testSourceLocation = {
   repository: 'test-repo',
   filePath: 'src/test.ts',
@@ -94,7 +94,7 @@ vi.mock('@/platform/infra/theme/ThemeContext', () => ({
   }),
 }))
 
-vi.mock('./components/ForceGraph/ForceGraph', () => ({
+vi.mock('@/platform/infra/graph/ForceGraph/ForceGraph', () => ({
   ForceGraph: (props: {
     onNodeHover?: (data: TooltipData | null) => void
     onBackgroundClick?: () => void

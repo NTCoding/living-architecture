@@ -2,10 +2,10 @@ import {
   useMemo, useState, useCallback, useRef 
 } from 'react'
 import { useTheme } from '@/platform/infra/theme/ThemeContext'
-import { ForceGraph } from '@/features/full-graph/components/ForceGraph/ForceGraph'
-import { GraphTooltip } from '@/features/full-graph/components/GraphTooltip/GraphTooltip'
-import type { TooltipData } from '@/features/full-graph/types'
-import type { FlowStep } from '../../extractFlows'
+import { ForceGraph } from '@/platform/infra/graph/ForceGraph/ForceGraph'
+import { GraphTooltip } from '@/platform/infra/graph/GraphTooltip/GraphTooltip'
+import type { TooltipData } from '@/platform/infra/graph/graph-types'
+import type { FlowStep } from '../../queries/extract-flows'
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
 
 interface FlowGraphViewProps {

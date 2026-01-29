@@ -16,7 +16,7 @@ import {
   parseNode, parseDomainKey
 } from '@/platform/infra/__fixtures__/riviere-test-fixtures'
 import { isBrowserEnv } from '@/test/setup'
-import { ContextError } from '@/shell/errors/errors'
+import { ContextError } from '@/platform/infra/errors/errors'
 
 const testSourceLocation = {
   repository: 'test-repo',

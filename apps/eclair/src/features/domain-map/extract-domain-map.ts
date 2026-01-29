@@ -8,7 +8,7 @@ import { RiviereQuery } from '@living-architecture/riviere-query'
 import {
   formatEdgeLabel, type ConnectionDetail, type EdgeAggregation 
 } from './edgeAggregation'
-import { LayoutError } from '@/shell/errors/errors'
+import { LayoutError } from '@/platform/infra/errors/errors'
 import { aggregateDomainEdges } from './edge-aggregation'
 import {
   aggregateExternalEdges, createExternalNodeId 
@@ -20,13 +20,7 @@ const LABEL_BG_PADDING: [number, number] = [4, 6]
 const DOMAIN_NODE_SIZE = 120
 const EXTERNAL_NODE_SIZE = 100
 
-export interface DomainNodeData {
-  label: string
-  nodeCount: number
-  calculatedSize?: number
-  dimmed?: boolean
-  isExternal?: boolean
-}
+export type { DomainNodeData } from '@/platform/domain/domain-node-types'
 
 export interface DomainEdgeData {
   apiCount: number

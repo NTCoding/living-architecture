@@ -7,7 +7,7 @@ import {
 import {
   ReactFlow, Background, Controls, useNodesState, useEdgesState
 } from '@xyflow/react'
-import { GraphError } from '@/shell/errors/errors'
+import { GraphError } from '@/platform/infra/errors/errors'
 import type {
   Node, Edge, NodeMouseHandler, EdgeMouseHandler 
 } from '@xyflow/react'
@@ -21,14 +21,14 @@ import {
   UNNAMED_GRAPH_EXPORT_NAME,
 } from '@/platform/infra/export/export-graph'
 import {
-  extractDomainMap, getConnectedDomains 
-} from '../extractDomainMap'
-import { calculateTooltipPositionWithViewportClipping } from '../calculateTooltipPosition'
-import { pluralizeConnection } from '@/platform/domain/text/pluralize'
+  extractDomainMap, getConnectedDomains
+} from '../queries/extract-domain-map'
+import { calculateTooltipPositionWithViewportClipping } from '../queries/calculate-tooltip-position'
+import { pluralizeConnection } from '../queries/pluralize'
 import type {
-  DomainNodeData, DomainEdgeData 
-} from '../extractDomainMap'
-import { DomainNode } from '../components/DomainNode/DomainNode'
+  DomainNodeData, DomainEdgeData
+} from '../queries/extract-domain-map'
+import { DomainNode } from '@/platform/infra/ui/DomainNode/DomainNode'
 import { useDomainMapInteractions } from '../hooks/useDomainMapInteractions'
 
 interface DomainMapPageProps {readonly graph: RiviereGraph}

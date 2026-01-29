@@ -1,7 +1,6 @@
 import {
-  InvalidComponentTypeError,
-  InvalidNormalizedComponentTypeError,
-} from '../../../shell/errors/errors'
+  InvalidComponentTypeError, InvalidNormalizedComponentTypeError 
+} from '../errors/errors'
 
 export const VALID_COMPONENT_TYPES = [
   'UI',

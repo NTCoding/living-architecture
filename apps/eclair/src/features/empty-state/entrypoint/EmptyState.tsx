@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { FileUpload } from '@/shell/components/FileUpload/FileUpload'
+import { FileUpload } from '@/platform/infra/file-upload/FileUpload'
 import { useGraph } from '@/platform/infra/graph-state/GraphContext'
 import { parseRiviereGraph } from '@living-architecture/riviere-schema'
 

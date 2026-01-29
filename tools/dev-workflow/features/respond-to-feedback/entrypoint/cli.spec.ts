@@ -12,7 +12,7 @@ class TestWorkflowError extends Error {
 const mockExecuteRespondToFeedback = vi.fn()
 const mockProcessExit = vi.fn()
 
-vi.mock('../use-cases/respond-to-feedback', () => ({executeRespondToFeedback: mockExecuteRespondToFeedback,}))
+vi.mock('../commands/respond-to-feedback', () => ({executeRespondToFeedback: mockExecuteRespondToFeedback,}))
 
 describe('respond-to-feedback CLI entrypoint', () => {
   const capturedErrors: string[] = []

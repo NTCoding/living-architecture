@@ -1,7 +1,7 @@
 import {
   createContext, useContext, useState, useCallback, useMemo
 } from 'react'
-import { ContextError } from '@/shell/errors/errors'
+import { ContextError } from '@/platform/infra/errors/errors'
 
 interface ExportHandlers {
   readonly onPng: (() => void) | null

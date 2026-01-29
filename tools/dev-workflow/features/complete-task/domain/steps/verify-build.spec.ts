@@ -1,13 +1,12 @@
 import {
   describe, it, expect, vi, beforeEach 
 } from 'vitest'
-
-const { mockNx } = vi.hoisted(() => ({ mockNx: { runMany: vi.fn() } }))
-
-vi.mock('../../../../platform/infra/external-clients/nx-runner', () => ({ nx: mockNx }))
-
-import { verifyBuild } from './verify-build'
+import { createVerifyBuildStep } from './verify-build'
 import type { CompleteTaskContext } from '../task-to-complete'
+
+const mockRunMany = vi.fn()
+
+const verifyBuild = createVerifyBuildStep({ runMany: mockRunMany })
 
 function createContext(): CompleteTaskContext {
   return {
@@ -26,7 +25,7 @@ describe('verifyBuild', () => {
   })
 
   it('runs lint, typecheck, and test targets', async () => {
-    mockNx.runMany.mockResolvedValue({
+    mockRunMany.mockResolvedValue({
       failed: false,
       output: '',
     })
@@ -34,11 +33,11 @@ describe('verifyBuild', () => {
 
     await verifyBuild.execute(ctx)
 
-    expect(mockNx.runMany).toHaveBeenCalledWith(['lint', 'typecheck', 'test'])
+    expect(mockRunMany).toHaveBeenCalledWith(['lint', 'typecheck', 'test'])
   })
 
   it('returns success when build passes', async () => {
-    mockNx.runMany.mockResolvedValue({
+    mockRunMany.mockResolvedValue({
       failed: false,
       output: 'all passed',
     })
@@ -50,7 +49,7 @@ describe('verifyBuild', () => {
   })
 
   it('returns failure when build fails', async () => {
-    mockNx.runMany.mockResolvedValue({
+    mockRunMany.mockResolvedValue({
       failed: true,
       output: 'lint errors',
     })

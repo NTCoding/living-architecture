@@ -1,4 +1,4 @@
 #!/usr/bin/env tsx
-import { executeGetPRFeedback } from '../use-cases/get-pr-feedback'
+import { executeGetPRFeedback } from '../commands/get-pr-feedback'
 
 executeGetPRFeedback()

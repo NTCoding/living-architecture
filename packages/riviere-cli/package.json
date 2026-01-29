@@ -7,12 +7,12 @@
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "types": "./dist/shell/index.d.ts",
   "exports": {
     "./package.json": "./package.json",
     ".": {
-      "@living-architecture/source": "./src/index.ts",
-      "types": "./dist/index.d.ts",
+      "@living-architecture/source": "./src/shell/index.ts",
+      "types": "./dist/shell/index.d.ts",
       "import": "./dist/index.js",
       "default": "./dist/index.js"
     }

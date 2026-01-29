@@ -1,24 +1,24 @@
 import {
   useState, useCallback 
 } from 'react'
-import type { Node } from '@/platform/domain/eclair-types'
+import type { Node } from '../queries/eclair-types'
 import { parseRiviereGraph } from '@living-architecture/riviere-schema'
 import {
-  compareGraphs, type GraphDiff 
-} from '../compareGraphs'
+  compareGraphs, type GraphDiff
+} from '../queries/compare-graphs'
 import {
   computeDomainConnectionDiff,
   type DomainConnectionDiffResult,
-} from '../computeDomainConnectionDiff'
-import { compareByCodePoint } from '@/platform/domain/compare-by-code-point'
+} from '../queries/compute-domain-connection-diff'
+import { compareByCodePoint } from '../queries/eclair-types'
 import {
   FilterTabs, DomainFilter, TypeFilter, type ChangeFilter
-} from '../ChangeFilters'
-import { StatsBar } from '../StatsBar'
-import { DomainConnectionDiff } from '../DomainConnectionDiff'
+} from '../components/ChangeFilters'
+import { StatsBar } from '../components/StatsBar'
+import { DomainConnectionDiff } from '../components/DomainConnectionDiff'
 import {
-  UploadZone, type UploadState 
-} from '../UploadZone'
+  UploadZone, type UploadState
+} from '../components/UploadZone'
 
 type ResultsViewMode = 'graph' | 'list'
 

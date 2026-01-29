@@ -17,7 +17,7 @@ import {
 import {
   InvalidCustomPropertyError,
   MissingRequiredOptionError,
-} from '../../../shell/errors/errors'
+} from '../../../platform/infra/errors/errors'
 import { fileExists } from '../../../platform/infra/graph-persistence/file-existence'
 import {
   formatError, formatSuccess 

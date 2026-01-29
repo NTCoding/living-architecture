@@ -13,7 +13,7 @@ import {
   nodeIdSchema, domainNameSchema, moduleNameSchema, graphNameSchema, type GraphName
 } from '@/platform/domain/eclair-types'
 import { assertDefined } from '@/test-assertions'
-import { SchemaError } from '@/shell/errors/errors'
+import { SchemaError } from '@/platform/infra/errors/errors'
 
 const testSourceLocation = {
   repository: 'test-repo',

@@ -14,7 +14,7 @@ import {
   resolveGraphPath,
   getDefaultGraphPathDescription,
 } from '../../../platform/infra/graph-persistence/graph-path'
-import { InvalidDomainJsonError } from '../../../shell/errors/errors'
+import { InvalidDomainJsonError } from '../../../platform/infra/errors/errors'
 import type { SystemType } from '@living-architecture/riviere-schema'
 import { isValidSystemType } from '../../../platform/infra/cli-presentation/component-types'
 

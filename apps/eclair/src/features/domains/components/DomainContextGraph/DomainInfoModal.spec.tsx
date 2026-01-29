@@ -6,7 +6,7 @@ import {
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { DomainInfoModal } from './DomainInfoModal'
-import type { AggregatedConnection } from '../../extractDomainDetails'
+import type { AggregatedConnection } from '../../queries/extract-domain-details'
 
 describe('DomainInfoModal', () => {
   const mockConnections: AggregatedConnection[] = [

@@ -4,13 +4,13 @@ import {
 import { useParams } from 'react-router-dom'
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
 import {
-  extractDomainDetails, type DomainDetails 
-} from '../extractDomainDetails'
+  extractDomainDetails, type DomainDetails
+} from '../queries/extract-domain-details'
 import { parseDomainKey } from '@/platform/infra/__fixtures__/riviere-test-fixtures'
 import { DomainContextGraph } from '../components/DomainContextGraph/DomainContextGraph'
 import {
-  DomainDetailView, type NodeTypeFilter 
-} from '../DomainDetailView'
+  DomainDetailView, type NodeTypeFilter
+} from '../components/DomainDetailView/DomainDetailView'
 
 type ViewMode = 'graph' | 'detail'
 

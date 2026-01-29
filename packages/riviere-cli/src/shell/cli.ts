@@ -1,6 +1,6 @@
 import { Command } from 'commander'
 import { createRequire } from 'module'
-import { InvalidPackageJsonError } from './errors/errors'
+import { InvalidPackageJsonError } from '../platform/infra/errors/errors'
 import { createAddComponentCommand } from '../features/builder/entrypoint/add-component'
 import { createAddDomainCommand } from '../features/builder/entrypoint/add-domain'
 import { createAddSourceCommand } from '../features/builder/entrypoint/add-source'

@@ -7,7 +7,7 @@ import {
 import {
   ExportProvider, useExport
 } from './ExportContext'
-import { ContextError } from '@/shell/errors/errors'
+import { ContextError } from '@/platform/infra/errors/errors'
 
 function TestConsumer(): React.ReactElement {
   const { exportHandlers } = useExport()

@@ -5,7 +5,7 @@ import {
   existsSync, readFileSync 
 } from 'node:fs'
 import { expandModuleRefs } from './expand-module-refs'
-import { ModuleRefNotFoundError } from '../../../shell/errors/errors'
+import { ModuleRefNotFoundError } from '../../../platform/infra/errors/errors'
 
 vi.mock('node:fs')
 

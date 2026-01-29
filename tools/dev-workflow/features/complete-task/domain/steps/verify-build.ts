@@ -2,21 +2,29 @@ import type { Step } from '../../../../platform/domain/workflow-execution/workfl
 import {
   success, failure 
 } from '../../../../platform/domain/workflow-execution/step-result'
-import { nx } from '../../../../platform/infra/external-clients/nx-runner'
 import type { CompleteTaskContext } from '../task-to-complete'
 
-export const verifyBuild: Step<CompleteTaskContext> = {
-  name: 'verify-build',
-  execute: async () => {
-    const result = await nx.runMany(['lint', 'typecheck', 'test'])
+interface BuildResult {
+  failed: boolean
+  output: string
+}
 
-    if (result.failed) {
-      return failure({
-        type: 'fix_errors',
-        details: result.output,
-      })
-    }
+export interface VerifyBuildDeps {runMany: (targets: string[]) => Promise<BuildResult>}
 
-    return success()
-  },
+export function createVerifyBuildStep(deps: VerifyBuildDeps): Step<CompleteTaskContext> {
+  return {
+    name: 'verify-build',
+    execute: async () => {
+      const result = await deps.runMany(['lint', 'typecheck', 'test'])
+
+      if (result.failed) {
+        return failure({
+          type: 'fix_errors',
+          details: result.output,
+        })
+      }
+
+      return success()
+    },
+  }
 }

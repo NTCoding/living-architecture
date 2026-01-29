@@ -31,7 +31,7 @@ import {
   validateCustomType,
   validateDomainExists,
   validateRequiredProperties,
-} from '../../builder-internals'
+} from './builder-internals'
 
 export class GraphConstruction {
   private readonly graph: BuilderGraph

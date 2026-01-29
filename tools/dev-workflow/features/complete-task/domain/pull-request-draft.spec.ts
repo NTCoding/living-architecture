@@ -1,31 +1,20 @@
 import {
-  describe, it, expect, vi, beforeEach 
+  describe, it, expect 
 } from 'vitest'
-
-const { mockParseArg } = vi.hoisted(() => ({ mockParseArg: vi.fn() }))
-
-vi.mock('../../../platform/infra/external-clients/cli-args', () => ({cli: { parseArg: mockParseArg },}))
 
 import {
   resolvePRDetails, MissingPullRequestDetailsError 
 } from './pull-request-draft'
 
 describe('resolvePRDetails', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-  })
-
   it('returns PR details from CLI args', () => {
-    mockParseArg.mockImplementation((arg: string) => {
-      const args: Record<string, string> = {
-        '--pr-title': 'feat: test feature',
-        '--pr-body': 'Test body',
-        '--commit-message': 'feat: commit',
-      }
-      return args[arg]
-    })
+    const cliArgs = {
+      prTitle: 'feat: test feature',
+      prBody: 'Test body',
+      commitMessage: 'feat: commit',
+    }
 
-    const result = resolvePRDetails(undefined, undefined)
+    const result = resolvePRDetails(cliArgs, undefined, undefined)
 
     expect(result.prTitle).toStrictEqual('feat: test feature')
     expect(result.prBody).toStrictEqual('Test body')
@@ -34,16 +23,17 @@ describe('resolvePRDetails', () => {
   })
 
   it('falls back to task details when CLI args missing', () => {
-    mockParseArg.mockImplementation((arg: string) => {
-      if (arg === '--commit-message') return 'feat: commit'
-      return undefined
-    })
+    const cliArgs = {
+      prTitle: undefined,
+      prBody: undefined,
+      commitMessage: 'feat: commit',
+    }
     const taskDetails = {
       title: 'feat: from task',
       body: 'Task body',
     }
 
-    const result = resolvePRDetails(123, taskDetails)
+    const result = resolvePRDetails(cliArgs, 123, taskDetails)
 
     expect(result.prTitle).toStrictEqual('feat: from task')
     expect(result.prBody).toStrictEqual('Closes #123\n\nTask body')
@@ -52,39 +42,41 @@ describe('resolvePRDetails', () => {
   })
 
   it('throws MissingPullRequestDetailsError when no title', () => {
-    mockParseArg.mockReturnValue(undefined)
+    const cliArgs = {
+      prTitle: undefined,
+      prBody: undefined,
+      commitMessage: undefined,
+    }
 
-    expect(() => resolvePRDetails(undefined, undefined)).toThrow(MissingPullRequestDetailsError)
+    expect(() => resolvePRDetails(cliArgs, undefined, undefined)).toThrow(
+      MissingPullRequestDetailsError,
+    )
   })
 
   it('throws when commit message is missing', () => {
-    mockParseArg.mockImplementation((arg: string) => {
-      const args: Record<string, string | undefined> = {
-        '--pr-title': 'feat: title',
-        '--pr-body': 'body',
-        '--commit-message': undefined,
-      }
-      return args[arg]
-    })
+    const cliArgs = {
+      prTitle: 'feat: title',
+      prBody: 'body',
+      commitMessage: undefined,
+    }
 
-    expect(() => resolvePRDetails(undefined, undefined)).toThrow('--commit-message is required')
+    expect(() => resolvePRDetails(cliArgs, undefined, undefined)).toThrow(
+      '--commit-message is required',
+    )
   })
 
   it('includes task details in result', () => {
-    mockParseArg.mockImplementation((arg: string) => {
-      const args: Record<string, string> = {
-        '--pr-title': 'feat: title',
-        '--pr-body': 'body',
-        '--commit-message': 'feat: commit',
-      }
-      return args[arg]
-    })
+    const cliArgs = {
+      prTitle: 'feat: title',
+      prBody: 'body',
+      commitMessage: 'feat: commit',
+    }
     const taskDetails = {
       title: 'original title',
       body: 'original body',
     }
 
-    const result = resolvePRDetails(456, taskDetails)
+    const result = resolvePRDetails(cliArgs, 456, taskDetails)
 
     expect(result.taskDetails).toMatchObject({
       title: 'original title',

@@ -10,7 +10,7 @@ import {
   findWarnings,
   toRiviereGraph,
   validateGraph,
-} from '../../inspection'
+} from './inspection-functions'
 
 export class GraphInspection {
   private readonly graph: BuilderGraph

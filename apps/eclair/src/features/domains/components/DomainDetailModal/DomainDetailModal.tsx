@@ -1,8 +1,8 @@
 import {
   useEffect, useId 
 } from 'react'
-import type { DomainDetails } from '../../extractDomainDetails'
-import { NodeTypeBadge } from '@/features/flows/components/NodeTypeBadge/NodeTypeBadge'
+import type { DomainDetails } from '../../queries/extract-domain-details'
+import { NodeTypeBadge } from '@/platform/infra/ui/NodeTypeBadge/NodeTypeBadge'
 
 interface DomainDetailModalProps {
   readonly domain: DomainDetails | null

@@ -13,7 +13,8 @@ import type {
   DetectionRule,
 } from '@living-architecture/riviere-extract-config'
 import { evaluatePredicate } from '../predicate-evaluation/evaluate-predicate'
-import { matchesGlob } from '../../platform/infra/glob-matching/minimatch-glob'
+
+export type GlobMatcher = (path: string, pattern: string) => boolean
 
 export interface DraftComponent {
   type: string
@@ -55,10 +56,11 @@ export function extractComponents(
   project: Project,
   sourceFilePaths: string[],
   config: ResolvedExtractionConfig,
+  globMatcher: GlobMatcher,
   configDir?: string,
 ): DraftComponent[] {
   return sourceFilePaths.flatMap((filePath) =>
-    extractFromFile(project, filePath, config, configDir),
+    extractFromFile(project, filePath, config, globMatcher, configDir),
   )
 }
 
@@ -66,6 +68,7 @@ function extractFromFile(
   project: Project,
   filePath: string,
   config: ResolvedExtractionConfig,
+  globMatcher: GlobMatcher,
   configDir?: string,
 ): DraftComponent[] {
   const sourceFile = project.getSourceFile(filePath)
@@ -73,7 +76,7 @@ function extractFromFile(
     return []
   }
 
-  const matchingModule = findMatchingModule(filePath, config.modules, configDir)
+  const matchingModule = findMatchingModule(filePath, config.modules, globMatcher, configDir)
   if (matchingModule === undefined) {
     return []
   }
@@ -252,13 +255,14 @@ function createFunctionComponent(
 function findMatchingModule(
   filePath: string,
   modules: Module[],
+  globMatcher: GlobMatcher,
   configDir?: string,
 ): Module | undefined {
   const normalized = filePath.replaceAll(/\\+/g, '/')
   if (configDir === undefined) {
-    return modules.find((m) => matchesGlob(normalized, m.path))
+    return modules.find((m) => globMatcher(normalized, m.path))
   }
   const normalizedConfigDir = configDir.replaceAll(/\\+/g, '/')
   const pathToMatch = posix.relative(normalizedConfigDir, normalized)
-  return modules.find((m) => matchesGlob(pathToMatch, m.path))
+  return modules.find((m) => globMatcher(pathToMatch, m.path))
 }

@@ -2,19 +2,21 @@ import {
   describe, it, expect, vi, beforeEach 
 } from 'vitest'
 
-const {
-  mockGitHub, mockGetPRFeedback 
-} = vi.hoisted(() => ({
-  mockGitHub: { getMergeableState: vi.fn() },
-  mockGetPRFeedback: vi.fn(),
-}))
+const { mockGetPRFeedback } = vi.hoisted(() => ({ mockGetPRFeedback: vi.fn() }))
 
-vi.mock('../../../../platform/infra/external-clients/github-rest-client', () => ({github: mockGitHub,}))
 vi.mock('../../../../platform/domain/review-feedback/get-pr-feedback', () => ({getPRFeedback: mockGetPRFeedback,}))
 
-import { fetchFeedback } from './fetch-feedback'
+import { createFetchFeedbackStep } from './fetch-feedback'
 import type { GetPRFeedbackContext } from '../feedback-report'
 import type { StepResult } from '../../../../platform/domain/workflow-execution/step-result'
+
+const mockGetMergeableState = vi.fn()
+const mockFetchRawPRFeedback = vi.fn()
+
+const fetchFeedback = createFetchFeedbackStep({
+  getMergeableState: mockGetMergeableState,
+  fetchRawPRFeedback: mockFetchRawPRFeedback,
+})
 
 function createContext(overrides: Partial<GetPRFeedbackContext> = {}): GetPRFeedbackContext {
   return {
@@ -43,7 +45,7 @@ function assertSuccess(result: StepResult): asserts result is {
 describe('fetchFeedback', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockGitHub.getMergeableState.mockResolvedValue('clean')
+    mockGetMergeableState.mockResolvedValue('clean')
     mockGetPRFeedback.mockResolvedValue({
       reviewDecisions: [],
       threads: [],
@@ -84,7 +86,7 @@ describe('fetchFeedback', () => {
 
     await fetchFeedback.execute(ctx)
 
-    expect(mockGetPRFeedback).toHaveBeenCalledWith(123, { includeResolved: true })
+    expect(mockGetPRFeedback).toHaveBeenCalledWith(mockFetchRawPRFeedback, 123, {includeResolved: true,})
   })
 
   it('returns mergeable true when clean and no feedback', async () => {

@@ -1,4 +1,4 @@
-import { mergeBehavior } from './merge-behavior'
+import { mergeBehavior } from './domain/enrichment/merge-behavior'
 
 describe('mergeBehavior', () => {
   it('creates new behavior when existing is undefined', () => {
