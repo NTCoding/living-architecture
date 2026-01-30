@@ -8,16 +8,11 @@ import {
 } from './workflow-runner'
 import { handleWorkflowError } from './error-handler'
 
-type ContextBuilder<T extends BaseContext> = () => Promise<T>
-type ResultFormatter<T extends BaseContext> = (result: WorkflowResult, ctx: T) => unknown
-
-interface WorkflowOptions<T extends BaseContext> {resolveTimingsFilePath?: (ctx: T) => string}
-
 export function runWorkflow<T extends BaseContext>(
   steps: Step<T>[],
-  buildContext: ContextBuilder<T>,
-  formatResult?: ResultFormatter<T>,
-  options?: WorkflowOptions<T>,
+  buildContext: () => Promise<T>,
+  formatResult?: (result: WorkflowResult, ctx: T) => unknown,
+  options?: { resolveTimingsFilePath?: (ctx: T) => string },
 ): void {
   executeWorkflow(steps, buildContext, formatResult, options).catch(handleWorkflowError)
 }
@@ -42,9 +37,9 @@ export function formatTimingsMarkdown(stepTimings: StepTiming[], totalDurationMs
 
 async function executeWorkflow<T extends BaseContext>(
   steps: Step<T>[],
-  buildContext: ContextBuilder<T>,
-  formatResult?: ResultFormatter<T>,
-  options?: WorkflowOptions<T>,
+  buildContext: () => Promise<T>,
+  formatResult?: (result: WorkflowResult, ctx: T) => unknown,
+  options?: { resolveTimingsFilePath?: (ctx: T) => string },
 ): Promise<void> {
   const context = await buildContext()
   const runner = workflow(steps)
