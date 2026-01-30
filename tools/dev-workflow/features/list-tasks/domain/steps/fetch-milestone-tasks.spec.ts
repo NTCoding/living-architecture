@@ -65,7 +65,7 @@ describe('fetchMilestoneTasks', () => {
     expect(result).toStrictEqual([sampleTask, taskFromSecondMilestone])
   })
 
-  it('extracts milestone name from PRD filename by stripping PRD- prefix and .md suffix', async () => {
+  it('passes milestone names through to listIssuesByMilestone', async () => {
     mockFindActivePrdMilestones.mockReturnValue(['phase-11-metadata-extraction'])
     mockListIssuesByMilestone.mockResolvedValue([])
 

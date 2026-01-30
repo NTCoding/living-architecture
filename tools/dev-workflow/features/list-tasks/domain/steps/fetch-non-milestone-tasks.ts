@@ -16,7 +16,9 @@ export function createFetchNonMilestoneTasksStep(deps: FetchNonMilestoneTasksDep
     async execute(mode: NonMilestoneMode): Promise<Task[]> {
       const labels = MODE_TO_LABELS[mode]
       const taskArrays = await Promise.all(labels.map((label) => deps.listIssuesByLabel(label)))
-      return taskArrays.flat()
+      const allTasks = taskArrays.flat()
+      const uniqueByNumber = new Map(allTasks.map((task) => [task.number, task]))
+      return [...uniqueByNumber.values()]
     },
   }
 }

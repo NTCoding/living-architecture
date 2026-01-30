@@ -85,6 +85,26 @@ describe('fetchNonMilestoneTasks', () => {
     expect(result).toStrictEqual([ideaTask, bugTask, techTask])
   })
 
+  it('deduplicates tasks appearing under multiple labels', async () => {
+    const dualLabelTask: Task = {
+      number: 190,
+      title: 'Dual label task',
+      assignees: [],
+      body: 'dual body',
+      milestone: null,
+      labels: [{ name: 'idea' }, { name: 'bug' }],
+    }
+    mockListIssuesByLabel
+      .mockResolvedValueOnce([dualLabelTask])
+      .mockResolvedValueOnce([dualLabelTask])
+      .mockResolvedValueOnce([])
+
+    const step = createStep()
+    const result = await step.execute('all')
+
+    expect(result).toStrictEqual([dualLabelTask])
+  })
+
   it('returns empty array when no tasks match label', async () => {
     mockListIssuesByLabel.mockResolvedValue([])
 

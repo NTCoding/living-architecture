@@ -1,5 +1,5 @@
 import {
-  describe, it, expect, vi, beforeEach 
+  describe, it, expect, vi, beforeEach, afterEach 
 } from 'vitest'
 import {
   taskListOutputSchema, type TaskListOutput, type Task 
@@ -22,7 +22,9 @@ vi.mock('../../../platform/infra/external-clients/cli-args', () => ({ cli: mockC
 
 vi.mock('../../../platform/domain/prd-milestones/active-prd-milestones', () => ({findActivePrdMilestones: () => ['phase-11-metadata-extraction'],}))
 
-import { executeListTasks } from './list-tasks'
+import {
+  executeListTasks, validateAndLog, InvalidTaskListOutputError 
+} from './list-tasks'
 
 function parseOutput(calls: unknown[][]): TaskListOutput {
   const raw: unknown = JSON.parse(String(calls[0][0]))
@@ -65,13 +67,25 @@ const techTask: Task = {
   labels: [{ name: 'tech improvement' }],
 }
 
+describe('validateAndLog', () => {
+  it('throws InvalidTaskListOutputError when output fails validation', () => {
+    const invalidOutput: unknown = { milestone_tasks: 'not-an-array' }
+
+    expect(() => validateAndLog(invalidOutput)).toThrow(InvalidTaskListOutputError)
+  })
+})
+
 describe('executeListTasks', () => {
-  const consoleSpy = vi.spyOn(console, 'log')
+  const spies = { console: vi.spyOn(console, 'log') }
 
   beforeEach(() => {
     vi.clearAllMocks()
-    consoleSpy.mockImplementation(() => undefined)
+    spies.console = vi.spyOn(console, 'log').mockImplementation(() => undefined)
     mockCli.hasFlag.mockReturnValue(false)
+  })
+
+  afterEach(() => {
+    spies.console.mockRestore()
   })
 
   it('outputs milestone and non-milestone tasks as JSON when no flags', async () => {
@@ -84,7 +98,7 @@ describe('executeListTasks', () => {
 
     await executeListTasks()
 
-    const output = parseOutput(consoleSpy.mock.calls)
+    const output = parseOutput(spies.console.mock.calls)
     expect(output.milestone_tasks).toStrictEqual([milestoneTask])
     expect(output.non_milestone_tasks).toStrictEqual([ideaTask, bugTask, techTask])
   })
@@ -95,7 +109,7 @@ describe('executeListTasks', () => {
 
     await executeListTasks()
 
-    const output = parseOutput(consoleSpy.mock.calls)
+    const output = parseOutput(spies.console.mock.calls)
     expect(output.milestone_tasks).toStrictEqual([])
     expect(output.non_milestone_tasks).toStrictEqual([ideaTask])
     expect(mockGithub.getMilestoneNumber).not.toHaveBeenCalled()
@@ -107,7 +121,7 @@ describe('executeListTasks', () => {
 
     await executeListTasks()
 
-    const output = parseOutput(consoleSpy.mock.calls)
+    const output = parseOutput(spies.console.mock.calls)
     expect(output.non_milestone_tasks).toStrictEqual([bugTask])
   })
 
@@ -117,7 +131,7 @@ describe('executeListTasks', () => {
 
     await executeListTasks()
 
-    const output = parseOutput(consoleSpy.mock.calls)
+    const output = parseOutput(spies.console.mock.calls)
     expect(output.non_milestone_tasks).toStrictEqual([techTask])
   })
 
@@ -133,7 +147,7 @@ describe('executeListTasks', () => {
 
     await executeListTasks()
 
-    const output = parseOutput(consoleSpy.mock.calls)
+    const output = parseOutput(spies.console.mock.calls)
     expect(output.milestone_tasks).toStrictEqual([])
   })
 })

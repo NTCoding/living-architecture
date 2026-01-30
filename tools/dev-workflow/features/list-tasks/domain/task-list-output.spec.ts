@@ -45,6 +45,19 @@ describe('taskSchema', () => {
     expect(() => taskSchema.parse(task)).toThrow(z.ZodError)
   })
 
+  it('rejects undefined body', () => {
+    const task = {
+      number: 1,
+      title: 'Test',
+      assignees: [],
+      body: undefined,
+      milestone: null,
+      labels: [],
+    }
+
+    expect(() => taskSchema.parse(task)).toThrow(z.ZodError)
+  })
+
   it('rejects missing title', () => {
     const task = {
       number: 1,
@@ -93,6 +106,12 @@ describe('taskListOutputSchema', () => {
     }
 
     expect(taskListOutputSchema.parse(output)).toStrictEqual(output)
+  })
+
+  it('rejects missing non_milestone_tasks', () => {
+    const output = { milestone_tasks: [] }
+
+    expect(() => taskListOutputSchema.parse(output)).toThrow(z.ZodError)
   })
 
   it('rejects missing milestone_tasks', () => {

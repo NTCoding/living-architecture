@@ -7,9 +7,17 @@ import {
   createFetchNonMilestoneTasksStep,
   type NonMilestoneMode,
 } from '../domain/steps/fetch-non-milestone-tasks'
-import type {
-  Task, TaskListOutput 
+import {
+  taskListOutputSchema, type Task, type TaskListOutput 
 } from '../domain/task-list-output'
+
+export class InvalidTaskListOutputError extends Error {
+  constructor(zodMessage: string) {
+    super('Invalid task list output: ' + zodMessage)
+    this.name = 'InvalidTaskListOutputError'
+    Error.captureStackTrace?.(this, this.constructor)
+  }
+}
 
 class ConflictingFlagsError extends Error {
   constructor(flags: string[]) {
@@ -18,6 +26,14 @@ class ConflictingFlagsError extends Error {
     this.name = 'ConflictingFlagsError'
     Error.captureStackTrace?.(this, this.constructor)
   }
+}
+
+export function validateAndLog(output: unknown): void {
+  const result = taskListOutputSchema.safeParse(output)
+  if (!result.success) {
+    throw new InvalidTaskListOutputError(result.error.message)
+  }
+  console.log(JSON.stringify(result.data, null, 2))
 }
 
 const NON_MILESTONE_FLAGS: NonMilestoneMode[] = ['ideas', 'bugs', 'tech']
@@ -56,7 +72,7 @@ export async function executeListTasks(): Promise<void> {
       milestone_tasks: [],
       non_milestone_tasks: nonMilestoneTasks,
     }
-    console.log(JSON.stringify(output, null, 2))
+    validateAndLog(output)
     return
   }
 
@@ -74,5 +90,5 @@ export async function executeListTasks(): Promise<void> {
     milestone_tasks: milestoneTasks,
     non_milestone_tasks: nonMilestoneTasks,
   }
-  console.log(JSON.stringify(output, null, 2))
+  validateAndLog(output)
 }
