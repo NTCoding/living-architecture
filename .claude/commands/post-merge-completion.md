@@ -256,7 +256,7 @@ Worktree removed: <path>
 ---
 Would you like to start working on one of the process fix tasks now?
 - Yes → I'll run `./scripts/start-task.sh <issue-number>`
-- No → Ready for next task. Run `./scripts/list-tasks.sh` to see available work.
+- No → Ready for next task. Run `/next-task` to see available work.
 ```
 
 If user chooses yes, run `./scripts/start-task.sh <issue-number>` to begin the process fix task via normal workflow.

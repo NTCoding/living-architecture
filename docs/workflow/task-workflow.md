@@ -24,8 +24,8 @@ Autonomous = you can do this without user permission. Do not ask for permission,
 |------|---------|------------|
 | Create Tasks | `/create-tasks` | **User confirmation required** |
 | Next Task (parallel-aware) | `/next-task` | Autonomous |
-| List Tasks (JSON) | `./scripts/list-tasks.sh` | Autonomous |
-| List Non-Milestone Tasks | `./scripts/list-tasks.sh --ideas` (or `--bugs`, `--tech`) | Autonomous |
+| List Tasks (JSON) | `pnpm nx list-tasks dev-workflow` | Autonomous |
+| List Non-Milestone Tasks | `pnpm nx list-tasks dev-workflow -- --ideas` (or `--bugs`, `--tech`) | Autonomous |
 | Start Task | `./scripts/start-task.sh <issue-number>` | **User confirmation required** |
 | Amend Task | `./scripts/amend-task.sh <issue-number> "Amendment"` | Autonomous |
 | Complete Task | `/complete-task` | Autonomous |
@@ -43,7 +43,7 @@ Autonomous = you can do this without user permission. Do not ask for permission,
 
 Work tied to a Product Requirements Document and tracked via GitHub milestones.
 
-- **List:** `./scripts/list-tasks.sh`
+- **List:** `pnpm nx list-tasks dev-workflow`
 - **Create:** `./scripts/create-task.sh`
 - **When:** Breaking down PRD deliverables into implementable tasks
 
@@ -53,9 +53,9 @@ Independent work not tied to a PRD. Three categories:
 
 | Type | Label | List Command |
 |------|-------|--------------|
-| Ideas | `idea` | `./scripts/list-tasks.sh --ideas` |
-| Bugs | `bug` | `./scripts/list-tasks.sh --bugs` |
-| Tech Improvements | `tech improvement` | `./scripts/list-tasks.sh --tech` |
+| Ideas | `idea` | `pnpm nx list-tasks dev-workflow -- --ideas` |
+| Bugs | `bug` | `pnpm nx list-tasks dev-workflow -- --bugs` |
+| Tech Improvements | `tech improvement` | `pnpm nx list-tasks dev-workflow -- --tech` |
 
 - **Create:** `./scripts/create-non-milestone-task.sh --type <idea|bug|tech>`
 - **When:** Fixes, refactoring, tech debt, performance, exploratory work
@@ -106,8 +106,8 @@ Parameters:
 - See [Parallel Work Streams](#parallel-work-streams) for details
 
 **List Tasks** — Query raw task data (used by `/next-task` internally):
-- All tasks: `./scripts/list-tasks.sh` (outputs JSON with milestone + non-milestone tasks)
-- Specific type: `./scripts/list-tasks.sh --ideas` (or `--bugs`, `--tech`)
+- All tasks: `pnpm nx list-tasks dev-workflow` (outputs JSON with milestone + non-milestone tasks)
+- Specific type: `pnpm nx list-tasks dev-workflow -- --ideas` (or `--bugs`, `--tech`)
 
 Propose a task to the user and ask them to confirm. Once confirmed, start the task (which provides the details), then create a plan. Do not create a plan before starting.
 
@@ -135,7 +135,7 @@ PRDs can define parallel tracks in their Parallelization section (Section 10). T
 
 ### How It Works
 
-1. Runs `./scripts/list-tasks.sh` to get tasks from all active PRD milestones
+1. Runs `pnpm nx list-tasks dev-workflow` to get tasks from all active PRD milestones
 2. Reads active PRD(s) from `docs/project/PRD/active/`
 3. Parses YAML track definitions in the Parallelization section (see `docs/conventions/prd-track-format.md`)
 4. Maps tasks to tracks via deliverable references in task body
