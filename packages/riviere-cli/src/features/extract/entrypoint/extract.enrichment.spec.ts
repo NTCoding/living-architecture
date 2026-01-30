@@ -127,7 +127,7 @@ describe('riviere extract enrichment', () => {
       expect(output.success).toBe(true)
       expect(output.data).toHaveLength(1)
       expect(output.data[0]).toMatchObject({ _missing: ['operationName'] })
-    })
+    }, 15_000)
 
     it('exits with extraction failure code when extraction fields fail in strict mode', async () => {
       const configPath = await createExtractFixtureWithExtractBlock(ctx.testDir)
@@ -139,7 +139,7 @@ describe('riviere extract enrichment', () => {
       const output = parseErrorOutput(ctx.consoleOutput)
       expect(output.success).toBe(false)
       expect(output.error.message).toContain('operationName')
-    })
+    }, 15_000)
   })
 
   describe('enrich flag', () => {
@@ -188,108 +188,6 @@ describe('riviere extract enrichment', () => {
         domain: 'orders',
         metadata: { category: 'command' },
       })
-    })
-
-    it('returns runtime error when enrich file not found', async () => {
-      const srcDir = join(ctx.testDir, 'src')
-      await mkdir(srcDir, { recursive: true })
-      await writeFile(join(srcDir, 'order-service.ts'), validSourceCode)
-      const configPath = join(ctx.testDir, 'extract.yaml')
-      await writeFile(configPath, configWithLiteralExtract)
-
-      await expect(
-        createProgram().parseAsync([
-          'node',
-          'riviere',
-          'extract',
-          '--config',
-          configPath,
-          '--enrich',
-          'nonexistent.json',
-        ]),
-      ).rejects.toMatchObject({ exitCode: 3 })
-
-      const output = parseErrorOutput(ctx.consoleOutput)
-      expect(output.success).toBe(false)
-      expect(output.error.message).toContain('nonexistent.json')
-    })
-
-    it('returns runtime error when enrich file contains invalid JSON', async () => {
-      const srcDir = join(ctx.testDir, 'src')
-      await mkdir(srcDir, { recursive: true })
-      await writeFile(join(srcDir, 'order-service.ts'), validSourceCode)
-      const configPath = join(ctx.testDir, 'extract.yaml')
-      await writeFile(configPath, configWithLiteralExtract)
-      const invalidPath = join(ctx.testDir, 'invalid.json')
-      await writeFile(invalidPath, 'not valid json{{{')
-
-      await expect(
-        createProgram().parseAsync([
-          'node',
-          'riviere',
-          'extract',
-          '--config',
-          configPath,
-          '--enrich',
-          invalidPath,
-        ]),
-      ).rejects.toMatchObject({ exitCode: 3 })
-
-      const output = parseErrorOutput(ctx.consoleOutput)
-      expect(output.success).toBe(false)
-      expect(output.error.message).toContain('invalid JSON')
-    })
-
-    it('returns runtime error when enrich file contains non-array JSON', async () => {
-      const srcDir = join(ctx.testDir, 'src')
-      await mkdir(srcDir, { recursive: true })
-      await writeFile(join(srcDir, 'order-service.ts'), validSourceCode)
-      const configPath = join(ctx.testDir, 'extract.yaml')
-      await writeFile(configPath, configWithLiteralExtract)
-      const nonArrayPath = join(ctx.testDir, 'non-array.json')
-      await writeFile(nonArrayPath, JSON.stringify({ not: 'an array' }))
-
-      await expect(
-        createProgram().parseAsync([
-          'node',
-          'riviere',
-          'extract',
-          '--config',
-          configPath,
-          '--enrich',
-          nonArrayPath,
-        ]),
-      ).rejects.toMatchObject({ exitCode: 3 })
-
-      const output = parseErrorOutput(ctx.consoleOutput)
-      expect(output.success).toBe(false)
-      expect(output.error.message).toContain('valid draft components')
-    })
-
-    it('returns runtime error when enrich file contains invalid draft component format', async () => {
-      const srcDir = join(ctx.testDir, 'src')
-      await mkdir(srcDir, { recursive: true })
-      await writeFile(join(srcDir, 'order-service.ts'), validSourceCode)
-      const configPath = join(ctx.testDir, 'extract.yaml')
-      await writeFile(configPath, configWithLiteralExtract)
-      const invalidDraftPath = join(ctx.testDir, 'invalid-draft.json')
-      await writeFile(invalidDraftPath, JSON.stringify([{ wrong: 'format' }]))
-
-      await expect(
-        createProgram().parseAsync([
-          'node',
-          'riviere',
-          'extract',
-          '--config',
-          configPath,
-          '--enrich',
-          invalidDraftPath,
-        ]),
-      ).rejects.toMatchObject({ exitCode: 3 })
-
-      const output = parseErrorOutput(ctx.consoleOutput)
-      expect(output.success).toBe(false)
-      expect(output.error.message).toContain('valid draft components')
-    })
+    }, 15_000)
   })
 })

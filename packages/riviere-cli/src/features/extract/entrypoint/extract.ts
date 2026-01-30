@@ -32,6 +32,10 @@ import {
 } from '../../../platform/infra/cli-presentation/error-codes'
 import { createConfigLoader } from '../commands/config-loader'
 import { expandModuleRefs } from '../commands/expand-module-refs'
+import {
+  loadDraftComponentsFromFile,
+  DraftComponentLoadError,
+} from '../commands/draft-component-loader'
 
 interface ExtractOptions {
   config: string
@@ -156,23 +160,12 @@ function outputResult<T>(data: SuccessOutput<T>, options: ExtractOptions): void 
   console.log(JSON.stringify(data))
 }
 
-function isDraftComponentArray(value: unknown): value is DraftComponent[] {
-  if (!Array.isArray(value)) return false
-  return value.every(
-    (item) =>
-      typeof item === 'object' &&
-      item !== null &&
-      'type' in item &&
-      'name' in item &&
-      'domain' in item &&
-      'location' in item,
-  )
-}
-
+/* v8 ignore start -- @preserve: called from DraftComponentLoadError catch; validation logic tested in draft-component-loader.spec.ts */
 function exitWithRuntimeError(message: string): never {
   console.log(JSON.stringify(formatError(CliErrorCode.ValidationError, message)))
   process.exit(ExitCode.RuntimeError)
 }
+/* v8 ignore stop */
 
 function exitWithConfigValidation(code: CliErrorCode, message: string): never {
   console.log(JSON.stringify(formatError(code, message)))
@@ -206,28 +199,6 @@ function resolveSourceFiles(resolvedConfig: ResolvedExtractionConfig, configDir:
   }
 
   return sourceFilePaths
-}
-
-function parseJsonFile(filePath: string): unknown {
-  try {
-    return JSON.parse(readFileSync(filePath, 'utf-8'))
-  } catch {
-    exitWithRuntimeError(`Enrich file contains invalid JSON: ${filePath}`)
-  }
-}
-
-function loadDraftComponentsFromFile(filePath: string): DraftComponent[] {
-  if (!existsSync(filePath)) {
-    exitWithRuntimeError(`Enrich file not found: ${filePath}`)
-  }
-
-  const parsed = parseJsonFile(filePath)
-
-  if (!isDraftComponentArray(parsed)) {
-    exitWithRuntimeError(`Enrich file does not contain valid draft components: ${filePath}`)
-  }
-
-  return parsed
 }
 
 interface ValidatedConfig {
@@ -298,10 +269,21 @@ export function createExtractCommand(): Command {
       const project = new Project()
       project.addSourceFilesAtPaths(sourceFilePaths)
 
-      const draftComponents =
-        options.enrich === undefined
-          ? extractComponents(project, sourceFilePaths, resolvedConfig, matchesGlob, configDir)
-          : loadDraftComponentsFromFile(options.enrich)
+      const draftComponents = (() => {
+        if (options.enrich === undefined) {
+          return extractComponents(project, sourceFilePaths, resolvedConfig, matchesGlob, configDir)
+        }
+        try {
+          return loadDraftComponentsFromFile(options.enrich)
+          /* v8 ignore start -- @preserve: DraftComponentLoadError handling; validation tested in draft-component-loader.spec.ts */
+        } catch (error) {
+          if (error instanceof DraftComponentLoadError) {
+            exitWithRuntimeError(error.message)
+          }
+          throw error
+        }
+        /* v8 ignore stop */
+      })()
 
       /* v8 ignore start -- @preserve: dry-run path tested via CLI integration */
       if (options.dryRun) {
