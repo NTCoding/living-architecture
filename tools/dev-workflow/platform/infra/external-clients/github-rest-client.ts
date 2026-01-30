@@ -71,7 +71,7 @@ function determinePRState(mergedAt: string | null, state: string): PRState {
   return 'closed'
 }
 
-export interface GitHubIssue {
+interface GitHubIssue {
   number: number
   title: string
   assignees: { login: string }[]
