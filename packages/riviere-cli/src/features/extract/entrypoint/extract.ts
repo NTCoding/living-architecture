@@ -1,5 +1,5 @@
 import {
-  existsSync, readFileSync 
+  existsSync, readFileSync, writeFileSync 
 } from 'node:fs'
 import {
   dirname, resolve 
@@ -12,24 +12,34 @@ import {
   validateExtractionConfig,
   formatValidationErrors,
   isValidExtractionConfig,
+  type ResolvedExtractionConfig,
 } from '@living-architecture/riviere-extract-config'
 import {
   extractComponents,
+  enrichComponents,
   resolveConfig,
   matchesGlob,
   type DraftComponent,
 } from '@living-architecture/riviere-extract-ts'
 import {
-  formatError, formatSuccess 
+  formatError,
+  formatSuccess,
+  type SuccessOutput,
 } from '../../../platform/infra/cli-presentation/output'
 import { ModuleRefNotFoundError } from '../../../platform/infra/errors/errors'
-import { CliErrorCode } from '../../../platform/infra/cli-presentation/error-codes'
+import {
+  CliErrorCode, ExitCode 
+} from '../../../platform/infra/cli-presentation/error-codes'
 import { createConfigLoader } from '../commands/config-loader'
 import { expandModuleRefs } from '../commands/expand-module-refs'
 
 interface ExtractOptions {
   config: string
   dryRun?: boolean
+  output?: string
+  componentsOnly?: boolean
+  enrich?: string
+  allowIncomplete?: boolean
 }
 
 type ParseResult =
@@ -125,98 +135,177 @@ function tryExpandModuleRefs(
   }
 }
 
+function outputResult<T>(data: SuccessOutput<T>, options: ExtractOptions): void {
+  if (options.output !== undefined) {
+    try {
+      writeFileSync(options.output, JSON.stringify(data))
+    } catch {
+      console.log(
+        JSON.stringify(
+          formatError(
+            CliErrorCode.ValidationError,
+            'Failed to write output file: ' + options.output,
+          ),
+        ),
+      )
+      process.exit(ExitCode.RuntimeError)
+    }
+    return
+  }
+
+  console.log(JSON.stringify(data))
+}
+
+function isDraftComponentArray(value: unknown): value is DraftComponent[] {
+  if (!Array.isArray(value)) return false
+  return value.every(
+    (item) =>
+      typeof item === 'object' &&
+      item !== null &&
+      'type' in item &&
+      'name' in item &&
+      'domain' in item &&
+      'location' in item,
+  )
+}
+
+function exitWithRuntimeError(message: string): never {
+  console.log(JSON.stringify(formatError(CliErrorCode.ValidationError, message)))
+  process.exit(ExitCode.RuntimeError)
+}
+
+function exitWithConfigValidation(code: CliErrorCode, message: string): never {
+  console.log(JSON.stringify(formatError(code, message)))
+  process.exit(ExitCode.ConfigValidation)
+}
+
+function exitWithExtractionFailure(fieldNames: string[]): never {
+  const uniqueFields = [...new Set(fieldNames)]
+  console.log(
+    JSON.stringify(
+      formatError(
+        CliErrorCode.ValidationError,
+        `Extraction failed for fields: ${uniqueFields.join(', ')}`,
+      ),
+    ),
+  )
+  process.exit(ExitCode.ExtractionFailure)
+}
+
+function resolveSourceFiles(resolvedConfig: ResolvedExtractionConfig, configDir: string): string[] {
+  const sourceFilePaths = resolvedConfig.modules
+    .flatMap((module) => globSync(module.path, { cwd: configDir }))
+    .map((filePath) => resolve(configDir, filePath))
+
+  if (sourceFilePaths.length === 0) {
+    const patterns = resolvedConfig.modules.map((m) => m.path).join(', ')
+    exitWithConfigValidation(
+      CliErrorCode.ValidationError,
+      `No files matched extraction patterns: ${patterns}\nConfig directory: ${configDir}`,
+    )
+  }
+
+  return sourceFilePaths
+}
+
+function parseJsonFile(filePath: string): unknown {
+  try {
+    return JSON.parse(readFileSync(filePath, 'utf-8'))
+  } catch {
+    exitWithRuntimeError(`Enrich file contains invalid JSON: ${filePath}`)
+  }
+}
+
+function loadDraftComponentsFromFile(filePath: string): DraftComponent[] {
+  if (!existsSync(filePath)) {
+    exitWithRuntimeError(`Enrich file not found: ${filePath}`)
+  }
+
+  const parsed = parseJsonFile(filePath)
+
+  if (!isDraftComponentArray(parsed)) {
+    exitWithRuntimeError(`Enrich file does not contain valid draft components: ${filePath}`)
+  }
+
+  return parsed
+}
+
+interface ValidatedConfig {
+  resolvedConfig: ResolvedExtractionConfig
+  configDir: string
+}
+
+function loadAndValidateConfig(configPath: string): ValidatedConfig {
+  if (!existsSync(configPath)) {
+    exitWithConfigValidation(CliErrorCode.ConfigNotFound, `Config file not found: ${configPath}`)
+  }
+
+  const content = readFileSync(configPath, 'utf-8')
+  const parseResult = parseConfigFile(content)
+
+  if (!parseResult.success) {
+    exitWithConfigValidation(
+      CliErrorCode.ValidationError,
+      `Invalid config file: ${parseResult.error}`,
+    )
+  }
+
+  const configDir = dirname(resolve(configPath))
+  const expansionResult = tryExpandModuleRefs(parseResult.data, configDir)
+
+  if (!expansionResult.success) {
+    exitWithConfigValidation(
+      CliErrorCode.ValidationError,
+      `Error expanding module references: ${expansionResult.error}`,
+    )
+  }
+
+  if (!isValidExtractionConfig(expansionResult.data)) {
+    const validationResult = validateExtractionConfig(expansionResult.data)
+    exitWithConfigValidation(
+      CliErrorCode.ValidationError,
+      `Invalid extraction config:\n${formatValidationErrors(validationResult.errors)}`,
+    )
+  }
+
+  return {
+    resolvedConfig: resolveConfig(expansionResult.data, createConfigLoader(configDir)),
+    configDir,
+  }
+}
+
 export function createExtractCommand(): Command {
   return new Command('extract')
     .description('Extract architectural components from source code')
     .requiredOption('--config <path>', 'Path to extraction config file')
     .option('--dry-run', 'Show component counts per domain without full output')
+    .option('-o, --output <file>', 'Write output to file instead of stdout')
+    .option('--components-only', 'Output only component identity (no metadata enrichment)')
+    .option('--enrich <file>', 'Read draft components from file and enrich with extraction rules')
+    .option('--allow-incomplete', 'Output components even when some extraction fields fail')
     .action((options: ExtractOptions) => {
-      if (!existsSync(options.config)) {
-        console.log(
-          JSON.stringify(
-            formatError(CliErrorCode.ConfigNotFound, `Config file not found: ${options.config}`),
-          ),
+      if (options.componentsOnly && options.enrich !== undefined) {
+        exitWithConfigValidation(
+          CliErrorCode.ValidationError,
+          '--components-only and --enrich cannot be used together',
         )
-        process.exit(1)
       }
 
-      const content = readFileSync(options.config, 'utf-8')
-      const parseResult = parseConfigFile(content)
-
-      if (!parseResult.success) {
-        console.log(
-          JSON.stringify(
-            formatError(CliErrorCode.ValidationError, `Invalid config file: ${parseResult.error}`),
-          ),
-        )
-        process.exit(1)
-      }
-
-      const configDir = dirname(resolve(options.config))
-      const expansionResult = tryExpandModuleRefs(parseResult.data, configDir)
-
-      if (!expansionResult.success) {
-        console.log(
-          JSON.stringify(
-            formatError(
-              CliErrorCode.ValidationError,
-              `Error expanding module references: ${expansionResult.error}`,
-            ),
-          ),
-        )
-        process.exit(1)
-      }
-
-      const expandedData = expansionResult.data
-
-      if (!isValidExtractionConfig(expandedData)) {
-        const validationResult = validateExtractionConfig(expandedData)
-        console.log(
-          JSON.stringify(
-            formatError(
-              CliErrorCode.ValidationError,
-              `Invalid extraction config:\n${formatValidationErrors(validationResult.errors)}`,
-            ),
-          ),
-        )
-        process.exit(1)
-      }
-
-      const unresolvedConfig = expandedData
-      const configLoader = createConfigLoader(configDir)
-      const resolvedConfig = resolveConfig(unresolvedConfig, configLoader)
-
-      const sourceFilePaths = resolvedConfig.modules
-        .flatMap((module) => globSync(module.path, { cwd: configDir }))
-        .map((filePath) => resolve(configDir, filePath))
-
-      if (sourceFilePaths.length === 0) {
-        const patterns = resolvedConfig.modules.map((m) => m.path).join(', ')
-        console.log(
-          JSON.stringify(
-            formatError(
-              CliErrorCode.ValidationError,
-              `No files matched extraction patterns: ${patterns}\nConfig directory: ${configDir}`,
-            ),
-          ),
-        )
-        process.exit(1)
-      }
-
+      const {
+        resolvedConfig, configDir 
+      } = loadAndValidateConfig(options.config)
+      const sourceFilePaths = resolveSourceFiles(resolvedConfig, configDir)
       const project = new Project()
       project.addSourceFilesAtPaths(sourceFilePaths)
 
-      const components = extractComponents(
-        project,
-        sourceFilePaths,
-        resolvedConfig,
-        matchesGlob,
-        configDir,
-      )
+      const draftComponents =
+        options.enrich === undefined
+          ? extractComponents(project, sourceFilePaths, resolvedConfig, matchesGlob, configDir)
+          : loadDraftComponentsFromFile(options.enrich)
 
       /* v8 ignore start -- @preserve: dry-run path tested via CLI integration */
       if (options.dryRun) {
-        const lines = formatDryRunOutput(components)
+        const lines = formatDryRunOutput(draftComponents)
         for (const line of lines) {
           console.log(line)
         }
@@ -224,6 +313,29 @@ export function createExtractCommand(): Command {
       }
       /* v8 ignore stop */
 
-      console.log(JSON.stringify(formatSuccess(components)))
+      if (options.componentsOnly) {
+        outputResult(formatSuccess(draftComponents), options)
+        return
+      }
+
+      const enrichmentResult = enrichComponents(
+        draftComponents,
+        resolvedConfig,
+        project,
+        matchesGlob,
+        configDir,
+      )
+
+      const hasFailures = enrichmentResult.failures.length > 0
+      if (hasFailures && options.allowIncomplete === true) {
+        outputResult(formatSuccess(enrichmentResult.components), options)
+        return
+      }
+
+      if (hasFailures) {
+        exitWithExtractionFailure(enrichmentResult.failures.map((f) => f.field))
+      }
+
+      outputResult(formatSuccess(enrichmentResult.components), options)
     })
 }

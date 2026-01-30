@@ -1,5 +1,5 @@
 import {
-  writeFile, mkdir 
+  readFile, writeFile, mkdir 
 } from 'node:fs/promises'
 import { join } from 'node:path'
 import {
@@ -49,6 +49,38 @@ function parseExtractionOutput(consoleOutput: string[]): ExtractionOutput {
   return parsed
 }
 
+const validConfigYaml = `
+modules:
+  - name: orders
+    path: "**/src/**/*.ts"
+    api: { notUsed: true }
+    useCase:
+      find: classes
+      where:
+        hasJSDoc:
+          tag: useCase
+    domainOp: { notUsed: true }
+    event: { notUsed: true }
+    eventHandler: { notUsed: true }
+    ui: { notUsed: true }
+`
+
+const validSourceCode = `
+/** @useCase */
+export class PlaceOrder {
+  execute() {}
+}
+`
+
+async function createValidExtractFixture(testDir: string): Promise<string> {
+  const srcDir = join(testDir, 'src')
+  await mkdir(srcDir, { recursive: true })
+  await writeFile(join(srcDir, 'order-service.ts'), validSourceCode)
+  const configPath = join(testDir, 'extract.yaml')
+  await writeFile(configPath, validConfigYaml)
+  return configPath
+}
+
 describe('riviere extract', () => {
   describe('command registration', () => {
     it('registers extract command at top level', () => {
@@ -71,7 +103,7 @@ describe('riviere extract', () => {
           '--config',
           './nonexistent.yaml',
         ]),
-      ).rejects.toMatchObject({ exitCode: 1 })
+      ).rejects.toMatchObject({ exitCode: 2 })
 
       const output = parseErrorOutput(ctx.consoleOutput)
       expect(output.success).toBe(false)
@@ -85,7 +117,7 @@ describe('riviere extract', () => {
 
       await expect(
         createProgram().parseAsync(['node', 'riviere', 'extract', '--config', configPath]),
-      ).rejects.toMatchObject({ exitCode: 1 })
+      ).rejects.toMatchObject({ exitCode: 2 })
 
       const output = parseErrorOutput(ctx.consoleOutput)
       expect(output.success).toBe(false)
@@ -98,7 +130,7 @@ describe('riviere extract', () => {
 
       await expect(
         createProgram().parseAsync(['node', 'riviere', 'extract', '--config', configPath]),
-      ).rejects.toMatchObject({ exitCode: 1 })
+      ).rejects.toMatchObject({ exitCode: 2 })
 
       const output = parseErrorOutput(ctx.consoleOutput)
       expect(output.success).toBe(false)
@@ -125,7 +157,7 @@ modules:
 
       await expect(
         createProgram().parseAsync(['node', 'riviere', 'extract', '--config', configPath]),
-      ).rejects.toMatchObject({ exitCode: 1 })
+      ).rejects.toMatchObject({ exitCode: 2 })
 
       const output = parseErrorOutput(ctx.consoleOutput)
       expect(output.success).toBe(false)
@@ -207,7 +239,7 @@ modules:
 
       await expect(
         createProgram().parseAsync(['node', 'riviere', 'extract', '--config', configPath]),
-      ).rejects.toMatchObject({ exitCode: 1 })
+      ).rejects.toMatchObject({ exitCode: 2 })
 
       const output = parseErrorOutput(ctx.consoleOutput)
       expect(output.success).toBe(false)
@@ -233,7 +265,7 @@ modules:
 
       await expect(
         createProgram().parseAsync(['node', 'riviere', 'extract', '--config', configPath]),
-      ).rejects.toMatchObject({ exitCode: 1 })
+      ).rejects.toMatchObject({ exitCode: 2 })
 
       const output = parseErrorOutput(ctx.consoleOutput)
       expect(output.success).toBe(false)
@@ -246,39 +278,7 @@ modules:
     setupCommandTest(ctx)
 
     it('extracts components from source files and outputs JSON', async () => {
-      const srcDir = join(ctx.testDir, 'src')
-      await mkdir(srcDir, { recursive: true })
-
-      const sourceFile = join(srcDir, 'order-service.ts')
-      await writeFile(
-        sourceFile,
-        `
-/** @useCase */
-export class PlaceOrder {
-  execute() {}
-}
-`,
-      )
-
-      const configPath = join(ctx.testDir, 'extract.yaml')
-      await writeFile(
-        configPath,
-        `
-modules:
-  - name: orders
-    path: "**/src/**/*.ts"
-    api: { notUsed: true }
-    useCase:
-      find: classes
-      where:
-        hasJSDoc:
-          tag: useCase
-    domainOp: { notUsed: true }
-    event: { notUsed: true }
-    eventHandler: { notUsed: true }
-    ui: { notUsed: true }
-`,
-      )
+      const configPath = await createValidExtractFixture(ctx.testDir)
 
       await createProgram().parseAsync(['node', 'riviere', 'extract', '--config', configPath])
 
@@ -289,7 +289,111 @@ modules:
         type: 'useCase',
         name: 'PlaceOrder',
         domain: 'orders',
+        metadata: {},
       })
+    })
+  })
+
+  describe('output file flag', () => {
+    const ctx: TestContext = createTestContext()
+    setupCommandTest(ctx)
+
+    it('outputs extraction results to file when -o provided', async () => {
+      const configPath = await createValidExtractFixture(ctx.testDir)
+      const outputPath = join(ctx.testDir, 'output.json')
+
+      await createProgram().parseAsync([
+        'node',
+        'riviere',
+        'extract',
+        '--config',
+        configPath,
+        '-o',
+        outputPath,
+      ])
+
+      const fileContent = await readFile(outputPath, 'utf-8')
+      const parsed: unknown = JSON.parse(fileContent)
+      expect(parsed).toMatchObject({
+        success: true,
+        data: [
+          {
+            type: 'useCase',
+            name: 'PlaceOrder',
+            domain: 'orders',
+          },
+        ],
+      })
+      expect(ctx.consoleOutput).toHaveLength(0)
+    })
+
+    it('returns runtime error when -o path is not writable', async () => {
+      const configPath = await createValidExtractFixture(ctx.testDir)
+
+      await expect(
+        createProgram().parseAsync([
+          'node',
+          'riviere',
+          'extract',
+          '--config',
+          configPath,
+          '-o',
+          '/nonexistent-dir/output.json',
+        ]),
+      ).rejects.toMatchObject({ exitCode: 3 })
+
+      const output = parseErrorOutput(ctx.consoleOutput)
+      expect(output.success).toBe(false)
+      expect(output.error.message).toContain('/nonexistent-dir/output.json')
+    })
+  })
+
+  describe('components-only flag', () => {
+    const ctx: TestContext = createTestContext()
+    setupCommandTest(ctx)
+
+    it('outputs only component identity fields when --components-only provided', async () => {
+      const configPath = await createValidExtractFixture(ctx.testDir)
+
+      await createProgram().parseAsync([
+        'node',
+        'riviere',
+        'extract',
+        '--config',
+        configPath,
+        '--components-only',
+      ])
+
+      const output = parseExtractionOutput(ctx.consoleOutput)
+      expect(output.data).toHaveLength(1)
+      expect(output.data[0]).toMatchObject({
+        type: 'useCase',
+        name: 'PlaceOrder',
+        domain: 'orders',
+      })
+      expect(output.data[0]).toHaveProperty('location')
+    })
+
+    it('returns config validation error when --components-only and --enrich used together', async () => {
+      const configPath = await createValidExtractFixture(ctx.testDir)
+
+      await expect(
+        createProgram().parseAsync([
+          'node',
+          'riviere',
+          'extract',
+          '--config',
+          configPath,
+          '--components-only',
+          '--enrich',
+          'draft.json',
+        ]),
+      ).rejects.toMatchObject({ exitCode: 2 })
+
+      const output = parseErrorOutput(ctx.consoleOutput)
+      expect(output.success).toBe(false)
+      expect(output.error.message).toContain('--components-only')
+      expect(output.error.message).toContain('--enrich')
     })
   })
 })
