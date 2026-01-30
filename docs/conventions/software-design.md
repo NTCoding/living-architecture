@@ -293,12 +293,12 @@ function calculateDiscount(price: PositiveNumber, rate: number): Money {
 }
 ```
 
-## SD-019: Parse, Don't Validate
+## SD-019: Use Zod, don't use type guards
 
-**Principle:** Use Zod schemas at system boundaries to parse external data once. Don't scatter `isX(unknown): x is T` type guards throughout the codebase.
+**Principle:** Use Zod schemas to construct types. Do not use type guards. A Zod schema belongs to the object, the type guard is scattered anywhere decoupling the object's type and validation of the type.
 
 ```typescript
-// ✅ PARSE AT BOUNDARY - Zod schema defines both type and validation
+// ✅ Define a zod schema and construct valid objects with it
 const DetectionRuleSchema = z.object({
   find: z.enum(['class', 'function', 'decorator']),
   where: z.object({ nameMatches: z.string() })
@@ -310,7 +310,7 @@ function loadConfig(raw: unknown): Config {
   return ConfigSchema.parse(raw)  // Validated, typed, done
 }
 
-// ❌ SCATTERED VALIDATION - type guard validates unknown deep in code
+// ❌ SCATTERED VALIDATION - don't use type guards. The logic for validating an object's type should be owned by the type.
 function isDetectionRule(rule: unknown): rule is DetectionRule {
   return typeof rule === 'object' && rule !== null && 'find' in rule && 'where' in rule
 }

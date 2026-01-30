@@ -7,6 +7,11 @@ import type { CompleteTaskContext } from './task-to-complete'
 
 vi.mock('node:fs', () => ({ writeFileSync: vi.fn() }))
 
+const baseTiming = {
+  stepTimings: [],
+  totalDurationMs: 0,
+}
+
 describe('formatCompleteTaskResult', () => {
   const baseContext: CompleteTaskContext = {
     branch: 'test-branch',
@@ -23,6 +28,7 @@ describe('formatCompleteTaskResult', () => {
       const result: WorkflowResult = {
         success: true,
         output: { data: 'test output' },
+        ...baseTiming,
       }
 
       const formatted = formatCompleteTaskResult(result, baseContext)
@@ -33,7 +39,10 @@ describe('formatCompleteTaskResult', () => {
     })
 
     it('formats success result without output but with PR URL', () => {
-      const result: WorkflowResult = { success: true }
+      const result: WorkflowResult = {
+        success: true,
+        ...baseTiming,
+      }
       const contextWithPr = {
         ...baseContext,
         prUrl: 'https://github.com/org/repo/pull/456',
@@ -48,7 +57,10 @@ describe('formatCompleteTaskResult', () => {
     })
 
     it('formats success result without output or PR URL', () => {
-      const result: WorkflowResult = { success: true }
+      const result: WorkflowResult = {
+        success: true,
+        ...baseTiming,
+      }
 
       const formatted = formatCompleteTaskResult(result, baseContext)
 
@@ -67,6 +79,7 @@ describe('formatCompleteTaskResult', () => {
           details: 'lint error details',
         },
         failedStep: 'verify-build',
+        ...baseTiming,
       }
 
       const formatted = formatCompleteTaskResult(result, baseContext)
@@ -90,6 +103,7 @@ describe('formatCompleteTaskResult', () => {
           ],
         },
         failedStep: 'code-review',
+        ...baseTiming,
       }
 
       const formatted = formatCompleteTaskResult(result, baseContext)
@@ -113,6 +127,7 @@ describe('formatCompleteTaskResult', () => {
           details: 'review comments',
         },
         failedStep: 'code-review',
+        ...baseTiming,
       }
 
       const formatted = formatCompleteTaskResult(result, baseContext)
@@ -130,6 +145,7 @@ describe('formatCompleteTaskResult', () => {
           details: 'unresolved threads',
         },
         failedStep: 'fetch-feedback',
+        ...baseTiming,
       }
 
       const formatted = formatCompleteTaskResult(result, baseContext)
@@ -144,6 +160,7 @@ describe('formatCompleteTaskResult', () => {
         success: false,
         error: 'unexpected error string',
         failedStep: 'unknown',
+        ...baseTiming,
       }
 
       const formatted = formatCompleteTaskResult(result, baseContext)
@@ -161,6 +178,7 @@ describe('formatCompleteTaskResult', () => {
           details: 'something went wrong',
         },
         failedStep: 'step',
+        ...baseTiming,
       }
 
       const formatted = formatCompleteTaskResult(result, baseContext)

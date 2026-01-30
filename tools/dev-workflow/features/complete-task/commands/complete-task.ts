@@ -20,10 +20,14 @@ function sanitizeBranchNameForPath(branch: string): string {
   return branch.replaceAll(/[^a-zA-Z0-9_-]/g, '_')
 }
 
+function buildReviewDir(branch: string): string {
+  const safeBranch = sanitizeBranchNameForPath(branch)
+  return `reviews/${safeBranch}`
+}
+
 async function buildCompleteTaskContext(): Promise<CompleteTaskContext> {
   const branch = await git.currentBranch()
-  const safeBranch = sanitizeBranchNameForPath(branch)
-  const reviewDir = `reviews/${safeBranch}`
+  const reviewDir = buildReviewDir(branch)
 
   await mkdir(reviewDir, { recursive: true })
 
@@ -80,10 +84,15 @@ function buildSteps() {
   ]
 }
 
+export function resolveTimingsFilePath(ctx: CompleteTaskContext): string {
+  return `${ctx.reviewDir}/timings.md`
+}
+
 export function executeCompleteTask(): void {
   runWorkflow<CompleteTaskContext>(
     buildSteps(),
     buildCompleteTaskContext,
     (result: WorkflowResult, ctx: CompleteTaskContext) => formatCompleteTaskResult(result, ctx),
+    { resolveTimingsFilePath },
   )
 }

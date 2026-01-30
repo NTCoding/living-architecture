@@ -55,7 +55,9 @@ vi.mock('../../../platform/infra/external-clients/claude-agent', () => ({ claude
 vi.mock('../../../platform/infra/external-clients/nx-runner', () => ({ nx: mockNx }))
 vi.mock('../../../platform/infra/external-clients/github-graphql-client', () => ({fetchRawPRFeedback: mockFetchRawPRFeedback,}))
 
-import { executeCompleteTask } from './complete-task'
+import {
+  executeCompleteTask, resolveTimingsFilePath 
+} from './complete-task'
 
 type ContextBuilder = () => Promise<CompleteTaskContext>
 type ResultFormatter = (result: WorkflowResult, ctx: CompleteTaskContext) => unknown
@@ -76,6 +78,17 @@ function getContextBuilder(): ContextBuilder {
 
 function getResultFormatter(): ResultFormatter {
   return resultFormatterSchema.parse(mockRunWorkflow.mock.calls[0][2])
+}
+
+function buildTestContext(): CompleteTaskContext {
+  return {
+    branch: 'test-branch',
+    reviewDir: 'reviews/test',
+    hasIssue: false,
+    commitMessage: 'test',
+    prTitle: 'test',
+    prBody: 'test',
+  }
 }
 
 describe('executeCompleteTask', () => {
@@ -101,7 +114,14 @@ describe('executeCompleteTask', () => {
       expect.any(Array),
       expect.any(Function),
       expect.any(Function),
+      expect.objectContaining({ resolveTimingsFilePath: expect.any(Function) }),
     )
+  })
+
+  it('resolves timings file path from review directory', () => {
+    const ctx = buildTestContext()
+    const path = resolveTimingsFilePath(ctx)
+    expect(path).toBe('reviews/test/timings.md')
   })
 
   it('passes workflow steps in correct order', () => {
@@ -186,7 +206,11 @@ describe('executeCompleteTask', () => {
   it('result formatter invokes formatCompleteTaskResult', () => {
     executeCompleteTask()
 
-    const mockResult: WorkflowResult = { success: true }
+    const mockResult: WorkflowResult = {
+      success: true,
+      stepTimings: [],
+      totalDurationMs: 0,
+    }
     const mockCtx: CompleteTaskContext = {
       branch: 'test-branch',
       reviewDir: 'reviews/test',

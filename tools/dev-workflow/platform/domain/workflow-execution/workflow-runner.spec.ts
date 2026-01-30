@@ -107,6 +107,82 @@ describe('workflow', () => {
     expect(result.output).toBe('final-output')
   })
 
+  it('returns stepTimings with correct step names on success', async () => {
+    const steps: Step<BaseContext>[] = [
+      {
+        name: 'step-a',
+        execute: async () => success(),
+      },
+      {
+        name: 'step-b',
+        execute: async () => success(),
+      },
+    ]
+    const run = workflow(steps)
+    const result = await run(createContext())
+    expect(result.stepTimings).toHaveLength(2)
+    expect(result.stepTimings[0]?.name).toBe('step-a')
+    expect(result.stepTimings[1]?.name).toBe('step-b')
+  })
+
+  it('returns positive durationMs for each step', async () => {
+    const steps: Step<BaseContext>[] = [
+      {
+        name: 'step1',
+        execute: async () => success(),
+      },
+    ]
+    const run = workflow(steps)
+    const result = await run(createContext())
+    expect(result.stepTimings[0]?.durationMs).toBeGreaterThanOrEqual(0)
+  })
+
+  it('returns totalDurationMs on success', async () => {
+    const steps: Step<BaseContext>[] = [
+      {
+        name: 'step1',
+        execute: async () => success(),
+      },
+    ]
+    const run = workflow(steps)
+    const result = await run(createContext())
+    expect(result.totalDurationMs).toBeGreaterThanOrEqual(0)
+  })
+
+  it('returns stepTimings for executed steps only on failure', async () => {
+    const steps: Step<BaseContext>[] = [
+      {
+        name: 'step1',
+        execute: async () => success(),
+      },
+      {
+        name: 'step2',
+        execute: async () => failure('error'),
+      },
+      {
+        name: 'step3',
+        execute: async () => success(),
+      },
+    ]
+    const run = workflow(steps)
+    const result = await run(createContext())
+    expect(result.stepTimings).toHaveLength(2)
+    expect(result.stepTimings[0]?.name).toBe('step1')
+    expect(result.stepTimings[1]?.name).toBe('step2')
+  })
+
+  it('returns totalDurationMs on failure', async () => {
+    const steps: Step<BaseContext>[] = [
+      {
+        name: 'step1',
+        execute: async () => failure('error'),
+      },
+    ]
+    const run = workflow(steps)
+    const result = await run(createContext())
+    expect(result.totalDurationMs).toBeGreaterThanOrEqual(0)
+  })
+
   it('does not set output when step returns undefined output', async () => {
     const ctx = createContext()
     ctx.output = 'initial'

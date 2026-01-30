@@ -21,11 +21,19 @@ export const taskDetailsSchema = z.object({
 })
 export type TaskDetails = z.infer<typeof taskDetailsSchema>
 
+const stepTimingSchema = z.object({
+  name: z.string(),
+  durationMs: z.number(),
+})
+export type StepTiming = z.infer<typeof stepTimingSchema>
+
 const workflowResultSchema = z.object({
   success: z.boolean(),
   output: z.unknown().optional(),
   error: z.unknown().optional(),
   failedStep: z.string().optional(),
+  stepTimings: z.array(stepTimingSchema),
+  totalDurationMs: z.number(),
 })
 export type WorkflowResult = z.infer<typeof workflowResultSchema>
 
@@ -36,14 +44,26 @@ export interface Step<T extends BaseContext> {
 
 export function workflow<T extends BaseContext>(steps: Step<T>[]) {
   return async (ctx: T): Promise<WorkflowResult> => {
+    const stepTimings: StepTiming[] = []
+    const workflowStart = performance.now()
+
     for (const step of steps) {
+      const stepStart = performance.now()
       const result = await step.execute(ctx)
+      const stepDuration = performance.now() - stepStart
+
+      stepTimings.push({
+        name: step.name,
+        durationMs: stepDuration,
+      })
 
       if (result.type === 'failure') {
         return {
           success: false,
           error: result.details,
           failedStep: step.name,
+          stepTimings,
+          totalDurationMs: performance.now() - workflowStart,
         }
       }
 
@@ -55,6 +75,8 @@ export function workflow<T extends BaseContext>(steps: Step<T>[]) {
     return {
       success: true,
       output: ctx.output,
+      stepTimings,
+      totalDurationMs: performance.now() - workflowStart,
     }
   }
 }
