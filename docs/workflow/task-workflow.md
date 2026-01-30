@@ -119,6 +119,19 @@ Propose a task to the user and ask them to confirm. Once confirmed, start the ta
 
 **Check PR Feedback** — Get current PR status and unresolved feedback. Use this to see what needs addressing before a PR is mergeable.
 
+**Responding to PR Feedback** — When responding to unresolved threads:
+
+🚨 **Every rejection MUST include a specific technical reason.** Blanket dismissals are forbidden.
+
+- ❌ **NEVER**: "Not addressing in this PR", "CodeRabbit nitpick", "Out of scope"
+- ✅ **ALWAYS**: Explain *why* the feedback doesn't apply with a specific technical justification
+
+**Rules for rejecting feedback:**
+1. If the feedback is about code **changed in this PR**, you MUST either fix it or explain with a specific technical reason why the suggestion is incorrect
+2. "Not addressing in this PR" is only valid for pre-existing issues unrelated to the PR's changes
+3. "Nitpick" is not a rejection reason — evaluate the suggestion on its technical merits
+4. If you cannot articulate a specific technical reason for rejection, the feedback is probably valid — fix it
+
 **Re-check PR** — PR feedback addressed, needs CI verification. Run `/complete-task` again to re-run the full pipeline.
 
 **Post-Merge Completion** — After PR is merged: (1) Run `/post-merge-completion` from the worktree to reflect on feedback (needs review files). (2) Create GitHub issues for any improvement opportunities identified. (3) Run `cleanup-task.sh` to remove the worktree. (4) Implement improvements by starting the new task via normal workflow—**never reuse the merged branch** (squash merges create stale merge bases).

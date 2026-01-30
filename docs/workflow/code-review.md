@@ -17,7 +17,7 @@ Load and apply the following skills:
 - development-skills:separation-of-concerns
 - development-skills:tactical-ddd
 
-### Vertical Slice Organization
+### CR-001: Vertical Slice Organization
 
 Check for type-based organization patterns that violate the "organize by usage" principle.
 
@@ -94,7 +94,7 @@ Check for `/* v8 ignore next -- @preserve */` which skips test coverage for spec
 
 There may be exceptional cases where this is necessary because code is unreachable but is needed to satisfy the compiler. However, in most cases the problem can be solved by extracting code or writing tests to mock behaviour (or a combination of both.). Provide suggestions.
 
-## No Dangerous Fallback Values
+## CR-002: No Dangerous Fallback Values
 
 Pay extra special attention to dangerous fallback values that hide bugs. Claude Code loves setting default fallbacks.
 
@@ -136,7 +136,7 @@ Has Exception Comment?: [Yes/No]
 
 Hard failure unless documented exception exists.
 
-## Brand Identity & Design Consistency
+## CR-003: Brand Identity & Design Consistency
 
 All UI must conform to the project's brand identity. Design elements—colors, typography, spacing—must come from centralized sources, not ad-hoc values scattered through components.
 
@@ -165,7 +165,7 @@ Exception?: [Yes/No]
 
 Hard failure. Design consistency is not optional.
 
-## Duplicated code
+## CR-004: Duplicated code
 
 Claude Code has a very bad habit of duplicating code. If near-identical code is duplicated more than twice then it must be addressed even if it requires touching files not part of the current change set (Claude Code will look for excuses to weasel out - be strict)
 
@@ -175,7 +175,7 @@ Don't spend too long looking across the whole codebase for duplicated code but d
 
 Check all `.sh` files against these patterns:
 
-### JSON Construction
+### CR-005: JSON Construction
 
 When building JSON in bash, use `jq` instead of manual string escaping. Manual escaping typically misses backslashes, newlines, and tabs.
 
@@ -191,7 +191,7 @@ BODY=$(jq -n --arg msg "$MESSAGE" '{body: $msg}')
 gh api ... --input - <<< "$BODY"
 ```
 
-### Unused Variables
+### CR-006: Unused Variables
 
 Flag any variables that are extracted or assigned but never used.
 

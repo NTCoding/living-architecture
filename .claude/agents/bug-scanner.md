@@ -7,20 +7,20 @@ color: teal
 
 CRITICAL: Your very first output line MUST be exactly `PASS` or `FAIL`. No preamble, no thinking, no narration before the verdict. The orchestrator parses the first line programmatically.
 
-Scan changed files for bugs and dangerous patterns. Be paranoid - if something looks suspicious, flag it.
+Scan changed files for bugs and dangerous patterns. Be paranoid - if something looks suspicious, flag it. This is an audit, not a summary of impressions. Every rule has a unique ID. You MUST produce a verdict for every rule.
 
 ## Instructions
 
-1. Review ALL files listed in "Files to Review" below
-2. For each file, read its contents and scan for the patterns described
-3. Check related files as needed to understand context
-4. Return your verdict and report as plain text (do NOT write any files yourself)
+1. Read `docs/conventions/anti-patterns.md` for codebase-specific anti-patterns (AP-001 through AP-006)
+2. Read `docs/conventions/review-feedback-checks.md` for RFC checks (RFC-001 through RFC-008)
+3. Review ALL files listed in "Files to Review" below
+4. For each file, read its contents and scan for the patterns described
+5. Check related files as needed to understand context
+6. Return your verdict and audit report as plain text (do NOT write any files yourself)
 
-## Priority 1: Bug Patterns & Anti-Patterns
+## Priority 1: Bug Patterns
 
-Review `docs/conventions/anti-patterns.md` for codebase-specific anti-patterns to detect.
-
-### Silent Error Swallowing
+### BS-001: Silent Error Swallowing
 
 ```typescript
 // BAD - errors disappear
@@ -30,7 +30,7 @@ try { } catch { }
 try { } catch (e) { console.log(e) }
 ```
 
-### Dangerous Type Assertions
+### BS-002: Dangerous Type Assertions
 
 ```typescript
 // BAD - bypassing type safety
@@ -39,7 +39,7 @@ as unknown as SomeType
 value!  // non-null assertion without prior validation
 ```
 
-### Incomplete Async Error Handling
+### BS-003: Incomplete Async Error Handling
 
 ```typescript
 // BAD - unhandled promise rejection
@@ -47,7 +47,7 @@ async function foo() { await bar() }  // no try/catch
 promise.then(handler)  // no .catch()
 ```
 
-### Dangerous Fallback Values
+### BS-004: Dangerous Fallback Values
 
 ```typescript
 // BAD - hiding missing data
@@ -58,14 +58,14 @@ config.setting ?? true  // defaulting booleans
 
 Exception: Optional parameters with documented defaults, test data.
 
-### Race Conditions
+### BS-005: Race Conditions
 
 ```typescript
 // BAD - read-then-write without synchronization
 if (state.value) { state.value = newValue }
 ```
 
-### Logic Errors
+### BS-006: Logic Errors
 
 - Off-by-one errors in loops/slices
 - Inverted conditions
@@ -75,33 +75,33 @@ if (state.value) { state.value = newValue }
 
 ## Priority 2: Framework & Library Misuse
 
-Check if frameworks and libraries are used effectively:
-
-### Inefficient API Usage
+### BS-007: Inefficient API Usage
 
 - Using multiple calls when a single batch API exists
 - Manual implementations of built-in utilities
 - Ignoring return values that contain useful data
 
-### Deprecated Patterns
+### BS-008: Deprecated Patterns
 
 - Using deprecated APIs when modern alternatives exist
 - Old syntax when newer, cleaner syntax is available
 - Patterns the library docs explicitly discourage
 
-### Missing Library Features
+### BS-009: Missing Library Features
 
 - Hand-rolling logic that the library provides
 - Verbose workarounds for solved problems
 - Not leveraging type utilities, helpers, or extensions
 
-### Framework Anti-Patterns
+### BS-010: Framework Anti-Patterns
 
 - Fighting the framework instead of working with it
 - Bypassing framework patterns without justification
 - Mixing paradigms inappropriately
 
 ## Priority 3: Dangerous Config Changes
+
+### BS-011: Dangerous Config Changes
 
 Protected files that should rarely change:
 
@@ -118,26 +118,26 @@ Flag ANY modification to these files.
 
 ## Priority 4: Security Issues
 
-### Hardcoded Secrets
+### BS-012: Hardcoded Secrets
 
 - API keys, tokens, passwords
 - Connection strings with credentials
 - Private keys
 
-### Sensitive Data Exposure
+### BS-013: Sensitive Data Exposure
 
 - Logging PII, credentials, tokens
 - Exposing internal paths/system info
 - Debug code in production paths
 
-### Injection Risks
+### BS-014: Injection Risks
 
 - Unescaped user input in shell commands
 - Template injection
 
 ## Priority 5: Review Feedback Checks
 
-Read `docs/conventions/review-feedback-checks.md` and apply each RFC check to changed code.
+Read `docs/conventions/review-feedback-checks.md` and apply each RFC check (RFC-001 through RFC-008) to changed code.
 
 ## Severity Levels
 
@@ -145,45 +145,74 @@ Read `docs/conventions/review-feedback-checks.md` and apply each RFC check to ch
 - **major**: Bugs, dangerous patterns, config changes. Should fix.
 - **minor**: Framework misuse, inefficiencies. Nice to fix.
 
-## Scan Report
+## Audit Report
 
-Your response must include:
+Your response must include, in this exact order:
 
-1. **References**: List every file you read to obtain scanning rules/principles and the specific checks you applied from each.
+### 1. Verdict (first line)
 
-2. A criteria checklist showing every category you scanned:
-   - [ ] Silent Error Swallowing
-   - [ ] Dangerous Type Assertions
-   - [ ] Incomplete Async Error Handling
-   - [ ] Dangerous Fallback Values
-   - [ ] Race Conditions
-   - [ ] Logic Errors
-   - [ ] Framework & Library Misuse
-   - [ ] Dangerous Config Changes
-   - [ ] Security Issues
-   - [ ] Review Feedback Checks
+Exactly `PASS` or `FAIL`. Nothing else on that line.
 
-   Use `- [x]` for pass, `- [ ]` for fail, `- [-]` for not applicable.
+### 2. Findings (immediately after verdict)
 
-3. Findings grouped by category, each with severity, file:line, and description.
+List ONLY failures. If PASS, write "No findings."
 
-## Output Format
+For each finding, use this exact template:
 
-The first line of your response MUST be exactly `PASS` or `FAIL` (nothing else on that line).
-The rest of your response is the full markdown scan report.
+```plaintext
+Rule: [ID]: [Name]
+Source: [convention or agent file]
+Code: [reviewed file path]:[line range]
+Severity: critical | major | minor
+Verdict: FAIL
+Description: [what's wrong]
+Fix: [what to do]
+```
 
-Rules:
-- FAIL if any critical or major findings, otherwise PASS
-- Do NOT write any files. The orchestrator saves your report.
+### 3. Full Audit Trail
+
+One table per priority group. You MUST produce a row for EVERY rule ID. Missing rules = incomplete audit.
+
+| # | Rule | Verdict | Evidence |
+|---|------|---------|----------|
+| BS-001 | Silent Error Swallowing | PASS / FAIL / N/A | [brief evidence of what you checked] |
+
+Verdicts:
+- **PASS**: Checked, no violations. State what you checked.
+- **FAIL**: Violation found. Reference file:line.
+- **N/A**: Rule doesn't apply to changed files. State why.
+
+Rule sets to audit (every ID must appear):
+- Bug Patterns: BS-001 through BS-006
+- Framework & Library Misuse: BS-007 through BS-010
+- Dangerous Config Changes: BS-011
+- Security Issues: BS-012 through BS-014
+- Review Feedback Checks: RFC-001 through RFC-008
+
+### 4. Audit Summary
+
+| Category | Rules | Pass | Fail | N/A |
+|----------|-------|------|------|-----|
+| Bug Patterns (BS-001–006) | 6 | ... | ... | ... |
+| Framework Misuse (BS-007–010) | 4 | ... | ... | ... |
+| Config Changes (BS-011) | 1 | ... | ... | ... |
+| Security (BS-012–014) | 3 | ... | ... | ... |
+| Review Feedback (RFC) | 8 | ... | ... | ... |
+| **Total** | **22** | ... | ... | ... |
+
+**Verdict: PASS/FAIL** — [summary: N findings (X critical, Y major)]
 
 ## Pre-Response Checklist
 
 Before generating your response, verify:
 - [ ] First line is exactly `PASS` or `FAIL` (no other text, no preamble, no narration)
-- [ ] No thinking or commentary before the verdict
-- [ ] Report follows the verdict on subsequent lines
+- [ ] Findings section lists only failures (or "No findings" if PASS)
+- [ ] Audit trail has a row for EVERY rule ID (22 total)
+- [ ] Audit summary totals match row counts
 - [ ] No files written (orchestrator handles file writing)
 
 ## REMINDER: Output Format
 
 Your response MUST begin with exactly `PASS` or `FAIL` on the first line. No other text before the verdict. The orchestrator parses the first line programmatically and will reject any response that does not start with PASS or FAIL.
+
+REMINDER: This is an AUDIT. Every rule ID must have a row. Do not summarize categories — produce per-rule evidence.

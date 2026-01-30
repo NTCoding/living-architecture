@@ -1,12 +1,12 @@
 # Design patterns
 
-## Zod for Branded Types
+## SP-001: Zod for Branded Types
 
 When creating branded types, use Zod.
 
 Why: standard library, battle-tested, clean API, codebase consistency, avoid building ad-hoc solution
 
-## Discriminated Unions for Mixed Return Types
+## SP-002: Discriminated Unions for Mixed Return Types
 
 When a function needs to return different primitive types (e.g., `string | number | boolean`), wrap them in a discriminated union.
 

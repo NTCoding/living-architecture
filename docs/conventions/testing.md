@@ -8,15 +8,15 @@ How to write tests that catch bugs, document behavior, and remain maintainable.
 
 ## Critical Rules
 
-**Test names describe outcomes, not actions.** "returns empty array when input is null" not "test null input". The name IS the specification.
+**TS-001: Test names describe outcomes, not actions.** "returns empty array when input is null" not "test null input". The name IS the specification.
 
-**Assertions must match test titles.** If the test claims to verify "different IDs", assert on the actual ID values—not just count or existence.
+**TS-002: Assertions must match test titles.** If the test claims to verify "different IDs", assert on the actual ID values—not just count or existence.
 
-**Assert specific values, not types.** `expect(result).toEqual(['First.', ' Second.'])` not `expect(result).toBeDefined()`. Specific assertions catch specific bugs.
+**TS-003: Assert specific values, not types.** `expect(result).toEqual(['First.', ' Second.'])` not `expect(result).toBeDefined()`. Specific assertions catch specific bugs.
 
-**One concept per test.** Each test verifies one behavior. If you need "and" in your test name, split it.
+**TS-004: One concept per test.** Each test verifies one behavior. If you need "and" in your test name, split it.
 
-**Bugs cluster together.** When you find one bug, test related scenarios. The same misunderstanding often causes multiple failures.
+**TS-005: Bugs cluster together.** When you find one bug, test related scenarios. The same misunderstanding often causes multiple failures.
 
 ## When This Applies
 
@@ -26,7 +26,7 @@ How to write tests that catch bugs, document behavior, and remain maintainable.
 - Expanding test coverage
 - Investigating discovered bugs
 
-## Test Naming
+## TS-001: Test Naming
 
 **Pattern:** `[outcome] when [condition]`
 
@@ -52,7 +52,7 @@ email validation test     // What's being validated?
 
 Your test name should read like a specification. If someone reads ONLY the test names, they should understand the complete behavior of the system.
 
-## Assertion Best Practices
+## Assertion Best Practices (TS-002, TS-003)
 
 ### Assert Specific Values
 
@@ -85,7 +85,7 @@ it('generates different IDs for each call', () => {
 })
 ```
 
-### Avoid Implementation Coupling
+### TS-007: Avoid Implementation Coupling
 
 ```typescript
 // BRITTLE - tests implementation details
@@ -97,7 +97,7 @@ expect(result.user.name).toBe('Alice')
 
 ## Test Structure
 
-### Arrange-Act-Assert
+### TS-006: Arrange-Act-Assert
 
 ```typescript
 it('calculates total with tax for non-exempt items', () => {
@@ -113,7 +113,7 @@ it('calculates total with tax for non-exempt items', () => {
 })
 ```
 
-### One Concept Per Test
+### TS-004: One Concept Per Test
 
 ```typescript
 // MULTIPLE CONCEPTS - hard to diagnose failures
@@ -138,7 +138,7 @@ it('sends confirmation email after processing', () => {
 })
 ```
 
-## Edge Case Checklists
+## TS-008: Edge Case Checklists
 
 When testing a function, systematically consider these edge cases based on input types.
 
@@ -215,7 +215,7 @@ These test implicit assumptions in your domain:
 - [ ] Format mismatches (expected JSON, got XML)
 - [ ] Temporal ordering (end before start)
 
-## Bug Clustering
+## TS-005: Bug Clustering
 
 When you discover a bug, don't stop—explore related scenarios:
 
@@ -244,7 +244,7 @@ When you discover a bug, don't stop—explore related scenarios:
 
 The following conventions are specific to this project, not from BugMagnet.
 
-### Test Fixtures
+### TS-009: Test Fixtures
 
 Use fixture files to reduce duplication and improve test clarity.
 
@@ -287,7 +287,7 @@ When testing browser code with jsdom:
 - **Cannot spy on `window.location.assign`** - Use `Object.defineProperty` to mock `window.location` with a setter that captures values, and restore in `afterEach`
 - **Cannot spy on native MouseEvent methods** - Use `vi.spyOn(event, 'preventDefault')` after creating the event with `new MouseEvent()`
 
-### Testing Cleanup Functions (Resource Management)
+### TS-010: Testing Cleanup Functions (Resource Management)
 
 **General rule:** Test behavior, not implementation ([Testing Library philosophy](https://kentcdodds.com/blog/common-mistakes-with-react-testing-library)).
 
@@ -314,7 +314,7 @@ it('calls clearTimeout when component unmounts with pending timeout', () => {
 
 **Always restore spies** in the same test or in `afterEach` to prevent leaks between tests.
 
-### Testing Errors
+### TS-011: Testing Errors
 
 Test both error type and message in a single test—they represent one error condition.
 

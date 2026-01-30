@@ -4,7 +4,7 @@ Banned patterns. Exceptions require documented justification.
 
 ---
 
-## String-Based Error Detection
+## AP-001: String-Based Error Detection
 
 🚨 **Never parse error message strings to determine error types or extract information.**
 
@@ -37,7 +37,7 @@ if (error instanceof CustomTypeNotDefinedError) {
 
 ---
 
-## Sacrificing Quality for File Length Limits
+## AP-002: Sacrificing Quality for File Length Limits
 
 🚨 **Never sacrifice code quality, test coverage, or readability to satisfy linting rules or file length limits.**
 
@@ -96,7 +96,7 @@ const result = items
 
 ---
 
-## Parsing strings in exception messages
+### AP-001 Exception: Parsing strings in exception messages
 
 Only when 100% unavoidable (e.g., third-party library limitations):
 
@@ -109,13 +109,13 @@ if (error.message.includes('...')) { ... }
 
 ---
 
-## Changing test assertions when tests fail
+## AP-003: Changing test assertions when tests fail
 
 When a new change breaks an existing test it is never acceptable to change the assertion to make the tests pass. You must first understand if the test is failing because a regression was introduced (do not update the assertion) or if the existing test actually represents a desired change in behaviour (ok to update the assertion).
 
 ---
 
-## Passing empty strings into parameters of type string
+## AP-004: Passing empty strings into parameters of type string
 
 If a method takes a parameter of type string and code is passing an empty string value, it's a red flag. An empty strings represents no value hinting at a implicit concept (how to properly handle a missing value: fail fast? create a proper type instead?)
 
@@ -131,7 +131,7 @@ It is probably better to not call the method or to throw an error if a real valu
 
 ---
 
-## Sharing test fixtures across packages
+## AP-005: Sharing test fixtures across packages
 
 🚨 **Never export test fixtures from a package for use by other packages.**
 
@@ -166,7 +166,7 @@ export function createTestConfig(): Config { ... }
 
 ---
 
-## Lazy Coverage Ignore Comments
+## AP-006: Lazy Coverage Ignore Comments
 
 🚨 **Never add coverage ignore comments (`/* v8 ignore */`, `/* istanbul ignore */`) without full justification.**
 
