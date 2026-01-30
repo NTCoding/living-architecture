@@ -1,5 +1,4 @@
 export enum ExitCode {
-  Success = 0,
   ExtractionFailure = 1,
   ConfigValidation = 2,
   RuntimeError = 3,
