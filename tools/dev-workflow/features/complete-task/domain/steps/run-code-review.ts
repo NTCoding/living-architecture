@@ -195,7 +195,7 @@ async function executeCodeReviewAgents(
 
       const rawResponse = await deps.queryAgentText({
         prompt: promptParts.join(''),
-        model: 'sonnet',
+        model: 'opus',
         settingSources: ['project'],
       })
 
