@@ -337,10 +337,8 @@ export const github = {
       })
 
       if (checks.check_runs.length === 0) {
-        return {
-          failed: false,
-          output: 'No CI checks configured for this ref - treating as passing',
-        }
+        await new Promise((resolve) => setTimeout(resolve, pollInterval))
+        continue
       }
 
       const completedChecks = checks.check_runs.filter((run) => run.status === 'completed')

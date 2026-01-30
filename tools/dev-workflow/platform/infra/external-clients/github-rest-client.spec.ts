@@ -303,6 +303,7 @@ describe('github thread operations', () => {
 describe('github.watchCI', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    process.env.GITHUB_TOKEN = 'test-token'
     mockRepo.getRemotes.mockResolvedValue([
       {
         name: 'origin',
@@ -312,8 +313,11 @@ describe('github.watchCI', () => {
     mockOctokitInstance.pulls.get.mockResolvedValue({ data: { head: { sha: 'abc123' } } })
   })
 
+  afterEach(() => {
+    delete process.env.GITHUB_TOKEN
+  })
+
   it.each([
-    ['no CI checks configured', [], false, 'No CI checks configured'],
     [
       'all checks pass',
       [
@@ -355,6 +359,36 @@ describe('github.watchCI', () => {
     const result = await github.watchCI(123)
     expect(result.failed).toBe(expectedFailed)
     expect(result.output).toContain(expectedOutput)
+  })
+
+  it('polls until check runs appear when initially empty', async () => {
+    vi.useFakeTimers()
+
+    try {
+      mockOctokitInstance.checks.listForRef
+        .mockResolvedValueOnce({ data: { check_runs: [] } })
+        .mockResolvedValueOnce({
+          data: {
+            check_runs: [
+              {
+                name: 'CI',
+                status: 'completed',
+                conclusion: 'success',
+              },
+            ],
+          },
+        })
+
+      const resultPromise = github.watchCI(123)
+      await vi.advanceTimersByTimeAsync(30_000)
+      const result = await resultPromise
+
+      expect(result.failed).toBe(false)
+      expect(result.output).toContain('All checks passed')
+      expect(mockOctokitInstance.checks.listForRef).toHaveBeenCalledTimes(2)
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it('returns failure when checks fail with details', async () => {
