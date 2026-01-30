@@ -68,24 +68,21 @@ interface AgentResponse {
 }
 
 function parseAgentResponse(raw: string): AgentResponse {
-  const firstNewline = raw.indexOf('\n')
-  if (firstNewline < 0) {
+  const lines = raw.split('\n')
+  const scanWindow = lines.slice(0, 5)
+  const verdictIndex = scanWindow.findIndex((line) => verdictSchema.safeParse(line.trim()).success)
+
+  if (verdictIndex < 0) {
+    const preview = scanWindow.slice(0, 3).join(' | ')
     throw new AgentError(
-      `Agent response must start with PASS or FAIL on the first line. Got: ${raw.slice(0, 100)}`,
+      `Agent response must contain PASS or FAIL within the first 5 lines. Got: "${preview}"`,
     )
   }
 
-  const firstLine = raw.slice(0, firstNewline).trim()
-  const parsed = verdictSchema.safeParse(firstLine)
-  if (!parsed.success) {
-    throw new AgentError(
-      `Agent response must start with PASS or FAIL on the first line. Got: "${firstLine}"`,
-    )
-  }
-
+  const parsed = verdictSchema.parse(scanWindow[verdictIndex].trim())
   return {
-    verdict: parsed.data,
-    report: raw.slice(firstNewline + 1),
+    verdict: parsed,
+    report: lines.slice(verdictIndex + 1).join('\n'),
   }
 }
 

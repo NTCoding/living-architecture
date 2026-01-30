@@ -245,4 +245,28 @@ describe('codeReview', () => {
 
     expect(result.type).toBe('failure')
   })
+
+  it('finds verdict within first 5 lines when agent narrates before verdict', async () => {
+    mockQueryAgentText.mockResolvedValue(
+      'Now I have all the information.\nLet me complete the audit.\nPASS\nAll checks passed.',
+    )
+    const step = createStep()
+    const ctx = createContext({})
+
+    const result = await step.execute(ctx)
+
+    expect(result.type).toBe('success')
+  })
+
+  it('rejects when verdict is beyond first 5 lines', async () => {
+    mockQueryAgentText.mockResolvedValue(
+      'line1\nline2\nline3\nline4\nline5\nPASS\nAll checks passed.',
+    )
+    const step = createStep()
+    const ctx = createContext({})
+
+    const result = await step.execute(ctx)
+
+    expect(result.type).toBe('failure')
+  })
 })
