@@ -69,8 +69,8 @@ interface AgentResponse {
 
 function extractVerdict(line: string): Verdict | undefined {
   const stripped = line.trim().replaceAll(/\*+/g, '').trim()
-  const firstWord = stripped.split(/[\s—–-]/)[0]
-  const parsed = verdictSchema.safeParse(firstWord)
+  const match = /\b(PASS|FAIL)\b/.exec(stripped)
+  const parsed = verdictSchema.safeParse(match?.[1])
   return parsed.success ? parsed.data : undefined
 }
 

@@ -87,15 +87,16 @@ describe('filterSourceFiles', () => {
       })
 
       const stderrOutput: string[] = []
-      const originalError = console.error
-      console.error = (msg: string) => stderrOutput.push(msg)
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation((msg: string) => {
+        stderrOutput.push(String(msg))
+      })
 
       filterSourceFiles([committedFile], {
         pr: true,
         base: 'main',
       })
 
-      console.error = originalError
+      errorSpy.mockRestore()
       expect(stderrOutput.some((msg) => msg.includes('unstaged'))).toBe(true)
     })
 

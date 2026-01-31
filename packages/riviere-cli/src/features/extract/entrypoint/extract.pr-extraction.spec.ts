@@ -351,8 +351,9 @@ describe('riviere extract PR extraction', () => {
       })
 
       const stderrOutput: string[] = []
-      const originalError = console.error
-      console.error = (msg: string) => stderrOutput.push(msg)
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation((msg: string) => {
+        stderrOutput.push(String(msg))
+      })
 
       await createProgram().parseAsync([
         'node',
@@ -366,7 +367,7 @@ describe('riviere extract PR extraction', () => {
         '--components-only',
       ])
 
-      console.error = originalError
+      errorSpy.mockRestore()
 
       expect(stderrOutput.some((msg) => msg.includes('unstaged'))).toBe(true)
     })
