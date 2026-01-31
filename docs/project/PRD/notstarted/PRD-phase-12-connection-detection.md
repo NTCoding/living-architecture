@@ -1,6 +1,6 @@
 # PRD: Phase 12 — Connection Detection
 
-**Status:** Planning
+**Status:** Awaiting Architecture Review
 
 **Depends on:** Phase 11 (Metadata Extraction)
 
@@ -215,18 +215,36 @@ Decorator matching is name-only. `@Controller('/orders')` matches decorator name
 - `fromReceiverType` — Extract from the object being called
 - `fromCallerType` — Extract from the calling class
 
-**Interface resolution config:**
+**Connection config levels:**
 
 ```yaml
-connections:
-  interfaceMappings:
-    IOrderRepository: OrderRepository
-    IPaymentGateway: StripePaymentGateway
+connections:              # Global defaults — inherited by all modules
+  patterns:
+    - name: custom-event-emitter
+      find: methodCalls
+      where:
+        methodName: emit
+        receiverType: CustomEventEmitter
+      extract:
+        eventName: { fromArgument: 0 }
+      linkType: async
+
+modules:
+  - name: orders
+    path: "orders/**"
+    connections:           # Module-level — additive to global patterns
+      patterns:
+        - name: nestjs-controller-to-service
+          find: methodCalls
+          where:
+            callerHasDecorator: [Controller]
+            calleeType: { hasDecorator: Injectable }
+          linkType: sync
 ```
 
-Manual mapping for legacy codebases where auto-resolve doesn't work. Not type-safe, not validated against source. Prefer Golden Path conventions or single-implementation auto-resolve.
+Global patterns apply to all modules. Module-level patterns are additive — they run alongside global patterns for that module's scope. Interface resolution uses conventions only (single-implementation auto-resolve via D1.3), not manual mappings.
 
-Connection config schema added to `riviere-extract-config` package. New `connections` top-level key in extraction config, validated by JSON Schema.
+Connection config schema added to `riviere-extract-config` package. New `connections` key in extraction config (global and per-module), validated by JSON Schema.
 
 ### 3.3 Connection Output Format
 
@@ -395,6 +413,7 @@ All core connection types are extractable end-to-end. Scoped call graph traces t
   - No flow-sensitive analysis or alias tracking
   - When type cannot be resolved: strict mode fails with error including file path, line number, unresolvable type name, and reason; lenient mode emits link with `_uncertain` field
   - Verification: Unit tests with 100% branch coverage
+  - Architecture: see §9.1.2 (domain/connection-detection/call-graph/), §9.2.1 (ComponentIndex), §9.2.2 (ScopedCallGraph)
 
 - **D1.2:** Non-component transparency
   - When a call chain passes through a non-component class, continue tracing until hitting another component or dead end
@@ -403,18 +422,21 @@ All core connection types are extractable end-to-end. Scoped call graph traces t
   - Source location for transitive connections: the call site in the source component
   - One link per unique (source component, target component, type) tuple; if multiple call sites exist, source location references the first occurrence
   - Verification: Unit tests covering single-hop, multi-hop, dead-end chains, and cycles
+  - Architecture: see §9.2.2 (ScopedCallGraph collapse invariant), §9.1.2 (domain/connection-detection/call-graph/)
 
 - **D1.3:** Single-implementation interface resolution
   - When a type is an interface with exactly one implementing class within extraction config module globs (node_modules excluded), auto-resolve to the concrete type
   - Zero implementations: fail fast in strict mode, mark uncertain in lenient mode
   - Multiple implementations: fail fast in strict mode, mark uncertain in lenient mode
   - Verification: Unit tests covering zero, one, and multiple implementation cases
+  - Architecture: see §9.1.2 (domain/connection-detection/interface-resolution/)
 
 - **D1.4:** Sync connection detection
   - Method calls on component-typed instances: detect connections when calling methods on instances whose declared type is a known component
   - Constructor parameters provide type information for resolution — the method call creates the link, not the constructor declaration
   - Every connection includes `sourceLocation` (file path, line number, method name)
   - Verification: Unit tests with 100% branch coverage
+  - Architecture: see §9.1.2 (domain/connection-detection/sync-detection/), §9.2.1 (ComponentIndex), §9.2.3 (ExtractedLink)
 
 - **D1.5:** Async connection detection — publish side
   - Typed publish methods: detect methods whose parameter types match known Event components from Phase 11
@@ -424,6 +446,7 @@ All core connection types are extractable end-to-end. Scoped call graph traces t
   - Every connection includes `sourceLocation`
   - Depends on: D1.7 (publish method convention must be defined first)
   - Verification: Unit tests with 100% branch coverage
+  - Architecture: see §9.1.2 (domain/connection-detection/async-detection/), §9.2.4 (EventPublisherDef), §9.2.1 (ComponentIndex)
 
 - **D1.6:** Async connection detection — subscribe side
   - Derive Event → EventHandler connections from `subscribedEvents` metadata extracted in Phase 11
@@ -431,18 +454,21 @@ All core connection types are extractable end-to-end. Scoped call graph traces t
   - Zero matches: fail in strict mode, mark uncertain in lenient mode
   - Every connection includes `sourceLocation`
   - Verification: Unit tests with 100% branch coverage
+  - Architecture: see §9.1.2 (domain/connection-detection/async-detection/), §9.2.1 (ComponentIndex)
 
 - **D1.7:** Publish method interface pattern
   - Define how typed publish methods should be structured (interface/abstract class)
   - Ensure Event type is extractable from method signature
   - Provide in `riviere-extract-conventions` package
   - Verification: Interface/abstract class exists in package. Demo app implements it for at least 3 event types. Extractor detects all 3 publish connections with correct source locations. TypeScript compilation has zero errors.
+  - Architecture: see §9.2.4 (EventPublisherDef in riviere-extract-conventions)
 
 - **D1.8:** Performance instrumentation
   - Record extraction duration per phase (call graph construction, connection detection, filtering)
   - Display as final summary line: `Extraction completed in Xs (call graph: Xs, detection: Xs, filtering: Xs)`
   - Record baseline durations when D3.3 (full extraction validation) passes, document in `docs/architecture/performance/phase-12-baselines.md`
   - Verification: Duration visible in `riviere extract` output, baseline file exists with recorded numbers
+  - Architecture: see §9.1.4 (CLI extract command extended)
 
 - **D1.9:** CLI integration for connection extraction
   - Wire connection extraction into `riviere extract` command
@@ -451,6 +477,7 @@ All core connection types are extractable end-to-end. Scoped call graph traces t
   - `--stats`: append summary showing connection counts by type (sync/async), by detection method, and uncertain link count
   - `--dry-run`: run full extraction, output to stdout, do not write file
   - Verification: CLI produces output conforming to Riviere schema `Link` type
+  - Architecture: see §9.1.4 (CLI extract command extended), §9.2.3 (ExtractedLink), §9.3 (contract between extract-ts and CLI)
 
 ---
 
@@ -464,6 +491,7 @@ ESLint rule enforcing publish method convention. Ensures teams following Golden 
   - Validate typed publish methods follow convention defined in D1.7
   - Depends on: D1.7 (convention must be defined before enforcement rule)
   - Verification: Rule catches violations in test fixtures
+  - Architecture: see §9.2.4 (EventPublisherDef), §9.1.1 (riviere-extract-conventions modified)
 
 ---
 
@@ -478,16 +506,19 @@ Validate extraction against ecommerce-demo-app with defined ground truth.
   - Ground truth must exist before running extraction — not derived from extraction output
   - Format: JSON or YAML matching Riviere schema `links` structure
   - Verification: File exists, validates against Riviere schema Link array type
+  - Architecture: see §9.2.3 (ExtractedLink extends Link)
 
 - **D3.2:** Refactor event publishing
   - Replace generic `publishEvent()` with typed publish methods following D1.7 pattern
   - Verification: Demo app compiles, ESLint rules pass
+  - Architecture: see §9.2.4 (EventPublisherDef convention)
 
 - **D3.3:** Validate full extraction
   - Extract complete graph from demo app
   - Compare against ground truth from D3.1
   - Comparison on (source, target, type) fields — zero false positives, zero false negatives
   - Verification: Extraction output matches ground truth exactly
+  - Architecture: see §9.1.2 (connection-detection capability), §9.2.3 (ExtractedLink)
 
 ---
 
@@ -503,16 +534,17 @@ Custom pattern DSL for teams with different conventions.
   - `linkType`: sync or async
   - Connection config schema added to `riviere-extract-config` package with JSON Schema validation
   - Verification: Config validation + extraction tests against test fixtures
+  - Architecture: see §9.1.3 (top-level connections config key), §9.2.5 (ConnectionPattern), §9.1.2 (domain/connection-detection/configurable/)
 
 - **D4.2:** Decorator-based matching
   - `callerHasDecorator`, `calleeType.hasDecorator` clauses
   - Name-only matching: `@Controller('/orders')` matches `Controller`. Parameters ignored. Composed/factory decorators not resolved.
   - Verification: Extraction tests against NestJS-style test fixtures
+  - Architecture: see §9.1.2 (domain/connection-detection/configurable/), §9.2.5 (ConnectionPattern)
 
-- **D4.3:** Interface resolution config
-  - Config for explicit interface-to-implementation mapping
-  - Manual mapping for legacy codebases where auto-resolve (D1.3) doesn't work. Not type-safe, not validated against source.
-  - Verification: Integration test with interface-heavy code
+- **D4.3:** ~~Interface resolution config~~ **REMOVED**
+  - Manual interface-to-implementation mappings removed. String-based type mappings break on refactoring and duplicate what the type system already knows. Interface resolution uses conventions only: single-implementation auto-resolve (D1.3) or configurable detection patterns (D4.1).
+  - Architecture: see §9.5 Q3 (rationale for removal)
 
 ---
 
@@ -528,11 +560,13 @@ Custom pattern DSL for teams with different conventions.
   - Migration guide from legacy patterns
   - Location: `docs/guides/design-for-extraction.md`
   - Verification: Doc exists at specified path, contains all sections listed above, no TODO/TBD placeholders
+  - Architecture: see §9.1.1 (all modified packages), §9.2.4 (EventPublisherDef)
 
 - **D5.2:** Connection DSL reference
   - Config options for connection extraction
   - Examples for common frameworks (NestJS, Express, custom event emitters)
   - Verification: Doc exists, contains all sections listed above, no TODO/TBD placeholders
+  - Architecture: see §9.1.3 (connections config), §9.2.5 (ConnectionPattern)
 
 ---
 
@@ -582,7 +616,310 @@ tracks:
 
 ---
 
-## 9. Dependencies
+## 9. Architecture
+
+### Visual Overview
+
+#### Package Map
+
+```mermaid
+graph TD
+    classDef existing fill:#e8e8e8,stroke:#999,color:#333
+    classDef modified fill:#fff3e0,stroke:#f57c00,color:#333,stroke-width:3px
+    classDef new fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20,stroke-width:3px
+
+    schema[riviere-schema]:::existing
+    query[riviere-query]:::existing
+    builder[riviere-builder]:::existing
+    config[riviere-extract-config]:::modified
+    conventions[riviere-extract-conventions]:::modified
+    extractTs[riviere-extract-ts]:::modified
+    cli[riviere-cli]:::modified
+    eclair[eclair]:::existing
+    docs[docs]:::existing
+    devWorkflow[dev-workflow]:::existing
+
+    query --> schema
+    builder --> schema
+    builder --> query
+    eclair --> schema
+    eclair --> query
+    conventions --> config
+    extractTs --> config
+    cli --> builder
+    cli --> config
+    cli --> extractTs
+    cli --> query
+    cli --> schema
+
+    linkStyle default stroke:#999,stroke-width:1px
+```
+
+```mermaid
+graph LR
+    classDef existing fill:#e8e8e8,stroke:#999,color:#333
+    classDef modified fill:#fff3e0,stroke:#f57c00,color:#333,stroke-width:3px
+    classDef new fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20,stroke-width:3px
+
+    a[Existing]:::existing ~~~ b[Modified]:::modified ~~~ c[New]:::new
+```
+
+#### New Feature: Connection Detection
+
+```mermaid
+graph TD
+    classDef existing fill:#e8e8e8,stroke:#999,color:#333
+    classDef feature fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20,stroke-width:3px
+    classDef horizontal fill:#e3f2fd,stroke:#1565c0,color:#0d47a1,stroke-width:3px
+    classDef contract fill:#fff3e0,stroke:#f57c00,color:#333,stroke-width:3px
+
+    cli_extract[CLI extract command]:::existing
+
+    subgraph extractTs ["riviere-extract-ts"]
+        cd[connection-detection]:::feature
+        ce[component-extraction]:::existing
+        ve[value-extraction]:::existing
+    end
+    style extractTs fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#333
+
+    subgraph config ["riviere-extract-config"]
+        connSchema[Connection DSL types]:::contract
+        existingTypes[Extraction config types]:::existing
+    end
+    style config fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#333
+
+    subgraph conventions ["riviere-extract-conventions"]
+        pubInterface[EventPublisherDef]:::feature
+        pubRule[publish-method ESLint rule]:::feature
+        existingInterfaces[EventHandlerDef / EventDef]:::existing
+    end
+    style conventions fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#333
+
+    subgraph schema ["riviere-schema"]
+        linkType[Link type]:::existing
+    end
+    style schema fill:#e8e8e8,stroke:#999,stroke-width:2px,color:#333
+
+    cli_extract -.->|calls| cd
+    cd -->|reads| ce
+    cd -->|reads| ve
+    cd -.->|uses| connSchema
+    cd -->|produces| linkType
+    pubInterface -.->|detected by| cd
+
+    linkStyle 0 stroke:#2e7d32,stroke-width:3px
+    linkStyle 3 stroke:#f57c00,stroke-width:2px,stroke-dasharray:5
+    linkStyle 5 stroke:#f57c00,stroke-width:2px,stroke-dasharray:5
+```
+
+```mermaid
+graph LR
+    classDef feature fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20,stroke-width:3px
+    classDef horizontal fill:#e3f2fd,stroke:#1565c0,color:#0d47a1,stroke-width:3px
+    classDef contract fill:#fff3e0,stroke:#f57c00,color:#333,stroke-width:3px
+
+    a[New Feature]:::feature ~~~ b[New Shared Capability]:::horizontal ~~~ c[Changed Type/Interface]:::contract
+```
+
+#### Domain Model
+
+> **Note:** These domain model changes are isolated and do not affect each other. Each diagram shows changes within a single package.
+
+##### riviere-extract-ts: Connection Detection Concepts
+
+```mermaid
+graph TD
+    classDef existing fill:#e8e8e8,stroke:#999,color:#333
+    classDef modified fill:#fff3e0,stroke:#f57c00,color:#333,stroke-width:3px
+    classDef new fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20,stroke-width:3px
+
+    ComponentIndex[ComponentIndex]:::new
+    ScopedCallGraph[ScopedCallGraph]:::new
+    ExtractedLink[ExtractedLink]:::new
+    EnrichedComponent[EnrichedComponent]:::existing
+    DraftComponent[DraftComponent]:::existing
+    Link[Link]:::existing
+
+    DraftComponent -->|"enriched to"| EnrichedComponent
+    ComponentIndex -->|"built from"| EnrichedComponent
+    ScopedCallGraph -->|"traces from"| ComponentIndex
+    ScopedCallGraph -->|"produces"| ExtractedLink
+    ExtractedLink -->|"extends"| Link
+```
+
+##### riviere-extract-config: Connection DSL
+
+```mermaid
+graph TD
+    classDef existing fill:#e8e8e8,stroke:#999,color:#333
+    classDef modified fill:#fff3e0,stroke:#f57c00,color:#333,stroke-width:3px
+    classDef new fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20,stroke-width:3px
+
+    ExtractionConfig[ExtractionConfig]:::modified
+    ConnectionPattern[ConnectionPattern]:::new
+
+    ExtractionConfig -->|"contains"| ConnectionPattern
+```
+
+##### riviere-extract-conventions: Publish Convention
+
+```mermaid
+graph TD
+    classDef existing fill:#e8e8e8,stroke:#999,color:#333
+    classDef new fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20,stroke-width:3px
+
+    EventPublisherDef[EventPublisherDef]:::new
+    EventHandlerDef[EventHandlerDef]:::existing
+    EventDef[EventDef]:::existing
+```
+
+```mermaid
+graph LR
+    classDef existing fill:#e8e8e8,stroke:#999,color:#333
+    classDef modified fill:#fff3e0,stroke:#f57c00,color:#333,stroke-width:3px
+    classDef new fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20,stroke-width:3px
+
+    a[Existing]:::existing ~~~ b[Modified]:::modified ~~~ c[New]:::new
+```
+
+### External Dependencies
+
+None. Connection detection uses ts-morph (already a dependency of `riviere-extract-ts`).
+
+### 9.1 Structural Decisions
+
+**9.1.1 No new packages — all changes modify existing packages** (Firm)
+
+Connection detection uses the same ts-morph `Project`, same source files, same AST as component extraction. Same state dependencies → same module (separation-of-concerns principle 4).
+
+| Package | Change |
+|---------|--------|
+| `riviere-extract-ts` | New `domain/connection-detection/` capability |
+| `riviere-extract-config` | New `connections` top-level key in config schema + types |
+| `riviere-extract-conventions` | New `EventPublisherDef` interface + ESLint rule |
+| `riviere-cli` | New flags (`--patterns`, `--stats`) + connection detection wiring in extract command |
+
+**9.1.2 `connection-detection/` is a domain capability in `riviere-extract-ts`** (Firm)
+
+Per ADR-005, libraries are pure domain — no `features/` wrapper. New capability alongside existing ones:
+
+```text
+riviere-extract-ts/src/domain/
+├── component-extraction/     # existing — finds components
+├── config-resolution/        # existing — loads config
+├── predicate-evaluation/     # existing — evaluates detection rules
+├── value-extraction/         # existing — enriches with metadata
+└── connection-detection/     # NEW — detects links between components
+    ├── call-graph/           # Scoped call graph construction + DFS traversal
+    ├── sync-detection/       # Method call on component-typed instance → Link
+    ├── async-detection/      # Publish methods + event subscriptions → Links
+    ├── interface-resolution/ # Single-impl auto-resolve
+    ├── configurable/         # DSL pattern matching (M4)
+    └── detect-connections.ts # Orchestrator: EnrichedComponent[] + Project → ExtractedLink[]
+```
+
+Separation-of-concerns principle 5 — all subfolder names relate to "connection detection". Golden Path and Configurable share the same component index and output format but differ in detection strategy, so Configurable gets a subfolder within the same capability (principle 4 — shared state).
+
+**9.1.3 Connection config: global defaults with per-module inheritance** (Firm)
+
+Connection patterns exist at two levels: global defaults and per-module overrides. Different modules may represent different repos, languages, or frameworks with different connection conventions.
+
+```yaml
+connections:              # Global defaults — inherited by all modules
+  patterns: [...]
+
+modules:
+  - name: orders
+    path: "orders/**"
+    connections:           # Module-level — inherits global, can add/override
+      patterns: [...]      # Additive: module patterns run in addition to global
+```
+
+Module-level `connections.patterns` are additive — module patterns run alongside global ones. This mirrors how `extends` works for component rules.
+
+**No manual interface mappings.** Interface resolution uses conventions only: single-implementation auto-resolve (D1.3) or configurable patterns. This project does not maintain string-based type mappings — they break on refactoring and duplicate what the type system already knows.
+
+**9.1.4 CLI extract command extended, not new command** (Flexible)
+
+Connection detection is the next step after component enrichment in the extract pipeline. The CLI's `features/extract/` feature gets a new command handler for the connection phase. New flags `--patterns` and `--stats` added to the existing `extract` entrypoint. `--allow-incomplete` and `--dry-run` already exist.
+
+### 9.2 Domain Model
+
+**9.2.1 `ComponentIndex` — value object** (Flexible)
+
+Built once from `EnrichedComponent[]` + AST. Immutable after construction. Answers two questions:
+- "Is this type name a known component?" (type-name lookup)
+- "Which component owns the method at file:line?" (location lookup for method-level components like DomainOp)
+
+Tactical-DDD principle 8 — extract immutable value objects. No identity needed, defined by its contents.
+
+**9.2.2 `ScopedCallGraph` — domain concept** (Flexible)
+
+Method-level call graph built by DFS from component methods. Not a persistent aggregate — constructed during detection and discarded.
+
+Key invariants (tactical-DDD principle 7):
+- Edges are type-resolved (receiver type known for every call)
+- Cycles detected via visited set per traversal path
+- Collapse produces one link per unique (source component, target component, type) tuple
+- Non-component nodes are transparent — traced through but not in output
+
+**9.2.3 `ExtractedLink` — value object extending schema `Link`** (Flexible)
+
+```typescript
+interface ExtractedLink extends Link {
+  _uncertain?: string  // reason for uncertainty (lenient mode only)
+}
+```
+
+Lives in `riviere-extract-ts`. Keeps `riviere-schema` clean of extraction-specific concerns (tactical-DDD principle 1 — isolate domain from tooling concerns).
+
+**9.2.4 `EventPublisherDef` — interface in `riviere-extract-conventions`** (Firm)
+
+New convention interface alongside existing `EventHandlerDef` and `EventDef`. Defines the typed publish method pattern that Golden Path detection recognizes.
+
+**9.2.5 `ConnectionPattern` — value object in `riviere-extract-config`** (Firm)
+
+Type representing a configurable connection pattern from the DSL. Contains `find`, `where`, `extract`, `linkType` fields. Validated by JSON Schema.
+
+### 9.3 Key Interfaces/Contracts
+
+**Between `riviere-extract-ts` and `riviere-extract-config`:**
+- `ConnectionPattern` types imported by extract-ts for pattern evaluation
+- JSON Schema validates the `connections` config key
+
+**Between `riviere-extract-ts` and `riviere-schema`:**
+- `ExtractedLink` extends `Link` — output conforms to schema with optional `_uncertain` extension
+- `SourceLocation` reused from schema for link source locations
+
+**Between `riviere-extract-ts` and `riviere-cli`:**
+- New exported function (e.g. `detectConnections(project, enrichedComponents, config)`) called by CLI after enrichment
+- Returns `ExtractedLink[]`
+
+**Between `riviere-extract-conventions` and `riviere-extract-ts`:**
+- `EventPublisherDef` interface defines the pattern; extract-ts detects methods matching it
+
+### 9.4 Glossary Additions
+
+New terms to add to `definitions.glossary.yml`:
+- **Connection Detection** — per PRD §11
+- **Golden Path** — per PRD §11
+- **Configurable** — per PRD §11
+- **Scoped Call Graph** — per PRD §11
+- **Type-Based Resolution** — per PRD §11
+- **Transparent** — per PRD §11
+- **Component Index** — Immutable lookup built from enriched components and AST, used by connection detection to resolve types to known components
+
+### 9.5 Resolved Questions
+
+**Q1. Global vs per-module connection patterns?** — RESOLVED: Both. Global defaults inherited by all modules, per-module patterns additive. See §9.1.3.
+
+**Q2. `_uncertain` field shape?** — RESOLVED: Start with `string` per PRD. Can iterate to structured type later if tooling needs it.
+
+**Q3. Interface mappings config (PRD §3.2 / D4.3)?** — RESOLVED: Removed from §3.2 and D4.3. Manual string-based type mappings are brittle and break on refactoring. Interface resolution uses conventions only: single-implementation auto-resolve (D1.3) or configurable detection patterns.
+
+---
+
+## 10. Dependencies
 
 **Depends on:**
 - Phase 10 (TypeScript Component Extraction) — Component identification
@@ -594,7 +931,7 @@ tracks:
 
 ---
 
-## 10. Research References
+## 11. Research References
 
 - [Static JavaScript Call Graphs: Comparative Study](https://arxiv.org/html/2405.07206v1) — ACG achieves 99% precision, 91% recall
 - [Jelly Static Analyzer](https://github.com/cs-au-dk/jelly) — Approximate interpretation for JS/TS
@@ -604,7 +941,7 @@ tracks:
 
 ---
 
-## 11. Terminology
+## 12. Terminology
 
 | Term | Definition |
 |------|------------|
