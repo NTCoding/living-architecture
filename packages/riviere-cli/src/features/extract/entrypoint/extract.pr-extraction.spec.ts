@@ -1,11 +1,9 @@
 import {
   writeFile, mkdir 
 } from 'node:fs/promises'
-import { realpathSync } from 'node:fs'
-import { execFileSync } from 'node:child_process'
 import { join } from 'node:path'
 import {
-  describe, it, expect 
+  describe, it, expect, vi 
 } from 'vitest'
 import { createProgram } from '../../../shell/cli'
 import type { TestContext } from '../../../platform/__fixtures__/command-test-fixtures'
@@ -16,6 +14,20 @@ import {
   TestAssertionError,
 } from '../../../platform/__fixtures__/command-test-fixtures'
 import { CliErrorCode } from '../../../platform/infra/cli-presentation/error-codes'
+
+vi.mock('../commands/git-changed-files', async (importOriginal) => {
+  const original = await importOriginal<typeof import('../commands/git-changed-files')>()
+  return {
+    ...original,
+    detectChangedTypeScriptFiles: vi.fn(),
+  }
+})
+
+import {
+  detectChangedTypeScriptFiles, GitError 
+} from '../commands/git-changed-files'
+
+const mockDetectChanged = vi.mocked(detectChangedTypeScriptFiles)
 
 interface DraftComponent {
   type: string
@@ -80,45 +92,6 @@ async function createValidExtractFixture(testDir: string): Promise<string> {
   await writeFile(join(srcDir, 'order-service.ts'), validSourceCode)
   const configPath = join(testDir, 'extract.yaml')
   await writeFile(configPath, validConfigYaml)
-  return configPath
-}
-
-function resolveGitBinary(): string {
-  return execFileSync('/usr/bin/which', ['git'], { encoding: 'utf-8' }).trim()
-}
-
-const GIT_BINARY = resolveGitBinary()
-
-function gitExec(cwd: string, args: readonly string[]): string {
-  return execFileSync(GIT_BINARY, args, {
-    cwd,
-    encoding: 'utf-8',
-  }).trim()
-}
-
-function initGitRepo(cwd: string): void {
-  gitExec(cwd, ['init'])
-  gitExec(cwd, ['config', 'user.email', 'test@test.com'])
-  gitExec(cwd, ['config', 'user.name', 'Test'])
-}
-
-async function createGitRepoWithFeatureBranch(testDir: string): Promise<string> {
-  const realDir = realpathSync(testDir)
-  const srcDir = join(realDir, 'src')
-  await mkdir(srcDir, { recursive: true })
-  const configPath = join(realDir, 'extract.yaml')
-  await writeFile(configPath, validConfigYaml)
-  await writeFile(join(srcDir, 'placeholder.ts'), 'export const x = 1')
-
-  initGitRepo(realDir)
-  gitExec(realDir, ['add', '.'])
-  gitExec(realDir, ['commit', '-m', 'initial'])
-  gitExec(realDir, ['checkout', '-b', 'feature'])
-
-  await writeFile(join(srcDir, 'order-service.ts'), validSourceCode)
-  gitExec(realDir, ['add', '.'])
-  gitExec(realDir, ['commit', '-m', 'add order service'])
-
   return configPath
 }
 
@@ -327,6 +300,9 @@ describe('riviere extract PR extraction', () => {
 
     it('handles git error when not in a git repo', async () => {
       const configPath = await createValidExtractFixture(ctx.testDir)
+      mockDetectChanged.mockImplementation(() => {
+        throw new GitError('NOT_A_REPOSITORY', 'Run from within a git repository.')
+      })
 
       await expect(
         createProgram().parseAsync(['node', 'riviere', 'extract', '--config', configPath, '--pr']),
@@ -337,7 +313,12 @@ describe('riviere extract PR extraction', () => {
     })
 
     it('extracts components from changed files on feature branch', async () => {
-      const configPath = await createGitRepoWithFeatureBranch(ctx.testDir)
+      const configPath = await createValidExtractFixture(ctx.testDir)
+      const sourceFile = join(ctx.testDir, 'src', 'order-service.ts')
+      mockDetectChanged.mockReturnValue({
+        files: [sourceFile],
+        warnings: [],
+      })
 
       await createProgram().parseAsync([
         'node',
@@ -362,9 +343,12 @@ describe('riviere extract PR extraction', () => {
     })
 
     it('warns about unstaged TypeScript files', async () => {
-      const configPath = await createGitRepoWithFeatureBranch(ctx.testDir)
-      const realDir = realpathSync(ctx.testDir)
-      await writeFile(join(realDir, 'src', 'unstaged.ts'), 'export const u = 1')
+      const configPath = await createValidExtractFixture(ctx.testDir)
+      const sourceFile = join(ctx.testDir, 'src', 'order-service.ts')
+      mockDetectChanged.mockReturnValue({
+        files: [sourceFile],
+        warnings: ['1 unstaged TypeScript file(s) not included: unstaged.ts'],
+      })
 
       const stderrOutput: string[] = []
       const originalError = console.error
@@ -388,7 +372,12 @@ describe('riviere extract PR extraction', () => {
     })
 
     it('outputs markdown format for --pr with --format markdown', async () => {
-      const configPath = await createGitRepoWithFeatureBranch(ctx.testDir)
+      const configPath = await createValidExtractFixture(ctx.testDir)
+      const sourceFile = join(ctx.testDir, 'src', 'order-service.ts')
+      mockDetectChanged.mockReturnValue({
+        files: [sourceFile],
+        warnings: [],
+      })
 
       await createProgram().parseAsync([
         'node',

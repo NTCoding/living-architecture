@@ -19,12 +19,16 @@ function getInterfaceTypeArgs(
     }
   }
 
-  const baseClass = classDecl.getBaseClass()
-  if (baseClass !== undefined) {
-    return getInterfaceTypeArgs(baseClass, interfaceName)
+  const extendsClause = classDecl.getExtends()
+  if (extendsClause === undefined) {
+    return undefined
   }
 
-  return undefined
+  const baseClass = classDecl.getBaseClass()
+  /* v8 ignore next -- @preserve: getExtends() !== undefined guarantees getBaseClass() returns a value */
+  if (baseClass === undefined) return undefined
+
+  return getInterfaceTypeArgs(baseClass, interfaceName)
 }
 
 function extractTypeNames(typeNode: import('ts-morph').TypeNode): string[] {

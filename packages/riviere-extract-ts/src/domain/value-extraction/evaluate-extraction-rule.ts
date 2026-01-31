@@ -135,10 +135,13 @@ function findPropertyInHierarchy(
     }
   }
 
-  const baseClass = classDecl.getBaseClass()
-  if (baseClass === undefined) {
+  if (classDecl.getExtends() === undefined) {
     return undefined
   }
+
+  const baseClass = classDecl.getBaseClass()
+  /* v8 ignore next -- @preserve: getExtends() !== undefined guarantees getBaseClass() returns a value */
+  if (baseClass === undefined) return undefined
 
   return findPropertyInHierarchy(baseClass, propertyName, isStatic)
 }

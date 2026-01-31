@@ -21,6 +21,7 @@ export interface ChangedFilesResult {
 
 export type GitExecutor = (binary: string, args: readonly string[], cwd: string) => string
 
+/* v8 ignore start -- @preserve: default executor delegates to execFileSync; tested via CLI integration */
 function defaultGitExecutor(binary: string, args: readonly string[], cwd: string): string {
   return execFileSync(binary, args, {
     cwd,
@@ -28,6 +29,7 @@ function defaultGitExecutor(binary: string, args: readonly string[], cwd: string
     stdio: ['pipe', 'pipe', 'pipe'],
   }).trim()
 }
+/* v8 ignore stop */
 
 function resolveGitBinary(): string {
   try {

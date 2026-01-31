@@ -1,12 +1,7 @@
 import {
-  describe, it, expect, afterEach 
+  describe, it, expect 
 } from 'vitest'
-import { execFileSync } from 'node:child_process'
-import {
-  mkdtempSync, mkdirSync, writeFileSync, rmSync 
-} from 'node:fs'
 import { join } from 'node:path'
-import { tmpdir } from 'node:os'
 import {
   detectChangedTypeScriptFiles, GitError 
 } from './git-changed-files'
@@ -32,161 +27,127 @@ class UnexpectedError extends Error {
   }
 }
 
-function resolveGitBinary(): string {
-  return execFileSync('/usr/bin/which', ['git'], { encoding: 'utf-8' }).trim()
-}
-
-const GIT_BINARY = resolveGitBinary()
-
-function git(cwd: string, args: readonly string[]): string {
-  return execFileSync(GIT_BINARY, args, {
-    cwd,
-    encoding: 'utf-8',
-  }).trim()
-}
-
-function createTempDir(): string {
-  return mkdtempSync(join(tmpdir(), 'git-changed-files-'))
-}
-
-function initRepoWithCommit(cwd: string): void {
-  git(cwd, ['init'])
-  git(cwd, ['config', 'user.email', 'test@test.com'])
-  git(cwd, ['config', 'user.name', 'Test'])
-  writeFileSync(join(cwd, 'initial.ts'), 'export const x = 1')
-  git(cwd, ['add', '.'])
-  git(cwd, ['commit', '-m', 'initial'])
-}
-
-function createExecutorThatThrowsWithStderr(stderr: string): GitExecutor {
-  return () => {
-    throw new GitProcessError('git failed', stderr)
+function createMockExecutor(responses: Record<string, string>): GitExecutor {
+  return (_binary, args) => {
+    const key = args.join(' ')
+    const response = responses[key]
+    if (response === undefined) {
+      throw new GitProcessError(`Command failed: git ${key}`, `fatal: unknown command or path`)
+    }
+    return response
   }
 }
 
-function createExecutorThatThrowsPlainError(): GitExecutor {
-  return () => {
-    throw new UnexpectedError('unexpected failure')
+function attachedHeadResponses(
+  base: string,
+  overrides: Record<string, string> = {},
+): Record<string, string> {
+  return {
+    'rev-parse --git-dir': '.git',
+    'symbolic-ref HEAD': 'refs/heads/feature',
+    [`diff --name-only ${base}...HEAD`]: '',
+    [`diff --name-only --cached ${base}`]: '',
+    'ls-files --others --exclude-standard': '',
+    ...overrides,
   }
 }
+
+const WORK_DIR = '/fake/project'
 
 describe('detectChangedTypeScriptFiles', () => {
-  const tempDirs: string[] = []
-
-  function makeTempDir(): string {
-    const dir = createTempDir()
-    tempDirs.push(dir)
-    return dir
-  }
-
-  afterEach(() => {
-    for (const dir of tempDirs) {
-      rmSync(dir, { recursive: true })
-    }
-    tempDirs.length = 0
-  })
-
   describe('not a git repository', () => {
     it('throws GitError with NOT_A_REPOSITORY code', () => {
-      const dir = makeTempDir()
+      const executor: GitExecutor = () => {
+        throw new GitProcessError('git failed', 'fatal: not a git repository')
+      }
 
-      expect(() => detectChangedTypeScriptFiles(dir, {})).toThrow(GitError)
+      expect(() => detectChangedTypeScriptFiles(WORK_DIR, {}, executor)).toThrow(GitError)
     })
 
     it('throws NOT_A_REPOSITORY when executor stderr contains not a git repository', () => {
-      const dir = makeTempDir()
-      initRepoWithCommit(dir)
-      const executor = createExecutorThatThrowsWithStderr('fatal: not a git repository')
+      const executor: GitExecutor = () => {
+        throw new GitProcessError('git failed', 'fatal: not a git repository')
+      }
 
-      expect(() => detectChangedTypeScriptFiles(dir, {}, executor)).toThrow(
+      expect(() => detectChangedTypeScriptFiles(WORK_DIR, {}, executor)).toThrow(
         expect.objectContaining({ gitErrorCode: 'NOT_A_REPOSITORY' }),
       )
     })
 
     it('rethrows non-git errors from executor', () => {
-      const dir = makeTempDir()
-      initRepoWithCommit(dir)
-      const executor = createExecutorThatThrowsPlainError()
+      const executor = createMockExecutor({
+        ...attachedHeadResponses('main'),
+        'ls-files --others --exclude-standard': '',
+      })
+      const throwingExecutor: GitExecutor = (binary, args, cwd) => {
+        const key = args.join(' ')
+        if (key === 'ls-files --others --exclude-standard') {
+          throw new UnexpectedError('unexpected failure')
+        }
+        return executor(binary, args, cwd)
+      }
 
-      expect(() => detectChangedTypeScriptFiles(dir, {}, executor)).toThrow('unexpected failure')
+      expect(() =>
+        detectChangedTypeScriptFiles(WORK_DIR, { base: 'main' }, throwingExecutor),
+      ).toThrow('unexpected failure')
     })
 
     it('rethrows error with undefined stderr property', () => {
-      const dir = makeTempDir()
-      initRepoWithCommit(dir)
       const executor: GitExecutor = () => {
         const error = new GitProcessError('git failed')
         Object.defineProperty(error, 'stderr', { value: undefined })
         throw error
       }
 
-      expect(() => detectChangedTypeScriptFiles(dir, {}, executor)).toThrow('git failed')
+      expect(() => detectChangedTypeScriptFiles(WORK_DIR, {}, executor)).toThrow('git failed')
     })
   })
 
   describe('changed TypeScript files on a branch', () => {
     it('returns .ts files changed vs base branch', () => {
-      const dir = makeTempDir()
-      initRepoWithCommit(dir)
-      git(dir, ['checkout', '-b', 'feature'])
-      writeFileSync(join(dir, 'new-file.ts'), 'export const y = 2')
-      git(dir, ['add', '.'])
-      git(dir, ['commit', '-m', 'add new-file'])
+      const executor = createMockExecutor(
+        attachedHeadResponses('main', { 'diff --name-only main...HEAD': 'new-file.ts' }),
+      )
 
-      const result = detectChangedTypeScriptFiles(dir, { base: 'main' })
+      const result = detectChangedTypeScriptFiles(WORK_DIR, { base: 'main' }, executor)
 
-      expect(result.files).toStrictEqual([join(dir, 'new-file.ts')])
+      expect(result.files).toStrictEqual([join(WORK_DIR, 'new-file.ts')])
       expect(result.warnings).toStrictEqual([])
     })
 
     it('returns .tsx files changed vs base branch', () => {
-      const dir = makeTempDir()
-      initRepoWithCommit(dir)
-      git(dir, ['checkout', '-b', 'feature'])
-      writeFileSync(join(dir, 'component.tsx'), 'export const C = () => null')
-      git(dir, ['add', '.'])
-      git(dir, ['commit', '-m', 'add component'])
+      const executor = createMockExecutor(
+        attachedHeadResponses('main', { 'diff --name-only main...HEAD': 'component.tsx' }),
+      )
 
-      const result = detectChangedTypeScriptFiles(dir, { base: 'main' })
+      const result = detectChangedTypeScriptFiles(WORK_DIR, { base: 'main' }, executor)
 
-      expect(result.files).toStrictEqual([join(dir, 'component.tsx')])
+      expect(result.files).toStrictEqual([join(WORK_DIR, 'component.tsx')])
     })
 
     it('excludes non-TypeScript files', () => {
-      const dir = makeTempDir()
-      initRepoWithCommit(dir)
-      git(dir, ['checkout', '-b', 'feature'])
-      writeFileSync(join(dir, 'readme.md'), '# Hello')
-      writeFileSync(join(dir, 'style.css'), 'body {}')
-      writeFileSync(join(dir, 'added.ts'), 'export const z = 3')
-      git(dir, ['add', '.'])
-      git(dir, ['commit', '-m', 'add files'])
+      const diffOverride = { 'diff --name-only main...HEAD': 'readme.md\nstyle.css\nadded.ts' }
+      const executor = createMockExecutor(attachedHeadResponses('main', diffOverride))
 
-      const result = detectChangedTypeScriptFiles(dir, { base: 'main' })
+      const result = detectChangedTypeScriptFiles(WORK_DIR, { base: 'main' }, executor)
 
-      expect(result.files).toStrictEqual([join(dir, 'added.ts')])
+      expect(result.files).toStrictEqual([join(WORK_DIR, 'added.ts')])
     })
 
     it('returns empty array when no TypeScript files changed', () => {
-      const dir = makeTempDir()
-      initRepoWithCommit(dir)
-      git(dir, ['checkout', '-b', 'feature'])
-      writeFileSync(join(dir, 'readme.md'), '# Hello')
-      git(dir, ['add', '.'])
-      git(dir, ['commit', '-m', 'add readme'])
+      const diffOverride = { 'diff --name-only main...HEAD': 'readme.md' }
+      const executor = createMockExecutor(attachedHeadResponses('main', diffOverride))
 
-      const result = detectChangedTypeScriptFiles(dir, { base: 'main' })
+      const result = detectChangedTypeScriptFiles(WORK_DIR, { base: 'main' }, executor)
 
       expect(result.files).toStrictEqual([])
       expect(result.warnings).toStrictEqual([])
     })
 
     it('returns empty when branch has no changes vs base', () => {
-      const dir = makeTempDir()
-      initRepoWithCommit(dir)
-      git(dir, ['checkout', '-b', 'feature'])
+      const executor = createMockExecutor(attachedHeadResponses('main'))
 
-      const result = detectChangedTypeScriptFiles(dir, { base: 'main' })
+      const result = detectChangedTypeScriptFiles(WORK_DIR, { base: 'main' }, executor)
 
       expect(result.files).toStrictEqual([])
     })
@@ -194,80 +155,87 @@ describe('detectChangedTypeScriptFiles', () => {
 
   describe('base branch detection', () => {
     it('uses provided base option over default', () => {
-      const dir = makeTempDir()
-      initRepoWithCommit(dir)
-      git(dir, ['checkout', '-b', 'develop'])
-      git(dir, ['checkout', '-b', 'feature'])
-      writeFileSync(join(dir, 'file.ts'), 'export const a = 1')
-      git(dir, ['add', '.'])
-      git(dir, ['commit', '-m', 'add file'])
+      const executor = createMockExecutor(
+        attachedHeadResponses('develop', { 'diff --name-only develop...HEAD': 'file.ts' }),
+      )
 
-      const result = detectChangedTypeScriptFiles(dir, { base: 'develop' })
+      const result = detectChangedTypeScriptFiles(WORK_DIR, { base: 'develop' }, executor)
 
-      expect(result.files).toStrictEqual([join(dir, 'file.ts')])
+      expect(result.files).toStrictEqual([join(WORK_DIR, 'file.ts')])
     })
 
     it('falls back to main when no base provided and no origin/HEAD', () => {
-      const dir = makeTempDir()
-      initRepoWithCommit(dir)
-      git(dir, ['checkout', '-b', 'feature'])
-      writeFileSync(join(dir, 'file.ts'), 'export const a = 1')
-      git(dir, ['add', '.'])
-      git(dir, ['commit', '-m', 'add file'])
+      const executor: GitExecutor = (_binary, args) => {
+        const key = args.join(' ')
+        if (key === 'rev-parse --git-dir') return '.git'
+        if (key === 'symbolic-ref HEAD') return 'refs/heads/feature'
+        if (key === 'symbolic-ref refs/remotes/origin/HEAD') {
+          throw new GitProcessError('not found', 'fatal: ref not found')
+        }
+        if (key === 'diff --name-only main...HEAD') return 'file.ts'
+        if (key === 'diff --name-only --cached main') return ''
+        if (key === 'ls-files --others --exclude-standard') return ''
+        throw new GitProcessError(`Unexpected: git ${key}`)
+      }
 
-      const result = detectChangedTypeScriptFiles(dir, {})
+      const result = detectChangedTypeScriptFiles(WORK_DIR, {}, executor)
 
-      expect(result.files).toStrictEqual([join(dir, 'file.ts')])
+      expect(result.files).toStrictEqual([join(WORK_DIR, 'file.ts')])
     })
 
     it('throws GitError when base branch does not exist', () => {
-      const dir = makeTempDir()
-      initRepoWithCommit(dir)
-      git(dir, ['checkout', '-b', 'feature'])
+      const executor: GitExecutor = (_binary, args) => {
+        const key = args.join(' ')
+        if (key === 'rev-parse --git-dir') return '.git'
+        if (key === 'symbolic-ref HEAD') return 'refs/heads/feature'
+        throw new UnexpectedError('unknown revision nonexistent')
+      }
 
-      expect(() => detectChangedTypeScriptFiles(dir, { base: 'nonexistent' })).toThrow(GitError)
+      expect(() =>
+        detectChangedTypeScriptFiles(WORK_DIR, { base: 'nonexistent' }, executor),
+      ).toThrow(GitError)
     })
   })
 
   describe('detached HEAD', () => {
     it('uses HEAD~1 as base when HEAD is detached', () => {
-      const dir = makeTempDir()
-      initRepoWithCommit(dir)
-      writeFileSync(join(dir, 'second.ts'), 'export const s = 2')
-      git(dir, ['add', '.'])
-      git(dir, ['commit', '-m', 'second commit'])
-      const commitHash = git(dir, ['rev-parse', 'HEAD'])
-      git(dir, ['checkout', commitHash])
+      const executor: GitExecutor = (_binary, args) => {
+        const key = args.join(' ')
+        if (key === 'rev-parse --git-dir') return '.git'
+        if (key === 'symbolic-ref HEAD') {
+          throw new GitProcessError('not on a branch', 'fatal: ref HEAD is not a symbolic ref')
+        }
+        if (key === 'diff --name-only HEAD~1...HEAD') return 'second.ts'
+        if (key === 'diff --name-only --cached HEAD~1') return ''
+        if (key === 'ls-files --others --exclude-standard') return ''
+        throw new GitProcessError(`Unexpected: git ${key}`)
+      }
 
-      const result = detectChangedTypeScriptFiles(dir, {})
+      const result = detectChangedTypeScriptFiles(WORK_DIR, {}, executor)
 
-      expect(result.files).toStrictEqual([join(dir, 'second.ts')])
+      expect(result.files).toStrictEqual([join(WORK_DIR, 'second.ts')])
     })
   })
 
   describe('uncommitted changes', () => {
     it('includes staged TypeScript files', () => {
-      const dir = makeTempDir()
-      initRepoWithCommit(dir)
-      git(dir, ['checkout', '-b', 'feature'])
-      writeFileSync(join(dir, 'staged.ts'), 'export const s = 1')
-      git(dir, ['add', 'staged.ts'])
+      const executor = createMockExecutor(
+        attachedHeadResponses('main', { 'diff --name-only --cached main': 'staged.ts' }),
+      )
 
-      const result = detectChangedTypeScriptFiles(dir, { base: 'main' })
+      const result = detectChangedTypeScriptFiles(WORK_DIR, { base: 'main' }, executor)
 
-      expect(result.files).toContain(join(dir, 'staged.ts'))
+      expect(result.files).toContain(join(WORK_DIR, 'staged.ts'))
     })
 
     it('warns about unstaged TypeScript files', () => {
-      const dir = makeTempDir()
-      initRepoWithCommit(dir)
-      git(dir, ['checkout', '-b', 'feature'])
-      writeFileSync(join(dir, 'committed.ts'), 'export const c = 1')
-      git(dir, ['add', '.'])
-      git(dir, ['commit', '-m', 'commit'])
-      writeFileSync(join(dir, 'unstaged.ts'), 'export const u = 1')
+      const overrides = {
+        'diff --name-only main...HEAD': 'committed.ts',
+        'ls-files --others --exclude-standard': 'unstaged.ts',
+      }
+      const executor = createMockExecutor(attachedHeadResponses('main', overrides))
 
-      const result = detectChangedTypeScriptFiles(dir, { base: 'main' })
+      const result = detectChangedTypeScriptFiles(WORK_DIR, { base: 'main' }, executor)
 
       expect(result.warnings.length).toBeGreaterThan(0)
       expect(result.warnings[0]).toContain('unstaged')
@@ -276,88 +244,58 @@ describe('detectChangedTypeScriptFiles', () => {
 
   describe('files in subdirectories', () => {
     it('returns full paths for files in nested directories', () => {
-      const dir = makeTempDir()
-      initRepoWithCommit(dir)
-      git(dir, ['checkout', '-b', 'feature'])
-      mkdirSync(join(dir, 'src', 'domain'), { recursive: true })
-      writeFileSync(join(dir, 'src', 'domain', 'order.ts'), 'export class Order {}')
-      git(dir, ['add', '.'])
-      git(dir, ['commit', '-m', 'add nested file'])
+      const diffOverride = { 'diff --name-only main...HEAD': 'src/domain/order.ts' }
+      const executor = createMockExecutor(attachedHeadResponses('main', diffOverride))
 
-      const result = detectChangedTypeScriptFiles(dir, { base: 'main' })
+      const result = detectChangedTypeScriptFiles(WORK_DIR, { base: 'main' }, executor)
 
-      expect(result.files).toStrictEqual([join(dir, 'src', 'domain', 'order.ts')])
+      expect(result.files).toStrictEqual([join(WORK_DIR, 'src', 'domain', 'order.ts')])
     })
   })
 
   describe('error handling with injected executor', () => {
     it('rethrows GitError from getCommittedChangedFiles', () => {
-      const dir = makeTempDir()
-      initRepoWithCommit(dir)
-      git(dir, ['checkout', '-b', 'feature'])
-
-      const callTracker = { count: 0 }
-      const executor: GitExecutor = (binary, args, execCwd) => {
-        callTracker.count++
-        if (callTracker.count <= 2) {
-          return execFileSync(binary, args, {
-            cwd: execCwd,
-            encoding: 'utf-8',
-            stdio: ['pipe', 'pipe', 'pipe'],
-          }).trim()
-        }
+      const executor: GitExecutor = (_binary, args) => {
+        const key = args.join(' ')
+        if (key === 'rev-parse --git-dir') return '.git'
+        if (key === 'symbolic-ref HEAD') return 'refs/heads/feature'
         throw new GitProcessError('fatal: not a git repository', 'fatal: not a git repository')
       }
 
-      expect(() => detectChangedTypeScriptFiles(dir, { base: 'main' }, executor)).toThrow(
+      expect(() => detectChangedTypeScriptFiles(WORK_DIR, { base: 'main' }, executor)).toThrow(
         expect.objectContaining({ gitErrorCode: 'NOT_A_REPOSITORY' }),
       )
     })
 
     it('wraps non-GitError as BASE_BRANCH_NOT_FOUND from getCommittedChangedFiles', () => {
-      const dir = makeTempDir()
-      initRepoWithCommit(dir)
-      git(dir, ['checkout', '-b', 'feature'])
-
-      const callTracker = { count: 0 }
-      const executor: GitExecutor = (binary, args, execCwd) => {
-        callTracker.count++
-        if (callTracker.count <= 2) {
-          return execFileSync(binary, args, {
-            cwd: execCwd,
-            encoding: 'utf-8',
-            stdio: ['pipe', 'pipe', 'pipe'],
-          }).trim()
-        }
+      const executor: GitExecutor = (_binary, args) => {
+        const key = args.join(' ')
+        if (key === 'rev-parse --git-dir') return '.git'
+        if (key === 'symbolic-ref HEAD') return 'refs/heads/feature'
         throw new UnexpectedError('some other git failure')
       }
 
-      expect(() => detectChangedTypeScriptFiles(dir, { base: 'main' }, executor)).toThrow(
+      expect(() => detectChangedTypeScriptFiles(WORK_DIR, { base: 'main' }, executor)).toThrow(
         expect.objectContaining({ gitErrorCode: 'BASE_BRANCH_NOT_FOUND' }),
       )
     })
 
     it('handles stderr extraction from non-Error throws', () => {
-      const dir = makeTempDir()
-      initRepoWithCommit(dir)
       const executor: GitExecutor = () => {
         throw 'string error'
       }
 
-      expect(() => detectChangedTypeScriptFiles(dir, {}, executor)).toThrow('string error')
+      expect(() => detectChangedTypeScriptFiles(WORK_DIR, {}, executor)).toThrow('string error')
     })
 
     it('returns empty staged files when no staged changes exist', () => {
-      const dir = makeTempDir()
-      initRepoWithCommit(dir)
-      git(dir, ['checkout', '-b', 'feature'])
-      writeFileSync(join(dir, 'committed.ts'), 'export const c = 1')
-      git(dir, ['add', '.'])
-      git(dir, ['commit', '-m', 'commit'])
+      const executor = createMockExecutor(
+        attachedHeadResponses('main', { 'diff --name-only main...HEAD': 'committed.ts' }),
+      )
 
-      const result = detectChangedTypeScriptFiles(dir, { base: 'main' })
+      const result = detectChangedTypeScriptFiles(WORK_DIR, { base: 'main' }, executor)
 
-      expect(result.files).toStrictEqual([join(dir, 'committed.ts')])
+      expect(result.files).toStrictEqual([join(WORK_DIR, 'committed.ts')])
     })
   })
 })

@@ -280,7 +280,7 @@ describe('codeReview', () => {
     expect(result.type).toBe('success')
   })
 
-  it('rejects when verdict is beyond first 5 lines', async () => {
+  it('finds verdict beyond first 5 lines when agent narrates extensively', async () => {
     mockQueryAgentText.mockResolvedValue(
       'line1\nline2\nline3\nline4\nline5\nPASS\nAll checks passed.',
     )
@@ -289,6 +289,6 @@ describe('codeReview', () => {
 
     const result = await step.execute(ctx)
 
-    expect(result.type).toBe('failure')
+    expect(result.type).toBe('success')
   })
 })

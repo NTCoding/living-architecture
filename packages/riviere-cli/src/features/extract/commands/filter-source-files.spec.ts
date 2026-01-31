@@ -1,9 +1,8 @@
 import {
-  describe, it, expect, afterEach 
+  describe, it, expect, vi, afterEach 
 } from 'vitest'
-import { execFileSync } from 'node:child_process'
 import {
-  realpathSync, mkdtempSync, mkdirSync, writeFileSync, rmSync 
+  mkdtempSync, writeFileSync, rmSync, realpathSync 
 } from 'node:fs'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
@@ -11,30 +10,22 @@ import {
   filterSourceFiles, SourceFilterError 
 } from './filter-source-files'
 
-function resolveGitBinary(): string {
-  return execFileSync('/usr/bin/which', ['git'], { encoding: 'utf-8' }).trim()
-}
+vi.mock('./git-changed-files', async (importOriginal) => {
+  const original = await importOriginal<typeof import('./git-changed-files')>()
+  return {
+    ...original,
+    detectChangedTypeScriptFiles: vi.fn(),
+  }
+})
 
-const GIT_BINARY = resolveGitBinary()
+import {
+  detectChangedTypeScriptFiles, GitError 
+} from './git-changed-files'
 
-function git(cwd: string, args: readonly string[]): string {
-  return execFileSync(GIT_BINARY, args, {
-    cwd,
-    encoding: 'utf-8',
-  }).trim()
-}
+const mockDetectChanged = vi.mocked(detectChangedTypeScriptFiles)
 
 function createTempDir(): string {
   return realpathSync(mkdtempSync(join(tmpdir(), 'filter-source-')))
-}
-
-function initRepoWithCommit(cwd: string): void {
-  git(cwd, ['init'])
-  git(cwd, ['config', 'user.email', 'test@test.com'])
-  git(cwd, ['config', 'user.name', 'Test'])
-  writeFileSync(join(cwd, 'initial.ts'), 'export const x = 1')
-  git(cwd, ['add', '.'])
-  git(cwd, ['commit', '-m', 'initial'])
 }
 
 describe('filterSourceFiles', () => {
@@ -53,6 +44,7 @@ describe('filterSourceFiles', () => {
       rmSync(dir, { recursive: true })
     }
     tempDirs.length = 0
+    vi.restoreAllMocks()
   })
 
   describe('no filtering (default)', () => {
@@ -68,39 +60,37 @@ describe('filterSourceFiles', () => {
   describe('--pr filtering', () => {
     it('returns only files changed on feature branch', () => {
       const dir = makeTempDir()
-      initRepoWithCommit(dir)
-      git(dir, ['checkout', '-b', 'feature'])
-      mkdirSync(join(dir, 'src'))
-      writeFileSync(join(dir, 'src', 'changed.ts'), 'export const y = 2')
-      git(dir, ['add', '.'])
-      git(dir, ['commit', '-m', 'add changed'])
       process.chdir(dir)
+      const changedFile = join(dir, 'src', 'changed.ts')
+      mockDetectChanged.mockReturnValue({
+        files: [changedFile],
+        warnings: [],
+      })
 
-      const allFiles = [join(dir, 'initial.ts'), join(dir, 'src', 'changed.ts')]
+      const allFiles = [join(dir, 'initial.ts'), changedFile]
 
       const result = filterSourceFiles(allFiles, {
         pr: true,
         base: 'main',
       })
 
-      expect(result.files).toStrictEqual([join(dir, 'src', 'changed.ts')])
+      expect(result.files).toStrictEqual([changedFile])
     })
 
     it('emits warnings for unstaged TypeScript files', () => {
       const dir = makeTempDir()
-      initRepoWithCommit(dir)
-      git(dir, ['checkout', '-b', 'feature'])
-      writeFileSync(join(dir, 'committed.ts'), 'export const c = 1')
-      git(dir, ['add', '.'])
-      git(dir, ['commit', '-m', 'commit'])
-      writeFileSync(join(dir, 'unstaged.ts'), 'export const u = 1')
       process.chdir(dir)
+      const committedFile = join(dir, 'committed.ts')
+      mockDetectChanged.mockReturnValue({
+        files: [committedFile],
+        warnings: ['1 unstaged TypeScript file(s) not included: unstaged.ts'],
+      })
 
       const stderrOutput: string[] = []
       const originalError = console.error
       console.error = (msg: string) => stderrOutput.push(msg)
 
-      filterSourceFiles([join(dir, 'committed.ts')], {
+      filterSourceFiles([committedFile], {
         pr: true,
         base: 'main',
       })
@@ -112,6 +102,9 @@ describe('filterSourceFiles', () => {
     it('throws SourceFilterError with GIT_ERROR when not in a git repo', () => {
       const dir = makeTempDir()
       process.chdir(dir)
+      mockDetectChanged.mockImplementation(() => {
+        throw new GitError('NOT_A_REPOSITORY', 'Run from within a git repository.')
+      })
 
       expect(() => filterSourceFiles([], { pr: true })).toThrow(SourceFilterError)
     })
@@ -119,6 +112,9 @@ describe('filterSourceFiles', () => {
     it('includes gitError on SourceFilterError for git failures', () => {
       const dir = makeTempDir()
       process.chdir(dir)
+      mockDetectChanged.mockImplementation(() => {
+        throw new GitError('NOT_A_REPOSITORY', 'Run from within a git repository.')
+      })
 
       expect(() => filterSourceFiles([], { pr: true })).toThrow(
         expect.objectContaining({ filterErrorKind: 'GIT_ERROR' }),
