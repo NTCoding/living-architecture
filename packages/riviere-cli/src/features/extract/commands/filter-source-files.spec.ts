@@ -130,9 +130,9 @@ describe('filterSourceFiles', () => {
       const dir = makeTempDir()
       process.chdir(dir)
 
-      expect(() => filterSourceFiles([], { files: ['nonexistent.ts'] })).toThrow(
-        expect.objectContaining({ filterErrorKind: 'FILES_NOT_FOUND' }),
-      )
+      const act = () => filterSourceFiles([], { files: ['nonexistent.ts'] })
+      expect(act).toThrow(SourceFilterError)
+      expect(act).toThrow(expect.objectContaining({ filterErrorKind: 'FILES_NOT_FOUND' }))
     })
   })
 })
