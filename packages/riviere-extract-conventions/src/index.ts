@@ -24,6 +24,7 @@ export type {
   APIControllerDef,
   EventDef,
   EventHandlerDef,
+  IEventHandler,
   UIPageDef,
   DomainOpContainerDef,
 } from './interfaces'

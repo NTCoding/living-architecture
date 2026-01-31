@@ -1,5 +1,5 @@
 import type {
-  ClassDeclaration, Project 
+  ClassDeclaration, MethodDeclaration, Project 
 } from 'ts-morph'
 import { posix } from 'node:path'
 import type {
@@ -11,6 +11,8 @@ import type {
   FromClassNameExtractionRule,
   FromFilePathExtractionRule,
   FromPropertyExtractionRule,
+  FromMethodNameExtractionRule,
+  FromGenericArgExtractionRule,
 } from '@living-architecture/riviere-extract-config'
 import type {
   DraftComponent, GlobMatcher 
@@ -21,7 +23,9 @@ import {
   evaluateFromClassNameRule,
   evaluateFromFilePathRule,
   evaluateFromPropertyRule,
+  evaluateFromMethodNameRule,
 } from './evaluate-extraction-rule'
+import { evaluateFromGenericArgRule } from './evaluate-extraction-rule-generic'
 import { ExtractionError } from '../../platform/domain/ast-literals/literal-detection'
 
 type MetadataValue = string | number | boolean | string[]
@@ -117,6 +121,14 @@ function isFromPropertyRule(rule: ExtractionRule): rule is FromPropertyExtractio
   return 'fromProperty' in rule
 }
 
+function isFromMethodNameRule(rule: ExtractionRule): rule is FromMethodNameExtractionRule {
+  return 'fromMethodName' in rule
+}
+
+function isFromGenericArgRule(rule: ExtractionRule): rule is FromGenericArgExtractionRule {
+  return 'fromGenericArg' in rule
+}
+
 function findClassAtLine(project: Project, draft: DraftComponent): ClassDeclaration {
   const sourceFile = project.getSourceFile(draft.location.file)
   if (sourceFile === undefined) {
@@ -140,6 +152,58 @@ function findClassAtLine(project: Project, draft: DraftComponent): ClassDeclarat
   }
 
   return classDecl
+}
+
+function findMethodAtLine(project: Project, draft: DraftComponent): MethodDeclaration {
+  const sourceFile = project.getSourceFile(draft.location.file)
+  if (sourceFile === undefined) {
+    throw new ExtractionError(
+      `Source file '${draft.location.file}' not found in project`,
+      draft.location.file,
+      draft.location.line,
+    )
+  }
+
+  for (const classDecl of sourceFile.getClasses()) {
+    const method = classDecl
+      .getMethods()
+      .find((m) => m.getStartLineNumber() === draft.location.line)
+    if (method !== undefined) {
+      return method
+    }
+  }
+
+  throw new ExtractionError(
+    `No method declaration found at line ${draft.location.line}`,
+    draft.location.file,
+    draft.location.line,
+  )
+}
+
+function findContainingClass(project: Project, draft: DraftComponent): ClassDeclaration {
+  const sourceFile = project.getSourceFile(draft.location.file)
+  if (sourceFile === undefined) {
+    throw new ExtractionError(
+      `Source file '${draft.location.file}' not found in project`,
+      draft.location.file,
+      draft.location.line,
+    )
+  }
+
+  const methodLine = draft.location.line
+  for (const classDecl of sourceFile.getClasses()) {
+    const classStart = classDecl.getStartLineNumber()
+    const classEnd = classDecl.getEndLineNumber()
+    if (methodLine >= classStart && methodLine <= classEnd) {
+      return classDecl
+    }
+  }
+
+  throw new ExtractionError(
+    `No containing class found for method at line ${methodLine}`,
+    draft.location.file,
+    draft.location.line,
+  )
 }
 
 function evaluateClassRule(rule: ExtractionRule, classDecl: ClassDeclaration): ExtractionResult {
@@ -170,6 +234,16 @@ function evaluateRule(
 
   if (isFromFilePathRule(rule)) {
     return evaluateFromFilePathRule(rule, draft.location.file)
+  }
+
+  if (isFromMethodNameRule(rule)) {
+    const methodDecl = findMethodAtLine(project, draft)
+    return evaluateFromMethodNameRule(rule, methodDecl)
+  }
+
+  if (isFromGenericArgRule(rule)) {
+    const classDecl = findContainingClass(project, draft)
+    return evaluateFromGenericArgRule(rule, classDecl)
   }
 
   const classDecl = findClassAtLine(project, draft)

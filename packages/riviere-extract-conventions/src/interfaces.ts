@@ -10,12 +10,10 @@ export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
  * Required properties:
  * - route: The URL path for this endpoint
  * - method: The HTTP method (GET, POST, PUT, PATCH, DELETE)
- * - handle: The request handler function
  */
 export interface APIControllerDef {
   readonly route: string
   readonly method: HttpMethod
-  handle(req: Request, res: Response): void | Promise<void>
 }
 
 /**
@@ -33,11 +31,20 @@ export interface EventDef {readonly type: string}
  *
  * Required properties:
  * - subscribedEvents: Array of event type names this handler processes
- * - handle: The event processing function
  */
-export interface EventHandlerDef {
+export interface EventHandlerDef {readonly subscribedEvents: readonly string[]}
+
+/**
+ * Generic event handler interface for use with fromGenericArg extraction.
+ * Classes implement this with a concrete event type to enable automatic
+ * subscribedEvents extraction from the generic argument.
+ *
+ * Example: class MyHandler implements IEventHandler<OrderPlaced> { ... }
+ * The extractor reads OrderPlaced from the generic arg as the subscribed event.
+ */
+export interface IEventHandler<TEvent = unknown> {
   readonly subscribedEvents: readonly string[]
-  handle(event: unknown): void | Promise<void>
+  readonly __eventType?: TEvent
 }
 
 /**
