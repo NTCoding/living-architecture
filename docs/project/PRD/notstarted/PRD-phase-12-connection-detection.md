@@ -55,10 +55,10 @@ This means we must build a **scoped call graph** — starting from known compone
 
 Different codebases have different needs. We provide two layers:
 
-| Layer | Accuracy | Use Case |
-|-------|----------|----------|
-| **Golden Path** | Deterministic (100% for supported patterns) | Teams using our conventions |
-| **Configurable** | Pattern-dependent | Teams with existing patterns |
+| Layer | Use Case |
+|-------|----------|
+| **Golden Path** (deterministic, 100% for supported patterns) | Teams using our conventions |
+| **Configurable** (accuracy depends on user-defined patterns) | Teams with existing patterns |
 
 **Layer selection is per-extraction, not per-codebase.** A team might use Golden Path for their new code while using Configurable for modules with different conventions.
 
@@ -67,7 +67,7 @@ AI-assisted extraction already exists as a separate capability. Phase 12 focuses
 ### 2.3 Fail Fast, Be Explicit
 
 When Golden Path extraction cannot determine a connection with certainty:
-- **Strict mode (default):** Fail with error message including: file path, line number, what failed (e.g., "unresolvable type"), and why (e.g., "interface IOrderRepository has 3 implementations")
+- **Strict mode (default):** Fail with structured JSON error using the existing CLI error format (`{ success: false, error: { code, message, suggestions } }`). New error codes added to `CliErrorCode` for connection detection failures (e.g., `UNRESOLVABLE_TYPE`, `AMBIGUOUS_INTERFACE`, `MISSING_EVENT_MATCH`). Error message includes: file path, line number, what failed, and why (e.g., `"orders/src/use-cases/place-order.ts:15: unresolvable type — interface IOrderRepository has 3 implementations"`)
 - **Lenient mode (`--allow-incomplete`):** Emit the link with an `_uncertain` field containing the reason for uncertainty (e.g., `"multiple implementations of IOrderRepository"`)
 
 Uncertain links in lenient mode are included in the same `links` array with `_uncertain: string` — not a separate array. Strict mode output is a subset of lenient mode output (uncertain links are omitted entirely in strict mode).
@@ -96,7 +96,7 @@ This is what makes Golden Path achievable — explicit types in code mean determ
 1. **Internal representation:** Method-level call graph. Nodes are methods, edges are method-to-method call sites resolved via declared types.
 2. **Traversal:** From each component method, trace outward via DFS through method calls. Maintain a visited set per traversal path to handle cycles.
 3. **Type resolution:** Resolve the receiver type of each call from constructor parameters, fields, or local variable declarations. Generic types match against the base type (e.g., `Repository<Order>` matches component `Repository`).
-4. **Collapse:** After tracing, collapse non-component nodes to produce component-to-component links. One link per unique (source component, target component, type) tuple.
+4. **Collapse:** After tracing, collapse non-component nodes to produce component-to-component links. One link per unique (source component, target component, type) tuple. Self-links (source === target) are excluded.
 5. **Component lookup:** Phase 12 builds its own index from `EnrichedComponent[]` + AST. For method-level components (e.g., DomainOp), use `location.file` + `location.line` to locate the method in the AST and resolve its parent class.
 
 **What is and isn't traced:**
@@ -105,7 +105,8 @@ This is what makes Golden Path achievable — explicit types in code mean determ
 |---------|---------|--------|
 | `this.repo.save(order)` | ✅ | Direct method call, receiver type resolved |
 | `await this.repo.save(order)` | ✅ | `await` is transparent |
-| `this.repo.config` | ❌ | Property access, not a method call |
+| `this.repo.config` | ❌ | Property access (no getter), not a method call |
+| `this.repo.activeOrders` (getter) | ✅ | Getters have method bodies that may call components; traced into during DFS |
 | `this.repo.find(id).then(...)` | ✅ call only | `find()` traced; `.then()` callback not traced (requires flow analysis) |
 | `const r = this.repo; r.save()` | ❌ | Requires alias tracking (out of scope) |
 | Chained calls `a.b().c()` | ✅ each | Each call resolved independently via declared return type |
@@ -185,13 +186,13 @@ For teams with existing conventions that differ from Golden Path.
 ```yaml
 connections:
   patterns:
-    - name: custom-event-emitter
+    - name: custom-event-publisher
       find: methodCalls
       where:
-        methodName: emit
-        receiverType: CustomEventEmitter
+        methodName: publish
+        receiverType: EventBus
       extract:
-        eventName: { fromArgument: 0 }
+        eventName: { fromArgument: 0 }  # extracts static type name of first argument
       linkType: async
 ```
 
@@ -211,9 +212,9 @@ connections:
 Decorator matching is name-only. `@Controller('/orders')` matches decorator name `Controller`. Parameters are ignored. Composed and factory decorators are not resolved — only direct decorators on the class are matched.
 
 **Extraction rules (extending Phase 11 patterns):**
-- `fromArgument: N` — Extract from method argument
-- `fromReceiverType` — Extract from the object being called
-- `fromCallerType` — Extract from the calling class
+- `fromArgument: N` — Resolve the static type of the argument at position N, then read the property named by the `extract` key from that type's class definition. E.g., `publish(event: OrderPlacedEvent)` with `extract: { eventName: { fromArgument: 0 } }` → resolves `OrderPlacedEvent` class → reads its `eventName` static property value. If the type cannot be statically resolved or the property doesn't exist, fail fast in strict mode / mark uncertain in lenient mode.
+- `fromReceiverType` — Extract the static type name of the object being called (e.g., `this.repo.save()` → extracts `OrderRepository` from declared type of `repo`)
+- `fromCallerType` — Extract the static type name of the class containing the call site
 
 **Connection config levels:**
 
@@ -248,7 +249,9 @@ Connection config schema added to `riviere-extract-config` package. New `connect
 
 ### 3.3 Connection Output Format
 
-Output conforms to the `Link` type from `riviere-schema` (with the addition of `_uncertain` for lenient mode). The examples below are illustrative — the schema is the spec.
+**Breaking change:** The CLI `extract` command output shape changes from `{ success: true, data: EnrichedComponent[] }` to `{ success: true, data: { components: EnrichedComponent[], links: ExtractedLink[] } }`. The `--components-only` flag continues to output components without links. When no connections are detected, `links` is an empty array.
+
+Each link conforms to the `Link` type from `riviere-schema` (with the addition of `_uncertain` for lenient mode). The examples below are illustrative — the schema is the spec.
 
 The `repository` field in `sourceLocation` is populated from extraction config.
 
@@ -301,12 +304,7 @@ riviere extract --config ./config.yaml --dry-run
 
 ### 3.5 Performance Characteristics
 
-| Layer | Expected Performance | Memory | Notes |
-|-------|---------------------|--------|-------|
-| Golden Path | TBD | TBD | Scoped call graph tracing + filtering |
-| Configurable | TBD | TBD | Custom pattern matching |
-
-Performance benchmarks against ecommerce-demo-app required. Duration displayed as final summary line: `Extraction completed in Xs (call graph: Xs, detection: Xs, filtering: Xs)`. Actual durations documented after initial implementation to establish baselines in `docs/architecture/performance/phase-12-baselines.md`.
+No upfront targets. Record actual durations during implementation against ecommerce-demo-app, then decide acceptable thresholds. See D1.8 for instrumentation details and `docs/architecture/performance/phase-12-baselines.md` for recorded baselines.
 
 ### 3.6 "Design for Extraction" Documentation
 
@@ -420,12 +418,12 @@ All core connection types are extractable end-to-end. Scoped call graph traces t
   - Produce component-to-component edges with the non-component chain elided
   - Handle chains of multiple non-components (A → non1 → non2 → B produces A → B)
   - Source location for transitive connections: the call site in the source component
-  - One link per unique (source component, target component, type) tuple; if multiple call sites exist, source location references the first occurrence
+  - One link per unique (source component, target component, type) tuple; if multiple call sites exist, source location references the lexically first occurrence (earliest file path, then earliest line number)
   - Verification: Unit tests covering single-hop, multi-hop, dead-end chains, and cycles
   - Architecture: see §9.2.2 (ScopedCallGraph collapse invariant), §9.1.2 (domain/connection-detection/call-graph/)
 
-- **D1.3:** Single-implementation interface resolution
-  - When a type is an interface with exactly one implementing class within extraction config module globs (node_modules excluded), auto-resolve to the concrete type
+- **D1.3:** Single-implementation abstract type resolution
+  - When a type is an interface or abstract class with exactly one implementing/extending class within ALL extraction config module globs combined (node_modules excluded), auto-resolve to the concrete type
   - Zero implementations: fail fast in strict mode, mark uncertain in lenient mode
   - Multiple implementations: fail fast in strict mode, mark uncertain in lenient mode
   - Verification: Unit tests covering zero, one, and multiple implementation cases
@@ -459,6 +457,13 @@ All core connection types are extractable end-to-end. Scoped call graph traces t
 - **D1.7:** Publish method interface pattern
   - Define how typed publish methods should be structured (interface/abstract class)
   - Ensure Event type is extractable from method signature
+  - Marker interface using Zod branded type (consistent with codebase conventions):
+    ```typescript
+    export const EventPublisherDefSchema = z.object({}).brand<'EventPublisherDef'>()
+    export type EventPublisherDef = z.infer<typeof EventPublisherDefSchema>
+    ```
+  - Detection: extractor finds classes implementing `EventPublisherDef`, inspects each public method's parameter types, matches to Event components via `metadata.eventName`
+  - ESLint rule (D2.1) enforces convention: each public method must have exactly one parameter whose type implements `EventDef`
   - Provide in `riviere-extract-conventions` package
   - Verification: Interface/abstract class exists in package. Demo app implements it for at least 3 event types. Extractor detects all 3 publish connections with correct source locations. TypeScript compilation has zero errors.
   - Architecture: see §9.2.4 (EventPublisherDef in riviere-extract-conventions)
@@ -598,7 +603,6 @@ tracks:
     deliverables:
       - D4.1
       - D4.2
-      - D4.3
   - id: D
     name: Documentation
     deliverables:
@@ -901,12 +905,12 @@ Type representing a configurable connection pattern from the DSL. Contains `find
 ### 9.4 Glossary Additions
 
 New terms to add to `definitions.glossary.yml`:
-- **Connection Detection** — per PRD §11
-- **Golden Path** — per PRD §11
-- **Configurable** — per PRD §11
-- **Scoped Call Graph** — per PRD §11
-- **Type-Based Resolution** — per PRD §11
-- **Transparent** — per PRD §11
+- **Connection Detection** — per PRD §12
+- **Golden Path** — per PRD §12
+- **Configurable** — per PRD §12
+- **Scoped Call Graph** — per PRD §12
+- **Type-Based Resolution** — per PRD §12
+- **Transparent** — per PRD §12
 - **Component Index** — Immutable lookup built from enriched components and AST, used by connection detection to resolve types to known components
 
 ### 9.5 Resolved Questions
