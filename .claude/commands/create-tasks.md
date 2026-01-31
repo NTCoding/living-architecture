@@ -145,8 +145,10 @@ Confirm all criteria before task creation:
 - [Condition] → [Expected behavior]
 
 ### Implementation Guidelines
+- **Architecture:** [Relevant decisions from PRD §9, citing subsection numbers]
+- **Firm constraints:** [Decisions marked firm in §9 — must be followed exactly]
+- **Flexible decisions:** [Decisions marked flexible in §9 — direction set, details can iterate]
 - Use [existing pattern] from `path/to/file`
-- Follow [architectural constraint] (see `docs/architecture/[doc].md`)
 - Apply [design principle] from `docs/conventions/software-design.md`
 - [Technical approach with rationale]
 
@@ -192,7 +194,9 @@ Please update PRD to clarify these points before task creation.
 - Missing edge cases
 
 **Examples of insufficient detail:**
-- Cannot fill Implementation Guidelines → Architecture not defined in PRD
+- PRD status is "Awaiting Architecture Review" → Architecture review must happen first (run `/arc-prd`)
+- Deliverable has no `Architecture: see §9.X` reference → Architecture section incomplete for this deliverable
+- Cannot fill Implementation Guidelines → Architecture decisions missing for this area
 - Cannot fill Edge Case Scenarios → Requirements don't clarify behavior for boundary conditions
 - Cannot fill Embedded Reasoning → "Why" is unclear
 - Cannot fill Testing Strategy → Acceptance criteria too vague
@@ -204,15 +208,20 @@ Please update PRD to clarify these points before task creation.
 ## Implementation Workflow
 
 1. **Read context:** Active PRD from `docs/project/PRD/active/` + architecture docs referenced in PRD
-2. **Apply Example Mapping:** Map requirements using Story/Rules/Examples/Questions framework
-3. **Validate architecture:** Confirm PRD contains sufficient architectural detail
-4. **Discover edge cases:** Apply checklists from `docs/conventions/testing.md`
-5. **Embed architectural context:** Extract constraints, patterns, and references from PRD + architecture docs
-6. **Structure acceptance criteria:** Happy path as checkboxes (separate from edge cases)
-7. **Complete all 10 sections:** Follow Standard Task Document Format
-8. **Apply validation gate:** If ANY section incomplete → STOP and push back
-9. **Validate against INVEST:** Confirm Independence, Negotiability, Value, Estimability, Smallness, Testability
-10. **Create task:** Run `./scripts/create-task.sh` with completed content
+2. **Read PRD Architecture section (§9):** This section contains structural decisions and domain model decisions made during architecture review. It is the primary source for Implementation Guidelines and Embedded Reasoning.
+3. **Follow architecture references on deliverables:** Each deliverable has `Architecture: see §9.X` references. Read those specific subsections — they define the structural constraints for that deliverable's tasks.
+4. **Apply Example Mapping:** Map requirements using Story/Rules/Examples/Questions framework
+5. **Validate architecture:** Confirm PRD status is "Approved" (meaning architecture review is complete). If status is "Awaiting Architecture Review", STOP — architecture review must happen first.
+6. **Discover edge cases:** Apply checklists from `docs/conventions/testing.md`
+7. **Embed architectural context:** For each task, extract the relevant architecture decisions from §9 and inject them into:
+   - **Implementation Guidelines** — package placement, layer assignments, dependency constraints, firm vs flexible markers
+   - **Embedded Reasoning** — reference architecture rationale (why this structure, what skill principle drives it)
+   - **Acceptance Criteria** — structural constraints that must hold (e.g., "no domain imports in entrypoint", "invariant X enforced by aggregate Y")
+8. **Structure acceptance criteria:** Happy path as checkboxes (separate from edge cases)
+9. **Complete all 10 sections:** Follow Standard Task Document Format
+10. **Apply validation gate:** If ANY section incomplete → STOP and push back
+11. **Validate against INVEST:** Confirm Independence, Negotiability, Value, Estimability, Smallness, Testability
+12. **Create task:** Run `./scripts/create-task.sh` with completed content
 
 ---
 
