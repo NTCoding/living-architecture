@@ -43,6 +43,8 @@ function runGit(
     if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
       throw new GitError('GIT_NOT_FOUND', 'Install git to use --pr flag.')
     }
+    // ANTI-PATTERN EXCEPTION: String-Based Error Detection (AP-001)
+    // Justification: git CLI only reports repo status via stderr text
     const stderr =
       error instanceof Error && 'stderr' in error
         ? String(Object.getOwnPropertyDescriptor(error, 'stderr')?.value ?? '')
