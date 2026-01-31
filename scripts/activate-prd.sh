@@ -41,6 +41,10 @@ gh label create "$LABEL_NAME" \
     --color 0052CC \
     --force
 
+# Set status to Approved
+sed -i '' 's/^\*\*Status:\*\* .*/**Status:** Approved/' "$DEST"
+git add "$DEST"
+
 # Commit only the moved file
 git commit -m "chore: activate PRD $PRD_NAME"
 
