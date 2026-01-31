@@ -132,10 +132,14 @@ export { AgentError } from '../domain/steps/run-code-review'
 
 function resolveSkipReview(): boolean {
   const hasFlag = cli.hasFlag('--reject-review-feedback')
-  if (hasFlag && cli.parseArg('--prmode') !== 'update') {
+  if (!hasFlag) {
+    return false
+  }
+  const prMode = parsePRMode()
+  if (prMode !== 'update') {
     throw new WorkflowError('--reject-review-feedback can only be used with --prmode update')
   }
-  return hasFlag
+  return true
 }
 
 function buildSteps() {

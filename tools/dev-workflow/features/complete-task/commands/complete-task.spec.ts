@@ -128,7 +128,7 @@ describe('executeCompleteTask', () => {
 
   it('rejects --reject-review-feedback in create mode', () => {
     mockCli.hasFlag.mockImplementation((flag: string) => flag === '--reject-review-feedback')
-    mockCli.parseArg.mockImplementation((flag: string) => {
+    mockCli.requireArg.mockImplementation((flag: string) => {
       if (flag === '--prmode') return 'create'
       return undefined
     })
@@ -140,7 +140,7 @@ describe('executeCompleteTask', () => {
 
   it('allows --reject-review-feedback in update mode', () => {
     mockCli.hasFlag.mockImplementation((flag: string) => flag === '--reject-review-feedback')
-    mockCli.parseArg.mockImplementation((flag: string) => {
+    mockCli.requireArg.mockImplementation((flag: string) => {
       if (flag === '--prmode') return 'update'
       return undefined
     })
