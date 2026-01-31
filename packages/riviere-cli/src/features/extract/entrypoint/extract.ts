@@ -36,6 +36,10 @@ import {
   loadDraftComponentsFromFile,
   DraftComponentLoadError,
 } from '../commands/draft-component-loader'
+import {
+  filterSourceFiles, SourceFilterError 
+} from '../commands/filter-source-files'
+import { formatPrMarkdown } from '../commands/format-pr-markdown'
 
 interface ExtractOptions {
   config: string
@@ -44,6 +48,10 @@ interface ExtractOptions {
   componentsOnly?: boolean
   enrich?: string
   allowIncomplete?: boolean
+  pr?: boolean
+  base?: string
+  files?: string[]
+  format?: string
 }
 
 type ParseResult =
@@ -106,18 +114,7 @@ function parseConfigFile(content: string): ParseResult {
   }
 }
 
-function tryExpandModuleRefs(
-  data: unknown,
-  configDir: string,
-):
-  | {
-    success: true
-    data: unknown
-  }
-  | {
-    success: false
-    error: string
-  } {
+function tryExpandModuleRefs(data: unknown, configDir: string): ParseResult {
   try {
     return {
       success: true,
@@ -245,6 +242,79 @@ function loadAndValidateConfig(configPath: string): ValidatedConfig {
   }
 }
 
+function rejectMutuallyExclusive(
+  flagA: string,
+  flagB: string,
+  aPresent: boolean,
+  bPresent: boolean,
+): void {
+  if (aPresent && bPresent) {
+    exitWithConfigValidation(
+      CliErrorCode.ValidationError,
+      `${flagA} and ${flagB} cannot be used together`,
+    )
+  }
+}
+
+function validateMutualExclusions(options: ExtractOptions): void {
+  rejectMutuallyExclusive(
+    '--components-only',
+    '--enrich',
+    options.componentsOnly === true,
+    options.enrich !== undefined,
+  )
+  rejectMutuallyExclusive('--pr', '--files', options.pr === true, options.files !== undefined)
+  rejectMutuallyExclusive('--pr', '--enrich', options.pr === true, options.enrich !== undefined)
+  rejectMutuallyExclusive(
+    '--files',
+    '--enrich',
+    options.files !== undefined,
+    options.enrich !== undefined,
+  )
+}
+
+function validateFormatOption(options: ExtractOptions): void {
+  if (options.format !== undefined && options.format !== 'json' && options.format !== 'markdown') {
+    exitWithConfigValidation(
+      CliErrorCode.ValidationError,
+      `Invalid format '${options.format}'. Must be 'json' or 'markdown'.`,
+    )
+  }
+  if (options.format === 'markdown' && !options.pr && options.files === undefined) {
+    exitWithConfigValidation(
+      CliErrorCode.ValidationError,
+      '--format markdown requires --pr or --files',
+    )
+  }
+}
+
+function validateFlagCombinations(options: ExtractOptions): void {
+  validateMutualExclusions(options)
+  if (options.base !== undefined && !options.pr) {
+    exitWithConfigValidation(CliErrorCode.ValidationError, '--base can only be used with --pr')
+  }
+  validateFormatOption(options)
+}
+
+function resolveFilteredSourceFiles(allSourceFiles: string[], options: ExtractOptions): string[] {
+  try {
+    return filterSourceFiles(allSourceFiles, options).files
+  } catch (error) {
+    /* v8 ignore next -- @preserve: filterSourceFiles only throws SourceFilterError */
+    if (!(error instanceof SourceFilterError)) throw error
+    if (error.filterErrorKind === 'GIT_ERROR' && error.gitError !== undefined) {
+      /* v8 ignore next -- @preserve: GIT_NOT_FOUND requires git absent from system */
+      const code =
+        error.gitError.gitErrorCode === 'NOT_A_REPOSITORY'
+          ? CliErrorCode.GitNotARepository
+          : CliErrorCode.GitNotFound
+      console.log(JSON.stringify(formatError(code, error.gitError.message)))
+      process.exit(ExitCode.RuntimeError)
+    }
+    exitWithConfigValidation(CliErrorCode.ValidationError, error.message)
+  }
+}
+
 export function createExtractCommand(): Command {
   return new Command('extract')
     .description('Extract architectural components from source code')
@@ -254,18 +324,18 @@ export function createExtractCommand(): Command {
     .option('--components-only', 'Output only component identity (no metadata enrichment)')
     .option('--enrich <file>', 'Read draft components from file and enrich with extraction rules')
     .option('--allow-incomplete', 'Output components even when some extraction fields fail')
+    .option('--pr', 'Extract from files changed in current branch vs base branch')
+    .option('--base <branch>', 'Override base branch for --pr (default: auto-detect)')
+    .option('--files <paths...>', 'Extract from specific files')
+    .option('--format <type>', 'Output format: json (default) or markdown')
     .action((options: ExtractOptions) => {
-      if (options.componentsOnly && options.enrich !== undefined) {
-        exitWithConfigValidation(
-          CliErrorCode.ValidationError,
-          '--components-only and --enrich cannot be used together',
-        )
-      }
+      validateFlagCombinations(options)
 
       const {
         resolvedConfig, configDir 
       } = loadAndValidateConfig(options.config)
-      const sourceFilePaths = resolveSourceFiles(resolvedConfig, configDir)
+      const allSourceFilePaths = resolveSourceFiles(resolvedConfig, configDir)
+      const sourceFilePaths = resolveFilteredSourceFiles(allSourceFilePaths, options)
       const project = new Project()
       project.addSourceFilesAtPaths(sourceFilePaths)
 
@@ -294,6 +364,20 @@ export function createExtractCommand(): Command {
         return
       }
       /* v8 ignore stop */
+
+      if (options.format === 'markdown') {
+        const markdown = formatPrMarkdown({
+          added: draftComponents.map((c) => ({
+            type: c.type,
+            name: c.name,
+            domain: c.domain,
+          })),
+          modified: [],
+          removed: [],
+        })
+        console.log(markdown)
+        return
+      }
 
       if (options.componentsOnly) {
         outputResult(formatSuccess(draftComponents), options)

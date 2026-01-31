@@ -1,0 +1,411 @@
+import {
+  writeFile, mkdir 
+} from 'node:fs/promises'
+import { realpathSync } from 'node:fs'
+import { execFileSync } from 'node:child_process'
+import { join } from 'node:path'
+import {
+  describe, it, expect 
+} from 'vitest'
+import { createProgram } from '../../../shell/cli'
+import type { TestContext } from '../../../platform/__fixtures__/command-test-fixtures'
+import {
+  createTestContext,
+  setupCommandTest,
+  parseErrorOutput,
+  TestAssertionError,
+} from '../../../platform/__fixtures__/command-test-fixtures'
+import { CliErrorCode } from '../../../platform/infra/cli-presentation/error-codes'
+
+interface DraftComponent {
+  type: string
+  name: string
+  domain: string
+  location: {
+    file: string
+    line: number
+  }
+}
+
+interface ExtractionOutput {
+  success: true
+  data: DraftComponent[]
+}
+
+function isExtractionOutput(value: unknown): value is ExtractionOutput {
+  if (typeof value !== 'object' || value === null) return false
+  if (!('success' in value) || value.success !== true) return false
+  if (!('data' in value) || !Array.isArray(value.data)) return false
+  return true
+}
+
+function parseExtractionOutput(consoleOutput: string[]): ExtractionOutput {
+  const firstLine = consoleOutput[0]
+  if (firstLine === undefined) {
+    throw new TestAssertionError('Expected console output but got empty array')
+  }
+  const parsed: unknown = JSON.parse(firstLine)
+  if (!isExtractionOutput(parsed)) {
+    throw new TestAssertionError('Invalid extraction output')
+  }
+  return parsed
+}
+
+const validConfigYaml = `
+modules:
+  - name: orders
+    path: "**/src/**/*.ts"
+    api: { notUsed: true }
+    useCase:
+      find: classes
+      where:
+        hasJSDoc:
+          tag: useCase
+    domainOp: { notUsed: true }
+    event: { notUsed: true }
+    eventHandler: { notUsed: true }
+    ui: { notUsed: true }
+`
+
+const validSourceCode = `
+/** @useCase */
+export class PlaceOrder {
+  execute() {}
+}
+`
+
+async function createValidExtractFixture(testDir: string): Promise<string> {
+  const srcDir = join(testDir, 'src')
+  await mkdir(srcDir, { recursive: true })
+  await writeFile(join(srcDir, 'order-service.ts'), validSourceCode)
+  const configPath = join(testDir, 'extract.yaml')
+  await writeFile(configPath, validConfigYaml)
+  return configPath
+}
+
+function resolveGitBinary(): string {
+  return execFileSync('/usr/bin/which', ['git'], { encoding: 'utf-8' }).trim()
+}
+
+const GIT_BINARY = resolveGitBinary()
+
+function gitExec(cwd: string, args: readonly string[]): string {
+  return execFileSync(GIT_BINARY, args, {
+    cwd,
+    encoding: 'utf-8',
+  }).trim()
+}
+
+function initGitRepo(cwd: string): void {
+  gitExec(cwd, ['init'])
+  gitExec(cwd, ['config', 'user.email', 'test@test.com'])
+  gitExec(cwd, ['config', 'user.name', 'Test'])
+}
+
+async function createGitRepoWithFeatureBranch(testDir: string): Promise<string> {
+  const realDir = realpathSync(testDir)
+  const srcDir = join(realDir, 'src')
+  await mkdir(srcDir, { recursive: true })
+  const configPath = join(realDir, 'extract.yaml')
+  await writeFile(configPath, validConfigYaml)
+  await writeFile(join(srcDir, 'placeholder.ts'), 'export const x = 1')
+
+  initGitRepo(realDir)
+  gitExec(realDir, ['add', '.'])
+  gitExec(realDir, ['commit', '-m', 'initial'])
+  gitExec(realDir, ['checkout', '-b', 'feature'])
+
+  await writeFile(join(srcDir, 'order-service.ts'), validSourceCode)
+  gitExec(realDir, ['add', '.'])
+  gitExec(realDir, ['commit', '-m', 'add order service'])
+
+  return configPath
+}
+
+describe('riviere extract PR extraction', () => {
+  describe('flag mutual exclusivity', () => {
+    const ctx: TestContext = createTestContext()
+    setupCommandTest(ctx)
+
+    it.each([
+      {
+        flags: ['--pr', '--files', 'some-file.ts'],
+        expectedA: '--pr',
+        expectedB: '--files',
+      },
+      {
+        flags: ['--pr', '--enrich', 'draft.json'],
+        expectedA: '--pr',
+        expectedB: '--enrich',
+      },
+      {
+        flags: ['--files', 'file.ts', '--enrich', 'draft.json'],
+        expectedA: '--files',
+        expectedB: '--enrich',
+      },
+    ])('rejects $expectedA and $expectedB together', async ({
+      flags, expectedA, expectedB 
+    }) => {
+      const configPath = await createValidExtractFixture(ctx.testDir)
+
+      await expect(
+        createProgram().parseAsync([
+          'node',
+          'riviere',
+          'extract',
+          '--config',
+          configPath,
+          ...flags,
+        ]),
+      ).rejects.toMatchObject({ exitCode: 2 })
+
+      const output = parseErrorOutput(ctx.consoleOutput)
+      expect(output.error.message).toContain(expectedA)
+      expect(output.error.message).toContain(expectedB)
+    })
+
+    it('rejects --base without --pr', async () => {
+      const configPath = await createValidExtractFixture(ctx.testDir)
+
+      await expect(
+        createProgram().parseAsync([
+          'node',
+          'riviere',
+          'extract',
+          '--config',
+          configPath,
+          '--base',
+          'develop',
+        ]),
+      ).rejects.toMatchObject({ exitCode: 2 })
+
+      const output = parseErrorOutput(ctx.consoleOutput)
+      expect(output.error.message).toContain('--base')
+      expect(output.error.message).toContain('--pr')
+    })
+  })
+
+  describe('format flag validation', () => {
+    const ctx: TestContext = createTestContext()
+    setupCommandTest(ctx)
+
+    it('rejects --format markdown without --pr or --files', async () => {
+      const configPath = await createValidExtractFixture(ctx.testDir)
+
+      await expect(
+        createProgram().parseAsync([
+          'node',
+          'riviere',
+          'extract',
+          '--config',
+          configPath,
+          '--format',
+          'markdown',
+        ]),
+      ).rejects.toMatchObject({ exitCode: 2 })
+
+      const output = parseErrorOutput(ctx.consoleOutput)
+      expect(output.error.message).toContain('--format markdown')
+      expect(output.error.message).toContain('--pr')
+    })
+
+    it('rejects invalid format value', async () => {
+      const configPath = await createValidExtractFixture(ctx.testDir)
+
+      await expect(
+        createProgram().parseAsync([
+          'node',
+          'riviere',
+          'extract',
+          '--config',
+          configPath,
+          '--format',
+          'csv',
+        ]),
+      ).rejects.toMatchObject({ exitCode: 2 })
+
+      const output = parseErrorOutput(ctx.consoleOutput)
+      expect(output.error.message).toContain('csv')
+      expect(output.error.message).toContain('json')
+      expect(output.error.message).toContain('markdown')
+    })
+  })
+
+  describe('--files flag', () => {
+    const ctx: TestContext = createTestContext()
+    setupCommandTest(ctx)
+
+    it('rejects when specified files do not exist', async () => {
+      const configPath = await createValidExtractFixture(ctx.testDir)
+
+      await expect(
+        createProgram().parseAsync([
+          'node',
+          'riviere',
+          'extract',
+          '--config',
+          configPath,
+          '--files',
+          'nonexistent.ts',
+        ]),
+      ).rejects.toMatchObject({ exitCode: 2 })
+
+      const output = parseErrorOutput(ctx.consoleOutput)
+      expect(output.error.message).toContain('nonexistent.ts')
+    })
+
+    it('extracts components from specified files only', async () => {
+      const configPath = await createValidExtractFixture(ctx.testDir)
+      const sourceFile = join(ctx.testDir, 'src', 'order-service.ts')
+
+      await createProgram().parseAsync([
+        'node',
+        'riviere',
+        'extract',
+        '--config',
+        configPath,
+        '--files',
+        sourceFile,
+      ])
+
+      const output = parseExtractionOutput(ctx.consoleOutput)
+      expect(output.success).toBe(true)
+      expect(output.data).toHaveLength(1)
+      expect(output.data[0]).toMatchObject({
+        type: 'useCase',
+        name: 'PlaceOrder',
+        domain: 'orders',
+      })
+    })
+
+    it('returns empty when specified file is not in config glob', async () => {
+      const configPath = await createValidExtractFixture(ctx.testDir)
+      const outsideFile = join(ctx.testDir, 'outside.ts')
+      await writeFile(outsideFile, 'export const x = 1')
+
+      await createProgram().parseAsync([
+        'node',
+        'riviere',
+        'extract',
+        '--config',
+        configPath,
+        '--files',
+        outsideFile,
+        '--components-only',
+      ])
+
+      const output = parseExtractionOutput(ctx.consoleOutput)
+      expect(output.data).toHaveLength(0)
+    })
+
+    it('outputs markdown when --format markdown used with --files', async () => {
+      const configPath = await createValidExtractFixture(ctx.testDir)
+      const sourceFile = join(ctx.testDir, 'src', 'order-service.ts')
+
+      await createProgram().parseAsync([
+        'node',
+        'riviere',
+        'extract',
+        '--config',
+        configPath,
+        '--files',
+        sourceFile,
+        '--format',
+        'markdown',
+      ])
+
+      const markdownOutput = ctx.consoleOutput.join('\n')
+      expect(markdownOutput).toContain('## Architecture Changes')
+      expect(markdownOutput).toContain('Added Components (1)')
+      expect(markdownOutput).toContain('`PlaceOrder`')
+    })
+  })
+
+  describe('--pr flag', () => {
+    const ctx: TestContext = createTestContext()
+    setupCommandTest(ctx)
+
+    it('handles git error when not in a git repo', async () => {
+      const configPath = await createValidExtractFixture(ctx.testDir)
+
+      await expect(
+        createProgram().parseAsync(['node', 'riviere', 'extract', '--config', configPath, '--pr']),
+      ).rejects.toMatchObject({ exitCode: 3 })
+
+      const output = parseErrorOutput(ctx.consoleOutput)
+      expect(output.error.code).toBe(CliErrorCode.GitNotARepository)
+    })
+
+    it('extracts components from changed files on feature branch', async () => {
+      const configPath = await createGitRepoWithFeatureBranch(ctx.testDir)
+
+      await createProgram().parseAsync([
+        'node',
+        'riviere',
+        'extract',
+        '--config',
+        configPath,
+        '--pr',
+        '--base',
+        'main',
+        '--components-only',
+      ])
+
+      const output = parseExtractionOutput(ctx.consoleOutput)
+      expect(output.success).toBe(true)
+      expect(output.data).toHaveLength(1)
+      expect(output.data[0]).toMatchObject({
+        type: 'useCase',
+        name: 'PlaceOrder',
+        domain: 'orders',
+      })
+    })
+
+    it('warns about unstaged TypeScript files', async () => {
+      const configPath = await createGitRepoWithFeatureBranch(ctx.testDir)
+      const realDir = realpathSync(ctx.testDir)
+      await writeFile(join(realDir, 'src', 'unstaged.ts'), 'export const u = 1')
+
+      const stderrOutput: string[] = []
+      const originalError = console.error
+      console.error = (msg: string) => stderrOutput.push(msg)
+
+      await createProgram().parseAsync([
+        'node',
+        'riviere',
+        'extract',
+        '--config',
+        configPath,
+        '--pr',
+        '--base',
+        'main',
+        '--components-only',
+      ])
+
+      console.error = originalError
+
+      expect(stderrOutput.some((msg) => msg.includes('unstaged'))).toBe(true)
+    })
+
+    it('outputs markdown format for --pr with --format markdown', async () => {
+      const configPath = await createGitRepoWithFeatureBranch(ctx.testDir)
+
+      await createProgram().parseAsync([
+        'node',
+        'riviere',
+        'extract',
+        '--config',
+        configPath,
+        '--pr',
+        '--base',
+        'main',
+        '--format',
+        'markdown',
+      ])
+
+      const markdownOutput = ctx.consoleOutput.join('\n')
+      expect(markdownOutput).toContain('## Architecture Changes')
+      expect(markdownOutput).toContain('`PlaceOrder`')
+    })
+  })
+})

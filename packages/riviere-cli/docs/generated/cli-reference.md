@@ -693,6 +693,9 @@ riviere extract [options]
 | `--config <path>` | Path to extraction config file |
 | `-o, --output <file>` | Write output to file instead of stdout |
 | `--enrich <file>` | Read draft components from file and enrich with extraction rules |
+| `--base <branch>` | Override base branch for --pr (default: auto-detect) |
+| `--files <paths...>` | Extract from specific files |
+| `--format <type>` | Output format: json (default) or markdown |
 
 **Optional:**
 | Flag | Description |
@@ -700,6 +703,7 @@ riviere extract [options]
 | `--dry-run` | Show component counts per domain without full output |
 | `--components-only` | Output only component identity (no metadata enrichment) |
 | `--allow-incomplete` | Output components even when some extraction fields fail |
+| `--pr` | Extract from files changed in current branch vs base branch |
 
 ---
 
