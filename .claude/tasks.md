@@ -1,7 +1,0 @@
-- [ ] Task 1: Add git error codes to error-codes.ts
-- [ ] Task 2: Create git-changed-files module with TDD
-- [ ] Task 3: Create format-pr-markdown module with TDD
-- [ ] Task 4: Add --files flag to extract command with TDD
-- [ ] Task 5: Add --pr and --base flags to extract command with TDD
-- [ ] Task 6: Add --format flag to extract command with TDD
-- [ ] Task 7: Verify full build, lint, and test pass
