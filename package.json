@@ -11,7 +11,8 @@
     "typecheck": "nx run-many -t typecheck",
     "knip": "knip",
     "lint:md": "markdownlint-cli2 \"**/*.md\" \"!**/node_modules/**\"",
-    "verify": "pnpm lint:md && nx run-many -t lint,typecheck,test,check-generated-docs",
+    "depcruise": "depcruise --config .dependency-cruiser.mjs packages/*/src tools/dev-workflow && depcruise --config .dependency-cruiser.frontend.mjs apps/eclair/src && depcruise --config .dependency-cruiser.specs.mjs packages/*/src tools/dev-workflow apps/eclair/src",
+    "verify": "pnpm lint:md && pnpm depcruise && nx run-many -t lint,typecheck,test,check-generated-docs",
     "prepare": "husky"
   },
   "lint-staged": {
@@ -34,9 +35,10 @@
     "@swc-node/register": "~1.11.0",
     "@swc/core": "~1.15.0",
     "@types/node": "^24.10.1",
-    "@typescript-eslint/rule-tester": "8.52.0",
+    "@typescript-eslint/rule-tester": "8.53.0",
     "@vitest/coverage-v8": "^4.0.16",
     "@vitest/eslint-plugin": "^1.0.1",
+    "dependency-cruiser": "^17.3.7",
     "esbuild": "^0.27.0",
     "eslint": "^9.39.0",
     "eslint-plugin-import": "^2.32.0",
@@ -63,7 +65,8 @@
     "vite": "^7.0.0",
     "vitepress": "^1.5.0",
     "vitest": "^4.0.8",
-    "vue": "^3.5.0"
+    "vue": "^3.5.0",
+    "zod": "^4.3.5"
   },
   "nx": {
     "includedScripts": [],

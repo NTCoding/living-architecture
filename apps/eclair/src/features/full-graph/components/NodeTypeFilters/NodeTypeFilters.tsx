@@ -1,7 +1,7 @@
 import {
   useState, useCallback 
 } from 'react'
-import type { NodeType } from '@/types/riviere'
+import type { NodeType } from '@/platform/domain/eclair-types'
 
 interface NodeTypeInfo {
   readonly type: NodeType

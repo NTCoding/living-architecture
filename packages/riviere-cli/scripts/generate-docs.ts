@@ -13,7 +13,7 @@ import {
   writeFileSync, mkdirSync 
 } from 'node:fs'
 import { join } from 'node:path'
-import { createProgram } from '../src/cli'
+import { createProgram } from '../src/shell/cli'
 
 interface OptionInfo {
   flags: string

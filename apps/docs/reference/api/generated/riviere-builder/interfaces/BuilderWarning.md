@@ -4,7 +4,7 @@ pageClass: reference
 
 # Interface: BuilderWarning
 
-Defined in: [packages/riviere-builder/src/types.ts:171](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/types.ts#L171)
+Defined in: [packages/riviere-builder/src/domain/inspection/inspection-types.ts:19](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/inspection/inspection-types.ts#L19)
 
 ## Properties
 
@@ -12,7 +12,7 @@ Defined in: [packages/riviere-builder/src/types.ts:171](https://github.com/NTCod
 
 > **code**: `WarningCode`
 
-Defined in: [packages/riviere-builder/src/types.ts:172](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/types.ts#L172)
+Defined in: [packages/riviere-builder/src/domain/inspection/inspection-types.ts:20](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/inspection/inspection-types.ts#L20)
 
 ***
 
@@ -20,7 +20,7 @@ Defined in: [packages/riviere-builder/src/types.ts:172](https://github.com/NTCod
 
 > `optional` **componentId**: `string`
 
-Defined in: [packages/riviere-builder/src/types.ts:174](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/types.ts#L174)
+Defined in: [packages/riviere-builder/src/domain/inspection/inspection-types.ts:22](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/inspection/inspection-types.ts#L22)
 
 ***
 
@@ -28,7 +28,7 @@ Defined in: [packages/riviere-builder/src/types.ts:174](https://github.com/NTCod
 
 > `optional` **domainName**: `string`
 
-Defined in: [packages/riviere-builder/src/types.ts:175](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/types.ts#L175)
+Defined in: [packages/riviere-builder/src/domain/inspection/inspection-types.ts:23](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/inspection/inspection-types.ts#L23)
 
 ***
 
@@ -36,4 +36,4 @@ Defined in: [packages/riviere-builder/src/types.ts:175](https://github.com/NTCod
 
 > **message**: `string`
 
-Defined in: [packages/riviere-builder/src/types.ts:173](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/types.ts#L173)
+Defined in: [packages/riviere-builder/src/domain/inspection/inspection-types.ts:21](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/inspection/inspection-types.ts#L21)

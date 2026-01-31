@@ -7,12 +7,17 @@ living-architecture/
 ├── apps/                    # Deployable applications
 │   └── <app-name>/
 │       ├── src/
-│       │   ├── <feature>/
-│       │   │   ├── domain/       # Domain model only
-│       │   │   ├── application/  # Use cases
-│       │   │   ├── infra/        # Database, external services
-│       │   │   └── api/          # Controllers, endpoints
-│       │   └── main.ts           # Application entry point
+│       │   ├── features/
+│       │   │   └── <feature>/
+│       │   │       ├── entrypoint/   # API/CLI interface
+│       │   │       ├── commands/     # Write operations
+│       │   │       ├── queries/      # Read operations
+│       │   │       └── domain/       # Domain model (if needed)
+│       │   ├── platform/
+│       │   │   ├── domain/           # Shared domain logic
+│       │   │   └── infra/            # External clients, persistence
+│       │   ├── shell/                # Composition root
+│       │   └── main.ts               # Application entry point
 │       ├── package.json
 │       ├── tsconfig.json
 │       ├── tsconfig.lib.json
@@ -34,17 +39,21 @@ living-architecture/
 └── pnpm-workspace.yaml      # Workspace definition
 ```
 
+## Enforcement
+
+Structural and dependency rules are enforced by [dependency-cruiser](https://github.com/sverweij/dependency-cruiser) via `.dependency-cruiser.mjs`. Run `pnpm depcruise` to check violations. This runs automatically as part of `pnpm verify`.
+
 ## Principles
 
 **Apps vs Packages.** Apps are deployable units (APIs, CLIs, workers). Packages are shared code published to npm and consumed by apps or other packages.
 
-**Feature-first, layer-second.** Within each app, group by business capability, then by architectural layer.
+**CS-001: Feature-first, layer-second.** Within each app, group by business capability, then by architectural layer.
 
-**Dependencies point inward.** Domain depends on nothing. Application depends on domain. Infra depends on application and domain.
+**CS-002: Dependencies point inward.** Domain depends on nothing. Application depends on domain. Infra depends on application and domain.
 
-**No generic folders.** Every folder has domain meaning. Forbidden: `utils/`, `helpers/`, `common/`, `shared/`, `core/`, `lib/`.
+**CS-003: No generic folders.** Every folder has domain meaning. Forbidden: `utils/`, `helpers/`, `common/`, `shared/`, `core/`, `lib/`.
 
-**Organize by usage, not by type.** Files that are used together should live together. Avoid grouping by category (types/, models/, assertions/, validators/). Instead, co-locate related code within features or individual units.
+**CS-004: Organize by usage, not by type.** Files that are used together should live together. Avoid grouping by category (types/, models/, assertions/, validators/). Instead, co-locate related code within features or individual units.
 
 ❌ **Avoid:**
 ```text
@@ -75,18 +84,25 @@ feature/
 
 **Exception:** Shared test fixtures used across multiple test files may be grouped (e.g., `test-fixtures.ts`).
 
-**Cross-project imports use package names.** Import from `@living-architecture/[pkg-name]`, not relative paths like `../../packages/[pkg-name]`.
+**CS-005: Cross-project imports use package names.** Import from `@living-architecture/[pkg-name]`, not relative paths like `../../packages/[pkg-name]`.
 
-**Add workspace dependencies explicitly.** When importing from another project, add `"@living-architecture/[pkg-name]": "workspace:*"` to package.json.
+**CS-006: Add workspace dependencies explicitly.** When importing from another project, add `"@living-architecture/[pkg-name]": "workspace:*"` to package.json.
 
 ## Layer Responsibilities
 
 | Layer | Contains | Depends On |
 |-------|----------|------------|
+| entrypoint | API controllers, CLI commands, request/response mapping | commands, queries |
+| commands | Write operation handlers (mutate state) | domain, infra |
+| queries | Read operation handlers (return data) | domain, infra (read-only) |
 | domain | Entities, value objects, domain services, domain events | Nothing |
-| application | Use cases, application services, DTOs | domain |
-| infra | Repositories, external clients, framework adapters | domain, application |
-| api | Controllers, routes, request/response mapping | application |
+| infra | Repositories, external clients, framework adapters | domain |
+
+**Commands vs Queries:**
+- **Commands** orchestrate write operations: load → mutate via domain → persist
+- **Queries** orchestrate read operations: load → query → return
+- Entrypoint calls commands or queries, never domain or infra directly
+- Commands and queries use dependency injection (constructor injection, single `execute` method)
 
 ## Package Guidelines
 
@@ -104,7 +120,7 @@ feature/
 - Use domain language, not technical jargon
 - `@living-architecture/order-processing` not `@living-architecture/order-utils`
 
-## Per-Project Configuration
+## CS-007: Per-Project Configuration
 
 Each app/package needs a 3-file tsconfig structure:
 
@@ -145,7 +161,7 @@ The `references` array may include additional project references for test depend
 
 The `references` arrays are automatically maintained by `pnpm nx sync`.
 
-## Adding Projects
+## CS-008: Adding Projects
 
 Use NX generators - don't create project folders manually.
 

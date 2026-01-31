@@ -5,7 +5,7 @@ import {
   renderHook, act 
 } from '@testing-library/react'
 import { useDomainMapInteractions } from './useDomainMapInteractions'
-import type { ConnectionDetail } from '../extractDomainMap'
+import type { ConnectionDetail } from '../queries/extract-domain-map'
 
 describe('useDomainMapInteractions', () => {
   describe('tooltip', () => {

@@ -1,4 +1,4 @@
-import type { AggregatedConnection } from '../../extractDomainDetails'
+import type { AggregatedConnection } from '../../queries/extract-domain-details'
 
 interface ConnectionItemProps {
   readonly connection: AggregatedConnection

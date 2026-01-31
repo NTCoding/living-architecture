@@ -1,7 +1,8 @@
 {
   "$schema": "https://knip.dev/reference/knip-json",
   "ignoreDependencies": [
-    "tailwindcss"
+    "tailwindcss",
+    "zod"
   ],
   "ignoreBinaries": [
     "playwright"
@@ -27,8 +28,8 @@
     },
     "packages/riviere-cli": {
       "entry": [
-        "src/bin.ts",
-        "src/index.ts"
+        "src/shell/bin.ts",
+        "src/shell/index.ts"
       ],
       "project": [
         "src/**/*.ts"
@@ -37,6 +38,22 @@
     "packages/*": {
       "project": [
         "src/**/*.ts"
+      ]
+    },
+    "tools/dev-workflow": {
+      "entry": [
+        "features/complete-task/entrypoint/cli.ts",
+        "features/get-pr-feedback/entrypoint/cli.ts",
+        "features/respond-to-feedback/entrypoint/cli.ts",
+        "features/claude-hooks/entrypoint/hook-router.ts",
+        "features/claude-hooks/domain/claude-hooks.spec.ts",
+        "shell/index.ts"
+      ],
+      "project": [
+        "**/*.ts"
+      ],
+      "ignoreDependencies": [
+        "vitest"
       ]
     }
   },

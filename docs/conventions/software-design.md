@@ -4,19 +4,19 @@ Professional software design patterns and principles for writing maintainable, w
 
 ## Critical Rules
 
-🚨 **Fail-fast over silent fallbacks.** Never use fallback chains (`value ?? backup ?? 'unknown'`). If data should exist, validate and throw a clear error.
+🚨 **SD-001: Fail-fast over silent fallbacks.** Never use fallback chains (`value ?? backup ?? 'unknown'`). If data should exist, validate and throw a clear error.
 
-🚨 **Strive for maximum type-safety. No `any`. No `as`.** Type escape hatches defeat TypeScript's purpose. There's always a type-safe solution (except `as const` which is allowed)
+🚨 **SD-002: Strive for maximum type-safety. No `any`. No `as`.** Type escape hatches defeat TypeScript's purpose. There's always a type-safe solution (except `as const` which is allowed)
 
-🚨 **Make illegal states unrepresentable.** Use discriminated unions, not optional fields. If a state combination shouldn't exist, make the type system forbid it.
+🚨 **SD-003: Make illegal states unrepresentable.** Use discriminated unions, not optional fields. If a state combination shouldn't exist, make the type system forbid it.
 
-🚨 **Inject dependencies, don't instantiate.** No `new SomeService()` inside methods. Pass dependencies through constructors.
+🚨 **SD-004: Inject dependencies, don't instantiate.** No `new SomeService()` inside methods. Pass dependencies through constructors.
 
-🚨 **Intention-revealing names only.** Never use `data`, `utils`, `helpers`, `handler`, `processor`. Name things for what they do in the domain.
+🚨 **SD-005: Intention-revealing names only.** Never use `data`, `utils`, `helpers`, `handler`, `processor`. Name things for what they do in the domain.
 
-🚨 **No code comments.** Comments are a failure to express intent in code. If you need a comment to explain what code does, the code isn't clear enough—refactor it.
+🚨 **SD-006: No code comments.** Comments are a failure to express intent in code. If you need a comment to explain what code does, the code isn't clear enough—refactor it.
 
-🚨 **Use Zod for runtime validation.** In TypeScript, use Zod schemas for parsing external data, API responses, and user input. Type inference from schemas keeps types and validation in sync.
+🚨 **SD-007: Use Zod for runtime validation.** In TypeScript, use Zod schemas for parsing external data, API responses, and user input. Type inference from schemas keeps types and validation in sync.
 
 ## When This Applies
 
@@ -35,7 +35,7 @@ Well-designed, maintainable code is far more important than getting things done 
 - **Loose coupling over tight integration**
 - **Intention-revealing over generic**
 
-## Code Without Comments
+## SD-006: Code Without Comments
 
 Never write comments - write expressive code instead.
 
@@ -45,32 +45,32 @@ Apply object calisthenics principles:
 
 ### The Nine Rules
 
-1. **One level of indentation per method**
+1. **SD-008: One level of indentation per method**
     - In practice, I will tolerate upto 3
 
-2. **Don't use the ELSE keyword**
+2. **SD-009: Don't use the ELSE keyword**
     - Use early returns instead
 
-3. **Wrap all primitives and strings**
+3. **SD-010: Wrap all primitives and strings**
     - Create value objects
     - Encapsulate validation logic
     - Make domain concepts explicit
 
-4. **First class collections**
+4. **SD-011: First class collections**
     - Classes with collections should contain nothing else
 
-5. **One dot per line**
+5. **SD-012: One dot per line**
 
-6. **Don't abbreviate**
+6. **SD-013: Don't abbreviate**
     - Use full, descriptive names
 
-7. **Keep all entities small**
+7. **SD-014: Keep all entities small**
     - Small classes (< 150 lines)
     - Small methods (< 10 lines)
     - Small packages/modules
     - Easier to understand and maintain
 
-8. **Avoid getters/setters/properties on entities**
+8. **SD-015: Avoid getters/setters/properties on entities**
     - Tell, don't ask
     - Objects should do work, not expose data
 
@@ -80,7 +80,7 @@ Apply object calisthenics principles:
 
 - **During code review:**
 
-## Feature Envy Detection
+## SD-016: Feature Envy Detection
 
 Method uses another class's data more than its own? Move it there.
 
@@ -104,7 +104,7 @@ class InvoiceGenerator {
 
 **Detection:** Count external vs own references. More external? Feature envy.
 
-## Dependency Inversion Principle
+## SD-017: Dependency Inversion Principle
 
 Don't instantiate dependencies inside methods. Inject them.
 
@@ -129,7 +129,7 @@ class OrderProcessor {
 
 **Scan for:** `new X()` inside methods, static method calls. Extract to constructor.
 
-## Fail-Fast Error Handling
+## SD-001: Fail-Fast Error Handling
 
 **NEVER use fallback chains that hide missing data:**
 ```typescript
@@ -174,7 +174,7 @@ const id = response.id ?? generatedId ?? 'unknown'
 
 **The test:** Would you want to know if the value was missing? If yes, fail fast. If the default is genuinely correct, `??` is fine.
 
-## Naming Conventions
+## SD-005: Naming Conventions
 
 **Principle:** Use business domain terminology and intention-revealing names. Never use generic programmer jargon.
 
@@ -242,7 +242,7 @@ When you encounter generic names:
 3. **Extract domain concept**: Is there a domain term for this?
 4. **Rename comprehensively**: Update all references
 
-## Type-Driven Design
+## SD-018: Type-Driven Design
 
 **Principle:** Follow Scott Wlaschin's type-driven approach to domain modeling. Express domain concepts using the type system.
 
@@ -293,12 +293,12 @@ function calculateDiscount(price: PositiveNumber, rate: number): Money {
 }
 ```
 
-## Parse, Don't Validate
+## SD-019: Use Zod, don't use type guards
 
-**Principle:** Use Zod schemas at system boundaries to parse external data once. Don't scatter `isX(unknown): x is T` type guards throughout the codebase.
+**Principle:** Use Zod schemas to construct types. Do not use type guards. A Zod schema belongs to the object, the type guard is scattered anywhere decoupling the object's type and validation of the type.
 
 ```typescript
-// ✅ PARSE AT BOUNDARY - Zod schema defines both type and validation
+// ✅ Define a zod schema and construct valid objects with it
 const DetectionRuleSchema = z.object({
   find: z.enum(['class', 'function', 'decorator']),
   where: z.object({ nameMatches: z.string() })
@@ -310,7 +310,7 @@ function loadConfig(raw: unknown): Config {
   return ConfigSchema.parse(raw)  // Validated, typed, done
 }
 
-// ❌ SCATTERED VALIDATION - type guard validates unknown deep in code
+// ❌ SCATTERED VALIDATION - don't use type guards. The logic for validating an object's type should be owned by the type.
 function isDetectionRule(rule: unknown): rule is DetectionRule {
   return typeof rule === 'object' && rule !== null && 'find' in rule && 'where' in rule
 }
@@ -318,7 +318,7 @@ function isDetectionRule(rule: unknown): rule is DetectionRule {
 
 **The test:** Is the input `unknown` or external data? Parse with Zod at the boundary, not with scattered type guards.
 
-## Prefer Immutability
+## SD-020: Prefer Immutability
 
 **Principle:** Default to immutable data. Mutation is a source of bugs—unexpected changes, race conditions, and difficult debugging.
 
@@ -362,7 +362,7 @@ const processedOrder = processOrder(myOrder)
 - Prefer `map`/`filter`/`reduce` over `forEach` with mutation
 - If you must mutate, make it explicit and contained
 
-## YAGNI - You Aren't Gonna Need It
+## SD-021: YAGNI - You Aren't Gonna Need It
 
 **Principle:** Don't build features until they're actually needed. Speculative code is waste—it costs time to write, time to maintain, and is often wrong when requirements become clear.
 

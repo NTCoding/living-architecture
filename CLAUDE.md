@@ -15,10 +15,10 @@ Current packages:
 - `living-architecture/riviere-query` - Browser-safe query library (no Node.js dependencies)
 - `living-architecture/riviere-builder` - Node.js builder (depends on riviere-query)
 - `living-architecture/riviere-cli` - CLI tool with binary "riviere" (depends on riviere-builder)
-- `@living-architecture/riviere-schema` - Riviere schema definitions
-- `@living-architecture/riviere-extract-config` - JSON Schema and validation for extraction config DSL
-- `@living-architecture/riviere-extract-conventions` - Decorators for marking architectural components (depends on riviere-extract-config)
-- `@living-architecture/riviere-extract-ts` - TypeScript component extractor using ts-morph for AST parsing (depends on riviere-extract-config)
+- `living-architecture/riviere-schema` - Riviere schema definitions
+- `living-architecture/riviere-extract-config` - JSON Schema and validation for extraction config DSL
+- `living-architecture/riviere-extract-conventions` - Decorators for marking architectural components (depends on riviere-extract-config)
+- `living-architecture/riviere-extract-ts` - TypeScript component extractor using ts-morph for AST parsing (depends on riviere-extract-config)
 
 Apps:
 - `living-architecture/eclair` - Web app for viewing your software architecture via Riviere a schema
@@ -96,7 +96,7 @@ After generating a new project:
 
 ## Task Workflow
 
-*CRUCIAL*: Whenever working on any task, follow @docs/workflow/task-workflow.md from start to finish. Do not make any changes or commit any code without following these steps exactly.
+*CRUCIAL*: Whenever working on any task, follow `docs/workflow/task-workflow.md` from start to finish. Do not make any changes or commit any code without following these steps exactly.
 
 ## Testing
 
@@ -110,11 +110,7 @@ When writing, editing, refactoring, or reviewing code:
 
 - always follow `docs/conventions/software-design.md`
 - look for standard implementation patterns defined in `docs/conventions/standard-patterns.md`
-- avoid `@docs/conventions/anti-patterns.md`
-
-Code review runs via `/code-review` and `/complete-task` commands (see `.claude/automatic-code-review/rules.md` for rules)
-
-Code quality is of highest importance. Rushing or taking shortcuts is never acceptable. We have strong lint rules on this project so always read `eslint.config.mjs`.
+- avoid `docs/conventions/anti-patterns.md`
 
 ## Brand Identity, theme, design, UI, UX
 

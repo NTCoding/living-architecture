@@ -52,6 +52,7 @@ pageClass: reference
 
 ## Functions
 
+- [compareByCodePoint](functions/compareByCodePoint.md)
 - [parseComponentId](functions/parseComponentId.md)
 - [parseDomainName](functions/parseDomainName.md)
 - [parseEntityName](functions/parseEntityName.md)

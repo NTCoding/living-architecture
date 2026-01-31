@@ -17,22 +17,20 @@ const externalDependencies = Object.keys(pkg.dependencies || {})
 
 // CLI binary entry point
 await esbuild.build({
-  entryPoints: ['src/bin.ts'],
+  entryPoints: ['src/shell/bin.ts'],
   bundle: true,
   platform: 'node',
   target: 'node18',
   format: 'esm',
   outfile: 'dist/bin.js',
   banner: {js: '#!/usr/bin/env node',},
-  // Bundle workspace packages (@living-architecture/*) into CLI
-  // Externalize npm dependencies because many use CommonJS patterns
-  // that fail when bundled into ESM (e.g., yaml, ts-morph)
   external: externalDependencies,
+  define: { INJECTED_VERSION: JSON.stringify(pkg.version) },
 })
 
 // Library entry point (no side effects)
 await esbuild.build({
-  entryPoints: ['src/index.ts'],
+  entryPoints: ['src/shell/index.ts'],
   bundle: true,
   platform: 'node',
   target: 'node18',

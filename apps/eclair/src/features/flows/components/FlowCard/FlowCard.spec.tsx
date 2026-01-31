@@ -9,9 +9,9 @@ import userEvent from '@testing-library/user-event'
 import { FlowCard } from './FlowCard'
 import {
   parseNode, parseEdge, parseDomainMetadata 
-} from '@/lib/riviereTestFixtures'
-import type { Flow } from '../../extractFlows'
-import type { RiviereGraph } from '@/types/riviere'
+} from '@/platform/infra/__fixtures__/riviere-test-fixtures'
+import type { Flow } from '../../queries/extract-flows'
+import type { RiviereGraph } from '@living-architecture/riviere-schema'
 const testSourceLocation = {
   repository: 'test-repo',
   filePath: 'src/test.ts',

@@ -1,10 +1,10 @@
 import {
   useState, useCallback 
 } from 'react'
-import type { ConnectionDetail } from '../extractDomainMap'
+import type { ConnectionDetail } from '../queries/extract-domain-map'
 import {
   pluralizeComponent, pluralizeConnection 
-} from '../pluralize'
+} from '@/platform/domain/text/pluralize'
 
 interface TooltipState {
   visible: boolean

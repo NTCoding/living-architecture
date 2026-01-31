@@ -6,19 +6,19 @@ import {
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { FlowTrace } from './FlowTrace'
-import type { FlowStep } from '../../extractFlows'
-import type { RiviereGraph } from '@/types/riviere'
+import type { FlowStep } from '../../queries/extract-flows'
+import type { RiviereGraph } from '@living-architecture/riviere-schema'
 import {
   parseNode, parseEdge, parseDomainMetadata 
-} from '@/lib/riviereTestFixtures'
+} from '@/platform/infra/__fixtures__/riviere-test-fixtures'
 const testSourceLocation = {
   repository: 'test-repo',
   filePath: 'src/test.ts',
 }
 
-vi.mock('@/contexts/ThemeContext', () => ({ useTheme: () => ({ theme: 'stream' }) }))
+vi.mock('@/platform/infra/theme/ThemeContext', () => ({ useTheme: () => ({ theme: 'stream' }) }))
 
-vi.mock('@/features/full-graph/components/ForceGraph/ForceGraph', () => ({
+vi.mock('@/platform/infra/graph/ForceGraph/ForceGraph', () => ({
   ForceGraph: ({ graph }: { graph: { components: Array<{ name: string }> } }) => (
     <div data-testid="force-graph-mock">
       {graph.components.map((node) => (

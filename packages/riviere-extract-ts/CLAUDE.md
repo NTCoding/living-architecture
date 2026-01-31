@@ -2,6 +2,8 @@
 
 TypeScript extractor for detecting architectural components from source code using ts-morph.
 
+Architecture defined in [ADR-005](../../docs/architecture/adr/ADR-005-riviere-extract-ts-architecture.md).
+
 ## Purpose
 
 Reads extraction configs and extracts component nodes from TypeScript source code using AST parsing. This is the deterministic, config-driven extractor that runs in seconds without AI or network calls.

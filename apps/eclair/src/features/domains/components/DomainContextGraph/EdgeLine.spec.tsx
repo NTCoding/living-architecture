@@ -3,7 +3,7 @@ import {
 } from 'vitest'
 import { render } from '@testing-library/react'
 import { EdgeLine } from './EdgeLine'
-import type { DomainPosition } from './DomainContextGraph'
+import type { DomainPosition } from './domain-position'
 
 describe('EdgeLine', () => {
   const from: DomainPosition = {

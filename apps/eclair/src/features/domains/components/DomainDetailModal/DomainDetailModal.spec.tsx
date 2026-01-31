@@ -7,13 +7,13 @@ import {
 import userEvent from '@testing-library/user-event'
 import { BrowserRouter } from 'react-router-dom'
 import { DomainDetailModal } from './DomainDetailModal'
-import type { DomainDetails } from '../../extractDomainDetails'
+import type { DomainDetails } from '../../queries/extract-domain-details'
 import {
   operationNameSchema,
   entryPointSchema,
   type OperationName,
   type EntryPoint,
-} from '@/types/riviere'
+} from '@/platform/domain/eclair-types'
 import { assertDefined } from '@/test-assertions'
 
 const parseOperation = (s: string): OperationName => operationNameSchema.parse(s)

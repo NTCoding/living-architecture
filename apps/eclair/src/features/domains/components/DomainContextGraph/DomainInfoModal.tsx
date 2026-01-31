@@ -1,5 +1,5 @@
 import { useCallback } from 'react'
-import type { AggregatedConnection } from '../../extractDomainDetails'
+import type { AggregatedConnection } from '../../queries/extract-domain-details'
 import { ConnectionItem } from './ConnectionItem'
 
 interface DomainInfoModalProps {

@@ -4,7 +4,7 @@ pageClass: reference
 
 # Interface: NearMatchOptions
 
-Defined in: [packages/riviere-builder/src/types.ts:148](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/types.ts#L148)
+Defined in: [packages/riviere-builder/src/domain/error-recovery/match-types.ts:21](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/error-recovery/match-types.ts#L21)
 
 ## Properties
 
@@ -12,7 +12,7 @@ Defined in: [packages/riviere-builder/src/types.ts:148](https://github.com/NTCod
 
 > `optional` **limit**: `number`
 
-Defined in: [packages/riviere-builder/src/types.ts:150](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/types.ts#L150)
+Defined in: [packages/riviere-builder/src/domain/error-recovery/match-types.ts:23](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/error-recovery/match-types.ts#L23)
 
 ***
 
@@ -20,4 +20,4 @@ Defined in: [packages/riviere-builder/src/types.ts:150](https://github.com/NTCod
 
 > `optional` **threshold**: `number`
 
-Defined in: [packages/riviere-builder/src/types.ts:149](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/types.ts#L149)
+Defined in: [packages/riviere-builder/src/domain/error-recovery/match-types.ts:22](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/error-recovery/match-types.ts#L22)
