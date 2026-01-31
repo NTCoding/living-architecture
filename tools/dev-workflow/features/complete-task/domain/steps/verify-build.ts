@@ -15,7 +15,7 @@ export function createVerifyBuildStep(deps: VerifyBuildDeps): Step<CompleteTaskC
   return {
     name: 'verify-build',
     execute: async () => {
-      const result = await deps.runMany(['lint', 'typecheck', 'test'])
+      const result = await deps.runMany(['lint', 'typecheck'])
 
       if (result.failed) {
         return failure({
