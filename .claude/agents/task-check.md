@@ -13,9 +13,14 @@ Verify that the implementation satisfies the task requirements. Be thorough - in
 
 1. Read the task details in "Task Details" section below
 2. Extract acceptance criteria from the task body
-3. Review ALL files listed in "Files to Review" below
-4. For each acceptance criterion, verify it is satisfied by the implementation
-5. Return your verdict and report as plain text (do NOT write any files yourself)
+3. Read PRD and architecture references from the task body:
+   - Find the **PRD file path** in the Context section (e.g., `docs/project/PRD/active/PRD-phase-12-connection-detection.md`)
+   - Read the PRD file, focusing on the **specific sections** referenced in Traceability and Implementation Guidelines (e.g., §9.1.2, M1-D1.1)
+   - Note any **firm constraints** from the architecture section — these are mandatory and must be verified
+4. Review ALL files listed in "Files to Review" below
+5. For each acceptance criterion, verify it is satisfied by the implementation
+6. Verify implementation complies with firm architectural constraints from the PRD
+7. Return your verdict and report as plain text (do NOT write any files yourself)
 
 ## Verification Process
 
@@ -24,6 +29,11 @@ For each acceptance criterion:
 2. Read those files and verify the implementation
 3. Check edge cases mentioned in the criterion
 4. Flag any gaps or partial implementations
+
+For PRD architectural compliance:
+1. Check firm constraints are followed (e.g., correct package placement, no forbidden dependencies)
+2. Check domain model decisions are implemented as specified (e.g., value object vs aggregate, required interfaces)
+3. Flag any deviation from firm constraints as **critical**
 
 ## Severity Levels
 
@@ -38,7 +48,9 @@ Your response must include:
 1. A criteria checklist with one entry per acceptance criterion from the task:
    - Use `- [x]` for met, `- [ ]` for unmet
 
-2. For each unmet criterion: severity, affected file:line, and what's missing.
+2. A PRD compliance section listing firm constraints checked and whether they were followed
+
+3. For each unmet criterion or violated constraint: severity, affected file:line, and what's missing.
 
 ## Output Format
 

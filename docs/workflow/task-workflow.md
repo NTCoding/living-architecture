@@ -114,6 +114,14 @@ Propose a task to the user and ask them to confirm. Once confirmed, start the ta
 
 **Start Task** — User has confirmed they want to begin a specific task. Run this FIRST—it provides the issue details needed for planning. Do not create a plan or fetch issue details separately before running this script. Creates a git worktree by default.
 
+**Read Task References** — After starting a task and receiving the issue details, read ALL documents referenced in the task body BEFORE creating a plan:
+- **Context section:** Read the PRD file at the path specified (e.g., `docs/project/PRD/active/PRD-phase-12-connection-detection.md`)
+- **Traceability section:** Read the specific PRD sections referenced (e.g., M1-D1.1, §9.1.2)
+- **Implementation Guidelines:** Read architecture decisions referenced (e.g., "see §9.1.2") and convention docs (e.g., `docs/conventions/software-design.md`)
+- **Dependencies:** Check referenced issues for context on what already exists
+
+Do not create a plan until you have read and understood these referenced documents. The task body contains file paths specifically so you can navigate to the source material.
+
 **Amend Task** — Requirements changed or need clarification during development.
 
 **Complete Task** — Implementation done, tests passing. Runs the complete autonomous pipeline: verify gate, code review, task-check, and PR submission. Use `--prmode create` for first submission, `--prmode update` after addressing feedback.
