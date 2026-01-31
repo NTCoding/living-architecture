@@ -12,6 +12,7 @@ function createContext(): CompleteTaskContext {
   return {
     branch: 'test-branch',
     reviewDir: './test-review',
+    prMode: 'create',
     hasIssue: false,
     prTitle: 'test title',
     prBody: 'test body',

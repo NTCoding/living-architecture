@@ -38,7 +38,7 @@ describe('handleStop', () => {
     const result = handleStop(baseInput)
 
     expect(result._tag).toBe('block')
-    expect(result._tag === 'block' && result.reason).toContain('MANDATORY')
+    expect(result._tag === 'block' && result.reason).toContain('Stop blocked')
   })
 
   it('allows stop when message has [Mergeable PR] prefix', () => {
@@ -78,7 +78,7 @@ describe('handleStop', () => {
     const result = handleStop(baseInput)
 
     expect(result._tag).toBe('block')
-    expect(result._tag === 'block' && result.reason).toContain('MANDATORY')
+    expect(result._tag === 'block' && result.reason).toContain('Stop blocked')
   })
 
   it('handles content as array of text blocks', () => {

@@ -27,6 +27,7 @@ describe('shell/index exports', () => {
     const completeTaskInput = {
       branch: 'test-branch',
       reviewDir: '/reviews/test',
+      prMode: 'create',
       hasIssue: true,
       issueNumber: 123,
       prTitle: 'feat: test',

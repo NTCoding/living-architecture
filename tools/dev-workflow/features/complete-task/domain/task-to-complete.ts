@@ -4,8 +4,12 @@ import {
   taskDetailsSchema,
 } from '../../../platform/domain/workflow-execution/workflow-runner'
 
+const prModeSchema = z.enum(['create', 'update'])
+export type PRMode = z.infer<typeof prModeSchema>
+
 export const completeTaskContextSchema = baseContextSchema.extend({
   reviewDir: z.string(),
+  prMode: prModeSchema,
   hasIssue: z.boolean(),
   issueNumber: z.number().optional(),
   taskDetails: taskDetailsSchema.optional(),
@@ -13,5 +17,7 @@ export const completeTaskContextSchema = baseContextSchema.extend({
   prBody: z.string(),
   prNumber: z.number().optional(),
   prUrl: z.string().optional(),
+  feedbackItemsResolved: z.number().optional(),
+  feedbackItemsRemaining: z.number().optional(),
 })
 export type CompleteTaskContext = z.infer<typeof completeTaskContextSchema>

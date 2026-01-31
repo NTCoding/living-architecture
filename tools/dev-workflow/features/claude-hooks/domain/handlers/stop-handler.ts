@@ -9,22 +9,7 @@ import {
 const MERGEABLE_PREFIX = '[Mergeable PR]'
 const NOT_MERGEABLE_PREFIX = '[No Mergeable PR:'
 
-const STOP_REMINDER = `MANDATORY: Before stopping, your response MUST start with one of:
-
-1. ${MERGEABLE_PREFIX} - When PR is mergeable (green CI, no unresolved feedback)
-   Run: pnpm nx run dev-workflow:get-pr-feedback
-   Verify: mergeable=true in output
-
-   CRITICAL: ALL unresolved threads blocking the PR must have a response.
-   Use respond-to-feedback to reply to each thread before claiming mergeable.
-
-2. ${NOT_MERGEABLE_PREFIX} <reason>] - When blocked or not working on a PR
-   Examples:
-   - ${NOT_MERGEABLE_PREFIX} CI failing]
-   - ${NOT_MERGEABLE_PREFIX} awaiting user input]
-   - ${NOT_MERGEABLE_PREFIX} not a feature task]
-
-Your response did not include the required prefix.`
+const STOP_REMINDER = `⛔ Stop blocked — read 'Stop Checklist' section at the bottom of docs/workflow/task-workflow.md`
 
 const textBlockSchema = z.object({
   type: z.literal('text'),

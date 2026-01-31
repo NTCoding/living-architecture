@@ -28,9 +28,10 @@ Autonomous = you can do this without user permission. Do not ask for permission,
 | List Non-Milestone Tasks | `pnpm nx list-tasks dev-workflow -- --ideas` (or `--bugs`, `--tech`) | Autonomous |
 | Start Task | `./scripts/start-task.sh <issue-number>` | **User confirmation required** |
 | Amend Task | `./scripts/amend-task.sh <issue-number> "Amendment"` | Autonomous |
-| Complete Task | `/complete-task` | Autonomous |
+| Complete Task (create) | `/complete-task` with `--prmode create` | Autonomous |
+| Complete Task (update) | `/complete-task` with `--prmode update` | Autonomous |
 | Check PR Feedback | `pnpm nx run dev-workflow:get-pr-feedback` | Autonomous |
-| Re-check PR | `/complete-task` | Autonomous |
+| Re-check PR | `/complete-task` with `--prmode update` | Autonomous |
 | Post-Merge Completion | `/post-merge-completion` | Autonomous |
 | Activate PRD | `./scripts/activate-prd.sh <prd-name>` | **User confirmation required** |
 | Archive PRD | `./scripts/archive-prd.sh <prd-name>` | **User confirmation required** |
@@ -115,7 +116,7 @@ Propose a task to the user and ask them to confirm. Once confirmed, start the ta
 
 **Amend Task** — Requirements changed or need clarification during development.
 
-**Complete Task** — Implementation done, tests passing. Runs the complete autonomous pipeline: verify gate, code review, task-check, and PR submission.
+**Complete Task** — Implementation done, tests passing. Runs the complete autonomous pipeline: verify gate, code review, task-check, and PR submission. Use `--prmode create` for first submission, `--prmode update` after addressing feedback.
 
 **Check PR Feedback** — Get current PR status and unresolved feedback. Use this to see what needs addressing before a PR is mergeable.
 
@@ -132,7 +133,7 @@ Propose a task to the user and ask them to confirm. Once confirmed, start the ta
 3. "Nitpick" is not a rejection reason — evaluate the suggestion on its technical merits
 4. If you cannot articulate a specific technical reason for rejection, the feedback is probably valid — fix it
 
-**Re-check PR** — PR feedback addressed, needs CI verification. Run `/complete-task` again to re-run the full pipeline.
+**Re-check PR** — PR feedback addressed, needs CI verification. Run `/complete-task` with `--prmode update`. All feedback must be resolved in a single pass — each round-trip costs ~10 minutes (CI + review cycle).
 
 **Post-Merge Completion** — After PR is merged: (1) Run `/post-merge-completion` from the worktree to reflect on feedback (needs review files). (2) Create GitHub issues for any improvement opportunities identified. (3) Run `cleanup-task.sh` to remove the worktree. (4) Implement improvements by starting the new task via normal workflow—**never reuse the merged branch** (squash merges create stale merge bases).
 
@@ -183,3 +184,52 @@ tracks:
 ### PRDs Without YAML Track Definitions
 
 If a PRD lacks YAML track definitions in its Parallelization section, `list-tasks` will throw an error indicating which PRD needs track definitions added. See `docs/conventions/prd-track-format.md` for the required format.
+
+---
+
+## Complete Task Modes
+
+`/complete-task` has two modes, specified via `--prmode`:
+
+### Create Mode (`--prmode create`)
+
+First-time PR submission. Requires `--pr-title`. Fails if a PR already exists for the branch.
+
+```bash
+pnpm nx run dev-workflow:complete-task -- --prmode create --pr-title "feat: add feature"
+```
+
+### Update Mode (`--prmode update`)
+
+Re-submission after addressing PR feedback. Requires `--feedback-items-resolved` and `--feedback-items-remaining`.
+
+```bash
+pnpm nx run dev-workflow:complete-task -- --prmode update --feedback-items-resolved 5 --feedback-items-remaining 0
+```
+
+**`--feedback-items-remaining` must be 0.** The pipeline rejects updates with unresolved feedback. Fix ALL feedback items in a single pass before re-submitting — each round-trip costs ~10 minutes (CI checks + code review cycle).
+
+---
+
+## Stop Checklist
+
+Before stopping, verify ALL of the following:
+
+- [ ] Are you stopping because you think you need user permission? Check the Permission column in the Lifecycle Steps table — if the step is "Autonomous", just do it. Do NOT stop to ask.
+- [ ] Is there a mergeable PR? Run `pnpm nx run dev-workflow:get-pr-feedback` and verify `mergeable=true`.
+- [ ] Have ALL unresolved threads been responded to? Use `respond-to-feedback` for each thread.
+- [ ] Have you resolved ALL feedback items before re-running `/complete-task`? (`--feedback-items-remaining` must be 0)
+
+Your response MUST start with one of:
+
+1. `[Mergeable PR]` — Green CI, no unresolved feedback, verified via `get-pr-feedback`
+2. `[No Mergeable PR: <reason>]` — Blocked or not working on a PR (e.g. CI failing, awaiting user input, not a feature task)
+
+### Proof of mergeability
+
+When claiming `[Mergeable PR]`, you MUST:
+
+1. Paste the **full JSON output** from `pnpm nx run dev-workflow:get-pr-feedback`
+2. Explain in 1-2 sentences why this PR is safe to stop on (e.g. "mergeable=true, 0 unresolved threads, CI green")
+
+Do NOT summarize or paraphrase the output. Paste the raw JSON so the user can verify.

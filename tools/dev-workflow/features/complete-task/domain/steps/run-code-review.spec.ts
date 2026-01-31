@@ -38,6 +38,7 @@ function createContext(overrides: Partial<CompleteTaskContext> = {}): CompleteTa
   return {
     branch: 'test-branch',
     reviewDir: './test-output',
+    prMode: 'create',
     hasIssue: false,
     prTitle: 'test title',
     prBody: 'test body',

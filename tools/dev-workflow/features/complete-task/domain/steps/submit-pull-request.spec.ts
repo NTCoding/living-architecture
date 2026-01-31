@@ -31,6 +31,7 @@ function createContext(overrides: Partial<CompleteTaskContext> = {}): CompleteTa
   return {
     branch: 'feature-branch',
     reviewDir: './test-review',
+    prMode: 'create',
     hasIssue: false,
     prTitle: 'T',
     prBody: 'B',
@@ -93,12 +94,15 @@ describe('submitPR', () => {
     expect(ctx.prNumber).toBe(42)
   })
 
-  it('gets existing PR when PR number provided', async () => {
+  it('gets existing PR when PR number provided in update mode', async () => {
     mockGitHub.getPR.mockResolvedValue({
       number: 100,
       url: 'https://pr/100',
     })
-    const ctx = createContext({ prNumber: 100 })
+    const ctx = createContext({
+      prNumber: 100,
+      prMode: 'update',
+    })
 
     await submitPR.execute(ctx)
 

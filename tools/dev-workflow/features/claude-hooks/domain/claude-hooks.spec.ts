@@ -187,7 +187,7 @@ describe('Stop handler', () => {
     const result = handleStop(input)
 
     expect(result._tag).toBe('block')
-    expect(result._tag === 'block' && result.reason).toContain('[Mergeable PR]')
+    expect(result._tag === 'block' && result.reason).toContain('Stop blocked')
   })
 
   it('blocks stop when transcript is empty', () => {

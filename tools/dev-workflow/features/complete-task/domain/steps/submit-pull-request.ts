@@ -48,14 +48,15 @@ export function createSubmitPRStep(deps: SubmitPRDeps): Step<CompleteTaskContext
       const headSha = await deps.headSha()
       const baseBranchName = await deps.baseBranch()
 
-      const pr = ctx.prNumber
-        ? await deps.getPR(ctx.prNumber)
-        : await deps.createPR({
-          title: ctx.prTitle,
-          body: ctx.prBody,
-          branch: ctx.branch,
-          base: baseBranchName,
-        })
+      const pr =
+        ctx.prMode === 'update' && ctx.prNumber
+          ? await deps.getPR(ctx.prNumber)
+          : await deps.createPR({
+            title: ctx.prTitle,
+            body: ctx.prBody,
+            branch: ctx.branch,
+            base: baseBranchName,
+          })
 
       ctx.prUrl = pr.url
       ctx.prNumber = pr.number

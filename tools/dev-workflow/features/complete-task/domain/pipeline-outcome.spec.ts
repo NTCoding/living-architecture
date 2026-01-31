@@ -16,6 +16,7 @@ describe('formatCompleteTaskResult', () => {
   const baseContext: CompleteTaskContext = {
     branch: 'test-branch',
     reviewDir: '/reviews/test',
+    prMode: 'create',
     hasIssue: true,
     issueNumber: 123,
     prTitle: 'Test PR',
