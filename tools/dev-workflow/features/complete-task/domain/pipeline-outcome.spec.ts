@@ -18,7 +18,6 @@ describe('formatCompleteTaskResult', () => {
     reviewDir: '/reviews/test',
     hasIssue: true,
     issueNumber: 123,
-    commitMessage: 'feat: test commit',
     prTitle: 'Test PR',
     prBody: 'Test body',
   }

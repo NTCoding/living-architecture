@@ -1,24 +1,14 @@
 import type { TaskDetails } from '../../../platform/domain/workflow-execution/workflow-runner'
 import { validateConventionalCommit } from '../../../platform/domain/commit-format/conventional-commit-title'
-import { formatCommitMessage } from '../../../platform/domain/commit-format/commit-message-formatter'
 
 export class MissingPullRequestDetailsError extends Error {
   constructor() {
     super(
       'Missing required PR details. Provide:\n' +
         '  --pr-title "feat(scope): your title"\n' +
-        '  --pr-body "Your PR description"\n' +
-        '  --commit-message "feat(scope): your message"',
+        '  --pr-body "Your PR description"',
     )
     this.name = 'MissingPullRequestDetailsError'
-    Error.captureStackTrace?.(this, this.constructor)
-  }
-}
-
-class MissingCommitMessageError extends Error {
-  constructor() {
-    super('--commit-message is required. Do not derive from PR title.')
-    this.name = 'MissingCommitMessageError'
     Error.captureStackTrace?.(this, this.constructor)
   }
 }
@@ -26,7 +16,6 @@ class MissingCommitMessageError extends Error {
 export interface PRDetails {
   prTitle: string
   prBody: string
-  commitMessage: string
   hasIssue: boolean
   issueNumber?: number
   taskDetails?: TaskDetails
@@ -35,7 +24,6 @@ export interface PRDetails {
 export interface PRDetailsCliArgs {
   prTitle: string | undefined
   prBody: string | undefined
-  commitMessage: string | undefined
 }
 
 export function resolvePRDetails(
@@ -46,14 +34,9 @@ export function resolvePRDetails(
   const prTitle = cliArgs.prTitle ?? taskDetails?.title
   const rawBody = cliArgs.prBody ?? taskDetails?.body
   const prBody = issueNumber ? `Closes #${issueNumber}\n\n${rawBody}` : rawBody
-  const commitMessage = cliArgs.commitMessage
 
   if (!prTitle || !prBody) {
     throw new MissingPullRequestDetailsError()
-  }
-
-  if (!commitMessage) {
-    throw new MissingCommitMessageError()
   }
 
   validateConventionalCommit(prTitle)
@@ -61,7 +44,6 @@ export function resolvePRDetails(
   return {
     prTitle,
     prBody,
-    commitMessage: formatCommitMessage(commitMessage),
     hasIssue: Boolean(issueNumber),
     issueNumber,
     taskDetails,

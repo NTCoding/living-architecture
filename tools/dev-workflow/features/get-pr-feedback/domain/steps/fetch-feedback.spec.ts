@@ -140,4 +140,41 @@ describe('fetchFeedback', () => {
     assertSuccess(result)
     expect(result.output).toHaveProperty('mergeable', false)
   })
+
+  it('includes batch instruction when multiple feedback items exist', async () => {
+    mockGetPRFeedback.mockResolvedValue({
+      reviewDecisions: [],
+      threads: [{ body: 'fix this' }, { body: 'fix that' }],
+    })
+    const ctx = createContext({
+      prNumber: 123,
+      prState: 'open',
+      prUrl: 'https://pr/123',
+    })
+
+    const result = await fetchFeedback.execute(ctx)
+
+    assertSuccess(result)
+    expect(result.output).toHaveProperty(
+      'instruction',
+      expect.stringContaining('Fix ALL 2 feedback items'),
+    )
+  })
+
+  it('omits batch instruction when single feedback item exists', async () => {
+    mockGetPRFeedback.mockResolvedValue({
+      reviewDecisions: [],
+      threads: [{ body: 'fix this' }],
+    })
+    const ctx = createContext({
+      prNumber: 123,
+      prState: 'open',
+      prUrl: 'https://pr/123',
+    })
+
+    const result = await fetchFeedback.execute(ctx)
+
+    assertSuccess(result)
+    expect(result.output).not.toHaveProperty('instruction')
+  })
 })

@@ -112,11 +112,11 @@ Everything specific to one command:
 
 ```typescript
 // BAD - dangerous fallback
-const commitMsg = cliCommitMessage ?? cliPrTitle
+const title = cliTitle ?? someDefault
 
 // GOOD - require explicit input
-if (!cliCommitMessage) {
-  throw new WorkflowError('--commit-message is required')
+if (!cliTitle) {
+  throw new WorkflowError('--pr-title is required')
 }
 ```
 
@@ -381,9 +381,10 @@ Actions:
 ```bash
 nx run dev-workflow:complete-task -- \
   --pr-title "feat: add feature" \
-  --pr-body "Description" \
-  --commit-message "feat: add feature"
+  --pr-body "Description"
 ```
+
+**Important:** All changes must be committed before running complete-task. Uncommitted changes will cause the workflow to fail.
 
 For issue branches (pattern: `issue-<number>`), PR details are derived from the GitHub issue.
 

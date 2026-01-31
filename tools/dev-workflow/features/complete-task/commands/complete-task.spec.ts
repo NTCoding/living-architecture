@@ -21,8 +21,6 @@ const {
     baseBranch: vi.fn(),
     unpushedFiles: vi.fn(),
     uncommittedFiles: vi.fn(),
-    stageAll: vi.fn(),
-    commit: vi.fn(),
     push: vi.fn(),
     headSha: vi.fn(),
   },
@@ -85,7 +83,6 @@ function buildTestContext(): CompleteTaskContext {
     branch: 'test-branch',
     reviewDir: 'reviews/test',
     hasIssue: false,
-    commitMessage: 'test',
     prTitle: 'test',
     prBody: 'test',
   }
@@ -101,10 +98,7 @@ describe('executeCompleteTask', () => {
       body: 'Test body',
     })
     mockGitHub.findPRForBranch.mockResolvedValue(undefined)
-    mockCli.parseArg.mockImplementation((arg: string) => {
-      if (arg === '--commit-message') return 'feat: test commit'
-      return undefined
-    })
+    mockCli.parseArg.mockReturnValue(undefined)
   })
 
   it('calls runWorkflow with steps and context builder', () => {
@@ -162,7 +156,6 @@ describe('executeCompleteTask', () => {
     mockCli.parseArg.mockImplementation((arg: string) => {
       if (arg === '--pr-title') return 'feat: PR title'
       if (arg === '--pr-body') return 'PR body'
-      if (arg === '--commit-message') return 'feat: commit'
       return undefined
     })
     executeCompleteTask()
@@ -177,7 +170,6 @@ describe('executeCompleteTask', () => {
     mockCli.parseArg.mockImplementation((arg: string) => {
       if (arg === '--pr-title') return 'feat: PR title'
       if (arg === '--pr-body') return 'PR body'
-      if (arg === '--commit-message') return 'feat: commit'
       return undefined
     })
     executeCompleteTask()
@@ -217,7 +209,6 @@ describe('executeCompleteTask', () => {
       hasIssue: false,
       issueNumber: undefined,
       taskDetails: undefined,
-      commitMessage: 'test commit',
       prTitle: 'test pr',
       prBody: 'test body',
       prNumber: undefined,

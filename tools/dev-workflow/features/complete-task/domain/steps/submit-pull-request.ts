@@ -2,6 +2,7 @@ import type { Step } from '../../../../platform/domain/workflow-execution/workfl
 import {
   success, failure 
 } from '../../../../platform/domain/workflow-execution/step-result'
+import { WorkflowError } from '../../../../platform/domain/workflow-execution/workflow-runner'
 import type { CompleteTaskContext } from '../task-to-complete'
 
 interface PRInfo {
@@ -23,8 +24,6 @@ interface CIResult {
 
 export interface SubmitPRDeps {
   uncommittedFiles: () => Promise<string[]>
-  stageAll: () => Promise<void>
-  commit: (message: string) => Promise<void>
   push: () => Promise<void>
   headSha: () => Promise<string>
   baseBranch: () => Promise<string>
@@ -39,8 +38,10 @@ export function createSubmitPRStep(deps: SubmitPRDeps): Step<CompleteTaskContext
     execute: async (ctx) => {
       const uncommitted = await deps.uncommittedFiles()
       if (uncommitted.length > 0) {
-        await deps.stageAll()
-        await deps.commit(ctx.commitMessage)
+        throw new WorkflowError(
+          `Uncommitted changes detected:\n${uncommitted.join('\n')}\n\n` +
+            'Commit all changes before running /complete-task.',
+        )
       }
       await deps.push()
 

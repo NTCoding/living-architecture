@@ -11,14 +11,12 @@ describe('resolvePRDetails', () => {
     const cliArgs = {
       prTitle: 'feat: test feature',
       prBody: 'Test body',
-      commitMessage: 'feat: commit',
     }
 
     const result = resolvePRDetails(cliArgs, undefined, undefined)
 
     expect(result.prTitle).toStrictEqual('feat: test feature')
     expect(result.prBody).toStrictEqual('Test body')
-    expect(result.commitMessage).toContain('feat: commit')
     expect(result.hasIssue).toStrictEqual(false)
   })
 
@@ -26,7 +24,6 @@ describe('resolvePRDetails', () => {
     const cliArgs = {
       prTitle: undefined,
       prBody: undefined,
-      commitMessage: 'feat: commit',
     }
     const taskDetails = {
       title: 'feat: from task',
@@ -45,7 +42,6 @@ describe('resolvePRDetails', () => {
     const cliArgs = {
       prTitle: undefined,
       prBody: undefined,
-      commitMessage: undefined,
     }
 
     expect(() => resolvePRDetails(cliArgs, undefined, undefined)).toThrow(
@@ -53,23 +49,10 @@ describe('resolvePRDetails', () => {
     )
   })
 
-  it('throws when commit message is missing', () => {
-    const cliArgs = {
-      prTitle: 'feat: title',
-      prBody: 'body',
-      commitMessage: undefined,
-    }
-
-    expect(() => resolvePRDetails(cliArgs, undefined, undefined)).toThrow(
-      '--commit-message is required',
-    )
-  })
-
   it('includes task details in result', () => {
     const cliArgs = {
       prTitle: 'feat: title',
       prBody: 'body',
-      commitMessage: 'feat: commit',
     }
     const taskDetails = {
       title: 'original title',

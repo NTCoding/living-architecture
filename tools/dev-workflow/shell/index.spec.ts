@@ -29,7 +29,6 @@ describe('shell/index exports', () => {
       reviewDir: '/reviews/test',
       hasIssue: true,
       issueNumber: 123,
-      commitMessage: 'feat: test',
       prTitle: 'feat: test',
       prBody: 'Test body',
     }

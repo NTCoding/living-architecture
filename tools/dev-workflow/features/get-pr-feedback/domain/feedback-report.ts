@@ -24,4 +24,5 @@ export interface PRFeedbackStatus {
   mergeable: boolean
   feedback: FormattedFeedbackItem[]
   feedbackCount: number
+  instruction?: string
 }

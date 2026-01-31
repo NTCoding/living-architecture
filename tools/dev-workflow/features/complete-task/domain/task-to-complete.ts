@@ -9,7 +9,6 @@ export const completeTaskContextSchema = baseContextSchema.extend({
   hasIssue: z.boolean(),
   issueNumber: z.number().optional(),
   taskDetails: taskDetailsSchema.optional(),
-  commitMessage: z.string(),
   prTitle: z.string(),
   prBody: z.string(),
   prNumber: z.number().optional(),

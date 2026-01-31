@@ -60,6 +60,12 @@ export function createFetchFeedbackStep(deps: FetchFeedbackDeps): Step<GetPRFeed
         prFeedback.threads.length === 0 &&
         hasNoChangesRequested(prFeedback.reviewDecisions)
 
+      const feedbackCount = prFeedback.threads.length
+      const instruction =
+        feedbackCount > 1
+          ? `Fix ALL ${feedbackCount} feedback items in a single commit. Do not fix-commit-wait in a loop.`
+          : undefined
+
       const status: PRFeedbackStatus = {
         branch: ctx.branch,
         state: ctx.prState,
@@ -69,7 +75,8 @@ export function createFetchFeedbackStep(deps: FetchFeedbackDeps): Step<GetPRFeed
         reviewDecisions: prFeedback.reviewDecisions,
         mergeable: isMergeable,
         feedback: prFeedback.threads,
-        feedbackCount: prFeedback.threads.length,
+        feedbackCount,
+        ...(instruction && { instruction }),
       }
 
       return success(status)

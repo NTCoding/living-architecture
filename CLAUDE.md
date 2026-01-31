@@ -164,7 +164,7 @@ The CLI (`riviere-cli`) bundles several packages via esbuild. To ensure users al
 ## General Guidelines
 
 - **Process before fix** - When you encounter a problem, improve the process/tooling first, then apply the fix. This ensures the same issue won't recur and benefits future work. Never just fix the symptom without addressing the root cause.
-- **Use scripts, not gh/git directly** - Always use scripts in `./scripts/` for git and GitHub operations (PRs, issues, tasks). Do not use `gh` or `git` commands directly unless no script exists. If you need functionality that doesn't have a script, propose creating one rather than using raw commands.
+- **Use scripts and dev-workflow for operations** - See `docs/workflow/task-workflow.md` for which commands to use. Direct `git add`/`git commit` is fine; `git push` and `gh pr` are blocked by hooks.
 - **Command failures vs code quality issues**:
   - **Command failures** (script doesn't exist, tool errors, missing dependencies) → STOP and consult with user
   - **Code quality issues** (lint errors, unused dependencies, test failures, knip warnings) → fix them directly

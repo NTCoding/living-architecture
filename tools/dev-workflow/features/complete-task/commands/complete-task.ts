@@ -36,7 +36,6 @@ async function buildCompleteTaskContext(): Promise<CompleteTaskContext> {
   const cliArgs = {
     prTitle: cli.parseArg('--pr-title'),
     prBody: cli.parseArg('--pr-body'),
-    commitMessage: cli.parseArg('--commit-message'),
   }
   const prDetails = resolvePRDetails(cliArgs, issueNumber, taskDetails)
   const existingPrNumber = await github.findPRForBranch(branch)
@@ -47,7 +46,6 @@ async function buildCompleteTaskContext(): Promise<CompleteTaskContext> {
     hasIssue: prDetails.hasIssue,
     issueNumber: prDetails.issueNumber,
     taskDetails: prDetails.taskDetails,
-    commitMessage: prDetails.commitMessage,
     prTitle: prDetails.prTitle,
     prBody: prDetails.prBody,
     prNumber: existingPrNumber,
@@ -71,8 +69,6 @@ function buildSteps() {
     }),
     createSubmitPRStep({
       uncommittedFiles: git.uncommittedFiles.bind(git),
-      stageAll: git.stageAll.bind(git),
-      commit: git.commit.bind(git),
       push: git.push.bind(git),
       headSha: git.headSha.bind(git),
       baseBranch: git.baseBranch.bind(git),

@@ -6,8 +6,6 @@ import type { CompleteTaskContext } from '../task-to-complete'
 
 const mockGit = {
   uncommittedFiles: vi.fn(),
-  stageAll: vi.fn(),
-  commit: vi.fn(),
   push: vi.fn(),
   headSha: vi.fn(),
   baseBranch: vi.fn(),
@@ -21,8 +19,6 @@ const mockGitHub = {
 
 const submitPR = createSubmitPRStep({
   uncommittedFiles: mockGit.uncommittedFiles,
-  stageAll: mockGit.stageAll,
-  commit: mockGit.commit,
   push: mockGit.push,
   headSha: mockGit.headSha,
   baseBranch: mockGit.baseBranch,
@@ -36,7 +32,6 @@ function createContext(overrides: Partial<CompleteTaskContext> = {}): CompleteTa
     branch: 'feature-branch',
     reviewDir: './test-review',
     hasIssue: false,
-    commitMessage: 'msg',
     prTitle: 'T',
     prBody: 'B',
     ...overrides,
@@ -56,21 +51,14 @@ describe('submitPR', () => {
     })
   })
 
-  it('commits changes when uncommitted files exist', async () => {
+  it('rejects when uncommitted files exist', async () => {
     mockGit.uncommittedFiles.mockResolvedValue(['file.ts'])
-    mockGitHub.createPR.mockResolvedValue({
-      number: 1,
-      url: 'https://pr/1',
-    })
-    const ctx = createContext({ commitMessage: 'feat: add feature' })
+    const ctx = createContext({})
 
-    await submitPR.execute(ctx)
-
-    expect(mockGit.stageAll).toHaveBeenCalledWith()
-    expect(mockGit.commit).toHaveBeenCalledWith('feat: add feature')
+    await expect(submitPR.execute(ctx)).rejects.toThrow('Uncommitted changes detected')
   })
 
-  it('skips commit when no uncommitted files', async () => {
+  it('proceeds when no uncommitted files', async () => {
     mockGitHub.createPR.mockResolvedValue({
       number: 1,
       url: 'https://pr/1',
@@ -79,7 +67,7 @@ describe('submitPR', () => {
 
     await submitPR.execute(ctx)
 
-    expect(mockGit.stageAll).not.toHaveBeenCalled()
+    expect(mockGit.push).toHaveBeenCalledWith()
   })
 
   it('creates PR when no existing PR number', async () => {
