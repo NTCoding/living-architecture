@@ -9,6 +9,7 @@ const {
   mockMkdir,
   mockGit,
   mockGitHub,
+  mockGhCli,
   mockRunWorkflow,
   mockCli,
   mockClaude,
@@ -22,15 +23,14 @@ const {
     unpushedFiles: vi.fn(),
     uncommittedFiles: vi.fn(),
     push: vi.fn(),
-    headSha: vi.fn(),
   },
   mockGitHub: {
     getIssue: vi.fn(),
     findPRForBranch: vi.fn(),
     getPR: vi.fn(),
     createPR: vi.fn(),
-    watchCI: vi.fn(),
   },
+  mockGhCli: { watchCI: vi.fn() },
   mockRunWorkflow: vi.fn(),
   mockCli: {
     parseArg: vi.fn(),
@@ -48,6 +48,7 @@ const {
 vi.mock('node:fs/promises', () => ({ mkdir: mockMkdir }))
 vi.mock('../../../platform/infra/external-clients/git-client', () => ({ git: mockGit }))
 vi.mock('../../../platform/infra/external-clients/github-rest-client', () => ({github: mockGitHub,}))
+vi.mock('../../../platform/infra/external-clients/gh-cli', () => ({ ghCli: mockGhCli }))
 vi.mock('../../../platform/domain/workflow-execution/run-workflow', () => ({runWorkflow: mockRunWorkflow,}))
 vi.mock('../../../platform/infra/external-clients/cli-args', () => ({ cli: mockCli }))
 vi.mock('../../../platform/infra/external-clients/claude-agent', () => ({ claude: mockClaude }))

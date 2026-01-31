@@ -25,11 +25,10 @@ interface CIResult {
 export interface SubmitPRDeps {
   uncommittedFiles: () => Promise<string[]>
   push: () => Promise<void>
-  headSha: () => Promise<string>
   baseBranch: () => Promise<string>
   getPR: (prNumber: number) => Promise<PRInfo>
   createPR: (opts: CreatePROptions) => Promise<PRInfo>
-  watchCI: (prNumber: number, headSha: string) => Promise<CIResult>
+  watchCI: (prNumber: number) => CIResult | Promise<CIResult>
 }
 
 export function createSubmitPRStep(deps: SubmitPRDeps): Step<CompleteTaskContext> {
@@ -45,7 +44,6 @@ export function createSubmitPRStep(deps: SubmitPRDeps): Step<CompleteTaskContext
       }
       await deps.push()
 
-      const headSha = await deps.headSha()
       const baseBranchName = await deps.baseBranch()
 
       const pr =
@@ -61,7 +59,7 @@ export function createSubmitPRStep(deps: SubmitPRDeps): Step<CompleteTaskContext
       ctx.prUrl = pr.url
       ctx.prNumber = pr.number
 
-      const ciResult = await deps.watchCI(pr.number, headSha)
+      const ciResult = await deps.watchCI(pr.number)
 
       if (ciResult.failed) {
         return failure({

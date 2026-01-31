@@ -7,7 +7,6 @@ import type { CompleteTaskContext } from '../task-to-complete'
 const mockGit = {
   uncommittedFiles: vi.fn(),
   push: vi.fn(),
-  headSha: vi.fn(),
   baseBranch: vi.fn(),
 }
 
@@ -20,7 +19,6 @@ const mockGitHub = {
 const submitPR = createSubmitPRStep({
   uncommittedFiles: mockGit.uncommittedFiles,
   push: mockGit.push,
-  headSha: mockGit.headSha,
   baseBranch: mockGit.baseBranch,
   getPR: mockGitHub.getPR,
   createPR: mockGitHub.createPR,
@@ -44,7 +42,6 @@ describe('submitPR', () => {
     vi.clearAllMocks()
     mockGit.uncommittedFiles.mockResolvedValue([])
     mockGit.push.mockResolvedValue(undefined)
-    mockGit.headSha.mockResolvedValue('abc123')
     mockGit.baseBranch.mockResolvedValue('main')
     mockGitHub.watchCI.mockResolvedValue({
       failed: false,

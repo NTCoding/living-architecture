@@ -1,6 +1,7 @@
 import { mkdir } from 'node:fs/promises'
 import { git } from '../../../platform/infra/external-clients/git-client'
 import { github } from '../../../platform/infra/external-clients/github-rest-client'
+import { ghCli } from '../../../platform/infra/external-clients/gh-cli'
 import { cli } from '../../../platform/infra/external-clients/cli-args'
 import { claude } from '../../../platform/infra/external-clients/claude-agent'
 import { nx } from '../../../platform/infra/external-clients/nx-runner'
@@ -153,11 +154,10 @@ function buildSteps() {
     createSubmitPRStep({
       uncommittedFiles: git.uncommittedFiles.bind(git),
       push: git.push.bind(git),
-      headSha: git.headSha.bind(git),
       baseBranch: git.baseBranch.bind(git),
       getPR: github.getPR.bind(github),
       createPR: github.createPR.bind(github),
-      watchCI: github.watchCI.bind(github),
+      watchCI: ghCli.watchCI.bind(ghCli),
     }),
     createFetchPRFeedbackStep({ fetchRawPRFeedback }),
   ]
