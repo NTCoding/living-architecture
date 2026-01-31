@@ -31,6 +31,25 @@ export interface SubmitPRDeps {
   watchCI: (prNumber: number) => CIResult | Promise<CIResult>
 }
 
+async function resolvePR(
+  ctx: CompleteTaskContext,
+  deps: SubmitPRDeps,
+  baseBranch: string,
+): Promise<PRInfo> {
+  if (ctx.prMode === 'update' && ctx.prNumber) {
+    return deps.getPR(ctx.prNumber)
+  }
+  if (!ctx.prTitle || !ctx.prBody) {
+    throw new WorkflowError('PR title and body are required in create mode')
+  }
+  return deps.createPR({
+    title: ctx.prTitle,
+    body: ctx.prBody,
+    branch: ctx.branch,
+    base: baseBranch,
+  })
+}
+
 export function createSubmitPRStep(deps: SubmitPRDeps): Step<CompleteTaskContext> {
   return {
     name: 'submit-pr',
@@ -46,15 +65,7 @@ export function createSubmitPRStep(deps: SubmitPRDeps): Step<CompleteTaskContext
 
       const baseBranchName = await deps.baseBranch()
 
-      const pr =
-        ctx.prMode === 'update' && ctx.prNumber
-          ? await deps.getPR(ctx.prNumber)
-          : await deps.createPR({
-            title: ctx.prTitle,
-            body: ctx.prBody,
-            branch: ctx.branch,
-            base: baseBranchName,
-          })
+      const pr = await resolvePR(ctx, deps, baseBranchName)
 
       ctx.prUrl = pr.url
       ctx.prNumber = pr.number

@@ -107,6 +107,18 @@ describe('submitPR', () => {
     expect(mockGitHub.createPR).not.toHaveBeenCalled()
   })
 
+  it('throws when create mode has no title or body', async () => {
+    const ctx = createContext({
+      prMode: 'create',
+      prTitle: undefined,
+      prBody: undefined,
+    })
+
+    await expect(submitPR.execute(ctx)).rejects.toThrow(
+      'PR title and body are required in create mode',
+    )
+  })
+
   it('returns failure when CI fails', async () => {
     mockGitHub.createPR.mockResolvedValue({
       number: 1,

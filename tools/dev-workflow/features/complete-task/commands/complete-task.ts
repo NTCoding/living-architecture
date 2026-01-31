@@ -107,21 +107,13 @@ async function buildCompleteTaskContext(): Promise<CompleteTaskContext> {
   const feedbackItemsRemaining = parseNumberArg('--feedback-items-remaining')
   validateUpdateMode(existingPrNumber, feedbackItemsRemaining)
 
-  const cliArgs = {
-    prTitle: cli.parseArg('--pr-title'),
-    prBody: cli.parseArg('--pr-body'),
-  }
-  const prDetails = resolvePRDetails(cliArgs, issueNumber, taskDetails)
-
   return {
     branch,
     reviewDir,
     prMode,
-    hasIssue: prDetails.hasIssue,
-    issueNumber: prDetails.issueNumber,
-    taskDetails: prDetails.taskDetails,
-    prTitle: prDetails.prTitle,
-    prBody: prDetails.prBody,
+    hasIssue: Boolean(issueNumber),
+    issueNumber,
+    taskDetails,
     prNumber: existingPrNumber,
     feedbackItemsResolved,
     feedbackItemsRemaining,
