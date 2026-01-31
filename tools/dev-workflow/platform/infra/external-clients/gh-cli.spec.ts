@@ -71,8 +71,10 @@ describe('ghCli.watchCI', () => {
   })
 
   it('returns failure after exhausting retries for no checks', () => {
+    const ghCheckCalls: number[] = []
     mockExecFileSync.mockImplementation((_cmd: string, args: string[]) => {
       if (args[0] === 'sleep') return undefined
+      ghCheckCalls.push(1)
       throw new GitHubError('no checks reported on branch')
     })
 
@@ -80,6 +82,7 @@ describe('ghCli.watchCI', () => {
 
     expect(result.failed).toBe(true)
     expect(result.output).toContain('no checks reported')
+    expect(ghCheckCalls).toHaveLength(6)
   })
 
   it('does not retry for non-checks errors', () => {

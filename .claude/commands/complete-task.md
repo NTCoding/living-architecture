@@ -29,7 +29,7 @@ Use `--reject-review-feedback` to skip code review (only valid in update mode).
 Run with a **10-minute timeout** (600000ms).
 
 This is a long-running command that:
-- Runs local verification (lint, typecheck, test)
+- Runs local verification (lint, typecheck)
 - Executes code review agents
 - Submits/updates PR and waits for CI checks
 

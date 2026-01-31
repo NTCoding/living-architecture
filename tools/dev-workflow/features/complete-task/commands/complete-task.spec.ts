@@ -277,7 +277,8 @@ describe('executeCompleteTask', () => {
     mockGitHub.findPRForBranch.mockResolvedValue(789)
     mockCli.requireArg.mockImplementation((flag: string) => {
       if (flag === '--prmode') return 'update'
-      if (flag === '--feedback-items-resolved') return 'abc'
+      if (flag === '--feedback-items-resolved') return '2'
+      if (flag === '--feedback-items-remaining') return 'abc'
       return undefined
     })
     executeCompleteTask()

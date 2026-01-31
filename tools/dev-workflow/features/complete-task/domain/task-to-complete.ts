@@ -4,7 +4,7 @@ import {
   taskDetailsSchema,
 } from '../../../platform/domain/workflow-execution/workflow-runner'
 
-const prModeSchema = z.enum(['create', 'update'])
+export const prModeSchema = z.enum(['create', 'update'])
 export type PRMode = z.infer<typeof prModeSchema>
 
 export const completeTaskContextSchema = baseContextSchema.extend({

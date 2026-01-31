@@ -193,7 +193,7 @@ If a PRD lacks YAML track definitions in its Parallelization section, `list-task
 
 ### Create Mode (`--prmode create`)
 
-First-time PR submission. Requires `--pr-title`. Fails if a PR already exists for the branch.
+First-time PR submission. Requires `--pr-title` when not derived from issue/task details. Fails if a PR already exists for the branch.
 
 ```bash
 pnpm nx run dev-workflow:complete-task -- --prmode create --pr-title "feat: add feature"

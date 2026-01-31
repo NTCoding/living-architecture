@@ -1,6 +1,6 @@
 import { execFileSync } from 'node:child_process'
 
-interface CIResult {
+export interface CIResult {
   failed: boolean
   output: string
 }

@@ -7,13 +7,14 @@ import { claude } from '../../../platform/infra/external-clients/claude-agent'
 import { nx } from '../../../platform/infra/external-clients/nx-runner'
 import { fetchRawPRFeedback } from '../../../platform/infra/external-clients/github-graphql-client'
 import { parseIssueNumber } from '../../../platform/domain/branch-naming/issue-branch-parser'
+import { z } from 'zod'
 import { runWorkflow } from '../../../platform/domain/workflow-execution/run-workflow'
 import {
   WorkflowError,
   type WorkflowResult,
 } from '../../../platform/domain/workflow-execution/workflow-runner'
-import type {
-  CompleteTaskContext, PRMode 
+import {
+  prModeSchema, type CompleteTaskContext, type PRMode 
 } from '../domain/task-to-complete'
 import { resolvePRDetails } from '../domain/pull-request-draft'
 import { formatCompleteTaskResult } from '../domain/pipeline-outcome'
@@ -31,21 +32,24 @@ function buildReviewDir(branch: string): string {
   return `reviews/${safeBranch}`
 }
 
+const nonNegativeIntSchema = z.coerce.number().int().nonnegative()
+
 function parsePRMode(): PRMode {
   const raw = cli.requireArg('--prmode')
-  if (raw !== 'create' && raw !== 'update') {
+  const parsed = prModeSchema.safeParse(raw)
+  if (!parsed.success) {
     throw new WorkflowError(`--prmode must be 'create' or 'update', got '${raw}'`)
   }
-  return raw
+  return parsed.data
 }
 
 function parseNumberArg(flag: string): number {
   const raw = cli.requireArg(flag)
-  const parsed = Number(raw)
-  if (!Number.isInteger(parsed) || parsed < 0) {
+  const parsed = nonNegativeIntSchema.safeParse(raw)
+  if (!parsed.success) {
     throw new WorkflowError(`${flag} must be a non-negative integer, got '${raw}'`)
   }
-  return parsed
+  return parsed.data
 }
 
 function validateCreateMode(existingPrNumber: number | undefined): void {
