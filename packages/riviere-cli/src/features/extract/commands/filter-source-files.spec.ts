@@ -100,26 +100,16 @@ describe('filterSourceFiles', () => {
       expect(stderrOutput.some((msg) => msg.includes('unstaged'))).toBe(true)
     })
 
-    it('throws SourceFilterError with GIT_ERROR when not in a git repo', () => {
+    it('wraps GitError in SourceFilterError with GIT_ERROR kind', () => {
       const dir = makeTempDir()
       process.chdir(dir)
       mockDetectChanged.mockImplementation(() => {
         throw new GitError('NOT_A_REPOSITORY', 'Run from within a git repository.')
       })
 
-      expect(() => filterSourceFiles([], { pr: true })).toThrow(SourceFilterError)
-    })
-
-    it('includes gitError on SourceFilterError for git failures', () => {
-      const dir = makeTempDir()
-      process.chdir(dir)
-      mockDetectChanged.mockImplementation(() => {
-        throw new GitError('NOT_A_REPOSITORY', 'Run from within a git repository.')
-      })
-
-      expect(() => filterSourceFiles([], { pr: true })).toThrow(
-        expect.objectContaining({ filterErrorKind: 'GIT_ERROR' }),
-      )
+      const act = () => filterSourceFiles([], { pr: true })
+      expect(act).toThrow(SourceFilterError)
+      expect(act).toThrow(expect.objectContaining({ filterErrorKind: 'GIT_ERROR' }))
     })
   })
 
