@@ -77,13 +77,13 @@ describe('filterSourceFiles', () => {
       expect(result.files).toStrictEqual([changedFile])
     })
 
-    it('emits warnings for unstaged TypeScript files', () => {
+    it('emits warnings for untracked TypeScript files', () => {
       const dir = makeTempDir()
       process.chdir(dir)
       const committedFile = join(dir, 'committed.ts')
       mockDetectChanged.mockReturnValue({
         files: [committedFile],
-        warnings: ['1 unstaged TypeScript file(s) not included: unstaged.ts'],
+        warnings: ['1 untracked TypeScript file(s) not included: untracked.ts'],
       })
 
       const stderrOutput: string[] = []
@@ -97,7 +97,7 @@ describe('filterSourceFiles', () => {
       })
 
       errorSpy.mockRestore()
-      expect(stderrOutput.some((msg) => msg.includes('unstaged'))).toBe(true)
+      expect(stderrOutput.some((msg) => msg.includes('untracked'))).toBe(true)
     })
 
     it('wraps GitError in SourceFilterError with GIT_ERROR kind', () => {

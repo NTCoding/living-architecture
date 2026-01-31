@@ -74,6 +74,18 @@ describe('detectChangedTypeScriptFiles', () => {
       )
     })
 
+    it('throws GIT_NOT_FOUND when executor throws ENOENT', () => {
+      const executor: GitExecutor = () => {
+        const error = new GitProcessError('spawn git ENOENT')
+        Object.assign(error, { code: 'ENOENT' })
+        throw error
+      }
+
+      expect(() => detectChangedTypeScriptFiles(WORK_DIR, {}, executor)).toThrow(
+        expect.objectContaining({ gitErrorCode: 'GIT_NOT_FOUND' }),
+      )
+    })
+
     it('rethrows non-git errors from executor', () => {
       const executor = createMockExecutor({
         ...attachedHeadResponses('main'),
@@ -228,17 +240,17 @@ describe('detectChangedTypeScriptFiles', () => {
       expect(result.files).toContain(join(WORK_DIR, 'staged.ts'))
     })
 
-    it('warns about unstaged TypeScript files', () => {
+    it('warns about untracked TypeScript files', () => {
       const overrides = {
         'diff --name-only main...HEAD': 'committed.ts',
-        'ls-files --others --exclude-standard': 'unstaged.ts',
+        'ls-files --others --exclude-standard': 'untracked.ts',
       }
       const executor = createMockExecutor(attachedHeadResponses('main', overrides))
 
       const result = detectChangedTypeScriptFiles(WORK_DIR, { base: 'main' }, executor)
 
       expect(result.warnings.length).toBeGreaterThan(0)
-      expect(result.warnings[0]).toContain('unstaged')
+      expect(result.warnings[0]).toContain('untracked')
     })
   })
 

@@ -31,19 +31,6 @@ function defaultGitExecutor(binary: string, args: readonly string[], cwd: string
 }
 /* v8 ignore stop */
 
-function resolveGitBinary(): string {
-  try {
-    return execFileSync('/usr/bin/which', ['git'], {
-      encoding: 'utf-8',
-      stdio: ['pipe', 'pipe', 'pipe'],
-    }).trim()
-    /* v8 ignore start -- @preserve: requires git absent from system */
-  } catch {
-    throw new GitError('GIT_NOT_FOUND', 'Install git to use --pr flag.')
-  }
-  /* v8 ignore stop */
-}
-
 function runGit(
   executor: GitExecutor,
   gitBinary: string,
@@ -53,6 +40,9 @@ function runGit(
   try {
     return executor(gitBinary, args, cwd)
   } catch (error) {
+    if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
+      throw new GitError('GIT_NOT_FOUND', 'Install git to use --pr flag.')
+    }
     const stderr =
       error instanceof Error && 'stderr' in error
         ? String(Object.getOwnPropertyDescriptor(error, 'stderr')?.value ?? '')
@@ -94,7 +84,7 @@ function detectBaseBranch(
   }
 }
 
-function getUnstagedTypeScriptFiles(
+function getUntrackedTypeScriptFiles(
   executor: GitExecutor,
   gitBinary: string,
   cwd: string,
@@ -136,7 +126,7 @@ export function detectChangedTypeScriptFiles(
   options: ChangedFilesOptions,
   executor: GitExecutor = defaultGitExecutor,
 ): ChangedFilesResult {
-  const gitBinary = resolveGitBinary()
+  const gitBinary = 'git'
   runGit(executor, gitBinary, cwd, ['rev-parse', '--git-dir'])
 
   const warnings: string[] = []
@@ -146,11 +136,11 @@ export function detectChangedTypeScriptFiles(
 
   const committedFiles = getCommittedChangedFiles(executor, gitBinary, cwd, base)
   const stagedFiles = getStagedFiles(executor, gitBinary, cwd, base)
-  const unstagedFiles = getUnstagedTypeScriptFiles(executor, gitBinary, cwd)
+  const untrackedFiles = getUntrackedTypeScriptFiles(executor, gitBinary, cwd)
 
-  if (unstagedFiles.length > 0) {
+  if (untrackedFiles.length > 0) {
     warnings.push(
-      `${unstagedFiles.length} unstaged TypeScript file(s) not included: ${unstagedFiles.join(', ')}`,
+      `${untrackedFiles.length} untracked TypeScript file(s) not included: ${untrackedFiles.join(', ')}`,
     )
   }
 

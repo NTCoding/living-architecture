@@ -342,12 +342,12 @@ describe('riviere extract PR extraction', () => {
       })
     })
 
-    it('warns about unstaged TypeScript files', async () => {
+    it('warns about untracked TypeScript files', async () => {
       const configPath = await createValidExtractFixture(ctx.testDir)
       const sourceFile = join(ctx.testDir, 'src', 'order-service.ts')
       mockDetectChanged.mockReturnValue({
         files: [sourceFile],
-        warnings: ['1 unstaged TypeScript file(s) not included: unstaged.ts'],
+        warnings: ['1 untracked TypeScript file(s) not included: untracked.ts'],
       })
 
       const stderrOutput: string[] = []
@@ -369,7 +369,7 @@ describe('riviere extract PR extraction', () => {
 
       errorSpy.mockRestore()
 
-      expect(stderrOutput.some((msg) => msg.includes('unstaged'))).toBe(true)
+      expect(stderrOutput.some((msg) => msg.includes('untracked'))).toBe(true)
     })
 
     it('outputs markdown format for --pr with --format markdown', async () => {
