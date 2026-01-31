@@ -43,7 +43,8 @@ export type {
 
 export function executeGetPRFeedback(): void {
   const fetchFeedback = createFetchFeedbackStep({
-    getMergeableState: github.getMergeableState.bind(github),
+    getPRMergeInfo: github.getPRMergeInfo.bind(github),
+    listCheckRuns: github.listCheckRuns.bind(github),
     fetchRawPRFeedback,
   })
   runWorkflow<GetPRFeedbackContext>([fetchFeedback], buildGetPRFeedbackContext)

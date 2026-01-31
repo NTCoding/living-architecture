@@ -14,6 +14,11 @@ export const getPRFeedbackContextSchema = baseContextSchema.extend({
 })
 export type GetPRFeedbackContext = z.infer<typeof getPRFeedbackContextSchema>
 
+export interface CheckRunSummary {
+  name: string
+  conclusion: string | null
+}
+
 export interface PRFeedbackStatus {
   branch: string
   state: PRState
@@ -22,6 +27,7 @@ export interface PRFeedbackStatus {
   mergeableState: string | null
   reviewDecisions: ReviewDecision[]
   mergeable: boolean
+  failedChecks?: CheckRunSummary[]
   feedback: FormattedFeedbackItem[]
   feedbackCount: number
   instruction?: string

@@ -27,7 +27,8 @@ vi.mock('../../../platform/infra/external-clients/github-rest-client', () => ({
   github: {
     getPRWithState: mockGetPRWithState,
     findPRForBranchWithState: mockFindPRForBranchWithState,
-    getMergeableState: vi.fn(),
+    getPRMergeInfo: vi.fn(),
+    listCheckRuns: vi.fn(),
   },
 }))
 

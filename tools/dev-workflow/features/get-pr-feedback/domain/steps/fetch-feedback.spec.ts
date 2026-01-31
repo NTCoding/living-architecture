@@ -10,11 +10,13 @@ import { createFetchFeedbackStep } from './fetch-feedback'
 import type { GetPRFeedbackContext } from '../feedback-report'
 import type { StepResult } from '../../../../platform/domain/workflow-execution/step-result'
 
-const mockGetMergeableState = vi.fn()
+const mockGetPRMergeInfo = vi.fn()
+const mockListCheckRuns = vi.fn()
 const mockFetchRawPRFeedback = vi.fn()
 
 const fetchFeedback = createFetchFeedbackStep({
-  getMergeableState: mockGetMergeableState,
+  getPRMergeInfo: mockGetPRMergeInfo,
+  listCheckRuns: mockListCheckRuns,
   fetchRawPRFeedback: mockFetchRawPRFeedback,
 })
 
@@ -45,7 +47,11 @@ function assertSuccess(result: StepResult): asserts result is {
 describe('fetchFeedback', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockGetMergeableState.mockResolvedValue('clean')
+    mockGetPRMergeInfo.mockResolvedValue({
+      mergeableState: 'clean',
+      headSha: 'abc123',
+    })
+    mockListCheckRuns.mockResolvedValue([])
     mockGetPRFeedback.mockResolvedValue({
       reviewDecisions: [],
       threads: [],
@@ -159,6 +165,62 @@ describe('fetchFeedback', () => {
       'instruction',
       expect.stringContaining('Fix ALL 2 feedback items'),
     )
+  })
+
+  it('includes failedChecks when mergeableState is not clean', async () => {
+    mockGetPRMergeInfo.mockResolvedValue({
+      mergeableState: 'blocked',
+      headSha: 'def456',
+    })
+    mockListCheckRuns.mockResolvedValue([
+      {
+        name: 'Knip',
+        status: 'completed',
+        conclusion: 'failure',
+      },
+      {
+        name: 'Build',
+        status: 'completed',
+        conclusion: 'success',
+      },
+      {
+        name: 'Pending',
+        status: 'in_progress',
+        conclusion: null,
+      },
+    ])
+    const ctx = createContext({
+      prNumber: 123,
+      prState: 'open',
+      prUrl: 'https://pr/123',
+    })
+
+    const result = await fetchFeedback.execute(ctx)
+
+    assertSuccess(result)
+    expect(result.output).toHaveProperty('failedChecks', [
+      {
+        name: 'Knip',
+        conclusion: 'failure',
+      },
+      {
+        name: 'Pending',
+        conclusion: null,
+      },
+    ])
+  })
+
+  it('omits failedChecks when mergeableState is clean', async () => {
+    const ctx = createContext({
+      prNumber: 123,
+      prState: 'open',
+      prUrl: 'https://pr/123',
+    })
+
+    const result = await fetchFeedback.execute(ctx)
+
+    assertSuccess(result)
+    expect(result.output).not.toHaveProperty('failedChecks')
   })
 
   it('omits batch instruction when single feedback item exists', async () => {

@@ -268,9 +268,58 @@ describe('github PR operations', () => {
     expect((await github.getPRWithState(60)).state).toBe('open')
   })
 
-  it('getMergeableState returns mergeable state', async () => {
-    mockOctokitInstance.pulls.get.mockResolvedValue({ data: { mergeable_state: 'clean' } })
-    expect(await github.getMergeableState(70)).toBe('clean')
+  it('getPRMergeInfo returns mergeable state and head SHA', async () => {
+    mockOctokitInstance.pulls.get.mockResolvedValue({
+      data: {
+        mergeable_state: 'clean',
+        head: { sha: 'abc123' },
+      },
+    })
+    expect(await github.getPRMergeInfo(70)).toStrictEqual({
+      mergeableState: 'clean',
+      headSha: 'abc123',
+    })
+  })
+
+  it('listCheckRuns returns check run summaries', async () => {
+    mockOctokitInstance.checks.listForRef.mockResolvedValue({
+      data: {
+        check_runs: [
+          {
+            name: 'Build',
+            status: 'completed',
+            conclusion: 'success',
+          },
+          {
+            name: 'Knip',
+            status: 'completed',
+            conclusion: 'failure',
+          },
+          {
+            name: 'Pending',
+            status: 'in_progress',
+            conclusion: null,
+          },
+        ],
+      },
+    })
+    expect(await github.listCheckRuns('abc123')).toStrictEqual([
+      {
+        name: 'Build',
+        status: 'completed',
+        conclusion: 'success',
+      },
+      {
+        name: 'Knip',
+        status: 'completed',
+        conclusion: 'failure',
+      },
+      {
+        name: 'Pending',
+        status: 'in_progress',
+        conclusion: null,
+      },
+    ])
   })
 })
 

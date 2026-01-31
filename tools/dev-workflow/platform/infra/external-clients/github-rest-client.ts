@@ -285,7 +285,10 @@ export const github = {
     }
   },
 
-  async getMergeableState(prNumber: number): Promise<string | null> {
+  async getPRMergeInfo(prNumber: number): Promise<{
+    mergeableState: string
+    headSha: string
+  }> {
     const {
       owner, repo 
     } = await getRepoInfo()
@@ -296,7 +299,34 @@ export const github = {
       pull_number: prNumber,
     })
 
-    return response.data.mergeable_state
+    return {
+      mergeableState: response.data.mergeable_state,
+      headSha: response.data.head.sha,
+    }
+  },
+
+  async listCheckRuns(ref: string): Promise<
+    Array<{
+      name: string
+      status: string
+      conclusion: string | null
+    }>
+  > {
+    const {
+      owner, repo 
+    } = await getRepoInfo()
+
+    const response = await getOctokit().checks.listForRef({
+      owner,
+      repo,
+      ref,
+    })
+
+    return response.data.check_runs.map((run) => ({
+      name: run.name,
+      status: run.status,
+      conclusion: run.conclusion ?? null,
+    }))
   },
 
   async listIssuesByMilestone(milestoneNumber: number): Promise<GitHubIssue[]> {
