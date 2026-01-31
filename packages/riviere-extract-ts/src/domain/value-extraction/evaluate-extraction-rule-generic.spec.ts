@@ -8,9 +8,12 @@ import {
   ExtractionError,
 } from '../../platform/domain/ast-literals/literal-detection'
 
+const sharedProject = new Project({ useInMemoryFileSystem: true })
+const counter = { value: 0 }
+
 function createClassDeclaration(code: string) {
-  const project = new Project({ useInMemoryFileSystem: true })
-  const sf = project.createSourceFile('test.ts', code)
+  counter.value++
+  const sf = sharedProject.createSourceFile(`test-generic-${counter.value}.ts`, code)
   const classDecl = sf.getClasses()[0]
   if (!classDecl) {
     throw new TestFixtureError('No class found in test code')
@@ -75,8 +78,11 @@ describe('evaluateFromGenericArgRule', () => {
   })
 
   it('throws ExtractionError with anonymous in message for anonymous class', () => {
-    const project = new Project({ useInMemoryFileSystem: true })
-    const sf = project.createSourceFile('test.ts', 'export default class {}')
+    counter.value++
+    const sf = sharedProject.createSourceFile(
+      `test-generic-anon-${counter.value}.ts`,
+      'export default class {}',
+    )
     const classDecl = sf.getClassOrThrow(() => true)
     expect(() =>
       evaluateFromGenericArgRule(
@@ -193,9 +199,9 @@ describe('evaluateFromGenericArgRule', () => {
   })
 
   it('finds interface implemented by base class', () => {
-    const project = new Project({ useInMemoryFileSystem: true })
-    const sf = project.createSourceFile(
-      'test.ts',
+    counter.value++
+    const sf = sharedProject.createSourceFile(
+      `test-generic-base-${counter.value}.ts`,
       `
       interface IEventHandler<T> { handle(event: T): void }
       class BaseHandler implements IEventHandler<OrderPlaced> {

@@ -67,10 +67,17 @@ interface AgentResponse {
   report: string
 }
 
+function extractVerdict(line: string): Verdict | undefined {
+  const stripped = line.trim().replaceAll(/\*+/g, '').trim()
+  const firstWord = stripped.split(/[\s—–-]/)[0]
+  const parsed = verdictSchema.safeParse(firstWord)
+  return parsed.success ? parsed.data : undefined
+}
+
 function parseAgentResponse(raw: string): AgentResponse {
   const lines = raw.split('\n')
   const scanWindow = lines.slice(0, 5)
-  const verdictIndex = scanWindow.findIndex((line) => verdictSchema.safeParse(line.trim()).success)
+  const verdictIndex = scanWindow.findIndex((line) => extractVerdict(line) !== undefined)
 
   if (verdictIndex < 0) {
     const preview = scanWindow.slice(0, 3).join(' | ')
@@ -79,9 +86,11 @@ function parseAgentResponse(raw: string): AgentResponse {
     )
   }
 
-  const parsed = verdictSchema.parse(scanWindow[verdictIndex].trim())
+  const verdict = extractVerdict(scanWindow[verdictIndex])
+  /* v8 ignore next -- @preserve: verdictIndex >= 0 guarantees extractVerdict returns a value */
+  if (verdict === undefined) throw new AgentError('Verdict extraction failed unexpectedly')
   return {
-    verdict: parsed,
+    verdict,
     report: lines.slice(verdictIndex + 1).join('\n'),
   }
 }

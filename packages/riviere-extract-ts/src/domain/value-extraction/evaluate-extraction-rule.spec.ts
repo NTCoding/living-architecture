@@ -14,9 +14,12 @@ import {
   ExtractionError,
 } from '../../platform/domain/ast-literals/literal-detection'
 
+const sharedProject = new Project({ useInMemoryFileSystem: true })
+const counter = { value: 0 }
+
 function createClassDeclaration(code: string) {
-  const project = new Project({ useInMemoryFileSystem: true })
-  const sf = project.createSourceFile('test.ts', code)
+  counter.value++
+  const sf = sharedProject.createSourceFile(`test-${counter.value}.ts`, code)
   const classDecl = sf.getClasses()[0]
   if (!classDecl) {
     throw new TestFixtureError('No class found in test code')
@@ -25,8 +28,8 @@ function createClassDeclaration(code: string) {
 }
 
 function createMethodDeclaration(code: string, methodName: string) {
-  const project = new Project({ useInMemoryFileSystem: true })
-  const sf = project.createSourceFile('test.ts', code)
+  counter.value++
+  const sf = sharedProject.createSourceFile(`test-method-${counter.value}.ts`, code)
   const classDecl = sf.getClasses()[0]
   if (!classDecl) {
     throw new TestFixtureError('No class found in test code')
@@ -69,8 +72,11 @@ describe('evaluateFromClassNameRule', () => {
   })
 
   it('returns empty string for default exported anonymous class', () => {
-    const project = new Project({ useInMemoryFileSystem: true })
-    const sf = project.createSourceFile('test.ts', 'export default class {}')
+    counter.value++
+    const sf = sharedProject.createSourceFile(
+      `test-anon-${counter.value}.ts`,
+      'export default class {}',
+    )
     const classDecl = sf.getClassOrThrow(() => true)
     const result = evaluateFromClassNameRule({ fromClassName: true }, classDecl)
     expect(result.value).toBe('')
@@ -240,8 +246,11 @@ describe('evaluateFromPropertyRule (static)', () => {
   })
 
   it('throws ExtractionError with anonymous class name when property not found', () => {
-    const project = new Project({ useInMemoryFileSystem: true })
-    const sf = project.createSourceFile('test.ts', 'export default class {}')
+    counter.value++
+    const sf = sharedProject.createSourceFile(
+      `test-anon-prop-${counter.value}.ts`,
+      'export default class {}',
+    )
     const classDecl = sf.getClassOrThrow(() => true)
     expect(() =>
       evaluateFromPropertyRule(
@@ -257,9 +266,9 @@ describe('evaluateFromPropertyRule (static)', () => {
   })
 
   it('throws ExtractionError when property initializer is enum member', () => {
-    const project = new Project({ useInMemoryFileSystem: true })
-    const sf = project.createSourceFile(
-      'test.ts',
+    counter.value++
+    const sf = sharedProject.createSourceFile(
+      `test-enum-${counter.value}.ts`,
       `
       enum HttpMethod { GET, POST }
       class OrderController { static method = HttpMethod.POST }
@@ -280,9 +289,9 @@ describe('evaluateFromPropertyRule (static)', () => {
   })
 
   it('throws ExtractionError when property initializer is template literal', () => {
-    const project = new Project({ useInMemoryFileSystem: true })
-    const sf = project.createSourceFile(
-      'test.ts',
+    counter.value++
+    const sf = sharedProject.createSourceFile(
+      `test-template-${counter.value}.ts`,
       `
       const id = 'test';
       class OrderController { static route = \`/api/\${id}\` }
@@ -303,9 +312,9 @@ describe('evaluateFromPropertyRule (static)', () => {
   })
 
   it('resolves property from parent class (inheritance chain)', () => {
-    const project = new Project({ useInMemoryFileSystem: true })
-    const sf = project.createSourceFile(
-      'test.ts',
+    counter.value++
+    const sf = sharedProject.createSourceFile(
+      `test-inherit-${counter.value}.ts`,
       `
       class BaseController { static basePath = '/api' }
       class OrderController extends BaseController {}

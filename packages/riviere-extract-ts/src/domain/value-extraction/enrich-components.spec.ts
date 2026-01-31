@@ -10,6 +10,16 @@ import type {
 } from '../component-extraction/extractor'
 import { enrichComponents } from './enrich-components'
 
+const sharedProject = new Project({ useInMemoryFileSystem: true })
+const counter = { value: 0 }
+
+function nextFile(path: string, content: string) {
+  counter.value++
+  const filePath = path.replace('.ts', `-${counter.value}.ts`)
+  sharedProject.createSourceFile(filePath, content)
+  return filePath
+}
+
 function alwaysMatchGlob(): GlobMatcher {
   return () => true
 }
@@ -49,16 +59,13 @@ function apiDraft(name: string, file: string, line: number, domain: string): Dra
 describe('enrichComponents', () => {
   describe('returns components with empty metadata when no extract blocks exist', () => {
     it('returns enriched components with empty metadata when detection rules have no extract blocks', () => {
-      const project = new Project({ useInMemoryFileSystem: true })
-      project.createSourceFile('/src/orders/order.controller.ts', 'export class OrderController {}')
+      const file = nextFile('/src/orders/order.controller.ts', 'export class OrderController {}')
 
-      const drafts: DraftComponent[] = [
-        apiDraft('OrderController', '/src/orders/order.controller.ts', 1, 'orders'),
-      ]
+      const drafts: DraftComponent[] = [apiDraft('OrderController', file, 1, 'orders')]
 
       const config = configWithModules([moduleWithNoExtract('orders', '/src/orders/**')])
 
-      const result = enrichComponents(drafts, config, project, alwaysMatchGlob(), '/')
+      const result = enrichComponents(drafts, config, sharedProject, alwaysMatchGlob(), '/')
 
       expect(result).toStrictEqual({
         components: [
@@ -66,7 +73,7 @@ describe('enrichComponents', () => {
             type: 'api',
             name: 'OrderController',
             location: {
-              file: '/src/orders/order.controller.ts',
+              file,
               line: 1,
             },
             domain: 'orders',
@@ -78,10 +85,9 @@ describe('enrichComponents', () => {
     })
 
     it('returns empty results when given no draft components', () => {
-      const project = new Project({ useInMemoryFileSystem: true })
       const config = configWithModules([moduleWithNoExtract('orders', '/src/orders/**')])
 
-      const result = enrichComponents([], config, project, alwaysMatchGlob(), '/')
+      const result = enrichComponents([], config, sharedProject, alwaysMatchGlob(), '/')
 
       expect(result).toStrictEqual({
         components: [],
@@ -92,12 +98,9 @@ describe('enrichComponents', () => {
 
   describe('enriches component with extraction rules', () => {
     it('adds literal value to metadata when extract block has literal rule', () => {
-      const project = new Project({ useInMemoryFileSystem: true })
-      project.createSourceFile('/src/orders/order.controller.ts', 'export class OrderController {}')
+      const file = nextFile('/src/orders/order.controller.ts', 'export class OrderController {}')
 
-      const drafts: DraftComponent[] = [
-        apiDraft('OrderController', '/src/orders/order.controller.ts', 1, 'orders'),
-      ]
+      const drafts: DraftComponent[] = [apiDraft('OrderController', file, 1, 'orders')]
 
       const module: Module = {
         name: 'orders',
@@ -116,19 +119,16 @@ describe('enrichComponents', () => {
 
       const config = configWithModules([module])
 
-      const result = enrichComponents(drafts, config, project, alwaysMatchGlob(), '/')
+      const result = enrichComponents(drafts, config, sharedProject, alwaysMatchGlob(), '/')
 
       expect(result.components[0]?.metadata).toStrictEqual({ apiType: 'REST' })
       expect(result.failures).toStrictEqual([])
     })
 
     it('adds fromClassName value to metadata when extract block has fromClassName rule', () => {
-      const project = new Project({ useInMemoryFileSystem: true })
-      project.createSourceFile('/src/orders/order.controller.ts', 'export class OrderController {}')
+      const file = nextFile('/src/orders/order.controller.ts', 'export class OrderController {}')
 
-      const drafts: DraftComponent[] = [
-        apiDraft('OrderController', '/src/orders/order.controller.ts', 1, 'orders'),
-      ]
+      const drafts: DraftComponent[] = [apiDraft('OrderController', file, 1, 'orders')]
 
       const module: Module = {
         name: 'orders',
@@ -147,18 +147,15 @@ describe('enrichComponents', () => {
 
       const config = configWithModules([module])
 
-      const result = enrichComponents(drafts, config, project, alwaysMatchGlob(), '/')
+      const result = enrichComponents(drafts, config, sharedProject, alwaysMatchGlob(), '/')
 
       expect(result.components[0]?.metadata).toStrictEqual({ componentName: 'OrderController' })
     })
 
     it('adds fromFilePath value to metadata when extract block has fromFilePath rule', () => {
-      const project = new Project({ useInMemoryFileSystem: true })
-      project.createSourceFile('/src/orders/order.controller.ts', 'export class OrderController {}')
+      const file = nextFile('/src/orders/order.controller.ts', 'export class OrderController {}')
 
-      const drafts: DraftComponent[] = [
-        apiDraft('OrderController', '/src/orders/order.controller.ts', 1, 'orders'),
-      ]
+      const drafts: DraftComponent[] = [apiDraft('OrderController', file, 1, 'orders')]
 
       const module: Module = {
         name: 'orders',
@@ -184,7 +181,7 @@ describe('enrichComponents', () => {
 
       const config = configWithModules([module])
 
-      const result = enrichComponents(drafts, config, project, alwaysMatchGlob(), '/')
+      const result = enrichComponents(drafts, config, sharedProject, alwaysMatchGlob(), '/')
 
       expect(result.components[0]?.metadata).toStrictEqual({ moduleName: 'orders' })
     })
@@ -192,10 +189,9 @@ describe('enrichComponents', () => {
 
   describe('records failure when extraction rule throws', () => {
     it('records failure and adds field to _missing when fromProperty rule references nonexistent property', () => {
-      const project = new Project({ useInMemoryFileSystem: true })
-      project.createSourceFile('/src/orders/order.controller.ts', 'export class OrderController {}')
+      const file = nextFile('/src/orders/order.controller.ts', 'export class OrderController {}')
 
-      const draft = apiDraft('OrderController', '/src/orders/order.controller.ts', 1, 'orders')
+      const draft = apiDraft('OrderController', file, 1, 'orders')
       const drafts: DraftComponent[] = [draft]
 
       const module: Module = {
@@ -222,14 +218,13 @@ describe('enrichComponents', () => {
 
       const config = configWithModules([module])
 
-      const result = enrichComponents(drafts, config, project, alwaysMatchGlob(), '/')
+      const result = enrichComponents(drafts, config, sharedProject, alwaysMatchGlob(), '/')
 
       expect(result.failures).toStrictEqual([
         {
           component: draft,
           field: 'path',
-          error:
-            "Property 'nonexistent' not found on class 'OrderController' at /src/orders/order.controller.ts:1",
+          error: `Property 'nonexistent' not found on class 'OrderController' at ${file}:1`,
         },
       ])
       expect(result.components[0]?.metadata).toStrictEqual({})
@@ -237,12 +232,9 @@ describe('enrichComponents', () => {
     })
 
     it('extracts successful fields and records failed ones separately', () => {
-      const project = new Project({ useInMemoryFileSystem: true })
-      project.createSourceFile('/src/orders/order.controller.ts', 'export class OrderController {}')
+      const file = nextFile('/src/orders/order.controller.ts', 'export class OrderController {}')
 
-      const drafts: DraftComponent[] = [
-        apiDraft('OrderController', '/src/orders/order.controller.ts', 1, 'orders'),
-      ]
+      const drafts: DraftComponent[] = [apiDraft('OrderController', file, 1, 'orders')]
 
       const module: Module = {
         name: 'orders',
@@ -269,7 +261,7 @@ describe('enrichComponents', () => {
 
       const config = configWithModules([module])
 
-      const result = enrichComponents(drafts, config, project, alwaysMatchGlob(), '/')
+      const result = enrichComponents(drafts, config, sharedProject, alwaysMatchGlob(), '/')
 
       expect(result.components[0]?.metadata).toStrictEqual({ apiType: 'REST' })
       expect(result.components[0]?._missing).toStrictEqual(['path'])
@@ -279,18 +271,15 @@ describe('enrichComponents', () => {
 
   describe('handles components with no matching module', () => {
     it('returns component with empty metadata when no module matches', () => {
-      const project = new Project({ useInMemoryFileSystem: true })
-      project.createSourceFile('/src/orders/order.controller.ts', 'export class OrderController {}')
+      const file = nextFile('/src/orders/order.controller.ts', 'export class OrderController {}')
 
       const neverMatchGlob: GlobMatcher = () => false
 
-      const drafts: DraftComponent[] = [
-        apiDraft('OrderController', '/src/orders/order.controller.ts', 1, 'orders'),
-      ]
+      const drafts: DraftComponent[] = [apiDraft('OrderController', file, 1, 'orders')]
 
       const config = configWithModules([moduleWithNoExtract('other', '/src/other/**')])
 
-      const result = enrichComponents(drafts, config, project, neverMatchGlob, '/')
+      const result = enrichComponents(drafts, config, sharedProject, neverMatchGlob, '/')
 
       expect(result.components[0]?.metadata).toStrictEqual({})
       expect(result.failures).toStrictEqual([])
@@ -299,15 +288,14 @@ describe('enrichComponents', () => {
 
   describe('handles components with notUsed detection rule', () => {
     it('returns component with empty metadata when component type rule is notUsed', () => {
-      const project = new Project({ useInMemoryFileSystem: true })
-      project.createSourceFile('/src/orders/order.service.ts', 'export class OrderService {}')
+      const file = nextFile('/src/orders/order.service.ts', 'export class OrderService {}')
 
       const drafts: DraftComponent[] = [
         {
           type: 'useCase',
           name: 'OrderService',
           location: {
-            file: '/src/orders/order.service.ts',
+            file,
             line: 1,
           },
           domain: 'orders',
@@ -316,7 +304,7 @@ describe('enrichComponents', () => {
 
       const config = configWithModules([moduleWithNoExtract('orders', '/src/orders/**')])
 
-      const result = enrichComponents(drafts, config, project, alwaysMatchGlob(), '/')
+      const result = enrichComponents(drafts, config, sharedProject, alwaysMatchGlob(), '/')
 
       expect(result.components[0]?.metadata).toStrictEqual({})
     })
@@ -324,15 +312,14 @@ describe('enrichComponents', () => {
 
   describe('handles customTypes extract blocks', () => {
     it('enriches component from customTypes detection rule extract block', () => {
-      const project = new Project({ useInMemoryFileSystem: true })
-      project.createSourceFile('/src/orders/order.saga.ts', 'export class OrderSaga {}')
+      const file = nextFile('/src/orders/order.saga.ts', 'export class OrderSaga {}')
 
       const drafts: DraftComponent[] = [
         {
           type: 'saga',
           name: 'OrderSaga',
           location: {
-            file: '/src/orders/order.saga.ts',
+            file,
             line: 1,
           },
           domain: 'orders',
@@ -359,7 +346,7 @@ describe('enrichComponents', () => {
 
       const config = configWithModules([module])
 
-      const result = enrichComponents(drafts, config, project, alwaysMatchGlob(), '/')
+      const result = enrichComponents(drafts, config, sharedProject, alwaysMatchGlob(), '/')
 
       expect(result.components[0]?.metadata).toStrictEqual({ sagaType: 'orchestrator' })
     })
@@ -367,8 +354,6 @@ describe('enrichComponents', () => {
 
   describe('handles error cases for class-based extraction', () => {
     it('records failure when source file not found in project for class-based rule', () => {
-      const project = new Project({ useInMemoryFileSystem: true })
-
       const draft = apiDraft('OrderController', '/src/missing/file.ts', 1, 'orders')
       const drafts: DraftComponent[] = [draft]
 
@@ -389,7 +374,7 @@ describe('enrichComponents', () => {
 
       const config = configWithModules([module])
 
-      const result = enrichComponents(drafts, config, project, alwaysMatchGlob(), '/')
+      const result = enrichComponents(drafts, config, sharedProject, alwaysMatchGlob(), '/')
 
       expect(result.failures).toHaveLength(1)
       expect(result.failures[0]?.field).toBe('componentName')
@@ -397,13 +382,12 @@ describe('enrichComponents', () => {
     })
 
     it('records failure when no class found at specified line', () => {
-      const project = new Project({ useInMemoryFileSystem: true })
-      project.createSourceFile(
+      const file = nextFile(
         '/src/orders/order.controller.ts',
         'const x = 1\nexport class OrderController {}',
       )
 
-      const draft = apiDraft('OrderController', '/src/orders/order.controller.ts', 99, 'orders')
+      const draft = apiDraft('OrderController', file, 99, 'orders')
       const drafts: DraftComponent[] = [draft]
 
       const module: Module = {
@@ -423,7 +407,7 @@ describe('enrichComponents', () => {
 
       const config = configWithModules([module])
 
-      const result = enrichComponents(drafts, config, project, alwaysMatchGlob(), '/')
+      const result = enrichComponents(drafts, config, sharedProject, alwaysMatchGlob(), '/')
 
       expect(result.failures).toHaveLength(1)
       expect(result.failures[0]?.field).toBe('componentName')
