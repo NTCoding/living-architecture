@@ -316,11 +316,30 @@ it('calls clearTimeout when component unmounts with pending timeout', () => {
 
 ### TS-011: Testing Errors
 
-Test both error type and message in a single test—they represent one error condition.
+Test both error type and identifying properties (message, kind, code) in a single test—they represent one error condition.
 
 ```typescript
 it('throws ConfigurationError when config file is missing', () => {
   expect(() => loadConfig('nonexistent.json')).toThrow(ConfigurationError)
   expect(() => loadConfig('nonexistent.json')).toThrow('Config file not found')
 })
+```
+
+### TS-012: Mock Global Objects with vi.spyOn
+
+When mocking globals (`console.error`, `console.log`, `window.fetch`, etc.), use `vi.spyOn` instead of direct property reassignment. Direct reassignment leaks the mock if the test throws before the restore line is reached.
+
+**Example (BAD):**
+```typescript
+const original = console.error
+console.error = (msg: string) => captured.push(msg)
+// ... test logic ...
+console.error = original  // never reached if test throws above
+```
+
+**Example (GOOD):**
+```typescript
+const spy = vi.spyOn(console, 'error').mockImplementation((msg: string) => captured.push(String(msg)))
+// ... test logic ...
+spy.mockRestore()  // or rely on vi.restoreAllMocks() in afterEach
 ```

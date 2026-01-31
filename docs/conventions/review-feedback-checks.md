@@ -266,6 +266,32 @@ if (!hasStringLiteralValue(routeProperty)) {
 
 ---
 
+## RFC-009: Hardcoded Unix Paths in Process Execution
+
+**Source:** PR #233 (CodeRabbit)
+
+**Pattern:** Using hardcoded Unix-specific paths (`/usr/bin/which`, `/bin/sh`, `/usr/local/bin/node`) as the command in `execFileSync`, `execSync`, `spawn`, or `child_process` calls. These paths don't exist on Windows, causing the command to fail even when the tool is installed.
+
+**Example (BAD):**
+```typescript
+// Hardcoded Unix path — fails on Windows
+const gitPath = execFileSync('/usr/bin/which', ['git'], { encoding: 'utf-8' }).trim()
+```
+
+**Example (GOOD):**
+```typescript
+// Let the OS resolve via PATH
+const gitPath = execFileSync('which', ['git'], { encoding: 'utf-8' }).trim()
+
+// Or use a cross-platform package
+import which from 'which'
+const gitPath = await which('git')
+```
+
+**Detection:** Flag `/usr/bin/`, `/bin/`, `/usr/local/bin/` appearing as command arguments in `execFileSync`, `execSync`, `spawn`, `spawnSync`, `exec`, `fork`, or `child_process` method calls.
+
+---
+
 ## Adding New Checks
 
 When external review feedback reveals a pattern:

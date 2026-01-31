@@ -12,7 +12,7 @@ Scan changed files for bugs and dangerous patterns. Be paranoid - if something l
 ## Instructions
 
 1. Read `docs/conventions/anti-patterns.md` for codebase-specific anti-patterns (AP-001 through AP-006)
-2. Read `docs/conventions/review-feedback-checks.md` for RFC checks (RFC-001 through RFC-008)
+2. Read `docs/conventions/review-feedback-checks.md` for RFC checks (RFC-001 through RFC-009)
 3. Review ALL files listed in "Files to Review" below
 4. For each file, read its contents and scan for the patterns described
 5. Check related files as needed to understand context
@@ -137,7 +137,7 @@ Flag ANY modification to these files.
 
 ## Priority 5: Review Feedback Checks
 
-Read `docs/conventions/review-feedback-checks.md` and apply each RFC check (RFC-001 through RFC-008) to changed code.
+Read `docs/conventions/review-feedback-checks.md` and apply each RFC check (RFC-001 through RFC-009) to changed code.
 
 ## Severity Levels
 
@@ -187,7 +187,7 @@ Rule sets to audit (every ID must appear):
 - Framework & Library Misuse: BS-007 through BS-010
 - Dangerous Config Changes: BS-011
 - Security Issues: BS-012 through BS-014
-- Review Feedback Checks: RFC-001 through RFC-008
+- Review Feedback Checks: RFC-001 through RFC-009
 
 ### 4. Audit Summary
 
