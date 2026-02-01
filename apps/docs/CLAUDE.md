@@ -31,7 +31,7 @@ Every page serves one of these journeys. New content MUST fit an existing journe
 
 | Journey | Entry Point | Pages |
 |---------|-------------|-------|
-| **"Get me started"** | `/get-started/` | Installation, quick starts, CLI vs library |
+| **"What is Rivière, and how do I use it?"** | `/get-started/` | Introduction, installation, quick starts, CLI vs library |
 | **"AI extracts my architecture"** | `/extract/steps/` | 6-step AI workflow |
 | **"I want deterministic extraction"** | `/extract/deterministic/typescript/` | Getting started, 6-step deterministic workflow, enforcement |
 | **"I need to look something up"** | `/reference/` | Schema, CLI, API, extraction config DSL |
