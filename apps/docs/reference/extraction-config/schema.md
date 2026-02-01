@@ -89,18 +89,174 @@ Rule for detecting components of this type
 
 ### `extractBlock`
 
-Maps field names to [extraction rules](/reference/extraction-config/extraction-rules). Each key is a Riviere schema field (e.g., `apiType`, `httpMethod`, `path`).
+Extraction rules mapping field names to extraction rules
 
-```yaml
-extract:
-  apiType: { literal: "REST" }
-  httpMethod: { fromDecoratorName: true }
-  path: { fromDecoratorArg: { position: 0 } }
-```
+---
 
-**Available rules:** `literal`, `fromClassName`, `fromMethodName`, `fromFilePath`, `fromProperty`, `fromDecoratorArg`, `fromDecoratorName`, `fromGenericArg`, `fromMethodSignature`, `fromConstructorParams`, `fromParameterType`
+### `extractionRule`
 
-[See Extraction Rules Reference →](/reference/extraction-config/extraction-rules)
+**One of:**
+
+- `literalExtractionRule` — Extracts a hardcoded literal value
+- `fromClassNameExtractionRule` — Extracts value from the class name
+- `fromMethodNameExtractionRule` — Extracts value from the method name
+- `fromFilePathExtractionRule` — Extracts value from the file path using regex capture
+- `fromPropertyExtractionRule` — Extracts value from a class property
+- `fromDecoratorArgExtractionRule` — Extracts value from decorator argument
+- `fromDecoratorNameExtractionRule` — Extracts value from the decorator name itself
+- `fromGenericArgExtractionRule` — Extracts value from generic type argument
+- `fromMethodSignatureExtractionRule` — Extracts method parameters and return type
+- `fromConstructorParamsExtractionRule` — Extracts constructor parameter names and types
+- `fromParameterTypeExtractionRule` — Extracts type name of parameter at position
+
+---
+
+### `fromMethodNameExtractionRule`
+
+Extracts value from the method name
+
+**Properties:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `fromMethodName` | `boolean` \| `object` | **Yes** |  |
+
+---
+
+### `fromFilePathExtractionRule`
+
+Extracts value from the file path using regex capture
+
+**Properties:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `fromFilePath` | `object` | **Yes** |  |
+
+---
+
+### `fromPropertyExtractionRule`
+
+Extracts value from a class property
+
+**Properties:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `fromProperty` | `object` | **Yes** |  |
+
+---
+
+### `fromDecoratorArgExtractionRule`
+
+Extracts value from decorator argument
+
+**Properties:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `fromDecoratorArg` | `object` | **Yes** |  |
+
+---
+
+### `fromDecoratorNameExtractionRule`
+
+Extracts value from the decorator name itself
+
+**Properties:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `fromDecoratorName` | `boolean` \| `object` | **Yes** |  |
+
+---
+
+### `fromGenericArgExtractionRule`
+
+Extracts value from generic type argument
+
+**Properties:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `fromGenericArg` | `object` | **Yes** |  |
+
+---
+
+### `fromMethodSignatureExtractionRule`
+
+Extracts method parameters and return type
+
+**Properties:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `fromMethodSignature` | `boolean` | **Yes** |  |
+
+---
+
+### `fromConstructorParamsExtractionRule`
+
+Extracts constructor parameter names and types
+
+**Properties:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `fromConstructorParams` | `boolean` | **Yes** |  |
+
+---
+
+### `fromParameterTypeExtractionRule`
+
+Extracts type name of parameter at position
+
+**Properties:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `fromParameterType` | `object` | **Yes** |  |
+
+---
+
+### `fromClassNameExtractionRule`
+
+Extracts value from the class name
+
+**Properties:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `fromClassName` | `boolean` \| `object` | **Yes** | Extract from class name, optionally with transform |
+
+---
+
+### `transform`
+
+Transform operations to apply to extracted value
+
+**Properties:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `stripSuffix` | `string` | No |  |
+| `stripPrefix` | `string` | No |  |
+| `toLowerCase` | `boolean` | No |  |
+| `toUpperCase` | `boolean` | No |  |
+| `kebabToPascal` | `boolean` | No |  |
+| `pascalToKebab` | `boolean` | No |  |
+
+---
+
+### `literalExtractionRule`
+
+Extracts a hardcoded literal value
+
+**Properties:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `literal` | `string` \| `boolean` \| `number` | **Yes** | Literal value to use for this field |
 
 ---
 
@@ -118,6 +274,5 @@ The code construct to search for
 
 ## See Also
 
-- [Extraction Rules Reference](/reference/extraction-config/extraction-rules) — All 11 rules with parameters, YAML syntax, and examples
 - [Predicate Reference](/reference/extraction-config/predicates)
 - [TypeScript Getting Started](/extract/deterministic/typescript/getting-started)

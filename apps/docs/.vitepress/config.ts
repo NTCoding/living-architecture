@@ -140,6 +140,10 @@ export default defineConfig({
               text: 'Overview',
               link: '/extract/',
             },
+            {
+              text: 'AI Codebase Scanner',
+              link: '/extract/ai-scanner/',
+            },
           ],
         },
         {
