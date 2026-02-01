@@ -257,7 +257,7 @@
        text-anchor="middle"
        id="text-yourcode">Your Code</text>
   </g>
-  <!-- COLUMN 2: Extraction Code (top) - with settings/cog icon -->
+  <!-- COLUMN 2: Rivière Extract (top) - with settings/cog icon -->
   <g
      transform="translate(166.5,50)"
      id="g-extraction">
@@ -268,7 +268,7 @@
       <path
          d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"
          fill="none"
-         stroke="#64748B"
+         stroke="#0D9488"
          stroke-width="2"
          stroke-linecap="round"
          stroke-linejoin="round"
@@ -278,7 +278,7 @@
          cy="12"
          r="3"
          fill="none"
-         stroke="#64748B"
+         stroke="#0D9488"
          stroke-width="2"
          id="circle5" />
     </g>
@@ -288,18 +288,18 @@
        font-family="Rubik, sans-serif"
        font-size="12px"
        font-weight="600"
-       fill="#334155"
+       fill="#0D9488"
        text-anchor="middle"
-       id="text-extraction">Extraction</text>
+       id="text-extraction">Rivière</text>
     <text
        x="0"
        y="36"
        font-family="Rubik, sans-serif"
        font-size="12px"
        font-weight="600"
-       fill="#334155"
+       fill="#0D9488"
        text-anchor="middle"
-       id="text-extraction2">Code</text>
+       id="text-extraction2">Extract</text>
   </g>
   <!-- COLUMN 2: AI (bottom) - with sparkles icon -->
   <g
@@ -565,15 +565,15 @@
   <!-- COLUMN 5: Rivière Query - with search icon -->
   <!-- COLUMN 5: Éclair - with visualization/graph icon -->
   <!-- ============ FLOWING CURVE ARROWS ============ -->
-  <!-- Extraction Code → Your Code (extracts) - gentle S-curve down-left -->
+  <!-- Rivière Extract → Your Code (extracts) - gentle S-curve down-left -->
   <path
      d="M 128,50 C 100,55 75.666218,70.003366 62.666218,90.003366"
-     stroke="#94a3b8"
+     stroke="#14b8a6"
      stroke-width="1.5"
      stroke-dasharray="6, 4"
      stroke-linecap="round"
      fill="none"
-     marker-end="url(#arrow-gray)"
+     marker-end="url(#arrow-teal)"
      id="curve-extract-code-to-yourcode"
      sodipodi:nodetypes="cc" />
   <text
@@ -582,7 +582,7 @@
      font-family="Rubik, sans-serif"
      font-size="10px"
      font-weight="500"
-     fill="#64748b"
+     fill="#0D9488"
      text-anchor="middle"
      id="text13">extracts</text>
   <!-- AI → Your Code (extracts) - gentle S-curve up-left -->
@@ -616,15 +616,15 @@
      marker-end="url(#arrow-gray)"
      id="curve-ai-to-cli"
      sodipodi:nodetypes="cc" />
-  <!-- Extraction Code → Builder (uses) - clean arc right -->
+  <!-- Rivière Extract → Builder (uses) - clean arc right -->
   <path
      d="M 190,50 C 220,50 250,55 275,60"
-     stroke="#94a3b8"
+     stroke="#14b8a6"
      stroke-width="1.5"
      stroke-dasharray="6, 4"
      stroke-linecap="round"
      fill="none"
-     marker-end="url(#arrow-gray)"
+     marker-end="url(#arrow-teal)"
      id="curve-extractcode-to-builder" />
   <!-- CLI → Builder (uses) - gentle S-curve up -->
   <path
