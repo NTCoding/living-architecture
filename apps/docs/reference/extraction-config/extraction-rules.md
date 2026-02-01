@@ -488,6 +488,10 @@ class Handlers {
 
 Transforms modify extracted string values. Multiple transforms can be combined.
 
+::: tip Transform Order
+When combining transforms, they execute in a fixed order regardless of YAML key order: `stripSuffix` → `stripPrefix` → `toLowerCase` → `toUpperCase` → `kebabToPascal` → `pascalToKebab`.
+:::
+
 | Transform | Description | Example |
 |-----------|-------------|---------|
 | `stripSuffix` | Remove trailing string | `"OrderEvent"` → `"Order"` |
