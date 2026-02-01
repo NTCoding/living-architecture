@@ -19,6 +19,10 @@ This step uses config-driven detection instead of AI. Components are found by sc
 npm install --save-dev @living-architecture/riviere-cli @living-architecture/riviere-extract-conventions
 ```
 
+::: tip AI-Assisted Config Generation
+Use an AI assistant to scan your codebase and generate a starting `extraction.config.yaml`. Prompt the AI to identify architectural components (APIs, use cases, events, etc.) by domain, then suggest detection rules using predicates like `hasDecorator`, `nameEndsWith`, and `hasJSDoc`. Validate the generated config with `npx riviere extract --config extraction.config.yaml --dry-run`.
+:::
+
 ## 3.1 Choose Detection Strategy
 
 Select a detection strategy based on your codebase:
@@ -287,7 +291,7 @@ npx riviere extract --config extraction.config.yaml --validate-only
 
 ## 3.7 Enrich with Metadata
 
-Detection finds components, but metadata makes them useful. The `extract` block in your config maps schema fields to values pulled from your code.
+Detection finds components but doesn't capture metadata like HTTP methods, routes, or event names. Add an `extract` block to your detection rule to pull these values from your code.
 
 ### Before enrichment (detection only)
 

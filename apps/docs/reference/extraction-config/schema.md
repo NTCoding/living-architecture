@@ -274,5 +274,7 @@ The code construct to search for
 
 ## See Also
 
-- [Predicate Reference](/reference/extraction-config/predicates)
+- [Extraction Rules](/reference/extraction-config/extraction-rules) — Metadata extraction rules for `extract` blocks
+- [Predicate Reference](/reference/extraction-config/predicates) — Detection filters for `where` clauses
+- [Examples](/reference/extraction-config/examples) — Real-world configs
 - [TypeScript Getting Started](/extract/deterministic/typescript/getting-started)

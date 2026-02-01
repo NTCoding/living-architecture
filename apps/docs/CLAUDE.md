@@ -1,4 +1,232 @@
-All UI and UX styling MUST conform to brand guidelines in `/docs/brand`. 100% adherence to brand guidelines is mandatory.
+# Documentation Site
+
+## Mission
+
+Public-facing documentation at [living-architecture.dev](https://living-architecture.dev). Helps users extract architecture from code, build Rivière schema graphs, and visualize them with Éclair.
+
+**Audience:** Developers adopting Rivière for their TypeScript and non-TypeScript projects.
+
+All UI and UX styling MUST conform to brand guidelines in `/docs/brand`.
+
+## Site Layout
+
+```text
+get-started/          → Onboarding: install, quick starts, choosing CLI vs library
+extract/              → Extraction workflows
+  steps/              → AI-assisted extraction (6-step workflow)
+  ai-scanner/         → (deleted — content integrated into steps/step-3)
+  deterministic/      → Deterministic extraction
+    typescript/       → TypeScript config-driven: getting started, workflow, enforcement
+visualize/            → Éclair viewer: getting started, views
+reference/            → Lookup destinations (not tutorials)
+  schema/             → Rivière graph structure
+  cli/                → CLI commands
+  api/                → Library API (partially auto-generated)
+  extraction-config/  → Config DSL: schema, predicates, extraction rules, decorators, examples
+```
+
+## User Journeys
+
+Every page serves one of these journeys. New content MUST fit an existing journey. If a page requires a new journey, clarify with the user first and update this table.
+
+| Journey | Entry Point | Pages |
+|---------|-------------|-------|
+| **"Get me started"** | `/get-started/` | Installation, quick starts, CLI vs library |
+| **"AI extracts my architecture"** | `/extract/steps/` | 6-step AI workflow |
+| **"I write extraction config"** | `/extract/deterministic/typescript/` | Getting started, 6-step deterministic workflow, enforcement |
+| **"I need to look something up"** | `/reference/` | Schema, CLI, API, extraction config DSL |
+| **"I want to visualize"** | `/visualize/` | Éclair getting started, views |
+
+**Test for new pages:** Can you answer "Which journey is the user on, and what step?" If no, the page doesn't belong as a standalone page.
+
+## Auto-Generated vs Manual
+
+| Content | Source | Command | Location |
+|---------|--------|---------|----------|
+| CLI reference | riviere-cli command definitions | `pnpm nx generate-docs riviere-cli` | `packages/riviere-cli/docs/generated/cli-reference.md` → copied to `reference/cli/cli-reference.md` |
+| API docs (RiviereBuilder, RiviereQuery) | TypeDoc from source | `pnpm nx typedoc riviere-builder` / `riviere-query` | `reference/api/generated/` |
+| Rivière JSON Schema | Schema package | Built with docs | `public/schema/riviere.schema.json` |
+
+**Rules:**
+
+- NEVER manually edit files in `reference/api/generated/` — they are overwritten on build
+- NEVER manually edit `reference/cli/cli-reference.md` — regenerate with `pnpm nx generate-docs riviere-cli`
+- After changing CLI commands or library APIs, regenerate docs before submitting
+
+**Everything else is manual.** All pages outside the generated paths above are hand-written.
+
+## Page Formats
+
+### Reference Pages (match `predicates.md`)
+
+```markdown
+---
+pageClass: reference
+---
+
+# Page Title
+
+## Overview
+
+| Item | Description |
+|------|-------------|
+| `itemA` | One-line description |
+| `itemB` | One-line description |
+
+---
+
+### `itemA`
+
+One-line description
+
+**Parameters:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `name` | `string` | **Yes** | What this field does |
+| `from` | `string` | No | Optional field |
+
+---
+
+### `itemB`
+
+...
+
+---
+
+## See Also
+
+- [Related Page](/path) — Brief context
+```
+
+**Rules:**
+
+- `pageClass: reference` frontmatter required
+- Overview table at top listing ALL items
+- Each item as `###` with parameters table
+- `---` separator between items
+- No YAML/TypeScript tutorial examples (those go on `examples.md`)
+- No edge case narratives
+- Required fields use **Yes** bold
+
+### Workflow Step Pages (match `step-1-understand.md`)
+
+```markdown
+# Step N: Title
+
+Brief description.
+
+::: info Optional Context
+Important context if needed.
+:::
+
+## Prerequisites
+
+- List of requirements
+
+## N.1 First Sub-step
+
+Instructions...
+
+## N.2 Second Sub-step
+
+Instructions...
+
+## Output
+
+What this step produces.
+
+## Next Step
+
+**[Step N+1: Title →](/path/to/next-step)**
+```
+
+### Overview/Index Pages (match `extract/index.md`)
+
+```markdown
+# Section Title
+
+One-sentence description.
+
+## Why [Topic]?
+
+Value proposition.
+
+## Choose Your Path
+
+### Option A: Name
+
+Description.
+
+**[Start Option A →](/path)**
+
+### Option B: Name
+
+Description.
+
+**[Start Option B →](/path)**
+
+## Reference
+
+- [Relevant Reference](/path)
+```
+
+## Cross-Linking
+
+**Every page has a See Also section** at the bottom (3-5 links):
+
+```markdown
+## See Also
+
+- [Page Title](/absolute/path) — Brief context
+- [Another Page](/another/path)
+```
+
+**Link formats:**
+
+- Forward navigation (workflow steps): `**[Step 4: Link →](/path)**`
+- Reference lookups (from tutorials): `[See all predicates →](/reference/extraction-config/predicates)`
+- External: `[View demo app →](https://github.com/...)`
+- Plain cross-reference: `[Page Title](/path)`
+
+**Rules:**
+
+- Use absolute paths (`/reference/...` not `./...`)
+- Arrow `→` means "go forward" or "go deeper"
+- Bold for primary CTAs
+- Link first mention of a term, not every mention
+
+## Modifying Existing Pages
+
+- **NEVER delete existing content** unless explicitly told to
+- Add companion sections alongside existing ones
+- Before modifying, read the ENTIRE page to understand its structure
+- schema.md is the structural reference — add pages alongside it, don't gut it
+
+## Terminology
+
+- Use terms from `docs/architecture/domain-terminology/contextive/definitions.glossary.yml` ONLY
+- Never invent terms. If you need a term not in the glossary, ask the user first.
+- Never use synonyms for glossary terms
+
+## Code Blocks
+
+- Always specify language: `yaml`, `typescript`, `bash`, `text`
+- Config (YAML) before code (TypeScript) when showing both
+- CLI output uses `text` not `bash`
+- Inline `backticks` for field names, command names, short values
+
+## VitePress Callouts
+
+Use sparingly:
+
+- `::: info Title` — Important context affecting the whole page
+- `::: warning Title` — Common mistakes or breaking changes
+- `::: tip Title` — Optional best practices
+
+## Quality Gate
+
+**Run `/documentation-review` before interrupting the user.** This validates all documentation changes against the rules in this file.
 
 ## VitePress Routing Gotcha
 
@@ -10,3 +238,9 @@ VitePress intercepts link clicks for client-side navigation. If you need links t
 4. Register your handler with capture phase: `addEventListener('click', handler, true)`
 
 See `eclairLinkHandler.ts` for the implementation.
+
+## Maintaining This File
+
+- When new page formats are established, add verbatim examples above
+- When new user journeys are added, update the journey table
+- When new auto-generated content is added, update the generation table
