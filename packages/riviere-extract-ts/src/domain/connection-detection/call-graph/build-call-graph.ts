@@ -17,31 +17,11 @@ import {
 } from './trace-calls'
 import { deduplicateLinks } from './deduplicate-links'
 import { resolveCallExpressionReceiverType } from './type-resolver'
-import { resolveInterface } from '../interface-resolution/resolve-interface'
-
-function getCalledMethodName(callExpr: CallExpression): string {
-  const expression = callExpr.getExpression()
-  return expression.asKindOrThrow(SyntaxKind.PropertyAccessExpression).getName()
-}
-
-function resolveTypeThroughInterface(
-  typeName: string,
-  project: Project,
-  componentIndex: ComponentIndex,
-  options: CallGraphOptions,
-): EnrichedComponent | undefined {
-  const component = componentIndex.getComponentByTypeName(typeName)
-  if (component !== undefined) {
-    return component
-  }
-
-  const interfaceResult = resolveInterface(typeName, project, options.sourceFilePaths, {strict: false,})
-  if (interfaceResult.resolved) {
-    return componentIndex.getComponentByTypeName(interfaceResult.typeName)
-  }
-
-  return undefined
-}
+import {
+  getCalledMethodName,
+  resolveTypeThroughInterface,
+  findMethodInProject,
+} from './call-graph-shared'
 
 function processCallExpression(
   callExpr: CallExpression,
@@ -78,7 +58,11 @@ function processCallExpression(
   const typeName = typeResult.typeName
   const calledMethodName = getCalledMethodName(callExpr)
 
-  const targetComponent = resolveTypeThroughInterface(typeName, project, componentIndex, options)
+  const {
+    component: targetComponent,
+    resolvedTypeName,
+    uncertain,
+  } = resolveTypeThroughInterface(typeName, project, componentIndex, options)
 
   if (targetComponent !== undefined) {
     if (componentIdentity(component) !== componentIdentity(targetComponent)) {
@@ -95,11 +79,12 @@ function processCallExpression(
     project,
     componentIndex,
     component,
-    typeName,
+    resolvedTypeName ?? typeName,
     calledMethodName,
     currentCallSite,
     rawLinks,
     uncertainLinks,
+    uncertain,
     options,
   )
 }
@@ -162,32 +147,36 @@ function traceNonComponent(
   callSite: CallSite,
   rawLinks: RawLink[],
   uncertainLinks: UncertainRawLink[],
+  interfaceUncertainty: string | undefined,
   options: CallGraphOptions,
 ): void {
   const visited = new Set<string>()
   visited.add(`${typeName}.${calledMethodName}`)
 
-  for (const sourceFile of project.getSourceFiles()) {
-    for (const classDecl of sourceFile.getClasses()) {
-      if (classDecl.getName() !== typeName) {
-        continue
-      }
-      const method = classDecl.getMethod(calledMethodName)
-      if (method === undefined) {
-        continue
-      }
-      traceCallsInBody(
-        method,
-        project,
-        componentIndex,
-        source,
-        callSite,
-        visited,
-        rawLinks,
-        uncertainLinks,
-        options,
-      )
-      return
-    }
+  const {
+    method, classFound 
+  } = findMethodInProject(project, typeName, calledMethodName)
+
+  if (method !== undefined) {
+    traceCallsInBody(
+      method,
+      project,
+      componentIndex,
+      source,
+      callSite,
+      visited,
+      rawLinks,
+      uncertainLinks,
+      options,
+    )
+    return
+  }
+
+  if (!classFound && interfaceUncertainty !== undefined) {
+    uncertainLinks.push({
+      source,
+      reason: interfaceUncertainty,
+      callSite,
+    })
   }
 }

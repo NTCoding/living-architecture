@@ -301,6 +301,39 @@ class CovNC4Origin {
     ])
   })
 
+  it('emits uncertain link during tracing when interface defined in source has no implementation', () => {
+    const file = nextFile(`
+interface TCNotifier {
+  notify(): void
+}
+
+class TCMiddleNotify {
+  private notifier: TCNotifier
+  constructor(notifier: TCNotifier) { this.notifier = notifier }
+  go(): void {
+    this.notifier.notify()
+  }
+}
+
+class TCCallerNotify {
+  private mid: TCMiddleNotify
+  constructor(mid: TCMiddleNotify) { this.mid = mid }
+  execute(): void { this.mid.go() }
+}
+`)
+    const comp = buildComponent('TCCallerNotify', file, 14)
+    const index = new ComponentIndex([comp])
+    const result = buildCallGraph(sharedProject, [comp], index, defaultOptions())
+
+    expect(result).toStrictEqual([
+      expect.objectContaining({
+        source: 'orders:useCase:TCCallerNotify',
+        target: '_unresolved',
+        _uncertain: expect.stringContaining('No implementation found for TCNotifier'),
+      }),
+    ])
+  })
+
   it('skips transitive trace self-link when source component is the target', () => {
     const file = nextFile(`
 class CovSelfComp3 {

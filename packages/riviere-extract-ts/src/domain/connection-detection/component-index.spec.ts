@@ -2,20 +2,11 @@ import {
   describe, it, expect 
 } from 'vitest'
 import { ComponentIndex } from './component-index'
+import { buildComponent as buildFixtureComponent } from './call-graph/call-graph-fixtures'
 import type { EnrichedComponent } from '../value-extraction/enrich-components'
 
 function buildComponent(overrides: Partial<EnrichedComponent> = {}): EnrichedComponent {
-  return {
-    type: 'service',
-    name: 'OrderService',
-    location: {
-      file: 'src/order-service.ts',
-      line: 10,
-    },
-    domain: 'orders',
-    metadata: {},
-    ...overrides,
-  }
+  return buildFixtureComponent('OrderService', 'src/order-service.ts', 10, overrides)
 }
 
 describe('ComponentIndex', () => {

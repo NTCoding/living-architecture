@@ -1,9 +1,5 @@
 import {
-  type CallExpression,
-  type ClassDeclaration,
-  type Project,
-  type MethodDeclaration,
-  SyntaxKind,
+  type ClassDeclaration, type Project, type MethodDeclaration, SyntaxKind 
 } from 'ts-morph'
 import type { ComponentIndex } from '../component-index'
 import type { EnrichedComponent } from '../../value-extraction/enrich-components'
@@ -12,60 +8,11 @@ import type {
 } from './call-graph-types'
 import { componentIdentity } from './call-graph-types'
 import { resolveCallExpressionReceiverType } from './type-resolver'
-import { resolveInterface } from '../interface-resolution/resolve-interface'
-
-function resolveMethodDeclaration(
-  project: Project,
-  typeName: string,
-  methodName: string,
-): MethodDeclaration | undefined {
-  for (const sourceFile of project.getSourceFiles()) {
-    for (const classDecl of sourceFile.getClasses()) {
-      if (classDecl.getName() !== typeName) {
-        continue
-      }
-      return classDecl.getMethod(methodName)
-    }
-  }
-  return undefined
-}
-
-function getCalledMethodName(callExpr: CallExpression): string {
-  const expression = callExpr.getExpression()
-  return expression.asKindOrThrow(SyntaxKind.PropertyAccessExpression).getName()
-}
-
-function resolveTypeThroughInterface(
-  typeName: string,
-  project: Project,
-  componentIndex: ComponentIndex,
-  options: CallGraphOptions,
-): {
-  component: EnrichedComponent | undefined
-  uncertain: string | undefined
-} {
-  const component = componentIndex.getComponentByTypeName(typeName)
-  if (component !== undefined) {
-    return {
-      component,
-      uncertain: undefined,
-    }
-  }
-
-  const interfaceResult = resolveInterface(typeName, project, options.sourceFilePaths, {strict: false,})
-  if (interfaceResult.resolved) {
-    const resolved = componentIndex.getComponentByTypeName(interfaceResult.typeName)
-    return {
-      component: resolved,
-      uncertain: undefined,
-    }
-  }
-
-  return {
-    component: undefined,
-    uncertain: undefined,
-  }
-}
+import {
+  getCalledMethodName,
+  resolveTypeThroughInterface,
+  findMethodInProject,
+} from './call-graph-shared'
 
 export function traceCallsInBody(
   body: MethodDeclaration,
@@ -82,7 +29,7 @@ export function traceCallsInBody(
 
   for (const callExpr of callExpressions) {
     const sourceFile = callExpr.getSourceFile()
-    const typeResult = resolveCallExpressionReceiverType(callExpr, sourceFile, { strict: false })
+    const typeResult = resolveCallExpressionReceiverType(callExpr, sourceFile, {strict: options.strict,})
 
     if (!typeResult.resolved) {
       continue
@@ -91,12 +38,11 @@ export function traceCallsInBody(
     const typeName = typeResult.typeName
     const calledMethodName = getCalledMethodName(callExpr)
 
-    const { component: targetComponent } = resolveTypeThroughInterface(
-      typeName,
-      project,
-      componentIndex,
-      options,
-    )
+    const {
+      component: targetComponent,
+      resolvedTypeName,
+      uncertain,
+    } = resolveTypeThroughInterface(typeName, project, componentIndex, options)
 
     if (targetComponent !== undefined) {
       if (componentIdentity(sourceComponent) !== componentIdentity(targetComponent)) {
@@ -109,13 +55,20 @@ export function traceCallsInBody(
       continue
     }
 
-    const visitKey = `${typeName}.${calledMethodName}`
+    const traceTypeName = resolvedTypeName ?? typeName
+    const visitKey = `${traceTypeName}.${calledMethodName}`
     if (visited.has(visitKey)) {
       continue
     }
     visited.add(visitKey)
 
-    const resolvedMethod = resolveMethodDeclaration(project, typeName, calledMethodName)
+    const {
+      method: resolvedMethod, classFound 
+    } = findMethodInProject(
+      project,
+      traceTypeName,
+      calledMethodName,
+    )
     if (resolvedMethod !== undefined) {
       traceCallsInBody(
         resolvedMethod,
@@ -128,6 +81,12 @@ export function traceCallsInBody(
         uncertainResults,
         options,
       )
+    } else if (!classFound && uncertain !== undefined) {
+      uncertainResults.push({
+        source: sourceComponent,
+        reason: uncertain,
+        callSite: originCallSite,
+      })
     }
   }
 }

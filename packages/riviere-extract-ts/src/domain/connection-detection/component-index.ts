@@ -1,12 +1,5 @@
 import type { EnrichedComponent } from '../value-extraction/enrich-components'
-
-function stripGenericArgs(typeName: string): string {
-  const angleBracketIndex = typeName.indexOf('<')
-  if (angleBracketIndex === -1) {
-    return typeName
-  }
-  return typeName.slice(0, angleBracketIndex)
-}
+import { stripGenericArgs } from './call-graph/call-graph-types'
 
 function locationKey(file: string, line: number): string {
   return `${file}:${line}`

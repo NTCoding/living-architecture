@@ -1,9 +1,11 @@
 import {
   describe, it, expect 
 } from 'vitest'
-import { Project } from 'ts-morph'
+import {
+  Project, ScriptTarget, ModuleKind 
+} from 'ts-morph'
 import { detectConnections } from './detect-connections'
-import type { EnrichedComponent } from '../value-extraction/enrich-components'
+import { buildComponent } from './call-graph/call-graph-fixtures'
 import { matchesGlob } from '../../platform/infra/glob-matching/minimatch-glob'
 
 function createProject(): Project {
@@ -11,29 +13,10 @@ function createProject(): Project {
     useInMemoryFileSystem: true,
     compilerOptions: {
       strict: true,
-      target: 99,
-      module: 99,
+      target: ScriptTarget.ESNext,
+      module: ModuleKind.ESNext,
     },
   })
-}
-
-function buildComponent(
-  name: string,
-  file: string,
-  line: number,
-  overrides: Partial<EnrichedComponent> = {},
-): EnrichedComponent {
-  return {
-    type: 'useCase',
-    name,
-    location: {
-      file,
-      line,
-    },
-    domain: 'orders',
-    metadata: {},
-    ...overrides,
-  }
 }
 
 describe('detectConnections', () => {
@@ -269,6 +252,9 @@ class PaymentGateway {
         target: 'orders:repository:PaymentGateway',
       }),
     ])
-    expect(project.getSourceFiles().map((f) => f.getFilePath())).toStrictEqual([includedFile])
+    expect(project.getSourceFiles().map((f) => f.getFilePath())).toStrictEqual([
+      includedFile,
+      excludedFile,
+    ])
   })
 })

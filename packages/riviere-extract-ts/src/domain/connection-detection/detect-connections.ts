@@ -10,18 +10,15 @@ export interface ConnectionDetectionOptions {
   moduleGlobs: string[]
 }
 
-function filterSourceFiles(
+function computeFilteredFilePaths(
   project: Project,
   moduleGlobs: string[],
   globMatcher: GlobMatcher,
-): void {
-  const toRemove = project.getSourceFiles().filter((sourceFile) => {
-    const filePath = sourceFile.getFilePath()
-    return !moduleGlobs.some((glob) => globMatcher(filePath, glob))
-  })
-  for (const file of toRemove) {
-    project.removeSourceFile(file)
-  }
+): string[] {
+  return project
+    .getSourceFiles()
+    .map((sf) => sf.getFilePath())
+    .filter((filePath) => moduleGlobs.some((glob) => globMatcher(filePath, glob)))
 }
 
 export function detectConnections(
@@ -31,8 +28,7 @@ export function detectConnections(
   globMatcher: GlobMatcher,
 ): ExtractedLink[] {
   const componentIndex = new ComponentIndex(components)
-  filterSourceFiles(project, options.moduleGlobs, globMatcher)
-  const sourceFilePaths = project.getSourceFiles().map((sf) => sf.getFilePath())
+  const sourceFilePaths = computeFilteredFilePaths(project, options.moduleGlobs, globMatcher)
   return buildCallGraph(project, components, componentIndex, {
     strict: options.allowIncomplete !== true,
     sourceFilePaths,

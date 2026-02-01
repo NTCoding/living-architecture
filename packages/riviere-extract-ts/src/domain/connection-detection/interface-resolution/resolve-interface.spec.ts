@@ -100,6 +100,7 @@ describe('resolveInterface', () => {
     expect(result).toStrictEqual({
       resolved: false,
       reason: expect.stringContaining('No implementation found for UnusedInterface'),
+      typeDefinedInSource: true,
     })
   })
 
@@ -169,6 +170,7 @@ describe('resolveInterface', () => {
     expect(result).toStrictEqual({
       resolved: false,
       reason: expect.stringContaining('Multiple implementations found for Notifier'),
+      typeDefinedInSource: true,
     })
   })
 
@@ -190,7 +192,6 @@ describe('resolveInterface', () => {
       }
     `,
     )
-    // Out-of-scope file exists in project but not in sourceFilePaths
     nextFile(
       '/src/memory-cache.ts',
       `
@@ -233,6 +234,7 @@ describe('resolveInterface', () => {
     expect(result).toStrictEqual({
       resolved: false,
       reason: expect.stringContaining('No implementation found for Service'),
+      typeDefinedInSource: true,
     })
   })
 })

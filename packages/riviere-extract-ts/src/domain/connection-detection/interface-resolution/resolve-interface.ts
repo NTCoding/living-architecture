@@ -11,6 +11,7 @@ interface InterfaceResolutionResult {
 interface InterfaceUnresolved {
   resolved: false
   reason: string
+  typeDefinedInSource: boolean
 }
 
 export type InterfaceResolution = InterfaceResolutionResult | InterfaceUnresolved
@@ -36,13 +37,35 @@ function findImplementations(interfaceName: string, sourceFiles: SourceFile[]): 
     .filter((name): name is string => name !== undefined)
 }
 
+function isDefinedInSourceFiles(typeName: string, sourceFiles: SourceFile[]): boolean {
+  return sourceFiles.some(
+    (sf) =>
+      sf.getInterfaces().some((i) => i.getName() === typeName) ||
+      sf.getClasses().some((c) => c.getName() === typeName && c.isAbstract()),
+  )
+}
+
+interface TypedExpression {
+  getType(): { getSymbol(): { getName(): string } | undefined }
+  getText(): string
+}
+
+function getExpressionName(expression: TypedExpression): string {
+  return expression.getType().getSymbol()?.getName() ?? expression.getText()
+}
+
 function implementsInterface(classDecl: ClassDeclaration, interfaceName: string): boolean {
-  return classDecl.getImplements().some((impl) => impl.getExpression().getText() === interfaceName)
+  return classDecl
+    .getImplements()
+    .some((impl) => getExpressionName(impl.getExpression()) === interfaceName)
 }
 
 function extendsAbstractClass(classDecl: ClassDeclaration, abstractName: string): boolean {
   const extendsClause = classDecl.getExtends()
-  return extendsClause?.getExpression().getText() === abstractName
+  if (extendsClause === undefined) {
+    return false
+  }
+  return getExpressionName(extendsClause.getExpression()) === abstractName
 }
 
 function createError(interfaceName: string, reason: string): ConnectionDetectionError {
@@ -77,13 +100,15 @@ export function resolveInterface(
   }
 
   if (implementations.length === 0) {
+    const definedInSource = isDefinedInSourceFiles(interfaceName, sourceFiles)
     const reason = `No implementation found for ${interfaceName}`
-    if (options.strict) {
+    if (definedInSource && options.strict) {
       throw createError(interfaceName, reason)
     }
     return {
       resolved: false,
       reason,
+      typeDefinedInSource: definedInSource,
     }
   }
 
@@ -94,5 +119,6 @@ export function resolveInterface(
   return {
     resolved: false,
     reason,
+    typeDefinedInSource: true,
   }
 }

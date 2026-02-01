@@ -22,13 +22,14 @@ function buildExtractedLink(
   target: string,
   type: 'sync' | 'async',
   callSite: CallSite,
+  repository: string,
 ): LocatedLink {
   return {
     source,
     target,
     type,
     sourceLocation: {
-      repository: '',
+      repository,
       filePath: callSite.filePath,
       lineNumber: callSite.lineNumber,
       methodName: callSite.methodName,
@@ -36,14 +37,19 @@ function buildExtractedLink(
   }
 }
 
-function buildUncertainLink(source: string, reason: string, callSite: CallSite): ExtractedLink {
+function buildUncertainLink(
+  source: string,
+  reason: string,
+  callSite: CallSite,
+  repository: string,
+): ExtractedLink {
   return {
     source,
     target: '_unresolved',
     type: 'sync',
     _uncertain: reason,
     sourceLocation: {
-      repository: '',
+      repository,
       filePath: callSite.filePath,
       lineNumber: callSite.lineNumber,
       methodName: callSite.methodName,
@@ -54,6 +60,7 @@ function buildUncertainLink(source: string, reason: string, callSite: CallSite):
 export function deduplicateLinks(
   rawLinks: RawLink[],
   uncertainLinks: UncertainRawLink[],
+  repository = '',
 ): ExtractedLink[] {
   const seen = new Map<string, LocatedLink>()
 
@@ -66,19 +73,24 @@ export function deduplicateLinks(
     const existing = seen.get(key)
     if (existing !== undefined) {
       if (raw.callSite.lineNumber < existing.sourceLocation.lineNumber) {
-        seen.set(key, buildExtractedLink(sourceId, targetId, type, raw.callSite))
+        seen.set(key, buildExtractedLink(sourceId, targetId, type, raw.callSite, repository))
       }
       continue
     }
 
-    seen.set(key, buildExtractedLink(sourceId, targetId, type, raw.callSite))
+    seen.set(key, buildExtractedLink(sourceId, targetId, type, raw.callSite, repository))
   }
 
   const result: ExtractedLink[] = [...seen.values()]
 
   for (const uncertain of uncertainLinks) {
     result.push(
-      buildUncertainLink(componentIdentity(uncertain.source), uncertain.reason, uncertain.callSite),
+      buildUncertainLink(
+        componentIdentity(uncertain.source),
+        uncertain.reason,
+        uncertain.callSite,
+        repository,
+      ),
     )
   }
 

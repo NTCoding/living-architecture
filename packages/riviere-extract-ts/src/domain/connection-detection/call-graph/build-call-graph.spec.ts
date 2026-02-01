@@ -373,4 +373,31 @@ class PublishEvent {
       }),
     ])
   })
+
+  it('emits uncertain link when interface defined in source has no implementation and no class found', () => {
+    const file = nextFile(`
+interface AlertChannel {
+  send(): void
+}
+
+class AlertUser {
+  private channel: AlertChannel
+  constructor(channel: AlertChannel) { this.channel = channel }
+  execute(): void {
+    this.channel.send()
+  }
+}
+`)
+    const comp = buildComponent('AlertUser', file, 6)
+    const index = new ComponentIndex([comp])
+    const result = buildCallGraph(sharedProject, [comp], index, defaultOptions())
+
+    expect(result).toStrictEqual([
+      expect.objectContaining({
+        source: 'orders:useCase:AlertUser',
+        target: '_unresolved',
+        _uncertain: expect.stringContaining('No implementation found for AlertChannel'),
+      }),
+    ])
+  })
 })

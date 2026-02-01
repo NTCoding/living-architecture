@@ -14,6 +14,18 @@ describe('stripGenericArgs', () => {
   it('strips generic arguments from type name', () => {
     expect(stripGenericArgs('Repository<Order>')).toBe('Repository')
   })
+
+  it('returns empty string for empty input', () => {
+    expect(stripGenericArgs('')).toBe('')
+  })
+
+  it('strips nested generics from type name', () => {
+    expect(stripGenericArgs('Map<K, List<V>>')).toBe('Map')
+  })
+
+  it('strips multiple type parameters from type name', () => {
+    expect(stripGenericArgs('Pair<A, B>')).toBe('Pair')
+  })
 })
 
 describe('componentIdentity', () => {
