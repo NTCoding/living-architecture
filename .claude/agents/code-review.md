@@ -14,12 +14,12 @@ Bug scanning is handled by the bug-scanner agent - do not duplicate that work he
 ## Instructions
 
 1. Read ALL convention files to obtain rules with IDs:
-   - `docs/conventions/software-design.md` (SD-001 through SD-021)
+   - `docs/conventions/software-design.md` (SD-001 through SD-022)
    - `docs/conventions/anti-patterns.md` (AP-001 through AP-006)
    - `docs/conventions/standard-patterns.md` (SP-001, SP-002)
-   - `docs/conventions/testing.md` (TS-001 through TS-011)
+   - `docs/conventions/testing.md` (TS-001 through TS-012)
    - `docs/conventions/codebase-structure.md` (CS-001 through CS-008)
-   - `docs/workflow/code-review.md` (CR-001 through CR-006)
+   - `docs/workflow/code-review.md` (CR-001 through CR-008)
 2. Review ALL files listed in "Files to Review" below
 3. For each file, read its contents and audit against every rule ID
 4. Check related files as needed (callers, implementations, imports) to understand context
@@ -69,24 +69,24 @@ Verdicts:
 - **N/A**: Rule doesn't apply to changed files. State why.
 
 Rule sets to audit (every ID must appear):
-- Software Design: SD-001 through SD-021
+- Software Design: SD-001 through SD-022
 - Anti-Patterns: AP-001 through AP-006
 - Standard Patterns: SP-001, SP-002
-- Testing: TS-001 through TS-011
+- Testing: TS-001 through TS-012
 - Codebase Structure: CS-001 through CS-008
-- Code Review: CR-001 through CR-006
+- Code Review: CR-001 through CR-008
 
 ### 4. Audit Summary
 
 | Category | Rules | Pass | Fail | N/A |
 |----------|-------|------|------|-----|
-| Software Design (SD) | 21 | ... | ... | ... |
+| Software Design (SD) | 22 | ... | ... | ... |
 | Anti-Patterns (AP) | 6 | ... | ... | ... |
 | Standard Patterns (SP) | 2 | ... | ... | ... |
-| Testing (TS) | 11 | ... | ... | ... |
+| Testing (TS) | 12 | ... | ... | ... |
 | Codebase Structure (CS) | 8 | ... | ... | ... |
-| Code Review (CR) | 6 | ... | ... | ... |
-| **Total** | **54** | ... | ... | ... |
+| Code Review (CR) | 8 | ... | ... | ... |
+| **Total** | **58** | ... | ... | ... |
 
 **Verdict: PASS/FAIL** — [summary: N findings (X critical, Y major)]
 
@@ -113,7 +113,7 @@ Default: Flag issues. Skip only with valid reason.
 Before generating your response, verify:
 - [ ] First line is exactly `PASS` or `FAIL` (no other text, no preamble, no narration)
 - [ ] Findings section lists only failures (or "No findings" if PASS)
-- [ ] Audit trail has a row for EVERY rule ID (54 total)
+- [ ] Audit trail has a row for EVERY rule ID (58 total)
 - [ ] Audit summary totals match row counts
 - [ ] No files written (orchestrator handles file writing)
 

@@ -16,7 +16,7 @@ Verify PR is merged
 Gather all feedback (local + GitHub)
     │
     ▼
-Generate reflection markdown file: reviews/<branch>/post-merge-reflection.md
+Generate reflection markdown file: docs/continuous-improvement/post-merge-reflections/{date}-{branch-name}.md
     │
     ▼
 Tell user to review the file, then discuss follow-ups
@@ -73,15 +73,43 @@ git log --oneline main..<branch>
 
 ### 3. Generate Reflection Markdown
 
-Create `reviews/<branch>/post-merge-reflection.md` with the following structure.
+Create `docs/continuous-improvement/post-merge-reflections/{YYYY-MM-DD}-{branch-name}.md` with the following structure.
 
 Parse each piece of feedback into individual items. For every item, determine: accepted (code was changed) or rejected (no change, with reason).
+
+> **Mindset:** Anything accepted from GitHub = process failure. The goal is that CodeRabbit finds nothing.
 
 ```markdown
 # Post-Merge Reflection: <branch-name>
 
 ## Summary
 [1-2 sentences on how the task went]
+
+## Pipeline Timeline
+
+**Overall duration:** [total time from first commit to merge]
+
+| # | Step | Start Time | Duration | Outcome |
+|---|------|------------|----------|---------|
+| 1 | Initial implementation | HH:MM | Xm | Complete |
+| 2 | Local code review | HH:MM | Xm | N findings |
+| 3 | Bug scanner | HH:MM | Xm | PASS/FAIL |
+| 4 | Task check | HH:MM | Xm | PASS/FAIL |
+| 5 | PR submission | HH:MM | Xm | Created |
+| 6 | CI checks | HH:MM | Xm | Pass/Fail |
+| 7 | CodeRabbit review | HH:MM | Xm | N comments |
+| 8 | Address feedback | HH:MM | Xm | N resolved |
+| ... | [additional iterations] | ... | ... | ... |
+
+### Pipeline Inefficiency Diagnosis
+
+Analyze the timeline above for:
+- Long waits between steps (idle time)
+- Repeated failures requiring multiple iterations
+- Unnecessary retries or rework
+- Steps that could have been parallelized
+
+[Describe any inefficiencies found and how to avoid them next time]
 
 ## All Feedback
 
@@ -131,6 +159,8 @@ Any feedback accepted from GitHub reviewers represents a process failure — it 
 
 ### Failure 1: [Brief description of the accepted feedback]
 
+**What happened:** [1-2 sentence description of what went wrong and what the feedback caught]
+
 | Question | Answer |
 |----------|--------|
 | **1. Why wasn't this caught locally?** | [What local check missed it] |
@@ -143,7 +173,10 @@ Any feedback accepted from GitHub reviewers represents a process failure — it 
 **Recommended Fix:** [Specific actionable change]
 
 ### Failure 2: [next accepted GitHub feedback item]
-[Same table structure]
+
+**What happened:** [1-2 sentence description]
+
+[Same 5 Whys table structure]
 
 ---
 
@@ -156,7 +189,7 @@ Any feedback accepted from GitHub reviewers represents a process failure — it 
 After generating the file, tell the user:
 
 ```text
-Reflection report generated: reviews/<branch>/post-merge-reflection.md
+Reflection report generated: docs/continuous-improvement/post-merge-reflections/{date}-{branch-name}.md
 
 Please review it, then we can discuss the recommended follow-ups.
 ```

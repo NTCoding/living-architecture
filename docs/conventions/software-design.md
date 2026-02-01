@@ -388,6 +388,38 @@ interface PaymentProcessor {
 - Add capabilities when requirements demand them, not before
 - "But we might need it" is not a requirement
 
+## SD-022: Never Mutate Function Parameters
+
+**Principle:** Function parameters belong to the caller. Mutating them creates hidden side effects that callers don't expect.
+
+### Detection Patterns
+
+Scan for mutation methods called on function parameters:
+- `.push()`, `.pop()`, `.splice()`, `.sort()`, `.reverse()` on array params
+- `.set()`, `.delete()` on Map/Set params
+- `.removeSourceFile()`, `.remove*()` on object params
+- Direct property assignment on params (`param.field = value`)
+
+### Example (BAD)
+
+```typescript
+function detectConnections(project: Project): Connection[] {
+  // Mutates caller's project — caller doesn't expect this
+  project.removeSourceFile(testFile)
+  return analyzeProject(project)
+}
+```
+
+### Example (GOOD)
+
+```typescript
+function detectConnections(project: Project): Connection[] {
+  // Derive a filtered view without mutating the original
+  const sourceFiles = project.getSourceFiles().filter(f => !isTestFile(f))
+  return analyzeSourceFiles(sourceFiles)
+}
+```
+
 ## When Tempted to Cut Corners
 
 **STOP if you're about to:**

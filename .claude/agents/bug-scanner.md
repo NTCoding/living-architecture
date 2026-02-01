@@ -135,9 +135,22 @@ Flag ANY modification to these files.
 - Unescaped user input in shell commands
 - Template injection
 
-## Priority 5: Review Feedback Checks
+## Priority 5: Inconsistent Patterns
 
-Read `docs/conventions/review-feedback-checks.md` and apply each RFC check (RFC-001 through RFC-009) to changed code.
+### BS-015: Inconsistent Patterns Across Feature Files
+
+When reviewing files within the same feature/module, check for inconsistent approaches to the same concern:
+
+- Different error handling strategies in related files
+- Different resolution strategies (e.g., string-based vs symbol-based) for the same kind of lookup
+- Different naming conventions for the same concept
+- Different patterns for the same operation (e.g., one file filters before processing, another mutates during processing)
+
+**Detection:** When reviewing a file, scan sibling files in the same directory/feature for the same kind of operation. Flag inconsistencies.
+
+## Priority 6: Review Feedback Checks
+
+Read `docs/conventions/review-feedback-checks.md` and apply each RFC check (RFC-001 through RFC-010) to changed code.
 
 ## Severity Levels
 
@@ -187,7 +200,8 @@ Rule sets to audit (every ID must appear):
 - Framework & Library Misuse: BS-007 through BS-010
 - Dangerous Config Changes: BS-011
 - Security Issues: BS-012 through BS-014
-- Review Feedback Checks: RFC-001 through RFC-009
+- Inconsistent Patterns: BS-015
+- Review Feedback Checks: RFC-001 through RFC-010
 
 ### 4. Audit Summary
 
@@ -197,8 +211,9 @@ Rule sets to audit (every ID must appear):
 | Framework Misuse (BS-007–010) | 4 | ... | ... | ... |
 | Config Changes (BS-011) | 1 | ... | ... | ... |
 | Security (BS-012–014) | 3 | ... | ... | ... |
-| Review Feedback (RFC) | 8 | ... | ... | ... |
-| **Total** | **22** | ... | ... | ... |
+| Inconsistent Patterns (BS-015) | 1 | ... | ... | ... |
+| Review Feedback (RFC) | 10 | ... | ... | ... |
+| **Total** | **25** | ... | ... | ... |
 
 **Verdict: PASS/FAIL** — [summary: N findings (X critical, Y major)]
 
@@ -207,7 +222,7 @@ Rule sets to audit (every ID must appear):
 Before generating your response, verify:
 - [ ] First line is exactly `PASS` or `FAIL` (no other text, no preamble, no narration)
 - [ ] Findings section lists only failures (or "No findings" if PASS)
-- [ ] Audit trail has a row for EVERY rule ID (22 total)
+- [ ] Audit trail has a row for EVERY rule ID (25 total)
 - [ ] Audit summary totals match row counts
 - [ ] No files written (orchestrator handles file writing)
 

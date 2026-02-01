@@ -29,6 +29,11 @@ For each acceptance criterion:
 2. Read those files and verify the implementation
 3. Check edge cases mentioned in the criterion
 4. Flag any gaps or partial implementations
+5. **Verify behavioral correctness of wiring, not just structural integration:**
+   - Trace key parameters from the public API through to internal calls
+   - Verify options/flags are propagated correctly (not hardcoded or dropped)
+   - Check that return values from internal calls are surfaced appropriately
+   - Example: if acceptance criteria says "strict mode fails with error", verify the `strict` parameter flows from the entry point through every intermediate call to the function that enforces it
 
 For PRD architectural compliance:
 1. Check firm constraints are followed (e.g., correct package placement, no forbidden dependencies)

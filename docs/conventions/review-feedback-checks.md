@@ -292,6 +292,35 @@ const gitPath = await which('git')
 
 ---
 
+## RFC-010: Symbol-Based AST Name Resolution
+
+**Source:** PR #246 (CodeRabbit)
+
+**Pattern:** Using string-based name matching (`getText()`, `getName()`) for AST type identity comparisons instead of symbol-based resolution. String matching breaks when types are aliased via imports (`import { Foo as Bar }`), re-exported under different names, or referenced through qualified names.
+
+**Example (BAD):**
+```typescript
+// String-based — breaks with aliased imports
+const typeName = typeNode.getText()
+if (typeName === 'MyInterface') {
+  // Won't match: import { MyInterface as Alias }
+}
+```
+
+**Example (GOOD):**
+```typescript
+// Symbol-based — resolves through aliases
+const symbol = typeNode.getType().getSymbol()
+const resolvedName = symbol?.getName() ?? typeNode.getText()
+if (resolvedName === 'MyInterface') {
+  // Matches regardless of import alias
+}
+```
+
+**Detection:** In ts-morph code, flag `.getText()` or `.getName()` used directly on AST nodes for type identity comparison without first resolving through `.getType().getSymbol()`. Especially suspicious when similar code in the same feature already uses symbol-based resolution.
+
+---
+
 ## Adding New Checks
 
 When external review feedback reveals a pattern:
