@@ -31,11 +31,11 @@ Every page serves one of these journeys. New content MUST fit an existing journe
 
 | Journey | Entry Point | Pages |
 |---------|-------------|-------|
-| **"What is Rivière, and how do I use it?"** | `/get-started/` | Introduction, installation, quick starts, CLI vs library |
-| **"AI extracts my architecture"** | `/extract/steps/` | 6-step AI workflow |
-| **"I want deterministic extraction"** | `/extract/deterministic/typescript/` | Getting started, 6-step deterministic workflow, enforcement |
-| **"I need to look something up"** | `/reference/` | Schema, CLI, API, extraction config DSL |
-| **"I want to see my architecture visually"** | `/visualize/` | Éclair getting started, views |
+| **"I'm new. What is Rivière? What does it do? How do I install it and get my first result?"** | `/get-started/` | Introduction, installation, quick starts, CLI vs library |
+| **"I want an AI to scan my codebase and extract my architecture automatically"** | `/extract/steps/` | 6-step AI-assisted workflow where the AI reads code and calls CLI commands |
+| **"I want repeatable, config-driven extraction that runs in CI without AI"** | `/extract/deterministic/typescript/` | Getting started, 6-step deterministic workflow, enforcement, extraction config |
+| **"I know what I need — show me the exact API, config field, CLI flag, or schema structure"** | `/reference/` | Schema, CLI commands, API docs, extraction config DSL |
+| **"I have a Rivière graph and want to explore my architecture in a browser"** | `/visualize/` | Éclair getting started, views (full graph, domain map, flows, entities, events) |
 
 **Test for new pages:** Can you answer "Which journey is the user on, and what step?" If no, the page doesn't belong as a standalone page.
 
