@@ -33,7 +33,7 @@ Every page serves one of these journeys. New content MUST fit an existing journe
 |---------|-------------|-------|
 | **"Get me started"** | `/get-started/` | Installation, quick starts, CLI vs library |
 | **"AI extracts my architecture"** | `/extract/steps/` | 6-step AI workflow |
-| **"I write extraction config"** | `/extract/deterministic/typescript/` | Getting started, 6-step deterministic workflow, enforcement |
+| **"I want deterministic extraction"** | `/extract/deterministic/typescript/` | Getting started, 6-step deterministic workflow, enforcement |
 | **"I need to look something up"** | `/reference/` | Schema, CLI, API, extraction config DSL |
 | **"I want to visualize"** | `/visualize/` | Éclair getting started, views |
 
