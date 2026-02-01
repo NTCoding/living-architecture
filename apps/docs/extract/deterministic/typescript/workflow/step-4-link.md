@@ -10,7 +10,7 @@ This step currently uses AI-assisted linking. Deterministic tooling for automati
 
 Follow the AI-assisted workflow for this step:
 
-**[Step 4: Link →](/extract/steps/step-4-link)**
+**[Step 4: Link →](/extract/ai-assisted/step-4-link)**
 
 ## What Gets Linked
 

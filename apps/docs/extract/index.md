@@ -17,7 +17,7 @@ For any language or codebase. AI analyzes your code and builds the graph.
 - Codebases without architectural conventions
 - Initial extraction to understand existing systems
 
-**[Start AI-Assisted Workflow →](/extract/steps/)**
+**[Start AI-Assisted Workflow →](/extract/ai-assisted/)**
 
 ---
 

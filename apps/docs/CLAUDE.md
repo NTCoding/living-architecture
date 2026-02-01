@@ -13,7 +13,7 @@ All UI and UX styling MUST conform to brand guidelines in `/docs/brand`.
 ```text
 get-started/          → Onboarding: install, quick starts, choosing CLI vs library
 extract/              → Choosing an extraction approach (AI vs deterministic)
-  steps/              → AI + CLI workflow: 6 steps to extract architecture with an AI assistant (no config needed)
+  ai-assisted/        → AI + CLI workflow: 6 steps to extract architecture with an AI assistant (no config needed)
   deterministic/      → Deterministic: user writes config, extractor runs in CI
     typescript/       → TypeScript-specific: getting started, 6-step workflow, enforcement
 visualize/            → Éclair viewer: getting started, views
@@ -31,7 +31,7 @@ Every page serves one of these journeys. New content MUST fit an existing journe
 | Journey | Entry Point | Pages |
 |---------|-------------|-------|
 | **"I'm new. What is Rivière? What does it do? How do I install it and get my first result?"** | `/get-started/` | Introduction, installation, quick starts, CLI vs library |
-| **"I want an AI to scan my codebase and extract my architecture automatically"** | `/extract/steps/` | 6-step AI-assisted workflow where the AI reads code and calls CLI commands |
+| **"I want an AI to scan my codebase and extract my architecture automatically"** | `/extract/ai-assisted/` | 6-step AI-assisted workflow where the AI reads code and calls CLI commands |
 | **"I want repeatable, config-driven extraction that runs in CI without AI"** | `/extract/deterministic/typescript/` | Getting started, 6-step deterministic workflow, enforcement, extraction config |
 | **"I know what I need — show me the exact API, config field, CLI flag, or schema structure"** | `/reference/` | Schema, CLI commands, API docs, extraction config DSL |
 | **"I have a Rivière graph and want to explore my architecture in a browser"** | `/visualize/` | Éclair getting started, views (full graph, domain map, flows, entities, events) |

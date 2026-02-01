@@ -10,7 +10,7 @@ This step currently uses AI-assisted rule generation. Deterministic tooling for 
 
 Follow the AI-assisted workflow for this step:
 
-**[Step 2: Define →](/extract/steps/step-2-define-components)**
+**[Step 2: Define →](/extract/ai-assisted/step-2-define-components)**
 
 ## Output
 

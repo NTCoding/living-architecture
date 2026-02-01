@@ -14,7 +14,7 @@ Before submitting any PR that modifies files in `apps/docs/`.
 
 ## Subagents
 
-Spawn these subagents in parallel. Each receives the list of ALL changed files and reads `apps/docs/CLAUDE.md` for the rules.
+Spawn these subagents in parallel. Each receives the list of ALL changed files, the full description of the current tasks, and reads `apps/docs/CLAUDE.md` for the rules.
 
 ### 1. User Journey Review
 
@@ -50,7 +50,7 @@ For ALL changed docs files: [list paths]
 For each file, determine its type (reference, workflow step, overview/index)
 and compare against the canonical format in CLAUDE.md:
 - Reference pages: compare against apps/docs/reference/extraction-config/predicates.md
-- Workflow pages: compare against apps/docs/extract/steps/step-1-understand.md
+- Workflow pages: compare against apps/docs/extract/ai-assisted/step-1-understand.md
 - Overview pages: compare against apps/docs/extract/index.md
 
 Check: frontmatter, heading structure, table formats, separator usage,

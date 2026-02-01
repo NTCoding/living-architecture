@@ -10,7 +10,7 @@ This step currently uses AI-assisted enrichment. Deterministic tooling for extra
 
 Follow the AI-assisted workflow for this step:
 
-**[Step 5: Enrich →](/extract/steps/step-5-enrich)**
+**[Step 5: Enrich →](/extract/ai-assisted/step-5-enrich)**
 
 ## What Gets Enriched
 

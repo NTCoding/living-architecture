@@ -10,7 +10,7 @@ This step currently uses AI-assisted analysis. Deterministic tooling for codebas
 
 Follow the AI-assisted workflow for this step:
 
-**[Step 1: Understand →](/extract/steps/step-1-understand)**
+**[Step 1: Understand →](/extract/ai-assisted/step-1-understand)**
 
 ## Output
 

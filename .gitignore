@@ -45,7 +45,7 @@ vitest.config.*.timestamp*
 test-output
 
 # Workflow files copied from CLI package during build
-apps/docs/extract/steps/step-*.md
+apps/docs/extract/ai-assisted/step-*.md
 reference/cli/cli-reference.md
 
 # TypeScript build artifacts

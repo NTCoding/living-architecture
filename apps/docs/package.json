@@ -23,7 +23,7 @@
         ],
         "options": {
           "commands": [
-            "cp ../../packages/riviere-cli/docs/workflow/step-*.md extract/steps/",
+            "cp ../../packages/riviere-cli/docs/workflow/step-*.md extract/ai-assisted/",
             "cp ../../packages/riviere-cli/docs/generated/cli-reference.md reference/cli/cli-reference.md",
             "cp ../../packages/riviere-extract-config/docs/generated/predicates.md reference/extraction-config/predicates.md",
             "cp ../../packages/riviere-extract-config/docs/generated/schema.md reference/extraction-config/schema.md",
@@ -38,7 +38,7 @@
         "continuous": true,
         "options": {
           "commands": [
-            "cp ../../packages/riviere-cli/docs/workflow/step-*.md extract/steps/",
+            "cp ../../packages/riviere-cli/docs/workflow/step-*.md extract/ai-assisted/",
             "cp ../../packages/riviere-cli/docs/generated/cli-reference.md reference/cli/cli-reference.md",
             "cp ../../packages/riviere-extract-config/docs/generated/predicates.md reference/extraction-config/predicates.md",
             "cp ../../packages/riviere-extract-config/docs/generated/schema.md reference/extraction-config/schema.md",

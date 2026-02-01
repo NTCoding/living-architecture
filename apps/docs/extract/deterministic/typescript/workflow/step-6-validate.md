@@ -10,7 +10,7 @@ This step currently uses AI-assisted validation. Deterministic tooling for graph
 
 Follow the AI-assisted workflow for this step:
 
-**[Step 6: Validate →](/extract/steps/step-6-validate)**
+**[Step 6: Validate →](/extract/ai-assisted/step-6-validate)**
 
 ## Validation Checks
 

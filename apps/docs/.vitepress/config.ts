@@ -147,31 +147,31 @@ export default defineConfig({
           items: [
             {
               text: 'Workflow',
-              link: '/extract/steps/',
+              link: '/extract/ai-assisted/',
             },
             {
               text: 'Step 1: Understand',
-              link: '/extract/steps/step-1-understand',
+              link: '/extract/ai-assisted/step-1-understand',
             },
             {
               text: 'Step 2: Define',
-              link: '/extract/steps/step-2-define-components',
+              link: '/extract/ai-assisted/step-2-define-components',
             },
             {
               text: 'Step 3: Extract',
-              link: '/extract/steps/step-3-extract',
+              link: '/extract/ai-assisted/step-3-extract',
             },
             {
               text: 'Step 4: Link',
-              link: '/extract/steps/step-4-link',
+              link: '/extract/ai-assisted/step-4-link',
             },
             {
               text: 'Step 5: Enrich',
-              link: '/extract/steps/step-5-enrich',
+              link: '/extract/ai-assisted/step-5-enrich',
             },
             {
               text: 'Step 6: Validate',
-              link: '/extract/steps/step-6-validate',
+              link: '/extract/ai-assisted/step-6-validate',
             },
           ],
         },
