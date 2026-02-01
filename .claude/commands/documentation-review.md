@@ -50,7 +50,7 @@ For ALL changed docs files: [list paths]
 For each file, determine its type (reference, workflow step, overview/index)
 and compare against the canonical format in CLAUDE.md:
 - Reference pages: compare against apps/docs/reference/extraction-config/predicates.md
-- Workflow pages: compare against apps/docs/extract/ai-assisted/step-1-understand.md
+- Workflow pages: compare against apps/docs/extract/deterministic/typescript/workflow/step-1-understand.md
 - Overview pages: compare against apps/docs/extract/index.md
 
 Check: frontmatter, heading structure, table formats, separator usage,
@@ -74,7 +74,7 @@ Check:
 - Verify all internal links point to files that exist
 - Verify code examples use correct names (e.g., transform names match the
   actual schema: stripSuffix not removeSuffix, pascalToKebab not toKebabCase)
-- Check that auto-generated files (reference/api/generated/, reference/cli/cli-reference.md)
+- Check that auto-generated files (apps/docs/reference/api/generated/, apps/docs/reference/cli/cli-reference.md)
   were NOT manually edited
 
 Report each finding with the specific file, term/link, and correction needed.
