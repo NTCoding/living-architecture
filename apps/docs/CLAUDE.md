@@ -35,7 +35,7 @@ Every page serves one of these journeys. New content MUST fit an existing journe
 | **"AI extracts my architecture"** | `/extract/steps/` | 6-step AI workflow |
 | **"I want deterministic extraction"** | `/extract/deterministic/typescript/` | Getting started, 6-step deterministic workflow, enforcement |
 | **"I need to look something up"** | `/reference/` | Schema, CLI, API, extraction config DSL |
-| **"I want to visualize"** | `/visualize/` | Éclair getting started, views |
+| **"I want to see my architecture visually"** | `/visualize/` | Éclair getting started, views |
 
 **Test for new pages:** Can you answer "Which journey is the user on, and what step?" If no, the page doesn't belong as a standalone page.
 
