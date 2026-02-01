@@ -13,7 +13,7 @@ All UI and UX styling MUST conform to brand guidelines in `/docs/brand`.
 ```text
 get-started/          → Onboarding: install, quick starts, choosing CLI vs library
 extract/              → Choosing an extraction approach (AI vs deterministic)
-  steps/              → AI-assisted: user provides context, AI extracts architecture via CLI
+  steps/              → AI + CLI workflow: 6 steps to extract architecture with an AI assistant (no config needed)
   deterministic/      → Deterministic: user writes config, extractor runs in CI
     typescript/       → TypeScript-specific: getting started, 6-step workflow, enforcement
 visualize/            → Éclair viewer: getting started, views

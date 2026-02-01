@@ -225,6 +225,48 @@ Please update PRD to clarify these points before task creation.
 
 ---
 
+## Documentation Task Detection
+
+**When a task involves creating or modifying pages in `apps/docs/`**, apply these additional rules:
+
+### Detection
+
+A task is a documentation task if ANY of these apply:
+
+- Deliverable mentions documentation, docs pages, or reference pages
+- Implementation involves files in `apps/docs/`
+- PRD deliverable references the docs site
+
+### Additional Context to Embed
+
+Read `apps/docs/CLAUDE.md` and include in the task:
+
+1. **User Journey:** Which journey does this page serve? Quote the specific journey from CLAUDE.md's User Journeys table. If no journey fits, flag this — the page may not belong.
+2. **Page Format:** Which page type is this? (reference, workflow step, overview). Reference the canonical example from CLAUDE.md.
+3. **Cross-Linking Requirements:** What pages should link TO this page? What pages should this page link to?
+
+### Documentation-Specific Acceptance Criteria
+
+Add these to the task's Acceptance Criteria section:
+
+- ✓ Page serves a specific user journey (state which one)
+- ✓ Format matches canonical example for page type (reference → predicates.md, workflow → step-1-understand.md)
+- ✓ All terms from `docs/architecture/domain-terminology/contextive/definitions.glossary.yml`
+- ✓ See Also section with 3-5 cross-links using absolute paths
+- ✓ No manually edited auto-generated files
+- ✓ `/documentation-review` passes with no ❌ items
+
+### Documentation-Specific Verification
+
+Add to the task's Verification section:
+
+```bash
+pnpm nx build docs        # Pages render without errors
+/documentation-review      # All three review dimensions pass
+```
+
+---
+
 ## Pre-Finalization Validation
 
 Confirm before task completion:
