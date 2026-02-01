@@ -49,6 +49,15 @@ Without enforcement, extraction misses unmarked components. With enforcement, ex
 
 For custom conventions, teams implement their own enforcement (custom ESLint rules, CI checks).
 
+#### Extraction Pipeline
+
+The extraction process follows a two-phase pipeline:
+
+1. **Detection** — Find components using `find` (target: classes, methods, functions) + `where` (predicates: decorators, naming, JSDoc)
+2. **Enrichment** — Extract metadata from matched code using the `extract` block (11 rules: `literal`, `fromClassName`, `fromDecoratorArg`, etc.)
+
+Detection produces draft components. Enrichment adds required metadata fields (`apiType`, `eventName`, `route`, etc.) to produce enriched components ready for the graph.
+
 ### Rivière CLI
 Command-line interface for building and validating schemas. Provides an interactive workflow for defining domains, components, and links.
 

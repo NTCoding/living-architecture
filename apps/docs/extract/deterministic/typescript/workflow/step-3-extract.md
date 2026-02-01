@@ -285,9 +285,59 @@ Validate your config against the schema:
 npx riviere extract --config extraction.config.yaml --validate-only
 ```
 
+## 3.7 Enrich with Metadata
+
+Detection finds components, but metadata makes them useful. The `extract` block in your config maps schema fields to values pulled from your code.
+
+**Required metadata by component type:**
+
+| Type | Required Fields |
+|------|----------------|
+| `api` | `apiType` |
+| `event` | `eventName` |
+| `eventHandler` | `subscribedEvents` |
+| `domainOp` | `operationName` |
+| `ui` | `route` |
+| `useCase` | *(none)* |
+
+### Example: REST API with full metadata
+
+```yaml
+api:
+  find: "methods"
+  where:
+    inClassWith:
+      hasDecorator:
+        name: "APIContainer"
+        from: "@living-architecture/riviere-extract-conventions"
+  extract:
+    apiType: { literal: "REST" }
+    httpMethod: { fromDecoratorName: true }
+    path: { fromDecoratorArg: { position: 0 } }
+```
+
+This extracts three fields per API component:
+- `apiType` → always `"REST"`
+- `httpMethod` → the decorator name (e.g., `@Get` → `"Get"`)
+- `path` → the first decorator argument (e.g., `@Get("/orders")` → `"/orders"`)
+
+### Example: Events with naming convention
+
+```yaml
+event:
+  find: "classes"
+  where:
+    nameEndsWith:
+      suffix: "Event"
+  extract:
+    eventName: { fromClassName: { transform: { removeSuffix: "Event" } } }
+```
+
+[See all 11 extraction rules →](/reference/extraction-config/extraction-rules)
+
 ## Output
 
-Extraction produces draft components JSON. The graph file (`.riviere/graph.json`) is built in subsequent steps.
+Extraction produces enriched components JSON with metadata fields populated. The graph file (`.riviere/graph.json`) is built in subsequent steps.
 
 ## Next Step
 

@@ -283,6 +283,10 @@ export default defineConfig({
               link: '/reference/extraction-config/schema',
             },
             {
+              text: 'Extraction Rules',
+              link: '/reference/extraction-config/extraction-rules',
+            },
+            {
               text: 'Predicates',
               link: '/reference/extraction-config/predicates',
             },
