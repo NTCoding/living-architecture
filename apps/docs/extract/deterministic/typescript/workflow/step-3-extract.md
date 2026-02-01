@@ -355,7 +355,7 @@ event:
     nameEndsWith:
       suffix: "Event"
   extract:
-    eventName: { fromClassName: { transform: { removeSuffix: "Event" } } }
+    eventName: { fromClassName: { transform: { stripSuffix: "Event" } } }
 ```
 
 [See all 11 extraction rules →](/reference/extraction-config/extraction-rules)

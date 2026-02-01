@@ -58,8 +58,8 @@ For metadata extraction, use these rules:
 - `fromConstructorParams` — types from constructor injection
 
 Apply transforms where names need cleaning:
-- removeSuffix / removePrefix — strip naming convention artifacts
-- toKebabCase / toCamelCase / toPascalCase — case conversion
+- stripSuffix / stripPrefix — strip naming convention artifacts
+- pascalToKebab / kebabToPascal / toLowerCase / toUpperCase — case conversion
 
 Output 2: ESLint Enforcement Config
 
