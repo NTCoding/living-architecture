@@ -286,6 +286,9 @@ importers:
       '@living-architecture/riviere-extract-config':
         specifier: workspace:*
         version: link:../riviere-extract-config
+      '@living-architecture/riviere-schema':
+        specifier: workspace:*
+        version: link:../riviere-schema
       minimatch:
         specifier: ^10.0.1
         version: 10.1.1

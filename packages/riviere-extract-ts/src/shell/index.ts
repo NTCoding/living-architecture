@@ -32,6 +32,13 @@ export {
 } from '../domain/value-extraction'
 export { matchesGlob } from '../platform/infra/glob-matching/minimatch-glob'
 export {
+  detectConnections,
+  type ConnectionDetectionOptions,
+} from '../domain/connection-detection/detect-connections'
+export type { ExtractedLink } from '../domain/connection-detection/extracted-link'
+export { ComponentIndex } from '../domain/connection-detection/component-index'
+export { ConnectionDetectionError } from '../domain/connection-detection/connection-detection-error'
+export {
   enrichComponents,
   type EnrichedComponent,
   type EnrichmentFailure,

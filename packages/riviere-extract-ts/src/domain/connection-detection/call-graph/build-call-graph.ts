@@ -1,0 +1,193 @@
+import {
+  type CallExpression,
+  type MethodDeclaration,
+  Node,
+  type Project,
+  SyntaxKind,
+} from 'ts-morph'
+import type { EnrichedComponent } from '../../value-extraction/enrich-components'
+import type { ComponentIndex } from '../component-index'
+import type { ExtractedLink } from '../extracted-link'
+import type {
+  CallGraphOptions, CallSite, RawLink, UncertainRawLink 
+} from './call-graph-types'
+import { componentIdentity } from './call-graph-types'
+import {
+  findClassInProject, traceCallsInBody 
+} from './trace-calls'
+import { deduplicateLinks } from './deduplicate-links'
+import { resolveCallExpressionReceiverType } from './type-resolver'
+import { resolveInterface } from '../interface-resolution/resolve-interface'
+
+function getCalledMethodName(callExpr: CallExpression): string {
+  const expression = callExpr.getExpression()
+  return expression.asKindOrThrow(SyntaxKind.PropertyAccessExpression).getName()
+}
+
+function resolveTypeThroughInterface(
+  typeName: string,
+  project: Project,
+  componentIndex: ComponentIndex,
+  options: CallGraphOptions,
+): EnrichedComponent | undefined {
+  const component = componentIndex.getComponentByTypeName(typeName)
+  if (component !== undefined) {
+    return component
+  }
+
+  const interfaceResult = resolveInterface(typeName, project, options.sourceFilePaths, {strict: false,})
+  if (interfaceResult.resolved) {
+    return componentIndex.getComponentByTypeName(interfaceResult.typeName)
+  }
+
+  return undefined
+}
+
+function processCallExpression(
+  callExpr: CallExpression,
+  component: EnrichedComponent,
+  methodName: string,
+  project: Project,
+  componentIndex: ComponentIndex,
+  rawLinks: RawLink[],
+  uncertainLinks: UncertainRawLink[],
+  options: CallGraphOptions,
+): void {
+  if (!Node.isPropertyAccessExpression(callExpr.getExpression())) {
+    return
+  }
+
+  const sourceFile = callExpr.getSourceFile()
+  const typeResult = resolveCallExpressionReceiverType(callExpr, sourceFile, {strict: options.strict,})
+
+  const currentCallSite: CallSite = {
+    filePath: component.location.file,
+    lineNumber: callExpr.getStartLineNumber(),
+    methodName,
+  }
+
+  if (!typeResult.resolved) {
+    uncertainLinks.push({
+      source: component,
+      reason: typeResult.reason,
+      callSite: currentCallSite,
+    })
+    return
+  }
+
+  const typeName = typeResult.typeName
+  const calledMethodName = getCalledMethodName(callExpr)
+
+  const targetComponent = resolveTypeThroughInterface(typeName, project, componentIndex, options)
+
+  if (targetComponent !== undefined) {
+    if (componentIdentity(component) !== componentIdentity(targetComponent)) {
+      rawLinks.push({
+        source: component,
+        target: targetComponent,
+        callSite: currentCallSite,
+      })
+    }
+    return
+  }
+
+  traceNonComponent(
+    project,
+    componentIndex,
+    component,
+    typeName,
+    calledMethodName,
+    currentCallSite,
+    rawLinks,
+    uncertainLinks,
+    options,
+  )
+}
+
+function processMethod(
+  method: MethodDeclaration,
+  component: EnrichedComponent,
+  project: Project,
+  componentIndex: ComponentIndex,
+  rawLinks: RawLink[],
+  uncertainLinks: UncertainRawLink[],
+  options: CallGraphOptions,
+): void {
+  const methodName = method.getName()
+  const callExpressions = method.getDescendantsOfKind(SyntaxKind.CallExpression)
+
+  for (const callExpr of callExpressions) {
+    processCallExpression(
+      callExpr,
+      component,
+      methodName,
+      project,
+      componentIndex,
+      rawLinks,
+      uncertainLinks,
+      options,
+    )
+  }
+}
+
+export function buildCallGraph(
+  project: Project,
+  components: readonly EnrichedComponent[],
+  componentIndex: ComponentIndex,
+  options: CallGraphOptions,
+): ExtractedLink[] {
+  const rawLinks: RawLink[] = []
+  const uncertainLinks: UncertainRawLink[] = []
+
+  for (const component of components) {
+    const classDecl = findClassInProject(project, component)
+    if (classDecl === undefined) {
+      continue
+    }
+
+    for (const method of classDecl.getMethods()) {
+      processMethod(method, component, project, componentIndex, rawLinks, uncertainLinks, options)
+    }
+  }
+
+  return deduplicateLinks(rawLinks, uncertainLinks)
+}
+
+function traceNonComponent(
+  project: Project,
+  componentIndex: ComponentIndex,
+  source: EnrichedComponent,
+  typeName: string,
+  calledMethodName: string,
+  callSite: CallSite,
+  rawLinks: RawLink[],
+  uncertainLinks: UncertainRawLink[],
+  options: CallGraphOptions,
+): void {
+  const visited = new Set<string>()
+  visited.add(`${typeName}.${calledMethodName}`)
+
+  for (const sourceFile of project.getSourceFiles()) {
+    for (const classDecl of sourceFile.getClasses()) {
+      if (classDecl.getName() !== typeName) {
+        continue
+      }
+      const method = classDecl.getMethod(calledMethodName)
+      if (method === undefined) {
+        continue
+      }
+      traceCallsInBody(
+        method,
+        project,
+        componentIndex,
+        source,
+        callSite,
+        visited,
+        rawLinks,
+        uncertainLinks,
+        options,
+      )
+      return
+    }
+  }
+}
