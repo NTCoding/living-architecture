@@ -30,7 +30,7 @@ export function detectConnections(
   const componentIndex = new ComponentIndex(components)
   const sourceFilePaths = computeFilteredFilePaths(project, options.moduleGlobs, globMatcher)
   return buildCallGraph(project, components, componentIndex, {
-    strict: options.allowIncomplete !== true,
+    strict: !options.allowIncomplete,
     sourceFilePaths,
   })
 }

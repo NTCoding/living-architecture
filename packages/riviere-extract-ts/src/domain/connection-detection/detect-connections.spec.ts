@@ -7,6 +7,7 @@ import {
 import { detectConnections } from './detect-connections'
 import { buildComponent } from './call-graph/call-graph-fixtures'
 import { matchesGlob } from '../../platform/infra/glob-matching/minimatch-glob'
+import { ConnectionDetectionError } from './connection-detection-error'
 
 function createProject(): Project {
   return new Project({
@@ -112,35 +113,36 @@ class PublishEvent {
     ])
   })
 
-  it('uses strict mode by default when allowIncomplete is undefined', () => {
+  it('throws ConnectionDetectionError in strict mode when receiver type is unresolvable', () => {
     const project = createProject()
     project.createSourceFile(
       '/src/strict.ts',
       `
 class StrictComp {
-  execute(): void {}
+  constructor(private dep: any) {}
+  execute(): void {
+    this.dep.doSomething()
+  }
 }
 `,
     )
     const comp = buildComponent('StrictComp', '/src/strict.ts', 2)
 
-    const result = detectConnections(
-      project,
-      [comp],
-      { moduleGlobs: ['/src/**/*.ts'] },
-      matchesGlob,
-    )
-
-    expect(result).toStrictEqual([])
+    expect(() =>
+      detectConnections(project, [comp], { moduleGlobs: ['/src/**/*.ts'] }, matchesGlob),
+    ).toThrow(ConnectionDetectionError)
   })
 
-  it('respects allowIncomplete option for lenient mode', () => {
+  it('returns _uncertain link in lenient mode when receiver type is unresolvable', () => {
     const project = createProject()
     project.createSourceFile(
       '/src/lenient.ts',
       `
 class LenientComp {
-  execute(): void {}
+  constructor(private dep: any) {}
+  execute(): void {
+    this.dep.doSomething()
+  }
 }
 `,
     )
@@ -156,7 +158,13 @@ class LenientComp {
       matchesGlob,
     )
 
-    expect(result).toStrictEqual([])
+    expect(result).toStrictEqual([
+      expect.objectContaining({
+        source: 'orders:useCase:LenientComp',
+        target: '_unresolved',
+        _uncertain: expect.stringContaining('any'),
+      }),
+    ])
   })
 
   it('handles circular dependencies without infinite loop', () => {
