@@ -69,6 +69,8 @@ class OrderController {
 }
 ```
 
+**Edge cases:** Accepts `string`, `boolean`, or `number`. Use `string` for most metadata fields. Boolean/number values are serialized as-is in the output.
+
 ---
 
 ## fromClassName
@@ -104,6 +106,8 @@ class OrderPlacedEvent {
   // stripSuffix: "Event"        → "OrderPlaced"
 }
 ```
+
+**Edge cases:** For method-level finds (`find: "methods"`), extracts the **enclosing class name**, not the method name. Anonymous/default-exported classes produce an empty string.
 
 ---
 
@@ -144,6 +148,8 @@ class Order {
 }
 ```
 
+**Edge cases:** Only works with `find: "methods"` or `find: "functions"`. Using with `find: "classes"` produces an empty string since classes don't have method names.
+
 ---
 
 ## fromFilePath
@@ -180,6 +186,8 @@ class OrderList {
   // toLowerCase → "orderlist"
 }
 ```
+
+**Edge cases:** Pattern is matched against the full file path. If no capture group matches, extraction produces an empty string. Use `capture: 0` for the full regex match. Escape backslashes in YAML strings.
 
 ---
 
@@ -223,6 +231,8 @@ class OrderListPage implements UIPageDef {
   // toUpperCase → "GET"
 }
 ```
+
+**Edge cases:** Property must exist and have a string literal initializer. Computed properties, non-literal expressions, and missing properties produce empty strings. For `kind: "instance"`, the property must be initialized in the class body (not the constructor).
 
 ---
 
@@ -277,6 +287,8 @@ class OrderRoute {
 }
 ```
 
+**Edge cases:** Only reads string literal arguments. Template literals, variables, and expressions produce empty strings. When both `position` and `name` are provided, `name` takes precedence. Decorators without arguments produce empty strings.
+
 ---
 
 ## fromDecoratorName
@@ -326,6 +338,8 @@ class OrderController {
 }
 ```
 
+**Edge cases:** When using `mapping`, decorator names not in the map produce empty strings. For method-level components, reads the method's own decorator, not the class decorator. Multiple decorators: uses the first matching one from the detection rule.
+
 ---
 
 ## fromGenericArg
@@ -363,6 +377,8 @@ class OrderHandlers implements IEventHandler<OrderPlaced> {
 }
 ```
 
+**Edge cases:** The `interface` field must match exactly (case-sensitive). For classes implementing multiple interfaces, only the specified interface is checked. Unresolved or imported-as-alias type arguments may not resolve correctly.
+
 ---
 
 ## fromMethodSignature
@@ -392,6 +408,8 @@ class Order {
   }
 }
 ```
+
+**Edge cases:** Only works with `find: "methods"`. Return type must be explicitly annotated — inferred return types are not captured. Destructured parameters use the destructuring pattern as the name.
 
 ---
 
@@ -424,6 +442,8 @@ class PlaceOrderUseCase {
   // fromConstructorParams → [{ name: "orderRepo", type: "OrderRepository" }, ...]
 }
 ```
+
+**Edge cases:** Only works with `find: "classes"`. Classes without constructors produce an empty array. Parameter decorators (e.g., `@Inject()`) are ignored — only names and types are captured.
 
 ---
 
@@ -459,6 +479,8 @@ class Handlers {
   }
 }
 ```
+
+**Edge cases:** Only reads explicitly annotated type names. Union types, intersection types, and generic types return the full type text. Position out of range produces an empty string.
 
 ---
 

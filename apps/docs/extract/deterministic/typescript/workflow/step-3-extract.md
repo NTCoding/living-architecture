@@ -289,6 +289,31 @@ npx riviere extract --config extraction.config.yaml --validate-only
 
 Detection finds components, but metadata makes them useful. The `extract` block in your config maps schema fields to values pulled from your code.
 
+### Before enrichment (detection only)
+
+```json
+{
+  "type": "api",
+  "name": "createOrder",
+  "domain": "orders",
+  "location": { "file": "src/orders/OrderController.ts", "line": 12 }
+}
+```
+
+### After enrichment (with extract block)
+
+```json
+{
+  "type": "api",
+  "name": "createOrder",
+  "domain": "orders",
+  "location": { "file": "src/orders/OrderController.ts", "line": 12 },
+  "apiType": "REST",
+  "httpMethod": "Post",
+  "path": "/orders"
+}
+```
+
 **Required metadata by component type:**
 
 | Type | Required Fields |

@@ -58,8 +58,34 @@ For metadata extraction, use these rules:
 - `fromConstructorParams` — types from constructor injection
 
 Apply transforms where names need cleaning:
-- `removeSuffix` / `removePrefix` — strip naming convention artifacts
-- `toKebabCase` / `toCamelCase` / `toPascalCase` — case conversion
+- removeSuffix / removePrefix — strip naming convention artifacts
+- toKebabCase / toCamelCase / toPascalCase — case conversion
+
+Output 2: ESLint Enforcement Config
+
+Generate an ESLint config snippet that enforces component decorators on classes
+in each domain. Use @living-architecture/riviere-extract-conventions/eslint-plugin
+with the require-component-decorator rule. Scope the files glob to each domain's
+directory. Only include domains where decorator-based detection is used.
+
+Output 3: Architectural Test Suggestions
+
+Suggest tests that verify the extraction config produces expected results.
+For each domain, suggest:
+- "Verify <domain> extracts N api components" — expected count based on scan
+- "Verify <domain> extracts N useCase components" — expected count
+- "Verify all api components have apiType metadata" — required field check
+- "Verify all event components have eventName metadata" — required field check
+
+Format as a checklist the team can use to validate their extraction setup.
+
+Validation
+
+After generating the config, validate it:
+1. Save as extraction.config.yaml
+2. Run: npx riviere extract --config extraction.config.yaml --dry-run
+3. Verify non-zero component counts per domain
+4. Verify required metadata fields are present (use --allow-incomplete to see gaps)
 ```
 
 ## Usage
