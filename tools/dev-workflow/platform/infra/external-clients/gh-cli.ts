@@ -1,4 +1,5 @@
 import { execFileSync } from 'node:child_process'
+import { z } from 'zod'
 
 interface CIResult {
   failed: boolean
@@ -11,6 +12,24 @@ const MAX_RETRIES = 6
 
 function sleep(ms: number): void {
   execFileSync('/usr/bin/env', ['sleep', String(ms / 1000)])
+}
+
+const processErrorSchema = z.object({
+  stdout: z.string().optional(),
+  stderr: z.string().optional(),
+})
+
+function extractProcessOutput(error: unknown): string {
+  const parsed = processErrorSchema.safeParse(error)
+  if (parsed.success) {
+    const stdout = parsed.data.stdout?.trim() ?? ''
+    const stderr = parsed.data.stderr?.trim() ?? ''
+    const combined = [stdout, stderr].filter(Boolean).join('\n')
+    if (combined.length > 0) {
+      return combined
+    }
+  }
+  return error instanceof Error ? error.message : String(error)
 }
 
 function runGhChecks(prNumber: number): CIResult {
@@ -28,10 +47,9 @@ function runGhChecks(prNumber: number): CIResult {
       output,
     }
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : String(error)
     return {
       failed: true,
-      output: message,
+      output: extractProcessOutput(error),
     }
   }
 }

@@ -3,6 +3,7 @@ import { git } from '../../../platform/infra/external-clients/git-client'
 import { github } from '../../../platform/infra/external-clients/github-rest-client'
 import { runWorkflow } from '../../../platform/domain/workflow-execution/run-workflow'
 import { WorkflowError } from '../../../platform/domain/workflow-execution/workflow-runner'
+import { mergeCleanupContextSchema } from '../domain/merge-cleanup-context'
 import type { MergeCleanupContext } from '../domain/merge-cleanup-context'
 import { createVerifyReflectionExistsStep } from '../domain/steps/verify-reflection-exists'
 import { createMergePullRequestStep } from '../domain/steps/merge-pull-request'
@@ -28,13 +29,13 @@ async function buildMergeCleanupContext(): Promise<MergeCleanupContext> {
     throw new WorkflowError(`No open PR found for branch '${branch}'.`)
   }
 
-  return {
+  return mergeCleanupContextSchema.parse({
     branch,
     reflectionFilePath,
     prNumber,
     worktreePath,
     mainRepoPath,
-  }
+  })
 }
 
 function buildSteps() {

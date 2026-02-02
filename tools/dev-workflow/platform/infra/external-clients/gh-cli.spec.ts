@@ -31,7 +31,24 @@ describe('ghCli.watchCI', () => {
     )
   })
 
-  it('returns failure when checks fail', () => {
+  it('returns failure with stdout when checks fail', () => {
+    mockExecFileSync.mockImplementation(() => {
+      const error = new GitHubError('Command failed')
+      Object.assign(error, {
+        stdout: 'knip\tfail\t19s\nhttps://github.com/run/1\n',
+        stderr: '',
+      })
+      throw error
+    })
+
+    const result = ghCli.watchCI(456)
+
+    expect(result.failed).toBe(true)
+    expect(result.output).toContain('knip')
+    expect(result.output).toContain('fail')
+  })
+
+  it('falls back to error message when no stdout/stderr', () => {
     mockExecFileSync.mockImplementation(() => {
       throw new GitHubError('some checks failed')
     })
