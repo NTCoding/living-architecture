@@ -179,10 +179,11 @@ Any feedback accepted from GitHub reviewers represents a process failure — it 
 
 ### 4. Commit the Reflection File
 
-Stage and commit the reflection file:
+Stage, commit, and push the reflection file:
 ```bash
 git add docs/continuous-improvement/post-merge-reflections/<YYYY-MM-DD>-<branch-name>.md
 git commit -m "docs: add pre-merge reflection for <branch>"
+pnpm nx run dev-workflow:push-reflection
 ```
 
 ### 5. Present to User for Review

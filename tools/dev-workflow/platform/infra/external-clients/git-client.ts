@@ -87,4 +87,9 @@ export const git = {
     const sha = await repo.revparse(['HEAD'])
     return sha.trim()
   },
+
+  async lastCommitFiles(): Promise<string[]> {
+    const diff = await repo.diff(['--name-only', 'HEAD~1', 'HEAD'])
+    return diff.split('\n').filter(Boolean)
+  },
 }

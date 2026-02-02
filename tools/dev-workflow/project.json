@@ -30,6 +30,13 @@
         "cwd": "{workspaceRoot}"
       }
     },
+    "push-reflection": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "./tools/dev-workflow/node_modules/.bin/tsx tools/dev-workflow/features/push-reflection/entrypoint/cli.ts",
+        "cwd": "{workspaceRoot}"
+      }
+    },
     "merge-and-cleanup": {
       "executor": "nx:run-commands",
       "options": {

@@ -223,13 +223,34 @@ describe('git.unpushedFiles', () => {
   it('falls back to base branch diff when no unpushed changes', async () => {
     mockRepo.status.mockResolvedValue({ current: 'issue-123-feat' })
     mockRepo.branch.mockResolvedValue({ all: ['origin/main', 'origin/issue-123-feat'] })
-    mockRepo.diff
-      .mockResolvedValueOnce('')
-      .mockResolvedValueOnce('full-pr.ts\n')
+    mockRepo.diff.mockResolvedValueOnce('').mockResolvedValueOnce('full-pr.ts\n')
 
     const files = await git.unpushedFiles('main')
 
     expect(files).toStrictEqual(['full-pr.ts'])
+  })
+})
+
+describe('git.lastCommitFiles', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('returns files from latest commit', async () => {
+    mockRepo.diff.mockResolvedValue('reflection.md\nother.md\n')
+
+    const files = await git.lastCommitFiles()
+
+    expect(files).toStrictEqual(['reflection.md', 'other.md'])
+    expect(mockRepo.diff).toHaveBeenCalledWith(['--name-only', 'HEAD~1', 'HEAD'])
+  })
+
+  it('filters empty lines', async () => {
+    mockRepo.diff.mockResolvedValue('file.md\n\n')
+
+    const files = await git.lastCommitFiles()
+
+    expect(files).toStrictEqual(['file.md'])
   })
 })
 
