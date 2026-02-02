@@ -132,6 +132,65 @@ class LenientPublisher {
     ])
   })
 
+  it('throws ConnectionDetectionError in strict mode when parameter type matches multiple Events', () => {
+    const filePath = nextFile(`
+class DuplicateEvent {}
+
+class AmbiguousPublisher {
+  publish(event: DuplicateEvent): void {}
+}
+`)
+    const event1 = buildComponent('DuplicateEventA', filePath, 2, {
+      type: 'event',
+      metadata: { eventName: 'DuplicateEvent' },
+    })
+    const event2 = buildComponent('DuplicateEventB', '/src/other.ts', 1, {
+      type: 'event',
+      metadata: { eventName: 'DuplicateEvent' },
+    })
+    const publisher = buildComponent('AmbiguousPublisher', filePath, 4, {
+      type: 'eventPublisher',
+      metadata: {},
+    })
+
+    expect(() =>
+      detectPublishConnections(sharedProject, [event1, event2, publisher], { strict: true }),
+    ).toThrow(ConnectionDetectionError)
+  })
+
+  it('returns uncertain link in lenient mode when parameter type matches multiple Events', () => {
+    const filePath = nextFile(`
+class DupEvent {}
+
+class AmbigPublisher {
+  publish(event: DupEvent): void {}
+}
+`)
+    const event1 = buildComponent('DupEventA', filePath, 2, {
+      type: 'event',
+      metadata: { eventName: 'DupEvent' },
+    })
+    const event2 = buildComponent('DupEventB', '/src/other2.ts', 1, {
+      type: 'event',
+      metadata: { eventName: 'DupEvent' },
+    })
+    const publisher = buildComponent('AmbigPublisher', filePath, 4, {
+      type: 'eventPublisher',
+      metadata: {},
+    })
+
+    const result = detectPublishConnections(sharedProject, [event1, event2, publisher], {strict: false,})
+
+    expect(result).toStrictEqual([
+      expect.objectContaining({
+        source: 'orders:eventPublisher:AmbigPublisher',
+        target: '_unresolved',
+        type: 'async',
+        _uncertain: expect.stringContaining('ambiguous'),
+      }),
+    ])
+  })
+
   it('includes sourceLocation with filePath and lineNumber of publisher method', () => {
     const filePath = nextFile(`
 class LocEvent {}

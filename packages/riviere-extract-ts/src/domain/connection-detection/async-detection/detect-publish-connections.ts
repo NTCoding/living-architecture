@@ -71,12 +71,49 @@ function resolvePublishTarget(
     return [handleNoMatch(publisher, paramTypeName, options, sourceLocation)]
   }
 
+  if (matchingEvents.length > 1) {
+    return [
+      handleAmbiguousMatch(
+        publisher,
+        paramTypeName,
+        matchingEvents.length,
+        options,
+        sourceLocation,
+      ),
+    ]
+  }
+
   return matchingEvents.map((event) => ({
     source: componentIdentity(publisher),
     target: componentIdentity(event),
     type: 'async' as const,
     sourceLocation,
   }))
+}
+
+function handleAmbiguousMatch(
+  publisher: EnrichedComponent,
+  paramTypeName: string,
+  matchCount: number,
+  options: AsyncDetectionOptions,
+  sourceLocation: SourceLocation,
+): ExtractedLink {
+  if (options.strict) {
+    throw new ConnectionDetectionError({
+      file: sourceLocation.filePath,
+      /* v8 ignore next -- @preserve lineNumber always set by extractPublisherLinks */
+      line: sourceLocation.lineNumber ?? 0,
+      typeName: publisher.name,
+      reason: `parameter type "${paramTypeName}" matches ${matchCount} Event components (ambiguous)`,
+    })
+  }
+  return {
+    source: componentIdentity(publisher),
+    target: '_unresolved',
+    type: 'async',
+    sourceLocation,
+    _uncertain: `ambiguous: ${matchCount} events match parameter type: ${paramTypeName}`,
+  }
 }
 
 function handleNoMatch(
