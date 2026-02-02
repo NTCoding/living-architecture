@@ -240,6 +240,66 @@ When you discover a bug, don't stop—explore related scenarios:
 
 ---
 
+## TS-013: Assertion-to-Title Alignment
+
+Verify that test assertions actually exercise the behavior claimed by the test name. This is a stricter enforcement of TS-002.
+
+**Detection:** Read the test title, then check that assertions directly verify the claim.
+
+**Example (BAD):**
+```typescript
+it('generates different IDs for each call', () => {
+  const ids = [generateId(), generateId()]
+  expect(ids).toHaveLength(2)  // Only checks count, not uniqueness
+})
+```
+
+**Example (GOOD):**
+```typescript
+it('generates different IDs for each call', () => {
+  const id1 = generateId()
+  const id2 = generateId()
+  expect(id1).not.toBe(id2)  // Actually verifies "different"
+})
+```
+
+Misleading test names hide missing coverage. Hard failure.
+
+---
+
+## TS-014: Edge Case Checklist Enforcement
+
+Verify that test files consider edge cases from TS-008 relevant to the function's input types.
+
+**Detection:** For each tested function, identify its input types (strings, numbers, collections, dates, etc.), then check whether the test suite covers obvious edge case categories from the TS-008 checklists.
+
+Not every checklist item is required — use judgment. Flag when an entire category is missing for a relevant input type.
+
+**Example (BAD):**
+```typescript
+// Function accepts a string, but tests only cover happy path
+describe('parseRoute', () => {
+  it('parses a valid route', () => { ... })
+  it('parses a route with params', () => { ... })
+  // No tests for: empty string, whitespace, special characters, very long strings
+})
+```
+
+**Example (GOOD):**
+```typescript
+describe('parseRoute', () => {
+  it('parses a valid route', () => { ... })
+  it('parses a route with params', () => { ... })
+  it('returns error for empty string', () => { ... })
+  it('trims whitespace from route', () => { ... })
+  it('handles special characters in route segments', () => { ... })
+})
+```
+
+Missing edge cases lead to production bugs. Hard failure.
+
+---
+
 ## Project-Specific Conventions
 
 The following conventions are specific to this project, not from BugMagnet.

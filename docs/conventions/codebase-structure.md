@@ -43,17 +43,23 @@ living-architecture/
 
 Structural and dependency rules are enforced by [dependency-cruiser](https://github.com/sverweij/dependency-cruiser) via `.dependency-cruiser.mjs`. Run `pnpm depcruise` to check violations. This runs automatically as part of `pnpm verify`.
 
-## Principles
-
 **Apps vs Packages.** Apps are deployable units (APIs, CLIs, workers). Packages are shared code published to npm and consumed by apps or other packages.
 
-**CS-001: Feature-first, layer-second.** Within each app, group by business capability, then by architectural layer.
+## CS-001: Feature-First, Layer-Second
 
-**CS-002: Dependencies point inward.** Domain depends on nothing. Application depends on domain. Infra depends on application and domain.
+Within each app, group by business capability, then by architectural layer.
 
-**CS-003: No generic folders.** Every folder has domain meaning. Forbidden: `utils/`, `helpers/`, `common/`, `shared/`, `core/`, `lib/`.
+## CS-002: Dependencies Point Inward
 
-**CS-004: Organize by usage, not by type.** Files that are used together should live together. Avoid grouping by category (types/, models/, assertions/, validators/). Instead, co-locate related code within features or individual units.
+Domain depends on nothing. Application depends on domain. Infra depends on application and domain.
+
+## CS-003: No Generic Folders
+
+Every folder has domain meaning. Forbidden: `utils/`, `helpers/`, `common/`, `shared/`, `core/`, `lib/`.
+
+## CS-004: Organize by Usage, Not by Type
+
+Files that are used together should live together. Avoid grouping by category (types/, models/, assertions/, validators/). Instead, co-locate related code within features or individual units.
 
 ❌ **Avoid:**
 ```text
@@ -84,41 +90,13 @@ feature/
 
 **Exception:** Shared test fixtures used across multiple test files may be grouped (e.g., `test-fixtures.ts`).
 
-**CS-005: Cross-project imports use package names.** Import from `@living-architecture/[pkg-name]`, not relative paths like `../../packages/[pkg-name]`.
+## CS-005: Cross-Project Imports Use Package Names
 
-**CS-006: Add workspace dependencies explicitly.** When importing from another project, add `"@living-architecture/[pkg-name]": "workspace:*"` to package.json.
+Import from `@living-architecture/[pkg-name]`, not relative paths like `../../packages/[pkg-name]`.
 
-## Layer Responsibilities
+## CS-006: Add Workspace Dependencies Explicitly
 
-| Layer | Contains | Depends On |
-|-------|----------|------------|
-| entrypoint | API controllers, CLI commands, request/response mapping | commands, queries |
-| commands | Write operation handlers (mutate state) | domain, infra |
-| queries | Read operation handlers (return data) | domain, infra (read-only) |
-| domain | Entities, value objects, domain services, domain events | Nothing |
-| infra | Repositories, external clients, framework adapters | domain |
-
-**Commands vs Queries:**
-- **Commands** orchestrate write operations: load → mutate via domain → persist
-- **Queries** orchestrate read operations: load → query → return
-- Entrypoint calls commands or queries, never domain or infra directly
-- Commands and queries use dependency injection (constructor injection, single `execute` method)
-
-## Package Guidelines
-
-**When to create a package:**
-- Code is used by 2+ apps
-- Code represents a distinct domain concept
-- Code needs to be published to npm
-
-**Package types:**
-- **Domain packages:** Pure domain logic, no external dependencies
-- **Feature packages:** Complete vertical slice (domain + application + infra)
-- **Utility packages:** Technical utilities (logging, http-client wrappers)
-
-**Naming:**
-- Use domain language, not technical jargon
-- `@living-architecture/order-processing` not `@living-architecture/order-utils`
+When importing from another project, add `"@living-architecture/[pkg-name]": "workspace:*"` to package.json.
 
 ## CS-007: Per-Project Configuration
 
@@ -165,6 +143,20 @@ The `references` arrays are automatically maintained by `pnpm nx sync`.
 
 Use NX generators - don't create project folders manually.
 
+**When to create a package:**
+- Code is used by 2+ apps
+- Code represents a distinct domain concept
+- Code needs to be published to npm
+
+**Package types:**
+- **Domain packages:** Pure domain logic, no external dependencies
+- **Feature packages:** Complete vertical slice (domain + application + infra)
+- **Utility packages:** Technical utilities (logging, http-client wrappers)
+
+**Package naming:**
+- Use domain language, not technical jargon
+- `@living-architecture/order-processing` not `@living-architecture/order-utils`
+
 **Add application:**
 ```bash
 pnpm nx g @nx/node:application apps/[app-name]
@@ -191,3 +183,60 @@ After generation:
 }
 ```
 Then run `pnpm install` and `pnpm nx sync`.
+
+## CS-009: Vertical Slice Organization
+
+Files must be organized by usage, not by type. Type-based grouping violates CS-004.
+
+**Forbidden patterns:**
+- Folders named: `types/`, `models/`, `validators/`, `assertions/`, `schemas/`, `interfaces/`
+- Files named: `types.ts`, `models.ts`, `validators.ts`, `assertions.ts`, `schemas.ts`, `interfaces.ts`
+- Any folder or file that groups items by category rather than by what uses them together
+
+**Exception:** Test fixtures shared across multiple test files.
+
+## CS-010: Layer Responsibility Alignment
+
+Files in a layer directory MUST perform that layer's responsibility. Being called from that layer is irrelevant — call-site proximity is not a placement criterion.
+
+| Layer | The file MUST... |
+|-------|------------------|
+| `commands/` | Orchestrate a write: load state, mutate via domain, persist |
+| `queries/` | Orchestrate a read: load, transform, return |
+| `domain/` | Express business rules with no I/O |
+| `entrypoint/` | Wire request to command/query, map response |
+| `infra/` | Adapt an external system behind an interface |
+
+**Commands vs Queries:**
+- **Commands** orchestrate write operations: load → mutate via domain → persist
+- **Queries** orchestrate read operations: load → query → return
+- Entrypoint calls commands or queries, never domain or infra directly
+- Commands and queries use dependency injection (constructor injection, single `execute` method)
+
+### No helpers in commands/ or queries/
+
+`commands/` and `queries/` contain ONLY command and query files respectively. They are not dumping grounds for helpers, utilities, loaders, formatters, or any supporting logic. If code is not itself a command or query, it does not belong in these directories. Supporting logic belongs in `domain/`, `platform/domain/`, `platform/infra/`, or `infra/` depending on what it does — use the development-skills:separation-of-concerns skill to make the right choice.
+
+### Naming principle
+
+**`commands/` files must be named as actions (verb-object).** A command does something — its name should say what. If the filename is a noun or noun-phrase, it describes a thing, not an action, and does not belong in `commands/`.
+
+✅ **Good** (verb-object — describes an action):
+- `place-order.ts`
+- `send-notification.ts`
+- `publish-release.ts`
+
+❌ **Bad** (noun/noun-phrase — describes a thing):
+- `order-processor.ts`
+- `notification-sender.ts`
+- `release-publisher.ts`
+
+The same principle applies in reverse to other layers — `queries/` files should describe what they retrieve, `domain/` files should be named for the concept they model.
+
+### Checklist for `commands/` (most common misplacement)
+
+1. Does the file produce a **side effect** (write to disk, send a message, mutate state)?
+2. Does it call **domain logic** to decide what to do?
+3. If you removed this file, would a **write capability** be lost, or just a read/transform capability?
+
+If any answer is "no", the file does not belong in `commands/`.

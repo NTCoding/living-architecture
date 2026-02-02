@@ -93,13 +93,13 @@ describe('codeReview', () => {
     expect(result.type).toBe('failure')
   })
 
-  it('runs code-review and bug-scanner agents', async () => {
+  it('runs architecture-review, code-review and bug-scanner agents', async () => {
     const step = createStep()
     const ctx = createContext({})
 
     await step.execute(ctx)
 
-    expect(mockQueryAgentText).toHaveBeenCalledTimes(2)
+    expect(mockQueryAgentText).toHaveBeenCalledTimes(3)
   })
 
   it('runs task-check agent when hasIssue and no marker', async () => {
@@ -115,7 +115,7 @@ describe('codeReview', () => {
 
     await step.execute(ctx)
 
-    expect(mockQueryAgentText).toHaveBeenCalledTimes(3)
+    expect(mockQueryAgentText).toHaveBeenCalledTimes(4)
   })
 
   it('creates task-check marker when task-check passes', async () => {
@@ -163,34 +163,29 @@ describe('codeReview', () => {
     expect(result.type).toBe('failure')
   })
 
-  it('writes report to disk from agent response', async () => {
+  it('does not write report to disk — agents write directly', async () => {
     const step = createStep()
     const ctx = createContext({})
 
     await step.execute(ctx)
 
-    expect(mockWriteFile).toHaveBeenCalledWith(
-      expect.stringContaining('code-review-1.md'),
-      'All checks passed.',
-      'utf-8',
-    )
+    expect(mockWriteFile).not.toHaveBeenCalled()
   })
 
-  it('uses round number 2 when round 1 report exists', async () => {
+  it('passes round 2 report path in prompt when round 1 report exists', async () => {
     mockReaddirSync.mockReturnValue(['code-review-1.md', 'bug-scanner-1.md'])
     const step = createStep()
     const ctx = createContext({})
 
     await step.execute(ctx)
 
-    expect(mockWriteFile).toHaveBeenCalledWith(
-      expect.stringContaining('code-review-2.md'),
-      expect.any(String),
-      'utf-8',
+    const codeReviewCall = mockQueryAgentText.mock.calls.find((call) =>
+      String(call[0].prompt).includes('code-review'),
     )
+    expect(codeReviewCall?.[0].prompt).toContain('code-review-2.md')
   })
 
-  it('falls back to round 1 when directory does not exist', async () => {
+  it('passes round 1 report path in prompt when directory does not exist', async () => {
     mockReaddirSync.mockImplementation(() => {
       throw new AgentError('ENOENT')
     })
@@ -199,11 +194,10 @@ describe('codeReview', () => {
 
     await step.execute(ctx)
 
-    expect(mockWriteFile).toHaveBeenCalledWith(
-      expect.stringContaining('code-review-1.md'),
-      expect.any(String),
-      'utf-8',
+    const codeReviewCall = mockQueryAgentText.mock.calls.find((call) =>
+      String(call[0].prompt).includes('code-review'),
     )
+    expect(codeReviewCall?.[0].prompt).toContain('code-review-1.md')
   })
 
   it('returns retriable failure when agent query throws', async () => {

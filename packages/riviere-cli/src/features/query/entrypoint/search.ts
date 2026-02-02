@@ -1,9 +1,10 @@
 import { Command } from 'commander'
 import { formatSuccess } from '../../../platform/infra/cli-presentation/output'
 import {
-  withGraph, getDefaultGraphPathDescription 
-} from '../queries/load-graph'
-import { toComponentOutput } from '../queries/component-output'
+  withGraph,
+  getDefaultGraphPathDescription,
+} from '../../../platform/infra/graph-persistence/query-graph-loader'
+import { toComponentOutput } from '../../../platform/infra/cli-presentation/component-output'
 
 interface SearchOptions {
   graph?: string

@@ -15,8 +15,9 @@ import {
 } from '../../../platform/__fixtures__/command-test-fixtures'
 import { CliErrorCode } from '../../../platform/infra/cli-presentation/error-codes'
 
-vi.mock('../commands/git-changed-files', async (importOriginal) => {
-  const original = await importOriginal<typeof import('../commands/git-changed-files')>()
+vi.mock('../../../platform/infra/git/git-changed-files', async (importOriginal) => {
+  const original =
+    await importOriginal<typeof import('../../../platform/infra/git/git-changed-files')>()
   return {
     ...original,
     detectChangedTypeScriptFiles: vi.fn(),
@@ -24,8 +25,9 @@ vi.mock('../commands/git-changed-files', async (importOriginal) => {
 })
 
 import {
-  detectChangedTypeScriptFiles, GitError 
-} from '../commands/git-changed-files'
+  detectChangedTypeScriptFiles,
+  GitError,
+} from '../../../platform/infra/git/git-changed-files'
 
 const mockDetectChanged = vi.mocked(detectChangedTypeScriptFiles)
 

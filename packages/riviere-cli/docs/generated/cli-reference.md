@@ -68,28 +68,6 @@ riviere builder add-component [options]
 |------|-------------|
 | `--json` | Output result as JSON |
 
-**Examples:**
-```bash
-# Add an API endpoint
-riviere builder add-component --type API --name "place-order" \
-  --domain orders --module api --repository ecommerce \
-  --file-path src/api/orders.ts --api-type REST \
-  --http-method POST --http-path /orders
-# Add a UseCase
-riviere builder add-component --type UseCase --name "place-order" \
-  --domain orders --module checkout --repository ecommerce \
-  --file-path src/usecases/PlaceOrder.ts
-# Add a DomainOp
-riviere builder add-component --type DomainOp --name "order-begin" \
-  --domain orders --module domain --repository ecommerce \
-  --file-path src/domain/Order.ts --entity Order --operation-name begin
-# Add an Event
-riviere builder add-component --type Event --name "order-placed" \
-  --domain orders --module events --repository ecommerce \
-  --file-path src/events/OrderPlaced.ts --event-name "order-placed" \
-  --event-schema "{ orderId: string, total: number }"
-```
-
 ---
 
 ### `add-domain`

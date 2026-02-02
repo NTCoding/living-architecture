@@ -1,6 +1,4 @@
-import {
-  readFile, writeFile 
-} from 'node:fs/promises'
+import { readFile } from 'node:fs/promises'
 import { readdirSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { z } from 'zod'
@@ -31,7 +29,7 @@ interface ReviewerResult {
   reportPath: string
 }
 
-const VALID_REVIEWERS = ['code-review', 'bug-scanner', 'task-check'] as const
+const VALID_REVIEWERS = ['architecture-review', 'code-review', 'bug-scanner', 'task-check'] as const
 type ReviewerName = (typeof VALID_REVIEWERS)[number]
 
 export interface CodeReviewDeps {
@@ -47,7 +45,12 @@ export interface CodeReviewDeps {
 
 function getReviewerNames(hasIssue: boolean, reviewDir: string): readonly ReviewerName[] {
   const shouldRunTaskCheck = hasIssue && !taskCheckMarkerExists(reviewDir)
-  return ['code-review', 'bug-scanner', ...(shouldRunTaskCheck ? (['task-check'] as const) : [])]
+  return [
+    'architecture-review',
+    'code-review',
+    'bug-scanner',
+    ...(shouldRunTaskCheck ? (['task-check'] as const) : []),
+  ]
 }
 
 async function loadAgentInstructions(agentPath: string): Promise<string> {
@@ -188,7 +191,12 @@ async function executeCodeReviewAgents(
       const round = nextRoundNumber(reviewDir, name)
       const reportPath = resolve(`${reviewDir}/${name}-${round}.md`)
 
-      const promptParts = [basePrompt, '\n\n## Files to Review\n\n', filesToReview.join('\n')]
+      const promptParts = [
+        basePrompt,
+        `\n\n## Report Path\n\n${reportPath}`,
+        '\n\n## Files to Review\n\n',
+        filesToReview.join('\n'),
+      ]
 
       if (name === 'task-check' && taskDetails) {
         promptParts.push(
@@ -203,8 +211,6 @@ async function executeCodeReviewAgents(
       })
 
       const parsed = parseAgentResponse(rawResponse)
-
-      await writeFile(reportPath, parsed.report, 'utf-8')
 
       if (name === 'task-check' && parsed.verdict === 'PASS') {
         await createTaskCheckMarker(reviewDir)

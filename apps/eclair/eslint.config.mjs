@@ -54,6 +54,12 @@ export default [
     },
   },
   {
+      files: ['**/queries/**/*.ts'],
+      rules: {
+        'max-lines': 'off',
+      },
+    },
+  {
     files: [
       '**/*.test.ts',
       '**/*.test.tsx',

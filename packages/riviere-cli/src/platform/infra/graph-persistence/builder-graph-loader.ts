@@ -3,10 +3,10 @@ import {
   ComponentNotFoundError, RiviereBuilder 
 } from '@living-architecture/riviere-builder'
 import { parseRiviereGraph } from '@living-architecture/riviere-schema'
-import { formatError } from '../../../platform/infra/cli-presentation/output'
-import { CliErrorCode } from '../../../platform/infra/cli-presentation/error-codes'
-import { resolveGraphPath } from '../../../platform/infra/graph-persistence/graph-path'
-import { fileExists } from '../../../platform/infra/graph-persistence/file-existence'
+import { formatError } from '../cli-presentation/output'
+import { CliErrorCode } from '../cli-presentation/error-codes'
+import { resolveGraphPath } from './graph-path'
+import { fileExists } from './file-existence'
 
 export function reportGraphNotFound(graphPath: string): void {
   console.log(

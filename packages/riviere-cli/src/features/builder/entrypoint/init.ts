@@ -14,42 +14,9 @@ import {
   resolveGraphPath,
   getDefaultGraphPathDescription,
 } from '../../../platform/infra/graph-persistence/graph-path'
-import { InvalidDomainJsonError } from '../../../platform/infra/errors/errors'
-import type { SystemType } from '@living-architecture/riviere-schema'
-import { isValidSystemType } from '../../../platform/infra/cli-presentation/component-types'
-
-interface DomainInputParsed {
-  name: string
-  description: string
-  systemType: SystemType
-}
-
-function isDomainInputParsed(value: unknown): value is DomainInputParsed {
-  if (typeof value !== 'object' || value === null) {
-    return false
-  }
-  return (
-    'name' in value &&
-    typeof value.name === 'string' &&
-    'description' in value &&
-    typeof value.description === 'string' &&
-    'systemType' in value &&
-    typeof value.systemType === 'string' &&
-    isValidSystemType(value.systemType)
-  )
-}
-
-function parseDomainJson(value: string, previous: DomainInputParsed[]): DomainInputParsed[] {
-  const parsed: unknown = JSON.parse(value)
-  if (!isDomainInputParsed(parsed)) {
-    throw new InvalidDomainJsonError(value)
-  }
-  return [...previous, parsed]
-}
-
-function collectSource(value: string, previous: string[]): string[] {
-  return [...previous, value]
-}
+import { collectOption } from '../../../platform/infra/cli-presentation/option-collectors'
+import { parseDomainJson } from '../../../platform/infra/cli-presentation/domain-input-parser'
+import type { DomainInputParsed } from '../../../platform/infra/cli-presentation/domain-input-parser'
 
 interface InitOptions {
   name?: string
@@ -79,7 +46,7 @@ Examples:
     .option('--name <name>', 'System name')
     .option('--graph <path>', getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
-    .option('--source <url>', 'Source repository URL (repeatable)', collectSource, [])
+    .option('--source <url>', 'Source repository URL (repeatable)', collectOption, [])
     .option('--domain <json>', 'Domain as JSON (repeatable)', parseDomainJson, [])
     .action(async (options: InitOptions) => {
       // Validate required flags

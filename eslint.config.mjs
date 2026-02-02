@@ -260,7 +260,15 @@ export default tseslint.config(
       ],
     },
   },
-  // Thin entrypoint enforcement — entrypoints are wiring only, no private functions
+  // Thin layer enforcement — entrypoints, commands, and queries are thin orchestration files
+  {
+    files: ['**/entrypoint/**/*.ts', '**/commands/**/*.ts', '**/queries/**/*.ts'],
+    ignores: ['**/*.spec.ts', '**/*.test.ts', 'packages/riviere-query/src/queries/**/*.ts', 'apps/eclair/**/queries/**/*.ts'],
+    rules: {
+      'max-lines': ['error', { max: 150, skipBlankLines: true, skipComments: true }],
+    },
+  },
+  // Entrypoint-specific restrictions — wiring only, no private functions
   {
     files: ['**/entrypoint/**/*.ts'],
     ignores: ['**/*.spec.ts', '**/*.test.ts'],

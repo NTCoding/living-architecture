@@ -5,7 +5,7 @@ import {
 } from '../../../platform/infra/cli-presentation/output'
 import { CliErrorCode } from '../../../platform/infra/cli-presentation/error-codes'
 import { isValidComponentType } from '../../../platform/infra/cli-presentation/component-types'
-import { withGraphBuilder } from '../commands/link-infrastructure'
+import { withGraphBuilder } from '../../../platform/infra/graph-persistence/builder-graph-loader'
 
 interface ComponentChecklistOptions {
   graph?: string

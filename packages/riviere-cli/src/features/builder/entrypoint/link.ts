@@ -19,7 +19,7 @@ import {
   loadGraphBuilder,
   reportGraphNotFound,
   tryBuilderOperation,
-} from '../commands/link-infrastructure'
+} from '../../../platform/infra/graph-persistence/builder-graph-loader'
 
 interface LinkOptions {
   from: string

@@ -1,12 +1,11 @@
 import { readFile } from 'node:fs/promises'
 import { RiviereQuery } from '@living-architecture/riviere-query'
 import {
-  resolveGraphPath,
-  getDefaultGraphPathDescription,
-} from '../../../platform/infra/graph-persistence/graph-path'
-import { fileExists } from '../../../platform/infra/graph-persistence/file-existence'
-import { formatError } from '../../../platform/infra/cli-presentation/output'
-import { CliErrorCode } from '../../../platform/infra/cli-presentation/error-codes'
+  resolveGraphPath, getDefaultGraphPathDescription 
+} from './graph-path'
+import { fileExists } from './file-existence'
+import { formatError } from '../cli-presentation/output'
+import { CliErrorCode } from '../cli-presentation/error-codes'
 
 export { getDefaultGraphPathDescription }
 

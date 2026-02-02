@@ -18,7 +18,7 @@ beforeEach(() => {
 afterAll(() => {
   rmSync(testDir, {
     recursive: true,
-    force: true 
+    force: true,
   })
 })
 

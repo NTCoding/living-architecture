@@ -1,65 +1,29 @@
 import { Command } from 'commander'
 import { writeFile } from 'node:fs/promises'
 import { ComponentId } from '@living-architecture/riviere-builder'
-import { RiviereQuery } from '@living-architecture/riviere-query'
-import type {
-  Component, HttpMethod, RiviereGraph 
-} from '@living-architecture/riviere-schema'
 import {
   getDefaultGraphPathDescription,
   resolveGraphPath,
 } from '../../../platform/infra/graph-persistence/graph-path'
 import { fileExists } from '../../../platform/infra/graph-persistence/file-existence'
-import {
-  formatError, formatSuccess 
-} from '../../../platform/infra/cli-presentation/output'
-import { CliErrorCode } from '../../../platform/infra/cli-presentation/error-codes'
+import { formatSuccess } from '../../../platform/infra/cli-presentation/output'
 import {
   isValidLinkType,
   normalizeComponentType,
 } from '../../../platform/infra/cli-presentation/component-types'
+import { isValidHttpMethod } from '../../../platform/infra/cli-presentation/validation'
 import {
-  isValidHttpMethod,
-  validateComponentType,
-  validateHttpMethod,
-  validateLinkType,
-} from '../../../platform/infra/cli-presentation/validation'
+  loadGraphBuilder,
+  reportGraphNotFound,
+} from '../../../platform/infra/graph-persistence/builder-graph-loader'
 import {
-  loadGraphBuilder, reportGraphNotFound 
-} from '../commands/link-infrastructure'
-
-interface ApiComponent {
-  id: string
-  type: 'API'
-  name: string
-  domain: string
-  path: string
-  httpMethod: HttpMethod
-}
-
-function isRestApiWithPath(component: Component): component is Component & ApiComponent {
-  return component.type === 'API' && 'path' in component && 'httpMethod' in component
-}
-
-function findApisByPath(graph: RiviereGraph, path: string, method?: HttpMethod): ApiComponent[] {
-  const query = new RiviereQuery(graph)
-  const allComponents = query.componentsByType('API')
-  const apis = allComponents.filter(isRestApiWithPath)
-  const matchingPath = apis.filter((api) => api.path === path)
-
-  if (method) {
-    return matchingPath.filter((api) => api.httpMethod === method)
-  }
-
-  return matchingPath
-}
-
-function getAllApiPaths(graph: RiviereGraph): string[] {
-  const query = new RiviereQuery(graph)
-  const allComponents = query.componentsByType('API')
-  const apis = allComponents.filter(isRestApiWithPath)
-  return [...new Set(apis.map((api) => api.path))]
-}
+  findApisByPath, getAllApiPaths 
+} from '../commands/api-component-queries'
+import {
+  reportNoApiFoundForPath,
+  reportAmbiguousApiMatch,
+} from '../../../platform/infra/cli-presentation/link-http-errors'
+import { validateOptions } from '../../../platform/infra/cli-presentation/link-http-validator'
 
 interface LinkHttpOptions {
   path: string
@@ -71,50 +35,6 @@ interface LinkHttpOptions {
   linkType?: string
   graph?: string
   json?: boolean
-}
-
-function reportNoApiFoundForPath(path: string, availablePaths: string[]): void {
-  console.log(
-    JSON.stringify(
-      formatError(
-        CliErrorCode.ComponentNotFound,
-        `No API found with path '${path}'`,
-        availablePaths.length > 0 ? [`Available paths: ${availablePaths.join(', ')}`] : [],
-      ),
-    ),
-  )
-}
-
-function reportAmbiguousApiMatch(path: string, matchingApis: ApiComponent[]): void {
-  const apiList = matchingApis.map((api) => `${api.id} (${api.httpMethod})`).join(', ')
-  console.log(
-    JSON.stringify(
-      formatError(
-        CliErrorCode.AmbiguousApiMatch,
-        `Multiple APIs match path '${path}': ${apiList}`,
-        ['Add --method flag to disambiguate'],
-      ),
-    ),
-  )
-}
-
-function validateOptions(options: LinkHttpOptions): string | undefined {
-  const componentTypeValidation = validateComponentType(options.toType)
-  if (!componentTypeValidation.valid) {
-    return componentTypeValidation.errorJson
-  }
-
-  const httpMethodValidation = validateHttpMethod(options.method)
-  if (!httpMethodValidation.valid) {
-    return httpMethodValidation.errorJson
-  }
-
-  const linkTypeValidation = validateLinkType(options.linkType)
-  if (!linkTypeValidation.valid) {
-    return linkTypeValidation.errorJson
-  }
-
-  return undefined
 }
 
 export function createLinkHttpCommand(): Command {

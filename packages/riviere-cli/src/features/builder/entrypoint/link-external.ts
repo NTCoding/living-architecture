@@ -13,7 +13,8 @@ import {
   loadGraphBuilder,
   reportGraphNotFound,
   tryBuilderOperation,
-} from '../commands/link-infrastructure'
+} from '../../../platform/infra/graph-persistence/builder-graph-loader'
+import { buildExternalTarget } from '../../../platform/infra/cli-presentation/link-external-transformer'
 
 interface ExternalLinkInput {
   from: string
@@ -29,14 +30,6 @@ interface LinkExternalOptions {
   linkType?: string
   graph?: string
   json?: boolean
-}
-
-function buildExternalTarget(options: LinkExternalOptions): ExternalTarget {
-  return {
-    name: options.targetName,
-    ...(options.targetDomain && { domain: options.targetDomain }),
-    ...(options.targetUrl && { url: options.targetUrl }),
-  }
 }
 
 export function createLinkExternalCommand(): Command {

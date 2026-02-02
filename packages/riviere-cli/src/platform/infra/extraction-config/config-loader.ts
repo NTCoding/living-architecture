@@ -6,8 +6,14 @@ import {
 } from 'node:fs'
 import { createRequire } from 'node:module'
 import { parse as parseYaml } from 'yaml'
+import { globSync } from 'glob'
 import {
-  type Module, parseExtractionConfig 
+  type Module,
+  parseExtractionConfig,
+  validateExtractionConfig,
+  formatValidationErrors,
+  isValidExtractionConfig,
+  type ResolvedExtractionConfig,
 } from '@living-architecture/riviere-extract-config'
 import {
   type ConfigLoader, resolveConfig 
@@ -17,8 +23,12 @@ import {
   ConfigSchemaValidationError,
   InternalSchemaValidationError,
   InvalidConfigFormatError,
+  ModuleRefNotFoundError,
   PackageResolveError,
-} from '../../../platform/infra/errors/errors'
+} from '../errors/errors'
+import { expandModuleRefs } from './expand-module-refs'
+import { exitWithConfigValidation } from '../cli-presentation/exit-handlers'
+import { CliErrorCode } from '../cli-presentation/error-codes'
 
 interface TopLevelRulesConfig {
   api?: Module['api']
@@ -138,5 +148,116 @@ export function createConfigLoader(configDir: string): ConfigLoader {
       : resolve(configDir, source)
 
     return loadConfigFile(filePath, source)
+  }
+}
+
+type ParseResult =
+  | {
+    success: true
+    data: unknown
+  }
+  | {
+    success: false
+    error: string
+  }
+
+export function parseConfigFile(content: string): ParseResult {
+  try {
+    return {
+      success: true,
+      data: parseYaml(content),
+    }
+  } catch (error) {
+    /* v8 ignore next -- @preserve: yaml library always throws Error instances; defensive guard */
+    const message = error instanceof Error ? error.message : 'Unknown parse error'
+    return {
+      success: false,
+      error: message,
+    }
+  }
+}
+
+export function tryExpandModuleRefs(data: unknown, configDir: string): ParseResult {
+  try {
+    return {
+      success: true,
+      data: expandModuleRefs(data, configDir),
+    }
+  } catch (error) {
+    if (error instanceof ModuleRefNotFoundError) {
+      return {
+        success: false,
+        error: error.message,
+      }
+    }
+    /* v8 ignore next -- @preserve: error is always Error from yaml parser; defensive guard */
+    const message = error instanceof Error ? error.message : 'Unknown error during module expansion'
+    return {
+      success: false,
+      error: message,
+    }
+  }
+}
+
+export function resolveSourceFiles(
+  resolvedConfig: ResolvedExtractionConfig,
+  configDir: string,
+): string[] {
+  const sourceFilePaths = resolvedConfig.modules
+    .flatMap((module) => globSync(module.path, { cwd: configDir }))
+    .map((filePath) => resolve(configDir, filePath))
+
+  if (sourceFilePaths.length === 0) {
+    const patterns = resolvedConfig.modules.map((m) => m.path).join(', ')
+    exitWithConfigValidation(
+      CliErrorCode.ValidationError,
+      `No files matched extraction patterns: ${patterns}\nConfig directory: ${configDir}`,
+    )
+  }
+
+  return sourceFilePaths
+}
+
+interface ValidatedConfig {
+  resolvedConfig: ResolvedExtractionConfig
+  configDir: string
+}
+
+export function loadAndValidateConfig(configPath: string): ValidatedConfig {
+  if (!existsSync(configPath)) {
+    exitWithConfigValidation(CliErrorCode.ConfigNotFound, `Config file not found: ${configPath}`)
+  }
+
+  const content = readFileSync(configPath, 'utf-8')
+  const parseResult = parseConfigFile(content)
+
+  if (!parseResult.success) {
+    exitWithConfigValidation(
+      CliErrorCode.ValidationError,
+      `Invalid config file: ${parseResult.error}`,
+    )
+  }
+
+  const configDir = dirname(resolve(configPath))
+  const expansionResult = tryExpandModuleRefs(parseResult.data, configDir)
+
+  if (!expansionResult.success) {
+    exitWithConfigValidation(
+      CliErrorCode.ValidationError,
+      `Error expanding module references: ${expansionResult.error}`,
+    )
+  }
+
+  if (!isValidExtractionConfig(expansionResult.data)) {
+    const validationResult = validateExtractionConfig(expansionResult.data)
+    exitWithConfigValidation(
+      CliErrorCode.ValidationError,
+      `Invalid extraction config:\n${formatValidationErrors(validationResult.errors)}`,
+    )
+  }
+
+  return {
+    resolvedConfig: resolveConfig(expansionResult.data, createConfigLoader(configDir)),
+    configDir,
   }
 }

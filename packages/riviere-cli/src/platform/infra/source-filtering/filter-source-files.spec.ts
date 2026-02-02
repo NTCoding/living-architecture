@@ -10,8 +10,8 @@ import {
   filterSourceFiles, SourceFilterError 
 } from './filter-source-files'
 
-vi.mock('./git-changed-files', async (importOriginal) => {
-  const original = await importOriginal<typeof import('./git-changed-files')>()
+vi.mock('../git/git-changed-files', async (importOriginal) => {
+  const original = await importOriginal<typeof import('../git/git-changed-files')>()
   return {
     ...original,
     detectChangedTypeScriptFiles: vi.fn(),
@@ -20,7 +20,7 @@ vi.mock('./git-changed-files', async (importOriginal) => {
 
 import {
   detectChangedTypeScriptFiles, GitError 
-} from './git-changed-files'
+} from '../git/git-changed-files'
 
 const mockDetectChanged = vi.mocked(detectChangedTypeScriptFiles)
 

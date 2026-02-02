@@ -12,12 +12,13 @@
       "Read(./apps/**/.env)",
       "Read(./apps/**/.env.*)",
       "Read(./packages/**/.env)",
-      "Read(./packages/**/.env.*)"
-    ],
-    "ask": [
+      "Read(./packages/**/.env.*)",
       "Edit(./.dependency-cruiser.mjs)",
       "Edit(./.dependency-cruiser.frontend.mjs)",
-      "Edit(./eslint.config.mjs)"
+      "Edit(./eslint.config.mjs)",
+      "Write(./.dependency-cruiser.mjs)",
+      "Write(./.dependency-cruiser.frontend.mjs)",
+      "Write(./eslint.config.mjs)"
     ]
   },
   "hooks": {

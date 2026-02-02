@@ -4,39 +4,6 @@ Banned patterns. Exceptions require documented justification.
 
 ---
 
-## AP-001: String-Based Error Detection
-
-🚨 **Never parse error message strings to determine error types or extract information.**
-
-### ❌ Bad
-
-```typescript
-if (error.message.startsWith("Custom type '") && error.message.includes('not defined')) {
-  // Handle missing custom type
-}
-
-const match = errorMessage.match(/Did you mean: (.+)\?/);
-```
-
-### ✓ Good
-
-```typescript
-class CustomTypeNotDefinedError extends Error {
-  readonly code = 'CUSTOM_TYPE_NOT_DEFINED' as const;
-  constructor(public readonly typeName: string) {
-    super(`Custom type '${typeName}' not defined`);
-  }
-}
-
-if (error instanceof CustomTypeNotDefinedError) {
-  // Handle
-}
-```
-
-**Detection:** `.message.includes(`, `.message.startsWith(`, regex on `error.message`
-
----
-
 ## AP-002: Sacrificing Quality for File Length Limits
 
 🚨 **Never sacrifice code quality, test coverage, or readability to satisfy linting rules or file length limits.**
@@ -93,19 +60,6 @@ const result = items
 - Skip adding tests
 - Delete existing tests
 - Compress code to fit limits
-
----
-
-### AP-001 Exception: Parsing strings in exception messages
-
-Only when 100% unavoidable (e.g., third-party library limitations):
-
-```typescript
-// ANTI-PATTERN EXCEPTION: String-Based Error Detection
-// Justification: Library X doesn't expose typed errors
-// Tracking: Issue #123 / requested upstream fix
-if (error.message.includes('...')) { ... }
-```
 
 ---
 
@@ -219,3 +173,29 @@ if (node.x === undefined) { throw new LayoutError('...') }
 - **Platform guards**: Code paths only reachable on specific platforms (e.g., browser vs Node.js)
 
 **Rule**: If you can write a test, you MUST write a test. "Hard to test" is not a valid excuse.
+
+---
+
+## AP-007: Manual JSON Construction in Shell Scripts
+
+🚨 **When building JSON in bash, use `jq` instead of manual string escaping.** Manual escaping typically misses backslashes, newlines, and tabs.
+
+### ❌ Bad
+
+```bash
+BODY="${MESSAGE//\"/\\\"}"
+gh api ... --field body="$BODY"
+```
+
+### ✓ Good
+
+```bash
+BODY=$(jq -n --arg msg "$MESSAGE" '{body: $msg}')
+gh api ... --input - <<< "$BODY"
+```
+
+---
+
+## AP-008: Unused Variables in Shell Scripts
+
+🚨 **Flag any variables that are extracted or assigned but never used.** Remove the variable or use it.

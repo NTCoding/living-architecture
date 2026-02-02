@@ -8,15 +8,15 @@ import { join } from 'node:path'
 import { RiviereQuery } from '@living-architecture/riviere-query'
 import {
   loadGraph, isLoadGraphError, withGraph 
-} from './load-graph'
-import { CliErrorCode } from '../../../platform/infra/cli-presentation/error-codes'
-import type { TestContext } from '../../../platform/__fixtures__/command-test-fixtures'
+} from './query-graph-loader'
+import { CliErrorCode } from '../cli-presentation/error-codes'
+import type { TestContext } from '../../__fixtures__/command-test-fixtures'
 import {
   createTestContext,
   setupCommandTest,
   assertDefined,
   TestAssertionError,
-} from '../../../platform/__fixtures__/command-test-fixtures'
+} from '../../__fixtures__/command-test-fixtures'
 
 const validGraph = {
   version: '1.0',

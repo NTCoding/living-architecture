@@ -1,47 +1,12 @@
 #!/usr/bin/env tsx
 
-import * as readline from 'node:readline'
 import {
   parseHookInput, routeToHandler, shouldSkipHooks 
 } from '../commands/handle-hook'
-
-async function readStdin(): Promise<string> {
-  const rl = readline.createInterface({
-    input: process.stdin,
-    crlfDelay: Infinity,
-  })
-
-  const lines: string[] = []
-  for await (const line of rl) {
-    lines.push(line)
-  }
-
-  return lines.join('\n')
-}
-
-type JsonParseResult =
-  | {
-    success: true
-    data: unknown
-  }
-  | { success: false }
-
-function tryParseJson(input: string): JsonParseResult {
-  try {
-    return {
-      success: true,
-      data: JSON.parse(input),
-    }
-  } catch {
-    return { success: false }
-  }
-}
-
-function skipHooksOutput(): void {
-  console.log(JSON.stringify({}))
-}
-
-async function main(): Promise<void> {
+import {
+  readStdin, tryParseJson, skipHooksOutput 
+} from '../../../platform/infra/stdin-reader'
+;(async () => {
   if (shouldSkipHooks()) {
     skipHooksOutput()
     return
@@ -71,9 +36,7 @@ async function main(): Promise<void> {
     return
   }
   console.log(JSON.stringify(output))
-}
-
-main().catch((error: unknown) => {
+})().catch((error: unknown) => {
   console.error(error instanceof Error ? error.message : String(error))
   process.exit(2)
 })

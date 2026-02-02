@@ -5,7 +5,7 @@ import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { createProgram } from '../../../shell/cli'
 import { CliErrorCode } from '../../../platform/infra/cli-presentation/error-codes'
-import { getErrorMessage } from './add-component'
+import { getErrorMessage } from '../../../platform/infra/errors/errors'
 import {
   type TestContext,
   createTestContext,
@@ -13,7 +13,7 @@ import {
   createGraphWithDomain,
   MockError,
 } from '../../../platform/__fixtures__/command-test-fixtures'
-import { buildAddComponentArgs } from './add-component-fixtures'
+import { buildAddComponentArgs } from '../../../platform/__fixtures__/add-component-fixtures'
 
 describe('riviere builder add-component', () => {
   describe('command registration', () => {

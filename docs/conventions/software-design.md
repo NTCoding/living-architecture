@@ -420,6 +420,14 @@ function detectConnections(project: Project): Connection[] {
 }
 ```
 
+## SD-023: No Duplicated Code
+
+Don't duplicate code. If near-identical code is duplicated more than twice, it must be extracted — even if it requires touching files not part of the current change set.
+
+**Applies equally to test files.** Duplicated test utilities, fixtures, magic numbers, and helper functions across test files must be extracted. Test code is not exempt from duplication rules.
+
+---
+
 ## When Tempted to Cut Corners
 
 **STOP if you're about to:**

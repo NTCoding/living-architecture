@@ -10,7 +10,7 @@ import {
   isValidSystemType,
   VALID_SYSTEM_TYPES,
 } from '../../../platform/infra/cli-presentation/component-types'
-import { withGraphBuilder } from '../commands/link-infrastructure'
+import { withGraphBuilder } from '../../../platform/infra/graph-persistence/builder-graph-loader'
 
 interface AddDomainOptions {
   name: string

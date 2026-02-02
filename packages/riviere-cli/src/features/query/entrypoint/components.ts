@@ -4,14 +4,15 @@ import {
 } from '../../../platform/infra/cli-presentation/output'
 import { CliErrorCode } from '../../../platform/infra/cli-presentation/error-codes'
 import {
-  withGraph, getDefaultGraphPathDescription 
-} from '../queries/load-graph'
+  withGraph,
+  getDefaultGraphPathDescription,
+} from '../../../platform/infra/graph-persistence/query-graph-loader'
 import {
   isValidComponentType,
   normalizeToSchemaComponentType,
   VALID_COMPONENT_TYPES,
 } from '../../../platform/infra/cli-presentation/component-types'
-import { toComponentOutput } from '../queries/component-output'
+import { toComponentOutput } from '../../../platform/infra/cli-presentation/component-output'
 
 interface ComponentsOptions {
   graph?: string

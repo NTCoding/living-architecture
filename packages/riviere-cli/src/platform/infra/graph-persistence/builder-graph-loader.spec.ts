@@ -5,7 +5,7 @@ import {
   mkdir, writeFile 
 } from 'node:fs/promises'
 import { join } from 'node:path'
-import { withGraphBuilder } from './link-infrastructure'
+import { withGraphBuilder } from './builder-graph-loader'
 import { CliErrorCode } from '../../../platform/infra/cli-presentation/error-codes'
 import {
   type TestContext,
