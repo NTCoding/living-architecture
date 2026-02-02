@@ -277,3 +277,34 @@ Relevant Code: [show test file and function under test]
 Suggested Fix: [list missing edge case categories from TS-008]
 Optional?: No — missing edge cases lead to production bugs
 ```
+
+## CR-009: Layer Responsibility Alignment
+
+Verify that files in a layer directory actually perform that layer's responsibility, not just happen to be called from that layer. Automated tools enforce structural rules (file size, import direction) but cannot check whether a file's semantic purpose matches its layer.
+
+**Detection — for each production file in a layer directory, ask:**
+
+| Layer | The file MUST... | Red flags it doesn't belong |
+|-------|------------------|-----------------------------|
+| `commands/` | Orchestrate a write: load state, mutate via domain, persist | No side effects; returns data without writing; name contains `load`, `read`, `get`, `parse`, `resolve`, `validate`, `format`, `filter` |
+| `queries/` | Orchestrate a read: load, transform, return | Writes to filesystem or mutates state; name contains `save`, `create`, `update`, `delete` |
+| `domain/` | Express business rules with no I/O | Imports filesystem, HTTP, or database APIs |
+| `entrypoint/` | Wire request to command/query, map response | Contains orchestration logic or private helper functions |
+| `infra/` | Adapt an external system behind an interface | Contains business rules or conditional domain logic |
+
+**Checklist for `commands/` (most common misplacement):**
+
+1. Does the file produce a **side effect** (write to disk, send a message, mutate state)?
+2. Does it call **domain logic** to decide what to do?
+3. If you removed this file, would a **write capability** be lost, or just a read/transform capability?
+
+If any answer is "no", the file likely belongs in `queries/`, `domain/`, or `infra/`.
+
+```plaintext
+Layer Misplacement: [file] in [layer]/ does not perform [layer] responsibility
+Principle: Layer directories reflect semantic responsibility, not call-site proximity (codebase-structure.md)
+Code: [show the file's core logic]
+Actual responsibility: [what it actually does — e.g., "pure read", "data transformation"]
+Suggested location: [where it should live and why]
+Optional?: No — layer misplacement erodes architecture and misleads future contributors
+```

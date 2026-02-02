@@ -18,7 +18,7 @@ export default {
       name: "feature-structure",
       severity: "error",
       comment: "Features contain only entrypoint/, commands/, queries/, domain/, components/, hooks/",
-      from: { path: "features/[^/]+/(?!entrypoint/|commands/|queries/|domain/|components/|hooks/)[^/]+/.+" },
+      from: { path: "features/[^/]+/(?!entrypoint/|commands/|queries/|domain/|infra/|components/|hooks/)[^/]+/.+" },
       to: {}
     },
     {
@@ -113,6 +113,13 @@ export default {
       comment: "Platform must not import from features/",
       from: { path: "platform/.+" },
       to: { path: "features/.+" }
+    },
+    {
+      name: "commands-no-peer-imports",
+      severity: "error",
+      comment: "Commands are independent orchestrators — peer imports indicate misplaced utilities",
+      from: { path: "features/([^/]+)/commands/[^/]+" },
+      to: { path: "features/$1/commands/[^/]+" }
     },
     {
       name: "no-circular",

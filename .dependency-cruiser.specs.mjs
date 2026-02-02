@@ -15,7 +15,7 @@ export default {
       severity: "error",
       comment: "Feature files must live in structural subdirs (entrypoint/, commands/, queries/, domain/, components/, hooks/), not at feature root",
       from: {
-        path: "features/[^/]+/(?!entrypoint/|commands/|queries/|domain/|components/|hooks/)[^/]+$"
+        path: "features/[^/]+/(?!entrypoint/|commands/|queries/|domain/|infra/|components/|hooks/)[^/]+$"
       },
       to: {}
     }

@@ -3,11 +3,8 @@
     "deny": [
       "Edit(./tsconfig.base.json)",
       "Edit(./tsconfig.json)",
-      "Edit(./eslint.config.mjs)",
       "Edit(./nx.json)",
-      "Edit(./.husky/*)",
-      "Edit(./.dependency-cruiser.mjs)",
-      "Edit(./.dependency-cruiser.frontend.mjs)",
+      "Edit(./.husky/*)",     
       "Edit(./pnpm-workspace.yaml)",
       "Edit(./.gitignore)",
       "Read(./.env)",
@@ -16,6 +13,11 @@
       "Read(./apps/**/.env.*)",
       "Read(./packages/**/.env)",
       "Read(./packages/**/.env.*)"
+    ],
+    "ask": [
+      "Edit(./.dependency-cruiser.mjs)",
+      "Edit(./.dependency-cruiser.frontend.mjs)",
+      "Edit(./eslint.config.mjs)"
     ]
   },
   "hooks": {

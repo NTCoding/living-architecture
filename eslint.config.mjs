@@ -260,6 +260,32 @@ export default tseslint.config(
       ],
     },
   },
+  // Thin entrypoint enforcement — entrypoints are wiring only, no private functions
+  {
+    files: ['**/entrypoint/**/*.ts'],
+    ignores: ['**/*.spec.ts', '**/*.test.ts'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'VariableDeclaration[kind="let"]',
+          message: 'Use const. Avoid mutation.',
+        },
+        {
+          selector: 'NewExpression[callee.name="Error"]',
+          message: 'Use custom precise error classes instead of generic Error or fail assertions in tests.',
+        },
+        {
+          selector: 'FunctionDeclaration:not([parent.type="ExportNamedDeclaration"])',
+          message: 'Entrypoints must not define private functions. Move to commands/, queries/, or infra/.',
+        },
+        {
+          selector: 'VariableDeclarator > ArrowFunctionExpression',
+          message: 'Entrypoints must not define private arrow functions. Move to commands/, queries/, or infra/.',
+        },
+      ],
+    },
+  },
   // Unicorn rules (code quality)
   {
     files: ['**/*.ts', '**/*.tsx'],
