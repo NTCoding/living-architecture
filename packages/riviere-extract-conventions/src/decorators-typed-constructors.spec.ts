@@ -5,6 +5,7 @@ import {
   DomainOpContainer,
   APIContainer,
   EventHandlerContainer,
+  EventPublisherContainer,
   UseCase,
   Event,
   UI,
@@ -53,6 +54,20 @@ describe('All decorators with typed constructor parameters', () => {
         }
       }
       expect(Listener).toBeDefined()
+    })
+  })
+
+  describe('EventPublisherContainer with typed constructor', () => {
+    it('works with single typed parameter', () => {
+      interface EventBus {publish(event: object): void}
+      @EventPublisherContainer
+      class Publisher {
+        constructor(private bus: EventBus) {}
+        publishOrder(): void {
+          this.bus.publish({})
+        }
+      }
+      expect(Publisher).toBeDefined()
     })
   })
 

@@ -82,11 +82,12 @@ describe('Default extraction config', () => {
       'domainOp',
       'event',
       'eventHandler',
+      'eventPublisher',
       'ui',
     ]
     const moduleKeys = Object.keys(module)
     expect(moduleKeys).toStrictEqual(expect.arrayContaining(requiredKeys))
-    expect(moduleKeys).toHaveLength(8)
+    expect(moduleKeys).toHaveLength(9)
   })
 
   it.each([

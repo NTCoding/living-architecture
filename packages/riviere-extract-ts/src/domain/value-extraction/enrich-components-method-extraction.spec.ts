@@ -28,11 +28,12 @@ function configWithModules(modules: Module[]): ResolvedExtractionConfig {
   return { modules }
 }
 
-function notUsedModule(): Pick<Module, 'api' | 'useCase' | 'event' | 'ui'> {
+function notUsedModule(): Pick<Module, 'api' | 'useCase' | 'event' | 'eventPublisher' | 'ui'> {
   return {
     api: { notUsed: true },
     useCase: { notUsed: true },
     event: { notUsed: true },
+    eventPublisher: { notUsed: true },
     ui: { notUsed: true },
   }
 }
@@ -69,6 +70,7 @@ describe('enrichComponents — fromMethodName extraction', () => {
         extract: { operationName: { fromMethodName: true } },
       },
       eventHandler: { notUsed: true },
+      eventPublisher: { notUsed: true },
     }
 
     const config = configWithModules([module])
@@ -106,6 +108,7 @@ describe('enrichComponents — fromMethodName extraction', () => {
         extract: { operationName: { fromMethodName: true } },
       },
       eventHandler: { notUsed: true },
+      eventPublisher: { notUsed: true },
     }
 
     const config = configWithModules([module])
@@ -137,6 +140,7 @@ describe('enrichComponents — fromMethodName extraction', () => {
         extract: { operationName: { fromMethodName: true } },
       },
       eventHandler: { notUsed: true },
+      eventPublisher: { notUsed: true },
     }
 
     const config = configWithModules([module])

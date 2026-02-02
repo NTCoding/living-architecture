@@ -206,6 +206,56 @@ class ServiceA {
     expect(result).toHaveLength(2)
   })
 
+  it('returns async links from publisher to event and event to handler', () => {
+    const project = createProject()
+    const filePath = '/src/async-chain.ts'
+    project.createSourceFile(
+      filePath,
+      `
+class OrderPlacedEvent {}
+
+class OrderPublisher {
+  publish(event: OrderPlacedEvent): void {}
+}
+`,
+    )
+    const event = buildComponent('OrderPlacedEvent', filePath, 2, {
+      type: 'event',
+      metadata: { eventName: 'OrderPlacedEvent' },
+    })
+    const publisher = buildComponent('OrderPublisher', filePath, 4, {
+      type: 'eventPublisher',
+      metadata: {},
+    })
+    const handler = buildComponent('OrderPlacedHandler', '/src/handler.ts', 1, {
+      type: 'eventHandler',
+      metadata: { subscribedEvents: ['OrderPlacedEvent'] },
+    })
+
+    const result = detectConnections(
+      project,
+      [event, publisher, handler],
+      { moduleGlobs: ['/src/**/*.ts'] },
+      matchesGlob,
+    )
+
+    expect(result).toStrictEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          source: 'orders:eventPublisher:OrderPublisher',
+          target: 'orders:event:OrderPlacedEvent',
+          type: 'async',
+        }),
+        expect.objectContaining({
+          source: 'orders:event:OrderPlacedEvent',
+          target: 'orders:eventHandler:OrderPlacedHandler',
+          type: 'async',
+        }),
+      ]),
+    )
+    expect(result).toHaveLength(2)
+  })
+
   it('filters source files by moduleGlobs', () => {
     const project = createProject()
     const includedFile = '/src/modules/ordering/handler.ts'

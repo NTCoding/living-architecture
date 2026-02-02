@@ -62,3 +62,11 @@ export interface UIPageDef {readonly route: string}
  * No required properties - the class itself serves as the container.
  */
 export interface DomainOpContainerDef {readonly __brand?: 'DomainOpContainerDef'}
+
+/**
+ * Marker interface for event publisher classes.
+ * Classes implementing this interface publish domain events via typed methods.
+ * Each public method should have exactly one parameter whose type implements EventDef.
+ * The parameter type name is matched against Event component metadata.eventName.
+ */
+export interface EventPublisherDef {readonly __brand?: 'EventPublisherDef'}

@@ -47,6 +47,7 @@ A module defines extraction rules for a path pattern
 | `domainOp` | `componentRule` | No | Detection rule for DomainOp components |
 | `event` | `componentRule` | No | Detection rule for Event components |
 | `eventHandler` | `componentRule` | No | Detection rule for EventHandler components |
+| `eventPublisher` | `componentRule` | No | Detection rule for EventPublisher components |
 | `ui` | `componentRule` | No | Detection rule for UI components |
 | `customTypes` | `Record<string, detectionRule>` | No | User-defined component types with their detection rules |
 

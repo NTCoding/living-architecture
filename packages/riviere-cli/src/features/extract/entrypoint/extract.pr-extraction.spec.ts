@@ -76,6 +76,7 @@ modules:
     domainOp: { notUsed: true }
     event: { notUsed: true }
     eventHandler: { notUsed: true }
+    eventPublisher: { notUsed: true }
     ui: { notUsed: true }
 `
 

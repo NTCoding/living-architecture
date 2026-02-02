@@ -67,6 +67,20 @@
           "subscribedEvents": { "fromGenericArg": { "interface": "IEventHandler", "position": 0 } }
         }
       },
+      "eventPublisher": {
+        "find": "methods",
+        "where": {
+          "inClassWith": {
+            "hasDecorator": {
+              "name": "EventPublisherContainer",
+              "from": "@living-architecture/riviere-extract-conventions"
+            }
+          }
+        },
+        "extract": {
+          "publishedEventType": { "fromParameterType": { "position": 0 } }
+        }
+      },
       "ui": {
         "find": "classes",
         "where": {

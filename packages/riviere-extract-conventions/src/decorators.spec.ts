@@ -5,6 +5,7 @@ import {
   DomainOpContainer,
   APIContainer,
   EventHandlerContainer,
+  EventPublisherContainer,
   UseCase,
   Event,
   UI,
@@ -86,6 +87,31 @@ describe('Container decorators', () => {
       }
 
       @EventHandlerContainer
+      class Decorated extends Original {}
+
+      expect(new Decorated().value).toBe(42)
+    })
+  })
+
+  describe('EventPublisherContainer', () => {
+    it('applies to class without error', () => {
+      @EventPublisherContainer
+      class OrderEventPublisher {
+        publishOrderCreated(): boolean {
+          return true
+        }
+      }
+
+      expect(OrderEventPublisher).toBeDefined()
+      expect(new OrderEventPublisher().publishOrderCreated()).toBe(true)
+    })
+
+    it('returns the original class', () => {
+      class Original {
+        value = 42
+      }
+
+      @EventPublisherContainer
       class Decorated extends Original {}
 
       expect(new Decorated().value).toBe(42)

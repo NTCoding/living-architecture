@@ -2,6 +2,7 @@ const COMPONENT_DECORATORS = [
   'DomainOpContainer',
   'APIContainer',
   'EventHandlerContainer',
+  'EventPublisherContainer',
   'UseCase',
   'Event',
   'UI',
@@ -35,7 +36,7 @@ module.exports = {
     schema: [],
     messages: {
       missingDecorator:
-        "Class '{{className}}' requires a component decorator. Add one of: @UseCase, @Event, @UI, @DomainOpContainer, @APIContainer, @EventHandlerContainer, @Custom('type'), or @Ignore",
+        "Class '{{className}}' requires a component decorator. Add one of: @UseCase, @Event, @UI, @DomainOpContainer, @APIContainer, @EventHandlerContainer, @EventPublisherContainer, @Custom('type'), or @Ignore",
     },
   },
   create(context) {

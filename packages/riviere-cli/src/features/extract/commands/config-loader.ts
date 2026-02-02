@@ -26,7 +26,24 @@ interface TopLevelRulesConfig {
   domainOp?: Module['domainOp']
   event?: Module['event']
   eventHandler?: Module['eventHandler']
+  eventPublisher?: Module['eventPublisher']
   ui?: Module['ui']
+}
+
+const NOT_USED = { notUsed: true } as const
+
+function topLevelRulesToModule(parsed: TopLevelRulesConfig): Module {
+  return {
+    name: 'extended',
+    path: '**',
+    api: parsed.api ?? NOT_USED,
+    useCase: parsed.useCase ?? NOT_USED,
+    domainOp: parsed.domainOp ?? NOT_USED,
+    event: parsed.event ?? NOT_USED,
+    eventHandler: parsed.eventHandler ?? NOT_USED,
+    eventPublisher: parsed.eventPublisher ?? NOT_USED,
+    ui: parsed.ui ?? NOT_USED,
+  }
 }
 
 class PackageConfigNotFoundError extends Error {
@@ -76,16 +93,7 @@ function parseConfigContent(content: string, source: string): Module {
   }
 
   if (isTopLevelRulesConfig(parsed)) {
-    return {
-      name: 'extended',
-      path: '**',
-      api: parsed.api ?? { notUsed: true },
-      useCase: parsed.useCase ?? { notUsed: true },
-      domainOp: parsed.domainOp ?? { notUsed: true },
-      event: parsed.event ?? { notUsed: true },
-      eventHandler: parsed.eventHandler ?? { notUsed: true },
-      ui: parsed.ui ?? { notUsed: true },
-    }
+    return topLevelRulesToModule(parsed)
   }
 
   const preview = JSON.stringify(parsed, null, 2).slice(0, 200)

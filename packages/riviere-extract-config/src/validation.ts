@@ -13,6 +13,7 @@ const REQUIRED_FIELDS: Record<ComponentType, string[]> = {
   api: ['apiType'],
   event: ['eventName'],
   eventHandler: ['subscribedEvents'],
+  eventPublisher: [],
   domainOp: ['operationName'],
   ui: ['route'],
   useCase: [],
@@ -24,6 +25,7 @@ const COMPONENT_TYPES: ComponentType[] = [
   'domainOp',
   'event',
   'eventHandler',
+  'eventPublisher',
   'ui',
 ]
 

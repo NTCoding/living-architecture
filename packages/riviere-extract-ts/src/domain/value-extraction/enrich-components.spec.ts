@@ -36,6 +36,7 @@ function moduleWithNoExtract(name: string, path: string): Module {
     domainOp: { notUsed: true },
     event: { notUsed: true },
     eventHandler: { notUsed: true },
+    eventPublisher: { notUsed: true },
     ui: { notUsed: true },
   }
 }
@@ -114,6 +115,7 @@ describe('enrichComponents', () => {
         domainOp: { notUsed: true },
         event: { notUsed: true },
         eventHandler: { notUsed: true },
+        eventPublisher: { notUsed: true },
         ui: { notUsed: true },
       }
 
@@ -142,6 +144,7 @@ describe('enrichComponents', () => {
         domainOp: { notUsed: true },
         event: { notUsed: true },
         eventHandler: { notUsed: true },
+        eventPublisher: { notUsed: true },
         ui: { notUsed: true },
       }
 
@@ -176,6 +179,7 @@ describe('enrichComponents', () => {
         domainOp: { notUsed: true },
         event: { notUsed: true },
         eventHandler: { notUsed: true },
+        eventPublisher: { notUsed: true },
         ui: { notUsed: true },
       }
 
@@ -213,6 +217,7 @@ describe('enrichComponents', () => {
         domainOp: { notUsed: true },
         event: { notUsed: true },
         eventHandler: { notUsed: true },
+        eventPublisher: { notUsed: true },
         ui: { notUsed: true },
       }
 
@@ -256,6 +261,7 @@ describe('enrichComponents', () => {
         domainOp: { notUsed: true },
         event: { notUsed: true },
         eventHandler: { notUsed: true },
+        eventPublisher: { notUsed: true },
         ui: { notUsed: true },
       }
 
@@ -334,6 +340,7 @@ describe('enrichComponents', () => {
         domainOp: { notUsed: true },
         event: { notUsed: true },
         eventHandler: { notUsed: true },
+        eventPublisher: { notUsed: true },
         ui: { notUsed: true },
         customTypes: {
           saga: {
@@ -369,6 +376,7 @@ describe('enrichComponents', () => {
         domainOp: { notUsed: true },
         event: { notUsed: true },
         eventHandler: { notUsed: true },
+        eventPublisher: { notUsed: true },
         ui: { notUsed: true },
       }
 
@@ -402,6 +410,7 @@ describe('enrichComponents', () => {
         domainOp: { notUsed: true },
         event: { notUsed: true },
         eventHandler: { notUsed: true },
+        eventPublisher: { notUsed: true },
         ui: { notUsed: true },
       }
 

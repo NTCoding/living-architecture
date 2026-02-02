@@ -4,6 +4,8 @@ import type { GlobMatcher } from '../component-extraction/extractor'
 import type { ExtractedLink } from './extracted-link'
 import { ComponentIndex } from './component-index'
 import { buildCallGraph } from './call-graph/build-call-graph'
+import { detectPublishConnections } from './async-detection/detect-publish-connections'
+import { detectSubscribeConnections } from './async-detection/detect-subscribe-connections'
 
 export interface ConnectionDetectionOptions {
   allowIncomplete?: boolean
@@ -29,8 +31,12 @@ export function detectConnections(
 ): ExtractedLink[] {
   const componentIndex = new ComponentIndex(components)
   const sourceFilePaths = computeFilteredFilePaths(project, options.moduleGlobs, globMatcher)
-  return buildCallGraph(project, components, componentIndex, {
-    strict: !options.allowIncomplete,
+  const strict = !options.allowIncomplete
+  const syncLinks = buildCallGraph(project, components, componentIndex, {
+    strict,
     sourceFilePaths,
   })
+  const publishLinks = detectPublishConnections(project, components, { strict })
+  const subscribeLinks = detectSubscribeConnections(components, { strict })
+  return [...syncLinks, ...publishLinks, ...subscribeLinks]
 }

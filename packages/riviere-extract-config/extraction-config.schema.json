@@ -78,6 +78,10 @@
           "$ref": "#/$defs/componentRule",
           "description": "Detection rule for EventHandler components"
         },
+        "eventPublisher": {
+          "$ref": "#/$defs/componentRule",
+          "description": "Detection rule for EventPublisher components"
+        },
         "ui": {
           "$ref": "#/$defs/componentRule",
           "description": "Detection rule for UI components"
@@ -96,7 +100,7 @@
         }
       },
       "then": {
-        "required": ["api", "useCase", "domainOp", "event", "eventHandler", "ui"]
+        "required": ["api", "useCase", "domainOp", "event", "eventHandler", "eventPublisher", "ui"]
       }
     },
     "componentRule": {

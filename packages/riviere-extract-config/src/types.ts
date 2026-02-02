@@ -7,7 +7,14 @@ export type FindTarget = 'classes' | 'methods' | 'functions'
  * Standard architectural component types recognized by the Riviere extractor.
  * Each type represents a distinct role in the system's flow-based architecture.
  */
-export type ComponentType = 'api' | 'useCase' | 'domainOp' | 'event' | 'eventHandler' | 'ui'
+export type ComponentType =
+  | 'api'
+  | 'useCase'
+  | 'domainOp'
+  | 'event'
+  | 'eventHandler'
+  | 'eventPublisher'
+  | 'ui'
 
 /** Matches elements with a specific decorator. */
 export interface HasDecoratorPredicate {
@@ -191,6 +198,7 @@ export interface ModuleConfig {
   domainOp?: ComponentRule
   event?: ComponentRule
   eventHandler?: ComponentRule
+  eventPublisher?: ComponentRule
   ui?: ComponentRule
   customTypes?: CustomTypes
 }
@@ -207,6 +215,7 @@ export interface Module {
   domainOp: ComponentRule
   event: ComponentRule
   eventHandler: ComponentRule
+  eventPublisher: ComponentRule
   ui: ComponentRule
   customTypes?: CustomTypes
 }

@@ -35,6 +35,7 @@ describe('createConfigLoader', () => {
             domainOp: { notUsed: true },
             event: { notUsed: true },
             eventHandler: { notUsed: true },
+            eventPublisher: { notUsed: true },
             ui: { notUsed: true },
           },
         ],
@@ -125,6 +126,7 @@ describe('createConfigLoader', () => {
             domainOp: { notUsed: true },
             event: { notUsed: true },
             eventHandler: { notUsed: true },
+            eventPublisher: { notUsed: true },
             ui: { notUsed: true },
           },
           {
@@ -135,6 +137,7 @@ describe('createConfigLoader', () => {
             domainOp: { notUsed: true },
             event: { notUsed: true },
             eventHandler: { notUsed: true },
+            eventPublisher: { notUsed: true },
             ui: { notUsed: true },
           },
         ],
@@ -185,6 +188,7 @@ describe('createConfigLoader', () => {
         domainOp: { notUsed: true },
         event: { notUsed: true },
         eventHandler: { notUsed: true },
+        eventPublisher: { notUsed: true },
         ui: { notUsed: true },
       })
     })
@@ -206,6 +210,7 @@ describe('createConfigLoader', () => {
         domainOp: { notUsed: true },
         event: { notUsed: true },
         eventHandler: { notUsed: true },
+        eventPublisher: { notUsed: true },
         ui: { notUsed: true },
       })
     })

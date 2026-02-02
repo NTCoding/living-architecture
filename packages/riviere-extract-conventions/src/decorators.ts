@@ -32,6 +32,13 @@ export function EventHandlerContainer<T>(target: T, _: ClassDecoratorContext): T
   return target
 }
 
+/**
+ * Marks a class as a container where all public methods are event publishers.
+ */
+export function EventPublisherContainer<T>(target: T, _: ClassDecoratorContext): T {
+  return target
+}
+
 // ============================================================================
 // Class-as-Component Decorators
 // ============================================================================

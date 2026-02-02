@@ -97,4 +97,8 @@ PRD12-B: #167 - Create conventions interfaces (earliest PRD track)
 
 ## After Confirmation
 
-Once user confirms a task, run `./scripts/start-task.sh <issue-number>` to begin work.
+Once user confirms a task:
+
+1. Run `./scripts/start-task.sh <issue-number>` to set up the worktree
+2. Ask the user to rename the current session using `/rename issue-<number>`
+3. Ask the user to restart the conversation in the worktree directory to avoid permissions issues
