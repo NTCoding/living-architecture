@@ -35,6 +35,14 @@ export function removeWorktreeFromSettings(
 }
 
 /* v8 ignore start -- shell and file I/O wrappers */
+function safeJsonParse(content: string): unknown | undefined {
+  try {
+    return JSON.parse(content)
+  } catch {
+    return undefined
+  }
+}
+
 function execGit(args: string[]): string {
   return execFileSync('/usr/bin/env', ['git', ...args], { encoding: 'utf-8' })
 }
@@ -71,7 +79,12 @@ export async function removeWorktreePermission(
     return
   }
 
-  const parsed = settingsSchema.safeParse(JSON.parse(content))
+  const json = safeJsonParse(content)
+  if (json === undefined) {
+    return
+  }
+
+  const parsed = settingsSchema.safeParse(json)
   if (!parsed.success) {
     return
   }

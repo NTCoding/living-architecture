@@ -76,7 +76,7 @@ Create `docs/continuous-improvement/post-merge-reflections/<YYYY-MM-DD>-<branch-
 Parse each piece of feedback into individual items. For every item, determine: accepted (code was changed) or rejected (no change, with reason).
 
 ```markdown
-# Post-Merge Reflection: <branch-name>
+# Pre-Merge Reflection: <branch-name>
 
 ## Summary
 [1-2 sentences on how the task went]

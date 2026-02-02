@@ -45,6 +45,7 @@
         "features/complete-task/entrypoint/cli.ts",
         "features/get-pr-feedback/entrypoint/cli.ts",
         "features/respond-to-feedback/entrypoint/cli.ts",
+        "features/merge-and-cleanup/entrypoint/cli.ts",
         "features/claude-hooks/entrypoint/hook-router.ts",
         "features/claude-hooks/domain/claude-hooks.spec.ts",
         "shell/index.ts"

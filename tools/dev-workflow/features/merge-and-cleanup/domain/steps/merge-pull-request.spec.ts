@@ -62,4 +62,30 @@ describe('merge-pull-request', () => {
       nextInstructions: expect.stringContaining('PR #99'),
     })
   })
+
+  it('passes PR number 0 correctly', async () => {
+    const mergedPRs: number[] = []
+    const step = createMergePullRequestStep({
+      mergePR: async (prNumber) => {
+        mergedPRs.push(prNumber)
+      },
+    })
+
+    await step.execute(buildContext({ prNumber: 0 }))
+
+    expect(mergedPRs).toStrictEqual([0])
+  })
+
+  it('passes large PR number correctly', async () => {
+    const mergedPRs: number[] = []
+    const step = createMergePullRequestStep({
+      mergePR: async (prNumber) => {
+        mergedPRs.push(prNumber)
+      },
+    })
+
+    await step.execute(buildContext({ prNumber: 99999 }))
+
+    expect(mergedPRs).toStrictEqual([99999])
+  })
 })

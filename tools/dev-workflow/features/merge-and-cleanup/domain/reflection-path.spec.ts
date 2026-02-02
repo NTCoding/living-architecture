@@ -21,6 +21,23 @@ describe('sanitizeBranchNameForPath', () => {
   it('handles empty string', () => {
     expect(sanitizeBranchNameForPath('')).toBe('')
   })
+
+  it('replaces whitespace-only input with underscores', () => {
+    expect(sanitizeBranchNameForPath('   ')).toBe('___')
+  })
+
+  it('replaces unicode characters with underscores', () => {
+    expect(sanitizeBranchNameForPath('fix-💥-bug')).toBe('fix-__-bug')
+  })
+
+  it('handles very long names without truncation', () => {
+    const longName = 'feature-' + 'a'.repeat(200)
+    expect(sanitizeBranchNameForPath(longName)).toBe(longName)
+  })
+
+  it('replaces dense special characters', () => {
+    expect(sanitizeBranchNameForPath('<>:"|?*%$@!#&')).toBe('_____________')
+  })
 })
 
 describe('buildReflectionFilePath', () => {
@@ -38,5 +55,16 @@ describe('buildReflectionFilePath', () => {
     expect(result).toBe(
       'docs/continuous-improvement/post-merge-reflections/2025-06-01-feature_my_branch.md',
     )
+  })
+
+  it('handles leap day date', () => {
+    const result = buildReflectionFilePath('fix-bug', '2024-02-29')
+
+    expect(result).toBe('docs/continuous-improvement/post-merge-reflections/2024-02-29-fix-bug.md')
+  })
+
+  it('handles year boundary dates', () => {
+    expect(buildReflectionFilePath('branch', '2024-12-31')).toContain('2024-12-31')
+    expect(buildReflectionFilePath('branch', '2025-01-01')).toContain('2025-01-01')
   })
 })
