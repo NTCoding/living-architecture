@@ -121,6 +121,29 @@ describe('detectSubscribeConnections', () => {
     ])
   })
 
+  it('treats empty or whitespace-only subscribed event names as no-match in lenient mode', () => {
+    const event = buildComponent('OrderPlaced', '/src/events.ts', 1, {
+      type: 'event',
+      metadata: { eventName: 'OrderPlaced' },
+    })
+    const handler = buildComponent('WhitespaceHandler', '/src/handlers.ts', 1, {
+      type: 'eventHandler',
+      metadata: { subscribedEvents: ['', '   '] },
+    })
+    const result = detectSubscribeConnections([event, handler], { strict: false })
+
+    expect(result).toHaveLength(2)
+    expect(result).toStrictEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          source: '_unresolved',
+          target: 'orders:eventHandler:WhitespaceHandler',
+          _uncertain: expect.any(String),
+        }),
+      ]),
+    )
+  })
+
   it('includes sourceLocation from handler component', () => {
     const event = buildComponent('OrderPlaced', '/src/events.ts', 1, {
       type: 'event',
