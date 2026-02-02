@@ -12,7 +12,7 @@ export class WorktreeError extends Error {
   }
 }
 
-export const settingsSchema = z.object({permissions: z.object({ additionalDirectories: z.array(z.string()).optional() }).optional(),})
+export const settingsSchema = z.looseObject({permissions: z.looseObject({ additionalDirectories: z.array(z.string()).optional() }).optional(),})
 
 export type ClaudeSettings = z.infer<typeof settingsSchema>
 
@@ -70,10 +70,7 @@ export function resolveWorktreeInfo(): {
   }
 }
 
-export async function removeWorktreePermission(
-  worktreePath: string,
-  settingsPath: string,
-): Promise<void> {
+export function removeWorktreePermission(worktreePath: string, settingsPath: string): void {
   const content = readSettingsFile(settingsPath)
   if (content === undefined) {
     return

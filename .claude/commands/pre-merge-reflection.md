@@ -39,9 +39,9 @@ Tell user: "Run pnpm nx run dev-workflow:merge-and-cleanup"
 pnpm nx run dev-workflow:get-pr-feedback
 ```
 
-Confirm `state` is `open` and `mergeable` is `true`. If not, stop:
+Confirm `state` is `open` and `mergeableState` is `clean`. If not, stop:
 ```text
-PR is not ready to merge. Current state: <state>, mergeable: <mergeable>
+PR is not ready to merge. Current state: <state>, mergeableState: <mergeableState>
 Address outstanding issues before running /pre-merge-reflection.
 ```
 
@@ -83,7 +83,7 @@ Parse each piece of feedback into individual items. For every item, determine: a
 
 ## Pipeline Timeline
 
-**Overall duration:** [total time from first commit to merge]
+**Overall duration:** [total time from first commit to running /pre-merge-reflection]
 
 | # | Step | Start Time | Duration | Outcome |
 |---|------|------------|----------|---------|
@@ -182,7 +182,7 @@ Any feedback accepted from GitHub reviewers represents a process failure — it 
 Stage and commit the reflection file:
 ```bash
 git add docs/continuous-improvement/post-merge-reflections/<YYYY-MM-DD>-<branch-name>.md
-git commit -m "docs: add post-merge reflection for <branch>"
+git commit -m "docs: add pre-merge reflection for <branch>"
 ```
 
 ### 5. Present to User for Review

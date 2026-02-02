@@ -6,7 +6,7 @@ import type { MergeCleanupContext } from '../merge-cleanup-context'
 
 interface RemoveWorktreeDeps {
   uncommittedFiles: () => Promise<string[]>
-  removeWorktreePermission: (worktreePath: string, settingsPath: string) => Promise<void>
+  removeWorktreePermission: (worktreePath: string, settingsPath: string) => void | Promise<void>
   removeWorktree: (worktreePath: string) => Promise<void>
 }
 
