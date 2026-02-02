@@ -12,9 +12,29 @@ export class WorktreeError extends Error {
   }
 }
 
-/* v8 ignore start -- shell operations, tested via integration */
-const settingsSchema = z.object({permissions: z.object({ additionalDirectories: z.array(z.string()).optional() }).optional(),})
+export const settingsSchema = z.object({permissions: z.object({ additionalDirectories: z.array(z.string()).optional() }).optional(),})
 
+export type ClaudeSettings = z.infer<typeof settingsSchema>
+
+export function removeWorktreeFromSettings(
+  settings: ClaudeSettings,
+  worktreePath: string,
+): ClaudeSettings {
+  const dirs = settings.permissions?.additionalDirectories
+  if (!dirs) {
+    return settings
+  }
+
+  return {
+    ...settings,
+    permissions: {
+      ...settings.permissions,
+      additionalDirectories: dirs.filter((d) => d !== worktreePath),
+    },
+  }
+}
+
+/* v8 ignore start -- shell and file I/O wrappers */
 function execGit(args: string[]): string {
   return execFileSync('/usr/bin/env', ['git', ...args], { encoding: 'utf-8' })
 }
@@ -56,19 +76,7 @@ export async function removeWorktreePermission(
     return
   }
 
-  const dirs = parsed.data.permissions?.additionalDirectories
-  if (!dirs) {
-    return
-  }
-
-  const filtered = dirs.filter((d) => d !== worktreePath)
-  const updated = {
-    ...parsed.data,
-    permissions: {
-      ...parsed.data.permissions,
-      additionalDirectories: filtered,
-    },
-  }
+  const updated = removeWorktreeFromSettings(parsed.data, worktreePath)
   writeFileSync(settingsPath, JSON.stringify(updated, null, 2) + '\n', 'utf-8')
 }
 

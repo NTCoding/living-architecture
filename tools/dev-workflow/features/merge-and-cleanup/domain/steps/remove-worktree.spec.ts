@@ -2,19 +2,7 @@ import {
   describe, it, expect, vi 
 } from 'vitest'
 import { createRemoveWorktreeStep } from './remove-worktree'
-import type { MergeCleanupContext } from '../merge-cleanup-context'
-
-function buildContext(overrides: Partial<MergeCleanupContext> = {}): MergeCleanupContext {
-  return {
-    branch: 'issue-249',
-    reflectionFilePath:
-      'docs/continuous-improvement/post-merge-reflections/2025-01-15-issue-249.md',
-    prNumber: 250,
-    worktreePath: '/home/user/worktree',
-    mainRepoPath: '/home/user/main',
-    ...overrides,
-  }
-}
+import { buildContext } from './merge-cleanup-context-fixture'
 
 function buildDeps(overrides: Partial<Parameters<typeof createRemoveWorktreeStep>[0]> = {}) {
   return {

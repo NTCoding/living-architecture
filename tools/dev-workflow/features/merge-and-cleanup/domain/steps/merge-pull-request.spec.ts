@@ -2,20 +2,8 @@ import {
   describe, it, expect 
 } from 'vitest'
 import { createMergePullRequestStep } from './merge-pull-request'
-import type { MergeCleanupContext } from '../merge-cleanup-context'
 import { WorktreeError } from '../worktree-operations'
-
-function buildContext(overrides: Partial<MergeCleanupContext> = {}): MergeCleanupContext {
-  return {
-    branch: 'issue-249',
-    reflectionFilePath:
-      'docs/continuous-improvement/post-merge-reflections/2025-01-15-issue-249.md',
-    prNumber: 250,
-    worktreePath: '/home/user/worktree',
-    mainRepoPath: '/home/user/main',
-    ...overrides,
-  }
-}
+import { buildContext } from './merge-cleanup-context-fixture'
 
 describe('merge-pull-request', () => {
   it('succeeds when PR merges successfully', async () => {

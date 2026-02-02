@@ -12,10 +12,7 @@ import {
   removeWorktreePermission,
   removeWorktree,
 } from '../domain/worktree-operations'
-
-function sanitizeBranchNameForPath(branch: string): string {
-  return branch.replaceAll(/[^a-zA-Z0-9_-]/g, '_')
-}
+import { buildReflectionFilePath } from '../domain/reflection-path'
 
 async function buildMergeCleanupContext(): Promise<MergeCleanupContext> {
   const branch = await git.currentBranch()
@@ -23,10 +20,8 @@ async function buildMergeCleanupContext(): Promise<MergeCleanupContext> {
     worktreePath, mainRepoPath 
   } = resolveWorktreeInfo()
 
-  const safeBranch = sanitizeBranchNameForPath(branch)
   const today = new Date().toISOString().slice(0, 10)
-  const reflectionDir = 'docs/continuous-improvement/post-merge-reflections'
-  const reflectionFilePath = `${reflectionDir}/${today}-${safeBranch}.md`
+  const reflectionFilePath = buildReflectionFilePath(branch, today)
 
   const prNumber = await github.findPRForBranch(branch)
   if (prNumber === undefined) {
