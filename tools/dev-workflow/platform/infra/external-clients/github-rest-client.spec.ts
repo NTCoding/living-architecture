@@ -10,6 +10,7 @@ const {
       list: vi.fn(),
       get: vi.fn(),
       create: vi.fn(),
+      merge: vi.fn(),
     },
     issues: {
       get: vi.fn(),
@@ -278,6 +279,17 @@ describe('github PR operations', () => {
     expect(await github.getPRMergeInfo(70)).toStrictEqual({
       mergeableState: 'clean',
       headSha: 'abc123',
+    })
+  })
+
+  it('mergePR calls squash merge', async () => {
+    mockOctokitInstance.pulls.merge.mockResolvedValue({})
+    await github.mergePR(100)
+    expect(mockOctokitInstance.pulls.merge).toHaveBeenCalledWith({
+      owner: 'owner',
+      repo: 'repo',
+      pull_number: 100,
+      merge_method: 'squash',
     })
   })
 

@@ -391,6 +391,19 @@ export const github = {
     })
   },
 
+  async mergePR(prNumber: number): Promise<void> {
+    const {
+      owner, repo 
+    } = await getRepoInfo()
+
+    await getOctokit().pulls.merge({
+      owner,
+      repo,
+      pull_number: prNumber,
+      merge_method: 'squash',
+    })
+  },
+
   async resolveThread(threadId: string): Promise<void> {
     const mutation = `
       mutation($threadId: ID!) {

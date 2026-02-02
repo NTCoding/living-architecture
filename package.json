@@ -12,7 +12,7 @@
     "knip": "knip",
     "lint:md": "markdownlint-cli2 \"**/*.md\" \"!**/node_modules/**\"",
     "depcruise": "depcruise --config .dependency-cruiser.mjs packages/*/src tools/dev-workflow && depcruise --config .dependency-cruiser.frontend.mjs apps/eclair/src && depcruise --config .dependency-cruiser.specs.mjs packages/*/src tools/dev-workflow apps/eclair/src",
-    "verify": "pnpm lint:md && pnpm depcruise && nx run-many -t lint,typecheck,test,check-generated-docs",
+    "verify": "pnpm lint:md && nx run-many -t build && pnpm depcruise && nx run-many -t lint,typecheck,test,check-generated-docs",
     "prepare": "husky"
   },
   "lint-staged": {

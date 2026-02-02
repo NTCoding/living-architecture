@@ -1,16 +1,16 @@
-# Post-Merge Completion
+# Pre-Merge Reflection
 
-Run after a PR is merged to analyze feedback, generate a reflection report, and clean up.
+Generate a reflection report analyzing all feedback received during the PR lifecycle. Run this **before** merging.
 
 ## Workflow
 
 ```text
-/post-merge-completion
+/pre-merge-reflection
     │
     ▼
-Verify PR is merged
+Verify PR is mergeable
     │
-    ├── NOT MERGED → stop, inform user
+    ├── NOT MERGEABLE → stop, inform user
     │
     ▼
 Gather all feedback (local + GitHub)
@@ -19,32 +19,30 @@ Gather all feedback (local + GitHub)
 Generate reflection markdown file: docs/continuous-improvement/post-merge-reflections/{date}-{branch-name}.md
     │
     ▼
-Tell user to review the file, then discuss follow-ups
+Commit the reflection file
     │
     ▼
-After discussion: create issues, update RFCs, cleanup
-```
-
-## Usage
-
-```bash
-/post-merge-completion
+Present to user for review and discussion
+    │
+    ▼
+After discussion: adjust file, re-commit, create follow-up issues
+    │
+    ▼
+Tell user: "Run pnpm nx run dev-workflow:merge-and-cleanup"
 ```
 
 ## Instructions
 
-### 1. Verify PR is Merged
+### 1. Verify PR is Mergeable
 
 ```bash
 pnpm nx run dev-workflow:get-pr-feedback
 ```
 
-Returns JSON with `state` field: `merged`, `open`, `closed`, or `not_found`.
-
-If not `merged`, stop:
+Confirm `state` is `open` and `mergeable` is `true`. If not, stop:
 ```text
-PR is not merged yet. Current state: <state>
-Run /post-merge-completion after the PR is merged.
+PR is not ready to merge. Current state: <state>, mergeable: <mergeable>
+Address outstanding issues before running /pre-merge-reflection.
 ```
 
 ### 2. Gather All Feedback
@@ -53,7 +51,7 @@ Run /post-merge-completion after the PR is merged.
 BRANCH=$(git branch --show-current)
 ```
 
-**Local feedback sources** (in `reviews/<branch>/`):
+**Local feedback sources** (read each file from `reviews/<branch>/`):
 - `code-review.md` - Convention violations, architecture issues
 - `bug-scanner.md` - Bugs, security issues, framework misuse
 - `task-check.md` - Task completion verification
@@ -73,11 +71,9 @@ git log --oneline main..<branch>
 
 ### 3. Generate Reflection Markdown
 
-Create `docs/continuous-improvement/post-merge-reflections/{YYYY-MM-DD}-{branch-name}.md` with the following structure.
+Create `docs/continuous-improvement/post-merge-reflections/<YYYY-MM-DD>-<branch-name>.md` (create the directory if it doesn't exist).
 
 Parse each piece of feedback into individual items. For every item, determine: accepted (code was changed) or rejected (no change, with reason).
-
-> **Mindset:** Anything accepted from GitHub = process failure. The goal is that CodeRabbit finds nothing.
 
 ```markdown
 # Post-Merge Reflection: <branch-name>
@@ -100,6 +96,8 @@ Parse each piece of feedback into individual items. For every item, determine: a
 | 7 | CodeRabbit review | HH:MM | Xm | N comments |
 | 8 | Address feedback | HH:MM | Xm | N resolved |
 | ... | [additional iterations] | ... | ... | ... |
+
+Populate from `git log` timestamps and PR event history.
 
 ### Pipeline Inefficiency Diagnosis
 
@@ -159,8 +157,6 @@ Any feedback accepted from GitHub reviewers represents a process failure — it 
 
 ### Failure 1: [Brief description of the accepted feedback]
 
-**What happened:** [1-2 sentence description of what went wrong and what the feedback caught]
-
 | Question | Answer |
 |----------|--------|
 | **1. Why wasn't this caught locally?** | [What local check missed it] |
@@ -173,10 +169,7 @@ Any feedback accepted from GitHub reviewers represents a process failure — it 
 **Recommended Fix:** [Specific actionable change]
 
 ### Failure 2: [next accepted GitHub feedback item]
-
-**What happened:** [1-2 sentence description]
-
-[Same 5 Whys table structure]
+[Same table structure]
 
 ---
 
@@ -184,19 +177,27 @@ Any feedback accepted from GitHub reviewers represents a process failure — it 
 [Bulleted list of proposed actions derived from the 5 Whys analyses above]
 ```
 
-### 4. Present to User for Review
+### 4. Commit the Reflection File
 
-After generating the file, tell the user:
+Stage and commit the reflection file:
+```bash
+git add docs/continuous-improvement/post-merge-reflections/<YYYY-MM-DD>-<branch-name>.md
+git commit -m "docs: add post-merge reflection for <branch>"
+```
+
+### 5. Present to User for Review
+
+After generating and committing the file, tell the user:
 
 ```text
-Reflection report generated: docs/continuous-improvement/post-merge-reflections/{date}-{branch-name}.md
+Reflection report generated and committed: docs/continuous-improvement/post-merge-reflections/<YYYY-MM-DD>-<branch-name>.md
 
 Please review it, then we can discuss the recommended follow-ups.
 ```
 
 **Wait for user to respond.** Do not proceed until they engage.
 
-### 5. Discuss Follow-Ups
+### 6. Discuss Follow-Ups
 
 Based on user's feedback on the reflection:
 - Adjust any 5 Whys analyses the user disagrees with
@@ -204,21 +205,12 @@ Based on user's feedback on the reflection:
 - For agreed follow-ups:
   - Add new RFCs to `docs/conventions/review-feedback-checks.md` if applicable
   - Create GitHub issues using `./scripts/create-non-milestone-task.sh --type tech` for process fixes
-
-### 6. Cleanup
-
-```bash
-./scripts/cleanup-task.sh
-```
+- If changes were made, amend the commit or create a new commit
 
 ### 7. Complete
 
 ```text
-Post-merge complete. Worktree cleaned up.
+Reflection complete. To merge and clean up, run:
 
-Process fix issues created: [list with issue numbers, or "None"]
-
-Would you like to start a process fix task now?
-- Yes → ./scripts/start-task.sh <issue-number>
-- No → Run /next-task for available work
+pnpm nx run dev-workflow:merge-and-cleanup
 ```

@@ -90,4 +90,16 @@ describe('handlePreToolUse', () => {
 
     expect(result.hookSpecificOutput.permissionDecision).toBe('deny')
   })
+
+  it('denies merge-and-cleanup command', () => {
+    const input: PreToolUseInput = {
+      ...baseInput,
+      tool_input: { command: 'pnpm nx run dev-workflow:merge-and-cleanup' },
+    }
+
+    const result = handlePreToolUse(input)
+
+    expect(result.hookSpecificOutput.permissionDecision).toBe('deny')
+    expect(result.hookSpecificOutput.permissionDecisionReason).toContain('merge-and-cleanup')
+  })
 })

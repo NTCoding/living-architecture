@@ -14,7 +14,7 @@ By default, `start-task.sh` creates a git worktree in a sibling directory (e.g.,
 
 - Use `--no-worktree` to create a branch in the current repo instead
 - Use `--no-issue=<name>` for ad-hoc tasks without a GitHub issue
-- After the PR is merged, run `cleanup-task.sh` from within the worktree to remove it
+- After the PR is merged, run `pnpm nx run dev-workflow:merge-and-cleanup` from within the worktree
 
 ## Lifecycle Steps
 
@@ -32,7 +32,8 @@ Autonomous = you can do this without user permission. Do not ask for permission,
 | Complete Task (update) | `/complete-task` with `--prmode update` | Autonomous |
 | Check PR Feedback | `pnpm nx run dev-workflow:get-pr-feedback` | Autonomous |
 | Re-check PR | `/complete-task` with `--prmode update` | Autonomous |
-| Post-Merge Completion | `/post-merge-completion` | Autonomous |
+| Pre-Merge Reflection | `/pre-merge-reflection` | Autonomous |
+| Merge and Cleanup | `pnpm nx run dev-workflow:merge-and-cleanup` | **User-only (blocked for Claude)** |
 | Activate PRD | `./scripts/activate-prd.sh <prd-name>` | **User confirmation required** |
 | Archive PRD | `./scripts/archive-prd.sh <prd-name>` | **User confirmation required** |
 
@@ -143,7 +144,9 @@ Do not create a plan until you have read and understood these referenced documen
 
 **Re-check PR** — PR feedback addressed, needs CI verification. Run `/complete-task` with `--prmode update`. All feedback must be resolved in a single pass — each round-trip costs ~10 minutes (CI + review cycle).
 
-**Post-Merge Completion** — After PR is merged: (1) Run `/post-merge-completion` from the worktree to reflect on feedback (needs review files). (2) Create GitHub issues for any improvement opportunities identified. (3) Run `cleanup-task.sh` to remove the worktree. (4) Implement improvements by starting the new task via normal workflow—**never reuse the merged branch** (squash merges create stale merge bases).
+**Pre-Merge Reflection** — When the PR is mergeable, run `/pre-merge-reflection` to generate a reflection report analyzing all feedback. This must happen **before** merging. Claude gathers local review files and GitHub feedback, writes the reflection, commits it, and presents it for discussion. After discussion, tell the user to run `pnpm nx run dev-workflow:merge-and-cleanup`.
+
+**Merge and Cleanup** — **User-only command** (blocked for Claude). Merges the PR (squash), removes the worktree and Claude permissions. Gates on the reflection file existing — will fail if `/pre-merge-reflection` hasn't been run. After cleanup, implement any improvement tasks via normal workflow — **never reuse the merged branch** (squash merges create stale merge bases).
 
 **Activate PRD** — Moving a PRD from not started to active.
 

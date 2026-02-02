@@ -19,4 +19,9 @@ export const BLOCKED_COMMANDS: BlockedCommand[] = [
     reason:
       'Blocked: Do not use gh api for review threads directly. Use:\n- pnpm nx run dev-workflow:respond-to-feedback --thread-id <id> --action <fixed|rejected> --message <msg>',
   },
+  {
+    pattern: /dev-workflow:merge-and-cleanup/,
+    reason:
+      'Blocked: merge-and-cleanup must be run by the user directly.\nRun /pre-merge-reflection first, then tell the user to run: pnpm nx run dev-workflow:merge-and-cleanup',
+  },
 ]

@@ -29,6 +29,13 @@
         "command": "./tools/dev-workflow/node_modules/.bin/tsx tools/dev-workflow/features/respond-to-feedback/entrypoint/cli.ts",
         "cwd": "{workspaceRoot}"
       }
+    },
+    "merge-and-cleanup": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "./tools/dev-workflow/node_modules/.bin/tsx tools/dev-workflow/features/merge-and-cleanup/entrypoint/cli.ts",
+        "cwd": "{workspaceRoot}"
+      }
     }
   }
 }

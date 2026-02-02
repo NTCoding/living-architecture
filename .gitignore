@@ -50,6 +50,8 @@ reference/cli/cli-reference.md
 
 # TypeScript build artifacts
 *.tsbuildinfo
+packages/*/scripts/*.d.ts
+packages/*/scripts/*.d.ts.map
 
 # Local review directory
 reviews/
