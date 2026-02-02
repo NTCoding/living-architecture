@@ -64,6 +64,11 @@ class OrderPublisher {
     expect(result).toHaveLength(2)
   })
 
+  it('returns empty array when components list is empty', () => {
+    const result = detectPublishConnections(sharedProject, [], { strict: false })
+    expect(result).toStrictEqual([])
+  })
+
   it('returns empty array when no eventPublisher components exist', () => {
     const event = buildComponent('SomeEvent', '/src/no-pub.ts', 1, {
       type: 'event',

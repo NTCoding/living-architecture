@@ -159,4 +159,88 @@ describe('detectSubscribeConnections', () => {
 
     expect(result).toStrictEqual([])
   })
+
+  it('produces one link per duplicate entry in subscribedEvents', () => {
+    const event = buildComponent('OrderPlaced', '/src/events.ts', 1, {
+      type: 'event',
+      metadata: { eventName: 'OrderPlaced' },
+    })
+    const handler = buildComponent('DupHandler', '/src/handlers.ts', 1, {
+      type: 'eventHandler',
+      metadata: { subscribedEvents: ['OrderPlaced', 'OrderPlaced'] },
+    })
+    const result = detectSubscribeConnections([event, handler], { strict: false })
+
+    expect(result).toHaveLength(2)
+  })
+
+  it('filters non-string entries from subscribedEvents', () => {
+    const event = buildComponent('OrderPlaced', '/src/events.ts', 1, {
+      type: 'event',
+      metadata: { eventName: 'OrderPlaced' },
+    })
+    const mixedEvents = buildMixedSubscribedEvents()
+    const handler = buildComponent('MixedHandler', '/src/handlers.ts', 1, {
+      type: 'eventHandler',
+      metadata: { subscribedEvents: mixedEvents },
+    })
+    const result = detectSubscribeConnections([event, handler], { strict: false })
+
+    expect(result).toHaveLength(1)
+    expect(result[0]).toStrictEqual(
+      expect.objectContaining({
+        source: 'orders:event:OrderPlaced',
+        target: 'orders:eventHandler:MixedHandler',
+      }),
+    )
+  })
+
+  it('throws ConnectionDetectionError in strict mode when subscribed event matches multiple Events', () => {
+    const event1 = buildComponent('OrderPlacedA', '/src/events.ts', 1, {
+      type: 'event',
+      metadata: { eventName: 'OrderPlaced' },
+    })
+    const event2 = buildComponent('OrderPlacedB', '/src/events2.ts', 1, {
+      type: 'event',
+      metadata: { eventName: 'OrderPlaced' },
+    })
+    const handler = buildComponent('AmbigHandler', '/src/handlers.ts', 1, {
+      type: 'eventHandler',
+      metadata: { subscribedEvents: ['OrderPlaced'] },
+    })
+
+    expect(() => detectSubscribeConnections([event1, event2, handler], { strict: true })).toThrow(
+      ConnectionDetectionError,
+    )
+  })
+
+  it('returns uncertain link in lenient mode when subscribed event matches multiple Events', () => {
+    const event1 = buildComponent('OrderPlacedA', '/src/events.ts', 1, {
+      type: 'event',
+      metadata: { eventName: 'OrderPlaced' },
+    })
+    const event2 = buildComponent('OrderPlacedB', '/src/events2.ts', 1, {
+      type: 'event',
+      metadata: { eventName: 'OrderPlaced' },
+    })
+    const handler = buildComponent('AmbigHandler', '/src/handlers.ts', 1, {
+      type: 'eventHandler',
+      metadata: { subscribedEvents: ['OrderPlaced'] },
+    })
+    const result = detectSubscribeConnections([event1, event2, handler], { strict: false })
+
+    expect(result).toStrictEqual([
+      expect.objectContaining({
+        source: '_unresolved',
+        target: 'orders:eventHandler:AmbigHandler',
+        type: 'async',
+        _uncertain: expect.stringContaining('ambiguous'),
+      }),
+    ])
+  })
 })
+
+function buildMixedSubscribedEvents(): string[] {
+  const parsed: string[] = JSON.parse('["OrderPlaced", 123, null]')
+  return parsed
+}

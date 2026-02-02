@@ -9,6 +9,8 @@ import {
 import { findClassInProject } from '../call-graph/trace-calls'
 import type { AsyncDetectionOptions } from './detect-subscribe-connections'
 
+type RequiredLineLocation = SourceLocation & { lineNumber: number }
+
 export function detectPublishConnections(
   project: Project,
   components: readonly EnrichedComponent[],
@@ -35,20 +37,15 @@ function extractPublisherLinks(
 
   const methods = classDecl.getMethods()
   return methods.flatMap((method) => {
-    const params = method.getParameters()
-    if (params.length === 0) {
-      return []
-    }
-
-    const firstParam = params[0]
-    /* v8 ignore next -- @preserve defensive: length already checked above */
+    const firstParam = method.getParameters()[0]
     if (firstParam === undefined) {
       return []
     }
+
     const paramType = firstParam.getType()
     const paramTypeName = stripGenericArgs(paramType.getText(firstParam))
 
-    const sourceLocation: SourceLocation = {
+    const sourceLocation: RequiredLineLocation = {
       repository: '',
       filePath: publisher.location.file,
       lineNumber: method.getStartLineNumber(),
@@ -63,7 +60,7 @@ function resolvePublishTarget(
   paramTypeName: string,
   events: readonly EnrichedComponent[],
   options: AsyncDetectionOptions,
-  sourceLocation: SourceLocation,
+  sourceLocation: RequiredLineLocation,
 ): ExtractedLink[] {
   const matchingEvents = events.filter((e) => e.metadata['eventName'] === paramTypeName)
 
@@ -96,13 +93,12 @@ function handleAmbiguousMatch(
   paramTypeName: string,
   matchCount: number,
   options: AsyncDetectionOptions,
-  sourceLocation: SourceLocation,
+  sourceLocation: RequiredLineLocation,
 ): ExtractedLink {
   if (options.strict) {
     throw new ConnectionDetectionError({
       file: sourceLocation.filePath,
-      /* v8 ignore next -- @preserve lineNumber always set by extractPublisherLinks */
-      line: sourceLocation.lineNumber ?? 0,
+      line: sourceLocation.lineNumber,
       typeName: publisher.name,
       reason: `parameter type "${paramTypeName}" matches ${matchCount} Event components (ambiguous)`,
     })
@@ -120,13 +116,12 @@ function handleNoMatch(
   publisher: EnrichedComponent,
   paramTypeName: string,
   options: AsyncDetectionOptions,
-  sourceLocation: SourceLocation,
+  sourceLocation: RequiredLineLocation,
 ): ExtractedLink {
   if (options.strict) {
     throw new ConnectionDetectionError({
       file: sourceLocation.filePath,
-      /* v8 ignore next -- @preserve lineNumber always set by extractPublisherLinks */
-      line: sourceLocation.lineNumber ?? 0,
+      line: sourceLocation.lineNumber,
       typeName: publisher.name,
       reason: `parameter type "${paramTypeName}" does not match any Event component`,
     })

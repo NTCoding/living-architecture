@@ -40,12 +40,39 @@ function resolveSubscription(
     return [handleNoMatch(handler, eventName, options)]
   }
 
+  if (matchingEvents.length > 1) {
+    return [handleAmbiguousMatch(handler, eventName, matchingEvents.length, options)]
+  }
+
   return matchingEvents.map((event) => ({
     source: componentIdentity(event),
     target: componentIdentity(handler),
-    type: 'async' as const,
+    type: 'async',
     sourceLocation: toSourceLocation(handler),
   }))
+}
+
+function handleAmbiguousMatch(
+  handler: EnrichedComponent,
+  eventName: string,
+  matchCount: number,
+  options: AsyncDetectionOptions,
+): ExtractedLink {
+  if (options.strict) {
+    throw new ConnectionDetectionError({
+      file: handler.location.file,
+      line: handler.location.line,
+      typeName: handler.name,
+      reason: `subscribed event "${eventName}" matches ${matchCount} Event components (ambiguous)`,
+    })
+  }
+  return {
+    source: '_unresolved',
+    target: componentIdentity(handler),
+    type: 'async',
+    sourceLocation: toSourceLocation(handler),
+    _uncertain: `ambiguous: ${matchCount} events match subscribed event name: ${eventName}`,
+  }
 }
 
 function handleNoMatch(
