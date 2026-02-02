@@ -13,13 +13,14 @@ Bug scanning is handled by the bug-scanner agent - do not duplicate that work he
 
 ## Instructions
 
-1. Read ALL convention files to obtain rules with IDs:
-   - `docs/conventions/software-design.md` (SD-001 through SD-022)
-   - `docs/conventions/anti-patterns.md` (AP-001 through AP-006)
-   - `docs/conventions/standard-patterns.md` (SP-001, SP-002)
-   - `docs/conventions/testing.md` (TS-001 through TS-012)
-   - `docs/conventions/codebase-structure.md` (CS-001 through CS-008)
-   - `docs/workflow/code-review.md` (CR-001 through CR-008)
+1. Read ALL convention files and use Grep to extract every rule ID (pattern: `XX-NNN`) from each:
+   - `docs/conventions/software-design.md` — run: `grep -oP 'SD-\d+' docs/conventions/software-design.md | sort -u`
+   - `docs/conventions/anti-patterns.md` — run: `grep -oP 'AP-\d+' docs/conventions/anti-patterns.md | sort -u`
+   - `docs/conventions/standard-patterns.md` — run: `grep -oP 'SP-\d+' docs/conventions/standard-patterns.md | sort -u`
+   - `docs/conventions/testing.md` — run: `grep -oP 'TS-\d+' docs/conventions/testing.md | sort -u`
+   - `docs/conventions/codebase-structure.md` — run: `grep -oP 'CS-\d+' docs/conventions/codebase-structure.md | sort -u`
+   - `docs/workflow/code-review.md` — run: `grep -oP 'CR-\d+' docs/workflow/code-review.md | sort -u`
+   IMPORTANT: The rule list changes over time. You MUST use grep output as your source of truth. If grep returns CR-001 through CR-009, you audit 9 CR rules. If it returns CR-001 through CR-012, you audit 12. Never assume a count.
 2. Review ALL files listed in "Files to Review" below
 3. For each file, read its contents and audit against every rule ID
 4. Check related files as needed (callers, implementations, imports) to understand context
@@ -68,25 +69,27 @@ Verdicts:
 - **FAIL**: Violation found. Reference file:line.
 - **N/A**: Rule doesn't apply to changed files. State why.
 
-Rule sets to audit (every ID must appear):
-- Software Design: SD-001 through SD-022
-- Anti-Patterns: AP-001 through AP-006
-- Standard Patterns: SP-001, SP-002
-- Testing: TS-001 through TS-012
-- Codebase Structure: CS-001 through CS-008
-- Code Review: CR-001 through CR-008
+Rule sets to audit (every ID discovered in step 1 must appear):
+- Software Design: all SD-### rules found in software-design.md
+- Anti-Patterns: all AP-### rules found in anti-patterns.md
+- Standard Patterns: all SP-### rules found in standard-patterns.md
+- Testing: all TS-### rules found in testing.md
+- Codebase Structure: all CS-### rules found in codebase-structure.md
+- Code Review: all CR-### rules found in code-review.md
 
 ### 4. Audit Summary
 
 | Category | Rules | Pass | Fail | N/A |
 |----------|-------|------|------|-----|
-| Software Design (SD) | 22 | ... | ... | ... |
-| Anti-Patterns (AP) | 6 | ... | ... | ... |
-| Standard Patterns (SP) | 2 | ... | ... | ... |
-| Testing (TS) | 12 | ... | ... | ... |
-| Codebase Structure (CS) | 8 | ... | ... | ... |
-| Code Review (CR) | 8 | ... | ... | ... |
-| **Total** | **58** | ... | ... | ... |
+| Software Design (SD) | [count] | ... | ... | ... |
+| Anti-Patterns (AP) | [count] | ... | ... | ... |
+| Standard Patterns (SP) | [count] | ... | ... | ... |
+| Testing (TS) | [count] | ... | ... | ... |
+| Codebase Structure (CS) | [count] | ... | ... | ... |
+| Code Review (CR) | [count] | ... | ... | ... |
+| **Total** | **[total]** | ... | ... | ... |
+
+Fill in `[count]` and `[total]` from the actual rules discovered in step 1. Do not hardcode these numbers.
 
 **Verdict: PASS/FAIL** — [summary: N findings (X critical, Y major)]
 
@@ -113,7 +116,7 @@ Default: Flag issues. Skip only with valid reason.
 Before generating your response, verify:
 - [ ] First line is exactly `PASS` or `FAIL` (no other text, no preamble, no narration)
 - [ ] Findings section lists only failures (or "No findings" if PASS)
-- [ ] Audit trail has a row for EVERY rule ID (58 total)
+- [ ] Audit trail has a row for EVERY rule ID discovered in step 1
 - [ ] Audit summary totals match row counts
 - [ ] No files written (orchestrator handles file writing)
 
