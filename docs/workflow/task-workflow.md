@@ -222,6 +222,46 @@ pnpm nx run dev-workflow:complete-task -- --prmode update --feedback-items-resol
 
 ---
 
+## Complete Task Failure Recovery
+
+When `/complete-task` fails, follow this flowchart **exactly**. No guessing, no retrying blindly.
+
+```text
+/complete-task failed
+    │
+    ▼
+Run: pnpm nx run dev-workflow:get-pr-feedback
+    │
+    ├── feedbackCount > 0?
+    │   YES → Fix each feedback item, respond-to-feedback, re-run /complete-task
+    │   NO  ↓
+    │
+    ├── CHANGES_REQUESTED review exists?
+    │   YES → All threads resolved?
+    │         YES → BLOCKED: Tell user "All checks complete, all feedback
+    │                addressed, blocked by stale CHANGES_REQUESTED review
+    │                from <reviewer>."
+    │         NO  → Resolve remaining threads, re-run /complete-task
+    │   NO  ↓
+    │
+    ├── mergeableState !== "clean"?
+    │   YES → Read the failedStep log file from complete-task output.
+    │         The log contains the SPECIFIC error (e.g. which CI check
+    │         failed and why). Fix the root cause. Re-run /complete-task.
+    │   NO  ↓
+    │
+    └── mergeable === true?
+        YES → Something else went wrong. Report exact error to user.
+        NO  → Report exact mergeableState and blocking reason to user.
+```
+
+**Rules:**
+- NEVER retry `/complete-task` without first running `get-pr-feedback` to understand the current state
+- NEVER guess what failed — read the log file or the feedback output
+- NEVER wait for external processes without evidence they haven't completed yet — check first, then wait only if checks are genuinely pending
+
+---
+
 ## Stop Checklist
 
 Before stopping, verify ALL of the following:
