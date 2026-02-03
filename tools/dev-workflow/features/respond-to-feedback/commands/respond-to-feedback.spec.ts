@@ -48,10 +48,15 @@ describe('respondToFeedback', () => {
   })
 
   it('calls github resolveThread', async () => {
+    const detailedRejection =
+      'This feedback suggests adding null checks, but the null case is handled at the API boundary in src/api/validator.ts. ' +
+      'The domain layer receives validated data only. Adding redundant checks here would violate the fail-fast principle ' +
+      'and create unnecessary defensive programming. See ADR-012 for validation strategy.'
+
     await respondToFeedback({
       threadId: 'PRRT_456',
       action: 'rejected',
-      message: 'Not applicable',
+      message: detailedRejection,
     })
 
     expect(mockResolveThread).toHaveBeenCalledWith('PRRT_456')
@@ -135,6 +140,11 @@ describe('executeRespondToFeedback', () => {
   })
 
   it('logs success output as JSON', async () => {
+    const detailedRejection =
+      'This feedback suggests using async/await instead of Promise chains, but the current implementation uses Promise.all ' +
+      'for parallel execution which cannot be easily replicated with sequential async/await. The Promise chain approach here ' +
+      'is intentional for performance. Changing to async/await would serialize the operations and increase latency by 3x.'
+
     process.argv = [
       'node',
       'script',
@@ -143,7 +153,7 @@ describe('executeRespondToFeedback', () => {
       '--action',
       'rejected',
       '--message',
-      'Rejected reason',
+      detailedRejection,
     ]
 
     await executeRespondToFeedback()

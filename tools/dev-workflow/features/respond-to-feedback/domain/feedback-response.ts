@@ -3,11 +3,26 @@ import { z } from 'zod'
 export const responseActionSchema = z.enum(['fixed', 'rejected'])
 export type ResponseAction = z.infer<typeof responseActionSchema>
 
-export const respondToFeedbackInputSchema = z.object({
-  threadId: z.string().min(1, { message: 'threadId is required' }),
-  action: responseActionSchema,
-  message: z.string().min(1, { message: 'message is required' }),
-})
+const REJECTED_MIN_LENGTH = 300
+const REJECTED_LENGTH_ERROR = `Rejected feedback requires a detailed justification (minimum ${REJECTED_MIN_LENGTH} characters).
+
+This limit exists to prevent lazy dismissals like "out of scope" without explanation.
+Your rejection must explain:
+- WHY the feedback doesn't apply
+- If claiming "out of scope": which specific file was NOT modified in this PR
+
+Remember: If the file was modified in this PR, the feedback is probably NOT out of scope.`
+
+export const respondToFeedbackInputSchema = z
+  .object({
+    threadId: z.string().min(1, { message: 'threadId is required' }),
+    action: responseActionSchema,
+    message: z.string().min(1, { message: 'message is required' }),
+  })
+  .refine((data) => data.action !== 'rejected' || data.message.length >= REJECTED_MIN_LENGTH, {
+    message: REJECTED_LENGTH_ERROR,
+    path: ['message'],
+  })
 export type RespondToFeedbackInput = z.infer<typeof respondToFeedbackInputSchema>
 
 const respondToFeedbackOutputSchema = z.object({

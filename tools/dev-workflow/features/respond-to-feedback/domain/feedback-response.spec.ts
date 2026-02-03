@@ -36,16 +36,34 @@ describe('respondToFeedbackInputSchema', () => {
     expect(result.action).toStrictEqual('fixed')
   })
 
-  it('validates valid rejected input', () => {
+  it('validates valid rejected input with detailed justification', () => {
+    const detailedMessage =
+      'This feedback suggests adding error handling, but the error handling already exists in the parent component (src/components/ErrorBoundary.tsx). ' +
+      'The current implementation deliberately re-throws to let the boundary catch it. ' +
+      'Adding a try-catch here would swallow errors and break the error reporting flow. ' +
+      'See ADR-015 for the error handling strategy.'
+
     const input = {
       threadId: 'PRRT_456',
       action: 'rejected',
-      message: 'Not applicable',
+      message: detailedMessage,
     }
 
     const result = respondToFeedbackInputSchema.parse(input)
 
     expect(result.action).toStrictEqual('rejected')
+  })
+
+  it('rejects lazy rejected feedback with short message', () => {
+    const input = {
+      threadId: 'PRRT_456',
+      action: 'rejected',
+      message: 'Out of scope: Pre-existing code not modified in this PR',
+    }
+
+    expect(() => respondToFeedbackInputSchema.parse(input)).toThrow(
+      'Rejected feedback requires a detailed justification',
+    )
   })
 
   it('rejects empty threadId', () => {
