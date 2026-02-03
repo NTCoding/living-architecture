@@ -29,4 +29,4 @@ export type {
   UIPageDef,
   DomainOpContainerDef,
   EventPublisherDef,
-} from './interfaces'
+} from './component-contracts'

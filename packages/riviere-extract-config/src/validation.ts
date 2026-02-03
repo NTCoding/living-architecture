@@ -1,8 +1,11 @@
 import Ajv from 'ajv'
 import addFormats from 'ajv-formats'
 import type {
-  ComponentRule, ComponentType, ExtractionConfig, ModuleConfig 
-} from './types'
+  ComponentRule,
+  ComponentType,
+  ExtractionConfig,
+  ModuleConfig,
+} from './extraction-config-schema'
 import rawSchema from '../extraction-config.schema.json' with { type: 'json' }
 
 /**

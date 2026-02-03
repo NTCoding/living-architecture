@@ -16,7 +16,7 @@ import {
 
 describe('All decorators with typed constructor parameters', () => {
   describe('DomainOpContainer with typed constructor', () => {
-    it('works with single typed parameter', () => {
+    it('preserves method behavior with injected dependency', () => {
       interface Repo {find(): string}
       @DomainOpContainer
       class Handler {
@@ -25,12 +25,13 @@ describe('All decorators with typed constructor parameters', () => {
           return this.repo.find()
         }
       }
-      expect(Handler).toBeDefined()
+      const handler = new Handler({ find: () => 'found' })
+      expect(handler.handle()).toBe('found')
     })
   })
 
   describe('APIContainer with typed constructor', () => {
-    it('works with single typed parameter', () => {
+    it('preserves method behavior with injected dependency', () => {
       interface Service {process(): string}
       @APIContainer
       class Endpoint {
@@ -39,52 +40,56 @@ describe('All decorators with typed constructor parameters', () => {
           return this.service.process()
         }
       }
-      expect(Endpoint).toBeDefined()
+      const endpoint = new Endpoint({ process: () => 'processed' })
+      expect(endpoint.get()).toBe('processed')
     })
   })
 
   describe('EventHandlerContainer with typed constructor', () => {
-    it('works with single typed parameter', () => {
-      interface Store {save(data: object): void}
+    it('preserves method behavior with injected dependency', () => {
+      interface Store {save(data: object): string}
       @EventHandlerContainer
       class Listener {
         constructor(private store: Store) {}
-        onEvent(): void {
-          this.store.save({})
+        onEvent(): string {
+          return this.store.save({})
         }
       }
-      expect(Listener).toBeDefined()
+      const listener = new Listener({ save: () => 'saved' })
+      expect(listener.onEvent()).toBe('saved')
     })
   })
 
   describe('EventPublisherContainer with typed constructor', () => {
-    it('works with single typed parameter', () => {
-      interface EventBus {publish(event: object): void}
+    it('preserves method behavior with injected dependency', () => {
+      interface EventBus {publish(event: object): string}
       @EventPublisherContainer
       class Publisher {
         constructor(private bus: EventBus) {}
-        publishOrder(): void {
-          this.bus.publish({})
+        publishOrder(): string {
+          return this.bus.publish({})
         }
       }
-      expect(Publisher).toBeDefined()
+      const publisher = new Publisher({ publish: () => 'published' })
+      expect(publisher.publishOrder()).toBe('published')
     })
   })
 
   describe('UseCase with typed constructor', () => {
-    it('works with single typed parameter', () => {
-      interface Repo {create(data: object): void}
+    it('preserves method behavior with injected dependency', () => {
+      interface Repo {create(data: object): string}
       @UseCase
       class CreateUseCase {
         constructor(private repo: Repo) {}
-        execute(): void {
-          this.repo.create({})
+        execute(): string {
+          return this.repo.create({})
         }
       }
-      expect(CreateUseCase).toBeDefined()
+      const uc = new CreateUseCase({ create: () => 'created' })
+      expect(uc.execute()).toBe('created')
     })
 
-    it('works with parameter properties', () => {
+    it('exposes parameter properties on instance', () => {
       @UseCase
       class CreateUseCase {
         constructor(public readonly id: string) {}
@@ -98,7 +103,7 @@ describe('All decorators with typed constructor parameters', () => {
   })
 
   describe('Event with typed constructor', () => {
-    it('works with parameter properties', () => {
+    it('exposes parameter properties on instance', () => {
       @Event
       class OrderCreated {
         constructor(public readonly orderId: string) {}
@@ -107,7 +112,7 @@ describe('All decorators with typed constructor parameters', () => {
       expect(evt.orderId).toBe('order-1')
     })
 
-    it('works with multiple typed parameters', () => {
+    it('exposes multiple parameter properties on instance', () => {
       @Event
       class OrderCreated {
         constructor(
@@ -123,7 +128,7 @@ describe('All decorators with typed constructor parameters', () => {
   })
 
   describe('UI with typed constructor', () => {
-    it('works with single typed parameter', () => {
+    it('preserves render output with injected dependency', () => {
       interface Theme {primary: string}
       @UI
       class Form {
@@ -132,12 +137,13 @@ describe('All decorators with typed constructor parameters', () => {
           return `<form color="${this.theme.primary}"></form>`
         }
       }
-      expect(Form).toBeDefined()
+      const form = new Form({ primary: 'blue' })
+      expect(form.render()).toBe('<form color="blue"></form>')
     })
   })
 
   describe('Custom with typed constructor', () => {
-    it('works on class with typed parameter', () => {
+    it('stores custom type and preserves method behavior', () => {
       interface Config {timeout: number}
       @Custom('MyComponent')
       class MyClass {
@@ -146,11 +152,12 @@ describe('All decorators with typed constructor parameters', () => {
           return this.config.timeout
         }
       }
-      expect(MyClass).toBeDefined()
+      const instance = new MyClass({ timeout: 5000 })
+      expect(instance.getTimeout()).toBe(5000)
       expect(getCustomType(MyClass)).toBe('MyComponent')
     })
 
-    it('works on method with typed constructor class', () => {
+    it('stores custom type on method in class with typed constructor', () => {
       interface Service {process(): string}
       class MyClass {
         constructor(private service: Service) {}
@@ -165,19 +172,20 @@ describe('All decorators with typed constructor parameters', () => {
   })
 
   describe('Ignore with typed constructor', () => {
-    it('works on class with typed parameter', () => {
-      interface Logger {log(msg: string): void}
+    it('preserves method behavior when applied to class', () => {
+      interface Logger {log(msg: string): string}
       @Ignore
       class AuditLogger {
         constructor(private logger: Logger) {}
-        help(): void {
-          this.logger.log('helping')
+        help(): string {
+          return this.logger.log('helping')
         }
       }
-      expect(AuditLogger).toBeDefined()
+      const audit = new AuditLogger({ log: (msg: string) => msg })
+      expect(audit.help()).toBe('helping')
     })
 
-    it('works on method in class with typed constructor', () => {
+    it('preserves method behavior when applied to method', () => {
       interface Repo {find(): string}
       class MyClass {
         constructor(private repo: Repo) {}

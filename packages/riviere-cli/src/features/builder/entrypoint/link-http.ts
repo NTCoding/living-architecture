@@ -18,7 +18,7 @@ import {
 } from '../../../platform/infra/graph-persistence/builder-graph-loader'
 import {
   findApisByPath, getAllApiPaths 
-} from '../commands/api-component-queries'
+} from '../queries/api-component-queries'
 import {
   reportNoApiFoundForPath,
   reportAmbiguousApiMatch,

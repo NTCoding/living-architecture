@@ -8,9 +8,9 @@ import type {
   EventHandlerDef,
   HttpMethod,
   UIPageDef,
-} from './interfaces'
+} from './component-contracts'
 
-describe('interfaces', () => {
+describe('component contracts', () => {
   describe('HttpMethod', () => {
     it('accepts all valid HTTP methods', () => {
       const methods: HttpMethod[] = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']

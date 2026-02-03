@@ -19,101 +19,85 @@ import {
 
 describe('Container decorators', () => {
   describe('DomainOpContainer', () => {
-    it('applies to class without error', () => {
+    it('preserves class method behavior when decorated', () => {
       @DomainOpContainer
-      class OrderCreator {
-        createOrder(): string {
-          return 'created'
+      class Target {
+        execute(): string {
+          return 'result'
         }
       }
-
-      expect(OrderCreator).toBeDefined()
-      expect(new OrderCreator().createOrder).toBeDefined()
+      expect(new Target().execute()).toBe('result')
     })
 
-    it('returns the original class', () => {
+    it('preserves inherited properties when decorated', () => {
       class Original {
         value = 42
       }
-
       @DomainOpContainer
       class Decorated extends Original {}
-
       expect(new Decorated().value).toBe(42)
     })
   })
 
   describe('APIContainer', () => {
-    it('applies to class without error', () => {
+    it('preserves class method behavior when decorated', () => {
       @APIContainer
-      class OrderController {
-        getOrders(): string[] {
-          return []
+      class Target {
+        execute(): string {
+          return 'result'
         }
       }
-
-      expect(OrderController).toBeDefined()
-      expect(new OrderController().getOrders).toBeDefined()
+      expect(new Target().execute()).toBe('result')
     })
 
-    it('returns the original class', () => {
+    it('preserves inherited properties when decorated', () => {
       class Original {
         value = 42
       }
-
       @APIContainer
       class Decorated extends Original {}
-
       expect(new Decorated().value).toBe(42)
     })
   })
 
   describe('EventHandlerContainer', () => {
-    it('applies to class without error', () => {
+    it('preserves class method behavior when decorated', () => {
       @EventHandlerContainer
-      class OrderEventListener {
-        onOrderCreated(): boolean {
-          return true
+      class Target {
+        execute(): string {
+          return 'result'
         }
       }
-
-      expect(OrderEventListener).toBeDefined()
-      expect(new OrderEventListener().onOrderCreated).toBeDefined()
+      expect(new Target().execute()).toBe('result')
     })
 
-    it('returns the original class', () => {
+    it('preserves inherited properties when decorated', () => {
       class Original {
         value = 42
       }
-
       @EventHandlerContainer
       class Decorated extends Original {}
-
       expect(new Decorated().value).toBe(42)
     })
   })
 
   describe('EventPublisherContainer', () => {
-    it('applies to class without error', () => {
+    it('preserves class method behavior when decorated', () => {
       @EventPublisherContainer
-      class OrderEventPublisher {
-        publishOrderCreated(): boolean {
-          return true
+      class Target {
+        execute(): string {
+          return 'result'
         }
       }
-
-      expect(OrderEventPublisher).toBeDefined()
-      expect(new OrderEventPublisher().publishOrderCreated()).toBe(true)
+      expect(new Target().execute()).toBe('result')
     })
 
-    it('returns the original class', () => {
+    it('preserves inherited properties when decorated', () => {
       class Original {
         value = 42
       }
-
       @EventPublisherContainer
       class Decorated extends Original {}
-
       expect(new Decorated().value).toBe(42)
     })
   })
@@ -121,7 +105,7 @@ describe('Container decorators', () => {
 
 describe('Class-as-component decorators', () => {
   describe('UseCase', () => {
-    it('applies to class without error', () => {
+    it('preserves method return value when decorated', () => {
       @UseCase
       class CreateOrderUseCase {
         execute(): string {
@@ -129,25 +113,23 @@ describe('Class-as-component decorators', () => {
         }
       }
 
-      expect(CreateOrderUseCase).toBeDefined()
-      expect(new CreateOrderUseCase().execute).toBeDefined()
+      expect(new CreateOrderUseCase().execute()).toBe('executed')
     })
   })
 
   describe('Event', () => {
-    it('applies to class without error', () => {
+    it('preserves property value when decorated', () => {
       @Event
       class OrderCreated {
-        readonly orderId: string = ''
+        readonly orderId: string = 'order-1'
       }
 
-      expect(OrderCreated).toBeDefined()
-      expect(new OrderCreated().orderId).toBe('')
+      expect(new OrderCreated().orderId).toBe('order-1')
     })
   })
 
   describe('UI', () => {
-    it('applies to class without error', () => {
+    it('preserves render output when decorated', () => {
       @UI
       class OrderForm {
         render(): string {
@@ -155,15 +137,14 @@ describe('Class-as-component decorators', () => {
         }
       }
 
-      expect(OrderForm).toBeDefined()
-      expect(new OrderForm().render).toBeDefined()
+      expect(new OrderForm().render()).toBe('<form/>')
     })
   })
 })
 
 describe('Method-level decorators', () => {
   describe('DomainOp', () => {
-    it('applies to method without error', () => {
+    it('preserves method return value when decorated', () => {
       class OrderCreator {
         @DomainOp
         createOrder(): string {
@@ -176,7 +157,7 @@ describe('Method-level decorators', () => {
   })
 
   describe('APIEndpoint', () => {
-    it('applies to method without error', () => {
+    it('preserves method return value when decorated', () => {
       class OrderController {
         @APIEndpoint
         getOrders(): string[] {
@@ -189,7 +170,7 @@ describe('Method-level decorators', () => {
   })
 
   describe('EventHandler', () => {
-    it('applies to method without error', () => {
+    it('preserves method return value when decorated', () => {
       class OrderEventListener {
         @EventHandler
         onOrderCreated(): boolean {
@@ -204,13 +185,12 @@ describe('Method-level decorators', () => {
 
 describe('Other decorators', () => {
   describe('Custom', () => {
-    it('applies to class with custom type parameter', () => {
+    it('preserves instance property when applied to class', () => {
       @Custom('Aggregate')
       class Order {
         readonly id: string = 'order-1'
       }
 
-      expect(Order).toBeDefined()
       expect(new Order().id).toBe('order-1')
     })
 
@@ -225,7 +205,7 @@ describe('Other decorators', () => {
       expect(getCustomType(OrderRepository)).toBe('Repository')
     })
 
-    it('applies to method with custom type parameter', () => {
+    it('preserves method return value when applied to method', () => {
       class OrderQuery {
         @Custom('Query')
         findAll(): string[] {
@@ -329,7 +309,7 @@ describe('Other decorators', () => {
   })
 
   describe('Ignore', () => {
-    it('applies to class without error', () => {
+    it('preserves method return value when applied to class', () => {
       @Ignore
       class InternalLogger {
         log(): string {
@@ -337,11 +317,10 @@ describe('Other decorators', () => {
         }
       }
 
-      expect(InternalLogger).toBeDefined()
-      expect(new InternalLogger().log).toBeDefined()
+      expect(new InternalLogger().log()).toBe('logged')
     })
 
-    it('applies to method without error', () => {
+    it('preserves method return value when applied to method', () => {
       class OrderSubmitter {
         @Ignore
         internalHelper(): number {
@@ -355,7 +334,7 @@ describe('Other decorators', () => {
 })
 
 describe('Decorator combinations', () => {
-  it('allows container with method decorators', () => {
+  it('preserves all method behaviors with container and method decorators', () => {
     @APIContainer
     class OrderController {
       @APIEndpoint
@@ -374,7 +353,7 @@ describe('Decorator combinations', () => {
     expect(controller.healthCheck()).toBe(true)
   })
 
-  it('allows class decorator with Custom method', () => {
+  it('preserves method behavior with class and Custom method decorators', () => {
     @UseCase
     class CreateOrderUseCase {
       @Custom('Command')
@@ -383,6 +362,6 @@ describe('Decorator combinations', () => {
       }
     }
 
-    expect(CreateOrderUseCase).toBeDefined()
+    expect(new CreateOrderUseCase().execute()).toBe('executed')
   })
 })

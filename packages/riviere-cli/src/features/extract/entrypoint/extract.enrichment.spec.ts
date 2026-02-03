@@ -5,57 +5,17 @@ import { join } from 'node:path'
 import {
   describe, it, expect 
 } from 'vitest'
+import type { DraftComponent } from '@living-architecture/riviere-extract-ts'
 import { createProgram } from '../../../shell/cli'
 import type { TestContext } from '../../../platform/__fixtures__/command-test-fixtures'
 import {
   createTestContext,
   setupCommandTest,
   parseErrorOutput,
-  TestAssertionError,
 } from '../../../platform/__fixtures__/command-test-fixtures'
-
-interface ComponentLocation {
-  file: string
-  line: number
-}
-
-interface DraftComponent {
-  type: string
-  name: string
-  domain: string
-  location: ComponentLocation
-}
-
-interface ExtractionOutput {
-  success: true
-  data: DraftComponent[]
-}
-
-function isExtractionOutput(value: unknown): value is ExtractionOutput {
-  if (typeof value !== 'object' || value === null) return false
-  if (!('success' in value) || value.success !== true) return false
-  if (!('data' in value) || !Array.isArray(value.data)) return false
-  return true
-}
-
-function parseExtractionOutput(consoleOutput: string[]): ExtractionOutput {
-  const firstLine = consoleOutput[0]
-  if (firstLine === undefined) {
-    throw new TestAssertionError('Expected console output but got empty array')
-  }
-  const parsed: unknown = JSON.parse(firstLine)
-  if (!isExtractionOutput(parsed)) {
-    throw new TestAssertionError('Invalid extraction output')
-  }
-  return parsed
-}
-
-const validSourceCode = `
-/** @useCase */
-export class PlaceOrder {
-  execute() {}
-}
-`
+import {
+  parseExtractionOutput, validSourceCode 
+} from '../__fixtures__/extraction-test-fixtures'
 
 const configWithExtractBlock = `
 modules:

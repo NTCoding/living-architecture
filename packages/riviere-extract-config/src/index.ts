@@ -1,4 +1,4 @@
-export * from './types'
+export * from './extraction-config-schema'
 export {
   isValidExtractionConfig,
   validateExtractionConfig,

@@ -14,7 +14,7 @@ interface ExtractOptions {
   format?: string
 }
 
-export function rejectMutuallyExclusive(
+function rejectMutuallyExclusive(
   flagA: string,
   flagB: string,
   aPresent: boolean,

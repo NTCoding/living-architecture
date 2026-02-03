@@ -7,7 +7,7 @@ import {
   mapAjvErrors,
   ExtractionConfigValidationError,
 } from './validation'
-import type { ExtractionConfig } from './types'
+import type { ExtractionConfig } from './extraction-config-schema'
 import {
   createMinimalConfig,
   createFullConfig,

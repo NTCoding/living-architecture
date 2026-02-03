@@ -1,6 +1,6 @@
 import type {
   ExtractionConfig, ResolvedExtractionConfig, Module 
-} from './types'
+} from './extraction-config-schema'
 
 export function createModuleWithoutPath(): Omit<Module, 'path'> {
   return {

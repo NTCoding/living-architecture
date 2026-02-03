@@ -1,4 +1,3 @@
-import { writeFileSync } from 'node:fs'
 import {
   workflow,
   type Step,
@@ -10,10 +9,26 @@ import { handleWorkflowError } from './error-handler'
 import {
   type DebugLog, noopDebugLog 
 } from '../debug-log'
+import { type WorkflowIO } from '../workflow-io'
 
 export interface WorkflowOptions<T extends BaseContext> {
   resolveTimingsFilePath?: (ctx: T) => string
   debugLog?: DebugLog
+  io?: WorkflowIO
+}
+
+function noop(): void {
+  // intentionally empty - used for optional writeFile
+}
+
+const defaultIO: WorkflowIO = {
+  writeFile: noop,
+  log: (output: string) => {
+    console.log(output)
+  },
+  exit: (code: number) => {
+    process.exit(code)
+  },
 }
 
 export function runWorkflow<T extends BaseContext>(
@@ -50,6 +65,7 @@ async function executeWorkflow<T extends BaseContext>(
   options?: WorkflowOptions<T>,
 ): Promise<void> {
   const log = options?.debugLog ?? noopDebugLog()
+  const io = options?.io ?? defaultIO
 
   log.log('buildContext: start')
   const context = await buildContext()
@@ -63,13 +79,13 @@ async function executeWorkflow<T extends BaseContext>(
   if (options?.resolveTimingsFilePath) {
     const timingsPath = options.resolveTimingsFilePath(context)
     const markdown = formatTimingsMarkdown(result.stepTimings, result.totalDurationMs)
-    writeFileSync(timingsPath, markdown, 'utf-8')
+    io.writeFile(timingsPath, markdown)
   }
 
   const formatted = formatResult ? formatResult(result, context) : undefined
   const output = formatted ?? result.output ?? result
 
-  console.log(JSON.stringify(output, null, 2))
+  io.log(JSON.stringify(output, null, 2))
 
-  process.exit(result.success ? 0 : 1)
+  io.exit(result.success ? 0 : 1)
 }
