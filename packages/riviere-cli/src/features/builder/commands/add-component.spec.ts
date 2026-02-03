@@ -37,6 +37,19 @@ describe('addComponent command', () => {
     }
   }
 
+  describe('component type validation', () => {
+    it('returns VALIDATION_ERROR when componentType is invalid', async () => {
+      await addComponent({
+        ...inputWithGraphPath(),
+        componentType: 'INVALID',
+      })
+
+      const output = parseErrorOutput(ctx.consoleOutput)
+      expect(output.error.code).toBe(CliErrorCode.ValidationError)
+      expect(output.error.message).toContain('Invalid component type')
+    })
+  })
+
   describe('line number validation', () => {
     it.each([
       ['NaN', NaN],

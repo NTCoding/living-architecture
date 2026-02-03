@@ -5,7 +5,7 @@ import { parseCustomProperties } from '../cli-presentation/custom-property-parse
 import { MissingRequiredOptionError } from '../errors/errors'
 import type { AddComponentInput as DomainInput } from '../../domain/add-component'
 
-function isBlank(value: string | undefined): value is undefined {
+function isBlank(value: string | undefined): boolean {
   return !value || value.trim().length === 0
 }
 
