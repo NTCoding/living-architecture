@@ -1,162 +1,107 @@
-import type { RiviereBuilder } from '@living-architecture/riviere-builder'
-import type { SourceLocation } from '@living-architecture/riviere-schema'
-import { MissingRequiredOptionError } from '../../../platform/infra/errors/errors'
 import {
-  isValidApiType,
+  readFile, writeFile 
+} from 'node:fs/promises'
+import {
+  RiviereBuilder,
+  CustomTypeNotFoundError,
+  DomainNotFoundError,
+  DuplicateComponentError,
+} from '@living-architecture/riviere-builder'
+import type { SourceLocation } from '@living-architecture/riviere-schema'
+import { parseRiviereGraph } from '@living-architecture/riviere-schema'
+import { resolveGraphPath } from '../../../platform/infra/graph-persistence/graph-path'
+import { fileExists } from '../../../platform/infra/graph-persistence/file-existence'
+import {
+  formatError, formatSuccess 
+} from '../../../platform/infra/cli-presentation/output'
+import { CliErrorCode } from '../../../platform/infra/cli-presentation/error-codes'
+import {
+  isValidComponentType,
+  VALID_COMPONENT_TYPES,
   type ComponentTypeFlag,
 } from '../../../platform/infra/cli-presentation/component-types'
-import { isValidHttpMethod } from '../../../platform/infra/cli-presentation/validation'
-import { parseCustomProperties } from '../../../platform/infra/cli-presentation/custom-property-parser'
+import { getErrorMessage } from '../../../platform/infra/errors/errors'
+import {
+  addComponentToBuilder,
+  type AddComponentOptions,
+} from '../../../platform/infra/cli-presentation/component-builder-input'
 
-export interface AddComponentOptions {
-  type: string
-  name: string
-  domain: string
-  module: string
-  repository: string
-  filePath: string
-  route?: string
-  apiType?: string
-  httpMethod?: string
-  httpPath?: string
-  operationName?: string
-  entity?: string
-  eventName?: string
-  eventSchema?: string
-  subscribedEvents?: string
-  customType?: string
-  customProperty?: string[]
-  description?: string
-  lineNumber?: string
-  graph?: string
-  json?: boolean
-}
+export type { AddComponentOptions }
 
-interface CommonInput {
-  name: string
-  domain: string
-  module: string
-  sourceLocation: SourceLocation
-  description?: string
-}
-
-function addUI(builder: RiviereBuilder, common: CommonInput, options: AddComponentOptions): string {
-  if (!options.route) throw new MissingRequiredOptionError('route', 'UI')
-  return builder.addUI({
-    ...common,
-    route: options.route,
-  }).id
-}
-
-function addAPI(
-  builder: RiviereBuilder,
-  common: CommonInput,
-  options: AddComponentOptions,
-): string {
-  if (!options.apiType || !isValidApiType(options.apiType)) {
-    throw new MissingRequiredOptionError('api-type', 'API')
+export async function addComponent(options: AddComponentOptions): Promise<void> {
+  // Validate
+  if (!isValidComponentType(options.type)) {
+    console.log(
+      JSON.stringify(
+        formatError(CliErrorCode.ValidationError, `Invalid component type: ${options.type}`, [
+          `Valid types: ${VALID_COMPONENT_TYPES.join(', ')}`,
+        ]),
+      ),
+    )
+    return
   }
-  const input: Parameters<RiviereBuilder['addApi']>[0] = {
-    ...common,
-    apiType: options.apiType,
+  const componentType: ComponentTypeFlag = options.type
+
+  const graphPath = resolveGraphPath(options.graph)
+  const graphExists = await fileExists(graphPath)
+
+  if (!graphExists) {
+    console.log(
+      JSON.stringify(
+        formatError(CliErrorCode.GraphNotFound, `Graph not found at ${graphPath}`, [
+          'Run riviere builder init first',
+        ]),
+      ),
+    )
+    return
   }
-  if (options.httpMethod && isValidHttpMethod(options.httpMethod))
-    input.httpMethod = options.httpMethod
-  if (options.httpPath) input.path = options.httpPath
-  return builder.addApi(input).id
-}
 
-function addUseCase(builder: RiviereBuilder, common: CommonInput): string {
-  return builder.addUseCase(common).id
-}
+  // Load
+  const content = await readFile(graphPath, 'utf-8')
+  const parsed: unknown = JSON.parse(content)
+  const graph = parseRiviereGraph(parsed)
+  const builder = RiviereBuilder.resume(graph)
 
-function addDomainOp(
-  builder: RiviereBuilder,
-  common: CommonInput,
-  options: AddComponentOptions,
-): string {
-  if (!options.operationName) throw new MissingRequiredOptionError('operation-name', 'DomainOp')
-  const input = {
-    ...common,
-    operationName: options.operationName,
+  const sourceLocation: SourceLocation = {
+    repository: options.repository,
+    filePath: options.filePath,
+    ...(options.lineNumber ? { lineNumber: parseInt(options.lineNumber, 10) } : {}),
   }
-  return (
-    options.entity
-      ? builder.addDomainOp({
-        ...input,
-        entity: options.entity,
-      })
-      : builder.addDomainOp(input)
-  ).id
-}
 
-function addEvent(
-  builder: RiviereBuilder,
-  common: CommonInput,
-  options: AddComponentOptions,
-): string {
-  if (!options.eventName) throw new MissingRequiredOptionError('event-name', 'Event')
-  return builder.addEvent({
-    ...common,
-    eventName: options.eventName,
-    ...(options.eventSchema !== undefined && { eventSchema: options.eventSchema }),
-  }).id
-}
-
-function addEventHandler(
-  builder: RiviereBuilder,
-  common: CommonInput,
-  options: AddComponentOptions,
-): string {
-  if (!options.subscribedEvents)
-    throw new MissingRequiredOptionError('subscribed-events', 'EventHandler')
-  return builder.addEventHandler({
-    ...common,
-    subscribedEvents: options.subscribedEvents
-      .split(',')
-      .map((e) => e.trim())
-      .filter((e) => e.length > 0),
-  }).id
-}
-
-function addCustom(
-  builder: RiviereBuilder,
-  common: CommonInput,
-  options: AddComponentOptions,
-): string {
-  if (!options.customType) throw new MissingRequiredOptionError('custom-type', 'Custom')
-  const metadata = parseCustomProperties(options.customProperty)
-  return builder.addCustom({
-    ...common,
-    customTypeName: options.customType,
-    ...(metadata !== undefined && { metadata }),
-  }).id
-}
-
-type ComponentAdder = (b: RiviereBuilder, c: CommonInput, o: AddComponentOptions) => string
-
-const componentAdders: Record<ComponentTypeFlag, ComponentAdder> = {
-  UI: addUI,
-  API: addAPI,
-  UseCase: addUseCase,
-  DomainOp: addDomainOp,
-  Event: addEvent,
-  EventHandler: addEventHandler,
-  Custom: addCustom,
-}
-
-export function addComponentToBuilder(
-  builder: RiviereBuilder,
-  componentType: ComponentTypeFlag,
-  options: AddComponentOptions,
-  sourceLocation: SourceLocation,
-): string {
-  const commonInput: CommonInput = {
-    name: options.name,
-    domain: options.domain,
-    module: options.module,
-    sourceLocation,
-    ...(options.description ? { description: options.description } : {}),
+  // Mutate + Persist
+  try {
+    const componentId = addComponentToBuilder(builder, componentType, options, sourceLocation)
+    await writeFile(graphPath, builder.serialize(), 'utf-8')
+    if (options.json) {
+      console.log(JSON.stringify(formatSuccess({ componentId })))
+    }
+  } catch (error) {
+    if (error instanceof DomainNotFoundError) {
+      console.log(
+        JSON.stringify(
+          formatError(CliErrorCode.DomainNotFound, error.message, [
+            'Run riviere builder add-domain first',
+          ]),
+        ),
+      )
+      return
+    }
+    if (error instanceof CustomTypeNotFoundError) {
+      console.log(
+        JSON.stringify(
+          formatError(CliErrorCode.CustomTypeNotFound, error.message, [
+            'Run riviere builder add-custom-type first',
+          ]),
+        ),
+      )
+      return
+    }
+    if (error instanceof DuplicateComponentError) {
+      console.log(JSON.stringify(formatError(CliErrorCode.DuplicateComponent, error.message, [])))
+      return
+    }
+    console.log(
+      JSON.stringify(formatError(CliErrorCode.ValidationError, getErrorMessage(error), [])),
+    )
   }
-  return componentAdders[componentType](builder, commonInput, options)
 }
