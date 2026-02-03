@@ -18,7 +18,8 @@ import {
   VALID_COMPONENT_TYPES,
 } from '../../../platform/infra/cli-presentation/component-types'
 import {
-  getErrorMessage, MissingRequiredOptionError 
+  MissingRequiredOptionError,
+  InvalidCustomPropertyError,
 } from '../../../platform/infra/errors/errors'
 import { addComponentToBuilder } from '../../../platform/domain/add-component'
 import {
@@ -40,6 +41,19 @@ export async function addComponent(input: AddComponentInput): Promise<void> {
     return
   }
 
+  if (input.lineNumber !== undefined && !Number.isFinite(input.lineNumber)) {
+    console.log(
+      JSON.stringify(
+        formatError(
+          CliErrorCode.ValidationError,
+          'Invalid line number: must be a valid integer',
+          [],
+        ),
+      ),
+    )
+    return
+  }
+
   const graphExists = await fileExists(input.graphPath)
   if (!graphExists) {
     console.log(
@@ -53,7 +67,18 @@ export async function addComponent(input: AddComponentInput): Promise<void> {
   }
 
   const content = await readFile(input.graphPath, 'utf-8')
-  const graph = parseRiviereGraph(JSON.parse(content))
+  const parsedContent = tryParseJson(content)
+  if (parsedContent === null) {
+    console.log(
+      JSON.stringify(
+        formatError(CliErrorCode.ValidationError, 'Graph file contains invalid JSON', [
+          'Ensure the graph file is valid JSON',
+        ]),
+      ),
+    )
+    return
+  }
+  const graph = parseRiviereGraph(parsedContent)
   const builder = RiviereBuilder.resume(graph)
 
   try {
@@ -68,8 +93,20 @@ export async function addComponent(input: AddComponentInput): Promise<void> {
   }
 }
 
+function tryParseJson(content: string): unknown | null {
+  try {
+    return JSON.parse(content)
+  } catch {
+    return null
+  }
+}
+
 function handleError(error: unknown): void {
   if (error instanceof MissingRequiredOptionError) {
+    console.log(JSON.stringify(formatError(CliErrorCode.ValidationError, error.message, [])))
+    return
+  }
+  if (error instanceof InvalidCustomPropertyError) {
     console.log(JSON.stringify(formatError(CliErrorCode.ValidationError, error.message, [])))
     return
   }
@@ -93,9 +130,11 @@ function handleError(error: unknown): void {
     )
     return
   }
+  /* v8 ignore start -- @preserve: DuplicateComponentError tested at entrypoint; defensive re-throw for unknown errors */
   if (error instanceof DuplicateComponentError) {
     console.log(JSON.stringify(formatError(CliErrorCode.DuplicateComponent, error.message, [])))
     return
   }
-  console.log(JSON.stringify(formatError(CliErrorCode.ValidationError, getErrorMessage(error), [])))
+  throw error
+  /* v8 ignore stop */
 }

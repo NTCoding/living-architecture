@@ -59,14 +59,15 @@ const mappers: Record<string, (input: AddComponentInput) => DomainInput> = {
     if (!input.apiType || !isValidApiType(input.apiType)) {
       throw new MissingRequiredOptionError('api-type', 'API')
     }
+    if (input.httpMethod && !isValidHttpMethod(input.httpMethod)) {
+      throw new MissingRequiredOptionError('http-method', 'API')
+    }
     return {
       type: 'API',
       input: {
         ...buildCommon(input),
         apiType: input.apiType,
-        ...(input.httpMethod && isValidHttpMethod(input.httpMethod)
-          ? { httpMethod: input.httpMethod }
-          : {}),
+        ...(input.httpMethod ? { httpMethod: input.httpMethod } : {}),
         ...(input.httpPath ? { path: input.httpPath } : {}),
       },
     }
@@ -100,14 +101,18 @@ const mappers: Record<string, (input: AddComponentInput) => DomainInput> = {
   EventHandler: (input) => {
     if (!input.subscribedEvents)
       throw new MissingRequiredOptionError('subscribed-events', 'EventHandler')
+    const subscribedEvents = input.subscribedEvents
+      .split(',')
+      .map((e) => e.trim())
+      .filter((e) => e.length > 0)
+    if (subscribedEvents.length === 0) {
+      throw new MissingRequiredOptionError('subscribed-events', 'EventHandler')
+    }
     return {
       type: 'EventHandler',
       input: {
         ...buildCommon(input),
-        subscribedEvents: input.subscribedEvents
-          .split(',')
-          .map((e) => e.trim())
-          .filter((e) => e.length > 0),
+        subscribedEvents,
       },
     }
   },
