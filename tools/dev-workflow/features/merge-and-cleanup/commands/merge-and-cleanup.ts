@@ -1,4 +1,3 @@
-/* v8 ignore start -- command wiring, domain logic tested via step specs */
 import { git } from '../../../platform/infra/external-clients/git-client'
 import { github } from '../../../platform/infra/external-clients/github-rest-client'
 import { runWorkflow } from '../../../platform/domain/workflow-execution/run-workflow'
@@ -53,4 +52,3 @@ function buildSteps() {
 export function executeMergeAndCleanup(): void {
   runWorkflow<MergeCleanupContext>(buildSteps(), buildMergeCleanupContext)
 }
-/* v8 ignore stop */

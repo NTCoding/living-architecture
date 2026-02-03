@@ -264,6 +264,29 @@ describe('claude.query', () => {
       expect.objectContaining({options: expect.objectContaining({ settingSources: ['user', 'project'] }),}),
     )
   })
+
+  it('passes permissionMode acceptEdits to SDK', async () => {
+    mockSdkQuery.mockReturnValue(
+      createResultStream(
+        resultMessage('success', '{}', {
+          structured_output: {
+            result: 'test',
+            score: 1,
+          },
+        }),
+      )(),
+    )
+
+    await claude.query({
+      prompt: 'test',
+      model: 'sonnet',
+      outputSchema: testSchema,
+    })
+
+    expect(mockSdkQuery).toHaveBeenCalledWith(
+      expect.objectContaining({options: expect.objectContaining({ permissionMode: 'acceptEdits' }),}),
+    )
+  })
 })
 
 describe('claude.queryText', () => {
@@ -333,6 +356,19 @@ describe('claude.queryText', () => {
 
     expect(mockSdkQuery).toHaveBeenCalledWith(
       expect.objectContaining({options: expect.not.objectContaining({ outputFormat: expect.anything() }),}),
+    )
+  })
+
+  it('passes permissionMode acceptEdits to SDK', async () => {
+    mockSdkQuery.mockReturnValue(createResultStream(resultMessage('success', 'text output'))())
+
+    await claude.queryText({
+      prompt: 'test',
+      model: 'sonnet',
+    })
+
+    expect(mockSdkQuery).toHaveBeenCalledWith(
+      expect.objectContaining({options: expect.objectContaining({ permissionMode: 'acceptEdits' }),}),
     )
   })
 })

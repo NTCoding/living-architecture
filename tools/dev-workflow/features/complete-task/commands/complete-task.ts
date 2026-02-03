@@ -9,6 +9,7 @@ import { fetchRawPRFeedback } from '../../../platform/infra/external-clients/git
 import { parseIssueNumber } from '../../../platform/domain/branch-naming/issue-branch-parser'
 import { runWorkflow } from '../../../platform/domain/workflow-execution/run-workflow'
 import type { WorkflowResult } from '../../../platform/domain/workflow-execution/workflow-runner'
+import { createDebugLog } from '../../../platform/domain/debug-log'
 import type { CompleteTaskContext } from '../domain/task-to-complete'
 import { resolvePRDetails } from '../domain/pull-request-draft'
 import { formatCompleteTaskResult } from '../domain/pipeline-outcome'
@@ -80,7 +81,7 @@ async function buildCompleteTaskContext(): Promise<CompleteTaskContext> {
   }
 }
 
-function buildSteps() {
+function buildSteps(debugLog: ReturnType<typeof createDebugLog>) {
   return [
     createVerifyBuildStep({ runMany: nx.runMany.bind(nx) }),
     createCodeReviewStep({
@@ -88,6 +89,7 @@ function buildSteps() {
       baseBranch: git.baseBranch.bind(git),
       unpushedFiles: git.unpushedFiles.bind(git),
       queryAgentText: claude.queryText.bind(claude),
+      debugLog,
     }),
     createSubmitPRStep({
       uncommittedFiles: git.uncommittedFiles.bind(git),
@@ -106,10 +108,16 @@ export function resolveTimingsFilePath(ctx: CompleteTaskContext): string {
 }
 
 export function executeCompleteTask(): void {
+  const debugLog = createDebugLog('reviews/debug.log')
+  debugLog.log('executeCompleteTask: starting')
+
   runWorkflow<CompleteTaskContext>(
-    buildSteps(),
+    buildSteps(debugLog),
     buildCompleteTaskContext,
     (result: WorkflowResult, ctx: CompleteTaskContext) => formatCompleteTaskResult(result, ctx),
-    { resolveTimingsFilePath },
+    {
+      resolveTimingsFilePath,
+      debugLog,
+    },
   )
 }

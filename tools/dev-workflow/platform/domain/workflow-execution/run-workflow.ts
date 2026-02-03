@@ -7,12 +7,20 @@ import {
   type StepTiming,
 } from './workflow-runner'
 import { handleWorkflowError } from './error-handler'
+import {
+  type DebugLog, noopDebugLog 
+} from '../debug-log'
+
+export interface WorkflowOptions<T extends BaseContext> {
+  resolveTimingsFilePath?: (ctx: T) => string
+  debugLog?: DebugLog
+}
 
 export function runWorkflow<T extends BaseContext>(
   steps: Step<T>[],
   buildContext: () => Promise<T>,
   formatResult?: (result: WorkflowResult, ctx: T) => unknown,
-  options?: { resolveTimingsFilePath?: (ctx: T) => string },
+  options?: WorkflowOptions<T>,
 ): void {
   executeWorkflow(steps, buildContext, formatResult, options).catch(handleWorkflowError)
 }
@@ -39,11 +47,18 @@ async function executeWorkflow<T extends BaseContext>(
   steps: Step<T>[],
   buildContext: () => Promise<T>,
   formatResult?: (result: WorkflowResult, ctx: T) => unknown,
-  options?: { resolveTimingsFilePath?: (ctx: T) => string },
+  options?: WorkflowOptions<T>,
 ): Promise<void> {
+  const log = options?.debugLog ?? noopDebugLog()
+
+  log.log('buildContext: start')
   const context = await buildContext()
-  const runner = workflow(steps)
+  log.log(`buildContext: done (branch=${context.branch})`)
+
+  const runner = workflow(steps, log)
   const result = await runner(context)
+
+  log.log(`workflow complete: success=${result.success}, failedStep=${result.failedStep ?? 'none'}`)
 
   if (options?.resolveTimingsFilePath) {
     const timingsPath = options.resolveTimingsFilePath(context)

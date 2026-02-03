@@ -6,6 +6,9 @@ import type { Step } from '../../../../platform/domain/workflow-execution/workfl
 import {
   success, failure 
 } from '../../../../platform/domain/workflow-execution/step-result'
+import {
+  type DebugLog, noopDebugLog 
+} from '../../../../platform/domain/debug-log'
 import type { CompleteTaskContext } from '../task-to-complete'
 import {
   taskCheckMarkerExists, createTaskCheckMarker 
@@ -41,6 +44,7 @@ export interface CodeReviewDeps {
     model: 'opus' | 'sonnet' | 'haiku'
     settingSources?: ('user' | 'project' | 'local')[]
   }) => Promise<string>
+  debugLog?: DebugLog
 }
 
 function getReviewerNames(hasIssue: boolean, reviewDir: string): readonly ReviewerName[] {
@@ -99,7 +103,10 @@ export function createCodeReviewStep(deps: CodeReviewDeps): Step<CompleteTaskCon
   return {
     name: 'code-review',
     execute: async (ctx) => {
+      const log = deps.debugLog ?? noopDebugLog()
+
       if (deps.skipReview) {
+        log.log('code-review: skipped (--reject-review-feedback)')
         return success()
       }
 
@@ -110,10 +117,16 @@ export function createCodeReviewStep(deps: CodeReviewDeps): Step<CompleteTaskCon
         })
       }
 
+      log.log('code-review: resolving baseBranch')
       const baseBranch = await deps.baseBranch()
+      log.log(`code-review: baseBranch=${baseBranch}`)
+
+      log.log('code-review: resolving unpushedFiles')
       const filesToReview = await deps.unpushedFiles(baseBranch)
+      log.log(`code-review: ${filesToReview.length} files to review`)
 
       const reviewerNames = getReviewerNames(ctx.hasIssue, ctx.reviewDir)
+      log.log(`code-review: reviewers=[${reviewerNames.join(', ')}]`)
 
       const resultsOrFailure = await executeCodeReviewAgents(
         deps,
@@ -121,8 +134,10 @@ export function createCodeReviewStep(deps: CodeReviewDeps): Step<CompleteTaskCon
         filesToReview,
         ctx.reviewDir,
         ctx.taskDetails,
+        log,
       ).catch((error: unknown) => {
         const message = error instanceof Error ? error.message : String(error)
+        log.log(`code-review: agent execution error: ${message}`)
         return failure({
           type: 'fix_errors',
           details: `Code review agent failed: ${message}. Re-run /complete-task to retry.`,
@@ -135,6 +150,9 @@ export function createCodeReviewStep(deps: CodeReviewDeps): Step<CompleteTaskCon
 
       const failures = resultsOrFailure.filter((r) => r.result === 'FAIL')
       if (failures.length > 0) {
+        log.log(
+          `code-review: ${failures.length} reviewers FAILED: ${failures.map((f) => f.name).join(', ')}`,
+        )
         return failure({
           type: 'fix_review',
           details: failures.map((f) => ({
@@ -144,6 +162,7 @@ export function createCodeReviewStep(deps: CodeReviewDeps): Step<CompleteTaskCon
         })
       }
 
+      log.log('code-review: all reviewers PASSED')
       return success()
     },
   }
@@ -169,10 +188,13 @@ async function executeCodeReviewAgents(
   names: readonly ReviewerName[],
   filesToReview: string[],
   reviewDir: string,
-  taskDetails?: {
-    title: string
-    body: string
-  },
+  taskDetails:
+    | {
+      title: string
+      body: string
+    }
+    | undefined,
+  log: DebugLog,
 ): Promise<ReviewerResult[]> {
   const validReviewerSet = new Set<string>(VALID_REVIEWERS)
 
@@ -186,6 +208,7 @@ async function executeCodeReviewAgents(
       }
       /* v8 ignore stop */
 
+      log.log(`agent [${name}]: loading instructions`)
       const agentPath = `.claude/agents/${name}.md`
       const basePrompt = await loadAgentInstructions(agentPath)
       const round = nextRoundNumber(reviewDir, name)
@@ -204,13 +227,16 @@ async function executeCodeReviewAgents(
         )
       }
 
+      log.log(`agent [${name}]: calling claude SDK (model=opus, round=${round})`)
       const rawResponse = await deps.queryAgentText({
         prompt: promptParts.join(''),
         model: 'opus',
         settingSources: ['project'],
       })
+      log.log(`agent [${name}]: claude SDK returned (${rawResponse.length} chars)`)
 
       const parsed = parseAgentResponse(rawResponse)
+      log.log(`agent [${name}]: verdict=${parsed.verdict}`)
 
       if (name === 'task-check' && parsed.verdict === 'PASS') {
         await createTaskCheckMarker(reviewDir)

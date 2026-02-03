@@ -110,6 +110,7 @@ export const claude = {
       options: {
         model: opts.model,
         maxTurns: 200,
+        permissionMode: 'acceptEdits',
         settingSources: opts.settingSources,
         env: {
           ...process.env,
@@ -156,6 +157,7 @@ export const claude = {
       options: {
         model: opts.model,
         maxTurns: 200,
+        permissionMode: 'acceptEdits',
         settingSources: opts.settingSources,
         env: {
           ...process.env,

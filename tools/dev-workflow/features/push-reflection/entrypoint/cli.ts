@@ -1,5 +1,4 @@
 #!/usr/bin/env tsx
-/* v8 ignore start -- CLI entry point */
 import { executePushReflection } from '../commands/push-reflection'
 
 executePushReflection()
@@ -21,4 +20,3 @@ executePushReflection()
     )
     process.exitCode = 1
   })
-/* v8 ignore stop */

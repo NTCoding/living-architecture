@@ -1,5 +1,8 @@
 import { z } from 'zod'
 import { type StepResult } from './step-result'
+import {
+  type DebugLog, noopDebugLog 
+} from '../debug-log'
 
 export class WorkflowError extends Error {
   constructor(message: string) {
@@ -42,15 +45,18 @@ export interface Step<T extends BaseContext> {
   execute: (ctx: T) => Promise<StepResult>
 }
 
-export function workflow<T extends BaseContext>(steps: Step<T>[]) {
+export function workflow<T extends BaseContext>(steps: Step<T>[], debugLog?: DebugLog) {
+  const log = debugLog ?? noopDebugLog()
   return async (ctx: T): Promise<WorkflowResult> => {
     const stepTimings: StepTiming[] = []
     const workflowStart = performance.now()
 
     for (const step of steps) {
+      log.log(`step [${step.name}]: start`)
       const stepStart = performance.now()
       const result = await step.execute(ctx)
       const stepDuration = performance.now() - stepStart
+      log.log(`step [${step.name}]: done in ${stepDuration.toFixed(0)}ms, result=${result.type}`)
 
       stepTimings.push({
         name: step.name,
