@@ -66,6 +66,19 @@ describe('respondToFeedbackInputSchema', () => {
     )
   })
 
+  it('accepts rejected feedback with exactly minimum length', () => {
+    const exactlyMinLength = 'a'.repeat(300)
+    const input = {
+      threadId: 'PRRT_789',
+      action: 'rejected',
+      message: exactlyMinLength,
+    }
+
+    const result = respondToFeedbackInputSchema.parse(input)
+
+    expect(result.action).toStrictEqual('rejected')
+  })
+
   it('rejects empty threadId', () => {
     const input = {
       threadId: '',
