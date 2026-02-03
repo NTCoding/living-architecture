@@ -1,8 +1,33 @@
 import { Command } from 'commander'
-import { getDefaultGraphPathDescription } from '../../../platform/infra/graph-persistence/graph-path'
 import {
-  addComponent, type AddComponentOptions 
-} from '../commands/add-component'
+  getDefaultGraphPathDescription,
+  resolveGraphPath,
+} from '../../../platform/infra/graph-persistence/graph-path'
+import { addComponent } from '../commands/add-component'
+
+interface CliOptions {
+  type: string
+  name: string
+  domain: string
+  module: string
+  repository: string
+  filePath: string
+  route?: string
+  apiType?: string
+  httpMethod?: string
+  httpPath?: string
+  operationName?: string
+  entity?: string
+  eventName?: string
+  eventSchema?: string
+  subscribedEvents?: string
+  customType?: string
+  customProperty?: string[]
+  description?: string
+  lineNumber?: string
+  graph?: string
+  json?: boolean
+}
 
 export function createAddComponentCommand(): Command {
   return new Command('add-component')
@@ -36,7 +61,29 @@ export function createAddComponentCommand(): Command {
     .option('--line-number <n>', 'Source line number')
     .option('--graph <path>', getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
-    .action(async (options: AddComponentOptions) => {
-      await addComponent(options)
+    .action(async (options: CliOptions) => {
+      await addComponent({
+        componentType: options.type,
+        name: options.name,
+        domain: options.domain,
+        module: options.module,
+        repository: options.repository,
+        filePath: options.filePath,
+        graphPath: resolveGraphPath(options.graph),
+        lineNumber: options.lineNumber ? parseInt(options.lineNumber, 10) : undefined,
+        route: options.route,
+        apiType: options.apiType,
+        httpMethod: options.httpMethod,
+        httpPath: options.httpPath,
+        operationName: options.operationName,
+        entity: options.entity,
+        eventName: options.eventName,
+        eventSchema: options.eventSchema,
+        subscribedEvents: options.subscribedEvents,
+        customType: options.customType,
+        customProperty: options.customProperty,
+        description: options.description,
+        outputJson: options.json ?? false,
+      })
     })
 }

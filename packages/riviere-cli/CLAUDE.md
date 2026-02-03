@@ -12,6 +12,20 @@ The `docs/workflow/` directory contains AI extraction workflow prompts (step-1 t
 
 If a command's flags, behavior, or output format changes, ensure the workflow prompts still work correctly. This keeps the extraction workflow in sync with the CLI.
 
+## Layer Pattern
+
+Each layer maps its input to the next layer's types:
+
+```text
+entrypoint (CLI options) → command (command input) → domain (domain types)
+```
+
+- **Entrypoint**: Defines CLI options, maps to command input, calls command
+- **Command**: Validates, maps to domain types, does load→mutate→persist
+- **Domain**: Pure logic, takes domain types only, no infra imports
+
+Example: `features/builder/*/add-component.ts`
+
 ## Commands
 
 - `riviere builder <command>` - Graph building commands
