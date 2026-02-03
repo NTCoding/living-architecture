@@ -1,11 +1,12 @@
 import type { RiviereBuilder } from '@living-architecture/riviere-builder'
 import type { SourceLocation } from '@living-architecture/riviere-schema'
-import { MissingRequiredOptionError } from '../errors/errors'
+import { MissingRequiredOptionError } from '../../../platform/infra/errors/errors'
 import {
-  isValidApiType, type ComponentTypeFlag 
-} from './component-types'
-import { isValidHttpMethod } from './validation'
-import { parseCustomProperties } from './custom-property-parser'
+  isValidApiType,
+  type ComponentTypeFlag,
+} from '../../../platform/infra/cli-presentation/component-types'
+import { isValidHttpMethod } from '../../../platform/infra/cli-presentation/validation'
+import { parseCustomProperties } from '../../../platform/infra/cli-presentation/custom-property-parser'
 
 export interface AddComponentOptions {
   type: string
