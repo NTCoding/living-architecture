@@ -261,30 +261,12 @@ describe('claude.query', () => {
     })
 
     expect(mockSdkQuery).toHaveBeenCalledWith(
-      expect.objectContaining({options: expect.objectContaining({ settingSources: ['user', 'project'] }),}),
-    )
-  })
-
-  it('passes permissionMode acceptEdits to SDK', async () => {
-    mockSdkQuery.mockReturnValue(
-      createResultStream(
-        resultMessage('success', '{}', {
-          structured_output: {
-            result: 'test',
-            score: 1,
-          },
+      expect.objectContaining({
+        options: expect.objectContaining({
+          settingSources: ['user', 'project'],
+          permissionMode: 'acceptEdits',
         }),
-      )(),
-    )
-
-    await claude.query({
-      prompt: 'test',
-      model: 'sonnet',
-      outputSchema: testSchema,
-    })
-
-    expect(mockSdkQuery).toHaveBeenCalledWith(
-      expect.objectContaining({options: expect.objectContaining({ permissionMode: 'acceptEdits' }),}),
+      }),
     )
   })
 })
@@ -339,28 +321,8 @@ describe('claude.queryText', () => {
     ).rejects.toThrow('No result message received from Claude')
   })
 
-  it('does not use outputFormat option', async () => {
-    async function* mockAsyncIterable(): AsyncGenerator<unknown> {
-      yield {
-        type: 'result',
-        subtype: 'success',
-        result: 'text output',
-      }
-    }
-    mockSdkQuery.mockReturnValue(mockAsyncIterable())
-
-    await claude.queryText({
-      prompt: 'test',
-      model: 'sonnet',
-    })
-
-    expect(mockSdkQuery).toHaveBeenCalledWith(
-      expect.objectContaining({options: expect.not.objectContaining({ outputFormat: expect.anything() }),}),
-    )
-  })
-
-  it('passes permissionMode acceptEdits to SDK', async () => {
-    mockSdkQuery.mockReturnValue(createResultStream(resultMessage('success', 'text output'))())
+  it('passes permissionMode acceptEdits and no outputFormat to SDK', async () => {
+    mockSdkQuery.mockReturnValue(createResultStream(resultMessage('success', 'text'))())
 
     await claude.queryText({
       prompt: 'test',
@@ -369,6 +331,9 @@ describe('claude.queryText', () => {
 
     expect(mockSdkQuery).toHaveBeenCalledWith(
       expect.objectContaining({options: expect.objectContaining({ permissionMode: 'acceptEdits' }),}),
+    )
+    expect(mockSdkQuery).toHaveBeenCalledWith(
+      expect.objectContaining({options: expect.not.objectContaining({ outputFormat: expect.anything() }),}),
     )
   })
 })
