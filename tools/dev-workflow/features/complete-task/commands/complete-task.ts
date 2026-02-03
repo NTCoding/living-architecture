@@ -9,7 +9,7 @@ import { fetchRawPRFeedback } from '../../../platform/infra/external-clients/git
 import { parseIssueNumber } from '../../../platform/domain/branch-naming/issue-branch-parser'
 import { runWorkflow } from '../../../platform/domain/workflow-execution/run-workflow'
 import type { WorkflowResult } from '../../../platform/domain/workflow-execution/workflow-runner'
-import { createDebugLog } from '../../../platform/domain/debug-log'
+import { createDebugLog } from '../../../platform/infra/debug-log'
 import type { CompleteTaskContext } from '../domain/task-to-complete'
 import { resolvePRDetails } from '../domain/pull-request-draft'
 import { formatCompleteTaskResult } from '../domain/pipeline-outcome'
