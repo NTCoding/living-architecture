@@ -11,11 +11,11 @@ const VALID_PROPERTY_TYPES: readonly CustomPropertyType[] = [
   'object',
 ]
 
-export function isValidPropertyType(value: string): value is CustomPropertyType {
+function isValidPropertyType(value: string): value is CustomPropertyType {
   return VALID_PROPERTY_TYPES.some((t) => t === value)
 }
 
-export function parsePropertySpec(spec: string):
+function parsePropertySpec(spec: string):
   | {
     name: string
     definition: CustomPropertyDefinition

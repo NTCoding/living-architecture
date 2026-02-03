@@ -10,7 +10,7 @@ interface DomainInputParsed {
 
 export type { DomainInputParsed }
 
-export function isDomainInputParsed(value: unknown): value is DomainInputParsed {
+function isDomainInputParsed(value: unknown): value is DomainInputParsed {
   if (typeof value !== 'object' || value === null) {
     return false
   }

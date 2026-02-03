@@ -12,7 +12,7 @@ export interface ApiComponent {
   httpMethod: HttpMethod
 }
 
-export function isRestApiWithPath(component: Component): component is Component & ApiComponent {
+function isRestApiWithPath(component: Component): component is Component & ApiComponent {
   return component.type === 'API' && 'path' in component && 'httpMethod' in component
 }
 

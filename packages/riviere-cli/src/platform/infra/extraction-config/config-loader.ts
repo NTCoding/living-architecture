@@ -161,7 +161,7 @@ type ParseResult =
     error: string
   }
 
-export function parseConfigFile(content: string): ParseResult {
+function parseConfigFile(content: string): ParseResult {
   try {
     return {
       success: true,
@@ -177,7 +177,7 @@ export function parseConfigFile(content: string): ParseResult {
   }
 }
 
-export function tryExpandModuleRefs(data: unknown, configDir: string): ParseResult {
+function tryExpandModuleRefs(data: unknown, configDir: string): ParseResult {
   try {
     return {
       success: true,

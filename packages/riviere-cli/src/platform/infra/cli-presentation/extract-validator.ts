@@ -28,7 +28,7 @@ export function rejectMutuallyExclusive(
   }
 }
 
-export function validateMutualExclusions(options: ExtractOptions): void {
+function validateMutualExclusions(options: ExtractOptions): void {
   rejectMutuallyExclusive(
     '--components-only',
     '--enrich',
@@ -45,7 +45,7 @@ export function validateMutualExclusions(options: ExtractOptions): void {
   )
 }
 
-export function validateFormatOption(options: ExtractOptions): void {
+function validateFormatOption(options: ExtractOptions): void {
   if (options.format !== undefined && options.format !== 'json' && options.format !== 'markdown') {
     exitWithConfigValidation(
       CliErrorCode.ValidationError,

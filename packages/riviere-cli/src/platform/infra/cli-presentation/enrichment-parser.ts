@@ -1,6 +1,6 @@
 import type { StateTransition } from '@living-architecture/riviere-schema'
 
-export function parseStateChange(input: string): StateTransition | undefined {
+function parseStateChange(input: string): StateTransition | undefined {
   const [from, to, ...rest] = input.split(':')
   if (from === undefined || to === undefined || rest.length > 0) {
     return undefined

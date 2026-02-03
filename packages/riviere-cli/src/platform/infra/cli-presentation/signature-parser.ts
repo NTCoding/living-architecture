@@ -2,7 +2,7 @@ import type {
   OperationSignature, OperationParameter 
 } from '@living-architecture/riviere-schema'
 
-export function parseParameter(input: string): OperationParameter | undefined {
+function parseParameter(input: string): OperationParameter | undefined {
   const parts = input.split(':')
   if (parts.length < 2 || parts.length > 3) {
     return undefined
@@ -38,7 +38,7 @@ type ParametersParseResult =
     error: string
   }
 
-export function parseParameters(paramsPart: string): ParametersParseResult {
+function parseParameters(paramsPart: string): ParametersParseResult {
   if (paramsPart === '') {
     return {
       success: true,
@@ -63,7 +63,7 @@ export function parseParameters(paramsPart: string): ParametersParseResult {
   }
 }
 
-export function buildSignatureObject(
+function buildSignatureObject(
   parameters: OperationParameter[],
   returnType: string | undefined,
 ): OperationSignature {
