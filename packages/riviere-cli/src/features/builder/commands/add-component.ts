@@ -26,8 +26,6 @@ import {
   type AddComponentInput,
 } from '../../../platform/infra/component-mapping/add-component-mapper'
 
-export type { AddComponentInput }
-
 export async function addComponent(input: AddComponentInput): Promise<void> {
   if (!isValidComponentType(input.componentType)) {
     console.log(
