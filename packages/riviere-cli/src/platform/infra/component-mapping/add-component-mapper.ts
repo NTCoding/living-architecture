@@ -5,6 +5,10 @@ import { parseCustomProperties } from '../cli-presentation/custom-property-parse
 import { MissingRequiredOptionError } from '../errors/errors'
 import type { AddComponentInput as DomainInput } from '../../domain/add-component'
 
+function isBlank(value: string | undefined): value is undefined {
+  return !value || value.trim().length === 0
+}
+
 export interface AddComponentInput {
   componentType: string
   name: string
@@ -46,12 +50,12 @@ function buildCommon(input: AddComponentInput) {
 
 const mappers: Record<string, (input: AddComponentInput) => DomainInput> = {
   UI: (input) => {
-    if (!input.route) throw new MissingRequiredOptionError('route', 'UI')
+    if (isBlank(input.route)) throw new MissingRequiredOptionError('route', 'UI')
     return {
       type: 'UI',
       input: {
         ...buildCommon(input),
-        route: input.route,
+        route: input.route.trim(),
       },
     }
   },
@@ -77,23 +81,24 @@ const mappers: Record<string, (input: AddComponentInput) => DomainInput> = {
     input: buildCommon(input),
   }),
   DomainOp: (input) => {
-    if (!input.operationName) throw new MissingRequiredOptionError('operation-name', 'DomainOp')
+    if (isBlank(input.operationName))
+      throw new MissingRequiredOptionError('operation-name', 'DomainOp')
     return {
       type: 'DomainOp',
       input: {
         ...buildCommon(input),
-        operationName: input.operationName,
+        operationName: input.operationName.trim(),
         ...(input.entity ? { entity: input.entity } : {}),
       },
     }
   },
   Event: (input) => {
-    if (!input.eventName) throw new MissingRequiredOptionError('event-name', 'Event')
+    if (isBlank(input.eventName)) throw new MissingRequiredOptionError('event-name', 'Event')
     return {
       type: 'Event',
       input: {
         ...buildCommon(input),
-        eventName: input.eventName,
+        eventName: input.eventName.trim(),
         ...(input.eventSchema ? { eventSchema: input.eventSchema } : {}),
       },
     }
@@ -117,13 +122,13 @@ const mappers: Record<string, (input: AddComponentInput) => DomainInput> = {
     }
   },
   Custom: (input) => {
-    if (!input.customType) throw new MissingRequiredOptionError('custom-type', 'Custom')
+    if (isBlank(input.customType)) throw new MissingRequiredOptionError('custom-type', 'Custom')
     const metadata = parseCustomProperties(input.customProperty)
     return {
       type: 'Custom',
       input: {
         ...buildCommon(input),
-        customTypeName: input.customType,
+        customTypeName: input.customType.trim(),
         ...(metadata ? { metadata } : {}),
       },
     }

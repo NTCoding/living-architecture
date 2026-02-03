@@ -33,6 +33,15 @@ describe('buildDomainInput', () => {
       expect(() => buildDomainInput(input)).toThrow(MissingRequiredOptionError)
       expect(() => buildDomainInput(input)).toThrow('--route is required for UI component')
     })
+
+    it('throws when route is only whitespace', () => {
+      const input = {
+        ...baseInput,
+        componentType: 'UI',
+        route: '   ',
+      }
+      expect(() => buildDomainInput(input)).toThrow(MissingRequiredOptionError)
+    })
   })
 
   describe('API component', () => {
@@ -78,6 +87,15 @@ describe('buildDomainInput', () => {
         '--operation-name is required for DomainOp component',
       )
     })
+
+    it('throws when operationName is only whitespace', () => {
+      const input = {
+        ...baseInput,
+        componentType: 'DomainOp',
+        operationName: '   ',
+      }
+      expect(() => buildDomainInput(input)).toThrow(MissingRequiredOptionError)
+    })
   })
 
   describe('Event component', () => {
@@ -88,6 +106,15 @@ describe('buildDomainInput', () => {
       }
       expect(() => buildDomainInput(input)).toThrow(MissingRequiredOptionError)
       expect(() => buildDomainInput(input)).toThrow('--event-name is required for Event component')
+    })
+
+    it('throws when eventName is only whitespace', () => {
+      const input = {
+        ...baseInput,
+        componentType: 'Event',
+        eventName: '   ',
+      }
+      expect(() => buildDomainInput(input)).toThrow(MissingRequiredOptionError)
     })
   })
 
@@ -141,6 +168,15 @@ describe('buildDomainInput', () => {
       expect(() => buildDomainInput(input)).toThrow(
         '--custom-type is required for Custom component',
       )
+    })
+
+    it('throws when customType is only whitespace', () => {
+      const input = {
+        ...baseInput,
+        componentType: 'Custom',
+        customType: '   ',
+      }
+      expect(() => buildDomainInput(input)).toThrow(MissingRequiredOptionError)
     })
   })
 })

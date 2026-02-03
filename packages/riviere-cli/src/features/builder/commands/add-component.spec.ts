@@ -38,10 +38,17 @@ describe('addComponent command', () => {
   }
 
   describe('line number validation', () => {
-    it('returns VALIDATION_ERROR when lineNumber is NaN', async () => {
+    it.each([
+      ['NaN', NaN],
+      ['Infinity', Infinity],
+      ['negative Infinity', -Infinity],
+      ['fractional', 3.14],
+      ['negative', -1],
+      ['zero', 0],
+    ])('returns VALIDATION_ERROR when lineNumber is %s', async (_label, value) => {
       await addComponent({
         ...inputWithGraphPath(),
-        lineNumber: NaN,
+        lineNumber: value,
       })
 
       const output = parseErrorOutput(ctx.consoleOutput)
@@ -49,21 +56,14 @@ describe('addComponent command', () => {
       expect(output.error.message).toContain('Invalid line number')
     })
 
-    it('returns VALIDATION_ERROR when lineNumber is Infinity', async () => {
+    it.each([
+      ['small positive', 1],
+      ['typical', 42],
+      ['large', Number.MAX_SAFE_INTEGER],
+    ])('accepts valid lineNumber (%s) and proceeds to graph check', async (_label, value) => {
       await addComponent({
         ...inputWithGraphPath(),
-        lineNumber: Infinity,
-      })
-
-      const output = parseErrorOutput(ctx.consoleOutput)
-      expect(output.error.code).toBe(CliErrorCode.ValidationError)
-      expect(output.error.message).toContain('Invalid line number')
-    })
-
-    it('accepts valid lineNumber and proceeds to graph check', async () => {
-      await addComponent({
-        ...inputWithGraphPath(),
-        lineNumber: 42,
+        lineNumber: value,
       })
 
       const output = parseErrorOutput(ctx.consoleOutput)

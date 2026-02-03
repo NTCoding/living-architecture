@@ -41,12 +41,15 @@ export async function addComponent(input: AddComponentInput): Promise<void> {
     return
   }
 
-  if (input.lineNumber !== undefined && !Number.isFinite(input.lineNumber)) {
+  if (
+    input.lineNumber !== undefined &&
+    (!Number.isInteger(input.lineNumber) || input.lineNumber < 1)
+  ) {
     console.log(
       JSON.stringify(
         formatError(
           CliErrorCode.ValidationError,
-          'Invalid line number: must be a valid integer',
+          'Invalid line number: must be a positive integer',
           [],
         ),
       ),

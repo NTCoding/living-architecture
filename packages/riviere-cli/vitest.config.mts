@@ -18,7 +18,12 @@ export default defineConfig(() => ({
       reportsDirectory: './test-output/vitest/coverage',
       provider: 'v8' as const,
       reporter: ['text', ['lcov', { projectRoot: repoRoot }]] as ['text', ['lcov', { projectRoot: string }]],
-      exclude: ['**/*test-fixtures.ts', '**/extract-output-formatter.ts'],
+      exclude: [
+        '**/*test-fixtures.ts',
+        // extract-output-formatter.ts: dry-run output formatting, tested via CLI integration tests.
+        // Contains v8 ignore comments but coverage provider doesn't respect them consistently.
+        'src/platform/infra/cli-presentation/extract-output-formatter.ts',
+      ],
       thresholds: {
         lines: 100,
         statements: 100,
