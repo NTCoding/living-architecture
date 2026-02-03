@@ -27,7 +27,7 @@ import { getErrorMessage } from '../../../platform/infra/errors/errors'
 import {
   addComponentToBuilder,
   type AddComponentOptions,
-} from '../commands/add-component-to-builder'
+} from '../../../platform/infra/cli-presentation/component-builder-input'
 
 export function createAddComponentCommand(): Command {
   return new Command('add-component')
