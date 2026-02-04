@@ -41,10 +41,16 @@ describe('addComponent command', () => {
   }
 
   describe('component type validation', () => {
-    it('returns VALIDATION_ERROR when componentType is invalid', async () => {
+    it.each([
+      ['invalid string', 'INVALID'],
+      ['empty', ''],
+      ['whitespace', '   '],
+      ['special chars', 'UI<script>'],
+      ['typo', 'UseCasee'],
+    ])('returns VALIDATION_ERROR when componentType is %s', async (_label, value) => {
       await addComponent({
         ...inputWithGraphPath(),
-        componentType: 'INVALID',
+        componentType: value,
       })
 
       const output = parseErrorOutput(ctx.consoleOutput)
@@ -76,7 +82,7 @@ describe('addComponent command', () => {
       ['small positive', 1],
       ['typical', 42],
       ['large', Number.MAX_SAFE_INTEGER],
-    ])('accepts valid lineNumber (%s) and proceeds to graph check', async (_label, value) => {
+    ])('valid lineNumber (%s) reaches graph check', async (_label, value) => {
       await addComponent({
         ...inputWithGraphPath(),
         lineNumber: value,
@@ -102,7 +108,7 @@ describe('addComponent command', () => {
   })
 
   describe('successful component addition', () => {
-    it('adds UI component to valid graph and returns componentId', async () => {
+    it('returns componentId for UI component in valid graph', async () => {
       await createGraphWithDomain(ctx.testDir, 'test-domain')
 
       await addComponent(inputWithGraphPath())

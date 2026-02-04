@@ -113,6 +113,24 @@ describe('buildDomainInput', () => {
       expect(result.type).toBe('Custom')
       expect(result.input).toMatchObject({ customTypeName: 'MyCustomType' })
     })
+
+    it('maps valid Custom input with customProperty metadata', () => {
+      const input = {
+        ...baseInput,
+        componentType: 'Custom',
+        customType: 'MyType',
+        customProperty: ['key:value', 'another:prop'],
+      }
+      const result = buildDomainInput(input)
+      expect(result.type).toBe('Custom')
+      expect(result.input).toMatchObject({
+        customTypeName: 'MyType',
+        metadata: {
+          key: 'value',
+          another: 'prop',
+        },
+      })
+    })
   })
 
   describe('UI component', () => {
