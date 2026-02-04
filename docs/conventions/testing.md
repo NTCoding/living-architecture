@@ -144,13 +144,17 @@ When testing a function, systematically consider these edge cases based on input
 
 ### Numbers
 
-- [ ] Zero
-- [ ] Negative numbers
+**Critical (always test for numeric validation):**
+- [ ] NaN
+- [ ] Infinity / -Infinity
+- [ ] Zero (0)
+- [ ] Negative numbers (-1)
+- [ ] Fractional when integer expected (3.14)
+
+**Extended (test when relevant):**
 - [ ] Very large numbers (near MAX_SAFE_INTEGER)
 - [ ] Very small numbers (near MIN_SAFE_INTEGER)
 - [ ] Decimal precision (0.1 + 0.2)
-- [ ] NaN
-- [ ] Infinity / -Infinity
 - [ ] Boundary values (off-by-one at limits)
 
 ### Strings

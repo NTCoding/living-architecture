@@ -132,7 +132,10 @@ Large multi-feature branch covering async connection detection, dev-workflow imp
 
 ## Recommended Follow-Ups
 
-- [ ] Add CR-010 to `docs/conventions/review-feedback-checks.md`: numeric edge case testing
-- [ ] Add CR-011 to `docs/conventions/review-feedback-checks.md`: whitespace string validation
-- [ ] Add CR-012 to `docs/conventions/review-feedback-checks.md`: success-path tests for mappers
-- [ ] Update TS-008 edge case checklist in `docs/conventions/testing.md` with explicit numeric categories
+- [x] Add RFC-011 to `docs/conventions/review-feedback-checks.md`: numeric edge case testing
+- [x] Add RFC-012 to `docs/conventions/review-feedback-checks.md`: whitespace string validation
+- [x] Add RFC-013 to `docs/conventions/review-feedback-checks.md`: success-path tests for mappers
+- [x] Add RFC-014 to `docs/conventions/review-feedback-checks.md`: systematic TS-008 verification
+- [x] Add RFC-015 to `docs/conventions/review-feedback-checks.md`: Zod read-modify-write preservation
+- [x] Update TS-008 edge case checklist in `docs/conventions/testing.md` with explicit numeric categories (Critical vs Extended)
+- [ ] Investigate enabling `@typescript-eslint/require-await` lint rule (low priority - not currently configured)

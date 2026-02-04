@@ -321,6 +321,177 @@ if (resolvedName === 'MyInterface') {
 
 ---
 
+## RFC-011: Numeric Input Edge Case Testing
+
+**Source:** PR #251 (CodeRabbit)
+
+**Pattern:** Functions accepting numeric input are tested for valid cases but miss critical edge cases: NaN, Infinity, -Infinity, negative, zero, fractional, and boundary values.
+
+**Example (BAD):**
+```typescript
+describe('line number validation', () => {
+  it('accepts valid line number', () => {
+    expect(validate({ lineNumber: 42 })).toBe(true)
+  })
+  // No tests for: NaN, Infinity, negative, zero, fractional
+})
+```
+
+**Example (GOOD):**
+```typescript
+describe('line number validation', () => {
+  it('accepts valid line number', () => {
+    expect(validate({ lineNumber: 42 })).toBe(true)
+  })
+
+  it.each([
+    ['NaN', NaN],
+    ['Infinity', Infinity],
+    ['negative Infinity', -Infinity],
+    ['negative', -1],
+    ['zero', 0],
+    ['fractional', 3.14],
+  ])('rejects %s', (_label, value) => {
+    expect(validate({ lineNumber: value })).toBe(false)
+  })
+
+  it('accepts MAX_SAFE_INTEGER', () => {
+    expect(validate({ lineNumber: Number.MAX_SAFE_INTEGER })).toBe(true)
+  })
+})
+```
+
+**Detection:** For functions accepting numeric inputs (especially integers, counts, indices, line numbers), verify tests cover: NaN, Infinity, -Infinity, 0, negative values, fractional values, and boundary values (MAX_SAFE_INTEGER if relevant).
+
+---
+
+## RFC-012: Whitespace-Only String Validation
+
+**Source:** PR #251 (CodeRabbit)
+
+**Pattern:** Required string fields check for presence (`if (!value)`) but don't reject whitespace-only values (`"   "`). This creates invalid data that passes validation.
+
+**Example (BAD):**
+```typescript
+function validateRoute(route: string | undefined): boolean {
+  if (!route) return false  // Passes for "   "
+  return true
+}
+```
+
+**Example (GOOD):**
+```typescript
+function isBlank(value: string | undefined): boolean {
+  return !value || value.trim().length === 0
+}
+
+function validateRoute(route: string | undefined): boolean {
+  if (isBlank(route)) return false  // Rejects "   "
+  return true
+}
+```
+
+**Detection:** For required string inputs, verify:
+1. Validation rejects whitespace-only values (not just empty/undefined)
+2. Tests cover the whitespace-only case explicitly
+3. Values are trimmed before use
+
+---
+
+## RFC-013: Success-Path Tests for Mapper Functions
+
+**Source:** PR #251 (CodeRabbit)
+
+**Pattern:** Mapper/transformer functions achieve 100% coverage via error-path tests but lack assertions on actual output values for success cases.
+
+**Example (BAD):**
+```typescript
+describe('buildDomainInput', () => {
+  it('throws for missing route', () => {
+    expect(() => buildDomainInput({ type: 'UI' })).toThrow()
+  })
+  it('throws for invalid type', () => {
+    expect(() => buildDomainInput({ type: 'INVALID' })).toThrow()
+  })
+  // 100% coverage but no test verifies output shape!
+})
+```
+
+**Example (GOOD):**
+```typescript
+describe('buildDomainInput', () => {
+  it('maps valid UI input with trimmed route', () => {
+    const result = buildDomainInput({ type: 'UI', route: '  /home  ' })
+    expect(result.type).toBe('UI')
+    expect(result.input).toMatchObject({ route: '/home' })  // Verifies trimming
+  })
+
+  it('throws for missing route', () => {
+    expect(() => buildDomainInput({ type: 'UI' })).toThrow()
+  })
+})
+```
+
+**Detection:** For mapper/transformer functions, verify at least one test asserts on the output shape and values for a success case, not just error cases.
+
+---
+
+## RFC-014: Systematic TS-008 Edge Case Verification
+
+**Source:** PR #251 (Post-merge reflection)
+
+**Pattern:** Tests exist but don't systematically cover TS-008 edge cases for each parameter type. Code review misses these gaps because coverage appears adequate.
+
+**Detection process:**
+1. Identify each function parameter and its type
+2. Map type to TS-008 checklist (numbers → numeric checklist, strings → string checklist, etc.)
+3. Verify tests exist for at least the critical items from each relevant checklist
+4. Flag when entire edge case categories are missing
+
+**Critical items per type:**
+- **Numbers:** NaN, Infinity, 0, negative, fractional
+- **Strings:** empty, whitespace-only, very long
+- **Collections:** empty, single item, duplicates
+- **Dates:** invalid dates, timezone edge cases
+
+---
+
+## RFC-015: Zod Read-Modify-Write Must Preserve Unknown Properties
+
+**Source:** PR #251 (Post-merge reflection)
+
+**Pattern:** Using Zod schemas to parse existing data for modification can strip unknown properties. When re-writing the data, this silently removes fields that weren't in the schema.
+
+**Example (BAD):**
+```typescript
+const schema = z.object({ name: z.string(), count: z.number() })
+
+// Read existing data
+const data = JSON.parse(fs.readFileSync('config.json', 'utf-8'))
+const parsed = schema.parse(data)  // Strips unknown fields!
+
+// Modify
+parsed.count += 1
+
+// Write back - unknown fields are lost!
+fs.writeFileSync('config.json', JSON.stringify(parsed))
+```
+
+**Example (GOOD):**
+```typescript
+const schema = z.object({ name: z.string(), count: z.number() }).passthrough()
+
+// Or: don't use Zod for the full round-trip
+const data = JSON.parse(fs.readFileSync('config.json', 'utf-8'))
+const validated = schema.parse(data)  // Validate only
+data.count += 1  // Modify original
+fs.writeFileSync('config.json', JSON.stringify(data))
+```
+
+**Detection:** When Zod is used in a read-modify-write pattern (parse existing data, modify, write back), verify the schema uses `.passthrough()` or that the original data object is modified, not the parsed result.
+
+---
+
 ## Adding New Checks
 
 When external review feedback reveals a pattern:
