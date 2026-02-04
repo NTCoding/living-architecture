@@ -68,8 +68,8 @@ Large multi-feature branch covering async connection detection, dev-workflow imp
 | 11 | Replace sharedProject with per-file Project | ❌ | Deferred - requires broader refactor |
 | 12 | Misleading error for invalid apiType vs missing | ❌ | Handled at mapper level now |
 | 13 | Invalid httpMethod silently dropped | ❌ | Now validated at mapper level |
-| 14 | Simplify import paths | ❌ | Low priority nitpick |
-| 15 | Strengthen buildBehavior return type | ❌ | Low priority nitpick |
+| 14 | Simplify import paths | ❌ | Low-priority nitpick |
+| 15 | Strengthen buildBehavior return type | ❌ | Low-priority nitpick |
 | 16 | Other nitpicks (various files) | ❌ | Out of scope for this PR |
 
 #### CodeRabbit (earlier commits - async detection)

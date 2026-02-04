@@ -12,6 +12,9 @@ import {
   createTestContext,
   setupCommandTest,
   parseErrorOutput,
+  parseSuccessOutput,
+  hasSuccessOutputStructure,
+  createGraphWithDomain,
 } from '../../../platform/__fixtures__/command-test-fixtures'
 
 describe('addComponent command', () => {
@@ -95,6 +98,33 @@ describe('addComponent command', () => {
       const output = parseErrorOutput(ctx.consoleOutput)
       expect(output.error.code).toBe(CliErrorCode.ValidationError)
       expect(output.error.message).toContain('invalid JSON')
+    })
+  })
+
+  describe('successful component addition', () => {
+    it('adds UI component to valid graph and returns componentId', async () => {
+      await createGraphWithDomain(ctx.testDir, 'test-domain')
+
+      await addComponent(inputWithGraphPath())
+
+      const output = parseSuccessOutput(
+        ctx.consoleOutput,
+        hasSuccessOutputStructure,
+        'Expected success output',
+      )
+      expect(output.success).toBe(true)
+      expect(output.data).toHaveProperty('componentId')
+    })
+  })
+
+  describe('domain not found error', () => {
+    it('returns DOMAIN_NOT_FOUND when domain does not exist', async () => {
+      await createGraphWithDomain(ctx.testDir, 'other-domain')
+
+      await addComponent(inputWithGraphPath())
+
+      const output = parseErrorOutput(ctx.consoleOutput)
+      expect(output.error.code).toBe(CliErrorCode.DomainNotFound)
     })
   })
 })

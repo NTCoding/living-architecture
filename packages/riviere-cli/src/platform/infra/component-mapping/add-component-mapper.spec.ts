@@ -72,6 +72,47 @@ describe('buildDomainInput', () => {
       const result = buildDomainInput(input)
       expect(result.input).toMatchObject({ subscribedEvents: ['EventA', 'EventB', 'EventC'] })
     })
+
+    it('maps valid DomainOp input with trimmed operationName', () => {
+      const input = {
+        ...baseInput,
+        componentType: 'DomainOp',
+        operationName: '  createOrder  ',
+        entity: 'Order',
+      }
+      const result = buildDomainInput(input)
+      expect(result.type).toBe('DomainOp')
+      expect(result.input).toMatchObject({
+        operationName: 'createOrder',
+        entity: 'Order',
+      })
+    })
+
+    it('maps valid Event input with trimmed eventName', () => {
+      const input = {
+        ...baseInput,
+        componentType: 'Event',
+        eventName: '  OrderCreated  ',
+        eventSchema: 'OrderCreatedSchema',
+      }
+      const result = buildDomainInput(input)
+      expect(result.type).toBe('Event')
+      expect(result.input).toMatchObject({
+        eventName: 'OrderCreated',
+        eventSchema: 'OrderCreatedSchema',
+      })
+    })
+
+    it('maps valid Custom input with trimmed customType', () => {
+      const input = {
+        ...baseInput,
+        componentType: 'Custom',
+        customType: '  MyCustomType  ',
+      }
+      const result = buildDomainInput(input)
+      expect(result.type).toBe('Custom')
+      expect(result.input).toMatchObject({ customTypeName: 'MyCustomType' })
+    })
   })
 
   describe('UI component', () => {
