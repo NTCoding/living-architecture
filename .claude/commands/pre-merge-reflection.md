@@ -71,7 +71,12 @@ git log --oneline main..<branch>
 
 ### 3. Generate Reflection Markdown
 
-Create `docs/continuous-improvement/post-merge-reflections/<YYYY-MM-DD>-<branch-name>.md` (create the directory if it doesn't exist).
+Get today's date:
+```bash
+date +%Y-%m-%d
+```
+
+Create `docs/continuous-improvement/post-merge-reflections/<YYYY-MM-DD>-<branch-name>.md` using the date from above (create the directory if it doesn't exist).
 
 Parse each piece of feedback into individual items. For every item, determine: accepted (code was changed) or rejected (no change, with reason).
 
