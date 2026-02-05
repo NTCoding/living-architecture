@@ -3,6 +3,7 @@ const apiControllerRequiresRouteAndMethod = require('./api-controller-requires-r
 const eventRequiresTypeProperty = require('./event-requires-type-property.cjs')
 const eventHandlerRequiresSubscribedEvents = require('./event-handler-requires-subscribed-events.cjs')
 const uiPageRequiresRoute = require('./ui-page-requires-route.cjs')
+const eventPublisherMethodSignature = require('./event-publisher-method-signature.cjs')
 
 module.exports = {
   rules: {
@@ -11,5 +12,6 @@ module.exports = {
     'event-requires-type-property': eventRequiresTypeProperty,
     'event-handler-requires-subscribed-events': eventHandlerRequiresSubscribedEvents,
     'ui-page-requires-route': uiPageRequiresRoute,
+    'event-publisher-method-signature': eventPublisherMethodSignature,
   },
 }
