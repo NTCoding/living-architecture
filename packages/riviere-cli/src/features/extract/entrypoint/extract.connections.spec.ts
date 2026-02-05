@@ -1,5 +1,5 @@
 import {
-  describe, it, expect, vi 
+  describe, it, expect, vi, afterEach 
 } from 'vitest'
 import type { TestContext } from '../../../platform/__fixtures__/command-test-fixtures'
 import {
@@ -14,6 +14,8 @@ import {
 } from '../__fixtures__/extraction-test-fixtures'
 
 describe('riviere extract — connection detection', () => {
+  afterEach(() => vi.restoreAllMocks())
+
   describe('output format', () => {
     const ctx: TestContext = createTestContext()
     setupCommandTest(ctx)

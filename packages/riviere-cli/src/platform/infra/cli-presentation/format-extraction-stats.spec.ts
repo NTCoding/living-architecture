@@ -103,12 +103,12 @@ describe('formatTimingLine', () => {
     const line = formatTimingLine({
       callGraphMs: 800,
       asyncDetectionMs: 300,
-      filteringMs: 130,
+      setupMs: 130,
       totalMs: 1230,
     })
 
     expect(line).toBe(
-      'Extraction completed in 1.23s (call graph: 0.80s, detection: 0.30s, filtering: 0.13s)',
+      'Extraction completed in 1.23s (call graph: 0.80s, detection: 0.30s, setup: 0.13s)',
     )
   })
 
@@ -116,25 +116,25 @@ describe('formatTimingLine', () => {
     const line = formatTimingLine({
       callGraphMs: 0,
       asyncDetectionMs: 0,
-      filteringMs: 0,
+      setupMs: 0,
       totalMs: 0,
     })
 
     expect(line).toBe(
-      'Extraction completed in 0.00s (call graph: 0.00s, detection: 0.00s, filtering: 0.00s)',
+      'Extraction completed in 0.00s (call graph: 0.00s, detection: 0.00s, setup: 0.00s)',
     )
   })
 
-  it('formats timing with sub-millisecond precision', () => {
+  it('truncates sub-millisecond values to zero', () => {
     const line = formatTimingLine({
       callGraphMs: 1.5,
       asyncDetectionMs: 0.3,
-      filteringMs: 0.2,
+      setupMs: 0.2,
       totalMs: 2.1,
     })
 
     expect(line).toBe(
-      'Extraction completed in 0.00s (call graph: 0.00s, detection: 0.00s, filtering: 0.00s)',
+      'Extraction completed in 0.00s (call graph: 0.00s, detection: 0.00s, setup: 0.00s)',
     )
   })
 })

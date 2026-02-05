@@ -66,9 +66,7 @@ export function parseFullExtractionOutput(consoleOutput: string[]): FullExtracti
   const parsed: unknown = JSON.parse(firstLine)
   const result = fullExtractionOutputSchema.safeParse(parsed)
   if (!result.success) {
-    throw new TestAssertionError(
-      `Invalid full extraction output. Expected { components, links }. Got: ${JSON.stringify(parsed).slice(0, 200)}`,
-    )
+    throw new TestAssertionError(`Invalid full extraction output: ${result.error.message}`)
   }
   return result.data
 }

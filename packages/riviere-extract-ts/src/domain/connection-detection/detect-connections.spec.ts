@@ -38,7 +38,7 @@ describe('detectConnections', () => {
 
     expect(result.timings.callGraphMs).toBeGreaterThanOrEqual(0)
     expect(result.timings.asyncDetectionMs).toBeGreaterThanOrEqual(0)
-    expect(result.timings.filteringMs).toBeGreaterThanOrEqual(0)
+    expect(result.timings.setupMs).toBeGreaterThanOrEqual(0)
     expect(result.timings.totalMs).toBeGreaterThanOrEqual(0)
   })
 

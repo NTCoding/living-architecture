@@ -16,7 +16,7 @@ export interface ConnectionDetectionOptions {
 export interface ConnectionTimings {
   callGraphMs: number
   asyncDetectionMs: number
-  filteringMs: number
+  setupMs: number
   totalMs: number
 }
 
@@ -44,10 +44,10 @@ export function detectConnections(
 ): ConnectionDetectionResult {
   const totalStart = performance.now()
 
-  const filteringStart = performance.now()
+  const setupStart = performance.now()
   const componentIndex = new ComponentIndex(components)
   const sourceFilePaths = computeFilteredFilePaths(project, options.moduleGlobs, globMatcher)
-  const filteringMs = performance.now() - filteringStart
+  const setupMs = performance.now() - setupStart
 
   const strict = !options.allowIncomplete
 
@@ -70,7 +70,7 @@ export function detectConnections(
     timings: {
       callGraphMs,
       asyncDetectionMs,
-      filteringMs,
+      setupMs,
       totalMs,
     },
   }
