@@ -4,6 +4,7 @@ import {
   extractComponents,
   enrichComponents,
   matchesGlob,
+  detectConnections,
   ConnectionDetectionError,
 } from '@living-architecture/riviere-extract-ts'
 import { formatSuccess } from '../../../platform/infra/cli-presentation/output'
@@ -33,7 +34,6 @@ import {
   formatExtractionStats,
   formatTimingLine,
 } from '../../../platform/infra/cli-presentation/format-extraction-stats'
-import { detectConnectionsQuery } from '../queries/detect-connections-query'
 
 export function createExtractCommand(): Command {
   return new Command('extract')
@@ -79,14 +79,10 @@ export function createExtractCommand(): Command {
 
       /* v8 ignore start -- @preserve: dry-run path tested via CLI integration */
       if (options.dryRun) {
-        const lines = formatDryRunOutput(draftComponents)
-        for (const line of lines) {
-          console.log(line)
-        }
+        formatDryRunOutput(draftComponents).forEach((line) => console.log(line))
         return
       }
       /* v8 ignore stop */
-
       if (options.format === 'markdown') {
         const markdown = formatPrMarkdown({
           added: draftComponents.map((c) => ({
@@ -114,8 +110,7 @@ export function createExtractCommand(): Command {
         configDir,
       )
 
-      const hasFailures = enrichmentResult.failures.length > 0
-      if (hasFailures && options.allowIncomplete !== true) {
+      if (enrichmentResult.failures.length > 0 && options.allowIncomplete !== true) {
         exitWithExtractionFailure(enrichmentResult.failures.map((f) => f.field))
       }
 
@@ -123,10 +118,15 @@ export function createExtractCommand(): Command {
         links, timings 
       } = (() => {
         try {
-          return detectConnectionsQuery(project, enrichmentResult.components, {
-            allowIncomplete: options.allowIncomplete === true,
-            moduleGlobs: resolvedConfig.modules.map((m) => m.path),
-          })
+          return detectConnections(
+            project,
+            enrichmentResult.components,
+            {
+              allowIncomplete: options.allowIncomplete === true,
+              moduleGlobs: resolvedConfig.modules.map((m) => m.path),
+            },
+            matchesGlob,
+          )
           /* v8 ignore start -- @preserve: ConnectionDetectionError tested via CLI integration in extract.connections.spec.ts */
         } catch (error) {
           if (error instanceof ConnectionDetectionError) {
@@ -139,9 +139,7 @@ export function createExtractCommand(): Command {
       console.error(formatTimingLine(timings))
       if (options.stats === true) {
         const stats = countLinksByType(enrichmentResult.components.length, links)
-        for (const line of formatExtractionStats(stats)) {
-          console.error(line)
-        }
+        formatExtractionStats(stats).forEach((line) => console.error(line))
       }
       const outputOptions = options.output === undefined ? {} : { output: options.output }
       outputResult(
