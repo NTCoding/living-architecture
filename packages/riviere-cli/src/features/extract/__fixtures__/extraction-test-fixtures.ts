@@ -2,57 +2,48 @@ import {
   writeFile, mkdir 
 } from 'node:fs/promises'
 import { join } from 'node:path'
+import { z } from 'zod'
 import { TestAssertionError } from '../../../platform/__fixtures__/command-test-fixtures'
 
-interface DraftComponent {
-  type: string
-  name: string
-  domain: string
-  location: {
-    file: string
-    line: number
-  }
-}
+const draftComponentSchema = z.looseObject({
+  type: z.string(),
+  name: z.string(),
+  domain: z.string(),
+  location: z.object({
+    file: z.string(),
+    line: z.number(),
+  }),
+})
 
-export interface ExtractionOutput {
-  success: true
-  data: DraftComponent[]
-}
+const extractedLinkOutputSchema = z.looseObject({
+  source: z.string(),
+  target: z.string(),
+  type: z.string().optional(),
+  sourceLocation: z
+    .object({
+      filePath: z.string(),
+      lineNumber: z.number(),
+    })
+    .optional(),
+  _uncertain: z.string().optional(),
+})
 
-interface ExtractedLinkOutput {
-  source: string
-  target: string
-  type?: string
-  sourceLocation?: {
-    filePath: string
-    lineNumber: number
-  }
-  _uncertain?: string
-}
+const extractionOutputSchema = z.object({
+  success: z.literal(true),
+  data: z.array(draftComponentSchema),
+})
 
-export interface FullExtractionOutput {
-  success: true
-  data: {
-    components: DraftComponent[]
-    links: ExtractedLinkOutput[]
-  }
-}
+const fullExtractionOutputSchema = z.object({
+  success: z.literal(true),
+  data: z.object({
+    components: z.array(draftComponentSchema),
+    links: z.array(extractedLinkOutputSchema),
+  }),
+})
 
-function isExtractionOutput(value: unknown): value is ExtractionOutput {
-  if (typeof value !== 'object' || value === null) return false
-  if (!('success' in value) || value.success !== true) return false
-  if (!('data' in value) || !Array.isArray(value.data)) return false
-  return true
-}
+export type ExtractionOutput = z.infer<typeof extractionOutputSchema>
 
-function isFullExtractionOutput(value: unknown): value is FullExtractionOutput {
-  if (typeof value !== 'object' || value === null) return false
-  if (!('success' in value) || value.success !== true) return false
-  if (!('data' in value) || typeof value.data !== 'object' || value.data === null) return false
-  if (!('components' in value.data) || !Array.isArray(value.data.components)) return false
-  if (!('links' in value.data) || !Array.isArray(value.data.links)) return false
-  return true
-}
+export type FullExtractionOutput = z.infer<typeof fullExtractionOutputSchema>
 
 export function parseExtractionOutput(consoleOutput: string[]): ExtractionOutput {
   const firstLine = consoleOutput[0]
@@ -60,10 +51,11 @@ export function parseExtractionOutput(consoleOutput: string[]): ExtractionOutput
     throw new TestAssertionError('Expected console output but got empty array')
   }
   const parsed: unknown = JSON.parse(firstLine)
-  if (!isExtractionOutput(parsed)) {
-    throw new TestAssertionError('Invalid extraction output')
+  const result = extractionOutputSchema.safeParse(parsed)
+  if (!result.success) {
+    throw new TestAssertionError(`Invalid extraction output: ${result.error.message}`)
   }
-  return parsed
+  return result.data
 }
 
 export function parseFullExtractionOutput(consoleOutput: string[]): FullExtractionOutput {
@@ -72,12 +64,13 @@ export function parseFullExtractionOutput(consoleOutput: string[]): FullExtracti
     throw new TestAssertionError('Expected console output but got empty array')
   }
   const parsed: unknown = JSON.parse(firstLine)
-  if (!isFullExtractionOutput(parsed)) {
+  const result = fullExtractionOutputSchema.safeParse(parsed)
+  if (!result.success) {
     throw new TestAssertionError(
       `Invalid full extraction output. Expected { components, links }. Got: ${JSON.stringify(parsed).slice(0, 200)}`,
     )
   }
-  return parsed
+  return result.data
 }
 
 const validConfigYaml = `
