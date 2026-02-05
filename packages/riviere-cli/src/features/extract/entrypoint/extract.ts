@@ -76,10 +76,11 @@ export function createExtractCommand(): Command {
         }
         /* v8 ignore stop */
       })()
-
       /* v8 ignore start -- @preserve: dry-run path tested via CLI integration */
       if (options.dryRun) {
-        formatDryRunOutput(draftComponents).forEach((line) => console.log(line))
+        for (const line of formatDryRunOutput(draftComponents)) {
+          console.log(line)
+        }
         return
       }
       /* v8 ignore stop */
@@ -109,7 +110,6 @@ export function createExtractCommand(): Command {
         matchesGlob,
         configDir,
       )
-
       if (enrichmentResult.failures.length > 0 && options.allowIncomplete !== true) {
         exitWithExtractionFailure(enrichmentResult.failures.map((f) => f.field))
       }
@@ -139,7 +139,9 @@ export function createExtractCommand(): Command {
       console.error(formatTimingLine(timings))
       if (options.stats === true) {
         const stats = countLinksByType(enrichmentResult.components.length, links)
-        formatExtractionStats(stats).forEach((line) => console.error(line))
+        for (const line of formatExtractionStats(stats)) {
+          console.error(line)
+        }
       }
       const outputOptions = options.output === undefined ? {} : { output: options.output }
       outputResult(
