@@ -27,3 +27,23 @@ export function exitWithExtractionFailure(fieldNames: string[]): never {
   )
   process.exit(ExitCode.ExtractionFailure)
 }
+
+/* v8 ignore start -- @preserve: called from ConnectionDetectionError catch; tested via CLI integration in extract.connections.spec.ts */
+export function exitWithConnectionDetectionFailure(
+  file: string,
+  line: number,
+  typeName: string,
+  reason: string,
+): never {
+  console.log(
+    JSON.stringify(
+      formatError(
+        CliErrorCode.ConnectionDetectionFailure,
+        `${file}:${line}: ${reason} — ${typeName}`,
+        ['Use --allow-incomplete to emit uncertain links instead of failing'],
+      ),
+    ),
+  )
+  process.exit(ExitCode.ExtractionFailure)
+}
+/* v8 ignore stop */

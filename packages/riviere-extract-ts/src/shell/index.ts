@@ -34,6 +34,8 @@ export { matchesGlob } from '../platform/infra/glob-matching/minimatch-glob'
 export {
   detectConnections,
   type ConnectionDetectionOptions,
+  type ConnectionDetectionResult,
+  type ConnectionTimings,
 } from '../domain/connection-detection/detect-connections'
 export type { ExtractedLink } from '../domain/connection-detection/extracted-link'
 export { ComponentIndex } from '../domain/connection-detection/component-index'

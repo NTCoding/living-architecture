@@ -1,3 +1,4 @@
+import { performance } from 'node:perf_hooks'
 import type { Project } from 'ts-morph'
 import type { EnrichedComponent } from '../value-extraction/enrich-components'
 import type { GlobMatcher } from '../component-extraction/extractor'
@@ -10,6 +11,18 @@ import { detectSubscribeConnections } from './async-detection/detect-subscribe-c
 export interface ConnectionDetectionOptions {
   allowIncomplete?: boolean
   moduleGlobs: string[]
+}
+
+export interface ConnectionTimings {
+  callGraphMs: number
+  asyncDetectionMs: number
+  filteringMs: number
+  totalMs: number
+}
+
+export interface ConnectionDetectionResult {
+  links: ExtractedLink[]
+  timings: ConnectionTimings
 }
 
 function computeFilteredFilePaths(
@@ -28,15 +41,37 @@ export function detectConnections(
   components: readonly EnrichedComponent[],
   options: ConnectionDetectionOptions,
   globMatcher: GlobMatcher,
-): ExtractedLink[] {
+): ConnectionDetectionResult {
+  const totalStart = performance.now()
+
+  const filteringStart = performance.now()
   const componentIndex = new ComponentIndex(components)
   const sourceFilePaths = computeFilteredFilePaths(project, options.moduleGlobs, globMatcher)
+  const filteringMs = performance.now() - filteringStart
+
   const strict = !options.allowIncomplete
+
+  const callGraphStart = performance.now()
   const syncLinks = buildCallGraph(project, components, componentIndex, {
     strict,
     sourceFilePaths,
   })
+  const callGraphMs = performance.now() - callGraphStart
+
+  const asyncStart = performance.now()
   const publishLinks = detectPublishConnections(project, components, { strict })
   const subscribeLinks = detectSubscribeConnections(components, { strict })
-  return [...syncLinks, ...publishLinks, ...subscribeLinks]
+  const asyncDetectionMs = performance.now() - asyncStart
+
+  const totalMs = performance.now() - totalStart
+
+  return {
+    links: [...syncLinks, ...publishLinks, ...subscribeLinks],
+    timings: {
+      callGraphMs,
+      asyncDetectionMs,
+      filteringMs,
+      totalMs,
+    },
+  }
 }

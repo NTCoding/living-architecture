@@ -23,6 +23,7 @@ import {
   exitWithExtractionFailure,
 } from '../../../platform/infra/cli-presentation/exit-handlers'
 import { validateFlagCombinations } from '../../../platform/infra/cli-presentation/extract-validator'
+import { detectAndOutputConnections } from '../commands/detect-and-output-connections'
 
 interface ExtractOptions {
   config: string
@@ -35,6 +36,8 @@ interface ExtractOptions {
   base?: string
   files?: string[]
   format?: string
+  stats?: boolean
+  patterns?: boolean
 }
 
 export function createExtractCommand(): Command {
@@ -50,6 +53,8 @@ export function createExtractCommand(): Command {
     .option('--base <branch>', 'Override base branch for --pr (default: auto-detect)')
     .option('--files <paths...>', 'Extract from specific files')
     .option('--format <type>', 'Output format: json (default) or markdown')
+    .option('--stats', 'Show extraction statistics on stderr')
+    .option('--patterns', 'Enable pattern-based connection detection')
     .action((options: ExtractOptions) => {
       validateFlagCombinations(options)
 
@@ -115,15 +120,15 @@ export function createExtractCommand(): Command {
       )
 
       const hasFailures = enrichmentResult.failures.length > 0
-      if (hasFailures && options.allowIncomplete === true) {
-        outputResult(formatSuccess(enrichmentResult.components), options)
-        return
-      }
-
-      if (hasFailures) {
+      if (hasFailures && options.allowIncomplete !== true) {
         exitWithExtractionFailure(enrichmentResult.failures.map((f) => f.field))
       }
 
-      outputResult(formatSuccess(enrichmentResult.components), options)
+      detectAndOutputConnections(project, enrichmentResult.components, {
+        allowIncomplete: options.allowIncomplete === true,
+        moduleGlobs: resolvedConfig.modules.map((m) => m.path),
+        stats: options.stats === true,
+        output: options.output,
+      })
     })
 }

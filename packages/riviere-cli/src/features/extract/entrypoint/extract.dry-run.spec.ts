@@ -12,7 +12,7 @@ import {
   setupCommandTest,
   assertDefined,
 } from '../../../platform/__fixtures__/command-test-fixtures'
-import { parseExtractionOutput } from '../__fixtures__/extraction-test-fixtures'
+import { parseFullExtractionOutput } from '../__fixtures__/extraction-test-fixtures'
 
 describe('riviere extract --dry-run', () => {
   const ctx: TestContext = createTestContext()
@@ -250,8 +250,8 @@ modules:
 
     await createProgram().parseAsync(['node', 'riviere', 'extract', '--config', configPath])
 
-    const fullOutput = parseExtractionOutput(ctx.consoleOutput)
-    const fullCount = fullOutput.data.length
+    const fullOutput = parseFullExtractionOutput(ctx.consoleOutput)
+    const fullCount = fullOutput.data.components.length
     ctx.consoleOutput.splice(0)
 
     await createProgram().parseAsync([

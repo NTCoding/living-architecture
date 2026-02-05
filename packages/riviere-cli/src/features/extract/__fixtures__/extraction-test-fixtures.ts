@@ -19,10 +19,38 @@ export interface ExtractionOutput {
   data: DraftComponent[]
 }
 
+interface ExtractedLinkOutput {
+  source: string
+  target: string
+  type?: string
+  sourceLocation?: {
+    filePath: string
+    lineNumber: number
+  }
+  _uncertain?: string
+}
+
+export interface FullExtractionOutput {
+  success: true
+  data: {
+    components: DraftComponent[]
+    links: ExtractedLinkOutput[]
+  }
+}
+
 function isExtractionOutput(value: unknown): value is ExtractionOutput {
   if (typeof value !== 'object' || value === null) return false
   if (!('success' in value) || value.success !== true) return false
   if (!('data' in value) || !Array.isArray(value.data)) return false
+  return true
+}
+
+function isFullExtractionOutput(value: unknown): value is FullExtractionOutput {
+  if (typeof value !== 'object' || value === null) return false
+  if (!('success' in value) || value.success !== true) return false
+  if (!('data' in value) || typeof value.data !== 'object' || value.data === null) return false
+  if (!('components' in value.data) || !Array.isArray(value.data.components)) return false
+  if (!('links' in value.data) || !Array.isArray(value.data.links)) return false
   return true
 }
 
@@ -34,6 +62,20 @@ export function parseExtractionOutput(consoleOutput: string[]): ExtractionOutput
   const parsed: unknown = JSON.parse(firstLine)
   if (!isExtractionOutput(parsed)) {
     throw new TestAssertionError('Invalid extraction output')
+  }
+  return parsed
+}
+
+export function parseFullExtractionOutput(consoleOutput: string[]): FullExtractionOutput {
+  const firstLine = consoleOutput[0]
+  if (firstLine === undefined) {
+    throw new TestAssertionError('Expected console output but got empty array')
+  }
+  const parsed: unknown = JSON.parse(firstLine)
+  if (!isFullExtractionOutput(parsed)) {
+    throw new TestAssertionError(
+      `Invalid full extraction output. Expected { components, links }. Got: ${JSON.stringify(parsed).slice(0, 200)}`,
+    )
   }
   return parsed
 }

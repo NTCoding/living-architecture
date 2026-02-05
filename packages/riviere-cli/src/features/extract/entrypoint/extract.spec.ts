@@ -15,6 +15,7 @@ import {
 import { CliErrorCode } from '../../../platform/infra/cli-presentation/error-codes'
 import {
   parseExtractionOutput,
+  parseFullExtractionOutput,
   createValidExtractFixture,
 } from '../__fixtures__/extraction-test-fixtures'
 
@@ -156,10 +157,10 @@ modules:
 
       await createProgram().parseAsync(['node', 'riviere', 'extract', '--config', configPath])
 
-      const output = parseExtractionOutput(ctx.consoleOutput)
+      const output = parseFullExtractionOutput(ctx.consoleOutput)
       expect(output.success).toBe(true)
-      expect(output.data).toHaveLength(1)
-      expect(output.data[0]).toMatchObject({
+      expect(output.data.components).toHaveLength(1)
+      expect(output.data.components[0]).toMatchObject({
         type: 'useCase',
         name: 'PlaceOrder',
         domain: 'orders',
@@ -221,10 +222,10 @@ modules:
 
       await createProgram().parseAsync(['node', 'riviere', 'extract', '--config', configPath])
 
-      const output = parseExtractionOutput(ctx.consoleOutput)
+      const output = parseFullExtractionOutput(ctx.consoleOutput)
       expect(output.success).toBe(true)
-      expect(output.data).toHaveLength(1)
-      expect(output.data[0]).toMatchObject({
+      expect(output.data.components).toHaveLength(1)
+      expect(output.data.components[0]).toMatchObject({
         type: 'useCase',
         name: 'PlaceOrder',
         domain: 'orders',
@@ -255,13 +256,16 @@ modules:
       const parsed: unknown = JSON.parse(fileContent)
       expect(parsed).toMatchObject({
         success: true,
-        data: [
-          {
-            type: 'useCase',
-            name: 'PlaceOrder',
-            domain: 'orders',
-          },
-        ],
+        data: {
+          components: [
+            {
+              type: 'useCase',
+              name: 'PlaceOrder',
+              domain: 'orders',
+            },
+          ],
+          links: [],
+        },
       })
       expect(ctx.consoleOutput).toHaveLength(0)
     })

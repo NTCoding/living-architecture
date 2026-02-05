@@ -682,6 +682,8 @@ riviere extract [options]
 | `--components-only` | Output only component identity (no metadata enrichment) |
 | `--allow-incomplete` | Output components even when some extraction fields fail |
 | `--pr` | Extract from files changed in current branch vs base branch |
+| `--stats` | Show extraction statistics on stderr |
+| `--patterns` | Enable pattern-based connection detection |
 
 ---
 

@@ -13,6 +13,7 @@ describe('CliErrorCode', () => {
     ['ValidationError', 'VALIDATION_ERROR'],
     ['GraphCorrupted', 'GRAPH_CORRUPTED'],
     ['GraphExists', 'GRAPH_EXISTS'],
+    ['ConnectionDetectionFailure', 'CONNECTION_DETECTION_FAILURE'],
   ] as const)('defines %s error code with value %s', (member, value) => {
     expect(CliErrorCode[member]).toBe(value)
   })

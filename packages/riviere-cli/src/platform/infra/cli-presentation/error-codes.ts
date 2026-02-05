@@ -20,4 +20,5 @@ export enum CliErrorCode {
   ConfigNotFound = 'CONFIG_NOT_FOUND',
   GitNotARepository = 'GIT_NOT_A_REPOSITORY',
   GitNotFound = 'GIT_NOT_FOUND',
+  ConnectionDetectionFailure = 'CONNECTION_DETECTION_FAILURE',
 }

@@ -14,7 +14,8 @@ import {
   parseErrorOutput,
 } from '../../../platform/__fixtures__/command-test-fixtures'
 import {
-  parseExtractionOutput, validSourceCode 
+  parseFullExtractionOutput,
+  validSourceCode,
 } from '../__fixtures__/extraction-test-fixtures'
 
 const configWithExtractBlock = `
@@ -85,10 +86,10 @@ describe('riviere extract enrichment', () => {
         '--allow-incomplete',
       ])
 
-      const output = parseExtractionOutput(ctx.consoleOutput)
+      const output = parseFullExtractionOutput(ctx.consoleOutput)
       expect(output.success).toBe(true)
-      expect(output.data).toHaveLength(1)
-      expect(output.data[0]).toMatchObject({ _missing: ['operationName'] })
+      expect(output.data.components).toHaveLength(1)
+      expect(output.data.components[0]).toMatchObject({ _missing: ['operationName'] })
     }, 15_000)
 
     it('exits with extraction failure code when extraction fields fail in strict mode', async () => {
@@ -141,10 +142,10 @@ describe('riviere extract enrichment', () => {
         draftPath,
       ])
 
-      const output = parseExtractionOutput(ctx.consoleOutput)
+      const output = parseFullExtractionOutput(ctx.consoleOutput)
       expect(output.success).toBe(true)
-      expect(output.data).toHaveLength(1)
-      expect(output.data[0]).toMatchObject({
+      expect(output.data.components).toHaveLength(1)
+      expect(output.data.components[0]).toMatchObject({
         type: 'useCase',
         name: 'PlaceOrder',
         domain: 'orders',

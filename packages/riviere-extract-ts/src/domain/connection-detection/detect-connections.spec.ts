@@ -27,7 +27,19 @@ describe('detectConnections', () => {
 
     const result = detectConnections(project, [], { moduleGlobs: ['/src/**/*.ts'] }, matchesGlob)
 
-    expect(result).toStrictEqual([])
+    expect(result.links).toStrictEqual([])
+  })
+
+  it('returns non-negative timing values for all phases', () => {
+    const project = createProject()
+    project.createSourceFile('/src/timing.ts', '')
+
+    const result = detectConnections(project, [], { moduleGlobs: ['/src/**/*.ts'] }, matchesGlob)
+
+    expect(result.timings.callGraphMs).toBeGreaterThanOrEqual(0)
+    expect(result.timings.asyncDetectionMs).toBeGreaterThanOrEqual(0)
+    expect(result.timings.filteringMs).toBeGreaterThanOrEqual(0)
+    expect(result.timings.totalMs).toBeGreaterThanOrEqual(0)
   })
 
   it('returns sync link for UseCase to Repository direct call', () => {
@@ -59,7 +71,7 @@ class PlaceOrder {
       matchesGlob,
     )
 
-    expect(result).toStrictEqual([
+    expect(result.links).toStrictEqual([
       expect.objectContaining({
         source: 'orders:useCase:PlaceOrder',
         target: 'orders:repository:OrderRepository',
@@ -105,7 +117,7 @@ class PublishEvent {
       matchesGlob,
     )
 
-    expect(result).toStrictEqual([
+    expect(result.links).toStrictEqual([
       expect.objectContaining({
         source: 'orders:useCase:PublishEvent',
         target: 'orders:repository:EventStore',
@@ -158,7 +170,7 @@ class LenientComp {
       matchesGlob,
     )
 
-    expect(result).toStrictEqual([
+    expect(result.links).toStrictEqual([
       expect.objectContaining({
         source: 'orders:useCase:LenientComp',
         target: '_unresolved',
@@ -195,15 +207,15 @@ class ServiceA {
       matchesGlob,
     )
 
-    const aToB = result.find(
+    const aToB = result.links.find(
       (l) => l.source === 'orders:useCase:ServiceA' && l.target === 'orders:domainOp:ServiceB',
     )
-    const bToA = result.find(
+    const bToA = result.links.find(
       (l) => l.source === 'orders:domainOp:ServiceB' && l.target === 'orders:useCase:ServiceA',
     )
     expect(aToB).toBeDefined()
     expect(bToA).toBeDefined()
-    expect(result).toHaveLength(2)
+    expect(result.links).toHaveLength(2)
   })
 
   it('returns async links from publisher to event and event to handler', () => {
@@ -239,7 +251,7 @@ class OrderPublisher {
       matchesGlob,
     )
 
-    expect(result).toStrictEqual(
+    expect(result.links).toStrictEqual(
       expect.arrayContaining([
         expect.objectContaining({
           source: 'orders:eventPublisher:OrderPublisher',
@@ -253,7 +265,7 @@ class OrderPublisher {
         }),
       ]),
     )
-    expect(result).toHaveLength(2)
+    expect(result.links).toHaveLength(2)
   })
 
   it('filters source files by moduleGlobs', () => {
@@ -304,7 +316,7 @@ class PaymentGateway {
       matchesGlob,
     )
 
-    expect(result).toStrictEqual([
+    expect(result.links).toStrictEqual([
       expect.objectContaining({
         source: 'orders:useCase:ProcessPayment',
         target: 'orders:repository:PaymentGateway',

@@ -12,6 +12,8 @@ interface ExtractOptions {
   base?: string
   files?: string[]
   format?: string
+  stats?: boolean
+  patterns?: boolean
 }
 
 function rejectMutuallyExclusive(

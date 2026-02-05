@@ -13,6 +13,7 @@ import {
 import { CliErrorCode } from '../../../platform/infra/cli-presentation/error-codes'
 import {
   parseExtractionOutput,
+  parseFullExtractionOutput,
   createValidExtractFixture,
 } from '../__fixtures__/extraction-test-fixtures'
 
@@ -178,10 +179,10 @@ describe('riviere extract PR extraction', () => {
         sourceFile,
       ])
 
-      const output = parseExtractionOutput(ctx.consoleOutput)
+      const output = parseFullExtractionOutput(ctx.consoleOutput)
       expect(output.success).toBe(true)
-      expect(output.data).toHaveLength(1)
-      expect(output.data[0]).toMatchObject({
+      expect(output.data.components).toHaveLength(1)
+      expect(output.data.components[0]).toMatchObject({
         type: 'useCase',
         name: 'PlaceOrder',
         domain: 'orders',
