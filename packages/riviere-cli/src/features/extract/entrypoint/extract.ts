@@ -23,7 +23,7 @@ import {
   exitWithExtractionFailure,
 } from '../../../platform/infra/cli-presentation/exit-handlers'
 import { validateFlagCombinations } from '../../../platform/infra/cli-presentation/extract-validator'
-import { detectAndOutputConnections } from '../commands/detect-and-output-connections'
+import { detectAndOutputConnections } from '../queries/detect-and-output-connections'
 
 interface ExtractOptions {
   config: string
