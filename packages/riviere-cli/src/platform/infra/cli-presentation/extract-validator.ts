@@ -1,7 +1,7 @@
 import { CliErrorCode } from './error-codes'
 import { exitWithConfigValidation } from './exit-handlers'
 
-interface ExtractOptions {
+export interface ExtractOptions {
   config: string
   dryRun?: boolean
   output?: string
