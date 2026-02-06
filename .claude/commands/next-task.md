@@ -99,6 +99,19 @@ PRD12-B: #167 - Create conventions interfaces (earliest PRD track)
 
 Once user confirms a task:
 
-1. Run `./scripts/start-task.sh <issue-number>` to set up the worktree
-2. Ask the user to rename the current session using `/rename issue-<number>`
-3. Ask the user to start a new Claude Code session from within the worktree directory (e.g., `cd ../living-architecture-issue-<number>-desc/ && claude`). This ensures file access and git operations are scoped to the worktree rather than the original repo.
+1. Run `./scripts/start-task.sh <issue-number>` to set up the worktree and assign the issue
+2. Output the following handoff message (fill in the placeholders from the start-task output and the selected task):
+
+---
+
+Task #<issue-number> is in progress. Switch to the worktree and start a new Claude Code session:
+
+```bash
+cd <worktree-path> && claude
+```
+
+Use this prompt to begin:
+
+> Work on issue #<issue-number>. Follow `docs/workflow/task-workflow.md` from "Read Task References" onward. Read the issue body first (`gh issue view <issue-number>`), then read all referenced documents before creating a plan.
+
+---
