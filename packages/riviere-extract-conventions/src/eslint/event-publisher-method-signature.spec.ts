@@ -122,6 +122,14 @@ describe('event-publisher-method-signature', () => {
           }
         `,
       },
+      {
+        name: 'passes when class only has a constructor (no methods to check)',
+        code: `
+          class OrderPublisher implements EventPublisherDef {
+            constructor(private bus: EventBus) {}
+          }
+        `,
+      },
 
       // --- Getter/setter exemption ---
       {
