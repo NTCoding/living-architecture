@@ -81,4 +81,4 @@ Added ESLint rule enforcing EventPublisherDef publish method conventions. Clean 
 
 ## Recommended Follow-Ups
 
-- Consider improving task-check's edge case verification to match individual listed scenarios in acceptance criteria rather than broad categories
+- ~~Improve task-check's edge case verification to match individual listed scenarios in acceptance criteria rather than broad categories~~ — **DONE:** Added "Edge Case Scenario Matching" section to `.claude/agents/task-check.md` requiring literal 1:1 matching table between listed scenarios and test cases
