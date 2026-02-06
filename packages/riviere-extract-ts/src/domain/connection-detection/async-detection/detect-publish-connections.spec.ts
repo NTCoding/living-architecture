@@ -80,6 +80,30 @@ class OrderPublisher {
     expect(result).toStrictEqual([])
   })
 
+  it('uses publishedEventType metadata to resolve event when present', () => {
+    const filePath = nextFile(`
+class MetaEvent {}
+`)
+    const event = buildComponent('MetaEvent', filePath, 2, {
+      type: 'event',
+      metadata: { eventName: 'MetaEvent' },
+    })
+    const publisher = buildComponent('publishMeta', '/src/meta-pub.ts', 5, {
+      type: 'eventPublisher',
+      metadata: { publishedEventType: 'MetaEvent' },
+    })
+
+    const result = detectPublishConnections(sharedProject, [event, publisher], { strict: false })
+
+    expect(result).toStrictEqual([
+      expect.objectContaining({
+        source: 'orders:eventPublisher:publishMeta',
+        target: 'orders:event:MetaEvent',
+        type: 'async',
+      }),
+    ])
+  })
+
   it('returns empty array when publisher has no public methods', () => {
     const filePath = nextFile(`
 class EmptyPublisher {}

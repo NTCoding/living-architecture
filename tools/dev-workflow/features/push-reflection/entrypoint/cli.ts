@@ -1,8 +1,7 @@
 #!/usr/bin/env tsx
-import { cli } from '../../../platform/infra/external-clients/cli-args'
 import { executePushReflection } from '../commands/push-reflection'
 
-const followUps = cli.hasFlag('--follow-ups')
+const followUps = process.argv.includes('--follow-ups')
 
 executePushReflection({ followUps })
   .then((result) => {

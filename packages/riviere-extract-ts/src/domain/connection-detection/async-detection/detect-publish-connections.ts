@@ -30,6 +30,16 @@ function extractPublisherLinks(
   events: readonly EnrichedComponent[],
   options: AsyncDetectionOptions,
 ): ExtractedLink[] {
+  const publishedEventType = publisher.metadata['publishedEventType']
+  if (typeof publishedEventType === 'string') {
+    const sourceLocation: RequiredLineLocation = {
+      repository: '',
+      filePath: publisher.location.file,
+      lineNumber: publisher.location.line,
+    }
+    return resolvePublishTarget(publisher, publishedEventType, events, options, sourceLocation)
+  }
+
   const classDecl = findClassInProject(project, publisher)
   if (classDecl === undefined) {
     return []

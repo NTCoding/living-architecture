@@ -3,7 +3,9 @@ import {
 } from 'vitest'
 import { Project } from 'ts-morph'
 import type {
-  ResolvedExtractionConfig, Module 
+  ResolvedExtractionConfig,
+  Module,
+  ComponentRule,
 } from '@living-architecture/riviere-extract-config'
 import type {
   DraftComponent, GlobMatcher 
@@ -20,11 +22,9 @@ function nextFile(path: string, content: string) {
   return filePath
 }
 
-function alwaysMatchGlob(): GlobMatcher {
-  return () => true
-}
+const alwaysMatch: GlobMatcher = () => true
 
-function moduleWithNoExtract(name: string, path: string): Module {
+function notUsedModule(name: string, path: string): Module {
   return {
     name,
     path,
@@ -41,19 +41,37 @@ function moduleWithNoExtract(name: string, path: string): Module {
   }
 }
 
-function configWithModules(modules: Module[]): ResolvedExtractionConfig {
-  return { modules }
+function moduleWith(componentType: string, rule: ComponentRule): Module {
+  const base: Module = {
+    name: 'orders',
+    path: '/src/orders/**',
+    api: { notUsed: true },
+    useCase: { notUsed: true },
+    domainOp: { notUsed: true },
+    event: { notUsed: true },
+    eventHandler: { notUsed: true },
+    eventPublisher: { notUsed: true },
+    ui: { notUsed: true },
+  }
+  return {
+    ...base,
+    [componentType]: rule,
+  }
 }
 
-function apiDraft(name: string, file: string, line: number, domain: string): DraftComponent {
+function enrich(drafts: DraftComponent[], modules: Module[]) {
+  return enrichComponents(drafts, { modules }, sharedProject, alwaysMatch, '/')
+}
+
+function draft(type: string, name: string, file: string, line: number): DraftComponent {
   return {
-    type: 'api',
+    type,
     name,
     location: {
       file,
       line,
     },
-    domain,
+    domain: 'orders',
   }
 }
 
@@ -61,12 +79,10 @@ describe('enrichComponents', () => {
   describe('returns components with empty metadata when no extract blocks exist', () => {
     it('returns enriched components with empty metadata when detection rules have no extract blocks', () => {
       const file = nextFile('/src/orders/order.controller.ts', 'export class OrderController {}')
-
-      const drafts: DraftComponent[] = [apiDraft('OrderController', file, 1, 'orders')]
-
-      const config = configWithModules([moduleWithNoExtract('orders', '/src/orders/**')])
-
-      const result = enrichComponents(drafts, config, sharedProject, alwaysMatchGlob(), '/')
+      const result = enrich(
+        [draft('api', 'OrderController', file, 1)],
+        [notUsedModule('orders', '/src/orders/**')],
+      )
 
       expect(result).toStrictEqual({
         components: [
@@ -86,10 +102,7 @@ describe('enrichComponents', () => {
     })
 
     it('returns empty results when given no draft components', () => {
-      const config = configWithModules([moduleWithNoExtract('orders', '/src/orders/**')])
-
-      const result = enrichComponents([], config, sharedProject, alwaysMatchGlob(), '/')
-
+      const result = enrich([], [notUsedModule('orders', '/src/orders/**')])
       expect(result).toStrictEqual({
         components: [],
         failures: [],
@@ -98,136 +111,72 @@ describe('enrichComponents', () => {
   })
 
   describe('enriches component with extraction rules', () => {
-    it('adds literal value to metadata when extract block has literal rule', () => {
+    it('adds literal value to metadata', () => {
       const file = nextFile('/src/orders/order.controller.ts', 'export class OrderController {}')
-
-      const drafts: DraftComponent[] = [apiDraft('OrderController', file, 1, 'orders')]
-
-      const module: Module = {
-        name: 'orders',
-        path: '/src/orders/**',
-        api: {
-          find: 'classes',
-          where: { nameEndsWith: { suffix: 'Controller' } },
-          extract: { apiType: { literal: 'REST' } },
-        },
-        useCase: { notUsed: true },
-        domainOp: { notUsed: true },
-        event: { notUsed: true },
-        eventHandler: { notUsed: true },
-        eventPublisher: { notUsed: true },
-        ui: { notUsed: true },
-      }
-
-      const config = configWithModules([module])
-
-      const result = enrichComponents(drafts, config, sharedProject, alwaysMatchGlob(), '/')
+      const module = moduleWith('api', {
+        find: 'classes',
+        where: { nameEndsWith: { suffix: 'Controller' } },
+        extract: { apiType: { literal: 'REST' } },
+      })
+      const result = enrich([draft('api', 'OrderController', file, 1)], [module])
 
       expect(result.components[0]?.metadata).toStrictEqual({ apiType: 'REST' })
       expect(result.failures).toStrictEqual([])
     })
 
-    it('adds fromClassName value to metadata when extract block has fromClassName rule', () => {
+    it('adds fromClassName value to metadata', () => {
       const file = nextFile('/src/orders/order.controller.ts', 'export class OrderController {}')
-
-      const drafts: DraftComponent[] = [apiDraft('OrderController', file, 1, 'orders')]
-
-      const module: Module = {
-        name: 'orders',
-        path: '/src/orders/**',
-        api: {
-          find: 'classes',
-          where: { nameEndsWith: { suffix: 'Controller' } },
-          extract: { componentName: { fromClassName: true } },
-        },
-        useCase: { notUsed: true },
-        domainOp: { notUsed: true },
-        event: { notUsed: true },
-        eventHandler: { notUsed: true },
-        eventPublisher: { notUsed: true },
-        ui: { notUsed: true },
-      }
-
-      const config = configWithModules([module])
-
-      const result = enrichComponents(drafts, config, sharedProject, alwaysMatchGlob(), '/')
+      const module = moduleWith('api', {
+        find: 'classes',
+        where: { nameEndsWith: { suffix: 'Controller' } },
+        extract: { componentName: { fromClassName: true } },
+      })
+      const result = enrich([draft('api', 'OrderController', file, 1)], [module])
 
       expect(result.components[0]?.metadata).toStrictEqual({ componentName: 'OrderController' })
     })
 
-    it('adds fromFilePath value to metadata when extract block has fromFilePath rule', () => {
+    it('adds fromFilePath value to metadata', () => {
       const file = nextFile('/src/orders/order.controller.ts', 'export class OrderController {}')
-
-      const drafts: DraftComponent[] = [apiDraft('OrderController', file, 1, 'orders')]
-
-      const module: Module = {
-        name: 'orders',
-        path: '/src/orders/**',
-        api: {
-          find: 'classes',
-          where: { nameEndsWith: { suffix: 'Controller' } },
-          extract: {
-            moduleName: {
-              fromFilePath: {
-                pattern: '/src/([^/]+)/',
-                capture: 1,
-              },
+      const module = moduleWith('api', {
+        find: 'classes',
+        where: { nameEndsWith: { suffix: 'Controller' } },
+        extract: {
+          moduleName: {
+            fromFilePath: {
+              pattern: '/src/([^/]+)/',
+              capture: 1,
             },
           },
         },
-        useCase: { notUsed: true },
-        domainOp: { notUsed: true },
-        event: { notUsed: true },
-        eventHandler: { notUsed: true },
-        eventPublisher: { notUsed: true },
-        ui: { notUsed: true },
-      }
-
-      const config = configWithModules([module])
-
-      const result = enrichComponents(drafts, config, sharedProject, alwaysMatchGlob(), '/')
+      })
+      const result = enrich([draft('api', 'OrderController', file, 1)], [module])
 
       expect(result.components[0]?.metadata).toStrictEqual({ moduleName: 'orders' })
     })
   })
 
   describe('records failure when extraction rule throws', () => {
-    it('records failure and adds field to _missing when fromProperty rule references nonexistent property', () => {
+    it('records failure when fromProperty references nonexistent property', () => {
       const file = nextFile('/src/orders/order.controller.ts', 'export class OrderController {}')
-
-      const draft = apiDraft('OrderController', file, 1, 'orders')
-      const drafts: DraftComponent[] = [draft]
-
-      const module: Module = {
-        name: 'orders',
-        path: '/src/orders/**',
-        api: {
-          find: 'classes',
-          where: { nameEndsWith: { suffix: 'Controller' } },
-          extract: {
-            path: {
-              fromProperty: {
-                name: 'nonexistent',
-                kind: 'static',
-              },
+      const d = draft('api', 'OrderController', file, 1)
+      const module = moduleWith('api', {
+        find: 'classes',
+        where: { nameEndsWith: { suffix: 'Controller' } },
+        extract: {
+          path: {
+            fromProperty: {
+              name: 'nonexistent',
+              kind: 'static',
             },
           },
         },
-        useCase: { notUsed: true },
-        domainOp: { notUsed: true },
-        event: { notUsed: true },
-        eventHandler: { notUsed: true },
-        eventPublisher: { notUsed: true },
-        ui: { notUsed: true },
-      }
-
-      const config = configWithModules([module])
-
-      const result = enrichComponents(drafts, config, sharedProject, alwaysMatchGlob(), '/')
+      })
+      const result = enrich([d], [module])
 
       expect(result.failures).toStrictEqual([
         {
-          component: draft,
+          component: d,
           field: 'path',
           error: `Property 'nonexistent' not found on class 'OrderController' at ${file}:1`,
         },
@@ -238,36 +187,20 @@ describe('enrichComponents', () => {
 
     it('extracts successful fields and records failed ones separately', () => {
       const file = nextFile('/src/orders/order.controller.ts', 'export class OrderController {}')
-
-      const drafts: DraftComponent[] = [apiDraft('OrderController', file, 1, 'orders')]
-
-      const module: Module = {
-        name: 'orders',
-        path: '/src/orders/**',
-        api: {
-          find: 'classes',
-          where: { nameEndsWith: { suffix: 'Controller' } },
-          extract: {
-            apiType: { literal: 'REST' },
-            path: {
-              fromProperty: {
-                name: 'nonexistent',
-                kind: 'static',
-              },
+      const module = moduleWith('api', {
+        find: 'classes',
+        where: { nameEndsWith: { suffix: 'Controller' } },
+        extract: {
+          apiType: { literal: 'REST' },
+          path: {
+            fromProperty: {
+              name: 'nonexistent',
+              kind: 'static',
             },
           },
         },
-        useCase: { notUsed: true },
-        domainOp: { notUsed: true },
-        event: { notUsed: true },
-        eventHandler: { notUsed: true },
-        eventPublisher: { notUsed: true },
-        ui: { notUsed: true },
-      }
-
-      const config = configWithModules([module])
-
-      const result = enrichComponents(drafts, config, sharedProject, alwaysMatchGlob(), '/')
+      })
+      const result = enrich([draft('api', 'OrderController', file, 1)], [module])
 
       expect(result.components[0]?.metadata).toStrictEqual({ apiType: 'REST' })
       expect(result.components[0]?._missing).toStrictEqual(['path'])
@@ -278,70 +211,35 @@ describe('enrichComponents', () => {
   describe('handles components with no matching module', () => {
     it('returns component with empty metadata when no module matches', () => {
       const file = nextFile('/src/orders/order.controller.ts', 'export class OrderController {}')
-
-      const neverMatchGlob: GlobMatcher = () => false
-
-      const drafts: DraftComponent[] = [apiDraft('OrderController', file, 1, 'orders')]
-
-      const config = configWithModules([moduleWithNoExtract('other', '/src/other/**')])
-
-      const result = enrichComponents(drafts, config, sharedProject, neverMatchGlob, '/')
+      const neverMatch: GlobMatcher = () => false
+      const config: ResolvedExtractionConfig = {modules: [notUsedModule('other', '/src/other/**')],}
+      const result = enrichComponents(
+        [draft('api', 'OrderController', file, 1)],
+        config,
+        sharedProject,
+        neverMatch,
+        '/',
+      )
 
       expect(result.components[0]?.metadata).toStrictEqual({})
       expect(result.failures).toStrictEqual([])
     })
   })
 
-  describe('handles components with notUsed detection rule', () => {
-    it('returns component with empty metadata when component type rule is notUsed', () => {
+  describe('handles notUsed and customTypes', () => {
+    it('returns empty metadata when component type rule is notUsed', () => {
       const file = nextFile('/src/orders/order.service.ts', 'export class OrderService {}')
-
-      const drafts: DraftComponent[] = [
-        {
-          type: 'useCase',
-          name: 'OrderService',
-          location: {
-            file,
-            line: 1,
-          },
-          domain: 'orders',
-        },
-      ]
-
-      const config = configWithModules([moduleWithNoExtract('orders', '/src/orders/**')])
-
-      const result = enrichComponents(drafts, config, sharedProject, alwaysMatchGlob(), '/')
-
+      const result = enrich(
+        [draft('useCase', 'OrderService', file, 1)],
+        [notUsedModule('orders', '/src/orders/**')],
+      )
       expect(result.components[0]?.metadata).toStrictEqual({})
     })
-  })
 
-  describe('handles customTypes extract blocks', () => {
-    it('enriches component from customTypes detection rule extract block', () => {
+    it('enriches component from customTypes detection rule', () => {
       const file = nextFile('/src/orders/order.saga.ts', 'export class OrderSaga {}')
-
-      const drafts: DraftComponent[] = [
-        {
-          type: 'saga',
-          name: 'OrderSaga',
-          location: {
-            file,
-            line: 1,
-          },
-          domain: 'orders',
-        },
-      ]
-
       const module: Module = {
-        name: 'orders',
-        path: '/src/orders/**',
-        api: { notUsed: true },
-        useCase: { notUsed: true },
-        domainOp: { notUsed: true },
-        event: { notUsed: true },
-        eventHandler: { notUsed: true },
-        eventPublisher: { notUsed: true },
-        ui: { notUsed: true },
+        ...moduleWith('api', { notUsed: true }),
         customTypes: {
           saga: {
             find: 'classes',
@@ -350,39 +248,86 @@ describe('enrichComponents', () => {
           },
         },
       }
-
-      const config = configWithModules([module])
-
-      const result = enrichComponents(drafts, config, sharedProject, alwaysMatchGlob(), '/')
+      const result = enrich([draft('saga', 'OrderSaga', file, 1)], [module])
 
       expect(result.components[0]?.metadata).toStrictEqual({ sagaType: 'orchestrator' })
     })
   })
 
-  describe('handles error cases for class-based extraction', () => {
-    it('records failure when source file not found in project for class-based rule', () => {
-      const draft = apiDraft('OrderController', '/src/missing/file.ts', 1, 'orders')
-      const drafts: DraftComponent[] = [draft]
+  describe('handles fromParameterType extraction', () => {
+    it('extracts parameter type name from method parameter', () => {
+      const file = nextFile(
+        '/src/orders/publisher.ts',
+        'class Pub {\n  publish(event: OrderPlaced): void {}\n}',
+      )
+      const module = moduleWith('eventPublisher', {
+        find: 'methods',
+        where: { nameEndsWith: { suffix: 'Pub' } },
+        extract: { publishedEventType: { fromParameterType: { position: 0 } } },
+      })
+      const result = enrich([draft('eventPublisher', 'publish', file, 2)], [module])
 
-      const module: Module = {
-        name: 'orders',
-        path: '/src/**',
-        api: {
-          find: 'classes',
-          where: { nameEndsWith: { suffix: 'Controller' } },
-          extract: { componentName: { fromClassName: true } },
+      expect(result.components[0]?.metadata).toStrictEqual({ publishedEventType: 'OrderPlaced' })
+      expect(result.failures).toStrictEqual([])
+    })
+
+    it('applies transform to extracted parameter type name', () => {
+      const file = nextFile(
+        '/src/orders/publisher.ts',
+        'class Pub {\n  publish(event: OrderPlacedEvent): void {}\n}',
+      )
+      const module = moduleWith('eventPublisher', {
+        find: 'methods',
+        where: { nameEndsWith: { suffix: 'Pub' } },
+        extract: {
+          publishedEventType: {
+            fromParameterType: {
+              position: 0,
+              transform: { stripSuffix: 'Event' },
+            },
+          },
         },
-        useCase: { notUsed: true },
-        domainOp: { notUsed: true },
-        event: { notUsed: true },
-        eventHandler: { notUsed: true },
-        eventPublisher: { notUsed: true },
-        ui: { notUsed: true },
-      }
+      })
+      const result = enrich([draft('eventPublisher', 'publish', file, 2)], [module])
 
-      const config = configWithModules([module])
+      expect(result.components[0]?.metadata).toStrictEqual({ publishedEventType: 'OrderPlaced' })
+    })
 
-      const result = enrichComponents(drafts, config, sharedProject, alwaysMatchGlob(), '/')
+    it('returns unknown when parameter has no type annotation', () => {
+      const file = nextFile('/src/orders/publisher.ts', 'class Pub {\n  publish(event): void {}\n}')
+      const module = moduleWith('eventPublisher', {
+        find: 'methods',
+        where: { nameEndsWith: { suffix: 'Pub' } },
+        extract: { publishedEventType: { fromParameterType: { position: 0 } } },
+      })
+      const result = enrich([draft('eventPublisher', 'publish', file, 2)], [module])
+
+      expect(result.components[0]?.metadata).toStrictEqual({ publishedEventType: 'unknown' })
+    })
+
+    it('records failure when parameter position is out of bounds', () => {
+      const file = nextFile('/src/orders/publisher.ts', 'class Pub {\n  publish(): void {}\n}')
+      const module = moduleWith('eventPublisher', {
+        find: 'methods',
+        where: { nameEndsWith: { suffix: 'Pub' } },
+        extract: { publishedEventType: { fromParameterType: { position: 0 } } },
+      })
+      const result = enrich([draft('eventPublisher', 'publish', file, 2)], [module])
+
+      expect(result.failures).toHaveLength(1)
+      expect(result.failures[0]?.field).toBe('publishedEventType')
+      expect(result.components[0]?._missing).toStrictEqual(['publishedEventType'])
+    })
+  })
+
+  describe('handles error cases for class-based extraction', () => {
+    it('records failure when source file not found in project', () => {
+      const module = moduleWith('api', {
+        find: 'classes',
+        where: { nameEndsWith: { suffix: 'Controller' } },
+        extract: { componentName: { fromClassName: true } },
+      })
+      const result = enrich([draft('api', 'OrderController', '/src/missing/file.ts', 1)], [module])
 
       expect(result.failures).toHaveLength(1)
       expect(result.failures[0]?.field).toBe('componentName')
@@ -394,29 +339,12 @@ describe('enrichComponents', () => {
         '/src/orders/order.controller.ts',
         'const x = 1\nexport class OrderController {}',
       )
-
-      const draft = apiDraft('OrderController', file, 99, 'orders')
-      const drafts: DraftComponent[] = [draft]
-
-      const module: Module = {
-        name: 'orders',
-        path: '/src/orders/**',
-        api: {
-          find: 'classes',
-          where: { nameEndsWith: { suffix: 'Controller' } },
-          extract: { componentName: { fromClassName: true } },
-        },
-        useCase: { notUsed: true },
-        domainOp: { notUsed: true },
-        event: { notUsed: true },
-        eventHandler: { notUsed: true },
-        eventPublisher: { notUsed: true },
-        ui: { notUsed: true },
-      }
-
-      const config = configWithModules([module])
-
-      const result = enrichComponents(drafts, config, sharedProject, alwaysMatchGlob(), '/')
+      const module = moduleWith('api', {
+        find: 'classes',
+        where: { nameEndsWith: { suffix: 'Controller' } },
+        extract: { componentName: { fromClassName: true } },
+      })
+      const result = enrich([draft('api', 'OrderController', file, 99)], [module])
 
       expect(result.failures).toHaveLength(1)
       expect(result.failures[0]?.field).toBe('componentName')
