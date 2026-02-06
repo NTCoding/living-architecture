@@ -2,7 +2,7 @@
 
 CLI tool for building and querying Rivière architecture graphs.
 
-Architecture defined in [ADR-003](../../docs/architecture/adr/ADR-003-riviere-cli-architecture.md).
+Architecture defined in [ADR-002](../../docs/architecture/adr/ADR-002-allowed-folder-structures.md).
 
 ## Workflow Prompts
 
@@ -14,17 +14,7 @@ If a command's flags, behavior, or output format changes, ensure the workflow pr
 
 ## Layer Pattern
 
-Each layer maps its input to the next layer's types:
-
-```text
-entrypoint (CLI options) → command (command input) → domain (domain types)
-```
-
-- **Entrypoint**: Defines CLI options, maps to command input, calls command
-- **Command**: Validates, maps to domain types, does load→mutate→persist
-- **Domain**: Pure logic, takes domain types only, no infra imports
-
-Example: `features/builder/*/add-component.ts`
+Follows [`development-skills:separation-of-concerns`](https://github.com/NTCoding/claude-skillz/blob/main/separation-of-concerns/SKILL.md) skill. See decision tree (Q1-Q7) for code placement.
 
 ## Commands
 

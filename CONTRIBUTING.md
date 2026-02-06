@@ -47,7 +47,7 @@ chore: update dependencies
 Follow the conventions in [`docs/conventions/`](docs/conventions/):
 - [`software-design.md`](docs/conventions/software-design.md) — Design principles
 - [`testing.md`](docs/conventions/testing.md) — Testing requirements
-- [`codebase-structure.md`](docs/conventions/codebase-structure.md) — Project organization
+- Code placement follows the [`development-skills:separation-of-concerns`](https://github.com/NTCoding/claude-skillz/blob/main/separation-of-concerns/SKILL.md) skill
 
 ## Testing Requirements
 

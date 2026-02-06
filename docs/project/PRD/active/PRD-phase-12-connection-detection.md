@@ -805,7 +805,7 @@ Connection detection uses the same ts-morph `Project`, same source files, same A
 
 **9.1.2 `connection-detection/` is a domain capability in `riviere-extract-ts`** (Firm)
 
-Per ADR-005, libraries are pure domain — no `features/` wrapper. New capability alongside existing ones:
+Per ADR-002, libraries are pure domain — no `features/` wrapper. New capability alongside existing ones:
 
 ```text
 riviere-extract-ts/src/domain/

@@ -2,7 +2,7 @@
 
 TypeScript extractor for detecting architectural components from source code using ts-morph.
 
-Architecture defined in [ADR-005](../../docs/architecture/adr/ADR-005-riviere-extract-ts-architecture.md).
+Architecture defined in [ADR-002](../../docs/architecture/adr/ADR-002-allowed-folder-structures.md).
 
 ## Purpose
 

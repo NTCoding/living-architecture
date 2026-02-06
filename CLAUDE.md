@@ -30,7 +30,7 @@ Key documents:
 - `docs/architecture/domain-terminology/contextive/definitions.glossary.yml`
 - `docs/architecture/adr/` - Decision records
 
-All code must follow `docs/conventions/codebase-structure.md`.
+All code must follow the audit checklist in the [`development-skills:separation-of-concerns`](https://github.com/NTCoding/claude-skillz/blob/main/separation-of-concerns/SKILL.md) skill.
 
 Use domain terminology from the contextive definitions. Do not invent new terms or use technical jargon when domain terminology exists.
 
@@ -45,17 +45,9 @@ Always use nx commands for build, test, lint. Don't try to run directly e.g. `pn
 ```bash
 # All projects
 pnpm nx run-many -t build
-pnpm nx run-many -t test
-pnpm nx run-many -t lint
 
 # Specific project
-pnpm nx build [project-name]
-pnpm nx test [project-name]
 pnpm nx lint [project-name]
-
-# Affected only (CI optimization)
-pnpm nx affected -t build
-pnpm nx affected -t test
 ```
 
 ### Single Test File
@@ -122,18 +114,6 @@ All UI and UX design must conform to global brand guidelines: `/docs/brand/` (lo
 - Use environment variables for sensitive configuration
 - Do not log sensitive data (passwords, tokens, PII)
 - Validate and sanitize all external input
-
-## Tools
-
-Installed from `ntcoding/claude-skillz`:
-
-**Skills:**
-- `writing-tests` - Test naming, assertions, edge case checklists
-- `software-design-principles` - Object calisthenics, fail-fast, dependency inversion
-
-**Plugins:**
-- `task-check` - Validates task completion before marking done
-- `automatic-code-review` - Code review agent (used by /code-review and /complete-task)
 
 ## NX Guidelines
 

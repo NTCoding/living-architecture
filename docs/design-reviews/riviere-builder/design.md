@@ -258,7 +258,7 @@ packages/riviere-builder/
 **Current structure benefits:**
 - Simple navigation (few files)
 - Easy to understand for small codebase
-- Matches existing project conventions in `docs/conventions/codebase-structure.md`
+- Matches existing project conventions in the `development-skills:separation-of-concerns` skill
 
 **Recommended structure benefits:**
 - Clear separation of concerns

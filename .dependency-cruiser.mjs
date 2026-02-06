@@ -45,12 +45,19 @@ export default {
     {
       name: "entrypoint-restricted-deps",
       severity: "error",
-      comment: "Entrypoint may only import from commands/, queries/, platform/infra/",
+      comment: "Entrypoint may only import from commands/, queries/, own infra/, platform/infra/",
       from: { path: "features/([^/]+)/entrypoint/.+" },
       to: {
         path: "(features|platform|shell)/",
-        pathNot: "(features/$1/(commands|queries)/|platform/infra/)"
+        pathNot: "(features/$1/(commands|queries|infra)/|platform/infra/)"
       }
+    },
+    {
+      name: "entrypoint-no-persistence-infra",
+      severity: "error",
+      comment: "Entrypoint must not import from persistence or external-client infrastructure",
+      from: { path: "features/[^/]+/entrypoint/.+" },
+      to: { path: "platform/infra/(persistence|external-clients)/.+" }
     },
     {
       name: "domain-no-upward-deps",
@@ -62,9 +69,9 @@ export default {
     {
       name: "domain-no-infra",
       severity: "error",
-      comment: "Domain must not import from platform/infra/",
+      comment: "Domain must never import from any infra/",
       from: { path: "domain/.+" },
-      to: { path: "platform/infra/.+" }
+      to: { path: "(platform/infra|features/[^/]+/infra)/.+" }
     },
     {
       name: "no-cross-feature-imports",
@@ -87,11 +94,67 @@ export default {
       }
     },
     {
+      name: "commands-no-entrypoint",
+      severity: "error",
+      comment: "Commands must not import from entrypoint/",
+      from: { path: "features/[^/]+/commands/.+" },
+      to: { path: "features/[^/]+/entrypoint/.+" }
+    },
+    {
+      name: "commands-no-http-infra",
+      severity: "error",
+      comment: "Commands must not import from http infrastructure",
+      from: { path: "features/[^/]+/commands/.+" },
+      to: { path: "platform/infra/http/.+" }
+    },
+    {
+      name: "commands-no-mappers",
+      severity: "error",
+      comment: "Commands must not import from feature mappers",
+      from: { path: "features/[^/]+/commands/.+" },
+      to: { path: "features/[^/]+/infra/mappers/.+" }
+    },
+    {
+      name: "commands-no-middleware",
+      severity: "error",
+      comment: "Commands must not import from feature middleware",
+      from: { path: "features/[^/]+/commands/.+" },
+      to: { path: "features/[^/]+/infra/middleware/.+" }
+    },
+    {
       name: "queries-no-commands",
       severity: "error",
       comment: "Queries must not import from commands/",
       from: { path: "features/[^/]+/queries/.+" },
       to: { path: "features/[^/]+/commands/.+" }
+    },
+    {
+      name: "queries-no-entrypoint",
+      severity: "error",
+      comment: "Queries must not import from entrypoint/",
+      from: { path: "features/[^/]+/queries/.+" },
+      to: { path: "features/[^/]+/entrypoint/.+" }
+    },
+    {
+      name: "queries-no-messaging",
+      severity: "error",
+      comment: "Queries must not import from messaging infrastructure",
+      from: { path: "features/[^/]+/queries/.+" },
+      to: { path: "platform/infra/messaging/.+" }
+    },
+    {
+      name: "queries-no-mappers",
+      severity: "error",
+      comment: "Queries must not import from feature mappers",
+      from: { path: "features/[^/]+/queries/.+" },
+      to: { path: "features/[^/]+/infra/mappers/.+" }
+    },
+    {
+      name: "queries-no-middleware",
+      severity: "error",
+      comment: "Queries must not import from feature middleware",
+      from: { path: "features/[^/]+/queries/.+" },
+      to: { path: "features/[^/]+/infra/middleware/.+" }
     },
     {
       name: "commands-no-queries",
@@ -106,6 +169,20 @@ export default {
       comment: "Shell must not import from domain/",
       from: { path: "shell/.+" },
       to: { path: "(features/[^/]+/domain/|platform/domain/).+" }
+    },
+    {
+      name: "shell-no-commands",
+      severity: "error",
+      comment: "Shell must not import from commands/ directly (wire via entrypoint)",
+      from: { path: "[^/]+/src/shell/.+" },
+      to: { path: "features/[^/]+/commands/.+" }
+    },
+    {
+      name: "shell-no-queries",
+      severity: "error",
+      comment: "Shell must not import from queries/ directly (wire via entrypoint)",
+      from: { path: "[^/]+/src/shell/.+" },
+      to: { path: "features/[^/]+/queries/.+" }
     },
     {
       name: "platform-no-features",

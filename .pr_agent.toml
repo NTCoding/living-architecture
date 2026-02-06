@@ -19,7 +19,7 @@ Read and apply the coding standards from these repository files:
 - docs/conventions/anti-patterns.md - Patterns to avoid
 - docs/conventions/testing.md - Testing standards
 - docs/conventions/standard-patterns.md - Standard implementation patterns
-- docs/conventions/codebase-structure.md - Project structure rules
+- docs/architecture/adr/ADR-002-allowed-folder-structures.md - Allowed folder structures
 - docs/architecture/overview.md - System architecture
 """
 
@@ -30,6 +30,6 @@ Read and apply the coding standards from these repository files:
 - docs/conventions/anti-patterns.md - Patterns to avoid
 - docs/conventions/testing.md - Testing standards
 - docs/conventions/standard-patterns.md - Standard implementation patterns
-- docs/conventions/codebase-structure.md - Project structure rules
+- docs/architecture/adr/ADR-002-allowed-folder-structures.md - Allowed folder structures
 - docs/architecture/overview.md - System architecture
 """
