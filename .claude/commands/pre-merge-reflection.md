@@ -81,7 +81,7 @@ Create `docs/continuous-improvement/post-merge-reflections/<YYYY-MM-DD>-<branch-
 Parse each piece of feedback into individual items. For every item, determine: accepted (code was changed) or rejected (no change, with reason).
 
 ```markdown
-# Pre-Merge Reflection: <branch-name>
+# Post-Merge Reflection: <branch-name>
 
 ## Summary
 [1-2 sentences on how the task went]
@@ -194,10 +194,6 @@ Any feedback accepted from GitHub reviewers represents a process failure — it 
 [Same table structure]
 
 ---
-
-## Pipeline Improvement Proposals
-
-[Proposals derived from Pipeline Inefficiency Diagnosis — see template above]
 
 ## Recommended Follow-Ups
 [Bulleted list of proposed actions derived from the 5 Whys analyses and Pipeline Improvement Proposals above]
