@@ -112,7 +112,24 @@ Analyze the timeline above for:
 - Unnecessary retries or rework
 - Steps that could have been parallelized
 
-[Describe any inefficiencies found and how to avoid them next time]
+[Describe any inefficiencies found]
+
+### Pipeline Improvement Proposals
+
+Based on the inefficiencies identified above, propose concrete changes to reduce lead time from initial commit to PR approved. Focus on:
+
+- **Root cause of rework:** What caused iterations? How can the process prevent this class of rework?
+- **Tooling/automation gaps:** Could a check, lint rule, or pre-flight step have caught the issue earlier?
+- **Process changes:** Should steps be reordered, combined, or run in parallel?
+- **Knowledge gaps:** Did the implementer lack context that could be documented?
+
+For each proposal, use this structure:
+
+#### Proposal: [Short title]
+- **Problem:** [What happened and how much time it cost]
+- **Root cause:** [Why the current process allowed it]
+- **Proposed change:** [Specific, actionable improvement]
+- **Expected impact:** [Estimated time saved per occurrence]
 
 ## All Feedback
 
@@ -178,8 +195,12 @@ Any feedback accepted from GitHub reviewers represents a process failure — it 
 
 ---
 
+## Pipeline Improvement Proposals
+
+[Proposals derived from Pipeline Inefficiency Diagnosis — see template above]
+
 ## Recommended Follow-Ups
-[Bulleted list of proposed actions derived from the 5 Whys analyses above]
+[Bulleted list of proposed actions derived from the 5 Whys analyses and Pipeline Improvement Proposals above]
 ```
 
 ### 4. Commit the Reflection File

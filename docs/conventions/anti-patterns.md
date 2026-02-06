@@ -196,6 +196,51 @@ gh api ... --input - <<< "$BODY"
 
 ---
 
+## AP-009: Inconsistent Patterns Between Related Functions
+
+🚨 **Related functions must use consistent formatting, error messages, naming conventions, and response structures.**
+
+Users experience the product as a whole. When two functions that do similar things use different patterns, it signals carelessness and creates confusion. This applies to:
+
+- Error message formatting (e.g., one function uses `Expected X, got Y` while its sibling uses `Invalid value: Y`)
+- Response/output structures across related endpoints
+- Parameter naming conventions between related functions
+- Logging patterns within the same feature
+
+### ❌ Bad
+
+```typescript
+// Two parse functions in the same module with different error styles
+function parseComponentInput(raw: RawComponentInput): ComponentInput {
+  if (!raw.type) throw new Error(`Expected type, got undefined`)
+  // ...
+}
+
+function parseConnectionInput(raw: RawConnectionInput): ConnectionInput {
+  if (!raw.source) throw new Error(`Invalid input: missing source`)
+  // ...
+}
+```
+
+### ✓ Good
+
+```typescript
+// Consistent error formatting across related functions
+function parseComponentInput(raw: RawComponentInput): ComponentInput {
+  if (!raw.type) throw new Error(`Expected type in component input, got undefined`)
+  // ...
+}
+
+function parseConnectionInput(raw: RawConnectionInput): ConnectionInput {
+  if (!raw.source) throw new Error(`Expected source in connection input, got undefined`)
+  // ...
+}
+```
+
+**Detection:** When adding or modifying a function, check sibling functions in the same module/feature for the same kind of operation. Verify patterns are consistent.
+
+---
+
 ## AP-008: Unused Variables in Shell Scripts
 
 🚨 **Flag any variables that are extracted or assigned but never used.** Remove the variable or use it.

@@ -105,7 +105,7 @@ Wired `detectConnections` from `riviere-extract-ts` into the `riviere extract` C
 | **5. What improvement prevents this next time?** | Add RFC: "When adding a function that mirrors an existing function, verify formatting/patterns are consistent" |
 
 **Root Cause:** New function didn't follow the pattern of its sibling function.
-**Recommended Fix:** Add RFC to review-feedback-checks.md for consistent patterns across related functions.
+**Recommended Fix:** Add anti-pattern AP-009: Inconsistent Patterns Between Related Functions.
 
 ### Failure 2: Missing `afterEach(() => vi.restoreAllMocks())` in test file
 
@@ -118,7 +118,7 @@ Wired `detectConnections` from `riviere-extract-ts` into the `riviere extract` C
 | **5. What improvement prevents this next time?** | Extend TS-012 or add new rule: "When vi.spyOn is used, verify afterEach restores mocks" |
 
 **Root Cause:** TS-012 checks mock mechanism but not mock cleanup.
-**Recommended Fix:** Add RFC: "Files using vi.spyOn must have afterEach(() => vi.restoreAllMocks())".
+**Recommended Fix:** Add RFC-016: Mock Cleanup After vi.spyOn (bug-scanner detection).
 
 ### Failure 3: Misleading test name ("precision" when testing "truncation")
 
@@ -161,8 +161,26 @@ Wired `detectConnections` from `riviere-extract-ts` into the `riviere extract` C
 
 ---
 
+## Pipeline Improvement Proposals
+
+### Proposal: Pre-flight layer placement check for simple function calls
+
+- **Problem:** 4 architecture review iterations (~40 minutes) to place `detectConnections` correctly. Moved commands/ → queries/ → split query/presentation → inlined in entrypoint.
+- **Root cause:** No guidance on when a function call is too simple for commands/ or queries/ wrappers. The decision tree in separation-of-concerns covers _what_ belongs where, but doesn't address the case where a single function call has no orchestration value.
+- **Proposed change:** Add guidance to separation-of-concerns or the task workflow: "Before creating a command or query wrapper, check if the function being called requires orchestration (loading, domain logic, persistence). If it's a single function call with no orchestration, inline it in the entrypoint."
+- **Expected impact:** ~30 minutes saved per occurrence (eliminates multiple architecture review iterations for trivial wrappers).
+
+### Proposal: Run architecture review before first commit, not after
+
+- **Problem:** Architecture placement issues were only caught after code was written and committed, requiring rework.
+- **Root cause:** The workflow runs architecture review as a post-implementation gate. For layer placement decisions, this is too late — the code is already written in the wrong place.
+- **Proposed change:** Add a "placement check" step to the task workflow before implementation: identify which layer(s) will be touched, verify against the decision tree, then implement.
+- **Expected impact:** ~20 minutes saved when layer placement is non-obvious. Front-loads the decision that currently causes the most rework.
+
 ## Recommended Follow-Ups
 
-- Add RFC: "When adding a function that mirrors an existing function, verify formatting/patterns are consistent"
-- Add RFC: "Files using vi.spyOn must have afterEach(() => vi.restoreAllMocks())"
+- ✅ Added AP-009: Inconsistent Patterns Between Related Functions (anti-patterns.md)
+- ✅ Added RFC-016: Mock Cleanup After vi.spyOn (review-feedback-checks.md)
 - Add RFC: "Prefer for-of over forEach for side-effect-only iteration"
+- Create task: Add pre-implementation placement check to task workflow
+- Create task: Add "single function call = inline in entrypoint" guidance to separation-of-concerns

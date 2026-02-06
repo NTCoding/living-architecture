@@ -153,7 +153,7 @@ When reviewing files within the same feature/module, check for inconsistent appr
 
 ## Priority 6: Review Feedback Checks
 
-Read `docs/conventions/review-feedback-checks.md` and apply each RFC check (RFC-001 through RFC-010) to changed code.
+Read `docs/conventions/review-feedback-checks.md` and apply each RFC check to changed code.
 
 ## Severity Levels
 
@@ -212,7 +212,7 @@ Rule sets to audit (every ID must appear in every file's table):
 - Dangerous Config Changes: BS-011
 - Security Issues: BS-012 through BS-014
 - Inconsistent Patterns: BS-015
-- Review Feedback Checks: RFC-001 through RFC-010
+- Review Feedback Checks: All RFC checks from `docs/conventions/review-feedback-checks.md`
 
 ### 4. Audit Summary
 

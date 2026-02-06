@@ -492,6 +492,52 @@ fs.writeFileSync('config.json', JSON.stringify(data))
 
 ---
 
+## RFC-016: Mock Cleanup After vi.spyOn
+
+**Source:** PR #252 (CodeRabbit)
+
+**Pattern:** Test files use `vi.spyOn` to mock functions but don't restore mocks in `afterEach`, causing mock state to leak between tests. This leads to flaky tests and false positives/negatives.
+
+**Example (BAD):**
+```typescript
+describe('connection detection', () => {
+  it('logs timing info', () => {
+    vi.spyOn(console, 'log').mockImplementation(() => {})
+    detectConnections(input)
+    expect(console.log).toHaveBeenCalled()
+  })
+
+  it('runs without logging', () => {
+    // console.log is STILL mocked from previous test!
+    detectConnections(input)
+  })
+})
+```
+
+**Example (GOOD):**
+```typescript
+describe('connection detection', () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('logs timing info', () => {
+    vi.spyOn(console, 'log').mockImplementation(() => {})
+    detectConnections(input)
+    expect(console.log).toHaveBeenCalled()
+  })
+
+  it('runs without logging', () => {
+    // console.log is properly restored
+    detectConnections(input)
+  })
+})
+```
+
+**Detection:** Any test file using `vi.spyOn` must have `afterEach(() => { vi.restoreAllMocks() })` in the same `describe` block or a parent `describe` block. Flag files with `vi.spyOn` but no `vi.restoreAllMocks` in an `afterEach`.
+
+---
+
 ## Adding New Checks
 
 When external review feedback reveals a pattern:
