@@ -19,17 +19,48 @@ class NonReflectionFilesError extends Error {
   }
 }
 
-export async function executePushReflection(): Promise<{ pushedFiles: string[] }> {
+class MissingReflectionError extends Error {
+  constructor() {
+    super(
+      '--follow-ups requires a reflection file in a prior commit on this branch.\n' +
+        'Run push-reflection without --follow-ups first to push the reflection commit.',
+    )
+    this.name = 'MissingReflectionError'
+  }
+}
+
+export interface PushReflectionOptions {readonly followUps: boolean}
+
+export async function executePushReflection(
+  options: PushReflectionOptions,
+): Promise<{ pushedFiles: string[] }> {
   const files = await git.lastCommitFiles()
   if (files.length === 0) {
     throw new EmptyCommitError()
   }
 
-  const nonReflectionFiles = files.filter((f) => !f.startsWith(REFLECTION_DIR))
-  if (nonReflectionFiles.length > 0) {
-    throw new NonReflectionFilesError(nonReflectionFiles)
+  if (options.followUps) {
+    await verifyReflectionExistsInPriorCommits()
+  } else {
+    rejectNonReflectionFiles(files)
   }
 
   await git.push()
   return { pushedFiles: files }
+}
+
+async function verifyReflectionExistsInPriorCommits(): Promise<void> {
+  const baseBranch = await git.baseBranch()
+  const priorFiles = await git.branchFilesPriorToHead(baseBranch)
+  const hasReflection = priorFiles.some((f) => f.startsWith(REFLECTION_DIR))
+  if (!hasReflection) {
+    throw new MissingReflectionError()
+  }
+}
+
+function rejectNonReflectionFiles(files: string[]): void {
+  const nonReflectionFiles = files.filter((f) => !f.startsWith(REFLECTION_DIR))
+  if (nonReflectionFiles.length > 0) {
+    throw new NonReflectionFilesError(nonReflectionFiles)
+  }
 }

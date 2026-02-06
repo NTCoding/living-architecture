@@ -254,6 +254,37 @@ describe('git.lastCommitFiles', () => {
   })
 })
 
+describe('git.branchFilesPriorToHead', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('returns files changed on branch excluding latest commit', async () => {
+    mockRepo.diff.mockResolvedValue('reflection.md\nother.ts\n')
+
+    const files = await git.branchFilesPriorToHead('main')
+
+    expect(files).toStrictEqual(['reflection.md', 'other.ts'])
+    expect(mockRepo.diff).toHaveBeenCalledWith(['--name-only', 'main...HEAD~1'])
+  })
+
+  it('returns empty array when no prior commits on branch', async () => {
+    mockRepo.diff.mockResolvedValue('')
+
+    const files = await git.branchFilesPriorToHead('main')
+
+    expect(files).toStrictEqual([])
+  })
+
+  it('filters empty lines', async () => {
+    mockRepo.diff.mockResolvedValue('file.md\n\n')
+
+    const files = await git.branchFilesPriorToHead('main')
+
+    expect(files).toStrictEqual(['file.md'])
+  })
+})
+
 describe('git.headSha', () => {
   beforeEach(() => {
     vi.clearAllMocks()

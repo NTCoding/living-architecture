@@ -229,10 +229,15 @@ Please review it, then we can discuss the recommended follow-ups.
 Based on user's feedback on the reflection:
 - Adjust any 5 Whys analyses the user disagrees with
 - Finalize which follow-ups to act on
-- For agreed follow-ups:
-  - Add new RFCs to `docs/conventions/review-feedback-checks.md` if applicable
-  - Create GitHub issues using `./scripts/create-non-milestone-task.sh --type tech` for process fixes
-- If changes were made, amend the commit or create a new commit
+- For agreed follow-ups that involve convention/process file changes (RFCs, anti-patterns, templates):
+  - Make the changes on this branch
+  - Update the reflection file's "Recommended Follow-Ups" to mark completed items with ✅
+  - Commit the changes (separate from the reflection commit)
+  - Push using: `pnpm nx run dev-workflow:push-reflection -- --follow-ups`
+- For larger follow-ups (new features, significant refactoring):
+  - Create GitHub issues using `./scripts/create-non-milestone-task.sh --type tech`
+
+**Note:** `--follow-ups` only works if the reflection file was already pushed in a prior commit. It cannot be used to bypass the reflection process.
 
 ### 7. Complete
 

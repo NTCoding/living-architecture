@@ -92,4 +92,9 @@ export const git = {
     const diff = await repo.diff(['--name-only', 'HEAD~1', 'HEAD'])
     return diff.split('\n').filter(Boolean)
   },
+
+  async branchFilesPriorToHead(baseBranch: string): Promise<string[]> {
+    const diff = await repo.diff(['--name-only', `${baseBranch}...HEAD~1`])
+    return diff.split('\n').filter(Boolean)
+  },
 }

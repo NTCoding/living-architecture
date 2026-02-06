@@ -1,7 +1,10 @@
 #!/usr/bin/env tsx
+import { cli } from '../../../platform/infra/external-clients/cli-args'
 import { executePushReflection } from '../commands/push-reflection'
 
-executePushReflection()
+const followUps = cli.hasFlag('--follow-ups')
+
+executePushReflection({ followUps })
   .then((result) => {
     console.log(
       JSON.stringify({
