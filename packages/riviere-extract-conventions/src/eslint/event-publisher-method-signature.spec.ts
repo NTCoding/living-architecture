@@ -320,6 +320,11 @@ describe('event-publisher-method-signature', () => {
   })
 
   // --- Typed linting tests (with type checker) ---
+  const TYPE_AWARE_TIMEOUT = 30_000
+  const originalIt = RuleTester.it
+  const timedIt: typeof RuleTester.it = (name, fn) => it(name, fn, TYPE_AWARE_TIMEOUT)
+  RuleTester.it = timedIt
+
   typedRuleTester.run('event-publisher-method-signature (typed)', rule, {
     valid: [
       {
@@ -392,4 +397,6 @@ describe('event-publisher-method-signature', () => {
       },
     ],
   })
+
+  RuleTester.it = originalIt
 })
