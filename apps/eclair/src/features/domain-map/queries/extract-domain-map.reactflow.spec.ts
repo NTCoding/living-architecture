@@ -239,7 +239,7 @@ describe('extractDomainMap React Flow compatibility', () => {
           name: 'EH 1',
           domain: 'payments',
           module: 'm2',
-          subscribedEvents: ['E1'],
+          subscribedEvents: ['Ev1'],
         }),
       ],
       links: [

@@ -123,9 +123,7 @@ export function getRepositoryInfo(
       const stderr = (() => {
         const stderrValue: unknown = Object.getOwnPropertyDescriptor(error, 'stderr')?.value
         if (!stderrValue) {
-          throw new GitError(
-            `Expected stderr property on error, got: ${Object.keys(error).join(', ')}`,
-          )
+          throw error
         }
         return String(stderrValue)
       })()

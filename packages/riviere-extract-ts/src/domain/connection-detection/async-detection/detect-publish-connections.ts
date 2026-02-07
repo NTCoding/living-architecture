@@ -35,7 +35,7 @@ function extractPublisherLinks(
   const publishedEventType = publisher.metadata['publishedEventType']
   if (typeof publishedEventType === 'string') {
     const sourceLocation: RequiredLineLocation = {
-      repository: '',
+      repository,
       filePath: publisher.location.file,
       lineNumber: publisher.location.line,
     }

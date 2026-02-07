@@ -16,12 +16,12 @@
     ]
   },
   "ask": [
-     "Edit(./eslint.config.mjs)",
-     "Write(./.dependency-cruiser.mjs)",
-      "Write(./.dependency-cruiser.frontend.mjs)",
-       "Edit(./.dependency-cruiser.mjs)",
-      "Edit(./.dependency-cruiser.frontend.mjs)",
-      "Write(./eslint.config.mjs)"
+    "Edit(./eslint.config.mjs)",
+    "Write(./.dependency-cruiser.mjs)",
+    "Write(./.dependency-cruiser.frontend.mjs)",
+    "Edit(./.dependency-cruiser.mjs)",
+    "Edit(./.dependency-cruiser.frontend.mjs)",
+    "Write(./eslint.config.mjs)"
   ],
   "hooks": {
     "PreToolUse": [
