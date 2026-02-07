@@ -66,7 +66,7 @@ interface ClassLookup {
 function findClassByNameInProject(project: Project, typeName: string): ClassLookup | undefined {
   for (const sourceFile of project.getSourceFiles()) {
     for (const classDecl of sourceFile.getClasses()) {
-      if (classDecl.getName() === typeName) {
+      if (classDecl.getType().getSymbol()?.getName() === typeName) {
         return {
           classDecl,
           sourceFile,
