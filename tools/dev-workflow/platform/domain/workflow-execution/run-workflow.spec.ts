@@ -141,7 +141,8 @@ describe('runWorkflow', () => {
 
     await vi.waitFor(() => {
       expect(mockIO.logCalls.length).toBeGreaterThan(0)
-      const output = mockIO.logCalls[0] ?? ''
+      const output = mockIO.logCalls[0]
+      expect(output).toBeTruthy()
       expect(output).toContain('data')
       expect(JSON.parse(output)).toMatchObject({ data: 'test' })
     })
@@ -161,7 +162,7 @@ describe('runWorkflow', () => {
     runWorkflow(steps, buildContext, formatResult, { io: mockIO })
 
     await vi.waitFor(() => {
-      const output = mockIO.logCalls[0] ?? ''
+      const output = mockIO.logCalls[0]
       const parsed = outputSchema.parse(JSON.parse(output))
       expect(parsed).toMatchObject({ custom: 'format' })
     })
@@ -180,7 +181,7 @@ describe('runWorkflow', () => {
     runWorkflow(steps, buildContext, undefined, { io: mockIO })
 
     await vi.waitFor(() => {
-      const output = mockIO.logCalls[0] ?? ''
+      const output = mockIO.logCalls[0]
       const parsed = outputSchema.parse(JSON.parse(output))
       expect(parsed.success).toStrictEqual(true)
     })

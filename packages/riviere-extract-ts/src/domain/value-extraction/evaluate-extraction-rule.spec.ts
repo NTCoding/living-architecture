@@ -71,15 +71,16 @@ describe('evaluateFromClassNameRule', () => {
     expect(result.value).toBe('OrderController')
   })
 
-  it('returns empty string for default exported anonymous class', () => {
+  it('throws error for default exported anonymous class', () => {
     counter.value++
     const sf = sharedProject.createSourceFile(
       `test-anon-${counter.value}.ts`,
       'export default class {}',
     )
     const classDecl = sf.getClassOrThrow(() => true)
-    const result = evaluateFromClassNameRule({ fromClassName: true }, classDecl)
-    expect(result.value).toBe('')
+    expect(() => evaluateFromClassNameRule({ fromClassName: true }, classDecl)).toThrow(
+      'Expected class name, got undefined',
+    )
   })
 
   it("returns 'PlaceOrder' when transform stripSuffix 'Controller' applied", () => {

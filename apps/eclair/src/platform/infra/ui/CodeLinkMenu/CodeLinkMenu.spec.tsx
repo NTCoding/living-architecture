@@ -1,8 +1,8 @@
 import {
-  describe, it, expect, beforeEach, vi 
+  describe, it, expect, beforeEach, vi
 } from 'vitest'
 import {
-  render, screen 
+  render, screen
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { CodeLinkMenu } from './CodeLinkMenu'
@@ -54,10 +54,11 @@ describe('CodeLinkMenu', () => {
       render(<CodeLinkMenu filePath={longPath} lineNumber={4} repository="test-repo" />)
 
       const pathSpan = screen.getByTestId('code-link-path')
-      const text = pathSpan.textContent ?? ''
-      expect(text.startsWith('...')).toBe(true)
-      expect(text.endsWith('endpoint.ts:4')).toBe(true)
-      expect(text.length).toBeLessThanOrEqual(30)
+      const text = pathSpan.textContent
+      expect(text).toBeTruthy()
+      expect(text?.startsWith('...')).toBe(true)
+      expect(text?.endsWith('endpoint.ts:4')).toBe(true)
+      expect(text?.length).toBeLessThanOrEqual(30)
     })
 
     it('shows full path in title attribute for tooltip', () => {

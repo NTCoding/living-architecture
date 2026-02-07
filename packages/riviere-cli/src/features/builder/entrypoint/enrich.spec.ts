@@ -59,7 +59,9 @@ describe('riviere builder enrich', () => {
       ])
 
       expect(ctx.consoleOutput).toHaveLength(1)
-      const output: unknown = JSON.parse(ctx.consoleOutput[0] ?? '')
+      expect(ctx.consoleOutput[0]).toBeTruthy()
+
+      const output: unknown = JSON.parse(ctx.consoleOutput[0])
       expect(output).toMatchObject({
         success: false,
         error: {
@@ -84,7 +86,9 @@ describe('riviere builder enrich', () => {
       ])
 
       expect(ctx.consoleOutput).toHaveLength(1)
-      const output: unknown = JSON.parse(ctx.consoleOutput[0] ?? '')
+      expect(ctx.consoleOutput[0]).toBeTruthy()
+
+      const output: unknown = JSON.parse(ctx.consoleOutput[0])
       expect(output).toMatchObject({
         success: false,
         error: { code: CliErrorCode.InvalidComponentType },
@@ -106,7 +110,9 @@ describe('riviere builder enrich', () => {
       ])
 
       expect(ctx.consoleOutput).toHaveLength(1)
-      const output: unknown = JSON.parse(ctx.consoleOutput[0] ?? '')
+      expect(ctx.consoleOutput[0]).toBeTruthy()
+
+      const output: unknown = JSON.parse(ctx.consoleOutput[0])
       expect(output).toMatchObject({
         success: false,
         error: { code: CliErrorCode.ValidationError },
@@ -128,7 +134,9 @@ describe('riviere builder enrich', () => {
       ])
 
       expect(ctx.consoleOutput).toHaveLength(1)
-      const output: unknown = JSON.parse(ctx.consoleOutput[0] ?? '')
+      expect(ctx.consoleOutput[0]).toBeTruthy()
+
+      const output: unknown = JSON.parse(ctx.consoleOutput[0])
       expect(output).toMatchObject({
         success: false,
         error: { code: CliErrorCode.ValidationError },
@@ -293,7 +301,9 @@ describe('riviere builder enrich', () => {
       ])
 
       expect(ctx.consoleOutput).toHaveLength(1)
-      const output: unknown = JSON.parse(ctx.consoleOutput[0] ?? '')
+      expect(ctx.consoleOutput[0]).toBeTruthy()
+
+      const output: unknown = JSON.parse(ctx.consoleOutput[0])
       expect(output).toMatchObject({
         success: true,
         data: { componentId: 'orders:checkout:domainop:confirm-order' },

@@ -45,7 +45,12 @@ export function evaluateFromClassNameRule(
   rule: FromClassNameExtractionRule,
   classDecl: ClassDeclaration,
 ): ExtractionResult {
-  const className = classDecl.getName() ?? ''
+  const className = classDecl.getName()
+  if (!className) {
+    const filePath = classDecl.getSourceFile().getFilePath()
+    const lineNumber = classDecl.getStartLineNumber()
+    throw new ExtractionError('Expected class name, got undefined', filePath, lineNumber)
+  }
 
   if (rule.fromClassName === true) {
     return { value: className }
@@ -299,10 +304,22 @@ export function evaluateFromDecoratorArgRule(
     position, name, transform 
   } = rule.fromDecoratorArg
 
-  const value =
-    position === undefined
-      ? extractNamedArg(decorator, name ?? '')
-      : extractPositionalArg(decorator, position)
+  const extractValue = (): string => {
+    if (position !== undefined) {
+      return extractPositionalArg(decorator, position)
+    }
+    if (!name) {
+      const location = getDecoratorLocation(decorator)
+      throw new ExtractionError(
+        'Expected name parameter when position is undefined',
+        location.filePath,
+        location.line,
+      )
+    }
+    return extractNamedArg(decorator, name)
+  }
+
+  const value = extractValue()
 
   if (transform === undefined) {
     return { value }

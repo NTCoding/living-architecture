@@ -43,7 +43,9 @@ describe('riviere builder add-component', () => {
       await program.parseAsync(buildAddComponentArgs({ type: 'InvalidType' }))
 
       expect(ctx.consoleOutput).toHaveLength(1)
-      const output: unknown = JSON.parse(ctx.consoleOutput[0] ?? '')
+      expect(ctx.consoleOutput[0]).toBeTruthy()
+
+      const output: unknown = JSON.parse(ctx.consoleOutput[0])
       expect(output).toMatchObject({
         success: false,
         error: {
@@ -308,7 +310,9 @@ describe('riviere builder add-component', () => {
       )
 
       expect(ctx.consoleOutput).toHaveLength(1)
-      const output: unknown = JSON.parse(ctx.consoleOutput[0] ?? '')
+      expect(ctx.consoleOutput[0]).toBeTruthy()
+
+      const output: unknown = JSON.parse(ctx.consoleOutput[0])
       expect(output).toMatchObject({
         success: true,
         data: { componentId: 'orders:checkout:ui:checkout-page' },

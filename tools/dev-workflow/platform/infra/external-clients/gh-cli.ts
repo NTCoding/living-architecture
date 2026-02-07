@@ -22,8 +22,8 @@ const processErrorSchema = z.object({
 function extractProcessOutput(error: unknown): string {
   const parsed = processErrorSchema.safeParse(error)
   if (parsed.success) {
-    const stdout = parsed.data.stdout?.trim() ?? ''
-    const stderr = parsed.data.stderr?.trim() ?? ''
+    const stdout = parsed.data.stdout?.trim()
+    const stderr = parsed.data.stderr?.trim()
     const combined = [stdout, stderr].filter(Boolean).join('\n')
     if (combined.length > 0) {
       return combined

@@ -30,7 +30,8 @@ export const nx = {
     } catch (error) {
       const parsed = execErrorSchema.safeParse(error)
       if (parsed.success) {
-        const output = (parsed.data.stdout ?? '') + (parsed.data.stderr ?? '') + parsed.data.message
+        const parts = [parsed.data.stdout, parsed.data.stderr, parsed.data.message].filter(Boolean)
+        const output = parts.join('\n')
         return {
           failed: true,
           output,

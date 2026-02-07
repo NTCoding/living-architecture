@@ -176,7 +176,13 @@ class JsdomTransfer {
   }
 
   getFormat(format: string): string {
-    return this.typeMap.get(format) ?? ''
+    const value = this.typeMap.get(format)
+    if (value === undefined) {
+      throw new TestAssertionError(
+        `Format '${format}' not found in mock. Available: ${Array.from(this.typeMap.keys()).join(', ')}`,
+      )
+    }
+    return value
   }
 
   setFormat(format: string, text: string): void {

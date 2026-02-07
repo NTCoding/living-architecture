@@ -120,7 +120,9 @@ describe('riviere builder enrich - signature option', () => {
     ])
 
     expect(ctx.consoleOutput).toHaveLength(1)
-    const output: unknown = JSON.parse(ctx.consoleOutput[0] ?? '')
+    expect(ctx.consoleOutput[0]).toBeTruthy()
+
+    const output: unknown = JSON.parse(ctx.consoleOutput[0])
     expect(output).toMatchObject({
       success: false,
       error: { code: CliErrorCode.ValidationError },

@@ -131,7 +131,7 @@ function generatePropertiesTable(
   for (const [propName, prop] of Object.entries(properties)) {
     const isRequired = required.includes(propName) ? '**Yes**' : 'No'
     const type = getTypeString(prop)
-    const desc = escapePipes(prop.description ?? '')
+    const desc = escapePipes(prop.description ?? '(no description)')
     lines.push(`| \`${propName}\` | ${type} | ${isRequired} | ${desc} |`)
   }
   return lines
@@ -171,7 +171,7 @@ function generateDefMarkdown(name: string, def: SchemaDef, schema: Schema): stri
       if (option.$ref) {
         const refName = getRefTypeName(option.$ref)
         const refDef = resolveRef(schema, option.$ref)
-        lines.push(`- \`${refName}\` — ${escapePipes(refDef?.description ?? '')}`)
+        lines.push(`- \`${refName}\` — ${escapePipes(refDef?.description ?? '(no description)')}`)
       }
     }
     lines.push('')
@@ -202,7 +202,7 @@ function generatePredicateOverview(predicateDef: SchemaDef, schema: Schema): str
       const refDef = resolveRef(schema, option.$ref)
       const predicateKey = refName.replace('Predicate', '')
       const key = predicateKey.charAt(0).toLowerCase() + predicateKey.slice(1)
-      lines.push(`| \`${key}\` | ${escapePipes(refDef?.description ?? '')} |`)
+      lines.push(`| \`${key}\` | ${escapePipes(refDef?.description ?? '(no description)')} |`)
     }
   }
   lines.push('')
@@ -226,7 +226,10 @@ function generateRefPredicateTable(innerProp: SchemaDef): string[] {
   lines.push('')
   lines.push('| Field | Type | Required | Description |')
   lines.push('|-------|------|----------|-------------|')
-  const refName = getRefTypeName(innerProp.$ref ?? '')
+  if (!innerProp.$ref) {
+    throw new InvalidSchemaFormatError()
+  }
+  const refName = getRefTypeName(innerProp.$ref)
   const desc = escapePipes(innerProp.description ?? `Nested ${refName}`)
   lines.push(`| (nested) | \`${refName}\` | **Yes** | ${desc} |`)
   lines.push('')

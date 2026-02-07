@@ -71,7 +71,8 @@ describe('riviere builder add-source', () => {
       ])
 
       expect(ctx.consoleOutput).toHaveLength(1)
-      const output: unknown = JSON.parse(ctx.consoleOutput[0] ?? '')
+      expect(ctx.consoleOutput[0]).toBeTruthy()
+      const output: unknown = JSON.parse(ctx.consoleOutput[0])
       expect(output).toMatchObject({
         success: true,
         data: { repository: 'https://github.com/org/repo2' },

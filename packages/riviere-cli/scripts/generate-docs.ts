@@ -50,7 +50,7 @@ function extractOptions(cmd: Command): readonly OptionInfo[] {
     .filter((opt) => opt.long !== '--help' && opt.long !== '--version')
     .map((opt) => ({
       flags: opt.flags,
-      description: opt.description ?? '',
+      description: opt.description ?? '(no description)',
       required: opt.required ?? false,
     }))
 }
@@ -162,7 +162,7 @@ function extractCommandInfo(cmd: Command, parentName: string): CommandInfo {
   return {
     name: cmd.name(),
     fullName,
-    description: cmd.description() ?? '',
+    description: cmd.description() ?? '(no description)',
     options: [...extractOptions(cmd)],
     arguments: [...extractArguments(cmd)],
     examples: extractExamples(cmd),

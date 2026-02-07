@@ -24,7 +24,8 @@ describe('validation', () => {
       const result = validateComponentType('InvalidType')
       expect(result.valid).toBe(false)
       expect(result.errorJson).toBeDefined()
-      const error: unknown = JSON.parse(result.errorJson ?? '')
+      expect(result.errorJson).toBeTruthy()
+      const error: unknown = JSON.parse(result.errorJson)
       expect(error).toMatchObject({
         success: false,
         error: {
@@ -52,7 +53,8 @@ describe('validation', () => {
       const result = validateLinkType('invalid')
       expect(result.valid).toBe(false)
       expect(result.errorJson).toBeDefined()
-      const error: unknown = JSON.parse(result.errorJson ?? '')
+      expect(result.errorJson).toBeTruthy()
+      const error: unknown = JSON.parse(result.errorJson)
       expect(error).toMatchObject({
         success: false,
         error: {
@@ -83,7 +85,8 @@ describe('validation', () => {
       const result = validateHttpMethod('INVALID')
       expect(result.valid).toBe(false)
       expect(result.errorJson).toBeDefined()
-      const error: unknown = JSON.parse(result.errorJson ?? '')
+      expect(result.errorJson).toBeTruthy()
+      const error: unknown = JSON.parse(result.errorJson)
       expect(error).toMatchObject({
         success: false,
         error: {
@@ -114,7 +117,8 @@ describe('validation', () => {
       const result = validateSystemType('backend')
       expect(result.valid).toBe(false)
       expect(result.errorJson).toBeDefined()
-      const error: unknown = JSON.parse(result.errorJson ?? '')
+      expect(result.errorJson).toBeTruthy()
+      const error: unknown = JSON.parse(result.errorJson)
       expect(error).toMatchObject({
         success: false,
         error: {

@@ -72,7 +72,7 @@ Marks this component type as not used in the module
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `notUsed` | `boolean` | **Yes** |  |
+| `notUsed` | `boolean` | **Yes** | (no description) |
 
 ---
 
@@ -84,8 +84,8 @@ Rule for detecting components of this type
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `find` | `findTarget` | **Yes** |  |
-| `where` | `predicate` | **Yes** |  |
+| `find` | `findTarget` | **Yes** | (no description) |
+| `where` | `predicate` | **Yes** | (no description) |
 | `extract` | `extractBlock` | No | Extraction rules for metadata fields |
 
 ---
@@ -122,7 +122,7 @@ Extracts value from the method name
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `fromMethodName` | `boolean` \| `object` | **Yes** |  |
+| `fromMethodName` | `boolean` \| `object` | **Yes** | (no description) |
 
 ---
 
@@ -134,7 +134,7 @@ Extracts value from the file path using regex capture
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `fromFilePath` | `object` | **Yes** |  |
+| `fromFilePath` | `object` | **Yes** | (no description) |
 
 ---
 
@@ -146,7 +146,7 @@ Extracts value from a class property
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `fromProperty` | `object` | **Yes** |  |
+| `fromProperty` | `object` | **Yes** | (no description) |
 
 ---
 
@@ -158,7 +158,7 @@ Extracts value from decorator argument
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `fromDecoratorArg` | `object` | **Yes** |  |
+| `fromDecoratorArg` | `object` | **Yes** | (no description) |
 
 ---
 
@@ -170,7 +170,7 @@ Extracts value from the decorator name itself
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `fromDecoratorName` | `boolean` \| `object` | **Yes** |  |
+| `fromDecoratorName` | `boolean` \| `object` | **Yes** | (no description) |
 
 ---
 
@@ -182,7 +182,7 @@ Extracts value from generic type argument
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `fromGenericArg` | `object` | **Yes** |  |
+| `fromGenericArg` | `object` | **Yes** | (no description) |
 
 ---
 
@@ -194,7 +194,7 @@ Extracts method parameters and return type
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `fromMethodSignature` | `boolean` | **Yes** |  |
+| `fromMethodSignature` | `boolean` | **Yes** | (no description) |
 
 ---
 
@@ -206,7 +206,7 @@ Extracts constructor parameter names and types
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `fromConstructorParams` | `boolean` | **Yes** |  |
+| `fromConstructorParams` | `boolean` | **Yes** | (no description) |
 
 ---
 
@@ -218,7 +218,7 @@ Extracts type name of parameter at position
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `fromParameterType` | `object` | **Yes** |  |
+| `fromParameterType` | `object` | **Yes** | (no description) |
 
 ---
 
@@ -242,12 +242,12 @@ Transform operations to apply to extracted value
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `stripSuffix` | `string` | No |  |
-| `stripPrefix` | `string` | No |  |
-| `toLowerCase` | `boolean` | No |  |
-| `toUpperCase` | `boolean` | No |  |
-| `kebabToPascal` | `boolean` | No |  |
-| `pascalToKebab` | `boolean` | No |  |
+| `stripSuffix` | `string` | No | (no description) |
+| `stripPrefix` | `string` | No | (no description) |
+| `toLowerCase` | `boolean` | No | (no description) |
+| `toUpperCase` | `boolean` | No | (no description) |
+| `kebabToPascal` | `boolean` | No | (no description) |
+| `pascalToKebab` | `boolean` | No | (no description) |
 
 ---
 
@@ -296,8 +296,8 @@ A pattern for detecting connections between components
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `name` | `string` | **Yes** | Pattern identifier |
-| `find` | `connectionFinder` | **Yes** |  |
-| `where` | `connectionWhereClause` | **Yes** |  |
+| `find` | `connectionFinder` | **Yes** | (no description) |
+| `where` | `connectionWhereClause` | **Yes** | (no description) |
 | `extract` | `connectionExtractBlock` | No | Extraction rules for connection metadata |
 | `linkType` | `"sync"` \| `"async"` | **Yes** | Type of connection: sync or async |
 
@@ -364,7 +364,7 @@ Extracts the static type name of the receiver
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `fromReceiverType` | `boolean` | **Yes** |  |
+| `fromReceiverType` | `boolean` | **Yes** | (no description) |
 
 ---
 
@@ -376,7 +376,7 @@ Extracts the static type name of the caller
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `fromCallerType` | `boolean` | **Yes** |  |
+| `fromCallerType` | `boolean` | **Yes** | (no description) |
 
 ---
 

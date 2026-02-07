@@ -143,7 +143,9 @@ describe('riviere builder link-http', () => {
     it('returns error when no API matches path', async () => {
       await createGraph([singleApi])
       await createProgram().parseAsync(buildArgs({ path: '/nonexistent' }))
-      const output: unknown = JSON.parse(ctx.consoleOutput[0] ?? '')
+      expect(ctx.consoleOutput[0]).toBeTruthy()
+
+      const output: unknown = JSON.parse(ctx.consoleOutput[0])
       expect(output).toMatchObject({
         success: false,
         error: { code: CliErrorCode.ComponentNotFound },
@@ -153,7 +155,9 @@ describe('riviere builder link-http', () => {
     it('returns error without suggestions when graph has no APIs', async () => {
       await createGraph([])
       await createProgram().parseAsync(buildArgs({}))
-      const output: unknown = JSON.parse(ctx.consoleOutput[0] ?? '')
+      expect(ctx.consoleOutput[0]).toBeTruthy()
+
+      const output: unknown = JSON.parse(ctx.consoleOutput[0])
       expect(output).toMatchObject({
         success: false,
         error: { code: 'COMPONENT_NOT_FOUND' },
@@ -164,7 +168,9 @@ describe('riviere builder link-http', () => {
     it('returns error when multiple APIs match path without --method filter', async () => {
       await createGraph(multipleApis)
       await createProgram().parseAsync(buildArgs({}))
-      const output: unknown = JSON.parse(ctx.consoleOutput[0] ?? '')
+      expect(ctx.consoleOutput[0]).toBeTruthy()
+
+      const output: unknown = JSON.parse(ctx.consoleOutput[0])
       expect(output).toMatchObject({
         success: false,
         error: { code: 'AMBIGUOUS_API_MATCH' },
@@ -187,7 +193,9 @@ describe('riviere builder link-http', () => {
     it('outputs success JSON with link and matched API details', async () => {
       await createGraph([singleApi])
       await createProgram().parseAsync(buildArgs({}))
-      const output: unknown = JSON.parse(ctx.consoleOutput[0] ?? '')
+      expect(ctx.consoleOutput[0]).toBeTruthy()
+
+      const output: unknown = JSON.parse(ctx.consoleOutput[0])
       expect(output).toMatchObject({
         success: true,
         data: {
@@ -249,7 +257,9 @@ describe('riviere builder link-http', () => {
     }) => {
       await createGraph([singleApi])
       await createProgram().parseAsync(buildArgs(override))
-      const output: unknown = JSON.parse(ctx.consoleOutput[0] ?? '')
+      expect(ctx.consoleOutput[0]).toBeTruthy()
+
+      const output: unknown = JSON.parse(ctx.consoleOutput[0])
       expect(output).toMatchObject({
         success: false,
         error: {

@@ -57,7 +57,13 @@ function runGit(
     // Justification: git CLI only reports repo status via stderr text
     const stderr =
       error instanceof Error && 'stderr' in error
-        ? String(Object.getOwnPropertyDescriptor(error, 'stderr')?.value ?? '')
+        ? (() => {
+          const stderrValue: unknown = Object.getOwnPropertyDescriptor(error, 'stderr')?.value
+          if (!stderrValue) {
+            throw error
+          }
+          return String(stderrValue)
+        })()
         : ''
     if (stderr.includes('not a git repository')) {
       throw new GitError('NOT_A_REPOSITORY', 'Run from within a git repository.')
@@ -114,7 +120,15 @@ export function getRepositoryInfo(
     return parseRepositoryUrl(url)
   } catch (error) {
     if (error instanceof Error && 'stderr' in error) {
-      const stderr = String(Object.getOwnPropertyDescriptor(error, 'stderr')?.value ?? '')
+      const stderr = (() => {
+        const stderrValue: unknown = Object.getOwnPropertyDescriptor(error, 'stderr')?.value
+        if (!stderrValue) {
+          throw new GitError(
+            `Expected stderr property on error, got: ${Object.keys(error).join(', ')}`,
+          )
+        }
+        return String(stderrValue)
+      })()
       if (stderr.includes('No such remote')) {
         throw new GitError('NO_REMOTE', 'No git remote named "origin" found.')
       }

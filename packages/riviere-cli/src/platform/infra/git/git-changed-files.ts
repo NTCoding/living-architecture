@@ -47,7 +47,13 @@ function runGit(
     // Justification: git CLI only reports repo status via stderr text
     const stderr =
       error instanceof Error && 'stderr' in error
-        ? String(Object.getOwnPropertyDescriptor(error, 'stderr')?.value ?? '')
+        ? (() => {
+          const stderrValue: unknown = Object.getOwnPropertyDescriptor(error, 'stderr')?.value
+          if (!stderrValue) {
+            throw error
+          }
+          return String(stderrValue)
+        })()
         : ''
     if (stderr.includes('not a git repository')) {
       throw new GitError('NOT_A_REPOSITORY', 'Run from within a git repository.')
