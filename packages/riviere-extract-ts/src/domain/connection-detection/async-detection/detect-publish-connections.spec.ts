@@ -152,6 +152,32 @@ class MetaEvent {}
     ).toThrow(ConnectionDetectionError)
   })
 
+  it('returns uncertain link in lenient mode when metadata publishedEventType matches multiple Events', () => {
+    const event1 = buildComponent('AmbigMetaA', '/src/ambig-len-a.ts', 1, {
+      type: 'event',
+      metadata: { eventName: 'SharedLenientMeta' },
+    })
+    const event2 = buildComponent('AmbigMetaB', '/src/ambig-len-b.ts', 1, {
+      type: 'event',
+      metadata: { eventName: 'SharedLenientMeta' },
+    })
+    const publisher = buildComponent('publishAmbigLenient', '/src/meta-ambig-len.ts', 1, {
+      type: 'eventPublisher',
+      metadata: { publishedEventType: 'SharedLenientMeta' },
+    })
+
+    const result = detectPublishConnections(sharedProject, [event1, event2, publisher], {strict: false,})
+
+    expect(result).toStrictEqual([
+      expect.objectContaining({
+        source: 'orders:eventPublisher:publishAmbigLenient',
+        target: '_unresolved',
+        type: 'async',
+        _uncertain: expect.stringContaining('ambiguous'),
+      }),
+    ])
+  })
+
   it('returns empty array when publisher has no public methods', () => {
     const filePath = nextFile(`
 class EmptyPublisher {}
