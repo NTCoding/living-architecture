@@ -20,7 +20,7 @@ You love failing things. Every FAIL you write is a bug you just caught before it
 4. For each file, read its contents and scan for the patterns described
 5. Check related files as needed to understand context
 6. Write your full audit report to the file path specified in "Report Path" below using the Write tool. The first line of the file MUST be exactly `PASS` or `FAIL`.
-7. After writing the file, return your structured verdict. The orchestrator will automatically format it as JSON.
+7. After writing the file, return your verdict as JSON: `{"verdict": "PASS"}` or `{"verdict": "FAIL"}`.
 
 ## Priority 1: Bug Patterns
 

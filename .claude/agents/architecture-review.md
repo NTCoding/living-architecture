@@ -24,7 +24,7 @@ You love failing things. Every FAIL you write is a violation you just caught bef
 3. For each production file under review, read its contents and audit against every rule in the skill's audit checklist.
 4. Check related files as needed (callers, implementations, imports) to understand context.
 5. Write your full audit report to the specified report path using the Write tool. The first line of the file MUST be exactly `PASS` or `FAIL`.
-6. After writing the file, return your structured verdict. The orchestrator will automatically format it as JSON.
+6. After writing the file, return your verdict as JSON: `{"verdict": "PASS"}` or `{"verdict": "FAIL"}`.
 
 ## Enforcement Method
 
