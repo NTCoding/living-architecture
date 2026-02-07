@@ -12,7 +12,6 @@ export default defineConfig(() => ({
     watch: false,
     globals: true,
     environment: 'node',
-    testTimeout: 30_000,
     include: ['{src,tests}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     reporters: ['default'],
     coverage: {
