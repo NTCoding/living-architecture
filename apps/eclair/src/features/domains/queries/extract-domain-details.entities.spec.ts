@@ -111,26 +111,26 @@ describe('extractDomainDetails entities extraction', () => {
         createNode({
           id: 'op-1',
           type: 'DomainOp',
-          name: 'Zebra.z()',
+          name: 'Zebra.zz()',
           domain: 'order-domain',
           entity: 'Zebra',
-          operationName: 'z',
+          operationName: 'zz',
         }),
         createNode({
           id: 'op-2',
           type: 'DomainOp',
-          name: 'Apple.b()',
+          name: 'Apple.bb()',
           domain: 'order-domain',
           entity: 'Apple',
-          operationName: 'b',
+          operationName: 'bb',
         }),
         createNode({
           id: 'op-3',
           type: 'DomainOp',
-          name: 'Apple.a()',
+          name: 'Apple.aa()',
           domain: 'order-domain',
           entity: 'Apple',
-          operationName: 'a',
+          operationName: 'aa',
         }),
       ],
     })
@@ -138,7 +138,10 @@ describe('extractDomainDetails entities extraction', () => {
     const result = extractDomainDetails(graph, parseDomainKey('order-domain'))
 
     expect(result?.entities.map((e) => e.name)).toStrictEqual(['Apple', 'Zebra'])
-    expect(result?.entities[0]?.operations.map((op) => op.operationName)).toStrictEqual(['a', 'b'])
+    expect(result?.entities[0]?.operations.map((op) => op.operationName)).toStrictEqual([
+      'aa',
+      'bb',
+    ])
   })
 
   it('returns empty array when no entities', () => {

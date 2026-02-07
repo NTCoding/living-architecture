@@ -13,6 +13,14 @@ import {
   createValidExtractFixture,
 } from '../__fixtures__/extraction-test-fixtures'
 
+vi.mock('../../../platform/infra/git/git-repository-info', () => ({
+  getRepositoryInfo: vi.fn(() => ({
+    name: 'test/repo',
+    owner: 'test',
+    url: 'https://github.com/test/repo.git',
+  })),
+}))
+
 describe('riviere extract — connection detection', () => {
   afterEach(() => vi.restoreAllMocks())
 

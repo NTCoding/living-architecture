@@ -43,5 +43,6 @@ export function defaultOptions(): CallGraphOptions {
   return {
     strict: false,
     sourceFilePaths: sharedProject.getSourceFiles().map((sf) => sf.getFilePath()),
+    repository: 'test-repo',
   }
 }

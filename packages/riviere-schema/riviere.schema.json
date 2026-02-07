@@ -38,7 +38,8 @@
             "properties": {
               "repository": {
                 "type": "string",
-                "description": "Repository name or identifier"
+                "description": "Repository name or identifier",
+                "minLength": 3
               },
               "commit": {
                 "type": "string",
@@ -165,7 +166,7 @@
         "sourceLocation": { "$ref": "#/definitions/sourceLocation" },
         "apiType": { "const": "REST" },
         "httpMethod": { "type": "string", "enum": ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"] },
-        "path": { "type": "string", "description": "API path" }
+        "path": { "type": "string", "description": "API path", "minLength": 3 }
       },
       "additionalProperties": false
     },
@@ -181,7 +182,7 @@
         "description": { "type": "string" },
         "sourceLocation": { "$ref": "#/definitions/sourceLocation" },
         "apiType": { "const": "GraphQL" },
-        "operationName": { "type": "string", "description": "GraphQL operation name" }
+        "operationName": { "type": "string", "description": "GraphQL operation name", "minLength": 2 }
       },
       "additionalProperties": false
     },
@@ -225,7 +226,7 @@
         "module": { "type": "string", "minLength": 1 },
         "description": { "type": "string" },
         "sourceLocation": { "$ref": "#/definitions/sourceLocation" },
-        "operationName": { "type": "string", "description": "Operation name" },
+        "operationName": { "type": "string", "description": "Operation name", "minLength": 2 },
         "entity": { "type": "string", "description": "Entity name" },
         "signature": { "$ref": "#/definitions/operationSignature" },
         "behavior": { "$ref": "#/definitions/operationBehavior" },
@@ -245,7 +246,7 @@
         "module": { "type": "string", "minLength": 1 },
         "description": { "type": "string" },
         "sourceLocation": { "$ref": "#/definitions/sourceLocation" },
-        "eventName": { "type": "string", "description": "Event name" },
+        "eventName": { "type": "string", "description": "Event name", "minLength": 3 },
         "eventSchema": { "type": "string", "description": "Event schema definition" }
       },
       "additionalProperties": false
@@ -388,7 +389,8 @@
       "properties": {
         "repository": {
           "type": "string",
-          "description": "Repository name or identifier"
+          "description": "Repository name or identifier",
+          "minLength": 3
         },
         "filePath": {
           "type": "string",
@@ -424,7 +426,8 @@
       "properties": {
         "description": {
           "type": "string",
-          "description": "Human-readable description of domain purpose"
+          "description": "Human-readable description of domain purpose",
+          "minLength": 3
         },
         "systemType": {
           "type": "string",

@@ -43,6 +43,7 @@ describe('resolveTypeThroughInterface', () => {
     const result = resolveTypeThroughInterface('OrderService', sharedProject, index, {
       strict: false,
       sourceFilePaths: [],
+      repository: 'test-repo',
     })
 
     expect(result).toStrictEqual({
@@ -66,6 +67,7 @@ describe('resolveTypeThroughInterface', () => {
     const result = resolveTypeThroughInterface('SharedGateway', sharedProject, index, {
       strict: false,
       sourceFilePaths: [interfaceFile, implFile],
+      repository: 'test-repo',
     })
 
     expect(result).toStrictEqual({
@@ -84,6 +86,7 @@ describe('resolveTypeThroughInterface', () => {
     const result = resolveTypeThroughInterface('OrphanGateway', sharedProject, index, {
       strict: false,
       sourceFilePaths: [interfaceFile],
+      repository: 'test-repo',
     })
 
     expect(result).toStrictEqual({
@@ -98,6 +101,7 @@ describe('resolveTypeThroughInterface', () => {
 
     const result = resolveTypeThroughInterface('UnknownType', sharedProject, index, {
       strict: false,
+      repository: 'test-repo',
       sourceFilePaths: [],
     })
 

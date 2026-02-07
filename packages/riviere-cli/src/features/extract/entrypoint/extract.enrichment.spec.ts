@@ -3,7 +3,7 @@ import {
 } from 'node:fs/promises'
 import { join } from 'node:path'
 import {
-  describe, it, expect 
+  describe, it, expect, vi 
 } from 'vitest'
 import type { DraftComponent } from '@living-architecture/riviere-extract-ts'
 import { createProgram } from '../../../shell/cli'
@@ -17,6 +17,14 @@ import {
   parseFullExtractionOutput,
   validSourceCode,
 } from '../__fixtures__/extraction-test-fixtures'
+
+vi.mock('../../../platform/infra/git/git-repository-info', () => ({
+  getRepositoryInfo: vi.fn(() => ({
+    name: 'test/repo',
+    owner: 'test',
+    url: 'https://github.com/test/repo.git',
+  })),
+}))
 
 const configWithExtractBlock = `
 modules:

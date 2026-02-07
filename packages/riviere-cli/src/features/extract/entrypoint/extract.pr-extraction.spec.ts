@@ -17,6 +17,14 @@ import {
   createValidExtractFixture,
 } from '../__fixtures__/extraction-test-fixtures'
 
+vi.mock('../../../platform/infra/git/git-repository-info', () => ({
+  getRepositoryInfo: vi.fn(() => ({
+    name: 'test/repo',
+    owner: 'test',
+    url: 'https://github.com/test/repo.git',
+  })),
+}))
+
 vi.mock('../../../platform/infra/git/git-changed-files', async (importOriginal) => {
   const original =
     await importOriginal<typeof import('../../../platform/infra/git/git-changed-files')>()

@@ -45,7 +45,10 @@ class Caller {
     )
     const caller = buildComponent('Caller', '/src/a.ts', 3)
 
-    const result = detectConfigurableConnections(project, [], [caller])
+    const result = detectConfigurableConnections(project, [], [caller], {
+      strict: true,
+      repository: 'test-repo',
+    })
 
     expect(result).toStrictEqual([])
   })
@@ -74,7 +77,10 @@ class OrderService {
       },
     })
 
-    const result = detectConfigurableConnections(project, [pattern], [caller, target])
+    const result = detectConfigurableConnections(project, [pattern], [caller, target], {
+      strict: true,
+      repository: 'test-repo',
+    })
 
     expect(result).toHaveLength(1)
     expect(result[0]).toStrictEqual(
@@ -99,7 +105,10 @@ class OrderService {
     const caller = buildComponent('OrderService', '/src/c.ts', 2)
     const pattern = syncPattern({ where: { methodName: 'publish' } })
 
-    const result = detectConfigurableConnections(project, [pattern], [caller])
+    const result = detectConfigurableConnections(project, [pattern], [caller], {
+      strict: true,
+      repository: 'test-repo',
+    })
 
     expect(result).toStrictEqual([])
   })
@@ -136,6 +145,10 @@ class OrderService {
       project,
       [publishPattern, savePattern],
       [caller, bus, repo],
+      {
+        strict: true,
+        repository: 'test-repo',
+      },
     )
 
     expect(result).toHaveLength(2)
@@ -177,7 +190,10 @@ class OrderService {
       linkType: 'async',
     })
 
-    const result = detectConfigurableConnections(project, [pattern1, pattern2], [caller, bus])
+    const result = detectConfigurableConnections(project, [pattern1, pattern2], [caller, bus], {
+      strict: true,
+      repository: 'test-repo',
+    })
 
     expect(result).toHaveLength(2)
     const types = result.map((l) => l.type)
@@ -206,7 +222,10 @@ class OrderService {
       where: { methodName: 'publish' },
     })
 
-    const result = detectConfigurableConnections(project, [pattern], [caller, bus])
+    const result = detectConfigurableConnections(project, [pattern], [caller, bus], {
+      strict: true,
+      repository: 'test-repo',
+    })
 
     expect(result).toHaveLength(1)
     expect(result[0]).toStrictEqual(
@@ -240,7 +259,10 @@ class OrderService {
       linkType: 'async',
     })
 
-    const result = detectConfigurableConnections(project, [asyncPattern], [caller, bus])
+    const result = detectConfigurableConnections(project, [asyncPattern], [caller, bus], {
+      strict: true,
+      repository: 'test-repo',
+    })
 
     expect(result).toHaveLength(1)
     expect(result[0]).toStrictEqual(expect.objectContaining({ type: 'async' }))
@@ -271,7 +293,10 @@ class OrderService {
       linkType: 'sync',
     })
 
-    const result = detectConfigurableConnections(project, [pattern1, pattern2], [caller, bus])
+    const result = detectConfigurableConnections(project, [pattern1, pattern2], [caller, bus], {
+      strict: true,
+      repository: 'test-repo',
+    })
 
     expect(result).toHaveLength(1)
     expect(result[0]).toStrictEqual(
@@ -297,7 +322,10 @@ class Caller {
     const caller = buildComponent('Caller', '/src/i.ts', 3)
     const pattern = syncPattern({ where: { methodName: 'freeFunction' } })
 
-    const result = detectConfigurableConnections(project, [pattern], [caller])
+    const result = detectConfigurableConnections(project, [pattern], [caller], {
+      strict: true,
+      repository: 'test-repo',
+    })
 
     expect(result).toStrictEqual([])
   })
@@ -317,7 +345,10 @@ class Caller {
     const caller = buildComponent('Caller', '/src/j.ts', 3)
     const pattern = syncPattern({ where: { methodName: 'doWork' } })
 
-    const result = detectConfigurableConnections(project, [pattern], [caller])
+    const result = detectConfigurableConnections(project, [pattern], [caller], {
+      strict: true,
+      repository: 'test-repo',
+    })
 
     expect(result).toStrictEqual([])
   })
@@ -328,7 +359,10 @@ class Caller {
     const missingComponent = buildComponent('NonExistent', '/src/m.ts', 1)
     const pattern = syncPattern({ where: { methodName: 'anything' } })
 
-    const result = detectConfigurableConnections(project, [pattern], [missingComponent])
+    const result = detectConfigurableConnections(project, [pattern], [missingComponent], {
+      strict: true,
+      repository: 'test-repo',
+    })
 
     expect(result).toStrictEqual([])
   })
@@ -347,7 +381,10 @@ class UnresolvableCaller {
     const caller = buildComponent('UnresolvableCaller', '/src/n.ts', 2)
     const pattern = syncPattern({ where: { methodName: 'doWork' } })
 
-    const result = detectConfigurableConnections(project, [pattern], [caller])
+    const result = detectConfigurableConnections(project, [pattern], [caller], {
+      strict: true,
+      repository: 'test-repo',
+    })
 
     expect(result).toStrictEqual([])
   })

@@ -45,7 +45,10 @@ class OrdersController {
       },
     })
 
-    const result = detectConfigurableConnections(project, [pattern], [caller, bus])
+    const result = detectConfigurableConnections(project, [pattern], [caller, bus], {
+      strict: true,
+      repository: 'test-repo',
+    })
 
     expect(result).toHaveLength(1)
     expect(result[0]).toStrictEqual(
@@ -78,7 +81,10 @@ class PlainService {
       },
     })
 
-    const result = detectConfigurableConnections(project, [pattern], [caller, bus])
+    const result = detectConfigurableConnections(project, [pattern], [caller, bus], {
+      strict: true,
+      repository: 'test-repo',
+    })
 
     expect(result).toStrictEqual([])
   })
@@ -109,7 +115,10 @@ class OrderService {
       },
     })
 
-    const result = detectConfigurableConnections(project, [pattern], [caller, repo])
+    const result = detectConfigurableConnections(project, [pattern], [caller, repo], {
+      strict: true,
+      repository: 'test-repo',
+    })
 
     expect(result).toHaveLength(1)
     expect(result[0]).toStrictEqual(
@@ -144,7 +153,10 @@ class CallerService {
       },
     })
 
-    const result = detectConfigurableConnections(project, [pattern], [caller, repo])
+    const result = detectConfigurableConnections(project, [pattern], [caller, repo], {
+      strict: true,
+      repository: 'test-repo',
+    })
 
     expect(result).toStrictEqual([])
   })

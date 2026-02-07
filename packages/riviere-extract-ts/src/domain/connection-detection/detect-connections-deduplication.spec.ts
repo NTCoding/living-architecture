@@ -43,6 +43,7 @@ class CreateOrder {
       project,
       [repo, useCase],
       {
+        repository: 'test-repo',
         moduleGlobs: ['/src/**/*.ts'],
         patterns: [
           {

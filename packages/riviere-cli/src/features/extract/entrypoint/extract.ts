@@ -18,6 +18,7 @@ import {
 } from '../../../platform/infra/extraction-config/draft-component-loader'
 import { resolveFilteredSourceFiles } from '../../../platform/infra/source-filtering/filter-source-files'
 import { formatPrMarkdown } from '../../../platform/infra/cli-presentation/format-pr-markdown'
+import { getRepositoryInfo } from '../../../platform/infra/git/git-repository-info'
 import { formatDryRunOutput } from '../../../platform/infra/cli-presentation/extract-output-formatter'
 import { outputResult } from '../../../platform/infra/cli-presentation/output-writer'
 import {
@@ -56,6 +57,7 @@ export function createExtractCommand(): Command {
       const {
         resolvedConfig, configDir 
       } = loadAndValidateConfig(options.config)
+      const repositoryInfo = getRepositoryInfo()
       const allSourceFilePaths = resolveSourceFiles(resolvedConfig, configDir)
       const sourceFilePaths = resolveFilteredSourceFiles(allSourceFilePaths, options)
       const project = new Project()
@@ -124,6 +126,7 @@ export function createExtractCommand(): Command {
             {
               allowIncomplete: options.allowIncomplete === true,
               moduleGlobs: resolvedConfig.modules.map((m) => m.path),
+              repository: repositoryInfo.name,
             },
             matchesGlob,
           )

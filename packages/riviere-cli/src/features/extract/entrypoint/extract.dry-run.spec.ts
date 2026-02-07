@@ -3,7 +3,7 @@ import {
 } from 'node:fs/promises'
 import { join } from 'node:path'
 import {
-  describe, it, expect 
+  describe, it, expect, vi 
 } from 'vitest'
 import { createProgram } from '../../../shell/cli'
 import type { TestContext } from '../../../platform/__fixtures__/command-test-fixtures'
@@ -13,6 +13,14 @@ import {
   assertDefined,
 } from '../../../platform/__fixtures__/command-test-fixtures'
 import { parseFullExtractionOutput } from '../__fixtures__/extraction-test-fixtures'
+
+vi.mock('../../../platform/infra/git/git-repository-info', () => ({
+  getRepositoryInfo: vi.fn(() => ({
+    name: 'test/repo',
+    owner: 'test',
+    url: 'https://github.com/test/repo.git',
+  })),
+}))
 
 describe('riviere extract --dry-run', () => {
   const ctx: TestContext = createTestContext()

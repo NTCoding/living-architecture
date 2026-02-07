@@ -162,12 +162,12 @@ export function detectConfigurableConnections(
   components: readonly EnrichedComponent[],
   options: {
     strict: boolean
-    repository?: string
-  } = { strict: true },
+    repository: string
+  },
 ): ExtractedLink[] {
   if (patterns.length === 0) return []
 
-  const repository = options.repository ?? ''
+  const repository = options.repository
   const componentIndex = new ComponentIndex(components)
   const allMatches: MatchedLink[] = []
 

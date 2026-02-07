@@ -214,7 +214,7 @@ describe('extractDomainMap React Flow compatibility', () => {
           name: 'Event 1',
           domain: 'orders',
           module: 'm1',
-          eventName: 'E1',
+          eventName: 'Ev1',
         }),
         parseNode({
           sourceLocation: testSourceLocation,

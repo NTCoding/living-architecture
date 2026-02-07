@@ -18,7 +18,7 @@ export function detectPublishConnections(
 ): ExtractedLink[] {
   const publishers = components.filter((c) => c.type === 'eventPublisher')
   const events = components.filter((c) => c.type === 'event')
-  const repository = options.repository ?? ''
+  const repository = options.repository
 
   return publishers.flatMap((publisher) =>
     extractPublisherLinks(project, publisher, events, options, repository),

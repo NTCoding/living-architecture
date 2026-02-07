@@ -326,12 +326,6 @@ Filters for matching method calls
 | `callerHasDecorator` | `string[]` | No | Decorators the calling class must have |
 | `calleeType` | `object` | No | Constraints on the callee type |
 
-**`calleeType` properties:**
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `hasDecorator` | `string` | **Yes** | Decorator name the callee type must have |
-
 ---
 
 ### `connectionExtractBlock`

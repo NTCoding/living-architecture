@@ -6,7 +6,7 @@ import { componentIdentity } from '../call-graph/call-graph-types'
 
 export interface AsyncDetectionOptions {
   strict: boolean
-  repository?: string
+  repository: string
 }
 
 export function detectSubscribeConnections(
@@ -15,7 +15,7 @@ export function detectSubscribeConnections(
 ): ExtractedLink[] {
   const eventHandlers = components.filter((c) => c.type === 'eventHandler')
   const events = components.filter((c) => c.type === 'event')
-  const repository = options.repository ?? ''
+  const repository = options.repository
 
   return eventHandlers.flatMap((handler) =>
     getSubscribedEvents(handler).flatMap((eventName) =>

@@ -41,7 +41,10 @@ class StrictCaller {
     })
 
     expect(() =>
-      detectConfigurableConnections(project, [pattern], [caller, bus], { strict: true }),
+      detectConfigurableConnections(project, [pattern], [caller, bus], {
+        strict: true,
+        repository: 'test-repo',
+      }),
     ).toThrow(ConnectionDetectionError)
   })
 
@@ -67,7 +70,10 @@ class LenientCaller {
       extract: { eventName: { fromArgument: 0 } },
     })
 
-    const result = detectConfigurableConnections(project, [pattern], [caller, bus], {strict: false,})
+    const result = detectConfigurableConnections(project, [pattern], [caller, bus], {
+      strict: false,
+      repository: 'test-repo',
+    })
 
     expect(result).toStrictEqual([
       expect.objectContaining({
@@ -102,7 +108,10 @@ class ExtractCaller {
       extract: { eventName: { fromArgument: 0 } },
     })
 
-    const result = detectConfigurableConnections(project, [pattern], [caller, bus], {strict: true,})
+    const result = detectConfigurableConnections(project, [pattern], [caller, bus], {
+      strict: true,
+      repository: 'test-repo',
+    })
 
     expect(result).toStrictEqual([
       expect.objectContaining({

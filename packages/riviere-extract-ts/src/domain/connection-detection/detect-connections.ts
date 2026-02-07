@@ -14,7 +14,7 @@ export interface ConnectionDetectionOptions {
   allowIncomplete?: boolean
   moduleGlobs: string[]
   patterns?: ConnectionPattern[]
-  repository?: string
+  repository: string
 }
 
 export interface ConnectionTimings {
@@ -65,7 +65,7 @@ export function detectConnections(
   const setupMs = performance.now() - setupStart
 
   const strict = !options.allowIncomplete
-  const repository = options.repository ?? ''
+  const repository = options.repository
 
   const callGraphStart = performance.now()
   const syncLinks = buildCallGraph(project, components, componentIndex, {
