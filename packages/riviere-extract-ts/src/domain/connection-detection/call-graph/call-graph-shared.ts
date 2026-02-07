@@ -1,5 +1,10 @@
 import {
-  type CallExpression, type MethodDeclaration, type Project, SyntaxKind 
+  type CallExpression,
+  type ClassDeclaration,
+  type MethodDeclaration,
+  type Project,
+  type SourceFile,
+  SyntaxKind,
 } from 'ts-morph'
 import type { EnrichedComponent } from '../../value-extraction/enrich-components'
 import type { ComponentIndex } from '../component-index'
@@ -53,24 +58,59 @@ export function resolveTypeThroughInterface(
   }
 }
 
+interface ClassLookup {
+  classDecl: ClassDeclaration
+  sourceFile: SourceFile
+}
+
+function findClassByNameInProject(project: Project, typeName: string): ClassLookup | undefined {
+  for (const sourceFile of project.getSourceFiles()) {
+    for (const classDecl of sourceFile.getClasses()) {
+      if (classDecl.getType().getSymbol()?.getName() === typeName) {
+        return {
+          classDecl,
+          sourceFile,
+        }
+      }
+    }
+  }
+  return undefined
+}
+
+export function resolveContainerMethod(
+  project: Project,
+  typeName: string,
+  calledMethodName: string,
+  componentIndex: ComponentIndex,
+): EnrichedComponent | undefined {
+  const lookup = findClassByNameInProject(project, typeName)
+  if (lookup === undefined) {
+    return undefined
+  }
+  const method = lookup.classDecl.getMethod(calledMethodName)
+  if (method === undefined) {
+    return undefined
+  }
+  return componentIndex.getComponentByLocation(
+    lookup.sourceFile.getFilePath(),
+    method.getStartLineNumber(),
+  )
+}
+
 export function findMethodInProject(
   project: Project,
   typeName: string,
   methodName: string,
 ): MethodLookup {
-  for (const sourceFile of project.getSourceFiles()) {
-    for (const classDecl of sourceFile.getClasses()) {
-      if (classDecl.getName() !== typeName) {
-        continue
-      }
-      return {
-        method: classDecl.getMethod(methodName),
-        classFound: true,
-      }
+  const lookup = findClassByNameInProject(project, typeName)
+  if (lookup === undefined) {
+    return {
+      method: undefined,
+      classFound: false,
     }
   }
   return {
-    method: undefined,
-    classFound: false,
+    method: lookup.classDecl.getMethod(methodName),
+    classFound: true,
   }
 }

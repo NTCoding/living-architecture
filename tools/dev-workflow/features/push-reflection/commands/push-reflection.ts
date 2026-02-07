@@ -31,11 +31,7 @@ class MissingReflectionError extends Error {
 
 export interface PushReflectionOptions {readonly followUps: boolean}
 
-function parseArgs(): PushReflectionOptions {
-  return { followUps: process.argv.includes('--follow-ups') }
-}
-
-export async function pushReflection(
+export async function executePushReflection(
   options: PushReflectionOptions,
 ): Promise<{ pushedFiles: string[] }> {
   const files = await git.lastCommitFiles()
@@ -51,28 +47,6 @@ export async function pushReflection(
 
   await git.push()
   return { pushedFiles: files }
-}
-
-export async function executePushReflection(): Promise<void> {
-  const options = parseArgs()
-  try {
-    const result = await pushReflection(options)
-    console.log(
-      JSON.stringify({
-        success: true,
-        pushedFiles: result.pushedFiles,
-      }),
-    )
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : String(error)
-    console.log(
-      JSON.stringify({
-        success: false,
-        error: message,
-      }),
-    )
-    process.exitCode = 1
-  }
 }
 
 async function verifyReflectionExistsInPriorCommits(): Promise<void> {

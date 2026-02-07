@@ -1,5 +1,6 @@
 import {
   type CallExpression,
+  type FunctionDeclaration,
   type MethodDeclaration,
   Node,
   type Project,
@@ -13,12 +14,16 @@ import type {
 } from './call-graph-types'
 import { componentIdentity } from './call-graph-types'
 import {
-  findClassInProject, traceCallsInBody 
+  findClassInProject,
+  findFunctionInProject,
+  findMethodLevelComponent,
+  traceCallsInBody,
 } from './trace-calls'
 import { deduplicateLinks } from './deduplicate-links'
 import { resolveCallExpressionReceiverType } from './type-resolver'
 import {
   getCalledMethodName,
+  resolveContainerMethod,
   resolveTypeThroughInterface,
   findMethodInProject,
 } from './call-graph-shared'
@@ -75,6 +80,23 @@ function processCallExpression(
     return
   }
 
+  const containerTarget = resolveContainerMethod(
+    project,
+    resolvedTypeName ?? typeName,
+    calledMethodName,
+    componentIndex,
+  )
+  if (containerTarget !== undefined) {
+    if (componentIdentity(component) !== componentIdentity(containerTarget)) {
+      rawLinks.push({
+        source: component,
+        target: containerTarget,
+        callSite: currentCallSite,
+      })
+    }
+    return
+  }
+
   traceNonComponent(
     project,
     componentIndex,
@@ -87,6 +109,32 @@ function processCallExpression(
     uncertain,
     options,
   )
+}
+
+function processFunction(
+  funcDecl: FunctionDeclaration,
+  component: EnrichedComponent,
+  project: Project,
+  componentIndex: ComponentIndex,
+  rawLinks: RawLink[],
+  uncertainLinks: UncertainRawLink[],
+  options: CallGraphOptions,
+): void {
+  const functionName = funcDecl.getNameOrThrow()
+  const callExpressions = funcDecl.getDescendantsOfKind(SyntaxKind.CallExpression)
+
+  for (const callExpr of callExpressions) {
+    processCallExpression(
+      callExpr,
+      component,
+      functionName,
+      project,
+      componentIndex,
+      rawLinks,
+      uncertainLinks,
+      options,
+    )
+  }
 }
 
 function processMethod(
@@ -126,12 +174,38 @@ export function buildCallGraph(
 
   for (const component of components) {
     const classDecl = findClassInProject(project, component)
-    if (classDecl === undefined) {
+    if (classDecl !== undefined) {
+      for (const method of classDecl.getMethods()) {
+        processMethod(method, component, project, componentIndex, rawLinks, uncertainLinks, options)
+      }
       continue
     }
 
-    for (const method of classDecl.getMethods()) {
-      processMethod(method, component, project, componentIndex, rawLinks, uncertainLinks, options)
+    const methodTarget = findMethodLevelComponent(project, component)
+    if (methodTarget !== undefined) {
+      processMethod(
+        methodTarget.method,
+        component,
+        project,
+        componentIndex,
+        rawLinks,
+        uncertainLinks,
+        options,
+      )
+      continue
+    }
+
+    const funcDecl = findFunctionInProject(project, component)
+    if (funcDecl !== undefined) {
+      processFunction(
+        funcDecl,
+        component,
+        project,
+        componentIndex,
+        rawLinks,
+        uncertainLinks,
+        options,
+      )
     }
   }
 

@@ -32,25 +32,9 @@ const COMPONENT_TYPES: ComponentType[] = [
   'domainOp',
   'event',
   'eventHandler',
+  'eventPublisher',
   'ui',
 ]
-
-const FIND_TARGETS: readonly string[] = ['classes', 'methods', 'functions']
-
-function hasProperty<K extends string>(obj: object, key: K): obj is object & Record<K, unknown> {
-  return key in obj
-}
-
-function isDetectionRule(rule: unknown): rule is DetectionRule {
-  /* istanbul ignore if -- @preserve: unreachable with typed ResolvedExtractionConfig; defensive guard */
-  if (typeof rule !== 'object' || rule === null) {
-    return false
-  }
-  if (!hasProperty(rule, 'find') || !hasProperty(rule, 'where')) {
-    return false
-  }
-  return typeof rule.find === 'string' && FIND_TARGETS.includes(rule.find)
-}
 
 export function extractComponents(
   project: Project,
@@ -137,7 +121,7 @@ function extractComponentType(
   componentType: ComponentType,
 ): DraftComponent[] {
   const rule = module[componentType]
-  if (!isDetectionRule(rule)) {
+  if (!('find' in rule)) {
     return []
   }
   return extractWithRule(sourceFile, filePath, module.name, componentType, rule)

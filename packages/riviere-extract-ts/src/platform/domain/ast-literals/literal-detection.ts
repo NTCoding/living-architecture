@@ -34,8 +34,17 @@ export function isLiteralValue(expression: Expression | undefined): boolean {
     kind === SyntaxKind.StringLiteral ||
     kind === SyntaxKind.NumericLiteral ||
     kind === SyntaxKind.TrueKeyword ||
-    kind === SyntaxKind.FalseKeyword
+    kind === SyntaxKind.FalseKeyword ||
+    isStringArrayLiteral(expression)
   )
+}
+
+function isStringArrayLiteral(expression: Expression): boolean {
+  if (expression.getKind() !== SyntaxKind.ArrayLiteralExpression) {
+    return false
+  }
+  const elements = expression.asKindOrThrow(SyntaxKind.ArrayLiteralExpression).getElements()
+  return elements.every((e) => e.getKind() === SyntaxKind.StringLiteral)
 }
 
 export type LiteralResult =
@@ -51,6 +60,10 @@ export type LiteralResult =
     kind: 'boolean'
     value: boolean
   }
+  | {
+    kind: 'string[]'
+    value: string[]
+  }
 
 function extractString(expression: Expression): string {
   return expression.asKindOrThrow(SyntaxKind.StringLiteral).getLiteralValue()
@@ -58,6 +71,19 @@ function extractString(expression: Expression): string {
 
 function extractNumber(expression: Expression): number {
   return Number(expression.getText())
+}
+
+function extractStringArray(expression: Expression): string[] | undefined {
+  const arrayLiteral = expression.asKindOrThrow(SyntaxKind.ArrayLiteralExpression)
+  const elements = arrayLiteral.getElements()
+  const values: string[] = []
+  for (const element of elements) {
+    if (element.getKind() !== SyntaxKind.StringLiteral) {
+      return undefined
+    }
+    values.push(element.asKindOrThrow(SyntaxKind.StringLiteral).getLiteralValue())
+  }
+  return values
 }
 
 function buildExtractionResult(expression: Expression): LiteralResult | undefined {
@@ -84,6 +110,16 @@ function buildExtractionResult(expression: Expression): LiteralResult | undefine
         kind: 'boolean',
         value: false,
       }
+    case SyntaxKind.ArrayLiteralExpression: {
+      const values = extractStringArray(expression)
+      if (values === undefined) {
+        return undefined
+      }
+      return {
+        kind: 'string[]',
+        value: values,
+      }
+    }
     default:
       return undefined
   }
@@ -95,7 +131,7 @@ function throwMissingInitializer(file: string, line: number): never {
 
 function throwNonLiteralValue(expression: Expression, file: string, line: number): never {
   throw new ExtractionError(
-    `Non-literal value detected (${expression.getKindName()}): ${expression.getText()}. Only inline literals (strings, numbers, booleans) are supported`,
+    `Non-literal value detected (${expression.getKindName()}): ${expression.getText()}. Only inline literals (strings, numbers, booleans, string arrays) are supported`,
     file,
     line,
   )

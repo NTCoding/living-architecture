@@ -104,6 +104,22 @@ describe('isLiteralValue', () => {
   it('returns false for undefined initializer', () => {
     expect(isLiteralValue(undefined)).toBe(false)
   })
+
+  it('returns true for string array literal', () => {
+    const initializer = getPropertyInitializer(
+      `class Test { readonly events = ['OrderPlaced', 'OrderCancelled'] }`,
+      'events',
+    )
+    expect(isLiteralValue(initializer)).toBe(true)
+  })
+
+  it('returns false for array with non-string elements', () => {
+    const initializer = getPropertyInitializer(
+      `class Test { readonly values = [42, 'foo'] }`,
+      'values',
+    )
+    expect(isLiteralValue(initializer)).toBe(false)
+  })
 })
 
 describe('extractLiteralValue', () => {
@@ -177,6 +193,47 @@ describe('extractLiteralValue', () => {
   it('throws ExtractionError when initializer is undefined', () => {
     expect(() => extractLiteralValue(undefined, 'test.ts', 1)).toThrow(ExtractionError)
     expect(() => extractLiteralValue(undefined, 'test.ts', 1)).toThrow('No initializer found')
+  })
+
+  it("returns { kind: 'string[]', value: ['OrderPlaced'] } for string array literal", () => {
+    const initializer = getPropertyInitializer(
+      `class Test { readonly events = ['OrderPlaced'] }`,
+      'events',
+    )
+    const result = extractLiteralValue(initializer, 'test.ts', 1)
+    expect(result.kind).toBe('string[]')
+    expect(result.value).toStrictEqual(['OrderPlaced'])
+  })
+
+  it('returns empty array for empty array literal', () => {
+    const initializer = getPropertyInitializer(
+      `class Test { readonly events: string[] = [] }`,
+      'events',
+    )
+    const result = extractLiteralValue(initializer, 'test.ts', 1)
+    expect(result.kind).toBe('string[]')
+    expect(result.value).toStrictEqual([])
+  })
+
+  it('returns multiple values for multi-element string array', () => {
+    const initializer = getPropertyInitializer(
+      `class Test { readonly events = ['OrderPlaced', 'OrderCancelled'] }`,
+      'events',
+    )
+    const result = extractLiteralValue(initializer, 'test.ts', 1)
+    expect(result.kind).toBe('string[]')
+    expect(result.value).toStrictEqual(['OrderPlaced', 'OrderCancelled'])
+  })
+
+  it('throws ExtractionError for array with non-string elements', () => {
+    const initializer = getPropertyInitializer(
+      `class Test { readonly values = [42, 'foo'] }`,
+      'values',
+    )
+    expect(() => extractLiteralValue(initializer, 'test.ts', 1)).toThrow(ExtractionError)
+    expect(() => extractLiteralValue(initializer, 'test.ts', 1)).toThrow(
+      'Non-literal value detected',
+    )
   })
 
   it('includes file and line in error location', () => {

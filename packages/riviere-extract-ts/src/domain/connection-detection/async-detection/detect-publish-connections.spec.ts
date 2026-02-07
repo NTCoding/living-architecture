@@ -92,6 +92,119 @@ class OrderPublisher {
     expect(result).toStrictEqual([])
   })
 
+  it('uses publishedEventType metadata to resolve event when present', () => {
+    const filePath = nextFile(`
+class MetaEvent {}
+`)
+    const event = buildComponent('MetaEvent', filePath, 2, {
+      type: 'event',
+      metadata: { eventName: 'MetaEvent' },
+    })
+    const publisher = buildComponent('publishMeta', '/src/meta-pub.ts', 5, {
+      type: 'eventPublisher',
+      metadata: { publishedEventType: 'MetaEvent' },
+    })
+
+    const result = detectPublishConnections(sharedProject, [event, publisher], {
+      strict: false,
+      repository: 'test-repo',
+    })
+
+    expect(result).toStrictEqual([
+      expect.objectContaining({
+        source: 'orders:eventPublisher:publishMeta',
+        target: 'orders:event:MetaEvent',
+        type: 'async',
+      }),
+    ])
+  })
+
+  it('throws ConnectionDetectionError in strict mode when metadata publishedEventType matches no Event', () => {
+    const publisher = buildComponent('publishMissing', '/src/meta-strict.ts', 1, {
+      type: 'eventPublisher',
+      metadata: { publishedEventType: 'NonExistentEvent' },
+    })
+
+    expect(() =>
+      detectPublishConnections(sharedProject, [publisher], {
+        strict: true,
+        repository: 'test-repo',
+      }),
+    ).toThrow(ConnectionDetectionError)
+  })
+
+  it('returns uncertain link in lenient mode when metadata publishedEventType matches no Event', () => {
+    const publisher = buildComponent('publishNoMatch', '/src/meta-lenient.ts', 1, {
+      type: 'eventPublisher',
+      metadata: { publishedEventType: 'MissingEvent' },
+    })
+
+    const result = detectPublishConnections(sharedProject, [publisher], {
+      strict: false,
+      repository: 'test-repo',
+    })
+
+    expect(result).toStrictEqual([
+      expect.objectContaining({
+        source: 'orders:eventPublisher:publishNoMatch',
+        target: '_unresolved',
+        type: 'async',
+        _uncertain: expect.stringContaining('MissingEvent'),
+      }),
+    ])
+  })
+
+  it('throws ConnectionDetectionError in strict mode when metadata publishedEventType matches multiple Events', () => {
+    const event1 = buildComponent('AmbigMetaEventA', '/src/ambig-a.ts', 1, {
+      type: 'event',
+      metadata: { eventName: 'SharedMetaName' },
+    })
+    const event2 = buildComponent('AmbigMetaEventB', '/src/ambig-b.ts', 1, {
+      type: 'event',
+      metadata: { eventName: 'SharedMetaName' },
+    })
+    const publisher = buildComponent('publishAmbig', '/src/meta-ambig.ts', 1, {
+      type: 'eventPublisher',
+      metadata: { publishedEventType: 'SharedMetaName' },
+    })
+
+    expect(() =>
+      detectPublishConnections(sharedProject, [event1, event2, publisher], {
+        strict: true,
+        repository: 'test-repo',
+      }),
+    ).toThrow(ConnectionDetectionError)
+  })
+
+  it('returns uncertain link in lenient mode when metadata publishedEventType matches multiple Events', () => {
+    const event1 = buildComponent('AmbigMetaA', '/src/ambig-len-a.ts', 1, {
+      type: 'event',
+      metadata: { eventName: 'SharedLenientMeta' },
+    })
+    const event2 = buildComponent('AmbigMetaB', '/src/ambig-len-b.ts', 1, {
+      type: 'event',
+      metadata: { eventName: 'SharedLenientMeta' },
+    })
+    const publisher = buildComponent('publishAmbigLenient', '/src/meta-ambig-len.ts', 1, {
+      type: 'eventPublisher',
+      metadata: { publishedEventType: 'SharedLenientMeta' },
+    })
+
+    const result = detectPublishConnections(sharedProject, [event1, event2, publisher], {
+      strict: false,
+      repository: 'test-repo',
+    })
+
+    expect(result).toStrictEqual([
+      expect.objectContaining({
+        source: 'orders:eventPublisher:publishAmbigLenient',
+        target: '_unresolved',
+        type: 'async',
+        _uncertain: expect.stringContaining('ambiguous'),
+      }),
+    ])
+  })
+
   it('returns empty array when publisher has no public methods', () => {
     const filePath = nextFile(`
 class EmptyPublisher {}

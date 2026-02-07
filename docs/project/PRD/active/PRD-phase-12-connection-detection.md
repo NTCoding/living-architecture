@@ -524,6 +524,11 @@ Validate extraction against ecommerce-demo-app with defined ground truth.
   - Comparison on (source, target, type) fields — zero false positives, zero false negatives
   - Verification: Extraction output matches ground truth exactly
   - Architecture: see §9.1.2 (connection-detection capability), §9.2.3 (ExtractedLink)
+  - **Prerequisites (resolved):** 3 call graph engine gaps found during initial validation (57/77 connections, 74%):
+    - RC1: Method-level source components skipped by `findClassInProject` — added `findMethodLevelComponent`
+    - RC2: No container-aware component lookup for method-level targets — added `resolveContainerMethod`
+    - RC3: Standalone function components not traced — added `findFunctionInProject` + `processFunction`
+  - Target after fixes: 77/77 connections (100%)
 
 ---
 

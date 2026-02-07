@@ -5,14 +5,9 @@ import { posix } from 'node:path'
 import type {
   ResolvedExtractionConfig,
   Module,
+  ComponentRule,
   DetectionRule,
   ExtractionRule,
-  LiteralExtractionRule,
-  FromClassNameExtractionRule,
-  FromFilePathExtractionRule,
-  FromPropertyExtractionRule,
-  FromMethodNameExtractionRule,
-  FromGenericArgExtractionRule,
 } from '@living-architecture/riviere-extract-config'
 import type {
   DraftComponent, GlobMatcher 
@@ -27,6 +22,7 @@ import {
 } from './evaluate-extraction-rule'
 import { evaluateFromGenericArgRule } from './evaluate-extraction-rule-generic'
 import { ExtractionError } from '../../platform/domain/ast-literals/literal-detection'
+import { applyTransforms } from '../../platform/domain/string-transforms/transforms'
 
 type MetadataValue = string | number | boolean | string[]
 
@@ -64,16 +60,8 @@ function findMatchingModule(
   return modules.find((m) => globMatcher(pathToMatch, m.path))
 }
 
-function isDetectionRule(rule: unknown): rule is DetectionRule {
-  /* istanbul ignore if -- @preserve: unreachable with typed ResolvedExtractionConfig; defensive guard */
-  if (typeof rule !== 'object' || rule === null) {
-    return false
-  }
-  return 'find' in rule && 'where' in rule
-}
-
 function getBuiltInRule(module: Module, componentType: string): DetectionRule | undefined {
-  const ruleMap: Record<string, unknown> = {
+  const ruleMap: Record<string, ComponentRule> = {
     api: module.api,
     useCase: module.useCase,
     domainOp: module.domainOp,
@@ -83,10 +71,10 @@ function getBuiltInRule(module: Module, componentType: string): DetectionRule | 
     ui: module.ui,
   }
   const rule = ruleMap[componentType]
-  if (isDetectionRule(rule)) {
-    return rule
+  if (rule === undefined || !('find' in rule)) {
+    return undefined
   }
-  return undefined
+  return rule
 }
 
 function findDetectionRule(module: Module, componentType: string): DetectionRule | undefined {
@@ -96,6 +84,7 @@ function findDetectionRule(module: Module, componentType: string): DetectionRule
     'domainOp',
     'event',
     'eventHandler',
+    'eventPublisher',
     'ui',
   ]
 
@@ -104,30 +93,6 @@ function findDetectionRule(module: Module, componentType: string): DetectionRule
   }
 
   return module.customTypes?.[componentType]
-}
-
-function isLiteralRule(rule: ExtractionRule): rule is LiteralExtractionRule {
-  return 'literal' in rule
-}
-
-function isFromClassNameRule(rule: ExtractionRule): rule is FromClassNameExtractionRule {
-  return 'fromClassName' in rule
-}
-
-function isFromFilePathRule(rule: ExtractionRule): rule is FromFilePathExtractionRule {
-  return 'fromFilePath' in rule
-}
-
-function isFromPropertyRule(rule: ExtractionRule): rule is FromPropertyExtractionRule {
-  return 'fromProperty' in rule
-}
-
-function isFromMethodNameRule(rule: ExtractionRule): rule is FromMethodNameExtractionRule {
-  return 'fromMethodName' in rule
-}
-
-function isFromGenericArgRule(rule: ExtractionRule): rule is FromGenericArgExtractionRule {
-  return 'fromGenericArg' in rule
 }
 
 function findClassAtLine(project: Project, draft: DraftComponent): ClassDeclaration {
@@ -208,12 +173,12 @@ function findContainingClass(project: Project, draft: DraftComponent): ClassDecl
 }
 
 function evaluateClassRule(rule: ExtractionRule, classDecl: ClassDeclaration): ExtractionResult {
-  if (isFromClassNameRule(rule)) {
+  if ('fromClassName' in rule) {
     return evaluateFromClassNameRule(rule, classDecl)
   }
 
   /* istanbul ignore next -- @preserve: only fromProperty reaches here; defensive guard */
-  if (!isFromPropertyRule(rule)) {
+  if (!('fromProperty' in rule)) {
     throw new ExtractionError(
       'Unsupported extraction rule type for class-based component',
       classDecl.getSourceFile().getFilePath(),
@@ -229,22 +194,42 @@ function evaluateRule(
   draft: DraftComponent,
   project: Project,
 ): ExtractionResult {
-  if (isLiteralRule(rule)) {
+  if ('literal' in rule) {
     return evaluateLiteralRule(rule)
   }
 
-  if (isFromFilePathRule(rule)) {
+  if ('fromFilePath' in rule) {
     return evaluateFromFilePathRule(rule, draft.location.file)
   }
 
-  if (isFromMethodNameRule(rule)) {
+  if ('fromMethodName' in rule) {
     const methodDecl = findMethodAtLine(project, draft)
     return evaluateFromMethodNameRule(rule, methodDecl)
   }
 
-  if (isFromGenericArgRule(rule)) {
+  if ('fromGenericArg' in rule) {
     const classDecl = findContainingClass(project, draft)
     return evaluateFromGenericArgRule(rule, classDecl)
+  }
+
+  if ('fromParameterType' in rule) {
+    const methodDecl = findMethodAtLine(project, draft)
+    const params = methodDecl.getParameters()
+    const position = rule.fromParameterType.position
+    const param = params[position]
+    if (param === undefined) {
+      throw new ExtractionError(
+        `Parameter position ${position} out of bounds. Method has ${params.length} parameter(s)`,
+        draft.location.file,
+        draft.location.line,
+      )
+    }
+    const typeName = param.getTypeNode()?.getText() ?? 'unknown'
+    const transform = rule.fromParameterType.transform
+    if (transform === undefined) {
+      return { value: typeName }
+    }
+    return { value: applyTransforms(typeName, transform) }
   }
 
   const classDecl = findClassAtLine(project, draft)
