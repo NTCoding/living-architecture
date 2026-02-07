@@ -21,7 +21,7 @@ function parseDiffNameStatus(raw: string): DiffFileEntry[] {
     .filter(Boolean)
     .map((line) => {
       const [status, ...pathParts] = line.split('\t')
-      const path = pathParts.join('\t')
+      const path = pathParts.at(-1)
       if (!status || !path) {
         throw new GitError(`Unexpected diff --name-status line: "${line}"`)
       }

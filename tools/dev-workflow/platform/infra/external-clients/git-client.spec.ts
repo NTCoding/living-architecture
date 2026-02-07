@@ -297,6 +297,21 @@ describe('git.unpushedFilesWithStatus', () => {
     expect(files).toStrictEqual([])
   })
 
+  it('parses renamed files using destination path', async () => {
+    mockRepo.status.mockResolvedValue({ current: 'issue-123-feat' })
+    mockRepo.branch.mockResolvedValue({ all: ['origin/main', 'origin/issue-123-feat'] })
+    mockRepo.diff.mockResolvedValue('R100\told.ts\tnew.ts\n')
+
+    const files = await git.unpushedFilesWithStatus('main')
+
+    expect(files).toStrictEqual([
+      {
+        path: 'new.ts',
+        deleted: false,
+      },
+    ])
+  })
+
   it('throws GitError for malformed name-status line', async () => {
     mockRepo.status.mockResolvedValue({ current: 'issue-123-feat' })
     mockRepo.branch.mockResolvedValue({ all: ['origin/main', 'origin/issue-123-feat'] })
