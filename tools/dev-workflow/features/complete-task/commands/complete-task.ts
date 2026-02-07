@@ -9,7 +9,7 @@ import { parseIssueNumber } from '../../../platform/domain/branch-naming/issue-b
 import { runWorkflow } from '../../../platform/domain/workflow-execution/run-workflow'
 import type { WorkflowResult } from '../../../platform/domain/workflow-execution/workflow-runner'
 import { createDebugLog } from '../../../platform/infra/logging/debug-log'
-import { createDefaultWorkflowIO } from '../../../platform/infra/process-io/workflow-io'
+import { createDefaultWorkflowIO } from '../../../platform/infra/external-clients/workflow-io'
 import type { CompleteTaskContext } from '../domain/task-to-complete'
 import { formatCompleteTaskResult } from '../domain/pipeline-outcome'
 import { resolveSkipReview } from '../domain/complete-task-cli-parser'

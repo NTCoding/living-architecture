@@ -27,6 +27,7 @@ platform/
     ├── external-clients/  ← third-party service wrappers
     ├── persistence/       ← database clients, connection pools
     ├── http/              ← shared formatters, error handling middleware
+    ├── cli/               ← stdin/stdout utilities, CLI I/O helpers
     ├── messaging/         ← queue clients, event bus
     ├── config/            ← configuration loading
     └── logging/           ← structured logging
