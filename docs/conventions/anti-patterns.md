@@ -244,3 +244,63 @@ function parseConnectionInput(raw: RawConnectionInput): ConnectionInput {
 ## AP-008: Unused Variables in Shell Scripts
 
 🚨 **Flag any variables that are extracted or assigned but never used.** Remove the variable or use it.
+
+---
+
+## AP-010: Re-Computing Results Instead of Propagating
+
+🚨 **When a function computes a result and delegates to another function, pass the result — never re-compute it.**
+
+If function A calls `resolve(x)` and then delegates to function B, which also calls `resolve(x)`, the result should be passed from A to B. Re-computing a deterministic result is wasteful and a design smell — it signals that the call chain's data flow is unclear.
+
+This is a form of [connascence of algorithm](https://connascence.io/algorithm.html) — two call sites must independently agree on how to derive the same result from the same dependency. Fowler's **"Replace Query with Parameter"** refactoring addresses this: have the caller pass its already-computed result instead of letting the callee re-derive it.
+
+### ❌ Bad
+
+```typescript
+function traceCall(typeName: string, project: Project, index: ComponentIndex): void {
+  const resolved = resolveType(typeName, project, index)
+  if (resolved.component !== undefined) {
+    links.push(resolved.component)
+    return
+  }
+  // Delegates to helper — which calls resolveType again
+  traceNonComponent(typeName, project, index)
+}
+
+function traceNonComponent(typeName: string, project: Project, index: ComponentIndex): void {
+  const resolved = resolveType(typeName, project, index) // redundant — same call
+  const traceName = resolved.resolvedTypeName ?? typeName
+  // ...
+}
+```
+
+Both functions independently call `resolveType` with the same arguments. If the resolution logic changes, both call sites must stay in sync.
+
+### ✓ Good
+
+Return a structured outcome and pass it through the call chain:
+
+```typescript
+interface ResolutionOutcome {
+  component: Component | undefined
+  resolvedTypeName: string | undefined
+  uncertain: string | undefined
+}
+
+function traceCall(typeName: string, project: Project, index: ComponentIndex): void {
+  const outcome = resolveType(typeName, project, index)
+  if (outcome.component !== undefined) {
+    links.push(outcome.component)
+    return
+  }
+  traceNonComponent(typeName, outcome) // passes the outcome
+}
+
+function traceNonComponent(typeName: string, outcome: ResolutionOutcome): void {
+  const traceName = outcome.resolvedTypeName ?? typeName
+  // ...
+}
+```
+
+**Detection:** When a function delegates to another function after calling a shared dependency, check whether the delegate re-calls the same dependency with the same arguments. If so, have the first caller return a structured outcome and pass it through.

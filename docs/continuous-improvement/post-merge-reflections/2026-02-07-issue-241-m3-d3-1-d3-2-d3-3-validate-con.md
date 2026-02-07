@@ -116,4 +116,4 @@ Not generated for this PR.
 
 ## Recommended Follow-Ups
 
-- [ ] Add RFC-017: "Propagate Resolution Outcomes" — when a function computes a result and delegates to another function, pass the result rather than re-computing. Detects redundant deterministic calls across call chains.
+- [x] ~~Add RFC-017~~ → Added as AP-010 in `docs/conventions/anti-patterns.md`: "Re-Computing Results Instead of Propagating" — when a function computes a result and delegates to another function, pass the result rather than re-computing.
