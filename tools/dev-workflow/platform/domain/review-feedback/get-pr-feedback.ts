@@ -6,8 +6,6 @@ import {
   reviewDecisionSchema, type ReviewDecision 
 } from './review-decision'
 
-export type { FormattedFeedbackItem }
-
 interface RawReviewThread {
   id: string
   isResolved: boolean

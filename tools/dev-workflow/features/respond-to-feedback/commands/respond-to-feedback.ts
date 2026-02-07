@@ -8,10 +8,6 @@ import {
   type RespondToFeedbackOutput,
 } from '../domain/feedback-response'
 
-export type {
-  RespondToFeedbackInput, RespondToFeedbackOutput 
-} from '../domain/feedback-response'
-
 const cliArgsSchema = z.object({
   threadId: z.string().min(1, { message: '--thread-id is required' }),
   action: z.string().min(1, { message: '--action is required (fixed or rejected)' }),

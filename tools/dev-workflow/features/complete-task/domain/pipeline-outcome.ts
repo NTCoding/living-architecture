@@ -24,7 +24,7 @@ const completeTaskResultSchema = z.object({
   logFile: z.string().optional(),
   failedReviewers: z.array(failedReviewerSchema).optional(),
 })
-export type CompleteTaskResult = z.infer<typeof completeTaskResultSchema>
+type CompleteTaskResult = z.infer<typeof completeTaskResultSchema>
 
 function isFailedReviewerArray(value: unknown): value is FailedReviewer[] {
   return failedReviewerArraySchema.safeParse(value).success

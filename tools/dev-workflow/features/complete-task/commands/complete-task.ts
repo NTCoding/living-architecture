@@ -20,11 +20,6 @@ import {
 } from '../domain/workflow-setup'
 
 export { resolveTimingsFilePath } from '../domain/workflow-setup'
-export { completeTaskContextSchema } from '../domain/task-to-complete'
-export type { CompleteTaskContext } from '../domain/task-to-complete'
-export type { CompleteTaskResult } from '../domain/pipeline-outcome'
-export { MissingPullRequestDetailsError } from '../domain/pull-request-draft'
-export { AgentError } from '../domain/steps/run-code-review'
 
 export function executeCompleteTask(): void {
   const debugLog = createDebugLog('reviews/debug.log')

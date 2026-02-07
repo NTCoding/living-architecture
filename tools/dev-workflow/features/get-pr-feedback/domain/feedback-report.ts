@@ -6,7 +6,7 @@ import type { ReviewDecision } from '../../../platform/domain/review-feedback/re
 const prStateSchema = z.enum(['merged', 'open', 'closed', 'not_found'])
 export type PRState = z.infer<typeof prStateSchema>
 
-export const getPRFeedbackContextSchema = baseContextSchema.extend({
+const getPRFeedbackContextSchema = baseContextSchema.extend({
   prNumber: z.number().optional(),
   prUrl: z.string().optional(),
   prState: prStateSchema.optional(),

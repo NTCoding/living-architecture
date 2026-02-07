@@ -35,7 +35,7 @@ interface ReviewerResult {
 const VALID_REVIEWERS = ['architecture-review', 'code-review', 'bug-scanner', 'task-check'] as const
 type ReviewerName = (typeof VALID_REVIEWERS)[number]
 
-export interface DiffFileEntry {
+interface DiffFileEntry {
   readonly path: string
   readonly deleted: boolean
 }

@@ -7,9 +7,6 @@ import { handlePostToolUse } from '../domain/handlers/post-tool-use-handler'
 import { handleStop } from '../domain/handlers/stop-handler'
 import { CLAUDE_SDK_AGENT_ENV_VAR } from '../../../platform/infra/external-clients/claude-agent'
 
-export type { HookInput } from '../domain/hook-input-schemas'
-export type { HookOutput } from '../domain/hook-output-schemas'
-
 export function shouldSkipHooks(): boolean {
   const sdkAgentEnv = process.env[CLAUDE_SDK_AGENT_ENV_VAR]
   if (!sdkAgentEnv) {

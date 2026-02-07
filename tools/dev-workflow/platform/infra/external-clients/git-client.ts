@@ -10,7 +10,7 @@ export class GitError extends Error {
 
 const repo = simpleGit()
 
-export interface DiffFileEntry {
+interface DiffFileEntry {
   readonly path: string
   readonly deleted: boolean
 }

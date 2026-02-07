@@ -36,11 +36,6 @@ async function buildGetPRFeedbackContext(): Promise<GetPRFeedbackContext> {
   }
 }
 
-export { getPRFeedbackContextSchema } from '../domain/feedback-report'
-export type {
-  GetPRFeedbackContext, PRFeedbackStatus 
-} from '../domain/feedback-report'
-
 export function executeGetPRFeedback(): void {
   const fetchFeedback = createFetchFeedbackStep({
     getPRMergeInfo: github.getPRMergeInfo.bind(github),
