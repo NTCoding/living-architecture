@@ -132,7 +132,7 @@ function collectMatchesForCallExpression(
   return matches
 }
 
-function deduplicateMatches(matches: MatchedLink[]): ExtractedLink[] {
+function deduplicateMatches(matches: MatchedLink[], repository: string): ExtractedLink[] {
   const seen = new Map<string, ExtractedLink>()
   for (const match of matches) {
     const key = linkKey(match.sourceId, match.targetId, match.linkType)
@@ -142,7 +142,7 @@ function deduplicateMatches(matches: MatchedLink[]): ExtractedLink[] {
       target: match.targetId,
       type: match.linkType,
       sourceLocation: {
-        repository: '',
+        repository,
         filePath: match.filePath,
         lineNumber: match.lineNumber,
         methodName: match.methodName,
@@ -160,10 +160,14 @@ export function detectConfigurableConnections(
   project: Project,
   patterns: ConnectionPattern[],
   components: readonly EnrichedComponent[],
-  options: { strict: boolean } = { strict: true },
+  options: {
+    strict: boolean
+    repository?: string
+  } = { strict: true },
 ): ExtractedLink[] {
   if (patterns.length === 0) return []
 
+  const repository = options.repository ?? ''
   const componentIndex = new ComponentIndex(components)
   const allMatches: MatchedLink[] = []
 
@@ -188,5 +192,5 @@ export function detectConfigurableConnections(
     }
   }
 
-  return deduplicateMatches(allMatches)
+  return deduplicateMatches(allMatches, repository)
 }

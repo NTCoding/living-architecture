@@ -1,23 +1,13 @@
 import {
   describe, it, expect 
 } from 'vitest'
-import {
-  Project, ScriptTarget, ModuleKind 
-} from 'ts-morph'
 import type { ConnectionPattern } from '@living-architecture/riviere-extract-config'
 import { buildComponent } from '../call-graph/call-graph-fixtures'
 import { detectConfigurableConnections } from './detect-configurable-connections'
+import { createTestProject } from './configurable-fixtures'
 
-function createProject(): Project {
-  return new Project({
-    useInMemoryFileSystem: true,
-    compilerOptions: {
-      strict: true,
-      target: ScriptTarget.ESNext,
-      module: ModuleKind.ESNext,
-      experimentalDecorators: true,
-    },
-  })
+function createProject() {
+  return createTestProject({ experimentalDecorators: true })
 }
 
 function syncPattern(overrides: Partial<ConnectionPattern> = {}): ConnectionPattern {

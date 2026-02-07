@@ -14,6 +14,7 @@ export interface ConnectionDetectionOptions {
   allowIncomplete?: boolean
   moduleGlobs: string[]
   patterns?: ConnectionPattern[]
+  repository?: string
 }
 
 export interface ConnectionTimings {
@@ -40,6 +41,16 @@ function computeFilteredFilePaths(
     .filter((filePath) => moduleGlobs.some((glob) => globMatcher(filePath, glob)))
 }
 
+function deduplicateCrossStrategy(links: ExtractedLink[]): ExtractedLink[] {
+  const seen = new Map<string, ExtractedLink>()
+  for (const link of links) {
+    const key = `${link.source}|${link.target}|${link.type}`
+    if (seen.has(key)) continue
+    seen.set(key, link)
+  }
+  return [...seen.values()]
+}
+
 export function detectConnections(
   project: Project,
   components: readonly EnrichedComponent[],
@@ -54,28 +65,42 @@ export function detectConnections(
   const setupMs = performance.now() - setupStart
 
   const strict = !options.allowIncomplete
+  const repository = options.repository ?? ''
 
   const callGraphStart = performance.now()
   const syncLinks = buildCallGraph(project, components, componentIndex, {
     strict,
     sourceFilePaths,
+    repository,
   })
   const callGraphMs = performance.now() - callGraphStart
 
   const asyncStart = performance.now()
-  const publishLinks = detectPublishConnections(project, components, { strict })
-  const subscribeLinks = detectSubscribeConnections(components, { strict })
+  const publishLinks = detectPublishConnections(project, components, {
+    strict,
+    repository,
+  })
+  const subscribeLinks = detectSubscribeConnections(components, {
+    strict,
+    repository,
+  })
   const asyncDetectionMs = performance.now() - asyncStart
 
   const patterns = options.patterns ?? []
   const configurableStart = performance.now()
-  const configurableLinks = detectConfigurableConnections(project, patterns, components, { strict })
+  const configurableLinks = detectConfigurableConnections(project, patterns, components, {
+    strict,
+    repository,
+  })
   const configurableMs = patterns.length > 0 ? performance.now() - configurableStart : 0
 
   const totalMs = performance.now() - totalStart
 
+  const allLinks = [...syncLinks, ...publishLinks, ...subscribeLinks, ...configurableLinks]
+  const deduplicatedLinks = deduplicateCrossStrategy(allLinks)
+
   return {
-    links: [...syncLinks, ...publishLinks, ...subscribeLinks, ...configurableLinks],
+    links: deduplicatedLinks,
     timings: {
       callGraphMs,
       asyncDetectionMs,

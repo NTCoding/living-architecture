@@ -135,7 +135,7 @@ export function buildCallGraph(
     }
   }
 
-  return deduplicateLinks(rawLinks, uncertainLinks)
+  return deduplicateLinks(rawLinks, uncertainLinks, options.repository)
 }
 
 function traceNonComponent(

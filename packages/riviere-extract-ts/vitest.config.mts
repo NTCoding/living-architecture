@@ -19,6 +19,7 @@ export default defineConfig(() => ({
       reportsDirectory: './test-output/vitest/coverage',
       provider: 'v8' as const,
       reporter: ['text', ['lcov', { projectRoot: repoRoot }]] as ['text', ['lcov', { projectRoot: string }]],
+      exclude: ['**/*-fixtures.ts', '**/*-fixtures/**'],
       thresholds: {
         lines: 100,
         statements: 100,

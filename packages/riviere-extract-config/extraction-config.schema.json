@@ -608,6 +608,7 @@
         "patterns": {
           "type": "array",
           "description": "Connection detection patterns",
+          "minItems": 1,
           "items": {
             "$ref": "#/$defs/connectionPattern"
           }

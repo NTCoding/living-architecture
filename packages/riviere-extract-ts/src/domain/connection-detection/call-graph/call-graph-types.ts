@@ -3,6 +3,7 @@ import type { EnrichedComponent } from '../../value-extraction/enrich-components
 export interface CallGraphOptions {
   strict: boolean
   sourceFilePaths: string[]
+  repository?: string
 }
 
 export interface CallSite {

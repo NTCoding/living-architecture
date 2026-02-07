@@ -1,43 +1,20 @@
 import {
   describe, it, expect 
 } from 'vitest'
-import {
-  Project, SyntaxKind, type CallExpression 
-} from 'ts-morph'
 import type { ConnectionExtractBlock } from '@living-architecture/riviere-extract-config'
-import { CallExpressionNotFoundError } from '../call-graph/type-resolver-fixtures'
 import { evaluateExtractRules } from './evaluate-extract-rules'
+import {
+  createTestProject, createTestFile, getFirstCallExpression 
+} from './configurable-fixtures'
 
-const project = new Project({
-  useInMemoryFileSystem: true,
-  compilerOptions: {
-    strict: true,
-    target: 99,
-    module: 99,
-  },
-})
-
-const counter = { value: 0 }
+const project = createTestProject()
 
 function createFile(content: string): string {
-  counter.value++
-  const filePath = `/src/test-extract-rules-${counter.value}.ts`
-  project.createSourceFile(filePath, content)
-  return filePath
+  return createTestFile(project, content)
 }
 
-function getCallExpression(
-  filePath: string,
-  className: string,
-  methodName: string,
-): CallExpression {
-  const sourceFile = project.getSourceFileOrThrow(filePath)
-  const classDecl = sourceFile.getClassOrThrow(className)
-  const method = classDecl.getMethodOrThrow(methodName)
-  const callExprs = method.getDescendantsOfKind(SyntaxKind.CallExpression)
-  const [first] = callExprs
-  if (!first) throw new CallExpressionNotFoundError(className, methodName)
-  return first
+function getCallExpression(filePath: string, className: string, methodName: string) {
+  return getFirstCallExpression(project, filePath, className, methodName)
 }
 
 describe('evaluateExtractRules', () => {
