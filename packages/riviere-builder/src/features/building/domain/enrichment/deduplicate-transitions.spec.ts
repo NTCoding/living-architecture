@@ -71,6 +71,30 @@ describe('deduplicateStateTransitions', () => {
     ])
   })
 
+  it('treats missing trigger on incoming as non-duplicate of triggered existing', () => {
+    const result = deduplicateStateTransitions(
+      [
+        {
+          from: 'a',
+          to: 'b',
+          trigger: 'submit',
+        },
+      ],
+      [
+        {
+          from: 'a',
+          to: 'b',
+        },
+      ],
+    )
+    expect(result).toStrictEqual([
+      {
+        from: 'a',
+        to: 'b',
+      },
+    ])
+  })
+
   it('filters duplicates including trigger', () => {
     const result = deduplicateStateTransitions(
       [
