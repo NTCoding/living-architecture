@@ -272,6 +272,7 @@ export default tseslint.config(
       '**/*.test.ts',
       'packages/riviere-query/src/queries/**/*.ts',
       'apps/eclair/**/queries/**/*.ts',
+      // TODO: Split run-extraction.ts (175 lines) into smaller orchestration files
       'packages/riviere-cli/src/features/extract/commands/run-extraction.ts',
     ],
     rules: {

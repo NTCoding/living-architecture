@@ -39,6 +39,7 @@ function runGit(
     }
     if (error instanceof Error) {
       const stderr = extractStderr(error)
+      // ANTI-PATTERN EXCEPTION: String-Based Error Detection (AP-001) - git CLI only reports errors via stderr text
       if (stderr.includes('not a git repository')) {
         throw new GitError('NOT_A_REPOSITORY', 'Run from within a git repository.')
       }
