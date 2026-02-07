@@ -1,4 +1,3 @@
-import path from 'node:path'
 import {
   afterAll, describe, expect, it 
 } from 'vitest'
@@ -15,7 +14,7 @@ const typedRuleTester = new RuleTester({
   languageOptions: {
     parserOptions: {
       projectService: { allowDefaultProject: ['*.ts'] },
-      tsconfigRootDir: path.resolve(import.meta.dirname, '../..'),
+      tsconfigRootDir: import.meta.dirname,
     },
   },
 })
