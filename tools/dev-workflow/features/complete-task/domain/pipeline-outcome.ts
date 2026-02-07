@@ -26,6 +26,10 @@ const completeTaskResultSchema = z.object({
 })
 export type CompleteTaskResult = z.infer<typeof completeTaskResultSchema>
 
+function addReminder(instructions: string): string {
+  return `${instructions}\n\nREMEMBER: /fix-it-never-work-around-it`
+}
+
 function isFailedReviewerArray(value: unknown): value is FailedReviewer[] {
   return failedReviewerArraySchema.safeParse(value).success
 }
@@ -135,7 +139,7 @@ export function formatCompleteTaskResult(
       return {
         success: false,
         nextAction: formatted.nextAction,
-        nextInstructions: `Step "${failedStep}" failed. See ${logFile} for details.`,
+        nextInstructions: addReminder(`Step "${failedStep}" failed. See ${logFile} for details.`),
         failedStep,
         logFile,
       }
@@ -144,7 +148,7 @@ export function formatCompleteTaskResult(
     return {
       success: false,
       nextAction: formatted.nextAction,
-      nextInstructions: formatted.instructions,
+      nextInstructions: addReminder(formatted.instructions),
       failedStep,
       failedReviewers: formatted.failedReviewers,
     }
@@ -168,7 +172,7 @@ export function formatCompleteTaskResult(
   return {
     success: true,
     nextAction: 'done',
-    nextInstructions: instructions.join('\n'),
+    nextInstructions: addReminder(instructions.join('\n')),
     prUrl: ctx.prUrl,
   }
 }

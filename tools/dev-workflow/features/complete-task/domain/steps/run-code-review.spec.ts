@@ -1,6 +1,7 @@
 import {
   describe, it, expect, vi, beforeEach 
 } from 'vitest'
+import { z } from 'zod'
 
 const {
   mockReadFile,
@@ -27,12 +28,21 @@ vi.mock('../task-check-marker', () => ({
 }))
 
 import {
-  createCodeReviewStep, AgentError 
+  createCodeReviewStep,
+  AgentError,
+  type ReviewerResponse,
+  type CodeReviewDeps,
 } from './run-code-review'
-import type { CodeReviewDeps } from './run-code-review'
 import type { CompleteTaskContext } from '../task-to-complete'
 
-const mockQueryAgentText = vi.fn<CodeReviewDeps['queryAgentText']>()
+const queryAgentOptsSchema = z.object({
+  prompt: z.string(),
+  model: z.enum(['opus', 'sonnet', 'haiku']),
+  outputSchema: z.any(),
+  settingSources: z.array(z.enum(['user', 'project', 'local'])).optional(),
+})
+
+const mockQueryAgent = vi.fn()
 
 function createContext(overrides: Partial<CompleteTaskContext> = {}): CompleteTaskContext {
   return {
@@ -47,12 +57,13 @@ function createContext(overrides: Partial<CompleteTaskContext> = {}): CompleteTa
 }
 
 function createStep(skipReview = false) {
-  return createCodeReviewStep({
+  const deps = {
     skipReview,
     baseBranch: vi.fn().mockResolvedValue('main'),
     unpushedFiles: vi.fn().mockResolvedValue(['file1.ts']),
-    queryAgentText: mockQueryAgentText,
-  })
+    queryAgent: mockQueryAgent,
+  } satisfies CodeReviewDeps
+  return createCodeReviewStep(deps)
 }
 
 describe('AgentError', () => {
@@ -71,7 +82,7 @@ describe('codeReview', () => {
     mockTaskCheckMarkerExists.mockReturnValue(true)
     mockReadFile.mockResolvedValue('# Agent instructions')
     mockWriteFile.mockResolvedValue(undefined)
-    mockQueryAgentText.mockResolvedValue('PASS\nAll checks passed.')
+    mockQueryAgent.mockResolvedValue({ verdict: 'PASS' } satisfies ReviewerResponse)
   })
 
   it('returns success when --reject-review-feedback flag is set', async () => {
@@ -81,7 +92,7 @@ describe('codeReview', () => {
     const result = await step.execute(ctx)
 
     expect(result.type).toBe('success')
-    expect(mockQueryAgentText).not.toHaveBeenCalled()
+    expect(mockQueryAgent).not.toHaveBeenCalled()
   })
 
   it('returns failure when reviewDir is missing', async () => {
@@ -99,7 +110,7 @@ describe('codeReview', () => {
 
     await step.execute(ctx)
 
-    expect(mockQueryAgentText).toHaveBeenCalledTimes(3)
+    expect(mockQueryAgent).toHaveBeenCalledTimes(3)
   })
 
   it('runs task-check agent when hasIssue and no marker', async () => {
@@ -115,7 +126,7 @@ describe('codeReview', () => {
 
     await step.execute(ctx)
 
-    expect(mockQueryAgentText).toHaveBeenCalledTimes(4)
+    expect(mockQueryAgent).toHaveBeenCalledTimes(4)
   })
 
   it('creates task-check marker when task-check passes', async () => {
@@ -135,7 +146,7 @@ describe('codeReview', () => {
   })
 
   it('returns failure when any reviewer fails', async () => {
-    mockQueryAgentText.mockResolvedValue('FAIL\nIssues found.')
+    mockQueryAgent.mockResolvedValue({ verdict: 'FAIL' } satisfies ReviewerResponse)
     const step = createStep()
     const ctx = createContext({})
 
@@ -179,10 +190,12 @@ describe('codeReview', () => {
 
     await step.execute(ctx)
 
-    const codeReviewCall = mockQueryAgentText.mock.calls.find((call) =>
-      String(call[0].prompt).includes('code-review'),
-    )
-    expect(codeReviewCall?.[0].prompt).toContain('code-review-2.md')
+    const codeReviewCall = mockQueryAgent.mock.calls.find((call) => {
+      const parsed = queryAgentOptsSchema.safeParse(call[0])
+      return parsed.success && parsed.data.prompt.includes('code-review')
+    })
+    const parsed = queryAgentOptsSchema.parse(codeReviewCall?.[0])
+    expect(parsed.prompt).toContain('code-review-2.md')
   })
 
   it('passes round 1 report path in prompt when directory does not exist', async () => {
@@ -194,14 +207,16 @@ describe('codeReview', () => {
 
     await step.execute(ctx)
 
-    const codeReviewCall = mockQueryAgentText.mock.calls.find((call) =>
-      String(call[0].prompt).includes('code-review'),
-    )
-    expect(codeReviewCall?.[0].prompt).toContain('code-review-1.md')
+    const codeReviewCall = mockQueryAgent.mock.calls.find((call) => {
+      const parsed = queryAgentOptsSchema.safeParse(call[0])
+      return parsed.success && parsed.data.prompt.includes('code-review')
+    })
+    const parsed = queryAgentOptsSchema.parse(codeReviewCall?.[0])
+    expect(parsed.prompt).toContain('code-review-1.md')
   })
 
   it('returns retriable failure when agent query throws', async () => {
-    mockQueryAgentText.mockRejectedValue(new AgentError('API Error: 400'))
+    mockQueryAgent.mockRejectedValue(new AgentError('API Error: 400'))
     const step = createStep()
     const ctx = createContext({})
 
@@ -211,78 +226,12 @@ describe('codeReview', () => {
   })
 
   it('returns retriable failure when agent query throws non-Error', async () => {
-    mockQueryAgentText.mockRejectedValue('string error')
+    mockQueryAgent.mockRejectedValue('string error')
     const step = createStep()
     const ctx = createContext({})
 
     const result = await step.execute(ctx)
 
     expect(result.type).toBe('failure')
-  })
-
-  it('returns failure when agent response has invalid verdict', async () => {
-    mockQueryAgentText.mockResolvedValue('INVALID_VERDICT\nsome report content')
-    const step = createStep()
-    const ctx = createContext({})
-
-    const result = await step.execute(ctx)
-
-    expect(result.type).toBe('failure')
-  })
-
-  it('returns failure when agent response has no newline', async () => {
-    mockQueryAgentText.mockResolvedValue('single line without newline')
-    const step = createStep()
-    const ctx = createContext({})
-
-    const result = await step.execute(ctx)
-
-    expect(result.type).toBe('failure')
-  })
-
-  it('parses bold markdown verdict like **PASS**', async () => {
-    mockQueryAgentText.mockResolvedValue(
-      '**PASS** — All acceptance criteria satisfied.\nDetailed report here.',
-    )
-    const step = createStep()
-    const ctx = createContext({})
-
-    const result = await step.execute(ctx)
-
-    expect(result.type).toBe('success')
-  })
-
-  it('parses bold markdown FAIL verdict', async () => {
-    mockQueryAgentText.mockResolvedValue('**FAIL** — Issues found.\nDetails here.')
-    const step = createStep()
-    const ctx = createContext({})
-
-    const result = await step.execute(ctx)
-
-    expect(result.type).toBe('failure')
-  })
-
-  it('finds verdict within first 5 lines when agent narrates before verdict', async () => {
-    mockQueryAgentText.mockResolvedValue(
-      'Now I have all the information.\nLet me complete the audit.\nPASS\nAll checks passed.',
-    )
-    const step = createStep()
-    const ctx = createContext({})
-
-    const result = await step.execute(ctx)
-
-    expect(result.type).toBe('success')
-  })
-
-  it('finds verdict beyond first 5 lines when agent narrates extensively', async () => {
-    mockQueryAgentText.mockResolvedValue(
-      'line1\nline2\nline3\nline4\nline5\nPASS\nAll checks passed.',
-    )
-    const step = createStep()
-    const ctx = createContext({})
-
-    const result = await step.execute(ctx)
-
-    expect(result.type).toBe('success')
   })
 })

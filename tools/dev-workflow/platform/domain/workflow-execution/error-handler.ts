@@ -5,7 +5,7 @@ export function handleWorkflowError(error: unknown): never {
       {
         success: false,
         nextAction: 'fix_errors',
-        nextInstructions: `Unexpected error: ${isError ? error.message : String(error)}`,
+        nextInstructions: `Unexpected error: ${isError ? error.message : String(error)}\n\nREMEMBER: /fix-it-never-work-around-it`,
         stack: isError ? error.stack : undefined,
       },
       null,

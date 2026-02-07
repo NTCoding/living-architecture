@@ -45,7 +45,7 @@ export function executeCompleteTask(): void {
       skipReview: resolveSkipReview(cli),
       baseBranch: git.baseBranch.bind(git),
       unpushedFiles: git.unpushedFiles.bind(git),
-      queryAgentText: claude.queryText.bind(claude),
+      queryAgent: claude.query.bind(claude),
       debugLog,
     },
     submitPR: {
