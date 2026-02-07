@@ -133,7 +133,23 @@ function deduplicateMatches(matches: MatchedLink[], repository: string): Extract
   const seen = new Map<string, ExtractedLink>()
   for (const match of matches) {
     const key = linkKey(match.sourceId, match.targetId, match.linkType)
-    if (seen.has(key)) continue
+    const existing = seen.get(key)
+    if (existing !== undefined) {
+      if (existing._uncertain !== undefined && match._uncertain === undefined) {
+        seen.set(key, {
+          source: match.sourceId,
+          target: match.targetId,
+          type: match.linkType,
+          sourceLocation: {
+            repository,
+            filePath: match.filePath,
+            lineNumber: match.lineNumber,
+            methodName: match.methodName,
+          },
+        })
+      }
+      continue
+    }
     const link: ExtractedLink = {
       source: match.sourceId,
       target: match.targetId,
@@ -144,9 +160,7 @@ function deduplicateMatches(matches: MatchedLink[], repository: string): Extract
         lineNumber: match.lineNumber,
         methodName: match.methodName,
       },
-    }
-    if (match._uncertain !== undefined) {
-      link._uncertain = match._uncertain
+      ...(match._uncertain !== undefined && { _uncertain: match._uncertain }),
     }
     seen.set(key, link)
   }

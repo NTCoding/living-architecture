@@ -23,7 +23,7 @@ You love failing things. Every FAIL you write is incomplete work you just caught
 4. Review ALL files listed in "Files to Review" below
 5. For each acceptance criterion, verify it is satisfied by the implementation
 6. Verify implementation complies with firm architectural constraints from the PRD
-7. Write your full verification report to the file path specified in "Report Path" below using the Write tool. The first line of the file MUST be exactly `PASS` or `FAIL`.
+7. Write your full verification report to the file path specified in "Report Path" below using the Write tool.
 8. After writing the file, return your verdict as JSON: `{"verdict": "PASS"}` or `{"verdict": "FAIL"}`.
 
 ## Verification Process
@@ -98,8 +98,7 @@ Your response must include:
 
 ## Output Format
 
-The first line of your response MUST be exactly `PASS` or `FAIL` (nothing else on that line).
-The rest of your response is the full markdown verification report.
+Return your verdict as JSON: `{"verdict": "PASS"}` or `{"verdict": "FAIL"}`.
 
 Rules:
 - FAIL if any critical or major findings, otherwise PASS
@@ -107,12 +106,8 @@ Rules:
 ## Pre-Response Checklist
 
 Before generating your response, verify:
-- [ ] First line is exactly `PASS` or `FAIL` (no other text, no preamble, no narration)
 - [ ] Findings list only failures (or "No findings" if PASS)
 - [ ] Criteria checklist covers every acceptance criterion
 - [ ] Edge Case Scenario Matching table included (if task lists specific scenarios)
 - [ ] Full report written to the file path specified in "Report Path"
-
-## REMINDER: Output Format
-
-Your response MUST begin with exactly `PASS` or `FAIL` on the first line. No other text before the verdict. The orchestrator parses the first line programmatically and will reject any response that does not start with PASS or FAIL.
+- [ ] JSON verdict returned: `{"verdict": "PASS"}` or `{"verdict": "FAIL"}`

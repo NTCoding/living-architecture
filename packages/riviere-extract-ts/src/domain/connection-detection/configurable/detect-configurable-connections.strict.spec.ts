@@ -122,4 +122,51 @@ class ExtractCaller {
     ])
     expect(result[0]).not.toHaveProperty('_uncertain')
   })
+
+  it('replaces uncertain match with certain match when deduplicating', () => {
+    const project = createTestProject()
+    project.createSourceFile(
+      '/src/dedup-prefer-certain.ts',
+      `
+class EventBus {
+  publish(name: string): void {}
+}
+class DedupCaller {
+  constructor(private bus: EventBus) {}
+  execute(): void {
+    const dynamicName = getDynamicName()
+    this.bus.publish(dynamicName)
+    this.bus.publish('OrderCreated')
+  }
+}
+function getDynamicName(): string { return 'DynamicEvent' }
+`,
+    )
+    const caller = buildComponent('DedupCaller', '/src/dedup-prefer-certain.ts', 5)
+    const bus = buildComponent('EventBus', '/src/dedup-prefer-certain.ts', 2, { type: 'event' })
+    const pattern = syncPattern({
+      name: 'event-publish-dedup',
+      where: { methodName: 'publish' },
+      extract: { eventName: { fromArgument: 0 } },
+    })
+
+    const result = detectConfigurableConnections(project, [pattern], [caller, bus], {
+      strict: false,
+      repository: 'test-repo',
+    })
+
+    expect(result).toHaveLength(1)
+    expect(result[0]).toMatchObject({
+      source: 'orders:useCase:DedupCaller',
+      target: 'orders:event:EventBus',
+      type: 'sync',
+      sourceLocation: {
+        repository: 'test-repo',
+        filePath: '/src/dedup-prefer-certain.ts',
+        lineNumber: 10,
+        methodName: 'execute',
+      },
+    })
+    expect(result[0]).not.toHaveProperty('_uncertain')
+  })
 })

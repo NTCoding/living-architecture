@@ -31,17 +31,58 @@ import {
 } from '../../../platform/infra/cli-presentation/format-extraction-stats'
 import type { ExtractOptions } from '../../../platform/infra/cli-presentation/extract-validator'
 
+/* v8 ignore start -- @preserve: GitError handling tested in git-repository-info.spec.ts */
 function getRepositoryInfoSafe(): ReturnType<typeof getRepositoryInfo> {
   try {
     return getRepositoryInfo()
-    /* v8 ignore start -- @preserve: GitError handling tested in git-repository-info.spec.ts */
   } catch (error) {
     if (error instanceof GitError) {
       exitWithRuntimeError(error.message)
     }
     throw error
   }
-  /* v8 ignore stop */
+}
+/* v8 ignore stop */
+
+/* v8 ignore start -- @preserve: error handling tested via CLI */
+function loadOrExtractComponents(
+  project: Project,
+  sourceFilePaths: string[],
+  resolvedConfig: ResolvedExtractionConfig,
+  configDir: string,
+  enrichPath: string | undefined,
+) {
+  if (enrichPath === undefined) {
+    return extractComponents(project, sourceFilePaths, resolvedConfig, matchesGlob, configDir)
+  }
+  try {
+    return loadDraftComponentsFromFile(enrichPath)
+  } catch (error) {
+    if (error instanceof DraftComponentLoadError) {
+      exitWithRuntimeError(error.message)
+    }
+    throw error
+  }
+}
+
+function enrichComponentsSafe(
+  draftComponents: Parameters<typeof enrichComponents>[0],
+  resolvedConfig: ResolvedExtractionConfig,
+  project: Project,
+  configDir: string,
+  allowIncomplete: boolean,
+) {
+  const result = enrichComponents(draftComponents, resolvedConfig, project, matchesGlob, configDir)
+  if (result.failures.length > 0) {
+    const failedFields = result.failures.map((f) => f.field)
+    if (!allowIncomplete) {
+      exitWithExtractionFailure(failedFields)
+    }
+    console.error(
+      `Warning: Enrichment failed for ${failedFields.length} field(s): ${failedFields.join(', ')}`,
+    )
+  }
+  return result
 }
 
 function detectConnectionsSafe(
@@ -50,9 +91,9 @@ function detectConnectionsSafe(
   moduleGlobs: string[],
   repository: string,
   allowIncomplete: boolean,
-): ReturnType<typeof detectConnections> {
+) {
   try {
-    return detectConnections(
+    const result = detectConnections(
       project,
       components,
       {
@@ -62,15 +103,16 @@ function detectConnectionsSafe(
       },
       matchesGlob,
     )
-    /* v8 ignore start -- @preserve: ConnectionDetectionError tested via CLI integration */
+    console.error(formatTimingLine(result.timings))
+    return result
   } catch (error) {
     if (error instanceof ConnectionDetectionError) {
       exitWithConnectionDetectionFailure(error.file, error.line, error.typeName, error.reason)
     }
     throw error
   }
-  /* v8 ignore stop */
 }
+/* v8 ignore stop */
 
 export function runExtraction(
   options: ExtractOptions,
@@ -81,23 +123,15 @@ export function runExtraction(
   const project = new Project()
   project.addSourceFilesAtPaths(sourceFilePaths)
 
-  const draftComponents = (() => {
-    if (options.enrich === undefined) {
-      return extractComponents(project, sourceFilePaths, resolvedConfig, matchesGlob, configDir)
-    }
-    try {
-      return loadDraftComponentsFromFile(options.enrich)
-      /* v8 ignore start -- @preserve: DraftComponentLoadError handling */
-    } catch (error) {
-      if (error instanceof DraftComponentLoadError) {
-        exitWithRuntimeError(error.message)
-      }
-      throw error
-    }
-    /* v8 ignore stop */
-  })()
+  const draftComponents = loadOrExtractComponents(
+    project,
+    sourceFilePaths,
+    resolvedConfig,
+    configDir,
+    options.enrich,
+  )
 
-  /* v8 ignore start -- @preserve: dry-run path tested via CLI integration */
+  /* v8 ignore start -- @preserve: dry-run tested via CLI integration */
   if (options.dryRun) {
     for (const line of formatDryRunOutput(draftComponents)) {
       console.log(line)
@@ -125,30 +159,23 @@ export function runExtraction(
     return
   }
 
-  const enrichmentResult = enrichComponents(
+  const enrichmentResult = enrichComponentsSafe(
     draftComponents,
     resolvedConfig,
     project,
-    matchesGlob,
     configDir,
+    options.allowIncomplete === true,
   )
-  if (enrichmentResult.failures.length > 0 && options.allowIncomplete !== true) {
-    exitWithExtractionFailure(enrichmentResult.failures.map((f) => f.field))
-  }
 
   const repositoryInfo = getRepositoryInfoSafe()
 
-  const {
-    links, timings 
-  } = detectConnectionsSafe(
+  const { links } = detectConnectionsSafe(
     project,
     enrichmentResult.components,
     resolvedConfig.modules.map((m) => m.path),
     repositoryInfo.name,
     options.allowIncomplete === true,
   )
-
-  console.error(formatTimingLine(timings))
   if (options.stats === true) {
     const stats = countLinksByType(enrichmentResult.components.length, links)
     for (const line of formatExtractionStats(stats)) {

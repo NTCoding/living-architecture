@@ -183,6 +183,7 @@ describe('runWorkflow', () => {
 
     await vi.waitFor(() => {
       const output = mockIO.logCalls[0]
+      expect(output).toBeTruthy()
       const parsed = outputSchema.parse(JSON.parse(output))
       expect(parsed.success).toStrictEqual(true)
     })

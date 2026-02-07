@@ -1,17 +1,9 @@
 import { execFileSync } from 'node:child_process'
+import {
+  GitError, extractStderr 
+} from './git-errors'
 
-type GitErrorCode = 'NOT_A_REPOSITORY' | 'GIT_NOT_FOUND' | 'NO_REMOTE'
-
-export class GitError extends Error {
-  readonly gitErrorCode: GitErrorCode
-
-  /* v8 ignore start -- @preserve: Error constructor; tested via integration */
-  constructor(code: GitErrorCode, message: string) {
-    super(`[GIT_ERROR] ${code}. ${message}`)
-    this.gitErrorCode = code
-  }
-  /* v8 ignore stop */
-}
+export { GitError }
 
 class RepositoryUrlParseError extends Error {
   /* v8 ignore start -- @preserve: Error constructor; tested via integration */
@@ -41,17 +33,6 @@ function defaultGitExecutor(binary: string, args: readonly string[], cwd: string
 /* v8 ignore stop */
 
 /* v8 ignore start -- @preserve: git operations; mocked in all integration tests */
-function extractStderr(error: Error): string {
-  if (!Object.hasOwn(error, 'stderr')) {
-    throw error
-  }
-  const stderrValue: unknown = Object.getOwnPropertyDescriptor(error, 'stderr')?.value
-  if (!stderrValue) {
-    throw error
-  }
-  return String(stderrValue)
-}
-
 function runGit(
   executor: GitExecutor,
   gitBinary: string,
@@ -64,8 +45,6 @@ function runGit(
     if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
       throw new GitError('GIT_NOT_FOUND', 'Install git to detect repository information.')
     }
-    // ANTI-PATTERN EXCEPTION: String-Based Error Detection (AP-001)
-    // Justification: git CLI only reports repo status via stderr text
     if (error instanceof Error) {
       const stderr = extractStderr(error)
       if (stderr.includes('not a git repository')) {

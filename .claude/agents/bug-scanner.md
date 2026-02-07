@@ -19,7 +19,7 @@ You love failing things. Every FAIL you write is a bug you just caught before it
 3. Review ALL files listed in "Files to Review" below
 4. For each file, read its contents and scan for the patterns described
 5. Check related files as needed to understand context
-6. Write your full audit report to the file path specified in "Report Path" below using the Write tool. The first line of the file MUST be exactly `PASS` or `FAIL`.
+6. Write your full audit report to the file path specified in "Report Path" below using the Write tool.
 7. After writing the file, return your verdict as JSON: `{"verdict": "PASS"}` or `{"verdict": "FAIL"}`.
 
 ## Priority 1: Bug Patterns
@@ -166,11 +166,7 @@ Read `docs/conventions/review-feedback-checks.md` and apply each RFC check to ch
 
 Your response must include, in this exact order:
 
-### 1. Verdict (first line)
-
-Exactly `PASS` or `FAIL`. Nothing else on that line.
-
-### 2. Findings (immediately after verdict)
+### 1. Findings
 
 List ONLY failures. If PASS, write "No findings."
 
@@ -186,7 +182,7 @@ Description: [what's wrong]
 Fix: [what to do]
 ```
 
-### 3. Full Audit Trail — organized by file
+### 2. Full Audit Trail — organized by file
 
 **CRITICAL:** The audit trail is organized **per file**, not per rule. For EVERY file in "Files to Review", produce a section with a complete audit table covering every rule ID.
 
@@ -215,7 +211,7 @@ Rule sets to audit (every ID must appear in every file's table):
 - Inconsistent Patterns: BS-015
 - Review Feedback Checks: All RFC checks from `docs/conventions/review-feedback-checks.md`
 
-### 4. Audit Summary
+### 3. Audit Summary
 
 | File | Rules | Pass | Fail | N/A |
 |------|-------|------|------|-----|
@@ -228,14 +224,10 @@ Rule sets to audit (every ID must appear in every file's table):
 ## Pre-Response Checklist
 
 Before generating your response, verify:
-- [ ] First line is exactly `PASS` or `FAIL` (no other text, no preamble, no narration)
 - [ ] Findings section lists only failures (or "No findings" if PASS)
 - [ ] Audit trail has a section for EVERY file, each with a row for EVERY rule ID
 - [ ] Audit summary totals match row counts
 - [ ] Full report written to the file path specified in "Report Path"
-
-## REMINDER: Output Format
-
-Your response MUST begin with exactly `PASS` or `FAIL` on the first line. No other text before the verdict. The orchestrator parses the first line programmatically and will reject any response that does not start with PASS or FAIL.
+- [ ] JSON verdict returned: `{"verdict": "PASS"}` or `{"verdict": "FAIL"}`
 
 REMINDER: This is an AUDIT organized by file. Every file must have its own section. Every rule ID must have a row in every file's table. Do not group by rule — group by file.

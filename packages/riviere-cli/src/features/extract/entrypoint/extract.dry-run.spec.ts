@@ -3,7 +3,7 @@ import {
 } from 'node:fs/promises'
 import { join } from 'node:path'
 import {
-  describe, it, expect, vi 
+  describe, it, expect 
 } from 'vitest'
 import { createProgram } from '../../../shell/cli'
 import type { TestContext } from '../../../platform/__fixtures__/command-test-fixtures'

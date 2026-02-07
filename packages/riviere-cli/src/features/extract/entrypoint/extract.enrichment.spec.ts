@@ -3,7 +3,7 @@ import {
 } from 'node:fs/promises'
 import { join } from 'node:path'
 import {
-  describe, it, expect, vi 
+  describe, it, expect 
 } from 'vitest'
 import type { DraftComponent } from '@living-architecture/riviere-extract-ts'
 import { createProgram } from '../../../shell/cli'

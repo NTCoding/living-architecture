@@ -1,16 +1,10 @@
 import { execFileSync } from 'node:child_process'
 import { resolve } from 'node:path'
+import {
+  GitError, extractStderr, isGitError 
+} from './git-errors'
 
-type GitErrorCode = 'NOT_A_REPOSITORY' | 'GIT_NOT_FOUND' | 'BASE_BRANCH_NOT_FOUND'
-
-export class GitError extends Error {
-  readonly gitErrorCode: GitErrorCode
-
-  constructor(code: GitErrorCode, message: string) {
-    super(`[GIT_ERROR] ${code}. ${message}`)
-    this.gitErrorCode = code
-  }
-}
+export { GitError }
 
 interface ChangedFilesOptions {readonly base?: string}
 
@@ -43,20 +37,11 @@ function runGit(
     if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
       throw new GitError('GIT_NOT_FOUND', 'Install git to use --pr flag.')
     }
-    // ANTI-PATTERN EXCEPTION: String-Based Error Detection (AP-001)
-    // Justification: git CLI only reports repo status via stderr text
-    const stderr =
-      error instanceof Error && Object.hasOwn(error, 'stderr')
-        ? (() => {
-          const stderrValue: unknown = Object.getOwnPropertyDescriptor(error, 'stderr')?.value
-          if (!stderrValue) {
-            throw error
-          }
-          return String(stderrValue)
-        })()
-        : ''
-    if (stderr.includes('not a git repository')) {
-      throw new GitError('NOT_A_REPOSITORY', 'Run from within a git repository.')
+    if (error instanceof Error) {
+      const stderr = extractStderr(error)
+      if (stderr.includes('not a git repository')) {
+        throw new GitError('NOT_A_REPOSITORY', 'Run from within a git repository.')
+      }
     }
     throw error
   }
@@ -124,7 +109,7 @@ function getCommittedChangedFiles(
     if (output === '') return []
     return output.split('\n').filter(isTypeScriptFile)
   } catch (error) {
-    if (error instanceof GitError) throw error
+    if (isGitError(error)) throw error
     throw new GitError('BASE_BRANCH_NOT_FOUND', `Base branch '${base}' not found.`)
   }
 }

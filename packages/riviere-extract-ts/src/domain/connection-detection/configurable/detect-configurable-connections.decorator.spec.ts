@@ -3,8 +3,8 @@ import {
 } from 'vitest'
 import type { ConnectionPattern } from '@living-architecture/riviere-extract-config'
 import { buildComponent } from '../call-graph/call-graph-fixtures'
-import { detectConfigurableConnections } from './detect-configurable-connections'
 import { createTestProject } from './configurable-fixtures'
+import { detectConfigurableConnections } from './detect-configurable-connections'
 
 function createProject() {
   return createTestProject({ experimentalDecorators: true })
