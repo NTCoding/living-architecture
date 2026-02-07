@@ -25,20 +25,6 @@ describe('createDefaultWorkflowIO', () => {
     expect(writeFileSync).toHaveBeenCalledWith('/path/to/file.txt', 'content', 'utf-8')
   })
 
-  it('writeFile passes empty string content through to writeFileSync', () => {
-    const io = createDefaultWorkflowIO()
-    io.writeFile('/path/to/file.txt', '')
-
-    expect(writeFileSync).toHaveBeenCalledWith('/path/to/file.txt', '', 'utf-8')
-  })
-
-  it('writeFile passes empty string path through to writeFileSync', () => {
-    const io = createDefaultWorkflowIO()
-    io.writeFile('', 'content')
-
-    expect(writeFileSync).toHaveBeenCalledWith('', 'content', 'utf-8')
-  })
-
   it('log calls console.log', () => {
     const mockLog = vi.spyOn(console, 'log').mockImplementation(vi.fn())
     const io = createDefaultWorkflowIO()

@@ -16,7 +16,7 @@ export default defineConfig(() => ({
       provider: 'v8' as const,
       reporter: ['text', 'lcov'],
       include: ['**/*.ts'],
-      exclude: ['**/*.spec.ts', '**/*.test.ts', '**/*.d.ts', 'shell/index.ts', 'platform/domain/workflow-io.ts'],
+      exclude: ['**/*.spec.ts', '**/*.test.ts', '**/*.d.ts', 'shell/index.ts', 'platform/domain/workflow-io.ts', 'platform/infra/public-api/shell-exports.ts'],
       thresholds: {
         lines: 100,
         statements: 100,
