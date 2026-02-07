@@ -267,14 +267,7 @@ export default tseslint.config(
   // Thin layer enforcement — entrypoints, commands, and queries are thin orchestration files
   {
     files: ['**/entrypoint/**/*.ts', '**/commands/**/*.ts', '**/queries/**/*.ts'],
-    ignores: [
-      '**/*.spec.ts',
-      '**/*.test.ts',
-      'packages/riviere-query/src/queries/**/*.ts',
-      'apps/eclair/**/queries/**/*.ts',
-      // TODO: Split run-extraction.ts (175 lines) into smaller orchestration files
-      'packages/riviere-cli/src/features/extract/commands/run-extraction.ts',
-    ],
+    ignores: ['**/*.spec.ts', '**/*.test.ts', 'packages/riviere-query/src/queries/**/*.ts', 'apps/eclair/**/queries/**/*.ts'],
     rules: {
       'max-lines': ['error', { max: 150, skipBlankLines: true, skipComments: true }],
     },
