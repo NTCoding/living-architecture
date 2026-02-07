@@ -138,9 +138,10 @@ Do not create a plan until you have read and understood these referenced documen
 
 **Rules for rejecting feedback:**
 1. If the feedback is about code **changed in this PR**, you MUST either fix it or explain with a specific technical reason why the suggestion is incorrect
-2. "Not addressing in this PR" is only valid for pre-existing issues unrelated to the PR's changes
-3. "Nitpick" is not a rejection reason — evaluate the suggestion on its technical merits
-4. If you cannot articulate a specific technical reason for rejection, the feedback is probably valid — fix it
+2. If the feedback is about **pre-existing issues in files you are modifying**, fix them. Code quality and alignment with conventions is the highest priority — it doesn't matter if the issue was pre-existing. If we see it in a file we're touching, we fix it.
+3. "Not addressing in this PR" is only valid for pre-existing issues in files **not modified by this PR**
+4. "Nitpick" is not a rejection reason — evaluate the suggestion on its technical merits
+5. If you cannot articulate a specific technical reason for rejection, the feedback is probably valid — fix it
 
 **Re-check PR** — PR feedback addressed, needs CI verification. Run `/complete-task` with `--prmode update`. All feedback must be resolved in a single pass — each round-trip costs ~10 minutes (CI + review cycle).
 

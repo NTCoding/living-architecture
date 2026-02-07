@@ -113,7 +113,9 @@ PR #259 addressed code review and CI feedback from the initial PR submission. Pr
 ## Recommended Follow-Ups
 
 - Add knip to local verify gate or complete-task pre-submit check (pipeline improvement)
-- Add RFC rule: structured format parsing must handle all documented variants
-- Add testing convention: external format parsers must test all documented output variants
+- ✅ Add RFC-017: structured format parsing must handle all documented variants
+- Create issue: introduce test-reviewer agent into code review process with external format parser rule
+- ✅ Update task-workflow.md: pre-existing issues in modified files must be fixed
+- ✅ Update pre-merge-reflection: analyze ALL review rounds, not just the latest
 - Address pre-existing SoC-004 violations in pipeline-outcome.ts, run-code-review.ts, workflow-setup.ts (tech debt, not this PR)
 - Address pre-existing SD-029 type guard violation in pipeline-outcome.ts (tech debt, not this PR)
