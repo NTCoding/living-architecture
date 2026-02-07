@@ -159,6 +159,27 @@ describe('connection pattern schema validation', () => {
       }
       expect(validateExtractionConfig(config).valid).toBe(true)
     })
+
+    it('returns invalid when module has invalid pattern', () => {
+      const config = {
+        modules: [
+          {
+            ...createMinimalModule(),
+            connections: {
+              patterns: [
+                {
+                  ...createMinimalConnectionPattern(),
+                  find: 'invalid',
+                },
+              ],
+            },
+          },
+        ],
+      }
+      const result = validateExtractionConfig(config)
+      expect(result.valid).toBe(false)
+      expect(result.errors.some((e) => e.path.includes('connections'))).toBe(true)
+    })
   })
 
   describe('invalid connection patterns', () => {
@@ -314,6 +335,29 @@ describe('connection pattern schema validation', () => {
       expect(
         validateExtractionConfig(
           configWithPattern({ extract: { sourceType: { fromCallerType: false } } }),
+        ).valid,
+      ).toBe(false)
+    })
+
+    it('returns valid when fromArgument is 0 (boundary)', () => {
+      expect(
+        validateExtractionConfig(configWithPattern({ extract: { eventName: { fromArgument: 0 } } }))
+          .valid,
+      ).toBe(true)
+    })
+
+    it('returns error when fromArgument is string (type mismatch)', () => {
+      expect(
+        validateExtractionConfig(
+          configWithPattern({ extract: { eventName: { fromArgument: '0' } } }),
+        ).valid,
+      ).toBe(false)
+    })
+
+    it('returns error when extract has unknown rule property', () => {
+      expect(
+        validateExtractionConfig(
+          configWithPattern({ extract: { eventName: { unknownRule: true } } }),
         ).valid,
       ).toBe(false)
     })

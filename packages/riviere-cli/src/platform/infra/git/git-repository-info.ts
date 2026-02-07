@@ -32,7 +32,7 @@ function defaultGitExecutor(binary: string, args: readonly string[], cwd: string
 }
 /* v8 ignore stop */
 
-/* v8 ignore start -- @preserve: git operations; mocked in all integration tests */
+/* v8 ignore start -- @preserve: git execution; mocked in all integration tests */
 function runGit(
   executor: GitExecutor,
   gitBinary: string,
@@ -55,6 +55,7 @@ function runGit(
     throw error
   }
 }
+/* v8 ignore stop */
 
 function parseRepositoryUrl(url: string): RepositoryInfo {
   // SSH format: git@github.com:owner/repo.git
@@ -62,9 +63,11 @@ function parseRepositoryUrl(url: string): RepositoryInfo {
   const sshMatch = sshRegex.exec(url)
   if (sshMatch) {
     const [, owner, repo] = sshMatch
+    /* v8 ignore start -- @preserve: defensive check; regex ([^/]+) requires non-empty groups */
     if (!owner || !repo) {
       throw new RepositoryUrlParseError(url)
     }
+    /* v8 ignore stop */
     return {
       name: `${owner}/${repo}`,
       owner,
@@ -77,9 +80,11 @@ function parseRepositoryUrl(url: string): RepositoryInfo {
   const httpsMatch = httpsRegex.exec(url)
   if (httpsMatch) {
     const [, owner, repo] = httpsMatch
+    /* v8 ignore start -- @preserve: defensive check; regex ([^/]+) requires non-empty groups */
     if (!owner || !repo) {
       throw new RepositoryUrlParseError(url)
     }
+    /* v8 ignore stop */
     return {
       name: `${owner}/${repo}`,
       owner,
@@ -94,6 +99,7 @@ function parseRepositoryUrl(url: string): RepositoryInfo {
   }
 }
 
+/* v8 ignore start -- @preserve: git execution; mocked in all integration tests */
 export function getRepositoryInfo(
   gitBinary = 'git',
   cwd = process.cwd(),
@@ -103,6 +109,7 @@ export function getRepositoryInfo(
     const url = runGit(executor, gitBinary, cwd, ['remote', 'get-url', 'origin'])
     return parseRepositoryUrl(url)
   } catch (error) {
+    if (error instanceof GitError) throw error
     if (error instanceof Error) {
       const stderr = extractStderr(error)
       // ANTI-PATTERN EXCEPTION: String-Based Error Detection (AP-001) - git CLI only reports errors via stderr text

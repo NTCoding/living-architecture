@@ -82,6 +82,7 @@ export function detectConnectionsSafe(
   moduleGlobs: string[],
   repository: string,
   allowIncomplete: boolean,
+  showStats: boolean,
 ) {
   try {
     const result = detectConnections(
@@ -94,7 +95,9 @@ export function detectConnectionsSafe(
       },
       matchesGlob,
     )
-    console.error(formatTimingLine(result.timings))
+    if (showStats) {
+      console.error(formatTimingLine(result.timings))
+    }
     return result
   } catch (error) {
     if (error instanceof ConnectionDetectionError) {

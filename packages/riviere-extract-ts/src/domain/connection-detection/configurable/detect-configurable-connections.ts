@@ -44,6 +44,21 @@ function linkKey(source: string, target: string, type: string): string {
   return `${source}|${target}|${type}`
 }
 
+function toExtractedLink(match: MatchedLink, repository: string): ExtractedLink {
+  return {
+    source: match.sourceId,
+    target: match.targetId,
+    type: match.linkType,
+    sourceLocation: {
+      repository,
+      filePath: match.filePath,
+      lineNumber: match.lineNumber,
+      methodName: match.methodName,
+    },
+    ...(match._uncertain !== undefined && { _uncertain: match._uncertain }),
+  }
+}
+
 interface MatchedLink {
   sourceId: string
   targetId: string
@@ -136,33 +151,11 @@ function deduplicateMatches(matches: MatchedLink[], repository: string): Extract
     const existing = seen.get(key)
     if (existing !== undefined) {
       if (existing._uncertain !== undefined && match._uncertain === undefined) {
-        seen.set(key, {
-          source: match.sourceId,
-          target: match.targetId,
-          type: match.linkType,
-          sourceLocation: {
-            repository,
-            filePath: match.filePath,
-            lineNumber: match.lineNumber,
-            methodName: match.methodName,
-          },
-        })
+        seen.set(key, toExtractedLink(match, repository))
       }
       continue
     }
-    const link: ExtractedLink = {
-      source: match.sourceId,
-      target: match.targetId,
-      type: match.linkType,
-      sourceLocation: {
-        repository,
-        filePath: match.filePath,
-        lineNumber: match.lineNumber,
-        methodName: match.methodName,
-      },
-      ...(match._uncertain !== undefined && { _uncertain: match._uncertain }),
-    }
-    seen.set(key, link)
+    seen.set(key, toExtractedLink(match, repository))
   }
   return [...seen.values()]
 }

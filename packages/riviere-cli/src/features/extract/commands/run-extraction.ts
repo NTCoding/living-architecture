@@ -15,6 +15,7 @@ import {
   enrichComponentsSafe,
   detectConnectionsSafe,
 } from '../infra/safe-extraction-operations'
+import { categorizeComponents } from '../../../platform/infra/cli-presentation/categorize-components'
 
 export function runExtraction(
   options: ExtractOptions,
@@ -43,15 +44,8 @@ export function runExtraction(
   /* v8 ignore stop */
 
   if (options.format === 'markdown') {
-    const markdown = formatPrMarkdown({
-      added: draftComponents.map((c) => ({
-        type: c.type,
-        name: c.name,
-        domain: c.domain,
-      })),
-      modified: [],
-      removed: [],
-    })
+    const categorized = categorizeComponents(draftComponents, undefined)
+    const markdown = formatPrMarkdown(categorized)
     console.log(markdown)
     return
   }
@@ -77,6 +71,7 @@ export function runExtraction(
     resolvedConfig.modules.map((m) => m.path),
     repositoryInfo.name,
     options.allowIncomplete === true,
+    options.stats === true,
   )
   if (options.stats === true) {
     const stats = countLinksByType(enrichmentResult.components.length, links)

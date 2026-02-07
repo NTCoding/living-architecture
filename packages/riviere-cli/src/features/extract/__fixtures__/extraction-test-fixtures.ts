@@ -103,3 +103,7 @@ export async function createValidExtractFixture(testDir: string): Promise<string
   await writeFile(configPath, validConfigYaml)
   return configPath
 }
+
+// Note: vi.mock() for git-repository-info is duplicated across spec files
+// because vi.mock() must be called at the top level with an inline factory.
+// See: https://vitest.dev/api/vi.html#vi-mock
