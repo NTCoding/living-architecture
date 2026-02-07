@@ -31,29 +31,41 @@ interface TraceContext {
   options: CallGraphOptions
 }
 
+interface ComponentTargetOutcome {
+  target: EnrichedComponent | undefined
+  resolvedTypeName: string | undefined
+  uncertain: string | undefined
+}
+
 function resolveComponentTarget(
   typeName: string,
   calledMethodName: string,
   ctx: TraceContext,
-): EnrichedComponent | undefined {
+): ComponentTargetOutcome {
   const {
-    component: directMatch, resolvedTypeName 
-  } = resolveTypeThroughInterface(
-    typeName,
-    ctx.project,
-    ctx.componentIndex,
-    ctx.options,
-  )
+    component: directMatch,
+    resolvedTypeName,
+    uncertain,
+  } = resolveTypeThroughInterface(typeName, ctx.project, ctx.componentIndex, ctx.options)
   if (directMatch !== undefined) {
-    return directMatch
+    return {
+      target: directMatch,
+      resolvedTypeName: undefined,
+      uncertain: undefined,
+    }
   }
 
-  return resolveContainerMethod(
+  const containerTarget = resolveContainerMethod(
     ctx.project,
     resolvedTypeName ?? typeName,
     calledMethodName,
     ctx.componentIndex,
   )
+  return {
+    target: containerTarget,
+    resolvedTypeName,
+    uncertain,
+  }
 }
 
 function traceCallExpression(callExpr: CallExpression, ctx: TraceContext): void {
@@ -66,37 +78,29 @@ function traceCallExpression(callExpr: CallExpression, ctx: TraceContext): void 
 
   const typeName = typeResult.typeName
   const calledMethodName = getCalledMethodName(callExpr)
-  const target = resolveComponentTarget(typeName, calledMethodName, ctx)
+  const outcome = resolveComponentTarget(typeName, calledMethodName, ctx)
 
-  if (target !== undefined) {
-    if (componentIdentity(ctx.sourceComponent) !== componentIdentity(target)) {
+  if (outcome.target !== undefined) {
+    if (componentIdentity(ctx.sourceComponent) !== componentIdentity(outcome.target)) {
       ctx.results.push({
         source: ctx.sourceComponent,
-        target,
+        target: outcome.target,
         callSite: ctx.originCallSite,
       })
     }
     return
   }
 
-  traceIntoNonComponent(typeName, calledMethodName, ctx)
+  traceIntoNonComponent(typeName, calledMethodName, outcome, ctx)
 }
 
 function traceIntoNonComponent(
   typeName: string,
   calledMethodName: string,
+  outcome: ComponentTargetOutcome,
   ctx: TraceContext,
 ): void {
-  const {
-    resolvedTypeName, uncertain 
-  } = resolveTypeThroughInterface(
-    typeName,
-    ctx.project,
-    ctx.componentIndex,
-    ctx.options,
-  )
-
-  const traceTypeName = resolvedTypeName ?? typeName
+  const traceTypeName = outcome.resolvedTypeName ?? typeName
   const visitKey = `${traceTypeName}.${calledMethodName}`
   if (ctx.visited.has(visitKey)) {
     return
@@ -116,10 +120,10 @@ function traceIntoNonComponent(
     return
   }
 
-  if (!classFound && uncertain !== undefined) {
+  if (!classFound && outcome.uncertain !== undefined) {
     ctx.uncertainResults.push({
       source: ctx.sourceComponent,
-      reason: uncertain,
+      reason: outcome.uncertain,
       callSite: ctx.originCallSite,
     })
   }
