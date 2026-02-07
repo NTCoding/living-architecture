@@ -327,4 +327,91 @@ class PaymentGateway {
       excludedFile,
     ])
   })
+
+  it('includes configurable links when patterns match a call site', () => {
+    const project = createProject()
+    project.createSourceFile(
+      '/src/cfg.ts',
+      `
+class EventBus { publish(): void {} }
+class OrderService {
+  constructor(private bus: EventBus) {}
+  execute(): void { this.bus.publish() }
+}
+`,
+    )
+    const caller = buildComponent('OrderService', '/src/cfg.ts', 3)
+    const bus = buildComponent('EventBus', '/src/cfg.ts', 2, { type: 'event' })
+
+    const result = detectConnections(
+      project,
+      [caller, bus],
+      {
+        moduleGlobs: ['/src/**/*.ts'],
+        patterns: [
+          {
+            name: 'publish-call',
+            find: 'methodCalls',
+            where: {
+              methodName: 'publish',
+              receiverType: 'EventBus',
+            },
+            linkType: 'async',
+          },
+        ],
+      },
+      matchesGlob,
+    )
+
+    expect(result.links).toStrictEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          source: 'orders:useCase:OrderService',
+          target: 'orders:event:EventBus',
+          type: 'async',
+        }),
+      ]),
+    )
+  })
+
+  it('returns zero configurableMs when no patterns provided', () => {
+    const project = createProject()
+    project.createSourceFile('/src/nopatterns.ts', '')
+
+    const result = detectConnections(project, [], { moduleGlobs: ['/src/**/*.ts'] }, matchesGlob)
+
+    expect(result.timings.configurableMs).toBe(0)
+  })
+
+  it('includes configurableMs timing when patterns are provided', () => {
+    const project = createProject()
+    project.createSourceFile(
+      '/src/timing-cfg.ts',
+      `
+class SomeService {
+  execute(): void {}
+}
+`,
+    )
+    const comp = buildComponent('SomeService', '/src/timing-cfg.ts', 2)
+
+    const result = detectConnections(
+      project,
+      [comp],
+      {
+        moduleGlobs: ['/src/**/*.ts'],
+        patterns: [
+          {
+            name: 'any-pattern',
+            find: 'methodCalls',
+            where: { methodName: 'anything' },
+            linkType: 'sync',
+          },
+        ],
+      },
+      matchesGlob,
+    )
+
+    expect(result.timings.configurableMs).toBeGreaterThanOrEqual(0)
+  })
 })

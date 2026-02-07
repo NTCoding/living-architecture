@@ -16,6 +16,7 @@ Configuration for extracting architectural components from source code
 |-------|------|----------|-------------|
 | `$schema` | `string` | No | JSON Schema reference |
 | `modules` | `(module \| moduleRef)[]` | **Yes** | Module definitions for component extraction |
+| `connections` | `connectionsConfig` | No | Global connection detection patterns inherited by all modules |
 
 ---
 
@@ -50,6 +51,7 @@ A module defines extraction rules for a path pattern
 | `eventPublisher` | `componentRule` | No | Detection rule for EventPublisher components |
 | `ui` | `componentRule` | No | Detection rule for UI components |
 | `customTypes` | `Record<string, detectionRule>` | No | User-defined component types with their detection rules |
+| `connections` | `connectionsConfig` | No | Module-level connection detection patterns additive to global |
 
 ---
 
@@ -270,6 +272,111 @@ The code construct to search for
 - `"classes"`
 - `"methods"`
 - `"functions"`
+
+---
+
+### `connectionsConfig`
+
+Connection detection configuration with pattern definitions
+
+**Properties:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `patterns` | `connectionPattern[]` | **Yes** | Connection detection patterns |
+
+---
+
+### `connectionPattern`
+
+A pattern for detecting connections between components
+
+**Properties:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `name` | `string` | **Yes** | Pattern identifier |
+| `find` | `connectionFinder` | **Yes** |  |
+| `where` | `connectionWhereClause` | **Yes** |  |
+| `extract` | `connectionExtractBlock` | No | Extraction rules for connection metadata |
+| `linkType` | `"sync"` \| `"async"` | **Yes** | Type of connection: sync or async |
+
+---
+
+### `connectionFinder`
+
+The connection detection strategy
+
+**Values:**
+
+- `"methodCalls"`
+
+---
+
+### `connectionWhereClause`
+
+Filters for matching method calls
+
+**Properties:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `methodName` | `string` | No | Method name to match |
+| `receiverType` | `string` | No | Type of the object being called |
+| `callerHasDecorator` | `string[]` | No | Decorators the calling class must have |
+| `calleeType` | `object` | No | Constraints on the callee type |
+
+---
+
+### `connectionExtractBlock`
+
+Extraction rules for connection metadata fields
+
+---
+
+### `connectionExtractRule`
+
+**One of:**
+
+- `fromArgumentExtractionRule` — Extracts static type of argument at position
+- `fromReceiverTypeExtractionRule` — Extracts the static type name of the receiver
+- `fromCallerTypeExtractionRule` — Extracts the static type name of the caller
+
+---
+
+### `fromArgumentExtractionRule`
+
+Extracts static type of argument at position
+
+**Properties:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `fromArgument` | `integer` | **Yes** | Argument position (zero-based) |
+
+---
+
+### `fromReceiverTypeExtractionRule`
+
+Extracts the static type name of the receiver
+
+**Properties:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `fromReceiverType` | `boolean` | **Yes** |  |
+
+---
+
+### `fromCallerTypeExtractionRule`
+
+Extracts the static type name of the caller
+
+**Properties:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `fromCallerType` | `boolean` | **Yes** |  |
 
 ---
 

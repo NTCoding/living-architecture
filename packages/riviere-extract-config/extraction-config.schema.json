@@ -21,6 +21,10 @@
           { "$ref": "#/$defs/moduleRef" }
         ]
       }
+    },
+    "connections": {
+      "$ref": "#/$defs/connectionsConfig",
+      "description": "Global connection detection patterns inherited by all modules"
     }
   },
   "$defs": {
@@ -92,6 +96,10 @@
           "additionalProperties": {
             "$ref": "#/$defs/detectionRule"
           }
+        },
+        "connections": {
+          "$ref": "#/$defs/connectionsConfig",
+          "description": "Module-level connection detection patterns additive to global"
         }
       },
       "if": {
@@ -588,6 +596,145 @@
           },
           "minItems": 2,
           "description": "Any predicate must match"
+        }
+      }
+    },
+    "connectionsConfig": {
+      "type": "object",
+      "description": "Connection detection configuration with pattern definitions",
+      "required": ["patterns"],
+      "additionalProperties": false,
+      "properties": {
+        "patterns": {
+          "type": "array",
+          "description": "Connection detection patterns",
+          "items": {
+            "$ref": "#/$defs/connectionPattern"
+          }
+        }
+      }
+    },
+    "connectionPattern": {
+      "type": "object",
+      "description": "A pattern for detecting connections between components",
+      "required": ["name", "find", "where", "linkType"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Pattern identifier",
+          "minLength": 1
+        },
+        "find": {
+          "$ref": "#/$defs/connectionFinder"
+        },
+        "where": {
+          "$ref": "#/$defs/connectionWhereClause"
+        },
+        "extract": {
+          "$ref": "#/$defs/connectionExtractBlock",
+          "description": "Extraction rules for connection metadata"
+        },
+        "linkType": {
+          "type": "string",
+          "description": "Type of connection: sync or async",
+          "enum": ["sync", "async"]
+        }
+      }
+    },
+    "connectionFinder": {
+      "type": "string",
+      "description": "The connection detection strategy",
+      "enum": ["methodCalls"]
+    },
+    "connectionWhereClause": {
+      "type": "object",
+      "description": "Filters for matching method calls",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "methodName": {
+          "type": "string",
+          "description": "Method name to match",
+          "minLength": 1
+        },
+        "receiverType": {
+          "type": "string",
+          "description": "Type of the object being called",
+          "minLength": 1
+        },
+        "callerHasDecorator": {
+          "type": "array",
+          "description": "Decorators the calling class must have",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1
+        },
+        "calleeType": {
+          "type": "object",
+          "description": "Constraints on the callee type",
+          "required": ["hasDecorator"],
+          "additionalProperties": false,
+          "properties": {
+            "hasDecorator": {
+              "type": "string",
+              "description": "Decorator the callee type must have",
+              "minLength": 1
+            }
+          }
+        }
+      }
+    },
+    "connectionExtractBlock": {
+      "type": "object",
+      "description": "Extraction rules for connection metadata fields",
+      "additionalProperties": {
+        "$ref": "#/$defs/connectionExtractRule"
+      }
+    },
+    "connectionExtractRule": {
+      "oneOf": [
+        { "$ref": "#/$defs/fromArgumentExtractionRule" },
+        { "$ref": "#/$defs/fromReceiverTypeExtractionRule" },
+        { "$ref": "#/$defs/fromCallerTypeExtractionRule" }
+      ]
+    },
+    "fromArgumentExtractionRule": {
+      "type": "object",
+      "description": "Extracts static type of argument at position",
+      "required": ["fromArgument"],
+      "additionalProperties": false,
+      "properties": {
+        "fromArgument": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Argument position (zero-based)"
+        }
+      }
+    },
+    "fromReceiverTypeExtractionRule": {
+      "type": "object",
+      "description": "Extracts the static type name of the receiver",
+      "required": ["fromReceiverType"],
+      "additionalProperties": false,
+      "properties": {
+        "fromReceiverType": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    },
+    "fromCallerTypeExtractionRule": {
+      "type": "object",
+      "description": "Extracts the static type name of the caller",
+      "required": ["fromCallerType"],
+      "additionalProperties": false,
+      "properties": {
+        "fromCallerType": {
+          "type": "boolean",
+          "const": true
         }
       }
     }

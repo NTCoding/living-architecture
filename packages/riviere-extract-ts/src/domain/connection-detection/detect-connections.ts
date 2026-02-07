@@ -1,5 +1,6 @@
 import { performance } from 'node:perf_hooks'
 import type { Project } from 'ts-morph'
+import type { ConnectionPattern } from '@living-architecture/riviere-extract-config'
 import type { EnrichedComponent } from '../value-extraction/enrich-components'
 import type { GlobMatcher } from '../component-extraction/extractor'
 import type { ExtractedLink } from './extracted-link'
@@ -7,15 +8,18 @@ import { ComponentIndex } from './component-index'
 import { buildCallGraph } from './call-graph/build-call-graph'
 import { detectPublishConnections } from './async-detection/detect-publish-connections'
 import { detectSubscribeConnections } from './async-detection/detect-subscribe-connections'
+import { detectConfigurableConnections } from './configurable/detect-configurable-connections'
 
 export interface ConnectionDetectionOptions {
   allowIncomplete?: boolean
   moduleGlobs: string[]
+  patterns?: ConnectionPattern[]
 }
 
 export interface ConnectionTimings {
   callGraphMs: number
   asyncDetectionMs: number
+  configurableMs: number
   setupMs: number
   totalMs: number
 }
@@ -63,13 +67,19 @@ export function detectConnections(
   const subscribeLinks = detectSubscribeConnections(components, { strict })
   const asyncDetectionMs = performance.now() - asyncStart
 
+  const patterns = options.patterns ?? []
+  const configurableStart = performance.now()
+  const configurableLinks = detectConfigurableConnections(project, patterns, components, { strict })
+  const configurableMs = patterns.length > 0 ? performance.now() - configurableStart : 0
+
   const totalMs = performance.now() - totalStart
 
   return {
-    links: [...syncLinks, ...publishLinks, ...subscribeLinks],
+    links: [...syncLinks, ...publishLinks, ...subscribeLinks, ...configurableLinks],
     timings: {
       callGraphMs,
       asyncDetectionMs,
+      configurableMs,
       setupMs,
       totalMs,
     },

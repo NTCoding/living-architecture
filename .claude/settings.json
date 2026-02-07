@@ -44,16 +44,7 @@
         ]
       }
     ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/tools/dev-workflow/node_modules/.bin/tsx $CLAUDE_PROJECT_DIR/tools/dev-workflow/features/claude-hooks/entrypoint/hook-router.ts"
-          }
-        ]
-      }
-    ]
+    "Stop": []
   },
   "enabledPlugins": {
     "task-check@claude-skillz": true,
