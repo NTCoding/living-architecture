@@ -1,3 +1,5 @@
+import { existsSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { Command } from 'commander'
 import { Project } from 'ts-morph'
 import {
@@ -50,6 +52,7 @@ export function createExtractCommand(): Command {
     .option('--format <type>', 'Output format: json (default) or markdown')
     .option('--stats', 'Show extraction statistics on stderr')
     .option('--patterns', 'Enable pattern-based connection detection')
+    .option('--no-ts-config', 'Skip tsconfig.json auto-discovery (disables full type resolution)')
     .action((options: ExtractOptions) => {
       validateFlagCombinations(options)
 
@@ -58,7 +61,7 @@ export function createExtractCommand(): Command {
       } = loadAndValidateConfig(options.config)
       const allSourceFilePaths = resolveSourceFiles(resolvedConfig, configDir)
       const sourceFilePaths = resolveFilteredSourceFiles(allSourceFilePaths, options)
-      const project = new Project()
+      const project = createProject(configDir, options.noTsConfig === true)
       project.addSourceFilesAtPaths(sourceFilePaths)
 
       const draftComponents = (() => {
