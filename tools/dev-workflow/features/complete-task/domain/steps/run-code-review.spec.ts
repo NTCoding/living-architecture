@@ -50,7 +50,12 @@ function createStep(skipReview = false) {
   return createCodeReviewStep({
     skipReview,
     baseBranch: vi.fn().mockResolvedValue('main'),
-    unpushedFiles: vi.fn().mockResolvedValue(['file1.ts']),
+    unpushedFiles: vi.fn().mockResolvedValue([
+      {
+        path: 'file1.ts',
+        deleted: false,
+      },
+    ]),
     queryAgentText: mockQueryAgentText,
   })
 }
@@ -284,5 +289,32 @@ describe('codeReview', () => {
     const result = await step.execute(ctx)
 
     expect(result.type).toBe('success')
+  })
+
+  it('annotates deleted files with [DELETED] prefix in agent prompt', async () => {
+    const step = createCodeReviewStep({
+      skipReview: false,
+      baseBranch: vi.fn().mockResolvedValue('main'),
+      unpushedFiles: vi.fn().mockResolvedValue([
+        {
+          path: 'modified.ts',
+          deleted: false,
+        },
+        {
+          path: 'removed.ts',
+          deleted: true,
+        },
+      ]),
+      queryAgentText: mockQueryAgentText,
+    })
+    const ctx = createContext({})
+
+    await step.execute(ctx)
+
+    const firstCall = mockQueryAgentText.mock.calls[0]
+    const prompt = String(firstCall?.[0].prompt)
+    expect(prompt).toContain('modified.ts')
+    expect(prompt).toContain('[DELETED] removed.ts')
+    expect(prompt).not.toContain('[DELETED] modified.ts')
   })
 })

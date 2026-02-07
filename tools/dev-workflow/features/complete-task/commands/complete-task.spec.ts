@@ -21,6 +21,7 @@ const {
     currentBranch: vi.fn(),
     baseBranch: vi.fn(),
     unpushedFiles: vi.fn(),
+    unpushedFilesWithStatus: vi.fn(),
     uncommittedFiles: vi.fn(),
     push: vi.fn(),
   },

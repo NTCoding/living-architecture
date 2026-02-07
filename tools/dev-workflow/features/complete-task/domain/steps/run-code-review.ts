@@ -35,10 +35,15 @@ interface ReviewerResult {
 const VALID_REVIEWERS = ['architecture-review', 'code-review', 'bug-scanner', 'task-check'] as const
 type ReviewerName = (typeof VALID_REVIEWERS)[number]
 
+export interface DiffFileEntry {
+  readonly path: string
+  readonly deleted: boolean
+}
+
 export interface CodeReviewDeps {
   skipReview: boolean
   baseBranch: () => Promise<string>
-  unpushedFiles: (baseBranch: string) => Promise<string[]>
+  unpushedFiles: (baseBranch: string) => Promise<DiffFileEntry[]>
   queryAgentText: (opts: {
     prompt: string
     model: 'opus' | 'sonnet' | 'haiku'
@@ -183,10 +188,14 @@ function nextRoundNumber(reviewDir: string, name: string): number {
   }
 }
 
+function formatFileList(files: DiffFileEntry[]): string {
+  return files.map((f) => (f.deleted ? `[DELETED] ${f.path}` : f.path)).join('\n')
+}
+
 async function executeCodeReviewAgents(
   deps: CodeReviewDeps,
   names: readonly ReviewerName[],
-  filesToReview: string[],
+  filesToReview: DiffFileEntry[],
   reviewDir: string,
   taskDetails:
     | {
@@ -218,7 +227,7 @@ async function executeCodeReviewAgents(
         basePrompt,
         `\n\n## Report Path\n\n${reportPath}`,
         '\n\n## Files to Review\n\n',
-        filesToReview.join('\n'),
+        formatFileList(filesToReview),
       ]
 
       if (name === 'task-check' && taskDetails) {
