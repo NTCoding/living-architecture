@@ -49,7 +49,7 @@ export function detectConnections(
   const sourceFilePaths = computeFilteredFilePaths(project, options.moduleGlobs, globMatcher)
   const setupMs = performance.now() - setupStart
 
-  const strict = !options.allowIncomplete
+  const strict = options.allowIncomplete !== true
 
   const callGraphStart = performance.now()
   const syncLinks = buildCallGraph(project, components, componentIndex, {

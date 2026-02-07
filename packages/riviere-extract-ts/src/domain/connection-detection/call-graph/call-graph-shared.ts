@@ -53,6 +53,30 @@ export function resolveTypeThroughInterface(
   }
 }
 
+export function resolveContainerMethod(
+  project: Project,
+  typeName: string,
+  calledMethodName: string,
+  componentIndex: ComponentIndex,
+): EnrichedComponent | undefined {
+  for (const sourceFile of project.getSourceFiles()) {
+    for (const classDecl of sourceFile.getClasses()) {
+      if (classDecl.getName() !== typeName) {
+        continue
+      }
+      const method = classDecl.getMethod(calledMethodName)
+      if (method === undefined) {
+        return undefined
+      }
+      return componentIndex.getComponentByLocation(
+        sourceFile.getFilePath(),
+        method.getStartLineNumber(),
+      )
+    }
+  }
+  return undefined
+}
+
 export function findMethodInProject(
   project: Project,
   typeName: string,
