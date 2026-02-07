@@ -7,10 +7,6 @@ import { ConnectionDetectionError } from '../connection-detection-error'
 import { detectConfigurableConnections } from './detect-configurable-connections'
 import { createTestProject } from './configurable-fixtures'
 
-function createProject() {
-  return createTestProject()
-}
-
 function syncPattern(overrides: Partial<ConnectionPattern> = {}): ConnectionPattern {
   return {
     name: 'use-case-to-repo',
@@ -23,7 +19,7 @@ function syncPattern(overrides: Partial<ConnectionPattern> = {}): ConnectionPatt
 
 describe('detectConfigurableConnections - strict/lenient mode', () => {
   it('throws ConnectionDetectionError in strict mode when extract rule returns undefined', () => {
-    const project = createProject()
+    const project = createTestProject()
     project.createSourceFile(
       '/src/strict-extract.ts',
       `
@@ -50,7 +46,7 @@ class StrictCaller {
   })
 
   it('produces link with _uncertain field in lenient mode when extract rule returns undefined', () => {
-    const project = createProject()
+    const project = createTestProject()
     project.createSourceFile(
       '/src/lenient-extract.ts',
       `
@@ -84,7 +80,7 @@ class LenientCaller {
   })
 
   it('produces normal link when extract rules all resolve successfully', () => {
-    const project = createProject()
+    const project = createTestProject()
     project.createSourceFile(
       '/src/extract-success.ts',
       `

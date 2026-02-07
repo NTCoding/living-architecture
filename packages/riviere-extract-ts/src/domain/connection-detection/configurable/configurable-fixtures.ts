@@ -2,7 +2,7 @@ import {
   Project, SyntaxKind, ScriptTarget, ModuleKind, type CallExpression 
 } from 'ts-morph'
 
-export class CallExpressionNotFoundError extends Error {
+class CallExpressionNotFoundError extends Error {
   /* c8 ignore start */
   constructor(className: string, methodName: string) {
     super(`CallExpression not found in ${className}.${methodName}`)

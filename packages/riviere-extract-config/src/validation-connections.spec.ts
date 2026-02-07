@@ -109,21 +109,6 @@ describe('connection pattern schema validation', () => {
       expect(validateExtractionConfig(config).valid).toBe(true)
     })
 
-    it('returns invalid when patterns array is empty', () => {
-      const config = {
-        ...createMinimalConfig(),
-        connections: { patterns: [] },
-      }
-      const result = validateExtractionConfig(config)
-      expect(result.valid).toBe(false)
-      expect(result).toMatchObject({
-        valid: false,
-        errors: expect.arrayContaining([
-          expect.objectContaining({message: expect.stringContaining('must NOT have fewer than 1 items'),}),
-        ]),
-      })
-    })
-
     it('returns valid when multiple patterns in array', () => {
       const config = {
         ...createMinimalConfig(),
@@ -177,6 +162,21 @@ describe('connection pattern schema validation', () => {
   })
 
   describe('invalid connection patterns', () => {
+    it('returns invalid when patterns array is empty', () => {
+      const config = {
+        ...createMinimalConfig(),
+        connections: { patterns: [] },
+      }
+      const result = validateExtractionConfig(config)
+      expect(result.valid).toBe(false)
+      expect(result).toMatchObject({
+        valid: false,
+        errors: expect.arrayContaining([
+          expect.objectContaining({message: expect.stringContaining('must NOT have fewer than 1 items'),}),
+        ]),
+      })
+    })
+
     it('returns error when pattern is missing name', () => {
       const pattern = omit(createMinimalConnectionPattern(), 'name')
       const config = {
