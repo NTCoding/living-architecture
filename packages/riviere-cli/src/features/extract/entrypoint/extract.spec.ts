@@ -28,6 +28,10 @@ vi.mock('../../../platform/infra/git/git-repository-info', () => ({
 }))
 
 describe('riviere extract', () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
   describe('command registration', () => {
     it('registers extract command at top level', () => {
       const program = createProgram()

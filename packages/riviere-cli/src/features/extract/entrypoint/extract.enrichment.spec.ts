@@ -82,6 +82,10 @@ describe('riviere extract enrichment', () => {
     const ctx: TestContext = createTestContext()
     setupCommandTest(ctx)
 
+    afterEach(() => {
+      vi.restoreAllMocks()
+    })
+
     it('outputs components with _missing array when extraction fields fail and --allow-incomplete provided', async () => {
       const configPath = await createExtractFixtureWithExtractBlock(ctx.testDir)
 
