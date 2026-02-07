@@ -4,7 +4,7 @@ pageClass: reference
 
 # Interface: NearMatchResult
 
-Defined in: [packages/riviere-builder/src/domain/error-recovery/match-types.ts:15](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/error-recovery/match-types.ts#L15)
+Defined in: [packages/riviere-builder/src/features/building/domain/error-recovery/match-types.ts:15](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/error-recovery/match-types.ts#L15)
 
 ## Properties
 
@@ -12,7 +12,7 @@ Defined in: [packages/riviere-builder/src/domain/error-recovery/match-types.ts:1
 
 > **component**: `Component`
 
-Defined in: [packages/riviere-builder/src/domain/error-recovery/match-types.ts:16](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/error-recovery/match-types.ts#L16)
+Defined in: [packages/riviere-builder/src/features/building/domain/error-recovery/match-types.ts:16](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/error-recovery/match-types.ts#L16)
 
 ***
 
@@ -20,7 +20,7 @@ Defined in: [packages/riviere-builder/src/domain/error-recovery/match-types.ts:1
 
 > `optional` **mismatch**: [`NearMatchMismatch`](NearMatchMismatch.md)
 
-Defined in: [packages/riviere-builder/src/domain/error-recovery/match-types.ts:18](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/error-recovery/match-types.ts#L18)
+Defined in: [packages/riviere-builder/src/features/building/domain/error-recovery/match-types.ts:18](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/error-recovery/match-types.ts#L18)
 
 ***
 
@@ -28,4 +28,4 @@ Defined in: [packages/riviere-builder/src/domain/error-recovery/match-types.ts:1
 
 > **score**: `number`
 
-Defined in: [packages/riviere-builder/src/domain/error-recovery/match-types.ts:17](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/error-recovery/match-types.ts#L17)
+Defined in: [packages/riviere-builder/src/features/building/domain/error-recovery/match-types.ts:17](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/error-recovery/match-types.ts#L17)

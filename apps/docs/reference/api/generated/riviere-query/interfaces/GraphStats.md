@@ -4,7 +4,7 @@ pageClass: reference
 
 # Interface: GraphStats
 
-Defined in: [packages/riviere-query/src/queries/domain-types.ts:236](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/queries/domain-types.ts#L236)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:236](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L236)
 
 Aggregate statistics about a graph.
 
@@ -14,7 +14,7 @@ Aggregate statistics about a graph.
 
 > **apiCount**: `number`
 
-Defined in: [packages/riviere-query/src/queries/domain-types.ts:244](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/queries/domain-types.ts#L244)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:244](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L244)
 
 Number of API components.
 
@@ -24,7 +24,7 @@ Number of API components.
 
 > **componentCount**: `number`
 
-Defined in: [packages/riviere-query/src/queries/domain-types.ts:238](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/queries/domain-types.ts#L238)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:238](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L238)
 
 Total number of components.
 
@@ -34,7 +34,7 @@ Total number of components.
 
 > **domainCount**: `number`
 
-Defined in: [packages/riviere-query/src/queries/domain-types.ts:242](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/queries/domain-types.ts#L242)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:242](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L242)
 
 Number of domains.
 
@@ -44,7 +44,7 @@ Number of domains.
 
 > **entityCount**: `number`
 
-Defined in: [packages/riviere-query/src/queries/domain-types.ts:246](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/queries/domain-types.ts#L246)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:246](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L246)
 
 Number of unique entities.
 
@@ -54,7 +54,7 @@ Number of unique entities.
 
 > **eventCount**: `number`
 
-Defined in: [packages/riviere-query/src/queries/domain-types.ts:248](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/queries/domain-types.ts#L248)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:248](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L248)
 
 Number of Event components.
 
@@ -64,6 +64,6 @@ Number of Event components.
 
 > **linkCount**: `number`
 
-Defined in: [packages/riviere-query/src/queries/domain-types.ts:240](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/queries/domain-types.ts#L240)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:240](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L240)
 
 Total number of links.

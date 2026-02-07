@@ -4,7 +4,7 @@ pageClass: reference
 
 # Interface: ExternalLinkInput
 
-Defined in: [packages/riviere-builder/src/domain/linking/linking-types.ts:11](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/linking/linking-types.ts#L11)
+Defined in: [packages/riviere-builder/src/features/building/domain/linking/linking-types.ts:11](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/linking/linking-types.ts#L11)
 
 ## Properties
 
@@ -12,7 +12,7 @@ Defined in: [packages/riviere-builder/src/domain/linking/linking-types.ts:11](ht
 
 > `optional` **description**: `string`
 
-Defined in: [packages/riviere-builder/src/domain/linking/linking-types.ts:15](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/linking/linking-types.ts#L15)
+Defined in: [packages/riviere-builder/src/features/building/domain/linking/linking-types.ts:15](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/linking/linking-types.ts#L15)
 
 ***
 
@@ -20,7 +20,7 @@ Defined in: [packages/riviere-builder/src/domain/linking/linking-types.ts:15](ht
 
 > **from**: `string`
 
-Defined in: [packages/riviere-builder/src/domain/linking/linking-types.ts:12](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/linking/linking-types.ts#L12)
+Defined in: [packages/riviere-builder/src/features/building/domain/linking/linking-types.ts:12](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/linking/linking-types.ts#L12)
 
 ***
 
@@ -28,7 +28,7 @@ Defined in: [packages/riviere-builder/src/domain/linking/linking-types.ts:12](ht
 
 > `optional` **metadata**: `Record`\<`string`, `unknown`\>
 
-Defined in: [packages/riviere-builder/src/domain/linking/linking-types.ts:17](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/linking/linking-types.ts#L17)
+Defined in: [packages/riviere-builder/src/features/building/domain/linking/linking-types.ts:17](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/linking/linking-types.ts#L17)
 
 ***
 
@@ -36,7 +36,7 @@ Defined in: [packages/riviere-builder/src/domain/linking/linking-types.ts:17](ht
 
 > `optional` **sourceLocation**: `SourceLocation`
 
-Defined in: [packages/riviere-builder/src/domain/linking/linking-types.ts:16](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/linking/linking-types.ts#L16)
+Defined in: [packages/riviere-builder/src/features/building/domain/linking/linking-types.ts:16](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/linking/linking-types.ts#L16)
 
 ***
 
@@ -44,7 +44,7 @@ Defined in: [packages/riviere-builder/src/domain/linking/linking-types.ts:16](ht
 
 > **target**: `ExternalTarget`
 
-Defined in: [packages/riviere-builder/src/domain/linking/linking-types.ts:13](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/linking/linking-types.ts#L13)
+Defined in: [packages/riviere-builder/src/features/building/domain/linking/linking-types.ts:13](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/linking/linking-types.ts#L13)
 
 ***
 
@@ -52,4 +52,4 @@ Defined in: [packages/riviere-builder/src/domain/linking/linking-types.ts:13](ht
 
 > `optional` **type**: `LinkType`
 
-Defined in: [packages/riviere-builder/src/domain/linking/linking-types.ts:14](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/linking/linking-types.ts#L14)
+Defined in: [packages/riviere-builder/src/features/building/domain/linking/linking-types.ts:14](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/linking/linking-types.ts#L14)

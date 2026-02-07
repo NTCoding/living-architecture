@@ -1,4 +1,4 @@
-import type { BuilderOptions } from '../domain/builder-facade'
+import type { BuilderOptions } from '../features/building/domain/builder-facade'
 
 export function createValidOptions(): BuilderOptions {
   return {

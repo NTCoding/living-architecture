@@ -4,7 +4,7 @@ pageClass: reference
 
 # Interface: BuilderStats
 
-Defined in: [packages/riviere-builder/src/domain/inspection/inspection-types.ts:1](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/inspection/inspection-types.ts#L1)
+Defined in: [packages/riviere-builder/src/features/building/domain/inspection/inspection-types.ts:1](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/inspection/inspection-types.ts#L1)
 
 ## Properties
 
@@ -12,7 +12,7 @@ Defined in: [packages/riviere-builder/src/domain/inspection/inspection-types.ts:
 
 > **componentCount**: `number`
 
-Defined in: [packages/riviere-builder/src/domain/inspection/inspection-types.ts:2](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/inspection/inspection-types.ts#L2)
+Defined in: [packages/riviere-builder/src/features/building/domain/inspection/inspection-types.ts:2](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/inspection/inspection-types.ts#L2)
 
 ***
 
@@ -20,7 +20,7 @@ Defined in: [packages/riviere-builder/src/domain/inspection/inspection-types.ts:
 
 > **componentsByType**: `object`
 
-Defined in: [packages/riviere-builder/src/domain/inspection/inspection-types.ts:3](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/inspection/inspection-types.ts#L3)
+Defined in: [packages/riviere-builder/src/features/building/domain/inspection/inspection-types.ts:3](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/inspection/inspection-types.ts#L3)
 
 #### API
 
@@ -56,7 +56,7 @@ Defined in: [packages/riviere-builder/src/domain/inspection/inspection-types.ts:
 
 > **domainCount**: `number`
 
-Defined in: [packages/riviere-builder/src/domain/inspection/inspection-types.ts:14](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/inspection/inspection-types.ts#L14)
+Defined in: [packages/riviere-builder/src/features/building/domain/inspection/inspection-types.ts:14](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/inspection/inspection-types.ts#L14)
 
 ***
 
@@ -64,7 +64,7 @@ Defined in: [packages/riviere-builder/src/domain/inspection/inspection-types.ts:
 
 > **externalLinkCount**: `number`
 
-Defined in: [packages/riviere-builder/src/domain/inspection/inspection-types.ts:13](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/inspection/inspection-types.ts#L13)
+Defined in: [packages/riviere-builder/src/features/building/domain/inspection/inspection-types.ts:13](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/inspection/inspection-types.ts#L13)
 
 ***
 
@@ -72,4 +72,4 @@ Defined in: [packages/riviere-builder/src/domain/inspection/inspection-types.ts:
 
 > **linkCount**: `number`
 
-Defined in: [packages/riviere-builder/src/domain/inspection/inspection-types.ts:12](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/inspection/inspection-types.ts#L12)
+Defined in: [packages/riviere-builder/src/features/building/domain/inspection/inspection-types.ts:12](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/inspection/inspection-types.ts#L12)

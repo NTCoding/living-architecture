@@ -263,7 +263,7 @@ export default tseslint.config(
   // Thin layer enforcement — entrypoints, commands, and queries are thin orchestration files
   {
     files: ['**/entrypoint/**/*.ts', '**/commands/**/*.ts', '**/queries/**/*.ts'],
-    ignores: ['**/*.spec.ts', '**/*.test.ts', 'packages/riviere-query/src/queries/**/*.ts', 'apps/eclair/**/queries/**/*.ts'],
+    ignores: ['**/*.spec.ts', '**/*.test.ts', 'packages/riviere-query/src/features/querying/queries/**/*.ts', 'apps/eclair/**/queries/**/*.ts'],
     rules: {
       'max-lines': ['error', { max: 150, skipBlankLines: true, skipComments: true }],
     },

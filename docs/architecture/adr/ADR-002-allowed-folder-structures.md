@@ -55,14 +55,14 @@ All sub-folders within a feature are optional — include only what the feature 
 
 **shell/** — Wires things together at startup. Registers routes, bootstraps frameworks, connects message brokers. No business logic.
 
+## Library Packages
+
+Libraries use the same `features/` + `platform/` structure as applications. The package is NOT the feature — still wrap in `features/{name}/`. Libraries don't need `shell/` unless they wire an app.
+
+**Entry point:** Libraries use `src/index.ts` as their package entry point — a pure barrel file containing only re-export statements, no logic. `shell/` is for app wiring only, not package exports.
+
 ## Local Exceptions
 
 **React applications** extend the standard feature sub-folders with `components/` and `hooks/`. Entrypoints are page components. Shell contains routing and providers.
 
-**Domain libraries** are the domain — no features/shell structure. Only `domain/` and `platform/`.
-
-**Query libraries** provide read-only query capabilities — no features/shell structure. Only `queries/` and `platform/`.
-
 **Flat packages** too small for internal layering (schemas, config, decorators) use flat `src/` with no features/platform/shell structure.
-
-**tools/dev-workflow** uses `shell/index.ts` as a package public API surface (re-exports for NX targets), not a traditional composition root.

@@ -6,7 +6,7 @@ pageClass: reference
 
 > **parseLinkId**(`id`): `string` & `$brand`\<`"LinkId"`\>
 
-Defined in: [packages/riviere-query/src/queries/domain-types.ts:282](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/queries/domain-types.ts#L282)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:282](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L282)
 
 Parses a string as a LinkId.
 

@@ -4,7 +4,7 @@ pageClass: reference
 
 # Class: DuplicateDomainError
 
-Defined in: [packages/riviere-builder/src/domain/construction/construction-errors.ts:1](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/construction/construction-errors.ts#L1)
+Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:1](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L1)
 
 ## Extends
 
@@ -16,7 +16,7 @@ Defined in: [packages/riviere-builder/src/domain/construction/construction-error
 
 > **new DuplicateDomainError**(`domainName`): `DuplicateDomainError`
 
-Defined in: [packages/riviere-builder/src/domain/construction/construction-errors.ts:4](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/construction/construction-errors.ts#L4)
+Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:4](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L4)
 
 #### Parameters
 
@@ -50,7 +50,7 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 
 > `readonly` **domainName**: `string`
 
-Defined in: [packages/riviere-builder/src/domain/construction/construction-errors.ts:2](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/construction/construction-errors.ts#L2)
+Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:2](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L2)
 
 ***
 

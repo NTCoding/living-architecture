@@ -3,8 +3,8 @@ export default {
     {
       name: "root-structure",
       severity: "error",
-      comment: "src/ root must only contain structural folders (features/, platform/, shell/, domain/, queries/)",
-      from: { path: "(apps|packages|tools)/(?!riviere-schema/|riviere-extract-config/|riviere-extract-conventions/)[^/]+/src/(?!features/|platform/|shell/|domain/|queries/).+" },
+      comment: "src/ root must only contain structural folders (features/, platform/, shell/) and index.ts barrel",
+      from: { path: "(apps|packages|tools)/(?!riviere-schema/|riviere-extract-config/|riviere-extract-conventions/)[^/]+/src/(?!features/|platform/|shell/|index\\.ts).+" },
       to: {}
     },
     {

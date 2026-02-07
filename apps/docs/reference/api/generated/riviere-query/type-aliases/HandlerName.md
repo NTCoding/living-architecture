@@ -6,6 +6,6 @@ pageClass: reference
 
 > **HandlerName** = `z.infer`\<*typeof* `handlerNameSchema`\>
 
-Defined in: [packages/riviere-query/src/queries/domain-types.ts:55](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/queries/domain-types.ts#L55)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:55](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L55)
 
 Branded type for event handler names.
