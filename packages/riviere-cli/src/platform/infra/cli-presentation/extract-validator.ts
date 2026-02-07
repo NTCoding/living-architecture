@@ -14,7 +14,7 @@ export interface ExtractOptions {
   format?: string
   stats?: boolean
   patterns?: boolean
-  noTsConfig?: boolean
+  tsConfig?: boolean
 }
 
 function rejectMutuallyExclusive(

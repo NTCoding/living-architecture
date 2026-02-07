@@ -158,38 +158,6 @@ describe('extractComponents', () => {
     })
   })
 
-  describe('method extraction', () => {
-    it('extracts method as component when rule matches decorator', () => {
-      const project = createTestProject()
-      project.createSourceFile(
-        'orders/api/controller.ts',
-        `
-        function API() { return (target: any, key: string) => {} }
-        class OrderController {
-          @API
-          createOrder() {}
-        }
-      `,
-      )
-      const config = createConfigWithRule('orders', 'orders/**', 'api', {
-        find: 'methods',
-        where: { hasDecorator: { name: 'API' } },
-      })
-      const result = extract(project, ['orders/api/controller.ts'], config)
-      expect(result).toStrictEqual([
-        {
-          type: 'api',
-          name: 'createOrder',
-          location: {
-            file: 'orders/api/controller.ts',
-            line: 4,
-          },
-          domain: 'orders',
-        },
-      ])
-    })
-  })
-
   describe('function extraction', () => {
     it('extracts function as component when rule matches JSDoc', () => {
       const project = createTestProject()

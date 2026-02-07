@@ -1,9 +1,10 @@
-import type {
-  ClassDeclaration,
-  FunctionDeclaration,
-  MethodDeclaration,
-  Project,
-  SourceFile,
+import {
+  Scope,
+  type ClassDeclaration,
+  type FunctionDeclaration,
+  type MethodDeclaration,
+  type Project,
+  type SourceFile,
 } from 'ts-morph'
 import { posix } from 'node:path'
 import type {
@@ -150,6 +151,7 @@ function extractMethods(
   return sourceFile
     .getClasses()
     .flatMap((c) => c.getMethods())
+    .filter(isPublicMethod)
     .filter((m) => evaluatePredicate(m, rule.where))
     .flatMap((m) => createMethodComponent(m, filePath, domain, componentType))
 }
@@ -165,6 +167,11 @@ function extractFunctions(
     .getFunctions()
     .filter((f) => evaluatePredicate(f, rule.where))
     .flatMap((f) => createFunctionComponent(f, filePath, domain, componentType))
+}
+
+function isPublicMethod(method: MethodDeclaration): boolean {
+  const scope = method.getScope()
+  return scope !== Scope.Private && scope !== Scope.Protected
 }
 
 function createClassComponent(

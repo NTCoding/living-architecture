@@ -1,7 +1,4 @@
-import { existsSync } from 'node:fs'
-import { resolve } from 'node:path'
 import { Command } from 'commander'
-import { Project } from 'ts-morph'
 import {
   extractComponents,
   enrichComponents,
@@ -36,6 +33,7 @@ import {
   formatExtractionStats,
   formatTimingLine,
 } from '../../../platform/infra/cli-presentation/format-extraction-stats'
+import { loadExtractionProject } from '../queries/load-extraction-project'
 
 export function createExtractCommand(): Command {
   return new Command('extract')
@@ -61,8 +59,7 @@ export function createExtractCommand(): Command {
       } = loadAndValidateConfig(options.config)
       const allSourceFilePaths = resolveSourceFiles(resolvedConfig, configDir)
       const sourceFilePaths = resolveFilteredSourceFiles(allSourceFilePaths, options)
-      const project = createProject(configDir, options.noTsConfig === true)
-      project.addSourceFilesAtPaths(sourceFilePaths)
+      const project = loadExtractionProject(configDir, sourceFilePaths, options.tsConfig === false)
 
       const draftComponents = (() => {
         if (options.enrich === undefined) {
