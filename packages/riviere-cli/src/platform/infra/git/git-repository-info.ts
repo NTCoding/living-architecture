@@ -13,7 +13,7 @@ export class GitError extends Error {
   /* v8 ignore stop */
 }
 
-export class RepositoryUrlParseError extends Error {
+class RepositoryUrlParseError extends Error {
   /* v8 ignore start -- @preserve: Error constructor; tested via integration */
   constructor(url: string) {
     super(`Expected owner and repo in git URL, got ${url}`)
