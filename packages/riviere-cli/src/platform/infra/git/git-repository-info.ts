@@ -41,6 +41,17 @@ function defaultGitExecutor(binary: string, args: readonly string[], cwd: string
 /* v8 ignore stop */
 
 /* v8 ignore start -- @preserve: git operations; mocked in all integration tests */
+function extractStderr(error: Error): string {
+  if (!Object.hasOwn(error, 'stderr')) {
+    throw error
+  }
+  const stderrValue: unknown = Object.getOwnPropertyDescriptor(error, 'stderr')?.value
+  if (!stderrValue) {
+    throw error
+  }
+  return String(stderrValue)
+}
+
 function runGit(
   executor: GitExecutor,
   gitBinary: string,
@@ -55,18 +66,11 @@ function runGit(
     }
     // ANTI-PATTERN EXCEPTION: String-Based Error Detection (AP-001)
     // Justification: git CLI only reports repo status via stderr text
-    const stderr =
-      error instanceof Error && 'stderr' in error
-        ? (() => {
-          const stderrValue: unknown = Object.getOwnPropertyDescriptor(error, 'stderr')?.value
-          if (!stderrValue) {
-            throw error
-          }
-          return String(stderrValue)
-        })()
-        : ''
-    if (stderr.includes('not a git repository')) {
-      throw new GitError('NOT_A_REPOSITORY', 'Run from within a git repository.')
+    if (error instanceof Error) {
+      const stderr = extractStderr(error)
+      if (stderr.includes('not a git repository')) {
+        throw new GitError('NOT_A_REPOSITORY', 'Run from within a git repository.')
+      }
     }
     throw error
   }
@@ -119,14 +123,8 @@ export function getRepositoryInfo(
     const url = runGit(executor, gitBinary, cwd, ['remote', 'get-url', 'origin'])
     return parseRepositoryUrl(url)
   } catch (error) {
-    if (error instanceof Error && 'stderr' in error) {
-      const stderr = (() => {
-        const stderrValue: unknown = Object.getOwnPropertyDescriptor(error, 'stderr')?.value
-        if (!stderrValue) {
-          throw error
-        }
-        return String(stderrValue)
-      })()
+    if (error instanceof Error) {
+      const stderr = extractStderr(error)
       if (stderr.includes('No such remote')) {
         throw new GitError('NO_REMOTE', 'No git remote named "origin" found.')
       }

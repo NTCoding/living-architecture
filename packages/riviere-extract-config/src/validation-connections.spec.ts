@@ -16,7 +16,7 @@ function createMinimalConnectionPattern() {
   }
 }
 
-function omit<T extends Record<string, unknown>>(obj: T, key: keyof T): Omit<T, typeof key> {
+function omit<T extends Record<string, unknown>, K extends keyof T>(obj: T, key: K): Omit<T, K> {
   const copy = { ...obj }
   delete copy[key]
   return copy

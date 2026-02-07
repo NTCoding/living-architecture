@@ -1,23 +1,10 @@
 import {
   describe, it, expect 
 } from 'vitest'
-import {
-  Project, ScriptTarget, ModuleKind 
-} from 'ts-morph'
 import { detectConnections } from './detect-connections'
 import { buildComponent } from './call-graph/call-graph-fixtures'
 import { matchesGlob } from '../../platform/infra/glob-matching/minimatch-glob'
-
-function createProject(): Project {
-  return new Project({
-    useInMemoryFileSystem: true,
-    compilerOptions: {
-      strict: true,
-      target: ScriptTarget.ESNext,
-      module: ModuleKind.ESNext,
-    },
-  })
-}
+import { createProject } from './detect-connections-fixtures'
 
 describe('detectConnections - timing metrics', () => {
   it('returns zero configurableMs when no patterns provided', () => {

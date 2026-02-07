@@ -87,12 +87,25 @@ export function detectConnections(
   const asyncDetectionMs = performance.now() - asyncStart
 
   const patterns = options.patterns ?? []
-  const configurableStart = performance.now()
-  const configurableLinks = detectConfigurableConnections(project, patterns, components, {
-    strict,
-    repository,
-  })
-  const configurableMs = patterns.length > 0 ? performance.now() - configurableStart : 0
+  const {
+    configurableLinks, configurableMs 
+  } =
+    patterns.length > 0
+      ? (() => {
+        const configurableStart = performance.now()
+        const links = detectConfigurableConnections(project, patterns, components, {
+          strict,
+          repository,
+        })
+        return {
+          configurableLinks: links,
+          configurableMs: performance.now() - configurableStart,
+        }
+      })()
+      : {
+        configurableLinks: [],
+        configurableMs: 0,
+      }
 
   const totalMs = performance.now() - totalStart
 

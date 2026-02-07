@@ -231,6 +231,7 @@ class OrderService {
     expect(result[0]).toStrictEqual(
       expect.objectContaining({
         sourceLocation: expect.objectContaining({
+          repository: 'test-repo',
           filePath: '/src/f.ts',
           lineNumber: 6,
           methodName: 'execute',

@@ -296,8 +296,8 @@ A pattern for detecting connections between components
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `name` | `string` | **Yes** | Pattern identifier |
-| `find` | `connectionFinder` | **Yes** | Connection detection strategy |
-| `where` | `connectionWhereClause` | **Yes** | Filters for matching method calls |
+| `find` | `connectionFinder` | **Yes** | (no description) |
+| `where` | `connectionWhereClause` | **Yes** | (no description) |
 | `extract` | `connectionExtractBlock` | No | Extraction rules for connection metadata |
 | `linkType` | `"sync"` \| `"async"` | **Yes** | Type of connection: sync or async |
 
@@ -324,13 +324,13 @@ Filters for matching method calls
 | `methodName` | `string` | No | Method name to match |
 | `receiverType` | `string` | No | Type of the object being called |
 | `callerHasDecorator` | `string[]` | No | Decorators the calling class must have |
-| `calleeType` | `object` | No | Constraints on the callee type. Contains a required `hasDecorator` string property specifying the decorator name the callee type must have. |
+| `calleeType` | `object` | No | Constraints on the callee type |
 
 ---
 
 ### `connectionExtractBlock`
 
-Extraction rules for connection metadata fields. A record mapping metadata field names (e.g., `eventName`, `targetType`, `sourceType`) to `connectionExtractRule` values.
+Extraction rules for connection metadata fields
 
 ---
 

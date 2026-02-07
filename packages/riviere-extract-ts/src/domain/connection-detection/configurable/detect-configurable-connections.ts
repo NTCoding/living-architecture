@@ -116,18 +116,15 @@ function collectMatchesForCallExpression(
   for (const pattern of patterns) {
     if (!matchesWhereClause(pattern.where, callSiteInfo, callerClass, callExpr)) continue
     const uncertain = evaluateExtractUncertainty(pattern, callExpr, component, options)
-    const match: MatchedLink = {
+    matches.push({
       sourceId: componentIdentity(component),
       targetId: componentIdentity(targetComponent),
       linkType: pattern.linkType,
       filePath: callExpr.getSourceFile().getFilePath(),
       lineNumber: callExpr.getStartLineNumber(),
       methodName: callerMethodName,
-    }
-    if (uncertain !== undefined) {
-      match._uncertain = uncertain
-    }
-    matches.push(match)
+      ...(uncertain !== undefined && { _uncertain: uncertain }),
+    })
   }
   return matches
 }

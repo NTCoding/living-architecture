@@ -46,7 +46,7 @@ function runGit(
     // ANTI-PATTERN EXCEPTION: String-Based Error Detection (AP-001)
     // Justification: git CLI only reports repo status via stderr text
     const stderr =
-      error instanceof Error && 'stderr' in error
+      error instanceof Error && Object.hasOwn(error, 'stderr')
         ? (() => {
           const stderrValue: unknown = Object.getOwnPropertyDescriptor(error, 'stderr')?.value
           if (!stderrValue) {

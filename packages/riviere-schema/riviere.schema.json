@@ -373,7 +373,8 @@
         },
         "repository": {
           "type": "string",
-          "description": "Repository name if known"
+          "description": "Repository name if known",
+          "minLength": 3
         },
         "url": {
           "type": "string",
