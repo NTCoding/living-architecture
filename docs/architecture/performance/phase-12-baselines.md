@@ -36,7 +36,7 @@ Extraction performance baselines for connection detection (PRD 12), measured aga
 
 ## Validation
 
-Ground truth validation performed against `expected-connections.json` in ecommerce-demo-app:
+Ground truth validation performed against `expected-connections.json` in ecommerce-demo-app (certain connections only; uncertain links excluded):
 
 - **57 certain connections**: zero false positives, zero false negatives (verified via `scripts/verify-connections.mjs`)
 - **4 uncertain links**: classified separately, not counted as false positives or negatives (see below)

@@ -35,8 +35,16 @@ export function isLiteralValue(expression: Expression | undefined): boolean {
     kind === SyntaxKind.NumericLiteral ||
     kind === SyntaxKind.TrueKeyword ||
     kind === SyntaxKind.FalseKeyword ||
-    kind === SyntaxKind.ArrayLiteralExpression
+    isStringArrayLiteral(expression)
   )
+}
+
+function isStringArrayLiteral(expression: Expression): boolean {
+  if (expression.getKind() !== SyntaxKind.ArrayLiteralExpression) {
+    return false
+  }
+  const elements = expression.asKindOrThrow(SyntaxKind.ArrayLiteralExpression).getElements()
+  return elements.every((e) => e.getKind() === SyntaxKind.StringLiteral)
 }
 
 export type LiteralResult =

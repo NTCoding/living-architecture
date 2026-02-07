@@ -112,6 +112,14 @@ describe('isLiteralValue', () => {
     )
     expect(isLiteralValue(initializer)).toBe(true)
   })
+
+  it('returns false for array with non-string elements', () => {
+    const initializer = getPropertyInitializer(
+      `class Test { readonly values = [42, 'foo'] }`,
+      'values',
+    )
+    expect(isLiteralValue(initializer)).toBe(false)
+  })
 })
 
 describe('extractLiteralValue', () => {

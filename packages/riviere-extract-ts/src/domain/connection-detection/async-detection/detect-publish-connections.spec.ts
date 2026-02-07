@@ -104,6 +104,54 @@ class MetaEvent {}
     ])
   })
 
+  it('throws ConnectionDetectionError in strict mode when metadata publishedEventType matches no Event', () => {
+    const publisher = buildComponent('publishMissing', '/src/meta-strict.ts', 1, {
+      type: 'eventPublisher',
+      metadata: { publishedEventType: 'NonExistentEvent' },
+    })
+
+    expect(() => detectPublishConnections(sharedProject, [publisher], { strict: true })).toThrow(
+      ConnectionDetectionError,
+    )
+  })
+
+  it('returns uncertain link in lenient mode when metadata publishedEventType matches no Event', () => {
+    const publisher = buildComponent('publishNoMatch', '/src/meta-lenient.ts', 1, {
+      type: 'eventPublisher',
+      metadata: { publishedEventType: 'MissingEvent' },
+    })
+
+    const result = detectPublishConnections(sharedProject, [publisher], { strict: false })
+
+    expect(result).toStrictEqual([
+      expect.objectContaining({
+        source: 'orders:eventPublisher:publishNoMatch',
+        target: '_unresolved',
+        type: 'async',
+        _uncertain: expect.stringContaining('MissingEvent'),
+      }),
+    ])
+  })
+
+  it('throws ConnectionDetectionError in strict mode when metadata publishedEventType matches multiple Events', () => {
+    const event1 = buildComponent('AmbigMetaEventA', '/src/ambig-a.ts', 1, {
+      type: 'event',
+      metadata: { eventName: 'SharedMetaName' },
+    })
+    const event2 = buildComponent('AmbigMetaEventB', '/src/ambig-b.ts', 1, {
+      type: 'event',
+      metadata: { eventName: 'SharedMetaName' },
+    })
+    const publisher = buildComponent('publishAmbig', '/src/meta-ambig.ts', 1, {
+      type: 'eventPublisher',
+      metadata: { publishedEventType: 'SharedMetaName' },
+    })
+
+    expect(() =>
+      detectPublishConnections(sharedProject, [event1, event2, publisher], { strict: true }),
+    ).toThrow(ConnectionDetectionError)
+  })
+
   it('returns empty array when publisher has no public methods', () => {
     const filePath = nextFile(`
 class EmptyPublisher {}
