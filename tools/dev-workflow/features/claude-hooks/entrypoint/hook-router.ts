@@ -4,8 +4,10 @@ import {
   parseHookInput, routeToHandler, shouldSkipHooks 
 } from '../commands/handle-hook'
 import {
-  readStdin, tryParseJson, skipHooksOutput 
-} from '../../../platform/infra/stdin-reader'
+  readStdin,
+  tryParseJson,
+  skipHooksOutput,
+} from '../../../platform/infra/process-io/stdin-reader'
 ;(async () => {
   if (shouldSkipHooks()) {
     skipHooksOutput()

@@ -15,7 +15,7 @@ export {
   workflow,
   WorkflowError,
   ConventionalCommitTitle,
-} from '../platform/infra/shell-exports'
+} from '../platform/infra/public-api/shell-exports'
 
 export { completeTaskContextSchema } from '../features/complete-task/commands/complete-task'
 export { getPRFeedbackContextSchema } from '../features/get-pr-feedback/commands/get-pr-feedback'
@@ -36,5 +36,5 @@ export type {
 } from '../features/respond-to-feedback/commands/respond-to-feedback'
 export type { HookInput } from '../features/claude-hooks/commands/handle-hook'
 export type { HookOutput } from '../features/claude-hooks/commands/handle-hook'
-export type { FormattedFeedbackItem } from '../platform/infra/shell-exports'
-export type { ReviewDecision } from '../platform/infra/shell-exports'
+export type { FormattedFeedbackItem } from '../platform/infra/public-api/shell-exports'
+export type { ReviewDecision } from '../platform/infra/public-api/shell-exports'

@@ -1,5 +1,5 @@
 import { writeFileSync } from 'node:fs'
-import { type WorkflowIO } from '../domain/workflow-io'
+import { type WorkflowIO } from '../../domain/workflow-io'
 
 /**
  * Default workflow I/O implementation using Node.js built-ins.

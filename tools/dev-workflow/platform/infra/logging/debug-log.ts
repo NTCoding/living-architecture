@@ -2,7 +2,7 @@ import {
   appendFileSync, mkdirSync 
 } from 'node:fs'
 import { dirname } from 'node:path'
-import { type DebugLog } from '../domain/debug-log'
+import { type DebugLog } from '../../domain/debug-log'
 
 const startTime = Date.now()
 
