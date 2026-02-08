@@ -104,6 +104,8 @@ When writing, editing, refactoring, or reviewing code:
 - look for standard implementation patterns defined in `docs/conventions/standard-patterns.md`
 - avoid `docs/conventions/anti-patterns.md`
 
+CRUCIAL: If you see any code that is not aligned with our conventions, always fix it. Quality code aligned with our conventions is always the top priority. Far more important than rushing to finish a new feature.
+
 ## Brand Identity, theme, design, UI, UX
 
 All UI and UX design must conform to global brand guidelines: `/docs/brand/` (logo, colors, typography, icons)
@@ -151,7 +153,6 @@ The CLI (`riviere-cli`) bundles several packages via esbuild. To ensure users al
   - When in doubt, use judgment: obvious fixes → proceed; non-obvious → ask
 - **Do not modify root configuration files** (eslint.config.mjs, tsconfig.base.json, nx.json, vite.config, vitest.config.mts). If you believe a change is genuinely necessary, provide the suggested changes and ask the user.
 - **Do not use `--no-verify`, `--force`, or `--hard` flags.** These are blocked by hooks and will fail. All commits must pass the `verify` gate.
-- **Use NX commands** for all build, test, and lint operations. Do not run npm/pnpm directly in project folders.
 - **Cross-project imports** use package names (e.g., `import { X } from '@living-architecture/[pkg-name]'`), not relative paths.
 - **Adding dependencies between projects** requires adding `"@living-architecture/[pkg-name]": "workspace:*"` to the consuming project's package.json.
 - **Browser debugging** - When building new UI features or debugging browser issues, use Chrome MCP tools instead of guessing from code inspection.

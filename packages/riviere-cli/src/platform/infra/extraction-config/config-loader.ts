@@ -27,8 +27,9 @@ import {
   PackageResolveError,
 } from '../errors/errors'
 import { expandModuleRefs } from './expand-module-refs'
-import { exitWithConfigValidation } from '../cli-presentation/exit-handlers'
-import { CliErrorCode } from '../cli-presentation/error-codes'
+import {
+  CliErrorCode, ConfigValidationError 
+} from '../cli-presentation/error-codes'
 
 interface TopLevelRulesConfig {
   api?: Module['api']
@@ -209,7 +210,7 @@ export function resolveSourceFiles(
 
   if (sourceFilePaths.length === 0) {
     const patterns = resolvedConfig.modules.map((m) => m.path).join(', ')
-    exitWithConfigValidation(
+    throw new ConfigValidationError(
       CliErrorCode.ValidationError,
       `No files matched extraction patterns: ${patterns}\nConfig directory: ${configDir}`,
     )
@@ -225,14 +226,17 @@ interface ValidatedConfig {
 
 export function loadAndValidateConfig(configPath: string): ValidatedConfig {
   if (!existsSync(configPath)) {
-    exitWithConfigValidation(CliErrorCode.ConfigNotFound, `Config file not found: ${configPath}`)
+    throw new ConfigValidationError(
+      CliErrorCode.ConfigNotFound,
+      `Config file not found: ${configPath}`,
+    )
   }
 
   const content = readFileSync(configPath, 'utf-8')
   const parseResult = parseConfigFile(content)
 
   if (!parseResult.success) {
-    exitWithConfigValidation(
+    throw new ConfigValidationError(
       CliErrorCode.ValidationError,
       `Invalid config file: ${parseResult.error}`,
     )
@@ -242,7 +246,7 @@ export function loadAndValidateConfig(configPath: string): ValidatedConfig {
   const expansionResult = tryExpandModuleRefs(parseResult.data, configDir)
 
   if (!expansionResult.success) {
-    exitWithConfigValidation(
+    throw new ConfigValidationError(
       CliErrorCode.ValidationError,
       `Error expanding module references: ${expansionResult.error}`,
     )
@@ -250,7 +254,7 @@ export function loadAndValidateConfig(configPath: string): ValidatedConfig {
 
   if (!isValidExtractionConfig(expansionResult.data)) {
     const validationResult = validateExtractionConfig(expansionResult.data)
-    exitWithConfigValidation(
+    throw new ConfigValidationError(
       CliErrorCode.ValidationError,
       `Invalid extraction config:\n${formatValidationErrors(validationResult.errors)}`,
     )

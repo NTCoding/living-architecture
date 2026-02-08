@@ -231,6 +231,99 @@ describe('git.unpushedFiles', () => {
   })
 })
 
+describe('git.unpushedFilesWithStatus', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('parses modified and deleted files from name-status output', async () => {
+    mockRepo.status.mockResolvedValue({ current: 'issue-123-feat' })
+    mockRepo.branch.mockResolvedValue({ all: ['origin/main', 'origin/issue-123-feat'] })
+    mockRepo.diff.mockResolvedValue('M\tchanged.ts\nD\tdeleted.ts\n')
+
+    const files = await git.unpushedFilesWithStatus('main')
+
+    expect(files).toStrictEqual([
+      {
+        path: 'changed.ts',
+        deleted: false,
+      },
+      {
+        path: 'deleted.ts',
+        deleted: true,
+      },
+    ])
+    expect(mockRepo.diff).toHaveBeenCalledWith(['--name-status', 'origin/issue-123-feat'])
+  })
+
+  it('falls back to base branch when no remote tracking branch', async () => {
+    mockRepo.status.mockResolvedValue({ current: 'issue-123-feat' })
+    mockRepo.branch.mockResolvedValue({ all: ['origin/main'] })
+    mockRepo.diff.mockResolvedValue('A\tnew-file.ts\n')
+
+    const files = await git.unpushedFilesWithStatus('main')
+
+    expect(files).toStrictEqual([
+      {
+        path: 'new-file.ts',
+        deleted: false,
+      },
+    ])
+    expect(mockRepo.diff).toHaveBeenCalledWith(['--name-status', 'main'])
+  })
+
+  it('falls back to base branch when no unpushed changes', async () => {
+    mockRepo.status.mockResolvedValue({ current: 'issue-123-feat' })
+    mockRepo.branch.mockResolvedValue({ all: ['origin/main', 'origin/issue-123-feat'] })
+    mockRepo.diff.mockResolvedValueOnce('').mockResolvedValueOnce('M\tfull-pr.ts\n')
+
+    const files = await git.unpushedFilesWithStatus('main')
+
+    expect(files).toStrictEqual([
+      {
+        path: 'full-pr.ts',
+        deleted: false,
+      },
+    ])
+  })
+
+  it('returns empty array when no changes anywhere', async () => {
+    mockRepo.status.mockResolvedValue({ current: 'issue-123-feat' })
+    mockRepo.branch.mockResolvedValue({ all: ['origin/main', 'origin/issue-123-feat'] })
+    mockRepo.diff.mockResolvedValue('')
+
+    const files = await git.unpushedFilesWithStatus('main')
+
+    expect(files).toStrictEqual([])
+  })
+
+  it('parses renamed files using destination path', async () => {
+    mockRepo.status.mockResolvedValue({ current: 'issue-123-feat' })
+    mockRepo.branch.mockResolvedValue({ all: ['origin/main', 'origin/issue-123-feat'] })
+    mockRepo.diff.mockResolvedValue('R100\told.ts\tnew.ts\n')
+
+    const files = await git.unpushedFilesWithStatus('main')
+
+    expect(files).toStrictEqual([
+      {
+        path: 'new.ts',
+        deleted: false,
+      },
+    ])
+  })
+
+  it('throws GitError for malformed name-status line', async () => {
+    mockRepo.status.mockResolvedValue({ current: 'issue-123-feat' })
+    mockRepo.branch.mockResolvedValue({ all: ['origin/main', 'origin/issue-123-feat'] })
+    mockRepo.diff.mockResolvedValue('malformed-no-tab\n')
+
+    await expect(git.unpushedFilesWithStatus('main')).rejects.toThrow(GitError)
+    await expect(git.unpushedFilesWithStatus('main')).rejects.toThrow(
+      'Unexpected diff --name-status line',
+    )
+  })
+})
+
 describe('git.lastCommitFiles', () => {
   beforeEach(() => {
     vi.clearAllMocks()

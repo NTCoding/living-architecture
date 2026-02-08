@@ -7,6 +7,7 @@ import {
   vi, beforeEach, afterEach, expect, it 
 } from 'vitest'
 import { createProgram } from '../../shell/cli'
+import { handleGlobalError } from '../infra/cli-presentation/global-error-handler'
 
 class ProcessExitError extends Error {
   constructor(public exitCode: number) {
@@ -344,6 +345,10 @@ export async function testCustomGraphPath<T>(
     '--json',
   ])
   return parseOutput(ctx.consoleOutput)
+}
+
+export function parseCommandWithErrorHandling(args: string[]): Promise<void> {
+  return createProgram().parseAsync(args).catch(handleGlobalError)
 }
 
 export function assertDefined<T>(

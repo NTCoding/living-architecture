@@ -4,7 +4,7 @@ pageClass: reference
 
 # Interface: LinkInput
 
-Defined in: [packages/riviere-builder/src/domain/linking/linking-types.ts:5](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/linking/linking-types.ts#L5)
+Defined in: [packages/riviere-builder/src/features/building/domain/linking/linking-types.ts:5](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/linking/linking-types.ts#L5)
 
 ## Properties
 
@@ -12,7 +12,7 @@ Defined in: [packages/riviere-builder/src/domain/linking/linking-types.ts:5](htt
 
 > **from**: `string`
 
-Defined in: [packages/riviere-builder/src/domain/linking/linking-types.ts:6](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/linking/linking-types.ts#L6)
+Defined in: [packages/riviere-builder/src/features/building/domain/linking/linking-types.ts:6](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/linking/linking-types.ts#L6)
 
 ***
 
@@ -20,7 +20,7 @@ Defined in: [packages/riviere-builder/src/domain/linking/linking-types.ts:6](htt
 
 > **to**: `string`
 
-Defined in: [packages/riviere-builder/src/domain/linking/linking-types.ts:7](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/linking/linking-types.ts#L7)
+Defined in: [packages/riviere-builder/src/features/building/domain/linking/linking-types.ts:7](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/linking/linking-types.ts#L7)
 
 ***
 
@@ -28,4 +28,4 @@ Defined in: [packages/riviere-builder/src/domain/linking/linking-types.ts:7](htt
 
 > `optional` **type**: `LinkType`
 
-Defined in: [packages/riviere-builder/src/domain/linking/linking-types.ts:8](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/linking/linking-types.ts#L8)
+Defined in: [packages/riviere-builder/src/features/building/domain/linking/linking-types.ts:8](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/linking/linking-types.ts#L8)

@@ -5,7 +5,7 @@ import {
 } from '../commands/handle-hook'
 import {
   readStdin, tryParseJson, skipHooksOutput 
-} from '../../../platform/infra/stdin-reader'
+} from '../../../platform/infra/cli/stdin-reader'
 ;(async () => {
   if (shouldSkipHooks()) {
     skipHooksOutput()

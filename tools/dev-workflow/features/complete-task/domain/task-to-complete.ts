@@ -7,7 +7,7 @@ import {
 export const prModeSchema = z.enum(['create', 'update'])
 export type PRMode = z.infer<typeof prModeSchema>
 
-export const completeTaskContextSchema = baseContextSchema.extend({
+const completeTaskContextSchema = baseContextSchema.extend({
   reviewDir: z.string(),
   prMode: prModeSchema,
   hasIssue: z.boolean(),

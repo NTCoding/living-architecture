@@ -4,7 +4,7 @@ pageClass: reference
 
 # Interface: NearMatchQuery
 
-Defined in: [packages/riviere-builder/src/domain/error-recovery/match-types.ts:3](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/error-recovery/match-types.ts#L3)
+Defined in: [packages/riviere-builder/src/features/building/domain/error-recovery/match-types.ts:3](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/error-recovery/match-types.ts#L3)
 
 ## Properties
 
@@ -12,7 +12,7 @@ Defined in: [packages/riviere-builder/src/domain/error-recovery/match-types.ts:3
 
 > `optional` **domain**: `string`
 
-Defined in: [packages/riviere-builder/src/domain/error-recovery/match-types.ts:6](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/error-recovery/match-types.ts#L6)
+Defined in: [packages/riviere-builder/src/features/building/domain/error-recovery/match-types.ts:6](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/error-recovery/match-types.ts#L6)
 
 ***
 
@@ -20,7 +20,7 @@ Defined in: [packages/riviere-builder/src/domain/error-recovery/match-types.ts:6
 
 > **name**: `string`
 
-Defined in: [packages/riviere-builder/src/domain/error-recovery/match-types.ts:4](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/error-recovery/match-types.ts#L4)
+Defined in: [packages/riviere-builder/src/features/building/domain/error-recovery/match-types.ts:4](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/error-recovery/match-types.ts#L4)
 
 ***
 
@@ -28,4 +28,4 @@ Defined in: [packages/riviere-builder/src/domain/error-recovery/match-types.ts:4
 
 > `optional` **type**: `ComponentType`
 
-Defined in: [packages/riviere-builder/src/domain/error-recovery/match-types.ts:5](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/error-recovery/match-types.ts#L5)
+Defined in: [packages/riviere-builder/src/features/building/domain/error-recovery/match-types.ts:5](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/error-recovery/match-types.ts#L5)

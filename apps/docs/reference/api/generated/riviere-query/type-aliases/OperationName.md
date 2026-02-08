@@ -6,6 +6,6 @@ pageClass: reference
 
 > **OperationName** = `z.infer`\<*typeof* `operationNameSchema`\>
 
-Defined in: [packages/riviere-query/src/queries/domain-types.ts:43](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/queries/domain-types.ts#L43)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:43](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L43)
 
 Branded type for operation names.

@@ -25,6 +25,7 @@ export function createExtractCommand(): Command {
     .option('--format <type>', 'Output format: json (default) or markdown')
     .option('--stats', 'Show extraction statistics on stderr')
     .option('--patterns', 'Enable pattern-based connection detection')
+    .option('--no-ts-config', 'Skip tsconfig.json auto-discovery (disables full type resolution)')
     .action((options: ExtractOptions) => {
       validateFlagCombinations(options)
 

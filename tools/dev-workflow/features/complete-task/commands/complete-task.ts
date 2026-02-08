@@ -8,8 +8,8 @@ import { fetchRawPRFeedback } from '../../../platform/infra/external-clients/git
 import { parseIssueNumber } from '../../../platform/domain/branch-naming/issue-branch-parser'
 import { runWorkflow } from '../../../platform/domain/workflow-execution/run-workflow'
 import type { WorkflowResult } from '../../../platform/domain/workflow-execution/workflow-runner'
-import { createDebugLog } from '../../../platform/infra/debug-log'
-import { createDefaultWorkflowIO } from '../../../platform/infra/workflow-io'
+import { createDebugLog } from '../../../platform/infra/logging/debug-log'
+import { createDefaultWorkflowIO } from '../../../platform/infra/external-clients/workflow-io'
 import type { CompleteTaskContext } from '../domain/task-to-complete'
 import { formatCompleteTaskResult } from '../domain/pipeline-outcome'
 import { resolveSkipReview } from '../domain/complete-task-cli-parser'
@@ -20,11 +20,6 @@ import {
 } from '../domain/workflow-setup'
 
 export { resolveTimingsFilePath } from '../domain/workflow-setup'
-export { completeTaskContextSchema } from '../domain/task-to-complete'
-export type { CompleteTaskContext } from '../domain/task-to-complete'
-export type { CompleteTaskResult } from '../domain/pipeline-outcome'
-export { MissingPullRequestDetailsError } from '../domain/pull-request-draft'
-export { AgentError } from '../domain/steps/run-code-review'
 
 export function executeCompleteTask(): void {
   const debugLog = createDebugLog('reviews/debug.log')
@@ -44,8 +39,8 @@ export function executeCompleteTask(): void {
     codeReview: {
       skipReview: resolveSkipReview(cli),
       baseBranch: git.baseBranch.bind(git),
-      unpushedFiles: git.unpushedFiles.bind(git),
-      queryAgent: claude.query.bind(claude),
+      unpushedFiles: git.unpushedFilesWithStatus.bind(git),
+      queryAgentText: claude.queryText.bind(claude),
       debugLog,
     },
     submitPR: {

@@ -26,10 +26,6 @@ const VALID_VERDICTS = ['PASS', 'FAIL'] as const
 const verdictSchema = z.enum(VALID_VERDICTS)
 type Verdict = z.infer<typeof verdictSchema>
 
-const reviewerResponseSchema = z.object({ verdict: z.enum(['PASS', 'FAIL']) })
-
-export type ReviewerResponse = z.infer<typeof reviewerResponseSchema>
-
 interface ReviewerResult {
   result: Verdict
   name: string
@@ -39,16 +35,20 @@ interface ReviewerResult {
 const VALID_REVIEWERS = ['architecture-review', 'code-review', 'bug-scanner', 'task-check'] as const
 type ReviewerName = (typeof VALID_REVIEWERS)[number]
 
+interface DiffFileEntry {
+  readonly path: string
+  readonly deleted: boolean
+}
+
 export interface CodeReviewDeps {
   skipReview: boolean
   baseBranch: () => Promise<string>
-  unpushedFiles: (baseBranch: string) => Promise<string[]>
-  queryAgent: <T>(opts: {
+  unpushedFiles: (baseBranch: string) => Promise<DiffFileEntry[]>
+  queryAgentText: (opts: {
     prompt: string
     model: 'opus' | 'sonnet' | 'haiku'
-    outputSchema: z.ZodSchema<T>
     settingSources?: ('user' | 'project' | 'local')[]
-  }) => Promise<T>
+  }) => Promise<string>
   debugLog?: DebugLog
 }
 
@@ -71,6 +71,36 @@ async function loadAgentInstructions(agentPath: string): Promise<string> {
       `Failed to read agent prompt at ${agentPath}: ${error instanceof Error ? error.message : String(error)}`,
     )
     /* v8 ignore stop */
+  }
+}
+
+interface AgentResponse {
+  verdict: Verdict
+  report: string
+}
+
+function extractVerdict(line: string): Verdict | undefined {
+  const stripped = line.trim().replaceAll(/\*+/g, '').trim()
+  const match = /\b(PASS|FAIL)\b/.exec(stripped)
+  const parsed = verdictSchema.safeParse(match?.[1])
+  return parsed.success ? parsed.data : undefined
+}
+
+function parseAgentResponse(raw: string): AgentResponse {
+  const lines = raw.split('\n')
+  const verdictIndex = lines.findIndex((line) => extractVerdict(line) !== undefined)
+
+  if (verdictIndex < 0) {
+    const preview = lines.slice(0, 3).join(' | ')
+    throw new AgentError(`Agent response must contain PASS or FAIL. Got: "${preview}"`)
+  }
+
+  const verdict = extractVerdict(lines[verdictIndex])
+  /* v8 ignore next -- @preserve: verdictIndex >= 0 guarantees extractVerdict returns a value */
+  if (verdict === undefined) throw new AgentError('Verdict extraction failed unexpectedly')
+  return {
+    verdict,
+    report: lines.slice(verdictIndex + 1).join('\n'),
   }
 }
 
@@ -158,10 +188,14 @@ function nextRoundNumber(reviewDir: string, name: string): number {
   }
 }
 
+function formatFileList(files: DiffFileEntry[]): string {
+  return files.map((f) => (f.deleted ? `[DELETED] ${f.path}` : f.path)).join('\n')
+}
+
 async function executeCodeReviewAgents(
   deps: CodeReviewDeps,
   names: readonly ReviewerName[],
-  filesToReview: string[],
+  filesToReview: DiffFileEntry[],
   reviewDir: string,
   taskDetails:
     | {
@@ -193,7 +227,7 @@ async function executeCodeReviewAgents(
         basePrompt,
         `\n\n## Report Path\n\n${reportPath}`,
         '\n\n## Files to Review\n\n',
-        filesToReview.join('\n'),
+        formatFileList(filesToReview),
       ]
 
       if (name === 'task-check' && taskDetails) {
@@ -203,20 +237,22 @@ async function executeCodeReviewAgents(
       }
 
       log.log(`agent [${name}]: calling claude SDK (model=opus, round=${round})`)
-      const response = await deps.queryAgent<ReviewerResponse>({
+      const rawResponse = await deps.queryAgentText({
         prompt: promptParts.join(''),
         model: 'opus',
-        outputSchema: reviewerResponseSchema,
         settingSources: ['project'],
       })
-      log.log(`agent [${name}]: verdict=${response.verdict}`)
+      log.log(`agent [${name}]: claude SDK returned (${rawResponse.length} chars)`)
 
-      if (name === 'task-check' && response.verdict === 'PASS') {
+      const parsed = parseAgentResponse(rawResponse)
+      log.log(`agent [${name}]: verdict=${parsed.verdict}`)
+
+      if (name === 'task-check' && parsed.verdict === 'PASS') {
         await createTaskCheckMarker(reviewDir)
       }
 
       return {
-        result: response.verdict,
+        result: parsed.verdict,
         name,
         reportPath,
       }

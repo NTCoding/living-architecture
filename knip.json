@@ -48,8 +48,7 @@
         "features/merge-and-cleanup/entrypoint/cli.ts",
         "features/push-reflection/entrypoint/cli.ts",
         "features/claude-hooks/entrypoint/hook-router.ts",
-        "features/claude-hooks/domain/claude-hooks.spec.ts",
-        "shell/index.ts"
+        "features/claude-hooks/domain/claude-hooks.spec.ts"
       ],
       "project": [
         "**/*.ts"

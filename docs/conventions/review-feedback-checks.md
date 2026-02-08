@@ -538,6 +538,48 @@ describe('connection detection', () => {
 
 ---
 
+## RFC-017: Structured Format Parsing Must Handle All Documented Variants
+
+**Source:** PR #259 (CodeRabbit)
+
+**Pattern:** When parsing output from external tools (git, npm, APIs), implementation only handles the common format variants and misses edge cases documented in the tool's specification.
+
+**Example (BAD):**
+```typescript
+// Git --name-status output: only handles M (modified) and D (deleted)
+// Misses R (rename), C (copy) which have TWO tab-separated paths: R100\told.ts\tnew.ts
+function parseDiffNameStatus(raw: string): DiffFileEntry[] {
+  return raw.split('\n').filter(Boolean).map((line) => {
+    const [status, ...pathParts] = line.split('\t')
+    const path = pathParts.join('\t')  // BUG: concatenates old\tnew for renames
+    return { path, deleted: status === 'D' }
+  })
+}
+```
+
+**Example (GOOD):**
+```typescript
+// Handles all git status codes: M, A, D, R (rename), C (copy), T, U, X, B
+function parseDiffNameStatus(raw: string): DiffFileEntry[] {
+  return raw.split('\n').filter(Boolean).map((line) => {
+    const [status, ...pathParts] = line.split('\t')
+    const path = pathParts.at(-1)  // Last path = destination for R/C, sole path for others
+    if (!status || !path) {
+      throw new GitError(`Unexpected diff --name-status line: "${line}"`)
+    }
+    return { path, deleted: status === 'D' }
+  })
+}
+```
+
+**Detection:** When code parses structured output from external tools:
+1. Identify the external tool and the specific output format being parsed
+2. Check the tool's documentation for all format variants (not just common ones)
+3. Verify the parser handles each documented variant
+4. For git specifically: always test R (rename) and C (copy) status lines alongside M/A/D
+
+---
+
 ## Adding New Checks
 
 When external review feedback reveals a pattern:

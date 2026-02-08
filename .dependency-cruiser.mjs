@@ -3,8 +3,8 @@ export default {
     {
       name: "root-structure",
       severity: "error",
-      comment: "src/ root must only contain structural folders (features/, platform/, shell/, domain/, queries/)",
-      from: { path: "(apps|packages|tools)/(?!riviere-schema/|riviere-extract-config/|riviere-extract-conventions/)[^/]+/src/(?!features/|platform/|shell/|domain/|queries/).+" },
+      comment: "src/ root must only contain structural folders (features/, platform/, shell/) and index.ts barrel",
+      from: { path: "(apps|packages|tools)/(?!riviere-schema/|riviere-extract-config/|riviere-extract-conventions/)[^/]+/src/(?!features/|platform/|shell/|index\\.ts).+" },
       to: {}
     },
     {
@@ -108,6 +108,13 @@ export default {
       to: { path: "platform/infra/http/.+" }
     },
     {
+      name: "commands-no-cli-infra",
+      severity: "error",
+      comment: "Commands must not import from CLI infrastructure (entrypoint concern)",
+      from: { path: "features/[^/]+/commands/.+" },
+      to: { path: "platform/infra/cli/.+" }
+    },
+    {
       name: "commands-no-mappers",
       severity: "error",
       comment: "Commands must not import from feature mappers",
@@ -141,6 +148,13 @@ export default {
       comment: "Queries must not import from messaging infrastructure",
       from: { path: "features/[^/]+/queries/.+" },
       to: { path: "platform/infra/messaging/.+" }
+    },
+    {
+      name: "queries-no-cli-infra",
+      severity: "error",
+      comment: "Queries must not import from CLI infrastructure (entrypoint concern)",
+      from: { path: "features/[^/]+/queries/.+" },
+      to: { path: "platform/infra/cli/.+" }
     },
     {
       name: "queries-no-mappers",

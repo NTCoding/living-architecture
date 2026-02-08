@@ -51,11 +51,14 @@ Address outstanding issues before running /pre-merge-reflection.
 BRANCH=$(git branch --show-current)
 ```
 
-**Local feedback sources** (read each file from `reviews/<branch>/`):
-- `code-review.md` - Convention violations, architecture issues
-- `bug-scanner.md` - Bugs, security issues, framework misuse
+**Local feedback sources** (read ALL rounds from `reviews/<branch>/`):
+- `code-review-*.md` - Convention violations, architecture issues (ALL rounds: 1, 2, 3, etc.)
+- `bug-scanner-*.md` - Bugs, security issues, framework misuse (ALL rounds)
+- `architecture-review-*.md` - Architecture violations (ALL rounds)
 - `task-check.md` - Task completion verification
 - `doc-suggestions.md` - Documentation drift and missing docs
+
+🚨 **Read ALL review rounds, not just the latest.** Earlier rounds may have caught issues in different files that were fixed in subsequent commits. The reflection must capture the full feedback history across all iterations.
 
 **GitHub feedback:**
 ```bash

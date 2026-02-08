@@ -24,7 +24,7 @@ const completeTaskResultSchema = z.object({
   logFile: z.string().optional(),
   failedReviewers: z.array(failedReviewerSchema).optional(),
 })
-export type CompleteTaskResult = z.infer<typeof completeTaskResultSchema>
+type CompleteTaskResult = z.infer<typeof completeTaskResultSchema>
 
 function addReminder(instructions: string): string {
   return `${instructions}\n\nREMEMBER: /fix-it-never-work-around-it`

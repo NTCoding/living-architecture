@@ -1,4 +1,3 @@
-import { Project } from 'ts-morph'
 import type { ResolvedExtractionConfig } from '@living-architecture/riviere-extract-config'
 import { formatSuccess } from '../../../platform/infra/cli-presentation/output'
 import { formatPrMarkdown } from '../../../platform/infra/cli-presentation/format-pr-markdown'
@@ -10,11 +9,12 @@ import {
 } from '../../../platform/infra/cli-presentation/format-extraction-stats'
 import type { ExtractOptions } from '../../../platform/infra/cli-presentation/extract-validator'
 import {
-  getRepositoryInfoSafe,
   loadOrExtractComponents,
   enrichComponentsSafe,
   detectConnectionsSafe,
 } from '../infra/safe-extraction-operations'
+import { getRepositoryInfo } from '../../../platform/infra/git/git-repository-info'
+import { loadExtractionProject } from '../infra/load-extraction-project'
 import { categorizeComponents } from '../../../platform/infra/cli-presentation/categorize-components'
 
 export function runExtraction(
@@ -23,8 +23,7 @@ export function runExtraction(
   configDir: string,
   sourceFilePaths: string[],
 ): void {
-  const project = new Project()
-  project.addSourceFilesAtPaths(sourceFilePaths)
+  const project = loadExtractionProject(configDir, sourceFilePaths, options.tsConfig === false)
 
   const draftComponents = loadOrExtractComponents(
     project,
@@ -63,7 +62,7 @@ export function runExtraction(
     options.allowIncomplete === true,
   )
 
-  const repositoryInfo = getRepositoryInfoSafe()
+  const repositoryInfo = getRepositoryInfo()
 
   const { links } = detectConnectionsSafe(
     project,

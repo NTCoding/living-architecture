@@ -10,6 +10,28 @@ export class GitError extends Error {
 
 const repo = simpleGit()
 
+interface DiffFileEntry {
+  readonly path: string
+  readonly deleted: boolean
+}
+
+function parseDiffNameStatus(raw: string): DiffFileEntry[] {
+  return raw
+    .split('\n')
+    .filter(Boolean)
+    .map((line) => {
+      const [status, ...pathParts] = line.split('\t')
+      const path = pathParts.at(-1)
+      if (!status || !path) {
+        throw new GitError(`Unexpected diff --name-status line: "${line}"`)
+      }
+      return {
+        path,
+        deleted: status === 'D',
+      }
+    })
+}
+
 export const git = {
   async diffFiles(base: string): Promise<string[]> {
     const diff = await repo.diff(['--name-only', base])
@@ -81,6 +103,24 @@ export const git = {
     const diff = await repo.diff(['--name-only', trackingRef])
     const files = diff.split('\n').filter(Boolean)
     return files.length > 0 ? files : git.diffFiles(baseBranch)
+  },
+
+  async unpushedFilesWithStatus(baseBranch: string): Promise<DiffFileEntry[]> {
+    const branch = await git.currentBranch()
+    const trackingRef = `origin/${branch}`
+    const refs = await repo.branch(['-r'])
+
+    if (!refs.all.includes(trackingRef)) {
+      const diff = await repo.diff(['--name-status', baseBranch])
+      return parseDiffNameStatus(diff)
+    }
+
+    const diff = await repo.diff(['--name-status', trackingRef])
+    const entries = parseDiffNameStatus(diff)
+    if (entries.length > 0) return entries
+
+    const fallbackDiff = await repo.diff(['--name-status', baseBranch])
+    return parseDiffNameStatus(fallbackDiff)
   },
 
   async headSha(): Promise<string> {

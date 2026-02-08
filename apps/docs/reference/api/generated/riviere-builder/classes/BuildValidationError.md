@@ -4,7 +4,7 @@ pageClass: reference
 
 # Class: BuildValidationError
 
-Defined in: [packages/riviere-builder/src/domain/construction/construction-errors.ts:107](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/construction/construction-errors.ts#L107)
+Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:107](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L107)
 
 ## Extends
 
@@ -16,7 +16,7 @@ Defined in: [packages/riviere-builder/src/domain/construction/construction-error
 
 > **new BuildValidationError**(`messages`): `BuildValidationError`
 
-Defined in: [packages/riviere-builder/src/domain/construction/construction-errors.ts:110](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/construction/construction-errors.ts#L110)
+Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:110](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L110)
 
 #### Parameters
 
@@ -86,7 +86,7 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 
 > `readonly` **validationMessages**: `string`[]
 
-Defined in: [packages/riviere-builder/src/domain/construction/construction-errors.ts:108](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/construction/construction-errors.ts#L108)
+Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:108](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L108)
 
 ***
 

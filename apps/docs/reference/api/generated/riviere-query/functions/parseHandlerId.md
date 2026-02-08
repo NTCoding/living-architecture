@@ -6,7 +6,7 @@ pageClass: reference
 
 > **parseHandlerId**(`value`): `string` & `$brand`\<`"HandlerId"`\>
 
-Defined in: [packages/riviere-query/src/queries/domain-types.ts:352](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/queries/domain-types.ts#L352)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:352](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L352)
 
 Parses a string as a HandlerId.
 

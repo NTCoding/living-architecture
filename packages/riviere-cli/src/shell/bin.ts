@@ -1,7 +1,5 @@
 import { createProgram } from './cli'
+import { handleGlobalError } from '../platform/infra/cli-presentation/global-error-handler'
 
 const program = createProgram()
-program.parseAsync().catch((error: unknown) => {
-  console.error(error instanceof Error ? error.message : String(error))
-  process.exit(1)
-})
+program.parseAsync().catch(handleGlobalError)

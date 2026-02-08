@@ -1,5 +1,6 @@
-import { CliErrorCode } from './error-codes'
-import { exitWithConfigValidation } from './exit-handlers'
+import {
+  CliErrorCode, ConfigValidationError 
+} from './error-codes'
 
 export interface ExtractOptions {
   config: string
@@ -14,6 +15,7 @@ export interface ExtractOptions {
   format?: string
   stats?: boolean
   patterns?: boolean
+  tsConfig?: boolean
 }
 
 function rejectMutuallyExclusive(
@@ -23,7 +25,7 @@ function rejectMutuallyExclusive(
   bPresent: boolean,
 ): void {
   if (aPresent && bPresent) {
-    exitWithConfigValidation(
+    throw new ConfigValidationError(
       CliErrorCode.ValidationError,
       `${flagA} and ${flagB} cannot be used together`,
     )
@@ -49,13 +51,13 @@ function validateMutualExclusions(options: ExtractOptions): void {
 
 function validateFormatOption(options: ExtractOptions): void {
   if (options.format !== undefined && options.format !== 'json' && options.format !== 'markdown') {
-    exitWithConfigValidation(
+    throw new ConfigValidationError(
       CliErrorCode.ValidationError,
       `Invalid format '${options.format}'. Must be 'json' or 'markdown'.`,
     )
   }
   if (options.format === 'markdown' && !options.pr && options.files === undefined) {
-    exitWithConfigValidation(
+    throw new ConfigValidationError(
       CliErrorCode.ValidationError,
       '--format markdown requires --pr or --files',
     )
@@ -65,7 +67,10 @@ function validateFormatOption(options: ExtractOptions): void {
 export function validateFlagCombinations(options: ExtractOptions): void {
   validateMutualExclusions(options)
   if (options.base !== undefined && !options.pr) {
-    exitWithConfigValidation(CliErrorCode.ValidationError, '--base can only be used with --pr')
+    throw new ConfigValidationError(
+      CliErrorCode.ValidationError,
+      '--base can only be used with --pr',
+    )
   }
   validateFormatOption(options)
 }

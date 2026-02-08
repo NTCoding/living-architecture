@@ -3,11 +3,6 @@ import { resolve } from 'node:path'
 import {
   detectChangedTypeScriptFiles, GitError 
 } from '../git/git-changed-files'
-import { formatError } from '../cli-presentation/output'
-import {
-  CliErrorCode, ExitCode 
-} from '../cli-presentation/error-codes'
-import { exitWithConfigValidation } from '../cli-presentation/exit-handlers'
 
 export interface FilterOptions {
   readonly pr?: boolean
@@ -72,20 +67,5 @@ export function resolveFilteredSourceFiles(
   allSourceFiles: string[],
   options: ResolveFilterOptions,
 ): string[] {
-  try {
-    return filterSourceFiles(allSourceFiles, options).files
-  } catch (error) {
-    /* v8 ignore next -- @preserve: filterSourceFiles only throws SourceFilterError */
-    if (!(error instanceof SourceFilterError)) throw error
-    if (error.filterErrorKind === 'GIT_ERROR' && error.gitError !== undefined) {
-      /* v8 ignore next -- @preserve: GIT_NOT_FOUND requires git absent from system */
-      const code =
-        error.gitError.gitErrorCode === 'NOT_A_REPOSITORY'
-          ? CliErrorCode.GitNotARepository
-          : CliErrorCode.GitNotFound
-      console.log(JSON.stringify(formatError(code, error.gitError.message)))
-      process.exit(ExitCode.RuntimeError)
-    }
-    exitWithConfigValidation(CliErrorCode.ValidationError, error.message)
-  }
+  return filterSourceFiles(allSourceFiles, options).files
 }

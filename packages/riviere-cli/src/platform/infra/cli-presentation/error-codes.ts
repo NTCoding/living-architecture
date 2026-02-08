@@ -4,6 +4,24 @@ export enum ExitCode {
   RuntimeError = 3,
 }
 
+export class ExtractionFieldFailureError extends Error {
+  constructor(failedFields: string[]) {
+    const uniqueFields = [...new Set(failedFields)]
+    super(`Extraction failed for fields: ${uniqueFields.join(', ')}`)
+    this.name = 'ExtractionFieldFailureError'
+  }
+}
+
+export class ConfigValidationError extends Error {
+  readonly errorCode: CliErrorCode
+
+  constructor(code: CliErrorCode, message: string) {
+    super(message)
+    this.name = 'ConfigValidationError'
+    this.errorCode = code
+  }
+}
+
 export enum CliErrorCode {
   GraphNotFound = 'GRAPH_NOT_FOUND',
   ComponentNotFound = 'COMPONENT_NOT_FOUND',

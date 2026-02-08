@@ -6,12 +6,12 @@ import {
   describe, it, expect 
 } from 'vitest'
 import type { DraftComponent } from '@living-architecture/riviere-extract-ts'
-import { createProgram } from '../../../shell/cli'
 import type { TestContext } from '../../../platform/__fixtures__/command-test-fixtures'
 import {
   createTestContext,
   setupCommandTest,
   parseErrorOutput,
+  parseCommandWithErrorHandling,
 } from '../../../platform/__fixtures__/command-test-fixtures'
 import {
   parseFullExtractionOutput,
@@ -89,7 +89,7 @@ describe('riviere extract enrichment', () => {
     it('outputs components with _missing array when extraction fields fail and --allow-incomplete provided', async () => {
       const configPath = await createExtractFixtureWithExtractBlock(ctx.testDir)
 
-      await createProgram().parseAsync([
+      await parseCommandWithErrorHandling([
         'node',
         'riviere',
         'extract',
@@ -108,7 +108,7 @@ describe('riviere extract enrichment', () => {
       const configPath = await createExtractFixtureWithExtractBlock(ctx.testDir)
 
       await expect(
-        createProgram().parseAsync(['node', 'riviere', 'extract', '--config', configPath]),
+        parseCommandWithErrorHandling(['node', 'riviere', 'extract', '--config', configPath]),
       ).rejects.toMatchObject({ exitCode: 1 })
 
       const output = parseErrorOutput(ctx.consoleOutput)
@@ -144,7 +144,7 @@ describe('riviere extract enrichment', () => {
       const draftPath = join(ctx.testDir, 'draft.json')
       await writeFile(draftPath, JSON.stringify(draftComponents))
 
-      await createProgram().parseAsync([
+      await parseCommandWithErrorHandling([
         'node',
         'riviere',
         'extract',

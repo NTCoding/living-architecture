@@ -5,16 +5,16 @@
     "access": "public"
   },
   "type": "module",
-  "main": "./dist/queries/index.js",
-  "module": "./dist/queries/index.js",
-  "types": "./dist/queries/index.d.ts",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     "./package.json": "./package.json",
     ".": {
-      "@living-architecture/source": "./src/queries/index.ts",
-      "types": "./dist/queries/index.d.ts",
-      "import": "./dist/queries/index.js",
-      "default": "./dist/queries/index.js"
+      "@living-architecture/source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
     }
   },
   "files": [

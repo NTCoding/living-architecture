@@ -4,7 +4,7 @@ pageClass: reference
 
 # Interface: EventInput
 
-Defined in: [packages/riviere-builder/src/domain/construction/construction-types.ts:74](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/construction/construction-types.ts#L74)
+Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-types.ts:74](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-types.ts#L74)
 
 ## Properties
 
@@ -12,7 +12,7 @@ Defined in: [packages/riviere-builder/src/domain/construction/construction-types
 
 > `optional` **description**: `string`
 
-Defined in: [packages/riviere-builder/src/domain/construction/construction-types.ts:80](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/construction/construction-types.ts#L80)
+Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-types.ts:80](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-types.ts#L80)
 
 ***
 
@@ -20,7 +20,7 @@ Defined in: [packages/riviere-builder/src/domain/construction/construction-types
 
 > **domain**: `string`
 
-Defined in: [packages/riviere-builder/src/domain/construction/construction-types.ts:76](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/construction/construction-types.ts#L76)
+Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-types.ts:76](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-types.ts#L76)
 
 ***
 
@@ -28,7 +28,7 @@ Defined in: [packages/riviere-builder/src/domain/construction/construction-types
 
 > **eventName**: `string`
 
-Defined in: [packages/riviere-builder/src/domain/construction/construction-types.ts:78](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/construction/construction-types.ts#L78)
+Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-types.ts:78](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-types.ts#L78)
 
 ***
 
@@ -36,7 +36,7 @@ Defined in: [packages/riviere-builder/src/domain/construction/construction-types
 
 > `optional` **eventSchema**: `string`
 
-Defined in: [packages/riviere-builder/src/domain/construction/construction-types.ts:79](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/construction/construction-types.ts#L79)
+Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-types.ts:79](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-types.ts#L79)
 
 ***
 
@@ -44,7 +44,7 @@ Defined in: [packages/riviere-builder/src/domain/construction/construction-types
 
 > `optional` **metadata**: `Record`\<`string`, `unknown`\>
 
-Defined in: [packages/riviere-builder/src/domain/construction/construction-types.ts:82](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/construction/construction-types.ts#L82)
+Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-types.ts:82](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-types.ts#L82)
 
 ***
 
@@ -52,7 +52,7 @@ Defined in: [packages/riviere-builder/src/domain/construction/construction-types
 
 > **module**: `string`
 
-Defined in: [packages/riviere-builder/src/domain/construction/construction-types.ts:77](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/construction/construction-types.ts#L77)
+Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-types.ts:77](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-types.ts#L77)
 
 ***
 
@@ -60,7 +60,7 @@ Defined in: [packages/riviere-builder/src/domain/construction/construction-types
 
 > **name**: `string`
 
-Defined in: [packages/riviere-builder/src/domain/construction/construction-types.ts:75](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/construction/construction-types.ts#L75)
+Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-types.ts:75](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-types.ts#L75)
 
 ***
 
@@ -68,4 +68,4 @@ Defined in: [packages/riviere-builder/src/domain/construction/construction-types
 
 > **sourceLocation**: `SourceLocation`
 
-Defined in: [packages/riviere-builder/src/domain/construction/construction-types.ts:81](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/domain/construction/construction-types.ts#L81)
+Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-types.ts:81](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-types.ts#L81)

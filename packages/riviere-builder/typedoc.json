@@ -1,6 +1,6 @@
 {
   "$schema": "https://typedoc.org/schema.json",
-  "entryPoints": ["./src/domain/index.ts"],
+  "entryPoints": ["./src/index.ts"],
   "out": "../../apps/docs/reference/api/generated/riviere-builder",
   "plugin": ["typedoc-plugin-markdown", "typedoc-plugin-frontmatter"],
   "frontmatterGlobals": {
