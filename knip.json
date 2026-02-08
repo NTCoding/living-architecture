@@ -1,11 +1,7 @@
 {
   "$schema": "https://knip.dev/reference/knip-json",
   "ignoreDependencies": [
-    "tailwindcss",
-    "zod"
-  ],
-  "ignoreBinaries": [
-    "playwright"
+    "tailwindcss"
   ],
   "workspaces": {
     "apps/eclair": {
@@ -18,9 +14,6 @@
       ]
     },
     "apps/docs": {
-      "entry": [
-        ".vitepress/config.ts"
-      ],
       "project": [
         ".vitepress/**/*.ts",
         ".vitepress/**/*.vue"
@@ -28,8 +21,7 @@
     },
     "packages/riviere-cli": {
       "entry": [
-        "src/shell/bin.ts",
-        "src/shell/index.ts"
+        "src/shell/bin.ts"
       ],
       "project": [
         "src/**/*.ts"
@@ -47,14 +39,10 @@
         "features/respond-to-feedback/entrypoint/cli.ts",
         "features/merge-and-cleanup/entrypoint/cli.ts",
         "features/push-reflection/entrypoint/cli.ts",
-        "features/claude-hooks/entrypoint/hook-router.ts",
-        "features/claude-hooks/domain/claude-hooks.spec.ts"
+        "features/claude-hooks/entrypoint/hook-router.ts"
       ],
       "project": [
         "**/*.ts"
-      ],
-      "ignoreDependencies": [
-        "vitest"
       ]
     }
   },

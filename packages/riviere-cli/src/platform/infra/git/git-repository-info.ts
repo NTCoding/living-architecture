@@ -3,8 +3,6 @@ import {
   GitError, extractStderr 
 } from './git-errors'
 
-export { GitError }
-
 class RepositoryUrlParseError extends Error {
   /* v8 ignore start -- @preserve: Error constructor; tested via integration */
   constructor(url: string) {

@@ -1,0 +1,26 @@
+{
+  "name": "@living-architecture/source",
+  "targets": {
+    "lint-md": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm lint:md",
+        "cwd": "{workspaceRoot}"
+      }
+    },
+    "depcruise": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm depcruise",
+        "cwd": "{workspaceRoot}"
+      }
+    },
+    "knip": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm knip",
+        "cwd": "{workspaceRoot}"
+      }
+    }
+  }
+}
