@@ -6,7 +6,10 @@ import { GitError } from '../git/git-errors'
 import { DraftComponentLoadError } from '../extraction-config/draft-component-loader'
 import { ConnectionDetectionError } from '@living-architecture/riviere-extract-ts'
 import {
-  CliErrorCode, ExitCode 
+  CliErrorCode,
+  ConfigValidationError,
+  ExitCode,
+  ExtractionFieldFailureError,
 } from './error-codes'
 import { SourceFilterError } from '../source-filtering/filter-source-files'
 import {
@@ -77,6 +80,47 @@ describe('handleGlobalError', () => {
     const output = firstConsoleOutput(ctx.consoleOutput)
     expect(output).toMatchObject({ error: { code: CliErrorCode.GitNotFound } })
     expect(process.exit).toHaveBeenCalledWith(ExitCode.RuntimeError)
+  })
+
+  it('formats ConfigValidationError with config validation exit code', () => {
+    const error = new ConfigValidationError(CliErrorCode.ConfigNotFound, 'Config file not found')
+
+    expect(() => handleGlobalError(error)).toThrow('process.exit')
+
+    const output = firstConsoleOutput(ctx.consoleOutput)
+    expect(output).toMatchObject({ error: { code: CliErrorCode.ConfigNotFound } })
+    expect(process.exit).toHaveBeenCalledWith(ExitCode.ConfigValidation)
+  })
+
+  it('formats ExtractionFieldFailureError with extraction failure exit code', () => {
+    const error = new ExtractionFieldFailureError(['eventName', 'targetType'])
+
+    expect(() => handleGlobalError(error)).toThrow('process.exit')
+
+    const output = firstConsoleOutput(ctx.consoleOutput)
+    expect(output).toMatchObject({ error: { code: CliErrorCode.ValidationError } })
+    expect(process.exit).toHaveBeenCalledWith(ExitCode.ExtractionFailure)
+  })
+
+  it('formats SourceFilterError with NOT_A_REPOSITORY code', () => {
+    const gitError = new GitError('NOT_A_REPOSITORY', 'Not a git repository')
+    const error = new SourceFilterError('GIT_ERROR', 'Git error', gitError)
+
+    expect(() => handleGlobalError(error)).toThrow('process.exit')
+
+    const output = firstConsoleOutput(ctx.consoleOutput)
+    expect(output).toMatchObject({ error: { code: CliErrorCode.GitNotARepository } })
+    expect(process.exit).toHaveBeenCalledWith(ExitCode.RuntimeError)
+  })
+
+  it('formats SourceFilterError without git cause as validation error', () => {
+    const error = new SourceFilterError('FILES_NOT_FOUND', 'No files matched')
+
+    expect(() => handleGlobalError(error)).toThrow('process.exit')
+
+    const output = firstConsoleOutput(ctx.consoleOutput)
+    expect(output).toMatchObject({ error: { code: CliErrorCode.ValidationError } })
+    expect(process.exit).toHaveBeenCalledWith(ExitCode.ConfigValidation)
   })
 
   it('re-throws unknown errors', () => {

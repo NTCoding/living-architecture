@@ -1,10 +1,32 @@
 import {
   describe, it, expect 
 } from 'vitest'
+import type { Project } from 'ts-morph'
 import type { ConnectionPattern } from '@living-architecture/riviere-extract-config'
+import type { EnrichedComponent } from '../../value-extraction/enrich-components'
+import type { ExtractedLink } from '../extracted-link'
 import { buildComponent } from '../call-graph/call-graph-fixtures'
+import { ComponentIndex } from '../component-index'
 import { createTestProject } from './configurable-fixtures'
-import { detectConfigurableConnections } from './detect-configurable-connections'
+import { detectConfigurableConnections as detectConfigurableConnectionsImpl } from './detect-configurable-connections'
+
+function detectConfigurableConnections(
+  project: Project,
+  patterns: ConnectionPattern[],
+  components: readonly EnrichedComponent[],
+  options: {
+    strict: boolean
+    repository: string
+  },
+): ExtractedLink[] {
+  return detectConfigurableConnectionsImpl(
+    project,
+    patterns,
+    components,
+    new ComponentIndex(components),
+    options,
+  )
+}
 
 function createProject() {
   return createTestProject({ experimentalDecorators: true })

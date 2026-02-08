@@ -164,6 +164,7 @@ export function detectConfigurableConnections(
   project: Project,
   patterns: ConnectionPattern[],
   components: readonly EnrichedComponent[],
+  componentIndex: ComponentIndex,
   options: {
     strict: boolean
     repository: string
@@ -172,7 +173,6 @@ export function detectConfigurableConnections(
   if (patterns.length === 0) return []
 
   const repository = options.repository
-  const componentIndex = new ComponentIndex(components)
   const allMatches: MatchedLink[] = []
 
   for (const component of components) {

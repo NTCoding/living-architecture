@@ -41,11 +41,17 @@ function computeFilteredFilePaths(
     .filter((filePath) => moduleGlobs.some((glob) => globMatcher(filePath, glob)))
 }
 
-function deduplicateCrossStrategy(links: ExtractedLink[]): ExtractedLink[] {
+export function deduplicateCrossStrategy(links: ExtractedLink[]): ExtractedLink[] {
   const seen = new Map<string, ExtractedLink>()
   for (const link of links) {
     const key = `${link.source}|${link.target}|${link.type}`
-    if (seen.has(key)) continue
+    const existing = seen.get(key)
+    if (existing !== undefined) {
+      if (existing._uncertain !== undefined && link._uncertain === undefined) {
+        seen.set(key, link)
+      }
+      continue
+    }
     seen.set(key, link)
   }
   return [...seen.values()]
@@ -93,10 +99,16 @@ export function detectConnections(
     patterns.length > 0
       ? (() => {
         const configurableStart = performance.now()
-        const links = detectConfigurableConnections(project, patterns, components, {
-          strict,
-          repository,
-        })
+        const links = detectConfigurableConnections(
+          project,
+          patterns,
+          components,
+          componentIndex,
+          {
+            strict,
+            repository,
+          },
+        )
         return {
           configurableLinks: links,
           configurableMs: performance.now() - configurableStart,
