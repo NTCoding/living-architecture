@@ -245,7 +245,28 @@ describe('runWorkflow', () => {
   })
 
   it('uses default IO when io option not provided', async () => {
-    const originalExitCode = process.exitCode
+    const originalExit = process.exit
+    const originalWrite = process.stdout.write
+    const mockExit = vi.fn()
+    const mockWrite = vi.fn(
+      (
+        _data: string | Uint8Array,
+        encodingOrCb?: BufferEncoding | ((error?: Error | null) => void),
+        cb?: (error?: Error | null) => void,
+      ): boolean => {
+        const callback = typeof encodingOrCb === 'function' ? encodingOrCb : cb
+        if (callback) callback()
+        return true
+      },
+    )
+    Object.defineProperty(process, 'exit', {
+      value: mockExit,
+      configurable: true,
+    })
+    Object.defineProperty(process.stdout, 'write', {
+      value: mockWrite,
+      configurable: true,
+    })
     const mockLog = vi.spyOn(console, 'log').mockImplementation(vi.fn())
 
     const steps: Step<BaseContext>[] = [
@@ -260,15 +281,43 @@ describe('runWorkflow', () => {
 
     await vi.waitFor(() => {
       expect(mockLog).toHaveBeenCalledWith(expect.stringContaining('result'))
-      expect(process.exitCode).toBe(0)
+      expect(mockExit).toHaveBeenCalledWith(0)
     })
 
-    process.exitCode = originalExitCode
+    Object.defineProperty(process, 'exit', {
+      value: originalExit,
+      configurable: true,
+    })
+    Object.defineProperty(process.stdout, 'write', {
+      value: originalWrite,
+      configurable: true,
+    })
     mockLog.mockRestore()
   })
 
   it('uses default IO writeFile (noop) when resolveTimingsFilePath provided without io', async () => {
-    const originalExitCode = process.exitCode
+    const originalExit = process.exit
+    const originalWrite = process.stdout.write
+    const mockExit = vi.fn()
+    const mockWrite = vi.fn(
+      (
+        _data: string | Uint8Array,
+        encodingOrCb?: BufferEncoding | ((error?: Error | null) => void),
+        cb?: (error?: Error | null) => void,
+      ): boolean => {
+        const callback = typeof encodingOrCb === 'function' ? encodingOrCb : cb
+        if (callback) callback()
+        return true
+      },
+    )
+    Object.defineProperty(process, 'exit', {
+      value: mockExit,
+      configurable: true,
+    })
+    Object.defineProperty(process.stdout, 'write', {
+      value: mockWrite,
+      configurable: true,
+    })
     const mockLog = vi.spyOn(console, 'log').mockImplementation(vi.fn())
 
     const steps: Step<BaseContext>[] = [
@@ -282,10 +331,17 @@ describe('runWorkflow', () => {
     runWorkflow(steps, buildContext, undefined, { resolveTimingsFilePath: () => 'timings.md' })
 
     await vi.waitFor(() => {
-      expect(process.exitCode).toBe(0)
+      expect(mockExit).toHaveBeenCalledWith(0)
     })
 
-    process.exitCode = originalExitCode
+    Object.defineProperty(process, 'exit', {
+      value: originalExit,
+      configurable: true,
+    })
+    Object.defineProperty(process.stdout, 'write', {
+      value: originalWrite,
+      configurable: true,
+    })
     mockLog.mockRestore()
   })
 })

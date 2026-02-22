@@ -11,19 +11,48 @@ const errorOutputSchema = z.object({
   stack: z.string().optional(),
 })
 
+const mockProcessExit = vi.fn()
+const mockStderrWrite = vi.fn(
+  (
+    _data: string | Uint8Array,
+    encodingOrCb?: BufferEncoding | ((error?: Error | null) => void),
+    cb?: (error?: Error | null) => void,
+  ): boolean => {
+    const callback = typeof encodingOrCb === 'function' ? encodingOrCb : cb
+    if (callback) callback()
+    return true
+  },
+)
+
 describe('handleWorkflowError', () => {
   const capturedOutput: string[] = []
+  const originalExit = process.exit
+  const originalWrite = process.stderr.write
 
   beforeEach(() => {
     capturedOutput.length = 0
-    process.exitCode = undefined
+    Object.defineProperty(process, 'exit', {
+      value: mockProcessExit,
+      configurable: true,
+    })
+    Object.defineProperty(process.stderr, 'write', {
+      value: mockStderrWrite,
+      configurable: true,
+    })
     vi.spyOn(console, 'error').mockImplementation((msg: string) => {
       capturedOutput.push(msg)
     })
   })
 
   afterEach(() => {
-    process.exitCode = undefined
+    Object.defineProperty(process, 'exit', {
+      value: originalExit,
+      configurable: true,
+    })
+    Object.defineProperty(process.stderr, 'write', {
+      value: originalWrite,
+      configurable: true,
+    })
     vi.restoreAllMocks()
   })
 
@@ -41,13 +70,15 @@ describe('handleWorkflowError', () => {
     expect(capturedOutput[0]).toContain('string error')
   })
 
-  it('sets exit code to 1', () => {
+  it('flushes stderr then exits with code 1', async () => {
     const testError = Object.assign(Object.create(Error.prototype), {
       name: 'TestError',
       message: 'test',
     })
     handleWorkflowError(testError)
-    expect(process.exitCode).toBe(1)
+    await vi.waitFor(() => {
+      expect(mockProcessExit).toHaveBeenCalledWith(1)
+    })
   })
 
   it('includes stack trace for Error instance', () => {

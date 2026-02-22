@@ -12,5 +12,7 @@ export function handleWorkflowError(error: unknown): void {
       2,
     ),
   )
-  process.exitCode = 1
+  process.stderr.write('', () => {
+    process.exit(1)
+  })
 }

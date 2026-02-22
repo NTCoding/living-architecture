@@ -13,7 +13,9 @@ export function createDefaultWorkflowIO(): WorkflowIO {
       console.log(output)
     },
     exit(code: number): void {
-      process.exitCode = code
+      process.stdout.write('', () => {
+        process.exit(code)
+      })
     },
   }
 }
