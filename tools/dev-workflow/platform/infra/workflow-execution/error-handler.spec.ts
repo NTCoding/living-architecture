@@ -4,13 +4,6 @@ import {
 import { z } from 'zod'
 import { handleWorkflowError } from './error-handler'
 
-class TestExitSignal extends Error {
-  constructor() {
-    super('process.exit called')
-    this.name = 'TestExitSignal'
-  }
-}
-
 const errorOutputSchema = z.object({
   success: z.literal(false),
   nextAction: z.string(),
@@ -23,15 +16,14 @@ describe('handleWorkflowError', () => {
 
   beforeEach(() => {
     capturedOutput.length = 0
-    vi.spyOn(process, 'exit').mockImplementation(() => {
-      throw new TestExitSignal()
-    })
+    process.exitCode = undefined
     vi.spyOn(console, 'error').mockImplementation((msg: string) => {
       capturedOutput.push(msg)
     })
   })
 
   afterEach(() => {
+    process.exitCode = undefined
     vi.restoreAllMocks()
   })
 
@@ -40,23 +32,22 @@ describe('handleWorkflowError', () => {
       name: 'TestError',
       message: 'Test error message',
     })
-    expect(() => handleWorkflowError(testError)).toThrow(TestExitSignal)
+    handleWorkflowError(testError)
     expect(capturedOutput[0]).toContain('Test error message')
   })
 
   it('logs string error for non-Error value', () => {
-    expect(() => handleWorkflowError('string error')).toThrow(TestExitSignal)
+    handleWorkflowError('string error')
     expect(capturedOutput[0]).toContain('string error')
   })
 
-  it('exits with code 1', () => {
-    const mockExit = vi.spyOn(process, 'exit')
+  it('sets exit code to 1', () => {
     const testError = Object.assign(Object.create(Error.prototype), {
       name: 'TestError',
       message: 'test',
     })
-    expect(() => handleWorkflowError(testError)).toThrow(TestExitSignal)
-    expect(mockExit).toHaveBeenCalledWith(1)
+    handleWorkflowError(testError)
+    expect(process.exitCode).toBe(1)
   })
 
   it('includes stack trace for Error instance', () => {
@@ -68,7 +59,7 @@ describe('handleWorkflowError', () => {
       }
     }
     const testError = new StackError()
-    expect(() => handleWorkflowError(testError)).toThrow(TestExitSignal)
+    handleWorkflowError(testError)
     const parsed = errorOutputSchema.parse(JSON.parse(capturedOutput[0] ?? '{}'))
     expect(parsed.stack).toContain('Error: Test error')
   })
@@ -80,7 +71,7 @@ describe('handleWorkflowError', () => {
         this.name = 'ActionError'
       }
     }
-    expect(() => handleWorkflowError(new ActionError())).toThrow(TestExitSignal)
+    handleWorkflowError(new ActionError())
     const parsed = errorOutputSchema.parse(JSON.parse(capturedOutput[0] ?? '{}'))
     expect(parsed.nextAction).toStrictEqual('fix_errors')
     expect(parsed.success).toStrictEqual(false)

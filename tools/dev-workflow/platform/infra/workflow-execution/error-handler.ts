@@ -1,4 +1,4 @@
-export function handleWorkflowError(error: unknown): never {
+export function handleWorkflowError(error: unknown): void {
   const isError = error instanceof Error
   console.error(
     JSON.stringify(
@@ -12,5 +12,5 @@ export function handleWorkflowError(error: unknown): never {
       2,
     ),
   )
-  process.exit(1)
+  process.exitCode = 1
 }

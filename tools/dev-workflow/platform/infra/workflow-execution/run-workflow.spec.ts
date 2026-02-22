@@ -245,10 +245,8 @@ describe('runWorkflow', () => {
   })
 
   it('uses default IO when io option not provided', async () => {
+    const originalExitCode = process.exitCode
     const mockLog = vi.spyOn(console, 'log').mockImplementation(vi.fn())
-    const mockExit = vi.spyOn(process, 'exit').mockImplementation(() => {
-      throw new TestExitSignal()
-    })
 
     const steps: Step<BaseContext>[] = [
       {
@@ -262,18 +260,16 @@ describe('runWorkflow', () => {
 
     await vi.waitFor(() => {
       expect(mockLog).toHaveBeenCalledWith(expect.stringContaining('result'))
-      expect(mockExit).toHaveBeenCalledWith(0)
+      expect(process.exitCode).toBe(0)
     })
 
+    process.exitCode = originalExitCode
     mockLog.mockRestore()
-    mockExit.mockRestore()
   })
 
   it('uses default IO writeFile (noop) when resolveTimingsFilePath provided without io', async () => {
+    const originalExitCode = process.exitCode
     const mockLog = vi.spyOn(console, 'log').mockImplementation(vi.fn())
-    const mockExit = vi.spyOn(process, 'exit').mockImplementation(() => {
-      throw new TestExitSignal()
-    })
 
     const steps: Step<BaseContext>[] = [
       {
@@ -286,11 +282,11 @@ describe('runWorkflow', () => {
     runWorkflow(steps, buildContext, undefined, { resolveTimingsFilePath: () => 'timings.md' })
 
     await vi.waitFor(() => {
-      expect(mockExit).toHaveBeenCalledWith(0)
+      expect(process.exitCode).toBe(0)
     })
 
+    process.exitCode = originalExitCode
     mockLog.mockRestore()
-    mockExit.mockRestore()
   })
 })
 

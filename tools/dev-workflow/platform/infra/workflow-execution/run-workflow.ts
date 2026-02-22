@@ -27,7 +27,7 @@ const defaultIO: WorkflowIO = {
     console.log(output)
   },
   exit: (code: number) => {
-    process.exit(code)
+    process.exitCode = code
   },
 }
 

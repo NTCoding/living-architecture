@@ -35,6 +35,13 @@ interface ReviewerResult {
 const VALID_REVIEWERS = ['architecture-review', 'code-review', 'bug-scanner', 'task-check'] as const
 type ReviewerName = (typeof VALID_REVIEWERS)[number]
 
+const REVIEWER_MODELS: Record<ReviewerName, 'opus' | 'sonnet'> = {
+  'architecture-review': 'opus',
+  'code-review': 'sonnet',
+  'bug-scanner': 'sonnet',
+  'task-check': 'opus',
+}
+
 interface DiffFileEntry {
   readonly path: string
   readonly deleted: boolean
@@ -236,10 +243,11 @@ async function executeCodeReviewAgents(
         )
       }
 
-      log.log(`agent [${name}]: calling claude SDK (model=opus, round=${round})`)
+      const model = REVIEWER_MODELS[name]
+      log.log(`agent [${name}]: calling claude SDK (model=${model}, round=${round})`)
       const rawResponse = await deps.queryAgentText({
         prompt: promptParts.join(''),
-        model: 'opus',
+        model,
         settingSources: ['project'],
       })
       log.log(`agent [${name}]: claude SDK returned (${rawResponse.length} chars)`)

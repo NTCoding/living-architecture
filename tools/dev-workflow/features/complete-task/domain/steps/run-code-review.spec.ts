@@ -34,6 +34,12 @@ import type { CompleteTaskContext } from '../task-to-complete'
 
 const mockQueryAgentText = vi.fn<CodeReviewDeps['queryAgentText']>()
 
+function resolveReviewerName(prompt: string): string {
+  if (prompt.includes('architecture-review')) return 'architecture-review'
+  if (prompt.includes('bug-scanner')) return 'bug-scanner'
+  return 'code-review'
+}
+
 function createContext(overrides: Partial<CompleteTaskContext> = {}): CompleteTaskContext {
   return {
     branch: 'test-branch',
@@ -107,6 +113,27 @@ describe('codeReview', () => {
     expect(mockQueryAgentText).toHaveBeenCalledTimes(3)
   })
 
+  it('uses opus for architecture-review and sonnet for code-review and bug-scanner', async () => {
+    const step = createStep()
+    const ctx = createContext({})
+
+    await step.execute(ctx)
+
+    const calls = mockQueryAgentText.mock.calls
+    const modelByReviewer = Object.fromEntries(
+      calls.map((call) => {
+        const prompt = String(call[0].prompt)
+        const reviewer = resolveReviewerName(prompt)
+        return [reviewer, call[0].model]
+      }),
+    )
+    expect(modelByReviewer).toStrictEqual({
+      'architecture-review': 'opus',
+      'code-review': 'sonnet',
+      'bug-scanner': 'sonnet',
+    })
+  })
+
   it('runs task-check agent when hasIssue and no marker', async () => {
     mockTaskCheckMarkerExists.mockReturnValue(false)
     const step = createStep()
@@ -121,6 +148,25 @@ describe('codeReview', () => {
     await step.execute(ctx)
 
     expect(mockQueryAgentText).toHaveBeenCalledTimes(4)
+  })
+
+  it('uses opus for task-check reviewer', async () => {
+    mockTaskCheckMarkerExists.mockReturnValue(false)
+    const step = createStep()
+    const ctx = createContext({
+      hasIssue: true,
+      taskDetails: {
+        title: 'Task',
+        body: 'Details',
+      },
+    })
+
+    await step.execute(ctx)
+
+    const taskCheckCall = mockQueryAgentText.mock.calls.find((call) =>
+      String(call[0].prompt).includes('task-check'),
+    )
+    expect(taskCheckCall?.[0].model).toBe('opus')
   })
 
   it('creates task-check marker when task-check passes', async () => {
