@@ -46,7 +46,16 @@
         ]
       }
     ],
-    "Stop": []
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "You are checking if Claude has completed its workflow obligation. When working on a GitHub issue, Claude MUST create a PR via /complete-task before stopping.\n\nRespond with {\"ok\": true} if ANY of these apply:\n- Claude is asking the user a question or waiting for clarification\n- Claude is not working on a GitHub issue\n- Claude has created a PR and is asking the user to review it\n- Claude is explicitly blocked and needs user input\n\nRespond with {\"ok\": false, \"reason\": \"→ run /complete-task to create a PR before stopping\"} ONLY if Claude appears to have finished implementing code changes on a GitHub issue without creating a PR."
+          }
+        ]
+      }
+    ]
   },
   "enabledPlugins": {
     "task-check@claude-skillz": true,

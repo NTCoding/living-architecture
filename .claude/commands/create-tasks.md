@@ -138,6 +138,7 @@ Confirm all criteria before task creation:
 - ✓ [Happy path requirement]
 - ✓ [Key validation]
 - ✓ [Essential behavior]
+- ✓ A mergeable PR is ready for user review, created via /complete-task
 
 ### Edge Case Scenarios
 - [Condition] → [Expected behavior]

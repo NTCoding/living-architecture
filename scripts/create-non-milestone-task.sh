@@ -60,7 +60,8 @@ TITLE="$1"
 REFERENCES="$2"
 SUMMARY="$3"
 FULL_DETAILS="$4"
-ACCEPTANCE_CRITERIA="$5"
+ACCEPTANCE_CRITERIA="$5
+- [ ] A mergeable PR is ready for user review, created via /complete-task"
 
 BODY="## References
 ${REFERENCES}
