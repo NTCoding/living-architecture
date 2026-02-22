@@ -1,6 +1,8 @@
 import { posix } from 'node:path'
 import {
-  detectConnections,
+  deduplicateCrossStrategy,
+  detectCrossModuleConnections,
+  detectPerModuleConnections,
   matchesGlob,
   type ConnectionTimings,
   type EnrichedComponent,
@@ -21,13 +23,14 @@ export function detectConnectionsPerModule(
 ): PerModuleConnectionResult {
   const links: ExtractedLink[] = []
   const timings: ConnectionTimings[] = []
+
   for (const ctx of moduleContexts) {
     const moduleComponents = enrichedComponents.filter((c) => c.domain === ctx.module.name)
     if (moduleComponents.length === 0) {
       continue
     }
 
-    const result = detectConnections(
+    const result = detectPerModuleConnections(
       ctx.project,
       moduleComponents,
       {
@@ -38,10 +41,30 @@ export function detectConnectionsPerModule(
       matchesGlob,
     )
     links.push(...result.links)
-    timings.push(result.timings)
+    timings.push({
+      callGraphMs: result.timings.callGraphMs,
+      asyncDetectionMs: 0,
+      configurableMs: result.timings.configurableMs,
+      setupMs: result.timings.setupMs,
+      totalMs: result.timings.callGraphMs + result.timings.configurableMs + result.timings.setupMs,
+    })
   }
+
+  const crossResult = detectCrossModuleConnections(enrichedComponents, {
+    allowIncomplete,
+    repository: repositoryName,
+  })
+  links.push(...crossResult.links)
+  timings.push({
+    callGraphMs: 0,
+    asyncDetectionMs: crossResult.timings.asyncDetectionMs,
+    configurableMs: 0,
+    setupMs: 0,
+    totalMs: crossResult.timings.asyncDetectionMs,
+  })
+
   return {
-    links,
+    links: deduplicateCrossStrategy(links),
     timings,
   }
 }

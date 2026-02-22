@@ -57,6 +57,132 @@ export function deduplicateCrossStrategy(links: ExtractedLink[]): ExtractedLink[
   return [...seen.values()]
 }
 
+export interface PerModuleConnectionOptions {
+  allowIncomplete?: boolean
+  moduleGlobs: string[]
+  patterns?: ConnectionPattern[]
+  repository: string
+}
+
+export interface PerModuleTimings {
+  callGraphMs: number
+  configurableMs: number
+  setupMs: number
+}
+
+export interface PerModuleDetectionResult {
+  links: ExtractedLink[]
+  timings: PerModuleTimings
+}
+
+export function detectPerModuleConnections(
+  project: Project,
+  components: readonly EnrichedComponent[],
+  options: PerModuleConnectionOptions,
+  globMatcher: GlobMatcher,
+): PerModuleDetectionResult {
+  const setupStart = performance.now()
+  const componentIndex = new ComponentIndex(components)
+  const sourceFilePaths = computeFilteredFilePaths(project, options.moduleGlobs, globMatcher)
+  const setupMs = performance.now() - setupStart
+
+  const strict = options.allowIncomplete !== true
+  const repository = options.repository
+
+  const callGraphStart = performance.now()
+  const syncLinks = buildCallGraph(project, components, componentIndex, {
+    strict,
+    sourceFilePaths,
+    repository,
+  })
+  const callGraphMs = performance.now() - callGraphStart
+
+  const patterns = options.patterns ?? []
+  const {
+    configurableLinks, configurableMs 
+  } = runConfigurableDetection(
+    project,
+    patterns,
+    components,
+    componentIndex,
+    strict,
+    repository,
+  )
+
+  return {
+    links: [...syncLinks, ...configurableLinks],
+    timings: {
+      callGraphMs,
+      configurableMs,
+      setupMs,
+    },
+  }
+}
+
+export interface CrossModuleConnectionOptions {
+  allowIncomplete?: boolean
+  repository: string
+}
+
+export interface CrossModuleTimings {asyncDetectionMs: number}
+
+export interface CrossModuleDetectionResult {
+  links: ExtractedLink[]
+  timings: CrossModuleTimings
+}
+
+export function detectCrossModuleConnections(
+  allComponents: readonly EnrichedComponent[],
+  options: CrossModuleConnectionOptions,
+): CrossModuleDetectionResult {
+  const strict = options.allowIncomplete !== true
+  const repository = options.repository
+
+  const asyncStart = performance.now()
+  const publishLinks = detectPublishConnections(allComponents, {
+    strict,
+    repository,
+  })
+  const subscribeLinks = detectSubscribeConnections(allComponents, {
+    strict,
+    repository,
+  })
+  const asyncDetectionMs = performance.now() - asyncStart
+
+  return {
+    links: [...publishLinks, ...subscribeLinks],
+    timings: { asyncDetectionMs },
+  }
+}
+
+function runConfigurableDetection(
+  project: Project,
+  patterns: ConnectionPattern[],
+  components: readonly EnrichedComponent[],
+  componentIndex: ComponentIndex,
+  strict: boolean,
+  repository: string,
+): {
+  configurableLinks: ExtractedLink[]
+  configurableMs: number
+} {
+  if (patterns.length === 0) {
+    return {
+      configurableLinks: [],
+      configurableMs: 0,
+    }
+  }
+  const configurableStart = performance.now()
+  const links = detectConfigurableConnections(project, patterns, components, componentIndex, {
+    strict,
+    repository,
+  })
+  return {
+    configurableLinks: links,
+    configurableMs: performance.now() - configurableStart,
+  }
+}
+
 export function detectConnections(
   project: Project,
   components: readonly EnrichedComponent[],
@@ -82,7 +208,7 @@ export function detectConnections(
   const callGraphMs = performance.now() - callGraphStart
 
   const asyncStart = performance.now()
-  const publishLinks = detectPublishConnections(project, components, {
+  const publishLinks = detectPublishConnections(components, {
     strict,
     repository,
   })
@@ -95,29 +221,14 @@ export function detectConnections(
   const patterns = options.patterns ?? []
   const {
     configurableLinks, configurableMs 
-  } =
-    patterns.length > 0
-      ? (() => {
-        const configurableStart = performance.now()
-        const links = detectConfigurableConnections(
-          project,
-          patterns,
-          components,
-          componentIndex,
-          {
-            strict,
-            repository,
-          },
-        )
-        return {
-          configurableLinks: links,
-          configurableMs: performance.now() - configurableStart,
-        }
-      })()
-      : {
-        configurableLinks: [],
-        configurableMs: 0,
-      }
+  } = runConfigurableDetection(
+    project,
+    patterns,
+    components,
+    componentIndex,
+    strict,
+    repository,
+  )
 
   const totalMs = performance.now() - totalStart
 

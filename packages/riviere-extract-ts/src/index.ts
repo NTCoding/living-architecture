@@ -23,9 +23,18 @@ export {
 export { matchesGlob } from './platform/infra/glob-matching/minimatch-glob'
 export {
   detectConnections,
+  detectPerModuleConnections,
+  detectCrossModuleConnections,
+  deduplicateCrossStrategy,
   type ConnectionDetectionOptions,
   type ConnectionDetectionResult,
   type ConnectionTimings,
+  type PerModuleConnectionOptions,
+  type PerModuleDetectionResult,
+  type PerModuleTimings,
+  type CrossModuleConnectionOptions,
+  type CrossModuleDetectionResult,
+  type CrossModuleTimings,
 } from './features/extraction/domain/connection-detection/detect-connections'
 export type { ExtractedLink } from './features/extraction/domain/connection-detection/extracted-link'
 export { ComponentIndex } from './features/extraction/domain/connection-detection/component-index'

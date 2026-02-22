@@ -258,7 +258,7 @@ class OrderPublisher {
     })
     const publisher = buildComponent('OrderPublisher', filePath, 4, {
       type: 'eventPublisher',
-      metadata: {},
+      metadata: { publishedEventType: 'OrderPlacedEvent' },
     })
     const handler = buildComponent('OrderPlacedHandler', '/src/handler.ts', 1, {
       type: 'eventHandler',
