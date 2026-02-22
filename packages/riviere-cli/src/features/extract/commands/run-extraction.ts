@@ -4,7 +4,7 @@ import { ExtractionFieldFailureError } from '../../../platform/infra/cli-present
 import type { ExtractOptions } from '../../../platform/infra/cli-presentation/extract-validator'
 import { loadDraftComponentsFromFile } from '../../../platform/infra/extraction-config/draft-component-loader'
 import { getRepositoryInfo } from '../../../platform/infra/git/git-repository-info'
-import { createModuleContexts } from '../infra/ts-morph/create-module-contexts'
+import { createModuleContexts } from '../infra/external-clients/create-module-contexts'
 import { extractDraftComponents } from '../domain/extract-draft-components'
 import { enrichPerModule } from '../domain/enrich-per-module'
 import { detectConnectionsPerModule } from '../domain/detect-connections-per-module'
