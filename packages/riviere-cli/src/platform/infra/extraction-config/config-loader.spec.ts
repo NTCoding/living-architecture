@@ -29,7 +29,8 @@ describe('createConfigLoader', () => {
         modules: [
           {
             name: 'base',
-            path: '**',
+            path: '.',
+            glob: '**',
             api: { notUsed: true },
             useCase: { notUsed: true },
             domainOp: { notUsed: true },
@@ -97,7 +98,8 @@ describe('createConfigLoader', () => {
         modules: [
           {
             name: 'test',
-            path: '**',
+            path: '.',
+            glob: '**',
           },
         ],
       }
@@ -117,7 +119,8 @@ describe('createConfigLoader', () => {
         modules: [
           {
             name: 'first',
-            path: '**',
+            path: '.',
+            glob: '**',
             api: {
               find: 'methods',
               where: { hasDecorator: { name: 'API' } },
@@ -131,7 +134,8 @@ describe('createConfigLoader', () => {
           },
           {
             name: 'second',
-            path: '**',
+            path: '.',
+            glob: '**',
             api: { notUsed: true },
             useCase: { notUsed: true },
             domainOp: { notUsed: true },
@@ -176,7 +180,8 @@ describe('createConfigLoader', () => {
 
       expect(result).toStrictEqual({
         name: 'extended',
-        path: '**',
+        path: '.',
+        glob: '**',
         api: {
           find: 'methods',
           where: { hasDecorator: { name: 'API' } },
@@ -204,7 +209,8 @@ describe('createConfigLoader', () => {
 
       expect(result).toStrictEqual({
         name: 'extended',
-        path: '**',
+        path: '.',
+        glob: '**',
         api: { notUsed: true },
         useCase: { notUsed: true },
         domainOp: { notUsed: true },

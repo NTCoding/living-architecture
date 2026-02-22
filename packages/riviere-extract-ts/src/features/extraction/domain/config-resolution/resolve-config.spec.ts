@@ -14,7 +14,8 @@ describe('resolveConfig', () => {
         modules: [
           {
             name: 'orders',
-            path: 'orders/**',
+            path: 'orders',
+            glob: '**',
             api: { notUsed: true },
             useCase: { notUsed: true },
             domainOp: { notUsed: true },
@@ -32,7 +33,8 @@ describe('resolveConfig', () => {
         modules: [
           {
             name: 'orders',
-            path: 'orders/**',
+            path: 'orders',
+            glob: '**',
             api: { notUsed: true },
             useCase: { notUsed: true },
             domainOp: { notUsed: true },
@@ -50,7 +52,8 @@ describe('resolveConfig', () => {
         modules: [
           {
             name: 'orders',
-            path: 'orders/**',
+            path: 'orders',
+            glob: '**',
             api: { notUsed: true },
             domainOp: { notUsed: true },
             event: { notUsed: true },
@@ -71,7 +74,8 @@ describe('resolveConfig', () => {
         modules: [
           {
             name: 'orders',
-            path: 'orders/**',
+            path: 'orders',
+            glob: '**',
             api: { notUsed: true },
             useCase: { notUsed: true },
             domainOp: { notUsed: true },
@@ -104,7 +108,8 @@ describe('resolveConfig', () => {
     function createBaseModule(): Module {
       return {
         name: 'base',
-        path: '**',
+        path: '.',
+        glob: '**',
         api: {
           find: 'methods',
           where: { hasDecorator: { name: 'API' } },
@@ -126,7 +131,8 @@ describe('resolveConfig', () => {
         modules: [
           {
             name: 'orders',
-            path: 'orders/**',
+            path: 'orders',
+            glob: '**',
             extends: '@living-architecture/riviere-extract-conventions',
           },
         ],
@@ -139,7 +145,8 @@ describe('resolveConfig', () => {
       expect(loader).toHaveBeenCalledWith('@living-architecture/riviere-extract-conventions')
       expect(result.modules[0]).toStrictEqual({
         name: 'orders',
-        path: 'orders/**',
+        path: 'orders',
+        glob: '**',
         api: {
           find: 'methods',
           where: { hasDecorator: { name: 'API' } },
@@ -161,7 +168,8 @@ describe('resolveConfig', () => {
         modules: [
           {
             name: 'orders',
-            path: 'orders/**',
+            path: 'orders',
+            glob: '**',
             extends: '@living-architecture/riviere-extract-conventions',
           },
         ],
@@ -177,7 +185,8 @@ describe('resolveConfig', () => {
         modules: [
           {
             name: 'orders',
-            path: 'orders/**',
+            path: 'orders',
+            glob: '**',
             extends: '@living-architecture/riviere-extract-conventions',
             api: {
               find: 'methods',
@@ -206,7 +215,8 @@ describe('resolveConfig', () => {
         modules: [
           {
             name: 'orders',
-            path: 'orders/**',
+            path: 'orders',
+            glob: '**',
             extends: '@living-architecture/riviere-extract-conventions',
             customTypes: {
               repository: {
@@ -245,7 +255,8 @@ describe('resolveConfig', () => {
         modules: [
           {
             name: 'orders',
-            path: 'orders/**',
+            path: 'orders',
+            glob: '**',
             extends: '@living-architecture/riviere-extract-conventions',
           },
         ],
@@ -278,7 +289,8 @@ describe('resolveConfig', () => {
         modules: [
           {
             name: 'orders',
-            path: 'orders/**',
+            path: 'orders',
+            glob: '**',
             extends: '@living-architecture/riviere-extract-conventions',
             customTypes: {
               repository: {
@@ -321,7 +333,8 @@ describe('resolveConfig', () => {
         modules: [
           {
             name: 'orders',
-            path: 'orders/**',
+            path: 'orders',
+            glob: '**',
             extends: '@living-architecture/riviere-extract-conventions',
             customTypes: {
               repository: {

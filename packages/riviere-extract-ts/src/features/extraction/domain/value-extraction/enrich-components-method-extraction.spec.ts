@@ -63,7 +63,8 @@ describe('enrichComponents — fromMethodName extraction', () => {
     const module: Module = {
       ...notUsedModule(),
       name: 'orders',
-      path: '/src/orders/**',
+      path: '/src/orders',
+      glob: '**',
       domainOp: {
         find: 'methods',
         where: { nameEndsWith: { suffix: 'Order' } },
@@ -101,7 +102,8 @@ describe('enrichComponents — fromMethodName extraction', () => {
     const module: Module = {
       ...notUsedModule(),
       name: 'orders',
-      path: '/src/orders/**',
+      path: '/src/orders',
+      glob: '**',
       domainOp: {
         find: 'methods',
         where: { nameEndsWith: { suffix: 'Order' } },
@@ -133,7 +135,8 @@ describe('enrichComponents — fromMethodName extraction', () => {
     const module: Module = {
       ...notUsedModule(),
       name: 'orders',
-      path: '/src/**',
+      path: '/src',
+      glob: '**',
       domainOp: {
         find: 'methods',
         where: { nameEndsWith: { suffix: 'Order' } },
@@ -177,7 +180,8 @@ export class OrderHandler implements IEventHandler<OrderPlaced> {
     const module: Module = {
       ...notUsedModule(),
       name: 'orders',
-      path: '/src/orders/**',
+      path: '/src/orders',
+      glob: '**',
       domainOp: { notUsed: true },
       eventHandler: {
         find: 'methods',
@@ -228,7 +232,8 @@ export class OrderHandler implements IEventHandler<OrderPlaced> {
     const module: Module = {
       ...notUsedModule(),
       name: 'orders',
-      path: '/src/orders/**',
+      path: '/src/orders',
+      glob: '**',
       domainOp: { notUsed: true },
       eventHandler: {
         find: 'methods',
@@ -267,7 +272,8 @@ export class OrderHandler implements IEventHandler<OrderPlaced> {
     const module: Module = {
       ...notUsedModule(),
       name: 'orders',
-      path: '/src/orders/**',
+      path: '/src/orders',
+      glob: '**',
       domainOp: { notUsed: true },
       eventHandler: {
         find: 'methods',
@@ -305,7 +311,8 @@ export class OrderHandler implements IEventHandler<OrderPlaced> {
     const module: Module = {
       ...notUsedModule(),
       name: 'orders',
-      path: '/src/**',
+      path: '/src',
+      glob: '**',
       domainOp: { notUsed: true },
       eventHandler: {
         find: 'methods',
@@ -352,7 +359,8 @@ export class OrderHandler implements IEventHandler<OrderPlaced> {
     const module: Module = {
       ...notUsedModule(),
       name: 'orders',
-      path: '/src/orders/**',
+      path: '/src/orders',
+      glob: '**',
       domainOp: { notUsed: true },
       eventHandler: {
         find: 'classes',

@@ -29,7 +29,8 @@ vi.mock('../../../platform/infra/git/git-repository-info', () => ({
 const configWithExtractBlock = `
 modules:
   - name: orders
-    path: "**/src/**/*.ts"
+    path: "."
+    glob: "**/src/**/*.ts"
     api: { notUsed: true }
     useCase:
       find: classes
@@ -51,7 +52,8 @@ modules:
 const configWithLiteralExtract = `
 modules:
   - name: orders
-    path: "**/src/**/*.ts"
+    path: "."
+    glob: "**/src/**/*.ts"
     api: { notUsed: true }
     useCase:
       find: classes

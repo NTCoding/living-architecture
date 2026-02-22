@@ -87,7 +87,7 @@ describe('Default extraction config', () => {
     ]
     const moduleKeys = Object.keys(module)
     expect(moduleKeys).toStrictEqual(expect.arrayContaining(requiredKeys))
-    expect(moduleKeys).toHaveLength(9)
+    expect(moduleKeys).toHaveLength(10)
   })
 
   it.each([

@@ -44,7 +44,7 @@
     "module": {
       "type": "object",
       "description": "A module defines extraction rules for a path pattern",
-      "required": ["name", "path"],
+      "required": ["name", "path", "glob"],
       "additionalProperties": false,
       "properties": {
         "name": {
@@ -54,7 +54,12 @@
         },
         "path": {
           "type": "string",
-          "description": "Glob pattern for files in this module",
+          "description": "Module root directory relative to config file",
+          "minLength": 1
+        },
+        "glob": {
+          "type": "string",
+          "description": "Glob pattern for source files within the module directory",
           "minLength": 1
         },
         "extends": {

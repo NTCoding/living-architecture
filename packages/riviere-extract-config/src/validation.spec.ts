@@ -148,11 +148,13 @@ describe('validateExtractionConfig', () => {
         modules: [
           {
             ...createMinimalModule(),
-            path: 'orders/**',
+            path: 'orders',
+            glob: '**',
           },
           {
             ...createMinimalModule(),
-            path: 'inventory/**',
+            path: 'inventory',
+            glob: '**',
           },
         ],
       }

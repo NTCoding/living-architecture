@@ -12,11 +12,11 @@ import {
 } from './run-workflow'
 import {
   success, failure 
-} from './step-result'
+} from '../../domain/workflow-execution/step-result'
 import type {
   BaseContext, Step 
-} from './workflow-runner'
-import type { WorkflowIO } from '../workflow-io'
+} from '../../domain/workflow-execution/workflow-runner'
+import type { WorkflowIO } from '../../domain/workflow-io'
 
 class TestExitSignal extends Error {
   constructor() {
@@ -110,7 +110,7 @@ describe('runWorkflow', () => {
     })
   })
 
-  it('runs workflow and exits with 1 on failure', async () => {
+  it('exits with 0 even on workflow failure (result communicated via JSON)', async () => {
     const mockIO = createMockIO()
     const steps: Step<BaseContext>[] = [
       {
@@ -123,7 +123,7 @@ describe('runWorkflow', () => {
     runWorkflow(steps, buildContext, undefined, { io: mockIO })
 
     await vi.waitFor(() => {
-      expect(mockIO.exitCode).toBe(1)
+      expect(mockIO.exitCode).toBe(0)
     })
   })
 

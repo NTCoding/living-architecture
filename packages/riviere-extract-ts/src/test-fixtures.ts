@@ -11,7 +11,8 @@ const NOT_USED = { notUsed: true } as const
 function createMinimalModule(overrides: Partial<Module> = {}): Module {
   return {
     name: 'test',
-    path: 'src/**',
+    path: '.',
+    glob: 'src/**',
     api: NOT_USED,
     useCase: NOT_USED,
     domainOp: NOT_USED,
@@ -31,12 +32,14 @@ export function createConfigWithCustomTypes(
   moduleName: string,
   modulePath: string,
   customTypes: CustomTypes,
+  moduleGlob = '**',
 ): ResolvedExtractionConfig {
   return {
     modules: [
       createMinimalModule({
         name: moduleName,
         path: modulePath,
+        glob: moduleGlob,
         customTypes,
       }),
     ],
@@ -48,21 +51,32 @@ export function createConfigWithRule(
   modulePath: string,
   componentType: ComponentType,
   rule: DetectionRule,
+  moduleGlob = '**',
 ): ResolvedExtractionConfig {
   return {
     modules: [
       createMinimalModule({
         name: moduleName,
         path: modulePath,
+        glob: moduleGlob,
         [componentType]: rule,
       }),
     ],
   }
 }
 
-export function createOrdersUseCaseConfig(modulePath = 'orders/**'): ResolvedExtractionConfig {
-  return createConfigWithRule('orders', modulePath, 'useCase', {
-    find: 'classes',
-    where: { hasDecorator: { name: 'UseCase' } },
-  })
+export function createOrdersUseCaseConfig(
+  modulePath = 'orders',
+  moduleGlob = '**',
+): ResolvedExtractionConfig {
+  return createConfigWithRule(
+    'orders',
+    modulePath,
+    'useCase',
+    {
+      find: 'classes',
+      where: { hasDecorator: { name: 'UseCase' } },
+    },
+    moduleGlob,
+  )
 }

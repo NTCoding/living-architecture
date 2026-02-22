@@ -3,7 +3,8 @@
   "modules": [
     {
       "name": "default",
-      "path": "**/*.ts",
+      "path": ".",
+      "glob": "**/*.ts",
       "api": {
         "find": "methods",
         "where": {

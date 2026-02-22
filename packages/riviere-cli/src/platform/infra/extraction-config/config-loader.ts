@@ -1,5 +1,5 @@
 import {
-  dirname, resolve 
+  dirname, resolve, posix 
 } from 'node:path'
 import {
   existsSync, readFileSync 
@@ -46,7 +46,8 @@ const NOT_USED = { notUsed: true } as const
 function topLevelRulesToModule(parsed: TopLevelRulesConfig): Module {
   return {
     name: 'extended',
-    path: '**',
+    path: '.',
+    glob: '**',
     api: parsed.api ?? NOT_USED,
     useCase: parsed.useCase ?? NOT_USED,
     domainOp: parsed.domainOp ?? NOT_USED,
@@ -205,11 +206,11 @@ export function resolveSourceFiles(
   configDir: string,
 ): string[] {
   const sourceFilePaths = resolvedConfig.modules
-    .flatMap((module) => globSync(module.path, { cwd: configDir }))
+    .flatMap((module) => globSync(posix.join(module.path, module.glob), { cwd: configDir }))
     .map((filePath) => resolve(configDir, filePath))
 
   if (sourceFilePaths.length === 0) {
-    const patterns = resolvedConfig.modules.map((m) => m.path).join(', ')
+    const patterns = resolvedConfig.modules.map((m) => posix.join(m.path, m.glob)).join(', ')
     throw new ConfigValidationError(
       CliErrorCode.ValidationError,
       `No files matched extraction patterns: ${patterns}\nConfig directory: ${configDir}`,

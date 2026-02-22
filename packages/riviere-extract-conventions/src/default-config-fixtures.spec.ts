@@ -9,11 +9,13 @@ describe('getFirstModule', () => {
     const validConfig = {
       modules: [
         {
-          path: '**/*.ts',
+          path: '.',
+          glob: '**/*.ts',
           api: { find: 'methods' },
         },
         {
-          path: '**/*.js',
+          path: '.',
+          glob: '**/*.js',
           api: { find: 'classes' },
         },
       ],
@@ -24,7 +26,8 @@ describe('getFirstModule', () => {
     const result = getFirstModule(validConfig)
 
     expect(result).toStrictEqual({
-      path: '**/*.ts',
+      path: '.',
+      glob: '**/*.ts',
       api: { find: 'methods' },
     })
   })

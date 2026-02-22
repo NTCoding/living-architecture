@@ -161,7 +161,8 @@ describe('riviere extract — connection detection', () => {
         `
 modules:
   - name: orders
-    path: "**/src/**/*.ts"
+    path: "."
+    glob: "**/src/**/*.ts"
     api: { notUsed: true }
     useCase:
       find: classes

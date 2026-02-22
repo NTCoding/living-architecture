@@ -26,7 +26,11 @@ Use `--reject-review-feedback` to skip code review (only valid in update mode).
 
 ## Instructions
 
-Run with a **10-minute timeout** (600000ms).
+Run with a **10-minute timeout** (600000ms) and **file redirection** to prevent stdout loss on long-running processes.
+
+```bash
+OUTPUT=$(mktemp) && export GITHUB_TOKEN=$(gh auth token) && pnpm nx run dev-workflow:complete-task -- [args] > "$OUTPUT" 2>&1; cat "$OUTPUT"; rm "$OUTPUT"
+```
 
 This is a long-running command that:
 - Runs local verification (lint, typecheck)

@@ -23,7 +23,9 @@ import type { ExtractionConfig } from '@living-architecture/riviere-extract-conf
 const config: ExtractionConfig = {
   modules: [
     {
-      path: 'src/**/*.ts',
+      name: 'users',
+      path: '.',
+      glob: 'src/**/*.ts',
       api: {
         find: 'methods',
         where: { hasDecorator: { name: 'Get' } },

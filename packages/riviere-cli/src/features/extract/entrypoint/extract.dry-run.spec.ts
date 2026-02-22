@@ -50,7 +50,8 @@ export class PlaceOrder {
       `
 modules:
   - name: orders
-    path: "**/src/**/*.ts"
+    path: "."
+    glob: "**/src/**/*.ts"
     api: { notUsed: true }
     useCase:
       find: classes
@@ -107,7 +108,8 @@ export class OrdersController {
       `
 modules:
   - name: orders
-    path: "**/src/**/*.ts"
+    path: "."
+    glob: "**/src/**/*.ts"
     api:
       find: classes
       where:
@@ -170,7 +172,8 @@ export class ShippingController {
       `
 modules:
   - name: orders
-    path: "**/src/orders/**/*.ts"
+    path: "."
+    glob: "**/src/orders/**/*.ts"
     api: { notUsed: true }
     useCase:
       find: classes
@@ -183,7 +186,8 @@ modules:
     eventPublisher: { notUsed: true }
     ui: { notUsed: true }
   - name: shipping
-    path: "**/src/shipping/**/*.ts"
+    path: "."
+    glob: "**/src/shipping/**/*.ts"
     api:
       find: classes
       where:
@@ -241,7 +245,8 @@ export class OrdersController {
       `
 modules:
   - name: orders
-    path: "**/src/**/*.ts"
+    path: "."
+    glob: "**/src/**/*.ts"
     api:
       find: classes
       where:
@@ -308,7 +313,8 @@ export class PlainClass {
       `
 modules:
   - name: orders
-    path: "**/src/**/*.ts"
+    path: "."
+    glob: "**/src/**/*.ts"
     api:
       find: classes
       where:

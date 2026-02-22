@@ -65,7 +65,8 @@ describe('expandModuleRefs', () => {
     it('passes through non-$ref modules unchanged', () => {
       const inlineModule = {
         name: 'orders',
-        path: 'orders-domain/src/**/*.ts',
+        path: 'orders-domain',
+        glob: 'src/**/*.ts',
         api: { notUsed: true },
         useCase: { notUsed: true },
         domainOp: { notUsed: true },
@@ -86,7 +87,8 @@ describe('expandModuleRefs', () => {
     it('replaces $ref with module content from referenced JSON file', () => {
       const referencedModuleContent = JSON.stringify({
         name: 'orders',
-        path: 'orders-domain/src/**/*.ts',
+        path: 'orders-domain',
+        glob: 'src/**/*.ts',
         api: { notUsed: true },
         useCase: { notUsed: true },
         domainOp: { notUsed: true },
@@ -107,7 +109,8 @@ describe('expandModuleRefs', () => {
         modules: [
           {
             name: 'orders',
-            path: 'orders-domain/src/**/*.ts',
+            path: 'orders-domain',
+            glob: 'src/**/*.ts',
             api: { notUsed: true },
             useCase: { notUsed: true },
             domainOp: { notUsed: true },

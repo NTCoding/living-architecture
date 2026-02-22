@@ -23,9 +23,6 @@ export default defineConfig(() => ({
         // extract-output-formatter.ts: dry-run output formatting, tested via CLI integration tests.
         // Contains v8 ignore comments but coverage provider doesn't respect them consistently.
         'src/platform/infra/cli-presentation/extract-output-formatter.ts',
-        // safe-extraction-operations.ts: error handling wrappers, tested via CLI integration tests.
-        // All functions marked with v8 ignore but imports cannot be covered.
-        'src/features/extract/infra/safe-extraction-operations.ts',
       ],
       thresholds: {
         lines: 100,

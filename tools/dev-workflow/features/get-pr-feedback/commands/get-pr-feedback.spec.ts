@@ -39,7 +39,7 @@ vi.mock('../../../platform/infra/external-clients/cli-args', () => ({
   },
 }))
 
-vi.mock('../../../platform/domain/workflow-execution/run-workflow', () => ({runWorkflow: mockRunWorkflow,}))
+vi.mock('../../../platform/infra/workflow-execution/run-workflow', () => ({runWorkflow: mockRunWorkflow,}))
 
 vi.mock('../../../platform/infra/external-clients/github-graphql-client', () => ({fetchRawPRFeedback: vi.fn(),}))
 

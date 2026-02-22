@@ -8,7 +8,8 @@ describe('module extends validation', () => {
         modules: [
           {
             name: 'orders',
-            path: 'orders/**',
+            path: 'orders',
+            glob: '**',
             extends: '@living-architecture/riviere-extract-conventions',
           },
         ],
@@ -21,7 +22,8 @@ describe('module extends validation', () => {
         modules: [
           {
             name: 'orders',
-            path: 'orders/**',
+            path: 'orders',
+            glob: '**',
             extends: './shared/base-config.json',
           },
         ],
@@ -34,7 +36,8 @@ describe('module extends validation', () => {
         modules: [
           {
             name: 'orders',
-            path: 'orders/**',
+            path: 'orders',
+            glob: '**',
             extends: '@living-architecture/riviere-extract-conventions',
             event: { notUsed: true },
           },
@@ -48,13 +51,15 @@ describe('module extends validation', () => {
         modules: [
           {
             name: 'orders',
-            path: 'orders/**',
+            path: 'orders',
+            glob: '**',
             extends: '@living-architecture/riviere-extract-conventions',
           },
           {
             ...createMinimalModule(),
             name: 'shipping',
-            path: 'shipping/**',
+            path: 'shipping',
+            glob: '**',
           },
         ],
       })
@@ -67,7 +72,8 @@ describe('module extends validation', () => {
       const result = validateExtractionConfig({
         modules: [
           {
-            path: 'orders/**',
+            path: 'orders',
+            glob: '**',
             extends: '@living-architecture/riviere-extract-conventions',
           },
         ],
@@ -94,7 +100,8 @@ describe('module extends validation', () => {
         modules: [
           {
             name: 'orders',
-            path: 'orders/**',
+            path: 'orders',
+            glob: '**',
             extends: '',
           },
         ],

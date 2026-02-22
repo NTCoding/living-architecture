@@ -1,90 +1,80 @@
 import type { ResolvedExtractionConfig } from '@living-architecture/riviere-extract-config'
-import { formatSuccess } from '../../../platform/infra/cli-presentation/output'
-import { formatPrMarkdown } from '../../../platform/infra/cli-presentation/format-pr-markdown'
-import { formatDryRunOutput } from '../../../platform/infra/cli-presentation/extract-output-formatter'
-import { outputResult } from '../../../platform/infra/cli-presentation/output-writer'
-import {
-  countLinksByType,
-  formatExtractionStats,
-} from '../../../platform/infra/cli-presentation/format-extraction-stats'
+import type {
+  ConnectionTimings,
+  DraftComponent,
+  EnrichedComponent,
+  ExtractedLink,
+} from '@living-architecture/riviere-extract-ts'
+import { ExtractionFieldFailureError } from '../../../platform/infra/cli-presentation/error-codes'
 import type { ExtractOptions } from '../../../platform/infra/cli-presentation/extract-validator'
-import {
-  loadOrExtractComponents,
-  enrichComponentsSafe,
-  detectConnectionsSafe,
-} from '../infra/safe-extraction-operations'
+import { loadDraftComponentsFromFile } from '../../../platform/infra/extraction-config/draft-component-loader'
 import { getRepositoryInfo } from '../../../platform/infra/git/git-repository-info'
-import { loadExtractionProject } from '../infra/load-extraction-project'
-import { categorizeComponents } from '../../../platform/infra/cli-presentation/categorize-components'
+import { createModuleContexts } from '../infra/ts-morph/create-module-contexts'
+import { extractDraftComponents } from '../domain/extract-draft-components'
+import { enrichPerModule } from '../domain/enrich-per-module'
+import { detectConnectionsPerModule } from '../domain/detect-connections-per-module'
+
+interface DraftOnlyResult {
+  kind: 'draftOnly'
+  components: DraftComponent[]
+}
+
+interface FullResult {
+  kind: 'full'
+  components: EnrichedComponent[]
+  links: ExtractedLink[]
+  timings: ConnectionTimings[]
+  failedFields: string[]
+}
+
+export type ExtractionResult = DraftOnlyResult | FullResult
 
 export function runExtraction(
   options: ExtractOptions,
   resolvedConfig: ResolvedExtractionConfig,
   configDir: string,
   sourceFilePaths: string[],
-): void {
-  const project = loadExtractionProject(configDir, sourceFilePaths, options.tsConfig === false)
-
-  const draftComponents = loadOrExtractComponents(
-    project,
+): ExtractionResult {
+  const skipTsConfig = options.tsConfig === false
+  const moduleContexts = createModuleContexts(
+    resolvedConfig,
+    configDir,
     sourceFilePaths,
-    resolvedConfig,
-    configDir,
-    options.enrich,
+    skipTsConfig,
   )
 
-  /* v8 ignore start -- @preserve: dry-run tested via CLI integration */
-  if (options.dryRun) {
-    for (const line of formatDryRunOutput(draftComponents)) {
-      console.log(line)
+  const draftComponents: DraftComponent[] =
+    options.enrich === undefined
+      ? extractDraftComponents(moduleContexts, resolvedConfig, configDir)
+      : loadDraftComponentsFromFile(options.enrich)
+
+  if (options.dryRun || options.format === 'markdown' || options.componentsOnly) {
+    return {
+      kind: 'draftOnly',
+      components: draftComponents,
     }
-    return
-  }
-  /* v8 ignore stop */
-
-  if (options.format === 'markdown') {
-    const categorized = categorizeComponents(draftComponents, undefined)
-    const markdown = formatPrMarkdown(categorized)
-    console.log(markdown)
-    return
   }
 
-  if (options.componentsOnly) {
-    outputResult(formatSuccess(draftComponents), options)
-    return
-  }
+  const allowIncomplete = options.allowIncomplete === true
+  const enrichment = enrichPerModule(moduleContexts, draftComponents, resolvedConfig, configDir)
 
-  const enrichmentResult = enrichComponentsSafe(
-    draftComponents,
-    resolvedConfig,
-    project,
-    configDir,
-    options.allowIncomplete === true,
-  )
+  if (enrichment.failedFields.length > 0 && !allowIncomplete) {
+    throw new ExtractionFieldFailureError(enrichment.failedFields)
+  }
 
   const repositoryInfo = getRepositoryInfo()
-
-  const { links } = detectConnectionsSafe(
-    project,
-    enrichmentResult.components,
-    resolvedConfig.modules.map((m) => m.path),
+  const connectionResult = detectConnectionsPerModule(
+    moduleContexts,
+    enrichment.components,
     repositoryInfo.name,
-    options.allowIncomplete === true,
-    options.stats === true,
+    allowIncomplete,
   )
-  if (options.stats === true) {
-    const stats = countLinksByType(enrichmentResult.components.length, links)
-    for (const line of formatExtractionStats(stats)) {
-      console.error(line)
-    }
-  }
 
-  const outputOptions = options.output === undefined ? {} : { output: options.output }
-  outputResult(
-    formatSuccess({
-      components: enrichmentResult.components,
-      links,
-    }),
-    outputOptions,
-  )
+  return {
+    kind: 'full',
+    components: enrichment.components,
+    links: connectionResult.links,
+    timings: connectionResult.timings,
+    failedFields: enrichment.failedFields,
+  }
 }

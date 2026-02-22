@@ -236,6 +236,7 @@ export interface ModuleRef {$ref: string}
 export interface ModuleConfig {
   name: string
   path: string
+  glob: string
   extends?: string
   api?: ComponentRule
   useCase?: ComponentRule
@@ -255,6 +256,7 @@ export interface ModuleConfig {
 export interface Module {
   name: string
   path: string
+  glob: string
   api: ComponentRule
   useCase: ComponentRule
   domainOp: ComponentRule

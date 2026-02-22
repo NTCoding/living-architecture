@@ -9,6 +9,7 @@ import {
   type ExtractOptions,
 } from '../../../platform/infra/cli-presentation/extract-validator'
 import { runExtraction } from '../commands/run-extraction'
+import { presentExtractionResult } from '../infra/mappers/present-extraction-result'
 
 export function createExtractCommand(): Command {
   return new Command('extract')
@@ -35,6 +36,7 @@ export function createExtractCommand(): Command {
       const allSourceFilePaths = resolveSourceFiles(resolvedConfig, configDir)
       const sourceFilePaths = resolveFilteredSourceFiles(allSourceFilePaths, options)
 
-      runExtraction(options, resolvedConfig, configDir, sourceFilePaths)
+      const result = runExtraction(options, resolvedConfig, configDir, sourceFilePaths)
+      presentExtractionResult(result, options)
     })
 }

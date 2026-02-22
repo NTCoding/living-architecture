@@ -30,6 +30,7 @@ function resolveModule(moduleConfig: ModuleConfig, loader?: ConfigLoader): Modul
   return {
     name: moduleConfig.name,
     path: moduleConfig.path,
+    glob: moduleConfig.glob,
     api: requireRule(moduleConfig.api, 'api', moduleConfig.name),
     useCase: requireRule(moduleConfig.useCase, 'useCase', moduleConfig.name),
     domainOp: requireRule(moduleConfig.domainOp, 'domainOp', moduleConfig.name),
@@ -55,6 +56,7 @@ function resolveModuleWithExtends(
   return {
     name: moduleConfig.name,
     path: moduleConfig.path,
+    glob: moduleConfig.glob,
     api: moduleConfig.api ?? baseModule.api,
     useCase: moduleConfig.useCase ?? baseModule.useCase,
     domainOp: moduleConfig.domainOp ?? baseModule.domainOp,

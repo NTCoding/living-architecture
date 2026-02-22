@@ -24,7 +24,7 @@ const mockRunWorkflow = vi.hoisted(() =>
 
 vi.mock('../../../platform/infra/external-clients/git-client', () => ({ git: mockGit }))
 vi.mock('../../../platform/infra/external-clients/github-rest-client', () => ({github: mockGithub,}))
-vi.mock('../../../platform/domain/workflow-execution/run-workflow', () => ({runWorkflow: mockRunWorkflow,}))
+vi.mock('../../../platform/infra/workflow-execution/run-workflow', () => ({runWorkflow: mockRunWorkflow,}))
 vi.mock('../domain/worktree-operations', () => ({
   resolveWorktreeInfo: mockResolveWorktreeInfo,
   removeWorktreePermission: vi.fn(),

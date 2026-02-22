@@ -57,7 +57,7 @@ function findMatchingModule(
 ): Module | undefined {
   const normalized = filePath.replaceAll(/\\+/g, '/')
   const pathToMatch = posix.relative(configDir.replaceAll(/\\+/g, '/'), normalized)
-  return modules.find((m) => globMatcher(pathToMatch, m.path))
+  return modules.find((m) => globMatcher(pathToMatch, posix.join(m.path, m.glob)))
 }
 
 function getBuiltInRule(module: Module, componentType: string): DetectionRule | undefined {

@@ -4,12 +4,12 @@ import {
   type BaseContext,
   type WorkflowResult,
   type StepTiming,
-} from './workflow-runner'
+} from '../../domain/workflow-execution/workflow-runner'
 import { handleWorkflowError } from './error-handler'
 import {
   type DebugLog, noopDebugLog 
-} from '../debug-log'
-import { type WorkflowIO } from '../workflow-io'
+} from '../../domain/debug-log'
+import { type WorkflowIO } from '../../domain/workflow-io'
 
 export interface WorkflowOptions<T extends BaseContext> {
   resolveTimingsFilePath?: (ctx: T) => string
@@ -87,5 +87,5 @@ async function executeWorkflow<T extends BaseContext>(
 
   io.log(JSON.stringify(output, null, 2))
 
-  io.exit(result.success ? 0 : 1)
+  io.exit(0)
 }

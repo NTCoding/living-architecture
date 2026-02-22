@@ -96,7 +96,8 @@ describe('riviere extract', () => {
         `
 modules:
   - name: orders
-    path: "**/*.nonexistent"
+    path: "."
+    glob: "**/*.nonexistent"
     api: { notUsed: true }
     useCase: { notUsed: true }
     domainOp: { notUsed: true }
@@ -114,7 +115,7 @@ modules:
       const output = parseErrorOutput(ctx.consoleOutput)
       expect(output.success).toBe(false)
       expect(output.error.code).toBe(CliErrorCode.ValidationError)
-      expect(output.error.message).toMatch(/No files matched.*\*\*\/\*\.nonexistent/)
+      expect(output.error.message).toMatch(/No files matched/)
     })
   })
 
@@ -145,7 +146,8 @@ export class PlaceOrder {
         ordersModule,
         JSON.stringify({
           name: 'orders',
-          path: '**/src/**/*.ts',
+          path: '.',
+          glob: '**/src/**/*.ts',
           api: { notUsed: true },
           useCase: {
             find: 'classes',

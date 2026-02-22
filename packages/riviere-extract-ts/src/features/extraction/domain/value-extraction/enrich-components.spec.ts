@@ -28,6 +28,7 @@ function notUsedModule(name: string, path: string): Module {
   return {
     name,
     path,
+    glob: '**',
     api: {
       find: 'classes',
       where: { nameEndsWith: { suffix: 'Controller' } },
@@ -44,7 +45,8 @@ function notUsedModule(name: string, path: string): Module {
 function moduleWith(componentType: string, rule: ComponentRule): Module {
   const base: Module = {
     name: 'orders',
-    path: '/src/orders/**',
+    path: '/src/orders',
+    glob: '**',
     api: { notUsed: true },
     useCase: { notUsed: true },
     domainOp: { notUsed: true },

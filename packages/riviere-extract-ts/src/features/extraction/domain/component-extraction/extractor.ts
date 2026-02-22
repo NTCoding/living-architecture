@@ -251,9 +251,9 @@ function findMatchingModule(
 ): Module | undefined {
   const normalized = filePath.replaceAll(/\\+/g, '/')
   if (configDir === undefined) {
-    return modules.find((m) => globMatcher(normalized, m.path))
+    return modules.find((m) => globMatcher(normalized, posix.join(m.path, m.glob)))
   }
   const normalizedConfigDir = configDir.replaceAll(/\\+/g, '/')
   const pathToMatch = posix.relative(normalizedConfigDir, normalized)
-  return modules.find((m) => globMatcher(pathToMatch, m.path))
+  return modules.find((m) => globMatcher(pathToMatch, posix.join(m.path, m.glob)))
 }

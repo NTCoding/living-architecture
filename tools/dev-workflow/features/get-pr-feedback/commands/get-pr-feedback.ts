@@ -2,7 +2,7 @@ import { git } from '../../../platform/infra/external-clients/git-client'
 import { github } from '../../../platform/infra/external-clients/github-rest-client'
 import { cli } from '../../../platform/infra/external-clients/cli-args'
 import { fetchRawPRFeedback } from '../../../platform/infra/external-clients/github-graphql-client'
-import { runWorkflow } from '../../../platform/domain/workflow-execution/run-workflow'
+import { runWorkflow } from '../../../platform/infra/workflow-execution/run-workflow'
 import type { GetPRFeedbackContext } from '../domain/feedback-report'
 import { createFetchFeedbackStep } from '../domain/steps/fetch-feedback'
 
