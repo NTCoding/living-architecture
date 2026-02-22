@@ -91,7 +91,8 @@ fi
 
 # Step 5: Create branch (worktree or checkout)
 if [[ "$USE_WORKTREE" == true ]]; then
-    WORKTREE_DIR="${REPO_ROOT}/../${REPO_NAME}-${BRANCH_NAME}"
+    REPO_PARENT=$(dirname "$REPO_ROOT")
+    WORKTREE_DIR="${REPO_PARENT}/${REPO_NAME}-${BRANCH_NAME}"
     echo "Creating worktree: $WORKTREE_DIR"
     git worktree add -b "$BRANCH_NAME" "$WORKTREE_DIR"
 
