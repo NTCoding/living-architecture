@@ -1,3 +1,4 @@
+import { mkdir } from 'node:fs/promises'
 import { git } from '../../../platform/infra/external-clients/git-client'
 import { github } from '../../../platform/infra/external-clients/github-rest-client'
 import { ghCli } from '../../../platform/infra/external-clients/gh-cli'
@@ -35,6 +36,7 @@ export function executeCompleteTask(): void {
     parseIssueNumber,
     cliReader: cli,
     parseOptionalArg: cli.parseArg.bind(cli),
+    createDirectory: (path: string) => mkdir(path, { recursive: true }).then(() => undefined),
   }
 
   const stepDeps = {

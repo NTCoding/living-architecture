@@ -3,13 +3,13 @@ import {
   type Step,
   type BaseContext,
   type WorkflowResult,
-  type StepTiming,
 } from '../../domain/workflow-execution/workflow-runner'
 import { handleWorkflowError } from './error-handler'
 import {
   type DebugLog, noopDebugLog 
 } from '../../domain/debug-log'
 import { type WorkflowIO } from '../../domain/workflow-io'
+import { formatTimingsMarkdown } from '../cli/format-timings'
 
 export interface WorkflowOptions<T extends BaseContext> {
   resolveTimingsFilePath?: (ctx: T) => string
@@ -44,24 +44,6 @@ export function runWorkflow<T extends BaseContext>(
   executeWorkflow(steps, buildContext, formatResult, options).catch((error: unknown) => {
     handleWorkflowError(error, options?.errorOutputFilePath)
   })
-}
-
-function formatDuration(ms: number): string {
-  return ms >= 1000 ? `${(ms / 1000).toFixed(1)}s` : `${Math.round(ms)}ms`
-}
-
-export function formatTimingsMarkdown(stepTimings: StepTiming[], totalDurationMs: number): string {
-  const lines = [
-    '# Workflow Timing',
-    '',
-    '| Step | Duration |',
-    '|------|----------|',
-    ...stepTimings.map((t) => `| ${t.name} | ${formatDuration(t.durationMs)} |`),
-    '',
-    `**Total: ${formatDuration(totalDurationMs)}**`,
-    '',
-  ]
-  return lines.join('\n')
 }
 
 function writeOptionalFiles<T extends BaseContext>(

@@ -1,10 +1,5 @@
 import type { ResolvedExtractionConfig } from '@living-architecture/riviere-extract-config'
-import type {
-  ConnectionTimings,
-  DraftComponent,
-  EnrichedComponent,
-  ExtractedLink,
-} from '@living-architecture/riviere-extract-ts'
+import type { DraftComponent } from '@living-architecture/riviere-extract-ts'
 import { ExtractionFieldFailureError } from '../../../platform/infra/cli-presentation/error-codes'
 import type { ExtractOptions } from '../../../platform/infra/cli-presentation/extract-validator'
 import { loadDraftComponentsFromFile } from '../../../platform/infra/extraction-config/draft-component-loader'
@@ -13,21 +8,7 @@ import { createModuleContexts } from '../infra/ts-morph/create-module-contexts'
 import { extractDraftComponents } from '../domain/extract-draft-components'
 import { enrichPerModule } from '../domain/enrich-per-module'
 import { detectConnectionsPerModule } from '../domain/detect-connections-per-module'
-
-interface DraftOnlyResult {
-  kind: 'draftOnly'
-  components: DraftComponent[]
-}
-
-interface FullResult {
-  kind: 'full'
-  components: EnrichedComponent[]
-  links: ExtractedLink[]
-  timings: ConnectionTimings[]
-  failedFields: string[]
-}
-
-export type ExtractionResult = DraftOnlyResult | FullResult
+import type { ExtractionResult } from '../domain/extraction-result'
 
 export function runExtraction(
   options: ExtractOptions,

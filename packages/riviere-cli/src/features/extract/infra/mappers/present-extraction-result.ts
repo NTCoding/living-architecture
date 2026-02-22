@@ -8,7 +8,7 @@ import {
   formatTimingLine,
 } from '../../../../platform/infra/cli-presentation/format-extraction-stats'
 import { categorizeComponents } from '../../../../platform/infra/cli-presentation/categorize-components'
-import type { ExtractionResult } from '../../commands/run-extraction'
+import type { ExtractionResult } from '../../domain/extraction-result'
 import type { ExtractOptions } from '../../../../platform/infra/cli-presentation/extract-validator'
 
 export function presentExtractionResult(result: ExtractionResult, options: ExtractOptions): void {

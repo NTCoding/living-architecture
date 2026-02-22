@@ -1,4 +1,3 @@
-import { mkdir } from 'node:fs/promises'
 import type { DebugLog } from '../../../platform/domain/debug-log'
 import type { CompleteTaskContext } from './task-to-complete'
 import { resolvePRDetails } from './pull-request-draft'
@@ -33,6 +32,7 @@ export interface ContextDeps {
   parseIssueNumber: (branch: string) => number | undefined
   cliReader: CliReader
   parseOptionalArg: (name: string) => string | undefined
+  createDirectory: (path: string) => Promise<void>
 }
 
 export interface StepDeps {
@@ -47,7 +47,7 @@ export async function buildCompleteTaskContext(deps: ContextDeps): Promise<Compl
   const reviewDir = buildReviewDir(branch)
   const prMode = parsePRMode(deps.cliReader)
 
-  await mkdir(reviewDir, { recursive: true })
+  await deps.createDirectory(reviewDir)
 
   const issueNumber = deps.parseIssueNumber(branch)
   const taskDetails = issueNumber ? await deps.getIssue(issueNumber) : undefined
