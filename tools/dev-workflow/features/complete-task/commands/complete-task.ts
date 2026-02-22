@@ -17,9 +17,12 @@ import {
   buildCompleteTaskContext,
   buildSteps,
   resolveTimingsFilePath,
+  resolveOutputFilePath,
 } from '../domain/workflow-setup'
 
-export { resolveTimingsFilePath } from '../domain/workflow-setup'
+export {
+  resolveTimingsFilePath, resolveOutputFilePath 
+} from '../domain/workflow-setup'
 
 export function executeCompleteTask(): void {
   const debugLog = createDebugLog('reviews/debug.log')
@@ -60,6 +63,8 @@ export function executeCompleteTask(): void {
     (result: WorkflowResult, ctx: CompleteTaskContext) => formatCompleteTaskResult(result, ctx),
     {
       resolveTimingsFilePath,
+      resolveOutputFilePath,
+      errorOutputFilePath: 'reviews/error-output.json',
       debugLog,
       io: createDefaultWorkflowIO(),
     },

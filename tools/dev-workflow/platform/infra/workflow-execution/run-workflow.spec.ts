@@ -199,7 +199,7 @@ describe('runWorkflow', () => {
     runWorkflow(steps, buildContext, undefined, { io: mockIO })
 
     await vi.waitFor(() => {
-      expect(mockHandleError).toHaveBeenCalledWith(expect.any(ContextBuildError))
+      expect(mockHandleError).toHaveBeenCalledWith(expect.any(ContextBuildError), undefined)
     })
   })
 
@@ -241,6 +241,65 @@ describe('runWorkflow', () => {
 
     await vi.waitFor(() => {
       expect(mockIO.writeFileCalls).toHaveLength(0)
+    })
+  })
+
+  it('writes output file when resolveOutputFilePath provided', async () => {
+    const mockIO = createMockIO()
+    const steps: Step<BaseContext>[] = [
+      {
+        name: 'step1',
+        execute: async () => success({ data: 'result' }),
+      },
+    ]
+    const buildContext = async () => ({ branch: 'test' })
+
+    runWorkflow(steps, buildContext, undefined, {
+      resolveOutputFilePath: () => 'reviews/test/output.json',
+      io: mockIO,
+    })
+
+    await vi.waitFor(() => {
+      const outputWrite = mockIO.writeFileCalls.find((c) => c.path.endsWith('output.json'))
+      expect(outputWrite).toBeTruthy()
+      expect(JSON.parse(outputWrite?.content ?? '{}')).toMatchObject({ data: 'result' })
+    })
+  })
+
+  it('does not write output file when resolveOutputFilePath omitted', async () => {
+    const mockIO = createMockIO()
+    const steps: Step<BaseContext>[] = [
+      {
+        name: 'step1',
+        execute: async () => success(),
+      },
+    ]
+    const buildContext = async () => ({ branch: 'test' })
+
+    runWorkflow(steps, buildContext, undefined, { io: mockIO })
+
+    await vi.waitFor(() => {
+      expect(mockIO.writeFileCalls.filter((c) => c.path.endsWith('output.json'))).toHaveLength(0)
+    })
+  })
+
+  it('passes errorOutputFilePath to error handler when context builder throws', async () => {
+    const mockIO = createMockIO()
+    const steps: Step<BaseContext>[] = []
+    const buildContext = async () => {
+      throw new ContextBuildError()
+    }
+
+    runWorkflow(steps, buildContext, undefined, {
+      errorOutputFilePath: 'reviews/error-output.json',
+      io: mockIO,
+    })
+
+    await vi.waitFor(() => {
+      expect(mockHandleError).toHaveBeenCalledWith(
+        expect.any(ContextBuildError),
+        'reviews/error-output.json',
+      )
     })
   })
 

@@ -13,6 +13,8 @@ import { type WorkflowIO } from '../../domain/workflow-io'
 
 export interface WorkflowOptions<T extends BaseContext> {
   resolveTimingsFilePath?: (ctx: T) => string
+  resolveOutputFilePath?: (ctx: T) => string
+  errorOutputFilePath?: string
   debugLog?: DebugLog
   io?: WorkflowIO
 }
@@ -39,7 +41,9 @@ export function runWorkflow<T extends BaseContext>(
   formatResult?: (result: WorkflowResult, ctx: T) => unknown,
   options?: WorkflowOptions<T>,
 ): void {
-  executeWorkflow(steps, buildContext, formatResult, options).catch(handleWorkflowError)
+  executeWorkflow(steps, buildContext, formatResult, options).catch((error: unknown) => {
+    handleWorkflowError(error, options?.errorOutputFilePath)
+  })
 }
 
 function formatDuration(ms: number): string {
@@ -60,6 +64,25 @@ export function formatTimingsMarkdown(stepTimings: StepTiming[], totalDurationMs
   return lines.join('\n')
 }
 
+function writeOptionalFiles<T extends BaseContext>(
+  io: WorkflowIO,
+  context: T,
+  result: WorkflowResult,
+  jsonOutput: string,
+  options?: WorkflowOptions<T>,
+): void {
+  if (options?.resolveTimingsFilePath) {
+    const timingsPath = options.resolveTimingsFilePath(context)
+    const markdown = formatTimingsMarkdown(result.stepTimings, result.totalDurationMs)
+    io.writeFile(timingsPath, markdown)
+  }
+
+  if (options?.resolveOutputFilePath) {
+    const outputPath = options.resolveOutputFilePath(context)
+    io.writeFile(outputPath, jsonOutput)
+  }
+}
+
 async function executeWorkflow<T extends BaseContext>(
   steps: Step<T>[],
   buildContext: () => Promise<T>,
@@ -78,16 +101,13 @@ async function executeWorkflow<T extends BaseContext>(
 
   log.log(`workflow complete: success=${result.success}, failedStep=${result.failedStep ?? 'none'}`)
 
-  if (options?.resolveTimingsFilePath) {
-    const timingsPath = options.resolveTimingsFilePath(context)
-    const markdown = formatTimingsMarkdown(result.stepTimings, result.totalDurationMs)
-    io.writeFile(timingsPath, markdown)
-  }
-
   const formatted = formatResult ? formatResult(result, context) : undefined
   const output = formatted ?? result.output ?? result
+  const jsonOutput = JSON.stringify(output, null, 2)
 
-  io.log(JSON.stringify(output, null, 2))
+  writeOptionalFiles(io, context, result, jsonOutput, options)
+
+  io.log(jsonOutput)
 
   io.exit(0)
 }

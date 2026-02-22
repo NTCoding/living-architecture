@@ -26,11 +26,13 @@ Use `--reject-review-feedback` to skip code review (only valid in update mode).
 
 ## Instructions
 
-Run with a **10-minute timeout** (600000ms Bash tool timeout) and **file redirection** to prevent stdout loss on long-running processes.
+Run with a **10-minute timeout** (600000ms Bash tool timeout). Output is written to `reviews/{branch}/output.json`.
 
 ```bash
-OUTPUT=$(mktemp) && export GITHUB_TOKEN=$(gh auth token) && pnpm nx run dev-workflow:complete-task -- [args] > "$OUTPUT" 2>&1; cat "$OUTPUT"; rm "$OUTPUT"
+export GITHUB_TOKEN=$(gh auth token) && pnpm nx run dev-workflow:complete-task -- [args] 2>&1; BRANCH=$(git branch --show-current) && cat "reviews/${BRANCH}/output.json"
 ```
+
+If the workflow errors before context is built, check `reviews/error-output.json` instead.
 
 This is a long-running command that:
 - Runs local verification (lint, typecheck)

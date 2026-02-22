@@ -2,7 +2,10 @@ import {
   describe, it, expect, vi, beforeEach, afterEach 
 } from 'vitest'
 import { z } from 'zod'
+import { writeFileSync } from 'node:fs'
 import { handleWorkflowError } from './error-handler'
+
+vi.mock('node:fs', () => ({ writeFileSync: vi.fn() }))
 
 const errorOutputSchema = z.object({
   success: z.literal(false),
@@ -107,5 +110,31 @@ describe('handleWorkflowError', () => {
     const parsed = errorOutputSchema.parse(JSON.parse(capturedOutput[0] ?? '{}'))
     expect(parsed.nextAction).toStrictEqual('fix_errors')
     expect(parsed.success).toStrictEqual(false)
+  })
+
+  it('writes error output to file when outputFilePath provided', () => {
+    class FileTestError extends Error {
+      constructor() {
+        super('file test')
+        this.name = 'FileTestError'
+      }
+    }
+    handleWorkflowError(new FileTestError(), 'reviews/error-output.json')
+    expect(writeFileSync).toHaveBeenCalledWith(
+      'reviews/error-output.json',
+      expect.stringContaining('file test'),
+      'utf-8',
+    )
+  })
+
+  it('does not write file when outputFilePath omitted', () => {
+    class NoFileError extends Error {
+      constructor() {
+        super('no file')
+        this.name = 'NoFileError'
+      }
+    }
+    handleWorkflowError(new NoFileError())
+    expect(writeFileSync).not.toHaveBeenCalled()
   })
 })

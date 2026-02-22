@@ -103,3 +103,7 @@ export function buildSteps(deps: StepDeps) {
 export function resolveTimingsFilePath(ctx: CompleteTaskContext): string {
   return `${ctx.reviewDir}/timings.md`
 }
+
+export function resolveOutputFilePath(ctx: CompleteTaskContext): string {
+  return `${ctx.reviewDir}/output.json`
+}

@@ -57,7 +57,7 @@ vi.mock('../../../platform/infra/external-clients/nx-runner', () => ({ nx: mockN
 vi.mock('../../../platform/infra/external-clients/github-graphql-client', () => ({fetchRawPRFeedback: mockFetchRawPRFeedback,}))
 
 import {
-  executeCompleteTask, resolveTimingsFilePath 
+  executeCompleteTask, resolveTimingsFilePath, resolveOutputFilePath 
 } from './complete-task'
 
 type ContextBuilder = () => Promise<CompleteTaskContext>
@@ -117,7 +117,11 @@ describe('executeCompleteTask', () => {
       expect.any(Array),
       expect.any(Function),
       expect.any(Function),
-      expect.objectContaining({ resolveTimingsFilePath: expect.any(Function) }),
+      expect.objectContaining({
+        resolveTimingsFilePath: expect.any(Function),
+        resolveOutputFilePath: expect.any(Function),
+        errorOutputFilePath: 'reviews/error-output.json',
+      }),
     )
   })
 
@@ -125,6 +129,12 @@ describe('executeCompleteTask', () => {
     const ctx = buildTestContext()
     const path = resolveTimingsFilePath(ctx)
     expect(path).toBe('reviews/test/timings.md')
+  })
+
+  it('resolves output file path from review directory', () => {
+    const ctx = buildTestContext()
+    const path = resolveOutputFilePath(ctx)
+    expect(path).toBe('reviews/test/output.json')
   })
 
   it('rejects --reject-review-feedback in create mode', () => {
