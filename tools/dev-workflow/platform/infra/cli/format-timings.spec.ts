@@ -4,7 +4,23 @@ import {
 import { formatTimingsMarkdown } from './format-timings'
 
 describe('formatTimingsMarkdown', () => {
-  it('formats step timings as markdown table', () => {
+  it('includes markdown table structure', () => {
+    const result = formatTimingsMarkdown(
+      [
+        {
+          name: 'step1',
+          durationMs: 1000,
+        },
+      ],
+      1000,
+    )
+
+    expect(result).toContain('# Workflow Timing')
+    expect(result).toContain('| Step | Duration |')
+    expect(result).toContain('|------|----------|')
+  })
+
+  it('formats step durations in seconds and total', () => {
     const result = formatTimingsMarkdown(
       [
         {
@@ -37,5 +53,13 @@ describe('formatTimingsMarkdown', () => {
 
     expect(result).toContain('| fast-step | 42ms |')
     expect(result).toContain('**Total: 42ms**')
+  })
+
+  it('renders table structure with no data rows when empty', () => {
+    const result = formatTimingsMarkdown([], 0)
+
+    expect(result).toContain('| Step | Duration |')
+    expect(result).not.toMatch(/\| .+ \| \d/)
+    expect(result).toContain('**Total: 0ms**')
   })
 })

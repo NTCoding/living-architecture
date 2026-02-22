@@ -14,7 +14,11 @@ export function handleWorkflowError(error: unknown, outputFilePath?: string): vo
   )
 
   if (outputFilePath) {
-    writeFileSync(outputFilePath, jsonOutput, 'utf-8')
+    try {
+      writeFileSync(outputFilePath, jsonOutput, 'utf-8')
+    } catch {
+      // Directory may not exist yet — don't mask the original error
+    }
   }
 
   console.error(jsonOutput)

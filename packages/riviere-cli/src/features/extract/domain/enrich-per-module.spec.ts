@@ -70,22 +70,23 @@ describe('enrichPerModule', () => {
   })
 
   it('enriches drafts grouped by module', () => {
-    const enrichedA = {
-      name: 'CompA',
-      domain: 'orders',
-    }
-    const enrichedB = {
-      name: 'CompB',
-      domain: 'shipping',
-    }
-
     mockEnrichComponents
       .mockReturnValueOnce({
-        components: [enrichedA],
+        components: [
+          {
+            name: 'CompA',
+            domain: 'orders',
+          },
+        ],
         failures: [],
       })
       .mockReturnValueOnce({
-        components: [enrichedB],
+        components: [
+          {
+            name: 'CompB',
+            domain: 'shipping',
+          },
+        ],
         failures: [],
       })
 
@@ -96,9 +97,45 @@ describe('enrichPerModule', () => {
       '/config',
     )
 
-    expect(result.components).toStrictEqual([enrichedA, enrichedB])
+    expect(result.components).toHaveLength(2)
     expect(result.failedFields).toStrictEqual([])
     expect(mockEnrichComponents).toHaveBeenCalledTimes(2)
+  })
+
+  it('routes correct drafts to each module', () => {
+    mockEnrichComponents
+      .mockReturnValueOnce({
+        components: [],
+        failures: [],
+      })
+      .mockReturnValueOnce({
+        components: [],
+        failures: [],
+      })
+
+    enrichPerModule(
+      [createModuleContext('orders'), createModuleContext('shipping')],
+      [createDraft('orders', 'CompA'), createDraft('shipping', 'CompB')],
+      stubConfig,
+      '/config',
+    )
+
+    expect(mockEnrichComponents).toHaveBeenNthCalledWith(
+      1,
+      [createDraft('orders', 'CompA')],
+      stubConfig,
+      expect.anything(),
+      mockMatchesGlob,
+      '/config',
+    )
+    expect(mockEnrichComponents).toHaveBeenNthCalledWith(
+      2,
+      [createDraft('shipping', 'CompB')],
+      stubConfig,
+      expect.anything(),
+      mockMatchesGlob,
+      '/config',
+    )
   })
 
   it('deduplicates failed fields across modules', () => {
