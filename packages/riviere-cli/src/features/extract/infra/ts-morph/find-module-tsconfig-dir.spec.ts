@@ -9,7 +9,7 @@ import {
 import { findModuleTsConfigDir } from './find-module-tsconfig-dir'
 
 function createTestDir(): string {
-  const dir = join(tmpdir(), `per-module-ops-test-${Date.now()}`)
+  const dir = join(tmpdir(), `find-module-tsconfig-dir-test-${Date.now()}`)
   mkdirSync(dir, { recursive: true })
   return dir
 }

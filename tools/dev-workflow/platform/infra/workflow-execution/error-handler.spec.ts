@@ -30,6 +30,7 @@ describe('handleWorkflowError', () => {
   const originalWrite = process.stderr.write
 
   beforeEach(() => {
+    vi.clearAllMocks()
     capturedOutput.length = 0
     Object.defineProperty(process, 'exit', {
       value: mockProcessExit,

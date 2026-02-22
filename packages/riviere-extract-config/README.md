@@ -11,7 +11,7 @@ import {
   isValidExtractionConfig,
 } from '@living-architecture/riviere-extract-config';
 
-const config = { modules: [{ name: 'orders', path: 'orders', glob: 'src/**', api: { find: 'class' } }] };
+const config = { modules: [{ name: 'orders', path: 'orders', glob: 'src/**', api: { find: 'classes', where: { hasDecorator: { name: 'Controller' } } } }] };
 
 if (isValidExtractionConfig(config)) {
   // config is typed as ExtractionConfig

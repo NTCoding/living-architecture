@@ -40,7 +40,7 @@ function presentDraftResult(
     return
   }
 
-  outputResult(formatSuccess(components), options)
+  outputResult(formatSuccess(components), { output: options.output })
 }
 
 function presentFullResult(
@@ -63,12 +63,11 @@ function presentFullResult(
     }
   }
 
-  const outputOptions = options.output === undefined ? {} : { output: options.output }
   outputResult(
     formatSuccess({
       components: result.components,
       links: result.links,
     }),
-    outputOptions,
+    { output: options.output },
   )
 }
