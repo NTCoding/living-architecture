@@ -3,7 +3,6 @@ import {
 } from 'vitest'
 import { detectPublishConnections } from './detect-publish-connections'
 import { buildComponent } from '../call-graph/call-graph-fixtures'
-import { ConnectionDetectionError } from '../connection-detection-error'
 
 describe('detectPublishConnections', () => {
   it('returns async link when publishedEventType metadata matches an event', () => {
@@ -63,7 +62,7 @@ describe('detectPublishConnections', () => {
         strict: true,
         repository: 'test-repo',
       }),
-    ).toThrow(ConnectionDetectionError)
+    ).toThrow(expect.objectContaining({ message: expect.stringContaining('NonExistentEvent') }))
   })
 
   it('returns uncertain link in lenient mode when publishedEventType matches no event', () => {
@@ -106,7 +105,7 @@ describe('detectPublishConnections', () => {
         strict: true,
         repository: 'test-repo',
       }),
-    ).toThrow(ConnectionDetectionError)
+    ).toThrow(expect.objectContaining({ message: expect.stringContaining('ambiguous') }))
   })
 
   it('returns uncertain link in lenient mode when publishedEventType matches multiple events', () => {
@@ -149,7 +148,7 @@ describe('detectPublishConnections', () => {
         strict: true,
         repository: 'test-repo',
       }),
-    ).toThrow(ConnectionDetectionError)
+    ).toThrow(expect.objectContaining({ message: expect.stringContaining('publishedEventType') }))
   })
 
   it('returns uncertain link in lenient mode when publishedEventType metadata is missing', () => {

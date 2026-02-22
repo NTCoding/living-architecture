@@ -114,6 +114,20 @@ describe('detectConnectionsPerModule', () => {
     )
 
     expect(mockDetectPerModule).toHaveBeenCalledTimes(2)
+    expect(mockDetectPerModule).toHaveBeenNthCalledWith(
+      1,
+      ordersCtx.project,
+      [orderComp],
+      expect.any(Object),
+      mockMatchesGlob,
+    )
+    expect(mockDetectPerModule).toHaveBeenNthCalledWith(
+      2,
+      shippingCtx.project,
+      [shippingComp],
+      expect.any(Object),
+      mockMatchesGlob,
+    )
   })
 
   it('passes all components to cross-module detection', () => {
