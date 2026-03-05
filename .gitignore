@@ -57,3 +57,4 @@ packages/*/scripts/*.d.ts.map
 reviews/
 
 .obsidian
+.claude/worktrees
