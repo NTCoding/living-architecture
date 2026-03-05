@@ -87,6 +87,10 @@
       "esbuild",
       "nx",
       "unrs-resolver"
+    ],
+    "ignoredBuiltDependencies": [
+      "@ntcoding/agentic-workflow-builder",
+      "better-sqlite3"
     ]
   }
 }
