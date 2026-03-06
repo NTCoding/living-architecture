@@ -18,6 +18,13 @@
       "./tools/dev-workflow-v2"
     ]
   },
+  "enabledPlugins": {
+    "task-check@claude-skillz": true,
+    "development-skills@claude-skillz": true,
+    "full-codebase-review@claude-skillz": true,
+    "architect-refine-critique@claude-skillz": true,
+    "dev-workflow-v2@dev-workflow-v2-marketplace": true
+  },
   "ask": [
     "Edit(./eslint.config.mjs)",
     "Write(./.dependency-cruiser.mjs)",
@@ -26,12 +33,6 @@
     "Edit(./.dependency-cruiser.frontend.mjs)",
     "Write(./eslint.config.mjs)"
   ],
-  "enabledPlugins": {
-    "task-check@claude-skillz": true,
-    "development-skills@claude-skillz": true,
-    "full-codebase-review@claude-skillz": true,
-    "architect-refine-critique@claude-skillz": true
-  },
   "automaticCodeReview": {
     "enabled": false,
     "fileExtensions": [

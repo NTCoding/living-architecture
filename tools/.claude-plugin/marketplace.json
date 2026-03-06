@@ -1,0 +1,13 @@
+{
+  "name": "dev-workflow-v2-marketplace",
+  "owner": {
+    "name": "Nick Tune"
+  },
+  "plugins": [
+    {
+      "name": "dev-workflow-v2",
+      "source": "./dev-workflow-v2",
+      "description": "Event-sourced workflow state machine for structured task lifecycle"
+    }
+  ]
+}
