@@ -9,9 +9,11 @@
   },
   "dependencies": {
     "@ntcoding/agentic-workflow-builder": "github:NTCoding/autonomous-claude-agent-team#path:packages/agentic-workflow-builder",
+    "better-sqlite3": "^12.0.0",
     "zod": "^3.23.0"
   },
   "devDependencies": {
+    "@types/better-sqlite3": "^7.6.0",
     "@types/node": "^22.0.0",
     "@vitest/coverage-v8": "^2.0.0",
     "typescript": "^5.6.0",

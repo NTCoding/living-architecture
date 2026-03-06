@@ -10,7 +10,6 @@ export default defineConfig({
       exclude: [
         'src/**/*.spec.ts',
         'src/**/*-test-fixtures.ts',
-        'src/workflow-definition/domain/workflow-types.ts',
       ],
       thresholds: {
         lines: 100,
