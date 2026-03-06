@@ -18,12 +18,16 @@ describe('EMPTY_STATE', () => {
     expect(EMPTY_STATE.currentStateMachineState).toStrictEqual('IMPLEMENTING')
   })
 
-  it('has verifyPassed false', () => {
-    expect(EMPTY_STATE.verifyPassed).toStrictEqual(false)
+  it('has architectureReviewPassed false', () => {
+    expect(EMPTY_STATE.architectureReviewPassed).toStrictEqual(false)
   })
 
-  it('has reviewPassed false', () => {
-    expect(EMPTY_STATE.reviewPassed).toStrictEqual(false)
+  it('has codeReviewPassed false', () => {
+    expect(EMPTY_STATE.codeReviewPassed).toStrictEqual(false)
+  })
+
+  it('has bugScannerPassed false', () => {
+    expect(EMPTY_STATE.bugScannerPassed).toStrictEqual(false)
   })
 
   it('has ciPassed false', () => {
@@ -82,51 +86,72 @@ describe('applyEvent — branch-recorded', () => {
   })
 })
 
-describe('applyEvent — verify-completed', () => {
-  it('sets verifyPassed to true when passed', () => {
+describe('applyEvent — architecture-review-completed', () => {
+  it('sets architectureReviewPassed to true when passed', () => {
     const event: WorkflowEvent = {
-      type: 'verify-completed',
+      type: 'architecture-review-completed',
       at: AT,
       passed: true,
     }
     const result = applyEvent(EMPTY_STATE, event)
-    expect(result.verifyPassed).toStrictEqual(true)
+    expect(result.architectureReviewPassed).toStrictEqual(true)
   })
 
-  it('sets verifyPassed to false when failed', () => {
-    const state = makeState({ verifyPassed: true })
+  it('sets architectureReviewPassed to false when failed', () => {
+    const state = makeState({ architectureReviewPassed: true })
     const event: WorkflowEvent = {
-      type: 'verify-completed',
+      type: 'architecture-review-completed',
       at: AT,
       passed: false,
-      output: 'lint errors',
     }
     const result = applyEvent(state, event)
-    expect(result.verifyPassed).toStrictEqual(false)
+    expect(result.architectureReviewPassed).toStrictEqual(false)
   })
 })
 
-describe('applyEvent — review-completed', () => {
-  it('sets reviewPassed to true when passed', () => {
+describe('applyEvent — code-review-completed', () => {
+  it('sets codeReviewPassed to true when passed', () => {
     const event: WorkflowEvent = {
-      type: 'review-completed',
+      type: 'code-review-completed',
       at: AT,
       passed: true,
     }
     const result = applyEvent(EMPTY_STATE, event)
-    expect(result.reviewPassed).toStrictEqual(true)
+    expect(result.codeReviewPassed).toStrictEqual(true)
   })
 
-  it('sets reviewPassed to false when failed', () => {
-    const state = makeState({ reviewPassed: true })
+  it('sets codeReviewPassed to false when failed', () => {
+    const state = makeState({ codeReviewPassed: true })
     const event: WorkflowEvent = {
-      type: 'review-completed',
+      type: 'code-review-completed',
       at: AT,
       passed: false,
-      failedReviewers: ['code-review'],
     }
     const result = applyEvent(state, event)
-    expect(result.reviewPassed).toStrictEqual(false)
+    expect(result.codeReviewPassed).toStrictEqual(false)
+  })
+})
+
+describe('applyEvent — bug-scanner-completed', () => {
+  it('sets bugScannerPassed to true when passed', () => {
+    const event: WorkflowEvent = {
+      type: 'bug-scanner-completed',
+      at: AT,
+      passed: true,
+    }
+    const result = applyEvent(EMPTY_STATE, event)
+    expect(result.bugScannerPassed).toStrictEqual(true)
+  })
+
+  it('sets bugScannerPassed to false when failed', () => {
+    const state = makeState({ bugScannerPassed: true })
+    const event: WorkflowEvent = {
+      type: 'bug-scanner-completed',
+      at: AT,
+      passed: false,
+    }
+    const result = applyEvent(state, event)
+    expect(result.bugScannerPassed).toStrictEqual(false)
   })
 })
 
@@ -188,7 +213,7 @@ describe('applyEvent — feedback-checked', () => {
     expect(result.feedbackClean).toStrictEqual(true)
   })
 
-  it('sets feedbackClean to false when not clean', () => {
+  it('sets feedbackClean to false and stores unresolvedCount when not clean', () => {
     const state = makeState({ feedbackClean: true })
     const event: WorkflowEvent = {
       type: 'feedback-checked',
@@ -198,17 +223,20 @@ describe('applyEvent — feedback-checked', () => {
     }
     const result = applyEvent(state, event)
     expect(result.feedbackClean).toStrictEqual(false)
+    expect(result.feedbackUnresolvedCount).toStrictEqual(3)
   })
 })
 
 describe('applyEvent — feedback-addressed', () => {
-  it('sets feedbackAddressed to true', () => {
+  it('sets feedbackAddressed to true and stores addressedCount', () => {
     const event: WorkflowEvent = {
       type: 'feedback-addressed',
       at: AT,
+      addressedCount: 3,
     }
     const result = applyEvent(EMPTY_STATE, event)
     expect(result.feedbackAddressed).toStrictEqual(true)
+    expect(result.feedbackAddressedCount).toStrictEqual(3)
   })
 })
 
@@ -241,9 +269,9 @@ describe('applyEvent — transitioned', () => {
       type: 'transitioned',
       at: AT,
       from: 'IMPLEMENTING',
-      to: 'VERIFYING',
+      to: 'REVIEWING',
     })
-    expect(result.currentStateMachineState).toStrictEqual('VERIFYING')
+    expect(result.currentStateMachineState).toStrictEqual('REVIEWING')
   })
 
   it('sets preBlockedState when transitioning to BLOCKED', () => {
@@ -302,7 +330,7 @@ describe('applyEvents', () => {
     expect(applyEvents([])).toStrictEqual(EMPTY_STATE)
   })
 
-  it('reduces a full event sequence to correct state', () => {
+  it('reduces a full event sequence to correct state and transition', () => {
     const events: WorkflowEvent[] = [
       {
         type: 'session-started',
@@ -322,25 +350,58 @@ describe('applyEvents', () => {
         type: 'transitioned',
         at: AT,
         from: 'IMPLEMENTING',
-        to: 'VERIFYING',
+        to: 'REVIEWING',
       },
       {
-        type: 'verify-completed',
+        type: 'architecture-review-completed',
+        at: AT,
+        passed: true,
+      },
+      {
+        type: 'code-review-completed',
+        at: AT,
+        passed: true,
+      },
+      {
+        type: 'bug-scanner-completed',
         at: AT,
         passed: true,
       },
       {
         type: 'transitioned',
         at: AT,
-        from: 'VERIFYING',
-        to: 'REVIEWING',
+        from: 'REVIEWING',
+        to: 'SUBMITTING_PR',
       },
     ]
     const state = applyEvents(events)
-    expect(state.currentStateMachineState).toStrictEqual('REVIEWING')
+    expect(state.currentStateMachineState).toStrictEqual('SUBMITTING_PR')
     expect(state.githubIssue).toStrictEqual(10)
     expect(state.featureBranch).toStrictEqual('feature/foo')
-    expect(state.verifyPassed).toStrictEqual(true)
+  })
+
+  it('reduces a full event sequence preserving all review verdicts', () => {
+    const events: WorkflowEvent[] = [
+      {
+        type: 'architecture-review-completed',
+        at: AT,
+        passed: true,
+      },
+      {
+        type: 'code-review-completed',
+        at: AT,
+        passed: true,
+      },
+      {
+        type: 'bug-scanner-completed',
+        at: AT,
+        passed: true,
+      },
+    ]
+    const state = applyEvents(events)
+    expect(state.architectureReviewPassed).toStrictEqual(true)
+    expect(state.codeReviewPassed).toStrictEqual(true)
+    expect(state.bugScannerPassed).toStrictEqual(true)
   })
 
   it('handles BLOCKED/unblock round trip correctly', () => {
@@ -368,11 +429,11 @@ describe('applyEvents', () => {
       {
         type: 'transitioned',
         at: AT,
-        from: 'VERIFYING',
+        from: 'REVIEWING',
         to: 'BLOCKED',
       },
     ]
     const state = applyEvents(events)
-    expect(state.preBlockedState).toStrictEqual('VERIFYING')
+    expect(state.preBlockedState).toStrictEqual('REVIEWING')
   })
 })

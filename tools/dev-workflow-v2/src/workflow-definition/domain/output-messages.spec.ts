@@ -8,7 +8,7 @@ describe('getOperationBody', () => {
   })
 
   it('handles multiple hyphens', () => {
-    expect(getOperationBody('record-verify-passed')).toBe('Record verify passed')
+    expect(getOperationBody('record-ci-passed')).toBe('Record ci passed')
   })
 
   it('handles three-word operations', () => {

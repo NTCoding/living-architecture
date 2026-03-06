@@ -3,7 +3,6 @@ import type {
 } from './workflow-types'
 import { parseStateName } from './workflow-types'
 import { implementingState } from './states/implementing'
-import { verifyingState } from './states/verifying'
 import { reviewingState } from './states/reviewing'
 import { submittingPrState } from './states/submitting-pr'
 import { awaitingCiState } from './states/awaiting-ci'
@@ -26,7 +25,6 @@ export function getStateDefinition(state: string): ConcreteStateDefinition {
 
 export const WORKFLOW_REGISTRY: ConcreteRegistry = {
   IMPLEMENTING: implementingState,
-  VERIFYING: verifyingState,
   REVIEWING: reviewingState,
   SUBMITTING_PR: submittingPrState,
   AWAITING_CI: awaitingCiState,

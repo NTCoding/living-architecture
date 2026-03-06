@@ -11,11 +11,13 @@ You are implementing the task. Write code, commit often.
 - [ ] Implement the task following project conventions (`docs/conventions/software-design.md`, `docs/conventions/testing.md`)
 - [ ] Write tests — 100% coverage is mandatory
 - [ ] Commit your changes (working tree must be clean before transitioning)
-- [ ] Transition to VERIFYING: `/dev-workflow-v2:workflow transition VERIFYING`
+- [ ] Transition to REVIEWING: `/dev-workflow-v2:workflow transition REVIEWING`
 
 ## Constraints
 
 - You must have commits beyond the default branch before transitioning — the guard enforces this
-- All boolean flags (verifyPassed, reviewPassed, ciPassed, feedbackClean, feedbackAddressed) reset on entry to this state
+- Working tree must be clean (all changes committed) before transitioning — the guard enforces this
+- A GitHub issue must be recorded before transitioning — the guard enforces this
+- All review flags (architectureReviewPassed, codeReviewPassed, bugScannerPassed, ciPassed, feedbackClean, feedbackAddressed) reset on entry to this state
 - `git push` and `gh pr` are blocked in this state — use the workflow commands
 - If you are blocked, transition to BLOCKED: `/dev-workflow-v2:workflow transition BLOCKED`

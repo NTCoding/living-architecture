@@ -8,6 +8,7 @@ export const checkingFeedbackState: ConcreteStateDefinition = {
   agentInstructions: 'states/checking-feedback.md',
   canTransitionTo: ['REFLECTING', 'ADDRESSING_FEEDBACK', 'BLOCKED'],
   allowedWorkflowOperations: ['record-feedback-clean', 'record-feedback-exists'],
+  allowForbidden: { bash: ['gh pr view'] },
 
   transitionGuard: (ctx) => {
     if (ctx.to === 'REFLECTING' && !ctx.state.feedbackClean)

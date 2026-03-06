@@ -8,6 +8,7 @@ export const awaitingCiState: ConcreteStateDefinition = {
   agentInstructions: 'states/awaiting-ci.md',
   canTransitionTo: ['CHECKING_FEEDBACK', 'IMPLEMENTING', 'BLOCKED'],
   allowedWorkflowOperations: ['record-ci-passed', 'record-ci-failed'],
+  allowForbidden: { bash: ['gh pr checks'] },
 
   transitionGuard: (ctx) => {
     if (ctx.to === 'CHECKING_FEEDBACK' && !ctx.state.ciPassed)

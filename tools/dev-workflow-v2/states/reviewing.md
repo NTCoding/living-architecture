@@ -11,10 +11,12 @@ You are running automated code review by spawning review agents in parallel.
 - [ ] If `taskCheckPassed` is false AND a GitHub issue is recorded: also spawn `task-check` agent (see Conditional Task Check below)
 - [ ] Wait for all agents to complete and parse each agent's JSON verdict
 - [ ] If task-check returned PASS: `/dev-workflow-v2:workflow record-task-check-passed`
-- [ ] If **all** agents returned PASS: `/dev-workflow-v2:workflow record-review-passed`
-- [ ] If **any** agent returned FAIL: `/dev-workflow-v2:workflow record-review-failed <failed-agent-names...>`
-- [ ] If passed: `/dev-workflow-v2:workflow transition SUBMITTING_PR`
-- [ ] If failed: fix the issues found in the reports, commit, then `/dev-workflow-v2:workflow transition IMPLEMENTING`
+- [ ] Record each agent's verdict individually:
+  - `/dev-workflow-v2:workflow record-architecture-review-passed` or `record-architecture-review-failed`
+  - `/dev-workflow-v2:workflow record-code-review-passed` or `record-code-review-failed`
+  - `/dev-workflow-v2:workflow record-bug-scanner-passed` or `record-bug-scanner-failed`
+- [ ] If all passed: `/dev-workflow-v2:workflow transition SUBMITTING_PR`
+- [ ] If any failed: fix the issues found in the reports, commit, then `/dev-workflow-v2:workflow transition IMPLEMENTING`
 
 ## Prompt Construction
 
@@ -45,6 +47,6 @@ If `taskCheckPassed` is `false` and a GitHub issue is recorded, spawn the task-c
 
 ## Constraints
 
-- Cannot transition to SUBMITTING_PR unless reviewPassed is true
-- Cannot transition to IMPLEMENTING if reviewPassed is true (go to SUBMITTING_PR instead)
+- Cannot transition to SUBMITTING_PR unless all 3 reviews passed (architectureReviewPassed, codeReviewPassed, bugScannerPassed)
+- Cannot transition to IMPLEMENTING if all 3 reviews passed (go to SUBMITTING_PR instead)
 - If blocked, transition to BLOCKED: `/dev-workflow-v2:workflow transition BLOCKED`

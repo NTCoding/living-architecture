@@ -2,12 +2,11 @@
 
 You are checking the PR for review feedback from humans and bots.
 
+Feedback is **automatically fetched** on entry to this state. The workflow queries `gh pr view --json reviewThreads`, filters unresolved threads, and records the result as either feedback-clean or feedback-exists with an unresolved count.
+
 ## TODO
 
-- [ ] Check PR feedback: `pnpm nx run dev-workflow:get-pr-feedback`
-- [ ] Review all unresolved threads and comments
-- [ ] If no unresolved feedback: `/dev-workflow-v2:workflow record-feedback-clean`
-- [ ] If unresolved feedback exists: `/dev-workflow-v2:workflow record-feedback-exists`
+- [ ] Review the auto-fetched feedback result (check workflow state for feedbackClean / feedbackUnresolvedCount)
 - [ ] If clean — transition to REFLECTING: `/dev-workflow-v2:workflow transition REFLECTING`
 - [ ] If feedback exists — transition to ADDRESSING_FEEDBACK: `/dev-workflow-v2:workflow transition ADDRESSING_FEEDBACK`
 

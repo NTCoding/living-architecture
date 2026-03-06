@@ -26,4 +26,8 @@ function detectDefaultBranch(): string {
 function runGit(gitArgs: string): string {
   return execSync(`git ${gitArgs}`, { encoding: 'utf-8' }).trim()
 }
+
+export function runGh(ghArgs: string): string {
+  return execSync(`gh ${ghArgs}`, { encoding: 'utf-8' })
+}
 /* v8 ignore stop */

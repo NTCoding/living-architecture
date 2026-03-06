@@ -88,42 +88,75 @@ export function handleRecordBranch(
   )
 }
 
-export function handleRecordVerifyPassed(
+export function handleRecordArchitectureReviewPassed(
   _args: readonly string[],
   engine: WorkflowEngineInstance,
   deps: AdapterDeps,
 ): OperationResult {
   return toOperationResult(
-    engine.transaction(deps.getSessionId(), 'record-verify-passed', (w) => w.recordVerifyPassed()),
-  )
-}
-
-export function handleRecordVerifyFailed(
-  args: readonly string[],
-  engine: WorkflowEngineInstance,
-  deps: AdapterDeps,
-): OperationResult {
-  const output = args[1]
-  if (!output) {
-    return {
-      output: 'record-verify-failed: missing required argument <output>',
-      exitCode: EXIT_ERROR,
-    }
-  }
-  return toOperationResult(
-    engine.transaction(deps.getSessionId(), 'record-verify-failed', (w) =>
-      w.recordVerifyFailed(output),
+    engine.transaction(deps.getSessionId(), 'record-architecture-review-passed', (w) =>
+      w.recordArchitectureReviewPassed(),
     ),
   )
 }
 
-export function handleRecordReviewPassed(
+export function handleRecordArchitectureReviewFailed(
   _args: readonly string[],
   engine: WorkflowEngineInstance,
   deps: AdapterDeps,
 ): OperationResult {
   return toOperationResult(
-    engine.transaction(deps.getSessionId(), 'record-review-passed', (w) => w.recordReviewPassed()),
+    engine.transaction(deps.getSessionId(), 'record-architecture-review-failed', (w) =>
+      w.recordArchitectureReviewFailed(),
+    ),
+  )
+}
+
+export function handleRecordCodeReviewPassed(
+  _args: readonly string[],
+  engine: WorkflowEngineInstance,
+  deps: AdapterDeps,
+): OperationResult {
+  return toOperationResult(
+    engine.transaction(deps.getSessionId(), 'record-code-review-passed', (w) =>
+      w.recordCodeReviewPassed(),
+    ),
+  )
+}
+
+export function handleRecordCodeReviewFailed(
+  _args: readonly string[],
+  engine: WorkflowEngineInstance,
+  deps: AdapterDeps,
+): OperationResult {
+  return toOperationResult(
+    engine.transaction(deps.getSessionId(), 'record-code-review-failed', (w) =>
+      w.recordCodeReviewFailed(),
+    ),
+  )
+}
+
+export function handleRecordBugScannerPassed(
+  _args: readonly string[],
+  engine: WorkflowEngineInstance,
+  deps: AdapterDeps,
+): OperationResult {
+  return toOperationResult(
+    engine.transaction(deps.getSessionId(), 'record-bug-scanner-passed', (w) =>
+      w.recordBugScannerPassed(),
+    ),
+  )
+}
+
+export function handleRecordBugScannerFailed(
+  _args: readonly string[],
+  engine: WorkflowEngineInstance,
+  deps: AdapterDeps,
+): OperationResult {
+  return toOperationResult(
+    engine.transaction(deps.getSessionId(), 'record-bug-scanner-failed', (w) =>
+      w.recordBugScannerFailed(),
+    ),
   )
 }
 
@@ -135,19 +168,6 @@ export function handleRecordTaskCheckPassed(
   return toOperationResult(
     engine.transaction(deps.getSessionId(), 'record-task-check-passed', (w) =>
       w.recordTaskCheckPassed(),
-    ),
-  )
-}
-
-export function handleRecordReviewFailed(
-  args: readonly string[],
-  engine: WorkflowEngineInstance,
-  deps: AdapterDeps,
-): OperationResult {
-  const reviewers = args.slice(1)
-  return toOperationResult(
-    engine.transaction(deps.getSessionId(), 'record-review-failed', (w) =>
-      w.recordReviewFailed(reviewers),
     ),
   )
 }
@@ -243,13 +263,27 @@ export function handleRecordFeedbackExists(
 }
 
 export function handleRecordFeedbackAddressed(
-  _args: readonly string[],
+  args: readonly string[],
   engine: WorkflowEngineInstance,
   deps: AdapterDeps,
 ): OperationResult {
+  const rawCount = args[1]
+  if (!rawCount) {
+    return {
+      output: 'record-feedback-addressed: missing required argument <count>',
+      exitCode: EXIT_ERROR,
+    }
+  }
+  const count = Number.parseInt(rawCount, 10)
+  if (Number.isNaN(count)) {
+    return {
+      output: `record-feedback-addressed: not a valid number: '${rawCount}'`,
+      exitCode: EXIT_ERROR,
+    }
+  }
   return toOperationResult(
     engine.transaction(deps.getSessionId(), 'record-feedback-addressed', (w) =>
-      w.recordFeedbackAddressed(),
+      w.recordFeedbackAddressed(count),
     ),
   )
 }

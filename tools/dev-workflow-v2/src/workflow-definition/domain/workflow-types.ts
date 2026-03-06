@@ -6,7 +6,6 @@ import type {
 
 export const STATE_NAMES = [
   'IMPLEMENTING',
-  'VERIFYING',
   'REVIEWING',
   'SUBMITTING_PR',
   'AWAITING_CI',
@@ -29,12 +28,15 @@ export function createWorkflowStateSchema(stateNames: readonly [string, ...strin
     featureBranch: z.string().optional(),
     prNumber: z.number().int().positive().optional(),
     prUrl: z.string().optional(),
-    verifyPassed: z.boolean(),
-    reviewPassed: z.boolean(),
+    architectureReviewPassed: z.boolean(),
+    codeReviewPassed: z.boolean(),
+    bugScannerPassed: z.boolean(),
     taskCheckPassed: z.boolean(),
     ciPassed: z.boolean(),
     feedbackClean: z.boolean(),
     feedbackAddressed: z.boolean(),
+    feedbackUnresolvedCount: z.number().optional(),
+    feedbackAddressedCount: z.number().optional(),
     reflectionPath: z.string().optional(),
     preBlockedState: z.string().optional(),
   })
@@ -48,12 +50,15 @@ export type WorkflowState = {
   featureBranch?: string | undefined
   prNumber?: number | undefined
   prUrl?: string | undefined
-  verifyPassed: boolean
-  reviewPassed: boolean
+  architectureReviewPassed: boolean
+  codeReviewPassed: boolean
+  bugScannerPassed: boolean
   taskCheckPassed: boolean
   ciPassed: boolean
   feedbackClean: boolean
   feedbackAddressed: boolean
+  feedbackUnresolvedCount?: number | undefined
+  feedbackAddressedCount?: number | undefined
   reflectionPath?: string | undefined
   preBlockedState?: string | undefined
 }
@@ -61,10 +66,12 @@ export type WorkflowState = {
 export type WorkflowOperation =
   | 'record-issue'
   | 'record-branch'
-  | 'record-verify-passed'
-  | 'record-verify-failed'
-  | 'record-review-passed'
-  | 'record-review-failed'
+  | 'record-architecture-review-passed'
+  | 'record-architecture-review-failed'
+  | 'record-code-review-passed'
+  | 'record-code-review-failed'
+  | 'record-bug-scanner-passed'
+  | 'record-bug-scanner-failed'
   | 'record-task-check-passed'
   | 'record-pr'
   | 'record-ci-passed'
@@ -74,7 +81,7 @@ export type WorkflowOperation =
   | 'record-feedback-addressed'
   | 'record-reflection'
 
-type ForbiddenBashCommand = 'git push' | 'gh pr'
+type ForbiddenBashCommand = 'git push' | 'gh pr' | 'gh pr checks' | 'gh pr view'
 
 export type ConcreteStateDefinition = WorkflowStateDefinition<
   WorkflowState,
@@ -92,8 +99,9 @@ export type ConcreteRegistry = WorkflowRegistry<
 
 export const INITIAL_STATE: WorkflowState = {
   currentStateMachineState: 'IMPLEMENTING',
-  verifyPassed: false,
-  reviewPassed: false,
+  architectureReviewPassed: false,
+  codeReviewPassed: false,
+  bugScannerPassed: false,
   taskCheckPassed: false,
   ciPassed: false,
   feedbackClean: false,
@@ -106,7 +114,6 @@ export function parseStateName(value: string): StateName {
 
 export const STATE_EMOJI_MAP: Readonly<Record<StateName, string>> = {
   IMPLEMENTING: '🔨',
-  VERIFYING: '🔍',
   REVIEWING: '📋',
   SUBMITTING_PR: '🚀',
   AWAITING_CI: '⏳',

@@ -12,6 +12,10 @@ function makeWorkflowDeps(): WorkflowDeps {
       hasCommitsVsDefault: false,
     }),
     checkPrChecks: () => true,
+    getPrFeedback: () => ({
+      unresolvedCount: 0,
+      threads: [],
+    }),
     now: () => '2026-01-01T00:00:00Z',
   }
 }

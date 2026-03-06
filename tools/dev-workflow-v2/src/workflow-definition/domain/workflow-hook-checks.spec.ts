@@ -1,5 +1,9 @@
 import {
-  spec, eventsToSubmittingPr, eventsToVerifying 
+  spec,
+  eventsToSubmittingPr,
+  eventsToReviewing,
+  eventsToAwaitingCi,
+  eventsToCheckingFeedback,
 } from './fixtures/workflow-test-fixtures'
 
 describe('Workflow', () => {
@@ -82,18 +86,110 @@ describe('Workflow', () => {
       })
     })
 
-    it('blocks git push in VERIFYING', () => {
+    it('blocks git push in REVIEWING', () => {
       const { result } = spec
-        .given(...eventsToVerifying())
+        .given(...eventsToReviewing())
         .when((wf) => wf.checkBashAllowed('Bash', 'git push origin main'))
+      expect(result.pass).toBe(false)
+    })
+
+    it('allows gh pr checks in AWAITING_CI (exempt via allowForbidden)', () => {
+      const { result } = spec
+        .given(...eventsToAwaitingCi())
+        .when((wf) => wf.checkBashAllowed('Bash', 'gh pr checks 99'))
+      expect(result).toStrictEqual({ pass: true })
+    })
+
+    it('blocks gh pr create in AWAITING_CI', () => {
+      const { result } = spec
+        .given(...eventsToAwaitingCi())
+        .when((wf) => wf.checkBashAllowed('Bash', 'gh pr create'))
+      expect(result.pass).toBe(false)
+    })
+
+    it('blocks chained commands after exempt command in AWAITING_CI', () => {
+      const { result } = spec
+        .given(...eventsToAwaitingCi())
+        .when((wf) => wf.checkBashAllowed('Bash', 'gh pr checks 99 && gh pr merge 99'))
+      expect(result.pass).toBe(false)
+    })
+
+    it('blocks semicolon-chained commands after exempt command', () => {
+      const { result } = spec
+        .given(...eventsToAwaitingCi())
+        .when((wf) => wf.checkBashAllowed('Bash', 'gh pr checks 99; gh pr merge 99'))
+      expect(result.pass).toBe(false)
+    })
+
+    it('allows gh pr view in CHECKING_FEEDBACK (exempt via allowForbidden)', () => {
+      const { result } = spec
+        .given(...eventsToCheckingFeedback())
+        .when((wf) => wf.checkBashAllowed('Bash', 'gh pr view 99 --json reviews,comments'))
+      expect(result).toStrictEqual({ pass: true })
+    })
+
+    it('blocks gh pr create in CHECKING_FEEDBACK', () => {
+      const { result } = spec
+        .given(...eventsToCheckingFeedback())
+        .when((wf) => wf.checkBashAllowed('Bash', 'gh pr create'))
       expect(result.pass).toBe(false)
     })
   })
 
-  describe('verifyIdentity', () => {
-    it('always returns pass', () => {
-      const { result } = spec.given().when((wf) => wf.verifyIdentity('/test-output/transcript'))
+  describe('checkWriteAllowed', () => {
+    it('allows writes to normal files', () => {
+      const { result } = spec.given().when((wf) => wf.checkWriteAllowed('/src/foo.ts'))
       expect(result).toStrictEqual({ pass: true })
+    })
+
+    it('blocks writes to nx.json', () => {
+      const { result } = spec.given().when((wf) => wf.checkWriteAllowed('/project/nx.json'))
+      expect(result.pass).toBe(false)
+      expect(result).toMatchObject({ reason: expect.stringContaining('nx.json') })
+    })
+
+    it('blocks writes to tsconfig.base.json', () => {
+      const { result } = spec
+        .given()
+        .when((wf) => wf.checkWriteAllowed('/project/tsconfig.base.json'))
+      expect(result.pass).toBe(false)
+    })
+
+    it('blocks writes to eslint.config.mjs', () => {
+      const { result } = spec
+        .given()
+        .when((wf) => wf.checkWriteAllowed('/project/eslint.config.mjs'))
+      expect(result.pass).toBe(false)
+    })
+
+    it('blocks writes to vitest.config.ts', () => {
+      const { result } = spec
+        .given()
+        .when((wf) => wf.checkWriteAllowed('/project/vitest.config.ts'))
+      expect(result.pass).toBe(false)
+    })
+
+    it('blocks writes to vite.config.ts', () => {
+      const { result } = spec.given().when((wf) => wf.checkWriteAllowed('/project/vite.config.ts'))
+      expect(result.pass).toBe(false)
+    })
+
+    it('allows writes to project-level tsconfig.json', () => {
+      const { result } = spec
+        .given()
+        .when((wf) => wf.checkWriteAllowed('/project/packages/foo/tsconfig.json'))
+      expect(result).toStrictEqual({ pass: true })
+    })
+
+    it('appends write-checked event', () => {
+      const { events } = spec.given().when((wf) => wf.checkWriteAllowed('/src/foo.ts'))
+      expect(events).toHaveLength(1)
+      expect(events[0]).toMatchObject({
+        type: 'write-checked',
+        tool: 'Write',
+        filePath: '/src/foo.ts',
+        allowed: true,
+      })
     })
   })
 })

@@ -9,10 +9,85 @@ import {
   eventsToAddressingFeedback,
   eventsToReflecting,
   eventsToComplete,
+  eventsToAwaitingCi,
+  ciPassed,
 } from './fixtures/workflow-test-fixtures'
 
 describe('Workflow', () => {
   describe('CHECKING_FEEDBACK state', () => {
+    it('auto-fetches feedback on entry and sets feedbackClean when no unresolved', () => {
+      const {
+        state, events 
+      } = spec
+        .given(...eventsToAwaitingCi(), ciPassed())
+        .withDeps({
+          getPrFeedback: () => ({
+            unresolvedCount: 0,
+            threads: [],
+          }),
+        })
+        .when((wf) => wf.transitionTo('CHECKING_FEEDBACK'))
+      expect(state.feedbackClean).toBe(true)
+      expect(events).toStrictEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            type: 'feedback-checked',
+            clean: true,
+          }),
+        ]),
+      )
+    })
+
+    it('auto-fetches feedback on entry and sets feedbackClean=false with count when unresolved', () => {
+      const {
+        state, events 
+      } = spec
+        .given(...eventsToAwaitingCi(), ciPassed())
+        .withDeps({
+          getPrFeedback: () => ({
+            unresolvedCount: 3,
+            threads: [
+              {
+                id: 't1',
+                isResolved: false,
+                isOutdated: false,
+                path: 'f.ts',
+                line: 1,
+                comments: [],
+              },
+              {
+                id: 't2',
+                isResolved: false,
+                isOutdated: false,
+                path: 'g.ts',
+                line: 2,
+                comments: [],
+              },
+              {
+                id: 't3',
+                isResolved: false,
+                isOutdated: false,
+                path: 'h.ts',
+                line: 3,
+                comments: [],
+              },
+            ],
+          }),
+        })
+        .when((wf) => wf.transitionTo('CHECKING_FEEDBACK'))
+      expect(state.feedbackClean).toBe(false)
+      expect(state.feedbackUnresolvedCount).toBe(3)
+      expect(events).toStrictEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            type: 'feedback-checked',
+            clean: false,
+            unresolvedCount: 3,
+          }),
+        ]),
+      )
+    })
+
     it('transitions to REFLECTING when feedback clean', () => {
       const {
         result, state 
@@ -57,7 +132,7 @@ describe('Workflow', () => {
       expect(state.feedbackClean).toBe(true)
     })
 
-    it('records feedback exists', () => {
+    it('records feedback exists with unresolved count', () => {
       const {
         result, state 
       } = spec
@@ -65,6 +140,7 @@ describe('Workflow', () => {
         .when((wf) => wf.recordFeedbackExists(3))
       expect(result).toStrictEqual({ pass: true })
       expect(state.feedbackClean).toBe(false)
+      expect(state.feedbackUnresolvedCount).toBe(3)
     })
 
     it('fails recordFeedbackClean in non-CHECKING_FEEDBACK states', () => {
@@ -89,35 +165,44 @@ describe('Workflow', () => {
   })
 
   describe('ADDRESSING_FEEDBACK state', () => {
-    it('transitions to VERIFYING when feedback addressed', () => {
+    it('transitions to REVIEWING when feedback addressed with matching count', () => {
       const {
         result, state 
       } = spec
-        .given(...eventsToAddressingFeedback(), feedbackAddressed())
-        .when((wf) => wf.transitionTo('VERIFYING'))
+        .given(...eventsToAddressingFeedback(), feedbackAddressed(3))
+        .when((wf) => wf.transitionTo('REVIEWING'))
       expect(result).toStrictEqual({ pass: true })
-      expect(state.currentStateMachineState).toBe('VERIFYING')
+      expect(state.currentStateMachineState).toBe('REVIEWING')
     })
 
-    it('fails transition to VERIFYING when feedback not addressed', () => {
+    it('fails transition to REVIEWING when feedback not addressed', () => {
       const { result } = spec
         .given(...eventsToAddressingFeedback())
-        .when((wf) => wf.transitionTo('VERIFYING'))
+        .when((wf) => wf.transitionTo('REVIEWING'))
       expect(result.pass).toBe(false)
     })
 
-    it('records feedback addressed', () => {
+    it('fails transition when addressedCount is less than unresolvedCount', () => {
+      const { result } = spec
+        .given(...eventsToAddressingFeedback(), feedbackAddressed(1))
+        .when((wf) => wf.transitionTo('REVIEWING'))
+      expect(result.pass).toBe(false)
+      expect(result).toMatchObject({ reason: expect.stringContaining('1 of 3') })
+    })
+
+    it('records feedback addressed with count', () => {
       const {
         result, state 
       } = spec
         .given(...eventsToAddressingFeedback())
-        .when((wf) => wf.recordFeedbackAddressed())
+        .when((wf) => wf.recordFeedbackAddressed(3))
       expect(result).toStrictEqual({ pass: true })
       expect(state.feedbackAddressed).toBe(true)
+      expect(state.feedbackAddressedCount).toBe(3)
     })
 
     it('fails recordFeedbackAddressed in non-ADDRESSING_FEEDBACK states', () => {
-      const { result } = spec.given().when((wf) => wf.recordFeedbackAddressed())
+      const { result } = spec.given().when((wf) => wf.recordFeedbackAddressed(1))
       expect(result.pass).toBe(false)
     })
 
@@ -125,6 +210,7 @@ describe('Workflow', () => {
       const { state } = spec.given(...eventsToAddressingFeedback()).when((wf) => wf.getState())
       expect(state.feedbackAddressed).toBe(false)
       expect(state.feedbackClean).toBe(false)
+      expect(state.feedbackAddressedCount).toBeUndefined()
     })
 
     it('transitions to BLOCKED', () => {

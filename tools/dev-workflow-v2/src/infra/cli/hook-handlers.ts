@@ -68,8 +68,41 @@ function extractBashCommand(toolInput: Record<string, unknown>): string {
   return raw
 }
 
+function extractWriteFilePath(toolInput: Record<string, unknown>): string {
+  const raw = toolInput['file_path']
+  if (raw === undefined || raw === null) {
+    throw new WorkflowError('Expected Write/Edit tool_input to have a file_path field')
+  }
+  if (typeof raw !== 'string') {
+    throw new WorkflowError(
+      `Expected tool_input.file_path to be string. Got ${typeof raw}: ${String(raw)}`,
+    )
+  }
+  return raw
+}
+
 function handlePreToolUse(engine: WorkflowEngineInstance, deps: AdapterDeps): OperationResult {
   const hookInput = parsePreToolUseInput(deps.readStdin())
+
+  if (hookInput.tool_name === 'Write' || hookInput.tool_name === 'Edit') {
+    const filePath = extractWriteFilePath(hookInput.tool_input)
+    const writeCheck = engine.transaction(
+      hookInput.session_id,
+      'hook-check',
+      (w) => w.checkWriteAllowed(filePath),
+      hookInput.transcript_path,
+    )
+    if (writeCheck.type === 'blocked') {
+      return {
+        output: formatDenyDecision(writeCheck.output),
+        exitCode: EXIT_BLOCK,
+      }
+    }
+    return {
+      output: '',
+      exitCode: EXIT_ALLOW,
+    }
+  }
 
   if (hookInput.tool_name !== 'Bash') {
     return {

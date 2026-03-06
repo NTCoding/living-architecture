@@ -1,7 +1,9 @@
 import {
   spec,
-  reviewPassed,
-  reviewFailed,
+  architectureReviewPassed,
+  codeReviewPassed,
+  codeReviewFailed,
+  allReviewsPassed,
   prRecorded,
   ciPassed,
   ciFailed,
@@ -12,84 +14,137 @@ import {
 
 describe('Workflow', () => {
   describe('REVIEWING state', () => {
-    it('transitions to SUBMITTING_PR when review passed', () => {
+    it('transitions to SUBMITTING_PR when all reviews passed', () => {
       const {
         result, state 
       } = spec
-        .given(...eventsToReviewing(), reviewPassed())
+        .given(...eventsToReviewing(), ...allReviewsPassed())
         .when((wf) => wf.transitionTo('SUBMITTING_PR'))
       expect(result).toStrictEqual({ pass: true })
       expect(state.currentStateMachineState).toBe('SUBMITTING_PR')
     })
 
-    it('fails transition to SUBMITTING_PR when review not passed', () => {
+    it('fails transition to SUBMITTING_PR when not all reviews passed', () => {
+      const { result } = spec
+        .given(...eventsToReviewing(), architectureReviewPassed(), codeReviewPassed())
+        .when((wf) => wf.transitionTo('SUBMITTING_PR'))
+      expect(result.pass).toBe(false)
+    })
+
+    it('fails transition to SUBMITTING_PR when no reviews recorded', () => {
       const { result } = spec
         .given(...eventsToReviewing())
         .when((wf) => wf.transitionTo('SUBMITTING_PR'))
       expect(result.pass).toBe(false)
     })
 
-    it('transitions to IMPLEMENTING when review failed', () => {
+    it('transitions to IMPLEMENTING when a review failed', () => {
       const {
         result, state 
       } = spec
-        .given(...eventsToReviewing(), reviewFailed())
+        .given(...eventsToReviewing(), codeReviewFailed())
         .when((wf) => wf.transitionTo('IMPLEMENTING'))
       expect(result).toStrictEqual({ pass: true })
       expect(state.currentStateMachineState).toBe('IMPLEMENTING')
     })
 
-    it('fails transition to IMPLEMENTING when review passed', () => {
+    it('fails transition to IMPLEMENTING when all reviews passed', () => {
       const { result } = spec
-        .given(...eventsToReviewing(), reviewPassed())
+        .given(...eventsToReviewing(), ...allReviewsPassed())
         .when((wf) => wf.transitionTo('IMPLEMENTING'))
       expect(result.pass).toBe(false)
     })
 
-    it('records review passed', () => {
+    it('records architecture review passed', () => {
       const {
         result, state, events 
       } = spec
         .given(...eventsToReviewing())
-        .when((wf) => wf.recordReviewPassed())
+        .when((wf) => wf.recordArchitectureReviewPassed())
       expect(result).toStrictEqual({ pass: true })
-      expect(state.reviewPassed).toBe(true)
+      expect(state.architectureReviewPassed).toBe(true)
       expect(events).toStrictEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            type: 'review-completed',
+            type: 'architecture-review-completed',
             passed: true,
           }),
         ]),
       )
     })
 
-    it('records review failed', () => {
+    it('records architecture review failed', () => {
       const {
-        result, state, events 
+        result, state 
       } = spec
         .given(...eventsToReviewing())
-        .when((wf) => wf.recordReviewFailed(['code-review']))
+        .when((wf) => wf.recordArchitectureReviewFailed())
       expect(result).toStrictEqual({ pass: true })
-      expect(state.reviewPassed).toBe(false)
-      expect(events).toStrictEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            type: 'review-completed',
-            passed: false,
-          }),
-        ]),
-      )
+      expect(state.architectureReviewPassed).toBe(false)
     })
 
-    it('fails recordReviewPassed in non-REVIEWING states', () => {
-      const { result } = spec.given().when((wf) => wf.recordReviewPassed())
-      expect(result.pass).toBe(false)
+    it('records code review passed', () => {
+      const {
+        result, state 
+      } = spec
+        .given(...eventsToReviewing())
+        .when((wf) => wf.recordCodeReviewPassed())
+      expect(result).toStrictEqual({ pass: true })
+      expect(state.codeReviewPassed).toBe(true)
     })
 
-    it('fails recordReviewFailed in non-REVIEWING states', () => {
-      const { result } = spec.given().when((wf) => wf.recordReviewFailed(['x']))
-      expect(result.pass).toBe(false)
+    it('records code review failed', () => {
+      const {
+        result, state 
+      } = spec
+        .given(...eventsToReviewing())
+        .when((wf) => wf.recordCodeReviewFailed())
+      expect(result).toStrictEqual({ pass: true })
+      expect(state.codeReviewPassed).toBe(false)
+    })
+
+    it('records bug scanner passed', () => {
+      const {
+        result, state 
+      } = spec
+        .given(...eventsToReviewing())
+        .when((wf) => wf.recordBugScannerPassed())
+      expect(result).toStrictEqual({ pass: true })
+      expect(state.bugScannerPassed).toBe(true)
+    })
+
+    it('records bug scanner failed', () => {
+      const {
+        result, state 
+      } = spec
+        .given(...eventsToReviewing())
+        .when((wf) => wf.recordBugScannerFailed())
+      expect(result).toStrictEqual({ pass: true })
+      expect(state.bugScannerPassed).toBe(false)
+    })
+
+    it('fails recordArchitectureReviewPassed in non-REVIEWING states', () => {
+      expect(spec.given().when((wf) => wf.recordArchitectureReviewPassed()).result.pass).toBe(false)
+    })
+
+    it('fails recordCodeReviewPassed in non-REVIEWING states', () => {
+      expect(spec.given().when((wf) => wf.recordCodeReviewPassed()).result.pass).toBe(false)
+    })
+
+    it('fails recordBugScannerPassed in non-REVIEWING states', () => {
+      expect(spec.given().when((wf) => wf.recordBugScannerPassed()).result.pass).toBe(false)
+    })
+
+    it('fails recordArchitectureReviewFailed in non-REVIEWING states', () => {
+      expect(spec.given().when((wf) => wf.recordArchitectureReviewFailed()).result.pass).toBe(false)
+    })
+
+    it('fails recordCodeReviewFailed in non-REVIEWING states', () => {
+      expect(spec.given().when((wf) => wf.recordCodeReviewFailed()).result.pass).toBe(false)
+    })
+
+    it('fails recordBugScannerFailed in non-REVIEWING states', () => {
+      expect(spec.given().when((wf) => wf.recordBugScannerFailed()).result.pass).toBe(false)
     })
 
     it('records task check passed', () => {

@@ -63,60 +63,60 @@ describe('WORKFLOW_EVENT_SCHEMA — branch-recorded', () => {
   })
 })
 
-describe('WORKFLOW_EVENT_SCHEMA — verify-completed', () => {
+describe('WORKFLOW_EVENT_SCHEMA — architecture-review-completed', () => {
   it('accepts passed payload', () => {
     const result = WORKFLOW_EVENT_SCHEMA.parse({
-      type: 'verify-completed',
+      type: 'architecture-review-completed',
       at: AT,
       passed: true,
     })
-    expect(result.type).toStrictEqual('verify-completed')
-  })
-
-  it('accepts failed payload with output', () => {
-    const result = WORKFLOW_EVENT_SCHEMA.parse({
-      type: 'verify-completed',
-      at: AT,
-      passed: false,
-      output: 'lint errors',
-    })
-    expect(result.type).toStrictEqual('verify-completed')
+    expect(result.type).toStrictEqual('architecture-review-completed')
   })
 
   it('rejects missing passed', () => {
     expect(() =>
       WORKFLOW_EVENT_SCHEMA.parse({
-        type: 'verify-completed',
+        type: 'architecture-review-completed',
         at: AT,
       }),
     ).toThrow('Required')
   })
 })
 
-describe('WORKFLOW_EVENT_SCHEMA — review-completed', () => {
+describe('WORKFLOW_EVENT_SCHEMA — code-review-completed', () => {
   it('accepts passed payload', () => {
     const result = WORKFLOW_EVENT_SCHEMA.parse({
-      type: 'review-completed',
+      type: 'code-review-completed',
       at: AT,
       passed: true,
     })
-    expect(result.type).toStrictEqual('review-completed')
-  })
-
-  it('accepts failed payload with failedReviewers', () => {
-    const result = WORKFLOW_EVENT_SCHEMA.parse({
-      type: 'review-completed',
-      at: AT,
-      passed: false,
-      failedReviewers: ['code-review'],
-    })
-    expect(result.type).toStrictEqual('review-completed')
+    expect(result.type).toStrictEqual('code-review-completed')
   })
 
   it('rejects missing passed', () => {
     expect(() =>
       WORKFLOW_EVENT_SCHEMA.parse({
-        type: 'review-completed',
+        type: 'code-review-completed',
+        at: AT,
+      }),
+    ).toThrow('Required')
+  })
+})
+
+describe('WORKFLOW_EVENT_SCHEMA — bug-scanner-completed', () => {
+  it('accepts passed payload', () => {
+    const result = WORKFLOW_EVENT_SCHEMA.parse({
+      type: 'bug-scanner-completed',
+      at: AT,
+      passed: true,
+    })
+    expect(result.type).toStrictEqual('bug-scanner-completed')
+  })
+
+  it('rejects missing passed', () => {
+    expect(() =>
+      WORKFLOW_EVENT_SCHEMA.parse({
+        type: 'bug-scanner-completed',
         at: AT,
       }),
     ).toThrow('Required')
@@ -214,12 +214,22 @@ describe('WORKFLOW_EVENT_SCHEMA — feedback-checked', () => {
 })
 
 describe('WORKFLOW_EVENT_SCHEMA — feedback-addressed', () => {
-  it('accepts valid payload', () => {
+  it('accepts valid payload with addressedCount', () => {
     const result = WORKFLOW_EVENT_SCHEMA.parse({
       type: 'feedback-addressed',
       at: AT,
+      addressedCount: 3,
     })
     expect(result.type).toStrictEqual('feedback-addressed')
+  })
+
+  it('rejects missing addressedCount', () => {
+    expect(() =>
+      WORKFLOW_EVENT_SCHEMA.parse({
+        type: 'feedback-addressed',
+        at: AT,
+      }),
+    ).toThrow('Required')
   })
 
   it('rejects missing at', () => {
@@ -339,7 +349,7 @@ describe('WORKFLOW_EVENT_SCHEMA — transitioned', () => {
       type: 'transitioned',
       at: AT,
       from: 'IMPLEMENTING',
-      to: 'VERIFYING',
+      to: 'REVIEWING',
     })
     expect(result.type).toStrictEqual('transitioned')
   })
@@ -360,7 +370,7 @@ describe('WORKFLOW_EVENT_SCHEMA — transitioned', () => {
       WORKFLOW_EVENT_SCHEMA.parse({
         type: 'transitioned',
         at: AT,
-        to: 'VERIFYING',
+        to: 'REVIEWING',
       }),
     ).toThrow('Required')
   })

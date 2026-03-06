@@ -26,18 +26,22 @@ const BRANCH_RECORDED_SCHEMA = z.object({
   branch: z.string(),
 })
 
-const VERIFY_COMPLETED_SCHEMA = z.object({
-  type: z.literal('verify-completed'),
+const ARCHITECTURE_REVIEW_COMPLETED_SCHEMA = z.object({
+  type: z.literal('architecture-review-completed'),
   at: z.string(),
   passed: z.boolean(),
-  output: z.string().optional(),
 })
 
-const REVIEW_COMPLETED_SCHEMA = z.object({
-  type: z.literal('review-completed'),
+const CODE_REVIEW_COMPLETED_SCHEMA = z.object({
+  type: z.literal('code-review-completed'),
   at: z.string(),
   passed: z.boolean(),
-  failedReviewers: z.array(z.string()).optional(),
+})
+
+const BUG_SCANNER_COMPLETED_SCHEMA = z.object({
+  type: z.literal('bug-scanner-completed'),
+  at: z.string(),
+  passed: z.boolean(),
 })
 
 const PR_RECORDED_SCHEMA = z.object({
@@ -64,6 +68,7 @@ const FEEDBACK_CHECKED_SCHEMA = z.object({
 const FEEDBACK_ADDRESSED_SCHEMA = z.object({
   type: z.literal('feedback-addressed'),
   at: z.string(),
+  addressedCount: z.number(),
 })
 
 const REFLECTION_WRITTEN_SCHEMA = z.object({
@@ -100,8 +105,9 @@ export const WORKFLOW_EVENT_SCHEMA = z.discriminatedUnion('type', [
   TRANSITIONED_SCHEMA,
   ISSUE_RECORDED_SCHEMA,
   BRANCH_RECORDED_SCHEMA,
-  VERIFY_COMPLETED_SCHEMA,
-  REVIEW_COMPLETED_SCHEMA,
+  ARCHITECTURE_REVIEW_COMPLETED_SCHEMA,
+  CODE_REVIEW_COMPLETED_SCHEMA,
+  BUG_SCANNER_COMPLETED_SCHEMA,
   PR_RECORDED_SCHEMA,
   CI_COMPLETED_SCHEMA,
   FEEDBACK_CHECKED_SCHEMA,

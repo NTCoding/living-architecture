@@ -3,8 +3,9 @@ import type { WorkflowState } from './workflow-types'
 
 export const EMPTY_STATE: WorkflowState = {
   currentStateMachineState: 'IMPLEMENTING',
-  verifyPassed: false,
-  reviewPassed: false,
+  architectureReviewPassed: false,
+  codeReviewPassed: false,
+  bugScannerPassed: false,
   taskCheckPassed: false,
   ciPassed: false,
   feedbackClean: false,
@@ -23,9 +24,7 @@ function applyTransitioned(
   }
 }
 
-export function applyEvent(state: WorkflowState, event: WorkflowEvent): WorkflowState {
-  if (event.type === 'transitioned') return applyTransitioned(state, event)
-
+function applyRecordingEvent(state: WorkflowState, event: WorkflowEvent): WorkflowState {
   switch (event.type) {
     case 'issue-recorded':
       return {
@@ -37,15 +36,20 @@ export function applyEvent(state: WorkflowState, event: WorkflowEvent): Workflow
         ...state,
         featureBranch: event.branch,
       }
-    case 'verify-completed':
+    case 'architecture-review-completed':
       return {
         ...state,
-        verifyPassed: event.passed,
+        architectureReviewPassed: event.passed,
       }
-    case 'review-completed':
+    case 'code-review-completed':
       return {
         ...state,
-        reviewPassed: event.passed,
+        codeReviewPassed: event.passed,
+      }
+    case 'bug-scanner-completed':
+      return {
+        ...state,
+        bugScannerPassed: event.passed,
       }
     case 'pr-recorded':
       return {
@@ -62,11 +66,13 @@ export function applyEvent(state: WorkflowState, event: WorkflowEvent): Workflow
       return {
         ...state,
         feedbackClean: event.clean,
+        feedbackUnresolvedCount: event.unresolvedCount,
       }
     case 'feedback-addressed':
       return {
         ...state,
         feedbackAddressed: true,
+        feedbackAddressedCount: event.addressedCount,
       }
     case 'reflection-written':
       return {
@@ -78,9 +84,14 @@ export function applyEvent(state: WorkflowState, event: WorkflowEvent): Workflow
         ...state,
         taskCheckPassed: true,
       }
+    default:
+      return state
   }
+}
 
-  return state
+export function applyEvent(state: WorkflowState, event: WorkflowEvent): WorkflowState {
+  if (event.type === 'transitioned') return applyTransitioned(state, event)
+  return applyRecordingEvent(state, event)
 }
 
 export function applyEvents(events: readonly WorkflowEvent[]): WorkflowState {

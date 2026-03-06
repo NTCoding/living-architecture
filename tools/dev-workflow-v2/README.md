@@ -17,22 +17,19 @@ This initializes the workflow and loads the first state's instructions. From the
 ```mermaid
 stateDiagram-v2
     [*] --> IMPLEMENTING
-    IMPLEMENTING --> VERIFYING
-    VERIFYING --> REVIEWING : verify passed
-    VERIFYING --> IMPLEMENTING : verify failed
-    REVIEWING --> SUBMITTING_PR : review passed
+    IMPLEMENTING --> REVIEWING
+    REVIEWING --> SUBMITTING_PR : all reviews passed
     REVIEWING --> IMPLEMENTING : review failed
     SUBMITTING_PR --> AWAITING_CI
     AWAITING_CI --> CHECKING_FEEDBACK : CI passed
     AWAITING_CI --> IMPLEMENTING : CI failed
     CHECKING_FEEDBACK --> REFLECTING : no feedback
     CHECKING_FEEDBACK --> ADDRESSING_FEEDBACK : feedback exists
-    ADDRESSING_FEEDBACK --> VERIFYING
+    ADDRESSING_FEEDBACK --> REVIEWING
     REFLECTING --> COMPLETE
     COMPLETE --> [*]
 
     IMPLEMENTING --> BLOCKED
-    VERIFYING --> BLOCKED
     REVIEWING --> BLOCKED
     SUBMITTING_PR --> BLOCKED
     AWAITING_CI --> BLOCKED

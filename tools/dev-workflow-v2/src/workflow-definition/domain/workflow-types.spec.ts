@@ -22,8 +22,9 @@ describe('createWorkflowStateSchema — WorkflowState', () => {
   it('parses valid minimal state', () => {
     const raw = {
       currentStateMachineState: 'IMPLEMENTING',
-      verifyPassed: false,
-      reviewPassed: false,
+      architectureReviewPassed: false,
+      codeReviewPassed: false,
+      bugScannerPassed: false,
       taskCheckPassed: false,
       ciPassed: false,
       feedbackClean: false,
@@ -36,8 +37,9 @@ describe('createWorkflowStateSchema — WorkflowState', () => {
   it('parses state with all optional fields', () => {
     const raw = {
       currentStateMachineState: 'SUBMITTING_PR',
-      verifyPassed: true,
-      reviewPassed: true,
+      architectureReviewPassed: true,
+      codeReviewPassed: true,
+      bugScannerPassed: true,
       taskCheckPassed: false,
       ciPassed: false,
       feedbackClean: false,
@@ -48,18 +50,22 @@ describe('createWorkflowStateSchema — WorkflowState', () => {
       prUrl: 'https://github.com/owner/repo/pull/7',
       reflectionPath: '/test-output/reflection.md',
       preBlockedState: 'IMPLEMENTING',
+      feedbackUnresolvedCount: 3,
+      feedbackAddressedCount: 3,
     }
     const parsed = workflowStateSchema.parse(raw)
     expect(parsed.githubIssue).toStrictEqual(42)
     expect(parsed.prNumber).toStrictEqual(7)
     expect(parsed.preBlockedState).toStrictEqual('IMPLEMENTING')
+    expect(parsed.feedbackUnresolvedCount).toStrictEqual(3)
   })
 
   it('rejects invalid state name', () => {
     const raw = {
       currentStateMachineState: 'INVALID',
-      verifyPassed: false,
-      reviewPassed: false,
+      architectureReviewPassed: false,
+      codeReviewPassed: false,
+      bugScannerPassed: false,
       taskCheckPassed: false,
       ciPassed: false,
       feedbackClean: false,
@@ -71,8 +77,9 @@ describe('createWorkflowStateSchema — WorkflowState', () => {
   it('rejects negative githubIssue', () => {
     const raw = {
       currentStateMachineState: 'IMPLEMENTING',
-      verifyPassed: false,
-      reviewPassed: false,
+      architectureReviewPassed: false,
+      codeReviewPassed: false,
+      bugScannerPassed: false,
       taskCheckPassed: false,
       ciPassed: false,
       feedbackClean: false,
@@ -85,8 +92,9 @@ describe('createWorkflowStateSchema — WorkflowState', () => {
   it('accepts optional preBlockedState', () => {
     const raw = {
       currentStateMachineState: 'BLOCKED',
-      verifyPassed: false,
-      reviewPassed: false,
+      architectureReviewPassed: false,
+      codeReviewPassed: false,
+      bugScannerPassed: false,
       taskCheckPassed: false,
       ciPassed: false,
       feedbackClean: false,

@@ -7,8 +7,11 @@ import { createStore } from '@ntcoding/agentic-workflow-builder/event-store'
 import {
   getSessionId, getPluginRoot, getEnvFilePath, getDbPath 
 } from '../infra/cli/environment'
-import { getGitInfo } from '../infra/cli/git'
+import {
+  getGitInfo, runGh 
+} from '../infra/cli/git'
 import { readStdinSync } from '../infra/cli/stdin'
+import { createGetPrFeedback } from '../infra/github/get-pr-feedback'
 
 export type AdapterDeps = {
   readonly getSessionId: () => string
@@ -33,6 +36,7 @@ export function buildRealDeps(): AdapterDeps {
   const workflowDeps: WorkflowDeps = {
     getGitInfo,
     checkPrChecks: () => true,
+    getPrFeedback: createGetPrFeedback(runGh),
     now: () => new Date().toISOString(),
   }
 

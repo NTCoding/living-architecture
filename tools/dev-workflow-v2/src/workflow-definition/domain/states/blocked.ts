@@ -8,7 +8,6 @@ export const blockedState: ConcreteStateDefinition = {
   agentInstructions: 'states/blocked.md',
   canTransitionTo: [
     'IMPLEMENTING',
-    'VERIFYING',
     'REVIEWING',
     'SUBMITTING_PR',
     'AWAITING_CI',

@@ -22,10 +22,19 @@ export const gitWithCommits: GitInfo = {
   changedFilesVsDefault: ['src/foo.ts'],
 }
 
+export const gitWithDirtyTree: GitInfo = {
+  ...gitWithCommits,
+  workingTreeClean: false,
+}
+
 export function makeDeps(overrides?: Partial<WorkflowDeps>): WorkflowDeps {
   return {
     getGitInfo: () => cleanGit,
     checkPrChecks: () => true,
+    getPrFeedback: () => ({
+      unresolvedCount: 0,
+      threads: [],
+    }),
     now: () => AT,
     ...overrides,
   }
@@ -56,38 +65,40 @@ export function transitioned(from: string, to: string): WorkflowEvent {
   }
 }
 
-export function verifyPassed(): WorkflowEvent {
+export function architectureReviewPassed(): WorkflowEvent {
   return {
-    type: 'verify-completed',
+    type: 'architecture-review-completed',
     at: AT,
     passed: true,
   }
 }
 
-export function verifyFailed(): WorkflowEvent {
+export function codeReviewPassed(): WorkflowEvent {
   return {
-    type: 'verify-completed',
-    at: AT,
-    passed: false,
-    output: 'lint errors',
-  }
-}
-
-export function reviewPassed(): WorkflowEvent {
-  return {
-    type: 'review-completed',
+    type: 'code-review-completed',
     at: AT,
     passed: true,
   }
 }
 
-export function reviewFailed(): WorkflowEvent {
+export function codeReviewFailed(): WorkflowEvent {
   return {
-    type: 'review-completed',
+    type: 'code-review-completed',
     at: AT,
     passed: false,
-    failedReviewers: ['code-review'],
   }
+}
+
+function bugScannerPassed(): WorkflowEvent {
+  return {
+    type: 'bug-scanner-completed',
+    at: AT,
+    passed: true,
+  }
+}
+
+export function allReviewsPassed(): readonly WorkflowEvent[] {
+  return [architectureReviewPassed(), codeReviewPassed(), bugScannerPassed()]
 }
 
 export function prRecorded(n: number, url?: string): WorkflowEvent {
@@ -133,10 +144,11 @@ export function feedbackExists(count: number): WorkflowEvent {
   }
 }
 
-export function feedbackAddressed(): WorkflowEvent {
+export function feedbackAddressed(count: number): WorkflowEvent {
   return {
     type: 'feedback-addressed',
     at: AT,
+    addressedCount: count,
   }
 }
 
@@ -148,16 +160,12 @@ export function reflectionWritten(path: string): WorkflowEvent {
   }
 }
 
-export function eventsToVerifying(): readonly WorkflowEvent[] {
-  return [issueRecorded(42), branchRecorded('issue-42'), transitioned('IMPLEMENTING', 'VERIFYING')]
-}
-
 export function eventsToReviewing(): readonly WorkflowEvent[] {
-  return [...eventsToVerifying(), verifyPassed(), transitioned('VERIFYING', 'REVIEWING')]
+  return [issueRecorded(42), branchRecorded('issue-42'), transitioned('IMPLEMENTING', 'REVIEWING')]
 }
 
 export function eventsToSubmittingPr(): readonly WorkflowEvent[] {
-  return [...eventsToReviewing(), reviewPassed(), transitioned('REVIEWING', 'SUBMITTING_PR')]
+  return [...eventsToReviewing(), ...allReviewsPassed(), transitioned('REVIEWING', 'SUBMITTING_PR')]
 }
 
 export function eventsToAwaitingCi(): readonly WorkflowEvent[] {

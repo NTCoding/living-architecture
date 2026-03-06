@@ -29,12 +29,11 @@ If the user provided a GitHub issue, record it immediately:
 After init, read the state instruction file that the workflow loads. It will guide you through:
 
 1. **IMPLEMENTING** — Read requirements, plan, implement, test, commit
-2. **VERIFYING** — Run `pnpm verify`, record result
-3. **REVIEWING** — Spawn review agents, record result
-4. **SUBMITTING_PR** — Push branch, create PR, record PR number
-5. **AWAITING_CI** — Wait for CI, record result
-6. **CHECKING_FEEDBACK** — Check PR for review comments
-7. **REFLECTING** — Write a reflection on the work
-8. **COMPLETE** — Done
+2. **REVIEWING** — Spawn review agents, record each verdict individually
+3. **SUBMITTING_PR** — Push branch, create PR, record PR number
+4. **AWAITING_CI** — Wait for CI, record result
+5. **CHECKING_FEEDBACK** — Check PR for review comments
+6. **REFLECTING** — Write a reflection on the work
+7. **COMPLETE** — Done
 
 Each state's instruction file tells you exactly what to do and which workflow commands to run. Follow them.

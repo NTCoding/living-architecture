@@ -20,12 +20,14 @@ import {
   applyEvent, EMPTY_STATE 
 } from './fold'
 import {
-  checkBashAllowed, checkOperationGate 
+  checkBashAllowed, checkOperationGate, checkWriteAllowed 
 } from './workflow-predicates'
+import type { PRFeedbackResult } from '../../infra/github/get-pr-feedback'
 
 export type WorkflowDeps = {
   readonly getGitInfo: () => GitInfo
   readonly checkPrChecks: (prNumber: number) => boolean
+  readonly getPrFeedback: (prNumber: number) => PRFeedbackResult
   readonly now: () => string
 }
 
@@ -98,36 +100,68 @@ export class Workflow {
     return pass()
   }
 
-  recordVerifyPassed(): PreconditionResult {
-    const gate = checkOperationGate('record-verify-passed', this.state)
+  recordArchitectureReviewPassed(): PreconditionResult {
+    const gate = checkOperationGate('record-architecture-review-passed', this.state)
     if (!gate.pass) return gate
     this.append({
-      type: 'verify-completed',
+      type: 'architecture-review-completed',
       at: this.deps.now(),
       passed: true,
     })
     return pass()
   }
 
-  recordVerifyFailed(output: string): PreconditionResult {
-    const gate = checkOperationGate('record-verify-failed', this.state)
+  recordArchitectureReviewFailed(): PreconditionResult {
+    const gate = checkOperationGate('record-architecture-review-failed', this.state)
     if (!gate.pass) return gate
     this.append({
-      type: 'verify-completed',
+      type: 'architecture-review-completed',
       at: this.deps.now(),
       passed: false,
-      output,
     })
     return pass()
   }
 
-  recordReviewPassed(): PreconditionResult {
-    const gate = checkOperationGate('record-review-passed', this.state)
+  recordCodeReviewPassed(): PreconditionResult {
+    const gate = checkOperationGate('record-code-review-passed', this.state)
     if (!gate.pass) return gate
     this.append({
-      type: 'review-completed',
+      type: 'code-review-completed',
       at: this.deps.now(),
       passed: true,
+    })
+    return pass()
+  }
+
+  recordCodeReviewFailed(): PreconditionResult {
+    const gate = checkOperationGate('record-code-review-failed', this.state)
+    if (!gate.pass) return gate
+    this.append({
+      type: 'code-review-completed',
+      at: this.deps.now(),
+      passed: false,
+    })
+    return pass()
+  }
+
+  recordBugScannerPassed(): PreconditionResult {
+    const gate = checkOperationGate('record-bug-scanner-passed', this.state)
+    if (!gate.pass) return gate
+    this.append({
+      type: 'bug-scanner-completed',
+      at: this.deps.now(),
+      passed: true,
+    })
+    return pass()
+  }
+
+  recordBugScannerFailed(): PreconditionResult {
+    const gate = checkOperationGate('record-bug-scanner-failed', this.state)
+    if (!gate.pass) return gate
+    this.append({
+      type: 'bug-scanner-completed',
+      at: this.deps.now(),
+      passed: false,
     })
     return pass()
   }
@@ -138,18 +172,6 @@ export class Workflow {
     this.append({
       type: 'task-check-passed',
       at: this.deps.now(),
-    })
-    return pass()
-  }
-
-  recordReviewFailed(failedReviewers: readonly string[]): PreconditionResult {
-    const gate = checkOperationGate('record-review-failed', this.state)
-    if (!gate.pass) return gate
-    this.append({
-      type: 'review-completed',
-      at: this.deps.now(),
-      passed: false,
-      failedReviewers: [...failedReviewers],
     })
     return pass()
   }
@@ -212,12 +234,13 @@ export class Workflow {
     return pass()
   }
 
-  recordFeedbackAddressed(): PreconditionResult {
+  recordFeedbackAddressed(addressedCount: number): PreconditionResult {
     const gate = checkOperationGate('record-feedback-addressed', this.state)
     if (!gate.pass) return gate
     this.append({
       type: 'feedback-addressed',
       at: this.deps.now(),
+      addressedCount,
     })
     return pass()
   }
@@ -240,6 +263,19 @@ export class Workflow {
       at: this.deps.now(),
       tool: toolName,
       command,
+      allowed: result.pass,
+      reason: result.pass ? undefined : result.reason,
+    })
+    return result
+  }
+
+  checkWriteAllowed(filePath: string): PreconditionResult {
+    const result = checkWriteAllowed(filePath)
+    this.append({
+      type: 'write-checked',
+      at: this.deps.now(),
+      tool: 'Write',
+      filePath,
       allowed: result.pass,
       reason: result.pass ? undefined : result.reason,
     })
@@ -280,7 +316,29 @@ export class Workflow {
       to: targetState,
     })
 
+    if (targetState === 'CHECKING_FEEDBACK' && this.state.prNumber !== undefined) {
+      this.autoFetchFeedback(this.state.prNumber)
+    }
+
     return pass()
+  }
+
+  private autoFetchFeedback(prNumber: number): void {
+    const feedback = this.deps.getPrFeedback(prNumber)
+    if (feedback.unresolvedCount === 0) {
+      this.append({
+        type: 'feedback-checked',
+        at: this.deps.now(),
+        clean: true,
+      })
+    } else {
+      this.append({
+        type: 'feedback-checked',
+        at: this.deps.now(),
+        clean: false,
+        unresolvedCount: feedback.unresolvedCount,
+      })
+    }
   }
 
   private buildTransitionContext(

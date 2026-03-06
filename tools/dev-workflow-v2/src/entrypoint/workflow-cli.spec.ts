@@ -101,36 +101,56 @@ describe('workflow-cli commands', () => {
     })
   })
 
-  describe('record-verify-passed', () => {
-    it('records in VERIFYING state', () => {
-      const deps = setup()
-      progressToState(deps, 'VERIFYING')
-      const result = runWorkflow(['record-verify-passed'], deps)
-      expect(result.exitCode).toStrictEqual(0)
-    })
-  })
-
-  describe('record-verify-failed', () => {
-    it('records with output', () => {
-      const deps = setup()
-      progressToState(deps, 'VERIFYING')
-      const result = runWorkflow(['record-verify-failed', 'lint errors'], deps)
-      expect(result.exitCode).toStrictEqual(0)
-    })
-
-    it('returns error when output is missing', () => {
-      const deps = setup()
-      progressToState(deps, 'VERIFYING')
-      const result = runWorkflow(['record-verify-failed'], deps)
-      expect(result.exitCode).toStrictEqual(1)
-    })
-  })
-
-  describe('record-review-passed', () => {
+  describe('record-architecture-review-passed', () => {
     it('records in REVIEWING state', () => {
       const deps = setup()
       progressToState(deps, 'REVIEWING')
-      const result = runWorkflow(['record-review-passed'], deps)
+      const result = runWorkflow(['record-architecture-review-passed'], deps)
+      expect(result.exitCode).toStrictEqual(0)
+    })
+  })
+
+  describe('record-architecture-review-failed', () => {
+    it('records in REVIEWING state', () => {
+      const deps = setup()
+      progressToState(deps, 'REVIEWING')
+      const result = runWorkflow(['record-architecture-review-failed'], deps)
+      expect(result.exitCode).toStrictEqual(0)
+    })
+  })
+
+  describe('record-code-review-passed', () => {
+    it('records in REVIEWING state', () => {
+      const deps = setup()
+      progressToState(deps, 'REVIEWING')
+      const result = runWorkflow(['record-code-review-passed'], deps)
+      expect(result.exitCode).toStrictEqual(0)
+    })
+  })
+
+  describe('record-code-review-failed', () => {
+    it('records in REVIEWING state', () => {
+      const deps = setup()
+      progressToState(deps, 'REVIEWING')
+      const result = runWorkflow(['record-code-review-failed'], deps)
+      expect(result.exitCode).toStrictEqual(0)
+    })
+  })
+
+  describe('record-bug-scanner-passed', () => {
+    it('records in REVIEWING state', () => {
+      const deps = setup()
+      progressToState(deps, 'REVIEWING')
+      const result = runWorkflow(['record-bug-scanner-passed'], deps)
+      expect(result.exitCode).toStrictEqual(0)
+    })
+  })
+
+  describe('record-bug-scanner-failed', () => {
+    it('records in REVIEWING state', () => {
+      const deps = setup()
+      progressToState(deps, 'REVIEWING')
+      const result = runWorkflow(['record-bug-scanner-failed'], deps)
       expect(result.exitCode).toStrictEqual(0)
     })
   })
@@ -140,15 +160,6 @@ describe('workflow-cli commands', () => {
       const deps = setup()
       progressToState(deps, 'REVIEWING')
       const result = runWorkflow(['record-task-check-passed'], deps)
-      expect(result.exitCode).toStrictEqual(0)
-    })
-  })
-
-  describe('record-review-failed', () => {
-    it('records failed reviewers', () => {
-      const deps = setup()
-      progressToState(deps, 'REVIEWING')
-      const result = runWorkflow(['record-review-failed', 'reviewer-a'], deps)
       expect(result.exitCode).toStrictEqual(0)
     })
   })
@@ -234,11 +245,25 @@ describe('workflow-cli commands', () => {
   })
 
   describe('record-feedback-addressed', () => {
-    it('records in ADDRESSING_FEEDBACK state', () => {
+    it('records with count in ADDRESSING_FEEDBACK state', () => {
       const deps = setup()
       progressToState(deps, 'ADDRESSING_FEEDBACK')
-      const result = runWorkflow(['record-feedback-addressed'], deps)
+      const result = runWorkflow(['record-feedback-addressed', '2'], deps)
       expect(result.exitCode).toStrictEqual(0)
+    })
+
+    it('returns error when count is missing', () => {
+      const deps = setup()
+      runWorkflow(['init'], deps)
+      const result = runWorkflow(['record-feedback-addressed'], deps)
+      expect(result.exitCode).toStrictEqual(1)
+    })
+
+    it('returns error for non-numeric count', () => {
+      const deps = setup()
+      runWorkflow(['init'], deps)
+      const result = runWorkflow(['record-feedback-addressed', 'abc'], deps)
+      expect(result.exitCode).toStrictEqual(1)
     })
   })
 

@@ -45,6 +45,10 @@ export function buildTestDeps(
       hasCommitsVsDefault: true,
     }),
     checkPrChecks: () => true,
+    getPrFeedback: () => ({
+      unresolvedCount: 0,
+      threads: [],
+    }),
     now: () => '2024-01-01T00:00:00Z',
   }
 
@@ -68,29 +72,34 @@ export function cleanupDb(dbPath: string): void {
 
 export function progressToState(deps: AdapterDeps, targetState: string): void {
   const stateSteps: Readonly<Record<string, readonly (readonly string[])[]>> = {
-    VERIFYING: [['transition', 'VERIFYING']],
-    REVIEWING: [['transition', 'VERIFYING'], ['record-verify-passed'], ['transition', 'REVIEWING']],
-    SUBMITTING_PR: [
-      ['transition', 'VERIFYING'],
-      ['record-verify-passed'],
+    REVIEWING: [
+      ['record-issue', '1'],
       ['transition', 'REVIEWING'],
-      ['record-review-passed'],
+    ],
+    SUBMITTING_PR: [
+      ['record-issue', '1'],
+      ['transition', 'REVIEWING'],
+      ['record-architecture-review-passed'],
+      ['record-code-review-passed'],
+      ['record-bug-scanner-passed'],
       ['transition', 'SUBMITTING_PR'],
     ],
     AWAITING_CI: [
-      ['transition', 'VERIFYING'],
-      ['record-verify-passed'],
+      ['record-issue', '1'],
       ['transition', 'REVIEWING'],
-      ['record-review-passed'],
+      ['record-architecture-review-passed'],
+      ['record-code-review-passed'],
+      ['record-bug-scanner-passed'],
       ['transition', 'SUBMITTING_PR'],
       ['record-pr', '1'],
       ['transition', 'AWAITING_CI'],
     ],
     CHECKING_FEEDBACK: [
-      ['transition', 'VERIFYING'],
-      ['record-verify-passed'],
+      ['record-issue', '1'],
       ['transition', 'REVIEWING'],
-      ['record-review-passed'],
+      ['record-architecture-review-passed'],
+      ['record-code-review-passed'],
+      ['record-bug-scanner-passed'],
       ['transition', 'SUBMITTING_PR'],
       ['record-pr', '1'],
       ['transition', 'AWAITING_CI'],
@@ -98,10 +107,11 @@ export function progressToState(deps: AdapterDeps, targetState: string): void {
       ['transition', 'CHECKING_FEEDBACK'],
     ],
     ADDRESSING_FEEDBACK: [
-      ['transition', 'VERIFYING'],
-      ['record-verify-passed'],
+      ['record-issue', '1'],
       ['transition', 'REVIEWING'],
-      ['record-review-passed'],
+      ['record-architecture-review-passed'],
+      ['record-code-review-passed'],
+      ['record-bug-scanner-passed'],
       ['transition', 'SUBMITTING_PR'],
       ['record-pr', '1'],
       ['transition', 'AWAITING_CI'],
@@ -111,10 +121,11 @@ export function progressToState(deps: AdapterDeps, targetState: string): void {
       ['transition', 'ADDRESSING_FEEDBACK'],
     ],
     REFLECTING: [
-      ['transition', 'VERIFYING'],
-      ['record-verify-passed'],
+      ['record-issue', '1'],
       ['transition', 'REVIEWING'],
-      ['record-review-passed'],
+      ['record-architecture-review-passed'],
+      ['record-code-review-passed'],
+      ['record-bug-scanner-passed'],
       ['transition', 'SUBMITTING_PR'],
       ['record-pr', '1'],
       ['transition', 'AWAITING_CI'],
