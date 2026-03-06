@@ -4,8 +4,8 @@ import type {
 } from '../../workflow-definition/domain/workflow'
 import type { WorkflowState } from '../../workflow-definition/domain/workflow-types'
 import { STATE_NAME_SCHEMA } from '../../workflow-definition/domain/workflow-types'
-import { EXIT_ERROR } from '../domain/hook-io'
-import type { AdapterDeps } from '../domain/composition-root'
+import { EXIT_ERROR } from './hook-io'
+import type { AdapterDeps } from '../../shell/composition-root'
 import type { OperationResult } from './operation-result'
 import { toOperationResult } from './operation-result'
 

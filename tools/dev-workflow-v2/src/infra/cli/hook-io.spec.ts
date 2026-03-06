@@ -5,7 +5,7 @@ import { z } from 'zod'
 import {
   parseCommonInput, parsePreToolUseInput, formatDenyDecision 
 } from './hook-io'
-import { WorkflowError } from './workflow-error'
+import { WorkflowError } from '../../domain/workflow-error'
 
 const DENY_DECISION_SCHEMA = z.object({
   hookSpecificOutput: z.object({

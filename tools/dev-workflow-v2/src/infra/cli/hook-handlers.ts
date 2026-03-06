@@ -9,10 +9,10 @@ import {
   formatDenyDecision,
   EXIT_ALLOW,
   EXIT_BLOCK,
-} from '../domain/hook-io'
-import type { AdapterDeps } from '../domain/composition-root'
+} from './hook-io'
+import type { AdapterDeps } from '../../shell/composition-root'
+import { WorkflowError } from '../../domain/workflow-error'
 import type { OperationResult } from './operation-result'
-import { resolveStringField } from './operation-result'
 
 type WorkflowEngineInstance = WorkflowEngine<Workflow, WorkflowState, WorkflowDeps>
 
@@ -55,10 +55,30 @@ function handleSessionStart(engine: WorkflowEngineInstance, deps: AdapterDeps): 
   }
 }
 
+function extractBashCommand(toolInput: Record<string, unknown>): string {
+  const raw = toolInput['command']
+  if (raw === undefined || raw === null) {
+    throw new WorkflowError('Expected Bash tool_input to have a command field')
+  }
+  if (typeof raw !== 'string') {
+    throw new WorkflowError(
+      `Expected tool_input.command to be string. Got ${typeof raw}: ${String(raw)}`,
+    )
+  }
+  return raw
+}
+
 function handlePreToolUse(engine: WorkflowEngineInstance, deps: AdapterDeps): OperationResult {
   const hookInput = parsePreToolUseInput(deps.readStdin())
-  const command = resolveStringField(hookInput.tool_input['command'])
 
+  if (hookInput.tool_name !== 'Bash') {
+    return {
+      output: '',
+      exitCode: EXIT_ALLOW,
+    }
+  }
+
+  const command = extractBashCommand(hookInput.tool_input)
   const hookCheck = engine.transaction(
     hookInput.session_id,
     'hook-check',

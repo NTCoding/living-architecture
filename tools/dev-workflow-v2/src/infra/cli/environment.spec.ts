@@ -8,7 +8,7 @@ import {
   getDbPath,
   getErrorLogPath,
 } from './environment'
-import { WorkflowError } from './workflow-error'
+import { WorkflowError } from '../../domain/workflow-error'
 
 describe('environment', () => {
   const originalEnv = process.env

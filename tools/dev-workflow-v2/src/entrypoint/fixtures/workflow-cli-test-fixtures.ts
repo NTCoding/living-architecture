@@ -4,10 +4,10 @@ import {
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 import type { WorkflowEngineDeps } from '@ntcoding/agentic-workflow-builder/engine'
-import { createStore } from '../event-store/sqlite-event-store'
-import type { AdapterDeps } from '../infra/domain/composition-root'
-import type { WorkflowDeps } from '../workflow-definition/domain/workflow'
-import { runWorkflow } from './workflow-cli'
+import { createStore } from '../../infra/persistence/sqlite-event-store'
+import type { AdapterDeps } from '../../shell/composition-root'
+import type { WorkflowDeps } from '../../workflow-definition/domain/workflow'
+import { runWorkflow } from '../workflow-cli'
 
 export function buildTestDeps(
   overrides: Partial<{

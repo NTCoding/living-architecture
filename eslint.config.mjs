@@ -50,7 +50,7 @@ export default tseslint.config(
   },
   sonarjs.configs.recommended,
   {
-    files: ['**/infra/domain/git.ts'],
+    files: ['**/infra/cli/git.ts'],
     rules: {
       'sonarjs/os-command': 'off',
       'sonarjs/no-os-command-from-path': 'off',

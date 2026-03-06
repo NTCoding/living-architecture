@@ -1,11 +1,11 @@
 import {
   describe, it, expect, afterEach 
 } from 'vitest'
-import type { AdapterDeps } from '../infra/domain/composition-root'
+import type { AdapterDeps } from '../shell/composition-root'
 import { runWorkflow } from './workflow-cli'
 import {
   buildTestDeps, cleanupDb 
-} from './workflow-cli-test-fixtures'
+} from './fixtures/workflow-cli-test-fixtures'
 
 describe('workflow-cli hooks', () => {
   const dbPaths: string[] = []
@@ -86,6 +86,74 @@ describe('workflow-cli hooks', () => {
     }
     const result = runWorkflow([], preToolDeps)
     expect(result.exitCode).toStrictEqual(0)
+  })
+
+  it('allows non-Bash tools without engine check', () => {
+    const deps = setup()
+    runWorkflow(['init'], deps)
+
+    const preToolDeps: AdapterDeps = {
+      ...deps,
+      readStdin: () =>
+        JSON.stringify({
+          session_id: 'test-sess',
+          transcript_path: '/transcript',
+          cwd: '/dir',
+          hook_event_name: 'PreToolUse',
+          tool_name: 'Write',
+          tool_input: {
+            file_path: '/some/file.ts',
+            content: 'hello',
+          },
+          tool_use_id: 'tu-non-bash',
+        }),
+    }
+    const result = runWorkflow([], preToolDeps)
+    expect(result.exitCode).toStrictEqual(0)
+  })
+
+  it('throws when Bash tool_input has no command field', () => {
+    const deps = setup()
+    runWorkflow(['init'], deps)
+
+    const preToolDeps: AdapterDeps = {
+      ...deps,
+      readStdin: () =>
+        JSON.stringify({
+          session_id: 'test-sess',
+          transcript_path: '/transcript',
+          cwd: '/dir',
+          hook_event_name: 'PreToolUse',
+          tool_name: 'Bash',
+          tool_input: {},
+          tool_use_id: 'tu-missing-cmd',
+        }),
+    }
+    expect(() => runWorkflow([], preToolDeps)).toThrow(
+      'Expected Bash tool_input to have a command field',
+    )
+  })
+
+  it('throws when Bash command is non-string type', () => {
+    const deps = setup()
+    runWorkflow(['init'], deps)
+
+    const preToolDeps: AdapterDeps = {
+      ...deps,
+      readStdin: () =>
+        JSON.stringify({
+          session_id: 'test-sess',
+          transcript_path: '/transcript',
+          cwd: '/dir',
+          hook_event_name: 'PreToolUse',
+          tool_name: 'Bash',
+          tool_input: { command: 42 },
+          tool_use_id: 'tu-bad-type',
+        }),
+    }
+    expect(() => runWorkflow([], preToolDeps)).toThrow(
+      'Expected tool_input.command to be string. Got number: 42',
+    )
   })
 
   it('blocks dangerous commands for active session', () => {

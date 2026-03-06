@@ -2,10 +2,7 @@ import {
   describe, it, expect 
 } from 'vitest'
 import type { EngineResult } from '@ntcoding/agentic-workflow-builder/engine'
-import {
-  toOperationResult, resolveStringField 
-} from './operation-result'
-import { WorkflowError } from '../domain/workflow-error'
+import { toOperationResult } from './operation-result'
 
 describe('operation-result', () => {
   describe('toOperationResult', () => {
@@ -37,25 +34,6 @@ describe('operation-result', () => {
       const result = toOperationResult(engineResult)
       expect(result.exitCode).toStrictEqual(1)
       expect(result.output).toStrictEqual('something failed')
-    })
-  })
-
-  describe('resolveStringField', () => {
-    it('returns empty string for undefined', () => {
-      expect(resolveStringField(undefined)).toStrictEqual('')
-    })
-
-    it('returns empty string for null', () => {
-      expect(resolveStringField(null)).toStrictEqual('')
-    })
-
-    it('returns the string value for strings', () => {
-      expect(resolveStringField('hello')).toStrictEqual('hello')
-    })
-
-    it('throws WorkflowError for non-string, non-null values', () => {
-      expect(() => resolveStringField(42)).toThrow(WorkflowError)
-      expect(() => resolveStringField(42)).toThrow('Expected string or undefined. Got number: 42')
     })
   })
 })

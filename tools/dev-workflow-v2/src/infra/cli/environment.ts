@@ -1,5 +1,5 @@
 import { homedir } from 'node:os'
-import { WorkflowError } from './workflow-error'
+import { WorkflowError } from '../../domain/workflow-error'
 
 export function getSessionId(): string {
   const value = process.env['CLAUDE_SESSION_ID']

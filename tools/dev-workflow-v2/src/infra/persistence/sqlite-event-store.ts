@@ -1,6 +1,6 @@
 import Database from 'better-sqlite3'
 import { z } from 'zod'
-import { WorkflowError } from '../infra/domain/workflow-error'
+import { WorkflowError } from '../../domain/workflow-error'
 
 const BASE_EVENT_SCHEMA = z
   .object({

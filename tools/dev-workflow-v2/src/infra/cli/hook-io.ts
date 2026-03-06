@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { WorkflowError } from './workflow-error'
+import { WorkflowError } from '../../domain/workflow-error'
 
 const HOOK_COMMON_INPUT = z.object({
   session_id: z.string(),

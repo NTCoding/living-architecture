@@ -1,11 +1,11 @@
 import {
   describe, it, expect, afterEach 
 } from 'vitest'
-import type { AdapterDeps } from '../infra/domain/composition-root'
+import type { AdapterDeps } from '../shell/composition-root'
 import { runWorkflow } from './workflow-cli'
 import {
   buildTestDeps, cleanupDb, progressToState 
-} from './workflow-cli-test-fixtures'
+} from './fixtures/workflow-cli-test-fixtures'
 
 describe('workflow-cli commands', () => {
   const dbPaths: string[] = []

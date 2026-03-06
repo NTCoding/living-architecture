@@ -2,13 +2,13 @@ import {
   readFileSync, appendFileSync 
 } from 'node:fs'
 import type { WorkflowEngineDeps } from '@ntcoding/agentic-workflow-builder/engine'
-import type { WorkflowDeps } from '../../workflow-definition/domain/workflow'
-import { createStore } from '../../event-store/sqlite-event-store'
+import type { WorkflowDeps } from '../workflow-definition/domain/workflow'
+import { createStore } from '../infra/persistence/sqlite-event-store'
 import {
   getSessionId, getPluginRoot, getEnvFilePath, getDbPath 
-} from './environment'
-import { getGitInfo } from './git'
-import { readStdinSync } from './stdin'
+} from '../infra/cli/environment'
+import { getGitInfo } from '../infra/cli/git'
+import { readStdinSync } from '../infra/cli/stdin'
 
 export type AdapterDeps = {
   readonly getSessionId: () => string
