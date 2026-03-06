@@ -1,0 +1,16 @@
+{
+  "name": "dev-workflow-v2-marketplace",
+  "owner": {
+    "name": "NTCoding"
+  },
+  "metadata": {
+    "description": "Event-sourced workflow state machine for structured task lifecycle",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "dev-workflow-v2",
+      "source": "./"
+    }
+  ]
+}
