@@ -31,6 +31,7 @@ export function createWorkflowStateSchema(stateNames: readonly [string, ...strin
     prUrl: z.string().optional(),
     verifyPassed: z.boolean(),
     reviewPassed: z.boolean(),
+    taskCheckPassed: z.boolean(),
     ciPassed: z.boolean(),
     feedbackClean: z.boolean(),
     feedbackAddressed: z.boolean(),
@@ -49,6 +50,7 @@ export type WorkflowState = {
   prUrl?: string | undefined
   verifyPassed: boolean
   reviewPassed: boolean
+  taskCheckPassed: boolean
   ciPassed: boolean
   feedbackClean: boolean
   feedbackAddressed: boolean
@@ -63,6 +65,7 @@ export type WorkflowOperation =
   | 'record-verify-failed'
   | 'record-review-passed'
   | 'record-review-failed'
+  | 'record-task-check-passed'
   | 'record-pr'
   | 'record-ci-passed'
   | 'record-ci-failed'
@@ -91,6 +94,7 @@ export const INITIAL_STATE: WorkflowState = {
   currentStateMachineState: 'IMPLEMENTING',
   verifyPassed: false,
   reviewPassed: false,
+  taskCheckPassed: false,
   ciPassed: false,
   feedbackClean: false,
   feedbackAddressed: false,

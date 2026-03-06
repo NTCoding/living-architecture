@@ -11,7 +11,7 @@ import {
 } from '../domain/workflow-types'
 import {
   getOperationBody, getTransitionTitle 
-} from './output-messages'
+} from '../domain/output-messages'
 import { applyEvents } from '../domain/fold'
 import { WORKFLOW_EVENT_SCHEMA } from '../domain/workflow-events'
 
@@ -41,6 +41,6 @@ export const WORKFLOW_ADAPTER: WorkflowFactory<Workflow, WorkflowState, Workflow
   getEmojiForState(state: string): string {
     return STATE_EMOJI_MAP[parseStateName(state)]
   },
-  getOperationBody,
-  getTransitionTitle,
+  getOperationBody: (op) => getOperationBody(op),
+  getTransitionTitle: (to) => getTransitionTitle(to),
 }

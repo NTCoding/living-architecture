@@ -5,6 +5,7 @@ export const EMPTY_STATE: WorkflowState = {
   currentStateMachineState: 'IMPLEMENTING',
   verifyPassed: false,
   reviewPassed: false,
+  taskCheckPassed: false,
   ciPassed: false,
   feedbackClean: false,
   feedbackAddressed: false,
@@ -23,9 +24,9 @@ function applyTransitioned(
 }
 
 export function applyEvent(state: WorkflowState, event: WorkflowEvent): WorkflowState {
+  if (event.type === 'transitioned') return applyTransitioned(state, event)
+
   switch (event.type) {
-    case 'session-started':
-      return state
     case 'issue-recorded':
       return {
         ...state,
@@ -72,11 +73,14 @@ export function applyEvent(state: WorkflowState, event: WorkflowEvent): Workflow
         ...state,
         reflectionPath: event.path,
       }
-    case 'transitioned':
-      return applyTransitioned(state, event)
-    default:
-      return state
+    case 'task-check-passed':
+      return {
+        ...state,
+        taskCheckPassed: true,
+      }
   }
+
+  return state
 }
 
 export function applyEvents(events: readonly WorkflowEvent[]): WorkflowState {

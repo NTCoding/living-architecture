@@ -38,6 +38,10 @@ describe('EMPTY_STATE', () => {
     expect(EMPTY_STATE.feedbackAddressed).toStrictEqual(false)
   })
 
+  it('has taskCheckPassed false', () => {
+    expect(EMPTY_STATE.taskCheckPassed).toStrictEqual(false)
+  })
+
   it('has no preBlockedState', () => {
     expect(EMPTY_STATE.preBlockedState).toBeUndefined()
   })
@@ -205,6 +209,17 @@ describe('applyEvent — feedback-addressed', () => {
     }
     const result = applyEvent(EMPTY_STATE, event)
     expect(result.feedbackAddressed).toStrictEqual(true)
+  })
+})
+
+describe('applyEvent — task-check-passed', () => {
+  it('sets taskCheckPassed to true', () => {
+    const event: WorkflowEvent = {
+      type: 'task-check-passed',
+      at: AT,
+    }
+    const result = applyEvent(EMPTY_STATE, event)
+    expect(result.taskCheckPassed).toStrictEqual(true)
   })
 })
 

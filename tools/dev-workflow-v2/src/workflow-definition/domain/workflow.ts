@@ -132,6 +132,16 @@ export class Workflow {
     return pass()
   }
 
+  recordTaskCheckPassed(): PreconditionResult {
+    const gate = checkOperationGate('record-task-check-passed', this.state)
+    if (!gate.pass) return gate
+    this.append({
+      type: 'task-check-passed',
+      at: this.deps.now(),
+    })
+    return pass()
+  }
+
   recordReviewFailed(failedReviewers: readonly string[]): PreconditionResult {
     const gate = checkOperationGate('record-review-failed', this.state)
     if (!gate.pass) return gate

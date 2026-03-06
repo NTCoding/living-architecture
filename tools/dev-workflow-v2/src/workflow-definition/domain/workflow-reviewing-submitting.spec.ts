@@ -92,6 +92,24 @@ describe('Workflow', () => {
       expect(result.pass).toBe(false)
     })
 
+    it('records task check passed', () => {
+      const {
+        result, state, events 
+      } = spec
+        .given(...eventsToReviewing())
+        .when((wf) => wf.recordTaskCheckPassed())
+      expect(result).toStrictEqual({ pass: true })
+      expect(state.taskCheckPassed).toBe(true)
+      expect(events).toStrictEqual(
+        expect.arrayContaining([expect.objectContaining({ type: 'task-check-passed' })]),
+      )
+    })
+
+    it('fails recordTaskCheckPassed in non-REVIEWING states', () => {
+      const { result } = spec.given().when((wf) => wf.recordTaskCheckPassed())
+      expect(result.pass).toBe(false)
+    })
+
     it('transitions to BLOCKED', () => {
       const {
         result, state 

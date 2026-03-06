@@ -7,7 +7,11 @@ export const reviewingState: ConcreteStateDefinition = {
   emoji: '📋',
   agentInstructions: 'states/reviewing.md',
   canTransitionTo: ['SUBMITTING_PR', 'IMPLEMENTING', 'BLOCKED'],
-  allowedWorkflowOperations: ['record-review-passed', 'record-review-failed'],
+  allowedWorkflowOperations: [
+    'record-review-passed',
+    'record-review-failed',
+    'record-task-check-passed',
+  ],
 
   transitionGuard: (ctx) => {
     if (ctx.to === 'SUBMITTING_PR' && !ctx.state.reviewPassed)

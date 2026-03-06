@@ -127,6 +127,18 @@ export function handleRecordReviewPassed(
   )
 }
 
+export function handleRecordTaskCheckPassed(
+  _args: readonly string[],
+  engine: WorkflowEngineInstance,
+  deps: AdapterDeps,
+): OperationResult {
+  return toOperationResult(
+    engine.transaction(deps.getSessionId(), 'record-task-check-passed', (w) =>
+      w.recordTaskCheckPassed(),
+    ),
+  )
+}
+
 export function handleRecordReviewFailed(
   args: readonly string[],
   engine: WorkflowEngineInstance,

@@ -135,6 +135,15 @@ describe('workflow-cli commands', () => {
     })
   })
 
+  describe('record-task-check-passed', () => {
+    it('records in REVIEWING state', () => {
+      const deps = setup()
+      progressToState(deps, 'REVIEWING')
+      const result = runWorkflow(['record-task-check-passed'], deps)
+      expect(result.exitCode).toStrictEqual(0)
+    })
+  })
+
   describe('record-review-failed', () => {
     it('records failed reviewers', () => {
       const deps = setup()

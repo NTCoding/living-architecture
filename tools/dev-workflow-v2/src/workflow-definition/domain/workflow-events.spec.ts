@@ -247,6 +247,20 @@ describe('WORKFLOW_EVENT_SCHEMA — reflection-written', () => {
   })
 })
 
+describe('WORKFLOW_EVENT_SCHEMA — task-check-passed', () => {
+  it('accepts valid payload', () => {
+    const result = WORKFLOW_EVENT_SCHEMA.parse({
+      type: 'task-check-passed',
+      at: AT,
+    })
+    expect(result.type).toStrictEqual('task-check-passed')
+  })
+
+  it('rejects missing at', () => {
+    expect(() => WORKFLOW_EVENT_SCHEMA.parse({ type: 'task-check-passed' })).toThrow('Required')
+  })
+})
+
 describe('WORKFLOW_EVENT_SCHEMA — bash-checked', () => {
   it('accepts valid payload', () => {
     const result = WORKFLOW_EVENT_SCHEMA.parse({

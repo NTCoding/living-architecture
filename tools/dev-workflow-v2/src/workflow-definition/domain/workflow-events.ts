@@ -72,6 +72,11 @@ const REFLECTION_WRITTEN_SCHEMA = z.object({
   path: z.string(),
 })
 
+const TASK_CHECK_PASSED_SCHEMA = z.object({
+  type: z.literal('task-check-passed'),
+  at: z.string(),
+})
+
 const BASH_CHECKED_SCHEMA = z.object({
   type: z.literal('bash-checked'),
   at: z.string(),
@@ -102,6 +107,7 @@ export const WORKFLOW_EVENT_SCHEMA = z.discriminatedUnion('type', [
   FEEDBACK_CHECKED_SCHEMA,
   FEEDBACK_ADDRESSED_SCHEMA,
   REFLECTION_WRITTEN_SCHEMA,
+  TASK_CHECK_PASSED_SCHEMA,
   BASH_CHECKED_SCHEMA,
   WRITE_CHECKED_SCHEMA,
 ])
