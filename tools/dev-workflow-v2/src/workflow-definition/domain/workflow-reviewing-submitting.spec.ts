@@ -8,7 +8,7 @@ import {
   eventsToReviewing,
   eventsToSubmittingPr,
   eventsToAwaitingCi,
-} from './workflow-test-fixtures'
+} from './fixtures/workflow-test-fixtures'
 
 describe('Workflow', () => {
   describe('REVIEWING state', () => {

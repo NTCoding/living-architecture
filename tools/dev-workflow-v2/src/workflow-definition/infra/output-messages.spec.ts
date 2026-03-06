@@ -1,8 +1,8 @@
 import {
   getOperationBody, getTransitionTitle 
 } from './output-messages'
-import { INITIAL_STATE } from './workflow-types'
-import type { WorkflowState } from './workflow-types'
+import { INITIAL_STATE } from '../domain/workflow-types'
+import type { WorkflowState } from '../domain/workflow-types'
 
 function makeState(overrides?: Partial<WorkflowState>): WorkflowState {
   return {

@@ -2,18 +2,18 @@ import type {
   WorkflowFactory, BaseEvent 
 } from '@ntcoding/agentic-workflow-builder/engine'
 import { WorkflowStateError } from '@ntcoding/agentic-workflow-builder/engine'
-import type { WorkflowState } from './workflow-types'
+import type { WorkflowState } from '../domain/workflow-types'
 import {
   Workflow, type WorkflowDeps 
-} from './workflow'
+} from '../domain/workflow'
 import {
   INITIAL_STATE, STATE_EMOJI_MAP, parseStateName 
-} from './workflow-types'
+} from '../domain/workflow-types'
 import {
   getOperationBody, getTransitionTitle 
 } from './output-messages'
-import { applyEvents } from './fold'
-import { WORKFLOW_EVENT_SCHEMA } from './workflow-events'
+import { applyEvents } from '../domain/fold'
+import { WORKFLOW_EVENT_SCHEMA } from '../domain/workflow-events'
 
 export const WORKFLOW_ADAPTER: WorkflowFactory<Workflow, WorkflowState, WorkflowDeps> = {
   createFresh(deps: WorkflowDeps): Workflow {

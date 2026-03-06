@@ -4,6 +4,7 @@ export default defineConfig({
   test: {
     globals: true,
     coverage: {
+      reportsDirectory: './test-output/vitest/coverage',
       provider: 'v8',
       include: ['src/**/*.ts'],
       exclude: [

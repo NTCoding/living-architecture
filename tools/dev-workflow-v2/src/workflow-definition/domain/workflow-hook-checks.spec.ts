@@ -1,6 +1,6 @@
 import {
   spec, eventsToSubmittingPr, eventsToVerifying 
-} from './workflow-test-fixtures'
+} from './fixtures/workflow-test-fixtures'
 
 describe('Workflow', () => {
   describe('checkBashAllowed', () => {

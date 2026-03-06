@@ -1,5 +1,5 @@
 import { WORKFLOW_ADAPTER } from './workflow-adapter'
-import type { WorkflowDeps } from './workflow'
+import type { WorkflowDeps } from '../domain/workflow'
 import type { BaseEvent } from '@ntcoding/agentic-workflow-builder/engine'
 
 function makeWorkflowDeps(): WorkflowDeps {

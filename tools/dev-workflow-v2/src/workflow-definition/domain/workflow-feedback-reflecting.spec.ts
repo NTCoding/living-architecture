@@ -9,7 +9,7 @@ import {
   eventsToAddressingFeedback,
   eventsToReflecting,
   eventsToComplete,
-} from './workflow-test-fixtures'
+} from './fixtures/workflow-test-fixtures'
 
 describe('Workflow', () => {
   describe('CHECKING_FEEDBACK state', () => {

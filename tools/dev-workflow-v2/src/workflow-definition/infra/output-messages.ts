@@ -1,7 +1,7 @@
 import { WorkflowStateError } from '@ntcoding/agentic-workflow-builder/engine'
 import type {
   WorkflowState, WorkflowOperation 
-} from './workflow-types'
+} from '../domain/workflow-types'
 
 const CMD = '/dev-workflow-v2:workflow'
 
