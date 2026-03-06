@@ -22,6 +22,7 @@ import { createOrphansCommand } from '../features/query/entrypoint/orphans'
 import { createComponentsCommand } from '../features/query/entrypoint/components'
 import { createSearchCommand } from '../features/query/entrypoint/search'
 import { createExtractCommand } from '../features/extract/entrypoint/extract'
+import { createHelloCommand } from '../features/hello/entrypoint/hello'
 
 interface PackageJson {version: string}
 
@@ -79,6 +80,7 @@ export function createProgram(): Command {
   queryCmd.addCommand(createSearchCommand())
 
   program.addCommand(createExtractCommand())
+  program.addCommand(createHelloCommand())
 
   return program
 }
