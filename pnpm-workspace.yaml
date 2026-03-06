@@ -5,4 +5,5 @@ packages:
 
 autoInstallPeers: true
 
-onlyBuiltDependencies: better-sqlite3
+onlyBuiltDependencies:
+  - better-sqlite3

@@ -32,6 +32,17 @@
         "src/**/*.ts"
       ]
     },
+    "tools/dev-workflow-v2": {
+      "entry": [
+        "src/entrypoint/workflow-cli.ts"
+      ],
+      "project": [
+        "src/**/*.ts"
+      ],
+      "ignoreDependencies": [
+        "@types/better-sqlite3"
+      ]
+    },
     "tools/dev-workflow": {
       "entry": [
         "features/complete-task/entrypoint/cli.ts",

@@ -343,10 +343,7 @@ importers:
     dependencies:
       '@ntcoding/agentic-workflow-builder':
         specifier: github:NTCoding/autonomous-claude-agent-team#path:packages/agentic-workflow-builder
-        version: https://codeload.github.com/NTCoding/autonomous-claude-agent-team/tar.gz/ef49cd1ab48307d22f15e948085e7ba706a4c57c#path:packages/agentic-workflow-builder(zod@3.25.76)
-      better-sqlite3:
-        specifier: ^12.0.0
-        version: 12.6.2
+        version: https://codeload.github.com/NTCoding/autonomous-claude-agent-team/tar.gz/62e92c7a0beec4bb584052da2082b8c932ad6ae4#path:packages/agentic-workflow-builder(zod@3.25.76)
       zod:
         specifier: ^3.23.0
         version: 3.25.76
@@ -475,6 +472,10 @@ packages:
 
   '@babel/code-frame@7.28.6':
     resolution: {integrity: sha512-JYgintcMjRiCvS8mMECzaEn+m3PfoQiyqukOMCCVQtoJGYJw8j/8LBJEiqkHLkfwCcs74E3pbAUFNg7d9VNJ+Q==}
+    engines: {node: '>=6.9.0'}
+
+  '@babel/code-frame@7.29.0':
+    resolution: {integrity: sha512-9NhCeYjq9+3uxgdtp20LSiJXJvN0FeCtNGpJxuMFZ1Kv3cWUNb6DOhJwUvcVCzKGR66cw4njwM6hrJLqgOwbcw==}
     engines: {node: '>=6.9.0'}
 
   '@babel/compat-data@7.28.6':
@@ -1701,8 +1702,8 @@ packages:
     resolution: {integrity: sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg==}
     engines: {node: '>= 8'}
 
-  '@ntcoding/agentic-workflow-builder@https://codeload.github.com/NTCoding/autonomous-claude-agent-team/tar.gz/ef49cd1ab48307d22f15e948085e7ba706a4c57c#path:packages/agentic-workflow-builder':
-    resolution: {path: packages/agentic-workflow-builder, tarball: https://codeload.github.com/NTCoding/autonomous-claude-agent-team/tar.gz/ef49cd1ab48307d22f15e948085e7ba706a4c57c}
+  '@ntcoding/agentic-workflow-builder@https://codeload.github.com/NTCoding/autonomous-claude-agent-team/tar.gz/62e92c7a0beec4bb584052da2082b8c932ad6ae4#path:packages/agentic-workflow-builder':
+    resolution: {path: packages/agentic-workflow-builder, tarball: https://codeload.github.com/NTCoding/autonomous-claude-agent-team/tar.gz/62e92c7a0beec4bb584052da2082b8c932ad6ae4}
     version: 0.1.0
     peerDependencies:
       zod: ^3.23.0
@@ -7259,6 +7260,12 @@ snapshots:
       js-tokens: 4.0.0
       picocolors: 1.1.1
 
+  '@babel/code-frame@7.29.0':
+    dependencies:
+      '@babel/helper-validator-identifier': 7.28.5
+      js-tokens: 4.0.0
+      picocolors: 1.1.1
+
   '@babel/compat-data@7.28.6': {}
 
   '@babel/core@7.28.6':
@@ -8543,8 +8550,9 @@ snapshots:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.20.1
 
-  '@ntcoding/agentic-workflow-builder@https://codeload.github.com/NTCoding/autonomous-claude-agent-team/tar.gz/ef49cd1ab48307d22f15e948085e7ba706a4c57c#path:packages/agentic-workflow-builder(zod@3.25.76)':
+  '@ntcoding/agentic-workflow-builder@https://codeload.github.com/NTCoding/autonomous-claude-agent-team/tar.gz/62e92c7a0beec4bb584052da2082b8c932ad6ae4#path:packages/agentic-workflow-builder(zod@3.25.76)':
     dependencies:
+      better-sqlite3: 12.6.2
       zod: 3.25.76
 
   '@nx/devkit@22.5.2(nx@22.5.2(@swc-node/register@1.11.1(@swc/core@1.15.10)(@swc/types@0.1.25)(typescript@5.9.3))(@swc/core@1.15.10))':
@@ -9176,7 +9184,7 @@ snapshots:
 
   '@testing-library/dom@10.4.1':
     dependencies:
-      '@babel/code-frame': 7.28.6
+      '@babel/code-frame': 7.29.0
       '@babel/runtime': 7.28.6
       '@types/aria-query': 5.0.4
       aria-query: 5.3.0

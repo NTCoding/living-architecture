@@ -4,7 +4,7 @@ import {
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 import type { WorkflowEngineDeps } from '@ntcoding/agentic-workflow-builder/engine'
-import { createStore } from '../../infra/persistence/sqlite-event-store'
+import { createStore } from '@ntcoding/agentic-workflow-builder/event-store'
 import type { AdapterDeps } from '../../shell/composition-root'
 import type { WorkflowDeps } from '../../workflow-definition/domain/workflow'
 import { runWorkflow } from '../workflow-cli'

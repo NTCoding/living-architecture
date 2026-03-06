@@ -3,7 +3,7 @@ import {
 } from 'node:fs'
 import type { WorkflowEngineDeps } from '@ntcoding/agentic-workflow-builder/engine'
 import type { WorkflowDeps } from '../workflow-definition/domain/workflow'
-import { createStore } from '../infra/persistence/sqlite-event-store'
+import { createStore } from '@ntcoding/agentic-workflow-builder/event-store'
 import {
   getSessionId, getPluginRoot, getEnvFilePath, getDbPath 
 } from '../infra/cli/environment'
