@@ -25,7 +25,7 @@ Each review agent prompt must include:
 
 Example prompt for spawning via the Agent tool with `subagent_type: "code-review"`:
 
-```
+```text
 Files to Review:
 - src/foo.ts
 - src/bar.ts

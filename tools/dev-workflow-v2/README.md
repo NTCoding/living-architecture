@@ -6,7 +6,7 @@ An event-sourced state machine plugin for Claude Code that enforces a structured
 
 Start any feature with the `implement-feature` command:
 
-```
+```bash
 /dev-workflow-v2:implement-feature
 ```
 
