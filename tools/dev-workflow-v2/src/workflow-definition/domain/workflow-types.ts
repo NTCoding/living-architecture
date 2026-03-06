@@ -81,21 +81,13 @@ export type WorkflowOperation =
   | 'record-feedback-addressed'
   | 'record-reflection'
 
-type ForbiddenBashCommand = 'git push' | 'gh pr' | 'gh pr checks' | 'gh pr view'
-
 export type ConcreteStateDefinition = WorkflowStateDefinition<
   WorkflowState,
   StateName,
-  WorkflowOperation,
-  ForbiddenBashCommand
+  WorkflowOperation
 >
 
-export type ConcreteRegistry = WorkflowRegistry<
-  WorkflowState,
-  StateName,
-  WorkflowOperation,
-  ForbiddenBashCommand
->
+export type ConcreteRegistry = WorkflowRegistry<WorkflowState, StateName, WorkflowOperation>
 
 export const INITIAL_STATE: WorkflowState = {
   currentStateMachineState: 'IMPLEMENTING',

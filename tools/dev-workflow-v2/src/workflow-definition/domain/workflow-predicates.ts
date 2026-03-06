@@ -6,11 +6,7 @@ import {
 import type {
   WorkflowState, WorkflowOperation 
 } from './workflow-types'
-import {
-  GLOBAL_FORBIDDEN, getStateDefinition 
-} from './registry'
-
-const DANGEROUS_FLAGS: readonly string[] = ['--no-verify', '--force', '--hard']
+import { getStateDefinition } from './registry'
 
 const PROTECTED_FILES: readonly (string | RegExp)[] = [
   'nx.json',
@@ -27,40 +23,6 @@ export function checkWriteAllowed(filePath: string): PreconditionResult {
       return fail(`Write blocked: ${basename} is a protected config file.`)
     }
   }
-  return pass()
-}
-
-export function checkBashAllowed(
-  state: WorkflowState,
-  toolName: string,
-  command: string,
-): PreconditionResult {
-  if (toolName !== 'Bash') return pass()
-
-  for (const flag of DANGEROUS_FLAGS) {
-    if (command.includes(flag)) {
-      return fail(`Blocked: command uses safety-bypassing flag (${flag})`)
-    }
-  }
-
-  const currentDef = getStateDefinition(state.currentStateMachineState)
-
-  for (const pattern of GLOBAL_FORBIDDEN.bashPatterns) {
-    if (!pattern.test(command)) continue
-
-    const allowed = currentDef.allowForbidden?.bash ?? []
-    const isExempt = allowed.some((cmd) => {
-      if (!command.includes(cmd)) return false
-      const afterAllowed = command.slice(command.indexOf(cmd) + cmd.length)
-      return !/[;&|]/.test(afterAllowed)
-    })
-    if (isExempt) continue
-
-    return fail(
-      `Command blocked in ${state.currentStateMachineState}. Use the workflow commands instead.`,
-    )
-  }
-
   return pass()
 }
 

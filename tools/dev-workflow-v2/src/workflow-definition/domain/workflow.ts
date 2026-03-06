@@ -4,13 +4,13 @@ import type {
   TransitionContext,
 } from '@ntcoding/agentic-workflow-builder/dsl'
 import {
-  pass, fail 
+  pass, fail, checkBashCommand 
 } from '@ntcoding/agentic-workflow-builder/dsl'
 import type {
   WorkflowState, StateName 
 } from './workflow-types'
 import {
-  WORKFLOW_REGISTRY, getStateDefinition 
+  WORKFLOW_REGISTRY, getStateDefinition, BASH_FORBIDDEN 
 } from './registry'
 import {
   parseStateName, WORKFLOW_STATE_SCHEMA 
@@ -20,7 +20,7 @@ import {
   applyEvent, EMPTY_STATE 
 } from './fold'
 import {
-  checkBashAllowed, checkOperationGate, checkWriteAllowed 
+  checkOperationGate, checkWriteAllowed 
 } from './workflow-predicates'
 import type { PRFeedbackResult } from '../../infra/github/get-pr-feedback'
 
@@ -257,7 +257,12 @@ export class Workflow {
   }
 
   checkBashAllowed(toolName: string, command: string): PreconditionResult {
-    const result = checkBashAllowed(this.state, toolName, command)
+    if (toolName !== 'Bash') {
+      return pass()
+    }
+    const currentDef = getStateDefinition(this.state.currentStateMachineState)
+    const exemptions = currentDef.allowForbidden?.bash ?? []
+    const result = checkBashCommand(command, BASH_FORBIDDEN, exemptions)
     this.append({
       type: 'bash-checked',
       at: this.deps.now(),

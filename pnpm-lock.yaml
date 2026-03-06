@@ -343,7 +343,7 @@ importers:
     dependencies:
       '@ntcoding/agentic-workflow-builder':
         specifier: github:NTCoding/autonomous-claude-agent-team#path:packages/agentic-workflow-builder
-        version: https://codeload.github.com/NTCoding/autonomous-claude-agent-team/tar.gz/62e92c7a0beec4bb584052da2082b8c932ad6ae4#path:packages/agentic-workflow-builder(zod@3.25.76)
+        version: https://codeload.github.com/NTCoding/autonomous-claude-agent-team/tar.gz/447d72851d612039a66433660e241509fb7a7c31#path:packages/agentic-workflow-builder(zod@3.25.76)
       zod:
         specifier: ^3.23.0
         version: 3.25.76
@@ -1702,8 +1702,8 @@ packages:
     resolution: {integrity: sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg==}
     engines: {node: '>= 8'}
 
-  '@ntcoding/agentic-workflow-builder@https://codeload.github.com/NTCoding/autonomous-claude-agent-team/tar.gz/62e92c7a0beec4bb584052da2082b8c932ad6ae4#path:packages/agentic-workflow-builder':
-    resolution: {path: packages/agentic-workflow-builder, tarball: https://codeload.github.com/NTCoding/autonomous-claude-agent-team/tar.gz/62e92c7a0beec4bb584052da2082b8c932ad6ae4}
+  '@ntcoding/agentic-workflow-builder@https://codeload.github.com/NTCoding/autonomous-claude-agent-team/tar.gz/447d72851d612039a66433660e241509fb7a7c31#path:packages/agentic-workflow-builder':
+    resolution: {path: packages/agentic-workflow-builder, tarball: https://codeload.github.com/NTCoding/autonomous-claude-agent-team/tar.gz/447d72851d612039a66433660e241509fb7a7c31}
     version: 0.1.0
     peerDependencies:
       zod: ^3.23.0
@@ -8550,7 +8550,7 @@ snapshots:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.20.1
 
-  '@ntcoding/agentic-workflow-builder@https://codeload.github.com/NTCoding/autonomous-claude-agent-team/tar.gz/62e92c7a0beec4bb584052da2082b8c932ad6ae4#path:packages/agentic-workflow-builder(zod@3.25.76)':
+  '@ntcoding/agentic-workflow-builder@https://codeload.github.com/NTCoding/autonomous-claude-agent-team/tar.gz/447d72851d612039a66433660e241509fb7a7c31#path:packages/agentic-workflow-builder(zod@3.25.76)':
     dependencies:
       better-sqlite3: 12.6.2
       zod: 3.25.76
