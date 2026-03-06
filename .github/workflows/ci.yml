@@ -44,7 +44,7 @@ jobs:
 
       # pnpm v10 onlyBuiltDependencies does not reliably trigger better-sqlite3's
       # native compilation during install. Explicit rebuild ensures bindings exist.
-      - run: pnpm rebuild better-sqlite3
+      - run: pnpm rebuild
 
       # Prepend any command with "nx-cloud record --" to record its logs to Nx Cloud
       # - run: pnpm exec nx-cloud record -- echo Hello World
