@@ -42,9 +42,14 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      # pnpm v10 onlyBuiltDependencies does not reliably trigger better-sqlite3's
-      # native compilation during install. Explicit rebuild ensures bindings exist.
-      - run: pnpm rebuild
+      # pnpm v10 does not run better-sqlite3's install script despite onlyBuiltDependencies.
+      # Manually trigger prebuild-install to download prebuilt native bindings.
+      - name: Build better-sqlite3 native bindings
+        run: |
+          BS3_DIR=$(find node_modules/.pnpm -path "*/better-sqlite3@*/node_modules/better-sqlite3/package.json" -exec dirname {} \; | head -1)
+          if [ -n "$BS3_DIR" ]; then
+            cd "$BS3_DIR" && npx --yes prebuild-install || npx --yes node-gyp rebuild --release
+          fi
 
       # Prepend any command with "nx-cloud record --" to record its logs to Nx Cloud
       # - run: pnpm exec nx-cloud record -- echo Hello World
