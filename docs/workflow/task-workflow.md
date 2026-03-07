@@ -8,14 +8,6 @@ Work through the entire lifecycle autonomously until you have a mergeable PR or 
 
 *CRUCIAL*: Do not stop to ask the user for permission to do steps you are empowered to do autonomously. Never ask things like "Ready for /complete-task ?" - just do it if you have autonomy as defined in the table below.
 
-## Git Worktrees
-
-By default, `start-task.sh` creates a git worktree in a sibling directory (e.g., `../living-architecture-issue-40-desc/`). This allows working on multiple tasks in parallel without stashing or switching branches.
-
-- Use `--no-worktree` to create a branch in the current repo instead
-- Use `--no-issue=<name>` for ad-hoc tasks without a GitHub issue
-- After the PR is merged, run `pnpm nx run dev-workflow:merge-and-cleanup` from within the worktree
-
 ## Lifecycle Steps
 
 Autonomous = you can do this without user permission. Do not ask for permission, just do it.
@@ -23,17 +15,17 @@ Autonomous = you can do this without user permission. Do not ask for permission,
 | Step | Command | Permission |
 |------|---------|------------|
 | Create Tasks | `/create-tasks` | **User confirmation required** |
-| Next Task (parallel-aware) | `/next-task` | Autonomous |
+| Choose Next Task (parallel-aware) | `/dev-workflow-v2:choose-next-task` | Autonomous |
 | List Tasks (JSON) | `pnpm nx list-tasks dev-workflow` | Autonomous |
 | List Non-Milestone Tasks | `pnpm nx list-tasks dev-workflow -- --ideas` (or `--bugs`, `--tech`) | Autonomous |
-| Start Task | `./scripts/start-task.sh <issue-number>` | **User confirmation required** |
+| Start Implementation | `/dev-workflow-v2:start-implementation <issue-number>` | **User confirmation required** |
 | Amend Task | `./scripts/amend-task.sh <issue-number> "Amendment"` | Autonomous |
 | Complete Task (create) | `/complete-task` with `--prmode create` | Autonomous |
 | Complete Task (update) | `/complete-task` with `--prmode update` | Autonomous |
 | Check PR Feedback | `pnpm nx run dev-workflow:get-pr-feedback` | Autonomous |
 | Re-check PR | `/complete-task` with `--prmode update` | Autonomous |
 | Pre-Merge Reflection | `/pre-merge-reflection` | Autonomous |
-| Merge and Cleanup | `pnpm nx run dev-workflow:merge-and-cleanup` | **User-only (blocked for Claude)** |
+| Merge and Cleanup | `pnpm nx run dev-workflow:merge-and-cleanup` | **User-only** |
 | Activate PRD | `./scripts/activate-prd.sh <prd-name>` | **User confirmation required** |
 | Archive PRD | `./scripts/archive-prd.sh <prd-name>` | **User confirmation required** |
 
@@ -101,19 +93,19 @@ Parameters:
 
 **Create Tasks** — New work identified from a PRD. Break down deliverables into tasks.
 
-**Next Task** — User says "next task", "what's next?", or asks what to work on:
-- Run `/next-task` to analyze work streams and recommend from idle tracks
+**Choose Next Task** — User says "next task", "what's next?", or asks what to work on:
+- Run `/dev-workflow-v2:choose-next-task` to analyze work streams and recommend from idle tracks
 - Considers parallel work streams defined in PRD Parallelization sections
 - Falls back to non-milestone tasks when all tracks are busy
 - See [Parallel Work Streams](#parallel-work-streams) for details
 
-**List Tasks** — Query raw task data (used by `/next-task` internally):
+**List Tasks** — Query raw task data (used by `/dev-workflow-v2:choose-next-task` internally):
 - All tasks: `pnpm nx list-tasks dev-workflow` (outputs JSON with milestone + non-milestone tasks)
 - Specific type: `pnpm nx list-tasks dev-workflow -- --ideas` (or `--bugs`, `--tech`)
 
-Propose a task to the user and ask them to confirm. Once confirmed, start the task (which provides the details), then create a plan. Do not create a plan before starting.
+Propose a task to the user and ask them to confirm. Once confirmed, start implementation (which provides the details), then create a plan. Do not create a plan before starting.
 
-**Start Task** — User has confirmed they want to begin a specific task. Run this FIRST—it provides the issue details needed for planning. Do not create a plan or fetch issue details separately before running this script. Creates a git worktree by default.
+**Start Implementation** — User has confirmed they want to begin a specific task. Run `/dev-workflow-v2:start-implementation <issue-number>` — it renames the branch, reads the issue, and initializes the workflow state machine.
 
 **Read Task References** — After starting a task and receiving the issue details, read ALL documents referenced in the task body BEFORE creating a plan:
 - **Context section:** Read the PRD file at the path specified (e.g., `docs/project/PRD/active/PRD-phase-12-connection-detection.md`)
@@ -147,7 +139,7 @@ Do not create a plan until you have read and understood these referenced documen
 
 **Pre-Merge Reflection** — When the PR is mergeable, run `/pre-merge-reflection` to generate a reflection report analyzing all feedback. This must happen **before** merging. Claude gathers local review files and GitHub feedback, writes the reflection, commits it, and presents it for discussion. After discussion, tell the user to run `pnpm nx run dev-workflow:merge-and-cleanup`.
 
-**Merge and Cleanup** — **User-only command** (blocked for Claude). Merges the PR (squash), removes the worktree and Claude permissions. Gates on the reflection file existing — will fail if `/pre-merge-reflection` hasn't been run. After cleanup, implement any improvement tasks via normal workflow — **never reuse the merged branch** (squash merges create stale merge bases).
+**Merge and Cleanup** — **User-only command**. Merges the PR (squash) and cleans up. Gates on the reflection file existing — will fail if `/pre-merge-reflection` hasn't been run. After cleanup, implement any improvement tasks via normal workflow — **never reuse the merged branch** (squash merges create stale merge bases).
 
 **Activate PRD** — Moving a PRD from not started to active.
 
@@ -157,7 +149,7 @@ Do not create a plan until you have read and understood these referenced documen
 
 ## Parallel Work Streams
 
-PRDs can define parallel tracks in their Parallelization section (Section 10). The `/next-task` command uses this to recommend tasks that don't conflict with ongoing work.
+PRDs can define parallel tracks in their Parallelization section (Section 10). The `/dev-workflow-v2:choose-next-task` command uses this to recommend tasks that don't conflict with ongoing work.
 
 ### How It Works
 

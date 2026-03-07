@@ -2,15 +2,41 @@
 
 An event-sourced state machine plugin for Claude Code that enforces a structured task lifecycle: implement, verify, review, submit PR, await CI, check feedback, reflect, complete.
 
-## Quick Start
+## How to Start
 
-Start any feature with the `implement-feature` command:
+Start a new session in a worktree:
 
 ```bash
-/dev-workflow-v2:implement-feature
+claude -w
 ```
 
-This initializes the workflow and loads the first state's instructions. From there, the state machine guides each step — you follow the TODO checklist in each state.
+Claude Code creates the worktree. The plugin owns everything from task selection onward.
+
+## Commands
+
+### 1. Choose a task
+
+```bash
+/dev-workflow-v2:choose-next-task
+```
+
+Analyzes parallel work streams across active PRDs, recommends a task from an idle track, and assigns the issue after confirmation.
+
+### 2. Start implementation
+
+```bash
+/dev-workflow-v2:start-implementation <issue-number>
+```
+
+Renames the worktree branch to match the issue, reads the issue details, initializes the workflow state machine, and begins the IMPLEMENTING state.
+
+### 3. Workflow (internal)
+
+```bash
+/dev-workflow-v2:workflow <command>
+```
+
+Low-level state machine CLI. Used by the other commands and state instructions — not called directly by users.
 
 ## State Machine
 
@@ -43,10 +69,11 @@ stateDiagram-v2
 
 Most of the workflow is automated. You interact at these points:
 
-1. **Start** — trigger `/dev-workflow-v2:implement-feature` with a GitHub issue
-2. **Approve plan** — the agent presents an implementation plan for your approval
-3. **Review PR** — after the agent creates a PR, review it on GitHub
-4. **Merge** — merge the PR when satisfied
+1. **Choose task** — `/dev-workflow-v2:choose-next-task` recommends a task; confirm to proceed
+2. **Start** — `/dev-workflow-v2:start-implementation <issue>` to begin
+3. **Approve plan** — the agent presents an implementation plan for your approval
+4. **Review PR** — after the agent creates a PR, review it on GitHub
+5. **Merge** — merge the PR when satisfied
 
 ## Troubleshooting
 

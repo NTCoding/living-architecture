@@ -1,4 +1,4 @@
-# Next Task
+# choose-next-task
 
 Find the next available task, considering parallel work streams.
 
@@ -99,19 +99,11 @@ PRD12-B: #167 - Create conventions interfaces (earliest PRD track)
 
 Once user confirms a task:
 
-1. Run `./scripts/start-task.sh <issue-number>` to set up the worktree and assign the issue
-2. Output the following handoff message (fill in the placeholders from the start-task output and the selected task):
+1. Assign the issue: `gh issue edit <issue-number> --add-assignee @me`
+2. Tell the user:
 
 ---
 
-Task #<issue-number> is in progress. Switch to the worktree and start a new Claude Code session:
-
-```bash
-cd <worktree-path> && claude
-```
-
-Use this prompt to begin:
-
-> Work on issue #<issue-number>. Follow `docs/workflow/task-workflow.md` from "Read Task References" onward. Read the issue body first (`gh issue view <issue-number>`), then read all referenced documents before creating a plan.
+Run `/dev-workflow-v2:start-implementation <issue-number>` to begin.
 
 ---
