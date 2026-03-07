@@ -3,10 +3,7 @@ import type { PreconditionResult } from '@ntcoding/agentic-workflow-builder/dsl'
 import {
   pass, fail 
 } from '@ntcoding/agentic-workflow-builder/dsl'
-import type {
-  WorkflowState, WorkflowOperation 
-} from './workflow-types'
-import { getStateDefinition } from './registry'
+import type { BaseWorkflowState } from '@ntcoding/agentic-workflow-builder/engine'
 
 const PROTECTED_FILES: readonly (string | RegExp)[] = [
   'nx.json',
@@ -26,13 +23,10 @@ export function checkWriteAllowed(filePath: string): PreconditionResult {
   return pass()
 }
 
-export function checkOperationGate(
-  op: WorkflowOperation,
-  state: WorkflowState,
+export function isWriteAllowed(
+  _toolName: string,
+  filePath: string,
+  _state: BaseWorkflowState,
 ): PreconditionResult {
-  const currentDef = getStateDefinition(state.currentStateMachineState)
-  if (currentDef.allowedWorkflowOperations.includes(op)) {
-    return pass()
-  }
-  return fail(`${op} is not allowed in state ${state.currentStateMachineState}.`)
+  return checkWriteAllowed(filePath)
 }

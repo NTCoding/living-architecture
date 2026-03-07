@@ -8,6 +8,7 @@ export const reflectingState: ConcreteStateDefinition = {
   agentInstructions: 'states/reflecting.md',
   canTransitionTo: ['COMPLETE', 'BLOCKED'],
   allowedWorkflowOperations: ['record-reflection'],
+  forbidden: { write: true },
 
   transitionGuard: (ctx) => {
     if (!ctx.state.reflectionPath)

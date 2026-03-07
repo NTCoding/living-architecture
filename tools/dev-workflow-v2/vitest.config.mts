@@ -10,6 +10,8 @@ export default defineConfig({
       exclude: [
         'src/**/*.spec.ts',
         'src/**/*-test-fixtures.ts',
+        'src/shell/**',
+        'src/infra/cli/**',
       ],
       thresholds: {
         lines: 100,

@@ -10,6 +10,7 @@ export const addressingFeedbackState: ConcreteStateDefinition = {
   agentInstructions: 'states/addressing-feedback.md',
   canTransitionTo: ['REVIEWING', 'BLOCKED'],
   allowedWorkflowOperations: ['record-feedback-addressed'],
+  forbidden: { write: true },
 
   transitionGuard: (ctx) => {
     if (!ctx.state.feedbackAddressed)

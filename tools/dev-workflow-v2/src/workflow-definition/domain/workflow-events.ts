@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { STATE_NAME_SCHEMA } from './workflow-types'
 
 const SESSION_STARTED_SCHEMA = z.object({
   type: z.literal('session-started'),
@@ -9,9 +10,10 @@ const SESSION_STARTED_SCHEMA = z.object({
 const TRANSITIONED_SCHEMA = z.object({
   type: z.literal('transitioned'),
   at: z.string(),
-  from: z.string(),
-  to: z.string(),
+  from: STATE_NAME_SCHEMA,
+  to: STATE_NAME_SCHEMA,
   preBlockedState: z.string().optional(),
+  stateOverrides: z.record(z.unknown()).optional(),
 })
 
 const ISSUE_RECORDED_SCHEMA = z.object({

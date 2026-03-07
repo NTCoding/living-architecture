@@ -8,6 +8,7 @@ export const submittingPrState: ConcreteStateDefinition = {
   agentInstructions: 'states/submitting-pr.md',
   canTransitionTo: ['AWAITING_CI', 'BLOCKED'],
   allowedWorkflowOperations: ['record-pr'],
+  forbidden: { write: true },
 
   allowForbidden: { bash: ['git push', 'gh pr'] },
 

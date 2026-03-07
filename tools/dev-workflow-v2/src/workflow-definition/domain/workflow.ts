@@ -1,28 +1,106 @@
 import type {
   PreconditionResult,
   GitInfo,
-  TransitionContext,
+  RecordingOpDefinition,
 } from '@ntcoding/agentic-workflow-builder/dsl'
 import {
-  pass, fail, checkBashCommand 
+  pass, fail, defineRecordingOps 
 } from '@ntcoding/agentic-workflow-builder/dsl'
+import type { BaseEvent } from '@ntcoding/agentic-workflow-builder/engine'
 import type {
-  WorkflowState, StateName 
+  WorkflowState, StateName, WorkflowOperation 
 } from './workflow-types'
 import {
-  WORKFLOW_REGISTRY, getStateDefinition, BASH_FORBIDDEN 
+  WORKFLOW_REGISTRY, getStateDefinition 
 } from './registry'
-import {
-  parseStateName, WORKFLOW_STATE_SCHEMA 
-} from './workflow-types'
+import { WORKFLOW_STATE_SCHEMA } from './workflow-types'
 import type { WorkflowEvent } from './workflow-events'
+import { WORKFLOW_EVENT_SCHEMA } from './workflow-events'
 import {
   applyEvent, EMPTY_STATE 
 } from './fold'
-import {
-  checkOperationGate, checkWriteAllowed 
-} from './workflow-predicates'
 import type { PRFeedbackResult } from '../../infra/github/get-pr-feedback'
+
+const RECORDING_OPS_MAP: Record<string, RecordingOpDefinition<readonly never[]>> = {
+  'record-issue': {
+    event: 'issue-recorded',
+    payload: (n: number) => ({ issueNumber: n }),
+  },
+  'record-branch': {
+    event: 'branch-recorded',
+    payload: (b: string) => ({ branch: b }),
+  },
+  'record-architecture-review-passed': {
+    event: 'architecture-review-completed',
+    payload: () => ({ passed: true }),
+  },
+  'record-architecture-review-failed': {
+    event: 'architecture-review-completed',
+    payload: () => ({ passed: false }),
+  },
+  'record-code-review-passed': {
+    event: 'code-review-completed',
+    payload: () => ({ passed: true }),
+  },
+  'record-code-review-failed': {
+    event: 'code-review-completed',
+    payload: () => ({ passed: false }),
+  },
+  'record-bug-scanner-passed': {
+    event: 'bug-scanner-completed',
+    payload: () => ({ passed: true }),
+  },
+  'record-bug-scanner-failed': {
+    event: 'bug-scanner-completed',
+    payload: () => ({ passed: false }),
+  },
+  'record-task-check-passed': {
+    event: 'task-check-passed',
+    payload: () => ({}),
+  },
+  'record-pr': {
+    event: 'pr-recorded',
+    payload: (n: number, url?: string) => ({
+      prNumber: n,
+      ...(url ? { prUrl: url } : {}),
+    }),
+  },
+  'record-ci-passed': {
+    event: 'ci-completed',
+    payload: () => ({ passed: true }),
+  },
+  'record-ci-failed': {
+    event: 'ci-completed',
+    payload: (output: string) => ({
+      passed: false,
+      output,
+    }),
+  },
+  'record-feedback-clean': {
+    event: 'feedback-checked',
+    payload: () => ({ clean: true }),
+  },
+  'record-feedback-exists': {
+    event: 'feedback-checked',
+    payload: (count: number) => ({
+      clean: false,
+      unresolvedCount: count,
+    }),
+  },
+  'record-feedback-addressed': {
+    event: 'feedback-addressed',
+    payload: (count: number) => ({ addressedCount: count }),
+  },
+  'record-reflection': {
+    event: 'reflection-written',
+    payload: (p: string) => ({ path: p }),
+  },
+}
+
+const RECORDING_OPS = defineRecordingOps<StateName, WorkflowState, WorkflowOperation>(
+  WORKFLOW_REGISTRY,
+  RECORDING_OPS_MAP,
+)
 
 export type WorkflowDeps = {
   readonly getGitInfo: () => GitInfo
@@ -57,11 +135,6 @@ export class Workflow {
     return this.pendingEvents
   }
 
-  private append(event: WorkflowEvent): void {
-    this.pendingEvents = [...this.pendingEvents, event]
-    this.state = applyEvent(this.state, event)
-  }
-
   getState(): WorkflowState {
     return this.state
   }
@@ -70,261 +143,34 @@ export class Workflow {
     return `${pluginRoot}/${getStateDefinition(this.state.currentStateMachineState).agentInstructions}`
   }
 
-  startSession(repository: string | undefined): void {
-    this.append({
+  appendEvent(event: BaseEvent): void {
+    const workflowEvent = WORKFLOW_EVENT_SCHEMA.parse(event)
+    this.pendingEvents = [...this.pendingEvents, workflowEvent]
+    this.state = applyEvent(this.state, workflowEvent)
+
+    if (
+      workflowEvent.type === 'transitioned' &&
+      workflowEvent.to === 'CHECKING_FEEDBACK' &&
+      this.state.prNumber !== undefined
+    ) {
+      this.autoFetchFeedback(this.state.prNumber)
+    }
+  }
+
+  startSession(_transcriptPath: string | undefined, repository: string | undefined): void {
+    const event: WorkflowEvent = {
       type: 'session-started',
       at: this.deps.now(),
       ...(repository === undefined ? {} : { repository }),
-    })
-  }
-
-  recordIssue(issueNumber: number): PreconditionResult {
-    const gate = checkOperationGate('record-issue', this.state)
-    if (!gate.pass) return gate
-    this.append({
-      type: 'issue-recorded',
-      at: this.deps.now(),
-      issueNumber,
-    })
-    return pass()
-  }
-
-  recordBranch(branch: string): PreconditionResult {
-    const gate = checkOperationGate('record-branch', this.state)
-    if (!gate.pass) return gate
-    this.append({
-      type: 'branch-recorded',
-      at: this.deps.now(),
-      branch,
-    })
-    return pass()
-  }
-
-  recordArchitectureReviewPassed(): PreconditionResult {
-    const gate = checkOperationGate('record-architecture-review-passed', this.state)
-    if (!gate.pass) return gate
-    this.append({
-      type: 'architecture-review-completed',
-      at: this.deps.now(),
-      passed: true,
-    })
-    return pass()
-  }
-
-  recordArchitectureReviewFailed(): PreconditionResult {
-    const gate = checkOperationGate('record-architecture-review-failed', this.state)
-    if (!gate.pass) return gate
-    this.append({
-      type: 'architecture-review-completed',
-      at: this.deps.now(),
-      passed: false,
-    })
-    return pass()
-  }
-
-  recordCodeReviewPassed(): PreconditionResult {
-    const gate = checkOperationGate('record-code-review-passed', this.state)
-    if (!gate.pass) return gate
-    this.append({
-      type: 'code-review-completed',
-      at: this.deps.now(),
-      passed: true,
-    })
-    return pass()
-  }
-
-  recordCodeReviewFailed(): PreconditionResult {
-    const gate = checkOperationGate('record-code-review-failed', this.state)
-    if (!gate.pass) return gate
-    this.append({
-      type: 'code-review-completed',
-      at: this.deps.now(),
-      passed: false,
-    })
-    return pass()
-  }
-
-  recordBugScannerPassed(): PreconditionResult {
-    const gate = checkOperationGate('record-bug-scanner-passed', this.state)
-    if (!gate.pass) return gate
-    this.append({
-      type: 'bug-scanner-completed',
-      at: this.deps.now(),
-      passed: true,
-    })
-    return pass()
-  }
-
-  recordBugScannerFailed(): PreconditionResult {
-    const gate = checkOperationGate('record-bug-scanner-failed', this.state)
-    if (!gate.pass) return gate
-    this.append({
-      type: 'bug-scanner-completed',
-      at: this.deps.now(),
-      passed: false,
-    })
-    return pass()
-  }
-
-  recordTaskCheckPassed(): PreconditionResult {
-    const gate = checkOperationGate('record-task-check-passed', this.state)
-    if (!gate.pass) return gate
-    this.append({
-      type: 'task-check-passed',
-      at: this.deps.now(),
-    })
-    return pass()
-  }
-
-  recordPr(prNumber: number, prUrl?: string): PreconditionResult {
-    const gate = checkOperationGate('record-pr', this.state)
-    if (!gate.pass) return gate
-    this.append({
-      type: 'pr-recorded',
-      at: this.deps.now(),
-      prNumber,
-      ...(prUrl === undefined ? {} : { prUrl }),
-    })
-    return pass()
-  }
-
-  recordCiPassed(): PreconditionResult {
-    const gate = checkOperationGate('record-ci-passed', this.state)
-    if (!gate.pass) return gate
-    this.append({
-      type: 'ci-completed',
-      at: this.deps.now(),
-      passed: true,
-    })
-    return pass()
-  }
-
-  recordCiFailed(output: string): PreconditionResult {
-    const gate = checkOperationGate('record-ci-failed', this.state)
-    if (!gate.pass) return gate
-    this.append({
-      type: 'ci-completed',
-      at: this.deps.now(),
-      passed: false,
-      output,
-    })
-    return pass()
-  }
-
-  recordFeedbackClean(): PreconditionResult {
-    const gate = checkOperationGate('record-feedback-clean', this.state)
-    if (!gate.pass) return gate
-    this.append({
-      type: 'feedback-checked',
-      at: this.deps.now(),
-      clean: true,
-    })
-    return pass()
-  }
-
-  recordFeedbackExists(unresolvedCount: number): PreconditionResult {
-    const gate = checkOperationGate('record-feedback-exists', this.state)
-    if (!gate.pass) return gate
-    this.append({
-      type: 'feedback-checked',
-      at: this.deps.now(),
-      clean: false,
-      unresolvedCount,
-    })
-    return pass()
-  }
-
-  recordFeedbackAddressed(addressedCount: number): PreconditionResult {
-    const gate = checkOperationGate('record-feedback-addressed', this.state)
-    if (!gate.pass) return gate
-    this.append({
-      type: 'feedback-addressed',
-      at: this.deps.now(),
-      addressedCount,
-    })
-    return pass()
-  }
-
-  recordReflection(path: string): PreconditionResult {
-    const gate = checkOperationGate('record-reflection', this.state)
-    if (!gate.pass) return gate
-    this.append({
-      type: 'reflection-written',
-      at: this.deps.now(),
-      path,
-    })
-    return pass()
-  }
-
-  checkBashAllowed(toolName: string, command: string): PreconditionResult {
-    if (toolName !== 'Bash') {
-      return pass()
     }
-    const currentDef = getStateDefinition(this.state.currentStateMachineState)
-    const exemptions = currentDef.allowForbidden?.bash ?? []
-    const result = checkBashCommand(command, BASH_FORBIDDEN, exemptions)
-    this.append({
-      type: 'bash-checked',
-      at: this.deps.now(),
-      tool: toolName,
-      command,
-      allowed: result.pass,
-      reason: result.pass ? undefined : result.reason,
-    })
-    return result
+    this.pendingEvents = [...this.pendingEvents, event]
+    this.state = applyEvent(this.state, event)
   }
 
-  checkWriteAllowed(filePath: string): PreconditionResult {
-    const result = checkWriteAllowed(filePath)
-    this.append({
-      type: 'write-checked',
-      at: this.deps.now(),
-      tool: 'Write',
-      filePath,
-      allowed: result.pass,
-      reason: result.pass ? undefined : result.reason,
-    })
-    return result
-  }
-
-  verifyIdentity(_transcriptPath: string): PreconditionResult {
-    return pass()
-  }
-
-  transitionTo(target: string): PreconditionResult {
-    const from = parseStateName(this.state.currentStateMachineState)
-    const targetState = parseStateName(target)
-
-    const currentDef = WORKFLOW_REGISTRY[from]
-    if (!currentDef.canTransitionTo.includes(targetState)) {
-      return fail(
-        `Illegal transition ${from} -> ${targetState}. Legal targets from ${from}: [${currentDef.canTransitionTo.join(', ') || 'none'}].`,
-      )
-    }
-
-    if (targetState !== 'BLOCKED' && currentDef.transitionGuard) {
-      const ctx = this.buildTransitionContext(from, targetState)
-      const guardResult = currentDef.transitionGuard(ctx)
-      if (!guardResult.pass) return guardResult
-    }
-
-    const targetDef = WORKFLOW_REGISTRY[targetState]
-    if (targetDef.onEntry) {
-      const ctx = this.buildTransitionContext(from, targetState)
-      this.state = targetDef.onEntry(this.state, ctx)
-    }
-
-    this.append({
-      type: 'transitioned',
-      at: this.deps.now(),
-      from,
-      to: targetState,
-    })
-
-    if (targetState === 'CHECKING_FEEDBACK' && this.state.prNumber !== undefined) {
-      this.autoFetchFeedback(this.state.prNumber)
-    }
-
+  executeRecording(op: WorkflowOperation, ...args: readonly unknown[]): PreconditionResult {
+    const result = RECORDING_OPS.executeOp(op, this.state, this.deps.now(), args)
+    if (!result.pass) return fail(result.reason)
+    this.appendEvent(result.event)
     return pass()
   }
 
@@ -346,18 +192,8 @@ export class Workflow {
     }
   }
 
-  private buildTransitionContext(
-    from: StateName,
-    to: StateName,
-  ): TransitionContext<WorkflowState, StateName> {
-    const prChecksPass =
-      this.state.prNumber === undefined ? false : this.deps.checkPrChecks(this.state.prNumber)
-    return {
-      state: this.state,
-      gitInfo: this.deps.getGitInfo(),
-      prChecksPass,
-      from,
-      to,
-    }
+  private append(event: WorkflowEvent): void {
+    this.pendingEvents = [...this.pendingEvents, event]
+    this.state = applyEvent(this.state, event)
   }
 }

@@ -6,6 +6,7 @@ import {
 export const blockedState: ConcreteStateDefinition = {
   emoji: '⚠️',
   agentInstructions: 'states/blocked.md',
+  forbidden: { write: true },
   canTransitionTo: [
     'IMPLEMENTING',
     'REVIEWING',
@@ -20,7 +21,7 @@ export const blockedState: ConcreteStateDefinition = {
   transitionGuard: (ctx) => {
     const preBlockedState = ctx.state.preBlockedState
     if (ctx.to !== preBlockedState) {
-      /* v8 ignore next 3 */
+      /* v8 ignore next 4 */
       return fail(
         `Cannot transition from BLOCKED to ${ctx.to}. Must return to pre-blocked state: ${preBlockedState ?? 'unknown'}.`,
       )

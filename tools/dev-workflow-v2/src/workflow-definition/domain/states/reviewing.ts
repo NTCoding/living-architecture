@@ -7,6 +7,7 @@ export const reviewingState: ConcreteStateDefinition = {
   emoji: '📋',
   agentInstructions: 'states/reviewing.md',
   canTransitionTo: ['SUBMITTING_PR', 'IMPLEMENTING', 'BLOCKED'],
+  forbidden: { write: true },
   allowedWorkflowOperations: [
     'record-architecture-review-passed',
     'record-architecture-review-failed',

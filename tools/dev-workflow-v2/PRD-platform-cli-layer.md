@@ -1,770 +1,350 @@
-# PRD: Agentic Workflow Builder — CLI & Workflow Automation Layer
+# PRD: dev-workflow-v2 Platform Migration
 
-**Status:** Draft
-**Target Package:** `@ntcoding/agentic-workflow-builder`
-**Requested By:** dev-workflow-v2 (consumer)
+**Status:** Awaiting Architecture Review
 
 ---
 
 ## 1. Problem
 
-Building a workflow plugin on top of `@ntcoding/agentic-workflow-builder` requires the consumer to hand-write ~1,000 lines of mechanical infrastructure code. For every workflow operation (e.g., `record-issue`), the consumer must touch 6+ files with near-identical boilerplate. The platform provides a solid event-sourcing engine and state machine DSL, but forces the consumer to manually wire every seam between domain logic and the Claude Code plugin runtime.
+dev-workflow-v2 has ~975 lines of mechanical infrastructure code that the platform (`@ntcoding/agentic-workflow-builder`) now provides declarative APIs for. The platform's latest version delivers:
 
-### Quantified Waste
+- `defineRoutes` + `arg` helpers — declarative CLI command definitions
+- `createWorkflowCli` / `createWorkflowRunner` — platform-owned CLI entrypoint with dep assembly
+- `defineHooks` + `preToolUseHandler` — declarative hook routing with engine-level escape hatch
+- Engine-owned `transition()`, `checkBash()`, `checkWrite()` — moved from consumer to engine
+- `defineRecordingOps` + `checkOperationGate` — declarative recording operation generation
+- `WorkflowFactory` renamed to `WorkflowDefinition` with `getRegistry()`, `buildTransitionContext()`, `parseStateName()`, `appendEvent()`
+- `afterEntry` callback on state definitions
+- Emoji derived from registry (no `getEmojiForState`)
+- Session ID injected by platform (no positional arg per route)
+- Hook Zod schemas owned by platform
+- `formatDenyDecision` / `formatContextInjection` owned by platform
+- `PlatformContext` exposed to consumer for dep wiring
+- `extractField` utility for hook input parsing
+- `customRouter` escape hatch for non-standard commands
 
-Adding a single new operation (e.g., `record-security-scan-passed`) requires changes to **9 files**:
+**The migration is urgent.** The installed platform package has already removed the `WorkflowFactory` type. Our current code imports a type that no longer exists. The codebase compiles only because TypeScript resolves from cached build artifacts. Any clean rebuild will fail.
 
-| # | File | Change | Unique Domain Knowledge? |
-|---|------|--------|--------------------------|
-| 1 | `workflow-types.ts` | Add union member to `WorkflowOperation` | No — derived from operation name |
-| 2 | `workflow-events.ts` | Add Zod event schema | **Yes** |
-| 3 | `fold.ts` | Add `case` in switch to apply event | **Yes** |
-| 4 | `workflow.ts` | Add method (gate + append + return) | No — mechanical pattern |
-| 5 | `command-handlers.ts` | Add handler function (parse args + engine.transaction) | No — mechanical pattern |
-| 6 | `workflow-cli.ts` | Add import + entry in `COMMAND_HANDLERS` map | No — mechanical wiring |
-| 7 | State `.ts` file | Add to `allowedWorkflowOperations` | **Yes** |
-| 8 | State `.md` file | Add TODO item with CLI invocation | Partial |
-| 9 | `workflow-types.ts` | Add state property + initial value (if needed) | **Yes** |
+### Current Infrastructure to Eliminate
 
-Only 3 of 9 are genuinely unique domain knowledge. The other 6 are mechanical derivations the platform should handle.
+| File | Lines | Replacement |
+|------|-------|-------------|
+| `infra/cli/command-handlers.ts` | 307 | `defineRoutes` — one-line declarations per command |
+| `infra/cli/hook-handlers.ts` | 133 | `defineHooks` + `preToolUseHandler` on `createWorkflowRunner` |
+| `entrypoint/workflow-cli.ts` | 83 | `createWorkflowCli` — single function call |
+| `infra/cli/hook-io.ts` | 59 | Platform owns schemas, `formatDenyDecision`, exit codes |
+| `shell/composition-root.ts` | 50 | `createWorkflowCli` owns engine dep assembly |
+| `infra/cli/environment.ts` | 35 | Platform reads env vars internally |
+| `infra/cli/operation-result.ts` | 28 | Platform maps `EngineResult` to exit codes |
+| `infra/cli/stdin.ts` | 7 | Platform reads stdin internally |
+| `domain/workflow-error.ts` | 15 | Orphaned — only consumers are deleted files |
+| `workflow.ts` — 16 recording methods | ~180 | `defineRecordingOps` + `executeRecording` |
+| `workflow.ts` — `transitionTo` | 35 | Engine-owned `transition()` |
+| `workflow.ts` — `checkBashAllowed` | 16 | Engine-owned `checkBash()` |
+| `workflow.ts` — `checkWriteAllowed` | 12 | Engine-owned `checkWrite()` |
+| `workflow.ts` — `buildTransitionContext` | 12 | Moved to `WorkflowDefinition` |
+| `workflow.ts` — `verifyIdentity` | 3 | Engine handles via `getPrefixConfig` |
+| `workflow-types.ts` — `STATE_EMOJI_MAP` | 12 | Derived from registry |
+| `workflow-predicates.ts` — `checkOperationGate` | 10 | Platform's `defineRecordingOps` owns gate checks |
+| `workflow-adapter.ts` — `getEmojiForState` | 3 | Dropped from interface |
+| **Total** | **~1000** | |
 
-### Current Consumer Infrastructure (Lines of Code)
+### Target State
 
-| File | Lines | Purpose | Should Be Platform? |
-|------|-------|---------|---------------------|
-| `command-handlers.ts` | 307 | 17 handler functions (parse args → engine.transaction) | **Yes** |
-| `hook-handlers.ts` | 133 | Route hook events, extract tool inputs | **Yes** |
-| `workflow-cli.ts` | 83 | Command routing, process boundary | **Yes** |
-| `hook-io.ts` | 59 | Hook protocol (Zod schemas, exit codes, deny format) | **Yes** |
-| `composition-root.ts` | 50 | Dependency assembly | **Yes** |
-| `environment.ts` | 34 | Read env vars (CLAUDE_SESSION_ID, etc.) | **Yes** |
-| `operation-result.ts` | 28 | Map EngineResult → exit codes | **Yes** |
-| `stdin.ts` | 7 | Read stdin synchronously | **Yes** |
-| `output-messages.ts` | 8 | Trivial string formatting | **Yes** |
-| `workflow.ts` (infra portion) | ~250 | 14 mechanical recording methods + transitionTo + bash/write checks | **Yes** |
-| **Total** | **~959** | | |
+After migration, the infrastructure layer reduces to:
 
-After this PRD, the consumer's infrastructure code should be **~50 lines** of declarative configuration.
+**`entrypoint.ts` (~45 lines)** — `createWorkflowCli` call with `defineRoutes`, `defineHooks`, `preToolUseHandler`, and `buildWorkflowDeps`
+
+**`workflow-definition.ts` (~50 lines)** — `WorkflowDefinition` implementation with `getRegistry`, `buildTransitionContext`, `buildTransitionEvent` (encodes `onEntry` mutations), `parseStateName`
+
+**`workflow.ts` changes** — `defineRecordingOps` declaration (~20 lines) + `executeRecording` method (~6 lines) + `appendEvent` method (~15 lines, including autoFetchFeedback side effect), replacing ~260 lines of hand-written recording methods, transition logic, check methods, and identity verification.
+
+**Total new infrastructure: ~130 lines** (down from ~1000).
 
 ---
 
 ## 2. Design Principles
 
-1. **Declare, don't implement** — The consumer declares the shape of operations, events, and checks. The platform generates handlers, methods, and wiring. If a pattern repeats across every workflow, the platform owns it.
+1. **Match the platform's delivered API exactly** — No speculative design. Use the APIs as they shipped. Verified against the installed package.
 
-2. **Own the process boundary** — The platform owns everything between `process.argv` and the domain: arg parsing, stdin reading, exit codes, error logging, env var reading, store creation, stdout formatting. The consumer never touches `process` directly.
+2. **Zero domain behavior change** — Every existing behavior is preserved. Events, state transitions, guards, fold — all unchanged. The `onEntry` mutation encoding in events is a fix to a pre-existing event-sourcing gap, not a behavior change (runtime behavior was always correct; only event replay was broken).
 
-3. **Own the protocol** — Claude Code's hook protocol (stdin JSON shape, exit codes, deny formatting, event routing) is a platform concern. The consumer declares which tools to check and what checks to run, not how to parse hook events.
+3. **Incremental migration** — Each milestone produces a working, testable system. No big-bang rewrite.
 
-4. **Engine owns generic workflow behavior** — `transitionTo`, `checkBashAllowed`, and `checkWriteAllowed` are generic state-machine operations that read from the registry and state definitions the platform already owns. The consumer should not re-implement them.
+4. **Delete, don't refactor** — Files being replaced are deleted entirely, not gradually refactored. Clean cuts.
 
-5. **Preserve testability** — All platform-generated behavior must be testable via the existing `workflowSpec` testing DSL. The consumer must be able to test their domain logic (guards, fold, events) without running the CLI layer.
-
-6. **Backward compatible** — Existing consumers that hand-wire everything must continue to work. The new CLI layer is opt-in. The existing `WorkflowEngine`, `WorkflowFactory`, and DSL types remain unchanged.
+5. **Accept infrastructure differences** — DB path moves from `~/.claude/workflow-events.db` to `${pluginRoot}/workflow.db`. Env file path moves from `CLAUDE_ENV_FILE` env var to hardcoded `~/.claude/claude.env`. Session data is ephemeral (scoped to task lifecycle), so no migration needed.
 
 ---
 
 ## 3. What We're Building
 
-### 3.1 Declarative Command Definitions (`./cli`)
+Migration of dev-workflow-v2 from hand-wired infrastructure to the platform's declarative CLI layer.
 
-A new export `@ntcoding/agentic-workflow-builder/cli` that lets consumers declare CLI commands with typed argument schemas.
+### 3.1 Engine Interface Migration
 
-#### API
+**`WorkflowFactory` -> `WorkflowDefinition`**
 
-```typescript
-import { defineCommands, arg } from '@ntcoding/agentic-workflow-builder/cli'
-
-const commands = defineCommands({
-  'init': {
-    handler: (w) => w.startSession(),
-  },
-  'transition': {
-    args: [arg.state('state')],
-    handler: (w, state) => w.transitionTo(state),
-  },
-  'record-issue': {
-    args: [arg.number('number')],
-    handler: (w, n) => w.recordIssue(n),
-  },
-  'record-branch': {
-    args: [arg.string('branch')],
-    handler: (w, s) => w.recordBranch(s),
-  },
-  'record-pr': {
-    args: [arg.number('number'), arg.string('url').optional()],
-    handler: (w, n, url) => w.recordPr(n, url),
-  },
-  'record-ci-passed': {
-    handler: (w) => w.recordCiPassed(),
-  },
-})
-```
-
-#### `arg` Helpers
-
-| Helper | Parses | Validation |
-|--------|--------|------------|
-| `arg.number(name)` | `parseInt(raw, 10)` | Checks non-null, non-NaN |
-| `arg.string(name)` | Identity | Checks non-null |
-| `arg.state(name)` | Identity + Zod state schema | Checks valid state name |
-| Any `.optional()` | Same parsing | Allows undefined |
-
-#### Error Messages
-
-Auto-generated from the command name and arg name:
-
-```text
-record-issue: missing required argument <number>
-record-issue: not a valid number: 'abc'
-transition: invalid state 'INVALID'
-```
-
-Format: `{command-name}: {error description}`.
-
-#### What the Platform Generates
-
-Given a command definition, the platform generates a handler that:
-
-1. Extracts positional args from `args[1]`, `args[2]`, etc.
-2. Validates each arg according to its type (null check, parseInt, NaN check, state schema)
-3. Returns `{ output: errorMessage, exitCode: 1 }` on validation failure
-4. Calls `engine.transaction(sessionId, commandName, (w) => handler(w, ...parsedArgs))` for recording operations
-5. Calls `engine.startSession(sessionId)` for `init`
-6. Calls `engine.transition(sessionId, target)` for `transition`
-7. Maps `EngineResult` → `{ output, exitCode }` using the standard mapping (success→0, blocked→2, error→1)
-
-#### Special Commands: `init` and `transition`
-
-`init` and `transition` are structurally different from recording operations:
-
-- `init` calls `engine.startSession()`, not `engine.transaction()`
-- `transition` calls `engine.transition()`, not `engine.transaction()`
-
-The platform detects these by name (or by a `type` field in the definition) and routes accordingly:
+The current `WORKFLOW_ADAPTER` implements `WorkflowFactory` (a type that no longer exists in the platform). It becomes a `WorkflowDefinition` with additional methods:
 
 ```typescript
-const commands = defineCommands({
-  'init': {
-    type: 'session-start',
-    handler: (w) => w.startSession(),
+// Before (workflow-adapter.ts)
+export const WORKFLOW_ADAPTER: WorkflowFactory<Workflow, WorkflowState, WorkflowDeps> = {
+  createFresh, rehydrate, procedurePath, initialState,
+  getEmojiForState: (state) => STATE_EMOJI_MAP[parseStateName(state)],  // REMOVE
+  getOperationBody: (op) => getOperationBody(op),    // signature changes
+  getTransitionTitle: (to) => getTransitionTitle(to), // signature changes
+}
+
+// After (workflow-definition.ts)
+export const WORKFLOW_DEFINITION: WorkflowDefinition<
+  Workflow, WorkflowState, WorkflowDeps, StateName, WorkflowOperation
+> = {
+  createFresh, rehydrate, procedurePath, initialState,
+  getRegistry: () => WORKFLOW_REGISTRY,
+  buildTransitionContext: (state, from, to, deps) => {
+    const prChecksPass = state.prNumber === undefined
+      ? false
+      : deps.checkPrChecks(state.prNumber)
+    return { state, gitInfo: deps.getGitInfo(), prChecksPass, from, to }
   },
-  'transition': {
-    type: 'transition',
-    args: [arg.state('state')],
-    handler: (w, state) => w.transitionTo(state),
+  buildTransitionEvent: (from, to, stateBefore, stateAfter, now) => {
+    // Encode onEntry mutations in the event so they survive event replay
+    const overrides: Record<string, unknown> = {}
+    for (const key of Object.keys(stateAfter) as (keyof WorkflowState)[]) {
+      if (key === 'currentStateMachineState') continue // fold handles this
+      if (stateAfter[key] !== stateBefore[key]) {
+        overrides[key] = stateAfter[key]
+      }
+    }
+    return {
+      type: 'transitioned', at: now, from, to,
+      ...(Object.keys(overrides).length > 0 ? { stateOverrides: overrides } : {}),
+    }
   },
-  // All others default to type: 'transaction'
-  'record-issue': {
-    args: [arg.number('number')],
-    handler: (w, n) => w.recordIssue(n),
-  },
-})
+  parseStateName,
+  getOperationBody: (op, _state) => getOperationBody(op),     // 2-arg wrapper
+  getTransitionTitle: (to, _state) => getTransitionTitle(to),  // 2-arg wrapper
+  getPrefixConfig: undefined, // we don't use identity verification
+}
 ```
 
-Default `type` is `'transaction'` (wraps in `engine.transaction()`).
+**Why `buildTransitionEvent` encodes `onEntry` mutations:**
 
----
+The engine computes `stateAfter = onEntry(stateBefore, ctx)` but only passes `stateAfter` to `buildTransitionEvent` — it never applies `stateAfter` to the workflow. The `workflow.appendEvent(transitionEvent)` runs the fold, which only sets `currentStateMachineState` and `preBlockedState`. Without encoding `onEntry` mutations in the event, the IMPLEMENTING state's flag resets (6 boolean fields) and ADDRESSING_FEEDBACK's resets (3 fields) are silently lost at runtime.
 
-### 3.2 Platform-Owned CLI Entrypoint (`createWorkflowCli`)
+This also fixes a pre-existing event-sourcing gap: `onEntry` mutations were never captured in events, so they were lost during event replay (rehydration). Now they're properly event-sourced.
 
-A function that creates a complete CLI entrypoint from configuration. The consumer calls this once and exports the result as their entrypoint module.
-
-#### API
+The fold update:
 
 ```typescript
-import { createWorkflowCli } from '@ntcoding/agentic-workflow-builder/cli'
-
-export default createWorkflowCli({
-  adapter: WORKFLOW_ADAPTER,
-  commands,
-  hooks: hookConfig,
-  workflowDeps: {
-    getGitInfo,
-    checkPrChecks: () => true,
-    getPrFeedback: createGetPrFeedback(runGh),
-  },
-})
-```
-
-#### What the Platform Owns
-
-**Process boundary:**
-- Reads `process.argv`, slices to get command + args
-- Detects hook mode (no command args → hook invocation)
-- Writes result to `process.stdout`
-- Calls `process.exit(exitCode)`
-- Catches errors → writes to `process.stderr` + appends to error log file
-
-**Environment variables (Claude Code conventions):**
-- `CLAUDE_SESSION_ID` — session identifier
-- `CLAUDE_PLUGIN_ROOT` — plugin installation path
-- `HOME` — user home directory (for `~/.claude/.env`)
-
-The platform reads these and throws a clear error if missing. The consumer never reads env vars directly.
-
-**Engine dependency assembly:**
-- Creates SQLite store at `${pluginRoot}/workflow.db`
-- Assembles `WorkflowEngineDeps`:
-  - `store` — from SQLite
-  - `getPluginRoot` — from env
-  - `getEnvFilePath` — `${HOME}/.claude/.env`
-  - `readFile` — `readFileSync(path, 'utf8')`
-  - `appendToFile` — `appendFileSync(path, content)`
-  - `now` — `() => new Date().toISOString()`
-- Injects `now` into consumer's `workflowDeps` automatically (consumer no longer provides `now`)
-
-**Command routing:**
-- Looks up command name in the `commands` map
-- Returns `{ output: "Unknown command: X", exitCode: 1 }` for unknown commands
-- Dispatches to generated handler
-
-**Error logging:**
-- On uncaught error: `[ISO_TIMESTAMP] HOOK ERROR: {message}\n`
-- Written to both stderr and `${pluginRoot}/error.log`
-
-#### Consumer Provides
-
-| Dependency | Type | Purpose |
-|------------|------|---------|
-| `adapter` | `WorkflowFactory` | Creates/rehydrates workflow instances |
-| `commands` | From `defineCommands()` | Command definitions |
-| `hooks` | From `defineHooks()` | Hook check definitions |
-| `workflowDeps` | Consumer-defined type (minus `now`) | Domain-specific dependencies |
-
-#### Exported for Testing
-
-The platform also exports `createWorkflowRunner` (or similar) that returns the `runWorkflow(args, deps)` function without the process boundary, so consumers can test command routing in unit tests:
-
-```typescript
-import { createWorkflowRunner } from '@ntcoding/agentic-workflow-builder/cli'
-
-// In tests:
-const run = createWorkflowRunner({ adapter, commands, hooks })
-const result = run(['record-issue', '42'], testDeps)
-expect(result.exitCode).toBe(0)
-```
-
----
-
-### 3.3 Platform-Owned Hook Protocol (`defineHooks`)
-
-A declarative way to specify which Claude Code tool calls to intercept and what checks to run.
-
-#### API
-
-```typescript
-import { defineHooks, extractField } from '@ntcoding/agentic-workflow-builder/cli'
-
-const hookConfig = defineHooks({
-  preToolUse: {
-    Bash: {
-      extract: extractField('command'),
-      check: (w, command) => w.checkBashAllowed('Bash', command),
-    },
-    Write: {
-      extract: extractField('file_path'),
-      check: (w, filePath) => w.checkWriteAllowed(filePath),
-    },
-    Edit: {
-      extract: extractField('file_path'),
-      check: (w, filePath) => w.checkWriteAllowed(filePath),
-    },
-  },
-})
-```
-
-#### `extractField(fieldName)`
-
-Returns a function that extracts a string field from `tool_input: Record<string, unknown>`. Throws a clear error if the field is missing or not a string:
-
-```text
-Expected Bash tool_input to have a "command" field
-Expected tool_input.command to be string. Got number: 42
-```
-
-#### What the Platform Handles
-
-**SessionStart hook (always handled, no consumer config needed):**
-1. Parse stdin JSON
-2. Call `engine.persistSessionId(sessionId)`
-3. Return `{ output: '', exitCode: 0 }`
-
-**PreToolUse hook:**
-1. Parse stdin JSON with Zod schema: `{ session_id, hook_event_name, tool_name, tool_input, transcript_path? }`
-2. Look up `tool_name` in consumer's `preToolUse` map
-3. If tool not in map → `{ output: '', exitCode: 0 }` (allow)
-4. If no active session → `{ output: '', exitCode: 0 }` (allow)
-5. Call `extract(tool_input)` to get the relevant value
-6. Call `engine.transaction(sessionId, 'hook-check', (w) => check(w, extractedValue), transcriptPath)`
-7. If result is `blocked` → `{ output: JSON.stringify({ decision: 'block', reason }), exitCode: 2 }`
-8. Otherwise → `{ output: '', exitCode: 0 }`
-
-**Unknown hook events:**
-- Return `{ output: '', exitCode: 0 }` (allow)
-
-**Stdin handling:**
-- Read once, cache internally. No stdin caching hack needed by consumer.
-
-#### Exit Code Constants
-
-The platform defines and owns these:
-
-```typescript
-EXIT_ALLOW = 0
-EXIT_ERROR = 1
-EXIT_BLOCK = 2
-```
-
-Consumers never reference exit codes directly.
-
----
-
-### 3.4 Engine-Owned Workflow Behaviors
-
-Three methods currently hand-written on every consumer's `Workflow` class are actually generic state-machine operations. The platform engine should own them.
-
-#### 3.4.1 `transitionTo` → Moved to Engine
-
-**Current consumer implementation** (35 lines in `workflow.ts`):
-
-```typescript
-transitionTo(target: string): PreconditionResult {
-  const from = parseStateName(this.state.currentStateMachineState)
-  const targetState = parseStateName(target)
-  const currentDef = WORKFLOW_REGISTRY[from]
-
-  // 1. Check legal transition
-  if (!currentDef.canTransitionTo.includes(targetState)) {
-    return fail(`Illegal transition ${from} -> ${targetState}. ...`)
+// Before (fold.ts)
+function applyTransitioned(state, event) {
+  return {
+    ...state,
+    currentStateMachineState: event.to,
+    preBlockedState: event.to === 'BLOCKED' ? event.from : undefined,
   }
+}
 
-  // 2. Run guard (skip for BLOCKED)
-  if (targetState !== 'BLOCKED' && currentDef.transitionGuard) {
-    const ctx = this.buildTransitionContext(from, targetState)
-    const guardResult = currentDef.transitionGuard(ctx)
-    if (!guardResult.pass) return guardResult
+// After
+function applyTransitioned(state, event) {
+  return {
+    ...state,
+    ...(event.stateOverrides ?? {}),
+    currentStateMachineState: event.to,
+    preBlockedState: event.to === 'BLOCKED' ? event.from : undefined,
   }
+}
+```
 
-  // 3. Run onEntry
-  const targetDef = WORKFLOW_REGISTRY[targetState]
-  if (targetDef.onEntry) {
-    const ctx = this.buildTransitionContext(from, targetState)
-    this.state = targetDef.onEntry(this.state, ctx)
-  }
+The `TRANSITIONED_SCHEMA` adds `stateOverrides: z.record(z.unknown()).optional()`.
 
-  // 4. Append transition event
-  this.append({ type: 'transitioned', at: this.deps.now(), from, to: targetState })
+**`RehydratableWorkflow` — `transitionTo` replaced by `appendEvent`**
 
-  // 5. Post-transition side effect (hardcoded)
-  if (targetState === 'CHECKING_FEEDBACK' && this.state.prNumber !== undefined) {
+The `Workflow` class drops `transitionTo()`, `checkBashAllowed()`, `checkWriteAllowed()`, `buildTransitionContext()`, and `verifyIdentity()`. It adds `appendEvent()`:
+
+```typescript
+// Added
+appendEvent(event: BaseEvent): void {
+  const workflowEvent = WORKFLOW_EVENT_SCHEMA.parse(event)
+  this.pendingEvents = [...this.pendingEvents, workflowEvent]
+  this.state = applyEvent(this.state, workflowEvent)
+
+  // Side effect: auto-fetch feedback when transitioning to CHECKING_FEEDBACK
+  if (
+    workflowEvent.type === 'transitioned' &&
+    workflowEvent.to === 'CHECKING_FEEDBACK' &&
+    this.state.prNumber !== undefined
+  ) {
     this.autoFetchFeedback(this.state.prNumber)
   }
+}
 
+// Deleted: transitionTo(), checkBashAllowed(), checkWriteAllowed(),
+//          buildTransitionContext(), verifyIdentity()
+```
+
+The `autoFetchFeedback` side effect fires inside `appendEvent` when it detects a transition to CHECKING_FEEDBACK. The engine calls `workflow.appendEvent(transitionEvent)` during its `transition()` lifecycle, so the side effect triggers automatically. The engine then persists all pending events (transition + feedback-checked) atomically afterward.
+
+**`startSession` signature alignment**
+
+The platform's `RehydratableWorkflow.startSession` requires `(transcriptPath: string | undefined, repository: string | undefined)`. Our current signature is `(repository: string | undefined)`. Update to match:
+
+```typescript
+// Before
+startSession(repository: string | undefined): void
+
+// After
+startSession(transcriptPath: string | undefined, repository: string | undefined): void
+```
+
+**`WorkflowState` type tightening**
+
+`BaseWorkflowState` is now parameterized: `BaseWorkflowState<TStateName extends string>`. Our `WorkflowState.currentStateMachineState` changes from `string` to `StateName` to satisfy `BaseWorkflowState<StateName>`.
+
+### 3.2 Write Check Infrastructure
+
+The engine's `checkWrite()` only calls the consumer's predicate when `forbidden.write === true` for the current state. Without this flag, writes are auto-allowed — bypassing our protected file list.
+
+Our current behavior blocks protected files (nx.json, tsconfig.base.json, etc.) in ALL states. To preserve this, we add `forbidden: { write: true }` to every state definition:
+
+```typescript
+// Each state definition gains:
+forbidden: { write: true },
+```
+
+Note: the engine's `checkBash()` has NO equivalent per-state flag — it always runs the check regardless. The asymmetry is by design: `forbidden.write` exists because some states allow all writes, while bash checks always apply.
+
+The `checkWriteAllowed` predicate in `workflow-predicates.ts` stays, but wraps to match the engine's expected `(toolName, filePath, state) => PreconditionResult`:
+
+```typescript
+export function isWriteAllowed(
+  _toolName: string, filePath: string, _state: WorkflowState,
+): PreconditionResult {
+  return checkWriteAllowed(filePath)
+}
+```
+
+### 3.3 Recording Operations
+
+16 hand-written recording methods on `Workflow` class become a `defineRecordingOps` declaration:
+
+```typescript
+const RECORDING_OPS = defineRecordingOps<StateName, WorkflowState, WorkflowOperation>(
+  WORKFLOW_REGISTRY,
+  {
+    'record-issue':                       { event: 'issue-recorded',              payload: (n: number) => ({ issueNumber: n }) },
+    'record-branch':                      { event: 'branch-recorded',             payload: (b: string) => ({ branch: b }) },
+    'record-architecture-review-passed':  { event: 'architecture-review-completed', payload: () => ({ passed: true }) },
+    'record-architecture-review-failed':  { event: 'architecture-review-completed', payload: () => ({ passed: false }) },
+    'record-code-review-passed':          { event: 'code-review-completed',       payload: () => ({ passed: true }) },
+    'record-code-review-failed':          { event: 'code-review-completed',       payload: () => ({ passed: false }) },
+    'record-bug-scanner-passed':          { event: 'bug-scanner-completed',       payload: () => ({ passed: true }) },
+    'record-bug-scanner-failed':          { event: 'bug-scanner-completed',       payload: () => ({ passed: false }) },
+    'record-task-check-passed':           { event: 'task-check-passed',           payload: () => ({}) },
+    'record-pr':                          { event: 'pr-recorded',                 payload: (n: number, url?: string) => ({ prNumber: n, ...(url ? { prUrl: url } : {}) }) },
+    'record-ci-passed':                   { event: 'ci-completed',                payload: () => ({ passed: true }) },
+    'record-ci-failed':                   { event: 'ci-completed',                payload: (output: string) => ({ passed: false, output }) },
+    'record-feedback-clean':              { event: 'feedback-checked',            payload: () => ({ clean: true }) },
+    'record-feedback-exists':             { event: 'feedback-checked',            payload: (count: number) => ({ clean: false, unresolvedCount: count }) },
+    'record-feedback-addressed':          { event: 'feedback-addressed',          payload: (count: number) => ({ addressedCount: count }) },
+    'record-reflection':                  { event: 'reflection-written',          payload: (p: string) => ({ path: p }) },
+  },
+)
+```
+
+**Type signature risk:** The platform's `defineRecordingOps` types the ops parameter with `RecordingOpDefinition<readonly never[]>`. Payload functions with typed args (like `(n: number) => ...`) may not be directly assignable. If compilation fails, cast the ops object via `as const satisfies` or similar — the runtime `executeOp` passes args correctly regardless.
+
+The Workflow class gets a single `executeRecording` method:
+
+```typescript
+executeRecording(op: WorkflowOperation, ...args: readonly unknown[]): PreconditionResult {
+  const result = RECORDING_OPS.executeOp(op, this.state, this.deps.now(), args)
+  if (!result.pass) return fail(result.reason)
+  this.appendEvent(result.event)
   return pass()
 }
 ```
 
-**Why this is generic:**
+Routes then call `w.executeRecording('record-issue', n)` instead of `w.recordIssue(n)`.
 
-Steps 1-4 use only data from the `WorkflowRegistry` that the platform already owns:
-- `canTransitionTo` — declared in state definitions
-- `transitionGuard` — declared in state definitions
-- `onEntry` — declared in state definitions
-- `TransitionContext` — a platform type built from `GitInfo` + state
+### 3.4 Declarative CLI Layer
 
-Step 5 is the only workflow-specific line — and it's a hardcoded side effect that should instead be modeled as part of the CHECKING_FEEDBACK state definition's `onEntry`.
-
-**Proposed change:**
-
-The engine's existing `transition()` method should execute the full transition lifecycle internally:
-
-1. Validate legal transition from registry
-2. Run `transitionGuard` (skip for BLOCKED)
-3. Run `onEntry` on target state
-4. Append `transitioned` event
-5. Flush pending events
-
-The consumer removes `transitionTo` from their Workflow class. The `RehydratableWorkflow` interface drops the `transitionTo` method.
-
-**Side effect handling:**
-
-The hardcoded `autoFetchFeedback` call moves into the CHECKING_FEEDBACK state's `onEntry`:
+**Routes** — replace 307-line `command-handlers.ts` + 83-line `workflow-cli.ts`:
 
 ```typescript
-// states/checking-feedback.ts (consumer code)
-export const checkingFeedbackState: ConcreteStateDefinition = {
-  // ...
-  onEntry: (state, ctx) => {
-    // Existing: reset flags
-    const resetState = {
-      ...state,
-      feedbackClean: false,
-      feedbackAddressed: false,
-      feedbackAddressedCount: undefined,
-      feedbackUnresolvedCount: undefined,
-    }
-    // Side effect: auto-fetch feedback (was previously hardcoded in transitionTo)
-    // The consumer handles this in onEntry since it has access to deps via closure
-    return resetState
-  },
-}
-```
+const ROUTES = defineRoutes<Workflow, WorkflowState>({
+  init:       { type: 'session-start' },
+  transition: { type: 'transition', args: [arg.state('STATE', STATE_NAME_SCHEMA)] },
 
-Note: `onEntry` currently returns state but does not have access to append events or call deps. If the auto-fetch needs to append events (it does — it appends `feedback-checked`), then `onEntry` needs an extended signature. See Section 3.4.4 for the `onEntry` enhancement.
-
-#### 3.4.2 `checkBashAllowed` → Moved to Engine
-
-**Current consumer implementation** (13 lines):
-
-```typescript
-checkBashAllowed(toolName: string, command: string): PreconditionResult {
-  const currentDef = getStateDefinition(this.state.currentStateMachineState)
-  const exemptions = currentDef.allowForbidden?.bash ?? []
-  const result = checkBashCommand(command, BASH_FORBIDDEN, exemptions)
-  this.append({
-    type: 'bash-checked',
-    at: this.deps.now(),
-    tool: toolName,
-    command,
-    allowed: result.pass,
-    reason: result.pass ? undefined : result.reason,
-  })
-  return result
-}
-```
-
-**Why this is generic:**
-
-Every line uses platform-owned constructs:
-- `getStateDefinition` reads from `WorkflowRegistry` (platform type)
-- `allowForbidden?.bash` is a platform DSL field on `WorkflowStateDefinition`
-- `checkBashCommand` is a platform-exported function
-- `bash-checked` is a platform-defined engine event type
-- The audit append pattern (record result as event) is generic
-
-**Proposed change:**
-
-The engine provides a `checkBash(sessionId, toolName, command)` method that:
-
-1. Rehydrates workflow to get current state
-2. Looks up state definition from registry
-3. Reads `allowForbidden?.bash` exemptions
-4. Calls existing `checkBashCommand(command, bashForbidden, exemptions)`
-5. Appends `bash-checked` engine event
-6. Returns `EngineResult` (blocked or success)
-
-The consumer provides `bashForbidden: BashForbiddenConfig` as part of their workflow configuration (it's already declared in the registry module — just needs to be passed to the engine).
-
-The consumer's `Workflow` class no longer has a `checkBashAllowed` method. The `RehydratableWorkflow` interface drops it.
-
-#### 3.4.3 `checkWriteAllowed` → Moved to Engine
-
-**Current consumer implementation** (11 lines):
-
-```typescript
-checkWriteAllowed(filePath: string): PreconditionResult {
-  const result = checkWriteAllowed(filePath) // calls predicate
-  this.append({
-    type: 'write-checked',
-    at: this.deps.now(),
-    tool: 'Write',
-    filePath,
-    allowed: result.pass,
-    reason: result.pass ? undefined : result.reason,
-  })
-  return result
-}
-```
-
-**Why this is generic:**
-
-- `write-checked` is a platform-defined engine event type
-- The audit append pattern is identical to bash checking
-- The only consumer-specific part is the predicate (`checkWriteAllowed(filePath)`)
-
-**Proposed change:**
-
-The engine provides a `checkWrite(sessionId, filePath)` method that:
-
-1. Rehydrates workflow to get current state
-2. Calls consumer-provided write predicate: `writeProtection(filePath) → PreconditionResult`
-3. Appends `write-checked` engine event
-4. Returns `EngineResult`
-
-The consumer provides the write predicate as configuration:
-
-```typescript
-// Consumer provides:
-const writeProtection = (filePath: string): PreconditionResult => {
-  const PROTECTED = [
-    /\bnx\.json$/,
-    /\btsconfig\.base\.json$/,
-    /\beslint\.config\.mjs$/,
-    /\bvitest\.config\./,
-    /\bvite\.config\./,
-  ]
-  const isProtected = PROTECTED.some((pattern) => pattern.test(filePath))
-  if (isProtected) return fail(`Protected file: ${filePath}`)
-  return pass()
-}
-```
-
-This is passed to the engine or CLI configuration, not implemented as a Workflow method.
-
-#### 3.4.4 Enhanced `onEntry` Signature
-
-The current `onEntry` signature is:
-
-```typescript
-onEntry?: (state: TState, ctx: TransitionContext<TState, TStateName>) => TState
-```
-
-This only allows state mutation — it cannot append events or call external dependencies. The `autoFetchFeedback` side effect needs both (it calls `deps.getPrFeedback()` and appends `feedback-checked` events).
-
-**Proposed enhancement — `afterEntry`:**
-
-Add an optional `afterEntry` callback to `WorkflowStateDefinition` that runs after the transition event is appended and has access to the workflow instance:
-
-```typescript
-type WorkflowStateDefinition<TState, TStateName, TOperation> = {
-  // ... existing fields ...
-  onEntry?: (state: TState, ctx: TransitionContext<TState, TStateName>) => TState
-  afterEntry?: (workflow: RehydratableWorkflow<TState>) => void
-}
-```
-
-- `onEntry` — Pure state mutation. Runs before the transition event. No side effects.
-- `afterEntry` — Side effects. Runs after the transition event is appended. Can call workflow methods that append additional events.
-
-The consumer moves `autoFetchFeedback` to `afterEntry`:
-
-```typescript
-// states/checking-feedback.ts
-export const checkingFeedbackState: ConcreteStateDefinition = {
-  // ...
-  onEntry: (state) => ({
-    ...state,
-    feedbackClean: false,
-    feedbackAddressed: false,
-    feedbackAddressedCount: undefined,
-    feedbackUnresolvedCount: undefined,
-  }),
-  afterEntry: (workflow) => {
-    // Side effect: auto-fetch feedback
-    // This is the only genuinely workflow-specific transition logic
-    const state = workflow.getState()
-    if (state.prNumber !== undefined) {
-      // workflow has recording ops that can append events
-      // consumer wires this to their getPrFeedback dep
-    }
-  },
-}
-```
-
-**Alternative approach — simpler:**
-
-If `afterEntry` adds too much complexity, the consumer can handle auto-fetch as a recording operation that the agent instructions tell the agent to call immediately after transitioning to CHECKING_FEEDBACK. This avoids any engine changes. The trade-off is that it's no longer automatic.
-
-The choice between these two approaches is at the platform team's discretion.
-
-#### 3.4.5 Recording Operations Declaration
-
-The consumer declares mechanical recording operations on their Workflow class. The platform generates methods that follow the gate-check → append-event → return-pass pattern.
-
-**API:**
-
-```typescript
-import { defineRecordingOps } from '@ntcoding/agentic-workflow-builder/dsl'
-
-// Defined inside the Workflow class or as a companion declaration
-const recordingOps = defineRecordingOps({
-  'record-issue': {
-    event: 'issue-recorded',
-    payload: (issueNumber: number) => ({ issueNumber }),
-  },
-  'record-branch': {
-    event: 'branch-recorded',
-    payload: (branch: string) => ({ branch }),
-  },
-  'record-architecture-review-passed': {
-    event: 'architecture-review-completed',
-    payload: () => ({ passed: true }),
-  },
-  'record-architecture-review-failed': {
-    event: 'architecture-review-completed',
-    payload: () => ({ passed: false }),
-  },
-  'record-code-review-passed': {
-    event: 'code-review-completed',
-    payload: () => ({ passed: true }),
-  },
-  'record-code-review-failed': {
-    event: 'code-review-completed',
-    payload: () => ({ passed: false }),
-  },
-  'record-bug-scanner-passed': {
-    event: 'bug-scanner-completed',
-    payload: () => ({ passed: true }),
-  },
-  'record-bug-scanner-failed': {
-    event: 'bug-scanner-completed',
-    payload: () => ({ passed: false }),
-  },
-  'record-task-check-passed': {
-    event: 'task-check-passed',
-    payload: () => ({}),
-  },
-  'record-pr': {
-    event: 'pr-recorded',
-    payload: (prNumber: number, prUrl?: string) => ({
-      prNumber,
-      ...(prUrl !== undefined ? { prUrl } : {}),
-    }),
-  },
-  'record-ci-passed': {
-    event: 'ci-completed',
-    payload: () => ({ passed: true }),
-  },
-  'record-ci-failed': {
-    event: 'ci-completed',
-    payload: (output: string) => ({ passed: false, output }),
-  },
-  'record-feedback-clean': {
-    event: 'feedback-checked',
-    payload: () => ({ clean: true }),
-  },
-  'record-feedback-exists': {
-    event: 'feedback-checked',
-    payload: (unresolvedCount: number) => ({ clean: false, unresolvedCount }),
-  },
-  'record-feedback-addressed': {
-    event: 'feedback-addressed',
-    payload: (addressedCount: number) => ({ addressedCount }),
-  },
-  'record-reflection': {
-    event: 'reflection-written',
-    payload: (path: string) => ({ path }),
-  },
+  'record-issue':                      { type: 'transaction', args: [arg.number('number')],                       handler: (w, n) => w.executeRecording('record-issue', n) },
+  'record-branch':                     { type: 'transaction', args: [arg.string('branch')],                       handler: (w, b) => w.executeRecording('record-branch', b) },
+  'record-architecture-review-passed': { type: 'transaction', args: [],                                           handler: (w) => w.executeRecording('record-architecture-review-passed') },
+  'record-architecture-review-failed': { type: 'transaction', args: [],                                           handler: (w) => w.executeRecording('record-architecture-review-failed') },
+  'record-code-review-passed':         { type: 'transaction', args: [],                                           handler: (w) => w.executeRecording('record-code-review-passed') },
+  'record-code-review-failed':         { type: 'transaction', args: [],                                           handler: (w) => w.executeRecording('record-code-review-failed') },
+  'record-bug-scanner-passed':         { type: 'transaction', args: [],                                           handler: (w) => w.executeRecording('record-bug-scanner-passed') },
+  'record-bug-scanner-failed':         { type: 'transaction', args: [],                                           handler: (w) => w.executeRecording('record-bug-scanner-failed') },
+  'record-task-check-passed':          { type: 'transaction', args: [],                                           handler: (w) => w.executeRecording('record-task-check-passed') },
+  'record-pr':                         { type: 'transaction', args: [arg.number('number'), arg.string('url').optional()], handler: (w, n, url) => w.executeRecording('record-pr', n, url) },
+  'record-ci-passed':                  { type: 'transaction', args: [],                                           handler: (w) => w.executeRecording('record-ci-passed') },
+  'record-ci-failed':                  { type: 'transaction', args: [arg.string('output')],                       handler: (w, o) => w.executeRecording('record-ci-failed', o) },
+  'record-feedback-clean':             { type: 'transaction', args: [],                                           handler: (w) => w.executeRecording('record-feedback-clean') },
+  'record-feedback-exists':            { type: 'transaction', args: [arg.number('count')],                        handler: (w, c) => w.executeRecording('record-feedback-exists', c) },
+  'record-feedback-addressed':         { type: 'transaction', args: [arg.number('count')],                        handler: (w, c) => w.executeRecording('record-feedback-addressed', c) },
+  'record-reflection':                 { type: 'transaction', args: [arg.string('path')],                         handler: (w, p) => w.executeRecording('record-reflection', p) },
 })
 ```
 
-**What the platform generates for each operation:**
+**Hooks** — replace 133-line `hook-handlers.ts`:
 
 ```typescript
-// Generated method (conceptual):
-recordIssue(issueNumber: number): PreconditionResult {
-  const gate = checkOperationGate('record-issue', this.state)
-  if (!gate.pass) return gate
-  this.append({
-    type: 'issue-recorded',
-    at: this.deps.now(),
-    ...payload(issueNumber),  // { issueNumber }
-  })
-  return pass()
+const HOOKS = defineHooks<Workflow>({
+  // dev-workflow-v2 uses preToolUseHandler (engine-level) instead of per-tool hooks
+})
+```
+
+**PreToolUse handler** — engine-level handler for write + bash checks:
+
+```typescript
+const preToolUseHandler: PreToolUseHandlerFn<
+  Workflow, WorkflowState, WorkflowDeps, StateName, WorkflowOperation
+> = (engine, sessionId, toolName, toolInput, transcriptPath) => {
+  if (toolName === 'Write' || toolName === 'Edit') {
+    const filePath = extractField('file_path')(toolInput)
+    return engine.checkWrite(sessionId, toolName, filePath, isWriteAllowed, transcriptPath)
+  }
+  if (toolName === 'Bash') {
+    const command = extractField('command')(toolInput)
+    return engine.checkBash(sessionId, toolName, command, BASH_FORBIDDEN, transcriptPath)
+  }
+  return { type: 'success', output: '' }
 }
 ```
 
-Every generated method:
-1. Calls `checkOperationGate(operationName, state)` — checks `allowedWorkflowOperations` in current state definition
-2. Returns the gate failure if blocked
-3. Appends an event with `{ type, at: now(), ...payload(...args) }`
-4. Returns `pass()`
+**Behavior change with `extractField`:** The platform's `extractField` returns empty string for missing/null fields. Our current code throws `WorkflowError` with descriptive messages. After migration, malformed hook inputs with missing fields will pass empty strings to the engine checks rather than throwing. This is accepted — the engine's checks will handle empty strings appropriately (empty commands pass bash checks, empty file paths pass write checks), and malformed hook inputs from Claude Code are an edge case not worth custom error handling.
 
-**Implementation approach:**
+**SessionStart hook behavior change:** The platform's runner calls both `engine.startSession()` AND `engine.persistSessionId()` on SessionStart hooks. Our current hook handler only calls `persistSessionId()`. After migration, session creation happens via both the `init` CLI command AND the SessionStart hook. This is correct — the engine's `startSession` is idempotent (returns early if session exists).
 
-The platform team decides the generation mechanism. Options:
-- Runtime method generation via `Proxy` or prototype injection
-- A base class mixin that reads the recording ops declaration
-- A code-generation step
+**CLI entrypoint** — replace `composition-root.ts` + `environment.ts` + `stdin.ts` + process boundary:
 
-The consumer's Workflow class should not need to hand-write any recording methods. They remain accessible by name (e.g., `w.recordIssue(42)`) for the command handler callbacks in `defineCommands`.
-
-#### 3.4.6 Derive Emoji Map from Registry
-
-**Current duplication:**
-
-Emoji is defined in each state definition:
 ```typescript
-const implementingState = { emoji: '🔨', ... }
-```
-
-AND duplicated in a separate map:
-```typescript
-const STATE_EMOJI_MAP = { IMPLEMENTING: '🔨', ... }
-```
-
-AND the adapter's `getEmojiForState` method:
-```typescript
-getEmojiForState(state: string): string {
-  return STATE_EMOJI_MAP[parseStateName(state)]
-}
-```
-
-**Proposed change:**
-
-The engine should derive the emoji map from the `WorkflowRegistry` that the `WorkflowFactory` already provides (via `procedurePath`, which reads state definitions). The `getEmojiForState` method on `WorkflowFactory` should have a default implementation that reads from the registry, so consumers don't need to provide it.
-
-If the platform already has access to the registry (it does — through the factory), it can look up `registry[stateName].emoji` directly. The consumer no longer needs `STATE_EMOJI_MAP` or the `getEmojiForState` adapter method.
-
----
-
-### 3.5 Complete Consumer Code After All Changes
-
-After implementing all features in this PRD, the consumer's entire codebase for the CLI/infrastructure layer reduces to:
-
-**File 1: `entrypoint.ts` (~15 lines)**
-```typescript
-import { createWorkflowCli, defineCommands, defineHooks, arg, extractField } from '@ntcoding/agentic-workflow-builder/cli'
-import { WORKFLOW_ADAPTER } from './workflow-adapter'
-import { getGitInfo, runGh } from './infra/git'
-import { createGetPrFeedback } from './infra/get-pr-feedback'
-
-export default createWorkflowCli({
-  adapter: WORKFLOW_ADAPTER,
-  commands: defineCommands({ /* see Section 3.1 */ }),
-  hooks: defineHooks({ /* see Section 3.3 */ }),
-  workflowDeps: {
+createWorkflowCli({
+  workflowDefinition: WORKFLOW_DEFINITION,
+  routes: ROUTES,
+  hooks: HOOKS,
+  preToolUseHandler,
+  buildWorkflowDeps: (platform) => ({
     getGitInfo,
     checkPrChecks: () => true,
     getPrFeedback: createGetPrFeedback(runGh),
-  },
+    now: platform.now,
+  }),
 })
 ```
 
-**File 2: `workflow.ts` (~30 lines)**
-```typescript
-import { defineRecordingOps } from '@ntcoding/agentic-workflow-builder/dsl'
-
-// Recording ops declaration (see Section 3.4.5)
-export const recordingOps = defineRecordingOps({ /* ... */ })
-
-// Workflow class only has custom logic, if any
-// If afterEntry is implemented, the autoFetchFeedback helper lives here
-// If all behavior is declarative, Workflow class may not be needed at all
-```
-
-**File 3: `workflow-adapter.ts` (~20 lines)**
-```typescript
-// Simplified adapter — no getEmojiForState, no getOperationBody, no getTransitionTitle
-// Just createFresh, rehydrate, procedurePath, initialState
-```
-
-**File 4: `write-protection.ts` (~15 lines)**
-```typescript
-// The write predicate — list of protected file patterns
-```
-
-**Files unchanged (domain logic — stays as-is):**
-- `workflow-types.ts` — State type, state names, operation union
-- `workflow-events.ts` — Event Zod schemas
-- `fold.ts` — Event reducer
-- `registry.ts` — State registry with guards, transitions, operations
-- `states/*.ts` — 9 state definitions
-- `git.ts` — Git/GitHub CLI wrappers
-- `get-pr-feedback.ts` — PR feedback fetching
-
-**Total new infrastructure: ~80 lines** (down from ~959).
+**`WorkflowCliConfig` type limitation:** `WorkflowCliConfig` only has 3 type params (`TWorkflow`, `TState`, `TDeps`), defaulting `TStateName` to `string` and `TOperation` to `string`. The `preToolUseHandler` typed with specific `StateName`/`WorkflowOperation` may need widening or casting. If type inference fails, widen the handler's generic params.
 
 ---
 
@@ -772,12 +352,14 @@ export const recordingOps = defineRecordingOps({ /* ... */ })
 
 | Exclusion | Rationale |
 |-----------|-----------|
-| **State markdown auto-generation** | State `.md` files contain nuanced agent instructions (TODO checklists, constraints, context). These are hand-authored content, not derivable from the registry. |
-| **Event schema generation** | Event shapes are domain knowledge. The consumer defines Zod schemas for their events. The platform does not infer event schemas from recording ops. |
-| **Fold function generation** | How events map to state is domain knowledge. The consumer writes the fold/reducer. |
-| **Agent definition generation** | Agent `.md` files contain detailed review instructions. Not derivable from code. |
-| **Breaking changes to existing API** | `WorkflowEngine`, `WorkflowFactory`, `WorkflowRegistry`, `workflowSpec` — all existing types remain. New features are additive. |
-| **Multi-command plugins** | This PRD assumes one workflow = one CLI entrypoint. Multiple workflows in one plugin is out of scope. |
+| Changes to fold logic, guards, or transition rules | Event structure and state machine behavior unchanged |
+| Changes to state markdown files | Agent instructions are hand-authored content |
+| New platform features | Using delivered APIs only |
+| Changes to `get-pr-feedback.ts` | Domain-specific infra, not platform concern |
+| Changes to `infra/cli/git.ts` | Domain-specific infra (`getGitInfo`, `runGh`), survives the migration |
+| DB migration | Session data is ephemeral — no value in migrating old DB |
+
+**Note:** Adding `forbidden: { write: true }` to state definitions and `stateOverrides` to the transitioned event schema ARE domain-layer changes. They are necessary to preserve existing behavior when adopting engine-owned transitions and write checks — not feature additions.
 
 ---
 
@@ -785,282 +367,194 @@ export const recordingOps = defineRecordingOps({ /* ... */ })
 
 | # | Criterion | Verification |
 |---|-----------|--------------|
-| 1 | `defineCommands` generates working CLI handlers for all 3 arg types (no-arg, number, string) + optional args | Unit tests for each arg type, error messages match format spec |
-| 2 | `createWorkflowCli` produces a working CLI entrypoint that handles commands and hooks | Integration test: invoke with argv, verify stdout/exit code |
-| 3 | `defineHooks` correctly routes SessionStart and PreToolUse events | Unit tests: allow/block decisions match expected behavior |
-| 4 | Engine's `transition()` executes full lifecycle (validate → guard → onEntry → append) | Existing workflow spec tests pass without consumer `transitionTo` method |
-| 5 | Engine's `checkBash()` reads exemptions from state definitions and appends audit events | Unit tests: verify exemptions, blocked patterns, audit events |
-| 6 | Engine's `checkWrite()` calls consumer predicate and appends audit events | Unit tests: verify predicate called, audit events appended |
-| 7 | `defineRecordingOps` generates working methods (gate → append → pass) | Existing workflow spec tests pass with generated methods |
-| 8 | Emoji derived from registry — no separate map needed | `getEmojiForState` reads from registry without consumer override |
-| 9 | dev-workflow-v2 migrated to new API with zero behavior change | All existing dev-workflow-v2 tests pass after migration |
-| 10 | Backward compatible — existing consumers without CLI layer still work | Existing engine/dsl tests pass unchanged |
+| 1 | All domain tests pass (fold, events, transitions, recording ops) | `pnpm nx test dev-workflow-v2` green |
+| 2 | `command-handlers.ts` deleted | File gone |
+| 3 | `hook-handlers.ts` deleted | File gone |
+| 4 | `workflow-cli.ts` replaced with `createWorkflowCli` call | File rewritten |
+| 5 | `hook-io.ts` deleted | File gone |
+| 6 | `composition-root.ts` deleted | File gone |
+| 7 | `environment.ts` deleted | File gone |
+| 8 | `operation-result.ts` deleted | File gone |
+| 9 | `stdin.ts` deleted | File gone |
+| 10 | `workflow-error.ts` deleted | File gone (orphaned — all consumers deleted) |
+| 11 | 16 recording methods replaced by `defineRecordingOps` | `executeRecording` on Workflow |
+| 12 | `transitionTo` removed from Workflow | Engine owns transitions |
+| 13 | `checkBashAllowed` removed from Workflow | Engine owns bash checks |
+| 14 | `checkWriteAllowed` method removed from Workflow | Engine owns write checks |
+| 15 | `verifyIdentity` removed from Workflow | Engine handles via `getPrefixConfig` |
+| 16 | `checkOperationGate` removed from `workflow-predicates.ts` | Platform's `defineRecordingOps` owns gate checks |
+| 17 | `STATE_EMOJI_MAP` removed | Derived from registry |
+| 18 | `onEntry` mutations encoded in transition events | `buildTransitionEvent` produces `stateOverrides` |
+| 19 | Infrastructure test files deleted | `operation-result.spec.ts`, `environment.spec.ts`, `hook-io.spec.ts`, `workflow-error.spec.ts` gone |
+| 20 | CLI integration tests rewritten for `createWorkflowRunner` | `workflow-cli.spec.ts`, `workflow-cli-hooks.spec.ts` updated |
+| 21 | Net deletion of ~800+ lines of infrastructure code | `git diff --stat` |
+| 22 | `pnpm verify` passes | Full gate green |
 
 ---
 
-## 6. Current Platform API (Reference)
+## 6. Milestones
 
-### Package Exports (v0.1.0)
+### M1: Engine interface migration
 
-```text
-@ntcoding/agentic-workflow-builder/dsl       → Types, pass/fail, checkBashCommand
-@ntcoding/agentic-workflow-builder/engine     → WorkflowEngine, WorkflowFactory, events
-@ntcoding/agentic-workflow-builder/event-store → createStore, resolveSessionId
-@ntcoding/agentic-workflow-builder/testing    → workflowSpec
-```
-
-### Key Types the Consumer Currently Implements
-
-**`RehydratableWorkflow<TState>`** — consumer must implement:
-```typescript
-interface RehydratableWorkflow<TState> {
-  getState(): TState
-  getAgentInstructions(pluginRoot: string): string
-  transitionTo(target: string): PreconditionResult        // ← REMOVE (engine owns)
-  getPendingEvents(): readonly BaseEvent[]
-  startSession(transcriptPath?: string, repository?: string): void
-}
-```
-
-**`WorkflowFactory<TWorkflow, TState, TDeps>`** — consumer must implement:
-```typescript
-interface WorkflowFactory<TWorkflow, TState, TDeps> {
-  rehydrate(events: readonly BaseEvent[], deps: TDeps): TWorkflow
-  createFresh(deps: TDeps): TWorkflow
-  procedurePath(state: string, pluginRoot: string): string
-  initialState(): TState
-  getEmojiForState(state: string): string                  // ← REMOVE (derive from registry)
-  getOperationBody(op: string, state: TState): string      // ← SIMPLIFY (platform default)
-  getTransitionTitle(to: string, state: TState): string    // ← SIMPLIFY (platform default)
-  getPrefixConfig?(): PrefixConfig
-}
-```
-
-**`WorkflowEngineDeps`** — consumer must assemble:
-```typescript
-type WorkflowEngineDeps = {
-  store: WorkflowEventStore
-  getPluginRoot: () => string
-  getEnvFilePath: () => string
-  readFile: (path: string) => string
-  appendToFile: (filePath: string, content: string) => void
-  now: () => string
-  transcriptReader?: TranscriptReader
-}
-```
-
-All of `WorkflowEngineDeps` is generic and should be assembled by the platform.
-
-### New Export
-
-```text
-@ntcoding/agentic-workflow-builder/cli       → createWorkflowCli, createWorkflowRunner,
-                                                defineCommands, defineHooks,
-                                                arg, extractField
-```
-
----
-
-## 7. Milestones
-
-### M1: Declarative Commands + CLI Entrypoint
-
-Build the `./cli` module with command definitions and the CLI entrypoint factory.
+Adapt Workflow class, adapter, state definitions, types, and event schemas to the new `WorkflowDefinition` interface. Engine owns transitions, bash checks, and write checks.
 
 #### Deliverables
 
-- **D1.1:** `defineCommands` function
-  - Accepts command definitions with typed arg schemas
-  - Generates handler functions that parse args, validate, call engine
-  - Auto-generates error messages from command name + arg name
-  - Supports `type: 'session-start'`, `type: 'transition'`, and default `type: 'transaction'`
-  - Acceptance: All 3 arg types (no-arg, number, string) + optional args work correctly
-  - Verification: Unit tests for each arg type + error case
+- **D1.1:** `WorkflowDefinition` adapter
+  - Rename `WORKFLOW_ADAPTER` to `WORKFLOW_DEFINITION`
+  - Change type from `WorkflowFactory` to `WorkflowDefinition<Workflow, WorkflowState, WorkflowDeps, StateName, WorkflowOperation>`
+  - Add `getRegistry()` returning `WORKFLOW_REGISTRY`
+  - Add `buildTransitionContext(state, from, to, deps)` — moved from Workflow class
+  - Add `buildTransitionEvent(from, to, stateBefore, stateAfter, now)` — encodes `onEntry` mutations as `stateOverrides` in the event (see Section 3.1)
+  - Add `parseStateName` — delegates to existing function
+  - Wrap `getOperationBody(op, _state)` and `getTransitionTitle(to, _state)` — platform requires 2-arg signatures
+  - Remove `getEmojiForState` — engine reads from registry
+  - Set `getPrefixConfig: undefined` — we don't use identity verification
+  - Key scenarios: adapter compiles, fresh workflow creation, event rehydration, unknown event rejection, transition events carry stateOverrides when onEntry mutates state, transition events omit stateOverrides when onEntry doesn't mutate
+  - Acceptance: Adapter compiles against new `WorkflowDefinition` interface
+  - Verification: Update `workflow-adapter.spec.ts` → `workflow-definition.spec.ts`: remove `getEmojiForState` tests, add `getRegistry`/`buildTransitionContext`/`buildTransitionEvent` tests
 
-- **D1.2:** `arg` helpers
-  - `arg.number(name)` — parseInt + NaN check
-  - `arg.string(name)` — null check
-  - `arg.state(name)` — Zod state schema validation
-  - `.optional()` modifier on any arg
-  - Acceptance: Each helper validates and returns correct types
-  - Verification: Unit tests for valid and invalid inputs
+- **D1.2:** Workflow class — engine-owned behaviors
+  - Add `appendEvent(event: BaseEvent)` — parse with `WORKFLOW_EVENT_SCHEMA`, append, apply, trigger `autoFetchFeedback` side effect when transitioning to CHECKING_FEEDBACK
+  - Align `startSession(transcriptPath, repository)` — add `transcriptPath` parameter to match `RehydratableWorkflow` interface
+  - Remove `transitionTo()` — engine's `transition()` handles full lifecycle
+  - Remove `buildTransitionContext()` — moved to `WorkflowDefinition`
+  - Remove `checkBashAllowed()` — engine's `checkBash()` handles this
+  - Remove `checkWriteAllowed()` method — engine's `checkWrite()` handles this
+  - Remove `verifyIdentity()` — engine handles via `getPrefixConfig`
+  - Keep `autoFetchFeedback()` as private method — called from within `appendEvent`
+  - Key scenarios: appendEvent with transition event, appendEvent with recording event, appendEvent with transition to CHECKING_FEEDBACK triggers autoFetchFeedback, appendEvent with transition to other states doesn't trigger autoFetchFeedback, autoFetchFeedback skipped when no prNumber, startSession with both params
+  - Acceptance: Workflow class has no transition, check, or identity methods; `appendEvent` preserves autoFetchFeedback behavior
+  - Verification: Domain tests updated and passing. Test files affected:
+    - `workflow-implementing.spec.ts` (168 lines) — update `transitionTo`/`startSession` calls
+    - `workflow-reviewing-submitting.spec.ts` (326 lines) — update `transitionTo` calls
+    - `workflow-feedback-reflecting.spec.ts` (299 lines) — update `transitionTo` calls, verify autoFetchFeedback still fires via `appendEvent`
+    - `workflow-hook-checks.spec.ts` (202 lines) — remove `checkBashAllowed`/`checkWriteAllowed`/`verifyIdentity` tests from Workflow. The `checkWriteAllowed` predicate is tested via `workflow-predicates.ts`. Bash enforcement behavior becomes engine-level (platform tests cover it). Per-state exemption behavior is verified via integration tests in M2.
 
-- **D1.3:** `createWorkflowCli` function
-  - Assembles `WorkflowEngineDeps` from environment
-  - Reads `CLAUDE_SESSION_ID`, `CLAUDE_PLUGIN_ROOT`, `HOME`
-  - Creates SQLite store
-  - Routes commands or hooks based on argv
-  - Handles process boundary (stdout, stderr, exit)
-  - Acceptance: Complete CLI entrypoint from single function call
-  - Verification: Integration tests with mocked process
+- **D1.3:** Event schema and fold updates
+  - Update `TRANSITIONED_SCHEMA` to accept `stateOverrides: z.record(z.unknown()).optional()`
+  - Update `applyTransitioned` in `fold.ts` to spread `stateOverrides` before `currentStateMachineState` and `preBlockedState`
+  - Key scenarios: transition without onEntry → no stateOverrides in event; transition to IMPLEMENTING → stateOverrides resets 6 boolean flags; transition to ADDRESSING_FEEDBACK → stateOverrides resets 3 fields; fold with stateOverrides applies them; fold without stateOverrides is backward-compatible
+  - Acceptance: Transition events carry onEntry mutations; fold applies them
+  - Verification: `fold.spec.ts` updated with new test cases for stateOverrides
 
-- **D1.4:** `createWorkflowRunner` function (for testing)
-  - Returns `runWorkflow(args, deps)` without process boundary
-  - Accepts injectable deps for test isolation
-  - Acceptance: Consumers can unit test command routing
-  - Verification: Unit test showing test usage
+- **D1.4:** Type changes and dead code removal
+  - Delete `STATE_EMOJI_MAP` from `workflow-types.ts` — engine derives emoji from `registry[state].emoji`
+  - Update `WorkflowState.currentStateMachineState` from `string` to `StateName` to satisfy `BaseWorkflowState<StateName>`. Note: `preBlockedState` stays `string | undefined` (stores pre-BLOCKED state name as serialized value)
+  - Remove `checkOperationGate` from `workflow-predicates.ts` — platform's `defineRecordingOps` owns gate checks via its internal `checkOperationGate`
+  - Acceptance: No emoji map, stricter state name typing, no dead gate check code
+  - Verification: Type check passes, tests pass
+
+- **D1.5:** State definition changes
+  - Add `forbidden: { write: true }` to all 9 state definitions (implementing, reviewing, submitting-pr, awaiting-ci, checking-feedback, addressing-feedback, reflecting, complete, blocked)
+  - This preserves current behavior: engine's `checkWrite()` only calls the predicate when `forbidden.write` is set
+  - Create `isWriteAllowed(toolName, filePath, state)` wrapper in `workflow-predicates.ts` that delegates to existing `checkWriteAllowed(filePath)`
+  - Acceptance: Every state has `forbidden.write: true`; write predicate wrapper matches engine's expected signature
+  - Verification: Existing tests pass
+
+- **D1.6:** File rename
+  - Rename `workflow-adapter.ts` to `workflow-definition.ts`
+  - Rename `workflow-adapter.spec.ts` to `workflow-definition.spec.ts`
+  - Update barrel exports in `workflow-definition/index.ts`
+  - Update all imports throughout codebase
+  - Acceptance: Imports consistent, no references to old filename
+  - Verification: Build passes
 
 ---
 
-### M2: Hook Protocol
+### M2: Recording ops + CLI layer
 
-Build the declarative hook configuration and platform-owned hook routing.
+Replace hand-written recording methods and CLI infrastructure with platform declarative APIs.
 
 #### Deliverables
 
-- **D2.1:** `defineHooks` function
-  - Accepts `preToolUse` map of tool name → extract + check
-  - Acceptance: Hook definitions type-check correctly
-  - Verification: Type tests
+- **D2.1:** `defineRecordingOps` adoption
+  - Declare all 16 recording operations mapping to their events and payloads
+  - Add `executeRecording(op, ...args)` method to Workflow class
+  - Delete 16 individual recording methods (`recordIssue`, `recordBranch`, etc.)
+  - Key scenarios: each recording op produces identical events to the method it replaces; gate check blocks ops in wrong state; unknown op handled
+  - Acceptance: Recording operations produce identical events
+  - Verification: Domain tests updated and passing. ~72 recording method call sites across 3 test files updated to use `executeRecording`:
+    - `workflow-implementing.spec.ts`
+    - `workflow-reviewing-submitting.spec.ts`
+    - `workflow-feedback-reflecting.spec.ts`
 
-- **D2.2:** `extractField` helper
-  - Extracts named string field from `tool_input`
-  - Clear error messages for missing/wrong-type fields
-  - Acceptance: Correct extraction and error handling
-  - Verification: Unit tests for valid, missing, and wrong-type inputs
+- **D2.2:** Declarative routes
+  - Create `defineRoutes` declaration with `init` (session-start) + transition + 16 recording routes
+  - Transition route uses `type: 'transition'` — engine owns full transition lifecycle
+  - Recording routes use `type: 'transaction'` with `w.executeRecording(op, ...)`
+  - Session ID injected by platform — not in route args
+  - Delete `infra/cli/command-handlers.ts` (307 lines)
+  - Key scenarios: init creates session, transition routes to valid state, transition blocked by guard, recording op succeeds, recording op blocked by gate, unknown command error, missing arg error
+  - Acceptance: All commands route correctly via `createWorkflowRunner`
+  - Verification: CLI command tests rewritten using `createWorkflowRunner`. Test fixture `progressToState` and `AdapterDeps` rewritten for new runner API. Replaces `workflow-cli.spec.ts` and `workflow-cli-test-fixtures.ts`.
 
-- **D2.3:** Platform-owned hook routing
-  - Reads stdin once, caches internally
-  - Routes `SessionStart` → `engine.persistSessionId()`
-  - Routes `PreToolUse` → tool lookup → extract → check → allow/block
-  - Unknown hooks → allow
-  - No session → allow
-  - Formats deny decisions as `{ decision: 'block', reason }`
-  - Acceptance: All routing paths work correctly
-  - Verification: Unit tests for each routing path
+- **D2.3:** Hook migration
+  - Create `preToolUseHandler` function with engine access for write + bash checks
+  - Uses `engine.checkWrite()` with `isWriteAllowed` wrapper and `engine.checkBash()` with `BASH_FORBIDDEN` config
+  - Engine reads per-state bash exemptions from registry internally — no consumer logic needed
+  - Create empty `defineHooks` (dev-workflow-v2 uses preToolUseHandler, not per-tool hooks)
+  - Delete `infra/cli/hook-handlers.ts` (133 lines)
+  - Key scenarios: Write to protected file blocked, Write to normal file allowed, Bash forbidden command blocked, Bash exempt command allowed in SUBMITTING_PR, non-Bash/Write tool passes through, SessionStart creates session and persists ID
+  - Acceptance: Hook routing produces identical behavior
+  - Verification: Hook tests rewritten using `createWorkflowRunner` (replaces `workflow-cli-hooks.spec.ts`)
 
-- **D2.4:** Hook protocol Zod schemas
-  - Common input: `{ session_id, hook_event_name }`
-  - PreToolUse input: extends common with `{ tool_name, tool_input, transcript_path? }`
-  - Acceptance: Schemas validate real Claude Code hook payloads
-  - Verification: Unit tests with real-world examples
-
----
-
-### M3: Engine-Owned Workflow Behaviors
-
-Move `transitionTo`, `checkBashAllowed`, and `checkWriteAllowed` into the engine.
-
-#### Deliverables
-
-- **D3.1:** Engine-owned transition lifecycle
-  - Engine `transition()` validates legal transition from registry
-  - Runs `transitionGuard` (skip for BLOCKED)
-  - Runs `onEntry` on target state
-  - Appends `transitioned` event
-  - Consumer `Workflow` class no longer implements `transitionTo`
-  - `RehydratableWorkflow` interface drops `transitionTo` method
-  - Acceptance: Transitions work identically to current behavior
-  - Verification: Existing consumer transition tests pass
-
-- **D3.2:** Engine-owned bash checking
-  - New engine method: `checkBash(sessionId, toolName, command)`
-  - Reads `allowForbidden?.bash` from current state definition
-  - Calls `checkBashCommand()` with exemptions
-  - Appends `bash-checked` event
-  - Consumer provides `bashForbidden: BashForbiddenConfig` in config
-  - Acceptance: Bash checks work identically to current behavior
-  - Verification: Existing consumer bash check tests pass
-
-- **D3.3:** Engine-owned write checking
-  - New engine method: `checkWrite(sessionId, filePath)`
-  - Calls consumer-provided write predicate
-  - Appends `write-checked` event
-  - Consumer provides `writeProtection: (filePath) => PreconditionResult`
-  - Acceptance: Write checks work identically to current behavior
-  - Verification: Existing consumer write check tests pass
-
-- **D3.4:** `afterEntry` callback (if chosen over manual approach)
-  - New optional field on `WorkflowStateDefinition`
-  - Runs after transition event is appended
-  - Has access to workflow instance for appending events
-  - Acceptance: Side effects can be triggered on state entry
-  - Verification: Unit test showing event append in afterEntry
-
-- **D3.5:** Derive emoji from registry
-  - `getEmojiForState` has default implementation reading `registry[state].emoji`
-  - `WorkflowFactory` makes `getEmojiForState` optional
-  - Acceptance: Emoji resolved without consumer override
-  - Verification: Existing emoji tests pass
+- **D2.4:** Platform-owned entrypoint
+  - Rewrite `entrypoint/workflow-cli.ts` to single `createWorkflowCli` call
+  - Platform owns: env vars (`CLAUDE_PLUGIN_ROOT`, `CLAUDE_SESSION_ID`), store creation (`${pluginRoot}/workflow.db`), engine dep assembly, process boundary, stdin reading, error logging, env file path (`~/.claude/claude.env`)
+  - Consumer provides: `buildWorkflowDeps(platform)` with `getGitInfo`, `checkPrChecks`, `getPrFeedback`, `now`
+  - Note: `infra/cli/git.ts` is NOT deleted — it contains domain-specific infra (`getGitInfo`, `runGh`)
+  - Delete `shell/composition-root.ts` (50 lines)
+  - Delete `infra/cli/environment.ts` (35 lines)
+  - Delete `infra/cli/operation-result.ts` (28 lines)
+  - Delete `infra/cli/stdin.ts` (7 lines)
+  - Delete `infra/cli/hook-io.ts` (59 lines) — platform owns schemas + formatDenyDecision
+  - Delete `domain/workflow-error.ts` (15 lines) — orphaned, all consumers deleted
+  - Delete corresponding test files: `operation-result.spec.ts` (39 lines), `environment.spec.ts` (76 lines), `hook-io.spec.ts` (87 lines), `workflow-error.spec.ts` (varies)
+  - Acceptance: CLI entrypoint is a single `createWorkflowCli` call; no infra/cli files remain except `git.ts`
+  - Verification: `pnpm verify` green
 
 ---
 
-### M4: Recording Operations
+## 7. Parallelization
 
-Build the declarative recording operations and method generation.
+M1 must complete before M2. Within M1, D1.1-D1.4 have internal dependencies (adapter → workflow → schema → types), D1.5 (state definitions) is independent, D1.6 (rename) depends on D1.1. Within M2, deliverables have dependencies:
 
-#### Deliverables
+- D2.1 (recording ops) before D2.2 (routes use `executeRecording`)
+- D2.3 (hooks) independent of D2.1/D2.2
+- D2.4 (entrypoint) depends on D2.2 and D2.3
 
-- **D4.1:** `defineRecordingOps` function
-  - Accepts operation name → event type + payload factory
-  - Generates methods that: gate check → append event → return pass
-  - Methods accessible by camelCase name (e.g., `recordIssue`)
-  - Acceptance: Generated methods produce identical events to hand-written ones
-  - Verification: Existing recording operation tests pass with generated methods
-
-- **D4.2:** Operation gate checking
-  - Generated methods call `checkOperationGate(operationName, state)`
-  - Gate checks `allowedWorkflowOperations` in current state definition
-  - Blocked operations return `fail()` with reason
-  - Acceptance: Operations blocked in wrong states
-  - Verification: Unit tests for gate checks in each state
-
-- **D4.3:** Integration with `defineCommands`
-  - Command definitions reference recording op methods by name
-  - Pipeline: CLI args → parsed values → generated method → event
-  - Acceptance: End-to-end from CLI invocation to event appended
-  - Verification: Integration tests
-
----
-
-### M5: Consumer Migration (dev-workflow-v2)
-
-Migrate dev-workflow-v2 to the new platform API and verify zero behavior change.
-
-> This milestone is done by the consumer team (us), not the platform team. Included here for completeness.
-
-#### Deliverables
-
-- **D5.1:** Replace `command-handlers.ts` with `defineCommands`
-- **D5.2:** Replace `hook-handlers.ts` + `hook-io.ts` with `defineHooks`
-- **D5.3:** Replace `workflow-cli.ts` + `composition-root.ts` + `environment.ts` + `stdin.ts` with `createWorkflowCli`
-- **D5.4:** Remove `transitionTo`, `checkBashAllowed`, `checkWriteAllowed` from Workflow class
-- **D5.5:** Replace 14 recording methods with `defineRecordingOps`
-- **D5.6:** Remove `STATE_EMOJI_MAP` and `getEmojiForState` override
-- **D5.7:** Remove `output-messages.ts` and `operation-result.ts`
-- **D5.8:** All existing tests pass with zero behavior change
-- **D5.9:** Net deletion of ~900 lines of infrastructure code
-
----
-
-## 8. Milestone Dependencies
-
-```text
-M1 (Commands + CLI) ──────────────────┐
-                                       ├──► M5 (Consumer Migration)
-M2 (Hook Protocol) ──────────────────┤
-                                       │
-M3 (Engine Behaviors) ────────────────┤
-                                       │
-M4 (Recording Ops) ──────────────────┘
+```yaml
+tracks:
+  - id: A
+    name: Migration
+    deliverables:
+      - M1
+      - D2.1
+      - D2.2
+      - D2.4
+  - id: B
+    name: Hook migration
+    deliverables:
+      - M1
+      - D2.3
 ```
 
-M1 through M4 are independent of each other and can be worked on in parallel. M5 (consumer migration) requires all of M1-M4 to be complete.
-
-Within milestones:
-- M1: D1.1 and D1.2 before D1.3. D1.4 independent.
-- M2: D2.4 before D2.3. D2.1 and D2.2 independent.
-- M3: D3.1, D3.2, D3.3 independent. D3.4 depends on D3.1. D3.5 independent.
-- M4: D4.1 before D4.2. D4.3 depends on D4.1 and M1.
-
 ---
 
-## 9. Open Questions
+## 8. Decisions Log
 
-1. **Recording ops method generation mechanism** — Should the platform use runtime Proxy/prototype injection, a base class mixin, or compile-time code generation? Runtime is simpler but may have TypeScript ergonomics issues (method autocompletion). The platform team should choose the approach that gives the best developer experience.
-
-2. **`afterEntry` vs manual approach** — Should the platform support `afterEntry` (side effects on state entry) or should consumers handle post-transition side effects as explicit recording operations called by the agent? `afterEntry` is more automatic but adds engine complexity. The simpler approach is fine if the consumer can live with one extra agent instruction.
-
-3. **`getOperationBody` and `getTransitionTitle` defaults** — These are trivial string transforms (e.g., `'record-issue'` → `'Record issue'`, identity function). Should the platform provide sensible defaults so consumers don't need to implement them? Recommended: yes, with consumer override option.
-
-4. **Registry access from engine** — The engine currently receives a `WorkflowFactory` but not the `WorkflowRegistry` directly. For engine-owned transitions and bash checks, the engine needs registry access. Options: (a) pass registry to engine constructor, (b) add `getRegistry()` to `WorkflowFactory`, (c) have the engine call factory methods that delegate to registry. Option (b) is cleanest.
+| # | Decision | Rationale | Date |
+|---|----------|-----------|------|
+| 1 | `defineRecordingOps` adopted for mechanical recording methods | Eliminates ~180 lines of gate-check, append, pass boilerplate. Routes remain explicit with `w.executeRecording(op, ...)`. | 2026-03-07 |
+| 2 | PreToolUse uses engine-level `preToolUseHandler` (Option C) | Our PreToolUse hook needs sequential engine calls (write check then bash check) with early returns. `defineHooks`' per-tool hooks only have workflow access, not engine access. Engine-level handler is the escape hatch. | 2026-03-07 |
+| 3 | `createWorkflowCli` owns dep assembly with `buildWorkflowDeps(platform)` | Platform builds all generic engine infrastructure. Consumer only provides domain-specific deps. `PlatformContext` exposes `getPluginRoot`, `now`, `getSessionId`, `store` for consumer deps that need them. | 2026-03-07 |
+| 4 | Session ID injected by platform, not positional arg | Eliminates redundant `arg.string('session-id')` declarations. Platform reads `CLAUDE_SESSION_ID` from env and passes to engine calls internally. | 2026-03-07 |
+| 5 | Platform package updated and verified locally | All required APIs confirmed to exist. `WorkflowFactory` type removed — migration is urgent. | 2026-03-07 |
+| 6 | `autoFetchFeedback` implemented as side effect in `appendEvent` | `afterEntry: () => void` has no access to deps, state, or the workflow instance. Moving the side effect into `appendEvent` — triggered when the appended event is a transition to CHECKING_FEEDBACK — preserves automatic behavior without requiring platform changes. The engine calls `workflow.appendEvent(transitionEvent)` during its `transition()` lifecycle, so the side effect fires at the right time, and the engine persists all pending events atomically afterward. | 2026-03-07 |
+| 7 | DB path and env file path changes accepted | `createWorkflowCli` creates store at `${pluginRoot}/workflow.db` (was `~/.claude/workflow-events.db`). Env file hardcoded to `~/.claude/claude.env` (was `CLAUDE_ENV_FILE` env var). Session data is ephemeral. No migration value. | 2026-03-07 |
+| 8 | `forbidden: { write: true }` added to all state definitions | Engine's `checkWrite()` only calls the consumer predicate when `forbidden.write` is set. Without it, all writes auto-pass, bypassing our protected file list. Setting the flag on all states preserves current behavior. | 2026-03-07 |
+| 9 | `checkWriteAllowed` predicate wrapped for engine signature | Engine's `checkWrite()` expects `(toolName, filePath, state) => PreconditionResult`. Our predicate only uses `filePath`. Thin wrapper ignores `toolName` and `state`, delegates to existing `checkWriteAllowed(filePath)`. | 2026-03-07 |
+| 10 | `onEntry` mutations encoded in transition events via `buildTransitionEvent` | Engine computes `stateAfter = onEntry(stateBefore)` but doesn't apply it to the workflow — it only passes `stateAfter` to `buildTransitionEvent`. Our `buildTransitionEvent` diffs `stateBefore` and `stateAfter`, encoding changes as `stateOverrides` in the event. The fold applies these overrides. This also fixes a pre-existing event-sourcing gap where `onEntry` mutations were lost during event replay. | 2026-03-07 |
+| 11 | `extractField` empty string behavior accepted | Platform's `extractField` returns `''` for missing fields. Our current code throws. After migration, malformed hook inputs pass empty strings to engine checks. Accepted — empty strings produce no-op results, and malformed Claude Code hook inputs are an edge case. | 2026-03-07 |
+| 12 | SessionStart hook now creates session + persists ID | Platform runner calls both `engine.startSession()` and `engine.persistSessionId()` on SessionStart. Our current hook only persisted. Accepted — `startSession` is idempotent (returns early if session exists). | 2026-03-07 |

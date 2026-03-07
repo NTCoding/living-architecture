@@ -5,4 +5,5 @@ export const completeState: ConcreteStateDefinition = {
   agentInstructions: 'states/complete.md',
   canTransitionTo: [],
   allowedWorkflowOperations: [],
+  forbidden: { write: true },
 }

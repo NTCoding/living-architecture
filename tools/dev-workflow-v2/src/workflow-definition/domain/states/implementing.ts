@@ -10,6 +10,7 @@ export const implementingState: ConcreteStateDefinition = {
   agentInstructions: 'states/implementing.md',
   canTransitionTo: ['REVIEWING', 'BLOCKED'],
   allowedWorkflowOperations: ['record-issue', 'record-branch'],
+  forbidden: { write: true },
 
   transitionGuard: (ctx) => {
     /* v8 ignore next */

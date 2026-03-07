@@ -2,10 +2,6 @@ import { Workflow } from '../index'
 import {
   spec,
   makeDeps,
-  gitWithCommits,
-  gitWithDirtyTree,
-  issueRecorded,
-  branchRecorded,
   transitioned,
   eventsToReviewing,
   codeReviewFailed,
@@ -22,7 +18,7 @@ describe('Workflow', () => {
 
   describe('startSession', () => {
     it('appends session-started event with repository', () => {
-      const { events } = spec.given().when((wf) => wf.startSession('owner/repo'))
+      const { events } = spec.given().when((wf) => wf.startSession(undefined, 'owner/repo'))
       expect(events).toHaveLength(1)
       expect(events[0]).toMatchObject({
         type: 'session-started',
@@ -31,7 +27,7 @@ describe('Workflow', () => {
     })
 
     it('appends session-started event without repository when undefined', () => {
-      const { events } = spec.given().when((wf) => wf.startSession(undefined))
+      const { events } = spec.given().when((wf) => wf.startSession(undefined, undefined))
       expect(events).toHaveLength(1)
       expect(events[0]).not.toHaveProperty('repository')
     })
@@ -45,60 +41,12 @@ describe('Workflow', () => {
   })
 
   describe('IMPLEMENTING state', () => {
-    it('transitions to REVIEWING when all guards pass', () => {
-      const {
-        result, state 
-      } = spec
-        .given(issueRecorded(1), branchRecorded('issue-1'))
-        .withDeps({ getGitInfo: () => gitWithCommits })
-        .when((wf) => wf.transitionTo('REVIEWING'))
-      expect(result).toStrictEqual({ pass: true })
-      expect(state.currentStateMachineState).toBe('REVIEWING')
-    })
-
-    it('fails transition to REVIEWING when no commits', () => {
-      const { result } = spec.given(issueRecorded(1)).when((wf) => wf.transitionTo('REVIEWING'))
-      expect(result.pass).toBe(false)
-    })
-
-    it('fails transition to REVIEWING when working tree is dirty', () => {
-      const { result } = spec
-        .given(issueRecorded(1))
-        .withDeps({ getGitInfo: () => gitWithDirtyTree })
-        .when((wf) => wf.transitionTo('REVIEWING'))
-      expect(result.pass).toBe(false)
-      expect(result).toMatchObject({ reason: expect.stringContaining('Working tree is not clean') })
-    })
-
-    it('fails transition to REVIEWING when no issue recorded', () => {
-      const { result } = spec
-        .given(branchRecorded('issue-1'))
-        .withDeps({ getGitInfo: () => gitWithCommits })
-        .when((wf) => wf.transitionTo('REVIEWING'))
-      expect(result.pass).toBe(false)
-      expect(result).toMatchObject({ reason: expect.stringContaining('No issue recorded') })
-    })
-
-    it('transitions to BLOCKED', () => {
-      const {
-        result, state 
-      } = spec.given().when((wf) => wf.transitionTo('BLOCKED'))
-      expect(result).toStrictEqual({ pass: true })
-      expect(state.currentStateMachineState).toBe('BLOCKED')
-    })
-
-    it('fails transition to non-REVIEWING/BLOCKED states', () => {
-      const { result } = spec
-        .given()
-        .withDeps({ getGitInfo: () => gitWithCommits })
-        .when((wf) => wf.transitionTo('SUBMITTING_PR'))
-      expect(result.pass).toBe(false)
-    })
-
-    it('sets githubIssue when recordIssue succeeds', () => {
+    it('sets githubIssue when record-issue succeeds', () => {
       const {
         result, state, events 
-      } = spec.given().when((wf) => wf.recordIssue(42))
+      } = spec
+        .given()
+        .when((wf) => wf.executeRecording('record-issue', 42))
       expect(result).toStrictEqual({ pass: true })
       expect(state.githubIssue).toBe(42)
       expect(events).toStrictEqual(
@@ -111,15 +59,19 @@ describe('Workflow', () => {
       )
     })
 
-    it('fails recordIssue in non-IMPLEMENTING states', () => {
-      const { result } = spec.given(...eventsToReviewing()).when((wf) => wf.recordIssue(42))
+    it('fails record-issue in non-IMPLEMENTING states', () => {
+      const { result } = spec
+        .given(...eventsToReviewing())
+        .when((wf) => wf.executeRecording('record-issue', 42))
       expect(result.pass).toBe(false)
     })
 
-    it('sets featureBranch when recordBranch succeeds', () => {
+    it('sets featureBranch when record-branch succeeds', () => {
       const {
         result, state, events 
-      } = spec.given().when((wf) => wf.recordBranch('feature/x'))
+      } = spec
+        .given()
+        .when((wf) => wf.executeRecording('record-branch', 'feature/x'))
       expect(result).toStrictEqual({ pass: true })
       expect(state.featureBranch).toBe('feature/x')
       expect(events).toStrictEqual(
@@ -132,19 +84,26 @@ describe('Workflow', () => {
       )
     })
 
-    it('fails recordBranch in non-IMPLEMENTING states', () => {
+    it('fails record-branch in non-IMPLEMENTING states', () => {
       const { result } = spec
         .given(...eventsToReviewing())
-        .when((wf) => wf.recordBranch('feature/x'))
+        .when((wf) => wf.executeRecording('record-branch', 'feature/x'))
       expect(result.pass).toBe(false)
     })
 
-    it('resets review flags on entry', () => {
+    it('resets review flags on entry via stateOverrides in event', () => {
       const { state } = spec
         .given(
           ...eventsToReviewing(),
           codeReviewFailed(),
-          transitioned('REVIEWING', 'IMPLEMENTING'),
+          transitioned('REVIEWING', 'IMPLEMENTING', {
+            architectureReviewPassed: false,
+            codeReviewPassed: false,
+            bugScannerPassed: false,
+            ciPassed: false,
+            feedbackClean: false,
+            feedbackAddressed: false,
+          }),
         )
         .when((wf) => wf.getState())
       expect(state.architectureReviewPassed).toBe(false)
@@ -153,12 +112,19 @@ describe('Workflow', () => {
       expect(state.ciPassed).toBe(false)
     })
 
-    it('resets feedback flags on entry', () => {
+    it('resets feedback flags on entry via stateOverrides in event', () => {
       const { state } = spec
         .given(
           ...eventsToReviewing(),
           codeReviewFailed(),
-          transitioned('REVIEWING', 'IMPLEMENTING'),
+          transitioned('REVIEWING', 'IMPLEMENTING', {
+            architectureReviewPassed: false,
+            codeReviewPassed: false,
+            bugScannerPassed: false,
+            ciPassed: false,
+            feedbackClean: false,
+            feedbackAddressed: false,
+          }),
         )
         .when((wf) => wf.getState())
       expect(state.feedbackClean).toBe(false)

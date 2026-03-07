@@ -34,7 +34,7 @@
     },
     "tools/dev-workflow-v2": {
       "entry": [
-        "src/entrypoint/workflow-cli.ts"
+        "src/shell/cli.ts"
       ],
       "project": [
         "src/**/*.ts"

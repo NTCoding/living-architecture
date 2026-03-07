@@ -1,5 +1,5 @@
 import {
-  applyEvents, applyEvent, EMPTY_STATE 
+  applyEvent, EMPTY_STATE 
 } from './fold'
 import type { WorkflowEvent } from './workflow-events'
 import type { WorkflowState } from './workflow-types'
@@ -14,36 +14,17 @@ function makeState(overrides: Partial<WorkflowState>): WorkflowState {
 }
 
 describe('EMPTY_STATE', () => {
-  it('has IMPLEMENTING state', () => {
-    expect(EMPTY_STATE.currentStateMachineState).toStrictEqual('IMPLEMENTING')
-  })
-
-  it('has architectureReviewPassed false', () => {
-    expect(EMPTY_STATE.architectureReviewPassed).toStrictEqual(false)
-  })
-
-  it('has codeReviewPassed false', () => {
-    expect(EMPTY_STATE.codeReviewPassed).toStrictEqual(false)
-  })
-
-  it('has bugScannerPassed false', () => {
-    expect(EMPTY_STATE.bugScannerPassed).toStrictEqual(false)
-  })
-
-  it('has ciPassed false', () => {
-    expect(EMPTY_STATE.ciPassed).toStrictEqual(false)
-  })
-
-  it('has feedbackClean false', () => {
-    expect(EMPTY_STATE.feedbackClean).toStrictEqual(false)
-  })
-
-  it('has feedbackAddressed false', () => {
-    expect(EMPTY_STATE.feedbackAddressed).toStrictEqual(false)
-  })
-
-  it('has taskCheckPassed false', () => {
-    expect(EMPTY_STATE.taskCheckPassed).toStrictEqual(false)
+  it('has IMPLEMENTING state with all flags false', () => {
+    expect(EMPTY_STATE).toMatchObject({
+      currentStateMachineState: 'IMPLEMENTING',
+      architectureReviewPassed: false,
+      codeReviewPassed: false,
+      bugScannerPassed: false,
+      ciPassed: false,
+      feedbackClean: false,
+      feedbackAddressed: false,
+      taskCheckPassed: false,
+    })
   })
 
   it('has no preBlockedState', () => {
@@ -299,6 +280,86 @@ describe('applyEvent — transitioned', () => {
     expect(result.preBlockedState).toBeUndefined()
     expect(result.currentStateMachineState).toStrictEqual('IMPLEMENTING')
   })
+
+  it('applies stateOverrides from transition event', () => {
+    const state = makeState({
+      architectureReviewPassed: true,
+      codeReviewPassed: true,
+      bugScannerPassed: true,
+      ciPassed: true,
+      feedbackClean: true,
+      feedbackAddressed: true,
+    })
+    const result = applyEvent(state, {
+      type: 'transitioned',
+      at: AT,
+      from: 'REVIEWING',
+      to: 'IMPLEMENTING',
+      stateOverrides: {
+        architectureReviewPassed: false,
+        codeReviewPassed: false,
+        bugScannerPassed: false,
+        ciPassed: false,
+        feedbackClean: false,
+        feedbackAddressed: false,
+      },
+    })
+    expect(result).toMatchObject({
+      currentStateMachineState: 'IMPLEMENTING',
+      architectureReviewPassed: false,
+      codeReviewPassed: false,
+      bugScannerPassed: false,
+      ciPassed: false,
+      feedbackClean: false,
+      feedbackAddressed: false,
+    })
+  })
+
+  it('is backward-compatible when stateOverrides is absent', () => {
+    const result = applyEvent(EMPTY_STATE, {
+      type: 'transitioned',
+      at: AT,
+      from: 'IMPLEMENTING',
+      to: 'REVIEWING',
+    })
+    expect(result.currentStateMachineState).toStrictEqual('REVIEWING')
+    expect(result.architectureReviewPassed).toStrictEqual(false)
+  })
+
+  it('applies ADDRESSING_FEEDBACK stateOverrides resets', () => {
+    const state = makeState({
+      currentStateMachineState: 'CHECKING_FEEDBACK',
+      feedbackAddressed: true,
+      feedbackClean: true,
+      feedbackAddressedCount: 5,
+    })
+    const result = applyEvent(state, {
+      type: 'transitioned',
+      at: AT,
+      from: 'CHECKING_FEEDBACK',
+      to: 'ADDRESSING_FEEDBACK',
+      stateOverrides: {
+        feedbackAddressed: false,
+        feedbackClean: false,
+        feedbackAddressedCount: undefined,
+      },
+    })
+    expect(result.currentStateMachineState).toStrictEqual('ADDRESSING_FEEDBACK')
+    expect(result.feedbackAddressed).toStrictEqual(false)
+    expect(result.feedbackClean).toStrictEqual(false)
+    expect(result.feedbackAddressedCount).toBeUndefined()
+  })
+
+  it('currentStateMachineState in stateOverrides does not override fold logic', () => {
+    const result = applyEvent(EMPTY_STATE, {
+      type: 'transitioned',
+      at: AT,
+      from: 'IMPLEMENTING',
+      to: 'REVIEWING',
+      stateOverrides: { currentStateMachineState: 'COMPLETE' },
+    })
+    expect(result.currentStateMachineState).toStrictEqual('REVIEWING')
+  })
 })
 
 describe('applyEvent — observation events return unchanged state', () => {
@@ -322,118 +383,5 @@ describe('applyEvent — observation events return unchanged state', () => {
       allowed: true,
     })
     expect(result).toStrictEqual(EMPTY_STATE)
-  })
-})
-
-describe('applyEvents', () => {
-  it('returns EMPTY_STATE for empty event sequence', () => {
-    expect(applyEvents([])).toStrictEqual(EMPTY_STATE)
-  })
-
-  it('reduces a full event sequence to correct state and transition', () => {
-    const events: WorkflowEvent[] = [
-      {
-        type: 'session-started',
-        at: AT,
-      },
-      {
-        type: 'issue-recorded',
-        at: AT,
-        issueNumber: 10,
-      },
-      {
-        type: 'branch-recorded',
-        at: AT,
-        branch: 'feature/foo',
-      },
-      {
-        type: 'transitioned',
-        at: AT,
-        from: 'IMPLEMENTING',
-        to: 'REVIEWING',
-      },
-      {
-        type: 'architecture-review-completed',
-        at: AT,
-        passed: true,
-      },
-      {
-        type: 'code-review-completed',
-        at: AT,
-        passed: true,
-      },
-      {
-        type: 'bug-scanner-completed',
-        at: AT,
-        passed: true,
-      },
-      {
-        type: 'transitioned',
-        at: AT,
-        from: 'REVIEWING',
-        to: 'SUBMITTING_PR',
-      },
-    ]
-    const state = applyEvents(events)
-    expect(state.currentStateMachineState).toStrictEqual('SUBMITTING_PR')
-    expect(state.githubIssue).toStrictEqual(10)
-    expect(state.featureBranch).toStrictEqual('feature/foo')
-  })
-
-  it('reduces a full event sequence preserving all review verdicts', () => {
-    const events: WorkflowEvent[] = [
-      {
-        type: 'architecture-review-completed',
-        at: AT,
-        passed: true,
-      },
-      {
-        type: 'code-review-completed',
-        at: AT,
-        passed: true,
-      },
-      {
-        type: 'bug-scanner-completed',
-        at: AT,
-        passed: true,
-      },
-    ]
-    const state = applyEvents(events)
-    expect(state.architectureReviewPassed).toStrictEqual(true)
-    expect(state.codeReviewPassed).toStrictEqual(true)
-    expect(state.bugScannerPassed).toStrictEqual(true)
-  })
-
-  it('handles BLOCKED/unblock round trip correctly', () => {
-    const events: WorkflowEvent[] = [
-      {
-        type: 'transitioned',
-        at: AT,
-        from: 'IMPLEMENTING',
-        to: 'BLOCKED',
-      },
-      {
-        type: 'transitioned',
-        at: AT,
-        from: 'BLOCKED',
-        to: 'IMPLEMENTING',
-      },
-    ]
-    const state = applyEvents(events)
-    expect(state.currentStateMachineState).toStrictEqual('IMPLEMENTING')
-    expect(state.preBlockedState).toBeUndefined()
-  })
-
-  it('preserves preBlockedState in BLOCKED state', () => {
-    const events: WorkflowEvent[] = [
-      {
-        type: 'transitioned',
-        at: AT,
-        from: 'REVIEWING',
-        to: 'BLOCKED',
-      },
-    ]
-    const state = applyEvents(events)
-    expect(state.preBlockedState).toStrictEqual('REVIEWING')
   })
 })

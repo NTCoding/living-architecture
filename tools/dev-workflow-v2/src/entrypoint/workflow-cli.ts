@@ -1,82 +1,140 @@
-import { appendFileSync } from 'node:fs'
-import { fileURLToPath } from 'node:url'
-import { WorkflowEngine } from '@ntcoding/agentic-workflow-builder/engine'
-import { WORKFLOW_ADAPTER } from '../workflow-definition/infra/workflow-adapter'
-import type { AdapterDeps } from '../shell/composition-root'
-import { buildRealDeps } from '../shell/composition-root'
-import { EXIT_ERROR } from '../infra/cli/hook-io'
-import { getErrorLogPath } from '../infra/cli/environment'
-import type { OperationResult } from '../infra/cli/operation-result'
-import type { CommandHandler } from '../infra/cli/command-handlers'
 import {
-  handleInit,
-  handleTransition,
-  handleRecordIssue,
-  handleRecordBranch,
-  handleRecordArchitectureReviewPassed,
-  handleRecordArchitectureReviewFailed,
-  handleRecordCodeReviewPassed,
-  handleRecordCodeReviewFailed,
-  handleRecordBugScannerPassed,
-  handleRecordBugScannerFailed,
-  handleRecordTaskCheckPassed,
-  handleRecordPr,
-  handleRecordCiPassed,
-  handleRecordCiFailed,
-  handleRecordFeedbackClean,
-  handleRecordFeedbackExists,
-  handleRecordFeedbackAddressed,
-  handleRecordReflection,
-} from '../infra/cli/command-handlers'
-import { routeHookEvent } from '../infra/cli/hook-handlers'
+  defineRoutes,
+  defineHooks,
+  arg,
+  extractField,
+} from '@ntcoding/agentic-workflow-builder/cli'
+import type {
+  WorkflowEngine, EngineResult 
+} from '@ntcoding/agentic-workflow-builder/engine'
+import type {
+  Workflow, WorkflowDeps 
+} from '../workflow-definition/domain/workflow'
+import type {
+  WorkflowState,
+  StateName,
+  WorkflowOperation,
+} from '../workflow-definition/domain/workflow-types'
+import { STATE_NAME_SCHEMA } from '../workflow-definition/domain/workflow-types'
+import { BASH_FORBIDDEN } from '../workflow-definition/domain/registry'
+import { isWriteAllowed } from '../workflow-definition/domain/workflow-predicates'
 
-const COMMAND_HANDLERS: Readonly<Record<string, CommandHandler>> = {
-  init: handleInit,
-  transition: handleTransition,
-  'record-issue': handleRecordIssue,
-  'record-branch': handleRecordBranch,
-  'record-architecture-review-passed': handleRecordArchitectureReviewPassed,
-  'record-architecture-review-failed': handleRecordArchitectureReviewFailed,
-  'record-code-review-passed': handleRecordCodeReviewPassed,
-  'record-code-review-failed': handleRecordCodeReviewFailed,
-  'record-bug-scanner-passed': handleRecordBugScannerPassed,
-  'record-bug-scanner-failed': handleRecordBugScannerFailed,
-  'record-task-check-passed': handleRecordTaskCheckPassed,
-  'record-pr': handleRecordPr,
-  'record-ci-passed': handleRecordCiPassed,
-  'record-ci-failed': handleRecordCiFailed,
-  'record-feedback-clean': handleRecordFeedbackClean,
-  'record-feedback-exists': handleRecordFeedbackExists,
-  'record-feedback-addressed': handleRecordFeedbackAddressed,
-  'record-reflection': handleRecordReflection,
-}
+export const ROUTES = defineRoutes<Workflow, WorkflowState>({
+  init: { type: 'session-start' },
+  transition: {
+    type: 'transition',
+    args: [arg.state('STATE', STATE_NAME_SCHEMA)],
+  },
 
-export function runWorkflow(args: readonly string[], deps: AdapterDeps): OperationResult {
-  const engine = new WorkflowEngine(WORKFLOW_ADAPTER, deps.engineDeps, deps.workflowDeps)
-  const command = args[0]
-  if (!command) {
-    return routeHookEvent(engine, deps)
-  }
-  const handler = COMMAND_HANDLERS[command]
-  if (!handler) {
-    return {
-      output: `Unknown command: ${command}`,
-      exitCode: EXIT_ERROR,
-    }
-  }
-  return handler(args, engine, deps)
-}
+  'record-issue': {
+    type: 'transaction',
+    args: [arg.number('number')],
+    handler: (w, n) => w.executeRecording('record-issue', n),
+  },
+  'record-branch': {
+    type: 'transaction',
+    args: [arg.string('branch')],
+    handler: (w, b) => w.executeRecording('record-branch', b),
+  },
+  'record-architecture-review-passed': {
+    type: 'transaction',
+    args: [],
+    handler: (w) => w.executeRecording('record-architecture-review-passed'),
+  },
+  'record-architecture-review-failed': {
+    type: 'transaction',
+    args: [],
+    handler: (w) => w.executeRecording('record-architecture-review-failed'),
+  },
+  'record-code-review-passed': {
+    type: 'transaction',
+    args: [],
+    handler: (w) => w.executeRecording('record-code-review-passed'),
+  },
+  'record-code-review-failed': {
+    type: 'transaction',
+    args: [],
+    handler: (w) => w.executeRecording('record-code-review-failed'),
+  },
+  'record-bug-scanner-passed': {
+    type: 'transaction',
+    args: [],
+    handler: (w) => w.executeRecording('record-bug-scanner-passed'),
+  },
+  'record-bug-scanner-failed': {
+    type: 'transaction',
+    args: [],
+    handler: (w) => w.executeRecording('record-bug-scanner-failed'),
+  },
+  'record-task-check-passed': {
+    type: 'transaction',
+    args: [],
+    handler: (w) => w.executeRecording('record-task-check-passed'),
+  },
+  'record-pr': {
+    type: 'transaction',
+    args: [arg.number('number'), arg.string('url').optional()],
+    handler: (w, n, url) => w.executeRecording('record-pr', n, url),
+  },
+  'record-ci-passed': {
+    type: 'transaction',
+    args: [],
+    handler: (w) => w.executeRecording('record-ci-passed'),
+  },
+  'record-ci-failed': {
+    type: 'transaction',
+    args: [arg.string('output')],
+    handler: (w, o) => w.executeRecording('record-ci-failed', o),
+  },
+  'record-feedback-clean': {
+    type: 'transaction',
+    args: [],
+    handler: (w) => w.executeRecording('record-feedback-clean'),
+  },
+  'record-feedback-exists': {
+    type: 'transaction',
+    args: [arg.number('count')],
+    handler: (w, c) => w.executeRecording('record-feedback-exists', c),
+  },
+  'record-feedback-addressed': {
+    type: 'transaction',
+    args: [arg.number('count')],
+    handler: (w, c) => w.executeRecording('record-feedback-addressed', c),
+  },
+  'record-reflection': {
+    type: 'transaction',
+    args: [arg.string('path')],
+    handler: (w, p) => w.executeRecording('record-reflection', p),
+  },
+})
 
-/* v8 ignore start */
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  try {
-    const result = runWorkflow(process.argv.slice(2), buildRealDeps())
-    process.stdout.write(result.output, () => process.exit(result.exitCode))
-  } catch (error) {
-    const message = `[${new Date().toISOString()}] HOOK ERROR: ${String(error)}\n`
-    process.stderr.write(message)
-    appendFileSync(getErrorLogPath(), message)
-    process.exit(EXIT_ERROR)
+export const HOOKS = defineHooks<Workflow>({})
+
+type ToolUseEngine = WorkflowEngine<
+  Workflow,
+  WorkflowState,
+  WorkflowDeps,
+  StateName,
+  WorkflowOperation
+>
+
+export function preToolUseHandler(
+  engine: ToolUseEngine,
+  sessionId: string,
+  toolName: string,
+  toolInput: Record<string, unknown>,
+  transcriptPath: string | undefined,
+): EngineResult {
+  if (toolName === 'Write' || toolName === 'Edit') {
+    const filePath = extractField('file_path')(toolInput)
+    return engine.checkWrite(sessionId, toolName, filePath, isWriteAllowed, transcriptPath)
+  }
+  if (toolName === 'Bash') {
+    const command = extractField('command')(toolInput)
+    return engine.checkBash(sessionId, toolName, command, BASH_FORBIDDEN, transcriptPath)
+  }
+  return {
+    type: 'success',
+    output: '',
   }
 }
-/* v8 ignore stop */

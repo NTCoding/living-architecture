@@ -19,6 +19,7 @@ function applyTransitioned(
   const newPreBlockedState = event.to === 'BLOCKED' ? event.from : undefined
   return {
     ...state,
+    ...(event.stateOverrides ?? {}),
     currentStateMachineState: event.to,
     preBlockedState: newPreBlockedState,
   }

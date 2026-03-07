@@ -1,6 +1,8 @@
 import { workflowSpec } from '@ntcoding/agentic-workflow-builder/testing'
 import type { WorkflowEvent } from '../workflow-events'
-import type { WorkflowState } from '../workflow-types'
+import type {
+  WorkflowState, StateName 
+} from '../workflow-types'
 import type { WorkflowDeps } from '../workflow'
 import { Workflow } from '../workflow'
 import { applyEvents } from '../fold'
@@ -16,17 +18,6 @@ const cleanGit: GitInfo = {
   hasCommitsVsDefault: false,
 }
 
-export const gitWithCommits: GitInfo = {
-  ...cleanGit,
-  hasCommitsVsDefault: true,
-  changedFilesVsDefault: ['src/foo.ts'],
-}
-
-export const gitWithDirtyTree: GitInfo = {
-  ...gitWithCommits,
-  workingTreeClean: false,
-}
-
 export function makeDeps(overrides?: Partial<WorkflowDeps>): WorkflowDeps {
   return {
     getGitInfo: () => cleanGit,
@@ -40,7 +31,7 @@ export function makeDeps(overrides?: Partial<WorkflowDeps>): WorkflowDeps {
   }
 }
 
-export function issueRecorded(n: number): WorkflowEvent {
+function issueRecorded(n: number): WorkflowEvent {
   return {
     type: 'issue-recorded',
     at: AT,
@@ -48,7 +39,7 @@ export function issueRecorded(n: number): WorkflowEvent {
   }
 }
 
-export function branchRecorded(b: string): WorkflowEvent {
+function branchRecorded(b: string): WorkflowEvent {
   return {
     type: 'branch-recorded',
     at: AT,
@@ -56,16 +47,21 @@ export function branchRecorded(b: string): WorkflowEvent {
   }
 }
 
-export function transitioned(from: string, to: string): WorkflowEvent {
+export function transitioned(
+  from: StateName,
+  to: StateName,
+  stateOverrides?: Record<string, unknown>,
+): WorkflowEvent {
   return {
     type: 'transitioned',
     at: AT,
     from,
     to,
+    ...(stateOverrides === undefined ? {} : { stateOverrides }),
   }
 }
 
-export function architectureReviewPassed(): WorkflowEvent {
+function architectureReviewPassed(): WorkflowEvent {
   return {
     type: 'architecture-review-completed',
     at: AT,
@@ -73,7 +69,7 @@ export function architectureReviewPassed(): WorkflowEvent {
   }
 }
 
-export function codeReviewPassed(): WorkflowEvent {
+function codeReviewPassed(): WorkflowEvent {
   return {
     type: 'code-review-completed',
     at: AT,
@@ -97,11 +93,11 @@ function bugScannerPassed(): WorkflowEvent {
   }
 }
 
-export function allReviewsPassed(): readonly WorkflowEvent[] {
+function allReviewsPassed(): readonly WorkflowEvent[] {
   return [architectureReviewPassed(), codeReviewPassed(), bugScannerPassed()]
 }
 
-export function prRecorded(n: number, url?: string): WorkflowEvent {
+function prRecorded(n: number, url?: string): WorkflowEvent {
   return {
     type: 'pr-recorded',
     at: AT,
@@ -110,7 +106,7 @@ export function prRecorded(n: number, url?: string): WorkflowEvent {
   }
 }
 
-export function ciPassed(): WorkflowEvent {
+function ciPassed(): WorkflowEvent {
   return {
     type: 'ci-completed',
     at: AT,
@@ -118,16 +114,7 @@ export function ciPassed(): WorkflowEvent {
   }
 }
 
-export function ciFailed(): WorkflowEvent {
-  return {
-    type: 'ci-completed',
-    at: AT,
-    passed: false,
-    output: 'test failures',
-  }
-}
-
-export function feedbackClean(): WorkflowEvent {
+function feedbackClean(): WorkflowEvent {
   return {
     type: 'feedback-checked',
     at: AT,
@@ -135,28 +122,12 @@ export function feedbackClean(): WorkflowEvent {
   }
 }
 
-export function feedbackExists(count: number): WorkflowEvent {
+function feedbackExists(count: number): WorkflowEvent {
   return {
     type: 'feedback-checked',
     at: AT,
     clean: false,
     unresolvedCount: count,
-  }
-}
-
-export function feedbackAddressed(count: number): WorkflowEvent {
-  return {
-    type: 'feedback-addressed',
-    at: AT,
-    addressedCount: count,
-  }
-}
-
-export function reflectionWritten(path: string): WorkflowEvent {
-  return {
-    type: 'reflection-written',
-    at: AT,
-    path,
   }
 }
 
@@ -180,7 +151,11 @@ export function eventsToAddressingFeedback(): readonly WorkflowEvent[] {
   return [
     ...eventsToCheckingFeedback(),
     feedbackExists(3),
-    transitioned('CHECKING_FEEDBACK', 'ADDRESSING_FEEDBACK'),
+    transitioned('CHECKING_FEEDBACK', 'ADDRESSING_FEEDBACK', {
+      feedbackAddressed: false,
+      feedbackClean: false,
+      feedbackAddressedCount: undefined,
+    }),
   ]
 }
 
@@ -189,14 +164,6 @@ export function eventsToReflecting(): readonly WorkflowEvent[] {
     ...eventsToCheckingFeedback(),
     feedbackClean(),
     transitioned('CHECKING_FEEDBACK', 'REFLECTING'),
-  ]
-}
-
-export function eventsToComplete(): readonly WorkflowEvent[] {
-  return [
-    ...eventsToReflecting(),
-    reflectionWritten('/test-output/reflection.md'),
-    transitioned('REFLECTING', 'COMPLETE'),
   ]
 }
 

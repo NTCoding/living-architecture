@@ -20,7 +20,7 @@ export type StateName = (typeof STATE_NAMES)[number]
 
 export const STATE_NAME_SCHEMA = z.enum(STATE_NAMES)
 
-export function createWorkflowStateSchema(stateNames: readonly [string, ...string[]]) {
+export function createWorkflowStateSchema<T extends readonly [string, ...string[]]>(stateNames: T) {
   const stateNameSchema = z.enum(stateNames)
   return z.object({
     currentStateMachineState: stateNameSchema,
@@ -45,7 +45,7 @@ export function createWorkflowStateSchema(stateNames: readonly [string, ...strin
 export const WORKFLOW_STATE_SCHEMA = createWorkflowStateSchema(STATE_NAMES)
 
 export type WorkflowState = {
-  currentStateMachineState: string
+  currentStateMachineState: StateName
   githubIssue?: number | undefined
   featureBranch?: string | undefined
   prNumber?: number | undefined
@@ -102,16 +102,4 @@ export const INITIAL_STATE: WorkflowState = {
 
 export function parseStateName(value: string): StateName {
   return STATE_NAME_SCHEMA.parse(value)
-}
-
-export const STATE_EMOJI_MAP: Readonly<Record<StateName, string>> = {
-  IMPLEMENTING: '🔨',
-  REVIEWING: '📋',
-  SUBMITTING_PR: '🚀',
-  AWAITING_CI: '⏳',
-  CHECKING_FEEDBACK: '💬',
-  ADDRESSING_FEEDBACK: '🔧',
-  REFLECTING: '🪞',
-  COMPLETE: '✅',
-  BLOCKED: '⚠️',
 }
