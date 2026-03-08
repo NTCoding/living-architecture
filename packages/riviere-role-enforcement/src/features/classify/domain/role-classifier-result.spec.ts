@@ -1,8 +1,12 @@
+import { existsSync } from 'node:fs'
 import {
   classifyRoleRequest, findRoleClassifierResult 
 } from './role-classifier-result'
 import type { RoleEnforcementConfig } from '../../../platform/domain/role-enforcement-config'
-import { compileRoleEnforcementConfig } from '../../../platform/infra/load-role-enforcement-config'
+import {
+  compileRoleEnforcementConfig,
+  loadRoleEnforcementConfig,
+} from '../../../platform/infra/load-role-enforcement-config'
 
 function createCompiledConfig() {
   const config: RoleEnforcementConfig = {
@@ -37,6 +41,18 @@ function createCompiledConfig() {
 }
 
 describe('role classifier flow', () => {
+  it('resolves markdown specs referenced by the spike config', () => {
+    const config = loadRoleEnforcementConfig(
+      'packages/riviere-role-enforcement/fixtures/oxlint-spike/riviere-role-enforcement.yaml',
+    )
+
+    expect(config.roles).toHaveLength(2)
+
+    for (const role of config.roles) {
+      expect(existsSync(role.markdownSpec)).toBe(true)
+    }
+  })
+
   it('returns the exact assignment text to add for a known role lookup', () => {
     const result = findRoleClassifierResult(
       'cli-shell',

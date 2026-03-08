@@ -955,7 +955,7 @@ git add <relevant-files> && git commit --no-verify -m "<commit message>" && git 
   - Suggested commit: `feat(role-enforcement): implement role classifier flow`
   - References: `3.9 riviere-role-classifier`, `5. Success Criteria`
 
-- [ ] Add markdown specs for the initial role slice
+- [x] Add markdown specs for the initial role slice
   - Requirements: create the first `docs/roles/*.md` files for the roles already used in the spike and ensure the config references real markdown specs
   - Acceptance: every role in the spike config resolves to an existing markdown spec and the docs explain placement, naming, and allowed public methods
   - Suggested commit: `docs(role-enforcement): add initial role specs`
