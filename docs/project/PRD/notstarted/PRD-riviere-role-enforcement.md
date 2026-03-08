@@ -882,80 +882,141 @@ It should be designed to coexist with them rather than replace them.
 
 ---
 
-## 15. Todo List
+## 15. Delivery Plan
 
-### Completed discovery outputs
+### Phase 1 - Completed Discovery And Explicit-Assignment Spike
 
-1. Role inventory draft
+1. Role taxonomy and rollout PRD
    - Status: done
-   - Output: `docs/project/PRD/notstarted/PRD-riviere-role-enforcement-role-inventory.md`
-   - Acceptance: a repository role inventory exists, covers the mandatory top-level layers, and lists the main ambiguities still requiring decisions
-   - References: `1. Problem`, `2.5 Repository-Specific Rules Matter`, `10. Initial Role Catalog For This Repository`
+   - Outputs: `docs/project/PRD/notstarted/PRD-riviere-role-enforcement.md`
+   - Acceptance: the PRD defines the explicit-classification model, mandatory top-level layers, minimal deterministic rules, AI repair loop, and final rollout target
+   - References: `1. Problem`, `2. Design Principles`, `3. What We're Building`, `5. Success Criteria`
 
-2. Oxlint feasibility review
+2. Repository role inventory and ambiguity review
    - Status: done
-   - Output: `docs/project/PRD/notstarted/PRD-riviere-role-enforcement-oxlint-feasibility-report.md`
-   - Acceptance: the team has a written recommendation on whether Oxlint can support the explicit-classification model cleanly
+   - Outputs: `docs/project/PRD/notstarted/PRD-riviere-role-enforcement-role-inventory.md`
+   - Acceptance: a repository role inventory exists, covers the mandatory top-level layers, documents phase-1 scope thinking, and records the highest-value ambiguities
+   - References: `2.5 Repository-Specific Rules Matter`, `6. Open Questions`, `10. Initial Role Catalog For This Repository`
+
+3. Oxlint feasibility assessment
+   - Status: done
+   - Outputs: `docs/project/PRD/notstarted/PRD-riviere-role-enforcement-oxlint-feasibility-report.md`
+   - Acceptance: the team has a written recommendation on Oxlint as the preferred path and OXC-based checking as the fallback
    - References: `3.7 Oxlint Position And Alternatives`, `7. Milestones`
 
-### Remaining implementation tasks
+4. Explicit-assignment spike package
+   - Status: done
+   - Outputs: `packages/riviere-role-enforcement/src/**/*`, `packages/riviere-role-enforcement/fixtures/oxlint-spike/**/*`
+   - Acceptance: the spike reads explicit `@riviere-role` assignments, validates assigned roles against location, name, and public-method rules, and fails when assignment is missing or unknown
+   - References: `2.2 Authoritative Classification And Exactly One Role`, `3.3 Minimal Role Definition DSL And Explicit Role Assignment`, `3.4 Initial Deterministic Constraints`, `3.6 Deterministic Engine`
 
-1. Define the explicit role assignment model
-   - Status: pending
-   - Requirements: choose and document the authoritative assignment source of truth; the recommended default is inline source annotation such as `/** @riviere-role cli-shell */`
-   - Acceptance: a documented assignment format exists; parser fixtures prove the engine can read the assignment from a class and a standalone function; a symbol without an assignment fails deterministically
-   - References: `2.2 Authoritative Classification And Exactly One Role`, `3.3 Minimal Role Definition DSL And Explicit Role Assignment`, `5. Success Criteria`, `7. Milestones`
+5. Classifier contract scaffold
+   - Status: done
+   - Outputs: `packages/riviere-role-enforcement/src/features/classify/domain/role-classifier-result.ts`
+   - Acceptance: the package can already produce `assignmentText`, role metadata, and next-action guidance for a known role
+   - References: `3.9 riviere-role-classifier`
 
-2. Finalize the fallback design if Oxlint cannot support the model cleanly
-   - Status: pending
-   - Requirements: keep the design minimal, preserve explicit assignment as the source of truth, and avoid adding unnecessary tooling surface
-   - Acceptance: the chosen fallback is documented and still satisfies the success criteria for explicit assignment, diagnostics, and performance
-   - References: `2.3 Simplicity And Minimalism`, `3.6 Deterministic Engine`, `3.7 Oxlint Position And Alternatives`, `5. Success Criteria`
+6. Focused spike validation
+   - Status: done
+   - Outputs: package tests, build target, and spike command
+   - Acceptance: the spike package builds, focused tests pass, and the Oxlint spike runs cleanly on the fixture project
+   - References: `5. Success Criteria`, `7. Milestones`
 
-3. Implement deterministic target enumeration and assignment parsing
-   - Status: pending
-   - Requirements: enumerate classes and standalone functions, then read each target's explicit role assignment before validation
-   - Acceptance: parser tests prove the engine finds the target and its assigned role for both class and function fixtures
-   - References: `3.2 In-Scope Targets`, `3.3 Minimal Role Definition DSL And Explicit Role Assignment`, `3.6 Deterministic Engine`, `7. Milestones`
+### Phase 2 - Finish The Product And Roll It Out Across The Repository
 
-4. Replace implicit role inference with assigned-role validation
-   - Status: pending
-   - Requirements: `allowedLocation`, `allowedNames` or `nameMatches`, and `allowedPublicMethods` must validate the assigned role only; they must not be used to infer the final role
-   - Acceptance: fixtures prove that missing assignment, unknown assignment, invalid location, invalid name, and invalid public method shape all fail with the correct violation type; matcher-only overlap never counts as success
-   - References: `2.2 Authoritative Classification And Exactly One Role`, `3.3 Minimal Role Definition DSL And Explicit Role Assignment`, `3.4 Initial Deterministic Constraints`, `3.6 Deterministic Engine`, `5. Success Criteria`
+Engineer working rule for every Phase 2 chunk:
 
-5. Improve diagnostics for human and AI repair
-   - Status: pending
-   - Requirements: diagnostics must name the assigned role when one exists, state the violated rule, list allowed names or allowed public methods when finite, and tell Claude when to run `riviere-role-classifier`
-   - Acceptance: golden tests cover `missing explicit role assignment`, `unknown explicit role assignment`, `invalid location for assigned role`, `invalid name for assigned role`, and `invalid public method shape`
-   - References: `2.4 Fail Fast`, `3.6 Deterministic Engine`, `3.9 riviere-role-classifier`, `5. Success Criteria`
+- complete one chunk at a time
+- after each chunk, create a small commit with `git commit --no-verify`
+- push after every commit to `origin/architecture-rbaf`
+- keep the PR in draft until the repository rollout is stable enough for broader review
 
-6. Write markdown specs for each role and encode the repository role catalog
-   - Status: pending
-   - Requirements: each role used in rollout has a definition in config and a corresponding markdown spec where needed
-   - Acceptance: config validates, markdown references resolve, and the initial rollout scope has no role definitions without supporting docs
-   - References: `3.3 Minimal Role Definition DSL And Explicit Role Assignment`, `3.5 Config Files`, `3.8 AI Review Layer`, `10. Initial Role Catalog For This Repository`
+Suggested command pattern after each chunk:
 
-7. Build `riviere-role-classifier` as an authorship helper
-   - Status: pending
-   - Requirements: the classifier must return the exact explicit assignment to add, the chosen role, allowed location, markdown spec, rationale, and ambiguity status
-   - Acceptance: contract tests prove the classifier can return `assignmentText`, a clear result, and an ambiguous result; the prompt/response pattern is documented for other agents
-   - References: `3.9 riviere-role-classifier`, `5. Success Criteria`
+```bash
+git add <relevant-files> && git commit --no-verify -m "<commit message>" && git push origin architecture-rbaf
+```
 
-8. Integrate role enforcement into architecture review and AI repair workflow
-   - Status: pending
-   - Requirements: PR review must run deterministic enforcement, AI review must consume markdown specs, and diagnostics must point Claude to `riviere-role-classifier` for self-correction
-   - Acceptance: workflow tests or documented workflow updates prove the review path works end-to-end
-   - References: `3.6 Deterministic Engine`, `3.8 AI Review Layer`, `3.9 riviere-role-classifier`, `5. Success Criteria`
+- [ ] Consolidate the current explicit-assignment spike into a clean checkpoint
+  - Requirements: stage the current spike + docs changes, make the package worktree clean, and ensure the current explicit-assignment implementation is the stable base for Phase 2
+  - Acceptance: `packages/riviere-role-enforcement` tests pass, the spike command passes, and all current local changes are committed and pushed as one coherent baseline
+  - Suggested commit: `feat(role-enforcement): finalize explicit-assignment spike`
+  - References: `3.3 Minimal Role Definition DSL And Explicit Role Assignment`, `3.6 Deterministic Engine`, `5. Success Criteria`
 
-9. Bootstrap explicit assignments across the chosen rollout scope
-   - Status: pending
-   - Requirements: add explicit role assignments to all in-scope classes and standalone functions in the chosen rollout scope; document any temporary exceptions explicitly
-   - Acceptance: rollout-scope scan passes with no uncovered in-scope symbols outside documented exceptions
-   - References: `3.10 Repository Rollout`, `5. Success Criteria`, `7. Milestones`
+- [ ] Finish diagnostics parity for explicit assignment
+  - Requirements: ensure every deterministic violation uses the explicit-assignment model, includes the assigned role when present, and suggests `riviere-role-classifier` where appropriate
+  - Acceptance: golden tests cover `missing-role-assignment`, `unknown-role-assignment`, `invalid-role-target-kind`, `invalid-role-location`, `invalid-role-name`, and `disallowed-public-methods`
+  - Suggested commit: `feat(role-enforcement): finalize explicit diagnostics`
+  - References: `2.4 Fail Fast`, `3.6 Deterministic Engine`, `5. Success Criteria`
 
-10. Reach production-ready quality gates and ship the adoption PR
-    - Status: pending
-    - Requirements: achieve 100% coverage for the new package, pass repository verification, and land the final adoption PR with explicit role coverage
-    - Acceptance: coverage thresholds pass, repository `verify` passes, and the final rollout PR demonstrates 100% coverage for the agreed scope
-    - References: `1. Problem`, `5. Success Criteria`, `7. Milestones`, `3.10 Repository Rollout`
+- [ ] Turn `riviere-role-classifier` into a real classification flow
+  - Requirements: add an actual classify flow that reads the role config, resolves clear vs ambiguous results, and returns `assignmentText`, role, allowed location, markdown spec, rationale, and next action
+  - Acceptance: tests prove a clear result, an ambiguous result, and an unknown-role result; the helper is usable by other agents, not just a static result builder
+  - Suggested commit: `feat(role-enforcement): implement role classifier flow`
+  - References: `3.9 riviere-role-classifier`, `5. Success Criteria`
+
+- [ ] Add markdown specs for the initial role slice
+  - Requirements: create the first `docs/roles/*.md` files for the roles already used in the spike and ensure the config references real markdown specs
+  - Acceptance: every role in the spike config resolves to an existing markdown spec and the docs explain placement, naming, and allowed public methods
+  - Suggested commit: `docs(role-enforcement): add initial role specs`
+  - References: `3.3 Minimal Role Definition DSL And Explicit Role Assignment`, `3.8 AI Review Layer`, `10. Initial Role Catalog For This Repository`
+
+- [ ] Harden the config and parser edge cases
+  - Requirements: tighten config validation, cover malformed annotations, multiple comments, wrong target kinds, and edge cases such as exported variable functions and class parsing behavior
+  - Acceptance: invalid config and malformed annotations fail with clear deterministic errors; additional parser/config tests exist for edge cases
+  - Suggested commit: `feat(role-enforcement): harden config and annotation parsing`
+  - References: `3.3 Minimal Role Definition DSL And Explicit Role Assignment`, `3.4 Initial Deterministic Constraints`, `3.6 Deterministic Engine`
+
+- [ ] Add a production-ready execution path beyond the spike command
+  - Requirements: introduce the repo-facing command/target that engineers and CI will use for deterministic role enforcement on changed files and full scope
+  - Acceptance: a documented repo command exists, runs against the package implementation, and is no longer limited to the spike fixture path
+  - Suggested commit: `feat(role-enforcement): add repo execution target`
+  - References: `3.6 Deterministic Engine`, `3.7 Oxlint Position And Alternatives`, `5. Success Criteria`
+
+- [ ] Roll out the first real repository slice
+  - Requirements: choose a narrow but real slice, recommended default: `packages/riviere-cli` shell plus one entrypoint/query slice; define the roles, add explicit assignments, and fix violations until the slice passes
+  - Acceptance: the chosen slice passes deterministic enforcement end-to-end and the role inventory is updated if any labels need refinement
+  - Suggested commit: `feat(role-enforcement): roll out first repository slice`
+  - References: `2.5 Repository-Specific Rules Matter`, `3.10 Repository Rollout`, `10. Initial Role Catalog For This Repository`
+
+- [ ] Roll out `packages/riviere-query`
+  - Requirements: define the required query roles for `packages/riviere-query`, add explicit assignments, and resolve violations package-by-package rather than broad repo-wide edits
+  - Acceptance: `packages/riviere-query` passes deterministic enforcement for its agreed in-scope symbols
+  - Suggested commit: `feat(role-enforcement): cover riviere-query`
+  - References: `2.5 Repository-Specific Rules Matter`, `3.10 Repository Rollout`, `5. Success Criteria`
+
+- [ ] Roll out the remaining `packages/riviere-cli` feature areas
+  - Requirements: extend the role catalog and explicit assignments from the first slice to the remaining in-scope builder, extract, and query feature areas in `packages/riviere-cli`
+  - Acceptance: the agreed in-scope `packages/riviere-cli` areas pass deterministic enforcement and unresolved exceptions are documented explicitly
+  - Suggested commit: `feat(role-enforcement): expand riviere-cli coverage`
+  - References: `3.10 Repository Rollout`, `5. Success Criteria`, `10. Initial Role Catalog For This Repository`
+
+- [ ] Roll out `tools/dev-workflow-v2`
+  - Requirements: define roles for shell, entrypoint, infra, and workflow-specific pieces in `tools/dev-workflow-v2`, then add explicit assignments and resolve violations
+  - Acceptance: `tools/dev-workflow-v2` passes deterministic enforcement for the agreed in-scope symbols
+  - Suggested commit: `feat(role-enforcement): cover dev-workflow-v2`
+  - References: `2.5 Repository-Specific Rules Matter`, `3.10 Repository Rollout`, `5. Success Criteria`
+
+- [ ] Decide and roll out the remaining repository scope
+  - Requirements: make an explicit decision on `apps/eclair` and any phase-1 exclusions such as schema/convention packages, then either roll them in or document them as out of the current rollout scope
+  - Acceptance: the repository scope is explicit, no implicit exclusions remain, and every in-scope area has an owner and rollout decision
+  - Suggested commit: `docs(role-enforcement): lock rollout scope`
+  - References: `1. Problem`, `3.10 Repository Rollout`, `6. Open Questions`
+
+- [ ] Integrate deterministic enforcement into architecture review and AI repair workflow
+  - Requirements: wire deterministic enforcement into the review workflow, ensure diagnostics instruct Claude to run `riviere-role-classifier`, and connect markdown-spec-based AI review where useful
+  - Acceptance: architecture review can execute deterministic checks and the self-correcting feedback loop is documented and testable
+  - Suggested commit: `feat(role-enforcement): integrate review workflow`
+  - References: `3.6 Deterministic Engine`, `3.8 AI Review Layer`, `3.9 riviere-role-classifier`, `5. Success Criteria`
+
+- [ ] Reach full package quality gates and benchmark confidence
+  - Requirements: raise the package to 100% coverage, document benchmark results, and ensure the package passes its own lint/build/test expectations without relying on the spike alone
+  - Acceptance: package coverage reaches 100%, benchmark output is recorded, and the package is stable enough for broader repo rollout
+  - Suggested commit: `test(role-enforcement): complete package quality gates`
+  - References: `5. Success Criteria`, `7. Milestones`
+
+- [ ] Ship the final repository rollout and move the draft PR toward ready review
+  - Requirements: apply explicit assignments and role validation across the agreed repository scope, resolve or document remaining exceptions, and update the draft PR summary with final rollout status
+  - Acceptance: the agreed scope reaches 100% explicit role coverage, repository verification passes for that scope, and the draft PR is ready to graduate once stakeholders approve
+  - Suggested commit: `feat(role-enforcement): complete repository rollout`
+  - References: `1. Problem`, `3.10 Repository Rollout`, `5. Success Criteria`, `7. Milestones`
