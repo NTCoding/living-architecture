@@ -967,7 +967,7 @@ git add <relevant-files> && git commit --no-verify -m "<commit message>" && git 
   - Suggested commit: `feat(role-enforcement): harden config and annotation parsing`
   - References: `3.3 Minimal Role Definition DSL And Explicit Role Assignment`, `3.4 Initial Deterministic Constraints`, `3.6 Deterministic Engine`
 
-- [ ] Add a production-ready execution path beyond the spike command
+- [x] Add a production-ready execution path beyond the spike command
   - Requirements: introduce the repo-facing command/target that engineers and CI will use for deterministic role enforcement on changed files and full scope
   - Acceptance: a documented repo command exists, runs against the package implementation, and is no longer limited to the spike fixture path
   - Suggested commit: `feat(role-enforcement): add repo execution target`
