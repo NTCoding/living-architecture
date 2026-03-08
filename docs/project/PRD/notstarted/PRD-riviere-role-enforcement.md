@@ -937,7 +937,7 @@ Suggested command pattern after each chunk:
 git add <relevant-files> && git commit --no-verify -m "<commit message>" && git push origin architecture-rbaf
 ```
 
-- [ ] Consolidate the current explicit-assignment spike into a clean checkpoint
+- [x] Consolidate the current explicit-assignment spike into a clean checkpoint
   - Requirements: stage the current spike + docs changes, make the package worktree clean, and ensure the current explicit-assignment implementation is the stable base for Phase 2
   - Acceptance: `packages/riviere-role-enforcement` tests pass, the spike command passes, and all current local changes are committed and pushed as one coherent baseline
   - Suggested commit: `feat(role-enforcement): finalize explicit-assignment spike`
