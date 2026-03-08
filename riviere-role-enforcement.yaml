@@ -1,0 +1,26 @@
+include:
+  - packages/riviere-cli/src/shell/cli.ts
+  - packages/riviere-cli/src/features/query/entrypoint/components.ts
+roles:
+  - name: cli-shell
+    targets: [function]
+    allowedLocation:
+      - packages/riviere-cli/src/shell/**/*.ts
+    allowedNames:
+      - createProgram
+      - main
+    markdownSpec: docs/roles/cli-shell.md
+  - name: cli-package-json-parser
+    targets: [function]
+    allowedLocation:
+      - packages/riviere-cli/src/shell/**/*.ts
+    allowedNames:
+      - parsePackageJson
+    markdownSpec: docs/roles/cli-package-json-parser.md
+  - name: cli-entrypoint
+    targets: [function]
+    allowedLocation:
+      - packages/riviere-cli/src/features/*/entrypoint/**/*.ts
+    allowedNames:
+      - createComponentsCommand
+    markdownSpec: docs/roles/cli-entrypoint.md

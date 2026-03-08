@@ -973,7 +973,7 @@ git add <relevant-files> && git commit --no-verify -m "<commit message>" && git 
   - Suggested commit: `feat(role-enforcement): add repo execution target`
   - References: `3.6 Deterministic Engine`, `3.7 Oxlint Position And Alternatives`, `5. Success Criteria`
 
-- [ ] Roll out the first real repository slice
+- [x] Roll out the first real repository slice
   - Requirements: choose a narrow but real slice, recommended default: `packages/riviere-cli` shell plus one entrypoint/query slice; define the roles, add explicit assignments, and fix violations until the slice passes
   - Acceptance: the chosen slice passes deterministic enforcement end-to-end and the role inventory is updated if any labels need refinement
   - Suggested commit: `feat(role-enforcement): roll out first repository slice`

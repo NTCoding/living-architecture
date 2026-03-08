@@ -55,11 +55,16 @@ Reasoning:
 Likely roles:
 
 - `cli-shell`
+- `cli-package-json-parser`
 
 Observed examples:
 
 - `packages/riviere-cli/src/shell/cli.ts`
 - `tools/dev-workflow-v2/src/shell/cli.ts`
+
+Current rollout note:
+
+- `packages/riviere-cli/src/shell/cli.ts` also exports `parsePackageJson`; for the first rollout slice, treat that helper as `cli-package-json-parser` rather than forcing it into `cli-shell`
 
 ### 2.2 entrypoint
 
