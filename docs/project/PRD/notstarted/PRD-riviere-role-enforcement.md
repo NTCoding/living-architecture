@@ -792,12 +792,12 @@ It should be designed to coexist with them rather than replace them.
 
 ## 15. Todo List
 
-- [ ] Identify the full repository-wide role inventory needed for 100% coverage — see `docs/project/PRD/notstarted/PRD-riviere-role-enforcement-role-inventory.md`, `1. Problem`, `2.5 Repository-Specific Rules Matter`, `10. Initial Role Catalog For This Repository`
-- [ ] Review ambiguous files and agree on their correct role assignments — see `1. Problem`, `6. Open Questions`, `10. Initial Role Catalog For This Repository`
-- [ ] Confirm the mandatory top-level layer mapping for every role: `shell`, `entrypoint`, `command`, `query`, `domain`, or `infra` — see `2.5 Repository-Specific Rules Matter`
+- [x] Identify the full repository-wide role inventory needed for 100% coverage — initial draft captured in `docs/project/PRD/notstarted/PRD-riviere-role-enforcement-role-inventory.md`; see also `1. Problem`, `2.5 Repository-Specific Rules Matter`, `10. Initial Role Catalog For This Repository`
+- [x] Review ambiguous files and agree on their correct role assignments — resolved current draft decisions in `docs/project/PRD/notstarted/PRD-riviere-role-enforcement-role-inventory.md` sections `3`, `6.4`, and `6.5`; see also `1. Problem`, `6. Open Questions`, `10. Initial Role Catalog For This Repository`
+- [x] Confirm the mandatory top-level layer mapping for every role: `shell`, `entrypoint`, `command`, `query`, `domain`, or `infra` — mapped in `docs/project/PRD/notstarted/PRD-riviere-role-enforcement-role-inventory.md` sections `1`, `2`, and `6`; see also `2.5 Repository-Specific Rules Matter`
 - [ ] Validate whether Oxlint can support the required enforcement model directly — see `3.7 Oxlint Position And Alternatives`, `7. Milestones`
 - [ ] Decide the minimum fallback design if Oxlint cannot support the full model cleanly — see `2.3 Simplicity And Minimalism`, `3.6 Deterministic Engine`, `3.7 Oxlint Position And Alternatives`
-- [ ] Finalize the minimal role DSL schema — see `3.3 Minimal Role Definition DSL`, `3.4 Initial Deterministic Constraints`
+- [x] Finalize the minimal role DSL schema — concrete draft captured in `docs/project/PRD/notstarted/PRD-riviere-role-enforcement-role-inventory.md` sections `6.2`, `6.3`, and `6.5`; see also `3.3 Minimal Role Definition DSL`, `3.4 Initial Deterministic Constraints`
 - [ ] Implement deterministic target enumeration for classes and standalone functions — see `3.2 In-Scope Targets`, `3.6 Deterministic Engine`, `7. Milestones`
 - [ ] Implement unique-role matching and deterministic validation — see `2.2 Exactly One Role`, `3.4 Initial Deterministic Constraints`, `3.6 Deterministic Engine`
 - [ ] Add structured diagnostics suitable for local use and PR review — see `2.4 Fail Fast`, `3.6 Deterministic Engine`
