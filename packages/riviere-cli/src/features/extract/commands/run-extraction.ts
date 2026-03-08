@@ -10,6 +10,7 @@ import { enrichPerModule } from '../domain/enrich-per-module'
 import { detectConnectionsPerModule } from '../domain/detect-connections-per-module'
 import type { ExtractionResult } from '../domain/extraction-result'
 
+/** @riviere-role command-orchestrator */
 export function runExtraction(
   options: ExtractOptions,
   resolvedConfig: ResolvedExtractionConfig,

@@ -10,6 +10,7 @@ interface DomainsOptions {
   json?: boolean
 }
 
+/** @riviere-role cli-entrypoint */
 export function createDomainsCommand(): Command {
   return new Command('domains')
     .description('List domains with component counts')

@@ -1,6 +1,4 @@
-import {
-  readFile, writeFile 
-} from 'node:fs/promises'
+import { readFile, writeFile } from 'node:fs/promises'
 import {
   RiviereBuilder,
   CustomTypeNotFoundError,
@@ -9,9 +7,7 @@ import {
 } from '@living-architecture/riviere-builder'
 import { parseRiviereGraph } from '@living-architecture/riviere-schema'
 import { fileExists } from '../../../platform/infra/graph-persistence/file-existence'
-import {
-  formatError, formatSuccess 
-} from '../../../platform/infra/cli-presentation/output'
+import { formatError, formatSuccess } from '../../../platform/infra/cli-presentation/output'
 import { CliErrorCode } from '../../../platform/infra/cli-presentation/error-codes'
 import {
   isValidComponentType,
@@ -27,6 +23,7 @@ import {
   type AddComponentInput,
 } from '../../../platform/infra/component-mapping/add-component-mapper'
 
+/** @riviere-role command-orchestrator */
 export async function addComponent(input: AddComponentInput): Promise<void> {
   if (!isValidComponentType(input.componentType)) {
     console.log(

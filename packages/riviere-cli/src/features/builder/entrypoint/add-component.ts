@@ -29,6 +29,7 @@ interface CliOptions {
   json?: boolean
 }
 
+/** @riviere-role cli-entrypoint */
 export function createAddComponentCommand(): Command {
   return new Command('add-component')
     .description('Add a component to the graph')
@@ -62,6 +63,8 @@ export function createAddComponentCommand(): Command {
     .option('--graph <path>', getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .action(async (options: CliOptions) => {
+      const customProperty = options.customProperty ?? []
+
       await addComponent({
         componentType: options.type,
         name: options.name,
@@ -70,19 +73,21 @@ export function createAddComponentCommand(): Command {
         repository: options.repository,
         filePath: options.filePath,
         graphPath: resolveGraphPath(options.graph),
-        lineNumber: options.lineNumber ? parseInt(options.lineNumber, 10) : undefined,
-        route: options.route,
-        apiType: options.apiType,
-        httpMethod: options.httpMethod,
-        httpPath: options.httpPath,
-        operationName: options.operationName,
-        entity: options.entity,
-        eventName: options.eventName,
-        eventSchema: options.eventSchema,
-        subscribedEvents: options.subscribedEvents,
-        customType: options.customType,
-        customProperty: options.customProperty,
-        description: options.description,
+        ...(options.lineNumber ? { lineNumber: parseInt(options.lineNumber, 10) } : {}),
+        ...(options.route !== undefined ? { route: options.route } : {}),
+        ...(options.apiType !== undefined ? { apiType: options.apiType } : {}),
+        ...(options.httpMethod !== undefined ? { httpMethod: options.httpMethod } : {}),
+        ...(options.httpPath !== undefined ? { httpPath: options.httpPath } : {}),
+        ...(options.operationName !== undefined ? { operationName: options.operationName } : {}),
+        ...(options.entity !== undefined ? { entity: options.entity } : {}),
+        ...(options.eventName !== undefined ? { eventName: options.eventName } : {}),
+        ...(options.eventSchema !== undefined ? { eventSchema: options.eventSchema } : {}),
+        ...(options.subscribedEvents !== undefined
+          ? { subscribedEvents: options.subscribedEvents }
+          : {}),
+        ...(options.customType !== undefined ? { customType: options.customType } : {}),
+        ...(customProperty.length > 0 ? { customProperty } : {}),
+        ...(options.description !== undefined ? { description: options.description } : {}),
         outputJson: options.json ?? false,
       })
     })

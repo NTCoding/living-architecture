@@ -10,6 +10,7 @@ interface OrphansOptions {
   json?: boolean
 }
 
+/** @riviere-role cli-entrypoint */
 export function createOrphansCommand(): Command {
   return new Command('orphans')
     .description('Find orphan components with no links')

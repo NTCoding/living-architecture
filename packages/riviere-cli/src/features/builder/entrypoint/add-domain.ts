@@ -1,9 +1,7 @@
 import { Command } from 'commander'
 import { writeFile } from 'node:fs/promises'
 import { DuplicateDomainError } from '@living-architecture/riviere-builder'
-import {
-  formatError, formatSuccess 
-} from '../../../platform/infra/cli-presentation/output'
+import { formatError, formatSuccess } from '../../../platform/infra/cli-presentation/output'
 import { CliErrorCode } from '../../../platform/infra/cli-presentation/error-codes'
 import { getDefaultGraphPathDescription } from '../../../platform/infra/graph-persistence/graph-path'
 import {
@@ -20,6 +18,7 @@ interface AddDomainOptions {
   json?: boolean
 }
 
+/** @riviere-role cli-entrypoint */
 export function createAddDomainCommand(): Command {
   return new Command('add-domain')
     .description('Add a domain to the graph')

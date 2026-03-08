@@ -3,8 +3,11 @@ import { getDefaultGraphPathDescription } from '../../../platform/infra/graph-pe
 import { formatSuccess } from '../../../platform/infra/cli-presentation/output'
 import { withGraphBuilder } from '../../../platform/infra/graph-persistence/builder-graph-loader'
 
-interface ComponentSummaryOptions {graph?: string}
+interface ComponentSummaryOptions {
+  graph?: string
+}
 
+/** @riviere-role cli-entrypoint */
 export function createComponentSummaryCommand(): Command {
   return new Command('component-summary')
     .description('Show component counts by type and domain')

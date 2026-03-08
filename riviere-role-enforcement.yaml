@@ -1,6 +1,14 @@
 include:
   - packages/riviere-cli/src/shell/cli.ts
-  - packages/riviere-cli/src/features/query/entrypoint/components.ts
+  - packages/riviere-cli/src/features/builder/entrypoint/**/*.ts
+  - packages/riviere-cli/src/features/builder/commands/**/*.ts
+  - packages/riviere-cli/src/features/builder/queries/**/*.ts
+  - packages/riviere-cli/src/features/extract/entrypoint/**/*.ts
+  - packages/riviere-cli/src/features/extract/commands/**/*.ts
+  - packages/riviere-cli/src/features/extract/domain/**/*.ts
+  - packages/riviere-cli/src/features/extract/infra/external-clients/**/*.ts
+  - packages/riviere-cli/src/features/extract/infra/mappers/**/*.ts
+  - packages/riviere-cli/src/features/query/entrypoint/**/*.ts
   - packages/riviere-query/src/features/querying/queries/**/*.ts
 ignorePatterns:
   - '**/*.spec.ts'
@@ -26,9 +34,50 @@ roles:
     targets: [function]
     allowedLocation:
       - packages/riviere-cli/src/features/*/entrypoint/**/*.ts
-    allowedNames:
-      - createComponentsCommand
+    nameMatches: '^create[A-Z][A-Za-z0-9]*Command$'
     markdownSpec: docs/roles/cli-entrypoint.md
+  - name: command-orchestrator
+    targets: [function]
+    allowedLocation:
+      - packages/riviere-cli/src/features/*/commands/**/*.ts
+    allowedNames:
+      - addComponent
+      - runExtraction
+    markdownSpec: docs/roles/command-orchestrator.md
+  - name: cli-query-service
+    targets: [function]
+    allowedLocation:
+      - packages/riviere-cli/src/features/*/queries/**/*.ts
+    allowedNames:
+      - findApisByPath
+      - getAllApiPaths
+    markdownSpec: docs/roles/cli-query-service.md
+  - name: extract-domain-service
+    targets: [function]
+    allowedLocation:
+      - packages/riviere-cli/src/features/extract/domain/**/*.ts
+    allowedNames:
+      - detectConnectionsPerModule
+      - enrichPerModule
+      - extractDraftComponents
+    markdownSpec: docs/roles/extract-domain-service.md
+  - name: extract-project-loader
+    targets: [function]
+    allowedLocation:
+      - packages/riviere-cli/src/features/extract/infra/external-clients/**/*.ts
+    allowedNames:
+      - createConfiguredProject
+      - createModuleContexts
+      - findModuleTsConfigDir
+      - loadExtractionProject
+    markdownSpec: docs/roles/extract-project-loader.md
+  - name: cli-result-presenter
+    targets: [function]
+    allowedLocation:
+      - packages/riviere-cli/src/features/*/infra/mappers/**/*.ts
+    allowedNames:
+      - presentExtractionResult
+    markdownSpec: docs/roles/cli-result-presenter.md
   - name: query-service
     targets: [function]
     allowedLocation:
@@ -124,6 +173,7 @@ roles:
   - name: application-error
     targets: [class]
     allowedLocation:
+      - packages/riviere-cli/src/features/*/domain/**/*.ts
       - packages/riviere-query/src/features/querying/queries/**/*.ts
     nameMatches: '^.*Error$'
     markdownSpec: docs/roles/application-error.md

@@ -985,7 +985,7 @@ git add <relevant-files> && git commit --no-verify -m "<commit message>" && git 
   - Suggested commit: `feat(role-enforcement): cover riviere-query`
   - References: `2.5 Repository-Specific Rules Matter`, `3.10 Repository Rollout`, `5. Success Criteria`
 
-- [ ] Roll out the remaining `packages/riviere-cli` feature areas
+- [x] Roll out the remaining `packages/riviere-cli` feature areas
   - Requirements: extend the role catalog and explicit assignments from the first slice to the remaining in-scope builder, extract, and query feature areas in `packages/riviere-cli`
   - Acceptance: the agreed in-scope `packages/riviere-cli` areas pass deterministic enforcement and unresolved exceptions are documented explicitly
   - Suggested commit: `feat(role-enforcement): expand riviere-cli coverage`

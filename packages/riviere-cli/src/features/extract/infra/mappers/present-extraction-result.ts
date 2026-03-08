@@ -11,6 +11,7 @@ import { categorizeComponents } from '../../../../platform/infra/cli-presentatio
 import type { ExtractionResult } from '../../domain/extraction-result'
 import type { ExtractOptions } from '../../../../platform/infra/cli-presentation/extract-validator'
 
+/** @riviere-role cli-result-presenter */
 export function presentExtractionResult(result: ExtractionResult, options: ExtractOptions): void {
   if (result.kind === 'draftOnly') {
     presentDraftResult(result.components, options)
@@ -40,7 +41,10 @@ function presentDraftResult(
     return
   }
 
-  outputResult(formatSuccess(components), { output: options.output })
+  outputResult(
+    formatSuccess(components),
+    options.output === undefined ? {} : { output: options.output },
+  )
 }
 
 function presentFullResult(
@@ -68,6 +72,6 @@ function presentFullResult(
       components: result.components,
       links: result.links,
     }),
-    { output: options.output },
+    options.output === undefined ? {} : { output: options.output },
   )
 }

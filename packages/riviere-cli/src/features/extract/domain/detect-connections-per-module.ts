@@ -15,6 +15,7 @@ export interface PerModuleConnectionResult {
   timings: ConnectionTimings[]
 }
 
+/** @riviere-role extract-domain-service */
 export function detectConnectionsPerModule(
   moduleContexts: ModuleContext[],
   enrichedComponents: EnrichedComponent[],

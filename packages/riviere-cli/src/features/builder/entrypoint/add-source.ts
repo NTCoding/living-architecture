@@ -10,6 +10,7 @@ interface AddSourceOptions {
   json?: boolean
 }
 
+/** @riviere-role cli-entrypoint */
 export function createAddSourceCommand(): Command {
   return new Command('add-source')
     .description('Add a source repository to the graph')

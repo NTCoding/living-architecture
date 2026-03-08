@@ -11,6 +11,7 @@ interface SearchOptions {
   json?: boolean
 }
 
+/** @riviere-role cli-entrypoint */
 export function createSearchCommand(): Command {
   return new Command('search')
     .description('Search components by name')

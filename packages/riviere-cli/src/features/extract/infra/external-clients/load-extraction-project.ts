@@ -1,6 +1,7 @@
 import type { Project } from 'ts-morph'
 import { createConfiguredProject } from './create-configured-project'
 
+/** @riviere-role extract-project-loader */
 export function loadExtractionProject(
   configDir: string,
   sourceFilePaths: string[],

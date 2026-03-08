@@ -1,12 +1,11 @@
-import {
-  posix, resolve 
-} from 'node:path'
+import { posix, resolve } from 'node:path'
 import { globSync } from 'glob'
 import type { ResolvedExtractionConfig } from '@living-architecture/riviere-extract-config'
 import type { ModuleContext } from '../../domain/extract-draft-components'
 import { findModuleTsConfigDir } from './find-module-tsconfig-dir'
 import { loadExtractionProject } from './load-extraction-project'
 
+/** @riviere-role extract-project-loader */
 export function createModuleContexts(
   resolvedConfig: ResolvedExtractionConfig,
   configDir: string,

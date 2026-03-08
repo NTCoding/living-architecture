@@ -1,8 +1,6 @@
 import { Command } from 'commander'
 import { getDefaultGraphPathDescription } from '../../../platform/infra/graph-persistence/graph-path'
-import {
-  formatError, formatSuccess 
-} from '../../../platform/infra/cli-presentation/output'
+import { formatError, formatSuccess } from '../../../platform/infra/cli-presentation/output'
 import { CliErrorCode } from '../../../platform/infra/cli-presentation/error-codes'
 import { isValidComponentType } from '../../../platform/infra/cli-presentation/component-types'
 import { withGraphBuilder } from '../../../platform/infra/graph-persistence/builder-graph-loader'
@@ -13,6 +11,7 @@ interface ComponentChecklistOptions {
   type?: string
 }
 
+/** @riviere-role cli-entrypoint */
 export function createComponentChecklistCommand(): Command {
   return new Command('component-checklist')
     .description('List components as a checklist for linking/enrichment')

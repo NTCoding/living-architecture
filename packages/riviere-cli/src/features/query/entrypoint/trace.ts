@@ -1,13 +1,7 @@
 import { Command } from 'commander'
-import {
-  ComponentNotFoundError, parseComponentId 
-} from '@living-architecture/riviere-query'
-import {
-  findNearMatches, ComponentId 
-} from '@living-architecture/riviere-builder'
-import {
-  formatError, formatSuccess 
-} from '../../../platform/infra/cli-presentation/output'
+import { ComponentNotFoundError, parseComponentId } from '@living-architecture/riviere-query'
+import { findNearMatches, ComponentId } from '@living-architecture/riviere-builder'
+import { formatError, formatSuccess } from '../../../platform/infra/cli-presentation/output'
 import { CliErrorCode } from '../../../platform/infra/cli-presentation/error-codes'
 import {
   withGraph,
@@ -19,6 +13,7 @@ interface TraceOptions {
   json?: boolean
 }
 
+/** @riviere-role cli-entrypoint */
 export function createTraceCommand(): Command {
   return new Command('trace')
     .description('Trace flow from a component (bidirectional)')

@@ -1,8 +1,6 @@
 import { Command } from 'commander'
 import { writeFile } from 'node:fs/promises'
-import {
-  formatError, formatSuccess 
-} from '../../../platform/infra/cli-presentation/output'
+import { formatError, formatSuccess } from '../../../platform/infra/cli-presentation/output'
 import { CliErrorCode } from '../../../platform/infra/cli-presentation/error-codes'
 import { getDefaultGraphPathDescription } from '../../../platform/infra/graph-persistence/graph-path'
 import { withGraphBuilder } from '../../../platform/infra/graph-persistence/builder-graph-loader'
@@ -13,6 +11,7 @@ interface FinalizeOptions {
   json?: boolean
 }
 
+/** @riviere-role cli-entrypoint */
 export function createFinalizeCommand(): Command {
   return new Command('finalize')
     .description('Validate and export the final graph')

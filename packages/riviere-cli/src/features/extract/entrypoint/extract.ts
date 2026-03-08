@@ -11,6 +11,7 @@ import {
 import { runExtraction } from '../commands/run-extraction'
 import { presentExtractionResult } from '../infra/mappers/present-extraction-result'
 
+/** @riviere-role cli-entrypoint */
 export function createExtractCommand(): Command {
   return new Command('extract')
     .description('Extract architectural components from source code')
@@ -30,9 +31,7 @@ export function createExtractCommand(): Command {
     .action((options: ExtractOptions) => {
       validateFlagCombinations(options)
 
-      const {
-        resolvedConfig, configDir 
-      } = loadAndValidateConfig(options.config)
+      const { resolvedConfig, configDir } = loadAndValidateConfig(options.config)
       const allSourceFilePaths = resolveSourceFiles(resolvedConfig, configDir)
       const sourceFilePaths = resolveFilteredSourceFiles(allSourceFilePaths, options)
 

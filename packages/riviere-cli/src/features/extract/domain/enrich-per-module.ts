@@ -7,6 +7,7 @@ import {
 } from '@living-architecture/riviere-extract-ts'
 import type { ModuleContext } from './extract-draft-components'
 
+/** @riviere-role application-error */
 export class OrphanedDraftComponentError extends Error {
   constructor(orphanedModules: string[], knownModules: string[]) {
     super(
@@ -21,6 +22,7 @@ export interface PerModuleEnrichmentResult {
   failedFields: string[]
 }
 
+/** @riviere-role extract-domain-service */
 export function enrichPerModule(
   moduleContexts: ModuleContext[],
   draftComponents: DraftComponent[],

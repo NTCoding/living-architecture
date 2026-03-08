@@ -32,6 +32,7 @@ interface LinkOptions {
   json?: boolean
 }
 
+/** @riviere-role cli-entrypoint */
 export function createLinkCommand(): Command {
   return new Command('link')
     .description('Link two components')

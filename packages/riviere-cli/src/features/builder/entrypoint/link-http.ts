@@ -16,9 +16,7 @@ import {
   loadGraphBuilder,
   reportGraphNotFound,
 } from '../../../platform/infra/graph-persistence/builder-graph-loader'
-import {
-  findApisByPath, getAllApiPaths 
-} from '../queries/api-component-queries'
+import { findApisByPath, getAllApiPaths } from '../queries/api-component-queries'
 import {
   reportNoApiFoundForPath,
   reportAmbiguousApiMatch,
@@ -37,6 +35,7 @@ interface LinkHttpOptions {
   json?: boolean
 }
 
+/** @riviere-role cli-entrypoint */
 export function createLinkHttpCommand(): Command {
   return new Command('link-http')
     .description('Find an API by HTTP path and link to a target component')
