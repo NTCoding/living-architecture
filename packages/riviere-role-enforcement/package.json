@@ -1,0 +1,35 @@
+{
+  "name": "@living-architecture/riviere-role-enforcement",
+  "version": "0.1.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "@living-architecture/source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./oxlint-plugin": {
+      "@living-architecture/source": "./src/features/check/infra/oxlint-plugin.ts",
+      "types": "./dist/features/check/infra/oxlint-plugin.d.ts",
+      "require": "./dist/features/check/infra/oxlint-plugin.cjs",
+      "default": "./dist/features/check/infra/oxlint-plugin.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "!**/*.tsbuildinfo"
+  ],
+  "dependencies": {
+    "@oxlint/plugins": "^1.51.0",
+    "yaml": "^2.8.2",
+    "zod": "^4.3.6"
+  }
+}

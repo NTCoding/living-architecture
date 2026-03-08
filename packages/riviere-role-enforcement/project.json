@@ -1,0 +1,12 @@
+{
+  "name": "riviere-role-enforcement",
+  "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --build packages/riviere-role-enforcement/tsconfig.lib.json && pnpm exec esbuild packages/riviere-role-enforcement/src/features/check/infra/oxlint-plugin.ts --bundle --platform=node --format=cjs --outfile=packages/riviere-role-enforcement/dist/features/check/infra/oxlint-plugin.cjs",
+        "cwd": "{workspaceRoot}"
+      }
+    }
+  }
+}

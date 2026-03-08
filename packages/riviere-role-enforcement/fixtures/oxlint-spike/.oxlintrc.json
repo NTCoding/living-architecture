@@ -1,0 +1,16 @@
+{
+  "jsPlugins": [
+    {
+      "name": "riviere-role",
+      "specifier": "./oxlint-plugin.cjs"
+    }
+  ],
+  "rules": {
+    "riviere-role/enforce-role-definitions": [
+      "error",
+      {
+        "configPath": "./packages/riviere-role-enforcement/fixtures/oxlint-spike/riviere-role-enforcement.yaml"
+      }
+    ]
+  }
+}

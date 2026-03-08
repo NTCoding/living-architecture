@@ -1,0 +1,18 @@
+include:
+  - packages/riviere-role-enforcement/fixtures/oxlint-spike/src/**/*.ts
+roles:
+  - name: cli-shell
+    targets: [function]
+    allowedLocation:
+      - packages/riviere-role-enforcement/fixtures/oxlint-spike/src/shell/**/*.ts
+    nameMatches: ^(createProgram|main)$
+    markdownSpec: docs/roles/cli-shell.md
+  - name: query-facade
+    targets: [class]
+    allowedLocation:
+      - packages/riviere-role-enforcement/fixtures/oxlint-spike/src/features/*/queries/**/*.ts
+    nameMatches: ^.*Query$
+    allowedPublicMethods:
+      - components
+      - validate
+    markdownSpec: docs/roles/query-facade.md
