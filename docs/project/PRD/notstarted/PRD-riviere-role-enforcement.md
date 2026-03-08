@@ -979,7 +979,7 @@ git add <relevant-files> && git commit --no-verify -m "<commit message>" && git 
   - Suggested commit: `feat(role-enforcement): roll out first repository slice`
   - References: `2.5 Repository-Specific Rules Matter`, `3.10 Repository Rollout`, `10. Initial Role Catalog For This Repository`
 
-- [ ] Roll out `packages/riviere-query`
+- [x] Roll out `packages/riviere-query`
   - Requirements: define the required query roles for `packages/riviere-query`, add explicit assignments, and resolve violations package-by-package rather than broad repo-wide edits
   - Acceptance: `packages/riviere-query` passes deterministic enforcement for its agreed in-scope symbols
   - Suggested commit: `feat(role-enforcement): cover riviere-query`

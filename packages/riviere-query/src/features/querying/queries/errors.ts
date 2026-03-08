@@ -1,3 +1,4 @@
+/** @riviere-role application-error */
 export class ComponentNotFoundError extends Error {
   readonly componentId: string
   readonly suggestions: string[]

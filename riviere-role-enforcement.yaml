@@ -1,6 +1,11 @@
 include:
   - packages/riviere-cli/src/shell/cli.ts
   - packages/riviere-cli/src/features/query/entrypoint/components.ts
+  - packages/riviere-query/src/features/querying/queries/**/*.ts
+ignorePatterns:
+  - '**/*.spec.ts'
+  - '**/index.ts'
+  - '**/__fixtures__/**'
 roles:
   - name: cli-shell
     targets: [function]
@@ -24,3 +29,101 @@ roles:
     allowedNames:
       - createComponentsCommand
     markdownSpec: docs/roles/cli-entrypoint.md
+  - name: query-service
+    targets: [function]
+    allowedLocation:
+      - packages/riviere-query/src/features/querying/queries/**/*.ts
+    allowedNames:
+      - findComponent
+      - findAllComponents
+      - componentById
+      - searchComponents
+      - componentsInDomain
+      - componentsByType
+      - queryDomains
+      - operationsForEntity
+      - queryEntities
+      - businessRulesForEntity
+      - transitionsForEntity
+      - statesForEntity
+      - queryCrossDomainLinks
+      - queryDomainConnections
+      - queryNodeDepths
+      - queryPublishedEvents
+      - queryEventHandlers
+      - queryExternalDomains
+      - findEntryPoints
+      - traceFlowFrom
+      - queryFlows
+      - searchWithFlowContext
+      - diffGraphs
+      - validateGraph
+      - detectOrphanComponents
+      - queryStats
+      - compareByCodePoint
+      - createLinkKey
+      - parseComponentId
+      - parseLinkId
+      - parseEntityName
+      - parseDomainName
+      - parseState
+      - parseOperationName
+      - parseEventId
+      - parseEventName
+      - parseHandlerId
+      - parseHandlerName
+    markdownSpec: docs/roles/query-service.md
+  - name: query-facade
+    targets: [class]
+    allowedLocation:
+      - packages/riviere-query/src/features/querying/queries/**/*.ts
+    allowedNames:
+      - RiviereQuery
+    allowedPublicMethods:
+      - components
+      - links
+      - validate
+      - detectOrphans
+      - find
+      - findAll
+      - componentById
+      - search
+      - componentsInDomain
+      - componentsByType
+      - domains
+      - operationsFor
+      - entities
+      - businessRulesFor
+      - transitionsFor
+      - statesFor
+      - entryPoints
+      - traceFlow
+      - diff
+      - publishedEvents
+      - eventHandlers
+      - flows
+      - searchWithFlow
+      - crossDomainLinks
+      - domainConnections
+      - stats
+      - nodeDepths
+      - externalLinks
+      - externalDomains
+    markdownSpec: docs/roles/query-facade.md
+  - name: query-entity
+    targets: [class]
+    allowedLocation:
+      - packages/riviere-query/src/features/querying/queries/**/*.ts
+    allowedNames:
+      - Entity
+    allowedPublicMethods:
+      - hasStates
+      - hasBusinessRules
+      - firstOperationId
+    markdownSpec: docs/roles/query-entity.md
+  - name: application-error
+    targets: [class]
+    allowedLocation:
+      - packages/riviere-query/src/features/querying/queries/**/*.ts
+    nameMatches: '^.*Error$'
+    markdownSpec: docs/roles/application-error.md

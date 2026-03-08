@@ -1,15 +1,12 @@
-import type {
-  RiviereGraph, CustomComponent 
-} from '@living-architecture/riviere-schema'
-import type {
-  ComponentId, ValidationError, ValidationResult 
-} from './domain-types'
+import type { RiviereGraph, CustomComponent } from '@living-architecture/riviere-schema'
+import type { ComponentId, ValidationError, ValidationResult } from './domain-types'
 import { parseComponentId } from './domain-types'
 
 function isCustomComponent(component: { type: string }): component is CustomComponent {
   return component.type === 'Custom'
 }
 
+/** @riviere-role query-service */
 export function validateGraph(graph: RiviereGraph): ValidationResult {
   const errors: ValidationError[] = []
 
@@ -62,6 +59,7 @@ function validateCustomTypes(graph: RiviereGraph): ValidationError[] {
   return errors
 }
 
+/** @riviere-role query-service */
 export function detectOrphanComponents(graph: RiviereGraph): ComponentId[] {
   const connectedComponentIds = new Set<string>()
   graph.links.forEach((link) => {

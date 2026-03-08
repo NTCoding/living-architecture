@@ -1,7 +1,5 @@
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
-import type {
-  CrossDomainLink, DomainConnection 
-} from './domain-types'
+import type { CrossDomainLink, DomainConnection } from './domain-types'
 import { parseDomainName } from './domain-types'
 import { compareByCodePoint } from './compare-by-code-point'
 
@@ -9,6 +7,7 @@ function buildNodeIdToDomain(graph: RiviereGraph): Map<string, string> {
   return new Map(graph.components.map((c) => [c.id, c.domain]))
 }
 
+/** @riviere-role query-service */
 export function queryCrossDomainLinks(graph: RiviereGraph, domainName: string): CrossDomainLink[] {
   const nodeIdToDomain = buildNodeIdToDomain(graph)
   const seen = new Set<string>()
@@ -134,15 +133,14 @@ function toConnectionResults(
   }))
 }
 
+/** @riviere-role query-service */
 export function queryDomainConnections(
   graph: RiviereGraph,
   domainName: string,
 ): DomainConnection[] {
   const nodeIdToDomain = buildNodeIdToDomain(graph)
   const nodeById = new Map(graph.components.map((c) => [c.id, { type: c.type }]))
-  const {
-    outgoing, incoming 
-  } = collectConnections(graph, domainName, nodeIdToDomain, nodeById)
+  const { outgoing, incoming } = collectConnections(graph, domainName, nodeIdToDomain, nodeById)
 
   const results = [
     ...toConnectionResults(outgoing, 'outgoing'),
