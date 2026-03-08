@@ -949,7 +949,7 @@ git add <relevant-files> && git commit --no-verify -m "<commit message>" && git 
   - Suggested commit: `feat(role-enforcement): finalize explicit diagnostics`
   - References: `2.4 Fail Fast`, `3.6 Deterministic Engine`, `5. Success Criteria`
 
-- [ ] Turn `riviere-role-classifier` into a real classification flow
+- [x] Turn `riviere-role-classifier` into a real classification flow
   - Requirements: add an actual classify flow that reads the role config, resolves clear vs ambiguous results, and returns `assignmentText`, role, allowed location, markdown spec, rationale, and next action
   - Acceptance: tests prove a clear result, an ambiguous result, and an unknown-role result; the helper is usable by other agents, not just a static result builder
   - Suggested commit: `feat(role-enforcement): implement role classifier flow`
