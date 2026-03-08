@@ -11,8 +11,10 @@ export type RoleViolationCode =
 export interface RoleViolation {
   code: RoleViolationCode
   target: TargetSymbol
+  assignedRoleName: string | null
   message: string
   matchingRoles: readonly string[]
   markdownSpec: string | null
   disallowedPublicMethods: readonly string[]
+  suggestedFix: string
 }

@@ -7,86 +7,114 @@ import type { RoleViolation } from './role-violation'
 import type { TargetSymbol } from './target-symbol'
 
 function createRunClassifierMessage(): string {
-  return 'Next step for Claude: run riviere-role-classifier.'
+  return "Next step for Claude: run 'riviere-role-classifier' before editing."
+}
+
+function createRoleViolation(
+  code: RoleViolation['code'],
+  target: TargetSymbol,
+  assignedRoleName: string | null,
+  why: string,
+  suggestedFix: string,
+  markdownSpec: string | null,
+  disallowedPublicMethods: readonly string[],
+): RoleViolation {
+  const details = [
+    `Role enforcement error: ${code}`,
+    '',
+    `File: ${target.relativeFilePath}`,
+    `Symbol: ${target.name}`,
+  ]
+
+  if (assignedRoleName !== null) {
+    details.push(`Assigned role: ${assignedRoleName}`)
+  }
+
+  details.push(`Why: ${why}`)
+  details.push(`Suggested fix: ${suggestedFix}`)
+
+  return {
+    code,
+    target,
+    assignedRoleName,
+    message: details.join('\n'),
+    matchingRoles: assignedRoleName === null ? [] : [assignedRoleName],
+    markdownSpec,
+    disallowedPublicMethods,
+    suggestedFix,
+  }
 }
 
 function createMissingRoleAssignmentViolation(target: TargetSymbol): RoleViolation {
-  return {
-    code: 'missing-role-assignment',
+  return createRoleViolation(
+    'missing-role-assignment',
     target,
-    message: [
-      `${formatTarget(target)} has no explicit role assignment.`,
-      createRunClassifierMessage(),
-    ].join(' '),
-    matchingRoles: [],
-    markdownSpec: null,
-    disallowedPublicMethods: [],
-  }
+    null,
+    `${formatTarget(target)} declares no explicit role assignment.`,
+    `${createRunClassifierMessage()} Expected classifier output: explicit role assignment, top-level layer, allowed destination path, markdownSpec, and rationale.`,
+    null,
+    [],
+  )
 }
 
 function createUnknownRoleAssignmentViolation(
   target: TargetSymbol,
   assignedRoleName: string,
 ): RoleViolation {
-  return {
-    code: 'unknown-role-assignment',
+  return createRoleViolation(
+    'unknown-role-assignment',
     target,
-    message: `${formatTarget(target)} declares role '${assignedRoleName}', but no such role exists.`,
-    matchingRoles: [assignedRoleName],
-    markdownSpec: null,
-    disallowedPublicMethods: [],
-  }
+    assignedRoleName,
+    `No role named '${assignedRoleName}' exists in the repository role catalog.`,
+    `${createRunClassifierMessage()} Choose a valid repository role and update the explicit assignment.`,
+    null,
+    [],
+  )
 }
 
 function createInvalidRoleTargetKindViolation(
   target: TargetSymbol,
   role: CompiledRoleDefinition,
 ): RoleViolation {
-  return {
-    code: 'invalid-role-target-kind',
+  return createRoleViolation(
+    'invalid-role-target-kind',
     target,
-    message: [
-      `${formatTarget(target)} has role '${role.name}' but that role only applies to ${formatTargetKinds(role.targets)}.`,
-      createRunClassifierMessage(),
-    ].join(' '),
-    matchingRoles: [role.name],
-    markdownSpec: role.markdownSpec,
-    disallowedPublicMethods: [],
-  }
+    role.name,
+    `${formatTarget(target)} is a ${target.kind}, but role '${role.name}' only applies to ${formatTargetKinds(role.targets)}.`,
+    `${createRunClassifierMessage()} Keep the symbol in a supported target kind or choose a role that allows ${target.kind} targets.`,
+    role.markdownSpec,
+    [],
+  )
 }
 
 function createInvalidRoleLocationViolation(
   target: TargetSymbol,
   role: CompiledRoleDefinition,
 ): RoleViolation {
-  return {
-    code: 'invalid-role-location',
+  return createRoleViolation(
+    'invalid-role-location',
     target,
-    message: [
-      `${formatTarget(target)} has role '${role.name}' but lives in '${target.relativeFilePath}'.`,
-      `Role '${role.name}' must live in ${formatAllowedLocations(role.allowedLocation)}.`,
-    ].join(' '),
-    matchingRoles: [role.name],
-    markdownSpec: role.markdownSpec,
-    disallowedPublicMethods: [],
-  }
+    role.name,
+    `Role '${role.name}' is assigned, but '${target.relativeFilePath}' is outside ${formatAllowedLocations(role.allowedLocation)}.`,
+    `${createRunClassifierMessage()} Move the symbol into an allowed location for '${role.name}' or choose the correct role for this path.`,
+    role.markdownSpec,
+    [],
+  )
 }
 
 function createInvalidRoleNameViolation(
   target: TargetSymbol,
   role: CompiledRoleDefinition,
 ): RoleViolation {
-  return {
-    code: 'invalid-role-name',
+  return createRoleViolation(
+    'invalid-role-name',
     target,
-    message: [
-      `${formatTarget(target)} has role '${role.name}' but its name is not allowed for that role.`,
-      createAllowedNameMessage(role),
-    ].join(' '),
-    matchingRoles: [role.name],
-    markdownSpec: role.markdownSpec,
-    disallowedPublicMethods: [],
-  }
+    role.name,
+    `${formatTarget(target)} does not satisfy the naming rules for role '${role.name}'. ${createAllowedNameMessage(role)}`,
+    `Keep role '${role.name}', rename the symbol to an allowed name, and re-run validation.`,
+    role.markdownSpec,
+    [],
+  )
 }
 
 function createDisallowedPublicMethodsViolation(
@@ -94,17 +122,15 @@ function createDisallowedPublicMethodsViolation(
   role: CompiledRoleDefinition,
   disallowedPublicMethods: readonly string[],
 ): RoleViolation {
-  return {
-    code: 'disallowed-public-methods',
+  return createRoleViolation(
+    'disallowed-public-methods',
     target,
-    message: [
-      `${formatTarget(target)} has role '${role.name}' but ${formatDisallowedMethods(disallowedPublicMethods)} not allowed for that role.`,
-      `Allowed public methods: ${formatAllowedPublicMethods(role)}.`,
-    ].join(' '),
-    matchingRoles: [role.name],
-    markdownSpec: role.markdownSpec,
+    role.name,
+    `${formatTarget(target)} exposes ${formatDisallowedMethods(disallowedPublicMethods)} not allowed for role '${role.name}'. Allowed public methods: ${formatAllowedPublicMethods(role)}.`,
+    `${createRunClassifierMessage()} Re-check the role markdown spec before changing the class API.`,
+    role.markdownSpec,
     disallowedPublicMethods,
-  }
+  )
 }
 
 function createAllowedNameMessage(role: CompiledRoleDefinition): string {

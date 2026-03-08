@@ -943,7 +943,7 @@ git add <relevant-files> && git commit --no-verify -m "<commit message>" && git 
   - Suggested commit: `feat(role-enforcement): finalize explicit-assignment spike`
   - References: `3.3 Minimal Role Definition DSL And Explicit Role Assignment`, `3.6 Deterministic Engine`, `5. Success Criteria`
 
-- [ ] Finish diagnostics parity for explicit assignment
+- [x] Finish diagnostics parity for explicit assignment
   - Requirements: ensure every deterministic violation uses the explicit-assignment model, includes the assigned role when present, and suggests `riviere-role-classifier` where appropriate
   - Acceptance: golden tests cover `missing-role-assignment`, `unknown-role-assignment`, `invalid-role-target-kind`, `invalid-role-location`, `invalid-role-name`, and `disallowed-public-methods`
   - Suggested commit: `feat(role-enforcement): finalize explicit diagnostics`
