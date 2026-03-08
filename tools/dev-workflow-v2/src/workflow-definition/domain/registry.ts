@@ -1,7 +1,5 @@
 import type { BashForbiddenConfig } from '@ntcoding/agentic-workflow-builder/dsl'
-import type {
-  ConcreteRegistry, ConcreteStateDefinition 
-} from './workflow-types'
+import type { ConcreteRegistry, ConcreteStateDefinition } from './workflow-types'
 import { parseStateName } from './workflow-types'
 import { implementingState } from './states/implementing'
 import { reviewingState } from './states/reviewing'
@@ -18,6 +16,7 @@ export const BASH_FORBIDDEN: BashForbiddenConfig = {
   flags: ['--no-verify', '--force', '--hard'],
 }
 
+/** @riviere-role workflow-domain-helper */
 export function getStateDefinition(state: string): ConcreteStateDefinition {
   return WORKFLOW_REGISTRY[parseStateName(state)]
 }

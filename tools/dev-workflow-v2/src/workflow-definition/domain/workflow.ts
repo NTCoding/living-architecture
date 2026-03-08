@@ -3,22 +3,14 @@ import type {
   GitInfo,
   RecordingOpDefinition,
 } from '@ntcoding/agentic-workflow-builder/dsl'
-import {
-  pass, fail, defineRecordingOps 
-} from '@ntcoding/agentic-workflow-builder/dsl'
+import { pass, fail, defineRecordingOps } from '@ntcoding/agentic-workflow-builder/dsl'
 import type { BaseEvent } from '@ntcoding/agentic-workflow-builder/engine'
-import type {
-  WorkflowState, StateName, WorkflowOperation 
-} from './workflow-types'
-import {
-  WORKFLOW_REGISTRY, getStateDefinition 
-} from './registry'
+import type { WorkflowState, StateName, WorkflowOperation } from './workflow-types'
+import { WORKFLOW_REGISTRY, getStateDefinition } from './registry'
 import { WORKFLOW_STATE_SCHEMA } from './workflow-types'
 import type { WorkflowEvent } from './workflow-events'
 import { WORKFLOW_EVENT_SCHEMA } from './workflow-events'
-import {
-  applyEvent, EMPTY_STATE 
-} from './fold'
+import { applyEvent, EMPTY_STATE } from './fold'
 import type { PRFeedbackResult } from '../../infra/github/get-pr-feedback'
 
 const RECORDING_OPS_MAP: Record<string, RecordingOpDefinition<readonly never[]>> = {
@@ -109,6 +101,7 @@ export type WorkflowDeps = {
   readonly now: () => string
 }
 
+/** @riviere-role workflow-facade */
 export class Workflow {
   private state: WorkflowState
   private readonly deps: WorkflowDeps

@@ -90,11 +90,13 @@ function applyRecordingEvent(state: WorkflowState, event: WorkflowEvent): Workfl
   }
 }
 
+/** @riviere-role workflow-domain-helper */
 export function applyEvent(state: WorkflowState, event: WorkflowEvent): WorkflowState {
   if (event.type === 'transitioned') return applyTransitioned(state, event)
   return applyRecordingEvent(state, event)
 }
 
+/** @riviere-role workflow-domain-helper */
 export function applyEvents(events: readonly WorkflowEvent[]): WorkflowState {
   return events.reduce(applyEvent, EMPTY_STATE)
 }

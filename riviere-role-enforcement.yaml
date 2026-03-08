@@ -10,8 +10,12 @@ include:
   - packages/riviere-cli/src/features/extract/infra/mappers/**/*.ts
   - packages/riviere-cli/src/features/query/entrypoint/**/*.ts
   - packages/riviere-query/src/features/querying/queries/**/*.ts
+  - tools/dev-workflow-v2/src/entrypoint/**/*.ts
+  - tools/dev-workflow-v2/src/infra/**/*.ts
+  - tools/dev-workflow-v2/src/workflow-definition/domain/**/*.ts
 ignorePatterns:
   - '**/*.spec.ts'
+  - '**/fixtures/**'
   - '**/index.ts'
   - '**/__fixtures__/**'
 roles:
@@ -177,3 +181,48 @@ roles:
       - packages/riviere-query/src/features/querying/queries/**/*.ts
     nameMatches: '^.*Error$'
     markdownSpec: docs/roles/application-error.md
+  - name: workflow-hook
+    targets: [function]
+    allowedLocation:
+      - tools/dev-workflow-v2/src/entrypoint/**/*.ts
+    allowedNames:
+      - preToolUseHandler
+    markdownSpec: docs/roles/workflow-hook.md
+  - name: workflow-infra-client
+    targets: [function]
+    allowedLocation:
+      - tools/dev-workflow-v2/src/infra/**/*.ts
+    allowedNames:
+      - getGitInfo
+      - runGh
+      - createGetPrFeedback
+    markdownSpec: docs/roles/workflow-infra-client.md
+  - name: workflow-domain-helper
+    targets: [function]
+    allowedLocation:
+      - tools/dev-workflow-v2/src/workflow-definition/domain/**/*.ts
+    allowedNames:
+      - createWorkflowStateSchema
+      - parseStateName
+      - checkWriteAllowed
+      - isWriteAllowed
+      - getStateDefinition
+      - getOperationBody
+      - getTransitionTitle
+      - applyEvent
+      - applyEvents
+    markdownSpec: docs/roles/workflow-domain-helper.md
+  - name: workflow-facade
+    targets: [class]
+    allowedLocation:
+      - tools/dev-workflow-v2/src/workflow-definition/domain/**/*.ts
+    allowedNames:
+      - Workflow
+    allowedPublicMethods:
+      - getPendingEvents
+      - getState
+      - getAgentInstructions
+      - appendEvent
+      - startSession
+      - executeRecording
+    markdownSpec: docs/roles/workflow-facade.md

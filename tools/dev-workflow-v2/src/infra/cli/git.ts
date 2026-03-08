@@ -2,6 +2,7 @@ import { execSync } from 'node:child_process'
 import type { GitInfo } from '@ntcoding/agentic-workflow-builder/dsl'
 
 /* v8 ignore start */
+/** @riviere-role workflow-infra-client */
 export function getGitInfo(): GitInfo {
   const defaultBranch = detectDefaultBranch()
   return {
@@ -27,6 +28,7 @@ function runGit(gitArgs: string): string {
   return execSync(`git ${gitArgs}`, { encoding: 'utf-8' }).trim()
 }
 
+/** @riviere-role workflow-infra-client */
 export function runGh(ghArgs: string): string {
   return execSync(`gh ${ghArgs}`, { encoding: 'utf-8' })
 }

@@ -991,7 +991,7 @@ git add <relevant-files> && git commit --no-verify -m "<commit message>" && git 
   - Suggested commit: `feat(role-enforcement): expand riviere-cli coverage`
   - References: `3.10 Repository Rollout`, `5. Success Criteria`, `10. Initial Role Catalog For This Repository`
 
-- [ ] Roll out `tools/dev-workflow-v2`
+- [x] Roll out `tools/dev-workflow-v2`
   - Requirements: define roles for shell, entrypoint, infra, and workflow-specific pieces in `tools/dev-workflow-v2`, then add explicit assignments and resolve violations
   - Acceptance: `tools/dev-workflow-v2` passes deterministic enforcement for the agreed in-scope symbols
   - Suggested commit: `feat(role-enforcement): cover dev-workflow-v2`

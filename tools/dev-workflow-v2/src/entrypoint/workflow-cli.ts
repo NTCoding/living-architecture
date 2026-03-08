@@ -4,12 +4,8 @@ import {
   arg,
   extractField,
 } from '@ntcoding/agentic-workflow-builder/cli'
-import type {
-  WorkflowEngine, EngineResult 
-} from '@ntcoding/agentic-workflow-builder/engine'
-import type {
-  Workflow, WorkflowDeps 
-} from '../workflow-definition/domain/workflow'
+import type { WorkflowEngine, EngineResult } from '@ntcoding/agentic-workflow-builder/engine'
+import type { Workflow, WorkflowDeps } from '../workflow-definition/domain/workflow'
 import type {
   WorkflowState,
   StateName,
@@ -118,6 +114,7 @@ type ToolUseEngine = WorkflowEngine<
   WorkflowOperation
 >
 
+/** @riviere-role workflow-hook */
 export function preToolUseHandler(
   engine: ToolUseEngine,
   sessionId: string,

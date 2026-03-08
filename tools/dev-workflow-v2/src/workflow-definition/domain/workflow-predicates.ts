@@ -1,8 +1,6 @@
 import path from 'node:path'
 import type { PreconditionResult } from '@ntcoding/agentic-workflow-builder/dsl'
-import {
-  pass, fail 
-} from '@ntcoding/agentic-workflow-builder/dsl'
+import { pass, fail } from '@ntcoding/agentic-workflow-builder/dsl'
 import type { BaseWorkflowState } from '@ntcoding/agentic-workflow-builder/engine'
 
 const PROTECTED_FILES: readonly (string | RegExp)[] = [
@@ -13,6 +11,7 @@ const PROTECTED_FILES: readonly (string | RegExp)[] = [
   /^vite\.config\./,
 ]
 
+/** @riviere-role workflow-domain-helper */
 export function checkWriteAllowed(filePath: string): PreconditionResult {
   const basename = path.basename(filePath)
   for (const pattern of PROTECTED_FILES) {
@@ -23,6 +22,7 @@ export function checkWriteAllowed(filePath: string): PreconditionResult {
   return pass()
 }
 
+/** @riviere-role workflow-domain-helper */
 export function isWriteAllowed(
   _toolName: string,
   filePath: string,

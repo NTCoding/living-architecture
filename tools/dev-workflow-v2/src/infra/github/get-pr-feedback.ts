@@ -25,6 +25,7 @@ export interface PRFeedbackResult {
 
 export type GhRunner = (ghArgs: string) => string
 
+/** @riviere-role workflow-infra-client */
 export function createGetPrFeedback(runGh: GhRunner): (prNumber: number) => PRFeedbackResult {
   return (prNumber: number): PRFeedbackResult => {
     const raw = runGh(`pr view ${String(prNumber)} --json reviewThreads`)
