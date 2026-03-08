@@ -1,287 +1,15 @@
 import path from 'node:path'
 import { eslintCompatPlugin } from '@oxlint/plugins'
 import { checkTargetSymbol } from '../domain/check-role-target'
-import type { TargetSymbol } from '../domain/target-symbol'
 import { RoleEnforcementConfigError } from '../../../platform/domain/role-enforcement-config-error'
 import type { CompiledRoleEnforcementConfig } from '../../../platform/domain/role-enforcement-config'
 import { loadRoleEnforcementConfig } from '../../../platform/infra/load-role-enforcement-config'
 import { normalizePath } from '../../../platform/infra/path-patterns'
-
-const ROLE_ASSIGNMENT_PATTERN = /@riviere-role\s+([a-z0-9-]+)/
-
-interface BaseNode {
-  type: string
-  range: [number, number]
-  start: number
-  end: number
-  loc: {
-    start: {
-      line: number
-      column: number
-    }
-    end: {
-      line: number
-      column: number
-    }
-  }
-}
-
-interface CommentToken {value: string}
-
-interface SourceCodeLike {getCommentsBefore: (node: BaseNode) => readonly CommentToken[]}
-
-interface IdentifierNode extends BaseNode {
-  type: 'Identifier'
-  name: string
-}
-
-interface FunctionDeclarationNode extends BaseNode {
-  type: 'FunctionDeclaration'
-  id: IdentifierNode | null
-}
-
-interface FunctionExpressionNode extends BaseNode {type: 'ArrowFunctionExpression' | 'FunctionExpression'}
-
-interface VariableDeclaratorNode extends BaseNode {
-  type: 'VariableDeclarator'
-  id: IdentifierNode | BaseNode
-  init: FunctionExpressionNode | BaseNode | null
-}
-
-interface VariableDeclarationNode extends BaseNode {
-  type: 'VariableDeclaration'
-  declarations: readonly VariableDeclaratorNode[]
-}
-
-interface MethodDefinitionNode extends BaseNode {
-  type: 'MethodDefinition'
-  kind: string
-  static?: boolean
-  computed?: boolean
-  accessibility?: 'public' | 'private' | 'protected'
-  key: IdentifierNode | BaseNode
-}
-
-interface ClassBodyNode extends BaseNode {
-  type: 'ClassBody'
-  body: readonly MethodDefinitionNode[]
-}
-
-interface ClassDeclarationNode extends BaseNode {
-  type: 'ClassDeclaration'
-  id: IdentifierNode | null
-  body: ClassBodyNode
-}
-
-interface ExportNamedDeclarationNode extends BaseNode {
-  type: 'ExportNamedDeclaration'
-  declaration: ExportableDeclarationNode | null
-}
-
-interface ExportDefaultDeclarationNode extends BaseNode {
-  type: 'ExportDefaultDeclaration'
-  declaration: ExportableDeclarationNode
-}
-
-type ExportableDeclarationNode =
-  | BaseNode
-  | ClassDeclarationNode
-  | FunctionDeclarationNode
-  | VariableDeclarationNode
-
-type StatementNode = BaseNode | ExportNamedDeclarationNode | ExportDefaultDeclarationNode
-
-interface ProgramNode extends BaseNode {
-  type: 'Program'
-  body: readonly StatementNode[]
-}
-
-interface ReportableTarget extends TargetSymbol {reportNode: BaseNode}
+import {
+  extractRoleTargets, isProgramNode, type BaseNode 
+} from './role-target-extraction'
 
 interface RoleRuleOptions {configPath?: string}
-
-function isIdentifierNode(node: BaseNode | null): node is IdentifierNode {
-  return node?.type === 'Identifier'
-}
-
-function isFunctionExpressionNode(node: BaseNode | null): node is FunctionExpressionNode {
-  return node?.type === 'ArrowFunctionExpression' || node?.type === 'FunctionExpression'
-}
-
-function isProgramNode(node: BaseNode): node is ProgramNode {
-  return node.type === 'Program'
-}
-
-function isClassDeclarationNode(node: BaseNode | null): node is ClassDeclarationNode {
-  return node?.type === 'ClassDeclaration'
-}
-
-function isFunctionDeclarationNode(node: BaseNode | null): node is FunctionDeclarationNode {
-  return node?.type === 'FunctionDeclaration'
-}
-
-function isVariableDeclarationNode(node: BaseNode | null): node is VariableDeclarationNode {
-  return node?.type === 'VariableDeclaration'
-}
-
-function isExportNamedDeclarationNode(node: StatementNode): node is ExportNamedDeclarationNode {
-  return node.type === 'ExportNamedDeclaration'
-}
-
-function isExportDefaultDeclarationNode(node: StatementNode): node is ExportDefaultDeclarationNode {
-  return node.type === 'ExportDefaultDeclaration'
-}
-
-function getAssignedRoleName(
-  sourceCode: SourceCodeLike,
-  annotationNodes: readonly BaseNode[],
-): string | null {
-  for (const annotationNode of annotationNodes) {
-    const roleAssignmentComment = sourceCode
-      .getCommentsBefore(annotationNode)
-      .findLast((comment) => ROLE_ASSIGNMENT_PATTERN.test(comment.value))
-
-    if (roleAssignmentComment !== undefined) {
-      const match = ROLE_ASSIGNMENT_PATTERN.exec(roleAssignmentComment.value)
-
-      if (match?.[1] !== undefined) {
-        return match[1]
-      }
-    }
-  }
-
-  return null
-}
-
-function getPublicMethodNames(classDeclaration: ClassDeclarationNode): readonly string[] {
-  return classDeclaration.body.body.flatMap((classElement) => {
-    if (classElement.type !== 'MethodDefinition' || classElement.kind !== 'method') {
-      return []
-    }
-
-    if (classElement.static === true || classElement.computed === true) {
-      return []
-    }
-
-    if (classElement.accessibility === 'private' || classElement.accessibility === 'protected') {
-      return []
-    }
-
-    return isIdentifierNode(classElement.key) ? [classElement.key.name] : []
-  })
-}
-
-function createClassTarget(
-  declaration: ClassDeclarationNode,
-  annotationNodes: readonly BaseNode[],
-  relativeFilePath: string,
-  sourceCode: SourceCodeLike,
-): readonly ReportableTarget[] {
-  if (!isIdentifierNode(declaration.id)) {
-    return []
-  }
-
-  return [
-    {
-      kind: 'class',
-      name: declaration.id.name,
-      assignedRoleName: getAssignedRoleName(sourceCode, annotationNodes),
-      relativeFilePath,
-      publicMethodNames: getPublicMethodNames(declaration),
-      reportNode: declaration.id,
-    },
-  ]
-}
-
-function createFunctionTargets(
-  declaration: VariableDeclarationNode,
-  annotationNodes: readonly BaseNode[],
-  relativeFilePath: string,
-  sourceCode: SourceCodeLike,
-): readonly ReportableTarget[] {
-  const assignedRoleName = getAssignedRoleName(sourceCode, annotationNodes)
-
-  return declaration.declarations.flatMap((declarator) => {
-    if (!isIdentifierNode(declarator.id) || !isFunctionExpressionNode(declarator.init)) {
-      return []
-    }
-
-    return [
-      {
-        kind: 'function',
-        name: declarator.id.name,
-        assignedRoleName,
-        relativeFilePath,
-        publicMethodNames: [],
-        reportNode: declarator.id,
-      },
-    ]
-  })
-}
-
-function createDeclarationTargets(
-  declaration: ExportableDeclarationNode | null,
-  annotationNode: BaseNode,
-  relativeFilePath: string,
-  sourceCode: SourceCodeLike,
-): readonly ReportableTarget[] {
-  if (declaration === null) {
-    return []
-  }
-
-  const annotationNodes = [annotationNode, declaration]
-
-  switch (declaration.type) {
-    case 'ClassDeclaration':
-      if (!isClassDeclarationNode(declaration)) {
-        return []
-      }
-
-      return createClassTarget(declaration, annotationNodes, relativeFilePath, sourceCode)
-    case 'FunctionDeclaration':
-      if (!isFunctionDeclarationNode(declaration) || !isIdentifierNode(declaration.id)) {
-        return []
-      }
-
-      return [
-        {
-          kind: 'function',
-          name: declaration.id.name,
-          assignedRoleName: getAssignedRoleName(sourceCode, annotationNodes),
-          relativeFilePath,
-          publicMethodNames: [],
-          reportNode: declaration.id,
-        },
-      ]
-    case 'VariableDeclaration':
-      if (!isVariableDeclarationNode(declaration)) {
-        return []
-      }
-
-      return createFunctionTargets(declaration, annotationNodes, relativeFilePath, sourceCode)
-    default:
-      return []
-  }
-}
-
-function extractTargets(
-  program: ProgramNode,
-  sourceCode: SourceCodeLike,
-  relativeFilePath: string,
-): readonly ReportableTarget[] {
-  return program.body.flatMap((statement) => {
-    if (isExportNamedDeclarationNode(statement) || isExportDefaultDeclarationNode(statement)) {
-      return createDeclarationTargets(
-        statement.declaration,
-        statement,
-        relativeFilePath,
-        sourceCode,
-      )
-    }
-
-    return []
-  })
-}
 
 function getRuleOptions(context: { options?: readonly unknown[] }): RoleRuleOptions {
   const [firstOption] = context.options ?? []
@@ -380,9 +108,16 @@ const plugin = eslintCompatPlugin({
             }
 
             const relativeFilePath = normalizePath(path.relative(process.cwd(), filename))
-            const targets = extractTargets(node, context.sourceCode, relativeFilePath)
+            const extractionResult = extractRoleTargets(node, context.sourceCode, relativeFilePath)
 
-            for (const target of targets) {
+            for (const issue of extractionResult.issues) {
+              context.report({
+                node: issue.reportNode,
+                message: issue.message,
+              })
+            }
+
+            for (const target of extractionResult.targets) {
               const violations = checkTargetSymbol(target, config)
 
               for (const violation of violations) {

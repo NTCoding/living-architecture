@@ -961,7 +961,7 @@ git add <relevant-files> && git commit --no-verify -m "<commit message>" && git 
   - Suggested commit: `docs(role-enforcement): add initial role specs`
   - References: `3.3 Minimal Role Definition DSL And Explicit Role Assignment`, `3.8 AI Review Layer`, `10. Initial Role Catalog For This Repository`
 
-- [ ] Harden the config and parser edge cases
+- [x] Harden the config and parser edge cases
   - Requirements: tighten config validation, cover malformed annotations, multiple comments, wrong target kinds, and edge cases such as exported variable functions and class parsing behavior
   - Acceptance: invalid config and malformed annotations fail with clear deterministic errors; additional parser/config tests exist for edge cases
   - Suggested commit: `feat(role-enforcement): harden config and annotation parsing`
@@ -996,12 +996,6 @@ git add <relevant-files> && git commit --no-verify -m "<commit message>" && git 
   - Acceptance: `tools/dev-workflow-v2` passes deterministic enforcement for the agreed in-scope symbols
   - Suggested commit: `feat(role-enforcement): cover dev-workflow-v2`
   - References: `2.5 Repository-Specific Rules Matter`, `3.10 Repository Rollout`, `5. Success Criteria`
-
-- [ ] Decide and roll out the remaining repository scope
-  - Requirements: make an explicit decision on `apps/eclair` and any phase-1 exclusions such as schema/convention packages, then either roll them in or document them as out of the current rollout scope
-  - Acceptance: the repository scope is explicit, no implicit exclusions remain, and every in-scope area has an owner and rollout decision
-  - Suggested commit: `docs(role-enforcement): lock rollout scope`
-  - References: `1. Problem`, `3.10 Repository Rollout`, `6. Open Questions`
 
 - [ ] Integrate deterministic enforcement into architecture review and AI repair workflow
   - Requirements: wire deterministic enforcement into the review workflow, ensure diagnostics instruct Claude to run `riviere-role-classifier`, and connect markdown-spec-based AI review where useful

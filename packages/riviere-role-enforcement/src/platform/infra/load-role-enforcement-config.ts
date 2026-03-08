@@ -1,7 +1,9 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { parse as parseYaml } from 'yaml'
-import { z } from 'zod'
+import {
+  ZodError, z 
+} from 'zod'
 import type {
   CompiledRoleDefinition,
   CompiledRoleEnforcementConfig,
@@ -31,13 +33,68 @@ const roleDefinitionSchema = z
         path: ['allowedNames'],
       })
     }
+
+    if (new Set(role.targets).size !== role.targets.length) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Role definition must not repeat target kinds.',
+        path: ['targets'],
+      })
+    }
+
+    if (role.allowedPublicMethods !== undefined && !role.targets.includes('class')) {
+      context.addIssue({
+        code: 'custom',
+        message: "Role definition may only declare 'allowedPublicMethods' for class targets.",
+        path: ['allowedPublicMethods'],
+      })
+    }
+
+    if (
+      role.allowedNames !== undefined &&
+      new Set(role.allowedNames).size !== role.allowedNames.length
+    ) {
+      context.addIssue({
+        code: 'custom',
+        message: "Role definition must not repeat values in 'allowedNames'.",
+        path: ['allowedNames'],
+      })
+    }
+
+    if (
+      role.allowedPublicMethods !== undefined &&
+      new Set(role.allowedPublicMethods).size !== role.allowedPublicMethods.length
+    ) {
+      context.addIssue({
+        code: 'custom',
+        message: "Role definition must not repeat values in 'allowedPublicMethods'.",
+        path: ['allowedPublicMethods'],
+      })
+    }
   })
 
-const roleEnforcementConfigSchema = z.object({
-  include: z.array(z.string().min(1)).default([]),
-  ignorePatterns: z.array(z.string().min(1)).default([]),
-  roles: z.array(roleDefinitionSchema).min(1),
-})
+const roleEnforcementConfigSchema = z
+  .object({
+    include: z.array(z.string().min(1)).default([]),
+    ignorePatterns: z.array(z.string().min(1)).default([]),
+    roles: z.array(roleDefinitionSchema).min(1),
+  })
+  .superRefine((config, context) => {
+    const seenRoleNames = new Set<string>()
+
+    config.roles.forEach((role, index) => {
+      if (seenRoleNames.has(role.name)) {
+        context.addIssue({
+          code: 'custom',
+          message: `Role '${role.name}' is declared more than once.`,
+          path: ['roles', index, 'name'],
+        })
+        return
+      }
+
+      seenRoleNames.add(role.name)
+    })
+  })
 
 const configCache = new Map<string, CompiledRoleEnforcementConfig>()
 
@@ -75,10 +132,35 @@ function compileNamePattern(role: RoleDefinition): RegExp {
   }
 }
 
+function formatZodPath(path: readonly PropertyKey[]): string {
+  if (path.length === 0) {
+    return '<root>'
+  }
+
+  return path.join('.')
+}
+
+function toRoleEnforcementConfigError(error: ZodError): RoleEnforcementConfigError {
+  const details = error.issues
+    .map((issue) => `${formatZodPath(issue.path)}: ${issue.message}`)
+    .join('; ')
+  return new RoleEnforcementConfigError(`Invalid role enforcement config: ${details}`)
+}
+
 export function compileRoleEnforcementConfig(
   config: RoleEnforcementConfig | unknown,
 ): CompiledRoleEnforcementConfig {
-  const parsedConfig = roleEnforcementConfigSchema.parse(config)
+  const parsedConfig = (() => {
+    try {
+      return roleEnforcementConfigSchema.parse(config)
+    } catch (error) {
+      if (error instanceof ZodError) {
+        throw toRoleEnforcementConfigError(error)
+      }
+
+      throw error
+    }
+  })()
 
   return {
     include: parsedConfig.include,
