@@ -1,8 +1,11 @@
 import type { TargetSymbol } from './target-symbol'
 
 export type RoleViolationCode =
-  | 'no-role-matched'
-  | 'multiple-roles-matched'
+  | 'missing-role-assignment'
+  | 'unknown-role-assignment'
+  | 'invalid-role-target-kind'
+  | 'invalid-role-location'
+  | 'invalid-role-name'
   | 'disallowed-public-methods'
 
 export interface RoleViolation {

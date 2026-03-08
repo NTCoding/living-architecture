@@ -3,22 +3,35 @@ import { eslintCompatPlugin } from '@oxlint/plugins'
 import { checkTargetSymbol } from '../domain/check-role-target'
 import type { TargetSymbol } from '../domain/target-symbol'
 import { RoleEnforcementConfigError } from '../../../platform/domain/role-enforcement-config-error'
+import type { CompiledRoleEnforcementConfig } from '../../../platform/domain/role-enforcement-config'
 import { loadRoleEnforcementConfig } from '../../../platform/infra/load-role-enforcement-config'
 import { normalizePath } from '../../../platform/infra/path-patterns'
-import type { CompiledRoleEnforcementConfig } from '../../../platform/domain/role-enforcement-config'
+
+const ROLE_ASSIGNMENT_PATTERN = /@riviere-role\s+([a-z0-9-]+)/
 
 interface BaseNode {
   type: string
   range: [number, number]
+  start: number
+  end: number
+  loc: {
+    start: {
+      line: number
+      column: number
+    }
+    end: {
+      line: number
+      column: number
+    }
+  }
 }
+
+interface CommentToken {value: string}
+
+interface SourceCodeLike {getCommentsBefore: (node: BaseNode) => readonly CommentToken[]}
 
 interface IdentifierNode extends BaseNode {
   type: 'Identifier'
-  name: string
-}
-
-interface PrivateIdentifierNode extends BaseNode {
-  type: 'PrivateIdentifier'
   name: string
 }
 
@@ -46,7 +59,7 @@ interface MethodDefinitionNode extends BaseNode {
   static?: boolean
   computed?: boolean
   accessibility?: 'public' | 'private' | 'protected'
-  key: IdentifierNode | PrivateIdentifierNode | BaseNode
+  key: IdentifierNode | BaseNode
 }
 
 interface ClassBodyNode extends BaseNode {
@@ -71,12 +84,12 @@ interface ExportDefaultDeclarationNode extends BaseNode {
 }
 
 type ExportableDeclarationNode =
+  | BaseNode
   | ClassDeclarationNode
   | FunctionDeclarationNode
   | VariableDeclarationNode
-  | BaseNode
 
-type StatementNode = ExportNamedDeclarationNode | ExportDefaultDeclarationNode | BaseNode
+type StatementNode = BaseNode | ExportNamedDeclarationNode | ExportDefaultDeclarationNode
 
 interface ProgramNode extends BaseNode {
   type: 'Program'
@@ -119,6 +132,27 @@ function isExportDefaultDeclarationNode(node: StatementNode): node is ExportDefa
   return node.type === 'ExportDefaultDeclaration'
 }
 
+function getAssignedRoleName(
+  sourceCode: SourceCodeLike,
+  annotationNodes: readonly BaseNode[],
+): string | null {
+  for (const annotationNode of annotationNodes) {
+    const roleAssignmentComment = sourceCode
+      .getCommentsBefore(annotationNode)
+      .findLast((comment) => ROLE_ASSIGNMENT_PATTERN.test(comment.value))
+
+    if (roleAssignmentComment !== undefined) {
+      const match = ROLE_ASSIGNMENT_PATTERN.exec(roleAssignmentComment.value)
+
+      if (match?.[1] !== undefined) {
+        return match[1]
+      }
+    }
+  }
+
+  return null
+}
+
 function getPublicMethodNames(classDeclaration: ClassDeclarationNode): readonly string[] {
   return classDeclaration.body.body.flatMap((classElement) => {
     if (classElement.type !== 'MethodDefinition' || classElement.kind !== 'method') {
@@ -139,8 +173,10 @@ function getPublicMethodNames(classDeclaration: ClassDeclarationNode): readonly 
 
 function createClassTarget(
   declaration: ClassDeclarationNode,
+  annotationNodes: readonly BaseNode[],
   relativeFilePath: string,
-): ReportableTarget[] {
+  sourceCode: SourceCodeLike,
+): readonly ReportableTarget[] {
   if (!isIdentifierNode(declaration.id)) {
     return []
   }
@@ -149,6 +185,7 @@ function createClassTarget(
     {
       kind: 'class',
       name: declaration.id.name,
+      assignedRoleName: getAssignedRoleName(sourceCode, annotationNodes),
       relativeFilePath,
       publicMethodNames: getPublicMethodNames(declaration),
       reportNode: declaration.id,
@@ -158,8 +195,12 @@ function createClassTarget(
 
 function createFunctionTargets(
   declaration: VariableDeclarationNode,
+  annotationNodes: readonly BaseNode[],
   relativeFilePath: string,
+  sourceCode: SourceCodeLike,
 ): readonly ReportableTarget[] {
+  const assignedRoleName = getAssignedRoleName(sourceCode, annotationNodes)
+
   return declaration.declarations.flatMap((declarator) => {
     if (!isIdentifierNode(declarator.id) || !isFunctionExpressionNode(declarator.init)) {
       return []
@@ -169,6 +210,7 @@ function createFunctionTargets(
       {
         kind: 'function',
         name: declarator.id.name,
+        assignedRoleName,
         relativeFilePath,
         publicMethodNames: [],
         reportNode: declarator.id,
@@ -179,11 +221,15 @@ function createFunctionTargets(
 
 function createDeclarationTargets(
   declaration: ExportableDeclarationNode | null,
+  annotationNode: BaseNode,
   relativeFilePath: string,
+  sourceCode: SourceCodeLike,
 ): readonly ReportableTarget[] {
   if (declaration === null) {
     return []
   }
+
+  const annotationNodes = [annotationNode, declaration]
 
   switch (declaration.type) {
     case 'ClassDeclaration':
@@ -191,13 +237,9 @@ function createDeclarationTargets(
         return []
       }
 
-      return createClassTarget(declaration, relativeFilePath)
+      return createClassTarget(declaration, annotationNodes, relativeFilePath, sourceCode)
     case 'FunctionDeclaration':
-      if (!isFunctionDeclarationNode(declaration)) {
-        return []
-      }
-
-      if (!isIdentifierNode(declaration.id)) {
+      if (!isFunctionDeclarationNode(declaration) || !isIdentifierNode(declaration.id)) {
         return []
       }
 
@@ -205,6 +247,7 @@ function createDeclarationTargets(
         {
           kind: 'function',
           name: declaration.id.name,
+          assignedRoleName: getAssignedRoleName(sourceCode, annotationNodes),
           relativeFilePath,
           publicMethodNames: [],
           reportNode: declaration.id,
@@ -215,7 +258,7 @@ function createDeclarationTargets(
         return []
       }
 
-      return createFunctionTargets(declaration, relativeFilePath)
+      return createFunctionTargets(declaration, annotationNodes, relativeFilePath, sourceCode)
     default:
       return []
   }
@@ -223,11 +266,17 @@ function createDeclarationTargets(
 
 function extractTargets(
   program: ProgramNode,
+  sourceCode: SourceCodeLike,
   relativeFilePath: string,
 ): readonly ReportableTarget[] {
   return program.body.flatMap((statement) => {
     if (isExportNamedDeclarationNode(statement) || isExportDefaultDeclarationNode(statement)) {
-      return createDeclarationTargets(statement.declaration, relativeFilePath)
+      return createDeclarationTargets(
+        statement.declaration,
+        statement,
+        relativeFilePath,
+        sourceCode,
+      )
     }
 
     return []
@@ -263,6 +312,26 @@ function shouldInspectFile(filename: string): boolean {
   return filename.endsWith('.ts') || filename.endsWith('.tsx')
 }
 
+function loadCompiledConfig(configPath: string): {
+  config: CompiledRoleEnforcementConfig | null
+  error: RoleEnforcementConfigError | null
+} {
+  try {
+    return {
+      config: loadRoleEnforcementConfig(configPath),
+      error: null,
+    }
+  } catch (error) {
+    return {
+      config: null,
+      error:
+        error instanceof RoleEnforcementConfigError
+          ? error
+          : new RoleEnforcementConfigError('Unknown role enforcement config error'),
+    }
+  }
+}
+
 const plugin = eslintCompatPlugin({
   meta: { name: 'riviere-role' },
   rules: {
@@ -271,7 +340,7 @@ const plugin = eslintCompatPlugin({
         type: 'problem',
         docs: {
           description:
-            'Enforce repository role definitions for exported classes and standalone functions',
+            'Enforce repository role definitions for explicitly annotated exported classes and functions',
         },
         schema: [
           {
@@ -311,7 +380,7 @@ const plugin = eslintCompatPlugin({
             }
 
             const relativeFilePath = normalizePath(path.relative(process.cwd(), filename))
-            const targets = extractTargets(node, relativeFilePath)
+            const targets = extractTargets(node, context.sourceCode, relativeFilePath)
 
             for (const target of targets) {
               const violations = checkTargetSymbol(target, config)
@@ -329,25 +398,5 @@ const plugin = eslintCompatPlugin({
     },
   },
 })
-
-function loadCompiledConfig(configPath: string): {
-  config: CompiledRoleEnforcementConfig | null
-  error: RoleEnforcementConfigError | null
-} {
-  try {
-    return {
-      config: loadRoleEnforcementConfig(configPath),
-      error: null,
-    }
-  } catch (error) {
-    return {
-      config: null,
-      error:
-        error instanceof RoleEnforcementConfigError
-          ? error
-          : new RoleEnforcementConfigError('Unknown role enforcement config error'),
-    }
-  }
-}
 
 export default plugin

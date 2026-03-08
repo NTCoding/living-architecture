@@ -13,14 +13,25 @@ import { createPathMatcher } from './path-patterns'
 
 const roleTargetSchema = z.enum(['class', 'function'])
 
-const roleDefinitionSchema = z.object({
-  name: z.string().min(1),
-  targets: z.array(roleTargetSchema).min(1),
-  allowedLocation: z.array(z.string().min(1)).min(1),
-  nameMatches: z.string().min(1),
-  allowedPublicMethods: z.array(z.string().min(1)).optional(),
-  markdownSpec: z.string().min(1),
-})
+const roleDefinitionSchema = z
+  .object({
+    name: z.string().min(1),
+    targets: z.array(roleTargetSchema).min(1),
+    allowedLocation: z.array(z.string().min(1)).min(1),
+    allowedNames: z.array(z.string().min(1)).min(1).optional(),
+    nameMatches: z.string().min(1).optional(),
+    allowedPublicMethods: z.array(z.string().min(1)).optional(),
+    markdownSpec: z.string().min(1),
+  })
+  .superRefine((role, context) => {
+    if (role.allowedNames === undefined && role.nameMatches === undefined) {
+      context.addIssue({
+        code: 'custom',
+        message: "Role definition must declare either 'allowedNames' or 'nameMatches'.",
+        path: ['allowedNames'],
+      })
+    }
+  })
 
 const roleEnforcementConfigSchema = z.object({
   include: z.array(z.string().min(1)).default([]),
@@ -31,12 +42,17 @@ const roleEnforcementConfigSchema = z.object({
 const configCache = new Map<string, CompiledRoleEnforcementConfig>()
 
 function compileRoleDefinition(role: RoleDefinition): CompiledRoleDefinition {
-  const namePattern = compileNamePattern(role)
-
   const compiledRole: CompiledRoleDefinition = {
     ...role,
-    namePattern,
     allowedLocationMatchers: role.allowedLocation.map(createPathMatcher),
+  }
+
+  if (role.allowedNames !== undefined) {
+    compiledRole.allowedNameSet = new Set(role.allowedNames)
+  }
+
+  if (role.nameMatches !== undefined) {
+    compiledRole.namePattern = compileNamePattern(role)
   }
 
   if (role.allowedPublicMethods !== undefined) {
@@ -47,6 +63,10 @@ function compileRoleDefinition(role: RoleDefinition): CompiledRoleDefinition {
 }
 
 function compileNamePattern(role: RoleDefinition): RegExp {
+  if (role.nameMatches === undefined) {
+    throw new RoleEnforcementConfigError(`Role '${role.name}' does not declare 'nameMatches'.`)
+  }
+
   try {
     return new RegExp(role.nameMatches)
   } catch (error) {

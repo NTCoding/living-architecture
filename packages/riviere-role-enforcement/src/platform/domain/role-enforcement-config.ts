@@ -6,7 +6,8 @@ export interface RoleDefinition {
   name: string
   targets: readonly RoleTargetKind[]
   allowedLocation: readonly string[]
-  nameMatches: string
+  allowedNames?: readonly string[] | undefined
+  nameMatches?: string | undefined
   allowedPublicMethods?: readonly string[] | undefined
   markdownSpec: string
 }
@@ -18,8 +19,9 @@ export interface RoleEnforcementConfig {
 }
 
 export interface CompiledRoleDefinition extends RoleDefinition {
-  namePattern: RegExp
   allowedLocationMatchers: readonly PathMatcher[]
+  allowedNameSet?: ReadonlySet<string> | undefined
+  namePattern?: RegExp | undefined
   allowedPublicMethodSet?: ReadonlySet<string> | undefined
 }
 

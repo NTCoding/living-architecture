@@ -7,15 +7,15 @@ import type { RoleViolation } from './role-violation'
 import type { TargetSymbol } from './target-symbol'
 
 function createRunClassifierMessage(): string {
-  return 'Next step for Claude: run `riviere-role-classifier` with this file and the requested change before editing.'
+  return 'Next step for Claude: run riviere-role-classifier.'
 }
 
-function createNoRoleMatchedViolation(target: TargetSymbol): RoleViolation {
+function createMissingRoleAssignmentViolation(target: TargetSymbol): RoleViolation {
   return {
-    code: 'no-role-matched',
+    code: 'missing-role-assignment',
     target,
     message: [
-      `Role enforcement error: no role matched for ${target.kind} '${target.name}'.`,
+      `${formatTarget(target)} has no explicit role assignment.`,
       createRunClassifierMessage(),
     ].join(' '),
     matchingRoles: [],
@@ -24,21 +24,67 @@ function createNoRoleMatchedViolation(target: TargetSymbol): RoleViolation {
   }
 }
 
-function createMultipleRolesMatchedViolation(
+function createUnknownRoleAssignmentViolation(
   target: TargetSymbol,
-  matchingRoles: readonly CompiledRoleDefinition[],
+  assignedRoleName: string,
 ): RoleViolation {
-  const matchingRoleNames = matchingRoles.map((role) => role.name)
-
   return {
-    code: 'multiple-roles-matched',
+    code: 'unknown-role-assignment',
+    target,
+    message: `${formatTarget(target)} declares role '${assignedRoleName}', but no such role exists.`,
+    matchingRoles: [assignedRoleName],
+    markdownSpec: null,
+    disallowedPublicMethods: [],
+  }
+}
+
+function createInvalidRoleTargetKindViolation(
+  target: TargetSymbol,
+  role: CompiledRoleDefinition,
+): RoleViolation {
+  return {
+    code: 'invalid-role-target-kind',
     target,
     message: [
-      `Role enforcement error: multiple roles matched for ${target.kind} '${target.name}': ${matchingRoleNames.join(', ')}.`,
+      `${formatTarget(target)} has role '${role.name}' but that role only applies to ${formatTargetKinds(role.targets)}.`,
       createRunClassifierMessage(),
     ].join(' '),
-    matchingRoles: matchingRoleNames,
-    markdownSpec: null,
+    matchingRoles: [role.name],
+    markdownSpec: role.markdownSpec,
+    disallowedPublicMethods: [],
+  }
+}
+
+function createInvalidRoleLocationViolation(
+  target: TargetSymbol,
+  role: CompiledRoleDefinition,
+): RoleViolation {
+  return {
+    code: 'invalid-role-location',
+    target,
+    message: [
+      `${formatTarget(target)} has role '${role.name}' but lives in '${target.relativeFilePath}'.`,
+      `Role '${role.name}' must live in ${formatAllowedLocations(role.allowedLocation)}.`,
+    ].join(' '),
+    matchingRoles: [role.name],
+    markdownSpec: role.markdownSpec,
+    disallowedPublicMethods: [],
+  }
+}
+
+function createInvalidRoleNameViolation(
+  target: TargetSymbol,
+  role: CompiledRoleDefinition,
+): RoleViolation {
+  return {
+    code: 'invalid-role-name',
+    target,
+    message: [
+      `${formatTarget(target)} has role '${role.name}' but its name is not allowed for that role.`,
+      createAllowedNameMessage(role),
+    ].join(' '),
+    matchingRoles: [role.name],
+    markdownSpec: role.markdownSpec,
     disallowedPublicMethods: [],
   }
 }
@@ -52,14 +98,70 @@ function createDisallowedPublicMethodsViolation(
     code: 'disallowed-public-methods',
     target,
     message: [
-      `Role enforcement error: class '${target.name}' matched role '${role.name}' but exposes disallowed public methods: ${disallowedPublicMethods.join(', ')}.`,
-      `Markdown spec: ${role.markdownSpec}.`,
-      createRunClassifierMessage(),
+      `${formatTarget(target)} has role '${role.name}' but ${formatDisallowedMethods(disallowedPublicMethods)} not allowed for that role.`,
+      `Allowed public methods: ${formatAllowedPublicMethods(role)}.`,
     ].join(' '),
     matchingRoles: [role.name],
     markdownSpec: role.markdownSpec,
     disallowedPublicMethods,
   }
+}
+
+function createAllowedNameMessage(role: CompiledRoleDefinition): string {
+  if (role.allowedNames !== undefined) {
+    return `Allowed names: ${role.allowedNames.join(', ')}.`
+  }
+
+  return `Allowed name pattern: ${role.nameMatches ?? '<none>'}.`
+}
+
+function formatAllowedLocations(allowedLocation: readonly string[]): string {
+  if (allowedLocation.length === 1) {
+    return `'${allowedLocation[0]}'`
+  }
+
+  return allowedLocation.map((location) => `'${location}'`).join(', ')
+}
+
+function formatTargetKinds(targetKinds: readonly string[]): string {
+  if (targetKinds.length === 1) {
+    return `${targetKinds[0]} targets`
+  }
+
+  return `${targetKinds.join(', ')} targets`
+}
+
+function formatAllowedPublicMethods(role: CompiledRoleDefinition): string {
+  return role.allowedPublicMethods?.join(', ') ?? '<none>'
+}
+
+function formatDisallowedMethods(disallowedPublicMethods: readonly string[]): string {
+  if (disallowedPublicMethods.length === 1) {
+    return `method '${disallowedPublicMethods[0]}' is`
+  }
+
+  const quotedMethodNames = disallowedPublicMethods
+    .map((methodName) => `'${methodName}'`)
+    .join(', ')
+
+  return `methods ${quotedMethodNames} are`
+}
+
+function formatTarget(target: TargetSymbol): string {
+  const targetKind = target.kind === 'class' ? 'Class' : 'Function'
+  return `${targetKind} '${target.name}'`
+}
+
+function hasAllowedName(target: TargetSymbol, role: CompiledRoleDefinition): boolean {
+  if (role.allowedNameSet !== undefined) {
+    return role.allowedNameSet.has(target.name)
+  }
+
+  if (role.namePattern !== undefined) {
+    return role.namePattern.test(target.name)
+  }
+
+  return true
 }
 
 export function isFileInScope(
@@ -77,25 +179,15 @@ export function isFileInScope(
   return matchesAnyPattern(config.includeMatchers, relativeFilePath)
 }
 
-export function findMatchingRoles(
+export function findAssignedRoleDefinition(
   target: TargetSymbol,
   config: CompiledRoleEnforcementConfig,
-): readonly CompiledRoleDefinition[] {
-  if (!isFileInScope(target.relativeFilePath, config)) {
-    return []
+): CompiledRoleDefinition | null {
+  if (target.assignedRoleName === null) {
+    return null
   }
 
-  return config.roles.filter((role) => {
-    if (!role.targets.includes(target.kind)) {
-      return false
-    }
-
-    if (!role.namePattern.test(target.name)) {
-      return false
-    }
-
-    return matchesAnyPattern(role.allowedLocationMatchers, target.relativeFilePath)
-  })
+  return config.roles.find((role) => role.name === target.assignedRoleName) ?? null
 }
 
 export function checkTargetSymbol(
@@ -106,33 +198,39 @@ export function checkTargetSymbol(
     return []
   }
 
-  const matchingRoles = findMatchingRoles(target, config)
-
-  if (matchingRoles.length === 0) {
-    return [createNoRoleMatchedViolation(target)]
+  if (target.assignedRoleName === null) {
+    return [createMissingRoleAssignmentViolation(target)]
   }
 
-  if (matchingRoles.length > 1) {
-    return [createMultipleRolesMatchedViolation(target, matchingRoles)]
+  const assignedRole = findAssignedRoleDefinition(target, config)
+
+  if (assignedRole === null) {
+    return [createUnknownRoleAssignmentViolation(target, target.assignedRoleName)]
   }
 
-  const matchedRole = matchingRoles[0]
-
-  if (matchedRole === undefined) {
-    return []
+  if (!assignedRole.targets.includes(target.kind)) {
+    return [createInvalidRoleTargetKindViolation(target, assignedRole)]
   }
 
-  if (target.kind !== 'class' || matchedRole.allowedPublicMethodSet === undefined) {
+  if (!matchesAnyPattern(assignedRole.allowedLocationMatchers, target.relativeFilePath)) {
+    return [createInvalidRoleLocationViolation(target, assignedRole)]
+  }
+
+  if (!hasAllowedName(target, assignedRole)) {
+    return [createInvalidRoleNameViolation(target, assignedRole)]
+  }
+
+  if (target.kind !== 'class' || assignedRole.allowedPublicMethodSet === undefined) {
     return []
   }
 
   const disallowedPublicMethods = target.publicMethodNames.filter(
-    (methodName) => !matchedRole.allowedPublicMethodSet?.has(methodName),
+    (methodName) => !assignedRole.allowedPublicMethodSet?.has(methodName),
   )
 
   if (disallowedPublicMethods.length === 0) {
     return []
   }
 
-  return [createDisallowedPublicMethodsViolation(target, matchedRole, disallowedPublicMethods)]
+  return [createDisallowedPublicMethodsViolation(target, assignedRole, disallowedPublicMethods)]
 }

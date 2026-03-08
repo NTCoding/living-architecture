@@ -18,7 +18,12 @@ export type {
 export type { TargetSymbol } from './features/check/domain/target-symbol'
 export {
   checkTargetSymbol,
-  findMatchingRoles,
+  findAssignedRoleDefinition,
   isFileInScope,
 } from './features/check/domain/check-role-target'
+export type { RoleClassifierResult } from './features/classify/domain/role-classifier-result'
+export {
+  createRoleClassifierResult,
+  findRoleClassifierResult,
+} from './features/classify/domain/role-classifier-result'
 export { default as roleEnforcementOxlintPlugin } from './features/check/infra/oxlint-plugin'

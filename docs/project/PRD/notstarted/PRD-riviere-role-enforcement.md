@@ -30,7 +30,7 @@ We need a capability that makes the right architectural decision obvious and the
 
 The core requirement is:
 
-Every class or top-level function in this codebase must have exactly one role.
+Every class or top-level function in this codebase must have exactly one explicitly declared role.
 
 Roles are repository-defined. There are no built-in canonical kinds in the enforcement model. The role name is the role.
 
@@ -67,13 +67,29 @@ Deterministic enforcement is the source of truth for:
 
 AI review is additive. It may detect semantic mismatches that static rules cannot prove, but it must never override deterministic failures.
 
-### 2.2 Exactly One Role
+### 2.2 Authoritative Classification And Exactly One Role
 
-Every in-scope target must match exactly one role definition.
+Every in-scope target must have exactly one explicit role assignment.
 
-- zero matches: error
-- more than one match: error
-- exactly one match: valid
+This is a critical requirement.
+
+- a target does not discover its role by passing matcher rules
+- a target declares its role explicitly
+- role rules then validate whether that explicit assignment is valid
+
+Deterministic enforcement must therefore distinguish between:
+
+- missing explicit role assignment
+- unknown explicit role assignment
+- explicit role assignment that violates location rules
+- explicit role assignment that violates naming rules
+- explicit role assignment that violates allowed public methods
+
+Valid state:
+
+- exactly one explicit role assignment exists for the target
+- that assigned role exists in the repository role catalog
+- the assigned role validates successfully
 
 ### 2.3 Simplicity And Minimalism
 
@@ -102,7 +118,7 @@ Violations must report:
 
 - file path
 - symbol name
-- matched role or candidate roles
+- assigned role or candidate roles
 - violated constraint
 - suggested fix
 
@@ -171,20 +187,25 @@ The intended model is:
 - standalone functions must have a role if they are in scope
 - mixed-role classes are disallowed
 
-### 3.3 Minimal Role Definition DSL
+### 3.3 Minimal Role Definition DSL And Explicit Role Assignment
 
-We need a simple language for defining roles.
+We need two separate concepts:
+
+- a role definition DSL that defines the repository role taxonomy
+- an explicit role assignment model that tells the checker which role a class or standalone function actually has
+
+The role definition DSL must stay simple.
 
 Each role definition must support only the minimum required fields:
 
 - `name`
 - `targets`
 - `allowedLocation`
-- `nameMatches`
+- `nameMatches` or `allowedNames`
 - `allowedPublicMethods` for class roles
 - `markdownSpec`
 
-Example:
+Role definition example:
 
 ```yaml
 roles:
@@ -198,28 +219,59 @@ roles:
     markdownSpec: 'docs/roles/cli-output-formatter.md'
 ```
 
-Standalone function role example:
+When the allowed symbol names are finite and important for diagnostics, prefer explicit `allowedNames` over a regex.
 
 ```yaml
 roles:
-  - name: cli-args-parser
+  - name: cli-shell
     targets: [function]
     allowedLocation:
-      - 'packages/*/src/features/*/entrypoint/**/*.ts'
-      - 'tools/*/src/entrypoint/**/*.ts'
-    nameMatches: 'parse.*'
-    markdownSpec: 'docs/roles/cli-args-parser.md'
+      - 'packages/*/src/shell/**/*.ts'
+      - 'tools/*/src/shell/**/*.ts'
+    allowedNames: [createProgram, main]
+    markdownSpec: 'docs/roles/cli-shell.md'
 ```
+
+Explicit role assignment is mandatory.
+
+Recommended default for the first implementation and spike fix:
+
+- use an inline symbol annotation as the authoritative assignment source
+- example syntax:
+
+```ts
+/** @riviere-role cli-shell */
+export function createProgram(): string {
+  return 'ok'
+}
+```
+
+```ts
+/** @riviere-role query-facade */
+export class OrdersQuery {
+  components(): string[] {
+    return []
+  }
+}
+```
+
+Important requirements:
+
+- the assignment source of truth must be explicit
+- the enforcement engine must read that assignment first
+- `allowedLocation`, `nameMatches`, `allowedNames`, and `allowedPublicMethods` validate the assigned role
+- those rule fields must not be used as the primary mechanism for inferring the role
 
 ### 3.4 Initial Deterministic Constraints
 
-Initial deterministic constraints are intentionally minimal:
+Initial deterministic constraints are intentionally minimal and validate an explicitly assigned role:
 
-- role name
-- target type
-- allowed location
-- naming pattern
-- allowed public methods
+- explicit role assignment exists
+- assigned role name exists in the catalog
+- target type is allowed for the assigned role
+- assigned role lives in an allowed location
+- assigned role satisfies naming rules
+- assigned role satisfies allowed public methods
 
 `allowedLocation` must express the mandatory top-level architecture first. A role cannot bypass the repository's vertical-slice and layer model with vague folders such as `src/**/cli/**`.
 
@@ -239,47 +291,64 @@ The repository config defines:
 - scoped overrides for `packages/`, `apps/`, and `tools/`
 - unresolved or temporary exceptions, if truly needed during rollout
 
+The repository config does not assign roles to symbols. Role assignment must come from the explicit assignment model defined in `3.3 Minimal Role Definition DSL And Explicit Role Assignment`.
+
 ### 3.6 Deterministic Engine
 
 The deterministic engine will:
 
 - parse TypeScript source files
 - enumerate in-scope targets
-- match each target against role definitions
-- verify the minimal deterministic constraints
+- read the explicit role assignment for each target
+- resolve the assigned role definition from the repository role catalog
+- verify the minimal deterministic constraints against the assigned role
 - emit structured violations
+
+The deterministic engine must not infer the final role from `allowedLocation`, `nameMatches`, or similar rule fields. Those fields validate an explicit assignment; they do not authoritatively decide it.
 
 Violation output should support a self-correcting feedback loop for AI agents. When possible, an error message should explicitly instruct the calling Claude agent to run `riviere-role-classifier` before attempting a fix.
 
 Example error messages:
 
 ```text
-Role enforcement error: no role matched
+Role enforcement error: missing explicit role assignment
 
 File: packages/riviere-cli/src/platform/infra/cli/global-error-handler.ts
 Symbol: GlobalErrorHandler
-Why: This class does not match any configured role by allowedLocation + nameMatches.
+Why: This class declares no explicit role.
 Next step for Claude: run `riviere-role-classifier` with this file and the requested change before editing.
-Expected classifier output: top-level layer, specific role, allowed destination path, markdownSpec, rationale.
+Expected classifier output: explicit role assignment, top-level layer, allowed destination path, markdownSpec, rationale.
 ```
 
 ```text
-Role enforcement error: multiple roles matched
+Role enforcement error: unknown explicit role assignment
 
 File: packages/foo/src/features/extract/entrypoint/render-output.ts
 Symbol: RenderOutput
-Why: This symbol matches both `cli-output-formatter` and `cli-error-presenter`.
-Next step for Claude: run `riviere-role-classifier` to disambiguate the role, then rename or move the code to match exactly one role.
+Assigned role: cli-renderer
+Why: No role named `cli-renderer` exists in the repository role catalog.
+Next step for Claude: run `riviere-role-classifier` to choose a valid role and update the explicit assignment.
 ```
 
 ```text
-Role enforcement error: invalid location for matched role
+Role enforcement error: invalid location for assigned role
 
 File: packages/foo/src/features/extract/infra/render-output.ts
 Symbol: RenderOutput
-Matched role: cli-output-formatter
+Assigned role: cli-output-formatter
 Why: `cli-output-formatter` must live in an allowed `entrypoint` location, not `infra`.
 Next step for Claude: run `riviere-role-classifier` to find the correct destination path and markdownSpec before fixing this file.
+```
+
+```text
+Role enforcement error: invalid name for assigned role
+
+File: packages/foo/src/shell/cli.ts
+Symbol: createPrograms
+Assigned role: cli-shell
+Why: `createPrograms` is not allowed for role `cli-shell`.
+Allowed names: createProgram, main.
+Next step for Claude: keep role `cli-shell`, rename the symbol to an allowed name, and re-run validation.
 ```
 
 ```text
@@ -287,8 +356,9 @@ Role enforcement error: invalid public method shape
 
 File: packages/foo/src/features/extract/entrypoint/cli-output-formatter.ts
 Symbol: CliOutputFormatter
-Matched role: cli-output-formatter
-Why: Allowed public methods are [format], but found [format, printError].
+Assigned role: cli-output-formatter
+Why: Method `printError` is not allowed for role `cli-output-formatter`.
+Allowed public methods: format.
 Next step for Claude: run `riviere-role-classifier` and re-check the role markdownSpec before changing this class.
 ```
 
@@ -313,6 +383,7 @@ The main alternatives are:
 Decision criteria:
 
 - supports 100% role coverage for this repository
+- supports explicit role assignment rather than matcher-only inference
 - keeps rule definitions simple
 - is fast enough for constant use
 - does not introduce unnecessary new tooling surface
@@ -329,7 +400,7 @@ The basic AI workflow is:
 
 - search for relevant files
 - read the markdown spec for the role
-- inspect the matched code
+- inspect the explicitly assigned code target
 - write a report describing whether the code really fits the role
 
 AI review can produce:
@@ -364,6 +435,7 @@ Its job is to:
 - inspect the requested change
 - search the repository for candidate locations
 - read the relevant role definitions and `markdownSpec` files
+- return the exact explicit role assignment to add before code is written
 - recommend the correct role and target path before code is written
 - flag ambiguity when multiple roles appear plausible
 
@@ -377,6 +449,7 @@ The minimal subagent workflow is:
 
 Expected outputs:
 
+- explicit role assignment text
 - chosen role
 - allowed target location
 - markdown spec reference
@@ -400,6 +473,7 @@ It also enables a self-correcting workflow:
 ```yaml
 layer: entrypoint
 role: cli-output-formatter
+assignmentText: '/** @riviere-role cli-output-formatter */'
 allowedLocation:
   - packages/riviere-cli/src/features/extract/entrypoint/
 markdownSpec: docs/roles/cli-output-formatter.md
@@ -417,6 +491,7 @@ If the result is ambiguous, the contract should make that explicit.
 ```yaml
 layer: entrypoint
 role: null
+assignmentText: null
 allowedLocation: []
 markdownSpec: null
 rationale:
@@ -452,6 +527,7 @@ Example response:
 ```yaml
 layer: entrypoint
 role: cli-args-parser
+assignmentText: '/** @riviere-role cli-args-parser */'
 allowedLocation:
   - packages/riviere-cli/src/features/extract/entrypoint/
 markdownSpec: docs/roles/cli-args-parser.md
@@ -496,18 +572,19 @@ Temporary exceptions are allowed only during rollout to reach the target end sta
 
 ## 5. Success Criteria
 
-| #   | Criterion                                                                                                               | Verification                                                                                   |
-| --- | ----------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| 1   | Full repo scan assigns exactly one role to every in-scope target or reports a deterministic error                       | Integration test fixtures plus repository smoke test                                           |
-| 2   | Deterministic enforcement checks only the minimal role rules: location, naming, target type, and allowed public methods | Unit tests with 100% branch coverage                                                           |
-| 3   | The repository has an explicit role inventory covering ambiguous infra areas as well as standard locations              | Repository role catalog reviewed and committed                                                 |
-| 4   | Fine-grained infra roles are supported                                                                                  | Fixtures for CLI presentation, git, graph persistence, config loading, and similar infra cases |
-| 5   | AI review consumes markdown role specs and emits structured verdicts                                                    | Integration tests with mocked AI client                                                        |
-| 6   | Architecture review workflow can invoke role enforcement on PRs                                                         | Workflow integration test or documented workflow update verified in tests                      |
-| 7   | Full-repo enforcement is fast enough for constant use                                                                   | Benchmarks recorded in docs                                                                    |
-| 8   | Package ships with 100% code coverage                                                                                   | Coverage threshold enforced in package config                                                  |
-| 9   | No new lint, typecheck, or dependency-cruiser violations are introduced                                                 | Repository `verify` passes                                                                     |
-| 10  | A final rollout PR applies role enforcement with 100% coverage across this codebase                                     | Final adoption PR passes repository verification                                               |
+| #   | Criterion                                                                                                                                    | Verification                                                                                   |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| 1   | Every in-scope class and standalone function has exactly one explicit role assignment or produces a deterministic error                      | Integration test fixtures plus repository smoke test                                           |
+| 2   | Deterministic enforcement validates the assigned role against only the minimal role rules: location, naming, target type, and public methods | Unit tests with 100% branch coverage                                                           |
+| 3   | No symbol passes purely because it happened to match path and naming rules without an explicit assignment                                    | Negative fixture coverage for matcher-only cases                                               |
+| 4   | The repository has an explicit role inventory covering ambiguous infra areas as well as standard locations                                   | Repository role catalog reviewed and committed                                                 |
+| 5   | Fine-grained infra roles are supported                                                                                                       | Fixtures for CLI presentation, git, graph persistence, config loading, and similar infra cases |
+| 6   | Diagnostics distinguish missing assignment, unknown assignment, invalid location, invalid name, and invalid public method shape              | Golden-path diagnostic tests                                                                   |
+| 7   | AI review consumes markdown role specs and emits structured verdicts                                                                         | Integration tests with mocked AI client                                                        |
+| 8   | Architecture review workflow can invoke role enforcement on PRs                                                                              | Workflow integration test or documented workflow update verified in tests                      |
+| 9   | Full-repo enforcement is fast enough for constant use                                                                                        | Benchmarks recorded in docs                                                                    |
+| 10  | Package ships with 100% code coverage and does not introduce new lint, typecheck, or dependency-cruiser violations                           | Coverage threshold enforced in package config and repository `verify` passes                   |
+| 11  | A final rollout PR applies role enforcement with 100% coverage across this codebase                                                          | Final adoption PR passes repository verification                                               |
 
 Initial performance targets:
 
@@ -532,6 +609,10 @@ If these targets are missed, the feature is not ready for default PR gating.
    - Can Oxlint support the minimal role model directly, or do we need a minimal custom layer?
    - This requires a technical spike before implementation starts.
 
+4. **Explicit assignment source**
+   - Is inline source annotation the correct long-term authoritative assignment model, or only the default for the first implementation?
+   - Recommended default: inline source annotation for the spike and initial implementation.
+
 ---
 
 ## 7. Milestones
@@ -549,12 +630,13 @@ The repository role model is identified and the minimal DSL is finalized.
 
 - **D1.2:** Minimal role DSL schema
   - Define config schema and TypeScript types
-  - Support role definitions, ignores, and markdown spec references
+  - Support role definitions, ignores, markdown spec references, and the explicit role assignment model
   - Verification: schema validation tests
 
 - **D1.3:** Oxlint feasibility spike
   - Validate whether Oxlint can support the required enforcement cleanly
   - Compare Oxlint with minimal custom-engine fallback
+  - Verify that the spike supports explicit role assignment rather than matcher-only inference
   - Verification: documented implementation recommendation
 
 ### M2: Deterministic Enforcement
@@ -565,19 +647,21 @@ The minimal deterministic enforcement works end-to-end.
 
 - **D2.1:** Target enumeration
   - Enumerate classes and in-scope standalone functions
+  - Parse explicit role assignment for each target
   - Verification: parser and extraction tests
 
-- **D2.2:** Unique role matching
-  - Enforce zero-match and multi-match failures
-  - Verification: matching tests
+- **D2.2:** Explicit role assignment validation
+  - Enforce missing assignment and unknown assignment failures
+  - Verification: assignment validation tests
 
 - **D2.3:** Minimal constraint engine
-  - Implement target type, allowed location, naming, and allowed public method checks
-  - Verification: rule engine tests with 100% branch coverage
+  - Implement target type, allowed location, naming, and allowed public method checks against the assigned role
+  - Verification: rule engine tests with 100% branch coverage and explicit assignment fixtures
 
 - **D2.4:** Structured diagnostics
   - Human-readable and machine-consumable output
   - Error messages should tell AI agents when to run `riviere-role-classifier`
+  - Error messages should identify the assigned role and the violated rule when an assignment exists
   - Verification: output snapshot and integration tests
 
 - **D2.5:** Performance instrumentation
@@ -592,6 +676,7 @@ The repository has an initial role catalog and can be validated against it.
 
 - **D3.1:** Initial repository config
   - Encode the reviewed role inventory into the role enforcement config
+  - Define how explicit role assignments are introduced during bootstrap
   - Verification: config exists and validates
 
 - **D3.2:** Initial markdown guidance files
@@ -600,6 +685,7 @@ The repository has an initial role catalog and can be validated against it.
 
 - **D3.3:** Repository baseline adoption
   - Bring the current codebase to a passing state or establish explicit temporary exceptions
+  - Add explicit role assignments for all in-scope symbols in the chosen rollout scope
   - Verification: repository scan passes or only documented exceptions remain
 
 ### M4: AI Review And Workflow
@@ -702,6 +788,7 @@ packages/riviere-role-enforcement/src/
 ### 9.2 Core Domain Concepts
 
 - `RoleDefinition`
+- `RoleAssignment`
 - `TargetSymbol`
 - `RoleMatch`
 - `RoleViolation`
@@ -713,6 +800,7 @@ packages/riviere-role-enforcement/src/
 - Deterministic validation is the primary checker.
 - AI review is a separate feature, not embedded in deterministic validation.
 - The initial rule model stays intentionally minimal.
+- Explicit role assignment is the source of truth.
 - Role definitions reference markdown guidance files for human and AI interpretation.
 - The enforcement mechanism should be Oxlint if feasible, otherwise the smallest possible fallback.
 
@@ -747,14 +835,17 @@ The first repository bootstrap should include roles such as:
 
 This list is illustrative, not complete. A core deliverable of the project is identifying the full role inventory required for 100% repository coverage.
 
+This section defines the role taxonomy only. It does not assign roles to concrete symbols. Concrete classes and standalone functions still need explicit role assignments.
+
 ---
 
 ## 11. Example Violations
 
-- `packages/foo/src/features/bar/commands/do-thing.ts` matches no role because its location is too generic or its class name does not match the expected role
-- `tools/dev-workflow-v2/src/entrypoint/workflow-cli.ts` exposes public methods not allowed by its assigned role
-- `packages/riviere-cli/src/platform/infra/cli-presentation/global-error-handler.ts` matches no configured role definitions
-- `packages/x/src/platform/infra/misc/formatter.ts` matches both `cli-output-formatter` and another formatter role
+- `packages/foo/src/features/bar/commands/do-thing.ts` has no explicit role assignment
+- `packages/foo/src/shell/cli.ts` assigns role `cli-shell`, but the symbol name is `createPrograms` instead of an allowed name such as `createProgram` or `main`
+- `tools/dev-workflow-v2/src/entrypoint/workflow-cli.ts` assigns a role whose allowed public methods do not include one of its current methods
+- `packages/foo/src/features/extract/infra/render-output.ts` assigns role `cli-output-formatter`, but that role is only allowed in `entrypoint/`
+- `packages/foo/src/features/extract/entrypoint/render-output.ts` assigns role `cli-renderer`, but no such role exists in the repository role catalog
 
 ---
 
@@ -783,8 +874,9 @@ It should be designed to coexist with them rather than replace them.
 | Term                        | Definition                                                                                                                                            |
 | --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Role Definition**         | A named rule set describing where code may live, how it should be named, what public methods it may expose, and which markdown spec governs AI review |
+| **Role Assignment**         | The explicit declaration that a class or standalone function has a specific repository role                                                           |
 | **Target Symbol**           | A class or standalone function checked by the engine                                                                                                  |
-| **Role Match**              | The unique role definition matched to a target                                                                                                        |
+| **Role Match**              | The role definition resolved from the target's explicit role assignment                                                                               |
 | **Deterministic Violation** | A role failure proven by static analysis                                                                                                              |
 | **Markdown Spec**           | Markdown guidance used by AI review for semantic validation beyond deterministic checks                                                               |
 
@@ -792,23 +884,78 @@ It should be designed to coexist with them rather than replace them.
 
 ## 15. Todo List
 
-- [x] Identify the full repository-wide role inventory needed for 100% coverage — initial draft captured in `docs/project/PRD/notstarted/PRD-riviere-role-enforcement-role-inventory.md`; see also `1. Problem`, `2.5 Repository-Specific Rules Matter`, `10. Initial Role Catalog For This Repository`
-- [x] Review ambiguous files and agree on their correct role assignments — resolved current draft decisions in `docs/project/PRD/notstarted/PRD-riviere-role-enforcement-role-inventory.md` sections `3`, `6.4`, and `6.5`; see also `1. Problem`, `6. Open Questions`, `10. Initial Role Catalog For This Repository`
-- [x] Confirm the mandatory top-level layer mapping for every role: `shell`, `entrypoint`, `command`, `query`, `domain`, or `infra` — mapped in `docs/project/PRD/notstarted/PRD-riviere-role-enforcement-role-inventory.md` sections `1`, `2`, and `6`; see also `2.5 Repository-Specific Rules Matter`
-- [x] Validate whether Oxlint can support the required enforcement model directly — recommendation captured in `docs/project/PRD/notstarted/PRD-riviere-role-enforcement-oxlint-feasibility-report.md`; see also `3.7 Oxlint Position And Alternatives`, `7. Milestones`
-- [ ] Decide the minimum fallback design if Oxlint cannot support the full model cleanly — see `2.3 Simplicity And Minimalism`, `3.6 Deterministic Engine`, `3.7 Oxlint Position And Alternatives`
-- [x] Finalize the minimal role DSL schema — concrete draft captured in `docs/project/PRD/notstarted/PRD-riviere-role-enforcement-role-inventory.md` sections `6.2`, `6.3`, and `6.5`; see also `3.3 Minimal Role Definition DSL`, `3.4 Initial Deterministic Constraints`
-- [ ] Implement deterministic target enumeration for classes and standalone functions — see `3.2 In-Scope Targets`, `3.6 Deterministic Engine`, `7. Milestones`
-- [ ] Implement unique-role matching and deterministic validation — see `2.2 Exactly One Role`, `3.4 Initial Deterministic Constraints`, `3.6 Deterministic Engine`
-- [ ] Add structured diagnostics suitable for local use and PR review — see `2.4 Fail Fast`, `3.6 Deterministic Engine`
-- [ ] Write markdown specs for each role under `docs/roles/` — see `3.3 Minimal Role Definition DSL`, `3.8 AI Review Layer`
-- [ ] Encode the initial repository role catalog in the role-enforcement config — see `3.5 Config Files`, `10. Initial Role Catalog For This Repository`
-- [ ] Apply the enforcement to the full repository and resolve all uncovered code — see `3.10 Repository Rollout`, `5. Success Criteria`
-- [ ] Create `riviere-role-classifier` in `packages/riviere-role-enforcement` and make it available repo-wide — see `3.9 riviere-role-classifier`
-- [ ] Define and implement the structured output contract for `riviere-role-classifier` — see `3.9 riviere-role-classifier`
-- [ ] Add the standard prompt/response pattern for `riviere-role-classifier` so other agents can call it consistently — see `3.9 riviere-role-classifier`
-- [ ] Ensure deterministic error messages tell Claude when to run `riviere-role-classifier` for self-correction — see `3.6 Deterministic Engine`, `3.9 riviere-role-classifier`
-- [ ] Integrate role enforcement into architecture review for PRs — see `3.8 AI Review Layer`, `5. Success Criteria`
-- [ ] Add AI review prompts/workflow that read `markdownSpec` files and write reports — see `3.8 AI Review Layer`, `3.9 riviere-role-classifier`
-- [ ] Reach 100% code coverage for the new package — see `5. Success Criteria`
-- [ ] Ship the final adoption PR with 100% repository role coverage — see `1. Problem`, `3.10 Repository Rollout`, `5. Success Criteria`
+### Completed discovery outputs
+
+1. Role inventory draft
+   - Status: done
+   - Output: `docs/project/PRD/notstarted/PRD-riviere-role-enforcement-role-inventory.md`
+   - Acceptance: a repository role inventory exists, covers the mandatory top-level layers, and lists the main ambiguities still requiring decisions
+   - References: `1. Problem`, `2.5 Repository-Specific Rules Matter`, `10. Initial Role Catalog For This Repository`
+
+2. Oxlint feasibility review
+   - Status: done
+   - Output: `docs/project/PRD/notstarted/PRD-riviere-role-enforcement-oxlint-feasibility-report.md`
+   - Acceptance: the team has a written recommendation on whether Oxlint can support the explicit-classification model cleanly
+   - References: `3.7 Oxlint Position And Alternatives`, `7. Milestones`
+
+### Remaining implementation tasks
+
+1. Define the explicit role assignment model
+   - Status: pending
+   - Requirements: choose and document the authoritative assignment source of truth; the recommended default is inline source annotation such as `/** @riviere-role cli-shell */`
+   - Acceptance: a documented assignment format exists; parser fixtures prove the engine can read the assignment from a class and a standalone function; a symbol without an assignment fails deterministically
+   - References: `2.2 Authoritative Classification And Exactly One Role`, `3.3 Minimal Role Definition DSL And Explicit Role Assignment`, `5. Success Criteria`, `7. Milestones`
+
+2. Finalize the fallback design if Oxlint cannot support the model cleanly
+   - Status: pending
+   - Requirements: keep the design minimal, preserve explicit assignment as the source of truth, and avoid adding unnecessary tooling surface
+   - Acceptance: the chosen fallback is documented and still satisfies the success criteria for explicit assignment, diagnostics, and performance
+   - References: `2.3 Simplicity And Minimalism`, `3.6 Deterministic Engine`, `3.7 Oxlint Position And Alternatives`, `5. Success Criteria`
+
+3. Implement deterministic target enumeration and assignment parsing
+   - Status: pending
+   - Requirements: enumerate classes and standalone functions, then read each target's explicit role assignment before validation
+   - Acceptance: parser tests prove the engine finds the target and its assigned role for both class and function fixtures
+   - References: `3.2 In-Scope Targets`, `3.3 Minimal Role Definition DSL And Explicit Role Assignment`, `3.6 Deterministic Engine`, `7. Milestones`
+
+4. Replace implicit role inference with assigned-role validation
+   - Status: pending
+   - Requirements: `allowedLocation`, `allowedNames` or `nameMatches`, and `allowedPublicMethods` must validate the assigned role only; they must not be used to infer the final role
+   - Acceptance: fixtures prove that missing assignment, unknown assignment, invalid location, invalid name, and invalid public method shape all fail with the correct violation type; matcher-only overlap never counts as success
+   - References: `2.2 Authoritative Classification And Exactly One Role`, `3.3 Minimal Role Definition DSL And Explicit Role Assignment`, `3.4 Initial Deterministic Constraints`, `3.6 Deterministic Engine`, `5. Success Criteria`
+
+5. Improve diagnostics for human and AI repair
+   - Status: pending
+   - Requirements: diagnostics must name the assigned role when one exists, state the violated rule, list allowed names or allowed public methods when finite, and tell Claude when to run `riviere-role-classifier`
+   - Acceptance: golden tests cover `missing explicit role assignment`, `unknown explicit role assignment`, `invalid location for assigned role`, `invalid name for assigned role`, and `invalid public method shape`
+   - References: `2.4 Fail Fast`, `3.6 Deterministic Engine`, `3.9 riviere-role-classifier`, `5. Success Criteria`
+
+6. Write markdown specs for each role and encode the repository role catalog
+   - Status: pending
+   - Requirements: each role used in rollout has a definition in config and a corresponding markdown spec where needed
+   - Acceptance: config validates, markdown references resolve, and the initial rollout scope has no role definitions without supporting docs
+   - References: `3.3 Minimal Role Definition DSL And Explicit Role Assignment`, `3.5 Config Files`, `3.8 AI Review Layer`, `10. Initial Role Catalog For This Repository`
+
+7. Build `riviere-role-classifier` as an authorship helper
+   - Status: pending
+   - Requirements: the classifier must return the exact explicit assignment to add, the chosen role, allowed location, markdown spec, rationale, and ambiguity status
+   - Acceptance: contract tests prove the classifier can return `assignmentText`, a clear result, and an ambiguous result; the prompt/response pattern is documented for other agents
+   - References: `3.9 riviere-role-classifier`, `5. Success Criteria`
+
+8. Integrate role enforcement into architecture review and AI repair workflow
+   - Status: pending
+   - Requirements: PR review must run deterministic enforcement, AI review must consume markdown specs, and diagnostics must point Claude to `riviere-role-classifier` for self-correction
+   - Acceptance: workflow tests or documented workflow updates prove the review path works end-to-end
+   - References: `3.6 Deterministic Engine`, `3.8 AI Review Layer`, `3.9 riviere-role-classifier`, `5. Success Criteria`
+
+9. Bootstrap explicit assignments across the chosen rollout scope
+   - Status: pending
+   - Requirements: add explicit role assignments to all in-scope classes and standalone functions in the chosen rollout scope; document any temporary exceptions explicitly
+   - Acceptance: rollout-scope scan passes with no uncovered in-scope symbols outside documented exceptions
+   - References: `3.10 Repository Rollout`, `5. Success Criteria`, `7. Milestones`
+
+10. Reach production-ready quality gates and ship the adoption PR
+    - Status: pending
+    - Requirements: achieve 100% coverage for the new package, pass repository verification, and land the final adoption PR with explicit role coverage
+    - Acceptance: coverage thresholds pass, repository `verify` passes, and the final rollout PR demonstrates 100% coverage for the agreed scope
+    - References: `1. Problem`, `5. Success Criteria`, `7. Milestones`, `3.10 Repository Rollout`

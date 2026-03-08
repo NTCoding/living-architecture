@@ -5,7 +5,9 @@ roles:
     targets: [function]
     allowedLocation:
       - packages/riviere-role-enforcement/fixtures/oxlint-spike/src/shell/**/*.ts
-    nameMatches: ^(createProgram|main)$
+    allowedNames:
+      - createProgram
+      - main
     markdownSpec: docs/roles/cli-shell.md
   - name: query-facade
     targets: [class]
