@@ -437,6 +437,167 @@ describe('extractRoleTargets', () => {
     expect(result.issues[0]?.message).toContain('multiple explicit role assignments')
   })
 
+  it('extracts non-exported top-level declarations and static methods', () => {
+    const functionDeclaration = {
+      ...createBaseNode('FunctionDeclaration', 1),
+      type: 'FunctionDeclaration' as const,
+      id: createIdentifier('main', 2),
+    }
+    const variableDeclaration = {
+      ...createBaseNode('VariableDeclaration', 3),
+      type: 'VariableDeclaration' as const,
+      declarations: [
+        {
+          ...createBaseNode('VariableDeclarator', 4),
+          type: 'VariableDeclarator' as const,
+          id: createIdentifier('createProgram', 5),
+          init: {
+            ...createBaseNode('ArrowFunctionExpression', 6),
+            type: 'ArrowFunctionExpression' as const,
+          },
+        },
+      ],
+    }
+    const classDeclaration = {
+      ...createBaseNode('ClassDeclaration', 7),
+      type: 'ClassDeclaration' as const,
+      id: createIdentifier('OrdersQuery', 8),
+      body: {
+        ...createBaseNode('ClassBody', 9),
+        type: 'ClassBody' as const,
+        body: [
+          {
+            ...createBaseNode('MethodDefinition', 10),
+            type: 'MethodDefinition' as const,
+            kind: 'method',
+            key: createIdentifier('components', 11),
+          },
+          {
+            ...createBaseNode('MethodDefinition', 12),
+            type: 'MethodDefinition' as const,
+            kind: 'method',
+            static: true,
+            key: createIdentifier('fromJSON', 13),
+          },
+        ],
+      },
+    }
+    const program: ProgramNode = {
+      ...createBaseNode('Program'),
+      type: 'Program',
+      body: [functionDeclaration, variableDeclaration, classDeclaration],
+    }
+    const sourceCode = createSourceCode(
+      new Map([
+        [functionDeclaration, ['* @riviere-role cli-shell']],
+        [variableDeclaration, ['* @riviere-role cli-shell']],
+        [classDeclaration, ['* @riviere-role query-facade']],
+        [classDeclaration.body.body[1] as BaseNode, ['* @riviere-role query-factory']],
+      ]),
+    )
+
+    expect(
+      extractRoleTargets(program, sourceCode, 'packages/demo/src/features/demo/queries/orders-query.ts'),
+    ).toStrictEqual({
+      targets: [
+        {
+          kind: 'function',
+          name: 'main',
+          ownerClassName: null,
+          assignedRoleName: 'cli-shell',
+          relativeFilePath: 'packages/demo/src/features/demo/queries/orders-query.ts',
+          publicMethodNames: [],
+          reportNode: functionDeclaration.id,
+        },
+        {
+          kind: 'function',
+          name: 'createProgram',
+          ownerClassName: null,
+          assignedRoleName: 'cli-shell',
+          relativeFilePath: 'packages/demo/src/features/demo/queries/orders-query.ts',
+          publicMethodNames: [],
+          reportNode: variableDeclaration.declarations[0]?.id,
+        },
+        {
+          kind: 'class',
+          name: 'OrdersQuery',
+          ownerClassName: null,
+          assignedRoleName: 'query-facade',
+          relativeFilePath: 'packages/demo/src/features/demo/queries/orders-query.ts',
+          publicMethodNames: ['components'],
+          reportNode: classDeclaration.id,
+        },
+        {
+          kind: 'static-method',
+          name: 'fromJSON',
+          ownerClassName: 'OrdersQuery',
+          assignedRoleName: 'query-factory',
+          relativeFilePath: 'packages/demo/src/features/demo/queries/orders-query.ts',
+          publicMethodNames: [],
+          reportNode: (classDeclaration.body.body[1] as { key: BaseNode }).key,
+        },
+      ],
+      issues: [],
+    })
+  })
+
+  it('extracts missing role assignments for non-exported targets instead of skipping them', () => {
+    const functionDeclaration = {
+      ...createBaseNode('FunctionDeclaration', 1),
+      type: 'FunctionDeclaration' as const,
+      id: createIdentifier('main', 2),
+    }
+    const classDeclaration = {
+      ...createBaseNode('ClassDeclaration', 3),
+      type: 'ClassDeclaration' as const,
+      id: createIdentifier('OrdersQuery', 4),
+      body: {
+        ...createBaseNode('ClassBody', 5),
+        type: 'ClassBody' as const,
+        body: [
+          {
+            ...createBaseNode('MethodDefinition', 6),
+            type: 'MethodDefinition' as const,
+            kind: 'method',
+            static: true,
+            key: createIdentifier('fromJSON', 7),
+          },
+        ],
+      },
+    }
+    const program: ProgramNode = {
+      ...createBaseNode('Program'),
+      type: 'Program',
+      body: [functionDeclaration, classDeclaration],
+    }
+
+    expect(
+      extractRoleTargets(program, createSourceCode(), 'packages/demo/src/features/demo/queries/orders-query.ts'),
+    ).toMatchObject({
+      targets: [
+        {
+          kind: 'function',
+          name: 'main',
+          ownerClassName: null,
+          assignedRoleName: null,
+        },
+        {
+          kind: 'class',
+          name: 'OrdersQuery',
+          ownerClassName: null,
+          assignedRoleName: null,
+        },
+        {
+          kind: 'static-method',
+          name: 'fromJSON',
+          ownerClassName: 'OrdersQuery',
+          assignedRoleName: null,
+        },
+      ],
+      issues: [],
+    })
+  })
+
   it('ignores declarations that cannot produce a target symbol', () => {
     const exportNode = {
       ...createBaseNode('ExportDefaultDeclaration', 1),
@@ -461,12 +622,21 @@ describe('extractRoleTargets', () => {
     })
   })
 
-  it('skips non-export statements, null declarations, and unsupported exports', () => {
+  it('skips nested block declarations, null declarations, and unsupported exports', () => {
     const program: ProgramNode = {
       ...createBaseNode('Program'),
       type: 'Program',
       body: [
-        createBaseNode('ExpressionStatement'),
+        {
+          ...createBaseNode('BlockStatement', 3),
+          body: [
+            {
+              ...createBaseNode('FunctionDeclaration', 4),
+              type: 'FunctionDeclaration' as const,
+              id: createIdentifier('nestedHelper', 5),
+            },
+          ],
+        },
         {
           ...createBaseNode('ExportNamedDeclaration', 1),
           type: 'ExportNamedDeclaration' as const,

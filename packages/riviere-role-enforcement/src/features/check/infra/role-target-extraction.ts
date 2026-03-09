@@ -87,7 +87,13 @@ type ExportableDeclarationNode =
   | FunctionDeclarationNode
   | VariableDeclarationNode
 
-type StatementNode = BaseNode | ExportNamedDeclarationNode | ExportDefaultDeclarationNode
+type StatementNode =
+  | BaseNode
+  | ClassDeclarationNode
+  | FunctionDeclarationNode
+  | VariableDeclarationNode
+  | ExportNamedDeclarationNode
+  | ExportDefaultDeclarationNode
 
 export interface ProgramNode extends BaseNode {
   type: 'Program'
@@ -141,6 +147,14 @@ function isExportNamedDeclarationNode(node: StatementNode): node is ExportNamedD
 
 function isExportDefaultDeclarationNode(node: StatementNode): node is ExportDefaultDeclarationNode {
   return node.type === 'ExportDefaultDeclaration'
+}
+
+function isDirectDeclarationNode(node: StatementNode): node is ExportableDeclarationNode {
+  return (
+    isClassDeclarationNode(node) ||
+    isFunctionDeclarationNode(node) ||
+    isVariableDeclarationNode(node)
+  )
 }
 
 function isMethodDefinitionNode(node: BaseNode): node is MethodDefinitionNode {
@@ -447,16 +461,22 @@ export function extractRoleTargets(
 ): RoleTargetExtractionResult {
   return program.body.reduce<RoleTargetExtractionResult>(
     (result, statement) => {
-      if (!isExportNamedDeclarationNode(statement) && !isExportDefaultDeclarationNode(statement)) {
+      let declaration: ExportableDeclarationNode | null = null
+      let annotationNode: BaseNode | null = null
+
+      if (isExportNamedDeclarationNode(statement) || isExportDefaultDeclarationNode(statement)) {
+        declaration = statement.declaration
+        annotationNode = statement
+      } else if (isDirectDeclarationNode(statement)) {
+        declaration = statement
+        annotationNode = statement
+      }
+
+      if (annotationNode === null) {
         return result
       }
 
-      const extracted = createDeclarationTargets(
-        statement.declaration,
-        statement,
-        relativeFilePath,
-        sourceCode,
-      )
+      const extracted = createDeclarationTargets(declaration, annotationNode, relativeFilePath, sourceCode)
 
       return {
         targets: [...result.targets, ...extracted.targets],
