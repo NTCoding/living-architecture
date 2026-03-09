@@ -13,6 +13,7 @@ import {
 
 interface RoleRuleOptions {configPath?: string}
 
+/** @riviere-role lint-plugin-adapter */
 function getRuleOptions(context: { options?: readonly unknown[] }): RoleRuleOptions {
   const [firstOption] = context.options ?? []
 
@@ -27,6 +28,7 @@ function getRuleOptions(context: { options?: readonly unknown[] }): RoleRuleOpti
   return {}
 }
 
+/** @riviere-role lint-plugin-adapter */
 function getFilename(context: {
   filename?: string;
   getFilename?: () => string 
@@ -38,10 +40,12 @@ function getFilename(context: {
   return context.filename ?? '<unknown>'
 }
 
+/** @riviere-role lint-plugin-adapter */
 function shouldInspectFile(filename: string): boolean {
   return filename.endsWith('.ts') || filename.endsWith('.tsx')
 }
 
+/** @riviere-role lint-plugin-adapter */
 function createScopeCoverageMessage(relativeFilePath: string): string {
   return [
     'Role enforcement error: out-of-scope-by-omission',
@@ -52,6 +56,7 @@ function createScopeCoverageMessage(relativeFilePath: string): string {
   ].join('\n')
 }
 
+/** @riviere-role lint-plugin-adapter */
 function loadCompiledConfig(configPath: string):
   | {
     config: CompiledRoleEnforcementConfig

@@ -31,14 +31,17 @@ export interface RoleClassifierResult {
   ambiguity: RoleClassifierAmbiguity
 }
 
+/** @riviere-role role-classifier */
 function createAssignmentText(roleName: string): string {
   return `/** @riviere-role ${roleName} */`
 }
 
+/** @riviere-role role-classifier */
 function tokenize(input: string): readonly string[] {
   return Array.from(input.toLowerCase().matchAll(/[a-z0-9]+/g), (match) => match[0])
 }
 
+/** @riviere-role role-classifier */
 function inferLayerFromRole(role: CompiledRoleDefinition): RoleClassifierLayer | null {
   const joinedLocation = role.allowedLocation.join(' ')
 
@@ -69,6 +72,7 @@ function inferLayerFromRole(role: CompiledRoleDefinition): RoleClassifierLayer |
   return null
 }
 
+/** @riviere-role role-classifier */
 function inferLayerFromRequest(request: string): RoleClassifierLayer | null {
   const tokens = new Set(tokenize(request))
 
@@ -99,6 +103,7 @@ function inferLayerFromRequest(request: string): RoleClassifierLayer | null {
   return null
 }
 
+/** @riviere-role role-classifier */
 function createClearResult(
   role: CompiledRoleDefinition,
   rationale: readonly string[],
@@ -120,6 +125,7 @@ function createClearResult(
   }
 }
 
+/** @riviere-role role-classifier */
 function createNonClearResult(
   status: 'ambiguous' | 'unknown-role',
   layer: RoleClassifierLayer | null,
@@ -143,6 +149,7 @@ function createNonClearResult(
   }
 }
 
+/** @riviere-role role-classifier */
 function scoreRole(
   role: CompiledRoleDefinition,
   request: RoleClassifierRequest,
@@ -164,6 +171,7 @@ function scoreRole(
   return score
 }
 
+/** @riviere-role role-classifier */
 function rankRoles(
   request: RoleClassifierRequest,
   config: CompiledRoleEnforcementConfig,
@@ -182,6 +190,7 @@ function rankRoles(
     .map((entry) => entry.role)
 }
 
+/** @riviere-role role-classifier */
 function inferSharedLayer(roles: readonly CompiledRoleDefinition[]): RoleClassifierLayer | null {
   const layers = [...new Set(roles.map(inferLayerFromRole).filter((layer) => layer !== null))]
 
@@ -190,6 +199,7 @@ function inferSharedLayer(roles: readonly CompiledRoleDefinition[]): RoleClassif
     : null
 }
 
+/** @riviere-role role-classifier */
 export function createRoleClassifierResult(
   role: CompiledRoleDefinition,
   rationale: readonly string[],
@@ -198,6 +208,7 @@ export function createRoleClassifierResult(
   return createClearResult(role, rationale, nextAction)
 }
 
+/** @riviere-role role-classifier */
 export function findRoleClassifierResult(
   roleName: string,
   config: CompiledRoleEnforcementConfig,
@@ -213,6 +224,7 @@ export function findRoleClassifierResult(
   return createClearResult(role, rationale, nextAction)
 }
 
+/** @riviere-role role-classifier */
 export function classifyRoleRequest(
   request: RoleClassifierRequest,
   config: CompiledRoleEnforcementConfig,

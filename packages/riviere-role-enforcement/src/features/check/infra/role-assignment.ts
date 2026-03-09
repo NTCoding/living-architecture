@@ -17,10 +17,12 @@ export interface RoleAssignmentParseResult {
   } | null
 }
 
+/** @riviere-role role-assignment-parser */
 function sanitizeCommentLine(line: string): string {
   return line.trim().replace(/^\*\s?/, '')
 }
 
+/** @riviere-role role-assignment-parser */
 function parseRoleAssignments(commentValue: string): {
   assignments: readonly string[]
   malformedLines: readonly string[]
@@ -51,6 +53,7 @@ function parseRoleAssignments(commentValue: string): {
   }
 }
 
+/** @riviere-role role-assignment-parser */
 function getCommentsForAnnotationNodes(
   sourceCode: SourceCodeLike,
   annotationNodes: readonly BaseNode[],
@@ -70,10 +73,12 @@ function getCommentsForAnnotationNodes(
   return [...uniqueComments.values()]
 }
 
+/** @riviere-role role-assignment-parser */
 function formatQuotedValues(values: readonly string[]): string {
   return values.map((value) => `'${value}'`).join(', ')
 }
 
+/** @riviere-role role-assignment-parser */
 export function parseRoleAssignment(
   sourceCode: SourceCodeLike,
   annotationNodes: readonly BaseNode[],
@@ -125,10 +130,12 @@ export function parseRoleAssignment(
   }
 }
 
+/** @riviere-role role-assignment-parser */
 function formatSymbolName(target: Pick<TargetSymbol, 'name' | 'ownerClassName'>): string {
   return target.ownerClassName === null ? target.name : `${target.ownerClassName}.${target.name}`
 }
 
+/** @riviere-role role-assignment-parser */
 function formatTarget(target: Pick<TargetSymbol, 'kind' | 'name' | 'ownerClassName'>): string {
   if (target.kind === 'class') {
     return `Class '${target.name}'`
@@ -141,6 +148,7 @@ function formatTarget(target: Pick<TargetSymbol, 'kind' | 'name' | 'ownerClassNa
   return `Static method '${formatSymbolName(target)}'`
 }
 
+/** @riviere-role role-assignment-parser */
 export function createRoleAssignmentIssue(
   target: Pick<TargetSymbol, 'kind' | 'name' | 'ownerClassName'>,
   relativeFilePath: string,

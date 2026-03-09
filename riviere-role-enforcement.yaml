@@ -33,6 +33,10 @@ include:
   - packages/riviere-cli/src/features/extract/infra/mappers/**/*.ts
   - packages/riviere-cli/src/features/query/entrypoint/**/*.ts
   - packages/riviere-query/src/features/querying/queries/**/*.ts
+  - packages/riviere-role-enforcement/src/features/check/domain/**/*.ts
+  - packages/riviere-role-enforcement/src/features/check/infra/**/*.ts
+  - packages/riviere-role-enforcement/src/features/classify/domain/**/*.ts
+  - packages/riviere-role-enforcement/src/platform/**/*.ts
   - tools/dev-workflow-v2/src/entrypoint/**/*.ts
   - tools/dev-workflow-v2/src/infra/**/*.ts
   - tools/dev-workflow-v2/src/workflow-definition/domain/**/*.ts
@@ -438,7 +442,8 @@ roles:
     targets: [function]
     allowedLocation:
       - packages/riviere-role-enforcement/src/features/check/infra/role-target-extraction.ts
-    nameMatches: '^(extractRoleTargets|getPublicMethodNames|create|mergeResults|getAnnotatedDeclaration).*$'
+      - packages/riviere-role-enforcement/src/features/check/infra/role-target-extraction-types.ts
+    nameMatches: '^(extractRoleTargets|getPublicMethodNames|create|mergeResults|getAnnotatedDeclaration|is).*$'
     markdownSpec: docs/roles/role-target-extractor.md
   - name: role-assignment-parser
     targets: [function]
@@ -456,13 +461,13 @@ roles:
     targets: [function]
     allowedLocation:
       - packages/riviere-role-enforcement/src/platform/infra/path-patterns.ts
-    nameMatches: '^(create|matches|normalize).*$'
+    nameMatches: '^(normalize|escape|globPatternTo|create|matches).*$'
     markdownSpec: docs/roles/path-pattern-matcher.md
   - name: role-classifier
     targets: [function]
     allowedLocation:
       - packages/riviere-role-enforcement/src/features/classify/domain/**/*.ts
-    nameMatches: '^(classify|createRoleClassifierResult|findRoleClassifierResult|infer|tokenize|score|rank).*$'
+    nameMatches: '^(classify|create|find|infer|tokenize|score|rank).*$'
     markdownSpec: docs/roles/role-classifier.md
   - name: lint-plugin-adapter
     targets: [function]

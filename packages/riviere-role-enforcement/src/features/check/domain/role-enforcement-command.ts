@@ -22,6 +22,7 @@ const DEFAULT_TARGETS = [
   'tools/dev-workflow-v2/src',
 ] as const
 
+/** @riviere-role role-command-parser */
 export function parseRoleEnforcementCommandArgs(
   args: readonly string[],
 ): RoleEnforcementCommandOptions {

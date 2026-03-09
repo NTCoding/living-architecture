@@ -1,3 +1,4 @@
+/** @riviere-role application-error */
 export class RoleEnforcementConfigError extends TypeError {
   constructor(message: string) {
     super(message)
