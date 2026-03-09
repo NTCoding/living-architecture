@@ -997,7 +997,7 @@ git add <relevant-files> && git commit --no-verify -m "<commit message>" && git 
   - Suggested commit: `feat(role-enforcement): cover dev-workflow-v2`
   - References: `2.5 Repository-Specific Rules Matter`, `3.10 Repository Rollout`, `5. Success Criteria`
 
-- [ ] Integrate deterministic enforcement into architecture review and AI repair workflow
+- [x] Integrate deterministic enforcement into architecture review and AI repair workflow
   - Requirements: wire deterministic enforcement into the review workflow, ensure diagnostics instruct Claude to run `riviere-role-classifier`, and connect markdown-spec-based AI review where useful
   - Acceptance: architecture review can execute deterministic checks and the self-correcting feedback loop is documented and testable
   - Suggested commit: `feat(role-enforcement): integrate review workflow`
