@@ -93,6 +93,7 @@ export async function addComponent(input: AddComponentInput): Promise<void> {
   }
 }
 
+/** @riviere-role command-orchestrator */
 function tryParseJson(content: string): unknown | null {
   try {
     return JSON.parse(content)
@@ -101,6 +102,7 @@ function tryParseJson(content: string): unknown | null {
   }
 }
 
+/** @riviere-role command-orchestrator */
 function handleError(error: unknown): void {
   if (error instanceof MissingRequiredOptionError) {
     console.log(JSON.stringify(formatError(CliErrorCode.ValidationError, error.message, [])))

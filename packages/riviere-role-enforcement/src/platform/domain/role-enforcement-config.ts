@@ -14,6 +14,7 @@ export interface RoleDefinition {
 
 export interface RoleEnforcementConfig {
   include?: readonly string[]
+  scopeRoots?: readonly string[]
   ignorePatterns?: readonly string[]
   roles: readonly RoleDefinition[]
 }
@@ -27,8 +28,10 @@ export interface CompiledRoleDefinition extends RoleDefinition {
 
 export interface CompiledRoleEnforcementConfig {
   include: readonly string[]
+  scopeRoots: readonly string[]
   ignorePatterns: readonly string[]
   includeMatchers: readonly PathMatcher[]
+  scopeRootMatchers: readonly PathMatcher[]
   ignoreMatchers: readonly PathMatcher[]
   roles: readonly CompiledRoleDefinition[]
 }

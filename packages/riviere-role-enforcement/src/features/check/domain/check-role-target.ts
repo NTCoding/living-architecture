@@ -210,6 +210,21 @@ export function isFileInScope(
   return matchesAnyPattern(config.includeMatchers, relativeFilePath)
 }
 
+export function isFileInsideScopeRoots(
+  relativeFilePath: string,
+  config: CompiledRoleEnforcementConfig,
+): boolean {
+  if (matchesAnyPattern(config.ignoreMatchers, relativeFilePath)) {
+    return false
+  }
+
+  if (config.scopeRootMatchers.length === 0) {
+    return false
+  }
+
+  return matchesAnyPattern(config.scopeRootMatchers, relativeFilePath)
+}
+
 export function findAssignedRoleDefinition(
   target: TargetSymbol,
   config: CompiledRoleEnforcementConfig,

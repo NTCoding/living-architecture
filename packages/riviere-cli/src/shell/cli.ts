@@ -38,6 +38,7 @@ export function parsePackageJson(pkg: unknown): PackageJson {
 
 declare const INJECTED_VERSION: string | undefined
 
+/** @riviere-role cli-package-json-parser */
 function loadPackageJson(): PackageJson {
   if (typeof INJECTED_VERSION === 'string') {
     return { version: INJECTED_VERSION }

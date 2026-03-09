@@ -112,14 +112,17 @@ export class Workflow {
     this.deps = deps
   }
 
+  /** @riviere-role workflow-domain-helper */
   static createFresh(deps: WorkflowDeps): Workflow {
     return new Workflow(EMPTY_STATE, deps)
   }
 
+  /** @riviere-role workflow-domain-helper */
   static rehydrate(state: WorkflowState, deps: WorkflowDeps): Workflow {
     return new Workflow(WORKFLOW_STATE_SCHEMA.parse(state), deps)
   }
 
+  /** @riviere-role workflow-domain-helper */
   static procedurePath(state: string, pluginRoot: string): string {
     return `${pluginRoot}/${getStateDefinition(state).agentInstructions}`
   }

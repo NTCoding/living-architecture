@@ -16,6 +16,7 @@ export function getGitInfo(): GitInfo {
   }
 }
 
+/** @riviere-role workflow-infra-client */
 function detectDefaultBranch(): string {
   try {
     return runGit('symbolic-ref refs/remotes/origin/HEAD --short').replace('origin/', '')
@@ -24,6 +25,7 @@ function detectDefaultBranch(): string {
   }
 }
 
+/** @riviere-role workflow-infra-client */
 function runGit(gitArgs: string): string {
   return execSync(`git ${gitArgs}`, { encoding: 'utf-8' }).trim()
 }

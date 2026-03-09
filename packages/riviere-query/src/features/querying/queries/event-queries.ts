@@ -55,6 +55,7 @@ export function queryEventHandlers(graph: RiviereGraph, eventName?: string): Eve
   return filtered.map((h) => buildEventHandlerInfo(h, eventByName))
 }
 
+/** @riviere-role query-service */
 function buildEventNameMap(graph: RiviereGraph): Map<string, EventComponent> {
   return new Map(
     graph.components
@@ -63,10 +64,12 @@ function buildEventNameMap(graph: RiviereGraph): Map<string, EventComponent> {
   )
 }
 
+/** @riviere-role query-service */
 function findEventHandlerComponents(graph: RiviereGraph): EventHandlerComponent[] {
   return graph.components.filter((c): c is EventHandlerComponent => c.type === 'EventHandler')
 }
 
+/** @riviere-role query-service */
 function buildEventHandlerInfo(
   handler: EventHandlerComponent,
   eventByName: Map<string, EventComponent>,

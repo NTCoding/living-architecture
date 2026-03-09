@@ -8,6 +8,7 @@ interface ExternalDomainAccumulator {
   connectionCount: number
 }
 
+/** @riviere-role query-service */
 function buildComponentDomainMap(graph: RiviereGraph): Map<string, string> {
   const componentDomains = new Map<string, string>()
   for (const component of graph.components) {
@@ -16,6 +17,7 @@ function buildComponentDomainMap(graph: RiviereGraph): Map<string, string> {
   return componentDomains
 }
 
+/** @riviere-role query-service */
 function aggregateExternalDomains(
   externalLinks: NonNullable<RiviereGraph['externalLinks']>,
   componentDomains: Map<string, string>,
@@ -41,6 +43,7 @@ function aggregateExternalDomains(
   return domains
 }
 
+/** @riviere-role query-service */
 function convertToExternalDomains(
   domains: Map<string, ExternalDomainAccumulator>,
 ): ExternalDomain[] {

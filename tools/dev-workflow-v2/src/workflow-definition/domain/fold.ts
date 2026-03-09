@@ -12,6 +12,7 @@ export const EMPTY_STATE: WorkflowState = {
   feedbackAddressed: false,
 }
 
+/** @riviere-role workflow-domain-helper */
 function applyTransitioned(
   state: WorkflowState,
   event: Extract<WorkflowEvent, { type: 'transitioned' }>,
@@ -25,6 +26,7 @@ function applyTransitioned(
   }
 }
 
+/** @riviere-role workflow-domain-helper */
 function applyRecordingEvent(state: WorkflowState, event: WorkflowEvent): WorkflowState {
   switch (event.type) {
     case 'issue-recorded':

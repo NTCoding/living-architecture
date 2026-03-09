@@ -2,163 +2,58 @@ import type { TargetSymbol } from '../domain/target-symbol'
 import {
   createRoleAssignmentIssue, parseRoleAssignment 
 } from './role-assignment'
+import {
+  isClassDeclarationNode,
+  isDirectDeclarationNode,
+  isExportDefaultDeclarationNode,
+  isExportNamedDeclarationNode,
+  isFunctionDeclarationNode,
+  isFunctionExpressionNode,
+  isIdentifierNode,
+  isMethodDefinitionNode,
+  isNamedKeyNode,
+  isVariableDeclarationNode,
+  type BaseNode,
+  type ClassDeclarationNode,
+  type ExportableDeclarationNode,
+  type MethodDefinitionNode,
+  type ProgramNode,
+  type RoleTargetExtractionResult,
+  type SourceCodeLike,
+  type StatementNode,
+  type VariableDeclarationNode,
+} from './role-target-extraction-types'
 
-export interface BaseNode {
-  type: string
-  range: [number, number]
-  start: number
-  end: number
-  loc: {
-    start: {
-      line: number
-      column: number
-    }
-    end: {
-      line: number
-      column: number
-    }
-  }
-}
-
-export interface CommentToken {value: string}
-
-export interface SourceCodeLike {getCommentsBefore: (node: BaseNode) => readonly CommentToken[]}
-
-interface IdentifierNode extends BaseNode {
-  type: 'Identifier'
-  name: string
-}
-
-interface NamedKeyNode extends BaseNode {
-  name: string
-}
-
-interface FunctionDeclarationNode extends BaseNode {
-  type: 'FunctionDeclaration'
-  id: IdentifierNode | null
-}
-
-interface FunctionExpressionNode extends BaseNode {type: 'ArrowFunctionExpression' | 'FunctionExpression'}
-
-interface VariableDeclaratorNode extends BaseNode {
-  type: 'VariableDeclarator'
-  id: IdentifierNode | BaseNode
-  init: FunctionExpressionNode | BaseNode | null
-}
-
-interface VariableDeclarationNode extends BaseNode {
-  type: 'VariableDeclaration'
-  declarations: readonly VariableDeclaratorNode[]
-}
-
-interface MethodDefinitionNode extends BaseNode {
-  type: 'MethodDefinition'
-  kind: string
-  static?: boolean
-  computed?: boolean
-  accessibility?: 'public' | 'private' | 'protected'
-  key: IdentifierNode | BaseNode
-}
-
-interface ClassBodyNode extends BaseNode {
-  type: 'ClassBody'
-  body: readonly (MethodDefinitionNode | BaseNode)[]
-}
-
-interface ClassDeclarationNode extends BaseNode {
-  type: 'ClassDeclaration'
-  id: IdentifierNode | null
-  body: ClassBodyNode
-}
-
-interface ExportNamedDeclarationNode extends BaseNode {
-  type: 'ExportNamedDeclaration'
-  declaration: ExportableDeclarationNode | null
-}
-
-interface ExportDefaultDeclarationNode extends BaseNode {
-  type: 'ExportDefaultDeclaration'
-  declaration: ExportableDeclarationNode
-}
-
-type ExportableDeclarationNode =
-  | BaseNode
-  | ClassDeclarationNode
-  | FunctionDeclarationNode
-  | VariableDeclarationNode
-
-type StatementNode =
-  | BaseNode
-  | ClassDeclarationNode
-  | FunctionDeclarationNode
-  | VariableDeclarationNode
-  | ExportNamedDeclarationNode
-  | ExportDefaultDeclarationNode
-
-export interface ProgramNode extends BaseNode {
-  type: 'Program'
-  body: readonly StatementNode[]
-}
+export {
+  isProgramNode,
+  type BaseNode,
+  type CommentToken,
+  type ProgramNode,
+  type RoleTargetExtractionIssue,
+  type SourceCodeLike,
+} from './role-target-extraction-types'
 
 interface ReportableTarget extends TargetSymbol {reportNode: BaseNode}
 
-export interface RoleTargetExtractionIssue {
-  code: 'duplicate-role-assignment' | 'malformed-role-assignment'
-  message: string
-  reportNode: BaseNode
+type ExtractionResult = RoleTargetExtractionResult<ReportableTarget>
+
+interface AnnotatedDeclaration {
+  declaration: ExportableDeclarationNode | null
+  annotationNode: BaseNode
 }
 
-export interface RoleTargetExtractionResult {
-  targets: readonly ReportableTarget[]
-  issues: readonly RoleTargetExtractionIssue[]
+function createEmptyResult(): ExtractionResult {
+  return {
+    targets: [],
+    issues: [],
+  }
 }
 
-function isIdentifierNode(node: BaseNode | null): node is IdentifierNode {
-  return node?.type === 'Identifier'
-}
-
-function isNamedKeyNode(node: BaseNode | null): node is NamedKeyNode {
-  return typeof node === 'object' && node !== null && 'name' in node && typeof node.name === 'string'
-}
-
-function isFunctionExpressionNode(node: BaseNode | null): node is FunctionExpressionNode {
-  return node?.type === 'ArrowFunctionExpression' || node?.type === 'FunctionExpression'
-}
-
-export function isProgramNode(node: BaseNode): node is ProgramNode {
-  return node.type === 'Program'
-}
-
-function isClassDeclarationNode(node: BaseNode | null): node is ClassDeclarationNode {
-  return node?.type === 'ClassDeclaration'
-}
-
-function isFunctionDeclarationNode(node: BaseNode | null): node is FunctionDeclarationNode {
-  return node?.type === 'FunctionDeclaration'
-}
-
-function isVariableDeclarationNode(node: BaseNode | null): node is VariableDeclarationNode {
-  return node?.type === 'VariableDeclaration'
-}
-
-function isExportNamedDeclarationNode(node: StatementNode): node is ExportNamedDeclarationNode {
-  return node.type === 'ExportNamedDeclaration'
-}
-
-function isExportDefaultDeclarationNode(node: StatementNode): node is ExportDefaultDeclarationNode {
-  return node.type === 'ExportDefaultDeclaration'
-}
-
-function isDirectDeclarationNode(node: StatementNode): node is ExportableDeclarationNode {
-  return (
-    isClassDeclarationNode(node) ||
-    isFunctionDeclarationNode(node) ||
-    isVariableDeclarationNode(node)
-  )
-}
-
-function isMethodDefinitionNode(node: BaseNode): node is MethodDefinitionNode {
-  return node.type === 'MethodDefinition'
+function mergeResults(left: ExtractionResult, right: ExtractionResult): ExtractionResult {
+  return {
+    targets: [...left.targets, ...right.targets],
+    issues: [...left.issues, ...right.issues],
+  }
 }
 
 function getPublicMethodNames(classDeclaration: ClassDeclarationNode): readonly string[] {
@@ -179,17 +74,14 @@ function getPublicMethodNames(classDeclaration: ClassDeclarationNode): readonly 
   })
 }
 
-function createClassTarget(
+function createClassResult(
   declaration: ClassDeclarationNode,
   annotationNodes: readonly BaseNode[],
   relativeFilePath: string,
   sourceCode: SourceCodeLike,
-): RoleTargetExtractionResult {
+): ExtractionResult {
   if (!isIdentifierNode(declaration.id)) {
-    return {
-      targets: [],
-      issues: [],
-    }
+    return createEmptyResult()
   }
 
   const assignment = parseRoleAssignment(sourceCode, annotationNodes)
@@ -199,14 +91,11 @@ function createClassTarget(
     ownerClassName: null,
   }
 
-  const staticMethodTargets = createStaticMethodTargets(declaration, relativeFilePath, sourceCode)
-
   if (assignment.issue !== null) {
     return {
-      targets: staticMethodTargets.targets,
+      targets: [],
       issues: [
         createRoleAssignmentIssue(baseTarget, relativeFilePath, declaration.id, assignment.issue),
-        ...staticMethodTargets.issues,
       ],
     }
   }
@@ -220,76 +109,91 @@ function createClassTarget(
         publicMethodNames: getPublicMethodNames(declaration),
         reportNode: declaration.id,
       },
-      ...staticMethodTargets.targets,
     ],
-    issues: staticMethodTargets.issues,
+    issues: [],
   }
 }
 
-function createStaticMethodTargets(
-  declaration: ClassDeclarationNode,
+function createStaticMethodResult(
+  classDeclaration: ClassDeclarationNode,
+  methodDefinition: MethodDefinitionNode,
   relativeFilePath: string,
   sourceCode: SourceCodeLike,
-): RoleTargetExtractionResult {
-  if (!isIdentifierNode(declaration.id)) {
+): ExtractionResult {
+  if (!isIdentifierNode(classDeclaration.id) || !isNamedKeyNode(methodDefinition.key)) {
+    return createEmptyResult()
+  }
+
+  const assignment = parseRoleAssignment(sourceCode, [methodDefinition, methodDefinition.key])
+  const baseTarget = {
+    kind: 'static-method' as const,
+    name: methodDefinition.key.name,
+    ownerClassName: classDeclaration.id.name,
+  }
+
+  if (assignment.issue !== null) {
     return {
       targets: [],
-      issues: [],
+      issues: [
+        createRoleAssignmentIssue(
+          baseTarget,
+          relativeFilePath,
+          methodDefinition.key,
+          assignment.issue,
+        ),
+      ],
     }
   }
 
-  return declaration.body.body.reduce<RoleTargetExtractionResult>(
-    (result, classElement) => {
-      if (
-        !isMethodDefinitionNode(classElement) ||
-        classElement.kind !== 'method' ||
-        classElement.static !== true ||
-        classElement.computed === true ||
-        !isNamedKeyNode(classElement.key)
-      ) {
-        return result
-      }
+  return {
+    targets: [
+      {
+        ...baseTarget,
+        assignedRoleName: assignment.assignedRoleName,
+        relativeFilePath,
+        publicMethodNames: [],
+        reportNode: methodDefinition.key,
+      },
+    ],
+    issues: [],
+  }
+}
 
-      const assignment = parseRoleAssignment(sourceCode, [classElement, classElement.key])
-      const baseTarget = {
-        kind: 'static-method' as const,
-        name: classElement.key.name,
-        ownerClassName: declaration.id.name,
-      }
+function createStaticMethodResults(
+  declaration: ClassDeclarationNode,
+  relativeFilePath: string,
+  sourceCode: SourceCodeLike,
+): ExtractionResult {
+  if (!isIdentifierNode(declaration.id)) {
+    return createEmptyResult()
+  }
 
-      if (assignment.issue !== null) {
-        return {
-          targets: result.targets,
-          issues: [
-            ...result.issues,
-            createRoleAssignmentIssue(
-              baseTarget,
-              relativeFilePath,
-              classElement.key,
-              assignment.issue,
-            ),
-          ],
-        }
-      }
+  return declaration.body.body.reduce<ExtractionResult>((result, classElement) => {
+    if (
+      !isMethodDefinitionNode(classElement) ||
+      classElement.kind !== 'method' ||
+      classElement.static !== true ||
+      classElement.computed === true
+    ) {
+      return result
+    }
 
-      return {
-        targets: [
-          ...result.targets,
-          {
-            ...baseTarget,
-            assignedRoleName: assignment.assignedRoleName,
-            relativeFilePath,
-            publicMethodNames: [],
-            reportNode: classElement.key,
-          },
-        ],
-        issues: result.issues,
-      }
-    },
-    {
-      targets: [],
-      issues: [],
-    },
+    return mergeResults(
+      result,
+      createStaticMethodResult(declaration, classElement, relativeFilePath, sourceCode),
+    )
+  }, createEmptyResult())
+}
+
+function createClassTargets(
+  declaration: ClassDeclarationNode,
+  annotationNodes: readonly BaseNode[],
+  relativeFilePath: string,
+  sourceCode: SourceCodeLike,
+): ExtractionResult {
+  return mergeResults(
+    createClassResult(declaration, annotationNodes, relativeFilePath, sourceCode),
+    createStaticMethodResults(declaration, relativeFilePath, sourceCode),
   )
 }
 
@@ -298,68 +202,54 @@ function createFunctionTargets(
   annotationNodes: readonly BaseNode[],
   relativeFilePath: string,
   sourceCode: SourceCodeLike,
-): RoleTargetExtractionResult {
+): ExtractionResult {
   const assignment = parseRoleAssignment(sourceCode, annotationNodes)
 
-  return declaration.declarations.reduce<RoleTargetExtractionResult>(
-    (result, declarator) => {
-      if (!isIdentifierNode(declarator.id) || !isFunctionExpressionNode(declarator.init)) {
-        return result
-      }
+  return declaration.declarations.reduce<ExtractionResult>((result, declarator) => {
+    if (!isIdentifierNode(declarator.id) || !isFunctionExpressionNode(declarator.init)) {
+      return result
+    }
 
-  const baseTarget = {
-    kind: 'function' as const,
-    name: declarator.id.name,
-    ownerClassName: null,
-  }
+    const baseTarget = {
+      kind: 'function' as const,
+      name: declarator.id.name,
+      ownerClassName: null,
+    }
 
-      if (assignment.issue !== null) {
-        return {
-          targets: result.targets,
-          issues: [
-            ...result.issues,
-            createRoleAssignmentIssue(
-              baseTarget,
-              relativeFilePath,
-              declarator.id,
-              assignment.issue,
-            ),
-          ],
-        }
-      }
-
+    if (assignment.issue !== null) {
       return {
-        targets: [
-          ...result.targets,
-          {
-            ...baseTarget,
-            assignedRoleName: assignment.assignedRoleName,
-            relativeFilePath,
-            publicMethodNames: [],
-            reportNode: declarator.id,
-          },
+        targets: result.targets,
+        issues: [
+          ...result.issues,
+          createRoleAssignmentIssue(baseTarget, relativeFilePath, declarator.id, assignment.issue),
         ],
-        issues: result.issues,
       }
-    },
-    {
-      targets: [],
-      issues: [],
-    },
-  )
+    }
+
+    return {
+      targets: [
+        ...result.targets,
+        {
+          ...baseTarget,
+          assignedRoleName: assignment.assignedRoleName,
+          relativeFilePath,
+          publicMethodNames: [],
+          reportNode: declarator.id,
+        },
+      ],
+      issues: result.issues,
+    }
+  }, createEmptyResult())
 }
 
 function createFunctionDeclarationTarget(
-  declaration: FunctionDeclarationNode,
+  declaration: ExportableDeclarationNode | null,
   annotationNodes: readonly BaseNode[],
   relativeFilePath: string,
   sourceCode: SourceCodeLike,
-): RoleTargetExtractionResult {
-  if (!isIdentifierNode(declaration.id)) {
-    return {
-      targets: [],
-      issues: [],
-    }
+): ExtractionResult {
+  if (!isFunctionDeclarationNode(declaration) || !isIdentifierNode(declaration.id)) {
+    return createEmptyResult()
   }
 
   const assignment = parseRoleAssignment(sourceCode, annotationNodes)
@@ -397,60 +287,48 @@ function createDeclarationTargets(
   annotationNode: BaseNode,
   relativeFilePath: string,
   sourceCode: SourceCodeLike,
-): RoleTargetExtractionResult {
+): ExtractionResult {
   if (declaration === null) {
-    return {
-      targets: [],
-      issues: [],
-    }
+    return createEmptyResult()
   }
 
   const annotationNodes = [annotationNode, declaration]
 
-  switch (declaration.type) {
-    case 'ClassDeclaration':
-      /* v8 ignore start -- defensive guard after discriminant narrowing */
-      if (!isClassDeclarationNode(declaration)) {
-        return {
-          targets: [],
-          issues: [],
-        }
-      }
-      /* v8 ignore stop */
+  if (isClassDeclarationNode(declaration)) {
+    return createClassTargets(declaration, annotationNodes, relativeFilePath, sourceCode)
+  }
 
-      return createClassTarget(declaration, annotationNodes, relativeFilePath, sourceCode)
-    case 'FunctionDeclaration':
-      /* v8 ignore start -- defensive guard after discriminant narrowing */
-      if (!isFunctionDeclarationNode(declaration)) {
-        return {
-          targets: [],
-          issues: [],
-        }
-      }
-      /* v8 ignore stop */
+  if (isFunctionDeclarationNode(declaration)) {
+    return createFunctionDeclarationTarget(
+      declaration,
+      annotationNodes,
+      relativeFilePath,
+      sourceCode,
+    )
+  }
 
-      return createFunctionDeclarationTarget(
-        declaration,
-        annotationNodes,
-        relativeFilePath,
-        sourceCode,
-      )
-    case 'VariableDeclaration':
-      /* v8 ignore start -- defensive guard after discriminant narrowing */
-      if (!isVariableDeclarationNode(declaration)) {
-        return {
-          targets: [],
-          issues: [],
-        }
-      }
-      /* v8 ignore stop */
+  if (isVariableDeclarationNode(declaration)) {
+    return createFunctionTargets(declaration, annotationNodes, relativeFilePath, sourceCode)
+  }
 
-      return createFunctionTargets(declaration, annotationNodes, relativeFilePath, sourceCode)
-    default:
-      return {
-        targets: [],
-        issues: [],
-      }
+  return createEmptyResult()
+}
+
+function getAnnotatedDeclaration(statement: StatementNode): AnnotatedDeclaration | null {
+  if (isExportNamedDeclarationNode(statement) || isExportDefaultDeclarationNode(statement)) {
+    return {
+      declaration: statement.declaration,
+      annotationNode: statement,
+    }
+  }
+
+  if (!isDirectDeclarationNode(statement)) {
+    return null
+  }
+
+  return {
+    declaration: statement,
+    annotationNode: statement,
   }
 }
 
@@ -458,34 +336,22 @@ export function extractRoleTargets(
   program: ProgramNode,
   sourceCode: SourceCodeLike,
   relativeFilePath: string,
-): RoleTargetExtractionResult {
-  return program.body.reduce<RoleTargetExtractionResult>(
-    (result, statement) => {
-      let declaration: ExportableDeclarationNode | null = null
-      let annotationNode: BaseNode | null = null
+): ExtractionResult {
+  return program.body.reduce<ExtractionResult>((result, statement) => {
+    const annotatedDeclaration = getAnnotatedDeclaration(statement)
 
-      if (isExportNamedDeclarationNode(statement) || isExportDefaultDeclarationNode(statement)) {
-        declaration = statement.declaration
-        annotationNode = statement
-      } else if (isDirectDeclarationNode(statement)) {
-        declaration = statement
-        annotationNode = statement
-      }
+    if (annotatedDeclaration === null) {
+      return result
+    }
 
-      if (annotationNode === null) {
-        return result
-      }
-
-      const extracted = createDeclarationTargets(declaration, annotationNode, relativeFilePath, sourceCode)
-
-      return {
-        targets: [...result.targets, ...extracted.targets],
-        issues: [...result.issues, ...extracted.issues],
-      }
-    },
-    {
-      targets: [],
-      issues: [],
-    },
-  )
+    return mergeResults(
+      result,
+      createDeclarationTargets(
+        annotatedDeclaration.declaration,
+        annotatedDeclaration.annotationNode,
+        relativeFilePath,
+        sourceCode,
+      ),
+    )
+  }, createEmptyResult())
 }

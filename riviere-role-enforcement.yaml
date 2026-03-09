@@ -56,6 +56,7 @@ roles:
       - packages/riviere-cli/src/shell/**/*.ts
     allowedNames:
       - parsePackageJson
+      - loadPackageJson
     markdownSpec: docs/roles/cli-package-json-parser.md
   - name: cli-entrypoint
     targets: [function]
@@ -69,7 +70,9 @@ roles:
       - packages/riviere-cli/src/features/*/commands/**/*.ts
     allowedNames:
       - addComponent
+      - handleError
       - runExtraction
+      - tryParseJson
     markdownSpec: docs/roles/command-orchestrator.md
   - name: cli-query-service
     targets: [function]
@@ -78,15 +81,18 @@ roles:
     allowedNames:
       - findApisByPath
       - getAllApiPaths
+      - isRestApiWithPath
     markdownSpec: docs/roles/cli-query-service.md
   - name: extract-domain-service
     targets: [function]
     allowedLocation:
       - packages/riviere-cli/src/features/extract/domain/**/*.ts
     allowedNames:
+      - assertAllDraftsMatchModules
       - detectConnectionsPerModule
       - enrichPerModule
       - extractDraftComponents
+      - groupDraftsByModule
     markdownSpec: docs/roles/extract-domain-service.md
   - name: extract-project-loader
     targets: [function]
@@ -104,13 +110,41 @@ roles:
       - packages/riviere-cli/src/features/*/infra/mappers/**/*.ts
     allowedNames:
       - presentExtractionResult
+      - presentDraftResult
+      - presentFullResult
     markdownSpec: docs/roles/cli-result-presenter.md
   - name: query-service
-    targets: [function]
+    targets: [function, static-method]
     allowedLocation:
       - packages/riviere-query/src/features/querying/queries/**/*.ts
     allowedNames:
+      - aggregateExternalDomains
+      - assertValidGraph
+      - buildComponentDomainMap
+      - buildEventHandlerInfo
+      - buildEventNameMap
+      - buildExternalLinksBySource
+      - buildNodeIdToDomain
+      - buildOutgoingEdges
+      - collectConnections
       - findComponent
+      - findChangedFields
+      - findEntryPointIds
+      - findEventHandlerComponents
+      - fromJSON
+      - getOrInitializeConnectionCounts
+      - incrementConnectionCount
+      - initializeConnectionCounts
+      - isCustomComponent
+      - linkTypeForSort
+      - orderStatesByTransitions
+      - processQueue
+      - enqueueChildren
+      - createEntity
+      - compareCrossDomainLinks
+      - convertToExternalDomains
+      - validateCustomTypes
+      - toConnectionResults
       - findAllComponents
       - componentById
       - searchComponents
@@ -216,24 +250,31 @@ roles:
     allowedLocation:
       - tools/dev-workflow-v2/src/infra/**/*.ts
     allowedNames:
+      - detectDefaultBranch
       - getGitInfo
       - runGh
+      - runGit
       - createGetPrFeedback
     markdownSpec: docs/roles/workflow-infra-client.md
   - name: workflow-domain-helper
-    targets: [function]
+    targets: [function, static-method]
     allowedLocation:
       - tools/dev-workflow-v2/src/workflow-definition/domain/**/*.ts
     allowedNames:
+      - applyRecordingEvent
       - createWorkflowStateSchema
+      - createFresh
       - parseStateName
       - checkWriteAllowed
       - isWriteAllowed
       - getStateDefinition
       - getOperationBody
+      - procedurePath
+      - rehydrate
       - getTransitionTitle
       - applyEvent
       - applyEvents
+      - applyTransitioned
     markdownSpec: docs/roles/workflow-domain-helper.md
   - name: workflow-facade
     targets: [class]

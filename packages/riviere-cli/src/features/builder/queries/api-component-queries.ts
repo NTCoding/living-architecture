@@ -10,6 +10,7 @@ export interface ApiComponent {
   httpMethod: HttpMethod
 }
 
+/** @riviere-role cli-query-service */
 function isRestApiWithPath(component: Component): component is Component & ApiComponent {
   return component.type === 'API' && 'path' in component && 'httpMethod' in component
 }

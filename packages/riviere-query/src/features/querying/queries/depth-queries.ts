@@ -28,6 +28,7 @@ export function queryNodeDepths(graph: RiviereGraph): Map<ComponentId, number> {
   return depths
 }
 
+/** @riviere-role query-service */
 function processQueue(
   queue: DepthQueueEntry[],
   depths: Map<ComponentId, number>,
@@ -47,6 +48,7 @@ function processQueue(
   processQueue(queue, depths, outgoingEdges)
 }
 
+/** @riviere-role query-service */
 function enqueueChildren(
   outgoingEdges: Map<ComponentId, ComponentId[]>,
   current: DepthQueueEntry,
@@ -63,6 +65,7 @@ function enqueueChildren(
   }
 }
 
+/** @riviere-role query-service */
 function findEntryPointIds(graph: RiviereGraph): ComponentId[] {
   const targets = new Set(graph.links.map((link) => link.target))
   return graph.components
@@ -70,6 +73,7 @@ function findEntryPointIds(graph: RiviereGraph): ComponentId[] {
     .map((c) => parseComponentId(c.id))
 }
 
+/** @riviere-role query-service */
 function buildOutgoingEdges(graph: RiviereGraph): Map<ComponentId, ComponentId[]> {
   const edges = new Map<ComponentId, ComponentId[]>()
   for (const link of graph.links) {

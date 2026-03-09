@@ -56,6 +56,7 @@ export function diffGraphs(current: RiviereGraph, other: RiviereGraph): GraphDif
   }
 }
 
+/** @riviere-role query-service */
 function findChangedFields(before: Component, after: Component): string[] {
   const beforeEntries = new Map(Object.entries(before))
   const afterEntries = new Map(Object.entries(after))

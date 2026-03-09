@@ -1,6 +1,8 @@
 import path from 'node:path'
 import { eslintCompatPlugin } from '@oxlint/plugins'
-import { checkTargetSymbol } from '../domain/check-role-target'
+import {
+  checkTargetSymbol, isFileInScope, isFileInsideScopeRoots 
+} from '../domain/check-role-target'
 import { RoleEnforcementConfigError } from '../../../platform/domain/role-enforcement-config-error'
 import type { CompiledRoleEnforcementConfig } from '../../../platform/domain/role-enforcement-config'
 import { loadRoleEnforcementConfig } from '../../../platform/infra/load-role-enforcement-config'
@@ -38,6 +40,16 @@ function getFilename(context: {
 
 function shouldInspectFile(filename: string): boolean {
   return filename.endsWith('.ts') || filename.endsWith('.tsx')
+}
+
+function createScopeCoverageMessage(relativeFilePath: string): string {
+  return [
+    'Role enforcement error: out-of-scope-by-omission',
+    '',
+    `File: ${relativeFilePath}`,
+    'Why: This file contains targetable declarations and is inside the configured scope roots, but no enforcement include pattern covers it.',
+    'Suggested fix: Expand the enforcement scope for this path or move the file into an explicitly excluded category. Do not rely on config omission as an exception.',
+  ].join('\n')
 }
 
 function loadCompiledConfig(configPath: string):
@@ -111,6 +123,18 @@ const plugin = eslintCompatPlugin({
 
             const relativeFilePath = normalizePath(path.relative(process.cwd(), filename))
             const extractionResult = extractRoleTargets(node, context.sourceCode, relativeFilePath)
+
+            if (
+              (extractionResult.targets.length > 0 || extractionResult.issues.length > 0) &&
+              isFileInsideScopeRoots(relativeFilePath, configResult.config) &&
+              !isFileInScope(relativeFilePath, configResult.config)
+            ) {
+              context.report({
+                node,
+                message: createScopeCoverageMessage(relativeFilePath),
+              })
+              return
+            }
 
             for (const issue of extractionResult.issues) {
               context.report({

@@ -89,6 +89,7 @@ export type { SearchWithFlowOptions } from './flow-queries'
 export { parseComponentId } from './domain-types'
 export { ComponentNotFoundError } from './errors'
 
+/** @riviere-role query-service */
 function assertValidGraph(graph: unknown): asserts graph is RiviereGraph {
   parseRiviereGraph(graph)
 }
@@ -148,6 +149,7 @@ export class RiviereQuery {
    * const query = RiviereQuery.fromJSON(jsonData)
    * ```
    */
+  /** @riviere-role query-service */
   static fromJSON(json: unknown): RiviereQuery {
     assertValidGraph(json)
     return new RiviereQuery(json)

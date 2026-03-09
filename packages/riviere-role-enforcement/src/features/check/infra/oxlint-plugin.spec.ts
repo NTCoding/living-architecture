@@ -7,7 +7,14 @@ import { loadRoleEnforcementConfig } from '../../../platform/infra/load-role-enf
 import { extractRoleTargets } from './role-target-extraction'
 import plugin from './oxlint-plugin'
 
-vi.mock('../domain/check-role-target', () => ({ checkTargetSymbol: vi.fn() }))
+vi.mock('../domain/check-role-target', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../domain/check-role-target')>()
+
+  return {
+    ...actual,
+    checkTargetSymbol: vi.fn(),
+  }
+})
 
 vi.mock('../../../platform/infra/load-role-enforcement-config', () => ({loadRoleEnforcementConfig: vi.fn(),}))
 
@@ -118,8 +125,10 @@ describe('roleEnforcementOxlintPlugin', () => {
   it('reports extraction issues and target violations', () => {
     vi.mocked(loadRoleEnforcementConfig).mockReturnValue({
       include: [],
+      scopeRoots: [],
       ignorePatterns: [],
       includeMatchers: [],
+      scopeRootMatchers: [],
       ignoreMatchers: [],
       roles: [],
     })
@@ -183,11 +192,49 @@ describe('roleEnforcementOxlintPlugin', () => {
     )
   })
 
+  it('reports files omitted from enforcement even when they contain targetable declarations', () => {
+    vi.mocked(loadRoleEnforcementConfig).mockReturnValue({
+      include: ['packages/demo/src/shell/**/*.ts'],
+      scopeRoots: ['packages/demo/src/**/*.ts'],
+      ignorePatterns: [],
+      includeMatchers: [(input) => input.includes('packages/demo/src/shell/')],
+      scopeRootMatchers: [(input) => input.includes('packages/demo/src/')],
+      ignoreMatchers: [],
+      roles: [],
+    })
+    vi.mocked(extractRoleTargets).mockReturnValue({
+      issues: [],
+      targets: [
+        {
+          kind: 'function',
+          name: 'runDemo',
+          ownerClassName: null,
+          assignedRoleName: null,
+          relativeFilePath: 'packages/demo/src/features/demo/entrypoint/run-demo.ts',
+          publicMethodNames: [],
+          reportNode: createBaseNode('Identifier'),
+        },
+      ],
+    })
+    vi.mocked(checkTargetSymbol).mockReturnValue([])
+    const context = createRuleContext({filename: '/repo/packages/demo/src/features/demo/entrypoint/run-demo.ts',})
+    const programHandler = createProgramHandler(context)
+
+    programHandler(createProgramNode())
+
+    expect(checkTargetSymbol).not.toHaveBeenCalled()
+    expect(context.report).toHaveBeenCalledWith(
+      expect.objectContaining({message: expect.stringContaining('Role enforcement error: out-of-scope-by-omission'),}),
+    )
+  })
+
   it('falls back to the default config path when options omit a string path', () => {
     vi.mocked(loadRoleEnforcementConfig).mockReturnValue({
       include: [],
+      scopeRoots: [],
       ignorePatterns: [],
       includeMatchers: [],
+      scopeRootMatchers: [],
       ignoreMatchers: [],
       roles: [],
     })

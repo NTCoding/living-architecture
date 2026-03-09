@@ -76,6 +76,7 @@ const roleDefinitionSchema = z
 const roleEnforcementConfigSchema = z
   .object({
     include: z.array(z.string().min(1)).default([]),
+    scopeRoots: z.array(z.string().min(1)).default([]),
     ignorePatterns: z.array(z.string().min(1)).default([]),
     roles: z.array(roleDefinitionSchema).min(1),
   })
@@ -158,8 +159,10 @@ export function compileRoleEnforcementConfig(
 
   return {
     include: parsedConfig.include,
+    scopeRoots: parsedConfig.scopeRoots,
     ignorePatterns: parsedConfig.ignorePatterns,
     includeMatchers: parsedConfig.include.map(createPathMatcher),
+    scopeRootMatchers: parsedConfig.scopeRoots.map(createPathMatcher),
     ignoreMatchers: parsedConfig.ignorePatterns.map(createPathMatcher),
     roles: parsedConfig.roles.map((role) => compileRoleDefinition(role)),
   }

@@ -5,6 +5,7 @@ import type {
 import { parseDomainName } from './domain-types'
 import { compareByCodePoint } from './compare-by-code-point'
 
+/** @riviere-role query-service */
 function buildNodeIdToDomain(graph: RiviereGraph): Map<string, string> {
   return new Map(graph.components.map((c) => [c.id, c.domain]))
 }
@@ -45,11 +46,13 @@ export function queryCrossDomainLinks(graph: RiviereGraph, domainName: string): 
 
 const UNDEFINED_LINK_TYPE_SORT_KEY = ''
 
+/** @riviere-role query-service */
 function linkTypeForSort(linkType: 'sync' | 'async' | undefined): string {
   if (linkType === undefined) return UNDEFINED_LINK_TYPE_SORT_KEY
   return linkType
 }
 
+/** @riviere-role query-service */
 function compareCrossDomainLinks(a: CrossDomainLink, b: CrossDomainLink): number {
   const domainCompare = compareByCodePoint(a.targetDomain, b.targetDomain)
   if (domainCompare !== 0) return domainCompare
@@ -61,6 +64,7 @@ interface ConnectionCounts {
   eventCount: number
 }
 
+/** @riviere-role query-service */
 function initializeConnectionCounts(): ConnectionCounts {
   return {
     apiCount: 0,
@@ -68,6 +72,7 @@ function initializeConnectionCounts(): ConnectionCounts {
   }
 }
 
+/** @riviere-role query-service */
 function getOrInitializeConnectionCounts(
   map: Map<string, ConnectionCounts>,
   domain: string,
@@ -81,6 +86,7 @@ function getOrInitializeConnectionCounts(
   return counts
 }
 
+/** @riviere-role query-service */
 function incrementConnectionCount(
   map: Map<string, ConnectionCounts>,
   domain: string,
@@ -91,6 +97,7 @@ function incrementConnectionCount(
   if (targetType === 'EventHandler') counts.eventCount++
 }
 
+/** @riviere-role query-service */
 function collectConnections(
   graph: RiviereGraph,
   domainName: string,
@@ -123,6 +130,7 @@ function collectConnections(
   }
 }
 
+/** @riviere-role query-service */
 function toConnectionResults(
   connections: Map<string, ConnectionCounts>,
   direction: 'outgoing' | 'incoming',

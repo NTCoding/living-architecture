@@ -6,6 +6,7 @@ import type {
 } from './domain-types'
 import { parseComponentId } from './domain-types'
 
+/** @riviere-role query-service */
 function isCustomComponent(component: { type: string }): component is CustomComponent {
   return component.type === 'Custom'
 }
@@ -40,6 +41,7 @@ export function validateGraph(graph: RiviereGraph): ValidationResult {
   }
 }
 
+/** @riviere-role query-service */
 function validateCustomTypes(graph: RiviereGraph): ValidationError[] {
   const errors: ValidationError[] = []
   const customTypes = graph.metadata.customTypes

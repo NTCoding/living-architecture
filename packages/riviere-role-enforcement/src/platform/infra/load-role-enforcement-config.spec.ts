@@ -61,6 +61,7 @@ describe('compileRoleEnforcementConfig', () => {
 
   it('accepts static-method target kinds', () => {
     const config = compileRoleEnforcementConfig({
+      scopeRoots: ['packages/demo/src/**/*.ts'],
       roles: [
         {
           name: 'query-factory',
@@ -73,6 +74,7 @@ describe('compileRoleEnforcementConfig', () => {
     })
 
     expect(config.roles[0]?.targets).toStrictEqual(['static-method'])
+    expect(config.scopeRoots).toStrictEqual(['packages/demo/src/**/*.ts'])
   })
 
   it('rejects duplicate role names', () => {

@@ -106,6 +106,7 @@ export function queryFlows(graph: RiviereGraph): Flow[] {
   }))
 }
 
+/** @riviere-role query-service */
 function buildExternalLinksBySource(graph: RiviereGraph): Map<string, ExternalLink[]> {
   const externalLinks = graph.externalLinks ?? []
   const bySource = new Map<string, ExternalLink[]>()
@@ -122,6 +123,7 @@ function buildExternalLinksBySource(graph: RiviereGraph): Map<string, ExternalLi
   return bySource
 }
 
+/** @riviere-role query-service */
 function buildOutgoingEdges(graph: RiviereGraph): Map<
   string,
   Array<{

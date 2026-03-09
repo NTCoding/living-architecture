@@ -78,6 +78,7 @@ export function queryEntities(graph: RiviereGraph, domainName?: string): Entity[
     .map((partial) => createEntity(graph, partial))
 }
 
+/** @riviere-role query-service */
 function createEntity(graph: RiviereGraph, partial: PartialEntity): Entity {
   const sortedOperations = [...partial.operations].sort((a, b) =>
     compareByCodePoint(a.operationName, b.operationName),
@@ -134,6 +135,7 @@ export function statesForEntity(graph: RiviereGraph, entityName: string): State[
   return orderStatesByTransitions(states, operations)
 }
 
+/** @riviere-role query-service */
 function orderStatesByTransitions(states: Set<string>, operations: DomainOpComponent[]): State[] {
   const fromStates = new Set<string>()
   const toStates = new Set<string>()

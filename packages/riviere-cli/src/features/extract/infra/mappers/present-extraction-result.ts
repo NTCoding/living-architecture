@@ -21,6 +21,7 @@ export function presentExtractionResult(result: ExtractionResult, options: Extra
   presentFullResult(result, options)
 }
 
+/** @riviere-role cli-result-presenter */
 function presentDraftResult(
   components: Extract<ExtractionResult, { kind: 'draftOnly' }>['components'],
   options: ExtractOptions,
@@ -47,6 +48,7 @@ function presentDraftResult(
   )
 }
 
+/** @riviere-role cli-result-presenter */
 function presentFullResult(
   result: Extract<ExtractionResult, { kind: 'full' }>,
   options: ExtractOptions,
