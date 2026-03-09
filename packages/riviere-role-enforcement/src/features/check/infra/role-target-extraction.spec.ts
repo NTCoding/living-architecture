@@ -14,11 +14,11 @@ function createBaseNode(type: string, start = 0): BaseNode {
     loc: {
       start: {
         line: 1,
-        column: start 
+        column: start,
       },
       end: {
         line: 1,
-        column: start + 1 
+        column: start + 1,
       },
     },
   }
@@ -127,6 +127,19 @@ describe('extractRoleTargets', () => {
             computed: true,
             key: createIdentifier('dynamic', 12),
           },
+          {
+            ...createBaseNode('MethodDefinition', 14),
+            type: 'MethodDefinition' as const,
+            kind: 'method',
+            key: {
+              ...createBaseNode('Literal', 15),
+              type: 'Literal' as const,
+            },
+          },
+          {
+            ...createBaseNode('PropertyDefinition', 13),
+            type: 'PropertyDefinition' as const,
+          },
         ],
       },
     }
@@ -152,6 +165,105 @@ describe('extractRoleTargets', () => {
     expect(result.targets[0]?.publicMethodNames).toStrictEqual(['components'])
   })
 
+  it('reports malformed annotations for exported class targets', () => {
+    const classDeclaration = {
+      ...createBaseNode('ClassDeclaration', 2),
+      type: 'ClassDeclaration' as const,
+      id: createIdentifier('OrdersQuery', 3),
+      body: {
+        ...createBaseNode('ClassBody', 4),
+        type: 'ClassBody' as const,
+        body: [],
+      },
+    }
+    const exportNode = {
+      ...createBaseNode('ExportNamedDeclaration', 1),
+      type: 'ExportNamedDeclaration' as const,
+      declaration: classDeclaration,
+    }
+    const program: ProgramNode = {
+      ...createBaseNode('Program'),
+      type: 'Program',
+      body: [exportNode],
+    }
+    const sourceCode = createSourceCode(new Map([[exportNode, ['* @riviere-role QueryFacade']]]))
+
+    expect(
+      extractRoleTargets(
+        program,
+        sourceCode,
+        'packages/demo/src/features/demo/queries/orders-query.ts',
+      ),
+    ).toMatchObject({
+      targets: [],
+      issues: [{ code: 'malformed-role-assignment' }],
+    })
+  })
+
+  it('reports malformed annotations for exported variable functions', () => {
+    const exportNode = {
+      ...createBaseNode('ExportNamedDeclaration', 1),
+      declaration: {
+        ...createBaseNode('VariableDeclaration', 2),
+        type: 'VariableDeclaration' as const,
+        declarations: [
+          {
+            ...createBaseNode('VariableDeclarator', 3),
+            type: 'VariableDeclarator' as const,
+            id: createIdentifier('createProgram', 4),
+            init: {
+              ...createBaseNode('ArrowFunctionExpression', 5),
+              type: 'ArrowFunctionExpression' as const,
+            },
+          },
+        ],
+      },
+      type: 'ExportNamedDeclaration' as const,
+    }
+    const program: ProgramNode = {
+      ...createBaseNode('Program'),
+      type: 'Program',
+      body: [exportNode],
+    }
+    const sourceCode = createSourceCode(new Map([[exportNode, ['* @riviere-role CliShell']]]))
+
+    expect(extractRoleTargets(program, sourceCode, 'packages/demo/src/shell/cli.ts')).toMatchObject(
+      {
+        targets: [],
+        issues: [{ code: 'malformed-role-assignment' }],
+      },
+    )
+  })
+
+  it('ignores anonymous exported classes', () => {
+    const exportNode = {
+      ...createBaseNode('ExportDefaultDeclaration', 1),
+      type: 'ExportDefaultDeclaration' as const,
+      declaration: {
+        ...createBaseNode('ClassDeclaration', 2),
+        type: 'ClassDeclaration' as const,
+        id: null,
+        body: {
+          ...createBaseNode('ClassBody', 3),
+          type: 'ClassBody' as const,
+          body: [],
+        },
+      },
+    }
+    const program: ProgramNode = {
+      ...createBaseNode('Program'),
+      type: 'Program',
+      body: [exportNode],
+    }
+
+    expect(
+      extractRoleTargets(program, createSourceCode(), 'packages/demo/src/domain/workflow.ts'),
+    ).toStrictEqual({
+      targets: [],
+      issues: [],
+    })
+  })
+
   it('reports malformed role annotations without falling back to missing assignment', () => {
     const functionDeclaration = {
       ...createBaseNode('FunctionDeclaration', 2),
@@ -174,8 +286,43 @@ describe('extractRoleTargets', () => {
 
     expect(result.targets).toHaveLength(0)
     expect(result.issues).toHaveLength(1)
-    expect(result.issues[0]).toMatchObject({code: 'malformed-role-assignment',})
+    expect(result.issues[0]).toMatchObject({ code: 'malformed-role-assignment' })
     expect(result.issues[0]?.message).toContain("Use exactly '@riviere-role <role-name>'")
+  })
+
+  it('extracts exported function declarations with an explicit assignment', () => {
+    const functionDeclaration = {
+      ...createBaseNode('FunctionDeclaration', 2),
+      type: 'FunctionDeclaration' as const,
+      id: createIdentifier('main', 3),
+    }
+    const exportNode = {
+      ...createBaseNode('ExportNamedDeclaration', 1),
+      type: 'ExportNamedDeclaration' as const,
+      declaration: functionDeclaration,
+    }
+    const program: ProgramNode = {
+      ...createBaseNode('Program'),
+      type: 'Program',
+      body: [exportNode],
+    }
+    const sourceCode = createSourceCode(new Map([[exportNode, ['* @riviere-role cli-shell']]]))
+
+    expect(extractRoleTargets(program, sourceCode, 'packages/demo/src/shell/cli.ts')).toStrictEqual(
+      {
+        targets: [
+          {
+            kind: 'function',
+            name: 'main',
+            assignedRoleName: 'cli-shell',
+            relativeFilePath: 'packages/demo/src/shell/cli.ts',
+            publicMethodNames: [],
+            reportNode: functionDeclaration.id,
+          },
+        ],
+        issues: [],
+      },
+    )
   })
 
   it('reports duplicate explicit assignments on the same target', () => {
@@ -202,7 +349,58 @@ describe('extractRoleTargets', () => {
 
     expect(result.targets).toHaveLength(0)
     expect(result.issues).toHaveLength(1)
-    expect(result.issues[0]).toMatchObject({code: 'duplicate-role-assignment',})
+    expect(result.issues[0]).toMatchObject({ code: 'duplicate-role-assignment' })
     expect(result.issues[0]?.message).toContain('multiple explicit role assignments')
+  })
+
+  it('ignores declarations that cannot produce a target symbol', () => {
+    const exportNode = {
+      ...createBaseNode('ExportDefaultDeclaration', 1),
+      type: 'ExportDefaultDeclaration' as const,
+      declaration: {
+        ...createBaseNode('FunctionDeclaration', 2),
+        type: 'FunctionDeclaration' as const,
+        id: null,
+      },
+    }
+    const program: ProgramNode = {
+      ...createBaseNode('Program'),
+      type: 'Program',
+      body: [exportNode],
+    }
+
+    expect(
+      extractRoleTargets(program, createSourceCode(), 'packages/demo/src/shell/cli.ts'),
+    ).toStrictEqual({
+      targets: [],
+      issues: [],
+    })
+  })
+
+  it('skips non-export statements, null declarations, and unsupported exports', () => {
+    const program: ProgramNode = {
+      ...createBaseNode('Program'),
+      type: 'Program',
+      body: [
+        createBaseNode('ExpressionStatement'),
+        {
+          ...createBaseNode('ExportNamedDeclaration', 1),
+          type: 'ExportNamedDeclaration' as const,
+          declaration: null,
+        },
+        {
+          ...createBaseNode('ExportDefaultDeclaration', 2),
+          type: 'ExportDefaultDeclaration' as const,
+          declaration: createBaseNode('Literal'),
+        },
+      ],
+    }
+
+    expect(
+      extractRoleTargets(program, createSourceCode(), 'packages/demo/src/shell/cli.ts'),
+    ).toStrictEqual({
+      targets: [],
+      issues: [],
+    })
   })
 })

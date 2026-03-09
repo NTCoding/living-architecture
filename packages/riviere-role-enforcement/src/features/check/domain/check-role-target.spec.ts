@@ -1,9 +1,13 @@
 import {
-  checkTargetSymbol , isFileInScope 
+  checkTargetSymbol, findAssignedRoleDefinition, isFileInScope 
 } from './check-role-target'
 import { RoleEnforcementConfigError } from '../../../platform/domain/role-enforcement-config-error'
-import type { RoleEnforcementConfig } from '../../../platform/domain/role-enforcement-config'
+import type {
+  CompiledRoleEnforcementConfig,
+  RoleEnforcementConfig,
+} from '../../../platform/domain/role-enforcement-config'
 import { compileRoleEnforcementConfig } from '../../../platform/infra/load-role-enforcement-config'
+import { createPathMatcher } from '../../../platform/infra/path-patterns'
 import type { TargetSymbol } from './target-symbol'
 
 function expectSingleViolation(
@@ -51,6 +55,24 @@ function createCompiledConfig() {
   return compileRoleEnforcementConfig(config)
 }
 
+function createManualCompiledConfig(): CompiledRoleEnforcementConfig {
+  return {
+    include: [],
+    ignorePatterns: [],
+    includeMatchers: [],
+    ignoreMatchers: [],
+    roles: [
+      {
+        name: 'fallback-role',
+        targets: ['function'],
+        allowedLocation: ['packages/demo/src/shell/**/*.ts'],
+        allowedLocationMatchers: [createPathMatcher('packages/demo/src/shell/**/*.ts')],
+        markdownSpec: 'docs/roles/fallback-role.md',
+      },
+    ],
+  }
+}
+
 function createTargetSymbol(overrides: Partial<TargetSymbol>): TargetSymbol {
   return {
     kind: 'function',
@@ -71,6 +93,22 @@ describe('checkTargetSymbol', () => {
     ).toBe(false)
   })
 
+  it('includes files when no explicit include list is configured', () => {
+    const config = compileRoleEnforcementConfig({
+      roles: [
+        {
+          name: 'cli-shell',
+          targets: ['function'],
+          allowedLocation: ['packages/demo/src/shell/**/*.ts'],
+          allowedNames: ['createProgram'],
+          markdownSpec: 'docs/roles/cli-shell.md',
+        },
+      ],
+    })
+
+    expect(isFileInScope('tools/demo/src/shell/cli.ts', config)).toBe(true)
+  })
+
   it('passes for an explicitly assigned function role', () => {
     const config = createCompiledConfig()
     const target = createTargetSymbol({})
@@ -78,6 +116,14 @@ describe('checkTargetSymbol', () => {
     const violations = checkTargetSymbol(target, config)
 
     expect(violations).toHaveLength(0)
+  })
+
+  it('returns null when no explicit role assignment exists', () => {
+    const config = createCompiledConfig()
+
+    expect(
+      findAssignedRoleDefinition(createTargetSymbol({ assignedRoleName: null }), config),
+    ).toBeNull()
   })
 
   it('fails when an explicit function role uses a disallowed name', () => {
@@ -103,6 +149,21 @@ describe('checkTargetSymbol', () => {
       Why: Function 'createPrograms' does not satisfy the naming rules for role 'cli-shell'. Allowed names: createProgram, main.
       Suggested fix: Keep role 'cli-shell', rename the symbol to an allowed name, and re-run validation."
     `)
+  })
+
+  it('reports the configured name pattern when a regex-based role name fails', () => {
+    const config = createCompiledConfig()
+    const target = createTargetSymbol({
+      kind: 'class',
+      name: 'OrdersService',
+      assignedRoleName: 'query-facade',
+      relativeFilePath: 'packages/demo/src/features/demo/queries/orders-query.ts',
+      publicMethodNames: ['components'],
+    })
+
+    const violations = checkTargetSymbol(target, config)
+
+    expect(violations[0]?.message).toContain('Allowed name pattern: ^.*Query$.')
   })
 
   it('fails when an explicit class role exposes a disallowed public method', () => {
@@ -135,6 +196,63 @@ describe('checkTargetSymbol', () => {
       Why: Class 'OrdersQuery' exposes method 'search' is not allowed for role 'query-facade'. Allowed public methods: components, validate.
       Suggested fix: Next step for Claude: run 'riviere-role-classifier' before editing. Re-check the role markdown spec before changing the class API."
     `)
+  })
+
+  it('lists multiple disallowed public methods when a class exposes more than one', () => {
+    const config = createCompiledConfig()
+    const target = createTargetSymbol({
+      kind: 'class',
+      name: 'OrdersQuery',
+      assignedRoleName: 'query-facade',
+      relativeFilePath: 'packages/demo/src/features/demo/queries/orders-query.ts',
+      publicMethodNames: ['components', 'search', 'load'],
+    })
+
+    const violations = checkTargetSymbol(target, config)
+
+    expect(violations[0]?.message).toContain("methods 'search', 'load' are")
+  })
+
+  it('passes when a class role exposes only allowed public methods', () => {
+    const config = createCompiledConfig()
+    const target = createTargetSymbol({
+      kind: 'class',
+      name: 'OrdersQuery',
+      assignedRoleName: 'query-facade',
+      relativeFilePath: 'packages/demo/src/features/demo/queries/orders-query.ts',
+      publicMethodNames: ['components', 'validate'],
+    })
+
+    expect(checkTargetSymbol(target, config)).toHaveLength(0)
+  })
+
+  it('passes regex-based roles when the symbol matches the pattern', () => {
+    const config = createCompiledConfig()
+
+    expect(
+      checkTargetSymbol(
+        createTargetSymbol({
+          kind: 'class',
+          name: 'OrdersQuery',
+          assignedRoleName: 'query-facade',
+          relativeFilePath: 'packages/demo/src/features/demo/queries/orders-query.ts',
+          publicMethodNames: ['components', 'validate'],
+        }),
+        config,
+      ),
+    ).toHaveLength(0)
+  })
+
+  it('passes targets when a manually compiled role omits naming constraints', () => {
+    const violations = checkTargetSymbol(
+      createTargetSymbol({
+        name: 'anyNameWorks',
+        assignedRoleName: 'fallback-role',
+      }),
+      createManualCompiledConfig(),
+    )
+
+    expect(violations).toHaveLength(0)
   })
 
   it('fails when a symbol has no explicit role assignment', () => {
@@ -241,6 +359,36 @@ describe('checkTargetSymbol', () => {
     `)
   })
 
+  it('lists every allowed location when a role supports multiple paths', () => {
+    const config = compileRoleEnforcementConfig({
+      roles: [
+        {
+          name: 'shared-reader',
+          targets: ['function'],
+          allowedLocation: [
+            'packages/demo/src/platform/infra/**/*.ts',
+            'tools/demo/src/platform/infra/**/*.ts',
+          ],
+          allowedNames: ['readState'],
+          markdownSpec: 'docs/roles/shared-reader.md',
+        },
+      ],
+    })
+
+    const violations = checkTargetSymbol(
+      createTargetSymbol({
+        name: 'readState',
+        assignedRoleName: 'shared-reader',
+        relativeFilePath: 'apps/demo/src/platform/infra/read-state.ts',
+      }),
+      config,
+    )
+
+    expect(violations[0]?.message).toContain(
+      "outside 'packages/demo/src/platform/infra/**/*.ts', 'tools/demo/src/platform/infra/**/*.ts'.",
+    )
+  })
+
   it('fails legacy implicit-only targets until they are annotated', () => {
     const config = createCompiledConfig()
     const target = createTargetSymbol({ assignedRoleName: null })
@@ -249,5 +397,16 @@ describe('checkTargetSymbol', () => {
 
     expect(violations).toHaveLength(1)
     expect(violations[0]?.code).toBe('missing-role-assignment')
+  })
+
+  it('skips files outside the configured include scope', () => {
+    const config = createCompiledConfig()
+
+    expect(
+      checkTargetSymbol(
+        createTargetSymbol({ relativeFilePath: 'tools/demo/src/shell/cli.ts' }),
+        config,
+      ),
+    ).toHaveLength(0)
   })
 })

@@ -101,15 +101,17 @@ const configCache = new Map<string, CompiledRoleEnforcementConfig>()
 function compileRoleDefinition(role: RoleDefinition): CompiledRoleDefinition {
   const compiledRole: CompiledRoleDefinition = {
     ...role,
-    allowedLocationMatchers: role.allowedLocation.map(createPathMatcher),
-  }
-
-  if (role.allowedNames !== undefined) {
-    compiledRole.allowedNameSet = new Set(role.allowedNames)
+    allowedLocationMatchers: [],
   }
 
   if (role.nameMatches !== undefined) {
-    compiledRole.namePattern = compileNamePattern(role)
+    compiledRole.namePattern = compileNamePattern(role.nameMatches, role.name)
+  }
+
+  compiledRole.allowedLocationMatchers = role.allowedLocation.map(createPathMatcher)
+
+  if (role.allowedNames !== undefined) {
+    compiledRole.allowedNameSet = new Set(role.allowedNames)
   }
 
   if (role.allowedPublicMethods !== undefined) {
@@ -119,16 +121,12 @@ function compileRoleDefinition(role: RoleDefinition): CompiledRoleDefinition {
   return compiledRole
 }
 
-function compileNamePattern(role: RoleDefinition): RegExp {
-  if (role.nameMatches === undefined) {
-    throw new RoleEnforcementConfigError(`Role '${role.name}' does not declare 'nameMatches'.`)
-  }
-
+function compileNamePattern(namePattern: string, roleName: string): RegExp {
   try {
-    return new RegExp(role.nameMatches)
+    return new RegExp(namePattern)
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown regular expression error'
-    throw new RoleEnforcementConfigError(`Invalid nameMatches for role '${role.name}': ${message}`)
+    const message = error instanceof Error ? error.message : 'Unknown pattern compilation error'
+    throw new RoleEnforcementConfigError(`Invalid nameMatches for role '${roleName}': ${message}`)
   }
 }
 
@@ -150,17 +148,13 @@ function toRoleEnforcementConfigError(error: ZodError): RoleEnforcementConfigErr
 export function compileRoleEnforcementConfig(
   config: RoleEnforcementConfig | unknown,
 ): CompiledRoleEnforcementConfig {
-  const parsedConfig = (() => {
-    try {
-      return roleEnforcementConfigSchema.parse(config)
-    } catch (error) {
-      if (error instanceof ZodError) {
-        throw toRoleEnforcementConfigError(error)
-      }
+  const parseResult = roleEnforcementConfigSchema.safeParse(config)
 
-      throw error
-    }
-  })()
+  if (!parseResult.success) {
+    throw toRoleEnforcementConfigError(parseResult.error)
+  }
+
+  const parsedConfig = parseResult.data
 
   return {
     include: parsedConfig.include,

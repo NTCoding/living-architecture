@@ -30,7 +30,7 @@ function createOxlintConfig(configPath: string): string {
             specifier: pluginShimPath,
           },
         ],
-        rules: {'riviere-role/enforce-role-definitions': ['error', { configPath }],},
+        rules: { 'riviere-role/enforce-role-definitions': ['error', { configPath }] },
       },
       null,
       2,

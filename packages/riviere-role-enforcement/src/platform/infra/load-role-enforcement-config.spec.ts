@@ -1,7 +1,32 @@
+import {
+  mkdtempSync, writeFileSync 
+} from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { RoleEnforcementConfigError } from '../domain/role-enforcement-config-error'
-import { compileRoleEnforcementConfig } from './load-role-enforcement-config'
+import {
+  compileRoleEnforcementConfig,
+  loadRoleEnforcementConfig,
+} from './load-role-enforcement-config'
 
 describe('compileRoleEnforcementConfig', () => {
+  it('requires each role to declare allowed names or a name pattern', () => {
+    expect(() =>
+      compileRoleEnforcementConfig({
+        roles: [
+          {
+            name: 'cli-shell',
+            targets: ['function'],
+            allowedLocation: ['packages/demo/src/shell/**/*.ts'],
+            markdownSpec: 'docs/roles/cli-shell.md',
+          },
+        ],
+      }),
+    ).toThrowError(
+      "Invalid role enforcement config: roles.0.allowedNames: Role definition must declare either 'allowedNames' or 'nameMatches'.",
+    )
+  })
+
   it('wraps schema errors in a deterministic config error', () => {
     expect(() =>
       compileRoleEnforcementConfig({
@@ -78,6 +103,25 @@ describe('compileRoleEnforcementConfig', () => {
     )
   })
 
+  it('rejects duplicate target kinds, allowed names, and allowed public methods', () => {
+    expect(() =>
+      compileRoleEnforcementConfig({
+        roles: [
+          {
+            name: 'query-facade',
+            targets: ['class', 'class'],
+            allowedLocation: ['packages/demo/src/features/*/queries/**/*.ts'],
+            allowedNames: ['OrdersQuery', 'OrdersQuery'],
+            allowedPublicMethods: ['components', 'components'],
+            markdownSpec: 'docs/roles/query-facade.md',
+          },
+        ],
+      }),
+    ).toThrowError(
+      "Invalid role enforcement config: roles.0.targets: Role definition must not repeat target kinds.; roles.0.allowedNames: Role definition must not repeat values in 'allowedNames'.; roles.0.allowedPublicMethods: Role definition must not repeat values in 'allowedPublicMethods'.",
+    )
+  })
+
   it('rejects invalid name patterns with a role-specific config error', () => {
     expect(() =>
       compileRoleEnforcementConfig({
@@ -93,6 +137,86 @@ describe('compileRoleEnforcementConfig', () => {
       }),
     ).toThrowError(
       "Invalid nameMatches for role 'query-facade': Invalid regular expression: /^(broken$/: Unterminated group",
+    )
+  })
+
+  it('compiles valid name patterns into regex matchers', () => {
+    const config = compileRoleEnforcementConfig({
+      roles: [
+        {
+          name: 'query-facade',
+          targets: ['class'],
+          allowedLocation: ['packages/demo/src/features/*/queries/**/*.ts'],
+          nameMatches: '^.*Query$',
+          markdownSpec: 'docs/roles/query-facade.md',
+        },
+      ],
+    })
+
+    expect(config.roles[0]?.namePattern?.test('OrdersQuery')).toBe(true)
+  })
+
+  it('wraps non-Error regex compilation failures deterministically', () => {
+    const originalRegExp = globalThis.RegExp
+
+    vi.stubGlobal(
+      'RegExp',
+      class MockRegExp {
+        constructor() {
+          throw 'boom'
+        }
+      },
+    )
+
+    try {
+      expect(() =>
+        compileRoleEnforcementConfig({
+          roles: [
+            {
+              name: 'query-facade',
+              targets: ['class'],
+              allowedLocation: ['packages/demo/src/features/*/queries/**/*.ts'],
+              nameMatches: '^.*Query$',
+              markdownSpec: 'docs/roles/query-facade.md',
+            },
+          ],
+        }),
+      ).toThrowError(
+        "Invalid nameMatches for role 'query-facade': Unknown pattern compilation error",
+      )
+    } finally {
+      vi.stubGlobal('RegExp', originalRegExp)
+    }
+  })
+
+  it('loads and caches config files by absolute path', () => {
+    const tempDirectory = mkdtempSync(join(tmpdir(), 'riviere-role-enforcement-config-'))
+    const configPath = join(tempDirectory, 'riviere-role-enforcement.yaml')
+
+    writeFileSync(
+      configPath,
+      [
+        'roles:',
+        '  - name: cli-shell',
+        '    targets: [function]',
+        '    allowedLocation:',
+        '      - packages/demo/src/shell/**/*.ts',
+        '    allowedNames:',
+        '      - createProgram',
+        '    markdownSpec: docs/roles/cli-shell.md',
+      ].join('\n'),
+      'utf8',
+    )
+
+    const firstLoad = loadRoleEnforcementConfig(configPath)
+    const secondLoad = loadRoleEnforcementConfig(configPath)
+
+    expect(secondLoad).toBe(firstLoad)
+  })
+
+  it('formats root-level schema errors deterministically', () => {
+    expect(() => compileRoleEnforcementConfig(null)).toThrowError(
+      'Invalid role enforcement config: <root>: Invalid input: expected object, received null',
     )
   })
 })

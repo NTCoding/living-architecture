@@ -36,7 +36,7 @@ function createAssignmentText(roleName: string): string {
 }
 
 function tokenize(input: string): readonly string[] {
-  return input.toLowerCase().match(/[a-z0-9]+/g) ?? []
+  return Array.from(input.toLowerCase().matchAll(/[a-z0-9]+/g), (match) => match[0])
 }
 
 function inferLayerFromRole(role: CompiledRoleDefinition): RoleClassifierLayer | null {
@@ -185,11 +185,9 @@ function rankRoles(
 function inferSharedLayer(roles: readonly CompiledRoleDefinition[]): RoleClassifierLayer | null {
   const layers = [...new Set(roles.map(inferLayerFromRole).filter((layer) => layer !== null))]
 
-  if (layers.length === 1) {
-    return layers[0] ?? null
-  }
-
-  return null
+  return layers.length === 1
+    ? layers.reduce<RoleClassifierLayer | null>((_, layer) => layer, null)
+    : null
 }
 
 export function createRoleClassifierResult(

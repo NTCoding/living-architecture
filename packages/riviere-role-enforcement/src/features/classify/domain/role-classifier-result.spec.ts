@@ -1,6 +1,8 @@
 import { existsSync } from 'node:fs'
 import {
-  classifyRoleRequest, findRoleClassifierResult 
+  classifyRoleRequest,
+  createRoleClassifierResult,
+  findRoleClassifierResult,
 } from './role-classifier-result'
 import type { RoleEnforcementConfig } from '../../../platform/domain/role-enforcement-config'
 import {
@@ -40,6 +42,16 @@ function createCompiledConfig() {
   return compileRoleEnforcementConfig(config)
 }
 
+function requireFirstRole() {
+  const [role] = createCompiledConfig().roles
+
+  if (role === undefined) {
+    throw new TypeError('Expected a compiled role definition.')
+  }
+
+  return role
+}
+
 describe('role classifier flow', () => {
   it('resolves markdown specs referenced by the spike config', () => {
     const config = loadRoleEnforcementConfig(
@@ -75,6 +87,26 @@ describe('role classifier flow', () => {
         status: 'clear',
         alternatives: [],
       },
+    })
+  })
+
+  it('returns null when a named role does not exist', () => {
+    expect(
+      findRoleClassifierResult('missing-role', createCompiledConfig(), ['Missing'], 'Stop.'),
+    ).toBeNull()
+  })
+
+  it('creates a clear result directly from a role definition', () => {
+    expect(
+      createRoleClassifierResult(
+        requireFirstRole(),
+        ['Use the shell layer.'],
+        'Add the annotation.',
+      ),
+    ).toMatchObject({
+      status: 'clear',
+      role: 'cli-shell',
+      layer: 'shell',
     })
   })
 
@@ -158,5 +190,216 @@ describe('role classifier flow', () => {
         alternatives: ['cli-shell'],
       },
     })
+  })
+
+  it('returns a clear result when the requested role exists', () => {
+    const result = classifyRoleRequest(
+      {
+        requestedChange: 'Use the configured shell role directly.',
+        requestedRoleName: 'cli-shell',
+        targetKind: 'function',
+      },
+      createCompiledConfig(),
+    )
+
+    expect(result.role).toBe('cli-shell')
+    expect(result.assignmentText).toBe('/** @riviere-role cli-shell */')
+  })
+
+  it('returns an unknown-role result when no catalog role matches the request', () => {
+    const result = classifyRoleRequest(
+      {
+        requestedChange: 'Add a presenter for a browser-only canvas widget.',
+        targetKind: 'function',
+      },
+      createCompiledConfig(),
+    )
+
+    expect(result).toMatchObject({
+      status: 'unknown-role',
+      role: null,
+      ambiguity: { alternatives: [] },
+    })
+  })
+
+  it('infers non-shell layers from the requested change text', () => {
+    const requests = [
+      {
+        requestedChange: 'Add a command coordinator.',
+        targetKind: 'function' as const,
+      },
+      {
+        requestedChange: 'Add query helpers for graph reads.',
+        targetKind: 'class' as const,
+      },
+      {
+        requestedChange: 'Add domain rules for aggregate validation.',
+        targetKind: 'function' as const,
+      },
+      {
+        requestedChange: 'Add infrastructure adapters for file loading.',
+        targetKind: 'class' as const,
+      },
+    ]
+
+    const results = requests.map((request) => classifyRoleRequest(request, createCompiledConfig()))
+
+    expect(results.map((result) => result.layer)).toStrictEqual([
+      'command',
+      'query',
+      'domain',
+      'infra',
+    ])
+  })
+
+  it('returns a null shared layer when ambiguous roles span multiple layers', () => {
+    const config = compileRoleEnforcementConfig({
+      roles: [
+        {
+          name: 'command-reader',
+          targets: ['class'],
+          allowedLocation: ['packages/demo/src/features/demo/commands/**/*.ts'],
+          nameMatches: '^.*Reader$',
+          allowedPublicMethods: ['read'],
+          markdownSpec: 'docs/roles/command-reader.md',
+        },
+        {
+          name: 'infra-reader',
+          targets: ['class'],
+          allowedLocation: ['packages/demo/src/platform/infra/**/*.ts'],
+          nameMatches: '^.*Reader$',
+          allowedPublicMethods: ['read'],
+          markdownSpec: 'docs/roles/infra-reader.md',
+        },
+      ],
+    })
+
+    const result = classifyRoleRequest(
+      {
+        requestedChange: 'Add a reader for loading workflow state.',
+        targetKind: 'class',
+      },
+      config,
+    )
+
+    expect(result.layer).toBeNull()
+  })
+
+  it('infers layers from role locations for non-shell clear results', () => {
+    const config = compileRoleEnforcementConfig({
+      roles: [
+        {
+          name: 'feature-entrypoint',
+          targets: ['function'],
+          allowedLocation: ['packages/demo/src/features/demo/entrypoint/**/*.ts'],
+          allowedNames: ['createDemoCommand'],
+          markdownSpec: 'docs/roles/feature-entrypoint.md',
+        },
+        {
+          name: 'command-orchestrator',
+          targets: ['function'],
+          allowedLocation: ['packages/demo/src/features/demo/commands/**/*.ts'],
+          allowedNames: ['runDemo'],
+          markdownSpec: 'docs/roles/command-orchestrator.md',
+        },
+        {
+          name: 'query-service',
+          targets: ['function'],
+          allowedLocation: ['packages/demo/src/features/demo/queries/**/*.ts'],
+          allowedNames: ['findDemo'],
+          markdownSpec: 'docs/roles/query-service.md',
+        },
+        {
+          name: 'domain-service',
+          targets: ['function'],
+          allowedLocation: ['packages/demo/src/features/demo/domain/**/*.ts'],
+          allowedNames: ['evaluateDemo'],
+          markdownSpec: 'docs/roles/domain-service.md',
+        },
+        {
+          name: 'infra-loader',
+          targets: ['function'],
+          allowedLocation: ['packages/demo/src/platform/infra/**/*.ts'],
+          allowedNames: ['loadDemo'],
+          markdownSpec: 'docs/roles/infra-loader.md',
+        },
+      ],
+    })
+
+    expect({
+      entrypoint: findRoleClassifierResult('feature-entrypoint', config, [], 'next')?.layer,
+      command: findRoleClassifierResult('command-orchestrator', config, [], 'next')?.layer,
+      query: findRoleClassifierResult('query-service', config, [], 'next')?.layer,
+      domain: findRoleClassifierResult('domain-service', config, [], 'next')?.layer,
+      infra: findRoleClassifierResult('infra-loader', config, [], 'next')?.layer,
+    }).toStrictEqual({
+      entrypoint: 'entrypoint',
+      command: 'command',
+      query: 'query',
+      domain: 'domain',
+      infra: 'infra',
+    })
+  })
+
+  it('returns null for roles whose allowed locations do not map to a known layer', () => {
+    const config = compileRoleEnforcementConfig({
+      roles: [
+        {
+          name: 'misc-helper',
+          targets: ['function'],
+          allowedLocation: ['packages/demo/src/misc/**/*.ts'],
+          allowedNames: ['help'],
+          markdownSpec: 'docs/roles/misc-helper.md',
+        },
+      ],
+    })
+
+    expect(findRoleClassifierResult('misc-helper', config, [], 'next')?.layer).toBeNull()
+  })
+
+  it('infers the entrypoint layer from the request text', () => {
+    const result = classifyRoleRequest(
+      {
+        requestedChange: 'Add an entrypoint that assembles the CLI command.',
+        targetKind: 'function',
+      },
+      compileRoleEnforcementConfig({
+        roles: [
+          {
+            name: 'feature-entrypoint',
+            targets: ['function'],
+            allowedLocation: ['packages/demo/src/features/demo/entrypoint/**/*.ts'],
+            allowedNames: ['createDemoCommand'],
+            markdownSpec: 'docs/roles/feature-entrypoint.md',
+          },
+        ],
+      }),
+    )
+
+    expect(result.layer).toBe('entrypoint')
+  })
+
+  it('uses an unknown layer label when a clear role has no known layer mapping', () => {
+    const config = compileRoleEnforcementConfig({
+      roles: [
+        {
+          name: 'misc-helper',
+          targets: ['function'],
+          allowedLocation: ['packages/demo/src/misc/**/*.ts'],
+          allowedNames: ['help'],
+          markdownSpec: 'docs/roles/misc-helper.md',
+        },
+      ],
+    })
+
+    const result = classifyRoleRequest(
+      {
+        requestedChange: 'Add a misc helper for legacy support.',
+        targetKind: 'function',
+      },
+      config,
+    )
+
+    expect(result.rationale[1]).toBe("Its allowed locations place the code in the 'unknown' layer.")
   })
 })

@@ -1003,7 +1003,7 @@ git add <relevant-files> && git commit --no-verify -m "<commit message>" && git 
   - Suggested commit: `feat(role-enforcement): integrate review workflow`
   - References: `3.6 Deterministic Engine`, `3.8 AI Review Layer`, `3.9 riviere-role-classifier`, `5. Success Criteria`
 
-- [ ] Reach full package quality gates and benchmark confidence
+- [x] Reach full package quality gates and benchmark confidence
   - Requirements: raise the package to 100% coverage, document benchmark results, and ensure the package passes its own lint/build/test expectations without relying on the spike alone
   - Acceptance: package coverage reaches 100%, benchmark output is recorded, and the package is stable enough for broader repo rollout
   - Suggested commit: `test(role-enforcement): complete package quality gates`

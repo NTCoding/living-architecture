@@ -106,11 +106,16 @@ function createInvalidRoleNameViolation(
   target: TargetSymbol,
   role: CompiledRoleDefinition,
 ): RoleViolation {
+  const allowedNameMessage =
+    role.allowedNames === undefined
+      ? `Allowed name pattern: ${role.nameMatches}.`
+      : `Allowed names: ${role.allowedNames.join(', ')}.`
+
   return createRoleViolation(
     'invalid-role-name',
     target,
     role.name,
-    `${formatTarget(target)} does not satisfy the naming rules for role '${role.name}'. ${createAllowedNameMessage(role)}`,
+    `${formatTarget(target)} does not satisfy the naming rules for role '${role.name}'. ${allowedNameMessage}`,
     `Keep role '${role.name}', rename the symbol to an allowed name, and re-run validation.`,
     role.markdownSpec,
     [],
@@ -120,25 +125,18 @@ function createInvalidRoleNameViolation(
 function createDisallowedPublicMethodsViolation(
   target: TargetSymbol,
   role: CompiledRoleDefinition,
+  allowedPublicMethods: readonly string[],
   disallowedPublicMethods: readonly string[],
 ): RoleViolation {
   return createRoleViolation(
     'disallowed-public-methods',
     target,
     role.name,
-    `${formatTarget(target)} exposes ${formatDisallowedMethods(disallowedPublicMethods)} not allowed for role '${role.name}'. Allowed public methods: ${formatAllowedPublicMethods(role)}.`,
+    `${formatTarget(target)} exposes ${formatDisallowedMethods(disallowedPublicMethods)} not allowed for role '${role.name}'. Allowed public methods: ${allowedPublicMethods.join(', ')}.`,
     `${createRunClassifierMessage()} Re-check the role markdown spec before changing the class API.`,
     role.markdownSpec,
     disallowedPublicMethods,
   )
-}
-
-function createAllowedNameMessage(role: CompiledRoleDefinition): string {
-  if (role.allowedNames !== undefined) {
-    return `Allowed names: ${role.allowedNames.join(', ')}.`
-  }
-
-  return `Allowed name pattern: ${role.nameMatches ?? '<none>'}.`
 }
 
 function formatAllowedLocations(allowedLocation: readonly string[]): string {
@@ -150,15 +148,7 @@ function formatAllowedLocations(allowedLocation: readonly string[]): string {
 }
 
 function formatTargetKinds(targetKinds: readonly string[]): string {
-  if (targetKinds.length === 1) {
-    return `${targetKinds[0]} targets`
-  }
-
   return `${targetKinds.join(', ')} targets`
-}
-
-function formatAllowedPublicMethods(role: CompiledRoleDefinition): string {
-  return role.allowedPublicMethods?.join(', ') ?? '<none>'
 }
 
 function formatDisallowedMethods(disallowedPublicMethods: readonly string[]): string {
@@ -246,7 +236,11 @@ export function checkTargetSymbol(
     return [createInvalidRoleNameViolation(target, assignedRole)]
   }
 
-  if (target.kind !== 'class' || assignedRole.allowedPublicMethodSet === undefined) {
+  if (
+    target.kind !== 'class' ||
+    assignedRole.allowedPublicMethodSet === undefined ||
+    assignedRole.allowedPublicMethods === undefined
+  ) {
     return []
   }
 
@@ -258,5 +252,12 @@ export function checkTargetSymbol(
     return []
   }
 
-  return [createDisallowedPublicMethodsViolation(target, assignedRole, disallowedPublicMethods)]
+  return [
+    createDisallowedPublicMethodsViolation(
+      target,
+      assignedRole,
+      assignedRole.allowedPublicMethods,
+      disallowedPublicMethods,
+    ),
+  ]
 }

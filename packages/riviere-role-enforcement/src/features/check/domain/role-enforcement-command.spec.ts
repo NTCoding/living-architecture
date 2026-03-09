@@ -37,4 +37,14 @@ describe('parseRoleEnforcementCommandArgs', () => {
       parseRoleEnforcementCommandArgs(['--config', 'config.yaml', '--changed']),
     ).toThrowError("Unknown role enforcement option '--changed'.")
   })
+
+  it('rejects config options without a following value', () => {
+    expect(() => parseRoleEnforcementCommandArgs(['--config'])).toThrowError(
+      "Missing value for '--config'.",
+    )
+
+    expect(() => parseRoleEnforcementCommandArgs(['--config', '--changed'])).toThrowError(
+      "Missing value for '--config'.",
+    )
+  })
 })

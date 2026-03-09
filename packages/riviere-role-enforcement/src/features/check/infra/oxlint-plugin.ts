@@ -40,10 +40,15 @@ function shouldInspectFile(filename: string): boolean {
   return filename.endsWith('.ts') || filename.endsWith('.tsx')
 }
 
-function loadCompiledConfig(configPath: string): {
-  config: CompiledRoleEnforcementConfig | null
-  error: RoleEnforcementConfigError | null
-} {
+function loadCompiledConfig(configPath: string):
+  | {
+    config: CompiledRoleEnforcementConfig
+    error: null
+  }
+  | {
+    config: null
+    error: RoleEnforcementConfigError
+  } {
   try {
     return {
       config: loadRoleEnforcementConfig(configPath),
@@ -95,15 +100,12 @@ const plugin = eslintCompatPlugin({
 
             const configPath = options.configPath ?? './riviere-role-enforcement.yaml'
             const configResult = loadCompiledConfig(configPath)
-            const config = configResult.config
 
-            if (config === null) {
-              if (configResult.error !== null) {
-                context.report({
-                  node,
-                  message: `Role enforcement config error: ${configResult.error.message}`,
-                })
-              }
+            if (configResult.config === null) {
+              context.report({
+                node,
+                message: `Role enforcement config error: ${configResult.error.message}`,
+              })
               return
             }
 
@@ -118,7 +120,7 @@ const plugin = eslintCompatPlugin({
             }
 
             for (const target of extractionResult.targets) {
-              const violations = checkTargetSymbol(target, config)
+              const violations = checkTargetSymbol(target, configResult.config)
 
               for (const violation of violations) {
                 context.report({

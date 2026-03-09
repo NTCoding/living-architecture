@@ -47,7 +47,7 @@ function parseRoleAssignments(commentValue: string): {
 
   return {
     assignments,
-    malformedLines 
+    malformedLines,
   }
 }
 

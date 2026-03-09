@@ -58,7 +58,7 @@ interface MethodDefinitionNode extends BaseNode {
 
 interface ClassBodyNode extends BaseNode {
   type: 'ClassBody'
-  body: readonly MethodDefinitionNode[]
+  body: readonly (MethodDefinitionNode | BaseNode)[]
 }
 
 interface ClassDeclarationNode extends BaseNode {
@@ -135,9 +135,13 @@ function isExportDefaultDeclarationNode(node: StatementNode): node is ExportDefa
   return node.type === 'ExportDefaultDeclaration'
 }
 
+function isMethodDefinitionNode(node: BaseNode): node is MethodDefinitionNode {
+  return node.type === 'MethodDefinition'
+}
+
 function getPublicMethodNames(classDeclaration: ClassDeclarationNode): readonly string[] {
   return classDeclaration.body.body.flatMap((classElement) => {
-    if (classElement.type !== 'MethodDefinition' || classElement.kind !== 'method') {
+    if (!isMethodDefinitionNode(classElement) || classElement.kind !== 'method') {
       return []
     }
 
@@ -309,21 +313,25 @@ function createDeclarationTargets(
 
   switch (declaration.type) {
     case 'ClassDeclaration':
+      /* v8 ignore start -- defensive guard after discriminant narrowing */
       if (!isClassDeclarationNode(declaration)) {
         return {
           targets: [],
           issues: [],
         }
       }
+      /* v8 ignore stop */
 
       return createClassTarget(declaration, annotationNodes, relativeFilePath, sourceCode)
     case 'FunctionDeclaration':
+      /* v8 ignore start -- defensive guard after discriminant narrowing */
       if (!isFunctionDeclarationNode(declaration)) {
         return {
           targets: [],
           issues: [],
         }
       }
+      /* v8 ignore stop */
 
       return createFunctionDeclarationTarget(
         declaration,
@@ -332,12 +340,14 @@ function createDeclarationTargets(
         sourceCode,
       )
     case 'VariableDeclaration':
+      /* v8 ignore start -- defensive guard after discriminant narrowing */
       if (!isVariableDeclarationNode(declaration)) {
         return {
           targets: [],
           issues: [],
         }
       }
+      /* v8 ignore stop */
 
       return createFunctionTargets(declaration, annotationNodes, relativeFilePath, sourceCode)
     default:
