@@ -16,7 +16,7 @@ This inventory also records a practical rollout stance:
 
 ## 1. Mandatory Top-Level Layers
 
-Every in-scope class or standalone function must first belong to one of these layers:
+Every in-scope class, static method, or standalone function must first belong to one of these layers:
 
 - `shell`
 - `entrypoint`
@@ -31,24 +31,46 @@ No role may bypass this top-level classification.
 
 ## 2. First-Pass Role Inventory
 
-### 2.0 Current Review Scope
+### 2.0 Phase 3 Branch Scope Lock
 
-This draft is currently focused on the non-frontend production code that best reflects the repository's main layered architecture:
+This inventory uses the same final Phase 3 branch scope as the PRD.
 
-- included: `packages/` and `tools/`
-- excluded from this draft: `apps/eclair/`, `apps/docs/`
+Included roots:
 
-The following packages are expected to be excluded from the first enforcement rollout and handled by a later PRD update or later enforcement phase:
+- `packages/riviere-cli/src/**`
+- `packages/riviere-builder/src/**`
+- `packages/riviere-extract-config/src/**`
+- `packages/riviere-extract-ts/src/**`
+- `packages/riviere-query/src/**`
+- `packages/riviere-role-enforcement/src/**`
+- `tools/dev-workflow/src/**`
+- `tools/dev-workflow-v2/src/**`
+
+Excluded roots:
+
+- `packages/riviere-schema/src/**`
+- `packages/riviere-extract-conventions/src/**`
+- `apps/eclair/**`
+
+Excluded file classes:
+
+- `*.spec.*`
+- `__fixtures__/**`
+- `fixtures/**`
+- snapshot files
+- generated outputs
+- barrel-only files such as `index.ts` that declare no target symbols
+
+The following packages are expected to remain excluded from the final branch scope unless the PRD is revised again:
 
 - `packages/riviere-schema`
-- `packages/riviere-extract-config`
 - `packages/riviere-extract-conventions`
 
 Reasoning:
 
-- they are primarily schema, DSL, validation, and convention libraries
+- they are primarily schema or convention libraries rather than operational layered packages
 - they do not model the repository's main application/package layering as clearly as the operational packages do
-- forcing them into the first pass would blur the architectural rules we are trying to make explicit
+- forcing them into this branch would blur the architectural rules we are trying to make explicit
 
 ### 2.1 shell
 
@@ -269,29 +291,33 @@ It should be treated as working output for the first todo item in `docs/project/
 
 This section turns the reviewed inventory into a concrete first-pass catalog draft that can drive the first Oxlint spike.
 
-### 6.1 Scope For The First Build
+### 6.1 Scope For Phase 3 Final Branch Coverage
 
-Include:
+Included roots:
 
-- `packages/riviere-cli`
-- `packages/riviere-builder`
-- `packages/riviere-query`
-- `packages/riviere-extract-ts`
-- `tools/dev-workflow-v2`
-- `tools/dev-workflow`
+- `packages/riviere-cli/src/**`
+- `packages/riviere-builder/src/**`
+- `packages/riviere-extract-config/src/**`
+- `packages/riviere-extract-ts/src/**`
+- `packages/riviere-query/src/**`
+- `packages/riviere-role-enforcement/src/**`
+- `tools/dev-workflow/src/**`
+- `tools/dev-workflow-v2/src/**`
 
-Exclude for now:
+Excluded roots:
 
-- `apps/eclair`
-- `apps/docs`
-- `packages/riviere-schema`
-- `packages/riviere-extract-config`
-- `packages/riviere-extract-conventions`
+- `apps/eclair/**`
+- `packages/riviere-schema/src/**`
+- `packages/riviere-extract-conventions/src/**`
+
+Excluded file classes:
+
 - `*.spec.*`
-- `__fixtures__/`
-- `fixtures/`
-- screenshot fixtures
-- barrel files such as `index.ts`
+- `__fixtures__/**`
+- `fixtures/**`
+- snapshot files
+- generated outputs
+- barrel-only files such as `index.ts` that declare no target symbols
 
 ### 6.2 Proposed DSL Shape
 

@@ -1,3 +1,26 @@
+# Phase 3 final branch scope lock:
+# Included roots:
+#   - packages/riviere-cli/src/**
+#   - packages/riviere-builder/src/**
+#   - packages/riviere-extract-config/src/**
+#   - packages/riviere-extract-ts/src/**
+#   - packages/riviere-query/src/**
+#   - packages/riviere-role-enforcement/src/**
+#   - tools/dev-workflow/src/**
+#   - tools/dev-workflow-v2/src/**
+# Excluded roots:
+#   - packages/riviere-schema/src/**
+#   - packages/riviere-extract-conventions/src/**
+#   - apps/eclair/**
+# Excluded file classes:
+#   - *.spec.*
+#   - __fixtures__/**
+#   - fixtures/**
+#   - snapshot files
+#   - generated outputs
+#   - barrel-only files such as index.ts that declare no target symbols
+# Note: the executable include allowlist below still reflects the pre-Phase-3 rollout slice.
+# The dedicated Phase 3 repo-scope coverage chunk replaces it with hard full-scope semantics.
 include:
   - packages/riviere-cli/src/shell/cli.ts
   - packages/riviere-cli/src/features/builder/entrypoint/**/*.ts

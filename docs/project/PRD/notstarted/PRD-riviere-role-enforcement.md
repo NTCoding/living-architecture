@@ -47,7 +47,13 @@ Part of this project is identifying the full role inventory required for this re
 
 This capability exists to make AI agents place code correctly, especially in areas like `infra/`, where generic placement causes architectural drift.
 
-The target end state is a PR where role enforcement is applied with 100% coverage across this codebase and all in-scope code belongs to a role.
+The target end state is a PR where role enforcement is applied with 100% coverage across the final agreed in-scope repository code for this branch and all in-scope code belongs to a role.
+
+For this branch, the final enforcement scope is:
+
+- included roots: `packages/riviere-cli/src/**`, `packages/riviere-builder/src/**`, `packages/riviere-extract-config/src/**`, `packages/riviere-extract-ts/src/**`, `packages/riviere-query/src/**`, `packages/riviere-role-enforcement/src/**`, `tools/dev-workflow/src/**`, `tools/dev-workflow-v2/src/**`
+- excluded roots: `packages/riviere-schema/src/**`, `packages/riviere-extract-conventions/src/**`, `apps/eclair/**`
+- excluded file classes: `*.spec.*`, `__fixtures__/**`, `fixtures/**`, snapshot files, generated outputs, and barrel-only files such as `index.ts` that declare no target symbols
 
 For rollout practicality, enforcement may begin with a narrower phase 1 scope. If so, that scope must be stated explicitly in the implementation plan rather than treated as an implicit exclusion.
 
@@ -63,7 +69,7 @@ Deterministic enforcement is the source of truth for:
 - role uniqueness
 - allowed location
 - naming rules
-- allowed public methods on a class or function assigned to that role
+- allowed public methods on a class, static method target, or standalone function assigned to that role
 
 AI review is additive. It may detect semantic mismatches that static rules cannot prove, but it must never override deterministic failures.
 
@@ -107,7 +113,7 @@ The initial implementation should focus only on:
 - role coverage
 - role naming
 - allowed location
-- allowed public methods on a class or function assigned to that role
+- allowed public methods on a class, static method target, or standalone function assigned to that role
 - markdown guidance for AI review
 
 Any new rule beyond those must be justified by a concrete repository need.
@@ -141,9 +147,12 @@ Only after that may a role narrow into a more specific specialization or subfold
 
 The intended model is:
 
-- one class = one role
-- if a function does not belong to a class, it must also have a role
-- roles apply to classes or standalone functions, not to class methods individually
+- every class must have exactly one explicit class-level role
+- every standalone function must have exactly one explicit role
+- every static method must have exactly one explicit role
+- instance methods do not receive separate role assignments; they are constrained by the owning class role
+
+A class with static methods is not exempt from class-level classification. The class itself still needs a role, and each static method also needs its own explicit role assignment.
 
 We should prefer classes where possible because the model is simpler and easier for AI agents to follow.
 
@@ -179,20 +188,22 @@ This is a standalone package in `packages/`, not an app and not a `tools/` plugi
 The system validates these code targets:
 
 - class declarations
+- static methods
 - standalone functions
 
 The intended model is:
 
-- one class = one role
+- one class = one class-level role
 - standalone functions must have a role if they are in scope
-- mixed-role classes are disallowed
+- static methods must have a role if they are in scope
+- instance methods are validated through the owning class role rather than as separate targets
 
 ### 3.3 Minimal Role Definition DSL And Explicit Role Assignment
 
 We need two separate concepts:
 
 - a role definition DSL that defines the repository role taxonomy
-- an explicit role assignment model that tells the checker which role a class or standalone function actually has
+- an explicit role assignment model that tells the checker which role a class, static method, or standalone function actually has
 
 The role definition DSL must stay simple.
 
@@ -572,19 +583,19 @@ Temporary exceptions are allowed only during rollout to reach the target end sta
 
 ## 5. Success Criteria
 
-| #   | Criterion                                                                                                                                    | Verification                                                                                   |
-| --- | -------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| 1   | Every in-scope class and standalone function has exactly one explicit role assignment or produces a deterministic error                      | Integration test fixtures plus repository smoke test                                           |
-| 2   | Deterministic enforcement validates the assigned role against only the minimal role rules: location, naming, target type, and public methods | Unit tests with 100% branch coverage                                                           |
-| 3   | No symbol passes purely because it happened to match path and naming rules without an explicit assignment                                    | Negative fixture coverage for matcher-only cases                                               |
-| 4   | The repository has an explicit role inventory covering ambiguous infra areas as well as standard locations                                   | Repository role catalog reviewed and committed                                                 |
-| 5   | Fine-grained infra roles are supported                                                                                                       | Fixtures for CLI presentation, git, graph persistence, config loading, and similar infra cases |
-| 6   | Diagnostics distinguish missing assignment, unknown assignment, invalid location, invalid name, and invalid public method shape              | Golden-path diagnostic tests                                                                   |
-| 7   | AI review consumes markdown role specs and emits structured verdicts                                                                         | Integration tests with mocked AI client                                                        |
-| 8   | Architecture review workflow can invoke role enforcement on PRs                                                                              | Workflow integration test or documented workflow update verified in tests                      |
-| 9   | Full-repo enforcement is fast enough for constant use                                                                                        | Benchmarks recorded in docs                                                                    |
-| 10  | Package ships with 100% code coverage and does not introduce new lint, typecheck, or dependency-cruiser violations                           | Coverage threshold enforced in package config and repository `verify` passes                   |
-| 11  | A final rollout PR applies role enforcement with 100% coverage across this codebase                                                          | Final adoption PR passes repository verification                                               |
+| #   | Criterion                                                                                                                                                                                                                                                | Verification                                                                                   |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| 1   | Every in-scope class, static method, and standalone function has exactly one explicit role assignment or produces a deterministic error                                                                                                                  | Integration test fixtures plus repository smoke test                                           |
+| 2   | Deterministic enforcement validates the assigned role against only the minimal role rules: location, naming, target type, and public methods                                                                                                             | Unit tests with 100% branch coverage                                                           |
+| 3   | No symbol passes purely because it happened to match path and naming rules without an explicit assignment                                                                                                                                                | Negative fixture coverage for matcher-only cases                                               |
+| 4   | The repository has an explicit role inventory covering ambiguous infra areas as well as standard locations                                                                                                                                               | Repository role catalog reviewed and committed                                                 |
+| 5   | Fine-grained infra roles are supported                                                                                                                                                                                                                   | Fixtures for CLI presentation, git, graph persistence, config loading, and similar infra cases |
+| 6   | Diagnostics distinguish missing assignment, unknown assignment, invalid location, invalid name, and invalid public method shape                                                                                                                          | Golden-path diagnostic tests                                                                   |
+| 7   | AI review consumes markdown role specs and emits structured verdicts                                                                                                                                                                                     | Integration tests with mocked AI client                                                        |
+| 8   | Architecture review workflow can invoke role enforcement on PRs                                                                                                                                                                                          | Workflow integration test or documented workflow update verified in tests                      |
+| 9   | Full-repo enforcement is fast enough for constant use                                                                                                                                                                                                    | Benchmarks recorded in docs                                                                    |
+| 10  | Package ships with 100% code coverage and does not introduce new lint, typecheck, or dependency-cruiser violations                                                                                                                                       | Coverage threshold enforced in package config and repository `verify` passes                   |
+| 11  | A final rollout PR applies role enforcement with 100% coverage across `packages/riviere-cli/src/**`, `packages/riviere-builder/src/**`, `packages/riviere-extract-config/src/**`, `packages/riviere-extract-ts/src/**`, `packages/riviere-query/src/**`, `packages/riviere-role-enforcement/src/**`, `tools/dev-workflow/src/**`, and `tools/dev-workflow-v2/src/**`, excluding `packages/riviere-schema/src/**`, `packages/riviere-extract-conventions/src/**`, and `apps/eclair/**` | Final adoption PR passes repository verification                                               |
 
 Initial performance targets:
 
@@ -646,7 +657,7 @@ The minimal deterministic enforcement works end-to-end.
 #### Deliverables
 
 - **D2.1:** Target enumeration
-  - Enumerate classes and in-scope standalone functions
+  - Enumerate classes, in-scope static methods, and in-scope standalone functions
   - Parse explicit role assignment for each target
   - Verification: parser and extraction tests
 
@@ -717,7 +728,7 @@ The repository reaches full enforcement coverage.
   - Verification: workflow documentation and integration behavior updated
 
 - **D5.2:** Final adoption PR
-  - Apply role enforcement across the entire repository
+  - Apply role enforcement across the final agreed branch scope
   - Verification: 100% coverage with no unresolved in-scope code outside a role
 
 - **D5.3:** Documentation
@@ -835,7 +846,7 @@ The first repository bootstrap should include roles such as:
 
 This list is illustrative, not complete. A core deliverable of the project is identifying the full role inventory required for 100% repository coverage.
 
-This section defines the role taxonomy only. It does not assign roles to concrete symbols. Concrete classes and standalone functions still need explicit role assignments.
+This section defines the role taxonomy only. It does not assign roles to concrete symbols. Concrete classes, static methods, and standalone functions still need explicit role assignments.
 
 ---
 
@@ -874,8 +885,8 @@ It should be designed to coexist with them rather than replace them.
 | Term                        | Definition                                                                                                                                            |
 | --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Role Definition**         | A named rule set describing where code may live, how it should be named, what public methods it may expose, and which markdown spec governs AI review |
-| **Role Assignment**         | The explicit declaration that a class or standalone function has a specific repository role                                                           |
-| **Target Symbol**           | A class or standalone function checked by the engine                                                                                                  |
+| **Role Assignment**         | The explicit declaration that a class, static method, or standalone function has a specific repository role                                           |
+| **Target Symbol**           | A class, static method, or standalone function checked by the engine                                                                                  |
 | **Role Match**              | The role definition resolved from the target's explicit role assignment                                                                               |
 | **Deterministic Violation** | A role failure proven by static analysis                                                                                                              |
 | **Markdown Spec**           | Markdown guidance used by AI review for semantic validation beyond deterministic checks                                                               |
@@ -1009,10 +1020,350 @@ git add <relevant-files> && git commit --no-verify -m "<commit message>" && git 
   - Suggested commit: `test(role-enforcement): complete package quality gates`
   - References: `5. Success Criteria`, `7. Milestones`
 
-- [x] Ship the final repository rollout and move the draft PR toward ready review
-  - Requirements: apply explicit assignments and role validation across the agreed repository scope, resolve or document remaining exceptions, and update the draft PR summary with final rollout status
-  - Acceptance: the agreed scope reaches 100% explicit role coverage, repository verification passes for that scope, and the draft PR is ready to graduate once stakeholders approve
-  - Suggested commit: `feat(role-enforcement): complete repository rollout`
+- [x] Ship the initial repository rollout slice and keep the PR in draft
+  - Requirements: apply explicit assignments and role validation across the initial rollout slice, resolve the slice-specific violations, and record the slice status in the draft PR
+  - Acceptance: the initial slice reaches 100% explicit role coverage for the files currently configured in `riviere-role-enforcement.yaml`, repository verification passes for that slice, and the PR remains in draft pending full-branch completion
+  - Suggested commit: `feat(role-enforcement): complete initial rollout slice`
   - References: `1. Problem`, `3.10 Repository Rollout`, `5. Success Criteria`, `7. Milestones`
-  - Rollout status: `riviere-role-enforcement.yaml` is the agreed rollout scope, deterministic role enforcement now passes it end-to-end with 0 role errors, and no explicit role-enforcement exceptions remain in that scope.
-  - Ready-review note: the repo-facing command passes on `architecture-rbaf`; the remaining command output is limited to three pre-existing non-role Oxlint warnings in `tools/dev-workflow-v2`, which are documented separately from role-enforcement rollout status.
+  - Historical status note: this checkpoint completed the explicit-assignment slice that currently covers selected areas of `packages/riviere-cli`, `packages/riviere-query`, and `tools/dev-workflow-v2`. It does not satisfy the final full-branch coverage goal.
+
+### Phase 3 - Complete Full Branch Coverage And Hard-Gate The Repository
+
+Phase 3 is the completion phase for this branch. The engineer must not treat this phase as optional cleanup.
+
+Phase 3 scope lock:
+
+- included roots: `packages/riviere-cli/src/**`, `packages/riviere-builder/src/**`, `packages/riviere-extract-config/src/**`, `packages/riviere-extract-ts/src/**`, `packages/riviere-query/src/**`, `packages/riviere-role-enforcement/src/**`, `tools/dev-workflow/src/**`, `tools/dev-workflow-v2/src/**`
+- excluded roots: `packages/riviere-schema/src/**`, `packages/riviere-extract-conventions/src/**`, `apps/eclair/**`
+- excluded file classes: `*.spec.*`, `__fixtures__/**`, `fixtures/**`, snapshot files, generated outputs, and barrel-only files such as `index.ts` that declare no target symbols
+- mandatory target kinds inside included roots: class declarations, static methods, and standalone functions
+- hard-gate rule: if any in-scope target is missing an explicit role assignment, `pnpm role-enforcement:check` must fail with a non-zero exit code
+- hard-gate rule: if any in-scope target has an unknown role, invalid location, invalid name, invalid target kind, or disallowed public methods, `pnpm role-enforcement:check` must fail with a non-zero exit code
+
+Engineer working rule for every Phase 3 chunk:
+
+- complete exactly one checklist item at a time, or one tightly coupled pair when a code change and its tests are inseparable
+- after each checklist item, run the listed verification commands before committing
+- after each green checklist item, create a small commit with `git commit --no-verify`
+- push after every commit to `origin/architecture-rbaf`
+- if a new role is introduced, the same chunk must update all of: `riviere-role-enforcement.yaml`, the relevant `docs/roles/*.md` file, classifier expectations, and any affected tests
+- if a symbol must move, split, rename, or convert from function to class to fit a valid role, perform the structural change in the same chunk rather than weakening the role definition
+- keep the PR in draft until every checklist item below is complete and every negative verification drill passes
+
+Engineer start here:
+
+- first read only these three files end-to-end before changing code: `docs/project/PRD/notstarted/PRD-riviere-role-enforcement.md`, `docs/project/PRD/notstarted/PRD-riviere-role-enforcement-role-inventory.md`, and `riviere-role-enforcement.yaml`
+- do not start package-by-package annotation rollout until the engine prerequisites are complete: static-method support, non-exported target extraction, repo-scope coverage semantics, negative probe coverage, and the fixed repo command
+- do not create broad catch-all roles such as `misc-domain-helper`, `generic-infra-helper`, or `utility`; if the code does not fit a precise role, refactor the code or define a precise role family with a markdown spec
+- do not use config omissions as exceptions; if a file is in an included root and has targetable declarations, it must either be enforced or be moved into an explicitly excluded category
+- do not mark a package rollout item complete until `pnpm role-enforcement:check` passes with that package included in the final branch scope
+
+Engineer first five commits:
+
+- commit 1: `docs(role-enforcement): freeze phase 3 scope`
+  - must complete checklist item `Freeze the final branch scope in documentation and config`
+- commit 2: `fix(role-enforcement): restore green baseline`
+  - must complete checklist item `Repair the existing red CI baseline before widening coverage`
+- commit 3: `feat(role-enforcement): add static method targets`
+  - must complete checklist item `Expand the deterministic target model to include static methods as first-class targets`
+- commit 4: `feat(role-enforcement): enumerate all in-scope targets`
+  - must complete checklist item `Stop limiting target extraction to exported top-level declarations`
+- commit 5: `feat(role-enforcement): harden repo scope coverage`
+  - must complete checklist item `Replace slice-style include semantics with hard repo-scope coverage semantics`
+
+Required execution order after the first five commits:
+
+- complete the engine-safety sequence before starting mass rollout: `Add explicit negative probes for the exact failure modes the user will test manually` -> `Make the repo-facing command the authoritative enforcement entrypoint` -> `Expand the role catalog and markdown specs for all remaining in-scope architecture areas before annotation rollout`
+- only after the engine-safety sequence is green may the engineer begin package coverage work
+- package rollout order is mandatory unless a later chunk is blocked by an earlier package refactor: `packages/riviere-role-enforcement` -> remaining `packages/riviere-cli` -> `packages/riviere-builder` -> `packages/riviere-extract-ts` -> `packages/riviere-extract-config` -> `tools/dev-workflow` -> remaining `tools/dev-workflow-v2`
+- after the last package rollout chunk, the engineer must complete the final proof sequence in order: scope manifest -> workflow and CI gating -> wrong-role AI repair verification -> sabotage drills -> final repository verification matrix -> PR status update
+
+Definition of complete for each package rollout chunk:
+
+- every in-scope class, static method, and standalone function in that package has exactly one explicit role assignment
+- every role used by that package exists in `riviere-role-enforcement.yaml` and has a real markdown spec under `docs/roles/`
+- any file that needed movement, renaming, or splitting to fit a single clear role has already been refactored in the same chunk
+- `pnpm role-enforcement:check` passes after the package is included in final scope
+- any package-specific lint, typecheck, build, or test command touched by the refactor also passes before commit
+
+Suggested command pattern after each chunk:
+
+```bash
+git add <relevant-files> && git commit --no-verify -m "<commit message>" && git push origin architecture-rbaf
+```
+
+- [ ] Freeze the final branch scope in documentation and config
+  - Requirements:
+    - update this PRD, the role inventory doc, and `riviere-role-enforcement.yaml` comments or metadata so they all state the same final included roots and excluded roots
+    - remove any wording that still describes the current rollout slice as the final state
+    - explicitly document that `packages/riviere-extract-config` is in scope for Phase 3
+  - Acceptance:
+    - no branch-scope ambiguity remains in the docs
+    - a new engineer can identify the exact final scope without reading PR comments or chat history
+  - Verification:
+    - `pnpm exec markdownlint-cli2 "docs/project/PRD/notstarted/PRD-riviere-role-enforcement.md" "docs/project/PRD/notstarted/PRD-riviere-role-enforcement-role-inventory.md"`
+  - Suggested commit: `docs(role-enforcement): freeze phase 3 scope`
+
+- [ ] Repair the existing red CI baseline before widening coverage
+  - Requirements:
+    - fix the `@stylistic/object-curly-newline` failures in the touched `packages/riviere-query` files
+    - fix the CI-sensitive fixture path bug in `packages/riviere-role-enforcement/src/features/classify/domain/role-classifier-result.spec.ts`
+    - fix `knip`, including the stale path reference in `packages/riviere-role-enforcement/project.json`
+    - fix `package.json` so `role-enforcement:check` passes the required config path
+  - Acceptance:
+    - the branch returns to the same or better green state as before any Phase 3 scope widening
+    - no known pre-existing CI failure remains unaddressed
+  - Verification:
+    - `pnpm exec eslint packages/riviere-query/src/features/querying/queries/*.ts`
+    - `pnpm exec vitest run --config packages/riviere-role-enforcement/vite.config.ts`
+    - `pnpm nx build riviere-role-enforcement`
+    - `pnpm knip`
+    - `pnpm role-enforcement:check`
+  - Suggested commit: `fix(role-enforcement): restore green baseline`
+
+- [ ] Expand the deterministic target model to include static methods as first-class targets
+  - Requirements:
+    - add a dedicated target kind for static methods in the config model, checker, diagnostics, and tests
+    - include owning class name and method name in the target symbol metadata and error output
+    - ensure class-level `allowedPublicMethods` continues to validate instance methods only unless the DSL is explicitly extended otherwise
+    - ensure a class with one or more static methods still requires its own class-level role
+  - Acceptance:
+    - missing static-method role assignments fail deterministically
+    - static methods can also fail deterministically for unknown role, invalid role kind, invalid location, invalid name, and any future role-specific constraints
+  - Verification:
+    - add and run focused tests covering missing and wrong static-method assignments
+    - `pnpm exec vitest run --config packages/riviere-role-enforcement/vite.config.ts`
+  - Suggested commit: `feat(role-enforcement): add static method targets`
+
+- [ ] Stop limiting target extraction to exported top-level declarations
+  - Requirements:
+    - enumerate all in-scope class declarations, static methods, and standalone functions regardless of export status
+    - retain correct source ranges and comments so role annotations still attach to the right declaration
+    - document any intentionally excluded syntax forms and cover them with tests
+  - Acceptance:
+    - a non-exported in-scope class, static method, or standalone function without a role fails the check
+    - extraction does not regress the existing annotated export cases
+  - Verification:
+    - add fixture coverage for non-exported targets
+    - `pnpm exec vitest run --config packages/riviere-role-enforcement/vite.config.ts`
+  - Suggested commit: `feat(role-enforcement): enumerate all in-scope targets`
+
+- [ ] Replace slice-style include semantics with hard repo-scope coverage semantics
+  - Requirements:
+    - remove or neutralize any config behavior that silently ignores source files simply because they are not listed in an include allowlist
+    - implement a coverage audit that fails when an included root contains targetable declarations that are outside the effective enforcement scope
+    - ensure the branch scope is defined by final included roots plus explicit exclusions, not by a hand-maintained allowlist of happy-path files
+  - Acceptance:
+    - engineers cannot make the build pass by leaving a source directory out of the config
+    - the repo command fails if a new in-scope source file contains an unclassified target
+  - Verification:
+    - add regression tests for out-of-scope-by-omission failures
+    - `pnpm exec vitest run --config packages/riviere-role-enforcement/vite.config.ts`
+    - `pnpm role-enforcement:check`
+  - Suggested commit: `feat(role-enforcement): harden repo scope coverage`
+
+- [ ] Add explicit negative probes for the exact failure modes the user will test manually
+  - Requirements:
+    - add fixture coverage for: removed class role, removed static-method role, removed standalone-function role, wrong role name, wrong layer/location, and wrong target kind
+    - add at least one fixture where a static method has a valid annotation but the owning class is missing its class role
+    - add at least one fixture where the class role is valid but a static method role is missing
+  - Acceptance:
+    - each negative probe fails deterministically with a precise message and a non-zero exit code
+    - diagnostics instruct Claude to run `riviere-role-classifier` when repair guidance is needed
+  - Verification:
+    - `pnpm exec vitest run --config packages/riviere-role-enforcement/vite.config.ts`
+  - Suggested commit: `test(role-enforcement): add hard-fail negative probes`
+
+- [ ] Make the repo-facing command the authoritative enforcement entrypoint
+  - Requirements:
+    - ensure `pnpm role-enforcement:check` runs the full Phase 3 branch scope by default
+    - ensure local changed-file mode, if supported, is additive convenience only and cannot weaken the full-scope CI path
+    - document the command in the package README and any workflow docs that invoke it
+  - Acceptance:
+    - there is exactly one obvious command engineers and CI should run for deterministic role enforcement
+    - the command uses the same implementation path locally and in CI
+  - Verification:
+    - `pnpm role-enforcement:check`
+    - `pnpm exec markdownlint-cli2 "packages/riviere-role-enforcement/README.md"`
+  - Suggested commit: `feat(role-enforcement): finalize repo check command`
+
+- [ ] Expand the role catalog and markdown specs for all remaining in-scope architecture areas before annotation rollout
+  - Requirements:
+    - define missing role families needed for `packages/riviere-cli/src/platform/**`, `packages/riviere-builder/src/**`, `packages/riviere-extract-config/src/**`, `packages/riviere-extract-ts/src/**`, `packages/riviere-role-enforcement/src/**`, and `tools/dev-workflow/src/**`
+    - keep the mandatory top-level layer distinction explicit in every new role family
+    - create or update `docs/roles/*.md` so every new role has placement, naming, and allowed-public-method guidance before mass annotation begins
+  - Acceptance:
+    - no in-scope directory remains blocked solely because the role catalog is missing
+    - the classifier has a real markdown spec for every role used in Phase 3
+  - Verification:
+    - `pnpm exec vitest run --config packages/riviere-role-enforcement/vite.config.ts`
+    - `pnpm exec markdownlint-cli2 "docs/roles/**/*.md"`
+  - Suggested commit: `docs(role-enforcement): expand phase 3 role catalog`
+
+- [ ] Roll out `packages/riviere-role-enforcement/src/**` to full coverage
+  - Requirements:
+    - annotate every in-scope class, static method, and standalone function in the enforcement package itself
+    - resolve any role mismatches by refactoring the package structure rather than creating vague catch-all roles
+    - ensure the package can successfully enforce its own architecture
+  - Acceptance:
+    - the enforcement package is no longer exempt from the rules it introduces
+    - package tests and repo-wide enforcement both pass with the package included
+  - Verification:
+    - `pnpm exec vitest run --config packages/riviere-role-enforcement/vite.config.ts`
+    - `pnpm nx build riviere-role-enforcement`
+    - `pnpm role-enforcement:check`
+  - Suggested commit: `feat(role-enforcement): self-host package coverage`
+
+- [ ] Roll out the remaining uncovered `packages/riviere-cli/src/**` areas
+  - Requirements:
+    - cover `packages/riviere-cli/src/platform/**`, remaining `shell/**` files such as `shell/bin.ts`, and any feature files not already covered by the initial slice
+    - introduce precise roles for CLI input parsing, output formatting, presentation, graph persistence, extraction config loading, and other platform concerns where needed
+    - move or split code that does not cleanly fit a single role
+  - Acceptance:
+    - every in-scope target under `packages/riviere-cli/src/**` has a valid explicit role
+    - no temporary exceptions remain for CLI platform code
+  - Verification:
+    - `pnpm role-enforcement:check`
+    - package-specific lint/test/build commands as needed after refactors
+  - Suggested commit: `feat(role-enforcement): finish riviere-cli coverage`
+
+- [ ] Roll out `packages/riviere-builder/src/**` to full coverage
+  - Requirements:
+    - classify all builder domain, command, query, entrypoint, and infra symbols
+    - add any needed builder-specific domain roles such as facade, domain service, entity, value object, repository, or error roles only where justified by actual code structure
+    - refactor ambiguous files so they fit one clear role each
+  - Acceptance:
+    - every in-scope target under `packages/riviere-builder/src/**` has a valid explicit role
+    - builder code passes deterministic enforcement without package-specific carve-outs
+  - Verification:
+    - `pnpm role-enforcement:check`
+    - package-specific lint/test/build commands as needed after refactors
+  - Suggested commit: `feat(role-enforcement): cover riviere-builder`
+
+- [ ] Roll out `packages/riviere-extract-ts/src/**` to full coverage
+  - Requirements:
+    - classify extraction config resolution, component extraction, connection detection, AST traversal, and call-graph code with explicit repository roles
+    - keep infra-style wrappers distinct from pure domain extraction logic
+    - split mixed-responsibility files before annotating if a single role would be misleading
+  - Acceptance:
+    - every in-scope target under `packages/riviere-extract-ts/src/**` has a valid explicit role
+    - no extraction code remains outside deterministic enforcement
+  - Verification:
+    - `pnpm role-enforcement:check`
+    - package-specific lint/test/build commands as needed after refactors
+  - Suggested commit: `feat(role-enforcement): cover riviere-extract-ts`
+
+- [ ] Roll out `packages/riviere-extract-config/src/**` to full coverage
+  - Requirements:
+    - classify config-loading, parsing, normalization, validation, and persistence behavior with precise roles instead of generic helpers
+    - keep repository/persistence responsibilities separate from domain parsing or validation responsibilities
+  - Acceptance:
+    - every in-scope target under `packages/riviere-extract-config/src/**` has a valid explicit role
+    - no config package code remains uncovered just because it is utility-heavy
+  - Verification:
+    - `pnpm role-enforcement:check`
+    - package-specific lint/test/build commands as needed after refactors
+  - Suggested commit: `feat(role-enforcement): cover riviere-extract-config`
+
+- [ ] Roll out `tools/dev-workflow/src/**` to full coverage
+  - Requirements:
+    - classify workflow entrypoints, commands, queries, domain logic, and infra clients in the older workflow tool
+    - add any workflow-specific role family only where the deterministic rules truly differ from the existing workflow-v2 roles
+  - Acceptance:
+    - every in-scope target under `tools/dev-workflow/src/**` has a valid explicit role
+    - the older workflow tool participates in the same enforcement contract as the rest of the branch scope
+  - Verification:
+    - `pnpm role-enforcement:check`
+    - tool-specific lint/test/build commands as needed after refactors
+  - Suggested commit: `feat(role-enforcement): cover dev-workflow`
+
+- [ ] Finish any uncovered remainder in `tools/dev-workflow-v2/src/**`
+  - Requirements:
+    - cover remaining files such as `src/shell/cli.ts`, `src/workflow-definition/infra/**`, and any other targets not yet included in the slice config
+    - align folder placement and role names where the current structure still reflects pre-rollout compromises
+  - Acceptance:
+    - every in-scope target under `tools/dev-workflow-v2/src/**` has a valid explicit role
+    - no v2 workflow file depends on being omitted from config to pass enforcement
+  - Verification:
+    - `pnpm role-enforcement:check`
+    - tool-specific lint/test/build commands as needed after refactors
+  - Suggested commit: `feat(role-enforcement): finish dev-workflow-v2 coverage`
+
+- [ ] Regenerate and verify the repository-wide scope manifest
+  - Requirements:
+    - produce an auditable list or test-backed count of every in-scope target in the final branch scope
+    - confirm that each target has exactly one explicit role and no directory is omitted by accident
+    - record the final included and excluded roots in a stable doc or test fixture
+  - Acceptance:
+    - the team can prove full branch coverage with evidence rather than assumption
+    - a future engineer can detect coverage regressions by diffing the manifest or its tests
+  - Verification:
+    - `pnpm role-enforcement:check`
+    - add and run any manifest or smoke tests introduced for coverage accounting
+  - Suggested commit: `test(role-enforcement): lock final scope manifest`
+
+- [ ] Wire hard deterministic enforcement into workflow and CI
+  - Requirements:
+    - ensure the architecture-review workflow and any relevant CI entrypoints invoke the same repo-wide role check
+    - place the deterministic role check early enough that missing or wrong roles fail fast
+    - ensure failure output is suitable for GitHub review surfaces and still instructs Claude to run `riviere-role-classifier`
+  - Acceptance:
+    - the branch cannot be considered green if role enforcement fails
+    - deterministic role failures are visible before slower downstream jobs complete
+  - Verification:
+    - run the local workflow entrypoints or scripts that back the CI behavior
+    - `pnpm role-enforcement:check`
+  - Suggested commit: `feat(role-enforcement): hard-gate workflow and ci`
+
+- [ ] Verify the AI repair loop for wrong-role cases, not just missing-role cases
+  - Requirements:
+    - add tests or scripted probes showing that a wrong but known role produces diagnostics that point the engineer or AI agent to `riviere-role-classifier`
+    - ensure classifier output includes explicit assignment text, destination guidance, markdown spec, and rationale for the relevant wrong-role scenarios
+    - ensure AI review examples reflect the new static-method target kind where applicable
+  - Acceptance:
+    - the wrong-role path is self-correcting, not just the missing-role path
+    - the user can intentionally apply a wrong label and observe useful deterministic plus AI-facing feedback
+  - Verification:
+    - targeted classifier and AI-review tests
+    - `pnpm exec vitest run --config packages/riviere-role-enforcement/vite.config.ts`
+  - Suggested commit: `test(role-enforcement): verify wrong-role repair loop`
+
+- [ ] Run the final negative verification drills that simulate user sabotage
+  - Requirements:
+    - remove a class role annotation in one in-scope package and confirm `pnpm role-enforcement:check` fails
+    - remove a static-method role annotation and confirm `pnpm role-enforcement:check` fails
+    - remove a standalone-function role annotation and confirm `pnpm role-enforcement:check` fails
+    - change a valid role to a wrong known role and confirm deterministic failure plus classifier guidance
+    - restore each probe before the final commit
+  - Acceptance:
+    - the branch proves the exact user test plan will fail the build when labels are removed or made wrong
+    - there is no path where unlabeled or wrongly labeled in-scope code slips through silently
+  - Verification:
+    - record the exact commands and representative failure messages in the PR notes or verification doc
+    - `pnpm role-enforcement:check`
+  - Suggested commit: `test(role-enforcement): validate sabotage probes`
+
+- [ ] Run the final repository verification matrix and do not merge until every command is green
+  - Requirements:
+    - run the full deterministic role check for the final branch scope
+    - run all repository checks required by this branch after the rollout refactors land
+    - resolve any newly exposed lint, test, typecheck, or dependency issues instead of documenting them away
+  - Acceptance:
+    - the branch is truly green, not just locally green for the role-enforcement package
+    - the draft PR can move toward ready review without caveats about missing coverage or known red checks
+  - Verification:
+    - `pnpm role-enforcement:check`
+    - `pnpm verify`
+  - Suggested commit: `chore(role-enforcement): finalize full branch verification`
+
+- [ ] Update the draft PR to prove completion, then keep it in draft only if a remaining issue is real and written down
+  - Requirements:
+    - rewrite the PR description to describe the final branch scope, excluded roots, coverage evidence, and verification commands actually run
+    - include a short section describing the manual sabotage probes and their results
+    - if anything remains red, list the exact failing command and exact reason; do not leave vague status language
+  - Acceptance:
+    - a reviewer can understand what is in scope, what is excluded, what was verified, and why the branch is or is not ready
+    - no false claim of full coverage remains anywhere in the PRD or PR text
+  - Verification:
+    - review the PR body after update and confirm it matches the final docs and command output
+  - Suggested commit: `docs(role-enforcement): finalize phase 3 rollout status`
