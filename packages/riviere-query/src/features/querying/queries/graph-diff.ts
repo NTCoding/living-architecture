@@ -1,5 +1,9 @@
-import type { RiviereGraph, Component } from '@living-architecture/riviere-schema'
-import type { ComponentModification, GraphDiff } from './domain-types'
+import type {
+  RiviereGraph, Component 
+} from '@living-architecture/riviere-schema'
+import type {
+  ComponentModification, GraphDiff 
+} from './domain-types'
 import { parseComponentId } from './domain-types'
 import { createLinkKey } from './link-key'
 

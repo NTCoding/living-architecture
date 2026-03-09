@@ -1,4 +1,5 @@
 import { existsSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 import {
   classifyRoleRequest,
   createRoleClassifierResult,
@@ -55,7 +56,12 @@ function requireFirstRole() {
 describe('role classifier flow', () => {
   it('resolves markdown specs referenced by the spike config', () => {
     const config = loadRoleEnforcementConfig(
-      'packages/riviere-role-enforcement/fixtures/oxlint-spike/riviere-role-enforcement.yaml',
+      fileURLToPath(
+        new URL(
+          '../../../../fixtures/oxlint-spike/riviere-role-enforcement.yaml',
+          import.meta.url,
+        ),
+      ),
     )
 
     expect(config.roles).toHaveLength(2)

@@ -1,7 +1,13 @@
-import type { RiviereGraph, Component, ExternalLink } from '@living-architecture/riviere-schema'
-import type { ComponentId, LinkId, Flow, SearchWithFlowResult } from './domain-types'
+import type {
+  RiviereGraph, Component, ExternalLink 
+} from '@living-architecture/riviere-schema'
+import type {
+  ComponentId, LinkId, Flow, SearchWithFlowResult 
+} from './domain-types'
 import { parseComponentId } from './domain-types'
-import { componentById, searchComponents } from './component-queries'
+import {
+  componentById, searchComponents 
+} from './component-queries'
 import { ComponentNotFoundError } from './errors'
 import { createLinkKey } from './link-key'
 import { ENTRY_POINT_TYPES } from './flow-constants'
@@ -145,9 +151,7 @@ function buildOutgoingEdges(graph: RiviereGraph): Map<
   return edges
 }
 
-export interface SearchWithFlowOptions {
-  returnAllOnEmptyQuery: boolean
-}
+export interface SearchWithFlowOptions {returnAllOnEmptyQuery: boolean}
 
 /** @riviere-role query-service */
 export function searchWithFlowContext(

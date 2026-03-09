@@ -1,8 +1,14 @@
-import type { RiviereGraph, DomainOpComponent } from '@living-architecture/riviere-schema'
+import type {
+  RiviereGraph, DomainOpComponent 
+} from '@living-architecture/riviere-schema'
 import { Entity } from './event-types'
 import type { EntityTransition } from './event-types'
-import type { State, Domain, ComponentCounts } from './domain-types'
-import { parseEntityName, parseDomainName, parseState, parseOperationName } from './domain-types'
+import type {
+  State, Domain, ComponentCounts 
+} from './domain-types'
+import {
+  parseEntityName, parseDomainName, parseState, parseOperationName 
+} from './domain-types'
 import { componentsInDomain } from './component-queries'
 import { compareByCodePoint } from './compare-by-code-point'
 

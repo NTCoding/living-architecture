@@ -1,5 +1,9 @@
-import type { RiviereGraph, CustomComponent } from '@living-architecture/riviere-schema'
-import type { ComponentId, ValidationError, ValidationResult } from './domain-types'
+import type {
+  RiviereGraph, CustomComponent 
+} from '@living-architecture/riviere-schema'
+import type {
+  ComponentId, ValidationError, ValidationResult 
+} from './domain-types'
 import { parseComponentId } from './domain-types'
 
 function isCustomComponent(component: { type: string }): component is CustomComponent {

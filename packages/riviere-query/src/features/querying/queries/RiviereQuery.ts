@@ -6,7 +6,9 @@ import type {
   DomainOpComponent,
   ExternalLink,
 } from '@living-architecture/riviere-schema'
-import type { Entity, EntityTransition, PublishedEvent, EventHandlerInfo } from './event-types'
+import type {
+  Entity, EntityTransition, PublishedEvent, EventHandlerInfo 
+} from './event-types'
 import type {
   State,
   ComponentId,
@@ -47,14 +49,22 @@ import {
   searchWithFlowContext,
   type SearchWithFlowOptions,
 } from './flow-queries'
-import { queryCrossDomainLinks, queryDomainConnections } from './cross-domain-queries'
-import { queryPublishedEvents, queryEventHandlers } from './event-queries'
-import { validateGraph, detectOrphanComponents } from './graph-validation'
+import {
+  queryCrossDomainLinks, queryDomainConnections 
+} from './cross-domain-queries'
+import {
+  queryPublishedEvents, queryEventHandlers 
+} from './event-queries'
+import {
+  validateGraph, detectOrphanComponents 
+} from './graph-validation'
 import { diffGraphs } from './graph-diff'
 import { queryStats } from './stats-queries'
 import { queryNodeDepths } from './depth-queries'
 
-export type { Entity, EntityTransition } from './event-types'
+export type {
+  Entity, EntityTransition 
+} from './event-types'
 export type {
   ComponentId,
   LinkId,

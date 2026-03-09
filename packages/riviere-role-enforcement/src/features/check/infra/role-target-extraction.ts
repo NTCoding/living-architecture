@@ -90,7 +90,7 @@ export interface ProgramNode extends BaseNode {
   body: readonly StatementNode[]
 }
 
-export interface ReportableTarget extends TargetSymbol {reportNode: BaseNode}
+interface ReportableTarget extends TargetSymbol {reportNode: BaseNode}
 
 export interface RoleTargetExtractionIssue {
   code: 'duplicate-role-assignment' | 'malformed-role-assignment'

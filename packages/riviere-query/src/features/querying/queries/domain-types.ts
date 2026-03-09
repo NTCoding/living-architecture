@@ -1,4 +1,6 @@
-import type { Component, Link, ExternalLink } from '@living-architecture/riviere-schema'
+import type {
+  Component, Link, ExternalLink 
+} from '@living-architecture/riviere-schema'
 import { z } from 'zod'
 
 /** @internal */

@@ -1,5 +1,7 @@
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
-import type { CrossDomainLink, DomainConnection } from './domain-types'
+import type {
+  CrossDomainLink, DomainConnection 
+} from './domain-types'
 import { parseDomainName } from './domain-types'
 import { compareByCodePoint } from './compare-by-code-point'
 
@@ -140,7 +142,9 @@ export function queryDomainConnections(
 ): DomainConnection[] {
   const nodeIdToDomain = buildNodeIdToDomain(graph)
   const nodeById = new Map(graph.components.map((c) => [c.id, { type: c.type }]))
-  const { outgoing, incoming } = collectConnections(graph, domainName, nodeIdToDomain, nodeById)
+  const {
+    outgoing, incoming 
+  } = collectConnections(graph, domainName, nodeIdToDomain, nodeById)
 
   const results = [
     ...toConnectionResults(outgoing, 'outgoing'),

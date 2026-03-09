@@ -4,11 +4,11 @@ import type {
   RoleTargetKind,
 } from '../../../platform/domain/role-enforcement-config'
 
-export type RoleClassifierStatus = 'clear' | 'ambiguous' | 'unknown-role'
+type RoleClassifierStatus = 'clear' | 'ambiguous' | 'unknown-role'
 
-export type RoleClassifierLayer = 'shell' | 'entrypoint' | 'command' | 'query' | 'domain' | 'infra'
+type RoleClassifierLayer = 'shell' | 'entrypoint' | 'command' | 'query' | 'domain' | 'infra'
 
-export interface RoleClassifierAmbiguity {
+interface RoleClassifierAmbiguity {
   status: 'clear' | 'ambiguous'
   alternatives: readonly string[]
 }
