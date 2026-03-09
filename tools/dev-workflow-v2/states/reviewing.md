@@ -6,7 +6,7 @@ You are running automated code review by spawning review agents in parallel.
 
 - [ ] Determine changed files: `git diff --name-only $(git merge-base HEAD main)..HEAD`
 - [ ] Create report directory: `reviews/<branch-name>/`
-- [ ] Run deterministic role enforcement on the changed files and write the full output to `reviews/<branch-name>/role-enforcement.md`: `pnpm role-enforcement:check -- --config riviere-role-enforcement.yaml <changed-files>`
+- [ ] Run deterministic role enforcement on the changed files and write the full output to `reviews/<branch-name>/role-enforcement.md`: `pnpm role-enforcement:check -- <changed-files>`
 - [ ] Build agent prompts (see Prompt Construction below)
 - [ ] Spawn `architecture-review`, `code-review`, and `bug-scanner` agents in parallel using the Agent tool
 - [ ] If `taskCheckPassed` is false AND a GitHub issue is recorded: also spawn `task-check` agent (see Conditional Task Check below)

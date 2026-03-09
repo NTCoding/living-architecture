@@ -22,4 +22,4 @@ pnpm exec tsx packages/riviere-role-enforcement/src/features/check/entrypoint/ru
 
 - The direct deterministic entrypoint stays under the PRD targets of `<= 2s` for changed files and `<= 15s` for the full configured scan.
 - The current full-scope run reports three pre-existing non-role Oxlint warnings in `tools/dev-workflow-v2`, but role enforcement itself reports no deterministic errors for the configured rollout scope.
-- The wrapper command `pnpm role-enforcement:check -- --config riviere-role-enforcement.yaml` currently includes package lint/build work before execution, so its wall-clock time is higher than the deterministic scan baseline recorded here.
+- The wrapper command `pnpm role-enforcement:check` currently includes package lint/build work before execution, so its wall-clock time is higher than the deterministic scan baseline recorded here.

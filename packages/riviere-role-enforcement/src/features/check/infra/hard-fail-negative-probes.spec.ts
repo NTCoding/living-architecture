@@ -237,7 +237,9 @@ describe('hard fail negative probes', () => {
   })
 
   it('fails when the owning class is missing but the static method is annotated', () => {
-    const { targets, exportNode } = extractClassFixture({
+    const {
+      targets, exportNode 
+    } = extractClassFixture({
       annotateClassRole: false,
       annotateStaticMethodRole: true,
     })
@@ -250,7 +252,9 @@ describe('hard fail negative probes', () => {
   })
 
   it('fails when the class role is valid but the static method role is missing', () => {
-    const { targets, exportNode } = extractClassFixture({
+    const {
+      targets, exportNode 
+    } = extractClassFixture({
       annotateClassRole: true,
       annotateStaticMethodRole: false,
     })

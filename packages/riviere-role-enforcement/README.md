@@ -2,10 +2,10 @@
 
 Spike package for deterministic repository role enforcement.
 
-## Current spike scope
+## Current package scope
 
 - load a minimal YAML role config
-- read explicit `@riviere-role` assignment from exported classes and standalone functions
+- read explicit `@riviere-role` assignment from classes, static methods, and standalone functions
 - validate each assigned role instead of inferring it
 - enforce allowed location, naming, and allowed public methods
 - expose an Oxlint JS plugin for end-to-end validation
@@ -24,17 +24,18 @@ export function createProgram(): string {
 From the workspace root:
 
 ```bash
-pnpm role-enforcement:check -- --config path/to/riviere-role-enforcement.yaml
+pnpm role-enforcement:check
 ```
 
-- omit file paths to check the default full repository roots: `packages`, `tools`, and `apps`
-- append file paths to check only changed files for local development or CI
+- this is the authoritative deterministic role-enforcement command for local use and CI
+- with no extra paths, it checks the Phase 3 branch roots wired into the command
+- append file paths after `--` to run a narrower changed-file probe locally without changing the default CI path
 
 Examples:
 
 ```bash
-pnpm role-enforcement:check -- --config packages/riviere-role-enforcement/fixtures/oxlint-spike/riviere-role-enforcement.yaml
-pnpm role-enforcement:check -- --config packages/riviere-role-enforcement/fixtures/oxlint-spike/riviere-role-enforcement.yaml packages/riviere-role-enforcement/fixtures/oxlint-spike/src/shell/cli.ts
+pnpm role-enforcement:check
+pnpm role-enforcement:check -- packages/riviere-cli/src/shell/cli.ts tools/dev-workflow-v2/src/infra/cli/git.ts
 ```
 
 ## Spike command

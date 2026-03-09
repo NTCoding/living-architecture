@@ -10,7 +10,7 @@ You are addressing PR review feedback.
   - Reject with a specific technical reason (never "out of scope" or "nitpick")
 - [ ] If a thread or role-enforcement report requires changing role placement, assignment, or public API shape, run `riviere-role-classifier` before editing
 - [ ] Respond to each thread: `pnpm nx run dev-workflow:respond-to-feedback -- --thread-id "<ID>" --action "fixed|rejected" --message "<explanation>"`
-- [ ] Re-run deterministic role enforcement on the touched in-scope files before returning to REVIEWING: `pnpm role-enforcement:check -- --config riviere-role-enforcement.yaml <changed-files>`
+- [ ] Re-run deterministic role enforcement on the touched in-scope files before returning to REVIEWING: `pnpm role-enforcement:check -- <changed-files>`
 - [ ] Commit all fixes
 - [ ] Record feedback addressed with the count: `/dev-workflow-v2:workflow record-feedback-addressed <count>`
 - [ ] Transition to REVIEWING: `/dev-workflow-v2:workflow transition REVIEWING`

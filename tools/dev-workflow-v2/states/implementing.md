@@ -11,7 +11,7 @@ You are implementing the task. Write code, commit often.
 - [ ] Implement the task following project conventions (`docs/conventions/software-design.md`, `docs/conventions/testing.md`)
 - [ ] Before adding or moving any exported class or standalone function in an in-scope path, run `riviere-role-classifier` if the correct role or layer is not already obvious from nearby code
 - [ ] Write tests — 100% coverage is mandatory
-- [ ] Re-run deterministic role enforcement on changed in-scope files before leaving this state: `pnpm role-enforcement:check -- --config riviere-role-enforcement.yaml <changed-files>`
+- [ ] Re-run deterministic role enforcement on changed in-scope files before leaving this state: `pnpm role-enforcement:check -- <changed-files>`
 - [ ] Commit your changes (working tree must be clean before transitioning)
 - [ ] Transition to REVIEWING: `/dev-workflow-v2:workflow transition REVIEWING`
 

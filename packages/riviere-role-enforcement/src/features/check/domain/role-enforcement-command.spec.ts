@@ -8,12 +8,21 @@ describe('parseRoleEnforcementCommandArgs', () => {
     )
   })
 
-  it('defaults to full repository targets when only config is provided', () => {
+  it('defaults to the Phase 3 branch roots when only config is provided', () => {
     expect(
       parseRoleEnforcementCommandArgs(['--config', 'riviere-role-enforcement.yaml']),
     ).toStrictEqual({
       configPath: resolve('riviere-role-enforcement.yaml'),
-      targets: ['packages', 'tools', 'apps'],
+      targets: [
+        'packages/riviere-cli/src',
+        'packages/riviere-builder/src',
+        'packages/riviere-extract-config/src',
+        'packages/riviere-extract-ts/src',
+        'packages/riviere-query/src',
+        'packages/riviere-role-enforcement/src',
+        'tools/dev-workflow/src',
+        'tools/dev-workflow-v2/src',
+      ],
     })
   })
 

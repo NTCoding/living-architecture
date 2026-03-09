@@ -11,7 +11,16 @@ interface RoleEnforcementCommandParseState {
   targets: readonly string[]
 }
 
-const DEFAULT_TARGETS = ['packages', 'tools', 'apps'] as const
+const DEFAULT_TARGETS = [
+  'packages/riviere-cli/src',
+  'packages/riviere-builder/src',
+  'packages/riviere-extract-config/src',
+  'packages/riviere-extract-ts/src',
+  'packages/riviere-query/src',
+  'packages/riviere-role-enforcement/src',
+  'tools/dev-workflow/src',
+  'tools/dev-workflow-v2/src',
+] as const
 
 export function parseRoleEnforcementCommandArgs(
   args: readonly string[],
