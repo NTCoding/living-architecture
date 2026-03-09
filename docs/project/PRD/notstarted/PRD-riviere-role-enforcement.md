@@ -1009,8 +1009,10 @@ git add <relevant-files> && git commit --no-verify -m "<commit message>" && git 
   - Suggested commit: `test(role-enforcement): complete package quality gates`
   - References: `5. Success Criteria`, `7. Milestones`
 
-- [ ] Ship the final repository rollout and move the draft PR toward ready review
+- [x] Ship the final repository rollout and move the draft PR toward ready review
   - Requirements: apply explicit assignments and role validation across the agreed repository scope, resolve or document remaining exceptions, and update the draft PR summary with final rollout status
   - Acceptance: the agreed scope reaches 100% explicit role coverage, repository verification passes for that scope, and the draft PR is ready to graduate once stakeholders approve
   - Suggested commit: `feat(role-enforcement): complete repository rollout`
   - References: `1. Problem`, `3.10 Repository Rollout`, `5. Success Criteria`, `7. Milestones`
+  - Rollout status: `riviere-role-enforcement.yaml` is the agreed rollout scope, deterministic role enforcement now passes it end-to-end with 0 role errors, and no explicit role-enforcement exceptions remain in that scope.
+  - Ready-review note: the repo-facing command passes on `architecture-rbaf`; the remaining command output is limited to three pre-existing non-role Oxlint warnings in `tools/dev-workflow-v2`, which are documented separately from role-enforcement rollout status.
