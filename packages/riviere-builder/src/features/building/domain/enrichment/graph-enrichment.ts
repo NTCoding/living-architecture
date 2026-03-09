@@ -6,6 +6,7 @@ import { deduplicateStateTransitions } from './deduplicate-transitions'
 import { deduplicateStrings } from '../../../../platform/domain/collection-utils/deduplicate-strings'
 import { mergeBehavior } from './merge-behavior'
 
+/** @riviere-role builder-domain-service */
 export class GraphEnrichment {
   private readonly graph: BuilderGraph
 

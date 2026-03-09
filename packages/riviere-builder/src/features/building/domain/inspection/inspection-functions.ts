@@ -41,6 +41,7 @@ interface InspectionGraph {
  * // ['orders:checkout:api:unused-endpoint']
  * ```
  */
+/** @riviere-role builder-domain-service */
 export function findOrphans(graph: InspectionGraph): string[] {
   const connectedIds = new Set<string>()
 
@@ -68,6 +69,7 @@ export function findOrphans(graph: InspectionGraph): string[] {
  * // { componentCount: 10, linkCount: 8, domainCount: 2, ... }
  * ```
  */
+/** @riviere-role builder-domain-service */
 export function calculateStats(graph: InspectionGraph): BuilderStats {
   const components = graph.components
   return {
@@ -101,6 +103,7 @@ export function calculateStats(graph: InspectionGraph): BuilderStats {
  * // [{ code: 'ORPHAN_COMPONENT', message: '...', componentId: '...' }]
  * ```
  */
+/** @riviere-role builder-domain-service */
 export function findWarnings(graph: InspectionGraph): BuilderWarning[] {
   const warnings: BuilderWarning[] = []
 
@@ -140,6 +143,7 @@ export function findWarnings(graph: InspectionGraph): BuilderWarning[] {
  * JSON.stringify(output) // Valid Rivière JSON
  * ```
  */
+/** @riviere-role builder-domain-service */
 export function toRiviereGraph(graph: InspectionGraph): RiviereGraph {
   const hasCustomTypes = Object.keys(graph.metadata.customTypes).length > 0
   const hasExternalLinks = graph.externalLinks.length > 0
@@ -173,6 +177,7 @@ export function toRiviereGraph(graph: InspectionGraph): RiviereGraph {
  * }
  * ```
  */
+/** @riviere-role builder-domain-service */
 export function validateGraph(graph: InspectionGraph): ValidationResult {
   return new RiviereQuery(toRiviereGraph(graph)).validate()
 }

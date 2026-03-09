@@ -34,6 +34,8 @@ include:
   - packages/riviere-cli/src/features/extract/infra/mappers/**/*.ts
   - packages/riviere-cli/src/features/query/entrypoint/**/*.ts
   - packages/riviere-cli/src/platform/**/*.ts
+  - packages/riviere-builder/src/features/building/domain/**/*.ts
+  - packages/riviere-builder/src/platform/domain/**/*.ts
   - packages/riviere-query/src/features/querying/queries/**/*.ts
   - packages/riviere-role-enforcement/src/features/check/domain/**/*.ts
   - packages/riviere-role-enforcement/src/features/check/infra/**/*.ts
@@ -355,19 +357,49 @@ roles:
     nameMatches: '^(topLevelRulesToModule|hasModulesArray|isTopLevelRulesConfig|parseConfigContent|isPackageReference|resolvePackagePath|loadConfigFile|createConfigLoader|parseConfigFile|tryExpandModuleRefs|resolveSourceFiles|loadAndValidateConfig|isDraftComponentArray|parseJsonFile|isModuleRef|expandModuleRefs|loadDraftComponentsFromFile)$'
     markdownSpec: docs/roles/extraction-config-loader.md
   - name: builder-facade
-    targets: [class]
+    targets: [class, static-method]
     allowedLocation:
       - packages/riviere-builder/src/features/building/domain/builder-facade.ts
     allowedNames:
       - RiviereBuilder
+      - resume
+      - new
+    allowedPublicMethods:
+      - addSource
+      - addDomain
+      - addUI
+      - addApi
+      - addUseCase
+      - addDomainOp
+      - addEvent
+      - addEventHandler
+      - defineCustomType
+      - addCustom
+      - enrichComponent
+      - nearMatches
+      - link
+      - linkExternal
+      - warnings
+      - stats
+      - validate
+      - orphans
+      - query
+      - serialize
+      - build
     markdownSpec: docs/roles/builder-facade.md
   - name: builder-domain-service
     targets: [function, class, static-method]
     allowedLocation:
       - packages/riviere-builder/src/features/building/domain/**/*.ts
       - packages/riviere-builder/src/platform/domain/**/*.ts
-    nameMatches: '^(build|create|merge|deduplicate|find|validate|to|parse|format)[A-Z].*|^.*(Construction|Enrichment|Linking|Inspection|NearMatch|Builder|Graph)$|^(new|resume)$'
+    nameMatches: '^(assert|build|calculate|create|deduplicate|detect|find|format|generate|levenshtein|merge|parse|similarity|to|validate)[A-Z].*|^.*(Construction|Enrichment|Linking|Inspection|NearMatch|Builder|Graph)$|^(new|resume)$'
     markdownSpec: docs/roles/builder-domain-service.md
+  - name: domain-error
+    targets: [class]
+    allowedLocation:
+      - packages/riviere-builder/src/features/building/domain/**/*.ts
+    nameMatches: '^.*Error$'
+    markdownSpec: docs/roles/domain-error.md
   - name: config-validation-service
     targets: [function]
     allowedLocation:

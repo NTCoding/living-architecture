@@ -1,3 +1,4 @@
+/** @riviere-role domain-error */
 export class DuplicateDomainError extends Error {
   readonly domainName: string
 
@@ -8,6 +9,7 @@ export class DuplicateDomainError extends Error {
   }
 }
 
+/** @riviere-role domain-error */
 export class DomainNotFoundError extends Error {
   readonly domainName: string
 
@@ -18,6 +20,7 @@ export class DomainNotFoundError extends Error {
   }
 }
 
+/** @riviere-role domain-error */
 export class CustomTypeNotFoundError extends Error {
   readonly customTypeName: string
   readonly definedTypes: string[]
@@ -34,6 +37,7 @@ export class CustomTypeNotFoundError extends Error {
   }
 }
 
+/** @riviere-role domain-error */
 export class DuplicateComponentError extends Error {
   readonly componentId: string
 
@@ -44,6 +48,7 @@ export class DuplicateComponentError extends Error {
   }
 }
 
+/** @riviere-role domain-error */
 export class ComponentNotFoundError extends Error {
   readonly componentId: string
   readonly suggestions: string[]
@@ -61,6 +66,7 @@ export class ComponentNotFoundError extends Error {
   }
 }
 
+/** @riviere-role domain-error */
 export class CustomTypeAlreadyDefinedError extends Error {
   readonly typeName: string
 
@@ -71,6 +77,7 @@ export class CustomTypeAlreadyDefinedError extends Error {
   }
 }
 
+/** @riviere-role domain-error */
 export class MissingRequiredPropertiesError extends Error {
   readonly customTypeName: string
   readonly missingKeys: string[]
@@ -83,6 +90,7 @@ export class MissingRequiredPropertiesError extends Error {
   }
 }
 
+/** @riviere-role domain-error */
 export class InvalidGraphError extends Error {
   constructor(reason: string) {
     super(`Invalid graph: ${reason}`)
@@ -90,6 +98,7 @@ export class InvalidGraphError extends Error {
   }
 }
 
+/** @riviere-role domain-error */
 export class MissingSourcesError extends Error {
   constructor() {
     super('At least one source required')
@@ -97,6 +106,7 @@ export class MissingSourcesError extends Error {
   }
 }
 
+/** @riviere-role domain-error */
 export class MissingDomainsError extends Error {
   constructor() {
     super('At least one domain required')
@@ -104,6 +114,7 @@ export class MissingDomainsError extends Error {
   }
 }
 
+/** @riviere-role domain-error */
 export class BuildValidationError extends Error {
   readonly validationMessages: string[]
 

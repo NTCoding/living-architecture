@@ -14,6 +14,7 @@ import {
 } from './construction/construction-errors'
 import { toRiviereGraph } from './inspection/inspection-functions'
 
+/** @riviere-role builder-domain-service */
 export class RiviereBuilder {
   readonly construction: GraphConstruction
   readonly enrichment: GraphEnrichment
@@ -32,6 +33,7 @@ export class RiviereBuilder {
     this.errorRecovery = new NearMatch(graph)
   }
 
+  /** @riviere-role builder-domain-service */
   static resume(graph: RiviereGraph): RiviereBuilder {
     if (!graph.metadata.sources || graph.metadata.sources.length === 0) {
       throw new InvalidGraphError('missing sources')
@@ -51,6 +53,7 @@ export class RiviereBuilder {
     return new RiviereBuilder(builderGraph)
   }
 
+  /** @riviere-role builder-domain-service */
   static new(options: BuilderOptions): RiviereBuilder {
     if (options.sources.length === 0) {
       throw new MissingSourcesError()

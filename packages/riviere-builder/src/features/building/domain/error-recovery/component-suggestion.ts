@@ -10,6 +10,7 @@ import type {
   NearMatchResult,
 } from './match-types'
 
+/** @riviere-role builder-domain-service */
 function detectMismatch(
   query: NearMatchQuery,
   component: Component,
@@ -55,6 +56,7 @@ function detectMismatch(
  * // [{ component: {...}, score: 0.9, mismatch: undefined }]
  * ```
  */
+/** @riviere-role builder-domain-service */
 export function findNearMatches(
   components: Component[],
   query: NearMatchQuery,
@@ -97,6 +99,7 @@ export function findNearMatches(
  * // ComponentNotFoundError with suggestions: ['orders:checkout:api:create-order']
  * ```
  */
+/** @riviere-role builder-domain-service */
 export function createSourceNotFoundError(
   components: Component[],
   id: ComponentId,

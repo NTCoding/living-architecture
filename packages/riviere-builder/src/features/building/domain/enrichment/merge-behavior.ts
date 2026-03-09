@@ -3,11 +3,13 @@ import type {
 } from '@living-architecture/riviere-schema'
 import { deduplicateStrings } from '../../../../platform/domain/collection-utils/deduplicate-strings'
 
+/** @riviere-role builder-domain-service */
 function mergeStringArray(existing: string[] | undefined, incoming: string[]): string[] {
   const base = existing ?? []
   return [...base, ...deduplicateStrings(base, incoming)]
 }
 
+/** @riviere-role builder-domain-service */
 export function mergeBehavior(
   existing: DomainOpComponent['behavior'],
   incoming: OperationBehavior,

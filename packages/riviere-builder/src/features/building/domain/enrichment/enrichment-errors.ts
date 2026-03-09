@@ -1,3 +1,4 @@
+/** @riviere-role domain-error */
 export class InvalidEnrichmentTargetError extends Error {
   readonly componentId: string
   readonly componentType: string

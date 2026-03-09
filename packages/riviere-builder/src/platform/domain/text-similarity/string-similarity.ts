@@ -11,6 +11,7 @@
  * levenshteinDistance('hello', 'hello') // 0
  * ```
  */
+/** @riviere-role builder-domain-service */
 export function levenshteinDistance(a: string, b: string): number {
   if (a.length === 0) return b.length
   if (b.length === 0) return a.length
@@ -50,6 +51,7 @@ export function levenshteinDistance(a: string, b: string): number {
  * similarityScore('Order', 'Ordr') // 0.8
  * ```
  */
+/** @riviere-role builder-domain-service */
 export function similarityScore(a: string, b: string): number {
   const aLower = a.toLowerCase()
   const bLower = b.toLowerCase()
