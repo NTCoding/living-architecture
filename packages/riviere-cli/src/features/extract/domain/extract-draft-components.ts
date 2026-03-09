@@ -1,5 +1,7 @@
 import type { Project } from 'ts-morph'
-import type { Module, ResolvedExtractionConfig } from '@living-architecture/riviere-extract-config'
+import type {
+  Module, ResolvedExtractionConfig 
+} from '@living-architecture/riviere-extract-config'
 import {
   extractComponents,
   matchesGlob,

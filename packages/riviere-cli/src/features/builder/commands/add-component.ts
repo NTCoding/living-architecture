@@ -1,4 +1,6 @@
-import { readFile, writeFile } from 'node:fs/promises'
+import {
+  readFile, writeFile 
+} from 'node:fs/promises'
 import {
   RiviereBuilder,
   CustomTypeNotFoundError,
@@ -7,7 +9,9 @@ import {
 } from '@living-architecture/riviere-builder'
 import { parseRiviereGraph } from '@living-architecture/riviere-schema'
 import { fileExists } from '../../../platform/infra/graph-persistence/file-existence'
-import { formatError, formatSuccess } from '../../../platform/infra/cli-presentation/output'
+import {
+  formatError, formatSuccess 
+} from '../../../platform/infra/cli-presentation/output'
 import { CliErrorCode } from '../../../platform/infra/cli-presentation/error-codes'
 import {
   isValidComponentType,

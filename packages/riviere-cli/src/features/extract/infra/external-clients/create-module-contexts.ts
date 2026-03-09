@@ -1,4 +1,6 @@
-import { posix, resolve } from 'node:path'
+import {
+  posix, resolve 
+} from 'node:path'
 import { globSync } from 'glob'
 import type { ResolvedExtractionConfig } from '@living-architecture/riviere-extract-config'
 import type { ModuleContext } from '../../domain/extract-draft-components'

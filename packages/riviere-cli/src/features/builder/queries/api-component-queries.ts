@@ -1,5 +1,7 @@
 import { RiviereQuery } from '@living-architecture/riviere-query'
-import type { Component, HttpMethod, RiviereGraph } from '@living-architecture/riviere-schema'
+import type {
+  Component, HttpMethod, RiviereGraph 
+} from '@living-architecture/riviere-schema'
 
 export interface ApiComponent {
   id: string

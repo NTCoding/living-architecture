@@ -31,7 +31,9 @@ export function createExtractCommand(): Command {
     .action((options: ExtractOptions) => {
       validateFlagCombinations(options)
 
-      const { resolvedConfig, configDir } = loadAndValidateConfig(options.config)
+      const {
+        resolvedConfig, configDir 
+      } = loadAndValidateConfig(options.config)
       const allSourceFilePaths = resolveSourceFiles(resolvedConfig, configDir)
       const sourceFilePaths = resolveFilteredSourceFiles(allSourceFilePaths, options)
 

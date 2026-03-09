@@ -1,7 +1,13 @@
 import { Command } from 'commander'
-import { ComponentNotFoundError, parseComponentId } from '@living-architecture/riviere-query'
-import { findNearMatches, ComponentId } from '@living-architecture/riviere-builder'
-import { formatError, formatSuccess } from '../../../platform/infra/cli-presentation/output'
+import {
+  ComponentNotFoundError, parseComponentId 
+} from '@living-architecture/riviere-query'
+import {
+  findNearMatches, ComponentId 
+} from '@living-architecture/riviere-builder'
+import {
+  formatError, formatSuccess 
+} from '../../../platform/infra/cli-presentation/output'
 import { CliErrorCode } from '../../../platform/infra/cli-presentation/error-codes'
 import {
   withGraph,

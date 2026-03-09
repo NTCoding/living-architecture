@@ -2,7 +2,9 @@ import { Command } from 'commander'
 import { writeFile } from 'node:fs/promises'
 import { getDefaultGraphPathDescription } from '../../../platform/infra/graph-persistence/graph-path'
 import { withGraphBuilder } from '../../../platform/infra/graph-persistence/builder-graph-loader'
-import { formatError, formatSuccess } from '../../../platform/infra/cli-presentation/output'
+import {
+  formatError, formatSuccess 
+} from '../../../platform/infra/cli-presentation/output'
 import { CliErrorCode } from '../../../platform/infra/cli-presentation/error-codes'
 import { parsePropertySpecs } from '../../../platform/infra/cli-presentation/custom-type-parser'
 import { collectOption } from '../../../platform/infra/cli-presentation/option-collectors'
@@ -57,12 +59,8 @@ export function createDefineCustomTypeCommand(): Command {
         builder.defineCustomType({
           name: options.name,
           ...(options.description !== undefined && { description: options.description }),
-          ...(Object.keys(requiredResult.properties).length > 0 && {
-            requiredProperties: requiredResult.properties,
-          }),
-          ...(Object.keys(optionalResult.properties).length > 0 && {
-            optionalProperties: optionalResult.properties,
-          }),
+          ...(Object.keys(requiredResult.properties).length > 0 && {requiredProperties: requiredResult.properties,}),
+          ...(Object.keys(optionalResult.properties).length > 0 && {optionalProperties: optionalResult.properties,}),
         })
         await writeFile(graphPath, builder.serialize(), 'utf-8')
 
@@ -72,12 +70,8 @@ export function createDefineCustomTypeCommand(): Command {
               formatSuccess({
                 name: options.name,
                 ...(options.description !== undefined && { description: options.description }),
-                ...(Object.keys(requiredResult.properties).length > 0 && {
-                  requiredProperties: requiredResult.properties,
-                }),
-                ...(Object.keys(optionalResult.properties).length > 0 && {
-                  optionalProperties: optionalResult.properties,
-                }),
+                ...(Object.keys(requiredResult.properties).length > 0 && {requiredProperties: requiredResult.properties,}),
+                ...(Object.keys(optionalResult.properties).length > 0 && {optionalProperties: optionalResult.properties,}),
               }),
             ),
           )

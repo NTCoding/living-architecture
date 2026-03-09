@@ -16,7 +16,9 @@ import {
   loadGraphBuilder,
   reportGraphNotFound,
 } from '../../../platform/infra/graph-persistence/builder-graph-loader'
-import { findApisByPath, getAllApiPaths } from '../queries/api-component-queries'
+import {
+  findApisByPath, getAllApiPaths 
+} from '../queries/api-component-queries'
 import {
   reportNoApiFoundForPath,
   reportAmbiguousApiMatch,
