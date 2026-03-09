@@ -13,7 +13,7 @@ import type {
 import { RoleEnforcementConfigError } from '../domain/role-enforcement-config-error'
 import { createPathMatcher } from './path-patterns'
 
-const roleTargetSchema = z.enum(['class', 'function'])
+const roleTargetSchema = z.enum(['class', 'function', 'static-method'])
 
 const roleDefinitionSchema = z
   .object({

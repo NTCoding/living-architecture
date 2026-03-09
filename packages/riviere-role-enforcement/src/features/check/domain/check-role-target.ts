@@ -23,7 +23,7 @@ function createRoleViolation(
     `Role enforcement error: ${code}`,
     '',
     `File: ${target.relativeFilePath}`,
-    `Symbol: ${target.name}`,
+    `Symbol: ${formatSymbolName(target)}`,
   ]
 
   if (assignedRoleName !== null) {
@@ -80,8 +80,8 @@ function createInvalidRoleTargetKindViolation(
     'invalid-role-target-kind',
     target,
     role.name,
-    `${formatTarget(target)} is a ${target.kind}, but role '${role.name}' only applies to ${formatTargetKinds(role.targets)}.`,
-    `${createRunClassifierMessage()} Keep the symbol in a supported target kind or choose a role that allows ${target.kind} targets.`,
+    `${formatTarget(target)} is a ${formatTargetKind(target.kind)}, but role '${role.name}' only applies to ${formatTargetKinds(role.targets)}.`,
+    `${createRunClassifierMessage()} Keep the symbol in a supported target kind or choose a role that allows ${formatTargetKind(target.kind)} targets.`,
     role.markdownSpec,
     [],
   )
@@ -148,7 +148,7 @@ function formatAllowedLocations(allowedLocation: readonly string[]): string {
 }
 
 function formatTargetKinds(targetKinds: readonly string[]): string {
-  return `${targetKinds.join(', ')} targets`
+  return `${targetKinds.map(formatTargetKind).join(', ')} targets`
 }
 
 function formatDisallowedMethods(disallowedPublicMethods: readonly string[]): string {
@@ -164,8 +164,23 @@ function formatDisallowedMethods(disallowedPublicMethods: readonly string[]): st
 }
 
 function formatTarget(target: TargetSymbol): string {
-  const targetKind = target.kind === 'class' ? 'Class' : 'Function'
-  return `${targetKind} '${target.name}'`
+  if (target.kind === 'class') {
+    return `Class '${target.name}'`
+  }
+
+  if (target.kind === 'function') {
+    return `Function '${target.name}'`
+  }
+
+  return `Static method '${formatSymbolName(target)}'`
+}
+
+function formatSymbolName(target: Pick<TargetSymbol, 'name' | 'ownerClassName'>): string {
+  return target.ownerClassName === null ? target.name : `${target.ownerClassName}.${target.name}`
+}
+
+function formatTargetKind(targetKind: string): string {
+  return targetKind === 'static-method' ? 'static method' : targetKind
 }
 
 function hasAllowedName(target: TargetSymbol, role: CompiledRoleDefinition): boolean {

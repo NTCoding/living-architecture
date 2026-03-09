@@ -73,7 +73,7 @@ const plugin = eslintCompatPlugin({
         type: 'problem',
         docs: {
           description:
-            'Enforce repository role definitions for explicitly annotated exported classes and functions',
+            'Enforce repository role definitions for explicitly annotated exported classes, static methods, and functions',
         },
         schema: [
           {

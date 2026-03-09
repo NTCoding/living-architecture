@@ -83,6 +83,7 @@ describe('extractRoleTargets', () => {
       {
         kind: 'function',
         name: 'createProgram',
+        ownerClassName: null,
         assignedRoleName: 'cli-shell',
         relativeFilePath: 'packages/demo/src/shell/cli.ts',
         publicMethodNames: [],
@@ -91,7 +92,7 @@ describe('extractRoleTargets', () => {
     ])
   })
 
-  it('collects only public instance methods for class targets', () => {
+  it('extracts static methods separately and keeps class public methods instance-only', () => {
     const classDeclaration = {
       ...createBaseNode('ClassDeclaration', 2),
       type: 'ClassDeclaration' as const,
@@ -153,7 +154,12 @@ describe('extractRoleTargets', () => {
       type: 'Program',
       body: [exportNode],
     }
-    const sourceCode = createSourceCode(new Map([[exportNode, ['* @riviere-role query-facade']]]))
+    const sourceCode = createSourceCode(
+      new Map([
+        [exportNode, ['* @riviere-role query-facade']],
+        [classDeclaration.body.body[2] as BaseNode, ['* @riviere-role query-factory']],
+      ]),
+    )
 
     const result = extractRoleTargets(
       program,
@@ -162,7 +168,84 @@ describe('extractRoleTargets', () => {
     )
 
     expect(result.issues).toHaveLength(0)
-    expect(result.targets[0]?.publicMethodNames).toStrictEqual(['components'])
+    expect(result.targets).toStrictEqual([
+      {
+        kind: 'class',
+        name: 'OrdersQuery',
+        ownerClassName: null,
+        assignedRoleName: 'query-facade',
+        relativeFilePath: 'packages/demo/src/features/demo/queries/orders-query.ts',
+        publicMethodNames: ['components'],
+        reportNode: classDeclaration.id,
+      },
+      {
+        kind: 'static-method',
+        name: 'build',
+        ownerClassName: 'OrdersQuery',
+        assignedRoleName: 'query-factory',
+        relativeFilePath: 'packages/demo/src/features/demo/queries/orders-query.ts',
+        publicMethodNames: [],
+        reportNode: (classDeclaration.body.body[2] as { key: BaseNode }).key,
+      },
+    ])
+  })
+
+  it('reports malformed annotations for static methods without hiding the class target', () => {
+    const classDeclaration = {
+      ...createBaseNode('ClassDeclaration', 2),
+      type: 'ClassDeclaration' as const,
+      id: createIdentifier('OrdersQuery', 3),
+      body: {
+        ...createBaseNode('ClassBody', 4),
+        type: 'ClassBody' as const,
+        body: [
+          {
+            ...createBaseNode('MethodDefinition', 5),
+            type: 'MethodDefinition' as const,
+            kind: 'method',
+            static: true,
+            key: createIdentifier('fromJSON', 6),
+          },
+        ],
+      },
+    }
+    const exportNode = {
+      ...createBaseNode('ExportNamedDeclaration', 1),
+      type: 'ExportNamedDeclaration' as const,
+      declaration: classDeclaration,
+    }
+    const program: ProgramNode = {
+      ...createBaseNode('Program'),
+      type: 'Program',
+      body: [exportNode],
+    }
+    const sourceCode = createSourceCode(
+      new Map([
+        [exportNode, ['* @riviere-role query-facade']],
+        [classDeclaration.body.body[0] as BaseNode, ['* @riviere-role QueryFactory']],
+      ]),
+    )
+
+    const result = extractRoleTargets(
+      program,
+      sourceCode,
+      'packages/demo/src/features/demo/queries/orders-query.ts',
+    )
+
+    expect(result.targets).toStrictEqual([
+      {
+        kind: 'class',
+        name: 'OrdersQuery',
+        ownerClassName: null,
+        assignedRoleName: 'query-facade',
+        relativeFilePath: 'packages/demo/src/features/demo/queries/orders-query.ts',
+        publicMethodNames: [],
+        reportNode: classDeclaration.id,
+      },
+    ])
+    expect(result.issues).toHaveLength(1)
+    expect(result.issues[0]).toMatchObject({ code: 'malformed-role-assignment' })
+    expect(result.issues[0]?.message).toContain('Symbol: OrdersQuery.fromJSON')
   })
 
   it('reports malformed annotations for exported class targets', () => {
@@ -314,6 +397,7 @@ describe('extractRoleTargets', () => {
           {
             kind: 'function',
             name: 'main',
+            ownerClassName: null,
             assignedRoleName: 'cli-shell',
             relativeFilePath: 'packages/demo/src/shell/cli.ts',
             publicMethodNames: [],

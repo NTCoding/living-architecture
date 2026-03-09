@@ -1,4 +1,4 @@
-export type RoleTargetKind = 'class' | 'function'
+export type RoleTargetKind = 'class' | 'function' | 'static-method'
 
 export type PathMatcher = (input: string) => boolean
 

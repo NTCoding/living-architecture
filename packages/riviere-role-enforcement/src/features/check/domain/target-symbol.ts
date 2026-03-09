@@ -3,6 +3,7 @@ import type { RoleTargetKind } from '../../../platform/domain/role-enforcement-c
 export interface TargetSymbol {
   kind: RoleTargetKind
   name: string
+  ownerClassName: string | null
   assignedRoleName: string | null
   relativeFilePath: string
   publicMethodNames: readonly string[]

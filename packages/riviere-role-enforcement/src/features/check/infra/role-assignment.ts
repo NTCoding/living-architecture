@@ -125,12 +125,24 @@ export function parseRoleAssignment(
   }
 }
 
-function formatTarget(target: Pick<TargetSymbol, 'kind' | 'name'>): string {
-  return `${target.kind === 'class' ? 'Class' : 'Function'} '${target.name}'`
+function formatSymbolName(target: Pick<TargetSymbol, 'name' | 'ownerClassName'>): string {
+  return target.ownerClassName === null ? target.name : `${target.ownerClassName}.${target.name}`
+}
+
+function formatTarget(target: Pick<TargetSymbol, 'kind' | 'name' | 'ownerClassName'>): string {
+  if (target.kind === 'class') {
+    return `Class '${target.name}'`
+  }
+
+  if (target.kind === 'function') {
+    return `Function '${target.name}'`
+  }
+
+  return `Static method '${formatSymbolName(target)}'`
 }
 
 export function createRoleAssignmentIssue(
-  target: Pick<TargetSymbol, 'kind' | 'name'>,
+  target: Pick<TargetSymbol, 'kind' | 'name' | 'ownerClassName'>,
   relativeFilePath: string,
   reportNode: BaseNode,
   issue: NonNullable<RoleAssignmentParseResult['issue']>,
@@ -141,7 +153,7 @@ export function createRoleAssignmentIssue(
     message: [
       `Role enforcement error: ${issue.code}`,
       `File: ${relativeFilePath}`,
-      `Symbol: ${target.name}`,
+      `Symbol: ${formatSymbolName(target)}`,
       `Why: ${formatTarget(target)} ${issue.why}`,
       `Suggested fix: ${issue.suggestedFix}`,
     ].join('\n\n'),

@@ -135,6 +135,7 @@ describe('roleEnforcementOxlintPlugin', () => {
         {
           kind: 'function',
           name: 'createProgram',
+          ownerClassName: null,
           assignedRoleName: 'cli-shell',
           relativeFilePath: 'packages/demo/src/shell/cli.ts',
           publicMethodNames: [],
@@ -148,6 +149,7 @@ describe('roleEnforcementOxlintPlugin', () => {
         target: {
           kind: 'function',
           name: 'createProgram',
+          ownerClassName: null,
           assignedRoleName: 'cli-shell',
           relativeFilePath: 'packages/demo/src/shell/cli.ts',
           publicMethodNames: [],

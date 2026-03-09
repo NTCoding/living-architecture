@@ -128,6 +128,7 @@ describe('createRoleAssignmentIssue', () => {
       {
         kind: 'function',
         name: 'createProgram',
+        ownerClassName: null,
       },
       'packages/demo/src/shell/cli.ts',
       createBaseNode('Identifier'),
@@ -148,6 +149,7 @@ describe('createRoleAssignmentIssue', () => {
       {
         kind: 'class',
         name: 'Workflow',
+        ownerClassName: null,
       },
       'tools/demo/src/domain/workflow.ts',
       createBaseNode('Identifier'),
@@ -159,5 +161,27 @@ describe('createRoleAssignmentIssue', () => {
     )
 
     expect(issue.message).toContain("Why: Class 'Workflow' declares more than one explicit role.")
+  })
+
+  it('formats static method issues with the owning class name', () => {
+    const issue = createRoleAssignmentIssue(
+      {
+        kind: 'static-method',
+        name: 'fromJSON',
+        ownerClassName: 'OrdersQuery',
+      },
+      'packages/demo/src/features/demo/queries/orders-query.ts',
+      createBaseNode('Identifier'),
+      {
+        code: 'malformed-role-assignment',
+        why: 'uses the wrong annotation format.',
+        suggestedFix: 'Replace the malformed annotation.',
+      },
+    )
+
+    expect(issue.message).toContain('Symbol: OrdersQuery.fromJSON')
+    expect(issue.message).toContain(
+      "Why: Static method 'OrdersQuery.fromJSON' uses the wrong annotation format.",
+    )
   })
 })

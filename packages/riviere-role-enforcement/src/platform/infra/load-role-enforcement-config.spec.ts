@@ -55,8 +55,24 @@ describe('compileRoleEnforcementConfig', () => {
         ],
       }),
     ).toThrowError(
-      'Invalid role enforcement config: roles.0.targets.0: Invalid option: expected one of "class"|"function"',
+      'Invalid role enforcement config: roles.0.targets.0: Invalid option: expected one of "class"|"function"|"static-method"',
     )
+  })
+
+  it('accepts static-method target kinds', () => {
+    const config = compileRoleEnforcementConfig({
+      roles: [
+        {
+          name: 'query-factory',
+          targets: ['static-method'],
+          allowedLocation: ['packages/demo/src/features/*/queries/**/*.ts'],
+          allowedNames: ['fromJSON'],
+          markdownSpec: 'docs/roles/query-factory.md',
+        },
+      ],
+    })
+
+    expect(config.roles[0]?.targets).toStrictEqual(['static-method'])
   })
 
   it('rejects duplicate role names', () => {

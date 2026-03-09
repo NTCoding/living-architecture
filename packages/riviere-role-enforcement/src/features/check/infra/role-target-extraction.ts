@@ -29,6 +29,10 @@ interface IdentifierNode extends BaseNode {
   name: string
 }
 
+interface NamedKeyNode extends BaseNode {
+  name: string
+}
+
 interface FunctionDeclarationNode extends BaseNode {
   type: 'FunctionDeclaration'
   id: IdentifierNode | null
@@ -107,6 +111,10 @@ function isIdentifierNode(node: BaseNode | null): node is IdentifierNode {
   return node?.type === 'Identifier'
 }
 
+function isNamedKeyNode(node: BaseNode | null): node is NamedKeyNode {
+  return typeof node === 'object' && node !== null && 'name' in node && typeof node.name === 'string'
+}
+
 function isFunctionExpressionNode(node: BaseNode | null): node is FunctionExpressionNode {
   return node?.type === 'ArrowFunctionExpression' || node?.type === 'FunctionExpression'
 }
@@ -174,13 +182,17 @@ function createClassTarget(
   const baseTarget = {
     kind: 'class' as const,
     name: declaration.id.name,
+    ownerClassName: null,
   }
+
+  const staticMethodTargets = createStaticMethodTargets(declaration, relativeFilePath, sourceCode)
 
   if (assignment.issue !== null) {
     return {
-      targets: [],
+      targets: staticMethodTargets.targets,
       issues: [
         createRoleAssignmentIssue(baseTarget, relativeFilePath, declaration.id, assignment.issue),
+        ...staticMethodTargets.issues,
       ],
     }
   }
@@ -194,9 +206,77 @@ function createClassTarget(
         publicMethodNames: getPublicMethodNames(declaration),
         reportNode: declaration.id,
       },
+      ...staticMethodTargets.targets,
     ],
-    issues: [],
+    issues: staticMethodTargets.issues,
   }
+}
+
+function createStaticMethodTargets(
+  declaration: ClassDeclarationNode,
+  relativeFilePath: string,
+  sourceCode: SourceCodeLike,
+): RoleTargetExtractionResult {
+  if (!isIdentifierNode(declaration.id)) {
+    return {
+      targets: [],
+      issues: [],
+    }
+  }
+
+  return declaration.body.body.reduce<RoleTargetExtractionResult>(
+    (result, classElement) => {
+      if (
+        !isMethodDefinitionNode(classElement) ||
+        classElement.kind !== 'method' ||
+        classElement.static !== true ||
+        classElement.computed === true ||
+        !isNamedKeyNode(classElement.key)
+      ) {
+        return result
+      }
+
+      const assignment = parseRoleAssignment(sourceCode, [classElement, classElement.key])
+      const baseTarget = {
+        kind: 'static-method' as const,
+        name: classElement.key.name,
+        ownerClassName: declaration.id.name,
+      }
+
+      if (assignment.issue !== null) {
+        return {
+          targets: result.targets,
+          issues: [
+            ...result.issues,
+            createRoleAssignmentIssue(
+              baseTarget,
+              relativeFilePath,
+              classElement.key,
+              assignment.issue,
+            ),
+          ],
+        }
+      }
+
+      return {
+        targets: [
+          ...result.targets,
+          {
+            ...baseTarget,
+            assignedRoleName: assignment.assignedRoleName,
+            relativeFilePath,
+            publicMethodNames: [],
+            reportNode: classElement.key,
+          },
+        ],
+        issues: result.issues,
+      }
+    },
+    {
+      targets: [],
+      issues: [],
+    },
+  )
 }
 
 function createFunctionTargets(
@@ -213,10 +293,11 @@ function createFunctionTargets(
         return result
       }
 
-      const baseTarget = {
-        kind: 'function' as const,
-        name: declarator.id.name,
-      }
+  const baseTarget = {
+    kind: 'function' as const,
+    name: declarator.id.name,
+    ownerClassName: null,
+  }
 
       if (assignment.issue !== null) {
         return {
@@ -271,6 +352,7 @@ function createFunctionDeclarationTarget(
   const baseTarget = {
     kind: 'function' as const,
     name: declaration.id.name,
+    ownerClassName: null,
   }
 
   if (assignment.issue !== null) {

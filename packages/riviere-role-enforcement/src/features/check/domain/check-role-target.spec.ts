@@ -49,6 +49,13 @@ function createCompiledConfig() {
         allowedPublicMethods: ['components', 'validate'],
         markdownSpec: 'docs/roles/query-facade.md',
       },
+      {
+        name: 'query-factory',
+        targets: ['static-method'],
+        allowedLocation: ['packages/demo/src/features/*/queries/**/*.ts'],
+        allowedNames: ['fromJSON'],
+        markdownSpec: 'docs/roles/query-factory.md',
+      },
     ],
   }
 
@@ -74,13 +81,14 @@ function createManualCompiledConfig(): CompiledRoleEnforcementConfig {
 }
 
 function createTargetSymbol(overrides: Partial<TargetSymbol>): TargetSymbol {
-  return {
-    kind: 'function',
-    name: 'createProgram',
-    assignedRoleName: 'cli-shell',
-    relativeFilePath: 'packages/demo/src/shell/cli.ts',
-    publicMethodNames: [],
-    ...overrides,
+    return {
+      kind: 'function',
+      name: 'createProgram',
+      ownerClassName: null,
+      assignedRoleName: 'cli-shell',
+      relativeFilePath: 'packages/demo/src/shell/cli.ts',
+      publicMethodNames: [],
+      ...overrides,
   }
 }
 
@@ -116,6 +124,19 @@ describe('checkTargetSymbol', () => {
     const violations = checkTargetSymbol(target, config)
 
     expect(violations).toHaveLength(0)
+  })
+
+  it('passes for an explicitly assigned static-method role', () => {
+    const config = createCompiledConfig()
+    const target = createTargetSymbol({
+      kind: 'static-method',
+      name: 'fromJSON',
+      ownerClassName: 'OrdersQuery',
+      assignedRoleName: 'query-factory',
+      relativeFilePath: 'packages/demo/src/features/demo/queries/orders-query.ts',
+    })
+
+    expect(checkTargetSymbol(target, config)).toHaveLength(0)
   })
 
   it('returns null when no explicit role assignment exists', () => {
@@ -279,6 +300,28 @@ describe('checkTargetSymbol', () => {
     `)
   })
 
+  it('fails when a static method has no explicit role assignment', () => {
+    const violation = expectSingleViolation(
+      createTargetSymbol({
+        kind: 'static-method',
+        name: 'fromJSON',
+        ownerClassName: 'OrdersQuery',
+        assignedRoleName: null,
+        relativeFilePath: 'packages/demo/src/features/demo/queries/orders-query.ts',
+      }),
+      'missing-role-assignment',
+    )
+
+    expect(violation.message).toMatchInlineSnapshot(`
+      "Role enforcement error: missing-role-assignment
+
+      File: packages/demo/src/features/demo/queries/orders-query.ts
+      Symbol: OrdersQuery.fromJSON
+      Why: Static method 'OrdersQuery.fromJSON' declares no explicit role assignment.
+      Suggested fix: Next step for Claude: run 'riviere-role-classifier' before editing. Expected classifier output: explicit role assignment, top-level layer, allowed destination path, markdownSpec, and rationale."
+    `)
+  })
+
   it('fails when a symbol declares an unknown explicit role', () => {
     const violation = expectSingleViolation(
       createTargetSymbol({ assignedRoleName: 'cli-runner' }),
@@ -331,6 +374,29 @@ describe('checkTargetSymbol', () => {
       Assigned role: cli-shell
       Why: Class 'CliShell' is a class, but role 'cli-shell' only applies to function targets.
       Suggested fix: Next step for Claude: run 'riviere-role-classifier' before editing. Keep the symbol in a supported target kind or choose a role that allows class targets."
+    `)
+  })
+
+  it('fails when a static method is assigned a class-only role', () => {
+    const violation = expectSingleViolation(
+      createTargetSymbol({
+        kind: 'static-method',
+        name: 'fromJSON',
+        ownerClassName: 'OrdersQuery',
+        assignedRoleName: 'query-facade',
+        relativeFilePath: 'packages/demo/src/features/demo/queries/orders-query.ts',
+      }),
+      'invalid-role-target-kind',
+    )
+
+    expect(violation.message).toMatchInlineSnapshot(`
+      "Role enforcement error: invalid-role-target-kind
+
+      File: packages/demo/src/features/demo/queries/orders-query.ts
+      Symbol: OrdersQuery.fromJSON
+      Assigned role: query-facade
+      Why: Static method 'OrdersQuery.fromJSON' is a static method, but role 'query-facade' only applies to class targets.
+      Suggested fix: Next step for Claude: run 'riviere-role-classifier' before editing. Keep the symbol in a supported target kind or choose a role that allows static method targets."
     `)
   })
 
