@@ -1,3 +1,4 @@
+/** @riviere-role application-error */
 export class InvalidPackageJsonError extends Error {
   constructor(reason: string) {
     super(`Invalid package.json: ${reason}`)
@@ -5,6 +6,7 @@ export class InvalidPackageJsonError extends Error {
   }
 }
 
+/** @riviere-role application-error */
 export class InvalidCustomPropertyError extends Error {
   readonly property: string
 
@@ -15,6 +17,7 @@ export class InvalidCustomPropertyError extends Error {
   }
 }
 
+/** @riviere-role application-error */
 export class MissingRequiredOptionError extends Error {
   readonly optionName: string
   readonly componentType: string
@@ -27,6 +30,7 @@ export class MissingRequiredOptionError extends Error {
   }
 }
 
+/** @riviere-role application-error */
 export class InvalidDomainJsonError extends Error {
   readonly value: string
 
@@ -37,6 +41,7 @@ export class InvalidDomainJsonError extends Error {
   }
 }
 
+/** @riviere-role application-error */
 export class InvalidComponentTypeError extends Error {
   readonly value: string
   readonly validTypes: readonly string[]
@@ -49,6 +54,7 @@ export class InvalidComponentTypeError extends Error {
   }
 }
 
+/** @riviere-role application-error */
 export class InvalidNormalizedComponentTypeError extends Error {
   readonly value: string
   readonly validTypes: string[]
@@ -61,6 +67,7 @@ export class InvalidNormalizedComponentTypeError extends Error {
   }
 }
 
+/** @riviere-role application-error */
 export class ConfigSchemaValidationError extends Error {
   constructor(source: string, details: string) {
     super(`Invalid extended config in '${source}': ${details}`)
@@ -68,6 +75,7 @@ export class ConfigSchemaValidationError extends Error {
   }
 }
 
+/** @riviere-role application-error */
 export class InvalidConfigFormatError extends Error {
   readonly source: string
   readonly preview: string
@@ -83,6 +91,7 @@ export class InvalidConfigFormatError extends Error {
   }
 }
 
+/** @riviere-role application-error */
 export class PackageResolveError extends Error {
   readonly packageName: string
 
@@ -96,6 +105,7 @@ export class PackageResolveError extends Error {
   }
 }
 
+/** @riviere-role application-error */
 export class ConfigFileNotFoundError extends Error {
   readonly source: string
   readonly filePath: string
@@ -108,6 +118,7 @@ export class ConfigFileNotFoundError extends Error {
   }
 }
 
+/** @riviere-role application-error */
 export class InternalSchemaValidationError extends Error {
   constructor() {
     super('Config has empty modules array (schema validation should prevent this)')
@@ -115,6 +126,7 @@ export class InternalSchemaValidationError extends Error {
   }
 }
 
+/** @riviere-role application-error */
 export class ModuleRefNotFoundError extends Error {
   readonly ref: string
   readonly filePath: string
@@ -127,6 +139,7 @@ export class ModuleRefNotFoundError extends Error {
   }
 }
 
+/** @riviere-role cli-presenter */
 export function getErrorMessage(error: unknown): string {
   if (error instanceof Error) {
     return error.message

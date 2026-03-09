@@ -15,6 +15,7 @@ export interface ValidationResult {
   errorJson?: string
 }
 
+/** @riviere-role cli-input-parser */
 export function validateComponentType(componentType: string): ValidationResult {
   if (isValidComponentType(componentType)) {
     return { valid: true }
@@ -30,6 +31,7 @@ export function validateComponentType(componentType: string): ValidationResult {
   }
 }
 
+/** @riviere-role cli-input-parser */
 export function validateLinkType(linkType: string | undefined): ValidationResult {
   if (linkType === undefined || isValidLinkType(linkType)) {
     return { valid: true }
@@ -45,6 +47,7 @@ export function validateLinkType(linkType: string | undefined): ValidationResult
   }
 }
 
+/** @riviere-role cli-input-parser */
 export function validateSystemType(systemType: string): ValidationResult {
   if (isValidSystemType(systemType)) {
     return { valid: true }
@@ -70,10 +73,12 @@ const VALID_HTTP_METHODS: readonly HttpMethod[] = [
   'OPTIONS',
 ]
 
+/** @riviere-role cli-input-parser */
 export function isValidHttpMethod(value: string): value is HttpMethod {
   return VALID_HTTP_METHODS.some((m) => m === value.toUpperCase())
 }
 
+/** @riviere-role cli-input-parser */
 export function validateHttpMethod(method: string | undefined): ValidationResult {
   if (method === undefined || isValidHttpMethod(method)) {
     return { valid: true }

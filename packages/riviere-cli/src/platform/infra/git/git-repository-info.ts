@@ -3,6 +3,7 @@ import {
   GitError, extractStderr 
 } from './git-errors'
 
+/** @riviere-role application-error */
 class RepositoryUrlParseError extends Error {
   /* v8 ignore start -- @preserve: Error constructor; tested via integration */
   constructor(url: string) {
@@ -21,6 +22,7 @@ export interface RepositoryInfo {
 export type GitExecutor = (binary: string, args: readonly string[], cwd: string) => string
 
 /* v8 ignore start -- @preserve: default executor delegates to execFileSync; tested via CLI integration */
+/** @riviere-role external-client */
 function defaultGitExecutor(binary: string, args: readonly string[], cwd: string): string {
   return execFileSync(binary, args, {
     cwd,
@@ -31,6 +33,7 @@ function defaultGitExecutor(binary: string, args: readonly string[], cwd: string
 /* v8 ignore stop */
 
 /* v8 ignore start -- @preserve: git execution; mocked in all integration tests */
+/** @riviere-role external-client */
 function runGit(
   executor: GitExecutor,
   gitBinary: string,
@@ -55,6 +58,7 @@ function runGit(
 }
 /* v8 ignore stop */
 
+/** @riviere-role external-client */
 function parseRepositoryUrl(url: string): RepositoryInfo {
   // SSH format: git@github.com:owner/repo.git
   const sshRegex = /^git@[^:]+:([^/]+)\/(.+?)(?:\.git)?$/
@@ -98,6 +102,7 @@ function parseRepositoryUrl(url: string): RepositoryInfo {
 }
 
 /* v8 ignore start -- @preserve: git execution; mocked in all integration tests */
+/** @riviere-role external-client */
 export function getRepositoryInfo(
   gitBinary = 'git',
   cwd = process.cwd(),

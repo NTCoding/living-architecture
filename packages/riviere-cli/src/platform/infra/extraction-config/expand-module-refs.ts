@@ -6,12 +6,14 @@ import { parse as parseYaml } from 'yaml'
 import type { ModuleRef } from '@living-architecture/riviere-extract-config'
 import { ModuleRefNotFoundError } from '../errors/errors'
 
+/** @riviere-role extraction-config-loader */
 function isModuleRef(value: unknown): value is ModuleRef {
   return (
     typeof value === 'object' && value !== null && '$ref' in value && typeof value.$ref === 'string'
   )
 }
 
+/** @riviere-role extraction-config-loader */
 function hasModulesArray(value: unknown): value is { modules: unknown[] } {
   return (
     typeof value === 'object' &&
@@ -28,6 +30,7 @@ function hasModulesArray(value: unknown): value is { modules: unknown[] } {
  * @param configDir - The directory containing the main config file.
  * @returns The config with $refs expanded to actual module content (ExtractionConfig).
  */
+/** @riviere-role extraction-config-loader */
 export function expandModuleRefs(config: unknown, configDir: string): unknown {
   if (!hasModulesArray(config)) {
     return config

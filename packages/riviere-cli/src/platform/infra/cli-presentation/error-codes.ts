@@ -4,6 +4,7 @@ export enum ExitCode {
   RuntimeError = 3,
 }
 
+/** @riviere-role application-error */
 export class ExtractionFieldFailureError extends Error {
   constructor(failedFields: string[]) {
     const uniqueFields = [...new Set(failedFields)]
@@ -12,6 +13,7 @@ export class ExtractionFieldFailureError extends Error {
   }
 }
 
+/** @riviere-role application-error */
 export class ConfigValidationError extends Error {
   readonly errorCode: CliErrorCode
 

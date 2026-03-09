@@ -1,6 +1,7 @@
 import { type DraftComponent } from '@living-architecture/riviere-extract-ts'
 
 /* v8 ignore start -- @preserve: trivial comparator, Map keys guarantee a !== b */
+/** @riviere-role cli-output-formatter */
 function compareByCodePoint(a: string, b: string): number {
   if (a < b) return -1
   if (a > b) return 1
@@ -9,6 +10,7 @@ function compareByCodePoint(a: string, b: string): number {
 /* v8 ignore stop */
 
 /* v8 ignore start -- @preserve: dry-run output formatting; tested via CLI integration */
+/** @riviere-role cli-output-formatter */
 export function formatDryRunOutput(components: DraftComponent[]): string[] {
   const countsByDomain = new Map<string, Map<string, number>>()
 

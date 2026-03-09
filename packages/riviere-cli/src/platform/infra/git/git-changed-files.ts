@@ -16,6 +16,7 @@ export interface ChangedFilesResult {
 export type GitExecutor = (binary: string, args: readonly string[], cwd: string) => string
 
 /* v8 ignore start -- @preserve: default executor delegates to execFileSync; tested via CLI integration */
+/** @riviere-role external-client */
 function defaultGitExecutor(binary: string, args: readonly string[], cwd: string): string {
   return execFileSync(binary, args, {
     cwd,
@@ -25,6 +26,7 @@ function defaultGitExecutor(binary: string, args: readonly string[], cwd: string
 }
 /* v8 ignore stop */
 
+/** @riviere-role external-client */
 function runGit(
   executor: GitExecutor,
   gitBinary: string,
@@ -48,10 +50,12 @@ function runGit(
   }
 }
 
+/** @riviere-role external-client */
 function isTypeScriptFile(filePath: string): boolean {
   return filePath.endsWith('.ts') || filePath.endsWith('.tsx')
 }
 
+/** @riviere-role external-client */
 function isDetachedHead(executor: GitExecutor, gitBinary: string, cwd: string): boolean {
   try {
     runGit(executor, gitBinary, cwd, ['symbolic-ref', 'HEAD'])
@@ -61,6 +65,7 @@ function isDetachedHead(executor: GitExecutor, gitBinary: string, cwd: string): 
   }
 }
 
+/** @riviere-role external-client */
 function detectBaseBranch(
   executor: GitExecutor,
   gitBinary: string,
@@ -78,6 +83,7 @@ function detectBaseBranch(
   }
 }
 
+/** @riviere-role external-client */
 function getUntrackedTypeScriptFiles(
   executor: GitExecutor,
   gitBinary: string,
@@ -88,6 +94,7 @@ function getUntrackedTypeScriptFiles(
   return output.split('\n').filter(isTypeScriptFile)
 }
 
+/** @riviere-role external-client */
 function getStagedFiles(
   executor: GitExecutor,
   gitBinary: string,
@@ -99,6 +106,7 @@ function getStagedFiles(
   return output.split('\n').filter(isTypeScriptFile)
 }
 
+/** @riviere-role external-client */
 function getCommittedChangedFiles(
   executor: GitExecutor,
   gitBinary: string,
@@ -115,6 +123,7 @@ function getCommittedChangedFiles(
   }
 }
 
+/** @riviere-role external-client */
 export function detectChangedTypeScriptFiles(
   cwd: string,
   options: ChangedFilesOptions,

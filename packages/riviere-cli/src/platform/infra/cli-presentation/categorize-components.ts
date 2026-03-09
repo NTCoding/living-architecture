@@ -7,10 +7,12 @@ interface ComponentIdentity {
   readonly domain: string
 }
 
+/** @riviere-role cli-output-formatter */
 function componentKey(component: ComponentIdentity): string {
   return `${component.domain}:${component.type}:${component.name}`
 }
 
+/** @riviere-role cli-output-formatter */
 function toComponentSummary(component: DraftComponent): ComponentIdentity {
   return {
     type: component.type,
@@ -19,6 +21,7 @@ function toComponentSummary(component: DraftComponent): ComponentIdentity {
   }
 }
 
+/** @riviere-role cli-output-formatter */
 export function categorizeComponents(
   current: readonly DraftComponent[],
   baseline: readonly DraftComponent[] | undefined,

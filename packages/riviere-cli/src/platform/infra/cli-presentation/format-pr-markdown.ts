@@ -10,10 +10,12 @@ export interface CategorizedComponents {
   readonly removed: readonly ComponentSummary[]
 }
 
+/** @riviere-role cli-output-formatter */
 function formatComponentLine(component: ComponentSummary): string {
   return `- **${component.type}** \`${component.name}\` in \`${component.domain}\` domain`
 }
 
+/** @riviere-role cli-output-formatter */
 function formatSection(title: string, components: readonly ComponentSummary[]): string {
   const header = `### ${title} (${components.length})`
   if (components.length === 0) {
@@ -22,6 +24,7 @@ function formatSection(title: string, components: readonly ComponentSummary[]): 
   return `${header}\n${components.map(formatComponentLine).join('\n')}`
 }
 
+/** @riviere-role cli-output-formatter */
 export function formatPrMarkdown(categorized: CategorizedComponents): string {
   const sections = [
     formatSection('Added Components', categorized.added),

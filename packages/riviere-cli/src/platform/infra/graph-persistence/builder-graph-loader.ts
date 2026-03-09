@@ -8,6 +8,7 @@ import { CliErrorCode } from '../cli-presentation/error-codes'
 import { resolveGraphPath } from './graph-path'
 import { fileExists } from './file-existence'
 
+/** @riviere-role repository */
 export function reportGraphNotFound(graphPath: string): void {
   console.log(
     JSON.stringify(
@@ -18,6 +19,7 @@ export function reportGraphNotFound(graphPath: string): void {
   )
 }
 
+/** @riviere-role repository */
 export async function loadGraphBuilder(graphPath: string): Promise<RiviereBuilder> {
   const content = await readFile(graphPath, 'utf-8')
   const parsed: unknown = JSON.parse(content)
@@ -25,6 +27,7 @@ export async function loadGraphBuilder(graphPath: string): Promise<RiviereBuilde
   return RiviereBuilder.resume(graph)
 }
 
+/** @riviere-role repository */
 export async function withGraphBuilder(
   graphPathOption: string | undefined,
   handler: (builder: RiviereBuilder, graphPath: string) => Promise<void>,
@@ -41,6 +44,7 @@ export async function withGraphBuilder(
   await handler(builder, graphPath)
 }
 
+/** @riviere-role repository */
 export function handleComponentNotFoundError(error: unknown): void {
   if (!(error instanceof ComponentNotFoundError)) {
     throw error
@@ -50,6 +54,7 @@ export function handleComponentNotFoundError(error: unknown): void {
   )
 }
 
+/** @riviere-role repository */
 export function tryBuilderOperation<T>(operation: () => T): T | undefined {
   try {
     return operation()

@@ -1,5 +1,6 @@
 import type { StateTransition } from '@living-architecture/riviere-schema'
 
+/** @riviere-role cli-input-parser */
 function parseStateChange(input: string): StateTransition | undefined {
   const [from, to, ...rest] = input.split(':')
   if (from === undefined || to === undefined || rest.length > 0) {
@@ -21,6 +22,7 @@ type ParseResult =
     invalidInput: string
   }
 
+/** @riviere-role cli-input-parser */
 export function parseStateChanges(inputs: string[]): ParseResult {
   const stateChanges: StateTransition[] = []
   for (const sc of inputs) {
@@ -46,6 +48,7 @@ interface BehaviorOptions {
   emits: string[]
 }
 
+/** @riviere-role cli-input-parser */
 export function buildBehavior(
   options: BehaviorOptions,
 ): { behavior: object } | Record<string, never> {

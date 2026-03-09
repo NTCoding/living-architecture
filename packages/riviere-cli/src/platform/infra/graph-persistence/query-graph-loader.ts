@@ -16,6 +16,7 @@ type JsonParseSuccess = {
 type JsonParseFailure = { success: false }
 type JsonParseResult = JsonParseSuccess | JsonParseFailure
 
+/** @riviere-role repository */
 function parseJsonSafely(content: string): JsonParseResult {
   try {
     return {
@@ -34,10 +35,12 @@ export interface LoadGraphResult {
 
 export interface LoadGraphError {error: ReturnType<typeof formatError>}
 
+/** @riviere-role repository */
 function isLoadGraphError(result: LoadGraphResult | LoadGraphError): result is LoadGraphError {
   return 'error' in result
 }
 
+/** @riviere-role repository */
 export async function loadGraph(
   graphPathOption?: string,
 ): Promise<LoadGraphResult | LoadGraphError> {
@@ -76,6 +79,7 @@ export async function loadGraph(
   }
 }
 
+/** @riviere-role repository */
 export async function withGraph(
   graphPathOption: string | undefined,
   handler: (query: RiviereQuery) => Promise<void> | void,

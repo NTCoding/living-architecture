@@ -4,6 +4,7 @@ export type GitErrorCode =
   | 'NO_REMOTE'
   | 'BASE_BRANCH_NOT_FOUND'
 
+/** @riviere-role application-error */
 export class GitError extends Error {
   readonly gitErrorCode: GitErrorCode
 
@@ -15,6 +16,7 @@ export class GitError extends Error {
   }
 }
 
+/** @riviere-role external-client */
 export function isGitError(error: unknown): error is GitError {
   return error instanceof GitError
 }
@@ -24,6 +26,7 @@ export function isGitError(error: unknown): error is GitError {
  * ANTI-PATTERN EXCEPTION: String-Based Error Detection (AP-001)
  * Justification: git CLI only reports errors via stderr text
  */
+/** @riviere-role external-client */
 export function extractStderr(error: Error): string {
   if (!Object.hasOwn(error, 'stderr')) {
     throw error

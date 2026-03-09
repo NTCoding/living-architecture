@@ -7,6 +7,7 @@ export interface ComponentOutput {
   domain: string
 }
 
+/** @riviere-role cli-output-formatter */
 export function toComponentOutput(component: Component): ComponentOutput {
   return {
     id: component.id,

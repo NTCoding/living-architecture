@@ -66,6 +66,7 @@ export type AddComponentInput =
     input: AddCustomInput
   }
 
+/** @riviere-role platform-domain-service */
 export function addComponentToBuilder(
   builder: RiviereBuilder,
   component: AddComponentInput,

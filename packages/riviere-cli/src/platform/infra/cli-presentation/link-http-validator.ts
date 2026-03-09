@@ -8,6 +8,7 @@ interface LinkHttpOptions {
   linkType?: string
 }
 
+/** @riviere-role cli-input-parser */
 export function validateOptions(options: LinkHttpOptions): string | undefined {
   const componentTypeValidation = validateComponentType(options.toType)
   if (!componentTypeValidation.valid) {

@@ -18,6 +18,7 @@ export interface ExtractOptions {
   tsConfig?: boolean
 }
 
+/** @riviere-role cli-input-parser */
 function rejectMutuallyExclusive(
   flagA: string,
   flagB: string,
@@ -32,6 +33,7 @@ function rejectMutuallyExclusive(
   }
 }
 
+/** @riviere-role cli-input-parser */
 function validateMutualExclusions(options: ExtractOptions): void {
   rejectMutuallyExclusive(
     '--components-only',
@@ -49,6 +51,7 @@ function validateMutualExclusions(options: ExtractOptions): void {
   )
 }
 
+/** @riviere-role cli-input-parser */
 function validateFormatOption(options: ExtractOptions): void {
   if (options.format !== undefined && options.format !== 'json' && options.format !== 'markdown') {
     throw new ConfigValidationError(
@@ -64,6 +67,7 @@ function validateFormatOption(options: ExtractOptions): void {
   }
 }
 
+/** @riviere-role cli-input-parser */
 export function validateFlagCombinations(options: ExtractOptions): void {
   validateMutualExclusions(options)
   if (options.base !== undefined && !options.pr) {

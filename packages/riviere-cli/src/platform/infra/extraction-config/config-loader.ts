@@ -43,6 +43,7 @@ interface TopLevelRulesConfig {
 
 const NOT_USED = { notUsed: true } as const
 
+/** @riviere-role extraction-config-loader */
 function topLevelRulesToModule(parsed: TopLevelRulesConfig): Module {
   return {
     name: 'extended',
@@ -58,6 +59,7 @@ function topLevelRulesToModule(parsed: TopLevelRulesConfig): Module {
   }
 }
 
+/** @riviere-role application-error */
 class PackageConfigNotFoundError extends Error {
   constructor(packageName: string) {
     super(
@@ -68,6 +70,7 @@ class PackageConfigNotFoundError extends Error {
   }
 }
 
+/** @riviere-role extraction-config-loader */
 function hasModulesArray(value: unknown): value is { modules: unknown[] } {
   if (typeof value !== 'object' || value === null) {
     return false
@@ -78,12 +81,14 @@ function hasModulesArray(value: unknown): value is { modules: unknown[] } {
   return Array.isArray(value.modules)
 }
 
+/** @riviere-role extraction-config-loader */
 function isTopLevelRulesConfig(value: unknown): value is TopLevelRulesConfig {
   return (
     typeof value === 'object' && value !== null && !Array.isArray(value) && !('modules' in value)
   )
 }
 
+/** @riviere-role extraction-config-loader */
 function parseConfigContent(content: string, source: string): Module {
   const parsed: unknown = parseYaml(content)
 
@@ -112,10 +117,12 @@ function parseConfigContent(content: string, source: string): Module {
   throw new InvalidConfigFormatError(source, preview)
 }
 
+/** @riviere-role extraction-config-loader */
 function isPackageReference(source: string): boolean {
   return !source.startsWith('.') && !source.startsWith('/')
 }
 
+/** @riviere-role extraction-config-loader */
 function resolvePackagePath(packageName: string, configDir: string): string {
   const require = createRequire(resolve(configDir, 'package.json'))
   try {
@@ -134,6 +141,7 @@ function resolvePackagePath(packageName: string, configDir: string): string {
   }
 }
 
+/** @riviere-role extraction-config-loader */
 function loadConfigFile(filePath: string, source: string): Module {
   if (!existsSync(filePath)) {
     throw new ConfigFileNotFoundError(source, filePath)
@@ -143,6 +151,7 @@ function loadConfigFile(filePath: string, source: string): Module {
   return parseConfigContent(content, source)
 }
 
+/** @riviere-role extraction-config-loader */
 export function createConfigLoader(configDir: string): ConfigLoader {
   return (source: string): Module => {
     const filePath = isPackageReference(source)
@@ -163,6 +172,7 @@ type ParseResult =
     error: string
   }
 
+/** @riviere-role extraction-config-loader */
 function parseConfigFile(content: string): ParseResult {
   try {
     return {
@@ -179,6 +189,7 @@ function parseConfigFile(content: string): ParseResult {
   }
 }
 
+/** @riviere-role extraction-config-loader */
 function tryExpandModuleRefs(data: unknown, configDir: string): ParseResult {
   try {
     return {
@@ -201,6 +212,7 @@ function tryExpandModuleRefs(data: unknown, configDir: string): ParseResult {
   }
 }
 
+/** @riviere-role extraction-config-loader */
 export function resolveSourceFiles(
   resolvedConfig: ResolvedExtractionConfig,
   configDir: string,
@@ -225,6 +237,7 @@ interface ValidatedConfig {
   configDir: string
 }
 
+/** @riviere-role extraction-config-loader */
 export function loadAndValidateConfig(configPath: string): ValidatedConfig {
   if (!existsSync(configPath)) {
     throw new ConfigValidationError(

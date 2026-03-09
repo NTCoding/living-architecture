@@ -12,6 +12,7 @@ export interface FilterOptions {
 
 export interface FilterResult {readonly files: string[]}
 
+/** @riviere-role application-error */
 export class SourceFilterError extends Error {
   readonly filterErrorKind: 'GIT_ERROR' | 'FILES_NOT_FOUND'
   readonly gitError: GitError | undefined
@@ -27,6 +28,7 @@ export class SourceFilterError extends Error {
   }
 }
 
+/** @riviere-role source-file-filter */
 export function filterSourceFiles(allSourceFiles: string[], options: FilterOptions): FilterResult {
   if (options.pr) {
     try {
@@ -63,6 +65,7 @@ interface ResolveFilterOptions {
   files?: string[]
 }
 
+/** @riviere-role source-file-filter */
 export function resolveFilteredSourceFiles(
   allSourceFiles: string[],
   options: ResolveFilterOptions,

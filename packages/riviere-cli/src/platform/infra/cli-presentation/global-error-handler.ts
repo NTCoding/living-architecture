@@ -10,6 +10,7 @@ import { DraftComponentLoadError } from '../extraction-config/draft-component-lo
 import { ConnectionDetectionError } from '@living-architecture/riviere-extract-ts'
 import { SourceFilterError } from '../source-filtering/filter-source-files'
 
+/** @riviere-role cli-presenter */
 export function handleGlobalError(error: unknown): never {
   if (error instanceof ConfigValidationError) {
     console.log(JSON.stringify(formatError(error.errorCode, error.message)))

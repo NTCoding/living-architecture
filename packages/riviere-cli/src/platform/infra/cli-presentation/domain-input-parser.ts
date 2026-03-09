@@ -10,6 +10,7 @@ interface DomainInputParsed {
 
 export type { DomainInputParsed }
 
+/** @riviere-role cli-input-parser */
 function isDomainInputParsed(value: unknown): value is DomainInputParsed {
   if (typeof value !== 'object' || value === null) {
     return false
@@ -25,6 +26,7 @@ function isDomainInputParsed(value: unknown): value is DomainInputParsed {
   )
 }
 
+/** @riviere-role cli-input-parser */
 export function parseDomainJson(value: string, previous: DomainInputParsed[]): DomainInputParsed[] {
   const parsed: unknown = JSON.parse(value)
   if (!isDomainInputParsed(parsed)) {

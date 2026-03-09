@@ -2,10 +2,12 @@ import { access } from 'node:fs/promises'
 
 interface NodeError extends Error {code?: string}
 
+/** @riviere-role repository */
 function isNodeError(error: unknown): error is NodeError {
   return error instanceof Error && 'code' in error
 }
 
+/** @riviere-role repository */
 export async function fileExists(path: string): Promise<boolean> {
   try {
     await access(path)

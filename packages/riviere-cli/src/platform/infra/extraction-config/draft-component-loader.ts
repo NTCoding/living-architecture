@@ -3,6 +3,7 @@ import {
 } from 'node:fs'
 import type { DraftComponent } from '@living-architecture/riviere-extract-ts'
 
+/** @riviere-role application-error */
 export class DraftComponentLoadError extends Error {
   constructor(message: string) {
     super(message)
@@ -11,6 +12,7 @@ export class DraftComponentLoadError extends Error {
   }
 }
 
+/** @riviere-role extraction-config-loader */
 function isDraftComponentArray(value: unknown): value is DraftComponent[] {
   if (!Array.isArray(value)) return false
   return value.every(
@@ -24,6 +26,7 @@ function isDraftComponentArray(value: unknown): value is DraftComponent[] {
   )
 }
 
+/** @riviere-role extraction-config-loader */
 function parseJsonFile(filePath: string): unknown {
   try {
     return JSON.parse(readFileSync(filePath, 'utf-8'))
@@ -32,6 +35,7 @@ function parseJsonFile(filePath: string): unknown {
   }
 }
 
+/** @riviere-role extraction-config-loader */
 export function loadDraftComponentsFromFile(filePath: string): DraftComponent[] {
   if (!existsSync(filePath)) {
     throw new DraftComponentLoadError(`Enrich file not found: ${filePath}`)

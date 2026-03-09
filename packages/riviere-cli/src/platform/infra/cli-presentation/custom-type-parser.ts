@@ -11,10 +11,12 @@ const VALID_PROPERTY_TYPES: readonly CustomPropertyType[] = [
   'object',
 ]
 
+/** @riviere-role cli-input-parser */
 function isValidPropertyType(value: string): value is CustomPropertyType {
   return VALID_PROPERTY_TYPES.some((t) => t === value)
 }
 
+/** @riviere-role cli-input-parser */
 function parsePropertySpec(spec: string):
   | {
     name: string
@@ -58,6 +60,7 @@ interface ParsePropertiesError {
 
 type ParsePropertiesResult = ParsePropertiesSuccess | ParsePropertiesError
 
+/** @riviere-role cli-input-parser */
 export function parsePropertySpecs(specs: string[] | undefined): ParsePropertiesResult {
   if (specs === undefined || specs.length === 0) {
     return {

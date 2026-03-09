@@ -23,6 +23,7 @@
 # The dedicated Phase 3 repo-scope coverage chunk replaces it with hard full-scope semantics.
 include:
   - packages/riviere-cli/src/shell/cli.ts
+  - packages/riviere-cli/src/shell/bin.ts
   - packages/riviere-cli/src/features/builder/entrypoint/**/*.ts
   - packages/riviere-cli/src/features/builder/commands/**/*.ts
   - packages/riviere-cli/src/features/builder/queries/**/*.ts
@@ -32,6 +33,7 @@ include:
   - packages/riviere-cli/src/features/extract/infra/external-clients/**/*.ts
   - packages/riviere-cli/src/features/extract/infra/mappers/**/*.ts
   - packages/riviere-cli/src/features/query/entrypoint/**/*.ts
+  - packages/riviere-cli/src/platform/**/*.ts
   - packages/riviere-query/src/features/querying/queries/**/*.ts
   - packages/riviere-role-enforcement/src/features/check/domain/**/*.ts
   - packages/riviere-role-enforcement/src/features/check/infra/**/*.ts
@@ -300,7 +302,7 @@ roles:
       - packages/riviere-cli/src/platform/infra/cli-presentation/**/*.ts
       - tools/dev-workflow/platform/infra/cli/**/*.ts
       - tools/dev-workflow/features/*/domain/**/*parser*.ts
-    nameMatches: '^(parse|validate|collect|resolve|sanitize|tryParse|read)[A-Z].*|^isValid.*'
+    nameMatches: '^(parse|validate|collect|resolve|sanitize|tryParse|read|reject|normalize|build|is|has)[A-Z].*'
     markdownSpec: docs/roles/cli-input-parser.md
   - name: cli-output-formatter
     targets: [function]
@@ -308,28 +310,29 @@ roles:
       - packages/riviere-cli/src/platform/infra/cli-presentation/**/*.ts
       - tools/dev-workflow/platform/infra/cli/**/*.ts
       - tools/dev-workflow/features/*/domain/*output*.ts
-    nameMatches: '^(format|categorize|count|summarize)[A-Z].*|^format.*Markdown$'
+    nameMatches: '^(format|categorize|count|summarize|compare|to)[A-Z].*|^(compareByCodePoint|componentKey)$'
     markdownSpec: docs/roles/cli-output-formatter.md
   - name: cli-presenter
     targets: [function]
     allowedLocation:
       - packages/riviere-cli/src/platform/infra/cli-presentation/**/*.ts
+      - packages/riviere-cli/src/platform/infra/errors/**/*.ts
       - packages/riviere-cli/src/features/*/infra/mappers/**/*.ts
       - tools/dev-workflow/features/*/commands/**/*.ts
-    nameMatches: '^(present|output|write|handle|validateAndLog)[A-Z].*|^format(Success|Error)$|^validateAndLog$'
+    nameMatches: '^(present|output|write|handle|report|validateAndLog)[A-Z].*|^format(Success|Error)$|^(validateAndLog|getErrorMessage)$'
     markdownSpec: docs/roles/cli-presenter.md
   - name: component-input-mapper
     targets: [function]
     allowedLocation:
       - packages/riviere-cli/src/platform/infra/component-mapping/**/*.ts
-    nameMatches: '^(build|map|to)[A-Z].*'
+      - packages/riviere-cli/src/platform/infra/cli-presentation/link-external-transformer.ts
+    nameMatches: '^(is|build|map|to)[A-Z].*'
     markdownSpec: docs/roles/component-input-mapper.md
   - name: repository
     targets: [function, class]
     allowedLocation:
       - packages/riviere-cli/src/platform/infra/graph-persistence/**/*.ts
-      - packages/riviere-cli/src/platform/infra/extraction-config/**/*.ts
-    nameMatches: '^(load|read|write|save|find|expand|resolve|get|fileExists)[A-Z].*|^.*Loader$'
+    nameMatches: '^(load|read|write|save|find|resolve|get|with|parse|is|report|handle|try)[A-Z].*|^fileExists$|^.*Loader$'
     markdownSpec: docs/roles/repository.md
   - name: external-client
     targets: [function, class]
@@ -337,14 +340,20 @@ roles:
       - packages/riviere-cli/src/platform/infra/git/**/*.ts
       - packages/riviere-cli/src/features/*/infra/external-clients/**/*.ts
       - tools/dev-workflow/platform/infra/external-clients/**/*.ts
-    nameMatches: '^(get|run|load|fetch|create|detect|read)[A-Z].*|^.*(Client|Runner)$'
+    nameMatches: '^(default|detect|extract|fetch|get|is|list|load|parse|read|run|create)[A-Z].*|^.*(Client|Runner|Io)$'
     markdownSpec: docs/roles/external-client.md
   - name: source-file-filter
     targets: [function]
     allowedLocation:
       - packages/riviere-cli/src/platform/infra/source-filtering/**/*.ts
-    nameMatches: '^(filter|is|should)[A-Z].*'
+    nameMatches: '^(filter|is|resolve|should)[A-Z].*'
     markdownSpec: docs/roles/source-file-filter.md
+  - name: extraction-config-loader
+    targets: [function]
+    allowedLocation:
+      - packages/riviere-cli/src/platform/infra/extraction-config/**/*.ts
+    nameMatches: '^(topLevelRulesToModule|hasModulesArray|isTopLevelRulesConfig|parseConfigContent|isPackageReference|resolvePackagePath|loadConfigFile|createConfigLoader|parseConfigFile|tryExpandModuleRefs|resolveSourceFiles|loadAndValidateConfig|isDraftComponentArray|parseJsonFile|isModuleRef|expandModuleRefs|loadDraftComponentsFromFile)$'
+    markdownSpec: docs/roles/extraction-config-loader.md
   - name: builder-facade
     targets: [class]
     allowedLocation:

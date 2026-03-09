@@ -2,6 +2,7 @@ import type {
   OperationSignature, OperationParameter 
 } from '@living-architecture/riviere-schema'
 
+/** @riviere-role cli-input-parser */
 function parseParameter(input: string): OperationParameter | undefined {
   const parts = input.split(':')
   if (parts.length < 2 || parts.length > 3) {
@@ -38,6 +39,7 @@ type ParametersParseResult =
     error: string
   }
 
+/** @riviere-role cli-input-parser */
 function parseParameters(paramsPart: string): ParametersParseResult {
   if (paramsPart === '') {
     return {
@@ -63,6 +65,7 @@ function parseParameters(paramsPart: string): ParametersParseResult {
   }
 }
 
+/** @riviere-role cli-input-parser */
 function buildSignatureObject(
   parameters: OperationParameter[],
   returnType: string | undefined,
@@ -77,6 +80,7 @@ function buildSignatureObject(
   return signature
 }
 
+/** @riviere-role cli-input-parser */
 export function parseSignature(input: string): SignatureParseResult {
   const trimmed = input.trim()
 

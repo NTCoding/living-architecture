@@ -23,6 +23,7 @@ export interface ErrorOutput {
  * @param warnings - Optional warnings to include.
  * @returns Formatted success output.
  */
+/** @riviere-role cli-presenter */
 export function formatSuccess<T>(data: T, warnings: string[] = []): SuccessOutput<T> {
   return {
     success: true,
@@ -38,6 +39,7 @@ export function formatSuccess<T>(data: T, warnings: string[] = []): SuccessOutpu
  * @param suggestions - Optional suggestions for fixing the error.
  * @returns Formatted error output.
  */
+/** @riviere-role cli-presenter */
 export function formatError(
   code: CliErrorCode,
   message: string,

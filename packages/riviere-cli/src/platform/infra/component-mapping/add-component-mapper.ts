@@ -5,6 +5,7 @@ import { parseCustomProperties } from '../cli-presentation/custom-property-parse
 import { MissingRequiredOptionError } from '../errors/errors'
 import type { AddComponentInput as DomainInput } from '../../domain/add-component'
 
+/** @riviere-role component-input-mapper */
 function isBlank(value: string | undefined): boolean {
   return !value || value.trim().length === 0
 }
@@ -33,6 +34,7 @@ export interface AddComponentInput {
   outputJson: boolean
 }
 
+/** @riviere-role component-input-mapper */
 function buildCommon(input: AddComponentInput) {
   const sourceLocation: SourceLocation = {
     repository: input.repository,
@@ -135,6 +137,7 @@ const mappers: Record<string, (input: AddComponentInput) => DomainInput> = {
   },
 }
 
+/** @riviere-role component-input-mapper */
 export function buildDomainInput(input: AddComponentInput): DomainInput {
   const mapper = mappers[input.componentType]
   if (!mapper) throw new MissingRequiredOptionError('type', 'Component')
