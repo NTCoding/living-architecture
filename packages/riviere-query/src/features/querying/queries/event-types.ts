@@ -13,7 +13,7 @@ import type {
 /**
  * A domain entity with its associated operations, states, and business rules.
  */
-/** @riviere-role query-entity */
+/** @riviere-role entity */
 export class Entity {
   constructor(
     /** The entity name. */

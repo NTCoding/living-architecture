@@ -1,6 +1,6 @@
 import type { StateTransition } from '@living-architecture/riviere-schema'
 
-/** @riviere-role builder-domain-service */
+/** @riviere-role domain-service */
 export function deduplicateStateTransitions(
   existing: StateTransition[],
   incoming: StateTransition[],

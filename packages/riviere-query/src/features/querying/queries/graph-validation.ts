@@ -6,12 +6,12 @@ import type {
 } from './domain-types'
 import { parseComponentId } from './domain-types'
 
-/** @riviere-role query-service */
+/** @riviere-role domain-service */
 function isCustomComponent(component: { type: string }): component is CustomComponent {
   return component.type === 'Custom'
 }
 
-/** @riviere-role query-service */
+/** @riviere-role domain-service */
 export function validateGraph(graph: RiviereGraph): ValidationResult {
   const errors: ValidationError[] = []
 
@@ -41,7 +41,7 @@ export function validateGraph(graph: RiviereGraph): ValidationResult {
   }
 }
 
-/** @riviere-role query-service */
+/** @riviere-role domain-service */
 function validateCustomTypes(graph: RiviereGraph): ValidationError[] {
   const errors: ValidationError[] = []
   const customTypes = graph.metadata.customTypes
@@ -65,7 +65,7 @@ function validateCustomTypes(graph: RiviereGraph): ValidationError[] {
   return errors
 }
 
-/** @riviere-role query-service */
+/** @riviere-role domain-service */
 export function detectOrphanComponents(graph: RiviereGraph): ComponentId[] {
   const connectedComponentIds = new Set<string>()
   graph.links.forEach((link) => {

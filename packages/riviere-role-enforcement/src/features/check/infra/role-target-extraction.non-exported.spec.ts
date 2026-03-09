@@ -104,10 +104,10 @@ describe('extractRoleTargets non-exported declarations', () => {
       body: [functionDeclaration, variableDeclaration, classDeclaration],
     }
     const sourceCode = createSourceCode(
-      new Map([
+      new Map<BaseNode, readonly string[]>([
         [functionDeclaration, ['* @riviere-role cli-shell']],
         [variableDeclaration, ['* @riviere-role cli-shell']],
-        [classDeclaration, ['* @riviere-role query-facade']],
+        [classDeclaration, ['* @riviere-role aggregate']],
         [staticMethod, ['* @riviere-role query-factory']],
       ]),
     )
@@ -142,7 +142,7 @@ describe('extractRoleTargets non-exported declarations', () => {
           kind: 'class',
           name: 'OrdersQuery',
           ownerClassName: null,
-          assignedRoleName: 'query-facade',
+          assignedRoleName: 'aggregate',
           relativeFilePath: 'packages/demo/src/features/demo/queries/orders-query.ts',
           publicMethodNames: ['components'],
           reportNode: classDeclaration.id,

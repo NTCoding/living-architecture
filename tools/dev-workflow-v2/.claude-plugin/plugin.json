@@ -1,5 +1,5 @@
 {
   "name": "dev-workflow-v2",
-  "version": "0.0.9",
+  "version": "0.0.12",
   "description": "Event-sourced workflow state machine for structured task lifecycle"
 }

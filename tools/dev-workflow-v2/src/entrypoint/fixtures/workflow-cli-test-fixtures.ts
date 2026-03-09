@@ -1,10 +1,6 @@
-import {
-  unlinkSync, existsSync, mkdtempSync 
-} from 'node:fs'
-import { join } from 'node:path'
-import { tmpdir } from 'node:os'
-import type { WorkflowEngineDeps } from '@ntcoding/agentic-workflow-builder/engine'
-import { createStore } from '@ntcoding/agentic-workflow-builder/event-store'
+import type {
+  BaseEvent, WorkflowEngineDeps 
+} from '@ntcoding/agentic-workflow-builder/engine'
 import { createWorkflowRunner } from '@ntcoding/agentic-workflow-builder/cli'
 import type { RunnerResult } from '@ntcoding/agentic-workflow-builder/cli'
 import type { WorkflowDeps } from '../../workflow-definition/domain/workflow'
@@ -12,6 +8,7 @@ import { WORKFLOW_DEFINITION } from '../../workflow-definition/infra/workflow-de
 import {
   ROUTES, HOOKS, preToolUseHandler 
 } from '../workflow-cli'
+import { STATE_STEPS } from './state-steps'
 
 const runner = createWorkflowRunner({
   workflowDefinition: WORKFLOW_DEFINITION,
@@ -30,9 +27,20 @@ export type TestContext = {
 export function buildTestContext(
   overrides: Partial<{ readonly sessionId: string }> = {},
 ): TestContext {
-  const tempDir = mkdtempSync(join(tmpdir(), 'wf-cli-'))
-  const dbPath = join(tempDir, 'test.db')
-  const store = createStore(dbPath)
+  const dbPath = ':memory:'
+  const sessions = new Map<string, readonly BaseEvent[]>()
+  const store = {
+    readEvents(sessionId: string): readonly BaseEvent[] {
+      return sessions.get(sessionId) ?? []
+    },
+    appendEvents(sessionId: string, events: readonly BaseEvent[]): void {
+      const existing = sessions.get(sessionId) ?? []
+      sessions.set(sessionId, [...existing, ...events])
+    },
+    sessionExists(sessionId: string): boolean {
+      return sessions.has(sessionId)
+    },
+  }
 
   const sessionId = overrides.sessionId ?? 'test-sess'
 
@@ -78,80 +86,14 @@ export function runHook(ctx: TestContext, stdinJson: string): RunnerResult {
 }
 
 export function cleanupDb(dbPath: string): void {
-  for (const suffix of ['', '-wal', '-shm']) {
-    const path = `${dbPath}${suffix}`
-    if (existsSync(path)) unlinkSync(path)
+  if (dbPath === '') {
+    return
   }
 }
 
 export function progressToState(ctx: TestContext, targetState: string): void {
-  const stateSteps: Readonly<Record<string, readonly (readonly string[])[]>> = {
-    REVIEWING: [
-      ['record-issue', '1'],
-      ['transition', 'REVIEWING'],
-    ],
-    SUBMITTING_PR: [
-      ['record-issue', '1'],
-      ['transition', 'REVIEWING'],
-      ['record-architecture-review-passed'],
-      ['record-code-review-passed'],
-      ['record-bug-scanner-passed'],
-      ['transition', 'SUBMITTING_PR'],
-    ],
-    AWAITING_CI: [
-      ['record-issue', '1'],
-      ['transition', 'REVIEWING'],
-      ['record-architecture-review-passed'],
-      ['record-code-review-passed'],
-      ['record-bug-scanner-passed'],
-      ['transition', 'SUBMITTING_PR'],
-      ['record-pr', '1'],
-      ['transition', 'AWAITING_CI'],
-    ],
-    CHECKING_FEEDBACK: [
-      ['record-issue', '1'],
-      ['transition', 'REVIEWING'],
-      ['record-architecture-review-passed'],
-      ['record-code-review-passed'],
-      ['record-bug-scanner-passed'],
-      ['transition', 'SUBMITTING_PR'],
-      ['record-pr', '1'],
-      ['transition', 'AWAITING_CI'],
-      ['record-ci-passed'],
-      ['transition', 'CHECKING_FEEDBACK'],
-    ],
-    ADDRESSING_FEEDBACK: [
-      ['record-issue', '1'],
-      ['transition', 'REVIEWING'],
-      ['record-architecture-review-passed'],
-      ['record-code-review-passed'],
-      ['record-bug-scanner-passed'],
-      ['transition', 'SUBMITTING_PR'],
-      ['record-pr', '1'],
-      ['transition', 'AWAITING_CI'],
-      ['record-ci-passed'],
-      ['transition', 'CHECKING_FEEDBACK'],
-      ['record-feedback-exists', '2'],
-      ['transition', 'ADDRESSING_FEEDBACK'],
-    ],
-    REFLECTING: [
-      ['record-issue', '1'],
-      ['transition', 'REVIEWING'],
-      ['record-architecture-review-passed'],
-      ['record-code-review-passed'],
-      ['record-bug-scanner-passed'],
-      ['transition', 'SUBMITTING_PR'],
-      ['record-pr', '1'],
-      ['transition', 'AWAITING_CI'],
-      ['record-ci-passed'],
-      ['transition', 'CHECKING_FEEDBACK'],
-      ['record-feedback-clean'],
-      ['transition', 'REFLECTING'],
-    ],
-  }
-
   runCommand(ctx, ['init'])
-  const steps = stateSteps[targetState]
+  const steps = STATE_STEPS[targetState]
   if (!steps) return
   for (const step of steps) {
     runCommand(ctx, step)

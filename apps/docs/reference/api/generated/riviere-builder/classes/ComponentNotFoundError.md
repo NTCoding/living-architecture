@@ -4,7 +4,11 @@ pageClass: reference
 
 # Class: ComponentNotFoundError
 
-Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:47](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L47)
+Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:52](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L52)
+
+## Riviere-role
+
+domain-error
 
 ## Extends
 
@@ -16,7 +20,7 @@ Defined in: [packages/riviere-builder/src/features/building/domain/construction/
 
 > **new ComponentNotFoundError**(`componentId`, `suggestions`): `ComponentNotFoundError`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:51](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L51)
+Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:56](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L56)
 
 #### Parameters
 
@@ -54,7 +58,7 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 
 > `readonly` **componentId**: `string`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:48](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L48)
+Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:53](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L53)
 
 ***
 
@@ -98,7 +102,7 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 
 > `readonly` **suggestions**: `string`[]
 
-Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:49](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L49)
+Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:54](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L54)
 
 ***
 

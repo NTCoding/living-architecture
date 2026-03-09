@@ -90,17 +90,6 @@ roles:
       - getAllApiPaths
       - isRestApiWithPath
     markdownSpec: docs/roles/cli-query-service.md
-  - name: extract-domain-service
-    targets: [function]
-    allowedLocation:
-      - packages/riviere-cli/src/features/extract/domain/**/*.ts
-    allowedNames:
-      - assertAllDraftsMatchModules
-      - detectConnectionsPerModule
-      - enrichPerModule
-      - extractDraftComponents
-      - groupDraftsByModule
-    markdownSpec: docs/roles/extract-domain-service.md
   - name: extract-project-loader
     targets: [function]
     allowedLocation:
@@ -120,124 +109,40 @@ roles:
       - presentDraftResult
       - presentFullResult
     markdownSpec: docs/roles/cli-result-presenter.md
-  - name: query-service
-    targets: [function, static-method]
+  - name: aggregate
+    targets: [class, static-method]
     allowedLocation:
+      - packages/riviere-builder/src/features/building/domain/builder-facade.ts
       - packages/riviere-query/src/features/querying/queries/**/*.ts
-    allowedNames:
-      - aggregateExternalDomains
-      - assertValidGraph
-      - buildComponentDomainMap
-      - buildEventHandlerInfo
-      - buildEventNameMap
-      - buildExternalLinksBySource
-      - buildNodeIdToDomain
-      - buildOutgoingEdges
-      - collectConnections
-      - findComponent
-      - findChangedFields
-      - findEntryPointIds
-      - findEventHandlerComponents
-      - fromJSON
-      - getOrInitializeConnectionCounts
-      - incrementConnectionCount
-      - initializeConnectionCounts
-      - isCustomComponent
-      - linkTypeForSort
-      - orderStatesByTransitions
-      - processQueue
-      - enqueueChildren
-      - createEntity
-      - compareCrossDomainLinks
-      - convertToExternalDomains
-      - validateCustomTypes
-      - toConnectionResults
-      - findAllComponents
-      - componentById
-      - searchComponents
-      - componentsInDomain
-      - componentsByType
-      - queryDomains
-      - operationsForEntity
-      - queryEntities
-      - businessRulesForEntity
-      - transitionsForEntity
-      - statesForEntity
-      - queryCrossDomainLinks
-      - queryDomainConnections
-      - queryNodeDepths
-      - queryPublishedEvents
-      - queryEventHandlers
-      - queryExternalDomains
-      - findEntryPoints
-      - traceFlowFrom
-      - queryFlows
-      - searchWithFlowContext
-      - diffGraphs
-      - validateGraph
-      - detectOrphanComponents
-      - queryStats
-      - compareByCodePoint
-      - createLinkKey
-      - parseComponentId
-      - parseLinkId
-      - parseEntityName
-      - parseDomainName
-      - parseState
-      - parseOperationName
-      - parseEventId
-      - parseEventName
-      - parseHandlerId
-      - parseHandlerName
-    markdownSpec: docs/roles/query-service.md
-  - name: query-facade
+      - tools/dev-workflow-v2/src/workflow-definition/domain/**/*.ts
+    nameMatches: '^[A-Z][A-Za-z0-9]*$|^(new|resume|fromJSON|createFresh|rehydrate|procedurePath)$'
+    markdownSpec: docs/architecture/roles/aggregate.md
+  - name: entity
     targets: [class]
     allowedLocation:
       - packages/riviere-query/src/features/querying/queries/**/*.ts
-    allowedNames:
-      - RiviereQuery
-    allowedPublicMethods:
-      - components
-      - links
-      - validate
-      - detectOrphans
-      - find
-      - findAll
-      - componentById
-      - search
-      - componentsInDomain
-      - componentsByType
-      - domains
-      - operationsFor
-      - entities
-      - businessRulesFor
-      - transitionsFor
-      - statesFor
-      - entryPoints
-      - traceFlow
-      - diff
-      - publishedEvents
-      - eventHandlers
-      - flows
-      - searchWithFlow
-      - crossDomainLinks
-      - domainConnections
-      - stats
-      - nodeDepths
-      - externalLinks
-      - externalDomains
-    markdownSpec: docs/roles/query-facade.md
-  - name: query-entity
-    targets: [class]
+    nameMatches: '^[A-Z][A-Za-z0-9]*$'
+    markdownSpec: docs/architecture/roles/entity.md
+  - name: value-object
+    targets: [function]
     allowedLocation:
+      - packages/riviere-query/src/features/querying/queries/domain-types.ts
+    nameMatches: '^parse[A-Z].*'
+    markdownSpec: docs/architecture/roles/value-object.md
+  - name: domain-service
+    targets: [function, class, static-method]
+    allowedLocation:
+      - packages/riviere-builder/src/features/building/domain/**/*.ts
+      - packages/riviere-builder/src/platform/domain/**/*.ts
+      - packages/riviere-cli/src/features/extract/domain/**/*.ts
+      - packages/riviere-cli/src/platform/domain/**/*.ts
       - packages/riviere-query/src/features/querying/queries/**/*.ts
-    allowedNames:
-      - Entity
-    allowedPublicMethods:
-      - hasStates
-      - hasBusinessRules
-      - firstOperationId
-    markdownSpec: docs/roles/query-entity.md
+      - packages/riviere-extract-ts/src/features/extraction/domain/**/*.ts
+      - tools/dev-workflow/features/*/domain/**/*.ts
+      - tools/dev-workflow/platform/domain/**/*.ts
+      - tools/dev-workflow-v2/src/workflow-definition/domain/**/*.ts
+    nameMatches: '^[A-Za-z][A-Za-z0-9]*$'
+    markdownSpec: docs/architecture/roles/domain-service.md
   - name: application-error
     targets: [class]
     allowedLocation:
@@ -270,34 +175,6 @@ roles:
       - tools/dev-workflow-v2/src/infra/**/*.ts
     nameMatches: '^(detect|get|run|create|list|read|fetch)[A-Z].*|^.*(Client|Runner|Io)$'
     markdownSpec: docs/roles/workflow-infra-client.md
-  - name: workflow-domain-helper
-    targets: [function, static-method]
-    allowedLocation:
-      - tools/dev-workflow/features/*/domain/**/*.ts
-      - tools/dev-workflow/platform/domain/**/*.ts
-      - tools/dev-workflow-v2/src/workflow-definition/domain/**/*.ts
-    nameMatches: '^(activePrdMilestones|applyEvent|applyEvents|applyRecordingEvent|applyTransitioned|buildReviewDir|checkWriteAllowed|createFresh|createWorkflowStateSchema|findActivePrdMilestones|get.*|is.*|issueBranchParser|parse.*|procedurePath|rehydrate|resolveSkipReview|validateCreateMode|validateUpdateMode)$'
-    markdownSpec: docs/roles/workflow-domain-helper.md
-  - name: workflow-facade
-    targets: [class]
-    allowedLocation:
-      - tools/dev-workflow-v2/src/workflow-definition/domain/**/*.ts
-    allowedNames:
-      - Workflow
-    allowedPublicMethods:
-      - getPendingEvents
-      - getState
-      - getAgentInstructions
-      - appendEvent
-      - startSession
-      - executeRecording
-    markdownSpec: docs/roles/workflow-facade.md
-  - name: platform-domain-service
-    targets: [function]
-    allowedLocation:
-      - packages/riviere-cli/src/platform/domain/**/*.ts
-    nameMatches: '^(add|build|create|define|resolve|validate)[A-Z].*'
-    markdownSpec: docs/roles/platform-domain-service.md
   - name: cli-input-parser
     targets: [function]
     allowedLocation:
@@ -356,92 +233,25 @@ roles:
       - packages/riviere-cli/src/platform/infra/extraction-config/**/*.ts
     nameMatches: '^(topLevelRulesToModule|hasModulesArray|isTopLevelRulesConfig|parseConfigContent|isPackageReference|resolvePackagePath|loadConfigFile|createConfigLoader|parseConfigFile|tryExpandModuleRefs|resolveSourceFiles|loadAndValidateConfig|isDraftComponentArray|parseJsonFile|isModuleRef|expandModuleRefs|loadDraftComponentsFromFile)$'
     markdownSpec: docs/roles/extraction-config-loader.md
-  - name: builder-facade
-    targets: [class, static-method]
-    allowedLocation:
-      - packages/riviere-builder/src/features/building/domain/builder-facade.ts
-    allowedNames:
-      - RiviereBuilder
-      - resume
-      - new
-    allowedPublicMethods:
-      - addSource
-      - addDomain
-      - addUI
-      - addApi
-      - addUseCase
-      - addDomainOp
-      - addEvent
-      - addEventHandler
-      - defineCustomType
-      - addCustom
-      - enrichComponent
-      - nearMatches
-      - link
-      - linkExternal
-      - warnings
-      - stats
-      - validate
-      - orphans
-      - query
-      - serialize
-      - build
-    markdownSpec: docs/roles/builder-facade.md
-  - name: builder-domain-service
-    targets: [function, class, static-method]
-    allowedLocation:
-      - packages/riviere-builder/src/features/building/domain/**/*.ts
-      - packages/riviere-builder/src/platform/domain/**/*.ts
-    nameMatches: '^(assert|build|calculate|create|deduplicate|detect|find|format|generate|levenshtein|merge|parse|similarity|to|validate)[A-Z].*|^.*(Construction|Enrichment|Linking|Inspection|NearMatch|Builder|Graph)$|^(new|resume)$'
-    markdownSpec: docs/roles/builder-domain-service.md
   - name: domain-error
     targets: [class]
     allowedLocation:
       - packages/riviere-builder/src/features/building/domain/**/*.ts
+      - packages/riviere-cli/src/features/*/domain/**/*.ts
+      - packages/riviere-cli/src/platform/domain/**/*.ts
+      - packages/riviere-query/src/features/querying/queries/**/*.ts
+      - packages/riviere-extract-ts/src/features/extraction/domain/**/*.ts
+      - tools/dev-workflow/features/*/domain/**/*.ts
+      - tools/dev-workflow/platform/domain/**/*.ts
+      - tools/dev-workflow-v2/src/**/domain/**/*.ts
     nameMatches: '^.*Error$'
-    markdownSpec: docs/roles/domain-error.md
+    markdownSpec: docs/architecture/roles/domain-error.md
   - name: config-validation-service
     targets: [function]
     allowedLocation:
       - packages/riviere-extract-config/src/*.ts
     nameMatches: '^(isValid|validate|map|format|has|get)[A-Z].*|^formatValidationErrorsInternal$'
     markdownSpec: docs/roles/config-validation-service.md
-  - name: extraction-config-resolver
-    targets: [function]
-    allowedLocation:
-      - packages/riviere-extract-ts/src/features/extraction/domain/config-resolution/**/*.ts
-    nameMatches: '^(resolve|merge|require)[A-Z].*'
-    markdownSpec: docs/roles/extraction-config-resolver.md
-  - name: component-extractor
-    targets: [function]
-    allowedLocation:
-      - packages/riviere-extract-ts/src/features/extraction/domain/component-extraction/**/*.ts
-    nameMatches: '^(extract|find|create|isPublic)[A-Z].*'
-    markdownSpec: docs/roles/component-extractor.md
-  - name: predicate-evaluator
-    targets: [function]
-    allowedLocation:
-      - packages/riviere-extract-ts/src/features/extraction/domain/predicate-evaluation/**/*.ts
-    nameMatches: '^(evaluate|has|matches|is)[A-Z].*'
-    markdownSpec: docs/roles/predicate-evaluator.md
-  - name: extraction-rule-evaluator
-    targets: [function]
-    allowedLocation:
-      - packages/riviere-extract-ts/src/features/extraction/domain/value-extraction/evaluate-extraction-rule*.ts
-    nameMatches: '^(evaluate|extract|resolve|read)[A-Z].*'
-    markdownSpec: docs/roles/extraction-rule-evaluator.md
-  - name: component-enricher
-    targets: [function]
-    allowedLocation:
-      - packages/riviere-extract-ts/src/features/extraction/domain/value-extraction/enrich-components.ts
-    nameMatches: '^(enrich|find|extract|create)[A-Z].*'
-    markdownSpec: docs/roles/component-enricher.md
-  - name: connection-detector
-    targets: [function, class]
-    allowedLocation:
-      - packages/riviere-extract-ts/src/features/extraction/domain/connection-detection/**/*.ts
-    nameMatches: '^(detect|resolve|evaluate|build|trace|deduplicate|collect|find|create|increment|initialize|to)[A-Z].*|^.*(Detector|Resolver|Index)$'
-    markdownSpec: docs/roles/connection-detector.md
   - name: glob-matcher
     targets: [function]
     allowedLocation:

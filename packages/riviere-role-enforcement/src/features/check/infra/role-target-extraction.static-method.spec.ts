@@ -103,8 +103,8 @@ describe('extractRoleTargets static methods', () => {
       body: [exportNode],
     }
     const sourceCode = createSourceCode(
-      new Map([
-        [exportNode, ['* @riviere-role query-facade']],
+      new Map<BaseNode, readonly string[]>([
+        [exportNode, ['* @riviere-role aggregate']],
         [staticMethod, ['* @riviere-role query-factory']],
       ]),
     )
@@ -121,7 +121,7 @@ describe('extractRoleTargets static methods', () => {
           kind: 'class',
           name: 'OrdersQuery',
           ownerClassName: null,
-          assignedRoleName: 'query-facade',
+          assignedRoleName: 'aggregate',
           relativeFilePath: 'packages/demo/src/features/demo/queries/orders-query.ts',
           publicMethodNames: ['components'],
           reportNode: classDeclaration.id,
@@ -167,8 +167,8 @@ describe('extractRoleTargets static methods', () => {
       body: [exportNode],
     }
     const sourceCode = createSourceCode(
-      new Map([
-        [exportNode, ['* @riviere-role query-facade']],
+      new Map<BaseNode, readonly string[]>([
+        [exportNode, ['* @riviere-role aggregate']],
         [staticMethod, ['* @riviere-role QueryFactory']],
       ]),
     )
@@ -184,7 +184,7 @@ describe('extractRoleTargets static methods', () => {
         kind: 'class',
         name: 'OrdersQuery',
         ownerClassName: null,
-        assignedRoleName: 'query-facade',
+        assignedRoleName: 'aggregate',
         relativeFilePath: 'packages/demo/src/features/demo/queries/orders-query.ts',
         publicMethodNames: [],
         reportNode: classDeclaration.id,

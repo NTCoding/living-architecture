@@ -12,7 +12,7 @@ import {
   validateGraph,
 } from './inspection-functions'
 
-/** @riviere-role builder-domain-service */
+/** @riviere-role domain-service */
 export class GraphInspection {
   private readonly graph: BuilderGraph
 

@@ -4,7 +4,7 @@ import type {
   CommentToken,
   RoleTargetExtractionIssue,
   SourceCodeLike,
-} from './role-target-extraction'
+} from './role-target-extraction-types'
 
 const ROLE_ASSIGNMENT_LINE_PATTERN = /^@riviere-role\s+([a-z0-9-]+)\s*$/
 

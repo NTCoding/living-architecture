@@ -6,11 +6,7 @@ pageClass: reference
 
 > **findNearMatches**(`components`, `query`, `options?`): [`NearMatchResult`](../interfaces/NearMatchResult.md)[]
 
-Defined in: [packages/riviere-builder/src/features/building/domain/error-recovery/component-suggestion.ts:58](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/error-recovery/component-suggestion.ts#L58)
-
-Finds components similar to a query using fuzzy matching.
-
-Used for error recovery to suggest alternatives when exact matches fail.
+Defined in: [packages/riviere-builder/src/features/building/domain/error-recovery/component-suggestion.ts:60](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/error-recovery/component-suggestion.ts#L60)
 
 ## Parameters
 
@@ -18,29 +14,18 @@ Used for error recovery to suggest alternatives when exact matches fail.
 
 `Component`[]
 
-Array of components to search
-
 ### query
 
 [`NearMatchQuery`](../interfaces/NearMatchQuery.md)
-
-Search criteria with name and optional type/domain filters
 
 ### options?
 
 [`NearMatchOptions`](../interfaces/NearMatchOptions.md)
 
-Optional threshold and limit settings
-
 ## Returns
 
 [`NearMatchResult`](../interfaces/NearMatchResult.md)[]
 
-Array of matching components with similarity scores
+## Riviere-role
 
-## Example
-
-```typescript
-const matches = findNearMatches(components, { name: 'Create Ordr' })
-// [{ component: {...}, score: 0.9, mismatch: undefined }]
-```
+domain-service

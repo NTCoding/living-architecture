@@ -3,7 +3,7 @@ import type {
 } from '@living-architecture/riviere-schema'
 import type { GraphStats } from './domain-types'
 
-/** @riviere-role query-service */
+/** @riviere-role domain-service */
 export function queryStats(graph: RiviereGraph): GraphStats {
   const components = graph.components
 

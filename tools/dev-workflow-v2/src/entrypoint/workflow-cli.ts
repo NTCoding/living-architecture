@@ -4,8 +4,12 @@ import {
   arg,
   extractField,
 } from '@ntcoding/agentic-workflow-builder/cli'
-import type { WorkflowEngine, EngineResult } from '@ntcoding/agentic-workflow-builder/engine'
-import type { Workflow, WorkflowDeps } from '../workflow-definition/domain/workflow'
+import type {
+  WorkflowEngine, EngineResult 
+} from '@ntcoding/agentic-workflow-builder/engine'
+import type {
+  Workflow, WorkflowDeps 
+} from '../workflow-definition/domain/workflow'
 import type {
   WorkflowState,
   StateName,

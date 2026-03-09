@@ -305,20 +305,14 @@ describe('extractRoleTargets', () => {
     })
   })
 
-  it('skips nested block declarations, null declarations, and unsupported exports', () => {
+  it('skips block statements, null declarations, and unsupported exports', () => {
     const program: ProgramNode = {
       ...createBaseNode('Program'),
       type: 'Program',
       body: [
         {
           ...createBaseNode('BlockStatement', 3),
-          body: [
-            {
-              ...createBaseNode('FunctionDeclaration', 4),
-              type: 'FunctionDeclaration' as const,
-              id: createIdentifier('nestedHelper', 5),
-            },
-          ],
+          type: 'BlockStatement' as const,
         },
         {
           ...createBaseNode('ExportNamedDeclaration', 1),

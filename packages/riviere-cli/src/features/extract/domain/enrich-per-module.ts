@@ -22,7 +22,7 @@ export interface PerModuleEnrichmentResult {
   failedFields: string[]
 }
 
-/** @riviere-role extract-domain-service */
+/** @riviere-role domain-service */
 export function enrichPerModule(
   moduleContexts: ModuleContext[],
   draftComponents: DraftComponent[],
@@ -58,7 +58,7 @@ export function enrichPerModule(
   }
 }
 
-/** @riviere-role extract-domain-service */
+/** @riviere-role domain-service */
 function assertAllDraftsMatchModules(
   draftsByModule: Map<string, DraftComponent[]>,
   moduleNames: Set<string>,
@@ -69,7 +69,7 @@ function assertAllDraftsMatchModules(
   }
 }
 
-/** @riviere-role extract-domain-service */
+/** @riviere-role domain-service */
 function groupDraftsByModule(drafts: DraftComponent[]): Map<string, DraftComponent[]> {
   const grouped = new Map<string, DraftComponent[]>()
   for (const draft of drafts) {

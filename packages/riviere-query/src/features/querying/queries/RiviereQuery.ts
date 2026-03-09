@@ -89,7 +89,7 @@ export type { SearchWithFlowOptions } from './flow-queries'
 export { parseComponentId } from './domain-types'
 export { ComponentNotFoundError } from './errors'
 
-/** @riviere-role query-service */
+/** @riviere-role domain-service */
 function assertValidGraph(graph: unknown): asserts graph is RiviereGraph {
   parseRiviereGraph(graph)
 }
@@ -115,7 +115,7 @@ function assertValidGraph(graph: unknown): asserts graph is RiviereGraph {
  * const flow = query.traceFlow('orders:checkout:api:post-orders')
  * ```
  */
-/** @riviere-role query-facade */
+/** @riviere-role aggregate */
 export class RiviereQuery {
   private readonly graph: RiviereGraph
 
@@ -149,7 +149,7 @@ export class RiviereQuery {
    * const query = RiviereQuery.fromJSON(jsonData)
    * ```
    */
-  /** @riviere-role query-service */
+  /** @riviere-role aggregate */
   static fromJSON(json: unknown): RiviereQuery {
     assertValidGraph(json)
     return new RiviereQuery(json)

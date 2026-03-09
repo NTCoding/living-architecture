@@ -27,9 +27,8 @@ import {
 export {
   isProgramNode,
   type BaseNode,
-  type CommentToken,
+  type MethodDefinitionNode,
   type ProgramNode,
-  type RoleTargetExtractionIssue,
   type SourceCodeLike,
 } from './role-target-extraction-types'
 

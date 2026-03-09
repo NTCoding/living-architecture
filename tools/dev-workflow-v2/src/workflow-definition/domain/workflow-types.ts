@@ -20,7 +20,7 @@ export type StateName = (typeof STATE_NAMES)[number]
 
 export const STATE_NAME_SCHEMA = z.enum(STATE_NAMES)
 
-/** @riviere-role workflow-domain-helper */
+/** @riviere-role domain-service */
 export function createWorkflowStateSchema<T extends readonly [string, ...string[]]>(stateNames: T) {
   const stateNameSchema = z.enum(stateNames)
   return z.object({
@@ -101,7 +101,7 @@ export const INITIAL_STATE: WorkflowState = {
   feedbackAddressed: false,
 }
 
-/** @riviere-role workflow-domain-helper */
+/** @riviere-role domain-service */
 export function parseStateName(value: string): StateName {
   return STATE_NAME_SCHEMA.parse(value)
 }

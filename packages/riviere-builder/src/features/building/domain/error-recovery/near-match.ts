@@ -4,7 +4,7 @@ import type {
 } from './match-types'
 import { findNearMatches } from './component-suggestion'
 
-/** @riviere-role builder-domain-service */
+/** @riviere-role domain-service */
 export class NearMatch {
   private readonly graph: BuilderGraph
 

@@ -21,14 +21,14 @@ describe('role classifier repository config', () => {
     })
     expect(
       findRoleClassifierResult(
-        'component-extractor',
+        'domain-service',
         config,
-        ['Extract components from TypeScript source files.'],
-        'Use the component extractor role.',
+        ['Implement domain behavior that does not belong on a single entity.'],
+        'Use the domain-service role.',
       ),
     ).toMatchObject({
-      role: 'component-extractor',
-      markdownSpec: 'docs/roles/component-extractor.md',
+      role: 'domain-service',
+      markdownSpec: 'docs/architecture/roles/domain-service.md',
     })
   })
 })

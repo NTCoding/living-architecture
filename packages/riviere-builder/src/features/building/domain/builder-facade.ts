@@ -61,7 +61,7 @@ export type {
   UseCaseInput,
 }
 
-/** @riviere-role builder-facade */
+/** @riviere-role aggregate */
 /**
  * Programmatically construct Riviere architecture graphs.
  *
@@ -81,7 +81,7 @@ export class RiviereBuilder {
    * @param graph - A valid RiviereGraph to resume from
    * @returns A new RiviereBuilder with the graph state restored
    */
-  /** @riviere-role builder-facade */
+  /** @riviere-role aggregate */
   static resume(graph: RiviereGraph): RiviereBuilder {
     return new RiviereBuilder(DomainBuilder.resume(graph))
   }
@@ -92,7 +92,7 @@ export class RiviereBuilder {
    * @param options - Configuration including sources and domains
    * @returns A new RiviereBuilder instance
    */
-  /** @riviere-role builder-facade */
+  /** @riviere-role aggregate */
   static new(options: BuilderOptions): RiviereBuilder {
     return new RiviereBuilder(DomainBuilder.new(options))
   }

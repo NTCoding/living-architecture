@@ -6,9 +6,7 @@ pageClass: reference
 
 > **parseDomainName**(`value`): `string` & `$brand`\<`"DomainName"`\>
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:302](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L302)
-
-Parses a string as a DomainName.
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:306](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L306)
 
 ## Parameters
 
@@ -16,10 +14,10 @@ Parses a string as a DomainName.
 
 `string`
 
-The string to parse
-
 ## Returns
 
 `string` & `$brand`\<`"DomainName"`\>
 
-A branded DomainName
+## Riviere-role
+
+value-object

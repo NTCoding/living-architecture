@@ -14,7 +14,7 @@ export interface ModuleContext {
   project: Project
 }
 
-/** @riviere-role extract-domain-service */
+/** @riviere-role domain-service */
 export function extractDraftComponents(
   moduleContexts: ModuleContext[],
   resolvedConfig: ResolvedExtractionConfig,

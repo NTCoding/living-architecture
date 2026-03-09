@@ -4,7 +4,11 @@ pageClass: reference
 
 # Class: DuplicateComponentError
 
-Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:37](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L37)
+Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:41](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L41)
+
+## Riviere-role
+
+domain-error
 
 ## Extends
 
@@ -16,7 +20,7 @@ Defined in: [packages/riviere-builder/src/features/building/domain/construction/
 
 > **new DuplicateComponentError**(`componentId`): `DuplicateComponentError`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:40](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L40)
+Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:44](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L44)
 
 #### Parameters
 
@@ -50,7 +54,7 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 
 > `readonly` **componentId**: `string`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:38](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L38)
+Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:42](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L42)
 
 ***
 

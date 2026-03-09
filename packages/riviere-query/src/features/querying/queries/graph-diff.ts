@@ -7,7 +7,7 @@ import type {
 import { parseComponentId } from './domain-types'
 import { createLinkKey } from './link-key'
 
-/** @riviere-role query-service */
+/** @riviere-role domain-service */
 export function diffGraphs(current: RiviereGraph, other: RiviereGraph): GraphDiff {
   const thisIds = new Set(current.components.map((c) => c.id))
   const otherIds = new Set(other.components.map((c) => c.id))
@@ -56,7 +56,7 @@ export function diffGraphs(current: RiviereGraph, other: RiviereGraph): GraphDif
   }
 }
 
-/** @riviere-role query-service */
+/** @riviere-role domain-service */
 function findChangedFields(before: Component, after: Component): string[] {
   const beforeEntries = new Map(Object.entries(before))
   const afterEntries = new Map(Object.entries(after))

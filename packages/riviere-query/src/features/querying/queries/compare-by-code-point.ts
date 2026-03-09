@@ -1,4 +1,4 @@
-/** @riviere-role query-service */
+/** @riviere-role domain-service */
 export function compareByCodePoint(a: string, b: string): number {
   if (a < b) return -1
   if (a > b) return 1

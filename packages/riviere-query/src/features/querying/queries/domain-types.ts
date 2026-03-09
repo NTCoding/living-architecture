@@ -269,7 +269,7 @@ export interface ExternalDomain {
  * @param id - The string to parse
  * @returns A branded ComponentId
  */
-/** @riviere-role query-service */
+/** @riviere-role value-object */
 export function parseComponentId(id: string): ComponentId {
   return componentIdSchema.parse(id)
 }
@@ -280,7 +280,7 @@ export function parseComponentId(id: string): ComponentId {
  * @param id - The string to parse
  * @returns A branded LinkId
  */
-/** @riviere-role query-service */
+/** @riviere-role value-object */
 export function parseLinkId(id: string): LinkId {
   return linkIdSchema.parse(id)
 }
@@ -291,7 +291,7 @@ export function parseLinkId(id: string): LinkId {
  * @param value - The string to parse
  * @returns A branded EntityName
  */
-/** @riviere-role query-service */
+/** @riviere-role value-object */
 export function parseEntityName(value: string): EntityName {
   return entityNameSchema.parse(value)
 }
@@ -302,7 +302,7 @@ export function parseEntityName(value: string): EntityName {
  * @param value - The string to parse
  * @returns A branded DomainName
  */
-/** @riviere-role query-service */
+/** @riviere-role value-object */
 export function parseDomainName(value: string): DomainName {
   return domainNameSchema.parse(value)
 }
@@ -313,7 +313,7 @@ export function parseDomainName(value: string): DomainName {
  * @param value - The string to parse
  * @returns A branded State
  */
-/** @riviere-role query-service */
+/** @riviere-role value-object */
 export function parseState(value: string): State {
   return stateSchema.parse(value)
 }
@@ -324,7 +324,7 @@ export function parseState(value: string): State {
  * @param value - The string to parse
  * @returns A branded OperationName
  */
-/** @riviere-role query-service */
+/** @riviere-role value-object */
 export function parseOperationName(value: string): OperationName {
   return operationNameSchema.parse(value)
 }
@@ -335,7 +335,7 @@ export function parseOperationName(value: string): OperationName {
  * @param value - The string to parse
  * @returns A branded EventId
  */
-/** @riviere-role query-service */
+/** @riviere-role value-object */
 export function parseEventId(value: string): EventId {
   return eventIdSchema.parse(value)
 }
@@ -346,7 +346,7 @@ export function parseEventId(value: string): EventId {
  * @param value - The string to parse
  * @returns A branded EventName
  */
-/** @riviere-role query-service */
+/** @riviere-role value-object */
 export function parseEventName(value: string): EventName {
   return eventNameSchema.parse(value)
 }
@@ -357,7 +357,7 @@ export function parseEventName(value: string): EventName {
  * @param value - The string to parse
  * @returns A branded HandlerId
  */
-/** @riviere-role query-service */
+/** @riviere-role value-object */
 export function parseHandlerId(value: string): HandlerId {
   return handlerIdSchema.parse(value)
 }
@@ -368,7 +368,7 @@ export function parseHandlerId(value: string): HandlerId {
  * @param value - The string to parse
  * @returns A branded HandlerName
  */
-/** @riviere-role query-service */
+/** @riviere-role value-object */
 export function parseHandlerName(value: string): HandlerName {
   return handlerNameSchema.parse(value)
 }

@@ -9,7 +9,7 @@ roles:
       - createProgram
       - main
     markdownSpec: docs/roles/cli-shell.md
-  - name: query-facade
+  - name: aggregate
     targets: [class]
     allowedLocation:
       - packages/riviere-role-enforcement/fixtures/oxlint-spike/src/features/*/queries/**/*.ts
@@ -17,4 +17,4 @@ roles:
     allowedPublicMethods:
       - components
       - validate
-    markdownSpec: docs/roles/query-facade.md
+    markdownSpec: docs/architecture/roles/aggregate.md

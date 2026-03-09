@@ -1,4 +1,4 @@
-import * as roleEnforcement from './index'
+import * as roleEnforcement from '../../index'
 
 describe('index exports', () => {
   it('re-exports the public runtime surface', () => {

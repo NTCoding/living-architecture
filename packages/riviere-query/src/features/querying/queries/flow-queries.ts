@@ -12,13 +12,13 @@ import { ComponentNotFoundError } from './errors'
 import { createLinkKey } from './link-key'
 import { ENTRY_POINT_TYPES } from './flow-constants'
 
-/** @riviere-role query-service */
+/** @riviere-role domain-service */
 export function findEntryPoints(graph: RiviereGraph): Component[] {
   const targets = new Set(graph.links.map((link) => link.target))
   return graph.components.filter((c) => ENTRY_POINT_TYPES.has(c.type) && !targets.has(c.id))
 }
 
-/** @riviere-role query-service */
+/** @riviere-role domain-service */
 export function traceFlowFrom(
   graph: RiviereGraph,
   startComponentId: ComponentId,
@@ -60,7 +60,7 @@ export function traceFlowFrom(
   }
 }
 
-/** @riviere-role query-service */
+/** @riviere-role domain-service */
 export function queryFlows(graph: RiviereGraph): Flow[] {
   const componentByIdMap = new Map(graph.components.map((c) => [c.id, c]))
   const outgoingEdges = buildOutgoingEdges(graph)
@@ -106,7 +106,7 @@ export function queryFlows(graph: RiviereGraph): Flow[] {
   }))
 }
 
-/** @riviere-role query-service */
+/** @riviere-role domain-service */
 function buildExternalLinksBySource(graph: RiviereGraph): Map<string, ExternalLink[]> {
   const externalLinks = graph.externalLinks ?? []
   const bySource = new Map<string, ExternalLink[]>()
@@ -123,7 +123,7 @@ function buildExternalLinksBySource(graph: RiviereGraph): Map<string, ExternalLi
   return bySource
 }
 
-/** @riviere-role query-service */
+/** @riviere-role domain-service */
 function buildOutgoingEdges(graph: RiviereGraph): Map<
   string,
   Array<{
@@ -155,7 +155,7 @@ function buildOutgoingEdges(graph: RiviereGraph): Map<
 
 export interface SearchWithFlowOptions {returnAllOnEmptyQuery: boolean}
 
-/** @riviere-role query-service */
+/** @riviere-role domain-service */
 export function searchWithFlowContext(
   graph: RiviereGraph,
   query: string,

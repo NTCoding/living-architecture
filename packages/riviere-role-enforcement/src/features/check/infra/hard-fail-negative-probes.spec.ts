@@ -22,12 +22,12 @@ function createCompiledConfig() {
         markdownSpec: 'docs/roles/cli-shell.md',
       },
       {
-        name: 'query-facade',
+        name: 'aggregate',
         targets: ['class'],
         allowedLocation: ['packages/demo/src/features/*/queries/**/*.ts'],
         allowedNames: ['OrdersQuery'],
         allowedPublicMethods: ['components'],
-        markdownSpec: 'docs/roles/query-facade.md',
+        markdownSpec: 'docs/architecture/roles/aggregate.md',
       },
       {
         name: 'query-factory',
@@ -134,18 +134,20 @@ function extractClassFixture(options: {
     type: 'Program',
     body: [exportNode],
   }
+  const commentEntries: Array<[BaseNode, readonly string[]]> = []
+
+  if (options.annotateClassRole) {
+    commentEntries.push([exportNode, ['* @riviere-role aggregate']])
+  }
+
+  if (options.annotateStaticMethodRole) {
+    commentEntries.push([staticMethod, ['* @riviere-role query-factory']])
+  }
 
   return {
     targets: extractRoleTargets(
       program,
-      createSourceCode(
-        new Map([
-          ...(options.annotateClassRole ? [[exportNode, ['* @riviere-role query-facade']] as const] : []),
-          ...(options.annotateStaticMethodRole
-            ? [[staticMethod, ['* @riviere-role query-factory']] as const]
-            : []),
-        ]),
-      ),
+      createSourceCode(new Map(commentEntries)),
       'packages/demo/src/features/demo/queries/orders-query.ts',
     ).targets,
     exportNode,
@@ -203,7 +205,7 @@ describe('hard fail negative probes', () => {
         kind: 'static-method',
         name: 'fromJSON',
         ownerClassName: 'OrdersQuery',
-        assignedRoleName: 'query-facade',
+        assignedRoleName: 'aggregate',
         relativeFilePath: 'packages/demo/src/features/demo/queries/orders-query.ts',
       }),
       createCompiledConfig(),
@@ -243,7 +245,9 @@ describe('hard fail negative probes', () => {
       annotateClassRole: false,
       annotateStaticMethodRole: true,
     })
-    const violations = targets.flatMap((target) => checkTargetSymbol(target, createCompiledConfig()))
+    const violations = targets.flatMap((target) =>
+      checkTargetSymbol(target, createCompiledConfig()),
+    )
 
     expect(exportNode.type).toBe('ExportNamedDeclaration')
     expect(violations).toHaveLength(1)
@@ -258,7 +262,9 @@ describe('hard fail negative probes', () => {
       annotateClassRole: true,
       annotateStaticMethodRole: false,
     })
-    const violations = targets.flatMap((target) => checkTargetSymbol(target, createCompiledConfig()))
+    const violations = targets.flatMap((target) =>
+      checkTargetSymbol(target, createCompiledConfig()),
+    )
 
     expect(exportNode.type).toBe('ExportNamedDeclaration')
     expect(violations).toHaveLength(1)

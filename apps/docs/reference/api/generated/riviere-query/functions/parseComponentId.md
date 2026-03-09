@@ -6,9 +6,7 @@ pageClass: reference
 
 > **parseComponentId**(`id`): `string` & `$brand`\<`"ComponentId"`\>
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:272](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L272)
-
-Parses a string as a ComponentId.
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:273](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L273)
 
 ## Parameters
 
@@ -16,10 +14,10 @@ Parses a string as a ComponentId.
 
 `string`
 
-The string to parse
-
 ## Returns
 
 `string` & `$brand`\<`"ComponentId"`\>
 
-A branded ComponentId
+## Riviere-role
+
+value-object

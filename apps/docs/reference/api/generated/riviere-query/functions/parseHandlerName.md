@@ -6,9 +6,7 @@ pageClass: reference
 
 > **parseHandlerName**(`value`): `string` & `$brand`\<`"HandlerName"`\>
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:362](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L362)
-
-Parses a string as a HandlerName.
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:372](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L372)
 
 ## Parameters
 
@@ -16,10 +14,10 @@ Parses a string as a HandlerName.
 
 `string`
 
-The string to parse
-
 ## Returns
 
 `string` & `$brand`\<`"HandlerName"`\>
 
-A branded HandlerName
+## Riviere-role
+
+value-object

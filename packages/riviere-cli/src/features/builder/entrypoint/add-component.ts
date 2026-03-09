@@ -22,7 +22,7 @@ interface CliOptions {
   eventSchema?: string
   subscribedEvents?: string
   customType?: string
-  customProperty?: string[]
+  customProperty: string[]
   description?: string
   lineNumber?: string
   graph?: string
@@ -63,7 +63,7 @@ export function createAddComponentCommand(): Command {
     .option('--graph <path>', getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .action(async (options: CliOptions) => {
-      const customProperty = options.customProperty ?? []
+      const customProperty = options.customProperty
       const commandInput = {
         componentType: options.type,
         name: options.name,
@@ -76,7 +76,7 @@ export function createAddComponentCommand(): Command {
       }
 
       if (options.lineNumber !== undefined) {
-        Object.assign(commandInput, {lineNumber: Number.parseInt(options.lineNumber, 10),})
+        Object.assign(commandInput, { lineNumber: Number.parseInt(options.lineNumber, 10) })
       }
 
       const optionalStringFields = [

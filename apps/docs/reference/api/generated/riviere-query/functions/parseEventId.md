@@ -6,9 +6,7 @@ pageClass: reference
 
 > **parseEventId**(`value`): `string` & `$brand`\<`"EventId"`\>
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:332](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L332)
-
-Parses a string as an EventId.
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:339](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L339)
 
 ## Parameters
 
@@ -16,10 +14,10 @@ Parses a string as an EventId.
 
 `string`
 
-The string to parse
-
 ## Returns
 
 `string` & `$brand`\<`"EventId"`\>
 
-A branded EventId
+## Riviere-role
+
+value-object

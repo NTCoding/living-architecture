@@ -2,7 +2,7 @@ import type {
   CompiledRoleDefinition,
   CompiledRoleEnforcementConfig,
 } from '../../../platform/domain/role-enforcement-config'
-import { matchesAnyPattern } from '../../../platform/infra/path-patterns'
+import { matchesAnyPattern } from '../../../platform/domain/matches-any-pattern'
 import type { RoleViolation } from './role-violation'
 import type { TargetSymbol } from './target-symbol'
 

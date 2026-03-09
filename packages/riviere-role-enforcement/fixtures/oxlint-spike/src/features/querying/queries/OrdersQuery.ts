@@ -1,4 +1,4 @@
-/** @riviere-role query-facade */
+/** @riviere-role aggregate */
 export class OrdersQuery {
   components(): string[] {
     return []

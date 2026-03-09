@@ -4,7 +4,7 @@ pageClass: reference
 
 # Interface: KnownSourceEvent
 
-Defined in: [packages/riviere-query/src/features/querying/queries/event-types.ts:86](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/event-types.ts#L86)
+Defined in: [packages/riviere-query/src/features/querying/queries/event-types.ts:87](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/event-types.ts#L87)
 
 A subscribed event where the source domain is known.
 
@@ -14,7 +14,7 @@ A subscribed event where the source domain is known.
 
 > **eventName**: `string` & `$brand`\<`"EventName"`\>
 
-Defined in: [packages/riviere-query/src/features/querying/queries/event-types.ts:88](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/event-types.ts#L88)
+Defined in: [packages/riviere-query/src/features/querying/queries/event-types.ts:89](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/event-types.ts#L89)
 
 The event name.
 
@@ -24,7 +24,7 @@ The event name.
 
 > **sourceDomain**: `string` & `$brand`\<`"DomainName"`\>
 
-Defined in: [packages/riviere-query/src/features/querying/queries/event-types.ts:90](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/event-types.ts#L90)
+Defined in: [packages/riviere-query/src/features/querying/queries/event-types.ts:91](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/event-types.ts#L91)
 
 The domain that publishes this event.
 
@@ -34,6 +34,6 @@ The domain that publishes this event.
 
 > **sourceKnown**: `true`
 
-Defined in: [packages/riviere-query/src/features/querying/queries/event-types.ts:92](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/event-types.ts#L92)
+Defined in: [packages/riviere-query/src/features/querying/queries/event-types.ts:93](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/event-types.ts#L93)
 
 Indicates the source is known.

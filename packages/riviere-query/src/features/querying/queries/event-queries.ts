@@ -18,7 +18,7 @@ import {
   parseHandlerName,
 } from './domain-types'
 
-/** @riviere-role query-service */
+/** @riviere-role domain-service */
 export function queryPublishedEvents(graph: RiviereGraph, domainName?: string): PublishedEvent[] {
   const eventComponents = graph.components.filter((c): c is EventComponent => c.type === 'Event')
   const filtered = domainName
@@ -45,7 +45,7 @@ export function queryPublishedEvents(graph: RiviereGraph, domainName?: string): 
   })
 }
 
-/** @riviere-role query-service */
+/** @riviere-role domain-service */
 export function queryEventHandlers(graph: RiviereGraph, eventName?: string): EventHandlerInfo[] {
   const eventByName = buildEventNameMap(graph)
   const handlers = findEventHandlerComponents(graph)
@@ -55,7 +55,7 @@ export function queryEventHandlers(graph: RiviereGraph, eventName?: string): Eve
   return filtered.map((h) => buildEventHandlerInfo(h, eventByName))
 }
 
-/** @riviere-role query-service */
+/** @riviere-role domain-service */
 function buildEventNameMap(graph: RiviereGraph): Map<string, EventComponent> {
   return new Map(
     graph.components
@@ -64,12 +64,12 @@ function buildEventNameMap(graph: RiviereGraph): Map<string, EventComponent> {
   )
 }
 
-/** @riviere-role query-service */
+/** @riviere-role domain-service */
 function findEventHandlerComponents(graph: RiviereGraph): EventHandlerComponent[] {
   return graph.components.filter((c): c is EventHandlerComponent => c.type === 'EventHandler')
 }
 
-/** @riviere-role query-service */
+/** @riviere-role domain-service */
 function buildEventHandlerInfo(
   handler: EventHandlerComponent,
   eventByName: Map<string, EventComponent>,
