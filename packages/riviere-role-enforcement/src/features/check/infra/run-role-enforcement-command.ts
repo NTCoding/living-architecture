@@ -8,7 +8,7 @@ import {
 import { spawnSync } from 'node:child_process'
 import { parseRoleEnforcementCommandArgs } from '../domain/role-enforcement-command'
 
-/** @riviere-role role-enforcement-runner */
+/** @riviere-role external-client */
 function createOxlintConfig(configPath: string): string {
   const tempDirectory = mkdtempSync(join(tmpdir(), 'riviere-role-enforcement-'))
   const pluginShimPath = join(tempDirectory, 'oxlint-plugin.cjs')
@@ -43,12 +43,12 @@ function createOxlintConfig(configPath: string): string {
   return oxlintConfigPath
 }
 
-/** @riviere-role role-enforcement-runner */
+/** @riviere-role external-client */
 function getOxlintBinaryPath(): string {
   return resolve('node_modules/.bin/oxlint')
 }
 
-/** @riviere-role role-enforcement-runner */
+/** @riviere-role external-client */
 export function runRoleEnforcementCommand(args: readonly string[]): number {
   const command = parseRoleEnforcementCommandArgs(args)
 

@@ -6,12 +6,12 @@ import { matchesAnyPattern } from '../../../platform/domain/matches-any-pattern'
 import type { RoleViolation } from './role-violation'
 import type { TargetSymbol } from './target-symbol'
 
-/** @riviere-role role-checker */
+/** @riviere-role domain-service */
 function createRunClassifierMessage(): string {
   return "Next step for Claude: run 'riviere-role-classifier' before editing."
 }
 
-/** @riviere-role role-checker */
+/** @riviere-role domain-service */
 function createRoleViolation(
   code: RoleViolation['code'],
   target: TargetSymbol,
@@ -47,7 +47,7 @@ function createRoleViolation(
   }
 }
 
-/** @riviere-role role-checker */
+/** @riviere-role domain-service */
 function createMissingRoleAssignmentViolation(target: TargetSymbol): RoleViolation {
   return createRoleViolation(
     'missing-role-assignment',
@@ -60,7 +60,7 @@ function createMissingRoleAssignmentViolation(target: TargetSymbol): RoleViolati
   )
 }
 
-/** @riviere-role role-checker */
+/** @riviere-role domain-service */
 function createUnknownRoleAssignmentViolation(
   target: TargetSymbol,
   assignedRoleName: string,
@@ -76,7 +76,7 @@ function createUnknownRoleAssignmentViolation(
   )
 }
 
-/** @riviere-role role-checker */
+/** @riviere-role domain-service */
 function createInvalidRoleTargetKindViolation(
   target: TargetSymbol,
   role: CompiledRoleDefinition,
@@ -92,7 +92,7 @@ function createInvalidRoleTargetKindViolation(
   )
 }
 
-/** @riviere-role role-checker */
+/** @riviere-role domain-service */
 function createInvalidRoleLocationViolation(
   target: TargetSymbol,
   role: CompiledRoleDefinition,
@@ -108,7 +108,7 @@ function createInvalidRoleLocationViolation(
   )
 }
 
-/** @riviere-role role-checker */
+/** @riviere-role domain-service */
 function createInvalidRoleNameViolation(
   target: TargetSymbol,
   role: CompiledRoleDefinition,
@@ -129,7 +129,7 @@ function createInvalidRoleNameViolation(
   )
 }
 
-/** @riviere-role role-checker */
+/** @riviere-role domain-service */
 function createDisallowedPublicMethodsViolation(
   target: TargetSymbol,
   role: CompiledRoleDefinition,
@@ -147,7 +147,7 @@ function createDisallowedPublicMethodsViolation(
   )
 }
 
-/** @riviere-role role-checker */
+/** @riviere-role domain-service */
 function formatAllowedLocations(allowedLocation: readonly string[]): string {
   if (allowedLocation.length === 1) {
     return `'${allowedLocation[0]}'`
@@ -156,12 +156,12 @@ function formatAllowedLocations(allowedLocation: readonly string[]): string {
   return allowedLocation.map((location) => `'${location}'`).join(', ')
 }
 
-/** @riviere-role role-checker */
+/** @riviere-role domain-service */
 function formatTargetKinds(targetKinds: readonly string[]): string {
   return `${targetKinds.map(formatTargetKind).join(', ')} targets`
 }
 
-/** @riviere-role role-checker */
+/** @riviere-role domain-service */
 function formatDisallowedMethods(disallowedPublicMethods: readonly string[]): string {
   if (disallowedPublicMethods.length === 1) {
     return `method '${disallowedPublicMethods[0]}' is`
@@ -174,7 +174,7 @@ function formatDisallowedMethods(disallowedPublicMethods: readonly string[]): st
   return `methods ${quotedMethodNames} are`
 }
 
-/** @riviere-role role-checker */
+/** @riviere-role domain-service */
 function formatTarget(target: TargetSymbol): string {
   if (target.kind === 'class') {
     return `Class '${target.name}'`
@@ -187,17 +187,17 @@ function formatTarget(target: TargetSymbol): string {
   return `Static method '${formatSymbolName(target)}'`
 }
 
-/** @riviere-role role-checker */
+/** @riviere-role domain-service */
 function formatSymbolName(target: Pick<TargetSymbol, 'name' | 'ownerClassName'>): string {
   return target.ownerClassName === null ? target.name : `${target.ownerClassName}.${target.name}`
 }
 
-/** @riviere-role role-checker */
+/** @riviere-role domain-service */
 function formatTargetKind(targetKind: string): string {
   return targetKind === 'static-method' ? 'static method' : targetKind
 }
 
-/** @riviere-role role-checker */
+/** @riviere-role domain-service */
 function hasAllowedName(target: TargetSymbol, role: CompiledRoleDefinition): boolean {
   if (role.allowedNameSet !== undefined) {
     return role.allowedNameSet.has(target.name)
@@ -210,7 +210,7 @@ function hasAllowedName(target: TargetSymbol, role: CompiledRoleDefinition): boo
   return true
 }
 
-/** @riviere-role role-checker */
+/** @riviere-role domain-service */
 export function isFileInScope(
   relativeFilePath: string,
   config: CompiledRoleEnforcementConfig,
@@ -226,7 +226,7 @@ export function isFileInScope(
   return matchesAnyPattern(config.includeMatchers, relativeFilePath)
 }
 
-/** @riviere-role role-checker */
+/** @riviere-role domain-service */
 export function isFileInsideScopeRoots(
   relativeFilePath: string,
   config: CompiledRoleEnforcementConfig,
@@ -242,7 +242,7 @@ export function isFileInsideScopeRoots(
   return matchesAnyPattern(config.scopeRootMatchers, relativeFilePath)
 }
 
-/** @riviere-role role-checker */
+/** @riviere-role domain-service */
 export function findAssignedRoleDefinition(
   target: TargetSymbol,
   config: CompiledRoleEnforcementConfig,
@@ -254,7 +254,7 @@ export function findAssignedRoleDefinition(
   return config.roles.find((role) => role.name === target.assignedRoleName) ?? null
 }
 
-/** @riviere-role role-checker */
+/** @riviere-role domain-service */
 export function checkTargetSymbol(
   target: TargetSymbol,
   config: CompiledRoleEnforcementConfig,

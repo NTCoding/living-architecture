@@ -59,14 +59,6 @@ roles:
       - createProgram
       - main
     markdownSpec: docs/architecture/roles/cli-shell.md
-  - name: cli-package-json-parser
-    targets: [function]
-    allowedLocation:
-      - packages/riviere-cli/src/shell/**/*.ts
-    allowedNames:
-      - parsePackageJson
-      - loadPackageJson
-    markdownSpec: docs/architecture/roles/cli-package-json-parser.md
   - name: cli-entrypoint
     targets: [function]
     allowedLocation:
@@ -133,10 +125,12 @@ roles:
     allowedLocation:
       - packages/riviere-builder/src/features/building/domain/**/*.ts
       - packages/riviere-builder/src/platform/domain/**/*.ts
+      - packages/riviere-extract-config/src/*.ts
       - packages/riviere-cli/src/features/extract/domain/**/*.ts
       - packages/riviere-cli/src/platform/domain/**/*.ts
       - packages/riviere-query/src/features/querying/queries/**/*.ts
       - packages/riviere-extract-ts/src/features/extraction/domain/**/*.ts
+      - packages/riviere-role-enforcement/src/features/*/domain/**/*.ts
       - packages/riviere-role-enforcement/src/platform/domain/**/*.ts
       - tools/dev-workflow/features/*/domain/**/*.ts
       - tools/dev-workflow/platform/domain/**/*.ts
@@ -147,6 +141,8 @@ roles:
     targets: [class, function]
     allowedLocation:
       - packages/riviere-cli/src/features/*/domain/**/*.ts
+      - packages/riviere-extract-config/src/*.ts
+      - packages/riviere-role-enforcement/src/features/*/domain/**/*.ts
     nameMatches: '^(create|build)[A-Z].*|^.*Builder$'
     markdownSpec: docs/architecture/roles/domain-factory.md
   - name: application-error
@@ -169,25 +165,13 @@ roles:
       - tools/dev-workflow-v2/src/**/infra/**/*.ts
     nameMatches: '^.*Error$'
     markdownSpec: docs/architecture/roles/application-error.md
-  - name: workflow-hook
-    targets: [function]
-    allowedLocation:
-      - tools/dev-workflow-v2/src/entrypoint/**/*.ts
-      - tools/dev-workflow/features/claude-hooks/commands/**/*.ts
-    nameMatches: '^(handleHook|preToolUseHandler|postToolUseHandler|routeToHandler|shouldSkipHooks|stopHandler)$'
-    markdownSpec: docs/architecture/roles/workflow-hook.md
-  - name: workflow-infra-client
-    targets: [function]
-    allowedLocation:
-      - tools/dev-workflow/platform/infra/external-client/**/*.ts
-      - tools/dev-workflow-v2/src/infra/**/*.ts
-    nameMatches: '^(detect|get|run|create|list|read|fetch)[A-Z].*|^.*(Client|Runner|Io)$'
-    markdownSpec: docs/architecture/roles/workflow-infra-client.md
   - name: cli-input-mapper
     targets: [function]
     allowedLocation:
       - packages/riviere-cli/src/platform/infra/cli/input/**/*.ts
       - packages/riviere-cli/src/features/*/infra/cli/input/**/*.ts
+      - packages/riviere-cli/src/shell/**/*.ts
+      - packages/riviere-role-enforcement/src/features/check/domain/**/*.ts
       - tools/dev-workflow/platform/infra/cli/**/*.ts
       - tools/dev-workflow/features/*/domain/**/*parser*.ts
     nameMatches: '^(parse|validate|collect|resolve|sanitize|tryParse|read|reject|normalize|build|is|has|map|to)[A-Z].*'
@@ -205,14 +189,18 @@ roles:
     targets: [function]
     allowedLocation:
       - packages/riviere-cli/src/platform/infra/middleware/**/*.ts
-    nameMatches: '^(handle|report)[A-Z].*'
+      - tools/dev-workflow-v2/src/entrypoint/**/*.ts
+      - tools/dev-workflow/features/claude-hooks/commands/**/*.ts
+      - tools/dev-workflow/platform/infra/workflow-execution/**/*.ts
+    nameMatches: '^(handle|report|pre|post|route|should|stop|run|execute|write|noop)[A-Z].*|^.*Handler$'
     markdownSpec: docs/architecture/roles/middleware.md
   - name: repository
     targets: [function, class]
     allowedLocation:
       - packages/riviere-cli/src/platform/infra/graph-persistence/**/*.ts
       - packages/riviere-cli/src/platform/infra/persistence/**/*.ts
-    nameMatches: '^(load|read|write|save|find|resolve|get|with|parse|is|report|handle|try)[A-Z].*|^fileExists$|^.*Repository$'
+      - packages/riviere-role-enforcement/src/platform/infra/**/*.ts
+    nameMatches: '^(load|read|write|save|find|resolve|get|with|parse|is|report|handle|try|compile|to)[A-Z].*|^fileExists$|^.*Repository$'
     markdownSpec: docs/architecture/roles/repository.md
   - name: data-store
     targets: [function, class]
@@ -225,18 +213,17 @@ roles:
     allowedLocation:
       - packages/riviere-cli/src/platform/infra/git/**/*.ts
       - packages/riviere-cli/src/features/*/infra/external-client/**/*.ts
+      - packages/riviere-cli/src/platform/infra/source-filtering/**/*.ts
+      - packages/riviere-extract-ts/src/platform/infra/external-client/**/*.ts
       - tools/dev-workflow/platform/infra/external-client/**/*.ts
+      - tools/dev-workflow-v2/src/infra/cli/**/*.ts
       - tools/dev-workflow-v2/src/infra/external-client/**/*.ts
       - tools/dev-workflow-v2/src/workflow-definition/infra/external-client/**/*.ts
+      - packages/riviere-role-enforcement/src/features/check/infra/**/*.ts
+      - packages/riviere-role-enforcement/src/platform/infra/path-patterns.ts
       - packages/riviere-role-enforcement/src/features/check/infra/external-client/**/*.ts
-    nameMatches: '^(create|default|detect|extract|fetch|find|get|is|list|load|parse|read|resolve|run)[A-Z].*|^.*(Builder|Client|Io|Runner|Searcher)$'
+    nameMatches: '^(create|default|detect|escape|extract|fetch|filter|find|format|get|globPatternTo|is|list|load|matches|merge|normalize|parse|read|resolve|run|sanitize)[A-Z].*|^.*(Builder|Client|Io|Runner|Searcher)$'
     markdownSpec: docs/architecture/roles/external-client.md
-  - name: source-file-filter
-    targets: [function]
-    allowedLocation:
-      - packages/riviere-cli/src/platform/infra/source-filtering/**/*.ts
-    nameMatches: '^(filter|is|resolve|should)[A-Z].*'
-    markdownSpec: docs/architecture/roles/source-file-filter.md
   - name: domain-error
     targets: [class]
     allowedLocation:
@@ -250,77 +237,3 @@ roles:
       - tools/dev-workflow-v2/src/**/domain/**/*.ts
     nameMatches: '^.*Error$'
     markdownSpec: docs/architecture/roles/domain-error.md
-  - name: config-validation-service
-    targets: [function]
-    allowedLocation:
-      - packages/riviere-extract-config/src/*.ts
-    nameMatches: '^(isValid|validate|map|format|has|get)[A-Z].*|^formatValidationErrorsInternal$'
-    markdownSpec: docs/architecture/roles/config-validation-service.md
-  - name: glob-matcher
-    targets: [function]
-    allowedLocation:
-      - packages/riviere-extract-ts/src/platform/infra/glob-matching/**/*.ts
-    nameMatches: '^(minimatch|match|normalize)[A-Z].*'
-    markdownSpec: docs/architecture/roles/glob-matcher.md
-  - name: workflow-step
-    targets: [function]
-    allowedLocation:
-      - tools/dev-workflow/features/*/domain/steps/**/*.ts
-    nameMatches: '^(create|fetch|run|submit|verify|remove|merge)[A-Z].*'
-    markdownSpec: docs/architecture/roles/workflow-step.md
-  - name: workflow-execution-adapter
-    targets: [function]
-    allowedLocation:
-      - tools/dev-workflow/platform/infra/workflow-execution/**/*.ts
-    nameMatches: '^(runWorkflow|handleWorkflowError|executeWorkflow|writeOptionalFiles|noop)$'
-    markdownSpec: docs/architecture/roles/workflow-execution-adapter.md
-  - name: role-command-parser
-    targets: [function]
-    allowedLocation:
-      - packages/riviere-role-enforcement/src/features/check/domain/role-enforcement-command.ts
-    allowedNames:
-      - parseRoleEnforcementCommandArgs
-    markdownSpec: docs/architecture/roles/role-command-parser.md
-  - name: role-checker
-    targets: [function]
-    allowedLocation:
-      - packages/riviere-role-enforcement/src/features/check/domain/check-role-target.ts
-    nameMatches: '^(checkTargetSymbol|findAssignedRoleDefinition|isFileInScope|isFileInsideScopeRoots|create|format|hasAllowed).*$'
-    markdownSpec: docs/architecture/roles/role-checker.md
-  - name: role-target-extractor
-    targets: [function]
-    allowedLocation:
-      - packages/riviere-role-enforcement/src/features/check/infra/role-target-extraction.ts
-      - packages/riviere-role-enforcement/src/features/check/infra/role-target-extraction-types.ts
-    nameMatches: '^(extractRoleTargets|getPublicMethodNames|create|mergeResults|getAnnotatedDeclaration|is).*$'
-    markdownSpec: docs/architecture/roles/role-target-extractor.md
-  - name: role-assignment-parser
-    targets: [function]
-    allowedLocation:
-      - packages/riviere-role-enforcement/src/features/check/infra/role-assignment.ts
-    nameMatches: '^(parseRoleAssignment|createRoleAssignmentIssue|getComments|parseRoleAssignments|sanitizeCommentLine|format).*$'
-    markdownSpec: docs/architecture/roles/role-assignment-parser.md
-  - name: role-config-loader
-    targets: [function]
-    allowedLocation:
-      - packages/riviere-role-enforcement/src/platform/infra/load-role-enforcement-config.ts
-    nameMatches: '^(loadRoleEnforcementConfig|compileRoleEnforcementConfig|compileRoleDefinition|compileNamePattern|formatZodPath|toRoleEnforcementConfigError).*$'
-    markdownSpec: docs/architecture/roles/role-config-loader.md
-  - name: path-pattern-matcher
-    targets: [function]
-    allowedLocation:
-      - packages/riviere-role-enforcement/src/platform/infra/path-patterns.ts
-    nameMatches: '^(normalize|escape|globPatternTo|create|matches).*$'
-    markdownSpec: docs/architecture/roles/path-pattern-matcher.md
-  - name: role-classifier
-    targets: [function]
-    allowedLocation:
-      - packages/riviere-role-enforcement/src/features/classify/domain/**/*.ts
-    nameMatches: '^(classify|create|find|infer|tokenize|score|rank).*$'
-    markdownSpec: docs/architecture/roles/role-classifier.md
-  - name: role-enforcement-runner
-    targets: [function]
-    allowedLocation:
-      - packages/riviere-role-enforcement/src/features/check/infra/run-role-enforcement-command.ts
-    nameMatches: '^(runRoleEnforcementCommand|createOxlintConfig|getOxlintBinaryPath)$'
-    markdownSpec: docs/architecture/roles/role-enforcement-runner.md

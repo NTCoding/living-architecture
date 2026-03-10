@@ -25,7 +25,7 @@ import { createExtractCommand } from '../features/extract/entrypoint/extract'
 
 interface PackageJson {version: string}
 
-/** @riviere-role cli-package-json-parser */
+/** @riviere-role cli-input-mapper */
 export function parsePackageJson(pkg: unknown): PackageJson {
   if (typeof pkg !== 'object' || pkg === null || !('version' in pkg)) {
     throw new InvalidPackageJsonError('missing version field')
@@ -38,8 +38,8 @@ export function parsePackageJson(pkg: unknown): PackageJson {
 
 declare const INJECTED_VERSION: string | undefined
 
-/** @riviere-role cli-package-json-parser */
-function loadPackageJson(): PackageJson {
+/** @riviere-role cli-input-mapper */
+function readPackageJson(): PackageJson {
   if (typeof INJECTED_VERSION === 'string') {
     return { version: INJECTED_VERSION }
   }
@@ -47,7 +47,7 @@ function loadPackageJson(): PackageJson {
   return parsePackageJson(require('../../package.json'))
 }
 
-const packageJson = loadPackageJson()
+const packageJson = readPackageJson()
 
 /** @riviere-role cli-shell */
 export function createProgram(): Command {

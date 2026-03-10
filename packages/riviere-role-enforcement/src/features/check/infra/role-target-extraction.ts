@@ -41,7 +41,7 @@ interface AnnotatedDeclaration {
   annotationNode: BaseNode
 }
 
-/** @riviere-role role-target-extractor */
+/** @riviere-role external-client */
 function createEmptyResult(): ExtractionResult {
   return {
     targets: [],
@@ -49,7 +49,7 @@ function createEmptyResult(): ExtractionResult {
   }
 }
 
-/** @riviere-role role-target-extractor */
+/** @riviere-role external-client */
 function mergeResults(left: ExtractionResult, right: ExtractionResult): ExtractionResult {
   return {
     targets: [...left.targets, ...right.targets],
@@ -57,7 +57,7 @@ function mergeResults(left: ExtractionResult, right: ExtractionResult): Extracti
   }
 }
 
-/** @riviere-role role-target-extractor */
+/** @riviere-role external-client */
 function getPublicMethodNames(classDeclaration: ClassDeclarationNode): readonly string[] {
   return classDeclaration.body.body.flatMap((classElement) => {
     if (!isMethodDefinitionNode(classElement) || classElement.kind !== 'method') {
@@ -76,7 +76,7 @@ function getPublicMethodNames(classDeclaration: ClassDeclarationNode): readonly 
   })
 }
 
-/** @riviere-role role-target-extractor */
+/** @riviere-role external-client */
 function createClassResult(
   declaration: ClassDeclarationNode,
   annotationNodes: readonly BaseNode[],
@@ -117,7 +117,7 @@ function createClassResult(
   }
 }
 
-/** @riviere-role role-target-extractor */
+/** @riviere-role external-client */
 function createStaticMethodResult(
   classDeclaration: ClassDeclarationNode,
   methodDefinition: MethodDefinitionNode,
@@ -163,7 +163,7 @@ function createStaticMethodResult(
   }
 }
 
-/** @riviere-role role-target-extractor */
+/** @riviere-role external-client */
 function createStaticMethodResults(
   declaration: ClassDeclarationNode,
   relativeFilePath: string,
@@ -190,7 +190,7 @@ function createStaticMethodResults(
   }, createEmptyResult())
 }
 
-/** @riviere-role role-target-extractor */
+/** @riviere-role external-client */
 function createClassTargets(
   declaration: ClassDeclarationNode,
   annotationNodes: readonly BaseNode[],
@@ -203,7 +203,7 @@ function createClassTargets(
   )
 }
 
-/** @riviere-role role-target-extractor */
+/** @riviere-role external-client */
 function createFunctionTargets(
   declaration: VariableDeclarationNode,
   annotationNodes: readonly BaseNode[],
@@ -249,7 +249,7 @@ function createFunctionTargets(
   }, createEmptyResult())
 }
 
-/** @riviere-role role-target-extractor */
+/** @riviere-role external-client */
 function createFunctionDeclarationTarget(
   declaration: ExportableDeclarationNode | null,
   annotationNodes: readonly BaseNode[],
@@ -290,7 +290,7 @@ function createFunctionDeclarationTarget(
   }
 }
 
-/** @riviere-role role-target-extractor */
+/** @riviere-role external-client */
 function createDeclarationTargets(
   declaration: ExportableDeclarationNode | null,
   annotationNode: BaseNode,
@@ -323,7 +323,7 @@ function createDeclarationTargets(
   return createEmptyResult()
 }
 
-/** @riviere-role role-target-extractor */
+/** @riviere-role external-client */
 function getAnnotatedDeclaration(statement: StatementNode): AnnotatedDeclaration | null {
   if (isExportNamedDeclarationNode(statement) || isExportDefaultDeclarationNode(statement)) {
     return {
@@ -342,7 +342,7 @@ function getAnnotatedDeclaration(statement: StatementNode): AnnotatedDeclaration
   }
 }
 
-/** @riviere-role role-target-extractor */
+/** @riviere-role external-client */
 export function extractRoleTargets(
   program: ProgramNode,
   sourceCode: SourceCodeLike,

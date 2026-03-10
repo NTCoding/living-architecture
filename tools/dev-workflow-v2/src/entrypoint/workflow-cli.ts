@@ -118,7 +118,7 @@ type ToolUseEngine = WorkflowEngine<
   WorkflowOperation
 >
 
-/** @riviere-role workflow-hook */
+/** @riviere-role middleware */
 export function preToolUseHandler(
   engine: ToolUseEngine,
   sessionId: string,

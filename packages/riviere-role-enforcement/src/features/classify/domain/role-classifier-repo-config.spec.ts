@@ -10,14 +10,14 @@ describe('role classifier repository config', () => {
 
     expect(
       findRoleClassifierResult(
-        'role-config-loader',
+        'repository',
         config,
         ['Load repository role config from YAML.'],
-        'Use the repository config loader role.',
+        'Use the repository role.',
       ),
     ).toMatchObject({
-      role: 'role-config-loader',
-      markdownSpec: 'docs/architecture/roles/role-config-loader.md',
+      role: 'repository',
+      markdownSpec: 'docs/architecture/roles/repository.md',
     })
     expect(
       findRoleClassifierResult(

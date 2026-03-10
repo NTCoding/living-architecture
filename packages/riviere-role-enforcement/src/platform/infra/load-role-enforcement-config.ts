@@ -99,7 +99,7 @@ const roleEnforcementConfigSchema = z
 
 const configCache = new Map<string, CompiledRoleEnforcementConfig>()
 
-/** @riviere-role role-config-loader */
+/** @riviere-role repository */
 function compileRoleDefinition(role: RoleDefinition): CompiledRoleDefinition {
   const compiledRole: CompiledRoleDefinition = {
     ...role,
@@ -123,7 +123,7 @@ function compileRoleDefinition(role: RoleDefinition): CompiledRoleDefinition {
   return compiledRole
 }
 
-/** @riviere-role role-config-loader */
+/** @riviere-role repository */
 function compileNamePattern(namePattern: string, roleName: string): RegExp {
   try {
     return new RegExp(namePattern)
@@ -133,8 +133,8 @@ function compileNamePattern(namePattern: string, roleName: string): RegExp {
   }
 }
 
-/** @riviere-role role-config-loader */
-function formatZodPath(path: readonly PropertyKey[]): string {
+/** @riviere-role repository */
+function toZodPath(path: readonly PropertyKey[]): string {
   if (path.length === 0) {
     return '<root>'
   }
@@ -142,15 +142,15 @@ function formatZodPath(path: readonly PropertyKey[]): string {
   return path.join('.')
 }
 
-/** @riviere-role role-config-loader */
+/** @riviere-role repository */
 function toRoleEnforcementConfigError(error: ZodError): RoleEnforcementConfigError {
   const details = error.issues
-    .map((issue) => `${formatZodPath(issue.path)}: ${issue.message}`)
+    .map((issue) => `${toZodPath(issue.path)}: ${issue.message}`)
     .join('; ')
   return new RoleEnforcementConfigError(`Invalid role enforcement config: ${details}`)
 }
 
-/** @riviere-role role-config-loader */
+/** @riviere-role repository */
 export function compileRoleEnforcementConfig(
   config: RoleEnforcementConfig | unknown,
 ): CompiledRoleEnforcementConfig {
@@ -173,7 +173,7 @@ export function compileRoleEnforcementConfig(
   }
 }
 
-/** @riviere-role role-config-loader */
+/** @riviere-role repository */
 export function loadRoleEnforcementConfig(configPath: string): CompiledRoleEnforcementConfig {
   const absoluteConfigPath = resolve(configPath)
   const cachedConfig = configCache.get(absoluteConfigPath)

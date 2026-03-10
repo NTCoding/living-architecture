@@ -17,7 +17,7 @@ export function handleGlobalError(error: unknown): never {
     process.exit(ExitCode.ConfigValidation)
   }
 
-  if (isExtractionFieldFailureError(error)) {
+  if (handleExtractionFieldFailureError(error)) {
     console.log(JSON.stringify(formatError(CliErrorCode.ValidationError, error.message)))
     process.exit(ExitCode.ExtractionFailure)
   }
@@ -62,7 +62,7 @@ export function handleGlobalError(error: unknown): never {
 }
 
 /** @riviere-role middleware */
-function isExtractionFieldFailureError(error: unknown): error is ExtractionFieldFailureError {
+function handleExtractionFieldFailureError(error: unknown): error is ExtractionFieldFailureError {
   if (error instanceof ExtractionFieldFailureError) {
     return true
   }

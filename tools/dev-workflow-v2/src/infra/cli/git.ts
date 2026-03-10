@@ -2,7 +2,7 @@ import { execSync } from 'node:child_process'
 import type { GitInfo } from '@ntcoding/agentic-workflow-builder/dsl'
 
 /* v8 ignore start */
-/** @riviere-role workflow-infra-client */
+/** @riviere-role external-client */
 export function getGitInfo(): GitInfo {
   const defaultBranch = detectDefaultBranch()
   return {
@@ -16,7 +16,7 @@ export function getGitInfo(): GitInfo {
   }
 }
 
-/** @riviere-role workflow-infra-client */
+/** @riviere-role external-client */
 function detectDefaultBranch(): string {
   try {
     return runGit('symbolic-ref refs/remotes/origin/HEAD --short').replace('origin/', '')
@@ -25,12 +25,12 @@ function detectDefaultBranch(): string {
   }
 }
 
-/** @riviere-role workflow-infra-client */
+/** @riviere-role external-client */
 function runGit(gitArgs: string): string {
   return execSync(`git ${gitArgs}`, { encoding: 'utf-8' }).trim()
 }
 
-/** @riviere-role workflow-infra-client */
+/** @riviere-role external-client */
 export function runGh(ghArgs: string): string {
   return execSync(`gh ${ghArgs}`, { encoding: 'utf-8' })
 }

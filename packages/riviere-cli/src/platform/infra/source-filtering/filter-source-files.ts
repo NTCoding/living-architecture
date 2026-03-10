@@ -28,7 +28,7 @@ export class SourceFilterError extends Error {
   }
 }
 
-/** @riviere-role source-file-filter */
+/** @riviere-role external-client */
 export function filterSourceFiles(allSourceFiles: string[], options: FilterOptions): FilterResult {
   if (options.pr) {
     try {
@@ -65,7 +65,7 @@ interface ResolveFilterOptions {
   files?: string[]
 }
 
-/** @riviere-role source-file-filter */
+/** @riviere-role external-client */
 export function resolveFilteredSourceFiles(
   allSourceFiles: string[],
   options: ResolveFilterOptions,
