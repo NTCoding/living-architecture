@@ -1,5 +1,8 @@
 import {
-  checkTargetSymbol, findAssignedRoleDefinition, isFileInScope 
+  checkTargetSymbol,
+  findAssignedRoleDefinition,
+  isFileInScope,
+  isFileInsideScopeRoots,
 } from './check-role-target'
 import { RoleEnforcementConfigError } from '../../../platform/domain/role-enforcement-config-error'
 import type {
@@ -411,5 +414,23 @@ describe('checkTargetSymbol', () => {
         config,
       ),
     ).toHaveLength(0)
+  })
+
+  it('treats ignored files as outside configured scope roots', () => {
+    const config = compileRoleEnforcementConfig({
+      scopeRoots: ['packages/demo/src/**/*.ts'],
+      ignorePatterns: ['packages/demo/src/ignored/**/*.ts'],
+      roles: [
+        {
+          name: 'cli-shell',
+          targets: ['function'],
+          allowedLocation: ['packages/demo/src/shell/**/*.ts'],
+          allowedNames: ['createProgram'],
+          markdownSpec: 'docs/architecture/roles/cli-shell.md',
+        },
+      ],
+    })
+
+    expect(isFileInsideScopeRoots('packages/demo/src/ignored/cli.ts', config)).toBe(false)
   })
 })

@@ -194,4 +194,89 @@ describe('extractRoleTargets static methods', () => {
     expect(result.issues[0]).toMatchObject({ code: 'malformed-role-assignment' })
     expect(result.issues[0]?.message).toContain('Symbol: OrdersQuery.fromJSON')
   })
+
+  it('ignores static methods when the class or method key cannot be named', () => {
+    const staticMethod = createMethodDefinition('fromJSON', 5, {
+      static: true,
+      key: {
+        ...createBaseNode('Literal', 6),
+        type: 'Literal',
+      },
+    })
+    const classDeclaration = {
+      ...createBaseNode('ClassDeclaration', 2),
+      type: 'ClassDeclaration' as const,
+      id: createIdentifier('OrdersQuery', 3),
+      body: {
+        ...createBaseNode('ClassBody', 4),
+        type: 'ClassBody' as const,
+        body: [staticMethod],
+      },
+    }
+    const exportNode = {
+      ...createBaseNode('ExportNamedDeclaration', 1),
+      type: 'ExportNamedDeclaration' as const,
+      declaration: classDeclaration,
+    }
+    const program: ProgramNode = {
+      ...createBaseNode('Program'),
+      type: 'Program',
+      body: [exportNode],
+    }
+
+    expect(
+      extractRoleTargets(
+        program,
+        createSourceCode(new Map([[exportNode, ['* @riviere-role aggregate']]])),
+        'packages/demo/src/features/demo/queries/orders-query.ts',
+      ),
+    ).toStrictEqual({
+      targets: [
+        {
+          kind: 'class',
+          name: 'OrdersQuery',
+          ownerClassName: null,
+          assignedRoleName: 'aggregate',
+          relativeFilePath: 'packages/demo/src/features/demo/queries/orders-query.ts',
+          publicMethodNames: [],
+          reportNode: classDeclaration.id,
+        },
+      ],
+      issues: [],
+    })
+  })
+
+  it('ignores anonymous exported classes before extracting static methods', () => {
+    const classDeclaration = {
+      ...createBaseNode('ClassDeclaration', 2),
+      type: 'ClassDeclaration' as const,
+      id: null,
+      body: {
+        ...createBaseNode('ClassBody', 4),
+        type: 'ClassBody' as const,
+        body: [createMethodDefinition('fromJSON', 5, { static: true })],
+      },
+    }
+    const exportNode = {
+      ...createBaseNode('ExportNamedDeclaration', 1),
+      type: 'ExportNamedDeclaration' as const,
+      declaration: classDeclaration,
+    }
+    const program: ProgramNode = {
+      ...createBaseNode('Program'),
+      type: 'Program',
+      body: [exportNode],
+    }
+
+    expect(
+      extractRoleTargets(
+        program,
+        createSourceCode(new Map([[exportNode, ['* @riviere-role aggregate']]])),
+        'packages/demo/src/features/demo/queries/orders-query.ts',
+      ),
+    ).toStrictEqual({
+      targets: [],
+      issues: [],
+    })
+  })
 })
