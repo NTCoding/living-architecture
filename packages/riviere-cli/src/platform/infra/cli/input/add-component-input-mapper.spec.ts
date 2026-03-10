@@ -63,6 +63,22 @@ describe('buildDomainInput', () => {
       })
     })
 
+    it.each(['PUT', 'PATCH', 'DELETE'])('maps API input with %s httpMethod', (httpMethod) => {
+      const input = {
+        ...baseInput,
+        componentType: 'API',
+        apiType: 'REST',
+        httpMethod,
+      }
+
+      const result = buildDomainInput(input)
+
+      expect(result.input).toMatchObject({
+        apiType: 'REST',
+        httpMethod,
+      })
+    })
+
     it('parses comma-separated subscribedEvents', () => {
       const input = {
         ...baseInput,

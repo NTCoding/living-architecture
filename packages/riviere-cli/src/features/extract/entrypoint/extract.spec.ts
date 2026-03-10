@@ -1,9 +1,9 @@
 import {
-  readFile, writeFile, mkdir 
+  mkdir, readFile, writeFile 
 } from 'node:fs/promises'
 import { join } from 'node:path'
 import {
-  describe, it, expect 
+  describe, expect, it 
 } from 'vitest'
 import { createProgram } from '../../../shell/cli'
 import type { TestContext } from '../../../platform/__fixtures__/command-test-fixtures'
@@ -303,6 +303,27 @@ modules:
       const output = parseErrorOutput(ctx.consoleOutput)
       expect(output.success).toBe(false)
       expect(output.error.message).toContain('/nonexistent-dir/output.json')
+    })
+  })
+
+  describe('tsconfig handling', () => {
+    const ctx: TestContext = createTestContext()
+    setupCommandTest(ctx)
+
+    it('accepts --no-ts-config flag without error', async () => {
+      const configPath = await createValidExtractFixture(ctx.testDir)
+
+      await parseCommandWithErrorHandling([
+        'node',
+        'riviere',
+        'extract',
+        '--config',
+        configPath,
+        '--no-ts-config',
+      ])
+
+      const output = parseFullExtractionOutput(ctx.consoleOutput)
+      expect(output.success).toBe(true)
     })
   })
 

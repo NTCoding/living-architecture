@@ -6,7 +6,7 @@ import {
   CliErrorCode, ExitCode 
 } from './error-codes'
 
-interface OutputOptions {output?: string}
+interface OutputOptions {output?: string | undefined}
 
 /** @riviere-role cli-output-writer */
 export function outputResult<T>(data: SuccessOutput<T>, options: OutputOptions): void {

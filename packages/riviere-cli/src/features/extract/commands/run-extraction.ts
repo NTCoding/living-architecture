@@ -16,7 +16,7 @@ export interface RunExtractionCommandInput extends ExtractionExecutionOptions {
   readonly pr?: boolean
   readonly base?: string
   readonly files?: string[]
-  readonly tsConfig?: boolean
+  readonly tsConfig?: boolean | undefined
 }
 
 /** @riviere-role command-use-case */

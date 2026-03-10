@@ -38,7 +38,7 @@ export function createExtractCommand(): Command {
         ...(options.base === undefined ? {} : { base: options.base }),
         ...(options.files === undefined ? {} : { files: options.files }),
         ...(options.format === undefined ? {} : { format: options.format }),
-        ...(options.tsConfig === undefined ? {} : { tsConfig: options.tsConfig }),
+        tsConfig: options.tsConfig,
       })
       presentExtractionResult(result, options)
     })

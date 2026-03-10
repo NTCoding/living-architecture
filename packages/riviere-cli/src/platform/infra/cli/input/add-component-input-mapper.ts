@@ -167,6 +167,7 @@ function normalizeHttpMethod(value: string): 'GET' | 'POST' | 'PUT' | 'PATCH' | 
     case 'DELETE': {
       return 'DELETE'
     }
+    /* v8 ignore next -- normalizeHttpMethod guards with isValidHttpMethod before the switch */
     default: {
       throw new MissingRequiredOptionError('http-method', 'API')
     }

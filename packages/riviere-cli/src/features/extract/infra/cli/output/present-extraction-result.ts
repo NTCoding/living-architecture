@@ -42,10 +42,7 @@ function presentDraftResult(
     return
   }
 
-  outputResult(
-    formatSuccess(components),
-    options.output === undefined ? {} : { output: options.output },
-  )
+  outputResult(formatSuccess(components), { output: options.output })
 }
 
 /** @riviere-role cli-output-writer */
@@ -74,6 +71,6 @@ function presentFullResult(
       components: result.components,
       links: result.links,
     }),
-    options.output === undefined ? {} : { output: options.output },
+    { output: options.output },
   )
 }

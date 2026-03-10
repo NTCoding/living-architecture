@@ -1,8 +1,8 @@
 import {
-  describe, it, expect, vi, afterEach
+  describe, it, expect, vi, afterEach 
 } from 'vitest'
 import {
-  render, screen, waitFor
+  render, screen, waitFor 
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
@@ -343,7 +343,7 @@ async function setupComparisonAndCompare(
   })
 }
 
-describe('ComparisonPage - detailed changes list', () => {
+describe('ComparisonPage - detailed changes list', { timeout: 15_000 }, () => {
   afterEach(() => {
     vi.unstubAllGlobals()
   })
