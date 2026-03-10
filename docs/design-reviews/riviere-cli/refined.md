@@ -43,7 +43,7 @@ packages/riviere-cli/src/
 │   │   ├── use-cases/
 │   │   │   └── extract-from-source.ts
 │   │   └── domain/
-│   │       ├── extraction-config.ts
+│   │       ├── extraction-config-repository.ts
 │   │       └── module-ref-resolver.ts
 │   │
 │   └── explore-architecture/
@@ -92,9 +92,15 @@ packages/riviere-cli/src/
 │       │   └── json-parser.ts
 │       ├── error-handling/
 │       │   └── error-boundary.ts
-│       └── cli-presentation/
-│           ├── cli-error-code.ts
-│           └── output-formatter.ts
+│       ├── cli/
+│       │   ├── input/
+│       │   │   └── input-mapper.ts
+│       │   └── output/
+│       │       ├── cli-error-code.ts
+│       │       ├── output-formatter.ts
+│       │       └── output-writer.ts
+│       └── middleware/
+│           └── global-error-handler.ts
 │
 └── shell/
     ├── bin.ts
@@ -365,15 +371,25 @@ class DomainName {
 }
 
 class ComponentType {
-  private static readonly VALID_TYPES = ['UI', 'API', 'UseCase', 'DomainOp', 'Event', 'EventHandler', 'Custom'] as const
-  readonly value: typeof ComponentType.VALID_TYPES[number]
+  private static readonly VALID_TYPES = [
+    'UI',
+    'API',
+    'UseCase',
+    'DomainOp',
+    'Event',
+    'EventHandler',
+    'Custom',
+  ] as const
+  readonly value: (typeof ComponentType.VALID_TYPES)[number]
 
-  private constructor(value: typeof ComponentType.VALID_TYPES[number]) {
+  private constructor(value: (typeof ComponentType.VALID_TYPES)[number]) {
     this.value = value
   }
 
   static parse(input: string): ComponentType {
-    const normalized = ComponentType.VALID_TYPES.find(t => t.toLowerCase() === input.toLowerCase())
+    const normalized = ComponentType.VALID_TYPES.find(
+      (t) => t.toLowerCase() === input.toLowerCase(),
+    )
     if (!normalized) {
       throw new InvalidComponentTypeError(input, ComponentType.VALID_TYPES)
     }
@@ -437,10 +453,10 @@ class ErrorBoundary {
 
   wrap<T>(fn: () => Promise<T>): Promise<void> {
     return fn()
-      .then(result => {
+      .then((result) => {
         console.log(this.formatter.formatSuccess(result))
       })
-      .catch(error => {
+      .catch((error) => {
         console.log(this.formatter.formatError(this.toCliError(error)))
       })
   }
@@ -514,7 +530,7 @@ cli.parseAsync(process.argv)
 
 1. Create `platform/infra/architecture-persistence/` with `ArchitectureReader` and `ArchitectureWriter`
 2. Create `platform/infra/file-system/file-operations.ts` wrapping fs operations
-3. Create `platform/infra/cli-presentation/output-formatter.ts` from existing `output.ts`
+3. Create `platform/infra/cli/output/output-formatter.ts` from existing `output.ts`
 4. Create `platform/infra/error-handling/error-boundary.ts` for centralized error handling
 
 ### Phase 2: Value Objects (Medium Priority)

@@ -227,7 +227,7 @@ roles:
       - 'tools/*/src/entrypoint/**/*.ts'
     nameMatches: '.*(Formatter|Output)$'
     allowedPublicMethods: [format]
-    markdownSpec: 'docs/roles/cli-output-formatter.md'
+    markdownSpec: 'docs/architecture/roles/cli-output-formatter.md'
 ```
 
 When the allowed symbol names are finite and important for diagnostics, prefer explicit `allowedNames` over a regex.
@@ -240,7 +240,7 @@ roles:
       - 'packages/*/src/shell/**/*.ts'
       - 'tools/*/src/shell/**/*.ts'
     allowedNames: [createProgram, main]
-    markdownSpec: 'docs/roles/cli-shell.md'
+    markdownSpec: 'docs/architecture/roles/cli-shell.md'
 ```
 
 Explicit role assignment is mandatory.
@@ -487,7 +487,7 @@ role: cli-output-formatter
 assignmentText: '/** @riviere-role cli-output-formatter */'
 allowedLocation:
   - packages/riviere-cli/src/features/extract/entrypoint/
-markdownSpec: docs/roles/cli-output-formatter.md
+markdownSpec: docs/architecture/roles/cli-output-formatter.md
 rationale:
   - This code formats CLI output for an external interface.
   - It belongs in `entrypoint`, not `infra`, because it translates internal results into user-facing output.
@@ -541,7 +541,7 @@ role: cli-args-parser
 assignmentText: '/** @riviere-role cli-args-parser */'
 allowedLocation:
   - packages/riviere-cli/src/features/extract/entrypoint/
-markdownSpec: docs/roles/cli-args-parser.md
+markdownSpec: docs/architecture/roles/cli-args-parser.md
 rationale:
   - Parsing CLI arguments is external input translation.
   - External input translation belongs in `entrypoint`.
@@ -583,18 +583,18 @@ Temporary exceptions are allowed only during rollout to reach the target end sta
 
 ## 5. Success Criteria
 
-| #   | Criterion                                                                                                                                                                                                                                                | Verification                                                                                   |
-| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| 1   | Every in-scope class, static method, and standalone function has exactly one explicit role assignment or produces a deterministic error                                                                                                                  | Integration test fixtures plus repository smoke test                                           |
-| 2   | Deterministic enforcement validates the assigned role against only the minimal role rules: location, naming, target type, and public methods                                                                                                             | Unit tests with 100% branch coverage                                                           |
-| 3   | No symbol passes purely because it happened to match path and naming rules without an explicit assignment                                                                                                                                                | Negative fixture coverage for matcher-only cases                                               |
-| 4   | The repository has an explicit role inventory covering ambiguous infra areas as well as standard locations                                                                                                                                               | Repository role catalog reviewed and committed                                                 |
-| 5   | Fine-grained infra roles are supported                                                                                                                                                                                                                   | Fixtures for CLI presentation, git, graph persistence, config loading, and similar infra cases |
-| 6   | Diagnostics distinguish missing assignment, unknown assignment, invalid location, invalid name, and invalid public method shape                                                                                                                          | Golden-path diagnostic tests                                                                   |
-| 7   | AI review consumes markdown role specs and emits structured verdicts                                                                                                                                                                                     | Integration tests with mocked AI client                                                        |
-| 8   | Architecture review workflow can invoke role enforcement on PRs                                                                                                                                                                                          | Workflow integration test or documented workflow update verified in tests                      |
-| 9   | Full-repo enforcement is fast enough for constant use                                                                                                                                                                                                    | Benchmarks recorded in docs                                                                    |
-| 10  | Package ships with 100% code coverage and does not introduce new lint, typecheck, or dependency-cruiser violations                                                                                                                                       | Coverage threshold enforced in package config and repository `verify` passes                   |
+| #   | Criterion                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | Verification                                                                                   |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| 1   | Every in-scope class, static method, and standalone function has exactly one explicit role assignment or produces a deterministic error                                                                                                                                                                                                                                                                                                                                               | Integration test fixtures plus repository smoke test                                           |
+| 2   | Deterministic enforcement validates the assigned role against only the minimal role rules: location, naming, target type, and public methods                                                                                                                                                                                                                                                                                                                                          | Unit tests with 100% branch coverage                                                           |
+| 3   | No symbol passes purely because it happened to match path and naming rules without an explicit assignment                                                                                                                                                                                                                                                                                                                                                                             | Negative fixture coverage for matcher-only cases                                               |
+| 4   | The repository has an explicit role inventory covering ambiguous infra areas as well as standard locations                                                                                                                                                                                                                                                                                                                                                                            | Repository role catalog reviewed and committed                                                 |
+| 5   | Fine-grained infra roles are supported                                                                                                                                                                                                                                                                                                                                                                                                                                                | Fixtures for CLI presentation, git, graph persistence, config loading, and similar infra cases |
+| 6   | Diagnostics distinguish missing assignment, unknown assignment, invalid location, invalid name, and invalid public method shape                                                                                                                                                                                                                                                                                                                                                       | Golden-path diagnostic tests                                                                   |
+| 7   | AI review consumes markdown role specs and emits structured verdicts                                                                                                                                                                                                                                                                                                                                                                                                                  | Integration tests with mocked AI client                                                        |
+| 8   | Architecture review workflow can invoke role enforcement on PRs                                                                                                                                                                                                                                                                                                                                                                                                                       | Workflow integration test or documented workflow update verified in tests                      |
+| 9   | Full-repo enforcement is fast enough for constant use                                                                                                                                                                                                                                                                                                                                                                                                                                 | Benchmarks recorded in docs                                                                    |
+| 10  | Package ships with 100% code coverage and does not introduce new lint, typecheck, or dependency-cruiser violations                                                                                                                                                                                                                                                                                                                                                                    | Coverage threshold enforced in package config and repository `verify` passes                   |
 | 11  | A final rollout PR applies role enforcement with 100% coverage across `packages/riviere-cli/src/**`, `packages/riviere-builder/src/**`, `packages/riviere-extract-config/src/**`, `packages/riviere-extract-ts/src/**`, `packages/riviere-query/src/**`, `packages/riviere-role-enforcement/src/**`, `tools/dev-workflow/src/**`, and `tools/dev-workflow-v2/src/**`, excluding `packages/riviere-schema/src/**`, `packages/riviere-extract-conventions/src/**`, and `apps/eclair/**` | Final adoption PR passes repository verification                                               |
 
 Initial performance targets:
@@ -691,7 +691,7 @@ The repository has an initial role catalog and can be validated against it.
   - Verification: config exists and validates
 
 - **D3.2:** Initial markdown guidance files
-  - Add role guidance under `docs/roles/`
+  - Add role guidance under `docs/architecture/roles/`
   - Verification: every role with AI guidance references an existing markdown file
 
 - **D3.3:** Repository baseline adoption
@@ -820,7 +820,7 @@ packages/riviere-role-enforcement/src/
 - repository scripts or Nx targets
 - PR architecture review workflow in `tools/dev-workflow-v2`
 - optional PR review bot instructions
-- docs under `docs/roles/` and `docs/guides/`
+- docs under `docs/architecture/roles/` and `docs/guides/`
 
 ---
 
@@ -830,7 +830,7 @@ The first repository bootstrap should include roles such as:
 
 - `feature-entrypoint`
 - `cli-entrypoint`
-- `command-orchestrator`
+- `command-use-case`
 - `query-reader`
 - `entity`
 - `repository`
@@ -967,7 +967,7 @@ git add <relevant-files> && git commit --no-verify -m "<commit message>" && git 
   - References: `3.9 riviere-role-classifier`, `5. Success Criteria`
 
 - [x] Add markdown specs for the initial role slice
-  - Requirements: create the first `docs/roles/*.md` files for the roles already used in the spike and ensure the config references real markdown specs
+  - Requirements: create the first `docs/architecture/roles/*.md` files for the roles already used in the spike and ensure the config references real markdown specs
   - Acceptance: every role in the spike config resolves to an existing markdown spec and the docs explain placement, naming, and allowed public methods
   - Suggested commit: `docs(role-enforcement): add initial role specs`
   - References: `3.3 Minimal Role Definition DSL And Explicit Role Assignment`, `3.8 AI Review Layer`, `10. Initial Role Catalog For This Repository`
@@ -1046,7 +1046,7 @@ Engineer working rule for every Phase 3 chunk:
 - after each checklist item, run the listed verification commands before committing
 - after each green checklist item, create a small commit with `git commit --no-verify`
 - push after every commit to `origin/architecture-rbaf`
-- if a new role is introduced, the same chunk must update all of: `riviere-role-enforcement.yaml`, the relevant `docs/roles/*.md` file, classifier expectations, and any affected tests
+- if a new role is introduced, the same chunk must update all of: `riviere-role-enforcement.yaml`, the relevant `docs/architecture/roles/*.md` file, classifier expectations, and any affected tests
 - if a symbol must move, split, rename, or convert from function to class to fit a valid role, perform the structural change in the same chunk rather than weakening the role definition
 - keep the PR in draft until every checklist item below is complete and every negative verification drill passes
 
@@ -1081,7 +1081,7 @@ Required execution order after the first five commits:
 Definition of complete for each package rollout chunk:
 
 - every in-scope class, static method, and standalone function in that package has exactly one explicit role assignment
-- every role used by that package exists in `riviere-role-enforcement.yaml` and has a real markdown spec under `docs/roles/`
+- every role used by that package exists in `riviere-role-enforcement.yaml` and has a real markdown spec under `docs/architecture/roles/`
 - any file that needed movement, renaming, or splitting to fit a single clear role has already been refactored in the same chunk
 - `pnpm role-enforcement:check` passes after the package is included in final scope
 - any package-specific lint, typecheck, build, or test command touched by the refactor also passes before commit
@@ -1191,13 +1191,13 @@ git add <relevant-files> && git commit --no-verify -m "<commit message>" && git 
   - Requirements:
     - define missing role families needed for `packages/riviere-cli/src/platform/**`, `packages/riviere-builder/src/**`, `packages/riviere-extract-config/src/**`, `packages/riviere-extract-ts/src/**`, `packages/riviere-role-enforcement/src/**`, and `tools/dev-workflow/src/**`
     - keep the mandatory top-level layer distinction explicit in every new role family
-    - create or update `docs/roles/*.md` so every new role has placement, naming, and allowed-public-method guidance before mass annotation begins
+    - create or update `docs/architecture/roles/*.md` so every new role has placement, naming, and allowed-public-method guidance before mass annotation begins
   - Acceptance:
     - no in-scope directory remains blocked solely because the role catalog is missing
     - the classifier has a real markdown spec for every role used in Phase 3
   - Verification:
     - `pnpm exec vitest run --config packages/riviere-role-enforcement/vite.config.ts`
-    - `pnpm exec markdownlint-cli2 "docs/roles/**/*.md"`
+    - `pnpm exec markdownlint-cli2 "docs/architecture/roles/**/*.md"`
   - Suggested commit: `docs(role-enforcement): expand phase 3 role catalog`
 
 - [ ] Roll out `packages/riviere-role-enforcement/src/**` to full coverage
@@ -1367,3 +1367,177 @@ git add <relevant-files> && git commit --no-verify -m "<commit message>" && git 
   - Verification:
     - review the PR body after update and confirm it matches the final docs and command output
   - Suggested commit: `docs(role-enforcement): finalize phase 3 rollout status`
+
+### Phase 4 - Role Taxonomy Decoupling And Boundary Refactor
+
+Phase 4 exists to fix taxonomy ambiguity and boundary violations discovered during rollout. This phase is mandatory before finalizing the role model for long-term use by engineers and AI agents.
+
+Historical note for this section: any reference to `docs/roles/` below refers to the removed pre-Phase-4 legacy role-doc root.
+
+Phase 4 scope lock:
+
+- one role-doc root only: `docs/architecture/roles/**`
+- `docs/roles/**` must not contain active role docs
+- all `markdownSpec` paths in `riviere-role-enforcement.yaml` and fixtures must point to `docs/architecture/roles/**`
+- role names must be generic architecture concepts unless the role is intentionally technology-specific under `external-client`
+- infra code must not carry project-domain naming unless that naming is strictly part of a domain-facing contract
+- no files directly under `.../infra/` when a capability subfolder is appropriate; use explicit subfolders such as `infra/external-client/<technology>/`, `infra/persistence/`, `infra/cli/input/`, `infra/cli/output/`, `infra/middleware/`
+
+Non-negotiable architecture rules for Phase 4 (with concrete examples):
+
+- rule: if a symbol name contains repository domain terms, it is probably not infra
+  - bad: `loadExtractionProject` in infra adapter code
+  - good: `createProjectWithSources` in `infra/external-client/ts-morph/`
+- rule: commands must follow this order: load/construct -> orchestrate -> save -> return/format
+  - bad: one inline branch that mixes extraction calculation and file rehydration
+  - good: load source state through a persistence abstraction first, then call one domain abstraction for extraction
+- rule: commands must not assemble many domain internals in sequence; orchestration should call one clear domain abstraction
+  - bad: command directly wires `enrichPerModule` + failed-field policy + `detectConnectionsPerModule`
+  - good: `componentExtractor.extract(...)` owns domain sequencing
+- rule: keep input data separate from dependencies
+  - bad: use-case input object includes infrastructure dependencies
+  - good: dependencies injected via constructor; input object is data only
+- rule: functional core, imperative shell
+  - bad: lint adapter file contains both side-effectful linter integration and domain rule semantics
+  - good: pure domain checker logic in domain files, adapter shell in external-client files
+
+Engineer working rule for every Phase 4 chunk:
+
+- complete exactly one checklist item at a time
+- keep each commit focused to one conceptual change
+- after each chunk, run listed verification commands before committing
+- push each green commit to `origin/architecture-rbaf`
+- if a role is renamed or removed, update all affected artifacts in the same chunk: YAML definitions, markdown specs, annotations, tests, fixtures, and classifier expectations
+
+- [ ] Consolidate role docs into one canonical root
+  - Requirements:
+    - ensure all active role docs live under `docs/architecture/roles/`
+    - remove duplicate or stale role docs from `docs/roles/`
+    - update all in-repo references to the canonical docs path
+  - Acceptance:
+    - `docs/roles/` is empty or removed
+    - no active `markdownSpec` or test fixture references `docs/roles/`
+  - Verification:
+    - `pnpm exec markdownlint-cli2 "docs/architecture/roles/**/*.md"`
+    - repo search for `docs/roles/` returns only historical PRD text that is explicitly marked historical
+  - Suggested commit: `docs(role-enforcement): consolidate role docs under architecture`
+
+- [ ] Normalize command and query role vocabulary
+  - Requirements:
+    - rename `command-orchestrator` to `command-use-case`
+    - rename `cli-query-service` to `query-service`
+    - remove transport-specific naming from domain/query roles unless transport is intrinsic
+  - Acceptance:
+    - command/query role names are transport-agnostic and architecture-generic
+  - Verification:
+    - `pnpm role-enforcement:check`
+    - `pnpm exec vitest run --config packages/riviere-role-enforcement/vite.config.ts`
+  - Suggested commit: `refactor(role-enforcement): normalize use-case and query role names`
+
+- [ ] Enforce CLI boundary symmetry for input and output
+  - Requirements:
+    - use `cli-input-mapper` for CLI input conversion under `infra/cli/input/`
+    - use `cli-output-formatter` and `cli-output-writer` under `infra/cli/output/`
+    - remove overlapping presenter roles that mix mapping, formatting, and side effects
+  - Acceptance:
+    - `cli-result-presenter` and `cli-presenter` are removed or fully decomposed into explicit roles
+    - output formatting and output writing are separate responsibilities
+  - Verification:
+    - `pnpm role-enforcement:check`
+    - package lint/typecheck/test commands for touched packages
+  - Suggested commit: `refactor(cli): separate input mapping and output boundaries`
+
+- [ ] Introduce middleware boundary for cross-cutting CLI handlers
+  - Requirements:
+    - classify global error handling as middleware
+    - place middleware code under `infra/middleware/` (with subfolders as needed)
+    - keep output formatting concerns out of middleware
+  - Acceptance:
+    - global error handler responsibilities are no longer mixed with output formatter responsibilities
+  - Verification:
+    - `pnpm role-enforcement:check`
+    - targeted tests for global error handling paths
+  - Suggested commit: `refactor(cli): isolate middleware error handling`
+
+- [ ] Replace project-specific extraction loader role with domain factory plus explicit capabilities
+  - Requirements:
+    - remove `extract-project-loader` role
+    - model `ModuleContext` as a value object
+    - introduce `ModuleContextBuilder` as `domain-factory`
+    - define domain interfaces for required capabilities: `FileSearcher`, `TsMorphProjectBuilder`
+    - keep technology adapters under explicit infra capability paths (for example `infra/external-client/ts-morph/`)
+  - Acceptance:
+    - mixed domain + infra logic currently in `createModuleContexts` is split cleanly
+    - domain factory owns domain construction logic; infra owns tool-specific IO
+  - Verification:
+    - `pnpm role-enforcement:check`
+    - touched package tests pass
+  - Suggested commit: `refactor(extract): introduce module-context domain factory`
+
+- [ ] Move persistence responsibilities to explicit repository and data-store roles
+  - Requirements:
+    - use `ExtractionConfigRepository` for extraction config loading (and saving when needed)
+    - ensure repository returns full loaded config aggregate rather than forcing partial loading callbacks onto consumers
+    - keep `DraftComponentStore` as a `data-store` under `infra/persistence/`
+  - Acceptance:
+    - command flow no longer performs partial config-loader orchestration through callback plumbing
+    - persistence boundaries are explicit and testable
+  - Verification:
+    - `pnpm role-enforcement:check`
+    - relevant package tests for config loading and draft-component persistence
+  - Suggested commit: `refactor(config): move loading to extraction config repository`
+
+- [ ] Fold domain-specific singleton roles into core domain roles
+  - Requirements:
+    - merge domain-specific roles such as `component-extractor`, `component-enricher`, `connection-detector`, `extraction-rule-evaluator`, `extraction-config-resolver`, and `config-validation-service` into generic domain roles (`domain-service` or `domain-factory` as appropriate)
+    - remove orphan docs and stale role definitions that are not actually enforced
+  - Acceptance:
+    - role catalog contains generic domain concepts rather than feature-specific labels
+    - removed roles are fully cleaned from config/tests/docs
+  - Verification:
+    - `pnpm role-enforcement:check`
+    - `pnpm exec vitest run --config packages/riviere-role-enforcement/vite.config.ts`
+  - Suggested commit: `refactor(roles): collapse feature-specific domain roles`
+
+- [ ] Keep external-client role technology-specific by capability path
+  - Requirements:
+    - treat thin wrappers over third-party libraries as `external-client`
+    - place adapters under `infra/external-client/<technology>/`
+    - example: minimatch adapter under `infra/external-client/minimatch/`
+  - Acceptance:
+    - no bespoke role is created for single-library wrappers when `external-client` already expresses intent
+  - Verification:
+    - `pnpm role-enforcement:check`
+  - Suggested commit: `refactor(infra): standardize external-client capability layout`
+
+- [ ] Split lint plugin implementation into functional core and imperative shell
+  - Requirements:
+    - move deterministic role-checking decisions into domain files (for example `features/check/domain/enforce-role-rules.ts`)
+    - keep Oxlint framework wiring in `features/check/infra/external-client/oxlint/plugin.ts`
+    - define any domain-facing config-loading interface in domain and implement it under infra/persistence
+  - Acceptance:
+    - lint plugin adapter file no longer contains mixed domain policy and shell wiring
+  - Verification:
+    - `pnpm exec vitest run --config packages/riviere-role-enforcement/vite.config.ts`
+    - `pnpm role-enforcement:check`
+  - Suggested commit: `refactor(role-enforcement): separate lint shell from domain core`
+
+- [ ] Add explicit AI guardrail section for architecture-role-enforcer subagent
+  - Requirements:
+    - document the concrete bad/good examples above in the role-enforcement guidance so an engineer or AI agent can apply them without prior chat context
+    - include mandatory recovery actions when violations are found (split mixed files, move domain logic out of infra, inject capabilities as interfaces)
+  - Acceptance:
+    - a new engineer can run this phase without historical conversation context
+    - the guidance is operational, not principle-only
+  - Verification:
+    - `pnpm exec markdownlint-cli2 "docs/project/PRD/notstarted/PRD-riviere-role-enforcement.md"`
+  - Suggested commit: `docs(role-enforcement): add phase 4 ai guardrails`
+
+Definition of complete for Phase 4:
+
+- role taxonomy is generic, coherent, and transport-aware where appropriate
+- one canonical role-doc folder exists (`docs/architecture/roles`)
+- command boundaries follow load/construct -> orchestrate -> save -> return/format
+- domain logic is no longer embedded in infra shells
+- infra folders are capability-structured (no ambiguous direct drops under `infra`)
+- all affected enforcement checks and package quality gates are green

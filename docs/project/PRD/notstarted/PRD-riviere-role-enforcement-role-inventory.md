@@ -110,7 +110,7 @@ Guidance:
 
 Likely roles:
 
-- `command-orchestrator`
+- `command-use-case`
 - `write-use-case`
 - `workflow-command`
 
@@ -173,32 +173,32 @@ Likely roles:
 
 - `external-client`
 - `repository`
-- `cli-presenter`
+- `cli-output-writer`
 - `cli-formatter`
-- `cli-input-parser`
+- `cli-input-mapper`
 - `infra-error`
 
 Observed examples:
 
 - `packages/riviere-cli/src/features/extract/infra/mappers/present-extraction-result.ts`
-- `packages/riviere-cli/src/features/extract/infra/external-clients/create-configured-project.ts`
+- `packages/riviere-cli/src/features/extract/infra/external-client/create-configured-project.ts`
 - `tools/dev-workflow-v2/src/infra/github/get-pr-feedback.ts`
 - `tools/dev-workflow-v2/src/infra/cli/git.ts`
 
 Architecture direction:
 
-- external-system wrappers should converge on `infra/external-clients/`
-- transport-specific CLI presentation should converge on `infra/cli/presentation/`
-- feature-specific CLI presentation should live under `features/{feature}/infra/cli/presentation/`
+- external-system wrappers should converge on `infra/external-client/`
+- transport-specific CLI boundaries should converge on `infra/cli/input/` and `infra/cli/output/`
+- feature-specific CLI output handling should live under `features/{feature}/infra/cli/output/`
 - extraction config handling should converge under `infra/persistence/`
 - for this repository, code that loads and saves state should use the role `repository`
 - `config-loader.ts` is better understood as persistence code than generic config code
 
 Current recommendation:
 
-- `tools/dev-workflow-v2/src/infra/github/get-pr-feedback.ts` behaves like an `external-client`, but its folder should be normalized toward `infra/external-clients/`
-- `packages/riviere-cli/src/platform/infra/extraction-config/config-loader.ts` should move under `infra/persistence/` and its role should be `repository`
-- `packages/riviere-cli/src/platform/infra/cli-presentation/extract-output-formatter.ts` should move toward explicit CLI presentation structure rather than a broad `cli-presentation` bucket
+- `tools/dev-workflow-v2/src/infra/github/get-pr-feedback.ts` behaves like an `external-client`, but its folder should be normalized toward `infra/external-client/`
+- `packages/riviere-cli/src/platform/infra/persistence/extraction-config-repository.ts` should stay under `infra/persistence/` and use `repository` plus `data-store` responsibilities explicitly
+- `packages/riviere-cli/src/platform/infra/cli/output/extract-output-formatter.ts` should stay under explicit CLI output structure rather than a broad presentation bucket
 
 ---
 
@@ -247,7 +247,7 @@ Questions:
 - Confirmed direction for extraction-config handling:
   - state-loading and state-saving code belongs in `infra/persistence/`
   - the role for that code is `repository`
-- Should external-system wrappers always normalize to `infra/external-clients/`, even when the current folder uses a tool-specific name like `infra/github/`?
+- Should external-system wrappers always normalize to `infra/external-client/`, even when the current folder uses a tool-specific name like `infra/github/`?
 
 ---
 
@@ -257,7 +257,7 @@ To keep the project minimal, the first rollout should probably start with explic
 
 - `cli-shell`
 - `cli-entrypoint`
-- `command-orchestrator`
+- `command-use-case`
 - `query-service`
 - `query-facade`
 - `entity`
@@ -329,7 +329,7 @@ roles:
       - 'packages/*/src/shell/**/*.ts'
       - 'tools/*/src/shell/**/*.ts'
     nameMatches: '^(createProgram|main|runCli|createCli)$'
-    markdownSpec: 'docs/roles/cli-shell.md'
+    markdownSpec: 'docs/architecture/roles/cli-shell.md'
 ```
 
 The role definitions below use the same shape.
@@ -344,7 +344,7 @@ roles:
       - 'packages/*/src/shell/**/*.ts'
       - 'tools/*/src/shell/**/*.ts'
     nameMatches: '^(createProgram|main|runCli|createCli)$'
-    markdownSpec: 'docs/roles/cli-shell.md'
+    markdownSpec: 'docs/architecture/roles/cli-shell.md'
 
   - name: cli-entrypoint
     targets: [function]
@@ -353,15 +353,15 @@ roles:
       - 'tools/*/src/entrypoint/**/*.ts'
       - 'tools/*/features/*/entrypoint/**/*.ts'
     nameMatches: '^(create[A-Z].*Command|execute[A-Z].*|preToolUseHandler)$'
-    markdownSpec: 'docs/roles/cli-entrypoint.md'
+    markdownSpec: 'docs/architecture/roles/cli-entrypoint.md'
 
-  - name: command-orchestrator
+  - name: command-use-case
     targets: [function]
     allowedLocation:
       - 'packages/*/src/features/*/commands/**/*.ts'
       - 'tools/*/features/*/commands/**/*.ts'
     nameMatches: '^(add|run|execute|respond|push|merge|complete|handle)[A-Z].*'
-    markdownSpec: 'docs/roles/command-orchestrator.md'
+    markdownSpec: 'docs/architecture/roles/command-use-case.md'
 
   - name: query-service
     targets: [function]
@@ -369,7 +369,7 @@ roles:
       - 'packages/*/src/features/*/queries/**/*.ts'
       - 'packages/*/src/features/*/queries/*.ts'
     nameMatches: '^(query|find|get|search|trace|validate)[A-Z].*|^[a-z].*For[A-Z].*|^[a-z].*By[A-Z].*|^[a-z].*In[A-Z].*'
-    markdownSpec: 'docs/roles/query-service.md'
+    markdownSpec: 'docs/architecture/roles/query-service.md'
 
   - name: query-facade
     targets: [class]
@@ -406,7 +406,7 @@ roles:
       - nodeDepths
       - externalLinks
       - externalDomains
-    markdownSpec: 'docs/roles/query-facade.md'
+    markdownSpec: 'docs/architecture/roles/query-facade.md'
 
   - name: entity
     targets: [class]
@@ -415,7 +415,7 @@ roles:
       - 'tools/*/src/**/domain/**/*.ts'
       - 'tools/*/platform/domain/**/*.ts'
     nameMatches: '^.*(Entity|Workflow)$'
-    markdownSpec: 'docs/roles/entity.md'
+    markdownSpec: 'docs/architecture/roles/entity.md'
 
   - name: value-object
     targets: [class]
@@ -424,7 +424,7 @@ roles:
       - 'tools/*/src/**/domain/**/*.ts'
       - 'tools/*/platform/domain/**/*.ts'
     nameMatches: '^(ConventionalCommitTitle|NearMatch|.*Id|.*Name|.*State|.*Location)$'
-    markdownSpec: 'docs/roles/value-object.md'
+    markdownSpec: 'docs/architecture/roles/value-object.md'
 
   - name: domain-service
     targets: [function, class]
@@ -434,7 +434,7 @@ roles:
       - 'tools/*/src/**/domain/**/*.ts'
       - 'tools/*/platform/domain/**/*.ts'
     nameMatches: '^(parse|resolve|detect|extract|evaluate|validate|format|apply|get)[A-Z].*|^.*(Builder|Inspection|Linking|Enrichment|Construction)$'
-    markdownSpec: 'docs/roles/domain-service.md'
+    markdownSpec: 'docs/architecture/roles/domain-service.md'
 
   - name: domain-error
     targets: [class]
@@ -444,7 +444,7 @@ roles:
       - 'tools/*/src/**/domain/**/*.ts'
       - 'tools/*/platform/domain/**/*.ts'
     nameMatches: '^.*Error$'
-    markdownSpec: 'docs/roles/domain-error.md'
+    markdownSpec: 'docs/architecture/roles/domain-error.md'
 
   - name: application-error
     targets: [class]
@@ -459,19 +459,19 @@ roles:
       - 'tools/*/features/*/commands/**/*.ts'
       - 'tools/*/platform/infra/**/*.ts'
     nameMatches: '^.*Error$'
-    markdownSpec: 'docs/roles/application-error.md'
+    markdownSpec: 'docs/architecture/roles/application-error.md'
 
   - name: external-client
     targets: [function, class]
     allowedLocation:
-      - 'packages/*/src/features/*/infra/external-clients/**/*.ts'
-      - 'packages/*/src/platform/infra/external-clients/**/*.ts'
+      - 'packages/*/src/features/*/infra/external-client/**/*.ts'
+      - 'packages/*/src/platform/infra/external-client/**/*.ts'
       - 'packages/*/src/platform/infra/git/**/*.ts'
-      - 'tools/*/src/infra/external-clients/**/*.ts'
+      - 'tools/*/src/infra/external-client/**/*.ts'
       - 'tools/*/src/infra/github/**/*.ts'
-      - 'tools/*/platform/infra/external-clients/**/*.ts'
+      - 'tools/*/platform/infra/external-client/**/*.ts'
     nameMatches: '^(create|get|load|run)[A-Z].*|^.*(Client|Runner)$'
-    markdownSpec: 'docs/roles/external-client.md'
+    markdownSpec: 'docs/architecture/roles/external-client.md'
 
   - name: repository
     targets: [function, class]
@@ -479,59 +479,58 @@ roles:
       - 'packages/*/src/features/*/infra/persistence/**/*.ts'
       - 'packages/*/src/platform/infra/persistence/**/*.ts'
       - 'packages/*/src/platform/infra/graph-persistence/**/*.ts'
-      - 'packages/*/src/platform/infra/extraction-config/**/*.ts'
-    markdownSpec: 'docs/roles/repository.md'
+      - 'packages/*/src/platform/infra/persistence/**/*.ts'
+    markdownSpec: 'docs/architecture/roles/repository.md'
 
-  - name: cli-input-parser
+  - name: cli-input-mapper
     targets: [function]
     allowedLocation:
-      - 'packages/*/src/platform/infra/cli-presentation/**/*.ts'
-      - 'packages/*/src/features/*/infra/cli/presentation/**/*.ts'
+      - 'packages/*/src/platform/infra/cli/input/**/*.ts'
+      - 'packages/*/src/features/*/infra/cli/input/**/*.ts'
       - 'tools/*/platform/infra/cli/**/*.ts'
     nameMatches: '^(parse|validate)[A-Z].*'
-    markdownSpec: 'docs/roles/cli-input-parser.md'
+    markdownSpec: 'docs/architecture/roles/cli-input-mapper.md'
 
-  - name: cli-formatter
+  - name: cli-output-formatter
     targets: [function]
     allowedLocation:
-      - 'packages/*/src/platform/infra/cli-presentation/**/*.ts'
-      - 'packages/*/src/features/*/infra/cli/presentation/**/*.ts'
+      - 'packages/*/src/platform/infra/cli/output/**/*.ts'
+      - 'packages/*/src/features/*/infra/cli/output/**/*.ts'
       - 'tools/*/platform/infra/cli/**/*.ts'
     nameMatches: '^(format|categorize)[A-Z].*'
-    markdownSpec: 'docs/roles/cli-formatter.md'
+    markdownSpec: 'docs/architecture/roles/cli-output-formatter.md'
 
-  - name: cli-presenter
+  - name: cli-output-writer
     targets: [function]
     allowedLocation:
-      - 'packages/*/src/features/*/infra/mappers/**/*.ts'
-      - 'packages/*/src/platform/infra/cli-presentation/**/*.ts'
-      - 'packages/*/src/features/*/infra/cli/presentation/**/*.ts'
+      - 'packages/*/src/platform/infra/cli/output/**/*.ts'
+      - 'packages/*/src/features/*/infra/cli/output/**/*.ts'
     nameMatches: '^(present|write|output)[A-Z].*|^format(Error|Success)$'
-    markdownSpec: 'docs/roles/cli-presenter.md'
+    markdownSpec: 'docs/architecture/roles/cli-output-writer.md'
 ```
 
 ### 6.4 Concrete File Mapping For The Draft Catalog
 
-| File                                                                                        | Layer        | Role                   |
-| ------------------------------------------------------------------------------------------- | ------------ | ---------------------- |
-| `packages/riviere-cli/src/shell/cli.ts`                                                     | `shell`      | `cli-shell`            |
-| `tools/dev-workflow-v2/src/shell/cli.ts`                                                    | `shell`      | `cli-shell`            |
-| `packages/riviere-cli/src/features/builder/entrypoint/add-component.ts`                     | `entrypoint` | `cli-entrypoint`       |
-| `tools/dev-workflow-v2/src/entrypoint/workflow-cli.ts`                                      | `entrypoint` | `cli-entrypoint`       |
-| `packages/riviere-cli/src/features/extract/commands/run-extraction.ts`                      | `command`    | `command-orchestrator` |
-| `tools/dev-workflow/features/merge-and-cleanup/commands/merge-and-cleanup.ts`               | `command`    | `command-orchestrator` |
-| `packages/riviere-query/src/features/querying/queries/flow-queries.ts`                      | `query`      | `query-service`        |
-| `packages/riviere-query/src/features/querying/queries/compare-by-code-point.ts`             | `query`      | `query-service`        |
-| `packages/riviere-query/src/features/querying/queries/RiviereQuery.ts`                      | `query`      | `query-facade`         |
-| `packages/riviere-builder/src/features/building/domain/riviere-builder.ts`                  | `domain`     | `domain-service`       |
-| `tools/dev-workflow-v2/src/workflow-definition/domain/output-messages.ts`                   | `domain`     | `domain-service`       |
-| `packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts` | `domain`     | `domain-error`         |
-| `packages/riviere-cli/src/platform/infra/errors/errors.ts`                                  | `infra`      | `application-error`    |
-| `tools/dev-workflow-v2/src/infra/github/get-pr-feedback.ts`                                 | `infra`      | `external-client`      |
-| `packages/riviere-cli/src/platform/infra/extraction-config/config-loader.ts`                | `infra`      | `repository`           |
-| `packages/riviere-cli/src/platform/infra/graph-persistence/query-graph-loader.ts`           | `infra`      | `repository`           |
-| `packages/riviere-cli/src/platform/infra/cli-presentation/domain-input-parser.ts`           | `infra`      | `cli-input-parser`     |
-| `packages/riviere-cli/src/platform/infra/cli-presentation/extract-output-formatter.ts`      | `infra`      | `cli-formatter`        |
+| File                                                                                        | Layer        | Role                |
+| ------------------------------------------------------------------------------------------- | ------------ | ------------------- |
+| `packages/riviere-cli/src/shell/cli.ts`                                                     | `shell`      | `cli-shell`         |
+| `tools/dev-workflow-v2/src/shell/cli.ts`                                                    | `shell`      | `cli-shell`         |
+| `packages/riviere-cli/src/features/builder/entrypoint/add-component.ts`                     | `entrypoint` | `cli-entrypoint`    |
+| `tools/dev-workflow-v2/src/entrypoint/workflow-cli.ts`                                      | `entrypoint` | `cli-entrypoint`    |
+| `packages/riviere-cli/src/features/extract/commands/run-extraction.ts`                      | `command`    | `command-use-case`  |
+| `tools/dev-workflow/features/merge-and-cleanup/commands/merge-and-cleanup.ts`               | `command`    | `command-use-case`  |
+| `packages/riviere-query/src/features/querying/queries/flow-queries.ts`                      | `query`      | `query-service`     |
+| `packages/riviere-query/src/features/querying/queries/compare-by-code-point.ts`             | `query`      | `query-service`     |
+| `packages/riviere-query/src/features/querying/queries/RiviereQuery.ts`                      | `query`      | `query-facade`      |
+| `packages/riviere-builder/src/features/building/domain/riviere-builder.ts`                  | `domain`     | `domain-service`    |
+| `tools/dev-workflow-v2/src/workflow-definition/domain/output-messages.ts`                   | `domain`     | `domain-service`    |
+| `packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts` | `domain`     | `domain-error`      |
+| `packages/riviere-cli/src/platform/infra/errors/errors.ts`                                  | `infra`      | `application-error` |
+| `tools/dev-workflow-v2/src/infra/github/get-pr-feedback.ts`                                 | `infra`      | `external-client`   |
+| `packages/riviere-cli/src/platform/infra/persistence/extraction-config-repository.ts`       | `infra`      | `repository`        |
+| `packages/riviere-cli/src/platform/infra/graph-persistence/query-graph-loader.ts`           | `infra`      | `repository`        |
+| `packages/riviere-cli/src/platform/infra/cli/input/domain-input-parser.ts`                  | `infra`      | `cli-input-mapper`  |
+| `packages/riviere-cli/src/platform/infra/cli/output/extract-output-formatter.ts`            | `infra`      | `cli-formatter`     |
 
 ### 6.5 Final Decisions Before Implementation
 
@@ -544,7 +543,7 @@ These are the final decisions captured for the first Oxlint implementation.
    - Decision: keep the role name `repository`, but do not enforce repository-style naming in v1 because current code uses names like `config-loader` and `query-graph-loader`.
 
 3. CLI presentation split
-   - Recommendation: keep `cli-input-parser`, `cli-formatter`, and `cli-presenter` as separate roles, but allow the first implementation to scope them to known existing folders rather than forcing all current files to move first.
+   - Recommendation: keep `cli-input-mapper`, `cli-output-formatter`, and `cli-output-writer` as separate roles, but allow the first implementation to scope them to known existing folders rather than forcing all current files to move first.
 
 ### 6.6 Recommended First Oxlint Slice
 
@@ -552,7 +551,7 @@ For the first working implementation, prioritize these roles only:
 
 - `cli-shell`
 - `cli-entrypoint`
-- `command-orchestrator`
+- `command-use-case`
 - `query-service`
 - `query-facade`
 - `entity`
@@ -562,8 +561,8 @@ For the first working implementation, prioritize these roles only:
 - `application-error`
 - `external-client`
 - `repository`
-- `cli-input-parser`
+- `cli-input-mapper`
 - `cli-formatter`
-- `cli-presenter`
+- `cli-output-writer`
 
 This keeps the first Oxlint version focused on the agreed v1 role set without inventing extra query roles.

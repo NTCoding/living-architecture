@@ -24,7 +24,7 @@ features/
 platform/
 ├── domain/                ← shared business rules (depends on nothing)
 └── infra/                 ← shared technical concerns
-    ├── external-clients/  ← third-party service wrappers
+    ├── external-client/  ← third-party service wrappers
     ├── persistence/       ← database clients, connection pools
     ├── http/              ← shared formatters, error handling middleware
     ├── cli/               ← stdin/stdout utilities, CLI I/O helpers

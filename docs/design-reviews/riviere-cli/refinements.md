@@ -12,11 +12,11 @@ The Architect identified three features based on command groups (build-graph, ex
 
 **Refinement:** Rename features to reflect user intentions rather than technical operations:
 
-| Original | Refined | Rationale |
-|----------|---------|-----------|
-| `build-graph` | `author-architecture` | Users are authoring their architecture, not "building a graph" |
-| `extract-components` | `extract-architecture` | Extracting architecture from source code |
-| `query-graph` | `explore-architecture` | Users explore and query their documented architecture |
+| Original             | Refined                | Rationale                                                      |
+| -------------------- | ---------------------- | -------------------------------------------------------------- |
+| `build-graph`        | `author-architecture`  | Users are authoring their architecture, not "building a graph" |
+| `extract-components` | `extract-architecture` | Extracting architecture from source code                       |
+| `query-graph`        | `explore-architecture` | Users explore and query their documented architecture          |
 
 ### 2. Domain Folder Content
 
@@ -69,6 +69,7 @@ The Architect proposed use-cases that map 1:1 to CLI commands. Some of these are
 **Refinement:** Apply the menu test. What would appear in a "Riviere CLI Features" menu?
 
 User goals (keep as use-cases):
+
 - Initialize architecture documentation
 - Add a component
 - Link components
@@ -78,6 +79,7 @@ User goals (keep as use-cases):
 - Find orphaned components
 
 Internal machinery (move to domain or remove):
+
 - `check-consistency` - validation rule, not user goal
 - `component-checklist` - report format, not user goal
 - `component-summary` - report format, not user goal
@@ -100,6 +102,7 @@ Error handling moves to a cross-cutting concern in `platform/infra/error-boundar
 ### 1. Domain Isolation
 
 Current code in `add-component.ts` (lines 331-380) mixes:
+
 - CLI input parsing (infrastructure)
 - File I/O (infrastructure)
 - JSON parsing (infrastructure)
@@ -141,6 +144,7 @@ class Architecture {
 ### 2. Rich Domain Language
 
 Current names use technical jargon:
+
 - `RiviereBuilder` - programmer term
 - `RiviereQuery` - programmer term
 - `loadGraph` / `saveGraph` - technical operation names
@@ -148,13 +152,13 @@ Current names use technical jargon:
 
 **Refinement:** Use domain language that architects would recognize:
 
-| Current | Refined | Rationale |
-|---------|---------|-----------|
-| `RiviereBuilder` | `Architecture` or `ArchitectureEditor` | What it IS, not how it works |
-| `RiviereQuery` | `ArchitectureExplorer` | What users DO with it |
-| `loadGraph` | `openArchitecture` | Domain action |
-| `saveGraph` | `saveArchitecture` | Domain action |
-| `parseRiviereGraph` | internal to `openArchitecture` | Hidden implementation detail |
+| Current             | Refined                                | Rationale                    |
+| ------------------- | -------------------------------------- | ---------------------------- |
+| `RiviereBuilder`    | `Architecture` or `ArchitectureEditor` | What it IS, not how it works |
+| `RiviereQuery`      | `ArchitectureExplorer`                 | What users DO with it        |
+| `loadGraph`         | `openArchitecture`                     | Domain action                |
+| `saveGraph`         | `saveArchitecture`                     | Domain action                |
+| `parseRiviereGraph` | internal to `openArchitecture`         | Hidden implementation detail |
 
 Note: These are interface names for the CLI. The underlying library names (`RiviereBuilder`, `RiviereQuery`) are external dependencies and should be wrapped.
 
@@ -208,7 +212,7 @@ interface UIComponent {
   name: ComponentName
   domain: DomainName
   module: ModuleName
-  route: Route  // Required - guaranteed to exist
+  route: Route // Required - guaranteed to exist
   sourceLocation: SourceLocation
 }
 
@@ -217,7 +221,7 @@ interface APIComponent {
   name: ComponentName
   domain: DomainName
   module: ModuleName
-  apiType: ApiType  // Required - guaranteed to exist
+  apiType: ApiType // Required - guaranteed to exist
   httpMethod?: HttpMethod
   httpPath?: string
   sourceLocation: SourceLocation
@@ -264,10 +268,18 @@ class DomainName {
   }
 }
 
-class ModuleName { /* similar */ }
-class RepositoryUrl { /* similar */ }
-class ComponentName { /* similar */ }
-class Route { /* similar */ }
+class ModuleName {
+  /* similar */
+}
+class RepositoryUrl {
+  /* similar */
+}
+class ComponentName {
+  /* similar */
+}
+class Route {
+  /* similar */
+}
 ```
 
 ### 6. Aggregate Design
@@ -343,21 +355,24 @@ platform/infra/
 │   └── json-parser.ts         # parseJsonSafely
 ├── error-handling/
 │   └── error-message.ts       # getErrorMessage
-└── cli-presentation/
-    └── output-formatter.ts    # formatError, formatSuccess
+├── cli/
+│   └── output/
+│       └── output-formatter.ts    # formatError, formatSuccess
+└── middleware/
+    └── global-error-handler.ts
 ```
 
 ---
 
 ## Summary of Refinements
 
-| Area | Original | Refined |
-|------|----------|---------|
-| Feature names | Technical (build-graph) | User-oriented (author-architecture) |
-| Domain language | Programmer jargon (RiviereBuilder) | Domain terms (Architecture) |
-| Value objects | Primitives (string) | Domain types (DomainName) |
-| Business logic | In command handlers | In domain objects |
-| Aggregate design | None | Architecture as aggregate root |
-| Generic utilities | Mixed with domain | Isolated in platform/infra |
-| Component types | Registry mapping | Polymorphic discriminated union |
-| Error handling | Per-command | Centralized error boundary |
+| Area              | Original                           | Refined                             |
+| ----------------- | ---------------------------------- | ----------------------------------- |
+| Feature names     | Technical (build-graph)            | User-oriented (author-architecture) |
+| Domain language   | Programmer jargon (RiviereBuilder) | Domain terms (Architecture)         |
+| Value objects     | Primitives (string)                | Domain types (DomainName)           |
+| Business logic    | In command handlers                | In domain objects                   |
+| Aggregate design  | None                               | Architecture as aggregate root      |
+| Generic utilities | Mixed with domain                  | Isolated in platform/infra          |
+| Component types   | Registry mapping                   | Polymorphic discriminated union     |
+| Error handling    | Per-command                        | Centralized error boundary          |

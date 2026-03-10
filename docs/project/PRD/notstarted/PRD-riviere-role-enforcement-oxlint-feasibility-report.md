@@ -36,7 +36,7 @@ Representative examples:
 - entrypoint function: `packages/riviere-cli/src/features/extract/entrypoint/extract.ts:14`
 - command function: `packages/riviere-cli/src/features/extract/commands/run-extraction.ts:13`
 - query facade class: `packages/riviere-query/src/features/querying/queries/RiviereQuery.ts:117`
-- repository-style infra function: `packages/riviere-cli/src/platform/infra/extraction-config/config-loader.ts:146`
+- repository-style infra function: `packages/riviere-cli/src/platform/infra/persistence/extraction-config-repository.ts:143`
 
 ### What built-in Oxlint config cannot express cleanly
 
@@ -223,7 +223,7 @@ Limit the spike to the agreed first role slice from the role inventory draft:
 
 - `cli-shell`
 - `cli-entrypoint`
-- `command-orchestrator`
+- `command-use-case`
 - `query-service`
 - `query-facade`
 - `entity`
@@ -233,9 +233,9 @@ Limit the spike to the agreed first role slice from the role inventory draft:
 - `application-error`
 - `external-client`
 - `repository`
-- `cli-input-parser`
-- `cli-formatter`
-- `cli-presenter`
+- `cli-input-mapper`
+- `cli-output-formatter`
+- `cli-output-writer`
 
 ### Minimum spike deliverables
 

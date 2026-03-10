@@ -51,8 +51,8 @@ Reviewed: docs/design-reviews/riviere-cli/refined.md
 ### Component Display in explore-architecture/domain is Presentation Concern
 
 - **What's wrong:** `features/explore-architecture/domain/component-display.ts` sounds like presentation logic (how to display components), not domain logic.
-- **Why it matters:** Display/presentation logic belongs in entrypoint or infrastructure (cli-presentation), not domain. The domain should not know how components are rendered for CLI output.
-- **Suggested fix:** Move component display formatting to `platform/infra/cli-presentation/` or keep it in the entrypoint layer if it's command-specific.
+- **Why it matters:** Display/presentation logic belongs in entrypoint or infrastructure (`infra/cli/output/`), not domain. The domain should not know how components are rendered for CLI output.
+- **Suggested fix:** Move component display formatting to `platform/infra/cli/output/` or keep it in the entrypoint layer if it's command-specific.
 
 ### Use Case Missing: No Dedicated Use Cases for Multiple Entrypoints
 
