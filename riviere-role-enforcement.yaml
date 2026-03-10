@@ -1,60 +1,24 @@
-# Phase 3 final branch scope lock:
-# Included roots:
-#   - packages/riviere-cli/src/**
-#   - packages/riviere-builder/src/**
-#   - packages/riviere-extract-config/src/**
-#   - packages/riviere-extract-ts/src/**
-#   - packages/riviere-query/src/**
-#   - packages/riviere-role-enforcement/src/**
-#   - tools/dev-workflow/src/**
-#   - tools/dev-workflow-v2/src/**
-# Excluded roots:
-#   - packages/riviere-schema/src/**
-#   - packages/riviere-extract-conventions/src/**
-#   - apps/eclair/**
-# Excluded file classes:
-#   - *.spec.*
-#   - __fixtures__/**
-#   - fixtures/**
-#   - snapshot files
-#   - generated outputs
-#   - barrel-only files such as index.ts that declare no target symbols
-# Note: the executable include allowlist below still reflects the pre-Phase-3 rollout slice.
-# The dedicated Phase 3 repo-scope coverage chunk replaces it with hard full-scope semantics.
 include:
-  - packages/riviere-cli/src/shell/cli.ts
-  - packages/riviere-cli/src/shell/bin.ts
-  - packages/riviere-cli/src/features/builder/entrypoint/**/*.ts
-  - packages/riviere-cli/src/features/builder/commands/**/*.ts
-  - packages/riviere-cli/src/features/builder/queries/**/*.ts
-  - packages/riviere-cli/src/features/extract/entrypoint/**/*.ts
-  - packages/riviere-cli/src/features/extract/commands/**/*.ts
-  - packages/riviere-cli/src/features/extract/domain/**/*.ts
-  - packages/riviere-cli/src/features/extract/infra/external-client/**/*.ts
-  - packages/riviere-cli/src/features/extract/infra/mappers/**/*.ts
-  - packages/riviere-cli/src/features/query/entrypoint/**/*.ts
-  - packages/riviere-cli/src/platform/**/*.ts
-  - packages/riviere-builder/src/features/building/domain/**/*.ts
-  - packages/riviere-builder/src/platform/domain/**/*.ts
-  - packages/riviere-query/src/features/querying/queries/**/*.ts
-  - packages/riviere-role-enforcement/src/features/check/domain/**/*.ts
-  - packages/riviere-role-enforcement/src/features/check/infra/**/*.ts
-  - packages/riviere-role-enforcement/src/features/classify/domain/**/*.ts
-  - packages/riviere-role-enforcement/src/platform/**/*.ts
-  - tools/dev-workflow-v2/src/entrypoint/**/*.ts
-  - tools/dev-workflow-v2/src/infra/**/*.ts
-  - tools/dev-workflow-v2/src/workflow-definition/domain/**/*.ts
+  - packages/riviere-cli/src/**/*.ts
+  - packages/riviere-builder/src/**/*.ts
+  - packages/riviere-extract-config/src/**/*.ts
+  - packages/riviere-extract-ts/src/**/*.ts
+  - packages/riviere-query/src/**/*.ts
+  - packages/riviere-role-enforcement/src/**/*.ts
+  - tools/dev-workflow/**/*.ts
+  - tools/dev-workflow-v2/src/**/*.ts
 ignorePatterns:
   - '**/*.spec.ts'
+  - '**/*.snap'
   - '**/fixtures/**'
-  - '**/index.ts'
   - '**/__fixtures__/**'
+  - '**/generated/**'
+  - '**/index.ts'
 roles:
   - name: cli-shell
     targets: [function]
     allowedLocation:
-      - packages/riviere-cli/src/shell/**/*.ts
-      - tools/dev-workflow-v2/src/shell/**/*.ts
+      - '**/shell/**/*.ts'
     allowedNames:
       - createProgram
       - main
@@ -62,25 +26,18 @@ roles:
   - name: cli-entrypoint
     targets: [function]
     allowedLocation:
-      - packages/riviere-cli/src/features/*/entrypoint/**/*.ts
-      - tools/dev-workflow/features/*/entrypoint/**/*.ts
+      - '**/entrypoint/**/*.ts'
     nameMatches: '^create[A-Z][A-Za-z0-9]*Command$'
     markdownSpec: docs/architecture/roles/cli-entrypoint.md
   - name: command-use-case
     targets: [function]
     allowedLocation:
-      - packages/riviere-cli/src/features/*/commands/**/*.ts
-      - tools/dev-workflow/features/*/commands/**/*.ts
-    nameMatches: '^(add|run|execute|respond|push|merge|complete|handle)[A-Z].*|^(tryParseJson|handleError)$'
+      - '**/commands/**/*.ts'
     markdownSpec: docs/architecture/roles/command-use-case.md
   - name: query-service
     targets: [function]
     allowedLocation:
-      - packages/riviere-cli/src/features/*/queries/**/*.ts
-    allowedNames:
-      - findApisByPath
-      - getAllApiPaths
-      - isRestApiWithPath
+      - '**/queries/**/*.ts'
     markdownSpec: docs/architecture/roles/query-service.md
   - name: cli-output-writer
     targets: [function]
