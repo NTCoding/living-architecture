@@ -1,62 +1,61 @@
 import type { ResolvedExtractionConfig } from '@living-architecture/riviere-extract-config'
-import type { DraftComponent } from '@living-architecture/riviere-extract-ts'
-import { ExtractionFieldFailureError } from '../../../platform/infra/cli-presentation/error-codes'
-import type { ExtractOptions } from '../../../platform/infra/cli-presentation/extract-validator'
-import { loadDraftComponentsFromFile } from '../../../platform/infra/extraction-config/draft-component-loader'
+import { DraftComponentStore } from '../../../platform/infra/persistence/draft-component-store'
+import { ExtractionConfigRepository } from '../../../platform/infra/persistence/extraction-config-repository'
+import { resolveFilteredSourceFiles } from '../../../platform/infra/source-filtering/filter-source-files'
 import { getRepositoryInfo } from '../../../platform/infra/git/git-repository-info'
-import { createModuleContexts } from '../infra/external-clients/create-module-contexts'
-import { extractDraftComponents } from '../domain/extract-draft-components'
-import { enrichPerModule } from '../domain/enrich-per-module'
-import { detectConnectionsPerModule } from '../domain/detect-connections-per-module'
+import type { ExtractionExecutionOptions } from '../domain/extraction-execution-options'
+import { ModuleContextBuilder } from '../domain/module-context-builder'
+import { performExtraction } from '../domain/perform-extraction'
 import type { ExtractionResult } from '../domain/extraction-result'
+import { GlobFileSearcher } from '../infra/external-client/glob/glob-file-searcher'
+import { DefaultTsMorphProjectBuilder } from '../infra/external-client/ts-morph/default-ts-morph-project-builder'
 
-/** @riviere-role command-orchestrator */
-export function runExtraction(
-  options: ExtractOptions,
-  resolvedConfig: ResolvedExtractionConfig,
-  configDir: string,
-  sourceFilePaths: string[],
-): ExtractionResult {
+export interface RunExtractionCommandInput extends ExtractionExecutionOptions {
+  readonly configPath: string
+  readonly enrich?: string
+  readonly pr?: boolean
+  readonly base?: string
+  readonly files?: string[]
+  readonly tsConfig?: boolean
+}
+
+/** @riviere-role command-use-case */
+export function runExtraction(options: RunExtractionCommandInput): ExtractionResult {
+  const extractionConfigRepository = new ExtractionConfigRepository()
+  const {
+    resolvedConfig,
+    configDir,
+  }: {
+    resolvedConfig: ResolvedExtractionConfig
+    configDir: string
+  } = extractionConfigRepository.load(options.configPath)
+  const allSourceFilePaths = extractionConfigRepository.resolveSourceFiles(
+    resolvedConfig,
+    configDir,
+  )
+  const sourceFilePaths = resolveFilteredSourceFiles(allSourceFilePaths, options)
   const skipTsConfig = options.tsConfig === false
-  const moduleContexts = createModuleContexts(
+  const moduleContextBuilder = new ModuleContextBuilder(
+    new GlobFileSearcher(),
+    new DefaultTsMorphProjectBuilder(),
+  )
+  const moduleContexts = moduleContextBuilder.buildAll(
     resolvedConfig,
     configDir,
     sourceFilePaths,
     skipTsConfig,
   )
 
-  const draftComponents: DraftComponent[] =
-    options.enrich === undefined
-      ? extractDraftComponents(moduleContexts, resolvedConfig, configDir)
-      : loadDraftComponentsFromFile(options.enrich)
-
-  if (options.dryRun || options.format === 'markdown' || options.componentsOnly) {
-    return {
-      kind: 'draftOnly',
-      components: draftComponents,
-    }
-  }
-
-  const allowIncomplete = options.allowIncomplete === true
-  const enrichment = enrichPerModule(moduleContexts, draftComponents, resolvedConfig, configDir)
-
-  if (enrichment.failedFields.length > 0 && !allowIncomplete) {
-    throw new ExtractionFieldFailureError(enrichment.failedFields)
-  }
-
   const repositoryInfo = getRepositoryInfo()
-  const connectionResult = detectConnectionsPerModule(
-    moduleContexts,
-    enrichment.components,
-    repositoryInfo.name,
-    allowIncomplete,
-  )
 
-  return {
-    kind: 'full',
-    components: enrichment.components,
-    links: connectionResult.links,
-    timings: connectionResult.timings,
-    failedFields: enrichment.failedFields,
-  }
+  return performExtraction({
+    options,
+    moduleContexts,
+    resolvedConfig,
+    configDir,
+    repositoryName: repositoryInfo.name,
+    ...(options.enrich === undefined
+      ? {}
+      : { draftComponents: new DraftComponentStore().load(options.enrich) }),
+  })
 }

@@ -1,5 +1,5 @@
-import { git } from '../../../platform/infra/external-clients/git-client'
-import { github } from '../../../platform/infra/external-clients/github-rest-client'
+import { git } from '../../../platform/infra/external-client/git-client'
+import { github } from '../../../platform/infra/external-client/github-rest-client'
 import { runWorkflow } from '../../../platform/infra/workflow-execution/run-workflow'
 import { WorkflowError } from '../../../platform/domain/workflow-execution/workflow-runner'
 import { mergeCleanupContextSchema } from '../domain/merge-cleanup-context'

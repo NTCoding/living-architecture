@@ -26,4 +26,4 @@ export {
   createRoleClassifierResult,
   findRoleClassifierResult,
 } from './features/classify/domain/role-classifier-result'
-export { default as roleEnforcementOxlintPlugin } from './features/check/infra/oxlint-plugin'
+export { default as roleEnforcementOxlintPlugin } from './features/check/infra/external-client/oxlint/plugin'

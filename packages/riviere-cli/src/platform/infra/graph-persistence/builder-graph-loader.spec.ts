@@ -6,7 +6,7 @@ import {
 } from 'node:fs/promises'
 import { join } from 'node:path'
 import { withGraphBuilder } from './builder-graph-loader'
-import { CliErrorCode } from '../../../platform/infra/cli-presentation/error-codes'
+import { CliErrorCode } from '../../../platform/infra/cli/output/error-codes'
 import {
   type TestContext,
   createTestContext,

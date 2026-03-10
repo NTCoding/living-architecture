@@ -8,7 +8,7 @@ import {
   type EnrichedComponent,
   type ExtractedLink,
 } from '@living-architecture/riviere-extract-ts'
-import type { ModuleContext } from './extract-draft-components'
+import type { ModuleContext } from './module-context'
 
 export interface PerModuleConnectionResult {
   links: ExtractedLink[]

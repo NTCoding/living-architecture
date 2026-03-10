@@ -12,12 +12,12 @@ export interface ApiComponent {
   httpMethod: HttpMethod
 }
 
-/** @riviere-role cli-query-service */
+/** @riviere-role query-service */
 function isRestApiWithPath(component: Component): component is Component & ApiComponent {
   return component.type === 'API' && 'path' in component && 'httpMethod' in component
 }
 
-/** @riviere-role cli-query-service */
+/** @riviere-role query-service */
 export function findApisByPath(
   graph: RiviereGraph,
   path: string,
@@ -35,7 +35,7 @@ export function findApisByPath(
   return matchingPath
 }
 
-/** @riviere-role cli-query-service */
+/** @riviere-role query-service */
 export function getAllApiPaths(graph: RiviereGraph): string[] {
   const query = new RiviereQuery(graph)
   const allComponents = query.componentsByType('API')

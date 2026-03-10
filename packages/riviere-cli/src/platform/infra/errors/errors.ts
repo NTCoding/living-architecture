@@ -1,3 +1,5 @@
+import type { CliErrorCode } from '../cli/output/error-codes'
+
 /** @riviere-role application-error */
 export class InvalidPackageJsonError extends Error {
   constructor(reason: string) {
@@ -139,7 +141,27 @@ export class ModuleRefNotFoundError extends Error {
   }
 }
 
-/** @riviere-role cli-presenter */
+/** @riviere-role application-error */
+export class ExtractionFieldFailureError extends Error {
+  constructor(failedFields: string[]) {
+    const uniqueFields = [...new Set(failedFields)]
+    super(`Extraction failed for fields: ${uniqueFields.join(', ')}`)
+    this.name = 'ExtractionFieldFailureError'
+  }
+}
+
+/** @riviere-role application-error */
+export class ConfigValidationError extends Error {
+  readonly errorCode: CliErrorCode
+
+  constructor(code: CliErrorCode, message: string) {
+    super(message)
+    this.name = 'ConfigValidationError'
+    this.errorCode = code
+  }
+}
+
+/** @riviere-role cli-output-formatter */
 export function getErrorMessage(error: unknown): string {
   if (error instanceof Error) {
     return error.message

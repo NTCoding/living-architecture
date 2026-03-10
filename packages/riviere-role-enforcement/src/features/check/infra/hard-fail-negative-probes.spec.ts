@@ -19,7 +19,7 @@ function createCompiledConfig() {
         targets: ['function'],
         allowedLocation: ['packages/demo/src/shell/**/*.ts'],
         allowedNames: ['createProgram'],
-        markdownSpec: 'docs/roles/cli-shell.md',
+        markdownSpec: 'docs/architecture/roles/cli-shell.md',
       },
       {
         name: 'aggregate',
@@ -34,7 +34,7 @@ function createCompiledConfig() {
         targets: ['static-method'],
         allowedLocation: ['packages/demo/src/features/*/queries/**/*.ts'],
         allowedNames: ['fromJSON'],
-        markdownSpec: 'docs/roles/query-factory.md',
+        markdownSpec: 'docs/architecture/roles/query-factory.md',
       },
     ],
   }

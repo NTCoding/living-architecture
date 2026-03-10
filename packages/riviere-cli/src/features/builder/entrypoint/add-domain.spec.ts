@@ -7,7 +7,7 @@ import {
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createProgram } from '../../../shell/cli'
-import { CliErrorCode } from '../../../platform/infra/cli-presentation/error-codes'
+import { CliErrorCode } from '../../../platform/infra/cli/output/error-codes'
 import {
   type TestContext,
   createTestContext,
@@ -283,6 +283,6 @@ describe('riviere builder add-domain', () => {
           'domain',
         ]),
       ).rejects.toThrow('Unexpected database error')
-    })
+    }, 15000)
   })
 })

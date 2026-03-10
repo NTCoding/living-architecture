@@ -1,33 +1,15 @@
 import { Command } from 'commander'
-import {
-  getDefaultGraphPathDescription,
-  resolveGraphPath,
-} from '../../../platform/infra/graph-persistence/graph-path'
+import { getDefaultGraphPathDescription } from '../../../platform/infra/graph-persistence/graph-path'
 import { addComponent } from '../commands/add-component'
-
-interface CliOptions {
-  type: string
-  name: string
-  domain: string
-  module: string
-  repository: string
-  filePath: string
-  route?: string
-  apiType?: string
-  httpMethod?: string
-  httpPath?: string
-  operationName?: string
-  entity?: string
-  eventName?: string
-  eventSchema?: string
-  subscribedEvents?: string
-  customType?: string
-  customProperty: string[]
-  description?: string
-  lineNumber?: string
-  graph?: string
-  json?: boolean
-}
+import {
+  type AddComponentCliOptions,
+  buildAddComponentCommandInput,
+} from '../infra/cli/input/add-component-command-input'
+import {
+  reportAddComponentError,
+  reportGraphNotFound,
+  reportSuccessfulAddComponent,
+} from '../infra/cli/output/report-add-component-result'
 
 /** @riviere-role cli-entrypoint */
 export function createAddComponentCommand(): Command {
@@ -62,47 +44,19 @@ export function createAddComponentCommand(): Command {
     .option('--line-number <n>', 'Source line number')
     .option('--graph <path>', getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
-    .action(async (options: CliOptions) => {
-      const customProperty = options.customProperty
-      const commandInput = {
-        componentType: options.type,
-        name: options.name,
-        domain: options.domain,
-        module: options.module,
-        repository: options.repository,
-        filePath: options.filePath,
-        graphPath: resolveGraphPath(options.graph),
-        outputJson: options.json ?? false,
-      }
+    .action(async (options: AddComponentCliOptions) => {
+      try {
+        const commandInput = buildAddComponentCommandInput(options)
+        const result = await addComponent(commandInput)
 
-      if (options.lineNumber !== undefined) {
-        Object.assign(commandInput, { lineNumber: Number.parseInt(options.lineNumber, 10) })
-      }
-
-      const optionalStringFields = [
-        ['route', options.route],
-        ['apiType', options.apiType],
-        ['httpMethod', options.httpMethod],
-        ['httpPath', options.httpPath],
-        ['operationName', options.operationName],
-        ['entity', options.entity],
-        ['eventName', options.eventName],
-        ['eventSchema', options.eventSchema],
-        ['subscribedEvents', options.subscribedEvents],
-        ['customType', options.customType],
-        ['description', options.description],
-      ] as const
-
-      for (const [key, value] of optionalStringFields) {
-        if (value !== undefined) {
-          Object.assign(commandInput, { [key]: value })
+        if (result === null) {
+          reportGraphNotFound(commandInput.graphPath)
+          return
         }
-      }
 
-      if (customProperty.length > 0) {
-        Object.assign(commandInput, { customProperty })
+        reportSuccessfulAddComponent(result, options.json === true)
+      } catch (error) {
+        reportAddComponentError(error)
       }
-
-      await addComponent(commandInput)
     })
 }

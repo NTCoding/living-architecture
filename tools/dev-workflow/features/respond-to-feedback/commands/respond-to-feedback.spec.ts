@@ -9,7 +9,7 @@ const {
   mockResolveThread: vi.fn(),
 }))
 
-vi.mock('../../../platform/infra/external-clients/github-rest-client', () => ({
+vi.mock('../../../platform/infra/external-client/github-rest-client', () => ({
   github: {
     addThreadReply: mockAddThreadReply,
     resolveThread: mockResolveThread,

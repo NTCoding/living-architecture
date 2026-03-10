@@ -10,7 +10,7 @@ import {
   parseErrorOutput,
   parseCommandWithErrorHandling,
 } from '../../../platform/__fixtures__/command-test-fixtures'
-import { CliErrorCode } from '../../../platform/infra/cli-presentation/error-codes'
+import { CliErrorCode } from '../../../platform/infra/cli/output/error-codes'
 import {
   parseExtractionOutput,
   parseFullExtractionOutput,

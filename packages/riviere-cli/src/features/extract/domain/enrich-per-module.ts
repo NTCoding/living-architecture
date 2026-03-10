@@ -5,7 +5,7 @@ import {
   type DraftComponent,
   type EnrichedComponent,
 } from '@living-architecture/riviere-extract-ts'
-import type { ModuleContext } from './extract-draft-components'
+import type { ModuleContext } from './module-context'
 
 /** @riviere-role application-error */
 export class OrphanedDraftComponentError extends Error {

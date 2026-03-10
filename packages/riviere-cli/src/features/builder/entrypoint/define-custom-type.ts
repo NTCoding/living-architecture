@@ -4,10 +4,10 @@ import { getDefaultGraphPathDescription } from '../../../platform/infra/graph-pe
 import { withGraphBuilder } from '../../../platform/infra/graph-persistence/builder-graph-loader'
 import {
   formatError, formatSuccess 
-} from '../../../platform/infra/cli-presentation/output'
-import { CliErrorCode } from '../../../platform/infra/cli-presentation/error-codes'
-import { parsePropertySpecs } from '../../../platform/infra/cli-presentation/custom-type-parser'
-import { collectOption } from '../../../platform/infra/cli-presentation/option-collectors'
+} from '../../../platform/infra/cli/output/output'
+import { CliErrorCode } from '../../../platform/infra/cli/output/error-codes'
+import { parsePropertySpecs } from '../../../platform/infra/cli/input/custom-type-parser'
+import { collectOption } from '../../../platform/infra/cli/input/option-collectors'
 
 interface DefineCustomTypeOptions {
   name: string

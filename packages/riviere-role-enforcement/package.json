@@ -17,10 +17,10 @@
       "default": "./dist/index.js"
     },
     "./oxlint-plugin": {
-      "@living-architecture/source": "./src/features/check/infra/oxlint-plugin.ts",
-      "types": "./dist/features/check/infra/oxlint-plugin.d.ts",
-      "require": "./dist/features/check/infra/oxlint-plugin.cjs",
-      "default": "./dist/features/check/infra/oxlint-plugin.cjs"
+      "@living-architecture/source": "./src/features/check/infra/external-client/oxlint/plugin.ts",
+      "types": "./dist/features/check/infra/external-client/oxlint/plugin.d.ts",
+      "require": "./dist/features/check/infra/external-client/oxlint/plugin.cjs",
+      "default": "./dist/features/check/infra/external-client/oxlint/plugin.cjs"
     }
   },
   "files": [

@@ -57,7 +57,7 @@ describe('runRoleEnforcementCommand', () => {
       [
         `${mockTempDirectory}/oxlint-plugin.cjs`,
         expect.stringContaining(
-          'packages/riviere-role-enforcement/dist/features/check/infra/oxlint-plugin.cjs',
+          'packages/riviere-role-enforcement/dist/features/check/infra/external-client/oxlint/plugin.cjs',
         ),
       ],
       [

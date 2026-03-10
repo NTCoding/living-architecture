@@ -39,7 +39,7 @@ function createCompiledConfig() {
         targets: ['function'],
         allowedLocation: ['packages/demo/src/shell/**/*.ts'],
         allowedNames: ['createProgram', 'main'],
-        markdownSpec: 'docs/roles/cli-shell.md',
+        markdownSpec: 'docs/architecture/roles/cli-shell.md',
       },
       {
         name: 'query-facade',
@@ -47,7 +47,7 @@ function createCompiledConfig() {
         allowedLocation: ['packages/demo/src/features/*/queries/**/*.ts'],
         nameMatches: '^.*Query$',
         allowedPublicMethods: ['components', 'validate'],
-        markdownSpec: 'docs/roles/query-facade.md',
+        markdownSpec: 'docs/architecture/roles/query-facade.md',
       },
     ],
   }
@@ -69,7 +69,7 @@ function createManualCompiledConfig(): CompiledRoleEnforcementConfig {
         targets: ['function'],
         allowedLocation: ['packages/demo/src/shell/**/*.ts'],
         allowedLocationMatchers: [createPathMatcher('packages/demo/src/shell/**/*.ts')],
-        markdownSpec: 'docs/roles/fallback-role.md',
+        markdownSpec: 'docs/architecture/roles/fallback-role.md',
       },
     ],
   }
@@ -104,7 +104,7 @@ describe('checkTargetSymbol', () => {
           targets: ['function'],
           allowedLocation: ['packages/demo/src/shell/**/*.ts'],
           allowedNames: ['createProgram'],
-          markdownSpec: 'docs/roles/cli-shell.md',
+          markdownSpec: 'docs/architecture/roles/cli-shell.md',
         },
       ],
     })
@@ -138,7 +138,7 @@ describe('checkTargetSymbol', () => {
     expect(violation).toMatchObject({
       assignedRoleName: 'cli-shell',
       code: 'invalid-role-name',
-      markdownSpec: 'docs/roles/cli-shell.md',
+      markdownSpec: 'docs/architecture/roles/cli-shell.md',
       matchingRoles: ['cli-shell'],
       suggestedFix:
         "Keep role 'cli-shell', rename the symbol to an allowed name, and re-run validation.",
@@ -185,7 +185,7 @@ describe('checkTargetSymbol', () => {
       assignedRoleName: 'query-facade',
       code: 'disallowed-public-methods',
       disallowedPublicMethods: ['search'],
-      markdownSpec: 'docs/roles/query-facade.md',
+      markdownSpec: 'docs/architecture/roles/query-facade.md',
       matchingRoles: ['query-facade'],
       suggestedFix:
         "Next step for Claude: run 'riviere-role-classifier' before editing. Re-check the role markdown spec before changing the class API.",
@@ -321,7 +321,7 @@ describe('checkTargetSymbol', () => {
     expect(violation).toMatchObject({
       assignedRoleName: 'cli-shell',
       code: 'invalid-role-target-kind',
-      markdownSpec: 'docs/roles/cli-shell.md',
+      markdownSpec: 'docs/architecture/roles/cli-shell.md',
       matchingRoles: ['cli-shell'],
       suggestedFix:
         "Next step for Claude: run 'riviere-role-classifier' before editing. Keep the symbol in a supported target kind or choose a role that allows class targets.",
@@ -346,7 +346,7 @@ describe('checkTargetSymbol', () => {
     expect(violation).toMatchObject({
       assignedRoleName: 'cli-shell',
       code: 'invalid-role-location',
-      markdownSpec: 'docs/roles/cli-shell.md',
+      markdownSpec: 'docs/architecture/roles/cli-shell.md',
       matchingRoles: ['cli-shell'],
       suggestedFix:
         "Next step for Claude: run 'riviere-role-classifier' before editing. Move the symbol into an allowed location for 'cli-shell' or choose the correct role for this path.",
@@ -373,7 +373,7 @@ describe('checkTargetSymbol', () => {
             'tools/demo/src/platform/infra/**/*.ts',
           ],
           allowedNames: ['readState'],
-          markdownSpec: 'docs/roles/shared-reader.md',
+          markdownSpec: 'docs/architecture/roles/shared-reader.md',
         },
       ],
     })

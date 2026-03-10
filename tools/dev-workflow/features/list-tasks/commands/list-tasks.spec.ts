@@ -16,9 +16,9 @@ const {
   mockCli: { hasFlag: vi.fn() },
 }))
 
-vi.mock('../../../platform/infra/external-clients/github-rest-client', () => ({github: mockGithub,}))
+vi.mock('../../../platform/infra/external-client/github-rest-client', () => ({github: mockGithub,}))
 
-vi.mock('../../../platform/infra/external-clients/cli-args', () => ({ cli: mockCli }))
+vi.mock('../../../platform/infra/external-client/cli-args', () => ({ cli: mockCli }))
 
 vi.mock('../../../platform/domain/prd-milestones/active-prd-milestones', () => ({findActivePrdMilestones: () => ['phase-11-metadata-extraction'],}))
 

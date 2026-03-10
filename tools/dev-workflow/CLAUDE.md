@@ -20,7 +20,7 @@ START: I have a type, function, or constant
 Is it generic behavior of an external service?
 (Same for ALL users of git/GitHub/nx - ask: "Would the CEO of that service know what this is?")
 
-  YES → external-clients/
+  YES → external-client/
   NO  ↓
 
 Is it specific to ONE command only?
@@ -65,7 +65,7 @@ function formatInstructions(result) {
 }
 ```
 
-#### external-clients/ - Generic External Service Behavior ONLY
+#### external-client/ - Generic External Service Behavior ONLY
 
 Ask: "Is this behavior the same for EVERY user of git/GitHub/nx?"
 - YES → belongs in external-clients
@@ -186,7 +186,7 @@ if (!args.threadId) {
 External services (git, GitHub, nx, Claude, CLI) are wrapped in dedicated clients:
 
 ```text
-external-clients/
+external-client/
 ├── cli.ts      # CLI argument parsing
 ├── git.ts      # simple-git wrapper
 ├── github.ts   # Octokit wrapper
@@ -207,7 +207,7 @@ dev-workflow/
 │   ├── workflow-runner.ts   # Step/workflow types, generic runner
 │   ├── run-workflow.ts      # Entry point helper
 │   └── error-handler.ts     # Generic error handling
-├── external-clients/        # Generic external service behavior ONLY
+├── external-client/        # Generic external service behavior ONLY
 │   ├── cli.ts               # CLI argument parsing
 │   ├── git.ts               # simple-git wrapper (generic git ops)
 │   ├── github.ts            # Octokit wrapper (generic GitHub ops)
@@ -230,7 +230,7 @@ dev-workflow/
 
 **What goes where:**
 - `workflow-runner/` - Generic execution ONLY (no knowledge of steps or their meaning)
-- `external-clients/` - Generic service behavior (same for every user of git/GitHub/nx)
+- `external-client/` - Generic service behavior (same for every user of git/GitHub/nx)
 - `conventions/` - OUR project-specific conventions (branch naming, commit format)
 - `<command>/` - Everything specific to that command (context, steps, result formatting)
 

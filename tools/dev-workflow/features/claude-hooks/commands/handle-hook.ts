@@ -5,7 +5,7 @@ import type { HookOutput } from '../domain/hook-output-schemas'
 import { handlePreToolUse } from '../domain/handlers/pre-tool-use-handler'
 import { handlePostToolUse } from '../domain/handlers/post-tool-use-handler'
 import { handleStop } from '../domain/handlers/stop-handler'
-import { CLAUDE_SDK_AGENT_ENV_VAR } from '../../../platform/infra/external-clients/claude-agent'
+import { CLAUDE_SDK_AGENT_ENV_VAR } from '../../../platform/infra/external-client/claude-agent'
 
 export function shouldSkipHooks(): boolean {
   const sdkAgentEnv = process.env[CLAUDE_SDK_AGENT_ENV_VAR]

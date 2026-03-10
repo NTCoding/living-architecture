@@ -19,7 +19,7 @@ import { WORKFLOW_EVENT_SCHEMA } from './workflow-events'
 import {
   applyEvent, EMPTY_STATE 
 } from './fold'
-import type { PRFeedbackResult } from '../../infra/github/get-pr-feedback'
+import type { PRFeedbackResult } from '../../infra/external-client/github/get-pr-feedback'
 
 const RECORDING_OPS_MAP: Record<string, RecordingOpDefinition<readonly never[]>> = {
   'record-issue': {

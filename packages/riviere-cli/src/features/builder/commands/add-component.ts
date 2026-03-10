@@ -2,145 +2,63 @@ import {
   readFile, writeFile 
 } from 'node:fs/promises'
 import {
-  RiviereBuilder,
   CustomTypeNotFoundError,
   DomainNotFoundError,
   DuplicateComponentError,
+  RiviereBuilder,
 } from '@living-architecture/riviere-builder'
 import { parseRiviereGraph } from '@living-architecture/riviere-schema'
+import {
+  addComponentToBuilder,
+  type AddComponentInput as DomainInput,
+} from '../../../platform/domain/add-component'
 import { fileExists } from '../../../platform/infra/graph-persistence/file-existence'
-import {
-  formatError, formatSuccess 
-} from '../../../platform/infra/cli-presentation/output'
-import { CliErrorCode } from '../../../platform/infra/cli-presentation/error-codes'
-import {
-  isValidComponentType,
-  VALID_COMPONENT_TYPES,
-} from '../../../platform/infra/cli-presentation/component-types'
-import {
-  MissingRequiredOptionError,
-  InvalidCustomPropertyError,
-} from '../../../platform/infra/errors/errors'
-import { addComponentToBuilder } from '../../../platform/domain/add-component'
-import {
-  buildDomainInput,
-  type AddComponentInput,
-} from '../../../platform/infra/component-mapping/add-component-mapper'
 
-/** @riviere-role command-orchestrator */
-export async function addComponent(input: AddComponentInput): Promise<void> {
-  if (!isValidComponentType(input.componentType)) {
-    console.log(
-      JSON.stringify(
-        formatError(
-          CliErrorCode.ValidationError,
-          `Invalid component type: ${input.componentType}`,
-          [`Valid types: ${VALID_COMPONENT_TYPES.join(', ')}`],
-        ),
-      ),
-    )
-    return
+export {
+  CustomTypeNotFoundError, DomainNotFoundError, DuplicateComponentError 
+}
+
+/** @riviere-role application-error */
+export class InvalidGraphFileError extends Error {
+  constructor(graphPath: string) {
+    super(`Graph file contains invalid JSON: ${graphPath}`)
+    this.name = 'InvalidGraphFileError'
   }
+}
 
-  if (
-    input.lineNumber !== undefined &&
-    (!Number.isInteger(input.lineNumber) || input.lineNumber < 1)
-  ) {
-    console.log(
-      JSON.stringify(
-        formatError(
-          CliErrorCode.ValidationError,
-          'Invalid line number: must be a positive integer',
-          [],
-        ),
-      ),
-    )
-    return
-  }
+export interface AddComponentCommandInput {
+  graphPath: string
+  component: DomainInput
+}
 
+export interface AddComponentCommandResult {componentId: string}
+
+/** @riviere-role command-use-case */
+export async function addComponent(
+  input: AddComponentCommandInput,
+): Promise<AddComponentCommandResult | null> {
   const graphExists = await fileExists(input.graphPath)
+
   if (!graphExists) {
-    console.log(
-      JSON.stringify(
-        formatError(CliErrorCode.GraphNotFound, `Graph not found at ${input.graphPath}`, [
-          'Run riviere builder init first',
-        ]),
-      ),
-    )
-    return
+    return null
   }
 
   const content = await readFile(input.graphPath, 'utf-8')
-  const parsedContent = tryParseJson(content)
-  if (parsedContent === null) {
-    console.log(
-      JSON.stringify(
-        formatError(CliErrorCode.ValidationError, 'Graph file contains invalid JSON', [
-          'Ensure the graph file is valid JSON',
-        ]),
-      ),
-    )
-    return
-  }
+  const parsedContent = tryParseJson(content, input.graphPath)
   const graph = parseRiviereGraph(parsedContent)
   const builder = RiviereBuilder.resume(graph)
+  const componentId = addComponentToBuilder(builder, input.component)
 
-  try {
-    const domainInput = buildDomainInput(input)
-    const componentId = addComponentToBuilder(builder, domainInput)
-    await writeFile(input.graphPath, builder.serialize(), 'utf-8')
-    if (input.outputJson) {
-      console.log(JSON.stringify(formatSuccess({ componentId })))
-    }
-  } catch (error) {
-    handleError(error)
-  }
+  await writeFile(input.graphPath, builder.serialize(), 'utf-8')
+
+  return { componentId }
 }
 
-/** @riviere-role command-orchestrator */
-function tryParseJson(content: string): unknown | null {
+/** @riviere-role command-use-case */
+function tryParseJson(content: string, graphPath: string): unknown {
   try {
     return JSON.parse(content)
   } catch {
-    return null
+    throw new InvalidGraphFileError(graphPath)
   }
-}
-
-/** @riviere-role command-orchestrator */
-function handleError(error: unknown): void {
-  if (error instanceof MissingRequiredOptionError) {
-    console.log(JSON.stringify(formatError(CliErrorCode.ValidationError, error.message, [])))
-    return
-  }
-  if (error instanceof InvalidCustomPropertyError) {
-    console.log(JSON.stringify(formatError(CliErrorCode.ValidationError, error.message, [])))
-    return
-  }
-  if (error instanceof DomainNotFoundError) {
-    console.log(
-      JSON.stringify(
-        formatError(CliErrorCode.DomainNotFound, error.message, [
-          'Run riviere builder add-domain first',
-        ]),
-      ),
-    )
-    return
-  }
-  if (error instanceof CustomTypeNotFoundError) {
-    console.log(
-      JSON.stringify(
-        formatError(CliErrorCode.CustomTypeNotFound, error.message, [
-          'Run riviere builder add-custom-type first',
-        ]),
-      ),
-    )
-    return
-  }
-  /* v8 ignore start -- @preserve: DuplicateComponentError tested at entrypoint; defensive re-throw for unknown errors */
-  if (error instanceof DuplicateComponentError) {
-    console.log(JSON.stringify(formatError(CliErrorCode.DuplicateComponent, error.message, [])))
-    return
-  }
-  throw error
-  /* v8 ignore stop */
 }

@@ -4,7 +4,7 @@ import type {
 import { createWorkflowRunner } from '@ntcoding/agentic-workflow-builder/cli'
 import type { RunnerResult } from '@ntcoding/agentic-workflow-builder/cli'
 import type { WorkflowDeps } from '../../workflow-definition/domain/workflow'
-import { WORKFLOW_DEFINITION } from '../../workflow-definition/infra/workflow-definition'
+import { WORKFLOW_DEFINITION } from '../../workflow-definition/infra/external-client/agentic-workflow-builder/workflow-definition'
 import {
   ROUTES, HOOKS, preToolUseHandler 
 } from '../workflow-cli'

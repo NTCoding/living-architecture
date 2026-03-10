@@ -1,15 +1,10 @@
 import { Command } from 'commander'
 import {
-  loadAndValidateConfig,
-  resolveSourceFiles,
-} from '../../../platform/infra/extraction-config/config-loader'
-import { resolveFilteredSourceFiles } from '../../../platform/infra/source-filtering/filter-source-files'
-import {
   validateFlagCombinations,
   type ExtractOptions,
-} from '../../../platform/infra/cli-presentation/extract-validator'
+} from '../../../platform/infra/cli/input/extract-validator'
 import { runExtraction } from '../commands/run-extraction'
-import { presentExtractionResult } from '../infra/mappers/present-extraction-result'
+import { presentExtractionResult } from '../infra/cli/output/present-extraction-result'
 
 /** @riviere-role cli-entrypoint */
 export function createExtractCommand(): Command {
@@ -31,13 +26,20 @@ export function createExtractCommand(): Command {
     .action((options: ExtractOptions) => {
       validateFlagCombinations(options)
 
-      const {
-        resolvedConfig, configDir 
-      } = loadAndValidateConfig(options.config)
-      const allSourceFilePaths = resolveSourceFiles(resolvedConfig, configDir)
-      const sourceFilePaths = resolveFilteredSourceFiles(allSourceFilePaths, options)
-
-      const result = runExtraction(options, resolvedConfig, configDir, sourceFilePaths)
+      const result = runExtraction({
+        configPath: options.config,
+        ...(options.dryRun === undefined ? {} : { dryRun: options.dryRun }),
+        ...(options.componentsOnly === undefined ? {} : { componentsOnly: options.componentsOnly }),
+        ...(options.enrich === undefined ? {} : { enrich: options.enrich }),
+        ...(options.allowIncomplete === undefined
+          ? {}
+          : { allowIncomplete: options.allowIncomplete }),
+        ...(options.pr === undefined ? {} : { pr: options.pr }),
+        ...(options.base === undefined ? {} : { base: options.base }),
+        ...(options.files === undefined ? {} : { files: options.files }),
+        ...(options.format === undefined ? {} : { format: options.format }),
+        ...(options.tsConfig === undefined ? {} : { tsConfig: options.tsConfig }),
+      })
       presentExtractionResult(result, options)
     })
 }

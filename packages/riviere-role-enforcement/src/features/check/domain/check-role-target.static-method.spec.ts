@@ -13,14 +13,14 @@ function createCompiledConfig() {
         allowedLocation: ['packages/demo/src/features/*/queries/**/*.ts'],
         nameMatches: '^.*Query$',
         allowedPublicMethods: ['components', 'validate'],
-        markdownSpec: 'docs/roles/query-facade.md',
+        markdownSpec: 'docs/architecture/roles/query-facade.md',
       },
       {
         name: 'query-factory',
         targets: ['static-method'],
         allowedLocation: ['packages/demo/src/features/*/queries/**/*.ts'],
         allowedNames: ['fromJSON'],
-        markdownSpec: 'docs/roles/query-factory.md',
+        markdownSpec: 'docs/architecture/roles/query-factory.md',
       },
     ],
   }

@@ -1,4 +1,4 @@
-import { git } from '../../../platform/infra/external-clients/git-client'
+import { git } from '../../../platform/infra/external-client/git-client'
 
 const REFLECTION_DIR = 'docs/continuous-improvement/post-merge-reflections/'
 

@@ -9,7 +9,7 @@ import { RiviereQuery } from '@living-architecture/riviere-query'
 import {
   loadGraph, isLoadGraphError, withGraph 
 } from './query-graph-loader'
-import { CliErrorCode } from '../cli-presentation/error-codes'
+import { CliErrorCode } from '../cli/output/error-codes'
 import type { TestContext } from '../../__fixtures__/command-test-fixtures'
 import {
   createTestContext,

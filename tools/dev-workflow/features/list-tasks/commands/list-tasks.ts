@@ -1,6 +1,6 @@
 import { resolve } from 'node:path'
-import { github } from '../../../platform/infra/external-clients/github-rest-client'
-import { cli } from '../../../platform/infra/external-clients/cli-args'
+import { github } from '../../../platform/infra/external-client/github-rest-client'
+import { cli } from '../../../platform/infra/external-client/cli-args'
 import { findActivePrdMilestones } from '../../../platform/domain/prd-milestones/active-prd-milestones'
 import { createFetchMilestoneTasksStep } from '../domain/steps/fetch-milestone-tasks'
 import {

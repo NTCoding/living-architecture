@@ -17,7 +17,9 @@ function createOxlintConfig(configPath: string): string {
   writeFileSync(
     pluginShimPath,
     `module.exports = require(${JSON.stringify(
-      resolve('packages/riviere-role-enforcement/dist/features/check/infra/oxlint-plugin.cjs'),
+      resolve(
+        'packages/riviere-role-enforcement/dist/features/check/infra/external-client/oxlint/plugin.cjs',
+      ),
     )}).default\n`,
   )
 

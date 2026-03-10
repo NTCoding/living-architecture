@@ -6,12 +6,12 @@ import {
   resolveGraphPath,
 } from '../../../platform/infra/graph-persistence/graph-path'
 import { fileExists } from '../../../platform/infra/graph-persistence/file-existence'
-import { formatSuccess } from '../../../platform/infra/cli-presentation/output'
+import { formatSuccess } from '../../../platform/infra/cli/output/output'
 import {
   isValidLinkType,
   normalizeComponentType,
-} from '../../../platform/infra/cli-presentation/component-types'
-import { isValidHttpMethod } from '../../../platform/infra/cli-presentation/validation'
+} from '../../../platform/infra/cli/input/component-types'
+import { isValidHttpMethod } from '../../../platform/infra/cli/input/validation'
 import {
   loadGraphBuilder,
   reportGraphNotFound,
@@ -22,8 +22,8 @@ import {
 import {
   reportNoApiFoundForPath,
   reportAmbiguousApiMatch,
-} from '../../../platform/infra/cli-presentation/link-http-errors'
-import { validateOptions } from '../../../platform/infra/cli-presentation/link-http-validator'
+} from '../../../platform/infra/cli/output/link-http-errors'
+import { validateOptions } from '../../../platform/infra/cli/input/link-http-validator'
 
 interface LinkHttpOptions {
   path: string

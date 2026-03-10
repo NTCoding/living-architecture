@@ -6,15 +6,15 @@ import {
   resolveGraphPath,
 } from '../../../platform/infra/graph-persistence/graph-path'
 import { fileExists } from '../../../platform/infra/graph-persistence/file-existence'
-import { formatSuccess } from '../../../platform/infra/cli-presentation/output'
+import { formatSuccess } from '../../../platform/infra/cli/output/output'
 import {
   isValidLinkType,
   normalizeComponentType,
-} from '../../../platform/infra/cli-presentation/component-types'
+} from '../../../platform/infra/cli/input/component-types'
 import {
   validateComponentType,
   validateLinkType,
-} from '../../../platform/infra/cli-presentation/validation'
+} from '../../../platform/infra/cli/input/validation'
 import {
   loadGraphBuilder,
   reportGraphNotFound,

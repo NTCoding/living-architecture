@@ -23,7 +23,7 @@ vi.mock('@living-architecture/riviere-extract-ts', () => ({
 import {
   enrichPerModule, OrphanedDraftComponentError 
 } from './enrich-per-module'
-import type { ModuleContext } from './extract-draft-components'
+import { ModuleContext } from './module-context'
 
 const notUsedRule: ComponentRule = { notUsed: true }
 
@@ -43,11 +43,7 @@ function createModule(name: string): Module {
 }
 
 function createModuleContext(moduleName: string): ModuleContext {
-  return {
-    module: createModule(moduleName),
-    files: [],
-    project: Object.create(null),
-  }
+  return new ModuleContext(createModule(moduleName), [], Object.create(null))
 }
 
 function createDraft(domain: string, name: string): DraftComponent {

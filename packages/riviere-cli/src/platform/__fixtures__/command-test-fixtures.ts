@@ -1,13 +1,13 @@
 import {
-  mkdtemp, rm, mkdir, writeFile 
+  mkdir, mkdtemp, rm, writeFile 
 } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import {
-  vi, beforeEach, afterEach, expect, it 
+  afterEach, beforeEach, expect, it, vi 
 } from 'vitest'
 import { createProgram } from '../../shell/cli'
-import { handleGlobalError } from '../infra/cli-presentation/global-error-handler'
+import { handleGlobalError } from '../infra/middleware/global-error-handler'
 
 class ProcessExitError extends Error {
   constructor(public exitCode: number) {
@@ -348,7 +348,10 @@ export async function testCustomGraphPath<T>(
 }
 
 export function parseCommandWithErrorHandling(args: string[]): Promise<void> {
-  return createProgram().parseAsync(args).catch(handleGlobalError)
+  return createProgram()
+    .parseAsync(args)
+    .then(() => undefined)
+    .catch(handleGlobalError)
 }
 
 export function assertDefined<T>(

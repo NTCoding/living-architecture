@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { github } from '../../../platform/infra/external-clients/github-rest-client'
+import { github } from '../../../platform/infra/external-client/github-rest-client'
 import {
   respondToFeedbackInputSchema,
   responseActionSchema,

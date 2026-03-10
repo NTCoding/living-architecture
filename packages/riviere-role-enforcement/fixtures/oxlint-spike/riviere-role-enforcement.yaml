@@ -8,7 +8,7 @@ roles:
     allowedNames:
       - createProgram
       - main
-    markdownSpec: docs/roles/cli-shell.md
+    markdownSpec: docs/architecture/roles/cli-shell.md
   - name: aggregate
     targets: [class]
     allowedLocation:

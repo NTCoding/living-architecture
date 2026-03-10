@@ -9,7 +9,7 @@ const mockGit = vi.hoisted(() => ({
   branchFilesPriorToHead: vi.fn(),
 }))
 
-vi.mock('../../../platform/infra/external-clients/git-client', () => ({ git: mockGit }))
+vi.mock('../../../platform/infra/external-client/git-client', () => ({ git: mockGit }))
 
 import { executePushReflection } from './push-reflection'
 

@@ -17,7 +17,7 @@ describe('role classifier repository config', () => {
       ),
     ).toMatchObject({
       role: 'role-config-loader',
-      markdownSpec: 'docs/roles/role-config-loader.md',
+      markdownSpec: 'docs/architecture/roles/role-config-loader.md',
     })
     expect(
       findRoleClassifierResult(

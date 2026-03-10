@@ -47,14 +47,14 @@ const {
 }))
 
 vi.mock('node:fs/promises', () => ({ mkdir: mockMkdir }))
-vi.mock('../../../platform/infra/external-clients/git-client', () => ({ git: mockGit }))
-vi.mock('../../../platform/infra/external-clients/github-rest-client', () => ({github: mockGitHub,}))
-vi.mock('../../../platform/infra/external-clients/gh-cli', () => ({ ghCli: mockGhCli }))
+vi.mock('../../../platform/infra/external-client/git-client', () => ({ git: mockGit }))
+vi.mock('../../../platform/infra/external-client/github-rest-client', () => ({github: mockGitHub,}))
+vi.mock('../../../platform/infra/external-client/gh-cli', () => ({ ghCli: mockGhCli }))
 vi.mock('../../../platform/infra/workflow-execution/run-workflow', () => ({runWorkflow: mockRunWorkflow,}))
-vi.mock('../../../platform/infra/external-clients/cli-args', () => ({ cli: mockCli }))
-vi.mock('../../../platform/infra/external-clients/claude-agent', () => ({ claude: mockClaude }))
-vi.mock('../../../platform/infra/external-clients/nx-runner', () => ({ nx: mockNx }))
-vi.mock('../../../platform/infra/external-clients/github-graphql-client', () => ({fetchRawPRFeedback: mockFetchRawPRFeedback,}))
+vi.mock('../../../platform/infra/external-client/cli-args', () => ({ cli: mockCli }))
+vi.mock('../../../platform/infra/external-client/claude-agent', () => ({ claude: mockClaude }))
+vi.mock('../../../platform/infra/external-client/nx-runner', () => ({ nx: mockNx }))
+vi.mock('../../../platform/infra/external-client/github-graphql-client', () => ({fetchRawPRFeedback: mockFetchRawPRFeedback,}))
 
 import {
   executeCompleteTask, resolveTimingsFilePath, resolveOutputFilePath 

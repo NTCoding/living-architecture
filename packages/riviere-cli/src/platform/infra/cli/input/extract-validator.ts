@@ -1,0 +1,79 @@
+import { CliErrorCode } from '../output/error-codes'
+import { ConfigValidationError } from '../../errors/errors'
+
+export interface ExtractOptions {
+  config: string
+  dryRun?: boolean
+  output?: string
+  componentsOnly?: boolean
+  enrich?: string
+  allowIncomplete?: boolean
+  pr?: boolean
+  base?: string
+  files?: string[]
+  format?: string
+  stats?: boolean
+  patterns?: boolean
+  tsConfig?: boolean
+}
+
+/** @riviere-role cli-input-mapper */
+function rejectMutuallyExclusive(
+  flagA: string,
+  flagB: string,
+  aPresent: boolean,
+  bPresent: boolean,
+): void {
+  if (aPresent && bPresent) {
+    throw new ConfigValidationError(
+      CliErrorCode.ValidationError,
+      `${flagA} and ${flagB} cannot be used together`,
+    )
+  }
+}
+
+/** @riviere-role cli-input-mapper */
+function validateMutualExclusions(options: ExtractOptions): void {
+  rejectMutuallyExclusive(
+    '--components-only',
+    '--enrich',
+    options.componentsOnly === true,
+    options.enrich !== undefined,
+  )
+  rejectMutuallyExclusive('--pr', '--files', options.pr === true, options.files !== undefined)
+  rejectMutuallyExclusive('--pr', '--enrich', options.pr === true, options.enrich !== undefined)
+  rejectMutuallyExclusive(
+    '--files',
+    '--enrich',
+    options.files !== undefined,
+    options.enrich !== undefined,
+  )
+}
+
+/** @riviere-role cli-input-mapper */
+function validateFormatOption(options: ExtractOptions): void {
+  if (options.format !== undefined && options.format !== 'json' && options.format !== 'markdown') {
+    throw new ConfigValidationError(
+      CliErrorCode.ValidationError,
+      `Invalid format '${options.format}'. Must be 'json' or 'markdown'.`,
+    )
+  }
+  if (options.format === 'markdown' && !options.pr && options.files === undefined) {
+    throw new ConfigValidationError(
+      CliErrorCode.ValidationError,
+      '--format markdown requires --pr or --files',
+    )
+  }
+}
+
+/** @riviere-role cli-input-mapper */
+export function validateFlagCombinations(options: ExtractOptions): void {
+  validateMutualExclusions(options)
+  if (options.base !== undefined && !options.pr) {
+    throw new ConfigValidationError(
+      CliErrorCode.ValidationError,
+      '--base can only be used with --pr',
+    )
+  }
+  validateFormatOption(options)
+}

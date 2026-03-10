@@ -3,8 +3,8 @@ import {
   ComponentNotFoundError, RiviereBuilder 
 } from '@living-architecture/riviere-builder'
 import { parseRiviereGraph } from '@living-architecture/riviere-schema'
-import { formatError } from '../cli-presentation/output'
-import { CliErrorCode } from '../cli-presentation/error-codes'
+import { formatError } from '../cli/output/output'
+import { CliErrorCode } from '../cli/output/error-codes'
 import { resolveGraphPath } from './graph-path'
 import { fileExists } from './file-existence'
 

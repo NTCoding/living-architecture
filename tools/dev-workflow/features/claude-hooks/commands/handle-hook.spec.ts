@@ -5,7 +5,7 @@ import {
   shouldSkipHooks, parseHookInput, routeToHandler 
 } from './handle-hook'
 import type { PreToolUseInput } from '../domain/hook-input-schemas'
-import { CLAUDE_SDK_AGENT_ENV_VAR } from '../../../platform/infra/external-clients/claude-agent'
+import { CLAUDE_SDK_AGENT_ENV_VAR } from '../../../platform/infra/external-client/claude-agent'
 
 describe('shouldSkipHooks', () => {
   afterEach(() => {

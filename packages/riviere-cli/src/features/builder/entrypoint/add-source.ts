@@ -1,6 +1,6 @@
 import { Command } from 'commander'
 import { writeFile } from 'node:fs/promises'
-import { formatSuccess } from '../../../platform/infra/cli-presentation/output'
+import { formatSuccess } from '../../../platform/infra/cli/output/output'
 import { getDefaultGraphPathDescription } from '../../../platform/infra/graph-persistence/graph-path'
 import { withGraphBuilder } from '../../../platform/infra/graph-persistence/builder-graph-loader'
 

@@ -21,9 +21,9 @@ const {
 
 const { mockRunWorkflow } = vi.hoisted(() => ({ mockRunWorkflow: vi.fn() }))
 
-vi.mock('../../../platform/infra/external-clients/git-client', () => ({git: { currentBranch: mockCurrentBranch },}))
+vi.mock('../../../platform/infra/external-client/git-client', () => ({git: { currentBranch: mockCurrentBranch },}))
 
-vi.mock('../../../platform/infra/external-clients/github-rest-client', () => ({
+vi.mock('../../../platform/infra/external-client/github-rest-client', () => ({
   github: {
     getPRWithState: mockGetPRWithState,
     findPRForBranchWithState: mockFindPRForBranchWithState,
@@ -32,7 +32,7 @@ vi.mock('../../../platform/infra/external-clients/github-rest-client', () => ({
   },
 }))
 
-vi.mock('../../../platform/infra/external-clients/cli-args', () => ({
+vi.mock('../../../platform/infra/external-client/cli-args', () => ({
   cli: {
     hasFlag: mockHasFlag,
     parseArg: mockParseArg,
@@ -41,7 +41,7 @@ vi.mock('../../../platform/infra/external-clients/cli-args', () => ({
 
 vi.mock('../../../platform/infra/workflow-execution/run-workflow', () => ({runWorkflow: mockRunWorkflow,}))
 
-vi.mock('../../../platform/infra/external-clients/github-graphql-client', () => ({fetchRawPRFeedback: vi.fn(),}))
+vi.mock('../../../platform/infra/external-client/github-graphql-client', () => ({fetchRawPRFeedback: vi.fn(),}))
 
 import { executeGetPRFeedback } from './get-pr-feedback'
 
