@@ -1,16 +1,20 @@
-import { formatSuccess } from '../../../../platform/infra/cli-presentation/output'
-import { formatPrMarkdown } from '../../../../platform/infra/cli-presentation/format-pr-markdown'
-import { formatDryRunOutput } from '../../../../platform/infra/cli-presentation/extract-output-formatter'
-import { outputResult } from '../../../../platform/infra/cli-presentation/output-writer'
+import { categorizeComponents } from '../../../../../platform/infra/cli-presentation/categorize-components'
 import {
   countLinksByType,
   formatExtractionStats,
   formatTimingLine,
-} from '../../../../platform/infra/cli-presentation/format-extraction-stats'
-import { categorizeComponents } from '../../../../platform/infra/cli-presentation/categorize-components'
-import type { ExtractionResult } from '../../domain/extraction-result'
-import type { ExtractOptions } from '../../../../platform/infra/cli-presentation/extract-validator'
+} from '../../../../../platform/infra/cli-presentation/format-extraction-stats'
+import { formatDryRunOutput } from '../../../../../platform/infra/cli-presentation/extract-output-formatter'
+import { formatPrMarkdown } from '../../../../../platform/infra/cli-presentation/format-pr-markdown'
+import { formatSuccess } from '../../../../../platform/infra/cli-presentation/output'
+import { outputResult } from '../../../../../platform/infra/cli-presentation/output-writer'
+import type { ExtractOptions } from '../../../../../platform/infra/cli-presentation/extract-validator'
+import type { EnrichDraftComponentsResult } from '../../../commands/enrich-draft-components-result'
+import type { ExtractDraftComponentsResult } from '../../../commands/extract-draft-components-result'
 
+type ExtractionResult = ExtractDraftComponentsResult | EnrichDraftComponentsResult
+
+/** @riviere-role cli-output-formatter */
 export function presentExtractionResult(result: ExtractionResult, options: ExtractOptions): void {
   if (result.kind === 'draftOnly') {
     presentDraftResult(result.components, options)
@@ -40,7 +44,7 @@ function presentDraftResult(
     return
   }
 
-  outputResult(formatSuccess(components), { output: options.output })
+  outputResult(formatSuccess(components), createOutputOptions(options.output))
 }
 
 function presentFullResult(
@@ -68,6 +72,10 @@ function presentFullResult(
       components: result.components,
       links: result.links,
     }),
-    { output: options.output },
+    createOutputOptions(options.output),
   )
+}
+
+function createOutputOptions(outputPath: string | undefined): { output?: string } {
+  return outputPath === undefined ? {} : { output: outputPath }
 }

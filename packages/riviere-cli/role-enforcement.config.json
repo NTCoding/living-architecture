@@ -1,5 +1,4 @@
 {
-  "$schema": "../riviere-role-enforcement/role-enforcement.schema.json",
   "include": [
     "src/features/extract/entrypoint/extract.ts",
     "src/features/extract/commands/**/*.ts",

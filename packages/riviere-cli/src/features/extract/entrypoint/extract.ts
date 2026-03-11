@@ -1,16 +1,17 @@
 import { Command } from 'commander'
 import {
-  loadAndValidateConfig,
-  resolveSourceFiles,
-} from '../../../platform/infra/extraction-config/config-loader'
-import { resolveFilteredSourceFiles } from '../../../platform/infra/source-filtering/filter-source-files'
-import {
   validateFlagCombinations,
   type ExtractOptions,
 } from '../../../platform/infra/cli-presentation/extract-validator'
-import { runExtraction } from '../commands/run-extraction'
-import { presentExtractionResult } from '../infra/mappers/present-extraction-result'
+import { enrichDraftComponents } from '../commands/enrich-draft-components'
+import { extractDraftComponents } from '../commands/extract-draft-components'
+import {
+  createEnrichDraftComponentsInput,
+  createExtractDraftComponentsInput,
+} from '../infra/cli/input/create-extract-command-inputs'
+import { presentExtractionResult } from '../infra/cli/output/present-extraction-result'
 
+/** @riviere-role cli-entrypoint */
 export function createExtractCommand(): Command {
   return new Command('extract')
     .description('Extract architectural components from source code')
@@ -30,13 +31,10 @@ export function createExtractCommand(): Command {
     .action((options: ExtractOptions) => {
       validateFlagCombinations(options)
 
-      const {
-        resolvedConfig, configDir 
-      } = loadAndValidateConfig(options.config)
-      const allSourceFilePaths = resolveSourceFiles(resolvedConfig, configDir)
-      const sourceFilePaths = resolveFilteredSourceFiles(allSourceFilePaths, options)
-
-      const result = runExtraction(options, resolvedConfig, configDir, sourceFilePaths)
+      const result =
+        options.enrich === undefined
+          ? extractDraftComponents(createExtractDraftComponentsInput(options))
+          : enrichDraftComponents(createEnrichDraftComponentsInput(options, options.enrich))
       presentExtractionResult(result, options)
     })
 }
