@@ -21,6 +21,13 @@
         "command": "pnpm knip",
         "cwd": "{workspaceRoot}"
       }
+    },
+    "role-check": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm exec tsx packages/riviere-role-enforcement/src/bin.ts packages/riviere-cli/role-enforcement.config.json",
+        "cwd": "{workspaceRoot}"
+      }
     }
   }
 }

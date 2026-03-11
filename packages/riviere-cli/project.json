@@ -37,10 +37,7 @@
     "smoke-test": {
       "executor": "nx:run-commands",
       "options": {
-        "commands": [
-          "node dist/bin.js --help",
-          "node dist/bin.js extract --help"
-        ],
+        "commands": ["node dist/bin.js --help", "node dist/bin.js extract --help"],
         "cwd": "{projectRoot}",
         "parallel": false
       },

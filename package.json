@@ -8,11 +8,12 @@
     "build:deploy": "cd packages/riviere-schema && npx tsc --build tsconfig.lib.json && cd ../riviere-query && npx tsc --build tsconfig.lib.json && cd ../../apps/docs && cp ../../packages/riviere-cli/docs/workflow/step-*.md extract/ai-assisted/ && cp ../../packages/riviere-cli/docs/generated/cli-reference.md reference/cli/cli-reference.md && NODE_OPTIONS='--max-old-space-size=4096' npx vitepress build && cd ../eclair && npx vite build && cd ../.. && rm -rf dist && mkdir -p dist/eclair && cp -r apps/docs/.vitepress/dist/* dist/ && cp -r apps/eclair/dist/* dist/eclair/",
     "test": "nx run-many -t test",
     "lint": "nx run-many -t lint",
+    "role-check": "nx run @living-architecture/source:role-check",
     "typecheck": "nx run-many -t typecheck",
     "knip": "knip",
     "lint:md": "markdownlint-cli2 \"**/*.md\" \"!**/node_modules/**\"",
     "depcruise": "depcruise --config .dependency-cruiser.mjs packages/*/src tools/dev-workflow && depcruise --config .dependency-cruiser.frontend.mjs apps/eclair/src && depcruise --config .dependency-cruiser.specs.mjs packages/*/src tools/dev-workflow apps/eclair/src",
-    "verify": "nx run-many -t lint-md build depcruise lint typecheck test check-generated-docs knip",
+    "verify": "nx run-many -t lint-md role-check build depcruise lint typecheck test check-generated-docs knip",
     "prepare": "husky"
   },
   "lint-staged": {
