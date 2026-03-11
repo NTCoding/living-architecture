@@ -109,6 +109,7 @@ Currently approved role names from review:
 - `command-use-case-input`
 - `command-use-case-result`
 - `external-client-service`
+- `cli-output-formatter`
 
 All other Phase 1 roles still require human naming approval.
 
@@ -197,6 +198,28 @@ The following responsibility groups need approved generic role names before impl
 - `detectConnectionsPerModule(...)` exposes an implementation detail in the API; the domain concept should be connection detection on the aggregate rather than `per-module` plumbing
 - once the aggregate is identified, behavior may belong either on the aggregate itself or on a `domain-service` operating on that aggregate
 - current direction: start by modeling enrichment behavior as a method on the aggregate rather than as a free function over decomposed state
+- current direction: `extractDraftComponents(...)` should also start as a method on the aggregate, likely `ExtractionProject.extractDraftComponents(...)`, rather than as a free function over decomposed state
+- `ModuleContext` remains a warning sign and should not remain as an unowned bag of state passed between layers
+- `extractDraftComponents(...)` currently looks like procedural plumbing around lower-level extraction behavior rather than a well-shaped boundary
+- current direction: the aggregate should expose two public operations in sequence: `extractDraftComponents(...)` as the first step, then `enrichComponents(...)` as the second step
+- lower-level deterministic extraction logic such as `extractComponents(...)` can remain beneath the aggregate boundary as internal domain logic or a domain service
+- current direction: the current `runExtraction` flow likely hides two distinct command use cases rather than one
+- entrypoints must not compose multiple use cases; if composition is needed, that is a design warning sign that the boundary is wrong
+- likely split:
+  - `extract-draft-components` as one `command-use-case`
+  - `enrich-draft-components` as a second `command-use-case`
+- based on the current code, `detect-connections` is not yet a standalone `command-use-case`
+- current code requires enrichment output before connection detection can run
+- therefore connection detection currently belongs inside the second use case rather than as a third independently invokable use case
+- each command use case may load the aggregate through a different repository method
+- accepted CLI compromise for now: keep a single `extract` CLI command for user ergonomics
+- the `extract` entrypoint may choose which single `command-use-case` to invoke based on validated flags
+- this is an intentional UX trade-off rather than the ideal architectural shape
+- even with one CLI command, each invocation should still dispatch to exactly one `command-use-case`
+- likely repository-level distinction:
+  - load from source/project state for fresh draft extraction
+  - load from persisted draft state for enrichment/resume flows
+- this better preserves the difference between computing draft state and reloading existing draft state
 
 ### Role Enforcement Rules Confirmed During Review
 
@@ -221,6 +244,19 @@ The following responsibility groups need approved generic role names before impl
   - `createConfiguredProject(...)`
   - `loadExtractionProject(...)`
 - these helpers should not be treated as repositories; they are technical services used behind a repository boundary
+
+### CLI Output Rules Confirmed During Review
+
+- approved role: `cli-output-formatter`
+- generic location rule: `/infra/cli/output/{formatter}.ts`
+- presenters in the CLI should use this role instead of a generic presenter role
+- current likely candidate for this role:
+  - `packages/riviere-cli/src/features/extract/infra/mappers/present-extraction-result.ts`
+- current refactoring notes:
+  - it should move out of `infra/mappers`
+  - it should live under the CLI output boundary
+  - it should not depend on the raw CLI options object
+  - it should format `command-use-case-result`, not a domain result type
 
 - `packages/riviere-cli/src/features/extract/domain/extract-draft-components.ts`
   - responsibility: performs the first core transformation from analysis context to draft artifacts
