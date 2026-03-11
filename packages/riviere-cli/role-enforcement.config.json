@@ -1,0 +1,43 @@
+{
+  "$schema": "../riviere-role-enforcement/role-enforcement.schema.json",
+  "include": [
+    "src/features/extract/entrypoint/extract.ts",
+    "src/features/extract/commands/**/*.ts",
+    "src/features/extract/infra/cli/output/**/*.ts"
+  ],
+  "ignorePatterns": ["**/*.spec.ts", "**/__fixtures__/**"],
+  "roles": [
+    {
+      "name": "cli-entrypoint",
+      "targets": ["function"],
+      "allowedLocation": ["src/**/entrypoint/*.ts"],
+      "allowedNames": ["createExtractCommand"]
+    },
+    {
+      "name": "command-use-case",
+      "targets": ["function"],
+      "allowedLocation": ["src/**/commands/*.ts"],
+      "allowedNames": ["extractDraftComponents", "enrichDraftComponents"],
+      "allowedInputs": ["command-use-case-input"],
+      "allowedOutputs": ["command-use-case-result"]
+    },
+    {
+      "name": "command-use-case-input",
+      "targets": ["interface", "type-alias"],
+      "allowedLocation": ["src/**/commands/*.ts"],
+      "nameMatches": ".*Input$"
+    },
+    {
+      "name": "command-use-case-result",
+      "targets": ["interface", "type-alias"],
+      "allowedLocation": ["src/**/commands/*.ts"],
+      "nameMatches": ".*Result$"
+    },
+    {
+      "name": "cli-output-formatter",
+      "targets": ["function"],
+      "allowedLocation": ["src/**/infra/cli/output/*.ts"],
+      "allowedNames": ["presentExtractionResult"]
+    }
+  ]
+}
