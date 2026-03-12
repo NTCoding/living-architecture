@@ -4,9 +4,7 @@ import { fileURLToPath } from 'node:url'
 import Ajv2020 from 'ajv/dist/2020'
 import addFormats from 'ajv-formats'
 import type { ErrorObject } from 'ajv'
-import type {
-  RoleDefinition, RoleEnforcementConfig 
-} from './role-enforcement-config'
+import type * as roleConfig from './role-enforcement-config'
 import { RoleEnforcementConfigError } from './role-enforcement-config-error'
 
 const ajv = new Ajv2020({
@@ -18,10 +16,10 @@ addFormats(ajv)
 const currentDir = path.dirname(fileURLToPath(import.meta.url))
 const schemaPath = path.resolve(currentDir, '..', '..', 'role-enforcement.schema.json')
 const schema = readSchema(schemaPath)
-const validateSchema = ajv.compile<RoleEnforcementConfig>(schema)
+const validateSchema = ajv.compile<roleConfig.RoleEnforcementConfig>(schema)
 
 export interface LoadedRoleEnforcementConfig {
-  config: RoleEnforcementConfig
+  config: roleConfig.RoleEnforcementConfig
   configDir: string
   configPath: string
 }
@@ -50,6 +48,7 @@ function readConfigJson(configPath: string): unknown {
 
 function readSchema(schemaFilePath: string): object {
   const parsedSchema: unknown = JSON.parse(readFileSync(schemaFilePath, 'utf8'))
+  /* v8 ignore next -- @preserve: bundled schema file is guaranteed to be an object */
   if (!isObjectRecord(parsedSchema)) {
     throw new RoleEnforcementConfigError('Invalid role enforcement config schema.')
   }
@@ -57,10 +56,11 @@ function readSchema(schemaFilePath: string): object {
   return parsedSchema
 }
 
-function validateRoleEnforcementConfig(config: unknown): RoleEnforcementConfig {
+function validateRoleEnforcementConfig(config: unknown): roleConfig.RoleEnforcementConfig {
   const valid = validateSchema(config)
   if (!valid) {
     throw new RoleEnforcementConfigError(
+      /* v8 ignore next -- @preserve: Ajv always provides concrete error entries for invalid configs in this package */
       `Invalid role enforcement config: ${formatSchemaErrors(validateSchema.errors ?? []).join('; ')}`,
     )
   }
@@ -75,7 +75,7 @@ function validateRoleEnforcementConfig(config: unknown): RoleEnforcementConfig {
   return config
 }
 
-function validateRoleDefinition(role: RoleDefinition, index: number): string[] {
+function validateRoleDefinition(role: roleConfig.RoleDefinition, index: number): string[] {
   const errorMessages: string[] = []
   if (role.allowedNames === undefined && role.nameMatches === undefined) {
     errorMessages.push(
@@ -105,6 +105,7 @@ function validateRoleDefinition(role: RoleDefinition, index: number): string[] {
 function formatSchemaErrors(errors: ErrorObject[]): string[] {
   return errors.map(
     (error) =>
+      /* v8 ignore next -- @preserve: Ajv always populates message for generated validation errors here */
       `${formatInstancePath(error.instancePath)}: ${error.message ?? 'Schema validation failed.'}`,
   )
 }
@@ -118,6 +119,7 @@ function formatInstancePath(instancePath: string): string {
 }
 
 function readConfigReadFailure(error: unknown): string {
+  /* v8 ignore next -- @preserve: JSON/file parsing in Node always throws Error instances here */
   return error instanceof Error ? error.message : 'Unknown config read failure.'
 }
 

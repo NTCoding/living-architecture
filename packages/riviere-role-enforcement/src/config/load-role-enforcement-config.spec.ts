@@ -98,3 +98,64 @@ it('rejects roles declaring both allowedNames and nameMatches', () => {
     recursive: true,
   })
 })
+
+it('rejects invalid regular expressions in nameMatches', () => {
+  const configPath = createTempConfigFile(
+    JSON.stringify({
+      ignorePatterns: [],
+      include: ['src/**/*.ts'],
+      roles: [
+        {
+          allowedLocation: ['src/commands/*.ts'],
+          name: 'command-use-case',
+          nameMatches: '[',
+          targets: ['function'],
+        },
+      ],
+    }),
+  )
+
+  expect(() => loadRoleEnforcementConfig(configPath)).toThrowError(
+    new RoleEnforcementConfigError(
+      "Invalid role enforcement config: roles.0.nameMatches: '[' is not a valid regular expression.",
+    ),
+  )
+
+  rmSync(path.dirname(configPath), {
+    force: true,
+    recursive: true,
+  })
+})
+
+it('rejects malformed json files', () => {
+  const configPath = createTempConfigFile('{')
+
+  expect(() => loadRoleEnforcementConfig(configPath)).toThrowError(RoleEnforcementConfigError)
+
+  rmSync(path.dirname(configPath), {
+    force: true,
+    recursive: true,
+  })
+})
+
+it('reports root-level schema violations', () => {
+  const configPath = createTempConfigFile(
+    JSON.stringify({
+      extra: true,
+      ignorePatterns: [],
+      include: ['src/**/*.ts'],
+      roles: [],
+    }),
+  )
+
+  expect(() => loadRoleEnforcementConfig(configPath)).toThrowError(
+    new RoleEnforcementConfigError(
+      'Invalid role enforcement config: $: must NOT have additional properties; roles: must NOT have fewer than 1 items',
+    ),
+  )
+
+  rmSync(path.dirname(configPath), {
+    force: true,
+    recursive: true,
+  })
+})

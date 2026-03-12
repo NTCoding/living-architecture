@@ -1,6 +1,7 @@
 import {
   readdirSync, realpathSync, rmSync, writeFileSync 
 } from 'node:fs'
+import type { PathLike } from 'node:fs'
 import path from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { performance } from 'node:perf_hooks'
@@ -24,10 +25,53 @@ export class RoleEnforcementExecutionError extends Error {
   }
 }
 
-export function runRoleEnforcement(configPath: string): RoleEnforcementRunResult {
+interface RoleEnforcementRuntimeDeps {
+  now: () => number
+  readdirSync: (
+    rootDir: PathLike,
+    options: {
+      recursive: true
+      withFileTypes: true
+    },
+  ) => Array<{
+    isFile: () => boolean
+    name: string
+    parentPath: string
+  }>
+  realpathSync: (filePath: PathLike) => string
+  rmSync: (filePath: string, options: { force: true }) => void
+  spawnSync: (
+    command: string,
+    args: string[],
+    options: {
+      cwd: string
+      encoding: 'utf8'
+    },
+  ) => {
+    error?: Error
+    status: number | null
+    stderr: string
+    stdout: string
+  }
+  writeFileSync: (filePath: string, contents: string) => void
+}
+
+const defaultRuntimeDeps: RoleEnforcementRuntimeDeps = {
+  now: () => performance.now(),
+  readdirSync: (rootDir, options) => readdirSync(rootDir, options),
+  realpathSync,
+  rmSync,
+  spawnSync,
+  writeFileSync,
+}
+
+export function runRoleEnforcement(
+  configPath: string,
+  runtimeDeps: RoleEnforcementRuntimeDeps = defaultRuntimeDeps,
+): RoleEnforcementRunResult {
   const loadedConfig = loadRoleEnforcementConfig(configPath)
   const currentDir = path.dirname(fileURLToPath(import.meta.url))
-  const canonicalConfigDir = realpathSync(loadedConfig.configDir)
+  const canonicalConfigDir = runtimeDeps.realpathSync(loadedConfig.configDir)
   const pluginPath = path.resolve(currentDir, '..', '..', 'role-enforcement-plugin.mjs')
   const oxlintBinaryPath = path.resolve(
     currentDir,
@@ -53,18 +97,23 @@ export function runRoleEnforcement(configPath: string): RoleEnforcementRunResult
     canonicalConfigDir,
     loadedConfig.config.include,
     loadedConfig.config.ignorePatterns,
+    runtimeDeps.readdirSync,
   )
 
-  writeFileSync(oxlintConfigPath, JSON.stringify(oxlintConfig, null, 2))
+  runtimeDeps.writeFileSync(oxlintConfigPath, JSON.stringify(oxlintConfig, null, 2))
 
-  const start = performance.now()
-  const commandResult = spawnSync(oxlintBinaryPath, ['-c', oxlintConfigPath, ...lintTargets], {
-    cwd: loadedConfig.configDir,
-    encoding: 'utf8',
-  })
-  const durationMs = performance.now() - start
+  const start = runtimeDeps.now()
+  const commandResult = runtimeDeps.spawnSync(
+    oxlintBinaryPath,
+    ['-c', oxlintConfigPath, ...lintTargets],
+    {
+      cwd: loadedConfig.configDir,
+      encoding: 'utf8',
+    },
+  )
+  const durationMs = runtimeDeps.now() - start
 
-  rmSync(oxlintConfigPath, { force: true })
+  runtimeDeps.rmSync(oxlintConfigPath, { force: true })
 
   if (commandResult.error !== undefined) {
     throw new RoleEnforcementExecutionError(commandResult.error.message)
@@ -82,14 +131,18 @@ function resolveLintTargets(
   configDir: string,
   includePatterns: string[],
   ignorePatterns: string[],
+  readDirectory: RoleEnforcementRuntimeDeps['readdirSync'],
 ): string[] {
-  return walkFiles(configDir)
+  return walkFiles(configDir, readDirectory)
     .filter((filePath) => matchesAny(filePath, includePatterns))
     .filter((filePath) => !matchesAny(filePath, ignorePatterns))
 }
 
-function walkFiles(rootDir: string): string[] {
-  const entries = readdirSync(rootDir, {
+function walkFiles(
+  rootDir: string,
+  readDirectory: RoleEnforcementRuntimeDeps['readdirSync'],
+): string[] {
+  const entries = readDirectory(rootDir, {
     recursive: true,
     withFileTypes: true,
   })
