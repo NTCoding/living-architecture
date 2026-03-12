@@ -35,6 +35,7 @@ describe('createExtractCommandInputs', () => {
           allowIncomplete: false,
           componentsOnly: true,
           config: 'config.yml',
+          output: 'enriched.json',
           tsConfig: true,
         },
         'draft.json',
@@ -44,6 +45,7 @@ describe('createExtractCommandInputs', () => {
       configPath: 'config.yml',
       draftComponentsPath: 'draft.json',
       includeConnections: false,
+      output: 'enriched.json',
       useTsConfig: true,
     })
   })
