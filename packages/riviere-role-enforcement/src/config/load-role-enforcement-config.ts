@@ -65,7 +65,7 @@ function validateRoleEnforcementConfig(config: unknown): roleConfig.RoleEnforcem
     )
   }
 
-  const roleMessages = config.roles.flatMap(validateRoleDefinition)
+  const roleMessages = config.roles.flatMap((role, index) => validateRoleDefinition(role, index))
   if (roleMessages.length > 0) {
     throw new RoleEnforcementConfigError(
       `Invalid role enforcement config: ${roleMessages.join('; ')}`,

@@ -188,39 +188,6 @@ export default {
           return null
         }
 
-        function readImportDeclarationReference(statement, localTypeName, currentFile) {
-          if (statement.type !== 'ImportDeclaration') {
-            return undefined
-          }
-
-          if (
-            typeof statement.source.value !== 'string' ||
-            !statement.source.value.startsWith('.')
-          ) {
-            return undefined
-          }
-
-          const importedSpecifier = (statement.specifiers ?? []).find(
-            (specifier) =>
-              specifier.type === 'ImportSpecifier' && specifier.local.name === localTypeName,
-          )
-          if (importedSpecifier === undefined) {
-            return undefined
-          }
-
-          const importedName =
-            importedSpecifier.imported.type === 'Identifier'
-              ? importedSpecifier.imported.name
-              : importedSpecifier.imported.value
-          const resolvedFile = resolveTypeFile(currentFile, statement.source.value)
-          return resolvedFile === null
-            ? null
-            : {
-              exportedName: importedName,
-              filePath: resolvedFile,
-            }
-        }
-
         function readExportedRole(filePath, exportedName) {
           const sourceText = readFileText(filePath)
           if (sourceText === null) {
@@ -229,7 +196,7 @@ export default {
 
           const escapedName = escapeRegExp(exportedName)
           const exportPattern = new RegExp(
-            `/\\*\\*[\\s\\S]*?@riviere-role\\s+([a-z][a-z0-9-]*)[\\s\\S]*?\\*/\\s*export\\s+(?:interface|type|function|class)\\s+${escapedName}\\b`,
+            String.raw`/\*\*[\s\S]*?@riviere-role\s+([a-z][a-z0-9-]*)[\s\S]*?\*/\s*export\s+(?:interface|type|function|class)\s+${escapedName}\b`,
             'm',
           )
           const match = sourceText.match(exportPattern)
@@ -264,36 +231,26 @@ export default {
 
 function isTopLevelExported(node) {
   const exportParent = readAnnotationNode(node)
-  const programNode = exportParent.parent
   return (
-    programNode !== undefined &&
-    programNode !== null &&
-    programNode.type === 'Program' &&
+    exportParent.parent?.type === 'Program' &&
     (exportParent.type === 'ExportNamedDeclaration' ||
       exportParent.type === 'ExportDefaultDeclaration')
   )
 }
 
 function readAnnotationNode(node) {
-  return node.parent !== null &&
-    node.parent !== undefined &&
-    (node.parent.type === 'ExportNamedDeclaration' ||
-      node.parent.type === 'ExportDefaultDeclaration')
+  return node.parent?.type === 'ExportNamedDeclaration' ||
+    node.parent?.type === 'ExportDefaultDeclaration'
     ? node.parent
     : node
 }
 
 function readDeclarationName(node) {
-  if ('id' in node && node.id !== null && node.id !== undefined) {
+  if ('id' in node && node.id != null) {
     return node.id.name
   }
 
-  if (
-    'key' in node &&
-    node.key !== null &&
-    node.key !== undefined &&
-    node.key.type === 'Identifier'
-  ) {
+  if ('key' in node && node.key?.type === 'Identifier') {
     return node.key.name
   }
 
@@ -349,5 +306,36 @@ function readRelativeFilePath(filename, configDir) {
 }
 
 function escapeRegExp(value) {
-  return value.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  return value.replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`)
+}
+
+function readImportDeclarationReference(statement, localTypeName, currentFile) {
+  if (statement.type !== 'ImportDeclaration') {
+    return undefined
+  }
+
+  if (typeof statement.source.value !== 'string' || !statement.source.value.startsWith('.')) {
+    return undefined
+  }
+
+  const importedSpecifier = (statement.specifiers ?? []).find(
+    (specifier) => specifier.type === 'ImportSpecifier' && specifier.local.name === localTypeName,
+  )
+  if (importedSpecifier === undefined) {
+    return undefined
+  }
+
+  const importedName =
+    importedSpecifier.imported.type === 'Identifier'
+      ? importedSpecifier.imported.name
+      : importedSpecifier.imported.value
+  const resolvedFile = resolveTypeFile(currentFile, statement.source.value)
+  if (resolvedFile === null) {
+    return null
+  }
+
+  return {
+    exportedName: importedName,
+    filePath: resolvedFile,
+  }
 }
