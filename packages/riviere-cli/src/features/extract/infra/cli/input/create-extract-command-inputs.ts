@@ -31,7 +31,7 @@ export function createEnrichDraftComponentsInput(
   }
 }
 
-export function shouldStopAtDraftComponents(options: ExtractOptions): boolean {
+function shouldStopAtDraftComponents(options: ExtractOptions): boolean {
   return options.dryRun === true || options.format === 'markdown' || options.componentsOnly === true
 }
 

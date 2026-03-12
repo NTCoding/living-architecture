@@ -11,7 +11,7 @@ For example:
 
 Roles should be added as decorators like:
 
-```
+```ts
 @RiviereRole(RIVIERE_ROLE.AGGREGATE)
 class Loan {
    ...
@@ -20,18 +20,18 @@ class Loan {
 
 Configuration should be as simple and minimal as possible:
 
-```
+```json
 {
-	roles: [
-		aggregate: {
-		  allowedLocations: ['/src/{feature}/domain', ]
-		}
-		...
-	]
+  roles: [
+    aggregate: {
+      allowedLocations: ['/src/{feature}/domain']
+    }
+    ...
+  ]
 }
 ```
 
-### Objectives.
+## Objectives
 
 1. Build a system that allows roles to be configured and enforced
 2. Tool should enforce 100% codebase compliance (every class or static method outside a class must have a role decorator)
@@ -47,7 +47,7 @@ Configuration should be as simple and minimal as possible:
 4. The riviere codebase may require refactoring and our architecture rules may need to evolve
 5. new package in riviere riviere-role-enforcement => must follow all of our existing lint rules and 100% coverage
 
-# Plan
+## Plan
 
 We must work in small iterations. Initial we need to do discovery:
 

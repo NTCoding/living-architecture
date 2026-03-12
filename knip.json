@@ -1,47 +1,25 @@
 {
   "$schema": "https://knip.dev/reference/knip-json",
-  "ignoreDependencies": [
-    "tailwindcss"
-  ],
+  "ignoreDependencies": ["tailwindcss", "oxlint"],
   "workspaces": {
     "apps/eclair": {
-      "entry": [
-        "src/main.tsx"
-      ],
-      "project": [
-        "src/**/*.ts",
-        "src/**/*.tsx"
-      ]
+      "entry": ["src/main.tsx"],
+      "project": ["src/**/*.ts", "src/**/*.tsx"]
     },
     "apps/docs": {
-      "project": [
-        ".vitepress/**/*.ts",
-        ".vitepress/**/*.vue"
-      ]
+      "project": [".vitepress/**/*.ts", ".vitepress/**/*.vue"]
     },
     "packages/riviere-cli": {
-      "entry": [
-        "src/shell/bin.ts"
-      ],
-      "project": [
-        "src/**/*.ts"
-      ]
+      "entry": ["src/shell/bin.ts"],
+      "project": ["src/**/*.ts"]
     },
     "packages/*": {
-      "project": [
-        "src/**/*.ts"
-      ]
+      "project": ["src/**/*.ts"]
     },
     "tools/dev-workflow-v2": {
-      "entry": [
-        "src/shell/cli.ts"
-      ],
-      "project": [
-        "src/**/*.ts"
-      ],
-      "ignoreDependencies": [
-        "@types/better-sqlite3"
-      ]
+      "entry": ["src/shell/cli.ts"],
+      "project": ["src/**/*.ts"],
+      "ignoreDependencies": ["@types/better-sqlite3"]
     },
     "tools/dev-workflow": {
       "entry": [
@@ -52,9 +30,7 @@
         "features/push-reflection/entrypoint/cli.ts",
         "features/claude-hooks/entrypoint/hook-router.ts"
       ],
-      "project": [
-        "**/*.ts"
-      ]
+      "project": ["**/*.ts"]
     }
   },
   "ignore": [
