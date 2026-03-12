@@ -8,9 +8,6 @@ import { getRepositoryInfo } from '../../../platform/infra/git/git-repository-in
 import { loadExtractionProject } from '../infra/repositories/load-extraction-project'
 import type { ExtractDraftComponentsInput } from './extract-draft-components-input'
 import type { ExtractDraftComponentsResult } from './extract-draft-components-result'
-import { detectConnectionsPerModule } from '../domain/detect-connections-per-module'
-import { enrichPerModule } from '../domain/enrich-per-module'
-import { extractDraftComponents as extractDraftComponentsFromDomain } from '../domain/extraction-project'
 
 /** @riviere-role command-use-case */
 export function extractDraftComponents(
@@ -32,7 +29,7 @@ export function extractDraftComponents(
     skipTsConfig: !extractDraftComponentsInput.useTsConfig,
     sourceFilePaths,
   })
-  const draftComponents = extractDraftComponentsFromDomain(extractionProject)
+  const draftComponents = extractionProject.extractDraftComponents()
 
   if (!extractDraftComponentsInput.includeConnections) {
     return {
@@ -41,14 +38,13 @@ export function extractDraftComponents(
     }
   }
 
-  const enrichment = enrichPerModule(extractionProject, draftComponents)
+  const enrichment = extractionProject.enrichDraftComponents(draftComponents)
   if (enrichment.failedFields.length > 0 && !extractDraftComponentsInput.allowIncomplete) {
     throw new ExtractionFieldFailureError(enrichment.failedFields)
   }
 
   const repositoryInfo = getRepositoryInfo()
-  const connectionResult = detectConnectionsPerModule(
-    extractionProject,
+  const connectionResult = extractionProject.detectConnections(
     enrichment.components,
     repositoryInfo.name,
     extractDraftComponentsInput.allowIncomplete,
@@ -57,9 +53,9 @@ export function extractDraftComponents(
   return {
     kind: 'full',
     components: enrichment.components,
+    failedFields: enrichment.failedFields,
     links: connectionResult.links,
     timings: connectionResult.timings,
-    failedFields: enrichment.failedFields,
   }
 }
 

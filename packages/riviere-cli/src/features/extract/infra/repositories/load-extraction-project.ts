@@ -3,8 +3,8 @@ import {
 } from 'node:path'
 import { globSync } from 'glob'
 import type { ResolvedExtractionConfig } from '@living-architecture/riviere-extract-config'
-import type {
-  ExtractionProject, ModuleContext 
+import {
+  ExtractionProject, type ModuleContext 
 } from '../../domain/extraction-project'
 import { createConfiguredProject } from '../external-clients/create-configured-project'
 import { findModuleTsConfigDir } from '../external-clients/find-module-tsconfig-dir'
@@ -20,11 +20,11 @@ interface LoadExtractionProjectInput {
 export function loadExtractionProject(
   loadExtractionProjectInput: LoadExtractionProjectInput,
 ): ExtractionProject {
-  return {
-    configDir: loadExtractionProjectInput.configDir,
-    moduleContexts: createModuleContexts(loadExtractionProjectInput),
-    resolvedConfig: loadExtractionProjectInput.resolvedConfig,
-  }
+  return new ExtractionProject(
+    loadExtractionProjectInput.configDir,
+    createModuleContexts(loadExtractionProjectInput),
+    loadExtractionProjectInput.resolvedConfig,
+  )
 }
 
 function createModuleContexts(

@@ -1,12 +1,18 @@
 import {
-  describe, it, expect, vi, beforeEach 
+  beforeEach, describe, expect, it, vi 
 } from 'vitest'
+import { Project } from 'ts-morph'
 import type {
+  ComponentRule,
   Module,
   ResolvedExtractionConfig,
-  ComponentRule,
 } from '@living-architecture/riviere-extract-config'
 import type { DraftComponent } from '@living-architecture/riviere-extract-ts'
+import {
+  ExtractionProject,
+  OrphanedDraftComponentError,
+  type ModuleContext,
+} from './extraction-project'
 
 const {
   mockEnrichComponents, mockMatchesGlob 
@@ -20,61 +26,50 @@ vi.mock('@living-architecture/riviere-extract-ts', () => ({
   matchesGlob: mockMatchesGlob,
 }))
 
-import {
-  enrichPerModule, OrphanedDraftComponentError 
-} from './enrich-per-module'
-import type {
-  ExtractionProject, ModuleContext 
-} from './extraction-project'
-
 const notUsedRule: ComponentRule = { notUsed: true }
 
 function createModule(name: string): Module {
   return {
-    name,
-    path: name,
-    glob: 'src/**',
     api: notUsedRule,
-    useCase: notUsedRule,
     domainOp: notUsedRule,
     event: notUsedRule,
     eventHandler: notUsedRule,
     eventPublisher: notUsedRule,
+    glob: 'src/**',
+    name,
+    path: name,
     ui: notUsedRule,
+    useCase: notUsedRule,
   }
 }
 
 function createModuleContext(moduleName: string): ModuleContext {
   return {
-    module: createModule(moduleName),
     files: [],
-    project: Object.create(null),
-  }
-}
-
-function createExtractionProject(moduleContexts: ModuleContext[]): ExtractionProject {
-  return {
-    configDir: '/config',
-    moduleContexts,
-    resolvedConfig: stubConfig,
+    module: createModule(moduleName),
+    project: new Project(),
   }
 }
 
 function createDraft(domain: string, name: string): DraftComponent {
   return {
-    type: 'api',
-    name,
+    domain,
     location: {
       file: 'test.ts',
       line: 1,
     },
-    domain,
+    name,
+    type: 'api',
   }
 }
 
 const stubConfig: ResolvedExtractionConfig = { modules: [] }
 
-describe('enrichPerModule', () => {
+function createExtractionProject(moduleContexts: ModuleContext[]): ExtractionProject {
+  return new ExtractionProject('/config', moduleContexts, stubConfig)
+}
+
+describe('ExtractionProject.enrichDraftComponents', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
@@ -84,8 +79,8 @@ describe('enrichPerModule', () => {
       .mockReturnValueOnce({
         components: [
           {
-            name: 'CompA',
             domain: 'orders',
+            name: 'CompA',
           },
         ],
         failures: [],
@@ -93,17 +88,17 @@ describe('enrichPerModule', () => {
       .mockReturnValueOnce({
         components: [
           {
-            name: 'CompB',
             domain: 'shipping',
+            name: 'CompB',
           },
         ],
         failures: [],
       })
 
-    const result = enrichPerModule(
-      createExtractionProject([createModuleContext('orders'), createModuleContext('shipping')]),
-      [createDraft('orders', 'CompA'), createDraft('shipping', 'CompB')],
-    )
+    const result = createExtractionProject([
+      createModuleContext('orders'),
+      createModuleContext('shipping'),
+    ]).enrichDraftComponents([createDraft('orders', 'CompA'), createDraft('shipping', 'CompB')])
 
     expect(result.components).toHaveLength(2)
     expect(result.failedFields).toStrictEqual([])
@@ -111,20 +106,15 @@ describe('enrichPerModule', () => {
   })
 
   it('routes correct drafts to each module', () => {
-    mockEnrichComponents
-      .mockReturnValueOnce({
-        components: [],
-        failures: [],
-      })
-      .mockReturnValueOnce({
-        components: [],
-        failures: [],
-      })
+    mockEnrichComponents.mockReturnValue({
+      components: [],
+      failures: [],
+    })
 
-    enrichPerModule(
-      createExtractionProject([createModuleContext('orders'), createModuleContext('shipping')]),
-      [createDraft('orders', 'CompA'), createDraft('shipping', 'CompB')],
-    )
+    createExtractionProject([
+      createModuleContext('orders'),
+      createModuleContext('shipping'),
+    ]).enrichDraftComponents([createDraft('orders', 'CompA'), createDraft('shipping', 'CompB')])
 
     expect(mockEnrichComponents).toHaveBeenNthCalledWith(
       1,
@@ -155,24 +145,24 @@ describe('enrichPerModule', () => {
         failures: [{ field: 'name' }, { field: 'type' }],
       })
 
-    const result = enrichPerModule(
-      createExtractionProject([createModuleContext('orders'), createModuleContext('shipping')]),
-      [createDraft('orders', 'A'), createDraft('shipping', 'B')],
-    )
+    const result = createExtractionProject([
+      createModuleContext('orders'),
+      createModuleContext('shipping'),
+    ]).enrichDraftComponents([createDraft('orders', 'A'), createDraft('shipping', 'B')])
 
     expect(result.failedFields).toStrictEqual(['name', 'type'])
   })
 
   it('skips modules with no matching drafts', () => {
-    mockEnrichComponents.mockReturnValueOnce({
+    mockEnrichComponents.mockReturnValue({
       components: [],
       failures: [],
     })
 
-    const result = enrichPerModule(
-      createExtractionProject([createModuleContext('orders'), createModuleContext('empty')]),
-      [createDraft('orders', 'A')],
-    )
+    const result = createExtractionProject([
+      createModuleContext('orders'),
+      createModuleContext('empty'),
+    ]).enrichDraftComponents([createDraft('orders', 'A')])
 
     expect(mockEnrichComponents).toHaveBeenCalledTimes(1)
     expect(result.components).toStrictEqual([])
@@ -180,7 +170,7 @@ describe('enrichPerModule', () => {
 
   it('throws OrphanedDraftComponentError when drafts reference unknown modules', () => {
     expect(() =>
-      enrichPerModule(createExtractionProject([createModuleContext('orders')]), [
+      createExtractionProject([createModuleContext('orders')]).enrichDraftComponents([
         createDraft('orders', 'A'),
         createDraft('unknown-module', 'B'),
       ]),
@@ -189,14 +179,16 @@ describe('enrichPerModule', () => {
 
   it('includes module names in orphan error message', () => {
     expect(() =>
-      enrichPerModule(createExtractionProject([createModuleContext('orders')]), [
+      createExtractionProject([createModuleContext('orders')]).enrichDraftComponents([
         createDraft('ghost', 'X'),
       ]),
     ).toThrow('Draft components reference unknown modules: [ghost]. Known modules: [orders]')
   })
 
   it('returns empty result when no drafts provided', () => {
-    const result = enrichPerModule(createExtractionProject([createModuleContext('orders')]), [])
+    const result = createExtractionProject([createModuleContext('orders')]).enrichDraftComponents(
+      [],
+    )
 
     expect(result.components).toStrictEqual([])
     expect(result.failedFields).toStrictEqual([])

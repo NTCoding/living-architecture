@@ -1,67 +1,62 @@
 import {
-  describe, it, expect, vi, beforeEach 
+  beforeEach, describe, expect, it, vi 
 } from 'vitest'
+import { Project } from 'ts-morph'
 import type { Module } from '@living-architecture/riviere-extract-config'
 import type {
+  CrossModuleDetectionResult,
   EnrichedComponent,
   ExtractedLink,
   PerModuleDetectionResult,
-  CrossModuleDetectionResult,
 } from '@living-architecture/riviere-extract-ts'
-import type {
-  ExtractionProject, ModuleContext 
+import {
+  ExtractionProject, type ModuleContext 
 } from './extraction-project'
 
 const {
-  mockDetectPerModule,
-  mockDetectCrossModule,
   mockDeduplicateCrossStrategy,
+  mockDetectCrossModule,
+  mockDetectPerModule,
   mockMatchesGlob,
 } = vi.hoisted(() => ({
-  mockDetectPerModule: vi.fn(),
-  mockDetectCrossModule: vi.fn(),
   mockDeduplicateCrossStrategy: vi.fn((links: ExtractedLink[]) => links),
+  mockDetectCrossModule: vi.fn(),
+  mockDetectPerModule: vi.fn(),
   mockMatchesGlob: vi.fn(),
 }))
 
 vi.mock('@living-architecture/riviere-extract-ts', () => ({
-  detectPerModuleConnections: mockDetectPerModule,
-  detectCrossModuleConnections: mockDetectCrossModule,
   deduplicateCrossStrategy: mockDeduplicateCrossStrategy,
+  detectCrossModuleConnections: mockDetectCrossModule,
+  detectPerModuleConnections: mockDetectPerModule,
   matchesGlob: mockMatchesGlob,
 }))
 
-import { detectConnectionsPerModule } from './detect-connections-per-module'
-
 function createModule(name: string): Module {
   return {
-    name,
-    path: name,
-    glob: 'src/**',
     api: { notUsed: true },
-    useCase: { notUsed: true },
     domainOp: { notUsed: true },
     event: { notUsed: true },
     eventHandler: { notUsed: true },
     eventPublisher: { notUsed: true },
+    glob: 'src/**',
+    name,
+    path: name,
     ui: { notUsed: true },
+    useCase: { notUsed: true },
   }
 }
 
 function createModuleContext(moduleName: string): ModuleContext {
   return {
-    module: createModule(moduleName),
     files: [],
-    project: Object.create(null),
+    module: createModule(moduleName),
+    project: new Project(),
   }
 }
 
 function createExtractionProject(moduleContexts: ModuleContext[]): ExtractionProject {
-  return {
-    configDir: '/config',
-    moduleContexts,
-    resolvedConfig: { modules: [] },
-  }
+  return new ExtractionProject('/config', moduleContexts, { modules: [] })
 }
 
 function createComponent(
@@ -71,14 +66,14 @@ function createComponent(
   metadata: Record<string, string | number | boolean> = {},
 ): EnrichedComponent {
   return {
-    name,
     domain,
-    type,
     location: {
       file: `/src/${domain}/${name}.ts`,
       line: 1,
     },
     metadata,
+    name,
+    type,
   }
 }
 
@@ -90,7 +85,7 @@ function createLink(source: string, target: string, type: 'sync' | 'async'): Ext
   }
 }
 
-describe('detectConnectionsPerModule', () => {
+describe('ExtractionProject.detectConnections', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
@@ -116,8 +111,7 @@ describe('detectConnectionsPerModule', () => {
     }
     mockDetectCrossModule.mockReturnValue(crossResult)
 
-    detectConnectionsPerModule(
-      createExtractionProject([ordersCtx, shippingCtx]),
+    createExtractionProject([ordersCtx, shippingCtx]).detectConnections(
       [orderComp, shippingComp],
       'test-repo',
       false,
@@ -158,8 +152,7 @@ describe('detectConnectionsPerModule', () => {
       timings: { asyncDetectionMs: 0 },
     })
 
-    detectConnectionsPerModule(
-      createExtractionProject([ordersCtx]),
+    createExtractionProject([ordersCtx]).detectConnections(
       [orderComp, shippingComp],
       'test-repo',
       false,
@@ -174,7 +167,6 @@ describe('detectConnectionsPerModule', () => {
   it('combines links from per-module and cross-module phases', () => {
     const ordersCtx = createModuleContext('orders')
     const orderComp = createComponent('PlaceOrder', 'orders', 'useCase')
-
     const syncLink = createLink('orders:useCase:PlaceOrder', 'orders:repository:OrderRepo', 'sync')
     const asyncLink = createLink(
       'shipping:event:ShipmentDispatched',
@@ -195,12 +187,7 @@ describe('detectConnectionsPerModule', () => {
       timings: { asyncDetectionMs: 2 },
     })
 
-    detectConnectionsPerModule(
-      createExtractionProject([ordersCtx]),
-      [orderComp],
-      'test-repo',
-      false,
-    )
+    createExtractionProject([ordersCtx]).detectConnections([orderComp], 'test-repo', false)
 
     expect(mockDeduplicateCrossStrategy).toHaveBeenCalledWith([syncLink, asyncLink])
   })
@@ -223,8 +210,7 @@ describe('detectConnectionsPerModule', () => {
       timings: { asyncDetectionMs: 0 },
     })
 
-    detectConnectionsPerModule(
-      createExtractionProject([emptyCtx, ordersCtx]),
+    createExtractionProject([emptyCtx, ordersCtx]).detectConnections(
       [orderComp],
       'test-repo',
       false,
@@ -239,7 +225,7 @@ describe('detectConnectionsPerModule', () => {
       timings: { asyncDetectionMs: 0 },
     })
 
-    const result = detectConnectionsPerModule(createExtractionProject([]), [], 'test-repo', false)
+    const result = createExtractionProject([]).detectConnections([], 'test-repo', false)
 
     expect(result.links).toStrictEqual([])
     expect(mockDetectPerModule).not.toHaveBeenCalled()
@@ -262,7 +248,7 @@ describe('detectConnectionsPerModule', () => {
       timings: { asyncDetectionMs: 0 },
     })
 
-    detectConnectionsPerModule(createExtractionProject([ctx]), [comp], 'test-repo', true)
+    createExtractionProject([ctx]).detectConnections([comp], 'test-repo', true)
 
     expect(mockDetectPerModule).toHaveBeenCalledWith(
       ctx.project,
@@ -293,12 +279,7 @@ describe('detectConnectionsPerModule', () => {
       timings: { asyncDetectionMs: 3 },
     })
 
-    const result = detectConnectionsPerModule(
-      createExtractionProject([ctx]),
-      [comp],
-      'test-repo',
-      false,
-    )
+    const result = createExtractionProject([ctx]).detectConnections([comp], 'test-repo', false)
 
     expect(result.timings).toHaveLength(2)
     expect(result.timings[0]).toStrictEqual({

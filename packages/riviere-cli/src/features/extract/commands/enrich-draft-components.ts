@@ -8,8 +8,6 @@ import { getRepositoryInfo } from '../../../platform/infra/git/git-repository-in
 import { loadExtractionProject } from '../infra/repositories/load-extraction-project'
 import type { EnrichDraftComponentsInput } from './enrich-draft-components-input'
 import type { EnrichDraftComponentsResult } from './enrich-draft-components-result'
-import { detectConnectionsPerModule } from '../domain/detect-connections-per-module'
-import { enrichPerModule } from '../domain/enrich-per-module'
 
 /** @riviere-role command-use-case */
 export function enrichDraftComponents(
@@ -36,14 +34,13 @@ export function enrichDraftComponents(
     }
   }
 
-  const enrichment = enrichPerModule(extractionProject, draftComponents)
+  const enrichment = extractionProject.enrichDraftComponents(draftComponents)
   if (enrichment.failedFields.length > 0 && !enrichDraftComponentsInput.allowIncomplete) {
     throw new ExtractionFieldFailureError(enrichment.failedFields)
   }
 
   const repositoryInfo = getRepositoryInfo()
-  const connectionResult = detectConnectionsPerModule(
-    extractionProject,
+  const connectionResult = extractionProject.detectConnections(
     enrichment.components,
     repositoryInfo.name,
     enrichDraftComponentsInput.allowIncomplete,
@@ -52,8 +49,8 @@ export function enrichDraftComponents(
   return {
     kind: 'full',
     components: enrichment.components,
+    failedFields: enrichment.failedFields,
     links: connectionResult.links,
     timings: connectionResult.timings,
-    failedFields: enrichment.failedFields,
   }
 }

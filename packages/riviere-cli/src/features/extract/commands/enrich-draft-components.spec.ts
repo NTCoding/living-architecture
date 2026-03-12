@@ -4,12 +4,12 @@ import {
 import { ExtractionFieldFailureError } from '../../../platform/infra/cli-presentation/error-codes'
 
 const mocks = vi.hoisted(() => ({
-  createModuleContextsMock: vi.fn(),
-  detectConnectionsPerModuleMock: vi.fn(),
-  enrichPerModuleMock: vi.fn(),
+  detectConnectionsMock: vi.fn(),
+  enrichDraftComponentsMethodMock: vi.fn(),
   getRepositoryInfoMock: vi.fn(),
   loadAndValidateConfigMock: vi.fn(),
   loadDraftComponentsFromFileMock: vi.fn(),
+  loadExtractionProjectMock: vi.fn(),
   resolveSourceFilesMock: vi.fn(),
 }))
 
@@ -22,11 +22,7 @@ vi.mock('../../../platform/infra/extraction-config/draft-component-loader', () =
 
 vi.mock('../../../platform/infra/git/git-repository-info', () => ({getRepositoryInfo: mocks.getRepositoryInfoMock,}))
 
-vi.mock('../infra/external-clients/create-module-contexts', () => ({createModuleContexts: mocks.createModuleContextsMock,}))
-
-vi.mock('../domain/enrich-per-module', () => ({enrichPerModule: mocks.enrichPerModuleMock,}))
-
-vi.mock('../domain/detect-connections-per-module', () => ({detectConnectionsPerModule: mocks.detectConnectionsPerModuleMock,}))
+vi.mock('../infra/repositories/load-extraction-project', () => ({loadExtractionProject: mocks.loadExtractionProjectMock,}))
 
 import { enrichDraftComponents } from './enrich-draft-components'
 
@@ -39,17 +35,22 @@ describe('enrichDraftComponents', () => {
     })
     mocks.resolveSourceFilesMock.mockReturnValue(['/repo/src/a.ts'])
     mocks.loadDraftComponentsFromFileMock.mockReturnValue([{ name: 'Draft' }])
-    mocks.createModuleContextsMock.mockReturnValue([{ module: { name: 'mod' } }])
+    mocks.loadExtractionProjectMock.mockReturnValue({
+      detectConnections: mocks.detectConnectionsMock,
+      enrichDraftComponents: mocks.enrichDraftComponentsMethodMock,
+    })
     mocks.getRepositoryInfoMock.mockReturnValue({ name: 'repo/name' })
-    mocks.enrichPerModuleMock.mockReturnValue({
+    mocks.enrichDraftComponentsMethodMock.mockReturnValue({
       components: [{ name: 'Comp' }],
       failedFields: [],
     })
-    mocks.detectConnectionsPerModuleMock.mockReturnValue({
-      links: [{
-        from: 'a',
-        to: 'b' 
-      }],
+    mocks.detectConnectionsMock.mockReturnValue({
+      links: [
+        {
+          from: 'a',
+          to: 'b',
+        },
+      ],
       timings: [],
     })
   })
@@ -67,11 +68,11 @@ describe('enrichDraftComponents', () => {
       kind: 'draftOnly',
       components: [{ name: 'Draft' }],
     })
-    expect(mocks.enrichPerModuleMock).not.toHaveBeenCalled()
+    expect(mocks.enrichDraftComponentsMethodMock).not.toHaveBeenCalled()
   })
 
   it('throws when enrichment fails and incomplete output is disabled', () => {
-    mocks.enrichPerModuleMock.mockReturnValue({
+    mocks.enrichDraftComponentsMethodMock.mockReturnValue({
       components: [],
       failedFields: ['fieldA'],
     })
