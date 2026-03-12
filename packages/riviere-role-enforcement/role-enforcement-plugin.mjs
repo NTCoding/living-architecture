@@ -286,7 +286,7 @@ function matchesName(name, role) {
     return new RegExp(role.nameMatches, 'u').test(name)
   }
 
-  return false
+  return true
 }
 
 function resolveTypeFile(currentFile, importSource) {

@@ -77,12 +77,6 @@ function validateRoleEnforcementConfig(config: unknown): roleConfig.RoleEnforcem
 
 function validateRoleDefinition(role: roleConfig.RoleDefinition, index: number): string[] {
   const errorMessages: string[] = []
-  if (role.allowedNames === undefined && role.nameMatches === undefined) {
-    errorMessages.push(
-      `roles.${index}.allowedNames: Role definition must declare either 'allowedNames' or 'nameMatches'.`,
-    )
-  }
-
   if (role.allowedNames !== undefined && role.nameMatches !== undefined) {
     errorMessages.push(
       `roles.${index}.nameMatches: Role definition cannot declare both 'allowedNames' and 'nameMatches'.`,

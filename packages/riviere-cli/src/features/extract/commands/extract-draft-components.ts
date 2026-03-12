@@ -5,12 +5,12 @@ import {
 } from '../../../platform/infra/extraction-config/config-loader'
 import { resolveFilteredSourceFiles } from '../../../platform/infra/source-filtering/filter-source-files'
 import { getRepositoryInfo } from '../../../platform/infra/git/git-repository-info'
+import { loadExtractionProject } from '../infra/repositories/load-extraction-project'
 import type { ExtractDraftComponentsInput } from './extract-draft-components-input'
 import type { ExtractDraftComponentsResult } from './extract-draft-components-result'
-import { createModuleContexts } from '../infra/external-clients/create-module-contexts'
 import { detectConnectionsPerModule } from '../domain/detect-connections-per-module'
 import { enrichPerModule } from '../domain/enrich-per-module'
-import { extractDraftComponents as extractDraftComponentsFromDomain } from '../domain/extract-draft-components'
+import { extractDraftComponents as extractDraftComponentsFromDomain } from '../domain/extraction-project'
 
 /** @riviere-role command-use-case */
 export function extractDraftComponents(
@@ -26,17 +26,13 @@ export function extractDraftComponents(
     allSourceFilePaths,
     createSourceFilterOptions(extractDraftComponentsInput),
   )
-  const moduleContexts = createModuleContexts(
-    resolvedConfig,
+  const extractionProject = loadExtractionProject({
     configDir,
+    resolvedConfig,
+    skipTsConfig: !extractDraftComponentsInput.useTsConfig,
     sourceFilePaths,
-    !extractDraftComponentsInput.useTsConfig,
-  )
-  const draftComponents = extractDraftComponentsFromDomain(
-    moduleContexts,
-    resolvedConfig,
-    configDir,
-  )
+  })
+  const draftComponents = extractDraftComponentsFromDomain(extractionProject)
 
   if (!extractDraftComponentsInput.includeConnections) {
     return {
@@ -45,14 +41,14 @@ export function extractDraftComponents(
     }
   }
 
-  const enrichment = enrichPerModule(moduleContexts, draftComponents, resolvedConfig, configDir)
+  const enrichment = enrichPerModule(extractionProject, draftComponents)
   if (enrichment.failedFields.length > 0 && !extractDraftComponentsInput.allowIncomplete) {
     throw new ExtractionFieldFailureError(enrichment.failedFields)
   }
 
   const repositoryInfo = getRepositoryInfo()
   const connectionResult = detectConnectionsPerModule(
-    moduleContexts,
+    extractionProject,
     enrichment.components,
     repositoryInfo.name,
     extractDraftComponentsInput.allowIncomplete,

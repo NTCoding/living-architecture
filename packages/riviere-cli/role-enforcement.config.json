@@ -1,22 +1,16 @@
 {
-  "include": [
-    "src/features/extract/entrypoint/extract.ts",
-    "src/features/extract/commands/**/*.ts",
-    "src/features/extract/infra/cli/output/**/*.ts"
-  ],
+  "include": ["src/features/extract/**/*.ts"],
   "ignorePatterns": ["**/*.spec.ts", "**/__fixtures__/**"],
   "roles": [
     {
       "name": "cli-entrypoint",
       "targets": ["function"],
-      "allowedLocation": ["src/**/entrypoint/*.ts"],
-      "allowedNames": ["createExtractCommand"]
+      "allowedLocation": ["src/**/entrypoint/*.ts"]
     },
     {
       "name": "command-use-case",
       "targets": ["function"],
       "allowedLocation": ["src/**/commands/*.ts"],
-      "allowedNames": ["extractDraftComponents", "enrichDraftComponents"],
       "allowedInputs": ["command-use-case-input"],
       "allowedOutputs": ["command-use-case-result"]
     },
@@ -35,8 +29,37 @@
     {
       "name": "cli-output-formatter",
       "targets": ["function"],
-      "allowedLocation": ["src/**/infra/cli/output/*.ts"],
-      "allowedNames": ["presentExtractionResult"]
+      "allowedLocation": ["src/**/infra/cli/output/*.ts"]
+    },
+    {
+      "name": "command-input-factory",
+      "targets": ["function"],
+      "allowedLocation": ["src/**/commands/*.ts"]
+    },
+    {
+      "name": "external-client-service",
+      "targets": ["function"],
+      "allowedLocation": ["src/**/infra/external-clients/*.ts"]
+    },
+    {
+      "name": "aggregate-repository",
+      "targets": ["function"],
+      "allowedLocation": ["src/**/infra/repositories/*.ts"]
+    },
+    {
+      "name": "aggregate",
+      "targets": ["interface", "type-alias", "class"],
+      "allowedLocation": ["src/**/domain/*.ts"]
+    },
+    {
+      "name": "value-object",
+      "targets": ["interface", "type-alias", "class"],
+      "allowedLocation": ["src/**/domain/*.ts"]
+    },
+    {
+      "name": "domain-service",
+      "targets": ["function"],
+      "allowedLocation": ["src/**/domain/*.ts"]
     }
   ]
 }

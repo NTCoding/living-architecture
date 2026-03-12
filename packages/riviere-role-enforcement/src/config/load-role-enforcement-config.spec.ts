@@ -1,11 +1,7 @@
-import {
-  mkdtempSync, rmSync, writeFileSync 
-} from 'node:fs'
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
-import {
-  expect, it 
-} from 'vitest'
+import { expect, it } from 'vitest'
 import { loadRoleEnforcementConfig } from './load-role-enforcement-config'
 import { RoleEnforcementConfigError } from './role-enforcement-config-error'
 
@@ -43,7 +39,7 @@ it('loads a valid config file', () => {
   })
 })
 
-it('rejects roles without allowedNames or nameMatches', () => {
+it('allows roles without allowedNames or nameMatches', () => {
   const configPath = createTempConfigFile(
     JSON.stringify({
       ignorePatterns: [],
@@ -58,11 +54,9 @@ it('rejects roles without allowedNames or nameMatches', () => {
     }),
   )
 
-  expect(() => loadRoleEnforcementConfig(configPath)).toThrowError(
-    new RoleEnforcementConfigError(
-      "Invalid role enforcement config: roles.0.allowedNames: Role definition must declare either 'allowedNames' or 'nameMatches'.",
-    ),
-  )
+  const loadedConfig = loadRoleEnforcementConfig(configPath)
+
+  expect(loadedConfig.config.roles[0]?.name).toBe('command-use-case')
 
   rmSync(path.dirname(configPath), {
     force: true,

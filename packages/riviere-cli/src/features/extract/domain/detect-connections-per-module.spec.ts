@@ -8,7 +8,9 @@ import type {
   PerModuleDetectionResult,
   CrossModuleDetectionResult,
 } from '@living-architecture/riviere-extract-ts'
-import type { ModuleContext } from './extract-draft-components'
+import type {
+  ExtractionProject, ModuleContext 
+} from './extraction-project'
 
 const {
   mockDetectPerModule,
@@ -54,11 +56,19 @@ function createModuleContext(moduleName: string): ModuleContext {
   }
 }
 
+function createExtractionProject(moduleContexts: ModuleContext[]): ExtractionProject {
+  return {
+    configDir: '/config',
+    moduleContexts,
+    resolvedConfig: { modules: [] },
+  }
+}
+
 function createComponent(
   name: string,
   domain: string,
   type: string,
-  metadata: Record<string, unknown> = {},
+  metadata: Record<string, string | number | boolean> = {},
 ): EnrichedComponent {
   return {
     name,
@@ -107,7 +117,7 @@ describe('detectConnectionsPerModule', () => {
     mockDetectCrossModule.mockReturnValue(crossResult)
 
     detectConnectionsPerModule(
-      [ordersCtx, shippingCtx],
+      createExtractionProject([ordersCtx, shippingCtx]),
       [orderComp, shippingComp],
       'test-repo',
       false,
@@ -148,7 +158,12 @@ describe('detectConnectionsPerModule', () => {
       timings: { asyncDetectionMs: 0 },
     })
 
-    detectConnectionsPerModule([ordersCtx], [orderComp, shippingComp], 'test-repo', false)
+    detectConnectionsPerModule(
+      createExtractionProject([ordersCtx]),
+      [orderComp, shippingComp],
+      'test-repo',
+      false,
+    )
 
     expect(mockDetectCrossModule).toHaveBeenCalledWith([orderComp, shippingComp], {
       allowIncomplete: false,
@@ -180,7 +195,12 @@ describe('detectConnectionsPerModule', () => {
       timings: { asyncDetectionMs: 2 },
     })
 
-    detectConnectionsPerModule([ordersCtx], [orderComp], 'test-repo', false)
+    detectConnectionsPerModule(
+      createExtractionProject([ordersCtx]),
+      [orderComp],
+      'test-repo',
+      false,
+    )
 
     expect(mockDeduplicateCrossStrategy).toHaveBeenCalledWith([syncLink, asyncLink])
   })
@@ -203,7 +223,12 @@ describe('detectConnectionsPerModule', () => {
       timings: { asyncDetectionMs: 0 },
     })
 
-    detectConnectionsPerModule([emptyCtx, ordersCtx], [orderComp], 'test-repo', false)
+    detectConnectionsPerModule(
+      createExtractionProject([emptyCtx, ordersCtx]),
+      [orderComp],
+      'test-repo',
+      false,
+    )
 
     expect(mockDetectPerModule).toHaveBeenCalledTimes(1)
   })
@@ -214,7 +239,7 @@ describe('detectConnectionsPerModule', () => {
       timings: { asyncDetectionMs: 0 },
     })
 
-    const result = detectConnectionsPerModule([], [], 'test-repo', false)
+    const result = detectConnectionsPerModule(createExtractionProject([]), [], 'test-repo', false)
 
     expect(result.links).toStrictEqual([])
     expect(mockDetectPerModule).not.toHaveBeenCalled()
@@ -237,7 +262,7 @@ describe('detectConnectionsPerModule', () => {
       timings: { asyncDetectionMs: 0 },
     })
 
-    detectConnectionsPerModule([ctx], [comp], 'test-repo', true)
+    detectConnectionsPerModule(createExtractionProject([ctx]), [comp], 'test-repo', true)
 
     expect(mockDetectPerModule).toHaveBeenCalledWith(
       ctx.project,
@@ -268,7 +293,12 @@ describe('detectConnectionsPerModule', () => {
       timings: { asyncDetectionMs: 3 },
     })
 
-    const result = detectConnectionsPerModule([ctx], [comp], 'test-repo', false)
+    const result = detectConnectionsPerModule(
+      createExtractionProject([ctx]),
+      [comp],
+      'test-repo',
+      false,
+    )
 
     expect(result.timings).toHaveLength(2)
     expect(result.timings[0]).toStrictEqual({

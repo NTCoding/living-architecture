@@ -2,6 +2,7 @@ import { existsSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { Project } from 'ts-morph'
 
+/** @riviere-role external-client-service */
 export function createConfiguredProject(configDir: string, skipTsConfig: boolean): Project {
   if (skipTsConfig) {
     return new Project()

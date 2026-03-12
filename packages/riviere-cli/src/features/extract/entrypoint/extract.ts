@@ -5,10 +5,8 @@ import {
 } from '../../../platform/infra/cli-presentation/extract-validator'
 import { enrichDraftComponents } from '../commands/enrich-draft-components'
 import { extractDraftComponents } from '../commands/extract-draft-components'
-import {
-  createEnrichDraftComponentsInput,
-  createExtractDraftComponentsInput,
-} from '../infra/cli/input/create-extract-command-inputs'
+import { createExtractDraftComponentsInput } from '../commands/create-extract-draft-components-input'
+import { createEnrichDraftComponentsInput } from '../commands/create-enrich-draft-components-input'
 import { presentExtractionResult } from '../infra/cli/output/present-extraction-result'
 
 /** @riviere-role cli-entrypoint */

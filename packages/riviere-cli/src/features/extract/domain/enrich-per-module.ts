@@ -1,12 +1,12 @@
-import type { ResolvedExtractionConfig } from '@living-architecture/riviere-extract-config'
 import {
   enrichComponents,
   matchesGlob,
   type DraftComponent,
   type EnrichedComponent,
 } from '@living-architecture/riviere-extract-ts'
-import type { ModuleContext } from './extract-draft-components'
+import type { ExtractionProject } from './extraction-project'
 
+/** @riviere-role value-object */
 export class OrphanedDraftComponentError extends Error {
   constructor(orphanedModules: string[], knownModules: string[]) {
     super(
@@ -16,23 +16,23 @@ export class OrphanedDraftComponentError extends Error {
   }
 }
 
+/** @riviere-role value-object */
 export interface PerModuleEnrichmentResult {
   components: EnrichedComponent[]
   failedFields: string[]
 }
 
+/** @riviere-role domain-service */
 export function enrichPerModule(
-  moduleContexts: ModuleContext[],
+  extractionProject: ExtractionProject,
   draftComponents: DraftComponent[],
-  resolvedConfig: ResolvedExtractionConfig,
-  configDir: string,
 ): PerModuleEnrichmentResult {
-  const moduleNames = new Set(moduleContexts.map((ctx) => ctx.module.name))
+  const moduleNames = new Set(extractionProject.moduleContexts.map((ctx) => ctx.module.name))
   const draftsByModule = groupDraftsByModule(draftComponents)
   assertAllDraftsMatchModules(draftsByModule, moduleNames)
   const components: EnrichedComponent[] = []
   const failedFieldSet = new Set<string>()
-  for (const ctx of moduleContexts) {
+  for (const ctx of extractionProject.moduleContexts) {
     const moduleDrafts = draftsByModule.get(ctx.module.name) ?? []
     if (moduleDrafts.length === 0) {
       continue
@@ -40,10 +40,10 @@ export function enrichPerModule(
 
     const result = enrichComponents(
       moduleDrafts,
-      resolvedConfig,
+      extractionProject.resolvedConfig,
       ctx.project,
       matchesGlob,
-      configDir,
+      extractionProject.configDir,
     )
     components.push(...result.components)
     for (const f of result.failures) {

@@ -8,15 +8,17 @@ import {
   type EnrichedComponent,
   type ExtractedLink,
 } from '@living-architecture/riviere-extract-ts'
-import type { ModuleContext } from './extract-draft-components'
+import type { ExtractionProject } from './extraction-project'
 
+/** @riviere-role value-object */
 export interface PerModuleConnectionResult {
   links: ExtractedLink[]
   timings: ConnectionTimings[]
 }
 
+/** @riviere-role domain-service */
 export function detectConnectionsPerModule(
-  moduleContexts: ModuleContext[],
+  extractionProject: ExtractionProject,
   enrichedComponents: EnrichedComponent[],
   repositoryName: string,
   allowIncomplete: boolean,
@@ -24,7 +26,7 @@ export function detectConnectionsPerModule(
   const links: ExtractedLink[] = []
   const timings: ConnectionTimings[] = []
 
-  for (const ctx of moduleContexts) {
+  for (const ctx of extractionProject.moduleContexts) {
     const moduleComponents = enrichedComponents.filter((c) => c.domain === ctx.module.name)
     if (moduleComponents.length === 0) {
       continue

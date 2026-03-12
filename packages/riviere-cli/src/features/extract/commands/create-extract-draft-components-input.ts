@@ -1,7 +1,7 @@
-import type { ExtractOptions } from '../../../../../platform/infra/cli-presentation/extract-validator'
-import type { EnrichDraftComponentsInput } from '../../../commands/enrich-draft-components-input'
-import type { ExtractDraftComponentsInput } from '../../../commands/extract-draft-components-input'
+import type { ExtractOptions } from '../../../platform/infra/cli-presentation/extract-validator'
+import type { ExtractDraftComponentsInput } from './extract-draft-components-input'
 
+/** @riviere-role command-input-factory */
 export function createExtractDraftComponentsInput(
   options: ExtractOptions,
 ): ExtractDraftComponentsInput {
@@ -13,20 +13,6 @@ export function createExtractDraftComponentsInput(
     includeConnections: !shouldStopAtDraftComponents(options),
     ...(options.output === undefined ? {} : { output: options.output }),
     sourceMode: readSourceMode(options),
-    useTsConfig: options.tsConfig !== false,
-  }
-}
-
-export function createEnrichDraftComponentsInput(
-  options: ExtractOptions,
-  enrichPath: string,
-): EnrichDraftComponentsInput {
-  return {
-    allowIncomplete: options.allowIncomplete === true,
-    configPath: options.config,
-    draftComponentsPath: enrichPath,
-    includeConnections: !shouldStopAtDraftComponents(options),
-    ...(options.output === undefined ? {} : { output: options.output }),
     useTsConfig: options.tsConfig !== false,
   }
 }
