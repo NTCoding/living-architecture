@@ -1,12 +1,10 @@
 import {
   describe, expect, it 
 } from 'vitest'
-import {
-  createEnrichDraftComponentsInput,
-  createExtractDraftComponentsInput,
-} from './create-extract-command-inputs'
+import { createEnrichDraftComponentsInput } from './create-enrich-draft-components-input'
+import { createExtractDraftComponentsInput } from './create-extract-draft-components-input'
 
-describe('createExtractCommandInputs', () => {
+describe('create command inputs', () => {
   it('creates extract draft input for pull request mode with output', () => {
     expect(
       createExtractDraftComponentsInput({
