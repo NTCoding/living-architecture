@@ -1,25 +1,29 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent, act } from '@testing-library/react'
+import {
+  describe, expect, it, vi, beforeEach 
+} from 'vitest'
+import {
+  render, screen, fireEvent, act 
+} from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { FullGraphPage } from './FullGraphPage'
 import { ExportProvider } from '@/platform/infra/export/ExportContext'
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
 import {
-  parseNode,
-  parseEdge,
-  parseDomainKey,
+  parseNode, parseEdge, parseDomainKey 
 } from '@/platform/infra/__fixtures__/riviere-test-fixtures'
-import type { TooltipData, SimulationNode } from '@/platform/infra/graph/graph-types'
+import type {
+  TooltipData, SimulationNode 
+} from '@/platform/infra/graph/graph-types'
 const testSourceLocation = {
   repository: 'test-repo',
   filePath: 'src/test.ts',
 }
 
-const { capturedOnNodeHover, capturedOnBackgroundClick } = vi.hoisted(() => {
-  const hoverRef: { current: ((data: TooltipData | null) => void) | undefined } = {
-    current: undefined,
-  }
+const {
+  capturedOnNodeHover, capturedOnBackgroundClick 
+} = vi.hoisted(() => {
+  const hoverRef: { current: ((data: TooltipData | null) => void) | undefined } = {current: undefined,}
   const backgroundClickRef: { current: (() => void) | undefined } = { current: undefined }
   return {
     capturedOnNodeHover: hoverRef,
