@@ -1,7 +1,5 @@
 import { execFileSync } from 'node:child_process'
-import {
-  GitError, extractStderr 
-} from './git-errors'
+import { GitError } from './git-errors'
 
 class RepositoryUrlParseError extends Error {
   /* v8 ignore start -- @preserve: Error constructor; tested via integration */
@@ -12,13 +10,14 @@ class RepositoryUrlParseError extends Error {
   /* v8 ignore stop */
 }
 
+/** @riviere-role external-client-model */
 export interface RepositoryInfo {
   name: string
   owner?: string
   url: string
 }
 
-export type GitExecutor = (binary: string, args: readonly string[], cwd: string) => string
+type GitExecutor = (binary: string, args: readonly string[], cwd: string) => string
 
 /* v8 ignore start -- @preserve: default executor delegates to execFileSync; tested via CLI integration */
 function defaultGitExecutor(binary: string, args: readonly string[], cwd: string): string {
@@ -29,6 +28,19 @@ function defaultGitExecutor(binary: string, args: readonly string[], cwd: string
   }).trim()
 }
 /* v8 ignore stop */
+
+function extractStderr(error: Error): string {
+  if (!Object.hasOwn(error, 'stderr')) {
+    throw error
+  }
+
+  const stderrValue: unknown = Object.getOwnPropertyDescriptor(error, 'stderr')?.value
+  if (!stderrValue) {
+    throw error
+  }
+
+  return String(stderrValue)
+}
 
 /* v8 ignore start -- @preserve: git execution; mocked in all integration tests */
 function runGit(
@@ -98,6 +110,7 @@ function parseRepositoryUrl(url: string): RepositoryInfo {
 }
 
 /* v8 ignore start -- @preserve: git execution; mocked in all integration tests */
+/** @riviere-role external-client-service */
 export function getRepositoryInfo(
   gitBinary = 'git',
   cwd = process.cwd(),

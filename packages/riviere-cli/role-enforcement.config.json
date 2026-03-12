@@ -1,5 +1,5 @@
 {
-  "include": ["src/features/extract/**/*.ts"],
+  "include": ["src/features/extract/**/*.ts", "src/platform/infra/git/**/*.ts"],
   "ignorePatterns": ["**/*.spec.ts", "**/__fixtures__/**"],
   "roles": [
     {
@@ -39,12 +39,12 @@
     {
       "name": "external-client-service",
       "targets": ["function"],
-      "allowedLocation": ["src/**/infra/external-clients/*.ts"]
+      "allowedLocation": ["src/**/infra/external-clients/*.ts", "src/platform/infra/git/*.ts"]
     },
     {
       "name": "aggregate-repository",
       "targets": ["function"],
-      "allowedLocation": ["src/**/infra/repositories/*.ts"]
+      "allowedLocation": ["src/**/infra/persistence/**/*.ts"]
     },
     {
       "name": "aggregate",
@@ -60,6 +60,16 @@
       "name": "domain-service",
       "targets": ["function"],
       "allowedLocation": ["src/**/domain/*.ts"]
+    },
+    {
+      "name": "external-client-model",
+      "targets": ["interface", "type-alias", "class"],
+      "allowedLocation": ["src/platform/infra/git/*.ts"]
+    },
+    {
+      "name": "external-client-error",
+      "targets": ["class"],
+      "allowedLocation": ["src/platform/infra/git/*.ts"]
     }
   ]
 }

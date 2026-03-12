@@ -1,19 +1,35 @@
 import { execFileSync } from 'node:child_process'
 import { resolve } from 'node:path'
-import {
-  GitError, extractStderr, isGitError 
-} from './git-errors'
+import { GitError } from './git-errors'
 
 export { GitError }
 
+function extractStderr(error: Error): string {
+  if (!Object.hasOwn(error, 'stderr')) {
+    throw error
+  }
+
+  const stderrValue: unknown = Object.getOwnPropertyDescriptor(error, 'stderr')?.value
+  if (!stderrValue) {
+    throw error
+  }
+
+  return String(stderrValue)
+}
+
+function isGitError(error: unknown): error is GitError {
+  return error instanceof GitError
+}
+
 interface ChangedFilesOptions {readonly base?: string}
 
+/** @riviere-role external-client-model */
 export interface ChangedFilesResult {
   readonly files: string[]
   readonly warnings: string[]
 }
 
-export type GitExecutor = (binary: string, args: readonly string[], cwd: string) => string
+type GitExecutor = (binary: string, args: readonly string[], cwd: string) => string
 
 /* v8 ignore start -- @preserve: default executor delegates to execFileSync; tested via CLI integration */
 function defaultGitExecutor(binary: string, args: readonly string[], cwd: string): string {
@@ -115,6 +131,7 @@ function getCommittedChangedFiles(
   }
 }
 
+/** @riviere-role external-client-service */
 export function detectChangedTypeScriptFiles(
   cwd: string,
   options: ChangedFilesOptions,

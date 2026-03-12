@@ -1,11 +1,8 @@
-import { ExtractionFieldFailureError } from '../../../platform/infra/cli-presentation/error-codes'
 import {
-  loadAndValidateConfig,
-  resolveSourceFiles,
-} from '../../../platform/infra/extraction-config/config-loader'
-import { resolveFilteredSourceFiles } from '../../../platform/infra/source-filtering/filter-source-files'
-import { getRepositoryInfo } from '../../../platform/infra/git/git-repository-info'
-import { loadExtractionProject } from '../infra/repositories/load-extraction-project'
+  loadChangedProject,
+  loadFullProject,
+  loadSelectedFiles,
+} from '../infra/persistence/extraction-project/load-extraction-project'
 import type { ExtractDraftComponentsInput } from './extract-draft-components-input'
 import type { ExtractDraftComponentsResult } from './extract-draft-components-result'
 
@@ -13,64 +10,35 @@ import type { ExtractDraftComponentsResult } from './extract-draft-components-re
 export function extractDraftComponents(
   extractDraftComponentsInput: ExtractDraftComponentsInput,
 ): ExtractDraftComponentsResult {
-  const {
-    resolvedConfig, configDir 
-  } = loadAndValidateConfig(
-    extractDraftComponentsInput.configPath,
-  )
-  const allSourceFilePaths = resolveSourceFiles(resolvedConfig, configDir)
-  const sourceFilePaths = resolveFilteredSourceFiles(
-    allSourceFilePaths,
-    createSourceFilterOptions(extractDraftComponentsInput),
-  )
-  const extractionProject = loadExtractionProject({
-    configDir,
-    resolvedConfig,
-    skipTsConfig: !extractDraftComponentsInput.useTsConfig,
-    sourceFilePaths,
+  const extractionProject = loadProject(extractDraftComponentsInput)
+
+  return extractionProject.extractDraftComponents({
+    allowIncomplete: extractDraftComponentsInput.allowIncomplete,
+    includeConnections: extractDraftComponentsInput.includeConnections,
   })
-  const draftComponents = extractionProject.extractDraftComponents()
-
-  if (!extractDraftComponentsInput.includeConnections) {
-    return {
-      kind: 'draftOnly',
-      components: draftComponents,
-    }
-  }
-
-  const enrichment = extractionProject.enrichDraftComponents(draftComponents)
-  if (enrichment.failedFields.length > 0 && !extractDraftComponentsInput.allowIncomplete) {
-    throw new ExtractionFieldFailureError(enrichment.failedFields)
-  }
-
-  const repositoryInfo = getRepositoryInfo()
-  const connectionResult = extractionProject.detectConnections(
-    enrichment.components,
-    repositoryInfo.name,
-    extractDraftComponentsInput.allowIncomplete,
-  )
-
-  return {
-    kind: 'full',
-    components: enrichment.components,
-    failedFields: enrichment.failedFields,
-    links: connectionResult.links,
-    timings: connectionResult.timings,
-  }
 }
 
-function createSourceFilterOptions(extractDraftComponentsInput: ExtractDraftComponentsInput): {
-  base?: string
-  files?: string[]
-  pr?: boolean
-} {
-  return {
-    ...(extractDraftComponentsInput.baseBranch === undefined
-      ? {}
-      : { base: extractDraftComponentsInput.baseBranch }),
-    ...(extractDraftComponentsInput.files === undefined
-      ? {}
-      : { files: extractDraftComponentsInput.files }),
-    ...(extractDraftComponentsInput.sourceMode === 'pull-request' ? { pr: true } : {}),
+function loadProject(extractDraftComponentsInput: ExtractDraftComponentsInput) {
+  if (extractDraftComponentsInput.sourceMode === 'pull-request') {
+    return loadChangedProject({
+      configPath: extractDraftComponentsInput.configPath,
+      ...(extractDraftComponentsInput.baseBranch === undefined
+        ? {}
+        : { baseBranch: extractDraftComponentsInput.baseBranch }),
+      useTsConfig: extractDraftComponentsInput.useTsConfig,
+    })
   }
+
+  if (extractDraftComponentsInput.sourceMode === 'files') {
+    return loadSelectedFiles({
+      configPath: extractDraftComponentsInput.configPath,
+      filePaths: extractDraftComponentsInput.files ?? [],
+      useTsConfig: extractDraftComponentsInput.useTsConfig,
+    })
+  }
+
+  return loadFullProject({
+    configPath: extractDraftComponentsInput.configPath,
+    useTsConfig: extractDraftComponentsInput.useTsConfig,
+  })
 }

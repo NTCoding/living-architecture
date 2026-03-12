@@ -15,6 +15,9 @@ import {
   type EnrichedComponent,
   type ExtractedLink,
 } from '@living-architecture/riviere-extract-ts'
+import { ExtractionFieldFailureError } from '../../../platform/infra/cli-presentation/error-codes'
+import type { EnrichDraftComponentsResult } from '../commands/enrich-draft-components-result'
+import type { ExtractDraftComponentsResult } from '../commands/extract-draft-components-result'
 
 /** @riviere-role value-object */
 export interface ModuleContext {
@@ -33,28 +36,21 @@ export class OrphanedDraftComponentError extends Error {
   }
 }
 
-/** @riviere-role value-object */
-export interface EnrichDraftComponentsResultValue {
-  components: EnrichedComponent[]
-  failedFields: string[]
-}
-
-/** @riviere-role value-object */
-export interface DetectConnectionsResultValue {
-  links: ExtractedLink[]
-  timings: ConnectionTimings[]
-}
-
 /** @riviere-role aggregate */
 export class ExtractionProject {
   constructor(
     private readonly configDir: string,
     private readonly moduleContexts: ModuleContext[],
     private readonly resolvedConfig: ResolvedExtractionConfig,
+    private readonly repositoryName: string,
+    private readonly draftComponents: DraftComponent[] = [],
   ) {}
 
-  extractDraftComponents(): DraftComponent[] {
-    return this.moduleContexts.flatMap((moduleContext) =>
+  extractDraftComponents(options: {
+    allowIncomplete: boolean
+    includeConnections: boolean
+  }): ExtractDraftComponentsResult {
+    const draftComponents = this.moduleContexts.flatMap((moduleContext) =>
       extractComponents(
         moduleContext.project,
         moduleContext.files,
@@ -63,12 +59,122 @@ export class ExtractionProject {
         this.configDir,
       ),
     )
+
+    if (!options.includeConnections) {
+      return {
+        kind: 'draftOnly',
+        components: draftComponents,
+      }
+    }
+
+    const enrichment = this.enrichDraftComponentValues(draftComponents, options.allowIncomplete)
+    const connectionResult = this.detectConnections(enrichment.components, options.allowIncomplete)
+
+    return {
+      kind: 'full',
+      components: enrichment.components,
+      failedFields: enrichment.failedFields,
+      links: connectionResult.links,
+      timings: connectionResult.timings,
+    }
   }
 
-  enrichDraftComponents(draftComponents: DraftComponent[]): EnrichDraftComponentsResultValue {
-    const moduleNames = new Set(
-      this.moduleContexts.map((moduleContext) => moduleContext.module.name),
+  enrichDraftComponents(options: {
+    allowIncomplete: boolean
+    includeConnections: boolean
+  }): EnrichDraftComponentsResult {
+    if (!options.includeConnections) {
+      return {
+        kind: 'draftOnly',
+        components: this.draftComponents,
+      }
+    }
+
+    const enrichment = this.enrichDraftComponentValues(
+      this.draftComponents,
+      options.allowIncomplete,
     )
+    const connectionResult = this.detectConnections(enrichment.components, options.allowIncomplete)
+
+    return {
+      kind: 'full',
+      components: enrichment.components,
+      failedFields: enrichment.failedFields,
+      links: connectionResult.links,
+      timings: connectionResult.timings,
+    }
+  }
+
+  get moduleContextProjectNames(): string[] {
+    return this.moduleContexts.map((moduleContext) => moduleContext.module.name)
+  }
+
+  private detectConnections(
+    enrichedComponents: EnrichedComponent[],
+    allowIncomplete: boolean,
+  ): {
+    links: ExtractedLink[]
+    timings: ConnectionTimings[]
+  } {
+    const links: ExtractedLink[] = []
+    const timings: ConnectionTimings[] = []
+
+    for (const moduleContext of this.moduleContexts) {
+      const moduleComponents = enrichedComponents.filter(
+        (component) => component.domain === moduleContext.module.name,
+      )
+      if (moduleComponents.length === 0) {
+        continue
+      }
+
+      const result = detectPerModuleConnections(
+        moduleContext.project,
+        moduleComponents,
+        {
+          allowIncomplete,
+          moduleGlobs: [posix.join(moduleContext.module.path, moduleContext.module.glob)],
+          repository: this.repositoryName,
+        },
+        matchesGlob,
+      )
+      links.push(...result.links)
+      timings.push({
+        callGraphMs: result.timings.callGraphMs,
+        asyncDetectionMs: 0,
+        configurableMs: result.timings.configurableMs,
+        setupMs: result.timings.setupMs,
+        totalMs:
+          result.timings.callGraphMs + result.timings.configurableMs + result.timings.setupMs,
+      })
+    }
+
+    const crossResult = detectCrossModuleConnections(enrichedComponents, {
+      allowIncomplete,
+      repository: this.repositoryName,
+    })
+    links.push(...crossResult.links)
+    timings.push({
+      callGraphMs: 0,
+      asyncDetectionMs: crossResult.timings.asyncDetectionMs,
+      configurableMs: 0,
+      setupMs: 0,
+      totalMs: crossResult.timings.asyncDetectionMs,
+    })
+
+    return {
+      links: deduplicateCrossStrategy(links),
+      timings,
+    }
+  }
+
+  private enrichDraftComponentValues(
+    draftComponents: DraftComponent[],
+    allowIncomplete: boolean,
+  ): {
+    components: EnrichedComponent[]
+    failedFields: string[]
+  } {
+    const moduleNames = new Set(this.moduleContextProjectNames)
     const draftsByModule = groupDraftsByModule(draftComponents)
     assertAllDraftsMatchModules(draftsByModule, moduleNames)
     const components: EnrichedComponent[] = []
@@ -93,65 +199,14 @@ export class ExtractionProject {
       }
     }
 
+    const failedFields = [...failedFieldSet]
+    if (failedFields.length > 0 && !allowIncomplete) {
+      throw new ExtractionFieldFailureError(failedFields)
+    }
+
     return {
       components,
-      failedFields: [...failedFieldSet],
-    }
-  }
-
-  detectConnections(
-    enrichedComponents: EnrichedComponent[],
-    repositoryName: string,
-    allowIncomplete: boolean,
-  ): DetectConnectionsResultValue {
-    const links: ExtractedLink[] = []
-    const timings: ConnectionTimings[] = []
-
-    for (const moduleContext of this.moduleContexts) {
-      const moduleComponents = enrichedComponents.filter(
-        (component) => component.domain === moduleContext.module.name,
-      )
-      if (moduleComponents.length === 0) {
-        continue
-      }
-
-      const result = detectPerModuleConnections(
-        moduleContext.project,
-        moduleComponents,
-        {
-          allowIncomplete,
-          moduleGlobs: [posix.join(moduleContext.module.path, moduleContext.module.glob)],
-          repository: repositoryName,
-        },
-        matchesGlob,
-      )
-      links.push(...result.links)
-      timings.push({
-        callGraphMs: result.timings.callGraphMs,
-        asyncDetectionMs: 0,
-        configurableMs: result.timings.configurableMs,
-        setupMs: result.timings.setupMs,
-        totalMs:
-          result.timings.callGraphMs + result.timings.configurableMs + result.timings.setupMs,
-      })
-    }
-
-    const crossResult = detectCrossModuleConnections(enrichedComponents, {
-      allowIncomplete,
-      repository: repositoryName,
-    })
-    links.push(...crossResult.links)
-    timings.push({
-      callGraphMs: 0,
-      asyncDetectionMs: crossResult.timings.asyncDetectionMs,
-      configurableMs: 0,
-      setupMs: 0,
-      totalMs: crossResult.timings.asyncDetectionMs,
-    })
-
-    return {
-      links: deduplicateCrossStrategy(links),
-      timings,
+      failedFields,
     }
   }
 }
