@@ -43,7 +43,7 @@
     },
     {
       "name": "aggregate-repository",
-      "targets": ["function"],
+      "targets": ["class"],
       "allowedLocation": ["src/**/infra/persistence/**/*.ts"]
     },
     {

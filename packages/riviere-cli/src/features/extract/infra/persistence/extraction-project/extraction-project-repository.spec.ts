@@ -6,7 +6,7 @@ import {
 } from 'node:fs'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
-import { loadFullProject } from './load-extraction-project'
+import { ExtractionProjectRepository } from './extraction-project-repository'
 
 const VALID_CONFIG = `modules:
   - name: orders
@@ -30,15 +30,15 @@ function withTempDir(fn: (dir: string) => void): void {
   }
 }
 
-describe('loadFullProject', () => {
-  it('returns project with source files loaded', () => {
+describe('ExtractionProjectRepository', () => {
+  it('loadFromFullProject returns project with source files loaded', () => {
     withTempDir((dir) => {
       const filePath = join(dir, 'component.ts')
       const configPath = join(dir, 'extract.config.yml')
       writeFileSync(filePath, 'export class Order {}')
       writeFileSync(configPath, VALID_CONFIG)
 
-      const extractionProject = loadFullProject({
+      const extractionProject = new ExtractionProjectRepository().loadFromFullProject({
         configPath,
         useTsConfig: true,
       })
@@ -47,7 +47,7 @@ describe('loadFullProject', () => {
     })
   })
 
-  it('passes skipTsConfig through to project creation', () => {
+  it('loadFromFullProject passes skipTsConfig through to project creation', () => {
     withTempDir((dir) => {
       const filePath = join(dir, 'component.ts')
       const configPath = join(dir, 'extract.config.yml')
@@ -58,14 +58,18 @@ describe('loadFullProject', () => {
         JSON.stringify({ compilerOptions: { strict: true } }),
       )
 
-      expect(() => loadFullProject({
-        configPath,
-        useTsConfig: true 
-      })).not.toThrow()
-      expect(() => loadFullProject({
-        configPath,
-        useTsConfig: false 
-      })).not.toThrow()
+      expect(() =>
+        new ExtractionProjectRepository().loadFromFullProject({
+          configPath,
+          useTsConfig: true,
+        }),
+      ).not.toThrow()
+      expect(() =>
+        new ExtractionProjectRepository().loadFromFullProject({
+          configPath,
+          useTsConfig: false,
+        }),
+      ).not.toThrow()
     })
   })
 })

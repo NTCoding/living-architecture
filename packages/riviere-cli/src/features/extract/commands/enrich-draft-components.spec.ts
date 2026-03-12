@@ -5,17 +5,21 @@ import { ExtractionFieldFailureError } from '../../../platform/infra/cli-present
 
 const mocks = vi.hoisted(() => ({
   enrichDraftComponentsMethodMock: vi.fn(),
-  loadProjectForDraftEnrichmentMock: vi.fn(),
+  loadFromDraftEnrichmentMock: vi.fn(),
 }))
 
-vi.mock('../infra/persistence/extraction-project/load-extraction-project', () => ({loadProjectForDraftEnrichment: mocks.loadProjectForDraftEnrichmentMock,}))
+vi.mock('../infra/persistence/extraction-project/extraction-project-repository', () => ({
+  ExtractionProjectRepository: class {
+    loadFromDraftEnrichment = mocks.loadFromDraftEnrichmentMock
+  },
+}))
 
 import { enrichDraftComponents } from './enrich-draft-components'
 
 describe('enrichDraftComponents', () => {
   beforeEach(() => {
     vi.resetAllMocks()
-    mocks.loadProjectForDraftEnrichmentMock.mockReturnValue({enrichDraftComponents: mocks.enrichDraftComponentsMethodMock,})
+    mocks.loadFromDraftEnrichmentMock.mockReturnValue({enrichDraftComponents: mocks.enrichDraftComponentsMethodMock,})
     mocks.enrichDraftComponentsMethodMock.mockReturnValue({
       kind: 'draftOnly',
       components: [{ name: 'Draft' }],

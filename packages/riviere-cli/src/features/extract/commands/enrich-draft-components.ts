@@ -1,4 +1,4 @@
-import { loadProjectForDraftEnrichment } from '../infra/persistence/extraction-project/load-extraction-project'
+import { ExtractionProjectRepository } from '../infra/persistence/extraction-project/extraction-project-repository'
 import type { EnrichDraftComponentsInput } from './enrich-draft-components-input'
 import type { EnrichDraftComponentsResult } from './enrich-draft-components-result'
 
@@ -6,7 +6,8 @@ import type { EnrichDraftComponentsResult } from './enrich-draft-components-resu
 export function enrichDraftComponents(
   enrichDraftComponentsInput: EnrichDraftComponentsInput,
 ): EnrichDraftComponentsResult {
-  const extractionProject = loadProjectForDraftEnrichment({
+  const extractionProjectRepository = new ExtractionProjectRepository()
+  const extractionProject = extractionProjectRepository.loadFromDraftEnrichment({
     configPath: enrichDraftComponentsInput.configPath,
     draftComponentsPath: enrichDraftComponentsInput.draftComponentsPath,
     useTsConfig: enrichDraftComponentsInput.useTsConfig,
