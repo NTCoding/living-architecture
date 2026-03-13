@@ -5,7 +5,8 @@ import { join } from 'node:path'
 import {
   detectChangedTypeScriptFiles, GitError 
 } from './git-changed-files'
-import type { GitExecutor } from './git-changed-files'
+
+type GitExecutor = (binary: string, args: readonly string[], cwd: string) => string
 
 class GitProcessError extends Error {
   constructor(
@@ -29,13 +30,17 @@ class UnexpectedError extends Error {
 
 function createMockExecutor(responses: Record<string, string>): GitExecutor {
   return (_binary, args) => {
-    const key = args.join(' ')
+    const key = readCommandKey(args)
     const response = responses[key]
     if (response === undefined) {
       throw new GitProcessError(`Command failed: git ${key}`, `fatal: unknown command or path`)
     }
     return response
   }
+}
+
+function readCommandKey(args: readonly string[]): string {
+  return args.join(' ')
 }
 
 function attachedHeadResponses(
@@ -92,7 +97,7 @@ describe('detectChangedTypeScriptFiles', () => {
         'ls-files --others --exclude-standard': '',
       })
       const throwingExecutor: GitExecutor = (binary, args, cwd) => {
-        const key = args.join(' ')
+        const key = readCommandKey(args)
         if (key === 'ls-files --others --exclude-standard') {
           throw new UnexpectedError('unexpected failure')
         }
@@ -178,7 +183,7 @@ describe('detectChangedTypeScriptFiles', () => {
 
     it('falls back to main when no base provided and no origin/HEAD', () => {
       const executor: GitExecutor = (_binary, args) => {
-        const key = args.join(' ')
+        const key = readCommandKey(args)
         if (key === 'rev-parse --git-dir') return '.git'
         if (key === 'symbolic-ref HEAD') return 'refs/heads/feature'
         if (key === 'symbolic-ref refs/remotes/origin/HEAD') {
@@ -197,7 +202,7 @@ describe('detectChangedTypeScriptFiles', () => {
 
     it('throws GitError when base branch does not exist', () => {
       const executor: GitExecutor = (_binary, args) => {
-        const key = args.join(' ')
+        const key = readCommandKey(args)
         if (key === 'rev-parse --git-dir') return '.git'
         if (key === 'symbolic-ref HEAD') return 'refs/heads/feature'
         throw new UnexpectedError('unknown revision nonexistent')
@@ -212,7 +217,7 @@ describe('detectChangedTypeScriptFiles', () => {
   describe('detached HEAD', () => {
     it('uses HEAD~1 as base when HEAD is detached', () => {
       const executor: GitExecutor = (_binary, args) => {
-        const key = args.join(' ')
+        const key = readCommandKey(args)
         if (key === 'rev-parse --git-dir') return '.git'
         if (key === 'symbolic-ref HEAD') {
           throw new GitProcessError('not on a branch', 'fatal: ref HEAD is not a symbolic ref')
@@ -268,7 +273,7 @@ describe('detectChangedTypeScriptFiles', () => {
   describe('error handling with injected executor', () => {
     it('rethrows GitError from getCommittedChangedFiles', () => {
       const executor: GitExecutor = (_binary, args) => {
-        const key = args.join(' ')
+        const key = readCommandKey(args)
         if (key === 'rev-parse --git-dir') return '.git'
         if (key === 'symbolic-ref HEAD') return 'refs/heads/feature'
         throw new GitProcessError('fatal: not a git repository', 'fatal: not a git repository')
