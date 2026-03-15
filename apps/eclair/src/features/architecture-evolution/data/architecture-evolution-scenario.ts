@@ -13,12 +13,8 @@ import type {
 } from './architecture-evolution-types'
 
 export type {
-  ArchitectureEvolutionCapability,
-  ArchitectureEvolutionCommit,
   ArchitectureEvolutionEdgeData,
   ArchitectureEvolutionNodeData,
-  ArchitectureEvolutionTransition,
-  ArchitectureEvolutionView,
 } from './architecture-evolution-types'
 
 type ConnectionState = ArchitectureEvolutionEdgeData['state']

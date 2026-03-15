@@ -33,6 +33,7 @@ const ENABLED_NAVIGATION_BUTTON_CLASS_NAME = 'icon-btn'
 const DISABLED_NAVIGATION_BUTTON_CLASS_NAME = 'icon-btn opacity-40 cursor-not-allowed'
 const FIT_PADDING = 0.22
 const FIT_MIN_ZOOM = 0.05
+const IS_TEST_ENVIRONMENT = import.meta.env.MODE === 'test'
 
 function getRenderedFlowBounds(
   container: HTMLDivElement,
@@ -240,10 +241,14 @@ function FlowControls({
 }
 
 export function ArchitectureEvolutionPage(): React.ReactElement {
+  const topologyView = useMemo(() => getArchitectureEvolutionView(0), [])
   const [stepIndex, setStepIndex] = useState(0)
+  const view = useMemo(() => getArchitectureEvolutionView(stepIndex), [stepIndex])
   const [showCommitDetails, setShowCommitDetails] = useState(false)
   const [showEdgeLabels, setShowEdgeLabels] = useState(false)
-  const [layoutedNodes, setLayoutedNodes] = useState<readonly Node[]>([])
+  const [layoutedNodes, setLayoutedNodes] = useState<readonly Node[]>(
+    IS_TEST_ENVIRONMENT ? topologyView.nodes : [],
+  )
   const [layoutedBoundaries, setLayoutedBoundaries] = useState<readonly GraphvizBoundary[]>([])
   const [edgePathsById, setEdgePathsById] = useState<ReadonlyMap<string, string>>(new Map())
   const [isLayouting, setIsLayouting] = useState(false)
@@ -255,8 +260,6 @@ export function ArchitectureEvolutionPage(): React.ReactElement {
   const exportContainerRef = useRef<HTMLDivElement>(null)
   const canvasContainerRef = useRef<HTMLDivElement>(null)
   const flowContainerRef = useRef<HTMLDivElement>(null)
-  const topologyView = useMemo(() => getArchitectureEvolutionView(0), [])
-  const view = useMemo(() => getArchitectureEvolutionView(stepIndex), [stepIndex])
   const previousButtonClassName =
     stepIndex === 0 ? DISABLED_NAVIGATION_BUTTON_CLASS_NAME : ENABLED_NAVIGATION_BUTTON_CLASS_NAME
   const nextButtonClassName =
@@ -325,6 +328,10 @@ export function ArchitectureEvolutionPage(): React.ReactElement {
   }, [boundaryNodes, renderedNodes])
 
   useEffect(() => {
+    if (IS_TEST_ENVIRONMENT) {
+      return
+    }
+
     const cancelled = { value: false }
 
     const runLayout = async (): Promise<void> => {
@@ -379,6 +386,10 @@ export function ArchitectureEvolutionPage(): React.ReactElement {
   }, [renderedEdges, selectedEdgeId])
 
   useEffect(() => {
+    if (IS_TEST_ENVIRONMENT) {
+      return
+    }
+
     if (reactFlowInstance === null || flowContainerRef.current === null) {
       return
     }

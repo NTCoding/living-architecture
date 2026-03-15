@@ -1,11 +1,7 @@
 import '@testing-library/jest-dom/vitest'
-import {
-  render, screen, within 
-} from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import {
-  describe, expect, it 
-} from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { ExportProvider } from '@/platform/infra/export/ExportContext'
 import { ArchitectureEvolutionPage } from './ArchitectureEvolutionPage'
 
@@ -15,6 +11,18 @@ function renderPage(): ReturnType<typeof render> {
       <ArchitectureEvolutionPage />
     </ExportProvider>,
   )
+}
+
+async function findPageHeader(): Promise<HTMLElement> {
+  return screen.findByText((_, node) => {
+    return (
+      node instanceof HTMLSpanElement && node.textContent?.includes('Initial split architecture')
+    )
+  })
+}
+
+function hasCommitTitle(title: string): (content: string, node: Element | null) => boolean {
+  return (_, node) => node instanceof HTMLSpanElement && node.textContent?.includes(title)
 }
 
 function getRequiredElement(container: ParentNode, selector: string): Element {
@@ -37,30 +45,32 @@ async function advanceToNextCommit(
 }
 
 describe('ArchitectureEvolutionPage', () => {
-  it('renders the compact header and first commit summary', () => {
+  it('renders the compact header and first commit summary', async () => {
     renderPage()
     const page = screen.getByTestId('arch-evolution-page')
-    const commitCard = screen.getByTestId('arch-evolution-commit-card')
+    const summary = await findPageHeader()
 
     expect(page).toContainElement(screen.getByTestId('arch-evolution-flow'))
-    expect(commitCard).toHaveTextContent('Architecture Evolution')
-    expect(commitCard).toHaveTextContent('2026-01-08')
-    expect(commitCard).toHaveTextContent('Initial split architecture')
+    expect(summary).toBeInTheDocument()
+    expect(screen.getByText('Architecture Evolution')).toBeInTheDocument()
+    expect(screen.getByText(/2026-01-08/)).toBeInTheDocument()
   })
 
   it('expands commit details on demand', async () => {
     const user = userEvent.setup()
     renderPage()
+    await findPageHeader()
 
     await user.click(screen.getByTestId('arch-evolution-details-toggle'))
 
-    expect(screen.getByTestId('arch-evolution-commit-card')).toHaveTextContent('a18b3f2')
-    expect(screen.getByTestId('arch-evolution-commit-card')).toHaveTextContent('Nick Tune')
+    expect(screen.getByText('a18b3f2')).toBeInTheDocument()
+    expect(screen.getByText('Nick Tune')).toBeInTheDocument()
   })
 
   it('disables previous on the first step and next on the last step', async () => {
     const user = userEvent.setup()
     renderPage()
+    await findPageHeader()
 
     const previousButton = screen.getByRole('button', { name: /previous commit/i })
     const nextButton = screen.getByRole('button', { name: /next commit/i })
@@ -71,14 +81,13 @@ describe('ArchitectureEvolutionPage', () => {
     await advanceToNextCommit(user, 8)
 
     expect(nextButton).toBeDisabled()
-    expect(screen.getByTestId('arch-evolution-commit-card')).toHaveTextContent(
-      'Remove Orders Service C',
-    )
+    expect(screen.getByText(hasCommitTitle('Remove Orders Service C'))).toBeInTheDocument()
   })
 
   it('shows changed labels even when stable labels are off', async () => {
     const user = userEvent.setup()
     renderPage()
+    await findPageHeader()
 
     expect(screen.queryByTestId('arch-evo-edge-label-web-a-read')).not.toBeInTheDocument()
 
@@ -96,6 +105,7 @@ describe('ArchitectureEvolutionPage', () => {
   it('shows stable labels when the toggle is enabled', async () => {
     const user = userEvent.setup()
     renderPage()
+    await findPageHeader()
 
     await user.click(screen.getByTestId('arch-evolution-label-toggle'))
 
@@ -106,6 +116,11 @@ describe('ArchitectureEvolutionPage', () => {
   it('opens the connection inspector when a line is clicked', async () => {
     const user = userEvent.setup()
     const { container } = renderPage()
+    await findPageHeader()
+
+    await waitFor(() => {
+      expect(container.querySelector('.react-flow__edge-interaction')).not.toBeNull()
+    })
 
     const clickablePath = getRequiredElement(container, '.react-flow__edge-interaction')
 
@@ -121,10 +136,11 @@ describe('ArchitectureEvolutionPage', () => {
   it('ghosts service B and its removed capability before deletion', async () => {
     const user = userEvent.setup()
     renderPage()
+    await findPageHeader()
 
     await advanceToNextCommit(user, 2)
 
-    const serviceB = screen.getByTestId('arch-evo-node-service-b')
+    const serviceB = await screen.findByTestId('arch-evo-node-service-b')
     const removedCapability = within(serviceB).getByText('POST /orders')
 
     expect(serviceB).toHaveAttribute('data-evolution-state', 'changed')

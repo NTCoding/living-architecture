@@ -247,6 +247,9 @@ export function ArchitectureEvolutionNode({
   data,
   id,
 }: ArchitectureEvolutionNodeProps): React.ReactElement {
+  const capabilityClassName =
+    data.capabilities.length === 0 ? 'mt-0' : 'mt-3 arch-evo-capability-list'
+
   return (
     <>
       <ArchitectureEvolutionHandles />
@@ -262,7 +265,25 @@ export function ArchitectureEvolutionNode({
           <div className="arch-evo-node-icon">
             <i className={`ph ph-${data.icon}`} aria-hidden="true" />
           </div>
-          <div className="arch-evo-node-title">{data.label}</div>
+          <div>
+            <div className="arch-evo-node-subtitle">{data.subtitle}</div>
+            <div className="arch-evo-node-title">{data.label}</div>
+          </div>
+        </div>
+        <div className={capabilityClassName}>
+          {data.capabilities.map((capability) => {
+            return (
+              <div
+                key={capability.id}
+                data-testid={`arch-evo-capability-${capability.id}`}
+                data-evolution-state={capability.state}
+                data-transition={capability.transition}
+                className="arch-evo-capability"
+              >
+                {capability.label}
+              </div>
+            )
+          })}
         </div>
       </div>
     </>
