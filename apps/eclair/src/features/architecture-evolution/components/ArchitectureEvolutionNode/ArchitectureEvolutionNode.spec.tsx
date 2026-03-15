@@ -20,6 +20,7 @@ function createNodeProps(
       icon: 'stack-simple',
       kind: 'service',
       state: 'active',
+      transition: 'unchanged',
       capabilities: [],
     },
     width: 0,
@@ -53,16 +54,19 @@ describe('ArchitectureEvolutionNode', () => {
             icon: 'stack-simple',
             kind: 'service',
             state: 'active',
+            transition: 'unchanged',
             capabilities: [
               {
                 id: 'service-a:query',
                 label: 'Query API',
                 state: 'active',
+                transition: 'unchanged',
               },
               {
                 id: 'service-a:place-order',
                 label: 'Place order API',
                 state: 'active',
+                transition: 'unchanged',
               },
             ],
           },
@@ -87,11 +91,13 @@ describe('ArchitectureEvolutionNode', () => {
             icon: 'stack-simple',
             kind: 'service',
             state: 'ghosted',
+            transition: 'removed',
             capabilities: [
               {
                 id: 'service-b:place-order',
                 label: 'Place order API',
                 state: 'ghosted',
+                transition: 'removed',
               },
             ],
           },

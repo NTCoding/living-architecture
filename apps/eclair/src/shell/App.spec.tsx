@@ -118,7 +118,9 @@ describe('App routing', () => {
     renderWithRouter('/evolution', { graph: mockGraph })
 
     expect(await screen.findByText('Architecture Evolution')).toBeInTheDocument()
-    expect(screen.getByText('Initial split architecture')).toBeInTheDocument()
+    expect(screen.getByTestId('arch-evolution-commit-card')).toHaveTextContent(
+      'Initial split architecture',
+    )
   })
 
   it('renders with app shell sidebar', async () => {
@@ -187,7 +189,9 @@ describe('App routing without graph', () => {
     renderWithRouter('/evolution')
 
     expect(await screen.findByText('Architecture Evolution')).toBeInTheDocument()
-    expect(screen.getByText('Initial split architecture')).toBeInTheDocument()
+    expect(screen.getByTestId('arch-evolution-commit-card')).toHaveTextContent(
+      'Initial split architecture',
+    )
   })
 })
 

@@ -5,11 +5,13 @@ import type {
 export type ArchitectureEvolutionVisualState = 'active' | 'changed' | 'ghosted'
 export type ArchitectureEvolutionNodeKind = 'client' | 'service' | 'database'
 export type ArchitectureEvolutionEdgeKind = 'query' | 'write' | 'event'
+export type ArchitectureEvolutionTransition = 'unchanged' | 'added' | 'removed' | 'changed'
 
 export interface ArchitectureEvolutionCapability {
   readonly id: string
   readonly label: string
   readonly state: ArchitectureEvolutionVisualState
+  readonly transition: ArchitectureEvolutionTransition
 }
 
 export interface ArchitectureEvolutionNodeData extends Record<string, unknown> {
@@ -18,13 +20,26 @@ export interface ArchitectureEvolutionNodeData extends Record<string, unknown> {
   readonly icon: string
   readonly kind: ArchitectureEvolutionNodeKind
   readonly state: ArchitectureEvolutionVisualState
+  readonly transition: ArchitectureEvolutionTransition
   readonly capabilities: readonly ArchitectureEvolutionCapability[]
 }
 
 export interface ArchitectureEvolutionEdgeData extends Record<string, unknown> {
   readonly label: string
+  readonly subtitle: string
+  readonly description: string
+  readonly sourcePortLabel: string
+  readonly targetPortLabel: string
+  readonly pathShape: 'smoothstep' | 'straight'
+  readonly pathOptions: {
+    readonly offset?: number
+    readonly borderRadius?: number
+    readonly stepPosition?: number
+  }
   readonly kind: ArchitectureEvolutionEdgeKind
   readonly state: ArchitectureEvolutionVisualState | 'hidden'
+  readonly transition: ArchitectureEvolutionTransition
+  readonly showLabel: boolean
 }
 
 export interface ArchitectureEvolutionCommit {
@@ -68,8 +83,20 @@ export interface EdgeDefinition {
   readonly source: string
   readonly target: string
   readonly label: string
+  readonly subtitle: string
+  readonly description: string
+  readonly sourcePortLabel: string
+  readonly targetPortLabel: string
   readonly kind: ArchitectureEvolutionEdgeKind
-  readonly bidirectional?: boolean
+  readonly sourceHandle?: string
+  readonly targetHandle?: string
+  readonly type?: 'smoothstep' | 'step' | 'straight'
+  readonly markerMode?: 'end' | 'none'
+  readonly pathOptions?: {
+    readonly offset?: number
+    readonly borderRadius?: number
+    readonly stepPosition?: number
+  }
 }
 
 export interface StepDefinition {

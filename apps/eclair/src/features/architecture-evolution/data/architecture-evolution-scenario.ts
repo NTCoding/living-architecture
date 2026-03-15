@@ -10,8 +10,10 @@ import type {
   ArchitectureEvolutionEdgeData,
   ArchitectureEvolutionEdgeKind,
   ArchitectureEvolutionNodeData,
+  ArchitectureEvolutionTransition,
   ArchitectureEvolutionView,
   EdgeDefinition,
+  StepDefinition,
 } from './architecture-evolution-types'
 
 export type {
@@ -19,10 +21,23 @@ export type {
   ArchitectureEvolutionCommit,
   ArchitectureEvolutionEdgeData,
   ArchitectureEvolutionNodeData,
+  ArchitectureEvolutionTransition,
   ArchitectureEvolutionView,
 } from './architecture-evolution-types'
 
+type ConnectionState = ArchitectureEvolutionEdgeData['state']
+
 const NODE_DEFINITIONS_BY_ID = new Map(NODE_DEFINITIONS.map((node) => [node.id, node]))
+
+function getStep(stepIndex: number): StepDefinition {
+  const step = STEP_DEFINITIONS[stepIndex]
+
+  if (step === undefined) {
+    throw new RangeError(`Unknown architecture evolution step: ${stepIndex}`)
+  }
+
+  return step
+}
 
 function getNodeVisualState(
   nodeId: string,
@@ -44,19 +59,42 @@ function getCapabilityState(
   return 'active'
 }
 
-function buildNodes(stepIndex: number): readonly Node<ArchitectureEvolutionNodeData>[] {
-  const step = STEP_DEFINITIONS[stepIndex]
-
-  if (step === undefined) {
-    throw new RangeError(`Unknown architecture evolution step: ${stepIndex}`)
+function getVisibleTransition(
+  currentState: ArchitectureEvolutionNodeData['state'],
+  previousState: ArchitectureEvolutionNodeData['state'] | 'hidden',
+): ArchitectureEvolutionTransition {
+  if (currentState === 'ghosted' && previousState !== 'ghosted' && previousState !== 'hidden') {
+    return 'removed'
   }
 
-  const ghostedNodeIds = new Set(step.ghostedNodeIds)
-  const changedNodeIds = new Set(step.changedNodeIds)
-  const ghostedCapabilityIds = new Set(step.ghostedCapabilityIds)
+  if (
+    (currentState === 'active' || currentState === 'changed') &&
+    (previousState === 'ghosted' || previousState === 'hidden')
+  ) {
+    return 'added'
+  }
+
+  if (currentState === 'changed') return 'changed'
+
+  return 'unchanged'
+}
+
+function buildNodes(stepIndex: number): readonly Node<ArchitectureEvolutionNodeData>[] {
+  const currentStep = getStep(stepIndex)
+  const previousStep = stepIndex > 0 ? getStep(stepIndex - 1) : null
+  const currentGhostedNodeIds = new Set(currentStep.ghostedNodeIds)
+  const currentChangedNodeIds = new Set(currentStep.changedNodeIds)
+  const currentGhostedCapabilityIds = new Set(currentStep.ghostedCapabilityIds)
+  const previousGhostedNodeIds = new Set(previousStep?.ghostedNodeIds ?? [])
+  const previousChangedNodeIds = new Set(previousStep?.changedNodeIds ?? [])
+  const previousGhostedCapabilityIds = new Set(previousStep?.ghostedCapabilityIds ?? [])
 
   return NODE_DEFINITIONS.map((node) => {
-    const state = getNodeVisualState(node.id, ghostedNodeIds, changedNodeIds)
+    const state = getNodeVisualState(node.id, currentGhostedNodeIds, currentChangedNodeIds)
+    const previousState =
+      previousStep === null
+        ? 'active'
+        : getNodeVisualState(node.id, previousGhostedNodeIds, previousChangedNodeIds)
 
     return {
       id: node.id,
@@ -64,17 +102,32 @@ function buildNodes(stepIndex: number): readonly Node<ArchitectureEvolutionNodeD
       position: node.position,
       draggable: false,
       selectable: false,
+      zIndex: state === 'ghosted' ? 1 : 12,
       data: {
         label: node.label,
         subtitle: node.subtitle,
         icon: node.icon,
         kind: node.kind,
         state,
-        capabilities: node.capabilities.map((capability) => ({
-          id: capability.id,
-          label: capability.label,
-          state: getCapabilityState(state, capability.id, ghostedCapabilityIds),
-        })),
+        transition: getVisibleTransition(state, previousState),
+        capabilities: node.capabilities.map((capability) => {
+          const capabilityState = getCapabilityState(
+            state,
+            capability.id,
+            currentGhostedCapabilityIds,
+          )
+          const previousCapabilityState =
+            previousStep === null
+              ? 'active'
+              : getCapabilityState(previousState, capability.id, previousGhostedCapabilityIds)
+
+          return {
+            id: capability.id,
+            label: capability.label,
+            state: capabilityState,
+            transition: getVisibleTransition(capabilityState, previousCapabilityState),
+          }
+        }),
       },
     }
   })
@@ -149,7 +202,7 @@ function getEdgeState(
   activeEdgeIds: ReadonlySet<string>,
   ghostedEdgeIds: ReadonlySet<string>,
   changedEdgeIds: ReadonlySet<string>,
-): ArchitectureEvolutionEdgeData['state'] {
+): ConnectionState {
   if (changedEdgeIds.has(edgeId) && activeEdgeIds.has(edgeId)) return 'changed'
   if (changedEdgeIds.has(edgeId) && ghostedEdgeIds.has(edgeId)) return 'ghosted'
   if (activeEdgeIds.has(edgeId)) return 'active'
@@ -157,42 +210,59 @@ function getEdgeState(
   return 'hidden'
 }
 
-function getEdgeColor(kind: ArchitectureEvolutionEdgeKind): string {
-  if (kind === 'query') return 'var(--node-ui)'
-  if (kind === 'event') return 'var(--amber)'
-  return 'var(--node-api)'
+function getConnectionTransition(
+  currentState: ConnectionState,
+  previousState: ConnectionState,
+): ArchitectureEvolutionTransition {
+  if (currentState === 'hidden') return 'unchanged'
+
+  if (currentState === 'ghosted' && previousState !== 'ghosted' && previousState !== 'hidden') {
+    return 'removed'
+  }
+
+  if (
+    (currentState === 'active' || currentState === 'changed') &&
+    (previousState === 'hidden' || previousState === 'ghosted')
+  ) {
+    return 'added'
+  }
+
+  if (currentState === 'changed') return 'changed'
+
+  return 'unchanged'
 }
 
-function getLabelStrokeOpacity(state: ArchitectureEvolutionEdgeData['state']): number {
-  if (state === 'ghosted') return 0.18
-  if (state === 'changed') return 0.65
-  return 0.28
+function getEdgeColor(kind: ArchitectureEvolutionEdgeKind): string {
+  if (kind === 'query') return 'var(--green)'
+  if (kind === 'event') return 'var(--amber)'
+  return 'var(--blue)'
 }
 
 function getEdgeOpacity(
-  edge: EdgeDefinition,
-  state: ArchitectureEvolutionEdgeData['state'],
+  state: ConnectionState,
+  transition: ArchitectureEvolutionTransition,
 ): number {
-  if (state === 'ghosted') return 0.18
-  if (edge.kind === 'event') return 0.88
-  return 0.74
+  if (state === 'ghosted') return 0.24
+  if (transition !== 'unchanged') return 1
+  return 0.34
+}
+
+function getEdgeZIndex(
+  state: ConnectionState,
+  transition: ArchitectureEvolutionTransition,
+): number {
+  if (state === 'hidden') return 0
+  if (transition !== 'unchanged') return 40
+  if (state === 'ghosted') return 4
+  return 12
 }
 
 function buildEdgeMarkers(
   edge: EdgeDefinition,
   color: string,
 ): Pick<Edge, 'markerEnd' | 'markerStart'> {
-  if (edge.bidirectional === true) {
-    return {
-      markerStart: {
-        type: MarkerType.ArrowClosed,
-        color,
-      },
-      markerEnd: {
-        type: MarkerType.ArrowClosed,
-        color,
-      },
-    }
+  if (edge.markerMode === 'none') {
+    return {}
   }
 
   return {
@@ -204,57 +274,62 @@ function buildEdgeMarkers(
 }
 
 function buildEdges(stepIndex: number): readonly Edge<ArchitectureEvolutionEdgeData>[] {
-  const step = STEP_DEFINITIONS[stepIndex]
-
-  if (step === undefined) {
-    throw new RangeError(`Unknown architecture evolution step: ${stepIndex}`)
-  }
-
-  const activeEdgeIds = new Set(step.activeEdgeIds)
-  const ghostedEdgeIds = new Set(step.ghostedEdgeIds)
-  const changedEdgeIds = new Set(step.changedEdgeIds)
+  const currentStep = getStep(stepIndex)
+  const previousStep = stepIndex > 0 ? getStep(stepIndex - 1) : null
+  const activeEdgeIds = new Set(currentStep.activeEdgeIds)
+  const ghostedEdgeIds = new Set(currentStep.ghostedEdgeIds)
+  const changedEdgeIds = new Set(currentStep.changedEdgeIds)
+  const previousActiveEdgeIds = new Set(previousStep?.activeEdgeIds ?? [])
+  const previousGhostedEdgeIds = new Set(previousStep?.ghostedEdgeIds ?? [])
+  const previousChangedEdgeIds = new Set(previousStep?.changedEdgeIds ?? [])
 
   return EDGE_DEFINITIONS.map((edge) => {
     const handles = getHandles(edge.source, edge.target)
     const state = getEdgeState(edge.id, activeEdgeIds, ghostedEdgeIds, changedEdgeIds)
+    const previousState =
+      previousStep === null
+        ? getEdgeState(edge.id, activeEdgeIds, ghostedEdgeIds, changedEdgeIds)
+        : getEdgeState(
+          edge.id,
+          previousActiveEdgeIds,
+          previousGhostedEdgeIds,
+          previousChangedEdgeIds,
+        )
+    const transition = getConnectionTransition(state, previousState)
     const color = getEdgeColor(edge.kind)
 
     return {
       id: edge.id,
       source: edge.source,
       target: edge.target,
-      type: 'smoothstep',
+      type: 'architecture',
       hidden: state === 'hidden',
-      selectable: false,
-      focusable: false,
+      selectable: true,
+      focusable: true,
       animated: false,
-      sourceHandle: handles.sourceHandle,
-      targetHandle: handles.targetHandle,
-      label: edge.label,
-      labelShowBg: true,
-      labelBgPadding: [10, 6],
-      labelBgBorderRadius: 999,
-      labelBgStyle: {
-        fill: 'var(--bg-secondary)',
-        fillOpacity: state === 'ghosted' ? 0.45 : 0.92,
-        stroke: color,
-        strokeOpacity: getLabelStrokeOpacity(state),
-      },
-      labelStyle: {
-        fill: state === 'ghosted' ? 'var(--text-tertiary)' : 'var(--text-primary)',
-        fontSize: 11,
-        fontWeight: state === 'changed' ? 700 : 600,
-      },
+      zIndex: getEdgeZIndex(state, transition),
+      interactionWidth: 28,
+      sourceHandle: edge.sourceHandle ?? handles.sourceHandle,
+      targetHandle: edge.targetHandle ?? handles.targetHandle,
+      pathOptions: edge.pathOptions,
       data: {
         label: edge.label,
+        subtitle: edge.subtitle,
+        description: edge.description,
+        sourcePortLabel: edge.sourcePortLabel,
+        targetPortLabel: edge.targetPortLabel,
+        pathShape: edge.type === 'straight' ? 'straight' : 'smoothstep',
+        pathOptions: edge.pathOptions ?? {},
         kind: edge.kind,
         state,
+        transition,
+        showLabel: false,
       },
       style: {
         stroke: color,
-        strokeWidth: state === 'changed' ? 3.2 : 2.4,
-        opacity: getEdgeOpacity(edge, state),
-        strokeDasharray: edge.kind === 'event' ? '6 4' : undefined,
+        strokeWidth: transition === 'unchanged' ? 2.6 : 4.6,
+        opacity: getEdgeOpacity(state, transition),
+        strokeDasharray: edge.kind === 'event' ? '8 6' : undefined,
       },
       ...buildEdgeMarkers(edge, color),
     }
@@ -274,12 +349,7 @@ export const ARCHITECTURE_EVOLUTION_STEP_COUNT = STEP_DEFINITIONS.length
 
 export function getArchitectureEvolutionView(stepIndex: number): ArchitectureEvolutionView {
   const normalizedStepIndex = Math.max(0, Math.min(stepIndex, STEP_DEFINITIONS.length - 1))
-  const step = STEP_DEFINITIONS[normalizedStepIndex]
-
-  if (step === undefined) {
-    throw new RangeError(`Unknown architecture evolution step: ${stepIndex}`)
-  }
-
+  const step = getStep(normalizedStepIndex)
   const nodes = buildNodes(normalizedStepIndex)
 
   return {

@@ -84,6 +84,7 @@
     /* Semantic colors */
     --amber: #f59e0b;
     --green: #10b981;
+    --blue: #2563eb;
     --purple: #8b5cf6;
     --cyan: #06b6d4;
   }
@@ -121,6 +122,7 @@
     /* Semantic colors */
     --amber: #f59e0b;
     --green: #39ff14;
+    --blue: #0066ff;
     --purple: #8b5cf6;
     --cyan: #00d4ff;
   }
@@ -153,6 +155,7 @@
     /* Semantic colors */
     --amber: #bf8700;
     --green: #1a7f37;
+    --blue: #0969da;
     --purple: #8250df;
     --cyan: #0969da;
   }
@@ -1547,13 +1550,13 @@
   }
 
   .arch-evo-node {
-    min-width: 210px;
-    max-width: 210px;
-    border: 2px solid var(--border-color);
+    min-width: 196px;
+    max-width: 196px;
+    border: 1px solid color-mix(in srgb, var(--text-tertiary) 26%, var(--border-color));
     border-radius: var(--radius-xl, 16px);
-    background: color-mix(in srgb, var(--bg-secondary) 92%, transparent);
-    padding: 14px;
-    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+    background: color-mix(in srgb, var(--bg-secondary) 96%, transparent);
+    padding: 12px;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
     transition:
       transform 0.2s ease,
       border-color 0.2s ease,
@@ -1561,30 +1564,22 @@
       opacity 0.2s ease;
   }
 
-  .arch-evo-node[data-kind='client'] {
-    --arch-evo-kind-color: var(--node-ui);
-  }
-
-  .arch-evo-node[data-kind='service'] {
-    --arch-evo-kind-color: var(--node-api);
-  }
-
-  .arch-evo-node[data-kind='database'] {
-    --arch-evo-kind-color: var(--node-domainop);
-  }
-
-  .arch-evo-node[data-evolution-state='changed'] {
-    border-color: var(--primary);
-    box-shadow: 0 14px 30px rgba(13, 148, 136, 0.18);
+  .arch-evo-node[data-transition='added'],
+  .arch-evo-node[data-transition='changed'] {
+    border-color: color-mix(in srgb, var(--amber) 55%, var(--border-color));
+    box-shadow:
+      0 0 0 2px color-mix(in srgb, var(--amber) 18%, transparent),
+      0 12px 26px rgba(245, 158, 11, 0.18);
     transform: translateY(-2px);
   }
 
-  .theme-voltage .arch-evo-node[data-evolution-state='changed'] {
-    box-shadow: 0 0 18px rgba(0, 212, 255, 0.25);
+  .arch-evo-node[data-transition='added'] {
+    animation: arch-evo-node-pulse 1.2s ease-out infinite;
   }
 
+  .arch-evo-node[data-transition='removed'],
   .arch-evo-node[data-evolution-state='ghosted'] {
-    opacity: 0.32;
+    opacity: 0.28;
     border-style: dashed;
     box-shadow: none;
   }
@@ -1603,8 +1598,8 @@
     width: 38px;
     height: 38px;
     border-radius: 12px;
-    background: color-mix(in srgb, var(--arch-evo-kind-color) 14%, var(--bg-secondary));
-    color: var(--arch-evo-kind-color);
+    background: color-mix(in srgb, var(--text-tertiary) 10%, var(--bg-secondary));
+    color: var(--text-secondary);
     flex-shrink: 0;
   }
 
@@ -1622,7 +1617,7 @@
   }
 
   .arch-evo-node-title {
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 700;
     line-height: 1.3;
     color: var(--text-primary);
@@ -1640,17 +1635,176 @@
     min-height: 24px;
     padding: 0 9px;
     border-radius: 999px;
-    border: 1px solid color-mix(in srgb, var(--arch-evo-kind-color) 28%, var(--border-color));
-    background: color-mix(in srgb, var(--arch-evo-kind-color) 10%, var(--bg-secondary));
+    border: 1px solid color-mix(in srgb, var(--text-tertiary) 20%, var(--border-color));
+    background: color-mix(in srgb, var(--text-tertiary) 7%, var(--bg-secondary));
     color: var(--text-secondary);
     font-size: 11px;
     font-weight: 600;
     line-height: 1;
   }
 
+  .arch-evo-capability[data-transition='removed'],
   .arch-evo-capability[data-evolution-state='ghosted'] {
     opacity: 0.42;
     text-decoration: line-through;
+  }
+
+  .arch-evo-capability[data-transition='added'],
+  .arch-evo-capability[data-transition='changed'] {
+    border-color: color-mix(in srgb, var(--amber) 48%, var(--border-color));
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--amber) 14%, transparent);
+  }
+
+  .arch-evo-edge-glow {
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    pointer-events: none;
+  }
+
+  .arch-evo-edge-glow--added,
+  .arch-evo-edge-glow--changed {
+    stroke: color-mix(in srgb, var(--amber) 82%, white);
+    stroke-width: 11;
+    opacity: 0.45;
+    animation: arch-evo-edge-pulse 1.2s ease-out infinite;
+  }
+
+  .arch-evo-edge-glow--removed {
+    stroke: color-mix(in srgb, var(--accent) 78%, white);
+    stroke-width: 9;
+    opacity: 0.22;
+  }
+
+  .arch-evo-edge-glow--quiet {
+    opacity: 0;
+  }
+
+  .arch-evo-edge-label {
+    position: absolute;
+    pointer-events: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--border-color);
+    background: color-mix(in srgb, var(--bg-secondary) 94%, transparent);
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.1);
+    white-space: nowrap;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .arch-evo-edge-label::before {
+    content: '';
+    display: block;
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    flex-shrink: 0;
+  }
+
+  .arch-evo-edge-label--query::before {
+    background: var(--green);
+  }
+
+  .arch-evo-edge-label--write::before {
+    background: var(--blue);
+  }
+
+  .arch-evo-edge-label--event::before {
+    background: var(--amber);
+  }
+
+  .arch-evo-edge-label--changed {
+    border-color: color-mix(in srgb, var(--amber) 48%, var(--border-color));
+    box-shadow:
+      0 0 0 2px color-mix(in srgb, var(--amber) 14%, transparent),
+      0 10px 22px rgba(245, 158, 11, 0.2);
+  }
+
+  .arch-evo-edge-label-text {
+    line-height: 1;
+  }
+
+  .arch-evo-edge-label-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 18px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--amber) 16%, var(--bg-secondary));
+    color: color-mix(in srgb, var(--amber) 74%, var(--text-primary));
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: capitalize;
+  }
+
+  .arch-evo-inspector-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    padding: 0 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .arch-evo-inspector-badge--read {
+    background: color-mix(in srgb, var(--green) 14%, var(--bg-secondary));
+    color: color-mix(in srgb, var(--green) 76%, var(--text-primary));
+  }
+
+  .arch-evo-inspector-badge--write {
+    background: color-mix(in srgb, var(--blue) 14%, var(--bg-secondary));
+    color: color-mix(in srgb, var(--blue) 82%, var(--text-primary));
+  }
+
+  .arch-evo-inspector-badge--event {
+    background: color-mix(in srgb, var(--amber) 14%, var(--bg-secondary));
+    color: color-mix(in srgb, var(--amber) 74%, var(--text-primary));
+  }
+
+  .arch-evo-inspector-transition {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    padding: 0 10px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--accent) 14%, var(--bg-secondary));
+    color: color-mix(in srgb, var(--accent) 80%, var(--text-primary));
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: capitalize;
+  }
+
+  @keyframes arch-evo-node-pulse {
+    0% {
+      box-shadow:
+        0 0 0 0 color-mix(in srgb, var(--amber) 28%, transparent),
+        0 12px 26px rgba(245, 158, 11, 0.18);
+    }
+
+    100% {
+      box-shadow:
+        0 0 0 10px color-mix(in srgb, var(--amber) 0%, transparent),
+        0 12px 26px rgba(245, 158, 11, 0.12);
+    }
+  }
+
+  @keyframes arch-evo-edge-pulse {
+    0%,
+    100% {
+      opacity: 0.25;
+    }
+
+    50% {
+      opacity: 0.6;
+    }
   }
 
   /* Domain Map - Inspector Panel */
