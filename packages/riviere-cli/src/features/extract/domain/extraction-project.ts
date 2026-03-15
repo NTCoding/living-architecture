@@ -109,7 +109,7 @@ export class ExtractionProject {
     return this.moduleContexts.map((moduleContext) => moduleContext.module.name)
   }
 
-  private detectConnections(
+  public detectConnections(
     enrichedComponents: EnrichedComponent[],
     allowIncomplete: boolean,
   ): {

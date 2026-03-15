@@ -42,7 +42,6 @@ function extractStderr(error: Error): string {
   return String(stderrValue)
 }
 
-/* v8 ignore start -- @preserve: git execution; mocked in all integration tests */
 function runGit(
   executor: GitExecutor,
   gitBinary: string,
@@ -65,7 +64,6 @@ function runGit(
     throw error
   }
 }
-/* v8 ignore stop */
 
 function parseRepositoryUrl(url: string): RepositoryInfo {
   // SSH format: git@github.com:owner/repo.git
@@ -109,7 +107,6 @@ function parseRepositoryUrl(url: string): RepositoryInfo {
   }
 }
 
-/* v8 ignore start -- @preserve: git execution; mocked in all integration tests */
 /** @riviere-role external-client-service */
 export function getRepositoryInfo(
   gitBinary = 'git',
@@ -131,4 +128,3 @@ export function getRepositoryInfo(
     throw error
   }
 }
-/* v8 ignore stop */

@@ -3,64 +3,65 @@ import {
 } from 'vitest'
 import { getRepositoryInfo } from './git-repository-info'
 
-describe('getRepositoryInfo', () => {
-  describe('SSH URLs', () => {
-    it('parses SSH URL with .git extension', () => {
-      const executor = () => 'git@github.com:owner/repo.git'
-      const result = getRepositoryInfo('git', '/test/dir', executor)
+// Tests for SSH URL parsing
+describe('getRepositoryInfo parses SSH URLs', () => {
+  it('parses SSH URL with .git extension', () => {
+    const executor = () => 'git@github.com:owner/repo.git'
+    const result = getRepositoryInfo('git', '/test/dir', executor)
 
-      expect(result).toStrictEqual({
-        name: 'owner/repo',
-        owner: 'owner',
-        url: 'git@github.com:owner/repo.git',
-      })
-    })
-
-    it('parses SSH URL without .git extension', () => {
-      const executor = () => 'git@github.com:owner/repo'
-      const result = getRepositoryInfo('git', '/test/dir', executor)
-
-      expect(result).toStrictEqual({
-        name: 'owner/repo',
-        owner: 'owner',
-        url: 'git@github.com:owner/repo',
-      })
+    expect(result).toStrictEqual({
+      name: 'owner/repo',
+      owner: 'owner',
+      url: 'git@github.com:owner/repo.git',
     })
   })
 
-  describe('HTTPS URLs', () => {
-    it('parses HTTPS URL with .git extension', () => {
-      const executor = () => 'https://github.com/owner/repo.git'
-      const result = getRepositoryInfo('git', '/test/dir', executor)
+  it('parses SSH URL without .git extension', () => {
+    const executor = () => 'git@github.com:owner/repo'
+    const result = getRepositoryInfo('git', '/test/dir', executor)
 
-      expect(result).toStrictEqual({
-        name: 'owner/repo',
-        owner: 'owner',
-        url: 'https://github.com/owner/repo.git',
-      })
+    expect(result).toStrictEqual({
+      name: 'owner/repo',
+      owner: 'owner',
+      url: 'git@github.com:owner/repo',
     })
+  })
+})
 
-    it('parses HTTPS URL without .git extension', () => {
-      const executor = () => 'https://github.com/owner/repo'
-      const result = getRepositoryInfo('git', '/test/dir', executor)
+// Tests for HTTPS URL parsing
+describe('getRepositoryInfo parses HTTPS URLs', () => {
+  it('parses HTTPS URL with .git extension', () => {
+    const executor = () => 'https://github.com/owner/repo.git'
+    const result = getRepositoryInfo('git', '/test/dir', executor)
 
-      expect(result).toStrictEqual({
-        name: 'owner/repo',
-        owner: 'owner',
-        url: 'https://github.com/owner/repo',
-      })
+    expect(result).toStrictEqual({
+      name: 'owner/repo',
+      owner: 'owner',
+      url: 'https://github.com/owner/repo.git',
     })
   })
 
-  describe('fallback for unparseable URLs', () => {
-    it('returns URL as name when format is unrecognized', () => {
-      const executor = () => 'file:///local/path'
-      const result = getRepositoryInfo('git', '/test/dir', executor)
+  it('parses HTTPS URL without .git extension', () => {
+    const executor = () => 'https://github.com/owner/repo'
+    const result = getRepositoryInfo('git', '/test/dir', executor)
 
-      expect(result).toStrictEqual({
-        name: 'file:///local/path',
-        url: 'file:///local/path',
-      })
+    expect(result).toStrictEqual({
+      name: 'owner/repo',
+      owner: 'owner',
+      url: 'https://github.com/owner/repo',
+    })
+  })
+})
+
+// Tests for fallback behavior
+describe('getRepositoryInfo falls back for unparseable URLs', () => {
+  it('returns URL as name when format is unrecognized', () => {
+    const executor = () => 'file:///local/path'
+    const result = getRepositoryInfo('git', '/test/dir', executor)
+
+    expect(result).toStrictEqual({
+      name: 'file:///local/path',
+      url: 'file:///local/path',
     })
   })
 })

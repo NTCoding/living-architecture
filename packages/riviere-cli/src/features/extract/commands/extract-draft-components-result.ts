@@ -10,7 +10,7 @@ interface ExtractDraftComponentsDraftOnlyResult {
   components: DraftComponent[]
 }
 
-interface ExtractDraftComponentsFullResult {
+export interface ExtractDraftComponentsFullResult {
   kind: 'full'
   components: EnrichedComponent[]
   links: ExtractedLink[]

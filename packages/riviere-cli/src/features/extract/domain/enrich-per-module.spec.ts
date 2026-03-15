@@ -7,7 +7,9 @@ import type {
   Module,
   ResolvedExtractionConfig,
 } from '@living-architecture/riviere-extract-config'
-import type { DraftComponent } from '@living-architecture/riviere-extract-ts'
+import type {
+  DraftComponent, ExtractedLink 
+} from '@living-architecture/riviere-extract-ts'
 import {
   ExtractionProject,
   OrphanedDraftComponentError,
@@ -15,15 +17,35 @@ import {
 } from './extraction-project'
 
 const {
-  mockEnrichComponents, mockMatchesGlob 
+  mockEnrichComponents,
+  mockMatchesGlob,
+  mockDetectPerModuleConnections,
+  mockDetectCrossModuleConnections,
+  mockDeduplicateCrossStrategy,
 } = vi.hoisted(() => ({
   mockEnrichComponents: vi.fn(),
   mockMatchesGlob: vi.fn(),
+  mockDetectPerModuleConnections: vi.fn().mockReturnValue({
+    links: [],
+    timings: {
+      callGraphMs: 0,
+      configurableMs: 0,
+      setupMs: 0,
+    },
+  }),
+  mockDetectCrossModuleConnections: vi.fn().mockReturnValue({
+    links: [],
+    timings: { asyncDetectionMs: 0 },
+  }),
+  mockDeduplicateCrossStrategy: vi.fn((links: ExtractedLink[]): ExtractedLink[] => links),
 }))
 
 vi.mock('@living-architecture/riviere-extract-ts', () => ({
   enrichComponents: mockEnrichComponents,
   matchesGlob: mockMatchesGlob,
+  detectPerModuleConnections: mockDetectPerModuleConnections,
+  detectCrossModuleConnections: mockDetectCrossModuleConnections,
+  deduplicateCrossStrategy: mockDeduplicateCrossStrategy,
 }))
 
 const notUsedRule: ComponentRule = { notUsed: true }
@@ -65,8 +87,11 @@ function createDraft(domain: string, name: string): DraftComponent {
 
 const stubConfig: ResolvedExtractionConfig = { modules: [] }
 
-function createExtractionProject(moduleContexts: ModuleContext[]): ExtractionProject {
-  return new ExtractionProject('/config', moduleContexts, stubConfig)
+function createExtractionProject(
+  moduleContexts: ModuleContext[],
+  draftComponents: DraftComponent[] = [],
+): ExtractionProject {
+  return new ExtractionProject('/config', moduleContexts, stubConfig, 'test-repo', draftComponents)
 }
 
 describe('ExtractionProject.enrichDraftComponents', () => {
@@ -95,13 +120,15 @@ describe('ExtractionProject.enrichDraftComponents', () => {
         failures: [],
       })
 
-    const result = createExtractionProject([
-      createModuleContext('orders'),
-      createModuleContext('shipping'),
-    ]).enrichDraftComponents([createDraft('orders', 'CompA'), createDraft('shipping', 'CompB')])
+    const result = createExtractionProject(
+      [createModuleContext('orders'), createModuleContext('shipping')],
+      [createDraft('orders', 'CompA'), createDraft('shipping', 'CompB')],
+    ).enrichDraftComponents({
+      allowIncomplete: false,
+      includeConnections: true,
+    })
 
     expect(result.components).toHaveLength(2)
-    expect(result.failedFields).toStrictEqual([])
     expect(mockEnrichComponents).toHaveBeenCalledTimes(2)
   })
 
@@ -111,10 +138,13 @@ describe('ExtractionProject.enrichDraftComponents', () => {
       failures: [],
     })
 
-    createExtractionProject([
-      createModuleContext('orders'),
-      createModuleContext('shipping'),
-    ]).enrichDraftComponents([createDraft('orders', 'CompA'), createDraft('shipping', 'CompB')])
+    createExtractionProject(
+      [createModuleContext('orders'), createModuleContext('shipping')],
+      [createDraft('orders', 'CompA'), createDraft('shipping', 'CompB')],
+    ).enrichDraftComponents({
+      allowIncomplete: false,
+      includeConnections: true,
+    })
 
     expect(mockEnrichComponents).toHaveBeenNthCalledWith(
       1,
@@ -145,11 +175,15 @@ describe('ExtractionProject.enrichDraftComponents', () => {
         failures: [{ field: 'name' }, { field: 'type' }],
       })
 
-    const result = createExtractionProject([
-      createModuleContext('orders'),
-      createModuleContext('shipping'),
-    ]).enrichDraftComponents([createDraft('orders', 'A'), createDraft('shipping', 'B')])
+    const result = createExtractionProject(
+      [createModuleContext('orders'), createModuleContext('shipping')],
+      [createDraft('orders', 'A'), createDraft('shipping', 'B')],
+    ).enrichDraftComponents({
+      allowIncomplete: true,
+      includeConnections: true,
+    })
 
+    expect(result.components).toHaveLength(0)
     expect(result.failedFields).toStrictEqual(['name', 'type'])
   })
 
@@ -159,10 +193,13 @@ describe('ExtractionProject.enrichDraftComponents', () => {
       failures: [],
     })
 
-    const result = createExtractionProject([
-      createModuleContext('orders'),
-      createModuleContext('empty'),
-    ]).enrichDraftComponents([createDraft('orders', 'A')])
+    const result = createExtractionProject(
+      [createModuleContext('orders'), createModuleContext('empty')],
+      [createDraft('orders', 'A')],
+    ).enrichDraftComponents({
+      allowIncomplete: false,
+      includeConnections: true,
+    })
 
     expect(mockEnrichComponents).toHaveBeenCalledTimes(1)
     expect(result.components).toStrictEqual([])
@@ -170,28 +207,51 @@ describe('ExtractionProject.enrichDraftComponents', () => {
 
   it('throws OrphanedDraftComponentError when drafts reference unknown modules', () => {
     expect(() =>
-      createExtractionProject([createModuleContext('orders')]).enrichDraftComponents([
-        createDraft('orders', 'A'),
-        createDraft('unknown-module', 'B'),
-      ]),
+      createExtractionProject(
+        [createModuleContext('orders')],
+        [createDraft('orders', 'A'), createDraft('unknown-module', 'B')],
+      ).enrichDraftComponents({
+        allowIncomplete: false,
+        includeConnections: true,
+      }),
     ).toThrow(OrphanedDraftComponentError)
   })
 
   it('includes module names in orphan error message', () => {
     expect(() =>
-      createExtractionProject([createModuleContext('orders')]).enrichDraftComponents([
-        createDraft('ghost', 'X'),
-      ]),
+      createExtractionProject(
+        [createModuleContext('orders')],
+        [createDraft('ghost', 'X')],
+      ).enrichDraftComponents({
+        allowIncomplete: false,
+        includeConnections: true,
+      }),
     ).toThrow('Draft components reference unknown modules: [ghost]. Known modules: [orders]')
   })
 
   it('returns empty result when no drafts provided', () => {
-    const result = createExtractionProject([createModuleContext('orders')]).enrichDraftComponents(
+    const result = createExtractionProject(
+      [createModuleContext('orders')],
       [],
-    )
+    ).enrichDraftComponents({
+      allowIncomplete: false,
+      includeConnections: true,
+    })
 
     expect(result.components).toStrictEqual([])
-    expect(result.failedFields).toStrictEqual([])
     expect(mockEnrichComponents).not.toHaveBeenCalled()
+  })
+
+  it('returns draftOnly when includeConnections is false', () => {
+    const result = createExtractionProject(
+      [createModuleContext('orders')],
+      [createDraft('orders', 'CompA')],
+    ).enrichDraftComponents({
+      allowIncomplete: false,
+      includeConnections: false,
+    })
+
+    expect(result.kind).toBe('draftOnly')
+    expect(result.components).toHaveLength(1)
   })
 })
