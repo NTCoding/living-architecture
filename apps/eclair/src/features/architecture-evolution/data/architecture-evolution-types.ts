@@ -1,6 +1,4 @@
-import type {
-  Edge, Node 
-} from '@xyflow/react'
+import type { Edge, Node } from '@xyflow/react'
 
 export type ArchitectureEvolutionVisualState = 'active' | 'changed' | 'ghosted'
 export type ArchitectureEvolutionNodeKind = 'client' | 'service' | 'database'
@@ -30,6 +28,7 @@ export interface ArchitectureEvolutionEdgeData extends Record<string, unknown> {
   readonly description: string
   readonly sourcePortLabel: string
   readonly targetPortLabel: string
+  readonly graphvizPath?: string
   readonly pathShape: 'smoothstep' | 'straight'
   readonly pathOptions: {
     readonly offset?: number

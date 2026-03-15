@@ -1550,18 +1550,85 @@
   }
 
   .arch-evo-node {
-    min-width: 196px;
-    max-width: 196px;
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
     border: 1px solid color-mix(in srgb, var(--text-tertiary) 26%, var(--border-color));
     border-radius: var(--radius-xl, 16px);
     background: color-mix(in srgb, var(--bg-secondary) 96%, transparent);
-    padding: 12px;
+    padding: 14px 16px;
     box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
     transition:
       transform 0.2s ease,
       border-color 0.2s ease,
       box-shadow 0.2s ease,
       opacity 0.2s ease;
+  }
+
+  .arch-evo-boundary {
+    box-sizing: border-box;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border: 3px solid color-mix(in srgb, var(--text-tertiary) 52%, var(--border-color));
+    background: transparent;
+    pointer-events: none;
+  }
+
+  .arch-evo-boundary[data-boundary-kind='slice'] {
+    border-style: dotted;
+    border-color: color-mix(in srgb, var(--text-tertiary) 52%, var(--border-color));
+  }
+
+  .arch-evo-boundary-label {
+    position: absolute;
+    left: 16px;
+    bottom: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    background: color-mix(in srgb, var(--bg-primary) 92%, transparent);
+    padding: 0 4px;
+  }
+
+  .arch-evo-flow-controls {
+    position: absolute;
+    left: 16px;
+    bottom: 16px;
+    z-index: 30;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--bg-secondary) 94%, transparent);
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  }
+
+  .arch-evo-flow-control-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: 0;
+    border-bottom: 1px solid var(--border-color);
+    background: transparent;
+    color: var(--text-primary);
+    cursor: pointer;
+  }
+
+  .arch-evo-flow-control-btn:last-child {
+    border-bottom: 0;
+  }
+
+  .arch-evo-flow-control-btn:hover {
+    background: color-mix(in srgb, var(--text-tertiary) 10%, var(--bg-secondary));
+  }
+
+  .arch-evo-flow-control-btn i {
+    font-size: 18px;
   }
 
   .arch-evo-node[data-transition='added'],
@@ -1586,17 +1653,16 @@
 
   .arch-evo-node-header {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     gap: 12px;
-    margin-bottom: 10px;
   }
 
   .arch-evo-node-icon {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 38px;
-    height: 38px;
+    width: 42px;
+    height: 42px;
     border-radius: 12px;
     background: color-mix(in srgb, var(--text-tertiary) 10%, var(--bg-secondary));
     color: var(--text-secondary);
@@ -1617,6 +1683,7 @@
   }
 
   .arch-evo-node-title {
+    flex: 1;
     font-size: 14px;
     font-weight: 700;
     line-height: 1.3;

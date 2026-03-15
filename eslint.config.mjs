@@ -79,7 +79,7 @@ export default tseslint.config(
       // Prefer positive conditions in if/else and ternaries (SonarCloud S7735)
       'no-negated-condition': 'error',
 
-      // Ban let - use const only 
+      // Ban let - use const only
       'no-restricted-syntax': [
         'error',
         {
@@ -88,12 +88,14 @@ export default tseslint.config(
         },
         {
           selector: 'NewExpression[callee.name="Error"]',
-          message: 'Use custom precise error classes instead of generic Error or fail assertions in tests.',
+          message:
+            'Use custom precise error classes instead of generic Error or fail assertions in tests.',
         },
         {
           selector: 'LogicalExpression[operator="??"][right.type="Literal"][right.value=""]',
-          message: 'Banned: `?? \'\'` violates fail-fast principle. Never use empty string fallback. Options: (1) Fail fast if value should exist (throw descriptive error), (2) Handle undefined explicitly without empty string, (3) Create a type that represents emptiness (not string literal).',
-        }
+          message:
+            "Banned: `?? ''` violates fail-fast principle. Never use empty string fallback. Options: (1) Fail fast if value should exist (throw descriptive error), (2) Handle undefined explicitly without empty string, (3) Create a type that represents emptiness (not string literal).",
+        },
       ],
       'prefer-const': 'error',
       'no-var': 'error',
@@ -156,17 +158,17 @@ export default tseslint.config(
       complexity: ['error', 12],
 
       // ESM compatibility - ban CommonJS globals
-        'no-restricted-globals': [
-          'error',
-          {
-            name: '__dirname',
-            message: 'Use dirname(fileURLToPath(import.meta.url)) in ESM',
-          },
-          {
-            name: '__filename',
-            message: 'Use fileURLToPath(import.meta.url) in ESM',
-          },
-        ],
+      'no-restricted-globals': [
+        'error',
+        {
+          name: '__dirname',
+          message: 'Use dirname(fileURLToPath(import.meta.url)) in ESM',
+        },
+        {
+          name: '__filename',
+          message: 'Use fileURLToPath(import.meta.url) in ESM',
+        },
+      ],
 
       // Naming conventions
       '@typescript-eslint/naming-convention': [
@@ -214,42 +216,39 @@ export default tseslint.config(
     },
   },
   // JSDoc enforcement for public library APIs
-    {
-      files: [
+  {
+    files: [
       'packages/riviere-builder/src/builder.ts',
-    'packages/riviere-cli/src/cli.ts',
-    'packages/riviere-cli/src/error-codes.ts',
-    'packages/riviere-cli/src/output.ts',
-    'packages/riviere-extract-config/src/types.ts',
-    'packages/riviere-extract-config/src/validation.ts',
-    'packages/riviere-extract-ts/src/extractor.ts',
-    'packages/riviere-extract-ts/src/resolve-config.ts',
-    'packages/riviere-extract-ts/src/predicates/evaluate-predicate.ts',
-      ],
-      ignores: ['**/*.spec.ts'],
-      plugins: { jsdoc },
-      rules: {
-        'jsdoc/require-jsdoc': [
-          'error',
-          {
-            publicOnly: true,
-            require: {
-              ClassDeclaration: true,
-              MethodDefinition: true,
-              FunctionDeclaration: true,
-            },
-            contexts: [
-              'TSInterfaceDeclaration',
-              'TSTypeAliasDeclaration',
-            ],
+      'packages/riviere-cli/src/cli.ts',
+      'packages/riviere-cli/src/error-codes.ts',
+      'packages/riviere-cli/src/output.ts',
+      'packages/riviere-extract-config/src/types.ts',
+      'packages/riviere-extract-config/src/validation.ts',
+      'packages/riviere-extract-ts/src/extractor.ts',
+      'packages/riviere-extract-ts/src/resolve-config.ts',
+      'packages/riviere-extract-ts/src/predicates/evaluate-predicate.ts',
+    ],
+    ignores: ['**/*.spec.ts'],
+    plugins: { jsdoc },
+    rules: {
+      'jsdoc/require-jsdoc': [
+        'error',
+        {
+          publicOnly: true,
+          require: {
+            ClassDeclaration: true,
+            MethodDefinition: true,
+            FunctionDeclaration: true,
           },
-        ],
-        'jsdoc/require-param': 'error',
-        'jsdoc/require-param-description': 'error',
-        'jsdoc/require-returns': 'error',
-        'jsdoc/require-returns-description': 'error',
-      },
+          contexts: ['TSInterfaceDeclaration', 'TSTypeAliasDeclaration'],
+        },
+      ],
+      'jsdoc/require-param': 'error',
+      'jsdoc/require-param-description': 'error',
+      'jsdoc/require-returns': 'error',
+      'jsdoc/require-returns-description': 'error',
     },
+  },
   {
     plugins: {
       '@stylistic': stylistic,
@@ -274,7 +273,12 @@ export default tseslint.config(
   // Thin layer enforcement — entrypoints, commands, and queries are thin orchestration files
   {
     files: ['**/entrypoint/**/*.ts', '**/commands/**/*.ts', '**/queries/**/*.ts'],
-    ignores: ['**/*.spec.ts', '**/*.test.ts', 'packages/riviere-query/src/features/querying/queries/**/*.ts', 'apps/eclair/**/queries/**/*.ts'],
+    ignores: [
+      '**/*.spec.ts',
+      '**/*.test.ts',
+      'packages/riviere-query/src/features/querying/queries/**/*.ts',
+      'apps/eclair/**/queries/**/*.ts',
+    ],
     rules: {
       'max-lines': ['error', { max: 150, skipBlankLines: true, skipComments: true }],
     },
@@ -292,20 +296,24 @@ export default tseslint.config(
         },
         {
           selector: 'NewExpression[callee.name="Error"]',
-          message: 'Use custom precise error classes instead of generic Error or fail assertions in tests.',
+          message:
+            'Use custom precise error classes instead of generic Error or fail assertions in tests.',
         },
         {
           selector: 'FunctionDeclaration:not([parent.type="ExportNamedDeclaration"])',
-          message: 'Entrypoints must not define private functions. Move to commands/, queries/, or infra/.',
+          message:
+            'Entrypoints must not define private functions. Move to commands/, queries/, or infra/.',
         },
         {
           selector: 'VariableDeclarator > ArrowFunctionExpression',
-          message: 'Entrypoints must not define private arrow functions. Move to commands/, queries/, or infra/.',
+          message:
+            'Entrypoints must not define private arrow functions. Move to commands/, queries/, or infra/.',
         },
         {
           selector: 'LogicalExpression[operator="??"][right.type="Literal"][right.value=""]',
-          message: 'Banned: `?? \'\'` violates fail-fast principle. Never use empty string fallback. Options: (1) Fail fast if value should exist (throw descriptive error), (2) Handle undefined explicitly without empty string, (3) Create a type that represents emptiness (not string literal).',
-        }
+          message:
+            "Banned: `?? ''` violates fail-fast principle. Never use empty string fallback. Options: (1) Fail fast if value should exist (throw descriptive error), (2) Handle undefined explicitly without empty string, (3) Create a type that represents emptiness (not string literal).",
+        },
       ],
     },
   },
@@ -365,7 +373,7 @@ export default tseslint.config(
       'vitest/require-to-throw-message': 'error',
       'vitest/prefer-spy-on': 'error',
       // Allow expect.any() matchers in tests (returns any by design)
-      '@typescript-eslint/no-unsafe-assignment': 'off'
+      '@typescript-eslint/no-unsafe-assignment': 'off',
     },
   },
 )

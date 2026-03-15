@@ -61,6 +61,7 @@
   "dependencies": {
     "@living-architecture/riviere-query": "workspace:*",
     "@living-architecture/riviere-schema": "workspace:*",
+    "@viz-js/viz": "^3.25.0",
     "@xyflow/react": "^12.9.3",
     "d3": "^7.9.0",
     "dagre": "^0.8.5",

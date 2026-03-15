@@ -1,9 +1,5 @@
-import {
-  Handle, Position 
-} from '@xyflow/react'
-import type {
-  Node, NodeProps 
-} from '@xyflow/react'
+import { Handle, Position } from '@xyflow/react'
+import type { Node, NodeProps } from '@xyflow/react'
 import type { ArchitectureEvolutionNodeData } from '../../data/architecture-evolution-scenario'
 
 type ArchitectureEvolutionNodeProps = NodeProps<Node<ArchitectureEvolutionNodeData>>
@@ -266,23 +262,7 @@ export function ArchitectureEvolutionNode({
           <div className="arch-evo-node-icon">
             <i className={`ph ph-${data.icon}`} aria-hidden="true" />
           </div>
-          <div className="min-w-0 flex-1">
-            <div className="arch-evo-node-subtitle">{data.subtitle}</div>
-            <div className="arch-evo-node-title">{data.label}</div>
-          </div>
-        </div>
-        <div className="arch-evo-capability-list">
-          {data.capabilities.map((capability) => (
-            <span
-              key={capability.id}
-              data-testid={`arch-evo-capability-${capability.id}`}
-              data-evolution-state={capability.state}
-              data-transition={capability.transition}
-              className="arch-evo-capability"
-            >
-              {capability.label}
-            </span>
-          ))}
+          <div className="arch-evo-node-title">{data.label}</div>
         </div>
       </div>
     </>

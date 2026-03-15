@@ -1,11 +1,7 @@
 import { MarkerType } from '@xyflow/react'
-import type {
-  Edge, Node 
-} from '@xyflow/react'
+import type { Edge, Node } from '@xyflow/react'
 import { STEP_DEFINITIONS } from './architecture-evolution-steps'
-import {
-  EDGE_DEFINITIONS, NODE_DEFINITIONS 
-} from './architecture-evolution-topology'
+import { EDGE_DEFINITIONS, NODE_DEFINITIONS } from './architecture-evolution-topology'
 import type {
   ArchitectureEvolutionEdgeData,
   ArchitectureEvolutionEdgeKind,
@@ -204,7 +200,6 @@ function getEdgeState(
   changedEdgeIds: ReadonlySet<string>,
 ): ConnectionState {
   if (changedEdgeIds.has(edgeId) && activeEdgeIds.has(edgeId)) return 'changed'
-  if (changedEdgeIds.has(edgeId) && ghostedEdgeIds.has(edgeId)) return 'ghosted'
   if (activeEdgeIds.has(edgeId)) return 'active'
   if (ghostedEdgeIds.has(edgeId)) return 'ghosted'
   return 'hidden'
@@ -213,26 +208,34 @@ function getEdgeState(
 function getConnectionTransition(
   currentState: ConnectionState,
   previousState: ConnectionState,
+  isChanged: boolean,
 ): ArchitectureEvolutionTransition {
   if (currentState === 'hidden') return 'unchanged'
 
-  if (currentState === 'ghosted' && previousState !== 'ghosted' && previousState !== 'hidden') {
+  if (isChanged && currentState === 'ghosted' && previousState !== 'hidden') {
     return 'removed'
   }
 
   if (
+    isChanged &&
     (currentState === 'active' || currentState === 'changed') &&
     (previousState === 'hidden' || previousState === 'ghosted')
   ) {
     return 'added'
   }
 
-  if (currentState === 'changed') return 'changed'
+  if (isChanged) return 'changed'
 
   return 'unchanged'
 }
 
-function getEdgeColor(kind: ArchitectureEvolutionEdgeKind): string {
+function getEdgeColor(
+  kind: ArchitectureEvolutionEdgeKind,
+  transition: ArchitectureEvolutionTransition,
+): string {
+  if (transition === 'removed') return '#dc2626'
+  if (transition === 'changed') return 'var(--amber)'
+  if (transition === 'added') return 'var(--accent)'
   if (kind === 'query') return 'var(--green)'
   if (kind === 'event') return 'var(--amber)'
   return 'var(--blue)'
@@ -242,9 +245,10 @@ function getEdgeOpacity(
   state: ConnectionState,
   transition: ArchitectureEvolutionTransition,
 ): number {
-  if (state === 'ghosted') return 0.24
-  if (transition !== 'unchanged') return 1
-  return 0.34
+  if (transition === 'removed') return 0.94
+  if (state === 'ghosted') return 0.22
+  if (transition !== 'unchanged') return 0.96
+  return 0.74
 }
 
 function getEdgeZIndex(
@@ -290,13 +294,13 @@ function buildEdges(stepIndex: number): readonly Edge<ArchitectureEvolutionEdgeD
       previousStep === null
         ? getEdgeState(edge.id, activeEdgeIds, ghostedEdgeIds, changedEdgeIds)
         : getEdgeState(
-          edge.id,
-          previousActiveEdgeIds,
-          previousGhostedEdgeIds,
-          previousChangedEdgeIds,
-        )
-    const transition = getConnectionTransition(state, previousState)
-    const color = getEdgeColor(edge.kind)
+            edge.id,
+            previousActiveEdgeIds,
+            previousGhostedEdgeIds,
+            previousChangedEdgeIds,
+          )
+    const transition = getConnectionTransition(state, previousState, changedEdgeIds.has(edge.id))
+    const color = getEdgeColor(edge.kind, transition)
 
     return {
       id: edge.id,
