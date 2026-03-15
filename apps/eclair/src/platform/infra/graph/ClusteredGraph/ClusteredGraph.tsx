@@ -1,14 +1,28 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import {
+  useCallback, useEffect, useMemo, useRef, useState 
+} from 'react'
 import * as d3 from 'd3'
 import type { Edge } from '@/platform/domain/eclair-types'
 import { compareByCodePoint } from '@/platform/domain/compare-by-code-point'
 import type { Theme } from '@/types/theme'
-import type { SimulationLink, SimulationNode, TooltipData } from '../graph-types'
-import { truncateClusteredNodeLabel, type DomainCircle } from './computeCircleEnclosures'
+import type {
+  SimulationLink, SimulationNode, TooltipData 
+} from '../graph-types'
+import {
+  truncateClusteredNodeLabel, type DomainCircle 
+} from './computeCircleEnclosures'
+import { applyClusteredPresentation } from './applyClusteredPresentation'
+import {
+  calculateCircleFocusTransform,
+  calculateViewportTransform,
+  CLUSTER_LABEL_STROKE_WIDTH,
+  getClusterLabelFontSize,
+  getClusterLabelY,
+} from './clusteredGraphGeometry'
+import { setupClusteredNodeEvents } from './setupClusteredNodeEvents'
 import {
   updateHighlight,
   setupSVGFiltersAndMarkers,
-  getLinkNodeId,
   setupLinks,
   setupNodes,
   createUpdatePositionsFunction,
@@ -30,26 +44,6 @@ interface ClusteredGraphLayoutData {
   readonly uniqueDomains: readonly string[]
 }
 
-const CLUSTER_LABEL_MIN_FONT_SIZE = 60
-const CLUSTER_LABEL_MAX_FONT_SIZE = 84
-const CLUSTER_LABEL_GAP = 20
-const CLUSTER_LABEL_STROKE_WIDTH = 14
-
-function getClusterLabelFontSize(circle: DomainCircle): number {
-  return Math.max(
-    CLUSTER_LABEL_MIN_FONT_SIZE,
-    Math.min(CLUSTER_LABEL_MAX_FONT_SIZE, circle.r * 0.42),
-  )
-}
-
-function getClusterLabelY(circle: DomainCircle): number {
-  return circle.y - circle.r - CLUSTER_LABEL_GAP
-}
-
-function getClusterLabelTop(circle: DomainCircle): number {
-  return getClusterLabelY(circle) - getClusterLabelFontSize(circle)
-}
-
 interface ClusteredGraphProps {
   readonly layout: ClusteredGraphLayoutData | null
   readonly theme: Theme
@@ -69,97 +63,6 @@ function withOpacity(color: string, opacity: number): string {
 
   parsed.opacity = opacity
   return parsed.formatRgb()
-}
-
-function calculateGraphBounds(
-  nodes: readonly SimulationNode[],
-  circles: readonly DomainCircle[],
-): {
-  readonly minX: number
-  readonly minY: number
-  readonly maxX: number
-  readonly maxY: number
-} {
-  let minX = Number.POSITIVE_INFINITY
-  let minY = Number.POSITIVE_INFINITY
-  let maxX = Number.NEGATIVE_INFINITY
-  let maxY = Number.NEGATIVE_INFINITY
-
-  for (const circle of circles) {
-    minX = Math.min(minX, circle.x - circle.r)
-    minY = Math.min(minY, getClusterLabelTop(circle) - 12)
-    maxX = Math.max(maxX, circle.x + circle.r)
-    maxY = Math.max(maxY, circle.y + circle.r)
-  }
-
-  for (const node of nodes) {
-    if (node.x === undefined || node.y === undefined) {
-      continue
-    }
-
-    const radius = getNodeRadius(node.type) + 32
-    minX = Math.min(minX, node.x - radius)
-    minY = Math.min(minY, node.y - radius)
-    maxX = Math.max(maxX, node.x + radius)
-    maxY = Math.max(maxY, node.y + radius + 22)
-  }
-
-  if (
-    !Number.isFinite(minX) ||
-    !Number.isFinite(minY) ||
-    !Number.isFinite(maxX) ||
-    !Number.isFinite(maxY)
-  ) {
-    return {
-      minX: 0,
-      minY: 0,
-      maxX: 0,
-      maxY: 0,
-    }
-  }
-
-  return {
-    minX,
-    minY,
-    maxX,
-    maxY,
-  }
-}
-
-function calculateViewportTransform(params: {
-  readonly nodes: readonly SimulationNode[]
-  readonly circles: readonly DomainCircle[]
-  readonly width: number
-  readonly height: number
-  readonly padding: number
-}): { readonly translateX: number; readonly translateY: number; readonly scale: number } {
-  const bounds = calculateGraphBounds(params.nodes, params.circles)
-  const graphWidth = Math.max(bounds.maxX - bounds.minX + params.padding * 2, 1)
-  const graphHeight = Math.max(bounds.maxY - bounds.minY + params.padding * 2, 1)
-  const scale = Math.min(params.width / graphWidth, params.height / graphHeight, 1)
-  const translateX = params.width / 2 - ((bounds.minX + bounds.maxX) / 2) * scale
-  const translateY = params.height / 2 - ((bounds.minY + bounds.maxY) / 2) * scale
-
-  return {
-    translateX,
-    translateY,
-    scale,
-  }
-}
-
-function calculateCircleFocusTransform(params: {
-  readonly circle: DomainCircle
-  readonly width: number
-  readonly height: number
-}): { readonly translateX: number; readonly translateY: number; readonly scale: number } {
-  const focusDiameter = params.circle.r * 2 + 180
-  const scale = Math.min(params.width / focusDiameter, params.height / focusDiameter, 2.2)
-
-  return {
-    translateX: params.width / 2 - params.circle.x * scale,
-    translateY: params.height / 2 - params.circle.y * scale,
-    scale,
-  }
 }
 
 export function ClusteredGraph({
@@ -227,6 +130,12 @@ export function ClusteredGraph({
       return
     }
 
+    const initialBounds = containerRef.current.getBoundingClientRect()
+    setDimensions({
+      width: initialBounds.width,
+      height: initialBounds.height,
+    })
+
     const resizeObserver = new ResizeObserver((entries) => {
       const entry = entries[0]
       if (entry !== undefined) {
@@ -279,180 +188,6 @@ export function ClusteredGraph({
       )
     },
     [dimensions],
-  )
-
-  const applyPresentation = useCallback(
-    (
-      svg: d3.Selection<SVGSVGElement, unknown, d3.BaseType, unknown>,
-      zoom: d3.ZoomBehavior<SVGSVGElement, unknown>,
-      node: d3.Selection<SVGGElement, SimulationNode, SVGGElement, unknown>,
-      link: d3.Selection<SVGPathElement, SimulationLink, SVGGElement, unknown>,
-      domainGroup: d3.Selection<SVGGElement, DomainCircle, SVGGElement, unknown>,
-      nodes: readonly SimulationNode[],
-      circles: readonly DomainCircle[],
-      shouldFitViewport: boolean,
-    ) => {
-      if (focusedDomain !== null && focusedDomain !== undefined) {
-        const focusedCircle = circles.find((circle) => circle.domain === focusedDomain)
-
-        node
-          .selectAll<SVGCircleElement, SimulationNode>('.node-circle')
-          .transition()
-          .duration(350)
-          .attr('opacity', (datum) => (datum.domain === focusedDomain ? 1 : 0.18))
-          .attr('stroke-width', (datum) => (datum.domain === focusedDomain ? 3.2 : 1.5))
-          .attr(
-            'r',
-            (datum) => getNodeRadius(datum.type) * (datum.domain === focusedDomain ? 1.18 : 0.9),
-          )
-
-        node
-          .selectAll<SVGTextElement, SimulationNode>('.node-label')
-          .transition()
-          .duration(350)
-          .attr('opacity', (datum) => (datum.domain === focusedDomain ? 1 : 0.2))
-
-        node
-          .selectAll<SVGTextElement, SimulationNode>('.node-domain-label')
-          .transition()
-          .duration(350)
-          .attr('opacity', 0)
-
-        link
-          .transition()
-          .duration(350)
-          .attr('opacity', (datum) => {
-            const sourceNode = nodes.find(
-              (nodeDatum) => nodeDatum.id === getLinkNodeId(datum.source),
-            )
-            const targetNode = nodes.find(
-              (nodeDatum) => nodeDatum.id === getLinkNodeId(datum.target),
-            )
-            const touchesFocusedDomain =
-              sourceNode?.domain === focusedDomain || targetNode?.domain === focusedDomain
-            return touchesFocusedDomain ? 0.82 : 0.08
-          })
-          .attr('stroke-width', (datum) => {
-            const sourceNode = nodes.find(
-              (nodeDatum) => nodeDatum.id === getLinkNodeId(datum.source),
-            )
-            const targetNode = nodes.find(
-              (nodeDatum) => nodeDatum.id === getLinkNodeId(datum.target),
-            )
-            const withinFocusedDomain =
-              sourceNode?.domain === focusedDomain && targetNode?.domain === focusedDomain
-            return withinFocusedDomain ? 2.8 : 1.4
-          })
-
-        domainGroup
-          .selectAll<SVGCircleElement, DomainCircle>('circle')
-          .transition()
-          .duration(350)
-          .attr('opacity', (datum) => (datum.domain === focusedDomain ? 1 : 0.28))
-          .attr('stroke-width', (datum) => (datum.domain === focusedDomain ? 3.5 : 1.6))
-
-        domainGroup
-          .selectAll<SVGTextElement, DomainCircle>('text')
-          .transition()
-          .duration(350)
-          .attr('opacity', (datum) => (datum.domain === focusedDomain ? 1 : 0.3))
-
-        if (focusedCircle !== undefined) {
-          const transform = calculateCircleFocusTransform({
-            circle: focusedCircle,
-            width: dimensions.width,
-            height: dimensions.height,
-          })
-
-          svg
-            .transition()
-            .duration(450)
-            .call(
-              zoom.transform,
-              d3.zoomIdentity
-                .translate(transform.translateX, transform.translateY)
-                .scale(transform.scale),
-            )
-        }
-
-        return
-      }
-
-      node
-        .selectAll<SVGCircleElement, SimulationNode>('.node-circle')
-        .transition()
-        .duration(300)
-        .attr('opacity', 1)
-        .attr('stroke-width', 2)
-        .attr('stroke', 'rgba(255, 255, 255, 0.3)')
-        .attr('r', (datum) => getNodeRadius(datum.type))
-
-      node
-        .selectAll<SVGTextElement, SimulationNode>('.node-label')
-        .transition()
-        .duration(300)
-        .attr('opacity', 1)
-
-      node
-        .selectAll<SVGTextElement, SimulationNode>('.node-domain-label')
-        .transition()
-        .duration(300)
-        .attr('opacity', 0)
-
-      link.transition().duration(300).attr('opacity', 0.6).attr('stroke-width', 2)
-
-      domainGroup
-        .selectAll<SVGCircleElement, DomainCircle>('circle')
-        .transition()
-        .duration(300)
-        .attr('opacity', 1)
-        .attr('stroke-width', 2)
-
-      domainGroup
-        .selectAll<SVGTextElement, DomainCircle>('text')
-        .transition()
-        .duration(300)
-        .attr('opacity', 1)
-
-      if (shouldFitViewport && nodes.length > 0 && dimensions.width > 0 && dimensions.height > 0) {
-        fitViewport(svg, zoom, nodes, circles)
-      }
-    },
-    [dimensions, fitViewport, focusedDomain],
-  )
-
-  const setupNodeEvents = useCallback(
-    (
-      node: d3.Selection<SVGGElement, SimulationNode, SVGGElement, unknown>,
-      links: readonly SimulationLink[],
-    ) => {
-      node.on('click', (event: PointerEvent, datum: SimulationNode) => {
-        event.stopPropagation()
-        handleNodeClick(datum.id)
-      })
-
-      node.on('mouseenter', (event: MouseEvent, datum: SimulationNode) => {
-        const incomingCount = links.filter(
-          (linkDatum) => getLinkNodeId(linkDatum.target) === datum.id,
-        ).length
-        const outgoingCount = links.filter(
-          (linkDatum) => getLinkNodeId(linkDatum.source) === datum.id,
-        ).length
-
-        handleNodeHover({
-          node: datum,
-          x: event.pageX,
-          y: event.pageY,
-          incomingCount,
-          outgoingCount,
-        })
-      })
-
-      node.on('mouseleave', () => {
-        handleNodeHover(null)
-      })
-    },
-    [handleNodeClick, handleNodeHover],
   )
 
   useEffect(() => {
@@ -533,7 +268,7 @@ export function ClusteredGraph({
       getNodeRadius,
       getDomainColor,
       uniqueDomains,
-      truncateName: (_name, _maxLength) => truncateClusteredNodeLabel(_name),
+      truncateName: (name) => truncateClusteredNodeLabel(name),
     })
 
     const applyNodePositions = createUpdatePositionsFunction({
@@ -582,7 +317,12 @@ export function ClusteredGraph({
         ),
     )
 
-    setupNodeEvents(node, layout.links)
+    setupClusteredNodeEvents({
+      node,
+      links: layout.links,
+      onNodeClick: handleNodeClick,
+      onNodeHover: handleNodeHover,
+    })
 
     applyNodePositions()
 
@@ -593,9 +333,7 @@ export function ClusteredGraph({
 
     node.selectAll<SVGTextElement, SimulationNode>('.node-domain-label').attr('opacity', 0)
 
-    const zoom = setupZoomBehavior(svg, g, {
-      onInteractionStart: () => handleNodeHover(null),
-    })
+    const zoom = setupZoomBehavior(svg, g, { onInteractionStart: () => handleNodeHover(null) })
 
     nodeSelectionRef.current = node
     linkSelectionRef.current = link
@@ -603,25 +341,30 @@ export function ClusteredGraph({
     nodesRef.current = layout.nodes
     circlesRef.current = layout.circles
 
-    applyPresentation(
+    applyClusteredPresentation({
       svg,
       zoom,
       node,
       link,
-      domains,
-      layout.nodes,
-      layout.circles,
-      isGraphDataChange,
-    )
+      domainGroup: domains,
+      nodes: layout.nodes,
+      circles: layout.circles,
+      focusedDomain,
+      width: dimensions.width,
+      height: dimensions.height,
+      shouldFitViewport: isGraphDataChange,
+      fitViewport,
+    })
     svg.on('click', handleBackgroundClick)
   }, [
-    applyPresentation,
     currentGraphKey,
     dimensions,
+    fitViewport,
+    focusedDomain,
     handleBackgroundClick,
+    handleNodeClick,
     handleNodeHover,
     layout,
-    setupNodeEvents,
     theme,
   ])
 

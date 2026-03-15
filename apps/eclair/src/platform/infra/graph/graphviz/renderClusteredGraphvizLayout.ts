@@ -1,5 +1,7 @@
 import * as Viz from '@viz-js/viz'
-import { LayoutError, RenderingError } from '@/platform/infra/errors/errors'
+import {
+  LayoutError, RenderingError 
+} from '@/platform/infra/errors/errors'
 
 export interface ClusteredGraphvizNode {
   readonly id: string
@@ -14,7 +16,13 @@ export interface ClusteredGraphvizEdge {
 }
 
 export interface ClusteredGraphvizLayoutResult {
-  readonly positions: ReadonlyMap<string, { readonly x: number; readonly y: number }>
+  readonly positions: ReadonlyMap<
+    string,
+    {
+      readonly x: number
+      readonly y: number
+    }
+  >
 }
 
 const vizInstancePromise = Viz.instance()
@@ -24,22 +32,31 @@ const RANK_SEPARATION = 1.6
 const CANVAS_MARGIN = 72
 
 function escapeDotLabel(value: string): string {
-  return value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
+  return value.replaceAll('\\', '\\\\').replaceAll('"', '\\"')
 }
 
 function createDomId(index: number): string {
   return `clustered-layout-node-${String(index)}`
 }
 
-function parseTranslate(transform: string | null): { readonly x: number; readonly y: number } {
+function parseTranslate(transform: string | null): {
+  readonly x: number
+  readonly y: number
+} {
   if (transform === null) {
-    return { x: 0, y: 0 }
+    return {
+      x: 0,
+      y: 0,
+    }
   }
 
   const match = /translate\(([-\d.]+)\s+([-\d.]+)\)/.exec(transform)
 
   if (match === null) {
-    return { x: 0, y: 0 }
+    return {
+      x: 0,
+      y: 0,
+    }
   }
 
   return {
@@ -52,23 +69,27 @@ function parsePolygonBounds(
   polygon: SVGPolygonElement,
   translateX: number,
   translateY: number,
-): { readonly x: number; readonly y: number; readonly width: number; readonly height: number } {
-  const points = polygon.points
-  let minX = Number.POSITIVE_INFINITY
-  let minY = Number.POSITIVE_INFINITY
-  let maxX = Number.NEGATIVE_INFINITY
-  let maxY = Number.NEGATIVE_INFINITY
+): {
+  readonly x: number
+  readonly y: number
+  readonly width: number
+  readonly height: number
+} {
+  const translatedPoints = Array.from({ length: polygon.points.numberOfItems }, (_, index) => {
+    const point = polygon.points.getItem(index)
 
-  for (let index = 0; index < points.numberOfItems; index += 1) {
-    const point = points.getItem(index)
-    const x = point.x + translateX
-    const y = point.y + translateY
+    return {
+      x: point.x + translateX,
+      y: point.y + translateY,
+    }
+  })
 
-    minX = Math.min(minX, x)
-    minY = Math.min(minY, y)
-    maxX = Math.max(maxX, x)
-    maxY = Math.max(maxY, y)
-  }
+  const xValues = translatedPoints.map((point) => point.x)
+  const yValues = translatedPoints.map((point) => point.y)
+  const minX = Math.min(...xValues)
+  const minY = Math.min(...yValues)
+  const maxX = Math.max(...xValues)
+  const maxY = Math.max(...yValues)
 
   return {
     x: minX,
@@ -81,7 +102,10 @@ function parsePolygonBounds(
 function createDot(
   nodes: readonly ClusteredGraphvizNode[],
   edges: readonly ClusteredGraphvizEdge[],
-): { readonly dot: string; readonly domIdsByNodeId: ReadonlyMap<string, string> } {
+): {
+  readonly dot: string
+  readonly domIdsByNodeId: ReadonlyMap<string, string>
+} {
   const domIdsByNodeId = new Map<string, string>()
   const lines = [
     'digraph {',
@@ -115,13 +139,13 @@ export async function renderClusteredGraphvizLayout(params: {
   readonly edges: readonly ClusteredGraphvizEdge[]
 }): Promise<ClusteredGraphvizLayoutResult> {
   if (params.nodes.length === 0) {
-    return {
-      positions: new Map(),
-    }
+    return {positions: new Map(),}
   }
 
   const viz = await vizInstancePromise
-  const { dot, domIdsByNodeId } = createDot(params.nodes, params.edges)
+  const {
+    dot, domIdsByNodeId 
+  } = createDot(params.nodes, params.edges)
   const svgMarkup = viz.renderString(dot, {
     engine: 'dot',
     format: 'svg',
@@ -134,12 +158,9 @@ export async function renderClusteredGraphvizLayout(params: {
   }
 
   const translation = parseTranslate(graphGroup.getAttribute('transform'))
-  const boundsById = new Map<string, { x: number; y: number; width: number; height: number }>()
-  let minimumX = Number.POSITIVE_INFINITY
-  let minimumY = Number.POSITIVE_INFINITY
-
-  for (const node of params.nodes) {
+  const boundsEntries = params.nodes.map((node) => {
     const domId = domIdsByNodeId.get(node.id)
+
     if (domId === undefined) {
       throw new LayoutError(`Missing DOM id for clustered node '${node.id}'`)
     }
@@ -151,12 +172,11 @@ export async function renderClusteredGraphvizLayout(params: {
       throw new LayoutError(`Graphviz output did not contain bounds for node '${node.id}'`)
     }
 
-    const bounds = parsePolygonBounds(polygon, translation.x, translation.y)
-    minimumX = Math.min(minimumX, bounds.x)
-    minimumY = Math.min(minimumY, bounds.y)
-    boundsById.set(node.id, bounds)
-  }
-
+    return [node.id, parsePolygonBounds(polygon, translation.x, translation.y)] as const
+  })
+  const boundsById = new Map(boundsEntries)
+  const minimumX = Math.min(...boundsEntries.map(([, bounds]) => bounds.x))
+  const minimumY = Math.min(...boundsEntries.map(([, bounds]) => bounds.y))
   const deltaX = CANVAS_MARGIN - minimumX
   const deltaY = CANVAS_MARGIN - minimumY
 

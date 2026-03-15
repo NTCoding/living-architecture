@@ -1,7 +1,11 @@
-import { useState, useCallback, useMemo, useRef, useEffect } from 'react'
+import {
+  useState, useCallback, useMemo, useRef, useEffect 
+} from 'react'
 import { useSearchParams } from 'react-router-dom'
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
-import type { NodeType, Node, Edge } from '../queries/eclair-types'
+import type {
+  NodeType, Node, Edge 
+} from '../queries/eclair-types'
 import { useTheme } from '@/platform/infra/theme/ThemeContext'
 import { useExport } from '@/platform/infra/export/ExportContext'
 import {
@@ -14,12 +18,12 @@ import { ForceGraph } from '@/platform/infra/graph/ForceGraph/ForceGraph'
 import { ClusteredGraph } from '@/platform/infra/graph/ClusteredGraph/ClusteredGraph'
 import { GraphTooltip } from '@/platform/infra/graph/GraphTooltip/GraphTooltip'
 import { DomainFilters } from '../components/DomainFilters/DomainFilters'
+import { FullGraphHeaderOverlay } from '../components/FullGraphHeaderOverlay/FullGraphHeaderOverlay'
 import { NodeTypeFilters } from '../components/NodeTypeFilters/NodeTypeFilters'
+import { type FullGraphViewMode } from '../components/FullGraphViewTabs/FullGraphViewTabs'
 import {
-  FullGraphViewTabs,
-  type FullGraphViewMode,
-} from '../components/FullGraphViewTabs/FullGraphViewTabs'
-import { filterByNodeType, getThemeFocusColors } from '../queries/graph-focusing'
+  filterByNodeType, getThemeFocusColors 
+} from '../queries/graph-focusing'
 import {
   computeClusteredGraphLayout,
   type ClusteredGraphLayout,
@@ -56,9 +60,7 @@ function findOrphanNodeIds(
   return orphanIds
 }
 
-interface FullGraphPageProps {
-  readonly graph: RiviereGraph
-}
+interface FullGraphPageProps {readonly graph: RiviereGraph}
 
 interface DomainInfo {
   name: string
@@ -109,7 +111,9 @@ function extractNodeTypes(graph: RiviereGraph): NodeTypeInfo[] {
 
 export function FullGraphPage({ graph }: Readonly<FullGraphPageProps>): React.ReactElement {
   const { theme } = useTheme()
-  const { registerExportHandlers, clearExportHandlers } = useExport()
+  const {
+    registerExportHandlers, clearExportHandlers 
+  } = useExport()
   const [searchParams] = useSearchParams()
   const [tooltipData, setTooltipData] = useState<TooltipData | null>(null)
   const tooltipHideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -305,6 +309,11 @@ export function FullGraphPage({ graph }: Readonly<FullGraphPageProps>): React.Re
   }, [graph.metadata.name, registerExportHandlers, clearExportHandlers])
 
   const highlightedNodeIds = highlightedNodeId ? new Set([highlightedNodeId]) : undefined
+  const activeFocusedDomain = focusedDomain === HIDE_ALL_DOMAINS ? null : focusedDomain
+  const focusedNodeCount =
+    focusedDomain === null
+      ? 0
+      : filteredGraph.nodes.filter((n) => n.domain === focusedDomain).length
   const renderedGraph = {
     ...graph,
     components: filteredGraph.nodes,
@@ -378,61 +387,18 @@ export function FullGraphPage({ graph }: Readonly<FullGraphPageProps>): React.Re
         onMouseLeave={handleTooltipMouseLeave}
       />
 
-      <div className="floating-panel absolute left-1/2 top-4 z-10 -translate-x-1/2 px-2 py-2">
-        <FullGraphViewTabs viewMode={viewMode} onChange={setViewMode} />
-      </div>
-
-      {focusedDomain !== null && focusedDomain !== HIDE_ALL_DOMAINS ? (
-        <div
-          className="floating-panel absolute left-2 top-4 z-10 animate-fade-in border-l-8 px-8 py-6 md:left-4"
-          style={{
-            borderLeftColor: focusColors.borderColor,
-            boxShadow: `0 0 60px ${focusColors.shadowColor}, 0 8px 24px rgba(0, 0, 0, ${theme === 'voltage' ? 0.3 : 0.12})`,
-            background: theme === 'voltage' ? 'rgba(26, 26, 36, 0.95)' : undefined,
-          }}
-          data-testid="focused-domain-banner"
-        >
-          <div className="flex items-center gap-4">
-            <div
-              className="h-4 w-4 animate-pulse rounded-full"
-              style={{
-                backgroundColor: focusColors.glowColor,
-                boxShadow: `0 0 20px ${focusColors.shadowColor}`,
-              }}
-            />
-            <div className="text-2xl font-extrabold tracking-tight text-[var(--text-primary)] md:text-4xl">
-              {focusedDomain}
-            </div>
-          </div>
-          <div className="mt-3 flex items-center gap-2 text-sm font-semibold text-[var(--text-secondary)] md:text-base">
-            <i className="ph ph-circles-three text-base md:text-lg" />
-            <span>
-              {filteredGraph.nodes.filter((n) => n.domain === focusedDomain).length} nodes focused
-            </span>
-          </div>
-          <button
-            type="button"
-            onClick={handleShowAllDomains}
-            className="mt-4 flex items-center gap-2 text-sm font-medium transition-colors"
-            style={{ color: focusColors.borderColor }}
-          >
-            <i className="ph ph-x-circle text-base" />
-            <span>Clear focus</span>
-          </button>
-        </div>
-      ) : (
-        <div
-          className="floating-panel absolute left-2 top-4 z-10 md:left-4"
-          data-testid="stats-panel"
-        >
-          <h1 className="mb-1 text-sm font-semibold text-[var(--text-primary)]">Full Graph</h1>
-          <div className="flex flex-wrap gap-2 pr-24 text-xs text-[var(--text-secondary)] md:gap-4 md:pr-32">
-            <span>{renderedNodeCount} nodes</span>
-            <span>{renderedEdgeCount} edges</span>
-            <span>{domainCount} domains</span>
-          </div>
-        </div>
-      )}
+      <FullGraphHeaderOverlay
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+        focusedDomain={activeFocusedDomain}
+        focusedNodeCount={focusedNodeCount}
+        renderedNodeCount={renderedNodeCount}
+        renderedEdgeCount={renderedEdgeCount}
+        domainCount={domainCount}
+        theme={theme}
+        focusColors={focusColors}
+        onClearFocus={handleShowAllDomains}
+      />
 
       <div
         className="floating-panel absolute right-2 top-4 md:right-4"

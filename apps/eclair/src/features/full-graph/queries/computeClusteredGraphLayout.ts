@@ -1,7 +1,11 @@
 import type { ExternalLink } from '@living-architecture/riviere-schema'
 import { compareByCodePoint } from '@/platform/domain/compare-by-code-point'
-import type { Edge, Node } from '@/platform/domain/eclair-types'
-import type { SimulationLink, SimulationNode } from '@/platform/infra/graph/graph-types'
+import type {
+  Edge, Node 
+} from '@/platform/domain/eclair-types'
+import type {
+  SimulationLink, SimulationNode 
+} from '@/platform/infra/graph/graph-types'
 import {
   truncateClusteredNodeLabel,
   type DomainCircle,
@@ -41,10 +45,16 @@ function buildDomainLevelEdges(params: {
   readonly internalNodes: readonly SimulationNode[]
   readonly internalEdges: readonly Edge[]
   readonly externalLinks: readonly ExternalLink[]
-}): readonly { source: string; target: string }[] {
+}): readonly {
+  source: string;
+  target: string 
+}[] {
   const domainByNodeId = new Map(params.internalNodes.map((node) => [node.id, node.domain]))
   const seenEdgeKeys = new Set<string>()
-  const layoutEdges: { source: string; target: string }[] = []
+  const layoutEdges: {
+    source: string;
+    target: string 
+  }[] = []
 
   for (const edge of params.internalEdges) {
     const sourceDomain = domainByNodeId.get(edge.source)
@@ -63,7 +73,10 @@ function buildDomainLevelEdges(params: {
     }
 
     seenEdgeKeys.add(edgeKey)
-    layoutEdges.push({ source, target })
+    layoutEdges.push({
+      source,
+      target 
+    })
   }
 
   for (const link of params.externalLinks) {
@@ -82,7 +95,10 @@ function buildDomainLevelEdges(params: {
     }
 
     seenEdgeKeys.add(edgeKey)
-    layoutEdges.push({ source, target })
+    layoutEdges.push({
+      source,
+      target 
+    })
   }
 
   return layoutEdges

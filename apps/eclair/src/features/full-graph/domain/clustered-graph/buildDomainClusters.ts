@@ -8,12 +8,36 @@ export interface DomainClusterDefinition {
   readonly nodeIds: readonly string[]
 }
 
+function isAlphaNumericCharacter(character: string): boolean {
+  return (character >= 'a' && character <= 'z') || (character >= '0' && character <= '9')
+}
+
 function createClusterId(domain: string): string {
-  const normalized = domain
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '_')
-    .replace(/^_+|_+$/g, '')
-  return `cluster_domain_${normalized.length > 0 ? normalized : 'unknown'}`
+  const normalized = [...domain.toLowerCase()].reduce(
+    (state, character) => {
+      if (isAlphaNumericCharacter(character)) {
+        return {
+          value: `${state.value}${character}`,
+          previousWasSeparator: false,
+        }
+      }
+
+      if (state.previousWasSeparator || state.value.length === 0) {
+        return state
+      }
+
+      return {
+        value: `${state.value}_`,
+        previousWasSeparator: true,
+      }
+    },
+    {
+      value: '',
+      previousWasSeparator: false,
+    },
+  ).value
+  const trimmed = normalized.endsWith('_') ? normalized.slice(0, -1) : normalized
+  return `cluster_domain_${trimmed.length > 0 ? trimmed : 'unknown'}`
 }
 
 export function buildDomainClusters(nodes: readonly Node[]): readonly DomainClusterDefinition[] {
