@@ -85,7 +85,7 @@ function createDot(
   const domIdsByNodeId = new Map<string, string>()
   const lines = [
     'digraph {',
-    '  graph [rankdir=LR,overlap=false,splines=false,pad=0.6,nodesep=1.25,ranksep=1.6]',
+    `  graph [rankdir=LR,overlap=false,splines=false,pad=0.6,nodesep=${NODE_SEPARATION},ranksep=${RANK_SEPARATION}]`,
     '  node [shape=box,fixedsize=true,fontsize=10,margin=0]',
     '  edge [arrowhead=normal]',
   ]

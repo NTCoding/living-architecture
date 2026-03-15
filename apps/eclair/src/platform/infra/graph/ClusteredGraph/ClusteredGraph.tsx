@@ -4,7 +4,7 @@ import type { Edge } from '@/platform/domain/eclair-types'
 import { compareByCodePoint } from '@/platform/domain/compare-by-code-point'
 import type { Theme } from '@/types/theme'
 import type { SimulationLink, SimulationNode, TooltipData } from '../graph-types'
-import type { DomainCircle } from './computeCircleEnclosures'
+import { truncateClusteredNodeLabel, type DomainCircle } from './computeCircleEnclosures'
 import {
   updateHighlight,
   setupSVGFiltersAndMarkers,
@@ -20,7 +20,6 @@ import {
   getSemanticEdgeType,
   getSemanticEdgeColor,
   isAsyncEdge,
-  truncateName,
   getDomainColor,
 } from '../ForceGraph/VisualizationDataAdapters'
 
@@ -29,6 +28,26 @@ interface ClusteredGraphLayoutData {
   readonly links: readonly SimulationLink[]
   readonly circles: readonly DomainCircle[]
   readonly uniqueDomains: readonly string[]
+}
+
+const CLUSTER_LABEL_MIN_FONT_SIZE = 60
+const CLUSTER_LABEL_MAX_FONT_SIZE = 84
+const CLUSTER_LABEL_GAP = 20
+const CLUSTER_LABEL_STROKE_WIDTH = 14
+
+function getClusterLabelFontSize(circle: DomainCircle): number {
+  return Math.max(
+    CLUSTER_LABEL_MIN_FONT_SIZE,
+    Math.min(CLUSTER_LABEL_MAX_FONT_SIZE, circle.r * 0.42),
+  )
+}
+
+function getClusterLabelY(circle: DomainCircle): number {
+  return circle.y - circle.r - CLUSTER_LABEL_GAP
+}
+
+function getClusterLabelTop(circle: DomainCircle): number {
+  return getClusterLabelY(circle) - getClusterLabelFontSize(circle)
 }
 
 interface ClusteredGraphProps {
@@ -68,7 +87,7 @@ function calculateGraphBounds(
 
   for (const circle of circles) {
     minX = Math.min(minX, circle.x - circle.r)
-    minY = Math.min(minY, circle.y - circle.r)
+    minY = Math.min(minY, getClusterLabelTop(circle) - 12)
     maxX = Math.max(maxX, circle.x + circle.r)
     maxY = Math.max(maxY, circle.y + circle.r)
   }
@@ -472,25 +491,27 @@ export function ClusteredGraph({
       .attr('cy', (datum) => datum.y)
       .attr('r', (datum) => datum.r)
       .attr('fill', (datum) =>
-        withOpacity(getDomainColor(datum.domain, uniqueDomains), theme === 'voltage' ? 0.1 : 0.08),
+        withOpacity(
+          getDomainColor(datum.domain, uniqueDomains),
+          theme === 'voltage' ? 0.05 : 0.035,
+        ),
       )
       .attr('stroke', (datum) =>
-        withOpacity(getDomainColor(datum.domain, uniqueDomains), theme === 'voltage' ? 0.85 : 0.7),
+        withOpacity(getDomainColor(datum.domain, uniqueDomains), theme === 'voltage' ? 0.45 : 0.35),
       )
-      .attr('stroke-width', 2)
-      .attr('stroke-dasharray', theme === 'circuit' ? '8,6' : 'none')
+      .attr('stroke-width', 1.5)
 
     domains
       .append('text')
       .attr('x', (datum) => datum.x)
-      .attr('y', (datum) => datum.y - datum.r + 28)
+      .attr('y', (datum) => getClusterLabelY(datum))
       .attr('text-anchor', 'middle')
-      .attr('font-size', '13px')
-      .attr('font-weight', 700)
+      .attr('font-size', (datum) => `${String(getClusterLabelFontSize(datum))}px`)
+      .attr('font-weight', 800)
       .attr('fill', 'var(--text-primary)')
       .attr('paint-order', 'stroke fill')
       .attr('stroke', theme === 'voltage' ? '#0a0a0f' : 'rgba(255, 255, 255, 0.96)')
-      .attr('stroke-width', 6)
+      .attr('stroke-width', CLUSTER_LABEL_STROKE_WIDTH)
       .attr('stroke-linejoin', 'round')
       .text((datum) => datum.label)
 
@@ -512,10 +533,8 @@ export function ClusteredGraph({
       getNodeRadius,
       getDomainColor,
       uniqueDomains,
-      truncateName,
+      truncateName: (_name, _maxLength) => truncateClusteredNodeLabel(_name),
     })
-
-    setupNodeEvents(node, layout.links)
 
     const applyNodePositions = createUpdatePositionsFunction({
       link,
@@ -523,7 +542,54 @@ export function ClusteredGraph({
       nodePositionMap: nodeMap,
       getNodeRadius,
     })
+
+    node.call(
+      d3
+        .drag<SVGGElement, SimulationNode>()
+        .on(
+          'start',
+          (
+            _event: d3.D3DragEvent<SVGGElement, SimulationNode, SimulationNode>,
+            datum: SimulationNode,
+          ) => {
+            handleNodeHover(null)
+            datum.fx = datum.x
+            datum.fy = datum.y
+          },
+        )
+        .on(
+          'drag',
+          (
+            event: d3.D3DragEvent<SVGGElement, SimulationNode, SimulationNode>,
+            datum: SimulationNode,
+          ) => {
+            datum.x = event.x
+            datum.y = event.y
+            datum.fx = event.x
+            datum.fy = event.y
+            applyNodePositions()
+          },
+        )
+        .on(
+          'end',
+          (
+            _event: d3.D3DragEvent<SVGGElement, SimulationNode, SimulationNode>,
+            datum: SimulationNode,
+          ) => {
+            datum.fx = null
+            datum.fy = null
+          },
+        ),
+    )
+
+    setupNodeEvents(node, layout.links)
+
     applyNodePositions()
+
+    node
+      .selectAll<SVGTextElement, SimulationNode>('.node-label')
+      .attr('font-size', '10px')
+      .attr('dy', (datum) => getNodeRadius(datum.type) + 13)
 
     node.selectAll<SVGTextElement, SimulationNode>('.node-domain-label').attr('opacity', 0)
 

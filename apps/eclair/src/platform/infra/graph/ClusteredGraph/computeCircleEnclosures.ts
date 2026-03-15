@@ -20,14 +20,37 @@ export interface DomainCircle {
   readonly nodeIds: readonly string[]
 }
 
-const NODE_FOOTPRINT_PADDING = 30
-const DOMAIN_CIRCLE_PADDING = 34
+export interface PackedDomainCircle {
+  readonly id: string
+  readonly domain: string
+  readonly label: string
+  readonly r: number
+  readonly nodeIds: readonly string[]
+  readonly nodeOffsets: ReadonlyMap<string, { readonly x: number; readonly y: number }>
+}
 
-export function computeCircleEnclosures(params: {
+export const CLUSTERED_NODE_LABEL_MAX_LENGTH = 18
+
+const NODE_LAYOUT_PADDING = 26
+const DOMAIN_CIRCLE_PADDING = 34
+const MIN_DOMAIN_RADIUS = 88
+const CLUSTERED_LABEL_HALF_CHAR_WIDTH = 2.85
+const CLUSTERED_LABEL_HORIZONTAL_PADDING = 10
+const CLUSTERED_LABEL_VERTICAL_EXTENT = 24
+
+export function truncateClusteredNodeLabel(name: string): string {
+  if (name.length <= CLUSTERED_NODE_LABEL_MAX_LENGTH) {
+    return name
+  }
+
+  return `${name.slice(0, CLUSTERED_NODE_LABEL_MAX_LENGTH - 3)}...`
+}
+
+export function packDomainNodes(params: {
   readonly nodes: readonly SimulationNode[]
   readonly clusters: readonly ClusterCircleDefinition[]
   readonly getNodeRadius: (type: NodeType) => number
-}): readonly DomainCircle[] {
+}): readonly PackedDomainCircle[] {
   return params.clusters.flatMap((cluster) => {
     const memberNodes = cluster.nodeIds
       .map((nodeId) => params.nodes.find((node) => node.id === nodeId))
@@ -38,27 +61,50 @@ export function computeCircleEnclosures(params: {
     }
 
     const circles = memberNodes.map((node) => {
-      if (node.x === undefined || node.y === undefined) {
-        throw new LayoutError(`Node ${node.id} missing coordinates for clustered circle enclosure`)
-      }
+      const nodeRadius = params.getNodeRadius(node.type)
+      const labelHalfWidth =
+        truncateClusteredNodeLabel(node.name).length * CLUSTERED_LABEL_HALF_CHAR_WIDTH +
+        CLUSTERED_LABEL_HORIZONTAL_PADDING
 
       return {
-        x: node.x,
-        y: node.y,
-        r: params.getNodeRadius(node.type) + NODE_FOOTPRINT_PADDING,
+        id: node.id,
+        x: 0,
+        y: 0,
+        r: Math.max(
+          nodeRadius + NODE_LAYOUT_PADDING,
+          labelHalfWidth,
+          nodeRadius + CLUSTERED_LABEL_VERTICAL_EXTENT,
+        ),
       }
     })
 
+    d3.packSiblings(circles)
     const enclosure = d3.packEnclose(circles)
+
+    if (
+      !Number.isFinite(enclosure.x) ||
+      !Number.isFinite(enclosure.y) ||
+      !Number.isFinite(enclosure.r)
+    ) {
+      throw new LayoutError(`Unable to compute enclosure for domain '${cluster.domain}'`)
+    }
+
     return [
       {
         id: cluster.id,
         domain: cluster.domain,
         label: cluster.label,
-        x: enclosure.x,
-        y: enclosure.y,
-        r: enclosure.r + DOMAIN_CIRCLE_PADDING,
+        r: Math.max(enclosure.r + DOMAIN_CIRCLE_PADDING, MIN_DOMAIN_RADIUS),
         nodeIds: cluster.nodeIds,
+        nodeOffsets: new Map(
+          circles.map((circle) => [
+            circle.id,
+            {
+              x: circle.x - enclosure.x,
+              y: circle.y - enclosure.y,
+            },
+          ]),
+        ),
       },
     ]
   })

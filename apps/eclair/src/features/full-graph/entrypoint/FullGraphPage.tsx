@@ -378,72 +378,61 @@ export function FullGraphPage({ graph }: Readonly<FullGraphPageProps>): React.Re
         onMouseLeave={handleTooltipMouseLeave}
       />
 
-      <div className="absolute left-2 top-4 z-10 flex max-w-[calc(100%-4rem)] flex-col gap-3 md:left-4 md:max-w-lg">
-        {focusedDomain !== null && focusedDomain !== HIDE_ALL_DOMAINS ? (
-          <div
-            className="floating-panel animate-fade-in border-l-8 px-8 py-6"
-            style={{
-              borderLeftColor: focusColors.borderColor,
-              boxShadow: `0 0 60px ${focusColors.shadowColor}, 0 8px 24px rgba(0, 0, 0, ${theme === 'voltage' ? 0.3 : 0.12})`,
-              background: theme === 'voltage' ? 'rgba(26, 26, 36, 0.95)' : undefined,
-            }}
-            data-testid="focused-domain-banner"
-          >
-            <div className="flex items-center gap-4">
-              <div
-                className="h-4 w-4 animate-pulse rounded-full"
-                style={{
-                  backgroundColor: focusColors.glowColor,
-                  boxShadow: `0 0 20px ${focusColors.shadowColor}`,
-                }}
-              />
-              <div className="text-2xl font-extrabold tracking-tight text-[var(--text-primary)] md:text-4xl">
-                {focusedDomain}
-              </div>
-            </div>
-            <div className="mt-3 flex items-center gap-2 text-sm font-semibold text-[var(--text-secondary)] md:text-base">
-              <i className="ph ph-circles-three text-base md:text-lg" />
-              <span>
-                {filteredGraph.nodes.filter((n) => n.domain === focusedDomain).length} nodes focused
-              </span>
-            </div>
-            <button
-              type="button"
-              onClick={handleShowAllDomains}
-              className="mt-4 flex items-center gap-2 text-sm font-medium transition-colors"
-              style={{ color: focusColors.borderColor }}
-            >
-              <i className="ph ph-x-circle text-base" />
-              <span>Clear focus</span>
-            </button>
-          </div>
-        ) : (
-          <div className="floating-panel" data-testid="stats-panel">
-            <div className="mb-2 flex items-start justify-between gap-6">
-              <div>
-                <h1 className="text-sm font-semibold text-[var(--text-primary)]">Full Graph</h1>
-                <div className="mt-1 flex flex-wrap gap-2 text-xs text-[var(--text-secondary)] md:gap-4">
-                  <span>{renderedNodeCount} nodes</span>
-                  <span>{renderedEdgeCount} edges</span>
-                  <span>{domainCount} domains</span>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 rounded-full border border-[var(--border-color)] bg-[var(--bg-tertiary)] px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--text-tertiary)]">
-                <i className="ph ph-sparkle text-sm" aria-hidden="true" />
-                <span>{viewMode === 'clustered' ? 'Clustered view' : 'Graph view'}</span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div className="floating-panel w-fit max-w-full">
-          <div className="mb-2 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--text-tertiary)]">
-            <i className="ph ph-layout text-sm" aria-hidden="true" />
-            <span>View mode</span>
-          </div>
-          <FullGraphViewTabs viewMode={viewMode} onChange={setViewMode} />
-        </div>
+      <div className="floating-panel absolute left-1/2 top-4 z-10 -translate-x-1/2 px-2 py-2">
+        <FullGraphViewTabs viewMode={viewMode} onChange={setViewMode} />
       </div>
+
+      {focusedDomain !== null && focusedDomain !== HIDE_ALL_DOMAINS ? (
+        <div
+          className="floating-panel absolute left-2 top-4 z-10 animate-fade-in border-l-8 px-8 py-6 md:left-4"
+          style={{
+            borderLeftColor: focusColors.borderColor,
+            boxShadow: `0 0 60px ${focusColors.shadowColor}, 0 8px 24px rgba(0, 0, 0, ${theme === 'voltage' ? 0.3 : 0.12})`,
+            background: theme === 'voltage' ? 'rgba(26, 26, 36, 0.95)' : undefined,
+          }}
+          data-testid="focused-domain-banner"
+        >
+          <div className="flex items-center gap-4">
+            <div
+              className="h-4 w-4 animate-pulse rounded-full"
+              style={{
+                backgroundColor: focusColors.glowColor,
+                boxShadow: `0 0 20px ${focusColors.shadowColor}`,
+              }}
+            />
+            <div className="text-2xl font-extrabold tracking-tight text-[var(--text-primary)] md:text-4xl">
+              {focusedDomain}
+            </div>
+          </div>
+          <div className="mt-3 flex items-center gap-2 text-sm font-semibold text-[var(--text-secondary)] md:text-base">
+            <i className="ph ph-circles-three text-base md:text-lg" />
+            <span>
+              {filteredGraph.nodes.filter((n) => n.domain === focusedDomain).length} nodes focused
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={handleShowAllDomains}
+            className="mt-4 flex items-center gap-2 text-sm font-medium transition-colors"
+            style={{ color: focusColors.borderColor }}
+          >
+            <i className="ph ph-x-circle text-base" />
+            <span>Clear focus</span>
+          </button>
+        </div>
+      ) : (
+        <div
+          className="floating-panel absolute left-2 top-4 z-10 md:left-4"
+          data-testid="stats-panel"
+        >
+          <h1 className="mb-1 text-sm font-semibold text-[var(--text-primary)]">Full Graph</h1>
+          <div className="flex flex-wrap gap-2 pr-24 text-xs text-[var(--text-secondary)] md:gap-4 md:pr-32">
+            <span>{renderedNodeCount} nodes</span>
+            <span>{renderedEdgeCount} edges</span>
+            <span>{domainCount} domains</span>
+          </div>
+        </div>
+      )}
 
       <div
         className="floating-panel absolute right-2 top-4 md:right-4"
