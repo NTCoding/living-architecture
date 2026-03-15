@@ -11,10 +11,19 @@ import {
   UNNAMED_GRAPH_EXPORT_NAME,
 } from '@/platform/infra/export/export-graph'
 import { ForceGraph } from '@/platform/infra/graph/ForceGraph/ForceGraph'
+import { ClusteredGraph } from '@/platform/infra/graph/ClusteredGraph/ClusteredGraph'
 import { GraphTooltip } from '@/platform/infra/graph/GraphTooltip/GraphTooltip'
 import { DomainFilters } from '../components/DomainFilters/DomainFilters'
 import { NodeTypeFilters } from '../components/NodeTypeFilters/NodeTypeFilters'
+import {
+  FullGraphViewTabs,
+  type FullGraphViewMode,
+} from '../components/FullGraphViewTabs/FullGraphViewTabs'
 import { filterByNodeType, getThemeFocusColors } from '../queries/graph-focusing'
+import {
+  computeClusteredGraphLayout,
+  type ClusteredGraphLayout,
+} from '../queries/computeClusteredGraphLayout'
 import type { TooltipData } from '@/platform/infra/graph/graph-types'
 
 function compareByCodePoint(a: string, b: string): number {
@@ -23,11 +32,19 @@ function compareByCodePoint(a: string, b: string): number {
   return 0
 }
 
-function findOrphanNodeIds(nodes: Node[], edges: Edge[]): Set<string> {
+function findOrphanNodeIds(
+  nodes: Node[],
+  edges: Edge[],
+  externalLinks: RiviereGraph['externalLinks'],
+): Set<string> {
   const connectedNodeIds = new Set<string>()
   for (const edge of edges) {
     connectedNodeIds.add(edge.source)
     connectedNodeIds.add(edge.target)
+  }
+
+  for (const link of externalLinks ?? []) {
+    connectedNodeIds.add(link.source)
   }
 
   const orphanIds = new Set<string>()
@@ -99,6 +116,8 @@ export function FullGraphPage({ graph }: Readonly<FullGraphPageProps>): React.Re
   const exportContainerRef = useRef<HTMLDivElement>(null)
   const [highlightedNodeId, setHighlightedNodeId] = useState<string | null>(null)
   const [filterPanelOpen, setFilterPanelOpen] = useState(false)
+  const [viewMode, setViewMode] = useState<FullGraphViewMode>('graph')
+  const [clusteredLayout, setClusteredLayout] = useState<ClusteredGraphLayout | null>(null)
   const [visibleTypes, setVisibleTypes] = useState<Set<NodeType>>(() => {
     const types = new Set<NodeType>(graph.components.map((n) => n.type))
     if (graph.externalLinks !== undefined && graph.externalLinks.length > 0) {
@@ -125,8 +144,14 @@ export function FullGraphPage({ graph }: Readonly<FullGraphPageProps>): React.Re
 
   const filteredGraph = useMemo(() => {
     const typeFiltered = filterByNodeType(graph.components, graph.links, visibleTypes)
+    const externalVisible = visibleTypes.has('External')
+    const typeFilteredExternalLinks = externalVisible ? (graph.externalLinks ?? []) : []
 
-    const orphanNodeIds = findOrphanNodeIds(typeFiltered.nodes, typeFiltered.edges)
+    const orphanNodeIds = findOrphanNodeIds(
+      typeFiltered.nodes,
+      typeFiltered.edges,
+      typeFilteredExternalLinks,
+    )
 
     const nonOrphanNodes = typeFiltered.nodes.filter((n) => !orphanNodeIds.has(n.id))
 
@@ -134,11 +159,24 @@ export function FullGraphPage({ graph }: Readonly<FullGraphPageProps>): React.Re
       (e) => !orphanNodeIds.has(e.source) && !orphanNodeIds.has(e.target),
     )
 
+    const visibleNodeIds = new Set(nonOrphanNodes.map((node) => node.id))
+    const externalLinks = typeFilteredExternalLinks.filter((link) =>
+      visibleNodeIds.has(link.source),
+    )
+
     return {
       nodes: nonOrphanNodes,
       edges: nonOrphanEdges,
+      externalLinks,
     }
   }, [graph, visibleTypes])
+
+  const renderedExternalNodeCount = useMemo(() => {
+    return new Set(filteredGraph.externalLinks.map((link) => link.target.name)).size
+  }, [filteredGraph.externalLinks])
+
+  const renderedNodeCount = filteredGraph.nodes.length + renderedExternalNodeCount
+  const renderedEdgeCount = filteredGraph.edges.length + filteredGraph.externalLinks.length
 
   useEffect(() => {
     const nodeFromUrl = searchParams.get('node')
@@ -267,23 +305,65 @@ export function FullGraphPage({ graph }: Readonly<FullGraphPageProps>): React.Re
   }, [graph.metadata.name, registerExportHandlers, clearExportHandlers])
 
   const highlightedNodeIds = highlightedNodeId ? new Set([highlightedNodeId]) : undefined
+  const renderedGraph = {
+    ...graph,
+    components: filteredGraph.nodes,
+    links: filteredGraph.edges,
+    externalLinks: filteredGraph.externalLinks,
+  }
+
+  useEffect(() => {
+    if (viewMode !== 'clustered') {
+      return
+    }
+
+    const cancelled = { value: false }
+    setClusteredLayout(null)
+
+    void computeClusteredGraphLayout({
+      nodes: renderedGraph.components,
+      edges: renderedGraph.links,
+      externalLinks: renderedGraph.externalLinks,
+    })
+      .then((nextLayout) => {
+        if (!cancelled.value) {
+          setClusteredLayout(nextLayout)
+        }
+      })
+      .catch((error: unknown) => {
+        console.error(error)
+      })
+
+    return () => {
+      cancelled.value = true
+    }
+  }, [renderedGraph.components, renderedGraph.links, renderedGraph.externalLinks, viewMode])
 
   return (
     <div ref={exportContainerRef} className="relative h-full w-full" data-testid="full-graph-page">
-      <ForceGraph
-        graph={{
-          ...graph,
-          components: filteredGraph.nodes,
-          links: filteredGraph.edges,
-        }}
-        theme={theme}
-        highlightedNodeIds={highlightedNodeIds}
-        highlightedNodeId={highlightedNodeId}
-        focusedDomain={focusedDomain}
-        onNodeClick={handleNodeClick}
-        onNodeHover={handleNodeHover}
-        onBackgroundClick={handleBackgroundClick}
-      />
+      {viewMode === 'graph' ? (
+        <ForceGraph
+          graph={renderedGraph}
+          theme={theme}
+          highlightedNodeIds={highlightedNodeIds}
+          highlightedNodeId={highlightedNodeId}
+          focusedDomain={focusedDomain}
+          onNodeClick={handleNodeClick}
+          onNodeHover={handleNodeHover}
+          onBackgroundClick={handleBackgroundClick}
+        />
+      ) : (
+        <ClusteredGraph
+          layout={clusteredLayout}
+          theme={theme}
+          highlightedNodeIds={highlightedNodeIds}
+          highlightedNodeId={highlightedNodeId}
+          focusedDomain={focusedDomain}
+          onNodeClick={handleNodeClick}
+          onNodeHover={handleNodeHover}
+          onBackgroundClick={handleBackgroundClick}
+        />
+      )}
 
       {focusedDomain !== null && focusedDomain !== HIDE_ALL_DOMAINS && (
         <div
@@ -298,56 +378,72 @@ export function FullGraphPage({ graph }: Readonly<FullGraphPageProps>): React.Re
         onMouseLeave={handleTooltipMouseLeave}
       />
 
-      {focusedDomain !== null && focusedDomain !== HIDE_ALL_DOMAINS && (
-        <div
-          className="floating-panel absolute left-2 right-2 top-4 animate-fade-in border-l-8 px-8 py-6 md:left-4 md:right-auto md:max-w-md"
-          style={{
-            borderLeftColor: focusColors.borderColor,
-            boxShadow: `0 0 60px ${focusColors.shadowColor}, 0 8px 24px rgba(0, 0, 0, ${theme === 'voltage' ? 0.3 : 0.12})`,
-            background: theme === 'voltage' ? 'rgba(26, 26, 36, 0.95)' : undefined,
-          }}
-          data-testid="focused-domain-banner"
-        >
-          <div className="flex items-center gap-4">
-            <div
-              className="h-4 w-4 animate-pulse rounded-full"
-              style={{
-                backgroundColor: focusColors.glowColor,
-                boxShadow: `0 0 20px ${focusColors.shadowColor}`,
-              }}
-            />
-            <div className="text-2xl font-extrabold tracking-tight text-[var(--text-primary)] md:text-4xl">
-              {focusedDomain}
+      <div className="absolute left-2 top-4 z-10 flex max-w-[calc(100%-4rem)] flex-col gap-3 md:left-4 md:max-w-lg">
+        {focusedDomain !== null && focusedDomain !== HIDE_ALL_DOMAINS ? (
+          <div
+            className="floating-panel animate-fade-in border-l-8 px-8 py-6"
+            style={{
+              borderLeftColor: focusColors.borderColor,
+              boxShadow: `0 0 60px ${focusColors.shadowColor}, 0 8px 24px rgba(0, 0, 0, ${theme === 'voltage' ? 0.3 : 0.12})`,
+              background: theme === 'voltage' ? 'rgba(26, 26, 36, 0.95)' : undefined,
+            }}
+            data-testid="focused-domain-banner"
+          >
+            <div className="flex items-center gap-4">
+              <div
+                className="h-4 w-4 animate-pulse rounded-full"
+                style={{
+                  backgroundColor: focusColors.glowColor,
+                  boxShadow: `0 0 20px ${focusColors.shadowColor}`,
+                }}
+              />
+              <div className="text-2xl font-extrabold tracking-tight text-[var(--text-primary)] md:text-4xl">
+                {focusedDomain}
+              </div>
+            </div>
+            <div className="mt-3 flex items-center gap-2 text-sm font-semibold text-[var(--text-secondary)] md:text-base">
+              <i className="ph ph-circles-three text-base md:text-lg" />
+              <span>
+                {filteredGraph.nodes.filter((n) => n.domain === focusedDomain).length} nodes focused
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={handleShowAllDomains}
+              className="mt-4 flex items-center gap-2 text-sm font-medium transition-colors"
+              style={{ color: focusColors.borderColor }}
+            >
+              <i className="ph ph-x-circle text-base" />
+              <span>Clear focus</span>
+            </button>
+          </div>
+        ) : (
+          <div className="floating-panel" data-testid="stats-panel">
+            <div className="mb-2 flex items-start justify-between gap-6">
+              <div>
+                <h1 className="text-sm font-semibold text-[var(--text-primary)]">Full Graph</h1>
+                <div className="mt-1 flex flex-wrap gap-2 text-xs text-[var(--text-secondary)] md:gap-4">
+                  <span>{renderedNodeCount} nodes</span>
+                  <span>{renderedEdgeCount} edges</span>
+                  <span>{domainCount} domains</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 rounded-full border border-[var(--border-color)] bg-[var(--bg-tertiary)] px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--text-tertiary)]">
+                <i className="ph ph-sparkle text-sm" aria-hidden="true" />
+                <span>{viewMode === 'clustered' ? 'Clustered view' : 'Graph view'}</span>
+              </div>
             </div>
           </div>
-          <div className="mt-3 flex items-center gap-2 text-sm font-semibold text-[var(--text-secondary)] md:text-base">
-            <i className="ph ph-circles-three text-base md:text-lg" />
-            <span>
-              {filteredGraph.nodes.filter((n) => n.domain === focusedDomain).length} nodes focused
-            </span>
-          </div>
-          <button
-            type="button"
-            onClick={handleShowAllDomains}
-            className="mt-4 flex items-center gap-2 text-sm font-medium transition-colors"
-            style={{ color: focusColors.borderColor }}
-          >
-            <i className="ph ph-x-circle text-base" />
-            <span>Clear focus</span>
-          </button>
-        </div>
-      )}
+        )}
 
-      {!focusedDomain && (
-        <div className="floating-panel absolute left-2 top-4 md:left-4" data-testid="stats-panel">
-          <h1 className="mb-1 text-sm font-semibold text-[var(--text-primary)]">Full Graph</h1>
-          <div className="flex flex-wrap gap-2 text-xs text-[var(--text-secondary)] md:gap-4">
-            <span>{filteredGraph.nodes.length} nodes</span>
-            <span>{filteredGraph.edges.length} edges</span>
-            <span>{domainCount} domains</span>
+        <div className="floating-panel w-fit max-w-full">
+          <div className="mb-2 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--text-tertiary)]">
+            <i className="ph ph-layout text-sm" aria-hidden="true" />
+            <span>View mode</span>
           </div>
+          <FullGraphViewTabs viewMode={viewMode} onChange={setViewMode} />
         </div>
-      )}
+      </div>
 
       <div
         className="floating-panel absolute right-2 top-4 md:right-4"

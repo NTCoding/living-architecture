@@ -197,7 +197,6 @@ export const EDGE_DEFINITIONS: readonly EdgeDefinition[] = [
     sourceHandle: 'top-right-source',
     targetHandle: 'top-left-target',
     type: 'smoothstep',
-    markerMode: 'none',
     pathOptions: {
       offset: 28,
       borderRadius: 18,
@@ -218,7 +217,6 @@ export const EDGE_DEFINITIONS: readonly EdgeDefinition[] = [
     sourceHandle: 'top-middle-source',
     targetHandle: 'top-middle-target',
     type: 'smoothstep',
-    markerMode: 'none',
     pathOptions: {
       offset: 92,
       borderRadius: 22,
@@ -239,7 +237,6 @@ export const EDGE_DEFINITIONS: readonly EdgeDefinition[] = [
     sourceHandle: 'top-right-source',
     targetHandle: 'top-left-target',
     type: 'smoothstep',
-    markerMode: 'none',
     pathOptions: {
       offset: 28,
       borderRadius: 18,

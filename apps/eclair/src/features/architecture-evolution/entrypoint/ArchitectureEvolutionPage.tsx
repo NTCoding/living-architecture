@@ -242,7 +242,7 @@ function FlowControls({
 export function ArchitectureEvolutionPage(): React.ReactElement {
   const [stepIndex, setStepIndex] = useState(0)
   const [showCommitDetails, setShowCommitDetails] = useState(false)
-  const [showEdgeLabels, setShowEdgeLabels] = useState(true)
+  const [showEdgeLabels, setShowEdgeLabels] = useState(false)
   const [layoutedNodes, setLayoutedNodes] = useState<readonly Node[]>([])
   const [layoutedBoundaries, setLayoutedBoundaries] = useState<readonly GraphvizBoundary[]>([])
   const [edgePathsById, setEdgePathsById] = useState<ReadonlyMap<string, string>>(new Map())
@@ -367,7 +367,7 @@ export function ArchitectureEvolutionPage(): React.ReactElement {
         selected: edge.id === selectedEdgeId,
         data: {
           ...edge.data,
-          showLabel: showEdgeLabels,
+          showLabel: showEdgeLabels || edge.data.transition !== 'unchanged',
           ...(graphvizPath === undefined ? {} : { graphvizPath }),
         },
       }

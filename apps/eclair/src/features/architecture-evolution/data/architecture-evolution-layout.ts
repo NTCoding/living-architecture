@@ -108,7 +108,7 @@ function createDot<TNode extends Node<Record<string, unknown>>>(
     'digraph {',
     '  compound=true',
     '  clusterrank=local',
-    `  graph [splines=ortho,rankdir=TB,ranksep=${RANK_SEPARATION},nodesep=${NODE_SEPARATION},newrank=true]`,
+    `  graph [splines=polyline,rankdir=TB,ranksep=${RANK_SEPARATION},nodesep=${NODE_SEPARATION},newrank=true]`,
     '  node [shape=box,fontsize=5]',
     '  edge [fontsize=5]',
   ]

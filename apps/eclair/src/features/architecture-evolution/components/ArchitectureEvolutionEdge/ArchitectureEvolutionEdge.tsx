@@ -78,40 +78,87 @@ function getStrokeColor(style: React.CSSProperties | undefined): string {
 
 function getBadgeFill(transition: ArchitectureEvolutionEdgeData['transition']): string {
   if (transition === 'removed') return '#fee2e2'
-  if (transition === 'added') return 'color-mix(in srgb, var(--accent) 16%, var(--bg-secondary))'
+  if (transition === 'added') return 'color-mix(in srgb, #7c3aed 16%, var(--bg-secondary))'
   return 'color-mix(in srgb, var(--amber) 16%, var(--bg-secondary))'
 }
 
 function getBadgeTextColor(transition: ArchitectureEvolutionEdgeData['transition']): string {
   if (transition === 'removed') return '#991b1b'
-  if (transition === 'added') return 'color-mix(in srgb, var(--accent) 80%, var(--text-primary))'
+  if (transition === 'added') return 'color-mix(in srgb, #7c3aed 80%, var(--text-primary))'
   return 'color-mix(in srgb, var(--amber) 74%, var(--text-primary))'
 }
 
 function getLabelStroke(transition: ArchitectureEvolutionEdgeData['transition']): string {
   if (transition === 'removed') return '#fca5a5'
-  if (transition === 'added') return 'color-mix(in srgb, var(--accent) 48%, var(--border-color))'
+  if (transition === 'added') return 'color-mix(in srgb, #7c3aed 48%, var(--border-color))'
   if (transition === 'changed') return 'color-mix(in srgb, var(--amber) 48%, var(--border-color))'
   return 'var(--border-color)'
 }
 
-function getLabelPointFromPath(path: string): { readonly x: number; readonly y: number } | null {
-  const points = [...path.matchAll(/(-?\d*\.?\d+),(-?\d*\.?\d+)/g)]
+function getPathPoints(path: string): ReadonlyArray<{ readonly x: number; readonly y: number }> {
+  return [...path.matchAll(/(-?\d*\.?\d+),(-?\d*\.?\d+)/g)].map((match) => ({
+    x: Number(match[1]),
+    y: Number(match[2]),
+  }))
+}
 
-  if (points.length === 0) {
+function getLabelPlacement(
+  path: string,
+  labelWidth: number,
+): { readonly x: number; readonly y: number } | null {
+  const points = getPathPoints(path)
+
+  if (points.length < 2) {
     return null
   }
 
-  const middlePoint = points[Math.floor(points.length / 2)]
+  const segments = points.slice(1).map((point, index) => {
+    const previous = points[index]
 
-  if (middlePoint === undefined) {
+    if (previous === undefined) {
+      throw new TypeError('Missing previous point while building label placement')
+    }
+
+    const dx = point.x - previous.x
+    const dy = point.y - previous.y
+
+    return {
+      start: previous,
+      end: point,
+      dx,
+      dy,
+      length: Math.hypot(dx, dy),
+    }
+  })
+
+  const totalLength = segments.reduce((sum, segment) => sum + segment.length, 0)
+
+  if (totalLength === 0) {
     return null
   }
 
-  return {
-    x: Number(middlePoint[1]),
-    y: Number(middlePoint[2]),
+  let traversed = 0
+  const halfway = totalLength / 2
+
+  for (const segment of segments) {
+    if (traversed + segment.length < halfway) {
+      traversed += segment.length
+      continue
+    }
+
+    const localDistance = halfway - traversed
+    const ratio = segment.length === 0 ? 0 : localDistance / segment.length
+    const pointX = segment.start.x + segment.dx * ratio
+    const pointY = segment.start.y + segment.dy * ratio
+    const isHorizontal = Math.abs(segment.dx) >= Math.abs(segment.dy)
+
+    return {
+      x: pointX - labelWidth / 2 + (isHorizontal ? 0 : 18),
+      y: pointY - (isHorizontal ? 34 : 13),
+    }
   }
+
+  return null
 }
 
 export function ArchitectureEvolutionEdge(
@@ -122,9 +169,7 @@ export function ArchitectureEvolutionEdge(
   if (data === undefined) return null
 
   const edgePath = data.graphvizPath ?? getEdgePath(props, data).edgePath
-  const shouldRenderGlow = data.transition !== 'unchanged' && data.state !== 'hidden'
   const labelText = getLabelText(data)
-  const labelPoint = labelText === undefined ? null : getLabelPointFromPath(edgePath)
   const strokeColor = getStrokeColor(style)
   const badgeText = getTransitionBadgeText(data.transition)
   const badgeWidth = badgeText === null ? 0 : getBadgeWidth(badgeText)
@@ -132,15 +177,13 @@ export function ArchitectureEvolutionEdge(
     labelText === undefined
       ? 0
       : getLabelWidth(labelText) + (badgeText === null ? 0 : badgeWidth + 10)
+  const labelPoint = labelText === undefined ? null : getLabelPlacement(edgePath, labelWidth)
 
   return (
-    <g data-testid={`arch-evo-edge-${id}`}>
-      {shouldRenderGlow && (
-        <path
-          d={edgePath}
-          className={`arch-evo-edge-glow arch-evo-edge-glow--${data.transition}`}
-        />
-      )}
+    <g
+      data-testid={`arch-evo-edge-${id}`}
+      className={`arch-evo-edge-group arch-evo-edge-group--${data.transition}`}
+    >
       <BaseEdge
         id={id}
         path={edgePath}
@@ -151,7 +194,7 @@ export function ArchitectureEvolutionEdge(
       {labelText !== undefined && labelPoint !== null && (
         <g
           data-testid={`arch-evo-edge-label-${id}`}
-          transform={`translate(${labelPoint.x - labelWidth / 2} ${labelPoint.y - 13})`}
+          transform={`translate(${labelPoint.x} ${labelPoint.y})`}
           pointerEvents="none"
         >
           <rect

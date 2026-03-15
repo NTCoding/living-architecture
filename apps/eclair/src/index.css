@@ -1722,25 +1722,19 @@
     box-shadow: 0 0 0 1px color-mix(in srgb, var(--amber) 14%, transparent);
   }
 
-  .arch-evo-edge-glow {
-    fill: none;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    pointer-events: none;
+  .arch-evo-edge-group--added .react-flow__edge-path,
+  .arch-evo-edge-group--added .react-flow__edge-path-selector {
+    animation: arch-evo-edge-added-pulse 0.95s ease-out infinite;
   }
 
-  .arch-evo-edge-glow--added,
-  .arch-evo-edge-glow--changed {
-    stroke: color-mix(in srgb, var(--amber) 82%, white);
-    stroke-width: 11;
-    opacity: 0.45;
-    animation: arch-evo-edge-pulse 1.2s ease-out infinite;
+  .arch-evo-edge-group--changed .react-flow__edge-path,
+  .arch-evo-edge-group--changed .react-flow__edge-path-selector {
+    animation: arch-evo-edge-changed-pulse 1s ease-out infinite;
   }
 
-  .arch-evo-edge-glow--removed {
-    stroke: color-mix(in srgb, var(--accent) 78%, white);
-    stroke-width: 9;
-    opacity: 0.22;
+  .arch-evo-edge-group--removed .react-flow__edge-path,
+  .arch-evo-edge-group--removed .react-flow__edge-path-selector {
+    animation: arch-evo-edge-removed-pulse 1s ease-out infinite;
   }
 
   .arch-evo-edge-glow--quiet {
@@ -1871,6 +1865,45 @@
 
     50% {
       opacity: 0.6;
+    }
+  }
+
+  @keyframes arch-evo-edge-added-pulse {
+    0%,
+    100% {
+      opacity: 0.72;
+      stroke-width: 4.6px;
+    }
+
+    50% {
+      opacity: 1;
+      stroke-width: 6px;
+    }
+  }
+
+  @keyframes arch-evo-edge-changed-pulse {
+    0%,
+    100% {
+      opacity: 0.72;
+      stroke-width: 4.6px;
+    }
+
+    50% {
+      opacity: 1;
+      stroke-width: 6.2px;
+    }
+  }
+
+  @keyframes arch-evo-edge-removed-pulse {
+    0%,
+    100% {
+      opacity: 0.72;
+      stroke-width: 4.6px;
+    }
+
+    50% {
+      opacity: 1;
+      stroke-width: 6.2px;
     }
   }
 

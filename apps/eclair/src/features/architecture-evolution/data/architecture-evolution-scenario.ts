@@ -235,7 +235,7 @@ function getEdgeColor(
 ): string {
   if (transition === 'removed') return '#dc2626'
   if (transition === 'changed') return 'var(--amber)'
-  if (transition === 'added') return 'var(--accent)'
+  if (transition === 'added') return '#7c3aed'
   if (kind === 'query') return 'var(--green)'
   if (kind === 'event') return 'var(--amber)'
   return 'var(--blue)'
