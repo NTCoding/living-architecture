@@ -175,6 +175,13 @@ export function Sidebar({
           collapsed={collapsed}
         />
         <NavItem
+          icon="clock-counter-clockwise"
+          label="Evolution"
+          to="/evolution"
+          active={currentPath === '/evolution'}
+          collapsed={collapsed}
+        />
+        <NavItem
           icon="graph"
           label="Full Graph"
           to="/full-graph"

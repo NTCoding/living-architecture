@@ -1,24 +1,25 @@
+import '@testing-library/jest-dom/vitest'
 import {
-  render, screen
+  render, screen 
 } from '@testing-library/react'
 import type { RenderResult } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
-import {useEffect} from 'react'
+import { useEffect } from 'react'
 import {
-  beforeEach, describe, expect, it
+  beforeEach, describe, expect, it 
 } from 'vitest'
 import {
-  AppContent, useRequiredGraph
+  AppContent, useRequiredGraph 
 } from './App'
 import { GraphError } from '@/platform/infra/errors/errors'
 import {
-  GraphProvider, useGraph
+  GraphProvider, useGraph 
 } from '@/platform/infra/graph-state/GraphContext'
 import { ExportProvider } from '@/platform/infra/export/ExportContext'
 import { ThemeProvider } from '@/platform/infra/theme/ThemeContext'
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
 import {
-  parseNode, parseDomainMetadata
+  parseNode, parseDomainMetadata 
 } from '@/platform/infra/__fixtures__/riviere-test-fixtures'
 
 const testSourceLocation = {
@@ -113,6 +114,13 @@ describe('App routing', () => {
     expect(links.length).toBeGreaterThan(0)
   })
 
+  it('renders ArchitectureEvolutionPage at /evolution route', async () => {
+    renderWithRouter('/evolution', { graph: mockGraph })
+
+    expect(await screen.findByText('Architecture Evolution')).toBeInTheDocument()
+    expect(screen.getByText('Initial split architecture')).toBeInTheDocument()
+  })
+
   it('renders with app shell sidebar', async () => {
     renderWithRouter('/flows', { graph: mockGraph })
 
@@ -174,6 +182,13 @@ describe('App routing without graph', () => {
 
     expect(screen.getByText(/welcome to éclair/i)).toBeInTheDocument()
   })
+
+  it('renders ArchitectureEvolutionPage at /evolution route when no graph loaded', async () => {
+    renderWithRouter('/evolution')
+
+    expect(await screen.findByText('Architecture Evolution')).toBeInTheDocument()
+    expect(screen.getByText('Initial split architecture')).toBeInTheDocument()
+  })
 })
 
 describe('useRequiredGraph', () => {
@@ -205,5 +220,4 @@ describe('useRequiredGraph', () => {
       )
     }).toThrow('useRequiredGraph called without a graph')
   })
-
 })

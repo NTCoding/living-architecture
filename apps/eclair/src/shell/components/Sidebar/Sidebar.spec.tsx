@@ -1,3 +1,4 @@
+import '@testing-library/jest-dom/vitest'
 import {
   render, screen 
 } from '@testing-library/react'
@@ -35,6 +36,7 @@ describe('Sidebar', () => {
     'Overview',
     'Flows',
     'Domain Map',
+    'Evolution',
     'Full Graph',
     'Entities',
     'Events',
@@ -64,37 +66,31 @@ describe('Sidebar', () => {
     expect(screen.getByText('Theme')).toBeInTheDocument()
   })
 
-  it.each([
-    'Flows',
-    'Domain Map',
-    'Full Graph',
-    'Entities',
-    'Events',
-  ])('disables %s when no graph loaded', (itemName) => {
-    renderWithRouter(<Sidebar hasGraph={false} />)
+  it.each(['Flows', 'Domain Map', 'Full Graph', 'Entities', 'Events'])(
+    'disables %s when no graph loaded',
+    (itemName) => {
+      renderWithRouter(<Sidebar hasGraph={false} />)
 
-    expect(screen.getByText(itemName).closest('span[aria-disabled]')).toHaveAttribute(
-      'aria-disabled',
-      'true',
-    )
-  })
+      expect(screen.getByText(itemName).closest('span[aria-disabled]')).toHaveAttribute(
+        'aria-disabled',
+        'true',
+      )
+    },
+  )
 
-  it.each([
-    'Overview',
-    'Flows',
-    'Domain Map',
-    'Full Graph',
-    'Entities',
-    'Events',
-  ])('enables %s link when graph is loaded', (linkName) => {
-    renderWithRouter(<Sidebar hasGraph={true} />)
+  it.each(['Overview', 'Flows', 'Domain Map', 'Evolution', 'Full Graph', 'Entities', 'Events'])(
+    'enables %s link when graph is loaded',
+    (linkName) => {
+      renderWithRouter(<Sidebar hasGraph={true} />)
 
-    expect(screen.getByRole('link', { name: new RegExp(linkName, 'i') })).toBeInTheDocument()
-  })
+      expect(screen.getByRole('link', { name: new RegExp(linkName, 'i') })).toBeInTheDocument()
+    },
+  )
 
   it('always enables non-graph items', () => {
     renderWithRouter(<Sidebar hasGraph={false} />)
 
+    expect(screen.getByRole('link', { name: /Evolution/i })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /About Rivière/i })).toBeInTheDocument()
   })
 
