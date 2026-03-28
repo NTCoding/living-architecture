@@ -6,6 +6,7 @@ function isNodeError(error: unknown): error is NodeError {
   return error instanceof Error && 'code' in error
 }
 
+/** @riviere-role external-client-service */
 export async function fileExists(path: string): Promise<boolean> {
   try {
     await access(path)

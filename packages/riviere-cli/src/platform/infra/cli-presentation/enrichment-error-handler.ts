@@ -1,5 +1,5 @@
 import { InvalidEnrichmentTargetError } from '@living-architecture/riviere-builder'
-import { handleComponentNotFoundError } from '../../../platform/infra/graph-persistence/builder-graph-loader'
+import { handleComponentNotFoundError } from './graph-error-output'
 import { formatError } from '../../../platform/infra/cli-presentation/output'
 import { CliErrorCode } from '../../../platform/infra/cli-presentation/error-codes'
 

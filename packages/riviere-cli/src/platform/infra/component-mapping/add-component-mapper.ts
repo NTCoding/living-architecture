@@ -135,6 +135,7 @@ const mappers: Record<string, (input: AddComponentInput) => DomainInput> = {
   },
 }
 
+/** @riviere-role command-input-factory */
 export function buildDomainInput(input: AddComponentInput): DomainInput {
   const mapper = mappers[input.componentType]
   if (!mapper) throw new MissingRequiredOptionError('type', 'Component')

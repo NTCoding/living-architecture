@@ -1,5 +1,18 @@
 {
-  "include": ["src/features/extract/**/*.ts", "src/platform/infra/git/**/*.ts", "src/features/builder/**/*.ts", "src/features/query/**/*.ts", "src/platform/infra/cli-presentation/**/*.ts"],
+  "include": [
+    "src/features/extract/**/*.ts",
+    "src/platform/infra/git/**/*.ts",
+    "src/features/builder/**/*.ts",
+    "src/features/query/**/*.ts",
+    "src/platform/infra/cli-presentation/**/*.ts",
+    "src/platform/infra/extraction-config/**/*.ts",
+    "src/platform/infra/graph-persistence/**/*.ts",
+    "src/platform/infra/source-filtering/**/*.ts",
+    "src/platform/infra/component-mapping/**/*.ts",
+    "src/platform/infra/errors/**/*.ts",
+    "src/platform/domain/**/*.ts",
+    "src/shell/**/*.ts"
+  ],
   "roleDefinitionsDir": "role-definitions",
   "ignorePatterns": ["**/*.spec.ts", "**/__fixtures__/**"],
   "layers": {
@@ -34,6 +47,24 @@
     "cli-presentation": {
       "paths": ["src/platform/infra/cli-presentation"],
       "allowedRoles": ["cli-output-formatter", "cli-input-validator", "command-input-factory", "value-object", "cli-error"]
+    },
+    "platform-infra-external-clients": {
+      "paths": [
+        "src/platform/infra/extraction-config",
+        "src/platform/infra/graph-persistence",
+        "src/platform/infra/source-filtering",
+        "src/platform/infra/component-mapping",
+        "src/platform/infra/errors"
+      ],
+      "allowedRoles": ["external-client-service", "external-client-model", "external-client-error", "command-input-factory", "command-use-case-input"]
+    },
+    "platform-domain": {
+      "paths": ["src/platform/domain"],
+      "allowedRoles": ["value-object", "domain-service"]
+    },
+    "shell": {
+      "paths": ["src/shell"],
+      "allowedRoles": ["cli-entrypoint", "command-input-factory"]
     }
   },
   "roles": [

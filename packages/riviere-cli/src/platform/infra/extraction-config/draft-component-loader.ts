@@ -3,6 +3,7 @@ import {
 } from 'node:fs'
 import type { DraftComponent } from '@living-architecture/riviere-extract-ts'
 
+/** @riviere-role external-client-error */
 export class DraftComponentLoadError extends Error {
   constructor(message: string) {
     super(message)
@@ -32,6 +33,7 @@ function parseJsonFile(filePath: string): unknown {
   }
 }
 
+/** @riviere-role external-client-service */
 export function loadDraftComponentsFromFile(filePath: string): DraftComponent[] {
   if (!existsSync(filePath)) {
     throw new DraftComponentLoadError(`Enrich file not found: ${filePath}`)

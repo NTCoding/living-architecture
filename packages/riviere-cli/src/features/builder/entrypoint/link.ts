@@ -15,11 +15,11 @@ import {
   validateComponentType,
   validateLinkType,
 } from '../../../platform/infra/cli-presentation/validation'
+import { loadGraphBuilder } from '../../../platform/infra/graph-persistence/builder-graph-loader'
 import {
-  loadGraphBuilder,
   reportGraphNotFound,
   tryBuilderOperation,
-} from '../../../platform/infra/graph-persistence/builder-graph-loader'
+} from '../../../platform/infra/cli-presentation/graph-error-output'
 
 interface LinkOptions {
   from: string

@@ -28,6 +28,7 @@ function hasModulesArray(value: unknown): value is { modules: unknown[] } {
  * @param configDir - The directory containing the main config file.
  * @returns The config with $refs expanded to actual module content (ExtractionConfig).
  */
+/** @riviere-role external-client-service */
 export function expandModuleRefs(config: unknown, configDir: string): unknown {
   if (!hasModulesArray(config)) {
     return config

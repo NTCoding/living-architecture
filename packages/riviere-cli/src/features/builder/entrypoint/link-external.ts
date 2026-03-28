@@ -9,11 +9,11 @@ import { fileExists } from '../../../platform/infra/graph-persistence/file-exist
 import { formatSuccess } from '../../../platform/infra/cli-presentation/output'
 import { isValidLinkType } from '../../../platform/infra/cli-presentation/component-types'
 import { validateLinkType } from '../../../platform/infra/cli-presentation/validation'
+import { loadGraphBuilder } from '../../../platform/infra/graph-persistence/builder-graph-loader'
 import {
-  loadGraphBuilder,
   reportGraphNotFound,
   tryBuilderOperation,
-} from '../../../platform/infra/graph-persistence/builder-graph-loader'
+} from '../../../platform/infra/cli-presentation/graph-error-output'
 import { buildExternalTarget } from '../../../platform/infra/cli-presentation/link-external-transformer'
 
 interface ExternalLinkInput {

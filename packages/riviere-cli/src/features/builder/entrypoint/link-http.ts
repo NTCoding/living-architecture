@@ -12,10 +12,8 @@ import {
   normalizeComponentType,
 } from '../../../platform/infra/cli-presentation/component-types'
 import { isValidHttpMethod } from '../../../platform/infra/cli-presentation/validation'
-import {
-  loadGraphBuilder,
-  reportGraphNotFound,
-} from '../../../platform/infra/graph-persistence/builder-graph-loader'
+import { loadGraphBuilder } from '../../../platform/infra/graph-persistence/builder-graph-loader'
+import { reportGraphNotFound } from '../../../platform/infra/cli-presentation/graph-error-output'
 import {
   findApisByPath, getAllApiPaths 
 } from '../queries/api-component-queries'

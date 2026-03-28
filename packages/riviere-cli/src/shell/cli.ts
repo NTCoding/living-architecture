@@ -25,6 +25,7 @@ import { createExtractCommand } from '../features/extract/entrypoint/extract'
 
 interface PackageJson {version: string}
 
+/** @riviere-role command-input-factory */
 export function parsePackageJson(pkg: unknown): PackageJson {
   if (typeof pkg !== 'object' || pkg === null || !('version' in pkg)) {
     throw new InvalidPackageJsonError('missing version field')
@@ -47,6 +48,7 @@ function loadPackageJson(): PackageJson {
 
 const packageJson = loadPackageJson()
 
+/** @riviere-role cli-entrypoint */
 export function createProgram(): Command {
   const program = new Command()
 

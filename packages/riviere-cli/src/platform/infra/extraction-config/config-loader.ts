@@ -143,6 +143,7 @@ function loadConfigFile(filePath: string, source: string): Module {
   return parseConfigContent(content, source)
 }
 
+/** @riviere-role external-client-service */
 export function createConfigLoader(configDir: string): ConfigLoader {
   return (source: string): Module => {
     const filePath = isPackageReference(source)
@@ -201,6 +202,7 @@ function tryExpandModuleRefs(data: unknown, configDir: string): ParseResult {
   }
 }
 
+/** @riviere-role external-client-service */
 export function resolveSourceFiles(
   resolvedConfig: ResolvedExtractionConfig,
   configDir: string,
@@ -225,6 +227,7 @@ interface ValidatedConfig {
   configDir: string
 }
 
+/** @riviere-role external-client-service */
 export function loadAndValidateConfig(configPath: string): ValidatedConfig {
   if (!existsSync(configPath)) {
     throw new ConfigValidationError(

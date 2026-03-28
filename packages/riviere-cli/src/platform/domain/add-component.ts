@@ -9,33 +9,41 @@ interface CommonInput {
   description?: string
 }
 
+/** @riviere-role value-object */
 export interface AddUIInput extends CommonInput {route: string}
 
+/** @riviere-role value-object */
 export interface AddAPIInput extends CommonInput {
   apiType: 'REST' | 'GraphQL' | 'other'
   httpMethod?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'
   path?: string
 }
 
+/** @riviere-role value-object */
 export type AddUseCaseInput = CommonInput
 
+/** @riviere-role value-object */
 export interface AddDomainOpInput extends CommonInput {
   operationName: string
   entity?: string
 }
 
+/** @riviere-role value-object */
 export interface AddEventInput extends CommonInput {
   eventName: string
   eventSchema?: string
 }
 
+/** @riviere-role value-object */
 export interface AddEventHandlerInput extends CommonInput {subscribedEvents: string[]}
 
+/** @riviere-role value-object */
 export interface AddCustomInput extends CommonInput {
   customTypeName: string
   metadata?: Record<string, unknown>
 }
 
+/** @riviere-role value-object */
 export type AddComponentInput =
   | {
     type: 'UI'
@@ -66,6 +74,7 @@ export type AddComponentInput =
     input: AddCustomInput
   }
 
+/** @riviere-role domain-service */
 export function addComponentToBuilder(
   builder: RiviereBuilder,
   component: AddComponentInput,

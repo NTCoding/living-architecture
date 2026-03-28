@@ -27,17 +27,23 @@ function parseJsonSafely(content: string): JsonParseResult {
   }
 }
 
+/** @riviere-role external-client-model */
 export interface LoadGraphResult {
   query: RiviereQuery
   graphPath: string
 }
 
+/** @riviere-role external-client-model */
 export interface LoadGraphError {error: ReturnType<typeof formatError>}
 
-function isLoadGraphError(result: LoadGraphResult | LoadGraphError): result is LoadGraphError {
+/** @riviere-role external-client-service */
+export function isLoadGraphError(
+  result: LoadGraphResult | LoadGraphError,
+): result is LoadGraphError {
   return 'error' in result
 }
 
+/** @riviere-role external-client-service */
 export async function loadGraph(
   graphPathOption?: string,
 ): Promise<LoadGraphResult | LoadGraphError> {
@@ -76,6 +82,7 @@ export async function loadGraph(
   }
 }
 
+/** @riviere-role external-client-service */
 export async function withGraph(
   graphPathOption: string | undefined,
   handler: (query: RiviereQuery) => Promise<void> | void,
@@ -89,5 +96,3 @@ export async function withGraph(
 
   await handler(result.query)
 }
-
-export { isLoadGraphError }
