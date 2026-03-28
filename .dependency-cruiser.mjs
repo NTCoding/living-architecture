@@ -4,7 +4,7 @@ export default {
       name: "root-structure",
       severity: "error",
       comment: "src/ root must only contain structural folders (features/, platform/, shell/) and index.ts barrel",
-      from: { path: "(apps|packages|tools)/(?!riviere-schema/|riviere-extract-config/|riviere-extract-conventions/)[^/]+/src/(?!features/|platform/|shell/|index\\.ts).+" },
+      from: { path: "(apps|packages|tools)/(?!riviere-schema/|riviere-extract-config/|riviere-extract-conventions/|riviere-role-enforcement/)[^/]+/src/(?!features/|platform/|shell/|index\\.ts).+" },
       to: {}
     },
     {
@@ -204,13 +204,6 @@ export default {
       comment: "Platform must not import from features/",
       from: { path: "platform/.+" },
       to: { path: "features/.+" }
-    },
-    {
-      name: "commands-no-peer-imports",
-      severity: "error",
-      comment: "Commands are independent orchestrators — peer imports indicate misplaced utilities",
-      from: { path: "features/([^/]+)/commands/[^/]+" },
-      to: { path: "features/$1/commands/[^/]+" }
     },
     {
       name: "no-circular",

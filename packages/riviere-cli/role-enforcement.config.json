@@ -1,75 +1,89 @@
 {
   "include": ["src/features/extract/**/*.ts", "src/platform/infra/git/**/*.ts"],
   "ignorePatterns": ["**/*.spec.ts", "**/__fixtures__/**"],
+  "layers": {
+    "entrypoint": {
+      "paths": ["src/features/entrypoint"],
+      "allowedRoles": ["cli-entrypoint"]
+    },
+    "commands": {
+      "paths": ["src/features/commands"],
+      "allowedRoles": ["command-use-case", "command-use-case-input", "command-use-case-result", "command-input-factory"]
+    },
+    "domain": {
+      "paths": ["src/features,platform/domain"],
+      "allowedRoles": ["aggregate", "value-object", "domain-service"]
+    },
+    "cli-output": {
+      "paths": ["src/features/infra/cli/output"],
+      "allowedRoles": ["cli-output-formatter"]
+    },
+    "external-clients": {
+      "paths": ["src/features,platform/infra/external-clients", "src/platform/infra/git"],
+      "allowedRoles": ["external-client-service", "external-client-model", "external-client-error"]
+    },
+    "persistence": {
+      "paths": ["src/features/infra/persistence"],
+      "allowedRoles": ["aggregate-repository"]
+    }
+  },
   "roles": [
     {
       "name": "cli-entrypoint",
-      "targets": ["function"],
-      "allowedLocation": ["src/**/entrypoint/*.ts"]
+      "targets": ["function"]
     },
     {
       "name": "command-use-case",
       "targets": ["function"],
-      "allowedLocation": ["src/**/commands/*.ts"],
       "allowedInputs": ["command-use-case-input"],
-      "allowedOutputs": ["command-use-case-result"]
+      "allowedOutputs": ["command-use-case-result"],
+      "forbiddenDependencies": ["command-use-case"]
     },
     {
       "name": "command-use-case-input",
       "targets": ["interface", "type-alias"],
-      "allowedLocation": ["src/**/commands/*.ts"],
       "nameMatches": ".*Input$"
     },
     {
       "name": "command-use-case-result",
       "targets": ["interface", "type-alias"],
-      "allowedLocation": ["src/**/commands/*.ts"],
       "nameMatches": ".*Result$"
     },
     {
       "name": "cli-output-formatter",
-      "targets": ["function"],
-      "allowedLocation": ["src/**/infra/cli/output/*.ts"]
+      "targets": ["function"]
     },
     {
       "name": "command-input-factory",
-      "targets": ["function"],
-      "allowedLocation": ["src/**/commands/*.ts"]
+      "targets": ["function"]
     },
     {
       "name": "external-client-service",
-      "targets": ["function"],
-      "allowedLocation": ["src/**/infra/external-clients/*.ts", "src/platform/infra/git/*.ts"]
+      "targets": ["function"]
     },
     {
       "name": "aggregate-repository",
-      "targets": ["class"],
-      "allowedLocation": ["src/**/infra/persistence/**/*.ts"]
+      "targets": ["class"]
     },
     {
       "name": "aggregate",
-      "targets": ["interface", "type-alias", "class"],
-      "allowedLocation": ["src/**/domain/*.ts"]
+      "targets": ["interface", "type-alias", "class"]
     },
     {
       "name": "value-object",
-      "targets": ["interface", "type-alias", "class"],
-      "allowedLocation": ["src/**/domain/*.ts"]
+      "targets": ["interface", "type-alias", "class"]
     },
     {
       "name": "domain-service",
-      "targets": ["function"],
-      "allowedLocation": ["src/**/domain/*.ts"]
+      "targets": ["function"]
     },
     {
       "name": "external-client-model",
-      "targets": ["interface", "type-alias", "class"],
-      "allowedLocation": ["src/platform/infra/git/*.ts"]
+      "targets": ["interface", "type-alias", "class"]
     },
     {
       "name": "external-client-error",
-      "targets": ["class"],
-      "allowedLocation": ["src/platform/infra/git/*.ts"]
+      "targets": ["class"]
     }
   ]
 }

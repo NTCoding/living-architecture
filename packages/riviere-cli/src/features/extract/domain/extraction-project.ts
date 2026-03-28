@@ -15,9 +15,7 @@ import {
   type EnrichedComponent,
   type ExtractedLink,
 } from '@living-architecture/riviere-extract-ts'
-import { ExtractionFieldFailureError } from '../../../platform/infra/cli-presentation/error-codes'
-import type { EnrichDraftComponentsResult } from '../commands/enrich-draft-components-result'
-import type { ExtractDraftComponentsResult } from '../commands/extract-draft-components-result'
+import type { ExtractionOutcome } from './extraction-outcome'
 
 /** @riviere-role value-object */
 export interface ModuleContext {
@@ -36,6 +34,19 @@ export class OrphanedDraftComponentError extends Error {
   }
 }
 
+interface FieldFailureEnrichment {
+  kind: 'fieldFailure'
+  failedFields: string[]
+}
+
+interface SuccessfulEnrichment {
+  kind: 'enriched'
+  components: EnrichedComponent[]
+  failedFields: string[]
+}
+
+type EnrichmentResult = FieldFailureEnrichment | SuccessfulEnrichment
+
 /** @riviere-role aggregate */
 export class ExtractionProject {
   constructor(
@@ -49,7 +60,7 @@ export class ExtractionProject {
   extractDraftComponents(options: {
     allowIncomplete: boolean
     includeConnections: boolean
-  }): ExtractDraftComponentsResult {
+  }): ExtractionOutcome {
     const draftComponents = this.moduleContexts.flatMap((moduleContext) =>
       extractComponents(
         moduleContext.project,
@@ -68,6 +79,10 @@ export class ExtractionProject {
     }
 
     const enrichment = this.enrichDraftComponentValues(draftComponents, options.allowIncomplete)
+    if (enrichment.kind === 'fieldFailure') {
+      return enrichment
+    }
+
     const connectionResult = this.detectConnections(enrichment.components, options.allowIncomplete)
 
     return {
@@ -82,7 +97,7 @@ export class ExtractionProject {
   enrichDraftComponents(options: {
     allowIncomplete: boolean
     includeConnections: boolean
-  }): EnrichDraftComponentsResult {
+  }): ExtractionOutcome {
     if (!options.includeConnections) {
       return {
         kind: 'draftOnly',
@@ -94,6 +109,10 @@ export class ExtractionProject {
       this.draftComponents,
       options.allowIncomplete,
     )
+    if (enrichment.kind === 'fieldFailure') {
+      return enrichment
+    }
+
     const connectionResult = this.detectConnections(enrichment.components, options.allowIncomplete)
 
     return {
@@ -170,10 +189,7 @@ export class ExtractionProject {
   private enrichDraftComponentValues(
     draftComponents: DraftComponent[],
     allowIncomplete: boolean,
-  ): {
-    components: EnrichedComponent[]
-    failedFields: string[]
-  } {
+  ): EnrichmentResult {
     const moduleNames = new Set(this.moduleContextProjectNames)
     const draftsByModule = groupDraftsByModule(draftComponents)
     assertAllDraftsMatchModules(draftsByModule, moduleNames)
@@ -201,10 +217,14 @@ export class ExtractionProject {
 
     const failedFields = [...failedFieldSet]
     if (failedFields.length > 0 && !allowIncomplete) {
-      throw new ExtractionFieldFailureError(failedFields)
+      return {
+        kind: 'fieldFailure',
+        failedFields,
+      }
     }
 
     return {
+      kind: 'enriched',
       components,
       failedFields,
     }

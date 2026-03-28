@@ -4,6 +4,7 @@ import type { RoleEnforcementConfig } from '../config/role-enforcement-config'
 interface OxlintRuleOptions {
   configDir: string
   configDisplayPath: string
+  layers: RoleEnforcementConfig['layers']
   roles: RoleEnforcementConfig['roles']
 }
 
@@ -36,6 +37,7 @@ export function createOxlintConfig(
         {
           configDir,
           configDisplayPath: path.relative(configDir, configPath),
+          layers: config.layers,
           roles: config.roles,
         },
       ],

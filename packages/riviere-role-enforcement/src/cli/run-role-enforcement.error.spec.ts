@@ -22,9 +22,14 @@ function createFixtureWorkspace(): string {
       {
         ignorePatterns: [],
         include: ['src/**/*.ts'],
+        layers: {
+          entrypoint: {
+            allowedRoles: ['cli-entrypoint'],
+            paths: ['src/entrypoint'],
+          },
+        },
         roles: [
           {
-            allowedLocation: ['src/entrypoint/*.ts'],
             allowedNames: ['createCli'],
             name: 'cli-entrypoint',
             targets: ['function'],

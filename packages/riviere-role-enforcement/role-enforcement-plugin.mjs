@@ -12,6 +12,7 @@ export default {
       create(context) {
         const [options] = context.options
         const roleMap = new Map(options.roles.map((role) => [role.name, role]))
+        const layerEntries = Object.entries(options.layers ?? {})
         const sourceCode = context.sourceCode
         const fileCache = new Map()
         const importCache = new Map()
@@ -28,6 +29,8 @@ export default {
           return {}
         }
 
+        const fileRoles = []
+
         return {
           FunctionDeclaration(node) {
             validateDeclaration(node, 'function')
@@ -40,6 +43,9 @@ export default {
           },
           TSTypeAliasDeclaration(node) {
             validateDeclaration(node, 'type-alias')
+          },
+          'Program:exit'() {
+            validateForbiddenDependencies()
           },
         }
 
@@ -89,7 +95,7 @@ export default {
             return
           }
 
-          if (!matchesAny(relativeFilePath, role.allowedLocation)) {
+          if (!isRoleAllowedInFile(roleName, relativeFilePath)) {
             report(
               node,
               `${roleName} cannot live in ${relativeFilePath}. See ${options.configDisplayPath}`,
@@ -105,9 +111,86 @@ export default {
             return
           }
 
+          fileRoles.push(roleName)
+
           if (target === 'function') {
             validateFunctionContract(node, role, name)
           }
+        }
+
+        function isRoleAllowedInFile(roleName, filePath) {
+          const fileDir = normalizePath(path.dirname(filePath))
+          return layerEntries.some(
+            ([, layer]) =>
+              layer.allowedRoles.includes(roleName) &&
+              layer.paths.some((pattern) => matchesExpandedPattern(fileDir, pattern)),
+          )
+        }
+
+        function validateForbiddenDependencies() {
+          const forbiddenSet = collectForbiddenRoles(fileRoles, roleMap)
+          if (forbiddenSet.size === 0) {
+            return
+          }
+
+          for (const statement of readRelativeImportStatements()) {
+            reportForbiddenImports(statement, forbiddenSet)
+          }
+        }
+
+        function readRelativeImportStatements() {
+          return sourceCode.ast.body.filter(
+            (statement) =>
+              statement.type === 'ImportDeclaration' &&
+              typeof statement.source.value === 'string' &&
+              statement.source.value.startsWith('.'),
+          )
+        }
+
+        function reportForbiddenImports(statement, forbiddenSet) {
+          const resolvedFile = resolveTypeFile(filename, statement.source.value)
+          if (resolvedFile === null) {
+            return
+          }
+
+          const importedRoles = readAllExportedRoles(resolvedFile)
+          for (const importedRole of importedRoles) {
+            if (forbiddenSet.has(importedRole)) {
+              report(
+                statement,
+                `Forbidden dependency: this file (${fileRoles.join(', ')}) cannot import from a file exporting '${importedRole}'. See ${options.configDisplayPath}`,
+              )
+            }
+          }
+        }
+
+        function readAllExportedRoles(filePath) {
+          const sourceText = readFileText(filePath)
+          if (sourceText === null) {
+            return []
+          }
+
+          const roles = []
+          const lines = sourceText.split('\n')
+          for (let i = 0; i < lines.length; i++) {
+            const roleMatch = ROLE_TAG.exec(lines[i])
+            ROLE_TAG.lastIndex = 0
+            if (roleMatch === null) {
+              continue
+            }
+
+            for (let j = i + 1; j < lines.length; j++) {
+              const trimmed = lines[j].trim()
+              if (trimmed === '' || trimmed.startsWith('*') || trimmed.startsWith('/**')) {
+                continue
+              }
+              if (/^export\s+(?:interface|type|function|class)\s+\w+/.test(trimmed)) {
+                roles.push(roleMatch[1])
+              }
+              break
+            }
+          }
+          return roles
         }
 
         function validateFunctionContract(node, role, name) {
@@ -229,6 +312,40 @@ export default {
   },
 }
 
+function matchesExpandedPattern(fileDir, pattern) {
+  return expandCommaPath(pattern).some(
+    (expanded) =>
+      minimatch(fileDir, expanded, { dot: true }) ||
+      minimatch(fileDir, `${expanded}/**`, { dot: true }),
+  )
+}
+
+function expandCommaPath(pattern) {
+  const segments = pattern.split('/')
+  const segmentAlternatives = segments.map((s) => s.split(','))
+  return cartesianProduct(segmentAlternatives).map((combo) => combo.join('/**/'))
+}
+
+function cartesianProduct(arrays) {
+  return arrays.reduce(
+    (acc, alternatives) => acc.flatMap((combo) => alternatives.map((alt) => [...combo, alt])),
+    [[]],
+  )
+}
+
+function collectForbiddenRoles(fileRoles, roleMap) {
+  const forbiddenSet = new Set()
+  for (const roleName of fileRoles) {
+    const role = roleMap.get(roleName)
+    if (role !== undefined && Array.isArray(role.forbiddenDependencies)) {
+      for (const dep of role.forbiddenDependencies) {
+        forbiddenSet.add(dep)
+      }
+    }
+  }
+  return forbiddenSet
+}
+
 function isTopLevelExported(node) {
   const exportParent = readAnnotationNode(node)
   return (
@@ -271,10 +388,6 @@ function readRoleNames(sourceCode, node) {
   }
 
   return [...new Set(roleNames)]
-}
-
-function matchesAny(filePath, patterns) {
-  return patterns.some((pattern) => minimatch(filePath, pattern, { dot: true }))
 }
 
 function matchesName(name, role) {

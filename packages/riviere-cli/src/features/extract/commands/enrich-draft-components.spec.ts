@@ -1,7 +1,6 @@
 import {
   beforeEach, describe, expect, it, vi 
 } from 'vitest'
-import { ExtractionFieldFailureError } from '../../../platform/infra/cli-presentation/error-codes'
 
 const mocks = vi.hoisted(() => ({
   enrichDraftComponentsMethodMock: vi.fn(),
@@ -45,19 +44,23 @@ describe('enrichDraftComponents', () => {
     })
   })
 
-  it('throws when enrichment fails and incomplete output is disabled', () => {
-    mocks.enrichDraftComponentsMethodMock.mockImplementation(() => {
-      throw new ExtractionFieldFailureError(['fieldA'])
+  it('returns field failure when enrichment fails and incomplete output is disabled', () => {
+    mocks.enrichDraftComponentsMethodMock.mockReturnValue({
+      kind: 'fieldFailure',
+      failedFields: ['fieldA'],
     })
 
-    expect(() =>
-      enrichDraftComponents({
-        allowIncomplete: false,
-        configPath: 'config.yml',
-        draftComponentsPath: 'draft.json',
-        includeConnections: true,
-        useTsConfig: true,
-      }),
-    ).toThrowError(new ExtractionFieldFailureError(['fieldA']))
+    const result = enrichDraftComponents({
+      allowIncomplete: false,
+      configPath: 'config.yml',
+      draftComponentsPath: 'draft.json',
+      includeConnections: true,
+      useTsConfig: true,
+    })
+
+    expect(result).toStrictEqual({
+      kind: 'fieldFailure',
+      failedFields: ['fieldA'],
+    })
   })
 })

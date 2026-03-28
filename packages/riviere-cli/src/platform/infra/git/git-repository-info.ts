@@ -34,6 +34,7 @@ function extractStderr(error: Error): string {
     throw error
   }
 
+  /* v8 ignore next -- @preserve: defensive optional chain; property existence guaranteed by hasOwn check above */
   const stderrValue: unknown = Object.getOwnPropertyDescriptor(error, 'stderr')?.value
   if (!stderrValue) {
     throw error

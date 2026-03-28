@@ -21,9 +21,14 @@ it('loads a valid config file', () => {
     JSON.stringify({
       ignorePatterns: ['**/*.spec.ts'],
       include: ['src/**/*.ts'],
+      layers: {
+        commands: {
+          allowedRoles: ['command-use-case'],
+          paths: ['src/**/commands'],
+        },
+      },
       roles: [
         {
-          allowedLocation: ['src/commands/*.ts'],
           allowedNames: ['runThing'],
           name: 'command-use-case',
           targets: ['function'],
@@ -35,6 +40,7 @@ it('loads a valid config file', () => {
   const loadedConfig = loadRoleEnforcementConfig(configPath)
 
   expect(loadedConfig.config.roles).toHaveLength(1)
+  expect(loadedConfig.config.layers).toHaveProperty('commands')
   expect(loadedConfig.configDir).toBe(path.dirname(configPath))
 
   rmSync(path.dirname(configPath), {
@@ -48,9 +54,14 @@ it('allows roles without allowedNames or nameMatches', () => {
     JSON.stringify({
       ignorePatterns: [],
       include: ['src/**/*.ts'],
+      layers: {
+        commands: {
+          allowedRoles: ['command-use-case'],
+          paths: ['src/**/commands'],
+        },
+      },
       roles: [
         {
-          allowedLocation: ['src/commands/*.ts'],
           name: 'command-use-case',
           targets: ['function'],
         },
@@ -73,9 +84,14 @@ it('rejects roles declaring both allowedNames and nameMatches', () => {
     JSON.stringify({
       ignorePatterns: [],
       include: ['src/**/*.ts'],
+      layers: {
+        commands: {
+          allowedRoles: ['command-use-case'],
+          paths: ['src/**/commands'],
+        },
+      },
       roles: [
         {
-          allowedLocation: ['src/commands/*.ts'],
           allowedNames: ['runThing'],
           name: 'command-use-case',
           nameMatches: '^run[A-Z].+$',
@@ -102,9 +118,14 @@ it('rejects invalid regular expressions in nameMatches', () => {
     JSON.stringify({
       ignorePatterns: [],
       include: ['src/**/*.ts'],
+      layers: {
+        commands: {
+          allowedRoles: ['command-use-case'],
+          paths: ['src/**/commands'],
+        },
+      },
       roles: [
         {
-          allowedLocation: ['src/commands/*.ts'],
           name: 'command-use-case',
           nameMatches: '[',
           targets: ['function'],
@@ -116,6 +137,102 @@ it('rejects invalid regular expressions in nameMatches', () => {
   expect(() => loadRoleEnforcementConfig(configPath)).toThrowError(
     new RoleEnforcementConfigError(
       "Invalid role enforcement config: roles.0.nameMatches: '[' is not a valid regular expression.",
+    ),
+  )
+
+  rmSync(path.dirname(configPath), {
+    force: true,
+    recursive: true,
+  })
+})
+
+it('accepts forbiddenDependencies referencing defined roles', () => {
+  const configPath = createTempConfigFile(
+    JSON.stringify({
+      ignorePatterns: [],
+      include: ['src/**/*.ts'],
+      layers: {
+        commands: {
+          allowedRoles: ['command-use-case'],
+          paths: ['src/**/commands'],
+        },
+      },
+      roles: [
+        {
+          forbiddenDependencies: ['command-use-case'],
+          name: 'command-use-case',
+          targets: ['function'],
+        },
+      ],
+    }),
+  )
+
+  const loadedConfig = loadRoleEnforcementConfig(configPath)
+
+  expect(loadedConfig.config.roles[0]?.forbiddenDependencies).toStrictEqual(['command-use-case'])
+
+  rmSync(path.dirname(configPath), {
+    force: true,
+    recursive: true,
+  })
+})
+
+it('rejects forbiddenDependencies referencing undefined roles', () => {
+  const configPath = createTempConfigFile(
+    JSON.stringify({
+      ignorePatterns: [],
+      include: ['src/**/*.ts'],
+      layers: {
+        commands: {
+          allowedRoles: ['command-use-case'],
+          paths: ['src/**/commands'],
+        },
+      },
+      roles: [
+        {
+          forbiddenDependencies: ['nonexistent-role'],
+          name: 'command-use-case',
+          targets: ['function'],
+        },
+      ],
+    }),
+  )
+
+  expect(() => loadRoleEnforcementConfig(configPath)).toThrowError(
+    new RoleEnforcementConfigError(
+      "Invalid role enforcement config: roles.0.forbiddenDependencies: 'nonexistent-role' is not a defined role.",
+    ),
+  )
+
+  rmSync(path.dirname(configPath), {
+    force: true,
+    recursive: true,
+  })
+})
+
+it('rejects layer allowedRoles referencing undefined roles', () => {
+  const configPath = createTempConfigFile(
+    JSON.stringify({
+      ignorePatterns: [],
+      include: ['src/**/*.ts'],
+      layers: {
+        commands: {
+          allowedRoles: ['nonexistent-role'],
+          paths: ['src/**/commands'],
+        },
+      },
+      roles: [
+        {
+          name: 'command-use-case',
+          targets: ['function'],
+        },
+      ],
+    }),
+  )
+
+  expect(() => loadRoleEnforcementConfig(configPath)).toThrowError(
+    new RoleEnforcementConfigError(
+      "Invalid role enforcement config: layers.commands.allowedRoles: 'nonexistent-role' is not a defined role.",
     ),
   )
 
@@ -142,6 +259,12 @@ it('reports root-level schema violations', () => {
       extra: true,
       ignorePatterns: [],
       include: ['src/**/*.ts'],
+      layers: {
+        commands: {
+          allowedRoles: ['command-use-case'],
+          paths: ['src/**/commands'],
+        },
+      },
       roles: [],
     }),
   )

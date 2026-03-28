@@ -65,17 +65,26 @@ function validateRoleEnforcementConfig(config: unknown): roleConfig.RoleEnforcem
     )
   }
 
-  const roleMessages = config.roles.flatMap((role, index) => validateRoleDefinition(role, index))
-  if (roleMessages.length > 0) {
+  const roleNames = new Set(config.roles.map((role) => role.name))
+  const errorMessages = [
+    ...config.roles.flatMap((role, index) => validateRoleDefinition(role, index, roleNames)),
+    ...validateLayerReferences(config.layers, roleNames),
+  ]
+
+  if (errorMessages.length > 0) {
     throw new RoleEnforcementConfigError(
-      `Invalid role enforcement config: ${roleMessages.join('; ')}`,
+      `Invalid role enforcement config: ${errorMessages.join('; ')}`,
     )
   }
 
   return config
 }
 
-function validateRoleDefinition(role: roleConfig.RoleDefinition, index: number): string[] {
+function validateRoleDefinition(
+  role: roleConfig.RoleDefinition,
+  index: number,
+  definedRoleNames: Set<string>,
+): string[] {
   const errorMessages: string[] = []
   if (role.allowedNames !== undefined && role.nameMatches !== undefined) {
     errorMessages.push(
@@ -90,6 +99,33 @@ function validateRoleDefinition(role: roleConfig.RoleDefinition, index: number):
       errorMessages.push(
         `roles.${index}.nameMatches: '${role.nameMatches}' is not a valid regular expression.`,
       )
+    }
+  }
+
+  if (role.forbiddenDependencies !== undefined) {
+    for (const depName of role.forbiddenDependencies) {
+      if (!definedRoleNames.has(depName)) {
+        errorMessages.push(
+          `roles.${index}.forbiddenDependencies: '${depName}' is not a defined role.`,
+        )
+      }
+    }
+  }
+
+  return errorMessages
+}
+
+function validateLayerReferences(
+  layers: Record<string, roleConfig.LayerDefinition>,
+  definedRoleNames: Set<string>,
+): string[] {
+  const errorMessages: string[] = []
+
+  for (const [layerName, layer] of Object.entries(layers)) {
+    for (const roleName of layer.allowedRoles) {
+      if (!definedRoleNames.has(roleName)) {
+        errorMessages.push(`layers.${layerName}.allowedRoles: '${roleName}' is not a defined role.`)
+      }
     }
   }
 

@@ -10,7 +10,11 @@
       "project": [".vitepress/**/*.ts", ".vitepress/**/*.vue"]
     },
     "packages/riviere-cli": {
-      "entry": ["src/shell/bin.ts"],
+      "entry": ["src/shell/bin.ts", "src/shell/index.ts"],
+      "project": ["src/**/*.ts"]
+    },
+    "packages/riviere-role-enforcement": {
+      "entry": ["src/bin.ts", "src/index.ts"],
       "project": ["src/**/*.ts"]
     },
     "packages/*": {

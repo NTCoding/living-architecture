@@ -1,5 +1,9 @@
 import { Command } from 'commander'
 import {
+  CliErrorCode, ExitCode 
+} from '../../../platform/infra/cli-presentation/error-codes'
+import { exitWithCliError } from '../../../platform/infra/cli-presentation/exit-with-cli-error'
+import {
   validateFlagCombinations,
   type ExtractOptions,
 } from '../../../platform/infra/cli-presentation/extract-validator'
@@ -33,6 +37,15 @@ export function createExtractCommand(): Command {
         options.enrich === undefined
           ? extractDraftComponents(createExtractDraftComponentsInput(options))
           : enrichDraftComponents(createEnrichDraftComponentsInput(options, options.enrich))
+
+      if (result.kind === 'fieldFailure') {
+        exitWithCliError(
+          CliErrorCode.ValidationError,
+          `Extraction failed for fields: ${result.failedFields.join(', ')}`,
+          ExitCode.ExtractionFailure,
+        )
+      }
+
       presentExtractionResult(result, options)
     })
 }

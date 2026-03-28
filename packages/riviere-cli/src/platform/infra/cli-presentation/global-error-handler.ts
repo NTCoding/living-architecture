@@ -1,9 +1,6 @@
 import { formatError } from './output'
 import {
-  CliErrorCode,
-  ExitCode,
-  ConfigValidationError,
-  ExtractionFieldFailureError,
+  CliErrorCode, ExitCode, ConfigValidationError 
 } from './error-codes'
 import { GitError } from '../git/git-errors'
 import { DraftComponentLoadError } from '../extraction-config/draft-component-loader'
@@ -14,11 +11,6 @@ export function handleGlobalError(error: unknown): never {
   if (error instanceof ConfigValidationError) {
     console.log(JSON.stringify(formatError(error.errorCode, error.message)))
     process.exit(ExitCode.ConfigValidation)
-  }
-
-  if (error instanceof ExtractionFieldFailureError) {
-    console.log(JSON.stringify(formatError(CliErrorCode.ValidationError, error.message)))
-    process.exit(ExitCode.ExtractionFailure)
   }
 
   if (error instanceof GitError) {

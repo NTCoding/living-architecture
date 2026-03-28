@@ -3,7 +3,7 @@
   "$id": "https://living-architecture.dev/schemas/role-enforcement.schema.json",
   "type": "object",
   "additionalProperties": false,
-  "required": ["include", "ignorePatterns", "roles"],
+  "required": ["include", "ignorePatterns", "layers", "roles"],
   "properties": {
     "include": {
       "type": "array",
@@ -20,13 +20,41 @@
         "minLength": 1
       }
     },
+    "layers": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["paths", "allowedRoles"],
+        "properties": {
+          "paths": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "allowedRoles": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uniqueItems": true
+          }
+        }
+      }
+    },
     "roles": {
       "type": "array",
       "minItems": 1,
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["name", "targets", "allowedLocation"],
+        "required": ["name", "targets"],
         "properties": {
           "name": {
             "type": "string",
@@ -39,14 +67,6 @@
               "enum": ["class", "function", "interface", "type-alias"]
             },
             "uniqueItems": true
-          },
-          "allowedLocation": {
-            "type": "array",
-            "minItems": 1,
-            "items": {
-              "type": "string",
-              "minLength": 1
-            }
           },
           "allowedNames": {
             "type": "array",
@@ -71,6 +91,15 @@
             "uniqueItems": true
           },
           "allowedOutputs": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uniqueItems": true
+          },
+          "forbiddenDependencies": {
             "type": "array",
             "minItems": 1,
             "items": {

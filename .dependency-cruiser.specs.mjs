@@ -5,7 +5,7 @@ export default {
       severity: "error",
       comment: "Spec files must live next to their production code, not at src/ root",
       from: {
-        path: "(apps|packages|tools)/(?!riviere-schema/|riviere-extract-config/|riviere-extract-conventions/)[^/]+/src/(?!features/|platform/|shell/|domain/|queries/).+",
+        path: "(apps|packages|tools)/(?!riviere-schema/|riviere-extract-config/|riviere-extract-conventions/|riviere-role-enforcement/)[^/]+/src/(?!features/|platform/|shell/|domain/|queries/).+",
         pathNot: ["main\\.tsx$", "index\\.ts$", "test/", "test-assertions\\.ts$"]
       },
       to: {}

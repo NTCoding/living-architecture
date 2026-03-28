@@ -242,6 +242,26 @@ describe('ExtractionProject.enrichDraftComponents', () => {
     expect(mockEnrichComponents).not.toHaveBeenCalled()
   })
 
+  it('returns field failure when enrichment fails and incomplete is disabled', () => {
+    mockEnrichComponents.mockReturnValue({
+      components: [],
+      failures: [{ field: 'name' }],
+    })
+
+    const result = createExtractionProject(
+      [createModuleContext('orders')],
+      [createDraft('orders', 'A')],
+    ).enrichDraftComponents({
+      allowIncomplete: false,
+      includeConnections: true,
+    })
+
+    expect(result).toStrictEqual({
+      kind: 'fieldFailure',
+      failedFields: ['name'],
+    })
+  })
+
   it('returns draftOnly when includeConnections is false', () => {
     const result = createExtractionProject(
       [createModuleContext('orders')],

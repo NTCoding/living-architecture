@@ -10,7 +10,7 @@ interface ExtractDraftComponentsDraftOnlyResult {
   components: DraftComponent[]
 }
 
-export interface ExtractDraftComponentsFullResult {
+interface ExtractDraftComponentsFullResult {
   kind: 'full'
   components: EnrichedComponent[]
   links: ExtractedLink[]
@@ -18,7 +18,13 @@ export interface ExtractDraftComponentsFullResult {
   failedFields: string[]
 }
 
+interface ExtractDraftComponentsFieldFailureResult {
+  kind: 'fieldFailure'
+  failedFields: string[]
+}
+
 /** @riviere-role command-use-case-result */
 export type ExtractDraftComponentsResult =
   | ExtractDraftComponentsDraftOnlyResult
   | ExtractDraftComponentsFullResult
+  | ExtractDraftComponentsFieldFailureResult

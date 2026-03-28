@@ -6,10 +6,7 @@ import { GitError } from '../git/git-errors'
 import { DraftComponentLoadError } from '../extraction-config/draft-component-loader'
 import { ConnectionDetectionError } from '@living-architecture/riviere-extract-ts'
 import {
-  CliErrorCode,
-  ConfigValidationError,
-  ExitCode,
-  ExtractionFieldFailureError,
+  CliErrorCode, ConfigValidationError, ExitCode 
 } from './error-codes'
 import { SourceFilterError } from '../source-filtering/filter-source-files'
 import {
@@ -90,16 +87,6 @@ describe('handleGlobalError', () => {
     const output = firstConsoleOutput(ctx.consoleOutput)
     expect(output).toMatchObject({ error: { code: CliErrorCode.ConfigNotFound } })
     expect(process.exit).toHaveBeenCalledWith(ExitCode.ConfigValidation)
-  })
-
-  it('formats ExtractionFieldFailureError with extraction failure exit code', () => {
-    const error = new ExtractionFieldFailureError(['eventName', 'targetType'])
-
-    expect(() => handleGlobalError(error)).toThrow('process.exit')
-
-    const output = firstConsoleOutput(ctx.consoleOutput)
-    expect(output).toMatchObject({ error: { code: CliErrorCode.ValidationError } })
-    expect(process.exit).toHaveBeenCalledWith(ExitCode.ExtractionFailure)
   })
 
   it('formats SourceFilterError with NOT_A_REPOSITORY code', () => {

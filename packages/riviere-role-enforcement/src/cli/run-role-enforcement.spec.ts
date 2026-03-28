@@ -55,29 +55,35 @@ export function createCli(): void {}
       {
         ignorePatterns: ['**/*.spec.ts'],
         include: ['src/**/*.ts'],
+        layers: {
+          commands: {
+            allowedRoles: ['command-use-case', 'command-use-case-input', 'command-use-case-result'],
+            paths: ['src/commands'],
+          },
+          entrypoint: {
+            allowedRoles: ['cli-entrypoint'],
+            paths: ['src/entrypoint'],
+          },
+        },
         roles: [
           {
-            allowedLocation: ['src/commands/*.ts'],
-            allowedNames: ['runThing'],
             allowedInputs: ['command-use-case-input'],
+            allowedNames: ['runThing'],
             allowedOutputs: ['command-use-case-result'],
             name: 'command-use-case',
             targets: ['function'],
           },
           {
-            allowedLocation: ['src/commands/*Input.ts'],
             allowedNames: ['RunThingInput'],
             name: 'command-use-case-input',
             targets: ['interface'],
           },
           {
-            allowedLocation: ['src/commands/*Result.ts'],
             allowedNames: ['RunThingResult'],
             name: 'command-use-case-result',
             targets: ['interface'],
           },
           {
-            allowedLocation: ['src/entrypoint/*.ts'],
             allowedNames: ['createCli'],
             name: 'cli-entrypoint',
             targets: ['function'],
