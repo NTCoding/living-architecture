@@ -4,7 +4,7 @@ import {
 import type { Node } from '../queries/eclair-types'
 import { parseRiviereGraph } from '@living-architecture/riviere-schema'
 import {
-  compareGraphs, type GraphDiff
+  compareGraphs, type GraphDiff 
 } from '../queries/compare-graphs'
 import {
   computeDomainConnectionDiff,
@@ -12,12 +12,15 @@ import {
 } from '../queries/compute-domain-connection-diff'
 import { compareByCodePoint } from '../queries/eclair-types'
 import {
-  FilterTabs, DomainFilter, TypeFilter, type ChangeFilter
+  FilterTabs,
+  DomainFilter,
+  TypeFilter,
+  type ChangeFilter,
 } from '../components/ChangeFilters'
 import { StatsBar } from '../components/StatsBar'
 import { DomainConnectionDiff } from '../components/DomainConnectionDiff'
 import {
-  UploadZone, type UploadState
+  UploadZone, type UploadState 
 } from '../components/UploadZone'
 
 type ResultsViewMode = 'graph' | 'list'
@@ -28,7 +31,7 @@ interface ChangeItemBase {
   readonly changedFields?: string[]
 }
 
-function buildChangeItems(diff: GraphDiff): ChangeItemBase[] {
+export function buildChangeItems(diff: GraphDiff): ChangeItemBase[] {
   const items: ChangeItemBase[] = []
 
   for (const addition of diff.nodes.added) {
@@ -56,7 +59,7 @@ function buildChangeItems(diff: GraphDiff): ChangeItemBase[] {
   return items
 }
 
-function parseGraphFile(content: string, fileName: string): UploadState {
+export function parseGraphFile(content: string, fileName: string): UploadState {
   try {
     const data: unknown = JSON.parse(content)
     const graph = parseRiviereGraph(data)
@@ -78,7 +81,7 @@ function parseGraphFile(content: string, fileName: string): UploadState {
 
 interface ChangeItemProps {readonly item: ChangeItemBase}
 
-function ChangeItem({ item }: Readonly<ChangeItemProps>): React.ReactElement {
+export function ChangeItem({ item }: Readonly<ChangeItemProps>): React.ReactElement {
   const {
     node, changeType, changedFields 
   } = item
@@ -132,7 +135,7 @@ function ChangeItem({ item }: Readonly<ChangeItemProps>): React.ReactElement {
   )
 }
 
-function extractUniqueDomains(items: ChangeItemBase[]): string[] {
+export function extractUniqueDomains(items: ChangeItemBase[]): string[] {
   const domains = new Set<string>()
   for (const item of items) {
     domains.add(item.node.domain)
@@ -140,7 +143,7 @@ function extractUniqueDomains(items: ChangeItemBase[]): string[] {
   return Array.from(domains).sort(compareByCodePoint)
 }
 
-function extractUniqueTypes(items: ChangeItemBase[]): string[] {
+export function extractUniqueTypes(items: ChangeItemBase[]): string[] {
   const types = new Set<string>()
   for (const item of items) {
     types.add(item.node.type)
@@ -150,7 +153,7 @@ function extractUniqueTypes(items: ChangeItemBase[]): string[] {
 
 interface DetailedChangesProps {readonly diff: GraphDiff}
 
-function DetailedChanges({ diff }: Readonly<DetailedChangesProps>): React.ReactElement {
+export function DetailedChanges({ diff }: Readonly<DetailedChangesProps>): React.ReactElement {
   const [filter, setFilter] = useState<ChangeFilter>('all')
   const [domainFilter, setDomainFilter] = useState<string | null>(null)
   const [typeFilter, setTypeFilter] = useState<string | null>(null)

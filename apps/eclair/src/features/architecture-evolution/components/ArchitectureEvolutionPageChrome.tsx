@@ -38,9 +38,12 @@ export interface FlowControlsProps {
 
 export function getRenderedFlowBounds(
   container: HTMLDivElement,
-  reactFlowInstance: ReactFlowInstance<
-    Node<ArchitectureEvolutionNodeData> | Node<ArchitectureEvolutionBoundaryData>,
-    Edge<ArchitectureEvolutionEdgeData>
+  reactFlowInstance: Pick<
+    ReactFlowInstance<
+      Node<ArchitectureEvolutionNodeData> | Node<ArchitectureEvolutionBoundaryData>,
+      Edge<ArchitectureEvolutionEdgeData>
+    >,
+    'screenToFlowPosition'
   >,
 ): {
   readonly x: number

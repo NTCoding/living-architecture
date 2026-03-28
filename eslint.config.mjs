@@ -50,6 +50,11 @@ export default tseslint.config(
   },
   sonarjs.configs.recommended,
   {
+    rules: {
+      'sonarjs/void-use': 'off',
+    },
+  },
+  {
     files: ['**/infra/cli/git.ts'],
     rules: {
       'sonarjs/os-command': 'off',
@@ -106,6 +111,10 @@ export default tseslint.config(
       '@typescript-eslint/no-unsafe-member-access': 'error',
       '@typescript-eslint/no-unsafe-call': 'error',
       '@typescript-eslint/no-unsafe-return': 'error',
+
+      // Catch unhandled promise rejections
+      '@typescript-eslint/no-floating-promises': 'error',
+      '@typescript-eslint/return-await': ['error', 'in-try-catch'],
 
       // No type assertions - fix the types instead
       '@typescript-eslint/consistent-type-assertions': ['error', { assertionStyle: 'never' }],
@@ -337,6 +346,8 @@ export default tseslint.config(
       'react/no-array-index-key': 'error',
       'jsx-a11y/prefer-tag-over-role': 'error',
       'jsx-a11y/anchor-is-valid': 'error',
+      'jsx-a11y/interactive-supports-focus': 'error',
+      'jsx-a11y/click-events-have-key-events': 'error',
     },
   },
   // Eclair test files: larger limit for lint-staged compatibility

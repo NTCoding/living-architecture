@@ -104,4 +104,62 @@ describe('ArchitectureEvolutionEdge', () => {
 
     expect(screen.queryByTestId('arch-evo-edge-label-web-a-read')).not.toBeInTheDocument()
   })
+
+  it('uses straight graphviz path and removed badge styles when provided', () => {
+    const { container } = renderEdge(
+      <ArchitectureEvolutionEdge
+        {...createEdgeProps({
+          data: {
+            label: 'Publish OrderPlaced',
+            subtitle: 'Service -> Event handler',
+            description: 'Removed event publication.',
+            sourcePortLabel: 'Service',
+            targetPortLabel: 'Handler',
+            graphvizPath: 'M10,20 L110,20 L110,80',
+            pathShape: 'straight',
+            pathOptions: {},
+            kind: 'event',
+            state: 'ghosted',
+            transition: 'removed',
+            showLabel: true,
+          },
+        })}
+      />,
+    )
+
+    const label = screen.getByTestId('arch-evo-edge-label-web-a-read')
+    expect(label).toHaveTextContent('Publish OrderPlaced')
+    expect(label).toHaveTextContent('removed')
+    expect(label).toHaveAttribute('transform', 'translate(0.4999999999999858 -14)')
+    expect(container.querySelector('[fill="#fee2e2"]')).toBeInTheDocument()
+  })
+
+  it('falls back to midpoint placement when the graphviz path cannot be parsed', () => {
+    renderEdge(
+      <ArchitectureEvolutionEdge
+        {...createEdgeProps({
+          data: {
+            label: 'POST /orders',
+            subtitle: 'Website -> API',
+            description: 'Creates an order.',
+            sourcePortLabel: 'Web app',
+            targetPortLabel: 'Orders API',
+            graphvizPath: 'M',
+            pathShape: 'smoothstep',
+            pathOptions: { offset: 12 },
+            kind: 'write',
+            state: 'active',
+            transition: 'changed',
+            showLabel: true,
+          },
+        })}
+      />,
+    )
+
+    expect(screen.getByTestId('arch-evo-edge-label-web-a-read')).toHaveAttribute(
+      'transform',
+      'translate(9.799999999999997 92)',
+    )
+    expect(screen.getByText('modified')).toBeInTheDocument()
+  })
 })

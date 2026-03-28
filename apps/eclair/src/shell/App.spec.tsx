@@ -197,6 +197,12 @@ describe('App routing without graph', () => {
       await screen.findByText((_, node) => hasInitialEvolutionSummary(node)),
     ).toBeInTheDocument()
   })
+
+  it('renders ComparisonPage at /compare when no graph loaded', async () => {
+    renderWithRouter('/compare')
+
+    expect(await screen.findByRole('heading', { name: /compare versions/i })).toBeInTheDocument()
+  })
 })
 
 describe('useRequiredGraph', () => {
@@ -227,5 +233,38 @@ describe('useRequiredGraph', () => {
         </ThemeProvider>,
       )
     }).toThrow('useRequiredGraph called without a graph')
+  })
+
+  it('returns graph when available', async () => {
+    function TestComponent(): React.ReactElement {
+      const graph = useRequiredGraph()
+      return <div>{graph.version}</div>
+    }
+
+    function SetGraphAndRender(): React.ReactElement | null {
+      const {
+        graph, setGraph 
+      } = useGraph()
+
+      useEffect(() => {
+        setGraph(mockGraph)
+      }, [setGraph])
+
+      if (graph === null) {
+        return null
+      }
+
+      return <TestComponent />
+    }
+
+    render(
+      <ThemeProvider>
+        <GraphProvider>
+          <SetGraphAndRender />
+        </GraphProvider>
+      </ThemeProvider>,
+    )
+
+    expect(await screen.findByText('1.0')).toBeInTheDocument()
   })
 })

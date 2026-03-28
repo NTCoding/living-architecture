@@ -10,7 +10,9 @@ import { FullGraphPage } from './FullGraphPage'
 import { ExportProvider } from '@/platform/infra/export/ExportContext'
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
 import {
-  parseNode, parseEdge, parseDomainKey 
+  parseNode,
+  parseEdge,
+  parseDomainKey,
 } from '@/platform/infra/__fixtures__/riviere-test-fixtures'
 import type {
   TooltipData, SimulationNode 
@@ -452,7 +454,6 @@ describe('FullGraphPage', () => {
     const mockSimulationNode: SimulationNode = {
       id: 'node-1',
       type: 'API',
-      apiType: 'other',
       name: 'Test API',
       domain: 'orders',
       originalNode: parseNode({
@@ -559,7 +560,6 @@ describe('FullGraphPage', () => {
       const mockSimulationNode: SimulationNode = {
         id: 'node-1',
         type: 'API',
-        apiType: 'other',
         name: 'Test API',
         domain: 'orders',
         originalNode: parseNode({
