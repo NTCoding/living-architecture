@@ -12,6 +12,7 @@ function createFixtureWorkspace(): string {
   const workspaceDir = mkdtempSync(path.join(tmpdir(), 'role-enforcement-workspace-'))
   mkdirSync(path.join(workspaceDir, 'src', 'commands'), { recursive: true })
   mkdirSync(path.join(workspaceDir, 'src', 'entrypoint'), { recursive: true })
+  mkdirSync(path.join(workspaceDir, 'role-definitions'), { recursive: true })
 
   writeFileSync(
     path.join(workspaceDir, 'src', 'commands', 'runThingInput.ts'),
@@ -49,6 +50,37 @@ export function createCli(): void {}
 `,
   )
 
+  const roles = [
+    {
+      allowedInputs: ['command-use-case-input'],
+      allowedNames: ['runThing'],
+      allowedOutputs: ['command-use-case-result'],
+      name: 'command-use-case',
+      targets: ['function'],
+    },
+    {
+      allowedNames: ['RunThingInput'],
+      name: 'command-use-case-input',
+      targets: ['interface'],
+    },
+    {
+      allowedNames: ['RunThingResult'],
+      name: 'command-use-case-result',
+      targets: ['interface'],
+    },
+    {
+      allowedNames: ['createCli'],
+      name: 'cli-entrypoint',
+      targets: ['function'],
+    },
+  ]
+
+  const roleDefsDir = path.join(workspaceDir, 'role-definitions')
+  writeFileSync(path.join(roleDefsDir, 'index.md'), '# Role Definitions')
+  for (const role of roles) {
+    writeFileSync(path.join(roleDefsDir, `${role.name}.md`), `# ${role.name}`)
+  }
+
   writeFileSync(
     path.join(workspaceDir, 'role-enforcement.config.json'),
     JSON.stringify(
@@ -65,30 +97,8 @@ export function createCli(): void {}
             paths: ['src/entrypoint'],
           },
         },
-        roles: [
-          {
-            allowedInputs: ['command-use-case-input'],
-            allowedNames: ['runThing'],
-            allowedOutputs: ['command-use-case-result'],
-            name: 'command-use-case',
-            targets: ['function'],
-          },
-          {
-            allowedNames: ['RunThingInput'],
-            name: 'command-use-case-input',
-            targets: ['interface'],
-          },
-          {
-            allowedNames: ['RunThingResult'],
-            name: 'command-use-case-result',
-            targets: ['interface'],
-          },
-          {
-            allowedNames: ['createCli'],
-            name: 'cli-entrypoint',
-            targets: ['function'],
-          },
-        ],
+        roleDefinitionsDir: 'role-definitions',
+        roles,
       },
       null,
       2,

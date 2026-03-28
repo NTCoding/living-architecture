@@ -1,5 +1,6 @@
 {
   "include": ["src/features/extract/**/*.ts", "src/platform/infra/git/**/*.ts"],
+  "roleDefinitionsDir": "role-definitions",
   "ignorePatterns": ["**/*.spec.ts", "**/__fixtures__/**"],
   "layers": {
     "entrypoint": {

@@ -1,4 +1,6 @@
-import { readFileSync } from 'node:fs'
+import {
+  existsSync, readFileSync 
+} from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import Ajv2020 from 'ajv/dist/2020'
@@ -22,17 +24,54 @@ export interface LoadedRoleEnforcementConfig {
   config: roleConfig.RoleEnforcementConfig
   configDir: string
   configPath: string
+  roleDefinitionsDir: string
 }
 
 export function loadRoleEnforcementConfig(configPath: string): LoadedRoleEnforcementConfig {
   const absolutePath = path.resolve(configPath)
   const rawConfig = readConfigJson(absolutePath)
   const validatedConfig = validateRoleEnforcementConfig(rawConfig)
+  const configDir = path.dirname(absolutePath)
+  validateRoleDefinitionsDir(configDir, validatedConfig)
+  const roleDefinitionsDir = path.resolve(configDir, validatedConfig.roleDefinitionsDir)
 
   return {
     config: validatedConfig,
-    configDir: path.dirname(absolutePath),
+    configDir,
     configPath: absolutePath,
+    roleDefinitionsDir,
+  }
+}
+
+function validateRoleDefinitionsDir(
+  configDir: string,
+  config: roleConfig.RoleEnforcementConfig,
+): void {
+  const resolvedDir = path.resolve(configDir, config.roleDefinitionsDir)
+  const missingFiles: string[] = []
+
+  if (!existsSync(resolvedDir)) {
+    const allFiles = ['index.md', ...config.roles.map((r) => `${r.name}.md`)]
+    throw new RoleEnforcementConfigError(
+      `roleDefinitionsDir: missing files: ${allFiles.join(', ')}`,
+    )
+  }
+
+  if (!existsSync(path.join(resolvedDir, 'index.md'))) {
+    missingFiles.push('index.md')
+  }
+
+  for (const role of config.roles) {
+    const roleFile = `${role.name}.md`
+    if (!existsSync(path.join(resolvedDir, roleFile))) {
+      missingFiles.push(roleFile)
+    }
+  }
+
+  if (missingFiles.length > 0) {
+    throw new RoleEnforcementConfigError(
+      `roleDefinitionsDir: missing files: ${missingFiles.join(', ')}`,
+    )
   }
 }
 

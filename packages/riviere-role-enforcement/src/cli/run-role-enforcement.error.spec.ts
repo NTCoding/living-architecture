@@ -12,9 +12,15 @@ import {
 function createFixtureWorkspace(): string {
   const workspaceDir = fs.mkdtempSync(path.join(os.tmpdir(), 'role-enforcement-error-'))
   fs.mkdirSync(path.join(workspaceDir, 'src', 'entrypoint'), { recursive: true })
+  fs.mkdirSync(path.join(workspaceDir, 'role-definitions'), { recursive: true })
   fs.writeFileSync(
     path.join(workspaceDir, 'src', 'entrypoint', 'cli.ts'),
     '/** @riviere-role cli-entrypoint */\nexport function createCli(): void {}\n',
+  )
+  fs.writeFileSync(path.join(workspaceDir, 'role-definitions', 'index.md'), '# Role Definitions')
+  fs.writeFileSync(
+    path.join(workspaceDir, 'role-definitions', 'cli-entrypoint.md'),
+    '# cli-entrypoint',
   )
   fs.writeFileSync(
     path.join(workspaceDir, 'role-enforcement.config.json'),
@@ -28,6 +34,7 @@ function createFixtureWorkspace(): string {
             paths: ['src/entrypoint'],
           },
         },
+        roleDefinitionsDir: 'role-definitions',
         roles: [
           {
             allowedNames: ['createCli'],

@@ -19,5 +19,6 @@ export interface RoleEnforcementConfig {
   ignorePatterns: string[]
   include: string[]
   layers: Record<string, LayerDefinition>
+  roleDefinitionsDir: string
   roles: RoleDefinition[]
 }
