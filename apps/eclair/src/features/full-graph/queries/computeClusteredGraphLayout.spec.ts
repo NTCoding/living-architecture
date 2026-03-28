@@ -1,5 +1,5 @@
 import {
-  describe, expect, it, vi 
+  beforeEach, describe, expect, it, vi 
 } from 'vitest'
 import { LayoutError } from '@/platform/infra/errors/errors'
 import {
@@ -13,11 +13,33 @@ const sourceLocation = {
   filePath: 'src/test.ts',
 }
 
-const { renderClusteredGraphvizLayout } = vi.hoisted(() => ({renderClusteredGraphvizLayout: vi.fn(),}))
+const {
+  renderClusteredGraphvizLayout, packDomainNodesMock 
+} = vi.hoisted(() => ({
+  renderClusteredGraphvizLayout: vi.fn(),
+  packDomainNodesMock: vi.fn(),
+}))
 
 vi.mock('@/platform/infra/graph/graphviz/renderClusteredGraphvizLayout', () => ({renderClusteredGraphvizLayout,}))
 
+vi.mock('@/platform/infra/graph/ClusteredGraph/computeCircleEnclosures', async () => {
+  const actual = await vi.importActual<typeof circleEnclosures>(
+    '@/platform/infra/graph/ClusteredGraph/computeCircleEnclosures',
+  )
+
+  packDomainNodesMock.mockImplementation(actual.packDomainNodes)
+
+  return {
+    ...actual,
+    packDomainNodes: packDomainNodesMock,
+  }
+})
+
 describe('computeClusteredGraphLayout', () => {
+  beforeEach(() => {
+    packDomainNodesMock.mockClear()
+  })
+
   it('lays out internal and external nodes and returns sorted domains', async () => {
     renderClusteredGraphvizLayout.mockResolvedValue({
       positions: new Map([
@@ -392,7 +414,7 @@ describe('computeClusteredGraphLayout', () => {
   })
 
   it('throws when packed node offsets reference a missing internal node', async () => {
-    const packDomainNodesSpy = vi.spyOn(circleEnclosures, 'packDomainNodes').mockReturnValue([
+    packDomainNodesMock.mockReturnValue([
       {
         id: 'cluster_orders',
         domain: 'orders',
@@ -440,7 +462,5 @@ describe('computeClusteredGraphLayout', () => {
     ).rejects.toStrictEqual(
       expect.objectContaining({message: "Packed node 'missing-node' not found in clustered graph layout",}),
     )
-
-    packDomainNodesSpy.mockRestore()
   })
 })
