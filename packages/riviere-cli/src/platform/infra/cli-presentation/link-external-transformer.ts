@@ -6,6 +6,7 @@ interface LinkExternalOptions {
   targetUrl?: string
 }
 
+/** @riviere-role command-input-factory */
 export function buildExternalTarget(options: LinkExternalOptions): ExternalTarget {
   return {
     name: options.targetName,

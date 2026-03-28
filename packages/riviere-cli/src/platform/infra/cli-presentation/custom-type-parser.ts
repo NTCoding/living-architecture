@@ -58,6 +58,7 @@ interface ParsePropertiesError {
 
 type ParsePropertiesResult = ParsePropertiesSuccess | ParsePropertiesError
 
+/** @riviere-role command-input-factory */
 export function parsePropertySpecs(specs: string[] | undefined): ParsePropertiesResult {
   if (specs === undefined || specs.length === 0) {
     return {

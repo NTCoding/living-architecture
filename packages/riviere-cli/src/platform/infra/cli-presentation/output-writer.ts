@@ -8,6 +8,7 @@ import {
 
 interface OutputOptions {output?: string}
 
+/** @riviere-role cli-output-formatter */
 export function outputResult<T>(data: SuccessOutput<T>, options: OutputOptions): void {
   if (options.output !== undefined) {
     try {

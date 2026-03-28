@@ -10,6 +10,7 @@ interface ExtractionStatsInput {
   uncertainLinkCount: number | undefined
 }
 
+/** @riviere-role cli-output-formatter */
 export function countLinksByType(
   componentCount: number,
   links: readonly ExtractedLink[],
@@ -30,6 +31,7 @@ function formatSeconds(ms: number): string {
   return (ms / 1000).toFixed(2) + 's'
 }
 
+/** @riviere-role cli-output-formatter */
 export function formatExtractionStats(stats: ExtractionStatsInput): string[] {
   const lines: string[] = [`Components: ${stats.componentCount}`]
   if (stats.linkCount !== undefined) {
@@ -41,6 +43,7 @@ export function formatExtractionStats(stats: ExtractionStatsInput): string[] {
   return lines
 }
 
+/** @riviere-role cli-output-formatter */
 export function formatTimingLine(timings: ConnectionTimings): string {
   return `Extraction completed in ${formatSeconds(timings.totalMs)} (call graph: ${formatSeconds(timings.callGraphMs)}, detection: ${formatSeconds(timings.asyncDetectionMs)}, setup: ${formatSeconds(timings.setupMs)})`
 }

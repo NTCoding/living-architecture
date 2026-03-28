@@ -1,9 +1,11 @@
+/** @riviere-role cli-error */
 export enum ExitCode {
   ExtractionFailure = 1,
   ConfigValidation = 2,
   RuntimeError = 3,
 }
 
+/** @riviere-role cli-error */
 export class ConfigValidationError extends Error {
   readonly errorCode: CliErrorCode
 
@@ -14,6 +16,7 @@ export class ConfigValidationError extends Error {
   }
 }
 
+/** @riviere-role cli-error */
 export enum CliErrorCode {
   GraphNotFound = 'GRAPH_NOT_FOUND',
   ComponentNotFound = 'COMPONENT_NOT_FOUND',

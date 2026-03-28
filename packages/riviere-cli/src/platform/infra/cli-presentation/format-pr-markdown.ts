@@ -4,6 +4,7 @@ interface ComponentSummary {
   readonly domain: string
 }
 
+/** @riviere-role value-object */
 export interface CategorizedComponents {
   readonly added: readonly ComponentSummary[]
   readonly modified: readonly ComponentSummary[]
@@ -22,6 +23,7 @@ function formatSection(title: string, components: readonly ComponentSummary[]): 
   return `${header}\n${components.map(formatComponentLine).join('\n')}`
 }
 
+/** @riviere-role cli-output-formatter */
 export function formatPrMarkdown(categorized: CategorizedComponents): string {
   const sections = [
     formatSection('Added Components', categorized.added),

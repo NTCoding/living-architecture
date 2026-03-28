@@ -7,6 +7,7 @@ interface ApiComponentSummary {
 }
 import { CliErrorCode } from './error-codes'
 
+/** @riviere-role cli-output-formatter */
 export function reportNoApiFoundForPath(path: string, availablePaths: string[]): void {
   console.log(
     JSON.stringify(
@@ -19,6 +20,7 @@ export function reportNoApiFoundForPath(path: string, availablePaths: string[]):
   )
 }
 
+/** @riviere-role cli-output-formatter */
 export function reportAmbiguousApiMatch(path: string, matchingApis: ApiComponentSummary[]): void {
   const apiList = matchingApis.map((api) => `${api.id} (${api.httpMethod})`).join(', ')
   console.log(

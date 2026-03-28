@@ -21,6 +21,7 @@ type ParseResult =
     invalidInput: string
   }
 
+/** @riviere-role command-input-factory */
 export function parseStateChanges(inputs: string[]): ParseResult {
   const stateChanges: StateTransition[] = []
   for (const sc of inputs) {
@@ -46,6 +47,7 @@ interface BehaviorOptions {
   emits: string[]
 }
 
+/** @riviere-role command-input-factory */
 export function buildBehavior(
   options: BehaviorOptions,
 ): { behavior: object } | Record<string, never> {

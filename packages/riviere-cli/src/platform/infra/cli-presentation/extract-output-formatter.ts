@@ -9,6 +9,7 @@ function compareByCodePoint(a: string, b: string): number {
 /* v8 ignore stop */
 
 /* v8 ignore start -- @preserve: dry-run output formatting; tested via CLI integration */
+/** @riviere-role cli-output-formatter */
 export function formatDryRunOutput(components: DraftComponent[]): string[] {
   const countsByDomain = new Map<string, Map<string, number>>()
 

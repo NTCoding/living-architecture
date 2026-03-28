@@ -77,6 +77,7 @@ function buildSignatureObject(
   return signature
 }
 
+/** @riviere-role command-input-factory */
 export function parseSignature(input: string): SignatureParseResult {
   const trimmed = input.trim()
 

@@ -1,5 +1,5 @@
 {
-  "include": ["src/features/extract/**/*.ts", "src/platform/infra/git/**/*.ts", "src/features/builder/**/*.ts", "src/features/query/**/*.ts"],
+  "include": ["src/features/extract/**/*.ts", "src/platform/infra/git/**/*.ts", "src/features/builder/**/*.ts", "src/features/query/**/*.ts", "src/platform/infra/cli-presentation/**/*.ts"],
   "roleDefinitionsDir": "role-definitions",
   "ignorePatterns": ["**/*.spec.ts", "**/__fixtures__/**"],
   "layers": {
@@ -30,6 +30,10 @@
     "persistence": {
       "paths": ["src/features/infra/persistence"],
       "allowedRoles": ["aggregate-repository"]
+    },
+    "cli-presentation": {
+      "paths": ["src/platform/infra/cli-presentation"],
+      "allowedRoles": ["cli-output-formatter", "cli-input-validator", "command-input-factory", "value-object", "cli-error"]
     }
   },
   "roles": [
@@ -87,6 +91,14 @@
     },
     {
       "name": "external-client-error",
+      "targets": ["class"]
+    },
+    {
+      "name": "cli-input-validator",
+      "targets": ["function"]
+    },
+    {
+      "name": "cli-error",
       "targets": ["class"]
     }
   ]

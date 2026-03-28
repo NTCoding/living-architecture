@@ -19,6 +19,7 @@ function toComponentSummary(component: DraftComponent): ComponentIdentity {
   }
 }
 
+/** @riviere-role cli-output-formatter */
 export function categorizeComponents(
   current: readonly DraftComponent[],
   baseline: readonly DraftComponent[] | undefined,

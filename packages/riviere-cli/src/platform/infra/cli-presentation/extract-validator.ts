@@ -2,6 +2,7 @@ import {
   CliErrorCode, ConfigValidationError 
 } from './error-codes'
 
+/** @riviere-role value-object */
 export interface ExtractOptions {
   config: string
   dryRun?: boolean
@@ -64,6 +65,7 @@ function validateFormatOption(options: ExtractOptions): void {
   }
 }
 
+/** @riviere-role cli-input-validator */
 export function validateFlagCombinations(options: ExtractOptions): void {
   validateMutualExclusions(options)
   if (options.base !== undefined && !options.pr) {

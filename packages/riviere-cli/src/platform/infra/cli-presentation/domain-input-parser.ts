@@ -25,6 +25,7 @@ function isDomainInputParsed(value: unknown): value is DomainInputParsed {
   )
 }
 
+/** @riviere-role command-input-factory */
 export function parseDomainJson(value: string, previous: DomainInputParsed[]): DomainInputParsed[] {
   const parsed: unknown = JSON.parse(value)
   if (!isDomainInputParsed(parsed)) {

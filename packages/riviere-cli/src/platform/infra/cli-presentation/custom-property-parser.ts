@@ -1,5 +1,6 @@
 import { InvalidCustomPropertyError } from '../errors/errors'
 
+/** @riviere-role command-input-factory */
 export function parseCustomProperties(
   properties: string[] | undefined,
 ): Record<string, string> | undefined {
