@@ -32,6 +32,7 @@ interface LinkExternalOptions {
   json?: boolean
 }
 
+/** @riviere-role cli-entrypoint */
 export function createLinkExternalCommand(): Command {
   return new Command('link-external')
     .description('Link a component to an external system')

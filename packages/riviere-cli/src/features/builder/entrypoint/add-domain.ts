@@ -20,6 +20,7 @@ interface AddDomainOptions {
   json?: boolean
 }
 
+/** @riviere-role cli-entrypoint */
 export function createAddDomainCommand(): Command {
   return new Command('add-domain')
     .description('Add a domain to the graph')

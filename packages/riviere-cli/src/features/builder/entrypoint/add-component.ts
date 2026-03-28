@@ -3,6 +3,10 @@ import {
   getDefaultGraphPathDescription,
   resolveGraphPath,
 } from '../../../platform/infra/graph-persistence/graph-path'
+import {
+  formatError, formatSuccess 
+} from '../../../platform/infra/cli-presentation/output'
+import { getAddComponentHints } from '../../../platform/infra/cli-presentation/add-component-hints'
 import { addComponent } from '../commands/add-component'
 
 interface CliOptions {
@@ -29,6 +33,7 @@ interface CliOptions {
   json?: boolean
 }
 
+/** @riviere-role cli-entrypoint */
 export function createAddComponentCommand(): Command {
   return new Command('add-component')
     .description('Add a component to the graph')
@@ -62,7 +67,7 @@ export function createAddComponentCommand(): Command {
     .option('--graph <path>', getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .action(async (options: CliOptions) => {
-      await addComponent({
+      const result = await addComponent({
         componentType: options.type,
         name: options.name,
         domain: options.domain,
@@ -83,7 +88,19 @@ export function createAddComponentCommand(): Command {
         customType: options.customType,
         customProperty: options.customProperty,
         description: options.description,
-        outputJson: options.json ?? false,
       })
+
+      if (!result.success) {
+        console.log(
+          JSON.stringify(
+            formatError(result.code, result.message, getAddComponentHints(result.code)),
+          ),
+        )
+        return
+      }
+
+      if (options.json) {
+        console.log(JSON.stringify(formatSuccess({ componentId: result.componentId })))
+      }
     })
 }

@@ -3,6 +3,7 @@ import type {
   Component, HttpMethod, RiviereGraph 
 } from '@living-architecture/riviere-schema'
 
+/** @riviere-role value-object */
 export interface ApiComponent {
   id: string
   type: 'API'
@@ -16,6 +17,7 @@ function isRestApiWithPath(component: Component): component is Component & ApiCo
   return component.type === 'API' && 'path' in component && 'httpMethod' in component
 }
 
+/** @riviere-role domain-service */
 export function findApisByPath(
   graph: RiviereGraph,
   path: string,
@@ -33,6 +35,7 @@ export function findApisByPath(
   return matchingPath
 }
 
+/** @riviere-role domain-service */
 export function getAllApiPaths(graph: RiviereGraph): string[] {
   const query = new RiviereQuery(graph)
   const allComponents = query.componentsByType('API')

@@ -9,6 +9,7 @@ function isBlank(value: string | undefined): boolean {
   return !value || value.trim().length === 0
 }
 
+/** @riviere-role command-use-case-input */
 export interface AddComponentInput {
   componentType: string
   name: string
@@ -30,7 +31,6 @@ export interface AddComponentInput {
   customType?: string
   customProperty?: string[]
   description?: string
-  outputJson: boolean
 }
 
 function buildCommon(input: AddComponentInput) {

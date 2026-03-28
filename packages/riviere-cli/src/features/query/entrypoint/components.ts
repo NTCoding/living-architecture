@@ -21,6 +21,7 @@ interface ComponentsOptions {
   type?: string
 }
 
+/** @riviere-role cli-entrypoint */
 export function createComponentsCommand(): Command {
   return new Command('components')
     .description('List components with optional filtering')

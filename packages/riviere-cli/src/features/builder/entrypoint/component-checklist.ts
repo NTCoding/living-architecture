@@ -13,6 +13,7 @@ interface ComponentChecklistOptions {
   type?: string
 }
 
+/** @riviere-role cli-entrypoint */
 export function createComponentChecklistCommand(): Command {
   return new Command('component-checklist')
     .description('List components as a checklist for linking/enrichment')

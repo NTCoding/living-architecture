@@ -19,6 +19,7 @@ interface TraceOptions {
   json?: boolean
 }
 
+/** @riviere-role cli-entrypoint */
 export function createTraceCommand(): Command {
   return new Command('trace')
     .description('Trace flow from a component (bidirectional)')

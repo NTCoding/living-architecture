@@ -8,6 +8,7 @@ interface CheckConsistencyOptions {
   json?: boolean
 }
 
+/** @riviere-role cli-entrypoint */
 export function createCheckConsistencyCommand(): Command {
   return new Command('check-consistency')
     .description('Check for structural issues in the graph')

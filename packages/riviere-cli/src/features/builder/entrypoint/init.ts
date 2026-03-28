@@ -26,6 +26,7 @@ interface InitOptions {
   domain: DomainInputParsed[]
 }
 
+/** @riviere-role cli-entrypoint */
 export function createInitCommand(): Command {
   return new Command('init')
     .description('Initialize a new graph')

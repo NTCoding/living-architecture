@@ -28,6 +28,7 @@ interface EnrichOptions {
   json?: boolean
 }
 
+/** @riviere-role cli-entrypoint */
 export function createEnrichCommand(): Command {
   return new Command('enrich')
     .description(

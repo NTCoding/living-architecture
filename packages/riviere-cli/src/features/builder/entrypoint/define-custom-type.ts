@@ -18,6 +18,7 @@ interface DefineCustomTypeOptions {
   json?: boolean
 }
 
+/** @riviere-role cli-entrypoint */
 export function createDefineCustomTypeCommand(): Command {
   return new Command('define-custom-type')
     .description('Define a custom component type')

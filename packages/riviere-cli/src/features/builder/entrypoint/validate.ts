@@ -8,6 +8,7 @@ interface ValidateOptions {
   json?: boolean
 }
 
+/** @riviere-role cli-entrypoint */
 export function createValidateCommand(): Command {
   return new Command('validate')
     .description('Validate the graph for errors and warnings')

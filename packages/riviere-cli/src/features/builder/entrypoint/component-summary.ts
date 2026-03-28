@@ -5,6 +5,7 @@ import { withGraphBuilder } from '../../../platform/infra/graph-persistence/buil
 
 interface ComponentSummaryOptions {graph?: string}
 
+/** @riviere-role cli-entrypoint */
 export function createComponentSummaryCommand(): Command {
   return new Command('component-summary')
     .description('Show component counts by type and domain')

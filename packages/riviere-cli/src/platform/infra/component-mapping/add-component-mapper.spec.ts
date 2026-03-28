@@ -14,7 +14,6 @@ describe('buildDomainInput', () => {
     repository: 'test-repo',
     filePath: '/path/to/file.ts',
     graphPath: '/path/to/graph.json',
-    outputJson: true,
   }
 
   it('throws MissingRequiredOptionError for unknown component type', () => {

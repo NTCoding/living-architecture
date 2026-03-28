@@ -37,6 +37,7 @@ interface LinkHttpOptions {
   json?: boolean
 }
 
+/** @riviere-role cli-entrypoint */
 export function createLinkHttpCommand(): Command {
   return new Command('link-http')
     .description('Find an API by HTTP path and link to a target component')

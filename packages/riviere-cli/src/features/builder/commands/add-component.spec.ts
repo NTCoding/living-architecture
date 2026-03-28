@@ -11,9 +11,6 @@ import {
   type TestContext,
   createTestContext,
   setupCommandTest,
-  parseErrorOutput,
-  parseSuccessOutput,
-  hasSuccessOutputStructure,
   createGraphWithDomain,
 } from '../../../platform/__fixtures__/command-test-fixtures'
 
@@ -28,7 +25,6 @@ describe('addComponent command', () => {
     module: 'test-module',
     repository: 'test-repo',
     filePath: '/path/to/file.ts',
-    outputJson: true,
   }
 
   function inputWithGraphPath(overrides: Partial<typeof baseInput> = {}) {
@@ -48,14 +44,16 @@ describe('addComponent command', () => {
       ['special chars', 'UI<script>'],
       ['typo', 'UseCasee'],
     ])('returns VALIDATION_ERROR when componentType is %s', async (_label, value) => {
-      await addComponent({
+      const result = await addComponent({
         ...inputWithGraphPath(),
         componentType: value,
       })
 
-      const output = parseErrorOutput(ctx.consoleOutput)
-      expect(output.error.code).toBe(CliErrorCode.ValidationError)
-      expect(output.error.message).toContain('Invalid component type')
+      expect(result).toMatchObject({
+        success: false,
+        code: CliErrorCode.ValidationError,
+        message: expect.stringContaining('Invalid component type'),
+      })
     })
   })
 
@@ -68,14 +66,16 @@ describe('addComponent command', () => {
       ['negative', -1],
       ['zero', 0],
     ])('returns VALIDATION_ERROR when lineNumber is %s', async (_label, value) => {
-      await addComponent({
+      const result = await addComponent({
         ...inputWithGraphPath(),
         lineNumber: value,
       })
 
-      const output = parseErrorOutput(ctx.consoleOutput)
-      expect(output.error.code).toBe(CliErrorCode.ValidationError)
-      expect(output.error.message).toContain('Invalid line number')
+      expect(result).toMatchObject({
+        success: false,
+        code: CliErrorCode.ValidationError,
+        message: expect.stringContaining('Invalid line number'),
+      })
     })
 
     it.each([
@@ -83,13 +83,15 @@ describe('addComponent command', () => {
       ['typical', 42],
       ['large', Number.MAX_SAFE_INTEGER],
     ])('valid lineNumber (%s) reaches graph check', async (_label, value) => {
-      await addComponent({
+      const result = await addComponent({
         ...inputWithGraphPath(),
         lineNumber: value,
       })
 
-      const output = parseErrorOutput(ctx.consoleOutput)
-      expect(output.error.code).toBe(CliErrorCode.GraphNotFound)
+      expect(result).toMatchObject({
+        success: false,
+        code: CliErrorCode.GraphNotFound,
+      })
     })
   })
 
@@ -99,11 +101,13 @@ describe('addComponent command', () => {
       await mkdir(graphDir, { recursive: true })
       await writeFile(join(graphDir, 'graph.json'), 'not valid json {{{', 'utf-8')
 
-      await addComponent(inputWithGraphPath())
+      const result = await addComponent(inputWithGraphPath())
 
-      const output = parseErrorOutput(ctx.consoleOutput)
-      expect(output.error.code).toBe(CliErrorCode.ValidationError)
-      expect(output.error.message).toContain('invalid JSON')
+      expect(result).toMatchObject({
+        success: false,
+        code: CliErrorCode.ValidationError,
+        message: expect.stringContaining('invalid JSON'),
+      })
     })
   })
 
@@ -111,15 +115,12 @@ describe('addComponent command', () => {
     it('returns componentId for UI component in valid graph', async () => {
       await createGraphWithDomain(ctx.testDir, 'test-domain')
 
-      await addComponent(inputWithGraphPath())
+      const result = await addComponent(inputWithGraphPath())
 
-      const output = parseSuccessOutput(
-        ctx.consoleOutput,
-        hasSuccessOutputStructure,
-        'Expected success output',
-      )
-      expect(output.success).toBe(true)
-      expect(output.data).toHaveProperty('componentId')
+      expect(result).toMatchObject({
+        success: true,
+        componentId: expect.any(String),
+      })
     })
   })
 
@@ -127,10 +128,12 @@ describe('addComponent command', () => {
     it('returns DOMAIN_NOT_FOUND when domain does not exist', async () => {
       await createGraphWithDomain(ctx.testDir, 'other-domain')
 
-      await addComponent(inputWithGraphPath())
+      const result = await addComponent(inputWithGraphPath())
 
-      const output = parseErrorOutput(ctx.consoleOutput)
-      expect(output.error.code).toBe(CliErrorCode.DomainNotFound)
+      expect(result).toMatchObject({
+        success: false,
+        code: CliErrorCode.DomainNotFound,
+      })
     })
   })
 })

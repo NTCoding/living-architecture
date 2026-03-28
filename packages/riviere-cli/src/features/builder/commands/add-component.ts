@@ -9,14 +9,8 @@ import {
 } from '@living-architecture/riviere-builder'
 import { parseRiviereGraph } from '@living-architecture/riviere-schema'
 import { fileExists } from '../../../platform/infra/graph-persistence/file-existence'
-import {
-  formatError, formatSuccess 
-} from '../../../platform/infra/cli-presentation/output'
 import { CliErrorCode } from '../../../platform/infra/cli-presentation/error-codes'
-import {
-  isValidComponentType,
-  VALID_COMPONENT_TYPES,
-} from '../../../platform/infra/cli-presentation/component-types'
+import { isValidComponentType } from '../../../platform/infra/cli-presentation/component-types'
 import {
   MissingRequiredOptionError,
   InvalidCustomPropertyError,
@@ -26,61 +20,48 @@ import {
   buildDomainInput,
   type AddComponentInput,
 } from '../../../platform/infra/component-mapping/add-component-mapper'
+import type { AddComponentResult } from './add-component-result'
 
-export async function addComponent(input: AddComponentInput): Promise<void> {
+/** @riviere-role command-use-case */
+export async function addComponent(input: AddComponentInput): Promise<AddComponentResult> {
   if (!isValidComponentType(input.componentType)) {
-    console.log(
-      JSON.stringify(
-        formatError(
-          CliErrorCode.ValidationError,
-          `Invalid component type: ${input.componentType}`,
-          [`Valid types: ${VALID_COMPONENT_TYPES.join(', ')}`],
-        ),
-      ),
-    )
-    return
+    return {
+      success: false,
+      code: CliErrorCode.ValidationError,
+      message: `Invalid component type: ${input.componentType}`,
+    }
   }
 
   if (
     input.lineNumber !== undefined &&
     (!Number.isInteger(input.lineNumber) || input.lineNumber < 1)
   ) {
-    console.log(
-      JSON.stringify(
-        formatError(
-          CliErrorCode.ValidationError,
-          'Invalid line number: must be a positive integer',
-          [],
-        ),
-      ),
-    )
-    return
+    return {
+      success: false,
+      code: CliErrorCode.ValidationError,
+      message: 'Invalid line number: must be a positive integer',
+    }
   }
 
   const graphExists = await fileExists(input.graphPath)
   if (!graphExists) {
-    console.log(
-      JSON.stringify(
-        formatError(CliErrorCode.GraphNotFound, `Graph not found at ${input.graphPath}`, [
-          'Run riviere builder init first',
-        ]),
-      ),
-    )
-    return
+    return {
+      success: false,
+      code: CliErrorCode.GraphNotFound,
+      message: `Graph not found at ${input.graphPath}`,
+    }
   }
 
   const content = await readFile(input.graphPath, 'utf-8')
   const parsedContent = tryParseJson(content)
   if (parsedContent === null) {
-    console.log(
-      JSON.stringify(
-        formatError(CliErrorCode.ValidationError, 'Graph file contains invalid JSON', [
-          'Ensure the graph file is valid JSON',
-        ]),
-      ),
-    )
-    return
+    return {
+      success: false,
+      code: CliErrorCode.ValidationError,
+      message: 'Graph file contains invalid JSON',
+    }
   }
+
   const graph = parseRiviereGraph(parsedContent)
   const builder = RiviereBuilder.resume(graph)
 
@@ -88,11 +69,12 @@ export async function addComponent(input: AddComponentInput): Promise<void> {
     const domainInput = buildDomainInput(input)
     const componentId = addComponentToBuilder(builder, domainInput)
     await writeFile(input.graphPath, builder.serialize(), 'utf-8')
-    if (input.outputJson) {
-      console.log(JSON.stringify(formatSuccess({ componentId })))
+    return {
+      success: true,
+      componentId,
     }
   } catch (error) {
-    handleError(error)
+    return mapError(error)
   }
 }
 
@@ -104,39 +86,42 @@ function tryParseJson(content: string): unknown | null {
   }
 }
 
-function handleError(error: unknown): void {
+function mapError(error: unknown): AddComponentResult {
   if (error instanceof MissingRequiredOptionError) {
-    console.log(JSON.stringify(formatError(CliErrorCode.ValidationError, error.message, [])))
-    return
+    return {
+      success: false,
+      code: CliErrorCode.ValidationError,
+      message: error.message,
+    }
   }
   if (error instanceof InvalidCustomPropertyError) {
-    console.log(JSON.stringify(formatError(CliErrorCode.ValidationError, error.message, [])))
-    return
+    return {
+      success: false,
+      code: CliErrorCode.ValidationError,
+      message: error.message,
+    }
   }
   if (error instanceof DomainNotFoundError) {
-    console.log(
-      JSON.stringify(
-        formatError(CliErrorCode.DomainNotFound, error.message, [
-          'Run riviere builder add-domain first',
-        ]),
-      ),
-    )
-    return
+    return {
+      success: false,
+      code: CliErrorCode.DomainNotFound,
+      message: error.message,
+    }
   }
   if (error instanceof CustomTypeNotFoundError) {
-    console.log(
-      JSON.stringify(
-        formatError(CliErrorCode.CustomTypeNotFound, error.message, [
-          'Run riviere builder add-custom-type first',
-        ]),
-      ),
-    )
-    return
+    return {
+      success: false,
+      code: CliErrorCode.CustomTypeNotFound,
+      message: error.message,
+    }
   }
   /* v8 ignore start -- @preserve: DuplicateComponentError tested at entrypoint; defensive re-throw for unknown errors */
   if (error instanceof DuplicateComponentError) {
-    console.log(JSON.stringify(formatError(CliErrorCode.DuplicateComponent, error.message, [])))
-    return
+    return {
+      success: false,
+      code: CliErrorCode.DuplicateComponent,
+      message: error.message,
+    }
   }
   throw error
   /* v8 ignore stop */

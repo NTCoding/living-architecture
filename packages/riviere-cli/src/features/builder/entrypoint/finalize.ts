@@ -13,6 +13,7 @@ interface FinalizeOptions {
   json?: boolean
 }
 
+/** @riviere-role cli-entrypoint */
 export function createFinalizeCommand(): Command {
   return new Command('finalize')
     .description('Validate and export the final graph')
