@@ -1,5 +1,5 @@
 import type { Edge } from '@xyflow/react'
-import type { ArchitectureEvolutionEdgeData } from '../../data/architecture-evolution-scenario'
+import type { ArchitectureEvolutionEdgeData } from '../architecture-evolution-scenario'
 
 interface ArchitectureEvolutionInspectorProps {
   readonly selectedEdge: Edge<ArchitectureEvolutionEdgeData> | null

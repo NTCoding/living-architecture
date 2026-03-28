@@ -1,13 +1,20 @@
 import '@testing-library/jest-dom/vitest'
 import {
-  render, screen 
+  render,
+  screen,
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import {
-  MemoryRouter, Routes, Route, useLocation 
+  MemoryRouter,
+  Route,
+  Routes,
+  useLocation,
 } from 'react-router-dom'
 import {
-  describe, expect, it, vi 
+  describe,
+  expect,
+  it,
+  vi,
 } from 'vitest'
 import { Sidebar } from './Sidebar'
 
@@ -25,27 +32,25 @@ vi.mock('@/platform/infra/theme/ThemeContext', () => ({
 
 vi.mock('@/shell/components/Logo/Logo', () => ({ Logo: () => <div data-testid="logo">Logo</div> }))
 
-vi.mock('@/shell/components/ThemeSwitcher/ThemeSwitcher', () => ({ThemeSwitcher: () => <div data-testid="theme-switcher">ThemeSwitcher</div>,}))
+vi.mock('@/shell/components/ThemeSwitcher/ThemeSwitcher', () => ({
+  ThemeSwitcher: () => (
+    <div data-testid="theme-switcher">ThemeSwitcher</div>
+  ),
+}))
 
 function renderWithRouter(ui: React.ReactElement, initialPath = '/'): ReturnType<typeof render> {
   return render(<MemoryRouter initialEntries={[initialPath]}>{ui}</MemoryRouter>)
 }
 
 describe('Sidebar', () => {
-  it.each([
-    'Overview',
-    'Flows',
-    'Domain Map',
-    'Evolution',
-    'Full Graph',
-    'Entities',
-    'Events',
-    'About Rivière',
-  ])('renders %s navigation link', (linkName) => {
-    renderWithRouter(<Sidebar hasGraph={true} />)
+  it.each(['Overview', 'Flows', 'Domain Map', 'Full Graph', 'Entities', 'Events', 'About Rivière'])(
+    'renders %s navigation link',
+    (linkName) => {
+      renderWithRouter(<Sidebar hasGraph={true} />)
 
-    expect(screen.getByRole('link', { name: new RegExp(linkName, 'i') })).toBeInTheDocument()
-  })
+      expect(screen.getByRole('link', { name: new RegExp(linkName, 'i') })).toBeInTheDocument()
+    },
+  )
 
   it('renders Éclair brand name', () => {
     renderWithRouter(<Sidebar hasGraph={true} />)
@@ -78,7 +83,7 @@ describe('Sidebar', () => {
     },
   )
 
-  it.each(['Overview', 'Flows', 'Domain Map', 'Evolution', 'Full Graph', 'Entities', 'Events'])(
+  it.each(['Overview', 'Flows', 'Domain Map', 'Full Graph', 'Entities', 'Events'])(
     'enables %s link when graph is loaded',
     (linkName) => {
       renderWithRouter(<Sidebar hasGraph={true} />)
@@ -90,7 +95,6 @@ describe('Sidebar', () => {
   it('always enables non-graph items', () => {
     renderWithRouter(<Sidebar hasGraph={false} />)
 
-    expect(screen.getByRole('link', { name: /Evolution/i })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /About Rivière/i })).toBeInTheDocument()
   })
 

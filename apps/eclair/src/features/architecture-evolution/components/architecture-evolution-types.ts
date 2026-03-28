@@ -1,4 +1,6 @@
-import type { Edge, Node } from '@xyflow/react'
+import type {
+  Edge, Node 
+} from '@xyflow/react'
 
 export type ArchitectureEvolutionVisualState = 'active' | 'changed' | 'ghosted'
 export type ArchitectureEvolutionNodeKind = 'client' | 'service' | 'database'

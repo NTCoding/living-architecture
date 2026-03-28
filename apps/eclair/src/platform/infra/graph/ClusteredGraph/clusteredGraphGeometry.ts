@@ -23,7 +23,7 @@ function getClusterLabelTop(circle: DomainCircle): number {
   return getClusterLabelY(circle) - getClusterLabelFontSize(circle)
 }
 
-export function calculateGraphBounds(
+function calculateGraphBounds(
   nodes: readonly SimulationNode[],
   circles: readonly DomainCircle[],
 ): {

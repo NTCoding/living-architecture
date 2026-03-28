@@ -1,4 +1,6 @@
-import type { Node, NodeProps } from '@xyflow/react'
+import type {
+  Node, NodeProps 
+} from '@xyflow/react'
 
 export interface ArchitectureEvolutionBoundaryData extends Record<string, unknown> {
   readonly label: string
@@ -7,9 +9,7 @@ export interface ArchitectureEvolutionBoundaryData extends Record<string, unknow
 
 type ArchitectureEvolutionBoundaryNodeProps = NodeProps<Node<ArchitectureEvolutionBoundaryData>>
 
-export function ArchitectureEvolutionBoundaryNode({
-  data,
-}: ArchitectureEvolutionBoundaryNodeProps): React.ReactElement {
+export function ArchitectureEvolutionBoundaryNode({data,}: ArchitectureEvolutionBoundaryNodeProps): React.ReactElement {
   const testId = `arch-evo-boundary-${String(data.label).toLowerCase().split(' ').join('-')}`
 
   return (

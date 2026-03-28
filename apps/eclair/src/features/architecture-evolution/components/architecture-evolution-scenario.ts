@@ -1,7 +1,11 @@
 import { MarkerType } from '@xyflow/react'
-import type { Edge, Node } from '@xyflow/react'
+import type {
+  Edge, Node 
+} from '@xyflow/react'
 import { STEP_DEFINITIONS } from './architecture-evolution-steps'
-import { EDGE_DEFINITIONS, NODE_DEFINITIONS } from './architecture-evolution-topology'
+import {
+  EDGE_DEFINITIONS, NODE_DEFINITIONS 
+} from './architecture-evolution-topology'
 import type {
   ArchitectureEvolutionEdgeData,
   ArchitectureEvolutionEdgeKind,
@@ -290,11 +294,11 @@ function buildEdges(stepIndex: number): readonly Edge<ArchitectureEvolutionEdgeD
       previousStep === null
         ? getEdgeState(edge.id, activeEdgeIds, ghostedEdgeIds, changedEdgeIds)
         : getEdgeState(
-            edge.id,
-            previousActiveEdgeIds,
-            previousGhostedEdgeIds,
-            previousChangedEdgeIds,
-          )
+          edge.id,
+          previousActiveEdgeIds,
+          previousGhostedEdgeIds,
+          previousChangedEdgeIds,
+        )
     const transition = getConnectionTransition(state, previousState, changedEdgeIds.has(edge.id))
     const color = getEdgeColor(edge.kind, transition)
 

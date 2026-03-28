@@ -1,16 +1,26 @@
 import '@testing-library/jest-dom/vitest'
-import { render, screen } from '@testing-library/react'
+import {
+  render, screen 
+} from '@testing-library/react'
 import type { RenderResult } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { useEffect } from 'react'
-import { beforeEach, describe, expect, it } from 'vitest'
-import { AppContent, useRequiredGraph } from './App'
+import {
+  beforeEach, describe, expect, it 
+} from 'vitest'
+import {
+  AppContent, useRequiredGraph 
+} from './App'
 import { GraphError } from '@/platform/infra/errors/errors'
-import { GraphProvider, useGraph } from '@/platform/infra/graph-state/GraphContext'
+import {
+  GraphProvider, useGraph 
+} from '@/platform/infra/graph-state/GraphContext'
 import { ExportProvider } from '@/platform/infra/export/ExportContext'
 import { ThemeProvider } from '@/platform/infra/theme/ThemeContext'
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
-import { parseNode, parseDomainMetadata } from '@/platform/infra/__fixtures__/riviere-test-fixtures'
+import {
+  parseNode, parseDomainMetadata 
+} from '@/platform/infra/__fixtures__/riviere-test-fixtures'
 
 function hasInitialEvolutionSummary(node: Element | null): boolean {
   return node instanceof HTMLSpanElement && node.textContent?.includes('Initial split architecture')
@@ -46,7 +56,9 @@ const mockGraph: RiviereGraph = {
 }
 
 function GraphLoader({ graph }: { graph: RiviereGraph | null }): null {
-  const { setGraph, clearGraph } = useGraph()
+  const {
+    setGraph, clearGraph 
+  } = useGraph()
   useEffect(() => {
     if (graph === null) {
       clearGraph()

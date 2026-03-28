@@ -7,7 +7,7 @@ import {
   describe, expect, it 
 } from 'vitest'
 import { ArchitectureEvolutionEdge } from './ArchitectureEvolutionEdge'
-import type { ArchitectureEvolutionEdgeData } from '../../data/architecture-evolution-scenario'
+import type { ArchitectureEvolutionEdgeData } from '../architecture-evolution-scenario'
 
 function renderEdge(ui: React.ReactElement): ReturnType<typeof render> {
   return render(
@@ -72,7 +72,9 @@ describe('ArchitectureEvolutionEdge', () => {
     const { container } = renderEdge(<ArchitectureEvolutionEdge {...createEdgeProps({})} />)
 
     expect(screen.getByTestId('arch-evo-edge-label-web-a-read')).toHaveTextContent('GET /orders')
-    expect(container.querySelector('.arch-evo-edge-glow--added')).toBeInTheDocument()
+    expect(container.querySelector('[data-testid="arch-evo-edge-web-a-read"]')).toHaveClass(
+      'arch-evo-edge-group--added',
+    )
   })
 
   it('hides labels when showLabel is false', () => {

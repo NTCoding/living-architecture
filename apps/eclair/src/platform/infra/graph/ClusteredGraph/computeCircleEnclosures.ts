@@ -26,13 +26,16 @@ export interface PackedDomainCircle {
   readonly label: string
   readonly r: number
   readonly nodeIds: readonly string[]
-  readonly nodeOffsets: ReadonlyMap<string, {
-    readonly x: number;
-    readonly y: number 
-  }>
+  readonly nodeOffsets: ReadonlyMap<
+    string,
+    {
+      readonly x: number
+      readonly y: number
+    }
+  >
 }
 
-export const CLUSTERED_NODE_LABEL_MAX_LENGTH = 18
+const CLUSTERED_NODE_LABEL_MAX_LENGTH = 18
 
 const NODE_LAYOUT_PADDING = 26
 const DOMAIN_CIRCLE_PADDING = 34

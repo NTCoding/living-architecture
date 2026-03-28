@@ -4,7 +4,7 @@ import {
 import {
   ARCHITECTURE_EVOLUTION_STEP_COUNT,
   getArchitectureEvolutionView,
-} from './architecture-evolution-scenario'
+} from '../components/architecture-evolution-scenario'
 
 describe('architecture evolution scenario', () => {
   it('starts with the baseline architecture commit', () => {

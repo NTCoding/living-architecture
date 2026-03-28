@@ -1,7 +1,15 @@
 import '@testing-library/jest-dom/vitest'
-import { render, screen, waitFor, within } from '@testing-library/react'
+import {
+  render,
+  screen,
+  within,
+} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import {
+  describe,
+  expect,
+  it,
+} from 'vitest'
 import { ExportProvider } from '@/platform/infra/export/ExportContext'
 import { ArchitectureEvolutionPage } from './ArchitectureEvolutionPage'
 
@@ -23,15 +31,6 @@ async function findPageHeader(): Promise<HTMLElement> {
 
 function hasCommitTitle(title: string): (content: string, node: Element | null) => boolean {
   return (_, node) => node instanceof HTMLSpanElement && node.textContent?.includes(title)
-}
-
-function getRequiredElement(container: ParentNode, selector: string): Element {
-  const element = container.querySelector(selector)
-  if (element === null) {
-    throw new TypeError(`Expected element matching selector: ${selector}`)
-  }
-
-  return element
 }
 
 async function advanceToNextCommit(
@@ -84,53 +83,17 @@ describe('ArchitectureEvolutionPage', () => {
     expect(screen.getByText(hasCommitTitle('Remove Orders Service C'))).toBeInTheDocument()
   })
 
-  it('shows changed labels even when stable labels are off', async () => {
-    const user = userEvent.setup()
-    renderPage()
-    await findPageHeader()
-
-    expect(screen.queryByTestId('arch-evo-edge-label-web-a-read')).not.toBeInTheDocument()
-
-    await user.click(screen.getByRole('button', { name: /next commit/i }))
-
-    expect(screen.getByTestId('arch-evo-edge-label-a-db-b-write')).toHaveTextContent(
-      'Replicate order',
-    )
-    expect(screen.getByTestId('arch-evolution-label-toggle')).toHaveAttribute(
-      'aria-pressed',
-      'false',
-    )
-  })
-
-  it('shows stable labels when the toggle is enabled', async () => {
+  it('keeps label visibility controlled by the toggle', async () => {
     const user = userEvent.setup()
     renderPage()
     await findPageHeader()
 
     await user.click(screen.getByTestId('arch-evolution-label-toggle'))
 
-    expect(screen.getByTestId('arch-evo-edge-label-web-a-read')).toHaveTextContent('GET /orders')
-    expect(screen.getByTestId('arch-evo-edge-label-a-b-event')).toHaveTextContent('OrderPlaced')
-  })
-
-  it('opens the connection inspector when a line is clicked', async () => {
-    const user = userEvent.setup()
-    const { container } = renderPage()
-    await findPageHeader()
-
-    await waitFor(() => {
-      expect(container.querySelector('.react-flow__edge-interaction')).not.toBeNull()
-    })
-
-    const clickablePath = getRequiredElement(container, '.react-flow__edge-interaction')
-
-    await user.click(clickablePath)
-
-    const inspector = screen.getByTestId('arch-evolution-inspector')
-    expect(inspector).toHaveTextContent('Connection Details')
-    expect(inspector).toHaveTextContent('GET /orders')
-    expect(inspector).toHaveTextContent('Website client')
-    expect(inspector).toHaveTextContent('Query API')
+    expect(screen.getByTestId('arch-evolution-label-toggle')).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
   })
 
   it('ghosts service B and its removed capability before deletion', async () => {

@@ -1,6 +1,10 @@
-import { Handle, Position } from '@xyflow/react'
-import type { Node, NodeProps } from '@xyflow/react'
-import type { ArchitectureEvolutionNodeData } from '../../data/architecture-evolution-scenario'
+import {
+  Handle, Position 
+} from '@xyflow/react'
+import type {
+  Node, NodeProps 
+} from '@xyflow/react'
+import type { ArchitectureEvolutionNodeData } from '../architecture-evolution-scenario'
 
 type ArchitectureEvolutionNodeProps = NodeProps<Node<ArchitectureEvolutionNodeData>>
 

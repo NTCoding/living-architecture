@@ -1,4 +1,7 @@
-import { Link, useLocation } from 'react-router-dom'
+import {
+  Link,
+  useLocation,
+} from 'react-router-dom'
 import { Logo } from '@/shell/components/Logo/Logo'
 import { ThemeSwitcher } from '@/shell/components/ThemeSwitcher/ThemeSwitcher'
 
@@ -16,7 +19,11 @@ interface NavItemContentProps {
   readonly collapsed: boolean
 }
 
-function NavItemContent({ icon, label, collapsed }: NavItemContentProps): React.ReactElement {
+function NavItemContent({
+  icon,
+  label,
+  collapsed,
+}: NavItemContentProps): React.ReactElement {
   return (
     <>
       <i className={`ph ph-${icon} text-lg`} aria-hidden="true" />
