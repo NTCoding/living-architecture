@@ -11,9 +11,17 @@
         "command": "vitest run",
         "cwd": "apps/eclair"
       },
-      "configurations": {
-        "skip-nx-cache": true
-      }
+      "cache": true,
+      "inputs": [
+        "{projectRoot}/src/**/*",
+        "{projectRoot}/vitest.config.mts",
+        "{projectRoot}/tsconfig.json",
+        "{projectRoot}/tsconfig.spec.json",
+        "{projectRoot}/package.json"
+      ],
+      "outputs": [
+        "{projectRoot}/test-output"
+      ]
     }
   }
 }
