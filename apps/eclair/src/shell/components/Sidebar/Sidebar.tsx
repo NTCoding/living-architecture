@@ -1,5 +1,6 @@
 import {
-  Link, useLocation 
+  Link,
+  useLocation,
 } from 'react-router-dom'
 import { Logo } from '@/shell/components/Logo/Logo'
 import { ThemeSwitcher } from '@/shell/components/ThemeSwitcher/ThemeSwitcher'
@@ -19,7 +20,9 @@ interface NavItemContentProps {
 }
 
 function NavItemContent({
-  icon, label, collapsed 
+  icon,
+  label,
+  collapsed,
 }: NavItemContentProps): React.ReactElement {
   return (
     <>

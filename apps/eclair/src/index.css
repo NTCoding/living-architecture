@@ -5,40 +5,40 @@
   --font-body: 'Lato', sans-serif;
   --font-mono: 'Fira Code', monospace;
 
-  --color-stream-primary: #0D9488;
-  --color-stream-primary-dark: #06B6D4;
-  --color-stream-accent: #FF6B6B;
-  --color-stream-amber: #F59E0B;
-  --color-stream-bg-primary: #F8FAFC;
-  --color-stream-bg-secondary: #FFFFFF;
-  --color-stream-bg-tertiary: #F1F5F9;
-  --color-stream-border: #E2E8F0;
-  --color-stream-text-primary: #1E293B;
+  --color-stream-primary: #0d9488;
+  --color-stream-primary-dark: #06b6d4;
+  --color-stream-accent: #ff6b6b;
+  --color-stream-amber: #f59e0b;
+  --color-stream-bg-primary: #f8fafc;
+  --color-stream-bg-secondary: #ffffff;
+  --color-stream-bg-tertiary: #f1f5f9;
+  --color-stream-border: #e2e8f0;
+  --color-stream-text-primary: #1e293b;
   --color-stream-text-secondary: #334155;
-  --color-stream-text-tertiary: #64748B;
+  --color-stream-text-tertiary: #64748b;
 
-  --color-voltage-primary: #00D4FF;
-  --color-voltage-primary-dark: #0066FF;
-  --color-voltage-accent: #FF006E;
-  --color-voltage-lime: #39FF14;
-  --color-voltage-bg-primary: #0A0A0F;
-  --color-voltage-bg-secondary: #1A1A24;
+  --color-voltage-primary: #00d4ff;
+  --color-voltage-primary-dark: #0066ff;
+  --color-voltage-accent: #ff006e;
+  --color-voltage-lime: #39ff14;
+  --color-voltage-bg-primary: #0a0a0f;
+  --color-voltage-bg-secondary: #1a1a24;
   --color-voltage-bg-tertiary: #252535;
   --color-voltage-border: rgba(0, 212, 255, 0.2);
-  --color-voltage-text-primary: #FFFFFF;
-  --color-voltage-text-secondary: #A0A0B0;
+  --color-voltage-text-primary: #ffffff;
+  --color-voltage-text-secondary: #a0a0b0;
   --color-voltage-text-tertiary: #606070;
 
-  --color-circuit-primary: #0969DA;
-  --color-circuit-primary-dark: #0550AE;
-  --color-circuit-accent: #1A7F37;
-  --color-circuit-bg-primary: #F6F8FA;
-  --color-circuit-bg-secondary: #FFFFFF;
-  --color-circuit-bg-tertiary: #EAEEF2;
-  --color-circuit-border: #D0D7DE;
-  --color-circuit-text-primary: #24292F;
-  --color-circuit-text-secondary: #57606A;
-  --color-circuit-text-tertiary: #6E7781;
+  --color-circuit-primary: #0969da;
+  --color-circuit-primary-dark: #0550ae;
+  --color-circuit-accent: #1a7f37;
+  --color-circuit-bg-primary: #f6f8fa;
+  --color-circuit-bg-secondary: #ffffff;
+  --color-circuit-bg-tertiary: #eaeef2;
+  --color-circuit-border: #d0d7de;
+  --color-circuit-text-primary: #24292f;
+  --color-circuit-text-secondary: #57606a;
+  --color-circuit-text-tertiary: #6e7781;
 
   --radius-sm: 6px;
   --radius-md: 10px;
@@ -71,21 +71,22 @@
     --font-heading: 'Rubik', sans-serif;
     --font-body: 'Lato', sans-serif;
     --font-mono: 'Fira Code', monospace;
-    --flow-gradient: linear-gradient(90deg, #0D9488 0%, #06B6D4 100%);
+    --flow-gradient: linear-gradient(90deg, #0d9488 0%, #06b6d4 100%);
     /* Default component type colors (stream theme) */
-    --node-ui: #F43F5E;
-    --node-api: #0D9488;
-    --node-usecase: #A78BFA;
-    --node-domainop: #06B6D4;
-    --node-event: #F59E0B;
-    --node-eventhandler: #EAB308;
-    --node-custom: #78716C;
-    --node-external: #94A3B8;
+    --node-ui: #f43f5e;
+    --node-api: #0d9488;
+    --node-usecase: #a78bfa;
+    --node-domainop: #06b6d4;
+    --node-event: #f59e0b;
+    --node-eventhandler: #eab308;
+    --node-custom: #78716c;
+    --node-external: #94a3b8;
     /* Semantic colors */
-    --amber: #F59E0B;
-    --green: #10B981;
-    --purple: #8B5CF6;
-    --cyan: #06B6D4;
+    --amber: #f59e0b;
+    --green: #10b981;
+    --blue: #2563eb;
+    --purple: #8b5cf6;
+    --cyan: #06b6d4;
   }
 
   /* Stream theme - uses :root defaults, only override if different */
@@ -108,21 +109,22 @@
     --font-heading: 'Space Grotesk', sans-serif;
     --font-body: 'Inter', sans-serif;
     --font-mono: 'Fira Code', monospace;
-    --flow-gradient: linear-gradient(135deg, #00D4FF 0%, #0066FF 100%);
+    --flow-gradient: linear-gradient(135deg, #00d4ff 0%, #0066ff 100%);
     /* Component type colors from brand guidelines */
-    --node-ui: #FB7185;
-    --node-api: #00D4FF;
-    --node-usecase: #C4B5FD;
-    --node-domainop: #22D3EE;
-    --node-event: #F97316;
-    --node-eventhandler: #FACC15;
-    --node-custom: #A8A29E;
-    --node-external: #94A3B8;
+    --node-ui: #fb7185;
+    --node-api: #00d4ff;
+    --node-usecase: #c4b5fd;
+    --node-domainop: #22d3ee;
+    --node-event: #f97316;
+    --node-eventhandler: #facc15;
+    --node-custom: #a8a29e;
+    --node-external: #94a3b8;
     /* Semantic colors */
-    --amber: #F59E0B;
-    --green: #39FF14;
-    --purple: #8B5CF6;
-    --cyan: #00D4FF;
+    --amber: #f59e0b;
+    --green: #39ff14;
+    --blue: #0066ff;
+    --purple: #8b5cf6;
+    --cyan: #00d4ff;
   }
 
   .theme-circuit {
@@ -140,21 +142,22 @@
     --font-heading: 'JetBrains Mono', monospace;
     --font-body: 'Inter', sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
-    --flow-gradient: linear-gradient(90deg, #0969DA 0%, #0550AE 100%);
+    --flow-gradient: linear-gradient(90deg, #0969da 0%, #0550ae 100%);
     /* Component type colors from brand guidelines */
-    --node-ui: #E11D48;
-    --node-api: #0969DA;
-    --node-usecase: #A78BFA;
-    --node-domainop: #0550AE;
-    --node-event: #BF8700;
-    --node-eventhandler: #9A6700;
-    --node-custom: #57534E;
-    --node-external: #9CA3AF;
+    --node-ui: #e11d48;
+    --node-api: #0969da;
+    --node-usecase: #a78bfa;
+    --node-domainop: #0550ae;
+    --node-event: #bf8700;
+    --node-eventhandler: #9a6700;
+    --node-custom: #57534e;
+    --node-external: #9ca3af;
     /* Semantic colors */
-    --amber: #BF8700;
-    --green: #1A7F37;
-    --purple: #8250DF;
-    --cyan: #0969DA;
+    --amber: #bf8700;
+    --green: #1a7f37;
+    --blue: #0969da;
+    --purple: #8250df;
+    --cyan: #0969da;
   }
 
   * {
@@ -169,7 +172,9 @@
     line-height: 1.6;
     background: var(--bg-primary);
     color: var(--text-primary);
-    transition: background 0.3s, color 0.3s;
+    transition:
+      background 0.3s,
+      color 0.3s;
   }
 
   .logo-text {
@@ -216,15 +221,15 @@
     height: 32px;
     padding: 0;
     background: rgba(139, 92, 246, 0.1);
-    border: 1px solid #8B5CF6;
+    border: 1px solid #8b5cf6;
     border-radius: calc(var(--radius) / 2);
-    color: #8B5CF6;
+    color: #8b5cf6;
     cursor: pointer;
     transition: all 0.2s;
   }
 
   .graph-link-btn-sm:hover {
-    background: #8B5CF6;
+    background: #8b5cf6;
     color: white;
     box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
     transform: translateY(-1px);
@@ -409,16 +414,16 @@
     height: 32px;
     padding: 0;
     background: rgba(139, 92, 246, 0.1);
-    border: 1px solid #8B5CF6;
+    border: 1px solid #8b5cf6;
     border-radius: calc(var(--radius) / 2);
-    color: #8B5CF6;
+    color: #8b5cf6;
     cursor: pointer;
     transition: all 0.2s;
     text-decoration: none;
   }
 
   .icon-btn-accent:hover {
-    background: #8B5CF6;
+    background: #8b5cf6;
     color: white;
     box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
     transform: translateY(-1px);
@@ -429,7 +434,7 @@
   }
 
   .canvas-background {
-    background: linear-gradient(135deg, #F1F5F9 0%, #E2E8F0 100%);
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
     position: relative;
   }
 
@@ -443,7 +448,7 @@
   }
 
   .theme-voltage .canvas-background {
-    background: linear-gradient(135deg, #0A0A0F 0%, #12121C 100%);
+    background: linear-gradient(135deg, #0a0a0f 0%, #12121c 100%);
   }
 
   .theme-voltage .canvas-background::before {
@@ -451,7 +456,7 @@
   }
 
   .theme-circuit .canvas-background {
-    background: #F6F8FA;
+    background: #f6f8fa;
   }
 
   .theme-circuit .canvas-background::before {
@@ -468,7 +473,9 @@
 
   .node-circle {
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
-    transition: filter 0.2s ease, transform 0.2s ease;
+    transition:
+      filter 0.2s ease,
+      transform 0.2s ease;
   }
 
   .graph-node:hover .node-circle {
@@ -493,7 +500,7 @@
   }
 
   .theme-voltage .node-label {
-    stroke: #0A0A0F;
+    stroke: #0a0a0f;
   }
 
   .node-domain-label {
@@ -506,7 +513,7 @@
   }
 
   .theme-voltage .node-domain-label {
-    stroke: #0A0A0F;
+    stroke: #0a0a0f;
   }
 
   .floating-panel {
@@ -528,7 +535,9 @@
 
   .theme-voltage .floating-panel {
     background: rgba(26, 26, 36, 0.9);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), 0 0 20px rgba(0, 212, 255, 0.05);
+    box-shadow:
+      0 4px 12px rgba(0, 0, 0, 0.3),
+      0 0 20px rgba(0, 212, 255, 0.05);
   }
 
   .theme-circuit .floating-panel {
@@ -537,16 +546,16 @@
   }
 
   .theme-voltage .react-flow {
-    --xy-controls-button-background-color: #1A1A24;
+    --xy-controls-button-background-color: #1a1a24;
     --xy-controls-button-background-color-hover: #252535;
-    --xy-controls-button-color: #FFFFFF;
-    --xy-controls-button-color-hover: #FFFFFF;
+    --xy-controls-button-color: #ffffff;
+    --xy-controls-button-color-hover: #ffffff;
     --xy-controls-button-border-color: rgba(0, 212, 255, 0.2);
     --xy-controls-box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   }
 
   .theme-voltage .react-flow__controls-button {
-    background: #1A1A24 !important;
+    background: #1a1a24 !important;
     border-color: rgba(0, 212, 255, 0.2) !important;
   }
 
@@ -555,11 +564,11 @@
   }
 
   .theme-voltage .react-flow__controls-button svg {
-    fill: #FFFFFF !important;
+    fill: #ffffff !important;
   }
 
   .theme-voltage .react-flow__controls-button svg path {
-    fill: #FFFFFF !important;
+    fill: #ffffff !important;
   }
 
   .page-header {
@@ -774,12 +783,12 @@
 
   .graph-link-btn {
     background: rgba(139, 92, 246, 0.1);
-    border: 1px solid #8B5CF6;
-    color: #8B5CF6;
+    border: 1px solid #8b5cf6;
+    color: #8b5cf6;
   }
 
   .graph-link-btn:hover {
-    background: #8B5CF6;
+    background: #8b5cf6;
     color: white;
     box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
   }
@@ -959,7 +968,9 @@
     border: 2px solid var(--border-color);
     min-width: 100px;
     text-align: center;
-    transition: transform 0.2s, box-shadow 0.2s;
+    transition:
+      transform 0.2s,
+      box-shadow 0.2s;
   }
 
   .flow-graph-node:hover {
@@ -1100,7 +1111,7 @@
 
   .domain-badge-purple {
     background: rgba(139, 92, 246, 0.15);
-    color: #7C3AED;
+    color: #7c3aed;
   }
 
   .domain-badge-green {
@@ -1110,32 +1121,32 @@
 
   .domain-badge-amber {
     background: rgba(245, 158, 11, 0.15);
-    color: #D97706;
+    color: #d97706;
   }
 
   .domain-badge-pink {
     background: rgba(236, 72, 153, 0.15);
-    color: #DB2777;
+    color: #db2777;
   }
 
   .domain-badge-blue {
     background: rgba(59, 130, 246, 0.15);
-    color: #2563EB;
+    color: #2563eb;
   }
 
   .domain-badge-teal {
     background: rgba(13, 148, 136, 0.15);
-    color: #0D9488;
+    color: #0d9488;
   }
 
   .domain-badge-orange {
     background: rgba(249, 115, 22, 0.15);
-    color: #EA580C;
+    color: #ea580c;
   }
 
   .domain-badge-indigo {
     background: rgba(99, 102, 241, 0.15);
-    color: #4F46E5;
+    color: #4f46e5;
   }
 
   @keyframes fade-in {
@@ -1187,7 +1198,9 @@
     background: var(--bg-secondary);
     border: 1px solid var(--border-color);
     border-radius: var(--radius);
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    box-shadow:
+      0 20px 25px -5px rgba(0, 0, 0, 0.1),
+      0 10px 10px -5px rgba(0, 0, 0, 0.04);
   }
 
   @media (max-width: 768px) {
@@ -1414,7 +1427,7 @@
     white-space: nowrap;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
     color: white;
   }
 
@@ -1455,22 +1468,30 @@
   /* Domain Map - External Node Styling */
   .domain-node-external {
     border-style: dashed !important;
-    border-color: #64748B !important;
-    background: linear-gradient(135deg, rgba(100, 116, 139, 0.1) 0%, rgba(148, 163, 184, 0.1) 100%) !important;
+    border-color: #64748b !important;
+    background: linear-gradient(
+      135deg,
+      rgba(100, 116, 139, 0.1) 0%,
+      rgba(148, 163, 184, 0.1) 100%
+    ) !important;
   }
 
   .theme-voltage .domain-node-external {
-    border-color: #94A3B8 !important;
-    background: linear-gradient(135deg, rgba(100, 116, 139, 0.2) 0%, rgba(148, 163, 184, 0.2) 100%) !important;
+    border-color: #94a3b8 !important;
+    background: linear-gradient(
+      135deg,
+      rgba(100, 116, 139, 0.2) 0%,
+      rgba(148, 163, 184, 0.2) 100%
+    ) !important;
   }
 
   .domain-node-external-icon {
     font-size: 14px;
-    color: #64748B;
+    color: #64748b;
   }
 
   .theme-voltage .domain-node-external-icon {
-    color: #94A3B8;
+    color: #94a3b8;
   }
 
   /* Domain Map - Integration Badges (theme-aware) */
@@ -1488,7 +1509,7 @@
     text-transform: uppercase;
     letter-spacing: 0.5px;
     background: rgba(13, 148, 136, 0.15);
-    color: #0D9488;
+    color: #0d9488;
   }
 
   .badge-integration-event {
@@ -1505,27 +1526,385 @@
     text-transform: uppercase;
     letter-spacing: 0.5px;
     background: rgba(245, 158, 11, 0.15);
-    color: #D97706;
+    color: #d97706;
   }
 
   .theme-voltage .badge-integration-api {
     background: rgba(6, 182, 212, 0.2);
-    color: #06B6D4;
+    color: #06b6d4;
   }
 
   .theme-voltage .badge-integration-event {
     background: rgba(245, 158, 11, 0.2);
-    color: #FBBF24;
+    color: #fbbf24;
   }
 
   .theme-circuit .badge-integration-api {
     background: rgba(9, 105, 218, 0.1);
-    color: #0969DA;
+    color: #0969da;
   }
 
   .theme-circuit .badge-integration-event {
     background: rgba(212, 118, 22, 0.1);
-    color: #BF8700;
+    color: #bf8700;
+  }
+
+  .arch-evo-node {
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    border: 1px solid color-mix(in srgb, var(--text-tertiary) 26%, var(--border-color));
+    border-radius: var(--radius-xl, 16px);
+    background: color-mix(in srgb, var(--bg-secondary) 96%, transparent);
+    padding: 14px 16px;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+    transition:
+      transform 0.2s ease,
+      border-color 0.2s ease,
+      box-shadow 0.2s ease,
+      opacity 0.2s ease;
+  }
+
+  .arch-evo-boundary {
+    box-sizing: border-box;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border: 3px solid color-mix(in srgb, var(--text-tertiary) 52%, var(--border-color));
+    background: transparent;
+    pointer-events: none;
+  }
+
+  .arch-evo-boundary[data-boundary-kind='slice'] {
+    border-style: dotted;
+    border-color: color-mix(in srgb, var(--text-tertiary) 52%, var(--border-color));
+  }
+
+  .arch-evo-boundary-label {
+    position: absolute;
+    left: 16px;
+    bottom: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    background: color-mix(in srgb, var(--bg-primary) 92%, transparent);
+    padding: 0 4px;
+  }
+
+  .arch-evo-flow-controls {
+    position: absolute;
+    left: 16px;
+    bottom: 16px;
+    z-index: 30;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--bg-secondary) 94%, transparent);
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  }
+
+  .arch-evo-flow-control-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: 0;
+    border-bottom: 1px solid var(--border-color);
+    background: transparent;
+    color: var(--text-primary);
+    cursor: pointer;
+  }
+
+  .arch-evo-flow-control-btn:last-child {
+    border-bottom: 0;
+  }
+
+  .arch-evo-flow-control-btn:hover {
+    background: color-mix(in srgb, var(--text-tertiary) 10%, var(--bg-secondary));
+  }
+
+  .arch-evo-flow-control-btn i {
+    font-size: 18px;
+  }
+
+  .arch-evo-node[data-transition='added'],
+  .arch-evo-node[data-transition='changed'] {
+    border-color: color-mix(in srgb, var(--amber) 55%, var(--border-color));
+    box-shadow:
+      0 0 0 2px color-mix(in srgb, var(--amber) 18%, transparent),
+      0 12px 26px rgba(245, 158, 11, 0.18);
+    transform: translateY(-2px);
+  }
+
+  .arch-evo-node[data-transition='added'] {
+    animation: arch-evo-node-pulse 1.2s ease-out infinite;
+  }
+
+  .arch-evo-node[data-transition='removed'],
+  .arch-evo-node[data-evolution-state='ghosted'] {
+    opacity: 0.28;
+    border-style: dashed;
+    box-shadow: none;
+  }
+
+  .arch-evo-node-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .arch-evo-node-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--text-tertiary) 10%, var(--bg-secondary));
+    color: var(--text-secondary);
+    flex-shrink: 0;
+  }
+
+  .arch-evo-node-icon i {
+    font-size: 18px;
+  }
+
+  .arch-evo-node-subtitle {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-tertiary);
+    margin-bottom: 2px;
+  }
+
+  .arch-evo-node-title {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--text-primary);
+  }
+
+  .arch-evo-capability-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .arch-evo-capability {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    padding: 0 9px;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--text-tertiary) 20%, var(--border-color));
+    background: color-mix(in srgb, var(--text-tertiary) 7%, var(--bg-secondary));
+    color: var(--text-secondary);
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1;
+  }
+
+  .arch-evo-capability[data-transition='removed'],
+  .arch-evo-capability[data-evolution-state='ghosted'] {
+    opacity: 0.42;
+    text-decoration: line-through;
+  }
+
+  .arch-evo-capability[data-transition='added'],
+  .arch-evo-capability[data-transition='changed'] {
+    border-color: color-mix(in srgb, var(--amber) 48%, var(--border-color));
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--amber) 14%, transparent);
+  }
+
+  .arch-evo-edge-group--added .react-flow__edge-path,
+  .arch-evo-edge-group--added .react-flow__edge-path-selector {
+    animation: arch-evo-edge-added-pulse 0.95s ease-out infinite;
+  }
+
+  .arch-evo-edge-group--changed .react-flow__edge-path,
+  .arch-evo-edge-group--changed .react-flow__edge-path-selector {
+    animation: arch-evo-edge-changed-pulse 1s ease-out infinite;
+  }
+
+  .arch-evo-edge-group--removed .react-flow__edge-path,
+  .arch-evo-edge-group--removed .react-flow__edge-path-selector {
+    animation: arch-evo-edge-removed-pulse 1s ease-out infinite;
+  }
+
+  .arch-evo-edge-glow--quiet {
+    opacity: 0;
+  }
+
+  .arch-evo-edge-label {
+    position: absolute;
+    pointer-events: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--border-color);
+    background: color-mix(in srgb, var(--bg-secondary) 94%, transparent);
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.1);
+    white-space: nowrap;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .arch-evo-edge-label::before {
+    content: '';
+    display: block;
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    flex-shrink: 0;
+  }
+
+  .arch-evo-edge-label--query::before {
+    background: var(--green);
+  }
+
+  .arch-evo-edge-label--write::before {
+    background: var(--blue);
+  }
+
+  .arch-evo-edge-label--event::before {
+    background: var(--amber);
+  }
+
+  .arch-evo-edge-label--changed {
+    border-color: color-mix(in srgb, var(--amber) 48%, var(--border-color));
+    box-shadow:
+      0 0 0 2px color-mix(in srgb, var(--amber) 14%, transparent),
+      0 10px 22px rgba(245, 158, 11, 0.2);
+  }
+
+  .arch-evo-edge-label-text {
+    line-height: 1;
+  }
+
+  .arch-evo-edge-label-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 18px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--amber) 16%, var(--bg-secondary));
+    color: color-mix(in srgb, var(--amber) 74%, var(--text-primary));
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: capitalize;
+  }
+
+  .arch-evo-inspector-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    padding: 0 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .arch-evo-inspector-badge--read {
+    background: color-mix(in srgb, var(--green) 14%, var(--bg-secondary));
+    color: color-mix(in srgb, var(--green) 76%, var(--text-primary));
+  }
+
+  .arch-evo-inspector-badge--write {
+    background: color-mix(in srgb, var(--blue) 14%, var(--bg-secondary));
+    color: color-mix(in srgb, var(--blue) 82%, var(--text-primary));
+  }
+
+  .arch-evo-inspector-badge--event {
+    background: color-mix(in srgb, var(--amber) 14%, var(--bg-secondary));
+    color: color-mix(in srgb, var(--amber) 74%, var(--text-primary));
+  }
+
+  .arch-evo-inspector-transition {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    padding: 0 10px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--accent) 14%, var(--bg-secondary));
+    color: color-mix(in srgb, var(--accent) 80%, var(--text-primary));
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: capitalize;
+  }
+
+  @keyframes arch-evo-node-pulse {
+    0% {
+      box-shadow:
+        0 0 0 0 color-mix(in srgb, var(--amber) 28%, transparent),
+        0 12px 26px rgba(245, 158, 11, 0.18);
+    }
+
+    100% {
+      box-shadow:
+        0 0 0 10px color-mix(in srgb, var(--amber) 0%, transparent),
+        0 12px 26px rgba(245, 158, 11, 0.12);
+    }
+  }
+
+  @keyframes arch-evo-edge-pulse {
+    0%,
+    100% {
+      opacity: 0.25;
+    }
+
+    50% {
+      opacity: 0.6;
+    }
+  }
+
+  @keyframes arch-evo-edge-added-pulse {
+    0%,
+    100% {
+      opacity: 0.72;
+      stroke-width: 4.6px;
+    }
+
+    50% {
+      opacity: 1;
+      stroke-width: 6px;
+    }
+  }
+
+  @keyframes arch-evo-edge-changed-pulse {
+    0%,
+    100% {
+      opacity: 0.72;
+      stroke-width: 4.6px;
+    }
+
+    50% {
+      opacity: 1;
+      stroke-width: 6.2px;
+    }
+  }
+
+  @keyframes arch-evo-edge-removed-pulse {
+    0%,
+    100% {
+      opacity: 0.72;
+      stroke-width: 4.6px;
+    }
+
+    50% {
+      opacity: 1;
+      stroke-width: 6.2px;
+    }
   }
 
   /* Domain Map - Inspector Panel */

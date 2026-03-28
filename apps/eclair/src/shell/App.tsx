@@ -1,9 +1,9 @@
 import {
-  Routes, Route
+  Routes, Route 
 } from 'react-router-dom'
 import { AppShell } from '@/shell/components/AppShell/AppShell'
 import {
-  GraphProvider, useGraph
+  GraphProvider, useGraph 
 } from '@/platform/infra/graph-state/GraphContext'
 import { ExportProvider } from '@/platform/infra/export/ExportContext'
 import { EmptyState } from '@/features/empty-state/entrypoint/EmptyState'
@@ -11,6 +11,7 @@ import type { RiviereGraph } from '@living-architecture/riviere-schema'
 import { OverviewPage } from '@/features/overview/entrypoint/OverviewPage'
 import { FullGraphPage } from '@/features/full-graph/entrypoint/FullGraphPage'
 import { DomainMapPage } from '@/features/domain-map/entrypoint/DomainMapPage'
+import { ArchitectureEvolutionPage } from '@/features/architecture-evolution/entrypoint/ArchitectureEvolutionPage'
 import { FlowsPage } from '@/features/flows/entrypoint/FlowsPage'
 import { DomainDetailPage } from '@/features/domains/entrypoint/DomainDetailPage'
 import { EntitiesPage } from '@/features/entities/entrypoint/EntitiesPage'
@@ -40,6 +41,10 @@ function DomainMap(): React.ReactElement {
   return <DomainMapPage graph={useRequiredGraph()} />
 }
 
+function ArchitectureEvolution(): React.ReactElement {
+  return <ArchitectureEvolutionPage />
+}
+
 function Flows(): React.ReactElement {
   return <FlowsPage graph={useRequiredGraph()} />
 }
@@ -58,7 +63,7 @@ function Events(): React.ReactElement {
 
 export function AppContent(): React.ReactElement {
   const {
-    hasGraph, graphName, graph, isLoadingDemo
+    hasGraph, graphName, graph, isLoadingDemo 
   } = useGraph()
 
   if (isLoadingDemo) {
@@ -78,6 +83,7 @@ export function AppContent(): React.ReactElement {
         <Route path="/" element={hasGraph ? <Overview /> : <EmptyState />} />
         <Route path="/full-graph" element={hasGraph ? <FullGraph /> : <EmptyState />} />
         <Route path="/domains" element={hasGraph ? <DomainMap /> : <EmptyState />} />
+        <Route path="/evolution" element={<ArchitectureEvolution />} />
         <Route path="/flows" element={hasGraph ? <Flows /> : <EmptyState />} />
         <Route path="/entities" element={hasGraph ? <Entities /> : <EmptyState />} />
         <Route path="/events" element={hasGraph ? <Events /> : <EmptyState />} />

@@ -141,7 +141,7 @@ export function DomainMapPage({ graph }: DomainMapPageProps): React.ReactElement
       if (node.data.isExternal === true) {
         return
       }
-      navigate(`/domains/${node.id}`)
+      void navigate(`/domains/${node.id}`)
     },
     [navigate],
   )
