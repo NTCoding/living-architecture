@@ -1,5 +1,5 @@
 import type { DraftComponent } from '@living-architecture/riviere-extract-ts'
-import type { CategorizedComponents } from '../../../platform/infra/cli-presentation/format-pr-markdown'
+import type { CategorizedComponents } from '../../../platform/infra/cli/presentation/format-pr-markdown'
 
 interface ComponentIdentity {
   readonly type: string

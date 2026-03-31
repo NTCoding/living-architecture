@@ -1,5 +1,5 @@
 import type { SystemType } from '@living-architecture/riviere-schema'
-import { isValidSystemType } from '../../../platform/infra/cli-presentation/component-types'
+import { isValidSystemType } from '../../../platform/infra/cli/presentation/component-types'
 import { InvalidDomainJsonError } from '../../../platform/infra/errors/errors'
 
 interface DomainInputParsed {

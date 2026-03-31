@@ -1,0 +1,57 @@
+# Canonical Role Configurations
+
+These configurations show how roles compose together in standard patterns. When refactoring code to resolve violations, the result MUST match one of these configurations.
+
+## CLI Invoking Command Use Case
+
+### Data Flow
+
+```
+raw CLI args
+     │ validated args
+     ▼
+[command-input-factory]
+     │ command-use-case-input
+     ▼
+[command-use-case] → see: Command Use Case Pattern
+     │ command-use-case-result
+     ▼
+[cli-entrypoint]
+     ├── error → [cli-output-formatter] → exit
+     │            uses [cli-error] for error codes
+     └── success → [cli-output-formatter] → CLI output
+```
+
+### Who Calls Who
+
+The [cli-entrypoint] orchestrates EVERYTHING. It is the only caller.
+
+```
+[cli-entrypoint] calls [cli-input-validator]     ← validates raw CLI args
+[cli-entrypoint] calls [command-input-factory]    ← builds typed input
+[cli-entrypoint] calls [command-use-case]         ← executes with typed input
+[cli-entrypoint] calls [cli-output-formatter]     ← formats result or error
+```
+
+The [command-use-case] does NOT call any of the above. It receives input and returns a result. That's it.
+
+## Command Use Case loading, invoking, and saving aggregate
+
+```
+[*-entrypoint]
+     │ [command-use-case-input]
+     ▼
+[command-use-case]
+     │
+     ▼
+[aggregate-repository] load
+     │ [aggregate]
+     ▼
+aggregate method
+     │ modified [aggregate]
+     ▼
+[aggregate-repository] save
+     │
+     ▼
+[command-use-case-result] → [*-entrypoint]
+```

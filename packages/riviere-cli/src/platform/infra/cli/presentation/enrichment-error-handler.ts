@@ -1,7 +1,7 @@
 import { InvalidEnrichmentTargetError } from '@living-architecture/riviere-builder'
 import { handleComponentNotFoundError } from './graph-error-output'
-import { formatError } from '../../../platform/infra/cli-presentation/output'
-import { CliErrorCode } from '../../../platform/infra/cli-presentation/error-codes'
+import { formatError } from '../../../platform/infra/cli/presentation/output'
+import { CliErrorCode } from '../../../platform/infra/cli/presentation/error-codes'
 
 /** @riviere-role cli-output-formatter */
 export function handleEnrichmentError(error: unknown): void {
