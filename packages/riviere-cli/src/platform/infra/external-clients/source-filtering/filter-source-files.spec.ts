@@ -1,14 +1,8 @@
-import {
-  describe, it, expect, vi, afterEach 
-} from 'vitest'
-import {
-  mkdtempSync, writeFileSync, rmSync, realpathSync 
-} from 'node:fs'
+import { describe, it, expect, vi, afterEach } from 'vitest'
+import { mkdtempSync, writeFileSync, rmSync, realpathSync } from 'node:fs'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
-import {
-  filterSourceFiles, SourceFilterError 
-} from './filter-source-files'
+import { filterSourceFiles, SourceFilterError } from './filter-source-files'
 
 vi.mock('../git/git-changed-files', async (importOriginal) => {
   const original = await importOriginal<typeof import('../git/git-changed-files')>()
@@ -18,9 +12,7 @@ vi.mock('../git/git-changed-files', async (importOriginal) => {
   }
 })
 
-import {
-  detectChangedTypeScriptFiles, GitError 
-} from '../git/git-changed-files'
+import { detectChangedTypeScriptFiles, GitError } from '../git/git-changed-files'
 
 const mockDetectChanged = vi.mocked(detectChangedTypeScriptFiles)
 

@@ -1,10 +1,6 @@
-import {
-  writeFile, mkdir 
-} from 'node:fs/promises'
+import { writeFile, mkdir } from 'node:fs/promises'
 import { join } from 'node:path'
-import {
-  describe, it, expect 
-} from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { createProgram } from '../../../shell/cli'
 import type { TestContext } from '../../../platform/__fixtures__/command-test-fixtures'
 import {
@@ -14,7 +10,7 @@ import {
 } from '../../../platform/__fixtures__/command-test-fixtures'
 import { parseFullExtractionOutput } from '../__fixtures__/extraction-test-fixtures'
 
-vi.mock('../../../platform/infra/git/git-repository-info', () => ({
+vi.mock('../../../platform/infra/external-clients/git/git-repository-info', () => ({
   getRepositoryInfo: vi.fn(() => ({
     name: 'test/repo',
     owner: 'test',

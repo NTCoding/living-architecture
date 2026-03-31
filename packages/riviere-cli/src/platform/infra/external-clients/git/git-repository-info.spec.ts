@@ -1,6 +1,4 @@
-import {
-  describe, it, expect 
-} from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { getRepositoryInfo } from './git-repository-info'
 import { GitError } from './git-errors'
 

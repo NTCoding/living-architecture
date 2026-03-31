@@ -1,8 +1,6 @@
 import { existsSync } from 'node:fs'
 import { resolve } from 'node:path'
-import {
-  detectChangedTypeScriptFiles, GitError 
-} from '../git/git-changed-files'
+import { detectChangedTypeScriptFiles, GitError } from '../git/git-changed-files'
 
 /** @riviere-role external-client-model */
 export interface FilterOptions {
@@ -12,7 +10,9 @@ export interface FilterOptions {
 }
 
 /** @riviere-role external-client-model */
-export interface FilterResult {readonly files: string[]}
+export interface FilterResult {
+  readonly files: string[]
+}
 
 /** @riviere-role external-client-error */
 export class SourceFilterError extends Error {

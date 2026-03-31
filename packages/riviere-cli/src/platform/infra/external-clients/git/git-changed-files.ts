@@ -21,7 +21,9 @@ function isGitError(error: unknown): error is GitError {
   return error instanceof GitError
 }
 
-interface ChangedFilesOptions {readonly base?: string}
+interface ChangedFilesOptions {
+  readonly base?: string
+}
 
 /** @riviere-role external-client-model */
 export interface ChangedFilesResult {

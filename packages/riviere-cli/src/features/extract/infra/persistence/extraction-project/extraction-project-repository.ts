@@ -1,6 +1,4 @@
-import {
-  posix, resolve 
-} from 'node:path'
+import { posix, resolve } from 'node:path'
 import { globSync } from 'glob'
 import type { DraftComponent } from '@living-architecture/riviere-extract-ts'
 import {
@@ -8,11 +6,9 @@ import {
   resolveSourceFiles,
 } from '../../../../../platform/infra/extraction-config/config-loader'
 import { loadDraftComponentsFromFile } from '../../../../../platform/infra/extraction-config/draft-component-loader'
-import { getRepositoryInfo } from '../../../../../platform/infra/git/git-repository-info'
-import { resolveFilteredSourceFiles } from '../../../../../platform/infra/source-filtering/filter-source-files'
-import {
-  ExtractionProject, type ModuleContext 
-} from '../../../domain/extraction-project'
+import { getRepositoryInfo } from '../../../../../platform/infra/external-clients/git/git-repository-info'
+import { resolveFilteredSourceFiles } from '../../../../../platform/infra/external-clients/source-filtering/filter-source-files'
+import { ExtractionProject, type ModuleContext } from '../../../domain/extraction-project'
 import { createConfiguredProject } from '../../external-clients/ts-morph/create-configured-project'
 import { findModuleTsConfigDir } from '../../external-clients/ts-morph/find-module-tsconfig-dir'
 
@@ -53,9 +49,9 @@ export class ExtractionProjectRepository {
       loadChangedProjectParams.baseBranch === undefined
         ? { pr: true }
         : {
-          base: loadChangedProjectParams.baseBranch,
-          pr: true,
-        },
+            base: loadChangedProjectParams.baseBranch,
+            pr: true,
+          },
     )
     return this.createExtractionProject(
       parsedConfigState,
@@ -119,7 +115,9 @@ export class ExtractionProjectRepository {
     const sourceFileSet = new Set(sourceFilePaths)
 
     return parsedConfigState.resolvedConfig.modules.map((module) => {
-      const allModuleFiles = globSync(posix.join(module.path, module.glob), {cwd: parsedConfigState.configDir,}).map((filePath) => resolve(parsedConfigState.configDir, filePath))
+      const allModuleFiles = globSync(posix.join(module.path, module.glob), {
+        cwd: parsedConfigState.configDir,
+      }).map((filePath) => resolve(parsedConfigState.configDir, filePath))
       const moduleFiles = allModuleFiles.filter((filePath) => sourceFileSet.has(filePath))
       const moduleConfigDir = findModuleTsConfigDir(parsedConfigState.configDir, module.path)
       const project = createConfiguredProject(moduleConfigDir, !useTsConfig)

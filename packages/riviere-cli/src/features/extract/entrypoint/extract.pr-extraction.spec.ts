@@ -1,8 +1,6 @@
 import { writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
-import {
-  describe, it, expect, vi 
-} from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import type { TestContext } from '../../../platform/__fixtures__/command-test-fixtures'
 import {
   createTestContext,
@@ -17,7 +15,7 @@ import {
   createValidExtractFixture,
 } from '../__fixtures__/extraction-test-fixtures'
 
-vi.mock('../../../platform/infra/git/git-repository-info', () => ({
+vi.mock('../../../platform/infra/external-clients/git/git-repository-info', () => ({
   getRepositoryInfo: vi.fn(() => ({
     name: 'test/repo',
     owner: 'test',
@@ -25,19 +23,24 @@ vi.mock('../../../platform/infra/git/git-repository-info', () => ({
   })),
 }))
 
-vi.mock('../../../platform/infra/git/git-changed-files', async (importOriginal) => {
-  const original =
-    await importOriginal<typeof import('../../../platform/infra/git/git-changed-files')>()
-  return {
-    ...original,
-    detectChangedTypeScriptFiles: vi.fn(),
-  }
-})
+vi.mock(
+  '../../../platform/infra/external-clients/git/git-changed-files',
+  async (importOriginal) => {
+    const original =
+      await importOriginal<
+        typeof import('../../../platform/infra/external-clients/git/git-changed-files')
+      >()
+    return {
+      ...original,
+      detectChangedTypeScriptFiles: vi.fn(),
+    }
+  },
+)
 
 import {
   detectChangedTypeScriptFiles,
   GitError,
-} from '../../../platform/infra/git/git-changed-files'
+} from '../../../platform/infra/external-clients/git/git-changed-files'
 
 const mockDetectChanged = vi.mocked(detectChangedTypeScriptFiles)
 
@@ -62,9 +65,7 @@ describe('riviere extract PR extraction', () => {
         expectedA: '--files',
         expectedB: '--enrich',
       },
-    ])('rejects $expectedA and $expectedB together', async ({
-      flags, expectedA, expectedB 
-    }) => {
+    ])('rejects $expectedA and $expectedB together', async ({ flags, expectedA, expectedB }) => {
       const configPath = await createValidExtractFixture(ctx.testDir)
 
       await expect(

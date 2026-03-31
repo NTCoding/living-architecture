@@ -1,11 +1,9 @@
 import { formatError } from './output'
-import {
-  CliErrorCode, ExitCode, ConfigValidationError 
-} from './error-codes'
-import { GitError } from '../git/git-errors'
-import { DraftComponentLoadError } from '../extraction-config/draft-component-loader'
+import { CliErrorCode, ExitCode, ConfigValidationError } from './error-codes'
+import { GitError } from '../../external-clients/git/git-errors'
+import { DraftComponentLoadError } from '../../extraction-config/draft-component-loader'
 import { ConnectionDetectionError } from '@living-architecture/riviere-extract-ts'
-import { SourceFilterError } from '../source-filtering/filter-source-files'
+import { SourceFilterError } from '../../external-clients/source-filtering/filter-source-files'
 
 /** @riviere-role cli-output-formatter */
 export function handleGlobalError(error: unknown): never {

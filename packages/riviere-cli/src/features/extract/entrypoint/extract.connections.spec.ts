@@ -1,6 +1,4 @@
-import {
-  describe, it, expect, vi, afterEach 
-} from 'vitest'
+import { describe, it, expect, vi, afterEach } from 'vitest'
 import type { TestContext } from '../../../platform/__fixtures__/command-test-fixtures'
 import {
   createTestContext,
@@ -13,7 +11,7 @@ import {
   createValidExtractFixture,
 } from '../__fixtures__/extraction-test-fixtures'
 
-vi.mock('../../../platform/infra/git/git-repository-info', () => ({
+vi.mock('../../../platform/infra/external-clients/git/git-repository-info', () => ({
   getRepositoryInfo: vi.fn(() => ({
     name: 'test/repo',
     owner: 'test',
@@ -148,9 +146,7 @@ describe('riviere extract — connection detection', () => {
     setupCommandTest(ctx)
 
     it('outputs empty links when zero components extracted', async () => {
-      const {
-        writeFile, mkdir 
-      } = await import('node:fs/promises')
+      const { writeFile, mkdir } = await import('node:fs/promises')
       const { join } = await import('node:path')
       const srcDir = join(ctx.testDir, 'src')
       await mkdir(srcDir, { recursive: true })
