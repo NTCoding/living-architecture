@@ -16,22 +16,22 @@ Read this file and follow the workflow for the requested action:
 1. **Generic roles over specific** — Always try to fit existing roles before proposing new ones. The fewer roles, the more consistent the codebase.
 2. **Split over force-fit** — If code mixes responsibilities, recommend splitting rather than assigning a weak role.
 3. **Human approval for new roles** — Never silently introduce a new role. Always propose and wait for approval.
-4. **Config owns structure, definitions own semantics** — The config file defines targets, layers, paths. The definition files describe behavioral contracts and patterns.
+4. **Config owns structure, definitions own semantics** — The builder config defines packages, locations, and allowed roles. The definition files describe behavioral contracts and patterns.
 5. **Document everything** — Every decision, challenge, and insight must be captured in the battle test log.
 
 ## Step 1: Load Context
 
 Before classifying any code:
 
-1. **Read the config file**: Find `role-enforcement.config.json` in the target package. Parse it to understand:
-   - `include` / `ignorePatterns` — which files are in scope
-   - `layers` — which roles are allowed at which paths
+1. **Read the builder config**: Read `.riviere/role-enforcement.config.ts` and `.riviere/roles.ts` to understand:
+   - `packages` — which packages are enforced
+   - `locations` — which roles are allowed at which paths (relative to each package)
    - `roles` — the full role catalog with targets, naming patterns, and constraints
-   - `roleDefinitionsDir` — path to role definition files
+   - `ignorePatterns` — which files are excluded
 
-2. **Read index.md**: Read `{roleDefinitionsDir}/index.md` to discover project-level architecture resources. Follow the links to read referenced documents (separation of concerns, tactical DDD, ADRs, conventions).
+2. **Read index.md**: Read `.riviere/role-definitions/index.md` to discover project-level architecture resources. Follow the links to read referenced documents (separation of concerns, tactical DDD, ADRs, conventions).
 
-3. **Read role definitions**: For each role in the config, read `{roleDefinitionsDir}/{role-name}.md`. These contain:
+3. **Read role definitions**: For each role in the config, read `.riviere/role-definitions/{role-name}.md`. These contain:
    - Behavioral contracts (what the code DOES)
    - Examples (canonical + edge cases)
    - Anti-patterns (misclassifications, mixed responsibility signals)
@@ -62,15 +62,15 @@ For each unannotated exported declaration (function, class, interface, type-alia
 
 ### Classification Decision Process
 
-1. **Layer constraint**: What layer does the file path map to? What roles are allowed in that layer?
+1. **Layer constraint**: What location does the file path map to? What roles are allowed in that location?
 2. **Name matching**: Does the declaration name match any role's `nameMatches` pattern?
 3. **Target matching**: What is the declaration type? Filter to roles allowing that target.
 4. **Behavioral analysis**: Read the role definition files for candidate roles. Which behavioral contract best matches what this code actually does?
 
 ### Confidence Levels
 
-- **HIGH** — Single clear match. Layer + target + behavior all point to one role.
-- **MEDIUM** — Two candidates, one stronger. Or behavior matches but the file is in an unexpected layer.
+- **HIGH** — Single clear match. Location + target + behavior all point to one role.
+- **MEDIUM** — Two candidates, one stronger. Or behavior matches but the file is in an unexpected location.
 - **LOW** — Ambiguous. Possible mixed responsibility. Multiple roles could apply.
 
 ### Mixed Responsibility Detection
@@ -134,24 +134,23 @@ After presenting the classification report:
 
 2. **Refactor** (when mixed responsibilities detected):
    - Split the file into separate files, one per role
-   - Move each piece to the correct layer directory
+   - Move each piece to the correct location directory
    - Update imports in all affected files
    - Annotate the split pieces
 
 3. **Update config** (if needed):
-   - Add new include patterns if the scope expanded
-   - Add new layer paths if files moved to new locations
-   - Add new roles if approved by user
+   - Add new locations in `.riviere/role-enforcement.config.ts` if files moved to new paths
+   - Add new roles in `.riviere/roles.ts` if approved by user
 
 4. **Verify**: Run the enforcement tool:
    ```bash
-   pnpm exec tsx packages/riviere-role-enforcement/src/bin.ts packages/riviere-cli/role-enforcement.config.json
+   pnpm nx run @living-architecture/source:role-check
    ```
    Fix any violations until the tool passes.
 
 5. **Run tests**: Ensure existing tests still pass:
    ```bash
-   pnpm nx test riviere-cli
+   pnpm nx test {package-name}
    ```
 
 ## Step 7: Document in Battle Test Log
@@ -192,11 +191,12 @@ After completing work on each area, append to `packages/riviere-role-enforcement
 
 ## Configure Workflow
 
-If no `role-enforcement.config.json` exists in the target package:
+To add role enforcement for a new package:
 
 1. Analyze the package's directory structure
-2. Map directories to layers based on naming conventions
-3. Start with the standard role catalog (the 13 roles defined above)
-4. Create the config file with appropriate include/ignore patterns
-5. Create the `roleDefinitionsDir` with index.md and role definition files
-6. Run enforcement and iteratively fix until compliance is achieved
+2. Map directories to locations based on naming conventions
+3. Add the package path to the `packages` array in `.riviere/role-enforcement.config.ts`
+4. Add any new locations needed for the package's structure
+5. Add any new roles to `.riviere/roles.ts` if needed (with user approval)
+6. Create role definition files in `.riviere/role-definitions/` for any new roles
+7. Run enforcement and iteratively fix until compliance is achieved
