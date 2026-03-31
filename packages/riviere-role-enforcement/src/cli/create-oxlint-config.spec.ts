@@ -19,7 +19,7 @@ describe('createOxlintConfig', () => {
         roles: [],
       },
       '/repo/packages/riviere-cli',
-      '/repo/packages/riviere-cli/role-enforcement.config.json',
+      'role-enforcement.config.ts',
       '/repo/packages/riviere-role-enforcement/role-enforcement-plugin.mjs',
     )
 
@@ -27,7 +27,7 @@ describe('createOxlintConfig', () => {
       '../riviere-role-enforcement/role-enforcement-plugin.mjs',
     )
     expect(config.rules['riviere-role-enforcement/enforce-roles'][1].configDisplayPath).toBe(
-      'role-enforcement.config.json',
+      'role-enforcement.config.ts',
     )
     expect(config.rules['riviere-role-enforcement/enforce-roles'][1].layers).toStrictEqual({
       commands: {
@@ -52,7 +52,7 @@ describe('createOxlintConfig', () => {
         roles: [],
       },
       '/repo/packages/riviere-role-enforcement',
-      '/repo/packages/riviere-role-enforcement/role-enforcement.config.json',
+      'role-enforcement.config.ts',
       '/repo/packages/riviere-role-enforcement/role-enforcement-plugin.mjs',
     )
 

@@ -7,8 +7,7 @@ import { spawnSync } from 'node:child_process'
 import { performance } from 'node:perf_hooks'
 import { fileURLToPath } from 'node:url'
 import { minimatch } from 'minimatch'
-import { loadRoleEnforcementConfig } from '../config/load-role-enforcement-config'
-import { RoleEnforcementConfigError } from '../config/role-enforcement-config-error'
+import type { RoleEnforcementResult } from '../config/role-enforcement-builder'
 import { createOxlintConfig } from './create-oxlint-config'
 
 export interface RoleEnforcementRunResult {
@@ -66,12 +65,12 @@ const defaultRuntimeDeps: RoleEnforcementRuntimeDeps = {
 }
 
 export function runRoleEnforcement(
-  configPath: string,
+  config: RoleEnforcementResult,
+  configDir: string,
   runtimeDeps: RoleEnforcementRuntimeDeps = defaultRuntimeDeps,
 ): RoleEnforcementRunResult {
-  const loadedConfig = loadRoleEnforcementConfig(configPath)
   const currentDir = path.dirname(fileURLToPath(import.meta.url))
-  const canonicalConfigDir = runtimeDeps.realpathSync(loadedConfig.configDir)
+  const canonicalConfigDir = runtimeDeps.realpathSync(configDir)
   const pluginPath = path.resolve(currentDir, '..', '..', 'role-enforcement-plugin.mjs')
   const oxlintBinaryPath = path.resolve(
     currentDir,
@@ -84,19 +83,15 @@ export function runRoleEnforcement(
     'oxlint',
   )
   const oxlintConfigPath = path.join(
-    loadedConfig.configDir,
+    configDir,
     `.oxlintrc.role-enforcement.${process.pid}.${Date.now()}.json`,
   )
-  const oxlintConfig = createOxlintConfig(
-    loadedConfig.config,
-    canonicalConfigDir,
-    loadedConfig.configPath,
-    pluginPath,
-  )
+  const configDisplayPath = 'role-enforcement.config.ts'
+  const oxlintConfig = createOxlintConfig(config, canonicalConfigDir, configDisplayPath, pluginPath)
   const lintTargets = resolveLintTargets(
     canonicalConfigDir,
-    loadedConfig.config.include,
-    loadedConfig.config.ignorePatterns,
+    config.include,
+    config.ignorePatterns,
     runtimeDeps.readdirSync,
   )
 
@@ -107,7 +102,7 @@ export function runRoleEnforcement(
     oxlintBinaryPath,
     ['-c', oxlintConfigPath, ...lintTargets],
     {
-      cwd: loadedConfig.configDir,
+      cwd: configDir,
       encoding: 'utf8',
     },
   )
@@ -129,8 +124,8 @@ export function runRoleEnforcement(
 
 function resolveLintTargets(
   configDir: string,
-  includePatterns: string[],
-  ignorePatterns: string[],
+  includePatterns: readonly string[],
+  ignorePatterns: readonly string[],
   readDirectory: RoleEnforcementRuntimeDeps['readdirSync'],
 ): string[] {
   return walkFiles(configDir, readDirectory)
@@ -151,7 +146,7 @@ function walkFiles(
     .map((entry) => normalizePath(path.relative(rootDir, path.join(entry.parentPath, entry.name))))
 }
 
-function matchesAny(filePath: string, patterns: string[]): boolean {
+function matchesAny(filePath: string, patterns: readonly string[]): boolean {
   return patterns.some((pattern) => minimatch(filePath, pattern, { dot: true }))
 }
 
@@ -160,10 +155,7 @@ function normalizePath(value: string): string {
 }
 
 export function formatRoleEnforcementFailure(error: unknown): string {
-  if (
-    error instanceof RoleEnforcementConfigError ||
-    error instanceof RoleEnforcementExecutionError
-  ) {
+  if (error instanceof RoleEnforcementExecutionError) {
     return error.message
   }
 

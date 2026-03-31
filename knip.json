@@ -38,6 +38,7 @@
     }
   },
   "ignore": [
+    ".riviere/**",
     "**/node_modules/**",
     "**/*.d.ts",
     "**/dist/**",

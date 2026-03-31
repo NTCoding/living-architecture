@@ -1,14 +1,13 @@
-export type {
-  LayerDefinition,
-  RoleDefinition,
-  RoleEnforcementConfig,
-  RoleTarget,
-} from './config/role-enforcement-config'
 export {
-  loadRoleEnforcementConfig,
-  type LoadedRoleEnforcementConfig,
-} from './config/load-role-enforcement-config'
-export { RoleEnforcementConfigError } from './config/role-enforcement-config-error'
+  location, role, roleEnforcement 
+} from './config/role-enforcement-builder'
+export type {
+  BuiltLocation,
+  BuiltRole,
+  LocationBuilder,
+  RoleEnforcementResult,
+  RoleTarget,
+} from './config/role-enforcement-builder'
 export {
   formatRoleEnforcementFailure,
   RoleEnforcementExecutionError,

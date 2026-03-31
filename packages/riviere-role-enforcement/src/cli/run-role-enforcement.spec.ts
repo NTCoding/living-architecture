@@ -6,16 +6,43 @@ import path from 'node:path'
 import {
   expect, it 
 } from 'vitest'
+import {
+  location, role, roleEnforcement 
+} from '../config/role-enforcement-builder'
 import { runRoleEnforcement } from './run-role-enforcement'
+
+const testRoles = [
+  role('command-use-case', {
+    targets: ['function'],
+    allowedInputs: ['command-use-case-input'],
+    allowedNames: ['runThing'],
+    allowedOutputs: ['command-use-case-result'],
+  }),
+  role('command-use-case-input', {
+    targets: ['interface'],
+    allowedNames: ['RunThingInput'],
+  }),
+  role('command-use-case-result', {
+    targets: ['interface'],
+    allowedNames: ['RunThingResult'],
+  }),
+  role('cli-entrypoint', {
+    targets: ['function'],
+    allowedNames: ['createCli'],
+  }),
+] as const
+
+type TestRoleName = (typeof testRoles)[number]['name']
 
 function createFixtureWorkspace(): string {
   const workspaceDir = mkdtempSync(path.join(tmpdir(), 'role-enforcement-workspace-'))
-  mkdirSync(path.join(workspaceDir, 'src', 'commands'), { recursive: true })
-  mkdirSync(path.join(workspaceDir, 'src', 'entrypoint'), { recursive: true })
-  mkdirSync(path.join(workspaceDir, 'role-definitions'), { recursive: true })
+  const pkgDir = path.join(workspaceDir, 'packages', 'my-app')
+  mkdirSync(path.join(pkgDir, 'src', 'commands'), { recursive: true })
+  mkdirSync(path.join(pkgDir, 'src', 'entrypoint'), { recursive: true })
+  mkdirSync(path.join(workspaceDir, '.riviere', 'role-definitions'), { recursive: true })
 
   writeFileSync(
-    path.join(workspaceDir, 'src', 'commands', 'runThingInput.ts'),
+    path.join(pkgDir, 'src', 'commands', 'runThingInput.ts'),
     `/** @riviere-role command-use-case-input */
 export interface RunThingInput {
   configPath: string
@@ -23,7 +50,7 @@ export interface RunThingInput {
 `,
   )
   writeFileSync(
-    path.join(workspaceDir, 'src', 'commands', 'runThingResult.ts'),
+    path.join(pkgDir, 'src', 'commands', 'runThingResult.ts'),
     `/** @riviere-role command-use-case-result */
 export interface RunThingResult {
   status: 'ok'
@@ -31,7 +58,7 @@ export interface RunThingResult {
 `,
   )
   writeFileSync(
-    path.join(workspaceDir, 'src', 'commands', 'runThing.ts'),
+    path.join(pkgDir, 'src', 'commands', 'runThing.ts'),
     `import type { RunThingInput } from './runThingInput'
 import type { RunThingResult } from './runThingResult'
 
@@ -44,74 +71,41 @@ export function runThing(runThingInput: RunThingInput): RunThingResult {
 `,
   )
   writeFileSync(
-    path.join(workspaceDir, 'src', 'entrypoint', 'cli.ts'),
+    path.join(pkgDir, 'src', 'entrypoint', 'cli.ts'),
     `/** @riviere-role cli-entrypoint */
 export function createCli(): void {}
 `,
   )
 
-  const roles = [
-    {
-      allowedInputs: ['command-use-case-input'],
-      allowedNames: ['runThing'],
-      allowedOutputs: ['command-use-case-result'],
-      name: 'command-use-case',
-      targets: ['function'],
-    },
-    {
-      allowedNames: ['RunThingInput'],
-      name: 'command-use-case-input',
-      targets: ['interface'],
-    },
-    {
-      allowedNames: ['RunThingResult'],
-      name: 'command-use-case-result',
-      targets: ['interface'],
-    },
-    {
-      allowedNames: ['createCli'],
-      name: 'cli-entrypoint',
-      targets: ['function'],
-    },
-  ]
-
-  const roleDefsDir = path.join(workspaceDir, 'role-definitions')
+  const roleDefsDir = path.join(workspaceDir, '.riviere', 'role-definitions')
   writeFileSync(path.join(roleDefsDir, 'index.md'), '# Role Definitions')
-  for (const role of roles) {
-    writeFileSync(path.join(roleDefsDir, `${role.name}.md`), `# ${role.name}`)
+  for (const r of testRoles) {
+    writeFileSync(path.join(roleDefsDir, `${r.name}.md`), `# ${r.name}`)
   }
-
-  writeFileSync(
-    path.join(workspaceDir, 'role-enforcement.config.json'),
-    JSON.stringify(
-      {
-        ignorePatterns: ['**/*.spec.ts'],
-        include: ['src/**/*.ts'],
-        layers: {
-          commands: {
-            allowedRoles: ['command-use-case', 'command-use-case-input', 'command-use-case-result'],
-            paths: ['src/commands'],
-          },
-          entrypoint: {
-            allowedRoles: ['cli-entrypoint'],
-            paths: ['src/entrypoint'],
-          },
-        },
-        roleDefinitionsDir: 'role-definitions',
-        roles,
-      },
-      null,
-      2,
-    ),
-  )
 
   return workspaceDir
 }
 
+const testConfig = roleEnforcement({
+  packages: ['packages/my-app'],
+  ignorePatterns: ['**/*.spec.ts'],
+  roleDefinitionsDir: '.riviere/role-definitions',
+  roles: testRoles,
+  locations: [
+    location<TestRoleName>('src')
+      .subLocation('/commands', [
+        'command-use-case',
+        'command-use-case-input',
+        'command-use-case-result',
+      ])
+      .subLocation('/entrypoint', ['cli-entrypoint']),
+  ],
+})
+
 it('runs oxlint successfully for a valid fixture workspace', () => {
   const workspaceDir = createFixtureWorkspace()
 
-  const result = runRoleEnforcement(path.join(workspaceDir, 'role-enforcement.config.json'))
+  const result = runRoleEnforcement(testConfig, workspaceDir)
 
   expect(result.exitCode).toBe(0)
   expect(result.stderr).toBe('')
@@ -125,7 +119,7 @@ it('runs oxlint successfully for a valid fixture workspace', () => {
 it('reports invalid command input role usage', () => {
   const workspaceDir = createFixtureWorkspace()
   writeFileSync(
-    path.join(workspaceDir, 'src', 'commands', 'runThing.ts'),
+    path.join(workspaceDir, 'packages', 'my-app', 'src', 'commands', 'runThing.ts'),
     `import type { RunThingResult } from './runThingResult'
 
 /** @riviere-role command-use-case */
@@ -137,7 +131,7 @@ export function runThing(runThingInput: string): RunThingResult {
 `,
   )
 
-  const result = runRoleEnforcement(path.join(workspaceDir, 'role-enforcement.config.json'))
+  const result = runRoleEnforcement(testConfig, workspaceDir)
 
   expect(result.exitCode).toBe(1)
   expect(result.stdout).toContain(

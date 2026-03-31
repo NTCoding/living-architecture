@@ -1,62 +1,25 @@
-import * as fs from 'node:fs'
-import * as os from 'node:os'
-import path from 'node:path'
 import { vi } from 'vitest'
-import { RoleEnforcementConfigError } from '../config/role-enforcement-config-error'
+import {
+  location, role, roleEnforcement 
+} from '../config/role-enforcement-builder'
 import {
   formatRoleEnforcementFailure,
   RoleEnforcementExecutionError,
   runRoleEnforcement,
 } from './run-role-enforcement'
 
-function createFixtureWorkspace(): string {
-  const workspaceDir = fs.mkdtempSync(path.join(os.tmpdir(), 'role-enforcement-error-'))
-  fs.mkdirSync(path.join(workspaceDir, 'src', 'entrypoint'), { recursive: true })
-  fs.mkdirSync(path.join(workspaceDir, 'role-definitions'), { recursive: true })
-  fs.writeFileSync(
-    path.join(workspaceDir, 'src', 'entrypoint', 'cli.ts'),
-    '/** @riviere-role cli-entrypoint */\nexport function createCli(): void {}\n',
-  )
-  fs.writeFileSync(path.join(workspaceDir, 'role-definitions', 'index.md'), '# Role Definitions')
-  fs.writeFileSync(
-    path.join(workspaceDir, 'role-definitions', 'cli-entrypoint.md'),
-    '# cli-entrypoint',
-  )
-  fs.writeFileSync(
-    path.join(workspaceDir, 'role-enforcement.config.json'),
-    JSON.stringify(
-      {
-        ignorePatterns: [],
-        include: ['src/**/*.ts'],
-        layers: {
-          entrypoint: {
-            allowedRoles: ['cli-entrypoint'],
-            paths: ['src/entrypoint'],
-          },
-        },
-        roleDefinitionsDir: 'role-definitions',
-        roles: [
-          {
-            allowedNames: ['createCli'],
-            name: 'cli-entrypoint',
-            targets: ['function'],
-          },
-        ],
-      },
-      null,
-      2,
-    ),
-  )
-
-  return workspaceDir
-}
+const minimalConfig = roleEnforcement({
+  packages: ['packages/my-app'],
+  ignorePatterns: [],
+  roleDefinitionsDir: '.riviere/role-definitions',
+  roles: [role('cli-entrypoint', { targets: ['function'] })] as const,
+  locations: [location<'cli-entrypoint'>('src').subLocation('/entrypoint', ['cli-entrypoint'])],
+})
 
 describe('runRoleEnforcement error handling', () => {
   it('throws execution errors when oxlint cannot be started', () => {
-    const workspaceDir = createFixtureWorkspace()
-
     expect(() =>
-      runRoleEnforcement(path.join(workspaceDir, 'role-enforcement.config.json'), {
+      runRoleEnforcement(minimalConfig, '/var/folders/fake-dir', {
         now: () => 100,
         readdirSync: vi.fn(() => []),
         realpathSync: (value) => String(value),
@@ -70,17 +33,9 @@ describe('runRoleEnforcement error handling', () => {
         writeFileSync: vi.fn(),
       }),
     ).toThrowError(new RoleEnforcementExecutionError('spawn failed'))
-
-    fs.rmSync(workspaceDir, {
-      force: true,
-      recursive: true,
-    })
   })
 
   it('formats known and unknown failures clearly', () => {
-    expect(formatRoleEnforcementFailure(new RoleEnforcementConfigError('bad config'))).toBe(
-      'bad config',
-    )
     expect(formatRoleEnforcementFailure(new RoleEnforcementExecutionError('bad process'))).toBe(
       'bad process',
     )
@@ -89,12 +44,10 @@ describe('runRoleEnforcement error handling', () => {
   })
 
   it('removes the temporary oxlint config after execution', () => {
-    const workspaceDir = createFixtureWorkspace()
     const rmSyncMock = vi.fn()
-    const nowMock = vi.fn().mockReturnValueOnce(100).mockReturnValue(125)
 
-    runRoleEnforcement(path.join(workspaceDir, 'role-enforcement.config.json'), {
-      now: nowMock,
+    runRoleEnforcement(minimalConfig, '/var/folders/fake-dir', {
+      now: vi.fn().mockReturnValueOnce(100).mockReturnValue(125),
       readdirSync: vi.fn(() => []),
       realpathSync: (value) => String(value),
       rmSync: rmSyncMock,
@@ -112,17 +65,10 @@ describe('runRoleEnforcement error handling', () => {
           typeof filePath === 'string' && filePath.includes('.oxlintrc.role-enforcement.'),
       ),
     ).toBe(true)
-
-    fs.rmSync(workspaceDir, {
-      force: true,
-      recursive: true,
-    })
   })
 
   it('defaults the exit code to 1 when oxlint returns no status', () => {
-    const workspaceDir = createFixtureWorkspace()
-
-    const result = runRoleEnforcement(path.join(workspaceDir, 'role-enforcement.config.json'), {
+    const result = runRoleEnforcement(minimalConfig, '/var/folders/fake-dir', {
       now: vi.fn().mockReturnValueOnce(100).mockReturnValue(125),
       readdirSync: vi.fn(() => []),
       realpathSync: (value) => String(value),
@@ -136,10 +82,5 @@ describe('runRoleEnforcement error handling', () => {
     })
 
     expect(result.exitCode).toBe(1)
-
-    fs.rmSync(workspaceDir, {
-      force: true,
-      recursive: true,
-    })
   })
 })

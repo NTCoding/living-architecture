@@ -13,8 +13,8 @@ import { resolveFilteredSourceFiles } from '../../../../../platform/infra/source
 import {
   ExtractionProject, type ModuleContext 
 } from '../../../domain/extraction-project'
-import { createConfiguredProject } from '../../external-clients/create-configured-project'
-import { findModuleTsConfigDir } from '../../external-clients/find-module-tsconfig-dir'
+import { createConfiguredProject } from '../../external-clients/ts-morph/create-configured-project'
+import { findModuleTsConfigDir } from '../../external-clients/ts-morph/find-module-tsconfig-dir'
 
 interface FullProjectParams {
   configPath: string
@@ -87,7 +87,7 @@ export class ExtractionProjectRepository {
     const parsedConfigState = this.loadParsedConfigState(selectedFilesProjectParams.configPath)
     const sourceFilePaths = resolveFilteredSourceFiles(
       this.resolveSourceFilePaths(parsedConfigState),
-      {files: selectedFilesProjectParams.filePaths,},
+      { files: selectedFilesProjectParams.filePaths },
     )
     return this.createExtractionProject(
       parsedConfigState,

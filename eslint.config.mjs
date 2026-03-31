@@ -40,6 +40,7 @@ export default tseslint.config(
       '**/test-output',
       '**/api/generated/**',
       '**/.vitepress/cache/**',
+      '.riviere/**',
     ],
   },
   eslintComments.recommended,

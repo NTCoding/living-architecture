@@ -1,15 +1,15 @@
 import path from 'node:path'
-import type { RoleEnforcementConfig } from '../config/role-enforcement-config'
+import type { RoleEnforcementResult } from '../config/role-enforcement-builder'
 
 interface OxlintRuleOptions {
   configDir: string
   configDisplayPath: string
-  layers: RoleEnforcementConfig['layers']
-  roles: RoleEnforcementConfig['roles']
+  layers: RoleEnforcementResult['layers']
+  roles: RoleEnforcementResult['roles']
 }
 
 interface OxlintConfig {
-  ignorePatterns: string[]
+  ignorePatterns: readonly string[]
   jsPlugins: Array<{
     name: string
     specifier: string
@@ -18,9 +18,9 @@ interface OxlintConfig {
 }
 
 export function createOxlintConfig(
-  config: RoleEnforcementConfig,
+  config: RoleEnforcementResult,
   configDir: string,
-  configPath: string,
+  configDisplayPath: string,
   pluginPath: string,
 ): OxlintConfig {
   return {
@@ -36,7 +36,7 @@ export function createOxlintConfig(
         'error',
         {
           configDir,
-          configDisplayPath: path.relative(configDir, configPath),
+          configDisplayPath,
           layers: config.layers,
           roles: config.roles,
         },

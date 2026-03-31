@@ -19,18 +19,14 @@
       "import": "./dist/index.js",
       "default": "./dist/index.js"
     },
-    "./schema.json": "./role-enforcement.schema.json",
     "./plugin": "./role-enforcement-plugin.mjs"
   },
   "files": [
     "dist",
     "role-enforcement-plugin.mjs",
-    "role-enforcement.schema.json",
     "!**/*.tsbuildinfo"
   ],
   "dependencies": {
-    "ajv": "^8.17.1",
-    "ajv-formats": "^3.0.1",
     "minimatch": "^10.0.1"
   }
 }
