@@ -1,4 +1,4 @@
-import type { ExtractOptions } from '../../../platform/infra/cli-presentation/extract-validator'
+import type { ExtractOptions } from '../../../platform/infra/cli/presentation/extract-validator'
 import type { EnrichDraftComponentsInput } from './enrich-draft-components-input'
 
 /** @riviere-role command-input-factory */

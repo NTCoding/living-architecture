@@ -1,7 +1,7 @@
 import type { SourceLocation } from '@living-architecture/riviere-schema'
-import { isValidApiType } from '../cli-presentation/component-types'
-import { isValidHttpMethod } from '../cli-presentation/validation'
-import { parseCustomProperties } from '../cli-presentation/custom-property-parser'
+import { isValidApiType } from '../cli/presentation/component-types'
+import { isValidHttpMethod } from '../cli/presentation/validation'
+import { parseCustomProperties } from '../cli/presentation/custom-property-parser'
 import { MissingRequiredOptionError } from '../errors/errors'
 import type { AddComponentInput as DomainInput } from '../../domain/add-component'
 

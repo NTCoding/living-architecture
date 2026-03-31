@@ -6,22 +6,22 @@ import {
   resolveGraphPath,
 } from '../../../platform/infra/graph-persistence/graph-path'
 import { fileExists } from '../../../platform/infra/graph-persistence/file-existence'
-import { formatSuccess } from '../../../platform/infra/cli-presentation/output'
+import { formatSuccess } from '../../../platform/infra/cli/presentation/output'
 import {
   isValidLinkType,
   normalizeComponentType,
-} from '../../../platform/infra/cli-presentation/component-types'
-import { isValidHttpMethod } from '../../../platform/infra/cli-presentation/validation'
+} from '../../../platform/infra/cli/presentation/component-types'
+import { isValidHttpMethod } from '../../../platform/infra/cli/presentation/validation'
 import { loadGraphBuilder } from '../../../platform/infra/graph-persistence/builder-graph-loader'
-import { reportGraphNotFound } from '../../../platform/infra/cli-presentation/graph-error-output'
+import { reportGraphNotFound } from '../../../platform/infra/cli/presentation/graph-error-output'
 import {
   findApisByPath, getAllApiPaths 
 } from '../queries/api-component-queries'
 import {
   reportNoApiFoundForPath,
   reportAmbiguousApiMatch,
-} from '../../../platform/infra/cli-presentation/link-http-errors'
-import { validateOptions } from '../../../platform/infra/cli-presentation/link-http-validator'
+} from '../../../platform/infra/cli/presentation/link-http-errors'
+import { validateOptions } from '../../../platform/infra/cli/presentation/link-http-validator'
 
 interface LinkHttpOptions {
   path: string

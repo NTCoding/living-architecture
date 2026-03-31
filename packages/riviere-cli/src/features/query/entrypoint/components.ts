@@ -1,8 +1,8 @@
 import { Command } from 'commander'
 import {
   formatSuccess, formatError 
-} from '../../../platform/infra/cli-presentation/output'
-import { CliErrorCode } from '../../../platform/infra/cli-presentation/error-codes'
+} from '../../../platform/infra/cli/presentation/output'
+import { CliErrorCode } from '../../../platform/infra/cli/presentation/error-codes'
 import {
   withGraph,
   getDefaultGraphPathDescription,
@@ -11,8 +11,8 @@ import {
   isValidComponentType,
   normalizeToSchemaComponentType,
   VALID_COMPONENT_TYPES,
-} from '../../../platform/infra/cli-presentation/component-types'
-import { toComponentOutput } from '../../../platform/infra/cli-presentation/component-output'
+} from '../../../platform/infra/cli/presentation/component-types'
+import { toComponentOutput } from '../../../platform/infra/cli/presentation/component-output'
 
 interface ComponentsOptions {
   graph?: string

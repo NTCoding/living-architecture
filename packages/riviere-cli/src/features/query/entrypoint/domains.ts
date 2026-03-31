@@ -1,5 +1,5 @@
 import { Command } from 'commander'
-import { formatSuccess } from '../../../platform/infra/cli-presentation/output'
+import { formatSuccess } from '../../../platform/infra/cli/presentation/output'
 import {
   withGraph,
   getDefaultGraphPathDescription,

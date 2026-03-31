@@ -6,7 +6,7 @@ import {
   describe, expect, it 
 } from 'vitest'
 import { addComponent } from './add-component'
-import { CliErrorCode } from '../../../platform/infra/cli-presentation/error-codes'
+import { CliErrorCode } from '../../../platform/infra/cli/presentation/error-codes'
 import {
   type TestContext,
   createTestContext,

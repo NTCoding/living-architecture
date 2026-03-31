@@ -7,7 +7,7 @@ import {
   vi, beforeEach, afterEach, expect, it 
 } from 'vitest'
 import { createProgram } from '../../shell/cli'
-import { handleGlobalError } from '../infra/cli-presentation/global-error-handler'
+import { handleGlobalError } from '../infra/cli/presentation/global-error-handler'
 
 class ProcessExitError extends Error {
   constructor(public exitCode: number) {

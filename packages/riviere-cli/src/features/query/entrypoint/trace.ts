@@ -7,8 +7,8 @@ import {
 } from '@living-architecture/riviere-builder'
 import {
   formatError, formatSuccess 
-} from '../../../platform/infra/cli-presentation/output'
-import { CliErrorCode } from '../../../platform/infra/cli-presentation/error-codes'
+} from '../../../platform/infra/cli/presentation/output'
+import { CliErrorCode } from '../../../platform/infra/cli/presentation/error-codes'
 import {
   withGraph,
   getDefaultGraphPathDescription,

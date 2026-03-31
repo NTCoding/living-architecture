@@ -5,8 +5,8 @@ import {
 } from '../../../platform/infra/graph-persistence/graph-path'
 import {
   formatError, formatSuccess 
-} from '../../../platform/infra/cli-presentation/output'
-import { getAddComponentHints } from '../../../platform/infra/cli-presentation/add-component-hints'
+} from '../../../platform/infra/cli/presentation/output'
+import { getAddComponentHints } from '../../../platform/infra/cli/presentation/add-component-hints'
 import { addComponent } from '../commands/add-component'
 
 interface CliOptions {

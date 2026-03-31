@@ -28,6 +28,7 @@ export function role<const N extends string>(name: N, options: RoleOptions): Bui
 
 interface SubLocationEntry {
   readonly allowedRoles: readonly string[]
+  readonly forbiddenImports?: readonly string[]
   readonly path: string
 }
 
@@ -36,7 +37,9 @@ export interface BuiltLocation {
   readonly subLocations: readonly SubLocationEntry[]
 }
 
-export type LocationBuilder<R extends string> = BuiltLocation & {readonly subLocation: (path: string, allowedRoles: readonly R[]) => LocationBuilder<R>}
+interface SubLocationOptions {readonly forbiddenImports?: readonly string[]}
+
+export type LocationBuilder<R extends string> = BuiltLocation & {readonly subLocation: (path: string, allowedRoles: readonly R[], options?: SubLocationOptions) => LocationBuilder<R>}
 
 export function location<R extends string>(basePath: string): LocationBuilder<R>
 export function location<R extends string>(
@@ -69,12 +72,13 @@ function createLocationBuilder<R extends string>(
   return {
     basePath,
     subLocations,
-    subLocation(path: string, allowedRoles: readonly R[]): LocationBuilder<R> {
+    subLocation(path: string, allowedRoles: readonly R[], options?: SubLocationOptions): LocationBuilder<R> {
       return createLocationBuilder(basePath, [
         ...subLocations,
         {
           allowedRoles,
           path,
+          ...(options?.forbiddenImports !== undefined && { forbiddenImports: options.forbiddenImports }),
         },
       ])
     },
@@ -82,6 +86,7 @@ function createLocationBuilder<R extends string>(
 }
 
 interface RoleEnforcementInput<R extends string> {
+  readonly canonicalConfigurationsFile: string
   readonly ignorePatterns: readonly string[]
   readonly locations: readonly BuiltLocation[]
   readonly packages: readonly string[]
@@ -91,6 +96,7 @@ interface RoleEnforcementInput<R extends string> {
 
 interface LayerEntry {
   readonly allowedRoles: readonly string[]
+  readonly forbiddenImports?: readonly string[]
   readonly paths: readonly string[]
 }
 
@@ -116,6 +122,7 @@ export function roleEnforcement<const R extends string>(
         layers[fullPath] = {
           allowedRoles: sub.allowedRoles,
           paths: [resolvedPath],
+          ...(sub.forbiddenImports !== undefined && { forbiddenImports: sub.forbiddenImports }),
         }
       }
     }

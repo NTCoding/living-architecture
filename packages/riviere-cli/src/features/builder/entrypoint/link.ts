@@ -6,20 +6,20 @@ import {
   resolveGraphPath,
 } from '../../../platform/infra/graph-persistence/graph-path'
 import { fileExists } from '../../../platform/infra/graph-persistence/file-existence'
-import { formatSuccess } from '../../../platform/infra/cli-presentation/output'
+import { formatSuccess } from '../../../platform/infra/cli/presentation/output'
 import {
   isValidLinkType,
   normalizeComponentType,
-} from '../../../platform/infra/cli-presentation/component-types'
+} from '../../../platform/infra/cli/presentation/component-types'
 import {
   validateComponentType,
   validateLinkType,
-} from '../../../platform/infra/cli-presentation/validation'
+} from '../../../platform/infra/cli/presentation/validation'
 import { loadGraphBuilder } from '../../../platform/infra/graph-persistence/builder-graph-loader'
 import {
   reportGraphNotFound,
   tryBuilderOperation,
-} from '../../../platform/infra/cli-presentation/graph-error-output'
+} from '../../../platform/infra/cli/presentation/graph-error-output'
 
 interface LinkOptions {
   from: string

@@ -29,7 +29,7 @@ import {
 import { expandModuleRefs } from './expand-module-refs'
 import {
   CliErrorCode, ConfigValidationError 
-} from '../cli-presentation/error-codes'
+} from '../cli/presentation/error-codes'
 
 interface TopLevelRulesConfig {
   api?: Module['api']

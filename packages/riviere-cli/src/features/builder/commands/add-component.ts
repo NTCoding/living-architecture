@@ -9,8 +9,8 @@ import {
 } from '@living-architecture/riviere-builder'
 import { parseRiviereGraph } from '@living-architecture/riviere-schema'
 import { fileExists } from '../../../platform/infra/graph-persistence/file-existence'
-import { CliErrorCode } from '../../../platform/infra/cli-presentation/error-codes'
-import { isValidComponentType } from '../../../platform/infra/cli-presentation/component-types'
+import { CliErrorCode } from '../../../platform/infra/cli/presentation/error-codes'
+import { isValidComponentType } from '../../../platform/infra/cli/presentation/component-types'
 import {
   MissingRequiredOptionError,
   InvalidCustomPropertyError,

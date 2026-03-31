@@ -3,13 +3,13 @@ import { writeFile } from 'node:fs/promises'
 import { DuplicateDomainError } from '@living-architecture/riviere-builder'
 import {
   formatError, formatSuccess 
-} from '../../../platform/infra/cli-presentation/output'
-import { CliErrorCode } from '../../../platform/infra/cli-presentation/error-codes'
+} from '../../../platform/infra/cli/presentation/output'
+import { CliErrorCode } from '../../../platform/infra/cli/presentation/error-codes'
 import { getDefaultGraphPathDescription } from '../../../platform/infra/graph-persistence/graph-path'
 import {
   isValidSystemType,
   VALID_SYSTEM_TYPES,
-} from '../../../platform/infra/cli-presentation/component-types'
+} from '../../../platform/infra/cli/presentation/component-types'
 import { withGraphBuilder } from '../../../platform/infra/graph-persistence/builder-graph-loader'
 
 interface AddDomainOptions {

@@ -1,14 +1,14 @@
-import { categorizeComponents } from '../../../../../platform/infra/cli-presentation/categorize-components'
+import { categorizeComponents } from '../../../../../platform/infra/cli/presentation/categorize-components'
 import {
   countLinksByType,
   formatExtractionStats,
   formatTimingLine,
-} from '../../../../../platform/infra/cli-presentation/format-extraction-stats'
-import { formatDryRunOutput } from '../../../../../platform/infra/cli-presentation/extract-output-formatter'
-import { formatPrMarkdown } from '../../../../../platform/infra/cli-presentation/format-pr-markdown'
-import { formatSuccess } from '../../../../../platform/infra/cli-presentation/output'
-import { outputResult } from '../../../../../platform/infra/cli-presentation/output-writer'
-import type { ExtractOptions } from '../../../../../platform/infra/cli-presentation/extract-validator'
+} from '../../../../../platform/infra/cli/presentation/format-extraction-stats'
+import { formatDryRunOutput } from '../../../../../platform/infra/cli/presentation/extract-output-formatter'
+import { formatPrMarkdown } from '../../../../../platform/infra/cli/presentation/format-pr-markdown'
+import { formatSuccess } from '../../../../../platform/infra/cli/presentation/output'
+import { outputResult } from '../../../../../platform/infra/cli/presentation/output-writer'
+import type { ExtractOptions } from '../../../../../platform/infra/cli/presentation/extract-validator'
 import type { EnrichDraftComponentsResult } from '../../../commands/enrich-draft-components-result'
 import type { ExtractDraftComponentsResult } from '../../../commands/extract-draft-components-result'
 

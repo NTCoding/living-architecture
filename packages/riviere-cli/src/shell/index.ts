@@ -1,3 +1,3 @@
 export * from './cli'
-export * from '../platform/infra/cli-presentation/error-codes'
-export * from '../platform/infra/cli-presentation/output'
+export * from '../platform/infra/cli/presentation/error-codes'
+export * from '../platform/infra/cli/presentation/output'

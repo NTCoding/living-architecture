@@ -7,7 +7,7 @@ import {
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createProgram } from '../../../shell/cli'
-import { CliErrorCode } from '../../../platform/infra/cli-presentation/error-codes'
+import { CliErrorCode } from '../../../platform/infra/cli/presentation/error-codes'
 
 interface InitSuccessOutput {
   success: true

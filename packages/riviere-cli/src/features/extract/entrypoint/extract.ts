@@ -1,12 +1,12 @@
 import { Command } from 'commander'
 import {
   CliErrorCode, ExitCode 
-} from '../../../platform/infra/cli-presentation/error-codes'
-import { exitWithCliError } from '../../../platform/infra/cli-presentation/exit-with-cli-error'
+} from '../../../platform/infra/cli/presentation/error-codes'
+import { exitWithCliError } from '../../../platform/infra/cli/presentation/exit-with-cli-error'
 import {
   validateFlagCombinations,
   type ExtractOptions,
-} from '../../../platform/infra/cli-presentation/extract-validator'
+} from '../../../platform/infra/cli/presentation/extract-validator'
 import { enrichDraftComponents } from '../commands/enrich-draft-components'
 import { extractDraftComponents } from '../commands/extract-draft-components'
 import { createExtractDraftComponentsInput } from '../commands/create-extract-draft-components-input'

@@ -3,16 +3,16 @@ import { writeFile } from 'node:fs/promises'
 import { withGraphBuilder } from '../../../platform/infra/graph-persistence/builder-graph-loader'
 import {
   formatError, formatSuccess 
-} from '../../../platform/infra/cli-presentation/output'
-import { CliErrorCode } from '../../../platform/infra/cli-presentation/error-codes'
+} from '../../../platform/infra/cli/presentation/output'
+import { CliErrorCode } from '../../../platform/infra/cli/presentation/error-codes'
 import { getDefaultGraphPathDescription } from '../../../platform/infra/graph-persistence/graph-path'
-import { collectOption } from '../../../platform/infra/cli-presentation/option-collectors'
+import { collectOption } from '../../../platform/infra/cli/presentation/option-collectors'
 import {
   parseStateChanges,
   buildBehavior,
-} from '../../../platform/infra/cli-presentation/enrichment-parser'
-import { parseSignature } from '../../../platform/infra/cli-presentation/signature-parser'
-import { handleEnrichmentError } from '../../../platform/infra/cli-presentation/enrichment-error-handler'
+} from '../../../platform/infra/cli/presentation/enrichment-parser'
+import { parseSignature } from '../../../platform/infra/cli/presentation/signature-parser'
+import { handleEnrichmentError } from '../../../platform/infra/cli/presentation/enrichment-error-handler'
 
 interface EnrichOptions {
   id: string

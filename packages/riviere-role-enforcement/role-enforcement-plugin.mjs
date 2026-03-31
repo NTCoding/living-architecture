@@ -44,9 +44,49 @@ export default {
           TSTypeAliasDeclaration(node) {
             validateDeclaration(node, 'type-alias')
           },
+          ImportDeclaration(node) {
+            validateForbiddenImports(node)
+          },
           'Program:exit'() {
             validateForbiddenDependencies()
           },
+        }
+
+        function validateForbiddenImports(node) {
+          const importSource = node.source.value
+          if (typeof importSource !== 'string') {
+            return
+          }
+
+          const resolvedImport = resolveTypeFile(filename, importSource)
+          if (resolvedImport === null) {
+            return
+          }
+
+          const resolvedImportRelative = normalizePath(
+            readRelativeFilePath(resolvedImport, options.configDir),
+          )
+
+          const fileDir = normalizePath(path.dirname(relativeFilePath))
+          for (const [, layer] of layerEntries) {
+            if (!layer.paths.some((pattern) => matchesExpandedPattern(fileDir, pattern))) {
+              continue
+            }
+
+            if (!Array.isArray(layer.forbiddenImports)) {
+              continue
+            }
+
+            for (const forbiddenPattern of layer.forbiddenImports) {
+              if (minimatch(resolvedImportRelative, forbiddenPattern, { dot: true }) ||
+                  minimatch(resolvedImportRelative, `${forbiddenPattern}/**`, { dot: true })) {
+                report(
+                  node,
+                  `Forbidden import: files in this location cannot import from '${forbiddenPattern}'. See ${options.configDisplayPath}`,
+                )
+              }
+            }
+          }
         }
 
         function validateDeclaration(node, target) {

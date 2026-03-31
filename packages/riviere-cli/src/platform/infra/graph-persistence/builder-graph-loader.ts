@@ -3,7 +3,7 @@ import { RiviereBuilder } from '@living-architecture/riviere-builder'
 import { parseRiviereGraph } from '@living-architecture/riviere-schema'
 import { resolveGraphPath } from './graph-path'
 import { fileExists } from './file-existence'
-import { reportGraphNotFound } from '../cli-presentation/graph-error-output'
+import { reportGraphNotFound } from '../cli/presentation/graph-error-output'
 
 /** @riviere-role external-client-service */
 export async function loadGraphBuilder(graphPath: string): Promise<RiviereBuilder> {
