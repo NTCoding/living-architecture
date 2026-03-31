@@ -1,12 +1,8 @@
-import {
-  writeFile, mkdir 
-} from 'node:fs/promises'
+import { writeFile, mkdir } from 'node:fs/promises'
 import { join } from 'node:path'
-import {
-  describe, expect, it 
-} from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { addComponent } from './add-component'
-import { CliErrorCode } from '../../../platform/infra/cli/presentation/error-codes'
+import type { AddComponentErrorCode } from './add-component-result'
 import {
   type TestContext,
   createTestContext,
@@ -36,6 +32,13 @@ describe('addComponent command', () => {
     }
   }
 
+  function failureShape(code: AddComponentErrorCode) {
+    return {
+      success: false as const,
+      code,
+    }
+  }
+
   describe('component type validation', () => {
     it.each([
       ['invalid string', 'INVALID'],
@@ -50,8 +53,7 @@ describe('addComponent command', () => {
       })
 
       expect(result).toMatchObject({
-        success: false,
-        code: CliErrorCode.ValidationError,
+        ...failureShape('VALIDATION_ERROR'),
         message: expect.stringContaining('Invalid component type'),
       })
     })
@@ -72,8 +74,7 @@ describe('addComponent command', () => {
       })
 
       expect(result).toMatchObject({
-        success: false,
-        code: CliErrorCode.ValidationError,
+        ...failureShape('VALIDATION_ERROR'),
         message: expect.stringContaining('Invalid line number'),
       })
     })
@@ -88,10 +89,7 @@ describe('addComponent command', () => {
         lineNumber: value,
       })
 
-      expect(result).toMatchObject({
-        success: false,
-        code: CliErrorCode.GraphNotFound,
-      })
+      expect(result).toMatchObject(failureShape('GRAPH_NOT_FOUND'))
     })
   })
 
@@ -104,8 +102,7 @@ describe('addComponent command', () => {
       const result = await addComponent(inputWithGraphPath())
 
       expect(result).toMatchObject({
-        success: false,
-        code: CliErrorCode.ValidationError,
+        ...failureShape('VALIDATION_ERROR'),
         message: expect.stringContaining('invalid JSON'),
       })
     })
@@ -130,10 +127,7 @@ describe('addComponent command', () => {
 
       const result = await addComponent(inputWithGraphPath())
 
-      expect(result).toMatchObject({
-        success: false,
-        code: CliErrorCode.DomainNotFound,
-      })
+      expect(result).toMatchObject(failureShape('DOMAIN_NOT_FOUND'))
     })
   })
 })

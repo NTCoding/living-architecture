@@ -1,6 +1,4 @@
-import {
-  readFile, writeFile 
-} from 'node:fs/promises'
+import { readFile, writeFile } from 'node:fs/promises'
 import {
   RiviereBuilder,
   CustomTypeNotFoundError,
@@ -9,8 +7,6 @@ import {
 } from '@living-architecture/riviere-builder'
 import { parseRiviereGraph } from '@living-architecture/riviere-schema'
 import { fileExists } from '../../../platform/infra/graph-persistence/file-existence'
-import { CliErrorCode } from '../../../platform/infra/cli/presentation/error-codes'
-import { isValidComponentType } from '../../../platform/infra/cli/presentation/component-types'
 import {
   MissingRequiredOptionError,
   InvalidCustomPropertyError,
@@ -20,14 +16,24 @@ import {
   buildDomainInput,
   type AddComponentInput,
 } from '../../../platform/infra/component-mapping/add-component-mapper'
-import type { AddComponentResult } from './add-component-result'
+import type { AddComponentErrorCode, AddComponentResult } from './add-component-result'
+
+const validComponentTypes = new Set([
+  'ui',
+  'api',
+  'usecase',
+  'domainop',
+  'event',
+  'eventhandler',
+  'custom',
+])
 
 /** @riviere-role command-use-case */
 export async function addComponent(input: AddComponentInput): Promise<AddComponentResult> {
-  if (!isValidComponentType(input.componentType)) {
+  if (!validComponentTypes.has(input.componentType.toLowerCase())) {
     return {
       success: false,
-      code: CliErrorCode.ValidationError,
+      code: 'VALIDATION_ERROR',
       message: `Invalid component type: ${input.componentType}`,
     }
   }
@@ -38,7 +44,7 @@ export async function addComponent(input: AddComponentInput): Promise<AddCompone
   ) {
     return {
       success: false,
-      code: CliErrorCode.ValidationError,
+      code: 'VALIDATION_ERROR',
       message: 'Invalid line number: must be a positive integer',
     }
   }
@@ -47,7 +53,7 @@ export async function addComponent(input: AddComponentInput): Promise<AddCompone
   if (!graphExists) {
     return {
       success: false,
-      code: CliErrorCode.GraphNotFound,
+      code: 'GRAPH_NOT_FOUND',
       message: `Graph not found at ${input.graphPath}`,
     }
   }
@@ -57,7 +63,7 @@ export async function addComponent(input: AddComponentInput): Promise<AddCompone
   if (parsedContent === null) {
     return {
       success: false,
-      code: CliErrorCode.ValidationError,
+      code: 'VALIDATION_ERROR',
       message: 'Graph file contains invalid JSON',
     }
   }
@@ -88,41 +94,29 @@ function tryParseJson(content: string): unknown | null {
 
 function mapError(error: unknown): AddComponentResult {
   if (error instanceof MissingRequiredOptionError) {
-    return {
-      success: false,
-      code: CliErrorCode.ValidationError,
-      message: error.message,
-    }
+    return failure('VALIDATION_ERROR', error.message)
   }
   if (error instanceof InvalidCustomPropertyError) {
-    return {
-      success: false,
-      code: CliErrorCode.ValidationError,
-      message: error.message,
-    }
+    return failure('VALIDATION_ERROR', error.message)
   }
   if (error instanceof DomainNotFoundError) {
-    return {
-      success: false,
-      code: CliErrorCode.DomainNotFound,
-      message: error.message,
-    }
+    return failure('DOMAIN_NOT_FOUND', error.message)
   }
   if (error instanceof CustomTypeNotFoundError) {
-    return {
-      success: false,
-      code: CliErrorCode.CustomTypeNotFound,
-      message: error.message,
-    }
+    return failure('CUSTOM_TYPE_NOT_FOUND', error.message)
   }
   /* v8 ignore start -- @preserve: DuplicateComponentError tested at entrypoint; defensive re-throw for unknown errors */
   if (error instanceof DuplicateComponentError) {
-    return {
-      success: false,
-      code: CliErrorCode.DuplicateComponent,
-      message: error.message,
-    }
+    return failure('DUPLICATE_COMPONENT', error.message)
   }
   throw error
   /* v8 ignore stop */
+}
+
+function failure(code: AddComponentErrorCode, message: string): AddComponentResult {
+  return {
+    success: false,
+    code,
+    message,
+  }
 }

@@ -1,13 +1,13 @@
 import { Command } from 'commander'
+import { CliErrorCode } from '../../../platform/infra/cli/presentation/error-codes'
 import {
   getDefaultGraphPathDescription,
   resolveGraphPath,
 } from '../../../platform/infra/graph-persistence/graph-path'
-import {
-  formatError, formatSuccess 
-} from '../../../platform/infra/cli/presentation/output'
+import { formatError, formatSuccess } from '../../../platform/infra/cli/presentation/output'
 import { getAddComponentHints } from '../../../platform/infra/cli/presentation/add-component-hints'
 import { addComponent } from '../commands/add-component'
+import type { AddComponentErrorCode } from '../commands/add-component-result'
 
 interface CliOptions {
   type: string
@@ -67,7 +67,7 @@ export function createAddComponentCommand(): Command {
     .option('--graph <path>', getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .action(async (options: CliOptions) => {
-      const result = await addComponent({
+      const input = {
         componentType: options.type,
         name: options.name,
         domain: options.domain,
@@ -75,25 +75,29 @@ export function createAddComponentCommand(): Command {
         repository: options.repository,
         filePath: options.filePath,
         graphPath: resolveGraphPath(options.graph),
-        lineNumber: options.lineNumber ? parseInt(options.lineNumber, 10) : undefined,
-        route: options.route,
-        apiType: options.apiType,
-        httpMethod: options.httpMethod,
-        httpPath: options.httpPath,
-        operationName: options.operationName,
-        entity: options.entity,
-        eventName: options.eventName,
-        eventSchema: options.eventSchema,
-        subscribedEvents: options.subscribedEvents,
-        customType: options.customType,
-        customProperty: options.customProperty,
-        description: options.description,
-      })
+        ...(options.lineNumber ? { lineNumber: parseInt(options.lineNumber, 10) } : {}),
+        ...(options.route ? { route: options.route } : {}),
+        ...(options.apiType ? { apiType: options.apiType } : {}),
+        ...(options.httpMethod ? { httpMethod: options.httpMethod } : {}),
+        ...(options.httpPath ? { httpPath: options.httpPath } : {}),
+        ...(options.operationName ? { operationName: options.operationName } : {}),
+        ...(options.entity ? { entity: options.entity } : {}),
+        ...(options.eventName ? { eventName: options.eventName } : {}),
+        ...(options.eventSchema ? { eventSchema: options.eventSchema } : {}),
+        ...(options.subscribedEvents ? { subscribedEvents: options.subscribedEvents } : {}),
+        ...(options.customType ? { customType: options.customType } : {}),
+        ...(options.customProperty && options.customProperty.length > 0
+          ? { customProperty: options.customProperty }
+          : {}),
+        ...(options.description ? { description: options.description } : {}),
+      }
+      const result = await addComponent(input)
 
       if (!result.success) {
+        const cliErrorCode = toCliErrorCode(result.code)
         console.log(
           JSON.stringify(
-            formatError(result.code, result.message, getAddComponentHints(result.code)),
+            formatError(cliErrorCode, result.message, getAddComponentHints(cliErrorCode)),
           ),
         )
         return
@@ -103,4 +107,19 @@ export function createAddComponentCommand(): Command {
         console.log(JSON.stringify(formatSuccess({ componentId: result.componentId })))
       }
     })
+}
+
+function toCliErrorCode(code: AddComponentErrorCode): CliErrorCode {
+  switch (code) {
+    case 'VALIDATION_ERROR':
+      return CliErrorCode.ValidationError
+    case 'GRAPH_NOT_FOUND':
+      return CliErrorCode.GraphNotFound
+    case 'DOMAIN_NOT_FOUND':
+      return CliErrorCode.DomainNotFound
+    case 'CUSTOM_TYPE_NOT_FOUND':
+      return CliErrorCode.CustomTypeNotFound
+    case 'DUPLICATE_COMPONENT':
+      return CliErrorCode.DuplicateComponent
+  }
 }
