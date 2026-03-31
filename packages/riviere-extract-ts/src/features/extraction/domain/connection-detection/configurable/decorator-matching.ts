@@ -2,6 +2,7 @@ import {
   type CallExpression, type ClassDeclaration, Node 
 } from 'ts-morph'
 
+/** @riviere-role domain-service */
 export function callerHasDecorator(
   callerClass: ClassDeclaration,
   decoratorNames: string[],
@@ -10,6 +11,7 @@ export function callerHasDecorator(
   return decorators.some((d) => decoratorNames.includes(d.getName()))
 }
 
+/** @riviere-role domain-service */
 export function calleeHasDecorator(callExpression: CallExpression, decoratorName: string): boolean {
   const expression = callExpression.getExpression()
   if (!Node.isPropertyAccessExpression(expression)) return false

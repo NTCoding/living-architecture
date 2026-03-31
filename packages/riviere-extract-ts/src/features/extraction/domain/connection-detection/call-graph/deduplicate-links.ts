@@ -57,6 +57,7 @@ function buildUncertainLink(
   }
 }
 
+/** @riviere-role domain-service */
 export function deduplicateLinks(
   rawLinks: RawLink[],
   uncertainLinks: UncertainRawLink[],

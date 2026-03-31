@@ -1,3 +1,4 @@
+/** @riviere-role value-object */
 export class ConfigLoaderRequiredError extends Error {
   readonly moduleName: string
 
@@ -8,6 +9,7 @@ export class ConfigLoaderRequiredError extends Error {
   }
 }
 
+/** @riviere-role value-object */
 export class MissingComponentRuleError extends Error {
   readonly moduleName: string
   readonly ruleName: string

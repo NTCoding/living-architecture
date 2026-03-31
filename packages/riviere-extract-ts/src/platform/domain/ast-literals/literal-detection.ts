@@ -1,6 +1,7 @@
 import type { Expression } from 'ts-morph'
 import { SyntaxKind } from 'ts-morph'
 
+/** @riviere-role value-object */
 export class ExtractionError extends Error {
   readonly location: {
     file: string
@@ -17,6 +18,7 @@ export class ExtractionError extends Error {
   }
 }
 
+/** @riviere-role value-object */
 export class TestFixtureError extends Error {
   constructor(message: string) {
     super(message)
@@ -24,6 +26,7 @@ export class TestFixtureError extends Error {
   }
 }
 
+/** @riviere-role domain-service */
 export function isLiteralValue(expression: Expression | undefined): boolean {
   if (expression === undefined) {
     return false
@@ -47,6 +50,7 @@ function isStringArrayLiteral(expression: Expression): boolean {
   return elements.every((e) => e.getKind() === SyntaxKind.StringLiteral)
 }
 
+/** @riviere-role value-object */
 export type LiteralResult =
   | {
     kind: 'string'
@@ -137,6 +141,7 @@ function throwNonLiteralValue(expression: Expression, file: string, line: number
   )
 }
 
+/** @riviere-role domain-service */
 export function extractLiteralValue(
   expression: Expression | undefined,
   file: string,

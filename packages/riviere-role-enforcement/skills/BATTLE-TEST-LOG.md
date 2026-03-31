@@ -235,3 +235,77 @@ Each section represents one area of the codebase that was analyzed and annotated
 1. **Document layer-constraint-wins for pure utility functions**: When a pure function lives in an infra layer, the skill should explicitly say "apply the layer's allowed function role" rather than leaving it ambiguous.
 2. **Shell layer should be in the standard config template**: New packages using the shell pattern need this layer pre-configured.
 3. **Clarify which export pattern the enforcement tool checks**: Private function + `export { X }` vs direct `export function X()`. Current behavior should be documented.
+
+## riviere-extract-ts (full package) — 2026-03-31
+
+### Scope
+- Files analyzed: 36
+- Fixtures excluded: 5 (`*-fixtures.ts`, `test-fixtures.ts`)
+- Barrel re-exports excluded: 2 (`index.ts` files with no own declarations)
+- Files annotated: 29
+- Files refactored: 1 (`minimatch-glob.ts` moved from `platform/infra/glob-matching/` to `platform/infra/external-clients/minimatch/`)
+
+### Classifications
+| File | Role | Confidence | Notes |
+|------|------|------------|-------|
+| `component-extraction/extractor.ts` — `GlobMatcher`, `DraftComponent` | value-object | HIGH | Domain types |
+| `component-extraction/extractor.ts` — `extractComponents` | domain-service | HIGH | Pure extraction logic |
+| `config-resolution/config-resolution-errors.ts` — 2 error classes | value-object | MEDIUM | Domain errors as value objects |
+| `config-resolution/resolve-config.ts` — `ConfigLoader` | value-object | HIGH | Function signature type |
+| `config-resolution/resolve-config.ts` — `resolveConfig` | domain-service | HIGH | Pure config transformation |
+| `connection-detection/component-index.ts` — `ComponentIndex` | value-object | HIGH | Immutable lookup (readonly maps) |
+| `connection-detection/connection-detection-error.ts` — `ConnectionDetectionError` | value-object | MEDIUM | Domain error as value object |
+| `connection-detection/detect-connections.ts` — 8 interfaces | value-object | HIGH | Options, timings, results |
+| `connection-detection/detect-connections.ts` — 4 functions | domain-service | HIGH | Detection orchestrators |
+| `connection-detection/extracted-link.ts` — `ExtractedLink` | value-object | HIGH | Core domain type |
+| `connection-detection/async-detection/*.ts` — 1 interface, 2 functions | value-object/domain-service | HIGH | Async detection logic |
+| `connection-detection/call-graph/*.ts` — 6 interfaces, 8 functions | value-object/domain-service | HIGH | Call graph analysis |
+| `connection-detection/configurable/*.ts` — 2 interfaces, 5 functions | value-object/domain-service | HIGH | Configurable pattern matching |
+| `connection-detection/interface-resolution/*.ts` — 1 type, 1 function | value-object/domain-service | HIGH | Interface resolution |
+| `predicate-evaluation/evaluate-predicate.ts` — `evaluatePredicate` | domain-service | HIGH | Core predicate engine |
+| `value-extraction/enrich-components.ts` — 3 interfaces, 1 function | value-object/domain-service | HIGH | Component enrichment |
+| `value-extraction/evaluate-extraction-rule*.ts` — 4 types, 12 functions | value-object/domain-service | HIGH | Extraction rule evaluation |
+| `platform/domain/ast-literals/literal-detection.ts` — 2 classes, 1 type, 2 functions | value-object/domain-service | HIGH | AST literal detection |
+| `platform/domain/string-transforms/transforms.ts` — 7 functions | domain-service | HIGH | Pure string transforms |
+| `platform/infra/external-clients/minimatch/minimatch-glob.ts` — `matchesGlob` | external-client-service | HIGH | Thin wrapper around minimatch |
+
+### Key Decisions
+
+1. **Domain error classes → value-object**: `ConfigLoaderRequiredError`, `MissingComponentRuleError`, `ConnectionDetectionError`, `ExtractionError` are domain errors. No existing role fits perfectly. Chosen value-object because in tactical DDD, error types are immutable and defined by attributes. Runner-up was proposing a new `domain-error` role, rejected per "generic roles over specific" principle.
+
+2. **Functions accepting ts-morph `Project` → domain-service, not external-client-service**: ts-morph `Project` is the core data model for this package's domain. These functions contain domain logic (component matching, link detection, deduplication). Only `matchesGlob` is a true external-client-service (pure wrapper).
+
+3. **`UNRESOLVABLE_TYPES` constant — not annotated**: No role targets `const` declarations. Skipped.
+
+4. **`TestFixtureError` in literal-detection.ts — annotated as value-object**: Test support class mixed in with production code. Annotated for completeness but ideally should be moved to test-only file.
+
+5. **File move: `glob-matching/` → `external-clients/minimatch/`**: The file was at `platform/infra/glob-matching/` which didn't match any configured location. Rather than creating a package-specific location (which defeats the purpose of generic config), moved the file to match the existing `external-clients/{client}` pattern. Added `/infra/external-clients/{client}` subLocation to the `src/platform` location (generic pattern, not package-specific).
+
+### Config Changes
+- Added `'packages/riviere-extract-ts'` to packages array
+- Added `**/*-fixtures.ts` and `**/test-fixtures.ts` to ignorePatterns
+- Added `.subLocation('/infra/external-clients/{client}', externalClientRoles)` to `src/platform` location
+
+### Skill Gaps
+
+1. **No role for domain error classes**: Error classes in domain layers don't fit any role cleanly. `value-object` works as a DDD-informed classification but stretches the role's semantic intent. A future `domain-error` role might be warranted if this pattern recurs across more packages.
+
+2. **No role for constants**: Exported `const` values (like `UNRESOLVABLE_TYPES`) cannot be annotated because no role targets constants. The tool only checks functions, classes, interfaces, and type-aliases.
+
+3. **Library packages are dominated by domain-service + value-object**: This package has zero aggregates, commands, entrypoints, or CLI code. The entire classification is domain-service (functions) and value-object (types). This is correct but suggests the role catalog was designed for CLI apps, not library packages.
+
+### New Roles Proposed
+- None. Existing roles covered all cases.
+
+### Refactoring Performed
+- `platform/infra/glob-matching/minimatch-glob.ts` → moved to `platform/infra/external-clients/minimatch/minimatch-glob.ts` with spec file. Updated 7 import sites (1 in `index.ts`, 6 in spec files).
+
+### What Worked Well
+- The existing generic locations (`src/features` → `/domain`, `src/platform` → `/domain`) covered 28 of 29 files with zero config changes needed.
+- The enforcement tool caught the missing `MethodExtractionResult` annotation and the invalid location for `minimatch-glob.ts` on first run — both were fixed and second run passed clean.
+- All 432 tests pass with 100% coverage after the file move.
+
+### What Should Be Improved
+1. **Add `const` declaration support to the enforcement tool**: Constants like `UNRESOLVABLE_TYPES` that are part of the public API should be annotatable.
+2. **Consider a `domain-error` role**: If more packages show the same pattern of domain error classes force-fit into value-object, a dedicated role would be cleaner.
+3. **Document the library-package pattern**: Library packages that are pure domain logic will be almost entirely domain-service + value-object. The skill should note this as expected for non-CLI packages.

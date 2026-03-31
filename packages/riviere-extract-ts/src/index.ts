@@ -20,7 +20,7 @@ export {
   type ParameterInfo,
   type MethodSignature,
 } from './features/extraction/domain/value-extraction'
-export { matchesGlob } from './platform/infra/glob-matching/minimatch-glob'
+export { matchesGlob } from './platform/infra/external-clients/minimatch/minimatch-glob'
 export {
   detectConnections,
   detectPerModuleConnections,

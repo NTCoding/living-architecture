@@ -14,6 +14,7 @@ interface InterfaceUnresolved {
   typeDefinedInSource: boolean
 }
 
+/** @riviere-role value-object */
 export type InterfaceResolution = InterfaceResolutionResult | InterfaceUnresolved
 
 function isNodeModulesPath(filePath: string): boolean {
@@ -77,6 +78,7 @@ function createError(interfaceName: string, reason: string): ConnectionDetection
   })
 }
 
+/** @riviere-role domain-service */
 export function resolveInterface(
   interfaceName: string,
   project: Project,

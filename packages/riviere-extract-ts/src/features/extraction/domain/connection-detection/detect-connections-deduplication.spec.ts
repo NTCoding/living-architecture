@@ -1,7 +1,7 @@
 import {
   describe, it, expect 
 } from 'vitest'
-import { matchesGlob } from '../../../../platform/infra/glob-matching/minimatch-glob'
+import { matchesGlob } from '../../../../platform/infra/external-clients/minimatch/minimatch-glob'
 import { buildComponent } from './call-graph/call-graph-fixtures'
 import { detectConnections } from './detect-connections'
 import { createProject } from './detect-connections-fixtures'

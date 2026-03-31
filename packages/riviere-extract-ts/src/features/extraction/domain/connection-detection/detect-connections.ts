@@ -10,6 +10,7 @@ import { detectPublishConnections } from './async-detection/detect-publish-conne
 import { detectSubscribeConnections } from './async-detection/detect-subscribe-connections'
 import { detectConfigurableConnections } from './configurable/detect-configurable-connections'
 
+/** @riviere-role value-object */
 export interface ConnectionDetectionOptions {
   allowIncomplete?: boolean
   moduleGlobs: string[]
@@ -17,6 +18,7 @@ export interface ConnectionDetectionOptions {
   repository: string
 }
 
+/** @riviere-role value-object */
 export interface ConnectionTimings {
   callGraphMs: number
   asyncDetectionMs: number
@@ -25,6 +27,7 @@ export interface ConnectionTimings {
   totalMs: number
 }
 
+/** @riviere-role value-object */
 export interface ConnectionDetectionResult {
   links: ExtractedLink[]
   timings: ConnectionTimings
@@ -41,6 +44,7 @@ function computeFilteredFilePaths(
     .filter((filePath) => moduleGlobs.some((glob) => globMatcher(filePath, glob)))
 }
 
+/** @riviere-role domain-service */
 export function deduplicateCrossStrategy(links: ExtractedLink[]): ExtractedLink[] {
   const seen = new Map<string, ExtractedLink>()
   for (const link of links) {
@@ -57,6 +61,7 @@ export function deduplicateCrossStrategy(links: ExtractedLink[]): ExtractedLink[
   return [...seen.values()]
 }
 
+/** @riviere-role value-object */
 export interface PerModuleConnectionOptions {
   allowIncomplete?: boolean
   moduleGlobs: string[]
@@ -64,17 +69,20 @@ export interface PerModuleConnectionOptions {
   repository: string
 }
 
+/** @riviere-role value-object */
 export interface PerModuleTimings {
   callGraphMs: number
   configurableMs: number
   setupMs: number
 }
 
+/** @riviere-role value-object */
 export interface PerModuleDetectionResult {
   links: ExtractedLink[]
   timings: PerModuleTimings
 }
 
+/** @riviere-role domain-service */
 export function detectPerModuleConnections(
   project: Project,
   components: readonly EnrichedComponent[],
@@ -119,18 +127,22 @@ export function detectPerModuleConnections(
   }
 }
 
+/** @riviere-role value-object */
 export interface CrossModuleConnectionOptions {
   allowIncomplete?: boolean
   repository: string
 }
 
+/** @riviere-role value-object */
 export interface CrossModuleTimings {asyncDetectionMs: number}
 
+/** @riviere-role value-object */
 export interface CrossModuleDetectionResult {
   links: ExtractedLink[]
   timings: CrossModuleTimings
 }
 
+/** @riviere-role domain-service */
 export function detectCrossModuleConnections(
   allComponents: readonly EnrichedComponent[],
   options: CrossModuleConnectionOptions,
@@ -183,6 +195,7 @@ function runConfigurableDetection(
   }
 }
 
+/** @riviere-role domain-service */
 export function detectConnections(
   project: Project,
   components: readonly EnrichedComponent[],

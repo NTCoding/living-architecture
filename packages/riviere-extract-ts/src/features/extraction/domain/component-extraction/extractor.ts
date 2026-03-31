@@ -15,8 +15,10 @@ import type {
 } from '@living-architecture/riviere-extract-config'
 import { evaluatePredicate } from '../predicate-evaluation/evaluate-predicate'
 
+/** @riviere-role value-object */
 export type GlobMatcher = (path: string, pattern: string) => boolean
 
+/** @riviere-role value-object */
 export interface DraftComponent {
   type: string
   name: string
@@ -37,6 +39,7 @@ const COMPONENT_TYPES: ComponentType[] = [
   'ui',
 ]
 
+/** @riviere-role domain-service */
 export function extractComponents(
   project: Project,
   sourceFilePaths: string[],

@@ -5,6 +5,7 @@ function locationKey(file: string, line: number): string {
   return `${file}:${line}`
 }
 
+/** @riviere-role value-object */
 export class ComponentIndex {
   private readonly byName: ReadonlyMap<string, EnrichedComponent>
   private readonly byLocation: ReadonlyMap<string, EnrichedComponent>

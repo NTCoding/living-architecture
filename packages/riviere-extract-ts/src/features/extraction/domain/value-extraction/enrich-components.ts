@@ -26,6 +26,7 @@ import { applyTransforms } from '../../../../platform/domain/string-transforms/t
 
 type MetadataValue = string | number | boolean | string[]
 
+/** @riviere-role value-object */
 export interface EnrichedComponent {
   type: string
   name: string
@@ -38,12 +39,14 @@ export interface EnrichedComponent {
   _missing?: string[]
 }
 
+/** @riviere-role value-object */
 export interface EnrichmentFailure {
   component: DraftComponent
   field: string
   error: string
 }
 
+/** @riviere-role value-object */
 export interface EnrichmentResult {
   components: EnrichedComponent[]
   failures: EnrichmentFailure[]
@@ -322,6 +325,7 @@ function enrichSingleComponent(
   }
 }
 
+/** @riviere-role domain-service */
 export function enrichComponents(
   draftComponents: DraftComponent[],
   config: ResolvedExtractionConfig,

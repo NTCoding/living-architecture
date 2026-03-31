@@ -4,11 +4,13 @@ import type { ExtractedLink } from '../extracted-link'
 import { ConnectionDetectionError } from '../connection-detection-error'
 import { componentIdentity } from '../call-graph/call-graph-types'
 
+/** @riviere-role value-object */
 export interface AsyncDetectionOptions {
   strict: boolean
   repository: string
 }
 
+/** @riviere-role domain-service */
 export function detectSubscribeConnections(
   components: readonly EnrichedComponent[],
   options: AsyncDetectionOptions,

@@ -9,8 +9,10 @@ import {
   ConfigLoaderRequiredError, MissingComponentRuleError 
 } from './config-resolution-errors'
 
+/** @riviere-role value-object */
 export type ConfigLoader = (source: string) => Module
 
+/** @riviere-role domain-service */
 export function resolveConfig(
   config: ExtractionConfig,
   loader?: ConfigLoader,

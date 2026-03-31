@@ -160,6 +160,7 @@ function deduplicateMatches(matches: MatchedLink[], repository: string): Extract
   return [...seen.values()]
 }
 
+/** @riviere-role domain-service */
 export function detectConfigurableConnections(
   project: Project,
   patterns: ConnectionPattern[],

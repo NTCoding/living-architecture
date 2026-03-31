@@ -17,11 +17,13 @@ export const UNRESOLVABLE_TYPES = new Set([
   'never',
 ])
 
+/** @riviere-role value-object */
 export interface ReceiverResolution {
   calledMethod: string
   receiverTypeName: string | undefined
 }
 
+/** @riviere-role domain-service */
 export function resolveCallReceiver(
   callExpression: CallExpression,
 ): ReceiverResolution | undefined {

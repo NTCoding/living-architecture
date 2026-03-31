@@ -1,10 +1,12 @@
 import type { ConnectionCallSiteMatch } from '@living-architecture/riviere-extract-config'
 
+/** @riviere-role value-object */
 export interface CallSiteInfo {
   methodName: string
   receiverType?: string
 }
 
+/** @riviere-role domain-service */
 export function matchesCallSiteFilter(
   where: ConnectionCallSiteMatch,
   callSite: CallSiteInfo,

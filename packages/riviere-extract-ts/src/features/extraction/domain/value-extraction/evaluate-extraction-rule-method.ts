@@ -9,11 +9,13 @@ import type {
 import { applyTransforms } from '../../../../platform/domain/string-transforms/transforms'
 import { ExtractionError } from '../../../../platform/domain/ast-literals/literal-detection'
 
+/** @riviere-role value-object */
 export type ParameterInfo = {
   name: string
   type: string
 }
 
+/** @riviere-role value-object */
 export type MethodSignature = {
   parameters: ParameterInfo[]
   returnType: string
@@ -21,6 +23,7 @@ export type MethodSignature = {
 
 type MethodExtractionValue = string | ParameterInfo[] | MethodSignature
 
+/** @riviere-role value-object */
 export type MethodExtractionResult = { value: MethodExtractionValue }
 
 function extractParameterInfo(param: ParameterDeclaration): ParameterInfo {
@@ -31,6 +34,7 @@ function extractParameterInfo(param: ParameterDeclaration): ParameterInfo {
   }
 }
 
+/** @riviere-role domain-service */
 export function evaluateFromMethodSignatureRule(
   _rule: FromMethodSignatureExtractionRule,
   methodDecl: MethodDeclaration,
@@ -46,6 +50,7 @@ export function evaluateFromMethodSignatureRule(
   }
 }
 
+/** @riviere-role domain-service */
 export function evaluateFromConstructorParamsRule(
   _rule: FromConstructorParamsExtractionRule,
   classDecl: ClassDeclaration,
@@ -59,6 +64,7 @@ export function evaluateFromConstructorParamsRule(
   return { value: parameters }
 }
 
+/** @riviere-role domain-service */
 export function evaluateFromParameterTypeRule(
   rule: FromParameterTypeExtractionRule,
   methodDecl: MethodDeclaration,

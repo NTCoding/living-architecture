@@ -136,6 +136,7 @@ function traceBody(body: MethodDeclaration, ctx: TraceContext): void {
   }
 }
 
+/** @riviere-role domain-service */
 export function traceCallsInBody(
   body: MethodDeclaration,
   project: Project,
@@ -159,6 +160,7 @@ export function traceCallsInBody(
   })
 }
 
+/** @riviere-role domain-service */
 export function findClassInProject(
   project: Project,
   component: EnrichedComponent,
@@ -170,11 +172,13 @@ export function findClassInProject(
   return sourceFile.getClasses().find((c) => c.getStartLineNumber() === component.location.line)
 }
 
+/** @riviere-role value-object */
 export interface MethodLevelTarget {
   classDecl: ClassDeclaration
   method: MethodDeclaration
 }
 
+/** @riviere-role domain-service */
 export function findMethodLevelComponent(
   project: Project,
   component: EnrichedComponent,
@@ -197,6 +201,7 @@ export function findMethodLevelComponent(
   return undefined
 }
 
+/** @riviere-role domain-service */
 export function findFunctionInProject(
   project: Project,
   component: EnrichedComponent,

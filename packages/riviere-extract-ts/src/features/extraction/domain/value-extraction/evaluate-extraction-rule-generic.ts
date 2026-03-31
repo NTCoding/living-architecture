@@ -39,6 +39,7 @@ function extractTypeNames(typeNode: import('ts-morph').TypeNode): string[] {
   return [typeNode.getText()]
 }
 
+/** @riviere-role domain-service */
 export function evaluateFromGenericArgRule(
   rule: FromGenericArgExtractionRule,
   classDecl: ClassDeclaration,

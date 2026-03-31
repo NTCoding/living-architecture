@@ -3,7 +3,7 @@ import {
 } from 'vitest'
 import { detectConnections } from './detect-connections'
 import { buildComponent } from './call-graph/call-graph-fixtures'
-import { matchesGlob } from '../../../../platform/infra/glob-matching/minimatch-glob'
+import { matchesGlob } from '../../../../platform/infra/external-clients/minimatch/minimatch-glob'
 import { createProject } from './detect-connections-fixtures'
 
 describe('detectConnections - timing metrics', () => {

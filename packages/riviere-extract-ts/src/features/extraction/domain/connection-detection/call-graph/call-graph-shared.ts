@@ -11,22 +11,26 @@ import type { ComponentIndex } from '../component-index'
 import type { CallGraphOptions } from './call-graph-types'
 import { resolveInterface } from '../interface-resolution/resolve-interface'
 
+/** @riviere-role value-object */
 export interface InterfaceResolutionOutcome {
   component: EnrichedComponent | undefined
   resolvedTypeName: string | undefined
   uncertain: string | undefined
 }
 
+/** @riviere-role value-object */
 export interface MethodLookup {
   method: MethodDeclaration | undefined
   classFound: boolean
 }
 
+/** @riviere-role domain-service */
 export function getCalledMethodName(callExpr: CallExpression): string {
   const expression = callExpr.getExpression()
   return expression.asKindOrThrow(SyntaxKind.PropertyAccessExpression).getName()
 }
 
+/** @riviere-role domain-service */
 export function resolveTypeThroughInterface(
   typeName: string,
   project: Project,
@@ -77,6 +81,7 @@ function findClassByNameInProject(project: Project, typeName: string): ClassLook
   return undefined
 }
 
+/** @riviere-role domain-service */
 export function resolveContainerMethod(
   project: Project,
   typeName: string,
@@ -97,6 +102,7 @@ export function resolveContainerMethod(
   )
 }
 
+/** @riviere-role domain-service */
 export function findMethodInProject(
   project: Project,
   typeName: string,

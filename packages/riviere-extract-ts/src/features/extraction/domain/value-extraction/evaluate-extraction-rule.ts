@@ -27,20 +27,24 @@ import {
   extractLiteralValue,
 } from '../../../../platform/domain/ast-literals/literal-detection'
 
+/** @riviere-role value-object */
 export type ExtractionContext = { filePath: string }
 
 type ExtractionValue = string | number | boolean | string[]
 
+/** @riviere-role value-object */
 export type ExtractionResult = { value: ExtractionValue }
 
 function literal(value: string | number | boolean): ExtractionResult {
   return { value }
 }
 
+/** @riviere-role domain-service */
 export function evaluateLiteralRule(rule: LiteralExtractionRule): ExtractionResult {
   return literal(rule.literal)
 }
 
+/** @riviere-role domain-service */
 export function evaluateFromClassNameRule(
   rule: FromClassNameExtractionRule,
   classDecl: ClassDeclaration,
@@ -64,6 +68,7 @@ export function evaluateFromClassNameRule(
   return { value: applyTransforms(className, transform) }
 }
 
+/** @riviere-role domain-service */
 export function evaluateFromMethodNameRule(
   rule: FromMethodNameExtractionRule,
   methodDecl: MethodDeclaration,
@@ -82,6 +87,7 @@ export function evaluateFromMethodNameRule(
   return { value: applyTransforms(methodName, transform) }
 }
 
+/** @riviere-role domain-service */
 export function evaluateFromFilePathRule(
   rule: FromFilePathExtractionRule,
   filePath: string,
@@ -151,6 +157,7 @@ function findPropertyInHierarchy(
   return findPropertyInHierarchy(baseClass, propertyName, isStatic)
 }
 
+/** @riviere-role domain-service */
 export function evaluateFromPropertyRule(
   rule: FromPropertyExtractionRule,
   classDecl: ClassDeclaration,
@@ -296,6 +303,7 @@ function extractNamedArg(decorator: Decorator, name: string): string {
   return initializer.asKindOrThrow(SyntaxKind.StringLiteral).getLiteralValue()
 }
 
+/** @riviere-role domain-service */
 export function evaluateFromDecoratorArgRule(
   rule: FromDecoratorArgExtractionRule,
   decorator: Decorator,
@@ -328,6 +336,7 @@ export function evaluateFromDecoratorArgRule(
   return { value: applyTransforms(value, transform) }
 }
 
+/** @riviere-role domain-service */
 export function evaluateFromDecoratorNameRule(
   rule: FromDecoratorNameExtractionRule,
   decorator: Decorator,

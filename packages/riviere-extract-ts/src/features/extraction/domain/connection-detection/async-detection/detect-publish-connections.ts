@@ -7,6 +7,7 @@ import type { AsyncDetectionOptions } from './detect-subscribe-connections'
 
 type RequiredLineLocation = SourceLocation & { lineNumber: number }
 
+/** @riviere-role domain-service */
 export function detectPublishConnections(
   components: readonly EnrichedComponent[],
   options: AsyncDetectionOptions,

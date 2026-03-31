@@ -3,7 +3,7 @@ import {
 } from 'vitest'
 import { Project } from 'ts-morph'
 import { extractComponents } from './extractor'
-import { matchesGlob } from '../../../../platform/infra/glob-matching/minimatch-glob'
+import { matchesGlob } from '../../../../platform/infra/external-clients/minimatch/minimatch-glob'
 import {
   createResolvedConfig,
   createOrdersUseCaseConfig,

@@ -32,11 +32,11 @@ const platformInfraRoles: RoleName[] = [
   'command-use-case-input',
 ]
 
-const packages = ['packages/riviere-cli']
+const packages = ['packages/riviere-cli', 'packages/riviere-extract-ts']
 
 export const config = roleEnforcement({
   packages,
-  ignorePatterns: ['**/*.spec.ts', '**/__fixtures__/**'],
+  ignorePatterns: ['**/*.spec.ts', '**/__fixtures__/**', '**/*-fixtures.ts', '**/test-fixtures.ts'],
   roleDefinitionsDir: '.riviere/role-definitions',
   roles: allRoles,
 
@@ -52,6 +52,7 @@ export const config = roleEnforcement({
 
     location<RoleName>('src/platform')
       .subLocation('/domain', ['value-object', 'domain-service'])
+      .subLocation('/infra/external-clients/{client}', externalClientRoles)
       .subLocation('/infra/cli-presentation', cliPresentationRoles)
       .subLocation('/infra/extraction-config', platformInfraRoles)
       .subLocation('/infra/graph-persistence', platformInfraRoles)

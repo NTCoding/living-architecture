@@ -34,6 +34,7 @@ function isNameableNode(node: Node): node is NameableNode {
   )
 }
 
+/** @riviere-role domain-service */
 export function evaluatePredicate(node: Node, predicate: Predicate): boolean {
   if ('hasDecorator' in predicate) {
     return evaluateHasDecorator(node, predicate.hasDecorator.name, predicate.hasDecorator.from)

@@ -163,6 +163,7 @@ function processMethod(
   }
 }
 
+/** @riviere-role domain-service */
 export function buildCallGraph(
   project: Project,
   components: readonly EnrichedComponent[],

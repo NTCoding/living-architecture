@@ -14,6 +14,7 @@ interface TypeResolutionUncertain {
   reason: string
 }
 
+/** @riviere-role value-object */
 export type TypeResolution = TypeResolutionSuccess | TypeResolutionUncertain
 
 function stripGenerics(typeName: string): string {
@@ -137,6 +138,7 @@ function handleUnresolvable(
   }
 }
 
+/** @riviere-role domain-service */
 export function resolveCallExpressionReceiverType(
   callExpression: CallExpression,
   sourceFile: SourceFile,

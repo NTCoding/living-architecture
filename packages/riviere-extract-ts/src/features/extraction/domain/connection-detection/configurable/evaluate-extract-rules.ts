@@ -35,6 +35,7 @@ function evaluateRule(
   return resolveArgumentTypeName(callExpression, rule.fromArgument)
 }
 
+/** @riviere-role domain-service */
 export function evaluateExtractRules(
   extract: ConnectionExtractBlock,
   callExpression: CallExpression,
