@@ -128,22 +128,43 @@ function resolveLintTargets(
   ignorePatterns: readonly string[],
   readDirectory: RoleEnforcementRuntimeDeps['readdirSync'],
 ): string[] {
-  return walkFiles(configDir, readDirectory)
+  const scanDirs = includePatterns.map((pattern) => extractScanDir(pattern))
+  const files = scanDirs.flatMap((scanDir) => walkFiles(configDir, scanDir, readDirectory))
+  return files
     .filter((filePath) => matchesAny(filePath, includePatterns))
     .filter((filePath) => !matchesAny(filePath, ignorePatterns))
 }
 
+function extractScanDir(includePattern: string): string {
+  const segments = includePattern.split('/')
+  const staticSegments: string[] = []
+  for (const segment of segments) {
+    if (segment.includes('*') || segment.includes('{') || segment.includes('?')) {
+      break
+    }
+    staticSegments.push(segment)
+  }
+
+  return staticSegments.join('/')
+}
+
 function walkFiles(
   rootDir: string,
+  scanDir: string,
   readDirectory: RoleEnforcementRuntimeDeps['readdirSync'],
 ): string[] {
-  const entries = readDirectory(rootDir, {
+  const absoluteScanDir = path.join(rootDir, scanDir)
+  const entries = readDirectory(absoluteScanDir, {
     recursive: true,
     withFileTypes: true,
   })
   return entries
     .filter((entry) => entry.isFile())
-    .map((entry) => normalizePath(path.relative(rootDir, path.join(entry.parentPath, entry.name))))
+    .map((entry) =>
+      normalizePath(
+        path.join(scanDir, path.relative(absoluteScanDir, path.join(entry.parentPath, entry.name))),
+      ),
+    )
 }
 
 function matchesAny(filePath: string, patterns: readonly string[]): boolean {
