@@ -5,6 +5,7 @@ export const allRoles = [
   role('command-use-case', {
     targets: ['function'],
     allowedInputs: ['command-use-case-input'],
+    allowedOutputs: ['command-use-case-result'],
     forbiddenDependencies: ['command-use-case'],
   }),
   role('command-use-case-input', {
@@ -19,7 +20,10 @@ export const allRoles = [
     targets: ['interface', 'type-alias'],
   }),
   role('cli-output-formatter', { targets: ['function'] }),
-  role('command-input-factory', { targets: ['function'] }),
+  role('command-input-factory', {
+    targets: ['function'],
+    allowedOutputs: ['command-use-case-input'],
+  }),
   role('external-client-service', { targets: ['function'] }),
   role('aggregate-repository', { targets: ['class'] }),
   role('aggregate', { targets: ['interface', 'type-alias', 'class'] }),
@@ -29,6 +33,7 @@ export const allRoles = [
   role('external-client-error', { targets: ['class'] }),
   role('cli-input-validator', { targets: ['function'] }),
   role('cli-error', { targets: ['class'] }),
+  role('main', { targets: ['function'] }),
 ] as const
 
 export type RoleName = (typeof allRoles)[number]['name']

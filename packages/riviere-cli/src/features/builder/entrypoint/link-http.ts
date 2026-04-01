@@ -4,7 +4,7 @@ import { ComponentId } from '@living-architecture/riviere-builder'
 import {
   getDefaultGraphPathDescription,
   resolveGraphPath,
-} from '../../../platform/infra/graph-persistence/graph-path'
+} from '../../../platform/infra/cli/presentation/graph-path-option'
 import { fileExists } from '../../../platform/infra/graph-persistence/file-existence'
 import { formatSuccess } from '../../../platform/infra/cli/presentation/output'
 import {
@@ -14,9 +14,7 @@ import {
 import { isValidHttpMethod } from '../../../platform/infra/cli/presentation/validation'
 import { loadGraphBuilder } from '../../../platform/infra/graph-persistence/builder-graph-loader'
 import { reportGraphNotFound } from '../../../platform/infra/cli/presentation/graph-error-output'
-import {
-  findApisByPath, getAllApiPaths 
-} from '../queries/api-component-queries'
+import { findApisByPath, getAllApiPaths } from '../queries/api-component-queries'
 import {
   reportNoApiFoundForPath,
   reportAmbiguousApiMatch,

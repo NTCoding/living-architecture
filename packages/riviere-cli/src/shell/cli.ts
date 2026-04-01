@@ -1,6 +1,5 @@
 import { Command } from 'commander'
 import { createRequire } from 'module'
-import { InvalidPackageJsonError } from '../platform/infra/errors/errors'
 import { createAddComponentCommand } from '../features/builder/entrypoint/add-component'
 import { createAddDomainCommand } from '../features/builder/entrypoint/add-domain'
 import { createAddSourceCommand } from '../features/builder/entrypoint/add-source'
@@ -23,10 +22,18 @@ import { createComponentsCommand } from '../features/query/entrypoint/components
 import { createSearchCommand } from '../features/query/entrypoint/search'
 import { createExtractCommand } from '../features/extract/entrypoint/extract'
 
-interface PackageJson {version: string}
+interface PackageJson {
+  version: string
+}
 
-/** @riviere-role command-input-factory */
-export function parsePackageJson(pkg: unknown): PackageJson {
+class InvalidPackageJsonError extends Error {
+  constructor(reason: string) {
+    super(`Invalid package.json: ${reason}`)
+    this.name = 'InvalidPackageJsonError'
+  }
+}
+
+function parsePackageJson(pkg: unknown): PackageJson {
   if (typeof pkg !== 'object' || pkg === null || !('version' in pkg)) {
     throw new InvalidPackageJsonError('missing version field')
   }
@@ -48,7 +55,7 @@ function loadPackageJson(): PackageJson {
 
 const packageJson = loadPackageJson()
 
-/** @riviere-role cli-entrypoint */
+/** @riviere-role main */
 export function createProgram(): Command {
   const program = new Command()
 

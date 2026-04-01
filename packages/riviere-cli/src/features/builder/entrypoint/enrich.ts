@@ -5,7 +5,7 @@ import {
   formatError, formatSuccess 
 } from '../../../platform/infra/cli/presentation/output'
 import { CliErrorCode } from '../../../platform/infra/cli/presentation/error-codes'
-import { getDefaultGraphPathDescription } from '../../../platform/infra/graph-persistence/graph-path'
+import { getDefaultGraphPathDescription } from '../../../platform/infra/cli/presentation/graph-path-option'
 import { collectOption } from '../../../platform/infra/cli/presentation/option-collectors'
 import {
   parseStateChanges,

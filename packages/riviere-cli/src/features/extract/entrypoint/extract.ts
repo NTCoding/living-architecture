@@ -1,7 +1,5 @@
 import { Command } from 'commander'
-import {
-  CliErrorCode, ExitCode 
-} from '../../../platform/infra/cli/presentation/error-codes'
+import { CliErrorCode, ExitCode } from '../../../platform/infra/cli/presentation/error-codes'
 import { exitWithCliError } from '../../../platform/infra/cli/presentation/exit-with-cli-error'
 import {
   validateFlagCombinations,
@@ -35,7 +33,24 @@ export function createExtractCommand(): Command {
 
       const result =
         options.enrich === undefined
-          ? extractDraftComponents(createExtractDraftComponentsInput(options))
+          ? extractDraftComponents(
+              createExtractDraftComponentsInput({
+                config: options.config,
+                ...(options.allowIncomplete === undefined
+                  ? {}
+                  : { allowIncomplete: options.allowIncomplete }),
+                ...(options.base === undefined ? {} : { base: options.base }),
+                ...(options.componentsOnly === undefined
+                  ? {}
+                  : { componentsOnly: options.componentsOnly }),
+                ...(options.dryRun === undefined ? {} : { dryRun: options.dryRun }),
+                ...(options.files === undefined ? {} : { files: options.files }),
+                ...(options.format === undefined ? {} : { format: options.format }),
+                ...(options.output === undefined ? {} : { output: options.output }),
+                ...(options.pr === undefined ? {} : { pr: options.pr }),
+                ...(options.tsConfig === undefined ? {} : { tsConfig: options.tsConfig }),
+              }),
+            )
           : enrichDraftComponents(createEnrichDraftComponentsInput(options, options.enrich))
 
       if (result.kind === 'fieldFailure') {

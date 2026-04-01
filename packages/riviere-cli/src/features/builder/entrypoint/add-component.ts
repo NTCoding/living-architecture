@@ -3,7 +3,7 @@ import { CliErrorCode } from '../../../platform/infra/cli/presentation/error-cod
 import {
   getDefaultGraphPathDescription,
   resolveGraphPath,
-} from '../../../platform/infra/graph-persistence/graph-path'
+} from '../../../platform/infra/cli/presentation/graph-path-option'
 import { formatError, formatSuccess } from '../../../platform/infra/cli/presentation/output'
 import { getAddComponentHints } from '../../../platform/infra/cli/presentation/add-component-hints'
 import { addComponent } from '../commands/add-component'

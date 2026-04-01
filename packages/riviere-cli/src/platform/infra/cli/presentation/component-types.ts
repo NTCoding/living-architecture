@@ -1,6 +1,26 @@
-import {
-  InvalidComponentTypeError, InvalidNormalizedComponentTypeError 
-} from '../errors/errors'
+class InvalidComponentTypeError extends Error {
+  readonly value: string
+  readonly validTypes: readonly string[]
+
+  constructor(value: string, validTypes: readonly string[]) {
+    super(`Expected valid ComponentType. Got: ${value}. Valid types: ${validTypes.join(', ')}`)
+    this.name = 'InvalidComponentTypeError'
+    this.value = value
+    this.validTypes = validTypes
+  }
+}
+
+class InvalidNormalizedComponentTypeError extends Error {
+  readonly value: string
+  readonly validTypes: string[]
+
+  constructor(value: string, validTypes: string[]) {
+    super(`Invalid component type: ${value}. Valid types: ${validTypes.join(', ')}`)
+    this.name = 'InvalidNormalizedComponentTypeError'
+    this.value = value
+    this.validTypes = validTypes
+  }
+}
 
 export const VALID_COMPONENT_TYPES = [
   'UI',

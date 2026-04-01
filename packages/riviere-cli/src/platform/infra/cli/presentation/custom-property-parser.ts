@@ -1,4 +1,12 @@
-import { InvalidCustomPropertyError } from '../errors/errors'
+class InvalidCustomPropertyError extends Error {
+  readonly property: string
+
+  constructor(property: string) {
+    super(`Invalid custom property format: ${property}. Expected 'key:value'`)
+    this.name = 'InvalidCustomPropertyError'
+    this.property = property
+  }
+}
 
 /** @riviere-role command-input-factory */
 export function parseCustomProperties(

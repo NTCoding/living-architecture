@@ -1,19 +1,15 @@
 import { Command } from 'commander'
-import {
-  mkdir, writeFile 
-} from 'node:fs/promises'
+import { mkdir, writeFile } from 'node:fs/promises'
 import { dirname } from 'node:path'
 import { RiviereBuilder } from '@living-architecture/riviere-builder'
 import type { BuilderOptions } from '@living-architecture/riviere-builder'
-import {
-  formatError, formatSuccess 
-} from '../../../platform/infra/cli/presentation/output'
+import { formatError, formatSuccess } from '../../../platform/infra/cli/presentation/output'
 import { CliErrorCode } from '../../../platform/infra/cli/presentation/error-codes'
 import { fileExists } from '../../../platform/infra/graph-persistence/file-existence'
 import {
   resolveGraphPath,
   getDefaultGraphPathDescription,
-} from '../../../platform/infra/graph-persistence/graph-path'
+} from '../../../platform/infra/cli/presentation/graph-path-option'
 import { collectOption } from '../../../platform/infra/cli/presentation/option-collectors'
 import { parseDomainJson } from '../../../platform/infra/cli/presentation/domain-input-parser'
 import type { DomainInputParsed } from '../../../platform/infra/cli/presentation/domain-input-parser'

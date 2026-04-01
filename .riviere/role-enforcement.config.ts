@@ -17,21 +17,7 @@ const externalClientRoles: RoleName[] = [
   'external-client-error',
 ]
 
-const cliPresentationRoles: RoleName[] = [
-  'cli-output-formatter',
-  'cli-input-validator',
-  'command-input-factory',
-  'value-object',
-  'cli-error',
-]
-
-const platformInfraRoles: RoleName[] = [
-  'external-client-service',
-  'external-client-model',
-  'external-client-error',
-  'command-input-factory',
-  'command-use-case-input',
-]
+const cliPresentationRoles: RoleName[] = ['cli-output-formatter', 'cli-error']
 
 const packages = ['packages/riviere-cli', 'packages/riviere-extract-ts']
 
@@ -44,7 +30,9 @@ export const config = roleEnforcement({
 
   locations: [
     location<RoleName>('src/features/{feature}')
-      .subLocation('/entrypoint', ['cli-entrypoint'])
+      .subLocation('/entrypoint', ['cli-entrypoint'], {
+        forbiddenImports: ['**/infra/persistence/**'],
+      })
       .subLocation('/commands', commandRoles, { forbiddenImports: ['**/infra/cli/**'] })
       .subLocation('/domain', domainRoles)
       .subLocation('/infra/external-clients/{client}', externalClientRoles)
@@ -52,10 +40,11 @@ export const config = roleEnforcement({
       .subLocation('/infra/cli/output', ['cli-output-formatter']),
 
     location<RoleName>('src/platform')
-      .subLocation('/domain', ['value-object', 'domain-service'])
+      .subLocation('/domain', domainRoles)
       .subLocation('/infra/external-clients/{client}', externalClientRoles)
+      .subLocation('/infra/cli/input', ['cli-input-validator'])
       .subLocation('/infra/cli/presentation', cliPresentationRoles),
 
-    location<RoleName>('src/shell', ['cli-entrypoint', 'command-input-factory']),
+    location<RoleName>('src/shell', ['main']),
   ],
 })

@@ -4,7 +4,7 @@ import { ComponentId } from '@living-architecture/riviere-builder'
 import {
   getDefaultGraphPathDescription,
   resolveGraphPath,
-} from '../../../platform/infra/graph-persistence/graph-path'
+} from '../../../platform/infra/cli/presentation/graph-path-option'
 import { fileExists } from '../../../platform/infra/graph-persistence/file-existence'
 import { formatSuccess } from '../../../platform/infra/cli/presentation/output'
 import {

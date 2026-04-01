@@ -1,5 +1,5 @@
 import { Command } from 'commander'
-import { getDefaultGraphPathDescription } from '../../../platform/infra/graph-persistence/graph-path'
+import { getDefaultGraphPathDescription } from '../../../platform/infra/cli/presentation/graph-path-option'
 import { formatSuccess } from '../../../platform/infra/cli/presentation/output'
 import { withGraphBuilder } from '../../../platform/infra/graph-persistence/builder-graph-loader'
 

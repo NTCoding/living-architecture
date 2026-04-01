@@ -8,6 +8,9 @@ These configurations show how roles compose together in standard patterns. When 
 
 ```
 raw CLI args
+     │
+     ▼
+[cli-input-validator]
      │ validated args
      ▼
 [command-input-factory]
@@ -27,10 +30,10 @@ raw CLI args
 The [cli-entrypoint] orchestrates EVERYTHING. It is the only caller.
 
 ```
-[cli-entrypoint] calls [cli-input-validator]     ← validates raw CLI args
-[cli-entrypoint] calls [command-input-factory]    ← builds typed input
-[cli-entrypoint] calls [command-use-case]         ← executes with typed input
-[cli-entrypoint] calls [cli-output-formatter]     ← formats result or error
+[cli-entrypoint] calls [cli-input-validator]     ← validates raw CLI args/options
+[cli-entrypoint] calls [command-input-factory]   ← builds typed input from validated args
+[cli-entrypoint] calls [command-use-case]        ← executes with typed input
+[cli-entrypoint] calls [cli-output-formatter]    ← formats result or error
 ```
 
 The [command-use-case] does NOT call any of the above. It receives input and returns a result. That's it.

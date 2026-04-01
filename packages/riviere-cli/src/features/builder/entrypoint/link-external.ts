@@ -4,7 +4,7 @@ import type { ExternalTarget } from '@living-architecture/riviere-schema'
 import {
   getDefaultGraphPathDescription,
   resolveGraphPath,
-} from '../../../platform/infra/graph-persistence/graph-path'
+} from '../../../platform/infra/cli/presentation/graph-path-option'
 import { fileExists } from '../../../platform/infra/graph-persistence/file-existence'
 import { formatSuccess } from '../../../platform/infra/cli/presentation/output'
 import { isValidLinkType } from '../../../platform/infra/cli/presentation/component-types'

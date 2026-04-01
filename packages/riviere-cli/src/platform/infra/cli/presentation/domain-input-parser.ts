@@ -1,6 +1,15 @@
 import type { SystemType } from '@living-architecture/riviere-schema'
-import { isValidSystemType } from '../../../platform/infra/cli/presentation/component-types'
-import { InvalidDomainJsonError } from '../../../platform/infra/errors/errors'
+import { isValidSystemType } from './component-types'
+
+class InvalidDomainJsonError extends Error {
+  readonly value: string
+
+  constructor(value: string) {
+    super(`Invalid domain JSON: ${value}`)
+    this.name = 'InvalidDomainJsonError'
+    this.value = value
+  }
+}
 
 interface DomainInputParsed {
   name: string
