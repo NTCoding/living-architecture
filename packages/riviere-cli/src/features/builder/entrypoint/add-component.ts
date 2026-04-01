@@ -7,6 +7,7 @@ import {
 import { formatError, formatSuccess } from '../../../platform/infra/cli/presentation/output'
 import { getAddComponentHints } from '../../../platform/infra/cli/presentation/add-component-hints'
 import { addComponent } from '../commands/add-component'
+import type { AddComponentInput } from '../commands/add-component-input'
 import type { AddComponentErrorCode } from '../commands/add-component-result'
 
 interface CliOptions {
@@ -67,7 +68,7 @@ export function createAddComponentCommand(): Command {
     .option('--graph <path>', getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .action(async (options: CliOptions) => {
-      const input = {
+      const input: AddComponentInput = {
         componentType: options.type,
         name: options.name,
         domain: options.domain,

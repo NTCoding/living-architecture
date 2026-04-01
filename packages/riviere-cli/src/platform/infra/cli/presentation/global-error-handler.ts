@@ -3,7 +3,6 @@ import { CliErrorCode, ExitCode, ConfigValidationError } from './error-codes'
 import { GitError } from '../../external-clients/git/git-errors'
 import { DraftComponentLoadError } from '../../extraction-config/draft-component-loader'
 import { ConnectionDetectionError } from '@living-architecture/riviere-extract-ts'
-import { SourceFilterError } from '../../external-clients/source-filtering/filter-source-files'
 
 /** @riviere-role cli-output-formatter */
 export function handleGlobalError(error: unknown): never {
@@ -13,7 +12,13 @@ export function handleGlobalError(error: unknown): never {
   }
 
   if (error instanceof GitError) {
-    console.log(JSON.stringify(formatError(CliErrorCode.ValidationError, error.message)))
+    const code =
+      error.gitErrorCode === 'NOT_A_REPOSITORY'
+        ? CliErrorCode.GitNotARepository
+        : error.gitErrorCode === 'GIT_NOT_FOUND'
+          ? CliErrorCode.GitNotFound
+          : CliErrorCode.ValidationError
+    console.log(JSON.stringify(formatError(code, error.message)))
     process.exit(ExitCode.RuntimeError)
   }
 
@@ -33,19 +38,6 @@ export function handleGlobalError(error: unknown): never {
       ),
     )
     process.exit(ExitCode.ExtractionFailure)
-  }
-
-  if (error instanceof SourceFilterError) {
-    if (error.filterErrorKind === 'GIT_ERROR' && error.gitError !== undefined) {
-      const code =
-        error.gitError.gitErrorCode === 'NOT_A_REPOSITORY'
-          ? CliErrorCode.GitNotARepository
-          : CliErrorCode.GitNotFound
-      console.log(JSON.stringify(formatError(code, error.gitError.message)))
-      process.exit(ExitCode.RuntimeError)
-    }
-    console.log(JSON.stringify(formatError(CliErrorCode.ValidationError, error.message)))
-    process.exit(ExitCode.ConfigValidation)
   }
 
   throw error

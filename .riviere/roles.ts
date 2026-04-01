@@ -15,6 +15,9 @@ export const allRoles = [
     targets: ['interface', 'type-alias'],
     nameMatches: '.*Result$',
   }),
+  role('command-use-case-result-value', {
+    targets: ['interface', 'type-alias'],
+  }),
   role('cli-output-formatter', { targets: ['function'] }),
   role('command-input-factory', { targets: ['function'] }),
   role('external-client-service', { targets: ['function'] }),

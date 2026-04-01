@@ -1,13 +1,18 @@
+import { existsSync } from 'node:fs'
 import { posix, resolve } from 'node:path'
 import { globSync } from 'glob'
 import type { DraftComponent } from '@living-architecture/riviere-extract-ts'
+import {
+  CliErrorCode,
+  ConfigValidationError,
+} from '../../../../../platform/infra/cli/presentation/error-codes'
 import {
   loadAndValidateConfig,
   resolveSourceFiles,
 } from '../../../../../platform/infra/extraction-config/config-loader'
 import { loadDraftComponentsFromFile } from '../../../../../platform/infra/extraction-config/draft-component-loader'
+import { detectChangedTypeScriptFiles } from '../../../../../platform/infra/external-clients/git/git-changed-files'
 import { getRepositoryInfo } from '../../../../../platform/infra/external-clients/git/git-repository-info'
-import { resolveFilteredSourceFiles } from '../../../../../platform/infra/external-clients/source-filtering/filter-source-files'
 import { ExtractionProject, type ModuleContext } from '../../../domain/extraction-project'
 import { createConfiguredProject } from '../../external-clients/ts-morph/create-configured-project'
 import { findModuleTsConfigDir } from '../../external-clients/ts-morph/find-module-tsconfig-dir'
@@ -44,7 +49,7 @@ type ParsedConfigState = {
 export class ExtractionProjectRepository {
   loadFromChangedProject(loadChangedProjectParams: ChangedProjectParams): ExtractionProject {
     const parsedConfigState = this.loadParsedConfigState(loadChangedProjectParams.configPath)
-    const sourceFilePaths = resolveFilteredSourceFiles(
+    const sourceFilePaths = this.resolveChangedSourceFilePaths(
       this.resolveSourceFilePaths(parsedConfigState),
       loadChangedProjectParams.baseBranch === undefined
         ? { pr: true }
@@ -81,9 +86,9 @@ export class ExtractionProjectRepository {
 
   loadFromSelectedFiles(selectedFilesProjectParams: SelectedFilesProjectParams): ExtractionProject {
     const parsedConfigState = this.loadParsedConfigState(selectedFilesProjectParams.configPath)
-    const sourceFilePaths = resolveFilteredSourceFiles(
+    const sourceFilePaths = this.resolveSelectedSourceFilePaths(
       this.resolveSourceFilePaths(parsedConfigState),
-      { files: selectedFilesProjectParams.filePaths },
+      selectedFilesProjectParams.filePaths,
     )
     return this.createExtractionProject(
       parsedConfigState,
@@ -137,5 +142,34 @@ export class ExtractionProjectRepository {
 
   private resolveSourceFilePaths(parsedConfigState: ParsedConfigState): string[] {
     return resolveSourceFiles(parsedConfigState.resolvedConfig, parsedConfigState.configDir)
+  }
+
+  private resolveChangedSourceFilePaths(
+    allSourceFiles: string[],
+    options: { pr: true; base?: string },
+  ): string[] {
+    const gitOptions = options.base === undefined ? {} : { base: options.base }
+    const result = detectChangedTypeScriptFiles(process.cwd(), gitOptions)
+    for (const warning of result.warnings) {
+      console.error(warning)
+    }
+    const changedAbsolute = new Set(result.files.map((filePath) => resolve(filePath)))
+    return allSourceFiles.filter((filePath) => changedAbsolute.has(filePath))
+  }
+
+  private resolveSelectedSourceFilePaths(
+    allSourceFiles: string[],
+    requestedFiles: string[],
+  ): string[] {
+    const missingFiles = requestedFiles.filter((filePath) => !existsSync(resolve(filePath)))
+    if (missingFiles.length > 0) {
+      throw new ConfigValidationError(
+        CliErrorCode.ValidationError,
+        `Files not found: ${missingFiles.join(', ')}`,
+      )
+    }
+
+    const requestedAbsolute = new Set(requestedFiles.map((filePath) => resolve(filePath)))
+    return allSourceFiles.filter((filePath) => requestedAbsolute.has(filePath))
   }
 }

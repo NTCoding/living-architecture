@@ -5,6 +5,7 @@ const commandRoles: RoleName[] = [
   'command-use-case',
   'command-use-case-input',
   'command-use-case-result',
+  'command-use-case-result-value',
   'command-input-factory',
 ]
 

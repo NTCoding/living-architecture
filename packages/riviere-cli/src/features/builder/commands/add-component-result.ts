@@ -1,3 +1,4 @@
+/** @riviere-role command-use-case-result-value */
 export type AddComponentErrorCode =
   | 'VALIDATION_ERROR'
   | 'GRAPH_NOT_FOUND'
