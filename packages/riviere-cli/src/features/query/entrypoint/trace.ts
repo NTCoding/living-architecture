@@ -1,18 +1,9 @@
 import { Command } from 'commander'
-import {
-  ComponentNotFoundError, parseComponentId 
-} from '@living-architecture/riviere-query'
-import {
-  findNearMatches, ComponentId 
-} from '@living-architecture/riviere-builder'
-import {
-  formatError, formatSuccess 
-} from '../../../platform/infra/cli/presentation/output'
+import { ComponentNotFoundError, parseComponentId } from '@living-architecture/riviere-query'
+import { findNearMatches, ComponentId } from '@living-architecture/riviere-builder'
+import { formatError, formatSuccess } from '../../../platform/infra/cli/presentation/output'
 import { CliErrorCode } from '../../../platform/infra/cli/presentation/error-codes'
-import {
-  withGraph,
-  getDefaultGraphPathDescription,
-} from '../../../platform/infra/graph-persistence/query-graph-loader'
+import { withGraph, getDefaultGraphPathDescription } from '../infra/persistence/query-graph-access'
 
 interface TraceOptions {
   graph?: string

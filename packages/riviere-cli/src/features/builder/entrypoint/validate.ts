@@ -1,7 +1,7 @@
 import { Command } from 'commander'
 import { formatSuccess } from '../../../platform/infra/cli/presentation/output'
 import { getDefaultGraphPathDescription } from '../../../platform/infra/cli/presentation/graph-path-option'
-import { withGraphBuilder } from '../../../platform/infra/graph-persistence/builder-graph-loader'
+import { withGraphBuilder } from '../infra/persistence/builder-graph-access'
 
 interface ValidateOptions {
   graph?: string

@@ -1,30 +1,26 @@
 import { RiviereQuery } from '@living-architecture/riviere-query'
-import { RiviereQueryRepository } from '../../../features/query/infra/persistence/riviere-query-repository'
-import { getDefaultGraphPathDescription } from '../cli/presentation/graph-path-option'
-import { formatError } from '../cli/presentation/output'
-import { CliErrorCode } from '../cli/presentation/error-codes'
+import { getDefaultGraphPathDescription } from '../../../../platform/infra/cli/presentation/graph-path-option'
+import { formatError } from '../../../../platform/infra/cli/presentation/output'
+import { CliErrorCode } from '../../../../platform/infra/cli/presentation/error-codes'
+import { RiviereQueryRepository } from './riviere-query-repository'
 
 export { getDefaultGraphPathDescription }
 
-/** @riviere-role external-client-model */
 export interface LoadGraphResult {
   query: RiviereQuery
   graphPath: string
 }
 
-/** @riviere-role external-client-model */
 export interface LoadGraphError {
   error: ReturnType<typeof formatError>
 }
 
-/** @riviere-role external-client-service */
 export function isLoadGraphError(
   result: LoadGraphResult | LoadGraphError,
 ): result is LoadGraphError {
   return 'error' in result
 }
 
-/** @riviere-role external-client-service */
 export async function loadGraph(
   graphPathOption?: string,
 ): Promise<LoadGraphResult | LoadGraphError> {
@@ -60,7 +56,6 @@ export async function loadGraph(
   }
 }
 
-/** @riviere-role external-client-service */
 export async function withGraph(
   graphPathOption: string | undefined,
   handler: (query: RiviereQuery) => Promise<void> | void,

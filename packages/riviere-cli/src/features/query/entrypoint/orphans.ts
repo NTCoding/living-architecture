@@ -1,9 +1,6 @@
 import { Command } from 'commander'
 import { formatSuccess } from '../../../platform/infra/cli/presentation/output'
-import {
-  withGraph,
-  getDefaultGraphPathDescription,
-} from '../../../platform/infra/graph-persistence/query-graph-loader'
+import { withGraph, getDefaultGraphPathDescription } from '../infra/persistence/query-graph-access'
 
 interface OrphansOptions {
   graph?: string

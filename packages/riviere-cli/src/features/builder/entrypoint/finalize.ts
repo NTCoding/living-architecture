@@ -1,11 +1,9 @@
 import { Command } from 'commander'
 import { writeFile } from 'node:fs/promises'
-import {
-  formatError, formatSuccess 
-} from '../../../platform/infra/cli/presentation/output'
+import { formatError, formatSuccess } from '../../../platform/infra/cli/presentation/output'
 import { CliErrorCode } from '../../../platform/infra/cli/presentation/error-codes'
 import { getDefaultGraphPathDescription } from '../../../platform/infra/cli/presentation/graph-path-option'
-import { withGraphBuilder } from '../../../platform/infra/graph-persistence/builder-graph-loader'
+import { withGraphBuilder } from '../infra/persistence/builder-graph-access'
 
 interface FinalizeOptions {
   graph?: string

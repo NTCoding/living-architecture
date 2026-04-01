@@ -1,8 +1,7 @@
 import { RiviereBuilder } from '@living-architecture/riviere-builder'
-import { RiviereBuilderRepository } from '../../../features/builder/infra/persistence/riviere-builder-repository'
-import { reportGraphNotFound } from '../cli/presentation/graph-error-output'
+import { reportGraphNotFound } from '../../../../platform/infra/cli/presentation/graph-error-output'
+import { RiviereBuilderRepository } from './riviere-builder-repository'
 
-/** @riviere-role external-client-service */
 export async function withGraphBuilder(
   graphPathOption: string | undefined,
   handler: (builder: RiviereBuilder, graphPath: string) => Promise<void>,
@@ -18,7 +17,6 @@ export async function withGraphBuilder(
   await handler(loadedGraph.builder, loadedGraph.graphPath)
 }
 
-/** @riviere-role external-client-service */
 export async function initializeGraphBuilder(
   builder: RiviereBuilder,
   graphPathOption?: string,
@@ -39,7 +37,6 @@ export async function initializeGraphBuilder(
   }
 }
 
-/** @riviere-role external-client-service */
 export async function saveGraphBuilder(
   builder: RiviereBuilder,
   graphPathOption?: string,

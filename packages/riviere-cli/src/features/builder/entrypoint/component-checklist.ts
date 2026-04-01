@@ -1,11 +1,9 @@
 import { Command } from 'commander'
 import { getDefaultGraphPathDescription } from '../../../platform/infra/cli/presentation/graph-path-option'
-import {
-  formatError, formatSuccess 
-} from '../../../platform/infra/cli/presentation/output'
+import { formatError, formatSuccess } from '../../../platform/infra/cli/presentation/output'
 import { CliErrorCode } from '../../../platform/infra/cli/presentation/error-codes'
 import { isValidComponentType } from '../../../platform/infra/cli/presentation/component-types'
-import { withGraphBuilder } from '../../../platform/infra/graph-persistence/builder-graph-loader'
+import { withGraphBuilder } from '../infra/persistence/builder-graph-access'
 
 interface ComponentChecklistOptions {
   graph?: string

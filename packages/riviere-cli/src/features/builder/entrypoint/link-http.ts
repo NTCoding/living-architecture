@@ -7,10 +7,7 @@ import {
   normalizeComponentType,
 } from '../../../platform/infra/cli/presentation/component-types'
 import { isValidHttpMethod } from '../../../platform/infra/cli/presentation/validation'
-import {
-  saveGraphBuilder,
-  withGraphBuilder,
-} from '../../../platform/infra/graph-persistence/builder-graph-loader'
+import { saveGraphBuilder, withGraphBuilder } from '../infra/persistence/builder-graph-access'
 import { findApisByPath, getAllApiPaths } from '../queries/api-component-queries'
 import {
   reportNoApiFoundForPath,

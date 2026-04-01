@@ -10,10 +10,7 @@ import {
   validateComponentType,
   validateLinkType,
 } from '../../../platform/infra/cli/presentation/validation'
-import {
-  saveGraphBuilder,
-  withGraphBuilder,
-} from '../../../platform/infra/graph-persistence/builder-graph-loader'
+import { saveGraphBuilder, withGraphBuilder } from '../infra/persistence/builder-graph-access'
 import { tryBuilderOperation } from '../../../platform/infra/cli/presentation/graph-error-output'
 
 interface LinkOptions {

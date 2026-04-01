@@ -1,12 +1,7 @@
 import { Command } from 'commander'
-import {
-  formatSuccess, formatError 
-} from '../../../platform/infra/cli/presentation/output'
+import { formatSuccess, formatError } from '../../../platform/infra/cli/presentation/output'
 import { CliErrorCode } from '../../../platform/infra/cli/presentation/error-codes'
-import {
-  withGraph,
-  getDefaultGraphPathDescription,
-} from '../../../platform/infra/graph-persistence/query-graph-loader'
+import { withGraph, getDefaultGraphPathDescription } from '../infra/persistence/query-graph-access'
 import {
   isValidComponentType,
   normalizeToSchemaComponentType,

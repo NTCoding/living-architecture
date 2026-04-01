@@ -1,14 +1,12 @@
-import {
-  describe, it, expect 
-} from 'vitest'
-import {
-  mkdir, writeFile 
-} from 'node:fs/promises'
+import { describe, it, expect } from 'vitest'
+import { mkdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { RiviereQuery } from '@living-architecture/riviere-query'
 import {
-  loadGraph, isLoadGraphError, withGraph 
-} from './query-graph-loader'
+  loadGraph,
+  isLoadGraphError,
+  withGraph,
+} from '../../../features/query/infra/persistence/query-graph-access'
 import { CliErrorCode } from '../cli/presentation/error-codes'
 import type { TestContext } from '../../__fixtures__/command-test-fixtures'
 import {
