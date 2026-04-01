@@ -1,9 +1,8 @@
 import { Command } from 'commander'
-import { ComponentNotFoundError, parseComponentId } from '@living-architecture/riviere-query'
-import { findNearMatches, ComponentId } from '@living-architecture/riviere-builder'
 import { formatError, formatSuccess } from '../../../platform/infra/cli/presentation/output'
 import { CliErrorCode } from '../../../platform/infra/cli/presentation/error-codes'
-import { withGraph, getDefaultGraphPathDescription } from '../infra/persistence/query-graph-access'
+import { getDefaultGraphPathDescription } from '../../../platform/infra/cli/presentation/graph-path-option'
+import { traceFlow } from '../commands/trace-flow'
 
 interface TraceOptions {
   graph?: string
@@ -26,35 +25,22 @@ Examples:
     .option('--graph <path>', getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .action(async (componentIdArg: string, options: TraceOptions) => {
-      await withGraph(options.graph, (query) => {
-        try {
-          const componentId = parseComponentId(componentIdArg)
-          const flow = query.traceFlow(componentId)
-
-          if (options.json) {
-            console.log(JSON.stringify(formatSuccess(flow)))
-          }
-        } catch (error) {
-          if (error instanceof ComponentNotFoundError) {
-            const parsedId = ComponentId.parse(componentIdArg)
-            const matches = findNearMatches(
-              query.components(),
-              { name: parsedId.name() },
-              { limit: 3 },
-            )
-            /* v8 ignore next -- @preserve v8 fails to track inline arrow function coverage despite test execution */
-            const suggestions = matches.map((m) => m.component.id)
-
-            console.log(
-              JSON.stringify(
-                formatError(CliErrorCode.ComponentNotFound, error.message, suggestions),
-              ),
-            )
-            return
-          }
-          /* v8 ignore next -- @preserve v8 fails to track throw statement coverage despite test execution */
-          throw error
-        }
+      const result = await traceFlow({
+        componentId: componentIdArg,
+        graphPathOption: options.graph,
       })
+
+      if (!result.success) {
+        console.log(
+          JSON.stringify(
+            formatError(CliErrorCode.ComponentNotFound, result.message, result.suggestions),
+          ),
+        )
+        return
+      }
+
+      if (options.json) {
+        console.log(JSON.stringify(formatSuccess(result.flow)))
+      }
     })
 }

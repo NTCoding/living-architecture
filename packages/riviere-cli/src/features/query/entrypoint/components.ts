@@ -1,13 +1,14 @@
 import { Command } from 'commander'
 import { formatSuccess, formatError } from '../../../platform/infra/cli/presentation/output'
 import { CliErrorCode } from '../../../platform/infra/cli/presentation/error-codes'
-import { withGraph, getDefaultGraphPathDescription } from '../infra/persistence/query-graph-access'
+import { getDefaultGraphPathDescription } from '../../../platform/infra/cli/presentation/graph-path-option'
 import {
   isValidComponentType,
   normalizeToSchemaComponentType,
   VALID_COMPONENT_TYPES,
 } from '../../../platform/infra/cli/presentation/component-types'
 import { toComponentOutput } from '../../../platform/infra/cli/presentation/component-output'
+import { listComponents } from '../commands/list-components'
 
 interface ComponentsOptions {
   graph?: string
@@ -45,26 +46,16 @@ Examples:
         return
       }
 
-      await withGraph(options.graph, (query) => {
-        const allComponents = query.components()
-
-        const filteredByDomain =
-          options.domain === undefined
-            ? allComponents
-            : allComponents.filter((c) => c.domain === options.domain)
-
-        const typeFilter =
-          options.type === undefined ? undefined : normalizeToSchemaComponentType(options.type)
-        const filteredByType =
-          typeFilter === undefined
-            ? filteredByDomain
-            : filteredByDomain.filter((c) => c.type === typeFilter)
-
-        const components = filteredByType.map(toComponentOutput)
-
-        if (options.json) {
-          console.log(JSON.stringify(formatSuccess({ components })))
-        }
+      const result = await listComponents({
+        domain: options.domain,
+        graphPathOption: options.graph,
+        type: options.type === undefined ? undefined : normalizeToSchemaComponentType(options.type),
       })
+
+      const components = result.components.map(toComponentOutput)
+
+      if (options.json) {
+        console.log(JSON.stringify(formatSuccess({ components })))
+      }
     })
 }

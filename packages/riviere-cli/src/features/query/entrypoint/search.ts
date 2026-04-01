@@ -1,7 +1,8 @@
 import { Command } from 'commander'
 import { formatSuccess } from '../../../platform/infra/cli/presentation/output'
-import { withGraph, getDefaultGraphPathDescription } from '../infra/persistence/query-graph-access'
+import { getDefaultGraphPathDescription } from '../../../platform/infra/cli/presentation/graph-path-option'
 import { toComponentOutput } from '../../../platform/infra/cli/presentation/component-output'
+import { searchComponents } from '../commands/search-components'
 
 interface SearchOptions {
   graph?: string
@@ -24,13 +25,14 @@ Examples:
     .option('--graph <path>', getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .action(async (term: string, options: SearchOptions) => {
-      await withGraph(options.graph, (query) => {
-        const result = query.search(term)
-        const components = result.map(toComponentOutput)
-
-        if (options.json) {
-          console.log(JSON.stringify(formatSuccess({ components })))
-        }
+      const result = await searchComponents({
+        graphPathOption: options.graph,
+        term,
       })
+      const components = result.components.map(toComponentOutput)
+
+      if (options.json) {
+        console.log(JSON.stringify(formatSuccess({ components })))
+      }
     })
 }

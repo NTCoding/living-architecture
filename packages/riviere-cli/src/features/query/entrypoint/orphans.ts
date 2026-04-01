@@ -1,6 +1,7 @@
 import { Command } from 'commander'
 import { formatSuccess } from '../../../platform/infra/cli/presentation/output'
-import { withGraph, getDefaultGraphPathDescription } from '../infra/persistence/query-graph-access'
+import { getDefaultGraphPathDescription } from '../../../platform/infra/cli/presentation/graph-path-option'
+import { detectOrphans } from '../commands/detect-orphans'
 
 interface OrphansOptions {
   graph?: string
@@ -22,12 +23,10 @@ Examples:
     .option('--graph <path>', getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .action(async (options: OrphansOptions) => {
-      await withGraph(options.graph, (query) => {
-        const orphans = query.detectOrphans()
+      const result = await detectOrphans({ graphPathOption: options.graph })
 
-        if (options.json) {
-          console.log(JSON.stringify(formatSuccess({ orphans })))
-        }
-      })
+      if (options.json) {
+        console.log(JSON.stringify(formatSuccess(result)))
+      }
     })
 }

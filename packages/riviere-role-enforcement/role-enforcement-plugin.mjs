@@ -298,7 +298,8 @@ export default {
             return typeNode
           }
 
-          const promiseTypeArguments = typeNode.typeArguments?.params
+          const promiseTypeArguments =
+            typeNode.typeArguments?.params ?? typeNode.typeParameters?.params
           if (!Array.isArray(promiseTypeArguments) || promiseTypeArguments.length !== 1) {
             return null
           }

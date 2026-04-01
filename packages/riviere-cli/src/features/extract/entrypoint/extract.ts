@@ -51,7 +51,24 @@ export function createExtractCommand(): Command {
                 ...(options.tsConfig === undefined ? {} : { tsConfig: options.tsConfig }),
               }),
             )
-          : enrichDraftComponents(createEnrichDraftComponentsInput(options, options.enrich))
+          : enrichDraftComponents(
+              createEnrichDraftComponentsInput(
+                {
+                  config: options.config,
+                  ...(options.allowIncomplete === undefined
+                    ? {}
+                    : { allowIncomplete: options.allowIncomplete }),
+                  ...(options.componentsOnly === undefined
+                    ? {}
+                    : { componentsOnly: options.componentsOnly }),
+                  ...(options.dryRun === undefined ? {} : { dryRun: options.dryRun }),
+                  ...(options.format === undefined ? {} : { format: options.format }),
+                  ...(options.output === undefined ? {} : { output: options.output }),
+                  ...(options.tsConfig === undefined ? {} : { tsConfig: options.tsConfig }),
+                },
+                options.enrich,
+              ),
+            )
 
       if (result.kind === 'fieldFailure') {
         exitWithCliError(
