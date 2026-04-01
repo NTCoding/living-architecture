@@ -1,14 +1,8 @@
-import {
-  mkdtempSync, mkdirSync, rmSync, writeFileSync 
-} from 'node:fs'
+import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
-import {
-  expect, it 
-} from 'vitest'
-import {
-  location, role, roleEnforcement 
-} from '../config/role-enforcement-builder'
+import { expect, it } from 'vitest'
+import { location, role, roleEnforcement } from '../config/role-enforcement-builder'
 import { runRoleEnforcement } from './run-role-enforcement'
 
 const testRoles = [
@@ -78,6 +72,10 @@ export function createCli(): void {}
   )
 
   const roleDefsDir = path.join(workspaceDir, '.riviere', 'role-definitions')
+  writeFileSync(
+    path.join(workspaceDir, '.riviere', 'canonical-role-configurations.md'),
+    '# Canonical Role Configurations',
+  )
   writeFileSync(path.join(roleDefsDir, 'index.md'), '# Role Definitions')
   for (const r of testRoles) {
     writeFileSync(path.join(roleDefsDir, `${r.name}.md`), `# ${r.name}`)
@@ -88,6 +86,7 @@ export function createCli(): void {}
 
 const testConfig = roleEnforcement({
   packages: ['packages/my-app'],
+  canonicalConfigurationsFile: '.riviere/canonical-role-configurations.md',
   ignorePatterns: ['**/*.spec.ts'],
   roleDefinitionsDir: '.riviere/role-definitions',
   roles: testRoles,
@@ -137,6 +136,33 @@ export function runThing(runThingInput: string): RunThingResult {
   expect(result.stdout).toContain(
     "Role 'command-use-case' only allows inputs [command-use-case-input]",
   )
+
+  rmSync(workspaceDir, {
+    force: true,
+    recursive: true,
+  })
+})
+
+it('accepts Promise-wrapped command use case results', () => {
+  const workspaceDir = createFixtureWorkspace()
+  writeFileSync(
+    path.join(workspaceDir, 'packages', 'my-app', 'src', 'commands', 'runThing.ts'),
+    `import type { RunThingInput } from './runThingInput'
+import type { RunThingResult } from './runThingResult'
+
+/** @riviere-role command-use-case */
+export async function runThing(runThingInput: RunThingInput): Promise<RunThingResult> {
+  return {
+    status: 'ok',
+  }
+}
+`,
+  )
+
+  const result = runRoleEnforcement(testConfig, workspaceDir)
+
+  expect(result.exitCode).toBe(0)
+  expect(result.stderr).toBe('')
 
   rmSync(workspaceDir, {
     force: true,

@@ -1,19 +1,16 @@
 import { Command } from 'commander'
-import { writeFile } from 'node:fs/promises'
 import { ComponentId } from '@living-architecture/riviere-builder'
-import {
-  getDefaultGraphPathDescription,
-  resolveGraphPath,
-} from '../../../platform/infra/cli/presentation/graph-path-option'
-import { fileExists } from '../../../platform/infra/graph-persistence/file-existence'
+import { getDefaultGraphPathDescription } from '../../../platform/infra/cli/presentation/graph-path-option'
 import { formatSuccess } from '../../../platform/infra/cli/presentation/output'
 import {
   isValidLinkType,
   normalizeComponentType,
 } from '../../../platform/infra/cli/presentation/component-types'
 import { isValidHttpMethod } from '../../../platform/infra/cli/presentation/validation'
-import { loadGraphBuilder } from '../../../platform/infra/graph-persistence/builder-graph-loader'
-import { reportGraphNotFound } from '../../../platform/infra/cli/presentation/graph-error-output'
+import {
+  saveGraphBuilder,
+  withGraphBuilder,
+} from '../../../platform/infra/graph-persistence/builder-graph-loader'
 import { findApisByPath, getAllApiPaths } from '../queries/api-component-queries'
 import {
   reportNoApiFoundForPath,
@@ -67,71 +64,64 @@ Examples:
         return
       }
 
-      const graphPath = resolveGraphPath(options.graph)
-      const graphExists = await fileExists(graphPath)
+      await withGraphBuilder(options.graph, async (builder) => {
+        const graph = builder.build()
 
-      if (!graphExists) {
-        reportGraphNotFound(graphPath)
-        return
-      }
+        const normalizedMethod = options.method?.toUpperCase()
+        const httpMethod =
+          normalizedMethod && isValidHttpMethod(normalizedMethod) ? normalizedMethod : undefined
+        const matchingApis = findApisByPath(graph, options.path, httpMethod)
 
-      const builder = await loadGraphBuilder(graphPath)
-      const graph = builder.build()
+        const [matchedApi, ...otherApis] = matchingApis
 
-      const normalizedMethod = options.method?.toUpperCase()
-      const httpMethod =
-        normalizedMethod && isValidHttpMethod(normalizedMethod) ? normalizedMethod : undefined
-      const matchingApis = findApisByPath(graph, options.path, httpMethod)
+        if (!matchedApi) {
+          reportNoApiFoundForPath(options.path, getAllApiPaths(graph))
+          return
+        }
 
-      const [matchedApi, ...otherApis] = matchingApis
+        if (otherApis.length > 0) {
+          reportAmbiguousApiMatch(options.path, matchingApis)
+          return
+        }
 
-      if (!matchedApi) {
-        reportNoApiFoundForPath(options.path, getAllApiPaths(graph))
-        return
-      }
+        const targetId = ComponentId.create({
+          domain: options.toDomain,
+          module: options.toModule,
+          type: normalizeComponentType(options.toType),
+          name: options.toName,
+        }).toString()
 
-      if (otherApis.length > 0) {
-        reportAmbiguousApiMatch(options.path, matchingApis)
-        return
-      }
+        const linkInput: {
+          from: string
+          to: string
+          type?: 'sync' | 'async'
+        } = {
+          from: matchedApi.id,
+          to: targetId,
+        }
 
-      const targetId = ComponentId.create({
-        domain: options.toDomain,
-        module: options.toModule,
-        type: normalizeComponentType(options.toType),
-        name: options.toName,
-      }).toString()
+        if (options.linkType !== undefined && isValidLinkType(options.linkType)) {
+          linkInput.type = options.linkType
+        }
 
-      const linkInput: {
-        from: string
-        to: string
-        type?: 'sync' | 'async'
-      } = {
-        from: matchedApi.id,
-        to: targetId,
-      }
+        const link = builder.link(linkInput)
 
-      if (options.linkType !== undefined && isValidLinkType(options.linkType)) {
-        linkInput.type = options.linkType
-      }
+        await saveGraphBuilder(builder, options.graph)
 
-      const link = builder.link(linkInput)
-
-      await writeFile(graphPath, builder.serialize(), 'utf-8')
-
-      if (options.json) {
-        console.log(
-          JSON.stringify(
-            formatSuccess({
-              link,
-              matchedApi: {
-                id: matchedApi.id,
-                path: matchedApi.path,
-                method: matchedApi.httpMethod,
-              },
-            }),
-          ),
-        )
-      }
+        if (options.json) {
+          console.log(
+            JSON.stringify(
+              formatSuccess({
+                link,
+                matchedApi: {
+                  id: matchedApi.id,
+                  path: matchedApi.path,
+                  method: matchedApi.httpMethod,
+                },
+              }),
+            ),
+          )
+        }
+      })
     })
 }

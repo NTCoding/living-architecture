@@ -1,9 +1,6 @@
 import { Command } from 'commander'
 import { CliErrorCode } from '../../../platform/infra/cli/presentation/error-codes'
-import {
-  getDefaultGraphPathDescription,
-  resolveGraphPath,
-} from '../../../platform/infra/cli/presentation/graph-path-option'
+import { getDefaultGraphPathDescription } from '../../../platform/infra/cli/presentation/graph-path-option'
 import { formatError, formatSuccess } from '../../../platform/infra/cli/presentation/output'
 import { getAddComponentHints } from '../../../platform/infra/cli/presentation/add-component-hints'
 import { addComponent } from '../commands/add-component'
@@ -75,7 +72,7 @@ export function createAddComponentCommand(): Command {
         module: options.module,
         repository: options.repository,
         filePath: options.filePath,
-        graphPath: resolveGraphPath(options.graph),
+        ...(options.graph === undefined ? {} : { graphPathOption: options.graph }),
         ...(options.lineNumber ? { lineNumber: parseInt(options.lineNumber, 10) } : {}),
         ...(options.route ? { route: options.route } : {}),
         ...(options.apiType ? { apiType: options.apiType } : {}),

@@ -1,31 +1,10 @@
-import { readFile } from 'node:fs/promises'
 import { RiviereQuery } from '@living-architecture/riviere-query'
-import {
-  resolveGraphPath, getDefaultGraphPathDescription 
-} from './graph-path'
-import { fileExists } from './file-existence'
+import { RiviereQueryRepository } from '../../../features/query/infra/persistence/riviere-query-repository'
+import { getDefaultGraphPathDescription } from '../cli/presentation/graph-path-option'
 import { formatError } from '../cli/presentation/output'
 import { CliErrorCode } from '../cli/presentation/error-codes'
 
 export { getDefaultGraphPathDescription }
-
-type JsonParseSuccess = {
-  success: true
-  data: unknown
-}
-type JsonParseFailure = { success: false }
-type JsonParseResult = JsonParseSuccess | JsonParseFailure
-
-function parseJsonSafely(content: string): JsonParseResult {
-  try {
-    return {
-      success: true,
-      data: JSON.parse(content),
-    }
-  } catch {
-    return { success: false }
-  }
-}
 
 /** @riviere-role external-client-model */
 export interface LoadGraphResult {
@@ -34,7 +13,9 @@ export interface LoadGraphResult {
 }
 
 /** @riviere-role external-client-model */
-export interface LoadGraphError {error: ReturnType<typeof formatError>}
+export interface LoadGraphError {
+  error: ReturnType<typeof formatError>
+}
 
 /** @riviere-role external-client-service */
 export function isLoadGraphError(
@@ -47,25 +28,24 @@ export function isLoadGraphError(
 export async function loadGraph(
   graphPathOption?: string,
 ): Promise<LoadGraphResult | LoadGraphError> {
-  const graphPath = resolveGraphPath(graphPathOption)
-  const graphExists = await fileExists(graphPath)
+  const repository = new RiviereQueryRepository()
+  const loadedGraph = await repository.load(graphPathOption)
 
-  if (!graphExists) {
+  if (!loadedGraph.success && loadedGraph.code === 'GRAPH_NOT_FOUND') {
     return {
-      error: formatError(CliErrorCode.GraphNotFound, `Graph not found at ${graphPath}`, [
-        'Run riviere builder init first',
-      ]),
+      error: formatError(
+        CliErrorCode.GraphNotFound,
+        `Graph not found at ${loadedGraph.graphPath}`,
+        ['Run riviere builder init first'],
+      ),
     }
   }
 
-  const content = await readFile(graphPath, 'utf-8')
-
-  const parseResult = parseJsonSafely(content)
-  if (!parseResult.success) {
+  if (!loadedGraph.success) {
     return {
       error: formatError(
         CliErrorCode.GraphCorrupted,
-        `Graph file at ${graphPath} is not valid JSON`,
+        `Graph file at ${loadedGraph.graphPath} is not valid JSON`,
         [
           'Check that the graph file contains valid JSON',
           'Try running riviere builder init to create a new graph',
@@ -74,11 +54,9 @@ export async function loadGraph(
     }
   }
 
-  const query = RiviereQuery.fromJSON(parseResult.data)
-
   return {
-    query,
-    graphPath,
+    query: loadedGraph.query,
+    graphPath: loadedGraph.graphPath,
   }
 }
 

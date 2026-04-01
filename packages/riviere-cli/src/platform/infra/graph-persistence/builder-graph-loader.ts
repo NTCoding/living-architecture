@@ -1,31 +1,49 @@
-import { readFile } from 'node:fs/promises'
 import { RiviereBuilder } from '@living-architecture/riviere-builder'
-import { parseRiviereGraph } from '@living-architecture/riviere-schema'
-import { resolveGraphPath } from './graph-path'
-import { fileExists } from './file-existence'
+import { RiviereBuilderRepository } from '../../../features/builder/infra/persistence/riviere-builder-repository'
 import { reportGraphNotFound } from '../cli/presentation/graph-error-output'
-
-/** @riviere-role external-client-service */
-export async function loadGraphBuilder(graphPath: string): Promise<RiviereBuilder> {
-  const content = await readFile(graphPath, 'utf-8')
-  const parsed: unknown = JSON.parse(content)
-  const graph = parseRiviereGraph(parsed)
-  return RiviereBuilder.resume(graph)
-}
 
 /** @riviere-role external-client-service */
 export async function withGraphBuilder(
   graphPathOption: string | undefined,
   handler: (builder: RiviereBuilder, graphPath: string) => Promise<void>,
 ): Promise<void> {
-  const graphPath = resolveGraphPath(graphPathOption)
-  const graphExists = await fileExists(graphPath)
+  const repository = new RiviereBuilderRepository()
+  const loadedGraph = await repository.load(graphPathOption)
 
-  if (!graphExists) {
-    reportGraphNotFound(graphPath)
+  if (!loadedGraph.success) {
+    reportGraphNotFound(loadedGraph.graphPath)
     return
   }
 
-  const builder = await loadGraphBuilder(graphPath)
-  await handler(builder, graphPath)
+  await handler(loadedGraph.builder, loadedGraph.graphPath)
+}
+
+/** @riviere-role external-client-service */
+export async function initializeGraphBuilder(
+  builder: RiviereBuilder,
+  graphPathOption?: string,
+): Promise<{ graphExists: boolean; graphPath: string }> {
+  const repository = new RiviereBuilderRepository()
+  const graphStatus = await repository.exists(graphPathOption)
+  if (graphStatus.exists) {
+    return {
+      graphExists: true,
+      graphPath: graphStatus.graphPath,
+    }
+  }
+
+  const graphPath = await repository.save(builder, graphPathOption)
+  return {
+    graphExists: false,
+    graphPath,
+  }
+}
+
+/** @riviere-role external-client-service */
+export async function saveGraphBuilder(
+  builder: RiviereBuilder,
+  graphPathOption?: string,
+): Promise<string> {
+  const repository = new RiviereBuilderRepository()
+  return repository.save(builder, graphPathOption)
 }

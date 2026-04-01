@@ -1,11 +1,6 @@
 import { Command } from 'commander'
-import { writeFile } from 'node:fs/promises'
 import { ComponentId } from '@living-architecture/riviere-builder'
-import {
-  getDefaultGraphPathDescription,
-  resolveGraphPath,
-} from '../../../platform/infra/cli/presentation/graph-path-option'
-import { fileExists } from '../../../platform/infra/graph-persistence/file-existence'
+import { getDefaultGraphPathDescription } from '../../../platform/infra/cli/presentation/graph-path-option'
 import { formatSuccess } from '../../../platform/infra/cli/presentation/output'
 import {
   isValidLinkType,
@@ -15,11 +10,11 @@ import {
   validateComponentType,
   validateLinkType,
 } from '../../../platform/infra/cli/presentation/validation'
-import { loadGraphBuilder } from '../../../platform/infra/graph-persistence/builder-graph-loader'
 import {
-  reportGraphNotFound,
-  tryBuilderOperation,
-} from '../../../platform/infra/cli/presentation/graph-error-output'
+  saveGraphBuilder,
+  withGraphBuilder,
+} from '../../../platform/infra/graph-persistence/builder-graph-loader'
+import { tryBuilderOperation } from '../../../platform/infra/cli/presentation/graph-error-output'
 
 interface LinkOptions {
   from: string
@@ -75,45 +70,37 @@ Examples:
         return
       }
 
-      const graphPath = resolveGraphPath(options.graph)
-      const graphExists = await fileExists(graphPath)
+      await withGraphBuilder(options.graph, async (builder) => {
+        const targetId = ComponentId.create({
+          domain: options.toDomain,
+          module: options.toModule,
+          type: normalizeComponentType(options.toType),
+          name: options.toName,
+        }).toString()
 
-      if (!graphExists) {
-        reportGraphNotFound(graphPath)
-        return
-      }
+        const linkInput: {
+          from: string
+          to: string
+          type?: 'sync' | 'async'
+        } = {
+          from: options.from,
+          to: targetId,
+        }
 
-      const builder = await loadGraphBuilder(graphPath)
+        if (options.linkType !== undefined && isValidLinkType(options.linkType)) {
+          linkInput.type = options.linkType
+        }
 
-      const targetId = ComponentId.create({
-        domain: options.toDomain,
-        module: options.toModule,
-        type: normalizeComponentType(options.toType),
-        name: options.toName,
-      }).toString()
+        const linkResult = tryBuilderOperation(() => builder.link(linkInput))
+        if (linkResult === undefined) {
+          return
+        }
 
-      const linkInput: {
-        from: string
-        to: string
-        type?: 'sync' | 'async'
-      } = {
-        from: options.from,
-        to: targetId,
-      }
+        await saveGraphBuilder(builder, options.graph)
 
-      if (options.linkType !== undefined && isValidLinkType(options.linkType)) {
-        linkInput.type = options.linkType
-      }
-
-      const linkResult = tryBuilderOperation(() => builder.link(linkInput))
-      if (linkResult === undefined) {
-        return
-      }
-
-      await writeFile(graphPath, builder.serialize(), 'utf-8')
-
-      if (options.json) {
-        console.log(JSON.stringify(formatSuccess({ link: linkResult })))
-      }
+        if (options.json) {
+          console.log(JSON.stringify(formatSuccess({ link: linkResult })))
+        }
+      })
     })
 }

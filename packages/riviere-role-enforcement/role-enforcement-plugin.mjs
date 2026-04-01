@@ -78,8 +78,10 @@ export default {
             }
 
             for (const forbiddenPattern of layer.forbiddenImports) {
-              if (minimatch(resolvedImportRelative, forbiddenPattern, { dot: true }) ||
-                  minimatch(resolvedImportRelative, `${forbiddenPattern}/**`, { dot: true })) {
+              if (
+                minimatch(resolvedImportRelative, forbiddenPattern, { dot: true }) ||
+                minimatch(resolvedImportRelative, `${forbiddenPattern}/**`, { dot: true })
+              ) {
                 report(
                   node,
                   `Forbidden import: files in this location cannot import from '${forbiddenPattern}'. See ${options.configDisplayPath}`,
@@ -273,8 +275,8 @@ export default {
             return null
           }
 
-          const innerType = typeAnnotation.typeAnnotation
-          if (innerType.type !== 'TSTypeReference' || innerType.typeName.type !== 'Identifier') {
+          const innerType = unwrapSupportedTypeReference(typeAnnotation.typeAnnotation)
+          if (innerType === null) {
             return null
           }
 
@@ -285,6 +287,23 @@ export default {
           }
 
           return readExportedRole(currentFile, localTypeName)
+        }
+
+        function unwrapSupportedTypeReference(typeNode) {
+          if (typeNode.type !== 'TSTypeReference' || typeNode.typeName.type !== 'Identifier') {
+            return null
+          }
+
+          if (typeNode.typeName.name !== 'Promise') {
+            return typeNode
+          }
+
+          const promiseTypeArguments = typeNode.typeArguments?.params
+          if (!Array.isArray(promiseTypeArguments) || promiseTypeArguments.length !== 1) {
+            return null
+          }
+
+          return unwrapSupportedTypeReference(promiseTypeArguments[0])
         }
 
         function readImportedReference(localTypeName, currentFile) {

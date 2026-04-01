@@ -53,6 +53,7 @@ Repository extraction process:
 - Start by defining the repository interface
 - The interface should expose repository operations in terms of aggregate identity and aggregate values, for example `loadById(id): Aggregate`
 - Then identify the steps between the repository input and the fully loaded aggregate
+- If two pieces of logic must always be used together at every call site, they likely belong to the same concept and should usually be combined behind one boundary
 - The point where the aggregate is fully constructed marks the core load boundary of the repository
 - Do the same for persistence: identify the steps between the aggregate and the final stored representation
 - The aggregate is not the persisted state itself; the persisted state is what the repository uses to rehydrate the aggregate

@@ -1,15 +1,10 @@
 import { Command } from 'commander'
-import { mkdir, writeFile } from 'node:fs/promises'
-import { dirname } from 'node:path'
 import { RiviereBuilder } from '@living-architecture/riviere-builder'
 import type { BuilderOptions } from '@living-architecture/riviere-builder'
 import { formatError, formatSuccess } from '../../../platform/infra/cli/presentation/output'
 import { CliErrorCode } from '../../../platform/infra/cli/presentation/error-codes'
-import { fileExists } from '../../../platform/infra/graph-persistence/file-existence'
-import {
-  resolveGraphPath,
-  getDefaultGraphPathDescription,
-} from '../../../platform/infra/cli/presentation/graph-path-option'
+import { initializeGraphBuilder } from '../../../platform/infra/graph-persistence/builder-graph-loader'
+import { getDefaultGraphPathDescription } from '../../../platform/infra/cli/presentation/graph-path-option'
 import { collectOption } from '../../../platform/infra/cli/presentation/option-collectors'
 import { parseDomainJson } from '../../../platform/infra/cli/presentation/domain-input-parser'
 import type { DomainInputParsed } from '../../../platform/infra/cli/presentation/domain-input-parser'
@@ -69,20 +64,9 @@ Examples:
         return
       }
 
-      const graphPath = resolveGraphPath(options.graph)
-      const graphDir = dirname(graphPath)
-
-      const graphExists = await fileExists(graphPath)
-
-      if (graphExists) {
-        console.log(
-          JSON.stringify(
-            formatError(CliErrorCode.GraphExists, `Graph already exists at ${graphPath}`, [
-              'Delete the file to reinitialize',
-            ]),
-          ),
-        )
-        return
+      const builderOptions: BuilderOptions = {
+        sources: options.source.map((url) => ({ repository: url })),
+        domains: {},
       }
 
       const domains: BuilderOptions['domains'] = {}
@@ -92,27 +76,34 @@ Examples:
           systemType: d.systemType,
         }
       }
-
-      const builderOptions: BuilderOptions = {
-        sources: options.source.map((url) => ({ repository: url })),
-        domains,
-      }
+      builderOptions.domains = domains
 
       if (options.name !== undefined) {
         builderOptions.name = options.name
       }
 
       const builder = RiviereBuilder.new(builderOptions)
+      const initialization = await initializeGraphBuilder(builder, options.graph)
 
-      await mkdir(graphDir, { recursive: true })
-      await writeFile(graphPath, builder.serialize(), 'utf-8')
+      if (initialization.graphExists) {
+        console.log(
+          JSON.stringify(
+            formatError(
+              CliErrorCode.GraphExists,
+              `Graph already exists at ${initialization.graphPath}`,
+              ['Delete the file to reinitialize'],
+            ),
+          ),
+        )
+        return
+      }
 
       if (options.json === true) {
         const domainNames = options.domain.map((d) => d.name)
         console.log(
           JSON.stringify(
             formatSuccess({
-              path: graphPath,
+              path: initialization.graphPath,
               sources: options.source.length,
               domains: domainNames,
             }),

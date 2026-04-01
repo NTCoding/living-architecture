@@ -1,19 +1,14 @@
 import { Command } from 'commander'
-import { writeFile } from 'node:fs/promises'
 import type { ExternalTarget } from '@living-architecture/riviere-schema'
-import {
-  getDefaultGraphPathDescription,
-  resolveGraphPath,
-} from '../../../platform/infra/cli/presentation/graph-path-option'
-import { fileExists } from '../../../platform/infra/graph-persistence/file-existence'
+import { getDefaultGraphPathDescription } from '../../../platform/infra/cli/presentation/graph-path-option'
 import { formatSuccess } from '../../../platform/infra/cli/presentation/output'
 import { isValidLinkType } from '../../../platform/infra/cli/presentation/component-types'
 import { validateLinkType } from '../../../platform/infra/cli/presentation/validation'
-import { loadGraphBuilder } from '../../../platform/infra/graph-persistence/builder-graph-loader'
 import {
-  reportGraphNotFound,
-  tryBuilderOperation,
-} from '../../../platform/infra/cli/presentation/graph-error-output'
+  saveGraphBuilder,
+  withGraphBuilder,
+} from '../../../platform/infra/graph-persistence/builder-graph-loader'
+import { tryBuilderOperation } from '../../../platform/infra/cli/presentation/graph-error-output'
 import { buildExternalTarget } from '../../../platform/infra/cli/presentation/link-external-transformer'
 
 interface ExternalLinkInput {
@@ -67,35 +62,28 @@ Examples:
         return
       }
 
-      const graphPath = resolveGraphPath(options.graph)
-      const graphExists = await fileExists(graphPath)
+      await withGraphBuilder(options.graph, async (builder) => {
+        const target = buildExternalTarget(options)
 
-      if (!graphExists) {
-        reportGraphNotFound(graphPath)
-        return
-      }
+        const externalLinkInput: ExternalLinkInput = {
+          from: options.from,
+          target,
+        }
 
-      const builder = await loadGraphBuilder(graphPath)
-      const target = buildExternalTarget(options)
+        if (options.linkType !== undefined && isValidLinkType(options.linkType)) {
+          externalLinkInput.type = options.linkType
+        }
 
-      const externalLinkInput: ExternalLinkInput = {
-        from: options.from,
-        target,
-      }
+        const externalLink = tryBuilderOperation(() => builder.linkExternal(externalLinkInput))
+        if (externalLink === undefined) {
+          return
+        }
 
-      if (options.linkType !== undefined && isValidLinkType(options.linkType)) {
-        externalLinkInput.type = options.linkType
-      }
+        await saveGraphBuilder(builder, options.graph)
 
-      const externalLink = tryBuilderOperation(() => builder.linkExternal(externalLinkInput))
-      if (externalLink === undefined) {
-        return
-      }
-
-      await writeFile(graphPath, builder.serialize(), 'utf-8')
-
-      if (options.json) {
-        console.log(JSON.stringify(formatSuccess({ externalLink })))
-      }
+        if (options.json) {
+          console.log(JSON.stringify(formatSuccess({ externalLink })))
+        }
+      })
     })
 }

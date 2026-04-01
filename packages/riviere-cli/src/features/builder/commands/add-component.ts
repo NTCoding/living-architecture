@@ -1,17 +1,14 @@
-import { readFile, writeFile } from 'node:fs/promises'
 import {
-  RiviereBuilder,
   CustomTypeNotFoundError,
   DomainNotFoundError,
   DuplicateComponentError,
 } from '@living-architecture/riviere-builder'
 import type { SourceLocation } from '@living-architecture/riviere-schema'
-import { parseRiviereGraph } from '@living-architecture/riviere-schema'
-import { fileExists } from '../../../platform/infra/graph-persistence/file-existence'
 import {
   addComponentToBuilder,
   type AddComponentInput as DomainInput,
 } from '../../../platform/domain/add-component'
+import { RiviereBuilderRepository } from '../infra/persistence/riviere-builder-repository'
 import type { AddComponentInput } from './add-component-input'
 import type { AddComponentErrorCode, AddComponentResult } from './add-component-result'
 
@@ -38,23 +35,20 @@ export async function addComponent(input: AddComponentInput): Promise<AddCompone
     return failure('VALIDATION_ERROR', 'Invalid line number: must be a positive integer')
   }
 
-  const graphExists = await fileExists(input.graphPath)
-  if (!graphExists) {
-    return failure('GRAPH_NOT_FOUND', `Graph not found at ${input.graphPath}`)
-  }
+  const repository = new RiviereBuilderRepository()
 
-  const content = await readFile(input.graphPath, 'utf-8')
-  const parsedContent = tryParseJson(content)
-  if (parsedContent === null) {
+  const loadedGraph = await repository.load(input.graphPathOption)
+  if (!loadedGraph.success) {
+    if (loadedGraph.code === 'GRAPH_NOT_FOUND') {
+      return failure('GRAPH_NOT_FOUND', `Graph not found at ${loadedGraph.graphPath}`)
+    }
+
     return failure('VALIDATION_ERROR', 'Graph file contains invalid JSON')
   }
 
-  const graph = parseRiviereGraph(parsedContent)
-  const builder = RiviereBuilder.resume(graph)
-
   try {
-    const componentId = addComponentToBuilder(builder, createDomainInput(input))
-    await writeFile(input.graphPath, builder.serialize(), 'utf-8')
+    const componentId = addComponentToBuilder(loadedGraph.builder, createDomainInput(input))
+    await repository.save(loadedGraph.builder, input.graphPathOption)
     return {
       success: true,
       componentId,
@@ -144,14 +138,6 @@ function createDomainInput(input: AddComponentInput): DomainInput {
     }
     default:
       throw new Error(`Invalid component type: ${input.componentType}`)
-  }
-}
-
-function tryParseJson(content: string): unknown | null {
-  try {
-    return JSON.parse(content)
-  } catch {
-    return null
   }
 }
 
