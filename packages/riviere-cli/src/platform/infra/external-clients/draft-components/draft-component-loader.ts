@@ -40,7 +40,6 @@ export function loadDraftComponentsFromFile(filePath: string): DraftComponent[] 
   }
 
   const parsed = parseJsonFile(filePath)
-
   if (!isDraftComponentArray(parsed)) {
     throw new DraftComponentLoadError(
       `Enrich file does not contain valid draft components: ${filePath}`,

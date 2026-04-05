@@ -9,11 +9,11 @@ export type FinalizedGraph = RiviereGraph
 /** @riviere-role command-use-case-result */
 export type FinalizeGraphResult =
   | {
-      finalGraph: FinalizedGraph
-      success: true
-    }
+    finalGraph: FinalizedGraph
+    success: true
+  }
   | {
-      code: FinalizeGraphErrorCode
-      message: string
-      success: false
-    }
+    code: FinalizeGraphErrorCode
+    message: string
+    success: false
+  }

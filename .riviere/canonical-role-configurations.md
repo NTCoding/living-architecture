@@ -6,7 +6,7 @@ These configurations show how roles compose together in standard patterns. When 
 
 ### Data Flow
 
-```
+````text
 raw CLI args
      │
      ▼
@@ -23,24 +23,24 @@ raw CLI args
      ├── error → [cli-output-formatter] → exit
      │            uses [cli-error] for error codes
      └── success → [cli-output-formatter] → CLI output
-```
+```text
 
 ### Who Calls Who
 
 The [cli-entrypoint] orchestrates EVERYTHING. It is the only caller.
 
-```
+```text
 [cli-entrypoint] calls [cli-input-validator]     ← validates raw CLI args/options
 [cli-entrypoint] calls [command-input-factory]   ← builds typed input from validated args
 [cli-entrypoint] calls [command-use-case]        ← executes with typed input
 [cli-entrypoint] calls [cli-output-formatter]    ← formats result or error
-```
+````
 
 The [command-use-case] does NOT call any of the above. It receives input and returns a result. That's it.
 
 ## Command Use Case loading, invoking, and saving aggregate
 
-```
+```text
 [*-entrypoint]
      │ [command-use-case-input]
      ▼

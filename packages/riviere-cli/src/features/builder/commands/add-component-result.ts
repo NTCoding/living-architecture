@@ -9,11 +9,11 @@ export type AddComponentErrorCode =
 /** @riviere-role command-use-case-result */
 export type AddComponentResult =
   | {
-      success: true
-      componentId: string
-    }
+    success: true
+    componentId: string
+  }
   | {
-      success: false
-      code: AddComponentErrorCode
-      message: string
-    }
+    success: false
+    code: AddComponentErrorCode
+    message: string
+  }

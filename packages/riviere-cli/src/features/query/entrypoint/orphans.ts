@@ -1,6 +1,7 @@
 import { Command } from 'commander'
 import { formatSuccess } from '../../../platform/infra/cli/presentation/output'
 import { getDefaultGraphPathDescription } from '../../../platform/infra/cli/presentation/graph-path-option'
+import { handleQueryGraphLoadError } from '../../../platform/infra/cli/presentation/query-graph-load-error-handler'
 import { detectOrphans } from '../commands/detect-orphans'
 
 interface OrphansOptions {
@@ -23,10 +24,16 @@ Examples:
     .option('--graph <path>', getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .action(async (options: OrphansOptions) => {
-      const result = await detectOrphans({ graphPathOption: options.graph })
+      try {
+        const result = await detectOrphans({ graphPathOption: options.graph })
 
-      if (options.json) {
-        console.log(JSON.stringify(formatSuccess(result)))
+        if (options.json) {
+          console.log(JSON.stringify(formatSuccess(result)))
+        }
+      } catch (error) {
+        if (!handleQueryGraphLoadError(error)) {
+          throw error
+        }
       }
     })
 }

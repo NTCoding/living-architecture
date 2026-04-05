@@ -1,10 +1,9 @@
 import { Command } from 'commander'
-import { CliErrorCode, ExitCode } from '../../../platform/infra/cli/presentation/error-codes'
-import { exitWithCliError } from '../../../platform/infra/cli/presentation/exit-with-cli-error'
 import {
-  validateFlagCombinations,
-  type ExtractOptions,
-} from '../../../platform/infra/cli/presentation/extract-validator'
+  CliErrorCode, ExitCode 
+} from '../../../platform/infra/cli/presentation/error-codes'
+import { exitWithCliError } from '../../../platform/infra/cli/presentation/exit-with-cli-error'
+import { validateFlagCombinations } from '../../../platform/infra/cli/input/extract-validator'
 import { enrichDraftComponents } from '../commands/enrich-draft-components'
 import { extractDraftComponents } from '../commands/extract-draft-components'
 import { createExtractDraftComponentsInput } from '../commands/create-extract-draft-components-input'
@@ -28,56 +27,38 @@ export function createExtractCommand(): Command {
     .option('--stats', 'Show extraction statistics on stderr')
     .option('--patterns', 'Enable pattern-based connection detection')
     .option('--no-ts-config', 'Skip tsconfig.json auto-discovery (disables full type resolution)')
-    .action((options: ExtractOptions) => {
-      validateFlagCombinations(options)
+    .action(
+      (options: {
+        allowIncomplete?: boolean
+        base?: string
+        componentsOnly?: boolean
+        config: string
+        dryRun?: boolean
+        enrich?: string
+        files?: string[]
+        format?: string
+        output?: string
+        patterns?: boolean
+        pr?: boolean
+        stats?: boolean
+        tsConfig?: boolean
+      }) => {
+        validateFlagCombinations(options)
 
-      const result =
-        options.enrich === undefined
-          ? extractDraftComponents(
-              createExtractDraftComponentsInput({
-                config: options.config,
-                ...(options.allowIncomplete === undefined
-                  ? {}
-                  : { allowIncomplete: options.allowIncomplete }),
-                ...(options.base === undefined ? {} : { base: options.base }),
-                ...(options.componentsOnly === undefined
-                  ? {}
-                  : { componentsOnly: options.componentsOnly }),
-                ...(options.dryRun === undefined ? {} : { dryRun: options.dryRun }),
-                ...(options.files === undefined ? {} : { files: options.files }),
-                ...(options.format === undefined ? {} : { format: options.format }),
-                ...(options.output === undefined ? {} : { output: options.output }),
-                ...(options.pr === undefined ? {} : { pr: options.pr }),
-                ...(options.tsConfig === undefined ? {} : { tsConfig: options.tsConfig }),
-              }),
-            )
-          : enrichDraftComponents(
-              createEnrichDraftComponentsInput(
-                {
-                  config: options.config,
-                  ...(options.allowIncomplete === undefined
-                    ? {}
-                    : { allowIncomplete: options.allowIncomplete }),
-                  ...(options.componentsOnly === undefined
-                    ? {}
-                    : { componentsOnly: options.componentsOnly }),
-                  ...(options.dryRun === undefined ? {} : { dryRun: options.dryRun }),
-                  ...(options.format === undefined ? {} : { format: options.format }),
-                  ...(options.output === undefined ? {} : { output: options.output }),
-                  ...(options.tsConfig === undefined ? {} : { tsConfig: options.tsConfig }),
-                },
-                options.enrich,
-              ),
-            )
+        const result =
+          options.enrich === undefined
+            ? extractDraftComponents(createExtractDraftComponentsInput(options))
+            : enrichDraftComponents(createEnrichDraftComponentsInput(options, options.enrich))
 
-      if (result.kind === 'fieldFailure') {
-        exitWithCliError(
-          CliErrorCode.ValidationError,
-          `Extraction failed for fields: ${result.failedFields.join(', ')}`,
-          ExitCode.ExtractionFailure,
-        )
-      }
+        if (result.kind === 'fieldFailure') {
+          exitWithCliError(
+            CliErrorCode.ValidationError,
+            `Extraction failed for fields: ${result.failedFields.join(', ')}`,
+            ExitCode.ExtractionFailure,
+          )
+        }
 
-      presentExtractionResult(result, options)
-    })
+        presentExtractionResult(result, options)
+      },
+    )
 }

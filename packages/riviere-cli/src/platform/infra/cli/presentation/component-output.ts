@@ -1,7 +1,6 @@
 import type { Component } from '@living-architecture/riviere-schema'
 
-/** @riviere-role value-object */
-export interface ComponentOutput {
+interface ComponentOutput {
   id: string
   type: string
   name: string

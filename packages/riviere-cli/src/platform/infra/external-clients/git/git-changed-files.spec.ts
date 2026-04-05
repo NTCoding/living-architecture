@@ -1,6 +1,10 @@
-import { describe, it, expect } from 'vitest'
+import {
+  describe, it, expect 
+} from 'vitest'
 import { join } from 'node:path'
-import { detectChangedTypeScriptFiles, GitError } from './git-changed-files'
+import {
+  detectChangedTypeScriptFiles, GitError 
+} from './git-changed-files'
 
 type GitExecutor = (binary: string, args: readonly string[], cwd: string) => string
 

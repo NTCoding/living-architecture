@@ -5,9 +5,9 @@ import type { InitGraphInput } from './init-graph-input'
 import type { InitGraphResult } from './init-graph-result'
 
 /** @riviere-role command-use-case */
-export async function initGraph(input: InitGraphInput): Promise<InitGraphResult> {
+export function initGraph(input: InitGraphInput): InitGraphResult {
   const repository = new RiviereBuilderRepository()
-  const graphStatus = await repository.exists(input.graphPathOption)
+  const graphStatus = repository.exists(input.graphPathOption)
   if (graphStatus.exists) {
     return {
       code: 'GRAPH_EXISTS',
@@ -34,7 +34,7 @@ export async function initGraph(input: InitGraphInput): Promise<InitGraphResult>
     builderOptions.name = input.name
   }
 
-  const graphPath = await repository.save(RiviereBuilder.new(builderOptions), input.graphPathOption)
+  const graphPath = repository.save(RiviereBuilder.new(builderOptions), input.graphPathOption)
   return {
     domains: input.domains.map((domain) => domain.name),
     path: graphPath,

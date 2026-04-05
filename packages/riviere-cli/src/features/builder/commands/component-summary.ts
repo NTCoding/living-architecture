@@ -3,11 +3,9 @@ import type { ComponentSummaryInput } from './component-summary-input'
 import type { ComponentSummaryResult } from './component-summary-result'
 
 /** @riviere-role command-use-case */
-export async function componentSummary(
-  input: ComponentSummaryInput,
-): Promise<ComponentSummaryResult> {
+export function componentSummary(input: ComponentSummaryInput): ComponentSummaryResult {
   const repository = new RiviereBuilderRepository()
-  const loadedGraph = await repository.load(input.graphPathOption)
+  const loadedGraph = repository.load(input.graphPathOption)
   if (!loadedGraph.success) {
     return {
       code: loadedGraph.code,

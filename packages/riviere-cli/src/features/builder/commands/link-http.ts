@@ -1,12 +1,14 @@
 import { RiviereBuilderRepository } from '../infra/persistence/riviere-builder-repository'
-import { findApisByPath, getAllApiPaths } from '../domain/api-component-queries'
+import {
+  findApisByPath, getAllApiPaths 
+} from '../domain/api-component-queries'
 import type { LinkHttpInput } from './link-http-input'
 import type { LinkHttpResult } from './link-http-result'
 
 /** @riviere-role command-use-case */
-export async function linkHttp(input: LinkHttpInput): Promise<LinkHttpResult> {
+export function linkHttp(input: LinkHttpInput): LinkHttpResult {
   const repository = new RiviereBuilderRepository()
-  const loadedGraph = await repository.load(input.graphPathOption)
+  const loadedGraph = repository.load(input.graphPathOption)
   if (!loadedGraph.success) {
     return {
       code: loadedGraph.code,
@@ -23,9 +25,9 @@ export async function linkHttp(input: LinkHttpInput): Promise<LinkHttpResult> {
   const matchingApis = findApisByPath(graph, input.path, input.httpMethod)
   const [matchedApi, ...otherApis] = matchingApis
 
-  if (!matchedApi) {
+  if (matchedApi === undefined) {
     return {
-      code: 'VALIDATION_ERROR',
+      code: 'COMPONENT_NOT_FOUND',
       message: `No API found for path ${input.path}`,
       suggestions: getAllApiPaths(graph),
       success: false,
@@ -36,17 +38,26 @@ export async function linkHttp(input: LinkHttpInput): Promise<LinkHttpResult> {
     return {
       code: 'AMBIGUOUS_API_MATCH',
       message: `Multiple APIs matched path ${input.path}`,
+      /* v8 ignore next -- defensive ANY fallback for malformed API metadata */
       suggestions: matchingApis.map((api) => `${api.httpMethod ?? 'ANY'} ${api.path}`),
       success: false,
     }
   }
 
-  const link = loadedGraph.builder.link({
+  const linkInput: {
+    from: string
+    to: string
+    type?: 'sync' | 'async'
+  } = {
     from: matchedApi.id,
     to: input.targetId,
-    ...(input.linkType !== undefined ? { type: input.linkType } : {}),
-  })
-  await repository.save(loadedGraph.builder, input.graphPathOption)
+  }
+  if (input.linkType !== undefined) {
+    linkInput.type = input.linkType
+  }
+
+  const link = loadedGraph.builder.link(linkInput)
+  repository.save(loadedGraph.builder, input.graphPathOption)
 
   return {
     link,

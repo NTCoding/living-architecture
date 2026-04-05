@@ -1,10 +1,13 @@
-import { describe, it, expect } from 'vitest'
+import {
+  describe, it, expect 
+} from 'vitest'
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { createProgram } from '../../../shell/cli'
 import { CliErrorCode } from '../../../platform/infra/cli/presentation/error-codes'
 import {
   type TestContext,
+  assertDefined,
   createTestContext,
   setupCommandTest,
   createGraphWithDomain,
@@ -49,7 +52,7 @@ describe('riviere builder add-component', () => {
       expect(ctx.consoleOutput).toHaveLength(1)
       expect(ctx.consoleOutput[0]).toBeTruthy()
 
-      const output: unknown = JSON.parse(ctx.consoleOutput[0] ?? '')
+      const output: unknown = JSON.parse(assertDefined(ctx.consoleOutput[0], 'Expected output'))
       expect(output).toMatchObject({
         success: false,
         error: {
@@ -104,7 +107,9 @@ describe('riviere builder add-component', () => {
       },
     ])(
       'returns VALIDATION_ERROR when $type missing $expectedFlag',
-      async ({ type, expectedFlag }) => {
+      async ({
+        type, expectedFlag 
+      }) => {
         await createGraphWithDomain(ctx.testDir, 'orders')
         const program = createProgram()
         await program.parseAsync(
@@ -231,7 +236,9 @@ describe('riviere builder add-component', () => {
       },
     ])(
       'creates $type component',
-      async ({ type, name, module, filePath, extraArgs, expectedId, expectedFields }) => {
+      async ({
+        type, name, module, filePath, extraArgs, expectedId, expectedFields 
+      }) => {
         await createGraphWithDomain(ctx.testDir, 'orders')
 
         const program = createProgram()
@@ -312,7 +319,7 @@ describe('riviere builder add-component', () => {
       expect(ctx.consoleOutput).toHaveLength(1)
       expect(ctx.consoleOutput[0]).toBeTruthy()
 
-      const output: unknown = JSON.parse(ctx.consoleOutput[0] ?? '')
+      const output: unknown = JSON.parse(assertDefined(ctx.consoleOutput[0], 'Expected output'))
       expect(output).toMatchObject({
         success: true,
         data: { componentId: 'orders:checkout:ui:checkout-page' },

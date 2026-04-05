@@ -1,9 +1,13 @@
-import { describe, it, expect } from 'vitest'
+import {
+  describe, it, expect 
+} from 'vitest'
 import { handleGlobalError } from './global-error-handler'
 import { GitError } from '../../external-clients/git/git-errors'
-import { DraftComponentLoadError } from '../../extraction-config/draft-component-loader'
+import { DraftComponentLoadError } from '../../external-clients/draft-components/draft-component-loader'
 import { ConnectionDetectionError } from '@living-architecture/riviere-extract-ts'
-import { CliErrorCode, ConfigValidationError, ExitCode } from './error-codes'
+import {
+  CliErrorCode, ConfigValidationError, ExitCode 
+} from './error-codes'
 import {
   TestAssertionError,
   createTestContext,
@@ -70,6 +74,16 @@ describe('handleGlobalError', () => {
 
     const output = firstConsoleOutput(ctx.consoleOutput)
     expect(output).toMatchObject({ error: { code: CliErrorCode.GitNotFound } })
+    expect(process.exit).toHaveBeenCalledWith(ExitCode.RuntimeError)
+  })
+
+  it('formats unknown GitError codes as validation errors', () => {
+    const gitError = new GitError('NO_REMOTE', 'remote missing')
+
+    expect(() => handleGlobalError(gitError)).toThrow('process.exit')
+
+    const output = firstConsoleOutput(ctx.consoleOutput)
+    expect(output).toMatchObject({ error: { code: CliErrorCode.ValidationError } })
     expect(process.exit).toHaveBeenCalledWith(ExitCode.RuntimeError)
   })
 

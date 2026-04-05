@@ -8,12 +8,12 @@ export type EnrichComponentErrorCode =
 /** @riviere-role command-use-case-result */
 export type EnrichComponentResult =
   | {
-      componentId: string
-      success: true
-    }
+    componentId: string
+    success: true
+  }
   | {
-      code: EnrichComponentErrorCode
-      message: string
-      suggestions: string[]
-      success: false
-    }
+    code: EnrichComponentErrorCode
+    message: string
+    suggestions: string[]
+    success: false
+  }

@@ -1,16 +1,14 @@
 import { CliErrorCode } from './error-codes'
 
-/** @riviere-role value-object */
 /** Successful CLI command output with data and optional warnings. */
-export interface SuccessOutput<T> {
+interface SuccessOutput<T> {
   success: true
   data: T
   warnings: string[]
 }
 
-/** @riviere-role value-object */
 /** Failed CLI command output with error details. */
-export interface ErrorOutput {
+interface ErrorOutput {
   success: false
   error: {
     code: string

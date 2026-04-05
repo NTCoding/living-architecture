@@ -4,9 +4,9 @@ import type { LinkComponentsInput } from './link-components-input'
 import type { LinkComponentsResult } from './link-components-result'
 
 /** @riviere-role command-use-case */
-export async function linkComponents(input: LinkComponentsInput): Promise<LinkComponentsResult> {
+export function linkComponents(input: LinkComponentsInput): LinkComponentsResult {
   const repository = new RiviereBuilderRepository()
-  const loadedGraph = await repository.load(input.graphPathOption)
+  const loadedGraph = repository.load(input.graphPathOption)
   if (!loadedGraph.success) {
     return {
       code: loadedGraph.code,
@@ -20,12 +20,20 @@ export async function linkComponents(input: LinkComponentsInput): Promise<LinkCo
   }
 
   try {
-    const link = loadedGraph.builder.link({
+    const linkInput: {
+      from: string
+      to: string
+      type?: 'sync' | 'async'
+    } = {
       from: input.from,
       to: input.to,
-      ...(input.type !== undefined ? { type: input.type } : {}),
-    })
-    await repository.save(loadedGraph.builder, input.graphPathOption)
+    }
+    if (input.type !== undefined) {
+      linkInput.type = input.type
+    }
+
+    const link = loadedGraph.builder.link(linkInput)
+    repository.save(loadedGraph.builder, input.graphPathOption)
     return {
       link,
       success: true,

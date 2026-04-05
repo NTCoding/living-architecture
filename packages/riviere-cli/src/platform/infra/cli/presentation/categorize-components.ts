@@ -1,10 +1,15 @@
 import type { DraftComponent } from '@living-architecture/riviere-extract-ts'
-import type { CategorizedComponents } from '../../../platform/infra/cli/presentation/format-pr-markdown'
 
 interface ComponentIdentity {
   readonly type: string
   readonly name: string
   readonly domain: string
+}
+
+interface CategorizedComponents {
+  readonly added: readonly ComponentIdentity[]
+  readonly modified: readonly ComponentIdentity[]
+  readonly removed: readonly ComponentIdentity[]
 }
 
 function componentKey(component: ComponentIdentity): string {

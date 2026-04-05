@@ -1,17 +1,19 @@
 import { Command } from 'commander'
 import { ComponentId } from '@living-architecture/riviere-builder'
 import { getDefaultGraphPathDescription } from '../../../platform/infra/cli/presentation/graph-path-option'
-import { formatSuccess } from '../../../platform/infra/cli/presentation/output'
+import {
+  formatSuccess, formatError 
+} from '../../../platform/infra/cli/presentation/output'
 import {
   isValidLinkType,
   normalizeComponentType,
-} from '../../../platform/infra/cli/presentation/component-types'
+} from '../../../platform/infra/cli/input/component-types'
 import {
   validateComponentType,
   validateLinkType,
-} from '../../../platform/infra/cli/presentation/validation'
-import { saveGraphBuilder, withGraphBuilder } from '../infra/persistence/builder-graph-access'
-import { tryBuilderOperation } from '../../../platform/infra/cli/presentation/graph-error-output'
+} from '../../../platform/infra/cli/input/validation'
+import { CliErrorCode } from '../../../platform/infra/cli/presentation/error-codes'
+import { linkComponents } from '../commands/link-components'
 
 interface LinkOptions {
   from: string
@@ -67,37 +69,36 @@ Examples:
         return
       }
 
-      await withGraphBuilder(options.graph, async (builder) => {
-        const targetId = ComponentId.create({
+      const linkType =
+        options.linkType !== undefined && isValidLinkType(options.linkType)
+          ? options.linkType
+          : undefined
+
+      const result = await linkComponents({
+        from: options.from,
+        graphPathOption: options.graph,
+        to: ComponentId.create({
           domain: options.toDomain,
           module: options.toModule,
           type: normalizeComponentType(options.toType),
           name: options.toName,
-        }).toString()
-
-        const linkInput: {
-          from: string
-          to: string
-          type?: 'sync' | 'async'
-        } = {
-          from: options.from,
-          to: targetId,
-        }
-
-        if (options.linkType !== undefined && isValidLinkType(options.linkType)) {
-          linkInput.type = options.linkType
-        }
-
-        const linkResult = tryBuilderOperation(() => builder.link(linkInput))
-        if (linkResult === undefined) {
-          return
-        }
-
-        await saveGraphBuilder(builder, options.graph)
-
-        if (options.json) {
-          console.log(JSON.stringify(formatSuccess({ link: linkResult })))
-        }
+        }).toString(),
+        type: linkType,
       })
+      if (!result.success) {
+        const errorCodeByResult = {
+          COMPONENT_NOT_FOUND: CliErrorCode.ComponentNotFound,
+          GRAPH_CORRUPTED: CliErrorCode.GraphCorrupted,
+          GRAPH_NOT_FOUND: CliErrorCode.GraphNotFound,
+        } as const
+        const errorCode = errorCodeByResult[result.code]
+
+        console.log(JSON.stringify(formatError(errorCode, result.message, result.suggestions)))
+        return
+      }
+
+      if (options.json) {
+        console.log(JSON.stringify(formatSuccess({ link: result.link })))
+      }
     })
 }

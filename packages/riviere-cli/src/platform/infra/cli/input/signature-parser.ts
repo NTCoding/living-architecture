@@ -1,65 +1,58 @@
 import type {
-  OperationSignature, OperationParameter 
+  OperationParameter, OperationSignature 
 } from '@living-architecture/riviere-schema'
 
 function parseParameter(input: string): OperationParameter | undefined {
   const parts = input.split(':')
-  if (parts.length < 2 || parts.length > 3) {
-    return undefined
-  }
+  if (parts.length < 2 || parts.length > 3) return undefined
   const [name, type, description] = parts
-  if (name === undefined || name === '' || type === undefined || type === '') {
-    return undefined
-  }
+  if (name === undefined || name === '' || type === undefined || type === '') return undefined
   return {
+    ...(description !== undefined && description !== '' ? { description: description.trim() } : {}),
     name: name.trim(),
     type: type.trim(),
-    ...(description !== undefined && description !== '' && { description: description.trim() }),
   }
 }
 
 type SignatureParseResult =
   | {
-    success: true
     signature: OperationSignature
+    success: true
   }
   | {
-    success: false
     error: string
+    success: false
   }
-
 type ParametersParseResult =
   | {
-    success: true
     parameters: OperationParameter[]
+    success: true
   }
   | {
-    success: false
     error: string
+    success: false
   }
 
 function parseParameters(paramsPart: string): ParametersParseResult {
-  if (paramsPart === '') {
+  if (paramsPart === '')
     return {
-      success: true,
       parameters: [],
+      success: true,
     }
-  }
   const paramStrings = paramsPart.split(',').map((p) => p.trim())
   const parameters: OperationParameter[] = []
   for (const paramStr of paramStrings) {
     const param = parseParameter(paramStr)
-    if (param === undefined) {
+    if (param === undefined)
       return {
-        success: false,
         error: `Invalid parameter format: '${paramStr}'. Expected 'name:type' or 'name:type:description'.`,
+        success: false,
       }
-    }
     parameters.push(param)
   }
   return {
-    success: true,
     parameters,
+    success: true,
   }
 }
 
@@ -68,55 +61,40 @@ function buildSignatureObject(
   returnType: string | undefined,
 ): OperationSignature {
   const signature: OperationSignature = {}
-  if (parameters.length > 0) {
-    signature.parameters = parameters
-  }
-  if (returnType !== undefined && returnType !== '') {
-    signature.returnType = returnType
-  }
+  if (parameters.length > 0) signature.parameters = parameters
+  if (returnType !== undefined && returnType !== '') signature.returnType = returnType
   return signature
 }
 
-/** @riviere-role command-input-factory */
+/** @riviere-role cli-input-validator */
 export function parseSignature(input: string): SignatureParseResult {
   const trimmed = input.trim()
-
-  // Handle "-> ReturnType" (return type only, no parameters)
   if (trimmed.startsWith('->')) {
     const returnType = trimmed.slice(2).trim()
     return returnType === ''
       ? {
-        success: false,
         error: `Invalid signature format: '${input}'. Return type cannot be empty.`,
+        success: false,
       }
       : {
-        success: true,
         signature: { returnType },
+        success: true,
       }
   }
-
-  // Split on " -> " to separate parameters from return type
   const arrowIndex = trimmed.indexOf(' -> ')
   const paramsPart = arrowIndex === -1 ? trimmed : trimmed.slice(0, arrowIndex).trim()
   const returnType = arrowIndex === -1 ? undefined : trimmed.slice(arrowIndex + 4).trim()
-
   const paramsResult = parseParameters(paramsPart)
-  if (!paramsResult.success) {
-    return paramsResult
-  }
-
+  if (!paramsResult.success) return paramsResult
   const signature = buildSignatureObject(paramsResult.parameters, returnType)
-
-  // Must have at least parameters or returnType
   if (paramsResult.parameters.length === 0 && returnType === undefined) {
     return {
-      success: false,
       error: `Invalid signature format: '${input}'. Expected 'param:type, ... -> ReturnType' or '-> ReturnType' or 'param:type'.`,
+      success: false,
     }
   }
-
   return {
-    success: true,
     signature,
+    success: true,
   }
 }

@@ -4,13 +4,13 @@ export type AddDomainErrorCode = 'DUPLICATE_DOMAIN' | 'GRAPH_CORRUPTED' | 'GRAPH
 /** @riviere-role command-use-case-result */
 export type AddDomainResult =
   | {
-      description: string
-      name: string
-      success: true
-      systemType: string
-    }
+    description: string
+    name: string
+    success: true
+    systemType: string
+  }
   | {
-      code: AddDomainErrorCode
-      message: string
-      success: false
-    }
+    code: AddDomainErrorCode
+    message: string
+    success: false
+  }

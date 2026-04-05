@@ -3,9 +3,9 @@ import type { AddSourceInput } from './add-source-input'
 import type { AddSourceResult } from './add-source-result'
 
 /** @riviere-role command-use-case */
-export async function addSource(input: AddSourceInput): Promise<AddSourceResult> {
+export function addSource(input: AddSourceInput): AddSourceResult {
   const repository = new RiviereBuilderRepository()
-  const loadedGraph = await repository.load(input.graphPathOption)
+  const loadedGraph = repository.load(input.graphPathOption)
   if (!loadedGraph.success) {
     return {
       code: loadedGraph.code,
@@ -18,7 +18,7 @@ export async function addSource(input: AddSourceInput): Promise<AddSourceResult>
   }
 
   loadedGraph.builder.addSource({ repository: input.repository })
-  await repository.save(loadedGraph.builder, input.graphPathOption)
+  repository.save(loadedGraph.builder, input.graphPathOption)
   return {
     repository: input.repository,
     success: true,

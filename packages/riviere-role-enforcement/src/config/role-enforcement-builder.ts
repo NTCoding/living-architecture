@@ -7,6 +7,7 @@ interface RoleOptions {
   readonly allowedOutputs?: readonly string[]
   readonly forbiddenDependencies?: readonly string[]
   readonly nameMatches?: string
+  readonly minPublicMethods?: number
 }
 
 export interface BuiltRole<N extends string = string> {
@@ -17,6 +18,7 @@ export interface BuiltRole<N extends string = string> {
   readonly allowedOutputs?: readonly string[]
   readonly forbiddenDependencies?: readonly string[]
   readonly nameMatches?: string
+  readonly minPublicMethods?: number
 }
 
 export function role<const N extends string>(name: N, options: RoleOptions): BuiltRole<N> {
@@ -39,7 +41,13 @@ export interface BuiltLocation {
 
 interface SubLocationOptions {readonly forbiddenImports?: readonly string[]}
 
-export type LocationBuilder<R extends string> = BuiltLocation & {readonly subLocation: (path: string, allowedRoles: readonly R[], options?: SubLocationOptions) => LocationBuilder<R>}
+export type LocationBuilder<R extends string> = BuiltLocation & {
+  readonly subLocation: (
+    path: string,
+    allowedRoles: readonly R[],
+    options?: SubLocationOptions,
+  ) => LocationBuilder<R>
+}
 
 export function location<R extends string>(basePath: string): LocationBuilder<R>
 export function location<R extends string>(
@@ -72,13 +80,17 @@ function createLocationBuilder<R extends string>(
   return {
     basePath,
     subLocations,
-    subLocation(path: string, allowedRoles: readonly R[], options?: SubLocationOptions): LocationBuilder<R> {
+    subLocation(
+      path: string,
+      allowedRoles: readonly R[],
+      options?: SubLocationOptions,
+    ): LocationBuilder<R> {
       return createLocationBuilder(basePath, [
         ...subLocations,
         {
           allowedRoles,
           path,
-          ...(options?.forbiddenImports !== undefined && { forbiddenImports: options.forbiddenImports }),
+          ...(options?.forbiddenImports !== undefined && {forbiddenImports: options.forbiddenImports,}),
         },
       ])
     },

@@ -1,4 +1,6 @@
-import { describe, it, expect, vi, afterEach } from 'vitest'
+import {
+  describe, it, expect, vi, afterEach 
+} from 'vitest'
 import type { TestContext } from '../../../platform/__fixtures__/command-test-fixtures'
 import {
   createTestContext,
@@ -146,7 +148,9 @@ describe('riviere extract — connection detection', () => {
     setupCommandTest(ctx)
 
     it('outputs empty links when zero components extracted', async () => {
-      const { writeFile, mkdir } = await import('node:fs/promises')
+      const {
+        writeFile, mkdir 
+      } = await import('node:fs/promises')
       const { join } = await import('node:path')
       const srcDir = join(ctx.testDir, 'src')
       await mkdir(srcDir, { recursive: true })

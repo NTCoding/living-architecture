@@ -1,6 +1,7 @@
 import { Command } from 'commander'
 import { formatSuccess } from '../../../platform/infra/cli/presentation/output'
 import { getDefaultGraphPathDescription } from '../../../platform/infra/cli/presentation/graph-path-option'
+import { handleQueryGraphLoadError } from '../../../platform/infra/cli/presentation/query-graph-load-error-handler'
 import { toComponentOutput } from '../../../platform/infra/cli/presentation/component-output'
 import { searchComponents } from '../commands/search-components'
 
@@ -25,14 +26,20 @@ Examples:
     .option('--graph <path>', getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .action(async (term: string, options: SearchOptions) => {
-      const result = await searchComponents({
-        graphPathOption: options.graph,
-        term,
-      })
-      const components = result.components.map(toComponentOutput)
+      try {
+        const result = await searchComponents({
+          graphPathOption: options.graph,
+          term,
+        })
+        const components = result.components.map(toComponentOutput)
 
-      if (options.json) {
-        console.log(JSON.stringify(formatSuccess({ components })))
+        if (options.json) {
+          console.log(JSON.stringify(formatSuccess({ components })))
+        }
+      } catch (error) {
+        if (!handleQueryGraphLoadError(error)) {
+          throw error
+        }
       }
     })
 }

@@ -1,5 +1,5 @@
 import {
-  describe, it, expect 
+  describe, expect, it 
 } from 'vitest'
 import {
   isValidComponentType,
@@ -12,7 +12,7 @@ import {
   VALID_LINK_TYPES,
   VALID_API_TYPES,
   VALID_SYSTEM_TYPES,
-} from './component-types'
+} from '../input/component-types'
 
 describe('component-types', () => {
   describe('VALID_COMPONENT_TYPES', () => {

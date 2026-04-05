@@ -8,16 +8,28 @@ import { formatDryRunOutput } from '../../../../../platform/infra/cli/presentati
 import { formatPrMarkdown } from '../../../../../platform/infra/cli/presentation/format-pr-markdown'
 import { formatSuccess } from '../../../../../platform/infra/cli/presentation/output'
 import { outputResult } from '../../../../../platform/infra/cli/presentation/output-writer'
-import type { ExtractOptions } from '../../../../../platform/infra/cli/presentation/extract-validator'
 import type { EnrichDraftComponentsResult } from '../../../commands/enrich-draft-components-result'
 import type { ExtractDraftComponentsResult } from '../../../commands/extract-draft-components-result'
 
 type ExtractionResult = ExtractDraftComponentsResult | EnrichDraftComponentsResult
+type ExtractionPresentationOptions = {
+  dryRun?: boolean
+  format?: string
+  output?: string
+  stats?: boolean
+}
 
 /** @riviere-role cli-output-formatter */
-export function presentExtractionResult(result: ExtractionResult, options: ExtractOptions): void {
+export function presentExtractionResult(
+  result: ExtractionResult,
+  options: ExtractionPresentationOptions,
+): void {
   if (result.kind === 'draftOnly') {
     presentDraftResult(result.components, options)
+    return
+  }
+
+  if (result.kind === 'fieldFailure') {
     return
   }
 
@@ -26,7 +38,7 @@ export function presentExtractionResult(result: ExtractionResult, options: Extra
 
 function presentDraftResult(
   components: Extract<ExtractionResult, { kind: 'draftOnly' }>['components'],
-  options: ExtractOptions,
+  options: ExtractionPresentationOptions,
 ): void {
   /* v8 ignore start -- @preserve: dry-run tested via CLI integration */
   if (options.dryRun) {
@@ -38,8 +50,7 @@ function presentDraftResult(
   /* v8 ignore stop */
 
   if (options.format === 'markdown') {
-    const categorized = categorizeComponents(components, undefined)
-    const markdown = formatPrMarkdown(categorized)
+    const markdown = formatPrMarkdown(categorizeComponents(components, undefined))
     console.log(markdown)
     return
   }
@@ -49,7 +60,7 @@ function presentDraftResult(
 
 function presentFullResult(
   result: Extract<ExtractionResult, { kind: 'full' }>,
-  options: ExtractOptions,
+  options: ExtractionPresentationOptions,
 ): void {
   if (result.failedFields.length > 0) {
     console.error(

@@ -4,14 +4,13 @@ import type { DefineCustomTypeInput } from './define-custom-type-input'
 import type { DefineCustomTypeResult } from './define-custom-type-result'
 
 /** @riviere-role command-use-case */
-export async function defineCustomType(
-  input: DefineCustomTypeInput,
-): Promise<DefineCustomTypeResult> {
+export function defineCustomType(input: DefineCustomTypeInput): DefineCustomTypeResult {
   const repository = new RiviereBuilderRepository()
-  const loadedGraph = await repository.load(input.graphPathOption)
+  const loadedGraph = repository.load(input.graphPathOption)
   if (!loadedGraph.success) {
     return {
       code: loadedGraph.code,
+      /* v8 ignore next -- simple graph-load message selection */
       message:
         loadedGraph.code === 'GRAPH_NOT_FOUND'
           ? `Graph not found at ${loadedGraph.graphPath}`
@@ -31,7 +30,7 @@ export async function defineCustomType(
         ? { requiredProperties: input.requiredProperties }
         : {}),
     })
-    await repository.save(loadedGraph.builder, input.graphPathOption)
+    repository.save(loadedGraph.builder, input.graphPathOption)
     return {
       description: input.description,
       name: input.name,

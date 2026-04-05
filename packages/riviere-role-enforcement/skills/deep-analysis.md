@@ -25,17 +25,17 @@ Before considering moving code, check whether the violation is caused only by im
 
 Identify where the invalid code is supposed to live. The proposed location MUST be a valid location defined in the role enforcement config.
 
-## Step 3: Move the invalid code to where it belongs.
+## Step 3: Move the invalid code to where it belongs
 
-## Step 4: Propose 3 possible solutions for making the code compile/work now.
+## Step 4: Propose 3 possible solutions for making the code compile/work now
 
 Rank them by simplicity and correctness.
 
-## Step 5: Validate every proposed solution.
+## Step 5: Validate every proposed solution
 
 For EACH solution, trace every import in the proposed code. Verify that NONE of them violate forbidden import rules. If a solution has even one forbidden import, it is INVALID — discard it and try again.
 
-## Step 6: Recommend the top-ranked valid solution.
+## Step 6: Recommend the top-ranked valid solution
 
 ## Rules
 

@@ -6,11 +6,11 @@ export type TraceFlowGraph = ReturnType<RiviereQuery['traceFlow']>
 /** @riviere-role command-use-case-result */
 export type TraceFlowResult =
   | {
-      flow: TraceFlowGraph
-      success: true
-    }
+    flow: TraceFlowGraph
+    success: true
+  }
   | {
-      message: string
-      suggestions: string[]
-      success: false
-    }
+    message: string
+    suggestions: string[]
+    success: false
+  }

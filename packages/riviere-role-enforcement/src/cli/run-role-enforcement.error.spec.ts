@@ -9,6 +9,7 @@ import {
 } from './run-role-enforcement'
 
 const minimalConfig = roleEnforcement({
+  canonicalConfigurationsFile: '.riviere/canonical-role-configurations.md',
   packages: ['packages/my-app'],
   ignorePatterns: [],
   roleDefinitionsDir: '.riviere/role-definitions',

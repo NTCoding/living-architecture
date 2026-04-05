@@ -3,16 +3,15 @@ import type { SearchComponentsInput } from './search-components-input'
 import type { SearchComponentsResult } from './search-components-result'
 
 /** @riviere-role command-use-case */
-export async function searchComponents(
-  input: SearchComponentsInput,
-): Promise<SearchComponentsResult> {
+export function searchComponents(input: SearchComponentsInput): SearchComponentsResult {
   const repository = new RiviereQueryRepository()
-  const loadedGraph = await repository.load(input.graphPathOption)
+  const loadedGraph = repository.load(input.graphPathOption)
   if (!loadedGraph.success) {
-    throw new Error(`Failed to load graph at ${loadedGraph.graphPath}`)
+    throw {
+      ...loadedGraph,
+      kind: 'QUERY_GRAPH_LOAD_ERROR' as const,
+    }
   }
 
-  return {
-    components: loadedGraph.query.search(input.term),
-  }
+  return { components: loadedGraph.query.search(input.term) }
 }

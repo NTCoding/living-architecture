@@ -1,6 +1,8 @@
 import { writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
-import { describe, it, expect, vi } from 'vitest'
+import {
+  describe, it, expect, vi 
+} from 'vitest'
 import type { TestContext } from '../../../platform/__fixtures__/command-test-fixtures'
 import {
   createTestContext,
@@ -65,7 +67,9 @@ describe('riviere extract PR extraction', () => {
         expectedA: '--files',
         expectedB: '--enrich',
       },
-    ])('rejects $expectedA and $expectedB together', async ({ flags, expectedA, expectedB }) => {
+    ])('rejects $expectedA and $expectedB together', async ({
+      flags, expectedA, expectedB 
+    }) => {
       const configPath = await createValidExtractFixture(ctx.testDir)
 
       await expect(

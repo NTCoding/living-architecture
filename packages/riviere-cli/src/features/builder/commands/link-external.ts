@@ -4,9 +4,9 @@ import type { LinkExternalInput } from './link-external-input'
 import type { LinkExternalResult } from './link-external-result'
 
 /** @riviere-role command-use-case */
-export async function linkExternal(input: LinkExternalInput): Promise<LinkExternalResult> {
+export function linkExternal(input: LinkExternalInput): LinkExternalResult {
   const repository = new RiviereBuilderRepository()
-  const loadedGraph = await repository.load(input.graphPathOption)
+  const loadedGraph = repository.load(input.graphPathOption)
   if (!loadedGraph.success) {
     return {
       code: loadedGraph.code,
@@ -20,12 +20,16 @@ export async function linkExternal(input: LinkExternalInput): Promise<LinkExtern
   }
 
   try {
-    const externalLink = loadedGraph.builder.linkExternal({
+    const externalLinkInput: Parameters<typeof loadedGraph.builder.linkExternal>[0] = {
       from: input.from,
       target: input.target,
-      ...(input.type !== undefined ? { type: input.type } : {}),
-    })
-    await repository.save(loadedGraph.builder, input.graphPathOption)
+    }
+    if (input.type !== undefined) {
+      externalLinkInput.type = input.type
+    }
+
+    const externalLink = loadedGraph.builder.linkExternal(externalLinkInput)
+    repository.save(loadedGraph.builder, input.graphPathOption)
     return {
       externalLink,
       success: true,

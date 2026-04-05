@@ -1,21 +1,20 @@
 import {
   CliErrorCode, ConfigValidationError 
-} from './error-codes'
+} from '../presentation/error-codes'
 
-/** @riviere-role value-object */
-export interface ExtractOptions {
+interface ExtractOptions {
+  allowIncomplete?: boolean
+  base?: string
+  componentsOnly?: boolean
   config: string
   dryRun?: boolean
-  output?: string
-  componentsOnly?: boolean
   enrich?: string
-  allowIncomplete?: boolean
-  pr?: boolean
-  base?: string
   files?: string[]
   format?: string
-  stats?: boolean
+  output?: string
   patterns?: boolean
+  pr?: boolean
+  stats?: boolean
   tsConfig?: boolean
 }
 

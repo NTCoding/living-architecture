@@ -1,6 +1,18 @@
+export const VALID_COMPONENT_TYPES = [
+  'UI',
+  'API',
+  'UseCase',
+  'DomainOp',
+  'Event',
+  'EventHandler',
+  'Custom',
+] as const
+
+type ComponentTypeFlag = (typeof VALID_COMPONENT_TYPES)[number]
+
 class InvalidComponentTypeError extends Error {
-  readonly value: string
   readonly validTypes: readonly string[]
+  readonly value: string
 
   constructor(value: string, validTypes: readonly string[]) {
     super(`Expected valid ComponentType. Got: ${value}. Valid types: ${validTypes.join(', ')}`)
@@ -11,8 +23,8 @@ class InvalidComponentTypeError extends Error {
 }
 
 class InvalidNormalizedComponentTypeError extends Error {
-  readonly value: string
   readonly validTypes: string[]
+  readonly value: string
 
   constructor(value: string, validTypes: string[]) {
     super(`Invalid component type: ${value}. Valid types: ${validTypes.join(', ')}`)
@@ -22,24 +34,12 @@ class InvalidNormalizedComponentTypeError extends Error {
   }
 }
 
-export const VALID_COMPONENT_TYPES = [
-  'UI',
-  'API',
-  'UseCase',
-  'DomainOp',
-  'Event',
-  'EventHandler',
-  'Custom',
-] as const
-/** @riviere-role value-object */
-export type ComponentTypeFlag = (typeof VALID_COMPONENT_TYPES)[number]
-
 /** @riviere-role cli-input-validator */
 export function isValidComponentType(value: string): value is ComponentTypeFlag {
   return VALID_COMPONENT_TYPES.some((t) => t.toLowerCase() === value.toLowerCase())
 }
 
-/** @riviere-role command-input-factory */
+/** @riviere-role cli-input-validator */
 export function normalizeToSchemaComponentType(value: string): ComponentTypeFlag {
   const found = VALID_COMPONENT_TYPES.find((t) => t.toLowerCase() === value.toLowerCase())
   if (found === undefined) {
@@ -48,16 +48,16 @@ export function normalizeToSchemaComponentType(value: string): ComponentTypeFlag
   return found
 }
 
-/** @riviere-role command-input-factory */
+/** @riviere-role cli-input-validator */
 export function normalizeComponentType(value: string): string {
   const typeMap: Record<string, string> = {
-    ui: 'ui',
     api: 'api',
-    usecase: 'usecase',
+    custom: 'custom',
     domainop: 'domainop',
     event: 'event',
     eventhandler: 'eventhandler',
-    custom: 'custom',
+    ui: 'ui',
+    usecase: 'usecase',
   }
   const normalized = typeMap[value.toLowerCase()]
   if (normalized === undefined) {
@@ -67,8 +67,7 @@ export function normalizeComponentType(value: string): string {
 }
 
 export const VALID_SYSTEM_TYPES = ['domain', 'bff', 'ui', 'other'] as const
-/** @riviere-role value-object */
-export type SystemTypeFlag = (typeof VALID_SYSTEM_TYPES)[number]
+type SystemTypeFlag = (typeof VALID_SYSTEM_TYPES)[number]
 
 /** @riviere-role cli-input-validator */
 export function isValidSystemType(value: string): value is SystemTypeFlag {
@@ -76,8 +75,7 @@ export function isValidSystemType(value: string): value is SystemTypeFlag {
 }
 
 export const VALID_API_TYPES = ['REST', 'GraphQL', 'other'] as const
-/** @riviere-role value-object */
-export type ApiTypeFlag = (typeof VALID_API_TYPES)[number]
+type ApiTypeFlag = (typeof VALID_API_TYPES)[number]
 
 /** @riviere-role cli-input-validator */
 export function isValidApiType(value: string): value is ApiTypeFlag {
@@ -85,8 +83,7 @@ export function isValidApiType(value: string): value is ApiTypeFlag {
 }
 
 export const VALID_LINK_TYPES = ['sync', 'async'] as const
-/** @riviere-role value-object */
-export type LinkType = (typeof VALID_LINK_TYPES)[number]
+type LinkType = (typeof VALID_LINK_TYPES)[number]
 
 /** @riviere-role cli-input-validator */
 export function isValidLinkType(value: string): value is LinkType {

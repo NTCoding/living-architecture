@@ -1,37 +1,8 @@
-import {
-  createProgram, parsePackageJson 
-} from './cli'
 import { Command } from 'commander'
-
-describe('parsePackageJson', () => {
-  it('returns version when package.json is valid', () => {
-    const result = parsePackageJson({ version: '1.2.3' })
-
-    expect(result).toStrictEqual({ version: '1.2.3' })
-  })
-
-  it('throws when input is null', () => {
-    expect(() => parsePackageJson(null)).toThrow('Invalid package.json: missing version field')
-  })
-
-  it('throws when input is not an object', () => {
-    expect(() => parsePackageJson('not an object')).toThrow(
-      'Invalid package.json: missing version field',
-    )
-  })
-
-  it('throws when version field is missing', () => {
-    expect(() => parsePackageJson({ name: 'test' })).toThrow(
-      'Invalid package.json: missing version field',
-    )
-  })
-
-  it('throws when version is not a string', () => {
-    expect(() => parsePackageJson({ version: 123 })).toThrow(
-      'Invalid package.json: version must be a string',
-    )
-  })
-})
+import {
+  describe, expect, it, vi 
+} from 'vitest'
+import { createProgram } from './cli'
 
 describe('createProgram', () => {
   it('returns a Commander program instance', () => {

@@ -1,15 +1,22 @@
-import { findNearMatches, ComponentId } from '@living-architecture/riviere-builder'
-import { ComponentNotFoundError, parseComponentId } from '@living-architecture/riviere-query'
+import {
+  findNearMatches, ComponentId 
+} from '@living-architecture/riviere-builder'
+import {
+  ComponentNotFoundError, parseComponentId 
+} from '@living-architecture/riviere-query'
 import { RiviereQueryRepository } from '../infra/persistence/riviere-query-repository'
 import type { TraceFlowInput } from './trace-flow-input'
 import type { TraceFlowResult } from './trace-flow-result'
 
 /** @riviere-role command-use-case */
-export async function traceFlow(input: TraceFlowInput): Promise<TraceFlowResult> {
+export function traceFlow(input: TraceFlowInput): TraceFlowResult {
   const repository = new RiviereQueryRepository()
-  const loadedGraph = await repository.load(input.graphPathOption)
+  const loadedGraph = repository.load(input.graphPathOption)
   if (!loadedGraph.success) {
-    throw new Error(`Failed to load graph at ${loadedGraph.graphPath}`)
+    throw {
+      ...loadedGraph,
+      kind: 'QUERY_GRAPH_LOAD_ERROR' as const,
+    }
   }
 
   try {

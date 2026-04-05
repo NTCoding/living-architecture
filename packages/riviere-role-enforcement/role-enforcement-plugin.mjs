@@ -158,6 +158,10 @@ export default {
           if (target === 'function') {
             validateFunctionContract(node, role, name)
           }
+
+          if (target === 'class') {
+            validateClassContract(node, role, name)
+          }
         }
 
         function isRoleAllowedInFile(roleName, filePath) {
@@ -256,14 +260,85 @@ export default {
           }
 
           if (Array.isArray(role.allowedOutputs)) {
-            const outputRole = readTypeRole(node.returnType, filename)
-            if (outputRole === null || !role.allowedOutputs.includes(outputRole)) {
+            const outputRoles = readOutputTypeRoles(node.returnType, filename)
+            if (outputRoles === null || !outputRoles.every((r) => role.allowedOutputs.includes(r))) {
               report(
                 node,
                 `Role '${role.name}' only allows outputs [${role.allowedOutputs.join(', ')}] on '${name}'. See ${options.configDisplayPath}`,
               )
             }
           }
+        }
+
+        function validateClassContract(node, role, name) {
+          if (typeof role.minPublicMethods === 'number') {
+            const publicMethodCount = countPublicMethods(node)
+            if (publicMethodCount < role.minPublicMethods) {
+              report(
+                node,
+                `Role '${role.name}' requires at least ${role.minPublicMethods} public method(s) on '${name}'. See ${options.configDisplayPath}`,
+              )
+            }
+          }
+        }
+
+        function countPublicMethods(classNode) {
+          return classNode.body.body.filter(
+            (member) =>
+              member.type === 'MethodDefinition' &&
+              member.kind !== 'constructor' &&
+              (member.accessibility === 'public' || member.accessibility == null),
+          ).length
+        }
+
+        function readOutputTypeRoles(typeAnnotation, currentFile) {
+          if (typeAnnotation === null || typeAnnotation === undefined) {
+            return null
+          }
+          if (typeAnnotation.type !== 'TSTypeAnnotation') {
+            return null
+          }
+          return resolveTypeNodeRoles(typeAnnotation.typeAnnotation, currentFile)
+        }
+
+        function resolveTypeNodeRoles(typeNode, currentFile) {
+          if (typeNode.type === 'TSUnionType') {
+            const memberRoleSets = typeNode.types.map((member) =>
+              resolveTypeNodeRoles(member, currentFile),
+            )
+            if (memberRoleSets.some((roles) => roles === null)) {
+              return null
+            }
+            return memberRoleSets.flat()
+          }
+
+          if (typeNode.type === 'TSArrayType') {
+            return resolveTypeNodeRoles(typeNode.elementType, currentFile)
+          }
+
+          if (
+            typeNode.type === 'TSTypeReference' &&
+            typeNode.typeName?.type === 'Identifier' &&
+            typeNode.typeName.name === 'Promise'
+          ) {
+            const typeArgs = typeNode.typeArguments?.params ?? typeNode.typeParameters?.params
+            if (!Array.isArray(typeArgs) || typeArgs.length !== 1) {
+              return null
+            }
+            return resolveTypeNodeRoles(typeArgs[0], currentFile)
+          }
+
+          if (typeNode.type === 'TSTypeReference' && typeNode.typeName?.type === 'Identifier') {
+            const localTypeName = typeNode.typeName.name
+            const importedReference = readImportedReference(localTypeName, currentFile)
+            const resolvedRole =
+              importedReference !== null
+                ? readExportedRole(importedReference.filePath, importedReference.exportedName)
+                : readExportedRole(currentFile, localTypeName)
+            return resolvedRole !== null ? [resolvedRole] : null
+          }
+
+          return null
         }
 
         function readTypeRole(typeAnnotation, currentFile) {
@@ -339,11 +414,23 @@ export default {
 
           const escapedName = escapeRegExp(exportedName)
           const exportPattern = new RegExp(
-            String.raw`/\*\*[\s\S]*?@riviere-role\s+([a-z][a-z0-9-]*)[\s\S]*?\*/\s*export\s+(?:interface|type|function|class)\s+${escapedName}\b`,
+            String.raw`export\s+(?:interface|type|function|class)\s+${escapedName}\b`,
             'm',
           )
-          const match = sourceText.match(exportPattern)
-          return match === null ? null : (match[1] ?? null)
+          const exportMatch = exportPattern.exec(sourceText)
+          if (exportMatch === null || exportMatch.index === undefined) {
+            return null
+          }
+
+          const prefix = sourceText.slice(0, exportMatch.index)
+          const jsDocComments = [...prefix.matchAll(/\/\*\*[\s\S]*?\*\//g)]
+          const commentMatch = jsDocComments.at(-1)
+          if (commentMatch?.[0] === undefined) {
+            return null
+          }
+
+          const roleMatch = commentMatch[0].match(/@riviere-role\s+([a-z][a-z0-9-]*)/)
+          return roleMatch?.[1] ?? null
         }
 
         function readFileText(filePath) {

@@ -3,9 +3,9 @@ import type { ValidateGraphInput } from './validate-graph-input'
 import type { ValidateGraphResult } from './validate-graph-result'
 
 /** @riviere-role command-use-case */
-export async function validateGraph(input: ValidateGraphInput): Promise<ValidateGraphResult> {
+export function validateGraph(input: ValidateGraphInput): ValidateGraphResult {
   const repository = new RiviereBuilderRepository()
-  const loadedGraph = await repository.load(input.graphPathOption)
+  const loadedGraph = repository.load(input.graphPathOption)
   if (!loadedGraph.success) {
     return {
       code: loadedGraph.code,

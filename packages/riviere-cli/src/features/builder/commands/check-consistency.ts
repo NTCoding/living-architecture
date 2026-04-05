@@ -3,11 +3,9 @@ import type { CheckConsistencyInput } from './check-consistency-input'
 import type { CheckConsistencyResult } from './check-consistency-result'
 
 /** @riviere-role command-use-case */
-export async function checkConsistency(
-  input: CheckConsistencyInput,
-): Promise<CheckConsistencyResult> {
+export function checkConsistency(input: CheckConsistencyInput): CheckConsistencyResult {
   const repository = new RiviereBuilderRepository()
-  const loadedGraph = await repository.load(input.graphPathOption)
+  const loadedGraph = repository.load(input.graphPathOption)
   if (!loadedGraph.success) {
     return {
       code: loadedGraph.code,

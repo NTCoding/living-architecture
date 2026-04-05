@@ -4,9 +4,9 @@ import type { AddDomainInput } from './add-domain-input'
 import type { AddDomainResult } from './add-domain-result'
 
 /** @riviere-role command-use-case */
-export async function addDomain(input: AddDomainInput): Promise<AddDomainResult> {
+export function addDomain(input: AddDomainInput): AddDomainResult {
   const repository = new RiviereBuilderRepository()
-  const loadedGraph = await repository.load(input.graphPathOption)
+  const loadedGraph = repository.load(input.graphPathOption)
   if (!loadedGraph.success) {
     return {
       code: loadedGraph.code,
@@ -24,7 +24,7 @@ export async function addDomain(input: AddDomainInput): Promise<AddDomainResult>
       name: input.name,
       systemType: input.systemType,
     })
-    await repository.save(loadedGraph.builder, input.graphPathOption)
+    repository.save(loadedGraph.builder, input.graphPathOption)
     return {
       description: input.description,
       name: input.name,

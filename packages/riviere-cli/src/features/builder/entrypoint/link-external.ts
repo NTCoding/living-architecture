@@ -1,18 +1,13 @@
 import { Command } from 'commander'
-import type { ExternalTarget } from '@living-architecture/riviere-schema'
 import { getDefaultGraphPathDescription } from '../../../platform/infra/cli/presentation/graph-path-option'
-import { formatSuccess } from '../../../platform/infra/cli/presentation/output'
-import { isValidLinkType } from '../../../platform/infra/cli/presentation/component-types'
-import { validateLinkType } from '../../../platform/infra/cli/presentation/validation'
-import { saveGraphBuilder, withGraphBuilder } from '../infra/persistence/builder-graph-access'
-import { tryBuilderOperation } from '../../../platform/infra/cli/presentation/graph-error-output'
-import { buildExternalTarget } from '../../../platform/infra/cli/presentation/link-external-transformer'
-
-interface ExternalLinkInput {
-  from: string
-  target: ExternalTarget
-  type?: 'sync' | 'async'
-}
+import {
+  formatError, formatSuccess 
+} from '../../../platform/infra/cli/presentation/output'
+import { CliErrorCode } from '../../../platform/infra/cli/presentation/error-codes'
+import { isValidLinkType } from '../../../platform/infra/cli/input/component-types'
+import { validateLinkType } from '../../../platform/infra/cli/input/validation'
+import { buildExternalTarget } from '../../../platform/infra/cli/input/link-external-transformer'
+import { linkExternal } from '../commands/link-external'
 
 interface LinkExternalOptions {
   from: string
@@ -59,28 +54,31 @@ Examples:
         return
       }
 
-      await withGraphBuilder(options.graph, async (builder) => {
-        const target = buildExternalTarget(options)
+      const linkType =
+        options.linkType !== undefined && isValidLinkType(options.linkType)
+          ? options.linkType
+          : undefined
 
-        const externalLinkInput: ExternalLinkInput = {
-          from: options.from,
-          target,
-        }
-
-        if (options.linkType !== undefined && isValidLinkType(options.linkType)) {
-          externalLinkInput.type = options.linkType
-        }
-
-        const externalLink = tryBuilderOperation(() => builder.linkExternal(externalLinkInput))
-        if (externalLink === undefined) {
-          return
-        }
-
-        await saveGraphBuilder(builder, options.graph)
-
-        if (options.json) {
-          console.log(JSON.stringify(formatSuccess({ externalLink })))
-        }
+      const result = await linkExternal({
+        from: options.from,
+        graphPathOption: options.graph,
+        target: buildExternalTarget(options),
+        type: linkType,
       })
+      if (!result.success) {
+        const errorCodeByResult = {
+          COMPONENT_NOT_FOUND: CliErrorCode.ComponentNotFound,
+          GRAPH_CORRUPTED: CliErrorCode.GraphCorrupted,
+          GRAPH_NOT_FOUND: CliErrorCode.GraphNotFound,
+        } as const
+        const errorCode = errorCodeByResult[result.code]
+
+        console.log(JSON.stringify(formatError(errorCode, result.message, result.suggestions)))
+        return
+      }
+
+      if (options.json) {
+        console.log(JSON.stringify(formatSuccess({ externalLink: result.externalLink })))
+      }
     })
 }

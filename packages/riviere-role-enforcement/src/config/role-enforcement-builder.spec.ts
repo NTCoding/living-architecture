@@ -86,9 +86,22 @@ describe('location with subLocation builder', () => {
     expect(builder.basePath).toBe('src/features')
     expect(builder.subLocations).toStrictEqual([])
   })
+
+  it('includes forbidden imports when provided', () => {
+    const builder = location('src/features').subLocation('/entrypoint', ['cli-entrypoint'], {forbiddenImports: ['**/infra/persistence/**'],})
+
+    expect(builder.subLocations).toStrictEqual([
+      {
+        allowedRoles: ['cli-entrypoint'],
+        forbiddenImports: ['**/infra/persistence/**'],
+        path: '/entrypoint',
+      },
+    ])
+  })
 })
 
 describe('roleEnforcement', () => {
+  const canonicalConfigurationsFile = '.riviere/canonical-role-configurations.md'
   const testRoles = [
     role('cli-entrypoint', { targets: ['function'] }),
     role('aggregate', { targets: ['class'] }),
@@ -98,6 +111,7 @@ describe('roleEnforcement', () => {
 
   it('expands locations across packages into layers', () => {
     const result = roleEnforcement({
+      canonicalConfigurationsFile,
       packages: ['packages/my-app'],
       ignorePatterns: ['**/*.spec.ts'],
       roleDefinitionsDir: '.riviere/role-definitions',
@@ -117,6 +131,7 @@ describe('roleEnforcement', () => {
 
   it('derives include patterns from packages', () => {
     const result = roleEnforcement({
+      canonicalConfigurationsFile,
       packages: ['packages/my-app', 'packages/my-lib'],
       ignorePatterns: [],
       roleDefinitionsDir: '.riviere/role-definitions',
@@ -132,6 +147,7 @@ describe('roleEnforcement', () => {
 
   it('expands locations for each package', () => {
     const result = roleEnforcement({
+      canonicalConfigurationsFile,
       packages: ['packages/app-a', 'packages/app-b'],
       ignorePatterns: [],
       roleDefinitionsDir: '.riviere/role-definitions',
@@ -153,6 +169,7 @@ describe('roleEnforcement', () => {
 
   it('resolves path templates by replacing {name} with glob wildcard', () => {
     const result = roleEnforcement({
+      canonicalConfigurationsFile,
       packages: ['packages/my-app'],
       ignorePatterns: [],
       roleDefinitionsDir: '.riviere/role-definitions',
@@ -174,6 +191,7 @@ describe('roleEnforcement', () => {
 
   it('passes through ignorePatterns, roleDefinitionsDir, and roles', () => {
     const result = roleEnforcement({
+      canonicalConfigurationsFile,
       packages: ['packages/my-app'],
       ignorePatterns: ['**/*.spec.ts', '**/__fixtures__/**'],
       roleDefinitionsDir: '.riviere/role-definitions',
@@ -188,6 +206,7 @@ describe('roleEnforcement', () => {
 
   it('combines multiple locations into a single layers record', () => {
     const result = roleEnforcement({
+      canonicalConfigurationsFile,
       packages: ['packages/my-app'],
       ignorePatterns: [],
       roleDefinitionsDir: '.riviere/role-definitions',
@@ -205,5 +224,24 @@ describe('roleEnforcement', () => {
       'packages/my-app/src/features/domain',
       'packages/my-app/src/shell',
     ])
+  })
+
+  it('includes forbidden imports in generated layer entries', () => {
+    const result = roleEnforcement({
+      canonicalConfigurationsFile,
+      packages: ['packages/my-app'],
+      ignorePatterns: [],
+      roleDefinitionsDir: '.riviere/role-definitions',
+      roles: testRoles,
+      locations: [
+        location<TestRoleName>('src/features').subLocation('/entrypoint', ['cli-entrypoint'], {forbiddenImports: ['**/infra/persistence/**'],}),
+      ],
+    })
+
+    expect(result.layers['packages/my-app/src/features/entrypoint']).toStrictEqual({
+      allowedRoles: ['cli-entrypoint'],
+      forbiddenImports: ['**/infra/persistence/**'],
+      paths: ['packages/my-app/src/features/entrypoint'],
+    })
   })
 })

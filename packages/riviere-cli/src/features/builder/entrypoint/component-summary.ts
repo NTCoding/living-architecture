@@ -1,11 +1,12 @@
 import { Command } from 'commander'
+import { CliErrorCode } from '../../../platform/infra/cli/presentation/error-codes'
 import { getDefaultGraphPathDescription } from '../../../platform/infra/cli/presentation/graph-path-option'
-import { formatSuccess } from '../../../platform/infra/cli/presentation/output'
-import { withGraphBuilder } from '../infra/persistence/builder-graph-access'
+import {
+  formatError, formatSuccess 
+} from '../../../platform/infra/cli/presentation/output'
+import { componentSummary } from '../commands/component-summary'
 
-interface ComponentSummaryOptions {
-  graph?: string
-}
+interface ComponentSummaryOptions {graph?: string}
 
 /** @riviere-role cli-entrypoint */
 export function createComponentSummaryCommand(): Command {
@@ -21,9 +22,22 @@ Examples:
     )
     .option('--graph <path>', getDefaultGraphPathDescription())
     .action(async (options: ComponentSummaryOptions) => {
-      await withGraphBuilder(options.graph, async (builder) => {
-        const stats = builder.stats()
-        console.log(JSON.stringify(formatSuccess(stats)))
-      })
+      const result = await componentSummary({ graphPathOption: options.graph })
+      if (!result.success) {
+        console.log(
+          JSON.stringify(
+            formatError(
+              result.code === 'GRAPH_NOT_FOUND'
+                ? CliErrorCode.GraphNotFound
+                : CliErrorCode.GraphCorrupted,
+              result.message,
+              [],
+            ),
+          ),
+        )
+        return
+      }
+
+      console.log(JSON.stringify(formatSuccess(result)))
     })
 }

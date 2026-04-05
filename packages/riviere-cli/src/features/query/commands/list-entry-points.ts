@@ -3,14 +3,15 @@ import type { ListEntryPointsInput } from './list-entry-points-input'
 import type { ListEntryPointsResult } from './list-entry-points-result'
 
 /** @riviere-role command-use-case */
-export async function listEntryPoints(input: ListEntryPointsInput): Promise<ListEntryPointsResult> {
+export function listEntryPoints(input: ListEntryPointsInput): ListEntryPointsResult {
   const repository = new RiviereQueryRepository()
-  const loadedGraph = await repository.load(input.graphPathOption)
+  const loadedGraph = repository.load(input.graphPathOption)
   if (!loadedGraph.success) {
-    throw new Error(`Failed to load graph at ${loadedGraph.graphPath}`)
+    throw {
+      ...loadedGraph,
+      kind: 'QUERY_GRAPH_LOAD_ERROR' as const,
+    }
   }
 
-  return {
-    entryPoints: loadedGraph.query.entryPoints(),
-  }
+  return { entryPoints: loadedGraph.query.entryPoints() }
 }

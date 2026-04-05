@@ -1,10 +1,12 @@
 import { Command } from 'commander'
 import { CliErrorCode } from '../../../platform/infra/cli/presentation/error-codes'
 import { getDefaultGraphPathDescription } from '../../../platform/infra/cli/presentation/graph-path-option'
-import { formatError, formatSuccess } from '../../../platform/infra/cli/presentation/output'
+import {
+  formatError, formatSuccess 
+} from '../../../platform/infra/cli/presentation/output'
 import { getAddComponentHints } from '../../../platform/infra/cli/presentation/add-component-hints'
+import { toAddComponentInput } from '../../../platform/infra/cli/input/add-component-options'
 import { addComponent } from '../commands/add-component'
-import type { AddComponentInput } from '../commands/add-component-input'
 import type { AddComponentErrorCode } from '../commands/add-component-result'
 
 interface CliOptions {
@@ -65,34 +67,10 @@ export function createAddComponentCommand(): Command {
     .option('--graph <path>', getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .action(async (options: CliOptions) => {
-      const input: AddComponentInput = {
-        componentType: options.type,
-        name: options.name,
-        domain: options.domain,
-        module: options.module,
-        repository: options.repository,
-        filePath: options.filePath,
-        ...(options.graph === undefined ? {} : { graphPathOption: options.graph }),
-        ...(options.lineNumber ? { lineNumber: parseInt(options.lineNumber, 10) } : {}),
-        ...(options.route ? { route: options.route } : {}),
-        ...(options.apiType ? { apiType: options.apiType } : {}),
-        ...(options.httpMethod ? { httpMethod: options.httpMethod } : {}),
-        ...(options.httpPath ? { httpPath: options.httpPath } : {}),
-        ...(options.operationName ? { operationName: options.operationName } : {}),
-        ...(options.entity ? { entity: options.entity } : {}),
-        ...(options.eventName ? { eventName: options.eventName } : {}),
-        ...(options.eventSchema ? { eventSchema: options.eventSchema } : {}),
-        ...(options.subscribedEvents ? { subscribedEvents: options.subscribedEvents } : {}),
-        ...(options.customType ? { customType: options.customType } : {}),
-        ...(options.customProperty && options.customProperty.length > 0
-          ? { customProperty: options.customProperty }
-          : {}),
-        ...(options.description ? { description: options.description } : {}),
-      }
-      const result = await addComponent(input)
+      const result = await addComponent(toAddComponentInput(options))
 
       if (!result.success) {
-        const cliErrorCode = toCliErrorCode(result.code)
+        const cliErrorCode = CLI_ERROR_CODES[result.code]
         console.log(
           JSON.stringify(
             formatError(cliErrorCode, result.message, getAddComponentHints(cliErrorCode)),
@@ -107,17 +85,10 @@ export function createAddComponentCommand(): Command {
     })
 }
 
-function toCliErrorCode(code: AddComponentErrorCode): CliErrorCode {
-  switch (code) {
-    case 'VALIDATION_ERROR':
-      return CliErrorCode.ValidationError
-    case 'GRAPH_NOT_FOUND':
-      return CliErrorCode.GraphNotFound
-    case 'DOMAIN_NOT_FOUND':
-      return CliErrorCode.DomainNotFound
-    case 'CUSTOM_TYPE_NOT_FOUND':
-      return CliErrorCode.CustomTypeNotFound
-    case 'DUPLICATE_COMPONENT':
-      return CliErrorCode.DuplicateComponent
-  }
+const CLI_ERROR_CODES: Record<AddComponentErrorCode, CliErrorCode> = {
+  VALIDATION_ERROR: CliErrorCode.ValidationError,
+  GRAPH_NOT_FOUND: CliErrorCode.GraphNotFound,
+  DOMAIN_NOT_FOUND: CliErrorCode.DomainNotFound,
+  CUSTOM_TYPE_NOT_FOUND: CliErrorCode.CustomTypeNotFound,
+  DUPLICATE_COMPONENT: CliErrorCode.DuplicateComponent,
 }

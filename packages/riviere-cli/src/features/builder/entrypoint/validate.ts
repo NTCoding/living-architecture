@@ -1,7 +1,10 @@
 import { Command } from 'commander'
-import { formatSuccess } from '../../../platform/infra/cli/presentation/output'
+import { CliErrorCode } from '../../../platform/infra/cli/presentation/error-codes'
 import { getDefaultGraphPathDescription } from '../../../platform/infra/cli/presentation/graph-path-option'
-import { withGraphBuilder } from '../infra/persistence/builder-graph-access'
+import {
+  formatError, formatSuccess 
+} from '../../../platform/infra/cli/presentation/output'
+import { validateGraph } from '../commands/validate-graph'
 
 interface ValidateOptions {
   graph?: string
@@ -24,21 +27,32 @@ Examples:
     .option('--graph <path>', getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .action(async (options: ValidateOptions) => {
-      await withGraphBuilder(options.graph, async (builder) => {
-        const validationResult = builder.validate()
-        const warnings = builder.warnings()
-
-        if (options.json === true) {
-          console.log(
-            JSON.stringify(
-              formatSuccess({
-                valid: validationResult.valid,
-                errors: validationResult.errors,
-                warnings,
-              }),
+      const result = await validateGraph({ graphPathOption: options.graph })
+      if (!result.success) {
+        console.log(
+          JSON.stringify(
+            formatError(
+              result.code === 'GRAPH_NOT_FOUND'
+                ? CliErrorCode.GraphNotFound
+                : CliErrorCode.GraphCorrupted,
+              result.message,
+              [],
             ),
-          )
-        }
-      })
+          ),
+        )
+        return
+      }
+
+      if (options.json === true) {
+        console.log(
+          JSON.stringify(
+            formatSuccess({
+              errors: result.errors,
+              valid: result.valid,
+              warnings: result.warnings,
+            }),
+          ),
+        )
+      }
     })
 }

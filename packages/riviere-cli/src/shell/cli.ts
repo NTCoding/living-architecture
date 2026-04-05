@@ -22,9 +22,7 @@ import { createComponentsCommand } from '../features/query/entrypoint/components
 import { createSearchCommand } from '../features/query/entrypoint/search'
 import { createExtractCommand } from '../features/extract/entrypoint/extract'
 
-interface PackageJson {
-  version: string
-}
+interface PackageJson {version: string}
 
 class InvalidPackageJsonError extends Error {
   constructor(reason: string) {

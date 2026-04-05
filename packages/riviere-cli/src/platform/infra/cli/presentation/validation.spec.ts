@@ -1,5 +1,5 @@
 import {
-  describe, it, expect 
+  describe, expect, it 
 } from 'vitest'
 import {
   validateComponentType,
@@ -7,8 +7,14 @@ import {
   validateSystemType,
   validateHttpMethod,
   isValidHttpMethod,
-} from './validation'
+} from '../input/validation'
 import { CliErrorCode } from './error-codes'
+
+function parseErrorJson(errorJson: string | undefined): unknown {
+  expect(errorJson).toBeTruthy()
+
+  return JSON.parse(errorJson ?? 'null')
+}
 
 describe('validation', () => {
   describe('validateComponentType', () => {
@@ -23,8 +29,7 @@ describe('validation', () => {
     it('returns invalid with error for unknown type', () => {
       const result = validateComponentType('InvalidType')
       expect(result.valid).toBe(false)
-      expect(result.errorJson).toBeTruthy()
-      const error: unknown = JSON.parse(result.errorJson)
+      const error = parseErrorJson(result.errorJson)
       expect(error).toMatchObject({
         success: false,
         error: {
@@ -51,8 +56,7 @@ describe('validation', () => {
     it('returns invalid with error for unknown link type', () => {
       const result = validateLinkType('invalid')
       expect(result.valid).toBe(false)
-      expect(result.errorJson).toBeTruthy()
-      const error: unknown = JSON.parse(result.errorJson)
+      const error = parseErrorJson(result.errorJson)
       expect(error).toMatchObject({
         success: false,
         error: {
@@ -82,8 +86,7 @@ describe('validation', () => {
     it('returns invalid with error for unknown method', () => {
       const result = validateHttpMethod('INVALID')
       expect(result.valid).toBe(false)
-      expect(result.errorJson).toBeTruthy()
-      const error: unknown = JSON.parse(result.errorJson)
+      const error = parseErrorJson(result.errorJson)
       expect(error).toMatchObject({
         success: false,
         error: {
@@ -113,8 +116,7 @@ describe('validation', () => {
     it('returns invalid with error for unknown system type', () => {
       const result = validateSystemType('backend')
       expect(result.valid).toBe(false)
-      expect(result.errorJson).toBeTruthy()
-      const error: unknown = JSON.parse(result.errorJson)
+      const error = parseErrorJson(result.errorJson)
       expect(error).toMatchObject({
         success: false,
         error: {

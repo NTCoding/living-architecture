@@ -17,76 +17,59 @@ function isValidPropertyType(value: string): value is CustomPropertyType {
 
 function parsePropertySpec(spec: string):
   | {
-    name: string
     definition: CustomPropertyDefinition
+    name: string
   }
   | { error: string } {
   const parts = spec.split(':')
-  if (parts.length < 2 || parts.length > 3) {
+  if (parts.length < 2 || parts.length > 3)
     return {error: `Invalid property format: "${spec}". Expected "name:type" or "name:type:description"`,}
-  }
-
   const [name, type, description] = parts
-  if (!name || name.trim() === '') {
-    return { error: 'Property name cannot be empty' }
-  }
-
-  if (!type || !isValidPropertyType(type)) {
+  if (!name || name.trim() === '') return { error: 'Property name cannot be empty' }
+  if (!type || !isValidPropertyType(type))
     return {error: `Invalid property type: "${type}". Valid types: ${VALID_PROPERTY_TYPES.join(', ')}`,}
-  }
-
   const definition: CustomPropertyDefinition = { type }
-  if (description && description.trim() !== '') {
-    definition.description = description
-  }
-
+  if (description && description.trim() !== '') definition.description = description
   return {
-    name: name.trim(),
     definition,
+    name: name.trim(),
   }
 }
 
-interface ParsePropertiesSuccess {
-  success: true
-  properties: Record<string, CustomPropertyDefinition>
-}
+type ParsePropertiesResult =
+  | {
+    properties: Record<string, CustomPropertyDefinition>
+    success: true
+  }
+  | {
+    error: string
+    success: false
+  }
 
-interface ParsePropertiesError {
-  success: false
-  error: string
-}
-
-type ParsePropertiesResult = ParsePropertiesSuccess | ParsePropertiesError
-
-/** @riviere-role command-input-factory */
+/** @riviere-role cli-input-validator */
 export function parsePropertySpecs(specs: string[] | undefined): ParsePropertiesResult {
-  if (specs === undefined || specs.length === 0) {
+  if (specs === undefined || specs.length === 0)
     return {
-      success: true,
       properties: {},
+      success: true,
     }
-  }
-
   const properties: Record<string, CustomPropertyDefinition> = {}
   for (const spec of specs) {
     const result = parsePropertySpec(spec)
-    if ('error' in result) {
+    if ('error' in result)
       return {
-        success: false,
         error: result.error,
-      }
-    }
-    if (properties[result.name] !== undefined) {
-      return {
         success: false,
-        error: `Duplicate property name: "${result.name}"`,
       }
-    }
+    if (properties[result.name] !== undefined)
+      return {
+        error: `Duplicate property name: "${result.name}"`,
+        success: false,
+      }
     properties[result.name] = result.definition
   }
-
   return {
-    success: true,
     properties,
+    success: true,
   }
 }

@@ -10,6 +10,7 @@ export interface MatchedApi {
 /** @riviere-role command-use-case-result-value */
 export type LinkHttpErrorCode =
   | 'AMBIGUOUS_API_MATCH'
+  | 'COMPONENT_NOT_FOUND'
   | 'GRAPH_CORRUPTED'
   | 'GRAPH_NOT_FOUND'
   | 'VALIDATION_ERROR'
@@ -17,13 +18,13 @@ export type LinkHttpErrorCode =
 /** @riviere-role command-use-case-result */
 export type LinkHttpResult =
   | {
-      link: Link
-      matchedApi: MatchedApi
-      success: true
-    }
+    link: Link
+    matchedApi: MatchedApi
+    success: true
+  }
   | {
-      code: LinkHttpErrorCode
-      message: string
-      suggestions: string[]
-      success: false
-    }
+    code: LinkHttpErrorCode
+    message: string
+    suggestions: string[]
+    success: false
+  }

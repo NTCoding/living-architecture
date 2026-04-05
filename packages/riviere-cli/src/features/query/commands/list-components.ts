@@ -3,11 +3,14 @@ import type { ListComponentsInput } from './list-components-input'
 import type { ListComponentsResult } from './list-components-result'
 
 /** @riviere-role command-use-case */
-export async function listComponents(input: ListComponentsInput): Promise<ListComponentsResult> {
+export function listComponents(input: ListComponentsInput): ListComponentsResult {
   const repository = new RiviereQueryRepository()
-  const loadedGraph = await repository.load(input.graphPathOption)
+  const loadedGraph = repository.load(input.graphPathOption)
   if (!loadedGraph.success) {
-    throw new Error(`Failed to load graph at ${loadedGraph.graphPath}`)
+    throw {
+      ...loadedGraph,
+      kind: 'QUERY_GRAPH_LOAD_ERROR' as const,
+    }
   }
 
   const allComponents = loadedGraph.query.components()

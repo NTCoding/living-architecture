@@ -1,19 +1,17 @@
 import { Command } from 'commander'
 import { ComponentId } from '@living-architecture/riviere-builder'
 import { getDefaultGraphPathDescription } from '../../../platform/infra/cli/presentation/graph-path-option'
-import { formatSuccess } from '../../../platform/infra/cli/presentation/output'
+import {
+  formatError, formatSuccess 
+} from '../../../platform/infra/cli/presentation/output'
 import {
   isValidLinkType,
   normalizeComponentType,
-} from '../../../platform/infra/cli/presentation/component-types'
-import { isValidHttpMethod } from '../../../platform/infra/cli/presentation/validation'
-import { saveGraphBuilder, withGraphBuilder } from '../infra/persistence/builder-graph-access'
-import { findApisByPath, getAllApiPaths } from '../queries/api-component-queries'
-import {
-  reportNoApiFoundForPath,
-  reportAmbiguousApiMatch,
-} from '../../../platform/infra/cli/presentation/link-http-errors'
-import { validateOptions } from '../../../platform/infra/cli/presentation/link-http-validator'
+} from '../../../platform/infra/cli/input/component-types'
+import { isValidHttpMethod } from '../../../platform/infra/cli/input/validation'
+import { validateOptions } from '../../../platform/infra/cli/input/link-http-validator'
+import { CliErrorCode } from '../../../platform/infra/cli/presentation/error-codes'
+import { linkHttp } from '../commands/link-http'
 
 interface LinkHttpOptions {
   path: string
@@ -61,64 +59,44 @@ Examples:
         return
       }
 
-      await withGraphBuilder(options.graph, async (builder) => {
-        const graph = builder.build()
+      const normalizedMethod = options.method?.toUpperCase()
+      const httpMethod =
+        normalizedMethod !== undefined && isValidHttpMethod(normalizedMethod)
+          ? normalizedMethod
+          : undefined
+      const linkType =
+        options.linkType !== undefined && isValidLinkType(options.linkType)
+          ? options.linkType
+          : undefined
 
-        const normalizedMethod = options.method?.toUpperCase()
-        const httpMethod =
-          normalizedMethod && isValidHttpMethod(normalizedMethod) ? normalizedMethod : undefined
-        const matchingApis = findApisByPath(graph, options.path, httpMethod)
-
-        const [matchedApi, ...otherApis] = matchingApis
-
-        if (!matchedApi) {
-          reportNoApiFoundForPath(options.path, getAllApiPaths(graph))
-          return
-        }
-
-        if (otherApis.length > 0) {
-          reportAmbiguousApiMatch(options.path, matchingApis)
-          return
-        }
-
-        const targetId = ComponentId.create({
+      const result = await linkHttp({
+        graphPathOption: options.graph,
+        httpMethod,
+        linkType,
+        path: options.path,
+        targetId: ComponentId.create({
           domain: options.toDomain,
           module: options.toModule,
           type: normalizeComponentType(options.toType),
           name: options.toName,
-        }).toString()
-
-        const linkInput: {
-          from: string
-          to: string
-          type?: 'sync' | 'async'
-        } = {
-          from: matchedApi.id,
-          to: targetId,
-        }
-
-        if (options.linkType !== undefined && isValidLinkType(options.linkType)) {
-          linkInput.type = options.linkType
-        }
-
-        const link = builder.link(linkInput)
-
-        await saveGraphBuilder(builder, options.graph)
-
-        if (options.json) {
-          console.log(
-            JSON.stringify(
-              formatSuccess({
-                link,
-                matchedApi: {
-                  id: matchedApi.id,
-                  path: matchedApi.path,
-                  method: matchedApi.httpMethod,
-                },
-              }),
-            ),
-          )
-        }
+        }).toString(),
       })
+      if (!result.success) {
+        const errorCodeByResult = {
+          AMBIGUOUS_API_MATCH: CliErrorCode.AmbiguousApiMatch,
+          COMPONENT_NOT_FOUND: CliErrorCode.ComponentNotFound,
+          GRAPH_CORRUPTED: CliErrorCode.GraphCorrupted,
+          GRAPH_NOT_FOUND: CliErrorCode.GraphNotFound,
+          VALIDATION_ERROR: CliErrorCode.ValidationError,
+        } as const
+        const errorCode = errorCodeByResult[result.code]
+
+        console.log(JSON.stringify(formatError(errorCode, result.message, result.suggestions)))
+        return
+      }
+
+      if (options.json) {
+        console.log(JSON.stringify(formatSuccess(result)))
+      }
     })
 }

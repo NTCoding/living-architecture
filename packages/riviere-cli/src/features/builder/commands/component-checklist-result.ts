@@ -12,12 +12,12 @@ export type ComponentChecklistErrorCode = 'GRAPH_CORRUPTED' | 'GRAPH_NOT_FOUND'
 /** @riviere-role command-use-case-result */
 export type ComponentChecklistResult =
   | {
-      components: ChecklistComponent[]
-      success: true
-      total: number
-    }
+    components: ChecklistComponent[]
+    success: true
+    total: number
+  }
   | {
-      code: ComponentChecklistErrorCode
-      message: string
-      success: false
-    }
+    code: ComponentChecklistErrorCode
+    message: string
+    success: false
+  }

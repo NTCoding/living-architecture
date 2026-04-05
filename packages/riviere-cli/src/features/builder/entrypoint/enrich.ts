@@ -1,16 +1,13 @@
 import { Command } from 'commander'
-import { writeFile } from 'node:fs/promises'
-import { withGraphBuilder } from '../infra/persistence/builder-graph-access'
-import { formatError, formatSuccess } from '../../../platform/infra/cli/presentation/output'
+import {
+  formatError, formatSuccess 
+} from '../../../platform/infra/cli/presentation/output'
 import { CliErrorCode } from '../../../platform/infra/cli/presentation/error-codes'
 import { getDefaultGraphPathDescription } from '../../../platform/infra/cli/presentation/graph-path-option'
-import { collectOption } from '../../../platform/infra/cli/presentation/option-collectors'
-import {
-  parseStateChanges,
-  buildBehavior,
-} from '../../../platform/infra/cli/presentation/enrichment-parser'
-import { parseSignature } from '../../../platform/infra/cli/presentation/signature-parser'
-import { handleEnrichmentError } from '../../../platform/infra/cli/presentation/enrichment-error-handler'
+import { collectOption } from '../../../platform/infra/cli/input/option-collectors'
+import { parseStateChanges } from '../../../platform/infra/cli/input/enrichment-parser'
+import { parseSignature } from '../../../platform/infra/cli/input/signature-parser'
+import { enrichComponent } from '../commands/enrich-component'
 
 interface EnrichOptions {
   id: string
@@ -88,25 +85,33 @@ Examples:
       const parsedSignature =
         signatureResult?.success === true ? signatureResult.signature : undefined
 
-      await withGraphBuilder(options.graph, async (builder, graphPath) => {
-        try {
-          builder.enrichComponent(options.id, {
-            ...(options.entity !== undefined && { entity: options.entity }),
-            ...(parseResult.stateChanges.length > 0 && { stateChanges: parseResult.stateChanges }),
-            ...(options.businessRule.length > 0 && { businessRules: options.businessRule }),
-            ...buildBehavior(options),
-            ...(parsedSignature !== undefined && { signature: parsedSignature }),
-          })
-        } catch (error) {
-          handleEnrichmentError(error)
-          return
-        }
-
-        await writeFile(graphPath, builder.serialize(), 'utf-8')
-
-        if (options.json === true) {
-          console.log(JSON.stringify(formatSuccess({ componentId: options.id })))
-        }
+      const result = await enrichComponent({
+        businessRules: options.businessRule,
+        entity: options.entity,
+        emits: options.emits,
+        graphPathOption: options.graph,
+        id: options.id,
+        modifies: options.modifies,
+        reads: options.reads,
+        signature: parsedSignature,
+        stateChanges: parseResult.stateChanges,
+        validates: options.validates,
       })
+      if (!result.success) {
+        const errorCodeByResult = {
+          COMPONENT_NOT_FOUND: CliErrorCode.ComponentNotFound,
+          GRAPH_CORRUPTED: CliErrorCode.GraphCorrupted,
+          GRAPH_NOT_FOUND: CliErrorCode.GraphNotFound,
+          INVALID_COMPONENT_TYPE: CliErrorCode.InvalidComponentType,
+        } as const
+        const errorCode = errorCodeByResult[result.code]
+
+        console.log(JSON.stringify(formatError(errorCode, result.message, result.suggestions)))
+        return
+      }
+
+      if (options.json === true) {
+        console.log(JSON.stringify(formatSuccess({ componentId: result.componentId })))
+      }
     })
 }

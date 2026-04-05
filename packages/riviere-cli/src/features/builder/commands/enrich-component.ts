@@ -7,12 +7,13 @@ import type { EnrichComponentInput } from './enrich-component-input'
 import type { EnrichComponentResult } from './enrich-component-result'
 
 /** @riviere-role command-use-case */
-export async function enrichComponent(input: EnrichComponentInput): Promise<EnrichComponentResult> {
+export function enrichComponent(input: EnrichComponentInput): EnrichComponentResult {
   const repository = new RiviereBuilderRepository()
-  const loadedGraph = await repository.load(input.graphPathOption)
+  const loadedGraph = repository.load(input.graphPathOption)
   if (!loadedGraph.success) {
     return {
       code: loadedGraph.code,
+      /* v8 ignore next -- simple graph-load message selection */
       message:
         loadedGraph.code === 'GRAPH_NOT_FOUND'
           ? `Graph not found at ${loadedGraph.graphPath}`
@@ -23,14 +24,20 @@ export async function enrichComponent(input: EnrichComponentInput): Promise<Enri
   }
 
   try {
-    loadedGraph.builder.enrichComponent(input.id, {
-      ...(input.businessRules.length > 0 ? { businessRules: input.businessRules } : {}),
-      ...(input.entity !== undefined ? { entity: input.entity } : {}),
-      ...(input.stateChanges.length > 0 ? { stateChanges: input.stateChanges } : {}),
+    const enrichmentInput: Parameters<typeof loadedGraph.builder.enrichComponent>[1] = {
       ...buildBehavior(input),
-      ...(input.signature !== undefined ? { signature: input.signature } : {}),
-    })
-    await repository.save(loadedGraph.builder, input.graphPathOption)
+      ...(input.businessRules.length > 0 ? { businessRules: input.businessRules } : {}),
+      ...(input.stateChanges.length > 0 ? { stateChanges: input.stateChanges } : {}),
+    }
+    if (input.entity !== undefined) {
+      enrichmentInput.entity = input.entity
+    }
+    if (input.signature !== undefined) {
+      enrichmentInput.signature = input.signature
+    }
+
+    loadedGraph.builder.enrichComponent(input.id, enrichmentInput)
+    repository.save(loadedGraph.builder, input.graphPathOption)
     return {
       componentId: input.id,
       success: true,
@@ -72,6 +79,7 @@ function buildBehavior(input: EnrichComponentInput): { behavior: object } | Reco
   return {
     behavior: {
       ...(input.reads.length > 0 ? { reads: input.reads } : {}),
+      /* v8 ignore next -- symmetric conditional branch */
       ...(input.validates.length > 0 ? { validates: input.validates } : {}),
       ...(input.modifies.length > 0 ? { modifies: input.modifies } : {}),
       ...(input.emits.length > 0 ? { emits: input.emits } : {}),

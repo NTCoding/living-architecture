@@ -3,14 +3,15 @@ import type { ListDomainsInput } from './list-domains-input'
 import type { ListDomainsResult } from './list-domains-result'
 
 /** @riviere-role command-use-case */
-export async function listDomains(input: ListDomainsInput): Promise<ListDomainsResult> {
+export function listDomains(input: ListDomainsInput): ListDomainsResult {
   const repository = new RiviereQueryRepository()
-  const loadedGraph = await repository.load(input.graphPathOption)
+  const loadedGraph = repository.load(input.graphPathOption)
   if (!loadedGraph.success) {
-    throw new Error(`Failed to load graph at ${loadedGraph.graphPath}`)
+    throw {
+      ...loadedGraph,
+      kind: 'QUERY_GRAPH_LOAD_ERROR' as const,
+    }
   }
 
-  return {
-    domains: loadedGraph.query.domains(),
-  }
+  return { domains: loadedGraph.query.domains() }
 }

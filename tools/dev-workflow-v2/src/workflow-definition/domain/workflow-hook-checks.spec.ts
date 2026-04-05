@@ -1,4 +1,6 @@
-import { checkWriteAllowed } from './workflow-predicates'
+import {
+  checkWriteAllowed, isWriteAllowed 
+} from './workflow-predicates'
 
 describe('checkWriteAllowed predicate', () => {
   it('allows writes to normal files', () => {
@@ -35,5 +37,12 @@ describe('checkWriteAllowed predicate', () => {
   it('allows writes to project-level tsconfig.json', () => {
     const result = checkWriteAllowed('/project/packages/foo/tsconfig.json')
     expect(result).toStrictEqual({ pass: true })
+  })
+
+  it('delegates hook-based checks through isWriteAllowed', () => {
+    const result = isWriteAllowed('Write', '/project/nx.json', {currentStateMachineState: 'IMPLEMENTING',})
+
+    expect(result.pass).toBe(false)
+    expect(result).toMatchObject({ reason: expect.stringContaining('nx.json') })
   })
 })

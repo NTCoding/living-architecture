@@ -1,12 +1,15 @@
 import { Command } from 'commander'
-import { formatSuccess, formatError } from '../../../platform/infra/cli/presentation/output'
+import {
+  formatSuccess, formatError 
+} from '../../../platform/infra/cli/presentation/output'
 import { CliErrorCode } from '../../../platform/infra/cli/presentation/error-codes'
 import { getDefaultGraphPathDescription } from '../../../platform/infra/cli/presentation/graph-path-option'
 import {
   isValidComponentType,
   normalizeToSchemaComponentType,
   VALID_COMPONENT_TYPES,
-} from '../../../platform/infra/cli/presentation/component-types'
+} from '../../../platform/infra/cli/input/component-types'
+import { handleQueryGraphLoadError } from '../../../platform/infra/cli/presentation/query-graph-load-error-handler'
 import { toComponentOutput } from '../../../platform/infra/cli/presentation/component-output'
 import { listComponents } from '../commands/list-components'
 
@@ -46,16 +49,23 @@ Examples:
         return
       }
 
-      const result = await listComponents({
-        domain: options.domain,
-        graphPathOption: options.graph,
-        type: options.type === undefined ? undefined : normalizeToSchemaComponentType(options.type),
-      })
+      try {
+        const result = await listComponents({
+          domain: options.domain,
+          graphPathOption: options.graph,
+          type:
+            options.type === undefined ? undefined : normalizeToSchemaComponentType(options.type),
+        })
 
-      const components = result.components.map(toComponentOutput)
+        const components = result.components.map(toComponentOutput)
 
-      if (options.json) {
-        console.log(JSON.stringify(formatSuccess({ components })))
+        if (options.json) {
+          console.log(JSON.stringify(formatSuccess({ components })))
+        }
+      } catch (error) {
+        if (!handleQueryGraphLoadError(error)) {
+          throw error
+        }
       }
     })
 }

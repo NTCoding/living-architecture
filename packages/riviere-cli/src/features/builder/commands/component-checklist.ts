@@ -3,11 +3,9 @@ import type { ComponentChecklistInput } from './component-checklist-input'
 import type { ComponentChecklistResult } from './component-checklist-result'
 
 /** @riviere-role command-use-case */
-export async function componentChecklist(
-  input: ComponentChecklistInput,
-): Promise<ComponentChecklistResult> {
+export function componentChecklist(input: ComponentChecklistInput): ComponentChecklistResult {
   const repository = new RiviereBuilderRepository()
-  const loadedGraph = await repository.load(input.graphPathOption)
+  const loadedGraph = repository.load(input.graphPathOption)
   if (!loadedGraph.success) {
     return {
       code: loadedGraph.code,

@@ -4,8 +4,7 @@ interface ComponentSummary {
   readonly domain: string
 }
 
-/** @riviere-role value-object */
-export interface CategorizedComponents {
+interface CategorizedComponents {
   readonly added: readonly ComponentSummary[]
   readonly modified: readonly ComponentSummary[]
   readonly removed: readonly ComponentSummary[]

@@ -1,14 +1,14 @@
 import { Command } from 'commander'
-import { writeFile } from 'node:fs/promises'
-import { DuplicateDomainError } from '@living-architecture/riviere-builder'
-import { formatError, formatSuccess } from '../../../platform/infra/cli/presentation/output'
+import {
+  formatError, formatSuccess 
+} from '../../../platform/infra/cli/presentation/output'
 import { CliErrorCode } from '../../../platform/infra/cli/presentation/error-codes'
 import { getDefaultGraphPathDescription } from '../../../platform/infra/cli/presentation/graph-path-option'
 import {
   isValidSystemType,
   VALID_SYSTEM_TYPES,
-} from '../../../platform/infra/cli/presentation/component-types'
-import { withGraphBuilder } from '../infra/persistence/builder-graph-access'
+} from '../../../platform/infra/cli/input/component-types'
+import { addDomain } from '../commands/add-domain'
 
 interface AddDomainOptions {
   name: string
@@ -51,42 +51,30 @@ Examples:
         )
         return
       }
-      const systemType = options.systemType
-
-      await withGraphBuilder(options.graph, async (builder, graphPath) => {
-        try {
-          builder.addDomain({
-            name: options.name,
-            description: options.description,
-            systemType,
-          })
-        } catch (error) {
-          if (error instanceof DuplicateDomainError) {
-            console.log(
-              JSON.stringify(
-                formatError(CliErrorCode.DuplicateDomain, error.message, [
-                  'Use a different domain name',
-                ]),
-              ),
-            )
-            return
-          }
-          throw error
-        }
-
-        await writeFile(graphPath, builder.serialize(), 'utf-8')
-
-        if (options.json === true) {
-          console.log(
-            JSON.stringify(
-              formatSuccess({
-                name: options.name,
-                description: options.description,
-                systemType: options.systemType,
-              }),
-            ),
-          )
-        }
+      const result = await addDomain({
+        description: options.description,
+        graphPathOption: options.graph,
+        name: options.name,
+        systemType: options.systemType,
       })
+      if (!result.success) {
+        const errorCodeByResult = {
+          DUPLICATE_DOMAIN: CliErrorCode.DuplicateDomain,
+          GRAPH_NOT_FOUND: CliErrorCode.GraphNotFound,
+          GRAPH_CORRUPTED: CliErrorCode.GraphCorrupted,
+        } as const
+        const errorCode = errorCodeByResult[result.code]
+        const suggestions: string[] = []
+        if (result.code === 'DUPLICATE_DOMAIN') {
+          suggestions.push('Use a different domain name')
+        }
+
+        console.log(JSON.stringify(formatError(errorCode, result.message, suggestions)))
+        return
+      }
+
+      if (options.json === true) {
+        console.log(JSON.stringify(formatSuccess(result)))
+      }
     })
 }

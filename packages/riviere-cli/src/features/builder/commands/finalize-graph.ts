@@ -3,9 +3,9 @@ import type { FinalizeGraphInput } from './finalize-graph-input'
 import type { FinalizeGraphResult } from './finalize-graph-result'
 
 /** @riviere-role command-use-case */
-export async function finalizeGraph(input: FinalizeGraphInput): Promise<FinalizeGraphResult> {
+export function finalizeGraph(input: FinalizeGraphInput): FinalizeGraphResult {
   const repository = new RiviereBuilderRepository()
-  const loadedGraph = await repository.load(input.graphPathOption)
+  const loadedGraph = repository.load(input.graphPathOption)
   if (!loadedGraph.success) {
     return {
       code: loadedGraph.code,

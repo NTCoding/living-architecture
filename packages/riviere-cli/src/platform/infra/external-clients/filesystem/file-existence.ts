@@ -1,4 +1,4 @@
-import { access } from 'node:fs/promises'
+import { accessSync } from 'node:fs'
 
 interface NodeError extends Error {code?: string}
 
@@ -7,9 +7,9 @@ function isNodeError(error: unknown): error is NodeError {
 }
 
 /** @riviere-role external-client-service */
-export async function fileExists(path: string): Promise<boolean> {
+export function fileExists(path: string): boolean {
   try {
-    await access(path)
+    accessSync(path)
     return true
   } catch (error) {
     if (isNodeError(error) && error.code === 'ENOENT') {

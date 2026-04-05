@@ -9,7 +9,7 @@ const commandRoles: RoleName[] = [
   'command-input-factory',
 ]
 
-const domainRoles: RoleName[] = ['aggregate', 'value-object', 'domain-service']
+const domainRoles: RoleName[] = ['aggregate', 'value-object', 'domain-service', 'domain-error']
 
 const externalClientRoles: RoleName[] = [
   'external-client-service',

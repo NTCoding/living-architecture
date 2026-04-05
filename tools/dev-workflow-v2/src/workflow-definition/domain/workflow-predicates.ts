@@ -1,7 +1,7 @@
 import path from 'node:path'
 import type { PreconditionResult } from '@ntcoding/agentic-workflow-builder/dsl'
 import {
-  pass, fail 
+  fail, pass 
 } from '@ntcoding/agentic-workflow-builder/dsl'
 import type { BaseWorkflowState } from '@ntcoding/agentic-workflow-builder/engine'
 

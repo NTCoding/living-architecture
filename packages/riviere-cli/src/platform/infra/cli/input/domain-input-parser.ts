@@ -12,17 +12,13 @@ class InvalidDomainJsonError extends Error {
 }
 
 interface DomainInputParsed {
-  name: string
   description: string
+  name: string
   systemType: SystemType
 }
 
-export type { DomainInputParsed }
-
 function isDomainInputParsed(value: unknown): value is DomainInputParsed {
-  if (typeof value !== 'object' || value === null) {
-    return false
-  }
+  if (typeof value !== 'object' || value === null) return false
   return (
     'name' in value &&
     typeof value.name === 'string' &&
@@ -34,11 +30,9 @@ function isDomainInputParsed(value: unknown): value is DomainInputParsed {
   )
 }
 
-/** @riviere-role command-input-factory */
+/** @riviere-role cli-input-validator */
 export function parseDomainJson(value: string, previous: DomainInputParsed[]): DomainInputParsed[] {
   const parsed: unknown = JSON.parse(value)
-  if (!isDomainInputParsed(parsed)) {
-    throw new InvalidDomainJsonError(value)
-  }
+  if (!isDomainInputParsed(parsed)) throw new InvalidDomainJsonError(value)
   return [...previous, parsed]
 }
