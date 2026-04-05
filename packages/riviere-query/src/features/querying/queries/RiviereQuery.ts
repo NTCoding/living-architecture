@@ -114,7 +114,7 @@ function assertValidGraph(graph: unknown): asserts graph is RiviereGraph {
  * const flow = query.traceFlow('orders:checkout:api:post-orders')
  * ```
  *
- * @riviere-role aggregate
+ * @riviere-role query-model
  */
 export class RiviereQuery {
   private readonly graph: RiviereGraph

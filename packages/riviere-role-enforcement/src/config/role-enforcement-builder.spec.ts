@@ -43,6 +43,31 @@ describe('role', () => {
       allowedNames: ['main', 'run'],
     })
   })
+
+  it('includes approvedInstances when provided', () => {
+    const result = role('aggregate', {
+      targets: ['interface', 'type-alias', 'class'],
+      minPublicMethods: 1,
+      approvedInstances: [
+        {
+          name: 'ExtractionProject',
+          userHasApproved: true,
+        },
+      ],
+    })
+
+    expect(result).toStrictEqual({
+      name: 'aggregate',
+      targets: ['interface', 'type-alias', 'class'],
+      minPublicMethods: 1,
+      approvedInstances: [
+        {
+          name: 'ExtractionProject',
+          userHasApproved: true,
+        },
+      ],
+    })
+  })
 })
 
 describe('location with direct roles', () => {

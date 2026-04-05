@@ -2,7 +2,7 @@ import { Command } from 'commander'
 import { formatSuccess } from '../../../platform/infra/cli/presentation/output'
 import { getDefaultGraphPathDescription } from '../../../platform/infra/cli/presentation/graph-path-option'
 import { handleQueryGraphLoadError } from '../../../platform/infra/cli/presentation/query-graph-load-error-handler'
-import { detectOrphans } from '../commands/detect-orphans'
+import { detectOrphans } from '../queries/detect-orphans'
 
 interface OrphansOptions {
   graph?: string

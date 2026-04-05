@@ -1,4 +1,4 @@
-/** @riviere-role command-use-case-input */
+/** @riviere-role query-use-case-input */
 export interface TraceFlowInput {
   componentId: string
   graphPathOption: string | undefined

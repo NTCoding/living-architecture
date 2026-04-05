@@ -127,23 +127,25 @@ export class OrderRepository {
   return workspaceDir
 }
 
+const testLocations = [
+  location<TestRoleName>('src')
+    .subLocation('/commands', [
+      'command-use-case',
+      'command-use-case-input',
+      'command-use-case-result',
+    ])
+    .subLocation('/entrypoint', ['cli-entrypoint'])
+    .subLocation('/domain', ['aggregate', 'domain-error'])
+    .subLocation('/repositories', ['aggregate-repository']),
+]
+
 const testConfig = roleEnforcement({
   packages: ['packages/my-app'],
   canonicalConfigurationsFile: '.riviere/canonical-role-configurations.md',
   ignorePatterns: ['**/*.spec.ts'],
   roleDefinitionsDir: '.riviere/role-definitions',
   roles: testRoles,
-  locations: [
-    location<TestRoleName>('src')
-      .subLocation('/commands', [
-        'command-use-case',
-        'command-use-case-input',
-        'command-use-case-result',
-      ])
-      .subLocation('/entrypoint', ['cli-entrypoint'])
-      .subLocation('/domain', ['aggregate', 'domain-error'])
-      .subLocation('/repositories', ['aggregate-repository']),
-  ],
+  locations: testLocations,
 })
 
 it('runs oxlint successfully for a valid fixture workspace', () => {
@@ -390,6 +392,53 @@ it('accepts aggregate-repository class method returning a named aggregate type',
   expect(result.exitCode).toBe(0)
   expect(result.stderr).toBe('')
 
+  rmSync(workspaceDir, {
+    force: true,
+    recursive: true,
+  })
+})
+
+function configWithApprovedAggregates(approvedNames: string[]) {
+  return roleEnforcement({
+    packages: ['packages/my-app'],
+    canonicalConfigurationsFile: '.riviere/canonical-role-configurations.md',
+    ignorePatterns: ['**/*.spec.ts'],
+    roleDefinitionsDir: '.riviere/role-definitions',
+    roles: [
+      ...testRoles.filter((r) => r.name !== 'aggregate'),
+      role('aggregate', {
+        targets: ['class'],
+        minPublicMethods: 1,
+        approvedInstances: approvedNames.map((name) => ({
+          name,
+          userHasApproved: true as const,
+        })),
+      }),
+    ],
+    locations: testLocations,
+  })
+}
+
+it('accepts aggregate when name is in approvedInstances with userHasApproved true', () => {
+  const workspaceDir = createFixtureWorkspace()
+
+  const result = runRoleEnforcement(configWithApprovedAggregates(['Order']), workspaceDir)
+
+  expect(result.exitCode).toBe(0)
+  expect(result.stderr).toBe('')
+  rmSync(workspaceDir, {
+    force: true,
+    recursive: true,
+  })
+})
+
+it('rejects aggregate when name is not in approvedInstances', () => {
+  const workspaceDir = createFixtureWorkspace()
+
+  const result = runRoleEnforcement(configWithApprovedAggregates(['SomeOther']), workspaceDir)
+
+  expect(result.exitCode).toBe(1)
+  expect(result.stdout).toContain('is not in approvedInstances')
   rmSync(workspaceDir, {
     force: true,
     recursive: true,

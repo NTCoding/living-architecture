@@ -7,7 +7,7 @@ import { fileExists } from '../../../../platform/infra/external-clients/filesyst
 
 const DEFAULT_GRAPH_PATH = '.riviere/graph.json'
 
-/** @riviere-role aggregate-repository */
+/** @riviere-role query-model-loader */
 export class RiviereQueryRepository {
   load(graphPathOption?: string): RiviereQuery {
     const graphPath = this.resolveGraphPath(graphPathOption)

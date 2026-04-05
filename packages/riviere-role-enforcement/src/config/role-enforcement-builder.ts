@@ -1,10 +1,16 @@
 export type RoleTarget = 'class' | 'function' | 'interface' | 'type-alias'
 
+interface ApprovedInstance {
+  readonly name: string
+  readonly userHasApproved: true
+}
+
 interface RoleOptions {
   readonly targets: readonly RoleTarget[]
   readonly allowedInputs?: readonly string[]
   readonly allowedNames?: readonly string[]
   readonly allowedOutputs?: readonly string[]
+  readonly approvedInstances?: readonly ApprovedInstance[]
   readonly forbiddenDependencies?: readonly string[]
   readonly nameMatches?: string
   readonly minPublicMethods?: number
@@ -16,6 +22,7 @@ export interface BuiltRole<N extends string = string> {
   readonly allowedInputs?: readonly string[]
   readonly allowedNames?: readonly string[]
   readonly allowedOutputs?: readonly string[]
+  readonly approvedInstances?: readonly ApprovedInstance[]
   readonly forbiddenDependencies?: readonly string[]
   readonly nameMatches?: string
   readonly minPublicMethods?: number

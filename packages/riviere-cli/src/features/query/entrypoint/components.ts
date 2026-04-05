@@ -11,7 +11,7 @@ import {
 } from '../../../platform/infra/cli/input/component-types'
 import { handleQueryGraphLoadError } from '../../../platform/infra/cli/presentation/query-graph-load-error-handler'
 import { toComponentOutput } from '../../../platform/infra/cli/presentation/component-output'
-import { listComponents } from '../commands/list-components'
+import { listComponents } from '../queries/list-components'
 
 interface ComponentsOptions {
   graph?: string

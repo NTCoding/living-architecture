@@ -5,7 +5,7 @@ import {
 import { CliErrorCode } from '../../../platform/infra/cli/presentation/error-codes'
 import { getDefaultGraphPathDescription } from '../../../platform/infra/cli/presentation/graph-path-option'
 import { handleQueryGraphLoadError } from '../../../platform/infra/cli/presentation/query-graph-load-error-handler'
-import { traceFlow } from '../commands/trace-flow'
+import { traceFlow } from '../queries/trace-flow'
 
 interface TraceOptions {
   graph?: string

@@ -8,7 +8,7 @@ import { RiviereQueryRepository } from '../infra/persistence/riviere-query-repos
 import type { TraceFlowInput } from './trace-flow-input'
 import type { TraceFlowResult } from './trace-flow-result'
 
-/** @riviere-role command-use-case */
+/** @riviere-role query-use-case */
 export function traceFlow(input: TraceFlowInput): TraceFlowResult {
   const repository = new RiviereQueryRepository()
   const query = repository.load(input.graphPathOption)

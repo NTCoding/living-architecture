@@ -153,6 +153,12 @@ export default {
             return
           }
 
+          const approvedResult = matchesApprovedInstances(name, role)
+          if (approvedResult.checked && !approvedResult.passed) {
+            report(node, approvedResult.reason)
+            return
+          }
+
           fileRoles.push(roleName)
 
           if (target === 'function') {
@@ -622,6 +628,35 @@ function readRoleNames(sourceCode, node) {
   }
 
   return [...new Set(roleNames)]
+}
+
+function matchesApprovedInstances(name, role) {
+  if (!Array.isArray(role.approvedInstances)) {
+    return { checked: false }
+  }
+
+  const entry = role.approvedInstances.find((instance) => instance.name === name)
+
+  if (!entry) {
+    return {
+      checked: true,
+      passed: false,
+      reason: `'${name}' is not in approvedInstances for role '${role.name}'. Add { name: '${name}', userHasApproved: true } to approvedInstances after getting user approval.`,
+    }
+  }
+
+  if (entry.userHasApproved !== true) {
+    return {
+      checked: true,
+      passed: false,
+      reason: `'${name}' has userHasApproved: false in approvedInstances for role '${role.name}'. Set userHasApproved to true after getting user approval.`,
+    }
+  }
+
+  return {
+    checked: true,
+    passed: true,
+  }
 }
 
 function matchesName(name, role) {

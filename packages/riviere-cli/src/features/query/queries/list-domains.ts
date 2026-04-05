@@ -2,7 +2,7 @@ import { RiviereQueryRepository } from '../infra/persistence/riviere-query-repos
 import type { ListDomainsInput } from './list-domains-input'
 import type { ListDomainsResult } from './list-domains-result'
 
-/** @riviere-role command-use-case */
+/** @riviere-role query-use-case */
 export function listDomains(input: ListDomainsInput): ListDomainsResult {
   const repository = new RiviereQueryRepository()
   const query = repository.load(input.graphPathOption)

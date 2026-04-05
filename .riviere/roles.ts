@@ -33,10 +33,44 @@ export const allRoles = [
   role('aggregate', {
     targets: ['interface', 'type-alias', 'class'],
     minPublicMethods: 1,
+    approvedInstances: [
+      {
+        name: 'ExtractionProject',
+        userHasApproved: true,
+      },
+      {
+        name: 'BuilderFacade',
+        userHasApproved: true,
+      },
+    ],
   }),
   role('value-object', { targets: ['interface', 'type-alias', 'class'] }),
   role('domain-error', { targets: ['class'] }),
   role('domain-service', { targets: ['function'] }),
+  role('query-use-case', {
+    targets: ['function'],
+    allowedInputs: ['query-use-case-input'],
+    allowedOutputs: ['query-use-case-result'],
+    forbiddenDependencies: ['query-use-case'],
+  }),
+  role('query-use-case-input', {
+    targets: ['interface', 'type-alias'],
+    nameMatches: '.*Input$',
+  }),
+  role('query-use-case-result', {
+    targets: ['interface', 'type-alias'],
+    nameMatches: '.*Result$',
+  }),
+  role('query-use-case-result-value', { targets: ['interface', 'type-alias'] }),
+  role('query-model', {
+    targets: ['class'],
+    minPublicMethods: 1,
+  }),
+  role('query-model-loader', {
+    targets: ['class'],
+    allowedOutputs: ['query-model', 'domain-error'],
+    forbiddenDependencies: ['query-model-loader'],
+  }),
   role('external-client-model', { targets: ['interface', 'type-alias', 'class'] }),
   role('external-client-error', { targets: ['class'] }),
   role('cli-input-validator', { targets: ['function'] }),

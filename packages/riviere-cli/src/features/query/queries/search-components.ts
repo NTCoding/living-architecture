@@ -2,7 +2,7 @@ import { RiviereQueryRepository } from '../infra/persistence/riviere-query-repos
 import type { SearchComponentsInput } from './search-components-input'
 import type { SearchComponentsResult } from './search-components-result'
 
-/** @riviere-role command-use-case */
+/** @riviere-role query-use-case */
 export function searchComponents(input: SearchComponentsInput): SearchComponentsResult {
   const repository = new RiviereQueryRepository()
   const query = repository.load(input.graphPathOption)

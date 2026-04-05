@@ -2,7 +2,7 @@ import { Command } from 'commander'
 import { formatSuccess } from '../../../platform/infra/cli/presentation/output'
 import { getDefaultGraphPathDescription } from '../../../platform/infra/cli/presentation/graph-path-option'
 import { handleQueryGraphLoadError } from '../../../platform/infra/cli/presentation/query-graph-load-error-handler'
-import { listEntryPoints } from '../commands/list-entry-points'
+import { listEntryPoints } from '../queries/list-entry-points'
 
 interface EntryPointsOptions {
   graph?: string

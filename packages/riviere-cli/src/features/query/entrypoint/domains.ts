@@ -2,7 +2,7 @@ import { Command } from 'commander'
 import { formatSuccess } from '../../../platform/infra/cli/presentation/output'
 import { getDefaultGraphPathDescription } from '../../../platform/infra/cli/presentation/graph-path-option'
 import { handleQueryGraphLoadError } from '../../../platform/infra/cli/presentation/query-graph-load-error-handler'
-import { listDomains } from '../commands/list-domains'
+import { listDomains } from '../queries/list-domains'
 
 interface DomainsOptions {
   graph?: string

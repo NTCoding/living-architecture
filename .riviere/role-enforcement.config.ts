@@ -9,7 +9,20 @@ const commandRoles: RoleName[] = [
   'command-input-factory',
 ]
 
-const domainRoles: RoleName[] = ['aggregate', 'value-object', 'domain-service', 'domain-error']
+const queryRoles: RoleName[] = [
+  'query-use-case',
+  'query-use-case-input',
+  'query-use-case-result',
+  'query-use-case-result-value',
+]
+
+const domainRoles: RoleName[] = [
+  'aggregate',
+  'value-object',
+  'domain-service',
+  'domain-error',
+  'query-model',
+]
 
 const externalClientRoles: RoleName[] = [
   'external-client-service',
@@ -38,9 +51,10 @@ export const config = roleEnforcement({
         forbiddenImports: ['**/infra/persistence/**'],
       })
       .subLocation('/commands', commandRoles, { forbiddenImports: ['**/infra/cli/**'] })
+      .subLocation('/queries', queryRoles, { forbiddenImports: ['**/infra/cli/**'] })
       .subLocation('/domain', domainRoles)
       .subLocation('/infra/external-clients/{client}', externalClientRoles)
-      .subLocation('/infra/persistence', ['aggregate-repository'])
+      .subLocation('/infra/persistence', ['aggregate-repository', 'query-model-loader'])
       .subLocation('/infra/cli/output', ['cli-output-formatter']),
 
     location<RoleName>('src/platform')

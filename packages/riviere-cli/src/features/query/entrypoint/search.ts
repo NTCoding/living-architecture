@@ -3,7 +3,7 @@ import { formatSuccess } from '../../../platform/infra/cli/presentation/output'
 import { getDefaultGraphPathDescription } from '../../../platform/infra/cli/presentation/graph-path-option'
 import { handleQueryGraphLoadError } from '../../../platform/infra/cli/presentation/query-graph-load-error-handler'
 import { toComponentOutput } from '../../../platform/infra/cli/presentation/component-output'
-import { searchComponents } from '../commands/search-components'
+import { searchComponents } from '../queries/search-components'
 
 interface SearchOptions {
   graph?: string

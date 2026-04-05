@@ -1,5 +1,7 @@
 # Role Selection Guide
 
+**Aggregate classification requires explicit user approval.** Every aggregate must be listed in `approvedInstances` in `.riviere/roles.ts` with `userHasApproved: true`. AI assistants must confirm with the user before adding any new entry. If uncertain whether something is an aggregate or a query-model, ask — do not default to aggregate.
+
 Use this guide for an initial classification before consulting the role definition files.
 
 If code does not fit cleanly, do not force it into the closest-looking role. First check whether it is a fragment of a missing concept, especially a missing `aggregate-repository`.
@@ -74,7 +76,23 @@ Heuristics:
 - Distinguish code that decides persistence parameters from code that actually performs the write
 - If code clearly belongs to the persistence phase but no repository abstraction owns it yet, treat that as a signal that the aggregate-repository concept is missing or incomplete
 
-## 4. Processing the result
+## 4. Querying previously stored state (read-only)
+
+Is this code used to read and return previously stored state WITHOUT modifying anything?
+
+If yes, it is part of the query side. Ask: does it orchestrate the query, or does it hold the queryable state?
+
+- If it orchestrates (loads a query model, calls query methods, returns a result): `query-use-case`
+- If it is the query model itself (holds immutable state, exposes read-only methods): `query-model`
+- If it loads the query model from storage: `query-model-loader`
+- If it defines the input contract for a query: `query-use-case-input`
+- If it defines the result contract for a query: `query-use-case-result`
+
+**Critical distinction from commands:** If the code loads state but NEVER modifies or saves it, it belongs on the query side. The presence of a repository-like loading pattern does not automatically make something a `command-use-case` + `aggregate-repository`.
+
+**Critical distinction from aggregates:** A class that holds state and exposes methods is NOT automatically an aggregate. If none of its methods modify state, it is a `query-model`. Aggregates must enforce behavioral invariants through state-modifying operations.
+
+## 5. Processing the result
 
 Is this code used to process the result after a `command-use-case` has completed?
 

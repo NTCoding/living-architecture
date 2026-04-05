@@ -22,17 +22,17 @@ describe('query entrypoints rethrow unknown errors', () => {
   afterEach(() => {
     vi.resetModules()
     vi.restoreAllMocks()
-    vi.doUnmock('../commands/list-components')
-    vi.doUnmock('../commands/list-domains')
-    vi.doUnmock('../commands/list-entry-points')
-    vi.doUnmock('../commands/detect-orphans')
-    vi.doUnmock('../commands/search-components')
-    vi.doUnmock('../commands/trace-flow')
+    vi.doUnmock('../queries/list-components')
+    vi.doUnmock('../queries/list-domains')
+    vi.doUnmock('../queries/list-entry-points')
+    vi.doUnmock('../queries/detect-orphans')
+    vi.doUnmock('../queries/search-components')
+    vi.doUnmock('../queries/trace-flow')
     vi.doUnmock('../../../platform/infra/cli/presentation/query-graph-load-error-handler')
   })
 
   it('rethrows unknown list-components errors', async () => {
-    vi.doMock('../commands/list-components', () => ({
+    vi.doMock('../queries/list-components', () => ({
       listComponents: vi.fn(() => {
         throw new UnexpectedQueryEntrypointError('unexpected failure')
       }),
@@ -45,7 +45,7 @@ describe('query entrypoints rethrow unknown errors', () => {
   })
 
   it('rethrows unknown list-domains errors', async () => {
-    vi.doMock('../commands/list-domains', () => ({
+    vi.doMock('../queries/list-domains', () => ({
       listDomains: vi.fn(() => {
         throw new UnexpectedQueryEntrypointError('unexpected failure')
       }),
@@ -58,7 +58,7 @@ describe('query entrypoints rethrow unknown errors', () => {
   })
 
   it('rethrows unknown list-entry-points errors', async () => {
-    vi.doMock('../commands/list-entry-points', () => ({
+    vi.doMock('../queries/list-entry-points', () => ({
       listEntryPoints: vi.fn(() => {
         throw new UnexpectedQueryEntrypointError('unexpected failure')
       }),
@@ -71,7 +71,7 @@ describe('query entrypoints rethrow unknown errors', () => {
   })
 
   it('rethrows unknown orphan errors', async () => {
-    vi.doMock('../commands/detect-orphans', () => ({
+    vi.doMock('../queries/detect-orphans', () => ({
       detectOrphans: vi.fn(() => {
         throw new UnexpectedQueryEntrypointError('unexpected failure')
       }),
@@ -84,7 +84,7 @@ describe('query entrypoints rethrow unknown errors', () => {
   })
 
   it('rethrows unknown search errors', async () => {
-    vi.doMock('../commands/search-components', () => ({
+    vi.doMock('../queries/search-components', () => ({
       searchComponents: vi.fn(() => {
         throw new UnexpectedQueryEntrypointError('unexpected failure')
       }),
@@ -97,7 +97,7 @@ describe('query entrypoints rethrow unknown errors', () => {
   })
 
   it('rethrows unknown trace errors', async () => {
-    vi.doMock('../commands/trace-flow', () => ({
+    vi.doMock('../queries/trace-flow', () => ({
       traceFlow: vi.fn(() => {
         throw new UnexpectedQueryEntrypointError('unexpected failure')
       }),

@@ -1,2 +1,2 @@
-/** @riviere-role command-use-case-input */
+/** @riviere-role query-use-case-input */
 export interface ListEntryPointsInput {graphPathOption: string | undefined}
