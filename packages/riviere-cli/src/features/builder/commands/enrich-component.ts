@@ -2,29 +2,21 @@ import {
   ComponentNotFoundError,
   InvalidEnrichmentTargetError,
 } from '@living-architecture/riviere-builder'
+import { GraphCorruptedError } from '../../../platform/domain/graph-corrupted-error'
+import { GraphNotFoundError } from '../../../platform/domain/graph-not-found-error'
 import { RiviereBuilderRepository } from '../infra/persistence/riviere-builder-repository'
 import type { EnrichComponentInput } from './enrich-component-input'
-import type { EnrichComponentResult } from './enrich-component-result'
+import type {
+  EnrichComponentErrorCode, EnrichComponentResult 
+} from './enrich-component-result'
 
 /** @riviere-role command-use-case */
 export function enrichComponent(input: EnrichComponentInput): EnrichComponentResult {
   const repository = new RiviereBuilderRepository()
-  const loadedGraph = repository.load(input.graphPathOption)
-  if (!loadedGraph.success) {
-    return {
-      code: loadedGraph.code,
-      /* v8 ignore next -- simple graph-load message selection */
-      message:
-        loadedGraph.code === 'GRAPH_NOT_FOUND'
-          ? `Graph not found at ${loadedGraph.graphPath}`
-          : 'Graph file contains invalid JSON',
-      success: false,
-      suggestions: [],
-    }
-  }
 
   try {
-    const enrichmentInput: Parameters<typeof loadedGraph.builder.enrichComponent>[1] = {
+    const builder = repository.load(input.graphPathOption)
+    const enrichmentInput: Parameters<typeof builder.enrichComponent>[1] = {
       ...buildBehavior(input),
       ...(input.businessRules.length > 0 ? { businessRules: input.businessRules } : {}),
       ...(input.stateChanges.length > 0 ? { stateChanges: input.stateChanges } : {}),
@@ -35,33 +27,39 @@ export function enrichComponent(input: EnrichComponentInput): EnrichComponentRes
     if (input.signature !== undefined) {
       enrichmentInput.signature = input.signature
     }
-
-    loadedGraph.builder.enrichComponent(input.id, enrichmentInput)
-    repository.save(loadedGraph.builder, input.graphPathOption)
+    builder.enrichComponent(input.id, enrichmentInput)
+    repository.save(builder)
     return {
       componentId: input.id,
       success: true,
     }
   } catch (error) {
+    if (error instanceof GraphNotFoundError) {
+      return failure('GRAPH_NOT_FOUND', error.message)
+    }
+    if (error instanceof GraphCorruptedError) {
+      return failure('GRAPH_CORRUPTED', 'Graph file contains invalid JSON')
+    }
     if (error instanceof InvalidEnrichmentTargetError) {
-      return {
-        code: 'INVALID_COMPONENT_TYPE',
-        message: error.message,
-        suggestions: [],
-        success: false,
-      }
+      return failure('INVALID_COMPONENT_TYPE', error.message)
     }
-
     if (error instanceof ComponentNotFoundError) {
-      return {
-        code: 'COMPONENT_NOT_FOUND',
-        message: error.message,
-        suggestions: error.suggestions,
-        success: false,
-      }
+      return failure('COMPONENT_NOT_FOUND', error.message, error.suggestions)
     }
-
     throw error
+  }
+}
+
+function failure(
+  code: EnrichComponentErrorCode,
+  message: string,
+  suggestions: string[] = [],
+): EnrichComponentResult {
+  return {
+    code,
+    message,
+    suggestions,
+    success: false,
   }
 }
 

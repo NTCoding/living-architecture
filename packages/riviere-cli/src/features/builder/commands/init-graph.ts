@@ -1,5 +1,7 @@
 import { RiviereBuilder } from '@living-architecture/riviere-builder'
 import type { BuilderOptions } from '@living-architecture/riviere-builder'
+import { GraphCorruptedError } from '../../../platform/domain/graph-corrupted-error'
+import { GraphNotFoundError } from '../../../platform/domain/graph-not-found-error'
 import { RiviereBuilderRepository } from '../infra/persistence/riviere-builder-repository'
 import type { InitGraphInput } from './init-graph-input'
 import type { InitGraphResult } from './init-graph-result'
@@ -7,17 +9,9 @@ import type { InitGraphResult } from './init-graph-result'
 /** @riviere-role command-use-case */
 export function initGraph(input: InitGraphInput): InitGraphResult {
   const repository = new RiviereBuilderRepository()
-  const graphStatus = repository.exists(input.graphPathOption)
-  if (graphStatus.exists) {
-    return {
-      code: 'GRAPH_EXISTS',
-      message: `Graph already exists at ${graphStatus.graphPath}`,
-      path: graphStatus.graphPath,
-      success: false,
-    }
-  }
 
   const builderOptions: BuilderOptions = {
+    ...(input.name === undefined ? {} : { name: input.name }),
     domains: Object.fromEntries(
       input.domains.map((domain) => [
         domain.name,
@@ -30,15 +24,33 @@ export function initGraph(input: InitGraphInput): InitGraphResult {
     sources: input.sources.map((repositoryUrl) => ({ repository: repositoryUrl })),
   }
 
-  if (input.name !== undefined) {
-    builderOptions.name = input.name
-  }
-
-  const graphPath = repository.save(RiviereBuilder.new(builderOptions), input.graphPathOption)
-  return {
-    domains: input.domains.map((domain) => domain.name),
-    path: graphPath,
-    sources: input.sources.length,
-    success: true,
+  try {
+    const builder = repository.load(input.graphPathOption)
+    return {
+      code: 'GRAPH_EXISTS',
+      message: `Graph already exists at ${builder.graphPath}`,
+      path: builder.graphPath,
+      success: false,
+    }
+  } catch (error) {
+    if (error instanceof GraphNotFoundError) {
+      const newBuilder = RiviereBuilder.new(builderOptions, error.graphPath)
+      repository.save(newBuilder)
+      return {
+        domains: input.domains.map((domain) => domain.name),
+        path: newBuilder.graphPath,
+        sources: input.sources.length,
+        success: true,
+      }
+    }
+    if (error instanceof GraphCorruptedError) {
+      return {
+        code: 'GRAPH_EXISTS',
+        message: `Graph already exists at ${error.graphPath}`,
+        path: error.graphPath,
+        success: false,
+      }
+    }
+    throw error
   }
 }

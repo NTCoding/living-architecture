@@ -31,6 +31,10 @@ const testRoles = [
     targets: ['class'],
     minPublicMethods: 1,
   }),
+  role('aggregate-repository', {
+    targets: ['class'],
+    allowedOutputs: ['aggregate'],
+  }),
   role('cli-entrypoint', {
     targets: ['function'],
     allowedNames: ['createCli'],
@@ -45,6 +49,7 @@ function createFixtureWorkspace(): string {
   mkdirSync(path.join(pkgDir, 'src', 'commands'), { recursive: true })
   mkdirSync(path.join(pkgDir, 'src', 'entrypoint'), { recursive: true })
   mkdirSync(path.join(pkgDir, 'src', 'domain'), { recursive: true })
+  mkdirSync(path.join(pkgDir, 'src', 'repositories'), { recursive: true })
   mkdirSync(path.join(workspaceDir, '.riviere', 'role-definitions'), { recursive: true })
 
   writeFileSync(
@@ -88,6 +93,26 @@ export function createCli(): void {}
 export class RunThingError extends Error {}
 `,
   )
+  writeFileSync(
+    path.join(pkgDir, 'src', 'domain', 'order.ts'),
+    `/** @riviere-role aggregate */
+export class Order {
+  cancel(): void {}
+}
+`,
+  )
+  writeFileSync(
+    path.join(pkgDir, 'src', 'repositories', 'orderRepository.ts'),
+    `import type { Order } from '../domain/order'
+
+/** @riviere-role aggregate-repository */
+export class OrderRepository {
+  findById(id: string): Order {
+    return null as unknown as Order
+  }
+}
+`,
+  )
 
   const roleDefsDir = path.join(workspaceDir, '.riviere', 'role-definitions')
   writeFileSync(
@@ -116,7 +141,8 @@ const testConfig = roleEnforcement({
         'command-use-case-result',
       ])
       .subLocation('/entrypoint', ['cli-entrypoint'])
-      .subLocation('/domain', ['aggregate', 'domain-error']),
+      .subLocation('/domain', ['aggregate', 'domain-error'])
+      .subLocation('/repositories', ['aggregate-repository']),
   ],
 })
 
@@ -320,6 +346,44 @@ export class Order {
 }
 `,
   )
+
+  const result = runRoleEnforcement(testConfig, workspaceDir)
+
+  expect(result.exitCode).toBe(0)
+  expect(result.stderr).toBe('')
+
+  rmSync(workspaceDir, {
+    force: true,
+    recursive: true,
+  })
+})
+
+it('rejects aggregate-repository class method returning inline object type', () => {
+  const workspaceDir = createFixtureWorkspace()
+  writeFileSync(
+    path.join(workspaceDir, 'packages', 'my-app', 'src', 'repositories', 'orderRepository.ts'),
+    `/** @riviere-role aggregate-repository */
+export class OrderRepository {
+  findById(id: string): { id: string; name: string } {
+    return { id, name: 'Order' }
+  }
+}
+`,
+  )
+
+  const result = runRoleEnforcement(testConfig, workspaceDir)
+
+  expect(result.exitCode).toBe(1)
+  expect(result.stdout).toContain('only allows outputs [aggregate]')
+
+  rmSync(workspaceDir, {
+    force: true,
+    recursive: true,
+  })
+})
+
+it('accepts aggregate-repository class method returning a named aggregate type', () => {
+  const workspaceDir = createFixtureWorkspace()
 
   const result = runRoleEnforcement(testConfig, workspaceDir)
 

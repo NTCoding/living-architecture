@@ -1,30 +1,24 @@
 import { DuplicateDomainError } from '@living-architecture/riviere-builder'
+import { GraphCorruptedError } from '../../../platform/domain/graph-corrupted-error'
+import { GraphNotFoundError } from '../../../platform/domain/graph-not-found-error'
 import { RiviereBuilderRepository } from '../infra/persistence/riviere-builder-repository'
 import type { AddDomainInput } from './add-domain-input'
-import type { AddDomainResult } from './add-domain-result'
+import type {
+  AddDomainErrorCode, AddDomainResult 
+} from './add-domain-result'
 
 /** @riviere-role command-use-case */
 export function addDomain(input: AddDomainInput): AddDomainResult {
   const repository = new RiviereBuilderRepository()
-  const loadedGraph = repository.load(input.graphPathOption)
-  if (!loadedGraph.success) {
-    return {
-      code: loadedGraph.code,
-      message:
-        loadedGraph.code === 'GRAPH_NOT_FOUND'
-          ? `Graph not found at ${loadedGraph.graphPath}`
-          : 'Graph file contains invalid JSON',
-      success: false,
-    }
-  }
 
   try {
-    loadedGraph.builder.addDomain({
+    const builder = repository.load(input.graphPathOption)
+    builder.addDomain({
       description: input.description,
       name: input.name,
       systemType: input.systemType,
     })
-    repository.save(loadedGraph.builder, input.graphPathOption)
+    repository.save(builder)
     return {
       description: input.description,
       name: input.name,
@@ -32,14 +26,23 @@ export function addDomain(input: AddDomainInput): AddDomainResult {
       systemType: input.systemType,
     }
   } catch (error) {
-    if (error instanceof DuplicateDomainError) {
-      return {
-        code: 'DUPLICATE_DOMAIN',
-        message: error.message,
-        success: false,
-      }
+    if (error instanceof GraphNotFoundError) {
+      return failure('GRAPH_NOT_FOUND', error.message)
     }
-
+    if (error instanceof GraphCorruptedError) {
+      return failure('GRAPH_CORRUPTED', 'Graph file contains invalid JSON')
+    }
+    if (error instanceof DuplicateDomainError) {
+      return failure('DUPLICATE_DOMAIN', error.message)
+    }
     throw error
+  }
+}
+
+function failure(code: AddDomainErrorCode, message: string): AddDomainResult {
+  return {
+    code,
+    message,
+    success: false,
   }
 }

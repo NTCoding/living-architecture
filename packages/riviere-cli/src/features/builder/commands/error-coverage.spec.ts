@@ -42,15 +42,9 @@ async function createInvalidGraphPath(testDir: string): Promise<string> {
   return graphPath
 }
 
-function createLoadedBuilder(testDir: string): {
-  success: true
-  graphPath: string
-  builder: RiviereBuilder
-} {
-  return {
-    success: true,
-    graphPath: join(testDir, '.riviere', 'graph.json'),
-    builder: RiviereBuilder.new({
+function createLoadedBuilder(testDir: string): RiviereBuilder {
+  return RiviereBuilder.new(
+    {
       domains: {
         orders: {
           description: 'Orders',
@@ -58,8 +52,9 @@ function createLoadedBuilder(testDir: string): {
         },
       },
       sources: [{ repository: 'https://github.com/org/repo' }],
-    }),
-  }
+    },
+    join(testDir, '.riviere', 'graph.json'),
+  )
 }
 
 describe('builder command coverage', () => {
@@ -118,9 +113,9 @@ describe('builder command coverage', () => {
   })
 
   it('rethrows unknown define-custom-type errors', () => {
-    const loadedBuilder = createLoadedBuilder(ctx.testDir)
-    vi.spyOn(RiviereBuilderRepository.prototype, 'load').mockReturnValue(loadedBuilder)
-    vi.spyOn(loadedBuilder.builder, 'defineCustomType').mockImplementation(() => {
+    const builder = createLoadedBuilder(ctx.testDir)
+    vi.spyOn(RiviereBuilderRepository.prototype, 'load').mockReturnValue(builder)
+    vi.spyOn(builder, 'defineCustomType').mockImplementation(() => {
       throw new UnexpectedBuilderFailure('explode')
     })
 
@@ -144,13 +139,13 @@ describe('builder command coverage', () => {
       .mockReturnValueOnce(enrichBuilder)
       .mockReturnValueOnce(linkBuilder)
       .mockReturnValueOnce(externalBuilder)
-    vi.spyOn(enrichBuilder.builder, 'enrichComponent').mockImplementation(() => {
+    vi.spyOn(enrichBuilder, 'enrichComponent').mockImplementation(() => {
       throw new UnexpectedBuilderFailure('enrich explode')
     })
-    vi.spyOn(linkBuilder.builder, 'link').mockImplementation(() => {
+    vi.spyOn(linkBuilder, 'link').mockImplementation(() => {
       throw new UnexpectedBuilderFailure('link explode')
     })
-    vi.spyOn(externalBuilder.builder, 'linkExternal').mockImplementation(() => {
+    vi.spyOn(externalBuilder, 'linkExternal').mockImplementation(() => {
       throw new UnexpectedBuilderFailure('external explode')
     })
 
@@ -204,9 +199,9 @@ describe('builder command coverage', () => {
   })
 
   it('includes ambiguous suggestions in link-http results', () => {
-    const loadedBuilder = createLoadedBuilder(ctx.testDir)
-    vi.spyOn(RiviereBuilderRepository.prototype, 'load').mockReturnValue(loadedBuilder)
-    vi.spyOn(loadedBuilder.builder, 'build').mockReturnValue({
+    const builder = createLoadedBuilder(ctx.testDir)
+    vi.spyOn(RiviereBuilderRepository.prototype, 'load').mockReturnValue(builder)
+    vi.spyOn(builder, 'build').mockReturnValue({
       components: [],
       links: [],
       metadata: {
@@ -251,8 +246,8 @@ describe('builder command coverage', () => {
   })
 
   it('maps generic Error in add-component', () => {
-    const loadedBuilder = createLoadedBuilder(ctx.testDir)
-    vi.spyOn(RiviereBuilderRepository.prototype, 'load').mockReturnValue(loadedBuilder)
+    const builder = createLoadedBuilder(ctx.testDir)
+    vi.spyOn(RiviereBuilderRepository.prototype, 'load').mockReturnValue(builder)
     vi.spyOn(addComponentDomain, 'addComponentToBuilder').mockImplementation(() => {
       throw new UnexpectedBuilderFailure('builder exploded')
     })
@@ -275,8 +270,8 @@ describe('builder command coverage', () => {
   })
 
   it('rethrows non-Error values in add-component', () => {
-    const loadedBuilder = createLoadedBuilder(ctx.testDir)
-    vi.spyOn(RiviereBuilderRepository.prototype, 'load').mockReturnValue(loadedBuilder)
+    const builder = createLoadedBuilder(ctx.testDir)
+    vi.spyOn(RiviereBuilderRepository.prototype, 'load').mockReturnValue(builder)
     vi.spyOn(addComponentDomain, 'addComponentToBuilder').mockImplementation(() => {
       throw 'boom'
     })
@@ -292,5 +287,44 @@ describe('builder command coverage', () => {
         route: '/checkout',
       }),
     ).toThrow('boom')
+  })
+
+  it('rethrows unknown load errors from add-source, check-consistency, component-summary, and validate-graph', () => {
+    vi.spyOn(RiviereBuilderRepository.prototype, 'load').mockImplementation(() => {
+      throw new UnexpectedBuilderFailure('unexpected load failure')
+    })
+
+    expect(() =>
+      addSource({
+        graphPathOption: undefined,
+        repository: 'https://github.com/org/repo',
+      }),
+    ).toThrow('unexpected load failure')
+
+    expect(() => checkConsistency({ graphPathOption: undefined })).toThrow(
+      'unexpected load failure',
+    )
+
+    expect(() => componentSummary({ graphPathOption: undefined })).toThrow(
+      'unexpected load failure',
+    )
+
+    expect(() => validateGraph({ graphPathOption: undefined })).toThrow('unexpected load failure')
+  })
+
+  it('rethrows unknown load errors from link-http', () => {
+    vi.spyOn(RiviereBuilderRepository.prototype, 'load').mockImplementation(() => {
+      throw new UnexpectedBuilderFailure('unexpected load failure')
+    })
+
+    expect(() =>
+      linkHttp({
+        graphPathOption: undefined,
+        httpMethod: undefined,
+        linkType: undefined,
+        path: '/orders',
+        targetId: 'orders:core:usecase:place-order',
+      }),
+    ).toThrow('unexpected load failure')
   })
 })

@@ -27,6 +27,10 @@ export const config = roleEnforcement({
   ignorePatterns: ['**/*.spec.ts', '**/__fixtures__/**', '**/*-fixtures.ts', '**/test-fixtures.ts'],
   roleDefinitionsDir: '.riviere/role-definitions',
   roles: allRoles,
+  workspacePackageSources: {
+    '@living-architecture/riviere-builder': 'packages/riviere-builder/src/index.ts',
+    '@living-architecture/riviere-query': 'packages/riviere-query/src/index.ts',
+  },
 
   locations: [
     location<RoleName>('src/features/{feature}')

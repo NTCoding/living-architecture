@@ -1,38 +1,21 @@
+import { GraphCorruptedError } from '../../../domain/graph-corrupted-error'
+import { GraphNotFoundError } from '../../../domain/graph-not-found-error'
 import { CliErrorCode } from './error-codes'
 import { formatError } from './output'
 
-interface QueryGraphLoadError {
-  code: 'GRAPH_CORRUPTED' | 'GRAPH_NOT_FOUND'
-  graphPath: string
-  kind: 'QUERY_GRAPH_LOAD_ERROR'
-}
-
 /** @riviere-role cli-output-formatter */
 export function handleQueryGraphLoadError(error: unknown): boolean {
-  if (!isQueryGraphLoadError(error)) {
-    return false
+  if (error instanceof GraphNotFoundError) {
+    console.log(JSON.stringify(formatError(CliErrorCode.GraphNotFound, error.message)))
+    return true
   }
 
-  const message =
-    error.code === 'GRAPH_NOT_FOUND'
-      ? `Graph not found at ${error.graphPath}`
-      : 'Graph file contains invalid JSON'
-  const code =
-    error.code === 'GRAPH_NOT_FOUND' ? CliErrorCode.GraphNotFound : CliErrorCode.GraphCorrupted
+  if (error instanceof GraphCorruptedError) {
+    console.log(
+      JSON.stringify(formatError(CliErrorCode.GraphCorrupted, 'Graph file contains invalid JSON')),
+    )
+    return true
+  }
 
-  console.log(JSON.stringify(formatError(code, message)))
-  return true
-}
-
-function isQueryGraphLoadError(error: unknown): error is QueryGraphLoadError {
-  return (
-    typeof error === 'object' &&
-    error !== null &&
-    'kind' in error &&
-    error.kind === 'QUERY_GRAPH_LOAD_ERROR' &&
-    'code' in error &&
-    (error.code === 'GRAPH_NOT_FOUND' || error.code === 'GRAPH_CORRUPTED') &&
-    'graphPath' in error &&
-    typeof error.graphPath === 'string'
-  )
+  return false
 }

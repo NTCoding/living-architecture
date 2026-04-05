@@ -8,6 +8,8 @@ import {
   createDomainInput,
   isAddComponentValidationError,
 } from '../../../platform/domain/add-component-input-factory'
+import { GraphCorruptedError } from '../../../platform/domain/graph-corrupted-error'
+import { GraphNotFoundError } from '../../../platform/domain/graph-not-found-error'
 import { RiviereBuilderRepository } from '../infra/persistence/riviere-builder-repository'
 import type { AddComponentInput } from './add-component-input'
 import type {
@@ -39,23 +41,18 @@ export function addComponent(input: AddComponentInput): AddComponentResult {
 
   const repository = new RiviereBuilderRepository()
 
-  const loadedGraph = repository.load(input.graphPathOption)
-  if (!loadedGraph.success) {
-    if (loadedGraph.code === 'GRAPH_NOT_FOUND') {
-      return failure('GRAPH_NOT_FOUND', `Graph not found at ${loadedGraph.graphPath}`)
-    }
-
-    return failure('VALIDATION_ERROR', 'Graph file contains invalid JSON')
-  }
-
   try {
-    const componentId = addComponentToBuilder(loadedGraph.builder, createDomainInput(input))
-    repository.save(loadedGraph.builder, input.graphPathOption)
+    const builder = repository.load(input.graphPathOption)
+    const componentId = addComponentToBuilder(builder, createDomainInput(input))
+    repository.save(builder)
     return {
       success: true,
       componentId,
     }
   } catch (error) {
+    if (error instanceof GraphNotFoundError) return failure('GRAPH_NOT_FOUND', error.message)
+    if (error instanceof GraphCorruptedError)
+      return failure('VALIDATION_ERROR', 'Graph file contains invalid JSON')
     return mapError(error)
   }
 }

@@ -1,26 +1,19 @@
 import { CustomTypeAlreadyDefinedError } from '@living-architecture/riviere-builder'
+import { GraphCorruptedError } from '../../../platform/domain/graph-corrupted-error'
+import { GraphNotFoundError } from '../../../platform/domain/graph-not-found-error'
 import { RiviereBuilderRepository } from '../infra/persistence/riviere-builder-repository'
 import type { DefineCustomTypeInput } from './define-custom-type-input'
-import type { DefineCustomTypeResult } from './define-custom-type-result'
+import type {
+  DefineCustomTypeErrorCode, DefineCustomTypeResult 
+} from './define-custom-type-result'
 
 /** @riviere-role command-use-case */
 export function defineCustomType(input: DefineCustomTypeInput): DefineCustomTypeResult {
   const repository = new RiviereBuilderRepository()
-  const loadedGraph = repository.load(input.graphPathOption)
-  if (!loadedGraph.success) {
-    return {
-      code: loadedGraph.code,
-      /* v8 ignore next -- simple graph-load message selection */
-      message:
-        loadedGraph.code === 'GRAPH_NOT_FOUND'
-          ? `Graph not found at ${loadedGraph.graphPath}`
-          : 'Graph file contains invalid JSON',
-      success: false,
-    }
-  }
 
   try {
-    loadedGraph.builder.defineCustomType({
+    const builder = repository.load(input.graphPathOption)
+    builder.defineCustomType({
       ...(input.description !== undefined && { description: input.description }),
       name: input.name,
       ...(Object.keys(input.optionalProperties).length > 0
@@ -30,7 +23,7 @@ export function defineCustomType(input: DefineCustomTypeInput): DefineCustomType
         ? { requiredProperties: input.requiredProperties }
         : {}),
     })
-    repository.save(loadedGraph.builder, input.graphPathOption)
+    repository.save(builder)
     return {
       description: input.description,
       name: input.name,
@@ -39,14 +32,23 @@ export function defineCustomType(input: DefineCustomTypeInput): DefineCustomType
       success: true,
     }
   } catch (error) {
-    if (error instanceof CustomTypeAlreadyDefinedError) {
-      return {
-        code: 'VALIDATION_ERROR',
-        message: error.message,
-        success: false,
-      }
+    if (error instanceof GraphNotFoundError) {
+      return failure('GRAPH_NOT_FOUND', error.message)
     }
-
+    if (error instanceof GraphCorruptedError) {
+      return failure('GRAPH_CORRUPTED', 'Graph file contains invalid JSON')
+    }
+    if (error instanceof CustomTypeAlreadyDefinedError) {
+      return failure('VALIDATION_ERROR', error.message)
+    }
     throw error
+  }
+}
+
+function failure(code: DefineCustomTypeErrorCode, message: string): DefineCustomTypeResult {
+  return {
+    code,
+    message,
+    success: false,
   }
 }

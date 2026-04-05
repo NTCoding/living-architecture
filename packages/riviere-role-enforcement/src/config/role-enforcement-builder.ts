@@ -104,6 +104,7 @@ interface RoleEnforcementInput<R extends string> {
   readonly packages: readonly string[]
   readonly roleDefinitionsDir: string
   readonly roles: readonly BuiltRole<R>[]
+  readonly workspacePackageSources?: Record<string, string>
 }
 
 interface LayerEntry {
@@ -118,6 +119,7 @@ export interface RoleEnforcementResult {
   readonly layers: Record<string, LayerEntry>
   readonly roleDefinitionsDir: string
   readonly roles: readonly BuiltRole[]
+  readonly workspacePackageSources?: Record<string, string>
 }
 
 export function roleEnforcement<const R extends string>(
@@ -146,6 +148,7 @@ export function roleEnforcement<const R extends string>(
     layers,
     roleDefinitionsDir: input.roleDefinitionsDir,
     roles: input.roles,
+    ...(input.workspacePackageSources !== undefined && {workspacePackageSources: input.workspacePackageSources,}),
   }
 }
 

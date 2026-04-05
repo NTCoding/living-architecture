@@ -1,26 +1,38 @@
+import { GraphCorruptedError } from '../../../platform/domain/graph-corrupted-error'
+import { GraphNotFoundError } from '../../../platform/domain/graph-not-found-error'
 import { RiviereBuilderRepository } from '../infra/persistence/riviere-builder-repository'
 import type { AddSourceInput } from './add-source-input'
-import type { AddSourceResult } from './add-source-result'
+import type {
+  AddSourceErrorCode, AddSourceResult 
+} from './add-source-result'
 
 /** @riviere-role command-use-case */
 export function addSource(input: AddSourceInput): AddSourceResult {
   const repository = new RiviereBuilderRepository()
-  const loadedGraph = repository.load(input.graphPathOption)
-  if (!loadedGraph.success) {
-    return {
-      code: loadedGraph.code,
-      message:
-        loadedGraph.code === 'GRAPH_NOT_FOUND'
-          ? `Graph not found at ${loadedGraph.graphPath}`
-          : 'Graph file contains invalid JSON',
-      success: false,
-    }
-  }
 
-  loadedGraph.builder.addSource({ repository: input.repository })
-  repository.save(loadedGraph.builder, input.graphPathOption)
+  try {
+    const builder = repository.load(input.graphPathOption)
+    builder.addSource({ repository: input.repository })
+    repository.save(builder)
+    return {
+      repository: input.repository,
+      success: true,
+    }
+  } catch (error) {
+    if (error instanceof GraphNotFoundError) {
+      return failure('GRAPH_NOT_FOUND', error.message)
+    }
+    if (error instanceof GraphCorruptedError) {
+      return failure('GRAPH_CORRUPTED', 'Graph file contains invalid JSON')
+    }
+    throw error
+  }
+}
+
+function failure(code: AddSourceErrorCode, message: string): AddSourceResult {
   return {
-    repository: input.repository,
-    success: true,
+    code,
+    message,
+    success: false,
   }
 }

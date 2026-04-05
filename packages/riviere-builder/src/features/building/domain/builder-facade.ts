@@ -66,32 +66,39 @@ export type {
  *
  * Thin facade preserving the flat public API while delegating
  * to focused domain classes internally.
+ *
+ * @riviere-role aggregate
  */
 export class RiviereBuilder {
   private readonly delegate: DomainBuilder
 
+  readonly graphPath: string
+
   private constructor(delegate: DomainBuilder) {
     this.delegate = delegate
+    this.graphPath = delegate.graphPath
   }
 
   /**
    * Restores a builder from a previously serialized graph.
    *
    * @param graph - A valid RiviereGraph to resume from
+   * @param graphPath - File path where the graph is persisted
    * @returns A new RiviereBuilder with the graph state restored
    */
-  static resume(graph: RiviereGraph): RiviereBuilder {
-    return new RiviereBuilder(DomainBuilder.resume(graph))
+  static resume(graph: RiviereGraph, graphPath = ''): RiviereBuilder {
+    return new RiviereBuilder(DomainBuilder.resume(graph, graphPath))
   }
 
   /**
    * Creates a new builder with initial configuration.
    *
    * @param options - Configuration including sources and domains
+   * @param graphPath - File path where the graph will be persisted
    * @returns A new RiviereBuilder instance
    */
-  static new(options: BuilderOptions): RiviereBuilder {
-    return new RiviereBuilder(DomainBuilder.new(options))
+  static new(options: BuilderOptions, graphPath = ''): RiviereBuilder {
+    return new RiviereBuilder(DomainBuilder.new(options, graphPath))
   }
 
   /**

@@ -47,11 +47,7 @@ describe('traceFlow command', () => {
       throw new ComponentNotFoundError('orders:checkout:usecase:place-orde')
     })
 
-    vi.spyOn(RiviereQueryRepository.prototype, 'load').mockReturnValue({
-      success: true,
-      graphPath: `${ctx.testDir}/graph.json`,
-      query,
-    })
+    vi.spyOn(RiviereQueryRepository.prototype, 'load').mockReturnValue(query)
 
     expect(
       traceFlow({

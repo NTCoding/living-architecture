@@ -8,6 +8,8 @@ import {
   setupCommandTest,
   TestAssertionError,
 } from '../../../__fixtures__/command-test-fixtures'
+import { GraphCorruptedError } from '../../../domain/graph-corrupted-error'
+import { GraphNotFoundError } from '../../../domain/graph-not-found-error'
 
 class UnexpectedPresentationError extends Error {
   constructor(message: string) {
@@ -30,14 +32,17 @@ describe('handleQueryGraphLoadError', () => {
   setupCommandTest(ctx)
 
   it('formats graph corrupted errors', () => {
-    const handled = handleQueryGraphLoadError({
-      code: 'GRAPH_CORRUPTED',
-      graphPath: `${ctx.testDir}/graph.json`,
-      kind: 'QUERY_GRAPH_LOAD_ERROR',
-    })
+    const handled = handleQueryGraphLoadError(new GraphCorruptedError('/path/to/graph.json'))
 
     expect(handled).toBe(true)
     expect(firstOutput(ctx.consoleOutput)).toMatchObject({error: { code: CliErrorCode.GraphCorrupted },})
+  })
+
+  it('formats graph not found errors', () => {
+    const handled = handleQueryGraphLoadError(new GraphNotFoundError('/path/to/graph.json'))
+
+    expect(handled).toBe(true)
+    expect(firstOutput(ctx.consoleOutput)).toMatchObject({error: { code: CliErrorCode.GraphNotFound },})
   })
 
   it('returns false for non-query errors', () => {

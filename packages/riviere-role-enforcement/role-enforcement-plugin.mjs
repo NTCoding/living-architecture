@@ -280,6 +280,19 @@ export default {
               )
             }
           }
+
+          if (Array.isArray(role.allowedOutputs)) {
+            for (const member of node.body.body) {
+              if (
+                member.type === 'MethodDefinition' &&
+                member.kind !== 'constructor' &&
+                (member.accessibility === 'public' || member.accessibility == null)
+              ) {
+                const methodName = member.key?.name ?? '?'
+                validateFunctionContract(member.value, role, `${name}.${methodName}`)
+              }
+            }
+          }
         }
 
         function countPublicMethods(classNode) {
@@ -326,6 +339,10 @@ export default {
               return null
             }
             return resolveTypeNodeRoles(typeArgs[0], currentFile)
+          }
+
+          if (typeNode.type === 'TSVoidKeyword') {
+            return []
           }
 
           if (typeNode.type === 'TSTypeReference' && typeNode.typeName?.type === 'Identifier') {
@@ -394,19 +411,66 @@ export default {
               localTypeName,
               currentFile,
             )
-            if (importedReference === undefined) {
-              continue
+            if (importedReference !== undefined) {
+              importCache.set(cacheKey, importedReference)
+              return importedReference
             }
-
-            importCache.set(cacheKey, importedReference)
-            return importedReference
           }
 
-          importCache.set(cacheKey, null)
+          const workspaceRef = readWorkspacePackageReference(localTypeName)
+          importCache.set(cacheKey, workspaceRef)
+          return workspaceRef
+        }
+
+        function readWorkspacePackageReference(localTypeName) {
+          const workspacePackageSources = options.workspacePackageSources ?? {}
+          for (const statement of sourceCode.ast.body) {
+            const ref = readWorkspaceImportStatement(statement, localTypeName, workspacePackageSources)
+            if (ref !== null) {
+              return ref
+            }
+          }
           return null
         }
 
-        function readExportedRole(filePath, exportedName) {
+        function readWorkspaceImportStatement(statement, localTypeName, workspacePackageSources) {
+          if (statement.type !== 'ImportDeclaration') {
+            return null
+          }
+          const importSource = statement.source.value
+          if (typeof importSource !== 'string' || importSource.startsWith('.')) {
+            return null
+          }
+          const specifier = (statement.specifiers ?? []).find(
+            (s) => s.type === 'ImportSpecifier' && s.local.name === localTypeName,
+          )
+          if (specifier === undefined) {
+            return null
+          }
+          const sourceEntry = workspacePackageSources[importSource]
+          if (sourceEntry === undefined) {
+            return null
+          }
+          const resolvedSourcePath = resolveTypeFile(path.join(options.configDir, '_'), sourceEntry)
+          if (resolvedSourcePath === null) {
+            return null
+          }
+          const importedName =
+            specifier.imported.type === 'Identifier'
+              ? specifier.imported.name
+              : specifier.imported.value
+          return {
+            exportedName: importedName,
+            filePath: resolvedSourcePath,
+          }
+        }
+
+        function readExportedRole(filePath, exportedName, visited = new Set()) {
+          if (visited.has(filePath)) {
+            return null
+          }
+          visited.add(filePath)
+
           const sourceText = readFileText(filePath)
           if (sourceText === null) {
             return null
@@ -418,19 +482,42 @@ export default {
             'm',
           )
           const exportMatch = exportPattern.exec(sourceText)
-          if (exportMatch === null) {
-            return null
+          if (exportMatch !== null) {
+            const prefix = sourceText.slice(0, exportMatch.index)
+            const jsDocComments = [...prefix.matchAll(/\/\*\*[\s\S]*?\*\//g)]
+            const commentMatch = jsDocComments.at(-1)
+            if (commentMatch?.[0] === undefined) {
+              return null
+            }
+            const roleMatch = commentMatch[0].match(/@riviere-role\s+([a-z][a-z0-9-]*)/)
+            return roleMatch?.[1] ?? null
           }
 
-          const prefix = sourceText.slice(0, exportMatch.index)
-          const jsDocComments = [...prefix.matchAll(/\/\*\*[\s\S]*?\*\//g)]
-          const commentMatch = jsDocComments.at(-1)
-          if (commentMatch?.[0] === undefined) {
-            return null
+          const namedReExportPattern = new RegExp(
+            String.raw`export\s*\{[^}]*\b${escapedName}\b[^}]*\}\s*from\s*['"]([^'"]+)['"]`,
+            'm',
+          )
+          const namedReExportMatch = namedReExportPattern.exec(sourceText)
+          if (namedReExportMatch !== null) {
+            const resolvedPath = resolveTypeFile(filePath, namedReExportMatch[1])
+            if (resolvedPath !== null) {
+              return readExportedRole(resolvedPath, exportedName, visited)
+            }
           }
 
-          const roleMatch = commentMatch[0].match(/@riviere-role\s+([a-z][a-z0-9-]*)/)
-          return roleMatch?.[1] ?? null
+          const wildcardReExportPattern = /export\s*\*\s*from\s*['"]([^'"]+)['"]/gm
+          let wildcardMatch
+          while ((wildcardMatch = wildcardReExportPattern.exec(sourceText)) !== null) {
+            const resolvedPath = resolveTypeFile(filePath, wildcardMatch[1])
+            if (resolvedPath !== null) {
+              const role = readExportedRole(resolvedPath, exportedName, visited)
+              if (role !== null) {
+                return role
+              }
+            }
+          }
+
+          return null
         }
 
         function readFileText(filePath) {
@@ -554,7 +641,15 @@ function resolveTypeFile(currentFile, importSource) {
   const basePath = path.resolve(sourceDir, importSource)
   const candidates = [basePath, `${basePath}.ts`, path.join(basePath, 'index.ts')]
 
-  return candidates.find((candidate) => fs.existsSync(candidate)) ?? null
+  return (
+    candidates.find((candidate) => {
+      try {
+        return fs.statSync(candidate).isFile()
+      } catch {
+        return false
+      }
+    }) ?? null
+  )
 }
 
 function normalizePath(value) {

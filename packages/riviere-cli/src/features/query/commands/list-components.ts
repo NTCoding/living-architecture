@@ -5,15 +5,9 @@ import type { ListComponentsResult } from './list-components-result'
 /** @riviere-role command-use-case */
 export function listComponents(input: ListComponentsInput): ListComponentsResult {
   const repository = new RiviereQueryRepository()
-  const loadedGraph = repository.load(input.graphPathOption)
-  if (!loadedGraph.success) {
-    throw {
-      ...loadedGraph,
-      kind: 'QUERY_GRAPH_LOAD_ERROR' as const,
-    }
-  }
+  const query = repository.load(input.graphPathOption)
 
-  const allComponents = loadedGraph.query.components()
+  const allComponents = query.components()
   const filteredByDomain =
     input.domain === undefined
       ? allComponents

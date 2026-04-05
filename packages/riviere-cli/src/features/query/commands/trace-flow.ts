@@ -11,18 +11,12 @@ import type { TraceFlowResult } from './trace-flow-result'
 /** @riviere-role command-use-case */
 export function traceFlow(input: TraceFlowInput): TraceFlowResult {
   const repository = new RiviereQueryRepository()
-  const loadedGraph = repository.load(input.graphPathOption)
-  if (!loadedGraph.success) {
-    throw {
-      ...loadedGraph,
-      kind: 'QUERY_GRAPH_LOAD_ERROR' as const,
-    }
-  }
+  const query = repository.load(input.graphPathOption)
 
   try {
     const componentId = parseComponentId(input.componentId)
     return {
-      flow: loadedGraph.query.traceFlow(componentId),
+      flow: query.traceFlow(componentId),
       success: true,
     }
   } catch (error) {
@@ -31,11 +25,7 @@ export function traceFlow(input: TraceFlowInput): TraceFlowResult {
     }
 
     const parsedId = ComponentId.parse(input.componentId)
-    const matches = findNearMatches(
-      loadedGraph.query.components(),
-      { name: parsedId.name() },
-      { limit: 3 },
-    )
+    const matches = findNearMatches(query.components(), { name: parsedId.name() }, { limit: 3 })
 
     return {
       message: error.message,
