@@ -418,7 +418,7 @@ export default {
             'm',
           )
           const exportMatch = exportPattern.exec(sourceText)
-          if (exportMatch === null || exportMatch.index === undefined) {
+          if (exportMatch === null) {
             return null
           }
 
