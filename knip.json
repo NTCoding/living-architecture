@@ -14,7 +14,7 @@
       "project": ["src/**/*.ts"]
     },
     "packages/riviere-role-enforcement": {
-      "entry": ["src/bin.ts", "src/index.ts"],
+      "entry": ["src/shell/bin.ts", "src/index.ts"],
       "project": ["src/**/*.ts"]
     },
     "packages/*": {
@@ -27,14 +27,14 @@
     },
     "tools/dev-workflow": {
       "entry": [
-        "features/complete-task/entrypoint/cli.ts",
-        "features/get-pr-feedback/entrypoint/cli.ts",
-        "features/respond-to-feedback/entrypoint/cli.ts",
-        "features/merge-and-cleanup/entrypoint/cli.ts",
-        "features/push-reflection/entrypoint/cli.ts",
-        "features/claude-hooks/entrypoint/hook-router.ts"
+        "src/features/complete-task/entrypoint/cli.ts",
+        "src/features/get-pr-feedback/entrypoint/cli.ts",
+        "src/features/respond-to-feedback/entrypoint/cli.ts",
+        "src/features/merge-and-cleanup/entrypoint/cli.ts",
+        "src/features/push-reflection/entrypoint/cli.ts",
+        "src/features/claude-hooks/entrypoint/hook-router.ts"
       ],
-      "project": ["**/*.ts"]
+      "project": ["src/**/*.ts"]
     }
   },
   "ignore": [

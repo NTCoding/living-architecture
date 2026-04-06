@@ -7,6 +7,7 @@ import type {
 } from './linking-types'
 import { createComponentNotFoundError } from '../construction/builder-internals'
 
+/** @riviere-role domain-service */
 export class GraphLinking {
   private readonly graph: BuilderGraph
 

@@ -32,6 +32,8 @@ interface InspectionGraph {
 /**
  * Finds components with no incoming or outgoing links.
  *
+ * @riviere-role domain-service
+ *
  * @param graph - The graph to inspect
  * @returns Array of orphaned component IDs
  *
@@ -58,6 +60,8 @@ export function findOrphans(graph: InspectionGraph): string[] {
 
 /**
  * Calculates statistics about the graph.
+ *
+ * @riviere-role domain-service
  *
  * @param graph - The graph to analyze
  * @returns Object with component counts, link counts, and domain count
@@ -91,6 +95,8 @@ export function calculateStats(graph: InspectionGraph): BuilderStats {
  * Finds non-fatal issues in the graph.
  *
  * Detects orphaned components and unused domains.
+ *
+ * @riviere-role domain-service
  *
  * @param graph - The graph to inspect
  * @returns Array of warning objects
@@ -131,6 +137,8 @@ export function findWarnings(graph: InspectionGraph): BuilderWarning[] {
  *
  * Removes undefined optional fields and ensures proper structure.
  *
+ * @riviere-role domain-service
+ *
  * @param graph - The internal builder graph
  * @returns Schema-compliant RiviereGraph
  *
@@ -161,6 +169,8 @@ export function toRiviereGraph(graph: InspectionGraph): RiviereGraph {
 
 /**
  * Validates the graph against the Rivière schema.
+ *
+ * @riviere-role domain-service
  *
  * @param graph - The graph to validate
  * @returns Validation result with valid flag and any errors

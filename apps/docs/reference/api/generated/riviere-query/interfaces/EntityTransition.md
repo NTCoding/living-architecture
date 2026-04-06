@@ -4,9 +4,13 @@ pageClass: reference
 
 # Interface: EntityTransition
 
-Defined in: [packages/riviere-query/src/features/querying/queries/event-types.ts:48](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/event-types.ts#L48)
+Defined in: [packages/riviere-query/src/features/querying/queries/event-types.ts:50](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/event-types.ts#L50)
 
 A state transition in an entity's state machine.
+
+## Riviere-role
+
+query-model
 
 ## Properties
 
@@ -14,7 +18,7 @@ A state transition in an entity's state machine.
 
 > **from**: `string` & `$brand`\<`"State"`\>
 
-Defined in: [packages/riviere-query/src/features/querying/queries/event-types.ts:50](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/event-types.ts#L50)
+Defined in: [packages/riviere-query/src/features/querying/queries/event-types.ts:52](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/event-types.ts#L52)
 
 The state before the transition.
 
@@ -24,7 +28,7 @@ The state before the transition.
 
 > **to**: `string` & `$brand`\<`"State"`\>
 
-Defined in: [packages/riviere-query/src/features/querying/queries/event-types.ts:52](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/event-types.ts#L52)
+Defined in: [packages/riviere-query/src/features/querying/queries/event-types.ts:54](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/event-types.ts#L54)
 
 The state after the transition.
 
@@ -34,6 +38,6 @@ The state after the transition.
 
 > **triggeredBy**: `string` & `$brand`\<`"OperationName"`\>
 
-Defined in: [packages/riviere-query/src/features/querying/queries/event-types.ts:54](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/event-types.ts#L54)
+Defined in: [packages/riviere-query/src/features/querying/queries/event-types.ts:56](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/event-types.ts#L56)
 
 The operation that triggers this transition.

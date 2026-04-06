@@ -8,7 +8,7 @@ import { RiviereQueryRepository } from '../infra/persistence/riviere-query-repos
 import type { TraceFlowInput } from './trace-flow-input'
 import type { TraceFlowResult } from './trace-flow-result'
 
-/** @riviere-role query-use-case */
+/** @riviere-role query-model-use-case */
 export class TraceFlow {
   constructor(private readonly repository: RiviereQueryRepository) {}
 

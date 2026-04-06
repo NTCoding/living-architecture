@@ -4,7 +4,11 @@ pageClass: reference
 
 # Class: ComponentNotFoundError
 
-Defined in: [packages/riviere-query/src/features/querying/queries/errors.ts:1](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/errors.ts#L1)
+Defined in: [packages/riviere-query/src/features/querying/queries/errors.ts:2](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/errors.ts#L2)
+
+## Riviere-role
+
+query-model-error
 
 ## Extends
 
@@ -16,7 +20,7 @@ Defined in: [packages/riviere-query/src/features/querying/queries/errors.ts:1](h
 
 > **new ComponentNotFoundError**(`componentId`, `suggestions`): `ComponentNotFoundError`
 
-Defined in: [packages/riviere-query/src/features/querying/queries/errors.ts:5](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/errors.ts#L5)
+Defined in: [packages/riviere-query/src/features/querying/queries/errors.ts:6](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/errors.ts#L6)
 
 #### Parameters
 
@@ -54,7 +58,7 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 
 > `readonly` **componentId**: `string`
 
-Defined in: [packages/riviere-query/src/features/querying/queries/errors.ts:2](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/errors.ts#L2)
+Defined in: [packages/riviere-query/src/features/querying/queries/errors.ts:3](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/errors.ts#L3)
 
 ***
 
@@ -98,7 +102,7 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 
 > `readonly` **suggestions**: `string`[]
 
-Defined in: [packages/riviere-query/src/features/querying/queries/errors.ts:3](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/errors.ts#L3)
+Defined in: [packages/riviere-query/src/features/querying/queries/errors.ts:4](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/errors.ts#L4)
 
 ***
 

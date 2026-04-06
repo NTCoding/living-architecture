@@ -1,6 +1,8 @@
 /**
  * Calculates the Levenshtein edit distance between two strings.
  *
+ * @riviere-role domain-service
+ *
  * @param a - First string
  * @param b - Second string
  * @returns Number of single-character edits needed to transform a into b
@@ -39,6 +41,8 @@ export function levenshteinDistance(a: string, b: string): number {
  *
  * Returns 1.0 for identical strings, 0.0 for completely different strings.
  * Case-insensitive comparison.
+ *
+ * @riviere-role domain-service
  *
  * @param a - First string
  * @param b - Second string

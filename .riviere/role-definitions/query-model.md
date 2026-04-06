@@ -1,19 +1,23 @@
 # query-model
 
 ## Purpose
-A class that holds immutable state and exposes read-only query methods — the read-side counterpart of an aggregate.
+A class, interface, or type that represents the read-side model — the counterpart of an aggregate on the write side. Includes the query model class itself and the types it returns.
 
 ## Behavioral Contract
-A query model:
+
+### As a class
 1. **Holds immutable state** — the data it wraps is not modified after construction
 2. **Exposes read-only methods** — public methods compute and return results without side effects
 3. **Validates on construction** — may validate input data (e.g., schema validation), but this is data integrity, not domain invariant enforcement
 4. **Is loaded through a query-model-loader** — never created ad-hoc in use cases
 5. **Is never saved** — query models are read-only; there is no persistence of modified state
 
+### As an interface or type alias
+Represents a result shape returned by query model methods. These are the types that flow out of the query model to consumers.
+
 ## Examples
 
-### Canonical Example
+### Query Model Class
 ```typescript
 /** @riviere-role query-model */
 export class RiviereQuery {
@@ -27,24 +31,33 @@ export class RiviereQuery {
   domains(): Domain[] {
     return queryDomains(this.graph)
   }
-
-  componentsByType(type: ComponentType): Component[] {
-    return filterByType(this.graph, type)
-  }
 }
 ```
 
+### Query Model Result Type
+```typescript
+/** @riviere-role query-model */
+export interface Domain {
+  name: string
+  componentCounts: ComponentCounts
+}
+
+/** @riviere-role query-model */
+export type DomainSummary = ReturnType<RiviereQuery['domains']>[number]
+```
+
 ### Edge Cases
-- A query model with many public methods (facade pattern) is valid
-- A query model that delegates to pure query functions is the canonical pattern
+- A query model class with many public methods (facade pattern) is valid
+- A query model class that delegates to pure functions is the canonical pattern
 - Static factory methods (e.g., `fromJSON`) are valid
+- Branded types used by the query model (e.g., `ComponentId`) are valid
 
 ## Anti-Patterns
 
 ### Common Misclassifications
 - **Not an aggregate**: Aggregates enforce behavioral invariants and expose methods that modify state. If no method modifies state, it is a query-model.
-- **Not a domain-service**: Domain services are stateless functions. Query models hold state.
-- **Not a value-object**: Value objects are simple data structures. Query models have behavior (query methods).
+- **Not a domain-service**: Domain services are stateless functions. Query model classes hold state.
+- **Not a value-object**: Value objects are reusable domain concepts in the `/domain` layer. Query model types live in the `/queries` layer.
 
 ### Mixed Responsibility Signals
 - If any public method modifies the internal state — it may be an aggregate, not a query model
@@ -52,9 +65,9 @@ export class RiviereQuery {
 - If the class formats output for display — cli-output-formatter responsibility
 
 ## Decision Guidance
-- **vs aggregate**: Does any method modify state? → aggregate. All methods read-only? → query-model. **When uncertain, ask the user — do not default to aggregate.**
+- **vs aggregate**: Does any method modify state? → aggregate. All methods read-only? → query-model
 - **vs domain-service**: Does it hold state? → query-model. Stateless function operating on passed-in data? → domain-service
-- **vs value-object**: Does it expose query methods with behavior? → query-model. Simple data with no behavior? → value-object
+- **vs value-object**: Does it live in `/queries`? → query-model. Does it live in `/domain`? → value-object
 
 ## References
 - [CQRS Pattern](https://martinfowler.com/bliki/CQRS.html) — Read models in CQRS

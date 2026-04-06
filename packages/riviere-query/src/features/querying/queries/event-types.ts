@@ -12,6 +12,7 @@ import type {
 
 /**
  * A domain entity with its associated operations, states, and business rules.
+ * @riviere-role query-model
  */
 export class Entity {
   constructor(
@@ -44,6 +45,7 @@ export class Entity {
 
 /**
  * A state transition in an entity's state machine.
+ * @riviere-role query-model
  */
 export interface EntityTransition {
   /** The state before the transition. */
@@ -56,6 +58,7 @@ export interface EntityTransition {
 
 /**
  * An event handler that subscribes to an event.
+ * @riviere-role query-model
  */
 export interface EventSubscriber {
   /** The handler's component ID. */
@@ -68,6 +71,7 @@ export interface EventSubscriber {
 
 /**
  * A published event with its subscribers.
+ * @riviere-role query-model
  */
 export interface PublishedEvent {
   /** The event component's ID. */
@@ -82,6 +86,7 @@ export interface PublishedEvent {
 
 /**
  * A subscribed event where the source domain is known.
+ * @riviere-role query-model
  */
 export interface KnownSourceEvent {
   /** The event name. */
@@ -94,6 +99,7 @@ export interface KnownSourceEvent {
 
 /**
  * A subscribed event where the source domain is unknown.
+ * @riviere-role query-model
  */
 export interface UnknownSourceEvent {
   /** The event name. */
@@ -104,11 +110,13 @@ export interface UnknownSourceEvent {
 
 /**
  * A subscribed event with optional source domain information.
+ * @riviere-role query-model
  */
 export type SubscribedEventWithDomain = KnownSourceEvent | UnknownSourceEvent
 
 /**
  * Information about an event handler component.
+ * @riviere-role query-model
  */
 export interface EventHandlerInfo {
   /** The handler's component ID. */

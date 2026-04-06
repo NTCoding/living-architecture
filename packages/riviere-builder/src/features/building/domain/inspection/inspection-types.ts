@@ -1,3 +1,4 @@
+/** @riviere-role value-object */
 export interface BuilderStats {
   componentCount: number
   componentsByType: {
@@ -14,8 +15,10 @@ export interface BuilderStats {
   domainCount: number
 }
 
+/** @riviere-role value-object */
 export type WarningCode = 'ORPHAN_COMPONENT' | 'UNUSED_DOMAIN'
 
+/** @riviere-role value-object */
 export interface BuilderWarning {
   code: WarningCode
   message: string

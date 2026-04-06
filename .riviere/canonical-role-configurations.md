@@ -59,7 +59,7 @@ aggregate method
 [command-use-case-result] → [*-entrypoint]
 ```
 
-## CLI Invoking Query Use Case
+## CLI Invoking Query Model Use Case
 
 ### Data Flow
 
@@ -71,10 +71,10 @@ raw CLI args
      │ validated args
      ▼
 [cli-entrypoint]
-     │ query-use-case-input
+     │ query-model-use-case-input
      ▼
-[query-use-case] → see: Query Use Case Pattern
-     │ query-use-case-result
+[query-model-use-case] → see: Query Model Use Case Pattern
+     │ query-model
      ▼
 [cli-entrypoint]
      ├── error → [cli-output-formatter] → exit
@@ -86,13 +86,13 @@ raw CLI args
 
 Same as the command pattern: [cli-entrypoint] orchestrates everything.
 
-## Query Use Case loading and querying a query model
+## Query Model Use Case loading and querying a query model
 
 ```text
 [*-entrypoint]
-     │ [query-use-case-input]
+     │ [query-model-use-case-input]
      ▼
-[query-use-case]
+[query-model-use-case]
      │
      ▼
 [query-model-loader] load
@@ -101,7 +101,7 @@ Same as the command pattern: [cli-entrypoint] orchestrates everything.
 query-model method(s)
      │
      ▼
-[query-use-case-result] → [*-entrypoint]
+[query-model] → [*-entrypoint]
 ```
 
 Key difference from commands: there is no save step. The query model is loaded, queried, and the result is returned. The query model is never modified.

@@ -2,7 +2,7 @@ import { RiviereQueryRepository } from '../infra/persistence/riviere-query-repos
 import type { SearchComponentsInput } from './search-components-input'
 import type { SearchComponentsResult } from './search-components-result'
 
-/** @riviere-role query-use-case */
+/** @riviere-role query-model-use-case */
 export class SearchComponents {
   constructor(private readonly repository: RiviereQueryRepository) {}
 

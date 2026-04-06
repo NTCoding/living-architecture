@@ -12,6 +12,7 @@ import {
 import { componentsInDomain } from './component-queries'
 import { compareByCodePoint } from './compare-by-code-point'
 
+/** @riviere-role query-model */
 export function queryDomains(graph: RiviereGraph): Domain[] {
   return Object.entries(graph.metadata.domains).map(([name, metadata]) => {
     const dc = componentsInDomain(graph, name)
@@ -35,6 +36,7 @@ export function queryDomains(graph: RiviereGraph): Domain[] {
   })
 }
 
+/** @riviere-role query-model */
 export function operationsForEntity(graph: RiviereGraph, entityName: string): DomainOpComponent[] {
   return graph.components.filter(
     (c): c is DomainOpComponent => c.type === 'DomainOp' && c.entity === entityName,
@@ -47,6 +49,7 @@ interface PartialEntity {
   operations: DomainOpComponent[]
 }
 
+/** @riviere-role query-model */
 export function queryEntities(graph: RiviereGraph, domainName?: string): Entity[] {
   const domainOps = graph.components.filter(
     (c): c is DomainOpComponent & { entity: string } =>
@@ -89,6 +92,7 @@ function createEntity(graph: RiviereGraph, partial: PartialEntity): Entity {
   )
 }
 
+/** @riviere-role query-model */
 export function businessRulesForEntity(graph: RiviereGraph, entityName: string): string[] {
   const operations = operationsForEntity(graph, entityName)
   const allRules: string[] = []
@@ -99,6 +103,7 @@ export function businessRulesForEntity(graph: RiviereGraph, entityName: string):
   return [...new Set(allRules)]
 }
 
+/** @riviere-role query-model */
 export function transitionsForEntity(graph: RiviereGraph, entityName: string): EntityTransition[] {
   const operations = operationsForEntity(graph, entityName)
   const transitions: EntityTransition[] = []
@@ -115,6 +120,7 @@ export function transitionsForEntity(graph: RiviereGraph, entityName: string): E
   return transitions
 }
 
+/** @riviere-role query-model */
 export function statesForEntity(graph: RiviereGraph, entityName: string): State[] {
   const operations = operationsForEntity(graph, entityName)
   const states = new Set<string>()

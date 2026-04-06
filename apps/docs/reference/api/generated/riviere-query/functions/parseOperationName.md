@@ -6,7 +6,7 @@ pageClass: reference
 
 > **parseOperationName**(`value`): `string` & `$brand`\<`"OperationName"`\>
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:322](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L322)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:378](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L378)
 
 Parses a string as an OperationName.
 
@@ -23,3 +23,7 @@ The string to parse
 `string` & `$brand`\<`"OperationName"`\>
 
 A branded OperationName
+
+## Riviere-role
+
+query-model

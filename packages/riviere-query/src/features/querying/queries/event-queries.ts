@@ -18,6 +18,7 @@ import {
   parseHandlerName,
 } from './domain-types'
 
+/** @riviere-role query-model */
 export function queryPublishedEvents(graph: RiviereGraph, domainName?: string): PublishedEvent[] {
   const eventComponents = graph.components.filter((c): c is EventComponent => c.type === 'Event')
   const filtered = domainName
@@ -44,6 +45,7 @@ export function queryPublishedEvents(graph: RiviereGraph, domainName?: string): 
   })
 }
 
+/** @riviere-role query-model */
 export function queryEventHandlers(graph: RiviereGraph, eventName?: string): EventHandlerInfo[] {
   const eventByName = buildEventNameMap(graph)
   const handlers = findEventHandlerComponents(graph)

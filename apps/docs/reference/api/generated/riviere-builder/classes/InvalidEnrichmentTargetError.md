@@ -4,7 +4,11 @@ pageClass: reference
 
 # Class: InvalidEnrichmentTargetError
 
-Defined in: [packages/riviere-builder/src/features/building/domain/enrichment/enrichment-errors.ts:1](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/enrichment/enrichment-errors.ts#L1)
+Defined in: [packages/riviere-builder/src/features/building/domain/enrichment/enrichment-errors.ts:2](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/enrichment/enrichment-errors.ts#L2)
+
+## Riviere-role
+
+domain-error
 
 ## Extends
 
@@ -16,7 +20,7 @@ Defined in: [packages/riviere-builder/src/features/building/domain/enrichment/en
 
 > **new InvalidEnrichmentTargetError**(`componentId`, `componentType`): `InvalidEnrichmentTargetError`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/enrichment/enrichment-errors.ts:5](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/enrichment/enrichment-errors.ts#L5)
+Defined in: [packages/riviere-builder/src/features/building/domain/enrichment/enrichment-errors.ts:6](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/enrichment/enrichment-errors.ts#L6)
 
 #### Parameters
 
@@ -54,7 +58,7 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 
 > `readonly` **componentId**: `string`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/enrichment/enrichment-errors.ts:2](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/enrichment/enrichment-errors.ts#L2)
+Defined in: [packages/riviere-builder/src/features/building/domain/enrichment/enrichment-errors.ts:3](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/enrichment/enrichment-errors.ts#L3)
 
 ***
 
@@ -62,7 +66,7 @@ Defined in: [packages/riviere-builder/src/features/building/domain/enrichment/en
 
 > `readonly` **componentType**: `string`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/enrichment/enrichment-errors.ts:3](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/enrichment/enrichment-errors.ts#L3)
+Defined in: [packages/riviere-builder/src/features/building/domain/enrichment/enrichment-errors.ts:4](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/enrichment/enrichment-errors.ts#L4)
 
 ***
 

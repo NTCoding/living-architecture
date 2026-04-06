@@ -61,6 +61,7 @@ function convertToExternalDomains(
  *
  * @param graph - The RiviereGraph to query
  * @returns Array of ExternalDomain objects, sorted alphabetically by name
+ * @riviere-role query-model
  */
 export function queryExternalDomains(graph: RiviereGraph): ExternalDomain[] {
   if (graph.externalLinks === undefined || graph.externalLinks.length === 0) {

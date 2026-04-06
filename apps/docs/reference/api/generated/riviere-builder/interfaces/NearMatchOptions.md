@@ -4,7 +4,11 @@ pageClass: reference
 
 # Interface: NearMatchOptions
 
-Defined in: [packages/riviere-builder/src/features/building/domain/error-recovery/match-types.ts:21](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/error-recovery/match-types.ts#L21)
+Defined in: [packages/riviere-builder/src/features/building/domain/error-recovery/match-types.ts:25](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/error-recovery/match-types.ts#L25)
+
+## Riviere-role
+
+value-object
 
 ## Properties
 
@@ -12,7 +16,7 @@ Defined in: [packages/riviere-builder/src/features/building/domain/error-recover
 
 > `optional` **limit**: `number`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/error-recovery/match-types.ts:23](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/error-recovery/match-types.ts#L23)
+Defined in: [packages/riviere-builder/src/features/building/domain/error-recovery/match-types.ts:27](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/error-recovery/match-types.ts#L27)
 
 ***
 
@@ -20,4 +24,4 @@ Defined in: [packages/riviere-builder/src/features/building/domain/error-recover
 
 > `optional` **threshold**: `number`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/error-recovery/match-types.ts:22](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/error-recovery/match-types.ts#L22)
+Defined in: [packages/riviere-builder/src/features/building/domain/error-recovery/match-types.ts:26](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/error-recovery/match-types.ts#L26)

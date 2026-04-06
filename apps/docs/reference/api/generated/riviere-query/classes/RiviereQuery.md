@@ -29,7 +29,7 @@ const flow = query.traceFlow('orders:checkout:api:post-orders')
 
 ## Riviere-role
 
-aggregate
+query-model
 
 ## Constructors
 

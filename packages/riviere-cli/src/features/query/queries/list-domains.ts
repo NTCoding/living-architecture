@@ -2,7 +2,7 @@ import { RiviereQueryRepository } from '../infra/persistence/riviere-query-repos
 import type { ListDomainsInput } from './list-domains-input'
 import type { ListDomainsResult } from './list-domains-result'
 
-/** @riviere-role query-use-case */
+/** @riviere-role query-model-use-case */
 export class ListDomains {
   constructor(private readonly repository: RiviereQueryRepository) {}
 

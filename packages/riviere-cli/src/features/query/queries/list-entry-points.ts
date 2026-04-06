@@ -2,7 +2,7 @@ import { RiviereQueryRepository } from '../infra/persistence/riviere-query-repos
 import type { ListEntryPointsInput } from './list-entry-points-input'
 import type { ListEntryPointsResult } from './list-entry-points-result'
 
-/** @riviere-role query-use-case */
+/** @riviere-role query-model-use-case */
 export class ListEntryPoints {
   constructor(private readonly repository: RiviereQueryRepository) {}
 

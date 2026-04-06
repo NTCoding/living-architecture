@@ -1,7 +1,7 @@
 # domain-service
 
 ## Purpose
-A function that contains domain business logic that doesn't naturally belong on a single aggregate.
+A function or class that contains domain business logic that doesn't naturally belong on a single aggregate.
 
 ## Behavioral Contract
 1. Accepts domain objects (aggregates, value objects) as parameters

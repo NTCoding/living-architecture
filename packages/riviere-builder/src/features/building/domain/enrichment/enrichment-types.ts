@@ -4,6 +4,7 @@ import type {
   StateTransition,
 } from '@living-architecture/riviere-schema'
 
+/** @riviere-role value-object */
 export interface EnrichmentInput {
   entity?: string
   stateChanges?: StateTransition[]

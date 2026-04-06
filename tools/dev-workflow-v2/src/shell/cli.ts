@@ -1,13 +1,14 @@
 import { createWorkflowCli } from '@ntcoding/agentic-workflow-builder/cli'
-import { WORKFLOW_DEFINITION } from '../workflow-definition/infra/workflow-definition'
+import { WORKFLOW_DEFINITION } from '../features/workflow/infra/persistence/workflow-definition'
 import {
   ROUTES, HOOKS, preToolUseHandler 
-} from '../entrypoint/workflow-cli'
+} from '../features/workflow/entrypoint/workflow-cli'
 import {
   getGitInfo, runGh 
-} from '../infra/cli/git'
-import { createGetPrFeedback } from '../infra/github/get-pr-feedback'
+} from '../features/workflow/infra/external-clients/git/git'
+import { createGetPrFeedback } from '../features/workflow/infra/external-clients/github/get-pr-feedback'
 
+/** @riviere-role main */
 // WorkflowCliConfig drops TStateName/TOperation (defaults to string).
 // Safe — StateName ⊂ string, WorkflowOperation ⊂ string.
 createWorkflowCli({

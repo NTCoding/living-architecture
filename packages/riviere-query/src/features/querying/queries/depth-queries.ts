@@ -8,6 +8,7 @@ interface DepthQueueEntry {
   depth: number
 }
 
+/** @riviere-role query-model */
 export function queryNodeDepths(graph: RiviereGraph): Map<ComponentId, number> {
   const depths = new Map<ComponentId, number>()
 

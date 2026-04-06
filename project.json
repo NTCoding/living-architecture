@@ -25,7 +25,7 @@
     "role-check": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "pnpm exec tsx packages/riviere-role-enforcement/src/bin.ts .riviere/role-enforcement.config.ts",
+        "command": "pnpm exec tsx packages/riviere-role-enforcement/src/shell/bin.ts .riviere/role-enforcement.config.ts",
         "cwd": "{workspaceRoot}"
       }
     }

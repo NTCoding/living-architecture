@@ -4,7 +4,11 @@ pageClass: reference
 
 # Class: CustomTypeAlreadyDefinedError
 
-Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:64](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L64)
+Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:70](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L70)
+
+## Riviere-role
+
+domain-error
 
 ## Extends
 
@@ -16,7 +20,7 @@ Defined in: [packages/riviere-builder/src/features/building/domain/construction/
 
 > **new CustomTypeAlreadyDefinedError**(`typeName`): `CustomTypeAlreadyDefinedError`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:67](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L67)
+Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:73](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L73)
 
 #### Parameters
 
@@ -86,7 +90,7 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 
 > `readonly` **typeName**: `string`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:65](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L65)
+Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:71](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L71)
 
 ***
 

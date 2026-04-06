@@ -9,7 +9,7 @@
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bin": {
-    "riviere-role-enforcement": "./dist/bin.js"
+    "riviere-role-enforcement": "./dist/shell/bin.js"
   },
   "exports": {
     "./package.json": "./package.json",

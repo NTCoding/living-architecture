@@ -8,6 +8,7 @@ type RoleName =
   | 'cli-input-validator'
   | 'cli-output-formatter'
   | 'command-input-factory'
+  | 'command-orchestrator'
   | 'command-use-case'
   | 'command-use-case-input'
   | 'command-use-case-result'
@@ -19,11 +20,10 @@ type RoleName =
   | 'external-client-service'
   | 'main'
   | 'query-model'
+  | 'query-model-error'
   | 'query-model-loader'
-  | 'query-use-case'
-  | 'query-use-case-input'
-  | 'query-use-case-result'
-  | 'query-use-case-result-value'
+  | 'query-model-use-case'
+  | 'query-model-use-case-input'
   | 'value-object'
 
 const role = createRoleFactory<RoleName>()
@@ -31,7 +31,7 @@ const role = createRoleFactory<RoleName>()
 export const allRoles = [
   role('cli-entrypoint', { targets: ['function'] }),
   role('command-use-case', {
-    targets: ['class'],
+    targets: ['class', 'function'],
     allowedInputs: ['command-use-case-input'],
     allowedOutputs: ['command-use-case-result'],
     forbiddenDependencies: ['command-use-case'],
@@ -54,6 +54,7 @@ export const allRoles = [
     targets: ['function'],
     allowedOutputs: ['command-use-case-input'],
   }),
+  role('command-orchestrator', { targets: ['function'] }),
   role('external-client-service', { targets: ['function'] }),
   role('aggregate-repository', {
     targets: ['class'],
@@ -69,35 +70,30 @@ export const allRoles = [
         userHasApproved: true,
       },
       {
-        name: 'BuilderFacade',
+        name: 'RiviereBuilder',
         userHasApproved: true,
       },
     ],
   }),
   role('value-object', { targets: ['interface', 'type-alias', 'class'] }),
   role('domain-error', { targets: ['class'] }),
-  role('domain-service', { targets: ['function'] }),
-  role('query-use-case', {
+  role('domain-service', { targets: ['function', 'class'] }),
+  role('query-model-use-case', {
     targets: ['class'],
-    allowedInputs: ['query-use-case-input'],
-    allowedOutputs: ['query-use-case-result'],
-    forbiddenDependencies: ['query-use-case'],
+    allowedInputs: ['query-model-use-case-input'],
+    allowedOutputs: ['query-model'],
+    forbiddenDependencies: ['query-model-use-case'],
     minPublicMethods: 1,
     maxPublicMethods: 1,
   }),
-  role('query-use-case-input', {
+  role('query-model-use-case-input', {
     targets: ['interface', 'type-alias'],
-    nameMatches: '.*Input$',
+    nameMatches: '.*(Input|Options)$',
   }),
-  role('query-use-case-result', {
-    targets: ['interface', 'type-alias'],
-    nameMatches: '.*Result$',
-  }),
-  role('query-use-case-result-value', { targets: ['interface', 'type-alias'] }),
   role('query-model', {
-    targets: ['class'],
-    minPublicMethods: 1,
+    targets: ['class', 'function', 'interface', 'type-alias'],
   }),
+  role('query-model-error', { targets: ['class'] }),
   role('query-model-loader', {
     targets: ['class'],
     allowedOutputs: ['query-model', 'domain-error'],
@@ -109,7 +105,12 @@ export const allRoles = [
   role('cli-error', { targets: ['class'] }),
   role('main', {
     targets: ['function'],
-    forbiddenMethodCalls: ['command-use-case', 'aggregate-repository', 'query-model-loader'],
+    forbiddenMethodCalls: [
+      'command-use-case',
+      'query-model-use-case',
+      'aggregate-repository',
+      'query-model-loader',
+    ],
   }),
 ] as const
 

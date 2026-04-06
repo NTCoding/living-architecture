@@ -44,6 +44,8 @@ function detectMismatch(
  *
  * Used for error recovery to suggest alternatives when exact matches fail.
  *
+ * @riviere-role domain-service
+ *
  * @param components - Array of components to search
  * @param query - Search criteria with name and optional type/domain filters
  * @param options - Optional threshold and limit settings
@@ -86,6 +88,8 @@ export function findNearMatches(
 
 /**
  * Creates a typed error with suggestions for a missing source component.
+ *
+ * @riviere-role domain-service
  *
  * @param components - Array of existing components to search for suggestions
  * @param id - The ComponentId that was not found

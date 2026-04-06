@@ -4,9 +4,13 @@ pageClass: reference
 
 # Interface: ComponentCounts
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:85](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L85)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:121](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L121)
 
 Component counts by type within a domain.
+
+## Riviere-role
+
+query-model
 
 ## Properties
 
@@ -14,7 +18,7 @@ Component counts by type within a domain.
 
 > **API**: `number`
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:89](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L89)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:125](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L125)
 
 Number of API components.
 
@@ -24,7 +28,7 @@ Number of API components.
 
 > **Custom**: `number`
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:99](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L99)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:135](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L135)
 
 Number of Custom components.
 
@@ -34,7 +38,7 @@ Number of Custom components.
 
 > **DomainOp**: `number`
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:93](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L93)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:129](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L129)
 
 Number of DomainOp components.
 
@@ -44,7 +48,7 @@ Number of DomainOp components.
 
 > **Event**: `number`
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:95](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L95)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:131](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L131)
 
 Number of Event components.
 
@@ -54,7 +58,7 @@ Number of Event components.
 
 > **EventHandler**: `number`
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:97](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L97)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:133](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L133)
 
 Number of EventHandler components.
 
@@ -64,7 +68,7 @@ Number of EventHandler components.
 
 > **total**: `number`
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:101](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L101)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:137](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L137)
 
 Total number of components.
 
@@ -74,7 +78,7 @@ Total number of components.
 
 > **UI**: `number`
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:87](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L87)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:123](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L123)
 
 Number of UI components.
 
@@ -84,6 +88,6 @@ Number of UI components.
 
 > **UseCase**: `number`
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:91](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L91)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:127](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L127)
 
 Number of UseCase components.

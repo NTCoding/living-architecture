@@ -1,3 +1,4 @@
+/** @riviere-role query-model-error */
 export class ComponentNotFoundError extends Error {
   readonly componentId: string
   readonly suggestions: string[]

@@ -6,7 +6,7 @@ pageClass: reference
 
 > **parseEventName**(`value`): `string` & `$brand`\<`"EventName"`\>
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:342](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L342)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:400](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L400)
 
 Parses a string as an EventName.
 
@@ -23,3 +23,7 @@ The string to parse
 `string` & `$brand`\<`"EventName"`\>
 
 A branded EventName
+
+## Riviere-role
+
+query-model

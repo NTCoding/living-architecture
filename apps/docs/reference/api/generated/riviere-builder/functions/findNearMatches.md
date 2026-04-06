@@ -6,7 +6,7 @@ pageClass: reference
 
 > **findNearMatches**(`components`, `query`, `options?`): [`NearMatchResult`](../interfaces/NearMatchResult.md)[]
 
-Defined in: [packages/riviere-builder/src/features/building/domain/error-recovery/component-suggestion.ts:58](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/error-recovery/component-suggestion.ts#L58)
+Defined in: [packages/riviere-builder/src/features/building/domain/error-recovery/component-suggestion.ts:60](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/error-recovery/component-suggestion.ts#L60)
 
 Finds components similar to a query using fuzzy matching.
 
@@ -37,6 +37,10 @@ Optional threshold and limit settings
 [`NearMatchResult`](../interfaces/NearMatchResult.md)[]
 
 Array of matching components with similarity scores
+
+## Riviere-role
+
+domain-service
 
 ## Example
 

@@ -2,6 +2,7 @@ import { location, roleEnforcement } from '@living-architecture/riviere-role-enf
 import { allRoles, type RoleName } from './roles'
 
 const commandRoles: RoleName[] = [
+  'command-orchestrator',
   'command-use-case',
   'command-use-case-input',
   'command-use-case-result',
@@ -10,10 +11,10 @@ const commandRoles: RoleName[] = [
 ]
 
 const queryRoles: RoleName[] = [
-  'query-use-case',
-  'query-use-case-input',
-  'query-use-case-result',
-  'query-use-case-result-value',
+  'query-model-use-case',
+  'query-model-use-case-input',
+  'query-model',
+  'query-model-error',
 ]
 
 const domainRoles: RoleName[] = [
@@ -32,7 +33,15 @@ const externalClientRoles: RoleName[] = [
 
 const cliPresentationRoles: RoleName[] = ['cli-output-formatter', 'cli-error']
 
-const packages = ['packages/riviere-cli', 'packages/riviere-extract-ts']
+const packages = [
+  'packages/riviere-cli',
+  'packages/riviere-extract-ts',
+  'packages/riviere-builder',
+  'packages/riviere-query',
+  'packages/riviere-role-enforcement',
+  'tools/dev-workflow',
+  'tools/dev-workflow-v2',
+]
 
 export const config = roleEnforcement({
   packages,

@@ -8,6 +8,7 @@ function mergeStringArray(existing: string[] | undefined, incoming: string[]): s
   return [...base, ...deduplicateStrings(base, incoming)]
 }
 
+/** @riviere-role domain-service */
 export function mergeBehavior(
   existing: DomainOpComponent['behavior'],
   incoming: OperationBehavior,

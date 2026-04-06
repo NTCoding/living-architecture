@@ -7,12 +7,14 @@ import {
   MissingRequiredPropertiesError,
 } from './construction-errors'
 
+/** @riviere-role domain-service */
 export function assertDomainExists(domains: Record<string, DomainMetadata>, domain: string): void {
   if (!domains[domain]) {
     throw new DomainNotFoundError(domain)
   }
 }
 
+/** @riviere-role domain-service */
 export function assertCustomTypeExists(
   customTypes: Record<string, CustomTypeDefinition>,
   customTypeName: string,
@@ -23,6 +25,7 @@ export function assertCustomTypeExists(
   }
 }
 
+/** @riviere-role domain-service */
 export function assertRequiredPropertiesProvided(
   customTypes: Record<string, CustomTypeDefinition>,
   customTypeName: string,

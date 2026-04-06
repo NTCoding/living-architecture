@@ -33,7 +33,7 @@ export class RiviereQueryLoader {
 ### Common Misclassifications
 - **Not an aggregate-repository**: Aggregate repositories handle both loading AND saving of aggregates. If the class only loads and never saves, and the thing it loads is a query-model, use query-model-loader.
 - **Not an external-client-service**: Loaders assemble query models from raw data. External client services provide single technical capabilities.
-- **Not a query-use-case**: Loaders only handle loading. Use cases orchestrate load → query → return.
+- **Not a query-model-use-case**: Loaders only handle loading. Use cases orchestrate load → query → return.
 
 ### Mixed Responsibility Signals
 - If the loader has a save/persist method — it may be an aggregate-repository
@@ -43,4 +43,4 @@ export class RiviereQueryLoader {
 ## Decision Guidance
 - **vs aggregate-repository**: Does it save state? → aggregate-repository. Load only, returning a query-model? → query-model-loader
 - **vs external-client-service**: Does it return a query-model? → query-model-loader. Does it return raw data? → external-client-service
-- **vs query-use-case**: Does it only load? → query-model-loader. Does it orchestrate load + query + return? → query-use-case
+- **vs query-model-use-case**: Does it only load? → query-model-loader. Does it orchestrate load + query + return? → query-model-use-case

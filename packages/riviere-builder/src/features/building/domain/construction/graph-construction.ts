@@ -33,6 +33,7 @@ import {
   validateRequiredProperties,
 } from './builder-internals'
 
+/** @riviere-role domain-service */
 export class GraphConstruction {
   private readonly graph: BuilderGraph
 

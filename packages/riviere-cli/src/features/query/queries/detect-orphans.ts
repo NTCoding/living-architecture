@@ -2,7 +2,7 @@ import { RiviereQueryRepository } from '../infra/persistence/riviere-query-repos
 import type { DetectOrphansInput } from './detect-orphans-input'
 import type { DetectOrphansResult } from './detect-orphans-result'
 
-/** @riviere-role query-use-case */
+/** @riviere-role query-model-use-case */
 export class DetectOrphans {
   constructor(private readonly repository: RiviereQueryRepository) {}
 

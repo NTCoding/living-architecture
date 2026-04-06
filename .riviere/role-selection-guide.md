@@ -82,11 +82,12 @@ Is this code used to read and return previously stored state WITHOUT modifying a
 
 If yes, it is part of the query side. Ask: does it orchestrate the query, or does it hold the queryable state?
 
-- If it orchestrates (loads a query model, calls query methods, returns a result): `query-use-case`
+- If it orchestrates (loads a query model, calls query methods, returns a result): `query-model-use-case`
 - If it is the query model itself (holds immutable state, exposes read-only methods): `query-model`
+- If it defines result types returned by the query model: `query-model`
 - If it loads the query model from storage: `query-model-loader`
-- If it defines the input contract for a query: `query-use-case-input`
-- If it defines the result contract for a query: `query-use-case-result`
+- If it defines the input contract for a query use case: `query-model-use-case-input`
+- If it is an error thrown during query operations: `query-model-error`
 
 **Critical distinction from commands:** If the code loads state but NEVER modifies or saves it, it belongs on the query side. The presence of a repository-like loading pattern does not automatically make something a `command-use-case` + `aggregate-repository`.
 

@@ -24,41 +24,75 @@ const handlerIdSchema = z.string().brand<'HandlerId'>()
 /** @internal */
 const handlerNameSchema = z.string().brand<'HandlerName'>()
 
-/** Branded type for component identifiers. */
+/**
+ * Branded type for component identifiers.
+ * @riviere-role query-model
+ */
 export type ComponentId = z.infer<typeof componentIdSchema>
 
-/** Branded type for link identifiers. */
+/**
+ * Branded type for link identifiers.
+ * @riviere-role query-model
+ */
 export type LinkId = z.infer<typeof linkIdSchema>
 
-/** Branded type for entity names. */
+/**
+ * Branded type for entity names.
+ * @riviere-role query-model
+ */
 export type EntityName = z.infer<typeof entityNameSchema>
 
-/** Branded type for domain names. */
+/**
+ * Branded type for domain names.
+ * @riviere-role query-model
+ */
 export type DomainName = z.infer<typeof domainNameSchema>
 
-/** Branded type for state names in entity state machines. */
+/**
+ * Branded type for state names in entity state machines.
+ * @riviere-role query-model
+ */
 export type State = z.infer<typeof stateSchema>
 
-/** Branded type for operation names. */
+/**
+ * Branded type for operation names.
+ * @riviere-role query-model
+ */
 export type OperationName = z.infer<typeof operationNameSchema>
 
-/** Branded type for event identifiers. */
+/**
+ * Branded type for event identifiers.
+ * @riviere-role query-model
+ */
 export type EventId = z.infer<typeof eventIdSchema>
 
-/** Branded type for event names. */
+/**
+ * Branded type for event names.
+ * @riviere-role query-model
+ */
 export type EventName = z.infer<typeof eventNameSchema>
 
-/** Branded type for event handler identifiers. */
+/**
+ * Branded type for event handler identifiers.
+ * @riviere-role query-model
+ */
 export type HandlerId = z.infer<typeof handlerIdSchema>
 
-/** Branded type for event handler names. */
+/**
+ * Branded type for event handler names.
+ * @riviere-role query-model
+ */
 export type HandlerName = z.infer<typeof handlerNameSchema>
 
-/** Error codes for graph validation failures. */
+/**
+ * Error codes for graph validation failures.
+ * @riviere-role query-model
+ */
 export type ValidationErrorCode = 'INVALID_LINK_SOURCE' | 'INVALID_LINK_TARGET' | 'INVALID_TYPE'
 
 /**
  * A validation error found in the graph.
+ * @riviere-role query-model
  */
 export interface ValidationError {
   /** JSON path to the error location. */
@@ -71,6 +105,7 @@ export interface ValidationError {
 
 /**
  * Result of graph validation.
+ * @riviere-role query-model
  */
 export interface ValidationResult {
   /** Whether the graph passed validation. */
@@ -81,6 +116,7 @@ export interface ValidationResult {
 
 /**
  * Component counts by type within a domain.
+ * @riviere-role query-model
  */
 export interface ComponentCounts {
   /** Number of UI components. */
@@ -103,6 +139,7 @@ export interface ComponentCounts {
 
 /**
  * Domain information with metadata and component counts.
+ * @riviere-role query-model
  */
 export interface Domain {
   /** Domain name. */
@@ -117,6 +154,7 @@ export interface Domain {
 
 /**
  * A component that was modified between graph versions.
+ * @riviere-role query-model
  */
 export interface ComponentModification {
   /** The component ID. */
@@ -131,6 +169,7 @@ export interface ComponentModification {
 
 /**
  * Summary statistics of differences between graphs.
+ * @riviere-role query-model
  */
 export interface DiffStats {
   /** Number of components added. */
@@ -147,6 +186,7 @@ export interface DiffStats {
 
 /**
  * Complete diff between two graph versions.
+ * @riviere-role query-model
  */
 export interface GraphDiff {
   /** Component changes. */
@@ -169,11 +209,15 @@ export interface GraphDiff {
   stats: DiffStats
 }
 
-/** Type of link between components. */
+/**
+ * Type of link between components.
+ * @riviere-role query-model
+ */
 export type LinkType = 'sync' | 'async'
 
 /**
  * A step in an execution flow.
+ * @riviere-role query-model
  */
 export interface FlowStep {
   /** The component at this step. */
@@ -188,6 +232,7 @@ export interface FlowStep {
 
 /**
  * An execution flow from entry point through the graph.
+ * @riviere-role query-model
  */
 export interface Flow {
   /** The entry point component. */
@@ -198,6 +243,7 @@ export interface Flow {
 
 /**
  * Result of searchWithFlow containing matches and their flow context.
+ * @riviere-role query-model
  */
 export interface SearchWithFlowResult {
   /** IDs of components that matched the search. */
@@ -208,6 +254,7 @@ export interface SearchWithFlowResult {
 
 /**
  * A link that crosses domain boundaries.
+ * @riviere-role query-model
  */
 export interface CrossDomainLink {
   /** The target domain name. */
@@ -218,6 +265,7 @@ export interface CrossDomainLink {
 
 /**
  * Summary of connections between domains.
+ * @riviere-role query-model
  */
 export interface DomainConnection {
   /** The connected domain name. */
@@ -232,6 +280,7 @@ export interface DomainConnection {
 
 /**
  * Aggregate statistics about a graph.
+ * @riviere-role query-model
  */
 export interface GraphStats {
   /** Total number of components. */
@@ -253,6 +302,7 @@ export interface GraphStats {
  *
  * External domains are any systems not represented in the graph—third-party
  * services (Stripe, Twilio) or internal domains outside the current scope.
+ * @riviere-role query-model
  */
 export interface ExternalDomain {
   /** Name of the external domain (e.g., "Stripe", "Twilio"). */
@@ -268,6 +318,7 @@ export interface ExternalDomain {
  *
  * @param id - The string to parse
  * @returns A branded ComponentId
+ * @riviere-role query-model
  */
 export function parseComponentId(id: string): ComponentId {
   return componentIdSchema.parse(id)
@@ -278,6 +329,7 @@ export function parseComponentId(id: string): ComponentId {
  *
  * @param id - The string to parse
  * @returns A branded LinkId
+ * @riviere-role query-model
  */
 export function parseLinkId(id: string): LinkId {
   return linkIdSchema.parse(id)
@@ -288,6 +340,7 @@ export function parseLinkId(id: string): LinkId {
  *
  * @param value - The string to parse
  * @returns A branded EntityName
+ * @riviere-role query-model
  */
 export function parseEntityName(value: string): EntityName {
   return entityNameSchema.parse(value)
@@ -298,6 +351,7 @@ export function parseEntityName(value: string): EntityName {
  *
  * @param value - The string to parse
  * @returns A branded DomainName
+ * @riviere-role query-model
  */
 export function parseDomainName(value: string): DomainName {
   return domainNameSchema.parse(value)
@@ -308,6 +362,7 @@ export function parseDomainName(value: string): DomainName {
  *
  * @param value - The string to parse
  * @returns A branded State
+ * @riviere-role query-model
  */
 export function parseState(value: string): State {
   return stateSchema.parse(value)
@@ -318,6 +373,7 @@ export function parseState(value: string): State {
  *
  * @param value - The string to parse
  * @returns A branded OperationName
+ * @riviere-role query-model
  */
 export function parseOperationName(value: string): OperationName {
   return operationNameSchema.parse(value)
@@ -328,6 +384,7 @@ export function parseOperationName(value: string): OperationName {
  *
  * @param value - The string to parse
  * @returns A branded EventId
+ * @riviere-role query-model
  */
 export function parseEventId(value: string): EventId {
   return eventIdSchema.parse(value)
@@ -338,6 +395,7 @@ export function parseEventId(value: string): EventId {
  *
  * @param value - The string to parse
  * @returns A branded EventName
+ * @riviere-role query-model
  */
 export function parseEventName(value: string): EventName {
   return eventNameSchema.parse(value)
@@ -348,6 +406,7 @@ export function parseEventName(value: string): EventName {
  *
  * @param value - The string to parse
  * @returns A branded HandlerId
+ * @riviere-role query-model
  */
 export function parseHandlerId(value: string): HandlerId {
   return handlerIdSchema.parse(value)
@@ -358,6 +417,7 @@ export function parseHandlerId(value: string): HandlerId {
  *
  * @param value - The string to parse
  * @returns A branded HandlerName
+ * @riviere-role query-model
  */
 export function parseHandlerName(value: string): HandlerName {
   return handlerNameSchema.parse(value)

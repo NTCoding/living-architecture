@@ -10,6 +10,7 @@ function isCustomComponent(component: { type: string }): component is CustomComp
   return component.type === 'Custom'
 }
 
+/** @riviere-role query-model */
 export function validateGraph(graph: RiviereGraph): ValidationResult {
   const errors: ValidationError[] = []
 
@@ -62,6 +63,7 @@ function validateCustomTypes(graph: RiviereGraph): ValidationError[] {
   return errors
 }
 
+/** @riviere-role query-model */
 export function detectOrphanComponents(graph: RiviereGraph): ComponentId[] {
   const connectedComponentIds = new Set<string>()
   graph.links.forEach((link) => {

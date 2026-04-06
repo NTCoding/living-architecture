@@ -11,7 +11,7 @@ export default defineConfig({
         'src/**/*.spec.ts',
         'src/**/*-test-fixtures.ts',
         'src/shell/**',
-        'src/infra/cli/**',
+        'src/features/workflow/infra/external-clients/git/**',
       ],
       thresholds: {
         lines: 100,

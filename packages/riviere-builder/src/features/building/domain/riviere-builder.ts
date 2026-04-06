@@ -14,6 +14,7 @@ import {
 } from './construction/construction-errors'
 import { toRiviereGraph } from './inspection/inspection-functions'
 
+/** @riviere-role domain-service */
 export class RiviereBuilder {
   readonly construction: GraphConstruction
   readonly enrichment: GraphEnrichment

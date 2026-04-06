@@ -1,9 +1,9 @@
 import type { RiviereQuery } from '@living-architecture/riviere-query'
 
-/** @riviere-role query-use-case-result-value */
+/** @riviere-role query-model */
 export type TraceFlowGraph = ReturnType<RiviereQuery['traceFlow']>
 
-/** @riviere-role query-use-case-result */
+/** @riviere-role query-model */
 export type TraceFlowResult =
   | {
     flow: TraceFlowGraph

@@ -4,7 +4,11 @@ pageClass: reference
 
 # Interface: DomainInput
 
-Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-types.ts:21](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-types.ts#L21)
+Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-types.ts:23](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-types.ts#L23)
+
+## Riviere-role
+
+value-object
 
 ## Properties
 
@@ -12,7 +16,7 @@ Defined in: [packages/riviere-builder/src/features/building/domain/construction/
 
 > **description**: `string`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-types.ts:23](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-types.ts#L23)
+Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-types.ts:25](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-types.ts#L25)
 
 ***
 
@@ -20,7 +24,7 @@ Defined in: [packages/riviere-builder/src/features/building/domain/construction/
 
 > **name**: `string`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-types.ts:22](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-types.ts#L22)
+Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-types.ts:24](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-types.ts#L24)
 
 ***
 
@@ -28,4 +32,4 @@ Defined in: [packages/riviere-builder/src/features/building/domain/construction/
 
 > **systemType**: `SystemType`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-types.ts:24](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-types.ts#L24)
+Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-types.ts:26](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-types.ts#L26)
