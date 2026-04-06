@@ -7,7 +7,7 @@ import { getDefaultGraphPathDescription } from '../../../platform/infra/cli/pres
 import { collectOption } from '../../../platform/infra/cli/input/option-collectors'
 import { parseStateChanges } from '../../../platform/infra/cli/input/enrichment-parser'
 import { parseSignature } from '../../../platform/infra/cli/input/signature-parser'
-import { enrichComponent } from '../commands/enrich-component'
+import type { EnrichComponent } from '../commands/enrich-component'
 
 interface EnrichOptions {
   id: string
@@ -24,7 +24,7 @@ interface EnrichOptions {
 }
 
 /** @riviere-role cli-entrypoint */
-export function createEnrichCommand(): Command {
+export function createEnrichCommand(enrichComponent: EnrichComponent): Command {
   return new Command('enrich')
     .description(
       'Enrich a DomainOp component with semantic information. ' +
@@ -85,7 +85,7 @@ Examples:
       const parsedSignature =
         signatureResult?.success === true ? signatureResult.signature : undefined
 
-      const result = await enrichComponent({
+      const result = await enrichComponent.execute({
         businessRules: options.businessRule,
         entity: options.entity,
         emits: options.emits,

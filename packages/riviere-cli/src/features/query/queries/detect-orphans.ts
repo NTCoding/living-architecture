@@ -3,8 +3,11 @@ import type { DetectOrphansInput } from './detect-orphans-input'
 import type { DetectOrphansResult } from './detect-orphans-result'
 
 /** @riviere-role query-use-case */
-export function detectOrphans(input: DetectOrphansInput): DetectOrphansResult {
-  const repository = new RiviereQueryRepository()
-  const query = repository.load(input.graphPathOption)
-  return { orphans: query.detectOrphans() }
+export class DetectOrphans {
+  constructor(private readonly repository: RiviereQueryRepository) {}
+
+  execute(input: DetectOrphansInput): DetectOrphansResult {
+    const query = this.repository.load(input.graphPathOption)
+    return { orphans: query.detectOrphans() }
+  }
 }

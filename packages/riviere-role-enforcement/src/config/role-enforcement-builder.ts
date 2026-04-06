@@ -5,14 +5,16 @@ interface ApprovedInstance {
   readonly userHasApproved: true
 }
 
-interface RoleOptions {
+interface RoleOptions<R extends string = string> {
   readonly targets: readonly RoleTarget[]
-  readonly allowedInputs?: readonly string[]
+  readonly allowedInputs?: readonly R[]
   readonly allowedNames?: readonly string[]
-  readonly allowedOutputs?: readonly string[]
+  readonly allowedOutputs?: readonly R[]
   readonly approvedInstances?: readonly ApprovedInstance[]
-  readonly forbiddenDependencies?: readonly string[]
+  readonly forbiddenDependencies?: readonly R[]
+  readonly forbiddenMethodCalls?: readonly R[]
   readonly nameMatches?: string
+  readonly maxPublicMethods?: number
   readonly minPublicMethods?: number
 }
 
@@ -24,6 +26,8 @@ export interface BuiltRole<N extends string = string> {
   readonly allowedOutputs?: readonly string[]
   readonly approvedInstances?: readonly ApprovedInstance[]
   readonly forbiddenDependencies?: readonly string[]
+  readonly forbiddenMethodCalls?: readonly string[]
+  readonly maxPublicMethods?: number
   readonly nameMatches?: string
   readonly minPublicMethods?: number
 }
@@ -33,6 +37,13 @@ export function role<const N extends string>(name: N, options: RoleOptions): Bui
     name,
     ...options,
   }
+}
+
+export function createRoleFactory<R extends string>() {
+  return <const N extends R>(name: N, options: RoleOptions<R>): BuiltRole<N> => ({
+    name,
+    ...options,
+  })
 }
 
 interface SubLocationEntry {

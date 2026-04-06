@@ -7,7 +7,7 @@ import { CliErrorCode } from '../../../platform/infra/cli/presentation/error-cod
 import { isValidLinkType } from '../../../platform/infra/cli/input/component-types'
 import { validateLinkType } from '../../../platform/infra/cli/input/validation'
 import { buildExternalTarget } from '../../../platform/infra/cli/input/link-external-transformer'
-import { linkExternal } from '../commands/link-external'
+import type { LinkExternal } from '../commands/link-external'
 
 interface LinkExternalOptions {
   from: string
@@ -20,7 +20,7 @@ interface LinkExternalOptions {
 }
 
 /** @riviere-role cli-entrypoint */
-export function createLinkExternalCommand(): Command {
+export function createLinkExternalCommand(linkExternal: LinkExternal): Command {
   return new Command('link-external')
     .description('Link a component to an external system')
     .addHelpText(
@@ -59,7 +59,7 @@ Examples:
           ? options.linkType
           : undefined
 
-      const result = await linkExternal({
+      const result = await linkExternal.execute({
         from: options.from,
         graphPathOption: options.graph,
         target: buildExternalTarget(options),

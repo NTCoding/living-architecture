@@ -2,7 +2,7 @@ import { Command } from 'commander'
 import { formatSuccess } from '../../../platform/infra/cli/presentation/output'
 import { getDefaultGraphPathDescription } from '../../../platform/infra/cli/presentation/graph-path-option'
 import { handleQueryGraphLoadError } from '../../../platform/infra/cli/presentation/query-graph-load-error-handler'
-import { listEntryPoints } from '../queries/list-entry-points'
+import type { ListEntryPoints } from '../queries/list-entry-points'
 
 interface EntryPointsOptions {
   graph?: string
@@ -10,7 +10,7 @@ interface EntryPointsOptions {
 }
 
 /** @riviere-role cli-entrypoint */
-export function createEntryPointsCommand(): Command {
+export function createEntryPointsCommand(listEntryPoints: ListEntryPoints): Command {
   return new Command('entry-points')
     .description('List entry points (APIs, UIs, EventHandlers with no incoming links)')
     .addHelpText(
@@ -25,7 +25,7 @@ Examples:
     .option('--json', 'Output result as JSON')
     .action(async (options: EntryPointsOptions) => {
       try {
-        const result = await listEntryPoints({ graphPathOption: options.graph })
+        const result = await listEntryPoints.execute({ graphPathOption: options.graph })
 
         if (options.json) {
           console.log(JSON.stringify(formatSuccess(result)))

@@ -4,7 +4,7 @@ import { getDefaultGraphPathDescription } from '../../../platform/infra/cli/pres
 import {
   formatError, formatSuccess 
 } from '../../../platform/infra/cli/presentation/output'
-import { checkConsistency } from '../commands/check-consistency'
+import type { CheckConsistency } from '../commands/check-consistency'
 
 interface CheckConsistencyOptions {
   graph?: string
@@ -12,7 +12,7 @@ interface CheckConsistencyOptions {
 }
 
 /** @riviere-role cli-entrypoint */
-export function createCheckConsistencyCommand(): Command {
+export function createCheckConsistencyCommand(checkConsistency: CheckConsistency): Command {
   return new Command('check-consistency')
     .description('Check for structural issues in the graph')
     .addHelpText(
@@ -26,7 +26,7 @@ Examples:
     .option('--graph <path>', getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .action(async (options: CheckConsistencyOptions) => {
-      const result = await checkConsistency({ graphPathOption: options.graph })
+      const result = await checkConsistency.execute({ graphPathOption: options.graph })
       if (!result.success) {
         console.log(
           JSON.stringify(

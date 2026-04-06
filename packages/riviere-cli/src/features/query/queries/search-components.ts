@@ -3,8 +3,11 @@ import type { SearchComponentsInput } from './search-components-input'
 import type { SearchComponentsResult } from './search-components-result'
 
 /** @riviere-role query-use-case */
-export function searchComponents(input: SearchComponentsInput): SearchComponentsResult {
-  const repository = new RiviereQueryRepository()
-  const query = repository.load(input.graphPathOption)
-  return { components: query.search(input.term) }
+export class SearchComponents {
+  constructor(private readonly repository: RiviereQueryRepository) {}
+
+  execute(input: SearchComponentsInput): SearchComponentsResult {
+    const query = this.repository.load(input.graphPathOption)
+    return { components: query.search(input.term) }
+  }
 }

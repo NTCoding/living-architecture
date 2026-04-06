@@ -3,7 +3,7 @@ import { formatSuccess } from '../../../platform/infra/cli/presentation/output'
 import { getDefaultGraphPathDescription } from '../../../platform/infra/cli/presentation/graph-path-option'
 import { handleQueryGraphLoadError } from '../../../platform/infra/cli/presentation/query-graph-load-error-handler'
 import { toComponentOutput } from '../../../platform/infra/cli/presentation/component-output'
-import { searchComponents } from '../queries/search-components'
+import type { SearchComponents } from '../queries/search-components'
 
 interface SearchOptions {
   graph?: string
@@ -11,7 +11,7 @@ interface SearchOptions {
 }
 
 /** @riviere-role cli-entrypoint */
-export function createSearchCommand(): Command {
+export function createSearchCommand(searchComponents: SearchComponents): Command {
   return new Command('search')
     .description('Search components by name')
     .addHelpText(
@@ -27,7 +27,7 @@ Examples:
     .option('--json', 'Output result as JSON')
     .action(async (term: string, options: SearchOptions) => {
       try {
-        const result = await searchComponents({
+        const result = await searchComponents.execute({
           graphPathOption: options.graph,
           term,
         })

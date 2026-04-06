@@ -148,80 +148,88 @@ const testConfig = roleEnforcement({
   locations: testLocations,
 })
 
-it('runs oxlint successfully for a valid fixture workspace', () => {
+function withFixtureWorkspace(fn: (workspaceDir: string) => void) {
   const workspaceDir = createFixtureWorkspace()
+  try {
+    fn(workspaceDir)
+  } finally {
+    rmSync(workspaceDir, {
+      force: true,
+      recursive: true,
+    })
+  }
+}
 
-  const result = runRoleEnforcement(testConfig, workspaceDir)
+function writeCommandFile(workspaceDir: string, content: string) {
+  writeFileSync(
+    path.join(workspaceDir, 'packages', 'my-app', 'src', 'commands', 'runThing.ts'),
+    content,
+  )
+}
 
-  expect(result.exitCode).toBe(0)
-  expect(result.stderr).toBe('')
+function writeDomainFile(workspaceDir: string, content: string) {
+  writeFileSync(path.join(workspaceDir, 'packages', 'my-app', 'src', 'domain', 'order.ts'), content)
+}
 
-  rmSync(workspaceDir, {
-    force: true,
-    recursive: true,
+function writeRepositoryFile(workspaceDir: string, content: string) {
+  writeFileSync(
+    path.join(workspaceDir, 'packages', 'my-app', 'src', 'repositories', 'orderRepository.ts'),
+    content,
+  )
+}
+
+it('runs oxlint successfully for a valid fixture workspace', () => {
+  withFixtureWorkspace((workspaceDir) => {
+    const result = runRoleEnforcement(testConfig, workspaceDir)
+    expect(result.exitCode).toBe(0)
+    expect(result.stderr).toBe('')
   })
 })
 
 it('reports invalid command input role usage', () => {
-  const workspaceDir = createFixtureWorkspace()
-  writeFileSync(
-    path.join(workspaceDir, 'packages', 'my-app', 'src', 'commands', 'runThing.ts'),
-    `import type { RunThingResult } from './runThingResult'
+  withFixtureWorkspace((workspaceDir) => {
+    writeCommandFile(
+      workspaceDir,
+      `import type { RunThingResult } from './runThingResult'
 
 /** @riviere-role command-use-case */
 export function runThing(runThingInput: string): RunThingResult {
-  return {
-    status: 'ok',
-  }
+  return { status: 'ok' }
 }
 `,
-  )
-
-  const result = runRoleEnforcement(testConfig, workspaceDir)
-
-  expect(result.exitCode).toBe(1)
-  expect(result.stdout).toContain(
-    "Role 'command-use-case' only allows inputs [command-use-case-input]",
-  )
-
-  rmSync(workspaceDir, {
-    force: true,
-    recursive: true,
+    )
+    const result = runRoleEnforcement(testConfig, workspaceDir)
+    expect(result.exitCode).toBe(1)
+    expect(result.stdout).toContain(
+      "Role 'command-use-case' only allows inputs [command-use-case-input]",
+    )
   })
 })
 
 it('accepts Promise-wrapped command use case results', () => {
-  const workspaceDir = createFixtureWorkspace()
-  writeFileSync(
-    path.join(workspaceDir, 'packages', 'my-app', 'src', 'commands', 'runThing.ts'),
-    `import type { RunThingInput } from './runThingInput'
+  withFixtureWorkspace((workspaceDir) => {
+    writeCommandFile(
+      workspaceDir,
+      `import type { RunThingInput } from './runThingInput'
 import type { RunThingResult } from './runThingResult'
 
 /** @riviere-role command-use-case */
 export async function runThing(runThingInput: RunThingInput): Promise<RunThingResult> {
-  return {
-    status: 'ok',
-  }
+  return { status: 'ok' }
 }
 `,
-  )
-
-  const result = runRoleEnforcement(testConfig, workspaceDir)
-
-  expect(result.exitCode).toBe(0)
-  expect(result.stderr).toBe('')
-
-  rmSync(workspaceDir, {
-    force: true,
-    recursive: true,
+    )
+    const result = runRoleEnforcement(testConfig, workspaceDir)
+    expect(result.exitCode).toBe(0)
+    expect(result.stderr).toBe('')
   })
 })
 
 it('accepts array-wrapped outputs', () => {
-  const workspaceDir = createFixtureWorkspace()
-  writeFileSync(
-    path.join(workspaceDir, 'packages', 'my-app', 'src', 'commands', 'runThing.ts'),
-    `import type { RunThingInput } from './runThingInput'
+  withFixtureWorkspace((workspaceDir) => {
+    writeCommandFile(
+      workspaceDir,
+      `import type { RunThingInput } from './runThingInput'
 import type { RunThingResult } from './runThingResult'
 
 /** @riviere-role command-use-case */
@@ -229,24 +237,18 @@ export function runThing(runThingInput: RunThingInput): RunThingResult[] {
   return []
 }
 `,
-  )
-
-  const result = runRoleEnforcement(testConfig, workspaceDir)
-
-  expect(result.exitCode).toBe(0)
-  expect(result.stderr).toBe('')
-
-  rmSync(workspaceDir, {
-    force: true,
-    recursive: true,
+    )
+    const result = runRoleEnforcement(testConfig, workspaceDir)
+    expect(result.exitCode).toBe(0)
+    expect(result.stderr).toBe('')
   })
 })
 
 it('accepts Promise-wrapped array outputs', () => {
-  const workspaceDir = createFixtureWorkspace()
-  writeFileSync(
-    path.join(workspaceDir, 'packages', 'my-app', 'src', 'commands', 'runThing.ts'),
-    `import type { RunThingInput } from './runThingInput'
+  withFixtureWorkspace((workspaceDir) => {
+    writeCommandFile(
+      workspaceDir,
+      `import type { RunThingInput } from './runThingInput'
 import type { RunThingResult } from './runThingResult'
 
 /** @riviere-role command-use-case */
@@ -254,24 +256,18 @@ export async function runThing(runThingInput: RunThingInput): Promise<RunThingRe
   return []
 }
 `,
-  )
-
-  const result = runRoleEnforcement(testConfig, workspaceDir)
-
-  expect(result.exitCode).toBe(0)
-  expect(result.stderr).toBe('')
-
-  rmSync(workspaceDir, {
-    force: true,
-    recursive: true,
+    )
+    const result = runRoleEnforcement(testConfig, workspaceDir)
+    expect(result.exitCode).toBe(0)
+    expect(result.stderr).toBe('')
   })
 })
 
 it('accepts union outputs where all members are in allowedOutputs', () => {
-  const workspaceDir = createFixtureWorkspace()
-  writeFileSync(
-    path.join(workspaceDir, 'packages', 'my-app', 'src', 'commands', 'runThing.ts'),
-    `import type { RunThingInput } from './runThingInput'
+  withFixtureWorkspace((workspaceDir) => {
+    writeCommandFile(
+      workspaceDir,
+      `import type { RunThingInput } from './runThingInput'
 import type { RunThingResult } from './runThingResult'
 import type { RunThingError } from '../domain/runThingError'
 
@@ -280,24 +276,18 @@ export function runThing(runThingInput: RunThingInput): RunThingResult | RunThin
   return { status: 'ok' }
 }
 `,
-  )
-
-  const result = runRoleEnforcement(testConfig, workspaceDir)
-
-  expect(result.exitCode).toBe(0)
-  expect(result.stderr).toBe('')
-
-  rmSync(workspaceDir, {
-    force: true,
-    recursive: true,
+    )
+    const result = runRoleEnforcement(testConfig, workspaceDir)
+    expect(result.exitCode).toBe(0)
+    expect(result.stderr).toBe('')
   })
 })
 
 it('rejects union outputs where a member is not in allowedOutputs', () => {
-  const workspaceDir = createFixtureWorkspace()
-  writeFileSync(
-    path.join(workspaceDir, 'packages', 'my-app', 'src', 'commands', 'runThing.ts'),
-    `import type { RunThingInput } from './runThingInput'
+  withFixtureWorkspace((workspaceDir) => {
+    writeCommandFile(
+      workspaceDir,
+      `import type { RunThingInput } from './runThingInput'
 import type { RunThingResult } from './runThingResult'
 
 /** @riviere-role command-use-case */
@@ -305,100 +295,87 @@ export function runThing(runThingInput: RunThingInput): RunThingResult | string 
   return { status: 'ok' }
 }
 `,
-  )
-
-  const result = runRoleEnforcement(testConfig, workspaceDir)
-
-  expect(result.exitCode).toBe(1)
-  expect(result.stdout).toContain('only allows outputs [command-use-case-result, domain-error]')
-
-  rmSync(workspaceDir, {
-    force: true,
-    recursive: true,
+    )
+    const result = runRoleEnforcement(testConfig, workspaceDir)
+    expect(result.exitCode).toBe(1)
+    expect(result.stdout).toContain('only allows outputs [command-use-case-result, domain-error]')
   })
 })
 
 it('rejects aggregate classes with no public methods', () => {
-  const workspaceDir = createFixtureWorkspace()
-  writeFileSync(
-    path.join(workspaceDir, 'packages', 'my-app', 'src', 'domain', 'order.ts'),
-    `/** @riviere-role aggregate */
+  withFixtureWorkspace((workspaceDir) => {
+    writeDomainFile(
+      workspaceDir,
+      `/** @riviere-role aggregate */
 export class Order {}
 `,
-  )
-
-  const result = runRoleEnforcement(testConfig, workspaceDir)
-
-  expect(result.exitCode).toBe(1)
-  expect(result.stdout).toContain('requires at least 1 public method(s)')
-
-  rmSync(workspaceDir, {
-    force: true,
-    recursive: true,
+    )
+    const result = runRoleEnforcement(testConfig, workspaceDir)
+    expect(result.exitCode).toBe(1)
+    expect(result.stdout).toContain('requires at least 1 public method(s)')
   })
 })
 
 it('accepts aggregate classes with at least one public method', () => {
-  const workspaceDir = createFixtureWorkspace()
-  writeFileSync(
-    path.join(workspaceDir, 'packages', 'my-app', 'src', 'domain', 'order.ts'),
-    `/** @riviere-role aggregate */
+  withFixtureWorkspace((workspaceDir) => {
+    const result = runRoleEnforcement(testConfig, workspaceDir)
+    expect(result.exitCode).toBe(0)
+    expect(result.stderr).toBe('')
+  })
+})
+
+it('rejects aggregate classes exceeding maxPublicMethods', () => {
+  withFixtureWorkspace((workspaceDir) => {
+    writeDomainFile(
+      workspaceDir,
+      `/** @riviere-role aggregate */
 export class Order {
   process(): void {}
+  confirm(): void {}
 }
 `,
-  )
+    )
+    const result = runRoleEnforcement(configWithMaxPublicMethods(), workspaceDir)
+    expect(result.exitCode).toBe(1)
+    expect(result.stdout).toContain('allows at most 1 public method(s)')
+  })
+})
 
-  const result = runRoleEnforcement(testConfig, workspaceDir)
-
-  expect(result.exitCode).toBe(0)
-  expect(result.stderr).toBe('')
-
-  rmSync(workspaceDir, {
-    force: true,
-    recursive: true,
+it('accepts aggregate classes within maxPublicMethods limit', () => {
+  withFixtureWorkspace((workspaceDir) => {
+    const result = runRoleEnforcement(configWithMaxPublicMethods(), workspaceDir)
+    expect(result.exitCode).toBe(0)
+    expect(result.stderr).toBe('')
   })
 })
 
 it('rejects aggregate-repository class method returning inline object type', () => {
-  const workspaceDir = createFixtureWorkspace()
-  writeFileSync(
-    path.join(workspaceDir, 'packages', 'my-app', 'src', 'repositories', 'orderRepository.ts'),
-    `/** @riviere-role aggregate-repository */
+  withFixtureWorkspace((workspaceDir) => {
+    writeRepositoryFile(
+      workspaceDir,
+      `/** @riviere-role aggregate-repository */
 export class OrderRepository {
   findById(id: string): { id: string; name: string } {
     return { id, name: 'Order' }
   }
 }
 `,
-  )
-
-  const result = runRoleEnforcement(testConfig, workspaceDir)
-
-  expect(result.exitCode).toBe(1)
-  expect(result.stdout).toContain('only allows outputs [aggregate]')
-
-  rmSync(workspaceDir, {
-    force: true,
-    recursive: true,
+    )
+    const result = runRoleEnforcement(testConfig, workspaceDir)
+    expect(result.exitCode).toBe(1)
+    expect(result.stdout).toContain('only allows outputs [aggregate]')
   })
 })
 
 it('accepts aggregate-repository class method returning a named aggregate type', () => {
-  const workspaceDir = createFixtureWorkspace()
-
-  const result = runRoleEnforcement(testConfig, workspaceDir)
-
-  expect(result.exitCode).toBe(0)
-  expect(result.stderr).toBe('')
-
-  rmSync(workspaceDir, {
-    force: true,
-    recursive: true,
+  withFixtureWorkspace((workspaceDir) => {
+    const result = runRoleEnforcement(testConfig, workspaceDir)
+    expect(result.exitCode).toBe(0)
+    expect(result.stderr).toBe('')
   })
 })
 
-function configWithApprovedAggregates(approvedNames: string[]) {
+function configWithAggregateOverride(aggregateOptions: Parameters<typeof role>[1]) {
   return roleEnforcement({
     packages: ['packages/my-app'],
     canonicalConfigurationsFile: '.riviere/canonical-role-configurations.md',
@@ -406,41 +383,43 @@ function configWithApprovedAggregates(approvedNames: string[]) {
     roleDefinitionsDir: '.riviere/role-definitions',
     roles: [
       ...testRoles.filter((r) => r.name !== 'aggregate'),
-      role('aggregate', {
-        targets: ['class'],
-        minPublicMethods: 1,
-        approvedInstances: approvedNames.map((name) => ({
-          name,
-          userHasApproved: true as const,
-        })),
-      }),
+      role('aggregate', aggregateOptions),
     ],
     locations: testLocations,
   })
 }
 
+function configWithMaxPublicMethods() {
+  return configWithAggregateOverride({
+    targets: ['class'],
+    minPublicMethods: 1,
+    maxPublicMethods: 1,
+  })
+}
+
+function configWithApprovedAggregates(approvedNames: string[]) {
+  return configWithAggregateOverride({
+    targets: ['class'],
+    minPublicMethods: 1,
+    approvedInstances: approvedNames.map((name) => ({
+      name,
+      userHasApproved: true as const,
+    })),
+  })
+}
+
 it('accepts aggregate when name is in approvedInstances with userHasApproved true', () => {
-  const workspaceDir = createFixtureWorkspace()
-
-  const result = runRoleEnforcement(configWithApprovedAggregates(['Order']), workspaceDir)
-
-  expect(result.exitCode).toBe(0)
-  expect(result.stderr).toBe('')
-  rmSync(workspaceDir, {
-    force: true,
-    recursive: true,
+  withFixtureWorkspace((workspaceDir) => {
+    const result = runRoleEnforcement(configWithApprovedAggregates(['Order']), workspaceDir)
+    expect(result.exitCode).toBe(0)
+    expect(result.stderr).toBe('')
   })
 })
 
 it('rejects aggregate when name is not in approvedInstances', () => {
-  const workspaceDir = createFixtureWorkspace()
-
-  const result = runRoleEnforcement(configWithApprovedAggregates(['SomeOther']), workspaceDir)
-
-  expect(result.exitCode).toBe(1)
-  expect(result.stdout).toContain('is not in approvedInstances')
-  rmSync(workspaceDir, {
-    force: true,
-    recursive: true,
+  withFixtureWorkspace((workspaceDir) => {
+    const result = runRoleEnforcement(configWithApprovedAggregates(['SomeOther']), workspaceDir)
+    expect(result.exitCode).toBe(1)
+    expect(result.stdout).toContain('is not in approvedInstances')
   })
 })

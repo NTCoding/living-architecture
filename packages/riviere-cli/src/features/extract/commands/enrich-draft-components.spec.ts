@@ -13,7 +13,8 @@ vi.mock('../infra/persistence/extraction-project/extraction-project-repository',
   },
 }))
 
-import { enrichDraftComponents } from './enrich-draft-components'
+import { EnrichDraftComponents } from './enrich-draft-components'
+import { ExtractionProjectRepository } from '../infra/persistence/extraction-project/extraction-project-repository'
 
 describe('enrichDraftComponents', () => {
   beforeEach(() => {
@@ -26,7 +27,7 @@ describe('enrichDraftComponents', () => {
   })
 
   it('returns draft-only results when connections are disabled', () => {
-    const result = enrichDraftComponents({
+    const result = new EnrichDraftComponents(new ExtractionProjectRepository()).execute({
       allowIncomplete: false,
       configPath: 'config.yml',
       draftComponentsPath: 'draft.json',
@@ -50,7 +51,7 @@ describe('enrichDraftComponents', () => {
       failedFields: ['fieldA'],
     })
 
-    const result = enrichDraftComponents({
+    const result = new EnrichDraftComponents(new ExtractionProjectRepository()).execute({
       allowIncomplete: false,
       configPath: 'config.yml',
       draftComponentsPath: 'draft.json',

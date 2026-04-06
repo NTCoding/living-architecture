@@ -27,33 +27,35 @@ const validComponentTypes = new Set([
 ])
 
 /** @riviere-role command-use-case */
-export function addComponent(input: AddComponentInput): AddComponentResult {
-  if (!validComponentTypes.has(input.componentType.toLowerCase())) {
-    return failure('VALIDATION_ERROR', `Invalid component type: ${input.componentType}`)
-  }
+export class AddComponent {
+  constructor(private readonly repository: RiviereBuilderRepository) {}
 
-  if (
-    input.lineNumber !== undefined &&
-    (!Number.isInteger(input.lineNumber) || input.lineNumber < 1)
-  ) {
-    return failure('VALIDATION_ERROR', 'Invalid line number: must be a positive integer')
-  }
-
-  const repository = new RiviereBuilderRepository()
-
-  try {
-    const builder = repository.load(input.graphPathOption)
-    const componentId = addComponentToBuilder(builder, createDomainInput(input))
-    repository.save(builder)
-    return {
-      success: true,
-      componentId,
+  execute(input: AddComponentInput): AddComponentResult {
+    if (!validComponentTypes.has(input.componentType.toLowerCase())) {
+      return failure('VALIDATION_ERROR', `Invalid component type: ${input.componentType}`)
     }
-  } catch (error) {
-    if (error instanceof GraphNotFoundError) return failure('GRAPH_NOT_FOUND', error.message)
-    if (error instanceof GraphCorruptedError)
-      return failure('VALIDATION_ERROR', 'Graph file contains invalid JSON')
-    return mapError(error)
+
+    if (
+      input.lineNumber !== undefined &&
+      (!Number.isInteger(input.lineNumber) || input.lineNumber < 1)
+    ) {
+      return failure('VALIDATION_ERROR', 'Invalid line number: must be a positive integer')
+    }
+
+    try {
+      const builder = this.repository.load(input.graphPathOption)
+      const componentId = addComponentToBuilder(builder, createDomainInput(input))
+      this.repository.save(builder)
+      return {
+        success: true,
+        componentId,
+      }
+    } catch (error) {
+      if (error instanceof GraphNotFoundError) return failure('GRAPH_NOT_FOUND', error.message)
+      if (error instanceof GraphCorruptedError)
+        return failure('VALIDATION_ERROR', 'Graph file contains invalid JSON')
+      return mapError(error)
+    }
   }
 }
 

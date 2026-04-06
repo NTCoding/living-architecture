@@ -4,7 +4,7 @@ import { getDefaultGraphPathDescription } from '../../../platform/infra/cli/pres
 import {
   formatError, formatSuccess 
 } from '../../../platform/infra/cli/presentation/output'
-import { addSource } from '../commands/add-source'
+import type { AddSource } from '../commands/add-source'
 
 interface AddSourceOptions {
   repository: string
@@ -13,7 +13,7 @@ interface AddSourceOptions {
 }
 
 /** @riviere-role cli-entrypoint */
-export function createAddSourceCommand(): Command {
+export function createAddSourceCommand(addSource: AddSource): Command {
   return new Command('add-source')
     .description('Add a source repository to the graph')
     .addHelpText(
@@ -28,7 +28,7 @@ Examples:
     .option('--graph <path>', getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .action(async (options: AddSourceOptions) => {
-      const result = await addSource({
+      const result = await addSource.execute({
         graphPathOption: options.graph,
         repository: options.repository,
       })

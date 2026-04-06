@@ -9,28 +9,31 @@ import type { TraceFlowInput } from './trace-flow-input'
 import type { TraceFlowResult } from './trace-flow-result'
 
 /** @riviere-role query-use-case */
-export function traceFlow(input: TraceFlowInput): TraceFlowResult {
-  const repository = new RiviereQueryRepository()
-  const query = repository.load(input.graphPathOption)
+export class TraceFlow {
+  constructor(private readonly repository: RiviereQueryRepository) {}
 
-  try {
-    const componentId = parseComponentId(input.componentId)
-    return {
-      flow: query.traceFlow(componentId),
-      success: true,
-    }
-  } catch (error) {
-    if (!(error instanceof ComponentNotFoundError)) {
-      throw error
-    }
+  execute(input: TraceFlowInput): TraceFlowResult {
+    const query = this.repository.load(input.graphPathOption)
 
-    const parsedId = ComponentId.parse(input.componentId)
-    const matches = findNearMatches(query.components(), { name: parsedId.name() }, { limit: 3 })
+    try {
+      const componentId = parseComponentId(input.componentId)
+      return {
+        flow: query.traceFlow(componentId),
+        success: true,
+      }
+    } catch (error) {
+      if (!(error instanceof ComponentNotFoundError)) {
+        throw error
+      }
 
-    return {
-      message: error.message,
-      success: false,
-      suggestions: matches.map((match) => match.component.id),
+      const parsedId = ComponentId.parse(input.componentId)
+      const matches = findNearMatches(query.components(), { name: parsedId.name() }, { limit: 3 })
+
+      return {
+        message: error.message,
+        success: false,
+        suggestions: matches.map((match) => match.component.id),
+      }
     }
   }
 }

@@ -2,7 +2,7 @@ import { Command } from 'commander'
 import { formatSuccess } from '../../../platform/infra/cli/presentation/output'
 import { getDefaultGraphPathDescription } from '../../../platform/infra/cli/presentation/graph-path-option'
 import { handleQueryGraphLoadError } from '../../../platform/infra/cli/presentation/query-graph-load-error-handler'
-import { listDomains } from '../queries/list-domains'
+import type { ListDomains } from '../queries/list-domains'
 
 interface DomainsOptions {
   graph?: string
@@ -10,7 +10,7 @@ interface DomainsOptions {
 }
 
 /** @riviere-role cli-entrypoint */
-export function createDomainsCommand(): Command {
+export function createDomainsCommand(listDomains: ListDomains): Command {
   return new Command('domains')
     .description('List domains with component counts')
     .addHelpText(
@@ -25,7 +25,7 @@ Examples:
     .option('--json', 'Output result as JSON')
     .action(async (options: DomainsOptions) => {
       try {
-        const result = await listDomains({ graphPathOption: options.graph })
+        const result = await listDomains.execute({ graphPathOption: options.graph })
 
         if (options.json) {
           console.log(JSON.stringify(formatSuccess(result)))

@@ -11,42 +11,44 @@ import type {
 } from './enrich-component-result'
 
 /** @riviere-role command-use-case */
-export function enrichComponent(input: EnrichComponentInput): EnrichComponentResult {
-  const repository = new RiviereBuilderRepository()
+export class EnrichComponent {
+  constructor(private readonly repository: RiviereBuilderRepository) {}
 
-  try {
-    const builder = repository.load(input.graphPathOption)
-    const enrichmentInput: Parameters<typeof builder.enrichComponent>[1] = {
-      ...buildBehavior(input),
-      ...(input.businessRules.length > 0 ? { businessRules: input.businessRules } : {}),
-      ...(input.stateChanges.length > 0 ? { stateChanges: input.stateChanges } : {}),
+  execute(input: EnrichComponentInput): EnrichComponentResult {
+    try {
+      const builder = this.repository.load(input.graphPathOption)
+      const enrichmentInput: Parameters<typeof builder.enrichComponent>[1] = {
+        ...buildBehavior(input),
+        ...(input.businessRules.length > 0 ? { businessRules: input.businessRules } : {}),
+        ...(input.stateChanges.length > 0 ? { stateChanges: input.stateChanges } : {}),
+      }
+      if (input.entity !== undefined) {
+        enrichmentInput.entity = input.entity
+      }
+      if (input.signature !== undefined) {
+        enrichmentInput.signature = input.signature
+      }
+      builder.enrichComponent(input.id, enrichmentInput)
+      this.repository.save(builder)
+      return {
+        componentId: input.id,
+        success: true,
+      }
+    } catch (error) {
+      if (error instanceof GraphNotFoundError) {
+        return failure('GRAPH_NOT_FOUND', error.message)
+      }
+      if (error instanceof GraphCorruptedError) {
+        return failure('GRAPH_CORRUPTED', 'Graph file contains invalid JSON')
+      }
+      if (error instanceof InvalidEnrichmentTargetError) {
+        return failure('INVALID_COMPONENT_TYPE', error.message)
+      }
+      if (error instanceof ComponentNotFoundError) {
+        return failure('COMPONENT_NOT_FOUND', error.message, error.suggestions)
+      }
+      throw error
     }
-    if (input.entity !== undefined) {
-      enrichmentInput.entity = input.entity
-    }
-    if (input.signature !== undefined) {
-      enrichmentInput.signature = input.signature
-    }
-    builder.enrichComponent(input.id, enrichmentInput)
-    repository.save(builder)
-    return {
-      componentId: input.id,
-      success: true,
-    }
-  } catch (error) {
-    if (error instanceof GraphNotFoundError) {
-      return failure('GRAPH_NOT_FOUND', error.message)
-    }
-    if (error instanceof GraphCorruptedError) {
-      return failure('GRAPH_CORRUPTED', 'Graph file contains invalid JSON')
-    }
-    if (error instanceof InvalidEnrichmentTargetError) {
-      return failure('INVALID_COMPONENT_TYPE', error.message)
-    }
-    if (error instanceof ComponentNotFoundError) {
-      return failure('COMPONENT_NOT_FOUND', error.message, error.suggestions)
-    }
-    throw error
   }
 }
 

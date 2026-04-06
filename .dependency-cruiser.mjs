@@ -185,20 +185,6 @@ export default {
       to: { path: "(features/[^/]+/domain/|platform/domain/).+" }
     },
     {
-      name: "shell-no-commands",
-      severity: "error",
-      comment: "Shell must not import from commands/ directly (wire via entrypoint)",
-      from: { path: "[^/]+/src/shell/.+" },
-      to: { path: "features/[^/]+/commands/.+" }
-    },
-    {
-      name: "shell-no-queries",
-      severity: "error",
-      comment: "Shell must not import from queries/ directly (wire via entrypoint)",
-      from: { path: "[^/]+/src/shell/.+" },
-      to: { path: "features/[^/]+/queries/.+" }
-    },
-    {
       name: "platform-no-features",
       severity: "error",
       comment: "Platform must not import from features/",

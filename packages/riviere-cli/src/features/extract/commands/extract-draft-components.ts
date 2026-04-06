@@ -3,19 +3,20 @@ import type { ExtractDraftComponentsInput } from './extract-draft-components-inp
 import type { ExtractDraftComponentsResult } from './extract-draft-components-result'
 
 /** @riviere-role command-use-case */
-export function extractDraftComponents(
-  extractDraftComponentsInput: ExtractDraftComponentsInput,
-): ExtractDraftComponentsResult {
-  const extractionProjectRepository = new ExtractionProjectRepository()
-  const extractionProject = loadProjectFromInput(
-    extractionProjectRepository,
-    extractDraftComponentsInput,
-  )
+export class ExtractDraftComponents {
+  constructor(private readonly extractionProjectRepository: ExtractionProjectRepository) {}
 
-  return extractionProject.extractDraftComponents({
-    allowIncomplete: extractDraftComponentsInput.allowIncomplete,
-    includeConnections: extractDraftComponentsInput.includeConnections,
-  })
+  execute(extractDraftComponentsInput: ExtractDraftComponentsInput): ExtractDraftComponentsResult {
+    const extractionProject = loadProjectFromInput(
+      this.extractionProjectRepository,
+      extractDraftComponentsInput,
+    )
+
+    return extractionProject.extractDraftComponents({
+      allowIncomplete: extractDraftComponentsInput.allowIncomplete,
+      includeConnections: extractDraftComponentsInput.includeConnections,
+    })
+  }
 }
 
 function loadProjectFromInput(

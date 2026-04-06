@@ -4,12 +4,12 @@ import { getDefaultGraphPathDescription } from '../../../platform/infra/cli/pres
 import {
   formatError, formatSuccess 
 } from '../../../platform/infra/cli/presentation/output'
-import { componentSummary } from '../commands/component-summary'
+import type { ComponentSummary } from '../commands/component-summary'
 
 interface ComponentSummaryOptions {graph?: string}
 
 /** @riviere-role cli-entrypoint */
-export function createComponentSummaryCommand(): Command {
+export function createComponentSummaryCommand(componentSummary: ComponentSummary): Command {
   return new Command('component-summary')
     .description('Show component counts by type and domain')
     .addHelpText(
@@ -22,7 +22,7 @@ Examples:
     )
     .option('--graph <path>', getDefaultGraphPathDescription())
     .action(async (options: ComponentSummaryOptions) => {
-      const result = await componentSummary({ graphPathOption: options.graph })
+      const result = await componentSummary.execute({ graphPathOption: options.graph })
       if (!result.success) {
         console.log(
           JSON.stringify(

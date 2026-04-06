@@ -17,7 +17,8 @@ vi.mock('../infra/persistence/extraction-project/extraction-project-repository',
   },
 }))
 
-import { extractDraftComponents } from './extract-draft-components'
+import { ExtractDraftComponents } from './extract-draft-components'
+import { ExtractionProjectRepository } from '../infra/persistence/extraction-project/extraction-project-repository'
 
 const DRAFT_ONLY_RESULT = {
   kind: 'draftOnly' as const,
@@ -35,7 +36,7 @@ describe('extractDraftComponents', () => {
 
   describe('pull-request source mode', () => {
     it('loads from changed project with base branch when provided', () => {
-      extractDraftComponents({
+      new ExtractDraftComponents(new ExtractionProjectRepository()).execute({
         allowIncomplete: false,
         baseBranch: 'main',
         configPath: 'config.yml',
@@ -52,7 +53,7 @@ describe('extractDraftComponents', () => {
     })
 
     it('loads from changed project without base branch when not provided', () => {
-      extractDraftComponents({
+      new ExtractDraftComponents(new ExtractionProjectRepository()).execute({
         allowIncomplete: false,
         configPath: 'config.yml',
         includeConnections: true,
@@ -69,7 +70,7 @@ describe('extractDraftComponents', () => {
 
   describe('files source mode', () => {
     it('loads from selected files when files are provided', () => {
-      extractDraftComponents({
+      new ExtractDraftComponents(new ExtractionProjectRepository()).execute({
         allowIncomplete: false,
         configPath: 'config.yml',
         files: ['src/foo.ts', 'src/bar.ts'],
@@ -86,7 +87,7 @@ describe('extractDraftComponents', () => {
     })
 
     it('defaults filePaths to empty array when files is undefined', () => {
-      extractDraftComponents({
+      new ExtractDraftComponents(new ExtractionProjectRepository()).execute({
         allowIncomplete: false,
         configPath: 'config.yml',
         includeConnections: false,
@@ -104,7 +105,7 @@ describe('extractDraftComponents', () => {
 
   describe('all source mode', () => {
     it('loads from full project', () => {
-      extractDraftComponents({
+      new ExtractDraftComponents(new ExtractionProjectRepository()).execute({
         allowIncomplete: false,
         configPath: 'config.yml',
         includeConnections: true,
@@ -121,7 +122,7 @@ describe('extractDraftComponents', () => {
 
   describe('result forwarding', () => {
     it('returns the extraction result', () => {
-      const result = extractDraftComponents({
+      const result = new ExtractDraftComponents(new ExtractionProjectRepository()).execute({
         allowIncomplete: true,
         configPath: 'config.yml',
         includeConnections: false,

@@ -1,5 +1,5 @@
 import {
-  location, role, roleEnforcement 
+  createRoleFactory, location, role, roleEnforcement 
 } from './role-enforcement-builder'
 
 describe('role', () => {
@@ -44,6 +44,21 @@ describe('role', () => {
     })
   })
 
+  it('includes maxPublicMethods when provided', () => {
+    const result = role('command-use-case', {
+      targets: ['class'],
+      minPublicMethods: 1,
+      maxPublicMethods: 1,
+    })
+
+    expect(result).toStrictEqual({
+      name: 'command-use-case',
+      targets: ['class'],
+      minPublicMethods: 1,
+      maxPublicMethods: 1,
+    })
+  })
+
   it('includes approvedInstances when provided', () => {
     const result = role('aggregate', {
       targets: ['interface', 'type-alias', 'class'],
@@ -67,6 +82,48 @@ describe('role', () => {
         },
       ],
     })
+  })
+
+  it('includes forbiddenMethodCalls when provided', () => {
+    const result = role('main', {
+      targets: ['function'],
+      forbiddenMethodCalls: ['command-use-case', 'aggregate-repository'],
+    })
+
+    expect(result).toStrictEqual({
+      name: 'main',
+      targets: ['function'],
+      forbiddenMethodCalls: ['command-use-case', 'aggregate-repository'],
+    })
+  })
+})
+
+describe('createRoleFactory', () => {
+  it('produces a role with typed name constraint', () => {
+    type TestRole = 'aggregate' | 'aggregate-repository'
+    const typedRole = createRoleFactory<TestRole>()
+
+    const result = typedRole('aggregate', { targets: ['class'] })
+
+    expect(result).toStrictEqual({
+      name: 'aggregate',
+      targets: ['class'],
+    })
+  })
+
+  it('type-checks role references in options', () => {
+    type TestRole = 'command-use-case' | 'command-use-case-input' | 'command-use-case-result'
+    const typedRole = createRoleFactory<TestRole>()
+
+    const result = typedRole('command-use-case', {
+      targets: ['class'],
+      allowedInputs: ['command-use-case-input'],
+      allowedOutputs: ['command-use-case-result'],
+      forbiddenDependencies: ['command-use-case'],
+    })
+
+    expect(result.allowedInputs).toStrictEqual(['command-use-case-input'])
+    expect(result.forbiddenDependencies).toStrictEqual(['command-use-case'])
   })
 })
 

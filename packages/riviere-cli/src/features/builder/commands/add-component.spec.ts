@@ -5,7 +5,8 @@ import { join } from 'node:path'
 import {
   describe, expect, it 
 } from 'vitest'
-import { addComponent } from './add-component'
+import { AddComponent } from './add-component'
+import { RiviereBuilderRepository } from '../infra/persistence/riviere-builder-repository'
 import type { AddComponentErrorCode } from './add-component-result'
 import {
   type TestContext,
@@ -51,7 +52,7 @@ describe('addComponent command', () => {
       ['special chars', 'UI<script>'],
       ['typo', 'UseCasee'],
     ])('returns VALIDATION_ERROR when componentType is %s', async (_label, value) => {
-      const result = await addComponent({
+      const result = await new AddComponent(new RiviereBuilderRepository()).execute({
         ...inputWithGraphPath(),
         componentType: value,
       })
@@ -72,7 +73,7 @@ describe('addComponent command', () => {
       ['negative', -1],
       ['zero', 0],
     ])('returns VALIDATION_ERROR when lineNumber is %s', async (_label, value) => {
-      const result = await addComponent({
+      const result = await new AddComponent(new RiviereBuilderRepository()).execute({
         ...inputWithGraphPath(),
         lineNumber: value,
       })
@@ -88,7 +89,7 @@ describe('addComponent command', () => {
       ['typical', 42],
       ['large', Number.MAX_SAFE_INTEGER],
     ])('valid lineNumber (%s) reaches graph check', async (_label, value) => {
-      const result = await addComponent({
+      const result = await new AddComponent(new RiviereBuilderRepository()).execute({
         ...inputWithGraphPath(),
         lineNumber: value,
       })
@@ -103,7 +104,9 @@ describe('addComponent command', () => {
       await mkdir(graphDir, { recursive: true })
       await writeFile(join(graphDir, 'graph.json'), 'not valid json {{{', 'utf-8')
 
-      const result = await addComponent(inputWithGraphPath())
+      const result = await new AddComponent(new RiviereBuilderRepository()).execute(
+        inputWithGraphPath(),
+      )
 
       expect(result).toMatchObject({
         ...failureShape('VALIDATION_ERROR'),
@@ -116,7 +119,9 @@ describe('addComponent command', () => {
     it('returns componentId for UI component in valid graph', async () => {
       await createGraphWithDomain(ctx.testDir, 'test-domain')
 
-      const result = await addComponent(inputWithGraphPath())
+      const result = await new AddComponent(new RiviereBuilderRepository()).execute(
+        inputWithGraphPath(),
+      )
 
       expect(result).toMatchObject({
         success: true,
@@ -129,7 +134,9 @@ describe('addComponent command', () => {
     it('returns DOMAIN_NOT_FOUND when domain does not exist', async () => {
       await createGraphWithDomain(ctx.testDir, 'other-domain')
 
-      const result = await addComponent(inputWithGraphPath())
+      const result = await new AddComponent(new RiviereBuilderRepository()).execute(
+        inputWithGraphPath(),
+      )
 
       expect(result).toMatchObject(failureShape('DOMAIN_NOT_FOUND'))
     })

@@ -1,27 +1,30 @@
 # query-use-case
 
 ## Purpose
-A function that orchestrates a read-only operation: loading a query model and returning computed results without side effects.
+A class that orchestrates a read-only operation: loading a query model and returning computed results without side effects. Dependencies are injected via constructor.
 
 ## Behavioral Contract
-A query use case follows this sequence:
-1. **Load** — instantiate a query-model-loader, load the query model from persisted state
+A query use case class has exactly one public method (`execute`) that follows this sequence:
+1. **Load** — use the injected query-model-loader to load the query model from persisted state
 2. **Query** — call method(s) on the query model to compute results
 3. **Return** — return a typed result (query-use-case-result)
 
 No state is modified. No saving occurs. The query model is never mutated.
 
-The function accepts exactly one parameter typed as a `query-use-case-input`.
+The `execute` method accepts exactly one parameter typed as a `query-use-case-input`.
 
 ## Examples
 
 ### Canonical Example
 ```typescript
 /** @riviere-role query-use-case */
-export function listDomains(input: ListDomainsInput): ListDomainsResult {
-  const loader = new RiviereQueryLoader()
-  const query = loader.load(input.graphPathOption)
-  return { domains: query.domains() }
+export class ListDomains {
+  constructor(private readonly repository: RiviereQueryRepository) {}
+
+  execute(input: ListDomainsInput): ListDomainsResult {
+    const query = this.repository.load(input.graphPathOption)
+    return { domains: query.domains() }
+  }
 }
 ```
 
@@ -40,6 +43,7 @@ export function listDomains(input: ListDomainsInput): ListDomainsResult {
 - If the function modifies state or saves anything — it is a command-use-case, not a query
 - If the function formats output for display — cli-output-formatter responsibility leaking in
 - If the function constructs the input from CLI flags — command-input-factory responsibility leaking in
+- Instantiating query-model-loaders with `new` inside the execute method — dependencies must be constructor-injected
 
 ## Decision Guidance
 - **vs command-use-case**: Does it modify or save state? → command-use-case. Read-only with no side effects? → query-use-case

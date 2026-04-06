@@ -3,8 +3,11 @@ import type { ListDomainsInput } from './list-domains-input'
 import type { ListDomainsResult } from './list-domains-result'
 
 /** @riviere-role query-use-case */
-export function listDomains(input: ListDomainsInput): ListDomainsResult {
-  const repository = new RiviereQueryRepository()
-  const query = repository.load(input.graphPathOption)
-  return { domains: query.domains() }
+export class ListDomains {
+  constructor(private readonly repository: RiviereQueryRepository) {}
+
+  execute(input: ListDomainsInput): ListDomainsResult {
+    const query = this.repository.load(input.graphPathOption)
+    return { domains: query.domains() }
+  }
 }

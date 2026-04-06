@@ -33,9 +33,11 @@ describe('query entrypoints rethrow unknown errors', () => {
 
   it('rethrows unknown list-components errors', async () => {
     vi.doMock('../queries/list-components', () => ({
-      listComponents: vi.fn(() => {
-        throw new UnexpectedQueryEntrypointError('unexpected failure')
-      }),
+      ListComponents: class {
+        execute() {
+          throw new UnexpectedQueryEntrypointError('unexpected failure')
+        }
+      },
     }))
     vi.doMock('../../../platform/infra/cli/presentation/query-graph-load-error-handler', () => ({handleQueryGraphLoadError: vi.fn(() => false),}))
     await expectRethrow(
@@ -46,9 +48,11 @@ describe('query entrypoints rethrow unknown errors', () => {
 
   it('rethrows unknown list-domains errors', async () => {
     vi.doMock('../queries/list-domains', () => ({
-      listDomains: vi.fn(() => {
-        throw new UnexpectedQueryEntrypointError('unexpected failure')
-      }),
+      ListDomains: class {
+        execute() {
+          throw new UnexpectedQueryEntrypointError('unexpected failure')
+        }
+      },
     }))
     vi.doMock('../../../platform/infra/cli/presentation/query-graph-load-error-handler', () => ({handleQueryGraphLoadError: vi.fn(() => false),}))
     await expectRethrow(
@@ -59,9 +63,11 @@ describe('query entrypoints rethrow unknown errors', () => {
 
   it('rethrows unknown list-entry-points errors', async () => {
     vi.doMock('../queries/list-entry-points', () => ({
-      listEntryPoints: vi.fn(() => {
-        throw new UnexpectedQueryEntrypointError('unexpected failure')
-      }),
+      ListEntryPoints: class {
+        execute() {
+          throw new UnexpectedQueryEntrypointError('unexpected failure')
+        }
+      },
     }))
     vi.doMock('../../../platform/infra/cli/presentation/query-graph-load-error-handler', () => ({handleQueryGraphLoadError: vi.fn(() => false),}))
     await expectRethrow(
@@ -72,9 +78,11 @@ describe('query entrypoints rethrow unknown errors', () => {
 
   it('rethrows unknown orphan errors', async () => {
     vi.doMock('../queries/detect-orphans', () => ({
-      detectOrphans: vi.fn(() => {
-        throw new UnexpectedQueryEntrypointError('unexpected failure')
-      }),
+      DetectOrphans: class {
+        execute() {
+          throw new UnexpectedQueryEntrypointError('unexpected failure')
+        }
+      },
     }))
     vi.doMock('../../../platform/infra/cli/presentation/query-graph-load-error-handler', () => ({handleQueryGraphLoadError: vi.fn(() => false),}))
     await expectRethrow(
@@ -85,9 +93,11 @@ describe('query entrypoints rethrow unknown errors', () => {
 
   it('rethrows unknown search errors', async () => {
     vi.doMock('../queries/search-components', () => ({
-      searchComponents: vi.fn(() => {
-        throw new UnexpectedQueryEntrypointError('unexpected failure')
-      }),
+      SearchComponents: class {
+        execute() {
+          throw new UnexpectedQueryEntrypointError('unexpected failure')
+        }
+      },
     }))
     vi.doMock('../../../platform/infra/cli/presentation/query-graph-load-error-handler', () => ({handleQueryGraphLoadError: vi.fn(() => false),}))
     await expectRethrow(
@@ -98,9 +108,11 @@ describe('query entrypoints rethrow unknown errors', () => {
 
   it('rethrows unknown trace errors', async () => {
     vi.doMock('../queries/trace-flow', () => ({
-      traceFlow: vi.fn(() => {
-        throw new UnexpectedQueryEntrypointError('unexpected failure')
-      }),
+      TraceFlow: class {
+        execute() {
+          throw new UnexpectedQueryEntrypointError('unexpected failure')
+        }
+      },
     }))
     vi.doMock('../../../platform/infra/cli/presentation/query-graph-load-error-handler', () => ({handleQueryGraphLoadError: vi.fn(() => false),}))
     await expectRethrow(

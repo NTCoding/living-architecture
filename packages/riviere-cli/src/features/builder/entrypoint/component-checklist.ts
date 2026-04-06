@@ -5,7 +5,7 @@ import {
 } from '../../../platform/infra/cli/presentation/output'
 import { CliErrorCode } from '../../../platform/infra/cli/presentation/error-codes'
 import { isValidComponentType } from '../../../platform/infra/cli/input/component-types'
-import { componentChecklist } from '../commands/component-checklist'
+import type { ComponentChecklist } from '../commands/component-checklist'
 
 interface ComponentChecklistOptions {
   graph?: string
@@ -14,7 +14,7 @@ interface ComponentChecklistOptions {
 }
 
 /** @riviere-role cli-entrypoint */
-export function createComponentChecklistCommand(): Command {
+export function createComponentChecklistCommand(componentChecklist: ComponentChecklist): Command {
   return new Command('component-checklist')
     .description('List components as a checklist for linking/enrichment')
     .addHelpText(
@@ -43,7 +43,7 @@ Examples:
         return
       }
 
-      const result = await componentChecklist({
+      const result = await componentChecklist.execute({
         graphPathOption: options.graph,
         type: options.type,
       })

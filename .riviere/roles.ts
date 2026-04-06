@@ -1,12 +1,42 @@
-import { role } from '@living-architecture/riviere-role-enforcement'
+import { createRoleFactory } from '@living-architecture/riviere-role-enforcement'
+
+type RoleName =
+  | 'aggregate'
+  | 'aggregate-repository'
+  | 'cli-entrypoint'
+  | 'cli-error'
+  | 'cli-input-validator'
+  | 'cli-output-formatter'
+  | 'command-input-factory'
+  | 'command-use-case'
+  | 'command-use-case-input'
+  | 'command-use-case-result'
+  | 'command-use-case-result-value'
+  | 'domain-error'
+  | 'domain-service'
+  | 'external-client-error'
+  | 'external-client-model'
+  | 'external-client-service'
+  | 'main'
+  | 'query-model'
+  | 'query-model-loader'
+  | 'query-use-case'
+  | 'query-use-case-input'
+  | 'query-use-case-result'
+  | 'query-use-case-result-value'
+  | 'value-object'
+
+const role = createRoleFactory<RoleName>()
 
 export const allRoles = [
   role('cli-entrypoint', { targets: ['function'] }),
   role('command-use-case', {
-    targets: ['function'],
+    targets: ['class'],
     allowedInputs: ['command-use-case-input'],
     allowedOutputs: ['command-use-case-result'],
     forbiddenDependencies: ['command-use-case'],
+    minPublicMethods: 1,
+    maxPublicMethods: 1,
   }),
   role('command-use-case-input', {
     targets: ['interface', 'type-alias'],
@@ -48,10 +78,12 @@ export const allRoles = [
   role('domain-error', { targets: ['class'] }),
   role('domain-service', { targets: ['function'] }),
   role('query-use-case', {
-    targets: ['function'],
+    targets: ['class'],
     allowedInputs: ['query-use-case-input'],
     allowedOutputs: ['query-use-case-result'],
     forbiddenDependencies: ['query-use-case'],
+    minPublicMethods: 1,
+    maxPublicMethods: 1,
   }),
   role('query-use-case-input', {
     targets: ['interface', 'type-alias'],
@@ -75,7 +107,10 @@ export const allRoles = [
   role('external-client-error', { targets: ['class'] }),
   role('cli-input-validator', { targets: ['function'] }),
   role('cli-error', { targets: ['class'] }),
-  role('main', { targets: ['function'] }),
+  role('main', {
+    targets: ['function'],
+    forbiddenMethodCalls: ['command-use-case', 'aggregate-repository', 'query-model-loader'],
+  }),
 ] as const
 
-export type RoleName = (typeof allRoles)[number]['name']
+export type { RoleName }

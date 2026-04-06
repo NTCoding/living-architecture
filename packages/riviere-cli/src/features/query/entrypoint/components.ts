@@ -11,7 +11,7 @@ import {
 } from '../../../platform/infra/cli/input/component-types'
 import { handleQueryGraphLoadError } from '../../../platform/infra/cli/presentation/query-graph-load-error-handler'
 import { toComponentOutput } from '../../../platform/infra/cli/presentation/component-output'
-import { listComponents } from '../queries/list-components'
+import type { ListComponents } from '../queries/list-components'
 
 interface ComponentsOptions {
   graph?: string
@@ -21,7 +21,7 @@ interface ComponentsOptions {
 }
 
 /** @riviere-role cli-entrypoint */
-export function createComponentsCommand(): Command {
+export function createComponentsCommand(listComponents: ListComponents): Command {
   return new Command('components')
     .description('List components with optional filtering')
     .addHelpText(
@@ -50,7 +50,7 @@ Examples:
       }
 
       try {
-        const result = await listComponents({
+        const result = await listComponents.execute({
           domain: options.domain,
           graphPathOption: options.graph,
           type:

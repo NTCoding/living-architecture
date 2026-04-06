@@ -6,7 +6,7 @@ import { CliErrorCode } from '../../../platform/infra/cli/presentation/error-cod
 import { getDefaultGraphPathDescription } from '../../../platform/infra/cli/presentation/graph-path-option'
 import { collectOption } from '../../../platform/infra/cli/input/option-collectors'
 import { parseDomainJson } from '../../../platform/infra/cli/input/domain-input-parser'
-import { initGraph } from '../commands/init-graph'
+import type { InitGraph } from '../commands/init-graph'
 
 interface InitOptions {
   name?: string
@@ -23,7 +23,7 @@ interface DomainInputParsed {
 }
 
 /** @riviere-role cli-entrypoint */
-export function createInitCommand(): Command {
+export function createInitCommand(initGraph: InitGraph): Command {
   return new Command('init')
     .description('Initialize a new graph')
     .addHelpText(
@@ -77,7 +77,7 @@ Examples:
         systemType,
       }))
 
-      const result = await initGraph({
+      const result = await initGraph.execute({
         domains,
         graphPathOption: options.graph,
         name: options.name,

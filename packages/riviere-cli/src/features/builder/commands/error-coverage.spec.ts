@@ -14,17 +14,17 @@ import {
 } from '../../../platform/__fixtures__/command-test-fixtures'
 import * as addComponentDomain from '../../../platform/domain/add-component'
 import * as apiQueries from '../domain/api-component-queries'
-import { addComponent } from './add-component'
-import { addDomain } from './add-domain'
-import { addSource } from './add-source'
-import { checkConsistency } from './check-consistency'
-import { componentSummary } from './component-summary'
-import { defineCustomType } from './define-custom-type'
-import { enrichComponent } from './enrich-component'
-import { linkComponents } from './link-components'
-import { linkExternal } from './link-external'
-import { linkHttp } from './link-http'
-import { validateGraph } from './validate-graph'
+import { AddComponent } from './add-component'
+import { AddDomain } from './add-domain'
+import { AddSource } from './add-source'
+import { CheckConsistency } from './check-consistency'
+import { ComponentSummary } from './component-summary'
+import { DefineCustomType } from './define-custom-type'
+import { EnrichComponent } from './enrich-component'
+import { LinkComponents } from './link-components'
+import { LinkExternal } from './link-external'
+import { LinkHttp } from './link-http'
+import { ValidateGraph } from './validate-graph'
 import { RiviereBuilderRepository } from '../infra/persistence/riviere-builder-repository'
 
 class UnexpectedBuilderFailure extends Error {
@@ -68,8 +68,9 @@ describe('builder command coverage', () => {
   it('returns graph corrupted for add-source and check-consistency', async () => {
     const graphPath = await createInvalidGraphPath(ctx.testDir)
 
+    const repo = new RiviereBuilderRepository()
     expect(
-      addSource({
+      new AddSource(repo).execute({
         graphPathOption: graphPath,
         repository: 'https://github.com/org/repo',
       }),
@@ -77,7 +78,7 @@ describe('builder command coverage', () => {
       code: 'GRAPH_CORRUPTED',
       success: false,
     })
-    expect(checkConsistency({ graphPathOption: graphPath })).toMatchObject({
+    expect(new CheckConsistency(repo).execute({ graphPathOption: graphPath })).toMatchObject({
       code: 'GRAPH_CORRUPTED',
       success: false,
     })
@@ -86,11 +87,12 @@ describe('builder command coverage', () => {
   it('returns graph corrupted for component-summary and validate-graph', async () => {
     const graphPath = await createInvalidGraphPath(ctx.testDir)
 
-    expect(componentSummary({ graphPathOption: graphPath })).toMatchObject({
+    const repo = new RiviereBuilderRepository()
+    expect(new ComponentSummary(repo).execute({ graphPathOption: graphPath })).toMatchObject({
       code: 'GRAPH_CORRUPTED',
       success: false,
     })
-    expect(validateGraph({ graphPathOption: graphPath })).toMatchObject({
+    expect(new ValidateGraph(repo).execute({ graphPathOption: graphPath })).toMatchObject({
       code: 'GRAPH_CORRUPTED',
       success: false,
     })
@@ -100,7 +102,7 @@ describe('builder command coverage', () => {
     const graphPath = await createInvalidGraphPath(ctx.testDir)
 
     expect(
-      addDomain({
+      new AddDomain(new RiviereBuilderRepository()).execute({
         description: 'Orders',
         graphPathOption: graphPath,
         name: 'orders',
@@ -120,7 +122,7 @@ describe('builder command coverage', () => {
     })
 
     expect(() =>
-      defineCustomType({
+      new DefineCustomType(new RiviereBuilderRepository()).execute({
         description: undefined,
         graphPathOption: undefined,
         name: 'Queue',
@@ -150,7 +152,7 @@ describe('builder command coverage', () => {
     })
 
     expect(() =>
-      enrichComponent({
+      new EnrichComponent(new RiviereBuilderRepository()).execute({
         businessRules: [],
         entity: undefined,
         emits: [],
@@ -164,7 +166,7 @@ describe('builder command coverage', () => {
       }),
     ).toThrow('enrich explode')
     expect(() =>
-      linkComponents({
+      new LinkComponents(new RiviereBuilderRepository()).execute({
         from: 'a',
         graphPathOption: undefined,
         to: 'b',
@@ -172,7 +174,7 @@ describe('builder command coverage', () => {
       }),
     ).toThrow('link explode')
     expect(() =>
-      linkExternal({
+      new LinkExternal(new RiviereBuilderRepository()).execute({
         from: 'a',
         graphPathOption: undefined,
         target: { name: 'Stripe' },
@@ -185,7 +187,7 @@ describe('builder command coverage', () => {
     const graphPath = await createInvalidGraphPath(ctx.testDir)
 
     expect(
-      linkHttp({
+      new LinkHttp(new RiviereBuilderRepository()).execute({
         graphPathOption: graphPath,
         httpMethod: undefined,
         linkType: undefined,
@@ -231,7 +233,7 @@ describe('builder command coverage', () => {
     vi.spyOn(apiQueries, 'findApisByPath').mockReturnValue(matchingApis)
 
     expect(
-      linkHttp({
+      new LinkHttp(new RiviereBuilderRepository()).execute({
         graphPathOption: undefined,
         httpMethod: undefined,
         linkType: undefined,
@@ -253,7 +255,7 @@ describe('builder command coverage', () => {
     })
 
     expect(
-      addComponent({
+      new AddComponent(new RiviereBuilderRepository()).execute({
         componentType: 'UI',
         domain: 'orders',
         filePath: 'src/checkout.tsx',
@@ -277,7 +279,7 @@ describe('builder command coverage', () => {
     })
 
     expect(() =>
-      addComponent({
+      new AddComponent(new RiviereBuilderRepository()).execute({
         componentType: 'UI',
         domain: 'orders',
         filePath: 'src/checkout.tsx',
@@ -294,22 +296,25 @@ describe('builder command coverage', () => {
       throw new UnexpectedBuilderFailure('unexpected load failure')
     })
 
+    const repo = new RiviereBuilderRepository()
     expect(() =>
-      addSource({
+      new AddSource(repo).execute({
         graphPathOption: undefined,
         repository: 'https://github.com/org/repo',
       }),
     ).toThrow('unexpected load failure')
 
-    expect(() => checkConsistency({ graphPathOption: undefined })).toThrow(
+    expect(() => new CheckConsistency(repo).execute({ graphPathOption: undefined })).toThrow(
       'unexpected load failure',
     )
 
-    expect(() => componentSummary({ graphPathOption: undefined })).toThrow(
+    expect(() => new ComponentSummary(repo).execute({ graphPathOption: undefined })).toThrow(
       'unexpected load failure',
     )
 
-    expect(() => validateGraph({ graphPathOption: undefined })).toThrow('unexpected load failure')
+    expect(() => new ValidateGraph(repo).execute({ graphPathOption: undefined })).toThrow(
+      'unexpected load failure',
+    )
   })
 
   it('rethrows unknown load errors from link-http', () => {
@@ -318,7 +323,7 @@ describe('builder command coverage', () => {
     })
 
     expect(() =>
-      linkHttp({
+      new LinkHttp(new RiviereBuilderRepository()).execute({
         graphPathOption: undefined,
         httpMethod: undefined,
         linkType: undefined,

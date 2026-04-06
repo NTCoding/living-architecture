@@ -5,7 +5,7 @@ import {
 } from '../../../platform/infra/cli/presentation/output'
 import { CliErrorCode } from '../../../platform/infra/cli/presentation/error-codes'
 import { getDefaultGraphPathDescription } from '../../../platform/infra/cli/presentation/graph-path-option'
-import { finalizeGraph } from '../commands/finalize-graph'
+import type { FinalizeGraph } from '../commands/finalize-graph'
 
 interface FinalizeOptions {
   graph?: string
@@ -14,7 +14,7 @@ interface FinalizeOptions {
 }
 
 /** @riviere-role cli-entrypoint */
-export function createFinalizeCommand(): Command {
+export function createFinalizeCommand(finalizeGraph: FinalizeGraph): Command {
   return new Command('finalize')
     .description('Validate and export the final graph')
     .addHelpText(
@@ -30,7 +30,7 @@ Examples:
     .option('--output <path>', 'Output path for finalized graph (defaults to input path)')
     .option('--json', 'Output result as JSON')
     .action(async (options: FinalizeOptions) => {
-      const result = await finalizeGraph({ graphPathOption: options.graph })
+      const result = await finalizeGraph.execute({ graphPathOption: options.graph })
       if (!result.success) {
         const errorCodeByResult = {
           GRAPH_CORRUPTED: CliErrorCode.GraphCorrupted,

@@ -11,13 +11,13 @@ import {
   createTestContext,
   setupCommandTest,
 } from '../../../platform/__fixtures__/command-test-fixtures'
-import { componentChecklist } from './component-checklist'
-import { defineCustomType } from './define-custom-type'
-import { enrichComponent } from './enrich-component'
-import { finalizeGraph } from './finalize-graph'
-import { initGraph } from './init-graph'
-import { linkComponents } from './link-components'
-import { linkExternal } from './link-external'
+import { ComponentChecklist } from './component-checklist'
+import { DefineCustomType } from './define-custom-type'
+import { EnrichComponent } from './enrich-component'
+import { FinalizeGraph } from './finalize-graph'
+import { InitGraph } from './init-graph'
+import { LinkComponents } from './link-components'
+import { LinkExternal } from './link-external'
 import { RiviereBuilderRepository } from '../infra/persistence/riviere-builder-repository'
 
 class UnexpectedError extends Error {
@@ -57,15 +57,16 @@ describe('additional builder command coverage', () => {
   it('returns graph corrupted for checklist, finalize, link components, and link external', async () => {
     const graphPath = await createInvalidGraph(ctx.testDir)
 
+    const repo = new RiviereBuilderRepository()
     expect(
-      componentChecklist({
+      new ComponentChecklist(repo).execute({
         graphPathOption: graphPath,
         type: undefined,
       }),
     ).toMatchObject({ code: 'GRAPH_CORRUPTED' })
-    expect(finalizeGraph({ graphPathOption: graphPath })).toMatchObject({ code: 'GRAPH_CORRUPTED' })
+    expect(new FinalizeGraph(repo).execute({ graphPathOption: graphPath })).toMatchObject({code: 'GRAPH_CORRUPTED',})
     expect(
-      linkComponents({
+      new LinkComponents(repo).execute({
         from: 'a',
         graphPathOption: graphPath,
         to: 'b',
@@ -73,7 +74,7 @@ describe('additional builder command coverage', () => {
       }),
     ).toMatchObject({ code: 'GRAPH_CORRUPTED' })
     expect(
-      linkExternal({
+      new LinkExternal(repo).execute({
         from: 'a',
         graphPathOption: graphPath,
         target: { name: 'Stripe' },
@@ -88,7 +89,7 @@ describe('additional builder command coverage', () => {
     vi.spyOn(RiviereBuilderRepository.prototype, 'load').mockReturnValue(builder)
 
     expect(
-      defineCustomType({
+      new DefineCustomType(new RiviereBuilderRepository()).execute({
         description: undefined,
         graphPathOption: undefined,
         name: 'Queue',
@@ -104,8 +105,9 @@ describe('additional builder command coverage', () => {
   it('returns graph not found for define-custom-type and enrich-component', () => {
     const missingGraphPath = join(ctx.testDir, 'missing.json')
 
+    const repo = new RiviereBuilderRepository()
     expect(
-      defineCustomType({
+      new DefineCustomType(repo).execute({
         description: undefined,
         graphPathOption: missingGraphPath,
         name: 'Queue',
@@ -118,7 +120,7 @@ describe('additional builder command coverage', () => {
     })
 
     expect(
-      enrichComponent({
+      new EnrichComponent(repo).execute({
         businessRules: [],
         entity: undefined,
         emits: [],
@@ -141,7 +143,7 @@ describe('additional builder command coverage', () => {
     const enrichSpy = vi.spyOn(builder, 'enrichComponent').mockImplementation(() => undefined)
     vi.spyOn(RiviereBuilderRepository.prototype, 'load').mockReturnValue(builder)
 
-    enrichComponent({
+    new EnrichComponent(new RiviereBuilderRepository()).execute({
       businessRules: [],
       entity: undefined,
       emits: [],
@@ -162,7 +164,7 @@ describe('additional builder command coverage', () => {
     const enrichSpy = vi.spyOn(builder, 'enrichComponent').mockImplementation(() => undefined)
     vi.spyOn(RiviereBuilderRepository.prototype, 'load').mockReturnValue(builder)
 
-    enrichComponent({
+    new EnrichComponent(new RiviereBuilderRepository()).execute({
       businessRules: [],
       entity: undefined,
       emits: [],
@@ -181,8 +183,9 @@ describe('additional builder command coverage', () => {
   it('returns graph corrupted for define-custom-type and enrich-component', async () => {
     const graphPath = await createInvalidGraph(ctx.testDir)
 
+    const repo = new RiviereBuilderRepository()
     expect(
-      defineCustomType({
+      new DefineCustomType(repo).execute({
         description: undefined,
         graphPathOption: graphPath,
         name: 'Queue',
@@ -195,7 +198,7 @@ describe('additional builder command coverage', () => {
     })
 
     expect(
-      enrichComponent({
+      new EnrichComponent(repo).execute({
         businessRules: [],
         entity: undefined,
         emits: [],
@@ -218,17 +221,20 @@ describe('additional builder command coverage', () => {
       throw new UnexpectedError('unexpected')
     })
 
+    const repo = new RiviereBuilderRepository()
     expect(() =>
-      componentChecklist({
+      new ComponentChecklist(repo).execute({
         graphPathOption: undefined,
         type: undefined,
       }),
     ).toThrow('unexpected')
 
-    expect(() => finalizeGraph({ graphPathOption: undefined })).toThrow('unexpected')
+    expect(() => new FinalizeGraph(repo).execute({ graphPathOption: undefined })).toThrow(
+      'unexpected',
+    )
 
     expect(() =>
-      initGraph({
+      new InitGraph(repo).execute({
         domains: [
           {
             description: 'Orders',

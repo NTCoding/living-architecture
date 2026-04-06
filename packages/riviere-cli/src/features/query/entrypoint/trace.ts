@@ -5,7 +5,7 @@ import {
 import { CliErrorCode } from '../../../platform/infra/cli/presentation/error-codes'
 import { getDefaultGraphPathDescription } from '../../../platform/infra/cli/presentation/graph-path-option'
 import { handleQueryGraphLoadError } from '../../../platform/infra/cli/presentation/query-graph-load-error-handler'
-import { traceFlow } from '../queries/trace-flow'
+import type { TraceFlow } from '../queries/trace-flow'
 
 interface TraceOptions {
   graph?: string
@@ -13,7 +13,7 @@ interface TraceOptions {
 }
 
 /** @riviere-role cli-entrypoint */
-export function createTraceCommand(): Command {
+export function createTraceCommand(traceFlow: TraceFlow): Command {
   return new Command('trace')
     .description('Trace flow from a component (bidirectional)')
     .addHelpText(
@@ -29,7 +29,7 @@ Examples:
     .option('--json', 'Output result as JSON')
     .action(async (componentIdArg: string, options: TraceOptions) => {
       try {
-        const result = await traceFlow({
+        const result = await traceFlow.execute({
           componentId: componentIdArg,
           graphPathOption: options.graph,
         })

@@ -8,7 +8,7 @@ import {
   isValidSystemType,
   VALID_SYSTEM_TYPES,
 } from '../../../platform/infra/cli/input/component-types'
-import { addDomain } from '../commands/add-domain'
+import type { AddDomain } from '../commands/add-domain'
 
 interface AddDomainOptions {
   name: string
@@ -19,7 +19,7 @@ interface AddDomainOptions {
 }
 
 /** @riviere-role cli-entrypoint */
-export function createAddDomainCommand(): Command {
+export function createAddDomainCommand(addDomain: AddDomain): Command {
   return new Command('add-domain')
     .description('Add a domain to the graph')
     .addHelpText(
@@ -51,7 +51,7 @@ Examples:
         )
         return
       }
-      const result = await addDomain({
+      const result = await addDomain.execute({
         description: options.description,
         graphPathOption: options.graph,
         name: options.name,

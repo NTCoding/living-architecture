@@ -13,7 +13,7 @@ import {
   validateLinkType,
 } from '../../../platform/infra/cli/input/validation'
 import { CliErrorCode } from '../../../platform/infra/cli/presentation/error-codes'
-import { linkComponents } from '../commands/link-components'
+import type { LinkComponents } from '../commands/link-components'
 
 interface LinkOptions {
   from: string
@@ -27,7 +27,7 @@ interface LinkOptions {
 }
 
 /** @riviere-role cli-entrypoint */
-export function createLinkCommand(): Command {
+export function createLinkCommand(linkComponents: LinkComponents): Command {
   return new Command('link')
     .description('Link two components')
     .addHelpText(
@@ -74,7 +74,7 @@ Examples:
           ? options.linkType
           : undefined
 
-      const result = await linkComponents({
+      const result = await linkComponents.execute({
         from: options.from,
         graphPathOption: options.graph,
         to: ComponentId.create({

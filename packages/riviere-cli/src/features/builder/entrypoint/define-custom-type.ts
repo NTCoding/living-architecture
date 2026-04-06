@@ -6,7 +6,7 @@ import {
 import { CliErrorCode } from '../../../platform/infra/cli/presentation/error-codes'
 import { parsePropertySpecs } from '../../../platform/infra/cli/input/custom-type-parser'
 import { collectOption } from '../../../platform/infra/cli/input/option-collectors'
-import { defineCustomType } from '../commands/define-custom-type'
+import type { DefineCustomType } from '../commands/define-custom-type'
 
 interface DefineCustomTypeOptions {
   name: string
@@ -18,7 +18,7 @@ interface DefineCustomTypeOptions {
 }
 
 /** @riviere-role cli-entrypoint */
-export function createDefineCustomTypeCommand(): Command {
+export function createDefineCustomTypeCommand(defineCustomType: DefineCustomType): Command {
   return new Command('define-custom-type')
     .description('Define a custom component type')
     .requiredOption('--name <name>', 'Custom type name')
@@ -54,7 +54,7 @@ export function createDefineCustomTypeCommand(): Command {
         return
       }
 
-      const result = await defineCustomType({
+      const result = await defineCustomType.execute({
         description: options.description,
         graphPathOption: options.graph,
         name: options.name,

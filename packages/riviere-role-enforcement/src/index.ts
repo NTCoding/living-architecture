@@ -1,5 +1,8 @@
 export {
-  location, role, roleEnforcement 
+  createRoleFactory,
+  location,
+  role,
+  roleEnforcement,
 } from './config/role-enforcement-builder'
 export type {
   BuiltLocation,

@@ -7,23 +7,25 @@ import type {
 } from './component-summary-result'
 
 /** @riviere-role command-use-case */
-export function componentSummary(input: ComponentSummaryInput): ComponentSummaryResult {
-  const repository = new RiviereBuilderRepository()
+export class ComponentSummary {
+  constructor(private readonly repository: RiviereBuilderRepository) {}
 
-  try {
-    const builder = repository.load(input.graphPathOption)
-    return {
-      ...builder.stats(),
-      success: true,
+  execute(input: ComponentSummaryInput): ComponentSummaryResult {
+    try {
+      const builder = this.repository.load(input.graphPathOption)
+      return {
+        ...builder.stats(),
+        success: true,
+      }
+    } catch (error) {
+      if (error instanceof GraphNotFoundError) {
+        return failure('GRAPH_NOT_FOUND', error.message)
+      }
+      if (error instanceof GraphCorruptedError) {
+        return failure('GRAPH_CORRUPTED', 'Graph file contains invalid JSON')
+      }
+      throw error
     }
-  } catch (error) {
-    if (error instanceof GraphNotFoundError) {
-      return failure('GRAPH_NOT_FOUND', error.message)
-    }
-    if (error instanceof GraphCorruptedError) {
-      return failure('GRAPH_CORRUPTED', 'Graph file contains invalid JSON')
-    }
-    throw error
   }
 }
 

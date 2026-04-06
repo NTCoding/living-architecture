@@ -1,30 +1,31 @@
 # command-use-case
 
 ## Purpose
-A function that orchestrates a write-side workflow: loading state, invoking domain behavior, and returning a result.
+A class that orchestrates a write-side workflow: loading state, invoking domain behavior, and returning a result. Dependencies are injected via constructor.
 
 ## Behavioral Contract
-A command use case follows this sequence:
-1. **Load** — instantiate repository, load the aggregate from persisted state
+A command use case class has exactly one public method (`execute`) that follows this sequence:
+1. **Load** — use the injected repository to load the aggregate from persisted state
 2. **Invoke** — call a method on the aggregate to perform domain behavior
 3. **Return** — return a typed result (command-use-case-result)
 
 Optionally, between invoke and return:
 - **Save** — persist the modified aggregate back through the repository
 
-The function accepts exactly one parameter typed as a `command-use-case-input`.
+The `execute` method accepts exactly one parameter typed as a `command-use-case-input`.
 
 ## Examples
 
 ### Canonical Example
 ```typescript
 /** @riviere-role command-use-case */
-export function extractDraftComponents(
-  input: ExtractDraftComponentsInput,
-): ExtractDraftComponentsResult {
-  const repository = new ExtractionProjectRepository()
-  const project = repository.load(input)
-  return project.extractDraftComponents(input.options)
+export class ExtractDraftComponents {
+  constructor(private readonly repository: ExtractionProjectRepository) {}
+
+  execute(input: ExtractDraftComponentsInput): ExtractDraftComponentsResult {
+    const project = this.repository.load(input)
+    return project.extractDraftComponents(input.options)
+  }
 }
 ```
 
@@ -35,7 +36,7 @@ export function extractDraftComponents(
 ## Anti-Patterns
 
 ### Common Misclassifications
-- **Not a domain-service**: domain services contain pure business logic with no loading/saving. If it instantiates a repository or loads state, it is a command-use-case.
+- **Not a domain-service**: domain services contain pure business logic with no loading/saving. If it uses a repository to load state, it is a command-use-case.
 - **Not a cli-entrypoint**: entrypoints translate external input (CLI flags) into a command-use-case-input and call the command. They do not load aggregates.
 - **Not a command-input-factory**: factories construct the input object from raw external data. They do not invoke domain behavior.
 
@@ -45,6 +46,7 @@ export function extractDraftComponents(
 - Formatting or presenting results for output — cli-output-formatter responsibility leaking in
 - Constructing the input object from CLI flags — command-input-factory responsibility leaking in
 - Multiple unrelated aggregates being loaded and orchestrated — likely needs splitting into separate commands
+- Instantiating repositories with `new` inside the execute method — dependencies must be constructor-injected
 
 ## Decision Guidance
 - **vs domain-service**: Does it load/save through a repository? → command-use-case. Pure logic operating on passed-in data? → domain-service

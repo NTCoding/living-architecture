@@ -4,7 +4,7 @@ import { getDefaultGraphPathDescription } from '../../../platform/infra/cli/pres
 import {
   formatError, formatSuccess 
 } from '../../../platform/infra/cli/presentation/output'
-import { validateGraph } from '../commands/validate-graph'
+import type { ValidateGraph } from '../commands/validate-graph'
 
 interface ValidateOptions {
   graph?: string
@@ -12,7 +12,7 @@ interface ValidateOptions {
 }
 
 /** @riviere-role cli-entrypoint */
-export function createValidateCommand(): Command {
+export function createValidateCommand(validateGraph: ValidateGraph): Command {
   return new Command('validate')
     .description('Validate the graph for errors and warnings')
     .addHelpText(
@@ -27,7 +27,7 @@ Examples:
     .option('--graph <path>', getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .action(async (options: ValidateOptions) => {
-      const result = await validateGraph({ graphPathOption: options.graph })
+      const result = await validateGraph.execute({ graphPathOption: options.graph })
       if (!result.success) {
         console.log(
           JSON.stringify(

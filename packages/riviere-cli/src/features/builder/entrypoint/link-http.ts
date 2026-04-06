@@ -11,7 +11,7 @@ import {
 import { isValidHttpMethod } from '../../../platform/infra/cli/input/validation'
 import { validateOptions } from '../../../platform/infra/cli/input/link-http-validator'
 import { CliErrorCode } from '../../../platform/infra/cli/presentation/error-codes'
-import { linkHttp } from '../commands/link-http'
+import type { LinkHttp } from '../commands/link-http'
 
 interface LinkHttpOptions {
   path: string
@@ -26,7 +26,7 @@ interface LinkHttpOptions {
 }
 
 /** @riviere-role cli-entrypoint */
-export function createLinkHttpCommand(): Command {
+export function createLinkHttpCommand(linkHttp: LinkHttp): Command {
   return new Command('link-http')
     .description('Find an API by HTTP path and link to a target component')
     .addHelpText(
@@ -69,7 +69,7 @@ Examples:
           ? options.linkType
           : undefined
 
-      const result = await linkHttp({
+      const result = await linkHttp.execute({
         graphPathOption: options.graph,
         httpMethod,
         linkType,

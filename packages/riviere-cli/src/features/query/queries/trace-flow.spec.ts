@@ -9,7 +9,7 @@ import {
   createTestContext,
   setupCommandTest,
 } from '../../../platform/__fixtures__/command-test-fixtures'
-import { traceFlow } from './trace-flow'
+import { TraceFlow } from './trace-flow'
 import { RiviereQueryRepository } from '../infra/persistence/riviere-query-repository'
 
 describe('traceFlow command', () => {
@@ -50,7 +50,7 @@ describe('traceFlow command', () => {
     vi.spyOn(RiviereQueryRepository.prototype, 'load').mockReturnValue(query)
 
     expect(
-      traceFlow({
+      new TraceFlow(new RiviereQueryRepository()).execute({
         componentId: 'orders:checkout:usecase:place-orde',
         graphPathOption: undefined,
       }),

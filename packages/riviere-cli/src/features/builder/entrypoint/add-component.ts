@@ -6,7 +6,7 @@ import {
 } from '../../../platform/infra/cli/presentation/output'
 import { getAddComponentHints } from '../../../platform/infra/cli/presentation/add-component-hints'
 import { toAddComponentInput } from '../../../platform/infra/cli/input/add-component-options'
-import { addComponent } from '../commands/add-component'
+import type { AddComponent } from '../commands/add-component'
 import type { AddComponentErrorCode } from '../commands/add-component-result'
 
 interface CliOptions {
@@ -34,7 +34,7 @@ interface CliOptions {
 }
 
 /** @riviere-role cli-entrypoint */
-export function createAddComponentCommand(): Command {
+export function createAddComponentCommand(addComponent: AddComponent): Command {
   return new Command('add-component')
     .description('Add a component to the graph')
     .requiredOption(
@@ -67,7 +67,7 @@ export function createAddComponentCommand(): Command {
     .option('--graph <path>', getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .action(async (options: CliOptions) => {
-      const result = await addComponent(toAddComponentInput(options))
+      const result = await addComponent.execute(toAddComponentInput(options))
 
       if (!result.success) {
         const cliErrorCode = CLI_ERROR_CODES[result.code]

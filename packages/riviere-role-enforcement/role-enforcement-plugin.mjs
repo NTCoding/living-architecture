@@ -49,6 +49,7 @@ export default {
           },
           'Program:exit'() {
             validateForbiddenDependencies()
+            validateForbiddenMethodCalls()
           },
         }
 
@@ -190,6 +191,92 @@ export default {
           }
         }
 
+        function validateForbiddenMethodCalls() {
+          const forbiddenMethodCallRoles = collectForbiddenMethodCallRoles(fileRoles, roleMap)
+          if (forbiddenMethodCallRoles.size === 0) {
+            return
+          }
+
+          const restrictedBindings = new Map()
+          for (const statement of readRelativeImportStatements()) {
+            const resolvedFile = resolveTypeFile(filename, statement.source.value)
+            if (resolvedFile === null) {
+              continue
+            }
+            const importedRoles = readAllExportedRoles(resolvedFile)
+            const matchedRole = importedRoles.find((r) => forbiddenMethodCallRoles.has(r))
+            if (matchedRole === undefined) {
+              continue
+            }
+            for (const specifier of statement.specifiers ?? []) {
+              if (specifier.type === 'ImportSpecifier' || specifier.type === 'ImportDefaultSpecifier') {
+                restrictedBindings.set(specifier.local.name, matchedRole)
+              }
+            }
+          }
+
+          if (restrictedBindings.size === 0) {
+            return
+          }
+
+          const nonImportBody = sourceCode.ast.body.filter(
+            (n) => n.type !== 'ImportDeclaration',
+          )
+          for (const node of nonImportBody) {
+            walkForNonConstructionUsages(node, restrictedBindings, false)
+          }
+        }
+
+        function walkForNonConstructionUsages(node, restrictedBindings, insideNew) {
+          if (node === null || node === undefined || typeof node !== 'object') {
+            return
+          }
+
+          if (node.type === 'NewExpression') {
+            walkForNonConstructionUsages(node.callee, restrictedBindings, true)
+            walkChildren(node.arguments ?? [], restrictedBindings)
+            return
+          }
+
+          if (isRestrictedNonConstructionUsage(node, restrictedBindings, insideNew)) {
+            return
+          }
+
+          walkNodeChildren(node, restrictedBindings)
+        }
+
+        function isRestrictedNonConstructionUsage(node, restrictedBindings, insideNew) {
+          if (node.type !== 'Identifier' || insideNew || !restrictedBindings.has(node.name)) {
+            return false
+          }
+          const roleName = restrictedBindings.get(node.name)
+          report(
+            node,
+            `Role '${fileRoles.join(', ')}' forbids non-construction usage of '${roleName}' imports. Only 'new' is allowed. See ${options.configDisplayPath}`,
+          )
+          return true
+        }
+
+        function walkNodeChildren(node, restrictedBindings) {
+          for (const key of Object.keys(node)) {
+            if (key === 'parent') {
+              continue
+            }
+            const child = node[key]
+            if (Array.isArray(child)) {
+              walkChildren(child, restrictedBindings)
+            } else if (child !== null && typeof child === 'object' && child.type !== undefined) {
+              walkForNonConstructionUsages(child, restrictedBindings, false)
+            }
+          }
+        }
+
+        function walkChildren(children, restrictedBindings) {
+          for (const item of children) {
+            walkForNonConstructionUsages(item, restrictedBindings, false)
+          }
+        }
+
         function readRelativeImportStatements() {
           return sourceCode.ast.body.filter(
             (statement) =>
@@ -283,6 +370,16 @@ export default {
               report(
                 node,
                 `Role '${role.name}' requires at least ${role.minPublicMethods} public method(s) on '${name}'. See ${options.configDisplayPath}`,
+              )
+            }
+          }
+
+          if (typeof role.maxPublicMethods === 'number') {
+            const maxCount = countPublicMethods(node)
+            if (maxCount > role.maxPublicMethods) {
+              report(
+                node,
+                `Role '${role.name}' allows at most ${role.maxPublicMethods} public method(s) on '${name}'. See ${options.configDisplayPath}`,
               )
             }
           }
@@ -579,6 +676,19 @@ function collectForbiddenRoles(fileRoles, roleMap) {
     const role = roleMap.get(roleName)
     if (role !== undefined && Array.isArray(role.forbiddenDependencies)) {
       for (const dep of role.forbiddenDependencies) {
+        forbiddenSet.add(dep)
+      }
+    }
+  }
+  return forbiddenSet
+}
+
+function collectForbiddenMethodCallRoles(fileRoles, roleMap) {
+  const forbiddenSet = new Set()
+  for (const roleName of fileRoles) {
+    const role = roleMap.get(roleName)
+    if (role !== undefined && Array.isArray(role.forbiddenMethodCalls)) {
+      for (const dep of role.forbiddenMethodCalls) {
         forbiddenSet.add(dep)
       }
     }
