@@ -69,7 +69,7 @@ Examples:
           ? options.linkType
           : undefined
 
-      const result = await linkHttp.execute({
+      const result = linkHttp.execute({
         graphPathOption: options.graph,
         httpMethod,
         linkType,

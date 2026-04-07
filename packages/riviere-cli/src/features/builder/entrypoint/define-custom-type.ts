@@ -54,7 +54,7 @@ export function createDefineCustomTypeCommand(defineCustomType: DefineCustomType
         return
       }
 
-      const result = await defineCustomType.execute({
+      const result = defineCustomType.execute({
         description: options.description,
         graphPathOption: options.graph,
         name: options.name,

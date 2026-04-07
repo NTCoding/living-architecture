@@ -43,7 +43,7 @@ Examples:
         return
       }
 
-      const result = await componentChecklist.execute({
+      const result = componentChecklist.execute({
         graphPathOption: options.graph,
         type: options.type,
       })

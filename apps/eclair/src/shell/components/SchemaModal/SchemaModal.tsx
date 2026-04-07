@@ -155,7 +155,7 @@ export function SchemaModal({
           <div className="flex items-center gap-3">
             <button
               type="button"
-              onClick={copySchemaJson}
+              onClick={() => void copySchemaJson()}
               aria-label="Copy JSON"
               className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)] rounded-lg transition-colors"
             >

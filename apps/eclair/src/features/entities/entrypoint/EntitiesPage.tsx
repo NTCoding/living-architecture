@@ -16,7 +16,7 @@ export function EntitiesPage({ graph }: Readonly<EntitiesPageProps>): React.Reac
 
   const handleViewOnGraph = useCallback(
     (nodeId: string) => {
-      navigate(`/full-graph?node=${nodeId}`)
+      void navigate(`/full-graph?node=${nodeId}`)
     },
     [navigate],
   )

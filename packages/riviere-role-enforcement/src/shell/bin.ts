@@ -11,7 +11,7 @@ if (configModulePath === undefined) {
 } else {
   const packageFilter = readPackageFilter(process.argv)
   const absolutePath = path.resolve(configModulePath)
-  import(absolutePath).then((loaded: unknown) => {
+  void import(absolutePath).then((loaded: unknown) => {
     process.exitCode = main(loaded, process.cwd(), packageFilter)
   })
 }

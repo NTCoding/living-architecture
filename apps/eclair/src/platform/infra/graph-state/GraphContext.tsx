@@ -98,7 +98,7 @@ export function GraphProvider({ children }: GraphProviderProps): React.ReactElem
       }),
     )
 
-    fetchAndValidateDemoGraph()
+    void fetchAndValidateDemoGraph()
       .then((graph) => {
         setGraphState(graph)
         const url = new URL(window.location.href)

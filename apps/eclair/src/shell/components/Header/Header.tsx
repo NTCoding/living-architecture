@@ -73,7 +73,7 @@ export function Header({
 
   function handleUploadClick(): void {
     clearGraph()
-    navigate('/')
+    void navigate('/')
   }
 
   function handleExportPng(): void {

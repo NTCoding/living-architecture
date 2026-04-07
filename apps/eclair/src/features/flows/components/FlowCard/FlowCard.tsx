@@ -23,7 +23,7 @@ export function FlowCard({
 
   function handleViewOnGraph(e: React.MouseEvent): void {
     e.stopPropagation()
-    navigate(`/full-graph?node=${entryPoint.id}`)
+    void navigate(`/full-graph?node=${entryPoint.id}`)
   }
 
   return (

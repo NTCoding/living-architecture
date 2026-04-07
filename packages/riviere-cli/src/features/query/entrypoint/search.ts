@@ -27,7 +27,7 @@ Examples:
     .option('--json', 'Output result as JSON')
     .action(async (term: string, options: SearchOptions) => {
       try {
-        const result = await searchComponents.execute({
+        const result = searchComponents.execute({
           graphPathOption: options.graph,
           term,
         })

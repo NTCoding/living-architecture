@@ -59,7 +59,7 @@ Examples:
           ? options.linkType
           : undefined
 
-      const result = await linkExternal.execute({
+      const result = linkExternal.execute({
         from: options.from,
         graphPathOption: options.graph,
         target: buildExternalTarget(options),

@@ -77,7 +77,7 @@ Examples:
         systemType,
       }))
 
-      const result = await initGraph.execute({
+      const result = initGraph.execute({
         domains,
         graphPathOption: options.graph,
         name: options.name,

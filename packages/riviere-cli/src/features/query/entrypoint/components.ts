@@ -50,7 +50,7 @@ Examples:
       }
 
       try {
-        const result = await listComponents.execute({
+        const result = listComponents.execute({
           domain: options.domain,
           graphPathOption: options.graph,
           type:

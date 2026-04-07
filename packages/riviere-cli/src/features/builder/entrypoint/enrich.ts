@@ -85,7 +85,7 @@ Examples:
       const parsedSignature =
         signatureResult?.success === true ? signatureResult.signature : undefined
 
-      const result = await enrichComponent.execute({
+      const result = enrichComponent.execute({
         businessRules: options.businessRule,
         entity: options.entity,
         emits: options.emits,

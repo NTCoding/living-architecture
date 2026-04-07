@@ -67,7 +67,7 @@ export function createAddComponentCommand(addComponent: AddComponent): Command {
     .option('--graph <path>', getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .action(async (options: CliOptions) => {
-      const result = await addComponent.execute(toAddComponentInput(options))
+      const result = addComponent.execute(toAddComponentInput(options))
 
       if (!result.success) {
         const cliErrorCode = CLI_ERROR_CODES[result.code]

@@ -28,7 +28,7 @@ Examples:
     .option('--graph <path>', getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .action(async (options: AddSourceOptions) => {
-      const result = await addSource.execute({
+      const result = addSource.execute({
         graphPathOption: options.graph,
         repository: options.repository,
       })

@@ -22,7 +22,7 @@ Examples:
     )
     .option('--graph <path>', getDefaultGraphPathDescription())
     .action(async (options: ComponentSummaryOptions) => {
-      const result = await componentSummary.execute({ graphPathOption: options.graph })
+      const result = componentSummary.execute({ graphPathOption: options.graph })
       if (!result.success) {
         console.log(
           JSON.stringify(

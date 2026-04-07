@@ -74,7 +74,7 @@ Examples:
           ? options.linkType
           : undefined
 
-      const result = await linkComponents.execute({
+      const result = linkComponents.execute({
         from: options.from,
         graphPathOption: options.graph,
         to: ComponentId.create({

@@ -57,7 +57,7 @@ describe('FileUpload', () => {
 
     const dropZone = getDropZone()
 
-    await dropFilesOnElement(dropZone, [
+    dropFilesOnElement(dropZone, [
       {
         name: 'graph.json',
         content: jsonContent,
@@ -79,7 +79,7 @@ describe('FileUpload', () => {
 
     const dropZone = getDropZone()
 
-    await dropFilesOnElement(dropZone, [
+    dropFilesOnElement(dropZone, [
       {
         name: 'data.txt',
         content: 'not json',
@@ -146,7 +146,7 @@ describe('FileUpload', () => {
       render(<FileUpload onFileLoaded={onFileLoaded} onError={onError} />)
 
       const dropZone = getDropZone()
-      await dropFilesOnElement(dropZone, [
+      dropFilesOnElement(dropZone, [
         {
           name: 'graph.json',
           content: '{}',
@@ -181,7 +181,7 @@ describe('FileUpload', () => {
       render(<FileUpload onFileLoaded={onFileLoaded} onError={onError} />)
 
       const dropZone = getDropZone()
-      await dropFilesOnElement(dropZone, [
+      dropFilesOnElement(dropZone, [
         {
           name: 'graph.json',
           content: '{}',

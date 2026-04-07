@@ -26,7 +26,7 @@ Examples:
     .option('--graph <path>', getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .action(async (options: CheckConsistencyOptions) => {
-      const result = await checkConsistency.execute({ graphPathOption: options.graph })
+      const result = checkConsistency.execute({ graphPathOption: options.graph })
       if (!result.success) {
         console.log(
           JSON.stringify(

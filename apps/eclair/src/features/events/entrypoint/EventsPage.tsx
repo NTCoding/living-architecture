@@ -32,7 +32,7 @@ export function EventsPage({ graph }: Readonly<EventsPageProps>): React.ReactEle
     (eventId: string) => {
       const demo = searchParams.get('demo')
       const demoParam = demo === 'true' ? '&demo=true' : ''
-      navigate(`/full-graph?node=${eventId}${demoParam}`)
+      void navigate(`/full-graph?node=${eventId}${demoParam}`)
     },
     [navigate, searchParams],
   )
@@ -51,7 +51,7 @@ export function EventsPage({ graph }: Readonly<EventsPageProps>): React.ReactEle
       if (handlerNode) {
         const demo = searchParams.get('demo')
         const demoParam = demo === 'true' ? '&demo=true' : ''
-        navigate(`/full-graph?node=${handlerNode.id}${demoParam}`)
+        void navigate(`/full-graph?node=${handlerNode.id}${demoParam}`)
       }
     },
     [graph.components, navigate, searchParams],

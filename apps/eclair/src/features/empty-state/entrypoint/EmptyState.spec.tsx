@@ -94,7 +94,7 @@ describe('EmptyState', () => {
 
     const dropZone = getDropZone()
 
-    await dropFilesOnElement(dropZone, [
+    dropFilesOnElement(dropZone, [
       {
         name: 'bad.json',
         content: '{"not": "valid graph"}',
@@ -116,7 +116,7 @@ describe('EmptyState', () => {
 
     const dropZone = getDropZone()
 
-    await dropFilesOnElement(dropZone, [
+    dropFilesOnElement(dropZone, [
       {
         name: 'valid.json',
         content: validJsonString,
@@ -138,7 +138,7 @@ describe('EmptyState', () => {
 
     const dropZone = getDropZone()
 
-    await dropFilesOnElement(dropZone, [
+    dropFilesOnElement(dropZone, [
       {
         name: 'bad.json',
         content: invalidJson,
@@ -150,7 +150,7 @@ describe('EmptyState', () => {
       expect(screen.getByText(/validation failed/i)).toBeInTheDocument()
     })
 
-    await dropFilesOnElement(dropZone, [
+    dropFilesOnElement(dropZone, [
       {
         name: 'valid.json',
         content: validJsonString,

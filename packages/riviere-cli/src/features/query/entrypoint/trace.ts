@@ -29,7 +29,7 @@ Examples:
     .option('--json', 'Output result as JSON')
     .action(async (componentIdArg: string, options: TraceOptions) => {
       try {
-        const result = await traceFlow.execute({
+        const result = traceFlow.execute({
           componentId: componentIdArg,
           graphPathOption: options.graph,
         })

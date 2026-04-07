@@ -51,7 +51,7 @@ Examples:
         )
         return
       }
-      const result = await addDomain.execute({
+      const result = addDomain.execute({
         description: options.description,
         graphPathOption: options.graph,
         name: options.name,

@@ -25,7 +25,7 @@ Examples:
     .option('--json', 'Output result as JSON')
     .action(async (options: DomainsOptions) => {
       try {
-        const result = await listDomains.execute({ graphPathOption: options.graph })
+        const result = listDomains.execute({ graphPathOption: options.graph })
 
         if (options.json) {
           console.log(JSON.stringify(formatSuccess(result)))

@@ -27,7 +27,7 @@ Examples:
     .option('--graph <path>', getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .action(async (options: ValidateOptions) => {
-      const result = await validateGraph.execute({ graphPathOption: options.graph })
+      const result = validateGraph.execute({ graphPathOption: options.graph })
       if (!result.success) {
         console.log(
           JSON.stringify(

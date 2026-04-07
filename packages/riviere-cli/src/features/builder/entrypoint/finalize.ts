@@ -30,7 +30,7 @@ Examples:
     .option('--output <path>', 'Output path for finalized graph (defaults to input path)')
     .option('--json', 'Output result as JSON')
     .action(async (options: FinalizeOptions) => {
-      const result = await finalizeGraph.execute({ graphPathOption: options.graph })
+      const result = finalizeGraph.execute({ graphPathOption: options.graph })
       if (!result.success) {
         const errorCodeByResult = {
           GRAPH_CORRUPTED: CliErrorCode.GraphCorrupted,

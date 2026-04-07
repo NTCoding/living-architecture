@@ -25,7 +25,7 @@ Examples:
     .option('--json', 'Output result as JSON')
     .action(async (options: OrphansOptions) => {
       try {
-        const result = await detectOrphans.execute({ graphPathOption: options.graph })
+        const result = detectOrphans.execute({ graphPathOption: options.graph })
 
         if (options.json) {
           console.log(JSON.stringify(formatSuccess(result)))
