@@ -34,6 +34,13 @@
       },
       "dependsOn": ["build"]
     },
+    "role-check": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm exec tsx packages/riviere-role-enforcement/src/shell/bin.ts .riviere/role-enforcement.config.ts --package packages/riviere-cli",
+        "cwd": "{workspaceRoot}"
+      }
+    },
     "smoke-test": {
       "executor": "nx:run-commands",
       "options": {

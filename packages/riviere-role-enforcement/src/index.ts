@@ -12,6 +12,10 @@ export type {
   RoleTarget,
 } from './features/enforcement/domain/role-enforcement-builder'
 export {
+  filterConfigByPackage,
+  PackageFilterError,
+} from './features/enforcement/domain/filter-config-by-package'
+export {
   formatRoleEnforcementFailure,
   RoleEnforcementExecutionError,
   runRoleEnforcement,

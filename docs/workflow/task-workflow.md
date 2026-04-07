@@ -112,6 +112,7 @@ Propose a task to the user and ask them to confirm. Once confirmed, start implem
 - **Traceability section:** Read the specific PRD sections referenced (e.g., M1-D1.1, §9.1.2)
 - **Implementation Guidelines:** Read architecture decisions referenced (e.g., "see §9.1.2") and convention docs (e.g., `docs/conventions/software-design.md`)
 - **Dependencies:** Check referenced issues for context on what already exists
+- **Role Enforcement (enforced packages only):** If the task involves an enforced package, read `.riviere/role-enforcement.config.ts`, `.riviere/role-selection-guide.md`, and `.riviere/canonical-role-configurations.md`. Read role definition files for roles mentioned in the task's Role Enforcement section.
 
 Do not create a plan until you have read and understood these referenced documents. The task body contains file paths specifically so you can navigate to the source material.
 

@@ -1,5 +1,14 @@
+import { filterConfigByPackage } from '../../../domain/filter-config-by-package'
 import { RoleEnforcementExecutionError } from './run-role-enforcement'
 import type { RoleEnforcementResult } from '../../../domain/role-enforcement-builder'
+
+/** @riviere-role external-client-service */
+export function readConfigForPackage(
+  configModule: unknown,
+  packageFilter: string,
+): RoleEnforcementResult {
+  return filterConfigByPackage(readConfig(configModule), packageFilter)
+}
 
 /** @riviere-role external-client-service */
 export function readConfig(configModule: unknown): RoleEnforcementResult {

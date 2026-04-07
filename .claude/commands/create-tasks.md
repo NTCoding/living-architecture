@@ -153,6 +153,22 @@ Confirm all criteria before task creation:
 - Apply [design principle] from `docs/conventions/software-design.md`
 - [Technical approach with rationale]
 
+### Role Enforcement (for enforced packages only)
+
+Include this section when the task involves code in enforced packages. Read `.riviere/role-enforcement.config.ts` for the list of enforced packages, allowed roles per location, and `.riviere/canonical-role-configurations.md` for standard patterns.
+
+**Canonical configuration:** [Which pattern applies — e.g., "CLI Invoking Command Use Case"]
+
+**Expected roles and locations:**
+| Location | Roles | Files |
+|----------|-------|-------|
+| `src/features/{feature}/entrypoint/` | `cli-entrypoint` | [expected file] |
+| `src/features/{feature}/commands/` | `command-use-case`, `command-use-case-input`, `command-use-case-result` | [expected files] |
+
+**New roles needed:** [None / list any roles that don't exist yet — flag for user approval before implementation]
+
+**Role questions:** [Any classification ambiguity to resolve before implementation]
+
 ### Embedded Reasoning
 **Why:** [Business motivation]
 **What:** [Technical solution description]
@@ -218,11 +234,12 @@ Please update PRD to clarify these points before task creation.
    - **Implementation Guidelines** — package placement, layer assignments, dependency constraints, firm vs flexible markers
    - **Embedded Reasoning** — reference architecture rationale (why this structure, what skill principle drives it)
    - **Acceptance Criteria** — structural constraints that must hold (e.g., "no domain imports in entrypoint", "invariant X enforced by aggregate Y")
-8. **Structure acceptance criteria:** Happy path as checkboxes (separate from edge cases)
-9. **Complete all 10 sections:** Follow Standard Task Document Format
-10. **Apply validation gate:** If ANY section incomplete → STOP and push back
-11. **Validate against INVEST:** Confirm Independence, Negotiability, Value, Estimability, Smallness, Testability
-12. **Create task:** Run `./scripts/create-task.sh` with completed content
+8. **Identify role enforcement requirements:** For tasks in enforced packages, read `.riviere/role-enforcement.config.ts` and `.riviere/canonical-role-configurations.md`. Identify which canonical configuration applies, which roles will be needed, and whether any new roles are required. Flag new roles for user approval. Complete the Role Enforcement section in the task.
+9. **Structure acceptance criteria:** Happy path as checkboxes (separate from edge cases)
+10. **Complete all sections:** Follow Standard Task Document Format
+11. **Apply validation gate:** If ANY section incomplete → STOP and push back
+12. **Validate against INVEST:** Confirm Independence, Negotiability, Value, Estimability, Smallness, Testability
+13. **Create task:** Run `./scripts/create-task.sh` with completed content
 
 ---
 
@@ -280,6 +297,7 @@ Confirm before task completion:
 - **PRD Reference:** Explicit file path included in Context section
 - **Edge Cases:** Comprehensive scenarios identified (not just happy path)
 - **Traceability:** Clear links to PRD sections and requirements
+- **Role Enforcement:** If task touches enforced packages, Role Enforcement section is complete with canonical config, expected roles/locations, and any new role proposals
 
 ---
 

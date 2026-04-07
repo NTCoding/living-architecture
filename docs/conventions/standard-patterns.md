@@ -37,3 +37,21 @@ Benefits:
 - Each return point returns the same structural type (`{ kind, value }`)
 - Type-safe access via discriminator: `if (result.kind === 'string') result.value` is typed as `string`
 - Explicit about what was extracted
+
+## SP-003: Role Annotations in Enforced Packages
+
+Every exported declaration in a role-enforced package must have a role annotation.
+
+```typescript
+/** @riviere-role command-use-case */
+export class EnrichComponent {
+  constructor(private readonly repository: GraphRepository) {}
+
+  async execute(input: EnrichComponentInput): Promise<EnrichComponentResult> {
+    // ...
+  }
+}
+```
+
+See `.riviere/role-enforcement.config.ts` for allowed roles per location.
+See `.riviere/role-selection-guide.md` for classification decisions.

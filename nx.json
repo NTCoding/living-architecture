@@ -50,6 +50,7 @@
   "targetDefaults": {
     "lint": {
       "dependsOn": [
+         "role-check",
         "^build"
       ]
     },

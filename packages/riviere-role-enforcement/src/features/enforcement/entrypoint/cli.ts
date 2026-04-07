@@ -1,13 +1,18 @@
-import { readConfig } from '../infra/external-clients/oxlint/config-reader'
+import {
+  readConfig, readConfigForPackage 
+} from '../infra/external-clients/oxlint/config-reader'
 import {
   formatRoleEnforcementFailure,
   runRoleEnforcement,
 } from '../infra/external-clients/oxlint/run-role-enforcement'
 
 /** @riviere-role cli-entrypoint */
-export function main(configModule: unknown, configDir: string): number {
+export function main(configModule: unknown, configDir: string, packageFilter?: string): number {
   try {
-    const config = readConfig(configModule)
+    const config =
+      packageFilter === undefined
+        ? readConfig(configModule)
+        : readConfigForPackage(configModule, packageFilter)
     const result = runRoleEnforcement(config, configDir)
     if (result.stdout !== '') {
       process.stdout.write(result.stdout)

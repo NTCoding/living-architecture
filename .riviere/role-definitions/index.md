@@ -17,6 +17,10 @@ Dependencies point inward:
 - `domain/` → platform domain ONLY (no infra)
 - `infra/` → external libraries, platform infra
 
+## Automated Enforcement
+
+Role enforcement is automated via an oxlint plugin. It checks annotations, location constraints, dependency rules, and I/O contracts at lint time. The enforcement config at `.riviere/role-enforcement.config.ts` is the source of truth for what's enforced. The separation-of-concerns skill defines the architectural principles; role enforcement automates their verification.
+
 ## Classification Decision Tree
 
 When classifying a declaration:

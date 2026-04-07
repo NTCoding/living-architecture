@@ -108,6 +108,12 @@ When writing, editing, refactoring, or reviewing code:
 
 CRUCIAL: If you see any code that is not aligned with our conventions, always fix it. Quality code aligned with our conventions is always the top priority. Far more important than rushing to finish a new feature.
 
+## Role Enforcement
+
+Enforced packages require `/** @riviere-role <role-name> */` on every exported declaration. Before writing code in an enforced package, read `.riviere/role-enforcement.config.ts` and `.riviere/role-selection-guide.md`.
+
+Quick check: `pnpm nx lint <package-name>`
+
 ## Brand Identity, theme, design, UI, UX
 
 All UI and UX design must conform to global brand guidelines: `/docs/brand/` (logo, colors, typography, icons)
