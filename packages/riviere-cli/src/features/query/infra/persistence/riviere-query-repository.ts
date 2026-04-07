@@ -20,8 +20,8 @@ export class RiviereQueryRepository {
     try {
       const parsed: unknown = JSON.parse(content)
       return RiviereQuery.fromJSON(parsed)
-    } catch {
-      throw new GraphCorruptedError(graphPath)
+    } catch (error) {
+      throw new GraphCorruptedError(graphPath, { cause: error })
     }
   }
 

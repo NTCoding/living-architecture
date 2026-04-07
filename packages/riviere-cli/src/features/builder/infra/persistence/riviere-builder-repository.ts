@@ -26,8 +26,8 @@ export class RiviereBuilderRepository {
       const parsed: unknown = JSON.parse(content)
       const graph = parseRiviereGraph(parsed)
       return RiviereBuilder.resume(graph, graphPath)
-    } catch {
-      throw new GraphCorruptedError(graphPath)
+    } catch (error) {
+      throw new GraphCorruptedError(graphPath, { cause: error })
     }
   }
 
