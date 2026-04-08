@@ -3,66 +3,49 @@ import {
 } from 'vitest'
 import {
   validateExtractionConfig,
-  type DetectionRule,
-  type InClassWithPredicate,
-  type HasDecoratorPredicate,
+  type ComponentRule,
 } from '@living-architecture/riviere-extract-config'
 import {
   loadDefaultConfig, getFirstModule, TestAssertionError 
 } from './default-config-fixtures'
 
-function hasProperty<T extends string>(
-  obj: unknown,
-  ...properties: T[]
-): obj is Record<T, unknown> {
-  return typeof obj === 'object' && obj !== null && properties.every((prop) => prop in obj)
-}
-
-function isDetectionRule(rule: unknown): rule is DetectionRule {
-  return hasProperty(rule, 'find', 'where')
-}
-
-function isInClassWithPredicate(predicate: unknown): predicate is InClassWithPredicate {
-  return hasProperty(predicate, 'inClassWith')
-}
-
-function isHasDecoratorPredicate(predicate: unknown): predicate is HasDecoratorPredicate {
-  return hasProperty(predicate, 'hasDecorator')
-}
-
-function assertContainerDecorator(rule: unknown, expectedDecorator: string): void {
-  if (!isDetectionRule(rule)) {
-    throw new TestAssertionError('Expected DetectionRule')
+function narrowToDetectionRule(rule: ComponentRule) {
+  if (!('find' in rule)) {
+    throw new TestAssertionError('Expected DetectionRule, got NotUsed')
   }
-  if (!isInClassWithPredicate(rule.where)) {
+  return rule
+}
+
+function assertContainerDecorator(rule: ComponentRule, expectedDecorator: string): void {
+  const detection = narrowToDetectionRule(rule)
+  if (!('inClassWith' in detection.where)) {
     throw new TestAssertionError('Expected InClassWithPredicate')
   }
-  if (!isHasDecoratorPredicate(rule.where.inClassWith)) {
+  if (!('hasDecorator' in detection.where.inClassWith)) {
     throw new TestAssertionError('Expected HasDecoratorPredicate')
   }
 
-  expect(rule.where.inClassWith.hasDecorator).toStrictEqual({
+  expect(detection.where.inClassWith.hasDecorator).toStrictEqual({
     name: expectedDecorator,
     from: '@living-architecture/riviere-extract-conventions',
   })
 }
 
-function assertExtractionConfig(rule: unknown, expectedExtract: Record<string, unknown>): void {
-  if (!isDetectionRule(rule)) {
-    throw new TestAssertionError('Expected DetectionRule')
-  }
-  expect(rule.extract).toStrictEqual(expectedExtract)
+function assertExtractionConfig(
+  rule: ComponentRule,
+  expectedExtract: Record<string, unknown>,
+): void {
+  const detection = narrowToDetectionRule(rule)
+  expect(detection.extract).toStrictEqual(expectedExtract)
 }
 
-function assertDirectDecorator(rule: unknown, expectedDecorator: string): void {
-  if (!isDetectionRule(rule)) {
-    throw new TestAssertionError('Expected DetectionRule')
-  }
-  if (!isHasDecoratorPredicate(rule.where)) {
+function assertDirectDecorator(rule: ComponentRule, expectedDecorator: string): void {
+  const detection = narrowToDetectionRule(rule)
+  if (!('hasDecorator' in detection.where)) {
     throw new TestAssertionError('Expected HasDecoratorPredicate')
   }
 
-  expect(rule.where.hasDecorator).toStrictEqual({
+  expect(detection.where.hasDecorator).toStrictEqual({
     name: expectedDecorator,
     from: '@living-architecture/riviere-extract-conventions',
   })

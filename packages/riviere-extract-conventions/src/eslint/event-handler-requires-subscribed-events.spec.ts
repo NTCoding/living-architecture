@@ -18,8 +18,9 @@ const missingSubscribedEventsError = (className: string) => ({
 const subscribedEventsNotLiteralArrayError = () => ({messageId: 'subscribedEventsNotLiteralArray' as const,})
 
 describe('event-handler-requires-subscribed-events', () => {
-  it('is a valid ESLint rule', () => {
-    expect(rule).toBeDefined()
+  it('exports a valid ESLint rule object', () => {
+    expect(rule).toHaveProperty('meta')
+    expect(rule).toHaveProperty('create')
   })
 
   ruleTester.run('event-handler-requires-subscribed-events', rule, {
