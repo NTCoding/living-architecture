@@ -9,14 +9,20 @@ import {
   loadDefaultConfig, getFirstModule, TestAssertionError 
 } from './default-config-fixtures'
 
-function narrowToDetectionRule(rule: ComponentRule) {
+function narrowToDetectionRule(rule: ComponentRule | undefined) {
+  if (!rule) {
+    throw new TestAssertionError('Expected ComponentRule, got undefined')
+  }
   if (!('find' in rule)) {
     throw new TestAssertionError('Expected DetectionRule, got NotUsed')
   }
   return rule
 }
 
-function assertContainerDecorator(rule: ComponentRule, expectedDecorator: string): void {
+function assertContainerDecorator(
+  rule: ComponentRule | undefined,
+  expectedDecorator: string,
+): void {
   const detection = narrowToDetectionRule(rule)
   if (!('inClassWith' in detection.where)) {
     throw new TestAssertionError('Expected InClassWithPredicate')
@@ -32,14 +38,14 @@ function assertContainerDecorator(rule: ComponentRule, expectedDecorator: string
 }
 
 function assertExtractionConfig(
-  rule: ComponentRule,
+  rule: ComponentRule | undefined,
   expectedExtract: Record<string, unknown>,
 ): void {
   const detection = narrowToDetectionRule(rule)
   expect(detection.extract).toStrictEqual(expectedExtract)
 }
 
-function assertDirectDecorator(rule: ComponentRule, expectedDecorator: string): void {
+function assertDirectDecorator(rule: ComponentRule | undefined, expectedDecorator: string): void {
   const detection = narrowToDetectionRule(rule)
   if (!('hasDecorator' in detection.where)) {
     throw new TestAssertionError('Expected HasDecoratorPredicate')

@@ -119,6 +119,17 @@ describe('event-handler-requires-subscribed-events', () => {
         errors: [subscribedEventsNotLiteralArrayError()],
       },
       {
+        name: 'reports error when subscribedEvents array mixes strings and numbers',
+        code: `
+          @EventHandlerContainer
+          class OrderHandler {
+            readonly subscribedEvents = ['OrderPlaced', 42]
+            handle() {}
+          }
+        `,
+        errors: [subscribedEventsNotLiteralArrayError()],
+      },
+      {
         name: 'reports error when subscribedEvents is a variable reference',
         code: `
           const EVENTS = ['OrderPlaced']

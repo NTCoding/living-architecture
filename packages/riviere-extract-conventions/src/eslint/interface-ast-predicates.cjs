@@ -39,15 +39,6 @@ function findInstanceProperty(classNode, propertyName) {
   }) || null
 }
 
-/* v8 ignore start -- exported utility for consumers, not exercised by any current rule's test suite */
-function hasLiteralValue(property) {
-  if (!property || !property.value) {
-    return false
-  }
-  return property.value.type === 'Literal'
-}
-/* v8 ignore stop */
-
 function hasStringLiteralValue(property) {
   /* v8 ignore next 3 -- callers (api-controller, ui-page rules) always guard with findInstanceProperty before calling; null property is structurally unreachable in current call sites */
   if (!property || !property.value) {
@@ -55,20 +46,6 @@ function hasStringLiteralValue(property) {
   }
   return property.value.type === 'Literal' && typeof property.value.value === 'string'
 }
-
-/* v8 ignore start -- exported utility for consumers, not exercised by any current rule's test suite */
-function hasLiteralArrayValue(property) {
-  if (!property || !property.value) {
-    return false
-  }
-  if (property.value.type !== 'ArrayExpression') {
-    return false
-  }
-  return property.value.elements.every(
-    (element) => element && element.type === 'Literal'
-  )
-}
-/* v8 ignore stop */
 
 function hasStringLiteralArrayValue(property) {
   /* v8 ignore next 3 -- callers always guard with findInstanceProperty before calling; null property is structurally unreachable in current call sites */
@@ -116,9 +93,7 @@ module.exports = {
   implementsInterface,
   hasDecorator,
   findInstanceProperty,
-  hasLiteralValue,
   hasStringLiteralValue,
-  hasLiteralArrayValue,
   hasStringLiteralArrayValue,
   getLiteralValue,
   getValueTypeDescription,
