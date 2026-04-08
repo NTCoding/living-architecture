@@ -66,13 +66,14 @@ describe('Default extraction config', () => {
     expect(result.valid).toBe(true)
   })
 
-  it('declares all 6 required component types', () => {
+  it('declares all 7 required component types', () => {
     const config = loadDefaultConfig()
     const module = getFirstModule(config)
 
     const requiredKeys = [
       'name',
       'path',
+      'glob',
       'api',
       'useCase',
       'domainOp',
