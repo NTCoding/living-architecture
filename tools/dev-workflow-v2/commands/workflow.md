@@ -1,5 +1,5 @@
 Run:
 
 ```bash
-CLAUDE_PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT}" npx tsx "${CLAUDE_PLUGIN_ROOT}/src/entrypoint/workflow-cli.ts" $ARGUMENTS
+CLAUDE_PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT}" CLAUDE_SESSION_ID="${CLAUDE_SESSION_ID}" npx tsx "${CLAUDE_PLUGIN_ROOT}/src/shell/cli.ts" $ARGUMENTS
 ```

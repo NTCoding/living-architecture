@@ -1,4 +1,6 @@
-import { createWorkflowCli } from '@ntcoding/agentic-workflow-builder/cli'
+import {
+  createWorkflowCli, createDefaultProcessDeps 
+} from '@ntcoding/agentic-workflow-builder/cli'
 import { WORKFLOW_DEFINITION } from '../features/workflow/infra/persistence/workflow-definition'
 import {
   ROUTES, HOOKS, preToolUseHandler 
@@ -18,6 +20,7 @@ createWorkflowCli({
   hooks: HOOKS,
   // @ts-expect-error WorkflowCliConfig widens StateName/WorkflowOperation to string
   preToolUseHandler,
+  processDeps: createDefaultProcessDeps(),
   buildWorkflowDeps: (platform) => ({
     getGitInfo,
     checkPrChecks: () => true,

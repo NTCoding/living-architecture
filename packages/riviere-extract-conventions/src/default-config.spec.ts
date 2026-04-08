@@ -47,6 +47,13 @@ function assertContainerDecorator(rule: unknown, expectedDecorator: string): voi
   })
 }
 
+function assertExtractionConfig(rule: unknown, expectedExtract: Record<string, unknown>): void {
+  if (!isDetectionRule(rule)) {
+    throw new TestAssertionError('Expected DetectionRule')
+  }
+  expect(rule.extract).toStrictEqual(expectedExtract)
+}
+
 function assertDirectDecorator(rule: unknown, expectedDecorator: string): void {
   if (!isDetectionRule(rule)) {
     throw new TestAssertionError('Expected DetectionRule')
@@ -149,6 +156,22 @@ describe('Default extraction config', () => {
         assertContainerDecorator(module[componentType], decoratorName)
       },
     )
+  })
+
+  describe('Extraction rules', () => {
+    it('eventHandler extracts subscribedEvents from instance property', () => {
+      const config = loadDefaultConfig()
+      const module = getFirstModule(config)
+
+      assertExtractionConfig(module.eventHandler, {
+        subscribedEvents: {
+          fromProperty: {
+            name: 'subscribedEvents',
+            kind: 'instance',
+          },
+        },
+      })
+    })
   })
 
   describe('Direct decorators', () => {

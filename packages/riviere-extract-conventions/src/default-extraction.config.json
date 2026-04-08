@@ -65,7 +65,7 @@
           }
         },
         "extract": {
-          "subscribedEvents": { "fromGenericArg": { "interface": "IEventHandler", "position": 0 } }
+          "subscribedEvents": { "fromProperty": { "name": "subscribedEvents", "kind": "instance" } }
         }
       },
       "eventPublisher": {
