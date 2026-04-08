@@ -24,17 +24,6 @@
       "entry": ["src/shell/cli.ts"],
       "project": ["src/**/*.ts"],
       "ignoreDependencies": ["@types/better-sqlite3"]
-    },
-    "tools/dev-workflow": {
-      "entry": [
-        "src/features/complete-task/entrypoint/cli.ts",
-        "src/features/get-pr-feedback/entrypoint/cli.ts",
-        "src/features/respond-to-feedback/entrypoint/cli.ts",
-        "src/features/merge-and-cleanup/entrypoint/cli.ts",
-        "src/features/push-reflection/entrypoint/cli.ts",
-        "src/features/claude-hooks/entrypoint/hook-router.ts"
-      ],
-      "project": ["src/**/*.ts"]
     }
   },
   "ignore": [

@@ -107,7 +107,7 @@ export function Custom(
 ): <T>(target: T, context: ClassDecoratorContext | ClassMethodDecoratorContext) => T {
   const trimmed = type.trim()
   if (trimmed.length === 0) {
-    throw new TypeError('Custom component type cannot be empty or whitespace-only')
+    throw new TypeError(`Custom component type must be a non-empty string, got: '${type}'`)
   }
   return function <T>(target: T, _: ClassDecoratorContext | ClassMethodDecoratorContext): T {
     try {

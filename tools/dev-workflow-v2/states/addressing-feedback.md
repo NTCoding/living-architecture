@@ -8,7 +8,13 @@ You are addressing PR review feedback.
 - [ ] For each thread, either:
   - Fix the issue and respond with what was changed
   - Reject with a specific technical reason (never "out of scope" or "nitpick")
-- [ ] Respond to each thread: `pnpm nx run dev-workflow:respond-to-feedback -- --thread-id "<ID>" --action "fixed|rejected" --message "<explanation>"`
+- [ ] Respond to each thread using gh CLI:
+  ```bash
+  # Reply to thread (use ✅ **Fixed** or ❌ **Rejected** prefix)
+  gh api graphql -f query='mutation { addPullRequestReviewThreadReply(input: {pullRequestReviewThreadId: "<ID>", body: "<PREFIX>: <explanation>"}) { comment { id } } }'
+  # Resolve thread
+  gh api graphql -f query='mutation { resolveReviewThread(input: {threadId: "<ID>"}) { thread { id } } }'
+  ```
 - [ ] Commit all fixes
 - [ ] Record feedback addressed with the count: `/dev-workflow-v2:workflow record-feedback-addressed <count>`
 - [ ] Transition to REVIEWING: `/dev-workflow-v2:workflow transition REVIEWING`

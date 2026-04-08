@@ -39,7 +39,6 @@ const packages = [
   'packages/riviere-builder',
   'packages/riviere-query',
   'packages/riviere-role-enforcement',
-  'tools/dev-workflow',
   'tools/dev-workflow-v2',
 ]
 

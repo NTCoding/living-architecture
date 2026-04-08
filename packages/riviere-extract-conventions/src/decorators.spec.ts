@@ -238,13 +238,13 @@ describe('Other decorators', () => {
 
     it('throws TypeError for empty string type', () => {
       expect(() => Custom('')).toThrow(TypeError)
-      expect(() => Custom('')).toThrow('Custom component type cannot be empty or whitespace-only')
+      expect(() => Custom('')).toThrow("Custom component type must be a non-empty string, got: ''")
     })
 
     it('throws TypeError for whitespace-only type', () => {
       expect(() => Custom('   ')).toThrow(TypeError)
       expect(() => Custom('   ')).toThrow(
-        'Custom component type cannot be empty or whitespace-only',
+        "Custom component type must be a non-empty string, got: '   '",
       )
     })
 
