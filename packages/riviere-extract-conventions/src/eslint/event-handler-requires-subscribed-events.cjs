@@ -1,7 +1,7 @@
 const {
   hasDecorator,
   findInstanceProperty,
-  hasLiteralArrayValue,
+  hasStringLiteralArrayValue,
   getValueTypeDescription,
 } = require('./interface-ast-predicates.cjs')
 
@@ -31,7 +31,7 @@ module.exports = {
             messageId: 'missingSubscribedEvents',
             data: { className },
           })
-        } else if (!hasLiteralArrayValue(subscribedEventsProperty)) {
+        } else if (!hasStringLiteralArrayValue(subscribedEventsProperty)) {
           context.report({
             node: subscribedEventsProperty,
             messageId: 'subscribedEventsNotLiteralArray',

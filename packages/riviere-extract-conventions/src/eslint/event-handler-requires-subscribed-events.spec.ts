@@ -107,6 +107,17 @@ describe('event-handler-requires-subscribed-events', () => {
         errors: [subscribedEventsNotLiteralArrayError()],
       },
       {
+        name: 'reports error when subscribedEvents array contains non-string literals',
+        code: `
+          @EventHandlerContainer
+          class OrderHandler {
+            readonly subscribedEvents = [42, true]
+            handle() {}
+          }
+        `,
+        errors: [subscribedEventsNotLiteralArrayError()],
+      },
+      {
         name: 'reports error when subscribedEvents is a variable reference',
         code: `
           const EVENTS = ['OrderPlaced']

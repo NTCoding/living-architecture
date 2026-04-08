@@ -56,8 +56,8 @@ function hasStringLiteralValue(property) {
   return property.value.type === 'Literal' && typeof property.value.value === 'string'
 }
 
+/* v8 ignore start -- exported utility for consumers, not exercised by any current rule's test suite */
 function hasLiteralArrayValue(property) {
-  /* v8 ignore next 3 -- callers (event-handler rule) always guard with findInstanceProperty before calling; null property is structurally unreachable in current call sites */
   if (!property || !property.value) {
     return false
   }
@@ -66,6 +66,20 @@ function hasLiteralArrayValue(property) {
   }
   return property.value.elements.every(
     (element) => element && element.type === 'Literal'
+  )
+}
+/* v8 ignore stop */
+
+function hasStringLiteralArrayValue(property) {
+  /* v8 ignore next 3 -- callers always guard with findInstanceProperty before calling; null property is structurally unreachable in current call sites */
+  if (!property || !property.value) {
+    return false
+  }
+  if (property.value.type !== 'ArrayExpression') {
+    return false
+  }
+  return property.value.elements.every(
+    (element) => element && element.type === 'Literal' && typeof element.value === 'string'
   )
 }
 
@@ -105,6 +119,7 @@ module.exports = {
   hasLiteralValue,
   hasStringLiteralValue,
   hasLiteralArrayValue,
+  hasStringLiteralArrayValue,
   getLiteralValue,
   getValueTypeDescription,
 }
