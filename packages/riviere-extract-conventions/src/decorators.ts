@@ -94,7 +94,9 @@ export function EventHandler<T extends Method>(target: T, _: ClassMethodDecorato
 // ============================================================================
 
 // Symbol for storing custom types on decorated targets
-const CUSTOM_TYPE_SYMBOL = Symbol.for('@living-architecture/riviere-extract-conventions.customType')
+const CUSTOM_COMPONENT_TYPE_KEY = Symbol.for(
+  '@living-architecture/riviere-extract-conventions.customType',
+)
 
 /**
  * Marks a class or method with a custom component type.
@@ -111,7 +113,7 @@ export function Custom(
   }
   return function <T>(target: T, _: ClassDecoratorContext | ClassMethodDecoratorContext): T {
     try {
-      Object.defineProperty(target, CUSTOM_TYPE_SYMBOL, {
+      Object.defineProperty(target, CUSTOM_COMPONENT_TYPE_KEY, {
         value: trimmed,
         configurable: true,
       })
@@ -137,7 +139,7 @@ export function Ignore<T>(target: T, _: ClassDecoratorContext | ClassMethodDecor
 export function getCustomType(target: unknown): string | undefined {
   if (target == null) return undefined
   if (typeof target !== 'object' && typeof target !== 'function') return undefined
-  const descriptor = Object.getOwnPropertyDescriptor(target, CUSTOM_TYPE_SYMBOL)
+  const descriptor = Object.getOwnPropertyDescriptor(target, CUSTOM_COMPONENT_TYPE_KEY)
   if (descriptor && typeof descriptor.value === 'string') {
     return descriptor.value
   }
