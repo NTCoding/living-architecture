@@ -3,7 +3,8 @@
     "**/*.spec.ts",
     "**/__fixtures__/**",
     "**/*-fixtures.ts",
-    "**/test-fixtures.ts"
+    "**/test-fixtures.ts",
+    "**/test-fixture-*.ts"
   ],
   "jsPlugins": [
     {
@@ -18,20 +19,19 @@
         "configDir": "/Users/nicko/code/living-architecture",
         "configDisplayPath": "role-enforcement.config.ts",
         "layers": {
-          "packages/riviere-extract-ts/src/features/{feature}/entrypoint": {
+          "packages/riviere-cli/src/features/{feature}/entrypoint": {
             "allowedRoles": [
               "cli-entrypoint"
             ],
             "paths": [
-              "packages/riviere-extract-ts/src/features/*/entrypoint"
+              "packages/riviere-cli/src/features/*/entrypoint"
             ],
             "forbiddenImports": [
               "**/infra/persistence/**"
             ]
           },
-          "packages/riviere-extract-ts/src/features/{feature}/commands": {
+          "packages/riviere-cli/src/features/{feature}/commands": {
             "allowedRoles": [
-              "command-orchestrator",
               "command-use-case",
               "command-use-case-input",
               "command-use-case-result",
@@ -39,13 +39,13 @@
               "command-input-factory"
             ],
             "paths": [
-              "packages/riviere-extract-ts/src/features/*/commands"
+              "packages/riviere-cli/src/features/*/commands"
             ],
             "forbiddenImports": [
               "**/infra/cli/**"
             ]
           },
-          "packages/riviere-extract-ts/src/features/{feature}/queries": {
+          "packages/riviere-cli/src/features/{feature}/queries": {
             "allowedRoles": [
               "query-model-use-case",
               "query-model-use-case-input",
@@ -53,13 +53,13 @@
               "query-model-error"
             ],
             "paths": [
-              "packages/riviere-extract-ts/src/features/*/queries"
+              "packages/riviere-cli/src/features/*/queries"
             ],
             "forbiddenImports": [
               "**/infra/cli/**"
             ]
           },
-          "packages/riviere-extract-ts/src/features/{feature}/domain": {
+          "packages/riviere-cli/src/features/{feature}/domain": {
             "allowedRoles": [
               "aggregate",
               "value-object",
@@ -68,37 +68,37 @@
               "query-model"
             ],
             "paths": [
-              "packages/riviere-extract-ts/src/features/*/domain"
+              "packages/riviere-cli/src/features/*/domain"
             ]
           },
-          "packages/riviere-extract-ts/src/features/{feature}/infra/external-clients/{client}": {
+          "packages/riviere-cli/src/features/{feature}/infra/external-clients/{client}": {
             "allowedRoles": [
               "external-client-service",
               "external-client-model",
               "external-client-error"
             ],
             "paths": [
-              "packages/riviere-extract-ts/src/features/*/infra/external-clients/*"
+              "packages/riviere-cli/src/features/*/infra/external-clients/*"
             ]
           },
-          "packages/riviere-extract-ts/src/features/{feature}/infra/persistence": {
+          "packages/riviere-cli/src/features/{feature}/infra/persistence": {
             "allowedRoles": [
               "aggregate-repository",
               "query-model-loader"
             ],
             "paths": [
-              "packages/riviere-extract-ts/src/features/*/infra/persistence"
+              "packages/riviere-cli/src/features/*/infra/persistence"
             ]
           },
-          "packages/riviere-extract-ts/src/features/{feature}/infra/cli/output": {
+          "packages/riviere-cli/src/features/{feature}/infra/cli/output": {
             "allowedRoles": [
               "cli-output-formatter"
             ],
             "paths": [
-              "packages/riviere-extract-ts/src/features/*/infra/cli/output"
+              "packages/riviere-cli/src/features/*/infra/cli/output"
             ]
           },
-          "packages/riviere-extract-ts/src/platform/domain": {
+          "packages/riviere-cli/src/platform/domain": {
             "allowedRoles": [
               "aggregate",
               "value-object",
@@ -107,45 +107,46 @@
               "query-model"
             ],
             "paths": [
-              "packages/riviere-extract-ts/src/platform/domain"
+              "packages/riviere-cli/src/platform/domain"
             ]
           },
-          "packages/riviere-extract-ts/src/platform/infra/external-clients/{client}": {
+          "packages/riviere-cli/src/platform/infra/external-clients/{client}": {
             "allowedRoles": [
               "external-client-service",
               "external-client-model",
               "external-client-error"
             ],
             "paths": [
-              "packages/riviere-extract-ts/src/platform/infra/external-clients/*"
+              "packages/riviere-cli/src/platform/infra/external-clients/*"
             ]
           },
-          "packages/riviere-extract-ts/src/platform/infra/cli/input": {
+          "packages/riviere-cli/src/platform/infra/cli/input": {
             "allowedRoles": [
               "cli-input-validator"
             ],
             "paths": [
-              "packages/riviere-extract-ts/src/platform/infra/cli/input"
+              "packages/riviere-cli/src/platform/infra/cli/input"
             ]
           },
-          "packages/riviere-extract-ts/src/platform/infra/cli/presentation": {
+          "packages/riviere-cli/src/platform/infra/cli/presentation": {
             "allowedRoles": [
               "cli-output-formatter",
               "cli-error"
             ],
             "paths": [
-              "packages/riviere-extract-ts/src/platform/infra/cli/presentation"
+              "packages/riviere-cli/src/platform/infra/cli/presentation"
             ]
           },
-          "packages/riviere-extract-ts/src/shell": {
+          "packages/riviere-cli/src/shell": {
             "allowedRoles": [
               "main"
             ],
             "paths": [
-              "packages/riviere-extract-ts/src/shell"
+              "packages/riviere-cli/src/shell"
             ]
           }
         },
+        "roleDefinitionsDir": ".riviere/role-definitions",
         "roles": [
           {
             "name": "cli-entrypoint",
@@ -207,12 +208,6 @@
             ],
             "allowedOutputs": [
               "command-use-case-input"
-            ]
-          },
-          {
-            "name": "command-orchestrator",
-            "targets": [
-              "function"
             ]
           },
           {
