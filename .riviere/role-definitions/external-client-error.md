@@ -1,5 +1,15 @@
 # external-client-error
 
+## 🚨 CRITICAL NAMING RULE
+**The name must describe the EXTERNAL TOOL/SERVICE that failed, not a domain concept.**
+
+If the name uses vocabulary from the project's domain (the nouns that appear in `docs/architecture/domain-terminology/`, role names, aggregate names, or core feature names), then this role is wrong — the error belongs in `domain/` as a `domain-error`, not in `infra/external-clients/`.
+
+- ✅ `OxlintSpawnError`, `StripeApiError`, `GitOperationError`, `FilesystemReadError`
+- ❌ `RoleEnforcementExecutionError`, `OrderProcessingError`, `ExtractionFailure`
+
+If you find yourself putting a domain noun in an `infra/external-clients/**` error name, STOP. The error belongs in `domain/` and is a `domain-error`.
+
 ## Purpose
 An error class that represents failures from external services, providing structured error information for infrastructure boundaries.
 

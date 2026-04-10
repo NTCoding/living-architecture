@@ -6,7 +6,10 @@ import { performance } from 'node:perf_hooks'
 import { fileURLToPath } from 'node:url'
 import { resolveLintTargets } from '../domain/resolve-lint-targets'
 import type { RoleEnforcementResult } from '../domain/role-enforcement-builder'
-import type { RoleEnforcementRunResult } from '../domain/role-enforcement-run-result'
+import {
+  RoleEnforcementExecutionError,
+  type RoleEnforcementRunResult,
+} from '../domain/role-enforcement-run-result'
 import { createOxlintConfig } from '../infra/external-clients/oxlint/create-oxlint-config'
 import { runOxlint } from '../infra/external-clients/oxlint/run-oxlint'
 
@@ -44,18 +47,28 @@ export function runRoleEnforcement(
   )
 
   const start = deps.now()
-  const adapterResult = deps.oxlintAdapter({
-    oxlintConfig,
-    configDir,
-    lintTargets,
-  })
-  const durationMs = deps.now() - start
-
-  return {
-    durationMs,
-    exitCode: adapterResult.exitCode,
-    stderr: adapterResult.stderr,
-    stdout: adapterResult.stdout,
+  try {
+    const adapterResult = deps.oxlintAdapter({
+      oxlintConfig,
+      configDir: canonicalConfigDir,
+      lintTargets,
+    })
+    return {
+      durationMs: deps.now() - start,
+      exitCode: adapterResult.exitCode,
+      stderr: adapterResult.stderr,
+      stdout: adapterResult.stdout,
+    }
+  } catch (error) {
+    if (error instanceof RoleEnforcementExecutionError) {
+      return {
+        durationMs: deps.now() - start,
+        exitCode: 1,
+        stderr: `${error.message}\n`,
+        stdout: '',
+      }
+    }
+    throw error
   }
 }
 

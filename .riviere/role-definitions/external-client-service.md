@@ -1,5 +1,15 @@
 # external-client-service
 
+## 🚨 CRITICAL NAMING RULE
+**The name must describe the EXTERNAL TOOL/SERVICE, not the domain concept.**
+
+If the name uses vocabulary from the project's domain (the nouns that appear in `docs/architecture/domain-terminology/`, role names, aggregate names, or core feature names), then this role is wrong — the logic belongs in the domain layer, not in an external-client adapter.
+
+- ✅ `runOxlint`, `fetchStripeCustomer`, `spawnGitDiff`, `GitRepositoryInfo`
+- ❌ `runRoleEnforcement`, `loadExtractionConfig`, `persistOrderAggregate`, `OrderRepositoryError`
+
+If you find yourself putting a domain noun in an `infra/external-clients/**` file name, STOP. The code belongs in `domain/` or `commands/`, and an adapter should be extracted from it whose name refers only to the external tool.
+
 ## Purpose
 A function that wraps a third-party library or external tool behind a project-controlled boundary.
 

@@ -1,6 +1,7 @@
 import {
-  expect, it 
+  expect, it, vi 
 } from 'vitest'
+import { RoleEnforcementExecutionError } from '../domain/role-enforcement-run-result'
 import {
   configWithGenericApprovedAggregates,
   configWithGenericMaxPublicMethods,
@@ -36,6 +37,7 @@ export function doAlpha(alphaInput: string): AlphaResult {
     )
     const result = runRoleEnforcement(genericTestConfig, workspaceDir)
     expect(result.exitCode).toBe(1)
+    expect(result.stderr).toBe('')
     expect(result.stdout).toContain("Role 'role-a' only allows inputs [role-a-input]")
   })
 })
@@ -132,6 +134,7 @@ export function doAlpha(alphaInput: AlphaInput): AlphaResult | string {
     )
     const result = runRoleEnforcement(genericTestConfig, workspaceDir)
     expect(result.exitCode).toBe(1)
+    expect(result.stderr).toBe('')
     expect(result.stdout).toContain('only allows outputs [role-a-result, role-c-error]')
   })
 })
@@ -146,6 +149,7 @@ export class Beta {}
     )
     const result = runRoleEnforcement(genericTestConfig, workspaceDir)
     expect(result.exitCode).toBe(1)
+    expect(result.stderr).toBe('')
     expect(result.stdout).toContain('requires at least 1 public method(s)')
   })
 })
@@ -171,6 +175,7 @@ export class Beta {
     )
     const result = runRoleEnforcement(configWithGenericMaxPublicMethods(), workspaceDir)
     expect(result.exitCode).toBe(1)
+    expect(result.stderr).toBe('')
     expect(result.stdout).toContain('allows at most 1 public method(s)')
   })
 })
@@ -197,6 +202,7 @@ export class BetaRepository {
     )
     const result = runRoleEnforcement(genericTestConfig, workspaceDir)
     expect(result.exitCode).toBe(1)
+    expect(result.stderr).toBe('')
     expect(result.stdout).toContain('only allows outputs [role-b]')
   })
 })
@@ -224,6 +230,42 @@ it('rejects aggregate when name is not in approvedInstances', () => {
       workspaceDir,
     )
     expect(result.exitCode).toBe(1)
+    expect(result.stderr).toBe('')
     expect(result.stdout).toContain('is not in approvedInstances')
+  })
+})
+
+it('wraps RoleEnforcementExecutionError from the oxlint adapter into a failure result', () => {
+  withGenericFixtureWorkspace((workspaceDir) => {
+    const nowSpy = vi.fn().mockReturnValueOnce(100).mockReturnValue(175)
+    const result = runRoleEnforcement(genericTestConfig, workspaceDir, {
+      now: nowSpy,
+      readdirSync: () => [],
+      realpathSync: (filePath) => filePath,
+      oxlintAdapter: () => {
+        throw new RoleEnforcementExecutionError('simulated oxlint failure')
+      },
+    })
+
+    expect(result.exitCode).toBe(1)
+    expect(result.stderr).toBe('simulated oxlint failure\n')
+    expect(result.stdout).toBe('')
+    expect(result.durationMs).toBe(75)
+  })
+})
+
+it('rethrows non-domain errors from the oxlint adapter', () => {
+  withGenericFixtureWorkspace((workspaceDir) => {
+    const unexpected = new TypeError('unexpected crash')
+    expect(() =>
+      runRoleEnforcement(genericTestConfig, workspaceDir, {
+        now: () => 0,
+        readdirSync: () => [],
+        realpathSync: (filePath) => filePath,
+        oxlintAdapter: () => {
+          throw unexpected
+        },
+      }),
+    ).toThrow(unexpected)
   })
 })

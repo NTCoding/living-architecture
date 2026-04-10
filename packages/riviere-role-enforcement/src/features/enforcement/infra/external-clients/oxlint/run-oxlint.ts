@@ -59,21 +59,27 @@ export function runOxlint({
 
   deps.writeFileSync(oxlintConfigPath, JSON.stringify(oxlintConfig, null, 2))
 
-  const commandResult = deps.spawnSync(oxlintBinaryPath, ['-c', oxlintConfigPath, ...lintTargets], {
-    cwd: configDir,
-    encoding: 'utf8',
-  })
+  try {
+    const commandResult = deps.spawnSync(
+      oxlintBinaryPath,
+      ['-c', oxlintConfigPath, ...lintTargets],
+      {
+        cwd: configDir,
+        encoding: 'utf8',
+      },
+    )
 
-  deps.rmSync(oxlintConfigPath, { force: true })
+    if (commandResult.error !== undefined) {
+      throw new RoleEnforcementExecutionError(commandResult.error.message)
+    }
 
-  if (commandResult.error !== undefined) {
-    throw new RoleEnforcementExecutionError(commandResult.error.message)
-  }
-
-  return {
-    exitCode: commandResult.status ?? 1,
-    stderr: commandResult.stderr,
-    stdout: commandResult.stdout,
+    return {
+      exitCode: commandResult.status ?? 1,
+      stderr: commandResult.stderr,
+      stdout: commandResult.stdout,
+    }
+  } finally {
+    deps.rmSync(oxlintConfigPath, { force: true })
   }
 }
 

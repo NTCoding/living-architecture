@@ -21,6 +21,14 @@ function parseSingleRoleName(text, errorContext) {
   return roleNames[0]
 }
 
+function referenceForUnknownRole(options) {
+  return `Browse ${options.roleDefinitionsDir}/ — each <role-name>.md file has a Purpose, Canonical Example, Common Misclassifications, and Anti-Patterns section. Read the canonical example + anti-patterns of EVERY candidate role before picking one. See ${options.configDisplayPath}.`
+}
+
+function referenceForKnownRole(options, roleName) {
+  return `Re-read ${options.roleDefinitionsDir}/${roleName}.md — check Purpose, Canonical Example, Anti-Patterns, and (if present) the Critical Naming Rule. See ${options.configDisplayPath}.`
+}
+
 export default {
   meta: { name: 'riviere-role-enforcement' },
   rules: {
@@ -102,7 +110,7 @@ export default {
               ) {
                 report(
                   node,
-                  `Forbidden import: files in this location cannot import from '${forbiddenPattern}'. See ${options.configDisplayPath}`,
+                  `Forbidden import: files in this location cannot import from '${forbiddenPattern}'. ${referenceForUnknownRole(options)}`,
                 )
               }
             }
@@ -124,7 +132,7 @@ export default {
           if (roleNames.length === 0) {
             report(
               node,
-              `Missing @riviere-role annotation for '${name}'. See ${options.configDisplayPath}`,
+              `Missing @riviere-role annotation for '${name}'. ${referenceForUnknownRole(options)}`,
             )
             return
           }
@@ -132,7 +140,7 @@ export default {
           if (roleNames.length > 1) {
             report(
               node,
-              `Multiple @riviere-role annotations found for '${name}'. See ${options.configDisplayPath}`,
+              `Multiple @riviere-role annotations found for '${name}'. ${referenceForUnknownRole(options)}`,
             )
             return
           }
@@ -142,7 +150,7 @@ export default {
           if (role === undefined) {
             report(
               node,
-              `Unknown role '${roleName}' on '${name}'. See ${options.configDisplayPath}`,
+              `Unknown role '${roleName}' on '${name}'. ${referenceForUnknownRole(options)}`,
             )
             return
           }
@@ -150,7 +158,7 @@ export default {
           if (!role.targets.includes(target)) {
             report(
               node,
-              `Role '${roleName}' does not allow target '${target}'. See ${options.configDisplayPath}`,
+              `Role '${roleName}' does not allow target '${target}'. ${referenceForKnownRole(options, roleName)}`,
             )
             return
           }
@@ -158,7 +166,7 @@ export default {
           if (!isRoleAllowedInFile(roleName, relativeFilePath)) {
             report(
               node,
-              `${roleName} cannot live in ${relativeFilePath}. See ${options.configDisplayPath}`,
+              `${roleName} cannot live in ${relativeFilePath}. ${referenceForKnownRole(options, roleName)}`,
             )
             return
           }
@@ -166,7 +174,7 @@ export default {
           if (!matchesName(name, role)) {
             report(
               node,
-              `Role '${roleName}' does not allow name '${name}'. See ${options.configDisplayPath}`,
+              `Role '${roleName}' does not allow name '${name}'. ${referenceForKnownRole(options, roleName)}`,
             )
             return
           }
@@ -269,7 +277,7 @@ export default {
           const roleName = restrictedBindings.get(node.name)
           report(
             node,
-            `Role '${fileRoles.join(', ')}' forbids non-construction usage of '${roleName}' imports. Only 'new' is allowed. See ${options.configDisplayPath}`,
+            `Role '${fileRoles.join(', ')}' forbids non-construction usage of '${roleName}' imports. Only 'new' is allowed. ${referenceForKnownRole(options, roleName)}`,
           )
           return true
         }
@@ -314,7 +322,7 @@ export default {
             if (forbiddenSet.has(importedRole)) {
               report(
                 statement,
-                `Forbidden dependency: this file (${fileRoles.join(', ')}) cannot import from a file exporting '${importedRole}'. See ${options.configDisplayPath}`,
+                `Forbidden dependency: this file (${fileRoles.join(', ')}) cannot import from a file exporting '${importedRole}'. ${referenceForKnownRole(options, importedRole)}`,
               )
             }
           }
@@ -353,7 +361,7 @@ export default {
             if (node.params.length !== 1) {
               report(
                 node,
-                `Role '${role.name}' must accept exactly one parameter on '${name}'. See ${options.configDisplayPath}`,
+                `Role '${role.name}' must accept exactly one parameter on '${name}'. ${referenceForKnownRole(options, role.name)}`,
               )
               return
             }
@@ -362,7 +370,7 @@ export default {
             if (inputRole === null || !role.allowedInputs.includes(inputRole)) {
               report(
                 node,
-                `Role '${role.name}' only allows inputs [${role.allowedInputs.join(', ')}] on '${name}'. See ${options.configDisplayPath}`,
+                `Role '${role.name}' only allows inputs [${role.allowedInputs.join(', ')}] on '${name}'. ${referenceForKnownRole(options, role.name)}`,
               )
               return
             }
@@ -373,7 +381,7 @@ export default {
             if (outputRoles === null || !outputRoles.every((r) => role.allowedOutputs.includes(r))) {
               report(
                 node,
-                `Role '${role.name}' only allows outputs [${role.allowedOutputs.join(', ')}] on '${name}'. See ${options.configDisplayPath}`,
+                `Role '${role.name}' only allows outputs [${role.allowedOutputs.join(', ')}] on '${name}'. ${referenceForKnownRole(options, role.name)}`,
               )
             }
           }
@@ -385,7 +393,7 @@ export default {
             if (publicMethodCount < role.minPublicMethods) {
               report(
                 node,
-                `Role '${role.name}' requires at least ${role.minPublicMethods} public method(s) on '${name}'. See ${options.configDisplayPath}`,
+                `Role '${role.name}' requires at least ${role.minPublicMethods} public method(s) on '${name}'. ${referenceForKnownRole(options, role.name)}`,
               )
             }
           }
@@ -395,7 +403,7 @@ export default {
             if (maxCount > role.maxPublicMethods) {
               report(
                 node,
-                `Role '${role.name}' allows at most ${role.maxPublicMethods} public method(s) on '${name}'. See ${options.configDisplayPath}`,
+                `Role '${role.name}' allows at most ${role.maxPublicMethods} public method(s) on '${name}'. ${referenceForKnownRole(options, role.name)}`,
               )
             }
           }

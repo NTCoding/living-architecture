@@ -15,6 +15,7 @@ const minimalOxlintConfig: OxlintConfig = {
         configDir: '/var/folders/fake-dir',
         configDisplayPath: 'role-enforcement.config.ts',
         layers: {},
+        roleDefinitionsDir: '.riviere/role-definitions',
         roles: [],
       },
     ],

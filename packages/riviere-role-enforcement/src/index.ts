@@ -16,6 +16,7 @@ export {
   PackageFilterError,
 } from './features/enforcement/domain/filter-config-by-package'
 export { runRoleEnforcement } from './features/enforcement/commands/run-role-enforcement'
+export { runRoleEnforcementFromModule } from './features/enforcement/commands/run-role-enforcement-from-module'
 export {
   RoleEnforcementExecutionError,
   type RoleEnforcementRunResult,

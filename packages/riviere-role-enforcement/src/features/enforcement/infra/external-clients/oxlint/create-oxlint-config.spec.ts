@@ -35,6 +35,9 @@ describe('createOxlintConfig', () => {
         paths: ['src/**/commands'],
       },
     })
+    expect(config.rules['riviere-role-enforcement/enforce-roles'][1].roleDefinitionsDir).toBe(
+      'role-definitions',
+    )
   })
 
   it('prefixes same-directory plugin paths with dot slash', () => {

@@ -81,6 +81,7 @@ it('rejects aggregate-repository returning unannotated class from workspace pack
     const result = runRoleEnforcement(workspacePackageConfig, workspaceDir)
 
     expect(result.exitCode).toBe(1)
+    expect(result.stderr).toBe('')
     expect(result.stdout).toContain('only allows outputs [role-b]')
   })
 })
