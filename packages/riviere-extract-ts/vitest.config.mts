@@ -12,8 +12,6 @@ export default defineConfig(() => ({
     globals: true,
     environment: 'node',
     testTimeout: 60_000,
-    pool: 'forks',
-    poolOptions: { forks: { singleFork: true } },
     include: ['{src,tests}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     reporters: ['default'],
     coverage: {
