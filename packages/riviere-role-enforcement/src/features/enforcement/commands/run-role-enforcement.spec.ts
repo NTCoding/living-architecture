@@ -1,7 +1,7 @@
 import {
   expect, it, vi 
 } from 'vitest'
-import { RoleEnforcementExecutionError } from '../domain/role-enforcement-run-result'
+import { RoleEnforcementExecutionError } from '../domain/role-enforcement-execution-error'
 import {
   configWithGenericApprovedAggregates,
   configWithGenericMaxPublicMethods,
@@ -13,11 +13,18 @@ import {
   writeDomainFile,
   writeRepositoryFile,
 } from './test-fixture-workspace'
-import { runRoleEnforcement } from './run-role-enforcement'
+import { RunRoleEnforcement } from './run-role-enforcement'
+
+function runWith(config: typeof genericTestConfig, workspaceDir: string) {
+  return new RunRoleEnforcement().execute({
+    configDir: workspaceDir,
+    configModule: { config },
+  })
+}
 
 it('runs oxlint successfully for a valid fixture workspace', () => {
   withGenericFixtureWorkspace((workspaceDir) => {
-    const result = runRoleEnforcement(genericTestConfig, workspaceDir)
+    const result = runWith(genericTestConfig, workspaceDir)
     expect(result.exitCode).toBe(0)
     expect(result.stderr).toBe('')
   })
@@ -35,7 +42,7 @@ export function doAlpha(alphaInput: string): AlphaResult {
 }
 `,
     )
-    const result = runRoleEnforcement(genericTestConfig, workspaceDir)
+    const result = runWith(genericTestConfig, workspaceDir)
     expect(result.exitCode).toBe(1)
     expect(result.stderr).toBe('')
     expect(result.stdout).toContain("Role 'role-a' only allows inputs [role-a-input]")
@@ -55,7 +62,7 @@ export async function doAlpha(alphaInput: AlphaInput): Promise<AlphaResult> {
 }
 `,
     )
-    const result = runRoleEnforcement(genericTestConfig, workspaceDir)
+    const result = runWith(genericTestConfig, workspaceDir)
     expect(result.exitCode).toBe(0)
     expect(result.stderr).toBe('')
   })
@@ -74,7 +81,7 @@ export function doAlpha(alphaInput: AlphaInput): AlphaResult[] {
 }
 `,
     )
-    const result = runRoleEnforcement(genericTestConfig, workspaceDir)
+    const result = runWith(genericTestConfig, workspaceDir)
     expect(result.exitCode).toBe(0)
     expect(result.stderr).toBe('')
   })
@@ -93,7 +100,7 @@ export async function doAlpha(alphaInput: AlphaInput): Promise<AlphaResult[]> {
 }
 `,
     )
-    const result = runRoleEnforcement(genericTestConfig, workspaceDir)
+    const result = runWith(genericTestConfig, workspaceDir)
     expect(result.exitCode).toBe(0)
     expect(result.stderr).toBe('')
   })
@@ -113,7 +120,7 @@ export function doAlpha(alphaInput: AlphaInput): AlphaResult | AlphaError {
 }
 `,
     )
-    const result = runRoleEnforcement(genericTestConfig, workspaceDir)
+    const result = runWith(genericTestConfig, workspaceDir)
     expect(result.exitCode).toBe(0)
     expect(result.stderr).toBe('')
   })
@@ -132,7 +139,7 @@ export function doAlpha(alphaInput: AlphaInput): AlphaResult | string {
 }
 `,
     )
-    const result = runRoleEnforcement(genericTestConfig, workspaceDir)
+    const result = runWith(genericTestConfig, workspaceDir)
     expect(result.exitCode).toBe(1)
     expect(result.stderr).toBe('')
     expect(result.stdout).toContain('only allows outputs [role-a-result, role-c-error]')
@@ -147,7 +154,7 @@ it('rejects aggregate classes with no public methods', () => {
 export class Beta {}
 `,
     )
-    const result = runRoleEnforcement(genericTestConfig, workspaceDir)
+    const result = runWith(genericTestConfig, workspaceDir)
     expect(result.exitCode).toBe(1)
     expect(result.stderr).toBe('')
     expect(result.stdout).toContain('requires at least 1 public method(s)')
@@ -156,7 +163,7 @@ export class Beta {}
 
 it('accepts aggregate classes with at least one public method', () => {
   withGenericFixtureWorkspace((workspaceDir) => {
-    const result = runRoleEnforcement(genericTestConfig, workspaceDir)
+    const result = runWith(genericTestConfig, workspaceDir)
     expect(result.exitCode).toBe(0)
     expect(result.stderr).toBe('')
   })
@@ -173,7 +180,7 @@ export class Beta {
 }
 `,
     )
-    const result = runRoleEnforcement(configWithGenericMaxPublicMethods(), workspaceDir)
+    const result = runWith(configWithGenericMaxPublicMethods(), workspaceDir)
     expect(result.exitCode).toBe(1)
     expect(result.stderr).toBe('')
     expect(result.stdout).toContain('allows at most 1 public method(s)')
@@ -182,7 +189,7 @@ export class Beta {
 
 it('accepts aggregate classes within maxPublicMethods limit', () => {
   withGenericFixtureWorkspace((workspaceDir) => {
-    const result = runRoleEnforcement(configWithGenericMaxPublicMethods(), workspaceDir)
+    const result = runWith(configWithGenericMaxPublicMethods(), workspaceDir)
     expect(result.exitCode).toBe(0)
     expect(result.stderr).toBe('')
   })
@@ -200,7 +207,7 @@ export class BetaRepository {
 }
 `,
     )
-    const result = runRoleEnforcement(genericTestConfig, workspaceDir)
+    const result = runWith(genericTestConfig, workspaceDir)
     expect(result.exitCode).toBe(1)
     expect(result.stderr).toBe('')
     expect(result.stdout).toContain('only allows outputs [role-b]')
@@ -209,7 +216,7 @@ export class BetaRepository {
 
 it('accepts aggregate-repository class method returning a named aggregate type', () => {
   withGenericFixtureWorkspace((workspaceDir) => {
-    const result = runRoleEnforcement(genericTestConfig, workspaceDir)
+    const result = runWith(genericTestConfig, workspaceDir)
     expect(result.exitCode).toBe(0)
     expect(result.stderr).toBe('')
   })
@@ -217,7 +224,7 @@ it('accepts aggregate-repository class method returning a named aggregate type',
 
 it('accepts aggregate when name is in approvedInstances with userHasApproved true', () => {
   withGenericFixtureWorkspace((workspaceDir) => {
-    const result = runRoleEnforcement(configWithGenericApprovedAggregates(['Beta']), workspaceDir)
+    const result = runWith(configWithGenericApprovedAggregates(['Beta']), workspaceDir)
     expect(result.exitCode).toBe(0)
     expect(result.stderr).toBe('')
   })
@@ -225,10 +232,7 @@ it('accepts aggregate when name is in approvedInstances with userHasApproved tru
 
 it('rejects aggregate when name is not in approvedInstances', () => {
   withGenericFixtureWorkspace((workspaceDir) => {
-    const result = runRoleEnforcement(
-      configWithGenericApprovedAggregates(['SomeOther']),
-      workspaceDir,
-    )
+    const result = runWith(configWithGenericApprovedAggregates(['SomeOther']), workspaceDir)
     expect(result.exitCode).toBe(1)
     expect(result.stderr).toBe('')
     expect(result.stdout).toContain('is not in approvedInstances')
@@ -238,13 +242,16 @@ it('rejects aggregate when name is not in approvedInstances', () => {
 it('wraps RoleEnforcementExecutionError from the oxlint adapter into a failure result', () => {
   withGenericFixtureWorkspace((workspaceDir) => {
     const nowSpy = vi.fn().mockReturnValueOnce(100).mockReturnValue(175)
-    const result = runRoleEnforcement(genericTestConfig, workspaceDir, {
+    const result = new RunRoleEnforcement({
       now: nowSpy,
       readdirSync: () => [],
       realpathSync: (filePath) => filePath,
       oxlintAdapter: () => {
         throw new RoleEnforcementExecutionError('simulated oxlint failure')
       },
+    }).execute({
+      configDir: workspaceDir,
+      configModule: { config: genericTestConfig },
     })
 
     expect(result.exitCode).toBe(1)
@@ -257,15 +264,44 @@ it('wraps RoleEnforcementExecutionError from the oxlint adapter into a failure r
 it('rethrows non-domain errors from the oxlint adapter', () => {
   withGenericFixtureWorkspace((workspaceDir) => {
     const unexpected = new TypeError('unexpected crash')
+    const runner = new RunRoleEnforcement({
+      now: () => 0,
+      readdirSync: () => [],
+      realpathSync: (filePath) => filePath,
+      oxlintAdapter: () => {
+        throw unexpected
+      },
+    })
     expect(() =>
-      runRoleEnforcement(genericTestConfig, workspaceDir, {
-        now: () => 0,
-        readdirSync: () => [],
-        realpathSync: (filePath) => filePath,
-        oxlintAdapter: () => {
-          throw unexpected
-        },
+      runner.execute({
+        configDir: workspaceDir,
+        configModule: { config: genericTestConfig },
       }),
     ).toThrow(unexpected)
+  })
+})
+
+it('wraps RoleEnforcementExecutionError from readConfig into a failure result', () => {
+  withGenericFixtureWorkspace((workspaceDir) => {
+    const result = new RunRoleEnforcement().execute({
+      configDir: workspaceDir,
+      configModule: {},
+    })
+    expect(result.exitCode).toBe(1)
+    expect(result.stderr).toBe("Config module must export a 'config' property.\n")
+    expect(result.stdout).toBe('')
+  })
+})
+
+it('wraps RoleEnforcementExecutionError from readConfigForPackage into a failure result', () => {
+  withGenericFixtureWorkspace((workspaceDir) => {
+    const result = new RunRoleEnforcement().execute({
+      configDir: workspaceDir,
+      configModule: { config: genericTestConfig },
+      packageFilter: 'packages/pkg-missing',
+    })
+    expect(result.exitCode).toBe(1)
+    expect(result.stderr).toContain("No include patterns match package 'packages/pkg-missing'")
+    expect(result.stdout).toBe('')
   })
 })

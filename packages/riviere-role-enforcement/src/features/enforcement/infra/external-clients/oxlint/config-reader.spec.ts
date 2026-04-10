@@ -4,7 +4,7 @@ import {
 import {
   location, role, roleEnforcement 
 } from '../../../domain/role-enforcement-builder'
-import { RoleEnforcementExecutionError } from '../../../domain/role-enforcement-run-result'
+import { RoleEnforcementExecutionError } from '../../../domain/role-enforcement-execution-error'
 import {
   readConfig, readConfigForPackage 
 } from './config-reader'

@@ -4,7 +4,7 @@ import {
 import {
   location, role, roleEnforcement 
 } from '../domain/role-enforcement-builder'
-import { runRoleEnforcement } from './run-role-enforcement'
+import { RunRoleEnforcement } from './run-role-enforcement'
 import {
   withWorkspaceFixture, writeFixtureFile 
 } from './test-fixture-workspace'
@@ -69,7 +69,10 @@ export function runRoleMain(): void {
 }
 `,
     )
-    const result = runRoleEnforcement(testConfig, workspaceDir)
+    const result = new RunRoleEnforcement().execute({
+      configDir: workspaceDir,
+      configModule: { config: testConfig },
+    })
     expect(result.exitCode).toBe(1)
     expect(result.stderr).toBe('')
     expect(result.stdout).toContain('forbids non-construction usage')
@@ -89,7 +92,10 @@ export function runRoleMain(): void {
 }
 `,
     )
-    const result = runRoleEnforcement(testConfig, workspaceDir)
+    const result = new RunRoleEnforcement().execute({
+      configDir: workspaceDir,
+      configModule: { config: testConfig },
+    })
     expect(result.exitCode).toBe(1)
     expect(result.stderr).toBe('')
     expect(result.stdout).toContain('forbids non-construction usage')
@@ -108,7 +114,10 @@ export function runRoleMain(): void {
 }
 `,
     )
-    const result = runRoleEnforcement(testConfig, workspaceDir)
+    const result = new RunRoleEnforcement().execute({
+      configDir: workspaceDir,
+      configModule: { config: testConfig },
+    })
     expect(result.exitCode).toBe(0)
     expect(result.stderr).toBe('')
   })

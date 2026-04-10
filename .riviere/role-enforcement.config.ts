@@ -2,7 +2,6 @@ import { location, roleEnforcement } from '@living-architecture/riviere-role-enf
 import { allRoles, type RoleName } from './roles'
 
 const commandRoles: RoleName[] = [
-  'command-orchestrator',
   'command-use-case',
   'command-use-case-input',
   'command-use-case-result',

@@ -1,7 +1,7 @@
 import {
   describe, expect, it, vi 
 } from 'vitest'
-import { RoleEnforcementExecutionError } from '../../../domain/role-enforcement-run-result'
+import { RoleEnforcementExecutionError } from '../../../domain/role-enforcement-execution-error'
 import type { OxlintConfig } from './create-oxlint-config'
 import { runOxlint } from './run-oxlint'
 

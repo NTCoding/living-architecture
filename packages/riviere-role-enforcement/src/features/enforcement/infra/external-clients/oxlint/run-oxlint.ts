@@ -4,7 +4,7 @@ import {
 import path from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
-import { RoleEnforcementExecutionError } from '../../../domain/role-enforcement-run-result'
+import { RoleEnforcementExecutionError } from '../../../domain/role-enforcement-execution-error'
 import type { OxlintConfig } from './create-oxlint-config'
 
 interface OxlintAdapterDeps {
