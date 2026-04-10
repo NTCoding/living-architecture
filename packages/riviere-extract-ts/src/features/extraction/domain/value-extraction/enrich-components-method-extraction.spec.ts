@@ -383,3 +383,53 @@ export class OrderHandler implements IEventHandler<OrderPlaced> {
     expect(result.failures).toStrictEqual([])
   })
 })
+
+describe('enrichComponents — fromProperty extraction on method-based components', () => {
+  it('extracts property from containing class when component is method-based', () => {
+    const file = nextFile(
+      '/src/orders/order.handler.ts',
+      `export class OrderHandler {
+  readonly subscribedEvents = ['OrderPlaced']
+  handle() {}
+}`,
+    )
+
+    const drafts: DraftComponent[] = [
+      {
+        type: 'eventHandler',
+        name: 'handle',
+        location: {
+          file,
+          line: 3,
+        },
+        domain: 'orders',
+      },
+    ]
+
+    const module: Module = {
+      ...notUsedModule(),
+      name: 'orders',
+      path: '/src/orders',
+      glob: '**',
+      domainOp: { notUsed: true },
+      eventHandler: {
+        find: 'methods',
+        where: { nameEndsWith: { suffix: 'handle' } },
+        extract: {
+          subscribedEvents: {
+            fromProperty: {
+              name: 'subscribedEvents',
+              kind: 'instance',
+            },
+          },
+        },
+      },
+    }
+
+    const config = configWithModules([module])
+    const result = enrichComponents(drafts, config, sharedProject, alwaysMatchGlob(), '/')
+
+    expect(result.components[0]?.metadata).toStrictEqual({ subscribedEvents: ['OrderPlaced'] })
+    expect(result.failures).toStrictEqual([])
+  })
+})

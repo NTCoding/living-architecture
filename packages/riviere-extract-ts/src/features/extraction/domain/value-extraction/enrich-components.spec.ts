@@ -187,6 +187,24 @@ describe('enrichComponents', () => {
       expect(result.components[0]?._missing).toStrictEqual(['path'])
     })
 
+    it('records failure when unsupported rule type is used with class-based component', () => {
+      const file = nextFile('/src/orders/order.controller.ts', 'export class OrderController {}')
+      const d = draft('api', 'OrderController', file, 1)
+      const module = moduleWith('api', {
+        find: 'classes',
+        where: { nameEndsWith: { suffix: 'Controller' } },
+        extract: { signature: { fromMethodSignature: true } },
+      })
+      const result = enrich([d], [module])
+
+      expect(result.failures).toHaveLength(1)
+      expect(result.failures[0]?.field).toBe('signature')
+      expect(result.failures[0]?.error).toMatch(
+        'Unsupported extraction rule type for class-based component',
+      )
+      expect(result.components[0]?._missing).toStrictEqual(['signature'])
+    })
+
     it('extracts successful fields and records failed ones separately', () => {
       const file = nextFile('/src/orders/order.controller.ts', 'export class OrderController {}')
       const module = moduleWith('api', {

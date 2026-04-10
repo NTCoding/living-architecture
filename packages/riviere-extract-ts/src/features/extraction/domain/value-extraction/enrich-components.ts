@@ -180,16 +180,11 @@ function evaluateClassRule(rule: ExtractionRule, classDecl: ClassDeclaration): E
     return evaluateFromClassNameRule(rule, classDecl)
   }
 
-  /* istanbul ignore next -- @preserve: only fromProperty reaches here; defensive guard */
-  if (!('fromProperty' in rule)) {
-    throw new ExtractionError(
-      'Unsupported extraction rule type for class-based component',
-      classDecl.getSourceFile().getFilePath(),
-      classDecl.getStartLineNumber(),
-    )
-  }
-
-  return evaluateFromPropertyRule(rule, classDecl)
+  throw new ExtractionError(
+    'Unsupported extraction rule type for class-based component',
+    classDecl.getSourceFile().getFilePath(),
+    classDecl.getStartLineNumber(),
+  )
 }
 
 function evaluateRule(
@@ -213,6 +208,11 @@ function evaluateRule(
   if ('fromGenericArg' in rule) {
     const classDecl = findContainingClass(project, draft)
     return evaluateFromGenericArgRule(rule, classDecl)
+  }
+
+  if ('fromProperty' in rule) {
+    const classDecl = findContainingClass(project, draft)
+    return evaluateFromPropertyRule(rule, classDecl)
   }
 
   if ('fromParameterType' in rule) {
