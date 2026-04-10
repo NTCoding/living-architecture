@@ -1,5 +1,5 @@
 import path from 'node:path'
-import type { RoleEnforcementResult } from './role-enforcement-builder'
+import type { RoleEnforcementResult } from '../../../domain/role-enforcement-builder'
 
 interface OxlintRuleOptions {
   configDir: string
@@ -9,7 +9,8 @@ interface OxlintRuleOptions {
   workspacePackageSources?: Record<string, string>
 }
 
-interface OxlintConfig {
+/** @riviere-role external-client-model */
+export interface OxlintConfig {
   ignorePatterns: readonly string[]
   jsPlugins: Array<{
     name: string
@@ -18,7 +19,7 @@ interface OxlintConfig {
   rules: { 'riviere-role-enforcement/enforce-roles': ['error', OxlintRuleOptions] }
 }
 
-/** @riviere-role domain-service */
+/** @riviere-role external-client-service */
 export function createOxlintConfig(
   config: RoleEnforcementResult,
   configDir: string,

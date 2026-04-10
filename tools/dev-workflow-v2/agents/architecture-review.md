@@ -42,6 +42,10 @@ Do not suggest "this could be improved" — state the rule code and mark FAIL.
 
 **Fix suggestions must comply with the same rules.** Never suggest moving code into a layer where it would also violate. Use the loaded separation-of-concerns skill to determine the correct destination.
 
+## External-Client Domain-Leak Check
+
+If a file under `infra/external-clients/**` uses domain terminology in its exports, the logic belongs in the domain — not in the adapter. FAIL and move it.
+
 ## Audit Report
 
 Your response must include, in this exact order:
@@ -105,6 +109,7 @@ Default: Flag issues. Skip only if IMPOSSIBLE (cannot satisfy convention + requi
 ## Pre-Response Checklist
 
 Before generating your response, verify:
+- [ ] External-Client Domain-Leak Check performed on every reviewed file
 - [ ] Findings section lists only failures (or "No findings" if PASS)
 - [ ] Audit trail has a section for EVERY file, each with a row for EVERY rule code from the skill's audit checklist
 - [ ] Audit summary totals match row counts

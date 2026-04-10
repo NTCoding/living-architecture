@@ -8,65 +8,65 @@ import {
 } from 'vitest'
 import {
   location, role, roleEnforcement 
-} from '../../../domain/role-enforcement-builder'
+} from '../domain/role-enforcement-builder'
 import { runRoleEnforcement } from './run-role-enforcement'
 
 const workspacePackageTestRoles = [
-  role('aggregate', {
+  role('role-b', {
     targets: ['class'],
     minPublicMethods: 1,
   }),
-  role('aggregate-repository', {
+  role('role-b-repository', {
     targets: ['class'],
-    allowedOutputs: ['aggregate'],
+    allowedOutputs: ['role-b'],
   }),
 ] as const
 
 const workspacePackageConfig = roleEnforcement({
-  packages: ['packages/my-app'],
+  packages: ['packages/pkg-a'],
   canonicalConfigurationsFile: '.riviere/canonical-role-configurations.md',
   ignorePatterns: [],
   roleDefinitionsDir: '.riviere/role-definitions',
   roles: workspacePackageTestRoles,
-  workspacePackageSources: { '@my-org/my-lib': 'packages/my-lib/src/index.ts' },
+  workspacePackageSources: { '@generic/pkg-lib': 'packages/pkg-lib/src/index.ts' },
   locations: [
     location<(typeof workspacePackageTestRoles)[number]['name']>('src').subLocation(
       '/repositories',
-      ['aggregate-repository'],
+      ['role-b-repository'],
     ),
   ],
 })
 
 function createWorkspacePackageFixture(): string {
   const workspaceDir = mkdtempSync(path.join(tmpdir(), 'role-enforcement-pkg-'))
-  const appDir = path.join(workspaceDir, 'packages', 'my-app')
-  const libDir = path.join(workspaceDir, 'packages', 'my-lib')
+  const appDir = path.join(workspaceDir, 'packages', 'pkg-a')
+  const libDir = path.join(workspaceDir, 'packages', 'pkg-lib')
 
   mkdirSync(path.join(appDir, 'src', 'repositories'), { recursive: true })
   mkdirSync(path.join(libDir, 'src'), { recursive: true })
   mkdirSync(path.join(workspaceDir, '.riviere', 'role-definitions'), { recursive: true })
 
   writeFileSync(
-    path.join(libDir, 'src', 'order.ts'),
-    `/** @riviere-role aggregate */
-export class Order {
+    path.join(libDir, 'src', 'beta.ts'),
+    `/** @riviere-role role-b */
+export class Beta {
   cancel(): void {}
 }
 `,
   )
   writeFileSync(
     path.join(libDir, 'src', 'index.ts'),
-    `export * from './order'
+    `export * from './beta'
 `,
   )
   writeFileSync(
-    path.join(appDir, 'src', 'repositories', 'orderRepository.ts'),
-    `import type { Order } from '@my-org/my-lib'
+    path.join(appDir, 'src', 'repositories', 'betaRepository.ts'),
+    `import type { Beta } from '@generic/pkg-lib'
 
-/** @riviere-role aggregate-repository */
-export class OrderRepository {
-  findById(id: string): Order {
-    return null as unknown as Order
+/** @riviere-role role-b-repository */
+export class BetaRepository {
+  findById(id: string): Beta {
+    return null as unknown as Beta
   }
 }
 `,
@@ -102,8 +102,8 @@ it('rejects aggregate-repository returning unannotated class from workspace pack
   const workspaceDir = createWorkspacePackageFixture()
 
   writeFileSync(
-    path.join(workspaceDir, 'packages', 'my-lib', 'src', 'order.ts'),
-    `export class Order {
+    path.join(workspaceDir, 'packages', 'pkg-lib', 'src', 'beta.ts'),
+    `export class Beta {
   cancel(): void {}
 }
 `,
@@ -112,7 +112,7 @@ it('rejects aggregate-repository returning unannotated class from workspace pack
   const result = runRoleEnforcement(workspacePackageConfig, workspaceDir)
 
   expect(result.exitCode).toBe(1)
-  expect(result.stdout).toContain('only allows outputs [aggregate]')
+  expect(result.stdout).toContain('only allows outputs [role-b]')
 
   rmSync(workspaceDir, {
     force: true,

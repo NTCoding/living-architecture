@@ -11,14 +11,14 @@ describe('createOxlintConfig', () => {
         include: ['src/**/*.ts'],
         layers: {
           commands: {
-            allowedRoles: ['command-use-case'],
+            allowedRoles: ['role-a'],
             paths: ['src/**/commands'],
           },
         },
         roleDefinitionsDir: 'role-definitions',
         roles: [],
       },
-      '/repo/packages/riviere-cli',
+      '/repo/packages/pkg-a',
       'role-enforcement.config.ts',
       '/repo/packages/riviere-role-enforcement/role-enforcement-plugin.mjs',
     )
@@ -31,7 +31,7 @@ describe('createOxlintConfig', () => {
     )
     expect(config.rules['riviere-role-enforcement/enforce-roles'][1].layers).toStrictEqual({
       commands: {
-        allowedRoles: ['command-use-case'],
+        allowedRoles: ['role-a'],
         paths: ['src/**/commands'],
       },
     })
@@ -44,7 +44,7 @@ describe('createOxlintConfig', () => {
         include: ['src/**/*.ts'],
         layers: {
           entrypoint: {
-            allowedRoles: ['cli-entrypoint'],
+            allowedRoles: ['role-entry'],
             paths: ['src/**/entrypoint'],
           },
         },

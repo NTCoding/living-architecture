@@ -45,7 +45,13 @@ const packages = [
 export const config = roleEnforcement({
   packages,
   canonicalConfigurationsFile: '.riviere/canonical-role-configurations.md',
-  ignorePatterns: ['**/*.spec.ts', '**/__fixtures__/**', '**/*-fixtures.ts', '**/test-fixtures.ts'],
+  ignorePatterns: [
+    '**/*.spec.ts',
+    '**/__fixtures__/**',
+    '**/*-fixtures.ts',
+    '**/test-fixtures.ts',
+    '**/test-fixture-*.ts',
+  ],
   roleDefinitionsDir: '.riviere/role-definitions',
   roles: allRoles,
   workspacePackageSources: {

@@ -1,10 +1,7 @@
+import { runRoleEnforcement } from '../commands/run-role-enforcement'
 import {
   readConfig, readConfigForPackage 
 } from '../infra/external-clients/oxlint/config-reader'
-import {
-  formatRoleEnforcementFailure,
-  runRoleEnforcement,
-} from '../infra/external-clients/oxlint/run-role-enforcement'
 
 /** @riviere-role cli-entrypoint */
 export function main(configModule: unknown, configDir: string, packageFilter?: string): number {
@@ -23,7 +20,8 @@ export function main(configModule: unknown, configDir: string, packageFilter?: s
     process.stderr.write(`Role enforcement completed in ${Math.round(result.durationMs)}ms\n`)
     return result.exitCode
   } catch (error) {
-    process.stderr.write(`${formatRoleEnforcementFailure(error)}\n`)
+    const message = error instanceof Error ? error.message : 'Unknown role enforcement failure.'
+    process.stderr.write(`${message}\n`)
     return 1
   }
 }

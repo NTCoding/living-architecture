@@ -2,7 +2,24 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { minimatch } from 'minimatch'
 
-const ROLE_TAG = /@riviere-role\s+([a-z][a-z0-9-]*)/g
+const ROLE_TAG = /@riviere-role\s+(\S+)/g
+
+function parseAllRoleNames(text) {
+  return [...text.matchAll(ROLE_TAG)].map((match) => match[1])
+}
+
+function parseSingleRoleName(text, errorContext) {
+  const roleNames = parseAllRoleNames(text)
+  if (roleNames.length === 0) {
+    return null
+  }
+  if (roleNames.length > 1) {
+    throw new Error(
+      `Expected exactly 1 @riviere-role annotation ${errorContext}. Got ${roleNames.length}: [${roleNames.join(', ')}]`,
+    )
+  }
+  return roleNames[0]
+}
 
 export default {
   meta: { name: 'riviere-role-enforcement' },
@@ -312,9 +329,8 @@ export default {
           const roles = []
           const lines = sourceText.split('\n')
           for (let i = 0; i < lines.length; i++) {
-            const roleMatch = ROLE_TAG.exec(lines[i])
-            ROLE_TAG.lastIndex = 0
-            if (roleMatch === null) {
+            const roleName = parseSingleRoleName(lines[i], `at ${filePath}:${i + 1}`)
+            if (roleName === null) {
               continue
             }
 
@@ -324,7 +340,7 @@ export default {
                 continue
               }
               if (/^export\s+(?:interface|type|function|class)\s+\w+/.test(trimmed)) {
-                roles.push(roleMatch[1])
+                roles.push(roleName)
               }
               break
             }
@@ -592,8 +608,7 @@ export default {
             if (commentMatch?.[0] === undefined) {
               return null
             }
-            const roleMatch = commentMatch[0].match(/@riviere-role\s+([a-z][a-z0-9-]*)/)
-            return roleMatch?.[1] ?? null
+            return parseSingleRoleName(commentMatch[0], `on '${exportedName}' in ${filePath}`)
           }
 
           const namedReExportPattern = new RegExp(
@@ -726,17 +741,7 @@ function readDeclarationName(node) {
 
 function readRoleNames(sourceCode, node) {
   const comments = sourceCode.getCommentsBefore(node)
-  const roleNames = []
-
-  for (const comment of comments) {
-    let match = ROLE_TAG.exec(comment.value)
-    while (match !== null) {
-      roleNames.push(match[1])
-      match = ROLE_TAG.exec(comment.value)
-    }
-    ROLE_TAG.lastIndex = 0
-  }
-
+  const roleNames = comments.flatMap((comment) => parseAllRoleNames(comment.value))
   return [...new Set(roleNames)]
 }
 

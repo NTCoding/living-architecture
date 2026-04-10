@@ -8,17 +8,17 @@ import {
 } from 'vitest'
 import {
   location, role, roleEnforcement 
-} from '../../../domain/role-enforcement-builder'
+} from '../domain/role-enforcement-builder'
 import { runRoleEnforcement } from './run-role-enforcement'
 
 const testRoles = [
-  role('command-use-case', {
+  role('role-a', {
     targets: ['class'],
     minPublicMethods: 1,
   }),
-  role('main', {
+  role('role-main', {
     targets: ['function'],
-    forbiddenMethodCalls: ['command-use-case'],
+    forbiddenMethodCalls: ['role-a'],
   }),
 ] as const
 
@@ -26,12 +26,12 @@ type TestRoleName = (typeof testRoles)[number]['name']
 
 const testLocations = [
   location<TestRoleName>('src')
-    .subLocation('/commands', ['command-use-case'])
-    .subLocation('/shell', ['main']),
+    .subLocation('/commands', ['role-a'])
+    .subLocation('/shell', ['role-main']),
 ]
 
 const testConfig = roleEnforcement({
-  packages: ['packages/my-app'],
+  packages: ['packages/pkg-a'],
   canonicalConfigurationsFile: '.riviere/canonical-role-configurations.md',
   ignorePatterns: ['**/*.spec.ts'],
   roleDefinitionsDir: '.riviere/role-definitions',
@@ -41,7 +41,7 @@ const testConfig = roleEnforcement({
 
 function createFixtureWorkspace(): string {
   const workspaceDir = mkdtempSync(path.join(tmpdir(), 'forbidden-method-calls-'))
-  const pkgDir = path.join(workspaceDir, 'packages', 'my-app')
+  const pkgDir = path.join(workspaceDir, 'packages', 'pkg-a')
   mkdirSync(path.join(pkgDir, 'src', 'commands'), { recursive: true })
   mkdirSync(path.join(pkgDir, 'src', 'shell'), { recursive: true })
   mkdirSync(path.join(workspaceDir, '.riviere', 'role-definitions'), { recursive: true })
@@ -56,9 +56,9 @@ function createFixtureWorkspace(): string {
   }
 
   writeFileSync(
-    path.join(pkgDir, 'src', 'commands', 'doThing.ts'),
-    `/** @riviere-role command-use-case */
-export class DoThing {
+    path.join(pkgDir, 'src', 'commands', 'alpha.ts'),
+    `/** @riviere-role role-a */
+export class Alpha {
   execute(): void {}
 }
 `,
@@ -80,25 +80,25 @@ function withFixtureWorkspace(fn: (workspaceDir: string) => void) {
 }
 
 function writeShellFile(workspaceDir: string, content: string) {
-  writeFileSync(path.join(workspaceDir, 'packages', 'my-app', 'src', 'shell', 'main.ts'), content)
+  writeFileSync(path.join(workspaceDir, 'packages', 'pkg-a', 'src', 'shell', 'main.ts'), content)
 }
 
 it('rejects non-construction usage of imports with forbidden method call roles', () => {
   withFixtureWorkspace((workspaceDir) => {
     writeShellFile(
       workspaceDir,
-      `import { DoThing } from '../commands/doThing'
+      `import { Alpha } from '../commands/alpha'
 
-/** @riviere-role main */
-export function createProgram(): void {
-  DoThing.staticMethod()
+/** @riviere-role role-main */
+export function runRoleMain(): void {
+  Alpha.staticMethod()
 }
 `,
     )
     const result = runRoleEnforcement(testConfig, workspaceDir)
     expect(result.exitCode).toBe(1)
     expect(result.stdout).toContain('forbids non-construction usage')
-    expect(result.stdout).toContain('command-use-case')
+    expect(result.stdout).toContain('role-a')
   })
 })
 
@@ -106,11 +106,11 @@ it('rejects passing forbidden role import as function argument', () => {
   withFixtureWorkspace((workspaceDir) => {
     writeShellFile(
       workspaceDir,
-      `import { DoThing } from '../commands/doThing'
+      `import { Alpha } from '../commands/alpha'
 
-/** @riviere-role main */
-export function createProgram(): void {
-  console.log(DoThing)
+/** @riviere-role role-main */
+export function runRoleMain(): void {
+  console.log(Alpha)
 }
 `,
     )
@@ -124,11 +124,11 @@ it('accepts construction of imports with forbidden method call roles', () => {
   withFixtureWorkspace((workspaceDir) => {
     writeShellFile(
       workspaceDir,
-      `import { DoThing } from '../commands/doThing'
+      `import { Alpha } from '../commands/alpha'
 
-/** @riviere-role main */
-export function createProgram(): void {
-  const useCase = new DoThing()
+/** @riviere-role role-main */
+export function runRoleMain(): void {
+  const instance = new Alpha()
 }
 `,
     )

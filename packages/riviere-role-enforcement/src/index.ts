@@ -15,9 +15,8 @@ export {
   filterConfigByPackage,
   PackageFilterError,
 } from './features/enforcement/domain/filter-config-by-package'
+export { runRoleEnforcement } from './features/enforcement/commands/run-role-enforcement'
 export {
-  formatRoleEnforcementFailure,
   RoleEnforcementExecutionError,
-  runRoleEnforcement,
   type RoleEnforcementRunResult,
-} from './features/enforcement/infra/external-clients/oxlint/run-role-enforcement'
+} from './features/enforcement/domain/role-enforcement-run-result'
