@@ -38,7 +38,7 @@
       "executor": "nx:run-commands",
       "dependsOn": ["^build"],
       "options": {
-        "command": "NODE_OPTIONS='--conditions=@living-architecture/source' pnpm exec tsx packages/riviere-role-enforcement/src/shell/bin.ts .riviere/role-enforcement.config.ts --package packages/riviere-cli",
+        "command": "pnpm exec tsx packages/riviere-role-enforcement/src/shell/bin.ts .riviere/role-enforcement.config.ts --package packages/riviere-cli",
         "cwd": "{workspaceRoot}"
       }
     },
