@@ -2,7 +2,6 @@ import { location, roleEnforcement } from '@living-architecture/riviere-role-enf
 import { allRoles, type RoleName } from './roles'
 
 const commandRoles: RoleName[] = [
-  'command-orchestrator',
   'command-use-case',
   'command-use-case-input',
   'command-use-case-result',
@@ -45,7 +44,13 @@ const packages = [
 export const config = roleEnforcement({
   packages,
   canonicalConfigurationsFile: '.riviere/canonical-role-configurations.md',
-  ignorePatterns: ['**/*.spec.ts', '**/__fixtures__/**', '**/*-fixtures.ts', '**/test-fixtures.ts'],
+  ignorePatterns: [
+    '**/*.spec.ts',
+    '**/__fixtures__/**',
+    '**/*-fixtures.ts',
+    '**/test-fixtures.ts',
+    '**/test-fixture-*.ts',
+  ],
   roleDefinitionsDir: '.riviere/role-definitions',
   roles: allRoles,
   workspacePackageSources: {

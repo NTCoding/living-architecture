@@ -1,5 +1,15 @@
 # external-client-model
 
+## 🚨 CRITICAL NAMING RULE
+**The name must describe the EXTERNAL TOOL/SERVICE shape, not a domain concept.**
+
+If the name uses vocabulary from the project's domain (the nouns that appear in `docs/architecture/domain-terminology/`, role names, aggregate names, or core feature names), then this role is wrong — the type belongs in `domain/` as a `value-object`, not in `infra/external-clients/`.
+
+- ✅ `OxlintConfig`, `StripeCustomerResponse`, `GitRepositoryInfo`, `FilesystemEntry`
+- ❌ `RoleEnforcementConfig`, `OrderDto`, `ExtractionResultModel`
+
+If you find yourself putting a domain noun in an `infra/external-clients/**` model name, STOP. The type belongs in `domain/`.
+
 ## Purpose
 A type that represents data structures from or for external services — the shapes that external-client-services accept or return.
 

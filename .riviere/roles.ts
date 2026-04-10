@@ -8,7 +8,6 @@ type RoleName =
   | 'cli-input-validator'
   | 'cli-output-formatter'
   | 'command-input-factory'
-  | 'command-orchestrator'
   | 'command-use-case'
   | 'command-use-case-input'
   | 'command-use-case-result'
@@ -54,7 +53,6 @@ export const allRoles = [
     targets: ['function'],
     allowedOutputs: ['command-use-case-input'],
   }),
-  role('command-orchestrator', { targets: ['function'] }),
   role('external-client-service', { targets: ['function'] }),
   role('aggregate-repository', {
     targets: ['class'],
