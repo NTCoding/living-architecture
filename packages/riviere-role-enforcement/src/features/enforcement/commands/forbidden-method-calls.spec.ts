@@ -1,15 +1,13 @@
 import {
-  mkdtempSync, mkdirSync, rmSync, writeFileSync 
-} from 'node:fs'
-import { tmpdir } from 'node:os'
-import path from 'node:path'
-import {
   expect, it 
 } from 'vitest'
 import {
   location, role, roleEnforcement 
 } from '../domain/role-enforcement-builder'
 import { runRoleEnforcement } from './run-role-enforcement'
+import {
+  withWorkspaceFixture, writeFixtureFile 
+} from './test-fixture-workspace'
 
 const testRoles = [
   role('role-a', {
@@ -39,48 +37,24 @@ const testConfig = roleEnforcement({
   locations: testLocations,
 })
 
-function createFixtureWorkspace(): string {
-  const workspaceDir = mkdtempSync(path.join(tmpdir(), 'forbidden-method-calls-'))
-  const pkgDir = path.join(workspaceDir, 'packages', 'pkg-a')
-  mkdirSync(path.join(pkgDir, 'src', 'commands'), { recursive: true })
-  mkdirSync(path.join(pkgDir, 'src', 'shell'), { recursive: true })
-  mkdirSync(path.join(workspaceDir, '.riviere', 'role-definitions'), { recursive: true })
-
-  writeFileSync(
-    path.join(workspaceDir, '.riviere', 'canonical-role-configurations.md'),
-    '# Canonical Role Configurations',
-  )
-  const roleDefsDir = path.join(workspaceDir, '.riviere', 'role-definitions')
-  for (const r of testRoles) {
-    writeFileSync(path.join(roleDefsDir, `${r.name}.md`), `# ${r.name}`)
-  }
-
-  writeFileSync(
-    path.join(pkgDir, 'src', 'commands', 'alpha.ts'),
-    `/** @riviere-role role-a */
+const fixtureBootstrap = {
+  prefix: 'forbidden-method-calls-',
+  roles: testRoles,
+  files: {
+    'packages/pkg-a/src/commands/alpha.ts': `/** @riviere-role role-a */
 export class Alpha {
   execute(): void {}
 }
 `,
-  )
-
-  return workspaceDir
+  },
 }
 
 function withFixtureWorkspace(fn: (workspaceDir: string) => void) {
-  const workspaceDir = createFixtureWorkspace()
-  try {
-    fn(workspaceDir)
-  } finally {
-    rmSync(workspaceDir, {
-      force: true,
-      recursive: true,
-    })
-  }
+  withWorkspaceFixture(fixtureBootstrap, fn)
 }
 
 function writeShellFile(workspaceDir: string, content: string) {
-  writeFileSync(path.join(workspaceDir, 'packages', 'pkg-a', 'src', 'shell', 'main.ts'), content)
+  writeFixtureFile(workspaceDir, 'packages/pkg-a/src/shell/main.ts', content)
 }
 
 it('rejects non-construction usage of imports with forbidden method call roles', () => {
