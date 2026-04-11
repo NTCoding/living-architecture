@@ -12,6 +12,8 @@ import {
   DomainOp,
   APIEndpoint,
   EventHandler,
+  HttpClient,
+  HttpCall,
   Custom,
   Ignore,
   getCustomType,
@@ -179,6 +181,20 @@ describe('Method-level decorators', () => {
       }
 
       expect(new OrderEventListener().onOrderCreated()).toBe(true)
+    })
+  })
+
+  describe('HttpClient and HttpCall', () => {
+    it('preserves method behavior when class and method are decorated', () => {
+      @HttpClient('Fraud Detection Service')
+      class FraudClient {
+        @HttpCall('/api/check')
+        check(): string {
+          return 'ok'
+        }
+      }
+
+      expect(new FraudClient().check()).toBe('ok')
     })
   })
 })

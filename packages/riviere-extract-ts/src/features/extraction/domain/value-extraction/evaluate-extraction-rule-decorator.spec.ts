@@ -4,6 +4,7 @@ import {
 import { Project } from 'ts-morph'
 import {
   evaluateFromDecoratorArgRule,
+  evaluateFromClassDecoratorArgRule,
   evaluateFromDecoratorNameRule,
 } from './evaluate-extraction-rule'
 import {
@@ -27,6 +28,20 @@ function createDecoratorFromMethod(code: string) {
     throw new TestFixtureError('No decorator found on method')
   }
   return decorator
+}
+
+function createMethodFromClass(code: string) {
+  const project = new Project({ useInMemoryFileSystem: true })
+  const sf = project.createSourceFile('test-class.ts', code)
+  const classDecl = sf.getClasses()[0]
+  if (!classDecl) {
+    throw new TestFixtureError('No class found in test code')
+  }
+  const method = classDecl.getMethods()[0]
+  if (!method) {
+    throw new TestFixtureError('No method found in class')
+  }
+  return method
 }
 
 describe('evaluateFromDecoratorArgRule (positional)', () => {
@@ -111,6 +126,27 @@ describe('evaluateFromDecoratorArgRule (positional)', () => {
       decorator,
     )
     expect(result.value).toBe('/ORDERS')
+  })
+
+  it('throws ExtractionError when decorator qualifier does not match decorator', () => {
+    const decorator = createDecoratorFromMethod(`
+      function Get(path: string) { return () => {} }
+      class OrderController {
+        @Get('/orders')
+        list() {}
+      }
+    `)
+    expect(() =>
+      evaluateFromDecoratorArgRule(
+        {
+          fromDecoratorArg: {
+            decorator: 'Post',
+            position: 0,
+          },
+        },
+        decorator,
+      ),
+    ).toThrow(ExtractionError)
   })
 })
 
@@ -336,5 +372,29 @@ describe('evaluateFromDecoratorNameRule', () => {
       decorator,
     )
     expect(result.value).toBe('httpget')
+  })
+})
+
+describe('evaluateFromClassDecoratorArgRule', () => {
+  it('returns class decorator positional arg for containing method class', () => {
+    const method = createMethodFromClass(`
+      function HttpClient(_: string) { return () => {} }
+      @HttpClient('Fraud Detection Service')
+      class FraudClient {
+        check() {}
+      }
+    `)
+
+    const result = evaluateFromClassDecoratorArgRule(
+      {
+        fromClassDecoratorArg: {
+          decorator: 'HttpClient',
+          position: 0,
+        },
+      },
+      method,
+    )
+
+    expect(result.value).toBe('Fraud Detection Service')
   })
 })

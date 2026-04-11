@@ -15,6 +15,35 @@ interface Plugin {
       'missingSubscribedEvents' | 'subscribedEventsNotLiteralArray'
     >
     'ui-page-requires-route': TSESLint.RuleModule<'missingRoute' | 'routeNotLiteral'>
+    'event-publisher-method-signature': TSESLint.RuleModule<
+      | 'missingParameter'
+      | 'tooManyParameters'
+      | 'missingTypeAnnotation'
+      | 'notTypeReference'
+      | 'notEventDef'
+      | 'nonPublicMethod'
+    >
+    'http-client-requires-service-name': TSESLint.RuleModule<
+      'missingServiceName' | 'serviceNameNotLiteral' | 'emptyServiceName'
+    >
+    'http-call-requires-route': TSESLint.RuleModule<
+      'missingRoute' | 'routeNotLiteral' | 'emptyRoute'
+    >
+    'http-call-requires-http-client-container': TSESLint.RuleModule<'missingHttpClientContainer'>
+    'http-client-public-methods-require-http-call': TSESLint.RuleModule<'missingHttpCall'>
+    'no-fetch-outside-http-client': TSESLint.RuleModule<'fetchOutsideHttpClient'>
+  }
+  configs: {
+    'http-client-import-boundary': {
+      rules: {
+        'no-restricted-imports': [
+          'error',
+          {
+            paths: Array<{ name: string; message: string }>
+          },
+        ]
+      }
+    }
   }
 }
 

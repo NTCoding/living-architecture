@@ -2,13 +2,7 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "./out-tsc/vitest",
-    "types": [
-      "vitest/globals",
-      "vitest/importMeta",
-      "vite/client",
-      "node",
-      "vitest"
-    ],
+    "types": ["vitest/globals", "vitest/importMeta", "vite/client", "node", "vitest"],
     "forceConsistentCasingInFileNames": true
   },
   "include": [
@@ -24,7 +18,8 @@
     "src/**/*.spec.js",
     "src/**/*.test.jsx",
     "src/**/*.spec.jsx",
-    "src/**/*.d.ts"
+    "src/**/*.d.ts",
+    "src/**/*.d.cts"
   ],
   "references": [
     {

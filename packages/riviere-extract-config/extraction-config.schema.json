@@ -16,10 +16,7 @@
       "description": "Module definitions for component extraction",
       "minItems": 1,
       "items": {
-        "oneOf": [
-          { "$ref": "#/$defs/module" },
-          { "$ref": "#/$defs/moduleRef" }
-        ]
+        "oneOf": [{ "$ref": "#/$defs/module" }, { "$ref": "#/$defs/moduleRef" }]
       }
     },
     "connections": {
@@ -167,6 +164,7 @@
         { "$ref": "#/$defs/fromFilePathExtractionRule" },
         { "$ref": "#/$defs/fromPropertyExtractionRule" },
         { "$ref": "#/$defs/fromDecoratorArgExtractionRule" },
+        { "$ref": "#/$defs/fromClassDecoratorArgExtractionRule" },
         { "$ref": "#/$defs/fromDecoratorNameExtractionRule" },
         { "$ref": "#/$defs/fromGenericArgExtractionRule" },
         { "$ref": "#/$defs/fromMethodSignatureExtractionRule" },
@@ -241,6 +239,26 @@
           "additionalProperties": false,
           "minProperties": 1,
           "properties": {
+            "decorator": { "type": "string", "minLength": 1 },
+            "position": { "type": "integer", "minimum": 0 },
+            "name": { "type": "string", "minLength": 1 },
+            "transform": { "$ref": "#/$defs/transform" }
+          }
+        }
+      }
+    },
+    "fromClassDecoratorArgExtractionRule": {
+      "type": "object",
+      "description": "Extracts value from decorator argument on the containing class",
+      "required": ["fromClassDecoratorArg"],
+      "additionalProperties": false,
+      "properties": {
+        "fromClassDecoratorArg": {
+          "type": "object",
+          "required": ["decorator"],
+          "additionalProperties": false,
+          "properties": {
+            "decorator": { "type": "string", "minLength": 1 },
             "position": { "type": "integer", "minimum": 0 },
             "name": { "type": "string", "minLength": 1 },
             "transform": { "$ref": "#/$defs/transform" }

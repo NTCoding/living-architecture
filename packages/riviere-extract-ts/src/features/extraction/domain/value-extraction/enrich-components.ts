@@ -19,6 +19,9 @@ import {
   evaluateFromFilePathRule,
   evaluateFromPropertyRule,
   evaluateFromMethodNameRule,
+  evaluateFromDecoratorArgRule,
+  evaluateFromDecoratorNameRule,
+  evaluateFromClassDecoratorArgRule,
 } from './evaluate-extraction-rule'
 import { evaluateFromGenericArgRule } from './evaluate-extraction-rule-generic'
 import { ExtractionError } from '../../../../platform/domain/ast-literals/literal-detection'
@@ -147,6 +150,47 @@ function findMethodAtLine(project: Project, draft: DraftComponent): MethodDeclar
   )
 }
 
+function findDecoratorOnMethod(
+  methodDecl: MethodDeclaration,
+  decoratorName?: string,
+): import('ts-morph').Decorator {
+  const decorators = methodDecl.getDecorators()
+  const sourceFile = methodDecl.getSourceFile()
+  const line = methodDecl.getStartLineNumber()
+
+  if (decorators.length === 0) {
+    throw new ExtractionError(
+      `No decorators found on method '${methodDecl.getName()}'`,
+      sourceFile.getFilePath(),
+      line,
+    )
+  }
+
+  if (decoratorName === undefined) {
+    const firstDecorator = decorators[0]
+    /* v8 ignore next -- @preserve: decorators.length > 0 guarantees first decorator exists */
+    if (firstDecorator === undefined) {
+      throw new ExtractionError(
+        `No decorators found on method '${methodDecl.getName()}'`,
+        sourceFile.getFilePath(),
+        line,
+      )
+    }
+    return firstDecorator
+  }
+
+  const decorator = decorators.find((candidate) => candidate.getName() === decoratorName)
+  if (decorator === undefined) {
+    throw new ExtractionError(
+      `Decorator '@${decoratorName}' not found on method '${methodDecl.getName()}'`,
+      sourceFile.getFilePath(),
+      line,
+    )
+  }
+
+  return decorator
+}
+
 function findContainingClass(project: Project, draft: DraftComponent): ClassDeclaration {
   const sourceFile = project.getSourceFile(draft.location.file)
   if (sourceFile === undefined) {
@@ -185,32 +229,31 @@ function evaluateClassRule(rule: ExtractionRule, classDecl: ClassDeclaration): E
   )
 }
 
-function evaluateRule(
+function evaluateMethodRule(
   rule: ExtractionRule,
   draft: DraftComponent,
   project: Project,
-): ExtractionResult {
-  if ('literal' in rule) {
-    return evaluateLiteralRule(rule)
-  }
-
-  if ('fromFilePath' in rule) {
-    return evaluateFromFilePathRule(rule, draft.location.file)
-  }
-
+): ExtractionResult | undefined {
   if ('fromMethodName' in rule) {
     const methodDecl = findMethodAtLine(project, draft)
     return evaluateFromMethodNameRule(rule, methodDecl)
   }
 
-  if ('fromGenericArg' in rule) {
-    const classDecl = findContainingClass(project, draft)
-    return evaluateFromGenericArgRule(rule, classDecl)
+  if ('fromDecoratorArg' in rule) {
+    const methodDecl = findMethodAtLine(project, draft)
+    const decorator = findDecoratorOnMethod(methodDecl, rule.fromDecoratorArg.decorator)
+    return evaluateFromDecoratorArgRule(rule, decorator)
   }
 
-  if ('fromProperty' in rule) {
-    const classDecl = findContainingClass(project, draft)
-    return evaluateFromPropertyRule(rule, classDecl)
+  if ('fromClassDecoratorArg' in rule) {
+    const methodDecl = findMethodAtLine(project, draft)
+    return evaluateFromClassDecoratorArgRule(rule, methodDecl)
+  }
+
+  if ('fromDecoratorName' in rule) {
+    const methodDecl = findMethodAtLine(project, draft)
+    const decorator = findDecoratorOnMethod(methodDecl)
+    return evaluateFromDecoratorNameRule(rule, decorator)
   }
 
   if ('fromParameterType' in rule) {
@@ -231,6 +274,37 @@ function evaluateRule(
       return { value: typeName }
     }
     return { value: applyTransforms(typeName, transform) }
+  }
+
+  return undefined
+}
+
+function evaluateRule(
+  rule: ExtractionRule,
+  draft: DraftComponent,
+  project: Project,
+): ExtractionResult {
+  if ('literal' in rule) {
+    return evaluateLiteralRule(rule)
+  }
+
+  if ('fromFilePath' in rule) {
+    return evaluateFromFilePathRule(rule, draft.location.file)
+  }
+
+  const methodRuleResult = evaluateMethodRule(rule, draft, project)
+  if (methodRuleResult !== undefined) {
+    return methodRuleResult
+  }
+
+  if ('fromGenericArg' in rule) {
+    const classDecl = findContainingClass(project, draft)
+    return evaluateFromGenericArgRule(rule, classDecl)
+  }
+
+  if ('fromProperty' in rule) {
+    const classDecl = findContainingClass(project, draft)
+    return evaluateFromPropertyRule(rule, classDecl)
   }
 
   const classDecl = findClassAtLine(project, draft)

@@ -82,6 +82,7 @@ function presentFullResult(
     formatSuccess({
       components: result.components,
       links: result.links,
+      externalLinks: result.externalLinks,
     }),
     createOutputOptions(options.output),
   )

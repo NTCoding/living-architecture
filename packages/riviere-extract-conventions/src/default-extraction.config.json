@@ -94,6 +94,39 @@
           "extract": {
             "publishedEventType": { "fromParameterType": { "position": 0 } }
           }
+        },
+        "httpCall": {
+          "find": "methods",
+          "where": {
+            "and": [
+              {
+                "hasDecorator": {
+                  "name": "HttpCall"
+                }
+              },
+              {
+                "inClassWith": {
+                  "hasDecorator": {
+                    "name": "HttpClient"
+                  }
+                }
+              }
+            ]
+          },
+          "extract": {
+            "serviceName": {
+              "fromClassDecoratorArg": {
+                "decorator": "HttpClient",
+                "position": 0
+              }
+            },
+            "route": {
+              "fromDecoratorArg": {
+                "decorator": "HttpCall",
+                "position": 0
+              }
+            }
+          }
         }
       }
     }

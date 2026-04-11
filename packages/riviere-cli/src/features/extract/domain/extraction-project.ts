@@ -10,11 +10,13 @@ import {
   enrichComponents,
   extractComponents,
   matchesGlob,
+  stripHttpCallComponents,
   type ConnectionTimings,
   type DraftComponent,
   type EnrichedComponent,
   type ExtractedLink,
 } from '@living-architecture/riviere-extract-ts'
+import type { ExternalLink } from '@living-architecture/riviere-schema'
 import type { ExtractionOutcome } from './extraction-outcome'
 
 /** @riviere-role value-object */
@@ -84,12 +86,14 @@ export class ExtractionProject {
     }
 
     const connectionResult = this.detectConnections(enrichment.components, options.allowIncomplete)
+    const visibleComponents = stripHttpCallComponents(enrichment.components)
 
     return {
       kind: 'full',
-      components: enrichment.components,
+      components: visibleComponents,
       failedFields: enrichment.failedFields,
       links: connectionResult.links,
+      externalLinks: connectionResult.externalLinks,
       timings: connectionResult.timings,
     }
   }
@@ -114,12 +118,14 @@ export class ExtractionProject {
     }
 
     const connectionResult = this.detectConnections(enrichment.components, options.allowIncomplete)
+    const visibleComponents = stripHttpCallComponents(enrichment.components)
 
     return {
       kind: 'full',
-      components: enrichment.components,
+      components: visibleComponents,
       failedFields: enrichment.failedFields,
       links: connectionResult.links,
+      externalLinks: connectionResult.externalLinks,
       timings: connectionResult.timings,
     }
   }
@@ -133,9 +139,11 @@ export class ExtractionProject {
     allowIncomplete: boolean,
   ): {
     links: ExtractedLink[]
+    externalLinks: ExternalLink[]
     timings: ConnectionTimings[]
   } {
     const links: ExtractedLink[] = []
+    const externalLinks: ExternalLink[] = []
     const timings: ConnectionTimings[] = []
 
     for (const moduleContext of this.moduleContexts) {
@@ -157,6 +165,7 @@ export class ExtractionProject {
         matchesGlob,
       )
       links.push(...result.links)
+      externalLinks.push(...result.externalLinks)
       timings.push({
         callGraphMs: result.timings.callGraphMs,
         asyncDetectionMs: 0,
@@ -173,6 +182,7 @@ export class ExtractionProject {
       eventPublishers: this.resolvedConfig.connections?.eventPublishers,
     })
     links.push(...crossResult.links)
+    externalLinks.push(...crossResult.externalLinks)
     timings.push({
       callGraphMs: 0,
       asyncDetectionMs: crossResult.timings.asyncDetectionMs,
@@ -183,6 +193,7 @@ export class ExtractionProject {
 
     return {
       links: deduplicateCrossStrategy(links),
+      externalLinks,
       timings,
     }
   }

@@ -106,6 +106,7 @@ Extraction rules mapping field names to extraction rules
 - `fromFilePathExtractionRule` — Extracts value from the file path using regex capture
 - `fromPropertyExtractionRule` — Extracts value from a class property
 - `fromDecoratorArgExtractionRule` — Extracts value from decorator argument
+- `fromClassDecoratorArgExtractionRule` — Extracts value from decorator argument on the containing class
 - `fromDecoratorNameExtractionRule` — Extracts value from the decorator name itself
 - `fromGenericArgExtractionRule` — Extracts value from generic type argument
 - `fromMethodSignatureExtractionRule` — Extracts method parameters and return type
@@ -159,6 +160,18 @@ Extracts value from decorator argument
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `fromDecoratorArg` | `object` | **Yes** | (no description) |
+
+---
+
+### `fromClassDecoratorArgExtractionRule`
+
+Extracts value from decorator argument on the containing class
+
+**Properties:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `fromClassDecoratorArg` | `object` | **Yes** | (no description) |
 
 ---
 

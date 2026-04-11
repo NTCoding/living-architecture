@@ -1,8 +1,11 @@
 import {
   describe, it, expect 
 } from 'vitest'
-import { deduplicateCrossStrategy } from './detect-connections'
+import {
+  deduplicateCrossStrategy, stripHttpCallComponents 
+} from './detect-connections'
 import type { ExtractedLink } from './extracted-link'
+import { buildComponent } from './call-graph/call-graph-fixtures'
 
 function createLink(overrides: Partial<ExtractedLink> = {}): ExtractedLink {
   return {
@@ -51,5 +54,20 @@ describe('deduplicateCrossStrategy', () => {
     const result = deduplicateCrossStrategy([linkA, linkB])
 
     expect(result).toHaveLength(2)
+  })
+})
+
+describe('stripHttpCallComponents', () => {
+  it('removes httpCall components and keeps non-httpCall components', () => {
+    const filePath = '/src/http.ts'
+    const useCase = buildComponent('PlaceOrder', filePath, 1)
+    const httpCall = buildComponent('check', filePath, 2, {
+      type: 'httpCall',
+      metadata: { serviceName: 'Fraud Detection Service' },
+    })
+
+    const result = stripHttpCallComponents([useCase, httpCall])
+
+    expect(result).toStrictEqual([useCase])
   })
 })

@@ -5,6 +5,7 @@ import type {
   FromFilePathExtractionRule,
   FromPropertyExtractionRule,
   FromDecoratorArgExtractionRule,
+  FromClassDecoratorArgExtractionRule,
   FromDecoratorNameExtractionRule,
 } from '@living-architecture/riviere-extract-config'
 
@@ -17,15 +18,16 @@ export {
 } from './evaluate-extraction-rule-method'
 
 export { evaluateFromGenericArgRule } from './evaluate-extraction-rule-generic'
-import type {
-  ClassDeclaration, MethodDeclaration, Decorator 
-} from 'ts-morph'
 import { SyntaxKind } from 'ts-morph'
 import { applyTransforms } from '../../../../platform/domain/string-transforms/transforms'
 import {
   ExtractionError,
   extractLiteralValue,
 } from '../../../../platform/domain/ast-literals/literal-detection'
+
+type ClassDeclaration = import('ts-morph').ClassDeclaration
+type MethodDeclaration = import('ts-morph').MethodDeclaration
+type Decorator = import('ts-morph').Decorator
 
 /** @riviere-role value-object */
 export type ExtractionContext = { filePath: string }
@@ -92,9 +94,9 @@ export function evaluateFromFilePathRule(
   rule: FromFilePathExtractionRule,
   filePath: string,
 ): ExtractionResult {
-  const {
-    pattern, capture, transform 
-  } = rule.fromFilePath
+  const pattern = rule.fromFilePath.pattern
+  const capture = rule.fromFilePath.capture
+  const transform = rule.fromFilePath.transform
   const regex = new RegExp(pattern)
   const match = regex.exec(filePath)
 
@@ -162,9 +164,9 @@ export function evaluateFromPropertyRule(
   rule: FromPropertyExtractionRule,
   classDecl: ClassDeclaration,
 ): ExtractionResult {
-  const {
-    name, kind, transform 
-  } = rule.fromProperty
+  const name = rule.fromProperty.name
+  const kind = rule.fromProperty.kind
+  const transform = rule.fromProperty.transform
   const isStatic = kind === 'static'
 
   const propertyInfo = findPropertyInHierarchy(classDecl, name, isStatic)
@@ -199,6 +201,8 @@ type DecoratorLocation = {
   filePath: string
   line: number
 }
+
+type DecoratorArgRule = FromDecoratorArgExtractionRule['fromDecoratorArg']
 
 function getDecoratorLocation(decorator: Decorator): DecoratorLocation {
   const sourceFile = decorator.getSourceFile()
@@ -308,9 +312,19 @@ export function evaluateFromDecoratorArgRule(
   rule: FromDecoratorArgExtractionRule,
   decorator: Decorator,
 ): ExtractionResult {
-  const {
-    position, name, transform 
-  } = rule.fromDecoratorArg
+  const decoratorName = rule.fromDecoratorArg.decorator
+  const position = rule.fromDecoratorArg.position
+  const name = rule.fromDecoratorArg.name
+  const transform = rule.fromDecoratorArg.transform
+
+  if (decoratorName !== undefined && decorator.getName() !== decoratorName) {
+    const location = getDecoratorLocation(decorator)
+    throw new ExtractionError(
+      `Expected decorator '@${decoratorName}', got '@${decorator.getName()}'`,
+      location.filePath,
+      location.line,
+    )
+  }
 
   const extractValue = (): string => {
     if (position !== undefined) {
@@ -337,6 +351,57 @@ export function evaluateFromDecoratorArgRule(
 }
 
 /** @riviere-role domain-service */
+export function evaluateFromClassDecoratorArgRule(
+  rule: FromClassDecoratorArgExtractionRule,
+  methodDecl: MethodDeclaration,
+): ExtractionResult {
+  const classDecl = methodDecl.getParentIfKind(SyntaxKind.ClassDeclaration)
+  if (classDecl === undefined) {
+    const sourceFile = methodDecl.getSourceFile()
+    throw new ExtractionError(
+      `Expected method '${methodDecl.getName()}' to be declared inside a class`,
+      sourceFile.getFilePath(),
+      methodDecl.getStartLineNumber(),
+    )
+  }
+
+  const classDecorator = classDecl
+    .getDecorators()
+    .find((decorator) => decorator.getName() === rule.fromClassDecoratorArg.decorator)
+
+  if (classDecorator === undefined) {
+    const sourceFile = classDecl.getSourceFile()
+    throw new ExtractionError(
+      `Decorator '@${rule.fromClassDecoratorArg.decorator}' not found on containing class '${classDecl.getName() ?? 'anonymous'}'`,
+      sourceFile.getFilePath(),
+      classDecl.getStartLineNumber(),
+    )
+  }
+
+  const fromDecoratorArgRule: DecoratorArgRule = { decorator: rule.fromClassDecoratorArg.decorator }
+
+  if (rule.fromClassDecoratorArg.position === undefined) {
+    // default extraction uses name if provided
+  } else {
+    fromDecoratorArgRule.position = rule.fromClassDecoratorArg.position
+  }
+
+  if (rule.fromClassDecoratorArg.name === undefined) {
+    // default extraction uses positional argument when position is provided
+  } else {
+    fromDecoratorArgRule.name = rule.fromClassDecoratorArg.name
+  }
+
+  if (rule.fromClassDecoratorArg.transform === undefined) {
+    // no transform requested
+  } else {
+    fromDecoratorArgRule.transform = rule.fromClassDecoratorArg.transform
+  }
+
+  return evaluateFromDecoratorArgRule({ fromDecoratorArg: fromDecoratorArgRule }, classDecorator)
+}
+
+/** @riviere-role domain-service */
 export function evaluateFromDecoratorNameRule(
   rule: FromDecoratorNameExtractionRule,
   decorator: Decorator,
@@ -347,9 +412,8 @@ export function evaluateFromDecoratorNameRule(
     return { value: decoratorName }
   }
 
-  const {
-    mapping, transform 
-  } = rule.fromDecoratorName
+  const mapping = rule.fromDecoratorName.mapping
+  const transform = rule.fromDecoratorName.transform
 
   const mappedValue = mapping?.[decoratorName] ?? decoratorName
 

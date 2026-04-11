@@ -4,6 +4,7 @@ import type {
   ConnectionPattern,
   EventPublisherConfig,
 } from '@living-architecture/riviere-extract-config'
+import type { ExternalLink } from '@living-architecture/riviere-schema'
 import type { EnrichedComponent } from '../value-extraction/enrich-components'
 import type { GlobMatcher } from '../component-extraction/extractor'
 import type { ExtractedLink } from './extracted-link'
@@ -12,6 +13,10 @@ import { buildCallGraph } from './call-graph/build-call-graph'
 import { detectEventPublisherConnections } from './async-detection/detect-event-publisher-connections'
 import { detectSubscribeConnections } from './async-detection/detect-subscribe-connections'
 import { detectConfigurableConnections } from './configurable/detect-configurable-connections'
+import {
+  rewriteHttpCallLinks,
+  stripHttpCallComponents as stripHttpCallComponentsInternal,
+} from './http-call-link-rewrite'
 
 /** @riviere-role value-object */
 export interface ConnectionDetectionOptions {
@@ -34,6 +39,7 @@ export interface ConnectionTimings {
 /** @riviere-role value-object */
 export interface ConnectionDetectionResult {
   links: ExtractedLink[]
+  externalLinks: ExternalLink[]
   timings: ConnectionTimings
 }
 
@@ -65,6 +71,13 @@ export function deduplicateCrossStrategy(links: ExtractedLink[]): ExtractedLink[
   return [...seen.values()]
 }
 
+/** @riviere-role domain-service */
+export function stripHttpCallComponents(
+  components: readonly EnrichedComponent[],
+): EnrichedComponent[] {
+  return stripHttpCallComponentsInternal(components)
+}
+
 /** @riviere-role value-object */
 export interface PerModuleConnectionOptions {
   allowIncomplete?: boolean
@@ -83,6 +96,7 @@ export interface PerModuleTimings {
 /** @riviere-role value-object */
 export interface PerModuleDetectionResult {
   links: ExtractedLink[]
+  externalLinks: ExternalLink[]
   timings: PerModuleTimings
 }
 
@@ -121,8 +135,11 @@ export function detectPerModuleConnections(
     repository,
   )
 
+  const rewritten = rewriteHttpCallLinks([...syncLinks, ...configurableLinks], components)
+
   return {
-    links: [...syncLinks, ...configurableLinks],
+    links: rewritten.links,
+    externalLinks: rewritten.externalLinks,
     timings: {
       callGraphMs,
       configurableMs,
@@ -144,6 +161,7 @@ export interface CrossModuleTimings {asyncDetectionMs: number}
 /** @riviere-role value-object */
 export interface CrossModuleDetectionResult {
   links: ExtractedLink[]
+  externalLinks: ExternalLink[]
   timings: CrossModuleTimings
 }
 
@@ -170,6 +188,7 @@ export function detectCrossModuleConnections(
 
   return {
     links: [...publishLinks, ...subscribeLinks],
+    externalLinks: [],
     timings: { asyncDetectionMs },
   }
 }
@@ -256,9 +275,11 @@ export function detectConnections(
 
   const allLinks = [...syncLinks, ...publishLinks, ...subscribeLinks, ...configurableLinks]
   const deduplicatedLinks = deduplicateCrossStrategy(allLinks)
+  const rewritten = rewriteHttpCallLinks(deduplicatedLinks, components)
 
   return {
-    links: deduplicatedLinks,
+    links: rewritten.links,
+    externalLinks: rewritten.externalLinks,
     timings: {
       callGraphMs,
       asyncDetectionMs,

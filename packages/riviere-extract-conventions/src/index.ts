@@ -12,6 +12,8 @@ export {
   DomainOp,
   APIEndpoint,
   EventHandler,
+  HttpClient,
+  HttpCall,
   // Other decorators
   Custom,
   Ignore,

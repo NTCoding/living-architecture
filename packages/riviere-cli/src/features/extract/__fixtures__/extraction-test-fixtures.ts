@@ -28,6 +28,18 @@ const extractedLinkOutputSchema = z.looseObject({
   _uncertain: z.string().optional(),
 })
 
+const externalLinkOutputSchema = z.looseObject({
+  source: z.string(),
+  target: z.object({ name: z.string() }),
+  type: z.string().optional(),
+  sourceLocation: z
+    .object({
+      filePath: z.string(),
+      lineNumber: z.number(),
+    })
+    .optional(),
+})
+
 const extractionOutputSchema = z.object({
   success: z.literal(true),
   data: z.array(draftComponentSchema),
@@ -38,6 +50,7 @@ const fullExtractionOutputSchema = z.object({
   data: z.object({
     components: z.array(draftComponentSchema),
     links: z.array(extractedLinkOutputSchema),
+    externalLinks: z.array(externalLinkOutputSchema).optional(),
   }),
 })
 

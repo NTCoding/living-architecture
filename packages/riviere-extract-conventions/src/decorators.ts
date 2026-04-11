@@ -89,6 +89,28 @@ export function EventHandler<T extends Method>(target: T, _: ClassMethodDecorato
   return target
 }
 
+/**
+ * Marks a class as an HTTP client for a named remote service.
+ */
+export function HttpClient(
+  _serviceName: string,
+): <T>(target: T, context: ClassDecoratorContext) => T {
+  return function <T>(target: T, _: ClassDecoratorContext): T {
+    return target
+  }
+}
+
+/**
+ * Marks a method as an HTTP call operation.
+ */
+export function HttpCall(
+  _route: string,
+): <T extends Method>(target: T, context: ClassMethodDecoratorContext) => T {
+  return function <T extends Method>(target: T, _: ClassMethodDecoratorContext): T {
+    return target
+  }
+}
+
 // ============================================================================
 // Other Decorators
 // ============================================================================

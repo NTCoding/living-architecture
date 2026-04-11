@@ -144,4 +144,53 @@ class ExcludedUseCase {
       }),
     ])
   })
+
+  it('rewrites links targeting httpCall components into external links', () => {
+    const project = createProject()
+    const filePath = '/src/http.ts'
+    project.createSourceFile(
+      filePath,
+      `
+class FraudClient {
+  check(): void {}
+}
+
+class PlaceOrder {
+  private fraud: FraudClient
+  constructor(fraud: FraudClient) { this.fraud = fraud }
+  execute(): void {
+    this.fraud.check()
+  }
+}
+`,
+    )
+
+    const useCase = buildComponent('PlaceOrder', filePath, 6)
+    const httpCall = buildComponent('check', filePath, 3, {
+      type: 'httpCall',
+      metadata: {
+        serviceName: 'Fraud Detection Service',
+        route: '/api/check',
+      },
+    })
+
+    const result = detectPerModuleConnections(
+      project,
+      [useCase, httpCall],
+      {
+        repository: 'test-repo',
+        moduleGlobs: ['/src/**/*.ts'],
+      },
+      matchesGlob,
+    )
+
+    expect(result.links).toStrictEqual([])
+    expect(result.externalLinks).toStrictEqual([
+      expect.objectContaining({
+        source: 'orders:useCase:PlaceOrder',
+        target: { name: 'Fraud Detection Service' },
+        type: 'sync',
+      }),
+    ])
+  })
 })

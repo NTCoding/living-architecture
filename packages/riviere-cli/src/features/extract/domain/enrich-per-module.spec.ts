@@ -22,11 +22,13 @@ const {
   mockDetectPerModuleConnections,
   mockDetectCrossModuleConnections,
   mockDeduplicateCrossStrategy,
+  mockStripHttpCallComponents,
 } = vi.hoisted(() => ({
   mockEnrichComponents: vi.fn(),
   mockMatchesGlob: vi.fn(),
   mockDetectPerModuleConnections: vi.fn().mockReturnValue({
     links: [],
+    externalLinks: [],
     timings: {
       callGraphMs: 0,
       configurableMs: 0,
@@ -35,9 +37,11 @@ const {
   }),
   mockDetectCrossModuleConnections: vi.fn().mockReturnValue({
     links: [],
+    externalLinks: [],
     timings: { asyncDetectionMs: 0 },
   }),
   mockDeduplicateCrossStrategy: vi.fn((links: ExtractedLink[]): ExtractedLink[] => links),
+  mockStripHttpCallComponents: vi.fn((components: unknown[]) => components),
 }))
 
 vi.mock('@living-architecture/riviere-extract-ts', () => ({
@@ -46,6 +50,7 @@ vi.mock('@living-architecture/riviere-extract-ts', () => ({
   detectPerModuleConnections: mockDetectPerModuleConnections,
   detectCrossModuleConnections: mockDetectCrossModuleConnections,
   deduplicateCrossStrategy: mockDeduplicateCrossStrategy,
+  stripHttpCallComponents: mockStripHttpCallComponents,
 }))
 
 const notUsedRule: ComponentRule = { notUsed: true }

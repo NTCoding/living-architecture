@@ -89,6 +89,37 @@ describe('Default extraction config', () => {
     expect(moduleKeys).toStrictEqual(expect.arrayContaining(requiredKeys))
     expect(moduleKeys).toHaveLength(10)
     expect(module.customTypes).toHaveProperty('eventPublisher')
+    expect(module.customTypes).toHaveProperty('httpCall')
+  })
+
+  it('configures httpCall customType extraction from HttpClient and HttpCall decorators', () => {
+    const config = loadDefaultConfig()
+    const module = getFirstModule(config)
+    const customTypes = module.customTypes
+    expect(customTypes).toBeDefined()
+    expect(customTypes?.['httpCall']).toStrictEqual({
+      find: 'methods',
+      where: {
+        and: [
+          { hasDecorator: { name: 'HttpCall' } },
+          { inClassWith: { hasDecorator: { name: 'HttpClient' } } },
+        ],
+      },
+      extract: {
+        serviceName: {
+          fromClassDecoratorArg: {
+            decorator: 'HttpClient',
+            position: 0,
+          },
+        },
+        route: {
+          fromDecoratorArg: {
+            decorator: 'HttpCall',
+            position: 0,
+          },
+        },
+      },
+    })
   })
 
   it.each([

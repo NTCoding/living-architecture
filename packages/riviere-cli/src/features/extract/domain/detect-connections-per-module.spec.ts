@@ -14,6 +14,7 @@ const {
   mockDeduplicateCrossStrategy,
   mockDetectCrossModule,
   mockDetectPerModule,
+  mockStripHttpCallComponents,
 } = vi.hoisted(() => ({
   mockExtractComponents: vi.fn().mockReturnValue([]),
   mockEnrichComponents: vi.fn().mockReturnValue({
@@ -30,6 +31,7 @@ const {
         type: 'sync',
       },
     ],
+    externalLinks: [],
     timings: {
       callGraphMs: 1,
       configurableMs: 0,
@@ -38,8 +40,10 @@ const {
   }),
   mockDetectCrossModule: vi.fn().mockReturnValue({
     links: [],
+    externalLinks: [],
     timings: { asyncDetectionMs: 0 },
   }),
+  mockStripHttpCallComponents: vi.fn((components: unknown[]) => components),
 }))
 
 vi.mock('@living-architecture/riviere-extract-ts', () => ({
@@ -49,6 +53,7 @@ vi.mock('@living-architecture/riviere-extract-ts', () => ({
   detectPerModuleConnections: mockDetectPerModule,
   detectCrossModuleConnections: mockDetectCrossModule,
   deduplicateCrossStrategy: mockDeduplicateCrossStrategy,
+  stripHttpCallComponents: mockStripHttpCallComponents,
 }))
 
 function createModule(name: string): Module {
@@ -115,6 +120,7 @@ describe('ExtractionProject.extractDraftComponents', () => {
           type: 'sync' as const,
         },
       ],
+      externalLinks: [],
       timings: {
         callGraphMs: 1,
         configurableMs: 0,
