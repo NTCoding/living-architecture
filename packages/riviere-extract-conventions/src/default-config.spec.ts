@@ -6,7 +6,10 @@ import {
   type ComponentRule,
 } from '@living-architecture/riviere-extract-config'
 import {
-  loadDefaultConfig, getFirstModule, TestAssertionError 
+  loadDefaultConfig,
+  getFirstModule,
+  getValidatedConfig,
+  TestAssertionError,
 } from './default-config-fixtures'
 
 function narrowToDetectionRule(rule: ComponentRule | undefined) {
@@ -147,6 +150,17 @@ describe('Default extraction config', () => {
         assertContainerDecorator(module[componentType], decoratorName)
       },
     )
+  })
+
+  it('configures eventPublishers connection detection for the eventPublisher customType', () => {
+    const config = getValidatedConfig(loadDefaultConfig())
+
+    expect(config.connections?.eventPublishers).toStrictEqual([
+      {
+        fromType: 'eventPublisher',
+        metadataKey: 'publishedEventType',
+      },
+    ])
   })
 
   describe('Extraction rules', () => {

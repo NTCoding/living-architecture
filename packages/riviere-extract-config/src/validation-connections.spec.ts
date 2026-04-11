@@ -358,6 +358,28 @@ describe('connection pattern schema validation', () => {
         ]),
       )
     })
+
+    it('returns invalid when eventPublisher entry is missing a required field', () => {
+      expect(
+        validateExtractionConfig({
+          ...createMinimalConfig(),
+          connections: { eventPublishers: [{ metadataKey: 'publishedEventType' }] },
+        }).valid,
+      ).toBe(false)
+    })
+
+    it('returns invalid when eventPublisher fromType or metadataKey is empty string', () => {
+      const emptyFromType = {
+        fromType: '',
+        metadataKey: 'publishedEventType',
+      }
+      expect(
+        validateExtractionConfig({
+          ...createMinimalConfig(),
+          connections: { eventPublishers: [emptyFromType] },
+        }).valid,
+      ).toBe(false)
+    })
   })
 
   describe('extract rules validation', () => {

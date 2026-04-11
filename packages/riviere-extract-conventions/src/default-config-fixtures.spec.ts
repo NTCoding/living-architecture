@@ -1,8 +1,16 @@
 import {
   describe, it, expect, vi 
 } from 'vitest'
-import { getFirstModule } from './default-config-fixtures'
+import {
+  getFirstModule, getValidatedConfig 
+} from './default-config-fixtures'
 import * as validation from '@living-architecture/riviere-extract-config'
+
+describe('getValidatedConfig', () => {
+  it('throws when config is invalid', () => {
+    expect(() => getValidatedConfig({ modules: [] })).toThrow('Expected valid ExtractionConfig')
+  })
+})
 
 describe('getFirstModule', () => {
   it('returns first module when config is valid', () => {

@@ -1,4 +1,3 @@
-import type { SourceLocation } from '@living-architecture/riviere-schema'
 import {
   EVENT_NAME_FIELD, SUBSCRIBED_EVENTS_FIELD 
 } from '@living-architecture/riviere-schema'
@@ -6,12 +5,8 @@ import type { EnrichedComponent } from '../../value-extraction/enrich-components
 import type { ExtractedLink } from '../extracted-link'
 import { ConnectionDetectionError } from '../connection-detection-error'
 import { componentIdentity } from '../call-graph/call-graph-types'
-
-/** @riviere-role value-object */
-export interface AsyncDetectionOptions {
-  strict: boolean
-  repository: string
-}
+import type { AsyncDetectionOptions } from './async-detection-types'
+import { toSourceLocation } from './async-detection-types'
 
 /** @riviere-role domain-service */
 export function detectSubscribeConnections(
@@ -27,14 +22,6 @@ export function detectSubscribeConnections(
       resolveSubscription(handler, eventName, events, options, repository),
     ),
   )
-}
-
-function toSourceLocation(component: EnrichedComponent, repository: string): SourceLocation {
-  return {
-    repository,
-    filePath: component.location.file,
-    lineNumber: component.location.line,
-  }
 }
 
 function resolveSubscription(

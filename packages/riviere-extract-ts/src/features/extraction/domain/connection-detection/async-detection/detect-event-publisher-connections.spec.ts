@@ -3,7 +3,6 @@ import {
 } from 'vitest'
 import { detectEventPublisherConnections } from './detect-event-publisher-connections'
 import { buildComponent } from '../call-graph/call-graph-fixtures'
-import { ConnectionDetectionError } from '../connection-detection-error'
 
 const defaultOptions = {
   strict: false,
@@ -131,10 +130,10 @@ describe('detectEventPublisherConnections', () => {
         strict: true,
         repository: 'test-repo',
       }),
-    ).toThrow(ConnectionDetectionError)
+    ).toThrow(expect.objectContaining({ message: expect.stringContaining('NonExistentEvent') }))
   })
 
-  it('returns uncertain link in lenient mode when event matches multiple events', () => {
+  it('returns uncertain link in lenient mode when publishedEventType matches multiple events', () => {
     const event1 = buildComponent('SharedA', '/src/a.ts', 1, {
       type: 'event',
       metadata: { eventName: 'SharedName' },
@@ -163,7 +162,7 @@ describe('detectEventPublisherConnections', () => {
     ])
   })
 
-  it('throws ConnectionDetectionError in strict mode when event matches multiple events', () => {
+  it('throws ConnectionDetectionError in strict mode when publishedEventType matches multiple events', () => {
     const event1 = buildComponent('AmbigA', '/src/a.ts', 1, {
       type: 'event',
       metadata: { eventName: 'SharedName' },
@@ -217,7 +216,7 @@ describe('detectEventPublisherConnections', () => {
         strict: true,
         repository: 'test-repo',
       }),
-    ).toThrow(ConnectionDetectionError)
+    ).toThrow(expect.objectContaining({ message: expect.stringContaining('"publishedEventType"') }))
   })
 
   it('includes sourceLocation with publisher file and line', () => {
@@ -274,7 +273,18 @@ describe('detectEventPublisherConnections', () => {
       defaultOptions,
     )
 
-    expect(result).toHaveLength(2)
+    expect(result).toStrictEqual([
+      expect.objectContaining({
+        source: 'orders:typeA:Sender1',
+        target: 'orders:event:OrderPlaced',
+        type: 'async',
+      }),
+      expect.objectContaining({
+        source: 'orders:typeB:Sender2',
+        target: 'orders:event:OrderPlaced',
+        type: 'async',
+      }),
+    ])
   })
 
   it('uses exact case-sensitive matching for event names', () => {
@@ -295,6 +305,46 @@ describe('detectEventPublisherConnections', () => {
 
     expect(result).toStrictEqual([
       expect.objectContaining({ _uncertain: expect.stringContaining('orderplaced') }),
+    ])
+  })
+
+  it('returns uncertain link in lenient mode when metadataKey value is empty string', () => {
+    const publisher = buildComponent('EmptySender', '/src/sender.ts', 1, {
+      type: 'eventSender',
+      metadata: { publishedEventType: '' },
+    })
+
+    const result = detectEventPublisherConnections(
+      [publisher],
+      eventPublisherConfig(),
+      defaultOptions,
+    )
+
+    expect(result).toStrictEqual([
+      expect.objectContaining({
+        target: '_unresolved',
+        _uncertain: expect.stringContaining('"publishedEventType" metadata'),
+      }),
+    ])
+  })
+
+  it('returns uncertain link in lenient mode when metadataKey value is non-string type', () => {
+    const publisher = buildComponent('NumericSender', '/src/sender.ts', 1, {
+      type: 'eventSender',
+      metadata: { publishedEventType: 42 },
+    })
+
+    const result = detectEventPublisherConnections(
+      [publisher],
+      eventPublisherConfig(),
+      defaultOptions,
+    )
+
+    expect(result).toStrictEqual([
+      expect.objectContaining({
+        target: '_unresolved',
+        _uncertain: expect.stringContaining('"publishedEventType" metadata'),
+      }),
     ])
   })
 })

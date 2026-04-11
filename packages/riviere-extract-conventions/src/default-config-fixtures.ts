@@ -23,6 +23,15 @@ export function loadDefaultConfig(): unknown {
   return JSON.parse(configContent)
 }
 
+export function getValidatedConfig(config: unknown): ExtractionConfig {
+  if (!isValidExtractionConfig(config)) {
+    throw new TestAssertionError(
+      `Expected valid ExtractionConfig. Got invalid config. Validation needed.`,
+    )
+  }
+  return config
+}
+
 export function getFirstModule(config: unknown): ExtractionConfig['modules'][number] {
   if (!isValidExtractionConfig(config)) {
     throw new TestAssertionError(

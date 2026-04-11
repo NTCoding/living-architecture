@@ -97,5 +97,13 @@
         }
       }
     }
-  ]
+  ],
+  "connections": {
+    "eventPublishers": [
+      {
+        "fromType": "eventPublisher",
+        "metadataKey": "publishedEventType"
+      }
+    ]
+  }
 }

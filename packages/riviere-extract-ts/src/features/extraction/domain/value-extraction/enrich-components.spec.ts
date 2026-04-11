@@ -68,14 +68,15 @@ function moduleWith(componentType: string, rule: ComponentRule): Module {
       [componentType]: rule,
     }
   }
-  // Custom type — rule must be a DetectionRule (has 'find')
   if ('find' in rule) {
     return {
       ...base,
       customTypes: { [componentType]: rule },
     }
   }
-  return base
+  throw new TypeError(
+    `moduleWith: rule for custom type '${componentType}' must have a 'find' property`,
+  )
 }
 
 function enrich(drafts: DraftComponent[], modules: Module[]) {
