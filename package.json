@@ -86,13 +86,13 @@
   "pnpm": {
     "onlyBuiltDependencies": [
       "@swc/core",
+      "better-sqlite3",
       "esbuild",
       "nx",
       "unrs-resolver"
     ],
     "ignoredBuiltDependencies": [
-      "@ntcoding/agentic-workflow-builder",
-      "better-sqlite3"
+      "@ntcoding/agentic-workflow-builder"
     ]
   }
 }
