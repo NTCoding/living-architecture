@@ -73,7 +73,6 @@ export const WORKFLOW_DEFINITION: WorkflowDefinition<
     return {
       state,
       gitInfo: deps.getGitInfo(),
-      prChecksPass: false,
       from,
       to,
     }

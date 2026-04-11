@@ -8,7 +8,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@ntcoding/agentic-workflow-builder": "github:NTCoding/autonomous-claude-agent-team#path:packages/agentic-workflow-builder",
+    "@ntcoding/agentic-workflow-builder": "github:NTCoding/autonomous-claude-agent-team#d7c2ab785edda94cba9f4909e34ae3d5c4ef54ab&path:packages/agentic-workflow-builder",
     "zod": "^3.23.0"
   },
   "devDependencies": {
