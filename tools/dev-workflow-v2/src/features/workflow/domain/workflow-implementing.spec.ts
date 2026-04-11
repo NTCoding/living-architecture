@@ -61,15 +61,21 @@ describe('Workflow', () => {
 
   describe('registerAgent', () => {
     it('returns pass (no-op for single-agent workflow)', () => {
-      const { result } = spec.given().when((wf) => wf.registerAgent('lead', 'agent-1'))
+      const {
+        result, events 
+      } = spec.given().when((wf) => wf.registerAgent('lead', 'agent-1'))
       expect(result).toStrictEqual({ pass: true })
+      expect(events).toHaveLength(0)
     })
   })
 
   describe('handleTeammateIdle', () => {
     it('returns pass (no-op for single-agent workflow)', () => {
-      const { result } = spec.given().when((wf) => wf.handleTeammateIdle('agent-1'))
+      const {
+        result, events 
+      } = spec.given().when((wf) => wf.handleTeammateIdle('agent-1'))
       expect(result).toStrictEqual({ pass: true })
+      expect(events).toHaveLength(0)
     })
   })
 

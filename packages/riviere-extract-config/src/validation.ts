@@ -155,38 +155,49 @@ function validateAllExtractionRules(config: ExtractionConfig): ValidationError[]
   })
 }
 
-function collectAllCustomTypeNames(config: ExtractionConfig): Set<string> {
-  const names = new Set<string>()
+function collectCustomTypeExtractedFields(config: ExtractionConfig): Map<string, Set<string>> {
+  const fieldsByType = new Map<string, Set<string>>()
   for (const module of config.modules) {
     if ('$ref' in module || module.customTypes === undefined) {
       continue
     }
-    for (const typeName of Object.keys(module.customTypes)) {
-      names.add(typeName)
+    for (const [typeName, rule] of Object.entries(module.customTypes)) {
+      fieldsByType.set(typeName, new Set(Object.keys(rule.extract ?? {})))
     }
   }
-  return names
+  return fieldsByType
 }
 
 function validateEventPublishers(
   connections: ConnectionsConfig,
-  customTypeNames: Set<string>,
+  customTypeFields: Map<string, Set<string>>,
 ): ValidationError[] {
   if (connections.eventPublishers === undefined) {
     return []
   }
   return connections.eventPublishers.flatMap((publisher, index) => {
-    if (customTypeNames.has(publisher.fromType)) {
-      return []
+    const extractedFields = customTypeFields.get(publisher.fromType)
+    if (extractedFields === undefined) {
+      return [
+        {
+          path: `/connections/eventPublishers/${index}/fromType`,
+          message:
+            `"${publisher.fromType}" is not defined as a customType in any module. ` +
+            `Add a customType named "${publisher.fromType}" to at least one module.`,
+        },
+      ]
     }
-    return [
-      {
-        path: `/connections/eventPublishers/${index}/fromType`,
-        message:
-          `"${publisher.fromType}" is not defined as a customType in any module. ` +
-          `Add a customType named "${publisher.fromType}" to at least one module.`,
-      },
-    ]
+    if (!extractedFields.has(publisher.metadataKey)) {
+      return [
+        {
+          path: `/connections/eventPublishers/${index}/fromType`,
+          message:
+            `customType "${publisher.fromType}" does not extract "${publisher.metadataKey}". ` +
+            `Add extract["${publisher.metadataKey}"] to that custom type.`,
+        },
+      ]
+    }
+    return []
   })
 }
 
@@ -194,8 +205,8 @@ function validateConnectionsConfig(config: ExtractionConfig): ValidationError[] 
   if (config.connections === undefined) {
     return []
   }
-  const customTypeNames = collectAllCustomTypeNames(config)
-  return validateEventPublishers(config.connections, customTypeNames)
+  const customTypeFields = collectCustomTypeExtractedFields(config)
+  return validateEventPublishers(config.connections, customTypeFields)
 }
 
 /**

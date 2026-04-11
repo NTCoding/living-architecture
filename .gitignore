@@ -58,3 +58,9 @@ reviews/
 
 .obsidian
 .claude/worktrees
+
+# dev-workflow-v2 runtime files
+tools/dev-workflow-v2/error.log
+tools/dev-workflow-v2/workflow.db
+tools/dev-workflow-v2/workflow.db-shm
+tools/dev-workflow-v2/workflow.db-wal

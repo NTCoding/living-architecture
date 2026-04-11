@@ -62,6 +62,17 @@ describe('WORKFLOW_DEFINITION', () => {
     expect(workflow.getState().githubIssue).toStrictEqual(42)
   })
 
+  it('folds session-started event and makes transcriptPath available', () => {
+    const event: BaseEvent & Record<string, unknown> = {
+      type: 'session-started',
+      at: '2026-01-01T00:00:00Z',
+      transcriptPath: 'some/transcript.jsonl',
+    }
+    const state = WORKFLOW_DEFINITION.fold(WORKFLOW_DEFINITION.initialState(), event)
+    const workflow = WORKFLOW_DEFINITION.buildWorkflow(state, makeWorkflowDeps())
+    expect(workflow.getTranscriptPath()).toBe('some/transcript.jsonl')
+  })
+
   it('returns state unchanged for unknown event types (e.g. platform observation events)', () => {
     const event: BaseEvent = {
       type: 'identity-verified',

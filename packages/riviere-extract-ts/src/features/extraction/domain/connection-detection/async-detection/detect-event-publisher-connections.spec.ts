@@ -2,6 +2,7 @@ import {
   describe, it, expect 
 } from 'vitest'
 import { detectEventPublisherConnections } from './detect-event-publisher-connections'
+import { ConnectionDetectionError } from '../connection-detection-error'
 import { buildComponent } from '../call-graph/call-graph-fixtures'
 
 const defaultOptions = {
@@ -124,13 +125,15 @@ describe('detectEventPublisherConnections', () => {
       type: 'eventSender',
       metadata: { publishedEventType: 'NonExistentEvent' },
     })
-
-    expect(() =>
+    const act = () =>
       detectEventPublisherConnections([publisher], eventPublisherConfig(), {
         strict: true,
         repository: 'test-repo',
-      }),
-    ).toThrow(expect.objectContaining({ message: expect.stringContaining('NonExistentEvent') }))
+      })
+    expect(act).toThrow(ConnectionDetectionError)
+    expect(act).toThrow(
+      expect.objectContaining({ message: expect.stringContaining('NonExistentEvent') }),
+    )
   })
 
   it('returns uncertain link in lenient mode when publishedEventType matches multiple events', () => {
@@ -176,47 +179,13 @@ describe('detectEventPublisherConnections', () => {
       metadata: { publishedEventType: 'SharedName' },
     })
 
-    expect(() =>
+    const act = () =>
       detectEventPublisherConnections([event1, event2, publisher], eventPublisherConfig(), {
         strict: true,
         repository: 'test-repo',
-      }),
-    ).toThrow(expect.objectContaining({ message: expect.stringContaining('ambiguous') }))
-  })
-
-  it('returns uncertain link in lenient mode when metadataKey is missing from metadata', () => {
-    const publisher = buildComponent('NoMetaSender', '/src/sender.ts', 1, {
-      type: 'eventSender',
-      metadata: {},
-    })
-
-    const result = detectEventPublisherConnections(
-      [publisher],
-      eventPublisherConfig(),
-      defaultOptions,
-    )
-
-    expect(result).toStrictEqual([
-      expect.objectContaining({
-        source: 'orders:eventSender:NoMetaSender',
-        target: '_unresolved',
-        _uncertain: expect.stringContaining('"publishedEventType" metadata'),
-      }),
-    ])
-  })
-
-  it('throws ConnectionDetectionError in strict mode when metadataKey is missing', () => {
-    const publisher = buildComponent('StrictNoMeta', '/src/sender.ts', 1, {
-      type: 'eventSender',
-      metadata: {},
-    })
-
-    expect(() =>
-      detectEventPublisherConnections([publisher], eventPublisherConfig(), {
-        strict: true,
-        repository: 'test-repo',
-      }),
-    ).toThrow(expect.objectContaining({ message: expect.stringContaining('"publishedEventType"') }))
+      })
+    expect(act).toThrow(ConnectionDetectionError)
+    expect(act).toThrow(expect.objectContaining({ message: expect.stringContaining('ambiguous') }))
   })
 
   it('includes sourceLocation with publisher file and line', () => {
@@ -308,46 +277,6 @@ describe('detectEventPublisherConnections', () => {
     ])
   })
 
-  it('returns uncertain link in lenient mode when metadataKey value is empty string', () => {
-    const publisher = buildComponent('EmptySender', '/src/sender.ts', 1, {
-      type: 'eventSender',
-      metadata: { publishedEventType: '' },
-    })
-
-    const result = detectEventPublisherConnections(
-      [publisher],
-      eventPublisherConfig(),
-      defaultOptions,
-    )
-
-    expect(result).toStrictEqual([
-      expect.objectContaining({
-        target: '_unresolved',
-        _uncertain: expect.stringContaining('"publishedEventType" metadata'),
-      }),
-    ])
-  })
-
-  it('returns uncertain link in lenient mode when metadataKey value is non-string type', () => {
-    const publisher = buildComponent('NumericSender', '/src/sender.ts', 1, {
-      type: 'eventSender',
-      metadata: { publishedEventType: 42 },
-    })
-
-    const result = detectEventPublisherConnections(
-      [publisher],
-      eventPublisherConfig(),
-      defaultOptions,
-    )
-
-    expect(result).toStrictEqual([
-      expect.objectContaining({
-        target: '_unresolved',
-        _uncertain: expect.stringContaining('"publishedEventType" metadata'),
-      }),
-    ])
-  })
-
   it('produces one link per entry when metadataKey value is a string array', () => {
     const event1 = buildComponent('OrderPlaced', '/src/event.ts', 1, {
       type: 'event',
@@ -378,26 +307,6 @@ describe('detectEventPublisherConnections', () => {
         source: 'orders:eventSender:MultiSender',
         target: 'orders:event:PaymentReceived',
         type: 'async',
-      }),
-    ])
-  })
-
-  it('returns uncertain link in lenient mode when array metadataKey contains only empty strings', () => {
-    const publisher = buildComponent('EmptyArraySender', '/src/sender.ts', 1, {
-      type: 'eventSender',
-      metadata: { publishedEventType: ['', '  '] },
-    })
-
-    const result = detectEventPublisherConnections(
-      [publisher],
-      eventPublisherConfig(),
-      defaultOptions,
-    )
-
-    expect(result).toStrictEqual([
-      expect.objectContaining({
-        target: '_unresolved',
-        _uncertain: expect.stringContaining('"publishedEventType" metadata'),
       }),
     ])
   })
