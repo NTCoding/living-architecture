@@ -39,6 +39,42 @@ describe('eventPublishers validation', () => {
     expect(validateExtractionConfig(configWithEventPublisher('eventPublisher')).valid).toBe(true)
   })
 
+  it('returns valid when metadataKey is spread across two modules defining the same customType', () => {
+    const config = {
+      modules: [
+        {
+          ...createMinimalModule(),
+          customTypes: {
+            ep: {
+              find: 'classes' as const,
+              where: { hasJSDoc: { tag: 'ep' } },
+              extract: { fieldA: { fromClassName: true } },
+            },
+          },
+        },
+        {
+          ...createMinimalModule(),
+          customTypes: {
+            ep: {
+              find: 'classes' as const,
+              where: { hasJSDoc: { tag: 'ep' } },
+              extract: { fieldB: { fromClassName: true } },
+            },
+          },
+        },
+      ],
+      connections: {
+        eventPublishers: [
+          {
+            fromType: 'ep',
+            metadataKey: 'fieldB',
+          },
+        ],
+      },
+    }
+    expect(validateExtractionConfig(config).valid).toBe(true)
+  })
+
   it('returns invalid when custom type does not extract the metadataKey', () => {
     expect(validateExtractionConfig(configWithEventPublisher('ep', 'missingField')).valid).toBe(
       false,

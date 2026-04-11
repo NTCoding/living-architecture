@@ -162,7 +162,11 @@ function collectCustomTypeExtractedFields(config: ExtractionConfig): Map<string,
       continue
     }
     for (const [typeName, rule] of Object.entries(module.customTypes)) {
-      fieldsByType.set(typeName, new Set(Object.keys(rule.extract ?? {})))
+      const existing = fieldsByType.get(typeName) ?? new Set<string>()
+      for (const key of Object.keys(rule.extract ?? {})) {
+        existing.add(key)
+      }
+      fieldsByType.set(typeName, existing)
     }
   }
   return fieldsByType
