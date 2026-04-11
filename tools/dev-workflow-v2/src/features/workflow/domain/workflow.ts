@@ -7,6 +7,7 @@ import {
   pass, fail, defineRecordingOps 
 } from '@ntcoding/agentic-workflow-builder/dsl'
 import type { BaseEvent } from '@ntcoding/agentic-workflow-builder/engine'
+import { WorkflowStateError } from '@ntcoding/agentic-workflow-builder/engine'
 import type {
   WorkflowState, StateName, WorkflowOperation 
 } from './workflow-types'
@@ -129,10 +130,6 @@ export class Workflow {
     return new Workflow(WORKFLOW_STATE_SCHEMA.parse(state), deps)
   }
 
-  static procedurePath(state: string, pluginRoot: string): string {
-    return `${pluginRoot}/${getStateDefinition(state).agentInstructions}`
-  }
-
   getPendingEvents(): readonly WorkflowEvent[] {
     return this.pendingEvents
   }
@@ -159,14 +156,30 @@ export class Workflow {
     }
   }
 
-  startSession(_transcriptPath: string | undefined, repository: string | undefined): void {
+  startSession(transcriptPath: string, repository: string | undefined): void {
     const event: WorkflowEvent = {
       type: 'session-started',
       at: this.deps.now(),
+      transcriptPath,
       ...(repository === undefined ? {} : { repository }),
     }
     this.pendingEvents = [...this.pendingEvents, event]
     this.state = applyEvent(this.state, event)
+  }
+
+  getTranscriptPath(): string {
+    if (this.state.transcriptPath === undefined) {
+      throw new WorkflowStateError('Transcript path not set. Session has not been started.')
+    }
+    return this.state.transcriptPath
+  }
+
+  registerAgent(_agentType: string, _agentId: string): PreconditionResult {
+    return pass()
+  }
+
+  handleTeammateIdle(_agentName: string): PreconditionResult {
+    return pass()
   }
 
   executeRecording(op: WorkflowOperation, ...args: readonly unknown[]): PreconditionResult {

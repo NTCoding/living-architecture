@@ -80,7 +80,6 @@ interface TopLevelRulesConfig {
   domainOp?: Module['domainOp']
   event?: Module['event']
   eventHandler?: Module['eventHandler']
-  eventPublisher?: Module['eventPublisher']
   ui?: Module['ui']
 }
 
@@ -315,7 +314,6 @@ export class ExtractionProjectRepository {
       domainOp: parsed.domainOp ?? NOT_USED,
       event: parsed.event ?? NOT_USED,
       eventHandler: parsed.eventHandler ?? NOT_USED,
-      eventPublisher: parsed.eventPublisher ?? NOT_USED,
       ui: parsed.ui ?? NOT_USED,
     }
   }

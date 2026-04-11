@@ -66,7 +66,7 @@ describe('Default extraction config', () => {
     expect(result.valid).toBe(true)
   })
 
-  it('declares all 7 required component types', () => {
+  it('declares all 6 required component types and eventPublisher customType', () => {
     const config = loadDefaultConfig()
     const module = getFirstModule(config)
 
@@ -79,12 +79,13 @@ describe('Default extraction config', () => {
       'domainOp',
       'event',
       'eventHandler',
-      'eventPublisher',
       'ui',
+      'customTypes',
     ]
     const moduleKeys = Object.keys(module)
     expect(moduleKeys).toStrictEqual(expect.arrayContaining(requiredKeys))
     expect(moduleKeys).toHaveLength(10)
+    expect(module.customTypes).toHaveProperty('eventPublisher')
   })
 
   it.each([

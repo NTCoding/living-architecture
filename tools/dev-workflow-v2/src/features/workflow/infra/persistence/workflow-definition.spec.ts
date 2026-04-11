@@ -37,50 +37,54 @@ function buildTransitionEvent(
 }
 
 describe('WORKFLOW_DEFINITION', () => {
-  it('creates a fresh Workflow with IMPLEMENTING state', () => {
-    const workflow = WORKFLOW_DEFINITION.createFresh(makeWorkflowDeps())
+  it('builds a Workflow in IMPLEMENTING state from initial state', () => {
+    const workflow = WORKFLOW_DEFINITION.buildWorkflow(
+      WORKFLOW_DEFINITION.initialState(),
+      makeWorkflowDeps(),
+    )
     expect(workflow.getState().currentStateMachineState).toStrictEqual('IMPLEMENTING')
   })
 
-  it('rehydrates a Workflow from empty events', () => {
-    const events: readonly BaseEvent[] = []
-    const workflow = WORKFLOW_DEFINITION.rehydrate(events, makeWorkflowDeps())
+  it('builds a Workflow from folded events (empty → IMPLEMENTING)', () => {
+    const state = WORKFLOW_DEFINITION.initialState()
+    const workflow = WORKFLOW_DEFINITION.buildWorkflow(state, makeWorkflowDeps())
     expect(workflow.getState().currentStateMachineState).toStrictEqual('IMPLEMENTING')
   })
 
-  it('rehydrates a Workflow from valid events', () => {
-    const events: readonly (BaseEvent & Record<string, unknown>)[] = [
-      {
-        type: 'issue-recorded',
-        at: '2026-01-01T00:00:00Z',
-        issueNumber: 42,
-      },
-    ]
-    const workflow = WORKFLOW_DEFINITION.rehydrate(events, makeWorkflowDeps())
+  it('folds a valid event onto state', () => {
+    const event: BaseEvent & Record<string, unknown> = {
+      type: 'issue-recorded',
+      at: '2026-01-01T00:00:00Z',
+      issueNumber: 42,
+    }
+    const state = WORKFLOW_DEFINITION.fold(WORKFLOW_DEFINITION.initialState(), event)
+    const workflow = WORKFLOW_DEFINITION.buildWorkflow(state, makeWorkflowDeps())
     expect(workflow.getState().githubIssue).toStrictEqual(42)
   })
 
-  it('throws WorkflowStateError on unknown event types', () => {
-    const events: readonly BaseEvent[] = [
-      {
-        type: 'unknown-event',
-        at: '2026-01-01T00:00:00Z',
-      },
-    ]
-    expect(() => WORKFLOW_DEFINITION.rehydrate(events, makeWorkflowDeps())).toThrow(
-      'Unknown event type in store',
-    )
-  })
-
-  it('returns procedure path for a given state', () => {
-    const path = WORKFLOW_DEFINITION.procedurePath('IMPLEMENTING', '/plugin')
-    expect(path).toContain('implementing')
-    expect(path).toContain('/plugin/')
+  it('returns state unchanged for unknown event types (e.g. platform observation events)', () => {
+    const event: BaseEvent = {
+      type: 'identity-verified',
+      at: '2026-01-01T00:00:00Z',
+    }
+    const state = WORKFLOW_DEFINITION.initialState()
+    const result = WORKFLOW_DEFINITION.fold(state, event)
+    expect(result).toStrictEqual(state)
   })
 
   it('returns initial state with IMPLEMENTING', () => {
     const initial = WORKFLOW_DEFINITION.initialState()
     expect(initial.currentStateMachineState).toStrictEqual('IMPLEMENTING')
+  })
+
+  it('stateSchema parses valid state name', () => {
+    expect(WORKFLOW_DEFINITION.stateSchema.parse('IMPLEMENTING')).toStrictEqual('IMPLEMENTING')
+  })
+
+  it('stateSchema throws on invalid state name', () => {
+    expect(() => WORKFLOW_DEFINITION.stateSchema.parse('UNKNOWN_STATE')).toThrow(
+      'Invalid enum value',
+    )
   })
 
   describe('getRegistry', () => {
@@ -229,18 +233,6 @@ describe('WORKFLOW_DEFINITION', () => {
         '2026-01-01T00:00:00Z',
       )
       expect(event).not.toHaveProperty('stateOverrides')
-    })
-  })
-
-  describe('parseStateName', () => {
-    it('parses valid state name', () => {
-      expect(WORKFLOW_DEFINITION.parseStateName('IMPLEMENTING')).toStrictEqual('IMPLEMENTING')
-    })
-
-    it('throws on invalid state name', () => {
-      expect(() => WORKFLOW_DEFINITION.parseStateName('UNKNOWN_STATE')).toThrow(
-        'invalid_enum_value',
-      )
     })
   })
 })

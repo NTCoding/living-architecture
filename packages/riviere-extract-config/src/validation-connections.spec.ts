@@ -306,6 +306,60 @@ describe('connection pattern schema validation', () => {
     })
   })
 
+  describe('eventPublishers validation', () => {
+    function configWithEventPublisher(fromType: string) {
+      return {
+        modules: [
+          {
+            ...createMinimalModule(),
+            customTypes: {
+              [fromType]: {
+                find: 'classes' as const,
+                where: { hasJSDoc: { tag: fromType } },
+              },
+            },
+          },
+        ],
+        connections: {
+          eventPublishers: [
+            {
+              fromType,
+              metadataKey: 'publishedEventType',
+            },
+          ],
+        },
+      }
+    }
+
+    it('returns valid when eventPublishers fromType is defined as a customType', () => {
+      expect(validateExtractionConfig(configWithEventPublisher('eventPublisher')).valid).toBe(true)
+    })
+
+    it('returns invalid when eventPublishers fromType is not defined as a customType', () => {
+      const config = {
+        ...createMinimalConfig(),
+        connections: {
+          eventPublishers: [
+            {
+              fromType: 'unknownType',
+              metadataKey: 'publishedEventType',
+            },
+          ],
+        },
+      }
+      const result = validateExtractionConfig(config)
+      expect(result.valid).toBe(false)
+      expect(result.errors).toStrictEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            path: '/connections/eventPublishers/0/fromType',
+            message: expect.stringContaining('Add a customType named "unknownType"'),
+          }),
+        ]),
+      )
+    })
+  })
+
   describe('extract rules validation', () => {
     it('returns error when fromArgument is negative', () => {
       expect(

@@ -1,7 +1,6 @@
 import type {
   WorkflowDefinition, BaseEvent 
 } from '@ntcoding/agentic-workflow-builder/engine'
-import { WorkflowStateError } from '@ntcoding/agentic-workflow-builder/engine'
 import type { TransitionContext } from '@ntcoding/agentic-workflow-builder/dsl'
 import type {
   WorkflowState, StateName, WorkflowOperation 
@@ -10,12 +9,12 @@ import {
   Workflow, type WorkflowDeps 
 } from '../../domain/workflow'
 import {
-  INITIAL_STATE, parseStateName 
+  INITIAL_STATE, STATE_NAME_SCHEMA 
 } from '../../domain/workflow-types'
 import {
   getOperationBody, getTransitionTitle 
 } from '../../domain/output-messages'
-import { applyEvents } from '../../domain/fold'
+import { applyEvent } from '../../domain/fold'
 import { WORKFLOW_EVENT_SCHEMA } from '../../domain/workflow-events'
 import { WORKFLOW_REGISTRY } from '../../domain/registry'
 
@@ -41,25 +40,17 @@ export const WORKFLOW_DEFINITION: WorkflowDefinition<
   StateName,
   WorkflowOperation
 > = {
-  createFresh(deps: WorkflowDeps): Workflow {
-    return Workflow.createFresh(deps)
+  fold(state: WorkflowState, event: BaseEvent): WorkflowState {
+    const result = WORKFLOW_EVENT_SCHEMA.safeParse(event)
+    if (!result.success) {
+      return state
+    }
+    return applyEvent(state, result.data)
   },
-  rehydrate(events: readonly BaseEvent[], deps: WorkflowDeps): Workflow {
-    const workflowEvents = events.map((e) => {
-      const result = WORKFLOW_EVENT_SCHEMA.safeParse(e)
-      if (!result.success) {
-        throw new WorkflowStateError(
-          `Unknown event type in store: "${e.type}". Event store may be corrupted or from a newer version.`,
-        )
-      }
-      return result.data
-    })
-    const state = applyEvents(workflowEvents)
+  buildWorkflow(state: WorkflowState, deps: WorkflowDeps): Workflow {
     return Workflow.rehydrate(state, deps)
   },
-  procedurePath(state: StateName, pluginRoot: string): string {
-    return Workflow.procedurePath(state, pluginRoot)
-  },
+  stateSchema: STATE_NAME_SCHEMA,
   initialState(): typeof INITIAL_STATE {
     return INITIAL_STATE
   },
@@ -96,7 +87,6 @@ export const WORKFLOW_DEFINITION: WorkflowDefinition<
     }
     return event
   },
-  parseStateName,
   getOperationBody(op) {
     return getOperationBody(op)
   },

@@ -165,7 +165,7 @@ describe('workflow-cli hooks', () => {
       tool_input: { file_path: 123 },
       tool_use_id: 'tu-write-bad-type',
     })
-    expect(() => runHook(ctx, stdinJson)).toThrow("Expected 'file_path' to be a string, got number")
+    expect(() => runHook(ctx, stdinJson)).toThrow('Expected string or undefined in tool_input')
   })
 
   it('allows Bash with missing command (empty string passed to check)', () => {
@@ -198,7 +198,7 @@ describe('workflow-cli hooks', () => {
       tool_input: { command: 42 },
       tool_use_id: 'tu-bad-type',
     })
-    expect(() => runHook(ctx, stdinJson)).toThrow("Expected 'command' to be a string, got number")
+    expect(() => runHook(ctx, stdinJson)).toThrow('Expected string or undefined in tool_input')
   })
 
   it('blocks dangerous commands for active session', () => {

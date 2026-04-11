@@ -1,4 +1,7 @@
 import type { SourceLocation } from '@living-architecture/riviere-schema'
+import {
+  EVENT_NAME_FIELD, SUBSCRIBED_EVENTS_FIELD 
+} from '@living-architecture/riviere-schema'
 import type { EnrichedComponent } from '../../value-extraction/enrich-components'
 import type { ExtractedLink } from '../extracted-link'
 import { ConnectionDetectionError } from '../connection-detection-error'
@@ -41,7 +44,7 @@ function resolveSubscription(
   options: AsyncDetectionOptions,
   repository: string,
 ): ExtractedLink[] {
-  const matchingEvents = events.filter((e) => e.metadata['eventName'] === eventName)
+  const matchingEvents = events.filter((e) => e.metadata[EVENT_NAME_FIELD] === eventName)
 
   if (matchingEvents.length === 0) {
     return [handleNoMatch(handler, eventName, options, repository)]
@@ -107,7 +110,7 @@ function handleNoMatch(
 }
 
 function getSubscribedEvents(handler: EnrichedComponent): string[] {
-  const raw = handler.metadata['subscribedEvents']
+  const raw = handler.metadata[SUBSCRIBED_EVENTS_FIELD]
   if (!Array.isArray(raw)) {
     return []
   }

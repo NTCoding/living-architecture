@@ -77,6 +77,12 @@ export interface DomainOpComponent extends ComponentBase {
   businessRules?: string[]
 }
 
+/** Metadata field name on EventComponent holding the event's canonical name. */
+export const EVENT_NAME_FIELD = 'eventName' as const
+
+/** Metadata field name on EventHandlerComponent holding the list of subscribed event names. */
+export const SUBSCRIBED_EVENTS_FIELD = 'subscribedEvents' as const
+
 export interface EventComponent extends ComponentBase {
   type: 'Event'
   eventName: string

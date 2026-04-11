@@ -18,7 +18,6 @@ function createMinimalModule(overrides: Partial<Module> = {}): Module {
     domainOp: NOT_USED,
     event: NOT_USED,
     eventHandler: NOT_USED,
-    eventPublisher: NOT_USED,
     ui: NOT_USED,
     ...overrides,
   }

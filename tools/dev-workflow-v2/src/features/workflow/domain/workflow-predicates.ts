@@ -1,9 +1,5 @@
 import path from 'node:path'
-import type { PreconditionResult } from '@ntcoding/agentic-workflow-builder/dsl'
-import {
-  fail, pass 
-} from '@ntcoding/agentic-workflow-builder/dsl'
-import type { BaseWorkflowState } from '@ntcoding/agentic-workflow-builder/engine'
+import type { WorkflowState } from './workflow-types'
 
 const PROTECTED_FILES: readonly (string | RegExp)[] = [
   'nx.json',
@@ -14,21 +10,17 @@ const PROTECTED_FILES: readonly (string | RegExp)[] = [
 ]
 
 /** @riviere-role domain-service */
-export function checkWriteAllowed(filePath: string): PreconditionResult {
+export function checkWriteAllowed(filePath: string): boolean {
   const basename = path.basename(filePath)
   for (const pattern of PROTECTED_FILES) {
     if (typeof pattern === 'string' ? basename === pattern : pattern.test(basename)) {
-      return fail(`Write blocked: ${basename} is a protected config file.`)
+      return false
     }
   }
-  return pass()
+  return true
 }
 
 /** @riviere-role domain-service */
-export function isWriteAllowed(
-  _toolName: string,
-  filePath: string,
-  _state: BaseWorkflowState,
-): PreconditionResult {
+export function isWriteAllowed(filePath: string, _state: WorkflowState): boolean {
   return checkWriteAllowed(filePath)
 }

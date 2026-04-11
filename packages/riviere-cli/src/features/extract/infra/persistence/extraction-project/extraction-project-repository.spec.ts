@@ -18,7 +18,6 @@ const VALID_CONFIG = `modules:
     domainOp: { notUsed: true }
     event: { notUsed: true }
     eventHandler: { notUsed: true }
-    eventPublisher: { notUsed: true }
     ui: { notUsed: true }
 `
 
@@ -47,7 +46,6 @@ function writeExtendsConfig(dir: string, extendsRef: string): void {
       '    domainOp: { notUsed: true }',
       '    event: { notUsed: true }',
       '    eventHandler: { notUsed: true }',
-      '    eventPublisher: { notUsed: true }',
       '    ui: { notUsed: true }',
     ].join('\n'),
     'utf-8',
@@ -167,7 +165,6 @@ describe('ExtractionProjectRepository', () => {
           '    domainOp: { notUsed: true }',
           '    event: { notUsed: true }',
           '    eventHandler: { notUsed: true }',
-          '    eventPublisher: { notUsed: true }',
           '    ui: { notUsed: true }',
         ].join('\n'),
         'utf-8',
@@ -246,7 +243,6 @@ describe('ExtractionProjectRepository', () => {
           '    domainOp: { notUsed: true }',
           '    event: { notUsed: true }',
           '    eventHandler: { notUsed: true }',
-          '    eventPublisher: { notUsed: true }',
           '    ui: { notUsed: true }',
         ].join('\n'),
         'utf-8',

@@ -70,7 +70,6 @@ function getBuiltInRule(module: Module, componentType: string): DetectionRule | 
     domainOp: module.domainOp,
     event: module.event,
     eventHandler: module.eventHandler,
-    eventPublisher: module.eventPublisher,
     ui: module.ui,
   }
   const rule = ruleMap[componentType]
@@ -87,7 +86,6 @@ function findDetectionRule(module: Module, componentType: string): DetectionRule
     'domainOp',
     'event',
     'eventHandler',
-    'eventPublisher',
     'ui',
   ]
 

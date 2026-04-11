@@ -41,6 +41,7 @@ export function createWorkflowStateSchema<T extends readonly [string, ...string[
     feedbackAddressedCount: z.number().optional(),
     reflectionPath: z.string().optional(),
     preBlockedState: z.string().optional(),
+    transcriptPath: z.string().optional(),
   })
 }
 
@@ -64,6 +65,7 @@ export type WorkflowState = {
   feedbackAddressedCount?: number | undefined
   reflectionPath?: string | undefined
   preBlockedState?: string | undefined
+  transcriptPath?: string | undefined
 }
 
 /** @riviere-role value-object */

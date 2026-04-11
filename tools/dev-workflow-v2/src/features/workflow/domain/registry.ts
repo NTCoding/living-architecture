@@ -14,7 +14,7 @@ import { completeState } from './states/complete'
 import { blockedState } from './states/blocked'
 
 export const BASH_FORBIDDEN: BashForbiddenConfig = {
-  patterns: [/(?:^|\s|&&|;)git\s+push(?:\s|$|-|;|&)/, /(?:^|\s|&&|;)gh\s+pr(?:\s|$|-|;|&)/],
+  commands: ['git push', 'gh pr'],
   flags: ['--no-verify', '--force', '--hard'],
 }
 

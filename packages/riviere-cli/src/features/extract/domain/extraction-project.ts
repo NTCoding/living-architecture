@@ -170,6 +170,7 @@ export class ExtractionProject {
     const crossResult = detectCrossModuleConnections(enrichedComponents, {
       allowIncomplete,
       repository: this.repositoryName,
+      eventPublishers: this.resolvedConfig.connections?.eventPublishers,
     })
     links.push(...crossResult.links)
     timings.push({

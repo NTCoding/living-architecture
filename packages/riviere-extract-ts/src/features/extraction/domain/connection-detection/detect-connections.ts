@@ -1,12 +1,15 @@
 import { performance } from 'node:perf_hooks'
 import type { Project } from 'ts-morph'
-import type { ConnectionPattern } from '@living-architecture/riviere-extract-config'
+import type {
+  ConnectionPattern,
+  EventPublisherConfig,
+} from '@living-architecture/riviere-extract-config'
 import type { EnrichedComponent } from '../value-extraction/enrich-components'
 import type { GlobMatcher } from '../component-extraction/extractor'
 import type { ExtractedLink } from './extracted-link'
 import { ComponentIndex } from './component-index'
 import { buildCallGraph } from './call-graph/build-call-graph'
-import { detectPublishConnections } from './async-detection/detect-publish-connections'
+import { detectEventPublisherConnections } from './async-detection/detect-event-publisher-connections'
 import { detectSubscribeConnections } from './async-detection/detect-subscribe-connections'
 import { detectConfigurableConnections } from './configurable/detect-configurable-connections'
 
@@ -15,6 +18,7 @@ export interface ConnectionDetectionOptions {
   allowIncomplete?: boolean
   moduleGlobs: string[]
   patterns?: ConnectionPattern[]
+  eventPublishers?: EventPublisherConfig[]
   repository: string
 }
 
@@ -130,6 +134,7 @@ export function detectPerModuleConnections(
 /** @riviere-role value-object */
 export interface CrossModuleConnectionOptions {
   allowIncomplete?: boolean
+  eventPublishers?: EventPublisherConfig[]
   repository: string
 }
 
@@ -149,16 +154,18 @@ export function detectCrossModuleConnections(
 ): CrossModuleDetectionResult {
   const strict = options.allowIncomplete !== true
   const repository = options.repository
+  const asyncOptions = {
+    strict,
+    repository,
+  }
 
   const asyncStart = performance.now()
-  const publishLinks = detectPublishConnections(allComponents, {
-    strict,
-    repository,
-  })
-  const subscribeLinks = detectSubscribeConnections(allComponents, {
-    strict,
-    repository,
-  })
+  const publishLinks = detectEventPublisherConnections(
+    allComponents,
+    options.eventPublishers ?? [],
+    asyncOptions,
+  )
+  const subscribeLinks = detectSubscribeConnections(allComponents, asyncOptions)
   const asyncDetectionMs = performance.now() - asyncStart
 
   return {
@@ -220,15 +227,17 @@ export function detectConnections(
   })
   const callGraphMs = performance.now() - callGraphStart
 
+  const asyncOptions = {
+    strict,
+    repository,
+  }
   const asyncStart = performance.now()
-  const publishLinks = detectPublishConnections(components, {
-    strict,
-    repository,
-  })
-  const subscribeLinks = detectSubscribeConnections(components, {
-    strict,
-    repository,
-  })
+  const publishLinks = detectEventPublisherConnections(
+    components,
+    options.eventPublishers ?? [],
+    asyncOptions,
+  )
+  const subscribeLinks = detectSubscribeConnections(components, asyncOptions)
   const asyncDetectionMs = performance.now() - asyncStart
 
   const patterns = options.patterns ?? []

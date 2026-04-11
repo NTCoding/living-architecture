@@ -56,7 +56,6 @@ function createModule(name: string): Module {
     domainOp: notUsedRule,
     event: notUsedRule,
     eventHandler: notUsedRule,
-    eventPublisher: notUsedRule,
     glob: 'src/**',
     name,
     path: name,

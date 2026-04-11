@@ -4,6 +4,7 @@ import { STATE_NAME_SCHEMA } from './workflow-types'
 const SESSION_STARTED_SCHEMA = z.object({
   type: z.literal('session-started'),
   at: z.string(),
+  transcriptPath: z.string().optional(),
   repository: z.string().optional(),
 })
 

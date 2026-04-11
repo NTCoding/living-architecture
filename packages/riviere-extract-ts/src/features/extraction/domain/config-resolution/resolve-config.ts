@@ -38,7 +38,6 @@ function resolveModule(moduleConfig: ModuleConfig, loader?: ConfigLoader): Modul
     domainOp: requireRule(moduleConfig.domainOp, 'domainOp', moduleConfig.name),
     event: requireRule(moduleConfig.event, 'event', moduleConfig.name),
     eventHandler: requireRule(moduleConfig.eventHandler, 'eventHandler', moduleConfig.name),
-    eventPublisher: requireRule(moduleConfig.eventPublisher, 'eventPublisher', moduleConfig.name),
     ui: requireRule(moduleConfig.ui, 'ui', moduleConfig.name),
     ...(moduleConfig.customTypes !== undefined && { customTypes: moduleConfig.customTypes }),
   }
@@ -64,7 +63,6 @@ function resolveModuleWithExtends(
     domainOp: moduleConfig.domainOp ?? baseModule.domainOp,
     event: moduleConfig.event ?? baseModule.event,
     eventHandler: moduleConfig.eventHandler ?? baseModule.eventHandler,
-    eventPublisher: moduleConfig.eventPublisher ?? baseModule.eventPublisher,
     ui: moduleConfig.ui ?? baseModule.ui,
     ...(mergedCustomTypes !== undefined && { customTypes: mergedCustomTypes }),
   }

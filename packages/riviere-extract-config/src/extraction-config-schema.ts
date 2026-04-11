@@ -7,14 +7,7 @@ export type FindTarget = 'classes' | 'methods' | 'functions'
  * Standard architectural component types recognized by the Riviere extractor.
  * Each type represents a distinct role in the system's flow-based architecture.
  */
-export type ComponentType =
-  | 'api'
-  | 'useCase'
-  | 'domainOp'
-  | 'event'
-  | 'eventHandler'
-  | 'eventPublisher'
-  | 'ui'
+export type ComponentType = 'api' | 'useCase' | 'domainOp' | 'event' | 'eventHandler' | 'ui'
 
 /** Matches elements with a specific decorator. */
 export interface HasDecoratorPredicate {
@@ -219,8 +212,23 @@ export interface ConnectionPattern {
   linkType: ConnectionLinkType
 }
 
+/**
+ * Declares a custom component type as an event publisher.
+ * The component type must be defined in customTypes in at least one module.
+ */
+export interface EventPublisherConfig {
+  /** The custom component type name (e.g. 'eventPublisher'). */
+  fromType: string
+  /** The metadata key on this component type that holds the published event type name. */
+  metadataKey: string
+}
+
 /** Connection detection configuration with pattern definitions. */
-export interface ConnectionsConfig {patterns: ConnectionPattern[]}
+export interface ConnectionsConfig {
+  patterns?: ConnectionPattern[]
+  /** Declares which custom component types publish events and how to detect them. */
+  eventPublishers?: EventPublisherConfig[]
+}
 
 /**
  * Reference to an external module definition file.
@@ -243,7 +251,6 @@ export interface ModuleConfig {
   domainOp?: ComponentRule
   event?: ComponentRule
   eventHandler?: ComponentRule
-  eventPublisher?: ComponentRule
   ui?: ComponentRule
   customTypes?: CustomTypes
   connections?: ConnectionsConfig
@@ -262,7 +269,6 @@ export interface Module {
   domainOp: ComponentRule
   event: ComponentRule
   eventHandler: ComponentRule
-  eventPublisher: ComponentRule
   ui: ComponentRule
   customTypes?: CustomTypes
 }
@@ -285,4 +291,5 @@ export interface ExtractionConfig {
 export interface ResolvedExtractionConfig {
   $schema?: string
   modules: Module[]
+  connections?: ConnectionsConfig
 }

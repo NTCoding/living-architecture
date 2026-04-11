@@ -1,48 +1,49 @@
 import {
   checkWriteAllowed, isWriteAllowed 
 } from './workflow-predicates'
+import type { WorkflowState } from './workflow-types'
+
+const BASE_STATE: WorkflowState = {
+  currentStateMachineState: 'IMPLEMENTING',
+  architectureReviewPassed: false,
+  codeReviewPassed: false,
+  bugScannerPassed: false,
+  taskCheckPassed: false,
+  ciPassed: false,
+  feedbackClean: false,
+  feedbackAddressed: false,
+}
 
 describe('checkWriteAllowed predicate', () => {
   it('allows writes to normal files', () => {
-    const result = checkWriteAllowed('/src/foo.ts')
-    expect(result).toStrictEqual({ pass: true })
+    expect(checkWriteAllowed('/src/foo.ts')).toBe(true)
   })
 
   it('blocks writes to nx.json', () => {
-    const result = checkWriteAllowed('/project/nx.json')
-    expect(result.pass).toBe(false)
-    expect(result).toMatchObject({ reason: expect.stringContaining('nx.json') })
+    expect(checkWriteAllowed('/project/nx.json')).toBe(false)
   })
 
   it('blocks writes to tsconfig.base.json', () => {
-    const result = checkWriteAllowed('/project/tsconfig.base.json')
-    expect(result.pass).toBe(false)
+    expect(checkWriteAllowed('/project/tsconfig.base.json')).toBe(false)
   })
 
   it('blocks writes to eslint.config.mjs', () => {
-    const result = checkWriteAllowed('/project/eslint.config.mjs')
-    expect(result.pass).toBe(false)
+    expect(checkWriteAllowed('/project/eslint.config.mjs')).toBe(false)
   })
 
   it('blocks writes to vitest.config.ts', () => {
-    const result = checkWriteAllowed('/project/vitest.config.ts')
-    expect(result.pass).toBe(false)
+    expect(checkWriteAllowed('/project/vitest.config.ts')).toBe(false)
   })
 
   it('blocks writes to vite.config.ts', () => {
-    const result = checkWriteAllowed('/project/vite.config.ts')
-    expect(result.pass).toBe(false)
+    expect(checkWriteAllowed('/project/vite.config.ts')).toBe(false)
   })
 
   it('allows writes to project-level tsconfig.json', () => {
-    const result = checkWriteAllowed('/project/packages/foo/tsconfig.json')
-    expect(result).toStrictEqual({ pass: true })
+    expect(checkWriteAllowed('/project/packages/foo/tsconfig.json')).toBe(true)
   })
 
   it('delegates hook-based checks through isWriteAllowed', () => {
-    const result = isWriteAllowed('Write', '/project/nx.json', {currentStateMachineState: 'IMPLEMENTING',})
-
-    expect(result.pass).toBe(false)
-    expect(result).toMatchObject({ reason: expect.stringContaining('nx.json') })
+    expect(isWriteAllowed('/project/nx.json', BASE_STATE)).toBe(false)
   })
 })

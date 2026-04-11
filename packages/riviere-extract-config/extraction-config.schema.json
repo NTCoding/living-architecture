@@ -87,10 +87,6 @@
           "$ref": "#/$defs/componentRule",
           "description": "Detection rule for EventHandler components"
         },
-        "eventPublisher": {
-          "$ref": "#/$defs/componentRule",
-          "description": "Detection rule for EventPublisher components"
-        },
         "ui": {
           "$ref": "#/$defs/componentRule",
           "description": "Detection rule for UI components"
@@ -113,7 +109,7 @@
         }
       },
       "then": {
-        "required": ["api", "useCase", "domainOp", "event", "eventHandler", "eventPublisher", "ui"]
+        "required": ["api", "useCase", "domainOp", "event", "eventHandler", "ui"]
       }
     },
     "componentRule": {
@@ -607,7 +603,6 @@
     "connectionsConfig": {
       "type": "object",
       "description": "Connection detection configuration with pattern definitions",
-      "required": ["patterns"],
       "additionalProperties": false,
       "properties": {
         "patterns": {
@@ -617,6 +612,32 @@
           "items": {
             "$ref": "#/$defs/connectionPattern"
           }
+        },
+        "eventPublishers": {
+          "type": "array",
+          "description": "Declares which custom component types publish events and how to detect the connections",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/eventPublisherConfig"
+          }
+        }
+      }
+    },
+    "eventPublisherConfig": {
+      "type": "object",
+      "description": "Declares a custom component type as an event publisher",
+      "required": ["fromType", "metadataKey"],
+      "additionalProperties": false,
+      "properties": {
+        "fromType": {
+          "type": "string",
+          "description": "The custom component type name — must be defined in customTypes in at least one module",
+          "minLength": 1
+        },
+        "metadataKey": {
+          "type": "string",
+          "description": "The metadata key on this component type that holds the published event type name",
+          "minLength": 1
         }
       }
     },

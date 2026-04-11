@@ -1,4 +1,6 @@
+import type { EventPublisherConfig } from '@living-architecture/riviere-extract-config'
 import type { SourceLocation } from '@living-architecture/riviere-schema'
+import { EVENT_NAME_FIELD } from '@living-architecture/riviere-schema'
 import type { EnrichedComponent } from '../../value-extraction/enrich-components'
 import type { ExtractedLink } from '../extracted-link'
 import { ConnectionDetectionError } from '../connection-detection-error'
@@ -8,32 +10,43 @@ import type { AsyncDetectionOptions } from './detect-subscribe-connections'
 type RequiredLineLocation = SourceLocation & { lineNumber: number }
 
 /** @riviere-role domain-service */
-export function detectPublishConnections(
+export function detectEventPublisherConnections(
   components: readonly EnrichedComponent[],
+  eventPublishers: readonly EventPublisherConfig[],
   options: AsyncDetectionOptions,
 ): ExtractedLink[] {
-  const publishers = components.filter((c) => c.type === 'eventPublisher')
+  if (eventPublishers.length === 0) {
+    return []
+  }
+
   const events = components.filter((c) => c.type === 'event')
   const repository = options.repository
 
-  return publishers.flatMap((publisher) => {
-    const publishedEventType = publisher.metadata['publishedEventType']
-    const sourceLocation: RequiredLineLocation = {
-      repository,
-      filePath: publisher.location.file,
-      lineNumber: publisher.location.line,
-    }
+  return eventPublishers.flatMap((publisherConfig) => {
+    const {
+      fromType, metadataKey 
+    } = publisherConfig
+    const publishers = components.filter((c) => c.type === fromType)
+    return publishers.flatMap((publisher) => {
+      const publishedEventType = publisher.metadata[metadataKey]
+      const sourceLocation: RequiredLineLocation = {
+        repository,
+        filePath: publisher.location.file,
+        lineNumber: publisher.location.line,
+      }
 
-    if (typeof publishedEventType !== 'string') {
-      return [handleMissingMetadata(publisher, options, sourceLocation)]
-    }
+      if (typeof publishedEventType !== 'string') {
+        return [handleMissingMetadata(publisher, metadataKey, options, sourceLocation)]
+      }
 
-    return resolvePublishTarget(publisher, publishedEventType, events, options, sourceLocation)
+      return resolvePublishTarget(publisher, publishedEventType, events, options, sourceLocation)
+    })
   })
 }
 
 function handleMissingMetadata(
   publisher: EnrichedComponent,
+  metadataKey: string,
   options: AsyncDetectionOptions,
   sourceLocation: RequiredLineLocation,
 ): ExtractedLink {
@@ -42,7 +55,7 @@ function handleMissingMetadata(
       file: sourceLocation.filePath,
       line: sourceLocation.lineNumber,
       typeName: publisher.name,
-      reason: 'eventPublisher is missing required "publishedEventType" metadata',
+      reason: `event publisher is missing required "${metadataKey}" metadata`,
     })
   }
   return {
@@ -50,7 +63,7 @@ function handleMissingMetadata(
     target: '_unresolved',
     type: 'async',
     sourceLocation,
-    _uncertain: `eventPublisher "${publisher.name}" is missing required "publishedEventType" metadata`,
+    _uncertain: `event publisher "${publisher.name}" is missing required "${metadataKey}" metadata`,
   }
 }
 
@@ -61,7 +74,7 @@ function resolvePublishTarget(
   options: AsyncDetectionOptions,
   sourceLocation: RequiredLineLocation,
 ): ExtractedLink[] {
-  const matchingEvents = events.filter((e) => e.metadata['eventName'] === publishedEventType)
+  const matchingEvents = events.filter((e) => e.metadata[EVENT_NAME_FIELD] === publishedEventType)
 
   if (matchingEvents.length === 0) {
     return [handleNoMatch(publisher, publishedEventType, options, sourceLocation)]
@@ -99,7 +112,7 @@ function handleAmbiguousMatch(
       file: sourceLocation.filePath,
       line: sourceLocation.lineNumber,
       typeName: publisher.name,
-      reason: `publishedEventType "${publishedEventType}" matches ${matchCount} Event components (ambiguous)`,
+      reason: `"${publishedEventType}" matches ${matchCount} Event components (ambiguous)`,
     })
   }
   return {
@@ -107,7 +120,7 @@ function handleAmbiguousMatch(
     target: '_unresolved',
     type: 'async',
     sourceLocation,
-    _uncertain: `ambiguous: ${matchCount} events match publishedEventType: ${publishedEventType}`,
+    _uncertain: `ambiguous: ${matchCount} events match published event type: ${publishedEventType}`,
   }
 }
 
@@ -122,7 +135,7 @@ function handleNoMatch(
       file: sourceLocation.filePath,
       line: sourceLocation.lineNumber,
       typeName: publisher.name,
-      reason: `publishedEventType "${publishedEventType}" does not match any Event component`,
+      reason: `"${publishedEventType}" does not match any Event component`,
     })
   }
   return {
@@ -130,6 +143,6 @@ function handleNoMatch(
     target: '_unresolved',
     type: 'async',
     sourceLocation,
-    _uncertain: `no event found for publishedEventType: ${publishedEventType}`,
+    _uncertain: `no event found for published event type: ${publishedEventType}`,
   }
 }

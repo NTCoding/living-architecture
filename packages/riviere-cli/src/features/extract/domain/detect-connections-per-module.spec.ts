@@ -57,7 +57,6 @@ function createModule(name: string): Module {
     domainOp: { notUsed: true },
     event: { notUsed: true },
     eventHandler: { notUsed: true },
-    eventPublisher: { notUsed: true },
     glob: 'src/**',
     name,
     path: name,

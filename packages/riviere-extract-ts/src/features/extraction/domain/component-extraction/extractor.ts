@@ -35,7 +35,6 @@ const COMPONENT_TYPES: ComponentType[] = [
   'domainOp',
   'event',
   'eventHandler',
-  'eventPublisher',
   'ui',
 ]
 

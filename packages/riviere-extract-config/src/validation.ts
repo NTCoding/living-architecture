@@ -5,6 +5,7 @@ import type {
   ComponentType,
   ExtractionConfig,
   ModuleConfig,
+  ConnectionsConfig,
 } from './extraction-config-schema'
 import rawSchema from '../extraction-config.schema.json' with { type: 'json' }
 
@@ -16,7 +17,6 @@ const REQUIRED_FIELDS: Record<ComponentType, string[]> = {
   api: ['apiType'],
   event: ['eventName'],
   eventHandler: ['subscribedEvents'],
-  eventPublisher: [],
   domainOp: ['operationName'],
   ui: ['route'],
   useCase: [],
@@ -28,7 +28,6 @@ const COMPONENT_TYPES: ComponentType[] = [
   'domainOp',
   'event',
   'eventHandler',
-  'eventPublisher',
   'ui',
 ]
 
@@ -156,6 +155,49 @@ function validateAllExtractionRules(config: ExtractionConfig): ValidationError[]
   })
 }
 
+function collectAllCustomTypeNames(config: ExtractionConfig): Set<string> {
+  const names = new Set<string>()
+  for (const module of config.modules) {
+    if ('$ref' in module || module.customTypes === undefined) {
+      continue
+    }
+    for (const typeName of Object.keys(module.customTypes)) {
+      names.add(typeName)
+    }
+  }
+  return names
+}
+
+function validateEventPublishers(
+  connections: ConnectionsConfig,
+  customTypeNames: Set<string>,
+): ValidationError[] {
+  if (connections.eventPublishers === undefined) {
+    return []
+  }
+  return connections.eventPublishers.flatMap((publisher, index) => {
+    if (customTypeNames.has(publisher.fromType)) {
+      return []
+    }
+    return [
+      {
+        path: `/connections/eventPublishers/${index}/fromType`,
+        message:
+          `"${publisher.fromType}" is not defined as a customType in any module. ` +
+          `Add a customType named "${publisher.fromType}" to at least one module.`,
+      },
+    ]
+  })
+}
+
+function validateConnectionsConfig(config: ExtractionConfig): ValidationError[] {
+  if (config.connections === undefined) {
+    return []
+  }
+  const customTypeNames = collectAllCustomTypeNames(config)
+  return validateEventPublishers(config.connections, customTypeNames)
+}
+
 /**
  * Validates data against the ExtractionConfig JSON Schema only.
  * Does NOT check semantic rules like required extraction fields.
@@ -193,7 +235,7 @@ export function validateExtractionConfig(data: unknown): ValidationResult {
   }
 
   // data is now narrowed to ExtractionConfig
-  const semanticErrors = validateAllExtractionRules(data)
+  const semanticErrors = [...validateAllExtractionRules(data), ...validateConnectionsConfig(data)]
 
   if (semanticErrors.length > 0) {
     return {

@@ -257,7 +257,7 @@ class OrderPublisher {
       metadata: { eventName: 'OrderPlacedEvent' },
     })
     const publisher = buildComponent('OrderPublisher', filePath, 4, {
-      type: 'eventPublisher',
+      type: 'eventSender',
       metadata: { publishedEventType: 'OrderPlacedEvent' },
     })
     const handler = buildComponent('OrderPlacedHandler', '/src/handler.ts', 1, {
@@ -271,6 +271,12 @@ class OrderPublisher {
       {
         repository: 'test-repo',
         moduleGlobs: ['/src/**/*.ts'],
+        eventPublishers: [
+          {
+            fromType: 'eventSender',
+            metadataKey: 'publishedEventType',
+          },
+        ],
       },
       matchesGlob,
     )
@@ -278,7 +284,7 @@ class OrderPublisher {
     expect(result.links).toStrictEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          source: 'orders:eventPublisher:OrderPublisher',
+          source: 'orders:eventSender:OrderPublisher',
           target: 'orders:event:OrderPlacedEvent',
           type: 'async',
         }),

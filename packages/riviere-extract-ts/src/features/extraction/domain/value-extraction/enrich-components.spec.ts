@@ -24,6 +24,15 @@ function nextFile(path: string, content: string) {
 
 const alwaysMatch: GlobMatcher = () => true
 
+const BUILT_IN_TYPES: readonly string[] = [
+  'api',
+  'useCase',
+  'domainOp',
+  'event',
+  'eventHandler',
+  'ui',
+]
+
 function notUsedModule(name: string, path: string): Module {
   return {
     name,
@@ -37,7 +46,6 @@ function notUsedModule(name: string, path: string): Module {
     domainOp: { notUsed: true },
     event: { notUsed: true },
     eventHandler: { notUsed: true },
-    eventPublisher: { notUsed: true },
     ui: { notUsed: true },
   }
 }
@@ -52,13 +60,22 @@ function moduleWith(componentType: string, rule: ComponentRule): Module {
     domainOp: { notUsed: true },
     event: { notUsed: true },
     eventHandler: { notUsed: true },
-    eventPublisher: { notUsed: true },
     ui: { notUsed: true },
   }
-  return {
-    ...base,
-    [componentType]: rule,
+  if (BUILT_IN_TYPES.includes(componentType)) {
+    return {
+      ...base,
+      [componentType]: rule,
+    }
   }
+  // Custom type — rule must be a DetectionRule (has 'find')
+  if ('find' in rule) {
+    return {
+      ...base,
+      customTypes: { [componentType]: rule },
+    }
+  }
+  return base
 }
 
 function enrich(drafts: DraftComponent[], modules: Module[]) {

@@ -1,18 +1,8 @@
 import {
-  defineRoutes,
-  defineHooks,
-  arg,
-  extractField,
+  defineRoutes, arg 
 } from '@ntcoding/agentic-workflow-builder/cli'
-import type {
-  WorkflowEngine, EngineResult 
-} from '@ntcoding/agentic-workflow-builder/engine'
-import type {
-  Workflow, WorkflowDeps 
-} from '../domain/workflow'
-import type {
-  WorkflowState, StateName, WorkflowOperation 
-} from '../domain/workflow-types'
+import type { Workflow } from '../domain/workflow'
+import type { WorkflowState } from '../domain/workflow-types'
 import { STATE_NAME_SCHEMA } from '../domain/workflow-types'
 import { BASH_FORBIDDEN } from '../domain/registry'
 import { isWriteAllowed } from '../domain/workflow-predicates'
@@ -106,34 +96,8 @@ export const ROUTES = defineRoutes<Workflow, WorkflowState>({
   },
 })
 
-export const HOOKS = defineHooks<Workflow>({})
-
-type ToolUseEngine = WorkflowEngine<
-  Workflow,
-  WorkflowState,
-  WorkflowDeps,
-  StateName,
-  WorkflowOperation
->
-
 /** @riviere-role cli-entrypoint */
-export function preToolUseHandler(
-  engine: ToolUseEngine,
-  sessionId: string,
-  toolName: string,
-  toolInput: Record<string, unknown>,
-  transcriptPath: string | undefined,
-): EngineResult {
-  if (toolName === 'Write' || toolName === 'Edit') {
-    const filePath = extractField('file_path')(toolInput)
-    return engine.checkWrite(sessionId, toolName, filePath, isWriteAllowed, transcriptPath)
-  }
-  if (toolName === 'Bash') {
-    const command = extractField('command')(toolInput)
-    return engine.checkBash(sessionId, toolName, command, BASH_FORBIDDEN, transcriptPath)
-  }
-  return {
-    type: 'success',
-    output: '',
-  }
-}
+export const PRE_TOOL_USE_POLICY = {
+  bashForbidden: BASH_FORBIDDEN,
+  isWriteAllowed,
+} as const

@@ -10,14 +10,14 @@ import type { RunnerResult } from '@ntcoding/agentic-workflow-builder/cli'
 import type { WorkflowDeps } from '../../domain/workflow'
 import { WORKFLOW_DEFINITION } from '../../infra/persistence/workflow-definition'
 import {
-  ROUTES, HOOKS, preToolUseHandler 
+  ROUTES, PRE_TOOL_USE_POLICY 
 } from '../workflow-cli'
 
 const runner = createWorkflowRunner({
   workflowDefinition: WORKFLOW_DEFINITION,
   routes: ROUTES,
-  hooks: HOOKS,
-  preToolUseHandler,
+  bashForbidden: PRE_TOOL_USE_POLICY.bashForbidden,
+  isWriteAllowed: PRE_TOOL_USE_POLICY.isWriteAllowed,
 })
 
 export type TestContext = {
@@ -43,6 +43,7 @@ export function buildTestContext(
     readFile: () => '# instructions',
     appendToFile: () => undefined,
     now: () => '2024-01-01T00:00:00Z',
+    transcriptReader: { readMessages: () => [] },
   }
 
   const workflowDeps: WorkflowDeps = {
