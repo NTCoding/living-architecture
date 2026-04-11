@@ -15,7 +15,6 @@ function makeWorkflowDeps(): WorkflowDeps {
       changedFilesVsDefault: [],
       hasCommitsVsDefault: false,
     }),
-    checkPrChecks: () => true,
     getPrFeedback: () => ({
       unresolvedCount: 0,
       threads: [],
@@ -143,7 +142,7 @@ describe('WORKFLOW_DEFINITION', () => {
       expect(ctx.to).toStrictEqual('REVIEWING')
     })
 
-    it('sets prChecksPass from deps when prNumber exists', () => {
+    it('sets prChecksPass to false when prNumber exists', () => {
       const state: WorkflowState = {
         currentStateMachineState: 'IMPLEMENTING',
         architectureReviewPassed: false,
@@ -162,7 +161,7 @@ describe('WORKFLOW_DEFINITION', () => {
         'REVIEWING',
         deps,
       )
-      expect(ctx.prChecksPass).toStrictEqual(true)
+      expect(ctx.prChecksPass).toStrictEqual(false)
     })
 
     it('sets prChecksPass to false when no prNumber', () => {

@@ -56,7 +56,6 @@ const basePlugin = createOpenCodeWorkflowPlugin<
   commandPrefix: 'dev-workflow-v2:',
   buildWorkflowDeps: (platform) => ({
     getGitInfo,
-    checkPrChecks: () => true,
     getPrFeedback: createGetPrFeedback(runGh),
     now: platform.now,
   }),

@@ -21,7 +21,6 @@ const cleanGit: GitInfo = {
 export function makeDeps(overrides?: Partial<WorkflowDeps>): WorkflowDeps {
   return {
     getGitInfo: () => cleanGit,
-    checkPrChecks: () => true,
     getPrFeedback: () => ({
       unresolvedCount: 0,
       threads: [],

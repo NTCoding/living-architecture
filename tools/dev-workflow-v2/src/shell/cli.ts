@@ -23,7 +23,6 @@ createClaudeCodeWorkflowCli({
   processDeps: createDefaultProcessDeps(),
   buildWorkflowDeps: (platform) => ({
     getGitInfo,
-    checkPrChecks: () => true,
     getPrFeedback: createGetPrFeedback(runGh),
     now: platform.now,
   }),

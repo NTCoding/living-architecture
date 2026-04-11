@@ -106,7 +106,6 @@ const RECORDING_OPS = defineRecordingOps<StateName, WorkflowState, WorkflowOpera
 /** @riviere-role value-object */
 export type WorkflowDeps = {
   readonly getGitInfo: () => GitInfo
-  readonly checkPrChecks: (prNumber: number) => boolean
   readonly getPrFeedback: (prNumber: number) => PRFeedbackResult
   readonly now: () => string
 }

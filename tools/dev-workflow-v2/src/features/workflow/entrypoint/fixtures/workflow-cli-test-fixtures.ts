@@ -54,7 +54,6 @@ export function buildTestContext(
       changedFilesVsDefault: ['src/test.ts'],
       hasCommitsVsDefault: true,
     }),
-    checkPrChecks: () => true,
     getPrFeedback: () => ({
       unresolvedCount: 0,
       threads: [],
