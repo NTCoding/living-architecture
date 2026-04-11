@@ -2,6 +2,9 @@
   "$schema": "https://knip.dev/reference/knip-json",
   "ignoreDependencies": ["tailwindcss", "oxlint"],
   "workspaces": {
+    ".": {
+      "entry": [".opencode/plugins/dev-workflow-v2.js"]
+    },
     "apps/eclair": {
       "entry": ["src/main.tsx"],
       "project": ["src/**/*.ts", "src/**/*.tsx"]

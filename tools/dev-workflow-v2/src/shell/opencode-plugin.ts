@@ -22,8 +22,25 @@ import { createGetPrFeedback } from '../features/workflow/infra/external-clients
 
 const pluginRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..')
 
-/** @riviere-role main */
-export default createOpenCodeWorkflowPlugin<
+const OPEN_CODE_WORKFLOW_COMMAND = 'dev-workflow-v2:workflow'
+
+const OPEN_CODE_WORKFLOW_TEMPLATE = [
+  'Use the `workflow` tool.',
+  '',
+  'Arguments:',
+  '- First token of `$ARGUMENTS`: `operation`',
+  '- Remaining tokens of `$ARGUMENTS`: `args` array',
+  '',
+  'Examples:',
+  '- `/dev-workflow-v2:workflow init` -> `workflow({ operation: "init" })`',
+  '- `/dev-workflow-v2:workflow transition REVIEWING`',
+  '  -> `workflow({ operation: "transition", args: ["REVIEWING"] })`',
+].join('\n')
+
+type BaseHooks = Awaited<ReturnType<typeof basePlugin>>
+type OpenCodeConfigInput = Parameters<NonNullable<BaseHooks['config']>>[0]
+
+const basePlugin = createOpenCodeWorkflowPlugin<
   Workflow,
   WorkflowState,
   WorkflowDeps,
@@ -36,6 +53,7 @@ export default createOpenCodeWorkflowPlugin<
   isWriteAllowed: PRE_TOOL_USE_POLICY.isWriteAllowed,
   pluginRoot,
   commandDirectories: [join(pluginRoot, 'commands')],
+  commandPrefix: 'dev-workflow-v2:',
   buildWorkflowDeps: (platform) => ({
     getGitInfo,
     checkPrChecks: () => true,
@@ -43,3 +61,26 @@ export default createOpenCodeWorkflowPlugin<
     now: platform.now,
   }),
 })
+
+/** @riviere-role main */
+export default async (
+  input?: Parameters<typeof basePlugin>[0],
+  options?: Parameters<typeof basePlugin>[1],
+) => {
+  const hooks = await basePlugin(input, options)
+  const baseConfigHook = hooks.config
+
+  return {
+    ...hooks,
+    config: async (config: OpenCodeConfigInput) => {
+      if (baseConfigHook !== undefined) {
+        await baseConfigHook(config)
+      }
+
+      const command = config.command?.[OPEN_CODE_WORKFLOW_COMMAND]
+      if (command !== undefined) {
+        command.template = OPEN_CODE_WORKFLOW_TEMPLATE
+      }
+    },
+  }
+}
