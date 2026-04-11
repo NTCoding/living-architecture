@@ -359,24 +359,21 @@ describe('connection pattern schema validation', () => {
       )
     })
 
-    it('returns invalid when eventPublisher entry is missing a required field', () => {
-      expect(
-        validateExtractionConfig({
-          ...createMinimalConfig(),
-          connections: { eventPublishers: [{ metadataKey: 'publishedEventType' }] },
-        }).valid,
-      ).toBe(false)
-    })
-
-    it('returns invalid when eventPublisher fromType or metadataKey is empty string', () => {
-      const emptyFromType = {
+    it.each([
+      { metadataKey: 'publishedEventType' },
+      {
         fromType: '',
         metadataKey: 'publishedEventType',
-      }
+      },
+      {
+        fromType: 'eventPublisher',
+        metadataKey: '',
+      },
+    ])('returns invalid for malformed eventPublisher entry', (publisher) => {
       expect(
         validateExtractionConfig({
           ...createMinimalConfig(),
-          connections: { eventPublishers: [emptyFromType] },
+          connections: { eventPublishers: [publisher] },
         }).valid,
       ).toBe(false)
     })

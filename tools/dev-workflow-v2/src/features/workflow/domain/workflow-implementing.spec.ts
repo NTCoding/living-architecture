@@ -23,6 +23,7 @@ describe('Workflow', () => {
       expect(events[0]).toMatchObject({
         type: 'session-started',
         repository: 'owner/repo',
+        transcriptPath: '',
       })
     })
 
@@ -30,6 +31,7 @@ describe('Workflow', () => {
       const { events } = spec.given().when((wf) => wf.startSession('', undefined))
       expect(events).toHaveLength(1)
       expect(events[0]).not.toHaveProperty('repository')
+      expect(events[0]).toHaveProperty('transcriptPath', '')
     })
   })
 
@@ -46,6 +48,14 @@ describe('Workflow', () => {
       expect(() => wf.getTranscriptPath()).toThrow(
         'Transcript path not set. Session has not been started.',
       )
+    })
+
+    it('returns transcript path after session started', () => {
+      const { result } = spec.given().when((wf) => {
+        wf.startSession('some/path', undefined)
+        return wf.getTranscriptPath()
+      })
+      expect(result).toBe('some/path')
     })
   })
 

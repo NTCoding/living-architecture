@@ -93,12 +93,10 @@ function applyRecordingEvent(state: WorkflowState, event: WorkflowEvent): Workfl
         taskCheckPassed: true,
       }
     case 'session-started':
-      return event.transcriptPath === undefined
-        ? state
-        : {
-          ...state,
-          transcriptPath: event.transcriptPath,
-        }
+      return {
+        ...state,
+        ...(event.transcriptPath === undefined ? {} : { transcriptPath: event.transcriptPath }),
+      }
     default:
       return state
   }

@@ -27,6 +27,16 @@ export function detectEventPublisherConnections(
     return publishers.flatMap((publisher) => {
       const publishedEventType = publisher.metadata[metadataKey]
 
+      if (Array.isArray(publishedEventType)) {
+        const validTypes = publishedEventType.filter(
+          (t): t is string => typeof t === 'string' && t.trim() !== '',
+        )
+        if (validTypes.length === 0) {
+          return [handleMissingMetadata(publisher, metadataKey, options)]
+        }
+        return validTypes.flatMap((t) => resolvePublishTarget(publisher, t, events, options))
+      }
+
       if (typeof publishedEventType !== 'string' || publishedEventType.trim() === '') {
         return [handleMissingMetadata(publisher, metadataKey, options)]
       }

@@ -230,6 +230,9 @@ export interface ConnectionsConfig {
   eventPublishers?: EventPublisherConfig[]
 }
 
+/** Module-level connection detection configuration (patterns only — eventPublishers is top-level only). */
+export interface ModuleConnectionsConfig {patterns?: ConnectionPattern[]}
+
 /**
  * Reference to an external module definition file.
  * The CLI expands these references before extraction by loading the referenced file.
@@ -253,7 +256,7 @@ export interface ModuleConfig {
   eventHandler?: ComponentRule
   ui?: ComponentRule
   customTypes?: CustomTypes
-  connections?: ConnectionsConfig
+  connections?: ModuleConnectionsConfig
 }
 
 /**

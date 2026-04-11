@@ -45,7 +45,7 @@ describe('WORKFLOW_DEFINITION', () => {
     expect(workflow.getState().currentStateMachineState).toStrictEqual('IMPLEMENTING')
   })
 
-  it('builds a Workflow from folded events (empty → IMPLEMENTING)', () => {
+  it('builds a Workflow from initial state (pass-through, no events folded)', () => {
     const state = WORKFLOW_DEFINITION.initialState()
     const workflow = WORKFLOW_DEFINITION.buildWorkflow(state, makeWorkflowDeps())
     expect(workflow.getState().currentStateMachineState).toStrictEqual('IMPLEMENTING')
@@ -70,6 +70,17 @@ describe('WORKFLOW_DEFINITION', () => {
     const state = WORKFLOW_DEFINITION.initialState()
     const result = WORKFLOW_DEFINITION.fold(state, event)
     expect(result).toStrictEqual(state)
+  })
+
+  it('throws when a known event type has a malformed payload', () => {
+    const malformed: BaseEvent & Record<string, unknown> = {
+      type: 'issue-recorded',
+      at: '2026-01-01T00:00:00Z',
+      issueNumber: 'not-a-number',
+    }
+    expect(() => WORKFLOW_DEFINITION.fold(WORKFLOW_DEFINITION.initialState(), malformed)).toThrow(
+      'Malformed workflow event "issue-recorded"',
+    )
   })
 
   it('returns initial state with IMPLEMENTING', () => {

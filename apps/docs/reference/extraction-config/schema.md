@@ -51,7 +51,7 @@ A module defines extraction rules for a path pattern
 | `eventHandler` | `componentRule` | No | Detection rule for EventHandler components |
 | `ui` | `componentRule` | No | Detection rule for UI components |
 | `customTypes` | `Record<string, detectionRule>` | No | User-defined component types with their detection rules |
-| `connections` | `connectionsConfig` | No | Module-level connection detection patterns additive to global |
+| `connections` | `moduleConnectionsConfig` | No | Module-level connection detection patterns additive to global |
 
 ---
 
@@ -285,6 +285,18 @@ Connection detection configuration with pattern definitions
 |-------|------|----------|-------------|
 | `patterns` | `connectionPattern[]` | No | Connection detection patterns |
 | `eventPublishers` | `eventPublisherConfig[]` | No | Declares which custom component types publish events and how to detect the connections |
+
+---
+
+### `moduleConnectionsConfig`
+
+Module-level connection detection configuration (patterns only — eventPublishers is top-level only)
+
+**Properties:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `patterns` | `connectionPattern[]` | No | Connection detection patterns |
 
 ---
 

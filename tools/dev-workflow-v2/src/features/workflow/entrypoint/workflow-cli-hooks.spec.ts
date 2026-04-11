@@ -161,7 +161,7 @@ describe('workflow-cli hooks', () => {
       transcript_path: '/transcript',
       cwd: '/dir',
       hook_event_name: 'PreToolUse',
-      tool_name: 'Edit',
+      tool_name: 'Write',
       tool_input: { file_path: 123 },
       tool_use_id: 'tu-write-bad-type',
     })

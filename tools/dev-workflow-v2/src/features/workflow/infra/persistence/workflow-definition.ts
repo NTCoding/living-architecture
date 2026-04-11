@@ -1,6 +1,7 @@
 import type {
   WorkflowDefinition, BaseEvent 
 } from '@ntcoding/agentic-workflow-builder/engine'
+import { WorkflowStateError } from '@ntcoding/agentic-workflow-builder/engine'
 import type { TransitionContext } from '@ntcoding/agentic-workflow-builder/dsl'
 import type {
   WorkflowState, StateName, WorkflowOperation 
@@ -41,8 +42,16 @@ export const WORKFLOW_DEFINITION: WorkflowDefinition<
   WorkflowOperation
 > = {
   fold(state: WorkflowState, event: BaseEvent): WorkflowState {
+    const knownTypes: Set<string> = new Set(
+      WORKFLOW_EVENT_SCHEMA.options.map((s) => s.shape.type.value),
+    )
     const result = WORKFLOW_EVENT_SCHEMA.safeParse(event)
     if (!result.success) {
+      if (knownTypes.has(event.type)) {
+        throw new WorkflowStateError(
+          `Malformed workflow event "${event.type}": ${result.error.message}`,
+        )
+      }
       return state
     }
     return applyEvent(state, result.data)

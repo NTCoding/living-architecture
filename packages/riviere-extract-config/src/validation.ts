@@ -266,9 +266,9 @@ export function formatValidationErrors(errors: ValidationError[]): string {
  * @throws ExtractionConfigValidationError if validation fails.
  */
 export function parseExtractionConfig(data: unknown): ExtractionConfig {
-  if (isValidExtractionConfig(data)) {
+  const result = validateExtractionConfig(data)
+  if (result.valid && isValidExtractionConfig(data)) {
     return data
   }
-  const result = validateExtractionConfig(data)
   throw new ExtractionConfigValidationError(result.errors)
 }

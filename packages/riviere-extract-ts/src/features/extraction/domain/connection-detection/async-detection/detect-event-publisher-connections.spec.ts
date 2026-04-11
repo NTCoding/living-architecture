@@ -347,4 +347,58 @@ describe('detectEventPublisherConnections', () => {
       }),
     ])
   })
+
+  it('produces one link per entry when metadataKey value is a string array', () => {
+    const event1 = buildComponent('OrderPlaced', '/src/event.ts', 1, {
+      type: 'event',
+      metadata: { eventName: 'OrderPlaced' },
+    })
+    const event2 = buildComponent('PaymentReceived', '/src/event.ts', 2, {
+      type: 'event',
+      metadata: { eventName: 'PaymentReceived' },
+    })
+    const publisher = buildComponent('MultiSender', '/src/sender.ts', 1, {
+      type: 'eventSender',
+      metadata: { publishedEventType: ['OrderPlaced', 'PaymentReceived'] },
+    })
+
+    const result = detectEventPublisherConnections(
+      [event1, event2, publisher],
+      eventPublisherConfig(),
+      defaultOptions,
+    )
+
+    expect(result).toStrictEqual([
+      expect.objectContaining({
+        source: 'orders:eventSender:MultiSender',
+        target: 'orders:event:OrderPlaced',
+        type: 'async',
+      }),
+      expect.objectContaining({
+        source: 'orders:eventSender:MultiSender',
+        target: 'orders:event:PaymentReceived',
+        type: 'async',
+      }),
+    ])
+  })
+
+  it('returns uncertain link in lenient mode when array metadataKey contains only empty strings', () => {
+    const publisher = buildComponent('EmptyArraySender', '/src/sender.ts', 1, {
+      type: 'eventSender',
+      metadata: { publishedEventType: ['', '  '] },
+    })
+
+    const result = detectEventPublisherConnections(
+      [publisher],
+      eventPublisherConfig(),
+      defaultOptions,
+    )
+
+    expect(result).toStrictEqual([
+      expect.objectContaining({
+        target: '_unresolved',
+        _uncertain: expect.stringContaining('"publishedEventType" metadata'),
+      }),
+    ])
+  })
 })

@@ -99,7 +99,7 @@
           }
         },
         "connections": {
-          "$ref": "#/$defs/connectionsConfig",
+          "$ref": "#/$defs/moduleConnectionsConfig",
           "description": "Module-level connection detection patterns additive to global"
         }
       },
@@ -619,6 +619,21 @@
           "minItems": 1,
           "items": {
             "$ref": "#/$defs/eventPublisherConfig"
+          }
+        }
+      }
+    },
+    "moduleConnectionsConfig": {
+      "type": "object",
+      "description": "Module-level connection detection configuration (patterns only — eventPublishers is top-level only)",
+      "additionalProperties": false,
+      "properties": {
+        "patterns": {
+          "type": "array",
+          "description": "Connection detection patterns",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/connectionPattern"
           }
         }
       }
