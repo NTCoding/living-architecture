@@ -57,6 +57,47 @@ class PlaceOrder {
     ])
   })
 
+  it('supports module-local detection without allComponents option', () => {
+    const project = createProject()
+    const filePath = '/src/local-only.ts'
+    project.createSourceFile(
+      filePath,
+      `
+class OrderRepository {
+  save(): void {}
+}
+
+class PlaceOrder {
+  private repo: OrderRepository
+  constructor(repo: OrderRepository) { this.repo = repo }
+  execute(): void {
+    this.repo.save()
+  }
+}
+`,
+    )
+    const repo = buildComponent('OrderRepository', filePath, 2, { type: 'repository' })
+    const useCase = buildComponent('PlaceOrder', filePath, 6)
+
+    const result = detectPerModuleConnections(
+      project,
+      [repo, useCase],
+      {
+        repository: 'test-repo',
+        moduleGlobs: ['/src/**/*.ts'],
+      },
+      matchesGlob,
+    )
+
+    expect(result.links).toStrictEqual([
+      expect.objectContaining({
+        source: 'orders:useCase:PlaceOrder',
+        target: 'orders:repository:OrderRepository',
+        type: 'sync',
+      }),
+    ])
+  })
+
   it('returns empty links for empty components array', () => {
     const project = createProject()
     project.createSourceFile('/src/empty-per-module.ts', '')

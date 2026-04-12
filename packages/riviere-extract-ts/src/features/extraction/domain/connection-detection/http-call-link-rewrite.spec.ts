@@ -225,6 +225,44 @@ describe('rewriteHttpCallLinks', () => {
     ])
   })
 
+  it('keeps internal link when route matches a unique api component globally and serviceName is only a label', () => {
+    const filePath = '/src/http.ts'
+    const source = buildComponent('PlaceOrderBFFUseCase', filePath, 1, { domain: 'bff' })
+    const httpCall = buildComponent('placeOrder', filePath, 2, {
+      type: 'httpCall',
+      domain: 'bff',
+      metadata: {
+        serviceName: 'Inventory Service',
+        route: '/inventory/:sku',
+      },
+    })
+    const inventoryApi = buildComponent('CheckStockEndpoint', '/src/inventory/api.ts', 3, {
+      type: 'api',
+      domain: 'inventory',
+      metadata: { route: '/inventory/:sku' },
+    })
+
+    const result = rewriteHttpCallLinks(
+      [
+        {
+          source: 'bff:useCase:PlaceOrderBFFUseCase',
+          target: 'bff:httpCall:placeOrder',
+          type: 'sync',
+        },
+      ],
+      [source, httpCall, inventoryApi],
+    )
+
+    expect(result.links).toStrictEqual([
+      {
+        source: 'bff:useCase:PlaceOrderBFFUseCase',
+        target: 'inventory:api:CheckStockEndpoint',
+        type: 'sync',
+      },
+    ])
+    expect(result.externalLinks).toStrictEqual([])
+  })
+
   it('throws when httpCall serviceName matches multiple internal components', () => {
     const filePath = '/src/http.ts'
     const source = buildComponent('PlaceOrder', filePath, 1)

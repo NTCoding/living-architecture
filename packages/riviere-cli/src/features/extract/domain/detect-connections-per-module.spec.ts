@@ -139,6 +139,26 @@ describe('ExtractionProject.extractDraftComponents', () => {
 
   it('returns no links when includeConnections is false', () => {
     const ctx = createModuleContext('orders')
+    mockExtractComponents.mockReturnValue([
+      {
+        name: 'checkFraud',
+        domain: 'orders',
+        type: 'httpCall',
+        location: {
+          file: 'test.ts',
+          line: 1,
+        },
+      },
+      {
+        name: 'OrderService',
+        domain: 'orders',
+        type: 'useCase',
+        location: {
+          file: 'test.ts',
+          line: 2,
+        },
+      },
+    ])
 
     const project = new ExtractionProject('/config', [ctx], { modules: [] }, 'test-repo')
     const result = project.extractDraftComponents({
@@ -147,6 +167,12 @@ describe('ExtractionProject.extractDraftComponents', () => {
     })
 
     expect(result.kind).toBe('draftOnly')
+    expect(result.components).toStrictEqual([
+      expect.objectContaining({
+        type: 'useCase',
+        name: 'OrderService',
+      }),
+    ])
   })
 
   it('passes configured connection patterns into per-module detection', () => {
