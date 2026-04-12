@@ -557,12 +557,435 @@ ecommerce-demo-app/
 │   │   ├── events/
 │   │   └── services/
 │   ├── asyncapi.yaml
+│   ├── eventcatalog-import.yaml
+│   ├── asyncapi-import.yaml
 │   ├── eventcatalog-mappings.yaml
 │   └── asyncapi-mappings.yaml
+├── steps/
+│   ├── ai-extract.yaml
+│   └── ai-enrich.yaml
 ├── riviere-workflow.yaml
 └── tests/
-    └── ground-truth.json
+    ├── ground-truth.json
+    └── workflow-transitions/
+        ├── 00-builder-start.json
+        ├── 01-after-eventcatalog.json
+        ├── 02-after-asyncapi.json
+        ├── 03-after-orders-code.json
+        ├── 04-after-shipping-code.json
+        ├── 05-after-ai-extract.json
+        ├── 06-after-ai-enrich.json
+        └── 07-after-validate.json
 ```
+
+#### 3.8.1 Ecommerce Demo App Is the First Workflow Customer
+
+`ecommerce-demo-app` is not just a test fixture. It is the first real workflow customer and must use the same workflow concepts that a product user would use in a real repository.
+
+The demo app workflow exercises the full built-in workflow surface in one ordered run:
+
+```yaml
+# ecommerce-demo-app/riviere-workflow.yaml
+name: ecommerce-architecture
+description: Full architecture graph for the ecommerce demo app
+output: ./.riviere/ecommerce-architecture.json
+
+sources:
+  - repository: ecommerce-demo-app
+
+domains:
+  orders:
+    description: Order lifecycle and checkout
+    systemType: domain
+  shipping:
+    description: Shipment orchestration
+    systemType: domain
+
+steps:
+  - name: import-eventcatalog
+    type: eventcatalog-import
+    config: ./specs/eventcatalog-import.yaml
+
+  - name: import-asyncapi
+    type: asyncapi-import
+    config: ./specs/asyncapi-import.yaml
+
+  - name: extract-orders
+    type: code-extraction
+    config: ./orders-domain/riviere-config.yaml
+
+  - name: extract-shipping
+    type: code-extraction
+    config: ./shipping-domain/riviere-config.yaml
+
+  - name: discover-gaps
+    type: ai-extract
+    config: ./steps/ai-extract.yaml
+
+  - name: enrich-metadata
+    type: ai-enrich
+    config: ./steps/ai-enrich.yaml
+
+  - name: validate
+    type: schema-validate
+```
+
+This workflow is the reference ordering for Phase 13:
+
+- specs first so spec-owned scalar values win
+- code second so code fills components and links the specs do not describe
+- AI last so AI only fills remaining gaps instead of competing with deterministic sources
+
+**Representative demo inputs:**
+
+```yaml
+# specs/eventcatalog-import.yaml
+source: ./specs/eventcatalog
+mappings: ./specs/eventcatalog-mappings.yaml
+allow-unmapped: false
+```
+
+```yaml
+# specs/asyncapi-import.yaml
+source: ./specs/asyncapi.yaml
+mappings: ./specs/asyncapi-mappings.yaml
+allow-unmapped: false
+```
+
+```yaml
+# steps/ai-extract.yaml
+sources:
+  - ./orders-domain/src
+  - ./shipping-domain/src
+
+selection:
+  from:
+    - uncertain-links
+    - missing-events
+    - missing-event-handlers
+    - missing-use-cases
+  component-types: [Event, EventHandler, UseCase, DomainOp]
+
+outputs:
+  add-components: true
+  add-links: true
+
+context:
+  exclude:
+    - '**/*.spec.ts'
+    - '**/dist/**'
+  max-files-per-batch: 20
+  max-batches: 5
+
+confidence-threshold: 0.8
+```
+
+```yaml
+# steps/ai-enrich.yaml
+sources:
+  - ./orders-domain/src
+  - ./shipping-domain/src
+
+selection:
+  component-types: [Event, EventHandler, API, DomainOp, UI, UseCase]
+  missing-fields-only: true
+
+fields:
+  - eventName
+  - subscribedEvents
+  - operationName
+  - route
+  - httpMethod
+  - path
+
+context:
+  exclude:
+    - '**/*.spec.ts'
+    - '**/dist/**'
+  max-files-per-component: 10
+
+confidence-threshold: 0.8
+```
+
+#### 3.8.2 Demo App Workflow Data Transitions
+
+The demo app workflow must be specified step-by-step so implementation and validation can compare actual behavior against a known transition model.
+
+##### Initial state before step execution
+
+Loaded inputs:
+
+- `riviere-workflow.yaml`
+- workflow `sources` and `domains`
+
+Builder state after startup:
+
+```text
+metadata:
+  name: ecommerce-architecture
+  description: Full architecture graph for the ecommerce demo app
+  sources:
+    - repository: ecommerce-demo-app
+  domains:
+    - orders
+    - shipping
+
+components: []
+links: []
+externalLinks: []
+```
+
+##### Step 1 — `import-eventcatalog`
+
+Loads:
+
+- `./specs/eventcatalog`
+- `./specs/eventcatalog-mappings.yaml`
+
+Reads:
+
+- EventCatalog domains
+- EventCatalog services
+- EventCatalog events
+- producer/consumer relationships
+
+Modifies builder by:
+
+- upserting canonical service-backed components from EventCatalog services
+- adding canonical Event components such as `OrderPlaced`
+- adding EventHandler components for consumers where required by the mapping model
+- adding async links from producers to events and events to handlers
+
+Representative transition:
+
+```text
+before:
+  components: []
+  links: []
+
+after:
+  components include:
+    - orders/PlaceOrder (UseCase)
+    - shipping/ProcessShipment (UseCase)
+    - orders/OrderPlaced (Event)
+    - shipping/OrderPlacedHandler (EventHandler)
+
+  links include:
+    - PlaceOrder -> OrderPlaced (async)
+    - OrderPlaced -> OrderPlacedHandler (async)
+```
+
+##### Step 2 — `import-asyncapi`
+
+Loads:
+
+- `./specs/asyncapi.yaml`
+- `./specs/asyncapi-mappings.yaml`
+
+Reads:
+
+- AsyncAPI messages
+- AsyncAPI publish operations
+- AsyncAPI receive operations
+
+Modifies builder by:
+
+- upserting canonical Event components for broker messages
+- upserting publisher/subscriber-side canonical components for operations
+- adding async links where AsyncAPI describes message flow
+- enriching existing spec-derived components where AsyncAPI contributes additional metadata
+
+Representative transition:
+
+```text
+before:
+  EventCatalog already created OrderPlaced and related async links
+
+after:
+  AsyncAPI resolves OrderPlacedMessage -> OrderPlaced
+  AsyncAPI resolves processOrder -> ProcessOrder
+
+  resulting builder effect:
+    - no duplicate OrderPlaced event component
+    - existing canonical event is enriched via upsert
+    - additional broker-described async links are added if missing
+```
+
+##### Step 3 — `extract-orders`
+
+Loads:
+
+- `./orders-domain/riviere-config.yaml`
+- TypeScript files matched by that config
+
+Reads:
+
+- deterministic component extraction rules
+- deterministic metadata extraction rules
+- deterministic connection rules and configurable connection patterns
+
+Modifies builder by:
+
+- adding orders-domain code components not already represented by specs
+- enriching spec-created canonical components with code-derived metadata where those fields are still unset
+- adding deterministic sync and async links discovered from the orders codebase
+
+Representative transition:
+
+```text
+before:
+  PlaceOrder and OrderPlaced already exist from specs
+
+after:
+  builder gains orders code-owned components such as:
+    - API entry points
+    - DomainOps
+    - internal UseCases not represented in specs
+
+  builder also gains:
+    - sync links from orders APIs to orders use cases
+    - code-derived metadata on existing PlaceOrder / OrderPlaced where spec data was absent
+```
+
+##### Step 4 — `extract-shipping`
+
+Loads:
+
+- `./shipping-domain/riviere-config.yaml`
+- TypeScript files matched by that config
+
+Modifies builder by:
+
+- adding shipping-domain code components not already represented by specs
+- enriching canonical shipping components already introduced by specs
+- adding deterministic shipping-domain links
+
+Representative transition:
+
+```text
+before:
+  shipping async relationships already exist from spec imports
+
+after:
+  builder gains shipping code-owned components and sync links
+  spec-created shipping components remain canonical; code fills missing structure around them
+```
+
+##### Step 5 — `discover-gaps`
+
+Loads:
+
+- `./steps/ai-extract.yaml`
+- bounded source batches from `orders-domain/src` and `shipping-domain/src`
+- current builder snapshot
+
+Reads:
+
+- only files allowed by the AI extract config
+- only gap categories listed in `selection.from`
+
+Modifies builder by:
+
+- adding high-confidence missing components
+- adding high-confidence missing links
+- attaching AI provenance/confidence metadata to AI-discovered graph elements
+
+Representative transition:
+
+```text
+before:
+  deterministic extraction leaves known deliberate gaps
+
+after:
+  builder gains only gap-targeted additions, for example:
+    - an event inferred from dynamic config lookup
+    - a missing handler link hidden behind runtime wiring
+
+  each AI-added component/link carries provenance metadata
+```
+
+##### Step 6 — `enrich-metadata`
+
+Loads:
+
+- `./steps/ai-enrich.yaml`
+- bounded source files near components with missing fields
+- current builder snapshot filtered to `missing-fields-only: true`
+
+Modifies builder by:
+
+- filling only the configured enrichable fields
+- leaving already-populated fields unchanged
+- attaching AI provenance/confidence metadata to enriched fields
+
+Representative transition:
+
+```text
+before:
+  component fields may still contain gaps such as:
+    - missing subscribedEvents
+    - missing operationName
+    - missing route/path details
+
+after:
+  those fields are filled when AI confidence passes threshold
+  non-missing fields are preserved
+```
+
+##### Step 7 — `validate`
+
+Loads:
+
+- no extra config beyond the step declaration
+
+Reads:
+
+- current builder state only
+
+Modifies builder by:
+
+- no graph mutation
+
+Validation effect:
+
+```text
+builder.build()
+  -> validates schema and graph invariants
+  -> fails fast if graph is invalid
+  -> leaves builder state unchanged
+```
+
+##### Final output write
+
+After all steps succeed, the workflow writes:
+
+```text
+./.riviere/ecommerce-architecture.json
+```
+
+The written graph must contain:
+
+- spec-derived canonical events and async relationships
+- code-derived components and internal links from both domains
+- AI-discovered additions for the deliberate demo gaps
+- AI-enriched metadata where allowed by config
+
+This final artifact is compared against `tests/ground-truth.json` for exact component ID and link tuple coverage.
+
+#### 3.8.3 Demo App Validation Use
+
+The ecommerce demo app must validate three things at once:
+
+1. **Product realism** — a user can understand the workflow YAML and step configs as a believable first customer setup
+2. **Execution correctness** — each step changes builder state in the expected direction and order
+3. **Regression safety** — the full workflow remains idempotent and comparable to a fixed ground truth
+
+To make the step-by-step behavior testable, the demo app also maintains per-step transition fixtures. Each fixture captures the expected builder graph after one step completes, before the next step begins. Implementation can then verify:
+
+- workflow startup builder creation
+- each step's additive or enriching effect on the graph
+- that no later step accidentally mutates earlier deterministic data outside the defined merge rules
+- that `schema-validate` is non-mutating
 
 **Graph comparison semantics:**
 
@@ -618,6 +1041,7 @@ ecommerce-demo-app/
 | 15  | Canonical identity normalization happens in step config/mappings, not in the workflow runtime                                                               | Integration test: differently named external records merge only when mappings normalize them to the same Riviere identity |
 | 16  | `schema-validate` works as an optional explicit checkpoint while final output still always validates                                                        | Integration test with and without `schema-validate` step                                                                  |
 | 17  | Step summary output shows per-step duration and total workflow duration                                                                                     | Visible in `riviere workflow run` output                                                                                  |
+| 18  | The documented ecommerce demo app workflow transitions are verified after each step, not only at final output                                               | Integration test compares builder state after each step to `tests/workflow-transitions/*.json` fixtures                   |
 
 ---
 
