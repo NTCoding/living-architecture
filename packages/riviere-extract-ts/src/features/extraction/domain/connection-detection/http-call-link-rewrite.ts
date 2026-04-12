@@ -20,12 +20,12 @@ function mapComponentsByIdentity(
   return byIdentity
 }
 
-function mapInternalComponentsByName(
+function mapInternalApiComponentsByName(
   components: readonly EnrichedComponent[],
 ): ReadonlyMap<string, readonly EnrichedComponent[]> {
   const byName = new Map<string, EnrichedComponent[]>()
   for (const component of components) {
-    if (component.type === 'httpCall') {
+    if (component.type !== 'api') {
       continue
     }
 
@@ -62,25 +62,6 @@ function findUniqueApiComponentInDomainMatchingRoute(
   return matchedApiComponents[0]
 }
 
-function findUniqueApiComponentMatchingRoute(
-  components: readonly EnrichedComponent[],
-  route: string | undefined,
-): EnrichedComponent | undefined {
-  if (route === undefined) {
-    return undefined
-  }
-
-  const matchedApiComponents = components.filter(
-    (component) => component.type === 'api' && component.metadata['route'] === route,
-  )
-
-  if (matchedApiComponents.length !== 1) {
-    return undefined
-  }
-
-  return matchedApiComponents[0]
-}
-
 function parseServiceName(httpCallComponent: EnrichedComponent): string {
   const rawServiceName = httpCallComponent.metadata['serviceName']
   if (typeof rawServiceName === 'string' && rawServiceName.trim().length > 0) {
@@ -93,6 +74,16 @@ function parseServiceName(httpCallComponent: EnrichedComponent): string {
     typeName: componentIdentity(httpCallComponent),
     reason: `Expected metadata.serviceName to be a non-empty string, got ${JSON.stringify(rawServiceName)}`,
   })
+}
+
+function normalizeServiceNameToDomainName(serviceName: string): string {
+  const lowercaseServiceName = serviceName.trim().toLowerCase()
+  const withoutSuffix = lowercaseServiceName.replaceAll(' service', '').replaceAll(' api', '')
+
+  return withoutSuffix
+    .split(/[^a-z0-9]+/)
+    .filter((part) => part.length > 0)
+    .join('-')
 }
 
 function parseRoute(httpCallComponent: EnrichedComponent): string | undefined {
@@ -137,7 +128,7 @@ export function rewriteHttpCallLinks(
   const linksToKeep: ExtractedLink[] = []
   const externalLinks: ExternalLink[] = []
   const componentsByIdentity = mapComponentsByIdentity(components)
-  const internalComponentsByName = mapInternalComponentsByName(components)
+  const internalApiComponentsByName = mapInternalApiComponentsByName(components)
 
   for (const link of links) {
     const targetComponent = componentsByIdentity.get(link.target)
@@ -147,32 +138,12 @@ export function rewriteHttpCallLinks(
     }
 
     const serviceName = parseServiceName(targetComponent)
-    const matchedInternalComponents = internalComponentsByName.get(serviceName) ?? []
-    const matchedInternalCount = matchedInternalComponents.length
-    if (matchedInternalCount > 1) {
-      throw new ConnectionDetectionError({
-        file: targetComponent.location.file,
-        line: targetComponent.location.line,
-        typeName: componentIdentity(targetComponent),
-        reason: `Expected metadata.serviceName to match exactly one internal component name, got ${matchedInternalCount} matches for ${JSON.stringify(serviceName)}`,
-      })
-    }
-
-    const [uniqueInternalTarget] = matchedInternalComponents
-
-    if (uniqueInternalTarget !== undefined) {
-      linksToKeep.push({
-        ...link,
-        target: componentIdentity(uniqueInternalTarget),
-      })
-      continue
-    }
-
     const route = parseRoute(targetComponent)
+    const normalizedDomainName = normalizeServiceNameToDomainName(serviceName)
 
     const uniqueApiTargetInDomain = findUniqueApiComponentInDomainMatchingRoute(
       components,
-      serviceName,
+      normalizedDomainName,
       route,
     )
 
@@ -184,12 +155,23 @@ export function rewriteHttpCallLinks(
       continue
     }
 
-    const uniqueApiTargetByRoute = findUniqueApiComponentMatchingRoute(components, route)
+    const matchedInternalApis = internalApiComponentsByName.get(serviceName) ?? []
+    const matchedInternalApiCount = matchedInternalApis.length
+    if (matchedInternalApiCount > 1) {
+      throw new ConnectionDetectionError({
+        file: targetComponent.location.file,
+        line: targetComponent.location.line,
+        typeName: componentIdentity(targetComponent),
+        reason: `Expected metadata.serviceName to match exactly one internal api component name, got ${matchedInternalApiCount} matches for ${JSON.stringify(serviceName)}`,
+      })
+    }
 
-    if (uniqueApiTargetByRoute !== undefined) {
+    const [uniqueInternalTarget] = matchedInternalApis
+
+    if (uniqueInternalTarget !== undefined) {
       linksToKeep.push({
         ...link,
-        target: componentIdentity(uniqueApiTargetByRoute),
+        target: componentIdentity(uniqueInternalTarget),
       })
       continue
     }

@@ -62,7 +62,7 @@ describe('rewriteHttpCallLinks', () => {
     expect(result.externalLinks).toStrictEqual([])
   })
 
-  it('keeps internal link when httpCall serviceName matches internal component name', () => {
+  it('rewrites link to external when httpCall serviceName matches a non-api internal component name', () => {
     const filePath = '/src/http.ts'
     const source = buildComponent('PlaceOrder', filePath, 1)
     const httpCall = buildComponent('check', filePath, 2, {
@@ -85,14 +85,17 @@ describe('rewriteHttpCallLinks', () => {
       [source, httpCall, internalTarget],
     )
 
-    expect(result.links).toStrictEqual([
+    expect(result.links).toStrictEqual([])
+    expect(result.externalLinks).toStrictEqual([
       {
         source: 'orders:useCase:PlaceOrder',
-        target: 'orders:repository:FraudGateway',
+        target: {
+          name: 'FraudGateway',
+          route: '/api/check',
+        },
         type: 'sync',
       },
     ])
-    expect(result.externalLinks).toStrictEqual([])
   })
 
   it('keeps internal link when httpCall serviceName matches internal domain and route matches a unique api component', () => {
@@ -225,7 +228,7 @@ describe('rewriteHttpCallLinks', () => {
     ])
   })
 
-  it('keeps internal link when route matches a unique api component globally and serviceName is only a label', () => {
+  it('keeps internal link when normalized serviceName label matches an internal domain route', () => {
     const filePath = '/src/http.ts'
     const source = buildComponent('PlaceOrderBFFUseCase', filePath, 1, { domain: 'bff' })
     const httpCall = buildComponent('placeOrder', filePath, 2, {
@@ -263,15 +266,15 @@ describe('rewriteHttpCallLinks', () => {
     expect(result.externalLinks).toStrictEqual([])
   })
 
-  it('throws when httpCall serviceName matches multiple internal components', () => {
+  it('throws when httpCall serviceName matches multiple internal api components', () => {
     const filePath = '/src/http.ts'
     const source = buildComponent('PlaceOrder', filePath, 1)
     const httpCall = buildComponent('check', filePath, 2, {
       type: 'httpCall',
       metadata: { serviceName: 'FraudGateway' },
     })
-    const repositoryTarget = buildComponent('FraudGateway', filePath, 3, { type: 'repository' })
-    const useCaseTarget = buildComponent('FraudGateway', filePath, 4, { type: 'useCase' })
+    const firstApiTarget = buildComponent('FraudGateway', filePath, 3, { type: 'api' })
+    const secondApiTarget = buildComponent('FraudGateway', filePath, 4, { type: 'api' })
 
     expect(() =>
       rewriteHttpCallLinks(
@@ -282,9 +285,9 @@ describe('rewriteHttpCallLinks', () => {
             type: 'sync',
           },
         ],
-        [source, httpCall, repositoryTarget, useCaseTarget],
+        [source, httpCall, firstApiTarget, secondApiTarget],
       ),
-    ).toThrowError(/exactly one internal component/)
+    ).toThrowError(/exactly one internal api component/)
     expect(() =>
       rewriteHttpCallLinks(
         [
@@ -294,7 +297,7 @@ describe('rewriteHttpCallLinks', () => {
             type: 'sync',
           },
         ],
-        [source, httpCall, repositoryTarget, useCaseTarget],
+        [source, httpCall, firstApiTarget, secondApiTarget],
       ),
     ).toThrow(ConnectionDetectionError)
   })
