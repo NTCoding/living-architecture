@@ -36,9 +36,6 @@ function getRouteViolation(decoratorExpression) {
 }
 
 function getMethodViolation(decoratorExpression) {
-  if (decoratorExpression.type === 'Identifier') {
-    return 'missingMethod'
-  }
   if (decoratorExpression.arguments.length < 2) {
     return 'missingMethod'
   }
