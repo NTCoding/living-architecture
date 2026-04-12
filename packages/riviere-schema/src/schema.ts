@@ -127,6 +127,7 @@ export interface Link {
 
 export interface ExternalTarget {
   name: string
+  route?: string
   domain?: string
   repository?: string
   url?: string

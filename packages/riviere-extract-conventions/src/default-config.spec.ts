@@ -101,8 +101,20 @@ describe('Default extraction config', () => {
       find: 'methods',
       where: {
         and: [
-          { hasDecorator: { name: 'HttpCall' } },
-          { inClassWith: { hasDecorator: { name: 'HttpClient' } } },
+          {
+            hasDecorator: {
+              name: 'HttpCall',
+              from: '@living-architecture/riviere-extract-conventions',
+            },
+          },
+          {
+            inClassWith: {
+              hasDecorator: {
+                name: 'HttpClient',
+                from: '@living-architecture/riviere-extract-conventions',
+              },
+            },
+          },
         ],
       },
       extract: {

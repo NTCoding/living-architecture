@@ -101,13 +101,15 @@
             "and": [
               {
                 "hasDecorator": {
-                  "name": "HttpCall"
+                  "name": "HttpCall",
+                  "from": "@living-architecture/riviere-extract-conventions"
                 }
               },
               {
                 "inClassWith": {
                   "hasDecorator": {
-                    "name": "HttpClient"
+                    "name": "HttpClient",
+                    "from": "@living-architecture/riviere-extract-conventions"
                   }
                 }
               }

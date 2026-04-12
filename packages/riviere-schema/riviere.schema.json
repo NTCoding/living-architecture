@@ -149,13 +149,27 @@
         "module": { "type": "string", "minLength": 1 },
         "description": { "type": "string" },
         "sourceLocation": { "$ref": "#/definitions/sourceLocation" },
-        "route": { "type": "string", "description": "URL route where UI component is rendered", "minLength": 1 }
+        "route": {
+          "type": "string",
+          "description": "URL route where UI component is rendered",
+          "minLength": 1
+        }
       },
       "additionalProperties": false
     },
     "apiRestComponent": {
       "type": "object",
-      "required": ["id", "type", "name", "domain", "module", "sourceLocation", "apiType", "httpMethod", "path"],
+      "required": [
+        "id",
+        "type",
+        "name",
+        "domain",
+        "module",
+        "sourceLocation",
+        "apiType",
+        "httpMethod",
+        "path"
+      ],
       "properties": {
         "id": { "type": "string", "minLength": 1 },
         "type": { "const": "API" },
@@ -165,14 +179,26 @@
         "description": { "type": "string" },
         "sourceLocation": { "$ref": "#/definitions/sourceLocation" },
         "apiType": { "const": "REST" },
-        "httpMethod": { "type": "string", "enum": ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"] },
+        "httpMethod": {
+          "type": "string",
+          "enum": ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]
+        },
         "path": { "type": "string", "description": "API path", "minLength": 3 }
       },
       "additionalProperties": false
     },
     "apiGraphqlComponent": {
       "type": "object",
-      "required": ["id", "type", "name", "domain", "module", "sourceLocation", "apiType", "operationName"],
+      "required": [
+        "id",
+        "type",
+        "name",
+        "domain",
+        "module",
+        "sourceLocation",
+        "apiType",
+        "operationName"
+      ],
       "properties": {
         "id": { "type": "string", "minLength": 1 },
         "type": { "const": "API" },
@@ -182,7 +208,11 @@
         "description": { "type": "string" },
         "sourceLocation": { "$ref": "#/definitions/sourceLocation" },
         "apiType": { "const": "GraphQL" },
-        "operationName": { "type": "string", "description": "GraphQL operation name", "minLength": 2 }
+        "operationName": {
+          "type": "string",
+          "description": "GraphQL operation name",
+          "minLength": 2
+        }
       },
       "additionalProperties": false
     },
@@ -262,7 +292,11 @@
         "module": { "type": "string", "minLength": 1 },
         "description": { "type": "string" },
         "sourceLocation": { "$ref": "#/definitions/sourceLocation" },
-        "subscribedEvents": { "type": "array", "items": { "type": "string" }, "description": "Events this handler subscribes to" }
+        "subscribedEvents": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Events this handler subscribes to"
+        }
       },
       "additionalProperties": false
     },
@@ -277,7 +311,11 @@
         "module": { "type": "string", "minLength": 1 },
         "description": { "type": "string" },
         "sourceLocation": { "$ref": "#/definitions/sourceLocation" },
-        "customTypeName": { "type": "string", "description": "Name of the custom type (must match a key in metadata.customTypes)", "minLength": 1 }
+        "customTypeName": {
+          "type": "string",
+          "description": "Name of the custom type (must match a key in metadata.customTypes)",
+          "minLength": 1
+        }
       },
       "additionalProperties": true
     },
@@ -365,6 +403,11 @@
         "name": {
           "type": "string",
           "description": "Name of the external system",
+          "minLength": 1
+        },
+        "route": {
+          "type": "string",
+          "description": "Remote route/path for the external call",
           "minLength": 1
         },
         "domain": {

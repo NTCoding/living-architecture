@@ -40,6 +40,7 @@ interface Plugin {
           'error',
           {
             paths: Array<{ name: string; message: string }>
+            patterns: Array<{ group: string[]; message: string }>
           },
         ]
       }

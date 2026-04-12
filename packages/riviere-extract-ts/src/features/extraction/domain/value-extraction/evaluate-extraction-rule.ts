@@ -378,24 +378,16 @@ export function evaluateFromClassDecoratorArgRule(
     )
   }
 
-  const fromDecoratorArgRule: DecoratorArgRule = { decorator: rule.fromClassDecoratorArg.decorator }
-
-  if (rule.fromClassDecoratorArg.position === undefined) {
-    // default extraction uses name if provided
-  } else {
-    fromDecoratorArgRule.position = rule.fromClassDecoratorArg.position
-  }
-
-  if (rule.fromClassDecoratorArg.name === undefined) {
-    // default extraction uses positional argument when position is provided
-  } else {
-    fromDecoratorArgRule.name = rule.fromClassDecoratorArg.name
-  }
-
-  if (rule.fromClassDecoratorArg.transform === undefined) {
-    // no transform requested
-  } else {
-    fromDecoratorArgRule.transform = rule.fromClassDecoratorArg.transform
+  const fromClassDecoratorArg = rule.fromClassDecoratorArg
+  const fromDecoratorArgRule: DecoratorArgRule = {
+    decorator: fromClassDecoratorArg.decorator,
+    ...(fromClassDecoratorArg.position === undefined
+      ? {}
+      : { position: fromClassDecoratorArg.position }),
+    ...(fromClassDecoratorArg.name === undefined ? {} : { name: fromClassDecoratorArg.name }),
+    ...(fromClassDecoratorArg.transform === undefined
+      ? {}
+      : { transform: fromClassDecoratorArg.transform }),
   }
 
   return evaluateFromDecoratorArgRule({ fromDecoratorArg: fromDecoratorArgRule }, classDecorator)

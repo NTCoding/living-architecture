@@ -267,8 +267,10 @@ export class FraudClient {
   it('extracts first method decorator name with fromDecoratorName', () => {
     const file = nextFile(
       '/src/orders/http-client.ts',
-      `function HttpCall(_: string) { return () => {} }
+      `function First() { return () => {} }
+function HttpCall(_: string) { return () => {} }
 export class FraudClient {
+  @First()
   @HttpCall('/api/check')
   check() {}
 }`,
@@ -280,7 +282,7 @@ export class FraudClient {
         name: 'check',
         location: {
           file,
-          line: 3,
+          line: 4,
         },
         domain: 'orders',
       },
@@ -310,7 +312,7 @@ export class FraudClient {
       '/',
     )
 
-    expect(result.components[0]?.metadata).toStrictEqual({ decoratorName: 'HttpCall' })
+    expect(result.components[0]?.metadata).toStrictEqual({ decoratorName: 'First' })
     expect(result.failures).toStrictEqual([])
   })
 

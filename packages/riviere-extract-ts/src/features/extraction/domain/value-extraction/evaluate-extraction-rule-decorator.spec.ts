@@ -146,7 +146,7 @@ describe('evaluateFromDecoratorArgRule (positional)', () => {
         },
         decorator,
       ),
-    ).toThrow(ExtractionError)
+    ).toThrowError("Expected decorator '@Post', got '@Get'")
   })
 })
 

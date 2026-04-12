@@ -27,6 +27,13 @@ function toRestrictedImportPath(packageName) {
   }
 }
 
+function toRestrictedImportPattern(packageName) {
+  return {
+    group: [`${packageName}/*`],
+    message: `Do not import subpaths from '${packageName}'. Use @HttpClient/@HttpCall conventions for HTTP boundary code.`,
+  }
+}
+
 module.exports = {
   rules: {
     'require-component-decorator': requireComponentDecorator,
@@ -46,7 +53,10 @@ module.exports = {
       rules: {
         'no-restricted-imports': [
           'error',
-          {paths: restrictedHttpClientImports.map(toRestrictedImportPath),},
+          {
+            paths: restrictedHttpClientImports.map(toRestrictedImportPath),
+            patterns: restrictedHttpClientImports.map(toRestrictedImportPattern),
+          },
         ],
       },
     },

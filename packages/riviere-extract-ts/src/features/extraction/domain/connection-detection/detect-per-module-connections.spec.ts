@@ -188,7 +188,10 @@ class PlaceOrder {
     expect(result.externalLinks).toStrictEqual([
       expect.objectContaining({
         source: 'orders:useCase:PlaceOrder',
-        target: { name: 'Fraud Detection Service' },
+        target: {
+          name: 'Fraud Detection Service',
+          route: '/api/check',
+        },
         type: 'sync',
       }),
     ])

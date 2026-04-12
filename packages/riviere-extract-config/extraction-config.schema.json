@@ -262,7 +262,17 @@
             "position": { "type": "integer", "minimum": 0 },
             "name": { "type": "string", "minLength": 1 },
             "transform": { "$ref": "#/$defs/transform" }
-          }
+          },
+          "oneOf": [
+            {
+              "required": ["position"],
+              "not": { "required": ["name"] }
+            },
+            {
+              "required": ["name"],
+              "not": { "required": ["position"] }
+            }
+          ]
         }
       }
     },

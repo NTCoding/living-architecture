@@ -271,11 +271,10 @@ export function detectConnections(
     repository,
   )
 
-  const totalMs = performance.now() - totalStart
-
   const allLinks = [...syncLinks, ...publishLinks, ...subscribeLinks, ...configurableLinks]
   const deduplicatedLinks = deduplicateCrossStrategy(allLinks)
   const rewritten = rewriteHttpCallLinks(deduplicatedLinks, components)
+  const totalMs = performance.now() - totalStart
 
   return {
     links: rewritten.links,

@@ -39,7 +39,15 @@ describe('http-client-public-methods-require-http-call', () => {
       },
       {
         name: 'ignores anonymous default export classes',
-        code: "export default class { @HttpCall('/check') checkFraud() {} }",
+        code: "@HttpClient('Fraud Service') export default class { @HttpCall('/check') checkFraud() {} }",
+      },
+      {
+        name: 'ignores classes decorated with Ignore',
+        code: "@Ignore @HttpClient('Fraud Service') class FraudClient { checkFraud() {} }",
+      },
+      {
+        name: 'ignores methods decorated with Ignore',
+        code: "@HttpClient('Fraud Service') class FraudClient { @Ignore checkFraud() {} }",
       },
       {
         name: 'ignores constructors in HttpClient classes',

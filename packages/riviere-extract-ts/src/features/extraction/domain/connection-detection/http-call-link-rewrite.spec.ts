@@ -34,7 +34,10 @@ describe('rewriteHttpCallLinks', () => {
     expect(result.externalLinks).toStrictEqual([
       {
         source: 'orders:useCase:PlaceOrder',
-        target: { name: 'Fraud Detection Service' },
+        target: {
+          name: 'Fraud Detection Service',
+          route: '/api/check',
+        },
         type: 'sync',
       },
     ])
@@ -67,6 +70,55 @@ describe('rewriteHttpCallLinks', () => {
       metadata: {},
     })
 
+    expect(() =>
+      rewriteHttpCallLinks(
+        [
+          {
+            source: 'orders:useCase:PlaceOrder',
+            target: 'orders:httpCall:check',
+            type: 'sync',
+          },
+        ],
+        [source, target],
+      ),
+    ).toThrowError(/serviceName/)
+    expect(() =>
+      rewriteHttpCallLinks(
+        [
+          {
+            source: 'orders:useCase:PlaceOrder',
+            target: 'orders:httpCall:check',
+            type: 'sync',
+          },
+        ],
+        [source, target],
+      ),
+    ).toThrow(ConnectionDetectionError)
+  })
+
+  it('throws when httpCall route metadata is invalid', () => {
+    const filePath = '/src/http.ts'
+    const source = buildComponent('PlaceOrder', filePath, 1)
+    const target = buildComponent('check', filePath, 2, {
+      type: 'httpCall',
+      metadata: {
+        serviceName: 'Fraud Detection Service',
+        route: 123,
+      },
+    })
+
+    expect(() =>
+      rewriteHttpCallLinks(
+        [
+          {
+            source: 'orders:useCase:PlaceOrder',
+            target: 'orders:httpCall:check',
+            type: 'sync',
+          },
+        ],
+        [source, target],
+      ),
+    ).toThrowError(/route/)
     expect(() =>
       rewriteHttpCallLinks(
         [

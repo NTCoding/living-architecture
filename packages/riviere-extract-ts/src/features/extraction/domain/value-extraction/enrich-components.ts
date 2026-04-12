@@ -150,6 +150,28 @@ function findMethodAtLine(project: Project, draft: DraftComponent): MethodDeclar
   )
 }
 
+function requireMethodForDecoratorRule(
+  project: Project,
+  draft: DraftComponent,
+  ruleName: 'fromDecoratorArg' | 'fromDecoratorName',
+): MethodDeclaration {
+  try {
+    return findMethodAtLine(project, draft)
+  } catch (error: unknown) {
+    if (
+      error instanceof ExtractionError &&
+      error.message.includes('No method declaration found at line')
+    ) {
+      throw new ExtractionError(
+        `Rule '${ruleName}' requires a method component. Use 'fromClassDecoratorArg' for class decorators.`,
+        draft.location.file,
+        draft.location.line,
+      )
+    }
+    throw error
+  }
+}
+
 function findDecoratorOnMethod(
   methodDecl: MethodDeclaration,
   decoratorName?: string,
@@ -240,7 +262,7 @@ function evaluateMethodRule(
   }
 
   if ('fromDecoratorArg' in rule) {
-    const methodDecl = findMethodAtLine(project, draft)
+    const methodDecl = requireMethodForDecoratorRule(project, draft, 'fromDecoratorArg')
     const decorator = findDecoratorOnMethod(methodDecl, rule.fromDecoratorArg.decorator)
     return evaluateFromDecoratorArgRule(rule, decorator)
   }
@@ -251,7 +273,7 @@ function evaluateMethodRule(
   }
 
   if ('fromDecoratorName' in rule) {
-    const methodDecl = findMethodAtLine(project, draft)
+    const methodDecl = requireMethodForDecoratorRule(project, draft, 'fromDecoratorName')
     const decorator = findDecoratorOnMethod(methodDecl)
     return evaluateFromDecoratorNameRule(rule, decorator)
   }

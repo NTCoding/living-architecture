@@ -141,6 +141,38 @@ describe('parseRiviereGraph()', () => {
     expect(() => parseRiviereGraph(input)).toThrow(RiviereSchemaValidationError)
     expect(() => parseRiviereGraph(input)).toThrow(/Invalid RiviereGraph/)
   })
+
+  it('parses external link target with optional route', () => {
+    const input = {
+      version: '1.0',
+      metadata: {
+        domains: {
+          test: {
+            description: 'Test',
+            systemType: 'domain',
+          },
+        },
+      },
+      components: [],
+      links: [],
+      externalLinks: [
+        {
+          source: 'orders:useCase:PlaceOrder',
+          target: {
+            name: 'Fraud Detection Service',
+            route: '/api/check',
+          },
+        },
+      ],
+    }
+
+    const result = parseRiviereGraph(input)
+
+    expect(result.externalLinks?.[0]?.target).toStrictEqual({
+      name: 'Fraud Detection Service',
+      route: '/api/check',
+    })
+  })
 })
 
 describe('riviere-schema types', () => {

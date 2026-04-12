@@ -46,11 +46,18 @@ module.exports = {
   create(context) {
     return {
       ClassDeclaration(node) {
+        if (hasDecoratorNamed(node.decorators, 'Ignore')) {
+          return
+        }
+
         if (!node.id || !hasDecoratorNamed(node.decorators, 'HttpClient')) {
           return
         }
 
         for (const member of node.body.body) {
+          if (hasDecoratorNamed(member.decorators, 'Ignore')) {
+            continue
+          }
           if (!isPublicInstanceMethod(member)) {
             continue
           }

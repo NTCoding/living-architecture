@@ -34,10 +34,35 @@ function parseServiceName(httpCallComponent: EnrichedComponent): string {
   })
 }
 
-function toExternalLink(link: ExtractedLink, serviceName: string): ExternalLink {
+function parseRoute(httpCallComponent: EnrichedComponent): string | undefined {
+  const rawRoute = httpCallComponent.metadata['route']
+  if (rawRoute === undefined) {
+    return undefined
+  }
+
+  if (typeof rawRoute === 'string' && rawRoute.trim().length > 0) {
+    return rawRoute
+  }
+
+  throw new ConnectionDetectionError({
+    file: httpCallComponent.location.file,
+    line: httpCallComponent.location.line,
+    typeName: componentIdentity(httpCallComponent),
+    reason: `Expected metadata.route to be a non-empty string when provided, got ${JSON.stringify(rawRoute)}`,
+  })
+}
+
+function toExternalLink(
+  link: ExtractedLink,
+  serviceName: string,
+  route: string | undefined,
+): ExternalLink {
   return {
     source: link.source,
-    target: { name: serviceName },
+    target: {
+      name: serviceName,
+      ...(route === undefined ? {} : { route }),
+    },
     ...(link.type === undefined ? {} : { type: link.type }),
     ...(link.sourceLocation === undefined ? {} : { sourceLocation: link.sourceLocation }),
   }
@@ -60,7 +85,8 @@ export function rewriteHttpCallLinks(
     }
 
     const serviceName = parseServiceName(targetComponent)
-    externalLinks.push(toExternalLink(link, serviceName))
+    const route = parseRoute(targetComponent)
+    externalLinks.push(toExternalLink(link, serviceName, route))
   }
 
   return {
