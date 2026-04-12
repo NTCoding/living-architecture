@@ -43,6 +43,7 @@ function findUniqueApiComponentInDomainMatchingRoute(
   components: readonly EnrichedComponent[],
   domainName: string,
   route: string | undefined,
+  method: string | undefined,
 ): EnrichedComponent | undefined {
   if (route === undefined) {
     return undefined
@@ -52,7 +53,8 @@ function findUniqueApiComponentInDomainMatchingRoute(
     (component) =>
       component.type === 'api' &&
       component.domain === domainName &&
-      component.metadata['route'] === route,
+      component.metadata['route'] === route &&
+      (method === undefined || component.metadata['method'] === method),
   )
 
   if (matchedApiComponents.length !== 1) {
@@ -76,16 +78,6 @@ function parseServiceName(httpCallComponent: EnrichedComponent): string {
   })
 }
 
-function normalizeServiceNameToDomainName(serviceName: string): string {
-  const lowercaseServiceName = serviceName.trim().toLowerCase()
-  const withoutSuffix = lowercaseServiceName.replaceAll(' service', '').replaceAll(' api', '')
-
-  return withoutSuffix
-    .split(/[^a-z0-9]+/)
-    .filter((part) => part.length > 0)
-    .join('-')
-}
-
 function parseRoute(httpCallComponent: EnrichedComponent): string | undefined {
   const rawRoute = httpCallComponent.metadata['route']
   if (rawRoute === undefined) {
@@ -102,6 +94,76 @@ function parseRoute(httpCallComponent: EnrichedComponent): string | undefined {
     typeName: componentIdentity(httpCallComponent),
     reason: `Expected metadata.route to be a non-empty string when provided, got ${JSON.stringify(rawRoute)}`,
   })
+}
+
+function parseMethod(httpCallComponent: EnrichedComponent): string | undefined {
+  const rawMethod = httpCallComponent.metadata['method']
+  if (rawMethod === undefined) {
+    return undefined
+  }
+
+  if (typeof rawMethod === 'string' && rawMethod.trim().length > 0) {
+    return rawMethod
+  }
+
+  throw new ConnectionDetectionError({
+    file: httpCallComponent.location.file,
+    line: httpCallComponent.location.line,
+    typeName: componentIdentity(httpCallComponent),
+    reason: `Expected metadata.method to be a non-empty string when provided, got ${JSON.stringify(rawMethod)}`,
+  })
+}
+
+function matchesOptionalMetadata(
+  expectedValue: string | undefined,
+  candidateValue: unknown,
+): boolean {
+  if (expectedValue === undefined) {
+    return true
+  }
+
+  if (candidateValue === undefined) {
+    return true
+  }
+
+  return candidateValue === expectedValue
+}
+
+function canUseApiNameFallback(
+  apiComponent: EnrichedComponent,
+  route: string | undefined,
+  method: string | undefined,
+): boolean {
+  return (
+    matchesOptionalMetadata(route, apiComponent.metadata['route']) &&
+    matchesOptionalMetadata(method, apiComponent.metadata['method'])
+  )
+}
+
+function deduplicateExtractedLinks(links: readonly ExtractedLink[]): ExtractedLink[] {
+  const byKey = new Map<string, ExtractedLink>()
+
+  for (const link of links) {
+    const key = JSON.stringify(link)
+    if (!byKey.has(key)) {
+      byKey.set(key, link)
+    }
+  }
+
+  return [...byKey.values()]
+}
+
+function deduplicateExternalLinks(links: readonly ExternalLink[]): ExternalLink[] {
+  const byKey = new Map<string, ExternalLink>()
+
+  for (const link of links) {
+    const key = JSON.stringify(link)
+    if (!byKey.has(key)) {
+      byKey.set(key, link)
+    }
+  }
+
+  return [...byKey.values()]
 }
 
 function toExternalLink(
@@ -139,12 +201,13 @@ export function rewriteHttpCallLinks(
 
     const serviceName = parseServiceName(targetComponent)
     const route = parseRoute(targetComponent)
-    const normalizedDomainName = normalizeServiceNameToDomainName(serviceName)
+    const method = parseMethod(targetComponent)
 
     const uniqueApiTargetInDomain = findUniqueApiComponentInDomainMatchingRoute(
       components,
-      normalizedDomainName,
+      serviceName,
       route,
+      method,
     )
 
     if (uniqueApiTargetInDomain !== undefined) {
@@ -168,7 +231,10 @@ export function rewriteHttpCallLinks(
 
     const [uniqueInternalTarget] = matchedInternalApis
 
-    if (uniqueInternalTarget !== undefined) {
+    if (
+      uniqueInternalTarget !== undefined &&
+      canUseApiNameFallback(uniqueInternalTarget, route, method)
+    ) {
       linksToKeep.push({
         ...link,
         target: componentIdentity(uniqueInternalTarget),
@@ -180,8 +246,8 @@ export function rewriteHttpCallLinks(
   }
 
   return {
-    links: linksToKeep,
-    externalLinks,
+    links: deduplicateExtractedLinks(linksToKeep),
+    externalLinks: deduplicateExternalLinks(externalLinks),
   }
 }
 
