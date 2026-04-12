@@ -1,5 +1,5 @@
 import {
-  readdirSync, realpathSync 
+  existsSync, readdirSync, realpathSync 
 } from 'node:fs'
 import path from 'node:path'
 import { performance } from 'node:perf_hooks'
@@ -94,7 +94,19 @@ export class RunRoleEnforcement {
   }
 }
 
+function findFileUp(startDir: string, fileName: string): string | undefined {
+  const candidate = path.join(startDir, fileName)
+  if (existsSync(candidate)) return candidate
+  const parent = path.dirname(startDir)
+  if (parent === startDir) return undefined
+  return findFileUp(parent, fileName)
+}
+
 function resolvePluginPath(): string {
-  const currentDir = path.dirname(fileURLToPath(import.meta.url))
-  return path.resolve(currentDir, '..', '..', '..', '..', 'role-enforcement-plugin.mjs')
+  const startDir = path.dirname(fileURLToPath(import.meta.url))
+  const found = findFileUp(startDir, 'role-enforcement-plugin.mjs')
+  if (found === undefined) {
+    throw new RoleEnforcementExecutionError('Cannot find role-enforcement-plugin.mjs')
+  }
+  return found
 }

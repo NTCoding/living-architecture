@@ -1,5 +1,5 @@
 import {
-  rmSync, writeFileSync 
+  existsSync, rmSync, writeFileSync 
 } from 'node:fs'
 import path from 'node:path'
 import { spawnSync } from 'node:child_process'
@@ -83,20 +83,19 @@ export function runOxlint({
   }
 }
 
+function findFileUp(startDir: string, relativePath: string): string | undefined {
+  const candidate = path.join(startDir, relativePath)
+  if (existsSync(candidate)) return candidate
+  const parent = path.dirname(startDir)
+  if (parent === startDir) return undefined
+  return findFileUp(parent, relativePath)
+}
+
 function resolveOxlintBinaryPath(): string {
-  const currentDir = path.dirname(fileURLToPath(import.meta.url))
-  return path.resolve(
-    currentDir,
-    '..',
-    '..',
-    '..',
-    '..',
-    '..',
-    '..',
-    '..',
-    '..',
-    'node_modules',
-    '.bin',
-    'oxlint',
-  )
+  const startDir = path.dirname(fileURLToPath(import.meta.url))
+  const found = findFileUp(startDir, path.join('node_modules', '.bin', 'oxlint'))
+  if (found === undefined) {
+    throw new RoleEnforcementExecutionError('Cannot find oxlint binary in node_modules')
+  }
+  return found
 }

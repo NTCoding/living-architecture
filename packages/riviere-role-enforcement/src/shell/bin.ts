@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 import path from 'node:path'
 import { main } from '../features/enforcement/entrypoint/cli'
 

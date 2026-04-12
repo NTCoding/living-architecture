@@ -1,7 +1,16 @@
+import { existsSync } from 'node:fs'
 import {
   expect, it, vi 
 } from 'vitest'
 import { RoleEnforcementExecutionError } from '../domain/role-enforcement-execution-error'
+
+vi.mock('node:fs', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('node:fs')>()
+  return {
+    ...actual,
+    existsSync: vi.fn(actual.existsSync),
+  }
+})
 import {
   configWithGenericApprovedAggregates,
   configWithGenericMaxPublicMethods,
@@ -279,6 +288,17 @@ it('rethrows non-domain errors from the oxlint adapter', () => {
       }),
     ).toThrow(unexpected)
   })
+})
+
+it('returns failure when role-enforcement-plugin.mjs cannot be found', () => {
+  vi.mocked(existsSync).mockReturnValue(false)
+  const result = new RunRoleEnforcement({ realpathSync: (filePath) => filePath }).execute({
+    configDir: '/var/folders/fake-dir',
+    configModule: { config: genericTestConfig },
+  })
+  vi.mocked(existsSync).mockRestore()
+  expect(result.exitCode).toBe(1)
+  expect(result.stderr).toContain('Cannot find role-enforcement-plugin.mjs')
 })
 
 it('wraps RoleEnforcementExecutionError from readConfig into a failure result', () => {

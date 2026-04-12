@@ -1,9 +1,18 @@
+import { existsSync } from 'node:fs'
 import {
   describe, expect, it, vi 
 } from 'vitest'
 import { RoleEnforcementExecutionError } from '../../../domain/role-enforcement-execution-error'
 import type { OxlintConfig } from './create-oxlint-config'
 import { runOxlint } from './run-oxlint'
+
+vi.mock('node:fs', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('node:fs')>()
+  return {
+    ...actual,
+    existsSync: vi.fn(actual.existsSync),
+  }
+})
 
 const minimalOxlintConfig: OxlintConfig = {
   ignorePatterns: [],
@@ -67,6 +76,27 @@ describe('runOxlint', () => {
           typeof filePath === 'string' && filePath.includes('.oxlintrc.role-enforcement.'),
       ),
     ).toBe(true)
+  })
+
+  it('throws RoleEnforcementExecutionError when oxlint binary cannot be found', () => {
+    vi.mocked(existsSync).mockReturnValue(false)
+    expect(() =>
+      runOxlint({
+        oxlintConfig: minimalOxlintConfig,
+        configDir: '/var/folders/fake-dir',
+        lintTargets: [],
+        deps: {
+          rmSync: vi.fn(),
+          spawnSync: vi.fn(() => ({
+            status: 0,
+            stderr: '',
+            stdout: '',
+          })),
+          writeFileSync: vi.fn(),
+        },
+      }),
+    ).toThrowError(new RoleEnforcementExecutionError('Cannot find oxlint binary in node_modules'))
+    vi.mocked(existsSync).mockRestore()
   })
 
   it('defaults the exit code to 1 when spawnSync returns no status', () => {
