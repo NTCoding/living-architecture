@@ -118,51 +118,6 @@ describe('rewriteHttpCallLinks - api resolution safety', () => {
     expect(result.externalLinks).toStrictEqual([])
   })
 
-  it('rewrites link to external when serviceName is a label instead of the internal domain key', () => {
-    const filePath = '/src/http.ts'
-    const source = buildComponent('PlaceOrderBFFUseCase', filePath, 1, { domain: 'bff' })
-    const httpCall = buildComponent('placeOrder', filePath, 2, {
-      type: 'httpCall',
-      domain: 'bff',
-      metadata: {
-        serviceName: 'Inventory Service',
-        route: '/inventory/:sku',
-        method: 'GET',
-      },
-    })
-    const inventoryApi = buildComponent('CheckStockEndpoint', '/src/inventory/api.ts', 3, {
-      type: 'api',
-      domain: 'inventory',
-      metadata: {
-        route: '/inventory/:sku',
-        method: 'GET',
-      },
-    })
-
-    const result = rewriteHttpCallLinks(
-      [
-        {
-          source: 'bff:useCase:PlaceOrderBFFUseCase',
-          target: 'bff:httpCall:placeOrder',
-          type: 'sync',
-        },
-      ],
-      [source, httpCall, inventoryApi],
-    )
-
-    expect(result.links).toStrictEqual([])
-    expect(result.externalLinks).toStrictEqual([
-      {
-        source: 'bff:useCase:PlaceOrderBFFUseCase',
-        target: {
-          name: 'Inventory Service',
-          route: '/inventory/:sku',
-        },
-        type: 'sync',
-      },
-    ])
-  })
-
   it('rewrites link to external when serviceName matches api name but route metadata contradicts it', () => {
     const filePath = '/src/http.ts'
     const source = buildComponent('PlaceOrder', filePath, 1)

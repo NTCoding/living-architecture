@@ -27,7 +27,12 @@ interface Plugin {
       'missingServiceName' | 'serviceNameNotLiteral' | 'emptyServiceName'
     >
     'http-call-requires-route': TSESLint.RuleModule<
-      'missingRoute' | 'routeNotLiteral' | 'emptyRoute'
+      | 'missingRoute'
+      | 'missingMethod'
+      | 'routeNotLiteral'
+      | 'methodNotLiteral'
+      | 'emptyRoute'
+      | 'emptyMethod'
     >
     'http-call-requires-http-client-container': TSESLint.RuleModule<'missingHttpClientContainer'>
     'http-client-public-methods-require-http-call': TSESLint.RuleModule<'missingHttpCall'>

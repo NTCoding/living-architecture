@@ -39,9 +39,8 @@ function mapInternalApiComponentsByName(
   return byName
 }
 
-function findUniqueApiComponentInDomainMatchingRoute(
+function findUniqueApiComponentMatchingRoute(
   components: readonly EnrichedComponent[],
-  domainName: string,
   route: string | undefined,
   method: string | undefined,
 ): EnrichedComponent | undefined {
@@ -50,10 +49,7 @@ function findUniqueApiComponentInDomainMatchingRoute(
   }
 
   const routeMatchedApiComponents = components.filter(
-    (component) =>
-      component.type === 'api' &&
-      component.domain === domainName &&
-      component.metadata['route'] === route,
+    (component) => component.type === 'api' && component.metadata['route'] === route,
   )
 
   if (method === undefined) {
@@ -85,6 +81,19 @@ function findUniqueApiComponentInDomainMatchingRoute(
   }
 
   return methodlessApiComponents[0]
+}
+
+function findUniqueApiComponentInDomainMatchingRoute(
+  components: readonly EnrichedComponent[],
+  domainName: string,
+  route: string | undefined,
+  method: string | undefined,
+): EnrichedComponent | undefined {
+  return findUniqueApiComponentMatchingRoute(
+    components.filter((component) => component.domain === domainName),
+    route,
+    method,
+  )
 }
 
 function parseServiceName(httpCallComponent: EnrichedComponent): string {
@@ -239,6 +248,16 @@ export function rewriteHttpCallLinks(
       linksToKeep.push({
         ...link,
         target: componentIdentity(uniqueApiTargetInDomain),
+      })
+      continue
+    }
+
+    const uniqueApiTargetGlobally = findUniqueApiComponentMatchingRoute(components, route, method)
+
+    if (uniqueApiTargetGlobally !== undefined) {
+      linksToKeep.push({
+        ...link,
+        target: componentIdentity(uniqueApiTargetGlobally),
       })
       continue
     }

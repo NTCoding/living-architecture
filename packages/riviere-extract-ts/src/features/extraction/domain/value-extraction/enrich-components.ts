@@ -348,8 +348,18 @@ function componentWithEmptyMetadata(draft: DraftComponent): SingleComponentResul
   }
 }
 
-function shouldIgnoreMissingMetadataField(draft: DraftComponent, fieldName: string): boolean {
-  return draft.type === 'api' && (fieldName === 'route' || fieldName === 'method')
+function shouldIgnoreMissingMetadataField(
+  draft: DraftComponent,
+  fieldName: string,
+  extractionRule: ExtractionRule,
+  errorMessage: string,
+): boolean {
+  return (
+    draft.type === 'api' &&
+    (fieldName === 'route' || fieldName === 'method') &&
+    'fromProperty' in extractionRule &&
+    errorMessage.includes(`Property '${fieldName}' not found on class`)
+  )
 }
 
 function extractMetadataFields(
@@ -369,12 +379,13 @@ function extractMetadataFields(
     try {
       metadata[fieldName] = evaluateRule(extractionRule, draft, project).value
     } catch (error: unknown) {
-      if (shouldIgnoreMissingMetadataField(draft, fieldName)) {
+      /* istanbul ignore next -- @preserve: catch always receives Error instances from ExtractionError */
+      const errorMessage = error instanceof Error ? error.message : String(error)
+
+      if (shouldIgnoreMissingMetadataField(draft, fieldName, extractionRule, errorMessage)) {
         continue
       }
 
-      /* istanbul ignore next -- @preserve: catch always receives Error instances from ExtractionError */
-      const errorMessage = error instanceof Error ? error.message : String(error)
       failures.push({
         component: draft,
         field: fieldName,
