@@ -20,6 +20,25 @@ function mapComponentsByIdentity(
   return byIdentity
 }
 
+function mapInternalComponentsByName(
+  components: readonly EnrichedComponent[],
+): ReadonlyMap<string, readonly EnrichedComponent[]> {
+  const byName = new Map<string, EnrichedComponent[]>()
+  for (const component of components) {
+    if (component.type === 'httpCall') {
+      continue
+    }
+
+    const existing = byName.get(component.name)
+    if (existing === undefined) {
+      byName.set(component.name, [component])
+      continue
+    }
+    existing.push(component)
+  }
+  return byName
+}
+
 function parseServiceName(httpCallComponent: EnrichedComponent): string {
   const rawServiceName = httpCallComponent.metadata['serviceName']
   if (typeof rawServiceName === 'string' && rawServiceName.trim().length > 0) {
@@ -76,6 +95,7 @@ export function rewriteHttpCallLinks(
   const linksToKeep: ExtractedLink[] = []
   const externalLinks: ExternalLink[] = []
   const componentsByIdentity = mapComponentsByIdentity(components)
+  const internalComponentsByName = mapInternalComponentsByName(components)
 
   for (const link of links) {
     const targetComponent = componentsByIdentity.get(link.target)
@@ -85,6 +105,27 @@ export function rewriteHttpCallLinks(
     }
 
     const serviceName = parseServiceName(targetComponent)
+    const matchedInternalComponents = internalComponentsByName.get(serviceName) ?? []
+    const matchedInternalCount = matchedInternalComponents.length
+    if (matchedInternalCount > 1) {
+      throw new ConnectionDetectionError({
+        file: targetComponent.location.file,
+        line: targetComponent.location.line,
+        typeName: componentIdentity(targetComponent),
+        reason: `Expected metadata.serviceName to match exactly one internal component name, got ${matchedInternalCount} matches for ${JSON.stringify(serviceName)}`,
+      })
+    }
+
+    const [uniqueInternalTarget] = matchedInternalComponents
+
+    if (uniqueInternalTarget !== undefined) {
+      linksToKeep.push({
+        ...link,
+        target: componentIdentity(uniqueInternalTarget),
+      })
+      continue
+    }
+
     const route = parseRoute(targetComponent)
     externalLinks.push(toExternalLink(link, serviceName, route))
   }

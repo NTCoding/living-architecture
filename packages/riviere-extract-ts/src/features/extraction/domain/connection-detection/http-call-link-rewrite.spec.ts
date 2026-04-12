@@ -62,6 +62,75 @@ describe('rewriteHttpCallLinks', () => {
     expect(result.externalLinks).toStrictEqual([])
   })
 
+  it('keeps internal link when httpCall serviceName matches internal component name', () => {
+    const filePath = '/src/http.ts'
+    const source = buildComponent('PlaceOrder', filePath, 1)
+    const httpCall = buildComponent('check', filePath, 2, {
+      type: 'httpCall',
+      metadata: {
+        serviceName: 'FraudGateway',
+        route: '/api/check',
+      },
+    })
+    const internalTarget = buildComponent('FraudGateway', filePath, 3, { type: 'repository' })
+
+    const result = rewriteHttpCallLinks(
+      [
+        {
+          source: 'orders:useCase:PlaceOrder',
+          target: 'orders:httpCall:check',
+          type: 'sync',
+        },
+      ],
+      [source, httpCall, internalTarget],
+    )
+
+    expect(result.links).toStrictEqual([
+      {
+        source: 'orders:useCase:PlaceOrder',
+        target: 'orders:repository:FraudGateway',
+        type: 'sync',
+      },
+    ])
+    expect(result.externalLinks).toStrictEqual([])
+  })
+
+  it('throws when httpCall serviceName matches multiple internal components', () => {
+    const filePath = '/src/http.ts'
+    const source = buildComponent('PlaceOrder', filePath, 1)
+    const httpCall = buildComponent('check', filePath, 2, {
+      type: 'httpCall',
+      metadata: { serviceName: 'FraudGateway' },
+    })
+    const repositoryTarget = buildComponent('FraudGateway', filePath, 3, { type: 'repository' })
+    const useCaseTarget = buildComponent('FraudGateway', filePath, 4, { type: 'useCase' })
+
+    expect(() =>
+      rewriteHttpCallLinks(
+        [
+          {
+            source: 'orders:useCase:PlaceOrder',
+            target: 'orders:httpCall:check',
+            type: 'sync',
+          },
+        ],
+        [source, httpCall, repositoryTarget, useCaseTarget],
+      ),
+    ).toThrowError(/exactly one internal component/)
+    expect(() =>
+      rewriteHttpCallLinks(
+        [
+          {
+            source: 'orders:useCase:PlaceOrder',
+            target: 'orders:httpCall:check',
+            type: 'sync',
+          },
+        ],
+        [source, httpCall, repositoryTarget, useCaseTarget],
+      ),
+    ).toThrow(ConnectionDetectionError)
+  })
+
   it('throws when httpCall serviceName metadata is missing', () => {
     const filePath = '/src/http.ts'
     const source = buildComponent('PlaceOrder', filePath, 1)
