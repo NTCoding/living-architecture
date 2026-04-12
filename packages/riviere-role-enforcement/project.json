@@ -17,6 +17,7 @@
       "executor": "nx:run-commands",
       "options": {
         "commands": [
+          "node dist/shell/bin.js",
           "node -e \"import('./dist/index.js').then(m => { if (!m.roleEnforcement) process.exit(1) })\""
         ],
         "cwd": "{projectRoot}",
