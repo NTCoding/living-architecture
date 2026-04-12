@@ -49,19 +49,42 @@ function findUniqueApiComponentInDomainMatchingRoute(
     return undefined
   }
 
-  const matchedApiComponents = components.filter(
+  const routeMatchedApiComponents = components.filter(
     (component) =>
       component.type === 'api' &&
       component.domain === domainName &&
-      component.metadata['route'] === route &&
-      (method === undefined || component.metadata['method'] === method),
+      component.metadata['route'] === route,
   )
 
-  if (matchedApiComponents.length !== 1) {
+  if (method === undefined) {
+    if (routeMatchedApiComponents.length !== 1) {
+      return undefined
+    }
+
+    return routeMatchedApiComponents[0]
+  }
+
+  const exactMethodMatchedApiComponents = routeMatchedApiComponents.filter(
+    (component) => component.metadata['method'] === method,
+  )
+
+  if (exactMethodMatchedApiComponents.length === 1) {
+    return exactMethodMatchedApiComponents[0]
+  }
+
+  if (exactMethodMatchedApiComponents.length > 1) {
     return undefined
   }
 
-  return matchedApiComponents[0]
+  const methodlessApiComponents = routeMatchedApiComponents.filter(
+    (component) => component.metadata['method'] === undefined,
+  )
+
+  if (routeMatchedApiComponents.length !== 1 || methodlessApiComponents.length !== 1) {
+    return undefined
+  }
+
+  return methodlessApiComponents[0]
 }
 
 function parseServiceName(httpCallComponent: EnrichedComponent): string {
@@ -136,7 +159,9 @@ function canUseApiNameFallback(
 ): boolean {
   return (
     matchesOptionalMetadata(route, apiComponent.metadata['route']) &&
-    matchesOptionalMetadata(method, apiComponent.metadata['method'])
+    matchesOptionalMetadata(method, apiComponent.metadata['method']) &&
+    (route === undefined || apiComponent.metadata['route'] !== undefined) &&
+    (method === undefined || apiComponent.metadata['method'] !== undefined)
   )
 }
 
@@ -221,12 +246,8 @@ export function rewriteHttpCallLinks(
     const matchedInternalApis = internalApiComponentsByName.get(serviceName) ?? []
     const matchedInternalApiCount = matchedInternalApis.length
     if (matchedInternalApiCount > 1) {
-      throw new ConnectionDetectionError({
-        file: targetComponent.location.file,
-        line: targetComponent.location.line,
-        typeName: componentIdentity(targetComponent),
-        reason: `Expected metadata.serviceName to match exactly one internal api component name, got ${matchedInternalApiCount} matches for ${JSON.stringify(serviceName)}`,
-      })
+      externalLinks.push(toExternalLink(link, serviceName, route))
+      continue
     }
 
     const [uniqueInternalTarget] = matchedInternalApis

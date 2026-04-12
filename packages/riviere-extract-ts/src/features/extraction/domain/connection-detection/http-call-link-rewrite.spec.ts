@@ -246,42 +246,6 @@ describe('rewriteHttpCallLinks', () => {
     ])
   })
 
-  it('throws when httpCall serviceName matches multiple internal api components', () => {
-    const filePath = '/src/http.ts'
-    const source = buildComponent('PlaceOrder', filePath, 1)
-    const httpCall = buildComponent('check', filePath, 2, {
-      type: 'httpCall',
-      metadata: { serviceName: 'FraudGateway' },
-    })
-    const firstApiTarget = buildComponent('FraudGateway', filePath, 3, { type: 'api' })
-    const secondApiTarget = buildComponent('FraudGateway', filePath, 4, { type: 'api' })
-
-    expect(() =>
-      rewriteHttpCallLinks(
-        [
-          {
-            source: 'orders:useCase:PlaceOrder',
-            target: 'orders:httpCall:check',
-            type: 'sync',
-          },
-        ],
-        [source, httpCall, firstApiTarget, secondApiTarget],
-      ),
-    ).toThrowError(/exactly one internal api component/)
-    expect(() =>
-      rewriteHttpCallLinks(
-        [
-          {
-            source: 'orders:useCase:PlaceOrder',
-            target: 'orders:httpCall:check',
-            type: 'sync',
-          },
-        ],
-        [source, httpCall, firstApiTarget, secondApiTarget],
-      ),
-    ).toThrow(ConnectionDetectionError)
-  })
-
   it('throws when httpCall serviceName metadata is missing', () => {
     const filePath = '/src/http.ts'
     const source = buildComponent('PlaceOrder', filePath, 1)

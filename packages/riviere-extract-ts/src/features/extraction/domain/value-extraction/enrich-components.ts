@@ -348,6 +348,10 @@ function componentWithEmptyMetadata(draft: DraftComponent): SingleComponentResul
   }
 }
 
+function shouldIgnoreMissingMetadataField(draft: DraftComponent, fieldName: string): boolean {
+  return draft.type === 'api' && (fieldName === 'route' || fieldName === 'method')
+}
+
 function extractMetadataFields(
   extractBlock: Record<string, ExtractionRule>,
   draft: DraftComponent,
@@ -365,6 +369,10 @@ function extractMetadataFields(
     try {
       metadata[fieldName] = evaluateRule(extractionRule, draft, project).value
     } catch (error: unknown) {
+      if (shouldIgnoreMissingMetadataField(draft, fieldName)) {
+        continue
+      }
+
       /* istanbul ignore next -- @preserve: catch always receives Error instances from ExtractionError */
       const errorMessage = error instanceof Error ? error.message : String(error)
       failures.push({
