@@ -39,6 +39,29 @@ function mapInternalComponentsByName(
   return byName
 }
 
+function findUniqueApiComponentInDomainMatchingRoute(
+  components: readonly EnrichedComponent[],
+  domainName: string,
+  route: string | undefined,
+): EnrichedComponent | undefined {
+  if (route === undefined) {
+    return undefined
+  }
+
+  const matchedApiComponents = components.filter(
+    (component) =>
+      component.type === 'api' &&
+      component.domain === domainName &&
+      component.metadata['route'] === route,
+  )
+
+  if (matchedApiComponents.length !== 1) {
+    return undefined
+  }
+
+  return matchedApiComponents[0]
+}
+
 function parseServiceName(httpCallComponent: EnrichedComponent): string {
   const rawServiceName = httpCallComponent.metadata['serviceName']
   if (typeof rawServiceName === 'string' && rawServiceName.trim().length > 0) {
@@ -127,6 +150,21 @@ export function rewriteHttpCallLinks(
     }
 
     const route = parseRoute(targetComponent)
+
+    const uniqueApiTargetInDomain = findUniqueApiComponentInDomainMatchingRoute(
+      components,
+      serviceName,
+      route,
+    )
+
+    if (uniqueApiTargetInDomain !== undefined) {
+      linksToKeep.push({
+        ...link,
+        target: componentIdentity(uniqueApiTargetInDomain),
+      })
+      continue
+    }
+
     externalLinks.push(toExternalLink(link, serviceName, route))
   }
 

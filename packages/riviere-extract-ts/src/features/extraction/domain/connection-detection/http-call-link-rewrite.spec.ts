@@ -95,6 +95,90 @@ describe('rewriteHttpCallLinks', () => {
     expect(result.externalLinks).toStrictEqual([])
   })
 
+  it('keeps internal link when httpCall serviceName matches internal domain and route matches a unique api component', () => {
+    const filePath = '/src/http.ts'
+    const source = buildComponent('PlaceOrderBFFUseCase', filePath, 1, { domain: 'bff' })
+    const httpCall = buildComponent('placeOrder', filePath, 2, {
+      type: 'httpCall',
+      domain: 'bff',
+      metadata: {
+        serviceName: 'orders',
+        route: '/orders',
+      },
+    })
+    const internalTarget = buildComponent('handle', filePath, 3, {
+      type: 'api',
+      domain: 'orders',
+      metadata: { route: '/orders' },
+    })
+
+    const result = rewriteHttpCallLinks(
+      [
+        {
+          source: 'bff:useCase:PlaceOrderBFFUseCase',
+          target: 'bff:httpCall:placeOrder',
+          type: 'sync',
+        },
+      ],
+      [source, httpCall, internalTarget],
+    )
+
+    expect(result.links).toStrictEqual([
+      {
+        source: 'bff:useCase:PlaceOrderBFFUseCase',
+        target: 'orders:api:handle',
+        type: 'sync',
+      },
+    ])
+    expect(result.externalLinks).toStrictEqual([])
+  })
+
+  it('rewrites link to external when httpCall serviceName matches internal domain but route does not match any api component', () => {
+    const filePath = '/src/http.ts'
+    const source = buildComponent('PlaceOrderBFFUseCase', filePath, 1, { domain: 'bff' })
+    const httpCall = buildComponent('placeOrder', filePath, 2, {
+      type: 'httpCall',
+      domain: 'bff',
+      metadata: {
+        serviceName: 'orders',
+        route: '/payments',
+      },
+    })
+    const ordersApi = buildComponent('handle', filePath, 3, {
+      type: 'api',
+      domain: 'orders',
+      metadata: { route: '/orders' },
+    })
+    const cancelOrderApi = buildComponent('cancel', filePath, 4, {
+      type: 'api',
+      domain: 'orders',
+      metadata: { route: '/orders/:id/cancel' },
+    })
+
+    const result = rewriteHttpCallLinks(
+      [
+        {
+          source: 'bff:useCase:PlaceOrderBFFUseCase',
+          target: 'bff:httpCall:placeOrder',
+          type: 'sync',
+        },
+      ],
+      [source, httpCall, ordersApi, cancelOrderApi],
+    )
+
+    expect(result.links).toStrictEqual([])
+    expect(result.externalLinks).toStrictEqual([
+      {
+        source: 'bff:useCase:PlaceOrderBFFUseCase',
+        target: {
+          name: 'orders',
+          route: '/payments',
+        },
+        type: 'sync',
+      },
+    ])
+  })
+
   it('throws when httpCall serviceName matches multiple internal components', () => {
     const filePath = '/src/http.ts'
     const source = buildComponent('PlaceOrder', filePath, 1)
