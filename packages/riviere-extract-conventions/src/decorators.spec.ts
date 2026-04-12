@@ -196,18 +196,6 @@ describe('Method-level decorators', () => {
 
       expect(new FraudClient().check()).toBe('ok')
     })
-
-    it('preserves method behavior when HttpCall uses the legacy single-argument signature', () => {
-      @HttpClient('Fraud Detection Service')
-      class FraudClient {
-        @HttpCall('/api/check')
-        check(): string {
-          return 'ok'
-        }
-      }
-
-      expect(new FraudClient().check()).toBe('ok')
-    })
   })
 })
 

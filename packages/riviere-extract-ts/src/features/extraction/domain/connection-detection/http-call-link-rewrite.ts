@@ -252,16 +252,6 @@ export function rewriteHttpCallLinks(
       continue
     }
 
-    const uniqueApiTargetGlobally = findUniqueApiComponentMatchingRoute(components, route, method)
-
-    if (uniqueApiTargetGlobally !== undefined) {
-      linksToKeep.push({
-        ...link,
-        target: componentIdentity(uniqueApiTargetGlobally),
-      })
-      continue
-    }
-
     const matchedInternalApis = internalApiComponentsByName.get(serviceName) ?? []
     const matchedInternalApiCount = matchedInternalApis.length
     if (matchedInternalApiCount > 1) {

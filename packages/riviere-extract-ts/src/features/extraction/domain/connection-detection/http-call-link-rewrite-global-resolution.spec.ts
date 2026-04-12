@@ -71,7 +71,7 @@ describe('rewriteHttpCallLinks - global and fallback resolution', () => {
     expect(result.externalLinks).toStrictEqual([])
   })
 
-  it('keeps internal link when route and method uniquely match an internal api even when serviceName is only a label', () => {
+  it('rewrites link to external when serviceName is only a label even if route and method match an internal api', () => {
     const filePath = '/src/http.ts'
     const source = buildComponent('PlaceOrderBFFUseCase', filePath, 1, { domain: 'bff' })
     const httpCall = buildComponent('placeOrder', filePath, 2, {
@@ -103,13 +103,16 @@ describe('rewriteHttpCallLinks - global and fallback resolution', () => {
       [source, httpCall, inventoryApi],
     )
 
-    expect(result.links).toStrictEqual([
+    expect(result.links).toStrictEqual([])
+    expect(result.externalLinks).toStrictEqual([
       {
         source: 'bff:useCase:PlaceOrderBFFUseCase',
-        target: 'inventory:api:CheckStockEndpoint',
+        target: {
+          name: 'Inventory Service',
+          route: '/inventory/:sku',
+        },
         type: 'sync',
       },
     ])
-    expect(result.externalLinks).toStrictEqual([])
   })
 })
