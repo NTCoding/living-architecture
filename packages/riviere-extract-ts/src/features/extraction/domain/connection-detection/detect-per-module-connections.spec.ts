@@ -196,4 +196,56 @@ class PlaceOrder {
       }),
     ])
   })
+
+  it('keeps internal link when matching api component exists in another module', () => {
+    const project = createProject()
+    const filePath = '/src/bff/http.ts'
+    project.createSourceFile(
+      filePath,
+      `
+class InventoryClient {
+  checkStock(): void {}
+}
+
+class CheckStockAvailability {
+  private inventory: InventoryClient
+  constructor(inventory: InventoryClient) { this.inventory = inventory }
+  execute(): void {
+    this.inventory.checkStock()
+  }
+}
+`,
+    )
+
+    const useCase = buildComponent('CheckStockAvailability', filePath, 6, { domain: 'bff' })
+    const httpCall = buildComponent('checkStock', filePath, 3, {
+      type: 'httpCall',
+      domain: 'bff',
+      metadata: {
+        serviceName: 'inventory',
+        route: '/inventory/:sku',
+      },
+    })
+    const inventoryApi = buildComponent('CheckStockEndpoint', '/src/inventory/api.ts', 1, {
+      type: 'api',
+      domain: 'inventory',
+      metadata: { route: '/inventory/:sku' },
+    })
+    const options = {
+      repository: 'test-repo',
+      moduleGlobs: ['/src/bff/**/*.ts'],
+      allComponents: [useCase, httpCall, inventoryApi],
+    }
+
+    const result = detectPerModuleConnections(project, [useCase, httpCall], options, matchesGlob)
+
+    expect(result.links).toStrictEqual([
+      expect.objectContaining({
+        source: 'bff:useCase:CheckStockAvailability',
+        target: 'inventory:api:CheckStockEndpoint',
+        type: 'sync',
+      }),
+    ])
+    expect(result.externalLinks).toStrictEqual([])
+  })
 })

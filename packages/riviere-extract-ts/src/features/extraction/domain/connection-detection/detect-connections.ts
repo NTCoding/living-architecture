@@ -80,6 +80,7 @@ export function stripHttpCallComponents(
 
 /** @riviere-role value-object */
 export interface PerModuleConnectionOptions {
+  allComponents?: readonly EnrichedComponent[]
   allowIncomplete?: boolean
   moduleGlobs: string[]
   patterns?: ConnectionPattern[]
@@ -135,7 +136,10 @@ export function detectPerModuleConnections(
     repository,
   )
 
-  const rewritten = rewriteHttpCallLinks([...syncLinks, ...configurableLinks], components)
+  const rewritten = rewriteHttpCallLinks(
+    [...syncLinks, ...configurableLinks],
+    options.allComponents ?? components,
+  )
 
   return {
     links: rewritten.links,

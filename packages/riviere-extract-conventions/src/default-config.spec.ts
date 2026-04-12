@@ -207,6 +207,27 @@ describe('Default extraction config', () => {
   })
 
   describe('Extraction rules', () => {
+    it('api extracts apiType, route, and method from instance properties', () => {
+      const config = loadDefaultConfig()
+      const module = getFirstModule(config)
+
+      assertExtractionConfig(module.api, {
+        apiType: { literal: 'REST' },
+        route: {
+          fromProperty: {
+            name: 'route',
+            kind: 'instance',
+          },
+        },
+        method: {
+          fromProperty: {
+            name: 'method',
+            kind: 'instance',
+          },
+        },
+      })
+    })
+
     it('eventHandler extracts subscribedEvents from instance property', () => {
       const config = loadDefaultConfig()
       const module = getFirstModule(config)

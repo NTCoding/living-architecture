@@ -158,6 +158,7 @@ export class ExtractionProject {
         moduleContext.project,
         moduleComponents,
         {
+          allComponents: enrichedComponents,
           allowIncomplete,
           moduleGlobs: [posix.join(moduleContext.module.path, moduleContext.module.glob)],
           repository: this.repositoryName,
