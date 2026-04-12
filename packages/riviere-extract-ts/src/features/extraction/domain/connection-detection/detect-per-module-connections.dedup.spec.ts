@@ -4,11 +4,7 @@ import {
 import { Project } from 'ts-morph'
 import { buildComponent } from './call-graph/call-graph-fixtures'
 import { detectPerModuleConnections } from './detect-connections'
-
-function matchesGlob(filePath: string, pattern: string): boolean {
-  const normalizedPattern = pattern.replace('**/*', '').replace('**', '')
-  return filePath.startsWith(normalizedPattern.replace('*', ''))
-}
+import { matchesGlob } from '../../../../platform/infra/external-clients/minimatch/minimatch-glob'
 
 describe('detectPerModuleConnections deduplication', () => {
   it('deduplicates external links when call graph and configurable detection find the same httpCall edge', () => {
