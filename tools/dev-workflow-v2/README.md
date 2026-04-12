@@ -30,7 +30,31 @@ Analyzes parallel work streams across active PRDs, recommends a task from an idl
 
 Renames the worktree branch to match the issue, reads the issue details, initializes the workflow state machine, and begins the IMPLEMENTING state.
 
-### 3. Workflow (internal)
+### 3. Code review
+
+```bash
+/dev-workflow-v2:code-review
+```
+
+Runs the reusable automated review bundle for the current branch and writes reports under `reviews/<branch-name>/`.
+
+### 4. List review threads
+
+```bash
+/dev-workflow-v2:list-review-threads
+```
+
+Lists unresolved review threads for the current PR in a structured, human-friendly format.
+
+### 5. Create PR
+
+```bash
+/dev-workflow-v2:create-pr
+```
+
+Pushes the current branch and creates a PR using the repo's standard title/body structure.
+
+### 6. Workflow (internal)
 
 ```bash
 /dev-workflow-v2:workflow <command>

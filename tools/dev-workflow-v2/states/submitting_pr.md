@@ -4,8 +4,7 @@ You are creating or updating the pull request.
 
 ## TODO
 
-- [ ] Push the branch: `git push -u origin <branch-name>`
-- [ ] Create the PR: `gh pr create --title "<title>" --body "<description>"` (or update existing)
+- [ ] Run `/dev-workflow-v2:create-pr` to push the current branch and create the PR with the standard repo format
 - [ ] Record the PR: `/dev-workflow-v2:workflow record-pr <PR_NUMBER> [PR_URL]`
 - [ ] Transition to AWAITING_CI: `/dev-workflow-v2:workflow transition AWAITING_CI`
 
