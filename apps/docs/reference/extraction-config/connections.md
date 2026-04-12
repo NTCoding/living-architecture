@@ -32,6 +32,21 @@ Reference for connection detection options in Extraction Config.
 
 Global connection patterns inherited by all modules.
 
+Example:
+
+```yaml
+connections:
+  patterns:
+    - name: custom-event-emitter
+      find: methodCalls
+      where:
+        methodName: emit
+        receiverType: EventBus
+      extract:
+        eventName: { fromArgument: 0 }
+      linkType: async
+```
+
 **Parameters:**
 
 | Field                  | Type                  | Required | Description                                                        |
