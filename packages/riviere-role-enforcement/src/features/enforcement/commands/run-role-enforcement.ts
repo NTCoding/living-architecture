@@ -1,9 +1,7 @@
 import {
-  existsSync, readdirSync, realpathSync 
+  readdirSync, realpathSync 
 } from 'node:fs'
-import path from 'node:path'
 import { performance } from 'node:perf_hooks'
-import { fileURLToPath } from 'node:url'
 import { PackageFilterError } from '../domain/filter-config-by-package'
 import { resolveLintTargets } from '../domain/resolve-lint-targets'
 import { RoleEnforcementExecutionError } from '../domain/role-enforcement-execution-error'
@@ -13,6 +11,7 @@ import {
 } from '../infra/external-clients/oxlint/config-reader'
 import { createOxlintConfig } from '../infra/external-clients/oxlint/create-oxlint-config'
 import { runOxlint } from '../infra/external-clients/oxlint/run-oxlint'
+import { resolvePluginPath as defaultResolvePluginPath } from '../infra/external-clients/filesystem/resolve-plugin-path'
 import type { RunRoleEnforcementInput } from './run-role-enforcement-input'
 import type { RunRoleEnforcementResult } from './run-role-enforcement-result'
 
@@ -22,6 +21,7 @@ const defaultRunRoleEnforcementDeps: {
   now: () => number
   readdirSync: ReadDirectoryFn
   realpathSync: (filePath: string) => string
+  resolvePluginPath: () => string
   oxlintAdapter: typeof runOxlint
   readConfig: typeof defaultReadConfig
   readConfigForPackage: typeof defaultReadConfigForPackage
@@ -29,6 +29,7 @@ const defaultRunRoleEnforcementDeps: {
   now: () => performance.now(),
   readdirSync: (rootDir, options) => readdirSync(rootDir, options),
   realpathSync: (filePath) => realpathSync(filePath),
+  resolvePluginPath: defaultResolvePluginPath,
   oxlintAdapter: runOxlint,
   readConfig: defaultReadConfig,
   readConfigForPackage: defaultReadConfigForPackage,
@@ -54,7 +55,7 @@ export class RunRoleEnforcement {
           : this.deps.readConfigForPackage(input.configModule, input.packageFilter)
 
       const canonicalConfigDir = this.deps.realpathSync(input.configDir)
-      const pluginPath = resolvePluginPath()
+      const pluginPath = this.deps.resolvePluginPath()
       const configDisplayPath = 'role-enforcement.config.ts'
       const oxlintConfig = createOxlintConfig(
         config,
@@ -92,21 +93,4 @@ export class RunRoleEnforcement {
       throw error
     }
   }
-}
-
-function findFileUp(startDir: string, fileName: string): string | undefined {
-  const candidate = path.join(startDir, fileName)
-  if (existsSync(candidate)) return candidate
-  const parent = path.dirname(startDir)
-  if (parent === startDir) return undefined
-  return findFileUp(parent, fileName)
-}
-
-function resolvePluginPath(): string {
-  const startDir = path.dirname(fileURLToPath(import.meta.url))
-  const found = findFileUp(startDir, 'role-enforcement-plugin.mjs')
-  if (found === undefined) {
-    throw new RoleEnforcementExecutionError('Cannot find role-enforcement-plugin.mjs')
-  }
-  return found
 }

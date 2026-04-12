@@ -1,13 +1,14 @@
 import {
-  existsSync, rmSync, writeFileSync 
+  rmSync, writeFileSync 
 } from 'node:fs'
 import path from 'node:path'
 import { spawnSync } from 'node:child_process'
-import { fileURLToPath } from 'node:url'
 import { RoleEnforcementExecutionError } from '../../../domain/role-enforcement-execution-error'
 import type { OxlintConfig } from './create-oxlint-config'
+import { resolveOxlintBinaryPath as defaultResolveOxlintBinaryPath } from './resolve-oxlint-binary-path'
 
 interface OxlintAdapterDeps {
+  resolveOxlintBinaryPath: () => string
   rmSync: (filePath: string, options: { force: true }) => void
   spawnSync: (
     command: string,
@@ -39,6 +40,7 @@ interface RunOxlintAdapterResult {
 }
 
 const defaultAdapterDeps: OxlintAdapterDeps = {
+  resolveOxlintBinaryPath: defaultResolveOxlintBinaryPath,
   rmSync,
   spawnSync,
   writeFileSync,
@@ -51,7 +53,7 @@ export function runOxlint({
   lintTargets,
   deps = defaultAdapterDeps,
 }: RunOxlintInputs): RunOxlintAdapterResult {
-  const oxlintBinaryPath = resolveOxlintBinaryPath()
+  const oxlintBinaryPath = deps.resolveOxlintBinaryPath()
   const oxlintConfigPath = path.join(
     configDir,
     `.oxlintrc.role-enforcement.${process.pid}.${Date.now()}.json`,
@@ -81,21 +83,4 @@ export function runOxlint({
   } finally {
     deps.rmSync(oxlintConfigPath, { force: true })
   }
-}
-
-function findFileUp(startDir: string, relativePath: string): string | undefined {
-  const candidate = path.join(startDir, relativePath)
-  if (existsSync(candidate)) return candidate
-  const parent = path.dirname(startDir)
-  if (parent === startDir) return undefined
-  return findFileUp(parent, relativePath)
-}
-
-function resolveOxlintBinaryPath(): string {
-  const startDir = path.dirname(fileURLToPath(import.meta.url))
-  const found = findFileUp(startDir, path.join('node_modules', '.bin', 'oxlint'))
-  if (found === undefined) {
-    throw new RoleEnforcementExecutionError('Cannot find oxlint binary in node_modules')
-  }
-  return found
 }
