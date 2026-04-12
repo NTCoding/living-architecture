@@ -148,4 +148,62 @@ describe('ExtractionProject.extractDraftComponents', () => {
 
     expect(result.kind).toBe('draftOnly')
   })
+
+  it('passes configured connection patterns into per-module detection', () => {
+    const ctx = createModuleContext('orders')
+    const pattern = {
+      from: { component: 'useCase' },
+      to: { component: 'repository' },
+      kind: 'call' as const,
+    }
+
+    mockExtractComponents.mockReturnValue([
+      {
+        name: 'OrderService',
+        domain: 'orders',
+        type: 'useCase',
+        location: {
+          file: 'test.ts',
+          line: 1,
+        },
+      },
+    ])
+    mockEnrichComponents.mockReturnValue({
+      components: [
+        {
+          name: 'OrderService',
+          domain: 'orders',
+          type: 'useCase',
+          location: {
+            file: 'test.ts',
+            line: 1,
+          },
+          metadata: {},
+        },
+      ],
+      failures: [],
+    })
+
+    const project = new ExtractionProject(
+      '/config',
+      [ctx],
+      {
+        modules: [],
+        connections: { patterns: [pattern] },
+      },
+      'test-repo',
+    )
+
+    project.extractDraftComponents({
+      allowIncomplete: true,
+      includeConnections: true,
+    })
+
+    expect(mockDetectPerModule).toHaveBeenCalledWith(
+      ctx.project,
+      expect.any(Array),
+      expect.objectContaining({ patterns: [pattern] }),
+      mockMatchesGlob,
+    )
+  })
 })

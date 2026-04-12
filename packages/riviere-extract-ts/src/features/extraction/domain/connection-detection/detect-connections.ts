@@ -109,7 +109,8 @@ export function detectPerModuleConnections(
   globMatcher: GlobMatcher,
 ): PerModuleDetectionResult {
   const setupStart = performance.now()
-  const componentIndex = new ComponentIndex(components)
+  const visibleComponents = options.allComponents ?? components
+  const componentIndex = new ComponentIndex(visibleComponents)
   const sourceFilePaths = computeFilteredFilePaths(project, options.moduleGlobs, globMatcher)
   const setupMs = performance.now() - setupStart
 
@@ -130,16 +131,13 @@ export function detectPerModuleConnections(
   } = runConfigurableDetection(
     project,
     patterns,
-    components,
+    visibleComponents,
     componentIndex,
     strict,
     repository,
   )
 
-  const rewritten = rewriteHttpCallLinks(
-    [...syncLinks, ...configurableLinks],
-    options.allComponents ?? components,
-  )
+  const rewritten = rewriteHttpCallLinks([...syncLinks, ...configurableLinks], visibleComponents)
 
   return {
     links: rewritten.links,

@@ -248,4 +248,55 @@ class CheckStockAvailability {
     ])
     expect(result.externalLinks).toStrictEqual([])
   })
+
+  it('returns sync link to component in another module when allComponents includes target', () => {
+    const project = createProject()
+    project.createSourceFile(
+      '/src/orders/repository.ts',
+      `
+export class OrdersRepository {
+  save(): void {}
+}
+`,
+    )
+    project.createSourceFile(
+      '/src/bff/use-case.ts',
+      `
+import { OrdersRepository } from '../orders/repository'
+
+class PlaceOrder {
+  private repo: OrdersRepository
+  constructor(repo: OrdersRepository) { this.repo = repo }
+  execute(): void {
+    this.repo.save()
+  }
+}
+`,
+    )
+
+    const useCase = buildComponent('PlaceOrder', '/src/bff/use-case.ts', 4, { domain: 'bff' })
+    const repository = buildComponent('OrdersRepository', '/src/orders/repository.ts', 2, {
+      type: 'repository',
+      domain: 'orders',
+    })
+
+    const result = detectPerModuleConnections(
+      project,
+      [useCase],
+      {
+        repository: 'test-repo',
+        moduleGlobs: ['/src/bff/**/*.ts'],
+        allComponents: [useCase, repository],
+      },
+      matchesGlob,
+    )
+
+    expect(result.links).toStrictEqual([
+      expect.objectContaining({
+        source: 'bff:useCase:PlaceOrder',
+        target: 'orders:repository:OrdersRepository',
+        type: 'sync',
+      }),
+    ])
+  })
 })

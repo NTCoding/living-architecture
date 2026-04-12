@@ -161,6 +161,7 @@ export class ExtractionProject {
           allComponents: enrichedComponents,
           allowIncomplete,
           moduleGlobs: [posix.join(moduleContext.module.path, moduleContext.module.glob)],
+          patterns: this.resolvedConfig.connections?.patterns,
           repository: this.repositoryName,
         },
         matchesGlob,
