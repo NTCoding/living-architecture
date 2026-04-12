@@ -326,8 +326,8 @@ importers:
   tools/dev-workflow-v2:
     dependencies:
       '@ntcoding/agentic-workflow-builder':
-        specifier: github:NTCoding/autonomous-claude-agent-team#e27e0ae67ba3b79fe0c64861b2eb8dfc14edbcca&path:packages/agentic-workflow-builder
-        version: https://codeload.github.com/NTCoding/autonomous-claude-agent-team/tar.gz/e27e0ae67ba3b79fe0c64861b2eb8dfc14edbcca#path:packages/agentic-workflow-builder(zod@3.25.76)
+        specifier: github:NTCoding/autonomous-claude-agent-team#223d5254086ccba04bcb1f440c5bffa67b6ac3db&path:packages/agentic-workflow-builder
+        version: https://codeload.github.com/NTCoding/autonomous-claude-agent-team/tar.gz/223d5254086ccba04bcb1f440c5bffa67b6ac3db#path:packages/agentic-workflow-builder(zod@3.25.76)
       zod:
         specifier: ^3.23.0
         version: 3.25.76
@@ -1595,8 +1595,8 @@ packages:
     resolution: {integrity: sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg==}
     engines: {node: '>= 8'}
 
-  '@ntcoding/agentic-workflow-builder@https://codeload.github.com/NTCoding/autonomous-claude-agent-team/tar.gz/e27e0ae67ba3b79fe0c64861b2eb8dfc14edbcca#path:packages/agentic-workflow-builder':
-    resolution: {path: packages/agentic-workflow-builder, tarball: https://codeload.github.com/NTCoding/autonomous-claude-agent-team/tar.gz/e27e0ae67ba3b79fe0c64861b2eb8dfc14edbcca}
+  '@ntcoding/agentic-workflow-builder@https://codeload.github.com/NTCoding/autonomous-claude-agent-team/tar.gz/223d5254086ccba04bcb1f440c5bffa67b6ac3db#path:packages/agentic-workflow-builder':
+    resolution: {path: packages/agentic-workflow-builder, tarball: https://codeload.github.com/NTCoding/autonomous-claude-agent-team/tar.gz/223d5254086ccba04bcb1f440c5bffa67b6ac3db}
     version: 0.6.6
     peerDependencies:
       zod: ^3.23.0
@@ -8392,7 +8392,7 @@ snapshots:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.20.1
 
-  '@ntcoding/agentic-workflow-builder@https://codeload.github.com/NTCoding/autonomous-claude-agent-team/tar.gz/e27e0ae67ba3b79fe0c64861b2eb8dfc14edbcca#path:packages/agentic-workflow-builder(zod@3.25.76)':
+  '@ntcoding/agentic-workflow-builder@https://codeload.github.com/NTCoding/autonomous-claude-agent-team/tar.gz/223d5254086ccba04bcb1f440c5bffa67b6ac3db#path:packages/agentic-workflow-builder(zod@3.25.76)':
     dependencies:
       '@opencode-ai/plugin': 1.4.3
       zod: 3.25.76
