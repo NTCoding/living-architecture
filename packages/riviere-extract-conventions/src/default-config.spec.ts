@@ -130,6 +130,12 @@ describe('Default extraction config', () => {
             position: 0,
           },
         },
+        method: {
+          fromDecoratorArg: {
+            decorator: 'HttpCall',
+            position: 1,
+          },
+        },
       },
     })
   })

@@ -97,10 +97,76 @@ export class FraudClient {
     expect(result.failures).toStrictEqual([])
   })
 
-  it('extracts method decorator positional arg with fromDecoratorArg', () => {
+  it('extracts route and method decorator positional args with fromDecoratorArg', () => {
     const file = nextFile(
       '/src/orders/http-client.ts',
-      `function HttpCall(_: string) { return () => {} }
+      `function HttpCall(_: string, __: string) { return () => {} }
+export class FraudClient {
+  @HttpCall('/api/check', 'POST')
+  check() {}
+}`,
+    )
+
+    const drafts: DraftComponent[] = [
+      {
+        type: 'httpCall',
+        name: 'check',
+        location: {
+          file,
+          line: 3,
+        },
+        domain: 'orders',
+      },
+    ]
+
+    const module: Module = {
+      ...notUsedModule(),
+      name: 'orders',
+      path: '/src/orders',
+      glob: '**',
+      domainOp: { notUsed: true },
+      eventHandler: { notUsed: true },
+      customTypes: {
+        httpCall: {
+          find: 'methods',
+          where: { nameEndsWith: { suffix: 'check' } },
+          extract: {
+            route: {
+              fromDecoratorArg: {
+                decorator: 'HttpCall',
+                position: 0,
+              },
+            },
+            method: {
+              fromDecoratorArg: {
+                decorator: 'HttpCall',
+                position: 1,
+              },
+            },
+          },
+        },
+      },
+    }
+
+    const result = enrichComponents(
+      drafts,
+      configWithModules([module]),
+      sharedProject,
+      alwaysMatchGlob(),
+      '/',
+    )
+
+    expect(result.components[0]?.metadata).toStrictEqual({
+      route: '/api/check',
+      method: 'POST',
+    })
+    expect(result.failures).toStrictEqual([])
+  })
+
+  it('records failure when HttpCall method argument is missing', () => {
+    const file = nextFile(
+      '/src/orders/http-client.ts',
+      `function HttpCall(_: string, __?: string) { return () => {} }
 export class FraudClient {
   @HttpCall('/api/check')
   check() {}
@@ -137,6 +203,12 @@ export class FraudClient {
                 position: 0,
               },
             },
+            method: {
+              fromDecoratorArg: {
+                decorator: 'HttpCall',
+                position: 1,
+              },
+            },
           },
         },
       },
@@ -150,8 +222,9 @@ export class FraudClient {
       '/',
     )
 
-    expect(result.components[0]?.metadata).toStrictEqual({ route: '/api/check' })
-    expect(result.failures).toStrictEqual([])
+    expect(result.failures).toHaveLength(1)
+    expect(result.failures[0]?.field).toBe('method')
+    expect(result.components[0]?._missing).toStrictEqual(['method'])
   })
 
   it('records failure when fromDecoratorArg decorator is missing on method', () => {

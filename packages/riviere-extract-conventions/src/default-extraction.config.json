@@ -129,6 +129,12 @@
                 "decorator": "HttpCall",
                 "position": 0
               }
+            },
+            "method": {
+              "fromDecoratorArg": {
+                "decorator": "HttpCall",
+                "position": 1
+              }
             }
           }
         }
