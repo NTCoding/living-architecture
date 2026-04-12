@@ -36,20 +36,28 @@ This is not a generic workflow engine. Workflows are purpose-built for Riviere e
 
 **If a source of truth exists, use it.** Don't analyze code when a spec already describes the architecture.
 
-| Priority | Source | Example |
-|----------|--------|---------|
-| 1 | Existing specs | AsyncAPI, EventCatalog |
-| 2 | Code with conventions | Golden Path extraction (Phase 12) |
-| 3 | Code with patterns | Configurable extraction (Phase 12) |
-| 4 | AI discovery | Fill gaps, enrich metadata |
+| Priority | Source                | Example                            |
+| -------- | --------------------- | ---------------------------------- |
+| 1        | Existing specs        | AsyncAPI, EventCatalog             |
+| 2        | Code with conventions | Golden Path extraction (Phase 12)  |
+| 3        | Code with patterns    | Configurable extraction (Phase 12) |
+| 4        | AI discovery          | Fill gaps, enrich metadata         |
 
 Teams that maintain AsyncAPI specs for their events shouldn't need to configure event extraction rules — the workflow imports the spec directly.
 
 ### 2.3 Steps Own Their Config
 
-The workflow file defines step execution order. That's it. Each step references its own config file(s) containing all the information that step needs — sources, domains, extraction rules, mappings. The workflow file knows nothing about graph structure, domains, or components.
+Config files are the source of truth for step behavior. The workflow is the glue.
 
-**Rationale:** Mixing graph configuration into the workflow file couples the orchestration definition to extraction details. Step configs are created during workflow setup (`riviere workflow init`). The workflow just sequences them.
+The workflow file defines:
+
+- graph-wide builder inputs (`name`, `description`, `output`, `sources`, `domains`)
+- step execution order
+- which config file each step uses
+
+Each step config defines everything about how that capability behaves — extraction rules, mappings, modules, AI selection rules, confidence thresholds, and other graph-affecting behavior.
+
+**Rationale:** A user must get the same behavior from direct CLI usage and workflow usage. If a rule belongs to the capability itself, it belongs in the capability config. The workflow composes those capabilities into one graph build.
 
 ### 2.4 CI-First
 
@@ -57,13 +65,24 @@ Workflows must run in CI without human intervention. `riviere workflow run ./riv
 
 ### 2.5 Incremental Learning
 
-When a user corrects an AI suggestion or refines a mapping, that correction is persisted in config files — not in the workflow engine's memory. Future runs use the updated configs. Deterministic steps produce the same output every time; AI steps improve as configs are refined.
+When a user refines a mapping or otherwise updates a step config after reviewing workflow output, that correction lives in config files — not in workflow runtime memory. Future runs use the updated configs. Phase 13 does not include an automated AI review-and-accept loop.
 
-### 2.6 Generic Engine, Domain-Specific Steps
+### 2.6 Registry-Based Runtime, Built-In Steps First
 
-The workflow engine is generic — it executes steps sequentially, passing context. It knows nothing about extraction, events, or AI. Each step type implements a common interface and contains all domain-specific logic. This separation enables extensibility: custom steps implement the same interface.
+Phase 13 introduces a dedicated `riviere-workflow` runtime package. The runtime resolves steps through a registry and executes them sequentially against a shared builder.
 
-**Steps are isolated.** A step can only access its own config and the shared builder. No cross-step state, no access to other steps' configs, no workflow metadata beyond what's in the context.
+Phase 13 ships built-in step types only. User plugin loading is out of scope, but the runtime must be structured so future extension can add new step types without major rework.
+
+**Exported extension seam:** `riviere-workflow` exports the step contract now. Built-in steps and future custom steps use the same interfaces.
+
+**Steps are isolated.** A step can access only:
+
+- its own validated config
+- the shared builder
+- logger
+- fixed runtime services passed in `StepContext`
+
+No step can read another step's config or rely on hidden cross-step state.
 
 ---
 
@@ -75,9 +94,29 @@ YAML with JSON Schema validation. Consistent with extraction config (Phase 11). 
 
 ```yaml
 name: ecommerce-architecture
+description: Combined architecture graph for the ecommerce platform
 output: ./architecture.json
 
+sources:
+  - repository: ecommerce-demo-app
+
+domains:
+  orders:
+    description: Order lifecycle and checkout
+    systemType: domain
+  shipping:
+    description: Shipment orchestration
+    systemType: domain
+
 steps:
+  - name: import-events
+    type: eventcatalog-import
+    config: ./specs/eventcatalog-import.yaml
+
+  - name: import-broker
+    type: asyncapi-import
+    config: ./specs/asyncapi-import.yaml
+
   - name: extract-orders
     type: code-extraction
     config: ./orders/riviere-config.yaml
@@ -85,26 +124,14 @@ steps:
   - name: extract-shipping
     type: code-extraction
     config: ./shipping/riviere-config.yaml
-    patterns: true
-
-  - name: import-events
-    type: eventcatalog-import
-    source: ./eventcatalog
-    mappings: ./eventcatalog-mappings.yaml
-
-  - name: import-broker
-    type: asyncapi-import
-    source: ./broker/asyncapi.yaml
-    mappings: ./asyncapi-mappings.yaml
 
   - name: discover-gaps
     type: ai-extract
-    sources: [./orders/src, ./shipping/src]
-    confidence-threshold: 0.8
+    config: ./steps/ai-extract.yaml
 
   - name: enrich-metadata
     type: ai-enrich
-    confidence-threshold: 0.8
+    config: ./steps/ai-enrich.yaml
 
   - name: validate
     type: schema-validate
@@ -112,9 +139,13 @@ steps:
 
 **Execution model:** Steps run sequentially, top to bottom. All steps share the same `RiviereBuilder` instance (passed by reference). Builder state accumulates across steps. If a step throws, the workflow aborts and no output is written.
 
-**Workflow schema:** JSON Schema validates the workflow file structure (name, output, steps array with name and type required). Step-specific fields (`config`, `source`, `mappings`, etc.) are validated by each step handler's own `validateConfig` method, not by the workflow schema.
+**Step order is semantic.** When multiple steps provide conflicting values for the same scalar field on the same canonical component, earlier steps win. Recommended order follows the source priority model in §2.2: specs first, code second, AI last.
+
+**Workflow schema:** JSON Schema validates the workflow file structure (`output`, `sources`, `domains`, `steps[].name`, `steps[].type`, and `steps[].config` for steps that require config). Step-specific behavior is validated by each step handler's own `validateConfig()` method.
 
 **Output:** Always the result of `builder.build()` — a validated `RiviereGraph` written as JSON to the `output` path. One output file per workflow.
+
+**Boundary rule:** Workflow YAML may declare graph-wide builder inputs. It may not override step behavior. Fields like connection patterns, `allow-incomplete`, import mappings, AI field selection, and confidence thresholds belong in step config files.
 
 ### 3.2 Workflow Step Interface
 
@@ -126,28 +157,51 @@ interface WorkflowStepHandler<TConfig = Record<string, unknown>> {
   execute(context: StepContext<TConfig>): Promise<void>
 }
 
+interface WorkflowStepServices {
+  ai?: AiProvider
+}
+
 interface StepContext<TConfig> {
   builder: RiviereBuilder
   config: TConfig
   logger: StepLogger
+  services: WorkflowStepServices
+}
+
+interface WorkflowStepDefinition<TConfig = Record<string, unknown>> {
+  type: string
+  handler: WorkflowStepHandler<TConfig>
 }
 ```
 
 **`validateConfig`** — Each step validates and narrows its own config from the raw YAML. This runs before `execute`, during the validation phase. Type-safe config per step type — `code-extraction` gets `CodeExtractionConfig`, `eventcatalog-import` gets `EventCatalogImportConfig`, etc.
 
-**`execute`** — Receives the typed config and builder. Performs step work. Returns void on success, throws on failure.
+**`execute`** — Receives the typed config, builder, logger, and fixed runtime services. Performs step work. Returns void on success, throws on failure.
 
-The workflow engine is decoupled from step implementations. It resolves step handlers by type name, calls `validateConfig` for each step, then executes them in order. The engine has zero imports from step implementation code.
+The runtime is decoupled from concrete step implementations. It resolves step handlers by type name from the registry, calls `validateConfig()` for each step, then executes them in order. The step contract is exported from `riviere-workflow` so future extension can depend on the same seam.
 
-### 3.3 Builder Initialization
+### 3.3 Builder Creation and Workflow Compatibility Rules
 
-The builder requires `sources` and `domains` at construction (`RiviereBuilder.new()`). In a workflow, the first step that adds components is responsible for initializing the builder.
+The builder requires `sources` and `domains` at construction (`RiviereBuilder.new()`). The workflow therefore creates the builder eagerly at startup from its top-level graph definition.
 
-**How it works:** The engine creates the builder lazily. The `StepContext.builder` is initially uninitialized. When a step first accesses the builder to add a domain or source, it calls `RiviereBuilder.new()` with its own config's sources/domains. Subsequent steps call `addSource()` and `addDomain()` on the existing builder to register their own sources and domains.
+**How it works:**
 
-**`addDomain()` becomes idempotent:** If a domain with the same name already exists, the call is a no-op (no error). This handles the case where multiple steps reference the same domain. Same for `addSource()`.
+1. Load workflow YAML
+2. Validate workflow structure
+3. Validate each step config
+4. Create `RiviereBuilder.new({ name, description, sources, domains }, output)`
+5. Execute steps sequentially with that concrete builder
 
-**Any step type can be first.** A workflow starting with `eventcatalog-import` works — the importer's mappings config specifies which domains and sources to register, and it initializes the builder from that.
+**Why the workflow owns this data:** `sources` and `domains` are graph-wide builder inputs, not step-local behavior. Modules remain step-local because the builder does not require a global module registry.
+
+**Compatibility rule:** Step configs may still declare sources and domains for standalone direct usage. During workflow execution:
+
+- any domain referenced by a step config must exist in the workflow's `domains`
+- source identity is the `repository` field from `SourceInfo`; any source declared by a step config must match a workflow source with the same `repository`
+- if both workflow and step config specify `commit` for the same source, the values must match exactly
+- if a step config includes metadata for a workflow-declared domain, `description` and `systemType` must match exactly
+
+**`addDomain()` becomes idempotent:** If a domain with the same name already exists, the call is a no-op (no error). Same for `addSource()`.
 
 ### 3.4 Built-in Step Types
 
@@ -156,74 +210,88 @@ The builder requires `sources` and `domains` at construction (`RiviereBuilder.ne
 Runs the Phase 10/11/12 extraction pipeline against a TypeScript codebase.
 
 ```yaml
-  - name: extract-orders
-    type: code-extraction
-    config: ./orders/riviere-config.yaml    # Extraction config (Phase 11 format)
-    patterns: true                           # Optional: enable Configurable layer
-    allow-incomplete: true                   # Optional: lenient mode
+- name: extract-orders
+  type: code-extraction
+  config: ./orders/riviere-config.yaml # Extraction config (Phase 11 format)
 ```
 
-The extraction config contains `sources`, `domains`, and `modules` with detection rules. The step registers sources/domains with the builder (initializing it if first step), then runs extraction and adds components/links.
+The extraction config remains the source of truth for extraction behavior — detection rules, metadata extraction, connection patterns, strictness, and modules. Workflow usage must behave the same as direct CLI usage with the same extraction config.
+
+The extraction config may still declare sources and domains for standalone usage. In a workflow run, those declarations are validated against the workflow's top-level `sources` and `domains`.
 
 #### `eventcatalog-import`
 
 Imports components and connections from an EventCatalog instance. Uses `@eventcatalog/sdk` to read events, services, and producer/consumer relationships.
 
 ```yaml
-  - name: import-events
-    type: eventcatalog-import
-    source: ./eventcatalog                   # EventCatalog directory
-    mappings: ./eventcatalog-mappings.yaml   # How EventCatalog concepts map to Riviere
+- name: import-events
+  type: eventcatalog-import
+  config: ./specs/eventcatalog-import.yaml
+```
+
+```yaml
+# eventcatalog-import.yaml
+source: ./eventcatalog
+mappings: ./eventcatalog-mappings.yaml
+allow-unmapped: false
 ```
 
 **Convention-based defaults:**
 
-| EventCatalog Concept | Default Riviere Mapping |
-|---------------------|------------------------|
-| Domain | Domain (same name) |
-| Service | Module within its domain |
-| Event | Event component (`addEvent()`) |
-| Service produces Event | Link (service → event, type: async) |
-| Service consumes Event | EventHandler component + link (event → handler, type: async) |
+| EventCatalog Concept   | Default Riviere Mapping                                          |
+| ---------------------- | ---------------------------------------------------------------- |
+| Domain                 | Domain (same name)                                               |
+| Service                | UseCase component with the same canonical name within its domain |
+| Event                  | Event component (`addEvent()`)                                   |
+| Service produces Event | Link (service → event, type: async)                              |
+| Service consumes Event | EventHandler component + link (event → handler, type: async)     |
 
 **Mappings file — overrides only:**
 
 ```yaml
 # eventcatalog-mappings.yaml
 domains:
-  OrdersDomain: orders          # EventCatalog domain name → Riviere domain name
+  OrdersDomain: orders # EventCatalog domain name → Riviere domain name
 
 services:
   OrdersService:
-    domain: orders              # Override which Riviere domain this maps to
-    module: checkout            # Override module name (default: kebab-case service name)
+    type: UseCase
+    domain: orders # Override which Riviere domain this maps to
+    module: checkout # Override module name (default: kebab-case service name)
+    name: PlaceOrder # Canonical Riviere component name
 
 events:
   OrderCreated:
-    name: OrderPlaced           # Override Riviere event name (default: same name)
+    name: OrderPlaced # Override Riviere event name (default: same name)
 ```
 
-If a mapping is missing and convention-based defaults can't resolve (e.g., EventCatalog service has no domain), strict mode fails with a clear error. Lenient mode skips the unmapped item and logs a warning.
+EventCatalog producer/consumer relationships must resolve to canonical Riviere component identities before links are created. If a mapping is missing and convention-based defaults can't resolve that identity (for example, a service has no domain), strict mode fails with a clear error. Lenient mode skips the unmapped item and logs a warning.
 
 #### `asyncapi-import`
 
 Imports components and connections from an AsyncAPI spec. Uses `@asyncapi/parser`. Phase 13 targets AsyncAPI v3 only.
 
 ```yaml
-  - name: import-broker
-    type: asyncapi-import
-    source: ./broker/asyncapi.yaml           # AsyncAPI spec file
-    mappings: ./asyncapi-mappings.yaml       # How AsyncAPI concepts map to Riviere
+- name: import-broker
+  type: asyncapi-import
+  config: ./specs/asyncapi-import.yaml
+```
+
+```yaml
+# asyncapi-import.yaml
+source: ./broker/asyncapi.yaml
+mappings: ./asyncapi-mappings.yaml
+allow-unmapped: false
 ```
 
 **Convention-based defaults:**
 
-| AsyncAPI Concept | Default Riviere Mapping |
-|-----------------|------------------------|
-| Message | Event component (message name → event name) |
-| Operation (send) | Link (sender → event, type: async) |
+| AsyncAPI Concept    | Default Riviere Mapping                                      |
+| ------------------- | ------------------------------------------------------------ |
+| Message             | Event component (message name → event name)                  |
+| Operation (send)    | Link (sender → event, type: async)                           |
 | Operation (receive) | EventHandler component + link (event → handler, type: async) |
-| Channel | Not mapped directly — channels are infrastructure |
+| Channel             | Not mapped directly — channels are infrastructure            |
 
 **Mappings file — same structure as EventCatalog mappings:**
 
@@ -233,59 +301,134 @@ messages:
   OrderPlacedMessage:
     domain: orders
     module: checkout
-    name: OrderPlaced            # Riviere event name
+    name: OrderPlaced # Riviere event name
 
 operations:
   processOrder:
+    type: UseCase
     domain: orders
     module: checkout
+    name: ProcessOrder
 ```
+
+AsyncAPI operations must resolve to canonical Riviere component identities before publisher/subscriber links are created. Phase 13 supports AsyncAPI v3 publish/subscribe only. Request/reply patterns are out of scope and fail validation with an unsupported-pattern error.
 
 #### `ai-extract`
 
 Discovers components and connections that deterministic extraction missed. Analyzes source code directories, inspects the builder to see what's already been extracted, and identifies gaps.
 
 ```yaml
-  - name: discover-gaps
-    type: ai-extract
-    sources: [./orders/src, ./shipping/src]  # Source directories to analyze
-    confidence-threshold: 0.8                # Minimum confidence to add to graph
+# ai-extract.yaml
+sources:
+  - ./orders/src
+  - ./shipping/src
+
+selection:
+  from:
+    - uncertain-links
+    - missing-events
+    - missing-event-handlers
+    - missing-use-cases
+  component-types: [Event, EventHandler, UseCase, DomainOp]
+
+outputs:
+  add-components: true
+  add-links: true
+
+context:
+  exclude:
+    - '**/*.spec.ts'
+    - '**/dist/**'
+  max-files-per-batch: 20
+  max-batches: 5
+
+confidence-threshold: 0.8
 ```
 
 Components and links added by `ai-extract` carry metadata indicating they are AI-discovered with a confidence score. This metadata persists in the output graph so consumers can distinguish AI-discovered from deterministically-extracted.
 
-**LLM provider:** Claude via `@anthropic-ai/claude-agent-sdk`. Uses the local Claude CLI — no API keys required. Same approach as the existing dev-workflow tooling in this project.
+`ai-extract` is gap-driven, not whole-repo discovery. It operates on bounded sources, bounded gap categories, bounded component types, and bounded context windows.
+
+**Enums over strings:** `selection.from` is an enum of supported gap categories. `selection.component-types` is an enum of supported Riviere component types.
+
+**AI runtime boundary:** The step uses `context.services.ai`. Provider choice is runtime configuration, not step config. If `services.ai` is undefined, the step throws a clear runtime error.
 
 #### `ai-enrich`
 
 Fills missing metadata fields on components already in the builder. Targets `_missing` fields from lenient mode extraction and any components lacking optional metadata.
 
 ```yaml
-  - name: enrich-metadata
-    type: ai-enrich
-    confidence-threshold: 0.8
+# ai-enrich.yaml
+sources:
+  - ./orders/src
+  - ./shipping/src
+
+selection:
+  component-types: [Event, EventHandler, API, DomainOp, UI, UseCase]
+  missing-fields-only: true
+
+fields:
+  - eventName
+  - subscribedEvents
+  - operationName
+  - route
+  - httpMethod
+  - path
+
+context:
+  exclude:
+    - '**/*.spec.ts'
+    - '**/dist/**'
+  max-files-per-component: 10
+
+confidence-threshold: 0.8
 ```
 
 Reads source code context for each component with missing metadata and proposes values. Like `ai-extract`, enrichments carry AI-confidence metadata.
 
-Same LLM provider as `ai-extract` — Claude via local CLI.
+`ai-enrich` can only touch existing builder components. MVP supports `missing-fields-only: true` only.
+
+**Enums over strings:** `selection.component-types` is an enum of supported component types. `fields` is an enum of allowed enrichable fields.
+
+**AI runtime boundary:** Same runtime model as `ai-extract` — provider-neutral, accessed via `context.services.ai`, with a clear runtime failure if no AI service is configured.
 
 #### `schema-validate`
 
 Validates the graph by calling `builder.build()`. Reports validation errors. This should typically be the final step. Validation is always strict — no lenient mode.
 
 ```yaml
-  - name: validate
-    type: schema-validate
+- name: validate
+  type: schema-validate
 ```
 
 On failure: logs validation errors from `BuildValidationError` and the workflow exits with code 1.
+
+`schema-validate` is an optional explicit checkpoint. Final workflow output still always validates by calling `builder.build()`, even if this step is omitted.
 
 ### 3.5 Builder Upsert Capability
 
 `RiviereBuilder` gains upsert capability for multi-source graph construction. When a step adds a component that already exists (same ID), the builder enriches the existing component with new metadata rather than throwing `DuplicateComponentError`.
 
 This is a builder-level capability, not workflow-specific. Multi-source graph construction is a core use case.
+
+**Identity rule:** Upsert is merge-after-identity, not identity resolution. Cross-source identity is normalized in step-local mapping/config logic before the builder sees the component.
+
+```text
+EventCatalog event:  OrderCreated
+AsyncAPI message:    OrderPlacedMessage
+Mapping files normalize both to:
+  domain: orders
+  module: checkout
+  type: Event
+  name: OrderPlaced
+
+=> both resolve to the same canonical component ID
+=> builder upsert merges them
+```
+
+Phase 13 does **not** do fuzzy matching between source systems.
+
+**Precedence rule:** For scalar conflicts on the same canonical component, merge precedence follows workflow step order. Teams should order workflows according to §2.2 so higher-priority sources run earlier.
 
 **New API method:**
 
@@ -297,6 +440,7 @@ upsertComponent(input: ComponentInput): { component: Component, created: boolean
 - If component ID exists → merges metadata into existing component, returns `{ created: false }`
 
 **Merge semantics:**
+
 - **Scalar fields** (string, number, boolean): first source wins — existing value preserved, new value ignored unless existing is undefined/null
 - **Array fields** (stateChanges, businessRules, subscribedEvents): union — new items appended, duplicates removed
 - **Nested objects** (behavior, metadata): field-level merge — each nested field follows scalar rules
@@ -347,6 +491,7 @@ Executes the workflow:
 **Error handling:** If a step fails, the workflow aborts. No retry, no skip, no partial output. Builder state is discarded.
 
 **Distinction between error types:**
+
 - **Config errors** (missing file, invalid YAML, schema violation): always fail, regardless of lenient mode
 - **Extraction strictness** (`allow-incomplete`): controls whether unresolvable types produce errors or uncertain markers within a `code-extraction` step. Does not affect workflow-level error handling.
 
@@ -355,12 +500,37 @@ Executes the workflow:
 #### `riviere workflow validate`
 
 Two validation levels:
+
 1. **Structural:** YAML parses, required fields present, all referenced config/mapping files exist on disk
-2. **Semantic:** Each step handler's `validateConfig()` runs against its config (extraction configs validate against schema, mappings files parse correctly)
+2. **Semantic:** Each step handler's `validateConfig()` runs against its config (extraction configs validate against schema, mappings files parse correctly, AI configs validate enums/limits, step-declared domains and sources are compatible with the workflow)
 
 Does not execute steps.
 
-### 3.7 Demo App Validation
+### 3.7 Architecture Fit
+
+Phase 13 introduces a new `riviere-workflow` package.
+
+```text
+riviere-cli
+  -> riviere-workflow
+
+riviere-workflow
+  -> riviere-builder
+  -> riviere-extract-config
+  -> riviere-extract-ts
+```
+
+**Responsibilities:**
+
+- `riviere-cli` — CLI entrypoints (`workflow run`, `workflow init`, `workflow validate`)
+- `riviere-workflow` — workflow executor, step registry, exported step contract, built-in steps, AI service contract and initial adapters
+- `riviere-builder` — graph construction, idempotent `addSource()` / `addDomain()`, and `upsertComponent()`
+- `riviere-extract-config` — workflow and step config schemas/types
+- `riviere-extract-ts` — deterministic extraction reused by `code-extraction`
+
+**Extension direction:** Phase 13 exports the step contract now but does not implement user plugin loading. Built-in steps are resolved through the same registry that future external steps will use.
+
+### 3.8 Demo App Validation
 
 Every capability is validated against `ecommerce-demo-app`. The demo app gains:
 
@@ -395,6 +565,7 @@ ecommerce-demo-app/
 ```
 
 **Graph comparison semantics:**
+
 - Components compared by ID (exact match on full set — no extra, no missing)
 - Links compared by (source, target, type) tuple (exact match on full set)
 - Metadata differences logged for debugging but not part of pass/fail
@@ -406,62 +577,113 @@ ecommerce-demo-app/
 
 ## 4. What We're NOT Building
 
-| Exclusion | Rationale |
-|-----------|-----------|
-| **Custom step types** | Extension point defined (step interface) but not user-facing in Phase 13. Built-in steps only. Adding new step types requires code changes to riviere-cli. Interface is internal — breaking changes allowed until stabilized. |
-| **Parallel step execution** | Steps run sequentially. Parallelization is an optimization for later if needed. |
-| **TypeScript workflow definitions** | YAML + JSON Schema for now. TypeScript config files are a future option for teams wanting type safety and composability. |
-| **Workflow state / caching between runs** | Each run is stateless — produces a complete graph from scratch. Incremental extraction deferred. |
-| **OpenAPI, GraphQL, Protobuf, Backstage importers** | Phase 13 includes EventCatalog and AsyncAPI (provide connection data). Component-only importers are lower value, deferred. |
-| **Cross-repo linking** | Phase 14 scope. |
-| **Cross-repo workflow orchestration** | Phase 14 will define how multi-repo graphs are built. |
-| **Generic workflow engine features** | No conditionals, loops, branching, retry policies, continue-on-error, or DAG execution. Sequential steps only. |
-| **Workflow composition** | Workflows cannot reference or import other workflows. |
-| **Workflow versioning / migration** | No version compatibility checks or migration tooling for workflow format changes. |
-| **Step rollback / partial success** | If a step fails, the workflow aborts entirely. No partial output, no undo. |
-| **Multi-output workflows** | One workflow produces one output file. Multiple formats or artifacts require separate workflows. |
-| **Step timeout / resource limits** | No per-step time or memory limits. |
-| **Workflow execution history / audit** | No tracking of when workflows ran or what changed between runs. |
+| Exclusion                                           | Rationale                                                                                                                                                    |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **User plugin loading**                             | Phase 13 exports the step contract and uses a registry-based runtime, but does not load user-created plugin packages yet. Built-in steps only in this phase. |
+| **Parallel step execution**                         | Steps run sequentially. Parallelization is an optimization for later if needed.                                                                              |
+| **TypeScript workflow definitions**                 | YAML + JSON Schema for now. TypeScript config files are a future option for teams wanting type safety and composability.                                     |
+| **Workflow state / caching between runs**           | Each run is stateless — produces a complete graph from scratch. Incremental extraction deferred.                                                             |
+| **OpenAPI, GraphQL, Protobuf, Backstage importers** | Phase 13 includes EventCatalog and AsyncAPI (provide connection data). Component-only importers are lower value, deferred.                                   |
+| **Cross-repo linking**                              | Phase 14 scope.                                                                                                                                              |
+| **Cross-repo workflow orchestration**               | Phase 14 will define how multi-repo graphs are built.                                                                                                        |
+| **Generic workflow engine features**                | No conditionals, loops, branching, retry policies, continue-on-error, or DAG execution. Sequential steps only.                                               |
+| **Workflow composition**                            | Workflows cannot reference or import other workflows.                                                                                                        |
+| **Workflow versioning / migration**                 | No version compatibility checks or migration tooling for workflow format changes.                                                                            |
+| **Step rollback / partial success**                 | If a step fails, the workflow aborts entirely. No partial output, no undo.                                                                                   |
+| **Multi-output workflows**                          | One workflow produces one output file. Multiple formats or artifacts require separate workflows.                                                             |
+| **Step timeout / resource limits**                  | No per-step time or memory limits.                                                                                                                           |
+| **Workflow execution history / audit**              | No tracking of when workflows ran or what changed between runs.                                                                                              |
+| **Provider-specific AI runtime assumptions**        | AI-backed steps depend on a provider-neutral runtime service contract. No vendor-specific workflow semantics in Phase 13.                                    |
 
 ---
 
 ## 5. Success Criteria
 
-| # | Criterion | Verification |
-|---|-----------|--------------|
-| 1 | Workflow engine executes steps sequentially, passing shared builder between steps | Unit tests for engine with mock step handlers |
-| 2 | `code-extraction` step works within workflow context (initializes builder on first run, adds to existing builder on subsequent steps) | Integration test: two `code-extraction` steps in one workflow |
-| 3 | `eventcatalog-import` maps EventCatalog data to Riviere components and links via builder, using convention-based defaults | Integration test against demo app EventCatalog |
-| 4 | `asyncapi-import` maps AsyncAPI v3 spec to Riviere components and links via builder | Integration test against demo app AsyncAPI spec |
-| 5 | Builder `upsertComponent()` handles duplicate components across sources (enriches existing, deduplicates links, idempotent domain/source addition) | Unit tests in riviere-builder covering scalar merge, array union, required field mismatch |
-| 6 | `ai-extract` discovers components/connections that deterministic extraction missed, with confidence metadata | Integration test against demo app deliberate gaps |
-| 7 | `ai-enrich` fills missing metadata fields with confidence metadata | Integration test against demo app components with `_missing` fields |
-| 8 | `riviere workflow run` produces valid graph from demo app workflow matching ground truth | End-to-end test: zero false positives, zero false negatives on component IDs and link (source, target, type) tuples |
-| 9 | `riviere workflow init` produces valid workflow YAML and step configs | Init creates files, `workflow validate` passes, `workflow run` succeeds |
-| 10 | `riviere workflow validate` catches invalid workflow files, missing config references, and invalid step configs | Unit tests for structural and semantic validation |
-| 11 | Workflow JSON Schema validates workflow file structure | Schema published in `riviere-extract-config` |
-| 12 | Step interface is generic — engine has zero imports from step implementations | Dependency-cruiser rule enforcement |
-| 13 | Workflow runs are idempotent: same inputs produce identical output | E2E test: run twice, diff outputs, assert zero changes |
-| 14 | Step summary output shows per-step duration and total workflow duration | Visible in `riviere workflow run` output |
+| #   | Criterion                                                                                                                                                   | Verification                                                                                                              |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Workflow engine executes steps sequentially, passing shared builder between steps                                                                           | Unit tests for engine with mock step handlers                                                                             |
+| 2   | Workflow creates the builder eagerly from workflow `name`, `description`, `sources`, `domains`, and `output` before executing steps                         | Integration test for workflow startup with multiple built-in step types                                                   |
+| 3   | `eventcatalog-import` maps EventCatalog data to Riviere components and links via builder, using convention-based defaults                                   | Integration test against demo app EventCatalog                                                                            |
+| 4   | `asyncapi-import` maps AsyncAPI v3 spec to Riviere components and links via builder                                                                         | Integration test against demo app AsyncAPI spec                                                                           |
+| 5   | Builder `upsertComponent()` handles duplicate components across sources (enriches existing, deduplicates links, idempotent domain/source addition)          | Unit tests in riviere-builder covering scalar merge, array union, required field mismatch                                 |
+| 6   | `ai-extract` discovers components/connections that deterministic extraction missed, with confidence metadata                                                | Integration test against demo app deliberate gaps                                                                         |
+| 7   | `ai-enrich` fills missing metadata fields with confidence metadata                                                                                          | Integration test against demo app components with `_missing` fields                                                       |
+| 8   | `riviere workflow run` produces valid graph from demo app workflow matching ground truth                                                                    | End-to-end test: zero false positives, zero false negatives on component IDs and link (source, target, type) tuples       |
+| 9   | `riviere workflow init` produces valid workflow YAML and step configs                                                                                       | Init creates files, `workflow validate` passes, `workflow run` succeeds                                                   |
+| 10  | `riviere workflow validate` catches invalid workflow files, missing config references, incompatible step-declared domains/sources, and invalid step configs | Unit tests for structural and semantic validation                                                                         |
+| 11  | Workflow JSON Schema validates workflow file structure                                                                                                      | Schema published in `riviere-extract-config`                                                                              |
+| 12  | `riviere-workflow` exports the step contract and resolves built-in steps through a registry rather than hardcoded switch logic                              | Unit tests for step registry + dependency-cruiser rule enforcement                                                        |
+| 13  | Workflow runs are idempotent: same inputs produce identical output                                                                                          | E2E test: run twice, diff outputs, assert zero changes                                                                    |
+| 14  | AI step configs validate bounded enum-based selection and field lists rather than free-form strings                                                         | Schema validation tests in `riviere-extract-config`                                                                       |
+| 15  | Canonical identity normalization happens in step config/mappings, not in the workflow runtime                                                               | Integration test: differently named external records merge only when mappings normalize them to the same Riviere identity |
+| 16  | `schema-validate` works as an optional explicit checkpoint while final output still always validates                                                        | Integration test with and without `schema-validate` step                                                                  |
+| 17  | Step summary output shows per-step duration and total workflow duration                                                                                     | Visible in `riviere workflow run` output                                                                                  |
 
 ---
 
 ## 6. Open Questions
 
-1. **EventCatalog SDK sufficiency** — Does `@eventcatalog/sdk` expose everything we need (events, services, producer/consumer relationships, domains)? What version? Needs a spike to validate before committing to implementation.
+1. **EventCatalog ingestion approach**
 
-2. **AsyncAPI parser capabilities** — Does `@asyncapi/parser` handle AsyncAPI v3 patterns we need? What's the mapping from operations to Riviere concepts for pub/sub vs request/reply? Needs a spike.
+   **Option A — SDK-first**
 
-3. **AI prompt strategy** — What prompts produce reliable component discovery and metadata enrichment? What's the context window strategy for large codebases? Needs experimentation during implementation.
+   ```text
+   workflow step -> @eventcatalog/sdk -> services/events/domains/relationships
+   ```
+
+   **Option B — file-first fallback**
+
+   ```text
+   workflow step -> EventCatalog content directory -> frontmatter + MDX parsing
+   ```
+
+   **Recommendation:** Start with Option A. If the SDK does not expose a required relationship, fall back only for the missing data.
+
+2. **AsyncAPI scope boundary**
+
+   **Option A — publish/subscribe only**
+
+   ```text
+   send(message)    -> component -> event
+   receive(message) -> event -> handler
+   request/reply    -> unsupported in Phase 13
+   ```
+
+   **Option B — model request/reply too**
+
+   ```text
+   request channel -> API-like component -> downstream handler
+   ```
+
+   **Recommendation:** Option A. Keep Phase 13 to AsyncAPI v3 publish/subscribe semantics only.
+
+3. **AI provider setup**
+
+   **Option A — provider configured by the runtime environment**
+
+   ```text
+   workflow runtime constructs WorkflowStepServices.ai
+   ai-* steps consume that service if present
+   ```
+
+   **Option B — provider declared in step config**
+
+   ```yaml
+   provider: openai
+   ```
+
+   **Recommendation:** Option A. Provider choice is runtime environment, not step behavior.
 
 ---
 
 ## 7. Dependencies
 
 **Depends on:**
+
 - Phase 12 (Connection Detection) — `code-extraction` step runs the Phase 10/11/12 pipeline. Requires Phase 12 M1 (Core Extraction) and M4 (Configurable Layer) to be complete. Assumes stable extraction config schema and `EnrichedComponent` interface.
 
 **Blocks:**
+
 - Phase 14 (Cross-Repo Linking) — Workflows enable multi-repo extraction
 
 ---
@@ -470,27 +692,29 @@ ecommerce-demo-app/
 
 ### Integration SDKs
 
-| Tool | SDK/Package | License | Data Available |
-|------|-------------|---------|----------------|
-| [EventCatalog](https://github.com/event-catalog/sdk) | @eventcatalog/sdk | MIT | Events, services, producers/consumers, domains |
-| [AsyncAPI](https://www.asyncapi.com/) | @asyncapi/parser | Apache 2.0 | Channels, messages, operations, schemas |
+| Tool                                                 | SDK/Package       | License    | Data Available                                 |
+| ---------------------------------------------------- | ----------------- | ---------- | ---------------------------------------------- |
+| [EventCatalog](https://github.com/event-catalog/sdk) | @eventcatalog/sdk | MIT        | Events, services, producers/consumers, domains |
+| [AsyncAPI](https://www.asyncapi.com/)                | @asyncapi/parser  | Apache 2.0 | Channels, messages, operations, schemas        |
 
 ### AI Integration
 
-- Claude via `@anthropic-ai/claude-agent-sdk` (local CLI, no API keys)
-- Prompt strategies for code analysis and component discovery
-- Confidence scoring approaches
+- Provider-neutral AI service contract consumed by `ai-extract` and `ai-enrich`
+- Initial provider adapters can live inside `riviere-workflow`
+- Prompt strategies for bounded code analysis and confidence scoring
 
 ---
 
 ## 9. Terminology
 
-| Term | Definition |
-|------|------------|
-| **Workflow** | A YAML definition specifying a sequence of steps that produce a complete Riviere graph. The primary interface for using Riviere. |
-| **Step** | A single unit of work in a workflow. Receives the builder, performs extraction/import/analysis, adds to the graph. Implements `WorkflowStepHandler`. |
-| **Step Type** | A category of step with specific behavior: `code-extraction`, `eventcatalog-import`, `asyncapi-import`, `ai-extract`, `ai-enrich`, `schema-validate`. |
-| **Step Config** | Configuration specific to a step type, stored in a separate file referenced by the workflow. Not part of the workflow definition. |
-| **Mappings File** | Configuration defining how external data models (EventCatalog, AsyncAPI) map to Riviere concepts. Convention-based defaults with explicit overrides. |
-| **Upsert** | Builder capability to add-or-enrich a component. If the component ID already exists, merge metadata. If not, create it. Enables multi-source graph construction. |
-| **Workflow Init** | Interactive CLI command (`riviere workflow init`) that creates a workflow definition and all step configs. The setup process for new workflows. |
+| Term                       | Definition                                                                                                                                                               |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Workflow**               | A YAML definition specifying a sequence of steps that produce a complete Riviere graph. The primary interface for using Riviere.                                         |
+| **Step**                   | A single unit of work in a workflow. Receives the builder, performs extraction/import/analysis, adds to the graph. Implements `WorkflowStepHandler`.                     |
+| **Step Type**              | A category of step with specific behavior: `code-extraction`, `eventcatalog-import`, `asyncapi-import`, `ai-extract`, `ai-enrich`, `schema-validate`.                    |
+| **Step Config**            | Configuration specific to a step type, stored in a separate file referenced by the workflow. Not part of the workflow definition.                                        |
+| **Workflow Step Services** | Fixed runtime services passed to every step through `StepContext.services`. A step may use the services it needs and throws if a required service is undefined.          |
+| **Mappings File**          | Configuration defining how external data models (EventCatalog, AsyncAPI) map to Riviere concepts. Convention-based defaults with explicit overrides.                     |
+| **Canonical Identity**     | The final Riviere component identity produced by a step's mapping/config logic before the builder sees the component. Upsert happens after this identity is established. |
+| **Upsert**                 | Builder capability to add-or-enrich a component. If the component ID already exists, merge metadata. If not, create it. Enables multi-source graph construction.         |
+| **Workflow Init**          | Interactive CLI command (`riviere workflow init`) that creates a workflow definition and all step configs. The setup process for new workflows.                          |
