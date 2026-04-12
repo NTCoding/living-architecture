@@ -195,6 +195,10 @@ export default defineConfig({
               link: '/extract/deterministic/typescript/workflow/step-3-extract',
             },
             {
+              text: 'Design for Extraction',
+              link: '/extract/deterministic/typescript/design-for-extraction',
+            },
+            {
               text: 'Step 4: Link',
               link: '/extract/deterministic/typescript/workflow/step-4-link',
             },
@@ -289,6 +293,10 @@ export default defineConfig({
             {
               text: 'Predicates',
               link: '/reference/extraction-config/predicates',
+            },
+            {
+              text: 'Connections',
+              link: '/reference/extraction-config/connections',
             },
             {
               text: 'Decorators',

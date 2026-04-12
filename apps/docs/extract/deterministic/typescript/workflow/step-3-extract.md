@@ -27,16 +27,18 @@ Use an AI assistant to scan your codebase and generate a starting `extraction.co
 
 Select a detection strategy based on your codebase:
 
-| Strategy | Best For | Example Pattern |
-|----------|----------|-----------------|
-| **Decorators** | New projects, full control | `@UseCase`, `@APIContainer` |
-| **JSDoc** | Avoiding runtime decorators | `/** @useCase */` |
-| **Naming** | Legacy code, no annotations | `*UseCase`, `*Controller` |
-| **Custom** | Framework integration | NestJS, custom patterns |
+| Strategy       | Best For                    | Example Pattern             |
+| -------------- | --------------------------- | --------------------------- |
+| **Decorators** | New projects, full control  | `@UseCase`, `@APIContainer` |
+| **JSDoc**      | Avoiding runtime decorators | `/** @useCase */`           |
+| **Naming**     | Legacy code, no annotations | `*UseCase`, `*Controller`   |
+| **Custom**     | Framework integration       | NestJS, custom patterns     |
 
 You can mix strategies across different modules.
 
 ## 3.2 Apply Conventions
+
+[Design for Extraction →](/extract/deterministic/typescript/design-for-extraction)
 
 ### Option A: Use Built-in Decorators
 
@@ -105,13 +107,13 @@ Inherit detection rules from the conventions package:
 
 ```yaml
 modules:
-  - name: "orders"
-    path: "src/orders/**/*.ts"
-    extends: "@living-architecture/riviere-extract-conventions"
+  - name: 'orders'
+    path: 'src/orders/**/*.ts'
+    extends: '@living-architecture/riviere-extract-conventions'
 
-  - name: "shipping"
-    path: "src/shipping/**/*.ts"
-    extends: "@living-architecture/riviere-extract-conventions"
+  - name: 'shipping'
+    path: 'src/shipping/**/*.ts'
+    extends: '@living-architecture/riviere-extract-conventions'
 ```
 
 ### Custom Config
@@ -120,23 +122,23 @@ Define detection rules explicitly:
 
 ```yaml
 modules:
-  - name: "orders"
-    path: "src/orders/**/*.ts"
+  - name: 'orders'
+    path: 'src/orders/**/*.ts'
 
     api:
-      find: "methods"
+      find: 'methods'
       where:
         inClassWith:
           hasDecorator:
-            name: "APIContainer"
-            from: "@living-architecture/riviere-extract-conventions"
+            name: 'APIContainer'
+            from: '@living-architecture/riviere-extract-conventions'
 
     useCase:
-      find: "classes"
+      find: 'classes'
       where:
         hasDecorator:
-          name: "UseCase"
-          from: "@living-architecture/riviere-extract-conventions"
+          name: 'UseCase'
+          from: '@living-architecture/riviere-extract-conventions'
 
     domainOp: { notUsed: true }
     event: { notUsed: true }
@@ -151,27 +153,27 @@ Different modules can use different detection:
 ```yaml
 modules:
   # Decorators
-  - name: "orders"
-    path: "src/orders/**/*.ts"
-    extends: "@living-architecture/riviere-extract-conventions"
+  - name: 'orders'
+    path: 'src/orders/**/*.ts'
+    extends: '@living-architecture/riviere-extract-conventions'
 
   # JSDoc
-  - name: "shipping"
-    path: "src/shipping/**/*.ts"
+  - name: 'shipping'
+    path: 'src/shipping/**/*.ts'
     useCase:
-      find: "functions"
+      find: 'functions'
       where:
         hasJSDoc:
-          tag: "useCase"
+          tag: 'useCase'
 
   # Naming conventions
-  - name: "inventory"
-    path: "src/inventory/**/*.ts"
+  - name: 'inventory'
+    path: 'src/inventory/**/*.ts'
     useCase:
-      find: "classes"
+      find: 'classes'
       where:
         nameEndsWith:
-          suffix: "UseCase"
+          suffix: 'UseCase'
 ```
 
 [See more examples →](/reference/extraction-config/examples)
@@ -230,6 +232,7 @@ Total: 10 components
 ```
 
 Check for:
+
 - Domains with zero components (missing patterns?)
 - Component types with zero instances (correct exclusions?)
 - Unexpected counts (too many or too few?)
@@ -268,6 +271,7 @@ npx riviere extract --config extraction.config.yaml --dry-run
 ```
 
 If counts are zero, verify:
+
 - `path` glob matches your files
 - Decorator/JSDoc/naming patterns match your code
 - TypeScript version supports decorators (5.0+)
@@ -275,6 +279,7 @@ If counts are zero, verify:
 ### Wrong components extracted
 
 Adjust predicates in your config:
+
 - Add `and:` to combine multiple conditions
 - Use `not:` to exclude patterns
 - Add `inClassWith:` for method-level filtering
@@ -320,32 +325,33 @@ Detection finds components but doesn't capture metadata like HTTP methods, route
 
 **Required metadata by component type:**
 
-| Type | Required Fields |
-|------|----------------|
-| `api` | `apiType` |
-| `event` | `eventName` |
+| Type           | Required Fields    |
+| -------------- | ------------------ |
+| `api`          | `apiType`          |
+| `event`        | `eventName`        |
 | `eventHandler` | `subscribedEvents` |
-| `domainOp` | `operationName` |
-| `ui` | `route` |
-| `useCase` | *(none)* |
+| `domainOp`     | `operationName`    |
+| `ui`           | `route`            |
+| `useCase`      | _(none)_           |
 
 ### Example: REST API with full metadata
 
 ```yaml
 api:
-  find: "methods"
+  find: 'methods'
   where:
     inClassWith:
       hasDecorator:
-        name: "APIContainer"
-        from: "@living-architecture/riviere-extract-conventions"
+        name: 'APIContainer'
+        from: '@living-architecture/riviere-extract-conventions'
   extract:
-    apiType: { literal: "REST" }
+    apiType: { literal: 'REST' }
     httpMethod: { fromDecoratorName: true }
     path: { fromDecoratorArg: { position: 0 } }
 ```
 
 This extracts three fields per API component:
+
 - `apiType` → always `"REST"`
 - `httpMethod` → the decorator name (e.g., `@Get` → `"Get"`)
 - `path` → the first decorator argument (e.g., `@Get("/orders")` → `"/orders"`)
@@ -354,12 +360,12 @@ This extracts three fields per API component:
 
 ```yaml
 event:
-  find: "classes"
+  find: 'classes'
   where:
     nameEndsWith:
-      suffix: "Event"
+      suffix: 'Event'
   extract:
-    eventName: { fromClassName: { transform: { stripSuffix: "Event" } } }
+    eventName: { fromClassName: { transform: { stripSuffix: 'Event' } } }
 ```
 
 [See all 11 extraction rules →](/reference/extraction-config/extraction-rules)
@@ -373,3 +379,10 @@ Extraction produces enriched components JSON with metadata fields populated. The
 After extracting components, proceed to:
 
 **[Step 4: Link →](/extract/deterministic/typescript/workflow/step-4-link)**
+
+## See Also
+
+- [Design for Extraction](/extract/deterministic/typescript/design-for-extraction) — Conventions and migration guidance
+- [TypeScript Decorators](/reference/extraction-config/decorators) — Decorator conventions for component detection
+- [TypeScript Extraction Examples](/reference/extraction-config/examples) — Config examples for common code patterns
+- [Connection Config Reference](/reference/extraction-config/connections) — Connection options used in Step 4

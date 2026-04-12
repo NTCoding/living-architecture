@@ -77,3 +77,9 @@ contexts:
 
       - name: Lenient Mode
         definition: Optional extraction behavior (--allow-incomplete) where missing required fields are tracked in a _missing array rather than causing failure. Enables incremental adoption and AI-assisted completion workflows. Contrast with Strict Mode.
+
+      - name: Connection Detection
+        definition: The activity of identifying Links between Components from source code and extraction metadata.
+
+      - name: Golden Path
+        definition: Convention-based extraction that achieves high accuracy for supported patterns.
