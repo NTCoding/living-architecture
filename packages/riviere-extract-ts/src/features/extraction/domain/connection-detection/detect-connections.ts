@@ -80,7 +80,7 @@ export function stripHttpCallComponents(
 
 /** @riviere-role value-object */
 export interface PerModuleConnectionOptions {
-  allComponents?: readonly EnrichedComponent[]
+  allComponents: readonly EnrichedComponent[]
   allowIncomplete?: boolean
   moduleGlobs: string[]
   patterns?: ConnectionPattern[]
@@ -109,7 +109,7 @@ export function detectPerModuleConnections(
   globMatcher: GlobMatcher,
 ): PerModuleDetectionResult {
   const setupStart = performance.now()
-  const visibleComponents = options.allComponents ?? components
+  const visibleComponents = options.allComponents
   const componentIndex = new ComponentIndex(visibleComponents)
   const sourceFilePaths = computeFilteredFilePaths(project, options.moduleGlobs, globMatcher)
   const setupMs = performance.now() - setupStart
@@ -131,7 +131,7 @@ export function detectPerModuleConnections(
   } = runConfigurableDetection(
     project,
     patterns,
-    visibleComponents,
+    components,
     componentIndex,
     strict,
     repository,

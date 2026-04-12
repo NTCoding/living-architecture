@@ -43,6 +43,7 @@ class PlaceOrder {
       {
         repository: 'test-repo',
         moduleGlobs: ['/src/**/*.ts'],
+        allComponents: [repo, useCase, event, handler],
       },
       matchesGlob,
     )
@@ -66,6 +67,7 @@ class PlaceOrder {
       {
         repository: 'test-repo',
         moduleGlobs: ['/src/**/*.ts'],
+        allComponents: [],
       },
       matchesGlob,
     )
@@ -83,6 +85,7 @@ class PlaceOrder {
       {
         repository: 'test-repo',
         moduleGlobs: ['/src/**/*.ts'],
+        allComponents: [],
       },
       matchesGlob,
     )
@@ -133,6 +136,7 @@ class ExcludedUseCase {
       {
         repository: 'test-repo',
         moduleGlobs: ['/src/included/**/*.ts'],
+        allComponents: [repo, useCase],
       },
       matchesGlob,
     )
@@ -180,6 +184,7 @@ class PlaceOrder {
       {
         repository: 'test-repo',
         moduleGlobs: ['/src/**/*.ts'],
+        allComponents: [useCase, httpCall],
       },
       matchesGlob,
     )
@@ -298,5 +303,62 @@ class PlaceOrder {
         type: 'sync',
       }),
     ])
+  })
+
+  it('ignores configurable matches from source components outside moduleGlobs', () => {
+    const project = createProject()
+    project.createSourceFile(
+      '/src/bff/place-order.ts',
+      `
+class PlaceOrder {
+  execute(): void {}
+}
+`,
+    )
+    project.createSourceFile(
+      '/src/orders/create-order.ts',
+      `
+class OrderRepo {
+  save(): void {}
+}
+
+class CreateOrder {
+  private repo: OrderRepo
+  constructor(repo: OrderRepo) { this.repo = repo }
+  execute(): void {
+    this.repo.save()
+  }
+}
+`,
+    )
+
+    const bffUseCase = buildComponent('PlaceOrder', '/src/bff/place-order.ts', 2, { domain: 'bff' })
+    const ordersUseCase = buildComponent('CreateOrder', '/src/orders/create-order.ts', 6, {domain: 'orders',})
+    const orderRepo = buildComponent('OrderRepo', '/src/orders/create-order.ts', 2, {
+      type: 'repository',
+      domain: 'orders',
+    })
+
+    const result = detectPerModuleConnections(
+      project,
+      [bffUseCase],
+      {
+        repository: 'test-repo',
+        moduleGlobs: ['/src/bff/**/*.ts'],
+        allComponents: [bffUseCase, ordersUseCase, orderRepo],
+        patterns: [
+          {
+            name: 'repo-save-pattern',
+            find: 'methodCalls',
+            where: { methodName: 'save' },
+            linkType: 'sync',
+          },
+        ],
+      },
+      matchesGlob,
+    )
+
+    expect(result.links).toStrictEqual([])
+    expect(result.externalLinks).toStrictEqual([])
   })
 })
