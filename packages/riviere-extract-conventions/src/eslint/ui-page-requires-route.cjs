@@ -1,5 +1,5 @@
 const {
-  implementsInterface,
+  hasDecorator,
   findInstanceProperty,
   hasStringLiteralValue,
   getValueTypeDescription,
@@ -8,10 +8,10 @@ const {
 module.exports = {
   meta: {
     type: 'problem',
-    docs: { description: 'Require UIPageDef implementations to have route property with literal value' },
+    docs: { description: 'Require @UI classes to have route property with literal value' },
     schema: [],
     messages: {
-      missingRoute: "Class '{{className}}' implements UIPageDef but is missing 'route' property",
+      missingRoute: "Class '{{className}}' decorated with @UI but is missing 'route' property",
       routeNotLiteral: "Class '{{className}}' has 'route' property but value must be a string literal, not {{actualType}}",
     },
   },
@@ -20,7 +20,7 @@ module.exports = {
       ClassDeclaration(node) {
         /* v8 ignore next -- ClassDeclaration always has id (name) */
         if (!node.id) return
-        if (!implementsInterface(node, 'UIPageDef')) return
+        if (!hasDecorator(node, 'UI')) return
 
         const className = node.id.name
         const routeProperty = findInstanceProperty(node, 'route')

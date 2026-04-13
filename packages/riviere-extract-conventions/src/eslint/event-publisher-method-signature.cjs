@@ -1,4 +1,4 @@
-const { implementsInterface } = require('./interface-ast-predicates.cjs')
+const { hasDecorator } = require('./interface-ast-predicates.cjs')
 
 let getParserServices = null
 try {
@@ -108,7 +108,7 @@ function checkMethod(context, member, className, checker, services) {
   if (failedTypeName) {
     context.report({
       node: member.key,
-      messageId: 'notEventDef',
+      messageId: 'invalidEventType',
       data: {
         typeName: failedTypeName,
         methodName,
@@ -140,12 +140,12 @@ module.exports = {
     },
     schema: [],
     messages: {
-      missingParameter: "Method '{{methodName}}' on EventPublisherDef class '{{className}}' must have exactly one parameter",
-      tooManyParameters: "Method '{{methodName}}' on EventPublisherDef class '{{className}}' must have exactly one parameter",
-      missingTypeAnnotation: "Parameter of method '{{methodName}}' on EventPublisherDef class '{{className}}' must have a type annotation",
-      notTypeReference: "Parameter of method '{{methodName}}' on EventPublisherDef class '{{className}}' must have a type reference annotation",
-      notEventDef: "Parameter type '{{typeName}}' of method '{{methodName}}' on EventPublisherDef class '{{className}}' does not implement EventDef (missing 'type: string' property)",
-      nonPublicMethod: "Method '{{methodName}}' on EventPublisherDef class '{{className}}' must be public, but is {{accessibility}}",
+      missingParameter: "Method '{{methodName}}' on @EventPublisherContainer class '{{className}}' must have exactly one parameter",
+      tooManyParameters: "Method '{{methodName}}' on @EventPublisherContainer class '{{className}}' must have exactly one parameter",
+      missingTypeAnnotation: "Parameter of method '{{methodName}}' on @EventPublisherContainer class '{{className}}' must have a type annotation",
+      notTypeReference: "Parameter of method '{{methodName}}' on @EventPublisherContainer class '{{className}}' must have a type reference annotation",
+      invalidEventType: "Parameter type '{{typeName}}' of method '{{methodName}}' on @EventPublisherContainer class '{{className}}' must have a 'type: string' property",
+      nonPublicMethod: "Method '{{methodName}}' on @EventPublisherContainer class '{{className}}' must be public, but is {{accessibility}}",
     },
   },
   create(context) {
@@ -164,7 +164,7 @@ module.exports = {
       ClassDeclaration(node) {
         /* v8 ignore next -- ClassDeclaration always has id (name) */
         if (!node.id) return
-        if (!implementsInterface(node, 'EventPublisherDef')) return
+        if (!hasDecorator(node, 'EventPublisherContainer')) return
 
         const className = node.id.name
 
