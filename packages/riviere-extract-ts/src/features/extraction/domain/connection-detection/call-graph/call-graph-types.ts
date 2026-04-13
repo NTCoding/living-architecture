@@ -1,3 +1,4 @@
+import { ComponentId } from '@living-architecture/riviere-schema'
 import type { EnrichedComponent } from '../../value-extraction/enrich-components'
 
 /** @riviere-role value-object */
@@ -30,7 +31,12 @@ export interface UncertainRawLink {
 
 /** @riviere-role domain-service */
 export function componentIdentity(component: EnrichedComponent): string {
-  return `${component.domain}:${component.type}:${component.name}`
+  return ComponentId.create({
+    domain: component.domain,
+    module: component.module,
+    type: component.type,
+    name: component.name,
+  }).toString()
 }
 
 /** @riviere-role domain-service */

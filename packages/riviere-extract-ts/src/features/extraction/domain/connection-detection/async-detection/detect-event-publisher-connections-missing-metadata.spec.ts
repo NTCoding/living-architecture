@@ -34,7 +34,7 @@ describe('detectEventPublisherConnections — missing/invalid metadata', () => {
 
     expect(result).toStrictEqual([
       expect.objectContaining({
-        source: 'orders:eventSender:NoMetaSender',
+        source: 'orders:orders-module:eventSender:nometasender',
         target: '_unresolved',
         _uncertain: expect.stringContaining('"publishedEventType" metadata'),
       }),

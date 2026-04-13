@@ -109,7 +109,7 @@ describe('deduplicateLinks', () => {
     expect(result).toHaveLength(1)
     expect(result[0]).toStrictEqual(
       expect.objectContaining({
-        source: 'orders:useCase:Source',
+        source: 'orders:orders-module:useCase:source',
         target: '_unresolved',
         _uncertain: "Receiver type is 'any'",
       }),

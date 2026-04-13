@@ -3,7 +3,10 @@ import {
 } from 'vitest'
 import { Project } from 'ts-morph'
 import type {
-  ResolvedExtractionConfig, Module 
+  ResolvedExtractionConfig,
+  Module,
+  ComponentRule,
+  ExtractBlock,
 } from '@living-architecture/riviere-extract-config'
 import type {
   DraftComponent, GlobMatcher 
@@ -20,22 +23,68 @@ function nextFile(path: string, content: string) {
   return filePath
 }
 
-function alwaysMatchGlob(): GlobMatcher {
-  return () => true
+const alwaysMatch: GlobMatcher = () => true
+const notUsed = { notUsed: true } as const
+
+function enrich(drafts: DraftComponent[], modules: Module[]) {
+  const config: ResolvedExtractionConfig = { modules }
+  return enrichComponents(drafts, config, sharedProject, alwaysMatch, '/')
 }
 
-function configWithModules(modules: Module[]): ResolvedExtractionConfig {
-  return { modules }
-}
-
-function notUsedModule(): Pick<Module, 'api' | 'useCase' | 'event' | 'ui'> {
+function ordersDraft(type: string, name: string, file: string, line: number): DraftComponent {
   return {
-    api: { notUsed: true },
-    useCase: { notUsed: true },
-    event: { notUsed: true },
-    ui: { notUsed: true },
+    type,
+    name,
+    location: {
+      file,
+      line,
+    },
+    domain: 'orders',
+    module: 'orders-module',
   }
 }
+
+function ordersModule(
+  path: string,
+  overrides: {
+    domainOp?: ComponentRule
+    eventHandler?: ComponentRule
+  },
+): Module {
+  return {
+    api: notUsed,
+    useCase: notUsed,
+    event: notUsed,
+    ui: notUsed,
+    name: 'orders',
+    domain: 'orders-domain',
+    path,
+    glob: '**',
+    domainOp: overrides.domainOp ?? notUsed,
+    eventHandler: overrides.eventHandler ?? notUsed,
+  }
+}
+
+const domainOpMethodRule = (extract: ExtractBlock): ComponentRule => ({
+  find: 'methods',
+  where: { nameEndsWith: { suffix: 'Order' } },
+  extract,
+})
+
+const genericArgExtract = {
+  subscribedEvents: {
+    fromGenericArg: {
+      interface: 'IEventHandler',
+      position: 0,
+    },
+  },
+}
+
+const eventHandlerMethodRule = (extract: ExtractBlock): ComponentRule => ({
+  find: 'methods',
+  where: { nameEndsWith: { suffix: 'handle' } },
+  extract,
+})
 
 describe('enrichComponents — fromMethodName extraction', () => {
   it('extracts method name from method-based component', () => {
@@ -46,34 +95,8 @@ describe('enrichComponents — fromMethodName extraction', () => {
   cancelOrder() {}
 }`,
     )
-
-    const drafts: DraftComponent[] = [
-      {
-        type: 'domainOp',
-        name: 'placeOrder',
-        location: {
-          file,
-          line: 2,
-        },
-        domain: 'orders',
-      },
-    ]
-
-    const module: Module = {
-      ...notUsedModule(),
-      name: 'orders',
-      path: '/src/orders',
-      glob: '**',
-      domainOp: {
-        find: 'methods',
-        where: { nameEndsWith: { suffix: 'Order' } },
-        extract: { operationName: { fromMethodName: true } },
-      },
-      eventHandler: { notUsed: true },
-    }
-
-    const config = configWithModules([module])
-    const result = enrichComponents(drafts, config, sharedProject, alwaysMatchGlob(), '/')
+    const module = ordersModule('/src/orders', {domainOp: domainOpMethodRule({ operationName: { fromMethodName: true } }),})
+    const result = enrich([ordersDraft('domainOp', 'placeOrder', file, 2)], [module])
 
     expect(result.components[0]?.metadata).toStrictEqual({ operationName: 'placeOrder' })
     expect(result.failures).toStrictEqual([])
@@ -86,32 +109,8 @@ describe('enrichComponents — fromMethodName extraction', () => {
   placeOrder() {}
 }`,
     )
-
-    const draft: DraftComponent = {
-      type: 'domainOp',
-      name: 'placeOrder',
-      location: {
-        file,
-        line: 99,
-      },
-      domain: 'orders',
-    }
-
-    const module: Module = {
-      ...notUsedModule(),
-      name: 'orders',
-      path: '/src/orders',
-      glob: '**',
-      domainOp: {
-        find: 'methods',
-        where: { nameEndsWith: { suffix: 'Order' } },
-        extract: { operationName: { fromMethodName: true } },
-      },
-      eventHandler: { notUsed: true },
-    }
-
-    const config = configWithModules([module])
-    const result = enrichComponents([draft], config, sharedProject, alwaysMatchGlob(), '/')
+    const module = ordersModule('/src/orders', {domainOp: domainOpMethodRule({ operationName: { fromMethodName: true } }),})
+    const result = enrich([ordersDraft('domainOp', 'placeOrder', file, 99)], [module])
 
     expect(result.failures).toHaveLength(1)
     expect(result.failures[0]?.field).toBe('operationName')
@@ -119,31 +118,11 @@ describe('enrichComponents — fromMethodName extraction', () => {
   })
 
   it('records failure when source file not found for fromMethodName', () => {
-    const draft: DraftComponent = {
-      type: 'domainOp',
-      name: 'placeOrder',
-      location: {
-        file: '/src/missing/ops.ts',
-        line: 2,
-      },
-      domain: 'orders',
-    }
-
-    const module: Module = {
-      ...notUsedModule(),
-      name: 'orders',
-      path: '/src',
-      glob: '**',
-      domainOp: {
-        find: 'methods',
-        where: { nameEndsWith: { suffix: 'Order' } },
-        extract: { operationName: { fromMethodName: true } },
-      },
-      eventHandler: { notUsed: true },
-    }
-
-    const config = configWithModules([module])
-    const result = enrichComponents([draft], config, sharedProject, alwaysMatchGlob(), '/')
+    const module = ordersModule('/src', {domainOp: domainOpMethodRule({ operationName: { fromMethodName: true } }),})
+    const result = enrich(
+      [ordersDraft('domainOp', 'placeOrder', '/src/missing/ops.ts', 2)],
+      [module],
+    )
 
     expect(result.failures).toHaveLength(1)
     expect(result.components[0]?._missing).toStrictEqual(['operationName'])
@@ -160,41 +139,8 @@ export class OrderHandler implements IEventHandler<OrderPlaced> {
   handle() {}
 }`,
     )
-
-    const drafts: DraftComponent[] = [
-      {
-        type: 'eventHandler',
-        name: 'handle',
-        location: {
-          file,
-          line: 4,
-        },
-        domain: 'orders',
-      },
-    ]
-
-    const module: Module = {
-      ...notUsedModule(),
-      name: 'orders',
-      path: '/src/orders',
-      glob: '**',
-      domainOp: { notUsed: true },
-      eventHandler: {
-        find: 'methods',
-        where: { nameEndsWith: { suffix: 'handle' } },
-        extract: {
-          subscribedEvents: {
-            fromGenericArg: {
-              interface: 'IEventHandler',
-              position: 0,
-            },
-          },
-        },
-      },
-    }
-
-    const config = configWithModules([module])
-    const result = enrichComponents(drafts, config, sharedProject, alwaysMatchGlob(), '/')
+    const module = ordersModule('/src/orders', {eventHandler: eventHandlerMethodRule(genericArgExtract),})
+    const result = enrich([ordersDraft('eventHandler', 'handle', file, 4)], [module])
 
     expect(result.components[0]?.metadata).toStrictEqual({ subscribedEvents: ['OrderPlaced'] })
     expect(result.failures).toStrictEqual([])
@@ -212,41 +158,8 @@ export class OrderHandler implements IEventHandler<OrderPlaced> {
   handle() {}
 }`,
     )
-
-    const drafts: DraftComponent[] = [
-      {
-        type: 'eventHandler',
-        name: 'handle',
-        location: {
-          file,
-          line: 7,
-        },
-        domain: 'orders',
-      },
-    ]
-
-    const module: Module = {
-      ...notUsedModule(),
-      name: 'orders',
-      path: '/src/orders',
-      glob: '**',
-      domainOp: { notUsed: true },
-      eventHandler: {
-        find: 'methods',
-        where: { nameEndsWith: { suffix: 'handle' } },
-        extract: {
-          subscribedEvents: {
-            fromGenericArg: {
-              interface: 'IEventHandler',
-              position: 0,
-            },
-          },
-        },
-      },
-    }
-
-    const config = configWithModules([module])
-    const result = enrichComponents(drafts, config, sharedProject, alwaysMatchGlob(), '/')
+    const module = ordersModule('/src/orders', {eventHandler: eventHandlerMethodRule(genericArgExtract),})
+    const result = enrich([ordersDraft('eventHandler', 'handle', file, 7)], [module])
 
     expect(result.components[0]?.metadata).toStrictEqual({ subscribedEvents: ['OrderPlaced'] })
     expect(result.failures).toStrictEqual([])
@@ -254,39 +167,8 @@ export class OrderHandler implements IEventHandler<OrderPlaced> {
 
   it('records failure when no containing class found for fromGenericArg', () => {
     const file = nextFile('/src/orders/standalone.ts', 'const x = 1')
-
-    const draft: DraftComponent = {
-      type: 'eventHandler',
-      name: 'handle',
-      location: {
-        file,
-        line: 1,
-      },
-      domain: 'orders',
-    }
-
-    const module: Module = {
-      ...notUsedModule(),
-      name: 'orders',
-      path: '/src/orders',
-      glob: '**',
-      domainOp: { notUsed: true },
-      eventHandler: {
-        find: 'methods',
-        where: { nameEndsWith: { suffix: 'handle' } },
-        extract: {
-          subscribedEvents: {
-            fromGenericArg: {
-              interface: 'IEventHandler',
-              position: 0,
-            },
-          },
-        },
-      },
-    }
-
-    const config = configWithModules([module])
-    const result = enrichComponents([draft], config, sharedProject, alwaysMatchGlob(), '/')
+    const module = ordersModule('/src/orders', {eventHandler: eventHandlerMethodRule(genericArgExtract),})
+    const result = enrich([ordersDraft('eventHandler', 'handle', file, 1)], [module])
 
     expect(result.failures).toHaveLength(1)
     expect(result.failures[0]?.field).toBe('subscribedEvents')
@@ -294,38 +176,11 @@ export class OrderHandler implements IEventHandler<OrderPlaced> {
   })
 
   it('records failure when source file not found for fromGenericArg', () => {
-    const draft: DraftComponent = {
-      type: 'eventHandler',
-      name: 'handle',
-      location: {
-        file: '/src/missing/handler.ts',
-        line: 4,
-      },
-      domain: 'orders',
-    }
-
-    const module: Module = {
-      ...notUsedModule(),
-      name: 'orders',
-      path: '/src',
-      glob: '**',
-      domainOp: { notUsed: true },
-      eventHandler: {
-        find: 'methods',
-        where: { nameEndsWith: { suffix: 'handle' } },
-        extract: {
-          subscribedEvents: {
-            fromGenericArg: {
-              interface: 'IEventHandler',
-              position: 0,
-            },
-          },
-        },
-      },
-    }
-
-    const config = configWithModules([module])
-    const result = enrichComponents([draft], config, sharedProject, alwaysMatchGlob(), '/')
+    const module = ordersModule('/src', { eventHandler: eventHandlerMethodRule(genericArgExtract) })
+    const result = enrich(
+      [ordersDraft('eventHandler', 'handle', '/src/missing/handler.ts', 4)],
+      [module],
+    )
 
     expect(result.failures).toHaveLength(1)
     expect(result.components[0]?._missing).toStrictEqual(['subscribedEvents'])
@@ -339,41 +194,14 @@ export class OrderHandler implements IEventHandler<OrderPlaced> {
   readonly subscribedEvents = ['OrderPlaced']
 }`,
     )
-
-    const drafts: DraftComponent[] = [
-      {
-        type: 'eventHandler',
-        name: 'OrderHandler',
-        location: {
-          file,
-          line: 2,
-        },
-        domain: 'orders',
-      },
-    ]
-
-    const module: Module = {
-      ...notUsedModule(),
-      name: 'orders',
-      path: '/src/orders',
-      glob: '**',
-      domainOp: { notUsed: true },
+    const module = ordersModule('/src/orders', {
       eventHandler: {
         find: 'classes',
         where: { nameEndsWith: { suffix: 'Handler' } },
-        extract: {
-          subscribedEvents: {
-            fromGenericArg: {
-              interface: 'IEventHandler',
-              position: 0,
-            },
-          },
-        },
+        extract: genericArgExtract,
       },
-    }
-
-    const config = configWithModules([module])
-    const result = enrichComponents(drafts, config, sharedProject, alwaysMatchGlob(), '/')
+    })
+    const result = enrich([ordersDraft('eventHandler', 'OrderHandler', file, 2)], [module])
 
     expect(result.components[0]?.metadata).toStrictEqual({ subscribedEvents: ['OrderPlaced'] })
     expect(result.failures).toStrictEqual([])
@@ -389,41 +217,17 @@ describe('enrichComponents — fromProperty extraction on method-based component
   handle() {}
 }`,
     )
-
-    const drafts: DraftComponent[] = [
-      {
-        type: 'eventHandler',
-        name: 'handle',
-        location: {
-          file,
-          line: 3,
-        },
-        domain: 'orders',
-      },
-    ]
-
-    const module: Module = {
-      ...notUsedModule(),
-      name: 'orders',
-      path: '/src/orders',
-      glob: '**',
-      domainOp: { notUsed: true },
-      eventHandler: {
-        find: 'methods',
-        where: { nameEndsWith: { suffix: 'handle' } },
-        extract: {
-          subscribedEvents: {
-            fromProperty: {
-              name: 'subscribedEvents',
-              kind: 'instance',
-            },
+    const module = ordersModule('/src/orders', {
+      eventHandler: eventHandlerMethodRule({
+        subscribedEvents: {
+          fromProperty: {
+            name: 'subscribedEvents',
+            kind: 'instance',
           },
         },
-      },
-    }
-
-    const config = configWithModules([module])
-    const result = enrichComponents(drafts, config, sharedProject, alwaysMatchGlob(), '/')
+      }),
+    })
+    const result = enrich([ordersDraft('eventHandler', 'handle', file, 3)], [module])
 
     expect(result.components[0]?.metadata).toStrictEqual({ subscribedEvents: ['OrderPlaced'] })
     expect(result.failures).toStrictEqual([])

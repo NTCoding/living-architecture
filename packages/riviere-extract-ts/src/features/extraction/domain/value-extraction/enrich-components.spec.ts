@@ -36,6 +36,7 @@ const BUILT_IN_TYPES: readonly string[] = [
 function notUsedModule(name: string, path: string): Module {
   return {
     name,
+    domain: `${name}-domain`,
     path,
     glob: '**',
     api: {
@@ -53,6 +54,7 @@ function notUsedModule(name: string, path: string): Module {
 function moduleWith(componentType: string, rule: ComponentRule): Module {
   const base: Module = {
     name: 'orders',
+    domain: 'orders-domain',
     path: '/src/orders',
     glob: '**',
     api: { notUsed: true },
@@ -92,6 +94,7 @@ function draft(type: string, name: string, file: string, line: number): DraftCom
       line,
     },
     domain: 'orders',
+    module: 'orders-module',
   }
 }
 
@@ -114,6 +117,7 @@ describe('enrichComponents', () => {
               line: 1,
             },
             domain: 'orders',
+            module: 'orders-module',
             metadata: {},
           },
         ],

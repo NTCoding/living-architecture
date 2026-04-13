@@ -74,6 +74,7 @@ export function parseFullExtractionOutput(consoleOutput: string[]): FullExtracti
 const validConfigYaml = `
 modules:
   - name: orders
+    domain: orders
     path: "."
     glob: "**/src/**/*.ts"
     api: { notUsed: true }

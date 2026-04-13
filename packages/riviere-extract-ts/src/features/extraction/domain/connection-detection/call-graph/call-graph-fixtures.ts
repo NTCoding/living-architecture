@@ -34,6 +34,7 @@ export function buildComponent(
       line,
     },
     domain: 'orders',
+    module: 'orders-module',
     metadata: {},
     ...overrides,
   }

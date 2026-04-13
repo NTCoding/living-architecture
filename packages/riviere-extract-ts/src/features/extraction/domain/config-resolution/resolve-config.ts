@@ -31,8 +31,10 @@ function resolveModule(moduleConfig: ModuleConfig, loader?: ConfigLoader): Modul
 
   return {
     name: moduleConfig.name,
+    domain: moduleConfig.domain,
     path: moduleConfig.path,
     glob: moduleConfig.glob,
+    ...(moduleConfig.modules !== undefined && { modules: moduleConfig.modules }),
     api: requireRule(moduleConfig.api, 'api', moduleConfig.name),
     useCase: requireRule(moduleConfig.useCase, 'useCase', moduleConfig.name),
     domainOp: requireRule(moduleConfig.domainOp, 'domainOp', moduleConfig.name),
@@ -56,8 +58,10 @@ function resolveModuleWithExtends(
   const mergedCustomTypes = mergeCustomTypes(baseModule.customTypes, moduleConfig.customTypes)
   return {
     name: moduleConfig.name,
+    domain: moduleConfig.domain,
     path: moduleConfig.path,
     glob: moduleConfig.glob,
+    ...(moduleConfig.modules !== undefined && { modules: moduleConfig.modules }),
     api: moduleConfig.api ?? baseModule.api,
     useCase: moduleConfig.useCase ?? baseModule.useCase,
     domainOp: moduleConfig.domainOp ?? baseModule.domainOp,

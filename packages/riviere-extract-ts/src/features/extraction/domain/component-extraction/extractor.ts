@@ -27,6 +27,7 @@ export interface DraftComponent {
     line: number
   }
   domain: string
+  module: string
 }
 
 const COMPONENT_TYPES: ComponentType[] = [
@@ -71,47 +72,89 @@ function extractFromFile(
   return extractFromModule(sourceFile, filePath, matchingModule)
 }
 
+/** @riviere-role value-object */
+interface ComponentContext {
+  domain: string
+  module: string
+}
+
 function extractFromModule(
   sourceFile: SourceFile,
   filePath: string,
   module: Module,
 ): DraftComponent[] {
+  const context = resolveComponentContext(filePath, module)
   const builtInComponents = COMPONENT_TYPES.flatMap((componentType) =>
-    extractComponentType(sourceFile, filePath, module, componentType),
+    extractComponentType(sourceFile, filePath, context, module, componentType),
   )
-  const customComponents = extractCustomTypes(sourceFile, filePath, module)
+  const customComponents = extractCustomTypes(sourceFile, filePath, context, module)
   return [...builtInComponents, ...customComponents]
+}
+
+function resolveComponentContext(filePath: string, module: Module): ComponentContext {
+  return {
+    domain: module.domain,
+    module: resolveModuleName(filePath, module),
+  }
+}
+
+function resolveModuleName(filePath: string, module: Module): string {
+  if (module.modules === undefined) {
+    return module.name
+  }
+  const normalized = filePath.replaceAll(/\\+/g, '/')
+  const modulePath = module.modules.replace(/^\//, '')
+  const placeholderIndex = modulePath.indexOf('{module}')
+  if (placeholderIndex === -1) {
+    return module.name
+  }
+  const prefix = modulePath.slice(0, placeholderIndex)
+  const suffix = modulePath.slice(placeholderIndex + '{module}'.length)
+  const prefixStart = normalized.indexOf(prefix)
+  if (prefixStart === -1) {
+    return module.name
+  }
+  const moduleStart = prefixStart + prefix.length
+  const moduleEnd =
+    suffix.length > 0
+      ? normalized.indexOf(suffix, moduleStart)
+      : normalized.indexOf('/', moduleStart)
+  if (moduleEnd === -1) {
+    return module.name
+  }
+  return normalized.slice(moduleStart, moduleEnd)
 }
 
 function extractCustomTypes(
   sourceFile: SourceFile,
   filePath: string,
+  context: ComponentContext,
   module: Module,
 ): DraftComponent[] {
   if (module.customTypes === undefined) {
     return []
   }
   return Object.entries(module.customTypes).flatMap(([typeName, rule]) =>
-    extractWithRule(sourceFile, filePath, module.name, typeName, rule),
+    extractWithRule(sourceFile, filePath, context, typeName, rule),
   )
 }
 
 function extractWithRule(
   sourceFile: SourceFile,
   filePath: string,
-  domain: string,
+  context: ComponentContext,
   componentType: string,
   rule: DetectionRule,
 ): DraftComponent[] {
   if (rule.find === 'classes') {
-    return extractClasses(sourceFile, filePath, domain, componentType, rule)
+    return extractClasses(sourceFile, filePath, context, componentType, rule)
   }
   if (rule.find === 'methods') {
-    return extractMethods(sourceFile, filePath, domain, componentType, rule)
+    return extractMethods(sourceFile, filePath, context, componentType, rule)
   }
   /* istanbul ignore else -- @preserve: false branch is unreachable; FindTarget is exhaustive */
   if (rule.find === 'functions') {
-    return extractFunctions(sourceFile, filePath, domain, componentType, rule)
+    return extractFunctions(sourceFile, filePath, context, componentType, rule)
   }
   /* istanbul ignore next -- @preserve: unreachable with valid FindTarget type; defensive fallback */
   return []
@@ -120,6 +163,7 @@ function extractWithRule(
 function extractComponentType(
   sourceFile: SourceFile,
   filePath: string,
+  context: ComponentContext,
   module: Module,
   componentType: ComponentType,
 ): DraftComponent[] {
@@ -127,26 +171,26 @@ function extractComponentType(
   if (!('find' in rule)) {
     return []
   }
-  return extractWithRule(sourceFile, filePath, module.name, componentType, rule)
+  return extractWithRule(sourceFile, filePath, context, componentType, rule)
 }
 
 function extractClasses(
   sourceFile: SourceFile,
   filePath: string,
-  domain: string,
+  context: ComponentContext,
   componentType: string,
   rule: DetectionRule,
 ): DraftComponent[] {
   return sourceFile
     .getClasses()
     .filter((c) => evaluatePredicate(c, rule.where))
-    .flatMap((c) => createClassComponent(c, filePath, domain, componentType))
+    .flatMap((c) => createClassComponent(c, filePath, context, componentType))
 }
 
 function extractMethods(
   sourceFile: SourceFile,
   filePath: string,
-  domain: string,
+  context: ComponentContext,
   componentType: string,
   rule: DetectionRule,
 ): DraftComponent[] {
@@ -155,20 +199,20 @@ function extractMethods(
     .flatMap((c) => c.getMethods())
     .filter(isPublicMethod)
     .filter((m) => evaluatePredicate(m, rule.where))
-    .flatMap((m) => createMethodComponent(m, filePath, domain, componentType))
+    .flatMap((m) => createMethodComponent(m, filePath, context, componentType))
 }
 
 function extractFunctions(
   sourceFile: SourceFile,
   filePath: string,
-  domain: string,
+  context: ComponentContext,
   componentType: string,
   rule: DetectionRule,
 ): DraftComponent[] {
   return sourceFile
     .getFunctions()
     .filter((f) => evaluatePredicate(f, rule.where))
-    .flatMap((f) => createFunctionComponent(f, filePath, domain, componentType))
+    .flatMap((f) => createFunctionComponent(f, filePath, context, componentType))
 }
 
 function isPublicMethod(method: MethodDeclaration): boolean {
@@ -179,7 +223,7 @@ function isPublicMethod(method: MethodDeclaration): boolean {
 function createClassComponent(
   classDecl: ClassDeclaration,
   filePath: string,
-  domain: string,
+  context: ComponentContext,
   componentType: string,
 ): DraftComponent[] {
   const name = classDecl.getName()
@@ -195,7 +239,8 @@ function createClassComponent(
         file: filePath,
         line: classDecl.getStartLineNumber(),
       },
-      domain,
+      domain: context.domain,
+      module: context.module,
     },
   ]
 }
@@ -203,7 +248,7 @@ function createClassComponent(
 function createMethodComponent(
   method: MethodDeclaration,
   filePath: string,
-  domain: string,
+  context: ComponentContext,
   componentType: string,
 ): DraftComponent[] {
   const name = method.getName()
@@ -216,7 +261,8 @@ function createMethodComponent(
         file: filePath,
         line: method.getStartLineNumber(),
       },
-      domain,
+      domain: context.domain,
+      module: context.module,
     },
   ]
 }
@@ -224,7 +270,7 @@ function createMethodComponent(
 function createFunctionComponent(
   func: FunctionDeclaration,
   filePath: string,
-  domain: string,
+  context: ComponentContext,
   componentType: string,
 ): DraftComponent[] {
   const name = func.getName()
@@ -240,7 +286,8 @@ function createFunctionComponent(
         file: filePath,
         line: func.getStartLineNumber(),
       },
-      domain,
+      domain: context.domain,
+      module: context.module,
     },
   ]
 }

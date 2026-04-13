@@ -109,8 +109,8 @@ class TCCaller1 {
 
     expect(result).toStrictEqual([
       expect.objectContaining({
-        source: 'orders:useCase:TCCaller1',
-        target: 'orders:domainOp:TCTarget1',
+        source: 'orders:orders-module:useCase:tccaller1',
+        target: 'orders:orders-module:domainOp:tctarget1',
       }),
     ])
   })
@@ -143,8 +143,8 @@ class TCCaller2 {
 
     expect(result).toStrictEqual([
       expect.objectContaining({
-        source: 'orders:useCase:TCCaller2',
-        target: 'orders:domainOp:TCTarget2',
+        source: 'orders:orders-module:useCase:tccaller2',
+        target: 'orders:orders-module:domainOp:tctarget2',
       }),
     ])
   })
@@ -255,8 +255,8 @@ class CovSelfSource {
 
     expect(result).toStrictEqual([
       expect.objectContaining({
-        source: 'orders:useCase:CovSelfSource',
-        target: 'orders:domainOp:CovSelfComp',
+        source: 'orders:orders-module:useCase:covselfsource',
+        target: 'orders:orders-module:domainOp:covselfcomp',
       }),
     ])
   })
@@ -295,8 +295,8 @@ class CovNC4Origin {
 
     expect(result).toStrictEqual([
       expect.objectContaining({
-        source: 'orders:useCase:CovNC4Origin',
-        target: 'orders:domainOp:CovNC4Target',
+        source: 'orders:orders-module:useCase:covnc4origin',
+        target: 'orders:orders-module:domainOp:covnc4target',
       }),
     ])
   })
@@ -327,7 +327,7 @@ class TCCallerNotify {
 
     expect(result).toStrictEqual([
       expect.objectContaining({
-        source: 'orders:useCase:TCCallerNotify',
+        source: 'orders:orders-module:useCase:tccallernotify',
         target: '_unresolved',
         _uncertain: expect.stringContaining('No implementation found for TCNotifier'),
       }),

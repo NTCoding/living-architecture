@@ -46,8 +46,8 @@ describe('detectEventPublisherConnections', () => {
 
     expect(result).toStrictEqual([
       expect.objectContaining({
-        source: 'orders:eventSender:OrderSender',
-        target: 'orders:event:OrderPlacedEvent',
+        source: 'orders:orders-module:eventSender:ordersender',
+        target: 'orders:orders-module:event:orderplacedevent',
         type: 'async',
       }),
     ])
@@ -91,8 +91,8 @@ describe('detectEventPublisherConnections', () => {
 
     expect(result).toStrictEqual([
       expect.objectContaining({
-        source: 'orders:myPublisher:Sender',
-        target: 'orders:event:OrderPlaced',
+        source: 'orders:orders-module:myPublisher:sender',
+        target: 'orders:orders-module:event:orderplaced',
         type: 'async',
       }),
     ])
@@ -112,7 +112,7 @@ describe('detectEventPublisherConnections', () => {
 
     expect(result).toStrictEqual([
       expect.objectContaining({
-        source: 'orders:eventSender:NoMatchSender',
+        source: 'orders:orders-module:eventSender:nomatchsender',
         target: '_unresolved',
         type: 'async',
         _uncertain: expect.stringContaining('MissingEvent'),
@@ -158,7 +158,7 @@ describe('detectEventPublisherConnections', () => {
 
     expect(result).toStrictEqual([
       expect.objectContaining({
-        source: 'orders:eventSender:AmbigSender',
+        source: 'orders:orders-module:eventSender:ambigsender',
         target: '_unresolved',
         _uncertain: expect.stringContaining('ambiguous'),
       }),
@@ -244,13 +244,13 @@ describe('detectEventPublisherConnections', () => {
 
     expect(result).toStrictEqual([
       expect.objectContaining({
-        source: 'orders:typeA:Sender1',
-        target: 'orders:event:OrderPlaced',
+        source: 'orders:orders-module:typeA:sender1',
+        target: 'orders:orders-module:event:orderplaced',
         type: 'async',
       }),
       expect.objectContaining({
-        source: 'orders:typeB:Sender2',
-        target: 'orders:event:OrderPlaced',
+        source: 'orders:orders-module:typeB:sender2',
+        target: 'orders:orders-module:event:orderplaced',
         type: 'async',
       }),
     ])
@@ -299,13 +299,13 @@ describe('detectEventPublisherConnections', () => {
 
     expect(result).toStrictEqual([
       expect.objectContaining({
-        source: 'orders:eventSender:MultiSender',
-        target: 'orders:event:OrderPlaced',
+        source: 'orders:orders-module:eventSender:multisender',
+        target: 'orders:orders-module:event:orderplaced',
         type: 'async',
       }),
       expect.objectContaining({
-        source: 'orders:eventSender:MultiSender',
-        target: 'orders:event:PaymentReceived',
+        source: 'orders:orders-module:eventSender:multisender',
+        target: 'orders:orders-module:event:paymentreceived',
         type: 'async',
       }),
     ])

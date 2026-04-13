@@ -3,6 +3,7 @@
   "modules": [
     {
       "name": "default",
+      "domain": "default",
       "path": ".",
       "glob": "**/*.ts",
       "api": {

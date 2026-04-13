@@ -96,6 +96,7 @@ describe('riviere extract', () => {
         `
 modules:
   - name: orders
+    domain: orders
     path: "."
     glob: "**/*.nonexistent"
     api: { notUsed: true }
@@ -145,6 +146,7 @@ export class PlaceOrder {
         ordersModule,
         JSON.stringify({
           name: 'orders',
+          domain: 'orders',
           path: '.',
           glob: '**/src/**/*.ts',
           api: { notUsed: true },

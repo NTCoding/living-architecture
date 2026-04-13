@@ -118,5 +118,8 @@
       "tag": true,
       "push": true
     }
-  }
+  },
+   "tui": {
+    "enabled": false
+    }
 }

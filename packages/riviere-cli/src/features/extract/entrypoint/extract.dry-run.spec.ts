@@ -50,6 +50,7 @@ export class PlaceOrder {
       `
 modules:
   - name: orders
+    domain: orders
     path: "."
     glob: "**/src/**/*.ts"
     api: { notUsed: true }
@@ -107,6 +108,7 @@ export class OrdersController {
       `
 modules:
   - name: orders
+    domain: orders
     path: "."
     glob: "**/src/**/*.ts"
     api:
@@ -170,6 +172,7 @@ export class ShippingController {
       `
 modules:
   - name: orders
+    domain: orders
     path: "."
     glob: "**/src/orders/**/*.ts"
     api: { notUsed: true }
@@ -183,6 +186,7 @@ modules:
     eventHandler: { notUsed: true }
     ui: { notUsed: true }
   - name: shipping
+    domain: shipping
     path: "."
     glob: "**/src/shipping/**/*.ts"
     api:
@@ -241,6 +245,7 @@ export class OrdersController {
       `
 modules:
   - name: orders
+    domain: orders
     path: "."
     glob: "**/src/**/*.ts"
     api:
@@ -308,6 +313,7 @@ export class PlainClass {
       `
 modules:
   - name: orders
+    domain: orders
     path: "."
     glob: "**/src/**/*.ts"
     api:

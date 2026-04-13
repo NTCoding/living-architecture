@@ -50,6 +50,7 @@ describe('extractComponents — method extraction', () => {
           line: 4,
         },
         domain: 'orders',
+        module: 'orders-module',
       },
     ])
   })
@@ -100,6 +101,7 @@ describe('extractComponents — method extraction', () => {
           line: 4,
         },
         domain: 'orders',
+        module: 'orders-module',
       },
     ])
   })

@@ -41,18 +41,28 @@
     "module": {
       "type": "object",
       "description": "A module defines extraction rules for a path pattern",
-      "required": ["name", "path", "glob"],
+      "required": ["name", "domain", "path", "glob"],
       "additionalProperties": false,
       "properties": {
         "name": {
           "type": "string",
-          "description": "Module name, used as the domain for extracted components",
+          "description": "Extraction config module identifier",
+          "minLength": 1
+        },
+        "domain": {
+          "type": "string",
+          "description": "Riviere graph domain this module belongs to",
           "minLength": 1
         },
         "path": {
           "type": "string",
           "description": "Module root directory relative to config file",
           "minLength": 1
+        },
+        "modules": {
+          "type": "string",
+          "description": "Path pattern with {module} placeholder for resolving module names from file paths",
+          "pattern": "\\{module\\}"
         },
         "glob": {
           "type": "string",

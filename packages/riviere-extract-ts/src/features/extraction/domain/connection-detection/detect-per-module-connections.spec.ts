@@ -50,8 +50,8 @@ class PlaceOrder {
 
     expect(result.links).toStrictEqual([
       expect.objectContaining({
-        source: 'orders:useCase:PlaceOrder',
-        target: 'orders:repository:OrderRepository',
+        source: 'orders:orders-module:useCase:placeorder',
+        target: 'orders:orders-module:repository:orderrepository',
         type: 'sync',
       }),
     ])
@@ -91,8 +91,8 @@ class PlaceOrder {
 
     expect(result.links).toStrictEqual([
       expect.objectContaining({
-        source: 'orders:useCase:PlaceOrder',
-        target: 'orders:repository:OrderRepository',
+        source: 'orders:orders-module:useCase:placeorder',
+        target: 'orders:orders-module:repository:orderrepository',
         type: 'sync',
       }),
     ])
@@ -183,8 +183,8 @@ class ExcludedUseCase {
 
     expect(result.links).toStrictEqual([
       expect.objectContaining({
-        source: 'orders:useCase:IncludedUseCase',
-        target: 'orders:repository:IncludedRepo',
+        source: 'orders:orders-module:useCase:includedusecase',
+        target: 'orders:orders-module:repository:includedrepo',
       }),
     ])
   })
@@ -233,8 +233,8 @@ class PlaceOrder {
 
     expect(result.links).toStrictEqual([
       expect.objectContaining({
-        source: 'bff:useCase:PlaceOrder',
-        target: 'orders:repository:OrdersRepository',
+        source: 'bff:orders-module:useCase:placeorder',
+        target: 'orders:orders-module:repository:ordersrepository',
         type: 'sync',
       }),
     ])

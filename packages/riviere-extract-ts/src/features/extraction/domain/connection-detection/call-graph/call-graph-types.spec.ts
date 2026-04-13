@@ -29,11 +29,11 @@ describe('stripGenericArgs', () => {
 })
 
 describe('componentIdentity', () => {
-  it('returns domain:type:name identity string', () => {
+  it('returns domain:module:type:lowercasedname identity string', () => {
     const comp = buildComponent('MyComp', '/test.ts', 1, {
       domain: 'billing',
       type: 'api',
     })
-    expect(componentIdentity(comp)).toBe('billing:api:MyComp')
+    expect(componentIdentity(comp)).toBe('billing:orders-module:api:mycomp')
   })
 })

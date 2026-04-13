@@ -20,6 +20,7 @@ function nextFile(content: string): string {
 function createBaseModule(extract: Record<string, ExtractionRule>): Module {
   return {
     name: 'orders',
+    domain: 'orders-domain',
     path: '/src/orders',
     glob: '**',
     api: {
@@ -44,6 +45,7 @@ function createDraft(file: string): DraftComponent {
       line: 2,
     },
     domain: 'orders',
+    module: 'orders-module',
   }
 }
 
@@ -108,6 +110,7 @@ export class FraudClient {}`,
         line: 1,
       },
       domain: 'orders',
+      module: 'orders-module',
     }
     const module = createBaseModule({
       serviceName: {

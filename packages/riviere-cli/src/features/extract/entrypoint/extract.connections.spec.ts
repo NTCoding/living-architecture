@@ -140,6 +140,7 @@ describe('riviere extract — connection detection', () => {
         `
 modules:
   - name: orders
+    domain: orders
     path: "."
     glob: "**/src/**/*.ts"
     api: { notUsed: true }

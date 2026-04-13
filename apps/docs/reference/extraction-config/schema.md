@@ -40,8 +40,10 @@ A module defines extraction rules for a path pattern
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `name` | `string` | **Yes** | Module name, used as the domain for extracted components |
+| `name` | `string` | **Yes** | Extraction config module identifier |
+| `domain` | `string` | **Yes** | Riviere graph domain this module belongs to |
 | `path` | `string` | **Yes** | Module root directory relative to config file |
+| `modules` | `string` | No | Path pattern with {module} placeholder for resolving module names from file paths |
 | `glob` | `string` | **Yes** | Glob pattern for source files within the module directory |
 | `extends` | `string` | No | Package name or file path to inherit component rules from |
 | `api` | `componentRule` | No | Detection rule for API components |

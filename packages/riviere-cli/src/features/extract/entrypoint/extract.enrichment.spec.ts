@@ -29,6 +29,7 @@ vi.mock('../../../platform/infra/external-clients/git/git-repository-info', () =
 const configWithExtractBlock = `
 modules:
   - name: orders
+    domain: orders
     path: "."
     glob: "**/src/**/*.ts"
     api: { notUsed: true }
@@ -51,6 +52,7 @@ modules:
 const configWithLiteralExtract = `
 modules:
   - name: orders
+    domain: orders
     path: "."
     glob: "**/src/**/*.ts"
     api: { notUsed: true }

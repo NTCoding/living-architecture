@@ -22,8 +22,8 @@ describe('detectSubscribeConnections', () => {
 
     expect(result).toStrictEqual([
       expect.objectContaining({
-        source: 'orders:event:OrderPlaced',
-        target: 'orders:eventHandler:OrderPlacedHandler',
+        source: 'orders:orders-module:event:orderplaced',
+        target: 'orders:orders-module:eventHandler:orderplacedhandler',
         type: 'async',
       }),
     ])
@@ -51,13 +51,13 @@ describe('detectSubscribeConnections', () => {
     expect(result).toStrictEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          source: 'orders:event:OrderPlaced',
-          target: 'orders:eventHandler:OrderLifecycleHandler',
+          source: 'orders:orders-module:event:orderplaced',
+          target: 'orders:orders-module:eventHandler:orderlifecyclehandler',
           type: 'async',
         }),
         expect.objectContaining({
-          source: 'orders:event:OrderShipped',
-          target: 'orders:eventHandler:OrderLifecycleHandler',
+          source: 'orders:orders-module:event:ordershipped',
+          target: 'orders:orders-module:eventHandler:orderlifecyclehandler',
           type: 'async',
         }),
       ]),
@@ -116,7 +116,7 @@ describe('detectSubscribeConnections', () => {
     expect(result).toStrictEqual([
       expect.objectContaining({
         source: '_unresolved',
-        target: 'orders:eventHandler:OrphanHandler',
+        target: 'orders:orders-module:eventHandler:orphanhandler',
         type: 'async',
         _uncertain: expect.stringContaining('NonExistentEvent'),
       }),
@@ -161,7 +161,7 @@ describe('detectSubscribeConnections', () => {
       expect.arrayContaining([
         expect.objectContaining({
           source: '_unresolved',
-          target: 'orders:eventHandler:WhitespaceHandler',
+          target: 'orders:orders-module:eventHandler:whitespacehandler',
           _uncertain: expect.any(String),
         }),
       ]),
@@ -251,8 +251,8 @@ describe('detectSubscribeConnections', () => {
     expect(result).toHaveLength(1)
     expect(result[0]).toStrictEqual(
       expect.objectContaining({
-        source: 'orders:event:OrderPlaced',
-        target: 'orders:eventHandler:MixedHandler',
+        source: 'orders:orders-module:event:orderplaced',
+        target: 'orders:orders-module:eventHandler:mixedhandler',
       }),
     )
   })
@@ -300,7 +300,7 @@ describe('detectSubscribeConnections', () => {
     expect(result).toStrictEqual([
       expect.objectContaining({
         source: '_unresolved',
-        target: 'orders:eventHandler:AmbigHandler',
+        target: 'orders:orders-module:eventHandler:ambighandler',
         type: 'async',
         _uncertain: expect.stringContaining('ambiguous'),
       }),

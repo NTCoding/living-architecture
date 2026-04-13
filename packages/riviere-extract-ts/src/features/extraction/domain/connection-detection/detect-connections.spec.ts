@@ -79,8 +79,8 @@ class PlaceOrder {
 
     expect(result.links).toStrictEqual([
       expect.objectContaining({
-        source: 'orders:useCase:PlaceOrder',
-        target: 'orders:repository:OrderRepository',
+        source: 'orders:orders-module:useCase:placeorder',
+        target: 'orders:orders-module:repository:orderrepository',
         type: 'sync',
       }),
     ])
@@ -128,8 +128,8 @@ class PublishEvent {
 
     expect(result.links).toStrictEqual([
       expect.objectContaining({
-        source: 'orders:useCase:PublishEvent',
-        target: 'orders:repository:EventStore',
+        source: 'orders:orders-module:useCase:publishevent',
+        target: 'orders:orders-module:repository:eventstore',
       }),
     ])
   })
@@ -190,7 +190,7 @@ class LenientComp {
 
     expect(result.links).toStrictEqual([
       expect.objectContaining({
-        source: 'orders:useCase:LenientComp',
+        source: 'orders:orders-module:useCase:lenientcomp',
         target: '_unresolved',
         _uncertain: expect.stringContaining('any'),
       }),
@@ -229,10 +229,14 @@ class ServiceA {
     )
 
     const aToB = result.links.find(
-      (l) => l.source === 'orders:useCase:ServiceA' && l.target === 'orders:domainOp:ServiceB',
+      (l) =>
+        l.source === 'orders:orders-module:useCase:servicea' &&
+        l.target === 'orders:orders-module:domainOp:serviceb',
     )
     const bToA = result.links.find(
-      (l) => l.source === 'orders:domainOp:ServiceB' && l.target === 'orders:useCase:ServiceA',
+      (l) =>
+        l.source === 'orders:orders-module:domainOp:serviceb' &&
+        l.target === 'orders:orders-module:useCase:servicea',
     )
     expect(aToB).toBeDefined()
     expect(bToA).toBeDefined()
@@ -284,13 +288,13 @@ class OrderPublisher {
     expect(result.links).toStrictEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          source: 'orders:eventSender:OrderPublisher',
-          target: 'orders:event:OrderPlacedEvent',
+          source: 'orders:orders-module:eventSender:orderpublisher',
+          target: 'orders:orders-module:event:orderplacedevent',
           type: 'async',
         }),
         expect.objectContaining({
-          source: 'orders:event:OrderPlacedEvent',
-          target: 'orders:eventHandler:OrderPlacedHandler',
+          source: 'orders:orders-module:event:orderplacedevent',
+          target: 'orders:orders-module:eventHandler:orderplacedhandler',
           type: 'async',
         }),
       ]),
@@ -351,8 +355,8 @@ class PaymentGateway {
 
     expect(result.links).toStrictEqual([
       expect.objectContaining({
-        source: 'orders:useCase:ProcessPayment',
-        target: 'orders:repository:PaymentGateway',
+        source: 'orders:orders-module:useCase:processpayment',
+        target: 'orders:orders-module:repository:paymentgateway',
       }),
     ])
     expect(project.getSourceFiles().map((f) => f.getFilePath())).toStrictEqual([

@@ -10,7 +10,8 @@ const NOT_USED = { notUsed: true } as const
 
 function createMinimalModule(overrides: Partial<Module> = {}): Module {
   return {
-    name: 'test',
+    name: 'test-module',
+    domain: 'test-domain',
     path: '.',
     glob: 'src/**',
     api: NOT_USED,
@@ -28,7 +29,7 @@ export function createResolvedConfig(): ResolvedExtractionConfig {
 }
 
 export function createConfigWithCustomTypes(
-  moduleName: string,
+  domain: string,
   modulePath: string,
   customTypes: CustomTypes,
   moduleGlob = '**',
@@ -36,7 +37,8 @@ export function createConfigWithCustomTypes(
   return {
     modules: [
       createMinimalModule({
-        name: moduleName,
+        name: `${domain}-module`,
+        domain,
         path: modulePath,
         glob: moduleGlob,
         customTypes,
@@ -46,7 +48,7 @@ export function createConfigWithCustomTypes(
 }
 
 export function createConfigWithRule(
-  moduleName: string,
+  domain: string,
   modulePath: string,
   componentType: ComponentType,
   rule: DetectionRule,
@@ -55,7 +57,8 @@ export function createConfigWithRule(
   return {
     modules: [
       createMinimalModule({
-        name: moduleName,
+        name: `${domain}-module`,
+        domain,
         path: modulePath,
         glob: moduleGlob,
         [componentType]: rule,

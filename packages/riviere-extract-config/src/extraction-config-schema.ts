@@ -220,8 +220,11 @@ export interface ModuleRef {$ref: string}
  */
 export interface ModuleConfig {
   name: string
+  domain: string
   path: string
   glob: string
+  /** Path pattern with `{module}` placeholder for resolving module names from file paths. */
+  modules?: string
   extends?: string
   api?: ComponentRule
   useCase?: ComponentRule
@@ -238,8 +241,11 @@ export interface ModuleConfig {
  */
 export interface Module {
   name: string
+  domain: string
   path: string
   glob: string
+  /** Path pattern with `{module}` placeholder for resolving module names from file paths. */
+  modules?: string
   api: ComponentRule
   useCase: ComponentRule
   domainOp: ComponentRule

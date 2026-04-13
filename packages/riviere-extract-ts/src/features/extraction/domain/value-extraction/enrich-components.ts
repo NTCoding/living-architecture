@@ -38,6 +38,7 @@ export interface EnrichedComponent {
     line: number
   }
   domain: string
+  module: string
   metadata: Record<string, MetadataValue>
   _missing?: string[]
 }

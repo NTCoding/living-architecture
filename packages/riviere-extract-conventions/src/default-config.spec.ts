@@ -75,6 +75,7 @@ describe('Default extraction config', () => {
 
     const requiredKeys = [
       'name',
+      'domain',
       'path',
       'glob',
       'api',
@@ -87,7 +88,7 @@ describe('Default extraction config', () => {
     ]
     const moduleKeys = Object.keys(module)
     expect(moduleKeys).toStrictEqual(expect.arrayContaining(requiredKeys))
-    expect(moduleKeys).toHaveLength(10)
+    expect(moduleKeys).toHaveLength(11)
     expect(module.customTypes).toHaveProperty('eventPublisher')
     expect(module.customTypes).toHaveProperty('httpCall')
   })

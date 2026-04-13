@@ -6,8 +6,8 @@ import type { ExtractedLink } from './extracted-link'
 
 function createLink(overrides: Partial<ExtractedLink> = {}): ExtractedLink {
   return {
-    source: 'orders:useCase:OrderService',
-    target: 'orders:event:EventBus',
+    source: 'orders:orders-module:useCase:orderservice',
+    target: 'orders:orders-module:event:eventbus',
     type: 'sync',
     ...overrides,
   }
@@ -45,8 +45,8 @@ describe('deduplicateCrossStrategy', () => {
   })
 
   it('deduplicates links with different keys independently', () => {
-    const linkA = createLink({ target: 'orders:event:EventBusA' })
-    const linkB = createLink({ target: 'orders:event:EventBusB' })
+    const linkA = createLink({ target: 'orders:orders-module:event:eventbusa' })
+    const linkB = createLink({ target: 'orders:orders-module:event:eventbusb' })
 
     const result = deduplicateCrossStrategy([linkA, linkB])
 
