@@ -1,4 +1,4 @@
-import type { BashForbiddenConfig } from '@ntcoding/agentic-workflow-builder/dsl'
+import type { BashForbiddenConfig } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
 import type {
   ConcreteRegistry, ConcreteStateDefinition 
 } from './workflow-types'

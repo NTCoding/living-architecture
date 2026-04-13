@@ -1,7 +1,7 @@
 import { WORKFLOW_DEFINITION } from './workflow-definition'
 import type { WorkflowDeps } from '../../domain/workflow'
-import type { BaseEvent } from '@ntcoding/agentic-workflow-builder/engine'
-import { WorkflowStateError } from '@ntcoding/agentic-workflow-builder/engine'
+import type { BaseEvent } from '@nt-ai-lab/deterministic-agent-workflow-engine'
+import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import type {
   WorkflowState, StateName 
 } from '../../domain/workflow-types'
