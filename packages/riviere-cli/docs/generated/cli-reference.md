@@ -683,7 +683,6 @@ riviere extract [options]
 | `--allow-incomplete` | Output components even when some extraction fields fail |
 | `--pr` | Extract from files changed in current branch vs base branch |
 | `--stats` | Show extraction statistics on stderr |
-| `--patterns` | Enable pattern-based connection detection |
 | `--no-ts-config` | Skip tsconfig.json auto-discovery (disables full type resolution) |
 
 ---

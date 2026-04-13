@@ -10,13 +10,11 @@ import {
   enrichComponents,
   extractComponents,
   matchesGlob,
-  stripHttpCallComponents,
   type ConnectionTimings,
   type DraftComponent,
   type EnrichedComponent,
   type ExtractedLink,
 } from '@living-architecture/riviere-extract-ts'
-import type { ExternalLink } from '@living-architecture/riviere-schema'
 import type { ExtractionOutcome } from './extraction-outcome'
 
 /** @riviere-role value-object */
@@ -76,7 +74,7 @@ export class ExtractionProject {
     if (!options.includeConnections) {
       return {
         kind: 'draftOnly',
-        components: stripDraftHttpCallComponents(draftComponents),
+        components: draftComponents,
       }
     }
 
@@ -86,14 +84,12 @@ export class ExtractionProject {
     }
 
     const connectionResult = this.detectConnections(enrichment.components, options.allowIncomplete)
-    const visibleComponents = stripHttpCallComponents(enrichment.components)
 
     return {
       kind: 'full',
-      components: visibleComponents,
+      components: enrichment.components,
       failedFields: enrichment.failedFields,
       links: connectionResult.links,
-      externalLinks: connectionResult.externalLinks,
       timings: connectionResult.timings,
     }
   }
@@ -105,7 +101,7 @@ export class ExtractionProject {
     if (!options.includeConnections) {
       return {
         kind: 'draftOnly',
-        components: stripDraftHttpCallComponents(this.draftComponents),
+        components: this.draftComponents,
       }
     }
 
@@ -118,14 +114,12 @@ export class ExtractionProject {
     }
 
     const connectionResult = this.detectConnections(enrichment.components, options.allowIncomplete)
-    const visibleComponents = stripHttpCallComponents(enrichment.components)
 
     return {
       kind: 'full',
-      components: visibleComponents,
+      components: enrichment.components,
       failedFields: enrichment.failedFields,
       links: connectionResult.links,
-      externalLinks: connectionResult.externalLinks,
       timings: connectionResult.timings,
     }
   }
@@ -139,11 +133,9 @@ export class ExtractionProject {
     allowIncomplete: boolean,
   ): {
     links: ExtractedLink[]
-    externalLinks: ExternalLink[]
     timings: ConnectionTimings[]
   } {
     const links: ExtractedLink[] = []
-    const externalLinks: ExternalLink[] = []
     const timings: ConnectionTimings[] = []
 
     for (const moduleContext of this.moduleContexts) {
@@ -161,20 +153,16 @@ export class ExtractionProject {
           allComponents: enrichedComponents,
           allowIncomplete,
           moduleGlobs: [posix.join(moduleContext.module.path, moduleContext.module.glob)],
-          patterns: this.resolvedConfig.connections?.patterns,
           repository: this.repositoryName,
         },
         matchesGlob,
       )
       links.push(...result.links)
-      externalLinks.push(...result.externalLinks)
       timings.push({
         callGraphMs: result.timings.callGraphMs,
         asyncDetectionMs: 0,
-        configurableMs: result.timings.configurableMs,
         setupMs: result.timings.setupMs,
-        totalMs:
-          result.timings.callGraphMs + result.timings.configurableMs + result.timings.setupMs,
+        totalMs: result.timings.callGraphMs + result.timings.setupMs,
       })
     }
 
@@ -184,18 +172,15 @@ export class ExtractionProject {
       eventPublishers: this.resolvedConfig.connections?.eventPublishers,
     })
     links.push(...crossResult.links)
-    externalLinks.push(...crossResult.externalLinks)
     timings.push({
       callGraphMs: 0,
       asyncDetectionMs: crossResult.timings.asyncDetectionMs,
-      configurableMs: 0,
       setupMs: 0,
       totalMs: crossResult.timings.asyncDetectionMs,
     })
 
     return {
       links: deduplicateCrossStrategy(links),
-      externalLinks,
       timings,
     }
   }
@@ -243,10 +228,6 @@ export class ExtractionProject {
       failedFields,
     }
   }
-}
-
-function stripDraftHttpCallComponents(components: DraftComponent[]): DraftComponent[] {
-  return components.filter((component) => component.type !== 'httpCall')
 }
 
 function assertAllDraftsMatchModules(

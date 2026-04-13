@@ -26,7 +26,6 @@ export {
   detectPerModuleConnections,
   detectCrossModuleConnections,
   deduplicateCrossStrategy,
-  stripHttpCallComponents,
   type ConnectionDetectionOptions,
   type ConnectionDetectionResult,
   type ConnectionTimings,

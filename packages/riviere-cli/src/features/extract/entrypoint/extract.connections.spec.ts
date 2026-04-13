@@ -122,27 +122,6 @@ describe('riviere extract — connection detection', () => {
     })
   })
 
-  describe('--patterns flag', () => {
-    const ctx: TestContext = createTestContext()
-    setupCommandTest(ctx)
-
-    it('accepts --patterns flag without error', async () => {
-      const configPath = await createValidExtractFixture(ctx.testDir)
-
-      await createProgram().parseAsync([
-        'node',
-        'riviere',
-        'extract',
-        '--config',
-        configPath,
-        '--patterns',
-      ])
-
-      const output = parseFullExtractionOutput(ctx.consoleOutput)
-      expect(output.success).toBe(true)
-    })
-  })
-
   describe('empty components', () => {
     const ctx: TestContext = createTestContext()
     setupCommandTest(ctx)

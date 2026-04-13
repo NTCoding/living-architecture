@@ -35,6 +35,14 @@ describe('eventPublishers validation', () => {
     }
   }
 
+  it('returns valid when connections has no eventPublishers', () => {
+    const config = {
+      ...createMinimalConfig(),
+      connections: {},
+    }
+    expect(validateExtractionConfig(config).valid).toBe(true)
+  })
+
   it('returns valid when eventPublishers fromType is defined as a customType', () => {
     expect(validateExtractionConfig(configWithEventPublisher('eventPublisher')).valid).toBe(true)
   })
