@@ -1,7 +1,7 @@
 import type { ConcreteStateDefinition } from '../workflow-types'
 import {
   pass, fail 
-} from '@ntcoding/agentic-workflow-builder/dsl'
+} from '@nt-ai-lab/deterministic-agent-workflow-dsl'
 
 export const checkingFeedbackState: ConcreteStateDefinition = {
   emoji: '💬',

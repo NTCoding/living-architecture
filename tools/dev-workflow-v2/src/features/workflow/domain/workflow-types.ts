@@ -2,7 +2,7 @@ import { z } from 'zod'
 import type {
   WorkflowStateDefinition,
   WorkflowRegistry,
-} from '@ntcoding/agentic-workflow-builder/dsl'
+} from '@nt-ai-lab/deterministic-agent-workflow-dsl'
 
 export const STATE_NAMES = [
   'IMPLEMENTING',

@@ -2,12 +2,12 @@ import type {
   PreconditionResult,
   GitInfo,
   RecordingOpDefinition,
-} from '@ntcoding/agentic-workflow-builder/dsl'
+} from '@nt-ai-lab/deterministic-agent-workflow-dsl'
 import {
   pass, fail, defineRecordingOps 
-} from '@ntcoding/agentic-workflow-builder/dsl'
-import type { BaseEvent } from '@ntcoding/agentic-workflow-builder/engine'
-import { WorkflowStateError } from '@ntcoding/agentic-workflow-builder/engine'
+} from '@nt-ai-lab/deterministic-agent-workflow-dsl'
+import type { BaseEvent } from '@nt-ai-lab/deterministic-agent-workflow-engine'
+import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import type {
   WorkflowState, StateName, WorkflowOperation 
 } from './workflow-types'

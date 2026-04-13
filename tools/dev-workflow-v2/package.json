@@ -8,7 +8,12 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@ntcoding/agentic-workflow-builder": "github:NTCoding/autonomous-claude-agent-team#223d5254086ccba04bcb1f440c5bffa67b6ac3db&path:packages/agentic-workflow-builder",
+    "@nt-ai-lab/deterministic-agent-workflow-claude-code": "0.1.5",
+    "@nt-ai-lab/deterministic-agent-workflow-cli": "0.1.5",
+    "@nt-ai-lab/deterministic-agent-workflow-dsl": "0.1.5",
+    "@nt-ai-lab/deterministic-agent-workflow-engine": "0.1.5",
+    "@nt-ai-lab/deterministic-agent-workflow-event-store": "0.1.5",
+    "@nt-ai-lab/deterministic-agent-workflow-opencode": "0.1.5",
     "zod": "^3.23.0"
   },
   "devDependencies": {

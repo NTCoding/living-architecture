@@ -1,6 +1,6 @@
 import {
   defineRoutes, arg 
-} from '@ntcoding/agentic-workflow-builder/cli'
+} from '@nt-ai-lab/deterministic-agent-workflow-cli'
 import type { Workflow } from '../domain/workflow'
 import type { WorkflowState } from '../domain/workflow-types'
 import { STATE_NAME_SCHEMA } from '../domain/workflow-types'

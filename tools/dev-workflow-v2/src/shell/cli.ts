@@ -1,7 +1,5 @@
-import {
-  createClaudeCodeWorkflowCli,
-  createDefaultProcessDeps,
-} from '@ntcoding/agentic-workflow-builder/cli'
+import { createDefaultProcessDeps } from '@nt-ai-lab/deterministic-agent-workflow-cli'
+import { createClaudeCodeWorkflowCli } from '@nt-ai-lab/deterministic-agent-workflow-claude-code'
 import { WORKFLOW_DEFINITION } from '../features/workflow/infra/persistence/workflow-definition'
 import {
   ROUTES, PRE_TOOL_USE_POLICY 

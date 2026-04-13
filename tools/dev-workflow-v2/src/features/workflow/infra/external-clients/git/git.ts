@@ -1,5 +1,5 @@
 import { execSync } from 'node:child_process'
-import type { GitInfo } from '@ntcoding/agentic-workflow-builder/dsl'
+import type { GitInfo } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
 
 /* v8 ignore start */
 /** @riviere-role external-client-service */

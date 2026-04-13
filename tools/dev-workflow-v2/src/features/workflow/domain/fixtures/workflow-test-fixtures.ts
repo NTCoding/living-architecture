@@ -1,4 +1,4 @@
-import { workflowSpec } from '@ntcoding/agentic-workflow-builder/testing'
+import { workflowSpec } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import type { WorkflowEvent } from '../workflow-events'
 import type {
   WorkflowState, StateName 
@@ -6,7 +6,7 @@ import type {
 import type { WorkflowDeps } from '../workflow'
 import { Workflow } from '../workflow'
 import { applyEvents } from '../fold'
-import type { GitInfo } from '@ntcoding/agentic-workflow-builder/dsl'
+import type { GitInfo } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
 
 const AT = '2026-01-01T00:00:00Z'
 
