@@ -8,17 +8,14 @@ Deterministic extraction reads static types, decorators, and class/method struct
 
 When code does not follow a stable Convention, extraction can miss Components or produce uncertain Links.
 
-In the ecommerce demo app, event publishing uses explicit types and the `EventPublisherDef` interface:
+In the ecommerce demo app, event publishing uses the `@EventPublisherContainer` decorator:
 
 ```typescript
 import { EventPublisherContainer } from '@living-architecture/riviere-extract-conventions'
-import type { EventPublisherDef } from '@living-architecture/riviere-extract-conventions'
 import { eventBus, OrderPlaced } from './events'
 
 @EventPublisherContainer
-export class OrderEventPublisher implements EventPublisherDef {
-  declare readonly __brand: 'EventPublisherDef'
-
+export class OrderEventPublisher {
   publishOrderPlaced(event: OrderPlaced): void {
     eventBus.emit(event.type, event)
   }
@@ -33,14 +30,13 @@ This design gives extraction a typed Event publisher method and a typed Event ar
 
 The Golden Path uses shared conventions so extraction can map code to Components and Links without AI.
 
-### 1) Event classes implement `EventDef`
+### 1) Event classes use `@Event`
 
 ```typescript
 import { Event } from '@living-architecture/riviere-extract-conventions'
-import type { EventDef } from '@living-architecture/riviere-extract-conventions'
 
 @Event
-export class OrderPlaced implements EventDef {
+export class OrderPlaced {
   readonly type = 'OrderPlaced'
 }
 ```
@@ -49,10 +45,9 @@ export class OrderPlaced implements EventDef {
 
 ```typescript
 import { EventHandlerContainer } from '@living-architecture/riviere-extract-conventions'
-import type { EventHandlerDef } from '@living-architecture/riviere-extract-conventions'
 
 @EventHandlerContainer
-export class PaymentCompletedHandler implements EventHandlerDef {
+export class PaymentCompletedHandler {
   readonly subscribedEvents = ['PaymentCompleted']
 }
 ```
@@ -101,9 +96,9 @@ connections:
 
 ### Step 2: Add Event conventions to code
 
-- Implement `EventDef` on Event classes
-- Implement `EventHandlerDef` on handler classes (with `subscribedEvents`)
-- Implement `EventPublisherDef` on publisher classes
+- Add `@Event` to Event classes
+- Add `@EventHandlerContainer` to handler classes (with `subscribedEvents`)
+- Add `@EventPublisherContainer` to publisher classes
 
 ### Step 3: Switch to conventions-based publisher config
 

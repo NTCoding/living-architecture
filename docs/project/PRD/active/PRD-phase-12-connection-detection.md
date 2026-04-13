@@ -156,7 +156,8 @@ If the class containing the publish method is a component, it is the link source
 
 ```typescript
 // Connection detected via subscribedEvents metadata (from Phase 11)
-class OrderPlacedHandler implements EventHandlerDef {
+@EventHandlerContainer
+class OrderPlacedHandler {
   static readonly subscribedEvents = ['OrderPlaced'] as const;
 }
 ```
@@ -444,7 +445,7 @@ All core connection types are extractable end-to-end. Scoped call graph traces t
   - Every connection includes `sourceLocation`
   - Depends on: D1.7 (publish method convention must be defined first)
   - Verification: Unit tests with 100% branch coverage
-  - Architecture: see §9.1.2 (domain/connection-detection/async-detection/), §9.2.4 (EventPublisherDef), §9.2.1 (ComponentIndex)
+  - Architecture: see §9.1.2 (domain/connection-detection/async-detection/), §9.2.4 (@EventPublisherContainer), §9.2.1 (ComponentIndex)
 
 - **D1.6:** Async connection detection — subscribe side
   - Derive Event → EventHandler connections from `subscribedEvents` metadata extracted in Phase 11
@@ -454,19 +455,14 @@ All core connection types are extractable end-to-end. Scoped call graph traces t
   - Verification: Unit tests with 100% branch coverage
   - Architecture: see §9.1.2 (domain/connection-detection/async-detection/), §9.2.1 (ComponentIndex)
 
-- **D1.7:** Publish method interface pattern
-  - Define how typed publish methods should be structured (interface/abstract class)
+- **D1.7:** Publish method convention
+  - Define how typed publish methods should be structured using `@EventPublisherContainer` decorator
   - Ensure Event type is extractable from method signature
-  - Marker interface using Zod branded type (consistent with codebase conventions):
-    ```typescript
-    export const EventPublisherDefSchema = z.object({}).brand<'EventPublisherDef'>()
-    export type EventPublisherDef = z.infer<typeof EventPublisherDefSchema>
-    ```
-  - Detection: extractor finds classes implementing `EventPublisherDef`, inspects each public method's parameter types, matches to Event components via `metadata.eventName`
-  - ESLint rule (D2.1) enforces convention: each public method must have exactly one parameter whose type implements `EventDef`
+  - Detection: extractor finds classes decorated with `@EventPublisherContainer`, inspects each public method's parameter types, matches to Event components via `metadata.eventName`
+  - ESLint rule (D2.1) enforces convention: each public method must have exactly one parameter with a `type: string` property
   - Provide in `riviere-extract-conventions` package
-  - Verification: Interface/abstract class exists in package. Demo app implements it for at least 3 event types. Extractor detects all 3 publish connections with correct source locations. TypeScript compilation has zero errors.
-  - Architecture: see §9.2.4 (EventPublisherDef in riviere-extract-conventions)
+  - Verification: Decorator exists in package. Demo app uses it for at least 3 event types. Extractor detects all 3 publish connections with correct source locations. TypeScript compilation has zero errors.
+  - Architecture: see §9.2.4 (@EventPublisherContainer in riviere-extract-conventions)
 
 - **D1.8:** Performance instrumentation
   - Record extraction duration per phase (call graph construction, connection detection, filtering)
@@ -496,7 +492,7 @@ ESLint rule enforcing publish method convention. Ensures teams following Golden 
   - Validate typed publish methods follow convention defined in D1.7
   - Depends on: D1.7 (convention must be defined before enforcement rule)
   - Verification: Rule catches violations in test fixtures
-  - Architecture: see §9.2.4 (EventPublisherDef), §9.1.1 (riviere-extract-conventions modified)
+  - Architecture: see §9.2.4 (@EventPublisherContainer), §9.1.1 (riviere-extract-conventions modified)
 
 ---
 
@@ -516,7 +512,7 @@ Validate extraction against ecommerce-demo-app with defined ground truth.
 - **D3.2:** Refactor event publishing
   - Replace generic `publishEvent()` with typed publish methods following D1.7 pattern
   - Verification: Demo app compiles, ESLint rules pass
-  - Architecture: see §9.2.4 (EventPublisherDef convention)
+  - Architecture: see §9.2.4 (@EventPublisherContainer convention)
 
 - **D3.3:** Validate full extraction
   - Extract complete graph from demo app
@@ -570,7 +566,7 @@ Custom pattern DSL for teams with different conventions.
   - Migration guide from legacy patterns
   - Location: `docs/guides/design-for-extraction.md`
   - Verification: Doc exists at specified path, contains all sections listed above, no TODO/TBD placeholders
-  - Architecture: see §9.1.1 (all modified packages), §9.2.4 (EventPublisherDef)
+  - Architecture: see §9.1.1 (all modified packages), §9.2.4 (@EventPublisherContainer)
 
 - **D5.2:** Connection DSL reference
   - Config options for connection extraction
@@ -698,9 +694,9 @@ graph TD
     style config fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#333
 
     subgraph conventions ["riviere-extract-conventions"]
-        pubInterface[EventPublisherDef]:::feature
+        pubInterface[EventPublisherContainer decorator]:::feature
         pubRule[publish-method ESLint rule]:::feature
-        existingInterfaces[EventHandlerDef / EventDef]:::existing
+        existingDecorators[EventHandlerContainer / Event decorators]:::existing
     end
     style conventions fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#333
 
@@ -777,9 +773,9 @@ graph TD
     classDef existing fill:#e8e8e8,stroke:#999,color:#333
     classDef new fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20,stroke-width:3px
 
-    EventPublisherDef[EventPublisherDef]:::new
-    EventHandlerDef[EventHandlerDef]:::existing
-    EventDef[EventDef]:::existing
+    EventPublisherContainer[EventPublisherContainer decorator]:::new
+    EventHandlerContainer[EventHandlerContainer decorator]:::existing
+    EventDecorator[Event decorator]:::existing
 ```
 
 ```mermaid
@@ -805,7 +801,7 @@ Connection detection uses the same ts-morph `Project`, same source files, same A
 |---------|--------|
 | `riviere-extract-ts` | New `domain/connection-detection/` capability |
 | `riviere-extract-config` | New `connections` top-level key in config schema + types |
-| `riviere-extract-conventions` | New `EventPublisherDef` interface + ESLint rule |
+| `riviere-extract-conventions` | New `@EventPublisherContainer` decorator + ESLint rule |
 | `riviere-cli` | New flags (`--patterns`, `--stats`) + connection detection wiring in extract command |
 
 **9.1.2 `connection-detection/` is a domain capability in `riviere-extract-ts`** (Firm)
@@ -882,9 +878,9 @@ interface ExtractedLink extends Link {
 
 Lives in `riviere-extract-ts`. Keeps `riviere-schema` clean of extraction-specific concerns (tactical-DDD principle 1 — isolate domain from tooling concerns).
 
-**9.2.4 `EventPublisherDef` — interface in `riviere-extract-conventions`** (Firm)
+**9.2.4 `@EventPublisherContainer` — decorator in `riviere-extract-conventions`** (Firm)
 
-New convention interface alongside existing `EventHandlerDef` and `EventDef`. Defines the typed publish method pattern that Golden Path detection recognizes.
+New convention decorator alongside existing `@EventHandlerContainer` and `@Event`. Marks event publisher classes so Golden Path detection can find typed publish methods.
 
 **9.2.5 `ConnectionPattern` — value object in `riviere-extract-config`** (Firm)
 
@@ -905,7 +901,7 @@ Type representing a configurable connection pattern from the DSL. Contains `find
 - Returns `ExtractedLink[]`
 
 **Between `riviere-extract-conventions` and `riviere-extract-ts`:**
-- `EventPublisherDef` interface defines the pattern; extract-ts detects methods matching it
+- `@EventPublisherContainer` decorator marks the pattern; extract-ts detects methods on decorated classes
 
 ### 9.4 Glossary Additions
 

@@ -2,7 +2,7 @@
 
 ## Summary
 
-Added ESLint rule enforcing EventPublisherDef publish method conventions. Clean implementation with one round of GitHub feedback requesting an additional edge case test (constructor-only class).
+Added ESLint rule enforcing @EventPublisherContainer publish method conventions. Clean implementation with one round of GitHub feedback requesting an additional edge case test (constructor-only class).
 
 ## Pipeline Timeline
 
@@ -58,7 +58,7 @@ Added ESLint rule enforcing EventPublisherDef publish method conventions. Clean 
 #### CodeRabbit
 | # | Feedback | Accepted? | Rejected Reason |
 |---|----------|-----------|-----------------|
-| 1 | Add test for constructor-only EventPublisherDef class (no publish methods) | ✅ | - |
+| 1 | Add test for constructor-only @EventPublisherContainer class (no publish methods) | ✅ | - |
 
 ---
 

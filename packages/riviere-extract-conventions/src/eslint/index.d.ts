@@ -20,7 +20,7 @@ interface Plugin {
       | 'tooManyParameters'
       | 'missingTypeAnnotation'
       | 'notTypeReference'
-      | 'notEventDef'
+      | 'invalidEventType'
       | 'nonPublicMethod'
     >
     'http-client-requires-service-name': TSESLint.RuleModule<

@@ -51,7 +51,7 @@ const notTypeReferenceError = (methodName: string, className: string) => ({
   },
 })
 
-const notEventDefError = (methodName: string, className: string, typeName: string) => ({
+const invalidEventTypeError = (methodName: string, className: string, typeName: string) => ({
   messageId: 'invalidEventType' as const,
   data: {
     methodName,
@@ -318,7 +318,7 @@ describe('event-publisher-method-signature', () => {
   typedRuleTester.run('event-publisher-method-signature (typed)', rule, {
     valid: [
       {
-        name: 'passes when parameter type has readonly type: string (EventDef shape)',
+        name: 'passes when parameter type has readonly type: string',
         code: `
           interface OrderPlacedEvent { readonly type: 'OrderPlaced' }
           @EventPublisherContainer
@@ -358,7 +358,7 @@ describe('event-publisher-method-signature', () => {
             publishOrder(event: SomeRandomClass): void {}
           }
         `,
-        errors: [notEventDefError('publishOrder', 'OrderPublisher', 'SomeRandomClass')],
+        errors: [invalidEventTypeError('publishOrder', 'OrderPublisher', 'SomeRandomClass')],
       },
       {
         name: 'reports error when parameter type has type property but it is number not string',
@@ -369,10 +369,10 @@ describe('event-publisher-method-signature', () => {
             publishOrder(event: BadEvent): void {}
           }
         `,
-        errors: [notEventDefError('publishOrder', 'OrderPublisher', 'BadEvent')],
+        errors: [invalidEventTypeError('publishOrder', 'OrderPublisher', 'BadEvent')],
       },
       {
-        name: 'reports error when qualified type name does not have EventDef shape',
+        name: 'reports error when qualified type name does not have type: string property',
         code: `
           declare namespace Domain { interface NotAnEvent { name: string } }
           @EventPublisherContainer
@@ -380,7 +380,7 @@ describe('event-publisher-method-signature', () => {
             publishOrder(event: Domain.NotAnEvent): void {}
           }
         `,
-        errors: [notEventDefError('publishOrder', 'OrderPublisher', 'NotAnEvent')],
+        errors: [invalidEventTypeError('publishOrder', 'OrderPublisher', 'NotAnEvent')],
       },
     ],
   })

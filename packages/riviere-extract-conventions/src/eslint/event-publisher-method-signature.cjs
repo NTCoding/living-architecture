@@ -14,7 +14,7 @@ function getTypeReferenceName(typeAnnotation) {
   return typeName.name
 }
 
-function checkEventDefShape(checker, services, param, typeAnnotation) {
+function checkEventTypeShape(checker, services, param, typeAnnotation) {
   if (!checker || !services) return null
 
   const tsParam = services.esTreeNodeToTSNodeMap.get(param)
@@ -104,7 +104,7 @@ function checkMethod(context, member, className, checker, services) {
     return
   }
 
-  const failedTypeName = checkEventDefShape(checker, services, param, typeAnnotation)
+  const failedTypeName = checkEventTypeShape(checker, services, param, typeAnnotation)
   if (failedTypeName) {
     context.report({
       node: member.key,
@@ -131,11 +131,11 @@ module.exports = {
   meta: {
     type: 'problem',
     docs: {
-      description: 'Require EventPublisherDef methods to have exactly one EventDef-typed parameter',
+      description: 'Require @EventPublisherContainer methods to have exactly one typed event parameter',
       requiresTypeChecking: true,
       examples: {
-        valid: "class OrderPublisher implements EventPublisherDef { publish(event: OrderPlacedEvent): void {} }",
-        invalid: "class OrderPublisher implements EventPublisherDef { publish(): void {} }",
+        valid: "@EventPublisherContainer class OrderPublisher { publish(event: OrderPlacedEvent): void {} }",
+        invalid: "@EventPublisherContainer class OrderPublisher { publish(): void {} }",
       },
     },
     schema: [],
