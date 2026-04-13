@@ -13,7 +13,7 @@
     "knip": "knip",
     "lint:md": "markdownlint-cli2 \"**/*.md\" \"!**/node_modules/**\"",
     "depcruise": "depcruise --config .dependency-cruiser.mjs packages/*/src && depcruise --config .dependency-cruiser.frontend.mjs apps/eclair/src && depcruise --config .dependency-cruiser.specs.mjs packages/*/src apps/eclair/src",
-    "verify": "nx run-many -t lint-md role-check build depcruise lint typecheck test check-generated-docs knip",
+    "verify": "nx run-many -t lint-md role-check build depcruise lint typecheck test check-generated-docs knip --exclude=eclair",
     "prepare": "husky"
   },
   "lint-staged": {

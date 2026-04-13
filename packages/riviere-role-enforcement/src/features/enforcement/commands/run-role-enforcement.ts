@@ -1,9 +1,10 @@
 import {
-  existsSync, readdirSync, realpathSync 
+  readdirSync, realpathSync 
 } from 'node:fs'
 import path from 'node:path'
 import { performance } from 'node:perf_hooks'
 import { fileURLToPath } from 'node:url'
+import { findFileUp } from '../domain/find-file-up'
 import { PackageFilterError } from '../domain/filter-config-by-package'
 import { resolveLintTargets } from '../domain/resolve-lint-targets'
 import { RoleEnforcementExecutionError } from '../domain/role-enforcement-execution-error'
@@ -92,14 +93,6 @@ export class RunRoleEnforcement {
       throw error
     }
   }
-}
-
-function findFileUp(startDir: string, fileName: string): string | undefined {
-  const candidate = path.join(startDir, fileName)
-  if (existsSync(candidate)) return candidate
-  const parent = path.dirname(startDir)
-  if (parent === startDir) return undefined
-  return findFileUp(parent, fileName)
 }
 
 function resolvePluginPath(): string {

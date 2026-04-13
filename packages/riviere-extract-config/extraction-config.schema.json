@@ -646,6 +646,41 @@
           "items": {
             "$ref": "#/$defs/eventPublisherConfig"
           }
+        },
+        "httpLinks": {
+          "type": "array",
+          "description": "Declares how to resolve HTTP client calls into cross-domain Links",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/httpLinkConfig"
+          }
+        }
+      }
+    },
+    "httpLinkConfig": {
+      "type": "object",
+      "description": "Declares how to resolve HTTP client calls into cross-domain Links",
+      "required": ["fromCustomType", "matchDomainBy", "matchApiBy"],
+      "additionalProperties": false,
+      "properties": {
+        "fromCustomType": {
+          "type": "string",
+          "description": "Custom component type name for HTTP clients — must be defined in customTypes in at least one module",
+          "minLength": 1
+        },
+        "matchDomainBy": {
+          "type": "string",
+          "description": "Metadata key whose value identifies the target domain",
+          "minLength": 1
+        },
+        "matchApiBy": {
+          "type": "array",
+          "description": "Metadata keys used to match the target API component",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1
         }
       }
     },

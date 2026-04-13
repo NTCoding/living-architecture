@@ -1,6 +1,9 @@
 import { performance } from 'node:perf_hooks'
 import type { Project } from 'ts-morph'
-import type { EventPublisherConfig } from '@living-architecture/riviere-extract-config'
+import type {
+  EventPublisherConfig,
+  HttpLinkConfig,
+} from '@living-architecture/riviere-extract-config'
 import type { EnrichedComponent } from '../value-extraction/enrich-components'
 import type { GlobMatcher } from '../component-extraction/extractor'
 import type { ExtractedLink } from './extracted-link'
@@ -8,12 +11,14 @@ import { ComponentIndex } from './component-index'
 import { buildCallGraph } from './call-graph/build-call-graph'
 import { detectEventPublisherConnections } from './async-detection/detect-event-publisher-connections'
 import { detectSubscribeConnections } from './async-detection/detect-subscribe-connections'
+import { resolveHttpLinks } from './resolve-http-links'
 
 /** @riviere-role value-object */
 export interface ConnectionDetectionOptions {
   allowIncomplete?: boolean
   moduleGlobs: string[]
   eventPublishers?: EventPublisherConfig[]
+  httpLinks?: HttpLinkConfig[]
   repository: string
 }
 
@@ -25,9 +30,12 @@ export interface ConnectionTimings {
   totalMs: number
 }
 
+import type { ExternalLink } from '@living-architecture/riviere-schema'
+
 /** @riviere-role value-object */
 export interface ConnectionDetectionResult {
   links: ExtractedLink[]
+  externalLinks: ExternalLink[]
   timings: ConnectionTimings
 }
 
@@ -64,6 +72,7 @@ export interface PerModuleConnectionOptions {
   allComponents?: readonly EnrichedComponent[]
   allowIncomplete?: boolean
   moduleGlobs: string[]
+  httpLinks?: HttpLinkConfig[]
   repository: string
 }
 
@@ -76,6 +85,7 @@ export interface PerModuleTimings {
 /** @riviere-role value-object */
 export interface PerModuleDetectionResult {
   links: ExtractedLink[]
+  externalLinks: ExternalLink[]
   timings: PerModuleTimings
 }
 
@@ -103,8 +113,12 @@ export function detectPerModuleConnections(
   })
   const callGraphMs = performance.now() - callGraphStart
 
+  const httpLinkConfigs = options.httpLinks ?? []
+  const resolved = resolveHttpLinks(syncLinks, visibleComponents, httpLinkConfigs)
+
   return {
-    links: syncLinks,
+    links: resolved.links,
+    externalLinks: resolved.externalLinks,
     timings: {
       callGraphMs,
       setupMs,
@@ -195,10 +209,13 @@ export function detectConnections(
 
   const allLinks = [...syncLinks, ...publishLinks, ...subscribeLinks]
   const deduplicatedLinks = deduplicateCrossStrategy(allLinks)
+  const httpLinkConfigs = options.httpLinks ?? []
+  const resolved = resolveHttpLinks(deduplicatedLinks, components, httpLinkConfigs)
   const totalMs = performance.now() - totalStart
 
   return {
-    links: deduplicatedLinks,
+    links: resolved.links,
+    externalLinks: resolved.externalLinks,
     timings: {
       callGraphMs,
       asyncDetectionMs,

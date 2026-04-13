@@ -292,13 +292,16 @@ it('rethrows non-domain errors from the oxlint adapter', () => {
 
 it('returns failure when role-enforcement-plugin.mjs cannot be found', () => {
   vi.mocked(existsSync).mockReturnValue(false)
-  const result = new RunRoleEnforcement({ realpathSync: (filePath) => filePath }).execute({
-    configDir: '/var/folders/fake-dir',
-    configModule: { config: genericTestConfig },
-  })
-  vi.mocked(existsSync).mockRestore()
-  expect(result.exitCode).toBe(1)
-  expect(result.stderr).toContain('Cannot find role-enforcement-plugin.mjs')
+  try {
+    const result = new RunRoleEnforcement({ realpathSync: (filePath) => filePath }).execute({
+      configDir: '/var/folders/fake-dir',
+      configModule: { config: genericTestConfig },
+    })
+    expect(result.exitCode).toBe(1)
+    expect(result.stderr).toContain('Cannot find role-enforcement-plugin.mjs')
+  } finally {
+    vi.mocked(existsSync).mockRestore()
+  }
 })
 
 it('wraps RoleEnforcementExecutionError from readConfig into a failure result', () => {

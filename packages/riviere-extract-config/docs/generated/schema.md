@@ -298,6 +298,21 @@ Connection detection configuration
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `eventPublishers` | `eventPublisherConfig[]` | No | Declares which custom component types publish events and how to detect the connections |
+| `httpLinks` | `httpLinkConfig[]` | No | Declares how to resolve HTTP client calls into cross-domain Links |
+
+---
+
+### `httpLinkConfig`
+
+Declares how to resolve HTTP client calls into cross-domain Links
+
+**Properties:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `fromCustomType` | `string` | **Yes** | Custom component type name for HTTP clients — must be defined in customTypes in at least one module |
+| `matchDomainBy` | `string` | **Yes** | Metadata key whose value identifies the target domain |
+| `matchApiBy` | `string[]` | **Yes** | Metadata keys used to match the target API component |
 
 ---
 

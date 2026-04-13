@@ -4,6 +4,7 @@ import type {
   EnrichedComponent,
   ExtractedLink,
 } from '@living-architecture/riviere-extract-ts'
+import type { ExternalLink } from '@living-architecture/riviere-schema'
 
 interface EnrichDraftComponentsDraftOnlyResult {
   kind: 'draftOnly'
@@ -14,6 +15,7 @@ interface EnrichDraftComponentsFullResult {
   kind: 'full'
   components: EnrichedComponent[]
   links: ExtractedLink[]
+  externalLinks: ExternalLink[]
   timings: ConnectionTimings[]
   failedFields: string[]
 }

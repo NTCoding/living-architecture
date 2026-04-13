@@ -77,32 +77,15 @@ This works with the default conventions config where the `eventPublisher` custom
 
 Use an incremental migration so extraction continues to work while conventions are adopted.
 
-### Step 1: Keep current custom patterns running
-
-If legacy code already uses custom emitters, keep a `connections.patterns` rule during migration:
-
-```yaml
-connections:
-  patterns:
-    - name: custom-event-publisher
-      find: methodCalls
-      where:
-        methodName: publish
-        receiverType: EventBus
-      extract:
-        eventName: { fromArgument: 0 }
-      linkType: async
-```
-
-### Step 2: Add Event conventions to code
+### Step 1: Add Event conventions to code
 
 - Add `@Event` to Event classes
 - Add `@EventHandlerContainer` to handler classes (with `subscribedEvents`)
 - Add `@EventPublisherContainer` to publisher classes
 
-### Step 3: Switch to conventions-based publisher config
+### Step 2: Configure conventions-based publisher detection
 
-After the code follows Golden Path conventions, move to top-level `connections.eventPublishers`:
+Add `connections.eventPublishers` to declare how event publishers are detected:
 
 ```json
 {
@@ -117,9 +100,7 @@ After the code follows Golden Path conventions, move to top-level `connections.e
 }
 ```
 
-### Step 4: Remove temporary custom pattern rules
-
-Remove legacy `connections.patterns` rules that duplicate Golden Path behavior.
+This works with the default conventions config where the `eventPublisher` custom type extracts `publishedEventType` from the publish method parameter type.
 
 ## See Also
 

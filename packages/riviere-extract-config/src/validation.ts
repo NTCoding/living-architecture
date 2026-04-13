@@ -205,12 +205,38 @@ function validateEventPublishers(
   })
 }
 
+function validateHttpLinks(
+  connections: ConnectionsConfig,
+  customTypeFields: Map<string, Set<string>>,
+): ValidationError[] {
+  if (connections.httpLinks === undefined) {
+    return []
+  }
+  return connections.httpLinks.flatMap((httpLink, index) => {
+    const extractedFields = customTypeFields.get(httpLink.fromCustomType)
+    if (extractedFields === undefined) {
+      return [
+        {
+          path: `/connections/httpLinks/${index}/fromCustomType`,
+          message:
+            `"${httpLink.fromCustomType}" is not defined as a customType in any module. ` +
+            `Add a customType named "${httpLink.fromCustomType}" to at least one module.`,
+        },
+      ]
+    }
+    return []
+  })
+}
+
 function validateConnectionsConfig(config: ExtractionConfig): ValidationError[] {
   if (config.connections === undefined) {
     return []
   }
   const customTypeFields = collectCustomTypeExtractedFields(config)
-  return validateEventPublishers(config.connections, customTypeFields)
+  return [
+    ...validateEventPublishers(config.connections, customTypeFields),
+    ...validateHttpLinks(config.connections, customTypeFields),
+  ]
 }
 
 /**

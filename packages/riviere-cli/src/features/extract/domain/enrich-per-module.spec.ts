@@ -27,6 +27,7 @@ const {
   mockMatchesGlob: vi.fn(),
   mockDetectPerModuleConnections: vi.fn().mockReturnValue({
     links: [],
+    externalLinks: [],
     timings: {
       callGraphMs: 0,
       setupMs: 0,
@@ -45,6 +46,7 @@ vi.mock('@living-architecture/riviere-extract-ts', () => ({
   detectPerModuleConnections: mockDetectPerModuleConnections,
   detectCrossModuleConnections: mockDetectCrossModuleConnections,
   deduplicateCrossStrategy: mockDeduplicateCrossStrategy,
+  stripResolvedCustomTypes: vi.fn((components: unknown[]) => components),
 }))
 
 const notUsedRule: ComponentRule = { notUsed: true }

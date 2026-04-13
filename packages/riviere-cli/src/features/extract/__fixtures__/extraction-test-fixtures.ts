@@ -33,11 +33,18 @@ const extractionOutputSchema = z.object({
   data: z.array(draftComponentSchema),
 })
 
+const externalLinkOutputSchema = z.looseObject({
+  source: z.string(),
+  target: z.object({ name: z.string() }),
+  type: z.string().optional(),
+})
+
 const fullExtractionOutputSchema = z.object({
   success: z.literal(true),
   data: z.object({
     components: z.array(draftComponentSchema),
     links: z.array(extractedLinkOutputSchema),
+    externalLinks: z.array(externalLinkOutputSchema).optional(),
   }),
 })
 

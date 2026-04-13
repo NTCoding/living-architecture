@@ -8,56 +8,21 @@ Reference for connection detection options in Extraction Config.
 
 ## Overview
 
-| Option                             | Description                                                           |
-| ---------------------------------- | --------------------------------------------------------------------- |
-| `connections.patterns`             | Global `ConnectionPattern` list inherited by all modules              |
-| `connections.eventPublishers`      | Event publisher declarations for convention-based async Links         |
-| `module.connections.patterns`      | Module-level `ConnectionPattern` list (additive with global patterns) |
-| `ConnectionPattern.name`           | Pattern identifier                                                    |
-| `ConnectionPattern.find`           | Connection finder (`methodCalls`)                                     |
-| `ConnectionPattern.where`          | Method call match conditions                                          |
-| `ConnectionPattern.extract`        | Connection metadata extraction rules                                  |
-| `ConnectionPattern.linkType`       | Link type (`sync` or `async`)                                         |
-| `where.methodName`                 | Match method calls by method name                                     |
-| `where.receiverType`               | Match method calls by receiver type                                   |
-| `where.callerHasDecorator`         | Match calls where caller class has specific decorators                |
-| `where.calleeType.hasDecorator`    | Match calls where callee type class has a decorator                   |
-| `extract.<field>.fromArgument`     | Extract static type name of argument at index                         |
-| `extract.<field>.fromReceiverType` | Extract receiver static type name                                     |
-| `extract.<field>.fromCallerType`   | Extract caller class type name                                        |
-
----
-
-### `connections.patterns`
-
-Global connection patterns inherited by all modules.
-
-Example:
-
-```yaml
-connections:
-  patterns:
-    - name: custom-event-emitter
-      find: methodCalls
-      where:
-        methodName: emit
-        receiverType: EventBus
-      extract:
-        eventName: { fromArgument: 0 }
-      linkType: async
-```
-
-**Parameters:**
-
-| Field                  | Type                  | Required | Description                                                        |
-| ---------------------- | --------------------- | -------- | ------------------------------------------------------------------ |
-| `connections.patterns` | `ConnectionPattern[]` | No       | Global pattern list. Each module runs these patterns in its scope. |
+| Option                             | Description                                                      |
+| ---------------------------------- | ---------------------------------------------------------------- |
+| `connections.eventPublishers`      | Event publisher declarations for convention-based async Links    |
+| `connections.httpLinks`            | HTTP link resolution for cross-domain and external service calls |
 
 ---
 
 ### `connections.eventPublishers`
 
-Declares custom component types that publish Events using metadata.
+Declares custom component types that publish Events using metadata. Used with convention decorators:
+- `@EventPublisherContainer` on publisher classes
+- `@Event` on published event classes
+- `@EventHandlerContainer` on subscriber handlers consuming those Events
+
+The extractor matches publisher components (by `fromType`) to Event components (by the metadata value in `metadataKey`), creating async Links.
 
 **Parameters:**
 
@@ -66,7 +31,7 @@ Declares custom component types that publish Events using metadata.
 | `connections.eventPublishers[].fromType`    | `string` | **Yes**  | Custom component type name (must exist in `customTypes`) |
 | `connections.eventPublishers[].metadataKey` | `string` | **Yes**  | Metadata key containing the published Event type name    |
 
-**ecommerce-demo-app example:**
+**Example:**
 
 ```json
 {
@@ -81,166 +46,99 @@ Declares custom component types that publish Events using metadata.
 }
 ```
 
+`fromType: "eventPublisher"` matches the `eventPublisher` custom type defined in `customTypes`. The extractor reads the `publishedEventType` metadata value from each publisher component and finds the Event component with a matching `eventName`.
+
 [View config in ecommerce-demo-app →](https://github.com/NTCoding/ecommerce-demo-app/blob/main/.riviere/config/extraction.config.json)
 
 ---
 
-### `module.connections.patterns`
+### `connections.httpLinks`
 
-Module-level connection patterns. These are additive with global `connections.patterns`.
-
-**Parameters:**
-
-| Field                         | Type                  | Required | Description                                                      |
-| ----------------------------- | --------------------- | -------- | ---------------------------------------------------------------- |
-| `module.connections.patterns` | `ConnectionPattern[]` | No       | Module-specific patterns that run in addition to global patterns |
-
----
-
-### `ConnectionPattern`
-
-A single configurable connection detection rule.
+Resolves cross-domain HTTP calls into Links targeting API components in other domains. When a component calls a method on an `httpCall` component, the extractor uses the HTTP client's metadata to find the target API component.
 
 **Parameters:**
 
-| Field      | Type                  | Required | Description                              |
-| ---------- | --------------------- | -------- | ---------------------------------------- |
-| `name`     | `string`              | **Yes**  | Pattern identifier                       |
-| `find`     | `"methodCalls"`       | **Yes**  | Connection finder                        |
-| `where`    | `object`              | **Yes**  | Match clause for method calls            |
-| `extract`  | `object`              | No       | Extraction rules for connection metadata |
-| `linkType` | `"sync"` \| `"async"` | **Yes**  | Link type for matches                    |
+| Field                                    | Type       | Required | Description                                                          |
+| ---------------------------------------- | ---------- | -------- | -------------------------------------------------------------------- |
+| `connections.httpLinks[].fromCustomType` | `string`   | **Yes**  | Custom component type name for HTTP clients (must exist in `customTypes`) |
+| `connections.httpLinks[].matchDomainBy`  | `string`   | **Yes**  | Metadata key whose value identifies the target domain                |
+| `connections.httpLinks[].matchApiBy`     | `string[]` | **Yes**  | Metadata keys used to match the target API component                 |
 
-**Common framework examples:**
+**Full example:**
 
-NestJS controller to service:
+Config:
 
 ```yaml
+modules:
+  - domain: orders
+    name: orders
+    path: ../../orders
+    modules: /src/{module}
+    extends: '@living-architecture/riviere-extract-conventions'
+
+  - domain: bff
+    name: bff
+    path: ../../bff
+    modules: /src/{module}
+    extends: '@living-architecture/riviere-extract-conventions'
+
 connections:
-  patterns:
-    - name: nestjs-controller-to-service
-      find: methodCalls
-      where:
-        callerHasDecorator: [Controller]
-        calleeType: { hasDecorator: Injectable }
-      linkType: sync
+  eventPublishers:
+    - fromType: eventPublisher
+      metadataKey: publishedEventType
+  httpLinks:
+    - fromCustomType: httpCall
+      matchDomainBy: serviceName
+      matchApiBy: [route, method]
 ```
 
-Express route handler to service:
+BFF HTTP client:
 
-```yaml
-connections:
-  patterns:
-    - name: express-route-to-usecase
-      find: methodCalls
-      where:
-        methodName: post
-        receiverType: OrderService
-      linkType: sync
+```typescript
+/** @httpClient */
+export class OrdersServiceClient {
+  readonly serviceName = 'orders'
+  readonly route = '/orders'
+  readonly method = 'POST'
+
+  async placeOrder(request: PlaceOrderRequest): Promise<PlaceOrderResponse> {
+    return fetch('http://localhost:3000/orders', {
+      method: 'POST',
+      body: JSON.stringify(request),
+    })
+  }
+}
 ```
 
-Custom event emitter:
+Orders domain API:
 
-```yaml
-connections:
-  patterns:
-    - name: custom-event-emitter
-      find: methodCalls
-      where:
-        methodName: emit
-        receiverType: EventBus
-      extract:
-        eventName: { fromArgument: 0 }
-      linkType: async
+```typescript
+@APIContainer
+export class OrdersEndpoint {
+  @Post('/orders')
+  async createOrder(req: Request): Promise<Response> { /* ... */ }
+}
 ```
 
----
+The call graph detects `PlaceOrderBFFUseCase → OrdersServiceClient.placeOrder()`. The `httpLinks` config resolves this: `serviceName: 'orders'` matches the `orders` domain, `route: '/orders'` + `method: 'POST'` matches `createOrder`. The link becomes:
 
-### `where.methodName`
+```json
+{
+  "source": "bff:bff:useCase:placeorderbffusecase",
+  "target": "orders:orders:api:createorder",
+  "type": "sync"
+}
+```
 
-Matches calls by method name.
+When `serviceName` doesn't match any domain (e.g., `'Fraud Detection Service'`), the link becomes an external link:
 
-**Parameters:**
-
-| Field              | Type     | Required | Description                                          |
-| ------------------ | -------- | -------- | ---------------------------------------------------- |
-| `where.methodName` | `string` | No       | Method name to match (for example `publish`, `emit`) |
-
----
-
-### `where.receiverType`
-
-Matches calls by receiver static type name.
-
-**Parameters:**
-
-| Field                | Type     | Required | Description                                                     |
-| -------------------- | -------- | -------- | --------------------------------------------------------------- |
-| `where.receiverType` | `string` | No       | Receiver type to match (for example `EventBus`, `OrderService`) |
-
----
-
-### `where.callerHasDecorator`
-
-Matches calls when the caller class has one of the listed decorators.
-
-**Parameters:**
-
-| Field                      | Type       | Required | Description                                  |
-| -------------------------- | ---------- | -------- | -------------------------------------------- |
-| `where.callerHasDecorator` | `string[]` | No       | Decorator names to match on the caller class |
-
-Decorator matching is name-only.
-
----
-
-### `where.calleeType.hasDecorator`
-
-Matches calls when the callee type class has a specific decorator.
-
-**Parameters:**
-
-| Field                           | Type     | Required | Description                                 |
-| ------------------------------- | -------- | -------- | ------------------------------------------- |
-| `where.calleeType.hasDecorator` | `string` | No       | Decorator name required on the callee class |
-
-Decorator matching is name-only.
-
----
-
-### `extract.<field>.fromArgument`
-
-Extracts the static type name of an argument at the given index.
-
-**Parameters:**
-
-| Field                          | Type      | Required | Description               |
-| ------------------------------ | --------- | -------- | ------------------------- |
-| `extract.<field>.fromArgument` | `integer` | **Yes**  | Zero-based argument index |
-
----
-
-### `extract.<field>.fromReceiverType`
-
-Extracts the static type name of the receiver object.
-
-**Parameters:**
-
-| Field                              | Type   | Required | Description                |
-| ---------------------------------- | ------ | -------- | -------------------------- |
-| `extract.<field>.fromReceiverType` | `true` | **Yes**  | Extract receiver type name |
-
----
-
-### `extract.<field>.fromCallerType`
-
-Extracts the caller class type name.
-
-**Parameters:**
-
-| Field                            | Type   | Required | Description                    |
-| -------------------------------- | ------ | -------- | ------------------------------ |
-| `extract.<field>.fromCallerType` | `true` | **Yes**  | Extract caller class type name |
+```json
+{
+  "source": "bff:bff:useCase:placeorderbffusecase",
+  "target": { "name": "Fraud Detection Service", "route": "/api/check", "method": "POST" },
+  "type": "sync"
+}
+```
 
 ---
 

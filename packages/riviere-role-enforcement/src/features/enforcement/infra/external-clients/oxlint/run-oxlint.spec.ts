@@ -80,23 +80,26 @@ describe('runOxlint', () => {
 
   it('throws RoleEnforcementExecutionError when oxlint binary cannot be found', () => {
     vi.mocked(existsSync).mockReturnValue(false)
-    expect(() =>
-      runOxlint({
-        oxlintConfig: minimalOxlintConfig,
-        configDir: '/var/folders/fake-dir',
-        lintTargets: [],
-        deps: {
-          rmSync: vi.fn(),
-          spawnSync: vi.fn(() => ({
-            status: 0,
-            stderr: '',
-            stdout: '',
-          })),
-          writeFileSync: vi.fn(),
-        },
-      }),
-    ).toThrowError(new RoleEnforcementExecutionError('Cannot find oxlint binary in node_modules'))
-    vi.mocked(existsSync).mockRestore()
+    try {
+      expect(() =>
+        runOxlint({
+          oxlintConfig: minimalOxlintConfig,
+          configDir: '/var/folders/fake-dir',
+          lintTargets: [],
+          deps: {
+            rmSync: vi.fn(),
+            spawnSync: vi.fn(() => ({
+              status: 0,
+              stderr: '',
+              stdout: '',
+            })),
+            writeFileSync: vi.fn(),
+          },
+        }),
+      ).toThrowError(new RoleEnforcementExecutionError('Cannot find oxlint binary in node_modules'))
+    } finally {
+      vi.mocked(existsSync).mockRestore()
+    }
   })
 
   it('defaults the exit code to 1 when spawnSync returns no status', () => {

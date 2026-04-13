@@ -10,11 +10,13 @@ import {
   enrichComponents,
   extractComponents,
   matchesGlob,
+  stripResolvedCustomTypes,
   type ConnectionTimings,
   type DraftComponent,
   type EnrichedComponent,
   type ExtractedLink,
 } from '@living-architecture/riviere-extract-ts'
+import type { ExternalLink } from '@living-architecture/riviere-schema'
 import type { ExtractionOutcome } from './extraction-outcome'
 
 /** @riviere-role value-object */
@@ -84,12 +86,15 @@ export class ExtractionProject {
     }
 
     const connectionResult = this.detectConnections(enrichment.components, options.allowIncomplete)
+    const httpLinks = this.resolvedConfig.connections?.httpLinks ?? []
+    const visibleComponents = stripResolvedCustomTypes(enrichment.components, httpLinks)
 
     return {
       kind: 'full',
-      components: enrichment.components,
+      components: visibleComponents,
       failedFields: enrichment.failedFields,
       links: connectionResult.links,
+      externalLinks: connectionResult.externalLinks,
       timings: connectionResult.timings,
     }
   }
@@ -114,12 +119,15 @@ export class ExtractionProject {
     }
 
     const connectionResult = this.detectConnections(enrichment.components, options.allowIncomplete)
+    const httpLinks = this.resolvedConfig.connections?.httpLinks ?? []
+    const visibleComponents = stripResolvedCustomTypes(enrichment.components, httpLinks)
 
     return {
       kind: 'full',
-      components: enrichment.components,
+      components: visibleComponents,
       failedFields: enrichment.failedFields,
       links: connectionResult.links,
+      externalLinks: connectionResult.externalLinks,
       timings: connectionResult.timings,
     }
   }
@@ -133,14 +141,17 @@ export class ExtractionProject {
     allowIncomplete: boolean,
   ): {
     links: ExtractedLink[]
+    externalLinks: ExternalLink[]
     timings: ConnectionTimings[]
   } {
     const links: ExtractedLink[] = []
+    const externalLinks: ExternalLink[] = []
     const timings: ConnectionTimings[] = []
+    const httpLinks = this.resolvedConfig.connections?.httpLinks ?? []
 
     for (const moduleContext of this.moduleContexts) {
       const moduleComponents = enrichedComponents.filter(
-        (component) => component.domain === moduleContext.module.name,
+        (component) => component.domain === moduleContext.module.domain,
       )
       if (moduleComponents.length === 0) {
         continue
@@ -153,11 +164,13 @@ export class ExtractionProject {
           allComponents: enrichedComponents,
           allowIncomplete,
           moduleGlobs: [posix.join(moduleContext.module.path, moduleContext.module.glob)],
+          httpLinks,
           repository: this.repositoryName,
         },
         matchesGlob,
       )
       links.push(...result.links)
+      externalLinks.push(...result.externalLinks)
       timings.push({
         callGraphMs: result.timings.callGraphMs,
         asyncDetectionMs: 0,
@@ -181,6 +194,7 @@ export class ExtractionProject {
 
     return {
       links: deduplicateCrossStrategy(links),
+      externalLinks,
       timings,
     }
   }

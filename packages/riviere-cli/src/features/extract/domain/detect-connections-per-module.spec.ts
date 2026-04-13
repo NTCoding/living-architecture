@@ -30,6 +30,7 @@ const {
         type: 'sync',
       },
     ],
+    externalLinks: [],
     timings: {
       callGraphMs: 1,
       setupMs: 0,
@@ -48,6 +49,7 @@ vi.mock('@living-architecture/riviere-extract-ts', () => ({
   detectPerModuleConnections: mockDetectPerModule,
   detectCrossModuleConnections: mockDetectCrossModule,
   deduplicateCrossStrategy: mockDeduplicateCrossStrategy,
+  stripResolvedCustomTypes: vi.fn((components: unknown[]) => components),
 }))
 
 function createModule(name: string): Module {
@@ -114,6 +116,7 @@ describe('ExtractionProject.extractDraftComponents', () => {
           type: 'sync' as const,
         },
       ],
+      externalLinks: [],
       timings: {
         callGraphMs: 1,
         setupMs: 0,

@@ -1,9 +1,10 @@
 import {
-  existsSync, rmSync, writeFileSync 
+  rmSync, writeFileSync 
 } from 'node:fs'
 import path from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
+import { findFileUp } from '../../../domain/find-file-up'
 import { RoleEnforcementExecutionError } from '../../../domain/role-enforcement-execution-error'
 import type { OxlintConfig } from './create-oxlint-config'
 
@@ -81,14 +82,6 @@ export function runOxlint({
   } finally {
     deps.rmSync(oxlintConfigPath, { force: true })
   }
-}
-
-function findFileUp(startDir: string, relativePath: string): string | undefined {
-  const candidate = path.join(startDir, relativePath)
-  if (existsSync(candidate)) return candidate
-  const parent = path.dirname(startDir)
-  if (parent === startDir) return undefined
-  return findFileUp(parent, relativePath)
 }
 
 function resolveOxlintBinaryPath(): string {

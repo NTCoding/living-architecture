@@ -195,10 +195,6 @@ export default defineConfig({
               link: '/extract/deterministic/typescript/workflow/step-3-extract',
             },
             {
-              text: 'Design for Extraction',
-              link: '/extract/deterministic/typescript/design-for-extraction',
-            },
-            {
               text: 'Step 4: Link',
               link: '/extract/deterministic/typescript/workflow/step-4-link',
             },
@@ -209,6 +205,10 @@ export default defineConfig({
             {
               text: 'Step 6: Validate',
               link: '/extract/deterministic/typescript/workflow/step-6-validate',
+            },
+            {
+              text: 'Design for Extraction',
+              link: '/extract/deterministic/typescript/design-for-extraction',
             },
             {
               text: 'Enforcement',

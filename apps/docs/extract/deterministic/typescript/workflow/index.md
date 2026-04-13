@@ -66,12 +66,12 @@ This step uses the TypeScript extractor instead of AI.
 
    @APIContainer
    class OrderController {
-     async createOrder(req: Request): Promise<Order> {}
+     async createOrder(req: Request): Promise<Order> { /* ... */ }
    }
 
    @UseCase
    class PlaceOrderUseCase {
-     execute(command: PlaceOrderCommand): Order {}
+     execute(command: PlaceOrderCommand): Order { /* ... */ }
    }
    ```
 

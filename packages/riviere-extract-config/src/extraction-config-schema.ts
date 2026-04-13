@@ -201,10 +201,25 @@ export interface EventPublisherConfig {
   metadataKey: string
 }
 
+/**
+ * Declares how to resolve HTTP client calls into cross-domain Links.
+ * The custom type must be defined in customTypes in at least one module.
+ */
+export interface HttpLinkConfig {
+  /** The custom component type name for HTTP clients (e.g. 'httpCall'). */
+  fromCustomType: string
+  /** Metadata key whose value identifies the target domain. */
+  matchDomainBy: string
+  /** Metadata keys used to match the target API component. */
+  matchApiBy: string[]
+}
+
 /** Connection detection configuration. */
 export interface ConnectionsConfig {
   /** Declares which custom component types publish events and how to detect them. */
   eventPublishers?: EventPublisherConfig[]
+  /** Declares how to resolve HTTP client calls into cross-domain Links. */
+  httpLinks?: HttpLinkConfig[]
 }
 
 /**
