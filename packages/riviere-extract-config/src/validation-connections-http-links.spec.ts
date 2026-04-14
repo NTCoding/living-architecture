@@ -138,6 +138,37 @@ describe('httpLinks validation', () => {
     )
   })
 
+  it('accumulates errors when both matchDomainBy and matchApiBy reference non-extracted fields', () => {
+    const config = {
+      modules: [
+        {
+          ...createMinimalModule(),
+          customTypes: {
+            httpCall: {
+              find: 'methods' as const,
+              where: { hasJSDoc: { tag: 'httpCall' } },
+              extract: { unrelated: { fromClassName: true } },
+            },
+          },
+        },
+      ],
+      connections: {
+        httpLinks: [
+          {
+            fromCustomType: 'httpCall',
+            matchDomainBy: 'serviceName',
+            matchApiBy: ['route'],
+          },
+        ],
+      },
+    }
+    const result = validateExtractionConfig(config)
+    expect(result.valid).toBe(false)
+    expect(result.errors).toHaveLength(2)
+    expect(result.errors[0]?.path).toBe('/connections/httpLinks/0/matchDomainBy')
+    expect(result.errors[1]?.path).toBe('/connections/httpLinks/0/matchApiBy')
+  })
+
   it('returns valid when connections has no httpLinks', () => {
     const config = {
       ...createMinimalConfig(),

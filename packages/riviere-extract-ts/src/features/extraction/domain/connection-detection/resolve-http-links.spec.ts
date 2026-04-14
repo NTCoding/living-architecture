@@ -198,6 +198,20 @@ describe('resolveHttpLinks', () => {
     expect(result.links).toHaveLength(1)
     expect(result.links[0]?.target).toBe('orders:orders-module:api:createorder')
   })
+  it('throws on ambiguous API match within domain', () => {
+    const httpCall = httpCallComponent('placeOrder', {
+      serviceName: 'orders',
+      route: '/orders',
+    })
+    const api1 = apiComponent('createOrder', 'orders', { route: '/orders' })
+    const api2 = apiComponent('placeOrder', 'orders', { route: '/orders' })
+    const link = createLink({ target: 'bff:bff-module:httpCall:placeorder' })
+    const config = createHttpLinkConfig()
+
+    expect(() => resolveHttpLinks([link], [httpCall, api1, api2], [config])).toThrow(
+      /Ambiguous HTTP link/,
+    )
+  })
 })
 
 describe('stripResolvedCustomTypes', () => {

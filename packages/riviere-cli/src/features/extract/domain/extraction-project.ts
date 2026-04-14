@@ -159,7 +159,7 @@ export class ExtractionProject {
 
     for (const moduleContext of this.moduleContexts) {
       const moduleComponents = enrichedComponents.filter(
-        (component) => component.domain === moduleContext.module.domain,
+        (component) => component.module === moduleContext.module.name,
       )
       if (moduleComponents.length === 0) {
         continue

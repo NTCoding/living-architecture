@@ -5,6 +5,7 @@ import type {
 import type { EnrichedComponent } from '../value-extraction/enrich-components'
 import type { ExtractedLink } from './extracted-link'
 import { componentIdentity } from './call-graph/call-graph-types'
+import { ConnectionDetectionError } from './connection-detection-error'
 
 /** @riviere-role value-object */
 export interface HttpLinkResolutionResult {
@@ -133,6 +134,16 @@ function findApiComponentInDomain(
 
   if (matched.length === 1) {
     return matched[0]
+  }
+
+  if (matched.length > 1) {
+    const matchedNames = matched.map((c) => c.name).join(', ')
+    throw new ConnectionDetectionError({
+      file: targetComponent.location.file,
+      line: targetComponent.location.line,
+      typeName: targetComponent.name,
+      reason: `Ambiguous HTTP link: ${matched.length} API components in domain "${domainName}" match: ${matchedNames}`,
+    })
   }
 
   return undefined
