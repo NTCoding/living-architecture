@@ -28,7 +28,7 @@ For a team with 3 microservices, an EventCatalog, and an AsyncAPI spec, this mea
 
 ### 2.1 Workflows Are Riviere Workflows
 
-This is not a generic workflow engine. Workflows are purpose-built for Riviere extraction. Every step receives the `RiviereBuilder` and calls its API to construct the graph. The builder is the single source of truth for graph construction — ID generation, validation, deduplication all go through the builder.
+This is not a generic workflow engine. Workflows are purpose-built for Riviere extraction. Every step receives the workflow-owned builder facade over `RiviereBuilder` and calls its API to construct the graph. The builder remains the single source of truth for graph construction — ID generation, validation, deduplication all go through the builder surface.
 
 **Trade-off:** We sacrifice generality for simplicity and correctness. A generic engine would require intermediate representations, merge logic, and format translation. Builder-centric workflows get all of that for free from the existing builder infrastructure.
 
@@ -95,10 +95,10 @@ Phase 13 ships built-in step types only. User plugin loading is out of scope, bu
 - its own validated config
 - the shared builder
 - logger
-- read-only workflow diagnostics from prior steps
+- the explicit workflow diagnostics contract (view + emit/report/resolve operations)
 - fixed runtime services passed in `StepContext`
 
-No step can read another step's config or mutate another step's state. Cross-step diagnostics are explicit, read-only runtime state — not hidden coupling.
+No step can read another step's config or mutate another step's private state. Cross-step diagnostics are explicit runtime state exposed only through the diagnostics contract — not hidden coupling.
 
 ---
 
@@ -154,7 +154,7 @@ steps:
     type: schema-validate
 ```
 
-**Execution model:** Steps run sequentially, top to bottom. All steps share the same `RiviereBuilder` instance (passed by reference). Builder state accumulates across steps. If a step throws, the workflow aborts, no final graph is written, and the structured workflow log remains available for debugging.
+**Execution model:** Steps run sequentially, top to bottom. All steps share the same workflow-owned builder facade (passed by reference) over `RiviereBuilder`. Builder state accumulates across steps. If a step throws, the workflow aborts, no final graph is written, and the structured workflow log remains available for debugging.
 
 **Step order is semantic (last-wins).** When multiple steps set the same scalar field on the same canonical component, **the later step wins**. Recommended order follows the priority doctrine in §2.2:
 
@@ -219,18 +219,64 @@ interface WorkflowStepServices {
   [key: string]: never
 }
 
-type WorkflowDiagnosticEvent = Record<string, unknown>
+type WorkflowLogEventType =
+  | 'workflow-started'
+  | 'workflow-completed'
+  | 'workflow-failed'
+  | 'step-started'
+  | 'step-completed'
+  | 'step-failed'
+  | 'missing-field'
+  | 'uncertain-link'
+  | 'diagnostic-resolved'
+  | 'import-skipped-record'
+  | 'scalar-overwrite'
+  | 'duplicate-link-skipped'
+  | 'ai-addition-applied'
+  | 'ai-enrichment-applied'
 
-interface WorkflowDiagnosticsView {
-  /** Read-only view of current-run unresolved diagnostic events; see §3.5.2 / §3.9. */
-  unresolved(): readonly WorkflowDiagnosticEvent[]
+interface WorkflowLogEvent {
+  runId: string
+  timestamp: string
+  eventType: WorkflowLogEventType
+  step?: string
+  stepType?: string
+  payload: Record<string, unknown>
 }
 
+type WorkflowLogEventInput = Omit<WorkflowLogEvent, 'runId' | 'timestamp'>
+
+type UnresolvedDiagnosticKind = 'missing-field' | 'uncertain-link'
+
+interface UnresolvedDiagnostic {
+  kind: UnresolvedDiagnosticKind
+  componentId?: string
+  field?: string
+  source?: string
+  target?: string
+  linkType?: string
+  reason: string
+}
+
+interface WorkflowDiagnostics {
+  /** Read-only view of current-run unresolved diagnostics; used by later steps. */
+  unresolved(): readonly UnresolvedDiagnostic[]
+  /** Emits a structured log event into the workflow NDJSON log; runtime supplies runId/timestamp. */
+  emit(event: WorkflowLogEventInput): void
+  /** Adds or updates an unresolved diagnostic tracked for the current run. */
+  report(diagnostic: UnresolvedDiagnostic): void
+  /** Marks a previously reported unresolved diagnostic as resolved. */
+  resolve(diagnostic: UnresolvedDiagnostic): void
+}
+
+interface WorkflowBuilder extends RiviereBuilder {}
+
 interface StepContext<TConfig> {
-  builder: RiviereBuilder
+  /** Workflow-owned facade over the underlying RiviereBuilder. */
+  builder: WorkflowBuilder
   config: TConfig
   logger: StepLogger
-  diagnostics: WorkflowDiagnosticsView
+  diagnostics: WorkflowDiagnostics
   services: WorkflowStepServices
 }
 
@@ -247,23 +293,25 @@ interface WorkflowStepDefinition<TConfig = Record<string, unknown>> {
 - For `'ai-cli'`: the step config's `command` executable field is resolved against `PATH` via Node's resolver. If it doesn't resolve, validation fails: `Step '<name>' (<type>) requires the '<command>' CLI, but it is not installed or not in PATH`. No env-var probing, no API-key checks — Riviere never touches credentials.
 - During `workflow run`, runtime-prerequisite checks apply only to the **effective execution plan** after flags such as `--skip-ai` / `--dry-run` are applied. `workflow validate` checks the workflow as-authored, with no flag-based omissions.
 
-**`validateConfig`** — Each step validates and narrows its own config from the raw YAML. This runs before `execute`, during the validation phase. Type-safe config per step type — `code-extraction` gets `CodeExtractionConfig`, `eventcatalog-import` gets `EventCatalogImportConfig`, etc.
+**`validateConfig`** — Each step validates and narrows its own config from the raw YAML. In `workflow validate` this runs for every step. In `workflow run` it runs only for steps in the effective execution plan after flags such as `--skip-ai` / `--dry-run` are applied. Type-safe config per step type — `code-extraction` gets `CodeExtractionConfig`, `eventcatalog-import` gets `EventCatalogImportConfig`, etc.
 
-**`execute`** — Receives the typed config, builder, logger, read-only workflow diagnostics, and fixed runtime services. Performs step work. Returns void on success, throws on failure.
+**`execute`** — Receives the typed config, builder, logger, workflow diagnostics, and fixed runtime services. Performs step work. Returns void on success, throws on failure.
 
-The runtime is decoupled from concrete step implementations. It resolves step handlers by type name from the registry, calls `validateConfig()` for each step, then executes them in order. The step contract is exported from `riviere-workflow` so future extension can depend on the same seam.
+The runtime is decoupled from concrete step implementations. It resolves step handlers by type name from the registry, derives the effective execution plan for the current mode, validates the active steps, then executes them in order. The step contract is exported from `riviere-workflow` so future extension can depend on the same seam.
+
+`WorkflowBuilder` is a workflow-owned facade over the underlying `RiviereBuilder`. It preserves the existing graph-construction/query surface for step authors while allowing Phase 13 to track workflow-only diagnostics and log events without polluting `riviere-schema`.
 
 ### 3.3 Builder Creation and Workflow Compatibility Rules
 
-The builder requires `sources` and `domains` at construction (`RiviereBuilder.new()`). The workflow therefore creates the builder eagerly at startup from its top-level graph definition.
+The underlying builder requires `sources` and `domains` at construction (`RiviereBuilder.new()`). The workflow therefore creates the shared builder facade eagerly at startup from its top-level graph definition.
 
 **How it works (aligned with `workflow run` in §3.6):**
 
 1. Load workflow YAML; assert `apiVersion: v1`
-2. Structural validation (schema)
-3. Semantic validation: call `validateConfig()` on each step
-4. Runtime-prerequisite validation: call `requiredServices()` on each step, resolve AI CLI binaries against `PATH`
-5. Create `RiviereBuilder.new({ name, description, sources, domains }, output)` — builder constructed exactly once, eagerly, after all validation passes
+2. Structural validation of intrinsic workflow shape
+3. Derive the effective execution plan for the current run mode
+4. Validate referenced config files, step configs, and runtime prerequisites only for steps in that effective plan
+5. Create the underlying `RiviereBuilder.new({ name, description, sources, domains }, output)` and wrap it in the shared `WorkflowBuilder` facade — builder constructed exactly once, eagerly, after all active-step validation passes
 6. Execute steps sequentially with that concrete builder
 7. On success: `builder.build()` → write JSON to `output` path
 8. On failure at any step: abort, discard builder state, exit non-zero
@@ -607,7 +655,7 @@ All of the above is the CLI binary's problem. If the CLI already provides it, gr
 
 **`--dry-run` flag on `workflow run`:** for every AI step that would execute, prints the prompt that would be sent to stdout and skips the CLI invocation. No graph mutation from AI steps under `--dry-run`. AI CLI prerequisite checks are also skipped in this mode because no child process is spawned. Useful for review and CI gating.
 
-**`--skip-ai` flag on `workflow run`:** removes AI steps from the effective execution plan entirely (no prompt construction, no child process, no AI runtime-prerequisite checks). Deterministic-only output. This is how CI runs the deterministic-path idempotency test (criterion #13a) without touching any AI CLI.
+**`--skip-ai` flag on `workflow run`:** removes AI steps from the effective execution plan entirely (no prompt construction, no AI config-file existence checks, no AI config validation, no child process, no AI runtime-prerequisite checks). Deterministic-only output. This is how CI runs the deterministic-path idempotency test (criterion #13a) without touching any AI CLI.
 
 **Response schema (strict, per AI step type):** each AI step type has a JSON Schema in `riviere-extract-config` defining what the CLI's stdout must contain. Malformed JSON, schema violations, or fields the step didn't ask about fail the step with a clear error. Same §2.6 strictness rules — empty strings banned, enums mandatory, `additionalProperties: false`. The response schema is published and documented so prompt authors (and users of third-party CLI agents) can target it exactly.
 
@@ -633,13 +681,16 @@ When `eventcatalog-import` or `asyncapi-import` runs with `allow-unmapped: true`
 ```json
 {
   "runId": "2026-04-14T12:34:56Z#ecommerce-architecture",
+  "timestamp": "2026-04-14T12:34:56Z",
   "eventType": "import-skipped-record",
   "step": "import-eventcatalog",
   "stepType": "eventcatalog-import",
-  "recordId": "OrdersService",
-  "recordType": "service",
-  "reason": "no-domain",
-  "sourceLocation": "eventcatalog/services/orders-service/index.mdx"
+  "payload": {
+    "recordId": "OrdersService",
+    "recordType": "service",
+    "reason": "no-domain",
+    "sourceLocation": "eventcatalog/services/orders-service/index.mdx"
+  }
 }
 ```
 
@@ -727,14 +778,14 @@ The single `noOverwrite` option covers the additive-only AI use case without add
 
 Phase 13 does **not** introduce a new read API — the builder already exposes one. Step handlers and transition-fixture capture use the existing surface:
 
-| Method                                 | Purpose                                                                  |
-| -------------------------------------- | ------------------------------------------------------------------------ |
-| `builder.validate(): ValidationResult` | **Non-throwing** validation. `schema-validate` step uses this.           |
-| `builder.warnings()`                   | Non-fatal issues on the current graph (runtime logs the per-step delta). |
-| `builder.stats()`                      | Counts of components, links, domains.                                    |
-| `builder.orphans()`                    | Component IDs with no incoming or outgoing links.                        |
-| `builder.query(): RiviereQuery`        | Full read-only query object (see `@living-architecture/riviere-query`).  |
-| `builder.build(): RiviereGraph`        | Validate-or-throw. Used for final output. Unchanged by Phase 13.         |
+| Method                                 | Purpose                                                                                                                 |
+| -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `builder.validate(): ValidationResult` | **Non-throwing** validation over graph state **and** unresolved workflow diagnostics. `schema-validate` step uses this. |
+| `builder.warnings()`                   | Non-fatal issues on the current graph (runtime logs the per-step delta).                                                |
+| `builder.stats()`                      | Counts of components, links, domains.                                                                                   |
+| `builder.orphans()`                    | Component IDs with no incoming or outgoing links.                                                                       |
+| `builder.query(): RiviereQuery`        | Full read-only query object (see `@living-architecture/riviere-query`).                                                 |
+| `builder.build(): RiviereGraph`        | Validate-or-throw. Used for final output. Fails on invalid graph state or unresolved workflow diagnostics.              |
 
 `RiviereQuery` already exposes `components()`, `links()`, `find(predicate)`, `findAll(predicate)`, `componentById(id)`, `componentsInDomain(name)`, `componentsByType(type)`, `publishedEvents()`, `eventHandlers()`, `externalLinks()`, and more. Phase 13 does **not** add draft-only helper methods to `RiviereQuery`. AI steps that need incomplete-state information read it from `StepContext.diagnostics`, not from `RiviereGraph`.
 
@@ -745,10 +796,10 @@ Today `_missing` lives on `EnrichedComponent` (extract-ts) and `_uncertain` on `
 - **`riviere-schema` remains unchanged** — `_missing` / `_uncertain` are not added to `Component` or `Link`.
 - **Workflow/runtime boundary:** when `code-extraction` runs in lenient mode, draft markers are converted into structured diagnostic events keyed by canonical component identity / link tuple.
 - **Runtime diagnostics view:** unresolved `missing-field` / `uncertain-link` events are available to later steps through `StepContext.diagnostics` and are written to the workflow log (§3.9).
-- **Resolution:** later deterministic or AI steps may resolve those diagnostics by filling the missing field or confirming the uncertain link. The runtime tracks unresolved vs resolved status outside the graph.
+- **Resolution:** later deterministic or AI steps may resolve those diagnostics by filling the missing field or confirming the uncertain link. Resolution emits a `diagnostic-resolved` log event keyed to the same diagnostic so log-parsing commands can reconstruct current unresolved state.
 - **Validation/build:** `builder.validate()` reports unresolved incomplete-state diagnostics as validation failures, and `builder.build()` throws `IncompleteGraphError` if any unresolved `missing-field` / `uncertain-link` diagnostics remain.
 
-Result: AI steps can operate on the draft / in-progress state, while the final `RiviereGraph` remains clean and schema-valid.
+Result: AI steps can operate on the draft / in-progress state, while the final `RiviereGraph` remains clean and schema-valid. The `WorkflowBuilder` facade composes underlying graph validation with the runtime diagnostics store so `validate()` / `build()` reflect both concerns.
 
 ### 3.6 CLI Commands
 
@@ -800,19 +851,20 @@ The workflow run and the prior `riviere extract` invocation must produce the sam
 Executes the workflow:
 
 1. Load and parse YAML; assert `apiVersion: v1`
-2. Validate workflow structure against JSON Schema
+2. Validate workflow structure against JSON Schema (intrinsic workflow shape only)
 3. Resolve step handlers by type name
-4. Call `validateConfig()` on each step (fail-fast before execution)
-5. Apply runtime flags to derive the effective execution plan (`--skip-ai`, `--dry-run`)
-6. Run `requiredServices()` checks against the effective execution plan only (e.g. AI CLI resolution for AI steps that would actually invoke a CLI)
-7. Execute steps sequentially, passing shared builder
-8. On success: write `builder.build()` output to `output` path
-9. On failure: report which step failed, why, keep the structured workflow log, and exit code 1
+4. Apply runtime flags to derive the effective execution plan (`--skip-ai`, `--dry-run`)
+5. For steps in the effective execution plan, assert referenced config files exist on disk
+6. Call `validateConfig()` only on steps in the effective execution plan (fail-fast before execution)
+7. Run `requiredServices()` checks against the effective execution plan only (e.g. AI CLI resolution for AI steps that would actually invoke a CLI)
+8. Execute steps sequentially, passing shared builder
+9. On success: write `builder.build()` output to `output` path
+10. On failure: report which step failed, why, keep the structured workflow log, and exit code 1
 
 **Flags:**
 
 - `--dry-run` — executes deterministic steps normally; for every AI step that would invoke its configured CLI, prints the prompt that would be sent (to stdout) and skips the CLI invocation and any graph mutation that would have come from the AI response. AI prerequisite checks are skipped for those steps because no invocation occurs. Useful for prompt review and CI cost-gating. Other step types are unaffected.
-- `--skip-ai` — skips AI steps entirely (no prompt construction, no CLI invocation, no AI prerequisite checks). Deterministic-only output. This is how the deterministic-idempotency test (§3.8.3, criterion #13a) runs in CI without any AI CLI present.
+- `--skip-ai` — skips AI steps entirely (no prompt construction, no AI config-file existence checks, no AI config validation, no CLI invocation, no AI prerequisite checks). Deterministic-only output. This is how the deterministic-idempotency test (§3.8.3, criterion #13a) runs in CI without any AI CLI present.
 
 **Error handling:** If a step fails, the workflow aborts. No retry, no skip, no partial **graph** output. Builder state is discarded. The structured workflow log remains available for debugging.
 
@@ -822,7 +874,7 @@ Executes the workflow:
 - **Extraction strictness** (`allow-incomplete`): controls whether unresolvable types produce errors or unresolved incomplete-state diagnostics within a `code-extraction` step. Does not affect workflow-level abort semantics.
 - **AI CLI failures** (non-zero exit from the shelled-out CLI, timeout hit, stdout is not valid JSON matching the response schema): fail the owning AI step; workflow aborts per the standard rule.
 
-**Step summary output:** Each step logs completion with duration. Final line: `Workflow completed in Xs (step1: Xs, step2: Xs, ...)`.
+**Step summary output:** Each step logs completion with duration. Workflow completion prints the multi-line summary block documented in §3.9.3.
 
 #### `riviere workflow validate`
 
@@ -1422,6 +1474,8 @@ Failure diagnostics and cross-step observability are first-class concerns. Workf
 
 **Single diagnostic artefact:** every workflow run writes a structured NDJSON log to `<workflow-output-dir>/workflow.log.ndjson` where `<workflow-output-dir>` is the parent directory of the workflow `output` path. The runtime auto-creates the directory as needed. The final graph JSON remains a separate artefact written only on successful completion. On failure, the log remains available and the final graph is not written. Each run replaces the prior log for that workflow output location.
 
+**Stable log envelope:** every NDJSON line conforms to a discriminated-union schema in `riviere-extract-config` with fixed envelope fields (`runId`, `timestamp`, `eventType`, optional `step`, optional `stepType`, `payload`). Step-specific event shapes extend this envelope through the `payload` field so future log-parsing commands can rely on a stable base contract.
+
 **3.9.1 Step-contextualised builder errors.** Builder errors (`DuplicateComponentError`, `ComponentTypeMismatchError`, missing-referent errors, etc.) are raised deep inside `riviere-builder`. When they surface to a step, the step handler catches them and re-throws with step-level context attached: the step `name`, step `type`, source record identifier where known (e.g. EventCatalog service id, AsyncAPI operation id, code location for `code-extraction`), and the mapping file + line when a mapping file caused the collision. Example:
 
 ```text
@@ -1443,13 +1497,16 @@ Every built-in step handler catches the builder-error surface and decorates in t
 ```json
 {
   "runId": "2026-04-14T12:34:56Z#ecommerce-architecture",
+  "timestamp": "2026-04-14T12:34:56Z",
   "eventType": "scalar-overwrite",
   "step": "import-eventcatalog",
   "stepType": "eventcatalog-import",
-  "componentId": "orders:checkout:Event:orderplaced",
-  "field": "description",
-  "oldValue": "place an order",
-  "newValue": "Order has been placed by customer"
+  "payload": {
+    "componentId": "orders:checkout:Event:orderplaced",
+    "field": "description",
+    "oldValue": "place an order",
+    "newValue": "Order has been placed by customer"
+  }
 }
 ```
 
@@ -1507,7 +1564,7 @@ No new API for this; it composes the existing step logger + `builder.warnings()`
 | 7   | `ai-enrich` fills missing metadata fields additively without overwriting already-set scalars                                                                                                                                                                                                                                                                                                                                                                                                     | Integration test against demo app components with unresolved missing-field diagnostics / unset enrichable fields plus structured log assertions for applied AI enrichments                                                                                                                                 |
 | 8   | `riviere workflow run` produces valid graph from demo app workflow matching ground truth, with targeted semantic assertions covering spec-overwrite fields, additive-only AI behaviour, and diagnostic-log events                                                                                                                                                                                                                                                                                | End-to-end test: zero false positives / negatives on component IDs and link tuples plus targeted semantic assertions on selected field values and workflow-log events                                                                                                                                      |
 | 9   | `riviere workflow init` produces valid workflow YAML and step configs                                                                                                                                                                                                                                                                                                                                                                                                                            | Init creates files, `workflow validate` passes, `workflow run` succeeds                                                                                                                                                                                                                                    |
-| 10  | `riviere workflow validate` catches invalid workflow files, missing config references, incompatible step-declared domains/sources, invalid step configs, and unresolved runtime prerequisites from `requiredServices()` (notably: the AI CLI executable not being in `PATH`); `workflow run` skips AI prerequisite checks for `--skip-ai` and `--dry-run` steps that will not invoke a CLI                                                                                                       | Unit tests for structural, semantic, and runtime-prerequisite validation; explicit tests that `workflow validate` fails on a non-existent AI CLI executable while `workflow run --skip-ai` / `--dry-run` do not require it                                                                                 |
+| 10  | `riviere workflow validate` catches invalid workflow files, missing config references, incompatible step-declared domains/sources, invalid step configs, and unresolved runtime prerequisites from `requiredServices()` (notably: the AI CLI executable not being in `PATH`); `workflow run` skips AI file-existence checks, AI config validation, and AI prerequisite checks for `--skip-ai`, and skips AI prerequisite checks for `--dry-run` steps that will not invoke a CLI                 | Unit tests for structural, semantic, and runtime-prerequisite validation; explicit tests that `workflow validate` fails on a non-existent AI CLI executable while `workflow run --skip-ai` ignores AI config/prerequisite failures and `--dry-run` does not require the AI CLI executable                  |
 | 11  | Workflow JSON Schema validates workflow file structure                                                                                                                                                                                                                                                                                                                                                                                                                                           | Schema published in `riviere-extract-config`                                                                                                                                                                                                                                                               |
 | 12  | `riviere-workflow` exports the step contract and resolves built-in steps through a registry rather than hardcoded switch logic                                                                                                                                                                                                                                                                                                                                                                   | Unit tests for step registry + dependency-cruiser rule enforcement                                                                                                                                                                                                                                         |
 | 13a | Workflows with **only deterministic steps** (no `ai-extract`, no `ai-enrich`) are bit-for-bit idempotent: running twice produces identical output JSON (after canonical-serialisation normalisation)                                                                                                                                                                                                                                                                                             | E2E test in CI: demo workflow with AI steps disabled, run twice, assert byte-equal output JSON. Mandatory gate.                                                                                                                                                                                            |
@@ -1519,7 +1576,7 @@ No new API for this; it composes the existing step logger + `builder.warnings()`
 | 18  | The documented ecommerce demo app workflow transitions are verified after each step, not only at final output                                                                                                                                                                                                                                                                                                                                                                                    | Integration test compares builder state after each step to `tests/workflow-transitions/*.json` fixtures                                                                                                                                                                                                    |
 | 19  | Every Phase 13 schema (workflow YAML, step configs, mapping files, builder inputs) rejects empty strings on all string fields via `minLength: 1` or equivalent                                                                                                                                                                                                                                                                                                                                   | Schema-level tests assert that `""` on every string field produces a validation error                                                                                                                                                                                                                      |
 | 20  | Workflow runtime preserves incomplete-state diagnostics outside `riviere-schema`; final graphs never contain `_missing` / `_uncertain`; `builder.build()` fails while unresolved `missing-field` / `uncertain-link` diagnostics remain                                                                                                                                                                                                                                                           | Unit tests for extract-ts draft-marker to runtime-diagnostic conversion, resolution tracking, `builder.validate()` reporting, and `builder.build()` failure on unresolved diagnostics                                                                                                                      |
-| 21  | Steps can read unresolved workflow diagnostics through `StepContext.diagnostics`; `RiviereQuery` remains unchanged and does not gain draft-only helper methods                                                                                                                                                                                                                                                                                                                                   | Unit tests for read-only diagnostics view plus integration tests that AI steps consume unresolved diagnostics without extending `riviere-query`                                                                                                                                                            |
+| 21  | Steps can access workflow diagnostics through `StepContext.diagnostics` (read unresolved diagnostics, emit structured log events, report/resolve workflow-only diagnostics); `RiviereQuery` remains unchanged and does not gain draft-only helper methods                                                                                                                                                                                                                                        | Unit tests for diagnostics contract plus integration tests that AI steps consume unresolved diagnostics and deterministic steps emit/resolve diagnostics without extending `riviere-query`                                                                                                                 |
 | 22  | `ai-extract` gap categories (`uncertain-links`, `missing-events`, `missing-event-handlers`, `missing-use-cases`) each have a documented computation rule and a passing test                                                                                                                                                                                                                                                                                                                      | Integration tests assert each gap category produces the expected candidate set against demo-app fixtures                                                                                                                                                                                                   |
 | 23  | `schema-validate` uses `builder.validate()` (non-throwing) so it can surface malformed graph state and unresolved incomplete-state diagnostics without mutating builder state before the step fails                                                                                                                                                                                                                                                                                              | Integration test: insert `schema-validate` mid-workflow, assert it reports validation errors including unresolved diagnostics and leaves builder state unchanged                                                                                                                                           |
 | 24  | `riviere-extract-ts` exposes a pure `extractInto(builder, config, options)` core that feeds a caller-supplied builder without writing JSON; `riviere extract` CLI is rewritten as a thin shell over this core; existing CLI behaviour is unchanged                                                                                                                                                                                                                                               | Unit tests for the pure core; existing `riviere extract` integration tests pass against the refactored CLI with no change in output JSON                                                                                                                                                                   |
@@ -1534,11 +1591,11 @@ No new API for this; it composes the existing step logger + `builder.warnings()`
 | 33  | AI steps (`ai-extract`, `ai-enrich`) invoke the configured CLI executable via structured `command` + `args` and `child_process.spawn` (`shell: false`), pass the prompt via stdin by default or a single `{prompt}` argv placeholder, capture stdout, validate it against the response schema in `riviere-extract-config`, enforce `timeout-seconds`, and apply results to the builder via typed `upsert*` with `{ noOverwrite: true }`. Riviere imports no AI SDK and reads no API-key env vars | Unit tests with mocked child_process; integration test with a tiny stub CLI script (echoes a canned JSON response) and assertion that Riviere depends on no AI SDK (`grep` in `riviere-workflow` package.json for `anthropic`/`openai`/`ai` SDK names returns empty); timeout test kills the child process |
 | 34  | `riviere workflow run --dry-run` executes deterministic steps normally but skips every AI CLI invocation, printing the would-be prompt to stdout. `--skip-ai` skips AI steps entirely with no prompt construction. Both modes skip AI prerequisite checks for AI steps that will not invoke a CLI                                                                                                                                                                                                | Integration tests: `--dry-run` produces prompts but no graph mutation from AI steps; `--skip-ai` produces deterministic-only output identical to an equivalent workflow with the AI steps removed, and neither mode requires the AI CLI to be installed                                                    |
 | 35  | `steps[].name` is unique across the workflow, matches `^[a-z0-9-]+$`, and `minLength: 1`; duplicates and invalid characters fail structural validation with the documented error message                                                                                                                                                                                                                                                                                                         | Schema tests: duplicate names, uppercase names, names with spaces or underscores, and empty names all fail; compliant names pass                                                                                                                                                                           |
-| 36  | Lenient-mode `eventcatalog-import` / `asyncapi-import` runs emit a one-line `imported N, skipped M` summary in step logs and write structured skipped-record events into the NDJSON workflow log per §3.4.2                                                                                                                                                                                                                                                                                      | Integration test: seed a mapping file with some unresolvable records, run with `allow-unmapped: true`, assert the log line and NDJSON event contents match the documented schema; strict mode emits no skip-summary events                                                                                 |
+| 36  | Lenient-mode `eventcatalog-import` / `asyncapi-import` runs emit a one-line `imported N, skipped M` summary in step logs and write structured skipped-record events into the NDJSON workflow log per the stable envelope in §3.9                                                                                                                                                                                                                                                                 | Integration test: seed a mapping file with some unresolvable records, run with `allow-unmapped: true`, assert the log line and NDJSON event contents match the documented schema; strict mode emits no skip-summary events                                                                                 |
 | 37  | `asyncapi-import` consumes only the v3 fields listed in the exhaustive scope table (§3.4); drops infrastructure fields (servers, bindings, traits); fails validation on `operations.*.reply`; tolerates unrecognised top-level keys without failure                                                                                                                                                                                                                                              | Spec-driven tests: a v3 spec with a reply operation fails; a spec with only publish/subscribe operations passes; dropped fields produce no warnings and no graph mutation                                                                                                                                  |
 | 38  | All enum fields in Phase 13 schemas that exist in `riviere-schema` (notably `SystemType`, `ComponentType`, `LinkType`) are referenced via JSON Schema `$ref`, not redeclared                                                                                                                                                                                                                                                                                                                     | Schema tests: adding a new value to `SystemType` in `riviere-schema` is automatically accepted by workflow-validate without touching Phase 13 schemas                                                                                                                                                      |
 | 39  | Builder errors surfaced through step handlers are decorated with step-level context (step name, type, source record id, mapping file + line where applicable) per §3.9.1                                                                                                                                                                                                                                                                                                                         | Integration tests trigger each built-in step's error paths (type mismatch, duplicate, unmapped) and assert the error message contains the required context fields                                                                                                                                          |
-| 40  | Every scalar overwrite under last-wins emits a `scalar-overwrite` `BuilderWarning` and a structured NDJSON workflow-log event; writes under `{ noOverwrite: true }` that preserve existing scalars do NOT warn                                                                                                                                                                                                                                                                                   | Unit tests for `BuilderWarning` emission; integration test asserts the NDJSON log event shape and that AI-step `noOverwrite` writes produce no warnings                                                                                                                                                    |
+| 40  | Every scalar overwrite under last-wins emits a `scalar-overwrite` `BuilderWarning` and a structured NDJSON workflow-log event using the stable envelope in §3.9; writes under `{ noOverwrite: true }` that preserve existing scalars do NOT warn                                                                                                                                                                                                                                                 | Unit tests for `BuilderWarning` emission; integration test asserts the NDJSON log event shape and that AI-step `noOverwrite` writes produce no warnings                                                                                                                                                    |
 | 41  | `workflow run` prints a workflow-level summary block at completion per §3.9.3, including per-step duration, imported/skipped counts, scalar-overwrite counts, and the workflow-log path                                                                                                                                                                                                                                                                                                          | Golden-output integration test asserts the summary block format exactly                                                                                                                                                                                                                                    |
 | 42  | Per-step transition fixtures in the demo-app repo are generated via the documented capture procedure (§3.8.3 fixture generation) by serialising `builder.query()` reads after each step — fixtures are never hand-edited                                                                                                                                                                                                                                                                         | Demo-app repo includes the capture-hook tooling and a CI check that regenerating fixtures against a known-good run produces identical files                                                                                                                                                                |
 | 43  | Workflow `output` is required (no default); missing or empty `output` fails structural validation                                                                                                                                                                                                                                                                                                                                                                                                | Schema tests: workflow without `output` fails; `output: ""` fails; any non-empty string passes                                                                                                                                                                                                             |
@@ -1556,23 +1613,13 @@ No new API for this; it composes the existing step logger + `builder.warnings()`
 
    **Spike acceptance:** demo-app M0 PR includes a passing test that loads the demo EventCatalog instance via the SDK and yields all required fields.
 
-2. **AsyncAPI scope boundary**
-
-   **Option A — publish/subscribe only**
+2. **AsyncAPI scope boundary** — **Resolved.** Keep Phase 13 to AsyncAPI v3 publish/subscribe semantics only.
 
    ```text
    send(message)    -> component -> event
    receive(message) -> event -> handler
    request/reply    -> unsupported in Phase 13
    ```
-
-   **Option B — model request/reply too**
-
-   ```text
-   request channel -> API-like component -> downstream handler
-   ```
-
-   **Recommendation:** Option A. Keep Phase 13 to AsyncAPI v3 publish/subscribe semantics only.
 
 3. **AI provider setup** — **Resolved.** Phase 13 ships no AI SDK, no provider abstraction, and no credential handling. AI steps shell out to a user-configured CLI (`command` + `args` in each step config). Auth and provider choice are the CLI binary's concern. See §3.4.1.
 
@@ -1612,11 +1659,14 @@ No new API for this; it composes the existing step logger + `builder.warnings()`
 | Term                       | Definition                                                                                                                                                                                                                                                                                                                            |
 | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Workflow**               | A YAML definition specifying a sequence of steps that produce a complete Riviere graph. The primary interface for using Riviere.                                                                                                                                                                                                      |
+| **Workflow Builder**       | The workflow-owned facade over `RiviereBuilder` that steps receive in `StepContext.builder`. Preserves the builder surface while composing in workflow-only diagnostics and finalisation rules.                                                                                                                                       |
 | **Step**                   | A single unit of work in a workflow. Receives the builder, performs extraction/import/analysis, adds to the graph. Implements `WorkflowStepHandler`.                                                                                                                                                                                  |
 | **Step Type**              | A category of step with specific behavior: `code-extraction`, `eventcatalog-import`, `asyncapi-import`, `ai-extract`, `ai-enrich`, `schema-validate`.                                                                                                                                                                                 |
 | **Step Config**            | Configuration specific to a step type, stored in a separate file referenced by the workflow. Not part of the workflow definition.                                                                                                                                                                                                     |
 | **Workflow Step Services** | Fixed runtime services passed to every step through `StepContext.services`. Phase 13 ships none — the field exists for future extensibility. AI steps acquire their runtime via a shelled-out CLI declared in step config (§3.4.1).                                                                                                   |
+| **Workflow Diagnostics**   | Workflow-owned runtime state for unresolved draft-only diagnostics plus the structured NDJSON log sink. Exposed to steps through `StepContext.diagnostics`.                                                                                                                                                                           |
 | **AI CLI**                 | The user-configured command-line tool that Riviere's AI steps invoke via `child_process.spawn` (e.g. `command: claude`, `args: ['-p']`). Riviere never imports an AI SDK — the CLI binary handles auth, cost, tokens, rate limits, retries, and model selection. Configured per AI step via structured `command` + `args`.            |
+| **Workflow Log**           | The structured NDJSON diagnostic artefact written to `<workflow-output-dir>/workflow.log.ndjson`. Contains stable-envelope events for step progress, overwrites, skipped imports, AI actions, unresolved diagnostics, and failures.                                                                                                   |
 | **Mappings File**          | Configuration defining how external data models (EventCatalog, AsyncAPI) map to Riviere concepts. Convention-based defaults with explicit overrides.                                                                                                                                                                                  |
 | **Canonical Identity**     | The final Riviere component identity produced by a step's mapping/config logic before the builder sees the component. Upsert happens after this identity is established.                                                                                                                                                              |
 | **Upsert**                 | Typed builder capability (one `upsert*` method per component type) to add-or-merge a component. If the component ID already exists, scalar fields are merged **last-wins** by default (or preserved under `{ noOverwrite: true }`) and array fields union. If not, it creates the component. Enables multi-source graph construction. |
