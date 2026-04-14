@@ -49,6 +49,8 @@ import { EventHandlerContainer } from '@living-architecture/riviere-extract-conv
 @EventHandlerContainer
 export class PaymentCompletedHandler {
   readonly subscribedEvents = ['PaymentCompleted']
+
+  handle(event: PaymentCompleted): void { /* ... */ }
 }
 ```
 

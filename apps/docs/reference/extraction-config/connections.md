@@ -28,8 +28,8 @@ The extractor matches publisher components (by `fromType`) to Event components (
 
 | Field                                       | Type     | Required | Description                                              |
 | ------------------------------------------- | -------- | -------- | -------------------------------------------------------- |
-| `connections.eventPublishers[].fromType`    | `string` | **Yes**  | Custom component type name (must exist in `customTypes`) |
-| `connections.eventPublishers[].metadataKey` | `string` | **Yes**  | Metadata key containing the published Event type name    |
+| `connections.eventPublishers[].fromType`    | `string` | **Yes**  | Custom component type name matching the `eventPublisher` type defined in `customTypes`. This is the type used by `@EventPublisherContainer` classes. |
+| `connections.eventPublishers[].metadataKey` | `string` | **Yes**  | Metadata key containing the published Event type name. Must match an extracted field on the custom type (e.g., `publishedEventType` from `@Event` classes). |
 
 **Example:**
 

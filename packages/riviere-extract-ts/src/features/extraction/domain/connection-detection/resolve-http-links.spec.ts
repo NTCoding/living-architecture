@@ -171,6 +171,18 @@ describe('resolveHttpLinks', () => {
     expect(result.externalLinks).toStrictEqual([])
   })
 
+  it('creates external link when httpCall is missing matchApiBy metadata', () => {
+    const httpCall = httpCallComponent('placeOrder', { serviceName: 'orders' })
+    const api = apiComponent('createOrder', 'orders', { route: '/orders' })
+    const link = createLink({ target: 'bff:bff-module:httpCall:placeorder' })
+    const config = createHttpLinkConfig()
+
+    const result = resolveHttpLinks([link], [httpCall, api], [config])
+
+    expect(result.links).toStrictEqual([])
+    expect(result.externalLinks).toHaveLength(1)
+  })
+
   it('matches API when matchApiBy key is missing from API metadata', () => {
     const httpCall = httpCallComponent('placeOrder', {
       serviceName: 'orders',
@@ -194,14 +206,29 @@ describe('stripResolvedCustomTypes', () => {
     const httpCall = buildComponent('check', '/src/http.ts', 1, { type: 'httpCall' })
     const config = createHttpLinkConfig()
 
-    const result = stripResolvedCustomTypes([useCase, httpCall], [config])
+    const result = stripResolvedCustomTypes([useCase, httpCall], [config], [])
 
     expect(result).toStrictEqual([useCase])
   })
 
+  it('keeps httpCall component when a link still targets it', () => {
+    const useCase = buildComponent('PlaceOrder', '/src/uc.ts', 1)
+    const httpCall = buildComponent('check', '/src/http.ts', 1, { type: 'httpCall' })
+    const config = createHttpLinkConfig()
+    const linkTargetingHttpCall: ExtractedLink = {
+      source: 'bff:bff-module:useCase:placeorder',
+      target: 'orders:orders-module:httpCall:check',
+      type: 'sync',
+    }
+
+    const result = stripResolvedCustomTypes([useCase, httpCall], [config], [linkTargetingHttpCall])
+
+    expect(result).toHaveLength(2)
+  })
+
   it('keeps all components when no httpLink configs', () => {
     const useCase = buildComponent('PlaceOrder', '/src/uc.ts', 1)
-    const result = stripResolvedCustomTypes([useCase], [])
+    const result = stripResolvedCustomTypes([useCase], [], [])
     expect(result).toStrictEqual([useCase])
   })
 })

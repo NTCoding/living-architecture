@@ -87,7 +87,11 @@ export class ExtractionProject {
 
     const connectionResult = this.detectConnections(enrichment.components, options.allowIncomplete)
     const httpLinks = this.resolvedConfig.connections?.httpLinks ?? []
-    const visibleComponents = stripResolvedCustomTypes(enrichment.components, httpLinks)
+    const visibleComponents = stripResolvedCustomTypes(
+      enrichment.components,
+      httpLinks,
+      connectionResult.links,
+    )
 
     return {
       kind: 'full',
@@ -120,7 +124,11 @@ export class ExtractionProject {
 
     const connectionResult = this.detectConnections(enrichment.components, options.allowIncomplete)
     const httpLinks = this.resolvedConfig.connections?.httpLinks ?? []
-    const visibleComponents = stripResolvedCustomTypes(enrichment.components, httpLinks)
+    const visibleComponents = stripResolvedCustomTypes(
+      enrichment.components,
+      httpLinks,
+      connectionResult.links,
+    )
 
     return {
       kind: 'full',

@@ -224,7 +224,26 @@ function validateHttpLinks(
         },
       ]
     }
-    return []
+    const errors: ValidationError[] = []
+    if (!extractedFields.has(httpLink.matchDomainBy)) {
+      errors.push({
+        path: `/connections/httpLinks/${index}/matchDomainBy`,
+        message:
+          `customType "${httpLink.fromCustomType}" does not extract "${httpLink.matchDomainBy}". ` +
+          `Add extract["${httpLink.matchDomainBy}"] to that custom type.`,
+      })
+    }
+    for (const field of httpLink.matchApiBy) {
+      if (!extractedFields.has(field)) {
+        errors.push({
+          path: `/connections/httpLinks/${index}/matchApiBy`,
+          message:
+            `customType "${httpLink.fromCustomType}" does not extract "${field}". ` +
+            `Add extract["${field}"] to that custom type.`,
+        })
+      }
+    }
+    return errors
   })
 }
 

@@ -79,9 +79,16 @@ export function resolveHttpLinks(
 export function stripResolvedCustomTypes(
   components: readonly EnrichedComponent[],
   httpLinkConfigs: readonly HttpLinkConfig[],
+  resolvedLinks: readonly ExtractedLink[],
 ): EnrichedComponent[] {
   const resolvedCustomTypes = new Set(httpLinkConfigs.map((config) => config.fromCustomType))
-  return components.filter((component) => !resolvedCustomTypes.has(component.type))
+  const targetedIdentities = new Set(resolvedLinks.map((link) => link.target))
+  return components.filter((component) => {
+    if (!resolvedCustomTypes.has(component.type)) {
+      return true
+    }
+    return targetedIdentities.has(componentIdentity(component))
+  })
 }
 
 function indexComponentsByIdentity(
@@ -113,8 +120,11 @@ function findApiComponentInDomain(
   const matched = domainApis.filter((api) =>
     matchApiBy.every((key) => {
       const targetValue = targetComponent.metadata[key]
+      if (targetValue === undefined) {
+        return false
+      }
       const apiValue = api.metadata[key]
-      if (targetValue === undefined || apiValue === undefined) {
+      if (apiValue === undefined) {
         return true
       }
       return targetValue === apiValue

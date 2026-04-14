@@ -16,6 +16,7 @@ describe('httpLinks validation', () => {
               extract: {
                 serviceName: { fromClassName: true },
                 route: { fromClassName: true },
+                method: { fromClassName: true },
               },
             },
           },
@@ -33,7 +34,7 @@ describe('httpLinks validation', () => {
     }
   }
 
-  it('returns valid when httpLinks fromCustomType exists in customTypes', () => {
+  it('returns valid when all fields reference extracted metadata', () => {
     expect(validateExtractionConfig(configWithHttpLink('httpCall')).valid).toBe(true)
   })
 
@@ -57,6 +58,81 @@ describe('httpLinks validation', () => {
         expect.objectContaining({
           path: '/connections/httpLinks/0/fromCustomType',
           message: expect.stringContaining('not defined as a customType'),
+        }),
+      ]),
+    )
+  })
+
+  it('returns error when matchDomainBy references non-extracted field', () => {
+    const config = {
+      modules: [
+        {
+          ...createMinimalModule(),
+          customTypes: {
+            httpCall: {
+              find: 'methods' as const,
+              where: { hasJSDoc: { tag: 'httpCall' } },
+              extract: { route: { fromClassName: true } },
+            },
+          },
+        },
+      ],
+      connections: {
+        httpLinks: [
+          {
+            fromCustomType: 'httpCall',
+            matchDomainBy: 'serviceName',
+            matchApiBy: ['route'],
+          },
+        ],
+      },
+    }
+    const result = validateExtractionConfig(config)
+    expect(result.valid).toBe(false)
+    expect(result.errors).toStrictEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '/connections/httpLinks/0/matchDomainBy',
+          message: expect.stringContaining('does not extract "serviceName"'),
+        }),
+      ]),
+    )
+  })
+
+  it('returns error when matchApiBy references non-extracted field', () => {
+    const config = {
+      modules: [
+        {
+          ...createMinimalModule(),
+          customTypes: {
+            httpCall: {
+              find: 'methods' as const,
+              where: { hasJSDoc: { tag: 'httpCall' } },
+              extract: {
+                serviceName: { fromClassName: true },
+                route: { fromClassName: true },
+              },
+            },
+          },
+        },
+      ],
+      connections: {
+        httpLinks: [
+          {
+            fromCustomType: 'httpCall',
+            matchDomainBy: 'serviceName',
+            matchApiBy: ['route', 'nonExistentField'],
+          },
+        ],
+      },
+    }
+    const result = validateExtractionConfig(config)
+    expect(result.valid).toBe(false)
+    expect(result.errors).toStrictEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '/connections/httpLinks/0/matchApiBy',
+          message: expect.stringContaining('does not extract "nonExistentField"'),
         }),
       ]),
     )
