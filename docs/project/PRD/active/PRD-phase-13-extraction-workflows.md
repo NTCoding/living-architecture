@@ -1,6 +1,8 @@
 # PRD: Phase 13 — Extraction Workflows
 
-**Status:** Reviewed (ruthless review pass complete; ready for implementation planning)
+**Status:** Planning
+
+**Planning note:** Draft-phase questions are resolved. This PRD is now normalized into the Planning lane and defines milestones, deliverables, parallel tracks, and architecture-review inputs.
 
 **Depends on:** Phase 12 (Connection Detection)
 
@@ -920,14 +922,14 @@ riviere-workflow
 
 ### 3.7.1 Milestones
 
-Phase 13 is ordered into six milestones. Demo-app groundwork (M0) must land before any milestone can claim a success criterion that references demo-app fixtures.
+Phase 13 is ordered into six milestones. Demo-app groundwork (M0) must land before any milestone can claim a success criterion that references demo-app fixtures. The authoritative planning contract lives in §7; this table is the quick milestone map.
 
 | Milestone | Name                         | Scope                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | Claims success criteria                                   |
 | --------- | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
-| M0        | Demo App Groundwork          | Lands in `ecommerce-demo-app` repo: two domain codebases, deliberate extraction gaps, EventCatalog, AsyncAPI spec, mapping files, workflow YAML, step configs, ground truth, 7 transition fixtures, README. Inter-repo contract wired (pinned SHA from `living-architecture` CI).                                                                                                                                                                                                             | Precondition for §3.8 criteria; no direct criterion claim |
-| M1        | Workflow Engine + Builder    | `riviere-workflow` package scaffold, registry runtime, step contract, shared builder, workflow JSON Schema in `riviere-extract-config`, `upsert*` methods + `noOverwrite`, workflow-only incomplete-state diagnostics, extraction refactor (§3.4).                                                                                                                                                                                                                                            | #1, #2, #5, #11, #12, #20, #21, #24, #25, #26             |
-| M2        | Built-in Deterministic Steps | `code-extraction`, `eventcatalog-import`, `asyncapi-import`, `schema-validate` step handlers; mapping-file schemas; compatibility-rule validation.                                                                                                                                                                                                                                                                                                                                            | #3, #4, #15, #16, #23                                     |
-| M3        | AI Steps                     | `ai-extract`, `ai-enrich` step handlers; shell-out to user-configured AI CLI per §3.4.1; response JSON schemas in `riviere-extract-config`; gap-category computation; `--dry-run` and `--skip-ai` flags on `workflow run`. **Scope note:** the shell-out design keeps AI surface small enough to belong in this phase — no SDK dependency, no credential surface, no retry/rate-limit logic to design. If AI behaviour were larger, it would split into its own phase.                        | #6, #7, #14, #22, #33                                     |
+| M0        | Demo App Groundwork          | Lands in `ecommerce-demo-app` repo: five domain codebases plus `bff/` and `ui/`, deliberate extraction gaps, EventCatalog, AsyncAPI spec, mapping files, workflow YAML, step configs, ground truth, 7 transition fixtures, README. Inter-repo contract wired (pinned SHA from `living-architecture` CI).                                                                                                                                                                                      | Precondition for §3.8 criteria; no direct criterion claim |
+| M1        | Workflow Engine + Builder    | `riviere-workflow` package scaffold, registry runtime, step contract, shared builder, workflow JSON Schema in `riviere-extract-config`, `upsert*` methods + `noOverwrite`, workflow-only incomplete-state diagnostics, extraction refactor (§3.4).                                                                                                                                                                                                                                            | #1, #2, #5, #11, #12, #20, #21, #24, #25, #26, #46        |
+| M2        | Built-in Deterministic Steps | `code-extraction`, `eventcatalog-import`, `asyncapi-import`, `schema-validate` step handlers; mapping-file schemas; compatibility-rule validation.                                                                                                                                                                                                                                                                                                                                            | #3, #4, #15, #16, #23, #47                                |
+| M3        | AI Steps                     | `ai-extract`, `ai-enrich` step handlers; shell-out to user-configured AI CLI per §3.4.1; response JSON schemas in `riviere-extract-config`; gap-category computation; `--dry-run` and `--skip-ai` flags on `workflow run`. **Scope note:** the shell-out design keeps AI surface small enough to belong in this phase — no SDK dependency, no credential surface, no retry/rate-limit logic to design. If AI behaviour were larger, it would split into its own phase.                        | #6, #7, #14, #22, #33, #48                                |
 | M4        | CLI Commands                 | `riviere workflow run` (with `--dry-run` and `--skip-ai`), `riviere workflow init`, `riviere workflow validate`; step summary output; error handling. **`init` UX scope:** greenfield-only (refuses if existing extraction configs are detected, per §3.6); minimal interactive prompts (codebases → spec sources → AI yes/no → validation step). No interactive cwd-detection of specs, no auto-wiring of existing configs; failure path prints a ready-to-copy AI migration prompt instead. | #9, #10, #17, #30, #34                                    |
 | M5        | End-to-End Demo Verification | Phase 13 CI pulls `ecommerce-demo-app` at pinned SHA, runs full workflow, verifies ground truth and transition fixtures. Idempotency verification runs the deterministic-only variant of the demo workflow (AI steps skipped) per #13a; AI-inclusive idempotency (#13b) is deferred.                                                                                                                                                                                                          | #8, #13a, #18, #19                                        |
 
@@ -935,8 +937,8 @@ Phase 13 is ordered into six milestones. Demo-app groundwork (M0) must land befo
 
 - D0.1 The five existing domain codebases (`orders-domain/`, `shipping-domain/`, `inventory-domain/`, `payment-domain/`, `notifications-domain/`) plus `bff/` and `ui/` continue to build cleanly and `verify-extraction.mjs` continues to pass against the existing `expected-extraction-output.json` / `expected-connections.json`. **Existing extraction artifacts are not modified.**
 - D0.2 A named list of deliberate extraction gaps is documented in a new "Phase 13 Workflow" section of the existing README, each gap mapped to the source location and the expected AI-discovery outcome. (Gaps may already exist in the codebase; Phase 13's job is to enumerate them.)
-- D0.3 New EventCatalog instance under `specs/eventcatalog/` is valid and covers the cross-domain event flows that span all five domains. Includes the **EventCatalog SDK coverage spike** (§6 open question 1): demo-app M0 PR includes a passing test that loads the demo EventCatalog via `@eventcatalog/sdk` and yields all relationships `eventcatalog-import` consumes. M2 cannot start until this spike resolves.
-- D0.4 New `specs/asyncapi.yaml` validates via `@asyncapi/parser` and covers pub/sub only (no request/reply, per §6 open question 2).
+- D0.3 New EventCatalog instance under `specs/eventcatalog/` is valid and covers the cross-domain event flows that span all five domains. Includes the **EventCatalog SDK coverage spike**: demo-app M0 PR includes a passing test that loads the demo EventCatalog via `@eventcatalog/sdk` and yields all relationships `eventcatalog-import` consumes. M2 cannot start until this spike resolves.
+- D0.4 New `specs/asyncapi.yaml` validates via `@asyncapi/parser` and covers pub/sub only (no request/reply in Phase 13).
 - D0.5 New mapping files (`specs/eventcatalog-mappings.yaml`, `specs/asyncapi-mappings.yaml`) normalise to canonical Riviere identity across all five domains; passes a per-mapping schema test.
 - D0.6 New `riviere-workflow.yaml` at the repo root references the existing `.riviere/config/extraction.config.json` from a single `code-extraction` step; `riviere workflow validate` passes.
 - D0.7 Workflow ground-truth fixture exists. Either (a) extends `expected-extraction-output.json` / `expected-connections.json` to also cover spec-derived and AI-discovered additions, or (b) introduces a new `tests/workflow-ground-truth.json` for the workflow assertion path. Decision documented in the demo-app PR.
@@ -999,7 +1001,7 @@ ecommerce-demo-app/                          (existing separate repo)
 | #   | Addition                                                             | Status before Phase 13                                                               | Phase 13 deliverable                                                                                                                                                                                                                                                                             |
 | --- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | 1   | `riviere-workflow.yaml`                                              | Does not exist                                                                       | New file at repo root; references existing `.riviere/config/extraction.config.json` via a single `code-extraction` step (the existing JSON config remains the authoritative extraction config — Phase 13 does not migrate it to YAML).                                                           |
-| 2   | `specs/eventcatalog/`                                                | Does not exist                                                                       | New EventCatalog instance covering the cross-domain event flows (orders → shipping, payment, inventory, notifications). The EventCatalog SDK coverage spike (D0.3 / §6 OQ1) lands here.                                                                                                          |
+| 2   | `specs/eventcatalog/`                                                | Does not exist                                                                       | New EventCatalog instance covering the cross-domain event flows (orders → shipping, payment, inventory, notifications). The EventCatalog SDK coverage spike (D0.3) lands here.                                                                                                                   |
 | 3   | `specs/asyncapi.yaml`                                                | Does not exist                                                                       | New AsyncAPI v3 spec covering the broker channels and operations for the same flows.                                                                                                                                                                                                             |
 | 4   | `specs/eventcatalog-import.yaml`, `specs/eventcatalog-mappings.yaml` | Does not exist                                                                       | New step config + mappings file.                                                                                                                                                                                                                                                                 |
 | 5   | `specs/asyncapi-import.yaml`, `specs/asyncapi-mappings.yaml`         | Does not exist                                                                       | New step config + mappings file.                                                                                                                                                                                                                                                                 |
@@ -1434,7 +1436,7 @@ The written graph must contain:
 - AI-discovered additions for the deliberate demo gaps
 - AI-enriched metadata where allowed by config
 
-This final artifact is compared against `tests/ground-truth.json` for exact component ID and link tuple coverage.
+This final artifact is compared against the selected workflow ground-truth fixture (for example `tests/workflow-ground-truth.json` if option (b) is chosen) for exact component ID and link tuple coverage.
 
 #### 3.8.3 Demo App Validation Use
 
@@ -1529,25 +1531,34 @@ Workflow 'ecommerce-architecture' completed in 47.2s
 
 No new API for this; it composes the existing step logger + `builder.warnings()` + import-summary counters (§3.4.2) + the structured diagnostic sink. Documented explicitly so the implementation produces the expected format.
 
-| Exclusion                                                                                            | Rationale                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| ---------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **User plugin loading**                                                                              | Phase 13 exports the step contract and uses a registry-based runtime, but does not load user-created plugin packages yet. Built-in steps only in this phase.                                                                                                                                                                                                                                                                            |
-| **Parallel step execution**                                                                          | Steps run sequentially. Parallelization is an optimization for later if needed.                                                                                                                                                                                                                                                                                                                                                         |
-| **TypeScript workflow definitions**                                                                  | YAML + JSON Schema for now. TypeScript config files are a future option for teams wanting type safety and composability.                                                                                                                                                                                                                                                                                                                |
-| **Workflow state / caching between runs**                                                            | Each run is stateless — produces a complete graph from scratch. Incremental extraction deferred.                                                                                                                                                                                                                                                                                                                                        |
-| **Per-step checkpointing / `--only` single-step rerun**                                              | No builder rehydration from a prior output graph, no checkpoint store, no `--only` flag to re-run a single step. The inner dev-iteration loop for workflow authors is "edit config, re-run full workflow." Deterministic steps are fast; AI cost is the CLI's concern (user's own session caching handles repeated prompts where applicable). Can be revisited in a later phase if the full-rerun cost becomes a real adoption blocker. |
-| **OpenAPI, GraphQL, Protobuf, Backstage importers**                                                  | Phase 13 includes EventCatalog and AsyncAPI (provide connection data). Component-only importers are lower value, deferred.                                                                                                                                                                                                                                                                                                              |
-| **Cross-repo linking**                                                                               | Phase 14 scope.                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| **Cross-repo workflow orchestration**                                                                | Phase 14 will define how multi-repo graphs are built.                                                                                                                                                                                                                                                                                                                                                                                   |
-| **Generic workflow engine features**                                                                 | No conditionals, loops, branching, retry policies, continue-on-error, or DAG execution. Sequential steps only.                                                                                                                                                                                                                                                                                                                          |
-| **Workflow composition**                                                                             | Workflows cannot reference or import other workflows.                                                                                                                                                                                                                                                                                                                                                                                   |
-| **Workflow migration tooling**                                                                       | Phase 13 ships the `apiVersion: v1` marker on every workflow file and validates it at load time, but does **not** ship automated migration tooling for future format changes. Existing-config detection prints a ready-to-copy AI-assistant migration prompt instead of attempting conversion. Future breaking changes will bump to `v2` and a migration path will be designed when that need arises.                                   |
-| **Step rollback / partial success**                                                                  | If a step fails, the workflow aborts entirely. No partial final graph, no undo. The workflow log may still contain events from steps completed before the failure.                                                                                                                                                                                                                                                                      |
-| **Multi-output workflows**                                                                           | One workflow produces one output file. Multiple formats or artifacts require separate workflows.                                                                                                                                                                                                                                                                                                                                        |
-| **Generic step timeout / resource limits**                                                           | No generic per-step time or memory limits beyond the explicit AI-step `timeout-seconds` control in §3.4.1.                                                                                                                                                                                                                                                                                                                              |
-| **Workflow execution history / audit**                                                               | No tracking of when workflows ran or what changed between runs.                                                                                                                                                                                                                                                                                                                                                                         |
-| **AI SDK dependency, token / cost / rate-limit management, secret loading, retries, prompt caching** | Phase 13 ships zero AI infrastructure. AI steps shell out to a user-configured CLI (§3.4.1). Auth, cost, tokens, rate limits, retries, and caching are the CLI binary's concern — Riviere never touches credentials and makes no SDK dependency.                                                                                                                                                                                        |
-| **Pinned-runtime AI idempotency tooling**                                                            | Phase 13 does not ship tooling for deterministic AI execution (pinned model/version, deterministic inference settings, prompt-replay). AI-inclusive workflow idempotency (criterion #13b) is therefore deferred; only deterministic-only idempotency (criterion #13a) is CI-gated. A manual verification procedure is published for teams operating their own pinned runtimes.                                                          |
+## 4. What We're NOT Building
+
+Phase 13 is intentionally narrow. The exclusions below centralize the scope boundaries that appear throughout the detailed design so implementation planning has one authoritative out-of-scope list.
+
+| Exclusion                                                                                            | Rationale                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| ---------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Changes to deterministic extraction behaviour itself**                                             | The `code-extraction` refactor is structural only. Phase 13 reuses the existing extraction pipeline; it does not redesign extraction rules, detection semantics, or metadata behaviour.                                                                                                                                                                                                                                                                                                                          |
+| **User plugin loading**                                                                              | Phase 13 exports the step contract and uses a registry-based runtime, but does not load user-created plugin packages yet. Built-in steps only in this phase.                                                                                                                                                                                                                                                                                                                                                     |
+| **Parallel step execution**                                                                          | Steps run sequentially. Parallelization is an optimization for later if needed.                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| **TypeScript workflow definitions**                                                                  | YAML + JSON Schema for now. TypeScript config files are a future option for teams wanting type safety and composability.                                                                                                                                                                                                                                                                                                                                                                                         |
+| **Workflow state / caching between runs**                                                            | Each run is stateless — produces a complete graph from scratch. Incremental extraction deferred.                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| **Per-step checkpointing / `--only` single-step rerun**                                              | No builder rehydration from a prior output graph, no checkpoint store, no `--only` flag to re-run a single step. The inner dev-iteration loop for workflow authors is "edit config, re-run full workflow." Deterministic steps are fast; AI cost is the CLI's concern (user's own session caching handles repeated prompts where applicable). Can be revisited in a later phase if the full-rerun cost becomes a real adoption blocker.                                                                          |
+| **OpenAPI, GraphQL, Protobuf, Backstage importers**                                                  | Phase 13 includes EventCatalog and AsyncAPI (provide connection data). Component-only importers are lower value, deferred.                                                                                                                                                                                                                                                                                                                                                                                       |
+| **Cross-repo linking**                                                                               | Phase 14 scope.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| **Cross-repo workflow orchestration**                                                                | Phase 14 will define how multi-repo graphs are built.                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| **Generic workflow engine features**                                                                 | No conditionals, loops, branching, retry policies, continue-on-error, or DAG execution. Sequential steps only.                                                                                                                                                                                                                                                                                                                                                                                                   |
+| **Workflow composition**                                                                             | Workflows cannot reference or import other workflows.                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| **Workflow migration tooling and auto-wiring existing configs**                                      | Phase 13 ships the `apiVersion: v1` marker on every workflow file and validates it at load time, but does **not** ship automated migration tooling, automatic detect-and-wire of existing extraction configs, or automatic conversion of current `riviere extract` usage into workflows. Existing-config detection prints a ready-to-copy AI-assistant migration prompt instead of attempting conversion. Future breaking changes will bump to `v2` and a migration path will be designed when that need arises. |
+| **Step rollback / partial success**                                                                  | If a step fails, the workflow aborts entirely. No partial final graph, no undo. The workflow log may still contain events from steps completed before the failure.                                                                                                                                                                                                                                                                                                                                               |
+| **Multi-output workflows**                                                                           | One workflow produces one output file. Multiple formats or artifacts require separate workflows.                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| **Generic step timeout / resource limits**                                                           | No generic per-step time or memory limits beyond the explicit AI-step `timeout-seconds` control in §3.4.1.                                                                                                                                                                                                                                                                                                                                                                                                       |
+| **Workflow execution history / audit**                                                               | No tracking of when workflows ran or what changed between runs.                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| **AsyncAPI request/reply, channel/infrastructure modelling, and broader AsyncAPI semantics**         | Phase 13 supports AsyncAPI v3 publish/subscribe only. Broker infrastructure is dropped, and request/reply is explicitly rejected rather than partially modelled.                                                                                                                                                                                                                                                                                                                                                 |
+| **EventCatalog fallback parser if the SDK proves insufficient**                                      | M0 contains a gating SDK spike. If the SDK cannot supply the required relationships, Phase 13 stops rather than introducing a parallel parser path.                                                                                                                                                                                                                                                                                                                                                              |
+| **AI SDK dependency, token / cost / rate-limit management, secret loading, retries, prompt caching** | Phase 13 ships zero AI infrastructure. AI steps shell out to a user-configured CLI (§3.4.1). Auth, cost, tokens, rate limits, retries, and caching are the CLI binary's concern — Riviere never touches credentials and makes no SDK dependency.                                                                                                                                                                                                                                                                 |
+| **Automated AI review-and-accept loop**                                                              | Phase 13 does not add a second-pass review loop that automatically accepts or persists AI suggestions. Corrections live in workflow and step config files, edited by the user between runs.                                                                                                                                                                                                                                                                                                                      |
+| **Full prompt replacement, confidence scoring, and threshold-based AI filtering**                    | Users can append instructions and memory, but Phase 13 does not expose arbitrary prompt replacement or any confidence/threshold control surface. AI responses either validate and apply additively or the step fails.                                                                                                                                                                                                                                                                                            |
+| **Pinned-runtime AI idempotency tooling**                                                            | Phase 13 does not ship tooling for deterministic AI execution (pinned model/version, deterministic inference settings, prompt-replay). AI-inclusive workflow idempotency (criterion #13b) is therefore deferred; only deterministic-only idempotency (criterion #13a) is CI-gated. A manual verification procedure is published for teams operating their own pinned runtimes.                                                                                                                                   |
 
 ---
 
@@ -1565,14 +1576,14 @@ No new API for this; it composes the existing step logger + `builder.warnings()`
 | 8   | `riviere workflow run` produces valid graph from demo app workflow matching ground truth, with targeted semantic assertions covering spec-overwrite fields, additive-only AI behaviour, and diagnostic-log events                                                                                                                                                                                                                                                                                | End-to-end test: zero false positives / negatives on component IDs and link tuples plus targeted semantic assertions on selected field values and workflow-log events                                                                                                                                      |
 | 9   | `riviere workflow init` produces valid workflow YAML and step configs                                                                                                                                                                                                                                                                                                                                                                                                                            | Init creates files, `workflow validate` passes, `workflow run` succeeds                                                                                                                                                                                                                                    |
 | 10  | `riviere workflow validate` catches invalid workflow files, missing config references, incompatible step-declared domains/sources, invalid step configs, and unresolved runtime prerequisites from `requiredServices()` (notably: the AI CLI executable not being in `PATH`); `workflow run` skips AI file-existence checks, AI config validation, and AI prerequisite checks for `--skip-ai`, and skips AI prerequisite checks for `--dry-run` steps that will not invoke a CLI                 | Unit tests for structural, semantic, and runtime-prerequisite validation; explicit tests that `workflow validate` fails on a non-existent AI CLI executable while `workflow run --skip-ai` ignores AI config/prerequisite failures and `--dry-run` does not require the AI CLI executable                  |
-| 11  | Workflow JSON Schema validates workflow file structure                                                                                                                                                                                                                                                                                                                                                                                                                                           | Schema published in `riviere-extract-config`                                                                                                                                                                                                                                                               |
+| 11  | Workflow JSON Schema validates workflow file structure                                                                                                                                                                                                                                                                                                                                                                                                                                           | Schema tests in `riviere-extract-config` accept documented valid examples and reject missing/invalid structural fields                                                                                                                                                                                     |
 | 12  | `riviere-workflow` exports the step contract and resolves built-in steps through a registry rather than hardcoded switch logic                                                                                                                                                                                                                                                                                                                                                                   | Unit tests for step registry + dependency-cruiser rule enforcement                                                                                                                                                                                                                                         |
 | 13a | Workflows with **only deterministic steps** (no `ai-extract`, no `ai-enrich`) are bit-for-bit idempotent: running twice produces identical output JSON (after canonical-serialisation normalisation)                                                                                                                                                                                                                                                                                             | E2E test in CI: demo workflow with AI steps disabled, run twice, assert byte-equal output JSON. Mandatory gate.                                                                                                                                                                                            |
 | 13b | Workflows with AI steps are idempotent **only under pinned-runtime conditions** (pinned model/version, deterministic inference controls, replayable prompt inputs). Phase 13 does not ship pinned-runtime tooling; this criterion is explicitly deferred                                                                                                                                                                                                                                         | Documented as not-in-scope; no CI gate. A manual verification procedure is published so teams with pinned runtimes can self-verify.                                                                                                                                                                        |
 | 14  | AI step configs validate structured `command`/`args`, optional `memory` / `prompt-append`, and bounded enum-based selection and field lists rather than free-form strings                                                                                                                                                                                                                                                                                                                        | Schema validation tests in `riviere-extract-config`                                                                                                                                                                                                                                                        |
 | 15  | Canonical identity normalization happens in step config/mappings, not in the workflow runtime                                                                                                                                                                                                                                                                                                                                                                                                    | Integration test: differently named external records merge only when mappings normalize them to the same Riviere identity                                                                                                                                                                                  |
 | 16  | `schema-validate` works as an optional explicit checkpoint while final output still always validates                                                                                                                                                                                                                                                                                                                                                                                             | Integration test with and without `schema-validate` step                                                                                                                                                                                                                                                   |
-| 17  | Step summary output shows per-step duration and total workflow duration                                                                                                                                                                                                                                                                                                                                                                                                                          | Visible in `riviere workflow run` output                                                                                                                                                                                                                                                                   |
+| 17  | Step summary output shows per-step duration and total workflow duration                                                                                                                                                                                                                                                                                                                                                                                                                          | Golden-output integration test asserts the summary block includes total duration plus one duration-bearing line per executed step                                                                                                                                                                          |
 | 18  | The documented ecommerce demo app workflow transitions are verified after each step, not only at final output                                                                                                                                                                                                                                                                                                                                                                                    | Integration test compares builder state after each step to `tests/workflow-transitions/*.json` fixtures                                                                                                                                                                                                    |
 | 19  | Every Phase 13 schema (workflow YAML, step configs, mapping files, builder inputs) rejects empty strings on all string fields via `minLength: 1` or equivalent                                                                                                                                                                                                                                                                                                                                   | Schema-level tests assert that `""` on every string field produces a validation error                                                                                                                                                                                                                      |
 | 20  | Workflow runtime preserves incomplete-state diagnostics outside `riviere-schema`; final graphs never contain `_missing` / `_uncertain`; `builder.build()` fails while unresolved `missing-field` / `uncertain-link` diagnostics remain                                                                                                                                                                                                                                                           | Unit tests for extract-ts draft-marker to runtime-diagnostic conversion, resolution tracking, `builder.validate()` reporting, and `builder.build()` failure on unresolved diagnostics                                                                                                                      |
@@ -1582,7 +1593,7 @@ No new API for this; it composes the existing step logger + `builder.warnings()`
 | 24  | `riviere-extract-ts` exposes a pure `extractInto(builder, config, options)` core that feeds a caller-supplied builder without writing JSON; `riviere extract` CLI is rewritten as a thin shell over this core; existing CLI behaviour is unchanged                                                                                                                                                                                                                                               | Unit tests for the pure core; existing `riviere extract` integration tests pass against the refactored CLI with no change in output JSON                                                                                                                                                                   |
 | 25  | `code-extraction` workflow step calls the same pure core used by `riviere extract` CLI — zero behaviour divergence; lenient-mode incomplete-state diagnostics are preserved in workflow diagnostics rather than graph schema                                                                                                                                                                                                                                                                     | Integration test: running `riviere extract --config X` and running a workflow with a single `code-extraction` step using the same config produce identical component and link sets, with workflow diagnostics capturing unresolved draft markers outside the graph                                         |
 | 26  | ts-morph `Project` instances created during `code-extraction` are disposed before the step returns; multiple `code-extraction` steps in one workflow run do not retain compiler state between steps                                                                                                                                                                                                                                                                                              | Memory-pressure test: run 5 `code-extraction` steps sequentially in one process; assert retained-heap after each step is bounded                                                                                                                                                                           |
-| 27  | `ecommerce-demo-app` repo (separate) satisfies all M0 acceptance criteria (§3.7.1 D0.1–D0.10) before any other milestone can claim a §3.8-dependent success criterion                                                                                                                                                                                                                                                                                                                            | Cross-repo gate: `living-architecture` CI pins a commit SHA from `ecommerce-demo-app`; pinning requires M0 checklist sign-off in the demo-app PR                                                                                                                                                           |
+| 27  | `ecommerce-demo-app` repo (separate) satisfies all M0 deliverables in §7 plus the detailed M0 acceptance checklist in §3.7.1 D0.1–D0.10 before any other milestone can claim a §3.8-dependent success criterion                                                                                                                                                                                                                                                                                  | Cross-repo gate: `living-architecture` CI pins a commit SHA from `ecommerce-demo-app`; pinning requires M0 checklist sign-off in the demo-app PR                                                                                                                                                           |
 | 28  | Phase 13 integration and E2E tests fetch `ecommerce-demo-app` at the pinned SHA and run against it; no demo-app source or fixture lives in `living-architecture`                                                                                                                                                                                                                                                                                                                                 | Grep in `living-architecture` for demo-app source returns empty; CI test harness clones the demo-app at the pinned SHA                                                                                                                                                                                     |
 | 29  | `eventcatalog-import.yaml`, `eventcatalog-mappings.yaml`, `asyncapi-import.yaml`, and `asyncapi-mappings.yaml` are all validated by JSON Schemas published in `riviere-extract-config`; step handlers' `validateConfig()` runs the schema check at `workflow validate` time                                                                                                                                                                                                                      | Schema tests: invalid shapes (typos on keys, empty strings, unknown top-level keys, missing required fields) fail `workflow validate`; valid demo-app mapping files pass                                                                                                                                   |
 | 30  | `riviere workflow init` refuses to run when existing extraction configs are detected (for example `riviere-config.yaml` / `.yml`, `extraction.config.json` / `.yaml` / `.yml`, including `.riviere/config/`), prints the detected paths, emits a ready-to-copy AI-assistant migration prompt, and points to the migration guide; `docs/workflow/migrating-from-extract.md` is published and describes the five-step manual upgrade path                                                          | Integration test: run `init` in a directory with seeded existing extraction configs, assert non-zero exit, no files created, stderr names the detected config paths, migration-guide path, and AI-assistant prompt                                                                                         |
@@ -1601,31 +1612,321 @@ No new API for this; it composes the existing step logger + `builder.warnings()`
 | 43  | Workflow `output` is required (no default); missing or empty `output` fails structural validation                                                                                                                                                                                                                                                                                                                                                                                                | Schema tests: workflow without `output` fails; `output: ""` fails; any non-empty string passes                                                                                                                                                                                                             |
 | 44  | `ai-extract` source-scope overflow (files > `max-files-per-batch * max-batches`) fails the step with the documented error — silent truncation is disallowed                                                                                                                                                                                                                                                                                                                                      | Integration test seeds a source tree with enough files to exceed the bound and asserts the step fails with the documented message                                                                                                                                                                          |
 | 45  | `riviere-workflow` package follows monorepo repository hygiene: separation-of-concerns folder structure, dependency-cruiser rules added to the root config, role-enforcement tags on every export, 100% test coverage, workspace-reference imports only                                                                                                                                                                                                                                          | Lint + dependency-cruiser + coverage gates green on CI                                                                                                                                                                                                                                                     |
+| 46  | Architecture docs are updated for the workflow runtime boundary: `docs/architecture/overview.md` shows `riviere-workflow` in the package/dependency view, and a new ADR captures the registry runtime + shared-builder boundary                                                                                                                                                                                                                                                                  | Doc diff assertions confirm `overview.md` includes `riviere-workflow`, and a new ADR file is added describing the runtime boundary and builder ownership                                                                                                                                                   |
+| 47  | Workflow/importer terminology and dependency docs are updated: the glossary includes workflow terms, and architecture docs mention `@eventcatalog/sdk` and `@asyncapi/parser`                                                                                                                                                                                                                                                                                                                    | Grep/doc assertions confirm glossary entries for `Workflow`, `Step Config`, `Mappings File`, and `Canonical Identity`, and confirm architecture docs mention both importer dependencies                                                                                                                    |
+| 48  | Operator-facing docs capture the AI CLI shell-out boundary and deferred AI idempotency expectations without implying an SDK/auth surface in Riviere                                                                                                                                                                                                                                                                                                                                              | Grep/doc assertions confirm docs state `command` + `args`, `child_process.spawn`, no AI SDK/auth handling in Riviere, and manual-only AI idempotency guidance                                                                                                                                              |
 
 ---
 
 ## 6. Open Questions
 
-1. **EventCatalog ingestion approach** — **Resolved (with required pre-work).**
-   - SDK-only via `@eventcatalog/sdk`.
-   - Pre-work: an **M0 spike** (part of the demo-app deliverables) verifies that the SDK exposes every relationship `eventcatalog-import` consumes (domains, services, events, producer/consumer relationships). M2 (`eventcatalog-import` step) cannot start until this spike confirms coverage.
-   - Reasoning: the SDK's relationship coverage was the single biggest integration unknown. Treating it as a spike and gating M2 on the result removes the risk that `eventcatalog-import` ends up half-implemented when the SDK doesn't deliver. Phase 13 does not ship a fallback parser.
-
-   **Spike acceptance:** demo-app M0 PR includes a passing test that loads the demo EventCatalog instance via the SDK and yields all required fields.
-
-2. **AsyncAPI scope boundary** — **Resolved.** Keep Phase 13 to AsyncAPI v3 publish/subscribe semantics only.
-
-   ```text
-   send(message)    -> component -> event
-   receive(message) -> event -> handler
-   request/reply    -> unsupported in Phase 13
-   ```
-
-3. **AI provider setup** — **Resolved.** Phase 13 ships no AI SDK, no provider abstraction, and no credential handling. AI steps shell out to a user-configured CLI (`command` + `args` in each step config). Auth and provider choice are the CLI binary's concern. See §3.4.1.
+None. Draft-phase questions were resolved before Planning. The remaining work is sequencing and delivery, not product-definition discovery.
 
 ---
 
-## 7. Dependencies
+## 7. Milestones
+
+Phase 13 is in Planning. Detailed design remains in §3; this section is the delivery contract. The more granular M0 checklist in §3.7.1 D0.1–D0.10 remains the readiness gate for demo-app groundwork.
+
+### M0: Demo app workflow baseline is ready
+
+The demo app becomes a stable first-customer workflow fixture without breaking the existing deterministic extraction path.
+
+#### Deliverables
+
+- **D0.1:** Existing deterministic extraction path remains intact
+  - Key scenarios: existing five domains plus `bff/` and `ui/` still build; existing extraction configs and fixtures remain authoritative; workflow additions do not alter direct-CLI behaviour.
+  - Acceptance criteria: current `verify-extraction.mjs` / `verify-connections.mjs` continue to pass unchanged; existing extraction artifacts are preserved; `.riviere/config/extraction.config.json` remains the source of truth for direct extraction.
+  - Verification: demo-app CI runs the current deterministic verification harness unchanged.
+- **D0.2:** External specs and mappings exist and validate
+  - Key scenarios: EventCatalog SDK spike succeeds; AsyncAPI v3 spec covers publish/subscribe only; mapping files normalize external records to canonical Riviere identities.
+  - Acceptance criteria: `specs/eventcatalog/`, `specs/asyncapi.yaml`, and both mapping files exist; SDK and parser tests pass; schema tests pass for mapping files.
+  - Verification: demo-app tests exercise `@eventcatalog/sdk`, `@asyncapi/parser`, and mapping schema validation.
+- **D0.3:** Demo workflow and fixtures are reproducible
+  - Key scenarios: root `riviere-workflow.yaml` references the existing extraction config; workflow ground truth exists; transition fixtures are generated from a capture hook rather than hand-edited.
+  - Acceptance criteria: `riviere workflow validate` passes against the demo repo; ground-truth strategy is documented; transition fixtures exist for every step.
+  - Verification: run `workflow validate`, run the fixture-capture tooling, and assert a clean fixture diff in CI.
+- **D0.4:** Inter-repo contract and README updates land
+  - Key scenarios: `living-architecture` pins a demo-app SHA; coordinated fixture updates have an explicit path; README adds a Phase 13 workflow section without removing the current deterministic guide.
+  - Acceptance criteria: pinned SHA and dependency-update process exist; README preserves pre-Phase-13 guidance verbatim and adds workflow guidance as the next step.
+  - Verification: grep/assertions confirm the pinned SHA is referenced by CI config, the coordination template/file exists, and the demo-app README contains both the preserved deterministic guide and the new Phase 13 workflow section.
+
+### M1: Workflow engine and shared builder are in place
+
+The runtime can load a workflow, validate the active plan, and execute sequential steps against one shared builder facade.
+
+#### Deliverables
+
+- **D1.1:** Registry-based workflow runtime executes validated plans
+  - Key scenarios: sequential execution, active-plan derivation for `--skip-ai` / `--dry-run`, fail-fast validation before execution.
+  - Acceptance criteria: built-in steps resolve via registry; workflow abort semantics are consistent; shared builder is created once after active-step validation succeeds.
+  - Verification: runtime integration tests with mock handlers and mixed execution plans.
+- **D1.2:** Builder supports multi-source graph construction
+  - Key scenarios: typed `upsert*` merge on same canonical ID, `noOverwrite` preservation for AI callers, idempotent `addSource()` / `addDomain()`, duplicate-link logging.
+  - Acceptance criteria: builder exposes the seven typed `upsert*` methods; merge and dedup semantics match §3.5.
+  - Verification: unit tests in `riviere-builder` for merge, warning, and dedup behaviour.
+- **D1.3:** `code-extraction` can feed a caller-supplied builder without behavioural drift
+  - Key scenarios: pure `extractInto(builder, config, options)` core exists; direct CLI preserves current output; lenient draft markers become workflow diagnostics instead of graph fields.
+  - Acceptance criteria: `riviere extract` remains output-compatible; workflow single-step parity with direct extract is proven.
+  - Verification: parity integration tests plus memory/resource-disposal tests for repeated extraction steps.
+- **D1.4:** Architecture documentation is updated for the new runtime boundary
+  - Key scenarios: architecture overview shows the new package boundary, a dedicated ADR records the runtime decision, and glossary terms exist for the workflow runtime surface.
+  - What doc to update and why: update `docs/architecture/overview.md` to show `riviere-workflow` in the package graph; add an ADR capturing the registry runtime + shared-builder boundary; update glossary entries for workflow runtime terms.
+  - Acceptance criteria: `overview.md` explicitly shows `riviere-workflow`; a new ADR file exists for the workflow runtime boundary; glossary additions cover workflow runtime terms introduced by Phase 13.
+  - Verification: doc diff assertions confirm the updated package diagram, presence of the ADR file, and the required glossary entries.
+- **D1.5:** Workflow schema and package foundations are strict by default
+  - Key scenarios: workflow schema enforces `apiVersion`, required `output`, unique/patterned step names, and empty-string rejection; file-relative path resolution is reusable across built-in steps; `riviere-workflow` obeys repo hygiene rules.
+  - Acceptance criteria: schema tests cover structural validation rules; resolver tests prove file-relative path behaviour; dependency-cruiser, role-enforcement, coverage, and workspace-import gates apply to the new package.
+  - Verification: schema test suite, resolver unit tests, and CI lint/dependency-cruiser/coverage assertions.
+
+### M2: Deterministic spec and validation steps work end-to-end
+
+Users can combine deterministic code extraction with spec imports and an explicit validation checkpoint.
+
+#### Deliverables
+
+- **D2.1:** `eventcatalog-import` works with convention defaults and mappings overrides
+  - Key scenarios: canonical identity normalization, strict vs lenient unmapped handling, producer/consumer link creation.
+  - Acceptance criteria: demo EventCatalog imports into the shared builder and logs skipped records only in lenient mode.
+  - Verification: integration tests against the demo EventCatalog plus schema tests for step and mapping files.
+- **D2.2:** `asyncapi-import` works within the defined v3 scope boundary
+  - Key scenarios: message/operation mapping, payload metadata import, request/reply rejection, silent drop of out-of-scope infrastructure fields.
+  - Acceptance criteria: demo AsyncAPI spec imports successfully for publish/subscribe flows; request/reply specs fail with the documented error.
+  - Verification: spec-driven integration tests plus schema tests for step and mapping files.
+- **D2.3:** `schema-validate` and workflow compatibility checks fail cleanly
+  - Key scenarios: mid-workflow validation, unresolved-diagnostic reporting, incompatible workflow/step source-domain declarations, file-relative path resolution.
+  - Acceptance criteria: `builder.validate()` is used for checkpoint validation; compatibility and path-resolution failures are surfaced before execution.
+  - Verification: integration tests with and without `schema-validate`; resolver unit tests; compatibility validation tests.
+- **D2.4:** Architecture docs reflect new importer dependencies and mapping terminology
+  - Key scenarios: architecture docs show importer dependencies, glossary entries explain mapping terminology, and planning terminology aligns with importer behaviour.
+  - What doc to update and why: update `docs/architecture/overview.md` to note `@eventcatalog/sdk` and `@asyncapi/parser`; extend the glossary with `Workflow`, `Step Config`, `Mappings File`, and `Canonical Identity` as product-facing terms.
+  - Acceptance criteria: architecture docs mention both importer dependencies; glossary additions cover importer-facing workflow terms and mapping terminology.
+  - Verification: grep/doc assertions confirm the dependency names appear in architecture docs and the required glossary terms are present.
+
+### M3: AI steps add bounded, additive enrichment
+
+AI-assisted workflow steps operate through a user-supplied CLI without introducing a provider SDK surface.
+
+#### Deliverables
+
+- **D3.1:** Shared AI CLI invocation contract exists
+  - Key scenarios: `command` + `args`, stdin or single `{prompt}` substitution, timeout enforcement, strict stdout schema validation.
+  - Acceptance criteria: AI steps shell out via `child_process.spawn` with `shell: false`; malformed stdout and timeout cases fail cleanly.
+  - Verification: unit tests with mocked child processes and a stub CLI integration test.
+- **D3.2:** `ai-extract` applies only bounded, gap-driven additions
+  - Key scenarios: gap-category computation, bounded file selection, overflow failure, additive `upsert*` with `noOverwrite`.
+  - Acceptance criteria: AI extraction creates only missing components/links within the configured scope and logs applied additions.
+  - Verification: integration tests against deliberate demo-app gaps for each supported gap category.
+- **D3.3:** `ai-enrich` fills only missing metadata fields
+  - Key scenarios: unresolved `missing-field` diagnostics, configured enrichable fields, preservation of deterministic scalars.
+  - Acceptance criteria: AI enrichment mutates only `undefined` / `null` fields on existing components and emits enrichment log events.
+  - Verification: integration tests against demo components with missing metadata and no-overwrite assertions.
+- **D3.4:** Operator-facing docs explain the AI boundary clearly
+  - Key scenarios: docs show CLI-based invocation, docs exclude SDK/auth ownership from Riviere, and docs explain why AI idempotency is manual-only in this phase.
+  - What doc to update and why: document the no-SDK, user-configured-CLI model; add glossary coverage for `AI CLI`, `Workflow Diagnostics`, and `Workflow Log`; document deferred AI idempotency expectations.
+  - Acceptance criteria: docs state `command` + `args`, `child_process.spawn`, no embedded AI SDK/auth handling, and manual-only AI idempotency guidance.
+  - Verification: grep/doc assertions confirm the required AI boundary phrases appear in operator docs and glossary updates.
+
+### M4: CLI commands make workflows operable
+
+Users can initialize, validate, and run workflows with clear diagnostics and migration guidance.
+
+#### Deliverables
+
+- **D4.1:** `riviere workflow run` and `riviere workflow validate` are production-usable
+  - Key scenarios: fail-fast validation levels, active-plan handling, deterministic execution, preserved NDJSON log on failure.
+  - Acceptance criteria: both commands surface documented errors and respect `--skip-ai` / `--dry-run` semantics.
+  - Verification: CLI integration tests cover success, validation failure, and step failure paths.
+- **D4.2:** `riviere workflow init` is greenfield-only and migration-safe
+  - Key scenarios: existing-config detection and refusal, ready-to-copy AI migration prompt, and successful greenfield generation of a workflow that validates and runs.
+  - Acceptance criteria: init creates files only in greenfield scenarios; the generated workflow passes `workflow validate` and `workflow run`; non-greenfield runs refuse with the documented prompt and create no files.
+  - Verification: integration tests cover both the greenfield success path and the existing-config refusal path.
+- **D4.3:** CLI output and migration docs are complete
+  - Key scenarios: step summary output, migration guide from `extract`, prompt-review mode via `--dry-run`.
+  - Acceptance criteria: summary block matches §3.9.3; `docs/workflow/migrating-from-extract.md` exists and documents the five-step upgrade path.
+  - Verification: golden-output tests assert the summary format, and grep/assertions confirm the migration guide file exists and contains the documented five-step upgrade path.
+
+### M5: End-to-end verification is CI-gated
+
+The demo app proves the whole workflow surface works, remains deterministic on the non-AI path, and stays regression-safe over time.
+
+#### Deliverables
+
+- **D5.1:** Full demo workflow matches ground truth
+  - Key scenarios: final graph equality, targeted semantic assertions for overwrite/additive behaviour, NDJSON log assertions.
+  - Acceptance criteria: running the demo workflow at the pinned SHA matches the approved ground-truth fixture and semantic assertions.
+  - Verification: cross-repo E2E test in CI.
+- **D5.2:** Transition fixtures and deterministic idempotency are enforced
+  - Key scenarios: after-step fixture comparison, non-mutating `schema-validate`, deterministic-only double-run equality under `--skip-ai`.
+  - Acceptance criteria: transition fixtures pass after every step; deterministic-only runs are byte-equal under canonical serialization.
+  - Verification: CI runs transition-fixture assertions and the two-run deterministic idempotency check.
+- **D5.3:** Cross-repo coordination stays maintainable
+  - Key scenarios: pinned demo-app SHA, fixture regeneration workflow, no demo fixtures copied into `living-architecture`.
+  - Acceptance criteria: CI clones the pinned demo-app revision, and coordinated updates require only SHA bumps plus fixture regeneration in the demo repo.
+  - Verification: CI assertions confirm clone-at-pinned-SHA behaviour, and repository grep/assertions confirm demo-app source and fixtures are not duplicated into `living-architecture`.
+
+### Success-criteria ownership
+
+This table makes milestone completion auditable by assigning every success criterion to at least one planned deliverable.
+
+| Deliverable | Owns success criteria             |
+| ----------- | --------------------------------- |
+| D0.1        | #27                               |
+| D0.2        | #27, #29                          |
+| D0.3        | #27, #8, #18, #42                 |
+| D0.4        | #27, #28                          |
+| D1.1        | #1, #2, #12                       |
+| D1.2        | #5, #40                           |
+| D1.3        | #20, #24, #25, #26                |
+| D1.4        | #46                               |
+| D1.5        | #11, #19, #31, #32, #35, #43, #45 |
+| D2.1        | #3, #15, #29, #36, #39            |
+| D2.2        | #4, #15, #29, #37, #38, #39       |
+| D2.3        | #16, #23, #31                     |
+| D2.4        | #47                               |
+| D3.1        | #14, #33                          |
+| D3.2        | #6, #22, #44                      |
+| D3.3        | #7, #21                           |
+| D3.4        | #48                               |
+| D4.1        | #10, #17, #34, #41                |
+| D4.2        | #9, #30                           |
+| D4.3        | #17, #30, #41                     |
+| D5.1        | #8                                |
+| D5.2        | #13a, #18, #42                    |
+| D5.3        | #27, #28                          |
+
+Deferred/non-gating note: #13b remains intentionally deferred and is documented in §4 and §5 rather than owned by a delivery milestone in this phase.
+
+---
+
+## 8. Parallelization
+
+Parallel work is by delivery track, not by workflow-step execution. Runtime execution remains sequential; implementation work can proceed in parallel once dependencies below are satisfied.
+
+```yaml
+tracks:
+  - id: A
+    name: Builder and extraction-core refactor
+    deliverables:
+      - D1.2
+      - D1.3
+  - id: B
+    name: Workflow runtime and CLI surface
+    deliverables:
+      - D1.1
+      - D1.5
+      - D4.1
+      - D4.2
+      - D4.3
+  - id: C
+    name: Deterministic importers and config schemas
+    deliverables:
+      - D2.1
+      - D2.2
+      - D2.3
+  - id: D
+    name: AI workflow steps
+    deliverables:
+      - D3.1
+      - D3.2
+      - D3.3
+  - id: E
+    name: Demo app groundwork
+    deliverables:
+      - D0.1
+      - D0.2
+      - D0.3
+      - D0.4
+  - id: G
+    name: End-to-end verification and CI gating
+    deliverables:
+      - D5.1
+      - D5.2
+      - D5.3
+  - id: F
+    name: Architecture and terminology updates
+    deliverables:
+      - D1.4
+      - D2.4
+      - D3.4
+```
+
+Dependency notes:
+
+- M0 gates any deliverable that depends on demo-app specs, fixtures, or the pinned-SHA CI path.
+- D1.2 and D1.3 gate D2.1, D2.2, D3.2, and D3.3 because all later steps rely on builder upsert behaviour and shared-builder extraction parity.
+- D1.5 gates D2.1, D2.2, D3.1, and D4.1 because importer, AI, and CLI work all rely on the shared schema strictness and file-resolution contract.
+- D1.1 gates D4.1 because the CLI commands are thin shells over the workflow runtime.
+- D3.1 gates D3.2 and D3.3 because both AI steps share the CLI invocation and response-validation contract.
+- Track A hands typed upsert semantics and extraction parity to tracks C and D before importer and AI-step implementation can stabilize.
+- Track B hands the runtime shell, validation flow, and logging surfaces to tracks C, D, E, and G before end-to-end verification can lock fixtures.
+- Track C hands deterministic merged-state fixtures to track G; track D hands AI stub/response-schema fixtures to track G.
+- Track E can start early with demo-app artifacts and pinned-SHA wiring, while track G starts only after tracks A-D stabilize the engine and step contracts.
+- Track F starts incrementally after the owning product boundary is stable: D1.4 after D1.1-D1.3, D2.4 after D2.1-D2.3, and D3.4 after D3.1-D3.3.
+
+---
+
+## 9. Architecture
+
+Phase 13 fits the existing architecture by inserting a dedicated workflow runtime between the CLI and the existing extraction/builder packages while preserving the direct `riviere extract` path.
+
+**Before Phase 13:**
+
+```text
+riviere-cli
+  -> riviere-extract-ts
+  -> riviere-builder
+```
+
+**After Phase 13:**
+
+```text
+riviere-cli
+  -> riviere-workflow
+  -> riviere-extract-ts   (direct `riviere extract` path remains)
+
+riviere-workflow
+  -> riviere-builder
+  -> riviere-extract-config
+  -> riviere-extract-ts
+```
+
+**Module boundary and responsibilities:**
+
+- `riviere-cli` remains a thin shell exposing `workflow run`, `workflow init`, `workflow validate`, and the existing direct extraction command.
+- `riviere-workflow` owns workflow execution, the step registry, step contracts, diagnostics/log orchestration, file-relative path resolution, and built-in step implementations.
+- `riviere-builder` remains the graph-construction authority; Phase 13 extends it with typed upsert semantics rather than introducing a parallel graph-merge layer.
+- `riviere-extract-config` owns workflow, importer, mapping, and AI response schemas so validation rules stay centralized.
+- `riviere-extract-ts` remains the deterministic extractor and exposes a pure `extractInto(...)` core reused by both direct CLI extraction and workflow execution.
+
+**Architecture alignment with existing docs:**
+
+- Aligns with `docs/architecture/overview.md` by keeping extraction, builder, schema, and query responsibilities separate and composable.
+- Aligns with ADR-001 by preserving extraction metadata logic in the extraction pipeline rather than moving extraction semantics into workflow glue.
+- Aligns with ADR-002 by requiring `riviere-workflow` to follow the feature/platform/shell package structure and dependency-cruiser enforcement from day one.
+
+**New dependencies and boundaries:**
+
+- New package: `riviere-workflow`.
+- New npm dependencies in workflow-owned importer code: `@eventcatalog/sdk` and `@asyncapi/parser`.
+- AI CLIs are runtime prerequisites only. They are not npm dependencies, and no AI SDK/auth boundary is introduced into the codebase.
+
+**Documentation that must be updated during delivery:**
+
+- `docs/architecture/overview.md` — add the workflow runtime to the package/dependency view.
+- `docs/architecture/domain-terminology/contextive/definitions.glossary.yml` — add workflow, step, mapping, diagnostics, and AI CLI terminology.
+- New ADR — capture the workflow runtime boundary, registry-based step execution, and the choice to shell out to user-configured AI CLIs instead of embedding an SDK.
+
+**Architecture review focus:**
+
+- Whether the `riviere-workflow` package boundary is thin enough and does not absorb builder or extraction responsibilities.
+- Whether typed builder upserts are the right extension seam versus a separate merge layer.
+- Whether importer-specific dependencies stay isolated inside workflow-owned step handlers.
+- Whether the AI CLI boundary is sufficiently explicit to avoid accidental credential, SDK, or retry/cost logic creeping into core packages.
+
+---
+
+## 10. Dependencies
 
 **Depends on:**
 
@@ -1637,7 +1938,7 @@ No new API for this; it composes the existing step logger + `builder.warnings()`
 
 ---
 
-## 8. Research References
+## 11. Research References
 
 ### Integration SDKs
 
@@ -1654,7 +1955,7 @@ No new API for this; it composes the existing step logger + `builder.warnings()`
 
 ---
 
-## 9. Terminology
+## 12. Terminology
 
 | Term                       | Definition                                                                                                                                                                                                                                                                                                                            |
 | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
