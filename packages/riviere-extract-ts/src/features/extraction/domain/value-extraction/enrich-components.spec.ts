@@ -36,6 +36,7 @@ const BUILT_IN_TYPES: readonly string[] = [
 function notUsedModule(name: string, path: string): Module {
   return {
     name,
+    domain: `${name}-domain`,
     path,
     glob: '**',
     api: {
@@ -53,6 +54,7 @@ function notUsedModule(name: string, path: string): Module {
 function moduleWith(componentType: string, rule: ComponentRule): Module {
   const base: Module = {
     name: 'orders',
+    domain: 'orders-domain',
     path: '/src/orders',
     glob: '**',
     api: { notUsed: true },
@@ -92,6 +94,7 @@ function draft(type: string, name: string, file: string, line: number): DraftCom
       line,
     },
     domain: 'orders',
+    module: 'orders-module',
   }
 }
 
@@ -114,6 +117,7 @@ describe('enrichComponents', () => {
               line: 1,
             },
             domain: 'orders',
+            module: 'orders-module',
             metadata: {},
           },
         ],
@@ -243,6 +247,52 @@ describe('enrichComponents', () => {
       expect(result.components[0]?.metadata).toStrictEqual({ apiType: 'REST' })
       expect(result.components[0]?._missing).toStrictEqual(['path'])
       expect(result.failures).toHaveLength(1)
+    })
+
+    it('does not record failure when api route and method properties are missing', () => {
+      const file = nextFile('/src/orders/order.controller.ts', 'export class OrderController {}')
+      const d = draft('api', 'OrderController', file, 1)
+      const module = moduleWith('api', {
+        find: 'classes',
+        where: { nameEndsWith: { suffix: 'Controller' } },
+        extract: {
+          apiType: { literal: 'REST' },
+          route: {
+            fromProperty: {
+              name: 'route',
+              kind: 'instance',
+            },
+          },
+          method: {
+            fromProperty: {
+              name: 'method',
+              kind: 'instance',
+            },
+          },
+        },
+      })
+
+      const result = enrich([d], [module])
+
+      expect(result.components[0]?.metadata).toStrictEqual({ apiType: 'REST' })
+      expect(result.components[0]?._missing).toBeUndefined()
+      expect(result.failures).toStrictEqual([])
+    })
+
+    it('still records failure when api route extraction uses an invalid rule', () => {
+      const file = nextFile('/src/orders/order.controller.ts', 'export class OrderController {}')
+      const d = draft('api', 'OrderController', file, 1)
+      const module = moduleWith('api', {
+        find: 'classes',
+        where: { nameEndsWith: { suffix: 'Controller' } },
+        extract: { route: { fromMethodSignature: true } },
+      })
+
+      const result = enrich([d], [module])
+
+      expect(result.failures).toHaveLength(1)
+      expect(result.failures[0]?.field).toBe('route')
+      expect(result.components[0]?._missing).toStrictEqual(['route'])
     })
   })
 

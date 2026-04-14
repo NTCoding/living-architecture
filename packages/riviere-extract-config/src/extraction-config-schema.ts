@@ -190,47 +190,6 @@ export type ComponentRule = NotUsed | DetectionRule
 /** User-defined component types with their detection rules. */
 export type CustomTypes = Record<string, DetectionRule>
 
-/** Connection detection strategy. */
-export type ConnectionFindTarget = 'methodCalls'
-
-/** Connection link type indicating sync or async communication. */
-export type ConnectionLinkType = 'sync' | 'async'
-
-/** Matches a method call site for connection detection. */
-export interface ConnectionCallSiteMatch {
-  methodName?: string
-  receiverType?: string
-  callerHasDecorator?: string[]
-  calleeType?: { hasDecorator: string }
-}
-
-/** Extracts static type of argument at position. */
-export interface FromArgumentExtractionRule {fromArgument: number}
-
-/** Extracts the static type name of the receiver. */
-export interface FromReceiverTypeExtractionRule {fromReceiverType: true}
-
-/** Extracts the static type name of the caller. */
-export interface FromCallerTypeExtractionRule {fromCallerType: true}
-
-/** Union of connection-specific extraction rule types. */
-export type ConnectionExtractionRule =
-  | FromArgumentExtractionRule
-  | FromReceiverTypeExtractionRule
-  | FromCallerTypeExtractionRule
-
-/** Connection extraction rules mapping field names to extraction rules. */
-export type ConnectionExtractBlock = Record<string, ConnectionExtractionRule>
-
-/** A pattern for detecting connections between components. */
-export interface ConnectionPattern {
-  name: string
-  find: ConnectionFindTarget
-  where: ConnectionCallSiteMatch
-  extract?: ConnectionExtractBlock
-  linkType: ConnectionLinkType
-}
-
 /**
  * Declares a custom component type as an event publisher.
  * The component type must be defined in customTypes in at least one module.
@@ -242,15 +201,26 @@ export interface EventPublisherConfig {
   metadataKey: string
 }
 
-/** Connection detection configuration with pattern definitions. */
-export interface ConnectionsConfig {
-  patterns?: ConnectionPattern[]
-  /** Declares which custom component types publish events and how to detect them. */
-  eventPublishers?: EventPublisherConfig[]
+/**
+ * Declares how to resolve HTTP client calls into cross-domain Links.
+ * The custom type must be defined in customTypes in at least one module.
+ */
+export interface HttpLinkConfig {
+  /** The custom component type name for HTTP clients (e.g. 'httpCall'). */
+  fromCustomType: string
+  /** Metadata key whose value identifies the target domain. */
+  matchDomainBy: string
+  /** Metadata keys used to match the target API component. */
+  matchApiBy: string[]
 }
 
-/** Module-level connection detection configuration (patterns only — eventPublishers is top-level only). */
-export interface ModuleConnectionsConfig {patterns?: ConnectionPattern[]}
+/** Connection detection configuration. */
+export interface ConnectionsConfig {
+  /** Declares which custom component types publish events and how to detect them. */
+  eventPublishers?: EventPublisherConfig[]
+  /** Declares how to resolve HTTP client calls into cross-domain Links. */
+  httpLinks?: HttpLinkConfig[]
+}
 
 /**
  * Reference to an external module definition file.
@@ -265,8 +235,11 @@ export interface ModuleRef {$ref: string}
  */
 export interface ModuleConfig {
   name: string
+  domain: string
   path: string
   glob: string
+  /** Path pattern with `{module}` placeholder for resolving module names from file paths. */
+  modules?: string
   extends?: string
   api?: ComponentRule
   useCase?: ComponentRule
@@ -275,7 +248,6 @@ export interface ModuleConfig {
   eventHandler?: ComponentRule
   ui?: ComponentRule
   customTypes?: CustomTypes
-  connections?: ModuleConnectionsConfig
 }
 
 /**
@@ -284,8 +256,11 @@ export interface ModuleConfig {
  */
 export interface Module {
   name: string
+  domain: string
   path: string
   glob: string
+  /** Path pattern with `{module}` placeholder for resolving module names from file paths. */
+  modules?: string
   api: ComponentRule
   useCase: ComponentRule
   domainOp: ComponentRule

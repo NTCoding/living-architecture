@@ -38,6 +38,7 @@ export interface EnrichedComponent {
     line: number
   }
   domain: string
+  module: string
   metadata: Record<string, MetadataValue>
   _missing?: string[]
 }
@@ -348,6 +349,20 @@ function componentWithEmptyMetadata(draft: DraftComponent): SingleComponentResul
   }
 }
 
+function shouldIgnoreMissingMetadataField(
+  draft: DraftComponent,
+  fieldName: string,
+  extractionRule: ExtractionRule,
+  errorMessage: string,
+): boolean {
+  return (
+    draft.type === 'api' &&
+    (fieldName === 'route' || fieldName === 'method') &&
+    'fromProperty' in extractionRule &&
+    errorMessage.includes(`Property '${fieldName}' not found on class`)
+  )
+}
+
 function extractMetadataFields(
   extractBlock: Record<string, ExtractionRule>,
   draft: DraftComponent,
@@ -367,6 +382,11 @@ function extractMetadataFields(
     } catch (error: unknown) {
       /* istanbul ignore next -- @preserve: catch always receives Error instances from ExtractionError */
       const errorMessage = error instanceof Error ? error.message : String(error)
+
+      if (shouldIgnoreMissingMetadataField(draft, fieldName, extractionRule, errorMessage)) {
+        continue
+      }
+
       failures.push({
         component: draft,
         field: fieldName,

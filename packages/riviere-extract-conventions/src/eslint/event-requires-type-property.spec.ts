@@ -25,15 +25,16 @@ describe('event-requires-type-property', () => {
   ruleTester.run('event-requires-type-property', rule, {
     valid: [
       {
-        name: 'passes when class has type with literal value',
+        name: 'passes when @Event class has type with literal value',
         code: `
-          class OrderPlaced implements EventDef {
+          @Event
+          class OrderPlaced {
             readonly type = 'OrderPlaced'
           }
         `,
       },
       {
-        name: 'ignores classes not implementing EventDef',
+        name: 'ignores classes without @Event decorator',
         code: `
           class SomeOtherClass {
             readonly type = 'NotAnEvent'
@@ -41,35 +42,21 @@ describe('event-requires-type-property', () => {
         `,
       },
       {
-        name: 'ignores classes implementing different qualified interface',
+        name: 'ignores classes with different decorator',
         code: `
-          class SomeOtherClass implements Domain.OtherDef {
+          @UseCase
+          class SomeOtherClass {
             readonly type = 'NotAnEvent'
-          }
-        `,
-      },
-      {
-        name: 'passes when class implements multiple interfaces including EventDef',
-        code: `
-          class OrderPlaced implements Serializable, EventDef {
-            readonly type = 'OrderPlaced'
-          }
-        `,
-      },
-      {
-        name: 'passes when class implements qualified interface name',
-        code: `
-          class OrderPlaced implements Domain.EventDef {
-            readonly type = 'OrderPlaced'
           }
         `,
       },
     ],
     invalid: [
       {
-        name: 'reports error when type property is missing',
+        name: 'reports error when @Event class is missing type property',
         code: `
-          class OrderPlaced implements EventDef {
+          @Event
+          class OrderPlaced {
             readonly orderId = '123'
           }
         `,
@@ -79,7 +66,8 @@ describe('event-requires-type-property', () => {
         name: 'reports error when type is not a literal (variable reference)',
         code: `
           const EVENT_TYPE = 'OrderPlaced'
-          class OrderPlaced implements EventDef {
+          @Event
+          class OrderPlaced {
             readonly type = EVENT_TYPE
           }
         `,
@@ -88,7 +76,8 @@ describe('event-requires-type-property', () => {
       {
         name: 'reports error when type is an enum value',
         code: `
-          class OrderPlaced implements EventDef {
+          @Event
+          class OrderPlaced {
             readonly type = EventTypes.OrderPlaced
           }
         `,
@@ -97,7 +86,8 @@ describe('event-requires-type-property', () => {
       {
         name: 'reports error when type is a template literal',
         code: `
-          class OrderPlaced implements EventDef {
+          @Event
+          class OrderPlaced {
             readonly type = \`OrderPlaced\`
           }
         `,

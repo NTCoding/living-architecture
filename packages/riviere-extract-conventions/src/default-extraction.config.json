@@ -3,6 +3,7 @@
   "modules": [
     {
       "name": "default",
+      "domain": "default",
       "path": ".",
       "glob": "**/*.ts",
       "api": {
@@ -16,7 +17,9 @@
           }
         },
         "extract": {
-          "apiType": { "literal": "REST" }
+          "apiType": { "literal": "REST" },
+          "route": { "fromProperty": { "name": "route", "kind": "instance" } },
+          "method": { "fromProperty": { "name": "method", "kind": "instance" } }
         }
       },
       "useCase": {
@@ -126,6 +129,12 @@
               "fromDecoratorArg": {
                 "decorator": "HttpCall",
                 "position": 0
+              }
+            },
+            "method": {
+              "fromDecoratorArg": {
+                "decorator": "HttpCall",
+                "position": 1
               }
             }
           }

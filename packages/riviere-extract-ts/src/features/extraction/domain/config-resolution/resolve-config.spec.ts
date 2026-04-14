@@ -14,6 +14,7 @@ describe('resolveConfig', () => {
         modules: [
           {
             name: 'orders',
+            domain: 'orders',
             path: 'orders',
             glob: '**',
             api: { notUsed: true },
@@ -32,6 +33,7 @@ describe('resolveConfig', () => {
         modules: [
           {
             name: 'orders',
+            domain: 'orders',
             path: 'orders',
             glob: '**',
             api: { notUsed: true },
@@ -50,6 +52,7 @@ describe('resolveConfig', () => {
         modules: [
           {
             name: 'orders',
+            domain: 'orders',
             path: 'orders',
             glob: '**',
             api: { notUsed: true },
@@ -71,6 +74,7 @@ describe('resolveConfig', () => {
         modules: [
           {
             name: 'orders',
+            domain: 'orders',
             path: 'orders',
             glob: '**',
             api: { notUsed: true },
@@ -98,12 +102,37 @@ describe('resolveConfig', () => {
         },
       })
     })
+
+    it('includes modules pattern in resolved module', () => {
+      const config: ExtractionConfig = {
+        modules: [
+          {
+            name: 'orders',
+            domain: 'orders',
+            path: 'orders',
+            glob: '**',
+            modules: '/src/{module}/',
+            api: { notUsed: true },
+            useCase: { notUsed: true },
+            domainOp: { notUsed: true },
+            event: { notUsed: true },
+            eventHandler: { notUsed: true },
+            ui: { notUsed: true },
+          },
+        ],
+      }
+
+      const result = resolveConfig(config)
+
+      expect(result.modules[0]?.modules).toBe('/src/{module}/')
+    })
   })
 
   describe('modules with extends', () => {
     function createBaseModule(): Module {
       return {
         name: 'base',
+        domain: 'base',
         path: '.',
         glob: '**',
         api: {
@@ -126,6 +155,7 @@ describe('resolveConfig', () => {
         modules: [
           {
             name: 'orders',
+            domain: 'orders',
             path: 'orders',
             glob: '**',
             extends: '@living-architecture/riviere-extract-conventions',
@@ -140,6 +170,7 @@ describe('resolveConfig', () => {
       expect(loader).toHaveBeenCalledWith('@living-architecture/riviere-extract-conventions')
       expect(result.modules[0]).toStrictEqual({
         name: 'orders',
+        domain: 'orders',
         path: 'orders',
         glob: '**',
         api: {
@@ -162,6 +193,7 @@ describe('resolveConfig', () => {
         modules: [
           {
             name: 'orders',
+            domain: 'orders',
             path: 'orders',
             glob: '**',
             extends: '@living-architecture/riviere-extract-conventions',
@@ -174,11 +206,32 @@ describe('resolveConfig', () => {
       )
     })
 
+    it('includes modules pattern in extended module', () => {
+      const config: ExtractionConfig = {
+        modules: [
+          {
+            name: 'orders',
+            domain: 'orders',
+            path: 'orders',
+            glob: '**',
+            modules: '/src/{module}/',
+            extends: '@living-architecture/riviere-extract-conventions',
+          },
+        ],
+      }
+
+      const loader: ConfigLoader = vi.fn().mockReturnValue(createBaseModule())
+      const result = resolveConfig(config, loader)
+
+      expect(result.modules[0]?.modules).toBe('/src/{module}/')
+    })
+
     it('local rule overrides inherited rule', () => {
       const config: ExtractionConfig = {
         modules: [
           {
             name: 'orders',
+            domain: 'orders',
             path: 'orders',
             glob: '**',
             extends: '@living-architecture/riviere-extract-conventions',
@@ -209,6 +262,7 @@ describe('resolveConfig', () => {
         modules: [
           {
             name: 'orders',
+            domain: 'orders',
             path: 'orders',
             glob: '**',
             extends: '@living-architecture/riviere-extract-conventions',
@@ -249,6 +303,7 @@ describe('resolveConfig', () => {
         modules: [
           {
             name: 'orders',
+            domain: 'orders',
             path: 'orders',
             glob: '**',
             extends: '@living-architecture/riviere-extract-conventions',
@@ -283,6 +338,7 @@ describe('resolveConfig', () => {
         modules: [
           {
             name: 'orders',
+            domain: 'orders',
             path: 'orders',
             glob: '**',
             extends: '@living-architecture/riviere-extract-conventions',
@@ -327,6 +383,7 @@ describe('resolveConfig', () => {
         modules: [
           {
             name: 'orders',
+            domain: 'orders',
             path: 'orders',
             glob: '**',
             extends: '@living-architecture/riviere-extract-conventions',

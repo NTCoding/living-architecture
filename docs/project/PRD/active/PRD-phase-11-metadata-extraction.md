@@ -126,7 +126,7 @@ Extend the config schema with an `extract` block per component type. Config vali
 api:
   find: classes
   where:
-    implementsInterface: APIControllerDef
+    hasDecorator: { name: APIContainer }
   extract:
     # Required fields - config validation fails if missing
     apiType:
@@ -422,7 +422,8 @@ When multiple decorators match, the first decorator (top-to-bottom in source) wi
 
 **API with static properties:**
 ```typescript
-export class PlaceOrderController implements APIControllerDef {
+@APIContainer
+export class PlaceOrderController {
   static readonly route = '/orders'
   static readonly method = 'POST'
   handle(req, res) { ... }
@@ -431,7 +432,7 @@ export class PlaceOrderController implements APIControllerDef {
 ```yaml
 api:
   find: classes
-  where: { implementsInterface: APIControllerDef }
+  where: { hasDecorator: { name: APIContainer } }
   extract:
     apiType: { literal: REST }
     httpMethod: { fromProperty: { name: method, kind: static } }
@@ -441,7 +442,7 @@ api:
 **Event with instance property:**
 ```typescript
 @Event
-export class OrderPlaced implements EventDef {
+export class OrderPlaced {
   readonly type = 'OrderPlaced' as const
   constructor(public orderId: string, public amount: number) {}
 }
@@ -508,50 +509,28 @@ domainOp:
 
 ### 3.6 Conventions Package Update
 
-**Interfaces for component definitions:**
+**Decorators for component marking:**
 
 ```typescript
-// HTTP types
-export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
+// Container decorators — all public methods become components
+@APIContainer       // API endpoint container
+@EventHandlerContainer  // Event handler container
+@DomainOpContainer  // Domain operation container
+@EventPublisherContainer // Event publisher container
 
-// API Controller - one class = one endpoint
-export interface APIControllerDef {
-  readonly route: string
-  readonly method: HttpMethod
-  handle(req: Request, res: Response): void | Promise<void>
-}
-
-// Event - readonly type property is source of truth
-export interface EventDef {
-  readonly type: string
-}
-
-// Event Handler - declares which events it handles
-export interface EventHandlerDef {
-  readonly subscribedEvents: readonly string[]
-  handle(event: unknown): void | Promise<void>
-}
-
-// UI Page - route is source of truth
-export interface UIPageDef {
-  readonly route: string
-}
-
-// Domain Operation - entity from class, operation from method
-export interface DomainOpContainerDef {
-  // No required static properties - entity/operation derived from class/method names
-}
+// Class-as-component decorators
+@Event    // Class is a domain event
+@UseCase  // Class is a use case
+@UI       // Class is a UI component
 ```
 
 **ESLint enforcement rules:**
-- `api-controller-requires-route-and-method` — classes implementing APIControllerDef must have static `route` and `method` properties with literal values
-- `event-requires-type-property` — classes implementing EventDef must have readonly `type` property with literal value
-- `event-handler-requires-subscribed-events` — classes implementing EventHandlerDef must have static `subscribedEvents` array
-- `ui-page-requires-route` — classes implementing UIPageDef must have static `route` property
+- `api-controller-requires-route-and-method` — `@APIContainer` classes must have `route` and `method` properties with literal values
+- `event-requires-type-property` — `@Event` classes must have readonly `type` property with literal value
+- `event-handler-requires-subscribed-events` — `@EventHandlerContainer` classes must have `subscribedEvents` array
+- `ui-page-requires-route` — `@UI` classes must have `route` property
 
 **Default extraction config** — Config file with extraction rules for all component types that passes validation and produces non-empty output on the demo app.
-
-> **Note:** `Request` and `Response` in the `APIControllerDef` interface are generic placeholders. Implementations may use framework-specific types (Express, Fastify, etc.) or omit the `handle` method signature entirely if not using the interface for compile-time enforcement.
 
 ### 3.7 PR Component Extraction
 
@@ -640,7 +619,7 @@ Prompt that analyzes a codebase and recommends:
 ### 3.9 ecommerce-demo-app Refactoring
 
 Refactor ecommerce-demo-app to demonstrate recommended conventions:
-- All components use interfaces (APIControllerDef, EventDef, etc.)
+- All components use decorators (@APIContainer, @Event, etc.)
 - Static properties for metadata (route, method, type, subscribedEvents)
 - 100% field extraction — zero `_missing` arrays in output
 - 100% enforcement via ESLint — zero lint errors
@@ -692,7 +671,7 @@ Refactor ecommerce-demo-app to demonstrate recommended conventions:
 
 4. **`notUsed: true` behavior** — ✅ RESOLVED: Suppresses config validation for that component type entirely. Module won't require extraction rules for the marked component type.
 
-5. **Re-exported interface handling** — ✅ RESOLVED: Interface matching uses the interface name regardless of import path. `implementsInterface: APIControllerDef` matches whether imported directly or re-exported.
+5. **Re-exported decorator handling** — ✅ RESOLVED: Decorator matching uses the decorator name regardless of import path. `hasDecorator: { name: APIContainer }` matches whether imported directly or re-exported.
 
 6. **Multiple interface implementations with `fromGenericArg`** — ✅ RESOLVED: Uses the interface specified in the rule. If a class implements multiple interfaces, `fromGenericArg: { interface: 'IEventHandler', position: 0 }` only looks at `IEventHandler`.
 
@@ -790,15 +769,14 @@ Implement metadata extraction rules in riviere-extract-ts.
 
 ### M3: Conventions Package Update
 
-Update riviere-extract-conventions with interfaces, enforcement, and default config.
+Update riviere-extract-conventions with decorators, enforcement, and default config.
 
 #### Deliverables
 
-- **D3.1:** Component interfaces
-  - `APIControllerDef`, `EventDef`, `EventHandlerDef`, `UIPageDef`, `DomainOpContainerDef`
-  - `HttpMethod` type exported
-  - Clear TypeScript types for required properties
-  - Acceptance: Interfaces enforce required fields at compile time
+- **D3.1:** Component decorators
+  - `@APIContainer`, `@Event`, `@EventHandlerContainer`, `@UI`, `@DomainOpContainer`, `@EventPublisherContainer`
+  - Pure markers — no runtime behaviour, extraction only
+  - Acceptance: Decorators can be applied to classes and detected by ts-morph
   - Verification: TypeScript compilation tests
 
 - **D3.2:** ESLint enforcement rules (4 rules)
@@ -812,13 +790,13 @@ Update riviere-extract-conventions with interfaces, enforcement, and default con
   - Verification: ESLint rule tests for each rule with fixture files
 
 - **D3.3:** Default extraction config with extraction rules
-  - Uses interfaces for detection (`implementsInterface`)
+  - Uses decorators for detection (`hasDecorator`)
   - Extraction rules for all required fields
   - Acceptance: Config passes validation, extracts all required fields
   - Verification: Integration tests
 
 - **D3.4:** Package CLAUDE.md updated
-  - Documents interfaces and enforcement approach
+  - Documents decorators and enforcement approach
   - Acceptance: Developer understands usage
   - Verification: Review doc content
 
@@ -831,10 +809,10 @@ Refactor demo app and validate 100% extraction + enforcement.
 #### Deliverables
 
 - **D4.1:** ecommerce-demo-app refactored
-  - All API controllers implement `APIControllerDef` with static `route` and `method`
-  - All events implement `EventDef` with readonly `type` property
-  - All event handlers implement `EventHandlerDef` with static `subscribedEvents`
-  - All UI pages implement `UIPageDef` with static `route`
+  - All API controllers decorated with `@APIContainer` with static `route` and `method`
+  - All events decorated with `@Event` with readonly `type` property
+  - All event handlers decorated with `@EventHandlerContainer` with static `subscribedEvents`
+  - All UI pages decorated with `@UI` with static `route`
   - Acceptance: All components follow conventions
   - Verification: TypeScript compiles with no errors
 

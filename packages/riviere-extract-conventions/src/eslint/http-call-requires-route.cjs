@@ -35,15 +35,35 @@ function getRouteViolation(decoratorExpression) {
   return null
 }
 
+function getMethodViolation(decoratorExpression) {
+  if (decoratorExpression.arguments.length < 2) {
+    return 'missingMethod'
+  }
+
+  const secondArgument = decoratorExpression.arguments[1]
+  if (secondArgument.type !== 'Literal' || typeof secondArgument.value !== 'string') {
+    return 'methodNotLiteral'
+  }
+
+  if (secondArgument.value.trim().length === 0) {
+    return 'emptyMethod'
+  }
+
+  return null
+}
+
 module.exports = {
   meta: {
     type: 'problem',
-    docs: { description: 'Require HttpCall decorator to include route' },
+    docs: { description: 'Require HttpCall decorator to include route and method' },
     schema: [],
     messages: {
       missingRoute: "Method '{{methodName}}' uses @HttpCall but is missing route argument",
+      missingMethod: "Method '{{methodName}}' uses @HttpCall but is missing method argument",
       routeNotLiteral: "Method '{{methodName}}' uses @HttpCall but route must be a string literal",
+      methodNotLiteral: "Method '{{methodName}}' uses @HttpCall but method must be a string literal",
       emptyRoute: "Method '{{methodName}}' uses @HttpCall but route must be non-empty",
+      emptyMethod: "Method '{{methodName}}' uses @HttpCall but method must be non-empty",
     },
   },
   create(context) {
@@ -60,6 +80,16 @@ module.exports = {
 
         const violation = getRouteViolation(decoratorExpression)
         if (!violation) {
+          const methodViolation = getMethodViolation(decoratorExpression)
+          if (!methodViolation) {
+            return
+          }
+
+          context.report({
+            node: node.key,
+            messageId: methodViolation,
+            data: { methodName: node.key.name },
+          })
           return
         }
 

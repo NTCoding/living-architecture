@@ -25,15 +25,16 @@ describe('ui-page-requires-route', () => {
   ruleTester.run('ui-page-requires-route', rule, {
     valid: [
       {
-        name: 'passes when class has route with literal value',
+        name: 'passes when @UI class has route with literal value',
         code: `
-          class DashboardPage implements UIPageDef {
+          @UI
+          class DashboardPage {
             readonly route = '/dashboard'
           }
         `,
       },
       {
-        name: 'ignores classes not implementing UIPageDef',
+        name: 'ignores classes without @UI decorator',
         code: `
           class SomeOtherClass {
             readonly route = ROUTE
@@ -41,17 +42,10 @@ describe('ui-page-requires-route', () => {
         `,
       },
       {
-        name: 'passes when class implements multiple interfaces including UIPageDef',
+        name: 'ignores classes with different decorator',
         code: `
-          class DashboardPage implements Serializable, UIPageDef {
-            readonly route = '/dashboard'
-          }
-        `,
-      },
-      {
-        name: 'passes when class implements qualified interface name',
-        code: `
-          class DashboardPage implements Domain.UIPageDef {
+          @UseCase
+          class SomeOtherClass {
             readonly route = '/dashboard'
           }
         `,
@@ -59,9 +53,10 @@ describe('ui-page-requires-route', () => {
     ],
     invalid: [
       {
-        name: 'reports error when route property is missing',
+        name: 'reports error when @UI class is missing route property',
         code: `
-          class DashboardPage implements UIPageDef {
+          @UI
+          class DashboardPage {
             readonly title = 'Dashboard'
           }
         `,
@@ -71,7 +66,8 @@ describe('ui-page-requires-route', () => {
         name: 'reports error when route is not a literal (variable reference)',
         code: `
           const ROUTE = '/dashboard'
-          class DashboardPage implements UIPageDef {
+          @UI
+          class DashboardPage {
             readonly route = ROUTE
           }
         `,
@@ -80,7 +76,8 @@ describe('ui-page-requires-route', () => {
       {
         name: 'reports error when route is a template literal',
         code: `
-          class DashboardPage implements UIPageDef {
+          @UI
+          class DashboardPage {
             readonly route = \`/dashboard/\${userId}\`
           }
         `,

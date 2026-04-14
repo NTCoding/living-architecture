@@ -4,6 +4,7 @@ import {
   type FunctionDeclaration,
   type MethodDeclaration,
   type Project,
+  Node,
   SyntaxKind,
 } from 'ts-morph'
 import type { ComponentIndex } from '../component-index'
@@ -69,6 +70,9 @@ function resolveComponentTarget(
 }
 
 function traceCallExpression(callExpr: CallExpression, ctx: TraceContext): void {
+  if (!Node.isPropertyAccessExpression(callExpr.getExpression())) {
+    return
+  }
   const sourceFile = callExpr.getSourceFile()
   const typeResult = resolveCallExpressionReceiverType(callExpr, sourceFile, {strict: ctx.options.strict,})
 

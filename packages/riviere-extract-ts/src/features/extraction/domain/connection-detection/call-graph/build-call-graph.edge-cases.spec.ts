@@ -32,8 +32,8 @@ class UseCase {
     expect(result).toHaveLength(1)
     expect(result[0]).toStrictEqual(
       expect.objectContaining({
-        source: 'orders:useCase:UseCase',
-        target: 'orders:domainOp:Repo',
+        source: 'orders:orders-module:useCase:usecase',
+        target: 'orders:orders-module:domainOp:repo',
       }),
     )
   })
@@ -127,8 +127,8 @@ class Caller {
 
     expect(result).toStrictEqual([
       expect.objectContaining({
-        source: 'orders:useCase:Caller',
-        target: 'orders:domainOp:Dep',
+        source: 'orders:orders-module:useCase:caller',
+        target: 'orders:orders-module:domainOp:dep',
       }),
     ])
   })
@@ -174,8 +174,8 @@ class AsyncUseCase {
 
     expect(result).toStrictEqual([
       expect.objectContaining({
-        source: 'orders:useCase:AsyncUseCase',
-        target: 'orders:domainOp:AsyncRepo',
+        source: 'orders:orders-module:useCase:asyncusecase',
+        target: 'orders:orders-module:domainOp:asyncrepo',
         type: 'sync',
       }),
     ])
@@ -216,13 +216,17 @@ class Start {
     const result = buildCallGraph(sharedProject, [compX, compY, compStart], index, defaultOptions())
 
     const startToX = result.find(
-      (l) => l.source === 'orders:useCase:Start' && l.target === 'orders:domainOp:CompX',
+      (l) =>
+        l.source === 'orders:orders-module:useCase:start' &&
+        l.target === 'orders:orders-module:domainOp:compx',
     )
     const startToY = result.find(
-      (l) => l.source === 'orders:useCase:Start' && l.target === 'orders:api:CompY',
+      (l) =>
+        l.source === 'orders:orders-module:useCase:start' &&
+        l.target === 'orders:orders-module:api:compy',
     )
     expect(startToX).toBeDefined()
     expect(startToY).toBeDefined()
-    expect(result.filter((l) => l.source === 'orders:useCase:Start')).toHaveLength(2)
+    expect(result.filter((l) => l.source === 'orders:orders-module:useCase:start')).toHaveLength(2)
   })
 })

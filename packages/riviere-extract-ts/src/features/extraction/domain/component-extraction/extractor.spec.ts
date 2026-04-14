@@ -69,6 +69,7 @@ describe('extractComponents', () => {
             line: 3,
           },
           domain: 'orders',
+          module: 'orders-module',
         },
       ])
     })
@@ -94,6 +95,7 @@ describe('extractComponents', () => {
             line: 3,
           },
           domain: 'orders',
+          module: 'orders-module',
         },
       ])
     })
@@ -139,6 +141,7 @@ describe('extractComponents', () => {
             line: 3,
           },
           domain: 'orders',
+          module: 'orders-module',
         },
       ])
     })
@@ -182,6 +185,7 @@ describe('extractComponents', () => {
             line: 3,
           },
           domain: 'orders',
+          module: 'orders-module',
         },
       ])
     })
@@ -229,6 +233,7 @@ describe('extractComponents', () => {
             line: 3,
           },
           domain: 'orders',
+          module: 'orders-module',
         },
       ])
     })
@@ -257,6 +262,7 @@ describe('extractComponents', () => {
             line: 3,
           },
           domain: 'shipping',
+          module: 'shipping-module',
         },
       ])
     })
@@ -288,6 +294,7 @@ describe('extractComponents', () => {
             line: 3,
           },
           domain: 'shipping',
+          module: 'shipping-module',
         },
       ])
     })
@@ -311,6 +318,7 @@ describe('extractComponents', () => {
             line: 1,
           },
           domain: 'orders',
+          module: 'orders-module',
         },
       ])
     })
@@ -343,6 +351,7 @@ describe('extractComponents', () => {
             line: 4,
           },
           domain: 'orders',
+          module: 'orders-module',
         },
       ])
     })

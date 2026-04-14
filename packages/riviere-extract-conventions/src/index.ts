@@ -20,15 +20,3 @@ export {
   // Utilities
   getCustomType,
 } from './decorators'
-
-// Component definition interfaces
-export type {
-  HttpMethod,
-  APIControllerDef,
-  EventDef,
-  EventHandlerDef,
-  IEventHandler,
-  UIPageDef,
-  DomainOpContainerDef,
-  EventPublisherDef,
-} from './component-contracts'

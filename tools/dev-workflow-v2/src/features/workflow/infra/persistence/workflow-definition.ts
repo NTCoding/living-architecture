@@ -1,8 +1,8 @@
 import type {
   WorkflowDefinition, BaseEvent 
-} from '@ntcoding/agentic-workflow-builder/engine'
-import { WorkflowStateError } from '@ntcoding/agentic-workflow-builder/engine'
-import type { TransitionContext } from '@ntcoding/agentic-workflow-builder/dsl'
+} from '@nt-ai-lab/deterministic-agent-workflow-engine'
+import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
+import type { TransitionContext } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
 import type {
   WorkflowState, StateName, WorkflowOperation 
 } from '../../domain/workflow-types'

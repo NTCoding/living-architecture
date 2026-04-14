@@ -28,7 +28,6 @@ export function createExtractCommand(
     .option('--files <paths...>', 'Extract from specific files')
     .option('--format <type>', 'Output format: json (default) or markdown')
     .option('--stats', 'Show extraction statistics on stderr')
-    .option('--patterns', 'Enable pattern-based connection detection')
     .option('--no-ts-config', 'Skip tsconfig.json auto-discovery (disables full type resolution)')
     .action(
       (options: {
@@ -41,7 +40,6 @@ export function createExtractCommand(
         files?: string[]
         format?: string
         output?: string
-        patterns?: boolean
         pr?: boolean
         stats?: boolean
         tsConfig?: boolean

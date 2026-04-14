@@ -131,6 +131,7 @@ export interface ExternalTarget {
   domain?: string
   repository?: string
   url?: string
+  [key: string]: string | undefined
 }
 
 export interface ExternalLink {

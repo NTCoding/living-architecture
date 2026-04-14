@@ -14,7 +14,6 @@ const {
   mockDeduplicateCrossStrategy,
   mockDetectCrossModule,
   mockDetectPerModule,
-  mockStripHttpCallComponents,
 } = vi.hoisted(() => ({
   mockExtractComponents: vi.fn().mockReturnValue([]),
   mockEnrichComponents: vi.fn().mockReturnValue({
@@ -34,16 +33,13 @@ const {
     externalLinks: [],
     timings: {
       callGraphMs: 1,
-      configurableMs: 0,
       setupMs: 0,
     },
   }),
   mockDetectCrossModule: vi.fn().mockReturnValue({
     links: [],
-    externalLinks: [],
     timings: { asyncDetectionMs: 0 },
   }),
-  mockStripHttpCallComponents: vi.fn((components: unknown[]) => components),
 }))
 
 vi.mock('@living-architecture/riviere-extract-ts', () => ({
@@ -53,7 +49,7 @@ vi.mock('@living-architecture/riviere-extract-ts', () => ({
   detectPerModuleConnections: mockDetectPerModule,
   detectCrossModuleConnections: mockDetectCrossModule,
   deduplicateCrossStrategy: mockDeduplicateCrossStrategy,
-  stripHttpCallComponents: mockStripHttpCallComponents,
+  stripResolvedCustomTypes: vi.fn((components: unknown[]) => components),
 }))
 
 function createModule(name: string): Module {
@@ -123,7 +119,6 @@ describe('ExtractionProject.extractDraftComponents', () => {
       externalLinks: [],
       timings: {
         callGraphMs: 1,
-        configurableMs: 0,
         setupMs: 0,
       },
     })
@@ -139,6 +134,17 @@ describe('ExtractionProject.extractDraftComponents', () => {
 
   it('returns no links when includeConnections is false', () => {
     const ctx = createModuleContext('orders')
+    mockExtractComponents.mockReturnValue([
+      {
+        name: 'OrderService',
+        domain: 'orders',
+        type: 'useCase',
+        location: {
+          file: 'test.ts',
+          line: 1,
+        },
+      },
+    ])
 
     const project = new ExtractionProject('/config', [ctx], { modules: [] }, 'test-repo')
     const result = project.extractDraftComponents({
@@ -147,5 +153,11 @@ describe('ExtractionProject.extractDraftComponents', () => {
     })
 
     expect(result.kind).toBe('draftOnly')
+    expect(result.components).toStrictEqual([
+      expect.objectContaining({
+        type: 'useCase',
+        name: 'OrderService',
+      }),
+    ])
   })
 })

@@ -11,6 +11,7 @@ import { ExtractionProjectRepository } from './extraction-project-repository'
 
 const VALID_CONFIG = `modules:
   - name: orders
+    domain: orders
     path: .
     glob: "*.ts"
     api: { notUsed: true }
@@ -38,6 +39,7 @@ function writeExtendsConfig(dir: string, extendsRef: string): void {
     [
       'modules:',
       '  - name: orders',
+      '    domain: orders',
       '    path: .',
       '    glob: "*.ts"',
       `    extends: ${extendsRef}`,
@@ -158,6 +160,7 @@ describe('ExtractionProjectRepository', () => {
         [
           'modules:',
           '  - name: orders',
+          '    domain: orders',
           '    path: src',
           '    glob: "**/*.ts"',
           '    api: { notUsed: true }',
@@ -236,6 +239,7 @@ describe('ExtractionProjectRepository', () => {
         [
           'modules:',
           '  - name: orders',
+          '    domain: orders',
           '    path: src',
           '    glob: "**/*.ts"',
           '    api: { notUsed: true }',
@@ -326,7 +330,11 @@ describe('ExtractionProjectRepository', () => {
 
   it('loadFromFullProject throws when extends modules-array config fails schema validation', () => {
     withWorkspace((dir) => {
-      writeFileSync(join(dir, 'extended.yml'), 'modules:\n  - name: orders\n', 'utf-8')
+      writeFileSync(
+        join(dir, 'extended.yml'),
+        'modules:\n  - name: orders\n    domain: orders\n',
+        'utf-8',
+      )
       writeExtendsConfig(dir, './extended.yml')
       expect(() =>
         new ExtractionProjectRepository().loadFromFullProject({

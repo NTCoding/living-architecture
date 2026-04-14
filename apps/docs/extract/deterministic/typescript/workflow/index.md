@@ -14,14 +14,14 @@ Standardizing how architecture components are implemented (decorators, JSDoc tag
 
 ## The 6 Steps Overview
 
-| Step | Purpose |
-|------|---------|
+| Step              | Purpose                                                                       |
+| ----------------- | ----------------------------------------------------------------------------- |
 | **1. Understand** | Identify the domains, systems, and architectural conventions in your codebase |
-| **2. Define** | Define the specific rules for identifying architectural components |
-| **3. Extract** | Run the TypeScript extractor to find components matching your config |
-| **4. Link** | Trace the connections between your components |
-| **5. Enrich** | Add business rules and state changes to DomainOp components |
-| **6. Validate** | Validate the graph and check for orphan components |
+| **2. Define**     | Define the specific rules for identifying architectural components            |
+| **3. Extract**    | Run the TypeScript extractor to find components matching your config          |
+| **4. Link**       | Trace the connections between your components                                 |
+| **5. Enrich**     | Add business rules and state changes to DomainOp components                   |
+| **6. Validate**   | Validate the graph and check for orphan components                            |
 
 ## Prerequisites
 
@@ -53,49 +53,55 @@ This step uses the TypeScript extractor instead of AI.
 
 1. **Choose a detection strategy** based on your codebase:
 
-   | Strategy | When to Use |
-   |----------|-------------|
+   | Strategy   | When to Use                                 |
+   | ---------- | ------------------------------------------- |
    | Decorators | New projects, full control over annotations |
-   | JSDoc | Avoid runtime decorators, use comments |
-   | Naming | Legacy code, no code changes needed |
+   | JSDoc      | Avoid runtime decorators, use comments      |
+   | Naming     | Legacy code, no code changes needed         |
 
 2. **Annotate your code** (if using decorators):
+
    ```typescript
    import { UseCase, APIContainer } from '@living-architecture/riviere-extract-conventions'
 
    @APIContainer
    class OrderController {
-     async createOrder(req: Request): Promise<Order> { }
+     async createOrder(req: Request): Promise<Order> { /* ... */ }
    }
 
    @UseCase
    class PlaceOrderUseCase {
-     execute(command: PlaceOrderCommand): Order { }
+     execute(command: PlaceOrderCommand): Order { /* ... */ }
    }
    ```
 
 3. **Create extraction config** (`extraction.config.yaml`):
+
    ```yaml
    modules:
-     - name: "orders"
-       path: "src/orders/**/*.ts"
-       extends: "@living-architecture/riviere-extract-conventions"
+     - name: 'orders'
+       path: 'src/orders/**/*.ts'
+       extends: '@living-architecture/riviere-extract-conventions'
 
-     - name: "shipping"
-       path: "src/shipping/**/*.ts"
-       extends: "@living-architecture/riviere-extract-conventions"
+     - name: 'shipping'
+       path: 'src/shipping/**/*.ts'
+       extends: '@living-architecture/riviere-extract-conventions'
    ```
 
 4. **Run extraction**:
+
    ```bash
    npx riviere extract --config extraction.config.yaml
    ```
 
 5. **Verify results**:
+
    ```bash
    npx riviere extract --config extraction.config.yaml --dry-run
    ```
+
    Output:
+
    ```text
    orders: api(3), useCase(2), domainOp(0), event(1), eventHandler(1), ui(0)
    shipping: api(2), useCase(1), domainOp(0), event(0), eventHandler(0), ui(0)
@@ -106,11 +112,15 @@ This step uses the TypeScript extractor instead of AI.
 
 [Full Step 3 Reference →](/extract/deterministic/typescript/workflow/step-3-extract)
 
+[Design for Extraction →](/extract/deterministic/typescript/design-for-extraction)
+
 ### Step 4: Link
 
 Follow the AI-assisted workflow for this step. Deterministic tooling is planned for a future release.
 
 **[Step 4: Link →](/extract/deterministic/typescript/workflow/step-4-link)**
+
+[Connection Config Reference →](/reference/extraction-config/connections)
 
 ### Step 5: Enrich
 
@@ -157,3 +167,10 @@ If extraction misses components:
 See a complete example with multiple extraction strategies:
 
 [View ecommerce-demo-app →](https://github.com/NTCoding/ecommerce-demo-app)
+
+## See Also
+
+- [TypeScript Getting Started](/extract/deterministic/typescript/getting-started) — Quick setup for deterministic extraction
+- [Design for Extraction](/extract/deterministic/typescript/design-for-extraction) — Conventions that improve extraction accuracy
+- [Connection Config Reference](/reference/extraction-config/connections) — Connection pattern options for Step 4
+- [TypeScript Enforcement](/extract/deterministic/typescript/enforcement) — Keep conventions enforced in CI

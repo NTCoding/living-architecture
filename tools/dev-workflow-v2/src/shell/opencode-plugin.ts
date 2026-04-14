@@ -1,4 +1,4 @@
-import { createOpenCodeWorkflowPlugin } from '@ntcoding/agentic-workflow-builder/opencode'
+import { createOpenCodeWorkflowPlugin } from '@nt-ai-lab/deterministic-agent-workflow-opencode'
 import { fileURLToPath } from 'node:url'
 import {
   dirname, join 

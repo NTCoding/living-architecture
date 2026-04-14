@@ -10,7 +10,7 @@ import {
   enrichComponents,
   extractComponents,
   matchesGlob,
-  stripHttpCallComponents,
+  stripResolvedCustomTypes,
   type ConnectionTimings,
   type DraftComponent,
   type EnrichedComponent,
@@ -86,7 +86,12 @@ export class ExtractionProject {
     }
 
     const connectionResult = this.detectConnections(enrichment.components, options.allowIncomplete)
-    const visibleComponents = stripHttpCallComponents(enrichment.components)
+    const httpLinks = this.resolvedConfig.connections?.httpLinks ?? []
+    const visibleComponents = stripResolvedCustomTypes(
+      enrichment.components,
+      httpLinks,
+      connectionResult.links,
+    )
 
     return {
       kind: 'full',
@@ -118,7 +123,12 @@ export class ExtractionProject {
     }
 
     const connectionResult = this.detectConnections(enrichment.components, options.allowIncomplete)
-    const visibleComponents = stripHttpCallComponents(enrichment.components)
+    const httpLinks = this.resolvedConfig.connections?.httpLinks ?? []
+    const visibleComponents = stripResolvedCustomTypes(
+      enrichment.components,
+      httpLinks,
+      connectionResult.links,
+    )
 
     return {
       kind: 'full',
@@ -145,10 +155,11 @@ export class ExtractionProject {
     const links: ExtractedLink[] = []
     const externalLinks: ExternalLink[] = []
     const timings: ConnectionTimings[] = []
+    const httpLinks = this.resolvedConfig.connections?.httpLinks ?? []
 
     for (const moduleContext of this.moduleContexts) {
       const moduleComponents = enrichedComponents.filter(
-        (component) => component.domain === moduleContext.module.name,
+        (component) => component.module === moduleContext.module.name,
       )
       if (moduleComponents.length === 0) {
         continue
@@ -158,8 +169,10 @@ export class ExtractionProject {
         moduleContext.project,
         moduleComponents,
         {
+          allComponents: enrichedComponents,
           allowIncomplete,
           moduleGlobs: [posix.join(moduleContext.module.path, moduleContext.module.glob)],
+          httpLinks,
           repository: this.repositoryName,
         },
         matchesGlob,
@@ -169,10 +182,8 @@ export class ExtractionProject {
       timings.push({
         callGraphMs: result.timings.callGraphMs,
         asyncDetectionMs: 0,
-        configurableMs: result.timings.configurableMs,
         setupMs: result.timings.setupMs,
-        totalMs:
-          result.timings.callGraphMs + result.timings.configurableMs + result.timings.setupMs,
+        totalMs: result.timings.callGraphMs + result.timings.setupMs,
       })
     }
 
@@ -182,11 +193,9 @@ export class ExtractionProject {
       eventPublishers: this.resolvedConfig.connections?.eventPublishers,
     })
     links.push(...crossResult.links)
-    externalLinks.push(...crossResult.externalLinks)
     timings.push({
       callGraphMs: 0,
       asyncDetectionMs: crossResult.timings.asyncDetectionMs,
-      configurableMs: 0,
       setupMs: 0,
       totalMs: crossResult.timings.asyncDetectionMs,
     })

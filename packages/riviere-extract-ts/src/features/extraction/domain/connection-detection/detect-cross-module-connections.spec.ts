@@ -29,8 +29,8 @@ describe('detectCrossModuleConnections', () => {
 
     expect(result.links).toStrictEqual([
       expect.objectContaining({
-        source: 'shipping:event:ShipmentDispatched',
-        target: 'orders:eventHandler:handle',
+        source: 'shipping:orders-module:event:shipmentdispatched',
+        target: 'orders:orders-module:eventHandler:handle',
         type: 'async',
       }),
     ])
@@ -55,8 +55,8 @@ describe('detectCrossModuleConnections', () => {
 
     expect(result.links).toStrictEqual([
       expect.objectContaining({
-        source: 'orders:eventSender:OrderPublisher',
-        target: 'shipping:event:OrderPlacedEvent',
+        source: 'orders:orders-module:eventSender:orderpublisher',
+        target: 'shipping:orders-module:event:orderplacedevent',
         type: 'async',
       }),
     ])
@@ -119,7 +119,7 @@ describe('detectCrossModuleConnections', () => {
 
     expect(result.links).toStrictEqual([
       expect.objectContaining({
-        source: 'orders:eventSender:BadPublisher',
+        source: 'orders:orders-module:eventSender:badpublisher',
         target: '_unresolved',
         _uncertain: expect.stringContaining('missing required "publishedEventType" metadata'),
       }),

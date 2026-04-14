@@ -1,4 +1,4 @@
-const { implementsInterface } = require('./interface-ast-predicates.cjs')
+const { hasDecorator } = require('./interface-ast-predicates.cjs')
 
 let getParserServices = null
 try {
@@ -14,7 +14,7 @@ function getTypeReferenceName(typeAnnotation) {
   return typeName.name
 }
 
-function checkEventDefShape(checker, services, param, typeAnnotation) {
+function checkEventTypeShape(checker, services, param, typeAnnotation) {
   if (!checker || !services) return null
 
   const tsParam = services.esTreeNodeToTSNodeMap.get(param)
@@ -104,11 +104,11 @@ function checkMethod(context, member, className, checker, services) {
     return
   }
 
-  const failedTypeName = checkEventDefShape(checker, services, param, typeAnnotation)
+  const failedTypeName = checkEventTypeShape(checker, services, param, typeAnnotation)
   if (failedTypeName) {
     context.report({
       node: member.key,
-      messageId: 'notEventDef',
+      messageId: 'invalidEventType',
       data: {
         typeName: failedTypeName,
         methodName,
@@ -131,21 +131,21 @@ module.exports = {
   meta: {
     type: 'problem',
     docs: {
-      description: 'Require EventPublisherDef methods to have exactly one EventDef-typed parameter',
+      description: 'Require @EventPublisherContainer methods to have exactly one typed event parameter',
       requiresTypeChecking: true,
       examples: {
-        valid: "class OrderPublisher implements EventPublisherDef { publish(event: OrderPlacedEvent): void {} }",
-        invalid: "class OrderPublisher implements EventPublisherDef { publish(): void {} }",
+        valid: "@EventPublisherContainer class OrderPublisher { publish(event: OrderPlacedEvent): void {} }",
+        invalid: "@EventPublisherContainer class OrderPublisher { publish(): void {} }",
       },
     },
     schema: [],
     messages: {
-      missingParameter: "Method '{{methodName}}' on EventPublisherDef class '{{className}}' must have exactly one parameter",
-      tooManyParameters: "Method '{{methodName}}' on EventPublisherDef class '{{className}}' must have exactly one parameter",
-      missingTypeAnnotation: "Parameter of method '{{methodName}}' on EventPublisherDef class '{{className}}' must have a type annotation",
-      notTypeReference: "Parameter of method '{{methodName}}' on EventPublisherDef class '{{className}}' must have a type reference annotation",
-      notEventDef: "Parameter type '{{typeName}}' of method '{{methodName}}' on EventPublisherDef class '{{className}}' does not implement EventDef (missing 'type: string' property)",
-      nonPublicMethod: "Method '{{methodName}}' on EventPublisherDef class '{{className}}' must be public, but is {{accessibility}}",
+      missingParameter: "Method '{{methodName}}' on @EventPublisherContainer class '{{className}}' must have exactly one parameter",
+      tooManyParameters: "Method '{{methodName}}' on @EventPublisherContainer class '{{className}}' must have exactly one parameter",
+      missingTypeAnnotation: "Parameter of method '{{methodName}}' on @EventPublisherContainer class '{{className}}' must have a type annotation",
+      notTypeReference: "Parameter of method '{{methodName}}' on @EventPublisherContainer class '{{className}}' must have a type reference annotation",
+      invalidEventType: "Parameter type '{{typeName}}' of method '{{methodName}}' on @EventPublisherContainer class '{{className}}' must have a 'type: string' property",
+      nonPublicMethod: "Method '{{methodName}}' on @EventPublisherContainer class '{{className}}' must be public, but is {{accessibility}}",
     },
   },
   create(context) {
@@ -164,7 +164,7 @@ module.exports = {
       ClassDeclaration(node) {
         /* v8 ignore next -- ClassDeclaration always has id (name) */
         if (!node.id) return
-        if (!implementsInterface(node, 'EventPublisherDef')) return
+        if (!hasDecorator(node, 'EventPublisherContainer')) return
 
         const className = node.id.name
 

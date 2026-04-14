@@ -4,6 +4,7 @@ import {
 import path from 'node:path'
 import { performance } from 'node:perf_hooks'
 import { fileURLToPath } from 'node:url'
+import { findFileUp } from '../domain/find-file-up'
 import { PackageFilterError } from '../domain/filter-config-by-package'
 import { resolveLintTargets } from '../domain/resolve-lint-targets'
 import { RoleEnforcementExecutionError } from '../domain/role-enforcement-execution-error'
@@ -95,6 +96,10 @@ export class RunRoleEnforcement {
 }
 
 function resolvePluginPath(): string {
-  const currentDir = path.dirname(fileURLToPath(import.meta.url))
-  return path.resolve(currentDir, '..', '..', '..', '..', 'role-enforcement-plugin.mjs')
+  const startDir = path.dirname(fileURLToPath(import.meta.url))
+  const found = findFileUp(startDir, 'role-enforcement-plugin.mjs')
+  if (found === undefined) {
+    throw new RoleEnforcementExecutionError('Cannot find role-enforcement-plugin.mjs')
+  }
+  return found
 }

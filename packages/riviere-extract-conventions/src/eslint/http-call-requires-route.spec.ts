@@ -25,6 +25,21 @@ const emptyRouteError = (methodName: string) => ({
   data: { methodName },
 })
 
+const missingMethodError = (methodName: string) => ({
+  messageId: 'missingMethod' as const,
+  data: { methodName },
+})
+
+const methodNotLiteralError = (methodName: string) => ({
+  messageId: 'methodNotLiteral' as const,
+  data: { methodName },
+})
+
+const emptyMethodError = (methodName: string) => ({
+  messageId: 'emptyMethod' as const,
+  data: { methodName },
+})
+
 describe('http-call-requires-route', () => {
   it('is a valid ESLint rule', () => {
     expect(rule).toBeDefined()
@@ -37,8 +52,8 @@ describe('http-call-requires-route', () => {
         code: 'class FraudClient { checkFraud() {} }',
       },
       {
-        name: 'accepts HttpCall when route is non-empty string literal',
-        code: "class FraudClient { @HttpCall('/check') checkFraud() {} }",
+        name: 'accepts HttpCall when route and method are non-empty string literals',
+        code: "class FraudClient { @HttpCall('/check', 'POST') checkFraud() {} }",
       },
       {
         name: 'ignores non-call decorators that are not HttpCall',
@@ -50,7 +65,7 @@ describe('http-call-requires-route', () => {
       },
       {
         name: 'ignores methods with non-identifier keys',
-        code: "class FraudClient { @HttpCall('/check') ['checkFraud']() {} }",
+        code: "class FraudClient { @HttpCall('/check', 'POST') ['checkFraud']() {} }",
       },
     ],
     invalid: [
@@ -60,14 +75,29 @@ describe('http-call-requires-route', () => {
         errors: [missingRouteError('checkFraud')],
       },
       {
+        name: 'reports when HttpCall has no method argument',
+        code: "class FraudClient { @HttpCall('/check') checkFraud() {} }",
+        errors: [missingMethodError('checkFraud')],
+      },
+      {
         name: 'reports when HttpCall route is not a string literal',
-        code: "const ROUTE = '/fraud/check'; class FraudClient { @HttpCall(ROUTE) checkFraud() {} }",
+        code: "const ROUTE = '/fraud/check'; class FraudClient { @HttpCall(ROUTE, 'POST') checkFraud() {} }",
         errors: [routeNotLiteralError('checkFraud')],
       },
       {
         name: 'reports when HttpCall route is an empty string literal',
-        code: "class FraudClient { @HttpCall('') checkFraud() {} }",
+        code: "class FraudClient { @HttpCall('', 'POST') checkFraud() {} }",
         errors: [emptyRouteError('checkFraud')],
+      },
+      {
+        name: 'reports when HttpCall method is not a string literal',
+        code: "const METHOD = 'POST'; class FraudClient { @HttpCall('/check', METHOD) checkFraud() {} }",
+        errors: [methodNotLiteralError('checkFraud')],
+      },
+      {
+        name: 'reports when HttpCall method is an empty string literal',
+        code: "class FraudClient { @HttpCall('/check', '') checkFraud() {} }",
+        errors: [emptyMethodError('checkFraud')],
       },
       {
         name: 'reports when HttpCall decorator is used without call syntax',
