@@ -425,7 +425,7 @@
           "description": "URL to the external system"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": { "type": "string" }
     },
     "sourceLocation": {
       "type": "object",

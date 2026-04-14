@@ -146,8 +146,8 @@ function buildExternalTarget(
   const target: ExternalTarget = { name: serviceName }
   for (const key of matchApiBy) {
     const value = readStringMetadata(targetComponent, key)
-    if (value !== undefined && key === 'route') {
-      target.route = value
+    if (value !== undefined) {
+      target[key] = value
     }
   }
   return target

@@ -142,7 +142,7 @@ describe('resolveHttpLinks', () => {
     expect(result.externalLinks[0]?.sourceLocation).toBeDefined()
   })
 
-  it('omits non-route metadata keys from external link target', () => {
+  it('includes all matchApiBy metadata in external link target', () => {
     const httpCall = httpCallComponent('checkFraud', {
       serviceName: 'External Service',
       route: '/check',
@@ -157,7 +157,7 @@ describe('resolveHttpLinks', () => {
     const target = result.externalLinks[0]?.target
     expect(target).toHaveProperty('name', 'External Service')
     expect(target).toHaveProperty('route', '/check')
-    expect(target).not.toHaveProperty('method')
+    expect(target).toHaveProperty('method', 'POST')
   })
 
   it('passes link through when target has no serviceName metadata', () => {
