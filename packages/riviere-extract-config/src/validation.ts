@@ -31,10 +31,10 @@ const COMPONENT_TYPES: ComponentType[] = [
   'ui',
 ]
 
-const ajv = new Ajv({ allErrors: true })
-addFormats(ajv)
+const validator = new Ajv({ allErrors: true })
+addFormats(validator)
 
-const validate = ajv.compile<ExtractionConfig>(rawSchema)
+const validate = validator.compile<ExtractionConfig>(rawSchema)
 
 /**
  * Type guard checking if data is a valid ExtractionConfig.
