@@ -284,8 +284,8 @@ export class ExtractionProjectRepository {
       throw new ConfigSchemaValidationError(source, 'Config has empty modules array')
     }
     try {
-      const config = parseExtractionConfig(parsed)
-      const [first] = resolveConfig(config).modules
+      const cfg = parseExtractionConfig(parsed)
+      const [first] = resolveConfig(cfg).modules
       /* v8 ignore start -- unreachable: schema enforces minItems:1 and pre-check guards length */
       if (first === undefined) {
         throw new ConfigSchemaValidationError(source, 'Config has empty modules array')
