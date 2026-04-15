@@ -22,6 +22,7 @@ import type {
   DomainOpInput,
   EventHandlerInput,
   EventInput,
+  UpsertOptions,
   UIInput,
   UseCaseInput,
 } from './construction/construction-types'
@@ -57,6 +58,7 @@ export type {
   NearMatchOptions,
   NearMatchQuery,
   NearMatchResult,
+  UpsertOptions,
   UIInput,
   UseCaseInput,
 }
@@ -129,6 +131,16 @@ export class RiviereBuilder {
     return this.delegate.construction.addUI(input)
   }
 
+  upsertUI(
+    input: UIInput,
+    options?: UpsertOptions,
+  ): {
+    component: UIComponent
+    created: boolean
+  } {
+    return this.delegate.construction.upsertUI(input, options)
+  }
+
   /**
    * Adds an API component to the graph.
    *
@@ -137,6 +149,16 @@ export class RiviereBuilder {
    */
   addApi(input: APIInput): APIComponent {
     return this.delegate.construction.addApi(input)
+  }
+
+  upsertApi(
+    input: APIInput,
+    options?: UpsertOptions,
+  ): {
+    component: APIComponent
+    created: boolean
+  } {
+    return this.delegate.construction.upsertApi(input, options)
   }
 
   /**
@@ -149,6 +171,16 @@ export class RiviereBuilder {
     return this.delegate.construction.addUseCase(input)
   }
 
+  upsertUseCase(
+    input: UseCaseInput,
+    options?: UpsertOptions,
+  ): {
+    component: UseCaseComponent
+    created: boolean
+  } {
+    return this.delegate.construction.upsertUseCase(input, options)
+  }
+
   /**
    * Adds a DomainOp component to the graph.
    *
@@ -157,6 +189,16 @@ export class RiviereBuilder {
    */
   addDomainOp(input: DomainOpInput): DomainOpComponent {
     return this.delegate.construction.addDomainOp(input)
+  }
+
+  upsertDomainOp(
+    input: DomainOpInput,
+    options?: UpsertOptions,
+  ): {
+    component: DomainOpComponent
+    created: boolean
+  } {
+    return this.delegate.construction.upsertDomainOp(input, options)
   }
 
   /**
@@ -169,6 +211,16 @@ export class RiviereBuilder {
     return this.delegate.construction.addEvent(input)
   }
 
+  upsertEvent(
+    input: EventInput,
+    options?: UpsertOptions,
+  ): {
+    component: EventComponent
+    created: boolean
+  } {
+    return this.delegate.construction.upsertEvent(input, options)
+  }
+
   /**
    * Adds an EventHandler component to the graph.
    *
@@ -177,6 +229,16 @@ export class RiviereBuilder {
    */
   addEventHandler(input: EventHandlerInput): EventHandlerComponent {
     return this.delegate.construction.addEventHandler(input)
+  }
+
+  upsertEventHandler(
+    input: EventHandlerInput,
+    options?: UpsertOptions,
+  ): {
+    component: EventHandlerComponent
+    created: boolean
+  } {
+    return this.delegate.construction.upsertEventHandler(input, options)
   }
 
   /**
@@ -196,6 +258,16 @@ export class RiviereBuilder {
    */
   addCustom(input: CustomInput): CustomComponent {
     return this.delegate.construction.addCustom(input)
+  }
+
+  upsertCustom(
+    input: CustomInput,
+    options?: UpsertOptions,
+  ): {
+    component: CustomComponent
+    created: boolean
+  } {
+    return this.delegate.construction.upsertCustom(input, options)
   }
 
   /**

@@ -175,6 +175,72 @@ describe('RiviereBuilder', () => {
 
       expect(link.type).toBeUndefined()
     })
+
+    it('deduplicates duplicate links and records DUPLICATE_LINK_SKIPPED warning', () => {
+      const builder = RiviereBuilder.new(createValidOptions())
+
+      const source = builder.addUseCase({
+        name: 'Create Order',
+        domain: 'orders',
+        module: 'checkout',
+        sourceLocation: {
+          repository: 'test/repo',
+          filePath: 'src/create-order.ts',
+        },
+      })
+
+      builder.link({
+        from: source.id,
+        to: 'any:target:id',
+        type: 'sync',
+      })
+
+      builder.link({
+        from: source.id,
+        to: 'any:target:id',
+        type: 'sync',
+      })
+
+      expect(builder.stats().linkCount).toBe(1)
+      expect(builder.warnings()).toContainEqual({
+        code: 'DUPLICATE_LINK_SKIPPED',
+        message: `Duplicate link '${source.id}' -> 'any:target:id' (sync) skipped`,
+        source: source.id,
+        target: 'any:target:id',
+        linkType: 'sync',
+      })
+    })
+
+    it('uses unspecified marker for duplicate links without explicit type', () => {
+      const builder = RiviereBuilder.new(createValidOptions())
+
+      const source = builder.addUseCase({
+        name: 'Create Order',
+        domain: 'orders',
+        module: 'checkout',
+        sourceLocation: {
+          repository: 'test/repo',
+          filePath: 'src/create-order.ts',
+        },
+      })
+
+      builder.link({
+        from: source.id,
+        to: 'any:target:id',
+      })
+
+      builder.link({
+        from: source.id,
+        to: 'any:target:id',
+      })
+
+      expect(builder.warnings()).toContainEqual({
+        code: 'DUPLICATE_LINK_SKIPPED',
+        message: `Duplicate link '${source.id}' -> 'any:target:id' (unspecified) skipped`,
+        source: source.id,
+        target: 'any:target:id',
+      })
+    })
   })
 
   describe('linkExternal', () => {
@@ -278,6 +344,88 @@ describe('RiviereBuilder', () => {
       expect(externalLink.sourceLocation).toStrictEqual({
         repository: 'test/repo',
         filePath: 'src/stripe.ts',
+      })
+    })
+
+    it('deduplicates duplicate external links and records DUPLICATE_LINK_SKIPPED warning', () => {
+      const builder = RiviereBuilder.new(createValidOptions())
+
+      const source = builder.addUseCase({
+        name: 'Create Order',
+        domain: 'orders',
+        module: 'checkout',
+        sourceLocation: {
+          repository: 'test/repo',
+          filePath: 'src/create-order.ts',
+        },
+      })
+
+      builder.linkExternal({
+        from: source.id,
+        target: {
+          repository: 'acme/payments',
+          name: 'Stripe API',
+        },
+        type: 'async',
+      })
+
+      builder.linkExternal({
+        from: source.id,
+        target: {
+          repository: 'acme/payments',
+          name: 'Stripe API',
+        },
+        type: 'async',
+      })
+
+      expect(builder.stats().externalLinkCount).toBe(1)
+      expect(builder.warnings()).toContainEqual({
+        code: 'DUPLICATE_LINK_SKIPPED',
+        message: `Duplicate external link '${source.id}' -> 'Stripe API' (async) skipped`,
+        source: source.id,
+        target: 'Stripe API',
+        linkType: 'async',
+        targetRepository: 'acme/payments',
+        targetName: 'Stripe API',
+      })
+    })
+
+    it('uses unspecified marker for duplicate external links without explicit type', () => {
+      const builder = RiviereBuilder.new(createValidOptions())
+
+      const source = builder.addUseCase({
+        name: 'Create Order',
+        domain: 'orders',
+        module: 'checkout',
+        sourceLocation: {
+          repository: 'test/repo',
+          filePath: 'src/create-order.ts',
+        },
+      })
+
+      builder.linkExternal({
+        from: source.id,
+        target: {
+          repository: 'acme/payments',
+          name: 'Stripe API',
+        },
+      })
+
+      builder.linkExternal({
+        from: source.id,
+        target: {
+          repository: 'acme/payments',
+          name: 'Stripe API',
+        },
+      })
+
+      expect(builder.warnings()).toContainEqual({
+        code: 'DUPLICATE_LINK_SKIPPED',
+        message: `Duplicate external link '${source.id}' -> 'Stripe API' (unspecified) skipped`,
+        source: source.id,
+        target: 'Stripe API',
+        targetRepository: 'acme/payments',
+        targetName: 'Stripe API',
       })
     })
   })

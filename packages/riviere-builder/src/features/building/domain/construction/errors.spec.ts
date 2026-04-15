@@ -7,6 +7,8 @@ import {
   DomainNotFoundError,
   DuplicateComponentError,
   DuplicateDomainError,
+  SourceConflictError,
+  ComponentTypeMismatchError,
   CustomTypeAlreadyDefinedError,
   MissingRequiredPropertiesError,
   InvalidGraphError,
@@ -24,6 +26,16 @@ describe('errors', () => {
       expect(error.message).toBe("Domain 'orders' already exists")
       expect(error.domainName).toBe('orders')
       expect(error.name).toBe('DuplicateDomainError')
+    })
+  })
+
+  describe('SourceConflictError', () => {
+    it('includes repository in message', () => {
+      const error = new SourceConflictError('test/repo')
+
+      expect(error.message).toBe("Source 'test/repo' already exists with different values")
+      expect(error.repository).toBe('test/repo')
+      expect(error.name).toBe('SourceConflictError')
     })
   })
 
@@ -65,6 +77,19 @@ describe('errors', () => {
       )
       expect(error.componentId).toBe('orders:checkout:api:create-order')
       expect(error.name).toBe('DuplicateComponentError')
+    })
+  })
+
+  describe('ComponentTypeMismatchError', () => {
+    it('includes component identity and types in message', () => {
+      const error = new ComponentTypeMismatchError('orders:checkout:ui:checkout-page', 'UI', 'API')
+
+      expect(error.message).toBe(
+        "Component 'orders:checkout:ui:checkout-page' already exists as type 'UI'; cannot upsert as 'API'",
+      )
+      expect(error.componentId).toBe('orders:checkout:ui:checkout-page')
+      expect(error.existingType).toBe('UI')
+      expect(error.incomingType).toBe('API')
     })
   })
 

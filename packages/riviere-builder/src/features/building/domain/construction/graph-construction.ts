@@ -18,13 +18,16 @@ import type {
   DomainOpInput,
   EventHandlerInput,
   EventInput,
+  UpsertOptions,
   UIInput,
   UseCaseInput,
 } from './construction-types'
 import {
+  ComponentTypeMismatchError,
   CustomTypeAlreadyDefinedError,
   DuplicateComponentError,
   DuplicateDomainError,
+  SourceConflictError,
 } from './construction-errors'
 import {
   generateComponentId,
@@ -32,21 +35,41 @@ import {
   validateDomainExists,
   validateRequiredProperties,
 } from './builder-internals'
+import { mergeComponentForUpsert } from '../enrichment/upsert-merge'
+import type { BuilderWarning } from '../inspection/inspection-types'
 
 /** @riviere-role domain-service */
 export class GraphConstruction {
   private readonly graph: BuilderGraph
+  private readonly operationWarnings: BuilderWarning[]
 
-  constructor(graph: BuilderGraph) {
+  constructor(graph: BuilderGraph, operationWarnings: BuilderWarning[]) {
     this.graph = graph
+    this.operationWarnings = operationWarnings
   }
 
   addSource(source: SourceInfo): void {
+    const existing = this.graph.metadata.sources.find(
+      (item) => item.repository === source.repository,
+    )
+    if (existing) {
+      if (areSourcesEqual(existing, source)) {
+        return
+      }
+
+      throw new SourceConflictError(source.repository)
+    }
+
     this.graph.metadata.sources.push(source)
   }
 
   addDomain(input: DomainInput): void {
-    if (this.graph.metadata.domains[input.name]) {
+    const existing = this.graph.metadata.domains[input.name]
+    if (existing) {
+      if (existing.description === input.description && existing.systemType === input.systemType) {
+        return
+      }
+
       throw new DuplicateDomainError(input.name)
     }
 
@@ -57,113 +80,87 @@ export class GraphConstruction {
   }
 
   addUI(input: UIInput): UIComponent {
-    validateDomainExists(this.graph.metadata.domains, input.domain)
-    const id = generateComponentId(input.domain, input.module, 'ui', input.name)
+    return this.registerComponent(this.buildUIComponent(input))
+  }
 
-    const component: UIComponent = {
-      id,
-      type: 'UI',
-      name: input.name,
-      domain: input.domain,
-      module: input.module,
-      route: input.route,
-      sourceLocation: input.sourceLocation,
-      ...(input.description !== undefined && { description: input.description }),
-    }
-    return this.registerComponent(component)
+  upsertUI(
+    input: UIInput,
+    options?: UpsertOptions,
+  ): {
+    component: UIComponent
+    created: boolean
+  } {
+    return this.upsertTypedComponent(this.buildUIComponent(input), options)
   }
 
   addApi(input: APIInput): APIComponent {
-    validateDomainExists(this.graph.metadata.domains, input.domain)
-    const id = generateComponentId(input.domain, input.module, 'api', input.name)
+    return this.registerComponent(this.buildAPIComponent(input))
+  }
 
-    const component: APIComponent = {
-      id,
-      type: 'API',
-      name: input.name,
-      domain: input.domain,
-      module: input.module,
-      apiType: input.apiType,
-      sourceLocation: input.sourceLocation,
-      ...(input.httpMethod !== undefined && { httpMethod: input.httpMethod }),
-      ...(input.path !== undefined && { path: input.path }),
-      ...(input.operationName !== undefined && { operationName: input.operationName }),
-      ...(input.description !== undefined && { description: input.description }),
-    }
-    return this.registerComponent(component)
+  upsertApi(
+    input: APIInput,
+    options?: UpsertOptions,
+  ): {
+    component: APIComponent
+    created: boolean
+  } {
+    return this.upsertTypedComponent(this.buildAPIComponent(input), options)
   }
 
   addUseCase(input: UseCaseInput): UseCaseComponent {
-    validateDomainExists(this.graph.metadata.domains, input.domain)
-    const id = generateComponentId(input.domain, input.module, 'usecase', input.name)
+    return this.registerComponent(this.buildUseCaseComponent(input))
+  }
 
-    const component: UseCaseComponent = {
-      id,
-      type: 'UseCase',
-      name: input.name,
-      domain: input.domain,
-      module: input.module,
-      sourceLocation: input.sourceLocation,
-      ...(input.description !== undefined && { description: input.description }),
-    }
-    return this.registerComponent(component)
+  upsertUseCase(
+    input: UseCaseInput,
+    options?: UpsertOptions,
+  ): {
+    component: UseCaseComponent
+    created: boolean
+  } {
+    return this.upsertTypedComponent(this.buildUseCaseComponent(input), options)
   }
 
   addDomainOp(input: DomainOpInput): DomainOpComponent {
-    validateDomainExists(this.graph.metadata.domains, input.domain)
-    const id = generateComponentId(input.domain, input.module, 'domainop', input.name)
+    return this.registerComponent(this.buildDomainOpComponent(input))
+  }
 
-    const component: DomainOpComponent = {
-      id,
-      type: 'DomainOp',
-      name: input.name,
-      domain: input.domain,
-      module: input.module,
-      operationName: input.operationName,
-      sourceLocation: input.sourceLocation,
-      ...(input.entity !== undefined && { entity: input.entity }),
-      ...(input.signature !== undefined && { signature: input.signature }),
-      ...(input.behavior !== undefined && { behavior: input.behavior }),
-      ...(input.stateChanges !== undefined && { stateChanges: input.stateChanges }),
-      ...(input.businessRules !== undefined && { businessRules: input.businessRules }),
-      ...(input.description !== undefined && { description: input.description }),
-    }
-    return this.registerComponent(component)
+  upsertDomainOp(
+    input: DomainOpInput,
+    options?: UpsertOptions,
+  ): {
+    component: DomainOpComponent
+    created: boolean
+  } {
+    return this.upsertTypedComponent(this.buildDomainOpComponent(input), options)
   }
 
   addEvent(input: EventInput): EventComponent {
-    validateDomainExists(this.graph.metadata.domains, input.domain)
-    const id = generateComponentId(input.domain, input.module, 'event', input.name)
+    return this.registerComponent(this.buildEventComponent(input))
+  }
 
-    const component: EventComponent = {
-      id,
-      type: 'Event',
-      name: input.name,
-      domain: input.domain,
-      module: input.module,
-      eventName: input.eventName,
-      sourceLocation: input.sourceLocation,
-      ...(input.eventSchema !== undefined && { eventSchema: input.eventSchema }),
-      ...(input.description !== undefined && { description: input.description }),
-    }
-    return this.registerComponent(component)
+  upsertEvent(
+    input: EventInput,
+    options?: UpsertOptions,
+  ): {
+    component: EventComponent
+    created: boolean
+  } {
+    return this.upsertTypedComponent(this.buildEventComponent(input), options)
   }
 
   addEventHandler(input: EventHandlerInput): EventHandlerComponent {
-    validateDomainExists(this.graph.metadata.domains, input.domain)
-    const id = generateComponentId(input.domain, input.module, 'eventhandler', input.name)
+    return this.registerComponent(this.buildEventHandlerComponent(input))
+  }
 
-    const component: EventHandlerComponent = {
-      id,
-      type: 'EventHandler',
-      name: input.name,
-      domain: input.domain,
-      module: input.module,
-      subscribedEvents: input.subscribedEvents,
-      sourceLocation: input.sourceLocation,
-      ...(input.description !== undefined && { description: input.description }),
-    }
-    return this.registerComponent(component)
+  upsertEventHandler(
+    input: EventHandlerInput,
+    options?: UpsertOptions,
+  ): {
+    component: EventHandlerComponent
+    created: boolean
+  } {
+    return this.upsertTypedComponent(this.buildEventHandlerComponent(input), options)
   }
 
   defineCustomType(input: CustomTypeInput): void {
@@ -181,6 +178,124 @@ export class GraphConstruction {
   }
 
   addCustom(input: CustomInput): CustomComponent {
+    return this.registerComponent(this.buildCustomComponent(input))
+  }
+
+  upsertCustom(
+    input: CustomInput,
+    options?: UpsertOptions,
+  ): {
+    component: CustomComponent
+    created: boolean
+  } {
+    return this.upsertTypedComponent(this.buildCustomComponent(input), options)
+  }
+
+  private buildUIComponent(input: UIInput): UIComponent {
+    validateDomainExists(this.graph.metadata.domains, input.domain)
+    const id = generateComponentId(input.domain, input.module, 'ui', input.name)
+
+    return {
+      id,
+      type: 'UI',
+      name: input.name,
+      domain: input.domain,
+      module: input.module,
+      route: input.route,
+      sourceLocation: input.sourceLocation,
+      ...(input.description !== undefined && { description: input.description }),
+    }
+  }
+
+  private buildAPIComponent(input: APIInput): APIComponent {
+    validateDomainExists(this.graph.metadata.domains, input.domain)
+    const id = generateComponentId(input.domain, input.module, 'api', input.name)
+
+    return {
+      id,
+      type: 'API',
+      name: input.name,
+      domain: input.domain,
+      module: input.module,
+      apiType: input.apiType,
+      sourceLocation: input.sourceLocation,
+      ...(input.httpMethod !== undefined && { httpMethod: input.httpMethod }),
+      ...(input.path !== undefined && { path: input.path }),
+      ...(input.operationName !== undefined && { operationName: input.operationName }),
+      ...(input.description !== undefined && { description: input.description }),
+    }
+  }
+
+  private buildUseCaseComponent(input: UseCaseInput): UseCaseComponent {
+    validateDomainExists(this.graph.metadata.domains, input.domain)
+    const id = generateComponentId(input.domain, input.module, 'usecase', input.name)
+
+    return {
+      id,
+      type: 'UseCase',
+      name: input.name,
+      domain: input.domain,
+      module: input.module,
+      sourceLocation: input.sourceLocation,
+      ...(input.description !== undefined && { description: input.description }),
+    }
+  }
+
+  private buildDomainOpComponent(input: DomainOpInput): DomainOpComponent {
+    validateDomainExists(this.graph.metadata.domains, input.domain)
+    const id = generateComponentId(input.domain, input.module, 'domainop', input.name)
+
+    return {
+      id,
+      type: 'DomainOp',
+      name: input.name,
+      domain: input.domain,
+      module: input.module,
+      operationName: input.operationName,
+      sourceLocation: input.sourceLocation,
+      ...(input.entity !== undefined && { entity: input.entity }),
+      ...(input.signature !== undefined && { signature: input.signature }),
+      ...(input.behavior !== undefined && { behavior: input.behavior }),
+      ...(input.stateChanges !== undefined && { stateChanges: input.stateChanges }),
+      ...(input.businessRules !== undefined && { businessRules: input.businessRules }),
+      ...(input.description !== undefined && { description: input.description }),
+    }
+  }
+
+  private buildEventComponent(input: EventInput): EventComponent {
+    validateDomainExists(this.graph.metadata.domains, input.domain)
+    const id = generateComponentId(input.domain, input.module, 'event', input.name)
+
+    return {
+      id,
+      type: 'Event',
+      name: input.name,
+      domain: input.domain,
+      module: input.module,
+      eventName: input.eventName,
+      sourceLocation: input.sourceLocation,
+      ...(input.eventSchema !== undefined && { eventSchema: input.eventSchema }),
+      ...(input.description !== undefined && { description: input.description }),
+    }
+  }
+
+  private buildEventHandlerComponent(input: EventHandlerInput): EventHandlerComponent {
+    validateDomainExists(this.graph.metadata.domains, input.domain)
+    const id = generateComponentId(input.domain, input.module, 'eventhandler', input.name)
+
+    return {
+      id,
+      type: 'EventHandler',
+      name: input.name,
+      domain: input.domain,
+      module: input.module,
+      subscribedEvents: input.subscribedEvents,
+      sourceLocation: input.sourceLocation,
+      ...(input.description !== undefined && { description: input.description }),
+    }
+  }
+
+  private buildCustomComponent(input: CustomInput): CustomComponent {
     validateDomainExists(this.graph.metadata.domains, input.domain)
     validateCustomType(this.graph.metadata.customTypes, input.customTypeName)
     validateRequiredProperties(
@@ -201,7 +316,8 @@ export class GraphConstruction {
       ...(input.description !== undefined && { description: input.description }),
       ...input.metadata,
     }
-    return this.registerComponent(component)
+
+    return component
   }
 
   private registerComponent<T extends Component>(component: T): T {
@@ -211,4 +327,53 @@ export class GraphConstruction {
     this.graph.components.push(component)
     return component
   }
+
+  private upsertTypedComponent<T extends Component>(
+    incoming: T,
+    options?: UpsertOptions,
+  ): {
+    component: T
+    created: boolean
+  } {
+    const existingIndex = this.graph.components.findIndex(
+      (component) => component.id === incoming.id,
+    )
+    if (existingIndex === -1) {
+      this.graph.components.push(incoming)
+      return {
+        component: incoming,
+        created: true,
+      }
+    }
+
+    const existing = this.graph.components[existingIndex]
+
+    if (!isSameTypeComponent(existing, incoming)) {
+      throw new ComponentTypeMismatchError(incoming.id, existing?.type ?? 'unknown', incoming.type)
+    }
+
+    const merged = mergeComponentForUpsert(existing, incoming, options, this.operationWarnings)
+
+    this.graph.components[existingIndex] = merged
+
+    return {
+      component: merged,
+      created: false,
+    }
+  }
+}
+
+function areSourcesEqual(existing: SourceInfo, incoming: SourceInfo): boolean {
+  return (
+    existing.repository === incoming.repository &&
+    existing.commit === incoming.commit &&
+    existing.extractedAt === incoming.extractedAt
+  )
+}
+
+function isSameTypeComponent<T extends Component>(
+  existing: Component | undefined,
+  incoming: T,
+): existing is T {
+  return existing?.type === incoming.type
 }

@@ -10,6 +10,17 @@ export class DuplicateDomainError extends Error {
 }
 
 /** @riviere-role domain-error */
+export class SourceConflictError extends Error {
+  readonly repository: string
+
+  constructor(repository: string) {
+    super(`Source '${repository}' already exists with different values`)
+    this.name = 'SourceConflictError'
+    this.repository = repository
+  }
+}
+
+/** @riviere-role domain-error */
 export class DomainNotFoundError extends Error {
   readonly domainName: string
 
@@ -45,6 +56,23 @@ export class DuplicateComponentError extends Error {
     super(`Component with ID '${componentId}' already exists`)
     this.name = 'DuplicateComponentError'
     this.componentId = componentId
+  }
+}
+
+/** @riviere-role domain-error */
+export class ComponentTypeMismatchError extends Error {
+  readonly componentId: string
+  readonly existingType: string
+  readonly incomingType: string
+
+  constructor(componentId: string, existingType: string, incomingType: string) {
+    super(
+      `Component '${componentId}' already exists as type '${existingType}'; cannot upsert as '${incomingType}'`,
+    )
+    this.name = 'ComponentTypeMismatchError'
+    this.componentId = componentId
+    this.existingType = existingType
+    this.incomingType = incomingType
   }
 }
 

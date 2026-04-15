@@ -136,6 +136,28 @@ describe('RiviereBuilder', () => {
 
       expect(parseGraph(builder).metadata.sources).toContainEqual({ repository: 'no-commit-repo' })
     })
+
+    it('is idempotent when adding an identical source', () => {
+      const builder = RiviereBuilder.new(createValidOptions())
+
+      builder.addSource({
+        repository: 'my-org/my-repo',
+        commit: 'abc123',
+      })
+
+      expect(parseGraph(builder).metadata.sources).toHaveLength(1)
+    })
+
+    it('throws when same repository has different source metadata', () => {
+      const builder = RiviereBuilder.new(createValidOptions())
+
+      expect(() =>
+        builder.addSource({
+          repository: 'my-org/my-repo',
+          commit: 'different-sha',
+        }),
+      ).toThrow("Source 'my-org/my-repo' already exists with different values")
+    })
   })
 
   describe('addDomain', () => {
@@ -154,7 +176,22 @@ describe('RiviereBuilder', () => {
       })
     })
 
-    it('throws when domain name already exists', () => {
+    it('is idempotent when domain name already exists with identical metadata', () => {
+      const builder = RiviereBuilder.new(createValidOptions())
+
+      builder.addDomain({
+        name: 'orders',
+        description: 'Order management',
+        systemType: 'domain',
+      })
+
+      expect(parseGraph(builder).metadata.domains['orders']).toStrictEqual({
+        description: 'Order management',
+        systemType: 'domain',
+      })
+    })
+
+    it('throws when domain name already exists with different metadata', () => {
       const builder = RiviereBuilder.new(createValidOptions())
 
       expect(() =>

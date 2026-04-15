@@ -27,6 +27,9 @@ export interface DomainInput {
 }
 
 /** @riviere-role value-object */
+export interface UpsertOptions {noOverwrite?: boolean}
+
+/** @riviere-role value-object */
 export interface UIInput {
   name: string
   domain: string
