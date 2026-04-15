@@ -2,303 +2,551 @@
 
 Generate well-formed tasks from PRD deliverables and add them to GitHub.
 
-## Overview
+## The one rule that matters
 
-This skill guides creating well-structured engineering tasks with sufficient context for independent implementation. The core principle: **slice work first, then document thoroughly with full architectural context**.
+**A task is a standalone brief.** An engineer who has never read the PRD can open the issue, read it, and build the thing. Everything in this document exists to make that true.
 
-## Essential Requirements
-
-Every task must include 10 sections:
-
-1. **Deliverable** — User-visible outcome
-2. **Context** — Business/architectural motivation with PRD file path
-3. **Traceability** — Links to PRD sections, requirements, success criteria
-4. **Acceptance Criteria** — Checkboxes for happy path + key validations
-5. **Edge Case Scenarios** — Condition → expected behavior (separate from acceptance criteria)
-6. **Implementation Guidelines** — Technical approach, architectural constraints, pattern references
-7. **Embedded Reasoning** — Structured why/what/how
-8. **Testing Strategy** — Categorized by test type (unit/integration/edge/performance)
-9. **Dependencies** — Prerequisites that must exist first
-10. **Verification** — Commands/tests proving completion
-
-**Critical:** You MUST provide specific file paths for any referenced documents. The engineer must be able to implement without clarification.
+A full worked example is embedded at the bottom of this file as the [Golden Example](#golden-example-context-section). Read it before writing a new ticket. When in doubt about tone, density, or structure, match the Golden Example.
 
 ---
 
-## Pre-Task Validation: Example Mapping
+## Eight principles every task follows
 
-Transform requirements into executable specifications using four card types:
+Every ticket is judged against these eight principles. If a ticket fails one, rewrite it.
 
-**Story Card:** Single-sentence deliverable statement
+### 1. Self-contained
 
-**Rules Card:** 3-4 business constraints maximum per task
+An engineer new to the project can implement the ticket without opening the PRD, the glossary, or asking anyone a question. The PRD link stays (for wider context), but the ticket restates its own requirement in plain English.
 
-**Examples Card:** For each rule—happy path, edge cases, error scenarios in Given-When-Then format
+- ❌ "Implement §3.2 of the PRD for the Workflow Step Interface."
+- ✅ "Add a `WorkflowStepHandler<TConfig>` TypeScript interface with these members: `type`, `configSchemaPath`, `requiredServices`, and `execute(context)`. `execute` takes a `StepContext` (shown below) and returns `Promise<void>`. The PRD reference is §3.2 — that's background reading, not a prerequisite."
 
-**Questions Card:** Surface unknowns; resolve or spike before proceeding
+### 2. Teach the subject before you ask for work
 
-### Edge Case Discovery Process
+The first section explains **what the thing is** and **why it matters**, in plain English, with real examples. The reader needs to learn the domain from the ticket itself. A thin "why this matters" paragraph is not enough — Context is the teaching section.
 
-Before finalizing tasks, systematically identify edge case scenarios using the checklists in `docs/conventions/testing.md`.
+The Context section:
 
-**Apply Testing Heuristics:**
+- Introduces the domain concept (what is an Upsert? what is a Workflow Step? what is a Canonical ID?).
+- Shows what the system does today in real code or YAML, not abstract prose.
+- Names the gap — what breaks, what's missing, what silently goes wrong.
+- Shows a before/after snapshot with real payloads, real errors, real log lines.
+- Is as long as it needs to be. Several paragraphs and multiple code blocks are normal.
 
-| Heuristic | What to Check |
+A Context section that's four sentences and no code is almost always a rejection.
+
+See the [Golden Example](#golden-example-context-section) at the bottom of this file for the right density.
+
+### 3. Acceptance criteria are measurable and precise
+
+Every AC can be checked at the moment the ticket closes, using only things the ticket produces. No aspirations, no "works well", no "is clean". If you can't point at a file path, a command, or a specific observable behaviour, it's not an AC.
+
+- ❌ "The registry is easy to extend."
+- ✅ "Calling `registry.resolve('unknown-type')` throws an `Error` with the message `no handler registered for step type 'unknown-type'`. A test under `packages/riviere-workflow/src/features/workflow-runtime/registry.spec.ts` asserts this."
+
+### 4. Acceptance criteria describe what you see, not how you build it
+
+AC describes the behaviour someone can observe: the output, the error, the file on disk, the command exit code. Implementation approach lives in "Implementation guidelines", not in AC — unless the PRD §9 architecture section pins the approach as a firm constraint.
+
+- ❌ "Step handlers are resolved through a registry abstraction rather than switch logic."
+- ✅ "A new Step type can be registered without changing any file under `src/features/workflow-runtime/core/`. A test proves this by registering a test-only handler from the test file itself."
+
+### 5. Acceptance criteria can be checked today, in this PR
+
+If an AC requires other work to exist first, it belongs in a later ticket — not here. "Passes once the CLI is available" isn't an AC, it's a mis-sliced ticket.
+
+- ❌ "Demo app extraction passes once `riviere workflow run` is available."
+- ✅ That AC belongs in a later ticket whose Dependencies section says "depends on #&lt;cli-ticket&gt; being **released to npm**".
+
+### 6. No filler — but depth is mandatory
+
+"Strip bloat" means remove boilerplate. "Testing strategy → Performance: not in scope" is filler; delete it. A section that doesn't apply gets omitted. Headings with "n/a" underneath are noise.
+
+Depth is different from length. A Context section with three paragraphs and two YAML blocks isn't bloated — it's doing the teaching job the ticket exists to do. Cut padding, not substance.
+
+- ❌ "Performance: not in scope for this task." (noise — delete the Performance subsection)
+- ❌ "Embedded reasoning: Why: to deliver the value. What: the thing described above. How: implement it." (padding — delete)
+- ✅ A dense, example-laden Context of any length.
+
+### 7. Capitalised domain terms are defined
+
+Capitalised domain terms (Workflow, Step, Source of Truth, Canonical ID, Mappings File, Component, Link, Domain, Upsert, noOverwrite, etc.) are either:
+
+- linked to the glossary entry inline the first time they appear, **or**
+- defined in a "Glossary" section at the bottom of the ticket if the term isn't in the glossary yet.
+
+The glossary lives at `docs/architecture/domain-terminology/contextive/definitions.glossary.yml`. If you define a term inline, also flag that the glossary needs updating in a follow-up.
+
+### 8. Titles describe the result, not the work
+
+The title is a sentence that says what the ticket delivers, in plain English. Milestone codes (`M1-D1.1`) go on **labels**, not in the title. Someone scanning `gh issue list` should understand what each ticket ships from the title alone.
+
+- ❌ `[M1-D1.1] Package foundation for riviere-workflow`
+- ✅ `riviere-workflow package exists with boundary rules and an empty step registry`
+- ✅ `riviere-builder supports typed upsert methods so multi-source extraction can build one graph together`
+
+Label format: `milestone:M1-D1.1` and `prd:phase-13-extraction-workflows`.
+
+---
+
+## Concrete examples are mandatory
+
+Words are not enough. An engineer cannot learn what to build from prose alone. Every ticket that touches config, YAML, code signatures, CLI commands, or data shapes **must** show real examples inline.
+
+### What "real" means
+
+- **YAML blocks** with real field names, real values, real indentation. Not `field: <value>`.
+- **TypeScript signatures** with real types, real generics, real parameter names. Not "a function that takes a config".
+- **CLI invocations** with the flags and the expected stdout / stderr. Not "the command runs and succeeds".
+- **Before / after payloads** for any transformation — JSON in, JSON out, side by side.
+- **Expected log lines** for any runtime behaviour — the actual string, not "a log event is emitted".
+
+### The reference for density
+
+The [Golden Example](#golden-example-context-section) at the bottom of this file shows the density expected of a non-trivial ticket: a Context that teaches the domain, shows the existing API, shows what fails today, shows the new behaviour, and shows concrete before/after payloads. If you can't produce examples at that density, you don't understand the ticket well enough to write it. Go back to the PRD and the architecture annex.
+
+### Where examples go
+
+- **Context / What this ticket is about** — a full before/after of what the system does today vs. what it does after this ticket ships. Multiple code blocks are normal.
+- **What "done" looks like (AC)** — the exact error message, the exact file path, the exact command output, the exact warning payload shape.
+- **Implementation guidelines** — TypeScript signatures, YAML shapes, sample payloads.
+- **How to verify** — the exact commands to run and the exact output expected.
+
+---
+
+## Required sections
+
+Every task has these sections. Omit a section only when the rules above allow it. Do not add sections that have nothing to say.
+
+1. **Milestone + PRD reference** — one or two lines at the top: PRD filename, milestone code, section numbers.
+2. **What this ticket is about (Context)** — full teaching of the subject. Teaches the domain, shows current state, names the gap, shows a concrete before/after. No word-count cap. (Principle 2.)
+3. **What "done" looks like (Acceptance criteria)** — bullets. Each one observable, measurable, checkable at close. Inline code for exact strings, file paths, command output. (Principles 3, 4, 5.)
+4. **Edge cases** — condition → expected behaviour. Kept separate from the happy-path AC.
+5. **Implementation guidelines** — where the code goes, firm vs. flexible decisions (cite PRD §9), public API shape, existing patterns to reuse, role enforcement notes.
+6. **Testing strategy** — what to unit-test / integration-test / edge-case-test. Omit a level if it doesn't apply. Don't write "not in scope". (Principle 6.)
+7. **Dependencies** — other issues this depends on, each with a one-line reason. If a dependency must be **released** (not just merged), say so explicitly. Omit the whole section if there are no dependencies.
+8. **How to verify** — exact commands + expected output. Spot-check steps where useful.
+9. **Out of scope** — explicit list. Prevents review drift.
+10. **Glossary** — every capitalised domain term with a link to the glossary entry or an inline definition. (Principle 7.)
+
+`Embedded reasoning` (why / what / how) is only included when Context and Implementation guidelines don't already cover it. If they do, omit it — it's padding.
+
+---
+
+## Standard task body format
+
+Match this structure. Tone: plain English. No buzzwords. No padding.
+
+````markdown
+**Milestone:** <PRD title> — M<x> (D<x.x>)
+**PRD:** `docs/project/PRD/active/<PRD-filename>.md` §<section-refs>
+
+---
+
+## What this ticket is about
+
+<Teach the subject. What the domain concept is. How the system behaves
+today (show it with real code/YAML, not prose). The gap this ticket
+closes. A concrete before/after with real payloads, real errors, real
+log lines. Multiple paragraphs and code blocks are normal.>
+
+<See the Golden Example at the bottom of create-tasks.md for the right
+density.>
+
+---
+
+## What "done" looks like
+
+<Every bullet below is checkable at ticket close using only artifacts
+this ticket produces.>
+
+### <subsection, e.g. "Typed upsert methods on RiviereBuilder">
+
+- <AC with real signatures / real messages / real file paths>
+- <AC>
+
+### <subsection>
+
+- <AC>
+
+- A mergeable PR is ready for user review via `/complete-task`.
+
+---
+
+## Edge cases
+
+- <Condition> → <Expected behaviour>
+- <Condition> → <Expected behaviour>
+
+---
+
+## Implementation guidelines
+
+### Where the code lives
+
+<Real package paths, real file names, which existing collaborators to
+extend.>
+
+### Public surface
+
+<Exports and their types.>
+
+### Firm constraints (from PRD §9)
+
+- <firm constraint>
+- <firm constraint>
+
+### Flexible decisions
+
+- <thing the implementer may iterate on>
+
+### Role enforcement
+
+<If the package is role-enforced, list expected roles for new elements
+and point at .riviere/role-enforcement.config.ts.>
+
+---
+
+## Testing strategy
+
+### Unit
+
+- <what to test>
+
+### Integration
+
+- <what to test>
+
+### Edge cases
+
+- <what to test>
+
+<Omit any subsection that doesn't apply. Don't write "not in scope".>
+
+---
+
+## Dependencies
+
+- Depends on #<N>: <one-line reason>
+- Depends on #<N> being **released to npm** (not just merged): <reason>
+
+<Omit this section if there are no dependencies.>
+
+---
+
+## How to verify
+
+```bash
+<exact commands>
+```
+
+<Expected output / pass criteria / spot-check snippet.>
+
+---
+
+## Out of scope
+
+- <thing that's explicitly not in this ticket>
+- <thing>
+
+---
+
+## Glossary
+
+- **<Term>** — <link to glossary entry OR inline definition>
+- **<Term>** — <link or inline>
+````
+
+After the ticket is created, `plan-review` appends an **Architectural Annex** section automatically (see workflow step 14). Do not write the annex by hand.
+
+---
+
+## When the PRD isn't detailed enough
+
+If you cannot fill every required section with concrete detail, **stop**. Don't create the ticket.
+
+Push back with:
+
+```text
+Cannot create ticket '<title>' — PRD detail is insufficient.
+
+Missing information for:
+- <Section>: <specific questions that need answers>
+
+Please update the PRD to answer these, then retry ticket creation.
+```
+
+Reasons the PRD is insufficient:
+
+- Status is "Awaiting Architecture Review" → run `/arc-prd` first.
+- No `Architecture: see §9.X` reference for the deliverable → §9 is incomplete for this area.
+- No clear behaviour for a boundary condition → requirements under-specified.
+- You cannot produce a concrete YAML / code / output example → the behaviour isn't nailed down.
+- Testing strategy is hand-wavy → AC are too vague.
+
+---
+
+## Workflow for creating a task
+
+1. **Read the active PRD** in `docs/project/PRD/active/` and any architecture documents it links to.
+2. **Read PRD §9 (Architecture).** This section carries the structural decisions that feed "Implementation guidelines". Read the §9.X subsection referenced by the deliverable you're ticketing.
+3. **Read the glossary** at `docs/architecture/domain-terminology/contextive/definitions.glossary.yml`. Note which capitalised terms from the deliverable are already defined and which you'll need to define inline.
+4. **Read the [Golden Example](#golden-example-context-section).** Match its density.
+5. **Example Mapping.** Map the deliverable into Story / Rules / Examples / Questions. Spike or resolve any blocker questions before drafting the ticket.
+6. **Check PRD status is Approved.** If status is "Awaiting Architecture Review", stop and run `/arc-prd` first.
+7. **Discover edge cases.** Apply the checklists in `docs/conventions/testing.md`.
+8. **Pull architectural context into AC and Implementation guidelines.** Firm vs. flexible markers from PRD §9 become firm-constraint bullets. Structural invariants become AC bullets.
+9. **Write the Context section as a teaching.** Real code, real YAML, real before/after. No thin prose. This is where most tickets fail — do not skimp.
+10. **Write AC.** Each one observable, measurable, checkable today.
+11. **Fill Implementation guidelines, Testing strategy, Dependencies, How to verify, Out of scope, Glossary.** Follow the template.
+12. **Apply the eight-principles check.** Walk each one top to bottom. Rewrite until the ticket passes.
+13. **Validate against INVEST** (see below).
+14. **Create the task.** Run `./scripts/create-task.sh` and capture the returned issue number.
+15. **Append the architectural annex via `plan-review` (Opus subagent).** Spawn a subagent with model `opus` and the prompt: "Read `packages/riviere-role-enforcement/skills/plan-review.md` and run its full workflow against GitHub issue #&lt;N&gt;. The skill will write directly to the issue body via `gh issue edit`. Return only the one-line summary from the skill." Relay that one-line summary to the user verbatim. Do not fetch, read, paraphrase, or reformat the annex content yourself — `plan-review` writes it directly to the issue.
+
+---
+
+## Example Mapping (pre-ticket validation)
+
+Four cards per task:
+
+- **Story** — one sentence: what the ticket delivers.
+- **Rules** — 3–4 business constraints maximum.
+- **Examples** — for each rule: happy path, edge cases, error scenarios in Given / When / Then.
+- **Questions** — unknowns. Resolve or spike before drafting the ticket.
+
+### Edge-case discovery
+
+Use these heuristics with the checklists in `docs/conventions/testing.md`:
+
+| Heuristic | What to check |
 |-----------|---------------|
-| **Count** | 0, 1, Many — empty collections, single item, multiple items |
-| **Boundary** | Min/max values, just before/after limits, off-by-one |
-| **Data Types** | null, undefined, empty string, whitespace, special chars, Unicode |
-| **State** | Concurrent modifications, race conditions, sequence violations |
+| **Count** | 0, 1, Many — empty, single, multiple |
+| **Boundary** | min / max, just-inside / just-outside, off-by-one |
+| **Types** | null, undefined, empty string, whitespace, special chars, Unicode |
+| **State** | concurrent modifications, race conditions, sequence violations |
 
-**Reference:** See `docs/conventions/testing.md` → "Edge Case Checklists" for comprehensive lists by data type (Numbers, Strings, Collections, Dates, Null/Undefined, Domain-Specific, Violated Domain Constraints).
-
-**Output Format:** Edge Case Scenarios section using condition → expected behavior format.
+Edge cases go in the "Edge cases" section as `condition → expected behaviour`.
 
 ---
 
-## Task Size Guidelines
+## Task size
 
-**Target size:** Up to one week of effort. Tasks can span multiple deliverables when logically related.
-
-**Why larger tasks?** Claude Code works best with longer autonomous sessions. Larger tasks reduce:
-- User interruptions for task transitions
-- CodeRabbit review roundtrips (one PR per task vs many small PRs)
-- Context switching overhead
+**Target:** up to one week of work per ticket. Larger tickets are fine when the work is logically a single unit — fewer PR round-trips, less context switching.
 
 **Split when:**
-- Scope exceeds one week
-- Unrelated concerns are bundled together
-- Explicit blocking dependencies exist between parts
-- Contains disparate acceptance criterion clusters with no logical connection
-- Follows horizontal architecture layers instead of vertical flow
+- The work is bigger than a week.
+- Two unrelated concerns are bundled together.
+- One part blocks another with a hard dependency.
+- The AC bullets form clusters with no logical connection between them.
+- The ticket slices by horizontal layer (repo-then-service-then-API) instead of a vertical slice of behaviour.
 
----
+### SPIDR (use when a ticket is oversized)
 
-## SPIDR Splitting Framework
-
-Apply when tasks are oversized:
-
-| Category | Division Method | Sample Application |
-|----------|-----------------|---------------------|
+| Category | How to split | Example |
+|----------|--------------|---------|
 | **Paths** | User journey branches | Different payment methods |
-| **Interfaces** | Platform/UI variations | Web versus mobile implementations |
-| **Data** | Content type differences | Image versus document handling |
-| **Rules** | Business logic tiers | Basic versus advanced validation |
+| **Interfaces** | Platform or UI variants | Web vs. mobile |
+| **Data** | Content-type differences | Image vs. document |
+| **Rules** | Business-logic tiers | Basic vs. advanced validation |
 | **Spikes** | Research-first items | Investigation before development |
 
 ---
 
-## Quality Naming Convention
+## INVEST check
 
-Format: `[M<milestone>-D<deliverable>] [Verb] [Target] [Result/Constraint]`
+Confirm all six before creating the ticket:
 
-**Acceptable examples:**
-- `[M2-D2.1] Add date range filter to transaction search`
-- `[M3-D3.2] Implement detection predicates for TypeScript extraction`
-- `[M4-D4.1] Add riviere extract command to CLI`
-
-**Anti-patterns to avoid:**
-- Vague phrases like "Build X system"
-- Combined work: "X and Y"
-- Passive language: "Setup" or "Implement" without specificity
-
----
-
-## INVEST Evaluation Checklist
-
-Confirm all criteria before task creation:
-
-| Factor | Assessment | Failure Action |
-|--------|-----------|----------------|
-| **Independence** | Delivers standalone value? | Restructure dependencies |
-| **Negotiability** | Scope adjustable with stakeholders? | Define rigid boundaries |
-| **Value** | User-facing or stakeholder benefit? | Reframe or spike separately |
-| **Estimability** | Confident sizing possible? | Reduce scope |
-| **Smallness** | Completable within one week? | Decompose further |
-| **Testability** | Concrete acceptance criteria exist? | Write verification examples |
+| Factor | Check | If it fails |
+|--------|-------|-------------|
+| **Independent** | Delivers standalone value? | Restructure dependencies |
+| **Negotiable** | Scope adjustable with stakeholders? | Define firm boundaries |
+| **Valuable** | User- or stakeholder-facing benefit? | Reframe or spike separately |
+| **Estimable** | Confident sizing possible? | Reduce scope |
+| **Small** | Finishable within one week? | Decompose further |
+| **Testable** | AC describes what you see (not how it's built) AND every AC is checkable at close using only this ticket's artifacts? | Rewrite AC |
 
 ---
 
-## Standard Task Document Format
+## Documentation tasks (tasks that change `apps/docs/`)
 
-```markdown
-## Deliverable: [User-visible outcome]
+If the ticket creates or modifies pages in `apps/docs/`, add this context and these AC.
 
-### Context
-**PRD:** `docs/project/PRD/active/[PRD-filename].md` — [Section reference, e.g., M2 D2.1]
-
-[Business/architectural motivation - why this task matters]
-
-### Traceability
-- **PRD Section:** [e.g., M2-D2-2 "Create default extraction config"]
-- **Functional Requirement:** [e.g., FR-003 "Support zero-config extraction"]
-- **Success Criteria:** [e.g., SC-002 "Developer can extract without custom config"]
-
-### Acceptance Criteria
-- ✓ [Happy path requirement]
-- ✓ [Key validation]
-- ✓ [Essential behavior]
-- ✓ A mergeable PR is ready for user review, created via /complete-task
-
-### Edge Case Scenarios
-- [Condition] → [Expected behavior]
-- [Condition] → [Expected behavior]
-- [Condition] → [Expected behavior]
-
-### Implementation Guidelines
-- **Architecture:** [Relevant decisions from PRD §9, citing subsection numbers]
-- **Firm constraints:** [Decisions marked firm in §9 — must be followed exactly]
-- **Flexible decisions:** [Decisions marked flexible in §9 — direction set, details can iterate]
-- Use [existing pattern] from `path/to/file`
-- Apply [design principle] from `docs/conventions/software-design.md`
-- [Technical approach with rationale]
-
-### Embedded Reasoning
-**Why:** [Business motivation]
-**What:** [Technical solution description]
-**How:** [Implementation approach]
-
-### Testing Strategy
-- **Unit:** [What to unit test]
-- **Integration:** [What to integration test]
-- **Edge Cases:** [Specific edge case tests from Edge Case Scenarios]
-- **Performance:** [Performance benchmarks if applicable]
-
-### Dependencies
-Depends on #X #Y
-
-### Verification
-[Specific test commands or demonstration steps]
-```
-
----
-
-## Validation Gate: Push Back When Incomplete
-
-**CRITICAL:** If you cannot complete ALL 10 sections with specific details, STOP.
-
-Do NOT create the task. Instead, push back:
-
-```text
-Cannot create task '[task name]' - insufficient detail in PRD.
-
-Missing information for:
-- [Section name]: [Specific questions that need answers]
-
-Please update PRD to clarify these points before task creation.
-```
-
-**This gate prevents:**
-- Half-baked tasks
-- Mid-implementation discovery
-- Unclear requirements
-- Missing edge cases
-
-**Examples of insufficient detail:**
-- PRD status is "Awaiting Architecture Review" → Architecture review must happen first (run `/arc-prd`)
-- Deliverable has no `Architecture: see §9.X` reference → Architecture section incomplete for this deliverable
-- Cannot fill Implementation Guidelines → Architecture decisions missing for this area
-- Cannot fill Edge Case Scenarios → Requirements don't clarify behavior for boundary conditions
-- Cannot fill Embedded Reasoning → "Why" is unclear
-- Cannot fill Testing Strategy → Acceptance criteria too vague
-
-**Action:** Update PRD, then retry task creation.
-
----
-
-## Implementation Workflow
-
-1. **Read context:** Active PRD from `docs/project/PRD/active/` + architecture docs referenced in PRD
-2. **Read PRD Architecture section (§9):** This section contains structural decisions and domain model decisions made during architecture review. It is the primary source for Implementation Guidelines and Embedded Reasoning.
-3. **Follow architecture references on deliverables:** Each deliverable has `Architecture: see §9.X` references. Read those specific subsections — they define the structural constraints for that deliverable's tasks.
-4. **Apply Example Mapping:** Map requirements using Story/Rules/Examples/Questions framework
-5. **Validate architecture:** Confirm PRD status is "Approved" (meaning architecture review is complete). If status is "Awaiting Architecture Review", STOP — architecture review must happen first.
-6. **Discover edge cases:** Apply checklists from `docs/conventions/testing.md`
-7. **Embed architectural context:** For each task, extract the relevant architecture decisions from §9 and inject them into:
-   - **Implementation Guidelines** — package placement, layer assignments, dependency constraints, firm vs flexible markers
-   - **Embedded Reasoning** — reference architecture rationale (why this structure, what skill principle drives it)
-   - **Acceptance Criteria** — structural constraints that must hold (e.g., "no domain imports in entrypoint", "invariant X enforced by aggregate Y")
-8. **Structure acceptance criteria:** Happy path as checkboxes (separate from edge cases)
-9. **Complete all sections:** Follow Standard Task Document Format
-10. **Apply validation gate:** If ANY section incomplete → STOP and push back
-11. **Validate against INVEST:** Confirm Independence, Negotiability, Value, Estimability, Smallness, Testability
-12. **Create task:** Run `./scripts/create-task.sh` with completed content. Capture the returned issue number.
-13. **Append architectural annex via plan-review (Opus subagent):** Spawn a subagent with model `opus` and the prompt: "Read `packages/riviere-role-enforcement/skills/plan-review.md` and run its full workflow against GitHub issue #<N>. The skill will write directly to the issue body via `gh issue edit`. Return only the one-line summary from the skill." Relay the subagent's one-line summary to the user verbatim. Do not fetch, read, paraphrase, or reformat the annex content yourself — plan-review writes it directly to the issue.
-
----
-
-## Documentation Task Detection
-
-**When a task involves creating or modifying pages in `apps/docs/`**, apply these additional rules:
-
-### Detection
-
-A task is a documentation task if ANY of these apply:
+### Detection — any of these
 
 - Deliverable mentions documentation, docs pages, or reference pages
-- Implementation involves files in `apps/docs/`
+- Implementation touches files in `apps/docs/`
 - PRD deliverable references the docs site
 
-### Additional Context to Embed
+### Extra context to embed
 
-Read `apps/docs/CLAUDE.md` and include in the task:
+Read `apps/docs/CLAUDE.md` and include:
 
-1. **User Journey:** Which journey does this page serve? Quote the specific journey from CLAUDE.md's User Journeys table. If no journey fits, flag this — the page may not belong.
-2. **Page Format:** Which page type is this? (reference, workflow step, overview). Reference the canonical example from CLAUDE.md.
-3. **Cross-Linking Requirements:** What pages should link TO this page? What pages should this page link to?
+1. **User journey** — which journey does this page serve? Quote the specific journey from the User Journeys table. If no journey fits, flag it — the page may not belong.
+2. **Page format** — which page type (reference, workflow step, overview). Reference the canonical example from CLAUDE.md.
+3. **Cross-links** — what pages should link to this page, and what pages should it link to.
 
-### Documentation-Specific Acceptance Criteria
+### Extra AC
 
-Add these to the task's Acceptance Criteria section:
+- ✓ Page serves a specific user journey (state which one).
+- ✓ Format matches the canonical example for its page type.
+- ✓ All terms match `docs/architecture/domain-terminology/contextive/definitions.glossary.yml`.
+- ✓ "See also" section has 3–5 cross-links using absolute paths.
+- ✓ No manually edited auto-generated files.
+- ✓ `/documentation-review` passes with no ❌ items.
 
-- ✓ Page serves a specific user journey (state which one)
-- ✓ Format matches canonical example for page type (reference → predicates.md, workflow → step-1-understand.md)
-- ✓ All terms from `docs/architecture/domain-terminology/contextive/definitions.glossary.yml`
-- ✓ See Also section with 3-5 cross-links using absolute paths
-- ✓ No manually edited auto-generated files
-- ✓ `/documentation-review` passes with no ❌ items
-
-### Documentation-Specific Verification
-
-Add to the task's Verification section:
+### Extra verification
 
 ```bash
-pnpm nx build docs        # Pages render without errors
-/documentation-review      # All three review dimensions pass
+pnpm nx build docs     # pages render without errors
+/documentation-review   # all three review dimensions pass
 ```
 
 ---
 
-## Pre-Finalization Validation
+## Final checks before creating
 
-Confirm before task completion:
-
-- **Sizing:** One week maximum effort threshold
-- **Naming:** `[M#-D#.#]` + specific verb + target + outcome
-- **Architecture:** Vertical slice through all necessary layers
-- **Standards:** Passes all six INVEST criteria
-- **Documentation:** Engineer can implement without clarification
-- **PRD Reference:** Explicit file path included in Context section
-- **Edge Cases:** Comprehensive scenarios identified (not just happy path)
-- **Traceability:** Clear links to PRD sections and requirements
-- **Role Enforcement:** If task touches enforced packages, Role Enforcement section is complete with canonical config, expected roles/locations, and any new role proposals
+- **Size** — fits in a week.
+- **Title** — describes the result, no milestone code.
+- **Slice** — vertical through all necessary layers.
+- **INVEST** — all six pass.
+- **Self-contained** — a new engineer can build it from the ticket alone.
+- **Concrete examples** — real YAML / TypeScript / CLI output / before-after wherever they apply.
+- **PRD reference** — explicit filename + section numbers at the top.
+- **Edge cases** — covered, not just the happy path.
+- **Glossary** — every capitalised domain term linked or defined inline.
+- **Role enforcement** — if the package is enforced, the Implementation guidelines name expected roles and point at the config file.
 
 ---
 
-## Creating Tasks
-
-For each task, run:
+## Creating the ticket
 
 ```bash
-./scripts/create-task.sh "<milestone>" "[M<milestone>-D<deliverable>] <title>" "<body>"
+./scripts/create-task.sh "<milestone>" "<result-first title>" "<body>"
 ```
 
-- **Milestone** = PRD filename without `PRD-` prefix and `.md` extension
-- **Title format:** `[M<milestone>-D<deliverable>] <action-oriented title>`
-- **Body:** Full task content following the Standard Task Document Format above
+- **Milestone** = PRD filename without the `PRD-` prefix and `.md` extension. Becomes the milestone label.
+- **Title** = the result-first sentence. No milestone code prefix — that's a label.
+- **Body** = the full ticket content in the template above.
 
-If a task depends on another, include `Depends on #X` in the Dependencies section.
+For dependencies, say "depends on #&lt;N&gt;" with a one-line reason. If the dependency must be **released to npm** (not just merged), say so explicitly.
 
 ---
 
-**Note:** Tasks can include "full implementation" of a feature if it fits within a one-week scope. Decompose only when scope exceeds one week or contains unrelated concerns.
+**One last thing:** a ticket can hold the full implementation of a feature when it fits in a week. Decompose only when the ticket exceeds a week or bundles unrelated concerns. The Golden Example below is a full-feature ticket and still fits. Use it as the pattern.
+
+---
+
+## Golden Example: Context section
+
+The section below is an illustrative "What this ticket is about" section for a non-trivial ticket — in this case, adding typed `upsert*` methods to the `riviere-builder` package so multi-source extraction can build a single graph together. It shows the right density for any ticket of comparable scope: real code blocks, real YAML, real before/after payloads, real error messages. Match this depth.
+
+> ## What this ticket is about
+>
+> Today, `RiviereBuilder` assumes one extractor writes each Component. Phase 13 changes that: a single graph is built from several extractors (TypeScript code, EventCatalog specs, AsyncAPI specs, AI enrichment) that often name the same thing. When two of them try to add the same Component, the builder needs to **merge them**, not throw.
+>
+> This ticket gives the builder the exact capability it's missing: seven typed `upsert*` methods that either create a Component or merge fields into the existing one, plus a cooperative `noOverwrite` flag for AI callers that must never clobber values set by a trusted source.
+>
+> ### The builder today
+>
+> `RiviereBuilder` exposes seven strict `add*` methods — one per Component type — in `packages/riviere-builder/src/features/building/domain/builder-facade.ts`:
+>
+> ```typescript
+> addUI(input: UIInput): UIComponent
+> addApi(input: APIInput): APIComponent
+> addUseCase(input: UseCaseInput): UseCaseComponent
+> addDomainOp(input: DomainOpInput): DomainOpComponent
+> addEvent(input: EventInput): EventComponent
+> addEventHandler(input: EventHandlerInput): EventHandlerComponent
+> addCustom(input: CustomInput): CustomComponent
+> ```
+>
+> Each one throws `DuplicateComponentError` if the Component ID already exists. Phase 12 also added `enrichComponent(id, enrichment)` which merges a narrow set of fields (`entity`, `signature`, `_missing`), but only for components that already exist. There is no "add-or-merge" method, and the merge semantics that do exist only cover two fields.
+>
+> ### What goes wrong in Phase 13 without this change
+>
+> A Phase 13 Workflow composes extractors like this:
+>
+> ```yaml
+> steps:
+>   - name: extract-code
+>     type: code-extraction
+>     config: ./riviere-extract.config.yaml
+>
+>   - name: import-eventcatalog
+>     type: eventcatalog-import
+>     config: ./eventcatalog-import.yaml
+> ```
+>
+> Both the code extractor and the EventCatalog importer will independently discover the same canonical Event — for example `OrderPlaced` in domain `orders`, module `checkout`. Both try to add it. The second one crashes:
+>
+> ```text
+> DuplicateComponentError: component 'checkout.orders.event.OrderPlaced' already exists
+> ```
+>
+> The run aborts mid-way, part of the graph is written, the rest is not, and the user sees an error that blames the second extractor even though the real answer is "these two agree that this Component exists, merge their fields".
+>
+> Add AI on top of that. `ai-enrich` is supposed to **only fill in gaps** — if the code extractor already set `description: "Captures order placement"`, the AI must never overwrite that. Today there is no way to express "write this field only if it's unset".
+>
+> ### What this ticket changes
+>
+> Three observable changes, all in `riviere-builder`:
+>
+> 1. **Seven typed `upsert*` methods.** Same input types as the matching `add*` methods, plus an optional `UpsertOptions` argument. Each returns `{ component, created }` so the caller knows whether a new Component was created or an existing one was merged.
+> 2. **A `noOverwrite` flag.** When the caller passes `{ noOverwrite: true }`, already-set scalar fields are preserved. This is the additive-only mode AI steps will use.
+> 3. **Observability for merges and dedup.** A real scalar overwrite (last-wins) emits a structured `scalar-overwritten` warning. A duplicate `link()` / `linkExternal()` call emits a `duplicate-link-skipped` warning. These warnings are available on the existing `builder.warnings()` read surface for Workflow logging to consume.
+>
+> Plus two small cleanups the upsert story depends on:
+>
+> - `addSource()` and `addDomain()` become idempotent no-ops when the source/domain already exists.
+> - Same-ID / different-type collisions throw a new `ComponentTypeMismatchError` (never a silent cast).
+>
+> ### Before / after — concrete state
+>
+> **Before ticket, two-step Workflow fails:**
+>
+> Step 1 (`extract-code`) adds:
+>
+> ```json
+> {
+>   "id": "checkout.orders.event.OrderPlaced",
+>   "type": "event",
+>   "domain": "orders",
+>   "module": "checkout",
+>   "name": "OrderPlaced",
+>   "description": "Captured from OrderPlacedEvent class JSDoc",
+>   "signature": "OrderPlaced(orderId, customerId, total)"
+> }
+> ```
+>
+> Step 2 (`import-eventcatalog`) calls `addEvent(...)` with the same canonical ID and a richer `description`. Throws `DuplicateComponentError`. Run aborts.
+>
+> **After ticket, same two-step Workflow merges:**
+>
+> Step 2 calls `upsertEvent({ ...input, description: "Emitted when a customer completes checkout" })`. Return value:
+>
+> ```typescript
+> { component: EventComponent, created: false }
+> ```
+>
+> Resulting Component in the graph:
+>
+> ```json
+> {
+>   "id": "checkout.orders.event.OrderPlaced",
+>   "type": "event",
+>   "domain": "orders",
+>   "module": "checkout",
+>   "name": "OrderPlaced",
+>   "description": "Emitted when a customer completes checkout",
+>   "signature": "OrderPlaced(orderId, customerId, total)"
+> }
+> ```
+>
+> The `description` was last-wins overwritten (EventCatalog has higher priority). The `signature` came from code; EventCatalog didn't touch it, so it stays. A `scalar-overwritten` warning fires for the description field.
+>
+> **After ticket, ai-enrich run preserves existing values:**
+>
+> Step 3 (`ai-enrich`) calls `upsertEvent({ ...same ID..., description: "AI-proposed description" }, { noOverwrite: true })`. Because `description` is already set, the AI value is dropped. Return value is `{ component, created: false }`. No warning is emitted — `noOverwrite` skips are silent by design.
+
+That's the density. Every ticket about non-trivial behaviour deserves this kind of teaching-first Context.
