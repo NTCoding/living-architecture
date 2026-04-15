@@ -10,9 +10,9 @@ A full worked example is embedded at the bottom of this file as the [Golden Exam
 
 ---
 
-## Eight principles every task follows
+## Nine principles every task follows
 
-Every ticket is judged against these eight principles. If a ticket fails one, rewrite it.
+Every ticket is judged against these nine principles. If a ticket fails one, rewrite it.
 
 ### 1. Self-contained
 
@@ -41,8 +41,20 @@ See the [Golden Example](#golden-example-context-section) at the bottom of this 
 
 Every AC can be checked at the moment the ticket closes, using only things the ticket produces. No aspirations, no "works well", no "is clean". If you can't point at a file path, a command, or a specific observable behaviour, it's not an AC.
 
+**Banned summarising phrases.** If an AC contains any of these, it is not an AC — it is a category label. Rewrite it to show the actual output, error, or behaviour:
+
+- "surfaces X", "supports Y", "handles Z"
+- "with documented errors", "with the documented format", "with the expected output"
+- "per the PRD", "as specified", "as defined in §X", "matching the contract"
+- "fail-fast validation", "fails with clear errors" (without showing them)
+
+Every one of these phrases means "I know there's a behaviour here but I haven't written it down". Write it down.
+
 - ❌ "The registry is easy to extend."
 - ✅ "Calling `registry.resolve('unknown-type')` throws an `Error` with the message `no handler registered for step type 'unknown-type'`. A test under `packages/riviere-workflow/src/features/workflow-runtime/registry.spec.ts` asserts this."
+
+- ❌ "`riviere workflow validate <workflow-file>` exists and surfaces structural validation, step-config validation, compatibility failures, and runtime-prerequisite failures with documented errors."
+- ✅ Break it apart: one AC per failure class, each showing the exact stderr. See #348's "What 'done' looks like" for the shape — one AC for each of the four validation levels, each with the literal stderr block a test asserts byte-for-byte.
 
 ### 4. Acceptance criteria describe what you see, not how you build it
 
@@ -87,6 +99,39 @@ The title is a sentence that says what the ticket delivers, in plain English. Mi
 
 Label format: `milestone:M1-D1.1` and `prd:phase-13-extraction-workflows`.
 
+### 9. Inline, don't defer
+
+If the PRD, an ADR, or any other doc defines the **exact shape** of something this ticket produces — a summary block, an error message, a log event, a YAML schema, a CLI output — the ticket reproduces it **inline**. A reference alone fails the self-contained rule.
+
+A ticket reader implementing the work should never need to open the PRD to find the format of what they're building. "See §3.9.3 for the summary block" is a failure. "Here is the summary block, byte-for-byte — see §3.9.3 for the design rationale" is correct.
+
+This applies to:
+
+- Error messages and stderr output (reproduce the literal string).
+- Log event shapes (reproduce the JSON, including field order if it matters).
+- CLI summary/help output (reproduce the exact multi-line block).
+- YAML / JSON schema contracts (reproduce the relevant schema excerpt).
+- API signatures and return shapes (reproduce the TypeScript interface).
+- File formats the ticket writes (reproduce a real example file).
+
+**Bad — defers to PRD:**
+
+> `workflow run` prints the workflow summary block from PRD §3.9.3 with per-step durations, counters, output path, and log path.
+
+**Good — inlines the exact block, then references PRD for rationale:**
+
+> `workflow run` prints the block below to stdout on success, byte-for-byte (a golden-output test normalises the time tokens and asserts the rest). Design rationale: PRD §3.9.3.
+>
+> ```text
+> Workflow 'ecommerce-architecture' completed in 47.2s
+>   extract-orders         2.1s    imported 18 components, 24 links
+>   …
+>   Output: ./.riviere/architecture.json
+>   Log:    ./.riviere/workflow.log.ndjson
+> ```
+
+If the ticket can't reproduce the format because the PRD itself doesn't pin it, the PRD is under-specified — stop and escalate (see "When the PRD isn't detailed enough").
+
 ---
 
 ## Concrete examples are mandatory
@@ -111,6 +156,19 @@ The [Golden Example](#golden-example-context-section) at the bottom of this file
 - **What "done" looks like (AC)** — the exact error message, the exact file path, the exact command output, the exact warning payload shape.
 - **Implementation guidelines** — TypeScript signatures, YAML shapes, sample payloads.
 - **How to verify** — the exact commands to run and the exact output expected.
+
+### CLI tickets — extra requirements
+
+If the ticket ships a command, subcommand, or flag, it **must** include all of:
+
+1. **The exact invocation.** `riviere workflow run ./path/to/workflow.yaml --skip-ai` — not "running the command".
+2. **The exact success output** on stdout, as a fenced code block. Include every line the user will see. If the output is non-trivial (a summary block, a report), golden-output test against a fixture.
+3. **The exact failure output** on stderr, one block **per error class** the ticket promises to produce. A single bullet covering "four validation levels" is a failure — split it into four separate blocks, one per level.
+4. **The exact exit codes.** `0` for success, `1` for failure; if any other exit code is used (`2` for usage error, `3` for something-specific), name it and the condition.
+5. **What's written to disk**, if anything, including the path and whether it's created/overwritten on failure.
+6. **Flag matrix**, if the command has flags. For every flag, the behaviour shown concretely. `--skip-ai`: skips AI steps entirely, omits them from the summary, does not require the AI CLI on `PATH`. `--dry-run`: prints the would-be prompt for AI steps to stdout, skips the invocation, shows `would-send` in the summary row. Each must have its own AC bullet with an example block, not a prose description.
+
+A CLI ticket without these is not ready. See #348's "Concrete: what `workflow validate` prints" and "Concrete: what `workflow run` prints" sections for the expected shape.
 
 ---
 
@@ -299,7 +357,7 @@ Reasons the PRD is insufficient:
 9. **Write the Context section as a teaching.** Real code, real YAML, real before/after. No thin prose. This is where most tickets fail — do not skimp.
 10. **Write AC.** Each one observable, measurable, checkable today.
 11. **Fill Implementation guidelines, Testing strategy, Dependencies, How to verify, Out of scope, Glossary.** Follow the template.
-12. **Apply the eight-principles check.** Walk each one top to bottom. Rewrite until the ticket passes.
+12. **Apply the nine-principles check.** Walk each one top to bottom. Rewrite until the ticket passes.
 13. **Validate against INVEST** (see below).
 14. **Create the task.** Run `./scripts/create-task.sh` and capture the returned issue number.
 15. **Append the architectural annex via `plan-review` (Opus subagent).** Spawn a subagent with model `opus` and the prompt: "Read `packages/riviere-role-enforcement/skills/plan-review.md` and run its full workflow against GitHub issue #&lt;N&gt;. The skill will write directly to the issue body via `gh issue edit`. Return only the one-line summary from the skill." Relay that one-line summary to the user verbatim. Do not fetch, read, paraphrase, or reformat the annex content yourself — `plan-review` writes it directly to the issue.
@@ -364,7 +422,7 @@ Confirm all six before creating the ticket:
 | **Valuable** | User- or stakeholder-facing benefit? | Reframe or spike separately |
 | **Estimable** | Confident sizing possible? | Reduce scope |
 | **Small** | Finishable within one week? | Decompose further |
-| **Testable** | AC describes what you see (not how it's built) AND every AC is checkable at close using only this ticket's artifacts? | Rewrite AC |
+| **Testable** | AC describes what you see (not how it's built), every AC is checkable at close using only this ticket's artifacts, AND no AC uses summarising phrases ("surfaces", "supports", "per the PRD") instead of the literal output? | Rewrite AC |
 
 ---
 
@@ -412,6 +470,9 @@ pnpm nx build docs     # pages render without errors
 - **INVEST** — all six pass.
 - **Self-contained** — a new engineer can build it from the ticket alone.
 - **Concrete examples** — real YAML / TypeScript / CLI output / before-after wherever they apply.
+- **No summarising verbs** — no AC contains "surfaces", "supports", "handles", "with documented X", "per the PRD", "as specified", or any variant. (Principle 3.)
+- **Inlined, not deferred** — every PRD-defined format (summary blocks, log schemas, error strings, CLI output) is reproduced in the ticket, not linked. (Principle 9.)
+- **CLI tickets** — every command/flag has: exact invocation, exact success stdout, exact stderr per error class, exact exit codes, on-disk side effects. (CLI addendum.)
 - **PRD reference** — explicit filename + section numbers at the top.
 - **Edge cases** — covered, not just the happy path.
 - **Glossary** — every capitalised domain term linked or defined inline.
