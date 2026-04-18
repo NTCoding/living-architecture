@@ -7,14 +7,15 @@ language: en-US
 reviews:
   profile: assertive
   request_changes_workflow: true
+  assess_linked_issues: true
   sequence_diagrams: true
   auto_review:
     enabled: true
   pre_merge_checks:
     docstrings:
-      mode: "off"
+      mode: 'off'
     issue_assessment:
-      mode: "warning"
+      mode: 'warning'
   tools:
     gitleaks:
       enabled: true
@@ -27,10 +28,10 @@ knowledge_base:
   code_guidelines:
     enabled: true
     filePatterns:
-      - "docs/conventions/software-design.md"
-      - "docs/conventions/anti-patterns.md"
-      - "docs/conventions/testing.md"
-      - "docs/conventions/standard-patterns.md"
-      - "docs/architecture/adr/ADR-002-allowed-folder-structures.md"
-      - "docs/architecture/overview.md"
-      - "docs/workflow/code-review.md"
+      - 'docs/conventions/software-design.md'
+      - 'docs/conventions/anti-patterns.md'
+      - 'docs/conventions/testing.md'
+      - 'docs/conventions/standard-patterns.md'
+      - 'docs/architecture/adr/ADR-002-allowed-folder-structures.md'
+      - 'docs/architecture/overview.md'
+      - 'docs/workflow/code-review.md'

@@ -7,7 +7,7 @@ import {
 
 export const addressingFeedbackState: ConcreteStateDefinition = {
   emoji: '🔧',
-  agentInstructions: 'states/addressing-feedback.md',
+  agentInstructions: 'states/addressing_feedback.md',
   canTransitionTo: ['REVIEWING', 'BLOCKED'],
   allowedWorkflowOperations: ['record-feedback-addressed'],
   forbidden: { write: true },
@@ -15,12 +15,9 @@ export const addressingFeedbackState: ConcreteStateDefinition = {
   transitionGuard: (ctx) => {
     if (!ctx.state.feedbackAddressed)
       return fail('Feedback not addressed. Run record-feedback-addressed first.')
-    /* v8 ignore next 2 -- ?? 0 fallbacks are defensive; counts are always set when feedbackAddressed is true */
-    const unresolved = ctx.state.feedbackUnresolvedCount ?? 0
-    const addressed = ctx.state.feedbackAddressedCount ?? 0
-    if (addressed < unresolved)
+    if (!ctx.state.feedbackClean)
       return fail(
-        `Only ${addressed} of ${unresolved} feedback threads addressed. Address all threads before transitioning.`,
+        'PR feedback is not yet clear. Resolve all feedback, ensure no CHANGES_REQUESTED review remains, then run record-feedback-addressed again.',
       )
     return pass()
   },
@@ -29,6 +26,5 @@ export const addressingFeedbackState: ConcreteStateDefinition = {
     ...state,
     feedbackAddressed: false,
     feedbackClean: false,
-    feedbackAddressedCount: undefined,
   }),
 }

@@ -1,6 +1,6 @@
 # dev-workflow-v2
 
-An event-sourced state machine plugin for Claude Code that enforces a structured task lifecycle: implement, verify, review, submit PR, await CI, check feedback, reflect, complete.
+An event-sourced state machine plugin for Claude Code that enforces a structured task lifecycle: implement, verify, review, submit PR, await CI, await PR feedback, reflect, complete.
 
 ## How to Start
 
@@ -47,10 +47,10 @@ stateDiagram-v2
     REVIEWING --> SUBMITTING_PR : all reviews passed
     REVIEWING --> IMPLEMENTING : review failed
     SUBMITTING_PR --> AWAITING_CI
-    AWAITING_CI --> CHECKING_FEEDBACK : CI passed
+    AWAITING_CI --> AWAITING_PR_FEEDBACK : CI passed
     AWAITING_CI --> IMPLEMENTING : CI failed
-    CHECKING_FEEDBACK --> REFLECTING : no feedback
-    CHECKING_FEEDBACK --> ADDRESSING_FEEDBACK : feedback exists
+    AWAITING_PR_FEEDBACK --> REFLECTING : no feedback
+    AWAITING_PR_FEEDBACK --> ADDRESSING_FEEDBACK : feedback exists
     ADDRESSING_FEEDBACK --> REVIEWING
     REFLECTING --> COMPLETE
     COMPLETE --> [*]
@@ -59,7 +59,7 @@ stateDiagram-v2
     REVIEWING --> BLOCKED
     SUBMITTING_PR --> BLOCKED
     AWAITING_CI --> BLOCKED
-    CHECKING_FEEDBACK --> BLOCKED
+    AWAITING_PR_FEEDBACK --> BLOCKED
     ADDRESSING_FEEDBACK --> BLOCKED
     REFLECTING --> BLOCKED
     BLOCKED --> IMPLEMENTING : returns to pre-blocked state
@@ -77,8 +77,8 @@ Most of the workflow is automated. You interact at these points:
 
 ## Troubleshooting
 
-| Problem | Where to look |
-|---------|---------------|
-| Workflow state seems wrong | Event store: `~/.claude/workflow-events.db` |
+| Problem                       | Where to look                                          |
+| ----------------------------- | ------------------------------------------------------ |
+| Workflow state seems wrong    | Event store: `~/.claude/workflow-events.db`            |
 | Hook errors / silent failures | Error log: `~/.claude/dev-workflow-v2-hook-errors.log` |
-| Stale NX cache | Run `pnpm nx reset` |
+| Stale NX cache                | Run `pnpm nx reset`                                    |

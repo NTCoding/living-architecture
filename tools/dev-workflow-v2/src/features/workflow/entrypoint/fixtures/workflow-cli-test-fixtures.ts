@@ -12,6 +12,7 @@ import { WORKFLOW_DEFINITION } from '../../infra/persistence/workflow-definition
 import {
   ROUTES, PRE_TOOL_USE_POLICY 
 } from '../workflow-cli'
+import { STATE_STEPS } from './workflow-cli-state-steps-test-fixtures'
 
 const runner = createWorkflowRunner({
   workflowDefinition: WORKFLOW_DEFINITION,
@@ -28,12 +29,14 @@ export type TestContext = {
 }
 
 export function buildTestContext(
-  overrides: Partial<{ readonly sessionId: string }> = {},
+  overrides: Partial<{
+    readonly sessionId: string
+    readonly getPrFeedback: WorkflowDeps['getPrFeedback']
+  }> = {},
 ): TestContext {
   const tempDir = mkdtempSync(join(tmpdir(), 'wf-cli-'))
   const dbPath = join(tempDir, 'test.db')
   const store = createStore(dbPath)
-
   const sessionId = overrides.sessionId ?? 'test-sess'
 
   const engineDeps: WorkflowEngineDeps = {
@@ -54,10 +57,15 @@ export function buildTestContext(
       changedFilesVsDefault: ['src/test.ts'],
       hasCommitsVsDefault: true,
     }),
-    getPrFeedback: () => ({
-      unresolvedCount: 0,
-      threads: [],
-    }),
+    getPrFeedback:
+      overrides.getPrFeedback ??
+      (() => ({
+        reviewDecision: null,
+        coderabbitReviewSeen: true,
+        unresolvedCount: 0,
+        threads: [],
+      })),
+    sleepMs: () => undefined,
     now: () => '2024-01-01T00:00:00Z',
   }
 
@@ -85,73 +93,8 @@ export function cleanupDb(dbPath: string): void {
 }
 
 export function progressToState(ctx: TestContext, targetState: string): void {
-  const stateSteps: Readonly<Record<string, readonly (readonly string[])[]>> = {
-    REVIEWING: [
-      ['record-issue', '1'],
-      ['transition', 'REVIEWING'],
-    ],
-    SUBMITTING_PR: [
-      ['record-issue', '1'],
-      ['transition', 'REVIEWING'],
-      ['record-architecture-review-passed'],
-      ['record-code-review-passed'],
-      ['record-bug-scanner-passed'],
-      ['transition', 'SUBMITTING_PR'],
-    ],
-    AWAITING_CI: [
-      ['record-issue', '1'],
-      ['transition', 'REVIEWING'],
-      ['record-architecture-review-passed'],
-      ['record-code-review-passed'],
-      ['record-bug-scanner-passed'],
-      ['transition', 'SUBMITTING_PR'],
-      ['record-pr', '1'],
-      ['transition', 'AWAITING_CI'],
-    ],
-    CHECKING_FEEDBACK: [
-      ['record-issue', '1'],
-      ['transition', 'REVIEWING'],
-      ['record-architecture-review-passed'],
-      ['record-code-review-passed'],
-      ['record-bug-scanner-passed'],
-      ['transition', 'SUBMITTING_PR'],
-      ['record-pr', '1'],
-      ['transition', 'AWAITING_CI'],
-      ['record-ci-passed'],
-      ['transition', 'CHECKING_FEEDBACK'],
-    ],
-    ADDRESSING_FEEDBACK: [
-      ['record-issue', '1'],
-      ['transition', 'REVIEWING'],
-      ['record-architecture-review-passed'],
-      ['record-code-review-passed'],
-      ['record-bug-scanner-passed'],
-      ['transition', 'SUBMITTING_PR'],
-      ['record-pr', '1'],
-      ['transition', 'AWAITING_CI'],
-      ['record-ci-passed'],
-      ['transition', 'CHECKING_FEEDBACK'],
-      ['record-feedback-exists', '2'],
-      ['transition', 'ADDRESSING_FEEDBACK'],
-    ],
-    REFLECTING: [
-      ['record-issue', '1'],
-      ['transition', 'REVIEWING'],
-      ['record-architecture-review-passed'],
-      ['record-code-review-passed'],
-      ['record-bug-scanner-passed'],
-      ['transition', 'SUBMITTING_PR'],
-      ['record-pr', '1'],
-      ['transition', 'AWAITING_CI'],
-      ['record-ci-passed'],
-      ['transition', 'CHECKING_FEEDBACK'],
-      ['record-feedback-clean'],
-      ['transition', 'REFLECTING'],
-    ],
-  }
-
   runCommand(ctx, ['init'])
-  const steps = stateSteps[targetState]
+  const steps = STATE_STEPS[targetState]
   if (!steps) return
   for (const step of steps) {
     runCommand(ctx, step)

@@ -52,7 +52,7 @@ After init, read the state instruction file that the workflow loads. It will gui
 2. **REVIEWING** — Spawn review agents, record each verdict individually
 3. **SUBMITTING_PR** — Push branch, create PR, record PR number
 4. **AWAITING_CI** — Wait for CI, record result
-5. **CHECKING_FEEDBACK** — Check PR for review comments
+5. **AWAITING_PR_FEEDBACK** — Wait for CodeRabbit review and auto-route based on PR feedback
 6. **REFLECTING** — Write a reflection on the work
 7. **COMPLETE** — Done
 

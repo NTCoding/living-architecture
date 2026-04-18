@@ -57,7 +57,6 @@ function applyReviewEvent(state: WorkflowState, event: WorkflowEvent): WorkflowS
       return {
         ...state,
         feedbackAddressed: true,
-        feedbackAddressedCount: event.addressedCount,
       }
   }
 }

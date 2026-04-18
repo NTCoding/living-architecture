@@ -5,7 +5,7 @@ import {
 
 export const submittingPrState: ConcreteStateDefinition = {
   emoji: '🚀',
-  agentInstructions: 'states/submitting-pr.md',
+  agentInstructions: 'states/submitting_pr.md',
   canTransitionTo: ['AWAITING_CI', 'BLOCKED'],
   allowedWorkflowOperations: ['record-pr'],
   forbidden: { write: true },

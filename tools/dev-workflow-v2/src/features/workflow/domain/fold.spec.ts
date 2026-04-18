@@ -209,15 +209,13 @@ describe('applyEvent — feedback-checked', () => {
 })
 
 describe('applyEvent — feedback-addressed', () => {
-  it('sets feedbackAddressed to true and stores addressedCount', () => {
+  it('sets feedbackAddressed to true', () => {
     const event: WorkflowEvent = {
       type: 'feedback-addressed',
       at: AT,
-      addressedCount: 3,
     }
     const result = applyEvent(EMPTY_STATE, event)
     expect(result.feedbackAddressed).toStrictEqual(true)
-    expect(result.feedbackAddressedCount).toStrictEqual(3)
   })
 })
 
@@ -328,26 +326,23 @@ describe('applyEvent — transitioned', () => {
 
   it('applies ADDRESSING_FEEDBACK stateOverrides resets', () => {
     const state = makeState({
-      currentStateMachineState: 'CHECKING_FEEDBACK',
+      currentStateMachineState: 'AWAITING_PR_FEEDBACK',
       feedbackAddressed: true,
       feedbackClean: true,
-      feedbackAddressedCount: 5,
     })
     const result = applyEvent(state, {
       type: 'transitioned',
       at: AT,
-      from: 'CHECKING_FEEDBACK',
+      from: 'AWAITING_PR_FEEDBACK',
       to: 'ADDRESSING_FEEDBACK',
       stateOverrides: {
         feedbackAddressed: false,
         feedbackClean: false,
-        feedbackAddressedCount: undefined,
       },
     })
     expect(result.currentStateMachineState).toStrictEqual('ADDRESSING_FEEDBACK')
     expect(result.feedbackAddressed).toStrictEqual(false)
     expect(result.feedbackClean).toStrictEqual(false)
-    expect(result.feedbackAddressedCount).toBeUndefined()
   })
 
   it('currentStateMachineState in stateOverrides does not override fold logic', () => {
@@ -381,6 +376,16 @@ describe('applyEvent — observation events return unchanged state', () => {
       tool: 'Write',
       filePath: '/f',
       allowed: true,
+    })
+    expect(result).toStrictEqual(EMPTY_STATE)
+  })
+
+  it('journal-entry returns state unchanged', () => {
+    const result = applyEvent(EMPTY_STATE, {
+      type: 'journal-entry',
+      at: AT,
+      agentName: 'workflow',
+      content: 'Awaiting CodeRabbit review.',
     })
     expect(result).toStrictEqual(EMPTY_STATE)
   })

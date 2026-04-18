@@ -199,6 +199,7 @@ describe('WORKFLOW_EVENT_SCHEMA — feedback-checked', () => {
       at: AT,
       clean: false,
       unresolvedCount: 3,
+      reviewDecision: 'CHANGES_REQUESTED',
     })
     expect(result.type).toStrictEqual('feedback-checked')
   })
@@ -214,26 +215,38 @@ describe('WORKFLOW_EVENT_SCHEMA — feedback-checked', () => {
 })
 
 describe('WORKFLOW_EVENT_SCHEMA — feedback-addressed', () => {
-  it('accepts valid payload with addressedCount', () => {
+  it('accepts valid payload', () => {
     const result = WORKFLOW_EVENT_SCHEMA.parse({
       type: 'feedback-addressed',
       at: AT,
-      addressedCount: 3,
     })
     expect(result.type).toStrictEqual('feedback-addressed')
   })
 
-  it('rejects missing addressedCount', () => {
-    expect(() =>
-      WORKFLOW_EVENT_SCHEMA.parse({
-        type: 'feedback-addressed',
-        at: AT,
-      }),
-    ).toThrow('Required')
-  })
-
   it('rejects missing at', () => {
     expect(() => WORKFLOW_EVENT_SCHEMA.parse({ type: 'feedback-addressed' })).toThrow('Required')
+  })
+})
+
+describe('WORKFLOW_EVENT_SCHEMA — journal-entry', () => {
+  it('accepts valid payload', () => {
+    const result = WORKFLOW_EVENT_SCHEMA.parse({
+      type: 'journal-entry',
+      at: AT,
+      agentName: 'workflow',
+      content: 'Waiting for CodeRabbit review.',
+    })
+    expect(result.type).toStrictEqual('journal-entry')
+  })
+
+  it('rejects missing content', () => {
+    expect(() =>
+      WORKFLOW_EVENT_SCHEMA.parse({
+        type: 'journal-entry',
+        at: AT,
+        agentName: 'workflow',
+      }),
+    ).toThrow('Required')
   })
 })
 

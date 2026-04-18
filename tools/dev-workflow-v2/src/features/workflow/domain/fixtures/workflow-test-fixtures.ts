@@ -22,9 +22,12 @@ export function makeDeps(overrides?: Partial<WorkflowDeps>): WorkflowDeps {
   return {
     getGitInfo: () => cleanGit,
     getPrFeedback: () => ({
+      reviewDecision: null,
+      coderabbitReviewSeen: true,
       unresolvedCount: 0,
       threads: [],
     }),
+    sleepMs: () => undefined,
     now: () => AT,
     ...overrides,
   }
@@ -142,27 +145,26 @@ export function eventsToAwaitingCi(): readonly WorkflowEvent[] {
   return [...eventsToSubmittingPr(), prRecorded(99), transitioned('SUBMITTING_PR', 'AWAITING_CI')]
 }
 
-export function eventsToCheckingFeedback(): readonly WorkflowEvent[] {
-  return [...eventsToAwaitingCi(), ciPassed(), transitioned('AWAITING_CI', 'CHECKING_FEEDBACK')]
+export function eventsToAwaitingPrFeedback(): readonly WorkflowEvent[] {
+  return [...eventsToAwaitingCi(), ciPassed(), transitioned('AWAITING_CI', 'AWAITING_PR_FEEDBACK')]
 }
 
 export function eventsToAddressingFeedback(): readonly WorkflowEvent[] {
   return [
-    ...eventsToCheckingFeedback(),
+    ...eventsToAwaitingPrFeedback(),
     feedbackExists(3),
-    transitioned('CHECKING_FEEDBACK', 'ADDRESSING_FEEDBACK', {
+    transitioned('AWAITING_PR_FEEDBACK', 'ADDRESSING_FEEDBACK', {
       feedbackAddressed: false,
       feedbackClean: false,
-      feedbackAddressedCount: undefined,
     }),
   ]
 }
 
 export function eventsToReflecting(): readonly WorkflowEvent[] {
   return [
-    ...eventsToCheckingFeedback(),
+    ...eventsToAwaitingPrFeedback(),
     feedbackClean(),
-    transitioned('CHECKING_FEEDBACK', 'REFLECTING'),
+    transitioned('AWAITING_PR_FEEDBACK', 'REFLECTING'),
   ]
 }
 

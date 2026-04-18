@@ -2,9 +2,13 @@ import type {
   PreconditionResult,
   GitInfo,
   RecordingOpDefinition,
+  TransitionContext,
 } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
 import {
-  pass, fail, defineRecordingOps 
+  pass,
+  fail,
+  defineRecordingOps,
+  checkOperationGate,
 } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
 import type { BaseEvent } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
@@ -21,6 +25,11 @@ import {
   applyEvent, EMPTY_STATE 
 } from './fold'
 import type { PRFeedbackResult } from '../infra/external-clients/github/get-pr-feedback'
+
+const PR_FEEDBACK_POLL_INTERVAL_MS = 15_000
+const PR_FEEDBACK_TIMEOUT_MS = 300_000
+const PR_FEEDBACK_MAX_ATTEMPTS =
+  Math.floor(PR_FEEDBACK_TIMEOUT_MS / PR_FEEDBACK_POLL_INTERVAL_MS) + 1
 
 const RECORDING_OPS_MAP: Record<string, RecordingOpDefinition<readonly never[]>> = {
   'record-issue': {
@@ -77,21 +86,6 @@ const RECORDING_OPS_MAP: Record<string, RecordingOpDefinition<readonly never[]>>
       output,
     }),
   },
-  'record-feedback-clean': {
-    event: 'feedback-checked',
-    payload: () => ({ clean: true }),
-  },
-  'record-feedback-exists': {
-    event: 'feedback-checked',
-    payload: (count: number) => ({
-      clean: false,
-      unresolvedCount: count,
-    }),
-  },
-  'record-feedback-addressed': {
-    event: 'feedback-addressed',
-    payload: (count: number) => ({ addressedCount: count }),
-  },
   'record-reflection': {
     event: 'reflection-written',
     payload: (p: string) => ({ path: p }),
@@ -107,7 +101,56 @@ const RECORDING_OPS = defineRecordingOps<StateName, WorkflowState, WorkflowOpera
 export type WorkflowDeps = {
   readonly getGitInfo: () => GitInfo
   readonly getPrFeedback: (prNumber: number) => PRFeedbackResult
+  readonly sleepMs: (ms: number) => void
   readonly now: () => string
+}
+
+function diffStateOverrides(
+  stateBefore: WorkflowState,
+  stateAfter: WorkflowState,
+): Record<string, unknown> {
+  const overrides: Record<string, unknown> = {}
+  const beforeEntries = new Map(Object.entries(stateBefore))
+  for (const [key, value] of Object.entries(stateAfter)) {
+    if (key === 'currentStateMachineState') continue
+    if (value !== beforeEntries.get(key)) {
+      overrides[key] = value
+    }
+  }
+  return overrides
+}
+
+function formatReviewDecision(reviewDecision: string | null): string {
+  return reviewDecision ?? 'NONE'
+}
+
+function isFeedbackClear(feedback: PRFeedbackResult): boolean {
+  return feedback.reviewDecision !== 'CHANGES_REQUESTED' && feedback.unresolvedCount === 0
+}
+
+function readPrFeedback(
+  getPrFeedback: (prNumber: number) => PRFeedbackResult,
+  prNumber: number,
+):
+  | {
+    ok: true
+    feedback: PRFeedbackResult
+  }
+  | {
+    ok: false
+    reason: string
+  } {
+  try {
+    return {
+      ok: true,
+      feedback: getPrFeedback(prNumber),
+    }
+  } catch (error) {
+    return {
+      ok: false,
+      reason: `Unable to fetch PR feedback: ${String(error)}`,
+    }
+  }
 }
 
 /** @riviere-role domain-service */
@@ -146,12 +189,15 @@ export class Workflow {
     this.pendingEvents = [...this.pendingEvents, workflowEvent]
     this.state = applyEvent(this.state, workflowEvent)
 
-    if (
-      workflowEvent.type === 'transitioned' &&
-      workflowEvent.to === 'CHECKING_FEEDBACK' &&
-      this.state.prNumber !== undefined
-    ) {
-      this.autoFetchFeedback(this.state.prNumber)
+    if (workflowEvent.type === 'transitioned' && workflowEvent.to === 'AWAITING_PR_FEEDBACK') {
+      if (this.state.prNumber === undefined) {
+        this.appendJournal(
+          'Entered AWAITING_PR_FEEDBACK without a recorded PR number. Transitioning to BLOCKED.',
+        )
+        this.appendAutomaticTransition('BLOCKED')
+        return
+      }
+      this.awaitPrFeedback(this.state.prNumber)
     }
   }
 
@@ -173,11 +219,14 @@ export class Workflow {
     return this.state.transcriptPath
   }
 
-  registerAgent(_agentType: string, _agentId: string): PreconditionResult {
+  registerAgent(agentType: string, agentId: string): PreconditionResult {
+    void agentType
+    void agentId
     return pass()
   }
 
-  handleTeammateIdle(_agentName: string): PreconditionResult {
+  handleTeammateIdle(agentName: string): PreconditionResult {
+    void agentName
     return pass()
   }
 
@@ -188,22 +237,133 @@ export class Workflow {
     return pass()
   }
 
-  private autoFetchFeedback(prNumber: number): void {
-    const feedback = this.deps.getPrFeedback(prNumber)
-    if (feedback.unresolvedCount === 0) {
-      this.append({
-        type: 'feedback-checked',
-        at: this.deps.now(),
-        clean: true,
-      })
-    } else {
-      this.append({
-        type: 'feedback-checked',
-        at: this.deps.now(),
-        clean: false,
-        unresolvedCount: feedback.unresolvedCount,
-      })
+  verifyFeedbackAddressed(): PreconditionResult {
+    const gate = checkOperationGate('record-feedback-addressed', this.state, WORKFLOW_REGISTRY)
+    if (!gate.pass) return gate
+    if (this.state.prNumber === undefined) {
+      return fail('prNumber not set. Record the PR before verifying feedback.')
     }
+
+    const feedbackResult = readPrFeedback(this.deps.getPrFeedback, this.state.prNumber)
+    if (!feedbackResult.ok) return fail(feedbackResult.reason)
+    const { feedback } = feedbackResult
+
+    this.appendJournal(
+      `Verified PR feedback for PR #${this.state.prNumber}: reviewDecision=${formatReviewDecision(feedback.reviewDecision)}, unresolvedCount=${feedback.unresolvedCount}.`,
+    )
+
+    const clean = isFeedbackClear(feedback)
+    this.append({
+      type: 'feedback-checked',
+      at: this.deps.now(),
+      clean,
+      unresolvedCount: feedback.unresolvedCount,
+      reviewDecision: feedback.reviewDecision,
+    })
+
+    if (feedback.reviewDecision === 'CHANGES_REQUESTED' && feedback.unresolvedCount > 0) {
+      return fail(
+        `PR still has CHANGES_REQUESTED review status and ${feedback.unresolvedCount} unresolved feedback threads. Resolve all feedback or transition to BLOCKED.`,
+      )
+    }
+    if (feedback.reviewDecision === 'CHANGES_REQUESTED') {
+      return fail(
+        'PR still has CHANGES_REQUESTED review status. Resolve all feedback or transition to BLOCKED.',
+      )
+    }
+    if (feedback.unresolvedCount > 0) {
+      return fail(
+        `PR still has ${feedback.unresolvedCount} unresolved feedback threads. Resolve all feedback or transition to BLOCKED.`,
+      )
+    }
+
+    this.append({
+      type: 'feedback-addressed',
+      at: this.deps.now(),
+    })
+    return pass()
+  }
+
+  private awaitPrFeedback(prNumber: number): void {
+    this.appendJournal(
+      `Awaiting PR feedback on PR #${prNumber}. Polling every 15s for up to 5 minutes until a CodeRabbit review is available.`,
+    )
+
+    for (const attempt of Array.from(
+      { length: PR_FEEDBACK_MAX_ATTEMPTS },
+      (_, index) => index + 1,
+    )) {
+      const feedbackResult = readPrFeedback(this.deps.getPrFeedback, prNumber)
+      if (!feedbackResult.ok) {
+        this.appendJournal(`${feedbackResult.reason}. Transitioning to BLOCKED.`)
+        this.appendAutomaticTransition('BLOCKED')
+        return
+      }
+      const { feedback } = feedbackResult
+
+      this.appendJournal(
+        `PR feedback poll ${attempt}/${PR_FEEDBACK_MAX_ATTEMPTS}: reviewDecision=${formatReviewDecision(feedback.reviewDecision)}, coderabbitReviewSeen=${String(feedback.coderabbitReviewSeen)}, unresolvedCount=${feedback.unresolvedCount}.`,
+      )
+
+      if (feedback.coderabbitReviewSeen) {
+        const clean = isFeedbackClear(feedback)
+        this.append({
+          type: 'feedback-checked',
+          at: this.deps.now(),
+          clean,
+          unresolvedCount: feedback.unresolvedCount,
+          reviewDecision: feedback.reviewDecision,
+        })
+        this.appendJournal(
+          clean
+            ? `CodeRabbit review received for PR #${prNumber} with no remaining actionable feedback. Transitioning to REFLECTING.`
+            : `CodeRabbit review received for PR #${prNumber} and remaining PR feedback requires follow-up. Transitioning to ADDRESSING_FEEDBACK.`,
+        )
+        this.appendAutomaticTransition(clean ? 'REFLECTING' : 'ADDRESSING_FEEDBACK')
+        return
+      }
+
+      if (attempt < PR_FEEDBACK_MAX_ATTEMPTS) {
+        this.deps.sleepMs(PR_FEEDBACK_POLL_INTERVAL_MS)
+      }
+    }
+
+    this.appendJournal(
+      `Timed out after 5 minutes waiting for a CodeRabbit review on PR #${prNumber}. Transitioning to BLOCKED for user intervention.`,
+    )
+    this.appendAutomaticTransition('BLOCKED')
+  }
+
+  private appendAutomaticTransition(to: StateName): void {
+    const from = this.state.currentStateMachineState
+    const stateBefore = this.state
+    const context: TransitionContext<WorkflowState, StateName> = {
+      state: stateBefore,
+      gitInfo: this.deps.getGitInfo(),
+      from,
+      to,
+    }
+    const targetDef = getStateDefinition(to)
+    const stateAfter =
+      targetDef.onEntry === undefined ? stateBefore : targetDef.onEntry(stateBefore, context)
+    const stateOverrides = diffStateOverrides(stateBefore, stateAfter)
+
+    this.append({
+      type: 'transitioned',
+      at: this.deps.now(),
+      from,
+      to,
+      ...(Object.keys(stateOverrides).length === 0 ? {} : { stateOverrides }),
+    })
+  }
+
+  private appendJournal(content: string): void {
+    this.append({
+      type: 'journal-entry',
+      at: this.deps.now(),
+      agentName: 'workflow',
+      content,
+    })
   }
 
   private append(event: WorkflowEvent): void {

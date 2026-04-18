@@ -24,8 +24,12 @@ describe('workflow-cli transitions', () => {
       readonly hasCommitsVsDefault: boolean
       readonly workingTreeClean: boolean
     }>
+    readonly getPrFeedback?: TestContext['workflowDeps']['getPrFeedback']
   }): TestContext {
-    const ctx = buildTestContext()
+    const ctx =
+      overrides?.getPrFeedback === undefined
+        ? buildTestContext()
+        : buildTestContext({ getPrFeedback: overrides.getPrFeedback })
     if (overrides?.gitInfo) {
       const original = ctx.workflowDeps.getGitInfo
       const gitOverrides = overrides.gitInfo
@@ -74,9 +78,24 @@ describe('workflow-cli transitions', () => {
 
   describe('addressing feedback cycle', () => {
     it('transitions from ADDRESSING_FEEDBACK to REVIEWING after addressing all threads', () => {
-      const ctx = setup()
+      const ctx = setup({
+        getPrFeedback: () => ({
+          reviewDecision: 'CHANGES_REQUESTED',
+          coderabbitReviewSeen: true,
+          unresolvedCount: 2,
+          threads: [],
+        }),
+      })
       progressToState(ctx, 'ADDRESSING_FEEDBACK')
-      runCommand(ctx, ['record-feedback-addressed', '2'])
+      Object.defineProperty(ctx.workflowDeps, 'getPrFeedback', {
+        value: () => ({
+          reviewDecision: 'APPROVED',
+          coderabbitReviewSeen: true,
+          unresolvedCount: 0,
+          threads: [],
+        }),
+      })
+      runCommand(ctx, ['record-feedback-addressed'])
       const result = runCommand(ctx, ['transition', 'REVIEWING'])
       expect(result.exitCode).toStrictEqual(0)
     })
@@ -148,10 +167,10 @@ describe('workflow-cli transitions', () => {
       expect(result.output).toContain('prNumber not set')
     })
 
-    it('rejects AWAITING_CI to CHECKING_FEEDBACK without CI passed', () => {
+    it('rejects AWAITING_CI to AWAITING_PR_FEEDBACK without CI passed', () => {
       const ctx = setup()
       progressToState(ctx, 'AWAITING_CI')
-      const result = runCommand(ctx, ['transition', 'CHECKING_FEEDBACK'])
+      const result = runCommand(ctx, ['transition', 'AWAITING_PR_FEEDBACK'])
       expect(result.exitCode).toStrictEqual(2)
       expect(result.output).toContain('CI not passed')
     })
@@ -165,24 +184,6 @@ describe('workflow-cli transitions', () => {
       expect(result.output).toContain('CI passed')
     })
 
-    it('rejects CHECKING_FEEDBACK to REFLECTING without feedback clean', () => {
-      const ctx = setup()
-      progressToState(ctx, 'CHECKING_FEEDBACK')
-      runCommand(ctx, ['record-feedback-exists', '1'])
-      const result = runCommand(ctx, ['transition', 'REFLECTING'])
-      expect(result.exitCode).toStrictEqual(2)
-      expect(result.output).toContain('Feedback not clean')
-    })
-
-    it('rejects CHECKING_FEEDBACK to ADDRESSING_FEEDBACK when feedback is clean', () => {
-      const ctx = setup()
-      progressToState(ctx, 'CHECKING_FEEDBACK')
-      runCommand(ctx, ['record-feedback-clean'])
-      const result = runCommand(ctx, ['transition', 'ADDRESSING_FEEDBACK'])
-      expect(result.exitCode).toStrictEqual(2)
-      expect(result.output).toContain('Feedback is clean')
-    })
-
     it('rejects REFLECTING to COMPLETE without reflection recorded', () => {
       const ctx = setup()
       progressToState(ctx, 'REFLECTING')
@@ -192,20 +193,36 @@ describe('workflow-cli transitions', () => {
     })
 
     it('rejects ADDRESSING_FEEDBACK to REVIEWING without feedback addressed', () => {
-      const ctx = setup()
+      const ctx = setup({
+        getPrFeedback: () => ({
+          reviewDecision: 'CHANGES_REQUESTED',
+          coderabbitReviewSeen: true,
+          unresolvedCount: 1,
+          threads: [],
+        }),
+      })
       progressToState(ctx, 'ADDRESSING_FEEDBACK')
       const result = runCommand(ctx, ['transition', 'REVIEWING'])
       expect(result.exitCode).toStrictEqual(2)
       expect(result.output).toContain('Feedback not addressed')
     })
 
-    it('rejects ADDRESSING_FEEDBACK to REVIEWING when not all threads addressed', () => {
-      const ctx = setup()
+    it('blocks feedback verification while GitHub still reports unresolved feedback', () => {
+      const ctx = setup({
+        getPrFeedback: () => ({
+          reviewDecision: 'CHANGES_REQUESTED',
+          coderabbitReviewSeen: true,
+          unresolvedCount: 1,
+          threads: [],
+        }),
+      })
       progressToState(ctx, 'ADDRESSING_FEEDBACK')
-      runCommand(ctx, ['record-feedback-addressed', '1'])
+      const verifyResult = runCommand(ctx, ['record-feedback-addressed'])
+      expect(verifyResult.exitCode).toStrictEqual(2)
+      expect(verifyResult.output).toContain('CHANGES_REQUESTED')
       const result = runCommand(ctx, ['transition', 'REVIEWING'])
       expect(result.exitCode).toStrictEqual(2)
-      expect(result.output).toContain('1 of 2')
+      expect(result.output).toContain('Feedback not addressed')
     })
   })
 })

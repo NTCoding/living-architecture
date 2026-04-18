@@ -19,8 +19,8 @@ describe('workflow-cli commands', () => {
     dbPaths.length = 0
   })
 
-  function setup(): TestContext {
-    const ctx = buildTestContext()
+  function setup(overrides?: Parameters<typeof buildTestContext>[0]): TestContext {
+    const ctx = buildTestContext(overrides)
     dbPaths.push(ctx.dbPath)
     return ctx
   }
@@ -209,58 +209,48 @@ describe('workflow-cli commands', () => {
     })
   })
 
-  describe('record-feedback-clean', () => {
-    it('records in CHECKING_FEEDBACK state', () => {
-      const ctx = setup()
-      progressToState(ctx, 'CHECKING_FEEDBACK')
-      const result = runCommand(ctx, ['record-feedback-clean'])
-      expect(result.exitCode).toStrictEqual(0)
-    })
-  })
-
-  describe('record-feedback-exists', () => {
-    it('records feedback count', () => {
-      const ctx = setup()
-      progressToState(ctx, 'CHECKING_FEEDBACK')
-      const result = runCommand(ctx, ['record-feedback-exists', '3'])
-      expect(result.exitCode).toStrictEqual(0)
-    })
-
-    it('returns error when count is missing', () => {
-      const ctx = setup()
-      runCommand(ctx, ['init'])
-      const result = runCommand(ctx, ['record-feedback-exists'])
-      expect(result.exitCode).toStrictEqual(1)
-    })
-
-    it('returns error for non-numeric count', () => {
-      const ctx = setup()
-      runCommand(ctx, ['init'])
-      const result = runCommand(ctx, ['record-feedback-exists', 'abc'])
-      expect(result.exitCode).toStrictEqual(1)
-    })
-  })
-
   describe('record-feedback-addressed', () => {
-    it('records with count in ADDRESSING_FEEDBACK state', () => {
-      const ctx = setup()
+    it('verifies live feedback in ADDRESSING_FEEDBACK state', () => {
+      const ctx = setup({
+        getPrFeedback: () => ({
+          reviewDecision: 'CHANGES_REQUESTED',
+          coderabbitReviewSeen: true,
+          unresolvedCount: 2,
+          threads: [],
+        }),
+      })
       progressToState(ctx, 'ADDRESSING_FEEDBACK')
-      const result = runCommand(ctx, ['record-feedback-addressed', '2'])
+      Object.defineProperty(ctx.workflowDeps, 'getPrFeedback', {
+        value: () => ({
+          reviewDecision: 'APPROVED',
+          coderabbitReviewSeen: true,
+          unresolvedCount: 0,
+          threads: [],
+        }),
+      })
+      const result = runCommand(ctx, ['record-feedback-addressed'])
       expect(result.exitCode).toStrictEqual(0)
     })
 
-    it('returns error when count is missing', () => {
+    it('blocks when current PR feedback is still unresolved', () => {
+      const ctx = setup({
+        getPrFeedback: () => ({
+          reviewDecision: 'CHANGES_REQUESTED',
+          coderabbitReviewSeen: true,
+          unresolvedCount: 1,
+          threads: [],
+        }),
+      })
+      progressToState(ctx, 'ADDRESSING_FEEDBACK')
+      const result = runCommand(ctx, ['record-feedback-addressed'])
+      expect(result.exitCode).toStrictEqual(2)
+    })
+
+    it('is blocked outside ADDRESSING_FEEDBACK state', () => {
       const ctx = setup()
       runCommand(ctx, ['init'])
       const result = runCommand(ctx, ['record-feedback-addressed'])
-      expect(result.exitCode).toStrictEqual(1)
-    })
-
-    it('returns error for non-numeric count', () => {
-      const ctx = setup()
-      runCommand(ctx, ['init'])
-      const result = runCommand(ctx, ['record-feedback-addressed', 'abc'])
-      expect(result.exitCode).toStrictEqual(1)
+      expect(result.exitCode).toStrictEqual(2)
     })
   })
 

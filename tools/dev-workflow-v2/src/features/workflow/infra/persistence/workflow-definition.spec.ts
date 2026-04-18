@@ -16,9 +16,12 @@ function makeWorkflowDeps(): WorkflowDeps {
       hasCommitsVsDefault: false,
     }),
     getPrFeedback: () => ({
+      reviewDecision: null,
+      coderabbitReviewSeen: true,
       unresolvedCount: 0,
       threads: [],
     }),
+    sleepMs: () => undefined,
     now: () => '2026-01-01T00:00:00Z',
   }
 }

@@ -51,7 +51,6 @@ describe('createWorkflowStateSchema — WorkflowState', () => {
       reflectionPath: '/test-output/reflection.md',
       preBlockedState: 'IMPLEMENTING',
       feedbackUnresolvedCount: 3,
-      feedbackAddressedCount: 3,
     }
     const parsed = workflowStateSchema.parse(raw)
     expect(parsed.githubIssue).toStrictEqual(42)

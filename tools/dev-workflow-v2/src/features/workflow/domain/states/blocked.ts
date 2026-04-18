@@ -12,7 +12,7 @@ export const blockedState: ConcreteStateDefinition = {
     'REVIEWING',
     'SUBMITTING_PR',
     'AWAITING_CI',
-    'CHECKING_FEEDBACK',
+    'AWAITING_PR_FEEDBACK',
     'ADDRESSING_FEEDBACK',
     'REFLECTING',
   ],

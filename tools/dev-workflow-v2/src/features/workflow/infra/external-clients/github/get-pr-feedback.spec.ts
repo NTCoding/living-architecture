@@ -8,8 +8,24 @@ const REPO_INFO = JSON.stringify({
   name: 'test-repo',
 })
 
-function graphqlResponse(threads: readonly object[]): string {
-  return JSON.stringify({data: { repository: { pullRequest: { reviewThreads: { nodes: threads } } } },})
+function graphqlResponse(
+  threads: readonly object[],
+  overrides: Partial<{
+    reviewDecision: string | null
+    reviews: readonly object[]
+  }> = {},
+): string {
+  return JSON.stringify({
+    data: {
+      repository: {
+        pullRequest: {
+          reviewDecision: overrides.reviewDecision ?? null,
+          reviews: { nodes: overrides.reviews ?? [] },
+          reviewThreads: { nodes: threads },
+        },
+      },
+    },
+  })
 }
 
 function makeThread(
@@ -23,6 +39,7 @@ function makeThread(
       nodes: readonly {
         author: { login: string } | null
         body: string
+        url?: string
       }[]
     }
   }> = {},
@@ -38,10 +55,18 @@ function makeThread(
         {
           author: { login: 'reviewer' },
           body: 'fix this',
+          url: 'https://github.com/test/repo/pull/1#discussion_r1',
         },
       ],
     },
     ...overrides,
+  }
+}
+
+function makeReview(login: string, state: string): object {
+  return {
+    author: { login },
+    state,
   }
 }
 
@@ -60,11 +85,12 @@ describe('createGetPrFeedback', () => {
     const getPrFeedback = createGetPrFeedback(runGh)
     getPrFeedback(1)
     const graphqlCall = String(runGh.mock.calls[1]?.[0])
-    expect(graphqlCall).toContain('owner: "TestOwner"')
-    expect(graphqlCall).toContain('name: "test-repo"')
+    expect(graphqlCall).toMatch(
+      /owner: "TestOwner".*name: "test-repo".*reviewDecision.*reviews\(first: 100\).*reviewThreads\(first: 100\)/s,
+    )
   })
 
-  it('returns zero unresolved when all threads are resolved', () => {
+  it('returns zero unresolved when all threads are resolved or outdated', () => {
     const runGh = vi
       .fn()
       .mockReturnValueOnce(REPO_INFO)
@@ -76,7 +102,7 @@ describe('createGetPrFeedback', () => {
           }),
           makeThread({
             id: 't2',
-            isResolved: true,
+            isOutdated: true,
           }),
         ]),
       )
@@ -86,7 +112,7 @@ describe('createGetPrFeedback', () => {
     expect(result.threads).toHaveLength(0)
   })
 
-  it('filters to only unresolved threads', () => {
+  it('filters to only unresolved non-outdated threads', () => {
     const runGh = vi
       .fn()
       .mockReturnValueOnce(REPO_INFO)
@@ -95,14 +121,22 @@ describe('createGetPrFeedback', () => {
           makeThread({
             id: 't1',
             isResolved: false,
+            isOutdated: false,
           }),
           makeThread({
             id: 't2',
             isResolved: true,
+            isOutdated: false,
           }),
           makeThread({
             id: 't3',
             isResolved: false,
+            isOutdated: true,
+          }),
+          makeThread({
+            id: 't4',
+            isResolved: false,
+            isOutdated: false,
           }),
         ]),
       )
@@ -110,7 +144,23 @@ describe('createGetPrFeedback', () => {
     const result = getPrFeedback(1)
     expect(result.unresolvedCount).toBe(2)
     expect(result.threads).toHaveLength(2)
-    expect(result.threads.map((t) => t.id)).toStrictEqual(['t1', 't3'])
+    expect(result.threads.map((t) => t.id)).toStrictEqual(['t1', 't4'])
+  })
+
+  it('returns reviewDecision and detects a submitted CodeRabbit review', () => {
+    const runGh = vi
+      .fn()
+      .mockReturnValueOnce(REPO_INFO)
+      .mockReturnValueOnce(
+        graphqlResponse([], {
+          reviewDecision: 'CHANGES_REQUESTED',
+          reviews: [makeReview('coderabbitai', 'CHANGES_REQUESTED')],
+        }),
+      )
+    const getPrFeedback = createGetPrFeedback(runGh)
+    const result = getPrFeedback(1)
+    expect(result.reviewDecision).toBe('CHANGES_REQUESTED')
+    expect(result.coderabbitReviewSeen).toBe(true)
   })
 
   it('returns empty when no review threads exist', () => {
@@ -119,6 +169,7 @@ describe('createGetPrFeedback', () => {
     const result = getPrFeedback(1)
     expect(result.unresolvedCount).toBe(0)
     expect(result.threads).toHaveLength(0)
+    expect(result.coderabbitReviewSeen).toBe(false)
   })
 
   it('throws when graphql output is invalid JSON', () => {
@@ -152,6 +203,7 @@ describe('createGetPrFeedback', () => {
                 {
                   author: { login: 'alice' },
                   body: 'needs refactor',
+                  url: 'https://github.com/test/repo/pull/1#discussion_r2',
                 },
               ],
             },
@@ -169,6 +221,7 @@ describe('createGetPrFeedback', () => {
       {
         author: { login: 'alice' },
         body: 'needs refactor',
+        url: 'https://github.com/test/repo/pull/1#discussion_r2',
       },
     ])
   })
