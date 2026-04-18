@@ -9,7 +9,15 @@ import {
 } from '../features/workflow/infra/external-clients/git/git'
 import { createGetPrFeedback } from '../features/workflow/infra/external-clients/github/get-pr-feedback'
 
+/**
+ * Performs an intentionally synchronous sleep for CLI polling.
+ * Do not use this from async or request-serving contexts.
+ */
 function sleepMs(ms: number): void {
+  if (!Number.isFinite(ms) || ms < 0) {
+    throw new TypeError('sleepMs requires a finite non-negative number')
+  }
+
   Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms)
 }
 

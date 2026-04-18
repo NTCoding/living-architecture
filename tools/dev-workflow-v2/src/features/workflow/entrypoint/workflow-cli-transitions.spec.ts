@@ -26,10 +26,9 @@ describe('workflow-cli transitions', () => {
     }>
     readonly getPrFeedback?: TestContext['workflowDeps']['getPrFeedback']
   }): TestContext {
-    const ctx =
-      overrides?.getPrFeedback === undefined
-        ? buildTestContext()
-        : buildTestContext({ getPrFeedback: overrides.getPrFeedback })
+    const ctx = buildTestContext(
+      overrides?.getPrFeedback === undefined ? {} : { getPrFeedback: overrides.getPrFeedback },
+    )
     if (overrides?.gitInfo) {
       const original = ctx.workflowDeps.getGitInfo
       const gitOverrides = overrides.gitInfo
@@ -46,7 +45,14 @@ describe('workflow-cli transitions', () => {
 
   describe('full happy path to COMPLETE', () => {
     it('transitions from REFLECTING to COMPLETE', () => {
-      const ctx = setup()
+      const ctx = setup({
+        getPrFeedback: () => ({
+          reviewDecision: 'APPROVED',
+          coderabbitReviewSeen: true,
+          unresolvedCount: 0,
+          threads: [],
+        }),
+      })
       progressToState(ctx, 'REFLECTING')
       const result = runCommand(ctx, ['transition', 'COMPLETE'])
       expect(result.exitCode).toStrictEqual(0)
@@ -94,7 +100,7 @@ describe('workflow-cli transitions', () => {
           threads: [],
         }),
       })
-      runCommand(ctx, ['record-feedback-addressed'])
+      runCommand(ctx, ['verify-feedback-addressed'])
       const result = runCommand(ctx, ['transition', 'REVIEWING'])
       expect(result.exitCode).toStrictEqual(0)
     })
@@ -184,7 +190,14 @@ describe('workflow-cli transitions', () => {
     })
 
     it('allows REFLECTING to COMPLETE without a workflow-level reflection guard', () => {
-      const ctx = setup()
+      const ctx = setup({
+        getPrFeedback: () => ({
+          reviewDecision: 'APPROVED',
+          coderabbitReviewSeen: true,
+          unresolvedCount: 0,
+          threads: [],
+        }),
+      })
       progressToState(ctx, 'REFLECTING')
       const result = runCommand(ctx, ['transition', 'COMPLETE'])
       expect(result.exitCode).toStrictEqual(0)
@@ -215,7 +228,7 @@ describe('workflow-cli transitions', () => {
         }),
       })
       progressToState(ctx, 'ADDRESSING_FEEDBACK')
-      const verifyResult = runCommand(ctx, ['record-feedback-addressed'])
+      const verifyResult = runCommand(ctx, ['verify-feedback-addressed'])
       expect(verifyResult.exitCode).toStrictEqual(2)
       expect(verifyResult.output).toContain('CHANGES_REQUESTED')
       const result = runCommand(ctx, ['transition', 'REVIEWING'])

@@ -5,7 +5,7 @@ You are running automated code review by spawning review agents in parallel.
 ## Platform Detection
 
 - [ ] Check whether the environment variable `OPENCODE=1` is present.
-- [ ] If `OPENCODE=1` is present, you are in OpenCode mode and must use the Task tool to invoke the configured review subagents.
+- [ ] If `OPENCODE=1` is present, you are in OpenCode mode and must use the Task tool to invoke the configured review subagents. If any required subagent invocation fails, transition to `BLOCKED` immediately.
 - [ ] Otherwise, use the Claude Agent tool path described below.
 
 ## TODO
@@ -32,7 +32,7 @@ Each review agent prompt must include:
 1. **Files to Review** — the changed files list from step 1
 2. **Report Path** — `reviews/<branch-name>/<agent-name>.md`
 
-Use the same prompt body for both platforms. In OpenCode mode, pass it to the Task tool for the named subagent. In Claude mode, pass it to the Agent tool with `subagent_type: "code-review"`.
+Use the same prompt body for both platforms. In OpenCode mode, pass it to the Task tool for the named subagent. In Claude mode, pass it to the Agent tool with `subagent_type` set to the corresponding agent name.
 
 Example prompt body:
 

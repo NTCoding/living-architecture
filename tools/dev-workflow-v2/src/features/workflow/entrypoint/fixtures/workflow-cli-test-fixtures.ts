@@ -61,7 +61,7 @@ export function buildTestContext(
       overrides.getPrFeedback ??
       (() => ({
         reviewDecision: null,
-        coderabbitReviewSeen: true,
+        coderabbitReviewSeen: false,
         unresolvedCount: 0,
         threads: [],
       })),

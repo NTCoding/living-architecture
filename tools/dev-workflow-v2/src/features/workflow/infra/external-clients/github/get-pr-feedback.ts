@@ -82,7 +82,10 @@ export function createGetPrFeedback(runGh: GhRunner): (prNumber: number) => PRFe
     const unresolved = threads.filter((thread) => !thread.isResolved && !thread.isOutdated)
     return {
       reviewDecision: response.data.repository.pullRequest.reviewDecision,
-      coderabbitReviewSeen: reviews.some((review) => review.author?.login === 'coderabbitai'),
+      coderabbitReviewSeen: reviews.some(
+        (review) =>
+          review.author?.login === 'coderabbitai' || review.author?.login === 'coderabbitai[bot]',
+      ),
       unresolvedCount: unresolved.length,
       threads: unresolved,
     }

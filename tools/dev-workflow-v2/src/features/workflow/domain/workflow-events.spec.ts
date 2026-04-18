@@ -204,6 +204,17 @@ describe('WORKFLOW_EVENT_SCHEMA — feedback-checked', () => {
     expect(result.type).toStrictEqual('feedback-checked')
   })
 
+  it('accepts dirty payload with null reviewDecision', () => {
+    const result = WORKFLOW_EVENT_SCHEMA.parse({
+      type: 'feedback-checked',
+      at: AT,
+      clean: false,
+      unresolvedCount: 0,
+      reviewDecision: null,
+    })
+    expect(result.type).toStrictEqual('feedback-checked')
+  })
+
   it('rejects missing clean', () => {
     expect(() =>
       WORKFLOW_EVENT_SCHEMA.parse({

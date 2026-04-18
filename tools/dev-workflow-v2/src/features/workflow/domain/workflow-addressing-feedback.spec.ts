@@ -192,4 +192,31 @@ describe('ADDRESSING_FEEDBACK workflow behavior', () => {
       reason: expect.stringContaining('feedback is not yet clear'),
     })
   })
+
+  it('allows transition to BLOCKED even when feedback is not yet addressed', () => {
+    const guard = addressingTransitionGuard()
+    const guardResult = guard({
+      state: {
+        currentStateMachineState: 'ADDRESSING_FEEDBACK',
+        architectureReviewPassed: false,
+        codeReviewPassed: false,
+        bugScannerPassed: false,
+        taskCheckPassed: false,
+        ciPassed: false,
+        feedbackClean: false,
+        feedbackAddressed: false,
+      },
+      gitInfo: {
+        currentBranch: 'issue-42',
+        workingTreeClean: true,
+        headCommit: 'abc123',
+        changedFilesVsDefault: [],
+        hasCommitsVsDefault: true,
+      },
+      from: 'ADDRESSING_FEEDBACK',
+      to: 'BLOCKED',
+    })
+
+    expect(guardResult).toStrictEqual({ pass: true })
+  })
 })

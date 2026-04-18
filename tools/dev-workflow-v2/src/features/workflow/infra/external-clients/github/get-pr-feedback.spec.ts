@@ -85,9 +85,15 @@ describe('createGetPrFeedback', () => {
     const getPrFeedback = createGetPrFeedback(runGh)
     getPrFeedback(1)
     const graphqlCall = String(runGh.mock.calls[1]?.[0])
-    expect(graphqlCall).toMatch(
-      /owner: "TestOwner".*name: "test-repo".*reviewDecision.*reviews\(first: 100\).*reviewThreads\(first: 100\)/s,
-    )
+    expect(
+      [
+        'owner: "TestOwner"',
+        'name: "test-repo"',
+        'reviewDecision',
+        'reviews(first: 100)',
+        'reviewThreads(first: 100)',
+      ].every((fragment) => graphqlCall.includes(fragment)),
+    ).toBe(true)
   })
 
   it('returns zero unresolved when all threads are resolved or outdated', () => {
@@ -160,6 +166,18 @@ describe('createGetPrFeedback', () => {
     const getPrFeedback = createGetPrFeedback(runGh)
     const result = getPrFeedback(1)
     expect(result.reviewDecision).toBe('CHANGES_REQUESTED')
+    expect(result.coderabbitReviewSeen).toBe(true)
+  })
+
+  it('detects a submitted CodeRabbit bot review', () => {
+    const runGh = vi
+      .fn()
+      .mockReturnValueOnce(REPO_INFO)
+      .mockReturnValueOnce(
+        graphqlResponse([], { reviews: [makeReview('coderabbitai[bot]', 'APPROVED')] }),
+      )
+    const getPrFeedback = createGetPrFeedback(runGh)
+    const result = getPrFeedback(1)
     expect(result.coderabbitReviewSeen).toBe(true)
   })
 

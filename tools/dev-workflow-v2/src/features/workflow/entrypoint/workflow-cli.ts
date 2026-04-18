@@ -74,7 +74,7 @@ export const ROUTES = defineRoutes<Workflow, WorkflowState>({
     args: [arg.string('output')],
     handler: (w, o) => w.executeRecording('record-ci-failed', o),
   },
-  'record-feedback-addressed': {
+  'verify-feedback-addressed': {
     type: 'transaction',
     args: [],
     handler: (w) => w.verifyFeedbackAddressed(),

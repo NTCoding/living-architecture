@@ -209,7 +209,7 @@ describe('workflow-cli commands', () => {
     })
   })
 
-  describe('record-feedback-addressed', () => {
+  describe('verify-feedback-addressed', () => {
     it('verifies live feedback in ADDRESSING_FEEDBACK state', () => {
       const ctx = setup({
         getPrFeedback: () => ({
@@ -228,7 +228,7 @@ describe('workflow-cli commands', () => {
           threads: [],
         }),
       })
-      const result = runCommand(ctx, ['record-feedback-addressed'])
+      const result = runCommand(ctx, ['verify-feedback-addressed'])
       expect(result.exitCode).toStrictEqual(0)
     })
 
@@ -242,14 +242,14 @@ describe('workflow-cli commands', () => {
         }),
       })
       progressToState(ctx, 'ADDRESSING_FEEDBACK')
-      const result = runCommand(ctx, ['record-feedback-addressed'])
+      const result = runCommand(ctx, ['verify-feedback-addressed'])
       expect(result.exitCode).toStrictEqual(2)
     })
 
     it('is blocked outside ADDRESSING_FEEDBACK state', () => {
       const ctx = setup()
       runCommand(ctx, ['init'])
-      const result = runCommand(ctx, ['record-feedback-addressed'])
+      const result = runCommand(ctx, ['verify-feedback-addressed'])
       expect(result.exitCode).toStrictEqual(2)
     })
   })

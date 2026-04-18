@@ -29,15 +29,18 @@ describe('Workflow', () => {
   describe('appendEvent — AWAITING_PR_FEEDBACK side effect', () => {
     it('awaits CodeRabbit feedback and auto-transitions to REFLECTING when clean', () => {
       const state = applyEvents([...eventsToAwaitingPrFeedback().slice(0, -1)])
+      const sleepMs = vi.fn()
+      const getPrFeedback = vi.fn(() => ({
+        reviewDecision: 'APPROVED',
+        coderabbitReviewSeen: true,
+        unresolvedCount: 0,
+        threads: [],
+      }))
       const wf = Workflow.rehydrate(
         state,
         makeDeps({
-          getPrFeedback: () => ({
-            reviewDecision: 'APPROVED',
-            coderabbitReviewSeen: true,
-            unresolvedCount: 0,
-            threads: [],
-          }),
+          getPrFeedback,
+          sleepMs,
         }),
       )
 
@@ -68,6 +71,8 @@ describe('Workflow', () => {
         currentStateMachineState: 'REFLECTING',
         feedbackClean: true,
       })
+      expect(getPrFeedback).toHaveBeenCalledTimes(2)
+      expect(sleepMs).toHaveBeenCalledTimes(1)
     })
 
     it('awaits CodeRabbit feedback and auto-transitions to ADDRESSING_FEEDBACK when feedback exists', () => {

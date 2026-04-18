@@ -30,6 +30,7 @@ const PR_FEEDBACK_POLL_INTERVAL_MS = 15_000
 const PR_FEEDBACK_TIMEOUT_MS = 300_000
 const PR_FEEDBACK_MAX_ATTEMPTS =
   Math.floor(PR_FEEDBACK_TIMEOUT_MS / PR_FEEDBACK_POLL_INTERVAL_MS) + 1
+const REQUIRED_CONSECUTIVE_CLEAN_CODE_RABBIT_POLLS = 2
 
 const RECORDING_OPS_MAP: Record<string, RecordingOpDefinition<readonly never[]>> = {
   'record-issue': {
@@ -227,7 +228,7 @@ export class Workflow {
   }
 
   verifyFeedbackAddressed(): PreconditionResult {
-    const gate = checkOperationGate('record-feedback-addressed', this.state, WORKFLOW_REGISTRY)
+    const gate = checkOperationGate('verify-feedback-addressed', this.state, WORKFLOW_REGISTRY)
     if (!gate.pass) return gate
     if (this.state.prNumber === undefined) {
       return fail('prNumber not set. Record the PR before verifying feedback.')
@@ -270,36 +271,60 @@ export class Workflow {
   }
 
   private awaitPrFeedback(prNumber: number): void {
-    for (const attempt of Array.from(
-      { length: PR_FEEDBACK_MAX_ATTEMPTS },
-      (_, index) => index + 1,
-    )) {
-      const feedbackResult = readPrFeedback(this.deps.getPrFeedback, prNumber)
-      if (!feedbackResult.ok) {
-        this.appendAutomaticTransition('BLOCKED')
-        return
-      }
-      const { feedback } = feedbackResult
+    this.pollPrFeedback(prNumber, PR_FEEDBACK_MAX_ATTEMPTS, 0)
+  }
 
-      if (feedback.coderabbitReviewSeen) {
-        const clean = isFeedbackClear(feedback)
-        this.append({
-          type: 'feedback-checked',
-          at: this.deps.now(),
-          clean,
-          unresolvedCount: feedback.unresolvedCount,
-          reviewDecision: feedback.reviewDecision,
-        })
-        this.appendAutomaticTransition(clean ? 'REFLECTING' : 'ADDRESSING_FEEDBACK')
-        return
-      }
-
-      if (attempt < PR_FEEDBACK_MAX_ATTEMPTS) {
-        this.deps.sleepMs(PR_FEEDBACK_POLL_INTERVAL_MS)
-      }
+  private pollPrFeedback(
+    prNumber: number,
+    attemptsRemaining: number,
+    consecutiveCleanPolls: number,
+  ): void {
+    const feedbackResult = readPrFeedback(this.deps.getPrFeedback, prNumber)
+    if (!feedbackResult.ok) {
+      this.appendAutomaticTransition('BLOCKED')
+      return
     }
 
-    this.appendAutomaticTransition('BLOCKED')
+    const { feedback } = feedbackResult
+    if (!feedback.coderabbitReviewSeen) {
+      this.scheduleNextPrFeedbackPoll(prNumber, attemptsRemaining, 0)
+      return
+    }
+
+    const clean = isFeedbackClear(feedback)
+    const nextConsecutiveCleanPolls = clean ? consecutiveCleanPolls + 1 : 0
+    if (
+      clean &&
+      nextConsecutiveCleanPolls < REQUIRED_CONSECUTIVE_CLEAN_CODE_RABBIT_POLLS &&
+      attemptsRemaining > 1
+    ) {
+      this.deps.sleepMs(PR_FEEDBACK_POLL_INTERVAL_MS)
+      this.pollPrFeedback(prNumber, attemptsRemaining - 1, nextConsecutiveCleanPolls)
+      return
+    }
+
+    this.append({
+      type: 'feedback-checked',
+      at: this.deps.now(),
+      clean,
+      unresolvedCount: feedback.unresolvedCount,
+      reviewDecision: feedback.reviewDecision,
+    })
+    this.appendAutomaticTransition(clean ? 'REFLECTING' : 'ADDRESSING_FEEDBACK')
+  }
+
+  private scheduleNextPrFeedbackPoll(
+    prNumber: number,
+    attemptsRemaining: number,
+    consecutiveCleanPolls: number,
+  ): void {
+    if (attemptsRemaining <= 1) {
+      this.appendAutomaticTransition('BLOCKED')
+      return
+    }
+
+    this.deps.sleepMs(PR_FEEDBACK_POLL_INTERVAL_MS)
+    this.pollPrFeedback(prNumber, attemptsRemaining - 1, consecutiveCleanPolls)
   }
 
   private appendAutomaticTransition(to: StateName): void {

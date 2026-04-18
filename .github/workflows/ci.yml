@@ -180,8 +180,14 @@ jobs:
 
       - name: Run ShellCheck
         run: |
-          shellcheck scripts/*.sh
-          shellcheck --shell=sh .husky/commit-msg .husky/pre-commit
+          shopt -s nullglob
+          script_files=(scripts/*.sh)
+          status=0
+          if ((${#script_files[@]})); then
+            shellcheck "${script_files[@]}" || status=$?
+          fi
+          shellcheck --shell=sh .husky/commit-msg .husky/pre-commit || status=$?
+          exit "$status"
 
   publish:
     needs: [main]

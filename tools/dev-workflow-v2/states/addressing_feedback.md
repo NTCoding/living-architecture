@@ -20,7 +20,7 @@ Start by running `/dev-workflow-v2:workflow show-state` and extracting `prNumber
   ```
 - [ ] Commit all fixes
 - [ ] Re-fetch the PR feedback from GitHub and confirm there are no unresolved actionable threads and no `CHANGES_REQUESTED` review decision
-- [ ] Verify the PR is mergeable from a review perspective: `/dev-workflow-v2:workflow record-feedback-addressed`
+- [ ] Record that feedback has been addressed (this also verifies live GitHub state — no unresolved threads and no `CHANGES_REQUESTED`): `/dev-workflow-v2:workflow verify-feedback-addressed`
 - [ ] Transition to REVIEWING: `/dev-workflow-v2:workflow transition REVIEWING`
 
 ## GraphQL shape
@@ -33,7 +33,7 @@ Use a query that fetches this data for the current PR:
 
 ## Constraints
 
-- Cannot transition to REVIEWING unless `record-feedback-addressed` succeeds
+- Cannot transition to REVIEWING unless `verify-feedback-addressed` succeeds
 - To leave this state, GitHub must show no unresolved actionable PR feedback and no `CHANGES_REQUESTED` review decision
 - Do not infer `prNumber` from branch state or prior messages. When workflow state values are needed, run `/dev-workflow-v2:workflow show-state` and extract the exact fields required from its JSON output.
 - Default to accepting feedback — reviewers know their codebase

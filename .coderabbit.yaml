@@ -15,7 +15,7 @@ reviews:
     docstrings:
       mode: 'off'
     issue_assessment:
-      mode: 'warning'
+      mode: 'error'
   tools:
     gitleaks:
       enabled: true
