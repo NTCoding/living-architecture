@@ -5,9 +5,7 @@ You are running automated code review by spawning review agents in parallel.
 ## Platform Detection
 
 - [ ] Check whether the environment variable `OPENCODE=1` is present.
-- [ ] If `OPENCODE=1` is present, you are in OpenCode mode:
-  - use the Task tool to invoke the configured `architecture-review`, `code-review`, `bug-scanner`, and optional `task-check` subagents
-  - do not write review reports or synthesize PASS/FAIL verdicts yourself unless subagent invocation fails
+- [ ] If `OPENCODE=1` is present, you are in OpenCode mode and must use the Task tool to invoke the configured review subagents.
 - [ ] Otherwise, use the Claude Agent tool path described below.
 
 ## TODO
@@ -15,9 +13,8 @@ You are running automated code review by spawning review agents in parallel.
 - [ ] Determine changed files: `git diff --name-only $(git merge-base HEAD main)..HEAD`
 - [ ] Create report directory: `reviews/<branch-name>/`
 - [ ] Build agent prompts (see Prompt Construction below)
-- [ ] If `OPENCODE=1`: spawn `architecture-review`, `code-review`, and `bug-scanner` in parallel using the Task tool
-- [ ] Otherwise: spawn `architecture-review`, `code-review`, and `bug-scanner` in parallel using the Agent tool
-- [ ] If `taskCheckPassed` is false AND a GitHub issue is recorded: also spawn `task-check` using the same platform-specific tool path (see Conditional Task Check below)
+- [ ] Spawn `architecture-review`, `code-review`, and `bug-scanner` in parallel using the delegation tool selected in Platform Detection
+- [ ] If Conditional Task Check says `task-check` is required, spawn it using the same selected delegation tool
 - [ ] Wait for all agents to complete and parse each agent's JSON verdict
 - [ ] If task-check returned PASS: `/dev-workflow-v2:workflow record-task-check-passed`
 - [ ] Record each agent's verdict individually:
@@ -48,7 +45,11 @@ Report Path: reviews/feat-my-feature/code-review.md
 
 ## Conditional Task Check
 
-Check the workflow state's `taskCheckPassed` flag. If it is already `true`, skip the task-check agent (it passed in a previous review cycle).
+Treat the workflow state's `taskCheckPassed` flag as authoritative.
+
+- If `taskCheckPassed` is `true`, do not spawn `task-check` in this REVIEWING run.
+- If `taskCheckPassed` is `false` and no GitHub issue is recorded, do not spawn `task-check` in this REVIEWING run.
+- Only if `taskCheckPassed` is `false` and a GitHub issue is recorded, spawn `task-check`.
 
 If `taskCheckPassed` is `false` and a GitHub issue is recorded, spawn the task-check agent. In OpenCode mode use the Task tool for the `task-check` subagent. In Claude mode use the Agent tool with `subagent_type: "task-check"`. Its prompt must include:
 
@@ -60,5 +61,7 @@ If `taskCheckPassed` is `false` and a GitHub issue is recorded, spawn the task-c
 
 - Cannot transition to SUBMITTING_PR unless all 3 reviews passed (architectureReviewPassed, codeReviewPassed, bugScannerPassed)
 - Cannot transition to IMPLEMENTING if all 3 reviews passed (go to SUBMITTING_PR instead)
+- Do not write review reports yourself. Each review report must be produced by its corresponding subagent.
 - Do not record any review PASS/FAIL status until the corresponding subagent has returned a JSON verdict
+- If any required subagent fails to start, fails to complete, or returns an invalid/missing verdict, do not continue the review flow; transition to BLOCKED immediately
 - If blocked, transition to BLOCKED: `/dev-workflow-v2:workflow transition BLOCKED`
