@@ -79,10 +79,10 @@ export const ROUTES = defineRoutes<Workflow, WorkflowState>({
     args: [],
     handler: (w) => w.verifyFeedbackAddressed(),
   },
-  'record-reflection': {
+  'record-reflection-path': {
     type: 'transaction',
     args: [arg.string('path')],
-    handler: (w, p) => w.executeRecording('record-reflection', p),
+    handler: (w, p) => w.executeRecording('record-reflection-path', p),
   },
 })
 

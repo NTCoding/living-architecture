@@ -81,7 +81,7 @@ export type WorkflowOperation =
   | 'record-ci-passed'
   | 'record-ci-failed'
   | 'record-feedback-addressed'
-  | 'record-reflection'
+  | 'record-reflection-path'
 
 /** @riviere-role value-object */
 export type ConcreteStateDefinition = WorkflowStateDefinition<

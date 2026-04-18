@@ -242,10 +242,10 @@ describe('Workflow', () => {
     it('records reflection and blocks reflection writes outside REFLECTING', () => {
       const success = spec
         .given(...eventsToReflecting())
-        .when((wf) => wf.executeRecording('record-reflection', '/test-output/r.md'))
+        .when((wf) => wf.executeRecording('record-reflection-path', '/test-output/r.md'))
       const failure = spec
         .given()
-        .when((wf) => wf.executeRecording('record-reflection', '/test-output/r.md'))
+        .when((wf) => wf.executeRecording('record-reflection-path', '/test-output/r.md'))
 
       expect(success.result).toStrictEqual({ pass: true })
       expect(success.state.reflectionPath).toStrictEqual('/test-output/r.md')

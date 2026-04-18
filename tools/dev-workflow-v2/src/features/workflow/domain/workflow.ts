@@ -86,7 +86,7 @@ const RECORDING_OPS_MAP: Record<string, RecordingOpDefinition<readonly never[]>>
       output,
     }),
   },
-  'record-reflection': {
+  'record-reflection-path': {
     event: 'reflection-written',
     payload: (p: string) => ({ path: p }),
   },

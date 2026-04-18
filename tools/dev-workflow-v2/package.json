@@ -8,12 +8,12 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@nt-ai-lab/deterministic-agent-workflow-claude-code": "0.2.1",
-    "@nt-ai-lab/deterministic-agent-workflow-cli": "0.2.1",
-    "@nt-ai-lab/deterministic-agent-workflow-dsl": "0.2.1",
-    "@nt-ai-lab/deterministic-agent-workflow-engine": "0.2.1",
-    "@nt-ai-lab/deterministic-agent-workflow-event-store": "0.2.1",
-    "@nt-ai-lab/deterministic-agent-workflow-opencode": "0.2.1",
+    "@nt-ai-lab/deterministic-agent-workflow-claude-code": "0.3.0",
+    "@nt-ai-lab/deterministic-agent-workflow-cli": "0.3.0",
+    "@nt-ai-lab/deterministic-agent-workflow-dsl": "0.3.0",
+    "@nt-ai-lab/deterministic-agent-workflow-engine": "0.3.0",
+    "@nt-ai-lab/deterministic-agent-workflow-event-store": "0.3.0",
+    "@nt-ai-lab/deterministic-agent-workflow-opencode": "0.3.0",
     "zod": "^3.23.0"
   },
   "devDependencies": {

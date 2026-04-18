@@ -7,12 +7,12 @@ export const reflectingState: ConcreteStateDefinition = {
   emoji: '🪞',
   agentInstructions: 'states/reflecting.md',
   canTransitionTo: ['COMPLETE', 'BLOCKED'],
-  allowedWorkflowOperations: ['record-reflection'],
+  allowedWorkflowOperations: ['record-reflection-path'],
   forbidden: { write: true },
 
   transitionGuard: (ctx) => {
     if (!ctx.state.reflectionPath)
-      return fail('Reflection not written. Run record-reflection first.')
+      return fail('Reflection not written. Run record-reflection-path first.')
     return pass()
   },
 }
