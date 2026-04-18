@@ -38,6 +38,14 @@ Renames the worktree branch to match the issue, reads the issue details, initial
 
 Low-level state machine CLI. Used by the other commands and state instructions — not called directly by users.
 
+Useful internal command for state-driven instructions:
+
+```bash
+/dev-workflow-v2:workflow show-state
+```
+
+This returns the current workflow state as JSON so state instructions can extract exact values such as `githubIssue`, `prNumber`, `taskCheckPassed`, and `reflectionPath` without guessing.
+
 ## State Machine
 
 ```mermaid

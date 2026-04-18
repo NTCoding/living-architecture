@@ -5,6 +5,7 @@ You are creating or updating the pull request.
 ## TODO
 
 - [ ] Push the branch: `git push -u origin <branch-name>`
+- [ ] Run `/dev-workflow-v2:workflow show-state` and extract `githubIssue` from its JSON output
 - [ ] Create or update the PR with a clear, well-articulated body that uses this template:
 
   ```md
@@ -46,6 +47,6 @@ You are creating or updating the pull request.
 ## Constraints
 
 - `git push` and `gh pr` are ALLOWED in this state (exempted from the global block)
-- The PR body MUST contain `Closes #<issue-number>` in the `Linked Issue` section
+- The PR body MUST contain `Closes #<issue-number>` in the `Linked Issue` section, using the `githubIssue` value extracted from `/dev-workflow-v2:workflow show-state`
 - Cannot transition to AWAITING_CI unless prNumber is recorded
 - If blocked, transition to BLOCKED: `/dev-workflow-v2:workflow transition BLOCKED`

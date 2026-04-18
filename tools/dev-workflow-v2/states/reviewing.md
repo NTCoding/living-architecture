@@ -10,6 +10,7 @@ You are running automated code review by spawning review agents in parallel.
 
 ## TODO
 
+- [ ] Run `/dev-workflow-v2:workflow show-state` once at the start of this state run and extract `taskCheckPassed` and `githubIssue` from its JSON output
 - [ ] Determine changed files: `git diff --name-only $(git merge-base HEAD main)..HEAD`
 - [ ] Create report directory: `reviews/<branch-name>/`
 - [ ] Build agent prompts (see Prompt Construction below)
@@ -45,23 +46,24 @@ Report Path: reviews/feat-my-feature/code-review.md
 
 ## Conditional Task Check
 
-Treat the workflow state's `taskCheckPassed` flag as authoritative.
+Use only the `taskCheckPassed` and `githubIssue` values extracted from `/dev-workflow-v2:workflow show-state` for this decision.
 
 - If `taskCheckPassed` is `true`, do not spawn `task-check` in this REVIEWING run.
-- If `taskCheckPassed` is `false` and no GitHub issue is recorded, do not spawn `task-check` in this REVIEWING run.
-- Only if `taskCheckPassed` is `false` and a GitHub issue is recorded, spawn `task-check`.
+- If `taskCheckPassed` is `false` and `githubIssue` is missing, do not spawn `task-check` in this REVIEWING run.
+- Only if `taskCheckPassed` is `false` and `githubIssue` is present, spawn `task-check` exactly once in this REVIEWING run.
 
-If `taskCheckPassed` is `false` and a GitHub issue is recorded, spawn the task-check agent. In OpenCode mode use the Task tool for the `task-check` subagent. In Claude mode use the Agent tool with `subagent_type: "task-check"`. Its prompt must include:
+If `taskCheckPassed` is `false` and `githubIssue` is present, spawn the task-check agent. In OpenCode mode use the Task tool for the `task-check` subagent. In Claude mode use the Agent tool with `subagent_type: "task-check"`. Its prompt must include:
 
 1. **Files to Review** — same changed files list
 2. **Report Path** — `reviews/<branch-name>/task-check.md`
-3. **Task Details** — the GitHub issue body (fetch via `gh issue view <number>`)
+3. **Task Details** — the GitHub issue body for `githubIssue` (fetch via `gh issue view <number>`)
 
 ## Constraints
 
 - Cannot transition to SUBMITTING_PR unless all 3 reviews passed (architectureReviewPassed, codeReviewPassed, bugScannerPassed)
 - Cannot transition to IMPLEMENTING if all 3 reviews passed (go to SUBMITTING_PR instead)
 - Do not write review reports yourself. Each review report must be produced by its corresponding subagent.
+- Do not infer workflow state from prior messages, git history, or report files. When workflow state values are needed, run `/dev-workflow-v2:workflow show-state` and extract the exact fields required from its JSON output.
 - Do not record any review PASS/FAIL status until the corresponding subagent has returned a JSON verdict
 - If any required subagent fails to start, fails to complete, or returns an invalid/missing verdict, do not continue the review flow; transition to BLOCKED immediately
 - If blocked, transition to BLOCKED: `/dev-workflow-v2:workflow transition BLOCKED`
