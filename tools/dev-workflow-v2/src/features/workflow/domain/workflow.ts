@@ -120,10 +120,6 @@ function diffStateOverrides(
   return overrides
 }
 
-function formatReviewDecision(reviewDecision: string | null): string {
-  return reviewDecision ?? 'NONE'
-}
-
 function isFeedbackClear(feedback: PRFeedbackResult): boolean {
   return feedback.reviewDecision !== 'CHANGES_REQUESTED' && feedback.unresolvedCount === 0
 }
@@ -191,9 +187,6 @@ export class Workflow {
 
     if (workflowEvent.type === 'transitioned' && workflowEvent.to === 'AWAITING_PR_FEEDBACK') {
       if (this.state.prNumber === undefined) {
-        this.appendJournal(
-          'Entered AWAITING_PR_FEEDBACK without a recorded PR number. Transitioning to BLOCKED.',
-        )
         this.appendAutomaticTransition('BLOCKED')
         return
       }
@@ -248,10 +241,6 @@ export class Workflow {
     if (!feedbackResult.ok) return fail(feedbackResult.reason)
     const { feedback } = feedbackResult
 
-    this.appendJournal(
-      `Verified PR feedback for PR #${this.state.prNumber}: reviewDecision=${formatReviewDecision(feedback.reviewDecision)}, unresolvedCount=${feedback.unresolvedCount}.`,
-    )
-
     const clean = isFeedbackClear(feedback)
     this.append({
       type: 'feedback-checked',
@@ -285,25 +274,16 @@ export class Workflow {
   }
 
   private awaitPrFeedback(prNumber: number): void {
-    this.appendJournal(
-      `Awaiting PR feedback on PR #${prNumber}. Polling every 15s for up to 5 minutes until a CodeRabbit review is available.`,
-    )
-
     for (const attempt of Array.from(
       { length: PR_FEEDBACK_MAX_ATTEMPTS },
       (_, index) => index + 1,
     )) {
       const feedbackResult = readPrFeedback(this.deps.getPrFeedback, prNumber)
       if (!feedbackResult.ok) {
-        this.appendJournal(`${feedbackResult.reason}. Transitioning to BLOCKED.`)
         this.appendAutomaticTransition('BLOCKED')
         return
       }
       const { feedback } = feedbackResult
-
-      this.appendJournal(
-        `PR feedback poll ${attempt}/${PR_FEEDBACK_MAX_ATTEMPTS}: reviewDecision=${formatReviewDecision(feedback.reviewDecision)}, coderabbitReviewSeen=${String(feedback.coderabbitReviewSeen)}, unresolvedCount=${feedback.unresolvedCount}.`,
-      )
 
       if (feedback.coderabbitReviewSeen) {
         const clean = isFeedbackClear(feedback)
@@ -314,11 +294,6 @@ export class Workflow {
           unresolvedCount: feedback.unresolvedCount,
           reviewDecision: feedback.reviewDecision,
         })
-        this.appendJournal(
-          clean
-            ? `CodeRabbit review received for PR #${prNumber} with no remaining actionable feedback. Transitioning to REFLECTING.`
-            : `CodeRabbit review received for PR #${prNumber} and remaining PR feedback requires follow-up. Transitioning to ADDRESSING_FEEDBACK.`,
-        )
         this.appendAutomaticTransition(clean ? 'REFLECTING' : 'ADDRESSING_FEEDBACK')
         return
       }
@@ -328,9 +303,6 @@ export class Workflow {
       }
     }
 
-    this.appendJournal(
-      `Timed out after 5 minutes waiting for a CodeRabbit review on PR #${prNumber}. Transitioning to BLOCKED for user intervention.`,
-    )
     this.appendAutomaticTransition('BLOCKED')
   }
 
@@ -354,15 +326,6 @@ export class Workflow {
       from,
       to,
       ...(Object.keys(stateOverrides).length === 0 ? {} : { stateOverrides }),
-    })
-  }
-
-  private appendJournal(content: string): void {
-    this.append({
-      type: 'journal-entry',
-      at: this.deps.now(),
-      agentName: 'workflow',
-      content,
     })
   }
 

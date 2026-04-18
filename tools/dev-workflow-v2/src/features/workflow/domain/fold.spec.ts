@@ -379,14 +379,4 @@ describe('applyEvent — observation events return unchanged state', () => {
     })
     expect(result).toStrictEqual(EMPTY_STATE)
   })
-
-  it('journal-entry returns state unchanged', () => {
-    const result = applyEvent(EMPTY_STATE, {
-      type: 'journal-entry',
-      at: AT,
-      agentName: 'workflow',
-      content: 'Awaiting CodeRabbit review.',
-    })
-    expect(result).toStrictEqual(EMPTY_STATE)
-  })
 })

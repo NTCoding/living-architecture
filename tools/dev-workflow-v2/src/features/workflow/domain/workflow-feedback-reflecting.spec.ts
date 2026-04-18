@@ -57,7 +57,6 @@ describe('Workflow', () => {
             type: 'transitioned',
             to: 'AWAITING_PR_FEEDBACK',
           }),
-          expect.objectContaining({ type: 'journal-entry' }),
           expect.objectContaining({
             type: 'feedback-checked',
             clean: true,

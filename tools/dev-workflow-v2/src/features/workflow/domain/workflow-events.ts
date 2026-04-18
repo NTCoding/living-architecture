@@ -103,13 +103,6 @@ const WRITE_CHECKED_SCHEMA = z.object({
   reason: z.string().optional(),
 })
 
-const JOURNAL_ENTRY_SCHEMA = z.object({
-  type: z.literal('journal-entry'),
-  at: z.string(),
-  agentName: z.string(),
-  content: z.string(),
-})
-
 export const WORKFLOW_EVENT_SCHEMA = z.discriminatedUnion('type', [
   SESSION_STARTED_SCHEMA,
   TRANSITIONED_SCHEMA,
@@ -126,7 +119,6 @@ export const WORKFLOW_EVENT_SCHEMA = z.discriminatedUnion('type', [
   TASK_CHECK_PASSED_SCHEMA,
   BASH_CHECKED_SCHEMA,
   WRITE_CHECKED_SCHEMA,
-  JOURNAL_ENTRY_SCHEMA,
 ])
 
 /** @riviere-role value-object */

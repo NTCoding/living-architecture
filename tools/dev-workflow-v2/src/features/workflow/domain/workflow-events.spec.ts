@@ -228,28 +228,6 @@ describe('WORKFLOW_EVENT_SCHEMA — feedback-addressed', () => {
   })
 })
 
-describe('WORKFLOW_EVENT_SCHEMA — journal-entry', () => {
-  it('accepts valid payload', () => {
-    const result = WORKFLOW_EVENT_SCHEMA.parse({
-      type: 'journal-entry',
-      at: AT,
-      agentName: 'workflow',
-      content: 'Waiting for CodeRabbit review.',
-    })
-    expect(result.type).toStrictEqual('journal-entry')
-  })
-
-  it('rejects missing content', () => {
-    expect(() =>
-      WORKFLOW_EVENT_SCHEMA.parse({
-        type: 'journal-entry',
-        at: AT,
-        agentName: 'workflow',
-      }),
-    ).toThrow('Required')
-  })
-})
-
 describe('WORKFLOW_EVENT_SCHEMA — reflection-written', () => {
   it('accepts valid payload', () => {
     const result = WORKFLOW_EVENT_SCHEMA.parse({
