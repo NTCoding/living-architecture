@@ -2,7 +2,7 @@
 
 You are addressing PR review feedback.
 
-Start by running `/dev-workflow-v2:workflow show-state` and extracting `prNumber` from its JSON output, then fetch the current PR feedback directly from GitHub for that PR.
+Start by running `/dev-workflow-v2:workflow get-state` and extracting `prNumber` from its JSON output, then fetch the current PR feedback directly from GitHub for that PR.
 
 ## TODO
 
@@ -35,7 +35,7 @@ Use a query that fetches this data for the current PR:
 
 - Cannot transition to REVIEWING unless `verify-feedback-addressed` succeeds
 - To leave this state, GitHub must show no unresolved actionable PR feedback and no `CHANGES_REQUESTED` review decision
-- Do not infer `prNumber` from branch state or prior messages. When workflow state values are needed, run `/dev-workflow-v2:workflow show-state` and extract the exact fields required from its JSON output.
+- Do not infer `prNumber` from branch state or prior messages. When workflow state values are needed, run `/dev-workflow-v2:workflow get-state` and extract the exact fields required from its JSON output.
 - Default to accepting feedback — reviewers know their codebase
 - Every rejection MUST include a specific technical reason
 - If the PR cannot be made mergeable, transition to BLOCKED and tell the user you were unable to make the PR mergeable

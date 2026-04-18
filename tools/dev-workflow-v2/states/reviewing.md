@@ -10,7 +10,7 @@ You are running automated code review by spawning review agents in parallel.
 
 ## TODO
 
-- [ ] Run `/dev-workflow-v2:workflow show-state` once at the start of this state run and extract `taskCheckPassed` and `githubIssue` from its JSON output
+- [ ] Run `/dev-workflow-v2:workflow get-state` once at the start of this state run and extract `taskCheckPassed` and `githubIssue` from its JSON output
 - [ ] Determine changed files: `git diff --name-only $(git merge-base HEAD main)..HEAD`
 - [ ] Create report directory: `reviews/<branch-name>/`
 - [ ] Build agent prompts (see Prompt Construction below)
@@ -46,7 +46,7 @@ Report Path: reviews/feat-my-feature/code-review.md
 
 ## Conditional Task Check
 
-Use only the `taskCheckPassed` and `githubIssue` values extracted from `/dev-workflow-v2:workflow show-state` for this decision.
+Use only the `taskCheckPassed` and `githubIssue` values extracted from `/dev-workflow-v2:workflow get-state` for this decision.
 
 - If `taskCheckPassed` is `true`, do not spawn `task-check` in this REVIEWING run.
 - If `taskCheckPassed` is `false` and `githubIssue` is missing, do not spawn `task-check` in this REVIEWING run.
@@ -63,7 +63,7 @@ If `taskCheckPassed` is `false` and `githubIssue` is present, spawn the task-che
 - Cannot transition to SUBMITTING_PR unless all 3 reviews passed (architectureReviewPassed, codeReviewPassed, bugScannerPassed)
 - Cannot transition to IMPLEMENTING if all 3 reviews passed (go to SUBMITTING_PR instead)
 - Do not write review reports yourself. Each review report must be produced by its corresponding subagent.
-- Do not infer workflow state from prior messages, git history, or report files. When workflow state values are needed, run `/dev-workflow-v2:workflow show-state` and extract the exact fields required from its JSON output.
+- Do not infer workflow state from prior messages, git history, or report files. When workflow state values are needed, run `/dev-workflow-v2:workflow get-state` and extract the exact fields required from its JSON output.
 - Do not record any review PASS/FAIL status until the corresponding subagent has returned a JSON verdict
 - If any required subagent fails to start, fails to complete, or returns an invalid/missing verdict, do not continue the review flow; transition to BLOCKED immediately
 - If blocked, transition to BLOCKED: `/dev-workflow-v2:workflow transition BLOCKED`

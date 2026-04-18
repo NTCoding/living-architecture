@@ -41,7 +41,7 @@ Low-level state machine CLI. Used by the other commands and state instructions â
 Useful internal command for state-driven instructions:
 
 ```bash
-/dev-workflow-v2:workflow show-state
+/dev-workflow-v2:workflow get-state
 ```
 
 This returns the current workflow state as JSON so state instructions can extract exact values such as `githubIssue`, `prNumber`, and `taskCheckPassed` without guessing.
