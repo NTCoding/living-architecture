@@ -173,10 +173,15 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: ShellCheck
-        uses: ludeeus/action-shellcheck@master
-        with:
-          ignore_paths: '.husky --help'
+      - name: Install ShellCheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes shellcheck
+
+      - name: Run ShellCheck
+        run: |
+          shellcheck scripts/*.sh .husky/_/husky.sh
+          shellcheck --shell=sh .husky/commit-msg .husky/pre-commit
 
   publish:
     needs: [main]
