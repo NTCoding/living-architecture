@@ -30,7 +30,7 @@ const PR_FEEDBACK_POLL_INTERVAL_MS = 15_000
 const PR_FEEDBACK_TIMEOUT_MS = 300_000
 const PR_FEEDBACK_MAX_ATTEMPTS =
   Math.floor(PR_FEEDBACK_TIMEOUT_MS / PR_FEEDBACK_POLL_INTERVAL_MS) + 1
-const REQUIRED_CONSECUTIVE_CLEAN_CODE_RABBIT_POLLS = 2
+const REQUIRED_CONSECUTIVE_CLEAN_CODERABBIT_POLLS = 2
 
 const RECORDING_OPS_MAP: Record<string, RecordingOpDefinition<readonly never[]>> = {
   'record-issue': {
@@ -295,7 +295,8 @@ export class Workflow {
     const nextConsecutiveCleanPolls = clean ? consecutiveCleanPolls + 1 : 0
     if (
       clean &&
-      nextConsecutiveCleanPolls < REQUIRED_CONSECUTIVE_CLEAN_CODE_RABBIT_POLLS &&
+      // On the last allowed poll, a newly clean CodeRabbit result is accepted instead of timing out a PR that just became ready.
+      nextConsecutiveCleanPolls < REQUIRED_CONSECUTIVE_CLEAN_CODERABBIT_POLLS &&
       attemptsRemaining > 1
     ) {
       this.deps.sleepMs(PR_FEEDBACK_POLL_INTERVAL_MS)

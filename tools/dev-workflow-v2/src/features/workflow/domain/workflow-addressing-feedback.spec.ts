@@ -2,27 +2,11 @@ import {
   describe, it, expect 
 } from 'vitest'
 import {
-  spec, eventsToAddressingFeedback 
+  spec,
+  eventsToAddressingFeedback,
+  unresolvedThread,
 } from './fixtures/workflow-test-fixtures'
 import { addressingFeedbackState } from './states/addressing-feedback'
-
-function unresolvedThread(): {
-  id: string
-  isResolved: false
-  isOutdated: false
-  path: string
-  line: number
-  comments: readonly []
-} {
-  return {
-    id: 't1',
-    isResolved: false,
-    isOutdated: false,
-    path: 'f.ts',
-    line: 1,
-    comments: [],
-  }
-}
 
 function addressingTransitionGuard(): NonNullable<typeof addressingFeedbackState.transitionGuard> {
   const guard = addressingFeedbackState.transitionGuard
@@ -70,7 +54,7 @@ describe('ADDRESSING_FEEDBACK workflow behavior', () => {
           reviewDecision: 'CHANGES_REQUESTED',
           coderabbitReviewSeen: true,
           unresolvedCount: 1,
-          threads: [unresolvedThread()],
+          threads: [unresolvedThread('t1')],
         }),
       })
       .when((wf) => wf.verifyFeedbackAddressed())
@@ -102,7 +86,7 @@ describe('ADDRESSING_FEEDBACK workflow behavior', () => {
           reviewDecision: 'APPROVED',
           coderabbitReviewSeen: true,
           unresolvedCount: 1,
-          threads: [unresolvedThread()],
+          threads: [unresolvedThread('t1')],
         }),
       })
       .when((wf) => wf.verifyFeedbackAddressed())
@@ -147,7 +131,10 @@ describe('ADDRESSING_FEEDBACK workflow behavior', () => {
       })
       .when((wf) => wf.verifyFeedbackAddressed())
 
-    expect(outsideState.result.pass).toStrictEqual(false)
+    expect(outsideState.result).toMatchObject({
+      pass: false,
+      reason: expect.stringContaining('verify-feedback-addressed is not allowed in state'),
+    })
     expect(noPrNumber.result).toMatchObject({
       pass: false,
       reason: expect.stringContaining('prNumber not set'),

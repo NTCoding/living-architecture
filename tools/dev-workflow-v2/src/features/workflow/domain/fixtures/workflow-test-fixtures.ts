@@ -63,6 +63,24 @@ export function transitioned(
   }
 }
 
+export function unresolvedThread(id: string): {
+  id: string
+  isResolved: false
+  isOutdated: false
+  path: string
+  line: number
+  comments: readonly []
+} {
+  return {
+    id,
+    isResolved: false,
+    isOutdated: false,
+    path: `${id}.ts`,
+    line: 1,
+    comments: [],
+  }
+}
+
 function architectureReviewPassed(): WorkflowEvent {
   return {
     type: 'architecture-review-completed',

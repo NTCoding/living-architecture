@@ -14,9 +14,14 @@ Start by running `/dev-workflow-v2:workflow get-state` and extracting `prNumber`
 - [ ] Respond to each thread using gh CLI:
   ```bash
   # Reply to thread (use ✅ **Fixed** or ❌ **Rejected** prefix)
-  gh api graphql -f query='mutation { addPullRequestReviewThreadReply(input: {pullRequestReviewThreadId: "<THREAD_ID>", body: "<PREFIX>: <explanation>"}) { comment { id } } }'
+  gh api graphql \
+    -f query='mutation($pullRequestReviewThreadId: ID!, $body: String!) { addPullRequestReviewThreadReply(input: {pullRequestReviewThreadId: $pullRequestReviewThreadId, body: $body}) { comment { id } } }' \
+    -f pullRequestReviewThreadId='<THREAD_ID>' \
+    -f body='<PREFIX>: <explanation>'
   # Resolve thread
-  gh api graphql -f query='mutation { resolveReviewThread(input: {threadId: "<THREAD_ID>"}) { thread { id } } }'
+  gh api graphql \
+    -f query='mutation($threadId: ID!) { resolveReviewThread(input: {threadId: $threadId}) { thread { id } } }' \
+    -f threadId='<THREAD_ID>'
   ```
 - [ ] Commit all fixes
 - [ ] Re-fetch the PR feedback from GitHub and confirm there are no unresolved actionable threads and no `CHANGES_REQUESTED` review decision

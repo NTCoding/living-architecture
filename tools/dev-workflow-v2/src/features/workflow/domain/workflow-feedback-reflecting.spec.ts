@@ -2,28 +2,12 @@ import {
   describe, it, expect, vi 
 } from 'vitest'
 import {
-  makeDeps, eventsToAwaitingPrFeedback 
+  makeDeps,
+  eventsToAwaitingPrFeedback,
+  unresolvedThread,
 } from './fixtures/workflow-test-fixtures'
 import { Workflow } from './workflow'
 import { applyEvents } from './fold'
-
-function unresolvedThread(id: string): {
-  id: string
-  isResolved: false
-  isOutdated: false
-  path: string
-  line: number
-  comments: readonly []
-} {
-  return {
-    id,
-    isResolved: false,
-    isOutdated: false,
-    path: `${id}.ts`,
-    line: 1,
-    comments: [],
-  }
-}
 
 describe('Workflow', () => {
   describe('appendEvent — AWAITING_PR_FEEDBACK side effect', () => {
