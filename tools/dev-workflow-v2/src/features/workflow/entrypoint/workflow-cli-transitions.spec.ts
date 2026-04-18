@@ -45,10 +45,9 @@ describe('workflow-cli transitions', () => {
   }
 
   describe('full happy path to COMPLETE', () => {
-    it('transitions from REFLECTING to COMPLETE after recording reflection', () => {
+    it('transitions from REFLECTING to COMPLETE', () => {
       const ctx = setup()
       progressToState(ctx, 'REFLECTING')
-      runCommand(ctx, ['record-reflection-path', '/path/r.md'])
       const result = runCommand(ctx, ['transition', 'COMPLETE'])
       expect(result.exitCode).toStrictEqual(0)
     })
@@ -184,12 +183,11 @@ describe('workflow-cli transitions', () => {
       expect(result.output).toContain('CI passed')
     })
 
-    it('rejects REFLECTING to COMPLETE without reflection recorded', () => {
+    it('allows REFLECTING to COMPLETE without a workflow-level reflection guard', () => {
       const ctx = setup()
       progressToState(ctx, 'REFLECTING')
       const result = runCommand(ctx, ['transition', 'COMPLETE'])
-      expect(result.exitCode).toStrictEqual(2)
-      expect(result.output).toContain('Reflection not written')
+      expect(result.exitCode).toStrictEqual(0)
     })
 
     it('rejects ADDRESSING_FEEDBACK to REVIEWING without feedback addressed', () => {

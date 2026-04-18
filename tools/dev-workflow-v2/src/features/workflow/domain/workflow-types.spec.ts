@@ -48,7 +48,6 @@ describe('createWorkflowStateSchema — WorkflowState', () => {
       featureBranch: 'issue-42',
       prNumber: 7,
       prUrl: 'https://github.com/owner/repo/pull/7',
-      reflectionPath: '/test-output/reflection.md',
       preBlockedState: 'IMPLEMENTING',
       feedbackUnresolvedCount: 3,
     }

@@ -160,14 +160,6 @@ export function eventsToAddressingFeedback(): readonly WorkflowEvent[] {
   ]
 }
 
-export function eventsToReflecting(): readonly WorkflowEvent[] {
-  return [
-    ...eventsToAwaitingPrFeedback(),
-    feedbackClean(),
-    transitioned('AWAITING_PR_FEEDBACK', 'REFLECTING'),
-  ]
-}
-
 export const spec = workflowSpec<WorkflowEvent, WorkflowState, WorkflowDeps, Workflow>({
   fold: applyEvents,
   rehydrate: (state, deps) => Workflow.rehydrate(state, deps),

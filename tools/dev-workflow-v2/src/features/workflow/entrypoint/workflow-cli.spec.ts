@@ -253,20 +253,4 @@ describe('workflow-cli commands', () => {
       expect(result.exitCode).toStrictEqual(2)
     })
   })
-
-  describe('record-reflection-path', () => {
-    it('records reflection path', () => {
-      const ctx = setup()
-      progressToState(ctx, 'REFLECTING')
-      const result = runCommand(ctx, ['record-reflection-path', '/path/reflection.md'])
-      expect(result.exitCode).toStrictEqual(0)
-    })
-
-    it('returns error when path is missing', () => {
-      const ctx = setup()
-      runCommand(ctx, ['init'])
-      const result = runCommand(ctx, ['record-reflection-path'])
-      expect(result.exitCode).toStrictEqual(1)
-    })
-  })
 })

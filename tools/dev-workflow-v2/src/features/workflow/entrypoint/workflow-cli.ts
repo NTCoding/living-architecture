@@ -79,11 +79,6 @@ export const ROUTES = defineRoutes<Workflow, WorkflowState>({
     args: [],
     handler: (w) => w.verifyFeedbackAddressed(),
   },
-  'record-reflection-path': {
-    type: 'transaction',
-    args: [arg.string('path')],
-    handler: (w, p) => w.executeRecording('record-reflection-path', p),
-  },
 })
 
 /** @riviere-role cli-entrypoint */

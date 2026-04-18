@@ -38,7 +38,6 @@ export function createWorkflowStateSchema<T extends readonly [string, ...string[
     feedbackClean: z.boolean(),
     feedbackAddressed: z.boolean(),
     feedbackUnresolvedCount: z.number().optional(),
-    reflectionPath: z.string().optional(),
     preBlockedState: z.string().optional(),
     transcriptPath: z.string().optional(),
   })
@@ -61,7 +60,6 @@ export type WorkflowState = {
   feedbackClean: boolean
   feedbackAddressed: boolean
   feedbackUnresolvedCount?: number | undefined
-  reflectionPath?: string | undefined
   preBlockedState?: string | undefined
   transcriptPath?: string | undefined
 }
@@ -81,7 +79,6 @@ export type WorkflowOperation =
   | 'record-ci-passed'
   | 'record-ci-failed'
   | 'record-feedback-addressed'
-  | 'record-reflection-path'
 
 /** @riviere-role value-object */
 export type ConcreteStateDefinition = WorkflowStateDefinition<

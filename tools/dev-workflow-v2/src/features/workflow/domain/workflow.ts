@@ -86,10 +86,6 @@ const RECORDING_OPS_MAP: Record<string, RecordingOpDefinition<readonly never[]>>
       output,
     }),
   },
-  'record-reflection-path': {
-    event: 'reflection-written',
-    payload: (p: string) => ({ path: p }),
-  },
 }
 
 const RECORDING_OPS = defineRecordingOps<StateName, WorkflowState, WorkflowOperation>(

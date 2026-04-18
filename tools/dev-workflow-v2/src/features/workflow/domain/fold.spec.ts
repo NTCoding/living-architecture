@@ -230,18 +230,6 @@ describe('applyEvent — task-check-passed', () => {
   })
 })
 
-describe('applyEvent — reflection-written', () => {
-  it('sets reflectionPath', () => {
-    const event: WorkflowEvent = {
-      type: 'reflection-written',
-      at: AT,
-      path: '/test-output/r.md',
-    }
-    const result = applyEvent(EMPTY_STATE, event)
-    expect(result.reflectionPath).toStrictEqual('/test-output/r.md')
-  })
-})
-
 describe('applyEvent — transitioned', () => {
   it('changes state field', () => {
     const result = applyEvent(EMPTY_STATE, {

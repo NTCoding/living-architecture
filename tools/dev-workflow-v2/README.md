@@ -44,7 +44,7 @@ Useful internal command for state-driven instructions:
 /dev-workflow-v2:workflow show-state
 ```
 
-This returns the current workflow state as JSON so state instructions can extract exact values such as `githubIssue`, `prNumber`, `taskCheckPassed`, and `reflectionPath` without guessing.
+This returns the current workflow state as JSON so state instructions can extract exact values such as `githubIssue`, `prNumber`, and `taskCheckPassed` without guessing.
 
 ## State Machine
 

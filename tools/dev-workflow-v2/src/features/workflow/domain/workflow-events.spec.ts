@@ -228,26 +228,6 @@ describe('WORKFLOW_EVENT_SCHEMA — feedback-addressed', () => {
   })
 })
 
-describe('WORKFLOW_EVENT_SCHEMA — reflection-written', () => {
-  it('accepts valid payload', () => {
-    const result = WORKFLOW_EVENT_SCHEMA.parse({
-      type: 'reflection-written',
-      at: AT,
-      path: '/test-output/r.md',
-    })
-    expect(result.type).toStrictEqual('reflection-written')
-  })
-
-  it('rejects missing path', () => {
-    expect(() =>
-      WORKFLOW_EVENT_SCHEMA.parse({
-        type: 'reflection-written',
-        at: AT,
-      }),
-    ).toThrow('Required')
-  })
-})
-
 describe('WORKFLOW_EVENT_SCHEMA — task-check-passed', () => {
   it('accepts valid payload', () => {
     const result = WORKFLOW_EVENT_SCHEMA.parse({

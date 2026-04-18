@@ -81,11 +81,6 @@ function applyRecordingEvent(state: WorkflowState, event: WorkflowEvent): Workfl
         prNumber: event.prNumber,
         prUrl: event.prUrl,
       }
-    case 'reflection-written':
-      return {
-        ...state,
-        reflectionPath: event.path,
-      }
     case 'task-check-passed':
       return {
         ...state,

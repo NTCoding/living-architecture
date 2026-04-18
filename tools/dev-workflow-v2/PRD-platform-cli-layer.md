@@ -292,10 +292,6 @@ const RECORDING_OPS = defineRecordingOps<StateName, WorkflowState, WorkflowOpera
       event: 'feedback-addressed',
       payload: (count: number) => ({ addressedCount: count }),
     },
-    'record-reflection-path': {
-      event: 'reflection-written',
-      payload: (p: string) => ({ path: p }),
-    },
   },
 )
 ```
@@ -398,11 +394,6 @@ const ROUTES = defineRoutes<Workflow, WorkflowState>({
     type: 'transaction',
     args: [arg.number('count')],
     handler: (w, c) => w.executeRecording('record-feedback-addressed', c),
-  },
-  'record-reflection-path': {
-    type: 'transaction',
-    args: [arg.string('path')],
-    handler: (w, p) => w.executeRecording('record-reflection-path', p),
   },
 })
 ```

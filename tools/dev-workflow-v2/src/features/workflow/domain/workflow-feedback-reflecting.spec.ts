@@ -2,10 +2,7 @@ import {
   describe, it, expect, vi 
 } from 'vitest'
 import {
-  spec,
-  makeDeps,
-  eventsToAwaitingPrFeedback,
-  eventsToReflecting,
+  makeDeps, eventsToAwaitingPrFeedback 
 } from './fixtures/workflow-test-fixtures'
 import { Workflow } from './workflow'
 import { applyEvents } from './fold'
@@ -235,21 +232,6 @@ describe('Workflow', () => {
         })
         expect(wf.getState().currentStateMachineState).toStrictEqual('BLOCKED')
       }
-    })
-  })
-
-  describe('REFLECTING state', () => {
-    it('records reflection and blocks reflection writes outside REFLECTING', () => {
-      const success = spec
-        .given(...eventsToReflecting())
-        .when((wf) => wf.executeRecording('record-reflection-path', '/test-output/r.md'))
-      const failure = spec
-        .given()
-        .when((wf) => wf.executeRecording('record-reflection-path', '/test-output/r.md'))
-
-      expect(success.result).toStrictEqual({ pass: true })
-      expect(success.state.reflectionPath).toStrictEqual('/test-output/r.md')
-      expect(failure.result.pass).toStrictEqual(false)
     })
   })
 })
