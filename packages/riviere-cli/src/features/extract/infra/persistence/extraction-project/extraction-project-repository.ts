@@ -112,6 +112,7 @@ export class ExtractionProjectRepository {
     const sourceFilesByModule = resolveSourceFilePaths(parsedConfigState)
     const sourceFilePaths = resolveChangedSourceFilePaths(
       [...sourceFilesByModule.values()].flat(),
+      parsedConfigState.configDir,
       params.baseBranch,
     )
     return this.createExtractionProject(

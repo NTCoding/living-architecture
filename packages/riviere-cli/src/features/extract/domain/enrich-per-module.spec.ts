@@ -226,7 +226,7 @@ describe('ExtractionProject extraction helpers', () => {
     ).toThrow(ExtractionProjectModule.DraftComponentModuleResolutionError)
   })
 
-  it('creates a fallback extracted domain when configured module domains are blank', () => {
+  it('forwards extractInto when configured module domains are blank', () => {
     mockExtractInto.mockReturnValueOnce({
       kind: 'draftOnly',
       components: [],

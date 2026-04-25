@@ -253,7 +253,7 @@ describe('extractInto branch coverage', () => {
       timings: { asyncDetectionMs: 3 },
     })
 
-    extractIntoModule.extractInto(
+    const result = extractIntoModule.extractInto(
       recorder.writePort,
       {
         modules: [module],
@@ -283,6 +283,7 @@ describe('extractInto branch coverage', () => {
       },
     )
 
+    expect(result.kind).toBe('full')
     expect(mockDetectCrossModuleConnections).toHaveBeenCalledWith([enrichedComponent], {
       allowIncomplete: true,
       repository: 'test/repo',
@@ -293,33 +294,39 @@ describe('extractInto branch coverage', () => {
         },
       ],
     })
-    expect(recorder.uncertainLinks).toStrictEqual([
-      {
-        source: 'orders:checkout:usecase:placeorder',
-        target: 'orders:inventory:usecase:reserveinventory',
-        linkType: 'sync',
-        reason: 'receiver type unresolved',
-      },
-    ])
-    expect(recorder.links).toStrictEqual([
-      {
-        from: 'orders:checkout:usecase:placeorder',
-        to: 'orders:inventory:usecase:reserveinventory',
-        type: 'sync',
-      },
-    ])
-    expect(recorder.externalLinks).toStrictEqual([
-      {
-        from: 'orders:checkout:usecase:placeorder',
-        target: { name: 'External Orders API' },
-        type: 'sync',
-        description: 'http call',
-        sourceLocation: {
-          repository: 'test/repo',
-          filePath: '/workspace/orders/place-order.ts',
-          lineNumber: 12,
+    expect({
+      uncertainLinks: recorder.uncertainLinks,
+      links: recorder.links,
+      externalLinks: recorder.externalLinks,
+    }).toStrictEqual({
+      uncertainLinks: [
+        {
+          source: 'orders:checkout:usecase:placeorder',
+          target: 'orders:inventory:usecase:reserveinventory',
+          linkType: 'sync',
+          reason: 'receiver type unresolved',
         },
-      },
-    ])
+      ],
+      links: [
+        {
+          from: 'orders:checkout:usecase:placeorder',
+          to: 'orders:inventory:usecase:reserveinventory',
+          type: 'sync',
+        },
+      ],
+      externalLinks: [
+        {
+          from: 'orders:checkout:usecase:placeorder',
+          target: { name: 'External Orders API' },
+          type: 'sync',
+          description: 'http call',
+          sourceLocation: {
+            repository: 'test/repo',
+            filePath: '/workspace/orders/place-order.ts',
+            lineNumber: 12,
+          },
+        },
+      ],
+    })
   })
 })

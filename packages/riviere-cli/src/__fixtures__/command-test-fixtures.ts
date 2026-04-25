@@ -60,7 +60,12 @@ export function parseErrorOutput(consoleOutput: string[]): ErrorOutput {
     throw new TestAssertionError('Expected console output but got empty array')
   }
   const parsed: unknown = JSON.parse(firstLine)
-  return parseErrorOutputSchema(parsed)
+  const result = errorOutputSchema.safeParse(parsed)
+  if (result.success) {
+    return result.data
+  }
+
+  throw new TestAssertionError('Invalid error output')
 }
 
 export function parseSuccessOutput<T>(
@@ -371,13 +376,4 @@ export function assertDefined<T>(
     throw new TestAssertionError(message)
   }
   return value
-}
-
-function parseErrorOutputSchema(value: unknown): ErrorOutput {
-  const result = errorOutputSchema.safeParse(value)
-  if (result.success) {
-    return result.data
-  }
-
-  throw new TestAssertionError('Invalid error output')
 }

@@ -3,7 +3,14 @@ import { Project } from 'ts-morph'
 import type { Module } from '@living-architecture/riviere-extract-config'
 import type { DraftComponent } from './component-extraction/extractor'
 import type { EnrichedComponent } from './value-extraction/enrich-components'
-import type { ExtractionWritePort } from './extraction-write-port'
+import type {
+  ComponentWriteInput,
+  ExternalLinkWriteInput,
+  ExtractionWritePort,
+  LinkWriteInput,
+  MissingFieldDiagnosticEvent,
+  UncertainLinkDiagnosticEvent,
+} from './extraction-write-port'
 
 export function createModule(name: string, domain = 'orders'): Module {
   return {
@@ -35,17 +42,17 @@ export function createProjectWithDispose(): {
 
 export function createWritePortRecorder(): {
   writePort: ExtractionWritePort
-  components: unknown[]
-  links: unknown[]
-  externalLinks: unknown[]
-  missingFields: unknown[]
-  uncertainLinks: unknown[]
+  components: ComponentWriteInput[]
+  links: LinkWriteInput[]
+  externalLinks: ExternalLinkWriteInput[]
+  missingFields: MissingFieldDiagnosticEvent[]
+  uncertainLinks: UncertainLinkDiagnosticEvent[]
 } {
-  const components: unknown[] = []
-  const links: unknown[] = []
-  const externalLinks: unknown[] = []
-  const missingFields: unknown[] = []
-  const uncertainLinks: unknown[] = []
+  const components: ComponentWriteInput[] = []
+  const links: LinkWriteInput[] = []
+  const externalLinks: ExternalLinkWriteInput[] = []
+  const missingFields: MissingFieldDiagnosticEvent[] = []
+  const uncertainLinks: UncertainLinkDiagnosticEvent[] = []
 
   return {
     writePort: {

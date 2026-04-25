@@ -21,7 +21,7 @@ const outputPath = join(process.cwd(), 'tmp-output.json')
 describe('outputResult', () => {
   afterEach(() => {
     vi.clearAllMocks()
-    vi.restoreAllMocks()
+    mockWriteFileSync.mockReset()
   })
 
   it('writes the success payload to the requested output file', () => {

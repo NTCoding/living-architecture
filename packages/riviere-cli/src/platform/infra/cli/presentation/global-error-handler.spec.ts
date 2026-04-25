@@ -1,6 +1,11 @@
 import {
   afterEach, beforeEach, describe, expect, it, vi 
 } from 'vitest'
+import {
+  mkdtemp, rm 
+} from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { handleGlobalError } from './global-error-handler'
 import { GitError } from '../../external-clients/git/git-errors'
 import { DraftComponentLoadError } from '../../external-clients/draft-components/draft-component-loader'
@@ -8,11 +13,6 @@ import { ConnectionDetectionError } from '@living-architecture/riviere-extract-t
 import {
   CliErrorCode, ConfigValidationError, ExitCode 
 } from './error-codes'
-import {
-  mkdtemp, rm 
-} from 'node:fs/promises'
-import { tmpdir } from 'node:os'
-import { join } from 'node:path'
 
 class TestAssertionError extends Error {
   constructor(message: string) {

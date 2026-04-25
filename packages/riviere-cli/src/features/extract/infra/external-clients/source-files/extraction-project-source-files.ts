@@ -41,10 +41,11 @@ Config directory: ${parsedConfigState.configDir}`,
 /** @riviere-role external-client-service */
 export function resolveChangedSourceFilePaths(
   allSourceFiles: string[],
+  configDir: string,
   baseBranch?: string,
 ): string[] {
   const gitOptions = baseBranch === undefined ? {} : { base: baseBranch }
-  const result = detectChangedTypeScriptFiles(process.cwd(), gitOptions)
+  const result = detectChangedTypeScriptFiles(configDir, gitOptions)
   for (const warning of result.warnings) {
     console.error(warning)
   }
@@ -107,4 +108,5 @@ export function createModuleContexts(
   })
 }
 
+/** @riviere-role external-client-service */
 export const extractionProjectGlobMatcher = ExtractTs.matchesGlob

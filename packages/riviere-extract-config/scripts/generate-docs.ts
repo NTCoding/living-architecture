@@ -132,8 +132,8 @@ function formatOneOfType(prop: SchemaProperty): string {
 
 function formatArrayType(items: SchemaProperty): string {
   const itemType = readInlinePropertyType(items)
-  const arrayItemType =
-    itemType.includes(' | ') || itemType.includes(' & ') ? `(${itemType})` : itemType
+  const requiresGrouping = itemType.includes('\\|') || itemType.includes(' & ')
+  const arrayItemType = requiresGrouping ? `(${itemType})` : itemType
   return `\`${arrayItemType}[]\``
 }
 

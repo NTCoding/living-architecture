@@ -90,11 +90,11 @@ describe('ExtractionProject.extractDraftComponents', () => {
   })
 
   it('returns the shared-core draft result object unchanged', () => {
-    mockExtractInto.mockReturnValueOnce({
-      kind: 'draftOnly',
+    const sharedCoreResult = {
+      kind: 'draftOnly' as const,
       components: [
         {
-          type: 'useCase',
+          type: 'useCase' as const,
           name: 'PlaceOrder',
           domain: 'orders',
           module: 'orders-module',
@@ -104,7 +104,9 @@ describe('ExtractionProject.extractDraftComponents', () => {
           },
         },
       ],
-    })
+    }
+
+    mockExtractInto.mockReturnValueOnce(sharedCoreResult)
 
     const moduleContext = createModuleContext()
     const resolvedConfig = createConfig(moduleContext)
@@ -120,20 +122,6 @@ describe('ExtractionProject.extractDraftComponents', () => {
       includeConnections: false,
     })
 
-    expect(result).toStrictEqual({
-      kind: 'draftOnly',
-      components: [
-        {
-          type: 'useCase',
-          name: 'PlaceOrder',
-          domain: 'orders',
-          module: 'orders-module',
-          location: {
-            file: '/workspace/orders/test.ts',
-            line: 3,
-          },
-        },
-      ],
-    })
+    expect(result).toBe(sharedCoreResult)
   })
 })
