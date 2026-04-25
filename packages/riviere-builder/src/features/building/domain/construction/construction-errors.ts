@@ -77,6 +77,23 @@ export class ComponentTypeMismatchError extends Error {
 }
 
 /** @riviere-role domain-error */
+export class CustomTypeMismatchError extends Error {
+  readonly componentId: string
+  readonly existingCustomTypeName: string
+  readonly incomingCustomTypeName: string
+
+  constructor(componentId: string, existingCustomTypeName: string, incomingCustomTypeName: string) {
+    super(
+      `Component '${componentId}' already exists as custom type '${existingCustomTypeName}'; cannot upsert as '${incomingCustomTypeName}'`,
+    )
+    this.name = 'CustomTypeMismatchError'
+    this.componentId = componentId
+    this.existingCustomTypeName = existingCustomTypeName
+    this.incomingCustomTypeName = incomingCustomTypeName
+  }
+}
+
+/** @riviere-role domain-error */
 export class ComponentNotFoundError extends Error {
   readonly componentId: string
   readonly suggestions: string[]

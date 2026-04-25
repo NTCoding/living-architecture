@@ -2,9 +2,9 @@
 pageClass: reference
 ---
 
-# Class: DomainNotFoundError
+# Class: CustomTypeMismatchError
 
-Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:24](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L24)
+Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:80](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L80)
 
 ## Riviere-role
 
@@ -18,19 +18,27 @@ domain-error
 
 ### Constructor
 
-> **new DomainNotFoundError**(`domainName`): `DomainNotFoundError`
+> **new CustomTypeMismatchError**(`componentId`, `existingCustomTypeName`, `incomingCustomTypeName`): `CustomTypeMismatchError`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:27](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L27)
+Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:85](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L85)
 
 #### Parameters
 
-##### domainName
+##### componentId
+
+`string`
+
+##### existingCustomTypeName
+
+`string`
+
+##### incomingCustomTypeName
 
 `string`
 
 #### Returns
 
-`DomainNotFoundError`
+`CustomTypeMismatchError`
 
 #### Overrides
 
@@ -50,11 +58,27 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 
 ***
 
-### domainName
+### componentId
 
-> `readonly` **domainName**: `string`
+> `readonly` **componentId**: `string`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:25](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L25)
+Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:81](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L81)
+
+***
+
+### existingCustomTypeName
+
+> `readonly` **existingCustomTypeName**: `string`
+
+Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:82](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L82)
+
+***
+
+### incomingCustomTypeName
+
+> `readonly` **incomingCustomTypeName**: `string`
+
+Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:83](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L83)
 
 ***
 

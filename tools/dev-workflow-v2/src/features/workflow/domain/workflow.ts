@@ -92,7 +92,7 @@ const RECORDING_OPS_MAP: Record<string, RecordingOpDefinition<readonly never[]>>
     event: 'feedback-addressed',
     payload: (count: number) => ({ addressedCount: count }),
   },
-  'record-reflection': {
+  'record-reflection-path': {
     event: 'reflection-written',
     payload: (p: string) => ({ path: p }),
   },

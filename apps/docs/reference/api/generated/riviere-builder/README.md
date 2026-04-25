@@ -9,7 +9,9 @@ pageClass: reference
 - [BuildValidationError](classes/BuildValidationError.md)
 - [ComponentId](classes/ComponentId.md)
 - [ComponentNotFoundError](classes/ComponentNotFoundError.md)
+- [ComponentTypeMismatchError](classes/ComponentTypeMismatchError.md)
 - [CustomTypeAlreadyDefinedError](classes/CustomTypeAlreadyDefinedError.md)
+- [CustomTypeMismatchError](classes/CustomTypeMismatchError.md)
 - [CustomTypeNotFoundError](classes/CustomTypeNotFoundError.md)
 - [DomainNotFoundError](classes/DomainNotFoundError.md)
 - [DuplicateComponentError](classes/DuplicateComponentError.md)
@@ -20,6 +22,7 @@ pageClass: reference
 - [MissingRequiredPropertiesError](classes/MissingRequiredPropertiesError.md)
 - [MissingSourcesError](classes/MissingSourcesError.md)
 - [RiviereBuilder](classes/RiviereBuilder.md)
+- [SourceConflictError](classes/SourceConflictError.md)
 
 ## Interfaces
 
@@ -42,6 +45,7 @@ pageClass: reference
 - [NearMatchQuery](interfaces/NearMatchQuery.md)
 - [NearMatchResult](interfaces/NearMatchResult.md)
 - [UIInput](interfaces/UIInput.md)
+- [UpsertOptions](interfaces/UpsertOptions.md)
 - [UseCaseInput](interfaces/UseCaseInput.md)
 
 ## Functions

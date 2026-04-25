@@ -4,7 +4,7 @@ pageClass: reference
 
 # Class: CustomTypeAlreadyDefinedError
 
-Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:70](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L70)
+Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:115](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L115)
 
 ## Riviere-role
 
@@ -20,7 +20,7 @@ domain-error
 
 > **new CustomTypeAlreadyDefinedError**(`typeName`): `CustomTypeAlreadyDefinedError`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:73](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L73)
+Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:118](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L118)
 
 #### Parameters
 
@@ -90,7 +90,7 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 
 > `readonly` **typeName**: `string`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:71](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L71)
+Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:116](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L116)
 
 ***
 

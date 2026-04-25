@@ -44,7 +44,7 @@ describe('workflow-cli transitions', () => {
     it('transitions from REFLECTING to COMPLETE after recording reflection', () => {
       const ctx = setup()
       progressToState(ctx, 'REFLECTING')
-      runCommand(ctx, ['record-reflection', '/path/r.md'])
+      runCommand(ctx, ['record-reflection-path', '/path/r.md'])
       const result = runCommand(ctx, ['transition', 'COMPLETE'])
       expect(result.exitCode).toStrictEqual(0)
     })

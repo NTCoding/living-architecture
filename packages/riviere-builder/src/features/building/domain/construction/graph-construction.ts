@@ -24,6 +24,7 @@ import type {
 } from './construction-types'
 import {
   ComponentTypeMismatchError,
+  CustomTypeMismatchError,
   CustomTypeAlreadyDefinedError,
   DuplicateComponentError,
   DuplicateDomainError,
@@ -165,14 +166,18 @@ export class GraphConstruction {
 
   defineCustomType(input: CustomTypeInput): void {
     const customTypes = this.graph.metadata.customTypes
+    const requiredProperties =
+      input.requiredProperties === undefined ? {} : { requiredProperties: input.requiredProperties }
+    const optionalProperties =
+      input.optionalProperties === undefined ? {} : { optionalProperties: input.optionalProperties }
 
     if (customTypes[input.name]) {
       throw new CustomTypeAlreadyDefinedError(input.name)
     }
 
     customTypes[input.name] = {
-      ...(input.requiredProperties !== undefined && {requiredProperties: input.requiredProperties,}),
-      ...(input.optionalProperties !== undefined && {optionalProperties: input.optionalProperties,}),
+      ...requiredProperties,
+      ...optionalProperties,
       ...(input.description !== undefined && { description: input.description }),
     }
   }
@@ -352,6 +357,10 @@ export class GraphConstruction {
       throw new ComponentTypeMismatchError(incoming.id, existing?.type ?? 'unknown', incoming.type)
     }
 
+    if (isCustomComponent(existing) && isCustomComponent(incoming)) {
+      assertSameCustomType(existing, incoming)
+    }
+
     const merged = mergeComponentForUpsert(existing, incoming, options, this.operationWarnings)
 
     this.graph.components[existingIndex] = merged
@@ -376,4 +385,16 @@ function isSameTypeComponent<T extends Component>(
   incoming: T,
 ): existing is T {
   return existing?.type === incoming.type
+}
+
+function isCustomComponent(component: Component): component is CustomComponent {
+  return component.type === 'Custom'
+}
+
+function assertSameCustomType(existing: CustomComponent, incoming: CustomComponent): void {
+  if (existing.customTypeName === incoming.customTypeName) {
+    return
+  }
+
+  throw new CustomTypeMismatchError(incoming.id, existing.customTypeName, incoming.customTypeName)
 }

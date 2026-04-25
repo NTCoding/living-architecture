@@ -2,9 +2,9 @@
 pageClass: reference
 ---
 
-# Class: DomainNotFoundError
+# Class: SourceConflictError
 
-Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:24](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L24)
+Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:13](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L13)
 
 ## Riviere-role
 
@@ -18,19 +18,19 @@ domain-error
 
 ### Constructor
 
-> **new DomainNotFoundError**(`domainName`): `DomainNotFoundError`
+> **new SourceConflictError**(`repository`): `SourceConflictError`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:27](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L27)
+Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:16](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L16)
 
 #### Parameters
 
-##### domainName
+##### repository
 
 `string`
 
 #### Returns
 
-`DomainNotFoundError`
+`SourceConflictError`
 
 #### Overrides
 
@@ -47,14 +47,6 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 #### Inherited from
 
 `Error.cause`
-
-***
-
-### domainName
-
-> `readonly` **domainName**: `string`
-
-Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:25](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L25)
 
 ***
 
@@ -79,6 +71,14 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 #### Inherited from
 
 `Error.name`
+
+***
+
+### repository
+
+> `readonly` **repository**: `string`
+
+Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:14](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L14)
 
 ***
 

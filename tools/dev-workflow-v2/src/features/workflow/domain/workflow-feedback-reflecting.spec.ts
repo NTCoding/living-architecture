@@ -219,15 +219,15 @@ describe('Workflow', () => {
         result, state 
       } = spec
         .given(...eventsToReflecting())
-        .when((wf) => wf.executeRecording('record-reflection', '/test-output/r.md'))
+        .when((wf) => wf.executeRecording('record-reflection-path', '/test-output/r.md'))
       expect(result).toStrictEqual({ pass: true })
       expect(state.reflectionPath).toBe('/test-output/r.md')
     })
 
-    it('fails record-reflection in non-REFLECTING states', () => {
+    it('fails record-reflection-path in non-REFLECTING states', () => {
       const { result } = spec
         .given()
-        .when((wf) => wf.executeRecording('record-reflection', '/test-output/r.md'))
+        .when((wf) => wf.executeRecording('record-reflection-path', '/test-output/r.md'))
       expect(result.pass).toBe(false)
     })
   })

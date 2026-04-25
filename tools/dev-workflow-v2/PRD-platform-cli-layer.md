@@ -27,27 +27,27 @@ dev-workflow-v2 has ~975 lines of mechanical infrastructure code that the platfo
 
 ### Current Infrastructure to Eliminate
 
-| File | Lines | Replacement |
-|------|-------|-------------|
-| `infra/cli/command-handlers.ts` | 307 | `defineRoutes` — one-line declarations per command |
-| `infra/cli/hook-handlers.ts` | 133 | `defineHooks` + `preToolUseHandler` on `createWorkflowRunner` |
-| `entrypoint/workflow-cli.ts` | 83 | `createWorkflowCli` — single function call |
-| `infra/cli/hook-io.ts` | 59 | Platform owns schemas, `formatDenyDecision`, exit codes |
-| `shell/composition-root.ts` | 50 | `createWorkflowCli` owns engine dep assembly |
-| `infra/cli/environment.ts` | 35 | Platform reads env vars internally |
-| `infra/cli/operation-result.ts` | 28 | Platform maps `EngineResult` to exit codes |
-| `infra/cli/stdin.ts` | 7 | Platform reads stdin internally |
-| `domain/workflow-error.ts` | 15 | Orphaned — only consumers are deleted files |
-| `workflow.ts` — 16 recording methods | ~180 | `defineRecordingOps` + `executeRecording` |
-| `workflow.ts` — `transitionTo` | 35 | Engine-owned `transition()` |
-| `workflow.ts` — `checkBashAllowed` | 16 | Engine-owned `checkBash()` |
-| `workflow.ts` — `checkWriteAllowed` | 12 | Engine-owned `checkWrite()` |
-| `workflow.ts` — `buildTransitionContext` | 12 | Moved to `WorkflowDefinition` |
-| `workflow.ts` — `verifyIdentity` | 3 | Engine handles via `getPrefixConfig` |
-| `workflow-types.ts` — `STATE_EMOJI_MAP` | 12 | Derived from registry |
-| `workflow-predicates.ts` — `checkOperationGate` | 10 | Platform's `defineRecordingOps` owns gate checks |
-| `workflow-adapter.ts` — `getEmojiForState` | 3 | Dropped from interface |
-| **Total** | **~1000** | |
+| File                                            | Lines     | Replacement                                                   |
+| ----------------------------------------------- | --------- | ------------------------------------------------------------- |
+| `infra/cli/command-handlers.ts`                 | 307       | `defineRoutes` — one-line declarations per command            |
+| `infra/cli/hook-handlers.ts`                    | 133       | `defineHooks` + `preToolUseHandler` on `createWorkflowRunner` |
+| `entrypoint/workflow-cli.ts`                    | 83        | `createWorkflowCli` — single function call                    |
+| `infra/cli/hook-io.ts`                          | 59        | Platform owns schemas, `formatDenyDecision`, exit codes       |
+| `shell/composition-root.ts`                     | 50        | `createWorkflowCli` owns engine dep assembly                  |
+| `infra/cli/environment.ts`                      | 35        | Platform reads env vars internally                            |
+| `infra/cli/operation-result.ts`                 | 28        | Platform maps `EngineResult` to exit codes                    |
+| `infra/cli/stdin.ts`                            | 7         | Platform reads stdin internally                               |
+| `domain/workflow-error.ts`                      | 15        | Orphaned — only consumers are deleted files                   |
+| `workflow.ts` — 16 recording methods            | ~180      | `defineRecordingOps` + `executeRecording`                     |
+| `workflow.ts` — `transitionTo`                  | 35        | Engine-owned `transition()`                                   |
+| `workflow.ts` — `checkBashAllowed`              | 16        | Engine-owned `checkBash()`                                    |
+| `workflow.ts` — `checkWriteAllowed`             | 12        | Engine-owned `checkWrite()`                                   |
+| `workflow.ts` — `buildTransitionContext`        | 12        | Moved to `WorkflowDefinition`                                 |
+| `workflow.ts` — `verifyIdentity`                | 3         | Engine handles via `getPrefixConfig`                          |
+| `workflow-types.ts` — `STATE_EMOJI_MAP`         | 12        | Derived from registry                                         |
+| `workflow-predicates.ts` — `checkOperationGate` | 10        | Platform's `defineRecordingOps` owns gate checks              |
+| `workflow-adapter.ts` — `getEmojiForState`      | 3         | Dropped from interface                                        |
+| **Total**                                       | **~1000** |                                                               |
 
 ### Target State
 
@@ -90,22 +90,30 @@ The current `WORKFLOW_ADAPTER` implements `WorkflowFactory` (a type that no long
 ```typescript
 // Before (workflow-adapter.ts)
 export const WORKFLOW_ADAPTER: WorkflowFactory<Workflow, WorkflowState, WorkflowDeps> = {
-  createFresh, rehydrate, procedurePath, initialState,
-  getEmojiForState: (state) => STATE_EMOJI_MAP[parseStateName(state)],  // REMOVE
-  getOperationBody: (op) => getOperationBody(op),    // signature changes
+  createFresh,
+  rehydrate,
+  procedurePath,
+  initialState,
+  getEmojiForState: (state) => STATE_EMOJI_MAP[parseStateName(state)], // REMOVE
+  getOperationBody: (op) => getOperationBody(op), // signature changes
   getTransitionTitle: (to) => getTransitionTitle(to), // signature changes
 }
 
 // After (workflow-definition.ts)
 export const WORKFLOW_DEFINITION: WorkflowDefinition<
-  Workflow, WorkflowState, WorkflowDeps, StateName, WorkflowOperation
+  Workflow,
+  WorkflowState,
+  WorkflowDeps,
+  StateName,
+  WorkflowOperation
 > = {
-  createFresh, rehydrate, procedurePath, initialState,
+  createFresh,
+  rehydrate,
+  procedurePath,
+  initialState,
   getRegistry: () => WORKFLOW_REGISTRY,
   buildTransitionContext: (state, from, to, deps) => {
-    const prChecksPass = state.prNumber === undefined
-      ? false
-      : deps.checkPrChecks(state.prNumber)
+    const prChecksPass = state.prNumber === undefined ? false : deps.checkPrChecks(state.prNumber)
     return { state, gitInfo: deps.getGitInfo(), prChecksPass, from, to }
   },
   buildTransitionEvent: (from, to, stateBefore, stateAfter, now) => {
@@ -118,13 +126,16 @@ export const WORKFLOW_DEFINITION: WorkflowDefinition<
       }
     }
     return {
-      type: 'transitioned', at: now, from, to,
+      type: 'transitioned',
+      at: now,
+      from,
+      to,
       ...(Object.keys(overrides).length > 0 ? { stateOverrides: overrides } : {}),
     }
   },
   parseStateName,
-  getOperationBody: (op, _state) => getOperationBody(op),     // 2-arg wrapper
-  getTransitionTitle: (to, _state) => getTransitionTitle(to),  // 2-arg wrapper
+  getOperationBody: (op, _state) => getOperationBody(op), // 2-arg wrapper
+  getTransitionTitle: (to, _state) => getTransitionTitle(to), // 2-arg wrapper
   getPrefixConfig: undefined, // we don't use identity verification
 }
 ```
@@ -220,7 +231,9 @@ The `checkWriteAllowed` predicate in `workflow-predicates.ts` stays, but wraps t
 
 ```typescript
 export function isWriteAllowed(
-  _toolName: string, filePath: string, _state: WorkflowState,
+  _toolName: string,
+  filePath: string,
+  _state: WorkflowState,
 ): PreconditionResult {
   return checkWriteAllowed(filePath)
 }
@@ -234,22 +247,55 @@ export function isWriteAllowed(
 const RECORDING_OPS = defineRecordingOps<StateName, WorkflowState, WorkflowOperation>(
   WORKFLOW_REGISTRY,
   {
-    'record-issue':                       { event: 'issue-recorded',              payload: (n: number) => ({ issueNumber: n }) },
-    'record-branch':                      { event: 'branch-recorded',             payload: (b: string) => ({ branch: b }) },
-    'record-architecture-review-passed':  { event: 'architecture-review-completed', payload: () => ({ passed: true }) },
-    'record-architecture-review-failed':  { event: 'architecture-review-completed', payload: () => ({ passed: false }) },
-    'record-code-review-passed':          { event: 'code-review-completed',       payload: () => ({ passed: true }) },
-    'record-code-review-failed':          { event: 'code-review-completed',       payload: () => ({ passed: false }) },
-    'record-bug-scanner-passed':          { event: 'bug-scanner-completed',       payload: () => ({ passed: true }) },
-    'record-bug-scanner-failed':          { event: 'bug-scanner-completed',       payload: () => ({ passed: false }) },
-    'record-task-check-passed':           { event: 'task-check-passed',           payload: () => ({}) },
-    'record-pr':                          { event: 'pr-recorded',                 payload: (n: number, url?: string) => ({ prNumber: n, ...(url ? { prUrl: url } : {}) }) },
-    'record-ci-passed':                   { event: 'ci-completed',                payload: () => ({ passed: true }) },
-    'record-ci-failed':                   { event: 'ci-completed',                payload: (output: string) => ({ passed: false, output }) },
-    'record-feedback-clean':              { event: 'feedback-checked',            payload: () => ({ clean: true }) },
-    'record-feedback-exists':             { event: 'feedback-checked',            payload: (count: number) => ({ clean: false, unresolvedCount: count }) },
-    'record-feedback-addressed':          { event: 'feedback-addressed',          payload: (count: number) => ({ addressedCount: count }) },
-    'record-reflection':                  { event: 'reflection-written',          payload: (p: string) => ({ path: p }) },
+    'record-issue': { event: 'issue-recorded', payload: (n: number) => ({ issueNumber: n }) },
+    'record-branch': { event: 'branch-recorded', payload: (b: string) => ({ branch: b }) },
+    'record-architecture-review-passed': {
+      event: 'architecture-review-completed',
+      payload: () => ({ passed: true }),
+    },
+    'record-architecture-review-failed': {
+      event: 'architecture-review-completed',
+      payload: () => ({ passed: false }),
+    },
+    'record-code-review-passed': {
+      event: 'code-review-completed',
+      payload: () => ({ passed: true }),
+    },
+    'record-code-review-failed': {
+      event: 'code-review-completed',
+      payload: () => ({ passed: false }),
+    },
+    'record-bug-scanner-passed': {
+      event: 'bug-scanner-completed',
+      payload: () => ({ passed: true }),
+    },
+    'record-bug-scanner-failed': {
+      event: 'bug-scanner-completed',
+      payload: () => ({ passed: false }),
+    },
+    'record-task-check-passed': { event: 'task-check-passed', payload: () => ({}) },
+    'record-pr': {
+      event: 'pr-recorded',
+      payload: (n: number, url?: string) => ({ prNumber: n, ...(url ? { prUrl: url } : {}) }),
+    },
+    'record-ci-passed': { event: 'ci-completed', payload: () => ({ passed: true }) },
+    'record-ci-failed': {
+      event: 'ci-completed',
+      payload: (output: string) => ({ passed: false, output }),
+    },
+    'record-feedback-clean': { event: 'feedback-checked', payload: () => ({ clean: true }) },
+    'record-feedback-exists': {
+      event: 'feedback-checked',
+      payload: (count: number) => ({ clean: false, unresolvedCount: count }),
+    },
+    'record-feedback-addressed': {
+      event: 'feedback-addressed',
+      payload: (count: number) => ({ addressedCount: count }),
+    },
+    'record-reflection-path': {
+      event: 'reflection-written',
+      payload: (p: string) => ({ path: p }),
+    },
   },
 )
 ```
@@ -275,25 +321,89 @@ Routes then call `w.executeRecording('record-issue', n)` instead of `w.recordIss
 
 ```typescript
 const ROUTES = defineRoutes<Workflow, WorkflowState>({
-  init:       { type: 'session-start' },
+  init: { type: 'session-start' },
   transition: { type: 'transition', args: [arg.state('STATE', STATE_NAME_SCHEMA)] },
 
-  'record-issue':                      { type: 'transaction', args: [arg.number('number')],                       handler: (w, n) => w.executeRecording('record-issue', n) },
-  'record-branch':                     { type: 'transaction', args: [arg.string('branch')],                       handler: (w, b) => w.executeRecording('record-branch', b) },
-  'record-architecture-review-passed': { type: 'transaction', args: [],                                           handler: (w) => w.executeRecording('record-architecture-review-passed') },
-  'record-architecture-review-failed': { type: 'transaction', args: [],                                           handler: (w) => w.executeRecording('record-architecture-review-failed') },
-  'record-code-review-passed':         { type: 'transaction', args: [],                                           handler: (w) => w.executeRecording('record-code-review-passed') },
-  'record-code-review-failed':         { type: 'transaction', args: [],                                           handler: (w) => w.executeRecording('record-code-review-failed') },
-  'record-bug-scanner-passed':         { type: 'transaction', args: [],                                           handler: (w) => w.executeRecording('record-bug-scanner-passed') },
-  'record-bug-scanner-failed':         { type: 'transaction', args: [],                                           handler: (w) => w.executeRecording('record-bug-scanner-failed') },
-  'record-task-check-passed':          { type: 'transaction', args: [],                                           handler: (w) => w.executeRecording('record-task-check-passed') },
-  'record-pr':                         { type: 'transaction', args: [arg.number('number'), arg.string('url').optional()], handler: (w, n, url) => w.executeRecording('record-pr', n, url) },
-  'record-ci-passed':                  { type: 'transaction', args: [],                                           handler: (w) => w.executeRecording('record-ci-passed') },
-  'record-ci-failed':                  { type: 'transaction', args: [arg.string('output')],                       handler: (w, o) => w.executeRecording('record-ci-failed', o) },
-  'record-feedback-clean':             { type: 'transaction', args: [],                                           handler: (w) => w.executeRecording('record-feedback-clean') },
-  'record-feedback-exists':            { type: 'transaction', args: [arg.number('count')],                        handler: (w, c) => w.executeRecording('record-feedback-exists', c) },
-  'record-feedback-addressed':         { type: 'transaction', args: [arg.number('count')],                        handler: (w, c) => w.executeRecording('record-feedback-addressed', c) },
-  'record-reflection':                 { type: 'transaction', args: [arg.string('path')],                         handler: (w, p) => w.executeRecording('record-reflection', p) },
+  'record-issue': {
+    type: 'transaction',
+    args: [arg.number('number')],
+    handler: (w, n) => w.executeRecording('record-issue', n),
+  },
+  'record-branch': {
+    type: 'transaction',
+    args: [arg.string('branch')],
+    handler: (w, b) => w.executeRecording('record-branch', b),
+  },
+  'record-architecture-review-passed': {
+    type: 'transaction',
+    args: [],
+    handler: (w) => w.executeRecording('record-architecture-review-passed'),
+  },
+  'record-architecture-review-failed': {
+    type: 'transaction',
+    args: [],
+    handler: (w) => w.executeRecording('record-architecture-review-failed'),
+  },
+  'record-code-review-passed': {
+    type: 'transaction',
+    args: [],
+    handler: (w) => w.executeRecording('record-code-review-passed'),
+  },
+  'record-code-review-failed': {
+    type: 'transaction',
+    args: [],
+    handler: (w) => w.executeRecording('record-code-review-failed'),
+  },
+  'record-bug-scanner-passed': {
+    type: 'transaction',
+    args: [],
+    handler: (w) => w.executeRecording('record-bug-scanner-passed'),
+  },
+  'record-bug-scanner-failed': {
+    type: 'transaction',
+    args: [],
+    handler: (w) => w.executeRecording('record-bug-scanner-failed'),
+  },
+  'record-task-check-passed': {
+    type: 'transaction',
+    args: [],
+    handler: (w) => w.executeRecording('record-task-check-passed'),
+  },
+  'record-pr': {
+    type: 'transaction',
+    args: [arg.number('number'), arg.string('url').optional()],
+    handler: (w, n, url) => w.executeRecording('record-pr', n, url),
+  },
+  'record-ci-passed': {
+    type: 'transaction',
+    args: [],
+    handler: (w) => w.executeRecording('record-ci-passed'),
+  },
+  'record-ci-failed': {
+    type: 'transaction',
+    args: [arg.string('output')],
+    handler: (w, o) => w.executeRecording('record-ci-failed', o),
+  },
+  'record-feedback-clean': {
+    type: 'transaction',
+    args: [],
+    handler: (w) => w.executeRecording('record-feedback-clean'),
+  },
+  'record-feedback-exists': {
+    type: 'transaction',
+    args: [arg.number('count')],
+    handler: (w, c) => w.executeRecording('record-feedback-exists', c),
+  },
+  'record-feedback-addressed': {
+    type: 'transaction',
+    args: [arg.number('count')],
+    handler: (w, c) => w.executeRecording('record-feedback-addressed', c),
+  },
+  'record-reflection-path': {
+    type: 'transaction',
+    args: [arg.string('path')],
+    handler: (w, p) => w.executeRecording('record-reflection-path', p),
+  },
 })
 ```
 
@@ -309,7 +419,11 @@ const HOOKS = defineHooks<Workflow>({
 
 ```typescript
 const preToolUseHandler: PreToolUseHandlerFn<
-  Workflow, WorkflowState, WorkflowDeps, StateName, WorkflowOperation
+  Workflow,
+  WorkflowState,
+  WorkflowDeps,
+  StateName,
+  WorkflowOperation
 > = (engine, sessionId, toolName, toolInput, transcriptPath) => {
   if (toolName === 'Write' || toolName === 'Edit') {
     const filePath = extractField('file_path')(toolInput)
@@ -350,14 +464,14 @@ createWorkflowCli({
 
 ## 4. What We're NOT Building
 
-| Exclusion | Rationale |
-|-----------|-----------|
-| Changes to fold logic, guards, or transition rules | Event structure and state machine behavior unchanged |
-| Changes to state markdown files | Agent instructions are hand-authored content |
-| New platform features | Using delivered APIs only |
-| Changes to `get-pr-feedback.ts` | Domain-specific infra, not platform concern |
-| Changes to `infra/cli/git.ts` | Domain-specific infra (`getGitInfo`, `runGh`), survives the migration |
-| DB migration | Session data is ephemeral — no value in migrating old DB |
+| Exclusion                                          | Rationale                                                             |
+| -------------------------------------------------- | --------------------------------------------------------------------- |
+| Changes to fold logic, guards, or transition rules | Event structure and state machine behavior unchanged                  |
+| Changes to state markdown files                    | Agent instructions are hand-authored content                          |
+| New platform features                              | Using delivered APIs only                                             |
+| Changes to `get-pr-feedback.ts`                    | Domain-specific infra, not platform concern                           |
+| Changes to `infra/cli/git.ts`                      | Domain-specific infra (`getGitInfo`, `runGh`), survives the migration |
+| DB migration                                       | Session data is ephemeral — no value in migrating old DB              |
 
 **Note:** Adding `forbidden: { write: true }` to state definitions and `stateOverrides` to the transitioned event schema ARE domain-layer changes. They are necessary to preserve existing behavior when adopting engine-owned transitions and write checks — not feature additions.
 
@@ -365,30 +479,30 @@ createWorkflowCli({
 
 ## 5. Success Criteria
 
-| # | Criterion | Verification |
-|---|-----------|--------------|
-| 1 | All domain tests pass (fold, events, transitions, recording ops) | `pnpm nx test dev-workflow-v2` green |
-| 2 | `command-handlers.ts` deleted | File gone |
-| 3 | `hook-handlers.ts` deleted | File gone |
-| 4 | `workflow-cli.ts` replaced with `createWorkflowCli` call | File rewritten |
-| 5 | `hook-io.ts` deleted | File gone |
-| 6 | `composition-root.ts` deleted | File gone |
-| 7 | `environment.ts` deleted | File gone |
-| 8 | `operation-result.ts` deleted | File gone |
-| 9 | `stdin.ts` deleted | File gone |
-| 10 | `workflow-error.ts` deleted | File gone (orphaned — all consumers deleted) |
-| 11 | 16 recording methods replaced by `defineRecordingOps` | `executeRecording` on Workflow |
-| 12 | `transitionTo` removed from Workflow | Engine owns transitions |
-| 13 | `checkBashAllowed` removed from Workflow | Engine owns bash checks |
-| 14 | `checkWriteAllowed` method removed from Workflow | Engine owns write checks |
-| 15 | `verifyIdentity` removed from Workflow | Engine handles via `getPrefixConfig` |
-| 16 | `checkOperationGate` removed from `workflow-predicates.ts` | Platform's `defineRecordingOps` owns gate checks |
-| 17 | `STATE_EMOJI_MAP` removed | Derived from registry |
-| 18 | `onEntry` mutations encoded in transition events | `buildTransitionEvent` produces `stateOverrides` |
-| 19 | Infrastructure test files deleted | `operation-result.spec.ts`, `environment.spec.ts`, `hook-io.spec.ts`, `workflow-error.spec.ts` gone |
-| 20 | CLI integration tests rewritten for `createWorkflowRunner` | `workflow-cli.spec.ts`, `workflow-cli-hooks.spec.ts` updated |
-| 21 | Net deletion of ~800+ lines of infrastructure code | `git diff --stat` |
-| 22 | `pnpm verify` passes | Full gate green |
+| #   | Criterion                                                        | Verification                                                                                        |
+| --- | ---------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| 1   | All domain tests pass (fold, events, transitions, recording ops) | `pnpm nx test dev-workflow-v2` green                                                                |
+| 2   | `command-handlers.ts` deleted                                    | File gone                                                                                           |
+| 3   | `hook-handlers.ts` deleted                                       | File gone                                                                                           |
+| 4   | `workflow-cli.ts` replaced with `createWorkflowCli` call         | File rewritten                                                                                      |
+| 5   | `hook-io.ts` deleted                                             | File gone                                                                                           |
+| 6   | `composition-root.ts` deleted                                    | File gone                                                                                           |
+| 7   | `environment.ts` deleted                                         | File gone                                                                                           |
+| 8   | `operation-result.ts` deleted                                    | File gone                                                                                           |
+| 9   | `stdin.ts` deleted                                               | File gone                                                                                           |
+| 10  | `workflow-error.ts` deleted                                      | File gone (orphaned — all consumers deleted)                                                        |
+| 11  | 16 recording methods replaced by `defineRecordingOps`            | `executeRecording` on Workflow                                                                      |
+| 12  | `transitionTo` removed from Workflow                             | Engine owns transitions                                                                             |
+| 13  | `checkBashAllowed` removed from Workflow                         | Engine owns bash checks                                                                             |
+| 14  | `checkWriteAllowed` method removed from Workflow                 | Engine owns write checks                                                                            |
+| 15  | `verifyIdentity` removed from Workflow                           | Engine handles via `getPrefixConfig`                                                                |
+| 16  | `checkOperationGate` removed from `workflow-predicates.ts`       | Platform's `defineRecordingOps` owns gate checks                                                    |
+| 17  | `STATE_EMOJI_MAP` removed                                        | Derived from registry                                                                               |
+| 18  | `onEntry` mutations encoded in transition events                 | `buildTransitionEvent` produces `stateOverrides`                                                    |
+| 19  | Infrastructure test files deleted                                | `operation-result.spec.ts`, `environment.spec.ts`, `hook-io.spec.ts`, `workflow-error.spec.ts` gone |
+| 20  | CLI integration tests rewritten for `createWorkflowRunner`       | `workflow-cli.spec.ts`, `workflow-cli-hooks.spec.ts` updated                                        |
+| 21  | Net deletion of ~800+ lines of infrastructure code               | `git diff --stat`                                                                                   |
+| 22  | `pnpm verify` passes                                             | Full gate green                                                                                     |
 
 ---
 
@@ -544,17 +658,17 @@ tracks:
 
 ## 8. Decisions Log
 
-| # | Decision | Rationale | Date |
-|---|----------|-----------|------|
-| 1 | `defineRecordingOps` adopted for mechanical recording methods | Eliminates ~180 lines of gate-check, append, pass boilerplate. Routes remain explicit with `w.executeRecording(op, ...)`. | 2026-03-07 |
-| 2 | PreToolUse uses engine-level `preToolUseHandler` (Option C) | Our PreToolUse hook needs sequential engine calls (write check then bash check) with early returns. `defineHooks`' per-tool hooks only have workflow access, not engine access. Engine-level handler is the escape hatch. | 2026-03-07 |
-| 3 | `createWorkflowCli` owns dep assembly with `buildWorkflowDeps(platform)` | Platform builds all generic engine infrastructure. Consumer only provides domain-specific deps. `PlatformContext` exposes `getPluginRoot`, `now`, `getSessionId`, `store` for consumer deps that need them. | 2026-03-07 |
-| 4 | Session ID injected by platform, not positional arg | Eliminates redundant `arg.string('session-id')` declarations. Platform reads `CLAUDE_SESSION_ID` from env and passes to engine calls internally. | 2026-03-07 |
-| 5 | Platform package updated and verified locally | All required APIs confirmed to exist. `WorkflowFactory` type removed — migration is urgent. | 2026-03-07 |
-| 6 | `autoFetchFeedback` implemented as side effect in `appendEvent` | `afterEntry: () => void` has no access to deps, state, or the workflow instance. Moving the side effect into `appendEvent` — triggered when the appended event is a transition to CHECKING_FEEDBACK — preserves automatic behavior without requiring platform changes. The engine calls `workflow.appendEvent(transitionEvent)` during its `transition()` lifecycle, so the side effect fires at the right time, and the engine persists all pending events atomically afterward. | 2026-03-07 |
-| 7 | DB path and env file path changes accepted | `createWorkflowCli` creates store at `${pluginRoot}/workflow.db` (was `~/.claude/workflow-events.db`). Env file hardcoded to `~/.claude/claude.env` (was `CLAUDE_ENV_FILE` env var). Session data is ephemeral. No migration value. | 2026-03-07 |
-| 8 | `forbidden: { write: true }` added to all state definitions | Engine's `checkWrite()` only calls the consumer predicate when `forbidden.write` is set. Without it, all writes auto-pass, bypassing our protected file list. Setting the flag on all states preserves current behavior. | 2026-03-07 |
-| 9 | `checkWriteAllowed` predicate wrapped for engine signature | Engine's `checkWrite()` expects `(toolName, filePath, state) => PreconditionResult`. Our predicate only uses `filePath`. Thin wrapper ignores `toolName` and `state`, delegates to existing `checkWriteAllowed(filePath)`. | 2026-03-07 |
-| 10 | `onEntry` mutations encoded in transition events via `buildTransitionEvent` | Engine computes `stateAfter = onEntry(stateBefore)` but doesn't apply it to the workflow — it only passes `stateAfter` to `buildTransitionEvent`. Our `buildTransitionEvent` diffs `stateBefore` and `stateAfter`, encoding changes as `stateOverrides` in the event. The fold applies these overrides. This also fixes a pre-existing event-sourcing gap where `onEntry` mutations were lost during event replay. | 2026-03-07 |
-| 11 | `extractField` empty string behavior accepted | Platform's `extractField` returns `''` for missing fields. Our current code throws. After migration, malformed hook inputs pass empty strings to engine checks. Accepted — empty strings produce no-op results, and malformed Claude Code hook inputs are an edge case. | 2026-03-07 |
-| 12 | SessionStart hook now creates session + persists ID | Platform runner calls both `engine.startSession()` and `engine.persistSessionId()` on SessionStart. Our current hook only persisted. Accepted — `startSession` is idempotent (returns early if session exists). | 2026-03-07 |
+| #   | Decision                                                                    | Rationale                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | Date       |
+| --- | --------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| 1   | `defineRecordingOps` adopted for mechanical recording methods               | Eliminates ~180 lines of gate-check, append, pass boilerplate. Routes remain explicit with `w.executeRecording(op, ...)`.                                                                                                                                                                                                                                                                                                                                                         | 2026-03-07 |
+| 2   | PreToolUse uses engine-level `preToolUseHandler` (Option C)                 | Our PreToolUse hook needs sequential engine calls (write check then bash check) with early returns. `defineHooks`' per-tool hooks only have workflow access, not engine access. Engine-level handler is the escape hatch.                                                                                                                                                                                                                                                         | 2026-03-07 |
+| 3   | `createWorkflowCli` owns dep assembly with `buildWorkflowDeps(platform)`    | Platform builds all generic engine infrastructure. Consumer only provides domain-specific deps. `PlatformContext` exposes `getPluginRoot`, `now`, `getSessionId`, `store` for consumer deps that need them.                                                                                                                                                                                                                                                                       | 2026-03-07 |
+| 4   | Session ID injected by platform, not positional arg                         | Eliminates redundant `arg.string('session-id')` declarations. Platform reads `CLAUDE_SESSION_ID` from env and passes to engine calls internally.                                                                                                                                                                                                                                                                                                                                  | 2026-03-07 |
+| 5   | Platform package updated and verified locally                               | All required APIs confirmed to exist. `WorkflowFactory` type removed — migration is urgent.                                                                                                                                                                                                                                                                                                                                                                                       | 2026-03-07 |
+| 6   | `autoFetchFeedback` implemented as side effect in `appendEvent`             | `afterEntry: () => void` has no access to deps, state, or the workflow instance. Moving the side effect into `appendEvent` — triggered when the appended event is a transition to CHECKING_FEEDBACK — preserves automatic behavior without requiring platform changes. The engine calls `workflow.appendEvent(transitionEvent)` during its `transition()` lifecycle, so the side effect fires at the right time, and the engine persists all pending events atomically afterward. | 2026-03-07 |
+| 7   | DB path and env file path changes accepted                                  | `createWorkflowCli` creates store at `${pluginRoot}/workflow.db` (was `~/.claude/workflow-events.db`). Env file hardcoded to `~/.claude/claude.env` (was `CLAUDE_ENV_FILE` env var). Session data is ephemeral. No migration value.                                                                                                                                                                                                                                               | 2026-03-07 |
+| 8   | `forbidden: { write: true }` added to all state definitions                 | Engine's `checkWrite()` only calls the consumer predicate when `forbidden.write` is set. Without it, all writes auto-pass, bypassing our protected file list. Setting the flag on all states preserves current behavior.                                                                                                                                                                                                                                                          | 2026-03-07 |
+| 9   | `checkWriteAllowed` predicate wrapped for engine signature                  | Engine's `checkWrite()` expects `(toolName, filePath, state) => PreconditionResult`. Our predicate only uses `filePath`. Thin wrapper ignores `toolName` and `state`, delegates to existing `checkWriteAllowed(filePath)`.                                                                                                                                                                                                                                                        | 2026-03-07 |
+| 10  | `onEntry` mutations encoded in transition events via `buildTransitionEvent` | Engine computes `stateAfter = onEntry(stateBefore)` but doesn't apply it to the workflow — it only passes `stateAfter` to `buildTransitionEvent`. Our `buildTransitionEvent` diffs `stateBefore` and `stateAfter`, encoding changes as `stateOverrides` in the event. The fold applies these overrides. This also fixes a pre-existing event-sourcing gap where `onEntry` mutations were lost during event replay.                                                                | 2026-03-07 |
+| 11  | `extractField` empty string behavior accepted                               | Platform's `extractField` returns `''` for missing fields. Our current code throws. After migration, malformed hook inputs pass empty strings to engine checks. Accepted — empty strings produce no-op results, and malformed Claude Code hook inputs are an edge case.                                                                                                                                                                                                           | 2026-03-07 |
+| 12  | SessionStart hook now creates session + persists ID                         | Platform runner calls both `engine.startSession()` and `engine.persistSessionId()` on SessionStart. Our current hook only persisted. Accepted — `startSession` is idempotent (returns early if session exists).                                                                                                                                                                                                                                                                   | 2026-03-07 |

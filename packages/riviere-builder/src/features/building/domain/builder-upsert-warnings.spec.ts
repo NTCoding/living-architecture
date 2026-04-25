@@ -1,6 +1,9 @@
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
 import {
-  ComponentTypeMismatchError, RiviereBuilder, type BuilderOptions 
+  ComponentTypeMismatchError,
+  CustomTypeMismatchError,
+  RiviereBuilder,
+  type BuilderOptions,
 } from './index'
 
 function createValidOptions(): BuilderOptions {
@@ -204,6 +207,45 @@ describe('RiviereBuilder upsert warnings', () => {
       }),
     ).toThrow(
       "Component 'orders:checkout:ui:checkout-page' already exists as type 'unknown'; cannot upsert as 'UI'",
+    )
+  })
+
+  it('throws CustomTypeMismatchError when custom type name differs for the same id', () => {
+    const builder = RiviereBuilder.new(createValidOptions())
+    builder.defineCustomType({ name: 'Queue' })
+    builder.defineCustomType({ name: 'Topic' })
+
+    builder.upsertCustom({
+      customTypeName: 'Queue',
+      name: 'Outbox',
+      domain: 'orders',
+      module: 'infra',
+      sourceLocation: sourceLocation(),
+      metadata: { partition: 2 },
+    })
+
+    expect(() =>
+      builder.upsertCustom({
+        customTypeName: 'Topic',
+        name: 'Outbox',
+        domain: 'orders',
+        module: 'infra',
+        sourceLocation: sourceLocation(),
+        metadata: { partition: 3 },
+      }),
+    ).toThrow(CustomTypeMismatchError)
+
+    expect(() =>
+      builder.upsertCustom({
+        customTypeName: 'Topic',
+        name: 'Outbox',
+        domain: 'orders',
+        module: 'infra',
+        sourceLocation: sourceLocation(),
+        metadata: { partition: 3 },
+      }),
+    ).toThrow(
+      "Component 'orders:infra:custom:outbox' already exists as custom type 'Queue'; cannot upsert as 'Topic'",
     )
   })
 })

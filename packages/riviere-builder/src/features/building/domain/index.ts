@@ -9,6 +9,7 @@ export {
   CustomTypeNotFoundError,
   DuplicateComponentError,
   ComponentTypeMismatchError,
+  CustomTypeMismatchError,
   ComponentNotFoundError,
   CustomTypeAlreadyDefinedError,
   MissingRequiredPropertiesError,

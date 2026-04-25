@@ -85,7 +85,7 @@ export type WorkflowOperation =
   | 'record-feedback-clean'
   | 'record-feedback-exists'
   | 'record-feedback-addressed'
-  | 'record-reflection'
+  | 'record-reflection-path'
 
 /** @riviere-role value-object */
 export type ConcreteStateDefinition = WorkflowStateDefinition<

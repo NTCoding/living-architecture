@@ -9,6 +9,7 @@ import {
   DuplicateDomainError,
   SourceConflictError,
   ComponentTypeMismatchError,
+  CustomTypeMismatchError,
   CustomTypeAlreadyDefinedError,
   MissingRequiredPropertiesError,
   InvalidGraphError,
@@ -90,6 +91,22 @@ describe('errors', () => {
       expect(error.componentId).toBe('orders:checkout:ui:checkout-page')
       expect(error.existingType).toBe('UI')
       expect(error.incomingType).toBe('API')
+    })
+  })
+
+  describe('CustomTypeMismatchError', () => {
+    it('includes component identity and custom types in message', () => {
+      const error = new CustomTypeMismatchError('orders:infra:custom:outbox', 'Queue', 'Topic')
+
+      expect(error.message).toBe(
+        "Component 'orders:infra:custom:outbox' already exists as custom type 'Queue'; cannot upsert as 'Topic'",
+      )
+      expect(error).toMatchObject({
+        componentId: 'orders:infra:custom:outbox',
+        existingCustomTypeName: 'Queue',
+        incomingCustomTypeName: 'Topic',
+      })
+      expect(error.name).toBe('CustomTypeMismatchError')
     })
   })
 
