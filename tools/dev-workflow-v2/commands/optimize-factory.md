@@ -12,7 +12,7 @@ Accepted forms:
 
 ## Operating Principle
 
-The factory is the repository-specific system mapped by `tools/dev-workflow-v2/docs/factory/factory-map.md`. The map describes what exists, where it is defined, and how surfaces relate. Read the map and `tools/dev-workflow-v2/docs/factory/optimization-guide.md` before proposing anything, but do not cite either document as proof of enforcement. Read the complete relevant source files at command execution time.
+The factory is the repository-specific system mapped by `tools/dev-workflow-v2/docs/factory/factory-map.md`. The map describes what exists, where it is defined, how surfaces relate, and examples of how each mechanism is used. Read the map before proposing anything, but do not cite the map as proof of enforcement. Read the complete relevant source files at command execution time.
 
 Never fix the product code under review. Design changes to the factory so the same issue is prevented or detected next time.
 
@@ -23,6 +23,14 @@ Every proposal must state:
 - which exact factory file or capability should change,
 - what gap remains after existing enforcement is considered,
 - how the proposed enforcement will be verified.
+
+Factory memory lives in GitHub issues labeled `factory` and `factory optimization`. Every factory optimization issue should be searchable by:
+
+- labels: `factory`, `factory optimization`,
+- marker text in the issue body: `factory optimization`,
+- source PR and comment URLs,
+- exact factory surface names,
+- problem pattern names.
 
 ## Step 1: Classify the input
 
@@ -36,11 +44,9 @@ If the argument is missing or ambiguous, ask the user for either a PR number, PR
 
 Read these files before discussing any solution:
 
-- `tools/dev-workflow-v2/docs/factory/README.md`
 - `tools/dev-workflow-v2/docs/factory/factory-map.md`
-- `tools/dev-workflow-v2/docs/factory/optimization-guide.md`
 
-Use the factory map to identify which factory surfaces and source files exist. Use the optimization guide for examples of optimization patterns. Inspect the relevant source files in full at command execution time. Do not use map or guide examples, headings, or summaries as evidence of enforcement.
+Use the factory map to identify which factory surfaces and source files exist. Inspect the relevant source files in full at command execution time. Do not use map examples, headings, or summaries as evidence of enforcement.
 
 ## Step 3A: PR mode — fetch source material
 
@@ -107,7 +113,6 @@ For every selected item, read all relevant context:
 - the referenced file and line range
 - surrounding code needed to understand the pattern
 - exact relevant factory source files identified through `tools/dev-workflow-v2/docs/factory/factory-map.md`
-- relevant optimization-guide examples, if any
 
 ## Step 3B: Ad-hoc mode — collect source material
 
@@ -119,7 +124,7 @@ Read the exact factory source files and product examples needed to understand th
 
 ## Step 4: Search factory memory
 
-Use `tools/dev-workflow-v2/docs/factory/README.md`, `tools/dev-workflow-v2/docs/factory/factory-map.md`, and `tools/dev-workflow-v2/docs/factory/optimization-guide.md` as local factory memory before searching GitHub issues.
+Use `tools/dev-workflow-v2/docs/factory/factory-map.md` as the local factory map before searching GitHub issues.
 
 Search prior GitHub issues labeled `factory` and `factory optimization`:
 
@@ -194,9 +199,26 @@ Prioritize options in this order:
 3. CI or workflow gate
 4. review-agent or convention markdown as the last resort
 
+Use this decision matrix as the starting point. Extend `tools/dev-workflow-v2/docs/factory/factory-map.md` only when a new factory surface is added or an existing surface relationship changes.
+
+| Problem pattern | Preferred factory surface | Verification approach |
+| --- | --- | --- |
+| Syntax or AST-level smell | ESLint rule, custom ESLint rule, or `no-restricted-syntax` | Violating fixture or representative lint failure |
+| Repeated naming smell | Custom ESLint rule or existing naming rule extension | Rule test with rejected and accepted names |
+| Folder or layer violation | Riviere role enforcement or dependency rule | Fixture or package check proving invalid placement fails |
+| Import direction violation | Riviere role enforcement or dependency rule | Fixture or dependency check proving forbidden import fails |
+| Test smell | Vitest ESLint rule or custom test lint rule | Failing test fixture or lint failure against representative test |
+| Coverage weakness | Vitest coverage thresholds or coverage include/exclude adjustment | Coverage command proves threshold failure or restored coverage |
+| CI escape hatch | CI workflow gate or workflow command state guard | CI-equivalent command proves blocked path fails |
+| Code review blind spot | Review agent instruction, convention doc, or deterministic scanner capability | Agent review scenario or documented checklist addition |
+| CodeRabbit blind spot | CodeRabbit configuration or knowledge-base guideline | CodeRabbit config review and linked guideline |
+| Security or secret risk | gitleaks, semgrep, CodeRabbit tool, or CI gate | Tool command proves detection |
+| Workflow misuse | dev-workflow command, hook, state-machine guard, or agent instruction | Unit test or workflow command scenario proves misuse is blocked |
+| Capability gap | New factory tool, custom checker, command, or agent workflow | Purpose-built test or dry-run scenario proves the new capability works |
+
 For lint-rule optimizations, include a verification design that proves the rule fails on violating code. Prefer a dedicated fixture or rule test when the lint rule is custom. For `no-restricted-syntax`, prescribe a verification command that fails against a representative violation when practical.
 
-If an issue does not fit the decision matrix in `tools/dev-workflow-v2/docs/factory/README.md`, the repository factory map in `tools/dev-workflow-v2/docs/factory/factory-map.md`, or the optimization examples in `tools/dev-workflow-v2/docs/factory/optimization-guide.md`, include an explicit docs update requirement that extends the missing documentation.
+If an issue adds a new factory surface or changes relationships between factory surfaces, include an explicit docs update requirement for `tools/dev-workflow-v2/docs/factory/factory-map.md`.
 
 ## Step 6: Request approval
 
@@ -279,9 +301,7 @@ factory optimization
 
 ## Documentation and Memory Updates
 
-- [ ] Update `tools/dev-workflow-v2/docs/factory/README.md` if this issue adds a new decision pattern or changes the decision matrix.
 - [ ] Update `tools/dev-workflow-v2/docs/factory/factory-map.md` if this issue changes the factory inventory or adds a new factory surface.
-- [ ] Update `tools/dev-workflow-v2/docs/factory/optimization-guide.md` if this issue adds a new optimization pattern.
 
 ## Acceptance Criteria
 
@@ -289,7 +309,7 @@ factory optimization
 - [ ] Violating examples fail under the new enforcement when practical.
 - [ ] Passing examples remain accepted when practical.
 - [ ] The relevant verification command is documented and passes.
-- [ ] Factory memory documentation is updated when the decision matrix changes.
+- [ ] Factory map documentation is updated when the factory inventory or surface relationships change.
 
 ## Commit Guidance
 

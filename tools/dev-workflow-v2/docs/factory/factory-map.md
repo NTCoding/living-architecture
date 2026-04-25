@@ -4,6 +4,16 @@ This map describes the factory surfaces that exist in this repository: what exis
 
 Source files are authoritative. This map is an index to those sources.
 
+## Factory Philosophy
+
+- Generated or AI-assisted code must be shaped by mechanisms that are reviewable and repeatable.
+- Deterministic checks are preferred when a rule can be expressed accurately.
+- Tests prove behavior; lint, roles, and dependency rules prove structure.
+- Documentation explains intent, but source files and executable checks define enforcement.
+- Review agents and conventions handle semantic judgment that is not safe to encode mechanically.
+- Local hooks and CI decide when existing checks run; they are not substitutes for the checks themselves.
+- Examples in this map illustrate mechanism use only. Inspect the referenced source files for full behavior.
+
 ## Surface Relationships
 
 ```text
@@ -51,6 +61,12 @@ Related surfaces:
 - Pulls lint, role-check, dependency-cruiser, tests, generated-doc checks, and dead-code checks into the local path when those scripts include them.
 - Commit-message enforcement is separate from code quality enforcement.
 
+Mechanism examples:
+
+- A pre-commit hook can call a package script that runs multiple Nx targets before a commit is accepted.
+- A commit-message hook can reject a message independently from source-code checks.
+- A local gate can expose stale generated output before a branch reaches CI.
+
 Verification entrypoints:
 
 - `pnpm run verify`
@@ -71,6 +87,12 @@ Related surfaces:
 - Runs affected Nx targets after push.
 - Connects repository checks to hosted pull-request blocking.
 - Hosts external quality gates that do not live entirely in repository code.
+
+Mechanism examples:
+
+- A workflow job can run affected lint, test, build, typecheck, and generated-doc targets for a pull request.
+- A CI job can wait for an external scanner result and fail the pull request when the scanner fails.
+- Nx target dependencies can make one visible target run prerequisite factory checks.
 
 Verification entrypoints:
 
@@ -93,6 +115,12 @@ Surface shape:
 - Custom rules hold logic that is too specific for simple config selectors.
 - Rule specs provide accepted and rejected fixture examples.
 - ESLint runs through package lint targets and through the local/CI gates when those gates invoke lint.
+
+Mechanism examples:
+
+- A `no-restricted-syntax` selector can reject a precise AST shape such as an unsafe fallback expression.
+- A custom rule can inspect filenames and class declarations together when a simple selector is insufficient.
+- A rule spec can pair rejected examples with accepted examples so the guardrail is executable documentation.
 
 Relationship boundaries:
 
@@ -149,6 +177,34 @@ location<RoleName>('src/features/{feature}')
 
 These snippets explain the concept only. Inspect `.riviere/roles.ts` and `.riviere/role-enforcement.config.ts` for actual role and location definitions.
 
+Annotated declaration concept:
+
+```typescript
+/** @riviere-role command-use-case-input */
+export interface EnrichComponentInput {
+  readonly componentId: string
+}
+
+/** @riviere-role command-use-case-result */
+export interface EnrichComponentResult {
+  readonly changed: boolean
+}
+
+/** @riviere-role command-use-case */
+export class EnrichComponent {
+  execute(input: EnrichComponentInput): EnrichComponentResult {
+    return { changed: true }
+  }
+}
+```
+
+Mechanism examples:
+
+- A role can limit which declaration kinds may carry that role.
+- A role can constrain public method count on classes that carry that role.
+- A location can limit which roles may appear under a folder pattern.
+- A role dependency rule can reject one role importing or calling another role.
+
 Relationship boundaries:
 
 - Role enforcement owns annotated exported declaration responsibility.
@@ -177,6 +233,13 @@ Surface shape:
 - Spec placement rules live in `.dependency-cruiser.specs.mjs`.
 - The package script connects those configs to the repository verification path.
 
+Mechanism examples:
+
+- A path rule can reject domain code importing infrastructure code.
+- A path rule can reject one feature importing another feature directly.
+- A spec-placement rule can keep tests colocated with production code rather than detached at a package root.
+- Separate configs let frontend structure differ from backend package structure.
+
 Relationship boundaries:
 
 - Dependency-cruiser owns resolved import path relationships.
@@ -199,6 +262,12 @@ Surface shape:
 - Architecture docs are the human-readable source for placement and responsibility semantics.
 - Deterministic surfaces encode the parts that can be enforced mechanically.
 - Review agents use these docs for semantic architecture review.
+
+Mechanism examples:
+
+- An ADR can define what a folder is responsible for before dependency or role checks encode the mechanical boundary.
+- Architecture overview docs can explain why a relationship exists when a config file only shows the mechanical restriction.
+- Review agents can use architecture docs to audit semantic responsibility where import paths alone are insufficient.
 
 Relationship boundaries:
 
@@ -225,6 +294,12 @@ Surface shape:
 - Vitest configs define test execution and coverage boundaries.
 - Specs prove behavior and edge cases.
 - Nx test targets connect package tests to local and CI gates.
+
+Mechanism examples:
+
+- A spec can prove a command returns a specific domain result for a concrete input.
+- A coverage config can define which production files count toward coverage thresholds.
+- A rule test can prove a custom lint rule rejects a bad fixture and accepts a good fixture.
 
 Relationship boundaries:
 
@@ -253,6 +328,12 @@ Surface shape:
 - Check targets compare generated output with checked files.
 - Docs build scripts consume generated outputs from packages.
 
+Mechanism examples:
+
+- A generation script can derive CLI reference documentation from command metadata.
+- A check target can regenerate output and fail when the working tree differs.
+- A docs app can copy package-generated files into a published documentation tree.
+
 Relationship boundaries:
 
 - Source files own truth.
@@ -278,6 +359,12 @@ Surface shape:
 - CodeRabbit configuration controls hosted review behavior and enabled tools.
 - CI connects external quality signals to pull-request status.
 - Knowledge-base docs provide repository context to hosted review.
+
+Mechanism examples:
+
+- CodeRabbit configuration can enable hosted scanners and decide how assertive review behavior should be.
+- A knowledge-base path can feed architecture or convention documents into hosted review.
+- CI can make an external quality gate blocking instead of advisory.
 
 Relationship boundaries:
 
@@ -314,6 +401,13 @@ Surface shape:
 - OpenCode plugin code bridges Claude Code plugin behavior into OpenCode.
 - Plugin metadata controls Claude Code plugin cache identity.
 
+Mechanism examples:
+
+- Command markdown can require a user approval point before a GitHub issue is created.
+- A state-machine transition can mechanically prevent moving to the next workflow state before required events are recorded.
+- A pre-tool hook can block writes when a workflow state is read-only.
+- Plugin metadata version changes force Claude Code to reload changed plugin files.
+
 Relationship boundaries:
 
 - Markdown instructions guide agent behavior.
@@ -346,6 +440,12 @@ Surface shape:
 - Agent prompts define semantic review behavior.
 - Convention docs store durable review knowledge.
 - Review-feedback checks store learned PR feedback patterns.
+
+Mechanism examples:
+
+- An architecture review agent can audit responsibility boundaries using ADRs and architecture docs.
+- A code review agent can apply durable design conventions that are too semantic for lint.
+- A bug-scanner agent can reuse patterns learned from prior PR feedback.
 
 Relationship boundaries:
 
