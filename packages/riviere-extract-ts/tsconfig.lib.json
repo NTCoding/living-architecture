@@ -15,6 +15,9 @@
     },
     {
       "path": "../riviere-extract-config/tsconfig.lib.json"
+    },
+    {
+      "path": "../riviere-builder/tsconfig.lib.json"
     }
   ],
   "exclude": [

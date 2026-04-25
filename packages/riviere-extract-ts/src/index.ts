@@ -5,6 +5,31 @@ export {
 } from './features/extraction/domain/component-extraction/extractor'
 export { evaluatePredicate } from './features/extraction/domain/predicate-evaluation/evaluate-predicate'
 export {
+  extractInto,
+  OrphanedDraftComponentError,
+  type ExtractIntoOptions,
+  type ExtractionModuleContext,
+  type ExtractionSummary,
+} from './features/extraction/domain/extract-into'
+export {
+  createLinkWriteInput,
+  mergeWritePort,
+  strictWritePort,
+  toCanonicalComponentId,
+  toSourceLocation,
+  SameStepDuplicateComponentError,
+  type ComponentWriteInput,
+  type ExternalLinkWriteInput,
+  type ExtractionWritePort,
+  type LinkWriteInput,
+  type MissingFieldDiagnosticEvent,
+  type StrictExtractionWritePort,
+  type UncertainLinkDiagnosticEvent,
+  type WorkflowBuilder,
+  type WorkflowDiagnostics,
+  type WorkflowStepContext,
+} from './features/extraction/domain/extraction-write-port'
+export {
   resolveConfig,
   type ConfigLoader,
 } from './features/extraction/domain/config-resolution/resolve-config'

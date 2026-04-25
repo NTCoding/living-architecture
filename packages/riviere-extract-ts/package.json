@@ -22,6 +22,7 @@
     "!**/*.tsbuildinfo"
   ],
   "dependencies": {
+    "@living-architecture/riviere-builder": "workspace:*",
     "@living-architecture/riviere-extract-config": "workspace:*",
     "@living-architecture/riviere-schema": "workspace:*",
     "minimatch": "^10.0.1",

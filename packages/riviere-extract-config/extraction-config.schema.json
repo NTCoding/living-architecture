@@ -11,6 +11,16 @@
       "type": "string",
       "description": "JSON Schema reference"
     },
+    "sources": {
+      "type": "array",
+      "description": "Source repositories for standalone graph building",
+      "items": { "$ref": "#/$defs/sourceInfo" }
+    },
+    "domains": {
+      "type": "object",
+      "description": "Domain metadata for standalone graph building",
+      "additionalProperties": { "$ref": "#/$defs/domainMetadata" }
+    },
     "modules": {
       "type": "array",
       "description": "Module definitions for component extraction",
@@ -25,6 +35,28 @@
     }
   },
   "$defs": {
+    "sourceInfo": {
+      "type": "object",
+      "required": ["repository"],
+      "additionalProperties": false,
+      "properties": {
+        "repository": { "type": "string", "minLength": 1 },
+        "commit": { "type": "string", "minLength": 1 },
+        "extractedAt": { "type": "string", "minLength": 1 }
+      }
+    },
+    "domainMetadata": {
+      "type": "object",
+      "required": ["description", "systemType"],
+      "additionalProperties": true,
+      "properties": {
+        "description": { "type": "string", "minLength": 1 },
+        "systemType": {
+          "type": "string",
+          "enum": ["domain", "bff", "ui", "other"]
+        }
+      }
+    },
     "moduleRef": {
       "type": "object",
       "description": "Reference to an external module definition file",

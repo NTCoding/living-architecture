@@ -1,7 +1,5 @@
 import { writeFileSync } from 'node:fs'
-import {
-  formatError, type SuccessOutput 
-} from './output'
+import { formatError } from './output'
 import {
   CliErrorCode, ExitCode 
 } from './error-codes'
@@ -9,7 +7,14 @@ import {
 interface OutputOptions {output?: string}
 
 /** @riviere-role cli-output-formatter */
-export function outputResult<T>(data: SuccessOutput<T>, options: OutputOptions): void {
+export function outputResult<T>(
+  data: {
+    success: true
+    data: T
+    warnings: string[]
+  },
+  options: OutputOptions,
+): void {
   if (options.output !== undefined) {
     try {
       writeFileSync(options.output, JSON.stringify(data))

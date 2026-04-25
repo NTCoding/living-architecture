@@ -1,3 +1,7 @@
+import type {
+  DomainMetadata, SourceInfo 
+} from '@living-architecture/riviere-schema'
+
 /**
  * AST element type to search for during extraction.
  */
@@ -277,6 +281,8 @@ export interface Module {
  */
 export interface ExtractionConfig {
   $schema?: string
+  sources?: SourceInfo[]
+  domains?: Record<string, DomainMetadata>
   modules: ModuleConfig[]
   connections?: ConnectionsConfig
 }
@@ -287,6 +293,8 @@ export interface ExtractionConfig {
  */
 export interface ResolvedExtractionConfig {
   $schema?: string
+  sources?: SourceInfo[]
+  domains?: Record<string, DomainMetadata>
   modules: Module[]
   connections?: ConnectionsConfig
 }

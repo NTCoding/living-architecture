@@ -15,8 +15,33 @@ Configuration for extracting architectural components from source code
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `$schema` | `string` | No | JSON Schema reference |
+| `sources` | `sourceInfo[]` | No | Source repositories for standalone graph building |
+| `domains` | `Record<string, domainMetadata>` | No | Domain metadata for standalone graph building |
 | `modules` | `(module \| moduleRef)[]` | **Yes** | Module definitions for component extraction |
 | `connections` | `connectionsConfig` | No | Connection detection configuration |
+
+---
+
+### `sourceInfo`
+
+**Properties:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `repository` | `string` | **Yes** | (no description) |
+| `commit` | `string` | No | (no description) |
+| `extractedAt` | `string` | No | (no description) |
+
+---
+
+### `domainMetadata`
+
+**Properties:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `description` | `string` | **Yes** | (no description) |
+| `systemType` | `"domain"` \| `"bff"` \| `"ui"` \| `"other"` | **Yes** | (no description) |
 
 ---
 

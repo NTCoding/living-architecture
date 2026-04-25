@@ -348,7 +348,10 @@ export async function testCustomGraphPath<T>(
 }
 
 export function parseCommandWithErrorHandling(args: string[]): Promise<void> {
-  return createProgram().parseAsync(args).catch(handleGlobalError)
+  return createProgram()
+    .parseAsync(args)
+    .catch(handleGlobalError)
+    .then(() => undefined)
 }
 
 export function assertDefined<T>(

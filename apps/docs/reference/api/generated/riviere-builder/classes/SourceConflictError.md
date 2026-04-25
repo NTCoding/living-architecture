@@ -2,9 +2,9 @@
 pageClass: reference
 ---
 
-# Class: MissingDomainsError
+# Class: SourceConflictError
 
-Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:138](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L138)
+Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:13](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L13)
 
 ## Riviere-role
 
@@ -18,13 +18,19 @@ domain-error
 
 ### Constructor
 
-> **new MissingDomainsError**(): `MissingDomainsError`
+> **new SourceConflictError**(`repository`): `SourceConflictError`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:139](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L139)
+Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:16](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L16)
+
+#### Parameters
+
+##### repository
+
+`string`
 
 #### Returns
 
-`MissingDomainsError`
+`SourceConflictError`
 
 #### Overrides
 
@@ -65,6 +71,14 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 #### Inherited from
 
 `Error.name`
+
+***
+
+### repository
+
+> `readonly` **repository**: `string`
+
+Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:14](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L14)
 
 ***
 

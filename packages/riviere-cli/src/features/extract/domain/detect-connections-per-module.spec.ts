@@ -1,163 +1,133 @@
 import {
-  beforeEach, describe, expect, it, vi 
+  describe, expect, it, vi 
 } from 'vitest'
 import { Project } from 'ts-morph'
-import type { Module } from '@living-architecture/riviere-extract-config'
+import type {
+  Module, ResolvedExtractionConfig 
+} from '@living-architecture/riviere-extract-config'
 import {
   ExtractionProject, type ModuleContext 
 } from './extraction-project'
 
-const {
-  mockExtractComponents,
-  mockEnrichComponents,
-  mockMatchesGlob,
-  mockDeduplicateCrossStrategy,
-  mockDetectCrossModule,
-  mockDetectPerModule,
-} = vi.hoisted(() => ({
-  mockExtractComponents: vi.fn().mockReturnValue([]),
-  mockEnrichComponents: vi.fn().mockReturnValue({
-    components: [],
-    failures: [],
-  }),
-  mockMatchesGlob: vi.fn(),
-  mockDeduplicateCrossStrategy: vi.fn((links: { source: string }[]) => links),
-  mockDetectPerModule: vi.fn().mockReturnValue({
-    links: [
-      {
-        source: 'orders:useCase:OrderService',
-        target: 'orders:repository:OrderRepo',
-        type: 'sync',
-      },
-    ],
-    externalLinks: [],
-    timings: {
-      callGraphMs: 1,
-      setupMs: 0,
-    },
-  }),
-  mockDetectCrossModule: vi.fn().mockReturnValue({
-    links: [],
-    timings: { asyncDetectionMs: 0 },
-  }),
-}))
+const { mockExtractInto } = vi.hoisted(() => ({ mockExtractInto: vi.fn() }))
 
-vi.mock('@living-architecture/riviere-extract-ts', () => ({
-  extractComponents: mockExtractComponents,
-  enrichComponents: mockEnrichComponents,
-  matchesGlob: mockMatchesGlob,
-  detectPerModuleConnections: mockDetectPerModule,
-  detectCrossModuleConnections: mockDetectCrossModule,
-  deduplicateCrossStrategy: mockDeduplicateCrossStrategy,
-  stripResolvedCustomTypes: vi.fn((components: unknown[]) => components),
-}))
+vi.mock('@living-architecture/riviere-extract-ts', async () => {
+  const actual = await vi.importActual<typeof import('@living-architecture/riviere-extract-ts')>(
+    '@living-architecture/riviere-extract-ts',
+  )
 
-function createModule(name: string): Module {
   return {
+    ...actual,
+    extractInto: mockExtractInto,
+  }
+})
+
+function createModuleContext(): ModuleContext {
+  const module: Module = {
     api: { notUsed: true },
+    domain: 'orders',
     domainOp: { notUsed: true },
     event: { notUsed: true },
     eventHandler: { notUsed: true },
     glob: 'src/**',
-    name,
-    path: name,
+    name: 'orders-module',
+    path: 'orders',
     ui: { notUsed: true },
     useCase: { notUsed: true },
   }
-}
 
-function createModuleContext(moduleName: string): ModuleContext {
   return {
-    files: [`/src/${moduleName}/test.ts`],
-    module: createModule(moduleName),
+    files: ['/workspace/orders/test.ts'],
+    module,
     project: new Project(),
   }
 }
 
+function createConfig(moduleContext: ModuleContext): ResolvedExtractionConfig {
+  return { modules: [moduleContext.module] }
+}
+
 describe('ExtractionProject.extractDraftComponents', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-  })
-
-  it('returns links when includeConnections is true', () => {
-    const ctx = createModuleContext('orders')
-
-    mockExtractComponents.mockReturnValue([
-      {
-        name: 'OrderService',
-        domain: 'orders',
-        type: 'useCase',
-        location: {
-          file: 'test.ts',
-          line: 1,
-        },
-      },
-    ])
-    mockEnrichComponents.mockReturnValue({
-      components: [
-        {
-          name: 'OrderService',
-          domain: 'orders',
-          type: 'useCase',
-          location: {
-            file: 'test.ts',
-            line: 1,
-          },
-          metadata: {},
-        },
-      ],
-      failures: [],
-    })
-    mockDetectPerModule.mockReturnValue({
-      links: [
-        {
-          source: 'orders:useCase:OrderService',
-          target: 'orders:repository:OrderRepo',
-          type: 'sync' as const,
-        },
-      ],
+  it('returns the shared-core full result unchanged', () => {
+    mockExtractInto.mockReturnValueOnce({
+      kind: 'full',
+      components: [],
+      failedFields: [],
+      links: [],
       externalLinks: [],
-      timings: {
-        callGraphMs: 1,
-        setupMs: 0,
-      },
+      timings: [],
     })
 
-    const project = new ExtractionProject('/config', [ctx], { modules: [] }, 'test-repo')
-    const result = project.extractDraftComponents({
+    const moduleContext = createModuleContext()
+    const resolvedConfig = createConfig(moduleContext)
+    const result = new ExtractionProject(
+      '/workspace',
+      [moduleContext],
+      resolvedConfig,
+      'test/repo',
+    ).extractDraftComponents({
       allowIncomplete: true,
       includeConnections: true,
     })
 
     expect(result.kind).toBe('full')
+    expect(mockExtractInto).toHaveBeenCalledWith(
+      expect.anything(),
+      resolvedConfig,
+      expect.objectContaining({
+        allowIncomplete: true,
+        configDir: '/workspace',
+        includeConnections: true,
+        mode: 'extract',
+        moduleContexts: [moduleContext],
+        repository: 'test/repo',
+      }),
+    )
   })
 
-  it('returns no links when includeConnections is false', () => {
-    const ctx = createModuleContext('orders')
-    mockExtractComponents.mockReturnValue([
-      {
-        name: 'OrderService',
-        domain: 'orders',
-        type: 'useCase',
-        location: {
-          file: 'test.ts',
-          line: 1,
+  it('returns the shared-core draft result unchanged', () => {
+    mockExtractInto.mockReturnValueOnce({
+      kind: 'draftOnly',
+      components: [
+        {
+          type: 'useCase',
+          name: 'PlaceOrder',
+          domain: 'orders',
+          module: 'orders-module',
+          location: {
+            file: '/workspace/orders/test.ts',
+            line: 3,
+          },
         },
-      },
-    ])
+      ],
+    })
 
-    const project = new ExtractionProject('/config', [ctx], { modules: [] }, 'test-repo')
-    const result = project.extractDraftComponents({
-      allowIncomplete: true,
+    const moduleContext = createModuleContext()
+    const resolvedConfig = createConfig(moduleContext)
+    const result = new ExtractionProject(
+      '/workspace',
+      [moduleContext],
+      resolvedConfig,
+      'test/repo',
+    ).extractDraftComponents({
+      allowIncomplete: false,
       includeConnections: false,
     })
 
-    expect(result.kind).toBe('draftOnly')
-    expect(result.components).toStrictEqual([
-      expect.objectContaining({
-        type: 'useCase',
-        name: 'OrderService',
-      }),
-    ])
+    expect(result).toStrictEqual({
+      kind: 'draftOnly',
+      components: [
+        {
+          type: 'useCase',
+          name: 'PlaceOrder',
+          domain: 'orders',
+          module: 'orders-module',
+          location: {
+            file: '/workspace/orders/test.ts',
+            line: 3,
+          },
+        },
+      ],
+    })
   })
 })

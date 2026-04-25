@@ -306,6 +306,7 @@ export class ExtractionProjectRepository {
 
   private topLevelRulesToModule(parsed: TopLevelRulesConfig): Module {
     return {
+      domain: 'extended',
       name: 'extended',
       path: '.',
       glob: '**',
