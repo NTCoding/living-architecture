@@ -4,11 +4,6 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-patchedDependencies:
-  '@nt-ai-lab/deterministic-agent-workflow-engine@0.3.0':
-    hash: 48cbe7566ac6e14b1c65eeab7af5930c533d893ecd0a443bc2dad1a7a3d2854f
-    path: patches/@nt-ai-lab__deterministic-agent-workflow-engine@0.3.0.patch
-
 importers:
 
   .:
@@ -347,7 +342,7 @@ importers:
         version: 0.3.0
       '@nt-ai-lab/deterministic-agent-workflow-engine':
         specifier: 0.3.0
-        version: 0.3.0(patch_hash=48cbe7566ac6e14b1c65eeab7af5930c533d893ecd0a443bc2dad1a7a3d2854f)
+        version: 0.3.0
       '@nt-ai-lab/deterministic-agent-workflow-event-store':
         specifier: 0.3.0
         version: 0.3.0
@@ -8908,33 +8903,33 @@ snapshots:
   '@nt-ai-lab/deterministic-agent-workflow-claude-code@0.3.0':
     dependencies:
       '@nt-ai-lab/deterministic-agent-workflow-cli': 0.3.0
-      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.3.0(patch_hash=48cbe7566ac6e14b1c65eeab7af5930c533d893ecd0a443bc2dad1a7a3d2854f)
+      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.3.0
       zod: 3.25.76
 
   '@nt-ai-lab/deterministic-agent-workflow-cli@0.3.0':
     dependencies:
       '@nt-ai-lab/deterministic-agent-workflow-dsl': 0.3.0
-      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.3.0(patch_hash=48cbe7566ac6e14b1c65eeab7af5930c533d893ecd0a443bc2dad1a7a3d2854f)
+      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.3.0
       '@nt-ai-lab/deterministic-agent-workflow-event-store': 0.3.0
       zod: 3.25.76
 
   '@nt-ai-lab/deterministic-agent-workflow-dsl@0.3.0':
     dependencies:
-      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.3.0(patch_hash=48cbe7566ac6e14b1c65eeab7af5930c533d893ecd0a443bc2dad1a7a3d2854f)
+      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.3.0
 
-  '@nt-ai-lab/deterministic-agent-workflow-engine@0.3.0(patch_hash=48cbe7566ac6e14b1c65eeab7af5930c533d893ecd0a443bc2dad1a7a3d2854f)':
+  '@nt-ai-lab/deterministic-agent-workflow-engine@0.3.0':
     dependencies:
       zod: 3.25.76
 
   '@nt-ai-lab/deterministic-agent-workflow-event-store@0.3.0':
     dependencies:
-      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.3.0(patch_hash=48cbe7566ac6e14b1c65eeab7af5930c533d893ecd0a443bc2dad1a7a3d2854f)
+      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.3.0
       zod: 3.25.76
 
   '@nt-ai-lab/deterministic-agent-workflow-opencode@0.3.0':
     dependencies:
       '@nt-ai-lab/deterministic-agent-workflow-cli': 0.3.0
-      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.3.0(patch_hash=48cbe7566ac6e14b1c65eeab7af5930c533d893ecd0a443bc2dad1a7a3d2854f)
+      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.3.0
       '@nt-ai-lab/deterministic-agent-workflow-event-store': 0.3.0
       '@opencode-ai/plugin': 1.4.3
       zod: 3.25.76
