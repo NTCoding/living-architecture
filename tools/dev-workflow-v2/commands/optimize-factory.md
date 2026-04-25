@@ -26,22 +26,6 @@ The factory is every mechanism that shapes generated code quality:
 
 Never fix the product code under review. Design changes to the factory so the same issue is prevented or detected next time.
 
-## GitHub Access Rule
-
-For every GitHub operation, first run:
-
-```bash
-gh auth token
-```
-
-Then use the returned value inline in the next GitHub command:
-
-```bash
-GITHUB_TOKEN=<token> gh ...
-```
-
-Do not store the token in files or persistent configuration.
-
 ## Step 1: Classify the input
 
 If the argument is a PR number or PR URL, run PR mode.
@@ -55,19 +39,19 @@ If the argument is missing or ambiguous, ask the user for either a PR number, PR
 Resolve the PR number:
 
 ```bash
-GITHUB_TOKEN=<token> gh pr view <PR_NUMBER_OR_URL> --json number,url,title,body,author,headRefName,baseRefName,reviewDecision,comments,reviews,files
+gh pr view <PR_NUMBER_OR_URL> --json number,url,title,body,author,headRefName,baseRefName,reviewDecision,comments,reviews,files
 ```
 
 Resolve the current repository:
 
 ```bash
-GITHUB_TOKEN=<token> gh repo view --json nameWithOwner
+gh repo view --json nameWithOwner
 ```
 
 Fetch review threads using GraphQL:
 
 ```bash
-GITHUB_TOKEN=<token> gh api graphql \
+gh api graphql \
   -F owner='<OWNER>' \
   -F name='<REPO>' \
   -F number=<PR_NUMBER> \
@@ -131,7 +115,7 @@ Read `tools/dev-workflow-v2/docs/factory/README.md`.
 Search prior GitHub issues labeled `factory` and `factory optimization`:
 
 ```bash
-GITHUB_TOKEN=<token> gh issue list \
+gh issue list \
   --label 'factory' \
   --label 'factory optimization' \
   --state all \
@@ -294,7 +278,7 @@ feat(factory-optimization): add guardrail for <pattern>
 Create the issue:
 
 ```bash
-GITHUB_TOKEN=<token> gh issue create \
+gh issue create \
   --title 'Factory optimization: <short summary>' \
   --label 'factory' \
   --label 'factory optimization' \
@@ -324,7 +308,7 @@ This thread can be resolved because the product PR should not carry factory opti
 For review threads, reply to the last review comment in the thread:
 
 ```bash
-GITHUB_TOKEN=<token> gh api \
+gh api \
   --method POST \
   'repos/<OWNER>/<REPO>/pulls/<PR_NUMBER>/comments/<DATABASE_ID>/replies' \
   -f body='<COMMENT_BODY>'
@@ -333,7 +317,7 @@ GITHUB_TOKEN=<token> gh api \
 For general PR comments, add a PR comment that references the source comment URL:
 
 ```bash
-GITHUB_TOKEN=<token> gh pr comment <PR_NUMBER> --body '<COMMENT_BODY_WITH_SOURCE_URL>'
+gh pr comment <PR_NUMBER> --body '<COMMENT_BODY_WITH_SOURCE_URL>'
 ```
 
 ## Step 8: Resolve resolvable review threads
@@ -341,7 +325,7 @@ GITHUB_TOKEN=<token> gh pr comment <PR_NUMBER> --body '<COMMENT_BODY_WITH_SOURCE
 Resolve each review thread only after both issue creation and source-thread comment succeed:
 
 ```bash
-GITHUB_TOKEN=<token> gh api graphql \
+gh api graphql \
   -F threadId='<THREAD_ID>' \
   -f query='mutation($threadId: ID!) {
     resolveReviewThread(input: { threadId: $threadId }) {
