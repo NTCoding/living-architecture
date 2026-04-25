@@ -19,6 +19,8 @@ Factory memory lives in two places:
 1. GitHub issues labeled `factory` and `factory optimization`.
 2. This directory, which stores stable decision guidance that should influence future optimizations.
 
+The repository-specific factory inventory is maintained in `tools/dev-workflow-v2/docs/factory/factory-map.md`. Factory optimization analysis must use that map before proposing changes.
+
 Every factory optimization issue should be searchable by:
 
 - labels: `factory`, `factory optimization`
@@ -65,6 +67,7 @@ One factory optimization command run creates one aggregated GitHub issue. The is
 
 - source PR and comment URLs
 - factory memory used or a statement that no matching memory was found
+- current factory context with exact inspected factory files and existing enforcement
 - approved optimization tasks as a task list
 - context required for implementation
 - options discussed
@@ -77,6 +80,8 @@ One factory optimization command run creates one aggregated GitHub issue. The is
 - commit guidance using the `factory-optimization` scope
 
 The issue must not use ambiguous implementation language such as “likely files.” It must prescribe exact implementation targets or explicitly name a decision that remains open.
+
+The issue must not describe the factory generically. It must reference exact files from `tools/dev-workflow-v2/docs/factory/factory-map.md` or explain the exact new factory capability to add.
 
 ## Thread Resolution Policy
 

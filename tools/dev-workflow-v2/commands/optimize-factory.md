@@ -12,19 +12,16 @@ Accepted forms:
 
 ## Operating Principle
 
-The factory is every mechanism that shapes generated code quality:
-
-- lint rules and custom lint rules
-- Riviere role enforcement
-- architecture rules
-- dependency checks
-- test configuration and test helpers
-- CI and workflow gates
-- CodeRabbit configuration
-- workflow commands, agents, hooks, and conventions
-- new capabilities that do not exist yet
+The factory is the repository-specific system documented in `tools/dev-workflow-v2/docs/factory/factory-map.md`. Read that map before proposing anything. Do not rely on generic guardrail categories when the map names the exact file, rule set, workflow, agent, or convention that already exists.
 
 Never fix the product code under review. Design changes to the factory so the same issue is prevented or detected next time.
+
+Every proposal must state:
+
+- what the current factory already enforces,
+- which exact factory file or capability should change,
+- what gap remains after existing enforcement is considered,
+- how the proposed enforcement will be verified.
 
 ## Step 1: Classify the input
 
@@ -34,7 +31,16 @@ If the argument is ad-hoc text, run ad-hoc mode.
 
 If the argument is missing or ambiguous, ask the user for either a PR number, PR URL, or ad-hoc factory optimization request.
 
-## Step 2A: PR mode — fetch source material
+## Step 2: Load the repository factory map
+
+Read these files before discussing any solution:
+
+- `tools/dev-workflow-v2/docs/factory/README.md`
+- `tools/dev-workflow-v2/docs/factory/factory-map.md`
+
+Use the factory map to decide which exact factory files must be inspected for the source issue. Inspect the relevant current files, not just their summaries in the map.
+
+## Step 3A: PR mode — fetch source material
 
 Resolve the PR number:
 
@@ -98,19 +104,19 @@ For every selected item, read all relevant context:
 - the full marked thread or PR comment
 - the referenced file and line range
 - surrounding code needed to understand the pattern
-- relevant factory files, including lint, role enforcement, CI, CodeRabbit, agents, commands, hooks, and conventions
+- exact relevant factory files from `tools/dev-workflow-v2/docs/factory/factory-map.md`
 
-## Step 2B: Ad-hoc mode — collect source material
+## Step 3B: Ad-hoc mode — collect source material
 
 Restate the factory weakness described by the user.
 
 Ask whether prior factory memory should be searched before proposal if the answer is not obvious from the request.
 
-Read relevant factory files and product examples needed to understand the pattern. Do not modify files.
+Read the exact factory files and product examples needed to understand the pattern. Do not modify files.
 
-## Step 3: Search factory memory
+## Step 4: Search factory memory
 
-Read `tools/dev-workflow-v2/docs/factory/README.md`.
+Use `tools/dev-workflow-v2/docs/factory/README.md` and `tools/dev-workflow-v2/docs/factory/factory-map.md` as local factory memory before searching GitHub issues.
 
 Search prior GitHub issues labeled `factory` and `factory optimization`:
 
@@ -123,7 +129,7 @@ gh issue list \
   --json number,title,state,labels,body,url,createdAt,closedAt
 ```
 
-Use keywords from `[FACTORY]` comments, file paths, rule names, and factory surfaces to identify similar issues.
+Use keywords from `[FACTORY]` comments, file paths, rule names, factory files, and factory surfaces to identify similar issues.
 
 If memory is used, record:
 
@@ -134,7 +140,7 @@ If memory is used, record:
 
 If no relevant memory exists, state that no matching factory memory was found.
 
-## Step 4: Discuss each optimization point
+## Step 5: Discuss each optimization point
 
 For each selected factory weakness, discuss with the user before creating an issue.
 
@@ -151,6 +157,11 @@ Source:
 Problem pattern:
 - <specific recurring weakness>
 
+Current factory context:
+- Existing enforcement files inspected: <exact paths>
+- Existing enforcement found: <what currently blocks or reviews this pattern>
+- Factory gap: <what is not currently blocked or reviewed reliably>
+
 Factory memory:
 - <prior issue references and influence, or "No matching factory memory found.">
 
@@ -164,7 +175,7 @@ Options considered:
    - ...
 
 Recommended solution:
-- <prescribed factory change>
+- <prescribed factory change with exact target files or exact new capability>
 
 Rejected options:
 - <option>: <reason>
@@ -182,15 +193,15 @@ Prioritize options in this order:
 
 For lint-rule optimizations, include a verification design that proves the rule fails on violating code. Prefer a dedicated fixture or rule test when the lint rule is custom. For `no-restricted-syntax`, prescribe a verification command that fails against a representative violation when practical.
 
-If an issue does not fit the decision matrix in `tools/dev-workflow-v2/docs/factory/README.md`, include an explicit docs update requirement that extends the matrix.
+If an issue does not fit the decision matrix in `tools/dev-workflow-v2/docs/factory/README.md` or the repository factory map in `tools/dev-workflow-v2/docs/factory/factory-map.md`, include an explicit docs update requirement that extends the missing documentation.
 
-## Step 5: Request approval
+## Step 6: Request approval
 
 After all points have been discussed, ask the user for approval to create one aggregated GitHub issue.
 
 Natural-language approval is enough. Do not create issues, comment on PR threads, or resolve threads before approval.
 
-## Step 6: Create one aggregated GitHub issue
+## Step 7: Create one aggregated GitHub issue
 
 After approval, create exactly one GitHub issue with both labels:
 
@@ -230,6 +241,15 @@ factory optimization
 
 <full context needed by the implementation agent>
 
+## Current Factory Context
+
+- Existing enforcement files inspected:
+  - <exact path>
+- Existing enforcement found:
+  - <specific existing guardrail>
+- Factory gap:
+  - <specific gap this issue closes>
+
 ## Options Discussed
 
 ### Option 1: <name>
@@ -257,6 +277,7 @@ factory optimization
 ## Documentation and Memory Updates
 
 - [ ] Update `tools/dev-workflow-v2/docs/factory/README.md` if this issue adds a new decision pattern or changes the decision matrix.
+- [ ] Update `tools/dev-workflow-v2/docs/factory/factory-map.md` if this issue changes the factory inventory or adds a new factory surface.
 
 ## Acceptance Criteria
 
@@ -290,7 +311,7 @@ EOF
 
 Capture the created issue URL.
 
-## Step 7: Comment on source items
+## Step 8: Comment on source items
 
 After issue creation succeeds, comment on every source item with this fixed format:
 
@@ -320,7 +341,7 @@ For general PR comments, add a PR comment that references the source comment URL
 gh pr comment <PR_NUMBER> --body '<COMMENT_BODY_WITH_SOURCE_URL>'
 ```
 
-## Step 8: Resolve resolvable review threads
+## Step 9: Resolve resolvable review threads
 
 Resolve each review thread only after both issue creation and source-thread comment succeed:
 
@@ -346,7 +367,7 @@ If issue creation succeeds but any comment or thread resolution fails, stop and 
 
 Do not retry without user instruction.
 
-## Step 9: Final response
+## Step 10: Final response
 
 Return:
 
