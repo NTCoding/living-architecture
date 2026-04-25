@@ -17,31 +17,35 @@ Configuration for extracting architectural components from source code
 | `$schema` | `string` | No | JSON Schema reference |
 | `sources` | `sourceInfo[]` | No | Source repositories for standalone graph building |
 | `domains` | `Record<string, domainMetadata>` | No | Domain metadata for standalone graph building |
-| `modules` | `(module \| moduleRef)[]` | **Yes** | Module definitions for component extraction |
+| `modules` | `module \| moduleRef[]` | **Yes** | Module definitions for component extraction |
 | `connections` | `connectionsConfig` | No | Connection detection configuration |
 
 ---
 
 ### `sourceInfo`
 
+Source repository metadata captured at extraction time
+
 **Properties:**
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `repository` | `string` | **Yes** | (no description) |
-| `commit` | `string` | No | (no description) |
-| `extractedAt` | `string` | No | (no description) |
+| `repository` | `string` | **Yes** | Repository identifier or URL |
+| `commit` | `string` | No | Commit SHA or revision tag |
+| `extractedAt` | `string` | No | ISO timestamp when extraction ran |
 
 ---
 
 ### `domainMetadata`
 
+Metadata for a domain entry used in standalone graph building
+
 **Properties:**
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `description` | `string` | **Yes** | (no description) |
-| `systemType` | `"domain"` \| `"bff"` \| `"ui"` \| `"other"` | **Yes** | (no description) |
+| `description` | `string` | **Yes** | Human-readable domain summary |
+| `systemType` | `"domain"` \| `"bff"` \| `"ui"` \| `"other"` | **Yes** | Domain role in the architecture |
 
 ---
 

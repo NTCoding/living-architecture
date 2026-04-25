@@ -28,7 +28,7 @@ Matches if the target has a specified decorator
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `name` | `string` \| `string[]` | **Yes** | Decorator name(s) to match |
+| `name` | `string` \| ``string[]`` | **Yes** | Decorator name(s) to match |
 | `from` | `string` | No | Package the decorator is imported from |
 
 ---

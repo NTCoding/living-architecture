@@ -1,15 +1,17 @@
 import {
-  describe, expect, it 
+  afterEach, beforeEach, describe, expect, it, vi 
 } from 'vitest'
 import { CliErrorCode } from './error-codes'
 import { handleQueryGraphLoadError } from './query-graph-load-error-handler'
-import {
-  createTestContext,
-  setupCommandTest,
-  TestAssertionError,
-} from '../../../__fixtures__/command-test-fixtures'
 import { GraphCorruptedError } from '../../../domain/graph-corrupted-error'
 import { GraphNotFoundError } from '../../../domain/graph-not-found-error'
+
+class TestAssertionError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'TestAssertionError'
+  }
+}
 
 class UnexpectedPresentationError extends Error {
   constructor(message: string) {
@@ -27,9 +29,21 @@ function firstOutput(consoleOutput: string[]): unknown {
   return JSON.parse(output)
 }
 
+interface TestContext {consoleOutput: string[]}
+
 describe('handleQueryGraphLoadError', () => {
-  const ctx = createTestContext()
-  setupCommandTest(ctx)
+  const ctx: TestContext = { consoleOutput: [] }
+
+  beforeEach(() => {
+    ctx.consoleOutput = []
+    vi.spyOn(console, 'log').mockImplementation((message: string) => {
+      ctx.consoleOutput.push(message)
+    })
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
 
   it('formats graph corrupted errors', () => {
     const handled = handleQueryGraphLoadError(new GraphCorruptedError('/path/to/graph.json'))

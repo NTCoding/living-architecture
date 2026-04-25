@@ -16,13 +16,6 @@ class OutputWriteFailure extends Error {
   }
 }
 
-class ExitCalledError extends Error {
-  constructor() {
-    super('exit called')
-    this.name = 'ExitCalledError'
-  }
-}
-
 const outputPath = join(process.cwd(), 'tmp-output.json')
 
 describe('outputResult', () => {
@@ -51,14 +44,10 @@ describe('outputResult', () => {
     )
   })
 
-  it('includes the original filesystem error message when file writing fails', () => {
+  it('throws the original filesystem error when file writing fails', () => {
     mockWriteFileSync.mockImplementation(() => {
       throw new OutputWriteFailure('permission denied')
     })
-    const log = vi.spyOn(console, 'log').mockImplementation(() => undefined)
-    const exit = vi.spyOn(process, 'exit').mockImplementation(() => {
-      throw new ExitCalledError()
-    })
 
     expect(() =>
       outputResult(
@@ -69,29 +58,13 @@ describe('outputResult', () => {
         },
         { output: outputPath },
       ),
-    ).toThrow('exit called')
-
-    expect(log).toHaveBeenCalledWith(
-      JSON.stringify({
-        success: false,
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: `Failed to write output file: ${outputPath}. permission denied`,
-          suggestions: [],
-        },
-      }),
-    )
-    expect(exit).toHaveBeenCalledWith(3)
+    ).toThrow('permission denied')
   })
 
-  it('stringifies non-Error write failures', () => {
+  it('throws string write failures unchanged', () => {
     mockWriteFileSync.mockImplementation(() => {
       throw 'disk-full'
     })
-    const log = vi.spyOn(console, 'log').mockImplementation(() => undefined)
-    const exit = vi.spyOn(process, 'exit').mockImplementation(() => {
-      throw new ExitCalledError()
-    })
 
     expect(() =>
       outputResult(
@@ -102,18 +75,6 @@ describe('outputResult', () => {
         },
         { output: outputPath },
       ),
-    ).toThrow('exit called')
-
-    expect(log).toHaveBeenCalledWith(
-      JSON.stringify({
-        success: false,
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: `Failed to write output file: ${outputPath}. disk-full`,
-          suggestions: [],
-        },
-      }),
-    )
-    expect(exit).toHaveBeenCalledWith(3)
+    ).toThrow('disk-full')
   })
 })

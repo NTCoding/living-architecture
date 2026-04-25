@@ -285,7 +285,7 @@ modules:
       expect(ctx.consoleOutput).toHaveLength(0)
     })
 
-    it('returns runtime error when -o path is not writable', async () => {
+    it('throws filesystem error when -o path is not writable', async () => {
       const configPath = await createValidExtractFixture(ctx.testDir)
 
       await expect(
@@ -298,11 +298,12 @@ modules:
           '-o',
           '/nonexistent-dir/output.json',
         ]),
-      ).rejects.toMatchObject({ exitCode: 3 })
+      ).rejects.toMatchObject({
+        code: 'ENOENT',
+        path: '/nonexistent-dir/output.json',
+      })
 
-      const output = parseErrorOutput(ctx.consoleOutput)
-      expect(output.success).toBe(false)
-      expect(output.error.message).toContain('/nonexistent-dir/output.json')
+      expect(ctx.consoleOutput).toHaveLength(0)
     })
   })
 

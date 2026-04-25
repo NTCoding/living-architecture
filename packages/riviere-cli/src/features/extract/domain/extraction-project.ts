@@ -31,7 +31,7 @@ export interface ModuleContext {
 export type ExtractGlobMatcher = (path: string, pattern: string) => boolean
 
 /** @riviere-role domain-error */
-class DraftComponentModuleResolutionError extends Error {
+export class DraftComponentModuleResolutionError extends Error {
   constructor(componentName: string, filePath: string) {
     super(
       `Unable to resolve module for draft component '${componentName}' from source file '${filePath}'.`,
@@ -195,16 +195,16 @@ export class ExtractionProject {
     const outcomeComponentsById = new Map(
       outcome.components.map((component) => [toOutcomeComponentId(component), component] as const),
     )
+    const missingFields = writePort.missingFields()
+    const uncertainLinks = writePort.uncertainLinks()
 
     return {
       kind: 'full',
       components: graph.components
         .filter((component) => outcomeComponentsById.has(component.id))
-        .map((component) =>
-          toPresentedComponent(component, writePort.missingFields(), outcomeComponentsById),
-        ),
+        .map((component) => toPresentedComponent(component, missingFields, outcomeComponentsById)),
       failedFields: outcome.failedFields,
-      links: graph.links.map((link) => toPresentedLink(link, writePort.uncertainLinks())),
+      links: graph.links.map((link) => toPresentedLink(link, uncertainLinks)),
       externalLinks: graph.externalLinks ?? [],
       timings: outcome.timings,
     }

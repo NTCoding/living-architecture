@@ -22,6 +22,8 @@ interface SchemaProperty {
   type?: string
   description?: string
   oneOf?: SchemaProperty[]
+  anyOf?: SchemaProperty[]
+  allOf?: SchemaProperty[]
   $ref?: string
   const?: unknown
   properties?: Record<string, SchemaProperty>
@@ -69,13 +71,7 @@ function getRefTypeName(ref: string): string {
 
 function extractOneOfTypeNames(oneOf: SchemaProperty[]): string[] {
   return oneOf.map((o) => {
-    if (o.$ref) return getRefTypeName(o.$ref)
-    if (o.properties) return formatInlineObjectType(o)
-    if (o.type === 'array' && o.items) {
-      if (o.items.$ref) return `${getRefTypeName(o.items.$ref)}[]`
-      return `${o.items.type}[]`
-    }
-    return o.type ?? 'any'
+    return readInlinePropertyType(o)
   })
 }
 
@@ -97,10 +93,34 @@ function readInlinePropertyType(prop: SchemaProperty): string {
   if (prop.enum) {
     return prop.enum.map((value) => `"${value}"`).join(' \\| ')
   }
+  const compositeType = readCompositePropertyType(prop)
+  if (compositeType !== undefined) {
+    return compositeType
+  }
   if (prop.type) {
     return prop.type
   }
   return 'any'
+}
+
+function readCompositePropertyType(prop: SchemaProperty): string | undefined {
+  if (prop.type === 'array' && prop.items) {
+    return formatArrayType(prop.items)
+  }
+  if (prop.type === 'object' && prop.properties) {
+    return formatInlineObjectType(prop)
+  }
+  if (prop.oneOf) {
+    return prop.oneOf.map((option) => readInlinePropertyType(option)).join(' \\| ')
+  }
+  if (prop.anyOf) {
+    return prop.anyOf.map((option) => readInlinePropertyType(option)).join(' \\| ')
+  }
+  if (prop.allOf) {
+    return prop.allOf.map((option) => readInlinePropertyType(option)).join(' & ')
+  }
+
+  return undefined
 }
 
 function formatOneOfType(prop: SchemaProperty): string {
@@ -111,12 +131,10 @@ function formatOneOfType(prop: SchemaProperty): string {
 }
 
 function formatArrayType(items: SchemaProperty): string {
-  if (items.$ref) return `\`${getRefTypeName(items.$ref)}[]\``
-  if (items.oneOf) {
-    const types = extractOneOfTypeNames(items.oneOf)
-    return `\`(${types.join(' \\| ')})[]\``
-  }
-  return `\`${items.type}[]\``
+  const itemType = readInlinePropertyType(items)
+  const arrayItemType =
+    itemType.includes(' | ') || itemType.includes(' & ') ? `(${itemType})` : itemType
+  return `\`${arrayItemType}[]\``
 }
 
 function formatRecordType(additionalProperties: SchemaProperty): string {

@@ -178,6 +178,40 @@ describe('extractInto branch coverage', () => {
     expect(dispose).toHaveBeenCalledTimes(1)
   })
 
+  it('skips project disposal when disposeProjects is false', () => {
+    const projectWithDispose = createProjectWithDispose()
+    const project = projectWithDispose.project
+    const dispose = projectWithDispose.dispose
+    const module = createModule('orders-module')
+
+    const result = extractIntoModule.extractInto(
+      createWritePortRecorder().writePort,
+      { modules: [module] },
+      {
+        allowIncomplete: false,
+        configDir: '/workspace',
+        includeConnections: false,
+        mode: 'enrich',
+        repository: 'test/repo',
+        globMatcher: vi.fn(),
+        moduleContexts: [
+          {
+            module,
+            files: [],
+            project,
+          },
+        ],
+        disposeProjects: false,
+      },
+    )
+
+    expect(result).toStrictEqual({
+      kind: 'draftOnly',
+      components: [],
+    })
+    expect(dispose).not.toHaveBeenCalled()
+  })
+
   it('returns field failures in strict mode and skips module contexts with no matching drafts', () => {
     const ordersProject = createProjectWithDispose()
     const shippingProject = createProjectWithDispose()

@@ -68,15 +68,9 @@ interface StrictWritePortDiagnostics {
 export type StrictExtractionWritePort = ExtractionWritePort & StrictWritePortDiagnostics
 
 /** @riviere-role value-object */
-export interface WorkflowDiagnosticEvent {
-  kind: 'missing-field' | 'uncertain-link'
-  componentId?: string
-  field?: string
-  source?: string
-  target?: string
-  linkType?: string
-  reason: string
-}
+export type WorkflowDiagnosticEvent =
+  | ({ kind: 'missing-field' } & MissingFieldDiagnosticEvent)
+  | ({ kind: 'uncertain-link' } & UncertainLinkDiagnosticEvent)
 
 /** @riviere-role value-object */
 export interface WorkflowDiagnostics {report(event: WorkflowDiagnosticEvent): void}
@@ -164,7 +158,6 @@ export function mergeWritePort(
 
   return {
     addComponent(input) {
-      defineCustomTypeWhenNeeded(input, definedCustomTypes, builder)
       const componentId = toCanonicalComponentId(input)
       if (emittedComponentIds.has(componentId)) {
         throw new SameStepDuplicateComponentError(
@@ -175,6 +168,7 @@ export function mergeWritePort(
       }
 
       emittedComponentIds.add(componentId)
+      defineCustomTypeWhenNeeded(input, definedCustomTypes, builder)
       dispatchMergeComponentWrite(builder, input)
     },
     addLink(input) {
@@ -186,18 +180,13 @@ export function mergeWritePort(
     reportMissingField(event) {
       diagnostics.report({
         kind: 'missing-field',
-        componentId: event.componentId,
-        field: event.field,
-        reason: event.reason,
+        ...event,
       })
     },
     reportUncertainLink(event) {
       diagnostics.report({
         kind: 'uncertain-link',
-        source: event.source,
-        target: event.target,
-        linkType: event.linkType,
-        reason: event.reason,
+        ...event,
       })
     },
   }

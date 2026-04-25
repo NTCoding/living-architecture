@@ -37,22 +37,45 @@
   "$defs": {
     "sourceInfo": {
       "type": "object",
+      "description": "Source repository metadata captured at extraction time",
       "required": ["repository"],
       "additionalProperties": false,
       "properties": {
-        "repository": { "type": "string", "minLength": 1, "pattern": ".*\\S.*" },
-        "commit": { "type": "string", "minLength": 1, "pattern": ".*\\S.*" },
-        "extractedAt": { "type": "string", "minLength": 1, "pattern": ".*\\S.*" }
+        "repository": {
+          "type": "string",
+          "description": "Repository identifier or URL",
+          "minLength": 1,
+          "pattern": ".*\\S.*"
+        },
+        "commit": {
+          "type": "string",
+          "description": "Commit SHA or revision tag",
+          "minLength": 1,
+          "pattern": ".*\\S.*"
+        },
+        "extractedAt": {
+          "type": "string",
+          "description": "ISO timestamp when extraction ran",
+          "minLength": 1,
+          "pattern": ".*\\S.*"
+        }
       }
     },
     "domainMetadata": {
       "type": "object",
+      "description": "Metadata for a domain entry used in standalone graph building",
       "required": ["description", "systemType"],
       "additionalProperties": true,
       "properties": {
-        "description": { "type": "string", "minLength": 1, "pattern": ".*\\S.*" },
+        "description": {
+          "type": "string",
+          "description": "Human-readable domain summary",
+          "minLength": 1,
+          "pattern": ".*\\S.*"
+        },
         "systemType": {
           "type": "string",
+          "description": "Domain role in the architecture",
           "enum": ["domain", "bff", "ui", "other"]
         }
       }

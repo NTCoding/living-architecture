@@ -50,7 +50,7 @@ function createConfig(moduleContext: ModuleContext): ResolvedExtractionConfig {
 const matchAll = () => true
 
 describe('ExtractionProject.extractDraftComponents', () => {
-  it('returns the shared-core full result unchanged', () => {
+  it('forwards options to extractInto when a full outcome is returned', () => {
     mockExtractInto.mockReturnValueOnce({
       kind: 'full',
       components: [],

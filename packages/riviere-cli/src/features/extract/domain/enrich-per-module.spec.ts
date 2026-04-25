@@ -62,7 +62,7 @@ function createConfig(
 
 const matchAll = () => true
 
-describe('ExtractionProject.enrichDraftComponents', () => {
+describe('ExtractionProject extraction helpers', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
@@ -223,7 +223,7 @@ describe('ExtractionProject.enrichDraftComponents', () => {
         allowIncomplete: true,
         includeConnections: false,
       }),
-    ).toThrow("Unable to resolve module for draft component 'PlaceOrder'")
+    ).toThrow(ExtractionProjectModule.DraftComponentModuleResolutionError)
   })
 
   it('creates a fallback extracted domain when configured module domains are blank', () => {

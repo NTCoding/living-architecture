@@ -52,14 +52,10 @@ class InvalidConfigFormatError extends Error {
 
 class PackageResolveError extends Error {
   constructor(packageName: string, cause?: unknown) {
-    super(
-      `Cannot resolve package '${packageName}'. Ensure the package is installed in node_modules.`,
-    )
+    const baseMessage = `Cannot resolve package '${packageName}'. Ensure the package is installed in node_modules.`
+    const message = cause instanceof Error ? `${baseMessage} Cause: ${cause.message}` : baseMessage
+    super(message, cause instanceof Error ? { cause } : undefined)
     this.name = 'PackageResolveError'
-    if (cause instanceof Error) {
-      this.cause = cause
-      this.message = `${this.message} Cause: ${cause.message}`
-    }
   }
 }
 
@@ -113,18 +109,26 @@ type ParsedConfigState = {
 export class ExtractionProjectRepository {
   loadFromChangedProject(params: ChangedProjectParams): ExtractionProject {
     const parsedConfigState = this.loadParsedConfigState(params.configPath)
+    const sourceFilesByModule = resolveSourceFilePaths(parsedConfigState)
     const sourceFilePaths = resolveChangedSourceFilePaths(
-      resolveSourceFilePaths(parsedConfigState),
+      [...sourceFilesByModule.values()].flat(),
       params.baseBranch,
     )
-    return this.createExtractionProject(parsedConfigState, sourceFilePaths, params.useTsConfig)
+    return this.createExtractionProject(
+      parsedConfigState,
+      sourceFilesByModule,
+      sourceFilePaths,
+      params.useTsConfig,
+    )
   }
 
   loadFromDraftEnrichment(params: DraftEnrichmentParams): ExtractionProject {
     const parsedConfigState = this.loadParsedConfigState(params.configPath)
+    const sourceFilesByModule = resolveSourceFilePaths(parsedConfigState)
     return this.createExtractionProject(
       parsedConfigState,
-      resolveSourceFilePaths(parsedConfigState),
+      sourceFilesByModule,
+      [...sourceFilesByModule.values()].flat(),
       params.useTsConfig,
       loadDraftComponentsFromFile(params.draftComponentsPath),
     )
@@ -132,20 +136,29 @@ export class ExtractionProjectRepository {
 
   loadFromFullProject(params: FullProjectParams): ExtractionProject {
     const parsedConfigState = this.loadParsedConfigState(params.configPath)
+    const sourceFilesByModule = resolveSourceFilePaths(parsedConfigState)
     return this.createExtractionProject(
       parsedConfigState,
-      resolveSourceFilePaths(parsedConfigState),
+      sourceFilesByModule,
+      [...sourceFilesByModule.values()].flat(),
       params.useTsConfig,
     )
   }
 
   loadFromSelectedFiles(params: SelectedFilesProjectParams): ExtractionProject {
     const parsedConfigState = this.loadParsedConfigState(params.configPath)
+    const sourceFilesByModule = resolveSourceFilePaths(parsedConfigState)
     const sourceFilePaths = resolveSelectedSourceFilePaths(
-      resolveSourceFilePaths(parsedConfigState),
+      [...sourceFilesByModule.values()].flat(),
       params.filePaths,
+      parsedConfigState.configDir,
     )
-    return this.createExtractionProject(parsedConfigState, sourceFilePaths, params.useTsConfig)
+    return this.createExtractionProject(
+      parsedConfigState,
+      sourceFilesByModule,
+      sourceFilePaths,
+      params.useTsConfig,
+    )
   }
 
   private loadParsedConfigState(configPath: string): ParsedConfigState {
@@ -322,6 +335,7 @@ ${formatValidationErrors(validationResult.errors)}`,
 
   private createExtractionProject(
     parsedConfigState: ParsedConfigState,
+    sourceFilesByModule: Map<ExtractConfig.Module, string[]>,
     sourceFilePaths: string[],
     useTsConfig: boolean,
     draftComponents: ExtractTs.DraftComponent[] = [],
@@ -331,6 +345,7 @@ ${formatValidationErrors(validationResult.errors)}`,
       createModuleContexts(
         parsedConfigState.configDir,
         parsedConfigState.resolvedConfig,
+        sourceFilesByModule,
         sourceFilePaths,
         useTsConfig,
       ),

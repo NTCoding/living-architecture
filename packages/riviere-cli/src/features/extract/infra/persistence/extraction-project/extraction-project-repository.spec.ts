@@ -1,14 +1,24 @@
 import {
-  describe, expect, it 
+  describe, expect, it, vi 
 } from 'vitest'
 import {
   mkdirSync, mkdtempSync, rmSync, writeFileSync 
 } from 'node:fs'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
-import * as ExtractConfig from '@living-architecture/riviere-extract-config'
+import { parseExtractionConfig } from '@living-architecture/riviere-extract-config'
 import { ConfigValidationError } from '../../../../../platform/infra/cli/presentation/error-codes'
 import { ExtractionProjectRepository } from './extraction-project-repository'
+
+vi.mock('@living-architecture/riviere-extract-config', async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import('@living-architecture/riviere-extract-config')>()
+
+  return {
+    ...actual,
+    parseExtractionConfig: vi.fn(actual.parseExtractionConfig),
+  }
+})
 
 const VALID_CONFIG = `modules:
   - name: orders
@@ -207,16 +217,17 @@ describe('ExtractionProjectRepository', () => {
     })
   })
 
-  it('loadFromFullProject loads config with top-level extends using all defaults', () => {
+  it('keeps module identity when extending top-level rules config', () => {
     withWorkspace((dir) => {
       writeFileSync(join(dir, 'extended.yml'), 'useCase: { notUsed: true }\n', 'utf-8')
       writeExtendsConfig(dir, './extended.yml')
-      expect(
-        new ExtractionProjectRepository().loadFromFullProject({
-          configPath: join(dir, 'extract.yml'),
-          useTsConfig: false,
-        }),
-      ).toBeDefined()
+      const project = new ExtractionProjectRepository().loadFromFullProject({
+        configPath: join(dir, 'extract.yml'),
+        useTsConfig: false,
+      })
+
+      expect(project).toHaveProperty('resolvedConfig.modules.0.domain', 'orders')
+      expect(project).toHaveProperty('resolvedConfig.modules.0.name', 'orders')
     })
   })
 
@@ -314,7 +325,7 @@ describe('ExtractionProjectRepository', () => {
         'utf-8',
       )
       writeExtendsConfig(dir, './extended.yml')
-      vi.spyOn(ExtractConfig, 'parseExtractionConfig').mockImplementationOnce(() => {
+      vi.mocked(parseExtractionConfig).mockImplementationOnce(() => {
         throw 'bad-config'
       })
 

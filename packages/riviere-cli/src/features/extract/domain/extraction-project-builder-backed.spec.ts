@@ -287,10 +287,11 @@ describe('ExtractionProject builder-backed outcomes', () => {
     })
 
     const moduleContext = createModuleContext()
+    const baseDuplicateModuleContext = createModuleContext()
     const duplicateModuleContext = {
-      ...createModuleContext(),
+      ...baseDuplicateModuleContext,
       module: {
-        ...createModuleContext().module,
+        ...baseDuplicateModuleContext.module,
         name: 'orders-duplicate',
       },
       files: ['/workspace/orders/test.ts'],
@@ -329,10 +330,11 @@ describe('ExtractionProject builder-backed outcomes', () => {
     })
 
     const moduleContext = createModuleContext()
+    const baseDuplicateModuleContext = createModuleContext()
     const duplicateModuleContext = {
-      ...createModuleContext(),
+      ...baseDuplicateModuleContext,
       module: {
-        ...createModuleContext().module,
+        ...baseDuplicateModuleContext.module,
         name: 'orders-duplicate',
       },
       files: [],

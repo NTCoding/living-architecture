@@ -16,14 +16,15 @@ import type { ModuleContext } from '../../../domain/extraction-project'
 export function resolveSourceFilePaths(parsedConfigState: {
   configDir: string
   resolvedConfig: ExtractConfig.ResolvedExtractionConfig
-}): string[] {
-  const sourceFilePaths = parsedConfigState.resolvedConfig.modules
-    .flatMap((module) =>
-      globSync(path.posix.join(module.path, module.glob), { cwd: parsedConfigState.configDir }),
-    )
-    .map((filePath) => path.resolve(parsedConfigState.configDir, filePath))
+}): Map<ExtractConfig.Module, string[]> {
+  const sourceFilePaths = new Map<ExtractConfig.Module, string[]>()
 
-  if (sourceFilePaths.length === 0) {
+  for (const module of parsedConfigState.resolvedConfig.modules) {
+    const moduleFiles = globSync(path.posix.join(module.path, module.glob), {cwd: parsedConfigState.configDir,}).map((filePath) => path.resolve(parsedConfigState.configDir, filePath))
+    sourceFilePaths.set(module, moduleFiles)
+  }
+
+  if ([...sourceFilePaths.values()].flat().length === 0) {
     const patterns = parsedConfigState.resolvedConfig.modules
       .map((module) => path.posix.join(module.path, module.glob))
       .join(', ')
@@ -55,8 +56,11 @@ export function resolveChangedSourceFilePaths(
 export function resolveSelectedSourceFilePaths(
   allSourceFiles: string[],
   requestedFiles: string[],
+  configDir: string,
 ): string[] {
-  const missingFiles = requestedFiles.filter((filePath) => !fs.existsSync(path.resolve(filePath)))
+  const missingFiles = requestedFiles.filter(
+    (filePath) => !fs.existsSync(path.resolve(configDir, filePath)),
+  )
   if (missingFiles.length > 0) {
     throw new ConfigValidationError(
       CliErrorCode.ValidationError,
@@ -64,7 +68,9 @@ export function resolveSelectedSourceFilePaths(
     )
   }
 
-  const requestedAbsolute = new Set(requestedFiles.map((filePath) => path.resolve(filePath)))
+  const requestedAbsolute = new Set(
+    requestedFiles.map((filePath) => path.resolve(configDir, filePath)),
+  )
   return allSourceFiles.filter((filePath) => requestedAbsolute.has(filePath))
 }
 
@@ -72,20 +78,29 @@ export function resolveSelectedSourceFilePaths(
 export function createModuleContexts(
   configDir: string,
   resolvedConfig: ExtractConfig.ResolvedExtractionConfig,
-  sourceFilePaths: string[],
+  sourceFilePaths: Map<ExtractConfig.Module, string[]>,
+  sourceFileSet: string[],
   useTsConfig: boolean,
 ): ModuleContext[] {
-  const sourceFileSet = new Set(sourceFilePaths)
+  const selectedSourceFileSet = new Set(sourceFileSet)
 
   return resolvedConfig.modules.map((module) => {
-    const allModuleFiles = globSync(path.posix.join(module.path, module.glob), {cwd: configDir,}).map((filePath) => path.resolve(configDir, filePath))
-    const moduleFiles = allModuleFiles.filter((filePath) => sourceFileSet.has(filePath))
+    const moduleFiles = sourceFilePaths.get(module)
+    if (moduleFiles === undefined) {
+      throw new ConfigValidationError(
+        CliErrorCode.ValidationError,
+        `Expected source files for module '${module.name}'`,
+      )
+    }
+    const selectedModuleFiles = moduleFiles.filter((filePath) =>
+      selectedSourceFileSet.has(filePath),
+    )
     const moduleConfigDir = findModuleTsConfigDir(configDir, module.path)
     const project = createConfiguredProject(moduleConfigDir, !useTsConfig)
-    project.addSourceFilesAtPaths(moduleFiles)
+    project.addSourceFilesAtPaths(selectedModuleFiles)
 
     return {
-      files: moduleFiles,
+      files: selectedModuleFiles,
       module,
       project,
     }

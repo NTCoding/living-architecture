@@ -107,8 +107,15 @@ export function setupCommandTest(ctx: TestContext): void {
 
   afterEach(async () => {
     vi.restoreAllMocks()
-    process.chdir(ctx.originalCwd)
-    await rm(ctx.testDir, { recursive: true })
+    if (ctx.originalCwd !== '') {
+      process.chdir(ctx.originalCwd)
+    }
+    if (ctx.testDir !== '') {
+      await rm(ctx.testDir, {
+        recursive: true,
+        force: true,
+      })
+    }
   })
 }
 
@@ -175,6 +182,31 @@ export const validLink = {
   source: 'orders:checkout:api:place-order',
   target: 'orders:checkout:usecase:place-order',
   type: 'sync',
+}
+
+export const domainOpComponent = {
+  id: 'orders:checkout:domainop:confirm-order',
+  type: 'DomainOp',
+  name: 'Confirm Order',
+  domain: 'orders',
+  module: 'checkout',
+  operationName: 'confirmOrder',
+  sourceLocation: {
+    repository: 'https://github.com/org/repo',
+    filePath: 'src/domain.ts',
+  },
+}
+
+export const simpleUseCaseComponent = {
+  id: 'orders:checkout:usecase:place-order',
+  type: 'UseCase',
+  name: 'Place Order',
+  domain: 'orders',
+  module: 'checkout',
+  sourceLocation: {
+    repository: 'https://github.com/org/repo',
+    filePath: 'src/usecase.ts',
+  },
 }
 
 export async function createGraphWithDomain(testDir: string, domainName: string): Promise<void> {
@@ -279,31 +311,6 @@ export async function createGraphWithCustomType(
     links: [],
   }
   await writeFile(join(graphDir, 'graph.json'), JSON.stringify(graph), 'utf-8')
-}
-
-export const domainOpComponent = {
-  id: 'orders:checkout:domainop:confirm-order',
-  type: 'DomainOp',
-  name: 'Confirm Order',
-  domain: 'orders',
-  module: 'checkout',
-  operationName: 'confirmOrder',
-  sourceLocation: {
-    repository: 'https://github.com/org/repo',
-    filePath: 'src/domain.ts',
-  },
-}
-
-export const simpleUseCaseComponent = {
-  id: 'orders:checkout:usecase:place-order',
-  type: 'UseCase',
-  name: 'Place Order',
-  domain: 'orders',
-  module: 'checkout',
-  sourceLocation: {
-    repository: 'https://github.com/org/repo',
-    filePath: 'src/usecase.ts',
-  },
 }
 
 export function hasSuccessOutputStructure(value: unknown): value is {

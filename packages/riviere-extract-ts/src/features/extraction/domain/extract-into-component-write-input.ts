@@ -4,8 +4,10 @@ import {
   toSourceLocation, type ComponentWriteInput 
 } from './extraction-write-port'
 
+type ComponentIdentity = Pick<EnrichedComponent, 'domain' | 'module' | 'type' | 'name'>
+
 /** @riviere-role domain-service */
-export function toExtractionComponentId(component: EnrichedComponent): string {
+export function toExtractionComponentId(component: ComponentIdentity): string {
   return ComponentId.create({
     domain: component.domain,
     module: component.module,

@@ -47,6 +47,7 @@ export interface ExtractIntoOptions {
   globMatcher: GlobMatcher
   moduleContexts: ExtractionModuleContext[]
   draftComponents?: DraftComponent[]
+  disposeProjects?: boolean
 }
 
 interface DraftOnlyExtractionSummary {
@@ -87,6 +88,7 @@ export class OrphanedDraftComponentError extends Error {
 interface FieldFailureEnrichment {
   kind: 'fieldFailure'
   failedFields: string[]
+  failures: EnrichmentFailure[]
 }
 
 interface SuccessfulEnrichment {
@@ -116,7 +118,11 @@ export function extractInto(
 
     const enrichment = enrichDraftComponents(draftComponents, config, options)
     if (enrichment.kind === 'fieldFailure') {
-      return enrichment
+      reportFieldFailures(writePort, enrichment.failures)
+      return {
+        kind: 'fieldFailure',
+        failedFields: enrichment.failedFields,
+      }
     }
 
     const connectionResult = detectConnections(enrichment.components, config, options)
@@ -131,7 +137,9 @@ export function extractInto(
       timings: connectionResult.timings,
     }
   } finally {
-    disposeProjects(options.moduleContexts)
+    if (options.disposeProjects !== false) {
+      disposeProjects(options.moduleContexts)
+    }
   }
 }
 
@@ -208,6 +216,7 @@ function enrichDraftComponents(
     return {
       kind: 'fieldFailure',
       failedFields: failedFieldList,
+      failures,
     }
   }
 
@@ -341,6 +350,16 @@ function writeCompleteExtraction(
       ...(externalLink.type !== undefined && { type: externalLink.type }),
       ...(externalLink.description !== undefined && { description: externalLink.description }),
       ...(externalLink.sourceLocation !== undefined && {sourceLocation: externalLink.sourceLocation,}),
+    })
+  }
+}
+
+function reportFieldFailures(writePort: ExtractionWritePort, failures: EnrichmentFailure[]): void {
+  for (const failure of failures) {
+    writePort.reportMissingField({
+      componentId: toExtractionComponentId(failure.component),
+      field: failure.field,
+      reason: withoutSourceLocation(failure.error),
     })
   }
 }
