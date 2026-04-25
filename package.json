@@ -91,6 +91,9 @@
       "nx",
       "unrs-resolver"
     ],
-    "ignoredBuiltDependencies": []
+    "ignoredBuiltDependencies": [],
+    "patchedDependencies": {
+      "@nt-ai-lab/deterministic-agent-workflow-engine@0.3.0": "patches/@nt-ai-lab__deterministic-agent-workflow-engine@0.3.0.patch"
+    }
   }
 }
