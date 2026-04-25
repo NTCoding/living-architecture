@@ -12,7 +12,7 @@ Accepted forms:
 
 ## Operating Principle
 
-The factory is the repository-specific system routed by `tools/dev-workflow-v2/docs/factory/factory-map.md`. Read that map before proposing anything, but treat it only as a snapshot and routing guide. Do not cite the map as proof of enforcement. Read the complete relevant source files at command execution time.
+The factory is the repository-specific system mapped by `tools/dev-workflow-v2/docs/factory/factory-map.md`. The map describes what exists, where it is defined, and how surfaces relate. Read the map and `tools/dev-workflow-v2/docs/factory/optimization-guide.md` before proposing anything, but do not cite either document as proof of enforcement. Read the complete relevant source files at command execution time.
 
 Never fix the product code under review. Design changes to the factory so the same issue is prevented or detected next time.
 
@@ -38,8 +38,9 @@ Read these files before discussing any solution:
 
 - `tools/dev-workflow-v2/docs/factory/README.md`
 - `tools/dev-workflow-v2/docs/factory/factory-map.md`
+- `tools/dev-workflow-v2/docs/factory/optimization-guide.md`
 
-Use the factory map to decide which exact factory files must be inspected for the source issue. Inspect the relevant source files in full at command execution time. Do not use map examples, headings, or summaries as evidence of enforcement.
+Use the factory map to identify which factory surfaces and source files exist. Use the optimization guide for examples of optimization patterns. Inspect the relevant source files in full at command execution time. Do not use map or guide examples, headings, or summaries as evidence of enforcement.
 
 ## Step 3A: PR mode — fetch source material
 
@@ -106,6 +107,7 @@ For every selected item, read all relevant context:
 - the referenced file and line range
 - surrounding code needed to understand the pattern
 - exact relevant factory source files identified through `tools/dev-workflow-v2/docs/factory/factory-map.md`
+- relevant optimization-guide examples, if any
 
 ## Step 3B: Ad-hoc mode — collect source material
 
@@ -117,7 +119,7 @@ Read the exact factory source files and product examples needed to understand th
 
 ## Step 4: Search factory memory
 
-Use `tools/dev-workflow-v2/docs/factory/README.md` and `tools/dev-workflow-v2/docs/factory/factory-map.md` as local factory memory before searching GitHub issues.
+Use `tools/dev-workflow-v2/docs/factory/README.md`, `tools/dev-workflow-v2/docs/factory/factory-map.md`, and `tools/dev-workflow-v2/docs/factory/optimization-guide.md` as local factory memory before searching GitHub issues.
 
 Search prior GitHub issues labeled `factory` and `factory optimization`:
 
@@ -194,7 +196,7 @@ Prioritize options in this order:
 
 For lint-rule optimizations, include a verification design that proves the rule fails on violating code. Prefer a dedicated fixture or rule test when the lint rule is custom. For `no-restricted-syntax`, prescribe a verification command that fails against a representative violation when practical.
 
-If an issue does not fit the decision matrix in `tools/dev-workflow-v2/docs/factory/README.md` or the repository factory map in `tools/dev-workflow-v2/docs/factory/factory-map.md`, include an explicit docs update requirement that extends the missing documentation.
+If an issue does not fit the decision matrix in `tools/dev-workflow-v2/docs/factory/README.md`, the repository factory map in `tools/dev-workflow-v2/docs/factory/factory-map.md`, or the optimization examples in `tools/dev-workflow-v2/docs/factory/optimization-guide.md`, include an explicit docs update requirement that extends the missing documentation.
 
 ## Step 6: Request approval
 
@@ -279,6 +281,7 @@ factory optimization
 
 - [ ] Update `tools/dev-workflow-v2/docs/factory/README.md` if this issue adds a new decision pattern or changes the decision matrix.
 - [ ] Update `tools/dev-workflow-v2/docs/factory/factory-map.md` if this issue changes the factory inventory or adds a new factory surface.
+- [ ] Update `tools/dev-workflow-v2/docs/factory/optimization-guide.md` if this issue adds a new optimization pattern.
 
 ## Acceptance Criteria
 

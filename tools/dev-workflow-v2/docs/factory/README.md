@@ -19,7 +19,7 @@ Factory memory lives in two places:
 1. GitHub issues labeled `factory` and `factory optimization`.
 2. This directory, which stores stable decision guidance that should influence future optimizations.
 
-The repository-specific factory inventory is maintained in `tools/dev-workflow-v2/docs/factory/factory-map.md`. Factory optimization analysis must use that map before proposing changes.
+The repository-specific factory map is maintained in `tools/dev-workflow-v2/docs/factory/factory-map.md`. It describes what exists, where it is defined, and how surfaces relate. Optimization-specific examples are maintained in `tools/dev-workflow-v2/docs/factory/optimization-guide.md`.
 
 Every factory optimization issue should be searchable by:
 
@@ -29,7 +29,7 @@ Every factory optimization issue should be searchable by:
 - factory surface names such as ESLint, Riviere, CI, CodeRabbit, workflow, agent, convention, or custom capability
 - problem pattern names
 
-When a new optimization does not fit the decision matrix below, the implementation issue must require an update to this document.
+When a new optimization does not fit the decision matrix below, the implementation issue must require an update to this document or `tools/dev-workflow-v2/docs/factory/optimization-guide.md`.
 
 ## Decision Priority
 
