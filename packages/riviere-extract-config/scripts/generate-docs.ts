@@ -95,7 +95,7 @@ function readInlinePropertyType(prop: SchemaProperty): string {
     return getRefTypeName(prop.$ref)
   }
   if (prop.enum) {
-    return prop.enum.map((value) => `"${value}"`).join(' | ')
+    return prop.enum.map((value) => `"${value}"`).join(' \\| ')
   }
   if (prop.type) {
     return prop.type

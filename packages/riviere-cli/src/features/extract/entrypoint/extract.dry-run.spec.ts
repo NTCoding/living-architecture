@@ -5,7 +5,7 @@ import { join } from 'node:path'
 import {
   describe, expect, it, vi 
 } from 'vitest'
-import { createProgram } from '../../shell/cli'
+import { createProgram } from '../../../shell/cli'
 import type { TestContext } from '../../../fixtures/command-test-fixtures'
 import {
   assertDefined,

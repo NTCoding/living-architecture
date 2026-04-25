@@ -7,7 +7,7 @@ import {
   setupCommandTest,
   assertDefined,
 } from '../../../fixtures/command-test-fixtures'
-import { createProgram } from '../../shell/cli'
+import { createProgram } from '../../../shell/cli'
 import {
   parseFullExtractionOutput,
   createValidExtractFixture,

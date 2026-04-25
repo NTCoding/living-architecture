@@ -31,7 +31,7 @@ export interface ModuleContext {
 export type ExtractGlobMatcher = (path: string, pattern: string) => boolean
 
 /** @riviere-role domain-error */
-export class DraftComponentModuleResolutionError extends Error {
+class DraftComponentModuleResolutionError extends Error {
   constructor(componentName: string, filePath: string) {
     super(
       `Unable to resolve module for draft component '${componentName}' from source file '${filePath}'.`,

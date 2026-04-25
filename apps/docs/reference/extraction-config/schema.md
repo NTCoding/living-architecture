@@ -173,7 +173,7 @@ Extracts value from a class property
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `fromProperty` | `{ name: string; kind: "static" | "instance"; transform?: transform }` | **Yes** | (no description) |
+| `fromProperty` | `{ name: string; kind: "static" \| "instance"; transform?: transform }` | **Yes** | (no description) |
 
 ---
 

@@ -1,5 +1,5 @@
 import { Command } from 'commander'
-import { createRequire } from 'module'
+import { createRequire } from 'node:module'
 import { AddComponent } from '../features/builder/commands/add-component'
 import { AddDomain } from '../features/builder/commands/add-domain'
 import { AddSource } from '../features/builder/commands/add-source'

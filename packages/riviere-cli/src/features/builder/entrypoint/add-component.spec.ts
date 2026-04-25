@@ -3,7 +3,7 @@ import {
 } from 'vitest'
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
-import { createProgram } from '../../shell/cli'
+import { createProgram } from '../../../shell/cli'
 import { CliErrorCode } from '../../../platform/infra/cli/presentation/error-codes'
 import {
   type TestContext,
