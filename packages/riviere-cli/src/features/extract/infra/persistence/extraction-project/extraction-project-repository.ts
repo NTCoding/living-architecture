@@ -336,7 +336,7 @@ ${formatValidationErrors(validationResult.errors)}`,
 
   private createExtractionProject(
     parsedConfigState: ParsedConfigState,
-    sourceFilesByModule: Map<ExtractConfig.Module, string[]>,
+    sourceFilesByModule: Map<Module, string[]>,
     sourceFilePaths: string[],
     useTsConfig: boolean,
     draftComponents: ExtractTs.DraftComponent[] = [],

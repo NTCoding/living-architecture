@@ -194,10 +194,12 @@ export function mergeWritePort(
 
 /** @riviere-role domain-service */
 export function toCanonicalComponentId(input: ComponentWriteInput): string {
+  const typeSegment =
+    input.type === 'custom' ? input.customTypeName : toComponentIdTypeSegment(input.type)
   return ComponentId.create({
     domain: input.domain,
     module: input.module,
-    type: toComponentIdTypeSegment(input.type),
+    type: typeSegment,
     name: input.name,
   }).toString()
 }

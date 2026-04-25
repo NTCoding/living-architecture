@@ -3,14 +3,7 @@ import { Project } from 'ts-morph'
 import type { Module } from '@living-architecture/riviere-extract-config'
 import type { DraftComponent } from './component-extraction/extractor'
 import type { EnrichedComponent } from './value-extraction/enrich-components'
-import type {
-  ComponentWriteInput,
-  ExternalLinkWriteInput,
-  ExtractionWritePort,
-  LinkWriteInput,
-  MissingFieldDiagnosticEvent,
-  UncertainLinkDiagnosticEvent,
-} from './extraction-write-port'
+import type { ExtractionWritePort } from './extraction-write-port'
 
 export function createModule(name: string, domain = 'orders'): Module {
   return {
@@ -42,17 +35,17 @@ export function createProjectWithDispose(): {
 
 export function createWritePortRecorder(): {
   writePort: ExtractionWritePort
-  components: ComponentWriteInput[]
-  links: LinkWriteInput[]
-  externalLinks: ExternalLinkWriteInput[]
-  missingFields: MissingFieldDiagnosticEvent[]
-  uncertainLinks: UncertainLinkDiagnosticEvent[]
+  components: Parameters<ExtractionWritePort['addComponent']>[0][]
+  links: Parameters<ExtractionWritePort['addLink']>[0][]
+  externalLinks: Parameters<ExtractionWritePort['addExternalLink']>[0][]
+  missingFields: Parameters<ExtractionWritePort['reportMissingField']>[0][]
+  uncertainLinks: Parameters<ExtractionWritePort['reportUncertainLink']>[0][]
 } {
-  const components: ComponentWriteInput[] = []
-  const links: LinkWriteInput[] = []
-  const externalLinks: ExternalLinkWriteInput[] = []
-  const missingFields: MissingFieldDiagnosticEvent[] = []
-  const uncertainLinks: UncertainLinkDiagnosticEvent[] = []
+  const components: Parameters<ExtractionWritePort['addComponent']>[0][] = []
+  const links: Parameters<ExtractionWritePort['addLink']>[0][] = []
+  const externalLinks: Parameters<ExtractionWritePort['addExternalLink']>[0][] = []
+  const missingFields: Parameters<ExtractionWritePort['reportMissingField']>[0][] = []
+  const uncertainLinks: Parameters<ExtractionWritePort['reportUncertainLink']>[0][] = []
 
   return {
     writePort: {

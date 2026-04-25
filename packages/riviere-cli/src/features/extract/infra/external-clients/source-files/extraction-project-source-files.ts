@@ -49,7 +49,7 @@ export function resolveChangedSourceFilePaths(
   for (const warning of result.warnings) {
     console.error(warning)
   }
-  const changedAbsolute = new Set(result.files.map((filePath) => path.resolve(filePath)))
+  const changedAbsolute = new Set(result.files.map((filePath) => path.resolve(configDir, filePath)))
   return allSourceFiles.filter((filePath) => changedAbsolute.has(filePath))
 }
 

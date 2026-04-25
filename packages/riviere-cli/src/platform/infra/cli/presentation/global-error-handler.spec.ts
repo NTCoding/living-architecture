@@ -1,11 +1,6 @@
 import {
-  afterEach, beforeEach, describe, expect, it, vi 
+  describe, expect, it 
 } from 'vitest'
-import {
-  mkdtemp, rm 
-} from 'node:fs/promises'
-import { tmpdir } from 'node:os'
-import { join } from 'node:path'
 import { handleGlobalError } from './global-error-handler'
 import { GitError } from '../../external-clients/git/git-errors'
 import { DraftComponentLoadError } from '../../external-clients/draft-components/draft-component-loader'
@@ -13,68 +8,18 @@ import { ConnectionDetectionError } from '@living-architecture/riviere-extract-t
 import {
   CliErrorCode, ConfigValidationError, ExitCode 
 } from './error-codes'
-
-class TestAssertionError extends Error {
-  constructor(message: string) {
-    super(message)
-    this.name = 'TestAssertionError'
-  }
-}
+import {
+  TestAssertionError,
+  createTestContext,
+  setupCommandTest,
+  type TestContext,
+} from '../../../../__fixtures__/command-test-fixtures'
 
 class UnexpectedGlobalError extends Error {
   constructor(message: string) {
     super(message)
     this.name = 'UnexpectedGlobalError'
   }
-}
-
-class ProcessExitSignal extends Error {
-  constructor(exitCode: number) {
-    super(`process.exit(${exitCode})`)
-    this.name = 'ProcessExitSignal'
-  }
-}
-
-interface TestContext {
-  testDir: string
-  originalCwd: string
-  consoleOutput: string[]
-}
-
-function createTestContext(): TestContext {
-  return {
-    testDir: '',
-    originalCwd: '',
-    consoleOutput: [],
-  }
-}
-
-function setupCommandTest(ctx: TestContext): void {
-  beforeEach(async () => {
-    ctx.testDir = await mkdtemp(join(tmpdir(), 'riviere-test-'))
-    ctx.originalCwd = process.cwd()
-    ctx.consoleOutput = []
-    process.chdir(ctx.testDir)
-    vi.spyOn(console, 'log').mockImplementation((message: string) => {
-      ctx.consoleOutput.push(message)
-    })
-    vi.spyOn(process, 'exit').mockImplementation((code?: string | number | null | undefined) => {
-      throw new ProcessExitSignal(typeof code === 'number' ? code : 0)
-    })
-  })
-
-  afterEach(async () => {
-    vi.restoreAllMocks()
-    if (ctx.originalCwd !== '') {
-      process.chdir(ctx.originalCwd)
-    }
-    if (ctx.testDir !== '') {
-      await rm(ctx.testDir, {
-        recursive: true,
-        force: true,
-      })
-    }
-  })
 }
 
 function firstConsoleOutput(consoleOutput: string[]): unknown {
