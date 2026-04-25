@@ -40,9 +40,9 @@
       "required": ["repository"],
       "additionalProperties": false,
       "properties": {
-        "repository": { "type": "string", "minLength": 1 },
-        "commit": { "type": "string", "minLength": 1 },
-        "extractedAt": { "type": "string", "minLength": 1 }
+        "repository": { "type": "string", "minLength": 1, "pattern": ".*\\S.*" },
+        "commit": { "type": "string", "minLength": 1, "pattern": ".*\\S.*" },
+        "extractedAt": { "type": "string", "minLength": 1, "pattern": ".*\\S.*" }
       }
     },
     "domainMetadata": {
@@ -50,7 +50,7 @@
       "required": ["description", "systemType"],
       "additionalProperties": true,
       "properties": {
-        "description": { "type": "string", "minLength": 1 },
+        "description": { "type": "string", "minLength": 1, "pattern": ".*\\S.*" },
         "systemType": {
           "type": "string",
           "enum": ["domain", "bff", "ui", "other"]
@@ -66,7 +66,8 @@
         "$ref": {
           "type": "string",
           "description": "File path to a module definition (relative to this config file)",
-          "minLength": 1
+          "minLength": 1,
+          "pattern": ".*\\S.*"
         }
       }
     },
@@ -79,17 +80,20 @@
         "name": {
           "type": "string",
           "description": "Extraction config module identifier",
-          "minLength": 1
+          "minLength": 1,
+          "pattern": ".*\\S.*"
         },
         "domain": {
           "type": "string",
           "description": "Riviere graph domain this module belongs to",
-          "minLength": 1
+          "minLength": 1,
+          "pattern": ".*\\S.*"
         },
         "path": {
           "type": "string",
           "description": "Module root directory relative to config file",
-          "minLength": 1
+          "minLength": 1,
+          "pattern": ".*\\S.*"
         },
         "modules": {
           "type": "string",
@@ -99,12 +103,14 @@
         "glob": {
           "type": "string",
           "description": "Glob pattern for source files within the module directory",
-          "minLength": 1
+          "minLength": 1,
+          "pattern": ".*\\S.*"
         },
         "extends": {
           "type": "string",
           "description": "Package name or file path to inherit component rules from",
-          "minLength": 1
+          "minLength": 1,
+          "pattern": ".*\\S.*"
         },
         "api": {
           "$ref": "#/$defs/componentRule",

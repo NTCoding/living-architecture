@@ -41,7 +41,7 @@ describe('query entrypoints rethrow unknown errors', () => {
     }))
     vi.doMock('../../../platform/infra/cli/presentation/query-graph-load-error-handler', () => ({handleQueryGraphLoadError: vi.fn(() => false),}))
     await expectRethrow(
-      () => import('../../../shell/cli'),
+      () => import('../../shell/cli'),
       ['node', 'riviere', 'query', 'components', '--json'],
     )
   })
@@ -56,7 +56,7 @@ describe('query entrypoints rethrow unknown errors', () => {
     }))
     vi.doMock('../../../platform/infra/cli/presentation/query-graph-load-error-handler', () => ({handleQueryGraphLoadError: vi.fn(() => false),}))
     await expectRethrow(
-      () => import('../../../shell/cli'),
+      () => import('../../shell/cli'),
       ['node', 'riviere', 'query', 'domains', '--json'],
     )
   })
@@ -71,7 +71,7 @@ describe('query entrypoints rethrow unknown errors', () => {
     }))
     vi.doMock('../../../platform/infra/cli/presentation/query-graph-load-error-handler', () => ({handleQueryGraphLoadError: vi.fn(() => false),}))
     await expectRethrow(
-      () => import('../../../shell/cli'),
+      () => import('../../shell/cli'),
       ['node', 'riviere', 'query', 'entry-points', '--json'],
     )
   })
@@ -86,7 +86,7 @@ describe('query entrypoints rethrow unknown errors', () => {
     }))
     vi.doMock('../../../platform/infra/cli/presentation/query-graph-load-error-handler', () => ({handleQueryGraphLoadError: vi.fn(() => false),}))
     await expectRethrow(
-      () => import('../../../shell/cli'),
+      () => import('../../shell/cli'),
       ['node', 'riviere', 'query', 'orphans', '--json'],
     )
   })
@@ -101,7 +101,7 @@ describe('query entrypoints rethrow unknown errors', () => {
     }))
     vi.doMock('../../../platform/infra/cli/presentation/query-graph-load-error-handler', () => ({handleQueryGraphLoadError: vi.fn(() => false),}))
     await expectRethrow(
-      () => import('../../../shell/cli'),
+      () => import('../../shell/cli'),
       ['node', 'riviere', 'query', 'search', 'term', '--json'],
     )
   })
@@ -116,7 +116,7 @@ describe('query entrypoints rethrow unknown errors', () => {
     }))
     vi.doMock('../../../platform/infra/cli/presentation/query-graph-load-error-handler', () => ({handleQueryGraphLoadError: vi.fn(() => false),}))
     await expectRethrow(
-      () => import('../../../shell/cli'),
+      () => import('../../shell/cli'),
       ['node', 'riviere', 'query', 'trace', 'orders:mod:api:test', '--json'],
     )
   })

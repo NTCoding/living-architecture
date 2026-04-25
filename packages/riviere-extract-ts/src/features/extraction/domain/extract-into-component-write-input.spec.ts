@@ -81,6 +81,38 @@ describe('toComponentWriteInput', () => {
     })
   })
 
+  it('rejects whitespace-only required metadata fields', () => {
+    expect(
+      toComponentWriteInput(
+        createComponent({
+          type: 'domainOp',
+          metadata: { operationName: '   ' },
+        }),
+        'test/repo',
+      ),
+    ).toBeUndefined()
+
+    expect(
+      toComponentWriteInput(
+        createComponent({
+          type: 'ui',
+          metadata: { route: '   ' },
+        }),
+        'test/repo',
+      ),
+    ).toBeUndefined()
+
+    expect(
+      toComponentWriteInput(
+        createComponent({
+          type: 'event',
+          metadata: { eventName: '   ' },
+        }),
+        'test/repo',
+      ),
+    ).toBeUndefined()
+  })
+
   it('returns undefined for domain operations missing operation metadata', () => {
     expect(
       toComponentWriteInput(createComponent({ type: 'domainOp' }), 'test/repo'),
@@ -165,7 +197,7 @@ describe('toComponentWriteInput', () => {
       toComponentWriteInput(
         createComponent({
           type: 'eventHandler',
-          metadata: { subscribedEvents: ['OrderPlaced'] },
+          metadata: { subscribedEvents: [' OrderPlaced '] },
         }),
         'test/repo',
       ),
@@ -213,6 +245,42 @@ describe('toComponentWriteInput', () => {
         httpMethod,
       })
     }
+  })
+
+  it('rejects whitespace-only event schema and subscribed event members', () => {
+    expect(
+      toComponentWriteInput(
+        createComponent({
+          type: 'event',
+          metadata: {
+            eventName: 'OrderPlaced',
+            eventSchema: '   ',
+          },
+        }),
+        'test/repo',
+      ),
+    ).toStrictEqual({
+      type: 'event',
+      name: 'PlaceOrder',
+      domain: 'orders',
+      module: 'checkout',
+      eventName: 'OrderPlaced',
+      sourceLocation: {
+        repository: 'test/repo',
+        filePath: '/workspace/orders/place-order.ts',
+        lineNumber: 7,
+      },
+    })
+
+    expect(
+      toComponentWriteInput(
+        createComponent({
+          type: 'eventHandler',
+          metadata: { subscribedEvents: ['OrderPlaced', '   '] },
+        }),
+        'test/repo',
+      ),
+    ).toBeUndefined()
   })
 
   it('omits unsupported http methods instead of failing api conversion', () => {

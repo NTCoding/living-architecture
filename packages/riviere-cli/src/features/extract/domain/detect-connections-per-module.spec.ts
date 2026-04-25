@@ -47,6 +47,8 @@ function createConfig(moduleContext: ModuleContext): ResolvedExtractionConfig {
   return { modules: [moduleContext.module] }
 }
 
+const matchAll = () => true
+
 describe('ExtractionProject.extractDraftComponents', () => {
   it('returns the shared-core full result unchanged', () => {
     mockExtractInto.mockReturnValueOnce({
@@ -65,6 +67,8 @@ describe('ExtractionProject.extractDraftComponents', () => {
       [moduleContext],
       resolvedConfig,
       'test/repo',
+      [],
+      matchAll,
     ).extractDraftComponents({
       allowIncomplete: true,
       includeConnections: true,
@@ -109,6 +113,8 @@ describe('ExtractionProject.extractDraftComponents', () => {
       [moduleContext],
       resolvedConfig,
       'test/repo',
+      [],
+      matchAll,
     ).extractDraftComponents({
       allowIncomplete: false,
       includeConnections: false,

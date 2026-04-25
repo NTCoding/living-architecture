@@ -3,7 +3,7 @@ import {
 } from 'vitest'
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
-import { createProgram } from '../../../shell/cli'
+import { createProgram } from '../../shell/cli'
 import { CliErrorCode } from '../../../platform/infra/cli/presentation/error-codes'
 import {
   type TestContext,
@@ -12,7 +12,7 @@ import {
   setupCommandTest,
   createGraphWithDomain,
   MockError,
-} from '../../../platform/__fixtures__/command-test-fixtures'
+} from '../../../fixtures/command-test-fixtures'
 import { buildAddComponentArgs } from '../../../platform/__fixtures__/add-component-fixtures'
 
 function getErrorMessage(error: unknown): string {

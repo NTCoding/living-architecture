@@ -1,15 +1,15 @@
 import {
   describe, it, expect 
 } from 'vitest'
-import { createProgram } from '../../../shell/cli'
-import type { TestContext } from '../../../platform/__fixtures__/command-test-fixtures'
+import { createProgram } from '../../shell/cli'
+import type { TestContext } from '../../../fixtures/command-test-fixtures'
 import {
   createTestContext,
   setupCommandTest,
   createGraph,
   sourceLocation,
   TestAssertionError,
-} from '../../../platform/__fixtures__/command-test-fixtures'
+} from '../../../fixtures/command-test-fixtures'
 
 interface ComponentInfo {
   id: string

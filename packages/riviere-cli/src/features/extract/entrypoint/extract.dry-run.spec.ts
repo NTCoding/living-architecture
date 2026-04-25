@@ -1,18 +1,18 @@
 import {
-  writeFile, mkdir 
+  mkdir, writeFile 
 } from 'node:fs/promises'
 import { join } from 'node:path'
 import {
-  describe, it, expect 
+  describe, expect, it, vi 
 } from 'vitest'
-import { createProgram } from '../../../shell/cli'
-import type { TestContext } from '../../../platform/__fixtures__/command-test-fixtures'
+import { createProgram } from '../../shell/cli'
+import type { TestContext } from '../../../fixtures/command-test-fixtures'
 import {
+  assertDefined,
   createTestContext,
   setupCommandTest,
-  assertDefined,
-} from '../../../platform/__fixtures__/command-test-fixtures'
-import { parseFullExtractionOutput } from '../__fixtures__/extraction-test-fixtures'
+} from '../../../fixtures/command-test-fixtures'
+import { parseExtractionOutput } from '../__fixtures__/extraction-test-fixtures'
 
 vi.mock('../../../platform/infra/external-clients/git/git-repository-info', () => ({
   getRepositoryInfo: vi.fn(() => ({
@@ -215,7 +215,7 @@ modules:
     expect(ctx.consoleOutput).toContain('shipping: api(1)')
   })
 
-  it('produces counts matching full extraction component array length', async () => {
+  it('produces counts matching draft-only component array length', async () => {
     const srcDir = join(ctx.testDir, 'src')
     await mkdir(srcDir, { recursive: true })
 
@@ -265,10 +265,17 @@ modules:
 `,
     )
 
-    await createProgram().parseAsync(['node', 'riviere', 'extract', '--config', configPath])
+    await createProgram().parseAsync([
+      'node',
+      'riviere',
+      'extract',
+      '--config',
+      configPath,
+      '--components-only',
+    ])
 
-    const fullOutput = parseFullExtractionOutput(ctx.consoleOutput)
-    const fullCount = fullOutput.data.components.length
+    const draftOnlyOutput = parseExtractionOutput(ctx.consoleOutput)
+    const draftOnlyCount = draftOnlyOutput.data.length
     ctx.consoleOutput.splice(0)
 
     await createProgram().parseAsync([
@@ -290,7 +297,7 @@ modules:
       return sum + Number(num)
     }, 0)
 
-    expect(dryRunCount).toBe(fullCount)
+    expect(dryRunCount).toBe(draftOnlyCount)
   })
 
   it('outputs nothing when no components are extracted', async () => {

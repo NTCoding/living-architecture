@@ -13,7 +13,7 @@ import {
   createTestContext,
   setupCommandTest,
   createGraphWithDomain,
-} from '../../../platform/__fixtures__/command-test-fixtures'
+} from '../../../fixtures/command-test-fixtures'
 
 describe('addComponent command', () => {
   const ctx: TestContext = createTestContext()

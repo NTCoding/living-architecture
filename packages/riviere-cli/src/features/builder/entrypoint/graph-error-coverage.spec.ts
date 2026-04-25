@@ -5,13 +5,13 @@ import { join } from 'node:path'
 import {
   describe, expect, it 
 } from 'vitest'
-import { createProgram } from '../../../shell/cli'
+import { createProgram } from '../../shell/cli'
 import { CliErrorCode } from '../../../platform/infra/cli/presentation/error-codes'
 import {
   type TestContext,
   createTestContext,
   setupCommandTest,
-} from '../../../platform/__fixtures__/command-test-fixtures'
+} from '../../../fixtures/command-test-fixtures'
 
 async function createInvalidGraph(testDir: string): Promise<string> {
   const graphDir = join(testDir, '.riviere')

@@ -7,9 +7,7 @@
  * Run with: pnpm exec tsx scripts/generate-docs.ts
  */
 
-import {
-  readFileSync, writeFileSync, mkdirSync 
-} from 'node:fs'
+import * as fs from 'node:fs'
 import { join } from 'node:path'
 
 /** Error thrown when schema JSON does not match expected structure. */
@@ -26,6 +24,8 @@ interface SchemaProperty {
   oneOf?: SchemaProperty[]
   $ref?: string
   const?: unknown
+  properties?: Record<string, SchemaProperty>
+  required?: string[]
   minLength?: number
   minItems?: number
   items?: SchemaProperty
@@ -70,12 +70,37 @@ function getRefTypeName(ref: string): string {
 function extractOneOfTypeNames(oneOf: SchemaProperty[]): string[] {
   return oneOf.map((o) => {
     if (o.$ref) return getRefTypeName(o.$ref)
+    if (o.properties) return formatInlineObjectType(o)
     if (o.type === 'array' && o.items) {
       if (o.items.$ref) return `${getRefTypeName(o.items.$ref)}[]`
       return `${o.items.type}[]`
     }
     return o.type ?? 'any'
   })
+}
+
+function formatInlineObjectType(prop: SchemaProperty): string {
+  const properties = prop.properties ?? {}
+  const required = new Set(prop.required ?? [])
+  return `{ ${Object.entries(properties)
+    .map(
+      ([name, value]) =>
+        `${name}${required.has(name) ? '' : '?'}: ${readInlinePropertyType(value)}`,
+    )
+    .join('; ')} }`
+}
+
+function readInlinePropertyType(prop: SchemaProperty): string {
+  if (prop.$ref) {
+    return getRefTypeName(prop.$ref)
+  }
+  if (prop.enum) {
+    return prop.enum.map((value) => `"${value}"`).join(' | ')
+  }
+  if (prop.type) {
+    return prop.type
+  }
+  return 'any'
 }
 
 function formatOneOfType(prop: SchemaProperty): string {
@@ -104,6 +129,9 @@ function formatRecordType(additionalProperties: SchemaProperty): string {
 function getTypeString(prop: SchemaProperty): string {
   if (prop.$ref) {
     return `\`${getRefTypeName(prop.$ref)}\``
+  }
+  if (prop.type === 'object' && prop.properties) {
+    return `\`${formatInlineObjectType(prop)}\``
   }
   if (prop.oneOf) {
     return formatOneOfType(prop)
@@ -388,7 +416,7 @@ function isSchema(value: unknown): value is Schema {
 // Main execution
 try {
   const schemaPath = join(import.meta.dirname, '..', 'extraction-config.schema.json')
-  const schemaContent = readFileSync(schemaPath, 'utf-8')
+  const schemaContent = fs.readFileSync(schemaPath, 'utf-8')
   const parsed: unknown = JSON.parse(schemaContent)
   if (!isSchema(parsed)) {
     throw new InvalidSchemaFormatError()
@@ -396,17 +424,17 @@ try {
   const schema = parsed
 
   const outputDir = join(import.meta.dirname, '..', 'docs', 'generated')
-  mkdirSync(outputDir, { recursive: true })
+  fs.mkdirSync(outputDir, { recursive: true })
 
   const predicatesContent = generatePredicatesReference(schema)
   const predicatesPath = join(outputDir, 'predicates.md')
-  writeFileSync(predicatesPath, predicatesContent, 'utf-8')
+  fs.writeFileSync(predicatesPath, predicatesContent, 'utf-8')
   console.log(`Generated: ${predicatesPath}`)
   console.log(`Lines: ${predicatesContent.split('\n').length}`)
 
   const schemaRefContent = generateSchemaReference(schema)
   const schemaRefPath = join(outputDir, 'schema.md')
-  writeFileSync(schemaRefPath, schemaRefContent, 'utf-8')
+  fs.writeFileSync(schemaRefPath, schemaRefContent, 'utf-8')
   console.log(`Generated: ${schemaRefPath}`)
   console.log(`Lines: ${schemaRefContent.split('\n').length}`)
 } catch (error) {

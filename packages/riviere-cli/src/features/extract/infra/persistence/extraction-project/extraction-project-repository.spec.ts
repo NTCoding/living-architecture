@@ -6,6 +6,7 @@ import {
 } from 'node:fs'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
+import * as ExtractConfig from '@living-architecture/riviere-extract-config'
 import { ConfigValidationError } from '../../../../../platform/infra/cli/presentation/error-codes'
 import { ExtractionProjectRepository } from './extraction-project-repository'
 
@@ -290,6 +291,39 @@ describe('ExtractionProjectRepository', () => {
           useTsConfig: false,
         }),
       ).toThrow(/Cannot resolve package/)
+    })
+  })
+
+  it('loadFromFullProject stringifies non-Error failures while resolving extended modules-array config', () => {
+    withWorkspace((dir) => {
+      writeFileSync(
+        join(dir, 'extended.yml'),
+        [
+          'modules:',
+          '  - name: orders',
+          '    domain: orders',
+          '    path: src',
+          '    glob: "**/*.ts"',
+          '    api: { notUsed: true }',
+          '    useCase: { notUsed: true }',
+          '    domainOp: { notUsed: true }',
+          '    event: { notUsed: true }',
+          '    eventHandler: { notUsed: true }',
+          '    ui: { notUsed: true }',
+        ].join('\n'),
+        'utf-8',
+      )
+      writeExtendsConfig(dir, './extended.yml')
+      vi.spyOn(ExtractConfig, 'parseExtractionConfig').mockImplementationOnce(() => {
+        throw 'bad-config'
+      })
+
+      expect(() =>
+        new ExtractionProjectRepository().loadFromFullProject({
+          configPath: join(dir, 'extract.yml'),
+          useTsConfig: false,
+        }),
+      ).toThrow(/bad-config/)
     })
   })
 

@@ -11,7 +11,7 @@ import {
   type TestContext,
   createTestContext,
   setupCommandTest,
-} from '../../../platform/__fixtures__/command-test-fixtures'
+} from '../../../fixtures/command-test-fixtures'
 import * as addComponentDomain from '../../../platform/domain/add-component'
 import * as apiQueries from '../domain/api-component-queries'
 import { AddComponent } from './add-component'

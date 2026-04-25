@@ -1,13 +1,13 @@
 import {
   describe, it, expect, vi, afterEach 
 } from 'vitest'
-import type { TestContext } from '../../../platform/__fixtures__/command-test-fixtures'
+import type { TestContext } from '../../../fixtures/command-test-fixtures'
 import {
   createTestContext,
   setupCommandTest,
   assertDefined,
-} from '../../../platform/__fixtures__/command-test-fixtures'
-import { createProgram } from '../../../shell/cli'
+} from '../../../fixtures/command-test-fixtures'
+import { createProgram } from '../../shell/cli'
 import {
   parseFullExtractionOutput,
   createValidExtractFixture,

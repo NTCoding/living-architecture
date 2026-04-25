@@ -8,7 +8,7 @@ interface OutputOptions {output?: string}
 
 /** @riviere-role cli-output-formatter */
 export function outputResult<T>(
-  data: {
+  successPayload: {
     success: true
     data: T
     warnings: string[]
@@ -17,13 +17,13 @@ export function outputResult<T>(
 ): void {
   if (options.output !== undefined) {
     try {
-      writeFileSync(options.output, JSON.stringify(data))
-    } catch {
+      writeFileSync(options.output, JSON.stringify(successPayload))
+    } catch (error) {
       console.log(
         JSON.stringify(
           formatError(
             CliErrorCode.ValidationError,
-            'Failed to write output file: ' + options.output,
+            buildWriteFailureMessage(options.output, error),
           ),
         ),
       )
@@ -32,5 +32,17 @@ export function outputResult<T>(
     return
   }
 
-  console.log(JSON.stringify(data))
+  console.log(JSON.stringify(successPayload))
+}
+
+function buildWriteFailureMessage(outputPath: string, error: unknown): string {
+  return `Failed to write output file: ${outputPath}. ${readErrorMessage(error)}`
+}
+
+function readErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message
+  }
+
+  return String(error)
 }

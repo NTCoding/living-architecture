@@ -1,9 +1,9 @@
 import {
   describe, it, expect 
 } from 'vitest'
-import { createProgram } from '../../../shell/cli'
+import { createProgram } from '../../shell/cli'
 import { CliErrorCode } from '../../../platform/infra/cli/presentation/error-codes'
-import type { TestContext } from '../../../platform/__fixtures__/command-test-fixtures'
+import type { TestContext } from '../../../fixtures/command-test-fixtures'
 import {
   createTestContext,
   setupCommandTest,
@@ -15,7 +15,7 @@ import {
   hasSuccessOutputStructure,
   testCommandRegistration,
   testCustomGraphPath,
-} from '../../../platform/__fixtures__/command-test-fixtures'
+} from '../../../fixtures/command-test-fixtures'
 
 interface ConsistencyWarning {
   code: string

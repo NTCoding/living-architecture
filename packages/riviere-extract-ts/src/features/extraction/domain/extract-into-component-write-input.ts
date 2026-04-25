@@ -172,7 +172,12 @@ function toEventHandlerWriteInput(
 
 function readStringMetadata(component: EnrichedComponent, field: string): string | undefined {
   const value = component.metadata[field]
-  return typeof value === 'string' ? value : undefined
+  if (typeof value !== 'string') {
+    return undefined
+  }
+
+  const trimmedValue = value.trim()
+  return trimmedValue === '' ? undefined : trimmedValue
 }
 
 function readStringArrayMetadata(
@@ -184,7 +189,11 @@ function readStringArrayMetadata(
     return undefined
   }
 
-  return value.every((item) => typeof item === 'string') ? value : undefined
+  if (!value.every((item) => typeof item === 'string' && item.trim() !== '')) {
+    return undefined
+  }
+
+  return value.map((item) => item.trim())
 }
 
 function readApiType(component: EnrichedComponent): 'REST' | 'GraphQL' | 'other' | undefined {

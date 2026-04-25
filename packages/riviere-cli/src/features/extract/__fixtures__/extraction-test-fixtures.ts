@@ -3,7 +3,7 @@ import {
 } from 'node:fs/promises'
 import { join } from 'node:path'
 import { z } from 'zod'
-import { TestAssertionError } from '../../../platform/__fixtures__/command-test-fixtures'
+import { TestAssertionError } from '../../../fixtures/command-test-fixtures'
 
 const draftComponentSchema = z.looseObject({
   type: z.string(),

@@ -149,7 +149,7 @@ Extracts value from the method name
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `fromMethodName` | `boolean` \| `object` | **Yes** | (no description) |
+| `fromMethodName` | `boolean` \| `{ transform?: transform }` | **Yes** | (no description) |
 
 ---
 
@@ -161,7 +161,7 @@ Extracts value from the file path using regex capture
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `fromFilePath` | `object` | **Yes** | (no description) |
+| `fromFilePath` | `{ pattern: string; capture: integer; transform?: transform }` | **Yes** | (no description) |
 
 ---
 
@@ -173,7 +173,7 @@ Extracts value from a class property
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `fromProperty` | `object` | **Yes** | (no description) |
+| `fromProperty` | `{ name: string; kind: "static" | "instance"; transform?: transform }` | **Yes** | (no description) |
 
 ---
 
@@ -185,7 +185,7 @@ Extracts value from decorator argument
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `fromDecoratorArg` | `object` | **Yes** | (no description) |
+| `fromDecoratorArg` | `{ decorator?: string; position?: integer; name?: string; transform?: transform }` | **Yes** | (no description) |
 
 ---
 
@@ -197,7 +197,7 @@ Extracts value from decorator argument on the containing class
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `fromClassDecoratorArg` | `any` \| `any` | **Yes** | (no description) |
+| `fromClassDecoratorArg` | `{ decorator: string; position?: integer; name?: string; transform?: transform }` | **Yes** | (no description) |
 
 ---
 
@@ -209,7 +209,7 @@ Extracts value from the decorator name itself
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `fromDecoratorName` | `boolean` \| `object` | **Yes** | (no description) |
+| `fromDecoratorName` | `boolean` \| `{ mapping?: object; transform?: transform }` | **Yes** | (no description) |
 
 ---
 
@@ -221,7 +221,7 @@ Extracts value from generic type argument
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `fromGenericArg` | `object` | **Yes** | (no description) |
+| `fromGenericArg` | `{ interface: string; position: integer; transform?: transform }` | **Yes** | (no description) |
 
 ---
 
@@ -257,7 +257,7 @@ Extracts type name of parameter at position
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `fromParameterType` | `object` | **Yes** | (no description) |
+| `fromParameterType` | `{ position: integer; transform?: transform }` | **Yes** | (no description) |
 
 ---
 
@@ -269,7 +269,7 @@ Extracts value from the class name
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `fromClassName` | `boolean` \| `object` | **Yes** | Extract from class name, optionally with transform |
+| `fromClassName` | `boolean` \| `{ transform?: transform }` | **Yes** | Extract from class name, optionally with transform |
 
 ---
 

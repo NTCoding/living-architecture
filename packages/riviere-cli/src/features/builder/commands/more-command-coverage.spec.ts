@@ -10,7 +10,7 @@ import {
   type TestContext,
   createTestContext,
   setupCommandTest,
-} from '../../../platform/__fixtures__/command-test-fixtures'
+} from '../../../fixtures/command-test-fixtures'
 import { ComponentChecklist } from './component-checklist'
 import { DefineCustomType } from './define-custom-type'
 import { EnrichComponent } from './enrich-component'

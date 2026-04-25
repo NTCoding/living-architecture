@@ -298,7 +298,7 @@ function defineCustomTypeWhenNeeded(
   try {
     builder.defineCustomType({ name: input.customTypeName })
   } catch (error) {
-    if (!(error instanceof DuplicateComponentError) && !(error instanceof Error)) {
+    if (!(error instanceof DuplicateComponentError)) {
       throw error
     }
   }
@@ -325,14 +325,16 @@ export function createLinkWriteInput(
   target: string,
   type?: LinkType,
 ): LinkWriteInput {
-  return type === undefined
-    ? {
+  if (type === undefined) {
+    return {
       from: source,
       to: target,
     }
-    : {
-      from: source,
-      to: target,
-      type,
-    }
+  }
+
+  return {
+    from: source,
+    to: target,
+    type,
+  }
 }

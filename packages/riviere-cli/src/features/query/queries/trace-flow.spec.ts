@@ -8,7 +8,7 @@ import {
   type TestContext,
   createTestContext,
   setupCommandTest,
-} from '../../../platform/__fixtures__/command-test-fixtures'
+} from '../../../fixtures/command-test-fixtures'
 import { TraceFlow } from './trace-flow'
 import { RiviereQueryRepository } from '../infra/persistence/riviere-query-repository'
 

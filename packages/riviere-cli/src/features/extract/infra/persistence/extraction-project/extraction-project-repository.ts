@@ -1,16 +1,8 @@
-import {
-  existsSync, readFileSync 
-} from 'node:fs'
+import * as fs from 'node:fs'
 import { createRequire } from 'node:module'
-import {
-  dirname, posix, resolve 
-} from 'node:path'
+import * as path from 'node:path'
 import { parse as parseYaml } from 'yaml'
-import { globSync } from 'glob'
-import type {
-  ConfigLoader, DraftComponent 
-} from '@living-architecture/riviere-extract-ts'
-import { resolveConfig } from '@living-architecture/riviere-extract-ts'
+import * as ExtractTs from '@living-architecture/riviere-extract-ts'
 import {
   formatValidationErrors,
   isValidExtractionConfig,
@@ -23,14 +15,16 @@ import {
   CliErrorCode,
   ConfigValidationError,
 } from '../../../../../platform/infra/cli/presentation/error-codes'
-import { detectChangedTypeScriptFiles } from '../../../../../platform/infra/external-clients/git/git-changed-files'
 import { getRepositoryInfo } from '../../../../../platform/infra/external-clients/git/git-repository-info'
 import { loadDraftComponentsFromFile } from '../../../../../platform/infra/external-clients/draft-components/draft-component-loader'
+import { ExtractionProject } from '../../../domain/extraction-project'
 import {
-  ExtractionProject, type ModuleContext 
-} from '../../../domain/extraction-project'
-import { createConfiguredProject } from '../../external-clients/ts-morph/create-configured-project'
-import { findModuleTsConfigDir } from '../../external-clients/ts-morph/find-module-tsconfig-dir'
+  createModuleContexts,
+  extractionProjectGlobMatcher,
+  resolveChangedSourceFilePaths,
+  resolveSelectedSourceFilePaths,
+  resolveSourceFilePaths,
+} from '../../external-clients/source-files/extraction-project-source-files'
 
 class ModuleRefNotFoundError extends Error {
   constructor(ref: string, filePath: string) {
@@ -57,11 +51,15 @@ class InvalidConfigFormatError extends Error {
 }
 
 class PackageResolveError extends Error {
-  constructor(packageName: string) {
+  constructor(packageName: string, cause?: unknown) {
     super(
       `Cannot resolve package '${packageName}'. Ensure the package is installed in node_modules.`,
     )
     this.name = 'PackageResolveError'
+    if (cause instanceof Error) {
+      this.cause = cause
+      this.message = `${this.message} Cause: ${cause.message}`
+    }
   }
 }
 
@@ -115,8 +113,8 @@ type ParsedConfigState = {
 export class ExtractionProjectRepository {
   loadFromChangedProject(params: ChangedProjectParams): ExtractionProject {
     const parsedConfigState = this.loadParsedConfigState(params.configPath)
-    const sourceFilePaths = this.resolveChangedSourceFilePaths(
-      this.resolveSourceFilePaths(parsedConfigState),
+    const sourceFilePaths = resolveChangedSourceFilePaths(
+      resolveSourceFilePaths(parsedConfigState),
       params.baseBranch,
     )
     return this.createExtractionProject(parsedConfigState, sourceFilePaths, params.useTsConfig)
@@ -126,7 +124,7 @@ export class ExtractionProjectRepository {
     const parsedConfigState = this.loadParsedConfigState(params.configPath)
     return this.createExtractionProject(
       parsedConfigState,
-      this.resolveSourceFilePaths(parsedConfigState),
+      resolveSourceFilePaths(parsedConfigState),
       params.useTsConfig,
       loadDraftComponentsFromFile(params.draftComponentsPath),
     )
@@ -136,51 +134,51 @@ export class ExtractionProjectRepository {
     const parsedConfigState = this.loadParsedConfigState(params.configPath)
     return this.createExtractionProject(
       parsedConfigState,
-      this.resolveSourceFilePaths(parsedConfigState),
+      resolveSourceFilePaths(parsedConfigState),
       params.useTsConfig,
     )
   }
 
   loadFromSelectedFiles(params: SelectedFilesProjectParams): ExtractionProject {
     const parsedConfigState = this.loadParsedConfigState(params.configPath)
-    const sourceFilePaths = this.resolveSelectedSourceFilePaths(
-      this.resolveSourceFilePaths(parsedConfigState),
+    const sourceFilePaths = resolveSelectedSourceFilePaths(
+      resolveSourceFilePaths(parsedConfigState),
       params.filePaths,
     )
     return this.createExtractionProject(parsedConfigState, sourceFilePaths, params.useTsConfig)
   }
 
   private loadParsedConfigState(configPath: string): ParsedConfigState {
-    if (!existsSync(configPath)) {
+    if (!fs.existsSync(configPath)) {
       throw new ConfigValidationError(
         CliErrorCode.ConfigNotFound,
         `Config file not found: ${configPath}`,
       )
     }
 
-    const content = readFileSync(configPath, 'utf-8')
+    const content = fs.readFileSync(configPath, 'utf-8')
     const parsed = this.parseConfigFile(content)
-    const configDir = dirname(resolve(configPath))
+    const configDir = path.dirname(path.resolve(configPath))
     const expanded = this.expandModuleRefs(parsed, configDir)
 
     if (!isValidExtractionConfig(expanded)) {
       const validationResult = validateExtractionConfig(expanded)
       throw new ConfigValidationError(
         CliErrorCode.ValidationError,
-        `Invalid extraction config:\n${formatValidationErrors(validationResult.errors)}`,
+        `Invalid extraction config:
+${formatValidationErrors(validationResult.errors)}`,
       )
     }
 
     return {
       configDir,
-      resolvedConfig: resolveConfig(expanded, this.createExtendedConfigLoader(configDir)),
+      resolvedConfig: ExtractTs.resolveConfig(expanded, this.createExtendedConfigLoader(configDir)),
     }
   }
 
   private parseConfigFile(content: string): unknown {
     try {
-      const parsed: unknown = parseYaml(content)
-      return parsed
+      return parseYaml(content)
     } catch (error) {
       throw new ConfigValidationError(
         CliErrorCode.ValidationError,
@@ -212,17 +210,16 @@ export class ExtractionProjectRepository {
       return item
     }
 
-    const refPath = resolve(configDir, item.$ref)
-    if (!existsSync(refPath)) {
+    const refPath = path.resolve(configDir, item.$ref)
+    if (!fs.existsSync(refPath)) {
       throw new ModuleRefNotFoundError(item.$ref, refPath)
     }
 
-    const content = readFileSync(refPath, 'utf-8')
-    const parsed: unknown = parseYaml(content)
-    return parsed
+    const content = fs.readFileSync(refPath, 'utf-8')
+    return parseYaml(content)
   }
 
-  private createExtendedConfigLoader(configDir: string): ConfigLoader {
+  private createExtendedConfigLoader(configDir: string): ExtractTs.ConfigLoader {
     return (source: string): Module => {
       const filePath = this.resolveExtendedConfigPath(source, configDir)
       return this.loadExtendedConfigFile(filePath, source)
@@ -232,7 +229,7 @@ export class ExtractionProjectRepository {
   private resolveExtendedConfigPath(source: string, configDir: string): string {
     return this.isPackageReference(source)
       ? this.resolvePackagePath(source, configDir)
-      : resolve(configDir, source)
+      : path.resolve(configDir, source)
   }
 
   private isPackageReference(source: string): boolean {
@@ -240,27 +237,30 @@ export class ExtractionProjectRepository {
   }
 
   private resolvePackagePath(packageName: string, configDir: string): string {
-    const require = createRequire(resolve(configDir, 'package.json'))
+    const require = createRequire(path.resolve(configDir, 'package.json'))
 
     try {
       const packageJsonPath = require.resolve(`${packageName}/package.json`)
-      const packageDir = dirname(packageJsonPath)
-      const defaultConfigPath = resolve(packageDir, 'src/default-extraction.config.json')
-      if (existsSync(defaultConfigPath)) {
+      const packageDir = path.dirname(packageJsonPath)
+      const defaultConfigPath = path.resolve(packageDir, 'src/default-extraction.config.json')
+      if (fs.existsSync(defaultConfigPath)) {
         return defaultConfigPath
       }
       throw new PackageResolveError(packageName)
-    } catch {
-      throw new PackageResolveError(packageName)
+    } catch (error) {
+      if (error instanceof PackageResolveError) {
+        throw error
+      }
+      throw new PackageResolveError(packageName, error)
     }
   }
 
   private loadExtendedConfigFile(filePath: string, source: string): Module {
-    if (!existsSync(filePath)) {
+    if (!fs.existsSync(filePath)) {
       throw new ConfigFileNotFoundError(source, filePath)
     }
 
-    const content = readFileSync(filePath, 'utf-8')
+    const content = fs.readFileSync(filePath, 'utf-8')
     return this.parseExtendedConfigContent(content, source)
   }
 
@@ -283,14 +283,15 @@ export class ExtractionProjectRepository {
     if (parsed.modules.length === 0) {
       throw new ConfigSchemaValidationError(source, 'Config has empty modules array')
     }
+
     try {
       const config = parseExtractionConfig(parsed)
-      const [first] = resolveConfig(config).modules
-      /* v8 ignore start -- unreachable: schema enforces minItems:1 and pre-check guards length */
+      const [first] = ExtractTs.resolveConfig(config).modules
+      /* v8 ignore start -- schema+resolveConfig guarantee at least one module here */
       if (first === undefined) {
         throw new ConfigSchemaValidationError(source, 'Config has empty modules array')
       }
-      /* v8 ignore end */
+      /* v8 ignore stop */
       return first
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
@@ -323,11 +324,11 @@ export class ExtractionProjectRepository {
     parsedConfigState: ParsedConfigState,
     sourceFilePaths: string[],
     useTsConfig: boolean,
-    draftComponents: DraftComponent[] = [],
+    draftComponents: ExtractTs.DraftComponent[] = [],
   ): ExtractionProject {
     return new ExtractionProject(
       parsedConfigState.configDir,
-      this.createModuleContexts(
+      createModuleContexts(
         parsedConfigState.configDir,
         parsedConfigState.resolvedConfig,
         sourceFilePaths,
@@ -336,78 +337,8 @@ export class ExtractionProjectRepository {
       parsedConfigState.resolvedConfig,
       getRepositoryInfo().name,
       draftComponents,
+      extractionProjectGlobMatcher,
     )
-  }
-
-  private resolveSourceFilePaths(parsedConfigState: ParsedConfigState): string[] {
-    const sourceFilePaths = parsedConfigState.resolvedConfig.modules
-      .flatMap((module) =>
-        globSync(posix.join(module.path, module.glob), { cwd: parsedConfigState.configDir }),
-      )
-      .map((filePath) => resolve(parsedConfigState.configDir, filePath))
-
-    if (sourceFilePaths.length === 0) {
-      const patterns = parsedConfigState.resolvedConfig.modules
-        .map((module) => posix.join(module.path, module.glob))
-        .join(', ')
-      throw new ConfigValidationError(
-        CliErrorCode.ValidationError,
-        `No files matched extraction patterns: ${patterns}\nConfig directory: ${parsedConfigState.configDir}`,
-      )
-    }
-
-    return sourceFilePaths
-  }
-
-  private resolveChangedSourceFilePaths(allSourceFiles: string[], baseBranch?: string): string[] {
-    const gitOptions = baseBranch === undefined ? {} : { base: baseBranch }
-    const result = detectChangedTypeScriptFiles(process.cwd(), gitOptions)
-    for (const warning of result.warnings) {
-      console.error(warning)
-    }
-    const changedAbsolute = new Set(result.files.map((filePath) => resolve(filePath)))
-    return allSourceFiles.filter((filePath) => changedAbsolute.has(filePath))
-  }
-
-  private resolveSelectedSourceFilePaths(
-    allSourceFiles: string[],
-    requestedFiles: string[],
-  ): string[] {
-    const missingFiles = requestedFiles.filter((filePath) => !existsSync(resolve(filePath)))
-    if (missingFiles.length > 0) {
-      throw new ConfigValidationError(
-        CliErrorCode.ValidationError,
-        `Files not found: ${missingFiles.join(', ')}`,
-      )
-    }
-
-    const requestedAbsolute = new Set(requestedFiles.map((filePath) => resolve(filePath)))
-    return allSourceFiles.filter((filePath) => requestedAbsolute.has(filePath))
-  }
-
-  private createModuleContexts(
-    configDir: string,
-    resolvedConfig: ResolvedExtractionConfig,
-    sourceFilePaths: string[],
-    useTsConfig: boolean,
-  ): ModuleContext[] {
-    const sourceFileSet = new Set(sourceFilePaths)
-
-    return resolvedConfig.modules.map((module) => {
-      const allModuleFiles = globSync(posix.join(module.path, module.glob), { cwd: configDir }).map(
-        (filePath) => resolve(configDir, filePath),
-      )
-      const moduleFiles = allModuleFiles.filter((filePath) => sourceFileSet.has(filePath))
-      const moduleConfigDir = findModuleTsConfigDir(configDir, module.path)
-      const project = createConfiguredProject(moduleConfigDir, !useTsConfig)
-      project.addSourceFilesAtPaths(moduleFiles)
-
-      return {
-        files: moduleFiles,
-        module,
-        project,
-      }
-    })
   }
 
   private hasModulesArray(value: unknown): value is { modules: unknown[] } {

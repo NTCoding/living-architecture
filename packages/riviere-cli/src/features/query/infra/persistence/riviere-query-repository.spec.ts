@@ -9,7 +9,7 @@ import {
   type TestContext,
   createTestContext,
   setupCommandTest,
-} from '../../../../platform/__fixtures__/command-test-fixtures'
+} from '../../../../fixtures/command-test-fixtures'
 import { GraphCorruptedError } from '../../../../platform/domain/graph-corrupted-error'
 import { GraphNotFoundError } from '../../../../platform/domain/graph-not-found-error'
 import { RiviereQueryRepository } from './riviere-query-repository'

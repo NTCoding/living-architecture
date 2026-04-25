@@ -6,13 +6,13 @@ import {
   describe, it, expect 
 } from 'vitest'
 import type { DraftComponent } from '@living-architecture/riviere-extract-ts'
-import type { TestContext } from '../../../platform/__fixtures__/command-test-fixtures'
+import type { TestContext } from '../../../fixtures/command-test-fixtures'
 import {
   createTestContext,
   setupCommandTest,
   parseErrorOutput,
   parseCommandWithErrorHandling,
-} from '../../../platform/__fixtures__/command-test-fixtures'
+} from '../../../fixtures/command-test-fixtures'
 import {
   parseFullExtractionOutput,
   validSourceCode,

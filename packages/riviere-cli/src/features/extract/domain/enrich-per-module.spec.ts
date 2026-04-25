@@ -3,7 +3,12 @@ import type * as ExtractConfig from '@living-architecture/riviere-extract-config
 import type { DraftComponent } from '@living-architecture/riviere-extract-ts'
 import * as ExtractionProjectModule from './extraction-project'
 
-const { mockExtractInto } = vi.hoisted(() => ({ mockExtractInto: vi.fn() }))
+const {
+  mockExtractInto, mockMergeWritePort 
+} = vi.hoisted(() => ({
+  mockExtractInto: vi.fn(),
+  mockMergeWritePort: vi.fn(() => ({ mocked: true })),
+}))
 
 vi.mock('@living-architecture/riviere-extract-ts', async () => {
   const actual = await vi.importActual<typeof import('@living-architecture/riviere-extract-ts')>(
@@ -13,6 +18,7 @@ vi.mock('@living-architecture/riviere-extract-ts', async () => {
   return {
     ...actual,
     extractInto: mockExtractInto,
+    mergeWritePort: mockMergeWritePort,
   }
 })
 
@@ -54,6 +60,8 @@ function createConfig(
   return { modules: [moduleContext.module] }
 }
 
+const matchAll = () => true
+
 describe('ExtractionProject.enrichDraftComponents', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -90,6 +98,7 @@ describe('ExtractionProject.enrichDraftComponents', () => {
       resolvedConfig,
       'test/repo',
       draftComponents,
+      matchAll,
     ).enrichDraftComponents({
       allowIncomplete: true,
       includeConnections: true,
@@ -124,6 +133,7 @@ describe('ExtractionProject.enrichDraftComponents', () => {
       resolvedConfig,
       'test/repo',
       [],
+      matchAll,
     ).enrichDraftComponents({
       allowIncomplete: false,
       includeConnections: true,
@@ -162,6 +172,7 @@ describe('ExtractionProject.enrichDraftComponents', () => {
       resolvedConfig,
       'test/repo',
       draftComponents,
+      matchAll,
     ).enrichDraftComponents({
       allowIncomplete: true,
       includeConnections: false,
@@ -181,7 +192,7 @@ describe('ExtractionProject.enrichDraftComponents', () => {
     )
   })
 
-  it('fills missing draft modules with unknown-module when no module contexts exist', () => {
+  it('rejects missing draft modules when no module contexts can resolve them', () => {
     mockExtractInto.mockReturnValueOnce({
       kind: 'draftOnly',
       components: [],
@@ -200,29 +211,19 @@ describe('ExtractionProject.enrichDraftComponents', () => {
       },
     ]
 
-    new ExtractionProjectModule.ExtractionProject(
-      '/workspace',
-      [],
-      { modules: [] },
-      'test/repo',
-      draftComponents,
-    ).enrichDraftComponents({
-      allowIncomplete: true,
-      includeConnections: false,
-    })
-
-    expect(mockExtractInto).toHaveBeenCalledWith(
-      expect.anything(),
-      { modules: [] },
-      expect.objectContaining({
-        draftComponents: [
-          expect.objectContaining({
-            domain: 'billing',
-            module: 'unknown-module',
-          }),
-        ],
+    expect(() =>
+      new ExtractionProjectModule.ExtractionProject(
+        '/workspace',
+        [],
+        { modules: [] },
+        'test/repo',
+        draftComponents,
+        matchAll,
+      ).enrichDraftComponents({
+        allowIncomplete: true,
+        includeConnections: false,
       }),
-    )
+    ).toThrow("Unable to resolve module for draft component 'PlaceOrder'")
   })
 
   it('creates a fallback extracted domain when configured module domains are blank', () => {
@@ -238,6 +239,8 @@ describe('ExtractionProject.enrichDraftComponents', () => {
       [moduleContext],
       createConfig(moduleContext),
       'test/repo',
+      [],
+      matchAll,
     ).extractDraftComponents({
       allowIncomplete: true,
       includeConnections: false,
@@ -249,6 +252,63 @@ describe('ExtractionProject.enrichDraftComponents', () => {
       expect.objectContaining({
         includeConnections: false,
         mode: 'extract',
+      }),
+    )
+  })
+
+  it('supports workflow-style extraction through mergeWritePort', () => {
+    mockExtractInto.mockReturnValueOnce({
+      kind: 'draftOnly',
+      components: [],
+    })
+
+    const moduleContext = createModuleContext()
+    const resolvedConfig = createConfig(moduleContext)
+    const workflowBuilder = {
+      upsertUI: vi.fn(),
+      upsertApi: vi.fn(),
+      upsertUseCase: vi.fn(),
+      upsertDomainOp: vi.fn(),
+      upsertEvent: vi.fn(),
+      upsertEventHandler: vi.fn(),
+      upsertCustom: vi.fn(),
+      link: vi.fn(),
+      linkExternal: vi.fn(),
+      defineCustomType: vi.fn(),
+    }
+    const diagnostics = { report: vi.fn() }
+
+    new ExtractionProjectModule.ExtractionProject(
+      '/workspace',
+      [moduleContext],
+      resolvedConfig,
+      'test/repo',
+      [],
+      matchAll,
+    ).extractIntoWorkflowBuilder(
+      workflowBuilder,
+      diagnostics,
+      {
+        step: 'extract-orders',
+        stepType: 'code-extraction',
+      },
+      {
+        allowIncomplete: true,
+        includeConnections: true,
+        mode: 'extract',
+      },
+    )
+
+    expect(mockMergeWritePort).toHaveBeenCalledWith(workflowBuilder, diagnostics, {
+      step: 'extract-orders',
+      stepType: 'code-extraction',
+    })
+    expect(mockExtractInto).toHaveBeenCalledWith(
+      { mocked: true },
+      resolvedConfig,
+      expect.objectContaining({
+        mode: 'extract',
+        includeConnections: true,
       }),
     )
   })
