@@ -89,7 +89,7 @@ describe('ExtractionProject.extractDraftComponents', () => {
     )
   })
 
-  it('returns the shared-core draft result unchanged', () => {
+  it('returns the shared-core draft result object unchanged', () => {
     mockExtractInto.mockReturnValueOnce({
       kind: 'draftOnly',
       components: [

@@ -1,8 +1,10 @@
-import { Project } from 'ts-morph'
-import type { Module } from '@living-architecture/riviere-extract-config'
-import type { DraftComponent } from './component-extraction/extractor'
-import type { EnrichedComponent } from './value-extraction/enrich-components'
-import type { ExtractionWritePort } from './extraction-write-port'
+import {
+  createDraftComponent,
+  createEnrichedComponent,
+  createModule,
+  createProjectWithDispose,
+  createWritePortRecorder,
+} from './extract-into-fixtures'
 
 const {
   mockExtractComponents,
@@ -54,82 +56,6 @@ vi.mock('./connection-detection/detect-connections', async () => {
 })
 
 import { extractInto } from './extract-into'
-
-function createModule(name: string, domain = 'orders'): Module {
-  return {
-    api: { notUsed: true },
-    domain,
-    domainOp: { notUsed: true },
-    event: { notUsed: true },
-    eventHandler: { notUsed: true },
-    glob: 'src/**',
-    name,
-    path: name,
-    ui: { notUsed: true },
-    useCase: { notUsed: true },
-  }
-}
-
-function createProjectWithDispose(): {
-  project: Project
-  dispose: ReturnType<typeof vi.fn>
-} {
-  const project = new Project({ useInMemoryFileSystem: true })
-  const dispose = vi.fn()
-  Object.defineProperty(project, 'dispose', { value: dispose })
-  return {
-    project,
-    dispose,
-  }
-}
-
-function createWritePortRecorder() {
-  const links: unknown[] = []
-  const missingFields: unknown[] = []
-  const uncertainLinks: unknown[] = []
-
-  const writePort: ExtractionWritePort = {
-    addComponent: vi.fn(),
-    addLink(input) {
-      links.push(input)
-    },
-    addExternalLink: vi.fn(),
-    reportMissingField(event) {
-      missingFields.push(event)
-    },
-    reportUncertainLink(event) {
-      uncertainLinks.push(event)
-    },
-  }
-
-  return {
-    writePort,
-    links,
-    missingFields,
-    uncertainLinks,
-  }
-}
-
-function createDraftComponent(module = 'orders-module'): DraftComponent {
-  return {
-    type: 'useCase',
-    name: 'PlaceOrder',
-    domain: 'orders',
-    module,
-    location: {
-      file: '/workspace/orders/place-order.ts',
-      line: 7,
-    },
-  }
-}
-
-function createEnrichedComponent(module = 'orders-module', missing?: string[]): EnrichedComponent {
-  return {
-    ...createDraftComponent(module),
-    metadata: {},
-    ...(missing === undefined ? {} : { _missing: missing }),
-  }
-}
 
 describe('extractInto edge coverage', () => {
   beforeEach(() => {
