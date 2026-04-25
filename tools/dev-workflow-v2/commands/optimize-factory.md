@@ -1,0 +1,401 @@
+# optimize-factory
+
+Design factory optimizations from PR feedback or ad-hoc instructions. This command creates no product fixes. Its output is an approved GitHub issue that another implementation workflow can execute on a separate branch.
+
+## Arguments
+
+Accepted forms:
+
+- Pull request number: `123`
+- Pull request URL: `https://github.com/OWNER/REPO/pull/123`
+- Ad-hoc instructions: free text describing the factory weakness to optimize
+
+## Operating Principle
+
+The factory is the repository-specific system mapped by `tools/dev-workflow-v2/docs/factory/factory-map.md`. The map describes what exists, where it is defined, how surfaces relate, and examples of how each mechanism is used. Read the map before proposing anything, but do not cite the map as proof of enforcement. Read the complete relevant source files at command execution time.
+
+Never fix the product code under review. Design changes to the factory so the same issue is prevented or detected next time.
+
+Every proposal must state:
+
+- which factory source files were inspected,
+- what enforcement was observed in those source files,
+- which exact factory file or capability should change,
+- what gap remains after existing enforcement is considered,
+- how the proposed enforcement will be verified.
+
+Factory memory lives in GitHub issues labeled `factory` and `factory optimization`. Every factory optimization issue should be searchable by:
+
+- labels: `factory`, `factory optimization`,
+- marker text in the issue body: `factory optimization`,
+- source PR and comment URLs,
+- exact factory surface names,
+- problem pattern names.
+
+## Step 1: Classify the input
+
+If the argument is a PR number or PR URL, run PR mode.
+
+If the argument is ad-hoc text, run ad-hoc mode.
+
+If the argument is missing or ambiguous, ask the user for either a PR number, PR URL, or ad-hoc factory optimization request.
+
+## Step 2: Load the repository factory map
+
+Read these files before discussing any solution:
+
+- `tools/dev-workflow-v2/docs/factory/factory-map.md`
+
+Use the factory map to identify which factory surfaces and source files exist. Inspect the relevant source files in full at command execution time. Do not use map examples, headings, or summaries as evidence of enforcement.
+
+## Step 3A: PR mode — fetch source material
+
+Resolve the PR number:
+
+```bash
+gh pr view <PR_NUMBER_OR_URL> --json number,url,title,body,author,headRefName,baseRefName,reviewDecision,comments,reviews,files
+```
+
+Resolve the repository:
+
+```bash
+gh repo view --json nameWithOwner
+```
+
+Fetch review threads using GraphQL:
+
+```bash
+gh api graphql \
+  -F owner='<OWNER>' \
+  -F name='<REPO>' \
+  -F number=<PR_NUMBER> \
+  -f query='query($owner: String!, $name: String!, $number: Int!) {
+    repository(owner: $owner, name: $name) {
+      pullRequest(number: $number) {
+        url
+        title
+        reviewThreads(first: 100) {
+          nodes {
+            id
+            isResolved
+            isOutdated
+            path
+            line
+            startLine
+            comments(first: 100) {
+              nodes {
+                id
+                databaseId
+                url
+                body
+                author { login }
+                createdAt
+              }
+            }
+          }
+        }
+      }
+    }
+  }'
+```
+
+Select source items:
+
+- Include unresolved review threads that contain any comment whose body starts with `[FACTORY]`.
+- Include unresolved CodeRabbit review threads when a user comment in the thread starts with `[FACTORY]`.
+- Include general PR comments whose body starts with `[FACTORY]`.
+- Ignore resolved review threads by default.
+- If a resolved or outdated marked thread appears relevant, ask the user before including it.
+
+For every selected item, read all relevant context:
+
+- the full marked thread or PR comment
+- the referenced file and line range
+- surrounding code needed to understand the pattern
+- exact relevant factory source files identified through `tools/dev-workflow-v2/docs/factory/factory-map.md`
+
+## Step 3B: Ad-hoc mode — collect source material
+
+Restate the factory weakness described by the user.
+
+Ask whether prior factory memory should be searched before proposal if the answer is not obvious from the request.
+
+Read the exact factory source files and product examples needed to understand the pattern. Do not modify files.
+
+## Step 4: Search factory memory
+
+Use `tools/dev-workflow-v2/docs/factory/factory-map.md` as the local factory map before searching GitHub issues.
+
+Search prior GitHub issues labeled `factory` and `factory optimization`:
+
+```bash
+gh issue list \
+  --label 'factory' \
+  --label 'factory optimization' \
+  --state all \
+  --limit 100 \
+  --json number,title,state,labels,body,url,createdAt,closedAt
+```
+
+Use keywords from `[FACTORY]` comments, file paths, rule names, factory files, and factory surfaces to identify similar issues.
+
+If memory is used, record:
+
+- the prior issue URL
+- the similarity
+- the prior resolution
+- how it influences this proposal
+
+If no relevant memory exists, state that no matching factory memory was found.
+
+## Step 5: Discuss each optimization point
+
+For each selected factory weakness, discuss with the user before creating an issue.
+
+Use this structure:
+
+```markdown
+## Factory Optimization Point N: <name>
+
+Source:
+- PR: <url or none>
+- Comment/thread: <url>
+- File: <path:line or none>
+
+Problem pattern:
+- <specific recurring weakness>
+
+Inspected factory context:
+- Existing enforcement files inspected: <exact paths>
+- Existing enforcement observed in source: <what blocks or reviews this pattern at command execution time>
+- Factory gap: <what is not blocked or reviewed reliably>
+
+Factory memory:
+- <prior issue references and influence, or "No matching factory memory found.">
+
+Options considered:
+1. <option>
+   - Enforcement strength: deterministic | semi-deterministic | advisory
+   - Accuracy and reliability: <assessment>
+   - False-positive risk: <assessment>
+   - Verification: <how it can be proven>
+2. <option>
+   - ...
+
+Recommended solution:
+- <prescribed factory change with exact target files or exact new capability>
+
+Rejected options:
+- <option>: <reason>
+
+Open decisions:
+- <only include decisions that require user input>
+```
+
+Prioritize options in this order:
+
+1. deterministic automated enforcement
+2. tests or fixtures proving enforcement works
+3. CI or workflow gate
+4. review-agent or convention markdown as the last resort
+
+Use this decision matrix as the starting point. Extend `tools/dev-workflow-v2/docs/factory/factory-map.md` only when a new factory surface is added or an existing surface relationship changes.
+
+| Problem pattern | Preferred factory surface | Verification approach |
+| --- | --- | --- |
+| Syntax or AST-level smell | ESLint rule, custom ESLint rule, or `no-restricted-syntax` | Violating fixture or representative lint failure |
+| Repeated naming smell | Custom ESLint rule or existing naming rule extension | Rule test with rejected and accepted names |
+| Folder or layer violation | Riviere role enforcement or dependency rule | Fixture or package check proving invalid placement fails |
+| Import direction violation | Riviere role enforcement or dependency rule | Fixture or dependency check proving forbidden import fails |
+| Test smell | Vitest ESLint rule or custom test lint rule | Failing test fixture or lint failure against representative test |
+| Coverage weakness | Vitest coverage thresholds or coverage include/exclude adjustment | Coverage command proves threshold failure or restored coverage |
+| CI escape hatch | CI workflow gate or workflow command state guard | CI-equivalent command proves blocked path fails |
+| Code review blind spot | Review agent instruction, convention doc, or deterministic scanner capability | Agent review scenario or documented checklist addition |
+| CodeRabbit blind spot | CodeRabbit configuration or knowledge-base guideline | CodeRabbit config review and linked guideline |
+| Security or secret risk | gitleaks, semgrep, CodeRabbit tool, or CI gate | Tool command proves detection |
+| Workflow misuse | dev-workflow command, hook, state-machine guard, or agent instruction | Unit test or workflow command scenario proves misuse is blocked |
+| Capability gap | New factory tool, custom checker, command, or agent workflow | Purpose-built test or dry-run scenario proves the new capability works |
+
+For lint-rule optimizations, include a verification design that proves the rule fails on violating code. Prefer a dedicated fixture or rule test when the lint rule is custom. For `no-restricted-syntax`, prescribe a verification command that fails against a representative violation when practical.
+
+If an issue adds a new factory surface or changes relationships between factory surfaces, include an explicit docs update requirement for `tools/dev-workflow-v2/docs/factory/factory-map.md`.
+
+## Step 6: Request approval
+
+After all points have been discussed, ask the user for approval to create one aggregated GitHub issue.
+
+Natural-language approval is enough. Do not create issues, comment on PR threads, or resolve threads before approval.
+
+## Step 7: Create one aggregated GitHub issue
+
+After approval, create exactly one GitHub issue with both labels:
+
+- `factory`
+- `factory optimization`
+
+The issue title format is:
+
+```text
+Factory optimization: <short summary>
+```
+
+The issue body must use this structure:
+
+````markdown
+## Factory Optimization Marker
+
+factory optimization
+
+## Source
+
+- PR: <url or "Ad-hoc request">
+- Source comments:
+  - <comment/thread URL>
+
+## Factory Memory
+
+- <prior issue URL>: <how it influenced this issue>
+- Or: No matching factory memory found.
+
+## Approved Optimization Tasks
+
+- [ ] <task 1>
+- [ ] <task 2>
+
+## Context
+
+<full context needed by the implementation agent>
+
+## Inspected Factory Context
+
+- Existing enforcement files inspected:
+  - <exact path>
+- Existing enforcement observed in source:
+  - <specific guardrail observed at command execution time>
+- Factory gap:
+  - <specific gap this issue closes>
+
+## Options Discussed
+
+### Option 1: <name>
+
+- Enforcement strength: deterministic | semi-deterministic | advisory
+- Accuracy and reliability: <assessment>
+- Verification: <verification approach>
+
+## Rejected Options
+
+- <option>: <reason>
+
+## Prescribed Solution
+
+<exact factory changes to implement. Do not use "likely" language. Prescribe exact targets or name the explicit decision that remains open.>
+
+## Enforcement Surface
+
+- <ESLint/custom rule/Riviere/CI/CodeRabbit/workflow/agent/convention/new capability>
+
+## Verification Strategy
+
+- <commands, fixtures, tests, or manual validation that prove the factory optimization works>
+
+## Documentation and Memory Updates
+
+- [ ] Update `tools/dev-workflow-v2/docs/factory/factory-map.md` if this issue changes the factory inventory or adds a new factory surface.
+
+## Acceptance Criteria
+
+- [ ] The approved deterministic enforcement is implemented.
+- [ ] Violating examples fail under the new enforcement when practical.
+- [ ] Passing examples remain accepted when practical.
+- [ ] The relevant verification command is documented and passes.
+- [ ] Factory map documentation is updated when the factory inventory or surface relationships change.
+
+## Commit Guidance
+
+Use semantic commits with the `factory-optimization` scope, for example:
+
+```text
+feat(factory-optimization): add guardrail for <pattern>
+```
+````
+
+Create the issue:
+
+```bash
+gh issue create \
+  --title 'Factory optimization: <short summary>' \
+  --label 'factory' \
+  --label 'factory optimization' \
+  --body "$(cat <<'EOF'
+<ISSUE_BODY>
+EOF
+)"
+```
+
+Capture the created issue URL.
+
+## Step 8: Comment on source items
+
+After issue creation succeeds, comment on every source item with this fixed format:
+
+```markdown
+Factory optimization accepted.
+
+Created issue: <issue-url>
+
+Agreed solution:
+- <summary of prescribed factory change>
+
+This thread can be resolved because the product PR should not carry factory optimization work.
+```
+
+For review threads, reply to the last review comment in the thread:
+
+```bash
+gh api \
+  --method POST \
+  'repos/<OWNER>/<REPO>/pulls/<PR_NUMBER>/comments/<DATABASE_ID>/replies' \
+  -f body='<COMMENT_BODY>'
+```
+
+For general PR comments, add a PR comment that references the source comment URL:
+
+```bash
+gh pr comment <PR_NUMBER> --body '<COMMENT_BODY_WITH_SOURCE_URL>'
+```
+
+## Step 9: Resolve resolvable review threads
+
+Resolve each review thread only after both issue creation and source-thread comment succeed:
+
+```bash
+gh api graphql \
+  -F threadId='<THREAD_ID>' \
+  -f query='mutation($threadId: ID!) {
+    resolveReviewThread(input: { threadId: $threadId }) {
+      thread { id isResolved }
+    }
+  }'
+```
+
+General PR comments cannot be resolved through review-thread resolution. Tell the user which general comments need manual handling.
+
+If issue creation succeeds but any comment or thread resolution fails, stop and report:
+
+- created issue URL
+- source item URL
+- failed operation
+- thread ID or comment URL
+- exact command error
+
+Do not retry without user instruction.
+
+## Step 10: Final response
+
+Return:
+
+- created GitHub issue URL
+- source threads resolved
+- source comments that require manual resolution
+- failures, if any
