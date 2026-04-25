@@ -1,201 +1,116 @@
 # Repository Factory Map
 
-This map explains how the repository quality factory works. It describes the mechanisms, their responsibilities, their configuration points, and concrete examples of how they enforce quality.
+This map routes factory-optimization analysis to the correct factory source files. It is not a duplicated rule inventory. Source files are authoritative at command execution time, so an optimization agent must read the relevant source files directly before proposing a change.
+
+Use this map for three things only:
+
+1. Identify which factory surface can catch a class of issue.
+2. See concrete examples of issue patterns each surface is suited to handle.
+3. Find the source files and verification commands needed for source inspection.
+
+Do not treat any example below as exhaustive or source truth. Read the source.
 
 ## Factory Execution Pipeline
 
 ### Local commit gate
 
-Files:
+Read these source files directly:
 
 - `.husky/pre-commit`
 - `.husky/commit-msg`
 - `package.json`
 
-Execution:
+Use this surface when an optimization needs to run before a developer can commit.
 
-1. `.husky/pre-commit` runs `npx lint-staged && pnpm run verify`.
-2. `lint-staged` formats and auto-fixes staged TypeScript files with Prettier and ESLint.
-3. `pnpm run verify` runs:
-   - `nx run-many -t lint-md role-check build depcruise lint typecheck test check-generated-docs knip --exclude=eclair`
-4. `.husky/commit-msg` runs commitlint against the commit message.
+Example issue patterns:
 
-Factory implications:
+| Issue pattern | Source files to inspect | Factory route |
+| --- | --- | --- |
+| A new deterministic guardrail exists but does not run locally | `.husky/pre-commit`, `package.json`, root `project.json` | Wire the target into the local verification path rather than documenting it only |
+| A generated artifact can be stale at commit time | `.husky/pre-commit`, package generation scripts, `check-generated-docs` targets | Add or reuse a generated-doc check in the local gate |
+| Commit messages violate project history style | `.husky/commit-msg`, commitlint config | Adjust commit-message enforcement rather than review guidance |
 
-- A guardrail that belongs in the local development loop should attach to one of the targets already included in `pnpm run verify`.
-- A new target is weaker unless it is wired into `verify`, the Nx graph, CI, or a workflow command.
-- Formatting-only fixes belong to lint-staged or ESLint autofix. Quality rejection belongs to lint, role-check, depcruise, test, or check-generated-docs.
+Verification sources:
+
+- Local gate command observed in `package.json`
+- Hook contents observed in `.husky/pre-commit` and `.husky/commit-msg`
 
 ### Pull request CI gate
 
-Files:
+Read these source files directly:
 
 - `.github/workflows/ci.yml`
 - `nx.json`
-- `project.json`
-- package `project.json` files
+- root `project.json`
+- affected package `project.json` files
 
-Execution:
+Use this surface when an optimization must block a pull request after push.
 
-- PRs run `pnpm exec nx affected -t lint test build typecheck check-generated-docs smoke-test --verbose`.
-- Main runs `pnpm exec nx run-many -t lint test build typecheck --verbose`.
-- SonarCloud scan waits for the quality gate.
-- Browser tests run separately for Chromium, Firefox, and WebKit.
-- Dead-code checks run through `pnpm knip`.
-- Markdown lint runs through `pnpm lint:md`.
-- ShellCheck runs against `scripts/*.sh`, `.husky/commit-msg`, and `.husky/pre-commit`.
+Example issue patterns:
 
-Factory implications:
+| Issue pattern | Source files to inspect | Factory route |
+| --- | --- | --- |
+| A local check exists but does not run in PR CI | `.github/workflows/ci.yml`, `nx.json`, relevant `project.json` | Add the target to affected CI or target dependencies |
+| A quality gate is only run on main | `.github/workflows/ci.yml` | Move or duplicate the gate into the PR workflow |
+| A generated-doc or smoke-test failure can reach review | `.github/workflows/ci.yml`, package targets | Add a CI job or affected target coverage |
+| An external scanner is the authoritative check | `.github/workflows/ci.yml`, external scanner config | Configure CI to fail on the scanner result |
 
-- A guardrail that must block PRs needs to be attached to a target included in affected CI or to a separate CI job.
-- Repository-wide checks live in root `project.json`: `lint-md`, `depcruise`, `knip`, and `role-check`.
-- Nx target dependencies in `nx.json` mean `lint`, `build`, and `test` already force role-check and upstream builds.
-- Generated documentation is checked by `check-generated-docs`; changes that alter generated output must keep generated sources and checked output synchronized.
+Verification sources:
+
+- Workflow job definitions in `.github/workflows/ci.yml`
+- Nx target dependency graph in `nx.json`
+- Root and package targets in `project.json` files
 
 ## Enforcement Surfaces
 
-### ESLint: syntax, AST, imports, naming, test smell, and local code shape
+### ESLint and custom rules: syntax, imports, naming, tests, and local code shape
 
-Files:
+Read these source files directly:
 
 - `eslint.config.mjs`
 - `.eslint-rules/no-generic-names.js`
 - `packages/riviere-extract-conventions/src/eslint/*.cjs`
 - `packages/riviere-extract-conventions/src/eslint/*.spec.ts`
 
-What it currently enforces:
+Use this surface when the issue can be detected from one file's syntax, AST shape, import declarations, filename, class name, test structure, or deterministic metadata.
 
-- TypeScript safety:
-  - no explicit `any`
-  - no unsafe assignment
-  - no unsafe member access
-  - no unsafe call
-  - no unsafe return
-  - no type assertions through `@typescript-eslint/consistent-type-assertions` with `assertionStyle: never`
-  - no non-null assertions
-- Mutation avoidance:
-  - bans `let`
-  - bans `var`
-  - enforces `prefer-const`
-- Fail-fast pressure:
-  - bans `new Error()` so precise custom errors are used instead of generic errors
-  - bans `?? ''` through a `no-restricted-syntax` selector
-  - prefers nullish coalescing and optional chains where TypeScript can prove safety
-- Self-documenting code pressure:
-  - bans inline comments
-  - disables comment-format rules because comments should not be present as implementation crutches
-- Naming:
-  - enforces naming conventions for variables, functions, parameters, type-like declarations, enum members, and object literal properties
-  - runs `custom/no-generic-names`
-  - `.eslint-rules/no-generic-names.js` rejects generic filename and class-name fragments such as `utils`, `helpers`, `helper`, `service`, `manager`, `processor`, and `data`
-- Structure and imports:
-  - requires extensionless TypeScript imports
-  - rejects duplicate imports
-  - rejects imports from generic folders: `utils`, `helpers`, `common`, `shared`, `core`, and project-local `lib`
-  - rejects CommonJS globals `__dirname` and `__filename`
-- Complexity:
-  - caps files at 400 non-blank, non-comment lines
-  - caps entrypoint, command, and query orchestration files at 150 lines, with named exceptions
-  - caps max nesting depth at 3
-  - caps cyclomatic complexity at 12
-- Entrypoint thinness:
-  - bans private function declarations in `entrypoint/**`
-  - bans private arrow functions in `entrypoint/**`
-  - repeats `let`, generic `Error`, and `?? ''` bans for entrypoints
-- Public API documentation:
-  - enforces JSDoc on selected public library API files
-- Eclair frontend quality:
-  - bans React array index keys
-  - enforces selected accessibility checks
-- Vitest test quality:
-  - no conditional expects
-  - no conditional tests
-  - prefer strict equality
-  - force `it` naming
-  - force `.spec.ts` and `.spec.tsx` filenames
-  - cap expects per test at 4
-  - require thrown error messages
-  - prefer `vi.spyOn`
-  - prefer `toHaveLength`
-  - prefer called-with assertions
+Example issue patterns:
+
+| Issue pattern | Concrete violating example | Source files to inspect | Factory route |
+| --- | --- | --- | --- |
+| Required data is hidden by a silent fallback | `const owner = issue.owner ?? ''` when `owner` must exist | `eslint.config.mjs`, relevant convention docs | Add or adjust a selector/custom rule that rejects unsafe fallback shapes |
+| Product code introduces generic names | `src/platform/helpers/date-helper.ts` or `class DataManager` | `.eslint-rules/no-generic-names.js`, `eslint.config.mjs` | Extend the naming rule if the forbidden fragment is structurally detectable |
+| Entrypoint gains business logic | CLI entrypoint parses input and also computes domain decisions in private helpers | `eslint.config.mjs`, dependency rules, ADR-002 | Use ESLint for local function/complexity shapes; use dependency rules for imports |
+| Test title and assertion drift apart | `it('returns only active users')` asserts only `result.length` | Vitest ESLint config, custom rule specs | Add a Vitest/custom rule only when the mismatch has a deterministic shape |
+| TypeScript escape hatch hides a bug | `value as KnownType`, `any`, or non-null assertion in production code | `eslint.config.mjs` | Adjust TypeScript safety rules or add a specific selector |
+| Public API documentation is omitted | Exported public API type has no required JSDoc in a public entry file | `eslint.config.mjs`, public API file patterns | Adjust JSDoc rule scope or public API file selection |
+| Comment explains implementation instead of code being self-documenting | Inline comment compensates for unclear control flow | `eslint.config.mjs`, convention docs | Use lint only for comment presence; use review guidance for semantic naming quality |
 
 Configuration mechanics:
 
-- `no-restricted-syntax` handles stable AST selector checks.
-- Custom ESLint rules handle path-aware logic, multiple AST conditions, fixer logic, and explicit accepted/rejected examples.
-- Custom rule tests live next to rules in `packages/riviere-extract-conventions/src/eslint`.
-- `.eslint-rules/no-generic-names.js` handles filename and class-name naming enforcement.
-- Markdown instructions are advisory and do not create deterministic ESLint rejection.
+- `no-restricted-syntax` is the route for one stable selector.
+- A custom ESLint rule is the route for path-aware logic, multi-node AST logic, fixer logic, or accepted/rejected fixtures.
+- `.eslint-rules/no-generic-names.js` is the existing naming-specialized rule surface.
+- Rule tests belong next to custom rules when the rule has its own implementation.
 
 Verification commands:
 
-- Root lint: `pnpm exec nx affected -t lint --verbose`
-- Package rule tests: `pnpm exec nx test riviere-extract-conventions`
-- Full local gate: `pnpm run verify`
+- `pnpm exec nx affected -t lint --verbose`
+- `pnpm exec nx test riviere-extract-conventions`
+- `pnpm run verify`
 
-### Riviere role enforcement: architectural roles and location-specific declarations
+### Riviere role enforcement: architectural roles and declaration contracts
 
-Files:
+Read these source files directly:
 
 - `.riviere/role-enforcement.config.ts`
 - `.riviere/roles.ts`
 - `.riviere/role-definitions/**`
 - `.riviere/canonical-role-configurations.md`
 - `packages/riviere-role-enforcement/src/**`
+- `packages/riviere-role-enforcement/role-enforcement-plugin.mjs`
 
-What it currently enforces:
-
-- Enforced packages:
-  - `packages/riviere-cli`
-  - `packages/riviere-extract-ts`
-  - `packages/riviere-builder`
-  - `packages/riviere-query`
-  - `packages/riviere-role-enforcement`
-  - `tools/dev-workflow-v2`
-- Ignored paths:
-  - specs
-  - fixtures
-  - generated fixture-style files listed in `ignorePatterns`
-- Location rules:
-  - `src/features/{feature}/entrypoint` allows `cli-entrypoint` and forbids persistence imports
-  - `src/features/{feature}/commands` allows command use-case roles and forbids CLI infra imports
-  - `src/features/{feature}/queries` allows query use-case and query model roles and forbids CLI infra imports
-  - `src/features/{feature}/domain` allows aggregate, value object, domain service, domain error, and query model roles
-  - `src/features/{feature}/infra/external-clients/{client}` allows external-client service, model, and error roles
-  - `src/features/{feature}/infra/persistence` allows aggregate repositories and query-model loaders
-  - `src/features/{feature}/infra/cli/output` allows CLI output formatters
-  - `src/platform/domain` allows shared domain roles
-  - `src/platform/infra/external-clients/{client}` allows external-client roles
-  - `src/platform/infra/cli/input` allows CLI input validators
-  - `src/platform/infra/cli/presentation` allows CLI output formatters and CLI errors
-  - `src/shell` allows `main`
-- Role behavior:
-  - command use cases require `*Input` inputs and `*Result` outputs, one public method, and no command-use-case dependency
-  - query use cases require query input/output roles, one public method, and no query-use-case dependency
-  - repositories and loaders have allowed outputs and cannot depend on peers of the same role
-  - aggregates require public behavior and have approved aggregate instances
-  - `main` cannot call command use cases, query use cases, repositories, or loaders directly
-  - role annotations use `/** @riviere-role <role> */`
-
-How role enforcement works:
-
-1. `.riviere/roles.ts` defines valid role names and role contracts.
-2. `.riviere/role-enforcement.config.ts` maps those roles to folders.
-3. Each exported top-level function, class, interface, or type alias in an enforced package must have exactly one `@riviere-role` annotation.
-4. The role-enforcement command builds an oxlint config from `.riviere/role-enforcement.config.ts`.
-5. The oxlint plugin checks every enforced TypeScript file except ignored specs and fixtures.
-6. The plugin rejects:
-   - missing role annotations on exported declarations,
-   - unknown roles,
-   - multiple roles on one declaration,
-   - a role applied to the wrong declaration kind,
-   - a role placed in a folder where it is not allowed,
-   - declaration names that violate role `nameMatches` or `allowedNames`,
-   - classes with too few or too many public methods,
-   - function/class method inputs or outputs whose referenced types have disallowed roles,
-   - imports from files exporting roles listed in `forbiddenDependencies`,
-   - non-construction usage of imports whose roles are listed in `forbiddenMethodCalls`,
-   - path imports matching folder-level `forbiddenImports`.
+Use this surface when the issue is about exported declaration responsibility, allowed role location, role-to-role dependency, public method count, role-specific naming, or function/class input/output role contracts.
 
 Role definition example:
 
@@ -209,14 +124,6 @@ role('command-use-case', {
   maxPublicMethods: 1,
 })
 ```
-
-Operational meaning:
-
-- `targets` means only exported classes and functions may use `@riviere-role command-use-case`.
-- `allowedInputs` means a function or public class method must accept exactly one parameter whose referenced type is annotated with `command-use-case-input`.
-- `allowedOutputs` means the return type must resolve to declarations annotated with `command-use-case-result`.
-- `forbiddenDependencies` means the file cannot import from another file exporting `command-use-case`.
-- `minPublicMethods` and `maxPublicMethods` mean a command-use-case class must expose exactly one public method.
 
 Annotated code example:
 
@@ -239,16 +146,21 @@ export class EnrichComponent {
 }
 ```
 
-Failures this catches:
+Example issue patterns:
 
-- `EnrichComponent` has no `@riviere-role` annotation.
-- `EnrichComponent` is annotated as `domain-service` while living under `commands/`.
-- `execute` accepts a type that is not annotated as `command-use-case-input`.
-- `execute` returns a type that is not annotated as `command-use-case-result`.
-- `EnrichComponent` has two public methods.
-- `EnrichComponent` imports another command use case.
+| Issue pattern | Concrete violating example | Source files to inspect | Factory route |
+| --- | --- | --- | --- |
+| Exported declaration has the wrong responsibility for its folder | `domain/save-to-database.ts` exports `@riviere-role external-client-service` | `.riviere/role-enforcement.config.ts`, `.riviere/roles.ts` | Adjust allowed roles for the location or add a missing location |
+| Use case accepts unclassified input | `execute(input: RawCliOptions)` where the type has no input role | `.riviere/roles.ts`, plugin input/output checks | Add or adjust `allowedInputs` and fixtures |
+| Use case returns an unapproved output role | Command returns a query model or raw infrastructure response | `.riviere/roles.ts`, role definitions | Add/adjust `allowedOutputs` or split result roles |
+| Peer use cases compose each other | One command imports another `command-use-case` and calls it | `.riviere/roles.ts`, role-enforcement tests | Add/adjust `forbiddenDependencies` |
+| Wiring layer calls collaborators directly | `main` calls `RunCommand.execute()` instead of only constructing wiring | `.riviere/roles.ts`, forbidden-method-call tests | Add/adjust `forbiddenMethodCalls` |
+| Class exposes too much public behavior | Command class has `execute`, `validate`, and `format` public methods | `.riviere/roles.ts`, public method checks | Add/adjust `minPublicMethods` and `maxPublicMethods` |
+| Role name convention is too weak | Aggregate or use-case name hides responsibility | `.riviere/roles.ts`, role definition docs | Add/adjust `nameMatches` or `allowedNames` |
 
-Location configuration example:
+Simplified location concept example:
+
+This is an illustrative shape, not a source-of-truth copy. Inspect `.riviere/role-enforcement.config.ts` for actual locations, allowed roles, and forbidden imports.
 
 ```typescript
 location<RoleName>('src/features/{feature}')
@@ -261,253 +173,158 @@ location<RoleName>('src/features/{feature}')
   .subLocation('/domain', domainRoles)
 ```
 
-Operational meaning:
+Decision boundary:
 
-- The `{feature}` placeholder expands to a wildcard feature segment.
-- Every configured package receives these same folder rules under its own `src/` directory.
-- Files in `src/features/<feature>/entrypoint` may export only `cli-entrypoint` declarations.
-- Entrypoint files cannot import anything whose resolved path matches `**/infra/persistence/**`.
-- Command files may export only command roles and cannot import CLI infra.
-- Domain files may export only domain roles.
-
-Failure example — wrong role in wrong folder:
-
-```typescript
-// packages/riviere-cli/src/features/building/domain/save-to-database.ts
-
-/** @riviere-role external-client-service */
-export function saveToDatabase(): void {}
-```
-
-Why it fails:
-
-- `domain/` only allows `aggregate`, `value-object`, `domain-service`, `domain-error`, and `query-model`.
-- `external-client-service` belongs under `infra/external-clients/{client}`.
-
-Failure example — forbidden role dependency:
-
-```typescript
-// commands/enrich-component.ts
-import { ValidateComponent } from './validate-component'
-
-/** @riviere-role command-use-case */
-export class EnrichComponent {
-  execute(input: EnrichComponentInput): EnrichComponentResult {
-    return new ValidateComponent().execute(input)
-  }
-}
-```
-
-Why it fails:
-
-- `ValidateComponent` is exported from a file annotated with `command-use-case`.
-- `command-use-case` has `forbiddenDependencies: ['command-use-case']`.
-- Commands must orchestrate dependencies, not compose peer use cases.
-
-Failure example — forbidden method call role:
-
-```typescript
-/** @riviere-role main */
-export function run(): void {
-  EnrichComponent.executeStatically()
-}
-```
-
-Why it fails:
-
-- The `main` role lists `command-use-case`, `query-model-use-case`, `aggregate-repository`, and `query-model-loader` in `forbiddenMethodCalls`.
-- A `main` file may construct wiring objects, but it cannot use imported use cases, repositories, or loaders as collaborators directly.
-- The plugin accepts `new EnrichComponent(...)` but rejects `EnrichComponent.someMethod`, passing `EnrichComponent` as a value, or other non-construction usage.
-
-When to choose role enforcement instead of dependency-cruiser:
-
-- Choose role enforcement when the rule is about what an exported declaration is allowed to be.
-- Choose role enforcement when the rule depends on annotations such as `command-use-case`, `aggregate-repository`, or `main`.
-- Choose role enforcement when a class/function contract must be constrained by input/output roles or public-method count.
-- Choose role enforcement when a role must not depend on another role even if the folders would otherwise permit the import.
-- Choose dependency-cruiser when the rule is only about path-to-path imports or folder shape.
-
-Role-enforcement extension points:
-
-| Problem | Change | Example implementation target |
-| --- | --- | --- |
-| A new kind of declaration needs a role | Add a role to `RoleName`, `allRoles`, and `.riviere/role-definitions/<role>.md` | `.riviere/roles.ts` |
-| Existing role appears in the wrong folder | Adjust allowed roles for a `.subLocation(...)` or add a new sublocation | `.riviere/role-enforcement.config.ts` |
-| A layer imports a forbidden technical folder | Add `forbiddenImports` to that sublocation | `.riviere/role-enforcement.config.ts` |
-| A role imports another role it should not know about | Add `forbiddenDependencies` to the role definition | `.riviere/roles.ts` |
-| A wiring role constructs dependencies but must not call them | Add `forbiddenMethodCalls` | `.riviere/roles.ts` |
-| A role must have a precise input or output type | Add `allowedInputs` or `allowedOutputs` | `.riviere/roles.ts` |
-| A role must expose only one public method | Add `minPublicMethods` and `maxPublicMethods` | `.riviere/roles.ts` |
-| A role name must follow a convention | Add `nameMatches` or `allowedNames` | `.riviere/roles.ts` |
-
-Configuration mechanics:
-
-- `.riviere/roles.ts` defines declaration responsibilities, role target types, name matching, allowed inputs, allowed outputs, public-method counts, forbidden dependencies, and forbidden method calls.
-- `.riviere/role-enforcement.config.ts` defines where roles are allowed and which folder-specific imports are forbidden.
-- `forbiddenImports` handles layer dependencies that follow path patterns.
-- `forbiddenDependencies` and `forbiddenMethodCalls` handle role-to-role constraints rather than path-only constraints.
+- Use role enforcement when the rule depends on `@riviere-role` annotations or exported declaration contracts.
+- Use dependency-cruiser when the rule is only about path-to-path imports or folder shape.
 
 Verification commands:
 
-- Whole workspace: `pnpm exec nx run @living-architecture/source:role-check`
-- Package-scoped: `pnpm exec tsx packages/riviere-role-enforcement/src/shell/bin.ts .riviere/role-enforcement.config.ts --package <package-path>`
-- Role-enforcement package tests: `pnpm exec nx test riviere-role-enforcement`
+- `pnpm exec nx run @living-architecture/source:role-check`
+- `pnpm exec tsx packages/riviere-role-enforcement/src/shell/bin.ts .riviere/role-enforcement.config.ts --package <package-path>`
+- `pnpm exec nx test riviere-role-enforcement`
 
 ### Dependency Cruiser: path-level architecture and import graph rules
 
-Files:
+Read these source files directly:
 
 - `.dependency-cruiser.mjs`
 - `.dependency-cruiser.frontend.mjs`
 - `.dependency-cruiser.specs.mjs`
 - `package.json`
 
-What it currently enforces:
+Use this surface when the issue is a file-path, folder-shape, import-direction, cross-feature dependency, or circular-dependency problem that does not require role annotations.
 
-- Backend/package graph rules in `.dependency-cruiser.mjs`:
-  - `src/` root contains only `features/`, `platform/`, `shell/`, and `index.ts` for layered packages
-  - `platform/` contains only `domain/` and `infra/`
-  - feature folders contain only `entrypoint/`, `commands/`, `queries/`, `domain/`, and `infra/`
-  - commands and queries are flat; nested command/query folders fail
-  - entrypoints cannot import domain
-  - entrypoints can only import own commands, own queries, own infra, and platform infra
-  - entrypoints cannot import platform persistence or external-client infra
-  - domain cannot import commands, queries, entrypoint, shell, or any infra
-  - features cannot import other features
-  - commands cannot import entrypoints, HTTP infra, CLI infra, mappers, middleware, queries, or other features
-  - queries cannot import commands, entrypoints, messaging infra, CLI infra, mappers, or middleware
-  - shell cannot import domain
-  - platform cannot import features
-  - circular dependencies fail
-- Frontend graph rules in `.dependency-cruiser.frontend.mjs`:
-  - permits React-specific `components/` and `hooks/` feature subfolders
-  - permits frontend `main.tsx` and test support folders
-  - enforces frontend entrypoint, domain, command, query, shell, platform, cross-feature, peer-command, and circular restrictions
-- Spec graph rules in `.dependency-cruiser.specs.mjs`:
-  - spec files must be colocated with production code, not at `src/` root
-  - feature files must live in approved structural subfolders
-- Root script:
-  - `pnpm depcruise` runs backend, frontend, and spec cruiser configs.
+Example issue patterns:
+
+| Issue pattern | Concrete violating example | Source files to inspect | Factory route |
+| --- | --- | --- | --- |
+| Domain imports infrastructure | `features/billing/domain/invoice.ts` imports `features/billing/infra/persistence/repository.ts` | `.dependency-cruiser.mjs`, ADR-002 | Add/adjust a forbidden dependency rule |
+| Feature imports another feature | `features/search/commands/index.ts` imports `features/users/domain/user.ts` | `.dependency-cruiser.mjs`, frontend config if applicable | Add/adjust cross-feature import rule |
+| Entrypoint bypasses use cases | `entrypoint/cli.ts` imports domain objects or persistence directly | `.dependency-cruiser.mjs`, role config | Use dependency-cruiser for path import; role enforcement for exported role placement |
+| Commands or queries become nested mini-apps | `features/building/commands/enrich/helpers/normalize.ts` | `.dependency-cruiser.mjs` | Add/adjust folder-shape rule |
+| Spec file is detached from production code | `src/my-feature.spec.ts` at package root | `.dependency-cruiser.specs.mjs` | Add/adjust spec placement rule |
+| Frontend-only folder shape is rejected or too permissive | React feature adds `hooks/` or `components/` imports that violate frontend layering | `.dependency-cruiser.frontend.mjs` | Adjust frontend-specific rules, not backend rules |
+| Circular dependency hides orchestration | Command imports presenter that imports the command | Dependency-cruiser configs | Add/adjust circular dependency severity/scope |
 
 Configuration mechanics:
 
-- `.dependency-cruiser.mjs` contains backend and package-source path/import graph rules.
-- `.dependency-cruiser.frontend.mjs` contains frontend-specific structural rules.
-- `.dependency-cruiser.specs.mjs` contains test-file placement rules.
-- Dependency Cruiser operates on resolved imports and paths; role enforcement operates on annotated declaration roles.
+- Backend/package import rules live in `.dependency-cruiser.mjs`.
+- Frontend import rules live in `.dependency-cruiser.frontend.mjs`.
+- Test placement rules live in `.dependency-cruiser.specs.mjs`.
 
 Verification command:
 
 - `pnpm depcruise`
 
-### ADR and architecture docs: source of truth for placement semantics
+### ADR and architecture docs: placement semantics and architectural decisions
 
-Files:
+Read these source files directly:
 
 - `docs/architecture/adr/ADR-002-allowed-folder-structures.md`
 - `docs/architecture/overview.md`
+- dependency-cruiser configs when the decision is enforceable
+- role-enforcement config when the decision is role-based
 
-What ADR-002 defines:
+Use this surface when the architecture decision itself is incomplete or ambiguous. Do not use architecture docs as the only guardrail when the rule can be encoded mechanically.
 
-- Standard feature structure:
-  - `entrypoint/` translates external input/output and must stay thin
-  - `commands/` orchestrates write operations and delegates business rules to domain
-  - `queries/` reads without modifying state
-  - `domain/` contains business rules and no I/O
-  - `infra/` contains feature-specific infrastructure and must use subfolders
-  - `platform/domain/` contains shared business rules and depends on nothing
-  - `platform/infra/` contains shared technical concerns
-  - `shell/` wires startup only and contains no business logic
-- Library packages use the same `features/` and `platform/` structure.
-- Library `src/index.ts` is a pure barrel export file.
-- React apps add `components/` and `hooks/`.
-- Flat packages are allowed only for packages too small for internal layering.
+Example issue patterns:
 
-Configuration mechanics:
-
-- ADR-002 records architectural placement decisions.
-- Dependency-cruiser and role enforcement encode enforceable ADR-002 rules.
-- ADR-only text remains advisory unless paired with deterministic enforcement.
+| Issue pattern | Concrete example | Source files to inspect | Factory route |
+| --- | --- | --- | --- |
+| New folder responsibility is missing from the architecture decision | A feature needs `infra/external-clients/<client>` but ADR-002 does not describe it | ADR-002, dependency-cruiser configs, role config | Update ADR and pair with enforceable rules |
+| Existing terms are ambiguous | `platform` is used for shared domain behavior and for technical adapters without clear boundary | Architecture overview, ADR-002 | Clarify architecture docs, then enforce paths/roles if possible |
+| Review agents disagree with deterministic rules | Architecture review allows a dependency that depcruise rejects | Agent instructions, ADR-002, dependency configs | Align agent guidance to the deterministic rule |
+| A small package should remain flat | A package has no internal layers and deterministic structure rules would be noise | ADR-002, package `project.json`, depcruise scope | Document the exception and keep enforcement scoped |
 
 Verification expectation:
 
-- Pair ADR changes with a deterministic rule change when the rule is enforceable.
-- Run markdown lint and the relevant enforcement command.
+- `pnpm lint:md`
+- Relevant role-check or dependency-cruiser command when the doc decision is enforceable
 
-### Vitest coverage and test execution
+### Vitest coverage and behavior tests
 
-Files:
+Read these source files directly:
 
 - `tools/dev-workflow-v2/vitest.config.mts`
 - package-level Vitest configs
-- project `test` targets inferred by Nx/Vitest
+- package `project.json` test targets
+- tests adjacent to the affected production behavior
 
-What it currently enforces:
+Use this surface when behavior can ship without deterministic proof, coverage excludes production code, or a custom rule needs fixture-level validation.
 
-- `tools/dev-workflow-v2` coverage includes `src/**/*.ts`.
-- Excludes specs, test fixtures, shell, and `src/features/workflow/infra/external-clients/git/**`.
-- Requires 100% lines, statements, functions, and branches.
-- Test execution is part of `pnpm run verify`, Nx affected CI, and package test targets.
+Example issue patterns:
 
-Configuration mechanics:
-
-- Coverage include/exclude patterns determine which production files are measured.
-- Behavior tests provide deterministic proof beyond coverage percentages.
-- Coverage excludes create unmeasured production surfaces.
-- Custom lint rules are usually verified by rule tests rather than coverage-only checks.
+| Issue pattern | Concrete example | Source files to inspect | Factory route |
+| --- | --- | --- | --- |
+| Production code is outside coverage scope | New workflow production folder is not matched by `include` | Vitest config, package test target | Adjust coverage include/exclude and add proof test |
+| Coverage exclusion masks real behavior | External-client code is excluded after gaining business decisions | Vitest config, production file, nearby specs | Remove/narrow exclusion or extract testable domain behavior |
+| Edge-case cluster lacks tests | Bug fix covers one missing field but not adjacent missing/null/empty cases | Relevant specs, conventions/testing docs | Add edge-case checklist or behavior tests |
+| Custom lint rule lacks rejected fixture | Rule exists but only tests passing code | Rule spec file | Add rejected and accepted fixtures |
+| Test passes without proving title | Assertion checks array length but not selected values | Relevant spec file, Vitest lint config | Add a behavior test or deterministic test-smell rule if detectable |
 
 Verification commands:
 
-- Dev workflow package: `pnpm exec nx test dev-workflow-v2`
-- Affected tests: `pnpm exec nx affected -t test --verbose`
-- Full tests: `pnpm test`
+- `pnpm exec nx test dev-workflow-v2`
+- `pnpm exec nx affected -t test --verbose`
+- `pnpm test`
 
-### CodeRabbit configuration and knowledge base
+### Generated documentation and generated artifacts
 
-Files:
+Read these source files directly:
+
+- package generation scripts
+- package `project.json` generated-doc targets
+- `apps/docs` copy/build scripts
+- generated output directories referenced by checks
+
+Use this surface when source-of-truth files and checked generated artifacts can drift.
+
+Example issue patterns:
+
+| Issue pattern | Concrete example | Source files to inspect | Factory route |
+| --- | --- | --- | --- |
+| Generated CLI docs can become stale | Command changes do not update generated CLI reference | CLI generation script, `project.json`, generated docs | Add/update `check-generated-docs` coverage |
+| Docs app copies stale package output | `apps/docs` consumes generated package docs but does not validate source freshness | Docs build scripts, package generated-doc target | Connect source generation to docs verification |
+| API docs include unintended artifacts | Generated reference gains files from local build side effects | Generation config, generated output paths | Fix generation source or cleanup/check target |
+
+Verification commands:
+
+- Relevant package generated-doc check target
+- `pnpm exec nx affected -t check-generated-docs --verbose`
+- `pnpm run verify`
+
+### CodeRabbit, SonarCloud, and external scanners
+
+Read these source files directly:
 
 - `.coderabbit.yaml`
-- `docs/conventions/software-design.md`
-- `docs/conventions/anti-patterns.md`
-- `docs/conventions/testing.md`
-- `docs/conventions/standard-patterns.md`
-- `docs/architecture/adr/ADR-002-allowed-folder-structures.md`
-- `docs/architecture/overview.md`
-- `docs/workflow/code-review.md`
+- `.github/workflows/ci.yml`
+- knowledge-base docs referenced by `.coderabbit.yaml`
 
-What it currently enforces:
+Use this surface only when the authoritative mechanism is external review/scanning, or when a review pattern cannot be made deterministic locally with acceptable accuracy.
 
-- Review profile is assertive.
-- Request-changes workflow is enabled.
-- Linked issue assessment is enabled.
-- Sequence diagrams are enabled.
-- Auto-review is enabled.
-- Pre-merge issue assessment is an error.
-- Docstring pre-merge check is off.
-- Tools enabled:
-  - gitleaks
-  - semgrep
-  - actionlint
-- Knowledge-base guidance includes software design, anti-patterns, testing, standard patterns, ADR-002, architecture overview, and code review workflow docs.
+Example issue patterns:
 
-Configuration mechanics:
-
-- `.coderabbit.yaml` controls CodeRabbit review behavior and enabled external tools.
-- Knowledge-base documents provide review context to CodeRabbit.
-- Stable convention rule IDs make review guidance citeable.
-- `docs/conventions/review-feedback-checks.md` is also consumed locally by `bug-scanner`.
+| Issue pattern | Concrete example | Source files to inspect | Factory route |
+| --- | --- | --- | --- |
+| Secret scanning misses a file class | A new config file type may contain tokens but is not scanned | `.coderabbit.yaml`, CI, scanner docs | Configure scanner/tool coverage |
+| Review assistant lacks repository-specific context | CodeRabbit comments conflict with ADR-002 or project conventions | `.coderabbit.yaml`, knowledge-base docs | Update knowledge-base docs or CodeRabbit config |
+| Static-analysis quality gate is not blocking | SonarCloud result is advisory in PR workflow | `.github/workflows/ci.yml` | Make CI wait/fail on the scanner result |
+| Learned review pattern is semantic, not lintable | Reviewer identifies a domain modeling smell requiring judgment | Convention docs, agent docs, `.coderabbit.yaml` | Add convention/knowledge-base guidance after rejecting deterministic enforcement |
 
 Verification expectation:
 
-- Markdown lint for docs changes.
-- If the rule is added to `review-feedback-checks.md`, confirm `bug-scanner` already reads that file.
+- Repository-side config can be linted or reviewed locally.
+- External settings must be verified through the service when local proof is unavailable.
 
-### Dev-workflow command and state machine
+### Dev-workflow commands, states, hooks, and plugin integration
 
-Files:
+Read these source files directly:
 
 - `tools/dev-workflow-v2/commands/*.md`
 - `tools/dev-workflow-v2/states/*.md`
+- `tools/dev-workflow-v2/hooks/**`
 - `tools/dev-workflow-v2/src/features/workflow/domain/workflow.ts`
 - `tools/dev-workflow-v2/src/features/workflow/domain/states/*.ts`
 - `tools/dev-workflow-v2/src/features/workflow/domain/registry.ts`
@@ -516,37 +333,18 @@ Files:
 - `tools/dev-workflow-v2/src/shell/opencode-plugin.ts`
 - `tools/dev-workflow-v2/.claude-plugin/plugin.json`
 
-What it currently enforces:
+Use this surface when the workflow agent performs the wrong operation, skips a state, bypasses approval, records the wrong event, fails to block a tool action, or diverges between Claude Code and OpenCode.
 
-- Commands:
-  - `choose-next-task` selects work from available tracks and asks before assignment
-  - `start-implementation` sets branch context, reads the issue, initializes workflow state, and records the issue
-  - `workflow` routes state-machine operations through the TypeScript CLI
-  - `optimize-factory` designs factory guardrail issues from `[FACTORY]` feedback
-- State machine:
-  - implementation moves to review
-  - review must pass architecture-review, code-review, and bug-scanner before PR submission
-  - PR submission records the PR
-  - CI failure returns to implementation
-  - PR feedback routes to reflecting or addressing feedback
-  - blocked state exists for explicit stops
-- Workflow CLI operations:
-  - records issue, branch, review verdicts, PR, CI result, and feedback verification
-  - exposes pre-tool-use policy through `PRE_TOOL_USE_POLICY`
-- OpenCode integration:
-  - `opencode-plugin.ts` registers review subagents from Claude agent files
-  - command template remaps `/dev-workflow-v2:workflow` to the OpenCode workflow tool
-- Plugin cache rule:
-  - changing commands, agents, skills, hooks, or plugin metadata requires a patch bump in `tools/dev-workflow-v2/.claude-plugin/plugin.json`
+Example issue patterns:
 
-Configuration mechanics:
-
-- Command markdown controls workflow instructions.
-- State markdown controls state-specific instructions.
-- TypeScript state-machine code mechanically blocks, records, or transitions workflow behavior.
-- Hooks prevent selected tool actions before execution.
-- `opencode-plugin.ts` controls OpenCode registration and command behavior.
-- Workflow tests live under `tools/dev-workflow-v2/src/features/workflow/**`.
+| Issue pattern | Concrete example | Source files to inspect | Factory route |
+| --- | --- | --- | --- |
+| Command allows action before approval | Factory issue is created before options are discussed and approved | Relevant command markdown, workflow state instructions | Tighten command instructions or add mechanical state guard |
+| Agent relies on the map instead of reading source | Proposal cites `factory-map.md` examples as enforcement proof | `optimize-factory.md`, factory docs | Add command instruction requiring direct source inspection |
+| Tool action must be impossible | Agent writes files while in a read-only workflow state | Hook policy, workflow state machine, tests | Add hook/state-machine guard and tests |
+| PR feedback transition records incomplete data | Feedback exists but workflow moves to reflecting | Workflow CLI, event fold, GitHub feedback client tests | Add transition/event tests |
+| OpenCode and Claude Code behavior diverge | Slash command works in Claude Code but maps incorrectly in OpenCode | `opencode-plugin.ts`, command templates | Update plugin bridge and registration tests |
+| Plugin changes are not picked up | Command changed without plugin patch version bump | `.claude-plugin/plugin.json`, plugin docs | Bump patch version with plugin-facing changes |
 
 Verification commands:
 
@@ -555,9 +353,9 @@ Verification commands:
 - `pnpm exec nx lint dev-workflow-v2`
 - `pnpm run verify`
 
-### Review agents and semantic review checks
+### Review agents and convention memory
 
-Files:
+Read these source files directly:
 
 - `tools/dev-workflow-v2/agents/architecture-review.md`
 - `tools/dev-workflow-v2/agents/code-review.md`
@@ -569,116 +367,40 @@ Files:
 - `docs/conventions/testing.md`
 - `docs/conventions/review-feedback-checks.md`
 
-What the agents currently do:
+Use this surface for semantic review checks that cannot be encoded reliably by lint, role enforcement, dependency-cruiser, tests, CI, or hooks.
 
-- `architecture-review`:
-  - enforces separation of concerns, architecture overview, and ADR-002
-  - skips tests
-  - writes a full audit report
-  - returns `{"verdict":"PASS"}` or `{"verdict":"FAIL"}`
-  - audits every reviewed production file against every architecture rule
-- `code-review`:
-  - reads software design, standard patterns, anti-patterns, testing conventions, and ESLint config
-  - rejects design and testing violations
-  - must not suggest patterns banned by ESLint
-  - writes a full audit report with findings, audit trail, and summary
-- `bug-scanner`:
-  - checks anti-patterns and `docs/conventions/review-feedback-checks.md`
-  - scans for silent errors, type assertions, async errors, dangerous fallbacks, race conditions, logic errors, framework misuse, dangerous config changes, security issues, inconsistent patterns, and learned RFC checks
-- `task-check`:
-  - extracts task acceptance criteria
-  - reads referenced PRD sections
-  - verifies edge cases by literal scenario matching
-  - checks brand consistency for UI work
-  - verifies wiring behavior, not just structure
+Example issue patterns:
 
-Configuration mechanics:
-
-- Agent instructions provide semantic review checks.
-- `docs/conventions/review-feedback-checks.md` stores learned PR review patterns consumed by `bug-scanner`.
-- Convention rule IDs provide stable references for review agents.
-- `architecture-review.md` handles responsibility checks that are not encoded in role/dependency rules.
+| Issue pattern | Concrete example | Source files to inspect | Factory route |
+| --- | --- | --- | --- |
+| Semantic design smell is not AST-detectable | Code technically follows layers but puts domain decision-making in a DTO mapper | Architecture/code review agents, conventions | Add review-agent guidance with a stable convention rule ID |
+| Prior PR feedback should become reusable memory | Reviewer repeatedly catches the same non-deterministic bug pattern | `review-feedback-checks.md`, `bug-scanner.md` | Add learned review-feedback check consumed by bug-scanner |
+| Task acceptance checks miss required behavior | Implementation satisfies structure but not issue acceptance criteria | `task-check.md`, workflow docs | Tighten task-check instructions |
+| Review agent suggests lint-banned code | Code-review guidance recommends comments or type assertions | `code-review.md`, ESLint config, conventions | Align review guidance with deterministic lint constraints |
+| Architecture review misses a responsibility boundary | Entrypoint remains thin by lines but still owns semantic business decisions | `architecture-review.md`, ADR-002 | Add semantic audit instruction only if deterministic enforcement is not viable |
 
 Verification expectation:
 
-- Agent prompt changes are verified through markdown lint and by running the workflow review path when practical.
-- Deterministic tests are required for TypeScript workflow changes.
-- Plugin patch version bump is required for agent changes.
+- `pnpm lint:md`
+- Workflow review path when practical
+- Deterministic workflow tests when agent behavior is backed by TypeScript state or hook changes
 
-### Convention documents as last-resort memory
+## Selection Rules
 
-Files:
+Use these routing rules after reading the relevant source files:
 
-- `docs/conventions/software-design.md`
-- `docs/conventions/standard-patterns.md`
-- `docs/conventions/anti-patterns.md`
-- `docs/conventions/testing.md`
-- `docs/conventions/review-feedback-checks.md`
+1. Use ESLint/custom rules for one-file syntax, AST, import declaration, naming, and test-shape problems.
+2. Use role enforcement for exported declaration roles, role locations, role dependencies, and role contracts.
+3. Use dependency-cruiser for path shape and import graph problems.
+4. Use tests and coverage for missing deterministic behavior proof.
+5. Use generated-doc checks for source/generated artifact drift.
+6. Use CI/local hooks when an existing check exists but does not run at the required lifecycle point.
+7. Use workflow state, hooks, or plugin code when the AI workflow itself must be constrained.
+8. Use review agents or convention docs only when deterministic enforcement is unavailable or intentionally rejected.
 
-Current rule sets:
+Any new factory surface added to the repository should add a new section here with:
 
-- Software design:
-  - fail-fast over silent fallbacks
-  - no `any` and no `as`
-  - illegal states unrepresentable
-  - inject dependencies
-  - intention-revealing names
-  - no implementation comments
-  - Zod for runtime validation
-  - object calisthenics and feature-envy checks
-- Standard patterns:
-  - Zod branded types
-  - discriminated unions for mixed return types
-  - role annotations in enforced packages
-- Anti-patterns:
-  - no quality sacrifice for file limits
-  - do not change assertions blindly when tests fail
-  - empty-string parameter smell
-  - no cross-package test fixture exports
-  - justified coverage ignores only
-  - use `jq` for JSON construction in shell
-  - consistent patterns across related functions
-- Testing:
-  - test names describe outcomes
-  - assertions match test titles
-  - assert specific values
-  - one concept per test
-  - bug clusters imply related edge-case tests
-  - edge-case checklists by input type
-- Review feedback checks:
-  - learned rules from prior PR feedback, consumed by `bug-scanner`
-
-Configuration mechanics:
-
-- Convention rules store advisory guidance when deterministic enforcement is not available.
-- `review-feedback-checks.md` stores patterns learned from review comments.
-- Stable IDs allow review agents to cite durable conventions.
-
-Verification expectation:
-
-- Markdown lint.
-- If a review agent consumes the convention, state which agent and which instruction already loads the file.
-
-### CodeRabbit, SonarCloud, and external scanners
-
-Files:
-
-- `.coderabbit.yaml`
-- `.github/workflows/ci.yml`
-
-Current mechanics:
-
-- CodeRabbit is assertive, auto-reviews PRs, requests changes, assesses linked issues, and runs gitleaks, semgrep, and actionlint.
-- CodeRabbit knowledge base is populated from convention, architecture, and workflow docs.
-- CI runs SonarCloud with `sonar.qualitygate.wait=true`.
-
-Configuration mechanics:
-
-- CodeRabbit configuration controls enabled external review tools and knowledge-base paths.
-- SonarCloud provides an external static-analysis quality gate.
-- Repository-local deterministic enforcement remains the local source of truth.
-
-Verification expectation:
-
-- Repository-side config can be linted or reviewed.
-- External setting changes may not be locally verifiable; repository-side config remains the only local source of truth.
+- source files to read,
+- issue patterns it can catch,
+- the boundary between this surface and adjacent surfaces,
+- verification commands.

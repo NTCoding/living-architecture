@@ -12,13 +12,14 @@ Accepted forms:
 
 ## Operating Principle
 
-The factory is the repository-specific system documented in `tools/dev-workflow-v2/docs/factory/factory-map.md`. Read that map before proposing anything. Do not rely on generic guardrail categories when the map names the exact file, rule set, workflow, agent, or convention that already exists.
+The factory is the repository-specific system routed by `tools/dev-workflow-v2/docs/factory/factory-map.md`. Read that map before proposing anything, but treat it only as a snapshot and routing guide. Do not cite the map as proof of enforcement. Read the complete relevant source files at command execution time.
 
 Never fix the product code under review. Design changes to the factory so the same issue is prevented or detected next time.
 
 Every proposal must state:
 
-- what the current factory already enforces,
+- which factory source files were inspected,
+- what enforcement was observed in those source files,
 - which exact factory file or capability should change,
 - what gap remains after existing enforcement is considered,
 - how the proposed enforcement will be verified.
@@ -38,7 +39,7 @@ Read these files before discussing any solution:
 - `tools/dev-workflow-v2/docs/factory/README.md`
 - `tools/dev-workflow-v2/docs/factory/factory-map.md`
 
-Use the factory map to decide which exact factory files must be inspected for the source issue. Inspect the relevant current files, not just their summaries in the map.
+Use the factory map to decide which exact factory files must be inspected for the source issue. Inspect the relevant source files in full at command execution time. Do not use map examples, headings, or summaries as evidence of enforcement.
 
 ## Step 3A: PR mode — fetch source material
 
@@ -48,7 +49,7 @@ Resolve the PR number:
 gh pr view <PR_NUMBER_OR_URL> --json number,url,title,body,author,headRefName,baseRefName,reviewDecision,comments,reviews,files
 ```
 
-Resolve the current repository:
+Resolve the repository:
 
 ```bash
 gh repo view --json nameWithOwner
@@ -104,7 +105,7 @@ For every selected item, read all relevant context:
 - the full marked thread or PR comment
 - the referenced file and line range
 - surrounding code needed to understand the pattern
-- exact relevant factory files from `tools/dev-workflow-v2/docs/factory/factory-map.md`
+- exact relevant factory source files identified through `tools/dev-workflow-v2/docs/factory/factory-map.md`
 
 ## Step 3B: Ad-hoc mode — collect source material
 
@@ -112,7 +113,7 @@ Restate the factory weakness described by the user.
 
 Ask whether prior factory memory should be searched before proposal if the answer is not obvious from the request.
 
-Read the exact factory files and product examples needed to understand the pattern. Do not modify files.
+Read the exact factory source files and product examples needed to understand the pattern. Do not modify files.
 
 ## Step 4: Search factory memory
 
@@ -136,7 +137,7 @@ If memory is used, record:
 - the prior issue URL
 - the similarity
 - the prior resolution
-- how it influences the current proposal
+- how it influences this proposal
 
 If no relevant memory exists, state that no matching factory memory was found.
 
@@ -157,10 +158,10 @@ Source:
 Problem pattern:
 - <specific recurring weakness>
 
-Current factory context:
+Inspected factory context:
 - Existing enforcement files inspected: <exact paths>
-- Existing enforcement found: <what currently blocks or reviews this pattern>
-- Factory gap: <what is not currently blocked or reviewed reliably>
+- Existing enforcement observed in source: <what blocks or reviews this pattern at command execution time>
+- Factory gap: <what is not blocked or reviewed reliably>
 
 Factory memory:
 - <prior issue references and influence, or "No matching factory memory found.">
@@ -241,12 +242,12 @@ factory optimization
 
 <full context needed by the implementation agent>
 
-## Current Factory Context
+## Inspected Factory Context
 
 - Existing enforcement files inspected:
   - <exact path>
-- Existing enforcement found:
-  - <specific existing guardrail>
+- Existing enforcement observed in source:
+  - <specific guardrail observed at command execution time>
 - Factory gap:
   - <specific gap this issue closes>
 
