@@ -118,6 +118,12 @@ describe('WORKFLOW_DEFINITION', () => {
       expect(registry.REVIEWING).toBeDefined()
       expect(registry.COMPLETE).toBeDefined()
     })
+
+    it('marks COMPLETE and BLOCKED as write-forbidden states', () => {
+      const registry = WORKFLOW_DEFINITION.getRegistry()
+      expect(registry.BLOCKED.forbidden).toStrictEqual({ write: true })
+      expect(registry.COMPLETE.forbidden).toStrictEqual({ write: true })
+    })
   })
 
   describe('buildTransitionContext', () => {
