@@ -1,134 +1,89 @@
+import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import {
   spec,
   eventsToReviewing,
   eventsToSubmittingPr,
   eventsToAwaitingCi,
+  makeDeps,
+  reviewRecorded,
 } from './fixtures/workflow-test-fixtures'
+import { Workflow } from './workflow'
+import { applyEvents } from './fold'
+import { reviewingState } from './states/reviewing'
+
+function getReviewingTransitionGuard(): NonNullable<typeof reviewingState.transitionGuard> {
+  const transitionGuard = reviewingState.transitionGuard
+  if (transitionGuard === undefined) {
+    throw new WorkflowStateError('Expected REVIEWING state to define a transition guard.')
+  }
+  return transitionGuard
+}
 
 describe('Workflow', () => {
   describe('REVIEWING state', () => {
-    it('records architecture review passed', () => {
-      const {
-        result, state, events 
-      } = spec
-        .given(...eventsToReviewing())
-        .when((wf) => wf.executeRecording('record-architecture-review-passed'))
-      expect(result).toStrictEqual({ pass: true })
-      expect(state.architectureReviewPassed).toBe(true)
-      expect(events).toStrictEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            type: 'architecture-review-completed',
-            passed: true,
-          }),
-        ]),
-      )
+    it('marks architecture review as passed when latest architecture review verdict passed', () => {
+      const workflow = Workflow.rehydrate(applyEvents(eventsToReviewing()), makeDeps())
+      workflow.appendEvent(reviewRecorded('architecture-review', 'PASS'))
+
+      expect(workflow.getState().architectureReviewPassed).toBe(true)
     })
 
-    it('records architecture review failed', () => {
-      const {
-        result, state 
-      } = spec
-        .given(...eventsToReviewing())
-        .when((wf) => wf.executeRecording('record-architecture-review-failed'))
-      expect(result).toStrictEqual({ pass: true })
-      expect(state.architectureReviewPassed).toBe(false)
+    it('marks architecture review as failed when latest architecture review verdict failed', () => {
+      const workflow = Workflow.rehydrate(applyEvents(eventsToReviewing()), makeDeps())
+      workflow.appendEvent(reviewRecorded('architecture-review', 'PASS'))
+      workflow.appendEvent(reviewRecorded('architecture-review', 'FAIL'))
+
+      expect(workflow.getState().architectureReviewPassed).toBe(false)
     })
 
-    it('records code review passed', () => {
-      const {
-        result, state 
-      } = spec
-        .given(...eventsToReviewing())
-        .when((wf) => wf.executeRecording('record-code-review-passed'))
-      expect(result).toStrictEqual({ pass: true })
-      expect(state.codeReviewPassed).toBe(true)
+    it('marks code review as passed when latest code review verdict passed', () => {
+      const workflow = Workflow.rehydrate(applyEvents(eventsToReviewing()), makeDeps())
+      workflow.appendEvent(reviewRecorded('code-review', 'PASS'))
+
+      expect(workflow.getState().codeReviewPassed).toBe(true)
     })
 
-    it('records code review failed', () => {
-      const {
-        result, state 
-      } = spec
-        .given(...eventsToReviewing())
-        .when((wf) => wf.executeRecording('record-code-review-failed'))
-      expect(result).toStrictEqual({ pass: true })
-      expect(state.codeReviewPassed).toBe(false)
+    it('marks bug scanner as failed when latest bug scanner verdict failed', () => {
+      const workflow = Workflow.rehydrate(applyEvents(eventsToReviewing()), makeDeps())
+      workflow.appendEvent(reviewRecorded('bug-scanner', 'FAIL'))
+
+      expect(workflow.getState().bugScannerPassed).toBe(false)
     })
 
-    it('records bug scanner passed', () => {
-      const {
-        result, state 
-      } = spec
-        .given(...eventsToReviewing())
-        .when((wf) => wf.executeRecording('record-bug-scanner-passed'))
-      expect(result).toStrictEqual({ pass: true })
-      expect(state.bugScannerPassed).toBe(true)
+    it('marks task check as passed when latest task check verdict passed', () => {
+      const workflow = Workflow.rehydrate(applyEvents(eventsToReviewing()), makeDeps())
+      workflow.appendEvent(reviewRecorded('task-check', 'PASS'))
+
+      expect(workflow.getState().taskCheckPassed).toBe(true)
     })
 
-    it('records bug scanner failed', () => {
-      const {
-        result, state 
-      } = spec
-        .given(...eventsToReviewing())
-        .when((wf) => wf.executeRecording('record-bug-scanner-failed'))
-      expect(result).toStrictEqual({ pass: true })
-      expect(state.bugScannerPassed).toBe(false)
+    it('uses the latest task check review attempt when multiple attempts exist', () => {
+      const workflow = Workflow.rehydrate(applyEvents(eventsToReviewing()), makeDeps())
+      workflow.appendEvent(reviewRecorded('task-check', 'FAIL'))
+      workflow.appendEvent(reviewRecorded('task-check', 'PASS'))
+
+      expect(workflow.getState().taskCheckPassed).toBe(true)
     })
 
-    it('fails record-architecture-review-passed in non-REVIEWING states', () => {
-      expect(
-        spec.given().when((wf) => wf.executeRecording('record-architecture-review-passed')).result
-          .pass,
-      ).toBe(false)
-    })
+    it('rejects SUBMITTING_PR without task check when no issue is recorded and required reviews failed', () => {
+      const result = getReviewingTransitionGuard()({
+        state: {
+          ...Workflow.createFresh(makeDeps()).getState(),
+          currentStateMachineState: 'REVIEWING',
+          architectureReviewPassed: false,
+          codeReviewPassed: false,
+          bugScannerPassed: false,
+        },
+        gitInfo: makeDeps().getGitInfo(),
+        from: 'REVIEWING',
+        to: 'SUBMITTING_PR',
+      })
 
-    it('fails record-code-review-passed in non-REVIEWING states', () => {
-      expect(
-        spec.given().when((wf) => wf.executeRecording('record-code-review-passed')).result.pass,
-      ).toBe(false)
-    })
-
-    it('fails record-bug-scanner-passed in non-REVIEWING states', () => {
-      expect(
-        spec.given().when((wf) => wf.executeRecording('record-bug-scanner-passed')).result.pass,
-      ).toBe(false)
-    })
-
-    it('fails record-architecture-review-failed in non-REVIEWING states', () => {
-      expect(
-        spec.given().when((wf) => wf.executeRecording('record-architecture-review-failed')).result
-          .pass,
-      ).toBe(false)
-    })
-
-    it('fails record-code-review-failed in non-REVIEWING states', () => {
-      expect(
-        spec.given().when((wf) => wf.executeRecording('record-code-review-failed')).result.pass,
-      ).toBe(false)
-    })
-
-    it('fails record-bug-scanner-failed in non-REVIEWING states', () => {
-      expect(
-        spec.given().when((wf) => wf.executeRecording('record-bug-scanner-failed')).result.pass,
-      ).toBe(false)
-    })
-
-    it('records task check passed', () => {
-      const {
-        result, state, events 
-      } = spec
-        .given(...eventsToReviewing())
-        .when((wf) => wf.executeRecording('record-task-check-passed'))
-      expect(result).toStrictEqual({ pass: true })
-      expect(state.taskCheckPassed).toBe(true)
-      expect(events).toStrictEqual(
-        expect.arrayContaining([expect.objectContaining({ type: 'task-check-passed' })]),
-      )
-    })
-
-    it('fails record-task-check-passed in non-REVIEWING states', () => {
-      const { result } = spec.given().when((wf) => wf.executeRecording('record-task-check-passed'))
-      expect(result.pass).toBe(false)
+      expect(result).toStrictEqual({
+        pass: false,
+        reason:
+          'Not all reviews passed. Each of architecture-review, code-review, and bug-scanner must pass.',
+      })
     })
   })
 

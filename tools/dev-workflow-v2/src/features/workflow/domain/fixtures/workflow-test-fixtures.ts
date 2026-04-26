@@ -1,7 +1,7 @@
 import { workflowSpec } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import type { WorkflowEvent } from '../workflow-events'
 import type {
-  WorkflowState, StateName 
+  WorkflowState, StateName, LivingArchitectureReviewType 
 } from '../workflow-types'
 import type { WorkflowDeps } from '../workflow'
 import { Workflow } from '../workflow'
@@ -81,19 +81,16 @@ export function unresolvedThread(id: string): {
   }
 }
 
-function architectureReviewPassed(): WorkflowEvent {
+export function reviewRecorded(
+  reviewType: LivingArchitectureReviewType,
+  verdict: 'PASS' | 'FAIL',
+): WorkflowEvent {
   return {
-    type: 'architecture-review-completed',
+    type: 'review-recorded',
     at: AT,
-    passed: true,
-  }
-}
-
-function codeReviewPassed(): WorkflowEvent {
-  return {
-    type: 'code-review-completed',
-    at: AT,
-    passed: true,
+    reviewId: 1,
+    reviewType,
+    verdict,
   }
 }
 
@@ -105,16 +102,13 @@ export function codeReviewFailed(): WorkflowEvent {
   }
 }
 
-function bugScannerPassed(): WorkflowEvent {
-  return {
-    type: 'bug-scanner-completed',
-    at: AT,
-    passed: true,
-  }
-}
-
 function allReviewsPassed(): readonly WorkflowEvent[] {
-  return [architectureReviewPassed(), codeReviewPassed(), bugScannerPassed()]
+  return [
+    reviewRecorded('architecture-review', 'PASS'),
+    reviewRecorded('code-review', 'PASS'),
+    reviewRecorded('bug-scanner', 'PASS'),
+    reviewRecorded('task-check', 'PASS'),
+  ]
 }
 
 function prRecorded(n: number, url?: string): WorkflowEvent {
@@ -131,14 +125,6 @@ function ciPassed(): WorkflowEvent {
     type: 'ci-completed',
     at: AT,
     passed: true,
-  }
-}
-
-function feedbackClean(): WorkflowEvent {
-  return {
-    type: 'feedback-checked',
-    at: AT,
-    clean: true,
   }
 }
 

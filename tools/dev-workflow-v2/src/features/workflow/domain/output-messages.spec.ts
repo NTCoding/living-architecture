@@ -12,7 +12,7 @@ describe('getOperationBody', () => {
   })
 
   it('handles three-word operations', () => {
-    expect(getOperationBody('record-task-check-passed')).toBe('Record task check passed')
+    expect(getOperationBody('record-review')).toBe('Record review')
   })
 })
 

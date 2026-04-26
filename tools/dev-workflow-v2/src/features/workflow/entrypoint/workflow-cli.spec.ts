@@ -1,12 +1,15 @@
 import {
   describe, it, expect, afterEach 
 } from 'vitest'
+import { flattenStoredEvent } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import type { TestContext } from './fixtures/workflow-cli-test-fixtures'
 import {
   buildTestContext,
   cleanupDb,
   progressToState,
   runCommand,
+  runReviewCommand,
+  runReviewCommandWithInput,
 } from './fixtures/workflow-cli-test-fixtures'
 
 describe('workflow-cli commands', () => {
@@ -98,66 +101,133 @@ describe('workflow-cli commands', () => {
     })
   })
 
-  describe('record-architecture-review-passed', () => {
-    it('records in REVIEWING state', () => {
+  describe('record-review', () => {
+    it('records task-check review when reviewer returns pass verdict', () => {
       const ctx = setup()
       progressToState(ctx, 'REVIEWING')
-      const result = runCommand(ctx, ['record-architecture-review-passed'])
-      expect(result.exitCode).toStrictEqual(0)
-    })
-  })
 
-  describe('record-architecture-review-failed', () => {
-    it('records in REVIEWING state', () => {
-      const ctx = setup()
-      progressToState(ctx, 'REVIEWING')
-      const result = runCommand(ctx, ['record-architecture-review-failed'])
-      expect(result.exitCode).toStrictEqual(0)
-    })
-  })
+      const result = runReviewCommand(ctx, 'task-check', {
+        verdict: 'PASS',
+        summary: 'The implementation satisfies the task requirements.',
+        findings: [],
+      })
 
-  describe('record-code-review-passed', () => {
-    it('records in REVIEWING state', () => {
-      const ctx = setup()
-      progressToState(ctx, 'REVIEWING')
-      const result = runCommand(ctx, ['record-code-review-passed'])
       expect(result.exitCode).toStrictEqual(0)
+      expect(JSON.parse(result.output)).toStrictEqual({
+        ok: true,
+        id: 1,
+        sessionId: 'test-sess',
+        createdAt: '2024-01-01T00:00:00Z',
+        reviewType: 'task-check',
+        verdict: 'PASS',
+      })
+      expect(ctx.engineDeps.store.listSessionReviews(ctx.sessionId)).toStrictEqual([
+        {
+          id: 1,
+          sessionId: 'test-sess',
+          createdAt: '2024-01-01T00:00:00Z',
+          reviewType: 'task-check',
+          sourceState: 'REVIEWING',
+          verdict: 'PASS',
+          summary: 'The implementation satisfies the task requirements.',
+          findings: [],
+        },
+      ])
+      expect(ctx.engineDeps.store.readEvents(ctx.sessionId).map(flattenStoredEvent)).toStrictEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            type: 'review-recorded',
+            reviewType: 'task-check',
+            verdict: 'PASS',
+          }),
+        ]),
+      )
     })
-  })
 
-  describe('record-code-review-failed', () => {
-    it('records in REVIEWING state', () => {
+    it('records task-check review when reviewer returns fail verdict', () => {
       const ctx = setup()
       progressToState(ctx, 'REVIEWING')
-      const result = runCommand(ctx, ['record-code-review-failed'])
+
+      const result = runReviewCommand(ctx, 'task-check', {
+        verdict: 'FAIL',
+        summary: 'The implementation violates an architecture boundary.',
+        findings: [
+          {
+            severity: 'major',
+            title: 'Domain layer imports infrastructure module',
+            details: 'The domain service imports a SQLite adapter directly.',
+            rule: 'dependency-direction',
+            file: 'src/domain/example.ts',
+            startLine: 12,
+            endLine: 12,
+          },
+        ],
+      })
+
       expect(result.exitCode).toStrictEqual(0)
+      expect(ctx.engineDeps.store.listSessionReviews(ctx.sessionId)).toStrictEqual([
+        {
+          id: 1,
+          sessionId: 'test-sess',
+          createdAt: '2024-01-01T00:00:00Z',
+          reviewType: 'task-check',
+          sourceState: 'REVIEWING',
+          verdict: 'FAIL',
+          summary: 'The implementation violates an architecture boundary.',
+          findings: [
+            {
+              severity: 'major',
+              title: 'Domain layer imports infrastructure module',
+              details: 'The domain service imports a SQLite adapter directly.',
+              rule: 'dependency-direction',
+              file: 'src/domain/example.ts',
+              startLine: 12,
+              endLine: 12,
+            },
+          ],
+        },
+      ])
+      expect(ctx.engineDeps.store.readEvents(ctx.sessionId).map(flattenStoredEvent)).toStrictEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            type: 'review-recorded',
+            reviewType: 'task-check',
+            verdict: 'FAIL',
+          }),
+        ]),
+      )
     })
-  })
 
-  describe('record-bug-scanner-passed', () => {
-    it('records in REVIEWING state', () => {
+    it('blocks workflow without recording review when reviewer returns invalid json', () => {
       const ctx = setup()
       progressToState(ctx, 'REVIEWING')
-      const result = runCommand(ctx, ['record-bug-scanner-passed'])
-      expect(result.exitCode).toStrictEqual(0)
+
+      const result = runReviewCommandWithInput(ctx, 'task-check', '{')
+
+      expect(result.exitCode).toStrictEqual(1)
+      expect(result.output).toContain('Invalid review JSON')
+      expect(ctx.engineDeps.store.listSessionReviews(ctx.sessionId)).toStrictEqual([])
+      expect(
+        ctx.engineDeps.store
+          .readEvents(ctx.sessionId)
+          .map(flattenStoredEvent)
+          .filter((event) => event.type === 'review-recorded'),
+      ).toStrictEqual([])
     })
-  })
 
-  describe('record-bug-scanner-failed', () => {
-    it('records in REVIEWING state', () => {
+    it('blocks workflow without recording review when reviewer omits required fields', () => {
       const ctx = setup()
       progressToState(ctx, 'REVIEWING')
-      const result = runCommand(ctx, ['record-bug-scanner-failed'])
-      expect(result.exitCode).toStrictEqual(0)
-    })
-  })
 
-  describe('record-task-check-passed', () => {
-    it('records in REVIEWING state', () => {
-      const ctx = setup()
-      progressToState(ctx, 'REVIEWING')
-      const result = runCommand(ctx, ['record-task-check-passed'])
-      expect(result.exitCode).toStrictEqual(0)
+      const result = runReviewCommandWithInput(
+        ctx,
+        'task-check',
+        JSON.stringify({ verdict: 'PASS' }),
+      )
+
+      expect(result.exitCode).toStrictEqual(1)
+      expect(result.output).toContain('Invalid review payload')
+      expect(ctx.engineDeps.store.listSessionReviews(ctx.sessionId)).toStrictEqual([])
     })
   })
 

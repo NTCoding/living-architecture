@@ -1,6 +1,36 @@
 import type { WorkflowEvent } from './workflow-events'
 import type { WorkflowState } from './workflow-types'
 
+function applyRecordedReviewVerdict(
+  state: WorkflowState,
+  event: Extract<WorkflowEvent, { type: 'review-recorded' }>,
+): WorkflowState {
+  const passed = event.verdict === 'PASS'
+
+  switch (event.reviewType) {
+    case 'architecture-review':
+      return {
+        ...state,
+        architectureReviewPassed: passed,
+      }
+    case 'code-review':
+      return {
+        ...state,
+        codeReviewPassed: passed,
+      }
+    case 'bug-scanner':
+      return {
+        ...state,
+        bugScannerPassed: passed,
+      }
+    case 'task-check':
+      return {
+        ...state,
+        taskCheckPassed: passed,
+      }
+  }
+}
+
 export const EMPTY_STATE: WorkflowState = {
   currentStateMachineState: 'IMPLEMENTING',
   architectureReviewPassed: false,
@@ -58,6 +88,8 @@ function applyReviewEvent(state: WorkflowState, event: WorkflowEvent): WorkflowS
         ...state,
         feedbackAddressed: true,
       }
+    case 'review-recorded':
+      return applyRecordedReviewVerdict(state, event)
   }
 }
 

@@ -24,41 +24,6 @@ export const ROUTES = defineRoutes<Workflow, WorkflowState>({
     args: [arg.string('branch')],
     handler: (w, b) => w.executeRecording('record-branch', b),
   },
-  'record-architecture-review-passed': {
-    type: 'transaction',
-    args: [],
-    handler: (w) => w.executeRecording('record-architecture-review-passed'),
-  },
-  'record-architecture-review-failed': {
-    type: 'transaction',
-    args: [],
-    handler: (w) => w.executeRecording('record-architecture-review-failed'),
-  },
-  'record-code-review-passed': {
-    type: 'transaction',
-    args: [],
-    handler: (w) => w.executeRecording('record-code-review-passed'),
-  },
-  'record-code-review-failed': {
-    type: 'transaction',
-    args: [],
-    handler: (w) => w.executeRecording('record-code-review-failed'),
-  },
-  'record-bug-scanner-passed': {
-    type: 'transaction',
-    args: [],
-    handler: (w) => w.executeRecording('record-bug-scanner-passed'),
-  },
-  'record-bug-scanner-failed': {
-    type: 'transaction',
-    args: [],
-    handler: (w) => w.executeRecording('record-bug-scanner-failed'),
-  },
-  'record-task-check-passed': {
-    type: 'transaction',
-    args: [],
-    handler: (w) => w.executeRecording('record-task-check-passed'),
-  },
   'record-pr': {
     type: 'transaction',
     args: [arg.number('number'), arg.string('url').optional()],

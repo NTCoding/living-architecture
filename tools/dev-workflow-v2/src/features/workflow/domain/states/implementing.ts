@@ -28,6 +28,7 @@ export const implementingState: ConcreteStateDefinition = {
     architectureReviewPassed: false,
     codeReviewPassed: false,
     bugScannerPassed: false,
+    taskCheckPassed: false,
     ciPassed: false,
     feedbackClean: false,
     feedbackAddressed: false,

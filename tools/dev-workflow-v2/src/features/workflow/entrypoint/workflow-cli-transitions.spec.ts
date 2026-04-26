@@ -7,6 +7,7 @@ import {
   cleanupDb,
   progressToState,
   runCommand,
+  runReviewCommand,
 } from './fixtures/workflow-cli-test-fixtures'
 
 describe('workflow-cli transitions', () => {
@@ -63,7 +64,11 @@ describe('workflow-cli transitions', () => {
     it('transitions to IMPLEMENTING when a review fails and resets flags', () => {
       const ctx = setup()
       progressToState(ctx, 'REVIEWING')
-      runCommand(ctx, ['record-code-review-failed'])
+      runReviewCommand(ctx, 'code-review', {
+        verdict: 'FAIL',
+        summary: 'Code review found a blocking problem.',
+        findings: [],
+      })
       const result = runCommand(ctx, ['transition', 'IMPLEMENTING'])
       expect(result.exitCode).toStrictEqual(0)
     })
@@ -145,21 +150,155 @@ describe('workflow-cli transitions', () => {
       expect(result.output).toContain('No issue recorded')
     })
 
-    it('rejects REVIEWING to SUBMITTING_PR without all reviews passed', () => {
+    it('blocks gate when no task-check review exists', () => {
       const ctx = setup()
       progressToState(ctx, 'REVIEWING')
+
+      runReviewCommand(ctx, 'architecture-review', {
+        verdict: 'PASS',
+        summary: 'Architecture review passed.',
+        findings: [],
+      })
+      runReviewCommand(ctx, 'code-review', {
+        verdict: 'PASS',
+        summary: 'Code review passed.',
+        findings: [],
+      })
+      runReviewCommand(ctx, 'bug-scanner', {
+        verdict: 'PASS',
+        summary: 'Bug scan passed.',
+        findings: [],
+      })
+
       const result = runCommand(ctx, ['transition', 'SUBMITTING_PR'])
+
       expect(result.exitCode).toStrictEqual(2)
       expect(result.output).toContain('Not all reviews passed')
+    })
+
+    it('blocks gate when latest task-check review failed', () => {
+      const ctx = setup()
+      progressToState(ctx, 'REVIEWING')
+
+      runReviewCommand(ctx, 'architecture-review', {
+        verdict: 'PASS',
+        summary: 'Architecture review passed.',
+        findings: [],
+      })
+      runReviewCommand(ctx, 'code-review', {
+        verdict: 'PASS',
+        summary: 'Code review passed.',
+        findings: [],
+      })
+      runReviewCommand(ctx, 'bug-scanner', {
+        verdict: 'PASS',
+        summary: 'Bug scan passed.',
+        findings: [],
+      })
+      runReviewCommand(ctx, 'task-check', {
+        verdict: 'FAIL',
+        summary: 'Task check failed.',
+        findings: [],
+      })
+
+      const result = runCommand(ctx, ['transition', 'SUBMITTING_PR'])
+
+      expect(result.exitCode).toStrictEqual(2)
+      expect(result.output).toContain('Not all reviews passed')
+    })
+
+    it('allows gate when latest task-check review passed', () => {
+      const ctx = setup()
+      progressToState(ctx, 'REVIEWING')
+
+      runReviewCommand(ctx, 'architecture-review', {
+        verdict: 'PASS',
+        summary: 'Architecture review passed.',
+        findings: [],
+      })
+      runReviewCommand(ctx, 'code-review', {
+        verdict: 'PASS',
+        summary: 'Code review passed.',
+        findings: [],
+      })
+      runReviewCommand(ctx, 'bug-scanner', {
+        verdict: 'PASS',
+        summary: 'Bug scan passed.',
+        findings: [],
+      })
+      runReviewCommand(ctx, 'task-check', {
+        verdict: 'PASS',
+        summary: 'Task check passed.',
+        findings: [],
+      })
+
+      const result = runCommand(ctx, ['transition', 'SUBMITTING_PR'])
+
+      expect(result.exitCode).toStrictEqual(0)
+    })
+
+    it('allows gate when latest task-check review passed after an earlier failure', () => {
+      const ctx = setup()
+      progressToState(ctx, 'REVIEWING')
+
+      runReviewCommand(ctx, 'architecture-review', {
+        verdict: 'PASS',
+        summary: 'Architecture review passed.',
+        findings: [],
+      })
+      runReviewCommand(ctx, 'code-review', {
+        verdict: 'PASS',
+        summary: 'Code review passed.',
+        findings: [],
+      })
+      runReviewCommand(ctx, 'bug-scanner', {
+        verdict: 'PASS',
+        summary: 'Bug scan passed.',
+        findings: [],
+      })
+      runReviewCommand(ctx, 'task-check', {
+        verdict: 'FAIL',
+        summary: 'Task check failed.',
+        findings: [],
+      })
+      runReviewCommand(ctx, 'task-check', {
+        verdict: 'PASS',
+        summary: 'Task check passed after fixes.',
+        findings: [],
+      })
+
+      const result = runCommand(ctx, ['transition', 'SUBMITTING_PR'])
+
+      expect(result.exitCode).toStrictEqual(0)
     })
 
     it('rejects REVIEWING to IMPLEMENTING when all reviews passed', () => {
       const ctx = setup()
       progressToState(ctx, 'REVIEWING')
-      runCommand(ctx, ['record-architecture-review-passed'])
-      runCommand(ctx, ['record-code-review-passed'])
-      runCommand(ctx, ['record-bug-scanner-passed'])
+
+      runReviewCommand(ctx, 'architecture-review', {
+        verdict: 'PASS',
+        summary: 'Architecture review passed.',
+        findings: [],
+      })
+      runReviewCommand(ctx, 'code-review', {
+        verdict: 'PASS',
+        summary: 'Code review passed.',
+        findings: [],
+      })
+      runReviewCommand(ctx, 'bug-scanner', {
+        verdict: 'PASS',
+        summary: 'Bug scan passed.',
+        findings: [],
+      })
+      runReviewCommand(ctx, 'task-check', {
+        verdict: 'PASS',
+        summary: 'Task check passed.',
+        findings: [],
+      })
+
       const result = runCommand(ctx, ['transition', 'IMPLEMENTING'])
+
       expect(result.exitCode).toStrictEqual(2)
       expect(result.output).toContain('All reviews passed')
     })

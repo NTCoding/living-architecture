@@ -1,5 +1,8 @@
 import { z } from 'zod'
-import { STATE_NAME_SCHEMA } from './workflow-types'
+import { reviewVerdictSchema } from '@nt-ai-lab/deterministic-agent-workflow-engine'
+import {
+  LIVING_ARCHITECTURE_REVIEW_TYPE_SCHEMA, STATE_NAME_SCHEMA 
+} from './workflow-types'
 
 const SESSION_STARTED_SCHEMA = z.object({
   type: z.literal('session-started'),
@@ -79,6 +82,14 @@ const TASK_CHECK_PASSED_SCHEMA = z.object({
   at: z.string(),
 })
 
+const REVIEW_RECORDED_SCHEMA = z.object({
+  type: z.literal('review-recorded'),
+  at: z.string(),
+  reviewId: z.number(),
+  reviewType: LIVING_ARCHITECTURE_REVIEW_TYPE_SCHEMA,
+  verdict: reviewVerdictSchema,
+})
+
 const BASH_CHECKED_SCHEMA = z.object({
   type: z.literal('bash-checked'),
   at: z.string(),
@@ -110,6 +121,7 @@ export const WORKFLOW_EVENT_SCHEMA = z.discriminatedUnion('type', [
   FEEDBACK_CHECKED_SCHEMA,
   FEEDBACK_ADDRESSED_SCHEMA,
   TASK_CHECK_PASSED_SCHEMA,
+  REVIEW_RECORDED_SCHEMA,
   BASH_CHECKED_SCHEMA,
   WRITE_CHECKED_SCHEMA,
 ])

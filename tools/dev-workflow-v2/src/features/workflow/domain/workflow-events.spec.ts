@@ -253,6 +253,41 @@ describe('WORKFLOW_EVENT_SCHEMA — task-check-passed', () => {
   })
 })
 
+describe('WORKFLOW_EVENT_SCHEMA — review-recorded', () => {
+  it('accepts pass verdict payload', () => {
+    const result = WORKFLOW_EVENT_SCHEMA.parse({
+      type: 'review-recorded',
+      at: AT,
+      reviewId: 1,
+      reviewType: 'task-check',
+      verdict: 'PASS',
+    })
+    expect(result.type).toStrictEqual('review-recorded')
+  })
+
+  it('accepts fail verdict payload', () => {
+    const result = WORKFLOW_EVENT_SCHEMA.parse({
+      type: 'review-recorded',
+      at: AT,
+      reviewId: 2,
+      reviewType: 'code-review',
+      verdict: 'FAIL',
+    })
+    expect(result.type).toStrictEqual('review-recorded')
+  })
+
+  it('rejects missing reviewType', () => {
+    expect(() =>
+      WORKFLOW_EVENT_SCHEMA.parse({
+        type: 'review-recorded',
+        at: AT,
+        reviewId: 1,
+        verdict: 'PASS',
+      }),
+    ).toThrow('Required')
+  })
+})
+
 describe('WORKFLOW_EVENT_SCHEMA — bash-checked', () => {
   it('accepts valid payload', () => {
     const result = WORKFLOW_EVENT_SCHEMA.parse({

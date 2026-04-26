@@ -41,34 +41,6 @@ const RECORDING_OPS_MAP: Record<string, RecordingOpDefinition<readonly never[]>>
     event: 'branch-recorded',
     payload: (b: string) => ({ branch: b }),
   },
-  'record-architecture-review-passed': {
-    event: 'architecture-review-completed',
-    payload: () => ({ passed: true }),
-  },
-  'record-architecture-review-failed': {
-    event: 'architecture-review-completed',
-    payload: () => ({ passed: false }),
-  },
-  'record-code-review-passed': {
-    event: 'code-review-completed',
-    payload: () => ({ passed: true }),
-  },
-  'record-code-review-failed': {
-    event: 'code-review-completed',
-    payload: () => ({ passed: false }),
-  },
-  'record-bug-scanner-passed': {
-    event: 'bug-scanner-completed',
-    payload: () => ({ passed: true }),
-  },
-  'record-bug-scanner-failed': {
-    event: 'bug-scanner-completed',
-    payload: () => ({ passed: false }),
-  },
-  'record-task-check-passed': {
-    event: 'task-check-passed',
-    payload: () => ({}),
-  },
   'record-pr': {
     event: 'pr-recorded',
     payload: (n: number, url?: string) => ({

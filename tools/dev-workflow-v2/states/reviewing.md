@@ -16,12 +16,8 @@ You are running automated code review by spawning review agents in parallel.
 - [ ] Build agent prompts (see Prompt Construction below)
 - [ ] Spawn `architecture-review`, `code-review`, and `bug-scanner` in parallel using the delegation tool selected in Platform Detection
 - [ ] If Conditional Task Check says `task-check` is required, spawn it using the same selected delegation tool
-- [ ] Wait for all agents to complete and parse each agent's JSON verdict
-- [ ] If task-check returned PASS: `/dev-workflow-v2:workflow record-task-check-passed`
-- [ ] Record each agent's verdict individually:
-  - `/dev-workflow-v2:workflow record-architecture-review-passed` or `record-architecture-review-failed`
-  - `/dev-workflow-v2:workflow record-code-review-passed` or `record-code-review-failed`
-  - `/dev-workflow-v2:workflow record-bug-scanner-passed` or `record-bug-scanner-failed`
+- [ ] Wait for all agents to complete and parse each agent's JSON review payload
+- [ ] For each valid review payload, record it with `/dev-workflow-v2:workflow record-review --type <review-type>` and pass the review JSON through stdin
 - [ ] If all passed: `/dev-workflow-v2:workflow transition SUBMITTING_PR`
 - [ ] If any failed: fix the issues found in the reports, commit, then `/dev-workflow-v2:workflow transition IMPLEMENTING`
 
@@ -33,6 +29,12 @@ Each review agent prompt must include:
 2. **Report Path** — `reviews/<branch-name>/<agent-name>.md`
 
 Use the same prompt body for both platforms. In OpenCode mode, pass it to the Task tool for the named subagent. In Claude mode, pass it to the Agent tool with `subagent_type` set to the corresponding agent name.
+
+Each review agent must return JSON with:
+
+1. `verdict` — `PASS` or `FAIL`
+2. `summary` — one sentence
+3. `findings` — array, `[]` for `PASS`
 
 Example prompt body:
 
@@ -60,10 +62,11 @@ If `taskCheckPassed` is `false` and `githubIssue` is present, spawn the task-che
 
 ## Constraints
 
-- Cannot transition to SUBMITTING_PR unless all 3 reviews passed (architectureReviewPassed, codeReviewPassed, bugScannerPassed)
+- Cannot transition to SUBMITTING_PR unless architecture-review, code-review, and bug-scanner passed
+- If `githubIssue` is present, cannot transition to SUBMITTING_PR unless the latest required `task-check` review also passed
 - Cannot transition to IMPLEMENTING if all 3 reviews passed (go to SUBMITTING_PR instead)
 - Do not write review reports yourself. Each review report must be produced by its corresponding subagent.
 - Do not infer workflow state from prior messages, git history, or report files. When workflow state values are needed, run `/dev-workflow-v2:workflow get-state` and extract the exact fields required from its JSON output.
-- Do not record any review PASS/FAIL status until the corresponding subagent has returned a JSON verdict
-- If any required subagent fails to start, fails to complete, or returns an invalid/missing verdict, do not continue the review flow; transition to BLOCKED immediately
+- Do not record any review until the corresponding subagent has returned valid JSON with `verdict`, `summary`, and `findings`
+- If any required subagent fails to start, fails to complete, or returns invalid or missing review JSON, do not continue the review flow; transition to BLOCKED immediately
 - If blocked, transition to BLOCKED: `/dev-workflow-v2:workflow transition BLOCKED`

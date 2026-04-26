@@ -139,16 +139,20 @@ describe('Workflow', () => {
             architectureReviewPassed: false,
             codeReviewPassed: false,
             bugScannerPassed: false,
+            taskCheckPassed: false,
             ciPassed: false,
             feedbackClean: false,
             feedbackAddressed: false,
           }),
         )
         .when((wf) => wf.getState())
-      expect(state.architectureReviewPassed).toBe(false)
-      expect(state.codeReviewPassed).toBe(false)
-      expect(state.bugScannerPassed).toBe(false)
-      expect(state.ciPassed).toBe(false)
+      expect(state).toMatchObject({
+        architectureReviewPassed: false,
+        codeReviewPassed: false,
+        bugScannerPassed: false,
+        taskCheckPassed: false,
+        ciPassed: false,
+      })
     })
 
     it('resets feedback flags on entry via stateOverrides in event', () => {
@@ -160,6 +164,7 @@ describe('Workflow', () => {
             architectureReviewPassed: false,
             codeReviewPassed: false,
             bugScannerPassed: false,
+            taskCheckPassed: false,
             ciPassed: false,
             feedbackClean: false,
             feedbackAddressed: false,
