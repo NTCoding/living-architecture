@@ -54,18 +54,9 @@ function applyTransitioned(
   event: Extract<WorkflowEvent, { type: 'transitioned' }>,
 ): WorkflowState {
   const newPreBlockedState = event.to === 'BLOCKED' ? event.from : undefined
-  const stateOverrides = event.stateOverrides
-  if (stateOverrides === undefined) {
-    return {
-      ...state,
-      currentStateMachineState: event.to,
-      preBlockedState: newPreBlockedState,
-    }
-  }
-
   return {
     ...state,
-    ...stateOverrides,
+    ...(event.stateOverrides ?? {}),
     currentStateMachineState: event.to,
     preBlockedState: newPreBlockedState,
   }
