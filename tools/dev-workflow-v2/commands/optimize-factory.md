@@ -76,12 +76,18 @@ gh api graphql \
   -F owner='<OWNER>' \
   -F name='<REPO>' \
   -F number=<PR_NUMBER> \
-  -f query='query($owner: String!, $name: String!, $number: Int!) {
+  -F threadCursor='' \
+  -F commentCursor='' \
+  -f query='query($owner: String!, $name: String!, $number: Int!, $threadCursor: String, $commentCursor: String) {
     repository(owner: $owner, name: $name) {
       pullRequest(number: $number) {
         url
         title
-        reviewThreads(first: 100) {
+        reviewThreads(first: 100, after: $threadCursor) {
+          pageInfo {
+            hasNextPage
+            endCursor
+          }
           nodes {
             id
             isResolved
@@ -89,7 +95,11 @@ gh api graphql \
             path
             line
             startLine
-            comments(first: 100) {
+            comments(first: 100, after: $commentCursor) {
+              pageInfo {
+                hasNextPage
+                endCursor
+              }
               nodes {
                 id
                 databaseId
@@ -105,6 +115,12 @@ gh api graphql \
     }
   }'
 ```
+
+Do not treat one `first: 100` response as complete data. Page through review threads until `reviewThreads.pageInfo.hasNextPage` is `false`.
+
+For each selected review thread, page through thread comments until `comments.pageInfo.hasNextPage` is `false`.
+
+If the command cannot page through all review threads and comments, fail fast and tell the user that the source set is incomplete. Do not continue with partial review-thread data.
 
 Select source items:
 
@@ -136,13 +152,18 @@ Use `tools/dev-workflow-v2/docs/factory/factory-map.md` as the local factory map
 Search prior GitHub issues labeled `factory` and `factory optimization`:
 
 ```bash
-gh issue list \
-  --label 'factory' \
-  --label 'factory optimization' \
+gh search issues \
+  --repo <OWNER>/<REPO> \
+  --match title,body \
   --state all \
-  --limit 100 \
-  --json number,title,state,labels,body,url,createdAt,closedAt
+  --limit 1000 \
+  --json number,title,state,labels,body,url,createdAt,closedAt \
+  -- 'label:"factory" label:"factory optimization" <keyword set>'
 ```
+
+Use multiple targeted searches when needed so the command examines the full relevant memory set rather than treating one limited result page as exhaustive.
+
+If the search approach cannot cover the full relevant issue set, fail fast and tell the user that factory memory could not be searched completely. Do not claim that no matching factory memory exists from partial search results.
 
 Use keywords from `[FACTORY]` comments, file paths, rule names, factory files, and factory surfaces to identify similar issues.
 
