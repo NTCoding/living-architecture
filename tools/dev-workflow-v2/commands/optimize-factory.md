@@ -27,10 +27,17 @@ Every proposal must state:
 Factory memory lives in GitHub issues labeled `factory` and `factory optimization`. Every factory optimization issue should be searchable by:
 
 - labels: `factory`, `factory optimization`,
-- marker text in the issue body: `factory optimization`,
 - source PR and comment URLs,
 - exact factory surface names,
 - problem pattern names.
+
+Issue #361 is the reference example for how factory optimization issues must be written. Use it as the standard for:
+
+- simple human-readable language,
+- concrete code examples,
+- diagrams when they help explain the failure chain,
+- clear separation between Problem, Root Cause Analysis, Proposed Solutions, and Verification Plan,
+- solutions that map onto the factory pipeline rather than one local fix.
 
 ## Step 1: Classify the input
 
@@ -173,6 +180,51 @@ Inspected factory context:
 Factory memory:
 - <prior issue references and influence, or "No matching factory memory found.">
 
+Pipeline analysis:
+
+1. PRD creation
+   - Guardrails: <what guidance or review existed>
+   - Failure: <what went wrong at this stage>
+   - Reinforcement: <how this stage repeated or normalized the bad idea>
+   - Improvement: <what change at this stage would help>
+2. Task creation
+   - Guardrails: <...>
+   - Failure: <...>
+   - Reinforcement: <...>
+   - Improvement: <...>
+3. Task implementation
+   - Guardrails: <...>
+   - Failure: <...>
+   - Reinforcement: <...>
+   - Improvement: <...>
+4. Role enforcement
+   - Guardrails: <what role-enforcement materials were inspected>
+   - Failure: <what role selection, role contract, or config gap allowed the mistake>
+   - Reinforcement: <how the current role system let the bad idea appear valid>
+   - Improvement: <what role-enforcement change is possible>
+5. Code review
+   - Guardrails: <...>
+   - Failure: <...>
+   - Reinforcement: <...>
+   - Improvement: <...>
+
+Reinforcement chain:
+- <show where the same bad idea was repeated across stages>
+
+Role-enforcement questions:
+- What roles did the current code have?
+- Why might those roles have seemed plausible?
+- What do the role definitions actually say?
+- Compared to a genuine example of that role, does the code still fit?
+- Can current role-enforcement options be extended to block the misuse mechanically?
+
+Role-enforcement materials inspected:
+- `.riviere/role-definitions/index.md`
+- `.riviere/role-selection-guide.md`
+- <relevant role definition files>
+- `.riviere/roles.ts`
+- `.riviere/role-enforcement.config.ts`
+
 Options considered:
 1. <option>
    - Enforcement strength: deterministic | semi-deterministic | advisory
@@ -192,6 +244,18 @@ Open decisions:
 - <only include decisions that require user input>
 ```
 
+Analyze the factory pipeline in this exact order every time:
+
+1. PRD creation
+2. task creation
+3. task implementation
+4. role enforcement
+5. code review
+
+If a stage is not relevant, say so explicitly and explain why. Do not skip the stage silently.
+
+The goal is not only to identify one local fix. Make the reinforcement across the pipeline visible.
+
 Prioritize options in this order:
 
 1. deterministic automated enforcement
@@ -199,7 +263,7 @@ Prioritize options in this order:
 3. CI or workflow gate
 4. review-agent or convention markdown as the last resort
 
-Use this decision matrix as the starting point. Extend `tools/dev-workflow-v2/docs/factory/factory-map.md` only when a new factory surface is added or an existing surface relationship changes.
+Use this decision matrix as the starting point. Extend `tools/dev-workflow-v2/docs/factory/factory-map.md` only when a new factory surface is added, an existing surface relationship changes, or the current map does not explain an existing surface deeply enough to support the required analysis.
 
 | Problem pattern | Preferred factory surface | Verification approach |
 | --- | --- | --- |
@@ -239,77 +303,143 @@ The issue title format is:
 Factory optimization: <short summary>
 ```
 
-The issue body must use this structure:
+The issue body must use this exact high-level structure:
 
 ````markdown
-## Factory Optimization Marker
+## Problem
 
-factory optimization
+- Source:
+  - PR: <url or "Ad-hoc request">
+  - Source comments:
+    - <comment/thread URL>
+  - Related issues or PRDs: <links or file paths>
+- Factory memory:
+  - <prior issue URL>: <how it influenced this issue>
+  - Or: No matching factory memory found.
+- Reference example:
+  - Issue #361: <url>
 
-## Source
+<clear human-readable explanation of the problem>
 
-- PR: <url or "Ad-hoc request">
-- Source comments:
-  - <comment/thread URL>
+## Concrete Examples
 
-## Factory Memory
+- File: <path>
+  - <code example and why it demonstrates the problem>
+- File: <path>
+  - <code example and why it demonstrates the problem>
 
-- <prior issue URL>: <how it influenced this issue>
-- Or: No matching factory memory found.
+## Root Cause Analysis
 
-## Approved Optimization Tasks
+### Pipeline analysis
 
-- [ ] <task 1>
-- [ ] <task 2>
+#### 1. PRD creation
+- Guardrails: <what existed>
+- Failure: <what went wrong>
+- Reinforcement: <how this stage repeated or normalized the bad idea>
+- Improvement opportunity: <what can change here>
 
-## Context
+#### 2. Task creation
+- Guardrails: <...>
+- Failure: <...>
+- Reinforcement: <...>
+- Improvement opportunity: <...>
 
-<full context needed by the implementation agent>
+#### 3. Task implementation
+- Guardrails: <...>
+- Failure: <...>
+- Reinforcement: <...>
+- Improvement opportunity: <...>
 
-## Inspected Factory Context
+#### 4. Role enforcement
+- Guardrails: <which real role-enforcement materials were inspected>
+- Current roles: <what roles the code had>
+- Plausible reasoning: <why those roles might have been chosen>
+- Role-definition reality: <what the definitions and guide actually say>
+- Failure: <why the roles were wrong or why enforcement failed to flag them>
+- Reinforcement: <how the current role system made the bad idea appear acceptable>
+- Improvement opportunity: <what role-enforcement change is possible>
 
-- Existing enforcement files inspected:
-  - <exact path>
-- Existing enforcement observed in source:
-  - <specific guardrail observed at command execution time>
-- Factory gap:
-  - <specific gap this issue closes>
+#### 5. Code review
+- Guardrails: <...>
+- Failure: <...>
+- Reinforcement: <...>
+- Improvement opportunity: <...>
 
-## Options Discussed
+### Reinforcement across the pipeline
 
-### Option 1: <name>
+- <show the repeated failure chain across stages>
 
+Role-enforcement analysis must be part of Root Cause Analysis, not a separate top-level section.
+This analysis must inspect:
+
+- `.riviere/role-definitions/index.md`
+- `.riviere/role-selection-guide.md`
+- the relevant role definition files
+- `.riviere/roles.ts`
+- `.riviere/role-enforcement.config.ts`
+
+The analysis must answer:
+
+1. What roles did the current code have?
+2. Why might those roles have been added?
+3. Were those the right roles or the wrong roles?
+4. If they were the wrong roles, why did role enforcement allow them or fail to flag them?
+5. Is this actually a domain concept?
+6. Does this code really satisfy the behavioral contract of the role it was given?
+7. Compared to a genuine example of that role, does it still fit?
+8. Can current role-enforcement options be extended to block the misuse mechanically?
+
+## Proposed Solutions
+
+### Options considered
+
+#### Option 1: <name>
 - Enforcement strength: deterministic | semi-deterministic | advisory
 - Accuracy and reliability: <assessment>
 - Verification: <verification approach>
 
-## Rejected Options
+### Rejected options
 
 - <option>: <reason>
 
-## Prescribed Solution
+### Prescribed solution
 
-<exact factory changes to implement. Do not use "likely" language. Prescribe exact targets or name the explicit decision that remains open.>
+Group or explain the improvements by the relevant factory stage:
 
-## Enforcement Surface
+- PRD creation: <exact change>
+- task creation: <exact change>
+- task implementation: <exact change>
+- role enforcement: <exact change>
+- code review: <exact change>
 
-- <ESLint/custom rule/Riviere/CI/CodeRabbit/workflow/agent/convention/new capability>
+For the role-enforcement stage, explicitly consider:
 
-## Verification Strategy
+- role-definition changes
+- role-selection-guide changes
+- `.riviere/roles.ts` changes
+- `.riviere/role-enforcement.config.ts` changes
+- factory-map documentation changes that explain the available role-enforcement levers
 
-- <commands, fixtures, tests, or manual validation that prove the factory optimization works>
+Do not default to generic lint-only fixes if a role-enforcement solution is more direct.
+
+## Verification Plan
+
+- <verification tied to each proposed improvement>
+- <for example: synthetic planning scenario, failing fixture, rule test, prompt audit, config review>
 
 ## Documentation and Memory Updates
 
-- [ ] Update `tools/dev-workflow-v2/docs/factory/factory-map.md` if this issue changes the factory inventory or adds a new factory surface.
+- [ ] Update `tools/dev-workflow-v2/docs/factory/factory-map.md` if the issue adds a new factory surface, changes surface relationships, or the current map needs a deeper explanation of an existing surface for this problem pattern.
 
 ## Acceptance Criteria
 
-- [ ] The approved deterministic enforcement is implemented.
-- [ ] Violating examples fail under the new enforcement when practical.
-- [ ] Passing examples remain accepted when practical.
-- [ ] The relevant verification command is documented and passes.
-- [ ] Factory map documentation is updated when the factory inventory or surface relationships change.
+- [ ] The required pipeline analysis covers PRD creation, task creation, task implementation, role enforcement, and code review.
+- [ ] The issue uses the structure: Problem, Concrete Examples, Root Cause Analysis, Proposed Solutions, Verification Plan.
+- [ ] The root cause analysis shows the reinforcement chain across the pipeline.
+- [ ] Role enforcement is analyzed inside Root Cause Analysis using the real role materials.
+- [ ] Proposed solutions map improvements onto the relevant factory stages.
+- [ ] Verification is documented for each relevant improvement.
+- [ ] Factory map documentation is updated when required by the problem pattern or surface changes.
 
 ## Commit Guidance
 
@@ -319,6 +449,14 @@ Use semantic commits with the `factory-optimization` scope, for example:
 feat(factory-optimization): add guardrail for <pattern>
 ```
 ````
+
+Forbidden issue sections and noise:
+
+- machine-oriented marker headings such as `Factory Optimization Marker`
+- approval-style headings such as `Approved Optimization Tasks`
+- any top-level section whose main purpose is template bookkeeping rather than helping a human reader understand the problem
+
+Write the issue in the order a human reader would want to understand it, not in template bookkeeping order.
 
 Create the issue:
 
