@@ -179,6 +179,8 @@ export default {
             return
           }
 
+          validateForbiddenSupertypes(node, role, name)
+
           const approvedResult = matchesApprovedInstances(name, role)
           if (approvedResult.checked && !approvedResult.passed) {
             report(node, approvedResult.reason)
@@ -194,6 +196,59 @@ export default {
           if (target === 'class') {
             validateClassContract(node, role, name)
           }
+        }
+
+        function validateForbiddenSupertypes(node, role, name) {
+          if (!Array.isArray(role.forbiddenSupertypes) || role.forbiddenSupertypes.length === 0) {
+            return
+          }
+
+          const declarationSupertypes = readDeclaredSupertypes(node)
+          for (const supertype of declarationSupertypes) {
+            if (role.forbiddenSupertypes.includes(supertype)) {
+              report(
+                node,
+                `Role '${role.name}' forbids supertype '${supertype}' on '${name}'. ${referenceForKnownRole(options, role.name)}`,
+              )
+            }
+          }
+        }
+
+        function readDeclaredSupertypes(node) {
+          const supertypes = []
+
+          if (node.type === 'ClassDeclaration') {
+            const superClassName = readNamedTypeReference(node.superClass)
+            if (superClassName !== null) {
+              supertypes.push(superClassName)
+            }
+
+            for (const implementedType of node.implements ?? []) {
+              const implementedName = readNamedTypeReference(implementedType.expression)
+              if (implementedName !== null) {
+                supertypes.push(implementedName)
+              }
+            }
+          }
+
+          if (node.type === 'TSInterfaceDeclaration') {
+            for (const extendedType of node.extends ?? []) {
+              const extendedName = readNamedTypeReference(extendedType.expression)
+              if (extendedName !== null) {
+                supertypes.push(extendedName)
+              }
+            }
+          }
+
+          return supertypes
+        }
+
+        function readNamedTypeReference(node) {
+          if (node?.type === 'Identifier') {
+            return node.name
+          }
+
+          return null
         }
 
         function isRoleAllowedInFile(roleName, filePath) {

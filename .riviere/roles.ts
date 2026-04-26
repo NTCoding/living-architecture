@@ -75,6 +75,7 @@ export const allRoles = [
   }),
   role('value-object', {
     targets: ['class'],
+    forbiddenSupertypes: ['Error'],
     requiredPrivateMembers: ['brand'],
     forbiddenDependencies: ['aggregate', 'domain-service'],
   }),
