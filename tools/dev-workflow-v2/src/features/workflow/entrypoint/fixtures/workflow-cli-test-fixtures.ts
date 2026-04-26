@@ -3,7 +3,12 @@ import {
 } from 'node:fs'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
-import type { WorkflowEngineDeps } from '@nt-ai-lab/deterministic-agent-workflow-engine'
+import type {
+  WorkflowEngineDeps,
+  ReviewPayload,
+  ReviewType,
+} from '@nt-ai-lab/deterministic-agent-workflow-engine'
+import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { createStore } from '@nt-ai-lab/deterministic-agent-workflow-event-store'
 import { createWorkflowRunner } from '@nt-ai-lab/deterministic-agent-workflow-cli'
 import type { RunnerResult } from '@nt-ai-lab/deterministic-agent-workflow-cli'
@@ -65,6 +70,7 @@ export function buildTestContext(
         unresolvedCount: 0,
         threads: [],
       })),
+    listSessionReviews: () => store.listSessionReviews(sessionId),
     sleepMs: () => undefined,
     now: () => '2024-01-01T00:00:00Z',
   }
@@ -79,6 +85,25 @@ export function buildTestContext(
 
 export function runCommand(ctx: TestContext, args: readonly string[]): RunnerResult {
   return runner(args, ctx.engineDeps, ctx.workflowDeps, { getSessionId: () => ctx.sessionId })
+}
+
+export function runReviewCommandWithInput(
+  ctx: TestContext,
+  reviewType: ReviewType,
+  stdin: string,
+): RunnerResult {
+  return runner(['record-review', '--type', reviewType], ctx.engineDeps, ctx.workflowDeps, {
+    getSessionId: () => ctx.sessionId,
+    readStdin: () => stdin,
+  })
+}
+
+export function runReviewCommand(
+  ctx: TestContext,
+  reviewType: ReviewType,
+  payload: ReviewPayload,
+): RunnerResult {
+  return runReviewCommandWithInput(ctx, reviewType, JSON.stringify(payload))
 }
 
 export function runHook(ctx: TestContext, stdinJson: string): RunnerResult {
@@ -97,6 +122,22 @@ export function progressToState(ctx: TestContext, targetState: string): void {
   const steps = STATE_STEPS[targetState]
   if (!steps) return
   for (const step of steps) {
+    if (step[0] === 'record-review') {
+      if (step[1] !== '--type' || step[2] === undefined) {
+        throw new WorkflowStateError(
+          "Expected record-review test step shape ['record-review', '--type', <reviewType>].",
+        )
+      }
+      const reviewType = step[2]
+      const verdict = step[3] === 'FAIL' ? 'FAIL' : 'PASS'
+      runReviewCommand(ctx, reviewType, {
+        verdict,
+        summary: verdict === 'PASS' ? `${reviewType} passed` : `${reviewType} failed`,
+        findings: [],
+      })
+      continue
+    }
+
     runCommand(ctx, step)
   }
 }

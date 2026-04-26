@@ -7,7 +7,12 @@ import {
   cleanupDb,
   progressToState,
   runCommand,
+  runReviewCommand,
 } from './fixtures/workflow-cli-test-fixtures'
+import {
+  recordPassingPreReviews,
+  recordTaskCheck,
+} from '../domain/fixtures/review-command-test-fixtures'
 
 describe('workflow-cli transitions', () => {
   const dbPaths: string[] = []
@@ -63,7 +68,11 @@ describe('workflow-cli transitions', () => {
     it('transitions to IMPLEMENTING when a review fails and resets flags', () => {
       const ctx = setup()
       progressToState(ctx, 'REVIEWING')
-      runCommand(ctx, ['record-code-review-failed'])
+      runReviewCommand(ctx, 'code-review', {
+        verdict: 'FAIL',
+        summary: 'Code review found a blocking problem.',
+        findings: [],
+      })
       const result = runCommand(ctx, ['transition', 'IMPLEMENTING'])
       expect(result.exitCode).toStrictEqual(0)
     })
@@ -145,21 +154,60 @@ describe('workflow-cli transitions', () => {
       expect(result.output).toContain('No issue recorded')
     })
 
-    it('rejects REVIEWING to SUBMITTING_PR without all reviews passed', () => {
+    it('blocks gate when no task-check review exists', () => {
       const ctx = setup()
       progressToState(ctx, 'REVIEWING')
+      recordPassingPreReviews(ctx)
+
       const result = runCommand(ctx, ['transition', 'SUBMITTING_PR'])
+
       expect(result.exitCode).toStrictEqual(2)
       expect(result.output).toContain('Not all reviews passed')
+    })
+
+    it('blocks gate when latest task-check review failed', () => {
+      const ctx = setup()
+      progressToState(ctx, 'REVIEWING')
+      recordPassingPreReviews(ctx)
+      recordTaskCheck(ctx, 'FAIL')
+
+      const result = runCommand(ctx, ['transition', 'SUBMITTING_PR'])
+
+      expect(result.exitCode).toStrictEqual(2)
+      expect(result.output).toContain('Not all reviews passed')
+    })
+
+    it('allows gate when latest task-check review passed', () => {
+      const ctx = setup()
+      progressToState(ctx, 'REVIEWING')
+      recordPassingPreReviews(ctx)
+      recordTaskCheck(ctx, 'PASS')
+
+      const result = runCommand(ctx, ['transition', 'SUBMITTING_PR'])
+
+      expect(result.exitCode).toStrictEqual(0)
+    })
+
+    it('allows gate when latest task-check review passed after an earlier failure', () => {
+      const ctx = setup()
+      progressToState(ctx, 'REVIEWING')
+      recordPassingPreReviews(ctx)
+      recordTaskCheck(ctx, 'FAIL')
+      recordTaskCheck(ctx, 'PASS', 'Task check passed after fixes.')
+
+      const result = runCommand(ctx, ['transition', 'SUBMITTING_PR'])
+
+      expect(result.exitCode).toStrictEqual(0)
     })
 
     it('rejects REVIEWING to IMPLEMENTING when all reviews passed', () => {
       const ctx = setup()
       progressToState(ctx, 'REVIEWING')
-      runCommand(ctx, ['record-architecture-review-passed'])
-      runCommand(ctx, ['record-code-review-passed'])
-      runCommand(ctx, ['record-bug-scanner-passed'])
+      recordPassingPreReviews(ctx)
+      recordTaskCheck(ctx, 'PASS')
+
       const result = runCommand(ctx, ['transition', 'IMPLEMENTING'])
+
       expect(result.exitCode).toStrictEqual(2)
       expect(result.output).toContain('All reviews passed')
     })
