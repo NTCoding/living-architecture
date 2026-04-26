@@ -25,5 +25,5 @@ interface FieldFailureOutcome {
   failedFields: string[]
 }
 
-/** @riviere-role query-model */
+/** @riviere-role value-object */
 export type ExtractionOutcome = DraftOnlyOutcome | FullExtractionOutcome | FieldFailureOutcome

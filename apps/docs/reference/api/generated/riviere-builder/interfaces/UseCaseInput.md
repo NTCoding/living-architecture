@@ -8,7 +8,7 @@ Defined in: [packages/riviere-builder/src/features/building/domain/construction/
 
 ## Riviere-role
 
-query-model
+value-object
 
 ## Properties
 

@@ -1,4 +1,4 @@
-/** @riviere-role query-model */
+/** @riviere-role value-object */
 export type RoleTarget = 'class' | 'function' | 'interface' | 'type-alias'
 
 interface ApprovedInstance {
@@ -23,7 +23,7 @@ interface RoleOptions<R extends string = string> {
   readonly minPublicMethods?: number
 }
 
-/** @riviere-role query-model */
+/** @riviere-role value-object */
 export interface BuiltRole<N extends string = string> {
   readonly name: N
   readonly targets: readonly RoleTarget[]
@@ -64,7 +64,7 @@ interface SubLocationEntry {
   readonly path: string
 }
 
-/** @riviere-role query-model */
+/** @riviere-role value-object */
 export interface BuiltLocation {
   readonly basePath: string
   readonly subLocations: readonly SubLocationEntry[]
@@ -72,7 +72,7 @@ export interface BuiltLocation {
 
 interface SubLocationOptions {readonly forbiddenImports?: readonly string[]}
 
-/** @riviere-role query-model */
+/** @riviere-role value-object */
 export type LocationBuilder<R extends string> = BuiltLocation & {
   readonly subLocation: (
     path: string,
@@ -146,7 +146,7 @@ interface LayerEntry {
   readonly paths: readonly string[]
 }
 
-/** @riviere-role query-model */
+/** @riviere-role value-object */
 export interface RoleEnforcementResult {
   readonly ignorePatterns: readonly string[]
   readonly include: readonly string[]

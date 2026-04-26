@@ -26,7 +26,7 @@ describe('resolveConfig', () => {
 
       const result = resolveConfig(config)
 
-      expect(result).toMatchObject({
+      expect(result).toStrictEqual({
         modules: [
           {
             name: 'orders',
@@ -92,7 +92,7 @@ describe('resolveConfig', () => {
 
       const result = resolveConfig(config)
 
-      expect(result.modules[0]?.customTypes).toMatchObject({
+      expect(result.modules[0]?.customTypes).toStrictEqual({
         repository: {
           find: 'classes',
           where: { nameEndsWith: { suffix: 'Repository' } },

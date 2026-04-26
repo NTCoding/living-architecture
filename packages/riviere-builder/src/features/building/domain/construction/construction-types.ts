@@ -11,7 +11,7 @@ import type {
   SystemType,
 } from '@living-architecture/riviere-schema'
 
-/** @riviere-role query-model */
+/** @riviere-role value-object */
 export interface BuilderOptions {
   name?: string
   description?: string
@@ -19,17 +19,17 @@ export interface BuilderOptions {
   domains: Record<string, DomainMetadata>
 }
 
-/** @riviere-role query-model */
+/** @riviere-role value-object */
 export interface DomainInput {
   name: string
   description: string
   systemType: SystemType
 }
 
-/** @riviere-role query-model */
+/** @riviere-role value-object */
 export interface UpsertOptions {noOverwrite?: boolean}
 
-/** @riviere-role query-model */
+/** @riviere-role value-object */
 export interface UIInput {
   name: string
   domain: string
@@ -40,7 +40,7 @@ export interface UIInput {
   metadata?: Record<string, unknown>
 }
 
-/** @riviere-role query-model */
+/** @riviere-role value-object */
 export interface APIInput {
   name: string
   domain: string
@@ -54,7 +54,7 @@ export interface APIInput {
   metadata?: Record<string, unknown>
 }
 
-/** @riviere-role query-model */
+/** @riviere-role value-object */
 export interface UseCaseInput {
   name: string
   domain: string
@@ -64,7 +64,7 @@ export interface UseCaseInput {
   metadata?: Record<string, unknown>
 }
 
-/** @riviere-role query-model */
+/** @riviere-role value-object */
 export interface DomainOpInput {
   name: string
   domain: string
@@ -80,7 +80,7 @@ export interface DomainOpInput {
   metadata?: Record<string, unknown>
 }
 
-/** @riviere-role query-model */
+/** @riviere-role value-object */
 export interface EventInput {
   name: string
   domain: string
@@ -92,7 +92,7 @@ export interface EventInput {
   metadata?: Record<string, unknown>
 }
 
-/** @riviere-role query-model */
+/** @riviere-role value-object */
 export interface EventHandlerInput {
   name: string
   domain: string
@@ -103,7 +103,7 @@ export interface EventHandlerInput {
   metadata?: Record<string, unknown>
 }
 
-/** @riviere-role query-model */
+/** @riviere-role value-object */
 export interface CustomTypeInput {
   name: string
   description?: string
@@ -111,7 +111,7 @@ export interface CustomTypeInput {
   optionalProperties?: Record<string, CustomPropertyDefinition>
 }
 
-/** @riviere-role query-model */
+/** @riviere-role value-object */
 export interface CustomInput {
   customTypeName: string
   name: string

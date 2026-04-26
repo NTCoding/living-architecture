@@ -3,10 +3,11 @@ import type { WorkflowEvent } from '../workflow-events'
 import type {
   WorkflowState, StateName 
 } from '../workflow-types'
-import type { WorkflowDeps } from '../workflow'
 import { Workflow } from '../workflow'
 import { applyEvents } from '../fold'
 import type { GitInfo } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
+
+type WorkflowDeps = Parameters<typeof Workflow.rehydrate>[1]
 
 const AT = '2026-01-01T00:00:00Z'
 

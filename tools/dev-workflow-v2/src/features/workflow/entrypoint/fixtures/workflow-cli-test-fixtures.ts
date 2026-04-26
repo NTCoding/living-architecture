@@ -7,12 +7,14 @@ import type { WorkflowEngineDeps } from '@nt-ai-lab/deterministic-agent-workflow
 import { createStore } from '@nt-ai-lab/deterministic-agent-workflow-event-store'
 import { createWorkflowRunner } from '@nt-ai-lab/deterministic-agent-workflow-cli'
 import type { RunnerResult } from '@nt-ai-lab/deterministic-agent-workflow-cli'
-import type { WorkflowDeps } from '../../domain/workflow'
+import { Workflow } from '../../domain/workflow'
 import { WORKFLOW_DEFINITION } from '../../infra/persistence/workflow-definition'
 import {
   ROUTES, PRE_TOOL_USE_POLICY 
 } from '../workflow-cli'
 import { STATE_STEPS } from './workflow-cli-state-steps-test-fixtures'
+
+type WorkflowDeps = Parameters<typeof Workflow.rehydrate>[1]
 
 const runner = createWorkflowRunner({
   workflowDefinition: WORKFLOW_DEFINITION,

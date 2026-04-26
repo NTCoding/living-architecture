@@ -1,10 +1,12 @@
 import { WORKFLOW_DEFINITION } from './workflow-definition'
-import type { WorkflowDeps } from '../../domain/workflow'
+import { Workflow } from '../../domain/workflow'
 import type { BaseEvent } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import type {
   WorkflowState, StateName 
 } from '../../domain/workflow-types'
+
+type WorkflowDeps = Parameters<typeof Workflow.rehydrate>[1]
 
 function makeWorkflowDeps(): WorkflowDeps {
   return {

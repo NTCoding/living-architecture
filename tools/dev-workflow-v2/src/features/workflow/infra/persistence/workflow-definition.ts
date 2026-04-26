@@ -6,9 +6,7 @@ import type { TransitionContext } from '@nt-ai-lab/deterministic-agent-workflow-
 import type {
   WorkflowState, StateName, WorkflowOperation 
 } from '../../domain/workflow-types'
-import {
-  Workflow, type WorkflowDeps 
-} from '../../domain/workflow'
+import { Workflow } from '../../domain/workflow'
 import {
   INITIAL_STATE, STATE_NAME_SCHEMA 
 } from '../../domain/workflow-types'
@@ -18,6 +16,8 @@ import {
 import { applyEvent } from '../../domain/fold'
 import { WORKFLOW_EVENT_SCHEMA } from '../../domain/workflow-events'
 import { WORKFLOW_REGISTRY } from '../../domain/registry'
+
+type WorkflowDeps = Parameters<typeof Workflow.rehydrate>[1]
 
 function diffStateOverrides(
   stateBefore: WorkflowState,
