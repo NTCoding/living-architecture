@@ -70,11 +70,25 @@ describe('applyEvent — review-recorded', () => {
     expect(result.codeReviewPassed).toStrictEqual(true)
   })
 
-  it('sets bug scanner flag from recorded review verdict', () => {
+  it('sets code review flag to false when latest code review failed', () => {
     const event: WorkflowEvent = {
       type: 'review-recorded',
       at: AT,
       reviewId: 5,
+      reviewType: 'code-review',
+      verdict: 'FAIL',
+    }
+
+    const result = applyEvent(makeState({ codeReviewPassed: true }), event)
+
+    expect(result.codeReviewPassed).toStrictEqual(false)
+  })
+
+  it('sets bug scanner flag from recorded review verdict', () => {
+    const event: WorkflowEvent = {
+      type: 'review-recorded',
+      at: AT,
+      reviewId: 6,
       reviewType: 'bug-scanner',
       verdict: 'PASS',
     }
@@ -84,11 +98,25 @@ describe('applyEvent — review-recorded', () => {
     expect(result.bugScannerPassed).toStrictEqual(true)
   })
 
+  it('sets bug scanner flag to false when latest bug scanner failed', () => {
+    const event: WorkflowEvent = {
+      type: 'review-recorded',
+      at: AT,
+      reviewId: 7,
+      reviewType: 'bug-scanner',
+      verdict: 'FAIL',
+    }
+
+    const result = applyEvent(makeState({ bugScannerPassed: true }), event)
+
+    expect(result.bugScannerPassed).toStrictEqual(false)
+  })
+
   it('ignores review types not owned by the workflow', () => {
     const event: WorkflowEvent = {
       type: 'review-recorded',
       at: AT,
-      reviewId: 6,
+      reviewId: 8,
       reviewType: 'external-review',
       verdict: 'PASS',
     }

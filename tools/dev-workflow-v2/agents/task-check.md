@@ -88,6 +88,13 @@ Hard failure. Design consistency is not optional.
 - **major**: Partial implementation. Core functionality exists but incomplete or has gaps.
 - **minor**: Implementation works but doesn't fully match task description (e.g., naming, location).
 
+## Verification Report (written to Report Path)
+
+The report file you write must contain:
+- the acceptance-criteria checklist
+- the PRD compliance section
+- unmet-criteria details when they exist
+
 ## JSON Response Requirements
 
 - Return only JSON.

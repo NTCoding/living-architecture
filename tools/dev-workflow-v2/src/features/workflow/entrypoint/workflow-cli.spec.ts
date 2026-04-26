@@ -228,6 +228,12 @@ describe('workflow-cli commands', () => {
       expect(result.exitCode).toStrictEqual(1)
       expect(result.output).toContain('Invalid review payload')
       expect(ctx.engineDeps.store.listSessionReviews(ctx.sessionId)).toStrictEqual([])
+      expect(
+        ctx.engineDeps.store
+          .readEvents(ctx.sessionId)
+          .map(flattenStoredEvent)
+          .filter((event) => event.type === 'review-recorded'),
+      ).toStrictEqual([])
     })
   })
 

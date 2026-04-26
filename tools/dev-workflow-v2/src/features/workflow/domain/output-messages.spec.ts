@@ -11,7 +11,7 @@ describe('getOperationBody', () => {
     expect(getOperationBody('record-ci-passed')).toBe('Record ci passed')
   })
 
-  it('handles three-word operations', () => {
+  it('capitalizes single-hyphen operations like record-review', () => {
     expect(getOperationBody('record-review')).toBe('Record review')
   })
 })

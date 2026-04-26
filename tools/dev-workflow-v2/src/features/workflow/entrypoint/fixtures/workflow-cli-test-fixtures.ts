@@ -123,10 +123,12 @@ export function progressToState(ctx: TestContext, targetState: string): void {
   if (!steps) return
   for (const step of steps) {
     if (step[0] === 'record-review') {
-      const reviewType = step[2]
-      if (reviewType === undefined) {
-        throw new WorkflowStateError('Expected review type for record-review test step.')
+      if (step[1] !== '--type' || step[2] === undefined) {
+        throw new WorkflowStateError(
+          "Expected record-review test step shape ['record-review', '--type', <reviewType>].",
+        )
       }
+      const reviewType = step[2]
       runReviewCommand(ctx, reviewType, {
         verdict: 'PASS',
         summary: `${reviewType} passed`,

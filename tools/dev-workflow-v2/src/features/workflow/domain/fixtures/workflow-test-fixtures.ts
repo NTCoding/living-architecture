@@ -90,7 +90,7 @@ export function reviewRecorded(
   return {
     type: 'review-recorded',
     at: AT,
-    reviewId: 1,
+    reviewId: Number(process.hrtime.bigint() % BigInt(Number.MAX_SAFE_INTEGER)) + 1,
     reviewType,
     verdict,
   }

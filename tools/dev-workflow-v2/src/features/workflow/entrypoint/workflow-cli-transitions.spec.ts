@@ -9,6 +9,10 @@ import {
   runCommand,
   runReviewCommand,
 } from './fixtures/workflow-cli-test-fixtures'
+import {
+  recordPassingPreReviews,
+  recordTaskCheck,
+} from '../domain/fixtures/review-command-test-fixtures'
 
 describe('workflow-cli transitions', () => {
   const dbPaths: string[] = []
@@ -153,22 +157,7 @@ describe('workflow-cli transitions', () => {
     it('blocks gate when no task-check review exists', () => {
       const ctx = setup()
       progressToState(ctx, 'REVIEWING')
-
-      runReviewCommand(ctx, 'architecture-review', {
-        verdict: 'PASS',
-        summary: 'Architecture review passed.',
-        findings: [],
-      })
-      runReviewCommand(ctx, 'code-review', {
-        verdict: 'PASS',
-        summary: 'Code review passed.',
-        findings: [],
-      })
-      runReviewCommand(ctx, 'bug-scanner', {
-        verdict: 'PASS',
-        summary: 'Bug scan passed.',
-        findings: [],
-      })
+      recordPassingPreReviews(ctx)
 
       const result = runCommand(ctx, ['transition', 'SUBMITTING_PR'])
 
@@ -179,27 +168,8 @@ describe('workflow-cli transitions', () => {
     it('blocks gate when latest task-check review failed', () => {
       const ctx = setup()
       progressToState(ctx, 'REVIEWING')
-
-      runReviewCommand(ctx, 'architecture-review', {
-        verdict: 'PASS',
-        summary: 'Architecture review passed.',
-        findings: [],
-      })
-      runReviewCommand(ctx, 'code-review', {
-        verdict: 'PASS',
-        summary: 'Code review passed.',
-        findings: [],
-      })
-      runReviewCommand(ctx, 'bug-scanner', {
-        verdict: 'PASS',
-        summary: 'Bug scan passed.',
-        findings: [],
-      })
-      runReviewCommand(ctx, 'task-check', {
-        verdict: 'FAIL',
-        summary: 'Task check failed.',
-        findings: [],
-      })
+      recordPassingPreReviews(ctx)
+      recordTaskCheck(ctx, 'FAIL')
 
       const result = runCommand(ctx, ['transition', 'SUBMITTING_PR'])
 
@@ -210,27 +180,8 @@ describe('workflow-cli transitions', () => {
     it('allows gate when latest task-check review passed', () => {
       const ctx = setup()
       progressToState(ctx, 'REVIEWING')
-
-      runReviewCommand(ctx, 'architecture-review', {
-        verdict: 'PASS',
-        summary: 'Architecture review passed.',
-        findings: [],
-      })
-      runReviewCommand(ctx, 'code-review', {
-        verdict: 'PASS',
-        summary: 'Code review passed.',
-        findings: [],
-      })
-      runReviewCommand(ctx, 'bug-scanner', {
-        verdict: 'PASS',
-        summary: 'Bug scan passed.',
-        findings: [],
-      })
-      runReviewCommand(ctx, 'task-check', {
-        verdict: 'PASS',
-        summary: 'Task check passed.',
-        findings: [],
-      })
+      recordPassingPreReviews(ctx)
+      recordTaskCheck(ctx, 'PASS')
 
       const result = runCommand(ctx, ['transition', 'SUBMITTING_PR'])
 
@@ -240,32 +191,9 @@ describe('workflow-cli transitions', () => {
     it('allows gate when latest task-check review passed after an earlier failure', () => {
       const ctx = setup()
       progressToState(ctx, 'REVIEWING')
-
-      runReviewCommand(ctx, 'architecture-review', {
-        verdict: 'PASS',
-        summary: 'Architecture review passed.',
-        findings: [],
-      })
-      runReviewCommand(ctx, 'code-review', {
-        verdict: 'PASS',
-        summary: 'Code review passed.',
-        findings: [],
-      })
-      runReviewCommand(ctx, 'bug-scanner', {
-        verdict: 'PASS',
-        summary: 'Bug scan passed.',
-        findings: [],
-      })
-      runReviewCommand(ctx, 'task-check', {
-        verdict: 'FAIL',
-        summary: 'Task check failed.',
-        findings: [],
-      })
-      runReviewCommand(ctx, 'task-check', {
-        verdict: 'PASS',
-        summary: 'Task check passed after fixes.',
-        findings: [],
-      })
+      recordPassingPreReviews(ctx)
+      recordTaskCheck(ctx, 'FAIL')
+      recordTaskCheck(ctx, 'PASS', 'Task check passed after fixes.')
 
       const result = runCommand(ctx, ['transition', 'SUBMITTING_PR'])
 
@@ -275,27 +203,8 @@ describe('workflow-cli transitions', () => {
     it('rejects REVIEWING to IMPLEMENTING when all reviews passed', () => {
       const ctx = setup()
       progressToState(ctx, 'REVIEWING')
-
-      runReviewCommand(ctx, 'architecture-review', {
-        verdict: 'PASS',
-        summary: 'Architecture review passed.',
-        findings: [],
-      })
-      runReviewCommand(ctx, 'code-review', {
-        verdict: 'PASS',
-        summary: 'Code review passed.',
-        findings: [],
-      })
-      runReviewCommand(ctx, 'bug-scanner', {
-        verdict: 'PASS',
-        summary: 'Bug scan passed.',
-        findings: [],
-      })
-      runReviewCommand(ctx, 'task-check', {
-        verdict: 'PASS',
-        summary: 'Task check passed.',
-        findings: [],
-      })
+      recordPassingPreReviews(ctx)
+      recordTaskCheck(ctx, 'PASS')
 
       const result = runCommand(ctx, ['transition', 'IMPLEMENTING'])
 

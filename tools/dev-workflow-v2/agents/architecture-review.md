@@ -47,6 +47,13 @@ Do not suggest "this could be improved" — state the rule code and mark FAIL.
 
 If a file under `infra/external-clients/**` uses domain terminology in its exports, the logic belongs in the domain — not in the adapter. FAIL and move it.
 
+## Audit Report (written to Report Path)
+
+The report file you write must contain, in this exact order:
+- Findings
+- Full Audit Trail
+- Audit Summary
+
 ## JSON Response Requirements
 
 - Return only JSON.
