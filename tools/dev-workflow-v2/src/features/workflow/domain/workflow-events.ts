@@ -1,8 +1,9 @@
 import { z } from 'zod'
+import type {
+  BaseEvent, ReviewRecordedEvent 
+} from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { reviewVerdictSchema } from '@nt-ai-lab/deterministic-agent-workflow-engine'
-import {
-  LIVING_ARCHITECTURE_REVIEW_TYPE_SCHEMA, STATE_NAME_SCHEMA 
-} from './workflow-types'
+import { STATE_NAME_SCHEMA } from './workflow-types'
 
 const SESSION_STARTED_SCHEMA = z.object({
   type: z.literal('session-started'),
@@ -86,9 +87,9 @@ const REVIEW_RECORDED_SCHEMA = z.object({
   type: z.literal('review-recorded'),
   at: z.string(),
   reviewId: z.number(),
-  reviewType: LIVING_ARCHITECTURE_REVIEW_TYPE_SCHEMA,
+  reviewType: z.string(),
   verdict: reviewVerdictSchema,
-})
+}) satisfies z.ZodType<ReviewRecordedEvent>
 
 const BASH_CHECKED_SCHEMA = z.object({
   type: z.literal('bash-checked'),
@@ -128,3 +129,16 @@ export const WORKFLOW_EVENT_SCHEMA = z.discriminatedUnion('type', [
 
 /** @riviere-role value-object */
 export type WorkflowEvent = z.infer<typeof WORKFLOW_EVENT_SCHEMA>
+
+/** @riviere-role domain-service */
+export function parseWorkflowEvent(event: BaseEvent): WorkflowEvent {
+  return WORKFLOW_EVENT_SCHEMA.parse(event)
+}
+
+/** @riviere-role domain-service */
+export function getKnownWorkflowEventTypes(): readonly string[] {
+  return [
+    ...WORKFLOW_EVENT_SCHEMA.options.map((schema) => schema.shape.type.value),
+    'review-recorded',
+  ]
+}

@@ -7,6 +7,7 @@ import type { WorkflowDeps } from '../workflow'
 import { Workflow } from '../workflow'
 import { applyEvents } from '../fold'
 import type { GitInfo } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
+import type { StoredReview } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 
 const AT = '2026-01-01T00:00:00Z'
 
@@ -27,6 +28,7 @@ export function makeDeps(overrides?: Partial<WorkflowDeps>): WorkflowDeps {
       unresolvedCount: 0,
       threads: [],
     }),
+    listSessionReviews: (): readonly StoredReview[] => [],
     sleepMs: () => undefined,
     now: () => AT,
     ...overrides,

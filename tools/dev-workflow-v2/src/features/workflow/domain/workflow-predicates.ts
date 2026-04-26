@@ -21,6 +21,7 @@ export function checkWriteAllowed(filePath: string): boolean {
 }
 
 /** @riviere-role domain-service */
-export function isWriteAllowed(filePath: string, _state: WorkflowState): boolean {
+export function isWriteAllowed(filePath: string, state: WorkflowState): boolean {
+  void state
   return checkWriteAllowed(filePath)
 }

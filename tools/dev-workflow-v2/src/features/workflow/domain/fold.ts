@@ -1,13 +1,20 @@
 import type { WorkflowEvent } from './workflow-events'
-import type { WorkflowState } from './workflow-types'
+import {
+  LIVING_ARCHITECTURE_REVIEW_TYPE_SCHEMA, type WorkflowState 
+} from './workflow-types'
 
 function applyRecordedReviewVerdict(
   state: WorkflowState,
   event: Extract<WorkflowEvent, { type: 'review-recorded' }>,
 ): WorkflowState {
+  const parsedReviewType = LIVING_ARCHITECTURE_REVIEW_TYPE_SCHEMA.safeParse(event.reviewType)
+  if (!parsedReviewType.success) {
+    return state
+  }
+
   const passed = event.verdict === 'PASS'
 
-  switch (event.reviewType) {
+  switch (parsedReviewType.data) {
     case 'architecture-review':
       return {
         ...state,
@@ -47,9 +54,18 @@ function applyTransitioned(
   event: Extract<WorkflowEvent, { type: 'transitioned' }>,
 ): WorkflowState {
   const newPreBlockedState = event.to === 'BLOCKED' ? event.from : undefined
+  const stateOverrides = event.stateOverrides
+  if (stateOverrides === undefined) {
+    return {
+      ...state,
+      currentStateMachineState: event.to,
+      preBlockedState: newPreBlockedState,
+    }
+  }
+
   return {
     ...state,
-    ...(event.stateOverrides ?? {}),
+    ...stateOverrides,
     currentStateMachineState: event.to,
     preBlockedState: newPreBlockedState,
   }

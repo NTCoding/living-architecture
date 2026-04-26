@@ -1,3 +1,4 @@
+import type { StoredReview } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import {
   spec,
@@ -19,7 +20,56 @@ function getReviewingTransitionGuard(): NonNullable<typeof reviewingState.transi
   return transitionGuard
 }
 
+function createStoredReview(
+  id: number,
+  reviewType: StoredReview['reviewType'],
+  verdict: StoredReview['verdict'],
+): StoredReview {
+  return {
+    id,
+    sessionId: 'test-session',
+    createdAt: `2026-01-01T00:00:0${String(id)}Z`,
+    reviewType,
+    sourceState: 'REVIEWING',
+    verdict,
+    summary: `${reviewType} ${verdict}`,
+    findings: [],
+  }
+}
+
 describe('Workflow', () => {
+  describe('review details', () => {
+    it('returns recorded reviews from platform review storage', () => {
+      const reviews = [createStoredReview(1, 'task-check', 'PASS')]
+      const workflow = Workflow.createFresh(makeDeps({ listSessionReviews: () => reviews }))
+
+      expect(workflow.getRecordedReviews()).toStrictEqual(reviews)
+    })
+
+    it('returns review details when review id exists', () => {
+      const reviews = [createStoredReview(1, 'task-check', 'FAIL')]
+      const workflow = Workflow.createFresh(makeDeps({ listSessionReviews: () => reviews }))
+
+      expect(workflow.getReviewDetails(1)).toStrictEqual(reviews[0])
+    })
+
+    it('returns latest review when review type has multiple attempts', () => {
+      const reviews = [
+        createStoredReview(1, 'task-check', 'FAIL'),
+        createStoredReview(2, 'task-check', 'PASS'),
+      ]
+      const workflow = Workflow.createFresh(makeDeps({ listSessionReviews: () => reviews }))
+
+      expect(workflow.getLatestReviewByType('task-check')).toStrictEqual(reviews[1])
+    })
+
+    it('throws when requested review id does not exist', () => {
+      const workflow = Workflow.createFresh(makeDeps({ listSessionReviews: () => [] }))
+
+      expect(() => workflow.getReviewDetails(99)).toThrow('Review 99 not found in current session.')
+    })
+  })
+
   describe('REVIEWING state', () => {
     it('marks architecture review as passed when latest architecture review verdict passed', () => {
       const workflow = Workflow.rehydrate(applyEvents(eventsToReviewing()), makeDeps())

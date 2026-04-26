@@ -10,17 +10,22 @@ import {
   defineRecordingOps,
   checkOperationGate,
 } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
-import type { BaseEvent } from '@nt-ai-lab/deterministic-agent-workflow-engine'
+import type {
+  BaseEvent, StoredReview 
+} from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import type {
-  WorkflowState, StateName, WorkflowOperation 
+  WorkflowState,
+  StateName,
+  WorkflowOperation,
+  LivingArchitectureReviewType,
 } from './workflow-types'
 import {
   WORKFLOW_REGISTRY, getStateDefinition 
 } from './registry'
 import { WORKFLOW_STATE_SCHEMA } from './workflow-types'
 import type { WorkflowEvent } from './workflow-events'
-import { WORKFLOW_EVENT_SCHEMA } from './workflow-events'
+import { parseWorkflowEvent } from './workflow-events'
 import {
   applyEvent, EMPTY_STATE 
 } from './fold'
@@ -70,6 +75,7 @@ const RECORDING_OPS = defineRecordingOps<StateName, WorkflowState, WorkflowOpera
 export type WorkflowDeps = {
   readonly getGitInfo: () => GitInfo
   readonly getPrFeedback: (prNumber: number) => PRFeedbackResult
+  readonly listSessionReviews: () => readonly StoredReview[]
   readonly sleepMs: (ms: number) => void
   readonly now: () => string
 }
@@ -150,7 +156,7 @@ export class Workflow {
   }
 
   appendEvent(event: BaseEvent): void {
-    const workflowEvent = WORKFLOW_EVENT_SCHEMA.parse(event)
+    const workflowEvent = parseWorkflowEvent(event)
     this.pendingEvents = [...this.pendingEvents, workflowEvent]
     this.state = applyEvent(this.state, workflowEvent)
 
@@ -179,6 +185,27 @@ export class Workflow {
       throw new WorkflowStateError('Transcript path not set. Session has not been started.')
     }
     return this.state.transcriptPath
+  }
+
+  getRecordedReviews(): readonly StoredReview[] {
+    return this.deps.listSessionReviews()
+  }
+
+  getReviewDetails(reviewId: number): StoredReview {
+    const review = this.getRecordedReviews().find(
+      (recordedReview) => recordedReview.id === reviewId,
+    )
+    if (review === undefined) {
+      throw new WorkflowStateError(`Review ${String(reviewId)} not found in current session.`)
+    }
+    return review
+  }
+
+  getLatestReviewByType(reviewType: LivingArchitectureReviewType): StoredReview | undefined {
+    const reviewsOfType = this.getRecordedReviews().filter(
+      (recordedReview) => recordedReview.reviewType === reviewType,
+    )
+    return reviewsOfType.at(-1)
   }
 
   registerAgent(agentType: string, agentId: string): PreconditionResult {

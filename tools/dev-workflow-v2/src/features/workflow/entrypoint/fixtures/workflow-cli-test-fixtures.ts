@@ -70,6 +70,7 @@ export function buildTestContext(
         unresolvedCount: 0,
         threads: [],
       })),
+    listSessionReviews: () => store.listSessionReviews(sessionId),
     sleepMs: () => undefined,
     now: () => '2024-01-01T00:00:00Z',
   }

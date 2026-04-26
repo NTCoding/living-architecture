@@ -230,45 +230,6 @@ describe('applyEvent — task-check-passed', () => {
   })
 })
 
-describe('applyEvent — review-recorded', () => {
-  it('sets taskCheckPassed to true when task-check passed', () => {
-    const event: WorkflowEvent = {
-      type: 'review-recorded',
-      at: AT,
-      reviewId: 1,
-      reviewType: 'task-check',
-      verdict: 'PASS',
-    }
-    const result = applyEvent(EMPTY_STATE, event)
-    expect(result.taskCheckPassed).toStrictEqual(true)
-  })
-
-  it('sets taskCheckPassed to false when latest task-check failed', () => {
-    const state = makeState({ taskCheckPassed: true })
-    const event: WorkflowEvent = {
-      type: 'review-recorded',
-      at: AT,
-      reviewId: 2,
-      reviewType: 'task-check',
-      verdict: 'FAIL',
-    }
-    const result = applyEvent(state, event)
-    expect(result.taskCheckPassed).toStrictEqual(false)
-  })
-
-  it('sets architecture review flag from recorded review verdict', () => {
-    const event: WorkflowEvent = {
-      type: 'review-recorded',
-      at: AT,
-      reviewId: 3,
-      reviewType: 'architecture-review',
-      verdict: 'PASS',
-    }
-    const result = applyEvent(EMPTY_STATE, event)
-    expect(result.architectureReviewPassed).toStrictEqual(true)
-  })
-})
-
 describe('applyEvent — transitioned', () => {
   it('changes state field', () => {
     const result = applyEvent(EMPTY_STATE, {

@@ -12,21 +12,19 @@ You are running automated code review by spawning review agents in parallel.
 
 - [ ] Run `/dev-workflow-v2:workflow get-state` once at the start of this state run and extract `taskCheckPassed` and `githubIssue` from its JSON output
 - [ ] Determine changed files: `git diff --name-only $(git merge-base HEAD main)..HEAD`
-- [ ] Create report directory: `reviews/<branch-name>/`
 - [ ] Build agent prompts (see Prompt Construction below)
 - [ ] Spawn `architecture-review`, `code-review`, and `bug-scanner` in parallel using the delegation tool selected in Platform Detection
 - [ ] If Conditional Task Check says `task-check` is required, spawn it using the same selected delegation tool
 - [ ] Wait for all agents to complete and parse each agent's JSON review payload
 - [ ] For each valid review payload, record it with `/dev-workflow-v2:workflow record-review --type <review-type>` and pass the review JSON through stdin
 - [ ] If all passed: `/dev-workflow-v2:workflow transition SUBMITTING_PR`
-- [ ] If any failed: fix the issues found in the reports, commit, then `/dev-workflow-v2:workflow transition IMPLEMENTING`
+- [ ] If any failed: fix the issues found in the recorded review findings, commit, then `/dev-workflow-v2:workflow transition IMPLEMENTING`
 
 ## Prompt Construction
 
 Each review agent prompt must include:
 
 1. **Files to Review** — the changed files list from step 1
-2. **Report Path** — `reviews/<branch-name>/<agent-name>.md`
 
 Use the same prompt body for both platforms. In OpenCode mode, pass it to the Task tool for the named subagent. In Claude mode, pass it to the Agent tool with `subagent_type` set to the corresponding agent name.
 
@@ -42,8 +40,6 @@ Example prompt body:
 Files to Review:
 - src/foo.ts
 - src/bar.ts
-
-Report Path: reviews/feat-my-feature/code-review.md
 ```
 
 ## Conditional Task Check
@@ -57,16 +53,14 @@ Use only the `taskCheckPassed` and `githubIssue` values extracted from `/dev-wor
 If `taskCheckPassed` is `false` and `githubIssue` is present, spawn the task-check agent. In OpenCode mode use the Task tool for the `task-check` subagent. In Claude mode use the Agent tool with `subagent_type: "task-check"`. Its prompt must include:
 
 1. **Files to Review** — same changed files list
-2. **Report Path** — `reviews/<branch-name>/task-check.md`
-3. **Task Details** — the GitHub issue body for `githubIssue` (fetch via `gh issue view <number>`)
+2. **Task Details** — the GitHub issue body for `githubIssue` (fetch via `gh issue view <number>`)
 
 ## Constraints
 
 - Cannot transition to SUBMITTING_PR unless architecture-review, code-review, and bug-scanner passed
 - If `githubIssue` is present, cannot transition to SUBMITTING_PR unless the latest required `task-check` review also passed
 - Cannot transition to IMPLEMENTING if all 3 reviews passed (go to SUBMITTING_PR instead)
-- Do not write review reports yourself. Each review report must be produced by its corresponding subagent.
-- Do not infer workflow state from prior messages, git history, or report files. When workflow state values are needed, run `/dev-workflow-v2:workflow get-state` and extract the exact fields required from its JSON output.
+- Do not infer workflow state from prior messages or git history. When workflow state values are needed, run `/dev-workflow-v2:workflow get-state` and extract the exact fields required from its JSON output.
 - Do not record any review until the corresponding subagent has returned valid JSON with `verdict`, `summary`, and `findings`
 - If any required subagent fails to start, fails to complete, or returns invalid or missing review JSON, do not continue the review flow; transition to BLOCKED immediately
 - If blocked, transition to BLOCKED: `/dev-workflow-v2:workflow transition BLOCKED`
