@@ -2,9 +2,9 @@
 pageClass: reference
 ---
 
-# Class: MissingDomainsError
+# Class: ComponentTypeMismatchError
 
-Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:138](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L138)
+Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:63](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L63)
 
 ## Riviere-role
 
@@ -18,13 +18,27 @@ domain-error
 
 ### Constructor
 
-> **new MissingDomainsError**(): `MissingDomainsError`
+> **new ComponentTypeMismatchError**(`componentId`, `existingType`, `incomingType`): `ComponentTypeMismatchError`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:139](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L139)
+Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:68](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L68)
+
+#### Parameters
+
+##### componentId
+
+`string`
+
+##### existingType
+
+`string`
+
+##### incomingType
+
+`string`
 
 #### Returns
 
-`MissingDomainsError`
+`ComponentTypeMismatchError`
 
 #### Overrides
 
@@ -41,6 +55,30 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 #### Inherited from
 
 `Error.cause`
+
+***
+
+### componentId
+
+> `readonly` **componentId**: `string`
+
+Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:64](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L64)
+
+***
+
+### existingType
+
+> `readonly` **existingType**: `string`
+
+Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:65](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L65)
+
+***
+
+### incomingType
+
+> `readonly` **incomingType**: `string`
+
+Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:66](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L66)
 
 ***
 

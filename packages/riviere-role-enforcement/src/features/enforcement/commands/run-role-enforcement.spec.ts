@@ -14,6 +14,7 @@ vi.mock('node:fs', async (importOriginal) => {
 import {
   configWithGenericApprovedAggregates,
   configWithGenericMaxPublicMethods,
+  configWithGenericRequiredPrivateMembers,
   genericTestConfig,
 } from './test-fixture-config'
 import {
@@ -245,6 +246,33 @@ it('rejects aggregate when name is not in approvedInstances', () => {
     expect(result.exitCode).toBe(1)
     expect(result.stderr).toBe('')
     expect(result.stdout).toContain('is not in approvedInstances')
+  })
+})
+
+it('rejects classes missing required private members', () => {
+  withGenericFixtureWorkspace((workspaceDir) => {
+    const result = runWith(configWithGenericRequiredPrivateMembers(['brand']), workspaceDir)
+    expect(result.exitCode).toBe(1)
+    expect(result.stderr).toBe('')
+    expect(result.stdout).toContain("requires private member 'brand'")
+  })
+})
+
+it('accepts classes that declare required private members', () => {
+  withGenericFixtureWorkspace((workspaceDir) => {
+    writeDomainFile(
+      workspaceDir,
+      `/** @riviere-role role-b */
+export class Beta {
+  private readonly brand = 'Beta'
+
+  cancel(): void {}
+}
+`,
+    )
+    const result = runWith(configWithGenericRequiredPrivateMembers(['brand']), workspaceDir)
+    expect(result.exitCode).toBe(0)
+    expect(result.stderr).toBe('')
   })
 })
 

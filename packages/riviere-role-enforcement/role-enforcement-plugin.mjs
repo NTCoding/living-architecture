@@ -388,6 +388,12 @@ export default {
         }
 
         function validateClassContract(node, role, name) {
+          validatePublicMethodCount(node, role, name)
+          validateRequiredPrivateMembers(node, role, name)
+          validateClassMethodOutputs(node, role, name)
+        }
+
+        function validatePublicMethodCount(node, role, name) {
           if (typeof role.minPublicMethods === 'number') {
             const publicMethodCount = countPublicMethods(node)
             if (publicMethodCount < role.minPublicMethods) {
@@ -407,17 +413,36 @@ export default {
               )
             }
           }
+        }
 
-          if (Array.isArray(role.allowedOutputs)) {
-            for (const member of node.body.body) {
-              if (
-                member.type === 'MethodDefinition' &&
-                member.kind !== 'constructor' &&
-                (member.accessibility === 'public' || member.accessibility == null)
-              ) {
-                const methodName = member.key?.name ?? '?'
-                validateFunctionContract(member.value, role, `${name}.${methodName}`)
-              }
+        function validateRequiredPrivateMembers(node, role, name) {
+          if (!Array.isArray(role.requiredPrivateMembers)) {
+            return
+          }
+
+          for (const privateMemberName of role.requiredPrivateMembers) {
+            if (!hasRequiredPrivateMember(node, privateMemberName)) {
+              report(
+                node,
+                `Role '${role.name}' requires private member '${privateMemberName}' on '${name}'. ${referenceForKnownRole(options, role.name)}`,
+              )
+            }
+          }
+        }
+
+        function validateClassMethodOutputs(node, role, name) {
+          if (!Array.isArray(role.allowedOutputs)) {
+            return
+          }
+
+          for (const member of node.body.body) {
+            if (
+              member.type === 'MethodDefinition' &&
+              member.kind !== 'constructor' &&
+              (member.accessibility === 'public' || member.accessibility == null)
+            ) {
+              const methodName = member.key?.name ?? '?'
+              validateFunctionContract(member.value, role, `${name}.${methodName}`)
             }
           }
         }
@@ -429,6 +454,33 @@ export default {
               member.kind !== 'constructor' &&
               (member.accessibility === 'public' || member.accessibility == null),
           ).length
+        }
+
+        function hasRequiredPrivateMember(classNode, privateMemberName) {
+          return classNode.body.body.some(
+            (member) =>
+              isPrivateMember(member) &&
+              readMemberName(member.key) === privateMemberName,
+          )
+        }
+
+        function isPrivateMember(member) {
+          return (
+            member.accessibility === 'private' ||
+            member.key?.type === 'PrivateIdentifier'
+          )
+        }
+
+        function readMemberName(key) {
+          if (key?.type === 'Identifier' || key?.type === 'PrivateIdentifier') {
+            return key.name
+          }
+
+          if (key?.type === 'Literal' && typeof key.value === 'string') {
+            return key.value
+          }
+
+          return null
         }
 
         function readOutputTypeRoles(typeAnnotation, currentFile) {

@@ -14,6 +14,7 @@ interface RoleOptions<R extends string = string> {
   readonly approvedInstances?: readonly ApprovedInstance[]
   readonly forbiddenDependencies?: readonly R[]
   readonly forbiddenMethodCalls?: readonly R[]
+  readonly requiredPrivateMembers?: readonly string[]
   readonly nameMatches?: string
   readonly maxPublicMethods?: number
   readonly minPublicMethods?: number
@@ -29,6 +30,7 @@ export interface BuiltRole<N extends string = string> {
   readonly approvedInstances?: readonly ApprovedInstance[]
   readonly forbiddenDependencies?: readonly string[]
   readonly forbiddenMethodCalls?: readonly string[]
+  readonly requiredPrivateMembers?: readonly string[]
   readonly maxPublicMethods?: number
   readonly nameMatches?: string
   readonly minPublicMethods?: number

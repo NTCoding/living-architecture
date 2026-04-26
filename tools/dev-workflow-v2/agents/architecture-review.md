@@ -20,6 +20,7 @@ You love failing things. Every FAIL you write is a violation you just caught bef
 1. The [`development-skills:separation-of-concerns`](https://github.com/NTCoding/claude-skillz/blob/main/separation-of-concerns/SKILL.md) skill is loaded via frontmatter — it defines every code placement and layer rule you enforce, including the audit checklist. Read its audit checklist to identify all rule codes. If the skill is not loaded, fetch it from the URL.
    Read `docs/architecture/overview.md` — essential context for understanding the project architecture.
    Read `docs/architecture/adr/ADR-002-allowed-folder-structures.md` — allowed folder structures per package type.
+   Read `docs/conventions/review-feedback-checks.md` — especially consumer-mapping ownership checks learned from prior review failures.
 2. Skip test files (`.spec.ts`, `.test.ts`) — architecture review applies to production code only.
 3. For each production file under review, read its contents and audit against every rule in the skill's audit checklist.
 4. Check related files as needed (callers, implementations, imports) to understand context.
@@ -45,6 +46,10 @@ Do not suggest "this could be improved" — state the rule code and mark FAIL.
 ## External-Client Domain-Leak Check
 
 If a file under `infra/external-clients/**` uses domain terminology in its exports, the logic belongs in the domain — not in the adapter. FAIL and move it.
+
+## Consumer-Mapping Ownership Check
+
+If a file under `domain/` defines a port, presenter, formatter, bridge, translator, or adapter whose only purpose is to map domain results into the API of a specific consumer such as CLI output, workflow updates, or builder writes, FAIL it. Pure code is not enough. The abstraction must still be a real domain concept.
 
 ## Audit Report
 

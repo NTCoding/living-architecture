@@ -83,3 +83,11 @@ export function configWithGenericApprovedAggregates(approvedNames: string[]) {
     })),
   })
 }
+
+export function configWithGenericRequiredPrivateMembers(requiredPrivateMembers: string[]) {
+  return configWithGenericAggregateOverride({
+    targets: ['class'],
+    minPublicMethods: 1,
+    requiredPrivateMembers,
+  })
+}

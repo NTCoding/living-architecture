@@ -1,4 +1,7 @@
 import {
+  describe, expect, it 
+} from 'vitest'
+import {
   createRoleFactory, location, role, roleEnforcement 
 } from './role-enforcement-builder'
 
@@ -81,6 +84,19 @@ describe('role', () => {
           userHasApproved: true,
         },
       ],
+    })
+  })
+
+  it('includes requiredPrivateMembers when provided', () => {
+    const result = role('value-object', {
+      targets: ['class'],
+      requiredPrivateMembers: ['brand'],
+    })
+
+    expect(result).toStrictEqual({
+      name: 'value-object',
+      targets: ['class'],
+      requiredPrivateMembers: ['brand'],
     })
   })
 
