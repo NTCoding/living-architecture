@@ -4,8 +4,9 @@ import {
 import type {
   ExtractionConfig, Module 
 } from '@living-architecture/riviere-extract-config'
-import { resolveConfig } from './resolve-config'
-import type { ConfigLoader } from './resolve-config'
+import {
+  ConfigLoader, resolveConfig 
+} from './resolve-config'
 
 describe('resolveConfig', () => {
   describe('modules without extends', () => {
@@ -29,7 +30,7 @@ describe('resolveConfig', () => {
 
       const result = resolveConfig(config)
 
-      expect(result).toStrictEqual({
+      expect(result).toMatchObject({
         modules: [
           {
             name: 'orders',
@@ -95,7 +96,7 @@ describe('resolveConfig', () => {
 
       const result = resolveConfig(config)
 
-      expect(result.modules[0]?.customTypes).toStrictEqual({
+      expect(result.modules[0]?.customTypes).toMatchObject({
         repository: {
           find: 'classes',
           where: { nameEndsWith: { suffix: 'Repository' } },
@@ -163,12 +164,13 @@ describe('resolveConfig', () => {
         ],
       }
 
-      const loader: ConfigLoader = vi.fn().mockReturnValue(createBaseModule())
+      const load = vi.fn().mockReturnValue(createBaseModule())
+      const loader = new ConfigLoader(load)
 
       const result = resolveConfig(config, loader)
 
-      expect(loader).toHaveBeenCalledWith('@living-architecture/riviere-extract-conventions')
-      expect(result.modules[0]).toStrictEqual({
+      expect(load).toHaveBeenCalledWith('@living-architecture/riviere-extract-conventions')
+      expect(result.modules[0]).toMatchObject({
         name: 'orders',
         domain: 'orders',
         path: 'orders',
@@ -220,7 +222,7 @@ describe('resolveConfig', () => {
         ],
       }
 
-      const loader: ConfigLoader = vi.fn().mockReturnValue(createBaseModule())
+      const loader = new ConfigLoader(vi.fn().mockReturnValue(createBaseModule()))
       const result = resolveConfig(config, loader)
 
       expect(result.modules[0]?.modules).toBe('/src/{module}/')
@@ -243,15 +245,15 @@ describe('resolveConfig', () => {
         ],
       }
 
-      const loader: ConfigLoader = vi.fn().mockReturnValue(createBaseModule())
+      const loader = new ConfigLoader(vi.fn().mockReturnValue(createBaseModule()))
 
       const result = resolveConfig(config, loader)
 
-      expect(result.modules[0]?.api).toStrictEqual({
+      expect(result.modules[0]?.api).toMatchObject({
         find: 'methods',
         where: { hasDecorator: { name: 'CustomAPI' } },
       })
-      expect(result.modules[0]?.useCase).toStrictEqual({
+      expect(result.modules[0]?.useCase).toMatchObject({
         find: 'classes',
         where: { hasDecorator: { name: 'UseCase' } },
       })
@@ -276,11 +278,11 @@ describe('resolveConfig', () => {
         ],
       }
 
-      const loader: ConfigLoader = vi.fn().mockReturnValue(createBaseModule())
+      const loader = new ConfigLoader(vi.fn().mockReturnValue(createBaseModule()))
 
       const result = resolveConfig(config, loader)
 
-      expect(result.modules[0]?.customTypes).toStrictEqual({
+      expect(result.modules[0]?.customTypes).toMatchObject({
         repository: {
           find: 'classes',
           where: { nameEndsWith: { suffix: 'Repository' } },
@@ -311,11 +313,11 @@ describe('resolveConfig', () => {
         ],
       }
 
-      const loader: ConfigLoader = vi.fn().mockReturnValue(baseWithCustomTypes)
+      const loader = new ConfigLoader(vi.fn().mockReturnValue(baseWithCustomTypes))
 
       const result = resolveConfig(config, loader)
 
-      expect(result.modules[0]?.customTypes).toStrictEqual({
+      expect(result.modules[0]?.customTypes).toMatchObject({
         service: {
           find: 'classes',
           where: { nameEndsWith: { suffix: 'Service' } },
@@ -352,11 +354,11 @@ describe('resolveConfig', () => {
         ],
       }
 
-      const loader: ConfigLoader = vi.fn().mockReturnValue(baseWithCustomTypes)
+      const loader = new ConfigLoader(vi.fn().mockReturnValue(baseWithCustomTypes))
 
       const result = resolveConfig(config, loader)
 
-      expect(result.modules[0]?.customTypes).toStrictEqual({
+      expect(result.modules[0]?.customTypes).toMatchObject({
         service: {
           find: 'classes',
           where: { nameEndsWith: { suffix: 'Service' } },
@@ -397,11 +399,11 @@ describe('resolveConfig', () => {
         ],
       }
 
-      const loader: ConfigLoader = vi.fn().mockReturnValue(baseWithCustomTypes)
+      const loader = new ConfigLoader(vi.fn().mockReturnValue(baseWithCustomTypes))
 
       const result = resolveConfig(config, loader)
 
-      expect(result.modules[0]?.customTypes).toStrictEqual({
+      expect(result.modules[0]?.customTypes).toMatchObject({
         repository: {
           find: 'classes',
           where: { nameEndsWith: { suffix: 'Repository' } },

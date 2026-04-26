@@ -8,9 +8,8 @@ import type {
   ComponentRule,
   ExtractBlock,
 } from '@living-architecture/riviere-extract-config'
-import type {
-  DraftComponent, GlobMatcher 
-} from '../component-extraction/extractor'
+import { DraftComponent } from '../component-extraction/draft-component'
+import { GlobMatcher } from '../component-extraction/glob-matcher'
 import { enrichComponents } from './enrich-components'
 
 const sharedProject = new Project({ useInMemoryFileSystem: true })
@@ -23,7 +22,7 @@ function nextFile(path: string, content: string) {
   return filePath
 }
 
-const alwaysMatch: GlobMatcher = () => true
+const alwaysMatch = new GlobMatcher(() => true)
 const notUsed = { notUsed: true } as const
 
 function enrich(drafts: DraftComponent[], modules: Module[]) {
@@ -32,7 +31,7 @@ function enrich(drafts: DraftComponent[], modules: Module[]) {
 }
 
 function ordersDraft(type: string, name: string, file: string, line: number): DraftComponent {
-  return {
+  return new DraftComponent({
     type,
     name,
     location: {
@@ -41,7 +40,7 @@ function ordersDraft(type: string, name: string, file: string, line: number): Dr
     },
     domain: 'orders',
     module: 'orders-module',
-  }
+  })
 }
 
 function ordersModule(
@@ -98,8 +97,8 @@ describe('enrichComponents — fromMethodName extraction', () => {
     const module = ordersModule('/src/orders', {domainOp: domainOpMethodRule({ operationName: { fromMethodName: true } }),})
     const result = enrich([ordersDraft('domainOp', 'placeOrder', file, 2)], [module])
 
-    expect(result.components[0]?.metadata).toStrictEqual({ operationName: 'placeOrder' })
-    expect(result.failures).toStrictEqual([])
+    expect(result.components[0]?.metadata).toMatchObject({ operationName: 'placeOrder' })
+    expect(result.failures).toMatchObject([])
   })
 
   it('records failure when no method found at specified line', () => {
@@ -114,7 +113,7 @@ describe('enrichComponents — fromMethodName extraction', () => {
 
     expect(result.failures).toHaveLength(1)
     expect(result.failures[0]?.field).toBe('operationName')
-    expect(result.components[0]?._missing).toStrictEqual(['operationName'])
+    expect(result.components[0]?._missing).toMatchObject(['operationName'])
   })
 
   it('records failure when source file not found for fromMethodName', () => {
@@ -125,7 +124,7 @@ describe('enrichComponents — fromMethodName extraction', () => {
     )
 
     expect(result.failures).toHaveLength(1)
-    expect(result.components[0]?._missing).toStrictEqual(['operationName'])
+    expect(result.components[0]?._missing).toMatchObject(['operationName'])
   })
 })
 
@@ -142,8 +141,8 @@ export class OrderHandler implements IEventHandler<OrderPlaced> {
     const module = ordersModule('/src/orders', {eventHandler: eventHandlerMethodRule(genericArgExtract),})
     const result = enrich([ordersDraft('eventHandler', 'handle', file, 4)], [module])
 
-    expect(result.components[0]?.metadata).toStrictEqual({ subscribedEvents: ['OrderPlaced'] })
-    expect(result.failures).toStrictEqual([])
+    expect(result.components[0]?.metadata).toMatchObject({ subscribedEvents: ['OrderPlaced'] })
+    expect(result.failures).toMatchObject([])
   })
 
   it('finds containing class when method is in second class of file', () => {
@@ -161,8 +160,8 @@ export class OrderHandler implements IEventHandler<OrderPlaced> {
     const module = ordersModule('/src/orders', {eventHandler: eventHandlerMethodRule(genericArgExtract),})
     const result = enrich([ordersDraft('eventHandler', 'handle', file, 7)], [module])
 
-    expect(result.components[0]?.metadata).toStrictEqual({ subscribedEvents: ['OrderPlaced'] })
-    expect(result.failures).toStrictEqual([])
+    expect(result.components[0]?.metadata).toMatchObject({ subscribedEvents: ['OrderPlaced'] })
+    expect(result.failures).toMatchObject([])
   })
 
   it('records failure when no containing class found for fromGenericArg', () => {
@@ -172,7 +171,7 @@ export class OrderHandler implements IEventHandler<OrderPlaced> {
 
     expect(result.failures).toHaveLength(1)
     expect(result.failures[0]?.field).toBe('subscribedEvents')
-    expect(result.components[0]?._missing).toStrictEqual(['subscribedEvents'])
+    expect(result.components[0]?._missing).toMatchObject(['subscribedEvents'])
   })
 
   it('records failure when source file not found for fromGenericArg', () => {
@@ -183,7 +182,7 @@ export class OrderHandler implements IEventHandler<OrderPlaced> {
     )
 
     expect(result.failures).toHaveLength(1)
-    expect(result.components[0]?._missing).toStrictEqual(['subscribedEvents'])
+    expect(result.components[0]?._missing).toMatchObject(['subscribedEvents'])
   })
 
   it('enriches class-based component with fromGenericArg', () => {
@@ -203,8 +202,8 @@ export class OrderHandler implements IEventHandler<OrderPlaced> {
     })
     const result = enrich([ordersDraft('eventHandler', 'OrderHandler', file, 2)], [module])
 
-    expect(result.components[0]?.metadata).toStrictEqual({ subscribedEvents: ['OrderPlaced'] })
-    expect(result.failures).toStrictEqual([])
+    expect(result.components[0]?.metadata).toMatchObject({ subscribedEvents: ['OrderPlaced'] })
+    expect(result.failures).toMatchObject([])
   })
 })
 
@@ -229,7 +228,7 @@ describe('enrichComponents — fromProperty extraction on method-based component
     })
     const result = enrich([ordersDraft('eventHandler', 'handle', file, 3)], [module])
 
-    expect(result.components[0]?.metadata).toStrictEqual({ subscribedEvents: ['OrderPlaced'] })
-    expect(result.failures).toStrictEqual([])
+    expect(result.components[0]?.metadata).toMatchObject({ subscribedEvents: ['OrderPlaced'] })
+    expect(result.failures).toMatchObject([])
   })
 })

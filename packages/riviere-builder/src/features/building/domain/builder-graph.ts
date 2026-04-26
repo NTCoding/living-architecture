@@ -6,13 +6,13 @@ import type {
   SourceInfo,
 } from '@living-architecture/riviere-schema'
 
-/** @riviere-role value-object */
+/** @riviere-role query-model */
 export interface BuilderMetadata extends Omit<GraphMetadata, 'sources' | 'customTypes'> {
   sources: SourceInfo[]
   customTypes: Record<string, CustomTypeDefinition>
 }
 
-/** @riviere-role value-object */
+/** @riviere-role query-model */
 export interface BuilderGraph extends Omit<RiviereGraph, 'metadata' | 'externalLinks'> {
   metadata: BuilderMetadata
   externalLinks: ExternalLink[]

@@ -4,6 +4,14 @@ import {
 import { detectSubscribeConnections } from './detect-subscribe-connections'
 import { buildComponent } from '../call-graph/call-graph-fixtures'
 import { ConnectionDetectionError } from '../connection-detection-error'
+import { AsyncDetectionOptions } from './async-detection-options'
+
+function createOptions(strict: boolean): AsyncDetectionOptions {
+  return new AsyncDetectionOptions({
+    strict,
+    repository: 'test-repo',
+  })
+}
 
 describe('detectSubscribeConnections', () => {
   it('returns async link from Event to EventHandler when subscribedEvents matches eventName', () => {
@@ -15,10 +23,7 @@ describe('detectSubscribeConnections', () => {
       type: 'eventHandler',
       metadata: { subscribedEvents: ['OrderPlaced'] },
     })
-    const result = detectSubscribeConnections([event, handler], {
-      strict: false,
-      repository: 'test-repo',
-    })
+    const result = detectSubscribeConnections([event, handler], createOptions(false))
 
     expect(result).toStrictEqual([
       expect.objectContaining({
@@ -42,10 +47,7 @@ describe('detectSubscribeConnections', () => {
       type: 'eventHandler',
       metadata: { subscribedEvents: ['OrderPlaced', 'OrderShipped'] },
     })
-    const result = detectSubscribeConnections([event1, event2, handler], {
-      strict: false,
-      repository: 'test-repo',
-    })
+    const result = detectSubscribeConnections([event1, event2, handler], createOptions(false))
 
     expect(result).toHaveLength(2)
     expect(result).toStrictEqual(
@@ -69,10 +71,7 @@ describe('detectSubscribeConnections', () => {
       type: 'event',
       metadata: { eventName: 'OrderPlaced' },
     })
-    const result = detectSubscribeConnections([event], {
-      strict: false,
-      repository: 'test-repo',
-    })
+    const result = detectSubscribeConnections([event], createOptions(false))
 
     expect(result).toStrictEqual([])
   })
@@ -82,10 +81,7 @@ describe('detectSubscribeConnections', () => {
       type: 'eventHandler',
       metadata: { subscribedEvents: [] },
     })
-    const result = detectSubscribeConnections([handler], {
-      strict: false,
-      repository: 'test-repo',
-    })
+    const result = detectSubscribeConnections([handler], createOptions(false))
 
     expect(result).toStrictEqual([])
   })
@@ -95,12 +91,9 @@ describe('detectSubscribeConnections', () => {
       type: 'eventHandler',
       metadata: { subscribedEvents: ['NonExistentEvent'] },
     })
-    expect(() =>
-      detectSubscribeConnections([handler], {
-        strict: true,
-        repository: 'test-repo',
-      }),
-    ).toThrow(ConnectionDetectionError)
+    expect(() => detectSubscribeConnections([handler], createOptions(true))).toThrow(
+      ConnectionDetectionError,
+    )
   })
 
   it('returns uncertain link in lenient mode when subscribed event matches no Event component', () => {
@@ -108,10 +101,7 @@ describe('detectSubscribeConnections', () => {
       type: 'eventHandler',
       metadata: { subscribedEvents: ['NonExistentEvent'] },
     })
-    const result = detectSubscribeConnections([handler], {
-      strict: false,
-      repository: 'test-repo',
-    })
+    const result = detectSubscribeConnections([handler], createOptions(false))
 
     expect(result).toStrictEqual([
       expect.objectContaining({
@@ -132,10 +122,7 @@ describe('detectSubscribeConnections', () => {
       type: 'eventHandler',
       metadata: { subscribedEvents: ['orderplaced'] },
     })
-    const result = detectSubscribeConnections([event, handler], {
-      strict: false,
-      repository: 'test-repo',
-    })
+    const result = detectSubscribeConnections([event, handler], createOptions(false))
 
     expect(result).toStrictEqual([
       expect.objectContaining({ _uncertain: expect.stringContaining('orderplaced') }),
@@ -151,10 +138,7 @@ describe('detectSubscribeConnections', () => {
       type: 'eventHandler',
       metadata: { subscribedEvents: ['', '   '] },
     })
-    const result = detectSubscribeConnections([event, handler], {
-      strict: false,
-      repository: 'test-repo',
-    })
+    const result = detectSubscribeConnections([event, handler], createOptions(false))
 
     expect(result).toHaveLength(2)
     expect(result).toStrictEqual(
@@ -177,10 +161,7 @@ describe('detectSubscribeConnections', () => {
       type: 'eventHandler',
       metadata: { subscribedEvents: ['OrderPlaced'] },
     })
-    const result = detectSubscribeConnections([event, handler], {
-      strict: false,
-      repository: 'test-repo',
-    })
+    const result = detectSubscribeConnections([event, handler], createOptions(false))
 
     expect(result[0]?.sourceLocation).toStrictEqual(
       expect.objectContaining({
@@ -195,10 +176,7 @@ describe('detectSubscribeConnections', () => {
       type: 'useCase',
       metadata: { subscribedEvents: ['OrderPlaced'] },
     })
-    const result = detectSubscribeConnections([useCase], {
-      strict: false,
-      repository: 'test-repo',
-    })
+    const result = detectSubscribeConnections([useCase], createOptions(false))
 
     expect(result).toStrictEqual([])
   })
@@ -208,10 +186,7 @@ describe('detectSubscribeConnections', () => {
       type: 'eventHandler',
       metadata: {},
     })
-    const result = detectSubscribeConnections([handler], {
-      strict: false,
-      repository: 'test-repo',
-    })
+    const result = detectSubscribeConnections([handler], createOptions(false))
 
     expect(result).toStrictEqual([])
   })
@@ -225,10 +200,7 @@ describe('detectSubscribeConnections', () => {
       type: 'eventHandler',
       metadata: { subscribedEvents: ['OrderPlaced', 'OrderPlaced'] },
     })
-    const result = detectSubscribeConnections([event, handler], {
-      strict: false,
-      repository: 'test-repo',
-    })
+    const result = detectSubscribeConnections([event, handler], createOptions(false))
 
     expect(result).toHaveLength(2)
   })
@@ -243,10 +215,7 @@ describe('detectSubscribeConnections', () => {
       type: 'eventHandler',
       metadata: { subscribedEvents: mixedEvents },
     })
-    const result = detectSubscribeConnections([event, handler], {
-      strict: false,
-      repository: 'test-repo',
-    })
+    const result = detectSubscribeConnections([event, handler], createOptions(false))
 
     expect(result).toHaveLength(1)
     expect(result[0]).toStrictEqual(
@@ -272,10 +241,7 @@ describe('detectSubscribeConnections', () => {
     })
 
     expect(() =>
-      detectSubscribeConnections([event1, event2, handler], {
-        strict: true,
-        repository: 'test-repo',
-      }),
+      detectSubscribeConnections([event1, event2, handler], createOptions(true)),
     ).toThrow(ConnectionDetectionError)
   })
 
@@ -292,10 +258,7 @@ describe('detectSubscribeConnections', () => {
       type: 'eventHandler',
       metadata: { subscribedEvents: ['OrderPlaced'] },
     })
-    const result = detectSubscribeConnections([event1, event2, handler], {
-      strict: false,
-      repository: 'test-repo',
-    })
+    const result = detectSubscribeConnections([event1, event2, handler], createOptions(false))
 
     expect(result).toStrictEqual([
       expect.objectContaining({

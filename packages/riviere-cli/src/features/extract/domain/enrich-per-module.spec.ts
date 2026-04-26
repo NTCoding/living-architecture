@@ -41,6 +41,9 @@ const {
 }))
 
 vi.mock('@living-architecture/riviere-extract-ts', () => ({
+  GlobMatcher: class {
+    readonly matches = mockMatchesGlob
+  },
   enrichComponents: mockEnrichComponents,
   matchesGlob: mockMatchesGlob,
   detectPerModuleConnections: mockDetectPerModuleConnections,
@@ -151,7 +154,7 @@ describe('ExtractionProject.enrichDraftComponents', () => {
       [createDraft('orders', 'CompA')],
       stubConfig,
       expect.anything(),
-      mockMatchesGlob,
+      expect.objectContaining({ matches: mockMatchesGlob }),
       '/config',
     )
     expect(mockEnrichComponents).toHaveBeenNthCalledWith(
@@ -159,7 +162,7 @@ describe('ExtractionProject.enrichDraftComponents', () => {
       [createDraft('shipping', 'CompB')],
       stubConfig,
       expect.anything(),
-      mockMatchesGlob,
+      expect.objectContaining({ matches: mockMatchesGlob }),
       '/config',
     )
   })

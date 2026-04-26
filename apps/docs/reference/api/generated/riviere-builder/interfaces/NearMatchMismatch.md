@@ -8,7 +8,7 @@ Defined in: [packages/riviere-builder/src/features/building/domain/error-recover
 
 ## Riviere-role
 
-value-object
+query-model
 
 ## Properties
 

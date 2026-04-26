@@ -19,7 +19,7 @@ function applyTransitioned(
   const newPreBlockedState = event.to === 'BLOCKED' ? event.from : undefined
   return {
     ...state,
-    ...(event.stateOverrides ?? {}),
+    ...event.stateOverrides,
     currentStateMachineState: event.to,
     preBlockedState: newPreBlockedState,
   }
@@ -89,7 +89,7 @@ function applyRecordingEvent(state: WorkflowState, event: WorkflowEvent): Workfl
     case 'session-started':
       return {
         ...state,
-        ...(event.transcriptPath === undefined ? {} : { transcriptPath: event.transcriptPath }),
+        ...(event.transcriptPath !== undefined && { transcriptPath: event.transcriptPath }),
       }
     default:
       return state

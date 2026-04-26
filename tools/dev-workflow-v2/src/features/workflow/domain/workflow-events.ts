@@ -114,5 +114,5 @@ export const WORKFLOW_EVENT_SCHEMA = z.discriminatedUnion('type', [
   WRITE_CHECKED_SCHEMA,
 ])
 
-/** @riviere-role value-object */
+/** @riviere-role query-model */
 export type WorkflowEvent = z.infer<typeof WORKFLOW_EVENT_SCHEMA>

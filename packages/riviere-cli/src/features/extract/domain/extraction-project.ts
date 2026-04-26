@@ -9,6 +9,7 @@ import {
   detectPerModuleConnections,
   enrichComponents,
   extractComponents,
+  GlobMatcher,
   matchesGlob,
   stripResolvedCustomTypes,
   type ConnectionTimings,
@@ -19,14 +20,16 @@ import {
 import type { ExternalLink } from '@living-architecture/riviere-schema'
 import type { ExtractionOutcome } from './extraction-outcome'
 
-/** @riviere-role value-object */
+const globMatcher = new GlobMatcher(matchesGlob)
+
+/** @riviere-role query-model */
 export interface ModuleContext {
   module: Module
   files: string[]
   project: Project
 }
 
-/** @riviere-role value-object */
+/** @riviere-role domain-error */
 export class OrphanedDraftComponentError extends Error {
   constructor(orphanedModules: string[], knownModules: string[]) {
     super(
@@ -68,7 +71,7 @@ export class ExtractionProject {
         moduleContext.project,
         moduleContext.files,
         this.resolvedConfig,
-        matchesGlob,
+        globMatcher,
         this.configDir,
       ),
     )
@@ -175,7 +178,7 @@ export class ExtractionProject {
           httpLinks,
           repository: this.repositoryName,
         },
-        matchesGlob,
+        globMatcher,
       )
       links.push(...result.links)
       externalLinks.push(...result.externalLinks)
@@ -227,7 +230,7 @@ export class ExtractionProject {
         moduleDrafts,
         this.resolvedConfig,
         moduleContext.project,
-        matchesGlob,
+        globMatcher,
         this.configDir,
       )
       components.push(...result.components)

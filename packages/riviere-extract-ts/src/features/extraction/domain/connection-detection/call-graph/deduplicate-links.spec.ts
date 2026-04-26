@@ -2,21 +2,21 @@ import {
   describe, it, expect 
 } from 'vitest'
 import { deduplicateLinks } from './deduplicate-links'
-import type {
-  RawLink, UncertainRawLink 
+import {
+  CallSite, RawLink, UncertainRawLink 
 } from './call-graph-types'
 import { buildComponent } from './call-graph-fixtures'
 
 function buildRawLink(sourceName: string, targetName: string, lineNumber: number): RawLink {
-  return {
+  return new RawLink({
     source: buildComponent(sourceName, '/test.ts', 1),
     target: buildComponent(targetName, '/test.ts', 10, { type: 'domainOp' }),
-    callSite: {
+    callSite: new CallSite({
       filePath: '/test.ts',
       lineNumber,
       methodName: 'execute',
-    },
-  }
+    }),
+  })
 }
 
 describe('deduplicateLinks', () => {
@@ -64,24 +64,24 @@ describe('deduplicateLinks', () => {
 
   it('includes multiple uncertain links in output', () => {
     const uncertainLinks: UncertainRawLink[] = [
-      {
+      new UncertainRawLink({
         source: buildComponent('Source1', '/test.ts', 1),
         reason: "Receiver type is 'any'",
-        callSite: {
+        callSite: new CallSite({
           filePath: '/test.ts',
           lineNumber: 5,
           methodName: 'execute',
-        },
-      },
-      {
+        }),
+      }),
+      new UncertainRawLink({
         source: buildComponent('Source2', '/test.ts', 2),
         reason: 'No implementation found for Foo',
-        callSite: {
+        callSite: new CallSite({
           filePath: '/test.ts',
           lineNumber: 8,
           methodName: 'run',
-        },
-      },
+        }),
+      }),
     ]
 
     const result = deduplicateLinks([], uncertainLinks)
@@ -93,15 +93,15 @@ describe('deduplicateLinks', () => {
 
   it('includes uncertain links in output', () => {
     const uncertainLinks: UncertainRawLink[] = [
-      {
+      new UncertainRawLink({
         source: buildComponent('Source', '/test.ts', 1),
         reason: "Receiver type is 'any'",
-        callSite: {
+        callSite: new CallSite({
           filePath: '/test.ts',
           lineNumber: 5,
           methodName: 'execute',
-        },
-      },
+        }),
+      }),
     ]
 
     const result = deduplicateLinks([], uncertainLinks)

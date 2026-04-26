@@ -2,16 +2,11 @@ import type { HttpLinkConfig } from '@living-architecture/riviere-extract-config
 import type {
   ExternalLink, ExternalTarget 
 } from '@living-architecture/riviere-schema'
-import type { EnrichedComponent } from '../value-extraction/enrich-components'
-import type { ExtractedLink } from './extracted-link'
-import { componentIdentity } from './call-graph/call-graph-types'
+import type { EnrichedComponent } from '../value-extraction/enriched-component'
+import { ExtractedLink } from './extracted-link'
+import { componentIdentity } from './call-graph/component-identity'
 import { ConnectionDetectionError } from './connection-detection-error'
-
-/** @riviere-role value-object */
-export interface HttpLinkResolutionResult {
-  links: ExtractedLink[]
-  externalLinks: ExternalLink[]
-}
+import { HttpLinkResolutionResult } from './http-link-resolution-result'
 
 /** @riviere-role domain-service */
 export function resolveHttpLinks(
@@ -20,10 +15,10 @@ export function resolveHttpLinks(
   httpLinkConfigs: readonly HttpLinkConfig[],
 ): HttpLinkResolutionResult {
   if (httpLinkConfigs.length === 0) {
-    return {
+    return new HttpLinkResolutionResult({
       links: [...links],
       externalLinks: [],
-    }
+    })
   }
 
   const resolvedCustomTypes = new Set(httpLinkConfigs.map((config) => config.fromCustomType))
@@ -64,16 +59,21 @@ export function resolveHttpLinks(
       continue
     }
 
-    resolvedLinks.push({
-      ...link,
-      target: componentIdentity(matchedApi),
-    })
+    resolvedLinks.push(
+      new ExtractedLink({
+        source: link.source,
+        target: componentIdentity(matchedApi),
+        ...(link.type !== undefined && { type: link.type }),
+        ...(link._uncertain !== undefined && { _uncertain: link._uncertain }),
+        ...(link.sourceLocation !== undefined && { sourceLocation: link.sourceLocation }),
+      }),
+    )
   }
 
-  return {
+  return new HttpLinkResolutionResult({
     links: resolvedLinks,
     externalLinks,
-  }
+  })
 }
 
 /** @riviere-role domain-service */

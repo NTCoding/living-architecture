@@ -14,21 +14,8 @@ import type {
   DetectionRule,
 } from '@living-architecture/riviere-extract-config'
 import { evaluatePredicate } from '../predicate-evaluation/evaluate-predicate'
-
-/** @riviere-role value-object */
-export type GlobMatcher = (path: string, pattern: string) => boolean
-
-/** @riviere-role value-object */
-export interface DraftComponent {
-  type: string
-  name: string
-  location: {
-    file: string
-    line: number
-  }
-  domain: string
-  module: string
-}
+import { DraftComponent } from './draft-component'
+import { GlobMatcher } from './glob-matcher'
 
 const COMPONENT_TYPES: ComponentType[] = [
   'api',
@@ -232,7 +219,7 @@ function createClassComponent(
   }
 
   return [
-    {
+    new DraftComponent({
       type: componentType,
       name,
       location: {
@@ -241,7 +228,7 @@ function createClassComponent(
       },
       domain: context.domain,
       module: context.module,
-    },
+    }),
   ]
 }
 
@@ -254,7 +241,7 @@ function createMethodComponent(
   const name = method.getName()
 
   return [
-    {
+    new DraftComponent({
       type: componentType,
       name,
       location: {
@@ -263,7 +250,7 @@ function createMethodComponent(
       },
       domain: context.domain,
       module: context.module,
-    },
+    }),
   ]
 }
 
@@ -279,7 +266,7 @@ function createFunctionComponent(
   }
 
   return [
-    {
+    new DraftComponent({
       type: componentType,
       name,
       location: {
@@ -288,7 +275,7 @@ function createFunctionComponent(
       },
       domain: context.domain,
       module: context.module,
-    },
+    }),
   ]
 }
 
@@ -300,9 +287,9 @@ function findMatchingModule(
 ): Module | undefined {
   const normalized = filePath.replaceAll(/\\+/g, '/')
   if (configDir === undefined) {
-    return modules.find((m) => globMatcher(normalized, posix.join(m.path, m.glob)))
+    return modules.find((m) => globMatcher.matches(normalized, posix.join(m.path, m.glob)))
   }
   const normalizedConfigDir = configDir.replaceAll(/\\+/g, '/')
   const pathToMatch = posix.relative(normalizedConfigDir, normalized)
-  return modules.find((m) => globMatcher(pathToMatch, posix.join(m.path, m.glob)))
+  return modules.find((m) => globMatcher.matches(pathToMatch, posix.join(m.path, m.glob)))
 }

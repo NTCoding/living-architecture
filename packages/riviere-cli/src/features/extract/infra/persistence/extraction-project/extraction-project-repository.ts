@@ -7,10 +7,10 @@ import {
 } from 'node:path'
 import { parse as parseYaml } from 'yaml'
 import { globSync } from 'glob'
-import type {
-  ConfigLoader, DraftComponent 
+import type { DraftComponent } from '@living-architecture/riviere-extract-ts'
+import {
+  ConfigLoader, resolveConfig 
 } from '@living-architecture/riviere-extract-ts'
-import { resolveConfig } from '@living-architecture/riviere-extract-ts'
 import {
   formatValidationErrors,
   isValidExtractionConfig,
@@ -223,10 +223,10 @@ export class ExtractionProjectRepository {
   }
 
   private createExtendedConfigLoader(configDir: string): ConfigLoader {
-    return (source: string): Module => {
+    return new ConfigLoader((source: string): Module => {
       const filePath = this.resolveExtendedConfigPath(source, configDir)
       return this.loadExtendedConfigFile(filePath, source)
-    }
+    })
   }
 
   private resolveExtendedConfigPath(source: string, configDir: string): string {

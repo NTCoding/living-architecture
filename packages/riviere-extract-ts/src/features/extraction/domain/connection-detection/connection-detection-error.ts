@@ -1,4 +1,4 @@
-/** @riviere-role value-object */
+/** @riviere-role domain-error */
 export class ConnectionDetectionError extends Error {
   readonly file: string
   readonly line: number

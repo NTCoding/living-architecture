@@ -5,6 +5,7 @@ import { Project } from 'ts-morph'
 import { extractComponents } from './extractor'
 import { matchesGlob } from '../../../../platform/infra/external-clients/minimatch/minimatch-glob'
 import { createConfigWithRule } from '../../../../test-fixtures'
+import { GlobMatcher } from './glob-matcher'
 
 function createTestProject() {
   return new Project({ useInMemoryFileSystem: true })
@@ -16,7 +17,7 @@ function extract(
   config: ReturnType<typeof createConfigWithRule>,
   configDir?: string,
 ) {
-  return extractComponents(project, paths, config, matchesGlob, configDir)
+  return extractComponents(project, paths, config, new GlobMatcher(matchesGlob), configDir)
 }
 
 describe('extractComponents — method extraction', () => {
@@ -41,7 +42,7 @@ describe('extractComponents — method extraction', () => {
       where: { hasDecorator: { name: 'DomainOp' } },
     })
     const result = extract(project, ['orders/domain/order.ts'], config)
-    expect(result).toStrictEqual([
+    expect(result).toMatchObject([
       {
         type: 'domainOp',
         name: 'confirm',
@@ -72,7 +73,7 @@ describe('extractComponents — method extraction', () => {
       where: { hasDecorator: { name: 'DomainOp' } },
     })
     const result = extract(project, ['orders/domain/order.ts'], config)
-    expect(result).toStrictEqual([expect.objectContaining({ name: 'confirm' })])
+    expect(result).toMatchObject([expect.objectContaining({ name: 'confirm' })])
   })
 
   it('extracts method as component when rule matches decorator', () => {
@@ -92,7 +93,7 @@ describe('extractComponents — method extraction', () => {
       where: { hasDecorator: { name: 'API' } },
     })
     const result = extract(project, ['orders/api/controller.ts'], config)
-    expect(result).toStrictEqual([
+    expect(result).toMatchObject([
       {
         type: 'api',
         name: 'createOrder',

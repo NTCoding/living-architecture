@@ -1,49 +1,73 @@
-import { ComponentId } from '@living-architecture/riviere-schema'
-import type { EnrichedComponent } from '../../value-extraction/enrich-components'
+import type { EnrichedComponent } from '../../value-extraction/enriched-component'
 
 /** @riviere-role value-object */
-export interface CallGraphOptions {
-  strict: boolean
-  sourceFilePaths: string[]
-  repository: string
-}
+export class CallGraphOptions {
+  declare private brand: 'CallGraphOptions'
+  readonly strict: boolean
+  readonly sourceFilePaths: string[]
+  readonly repository: string
 
-/** @riviere-role value-object */
-export interface CallSite {
-  filePath: string
-  lineNumber: number
-  methodName: string
-}
-
-/** @riviere-role value-object */
-export interface RawLink {
-  source: EnrichedComponent
-  target: EnrichedComponent
-  callSite: CallSite
-}
-
-/** @riviere-role value-object */
-export interface UncertainRawLink {
-  source: EnrichedComponent
-  reason: string
-  callSite: CallSite
-}
-
-/** @riviere-role domain-service */
-export function componentIdentity(component: EnrichedComponent): string {
-  return ComponentId.create({
-    domain: component.domain,
-    module: component.module,
-    type: component.type,
-    name: component.name,
-  }).toString()
-}
-
-/** @riviere-role domain-service */
-export function stripGenericArgs(typeName: string): string {
-  const index = typeName.indexOf('<')
-  if (index === -1) {
-    return typeName
+  constructor(params: {
+    strict: boolean;
+    sourceFilePaths: string[];
+    repository: string 
+  }) {
+    this.strict = params.strict
+    this.sourceFilePaths = params.sourceFilePaths
+    this.repository = params.repository
   }
-  return typeName.slice(0, index)
+}
+
+/** @riviere-role value-object */
+export class CallSite {
+  declare private brand: 'CallSite'
+  readonly filePath: string
+  readonly lineNumber: number
+  readonly methodName: string
+
+  constructor(params: {
+    filePath: string;
+    lineNumber: number;
+    methodName: string 
+  }) {
+    this.filePath = params.filePath
+    this.lineNumber = params.lineNumber
+    this.methodName = params.methodName
+  }
+}
+
+/** @riviere-role value-object */
+export class RawLink {
+  declare private brand: 'RawLink'
+  readonly source: EnrichedComponent
+  readonly target: EnrichedComponent
+  readonly callSite: CallSite
+
+  constructor(params: {
+    source: EnrichedComponent
+    target: EnrichedComponent
+    callSite: CallSite
+  }) {
+    this.source = params.source
+    this.target = params.target
+    this.callSite = params.callSite
+  }
+}
+
+/** @riviere-role value-object */
+export class UncertainRawLink {
+  declare private brand: 'UncertainRawLink'
+  readonly source: EnrichedComponent
+  readonly reason: string
+  readonly callSite: CallSite
+
+  constructor(params: {
+    source: EnrichedComponent;
+    reason: string;
+    callSite: CallSite 
+  }) {
+    this.source = params.source
+    this.reason = params.reason
+    this.callSite = params.callSite
+  }
 }

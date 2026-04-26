@@ -16,7 +16,7 @@ export const STATE_NAMES = [
   'BLOCKED',
 ] as const
 
-/** @riviere-role value-object */
+/** @riviere-role query-model */
 export type StateName = (typeof STATE_NAMES)[number]
 
 export const STATE_NAME_SCHEMA = z.enum(STATE_NAMES)
@@ -45,7 +45,7 @@ export function createWorkflowStateSchema<T extends readonly [string, ...string[
 
 export const WORKFLOW_STATE_SCHEMA = createWorkflowStateSchema(STATE_NAMES)
 
-/** @riviere-role value-object */
+/** @riviere-role query-model */
 export type WorkflowState = {
   currentStateMachineState: StateName
   githubIssue?: number | undefined
@@ -64,7 +64,7 @@ export type WorkflowState = {
   transcriptPath?: string | undefined
 }
 
-/** @riviere-role value-object */
+/** @riviere-role query-model */
 export type WorkflowOperation =
   | 'record-issue'
   | 'record-branch'
@@ -80,14 +80,14 @@ export type WorkflowOperation =
   | 'record-ci-failed'
   | 'verify-feedback-addressed'
 
-/** @riviere-role value-object */
+/** @riviere-role query-model */
 export type ConcreteStateDefinition = WorkflowStateDefinition<
   WorkflowState,
   StateName,
   WorkflowOperation
 >
 
-/** @riviere-role value-object */
+/** @riviere-role query-model */
 export type ConcreteRegistry = WorkflowRegistry<WorkflowState, StateName, WorkflowOperation>
 
 export const INITIAL_STATE: WorkflowState = {

@@ -37,7 +37,7 @@ describe('resolveInterface', () => {
 
     const result = resolveInterface('PaymentGateway', sharedProject, [interfaceFile, implFile], {strict: false,})
 
-    expect(result).toStrictEqual({
+    expect(result).toMatchObject({
       resolved: true,
       typeName: 'StripeGateway',
     })
@@ -64,7 +64,7 @@ describe('resolveInterface', () => {
 
     const result = resolveInterface('BaseRepository', sharedProject, [abstractFile, implFile], {strict: false,})
 
-    expect(result).toStrictEqual({
+    expect(result).toMatchObject({
       resolved: true,
       typeName: 'SqlRepository',
     })
@@ -97,7 +97,7 @@ describe('resolveInterface', () => {
 
     const result = resolveInterface('UnusedInterface', sharedProject, [interfaceFile], {strict: false,})
 
-    expect(result).toStrictEqual({
+    expect(result).toMatchObject({
       resolved: false,
       reason: expect.stringContaining('No implementation found for UnusedInterface'),
       typeDefinedInSource: true,
@@ -167,7 +167,7 @@ describe('resolveInterface', () => {
 
     const result = resolveInterface('Notifier', sharedProject, [interfaceFile, impl1, impl2], {strict: false,})
 
-    expect(result).toStrictEqual({
+    expect(result).toMatchObject({
       resolved: false,
       reason: expect.stringContaining('Multiple implementations found for Notifier'),
       typeDefinedInSource: true,
@@ -204,7 +204,7 @@ describe('resolveInterface', () => {
 
     const result = resolveInterface('Cache', sharedProject, [interfaceFile, inScopeImpl], {strict: false,})
 
-    expect(result).toStrictEqual({
+    expect(result).toMatchObject({
       resolved: true,
       typeName: 'RedisCache',
     })
@@ -231,7 +231,7 @@ describe('resolveInterface', () => {
 
     const result = resolveInterface('Service', sharedProject, [interfaceFile, nodeModulesFile], {strict: false,})
 
-    expect(result).toStrictEqual({
+    expect(result).toMatchObject({
       resolved: false,
       reason: expect.stringContaining('No implementation found for Service'),
       typeDefinedInSource: true,

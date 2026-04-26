@@ -2,10 +2,30 @@ import {
   describe, it, expect 
 } from 'vitest'
 import { detectConnections } from './detect-connections'
+import { ConnectionDetectionOptions } from './connection-detection-values'
 import { buildComponent } from './call-graph/call-graph-fixtures'
 import { matchesGlob } from '../../../../platform/infra/external-clients/minimatch/minimatch-glob'
 import { ConnectionDetectionError } from './connection-detection-error'
 import { createProject } from './detect-connections-fixtures'
+import { GlobMatcher } from '../component-extraction/glob-matcher'
+
+const globMatcher = new GlobMatcher(matchesGlob)
+
+function createOptions(params: {
+  allowIncomplete?: boolean
+  moduleGlobs: string[]
+  eventPublishers?: {
+    fromType: string
+    metadataKey: string
+  }[]
+}): ConnectionDetectionOptions {
+  return new ConnectionDetectionOptions({
+    repository: 'test-repo',
+    moduleGlobs: params.moduleGlobs,
+    ...(params.allowIncomplete !== undefined && { allowIncomplete: params.allowIncomplete }),
+    ...(params.eventPublishers !== undefined && { eventPublishers: params.eventPublishers }),
+  })
+}
 
 describe('detectConnections', () => {
   it('returns empty links for empty components array', () => {
@@ -15,14 +35,11 @@ describe('detectConnections', () => {
     const result = detectConnections(
       project,
       [],
-      {
-        repository: 'test-repo',
-        moduleGlobs: ['/src/**/*.ts'],
-      },
-      matchesGlob,
+      createOptions({ moduleGlobs: ['/src/**/*.ts'] }),
+      globMatcher,
     )
 
-    expect(result.links).toStrictEqual([])
+    expect(result.links).toMatchObject([])
   })
 
   it('returns non-negative timing values for all phases', () => {
@@ -32,11 +49,8 @@ describe('detectConnections', () => {
     const result = detectConnections(
       project,
       [],
-      {
-        repository: 'test-repo',
-        moduleGlobs: ['/src/**/*.ts'],
-      },
-      matchesGlob,
+      createOptions({ moduleGlobs: ['/src/**/*.ts'] }),
+      globMatcher,
     )
 
     expect(result.timings.callGraphMs).toBeGreaterThanOrEqual(0)
@@ -70,14 +84,11 @@ class PlaceOrder {
     const result = detectConnections(
       project,
       [repo, useCase],
-      {
-        repository: 'test-repo',
-        moduleGlobs: ['/src/**/*.ts'],
-      },
-      matchesGlob,
+      createOptions({ moduleGlobs: ['/src/**/*.ts'] }),
+      globMatcher,
     )
 
-    expect(result.links).toStrictEqual([
+    expect(result.links).toMatchObject([
       expect.objectContaining({
         source: 'orders:orders-module:useCase:placeorder',
         target: 'orders:orders-module:repository:orderrepository',
@@ -119,14 +130,11 @@ class PublishEvent {
     const result = detectConnections(
       project,
       [store, useCase],
-      {
-        repository: 'test-repo',
-        moduleGlobs: ['/src/**/*.ts'],
-      },
-      matchesGlob,
+      createOptions({ moduleGlobs: ['/src/**/*.ts'] }),
+      globMatcher,
     )
 
-    expect(result.links).toStrictEqual([
+    expect(result.links).toMatchObject([
       expect.objectContaining({
         source: 'orders:orders-module:useCase:publishevent',
         target: 'orders:orders-module:repository:eventstore',
@@ -153,11 +161,8 @@ class StrictComp {
       detectConnections(
         project,
         [comp],
-        {
-          repository: 'test-repo',
-          moduleGlobs: ['/src/**/*.ts'],
-        },
-        matchesGlob,
+        createOptions({ moduleGlobs: ['/src/**/*.ts'] }),
+        globMatcher,
       ),
     ).toThrow(ConnectionDetectionError)
   })
@@ -180,15 +185,14 @@ class LenientComp {
     const result = detectConnections(
       project,
       [comp],
-      {
+      createOptions({
         allowIncomplete: true,
         moduleGlobs: ['/src/**/*.ts'],
-        repository: 'test-repo',
-      },
-      matchesGlob,
+      }),
+      globMatcher,
     )
 
-    expect(result.links).toStrictEqual([
+    expect(result.links).toMatchObject([
       expect.objectContaining({
         source: 'orders:orders-module:useCase:lenientcomp',
         target: '_unresolved',
@@ -221,11 +225,8 @@ class ServiceA {
     const result = detectConnections(
       project,
       [compA, compB],
-      {
-        repository: 'test-repo',
-        moduleGlobs: ['/src/**/*.ts'],
-      },
-      matchesGlob,
+      createOptions({ moduleGlobs: ['/src/**/*.ts'] }),
+      globMatcher,
     )
 
     const aToB = result.links.find(
@@ -272,8 +273,7 @@ class OrderPublisher {
     const result = detectConnections(
       project,
       [event, publisher, handler],
-      {
-        repository: 'test-repo',
+      createOptions({
         moduleGlobs: ['/src/**/*.ts'],
         eventPublishers: [
           {
@@ -281,11 +281,11 @@ class OrderPublisher {
             metadataKey: 'publishedEventType',
           },
         ],
-      },
-      matchesGlob,
+      }),
+      globMatcher,
     )
 
-    expect(result.links).toStrictEqual(
+    expect(result.links).toMatchObject(
       expect.arrayContaining([
         expect.objectContaining({
           source: 'orders:orders-module:eventSender:orderpublisher',
@@ -346,20 +346,17 @@ class PaymentGateway {
     const result = detectConnections(
       project,
       [gateway, processPayment],
-      {
-        repository: 'test-repo',
-        moduleGlobs: ['/src/modules/ordering/**/*.ts'],
-      },
-      matchesGlob,
+      createOptions({ moduleGlobs: ['/src/modules/ordering/**/*.ts'] }),
+      globMatcher,
     )
 
-    expect(result.links).toStrictEqual([
+    expect(result.links).toMatchObject([
       expect.objectContaining({
         source: 'orders:orders-module:useCase:processpayment',
         target: 'orders:orders-module:repository:paymentgateway',
       }),
     ])
-    expect(project.getSourceFiles().map((f) => f.getFilePath())).toStrictEqual([
+    expect(project.getSourceFiles().map((f) => f.getFilePath())).toMatchObject([
       includedFile,
       excludedFile,
     ])

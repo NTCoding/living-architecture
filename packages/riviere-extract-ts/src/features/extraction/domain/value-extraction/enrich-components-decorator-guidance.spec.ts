@@ -5,11 +5,12 @@ import { Project } from 'ts-morph'
 import type {
   Module, ExtractionRule 
 } from '@living-architecture/riviere-extract-config'
+import { DraftComponent } from '../component-extraction/draft-component'
+import { GlobMatcher } from '../component-extraction/glob-matcher'
 import { enrichComponents } from './enrich-components'
-import type { DraftComponent } from '../component-extraction/extractor'
 
 const project = new Project({ useInMemoryFileSystem: true })
-const alwaysMatch = () => true
+const alwaysMatch = new GlobMatcher(() => true)
 
 function nextFile(content: string): string {
   const filePath = `/src/orders/http-client-${project.getSourceFiles().length + 1}.ts`
@@ -37,7 +38,7 @@ function createBaseModule(extract: Record<string, ExtractionRule>): Module {
 }
 
 function createDraft(file: string): DraftComponent {
-  return {
+  return new DraftComponent({
     type: 'api',
     name: 'FraudClient',
     location: {
@@ -46,7 +47,7 @@ function createDraft(file: string): DraftComponent {
     },
     domain: 'orders',
     module: 'orders-module',
-  }
+  })
 }
 
 describe('enrichComponents decorator rule guidance', () => {
@@ -76,7 +77,7 @@ export class FraudClient {}`,
     expect(result.failures).toHaveLength(1)
     expect(result.failures[0]?.error).toContain('fromDecoratorArg')
     expect(result.failures[0]?.error).toContain("Use 'fromClassDecoratorArg' for class decorators")
-    expect(result.components[0]?._missing).toStrictEqual(['serviceName'])
+    expect(result.components[0]?._missing).toMatchObject(['serviceName'])
   })
 
   it('returns guidance when fromDecoratorName is used on class components', () => {
@@ -98,11 +99,11 @@ export class FraudClient {}`,
     expect(result.failures).toHaveLength(1)
     expect(result.failures[0]?.error).toContain('fromDecoratorName')
     expect(result.failures[0]?.error).toContain("Use 'fromClassDecoratorArg' for class decorators")
-    expect(result.components[0]?._missing).toStrictEqual(['decoratorName'])
+    expect(result.components[0]?._missing).toMatchObject(['decoratorName'])
   })
 
   it('preserves source-file-not-found error for fromDecoratorArg', () => {
-    const missingDraft: DraftComponent = {
+    const missingDraft = new DraftComponent({
       type: 'api',
       name: 'MissingFileComponent',
       location: {
@@ -111,7 +112,7 @@ export class FraudClient {}`,
       },
       domain: 'orders',
       module: 'orders-module',
-    }
+    })
     const module = createBaseModule({
       serviceName: {
         fromDecoratorArg: {
@@ -132,6 +133,6 @@ export class FraudClient {}`,
     expect(result.failures).toHaveLength(1)
     expect(result.failures[0]?.error).toContain("Source file '/src/orders/missing.ts' not found")
     expect(result.failures[0]?.error).not.toContain('requires a method component')
-    expect(result.components[0]?._missing).toStrictEqual(['serviceName'])
+    expect(result.components[0]?._missing).toMatchObject(['serviceName'])
   })
 })

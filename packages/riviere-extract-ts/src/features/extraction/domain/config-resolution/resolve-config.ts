@@ -10,7 +10,14 @@ import {
 } from './config-resolution-errors'
 
 /** @riviere-role value-object */
-export type ConfigLoader = (source: string) => Module
+export class ConfigLoader {
+  declare private brand: 'ConfigLoader'
+  readonly load: (source: string) => Module
+
+  constructor(load: (source: string) => Module) {
+    this.load = load
+  }
+}
 
 /** @riviere-role domain-service */
 export function resolveConfig(
@@ -54,7 +61,7 @@ function resolveModuleWithExtends(
     throw new ConfigLoaderRequiredError(moduleConfig.name)
   }
 
-  const baseModule = loader(extendsSource)
+  const baseModule = loader.load(extendsSource)
   const mergedCustomTypes = mergeCustomTypes(baseModule.customTypes, moduleConfig.customTypes)
   return {
     name: moduleConfig.name,

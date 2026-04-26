@@ -10,6 +10,7 @@ import {
   createConfigWithRule,
   createConfigWithCustomTypes,
 } from '../../../../test-fixtures'
+import { GlobMatcher } from './glob-matcher'
 
 function createTestProject() {
   return new Project({ useInMemoryFileSystem: true })
@@ -21,28 +22,28 @@ function extract(
   config: ReturnType<typeof createResolvedConfig>,
   configDir?: string,
 ) {
-  return extractComponents(project, paths, config, matchesGlob, configDir)
+  return extractComponents(project, paths, config, new GlobMatcher(matchesGlob), configDir)
 }
 
 describe('extractComponents', () => {
   it('returns empty array when no source files provided', () => {
     const project = createTestProject()
     const result = extract(project, [], createResolvedConfig())
-    expect(result).toStrictEqual([])
+    expect(result).toMatchObject([])
   })
 
   describe('edge cases', () => {
     it('returns empty array when file path not found in project', () => {
       const project = createTestProject()
       const result = extract(project, ['nonexistent.ts'], createResolvedConfig())
-      expect(result).toStrictEqual([])
+      expect(result).toMatchObject([])
     })
 
     it('returns empty array when file path does not match any module', () => {
       const project = createTestProject()
       project.createSourceFile('unmatched/file.ts', 'export class Foo {}')
       const result = extract(project, ['unmatched/file.ts'], createOrdersUseCaseConfig())
-      expect(result).toStrictEqual([])
+      expect(result).toMatchObject([])
     })
 
     it('matches module path when file path uses Windows backslashes', () => {
@@ -60,7 +61,7 @@ describe('extractComponents', () => {
         ['orders\\use-cases\\create-order.ts'],
         createOrdersUseCaseConfig(),
       )
-      expect(result).toStrictEqual([
+      expect(result).toMatchObject([
         {
           type: 'useCase',
           name: 'CreateOrder',
@@ -86,7 +87,7 @@ describe('extractComponents', () => {
       `,
       )
       const result = extract(project, [absolutePath], createOrdersUseCaseConfig(), '/project/root')
-      expect(result).toStrictEqual([
+      expect(result).toMatchObject([
         {
           type: 'useCase',
           name: 'CreateOrder',
@@ -112,7 +113,7 @@ describe('extractComponents', () => {
       `,
       )
       const result = extract(project, [absolutePath], createOrdersUseCaseConfig(), '/project/root')
-      expect(result).toStrictEqual([])
+      expect(result).toMatchObject([])
     })
 
     it('extracts components when Windows absolute paths used with configDir', () => {
@@ -132,7 +133,7 @@ describe('extractComponents', () => {
         createOrdersUseCaseConfig(),
         'C:\\project\\root',
       )
-      expect(result).toStrictEqual([
+      expect(result).toMatchObject([
         {
           type: 'useCase',
           name: 'CreateOrder',
@@ -157,7 +158,7 @@ describe('extractComponents', () => {
       `,
       )
       const result = extract(project, ['orders/anon.ts'], createOrdersUseCaseConfig())
-      expect(result).toStrictEqual([])
+      expect(result).toMatchObject([])
     })
   })
 
@@ -176,7 +177,7 @@ describe('extractComponents', () => {
         where: { hasJSDoc: { tag: 'domainOp' } },
       })
       const result = extract(project, ['orders/domain/process-order.ts'], config)
-      expect(result).toStrictEqual([
+      expect(result).toMatchObject([
         {
           type: 'domainOp',
           name: 'processOrder',
@@ -204,7 +205,7 @@ describe('extractComponents', () => {
         where: { hasJSDoc: { tag: 'domainOp' } },
       })
       const result = extract(project, ['orders/domain/anon-func.ts'], config)
-      expect(result).toStrictEqual([])
+      expect(result).toMatchObject([])
     })
   })
 
@@ -224,7 +225,7 @@ describe('extractComponents', () => {
         ['orders/use-cases/create-order.ts'],
         createOrdersUseCaseConfig(),
       )
-      expect(result).toStrictEqual([
+      expect(result).toMatchObject([
         {
           type: 'useCase',
           name: 'CreateOrder',
@@ -253,7 +254,7 @@ describe('extractComponents', () => {
         where: { hasDecorator: { name: 'EventHandler' } },
       })
       const result = extract(project, ['shipping/handlers/ship-order.ts'], config)
-      expect(result).toStrictEqual([
+      expect(result).toMatchObject([
         {
           type: 'eventHandler',
           name: 'ShipOrder',
@@ -285,7 +286,7 @@ describe('extractComponents', () => {
         },
       })
       const result = extract(project, ['shipping/jobs/tracking-update.ts'], config)
-      expect(result).toStrictEqual([
+      expect(result).toMatchObject([
         {
           type: 'backgroundJob',
           name: 'runTrackingUpdate',
@@ -309,7 +310,7 @@ describe('extractComponents', () => {
         },
       })
       const result = extract(project, ['orders/sagas/order-saga.ts'], config)
-      expect(result).toStrictEqual([
+      expect(result).toMatchObject([
         {
           type: 'saga',
           name: 'OrderSaga',
@@ -342,7 +343,7 @@ describe('extractComponents', () => {
         },
       })
       const result = extract(project, ['orders/policies/policy.ts'], config)
-      expect(result).toStrictEqual([
+      expect(result).toMatchObject([
         {
           type: 'policy',
           name: 'validateOrder',

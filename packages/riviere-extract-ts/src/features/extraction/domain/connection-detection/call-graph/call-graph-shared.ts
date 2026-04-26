@@ -1,28 +1,17 @@
 import {
   type CallExpression,
   type ClassDeclaration,
-  type MethodDeclaration,
   type Project,
   type SourceFile,
   SyntaxKind,
 } from 'ts-morph'
-import type { EnrichedComponent } from '../../value-extraction/enrich-components'
+import type { EnrichedComponent } from '../../value-extraction/enriched-component'
 import type { ComponentIndex } from '../component-index'
 import type { CallGraphOptions } from './call-graph-types'
+import {
+  InterfaceResolutionOutcome, MethodLookup 
+} from './call-graph-outcomes'
 import { resolveInterface } from '../interface-resolution/resolve-interface'
-
-/** @riviere-role value-object */
-export interface InterfaceResolutionOutcome {
-  component: EnrichedComponent | undefined
-  resolvedTypeName: string | undefined
-  uncertain: string | undefined
-}
-
-/** @riviere-role value-object */
-export interface MethodLookup {
-  method: MethodDeclaration | undefined
-  classFound: boolean
-}
 
 /** @riviere-role domain-service */
 export function getCalledMethodName(callExpr: CallExpression): string {
@@ -39,27 +28,39 @@ export function resolveTypeThroughInterface(
 ): InterfaceResolutionOutcome {
   const component = componentIndex.getComponentByTypeName(typeName)
   if (component !== undefined) {
-    return {
+    return new InterfaceResolutionOutcome({
       component,
       resolvedTypeName: undefined,
       uncertain: undefined,
-    }
+    })
   }
 
   const interfaceResult = resolveInterface(typeName, project, options.sourceFilePaths, {strict: options.strict,})
   if (interfaceResult.resolved) {
-    return {
-      component: componentIndex.getComponentByTypeName(interfaceResult.typeName),
-      resolvedTypeName: interfaceResult.typeName,
+    const resolvedTypeName = requireInterfaceTypeName(interfaceResult)
+    return new InterfaceResolutionOutcome({
+      component: componentIndex.getComponentByTypeName(resolvedTypeName),
+      resolvedTypeName: resolvedTypeName,
       uncertain: undefined,
-    }
+    })
   }
 
-  return {
+  return new InterfaceResolutionOutcome({
     component: undefined,
     resolvedTypeName: undefined,
     uncertain: interfaceResult.typeDefinedInSource ? interfaceResult.reason : undefined,
+  })
+}
+
+function requireInterfaceTypeName(
+  interfaceResolution: import('../interface-resolution/resolve-interface').InterfaceResolution,
+): string {
+  const typeName = interfaceResolution.typeName
+  if (typeName === undefined) {
+    throw new TypeError('Expected interface resolution type name')
   }
+
+  return typeName
 }
 
 interface ClassLookup {
@@ -110,13 +111,13 @@ export function findMethodInProject(
 ): MethodLookup {
   const lookup = findClassByNameInProject(project, typeName)
   if (lookup === undefined) {
-    return {
+    return new MethodLookup({
       method: undefined,
       classFound: false,
-    }
+    })
   }
-  return {
+  return new MethodLookup({
     method: lookup.classDecl.getMethod(methodName),
     classFound: true,
-  }
+  })
 }

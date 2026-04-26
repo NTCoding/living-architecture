@@ -1,7 +1,7 @@
 import type { Expression } from 'ts-morph'
 import { SyntaxKind } from 'ts-morph'
 
-/** @riviere-role value-object */
+/** @riviere-role domain-error */
 export class ExtractionError extends Error {
   readonly location: {
     file: string
@@ -18,7 +18,7 @@ export class ExtractionError extends Error {
   }
 }
 
-/** @riviere-role value-object */
+/** @riviere-role domain-error */
 export class TestFixtureError extends Error {
   constructor(message: string) {
     super(message)
@@ -51,23 +51,19 @@ function isStringArrayLiteral(expression: Expression): boolean {
 }
 
 /** @riviere-role value-object */
-export type LiteralResult =
-  | {
-    kind: 'string'
-    value: string
+export class LiteralResult {
+  declare private brand: 'LiteralResult'
+  readonly kind: 'string' | 'number' | 'boolean' | 'string[]'
+  readonly value: string | number | boolean | string[]
+
+  constructor(params: {
+    kind: 'string' | 'number' | 'boolean' | 'string[]'
+    value: string | number | boolean | string[]
+  }) {
+    this.kind = params.kind
+    this.value = params.value
   }
-  | {
-    kind: 'number'
-    value: number
-  }
-  | {
-    kind: 'boolean'
-    value: boolean
-  }
-  | {
-    kind: 'string[]'
-    value: string[]
-  }
+}
 
 function extractString(expression: Expression): string {
   return expression.asKindOrThrow(SyntaxKind.StringLiteral).getLiteralValue()
@@ -95,34 +91,34 @@ function buildExtractionResult(expression: Expression): LiteralResult | undefine
 
   switch (syntaxKind) {
     case SyntaxKind.StringLiteral:
-      return {
+      return new LiteralResult({
         kind: 'string',
         value: extractString(expression),
-      }
+      })
     case SyntaxKind.NumericLiteral:
-      return {
+      return new LiteralResult({
         kind: 'number',
         value: extractNumber(expression),
-      }
+      })
     case SyntaxKind.TrueKeyword:
-      return {
+      return new LiteralResult({
         kind: 'boolean',
         value: true,
-      }
+      })
     case SyntaxKind.FalseKeyword:
-      return {
+      return new LiteralResult({
         kind: 'boolean',
         value: false,
-      }
+      })
     case SyntaxKind.ArrayLiteralExpression: {
       const values = extractStringArray(expression)
       if (values === undefined) {
         return undefined
       }
-      return {
+      return new LiteralResult({
         kind: 'string[]',
         value: values,
-      }
+      })
     }
     default:
       return undefined

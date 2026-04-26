@@ -1,4 +1,4 @@
-/** @riviere-role value-object */
+/** @riviere-role query-model */
 export interface BuilderStats {
   componentCount: number
   componentsByType: {
@@ -15,14 +15,14 @@ export interface BuilderStats {
   domainCount: number
 }
 
-/** @riviere-role value-object */
+/** @riviere-role query-model */
 export type WarningCode =
   | 'ORPHAN_COMPONENT'
   | 'UNUSED_DOMAIN'
   | 'SCALAR_OVERWRITE'
   | 'DUPLICATE_LINK_SKIPPED'
 
-/** @riviere-role value-object */
+/** @riviere-role query-model */
 export interface BuilderWarning {
   code: WarningCode
   message: string

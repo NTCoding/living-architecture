@@ -8,11 +8,12 @@ import {
   SyntaxKind,
 } from 'ts-morph'
 import type { ComponentIndex } from '../component-index'
-import type { EnrichedComponent } from '../../value-extraction/enrich-components'
-import type {
+import type { EnrichedComponent } from '../../value-extraction/enriched-component'
+import {
   CallGraphOptions, CallSite, RawLink, UncertainRawLink 
 } from './call-graph-types'
-import { componentIdentity } from './call-graph-types'
+import { componentIdentity } from './component-identity'
+import { MethodLevelTarget } from './method-level-target'
 import { resolveCallExpressionReceiverType } from './type-resolver'
 import {
   getCalledMethodName,
@@ -80,17 +81,19 @@ function traceCallExpression(callExpr: CallExpression, ctx: TraceContext): void 
     return
   }
 
-  const typeName = typeResult.typeName
+  const typeName = requireResolvedTypeName(typeResult)
   const calledMethodName = getCalledMethodName(callExpr)
   const outcome = resolveComponentTarget(typeName, calledMethodName, ctx)
 
   if (outcome.target !== undefined) {
     if (componentIdentity(ctx.sourceComponent) !== componentIdentity(outcome.target)) {
-      ctx.results.push({
-        source: ctx.sourceComponent,
-        target: outcome.target,
-        callSite: ctx.originCallSite,
-      })
+      ctx.results.push(
+        new RawLink({
+          source: ctx.sourceComponent,
+          target: outcome.target,
+          callSite: ctx.originCallSite,
+        }),
+      )
     }
     return
   }
@@ -125,12 +128,23 @@ function traceIntoNonComponent(
   }
 
   if (!classFound && outcome.uncertain !== undefined) {
-    ctx.uncertainResults.push({
-      source: ctx.sourceComponent,
-      reason: outcome.uncertain,
-      callSite: ctx.originCallSite,
-    })
+    ctx.uncertainResults.push(
+      new UncertainRawLink({
+        source: ctx.sourceComponent,
+        reason: outcome.uncertain,
+        callSite: ctx.originCallSite,
+      }),
+    )
   }
+}
+
+function requireResolvedTypeName(typeResolution: import('./type-resolver').TypeResolution): string {
+  const typeName = typeResolution.typeName
+  if (typeName === undefined) {
+    throw new TypeError('Expected resolved type name')
+  }
+
+  return typeName
 }
 
 function traceBody(body: MethodDeclaration, ctx: TraceContext): void {
@@ -176,12 +190,6 @@ export function findClassInProject(
   return sourceFile.getClasses().find((c) => c.getStartLineNumber() === component.location.line)
 }
 
-/** @riviere-role value-object */
-export interface MethodLevelTarget {
-  classDecl: ClassDeclaration
-  method: MethodDeclaration
-}
-
 /** @riviere-role domain-service */
 export function findMethodLevelComponent(
   project: Project,
@@ -196,10 +204,10 @@ export function findMethodLevelComponent(
       .getMethods()
       .find((m) => m.getStartLineNumber() === component.location.line)
     if (method !== undefined) {
-      return {
+      return new MethodLevelTarget({
         classDecl,
         method,
-      }
+      })
     }
   }
   return undefined

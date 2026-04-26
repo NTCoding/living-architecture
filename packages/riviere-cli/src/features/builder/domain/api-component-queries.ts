@@ -3,7 +3,7 @@ import type {
   Component, HttpMethod, RiviereGraph 
 } from '@living-architecture/riviere-schema'
 
-/** @riviere-role value-object */
+/** @riviere-role query-model */
 export interface ApiComponent {
   domain: string
   httpMethod: HttpMethod

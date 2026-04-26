@@ -3,12 +3,13 @@ import {
 } from 'vitest'
 import { detectEventPublisherConnections } from './detect-event-publisher-connections'
 import { ConnectionDetectionError } from '../connection-detection-error'
+import { AsyncDetectionOptions } from './async-detection-options'
 import { buildComponent } from '../call-graph/call-graph-fixtures'
 
-const defaultOptions = {
+const defaultOptions = new AsyncDetectionOptions({
   strict: false,
   repository: 'test-repo',
-}
+})
 
 function eventPublisherConfig(fromType = 'eventSender', metadataKey = 'publishedEventType') {
   return [
@@ -126,10 +127,14 @@ describe('detectEventPublisherConnections', () => {
       metadata: { publishedEventType: 'NonExistentEvent' },
     })
     const act = () =>
-      detectEventPublisherConnections([publisher], eventPublisherConfig(), {
-        strict: true,
-        repository: 'test-repo',
-      })
+      detectEventPublisherConnections(
+        [publisher],
+        eventPublisherConfig(),
+        new AsyncDetectionOptions({
+          strict: true,
+          repository: 'test-repo',
+        }),
+      )
     expect(act).toThrow(ConnectionDetectionError)
     expect(act).toThrow(
       expect.objectContaining({ message: expect.stringContaining('NonExistentEvent') }),
@@ -180,10 +185,14 @@ describe('detectEventPublisherConnections', () => {
     })
 
     const act = () =>
-      detectEventPublisherConnections([event1, event2, publisher], eventPublisherConfig(), {
-        strict: true,
-        repository: 'test-repo',
-      })
+      detectEventPublisherConnections(
+        [event1, event2, publisher],
+        eventPublisherConfig(),
+        new AsyncDetectionOptions({
+          strict: true,
+          repository: 'test-repo',
+        }),
+      )
     expect(act).toThrow(ConnectionDetectionError)
     expect(act).toThrow(expect.objectContaining({ message: expect.stringContaining('ambiguous') }))
   })

@@ -9,10 +9,20 @@ import type {
   DetectionRule,
   ExtractionRule,
 } from '@living-architecture/riviere-extract-config'
+import type { DraftComponent } from '../component-extraction/draft-component'
+import type { GlobMatcher } from '../component-extraction/glob-matcher'
+import { ExtractionResult } from './extraction-result'
 import type {
-  DraftComponent, GlobMatcher 
-} from '../component-extraction/extractor'
-import type { ExtractionResult } from './evaluate-extraction-rule'
+  EnrichedComponent,
+  EnrichmentFailure,
+  EnrichmentResult,
+  MetadataValue,
+} from './enriched-component'
+import {
+  EnrichedComponent as EnrichedComponentRecord,
+  EnrichmentFailure as EnrichmentFailureRecord,
+  EnrichmentResult as EnrichmentResultRecord,
+} from './enriched-component'
 import {
   evaluateLiteralRule,
   evaluateFromClassNameRule,
@@ -27,35 +37,6 @@ import { evaluateFromGenericArgRule } from './evaluate-extraction-rule-generic'
 import { ExtractionError } from '../../../../platform/domain/ast-literals/literal-detection'
 import { applyTransforms } from '../../../../platform/domain/string-transforms/transforms'
 
-type MetadataValue = string | number | boolean | string[]
-
-/** @riviere-role value-object */
-export interface EnrichedComponent {
-  type: string
-  name: string
-  location: {
-    file: string
-    line: number
-  }
-  domain: string
-  module: string
-  metadata: Record<string, MetadataValue>
-  _missing?: string[]
-}
-
-/** @riviere-role value-object */
-export interface EnrichmentFailure {
-  component: DraftComponent
-  field: string
-  error: string
-}
-
-/** @riviere-role value-object */
-export interface EnrichmentResult {
-  components: EnrichedComponent[]
-  failures: EnrichmentFailure[]
-}
-
 function findMatchingModule(
   filePath: string,
   modules: Module[],
@@ -64,7 +45,7 @@ function findMatchingModule(
 ): Module | undefined {
   const normalized = filePath.replaceAll(/\\+/g, '/')
   const pathToMatch = posix.relative(configDir.replaceAll(/\\+/g, '/'), normalized)
-  return modules.find((m) => globMatcher(pathToMatch, posix.join(m.path, m.glob)))
+  return modules.find((m) => globMatcher.matches(pathToMatch, posix.join(m.path, m.glob)))
 }
 
 function getBuiltInRule(module: Module, componentType: string): DetectionRule | undefined {
@@ -294,9 +275,9 @@ function evaluateMethodRule(
     const typeName = param.getTypeNode()?.getText() ?? 'unknown'
     const transform = rule.fromParameterType.transform
     if (transform === undefined) {
-      return { value: typeName }
+      return new ExtractionResult({ value: typeName })
     }
-    return { value: applyTransforms(typeName, transform) }
+    return new ExtractionResult({ value: applyTransforms(typeName, transform) })
   }
 
   return undefined
@@ -341,10 +322,15 @@ interface SingleComponentResult {
 
 function componentWithEmptyMetadata(draft: DraftComponent): SingleComponentResult {
   return {
-    enriched: {
-      ...draft,
+    enriched: new EnrichedComponentRecord({
+      type: draft.type,
+      name: draft.name,
+      location: draft.location,
+      domain: draft.domain,
+      module: draft.module,
       metadata: {},
-    },
+      _missing: undefined,
+    }),
     failures: [],
   }
 }
@@ -387,11 +373,13 @@ function extractMetadataFields(
         continue
       }
 
-      failures.push({
-        component: draft,
-        field: fieldName,
-        error: errorMessage,
-      })
+      failures.push(
+        new EnrichmentFailureRecord({
+          component: draft,
+          field: fieldName,
+          error: errorMessage,
+        }),
+      )
       missing.push(fieldName)
     }
   }
@@ -424,14 +412,15 @@ function enrichSingleComponent(
 
   const extracted = extractMetadataFields(detectionRule.extract, draft, project)
 
-  const enriched: EnrichedComponent = {
-    ...draft,
+  const enriched = new EnrichedComponentRecord({
+    type: draft.type,
+    name: draft.name,
+    location: draft.location,
+    domain: draft.domain,
+    module: draft.module,
     metadata: extracted.metadata,
-  }
-
-  if (extracted.missing.length > 0) {
-    enriched._missing = extracted.missing
-  }
+    _missing: extracted.missing.length > 0 ? extracted.missing : undefined,
+  })
 
   return {
     enriched,
@@ -456,8 +445,8 @@ export function enrichComponents(
     allFailures.push(...result.failures)
   }
 
-  return {
+  return new EnrichmentResultRecord({
     components: allComponents,
     failures: allFailures,
-  }
+  })
 }

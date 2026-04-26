@@ -1,10 +1,10 @@
 import type { EventPublisherConfig } from '@living-architecture/riviere-extract-config'
 import { EVENT_NAME_FIELD } from '@living-architecture/riviere-schema'
-import type { EnrichedComponent } from '../../value-extraction/enrich-components'
-import type { ExtractedLink } from '../extracted-link'
+import type { EnrichedComponent } from '../../value-extraction/enriched-component'
+import { ExtractedLink } from '../extracted-link'
 import { ConnectionDetectionError } from '../connection-detection-error'
-import { componentIdentity } from '../call-graph/call-graph-types'
-import type { AsyncDetectionOptions } from './async-detection-types'
+import { componentIdentity } from '../call-graph/component-identity'
+import type { AsyncDetectionOptions } from './async-detection-options'
 import { toSourceLocation } from './async-detection-types'
 
 /** @riviere-role domain-service */
@@ -59,13 +59,13 @@ function handleMissingMetadata(
       reason: `published event type in "${metadataKey}" metadata is missing or invalid`,
     })
   }
-  return {
+  return new ExtractedLink({
     source: componentIdentity(publisher),
     target: '_unresolved',
     type: 'async',
     sourceLocation: toSourceLocation(publisher, options.repository),
     _uncertain: `event publisher "${publisher.name}" is missing required "${metadataKey}" metadata`,
-  }
+  })
 }
 
 function resolvePublishTarget(
@@ -84,12 +84,15 @@ function resolvePublishTarget(
     return [handleAmbiguousMatch(publisher, publishedEventType, matchingEvents.length, options)]
   }
 
-  return matchingEvents.map((event) => ({
-    source: componentIdentity(publisher),
-    target: componentIdentity(event),
-    type: 'async' as const,
-    sourceLocation: toSourceLocation(publisher, options.repository),
-  }))
+  return matchingEvents.map(
+    (event) =>
+      new ExtractedLink({
+        source: componentIdentity(publisher),
+        target: componentIdentity(event),
+        type: 'async',
+        sourceLocation: toSourceLocation(publisher, options.repository),
+      }),
+  )
 }
 
 function handleAmbiguousMatch(
@@ -106,13 +109,13 @@ function handleAmbiguousMatch(
       reason: `published event "${publishedEventType}" matches ${matchCount} Event components (ambiguous)`,
     })
   }
-  return {
+  return new ExtractedLink({
     source: componentIdentity(publisher),
     target: '_unresolved',
     type: 'async',
     sourceLocation: toSourceLocation(publisher, options.repository),
     _uncertain: `ambiguous: ${matchCount} events match published event type: ${publishedEventType}`,
-  }
+  })
 }
 
 function handleNoMatch(
@@ -128,11 +131,11 @@ function handleNoMatch(
       reason: `published event "${publishedEventType}" does not match any Event component`,
     })
   }
-  return {
+  return new ExtractedLink({
     source: componentIdentity(publisher),
     target: '_unresolved',
     type: 'async',
     sourceLocation: toSourceLocation(publisher, options.repository),
     _uncertain: `no event found for published event type: ${publishedEventType}`,
-  }
+  })
 }

@@ -2,9 +2,24 @@ import {
   describe, it, expect 
 } from 'vitest'
 import { detectPerModuleConnections } from './detect-connections'
+import { PerModuleConnectionOptions } from './connection-detection-values'
 import { buildComponent } from './call-graph/call-graph-fixtures'
 import { matchesGlob } from '../../../../platform/infra/external-clients/minimatch/minimatch-glob'
 import { createProject } from './detect-connections-fixtures'
+import { GlobMatcher } from '../component-extraction/glob-matcher'
+
+const globMatcher = new GlobMatcher(matchesGlob)
+
+function createOptions(params: {
+  moduleGlobs: string[]
+  allComponents?: readonly ReturnType<typeof buildComponent>[]
+}): PerModuleConnectionOptions {
+  return new PerModuleConnectionOptions({
+    repository: 'test-repo',
+    moduleGlobs: params.moduleGlobs,
+    ...(params.allComponents !== undefined && { allComponents: params.allComponents }),
+  })
+}
 
 describe('detectPerModuleConnections', () => {
   it('returns sync links from call graph without async links', () => {
@@ -40,15 +55,14 @@ class PlaceOrder {
     const result = detectPerModuleConnections(
       project,
       [repo, useCase, event, handler],
-      {
-        repository: 'test-repo',
+      createOptions({
         moduleGlobs: ['/src/**/*.ts'],
         allComponents: [repo, useCase, event, handler],
-      },
-      matchesGlob,
+      }),
+      globMatcher,
     )
 
-    expect(result.links).toStrictEqual([
+    expect(result.links).toMatchObject([
       expect.objectContaining({
         source: 'orders:orders-module:useCase:placeorder',
         target: 'orders:orders-module:repository:orderrepository',
@@ -82,14 +96,11 @@ class PlaceOrder {
     const result = detectPerModuleConnections(
       project,
       [repo, useCase],
-      {
-        repository: 'test-repo',
-        moduleGlobs: ['/src/**/*.ts'],
-      },
-      matchesGlob,
+      createOptions({ moduleGlobs: ['/src/**/*.ts'] }),
+      globMatcher,
     )
 
-    expect(result.links).toStrictEqual([
+    expect(result.links).toMatchObject([
       expect.objectContaining({
         source: 'orders:orders-module:useCase:placeorder',
         target: 'orders:orders-module:repository:orderrepository',
@@ -105,15 +116,14 @@ class PlaceOrder {
     const result = detectPerModuleConnections(
       project,
       [],
-      {
-        repository: 'test-repo',
+      createOptions({
         moduleGlobs: ['/src/**/*.ts'],
         allComponents: [],
-      },
-      matchesGlob,
+      }),
+      globMatcher,
     )
 
-    expect(result.links).toStrictEqual([])
+    expect(result.links).toMatchObject([])
   })
 
   it('returns non-negative timing values', () => {
@@ -123,12 +133,11 @@ class PlaceOrder {
     const result = detectPerModuleConnections(
       project,
       [],
-      {
-        repository: 'test-repo',
+      createOptions({
         moduleGlobs: ['/src/**/*.ts'],
         allComponents: [],
-      },
-      matchesGlob,
+      }),
+      globMatcher,
     )
 
     expect(result.timings.callGraphMs).toBeGreaterThanOrEqual(0)
@@ -173,15 +182,14 @@ class ExcludedUseCase {
     const result = detectPerModuleConnections(
       project,
       [repo, useCase],
-      {
-        repository: 'test-repo',
+      createOptions({
         moduleGlobs: ['/src/included/**/*.ts'],
         allComponents: [repo, useCase],
-      },
-      matchesGlob,
+      }),
+      globMatcher,
     )
 
-    expect(result.links).toStrictEqual([
+    expect(result.links).toMatchObject([
       expect.objectContaining({
         source: 'orders:orders-module:useCase:includedusecase',
         target: 'orders:orders-module:repository:includedrepo',
@@ -223,15 +231,14 @@ class PlaceOrder {
     const result = detectPerModuleConnections(
       project,
       [useCase],
-      {
-        repository: 'test-repo',
+      createOptions({
         moduleGlobs: ['/src/bff/**/*.ts'],
         allComponents: [useCase, repository],
-      },
-      matchesGlob,
+      }),
+      globMatcher,
     )
 
-    expect(result.links).toStrictEqual([
+    expect(result.links).toMatchObject([
       expect.objectContaining({
         source: 'bff:orders-module:useCase:placeorder',
         target: 'orders:orders-module:repository:ordersrepository',

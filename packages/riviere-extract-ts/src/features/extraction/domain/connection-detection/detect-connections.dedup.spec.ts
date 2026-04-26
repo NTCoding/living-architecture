@@ -2,15 +2,16 @@ import {
   describe, it, expect 
 } from 'vitest'
 import { deduplicateCrossStrategy } from './detect-connections'
-import type { ExtractedLink } from './extracted-link'
+import { ExtractedLink } from './extracted-link'
 
 function createLink(overrides: Partial<ExtractedLink> = {}): ExtractedLink {
-  return {
+  return new ExtractedLink({
     source: 'orders:orders-module:useCase:orderservice',
-    target: 'orders:orders-module:event:eventbus',
-    type: 'sync',
-    ...overrides,
-  }
+    target: overrides.target ?? 'orders:orders-module:event:eventbus',
+    type: overrides.type ?? 'sync',
+    ...(overrides._uncertain !== undefined && { _uncertain: overrides._uncertain }),
+    ...(overrides.sourceLocation !== undefined && { sourceLocation: overrides.sourceLocation }),
+  })
 }
 
 describe('deduplicateCrossStrategy', () => {
@@ -21,7 +22,7 @@ describe('deduplicateCrossStrategy', () => {
     const result = deduplicateCrossStrategy([uncertain, certain])
 
     expect(result).toHaveLength(1)
-    expect(result[0]).not.toHaveProperty('_uncertain')
+    expect(result[0]?._uncertain).toBeUndefined()
   })
 
   it('keeps certain link when uncertain link arrives second', () => {
@@ -31,7 +32,7 @@ describe('deduplicateCrossStrategy', () => {
     const result = deduplicateCrossStrategy([certain, uncertain])
 
     expect(result).toHaveLength(1)
-    expect(result[0]).not.toHaveProperty('_uncertain')
+    expect(result[0]?._uncertain).toBeUndefined()
   })
 
   it('keeps first uncertain link when no certain alternative exists', () => {

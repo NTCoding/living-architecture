@@ -43,6 +43,9 @@ const {
 }))
 
 vi.mock('@living-architecture/riviere-extract-ts', () => ({
+  GlobMatcher: class {
+    readonly matches = mockMatchesGlob
+  },
   extractComponents: mockExtractComponents,
   enrichComponents: mockEnrichComponents,
   matchesGlob: mockMatchesGlob,

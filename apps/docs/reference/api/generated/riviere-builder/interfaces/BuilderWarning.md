@@ -8,7 +8,7 @@ Defined in: [packages/riviere-builder/src/features/building/domain/inspection/in
 
 ## Riviere-role
 
-value-object
+query-model
 
 ## Properties
 

@@ -1,12 +1,10 @@
-export {
-  extractComponents,
-  type DraftComponent,
-  type GlobMatcher,
-} from './features/extraction/domain/component-extraction/extractor'
+export { extractComponents } from './features/extraction/domain/component-extraction/extractor'
+export { DraftComponent } from './features/extraction/domain/component-extraction/draft-component'
+export { GlobMatcher } from './features/extraction/domain/component-extraction/glob-matcher'
 export { evaluatePredicate } from './features/extraction/domain/predicate-evaluation/evaluate-predicate'
 export {
   resolveConfig,
-  type ConfigLoader,
+  ConfigLoader,
 } from './features/extraction/domain/config-resolution/resolve-config'
 export {
   ConfigLoaderRequiredError,
@@ -26,23 +24,25 @@ export {
   detectPerModuleConnections,
   detectCrossModuleConnections,
   deduplicateCrossStrategy,
-  type ConnectionDetectionOptions,
-  type ConnectionDetectionResult,
-  type ConnectionTimings,
-  type PerModuleConnectionOptions,
-  type PerModuleDetectionResult,
-  type PerModuleTimings,
-  type CrossModuleConnectionOptions,
-  type CrossModuleDetectionResult,
-  type CrossModuleTimings,
 } from './features/extraction/domain/connection-detection/detect-connections'
-export type { ExtractedLink } from './features/extraction/domain/connection-detection/extracted-link'
+export {
+  ConnectionDetectionOptions,
+  ConnectionDetectionResult,
+  ConnectionTimings,
+  PerModuleConnectionOptions,
+  PerModuleDetectionResult,
+  PerModuleTimings,
+  CrossModuleConnectionOptions,
+  CrossModuleDetectionResult,
+  CrossModuleTimings,
+} from './features/extraction/domain/connection-detection/connection-detection-values'
+export { ExtractedLink } from './features/extraction/domain/connection-detection/extracted-link'
 export { ComponentIndex } from './features/extraction/domain/connection-detection/component-index'
 export { ConnectionDetectionError } from './features/extraction/domain/connection-detection/connection-detection-error'
 export { stripResolvedCustomTypes } from './features/extraction/domain/connection-detection/resolve-http-links'
+export { enrichComponents } from './features/extraction/domain/value-extraction/enrich-components'
 export {
-  enrichComponents,
-  type EnrichedComponent,
-  type EnrichmentFailure,
-  type EnrichmentResult,
-} from './features/extraction/domain/value-extraction/enrich-components'
+  EnrichedComponent,
+  EnrichmentFailure,
+  EnrichmentResult,
+} from './features/extraction/domain/value-extraction/enriched-component'

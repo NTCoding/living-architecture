@@ -9,41 +9,41 @@ interface CommonInput {
   description?: string
 }
 
-/** @riviere-role value-object */
+/** @riviere-role query-model */
 export interface AddUIInput extends CommonInput {route: string}
 
-/** @riviere-role value-object */
+/** @riviere-role query-model */
 export interface AddAPIInput extends CommonInput {
   apiType: 'REST' | 'GraphQL' | 'other'
   httpMethod?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'
   path?: string
 }
 
-/** @riviere-role value-object */
+/** @riviere-role query-model */
 export type AddUseCaseInput = CommonInput
 
-/** @riviere-role value-object */
+/** @riviere-role query-model */
 export interface AddDomainOpInput extends CommonInput {
   operationName: string
   entity?: string
 }
 
-/** @riviere-role value-object */
+/** @riviere-role query-model */
 export interface AddEventInput extends CommonInput {
   eventName: string
   eventSchema?: string
 }
 
-/** @riviere-role value-object */
+/** @riviere-role query-model */
 export interface AddEventHandlerInput extends CommonInput {subscribedEvents: string[]}
 
-/** @riviere-role value-object */
+/** @riviere-role query-model */
 export interface AddCustomInput extends CommonInput {
   customTypeName: string
   metadata?: Record<string, unknown>
 }
 
-/** @riviere-role value-object */
+/** @riviere-role query-model */
 export type AddComponentInput =
   | {
     type: 'UI'

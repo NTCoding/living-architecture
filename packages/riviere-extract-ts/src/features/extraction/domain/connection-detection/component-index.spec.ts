@@ -3,7 +3,7 @@ import {
 } from 'vitest'
 import { ComponentIndex } from './component-index'
 import { buildComponent as buildFixtureComponent } from './call-graph/call-graph-fixtures'
-import type { EnrichedComponent } from '../value-extraction/enrich-components'
+import type { EnrichedComponent } from '../value-extraction/enriched-component'
 
 function buildComponent(overrides: Partial<EnrichedComponent> = {}): EnrichedComponent {
   return buildFixtureComponent('OrderService', 'src/order-service.ts', 10, overrides)

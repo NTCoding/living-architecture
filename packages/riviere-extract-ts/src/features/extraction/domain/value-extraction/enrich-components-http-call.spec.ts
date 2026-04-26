@@ -7,9 +7,8 @@ import type {
   Module,
   ExtractionRule,
 } from '@living-architecture/riviere-extract-config'
-import type {
-  DraftComponent, GlobMatcher 
-} from '../component-extraction/extractor'
+import { DraftComponent } from '../component-extraction/draft-component'
+import { GlobMatcher } from '../component-extraction/glob-matcher'
 import { enrichComponents } from './enrich-components'
 
 const sharedProject = new Project({ useInMemoryFileSystem: true })
@@ -23,7 +22,7 @@ function nextFile(path: string, content: string) {
 }
 
 function alwaysMatchGlob(): GlobMatcher {
-  return () => true
+  return new GlobMatcher(() => true)
 }
 
 function configWithModules(modules: Module[]): ResolvedExtractionConfig {
@@ -53,7 +52,7 @@ function httpCallModule(extract: Record<string, ExtractionRule>): Module {
 }
 
 function httpCallDraft(file: string, line: number): DraftComponent {
-  return {
+  return new DraftComponent({
     type: 'httpCall',
     name: 'check',
     location: {
@@ -62,7 +61,7 @@ function httpCallDraft(file: string, line: number): DraftComponent {
     },
     domain: 'orders',
     module: 'orders-module',
-  }
+  })
 }
 
 function enrich(drafts: DraftComponent[], modules: Module[]) {
@@ -116,8 +115,8 @@ export class FraudClient {
 
     const result = enrich([httpCallDraft(file, 5)], [module])
 
-    expect(result.components[0]?.metadata).toStrictEqual({ serviceName: 'Fraud Detection Service' })
-    expect(result.failures).toStrictEqual([])
+    expect(result.components[0]?.metadata).toMatchObject({ serviceName: 'Fraud Detection Service' })
+    expect(result.failures).toMatchObject([])
   })
 
   it('extracts route and method decorator positional args with fromDecoratorArg', () => {
@@ -147,11 +146,11 @@ export class FraudClient {
 
     const result = enrich([httpCallDraft(file, 3)], [module])
 
-    expect(result.components[0]?.metadata).toStrictEqual({
+    expect(result.components[0]?.metadata).toMatchObject({
       route: '/api/check',
       method: 'POST',
     })
-    expect(result.failures).toStrictEqual([])
+    expect(result.failures).toMatchObject([])
   })
 
   it('records failure when HttpCall method argument is missing', () => {
@@ -183,7 +182,7 @@ export class FraudClient {
 
     expect(result.failures).toHaveLength(1)
     expect(result.failures[0]?.field).toBe('method')
-    expect(result.components[0]?._missing).toStrictEqual(['method'])
+    expect(result.components[0]?._missing).toMatchObject(['method'])
   })
 
   it('records failure when fromDecoratorArg decorator is missing on method', () => {
@@ -207,7 +206,7 @@ export class FraudClient {
 
     expect(result.failures).toHaveLength(1)
     expect(result.failures[0]?.field).toBe('route')
-    expect(result.components[0]?._missing).toStrictEqual(['route'])
+    expect(result.components[0]?._missing).toMatchObject(['route'])
   })
 
   it('records failure when fromDecoratorArg decorator name does not match method decorator', () => {
@@ -233,7 +232,7 @@ export class FraudClient {
 
     expect(result.failures).toHaveLength(1)
     expect(result.failures[0]?.field).toBe('route')
-    expect(result.components[0]?._missing).toStrictEqual(['route'])
+    expect(result.components[0]?._missing).toMatchObject(['route'])
   })
 
   it('extracts first method decorator name with fromDecoratorName', () => {
@@ -252,8 +251,8 @@ export class FraudClient {
 
     const result = enrich([httpCallDraft(file, 4)], [module])
 
-    expect(result.components[0]?.metadata).toStrictEqual({ decoratorName: 'First' })
-    expect(result.failures).toStrictEqual([])
+    expect(result.components[0]?.metadata).toMatchObject({ decoratorName: 'First' })
+    expect(result.failures).toMatchObject([])
   })
 
   it('records failure when fromDecoratorName is used on undecorated method', () => {
@@ -270,6 +269,6 @@ export class FraudClient {
 
     expect(result.failures).toHaveLength(1)
     expect(result.failures[0]?.field).toBe('decoratorName')
-    expect(result.components[0]?._missing).toStrictEqual(['decoratorName'])
+    expect(result.components[0]?._missing).toMatchObject(['decoratorName'])
   })
 })
