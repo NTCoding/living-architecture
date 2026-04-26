@@ -3,6 +3,21 @@ import type { BaseEvent } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { reviewRecordedEventSchema } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { STATE_NAME_SCHEMA } from './workflow-types'
 
+const KNOWN_WORKFLOW_EVENT_TYPES = [
+  'session-started',
+  'transitioned',
+  'issue-recorded',
+  'branch-recorded',
+  'pr-recorded',
+  'ci-completed',
+  'feedback-checked',
+  'feedback-addressed',
+  'task-check-passed',
+  'review-recorded',
+  'bash-checked',
+  'write-checked',
+] as const
+
 const SESSION_STARTED_SCHEMA = z.object({
   type: z.literal('session-started'),
   at: z.string(),
@@ -127,5 +142,5 @@ export function parseWorkflowEvent(event: BaseEvent): WorkflowEvent {
 
 /** @riviere-role domain-service */
 export function getKnownWorkflowEventTypes(): readonly string[] {
-  return WORKFLOW_EVENT_SCHEMA.options.map((schema) => schema.shape.type.value)
+  return [...KNOWN_WORKFLOW_EVENT_TYPES]
 }

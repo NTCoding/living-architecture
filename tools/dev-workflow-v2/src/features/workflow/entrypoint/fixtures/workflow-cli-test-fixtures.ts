@@ -129,9 +129,10 @@ export function progressToState(ctx: TestContext, targetState: string): void {
         )
       }
       const reviewType = step[2]
+      const verdict = step[3] === 'FAIL' ? 'FAIL' : 'PASS'
       runReviewCommand(ctx, reviewType, {
-        verdict: 'PASS',
-        summary: `${reviewType} passed`,
+        verdict,
+        summary: verdict === 'PASS' ? `${reviewType} passed` : `${reviewType} failed`,
         findings: [],
       })
       continue

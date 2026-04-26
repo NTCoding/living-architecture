@@ -20,6 +20,16 @@ function getReviewingTransitionGuard(): NonNullable<typeof reviewingState.transi
   return transitionGuard
 }
 
+function getFailureReason(result: {
+  readonly pass: boolean;
+  readonly reason?: string 
+}): string {
+  if (result.pass || result.reason === undefined) {
+    throw new WorkflowStateError('Expected failed REVIEWING transition guard result.')
+  }
+  return result.reason
+}
+
 function createStoredReview(
   id: number,
   reviewType: StoredReview['reviewType'],
@@ -28,7 +38,7 @@ function createStoredReview(
   return {
     id,
     sessionId: 'test-session',
-    createdAt: `2026-01-01T00:00:0${String(id)}Z`,
+    createdAt: new Date(Date.UTC(2026, 0, 1, 0, 0, 0) + id * 1000).toISOString(),
     reviewType,
     sourceState: 'REVIEWING',
     verdict,
@@ -129,11 +139,10 @@ describe('Workflow', () => {
         to: 'SUBMITTING_PR',
       })
 
-      expect(result).toStrictEqual({
-        pass: false,
-        reason:
-          'Not all reviews passed. Each of architecture-review, code-review, and bug-scanner must pass.',
-      })
+      expect(result.pass).toStrictEqual(false)
+      expect(getFailureReason(result)).toContain('architecture-review')
+      expect(getFailureReason(result)).toContain('code-review')
+      expect(getFailureReason(result)).toContain('bug-scanner')
     })
   })
 

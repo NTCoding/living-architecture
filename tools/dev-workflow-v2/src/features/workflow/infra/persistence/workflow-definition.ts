@@ -21,6 +21,8 @@ import {
 } from '../../domain/workflow-events'
 import { WORKFLOW_REGISTRY } from '../../domain/registry'
 
+const KNOWN_EVENT_TYPES: ReadonlySet<string> = new Set(getKnownWorkflowEventTypes())
+
 function diffStateOverrides(
   stateBefore: WorkflowState,
   stateAfter: WorkflowState,
@@ -44,11 +46,10 @@ export const WORKFLOW_DEFINITION: WorkflowDefinition<
   WorkflowOperation
 > = {
   fold(state: WorkflowState, event: BaseEvent): WorkflowState {
-    const knownTypes = new Set(getKnownWorkflowEventTypes())
     try {
       return applyEvent(state, parseWorkflowEvent(event))
     } catch (error) {
-      if (knownTypes.has(event.type)) {
+      if (KNOWN_EVENT_TYPES.has(event.type)) {
         throw new WorkflowStateError(`Malformed workflow event "${event.type}": ${String(error)}`)
       }
       return state

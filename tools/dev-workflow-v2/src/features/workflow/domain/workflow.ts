@@ -202,9 +202,10 @@ export class Workflow {
   }
 
   getLatestReviewByType(reviewType: LivingArchitectureReviewType): StoredReview | undefined {
-    const reviewsOfType = this.getRecordedReviews().filter(
-      (recordedReview) => recordedReview.reviewType === reviewType,
-    )
+    const reviewsOfType = this.getRecordedReviews()
+      .filter((recordedReview) => recordedReview.reviewType === reviewType)
+      .slice()
+      .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
     return reviewsOfType.at(-1)
   }
 

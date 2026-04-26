@@ -59,7 +59,7 @@ If `taskCheckPassed` is `false` and `githubIssue` is present, spawn the task-che
 
 - Cannot transition to SUBMITTING_PR unless architecture-review, code-review, and bug-scanner passed
 - If `githubIssue` is present, cannot transition to SUBMITTING_PR unless the latest required `task-check` review also passed
-- Cannot transition to IMPLEMENTING if all 3 reviews passed (go to SUBMITTING_PR instead)
+- Cannot transition to IMPLEMENTING if all required reviews passed (architecture-review, code-review, bug-scanner, and `task-check` when `githubIssue` is present); go to SUBMITTING_PR instead
 - Do not infer workflow state from prior messages or git history. When workflow state values are needed, run `/dev-workflow-v2:workflow get-state` and extract the exact fields required from its JSON output.
 - Do not record any review until the corresponding subagent has returned valid JSON with `verdict`, `summary`, and `findings`
 - If any required subagent fails to start, fails to complete, or returns invalid or missing review JSON, do not continue the review flow; transition to BLOCKED immediately

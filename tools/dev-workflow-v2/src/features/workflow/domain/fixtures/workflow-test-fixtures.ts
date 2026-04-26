@@ -10,6 +10,7 @@ import type { GitInfo } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
 import type { StoredReview } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 
 const AT = '2026-01-01T00:00:00Z'
+const recordedReviews: StoredReview[] = []
 
 const cleanGit: GitInfo = {
   currentBranch: 'issue-42',
@@ -28,7 +29,7 @@ export function makeDeps(overrides?: Partial<WorkflowDeps>): WorkflowDeps {
       unresolvedCount: 0,
       threads: [],
     }),
-    listSessionReviews: (): readonly StoredReview[] => [],
+    listSessionReviews: (): readonly StoredReview[] => [...recordedReviews],
     sleepMs: () => undefined,
     now: () => AT,
     ...overrides,
@@ -87,10 +88,21 @@ export function reviewRecorded(
   reviewType: LivingArchitectureReviewType,
   verdict: 'PASS' | 'FAIL',
 ): WorkflowEvent {
+  const reviewId = Number(process.hrtime.bigint() % BigInt(Number.MAX_SAFE_INTEGER)) + 1
+  recordedReviews.push({
+    id: reviewId,
+    sessionId: 'test-session',
+    createdAt: AT,
+    reviewType,
+    sourceState: 'REVIEWING',
+    verdict,
+    summary: `${reviewType} ${verdict}`,
+    findings: [],
+  })
   return {
     type: 'review-recorded',
     at: AT,
-    reviewId: Number(process.hrtime.bigint() % BigInt(Number.MAX_SAFE_INTEGER)) + 1,
+    reviewId,
     reviewType,
     verdict,
   }
@@ -140,6 +152,7 @@ function feedbackExists(count: number): WorkflowEvent {
 }
 
 export function eventsToReviewing(): readonly WorkflowEvent[] {
+  recordedReviews.length = 0
   return [issueRecorded(42), branchRecorded('issue-42'), transitioned('IMPLEMENTING', 'REVIEWING')]
 }
 
