@@ -91,3 +91,38 @@ export function configWithGenericRequiredPrivateMembers(requiredPrivateMembers: 
     requiredPrivateMembers,
   })
 }
+
+export function configWithGenericRepositoryMethodInputs(allowedInputs: string[]) {
+  return roleEnforcement({
+    packages: ['packages/pkg-a'],
+    canonicalConfigurationsFile: '.riviere/canonical-role-configurations.md',
+    ignorePatterns: ['**/*.spec.ts'],
+    roleDefinitionsDir: '.riviere/role-definitions',
+    roles: [
+      ...genericTestRoles.filter((r) => r.name !== 'role-b-repository'),
+      role('role-b-repository', {
+        targets: ['class'],
+        allowedInputs,
+        allowedOutputs: ['role-b'],
+      }),
+    ],
+    locations: genericTestLocations,
+  })
+}
+
+export function configWithGenericRepositoryMethodInputsOnly(allowedInputs: string[]) {
+  return roleEnforcement({
+    packages: ['packages/pkg-a'],
+    canonicalConfigurationsFile: '.riviere/canonical-role-configurations.md',
+    ignorePatterns: ['**/*.spec.ts'],
+    roleDefinitionsDir: '.riviere/role-definitions',
+    roles: [
+      ...genericTestRoles.filter((r) => r.name !== 'role-b-repository'),
+      role('role-b-repository', {
+        targets: ['class'],
+        allowedInputs,
+      }),
+    ],
+    locations: genericTestLocations,
+  })
+}

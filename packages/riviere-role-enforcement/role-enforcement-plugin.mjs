@@ -390,7 +390,7 @@ export default {
         function validateClassContract(node, role, name) {
           validatePublicMethodCount(node, role, name)
           validateRequiredPrivateMembers(node, role, name)
-          validateClassMethodOutputs(node, role, name)
+          validateClassMethodContracts(node, role, name)
         }
 
         function validatePublicMethodCount(node, role, name) {
@@ -430,8 +430,8 @@ export default {
           }
         }
 
-        function validateClassMethodOutputs(node, role, name) {
-          if (!Array.isArray(role.allowedOutputs)) {
+        function validateClassMethodContracts(node, role, name) {
+          if (!hasClassMethodContracts(role)) {
             return
           }
 
@@ -447,6 +447,10 @@ export default {
           }
         }
 
+        function hasClassMethodContracts(role) {
+          return Array.isArray(role.allowedInputs) || Array.isArray(role.allowedOutputs)
+        }
+
         function countPublicMethods(classNode) {
           return classNode.body.body.filter(
             (member) =>
@@ -457,11 +461,18 @@ export default {
         }
 
         function hasRequiredPrivateMember(classNode, privateMemberName) {
+          const normalizedPrivateMemberName = normalizeRequiredPrivateMemberName(privateMemberName)
           return classNode.body.body.some(
             (member) =>
               isPrivateMember(member) &&
-              readMemberName(member.key) === privateMemberName,
+              readMemberName(member.key) === normalizedPrivateMemberName,
           )
+        }
+
+        function normalizeRequiredPrivateMemberName(privateMemberName) {
+          return privateMemberName.startsWith('#')
+            ? privateMemberName.slice(1)
+            : privateMemberName
         }
 
         function isPrivateMember(member) {

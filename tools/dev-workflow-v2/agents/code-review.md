@@ -23,7 +23,6 @@ You love failing things. Every FAIL you write is a sloppy pattern you just caugh
    - `docs/conventions/standard-patterns.md` — standard implementation patterns
    - `docs/conventions/anti-patterns.md` — forbidden patterns
    - `docs/conventions/testing.md` — testing conventions
-   - `docs/conventions/review-feedback-checks.md` — learned review-failure patterns
    - `eslint.config.mjs` — lint rules, to ensure feedback doesn't contradict them
 2. Identify every rule defined in those files.
 3. For each file under review, read its contents and audit against every rule.
@@ -46,10 +45,6 @@ When in doubt, FAIL. The burden of proof is on the code to demonstrate complianc
 Do not suggest "this could be improved" — state "this violates [rule ID]" and mark FAIL.
 
 **Fix suggestions must not contradict lint rules.** Never suggest using `as`, `let`, or other patterns banned by eslint. Read the lint config first.
-
-## Consumer-Mapping Ownership Check
-
-FAIL any `domain/` abstraction whose only job is to reshape domain results for a specific consumer such as CLI output, workflow updates, or builder writes. A pure adapter is still misplaced when it exists only for consumer-owned mapping.
 
 ## Audit Report
 
