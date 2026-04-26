@@ -73,7 +73,11 @@ export const allRoles = [
       },
     ],
   }),
-  role('value-object', { targets: ['interface', 'type-alias', 'class'] }),
+  role('value-object', {
+    targets: ['class'],
+    requiredPrivateMembers: ['brand'],
+    forbiddenDependencies: ['aggregate', 'domain-service'],
+  }),
   role('domain-error', { targets: ['class'] }),
   role('domain-service', { targets: ['function', 'class'] }),
   role('query-model-use-case', {
