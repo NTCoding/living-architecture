@@ -326,23 +326,23 @@ importers:
   tools/dev-workflow-v2:
     dependencies:
       '@nt-ai-lab/deterministic-agent-workflow-claude-code':
-        specifier: 0.3.0
-        version: 0.3.0
+        specifier: 0.3.3
+        version: 0.3.3
       '@nt-ai-lab/deterministic-agent-workflow-cli':
-        specifier: 0.3.0
-        version: 0.3.0
+        specifier: 0.3.3
+        version: 0.3.3
       '@nt-ai-lab/deterministic-agent-workflow-dsl':
-        specifier: 0.3.0
-        version: 0.3.0
+        specifier: 0.3.3
+        version: 0.3.3
       '@nt-ai-lab/deterministic-agent-workflow-engine':
-        specifier: 0.3.0
-        version: 0.3.0
+        specifier: 0.3.3
+        version: 0.3.3
       '@nt-ai-lab/deterministic-agent-workflow-event-store':
-        specifier: 0.3.0
-        version: 0.3.0
+        specifier: 0.3.3
+        version: 0.3.3
       '@nt-ai-lab/deterministic-agent-workflow-opencode':
-        specifier: 0.3.0
-        version: 0.3.0
+        specifier: 0.3.3
+        version: 0.3.3
       zod:
         specifier: ^3.23.0
         version: 3.25.76
@@ -1766,23 +1766,23 @@ packages:
     resolution: {integrity: sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg==}
     engines: {node: '>= 8'}
 
-  '@nt-ai-lab/deterministic-agent-workflow-claude-code@0.3.0':
-    resolution: {integrity: sha512-xny2X/fOVwtsl9b999kKHySULptjBPPwWBIIVEMVu7FEwfRlwwpqDbw63lzYMo4wFgQVUNLwKJRkf+0MM2CSEw==}
+  '@nt-ai-lab/deterministic-agent-workflow-claude-code@0.3.3':
+    resolution: {integrity: sha512-Ck4E7E70isXVcdFBOUNwzYzXN8N4sVVVZxgR3tjPMm0vfPn4aC/yhmy/0RVo2u/wbt3JCx63EwpOuHkk+DJW/w==}
 
-  '@nt-ai-lab/deterministic-agent-workflow-cli@0.3.0':
-    resolution: {integrity: sha512-U2NCEtKqXHtdSdWFa+HXzviLNZ7XcvnIgBjsk8t8q/rAAzhwbe1hVjyicM+Y1u6CSNAeMCG6V3iQkKK952upYg==}
+  '@nt-ai-lab/deterministic-agent-workflow-cli@0.3.3':
+    resolution: {integrity: sha512-3JVDaTthulQACbl7ranM+W2+8zOryyF7BjYKOgXL3/9qA63Msfj2VWBEYy1cVLiw8otS9SD+4QzU/L758QwzmA==}
 
-  '@nt-ai-lab/deterministic-agent-workflow-dsl@0.3.0':
-    resolution: {integrity: sha512-Mak0r2+3iB3C7++2Wta+zVyGjMCZ2Hknr/FhCh6H4VZLxKDI6agkoN9E1gVgbnXXckMXlN51oRzFV+KJ/14ZUw==}
+  '@nt-ai-lab/deterministic-agent-workflow-dsl@0.3.3':
+    resolution: {integrity: sha512-UHlwS+xUsL1ddmCt1OUPGKP46v34YBo3Y0l0txpUMPysxHaXcHeniDr9Y3RKdo076an52A2oujByD1Vjj7koFA==}
 
-  '@nt-ai-lab/deterministic-agent-workflow-engine@0.3.0':
-    resolution: {integrity: sha512-ec5z/GUVnVS8ffkcIwf7hfHcECWk0TJsoOFMyFD/4ho1xnrB5Lk/h40V3Ag72iNflgbH9OGqhum+jJCn9dzksQ==}
+  '@nt-ai-lab/deterministic-agent-workflow-engine@0.3.3':
+    resolution: {integrity: sha512-COADOsfA+yg6epZY6JebbIdudM3/Rf+1S+gfB+cmOF9ymg3wzSLrDvfE5OKzYii9NGy+Othc4h9kbqm7MUvRlg==}
 
-  '@nt-ai-lab/deterministic-agent-workflow-event-store@0.3.0':
-    resolution: {integrity: sha512-g2SQRDDnhCfzzIwKhkmGd0s4Mk9tYQ3Xi1e8Fj4oleASdYyHvC0wlArqJOIM4PtrpU46sosd2UDhO7SoYIoXAg==}
+  '@nt-ai-lab/deterministic-agent-workflow-event-store@0.3.3':
+    resolution: {integrity: sha512-ynG7SwSR9JZ5yuOTP/hriXaNZ7tu4+n75ElbjyeFyeKTbR4wFdxPYztSM/iguf7RRdFl9paShyTHMVKWLsDRyA==}
 
-  '@nt-ai-lab/deterministic-agent-workflow-opencode@0.3.0':
-    resolution: {integrity: sha512-AQCyz48b5E3I2VAw712sMDUSKOtZxzg9dv23YD0URy6jzw8FJJRIayooCnVzcMmPzjUsvVoNsnaVRnDDdIlhMg==}
+  '@nt-ai-lab/deterministic-agent-workflow-opencode@0.3.3':
+    resolution: {integrity: sha512-aDakjCdFW53y/Eee1d6BrlCOEsPzB61yvdDBu14JIrdFmbJRYxFNNzlWTsLm6g8y86md1TjaXOJRDxg1mAj4Ag==}
 
   '@nx/devkit@22.5.2':
     resolution: {integrity: sha512-5JuCMlU6AwXBKCoMWp1hTyTzjfB5vXL5khmoziZPmnaIBg+gX0Hp13YhWfO1C6/HuXS+i4mor7dtFHukPKWemQ==}
@@ -8894,37 +8894,37 @@ snapshots:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.20.1
 
-  '@nt-ai-lab/deterministic-agent-workflow-claude-code@0.3.0':
+  '@nt-ai-lab/deterministic-agent-workflow-claude-code@0.3.3':
     dependencies:
-      '@nt-ai-lab/deterministic-agent-workflow-cli': 0.3.0
-      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.3.0
+      '@nt-ai-lab/deterministic-agent-workflow-cli': 0.3.3
+      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.3.3
       zod: 3.25.76
 
-  '@nt-ai-lab/deterministic-agent-workflow-cli@0.3.0':
+  '@nt-ai-lab/deterministic-agent-workflow-cli@0.3.3':
     dependencies:
-      '@nt-ai-lab/deterministic-agent-workflow-dsl': 0.3.0
-      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.3.0
-      '@nt-ai-lab/deterministic-agent-workflow-event-store': 0.3.0
+      '@nt-ai-lab/deterministic-agent-workflow-dsl': 0.3.3
+      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.3.3
+      '@nt-ai-lab/deterministic-agent-workflow-event-store': 0.3.3
       zod: 3.25.76
 
-  '@nt-ai-lab/deterministic-agent-workflow-dsl@0.3.0':
+  '@nt-ai-lab/deterministic-agent-workflow-dsl@0.3.3':
     dependencies:
-      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.3.0
+      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.3.3
 
-  '@nt-ai-lab/deterministic-agent-workflow-engine@0.3.0':
+  '@nt-ai-lab/deterministic-agent-workflow-engine@0.3.3':
     dependencies:
       zod: 3.25.76
 
-  '@nt-ai-lab/deterministic-agent-workflow-event-store@0.3.0':
+  '@nt-ai-lab/deterministic-agent-workflow-event-store@0.3.3':
     dependencies:
-      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.3.0
+      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.3.3
       zod: 3.25.76
 
-  '@nt-ai-lab/deterministic-agent-workflow-opencode@0.3.0':
+  '@nt-ai-lab/deterministic-agent-workflow-opencode@0.3.3':
     dependencies:
-      '@nt-ai-lab/deterministic-agent-workflow-cli': 0.3.0
-      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.3.0
-      '@nt-ai-lab/deterministic-agent-workflow-event-store': 0.3.0
+      '@nt-ai-lab/deterministic-agent-workflow-cli': 0.3.3
+      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.3.3
+      '@nt-ai-lab/deterministic-agent-workflow-event-store': 0.3.3
       '@opencode-ai/plugin': 1.4.3
       zod: 3.25.76
     transitivePeerDependencies:
