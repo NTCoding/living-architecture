@@ -6,6 +6,7 @@ import {
 export const blockedState: ConcreteStateDefinition = {
   emoji: '⚠️',
   agentInstructions: 'states/blocked.md',
+  allowIdle: true,
   forbidden: { write: true },
   canTransitionTo: [
     'IMPLEMENTING',

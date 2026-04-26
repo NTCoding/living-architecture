@@ -118,6 +118,37 @@ describe('WORKFLOW_DEFINITION', () => {
       expect(registry.REVIEWING).toBeDefined()
       expect(registry.COMPLETE).toBeDefined()
     })
+
+    it('allows idle in BLOCKED', () => {
+      const registry = WORKFLOW_DEFINITION.getRegistry()
+      expect(registry.BLOCKED.allowIdle).toBe(true)
+    })
+
+    it('allows idle in COMPLETE', () => {
+      const registry = WORKFLOW_DEFINITION.getRegistry()
+      expect(registry.COMPLETE.allowIdle).toBe(true)
+    })
+
+    it('does not allow idle in active states', () => {
+      const registry = WORKFLOW_DEFINITION.getRegistry()
+      expect({
+        implementing: registry.IMPLEMENTING.allowIdle,
+        reviewing: registry.REVIEWING.allowIdle,
+        submittingPr: registry.SUBMITTING_PR.allowIdle,
+        awaitingCi: registry.AWAITING_CI.allowIdle,
+        awaitingPrFeedback: registry.AWAITING_PR_FEEDBACK.allowIdle,
+        addressingFeedback: registry.ADDRESSING_FEEDBACK.allowIdle,
+        reflecting: registry.REFLECTING.allowIdle,
+      }).toStrictEqual({
+        implementing: undefined,
+        reviewing: undefined,
+        submittingPr: undefined,
+        awaitingCi: undefined,
+        awaitingPrFeedback: undefined,
+        addressingFeedback: undefined,
+        reflecting: undefined,
+      })
+    })
   })
 
   describe('buildTransitionContext', () => {
