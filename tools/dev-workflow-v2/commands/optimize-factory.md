@@ -76,9 +76,7 @@ gh api graphql \
   -F owner='<OWNER>' \
   -F name='<REPO>' \
   -F number=<PR_NUMBER> \
-  -F threadCursor='' \
-  -F commentCursor='' \
-  -f query='query($owner: String!, $name: String!, $number: Int!, $threadCursor: String, $commentCursor: String) {
+  -f query='query($owner: String!, $name: String!, $number: Int!, $threadCursor: String) {
     repository(owner: $owner, name: $name) {
       pullRequest(number: $number) {
         url
@@ -95,11 +93,7 @@ gh api graphql \
             path
             line
             startLine
-            comments(first: 100, after: $commentCursor) {
-              pageInfo {
-                hasNextPage
-                endCursor
-              }
+            comments(first: 100) {
               nodes {
                 id
                 databaseId
@@ -118,7 +112,34 @@ gh api graphql \
 
 Do not treat one `first: 100` response as complete data. Page through review threads until `reviewThreads.pageInfo.hasNextPage` is `false`.
 
-For each selected review thread, page through thread comments until `comments.pageInfo.hasNextPage` is `false`.
+For each selected review thread, fetch the full comment history with a separate per-thread GraphQL query that paginates comments for that one thread only:
+
+```bash
+gh api graphql \
+  -F threadId='<THREAD_ID>' \
+  -f query='query($threadId: ID!, $commentCursor: String) {
+    node(id: $threadId) {
+      ... on PullRequestReviewThread {
+        comments(first: 100, after: $commentCursor) {
+          pageInfo {
+            hasNextPage
+            endCursor
+          }
+          nodes {
+            id
+            databaseId
+            url
+            body
+            author { login }
+            createdAt
+          }
+        }
+      }
+    }
+  }'
+```
+
+Do not pass empty strings as cursor stand-ins. Omit the cursor variable until a real cursor exists, then continue with the returned `endCursor`.
 
 If the command cannot page through all review threads and comments, fail fast and tell the user that the source set is incomplete. Do not continue with partial review-thread data.
 
