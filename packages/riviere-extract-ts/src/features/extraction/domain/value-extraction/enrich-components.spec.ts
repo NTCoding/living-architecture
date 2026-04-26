@@ -3,12 +3,9 @@ import {
 } from 'vitest'
 import { Project } from 'ts-morph'
 import type {
-  ResolvedExtractionConfig,
-  Module,
-  ComponentRule,
+  Module, ComponentRule 
 } from '@living-architecture/riviere-extract-config'
 import { DraftComponent } from '../component-extraction/draft-component'
-import { GlobMatcher } from '../component-extraction/glob-matcher'
 import { enrichComponents } from './enrich-components'
 
 const sharedProject = new Project({ useInMemoryFileSystem: true })
@@ -20,8 +17,6 @@ function nextFile(path: string, content: string) {
   sharedProject.createSourceFile(filePath, content)
   return filePath
 }
-
-const alwaysMatch = new GlobMatcher(() => true)
 
 const BUILT_IN_TYPES: readonly string[] = [
   'api',
@@ -81,7 +76,11 @@ function moduleWith(componentType: string, rule: ComponentRule): Module {
 }
 
 function enrich(drafts: DraftComponent[], modules: Module[]) {
-  return enrichComponents(drafts, { modules }, sharedProject, alwaysMatch, '/')
+  const [module] = modules
+  if (module === undefined) {
+    throw new TypeError('Expected one module in test config')
+  }
+  return enrichComponents(drafts, module, sharedProject)
 }
 
 function draft(type: string, name: string, file: string, line: number): DraftComponent {
@@ -292,24 +291,6 @@ describe('enrichComponents', () => {
       expect(result.failures).toHaveLength(1)
       expect(result.failures[0]?.field).toBe('route')
       expect(result.components[0]?._missing).toMatchObject(['route'])
-    })
-  })
-
-  describe('handles components with no matching module', () => {
-    it('returns component with empty metadata when no module matches', () => {
-      const file = nextFile('/src/orders/order.controller.ts', 'export class OrderController {}')
-      const neverMatch = new GlobMatcher(() => false)
-      const config: ResolvedExtractionConfig = {modules: [notUsedModule('other', '/src/other/**')],}
-      const result = enrichComponents(
-        [draft('api', 'OrderController', file, 1)],
-        config,
-        sharedProject,
-        neverMatch,
-        '/',
-      )
-
-      expect(result.components[0]?.metadata).toMatchObject({})
-      expect(result.failures).toMatchObject([])
     })
   })
 

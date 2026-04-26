@@ -4,16 +4,12 @@ import {
 import { detectConnections } from './detect-connections'
 import { ConnectionDetectionOptions } from './connection-detection-values'
 import { buildComponent } from './call-graph/call-graph-fixtures'
-import { matchesGlob } from '../../../../platform/infra/external-clients/minimatch/minimatch-glob'
 import { ConnectionDetectionError } from './connection-detection-error'
 import { createProject } from './detect-connections-fixtures'
-import { GlobMatcher } from '../component-extraction/glob-matcher'
-
-const globMatcher = new GlobMatcher(matchesGlob)
 
 function createOptions(params: {
   allowIncomplete?: boolean
-  moduleGlobs: string[]
+  sourceFilePaths: string[]
   eventPublishers?: {
     fromType: string
     metadataKey: string
@@ -21,7 +17,7 @@ function createOptions(params: {
 }): ConnectionDetectionOptions {
   return new ConnectionDetectionOptions({
     repository: 'test-repo',
-    moduleGlobs: params.moduleGlobs,
+    sourceFilePaths: params.sourceFilePaths,
     ...(params.allowIncomplete !== undefined && { allowIncomplete: params.allowIncomplete }),
     ...(params.eventPublishers !== undefined && { eventPublishers: params.eventPublishers }),
   })
@@ -35,8 +31,7 @@ describe('detectConnections', () => {
     const result = detectConnections(
       project,
       [],
-      createOptions({ moduleGlobs: ['/src/**/*.ts'] }),
-      globMatcher,
+      createOptions({ sourceFilePaths: ['/src/empty.ts'] }),
     )
 
     expect(result.links).toMatchObject([])
@@ -49,8 +44,7 @@ describe('detectConnections', () => {
     const result = detectConnections(
       project,
       [],
-      createOptions({ moduleGlobs: ['/src/**/*.ts'] }),
-      globMatcher,
+      createOptions({ sourceFilePaths: ['/src/timing.ts'] }),
     )
 
     expect(result.timings.callGraphMs).toBeGreaterThanOrEqual(0)
@@ -84,8 +78,7 @@ class PlaceOrder {
     const result = detectConnections(
       project,
       [repo, useCase],
-      createOptions({ moduleGlobs: ['/src/**/*.ts'] }),
-      globMatcher,
+      createOptions({ sourceFilePaths: [filePath] }),
     )
 
     expect(result.links).toMatchObject([
@@ -130,8 +123,7 @@ class PublishEvent {
     const result = detectConnections(
       project,
       [store, useCase],
-      createOptions({ moduleGlobs: ['/src/**/*.ts'] }),
-      globMatcher,
+      createOptions({ sourceFilePaths: [filePath] }),
     )
 
     expect(result.links).toMatchObject([
@@ -158,12 +150,7 @@ class StrictComp {
     const comp = buildComponent('StrictComp', '/src/strict.ts', 2)
 
     expect(() =>
-      detectConnections(
-        project,
-        [comp],
-        createOptions({ moduleGlobs: ['/src/**/*.ts'] }),
-        globMatcher,
-      ),
+      detectConnections(project, [comp], createOptions({ sourceFilePaths: ['/src/strict.ts'] })),
     ).toThrow(ConnectionDetectionError)
   })
 
@@ -187,9 +174,8 @@ class LenientComp {
       [comp],
       createOptions({
         allowIncomplete: true,
-        moduleGlobs: ['/src/**/*.ts'],
+        sourceFilePaths: ['/src/lenient.ts'],
       }),
-      globMatcher,
     )
 
     expect(result.links).toMatchObject([
@@ -225,8 +211,7 @@ class ServiceA {
     const result = detectConnections(
       project,
       [compA, compB],
-      createOptions({ moduleGlobs: ['/src/**/*.ts'] }),
-      globMatcher,
+      createOptions({ sourceFilePaths: [filePath] }),
     )
 
     const aToB = result.links.find(
@@ -274,7 +259,7 @@ class OrderPublisher {
       project,
       [event, publisher, handler],
       createOptions({
-        moduleGlobs: ['/src/**/*.ts'],
+        sourceFilePaths: [filePath, '/src/handler.ts'],
         eventPublishers: [
           {
             fromType: 'eventSender',
@@ -282,7 +267,6 @@ class OrderPublisher {
           },
         ],
       }),
-      globMatcher,
     )
 
     expect(result.links).toMatchObject(
@@ -302,7 +286,7 @@ class OrderPublisher {
     expect(result.links).toHaveLength(2)
   })
 
-  it('filters source files by moduleGlobs', () => {
+  it('filters source files by sourceFilePaths', () => {
     const project = createProject()
     const includedFile = '/src/modules/ordering/handler.ts'
     const excludedFile = '/src/modules/billing/helper.ts'
@@ -346,8 +330,7 @@ class PaymentGateway {
     const result = detectConnections(
       project,
       [gateway, processPayment],
-      createOptions({ moduleGlobs: ['/src/modules/ordering/**/*.ts'] }),
-      globMatcher,
+      createOptions({ sourceFilePaths: [includedFile] }),
     )
 
     expect(result.links).toMatchObject([

@@ -261,6 +261,62 @@ describe('ExtractionProjectRepository', () => {
     })
   })
 
+  it('loadFromFullProject merges customTypes from base and local extends config', () => {
+    withWorkspace((dir) => {
+      writeFileSync(
+        join(dir, 'extended.yml'),
+        [
+          'modules:',
+          '  - name: orders',
+          '    domain: orders',
+          '    path: src',
+          '    glob: "**/*.ts"',
+          '    api: { notUsed: true }',
+          '    useCase: { notUsed: true }',
+          '    domainOp: { notUsed: true }',
+          '    event: { notUsed: true }',
+          '    eventHandler: { notUsed: true }',
+          '    ui: { notUsed: true }',
+          '    customTypes:',
+          '      service:',
+          '        find: classes',
+          '        where: { nameEndsWith: { suffix: Service } }',
+        ].join('\n'),
+        'utf-8',
+      )
+      writeFileSync(join(dir, 'component.ts'), 'export class Order {}', 'utf-8')
+      writeFileSync(
+        join(dir, 'extract.yml'),
+        [
+          'modules:',
+          '  - name: orders',
+          '    domain: orders',
+          '    path: .',
+          '    glob: "*.ts"',
+          '    extends: ./extended.yml',
+          '    api: { notUsed: true }',
+          '    useCase: { notUsed: true }',
+          '    domainOp: { notUsed: true }',
+          '    event: { notUsed: true }',
+          '    eventHandler: { notUsed: true }',
+          '    ui: { notUsed: true }',
+          '    customTypes:',
+          '      repository:',
+          '        find: classes',
+          '        where: { nameEndsWith: { suffix: Repository } }',
+        ].join('\n'),
+        'utf-8',
+      )
+
+      expect(
+        new ExtractionProjectRepository().loadFromFullProject({
+          configPath: join(dir, 'extract.yml'),
+          useTsConfig: false,
+        }),
+      ).toBeDefined()
+    })
+  })
+
   it('loadFromFullProject loads package-based extends from node_modules', () => {
     withWorkspace((dir) => {
       const pkgDir = join(dir, 'node_modules', 'my-config')

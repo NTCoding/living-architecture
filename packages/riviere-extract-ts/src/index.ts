@@ -1,15 +1,8 @@
 export { extractComponents } from './features/extraction/domain/component-extraction/extractor'
 export { DraftComponent } from './features/extraction/domain/component-extraction/draft-component'
-export { GlobMatcher } from './features/extraction/domain/component-extraction/glob-matcher'
 export { evaluatePredicate } from './features/extraction/domain/predicate-evaluation/evaluate-predicate'
-export {
-  resolveConfig,
-  ConfigLoader,
-} from './features/extraction/domain/config-resolution/resolve-config'
-export {
-  ConfigLoaderRequiredError,
-  MissingComponentRuleError,
-} from './features/extraction/domain/config-resolution/config-resolution-errors'
+export { resolveConfig } from './features/extraction/domain/config-resolution/resolve-config'
+export { MissingComponentRuleError } from './features/extraction/domain/config-resolution/config-resolution-errors'
 export {
   applyTransforms,
   ExtractionError,
@@ -18,7 +11,6 @@ export {
   type ParameterInfo,
   type MethodSignature,
 } from './features/extraction/domain/value-extraction'
-export { matchesGlob } from './platform/infra/external-clients/minimatch/minimatch-glob'
 export {
   detectConnections,
   detectPerModuleConnections,

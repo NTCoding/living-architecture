@@ -3,12 +3,9 @@ import {
 } from 'vitest'
 import { Project } from 'ts-morph'
 import type {
-  ResolvedExtractionConfig,
-  Module,
-  ExtractionRule,
+  Module, ExtractionRule 
 } from '@living-architecture/riviere-extract-config'
 import { DraftComponent } from '../component-extraction/draft-component'
-import { GlobMatcher } from '../component-extraction/glob-matcher'
 import { enrichComponents } from './enrich-components'
 
 const sharedProject = new Project({ useInMemoryFileSystem: true })
@@ -19,14 +16,6 @@ function nextFile(path: string, content: string) {
   const filePath = path.replace('.ts', `-http-${counter.value}.ts`)
   sharedProject.createSourceFile(filePath, content)
   return filePath
-}
-
-function alwaysMatchGlob(): GlobMatcher {
-  return new GlobMatcher(() => true)
-}
-
-function configWithModules(modules: Module[]): ResolvedExtractionConfig {
-  return { modules }
 }
 
 function httpCallModule(extract: Record<string, ExtractionRule>): Module {
@@ -65,7 +54,11 @@ function httpCallDraft(file: string, line: number): DraftComponent {
 }
 
 function enrich(drafts: DraftComponent[], modules: Module[]) {
-  return enrichComponents(drafts, configWithModules(modules), sharedProject, alwaysMatchGlob(), '/')
+  const [module] = modules
+  if (module === undefined) {
+    throw new TypeError('Expected one module in test config')
+  }
+  return enrichComponents(drafts, module, sharedProject)
 }
 
 describe('enrichComponents — httpCall metadata extraction', () => {

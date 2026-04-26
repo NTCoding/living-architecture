@@ -1,15 +1,4 @@
 /** @riviere-role domain-error */
-export class ConfigLoaderRequiredError extends Error {
-  readonly moduleName: string
-
-  constructor(moduleName: string) {
-    super(`Module '${moduleName}' uses extends but no config loader was provided.`)
-    this.name = 'ConfigLoaderRequiredError'
-    this.moduleName = moduleName
-  }
-}
-
-/** @riviere-role domain-error */
 export class MissingComponentRuleError extends Error {
   readonly moduleName: string
   readonly ruleName: string

@@ -4,7 +4,6 @@ import type {
 } from '@living-architecture/riviere-extract-config'
 import type { ExternalLink } from '@living-architecture/riviere-schema'
 import type { EnrichedComponent } from '../value-extraction/enriched-component'
-import type { GlobMatcher } from '../component-extraction/glob-matcher'
 import type { ExtractedLink } from './extracted-link'
 
 type LinkCollectionParams<TTimings> = {
@@ -30,20 +29,20 @@ function assignLinkCollections<TTimings>(
 export class ConnectionDetectionOptions {
   declare private brand: 'ConnectionDetectionOptions'
   readonly allowIncomplete: boolean | undefined
-  readonly moduleGlobs: string[]
+  readonly sourceFilePaths: string[]
   readonly eventPublishers: EventPublisherConfig[] | undefined
   readonly httpLinks: HttpLinkConfig[] | undefined
   readonly repository: string
 
   constructor(params: {
     allowIncomplete?: boolean
-    moduleGlobs: string[]
+    sourceFilePaths: string[]
     eventPublishers?: EventPublisherConfig[]
     httpLinks?: HttpLinkConfig[]
     repository: string
   }) {
     this.allowIncomplete = params.allowIncomplete
-    this.moduleGlobs = params.moduleGlobs
+    this.sourceFilePaths = params.sourceFilePaths
     this.eventPublishers = params.eventPublishers
     this.httpLinks = params.httpLinks
     this.repository = params.repository
@@ -92,20 +91,20 @@ export class PerModuleConnectionOptions {
   declare private brand: 'PerModuleConnectionOptions'
   readonly allComponents: readonly EnrichedComponent[] | undefined
   readonly allowIncomplete: boolean | undefined
-  readonly moduleGlobs: string[]
+  readonly sourceFilePaths: string[]
   readonly httpLinks: HttpLinkConfig[] | undefined
   readonly repository: string
 
   constructor(params: {
     allComponents?: readonly EnrichedComponent[]
     allowIncomplete?: boolean
-    moduleGlobs: string[]
+    sourceFilePaths: string[]
     httpLinks?: HttpLinkConfig[]
     repository: string
   }) {
     this.allComponents = params.allComponents
     this.allowIncomplete = params.allowIncomplete
-    this.moduleGlobs = params.moduleGlobs
+    this.sourceFilePaths = params.sourceFilePaths
     this.httpLinks = params.httpLinks
     this.repository = params.repository
   }
@@ -184,5 +183,3 @@ export class CrossModuleDetectionResult {
     this.timings = params.timings
   }
 }
-
-export type { GlobMatcher }

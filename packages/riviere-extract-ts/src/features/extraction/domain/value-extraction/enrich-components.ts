@@ -1,16 +1,13 @@
 import type {
   ClassDeclaration, MethodDeclaration, Project 
 } from 'ts-morph'
-import { posix } from 'node:path'
 import type {
-  ResolvedExtractionConfig,
   Module,
   ComponentRule,
   DetectionRule,
   ExtractionRule,
 } from '@living-architecture/riviere-extract-config'
 import type { DraftComponent } from '../component-extraction/draft-component'
-import type { GlobMatcher } from '../component-extraction/glob-matcher'
 import { ExtractionResult } from './extraction-result'
 import type {
   EnrichedComponent,
@@ -36,17 +33,6 @@ import {
 import { evaluateFromGenericArgRule } from './evaluate-extraction-rule-generic'
 import { ExtractionError } from '../../../../platform/domain/ast-literals/literal-detection'
 import { applyTransforms } from '../../../../platform/domain/string-transforms/transforms'
-
-function findMatchingModule(
-  filePath: string,
-  modules: Module[],
-  globMatcher: GlobMatcher,
-  configDir: string,
-): Module | undefined {
-  const normalized = filePath.replaceAll(/\\+/g, '/')
-  const pathToMatch = posix.relative(configDir.replaceAll(/\\+/g, '/'), normalized)
-  return modules.find((m) => globMatcher.matches(pathToMatch, posix.join(m.path, m.glob)))
-}
 
 function getBuiltInRule(module: Module, componentType: string): DetectionRule | undefined {
   const ruleMap: Record<string, ComponentRule> = {
@@ -393,17 +379,9 @@ function extractMetadataFields(
 
 function enrichSingleComponent(
   draft: DraftComponent,
-  config: ResolvedExtractionConfig,
+  module: Module,
   project: Project,
-  globMatcher: GlobMatcher,
-  configDir: string,
 ): SingleComponentResult {
-  const module = findMatchingModule(draft.location.file, config.modules, globMatcher, configDir)
-
-  if (module === undefined) {
-    return componentWithEmptyMetadata(draft)
-  }
-
   const detectionRule = findDetectionRule(module, draft.type)
 
   if (detectionRule?.extract === undefined) {
@@ -431,16 +409,14 @@ function enrichSingleComponent(
 /** @riviere-role domain-service */
 export function enrichComponents(
   draftComponents: DraftComponent[],
-  config: ResolvedExtractionConfig,
+  module: Module,
   project: Project,
-  globMatcher: GlobMatcher,
-  configDir: string,
 ): EnrichmentResult {
   const allComponents: EnrichedComponent[] = []
   const allFailures: EnrichmentFailure[] = []
 
   for (const draft of draftComponents) {
-    const result = enrichSingleComponent(draft, config, project, globMatcher, configDir)
+    const result = enrichSingleComponent(draft, module, project)
     allComponents.push(result.enriched)
     allFailures.push(...result.failures)
   }

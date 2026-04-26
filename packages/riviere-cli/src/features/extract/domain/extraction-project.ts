@@ -1,4 +1,3 @@
-import { posix } from 'node:path'
 import type { Project } from 'ts-morph'
 import type {
   Module, ResolvedExtractionConfig 
@@ -9,8 +8,6 @@ import {
   detectPerModuleConnections,
   enrichComponents,
   extractComponents,
-  GlobMatcher,
-  matchesGlob,
   stripResolvedCustomTypes,
   type ConnectionTimings,
   type DraftComponent,
@@ -20,10 +17,7 @@ import {
 import type { ExternalLink } from '@living-architecture/riviere-schema'
 import type { ExtractionOutcome } from './extraction-outcome'
 
-const globMatcher = new GlobMatcher(matchesGlob)
-
-/** @riviere-role query-model */
-export interface ModuleContext {
+interface ModuleContext {
   module: Module
   files: string[]
   project: Project
@@ -55,7 +49,6 @@ type EnrichmentResult = FieldFailureEnrichment | SuccessfulEnrichment
 /** @riviere-role aggregate */
 export class ExtractionProject {
   constructor(
-    private readonly configDir: string,
     private readonly moduleContexts: ModuleContext[],
     private readonly resolvedConfig: ResolvedExtractionConfig,
     private readonly repositoryName: string,
@@ -67,13 +60,7 @@ export class ExtractionProject {
     includeConnections: boolean
   }): ExtractionOutcome {
     const draftComponents = this.moduleContexts.flatMap((moduleContext) =>
-      extractComponents(
-        moduleContext.project,
-        moduleContext.files,
-        this.resolvedConfig,
-        globMatcher,
-        this.configDir,
-      ),
+      extractComponents(moduleContext.project, moduleContext.files, moduleContext.module),
     )
 
     if (!options.includeConnections) {
@@ -168,18 +155,13 @@ export class ExtractionProject {
         continue
       }
 
-      const result = detectPerModuleConnections(
-        moduleContext.project,
-        moduleComponents,
-        {
-          allComponents: enrichedComponents,
-          allowIncomplete,
-          moduleGlobs: [posix.join(moduleContext.module.path, moduleContext.module.glob)],
-          httpLinks,
-          repository: this.repositoryName,
-        },
-        globMatcher,
-      )
+      const result = detectPerModuleConnections(moduleContext.project, moduleComponents, {
+        allComponents: enrichedComponents,
+        allowIncomplete,
+        httpLinks,
+        repository: this.repositoryName,
+        sourceFilePaths: moduleContext.files,
+      })
       links.push(...result.links)
       externalLinks.push(...result.externalLinks)
       timings.push({
@@ -226,13 +208,7 @@ export class ExtractionProject {
         continue
       }
 
-      const result = enrichComponents(
-        moduleDrafts,
-        this.resolvedConfig,
-        moduleContext.project,
-        globMatcher,
-        this.configDir,
-      )
+      const result = enrichComponents(moduleDrafts, moduleContext.module, moduleContext.project)
       components.push(...result.components)
       for (const failure of result.failures) {
         failedFieldSet.add(failure.field)

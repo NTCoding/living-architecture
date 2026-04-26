@@ -6,11 +6,9 @@ import type {
   Module, ExtractionRule 
 } from '@living-architecture/riviere-extract-config'
 import { DraftComponent } from '../component-extraction/draft-component'
-import { GlobMatcher } from '../component-extraction/glob-matcher'
 import { enrichComponents } from './enrich-components'
 
 const project = new Project({ useInMemoryFileSystem: true })
-const alwaysMatch = new GlobMatcher(() => true)
 
 function nextFile(content: string): string {
   const filePath = `/src/orders/http-client-${project.getSourceFiles().length + 1}.ts`
@@ -66,13 +64,7 @@ export class FraudClient {}`,
       },
     })
 
-    const result = enrichComponents(
-      [createDraft(file)],
-      { modules: [module] },
-      project,
-      alwaysMatch,
-      '/',
-    )
+    const result = enrichComponents([createDraft(file)], module, project)
 
     expect(result.failures).toHaveLength(1)
     expect(result.failures[0]?.error).toContain('fromDecoratorArg')
@@ -88,13 +80,7 @@ export class FraudClient {}`,
     )
     const module = createBaseModule({ decoratorName: { fromDecoratorName: true } })
 
-    const result = enrichComponents(
-      [createDraft(file)],
-      { modules: [module] },
-      project,
-      alwaysMatch,
-      '/',
-    )
+    const result = enrichComponents([createDraft(file)], module, project)
 
     expect(result.failures).toHaveLength(1)
     expect(result.failures[0]?.error).toContain('fromDecoratorName')
@@ -122,13 +108,7 @@ export class FraudClient {}`,
       },
     })
 
-    const result = enrichComponents(
-      [missingDraft],
-      { modules: [module] },
-      project,
-      alwaysMatch,
-      '/',
-    )
+    const result = enrichComponents([missingDraft], module, project)
 
     expect(result.failures).toHaveLength(1)
     expect(result.failures[0]?.error).toContain("Source file '/src/orders/missing.ts' not found")

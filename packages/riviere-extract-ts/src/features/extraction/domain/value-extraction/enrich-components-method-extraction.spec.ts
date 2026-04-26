@@ -3,13 +3,11 @@ import {
 } from 'vitest'
 import { Project } from 'ts-morph'
 import type {
-  ResolvedExtractionConfig,
   Module,
   ComponentRule,
   ExtractBlock,
 } from '@living-architecture/riviere-extract-config'
 import { DraftComponent } from '../component-extraction/draft-component'
-import { GlobMatcher } from '../component-extraction/glob-matcher'
 import { enrichComponents } from './enrich-components'
 
 const sharedProject = new Project({ useInMemoryFileSystem: true })
@@ -22,12 +20,14 @@ function nextFile(path: string, content: string) {
   return filePath
 }
 
-const alwaysMatch = new GlobMatcher(() => true)
 const notUsed = { notUsed: true } as const
 
 function enrich(drafts: DraftComponent[], modules: Module[]) {
-  const config: ResolvedExtractionConfig = { modules }
-  return enrichComponents(drafts, config, sharedProject, alwaysMatch, '/')
+  const [module] = modules
+  if (module === undefined) {
+    throw new TypeError('Expected one module in test config')
+  }
+  return enrichComponents(drafts, module, sharedProject)
 }
 
 function ordersDraft(type: string, name: string, file: string, line: number): DraftComponent {

@@ -1,20 +1,18 @@
 import {
   existsSync, readFileSync 
 } from 'node:fs'
-import { createRequire } from 'node:module'
 import {
   dirname, posix, resolve 
 } from 'node:path'
 import { parse as parseYaml } from 'yaml'
 import { globSync } from 'glob'
 import type { DraftComponent } from '@living-architecture/riviere-extract-ts'
+import { resolveConfig } from '@living-architecture/riviere-extract-ts'
 import {
-  ConfigLoader, resolveConfig 
-} from '@living-architecture/riviere-extract-ts'
-import {
+  type ExtractionConfig,
   formatValidationErrors,
   isValidExtractionConfig,
-  parseExtractionConfig,
+  type ModuleConfig,
   type Module,
   type ResolvedExtractionConfig,
   validateExtractionConfig,
@@ -26,9 +24,8 @@ import {
 import { detectChangedTypeScriptFiles } from '../../../../../platform/infra/external-clients/git/git-changed-files'
 import { getRepositoryInfo } from '../../../../../platform/infra/external-clients/git/git-repository-info'
 import { loadDraftComponentsFromFile } from '../../../../../platform/infra/external-clients/draft-components/draft-component-loader'
-import {
-  ExtractionProject, type ModuleContext 
-} from '../../../domain/extraction-project'
+import { ExtractionProject } from '../../../domain/extraction-project'
+import { loadExtendedModule } from '../../external-clients/extraction-config/load-extended-module'
 import { createConfiguredProject } from '../../external-clients/ts-morph/create-configured-project'
 import { findModuleTsConfigDir } from '../../external-clients/ts-morph/find-module-tsconfig-dir'
 
@@ -38,51 +35,6 @@ class ModuleRefNotFoundError extends Error {
     this.name = 'ModuleRefNotFoundError'
   }
 }
-
-class ConfigSchemaValidationError extends Error {
-  constructor(source: string, details: string) {
-    super(`Invalid extended config in '${source}': ${details}`)
-    this.name = 'ConfigSchemaValidationError'
-  }
-}
-
-class InvalidConfigFormatError extends Error {
-  constructor(source: string, preview: string) {
-    super(
-      `Invalid extended config format in '${source}'. ` +
-        `Expected object with 'modules' array or top-level component rules. Got: ${preview}`,
-    )
-    this.name = 'InvalidConfigFormatError'
-  }
-}
-
-class PackageResolveError extends Error {
-  constructor(packageName: string) {
-    super(
-      `Cannot resolve package '${packageName}'. Ensure the package is installed in node_modules.`,
-    )
-    this.name = 'PackageResolveError'
-  }
-}
-
-class ConfigFileNotFoundError extends Error {
-  constructor(source: string, filePath: string) {
-    super(`Cannot resolve extends reference '${source}'. File not found: ${filePath}`)
-    this.name = 'ConfigFileNotFoundError'
-  }
-}
-
-const NOT_USED = { notUsed: true } as const
-
-interface TopLevelRulesConfig {
-  api?: Module['api']
-  useCase?: Module['useCase']
-  domainOp?: Module['domainOp']
-  event?: Module['event']
-  eventHandler?: Module['eventHandler']
-  ui?: Module['ui']
-}
-
 interface FullProjectParams {
   configPath: string
   useTsConfig: boolean
@@ -173,7 +125,7 @@ export class ExtractionProjectRepository {
 
     return {
       configDir,
-      resolvedConfig: resolveConfig(expanded, this.createExtendedConfigLoader(configDir)),
+      resolvedConfig: this.resolveConfigWithExtends(expanded, configDir),
     }
   }
 
@@ -222,99 +174,68 @@ export class ExtractionProjectRepository {
     return parsed
   }
 
-  private createExtendedConfigLoader(configDir: string): ConfigLoader {
-    return new ConfigLoader((source: string): Module => {
-      const filePath = this.resolveExtendedConfigPath(source, configDir)
-      return this.loadExtendedConfigFile(filePath, source)
+  private resolveConfigWithExtends(
+    config: ExtractionConfig,
+    configDir: string,
+  ): ResolvedExtractionConfig {
+    return resolveConfig({
+      ...config,
+      modules: config.modules.map((moduleConfig) =>
+        this.resolveModuleConfig(moduleConfig, configDir),
+      ),
     })
   }
 
-  private resolveExtendedConfigPath(source: string, configDir: string): string {
-    return this.isPackageReference(source)
-      ? this.resolvePackagePath(source, configDir)
-      : resolve(configDir, source)
-  }
-
-  private isPackageReference(source: string): boolean {
-    return !source.startsWith('.') && !source.startsWith('/')
-  }
-
-  private resolvePackagePath(packageName: string, configDir: string): string {
-    const require = createRequire(resolve(configDir, 'package.json'))
-
-    try {
-      const packageJsonPath = require.resolve(`${packageName}/package.json`)
-      const packageDir = dirname(packageJsonPath)
-      const defaultConfigPath = resolve(packageDir, 'src/default-extraction.config.json')
-      if (existsSync(defaultConfigPath)) {
-        return defaultConfigPath
-      }
-      throw new PackageResolveError(packageName)
-    } catch {
-      throw new PackageResolveError(packageName)
-    }
-  }
-
-  private loadExtendedConfigFile(filePath: string, source: string): Module {
-    if (!existsSync(filePath)) {
-      throw new ConfigFileNotFoundError(source, filePath)
-    }
-
-    const content = readFileSync(filePath, 'utf-8')
-    return this.parseExtendedConfigContent(content, source)
-  }
-
-  private parseExtendedConfigContent(content: string, source: string): Module {
-    const parsed: unknown = parseYaml(content)
-
-    if (this.hasModulesArray(parsed)) {
-      return this.resolveFirstModuleFromConfig(parsed, source)
-    }
-
-    if (this.isTopLevelRulesConfig(parsed)) {
-      return this.topLevelRulesToModule(parsed)
-    }
-
-    const preview = JSON.stringify(parsed, null, 2).slice(0, 200)
-    throw new InvalidConfigFormatError(source, preview)
-  }
-
-  private resolveFirstModuleFromConfig(parsed: { modules: unknown[] }, source: string): Module {
-    if (parsed.modules.length === 0) {
-      throw new ConfigSchemaValidationError(source, 'Config has empty modules array')
-    }
-    try {
-      const config = parseExtractionConfig(parsed)
-      const [first] = resolveConfig(config).modules
-      /* v8 ignore start -- unreachable: schema enforces minItems:1 and pre-check guards length */
-      if (first === undefined) {
-        throw new ConfigSchemaValidationError(source, 'Config has empty modules array')
+  private resolveModuleConfig(moduleConfig: ModuleConfig, configDir: string): Module {
+    const extendsSource = moduleConfig.extends
+    if (extendsSource === undefined) {
+      const [resolvedModule] = resolveConfig({ modules: [moduleConfig] }).modules
+      /* v8 ignore start -- resolveConfig returns one module for one-module input */
+      if (resolvedModule === undefined) {
+        throw new TypeError(`Expected resolved module for '${moduleConfig.name}'`)
       }
       /* v8 ignore end */
-      return first
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error)
-      throw new ConfigSchemaValidationError(source, message)
+      return resolvedModule
+    }
+
+    const baseModule = loadExtendedModule({
+      configDir,
+      source: extendsSource,
+      resolveConfigWithExtends: (config, nextConfigDir) =>
+        this.resolveConfigWithExtends(config, nextConfigDir),
+    })
+    const mergedCustomTypes = this.mergeCustomTypes(
+      baseModule.customTypes,
+      moduleConfig.customTypes,
+    )
+
+    return {
+      name: moduleConfig.name,
+      domain: moduleConfig.domain,
+      path: moduleConfig.path,
+      glob: moduleConfig.glob,
+      ...(moduleConfig.modules !== undefined && { modules: moduleConfig.modules }),
+      api: moduleConfig.api ?? baseModule.api,
+      useCase: moduleConfig.useCase ?? baseModule.useCase,
+      domainOp: moduleConfig.domainOp ?? baseModule.domainOp,
+      event: moduleConfig.event ?? baseModule.event,
+      eventHandler: moduleConfig.eventHandler ?? baseModule.eventHandler,
+      ui: moduleConfig.ui ?? baseModule.ui,
+      ...(mergedCustomTypes !== undefined && { customTypes: mergedCustomTypes }),
     }
   }
 
-  private isTopLevelRulesConfig(value: unknown): value is TopLevelRulesConfig {
-    return (
-      typeof value === 'object' && value !== null && !Array.isArray(value) && !('modules' in value)
-    )
-  }
+  private mergeCustomTypes(
+    base: Module['customTypes'],
+    local: ModuleConfig['customTypes'],
+  ): Module['customTypes'] {
+    if (base === undefined && local === undefined) {
+      return undefined
+    }
 
-  private topLevelRulesToModule(parsed: TopLevelRulesConfig): Module {
     return {
-      name: 'extended',
-      path: '.',
-      glob: '**',
-      api: parsed.api ?? NOT_USED,
-      useCase: parsed.useCase ?? NOT_USED,
-      domainOp: parsed.domainOp ?? NOT_USED,
-      event: parsed.event ?? NOT_USED,
-      eventHandler: parsed.eventHandler ?? NOT_USED,
-      ui: parsed.ui ?? NOT_USED,
+      ...base,
+      ...local,
     }
   }
 
@@ -325,7 +246,6 @@ export class ExtractionProjectRepository {
     draftComponents: DraftComponent[] = [],
   ): ExtractionProject {
     return new ExtractionProject(
-      parsedConfigState.configDir,
       this.createModuleContexts(
         parsedConfigState.configDir,
         parsedConfigState.resolvedConfig,
@@ -389,7 +309,7 @@ export class ExtractionProjectRepository {
     resolvedConfig: ResolvedExtractionConfig,
     sourceFilePaths: string[],
     useTsConfig: boolean,
-  ): ModuleContext[] {
+  ) {
     const sourceFileSet = new Set(sourceFilePaths)
 
     return resolvedConfig.modules.map((module) => {

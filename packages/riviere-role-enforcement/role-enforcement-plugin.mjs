@@ -599,9 +599,9 @@ export default {
               return name === null
                 ? []
                 : [{
-                    callable: isCallableFieldMember(member),
-                    name,
-                  }]
+                  callable: isCallableFieldMember(member),
+                  name,
+                }]
             }
 
             if (isConstructorDefinition(member)) {

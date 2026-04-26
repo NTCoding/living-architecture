@@ -4,19 +4,15 @@ import {
 import { detectPerModuleConnections } from './detect-connections'
 import { PerModuleConnectionOptions } from './connection-detection-values'
 import { buildComponent } from './call-graph/call-graph-fixtures'
-import { matchesGlob } from '../../../../platform/infra/external-clients/minimatch/minimatch-glob'
 import { createProject } from './detect-connections-fixtures'
-import { GlobMatcher } from '../component-extraction/glob-matcher'
-
-const globMatcher = new GlobMatcher(matchesGlob)
 
 function createOptions(params: {
-  moduleGlobs: string[]
+  sourceFilePaths: string[]
   allComponents?: readonly ReturnType<typeof buildComponent>[]
 }): PerModuleConnectionOptions {
   return new PerModuleConnectionOptions({
     repository: 'test-repo',
-    moduleGlobs: params.moduleGlobs,
+    sourceFilePaths: params.sourceFilePaths,
     ...(params.allComponents !== undefined && { allComponents: params.allComponents }),
   })
 }
@@ -56,10 +52,9 @@ class PlaceOrder {
       project,
       [repo, useCase, event, handler],
       createOptions({
-        moduleGlobs: ['/src/**/*.ts'],
+        sourceFilePaths: [filePath, '/src/event.ts', '/src/handler.ts'],
         allComponents: [repo, useCase, event, handler],
       }),
-      globMatcher,
     )
 
     expect(result.links).toMatchObject([
@@ -96,8 +91,7 @@ class PlaceOrder {
     const result = detectPerModuleConnections(
       project,
       [repo, useCase],
-      createOptions({ moduleGlobs: ['/src/**/*.ts'] }),
-      globMatcher,
+      createOptions({ sourceFilePaths: [filePath] }),
     )
 
     expect(result.links).toMatchObject([
@@ -117,10 +111,9 @@ class PlaceOrder {
       project,
       [],
       createOptions({
-        moduleGlobs: ['/src/**/*.ts'],
+        sourceFilePaths: ['/src/empty-per-module.ts'],
         allComponents: [],
       }),
-      globMatcher,
     )
 
     expect(result.links).toMatchObject([])
@@ -134,17 +127,16 @@ class PlaceOrder {
       project,
       [],
       createOptions({
-        moduleGlobs: ['/src/**/*.ts'],
+        sourceFilePaths: ['/src/timing-per-module.ts'],
         allComponents: [],
       }),
-      globMatcher,
     )
 
     expect(result.timings.callGraphMs).toBeGreaterThanOrEqual(0)
     expect(result.timings.setupMs).toBeGreaterThanOrEqual(0)
   })
 
-  it('respects moduleGlobs filtering', () => {
+  it('respects sourceFilePaths filtering', () => {
     const project = createProject()
     const includedFile = '/src/included/comp.ts'
     const excludedFile = '/src/excluded/comp.ts'
@@ -183,10 +175,9 @@ class ExcludedUseCase {
       project,
       [repo, useCase],
       createOptions({
-        moduleGlobs: ['/src/included/**/*.ts'],
+        sourceFilePaths: [includedFile],
         allComponents: [repo, useCase],
       }),
-      globMatcher,
     )
 
     expect(result.links).toMatchObject([
@@ -232,10 +223,9 @@ class PlaceOrder {
       project,
       [useCase],
       createOptions({
-        moduleGlobs: ['/src/bff/**/*.ts'],
+        sourceFilePaths: ['/src/bff/use-case.ts'],
         allComponents: [useCase, repository],
       }),
-      globMatcher,
     )
 
     expect(result.links).toMatchObject([

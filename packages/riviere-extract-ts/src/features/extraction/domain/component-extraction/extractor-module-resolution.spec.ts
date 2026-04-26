@@ -4,15 +4,17 @@ import {
 import { Project } from 'ts-morph'
 import type { ResolvedExtractionConfig } from '@living-architecture/riviere-extract-config'
 import { extractComponents } from './extractor'
-import { matchesGlob } from '../../../../platform/infra/external-clients/minimatch/minimatch-glob'
-import { GlobMatcher } from './glob-matcher'
 
 function createTestProject() {
   return new Project({ useInMemoryFileSystem: true })
 }
 
 function extract(project: Project, paths: string[], config: ResolvedExtractionConfig) {
-  return extractComponents(project, paths, config, new GlobMatcher(matchesGlob))
+  const [module] = config.modules
+  if (module === undefined) {
+    throw new TypeError('Expected one module in test config')
+  }
+  return extractComponents(project, paths, module)
 }
 
 const NOT_USED = { notUsed: true } as const

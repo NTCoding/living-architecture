@@ -6,16 +6,13 @@ import {
   type Project,
   type SourceFile,
 } from 'ts-morph'
-import { posix } from 'node:path'
 import type {
-  ResolvedExtractionConfig,
   ComponentType,
   Module,
   DetectionRule,
 } from '@living-architecture/riviere-extract-config'
 import { evaluatePredicate } from '../predicate-evaluation/evaluate-predicate'
 import { DraftComponent } from './draft-component'
-import { GlobMatcher } from './glob-matcher'
 
 const COMPONENT_TYPES: ComponentType[] = [
   'api',
@@ -30,33 +27,18 @@ const COMPONENT_TYPES: ComponentType[] = [
 export function extractComponents(
   project: Project,
   sourceFilePaths: string[],
-  config: ResolvedExtractionConfig,
-  globMatcher: GlobMatcher,
-  configDir?: string,
+  module: Module,
 ): DraftComponent[] {
-  return sourceFilePaths.flatMap((filePath) =>
-    extractFromFile(project, filePath, config, globMatcher, configDir),
-  )
+  return sourceFilePaths.flatMap((filePath) => extractFromFile(project, filePath, module))
 }
 
-function extractFromFile(
-  project: Project,
-  filePath: string,
-  config: ResolvedExtractionConfig,
-  globMatcher: GlobMatcher,
-  configDir?: string,
-): DraftComponent[] {
+function extractFromFile(project: Project, filePath: string, module: Module): DraftComponent[] {
   const sourceFile = project.getSourceFile(filePath)
   if (sourceFile === undefined) {
     return []
   }
 
-  const matchingModule = findMatchingModule(filePath, config.modules, globMatcher, configDir)
-  if (matchingModule === undefined) {
-    return []
-  }
-
-  return extractFromModule(sourceFile, filePath, matchingModule)
+  return extractFromModule(sourceFile, filePath, module)
 }
 
 /** @riviere-role value-object */
@@ -277,19 +259,4 @@ function createFunctionComponent(
       module: context.module,
     }),
   ]
-}
-
-function findMatchingModule(
-  filePath: string,
-  modules: Module[],
-  globMatcher: GlobMatcher,
-  configDir?: string,
-): Module | undefined {
-  const normalized = filePath.replaceAll(/\\+/g, '/')
-  if (configDir === undefined) {
-    return modules.find((m) => globMatcher.matches(normalized, posix.join(m.path, m.glob)))
-  }
-  const normalizedConfigDir = configDir.replaceAll(/\\+/g, '/')
-  const pathToMatch = posix.relative(normalizedConfigDir, normalized)
-  return modules.find((m) => globMatcher.matches(pathToMatch, posix.join(m.path, m.glob)))
 }

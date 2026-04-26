@@ -26,7 +26,7 @@ describe('ConnectionDetectionOptions', () => {
 
     const result = new ConnectionDetectionOptions({
       allowIncomplete: true,
-      moduleGlobs: ['src/orders/**/*.ts'],
+      sourceFilePaths: ['/src/orders/order.ts'],
       eventPublishers,
       httpLinks,
       repository: 'test-repo',
@@ -34,7 +34,7 @@ describe('ConnectionDetectionOptions', () => {
 
     expect(result).toMatchObject({
       allowIncomplete: true,
-      moduleGlobs: ['src/orders/**/*.ts'],
+      sourceFilePaths: ['/src/orders/order.ts'],
       eventPublishers,
       httpLinks,
       repository: 'test-repo',
@@ -56,7 +56,7 @@ describe('PerModuleConnectionOptions', () => {
     const result = new PerModuleConnectionOptions({
       allComponents: [component],
       allowIncomplete: true,
-      moduleGlobs: ['src/orders/**/*.ts'],
+      sourceFilePaths: ['/src/orders/order-service.ts'],
       httpLinks,
       repository: 'test-repo',
     })
@@ -64,7 +64,7 @@ describe('PerModuleConnectionOptions', () => {
     expect(result).toMatchObject({
       allComponents: [component],
       allowIncomplete: true,
-      moduleGlobs: ['src/orders/**/*.ts'],
+      sourceFilePaths: ['/src/orders/order-service.ts'],
       httpLinks,
       repository: 'test-repo',
     })

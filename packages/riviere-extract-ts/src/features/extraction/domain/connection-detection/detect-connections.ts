@@ -13,7 +13,6 @@ import type {
   ConnectionDetectionResult,
   CrossModuleConnectionOptions,
   CrossModuleDetectionResult,
-  GlobMatcher,
   PerModuleConnectionOptions,
   PerModuleDetectionResult,
 } from './connection-detection-values'
@@ -26,17 +25,6 @@ import {
   PerModuleTimings as PerModuleTimingsRecord,
 } from './connection-detection-values'
 import { resolveHttpLinks } from './resolve-http-links'
-
-function computeFilteredFilePaths(
-  project: Project,
-  moduleGlobs: string[],
-  globMatcher: GlobMatcher,
-): string[] {
-  return project
-    .getSourceFiles()
-    .map((sf) => sf.getFilePath())
-    .filter((filePath) => moduleGlobs.some((glob) => globMatcher.matches(filePath, glob)))
-}
 
 /** @riviere-role domain-service */
 export function deduplicateCrossStrategy(links: ExtractedLink[]): ExtractedLink[] {
@@ -60,12 +48,11 @@ export function detectPerModuleConnections(
   project: Project,
   components: readonly EnrichedComponent[],
   options: PerModuleConnectionOptions,
-  globMatcher: GlobMatcher,
 ): PerModuleDetectionResult {
   const setupStart = performance.now()
   const visibleComponents = options.allComponents ?? components
   const componentIndex = new ComponentIndex(visibleComponents)
-  const sourceFilePaths = computeFilteredFilePaths(project, options.moduleGlobs, globMatcher)
+  const sourceFilePaths = options.sourceFilePaths
   const setupMs = performance.now() - setupStart
 
   const strict = options.allowIncomplete !== true
@@ -129,13 +116,12 @@ export function detectConnections(
   project: Project,
   components: readonly EnrichedComponent[],
   options: ConnectionDetectionOptions,
-  globMatcher: GlobMatcher,
 ): ConnectionDetectionResult {
   const totalStart = performance.now()
 
   const setupStart = performance.now()
   const componentIndex = new ComponentIndex(components)
-  const sourceFilePaths = computeFilteredFilePaths(project, options.moduleGlobs, globMatcher)
+  const sourceFilePaths = options.sourceFilePaths
   const setupMs = performance.now() - setupStart
 
   const strict = options.allowIncomplete !== true

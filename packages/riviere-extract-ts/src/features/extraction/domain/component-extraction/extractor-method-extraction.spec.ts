@@ -3,9 +3,7 @@ import {
 } from 'vitest'
 import { Project } from 'ts-morph'
 import { extractComponents } from './extractor'
-import { matchesGlob } from '../../../../platform/infra/external-clients/minimatch/minimatch-glob'
 import { createConfigWithRule } from '../../../../test-fixtures'
-import { GlobMatcher } from './glob-matcher'
 
 function createTestProject() {
   return new Project({ useInMemoryFileSystem: true })
@@ -15,9 +13,12 @@ function extract(
   project: Project,
   paths: string[],
   config: ReturnType<typeof createConfigWithRule>,
-  configDir?: string,
 ) {
-  return extractComponents(project, paths, config, new GlobMatcher(matchesGlob), configDir)
+  const [module] = config.modules
+  if (module === undefined) {
+    throw new TypeError('Expected one module in test config')
+  }
+  return extractComponents(project, paths, module)
 }
 
 describe('extractComponents — method extraction', () => {
