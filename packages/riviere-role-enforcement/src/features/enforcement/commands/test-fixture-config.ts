@@ -92,6 +92,15 @@ export function configWithGenericRequiredPrivateMembers(requiredPrivateMembers: 
   })
 }
 
+export function configWithGenericClassStateConstraints() {
+  return configWithGenericAggregateOverride({
+    targets: ['class'],
+    requiredPrivateMembers: ['brand'],
+    requiresDataMembers: true,
+    forbiddenCallableMembers: true,
+  })
+}
+
 export function configWithGenericRepositoryMethodInputs(allowedInputs: string[]) {
   return roleEnforcement({
     packages: ['packages/pkg-a'],

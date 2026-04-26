@@ -445,6 +445,8 @@ export default {
         function validateClassContract(node, role, name) {
           validatePublicMethodCount(node, role, name)
           validateRequiredPrivateMembers(node, role, name)
+          validateCallableMemberConstraints(node, role, name)
+          validateDataMemberRequirements(node, role, name)
           validateClassMethodContracts(node, role, name)
         }
 
@@ -506,6 +508,41 @@ export default {
           return Array.isArray(role.allowedInputs) || Array.isArray(role.allowedOutputs)
         }
 
+        function validateCallableMemberConstraints(node, role, name) {
+          if (role.forbiddenCallableMembers !== true) {
+            return
+          }
+
+          const callableMemberNames = readCallableInstanceMemberNames(node)
+          if (callableMemberNames.length === 0) {
+            return
+          }
+
+          report(
+            node,
+            `Role '${role.name}' forbids callable instance members on '${name}'. Found [${callableMemberNames.join(', ')}]. ${referenceForKnownRole(options, role.name)}`,
+          )
+        }
+
+        function validateDataMemberRequirements(node, role, name) {
+          if (role.requiresDataMembers !== true) {
+            return
+          }
+
+          const excludedMemberNames = new Set(normalizeRequiredPrivateMembers(role))
+          const hasDataMember = readInstanceDataMembers(node).some(
+            (member) => !member.callable && !excludedMemberNames.has(member.name),
+          )
+          if (hasDataMember) {
+            return
+          }
+
+          report(
+            node,
+            `Role '${role.name}' requires at least one non-callable instance data member on '${name}'. ${referenceForKnownRole(options, role.name)}`,
+          )
+        }
+
         function countPublicMethods(classNode) {
           return classNode.body.body.filter(
             (member) =>
@@ -530,11 +567,111 @@ export default {
             : privateMemberName
         }
 
+        function normalizeRequiredPrivateMembers(role) {
+          if (!Array.isArray(role.requiredPrivateMembers)) {
+            return []
+          }
+
+          return role.requiredPrivateMembers.map(normalizeRequiredPrivateMemberName)
+        }
+
         function isPrivateMember(member) {
           return (
             member.accessibility === 'private' ||
             member.key?.type === 'PrivateIdentifier'
           )
+        }
+
+        function readCallableInstanceMemberNames(classNode) {
+          return readInstanceDataMembers(classNode)
+            .filter((member) => member.callable)
+            .map((member) => member.name)
+        }
+
+        function readInstanceDataMembers(classNode) {
+          return classNode.body.body.flatMap((member) => {
+            if (isStaticMember(member)) {
+              return []
+            }
+
+            if (isDataFieldMember(member)) {
+              const name = readMemberName(member.key)
+              return name === null
+                ? []
+                : [{
+                    callable: isCallableFieldMember(member),
+                    name,
+                  }]
+            }
+
+            if (isConstructorDefinition(member)) {
+              return member.value.params.flatMap(readConstructorParameterProperty)
+            }
+
+            return []
+          })
+        }
+
+        function isStaticMember(member) {
+          return member.static === true
+        }
+
+        function isDataFieldMember(member) {
+          return (
+            member.type === 'PropertyDefinition' ||
+            member.type === 'AccessorProperty' ||
+            member.type === 'ClassProperty' ||
+            member.type === 'FieldDefinition'
+          )
+        }
+
+        function isConstructorDefinition(member) {
+          return member.type === 'MethodDefinition' && member.kind === 'constructor'
+        }
+
+        function readConstructorParameterProperty(param) {
+          if (param.type !== 'TSParameterProperty') {
+            return []
+          }
+
+          const parameter = unwrapParameterProperty(param.parameter)
+          if (parameter?.type !== 'Identifier') {
+            return []
+          }
+
+          return [{
+            callable: isCallableParameterProperty(param, parameter),
+            name: parameter.name,
+          }]
+        }
+
+        function unwrapParameterProperty(parameter) {
+          return parameter?.type === 'AssignmentPattern'
+            ? parameter.left
+            : parameter
+        }
+
+        function isCallableFieldMember(member) {
+          return (
+            isCallableTypeAnnotation(member.typeAnnotation) ||
+            isFunctionExpression(member.value)
+          )
+        }
+
+        function isCallableParameterProperty(param, parameter) {
+          return (
+            isCallableTypeAnnotation(parameter.typeAnnotation) ||
+            isFunctionExpression(param.parameter?.right)
+          )
+        }
+
+        function isCallableTypeAnnotation(typeAnnotation) {
+          return typeAnnotation?.type === 'TSTypeAnnotation' &&
+            typeAnnotation.typeAnnotation?.type === 'TSFunctionType'
+        }
+
+        function isFunctionExpression(node) {
+          return node?.type === 'ArrowFunctionExpression' || node?.type === 'FunctionExpression'
         }
 
         function readMemberName(key) {
