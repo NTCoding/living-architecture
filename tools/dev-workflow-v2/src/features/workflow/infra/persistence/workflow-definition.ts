@@ -14,10 +14,13 @@ import {
   getOperationBody, getTransitionTitle 
 } from '../../domain/output-messages'
 import { applyEvent } from '../../domain/fold'
-import { WORKFLOW_EVENT_SCHEMA } from '../../domain/workflow-events'
+import {
+  getKnownWorkflowEventTypes, parseWorkflowEvent 
+} from '../../domain/workflow-events'
 import { WORKFLOW_REGISTRY } from '../../domain/registry'
 
 type WorkflowDeps = Parameters<typeof Workflow.rehydrate>[1]
+const KNOWN_EVENT_TYPES: ReadonlySet<string> = new Set(getKnownWorkflowEventTypes())
 
 function diffStateOverrides(
   stateBefore: WorkflowState,
@@ -42,19 +45,14 @@ export const WORKFLOW_DEFINITION: WorkflowDefinition<
   WorkflowOperation
 > = {
   fold(state: WorkflowState, event: BaseEvent): WorkflowState {
-    const knownTypes: Set<string> = new Set(
-      WORKFLOW_EVENT_SCHEMA.options.map((s) => s.shape.type.value),
-    )
-    const result = WORKFLOW_EVENT_SCHEMA.safeParse(event)
-    if (!result.success) {
-      if (knownTypes.has(event.type)) {
-        throw new WorkflowStateError(
-          `Malformed workflow event "${event.type}": ${result.error.message}`,
-        )
+    try {
+      return applyEvent(state, parseWorkflowEvent(event))
+    } catch (error) {
+      if (KNOWN_EVENT_TYPES.has(event.type)) {
+        throw new WorkflowStateError(`Malformed workflow event "${event.type}": ${String(error)}`)
       }
       return state
     }
-    return applyEvent(state, result.data)
   },
   buildWorkflow(state: WorkflowState, deps: WorkflowDeps): Workflow {
     return Workflow.rehydrate(state, deps)

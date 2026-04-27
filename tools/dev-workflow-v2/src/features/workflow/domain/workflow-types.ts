@@ -21,6 +21,18 @@ export type StateName = (typeof STATE_NAMES)[number]
 
 export const STATE_NAME_SCHEMA = z.enum(STATE_NAMES)
 
+const LIVING_ARCHITECTURE_REVIEW_TYPES = [
+  'architecture-review',
+  'code-review',
+  'bug-scanner',
+  'task-check',
+] as const
+
+export const LIVING_ARCHITECTURE_REVIEW_TYPE_SCHEMA = z.enum(LIVING_ARCHITECTURE_REVIEW_TYPES)
+
+/** @riviere-role value-object */
+export type LivingArchitectureReviewType = (typeof LIVING_ARCHITECTURE_REVIEW_TYPES)[number]
+
 /** @riviere-role domain-service */
 export function createWorkflowStateSchema<T extends readonly [string, ...string[]]>(stateNames: T) {
   const stateNameSchema = z.enum(stateNames)
@@ -68,13 +80,7 @@ export type WorkflowState = {
 export type WorkflowOperation =
   | 'record-issue'
   | 'record-branch'
-  | 'record-architecture-review-passed'
-  | 'record-architecture-review-failed'
-  | 'record-code-review-passed'
-  | 'record-code-review-failed'
-  | 'record-bug-scanner-passed'
-  | 'record-bug-scanner-failed'
-  | 'record-task-check-passed'
+  | 'record-review'
   | 'record-pr'
   | 'record-ci-passed'
   | 'record-ci-failed'
@@ -85,7 +91,7 @@ export type ConcreteStateDefinition = WorkflowStateDefinition<
   WorkflowState,
   StateName,
   WorkflowOperation
-> & {allowIdle?: boolean}
+> & { allowIdle?: boolean }
 
 /** @riviere-role value-object */
 export type ConcreteRegistry = WorkflowRegistry<WorkflowState, StateName, WorkflowOperation>

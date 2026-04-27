@@ -1,5 +1,5 @@
 import {
-  WORKFLOW_EVENT_SCHEMA, type WorkflowEvent 
+  WORKFLOW_EVENT_SCHEMA, parseWorkflowEvent, type WorkflowEvent 
 } from './workflow-events'
 
 const AT = '2026-01-01T00:00:00Z'
@@ -250,6 +250,53 @@ describe('WORKFLOW_EVENT_SCHEMA — task-check-passed', () => {
 
   it('rejects missing at', () => {
     expect(() => WORKFLOW_EVENT_SCHEMA.parse({ type: 'task-check-passed' })).toThrow('Required')
+  })
+})
+
+describe('parseWorkflowEvent — review-recorded', () => {
+  it('accepts pass verdict payload', () => {
+    const result = parseWorkflowEvent({
+      type: 'review-recorded',
+      at: AT,
+      reviewId: 1,
+      reviewType: 'task-check',
+      verdict: 'PASS',
+    })
+    expect(result.type).toStrictEqual('review-recorded')
+  })
+
+  it('accepts fail verdict payload', () => {
+    const result = parseWorkflowEvent({
+      type: 'review-recorded',
+      at: AT,
+      reviewId: 2,
+      reviewType: 'code-review',
+      verdict: 'FAIL',
+    })
+    expect(result.type).toStrictEqual('review-recorded')
+  })
+
+  it('rejects missing reviewType', () => {
+    expect(() =>
+      parseWorkflowEvent({
+        type: 'review-recorded',
+        at: AT,
+        reviewId: 1,
+        verdict: 'PASS',
+      }),
+    ).toThrow('Required')
+  })
+
+  it('rejects unknown verdict', () => {
+    expect(() =>
+      parseWorkflowEvent({
+        type: 'review-recorded',
+        at: AT,
+        reviewId: 1,
+        reviewType: 'task-check',
+        verdict: 'MAYBE',
+      }),
+    ).toThrow('Invalid enum value')
   })
 })
 

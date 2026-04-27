@@ -34,6 +34,7 @@ createClaudeCodeWorkflowCli({
   buildWorkflowDeps: (platform) => ({
     getGitInfo,
     getPrFeedback: createGetPrFeedback(runGh),
+    listSessionReviews: () => platform.store.listSessionReviews(platform.getSessionId()),
     sleepMs,
     now: platform.now,
   }),

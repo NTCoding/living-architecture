@@ -249,31 +249,6 @@ const RECORDING_OPS = defineRecordingOps<StateName, WorkflowState, WorkflowOpera
   {
     'record-issue': { event: 'issue-recorded', payload: (n: number) => ({ issueNumber: n }) },
     'record-branch': { event: 'branch-recorded', payload: (b: string) => ({ branch: b }) },
-    'record-architecture-review-passed': {
-      event: 'architecture-review-completed',
-      payload: () => ({ passed: true }),
-    },
-    'record-architecture-review-failed': {
-      event: 'architecture-review-completed',
-      payload: () => ({ passed: false }),
-    },
-    'record-code-review-passed': {
-      event: 'code-review-completed',
-      payload: () => ({ passed: true }),
-    },
-    'record-code-review-failed': {
-      event: 'code-review-completed',
-      payload: () => ({ passed: false }),
-    },
-    'record-bug-scanner-passed': {
-      event: 'bug-scanner-completed',
-      payload: () => ({ passed: true }),
-    },
-    'record-bug-scanner-failed': {
-      event: 'bug-scanner-completed',
-      payload: () => ({ passed: false }),
-    },
-    'record-task-check-passed': { event: 'task-check-passed', payload: () => ({}) },
     'record-pr': {
       event: 'pr-recorded',
       payload: (n: number, url?: string) => ({ prNumber: n, ...(url ? { prUrl: url } : {}) }),
@@ -293,6 +268,8 @@ const RECORDING_OPS = defineRecordingOps<StateName, WorkflowState, WorkflowOpera
 ```
 
 **Type signature risk:** The platform's `defineRecordingOps` types the ops parameter with `RecordingOpDefinition<readonly never[]>`. Payload functions with typed args (like `(n: number) => ...`) may not be directly assignable. If compilation fails, cast the ops object via `as const satisfies` or similar — the runtime `executeOp` passes args correctly regardless.
+
+Review outcomes are no longer custom recording ops. The platform `record-review` route records review rows and emits `review-recorded` events directly from review JSON passed through stdin.
 
 The Workflow class gets a single `executeRecording` method:
 
@@ -325,41 +302,6 @@ const ROUTES = defineRoutes<Workflow, WorkflowState>({
     type: 'transaction',
     args: [arg.string('branch')],
     handler: (w, b) => w.executeRecording('record-branch', b),
-  },
-  'record-architecture-review-passed': {
-    type: 'transaction',
-    args: [],
-    handler: (w) => w.executeRecording('record-architecture-review-passed'),
-  },
-  'record-architecture-review-failed': {
-    type: 'transaction',
-    args: [],
-    handler: (w) => w.executeRecording('record-architecture-review-failed'),
-  },
-  'record-code-review-passed': {
-    type: 'transaction',
-    args: [],
-    handler: (w) => w.executeRecording('record-code-review-passed'),
-  },
-  'record-code-review-failed': {
-    type: 'transaction',
-    args: [],
-    handler: (w) => w.executeRecording('record-code-review-failed'),
-  },
-  'record-bug-scanner-passed': {
-    type: 'transaction',
-    args: [],
-    handler: (w) => w.executeRecording('record-bug-scanner-passed'),
-  },
-  'record-bug-scanner-failed': {
-    type: 'transaction',
-    args: [],
-    handler: (w) => w.executeRecording('record-bug-scanner-failed'),
-  },
-  'record-task-check-passed': {
-    type: 'transaction',
-    args: [],
-    handler: (w) => w.executeRecording('record-task-check-passed'),
   },
   'record-pr': {
     type: 'transaction',
@@ -423,6 +365,14 @@ const preToolUseHandler: PreToolUseHandlerFn<
   return { type: 'success', output: '' }
 }
 ```
+
+Review commands use the platform route instead of custom workflow routes:
+
+```bash
+/dev-workflow-v2:workflow record-review --type task-check
+```
+
+The review JSON is passed through stdin.
 
 **Behavior change with `extractField`:** The platform's `extractField` returns empty string for missing/null fields. Our current code throws `WorkflowError` with descriptive messages. After migration, malformed hook inputs with missing fields will pass empty strings to the engine checks rather than throwing. This is accepted — the engine's checks will handle empty strings appropriately (empty commands pass bash checks, empty file paths pass write checks), and malformed hook inputs from Claude Code are an edge case not worth custom error handling.
 
