@@ -1,4 +1,7 @@
 import {
+  describe, expect, it 
+} from 'vitest'
+import {
   createRoleFactory, location, role, roleEnforcement 
 } from './role-enforcement-builder'
 
@@ -81,6 +84,34 @@ describe('role', () => {
           userHasApproved: true,
         },
       ],
+    })
+  })
+
+  it('includes requiredPrivateMembers when provided', () => {
+    const result = role('role-b', {
+      targets: ['class'],
+      requiredPrivateMembers: ['brand'],
+    })
+
+    expect(result).toStrictEqual({
+      name: 'role-b',
+      targets: ['class'],
+      requiredPrivateMembers: ['brand'],
+    })
+  })
+
+  it('includes generic class state constraints when provided', () => {
+    const result = role('role-b', {
+      targets: ['class'],
+      requiresDataMembers: true,
+      forbiddenCallableMembers: true,
+    })
+
+    expect(result).toStrictEqual({
+      name: 'role-b',
+      targets: ['class'],
+      requiresDataMembers: true,
+      forbiddenCallableMembers: true,
     })
   })
 

@@ -4,18 +4,39 @@ import {
 import type { Type } from 'ts-morph'
 import { ConnectionDetectionError } from '../connection-detection-error'
 
-interface TypeResolutionSuccess {
-  resolved: true
-  typeName: string
-}
-
-interface TypeResolutionUncertain {
-  resolved: false
-  reason: string
-}
-
 /** @riviere-role value-object */
-export type TypeResolution = TypeResolutionSuccess | TypeResolutionUncertain
+export class TypeResolution {
+  declare private brand: 'TypeResolution'
+  readonly resolved: boolean
+  readonly typeName: string | undefined
+  readonly reason: string | undefined
+
+  private constructor(params: {
+    resolved: boolean
+    typeName: string | undefined
+    reason: string | undefined
+  }) {
+    this.resolved = params.resolved
+    this.typeName = params.typeName
+    this.reason = params.reason
+  }
+
+  static resolved(typeName: string): TypeResolution {
+    return new TypeResolution({
+      resolved: true,
+      typeName,
+      reason: undefined,
+    })
+  }
+
+  static unresolved(reason: string): TypeResolution {
+    return new TypeResolution({
+      resolved: false,
+      typeName: undefined,
+      reason,
+    })
+  }
+}
 
 function stripGenerics(typeName: string): string {
   const angleBracketIndex = typeName.indexOf('<')
@@ -132,10 +153,7 @@ function handleUnresolvable(
   if (options.strict) {
     throw buildError(sourceFile, callExpression, rawTypeName, reason)
   }
-  return {
-    resolved: false,
-    reason,
-  }
+  return TypeResolution.unresolved(reason)
 }
 
 /** @riviere-role domain-service */
@@ -151,10 +169,7 @@ export function resolveCallExpressionReceiverType(
     if (options.strict) {
       throw buildError(sourceFile, callExpression, 'unknown', reason)
     }
-    return {
-      resolved: false,
-      reason,
-    }
+    return TypeResolution.unresolved(reason)
   }
 
   const rawTypeName = resolveReceiverTypeName(receiver)
@@ -163,8 +178,5 @@ export function resolveCallExpressionReceiverType(
     return handleUnresolvable(sourceFile, callExpression, rawTypeName, options)
   }
 
-  return {
-    resolved: true,
-    typeName: stripGenerics(rawTypeName),
-  }
+  return TypeResolution.resolved(stripGenerics(rawTypeName))
 }

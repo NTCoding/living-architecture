@@ -28,5 +28,6 @@ When classifying a declaration:
 2. Does the declaration name match a `nameMatches` pattern? (e.g., `.*Input$` → command-use-case-input)
 3. What is the declaration type (function, class, interface)? Filter to roles allowing that target.
 4. Read the behavioral contract in the matching role definition file.
-5. If ambiguous, check Decision Guidance sections for tie-breaking criteria.
-6. If no existing role fits, flag for human review before proposing a new role.
+5. Ask the ownership question: is this a real domain concept, or is it only mapping domain results into the API of a specific consumer such as a CLI presenter, workflow updater, or builder?
+6. If ambiguous, check Decision Guidance sections for tie-breaking criteria.
+7. If no existing role fits, flag for human review before proposing a new role.

@@ -14,6 +14,9 @@ vi.mock('node:fs', async (importOriginal) => {
 import {
   configWithGenericApprovedAggregates,
   configWithGenericMaxPublicMethods,
+  configWithGenericRequiredPrivateMembers,
+  configWithGenericRepositoryMethodInputs,
+  configWithGenericRepositoryMethodInputsOnly,
   genericTestConfig,
 } from './test-fixture-config'
 import {
@@ -245,6 +248,72 @@ it('rejects aggregate when name is not in approvedInstances', () => {
     expect(result.exitCode).toBe(1)
     expect(result.stderr).toBe('')
     expect(result.stdout).toContain('is not in approvedInstances')
+  })
+})
+
+it('rejects classes missing required private members', () => {
+  withGenericFixtureWorkspace((workspaceDir) => {
+    const result = runWith(configWithGenericRequiredPrivateMembers(['brand']), workspaceDir)
+    expect(result.exitCode).toBe(1)
+    expect(result.stderr).toBe('')
+    expect(result.stdout).toContain("requires private member 'brand'")
+  })
+})
+
+it('accepts classes that declare required private members', () => {
+  withGenericFixtureWorkspace((workspaceDir) => {
+    writeDomainFile(
+      workspaceDir,
+      `/** @riviere-role role-b */
+export class Beta {
+  private readonly brand = 'Beta'
+
+  cancel(): void {}
+}
+`,
+    )
+    const result = runWith(configWithGenericRequiredPrivateMembers(['brand']), workspaceDir)
+    expect(result.exitCode).toBe(0)
+    expect(result.stderr).toBe('')
+  })
+})
+
+it('accepts required private members configured with leading hash', () => {
+  withGenericFixtureWorkspace((workspaceDir) => {
+    writeDomainFile(
+      workspaceDir,
+      `/** @riviere-role role-b */
+export class Beta {
+  #brand = 'Beta'
+
+  cancel(): void {}
+}
+`,
+    )
+    const result = runWith(configWithGenericRequiredPrivateMembers(['#brand']), workspaceDir)
+    expect(result.exitCode).toBe(0)
+    expect(result.stderr).toBe('')
+  })
+})
+
+it('rejects class methods with disallowed inputs when class role defines allowedInputs', () => {
+  withGenericFixtureWorkspace((workspaceDir) => {
+    const result = runWith(configWithGenericRepositoryMethodInputs(['role-a-input']), workspaceDir)
+    expect(result.exitCode).toBe(1)
+    expect(result.stderr).toBe('')
+    expect(result.stdout).toContain("Role 'role-b-repository' only allows inputs [role-a-input]")
+  })
+})
+
+it('rejects class methods with disallowed inputs when class role defines only allowedInputs', () => {
+  withGenericFixtureWorkspace((workspaceDir) => {
+    const result = runWith(
+      configWithGenericRepositoryMethodInputsOnly(['role-a-input']),
+      workspaceDir,
+    )
+    expect(result.exitCode).toBe(1)
+    expect(result.stderr).toBe('')
+    expect(result.stdout).toContain("Role 'role-b-repository' only allows inputs [role-a-input]")
   })
 })
 

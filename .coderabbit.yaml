@@ -34,4 +34,4 @@ knowledge_base:
       - 'docs/conventions/standard-patterns.md'
       - 'docs/architecture/adr/ADR-002-allowed-folder-structures.md'
       - 'docs/architecture/overview.md'
-      - 'docs/workflow/code-review.md'
+      - 'docs/conventions/review-feedback-checks.md'

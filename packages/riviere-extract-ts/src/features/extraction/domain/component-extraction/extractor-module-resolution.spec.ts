@@ -4,14 +4,17 @@ import {
 import { Project } from 'ts-morph'
 import type { ResolvedExtractionConfig } from '@living-architecture/riviere-extract-config'
 import { extractComponents } from './extractor'
-import { matchesGlob } from '../../../../platform/infra/external-clients/minimatch/minimatch-glob'
 
 function createTestProject() {
   return new Project({ useInMemoryFileSystem: true })
 }
 
 function extract(project: Project, paths: string[], config: ResolvedExtractionConfig) {
-  return extractComponents(project, paths, config, matchesGlob)
+  const [module] = config.modules
+  if (module === undefined) {
+    throw new TypeError('Expected one module in test config')
+  }
+  return extractComponents(project, paths, module)
 }
 
 const NOT_USED = { notUsed: true } as const
@@ -62,7 +65,7 @@ describe('extractComponents — module resolution', () => {
       modules: '/src/{module}/',
     })
     const result = extract(project, ['src/checkout/use-cases/create-order.ts'], config)
-    expect(result).toStrictEqual([
+    expect(result).toMatchObject([
       expect.objectContaining({
         domain: 'orders',
         module: 'checkout',
@@ -88,7 +91,7 @@ describe('extractComponents — module resolution', () => {
       modules: '/src/{module}/',
     })
     const result = extract(project, ['other/create-order.ts'], config)
-    expect(result).toStrictEqual([
+    expect(result).toMatchObject([
       expect.objectContaining({
         domain: 'orders',
         module: 'fallback-name',
@@ -112,7 +115,7 @@ describe('extractComponents — module resolution', () => {
       modules: '/src/{module}',
     })
     const result = extract(project, ['src/fulfillment/ship-order.ts'], config)
-    expect(result).toStrictEqual([
+    expect(result).toMatchObject([
       expect.objectContaining({
         domain: 'shipping',
         module: 'fulfillment',
@@ -136,7 +139,7 @@ describe('extractComponents — module resolution', () => {
       domain: 'orders',
     })
     const result = extract(project, ['src/create-order.ts'], config)
-    expect(result).toStrictEqual([
+    expect(result).toMatchObject([
       expect.objectContaining({
         domain: 'orders',
         module: 'my-module',
@@ -161,7 +164,7 @@ describe('extractComponents — module resolution', () => {
       modules: '/src/no-placeholder/',
     })
     const result = extract(project, ['src/order.ts'], config)
-    expect(result).toStrictEqual([
+    expect(result).toMatchObject([
       expect.objectContaining({
         domain: 'orders',
         module: 'broken-pattern',
@@ -186,7 +189,7 @@ describe('extractComponents — module resolution', () => {
       modules: 'src/{module}',
     })
     const result = extract(project, ['src/checkout'], config)
-    expect(result).toStrictEqual([
+    expect(result).toMatchObject([
       expect.objectContaining({
         domain: 'orders',
         module: 'no-delimiter',

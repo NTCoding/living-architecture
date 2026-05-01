@@ -91,7 +91,7 @@ export type ConcreteStateDefinition = WorkflowStateDefinition<
   WorkflowState,
   StateName,
   WorkflowOperation
->
+> & { allowIdle?: boolean }
 
 /** @riviere-role value-object */
 export type ConcreteRegistry = WorkflowRegistry<WorkflowState, StateName, WorkflowOperation>

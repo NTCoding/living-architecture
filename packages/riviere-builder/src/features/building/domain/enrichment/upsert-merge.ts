@@ -191,7 +191,7 @@ function mergeNestedObject(
   componentId: string,
   pathPrefix: string,
 ): Record<string, unknown> {
-  const merged: Record<string, unknown> = { ...(existing ?? {}) }
+  const merged: Record<string, unknown> = { ...existing }
 
   for (const [field, incomingValue] of Object.entries(incoming)) {
     if (!isDefined(incomingValue)) {

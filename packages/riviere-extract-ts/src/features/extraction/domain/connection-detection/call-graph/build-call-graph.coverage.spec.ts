@@ -3,6 +3,7 @@ import {
 } from 'vitest'
 import { ComponentIndex } from '../component-index'
 import { buildCallGraph } from './build-call-graph'
+import { CallGraphOptions } from './call-graph-types'
 import {
   sharedProject, nextFile, buildComponent, defaultOptions 
 } from './call-graph-fixtures'
@@ -139,10 +140,12 @@ class StrictCaller {
     const compTarget = buildComponent('StrictTarget', file, 2, { type: 'domainOp' })
     const compCaller = buildComponent('StrictCaller', file, 15)
     const index = new ComponentIndex([compTarget, compCaller])
-    const strictOptions = {
-      ...defaultOptions(),
+    const defaults = defaultOptions()
+    const strictOptions = new CallGraphOptions({
       strict: true,
-    }
+      sourceFilePaths: defaults.sourceFilePaths,
+      repository: defaults.repository,
+    })
 
     expect(() => buildCallGraph(sharedProject, [compCaller], index, strictOptions)).not.toThrow()
 

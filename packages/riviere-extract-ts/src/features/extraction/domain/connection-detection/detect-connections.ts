@@ -1,54 +1,30 @@
 import { performance } from 'node:perf_hooks'
 import type { Project } from 'ts-morph'
-import type {
-  EventPublisherConfig,
-  HttpLinkConfig,
-} from '@living-architecture/riviere-extract-config'
-import type { EnrichedComponent } from '../value-extraction/enrich-components'
-import type { GlobMatcher } from '../component-extraction/extractor'
+import type { EnrichedComponent } from '../value-extraction/enriched-component'
 import type { ExtractedLink } from './extracted-link'
+import { AsyncDetectionOptions } from './async-detection/async-detection-options'
 import { ComponentIndex } from './component-index'
 import { buildCallGraph } from './call-graph/build-call-graph'
 import { detectEventPublisherConnections } from './async-detection/detect-event-publisher-connections'
 import { detectSubscribeConnections } from './async-detection/detect-subscribe-connections'
+import { CallGraphOptions } from './call-graph/call-graph-types'
+import type {
+  ConnectionDetectionOptions,
+  ConnectionDetectionResult,
+  CrossModuleConnectionOptions,
+  CrossModuleDetectionResult,
+  PerModuleConnectionOptions,
+  PerModuleDetectionResult,
+} from './connection-detection-values'
+import {
+  ConnectionDetectionResult as ConnectionDetectionResultRecord,
+  ConnectionTimings as ConnectionTimingsRecord,
+  CrossModuleDetectionResult as CrossModuleDetectionResultRecord,
+  CrossModuleTimings as CrossModuleTimingsRecord,
+  PerModuleDetectionResult as PerModuleDetectionResultRecord,
+  PerModuleTimings as PerModuleTimingsRecord,
+} from './connection-detection-values'
 import { resolveHttpLinks } from './resolve-http-links'
-
-/** @riviere-role value-object */
-export interface ConnectionDetectionOptions {
-  allowIncomplete?: boolean
-  moduleGlobs: string[]
-  eventPublishers?: EventPublisherConfig[]
-  httpLinks?: HttpLinkConfig[]
-  repository: string
-}
-
-/** @riviere-role value-object */
-export interface ConnectionTimings {
-  callGraphMs: number
-  asyncDetectionMs: number
-  setupMs: number
-  totalMs: number
-}
-
-import type { ExternalLink } from '@living-architecture/riviere-schema'
-
-/** @riviere-role value-object */
-export interface ConnectionDetectionResult {
-  links: ExtractedLink[]
-  externalLinks: ExternalLink[]
-  timings: ConnectionTimings
-}
-
-function computeFilteredFilePaths(
-  project: Project,
-  moduleGlobs: string[],
-  globMatcher: GlobMatcher,
-): string[] {
-  return project
-    .getSourceFiles()
-    .map((sf) => sf.getFilePath())
-    .filter((filePath) => moduleGlobs.some((glob) => globMatcher(filePath, glob)))
-}
 
 /** @riviere-role domain-service */
 export function deduplicateCrossStrategy(links: ExtractedLink[]): ExtractedLink[] {
@@ -67,79 +43,45 @@ export function deduplicateCrossStrategy(links: ExtractedLink[]): ExtractedLink[
   return [...seen.values()]
 }
 
-/** @riviere-role value-object */
-export interface PerModuleConnectionOptions {
-  allComponents?: readonly EnrichedComponent[]
-  allowIncomplete?: boolean
-  moduleGlobs: string[]
-  httpLinks?: HttpLinkConfig[]
-  repository: string
-}
-
-/** @riviere-role value-object */
-export interface PerModuleTimings {
-  callGraphMs: number
-  setupMs: number
-}
-
-/** @riviere-role value-object */
-export interface PerModuleDetectionResult {
-  links: ExtractedLink[]
-  externalLinks: ExternalLink[]
-  timings: PerModuleTimings
-}
-
 /** @riviere-role domain-service */
 export function detectPerModuleConnections(
   project: Project,
   components: readonly EnrichedComponent[],
   options: PerModuleConnectionOptions,
-  globMatcher: GlobMatcher,
 ): PerModuleDetectionResult {
   const setupStart = performance.now()
   const visibleComponents = options.allComponents ?? components
   const componentIndex = new ComponentIndex(visibleComponents)
-  const sourceFilePaths = computeFilteredFilePaths(project, options.moduleGlobs, globMatcher)
+  const sourceFilePaths = options.sourceFilePaths
   const setupMs = performance.now() - setupStart
 
   const strict = options.allowIncomplete !== true
   const repository = options.repository
 
   const callGraphStart = performance.now()
-  const syncLinks = buildCallGraph(project, components, componentIndex, {
-    strict,
-    sourceFilePaths,
-    repository,
-  })
+  const syncLinks = buildCallGraph(
+    project,
+    components,
+    componentIndex,
+    new CallGraphOptions({
+      strict,
+      sourceFilePaths,
+      repository,
+    }),
+  )
   const callGraphMs = performance.now() - callGraphStart
 
   const httpLinkConfigs = options.httpLinks ?? []
   const resolved = resolveHttpLinks(syncLinks, visibleComponents, httpLinkConfigs)
 
-  return {
+  return new PerModuleDetectionResultRecord({
     links: resolved.links,
     externalLinks: resolved.externalLinks,
-    timings: {
+    timings: new PerModuleTimingsRecord({
       callGraphMs,
       setupMs,
-    },
-  }
-}
-
-/** @riviere-role value-object */
-export interface CrossModuleConnectionOptions {
-  allowIncomplete?: boolean
-  eventPublishers?: EventPublisherConfig[]
-  repository: string
-}
-
-/** @riviere-role value-object */
-export interface CrossModuleTimings {asyncDetectionMs: number}
-
-/** @riviere-role value-object */
-export interface CrossModuleDetectionResult {
-  links: ExtractedLink[]
-  timings: CrossModuleTimings
+    }),
+  })
 }
 
 /** @riviere-role domain-service */
@@ -149,10 +91,10 @@ export function detectCrossModuleConnections(
 ): CrossModuleDetectionResult {
   const strict = options.allowIncomplete !== true
   const repository = options.repository
-  const asyncOptions = {
+  const asyncOptions = new AsyncDetectionOptions({
     strict,
     repository,
-  }
+  })
 
   const asyncStart = performance.now()
   const publishLinks = detectEventPublisherConnections(
@@ -163,10 +105,10 @@ export function detectCrossModuleConnections(
   const subscribeLinks = detectSubscribeConnections(allComponents, asyncOptions)
   const asyncDetectionMs = performance.now() - asyncStart
 
-  return {
+  return new CrossModuleDetectionResultRecord({
     links: [...publishLinks, ...subscribeLinks],
-    timings: { asyncDetectionMs },
-  }
+    timings: new CrossModuleTimingsRecord({ asyncDetectionMs }),
+  })
 }
 
 /** @riviere-role domain-service */
@@ -174,30 +116,34 @@ export function detectConnections(
   project: Project,
   components: readonly EnrichedComponent[],
   options: ConnectionDetectionOptions,
-  globMatcher: GlobMatcher,
 ): ConnectionDetectionResult {
   const totalStart = performance.now()
 
   const setupStart = performance.now()
   const componentIndex = new ComponentIndex(components)
-  const sourceFilePaths = computeFilteredFilePaths(project, options.moduleGlobs, globMatcher)
+  const sourceFilePaths = options.sourceFilePaths
   const setupMs = performance.now() - setupStart
 
   const strict = options.allowIncomplete !== true
   const repository = options.repository
 
   const callGraphStart = performance.now()
-  const syncLinks = buildCallGraph(project, components, componentIndex, {
-    strict,
-    sourceFilePaths,
-    repository,
-  })
+  const syncLinks = buildCallGraph(
+    project,
+    components,
+    componentIndex,
+    new CallGraphOptions({
+      strict,
+      sourceFilePaths,
+      repository,
+    }),
+  )
   const callGraphMs = performance.now() - callGraphStart
 
-  const asyncOptions = {
+  const asyncOptions = new AsyncDetectionOptions({
     strict,
     repository,
-  }
+  })
   const asyncStart = performance.now()
   const publishLinks = detectEventPublisherConnections(
     components,
@@ -213,14 +159,14 @@ export function detectConnections(
   const resolved = resolveHttpLinks(deduplicatedLinks, components, httpLinkConfigs)
   const totalMs = performance.now() - totalStart
 
-  return {
+  return new ConnectionDetectionResultRecord({
     links: resolved.links,
     externalLinks: resolved.externalLinks,
-    timings: {
+    timings: new ConnectionTimingsRecord({
       callGraphMs,
       asyncDetectionMs,
       setupMs,
       totalMs,
-    },
-  }
+    }),
+  })
 }

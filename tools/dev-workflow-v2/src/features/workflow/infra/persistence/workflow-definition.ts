@@ -6,9 +6,7 @@ import type { TransitionContext } from '@nt-ai-lab/deterministic-agent-workflow-
 import type {
   WorkflowState, StateName, WorkflowOperation 
 } from '../../domain/workflow-types'
-import {
-  Workflow, type WorkflowDeps 
-} from '../../domain/workflow'
+import { Workflow } from '../../domain/workflow'
 import {
   INITIAL_STATE, STATE_NAME_SCHEMA 
 } from '../../domain/workflow-types'
@@ -21,6 +19,7 @@ import {
 } from '../../domain/workflow-events'
 import { WORKFLOW_REGISTRY } from '../../domain/registry'
 
+type WorkflowDeps = Parameters<typeof Workflow.rehydrate>[1]
 const KNOWN_EVENT_TYPES: ReadonlySet<string> = new Set(getKnownWorkflowEventTypes())
 
 function diffStateOverrides(

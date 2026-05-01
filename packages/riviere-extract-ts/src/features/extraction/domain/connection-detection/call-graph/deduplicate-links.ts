@@ -1,8 +1,8 @@
-import type { ExtractedLink } from '../extracted-link'
+import { ExtractedLink } from '../extracted-link'
 import type {
   RawLink, UncertainRawLink, CallSite 
 } from './call-graph-types'
-import { componentIdentity } from './call-graph-types'
+import { componentIdentity } from './component-identity'
 
 interface RequiredSourceLocation {
   repository: string
@@ -11,7 +11,12 @@ interface RequiredSourceLocation {
   methodName: string
 }
 
-interface LocatedLink extends ExtractedLink {sourceLocation: RequiredSourceLocation}
+class MissingSourceLocationError extends Error {
+  constructor() {
+    super('Expected sourceLocation on extracted link')
+    this.name = 'MissingSourceLocationError'
+  }
+}
 
 function linkKey(source: string, target: string, type: string): string {
   return `${source}|${target}|${type}`
@@ -23,8 +28,8 @@ function buildExtractedLink(
   type: 'sync' | 'async',
   callSite: CallSite,
   repository: string,
-): LocatedLink {
-  return {
+): ExtractedLink {
+  const link = new ExtractedLink({
     source,
     target,
     type,
@@ -34,7 +39,14 @@ function buildExtractedLink(
       lineNumber: callSite.lineNumber,
       methodName: callSite.methodName,
     },
+  })
+
+  const sourceLocation = link.sourceLocation
+  if (sourceLocation === undefined) {
+    throw new MissingSourceLocationError()
   }
+
+  return link
 }
 
 function buildUncertainLink(
@@ -43,7 +55,7 @@ function buildUncertainLink(
   callSite: CallSite,
   repository: string,
 ): ExtractedLink {
-  return {
+  return new ExtractedLink({
     source,
     target: '_unresolved',
     type: 'sync',
@@ -54,7 +66,7 @@ function buildUncertainLink(
       lineNumber: callSite.lineNumber,
       methodName: callSite.methodName,
     },
-  }
+  })
 }
 
 /** @riviere-role domain-service */
@@ -63,7 +75,7 @@ export function deduplicateLinks(
   uncertainLinks: UncertainRawLink[],
   repository = '',
 ): ExtractedLink[] {
-  const seen = new Map<string, LocatedLink>()
+  const seen = new Map<string, ExtractedLink>()
 
   for (const raw of rawLinks) {
     const sourceId = componentIdentity(raw.source)
@@ -73,7 +85,7 @@ export function deduplicateLinks(
 
     const existing = seen.get(key)
     if (existing !== undefined) {
-      if (raw.callSite.lineNumber < existing.sourceLocation.lineNumber) {
+      if (raw.callSite.lineNumber < requireSourceLocation(existing).lineNumber) {
         seen.set(key, buildExtractedLink(sourceId, targetId, type, raw.callSite, repository))
       }
       continue
@@ -96,4 +108,26 @@ export function deduplicateLinks(
   }
 
   return result
+}
+
+function requireSourceLocation(link: ExtractedLink): RequiredSourceLocation {
+  const sourceLocation = link.sourceLocation
+  if (sourceLocation === undefined) {
+    throw new MissingSourceLocationError()
+  }
+
+  if (sourceLocation.lineNumber === undefined) {
+    throw new MissingSourceLocationError()
+  }
+
+  if (sourceLocation.methodName === undefined) {
+    throw new MissingSourceLocationError()
+  }
+
+  return {
+    repository: sourceLocation.repository,
+    filePath: sourceLocation.filePath,
+    lineNumber: sourceLocation.lineNumber,
+    methodName: sourceLocation.methodName,
+  }
 }

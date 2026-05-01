@@ -1,10 +1,12 @@
 import { WORKFLOW_DEFINITION } from './workflow-definition'
-import type { WorkflowDeps } from '../../domain/workflow'
+import { Workflow } from '../../domain/workflow'
 import type { BaseEvent } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import type {
   WorkflowState, StateName 
 } from '../../domain/workflow-types'
+
+type WorkflowDeps = Parameters<typeof Workflow.rehydrate>[1]
 
 function makeWorkflowDeps(): WorkflowDeps {
   return {
@@ -120,35 +122,10 @@ describe('WORKFLOW_DEFINITION', () => {
       expect(registry.COMPLETE).toBeDefined()
     })
 
-    it('allows idle in BLOCKED', () => {
+    it('marks COMPLETE and BLOCKED as write-forbidden states', () => {
       const registry = WORKFLOW_DEFINITION.getRegistry()
-      expect(registry.BLOCKED.allowIdle).toBe(true)
-    })
-
-    it('allows idle in COMPLETE', () => {
-      const registry = WORKFLOW_DEFINITION.getRegistry()
-      expect(registry.COMPLETE.allowIdle).toBe(true)
-    })
-
-    it('does not allow idle in active states', () => {
-      const registry = WORKFLOW_DEFINITION.getRegistry()
-      expect({
-        implementing: registry.IMPLEMENTING.allowIdle,
-        reviewing: registry.REVIEWING.allowIdle,
-        submittingPr: registry.SUBMITTING_PR.allowIdle,
-        awaitingCi: registry.AWAITING_CI.allowIdle,
-        awaitingPrFeedback: registry.AWAITING_PR_FEEDBACK.allowIdle,
-        addressingFeedback: registry.ADDRESSING_FEEDBACK.allowIdle,
-        reflecting: registry.REFLECTING.allowIdle,
-      }).toStrictEqual({
-        implementing: undefined,
-        reviewing: undefined,
-        submittingPr: undefined,
-        awaitingCi: undefined,
-        awaitingPrFeedback: undefined,
-        addressingFeedback: undefined,
-        reflecting: undefined,
-      })
+      expect(registry.BLOCKED.forbidden).toStrictEqual({ write: true })
+      expect(registry.COMPLETE.forbidden).toStrictEqual({ write: true })
     })
   })
 

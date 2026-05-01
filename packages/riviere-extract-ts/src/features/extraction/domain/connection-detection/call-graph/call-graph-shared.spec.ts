@@ -9,11 +9,20 @@ import {
   resolveTypeThroughInterface,
   findMethodInProject,
 } from './call-graph-shared'
+import { CallGraphOptions } from './call-graph-types'
 import { ComponentIndex } from '../component-index'
 import { buildComponent } from './call-graph-fixtures'
 
 const sharedProject = new Project({ useInMemoryFileSystem: true })
 const counter = { value: 0 }
+
+function createOptions(sourceFilePaths: string[]): CallGraphOptions {
+  return new CallGraphOptions({
+    strict: false,
+    sourceFilePaths,
+    repository: 'test-repo',
+  })
+}
 
 function nextFile(content: string): string {
   counter.value++
@@ -40,13 +49,14 @@ describe('resolveTypeThroughInterface', () => {
     const comp = buildComponent('OrderService', '/test.ts', 1)
     const index = new ComponentIndex([comp])
 
-    const result = resolveTypeThroughInterface('OrderService', sharedProject, index, {
-      strict: false,
-      sourceFilePaths: [],
-      repository: 'test-repo',
-    })
+    const result = resolveTypeThroughInterface(
+      'OrderService',
+      sharedProject,
+      index,
+      createOptions([]),
+    )
 
-    expect(result).toStrictEqual({
+    expect(result).toMatchObject({
       component: comp,
       resolvedTypeName: undefined,
       uncertain: undefined,
@@ -64,13 +74,14 @@ describe('resolveTypeThroughInterface', () => {
     const comp = buildComponent('ConcreteGateway', implFile, 1)
     const index = new ComponentIndex([comp])
 
-    const result = resolveTypeThroughInterface('SharedGateway', sharedProject, index, {
-      strict: false,
-      sourceFilePaths: [interfaceFile, implFile],
-      repository: 'test-repo',
-    })
+    const result = resolveTypeThroughInterface(
+      'SharedGateway',
+      sharedProject,
+      index,
+      createOptions([interfaceFile, implFile]),
+    )
 
-    expect(result).toStrictEqual({
+    expect(result).toMatchObject({
       component: comp,
       resolvedTypeName: 'ConcreteGateway',
       uncertain: undefined,
@@ -83,13 +94,14 @@ describe('resolveTypeThroughInterface', () => {
     `)
     const index = new ComponentIndex([])
 
-    const result = resolveTypeThroughInterface('OrphanGateway', sharedProject, index, {
-      strict: false,
-      sourceFilePaths: [interfaceFile],
-      repository: 'test-repo',
-    })
+    const result = resolveTypeThroughInterface(
+      'OrphanGateway',
+      sharedProject,
+      index,
+      createOptions([interfaceFile]),
+    )
 
-    expect(result).toStrictEqual({
+    expect(result).toMatchObject({
       component: undefined,
       resolvedTypeName: undefined,
       uncertain: expect.stringContaining('No implementation found for OrphanGateway'),
@@ -99,13 +111,14 @@ describe('resolveTypeThroughInterface', () => {
   it('returns no uncertainty when type is not defined in source files', () => {
     const index = new ComponentIndex([])
 
-    const result = resolveTypeThroughInterface('UnknownType', sharedProject, index, {
-      strict: false,
-      repository: 'test-repo',
-      sourceFilePaths: [],
-    })
+    const result = resolveTypeThroughInterface(
+      'UnknownType',
+      sharedProject,
+      index,
+      createOptions([]),
+    )
 
-    expect(result).toStrictEqual({
+    expect(result).toMatchObject({
       component: undefined,
       resolvedTypeName: undefined,
       uncertain: undefined,

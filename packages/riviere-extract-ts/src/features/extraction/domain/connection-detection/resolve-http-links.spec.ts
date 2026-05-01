@@ -2,8 +2,8 @@ import {
   describe, it, expect 
 } from 'vitest'
 import type { HttpLinkConfig } from '@living-architecture/riviere-extract-config'
-import type { EnrichedComponent } from '../value-extraction/enrich-components'
-import type { ExtractedLink } from './extracted-link'
+import type { EnrichedComponent } from '../value-extraction/enriched-component'
+import { ExtractedLink } from './extracted-link'
 import {
   resolveHttpLinks, stripResolvedCustomTypes 
 } from './resolve-http-links'
@@ -19,12 +19,13 @@ function createHttpLinkConfig(overrides: Partial<HttpLinkConfig> = {}): HttpLink
 }
 
 function createLink(overrides: Partial<ExtractedLink> = {}): ExtractedLink {
-  return {
+  return new ExtractedLink({
     source: 'bff:bff-module:useCase:placeorder',
-    target: 'bff:bff-module:httpCall:placeorder',
-    type: 'sync',
-    ...overrides,
-  }
+    target: overrides.target ?? 'bff:bff-module:httpCall:placeorder',
+    type: overrides.type ?? 'sync',
+    ...(overrides._uncertain !== undefined && { _uncertain: overrides._uncertain }),
+    ...(overrides.sourceLocation !== undefined && { sourceLocation: overrides.sourceLocation }),
+  })
 }
 
 function httpCallComponent(name: string, metadata: Record<string, string>): EnrichedComponent {
@@ -82,6 +83,35 @@ describe('resolveHttpLinks', () => {
     expect(result.links).toHaveLength(1)
     expect(result.links[0]?.target).toBe('orders:orders-module:api:createorder')
     expect(result.externalLinks).toStrictEqual([])
+  })
+
+  it('preserves uncertainty and source location when rewritten link matches an API component', () => {
+    const httpCall = httpCallComponent('placeOrder', {
+      serviceName: 'orders',
+      route: '/orders',
+    })
+    const api = apiComponent('createOrder', 'orders', { route: '/orders' })
+    const link = createLink({
+      target: 'bff:bff-module:httpCall:placeorder',
+      _uncertain: 'matched through fallback route',
+      sourceLocation: {
+        repository: 'test-repo',
+        filePath: '/src/bff.ts',
+        lineNumber: 10,
+        methodName: 'execute',
+      },
+    })
+    const config = createHttpLinkConfig()
+
+    const result = resolveHttpLinks([link], [httpCall, api], [config])
+
+    expect(result.links[0]?._uncertain).toBe('matched through fallback route')
+    expect(result.links[0]?.sourceLocation).toStrictEqual({
+      repository: 'test-repo',
+      filePath: '/src/bff.ts',
+      lineNumber: 10,
+      methodName: 'execute',
+    })
   })
 
   it('creates external link when no domain matches', () => {
@@ -229,11 +259,11 @@ describe('stripResolvedCustomTypes', () => {
     const useCase = buildComponent('PlaceOrder', '/src/uc.ts', 1)
     const httpCall = buildComponent('check', '/src/http.ts', 1, { type: 'httpCall' })
     const config = createHttpLinkConfig()
-    const linkTargetingHttpCall: ExtractedLink = {
+    const linkTargetingHttpCall = new ExtractedLink({
       source: 'bff:bff-module:useCase:placeorder',
       target: 'orders:orders-module:httpCall:check',
       type: 'sync',
-    }
+    })
 
     const result = stripResolvedCustomTypes([useCase, httpCall], [config], [linkTargetingHttpCall])
 

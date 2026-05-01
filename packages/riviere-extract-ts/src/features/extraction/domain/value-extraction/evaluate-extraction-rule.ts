@@ -13,9 +13,8 @@ export {
   evaluateFromMethodSignatureRule,
   evaluateFromConstructorParamsRule,
   evaluateFromParameterTypeRule,
-  type ParameterInfo,
-  type MethodSignature,
 } from './evaluate-extraction-rule-method'
+import { ExtractionResult } from './extraction-result'
 
 export { evaluateFromGenericArgRule } from './evaluate-extraction-rule-generic'
 import { SyntaxKind } from 'ts-morph'
@@ -29,16 +28,8 @@ type ClassDeclaration = import('ts-morph').ClassDeclaration
 type MethodDeclaration = import('ts-morph').MethodDeclaration
 type Decorator = import('ts-morph').Decorator
 
-/** @riviere-role value-object */
-export type ExtractionContext = { filePath: string }
-
-type ExtractionValue = string | number | boolean | string[]
-
-/** @riviere-role value-object */
-export type ExtractionResult = { value: ExtractionValue }
-
 function literal(value: string | number | boolean): ExtractionResult {
-  return { value }
+  return new ExtractionResult({ value })
 }
 
 /** @riviere-role domain-service */
@@ -59,15 +50,15 @@ export function evaluateFromClassNameRule(
   }
 
   if (rule.fromClassName === true) {
-    return { value: className }
+    return new ExtractionResult({ value: className })
   }
 
   const transform = rule.fromClassName.transform
   if (transform === undefined) {
-    return { value: className }
+    return new ExtractionResult({ value: className })
   }
 
-  return { value: applyTransforms(className, transform) }
+  return new ExtractionResult({ value: applyTransforms(className, transform) })
 }
 
 /** @riviere-role domain-service */
@@ -78,15 +69,15 @@ export function evaluateFromMethodNameRule(
   const methodName = methodDecl.getName()
 
   if (rule.fromMethodName === true) {
-    return { value: methodName }
+    return new ExtractionResult({ value: methodName })
   }
 
   const transform = rule.fromMethodName.transform
   if (transform === undefined) {
-    return { value: methodName }
+    return new ExtractionResult({ value: methodName })
   }
 
-  return { value: applyTransforms(methodName, transform) }
+  return new ExtractionResult({ value: applyTransforms(methodName, transform) })
 }
 
 /** @riviere-role domain-service */
@@ -118,10 +109,10 @@ export function evaluateFromFilePathRule(
   }
 
   if (transform === undefined) {
-    return { value: capturedValue }
+    return new ExtractionResult({ value: capturedValue })
   }
 
-  return { value: applyTransforms(capturedValue, transform) }
+  return new ExtractionResult({ value: applyTransforms(capturedValue, transform) })
 }
 
 type PropertyInfo = {
@@ -187,14 +178,14 @@ export function evaluateFromPropertyRule(
   )
 
   if (transform === undefined) {
-    return { value: literalResult.value }
+    return new ExtractionResult({ value: literalResult.value })
   }
 
   if (typeof literalResult.value !== 'string') {
-    return { value: literalResult.value }
+    return new ExtractionResult({ value: literalResult.value })
   }
 
-  return { value: applyTransforms(literalResult.value, transform) }
+  return new ExtractionResult({ value: applyTransforms(literalResult.value, transform) })
 }
 
 type DecoratorLocation = {
@@ -344,10 +335,10 @@ export function evaluateFromDecoratorArgRule(
   const value = extractValue()
 
   if (transform === undefined) {
-    return { value }
+    return new ExtractionResult({ value })
   }
 
-  return { value: applyTransforms(value, transform) }
+  return new ExtractionResult({ value: applyTransforms(value, transform) })
 }
 
 /** @riviere-role domain-service */
@@ -401,7 +392,7 @@ export function evaluateFromDecoratorNameRule(
   const decoratorName = decorator.getName()
 
   if (rule.fromDecoratorName === true) {
-    return { value: decoratorName }
+    return new ExtractionResult({ value: decoratorName })
   }
 
   const mapping = rule.fromDecoratorName.mapping
@@ -410,8 +401,8 @@ export function evaluateFromDecoratorNameRule(
   const mappedValue = mapping?.[decoratorName] ?? decoratorName
 
   if (transform === undefined) {
-    return { value: mappedValue }
+    return new ExtractionResult({ value: mappedValue })
   }
 
-  return { value: applyTransforms(mappedValue, transform) }
+  return new ExtractionResult({ value: applyTransforms(mappedValue, transform) })
 }

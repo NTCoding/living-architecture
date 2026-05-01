@@ -141,6 +141,7 @@ Definition files:
 
 - `.riviere/role-enforcement.config.ts`
 - `.riviere/roles.ts`
+- `.riviere/role-selection-guide.md`
 - `.riviere/role-definitions/**`
 - `.riviere/canonical-role-configurations.md`
 - `packages/riviere-role-enforcement/src/**`
@@ -150,6 +151,7 @@ Surface shape:
 
 - `.riviere/roles.ts` defines role names and role contracts.
 - `.riviere/role-enforcement.config.ts` maps roles to package locations and folder constraints.
+- `.riviere/role-selection-guide.md` explains how to decide whether a declaration is a real domain concept or a more specific command, query, CLI, or infrastructure concern.
 - The role-enforcement package turns that configuration into an oxlint plugin check.
 - Role definition docs explain roles for humans and generated diagnostics.
 - `.riviere/role-selection-guide.md` explains how to choose between plausible roles when a declaration could be misclassified by file path or superficial shape alone.
@@ -203,8 +205,10 @@ Mechanism examples:
 
 - A role can limit which declaration kinds may carry that role.
 - A role can constrain public method count on classes that carry that role.
+- A role can require structural markers on a class, such as a private brand field, so anonymous adapter objects cannot masquerade as domain concepts. Configure `requiredPrivateMembers` with bare names; a leading `#` is normalized.
 - A location can limit which roles may appear under a folder pattern.
 - A role dependency rule can reject one role importing or calling another role.
+- A pure abstraction can still fail semantic ownership review when it lives in `domain/` only to format results for a specific consumer.
 - Role definitions and the role-selection guide can reject a plausible-but-wrong domain classification when code is pure but does not represent a real domain concept.
 
 Ownership analysis for role enforcement:
@@ -219,6 +223,7 @@ Ownership analysis for role enforcement:
 Relationship boundaries:
 
 - Role enforcement owns annotated exported declaration responsibility.
+- Role selection and role definitions answer the ownership question before code reaches oxlint.
 - Dependency-cruiser owns path graph direction when no role semantics are needed.
 - Architecture docs explain the intent behind role and folder boundaries.
 - Output formatting, adapters, and consumer-specific translation are ownership questions that may require role-definition analysis even when the code is pure and path-correct.

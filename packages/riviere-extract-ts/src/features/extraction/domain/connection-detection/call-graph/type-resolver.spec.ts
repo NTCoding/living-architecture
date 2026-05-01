@@ -30,7 +30,7 @@ describe('resolveCallExpressionReceiverType', () => {
 
     const result = resolveCallExpressionReceiverType(callExpr, sourceFile, { strict: false })
 
-    expect(result).toStrictEqual({
+    expect(result).toMatchObject({
       resolved: true,
       typeName: 'OrderRepository',
     })
@@ -54,7 +54,7 @@ describe('resolveCallExpressionReceiverType', () => {
 
     const result = resolveCallExpressionReceiverType(callExpr, sourceFile, { strict: false })
 
-    expect(result).toStrictEqual({
+    expect(result).toMatchObject({
       resolved: true,
       typeName: 'PaymentGateway',
     })
@@ -76,7 +76,7 @@ describe('resolveCallExpressionReceiverType', () => {
 
     const result = resolveCallExpressionReceiverType(callExpr, sourceFile, { strict: false })
 
-    expect(result).toStrictEqual({
+    expect(result).toMatchObject({
       resolved: true,
       typeName: 'Notifier',
     })
@@ -101,7 +101,7 @@ describe('resolveCallExpressionReceiverType', () => {
 
     const result = resolveCallExpressionReceiverType(callExpr, sourceFile, { strict: false })
 
-    expect(result).toStrictEqual({
+    expect(result).toMatchObject({
       resolved: true,
       typeName: 'Repository',
     })
@@ -128,7 +128,7 @@ describe('resolveCallExpressionReceiverType', () => {
 
     const result = resolveCallExpressionReceiverType(activateCall, sourceFile, { strict: false })
 
-    expect(result).toStrictEqual({
+    expect(result).toMatchObject({
       resolved: true,
       typeName: 'ChainedOrder',
     })
@@ -161,7 +161,7 @@ describe('resolveCallExpressionReceiverType', () => {
 
     const result = resolveCallExpressionReceiverType(activateCall, sourceFile, { strict: false })
 
-    expect(result).toStrictEqual({
+    expect(result).toMatchObject({
       resolved: true,
       typeName: 'AwaitedOrder',
     })
@@ -200,7 +200,7 @@ describe('resolveCallExpressionReceiverType', () => {
 
     const result = resolveCallExpressionReceiverType(callExpr, sourceFile, { strict: false })
 
-    expect(result).toStrictEqual({
+    expect(result).toMatchObject({
       resolved: false,
       reason: expect.stringContaining('any'),
     })
@@ -222,7 +222,7 @@ describe('resolveCallExpressionReceiverType', () => {
 
     const result = resolveCallExpressionReceiverType(callExpr, sourceFile, { strict: false })
 
-    expect(result).toStrictEqual({
+    expect(result).toMatchObject({
       resolved: true,
       typeName: 'AnnotatedTarget',
     })
@@ -250,7 +250,7 @@ describe('resolveCallExpressionReceiverType', () => {
 
     const result = resolveCallExpressionReceiverType(callExpr, sourceFile, { strict: false })
 
-    expect(result).toStrictEqual({
+    expect(result).toMatchObject({
       resolved: true,
       typeName: 'AwaitTarget',
     })

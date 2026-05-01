@@ -19,9 +19,9 @@ const queryRoles: RoleName[] = [
 const domainRoles: RoleName[] = [
   'aggregate',
   'value-object',
+  'domain-event',
   'domain-service',
   'domain-error',
-  'query-model',
 ]
 
 const externalClientRoles: RoleName[] = [

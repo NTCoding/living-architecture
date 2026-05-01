@@ -580,6 +580,52 @@ function parseDiffNameStatus(raw: string): DiffFileEntry[] {
 
 ---
 
+## RFC-018: Consumer-Specific Mapping Does Not Belong in Domain Abstractions
+
+**Source:** Issue #361
+
+**Pattern:** A `domain/` abstraction exists only to reshape domain results for a specific consumer such as CLI output, workflow updates, builder writes, presenters, or adapters.
+
+**Example (BAD):**
+```typescript
+// domain/extraction-write-port.ts
+export interface ExtractionWritePort {
+  addComponent(input: BuilderComponentInput): void
+}
+
+export function strictWritePort(builder: GraphBuilder): ExtractionWritePort {
+  return {
+    addComponent(input) {
+      builder.addComponent(input)
+    },
+  }
+}
+```
+
+This is not extraction-domain logic. It is consumer-specific output formatting for `GraphBuilder`.
+
+**Example (GOOD):**
+```typescript
+// domain returns domain results
+export interface ExtractedComponent {
+  readonly name: string
+  readonly kind: 'ui' | 'api'
+}
+
+// use case maps to the consumer it owns
+for (const component of extractionResult.components) {
+  builder.addComponent(toBuilderComponent(component))
+}
+```
+
+**Detection:**
+1. Check whether the abstraction lives in `domain/`.
+2. Check whether its parameters and return types are shaped around a specific consumer API rather than domain concepts.
+3. Check whether the code makes business decisions or only dispatches to consumer methods like builder writes, presenter formatting, or workflow updates.
+4. If the abstraction only reformats domain results for one consumer, move the mapping to the use case or infrastructure layer that owns that consumer.
+
+---
+
 ## Adding New Checks
 
 When external review feedback reveals a pattern:

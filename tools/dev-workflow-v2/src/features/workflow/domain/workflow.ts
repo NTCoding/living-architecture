@@ -71,8 +71,7 @@ const RECORDING_OPS = defineRecordingOps<StateName, WorkflowState, WorkflowOpera
   RECORDING_OPS_MAP,
 )
 
-/** @riviere-role value-object */
-export type WorkflowDeps = {
+type WorkflowDeps = {
   readonly getGitInfo: () => GitInfo
   readonly getPrFeedback: (prNumber: number) => PRFeedbackResult
   readonly listSessionReviews: () => readonly StoredReview[]

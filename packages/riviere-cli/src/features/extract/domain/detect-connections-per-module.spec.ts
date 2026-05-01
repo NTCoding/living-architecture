@@ -3,14 +3,11 @@ import {
 } from 'vitest'
 import { Project } from 'ts-morph'
 import type { Module } from '@living-architecture/riviere-extract-config'
-import {
-  ExtractionProject, type ModuleContext 
-} from './extraction-project'
+import { ExtractionProject } from './extraction-project'
 
 const {
   mockExtractComponents,
   mockEnrichComponents,
-  mockMatchesGlob,
   mockDeduplicateCrossStrategy,
   mockDetectCrossModule,
   mockDetectPerModule,
@@ -20,7 +17,6 @@ const {
     components: [],
     failures: [],
   }),
-  mockMatchesGlob: vi.fn(),
   mockDeduplicateCrossStrategy: vi.fn((links: { source: string }[]) => links),
   mockDetectPerModule: vi.fn().mockReturnValue({
     links: [
@@ -45,7 +41,6 @@ const {
 vi.mock('@living-architecture/riviere-extract-ts', () => ({
   extractComponents: mockExtractComponents,
   enrichComponents: mockEnrichComponents,
-  matchesGlob: mockMatchesGlob,
   detectPerModuleConnections: mockDetectPerModule,
   detectCrossModuleConnections: mockDetectCrossModule,
   deduplicateCrossStrategy: mockDeduplicateCrossStrategy,
@@ -66,7 +61,7 @@ function createModule(name: string): Module {
   }
 }
 
-function createModuleContext(moduleName: string): ModuleContext {
+function createModuleContext(moduleName: string) {
   return {
     files: [`/src/${moduleName}/test.ts`],
     module: createModule(moduleName),
@@ -123,7 +118,7 @@ describe('ExtractionProject.extractDraftComponents', () => {
       },
     })
 
-    const project = new ExtractionProject('/config', [ctx], { modules: [] }, 'test-repo')
+    const project = new ExtractionProject([ctx], { modules: [] }, 'test-repo')
     const result = project.extractDraftComponents({
       allowIncomplete: true,
       includeConnections: true,
@@ -146,7 +141,7 @@ describe('ExtractionProject.extractDraftComponents', () => {
       },
     ])
 
-    const project = new ExtractionProject('/config', [ctx], { modules: [] }, 'test-repo')
+    const project = new ExtractionProject([ctx], { modules: [] }, 'test-repo')
     const result = project.extractDraftComponents({
       allowIncomplete: true,
       includeConnections: false,

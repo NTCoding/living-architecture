@@ -1,9 +1,8 @@
 import {
   describe, it, expect 
 } from 'vitest'
-import {
-  componentIdentity, stripGenericArgs 
-} from './call-graph-types'
+import { componentIdentity } from './component-identity'
+import { stripGenericArgs } from './type-name-normalization'
 import { buildComponent } from './call-graph-fixtures'
 
 describe('stripGenericArgs', () => {

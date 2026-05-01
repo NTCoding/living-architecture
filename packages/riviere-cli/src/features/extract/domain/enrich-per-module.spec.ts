@@ -11,20 +11,16 @@ import type {
   DraftComponent, ExtractedLink 
 } from '@living-architecture/riviere-extract-ts'
 import {
-  ExtractionProject,
-  OrphanedDraftComponentError,
-  type ModuleContext,
+  ExtractionProject, OrphanedDraftComponentError 
 } from './extraction-project'
 
 const {
   mockEnrichComponents,
-  mockMatchesGlob,
   mockDetectPerModuleConnections,
   mockDetectCrossModuleConnections,
   mockDeduplicateCrossStrategy,
 } = vi.hoisted(() => ({
   mockEnrichComponents: vi.fn(),
-  mockMatchesGlob: vi.fn(),
   mockDetectPerModuleConnections: vi.fn().mockReturnValue({
     links: [],
     externalLinks: [],
@@ -42,7 +38,6 @@ const {
 
 vi.mock('@living-architecture/riviere-extract-ts', () => ({
   enrichComponents: mockEnrichComponents,
-  matchesGlob: mockMatchesGlob,
   detectPerModuleConnections: mockDetectPerModuleConnections,
   detectCrossModuleConnections: mockDetectCrossModuleConnections,
   deduplicateCrossStrategy: mockDeduplicateCrossStrategy,
@@ -65,7 +60,7 @@ function createModule(name: string): Module {
   }
 }
 
-function createModuleContext(moduleName: string): ModuleContext {
+function createModuleContext(moduleName: string) {
   return {
     files: [],
     module: createModule(moduleName),
@@ -88,10 +83,14 @@ function createDraft(domain: string, name: string): DraftComponent {
 const stubConfig: ResolvedExtractionConfig = { modules: [] }
 
 function createExtractionProject(
-  moduleContexts: ModuleContext[],
+  moduleContexts: Array<{
+    files: string[]
+    module: Module
+    project: Project
+  }>,
   draftComponents: DraftComponent[] = [],
 ): ExtractionProject {
-  return new ExtractionProject('/config', moduleContexts, stubConfig, 'test-repo', draftComponents)
+  return new ExtractionProject(moduleContexts, stubConfig, 'test-repo', draftComponents)
 }
 
 describe('ExtractionProject.enrichDraftComponents', () => {
@@ -149,18 +148,14 @@ describe('ExtractionProject.enrichDraftComponents', () => {
     expect(mockEnrichComponents).toHaveBeenNthCalledWith(
       1,
       [createDraft('orders', 'CompA')],
-      stubConfig,
+      createModule('orders'),
       expect.anything(),
-      mockMatchesGlob,
-      '/config',
     )
     expect(mockEnrichComponents).toHaveBeenNthCalledWith(
       2,
       [createDraft('shipping', 'CompB')],
-      stubConfig,
+      createModule('shipping'),
       expect.anything(),
-      mockMatchesGlob,
-      '/config',
     )
   })
 

@@ -3,13 +3,13 @@ import {
 } from 'vitest'
 import { Project } from 'ts-morph'
 import { extractComponents } from './extractor'
-import { matchesGlob } from '../../../../platform/infra/external-clients/minimatch/minimatch-glob'
 import {
   createResolvedConfig,
   createOrdersUseCaseConfig,
   createConfigWithRule,
   createConfigWithCustomTypes,
 } from '../../../../test-fixtures'
+import { DraftComponent } from './draft-component'
 
 function createTestProject() {
   return new Project({ useInMemoryFileSystem: true })
@@ -19,9 +19,12 @@ function extract(
   project: Project,
   paths: string[],
   config: ReturnType<typeof createResolvedConfig>,
-  configDir?: string,
 ) {
-  return extractComponents(project, paths, config, matchesGlob, configDir)
+  const [module] = config.modules
+  if (module === undefined) {
+    throw new TypeError('Expected one module in test config')
+  }
+  return extractComponents(project, paths, module)
 }
 
 describe('extractComponents', () => {
@@ -35,13 +38,6 @@ describe('extractComponents', () => {
     it('returns empty array when file path not found in project', () => {
       const project = createTestProject()
       const result = extract(project, ['nonexistent.ts'], createResolvedConfig())
-      expect(result).toStrictEqual([])
-    })
-
-    it('returns empty array when file path does not match any module', () => {
-      const project = createTestProject()
-      project.createSourceFile('unmatched/file.ts', 'export class Foo {}')
-      const result = extract(project, ['unmatched/file.ts'], createOrdersUseCaseConfig())
       expect(result).toStrictEqual([])
     })
 
@@ -61,7 +57,7 @@ describe('extractComponents', () => {
         createOrdersUseCaseConfig(),
       )
       expect(result).toStrictEqual([
-        {
+        new DraftComponent({
           type: 'useCase',
           name: 'CreateOrder',
           location: {
@@ -70,7 +66,7 @@ describe('extractComponents', () => {
           },
           domain: 'orders',
           module: 'orders-module',
-        },
+        }),
       ])
     })
 
@@ -85,9 +81,9 @@ describe('extractComponents', () => {
         export class CreateOrder {}
       `,
       )
-      const result = extract(project, [absolutePath], createOrdersUseCaseConfig(), '/project/root')
+      const result = extract(project, [absolutePath], createOrdersUseCaseConfig())
       expect(result).toStrictEqual([
-        {
+        new DraftComponent({
           type: 'useCase',
           name: 'CreateOrder',
           location: {
@@ -96,11 +92,11 @@ describe('extractComponents', () => {
           },
           domain: 'orders',
           module: 'orders-module',
-        },
+        }),
       ])
     })
 
-    it('returns empty when absolute file path is outside configDir', () => {
+    it('extracts components when absolute file path is outside configDir', () => {
       const project = createTestProject()
       const absolutePath = '/other/project/orders/use-cases/create-order.ts'
       project.createSourceFile(
@@ -111,8 +107,19 @@ describe('extractComponents', () => {
         export class CreateOrder {}
       `,
       )
-      const result = extract(project, [absolutePath], createOrdersUseCaseConfig(), '/project/root')
-      expect(result).toStrictEqual([])
+      const result = extract(project, [absolutePath], createOrdersUseCaseConfig())
+      expect(result).toStrictEqual([
+        new DraftComponent({
+          type: 'useCase',
+          name: 'CreateOrder',
+          location: {
+            file: absolutePath,
+            line: 3,
+          },
+          domain: 'orders',
+          module: 'orders-module',
+        }),
+      ])
     })
 
     it('extracts components when Windows absolute paths used with configDir', () => {
@@ -126,14 +133,9 @@ describe('extractComponents', () => {
         export class CreateOrder {}
       `,
       )
-      const result = extract(
-        project,
-        [absolutePath],
-        createOrdersUseCaseConfig(),
-        'C:\\project\\root',
-      )
+      const result = extract(project, [absolutePath], createOrdersUseCaseConfig())
       expect(result).toStrictEqual([
-        {
+        new DraftComponent({
           type: 'useCase',
           name: 'CreateOrder',
           location: {
@@ -142,7 +144,7 @@ describe('extractComponents', () => {
           },
           domain: 'orders',
           module: 'orders-module',
-        },
+        }),
       ])
     })
 
@@ -177,7 +179,7 @@ describe('extractComponents', () => {
       })
       const result = extract(project, ['orders/domain/process-order.ts'], config)
       expect(result).toStrictEqual([
-        {
+        new DraftComponent({
           type: 'domainOp',
           name: 'processOrder',
           location: {
@@ -186,7 +188,7 @@ describe('extractComponents', () => {
           },
           domain: 'orders',
           module: 'orders-module',
-        },
+        }),
       ])
     })
 
@@ -225,7 +227,7 @@ describe('extractComponents', () => {
         createOrdersUseCaseConfig(),
       )
       expect(result).toStrictEqual([
-        {
+        new DraftComponent({
           type: 'useCase',
           name: 'CreateOrder',
           location: {
@@ -234,7 +236,7 @@ describe('extractComponents', () => {
           },
           domain: 'orders',
           module: 'orders-module',
-        },
+        }),
       ])
     })
 
@@ -254,7 +256,7 @@ describe('extractComponents', () => {
       })
       const result = extract(project, ['shipping/handlers/ship-order.ts'], config)
       expect(result).toStrictEqual([
-        {
+        new DraftComponent({
           type: 'eventHandler',
           name: 'ShipOrder',
           location: {
@@ -263,7 +265,7 @@ describe('extractComponents', () => {
           },
           domain: 'shipping',
           module: 'shipping-module',
-        },
+        }),
       ])
     })
   })
@@ -286,7 +288,7 @@ describe('extractComponents', () => {
       })
       const result = extract(project, ['shipping/jobs/tracking-update.ts'], config)
       expect(result).toStrictEqual([
-        {
+        new DraftComponent({
           type: 'backgroundJob',
           name: 'runTrackingUpdate',
           location: {
@@ -295,7 +297,7 @@ describe('extractComponents', () => {
           },
           domain: 'shipping',
           module: 'shipping-module',
-        },
+        }),
       ])
     })
 
@@ -310,7 +312,7 @@ describe('extractComponents', () => {
       })
       const result = extract(project, ['orders/sagas/order-saga.ts'], config)
       expect(result).toStrictEqual([
-        {
+        new DraftComponent({
           type: 'saga',
           name: 'OrderSaga',
           location: {
@@ -319,7 +321,7 @@ describe('extractComponents', () => {
           },
           domain: 'orders',
           module: 'orders-module',
-        },
+        }),
       ])
     })
 
@@ -343,7 +345,7 @@ describe('extractComponents', () => {
       })
       const result = extract(project, ['orders/policies/policy.ts'], config)
       expect(result).toStrictEqual([
-        {
+        new DraftComponent({
           type: 'policy',
           name: 'validateOrder',
           location: {
@@ -352,7 +354,7 @@ describe('extractComponents', () => {
           },
           domain: 'orders',
           module: 'orders-module',
-        },
+        }),
       ])
     })
   })

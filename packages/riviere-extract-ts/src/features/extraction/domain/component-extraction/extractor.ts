@@ -6,29 +6,13 @@ import {
   type Project,
   type SourceFile,
 } from 'ts-morph'
-import { posix } from 'node:path'
 import type {
-  ResolvedExtractionConfig,
   ComponentType,
   Module,
   DetectionRule,
 } from '@living-architecture/riviere-extract-config'
 import { evaluatePredicate } from '../predicate-evaluation/evaluate-predicate'
-
-/** @riviere-role value-object */
-export type GlobMatcher = (path: string, pattern: string) => boolean
-
-/** @riviere-role value-object */
-export interface DraftComponent {
-  type: string
-  name: string
-  location: {
-    file: string
-    line: number
-  }
-  domain: string
-  module: string
-}
+import { DraftComponent } from './draft-component'
 
 const COMPONENT_TYPES: ComponentType[] = [
   'api',
@@ -43,33 +27,18 @@ const COMPONENT_TYPES: ComponentType[] = [
 export function extractComponents(
   project: Project,
   sourceFilePaths: string[],
-  config: ResolvedExtractionConfig,
-  globMatcher: GlobMatcher,
-  configDir?: string,
+  module: Module,
 ): DraftComponent[] {
-  return sourceFilePaths.flatMap((filePath) =>
-    extractFromFile(project, filePath, config, globMatcher, configDir),
-  )
+  return sourceFilePaths.flatMap((filePath) => extractFromFile(project, filePath, module))
 }
 
-function extractFromFile(
-  project: Project,
-  filePath: string,
-  config: ResolvedExtractionConfig,
-  globMatcher: GlobMatcher,
-  configDir?: string,
-): DraftComponent[] {
+function extractFromFile(project: Project, filePath: string, module: Module): DraftComponent[] {
   const sourceFile = project.getSourceFile(filePath)
   if (sourceFile === undefined) {
     return []
   }
 
-  const matchingModule = findMatchingModule(filePath, config.modules, globMatcher, configDir)
-  if (matchingModule === undefined) {
-    return []
-  }
-
-  return extractFromModule(sourceFile, filePath, matchingModule)
+  return extractFromModule(sourceFile, filePath, module)
 }
 
 /** @riviere-role value-object */
@@ -232,7 +201,7 @@ function createClassComponent(
   }
 
   return [
-    {
+    new DraftComponent({
       type: componentType,
       name,
       location: {
@@ -241,7 +210,7 @@ function createClassComponent(
       },
       domain: context.domain,
       module: context.module,
-    },
+    }),
   ]
 }
 
@@ -254,7 +223,7 @@ function createMethodComponent(
   const name = method.getName()
 
   return [
-    {
+    new DraftComponent({
       type: componentType,
       name,
       location: {
@@ -263,7 +232,7 @@ function createMethodComponent(
       },
       domain: context.domain,
       module: context.module,
-    },
+    }),
   ]
 }
 
@@ -279,7 +248,7 @@ function createFunctionComponent(
   }
 
   return [
-    {
+    new DraftComponent({
       type: componentType,
       name,
       location: {
@@ -288,21 +257,6 @@ function createFunctionComponent(
       },
       domain: context.domain,
       module: context.module,
-    },
+    }),
   ]
-}
-
-function findMatchingModule(
-  filePath: string,
-  modules: Module[],
-  globMatcher: GlobMatcher,
-  configDir?: string,
-): Module | undefined {
-  const normalized = filePath.replaceAll(/\\+/g, '/')
-  if (configDir === undefined) {
-    return modules.find((m) => globMatcher(normalized, posix.join(m.path, m.glob)))
-  }
-  const normalizedConfigDir = configDir.replaceAll(/\\+/g, '/')
-  const pathToMatch = posix.relative(normalizedConfigDir, normalized)
-  return modules.find((m) => globMatcher(pathToMatch, posix.join(m.path, m.glob)))
 }

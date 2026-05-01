@@ -4,9 +4,7 @@ import { fileURLToPath } from 'node:url'
 import {
   dirname, join 
 } from 'node:path'
-import type {
-  Workflow, WorkflowDeps 
-} from '../features/workflow/domain/workflow'
+import type { Workflow } from '../features/workflow/domain/workflow'
 import type {
   WorkflowState,
   StateName,
@@ -20,6 +18,8 @@ import {
   getGitInfo, runGh 
 } from '../features/workflow/infra/external-clients/git/git'
 import { createGetPrFeedback } from '../features/workflow/infra/external-clients/github/get-pr-feedback'
+
+type WorkflowDeps = Parameters<typeof Workflow.rehydrate>[1]
 
 function sleepMs(ms: number): void {
   Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms)

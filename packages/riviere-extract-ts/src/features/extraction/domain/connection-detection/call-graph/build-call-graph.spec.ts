@@ -4,16 +4,18 @@ import {
 import { ComponentIndex } from '../component-index'
 import { ConnectionDetectionError } from '../connection-detection-error'
 import { buildCallGraph } from './build-call-graph'
-import type { CallGraphOptions } from './call-graph-types'
+import { CallGraphOptions } from './call-graph-types'
 import {
   sharedProject, nextFile, buildComponent, defaultOptions 
 } from './call-graph-fixtures'
 
 function strictOptions(): CallGraphOptions {
-  return {
-    ...defaultOptions(),
+  const defaults = defaultOptions()
+  return new CallGraphOptions({
     strict: true,
-  }
+    sourceFilePaths: defaults.sourceFilePaths,
+    repository: defaults.repository,
+  })
 }
 
 describe('buildCallGraph', () => {

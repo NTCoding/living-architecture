@@ -13,6 +13,7 @@ type RoleName =
   | 'command-use-case-result'
   | 'command-use-case-result-value'
   | 'domain-error'
+  | 'domain-event'
   | 'domain-service'
   | 'external-client-error'
   | 'external-client-model'
@@ -73,8 +74,19 @@ export const allRoles = [
       },
     ],
   }),
-  role('value-object', { targets: ['interface', 'type-alias', 'class'] }),
+  role('value-object', {
+    targets: ['interface', 'type-alias', 'class'],
+    forbiddenCallableMembers: true,
+    forbiddenSupertypes: ['Error'],
+    requiredPrivateMembers: ['brand'],
+    requiresDataMembers: true,
+    forbiddenDependencies: ['aggregate', 'domain-service'],
+  }),
   role('domain-error', { targets: ['class'] }),
+  role('domain-event', {
+    targets: ['type-alias'],
+    nameMatches: '.*Event$',
+  }),
   role('domain-service', { targets: ['function', 'class'] }),
   role('query-model-use-case', {
     targets: ['class'],

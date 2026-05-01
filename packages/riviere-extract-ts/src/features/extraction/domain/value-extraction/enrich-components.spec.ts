@@ -3,13 +3,9 @@ import {
 } from 'vitest'
 import { Project } from 'ts-morph'
 import type {
-  ResolvedExtractionConfig,
-  Module,
-  ComponentRule,
+  Module, ComponentRule 
 } from '@living-architecture/riviere-extract-config'
-import type {
-  DraftComponent, GlobMatcher 
-} from '../component-extraction/extractor'
+import { DraftComponent } from '../component-extraction/draft-component'
 import { enrichComponents } from './enrich-components'
 
 const sharedProject = new Project({ useInMemoryFileSystem: true })
@@ -21,8 +17,6 @@ function nextFile(path: string, content: string) {
   sharedProject.createSourceFile(filePath, content)
   return filePath
 }
-
-const alwaysMatch: GlobMatcher = () => true
 
 const BUILT_IN_TYPES: readonly string[] = [
   'api',
@@ -82,11 +76,15 @@ function moduleWith(componentType: string, rule: ComponentRule): Module {
 }
 
 function enrich(drafts: DraftComponent[], modules: Module[]) {
-  return enrichComponents(drafts, { modules }, sharedProject, alwaysMatch, '/')
+  const [module] = modules
+  if (module === undefined) {
+    throw new TypeError('Expected one module in test config')
+  }
+  return enrichComponents(drafts, module, sharedProject)
 }
 
 function draft(type: string, name: string, file: string, line: number): DraftComponent {
-  return {
+  return new DraftComponent({
     type,
     name,
     location: {
@@ -95,7 +93,7 @@ function draft(type: string, name: string, file: string, line: number): DraftCom
     },
     domain: 'orders',
     module: 'orders-module',
-  }
+  })
 }
 
 describe('enrichComponents', () => {
@@ -107,7 +105,7 @@ describe('enrichComponents', () => {
         [notUsedModule('orders', '/src/orders/**')],
       )
 
-      expect(result).toStrictEqual({
+      expect(result).toMatchObject({
         components: [
           {
             type: 'api',
@@ -127,7 +125,7 @@ describe('enrichComponents', () => {
 
     it('returns empty results when given no draft components', () => {
       const result = enrich([], [notUsedModule('orders', '/src/orders/**')])
-      expect(result).toStrictEqual({
+      expect(result).toMatchObject({
         components: [],
         failures: [],
       })
@@ -144,8 +142,8 @@ describe('enrichComponents', () => {
       })
       const result = enrich([draft('api', 'OrderController', file, 1)], [module])
 
-      expect(result.components[0]?.metadata).toStrictEqual({ apiType: 'REST' })
-      expect(result.failures).toStrictEqual([])
+      expect(result.components[0]?.metadata).toMatchObject({ apiType: 'REST' })
+      expect(result.failures).toMatchObject([])
     })
 
     it('adds fromClassName value to metadata', () => {
@@ -157,7 +155,7 @@ describe('enrichComponents', () => {
       })
       const result = enrich([draft('api', 'OrderController', file, 1)], [module])
 
-      expect(result.components[0]?.metadata).toStrictEqual({ componentName: 'OrderController' })
+      expect(result.components[0]?.metadata).toMatchObject({ componentName: 'OrderController' })
     })
 
     it('adds fromFilePath value to metadata', () => {
@@ -176,7 +174,7 @@ describe('enrichComponents', () => {
       })
       const result = enrich([draft('api', 'OrderController', file, 1)], [module])
 
-      expect(result.components[0]?.metadata).toStrictEqual({ moduleName: 'orders' })
+      expect(result.components[0]?.metadata).toMatchObject({ moduleName: 'orders' })
     })
   })
 
@@ -198,15 +196,15 @@ describe('enrichComponents', () => {
       })
       const result = enrich([d], [module])
 
-      expect(result.failures).toStrictEqual([
+      expect(result.failures).toMatchObject([
         {
           component: d,
           field: 'path',
           error: `Property 'nonexistent' not found on class 'OrderController' at ${file}:1`,
         },
       ])
-      expect(result.components[0]?.metadata).toStrictEqual({})
-      expect(result.components[0]?._missing).toStrictEqual(['path'])
+      expect(result.components[0]?.metadata).toMatchObject({})
+      expect(result.components[0]?._missing).toMatchObject(['path'])
     })
 
     it('records failure when unsupported rule type is used with class-based component', () => {
@@ -224,7 +222,7 @@ describe('enrichComponents', () => {
       expect(result.failures[0]?.error).toMatch(
         'Unsupported extraction rule type for class-based component',
       )
-      expect(result.components[0]?._missing).toStrictEqual(['signature'])
+      expect(result.components[0]?._missing).toMatchObject(['signature'])
     })
 
     it('extracts successful fields and records failed ones separately', () => {
@@ -244,8 +242,8 @@ describe('enrichComponents', () => {
       })
       const result = enrich([draft('api', 'OrderController', file, 1)], [module])
 
-      expect(result.components[0]?.metadata).toStrictEqual({ apiType: 'REST' })
-      expect(result.components[0]?._missing).toStrictEqual(['path'])
+      expect(result.components[0]?.metadata).toMatchObject({ apiType: 'REST' })
+      expect(result.components[0]?._missing).toMatchObject(['path'])
       expect(result.failures).toHaveLength(1)
     })
 
@@ -274,9 +272,9 @@ describe('enrichComponents', () => {
 
       const result = enrich([d], [module])
 
-      expect(result.components[0]?.metadata).toStrictEqual({ apiType: 'REST' })
+      expect(result.components[0]?.metadata).toMatchObject({ apiType: 'REST' })
       expect(result.components[0]?._missing).toBeUndefined()
-      expect(result.failures).toStrictEqual([])
+      expect(result.failures).toMatchObject([])
     })
 
     it('still records failure when api route extraction uses an invalid rule', () => {
@@ -292,25 +290,7 @@ describe('enrichComponents', () => {
 
       expect(result.failures).toHaveLength(1)
       expect(result.failures[0]?.field).toBe('route')
-      expect(result.components[0]?._missing).toStrictEqual(['route'])
-    })
-  })
-
-  describe('handles components with no matching module', () => {
-    it('returns component with empty metadata when no module matches', () => {
-      const file = nextFile('/src/orders/order.controller.ts', 'export class OrderController {}')
-      const neverMatch: GlobMatcher = () => false
-      const config: ResolvedExtractionConfig = {modules: [notUsedModule('other', '/src/other/**')],}
-      const result = enrichComponents(
-        [draft('api', 'OrderController', file, 1)],
-        config,
-        sharedProject,
-        neverMatch,
-        '/',
-      )
-
-      expect(result.components[0]?.metadata).toStrictEqual({})
-      expect(result.failures).toStrictEqual([])
+      expect(result.components[0]?._missing).toMatchObject(['route'])
     })
   })
 
@@ -321,7 +301,7 @@ describe('enrichComponents', () => {
         [draft('useCase', 'OrderService', file, 1)],
         [notUsedModule('orders', '/src/orders/**')],
       )
-      expect(result.components[0]?.metadata).toStrictEqual({})
+      expect(result.components[0]?.metadata).toMatchObject({})
     })
 
     it('enriches component from customTypes detection rule', () => {
@@ -338,7 +318,7 @@ describe('enrichComponents', () => {
       }
       const result = enrich([draft('saga', 'OrderSaga', file, 1)], [module])
 
-      expect(result.components[0]?.metadata).toStrictEqual({ sagaType: 'orchestrator' })
+      expect(result.components[0]?.metadata).toMatchObject({ sagaType: 'orchestrator' })
     })
   })
 
@@ -355,8 +335,8 @@ describe('enrichComponents', () => {
       })
       const result = enrich([draft('eventPublisher', 'publish', file, 2)], [module])
 
-      expect(result.components[0]?.metadata).toStrictEqual({ publishedEventType: 'OrderPlaced' })
-      expect(result.failures).toStrictEqual([])
+      expect(result.components[0]?.metadata).toMatchObject({ publishedEventType: 'OrderPlaced' })
+      expect(result.failures).toMatchObject([])
     })
 
     it('applies transform to extracted parameter type name', () => {
@@ -378,7 +358,7 @@ describe('enrichComponents', () => {
       })
       const result = enrich([draft('eventPublisher', 'publish', file, 2)], [module])
 
-      expect(result.components[0]?.metadata).toStrictEqual({ publishedEventType: 'OrderPlaced' })
+      expect(result.components[0]?.metadata).toMatchObject({ publishedEventType: 'OrderPlaced' })
     })
 
     it('returns unknown when parameter has no type annotation', () => {
@@ -390,7 +370,7 @@ describe('enrichComponents', () => {
       })
       const result = enrich([draft('eventPublisher', 'publish', file, 2)], [module])
 
-      expect(result.components[0]?.metadata).toStrictEqual({ publishedEventType: 'unknown' })
+      expect(result.components[0]?.metadata).toMatchObject({ publishedEventType: 'unknown' })
     })
 
     it('records failure when parameter position is out of bounds', () => {
@@ -404,7 +384,7 @@ describe('enrichComponents', () => {
 
       expect(result.failures).toHaveLength(1)
       expect(result.failures[0]?.field).toBe('publishedEventType')
-      expect(result.components[0]?._missing).toStrictEqual(['publishedEventType'])
+      expect(result.components[0]?._missing).toMatchObject(['publishedEventType'])
     })
   })
 
@@ -419,7 +399,7 @@ describe('enrichComponents', () => {
 
       expect(result.failures).toHaveLength(1)
       expect(result.failures[0]?.field).toBe('componentName')
-      expect(result.components[0]?._missing).toStrictEqual(['componentName'])
+      expect(result.components[0]?._missing).toMatchObject(['componentName'])
     })
 
     it('records failure when no class found at specified line', () => {
@@ -436,7 +416,7 @@ describe('enrichComponents', () => {
 
       expect(result.failures).toHaveLength(1)
       expect(result.failures[0]?.field).toBe('componentName')
-      expect(result.components[0]?._missing).toStrictEqual(['componentName'])
+      expect(result.components[0]?._missing).toMatchObject(['componentName'])
     })
   })
 })

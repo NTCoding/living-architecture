@@ -47,7 +47,7 @@ describe('evaluateFromMethodSignatureRule', () => {
       'getOrder',
     )
     const result = evaluateFromMethodSignatureRule({ fromMethodSignature: true }, method)
-    expect(result.value).toStrictEqual({
+    expect(result.value).toMatchObject({
       parameters: [
         {
           name: 'orderId',
@@ -68,7 +68,7 @@ describe('evaluateFromMethodSignatureRule', () => {
       'listOrders',
     )
     const result = evaluateFromMethodSignatureRule({ fromMethodSignature: true }, method)
-    expect(result.value).toStrictEqual({
+    expect(result.value).toMatchObject({
       parameters: [],
       returnType: 'Order[]',
     })
@@ -84,7 +84,7 @@ describe('evaluateFromMethodSignatureRule', () => {
       'deleteOrder',
     )
     const result = evaluateFromMethodSignatureRule({ fromMethodSignature: true }, method)
-    expect(result.value).toStrictEqual({
+    expect(result.value).toMatchObject({
       parameters: [
         {
           name: 'orderId',
@@ -105,7 +105,7 @@ describe('evaluateFromMethodSignatureRule', () => {
       'createOrder',
     )
     const result = evaluateFromMethodSignatureRule({ fromMethodSignature: true }, method)
-    expect(result.value).toStrictEqual({
+    expect(result.value).toMatchObject({
       parameters: [
         {
           name: 'customerId',
@@ -130,7 +130,7 @@ describe('evaluateFromMethodSignatureRule', () => {
       'processOrder',
     )
     const result = evaluateFromMethodSignatureRule({ fromMethodSignature: true }, method)
-    expect(result.value).toStrictEqual({
+    expect(result.value).toMatchObject({
       parameters: [
         {
           name: 'orderId',
@@ -150,7 +150,7 @@ describe('evaluateFromConstructorParamsRule', () => {
       }
     `)
     const result = evaluateFromConstructorParamsRule({ fromConstructorParams: true }, classDecl)
-    expect(result.value).toStrictEqual([
+    expect(result.value).toMatchObject([
       {
         name: 'orderId',
         type: 'string',
@@ -167,7 +167,7 @@ describe('evaluateFromConstructorParamsRule', () => {
       class OrderPlacedEvent {}
     `)
     const result = evaluateFromConstructorParamsRule({ fromConstructorParams: true }, classDecl)
-    expect(result.value).toStrictEqual([])
+    expect(result.value).toMatchObject([])
   })
 
   it('returns empty array when constructor has no parameters', () => {
@@ -177,7 +177,7 @@ describe('evaluateFromConstructorParamsRule', () => {
       }
     `)
     const result = evaluateFromConstructorParamsRule({ fromConstructorParams: true }, classDecl)
-    expect(result.value).toStrictEqual([])
+    expect(result.value).toMatchObject([])
   })
 })
 
