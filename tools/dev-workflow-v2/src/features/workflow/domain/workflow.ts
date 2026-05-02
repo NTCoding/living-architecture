@@ -30,15 +30,17 @@ import {
   applyEvent, EMPTY_STATE 
 } from './fold'
 import type { PRFeedbackResult } from '../infra/external-clients/github/get-pr-feedback'
-import { z } from 'zod'
+import {
+  buildPullRequestCreationRequest,
+  parsePullRequestDescriptionOptions,
+  type PullRequestCreationRequest,
+} from './pull-request-description'
 
 const PR_FEEDBACK_POLL_INTERVAL_MS = 15_000
 const PR_FEEDBACK_TIMEOUT_MS = 300_000
 const PR_FEEDBACK_MAX_ATTEMPTS =
   Math.floor(PR_FEEDBACK_TIMEOUT_MS / PR_FEEDBACK_POLL_INTERVAL_MS) + 1
 const REQUIRED_CONSECUTIVE_CLEAN_CODERABBIT_POLLS = 2
-
-const CREATE_PR_ARGS_SCHEMA = z.array(z.string())
 
 const RECORDING_OPS_MAP: Record<string, RecordingOpDefinition<readonly never[]>> = {
   'record-issue': {
@@ -77,7 +79,7 @@ const RECORDING_OPS = defineRecordingOps<StateName, WorkflowState, WorkflowOpera
 type WorkflowDeps = {
   readonly getGitInfo: () => GitInfo
   readonly getPrFeedback: (prNumber: number) => PRFeedbackResult
-  readonly createPullRequest: (args: readonly string[]) => CreatedPullRequest
+  readonly createPullRequest: (request: PullRequestCreationRequest) => CreatedPullRequest
   readonly listSessionReviews: () => readonly StoredReview[]
   readonly sleepMs: (ms: number) => void
   readonly now: () => string
@@ -241,22 +243,25 @@ export class Workflow {
     const gate = checkOperationGate('create-pr', this.state, WORKFLOW_REGISTRY)
     if (!gate.pass) return gate
 
-    const parsedArgs = CREATE_PR_ARGS_SCHEMA.safeParse(rawArgs)
-    if (!parsedArgs.success) {
-      return fail(`Expected create-pr arguments to be strings. Got ${String(rawArgs)}.`)
+    if (this.state.githubIssue === undefined) {
+      return fail('githubIssue not set. Record the issue before creating a PR.')
     }
 
-    const createArgs = parsedArgs.data
-    if (createArgs.includes('--draft') || createArgs.includes('-d')) {
-      return fail(
-        'create-pr does not accept --draft or -d. Pull requests must be ready for review.',
-      )
+    const parsedDescription = parsePullRequestDescriptionOptions(rawArgs)
+    if (!parsedDescription.ok) {
+      return fail(parsedDescription.reason)
     }
 
     try {
-      const pullRequest = this.deps.createPullRequest(createArgs)
+      const pullRequestRequest = buildPullRequestCreationRequest(
+        parsedDescription.input,
+        this.state.githubIssue,
+      )
+      const pullRequest = this.deps.createPullRequest(pullRequestRequest)
       if (pullRequest.isDraft) {
-        return fail(`Expected PR #${pullRequest.prNumber} to be ready for review. Got draft PR.`)
+        return fail(
+          `Expected workflow-created PR #${pullRequest.prNumber} to be ready for review. Got draft PR. Transition to BLOCKED; do not use gh pr ready as a workaround.`,
+        )
       }
       this.append({
         type: 'pr-recorded',

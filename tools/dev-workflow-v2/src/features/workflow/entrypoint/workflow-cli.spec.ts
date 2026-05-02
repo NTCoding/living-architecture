@@ -262,10 +262,13 @@ describe('workflow-cli commands', () => {
 
   describe('create-pr', () => {
     it('creates ready pull request and records number and URL', () => {
-      const capturedArgs: string[][] = []
+      const capturedRequests: {
+        readonly title: string
+        readonly body: string
+      }[] = []
       const ctx = setup({
-        createPullRequest: (args) => {
-          capturedArgs.push([...args])
+        createPullRequest: (request) => {
+          capturedRequests.push(request)
           return {
             prNumber: 456,
             prUrl: 'https://github.com/example/repo/pull/456',
@@ -275,10 +278,33 @@ describe('workflow-cli commands', () => {
       })
       progressToState(ctx, 'SUBMITTING_PR')
 
-      const result = runCommand(ctx, ['create-pr', '--title', 'Ready PR'])
+      const result = runCommand(ctx, [
+        'create-pr',
+        '--title',
+        'Ready PR',
+        '--description',
+        'Creates a workflow-owned PR.',
+        '--problem',
+        'Direct PR creation allowed draft PRs.',
+        '--acceptance-criteria',
+        '- PR is ready for review',
+        '--key-changes',
+        '- Add create-pr command',
+        '--architecture-impact',
+        'Workflow owns the body.',
+        '--validation',
+        '- pnpm test',
+        '--notes',
+        'None.',
+      ])
 
       expect(result.exitCode).toStrictEqual(0)
-      expect(capturedArgs).toStrictEqual([['--title', 'Ready PR']])
+      expect(capturedRequests).toStrictEqual([
+        expect.objectContaining({
+          title: 'Ready PR',
+          body: expect.stringContaining('## Acceptance Criteria\n\n- PR is ready for review'),
+        }),
+      ])
       expect(ctx.engineDeps.store.readEvents(ctx.sessionId).map(flattenStoredEvent)).toStrictEqual(
         expect.arrayContaining([
           expect.objectContaining({
@@ -297,7 +323,7 @@ describe('workflow-cli commands', () => {
       const result = runCommand(ctx, ['create-pr', '--draft'])
 
       expect(result.exitCode).toStrictEqual(2)
-      expect(result.output).toContain('create-pr does not accept --draft or -d')
+      expect(result.output).toContain('Expected value after --draft')
     })
   })
 

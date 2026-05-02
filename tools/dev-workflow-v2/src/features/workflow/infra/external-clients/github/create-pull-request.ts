@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import type { PullRequestCreationRequest } from '../../../domain/pull-request-description'
 
 const pullRequestSchema = z.object({
   number: z.number().int().positive(),
@@ -17,31 +18,23 @@ export type CreatedPullRequest = {
 export type GhRunner = (args: string) => string
 
 /** @riviere-role external-client-error */
-class PullRequestCreationError extends Error {
+class PullRequestCreationOutputError extends Error {
   constructor(message: string) {
     super(message)
-    this.name = 'PullRequestCreationError'
+    this.name = 'PullRequestCreationOutputError'
   }
 }
 
 /** @riviere-role external-client-service */
 export function createPullRequestCreator(
   runGh: GhRunner,
-): (args: readonly string[]) => CreatedPullRequest {
-  return (args: readonly string[]): CreatedPullRequest => {
-    const createOutput = runGh(toCommandArgs(['pr', 'create', ...args]))
+): (request: PullRequestCreationRequest) => CreatedPullRequest {
+  return (request: PullRequestCreationRequest): CreatedPullRequest => {
+    const createOutput = runGh(
+      toCommandArgs(['pr', 'create', '--title', request.title, '--body', request.body]),
+    )
     const pullRequestReference = readPullRequestReference(createOutput)
-    const createdPullRequest = readPullRequest(runGh, pullRequestReference)
-    if (!createdPullRequest.isDraft) return createdPullRequest
-
-    runGh(toCommandArgs(['pr', 'ready', String(createdPullRequest.prNumber)]))
-    const readyPullRequest = readPullRequest(runGh, String(createdPullRequest.prNumber))
-    if (readyPullRequest.isDraft) {
-      throw new PullRequestCreationError(
-        `Expected PR #${readyPullRequest.prNumber} to be ready for review. Got draft PR.`,
-      )
-    }
-    return readyPullRequest
+    return readPullRequest(runGh, pullRequestReference)
   }
 }
 
@@ -56,7 +49,7 @@ function quoteShellArg(value: string): string {
 function readPullRequestReference(createOutput: string): string {
   const trimmedOutput = createOutput.trim()
   if (trimmedOutput.length === 0) {
-    throw new PullRequestCreationError(
+    throw new PullRequestCreationOutputError(
       'Expected gh pr create to print a pull request URL. Got empty output.',
     )
   }

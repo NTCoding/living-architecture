@@ -6,40 +6,54 @@ You are creating or updating the pull request.
 
 - [ ] Push the branch: `git push -u origin <branch-name>`
 - [ ] Run `/dev-workflow-v2:workflow get-state` and extract `githubIssue` from its JSON output
-- [ ] Create the PR with `/dev-workflow-v2:workflow create-pr <args...>`. Pass the same arguments that would be passed to `gh pr create`, except do not pass `--draft` or `-d`. The command records the PR and verifies that it is ready for review.
-- [ ] Use a clear, well-articulated body that uses this template:
+- [ ] Create the PR with `/dev-workflow-v2:workflow create-pr` and all required options below. The workflow owns the PR structure and records the PR.
+
+  ```bash
+  /dev-workflow-v2:workflow create-pr \
+    --title "<PR title>" \
+    --description "<What this PR changes.>" \
+    --problem "<Problem statement and why this change is needed.>" \
+    --acceptance-criteria "<Acceptance criteria satisfied by this PR.>" \
+    --key-changes "<Important implementation changes.>" \
+    --architecture-impact "<Architecture impact, or None.>" \
+    --validation "<Validation commands and results.>" \
+    --notes "<Follow-ups, caveats, or None.>"
+  ```
+
+  The command creates this exact PR body structure:
 
   ```md
   ## Description
 
-  <Clear explanation of what this PR does.>
+  <from --description>
 
   ## Linked Issue
 
-  Closes #<issue-number>
+  Closes #<from recorded githubIssue>
 
   ## What Problem Does This PR Solve?
 
-  <Problem statement and why this change is needed.>
+  <from --problem>
+
+  ## Acceptance Criteria
+
+  <from --acceptance-criteria>
 
   ## Key Changes
 
-  - <change 1>
-  - <change 2>
-  - <change 3>
+  <from --key-changes>
 
   ## Notable Architectural Changes / Impact
 
-  <Architectural impact, or "None.">
+  <from --architecture-impact>
 
   ## Validation
 
-  - <command>
-  - <command>
+  <from --validation>
 
   ## Notes
 
-  <Follow-ups, caveats, or "None.">
+  <from --notes>
   ```
 
 - [ ] Transition to AWAITING_CI: `/dev-workflow-v2:workflow transition AWAITING_CI`
@@ -47,7 +61,8 @@ You are creating or updating the pull request.
 ## Constraints
 
 - `git push` is ALLOWED in this state (exempted from the global block)
-- Do not call `gh pr create` directly. Use `/dev-workflow-v2:workflow create-pr <args...>` so the workflow verifies that the PR is not a draft and records the PR.
-- The PR body MUST contain `Closes #<issue-number>` in the `Linked Issue` section, using the `githubIssue` value extracted from `/dev-workflow-v2:workflow get-state`
+- Do not call `gh pr create` directly. Use `/dev-workflow-v2:workflow create-pr` with the required options so the workflow creates the standard PR body, adds `Closes #<issue-number>` from recorded state, creates a ready-for-review PR, and records the PR.
+- Do not pass raw `gh pr create` flags. The only accepted options are `--title`, `--description`, `--problem`, `--acceptance-criteria`, `--key-changes`, `--architecture-impact`, `--validation`, and `--notes`.
+- If `create-pr` fails, retry with correct required options or transition to BLOCKED. Do not use `gh pr create`, `gh pr ready`, or `record-pr` as a workaround.
 - Cannot transition to AWAITING_CI unless prNumber is recorded
 - If blocked, transition to BLOCKED: `/dev-workflow-v2:workflow transition BLOCKED`
