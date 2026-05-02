@@ -5,10 +5,11 @@ Find the next available task, considering parallel work streams.
 ## Workflow
 
 1. List tasks from all active PRD milestones:
-   - Scan `docs/project/PRD/active/` for active PRD files to find milestone names
+   - Scan `docs/project/PRD/*/marker.yml` for active PRD folders
+   - Read `docs/project/PRD/<planningId>/PRD.md` for each active folder to find milestone names
    - For each milestone: `gh issue list --milestone "<milestone>" --state open --json number,title,assignees,body,labels`
    - Non-milestone tasks: `gh issue list --label "idea" --no-milestone --state open --json number,title,assignees,body,labels` (repeat for `bug`, `tech improvement`)
-2. Read active PRD(s) from `docs/project/PRD/active/`
+2. Read active PRD(s) from `docs/project/PRD/<planningId>/PRD.md`
 3. Parse each PRD's Parallelization section to identify tracks (requires YAML track definitions)
 4. Map tasks to tracks via deliverable refs in task body
 5. Identify busy tracks (tasks with assignees)
@@ -96,7 +97,7 @@ PRD12-B: #167 - Create conventions interfaces (earliest PRD track)
 - **All tracks busy**: Recommend non-milestone task (bugs/tech/ideas) first
 - **No tasks available**: Report "No unassigned tasks available"
 - **Multiple active PRDs**: Analyze tracks across all PRDs, prefer earlier PRD
-- **No active PRD directory**: If `docs/project/PRD/active/` is empty or missing, report "No active PRDs found" and fall back to non-milestone tasks only
+- **No active PRD folder**: If no `docs/project/PRD/*/marker.yml` file is active, report "No active PRDs found" and fall back to non-milestone tasks only
 
 ## After Confirmation
 

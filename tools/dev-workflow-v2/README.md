@@ -20,7 +20,7 @@ Claude Code creates the worktree. The plugin owns everything from task selection
 /dev-workflow-v2:start-planning <topic>
 ```
 
-Creates the planning marker and PRD file for a new planning topic.
+Creates the planning folder, marker, and PRD file for a new planning topic.
 
 ```bash
 /dev-workflow-v2:planning-status
@@ -30,11 +30,13 @@ Prints the active planning marker, current stage, derived artifact paths, blocke
 
 ## Planning marker
 
-Planning topics use one small marker file at `docs/project/planning/<slug>.yml`.
+Planning topics use one folder per PRD at `docs/project/PRD/<slug>/`.
 
 Derive `<slug>` from the planning topic by lowercasing it, replacing non-alphanumeric characters with hyphens, collapsing repeated hyphens, and trimming leading and trailing hyphens.
 
-The workflow selects the active planning marker from `docs/project/planning/*.yml`, where active means the marker file parses and its `stage` is one of `prd-drafting`, `prd-approval`, `architecture-drafting`, `architecture-approval`, or `task-creation`.
+The folder stores `marker.yml`, `PRD.md`, and `ARCH.md`.
+
+The workflow selects the active planning marker from `docs/project/PRD/*/marker.yml`, where active means the marker file parses and its `stage` is one of `prd-drafting`, `prd-approval`, `architecture-drafting`, `architecture-approval`, or `task-creation`.
 
 If there is exactly one active marker, `planning-status` and `continue-planning` use it.
 

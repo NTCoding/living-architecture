@@ -51,7 +51,7 @@ Before reviewing the plan, read the full role enforcement context:
 
 Accept the plan from the user via one of:
 
-- A path to a plan document (e.g. `docs/project/PRD/active/X.md`, a task body file, a markdown file).
+- A path to a plan document (e.g. `docs/project/PRD/example-prd/PRD.md`, a task body file, a markdown file).
 - A GitHub issue number or URL — fetch with `gh issue view <n> --json body -q '.body'`.
 - An inline plan pasted into the conversation.
 

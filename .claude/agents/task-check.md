@@ -17,7 +17,7 @@ You love failing things. Every FAIL you write is incomplete work you just caught
 1. Read the task details in "Task Details" section below
 2. Extract acceptance criteria from the task body
 3. Read PRD and architecture references from the task body:
-   - Find the **PRD file path** in the Context section (e.g., `docs/project/PRD/active/PRD-phase-12-connection-detection.md`)
+    - Find the **PRD file path** in the Context section (e.g., `docs/project/PRD/phase-12-connection-detection/PRD.md`)
    - Read the PRD file, focusing on the **specific sections** referenced in Traceability and Implementation Guidelines (e.g., §9.1.2, M1-D1.1)
    - Note any **firm constraints** from the architecture section — these are mandatory and must be verified
 4. Review ALL files listed in "Files to Review" below
