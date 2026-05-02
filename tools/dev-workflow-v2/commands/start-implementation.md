@@ -4,7 +4,7 @@ Start implementing a task after planning is complete. Sets up the branch and ini
 
 ## Arguments
 
-The user provides a **GitHub issue number** — e.g. `#123` or `123`.
+The user provides a **GitHub issue number** — use `123`, not `#123`.
 
 ## Step 1: Set up the branch
 

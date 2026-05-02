@@ -54,7 +54,13 @@ Renames the worktree branch to match the issue, reads the issue details, initial
 
 Planning topics use one small marker file at `docs/project/planning/<slug>.yml`.
 
-The active planning marker is the only file under `docs/project/planning/` whose `stage` is not `planning-complete`.
+The workflow selects the active planning marker from `docs/project/planning/*.yml`.
+
+If there is exactly one active marker, the planning commands use it.
+
+If there is no active marker, the planning commands stop.
+
+If there is more than one active marker, the planning commands stop and report all of them.
 
 The marker stores only:
 
