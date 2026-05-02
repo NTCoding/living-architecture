@@ -7,6 +7,8 @@ const pullRequestSchema = z.object({
   isDraft: z.boolean(),
 })
 
+const createPullRequestOutputSchema = z.object({url: z.string().url(),})
+
 /** @riviere-role external-client-model */
 export type CreatedPullRequest = {
   readonly prNumber: number
@@ -31,10 +33,19 @@ export function createPullRequestCreator(
 ): (request: PullRequestCreationRequest) => CreatedPullRequest {
   return (request: PullRequestCreationRequest): CreatedPullRequest => {
     const createOutput = runGh(
-      toCommandArgs(['pr', 'create', '--title', request.title, '--body', request.body]),
+      toCommandArgs([
+        'pr',
+        'create',
+        '--title',
+        request.title,
+        '--body',
+        request.body,
+        '--json',
+        'url',
+      ]),
     )
-    const pullRequestReference = readPullRequestReference(createOutput)
-    return readPullRequest(runGh, pullRequestReference)
+    const pullRequestUrl = readPullRequestUrl(createOutput)
+    return readPullRequest(runGh, pullRequestUrl)
   }
 }
 
@@ -46,19 +57,21 @@ function quoteShellArg(value: string): string {
   return `'${value.replaceAll("'", "'\\''")}'`
 }
 
-function readPullRequestReference(createOutput: string): string {
+function readPullRequestUrl(createOutput: string): string {
   const trimmedOutput = createOutput.trim()
   if (trimmedOutput.length === 0) {
     throw new PullRequestCreationOutputError(
-      'Expected gh pr create to print a pull request URL. Got empty output.',
+      'Expected gh pr create to return JSON with a url field. Got empty output.',
     )
   }
 
-  const lastSpaceIndex = trimmedOutput.lastIndexOf(' ')
-  const lastNewlineIndex = trimmedOutput.lastIndexOf('\n')
-  const lastTabIndex = trimmedOutput.lastIndexOf('\t')
-  const referenceStartIndex = Math.max(lastSpaceIndex, lastNewlineIndex, lastTabIndex) + 1
-  return z.string().parse(trimmedOutput.slice(referenceStartIndex))
+  try {
+    return createPullRequestOutputSchema.parse(JSON.parse(trimmedOutput)).url
+  } catch {
+    throw new PullRequestCreationOutputError(
+      `Expected gh pr create to return JSON with a url field. Got: ${trimmedOutput}`,
+    )
+  }
 }
 
 function readPullRequest(runGh: GhRunner, pullRequestReference: string): CreatedPullRequest {

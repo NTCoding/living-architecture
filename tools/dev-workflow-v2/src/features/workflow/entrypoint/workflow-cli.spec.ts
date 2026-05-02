@@ -324,6 +324,12 @@ describe('workflow-cli commands', () => {
 
       expect(result.exitCode).toStrictEqual(2)
       expect(result.output).toContain('Expected value after --draft')
+      expect(
+        ctx.engineDeps.store
+          .readEvents(ctx.sessionId)
+          .map(flattenStoredEvent)
+          .filter((event) => event.type === 'pr-recorded'),
+      ).toStrictEqual([])
     })
   })
 

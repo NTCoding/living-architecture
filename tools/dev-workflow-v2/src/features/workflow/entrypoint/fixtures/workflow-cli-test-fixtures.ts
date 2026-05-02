@@ -136,7 +136,12 @@ export function progressToState(ctx: TestContext, targetState: string): void {
         )
       }
       const reviewType = step[1]
-      const verdict = step[2] === 'FAIL' ? 'FAIL' : 'PASS'
+      const verdict = step[2]
+      if (verdict !== 'PASS' && verdict !== 'FAIL') {
+        throw new WorkflowStateError(
+          "Expected record-review test step shape ['record-review', <reviewType>, <PASS|FAIL>].",
+        )
+      }
       runReviewCommand(ctx, reviewType, {
         verdict,
         summary: verdict === 'PASS' ? `${reviewType} passed` : `${reviewType} failed`,

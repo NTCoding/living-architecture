@@ -28,12 +28,6 @@ Creates the planning marker and PRD file for a new planning topic.
 
 Prints the active planning marker, current stage, derived artifact paths, blockers, and next command.
 
-```bash
-/dev-workflow-v2:continue-planning
-```
-
-Checks the current planning stage once and advances only when the current artifact passes its checks.
-
 ## Planning marker
 
 Planning topics use one small marker file at `docs/project/planning/<slug>.yml`.
@@ -66,6 +60,12 @@ Artifact paths are derived from `planningId`.
 4. architecture approval
 5. task creation on GitHub
 6. planning complete
+
+```bash
+/dev-workflow-v2:continue-planning
+```
+
+Checks the current planning stage once and advances only when the current artifact passes its checks.
 
 ### Planning to implementation bridge
 

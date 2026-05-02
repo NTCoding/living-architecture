@@ -9,7 +9,7 @@ describe('createPullRequestCreator', () => {
     const createPullRequest = createPullRequestCreator((args) => {
       calls.push(args)
       if (args.startsWith("'pr' 'create'")) {
-        return 'https://github.com/example/repo/pull/123\n'
+        return JSON.stringify({url: 'https://github.com/example/repo/pull/123',})
       }
       return JSON.stringify({
         number: 123,
@@ -29,7 +29,7 @@ describe('createPullRequestCreator', () => {
       isDraft: false,
     })
     expect(calls).toStrictEqual([
-      "'pr' 'create' '--title' 'Ready PR' '--body' '## Description\n\nCreates a ready PR.'",
+      "'pr' 'create' '--title' 'Ready PR' '--body' '## Description\n\nCreates a ready PR.' '--json' 'url'",
       "'pr' 'view' 'https://github.com/example/repo/pull/123' '--json' 'number,url,isDraft'",
     ])
   })
@@ -39,7 +39,7 @@ describe('createPullRequestCreator', () => {
     const createPullRequest = createPullRequestCreator((args) => {
       calls.push(args)
       if (args.startsWith("'pr' 'create'")) {
-        return 'https://github.com/example/repo/pull/123\n'
+        return JSON.stringify({url: 'https://github.com/example/repo/pull/123',})
       }
       return JSON.stringify({
         number: 123,
@@ -59,7 +59,7 @@ describe('createPullRequestCreator', () => {
       isDraft: true,
     })
     expect(calls).toStrictEqual([
-      "'pr' 'create' '--title' 'Ready PR' '--body' '## Description\n\nCreates a ready PR.'",
+      "'pr' 'create' '--title' 'Ready PR' '--body' '## Description\n\nCreates a ready PR.' '--json' 'url'",
       "'pr' 'view' 'https://github.com/example/repo/pull/123' '--json' 'number,url,isDraft'",
     ])
   })
@@ -72,6 +72,28 @@ describe('createPullRequestCreator', () => {
         title: 'Ready PR',
         body: '## Description\n\nCreates a ready PR.',
       }),
-    ).toThrow('Expected gh pr create to print a pull request URL. Got empty output.')
+    ).toThrow('Expected gh pr create to return JSON with a url field. Got empty output.')
+  })
+
+  it('throws when create command returns non-json output', () => {
+    const createPullRequest = createPullRequestCreator(() => 'not-json')
+
+    expect(() =>
+      createPullRequest({
+        title: 'Ready PR',
+        body: '## Description\n\nCreates a ready PR.',
+      }),
+    ).toThrow('Expected gh pr create to return JSON with a url field. Got: not-json')
+  })
+
+  it('throws when create command returns json without a url', () => {
+    const createPullRequest = createPullRequestCreator(() => JSON.stringify({}))
+
+    expect(() =>
+      createPullRequest({
+        title: 'Ready PR',
+        body: '## Description\n\nCreates a ready PR.',
+      }),
+    ).toThrow('Expected gh pr create to return JSON with a url field. Got: {}')
   })
 })

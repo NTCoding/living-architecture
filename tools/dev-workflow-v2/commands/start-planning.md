@@ -15,15 +15,16 @@ The user provides a planning topic name.
 5. Derive `<slug>` by lowercasing the topic, replacing non-alphanumeric characters with hyphens, collapsing repeated hyphens, and trimming leading and trailing hyphens.
 6. Stop if slug derivation produces an empty string.
 7. Stop if `docs/project/planning/<slug>.yml` already exists.
-8. Create the PRD file for the topic at the derived path from `planningId`.
+8. Create the planning marker at `docs/project/planning/<slug>.yml`.
 9. Initialize the marker with:
-   - `planningId`
-   - `stage: prd-drafting`
-   - `githubMilestone: null`
-   - `githubIssuesCreated: false`
-   - `githubIssueNumbers: []`
-10. Create the planning marker at `docs/project/planning/<slug>.yml`.
-11. Print the planning ID, marker path, PRD path, and next command.
+    - `planningId`
+    - `stage: prd-drafting`
+    - `githubMilestone: null`
+    - `githubIssuesCreated: false`
+    - `githubIssueNumbers: []`
+10. Create the PRD file for the topic at the derived path from `planningId`.
+11. If the PRD write fails after the marker exists, delete the marker and stop with an error.
+12. Print the planning ID, marker path, PRD path, and next command.
 
 ## Result
 
