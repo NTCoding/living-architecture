@@ -29,6 +29,11 @@ export const ROUTES = defineRoutes<Workflow, WorkflowState>({
     args: [arg.number('number'), arg.string('url').optional()],
     handler: (w, n, url) => w.executeRecording('record-pr', n, url),
   },
+  'create-pr': {
+    type: 'transaction',
+    args: [arg.rest()],
+    handler: (w, createArgs) => w.createPr(createArgs),
+  },
   'record-ci-passed': {
     type: 'transaction',
     args: [],

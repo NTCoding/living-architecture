@@ -18,6 +18,7 @@ import {
   getGitInfo, runGh 
 } from '../features/workflow/infra/external-clients/git/git'
 import { createGetPrFeedback } from '../features/workflow/infra/external-clients/github/get-pr-feedback'
+import { createPullRequestCreator } from '../features/workflow/infra/external-clients/github/create-pull-request'
 
 type WorkflowDeps = Parameters<typeof Workflow.rehydrate>[1]
 
@@ -121,6 +122,7 @@ const basePlugin = createOpenCodeWorkflowPlugin<
   buildWorkflowDeps: (platform) => ({
     getGitInfo,
     getPrFeedback: createGetPrFeedback(runGh),
+    createPullRequest: createPullRequestCreator(runGh),
     listSessionReviews: () => platform.store.listSessionReviews(platform.getSessionId()),
     sleepMs,
     now: platform.now,

@@ -22,4 +22,4 @@ If CodeRabbit feedback appears and is not clean, the workflow transitions direct
 ## Constraints
 
 - Do not attempt to perform manual work in this state
-- If this state does not advance automatically, transition to BLOCKED and explain the problem to the user
+- If this state does not advance automatically, do not transition manually. The workflow must publish `pr-feedback-verification-failed` with a reason before it transitions to BLOCKED.

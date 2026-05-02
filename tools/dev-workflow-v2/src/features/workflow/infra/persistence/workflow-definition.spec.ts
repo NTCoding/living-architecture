@@ -23,6 +23,11 @@ function makeWorkflowDeps(): WorkflowDeps {
       unresolvedCount: 0,
       threads: [],
     }),
+    createPullRequest: () => ({
+      prNumber: 1,
+      prUrl: 'https://github.com/example/repo/pull/1',
+      isDraft: false,
+    }),
     listSessionReviews: () => [],
     sleepMs: () => undefined,
     now: () => '2026-01-01T00:00:00Z',

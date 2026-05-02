@@ -95,6 +95,11 @@ function applyReviewEvent(state: WorkflowState, event: WorkflowEvent): WorkflowS
         ...state,
         feedbackAddressed: true,
       }
+    case 'pr-feedback-verification-failed':
+      return {
+        ...state,
+        prFeedbackVerificationFailedReason: event.reason,
+      }
     case 'review-recorded':
       return applyRecordedReviewVerdict(state, event)
   }

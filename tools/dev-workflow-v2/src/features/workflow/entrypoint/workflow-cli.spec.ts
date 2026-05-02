@@ -260,6 +260,47 @@ describe('workflow-cli commands', () => {
     })
   })
 
+  describe('create-pr', () => {
+    it('creates ready pull request and records number and URL', () => {
+      const capturedArgs: string[][] = []
+      const ctx = setup({
+        createPullRequest: (args) => {
+          capturedArgs.push([...args])
+          return {
+            prNumber: 456,
+            prUrl: 'https://github.com/example/repo/pull/456',
+            isDraft: false,
+          }
+        },
+      })
+      progressToState(ctx, 'SUBMITTING_PR')
+
+      const result = runCommand(ctx, ['create-pr', '--title', 'Ready PR'])
+
+      expect(result.exitCode).toStrictEqual(0)
+      expect(capturedArgs).toStrictEqual([['--title', 'Ready PR']])
+      expect(ctx.engineDeps.store.readEvents(ctx.sessionId).map(flattenStoredEvent)).toStrictEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            type: 'pr-recorded',
+            prNumber: 456,
+            prUrl: 'https://github.com/example/repo/pull/456',
+          }),
+        ]),
+      )
+    })
+
+    it('blocks when draft flag is provided', () => {
+      const ctx = setup()
+      progressToState(ctx, 'SUBMITTING_PR')
+
+      const result = runCommand(ctx, ['create-pr', '--draft'])
+
+      expect(result.exitCode).toStrictEqual(2)
+      expect(result.output).toContain('create-pr does not accept --draft or -d')
+    })
+  })
+
   describe('record-ci-passed', () => {
     it('records CI passed in AWAITING_CI state', () => {
       const ctx = setup()

@@ -189,6 +189,95 @@ describe('Workflow', () => {
       const { result } = spec.given().when((wf) => wf.executeRecording('record-pr', 1))
       expect(result.pass).toBe(false)
     })
+
+    it('blocks create-pr outside SUBMITTING_PR state', () => {
+      const workflow = Workflow.createFresh(makeDeps())
+
+      const result = workflow.createPr(['--title', 'Ready PR'])
+
+      expect(result.pass).toBe(false)
+      expect(workflow.getState().prNumber).toBeUndefined()
+    })
+
+    it('records ready pull request when create-pr succeeds', () => {
+      const capturedArgs: string[][] = []
+      const workflow = Workflow.rehydrate(
+        applyEvents(eventsToSubmittingPr()),
+        makeDeps({
+          createPullRequest: (args) => {
+            capturedArgs.push([...args])
+            return {
+              prNumber: 123,
+              prUrl: 'https://github.com/x/y/pull/123',
+              isDraft: false,
+            }
+          },
+        }),
+      )
+
+      const result = workflow.createPr(['--title', 'Add workflow create-pr'])
+
+      expect(result).toStrictEqual({ pass: true })
+      expect(capturedArgs).toStrictEqual([['--title', 'Add workflow create-pr']])
+      expect(workflow.getState()).toMatchObject({
+        prNumber: 123,
+        prUrl: 'https://github.com/x/y/pull/123',
+      })
+    })
+
+    it('does not record pull request when create-pr returns draft pull request', () => {
+      const workflow = Workflow.rehydrate(
+        applyEvents(eventsToSubmittingPr()),
+        makeDeps({
+          createPullRequest: () => ({
+            prNumber: 123,
+            prUrl: 'https://github.com/x/y/pull/123',
+            isDraft: true,
+          }),
+        }),
+      )
+
+      const result = workflow.createPr(['--title', 'Add workflow create-pr'])
+
+      expect(result.pass).toBe(false)
+      expect(workflow.getState().prNumber).toBeUndefined()
+      expect(workflow.getPendingEvents()).toStrictEqual([])
+    })
+
+    it('rejects draft flag when creating pull request', () => {
+      const workflow = Workflow.rehydrate(applyEvents(eventsToSubmittingPr()), makeDeps())
+
+      const result = workflow.createPr(['--draft'])
+
+      expect(result.pass).toBe(false)
+      expect(workflow.getState().prNumber).toBeUndefined()
+    })
+
+    it('rejects non-string arguments when creating pull request', () => {
+      const workflow = Workflow.rehydrate(applyEvents(eventsToSubmittingPr()), makeDeps())
+
+      const result = workflow.createPr([123])
+
+      expect(result.pass).toBe(false)
+      expect(workflow.getState().prNumber).toBeUndefined()
+    })
+
+    it('does not record pull request when create-pr command fails', () => {
+      const workflow = Workflow.rehydrate(
+        applyEvents(eventsToSubmittingPr()),
+        makeDeps({
+          createPullRequest: () => {
+            throw new WorkflowStateError('GitHub refused pull request creation')
+          },
+        }),
+      )
+
+      const result = workflow.createPr(['--title', 'Add workflow create-pr'])
+
+      expect(result.pass).toBe(false)
+      expect(workflow.getState().prNumber).toBeUndefined()
+      expect(workflow.getPendingEvents()).toStrictEqual([])
+    })
   })
 
   describe('AWAITING_CI state', () => {

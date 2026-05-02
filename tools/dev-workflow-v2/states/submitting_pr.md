@@ -6,7 +6,8 @@ You are creating or updating the pull request.
 
 - [ ] Push the branch: `git push -u origin <branch-name>`
 - [ ] Run `/dev-workflow-v2:workflow get-state` and extract `githubIssue` from its JSON output
-- [ ] Create or update the PR with a clear, well-articulated body that uses this template:
+- [ ] Create the PR with `/dev-workflow-v2:workflow create-pr <args...>`. Pass the same arguments that would be passed to `gh pr create`, except do not pass `--draft` or `-d`. The command records the PR and verifies that it is ready for review.
+- [ ] Use a clear, well-articulated body that uses this template:
 
   ```md
   ## Description
@@ -41,12 +42,12 @@ You are creating or updating the pull request.
   <Follow-ups, caveats, or "None.">
   ```
 
-- [ ] Record the PR: `/dev-workflow-v2:workflow record-pr <PR_NUMBER> [PR_URL]`
 - [ ] Transition to AWAITING_CI: `/dev-workflow-v2:workflow transition AWAITING_CI`
 
 ## Constraints
 
-- `git push` and `gh pr` are ALLOWED in this state (exempted from the global block)
+- `git push` is ALLOWED in this state (exempted from the global block)
+- Do not call `gh pr create` directly. Use `/dev-workflow-v2:workflow create-pr <args...>` so the workflow verifies that the PR is not a draft and records the PR.
 - The PR body MUST contain `Closes #<issue-number>` in the `Linked Issue` section, using the `githubIssue` value extracted from `/dev-workflow-v2:workflow get-state`
 - Cannot transition to AWAITING_CI unless prNumber is recorded
 - If blocked, transition to BLOCKED: `/dev-workflow-v2:workflow transition BLOCKED`

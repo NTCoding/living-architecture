@@ -39,6 +39,7 @@ export function buildTestContext(
   overrides: Partial<{
     readonly sessionId: string
     readonly getPrFeedback: WorkflowDeps['getPrFeedback']
+    readonly createPullRequest: WorkflowDeps['createPullRequest']
   }> = {},
 ): TestContext {
   const tempDir = mkdtempSync(join(tmpdir(), 'wf-cli-'))
@@ -71,6 +72,13 @@ export function buildTestContext(
         coderabbitReviewSeen: false,
         unresolvedCount: 0,
         threads: [],
+      })),
+    createPullRequest:
+      overrides.createPullRequest ??
+      (() => ({
+        prNumber: 123,
+        prUrl: 'https://github.com/example/repo/pull/123',
+        isDraft: false,
       })),
     listSessionReviews: () => store.listSessionReviews(sessionId),
     sleepMs: () => undefined,
