@@ -1,6 +1,6 @@
 # start-implementation
 
-Start implementing a task. Sets up the branch and initializes the workflow state machine.
+Start implementing a task after planning is complete. Sets up the branch and initializes the workflow state machine.
 
 ## Arguments
 
