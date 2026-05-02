@@ -54,11 +54,13 @@ Renames the worktree branch to match the issue, reads the issue details, initial
 
 Planning topics use one small marker file at `docs/project/planning/<slug>.yml`.
 
-The workflow selects the active planning marker from `docs/project/planning/*.yml`.
+Derive `<slug>` from the planning topic by lowercasing it, replacing non-alphanumeric characters with hyphens, collapsing repeated hyphens, and trimming leading and trailing hyphens.
 
-If there is exactly one active marker, the planning commands use it.
+The workflow selects the active planning marker from `docs/project/planning/*.yml`, where active means the marker file parses and its `stage` is one of `prd-drafting`, `prd-approval`, `architecture-drafting`, `architecture-approval`, or `task-creation`.
 
-If there is no active marker, the planning commands stop.
+If there is exactly one active marker, `planning-status` and `continue-planning` use it.
+
+If there is no active marker, `planning-status` and `continue-planning` stop, and `start-planning` can create the first one.
 
 If there is more than one active marker, the planning commands stop and report all of them.
 

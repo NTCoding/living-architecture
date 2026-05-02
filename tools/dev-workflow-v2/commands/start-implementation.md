@@ -14,7 +14,11 @@ The session is already in a worktree (started via `claude -w`). Rename the auto-
 git fetch origin main
 
 ISSUE_TITLE=$(gh issue view <N> --json title -q .title)
-SHORT_DESC=$(echo "$ISSUE_TITLE" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-//' | sed 's/-$//' | cut -c1-30)
+SHORT_DESC=$(printf '%s\n' "$ISSUE_TITLE" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-//' | sed 's/-$//' | cut -c1-30 | sed 's/-$//')
+if [ -z "$SHORT_DESC" ]; then
+  printf '%s\n' "Expected non-empty issue title after normalization. Got: <$ISSUE_TITLE>" >&2
+  exit 1
+fi
 
 git branch -m "issue-<N>-${SHORT_DESC}"
 ```
