@@ -10,7 +10,12 @@ The user provides a planning topic name.
 
 1. Create the planning marker at `docs/project/planning/<slug>.yml`.
 2. Create the PRD file for the topic at the derived path from `planningId`.
-3. Initialize the marker with `stage: prd-drafting`.
+3. Initialize the marker with:
+   - `planningId`
+   - `stage: prd-drafting`
+   - `githubMilestone: null`
+   - `githubIssuesCreated: false`
+   - `githubIssueNumbers: []`
 4. Print the planning ID, marker path, PRD path, and next command.
 
 ## Result
