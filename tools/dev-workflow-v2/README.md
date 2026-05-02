@@ -34,22 +34,6 @@ Prints the active planning marker, current stage, derived artifact paths, blocke
 
 Checks the current planning stage once and advances only when the current artifact passes its checks.
 
-### Planning to implementation bridge
-
-```bash
-/dev-workflow-v2:choose-next-task
-```
-
-Analyzes parallel work streams across active PRDs, recommends a task from an idle track, and assigns the issue after confirmation.
-
-### Start implementation
-
-```bash
-/dev-workflow-v2:start-implementation <issue-number>
-```
-
-Renames the worktree branch to match the issue, reads the issue details, initializes the workflow state machine, and begins the IMPLEMENTING state.
-
 ## Planning marker
 
 Planning topics use one small marker file at `docs/project/planning/<slug>.yml`.
@@ -82,6 +66,22 @@ Artifact paths are derived from `planningId`.
 4. architecture approval
 5. task creation on GitHub
 6. planning complete
+
+### Planning to implementation bridge
+
+```bash
+/dev-workflow-v2:choose-next-task
+```
+
+Analyzes parallel work streams across active PRDs, recommends a task from an idle track, and assigns the issue after confirmation.
+
+### Start implementation
+
+```bash
+/dev-workflow-v2:start-implementation <issue-number>
+```
+
+Renames the worktree branch to match the issue, reads the issue details, initializes the workflow state machine, and begins the IMPLEMENTING state.
 
 ### Workflow (internal)
 
