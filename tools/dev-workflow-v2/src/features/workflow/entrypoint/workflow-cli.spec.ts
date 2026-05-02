@@ -9,7 +9,7 @@ import {
   progressToState,
   runCommand,
   runReviewCommand,
-  runReviewCommandWithInput,
+  runReviewCommandWithJson,
 } from './fixtures/workflow-cli-test-fixtures'
 
 describe('workflow-cli commands', () => {
@@ -202,7 +202,7 @@ describe('workflow-cli commands', () => {
       const ctx = setup()
       progressToState(ctx, 'REVIEWING')
 
-      const result = runReviewCommandWithInput(ctx, 'task-check', '{')
+      const result = runReviewCommandWithJson(ctx, 'task-check', '{')
 
       expect(result.exitCode).toStrictEqual(1)
       expect(result.output).toContain('Invalid review JSON')
@@ -219,7 +219,7 @@ describe('workflow-cli commands', () => {
       const ctx = setup()
       progressToState(ctx, 'REVIEWING')
 
-      const result = runReviewCommandWithInput(
+      const result = runReviewCommandWithJson(
         ctx,
         'task-check',
         JSON.stringify({ verdict: 'PASS' }),

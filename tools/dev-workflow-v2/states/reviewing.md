@@ -16,7 +16,7 @@ You are running automated code review by spawning review agents in parallel.
 - [ ] Spawn `architecture-review`, `code-review`, and `bug-scanner` in parallel using the delegation tool selected in Platform Detection
 - [ ] If Conditional Task Check says `task-check` is required, spawn it using the same selected delegation tool
 - [ ] Wait for all agents to complete and parse each agent's JSON review payload
-- [ ] For each valid review payload, record it with `/dev-workflow-v2:workflow record-review --type <review-type>` and pass the review JSON through stdin
+- [ ] For each valid review payload, record it with `/dev-workflow-v2:workflow record-review <review-type> <review-json>`
 - [ ] If all passed: `/dev-workflow-v2:workflow transition SUBMITTING_PR`
 - [ ] If any failed: fix the issues found in the recorded review findings, commit, then `/dev-workflow-v2:workflow transition IMPLEMENTING`
 
