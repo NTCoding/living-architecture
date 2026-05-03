@@ -1,8 +1,10 @@
 # PRD: Riviere Extraction Workflows V1
 
-**Status:** Awaiting Architecture Review
+**Status:** Approved
 
 **PRD approval:** Approved
+
+**Approval note:** Product discovery is complete enough for architecture drafting. This PRD records the approved product decision and intentionally excludes delivery milestones.
 
 ---
 

@@ -321,6 +321,8 @@ For each component option, flag tangled components when:
 - one element mixes entrypoint, orchestration, domain logic, persistence, external-client access, or presentation
 - a component would need two unrelated `.riviere` roles
 - a domain element exists only to map results into a consumer API such as CLI output, workflow updates, or builder writes
+- a command use case uses a query model or query-model loader to execute write behaviour
+- a write operation is modelled through read-side/query components instead of aggregate/repository components
 - a use case depends on another use case
 - a repository depends on another repository
 - an entrypoint directly imports persistence
@@ -394,36 +396,43 @@ Use Mermaid.
 
 Rules:
 
-- Show actual dependencies and calls, not a fake straight-line sequence.
-- A line means the source component directly calls or depends on the target component.
-- Do not connect two components if they do not directly call each other.
+- Show runtime call relationships, not a fake straight-line sequence, control-flow narrative, or data-flow diagram.
+- Each box is a component and must include its intended layer/path in parentheses on a new line, using Mermaid HTML line breaks. Example: `ComponentName<br/>(/commands)`.
+- A line normally means the source component directly calls the target component's function, method, API, or file operation at runtime.
+- Do not use lines to show values being passed between components. For example, do not draw `createInput -> UseCase` just because the returned input is later passed to the use case; draw both calls from the caller instead.
+- Do not connect two components if one does not directly call, invoke, read, write, emit to, or subscribe to the other.
 - Use branches when one component calls multiple dependencies.
-- Label every line with the request, method call, response, event, query, file read/write, or result.
+- Label every line with the method call, function call, API invocation, event emission/subscription, query, file read, file write, or other direct runtime operation.
+- Do not prefix labels with generic words such as `calls`; label the operation directly, for example `runWorkflow.execute(input)`.
 - Do not put status labels in node text.
 - Show status through Mermaid classes.
+- The diagram intentionally does not show compile-time type imports.
 - Keep it small.
 
 ```mermaid
 flowchart LR
-  client["Client"]
-  existingEntryPoint["ExistingEntryPoint"]
-  newComponent["NewComponent"]
-  existingDependencyA["ExistingDependencyA"]
-  newDependencyB["NewDependencyB"]
+  entrypoint["createFeatureCommand<br/>(/entrypoint)"]
+  inputFactory["createFeatureInput<br/>(/commands)"]
+  usecase["FeatureUseCase.execute<br/>(/commands)"]
+  repository["FeatureRepository<br/>(/infra/persistence)"]
+  aggregate["FeatureAggregate<br/>(/domain)"]
+  presenter["presentFeatureResult<br/>(/infra/cli/output)"]
 
-  client -->|"request / methodCall()"| existingEntryPoint
-  existingEntryPoint -->|"methodCall()"| newComponent
-  newComponent -->|"callDependencyA()"| existingDependencyA
-  newComponent -->|"callDependencyB()"| newDependencyB
+  entrypoint -->|"createFeatureInput(options)"| inputFactory
+  entrypoint -->|"featureUseCase.execute(input)"| usecase
+  entrypoint -->|"presentFeatureResult(result)"| presenter
+  usecase -->|"repository.load(input.id)"| repository
+  usecase -->|"aggregate.performAction(command)"| aggregate
+  usecase -->|"repository.save(aggregate)"| repository
 
   classDef existing fill:#e5e7eb,stroke:#374151,color:#111827
   classDef changed fill:#fef3c7,stroke:#92400e,color:#111827
   classDef new fill:#dcfce7,stroke:#166534,color:#111827
   classDef unclear fill:#fee2e2,stroke:#991b1b,color:#111827
 
-  class existingDependencyA existing
-  class existingEntryPoint changed
-  class newComponent,newDependencyB new
+  class repository existing
+  class entrypoint changed
+  class inputFactory,usecase,aggregate,presenter new
 ```
 
 Legend:
@@ -435,13 +444,27 @@ Legend:
 
 ##### Components
 
-| Component | Status | Role Archetypes | Responsibilities | Estimated Size |
-|---|---|---|---|---|
-| `ComponentName` | New / Existing / Changed | `entrypoint`, `coordinator`, `custom:bulk-copy-script` | <ul><li>Responsibility one</li><li>Responsibility two</li></ul> | Small / Medium / Large, or estimated lines |
+| Component | Layer / path | Status | .riviere role | Responsibilities | Estimated Size |
+|---|---|---|---|---|---|
+| `ComponentName` | `features/<feature>/<layer>` | New / Existing / Changed | `cli-entrypoint`, `command-use-case`, `aggregate`, etc. | <ul><li>Responsibility one</li><li>Responsibility two</li></ul> | Small / Medium / Large, or estimated lines |
+
+##### Runtime call outline
+
+Show the same runtime calls in plain text so the proposal remains readable if Mermaid rendering fails.
+
+```text
+createFeatureCommand
+  ├─ createFeatureInput(options)
+  ├─ featureUseCase.execute(input)
+  │    ├─ repository.load(input.id)
+  │    ├─ aggregate.performAction(command)
+  │    └─ repository.save(aggregate)
+  └─ presentFeatureResult(result)
+```
 
 **note:** component names must adhere to the component naming guidelines defined in this document.
 
-**note:** role archetypes must use names from the Component Archetypes section when applicable. If a component does not match one of the listed archetypes, use a custom archetype prefixed with `custom:`. Example: `custom:bulk-copy-script`.
+**note:** `.riviere role` must use real role names from `.riviere/roles.ts` and allowed locations from `.riviere/role-enforcement.config.ts`. Do not invent custom role archetypes such as `custom:*`. If no existing role fits, mark it as an open role decision and do not force-fit the component.
 
 ##### New Dependencies
 
