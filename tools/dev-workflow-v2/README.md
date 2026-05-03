@@ -20,7 +20,7 @@ Claude Code creates the worktree. The plugin owns everything from task selection
 /dev-workflow-v2:start-planning <topic>
 ```
 
-Creates the planning folder, marker, and PRD file for a new planning topic.
+Creates the planning folder, marker, and problem definition file for a new planning topic.
 
 ```bash
 /dev-workflow-v2:planning-status
@@ -30,13 +30,20 @@ Prints the active planning marker, current stage, derived artifact paths, blocke
 
 ## Planning marker
 
-Planning topics use one folder per PRD at `docs/project/PRD/<slug>/`.
+Planning topics use one folder per product planning topic at `docs/project/PRD/<slug>/`.
 
 Derive `<slug>` from the planning topic by lowercasing it, replacing non-alphanumeric characters with hyphens, collapsing repeated hyphens, and trimming leading and trailing hyphens.
 
-The folder stores `marker.yml`, `PRD.md`, and `ARCH.md`.
+Each PRD folder stores all related planning files:
 
-The workflow selects the active planning marker from `docs/project/PRD/*/marker.yml`, where active means the marker file parses and its `stage` is one of `prd-drafting`, `prd-approval`, `architecture-drafting`, `architecture-approval`, or `task-creation`.
+- marker: `docs/project/PRD/<slug>/marker.yml`
+- problem definition: `docs/project/PRD/<slug>/problem-definition.md`
+- solution exploration: `docs/project/PRD/<slug>/solution-exploration.md`
+- PRD: `docs/project/PRD/<slug>/PRD.md`
+- architecture: `docs/project/PRD/<slug>/ARCH.md`
+- delivery plan: `docs/project/PRD/<slug>/delivery.md`
+
+The workflow selects the active planning marker from `docs/project/PRD/*/marker.yml`, where active means `stage != planning-complete`.
 
 If there is exactly one active marker, `planning-status` and `continue-planning` use it.
 
@@ -56,12 +63,23 @@ Artifact paths are derived from `planningId`.
 
 ## Planning stages
 
-1. PRD drafting
-2. PRD approval
-3. architecture drafting
-4. architecture approval
-5. task creation on GitHub
-6. planning complete
+1. problem definition
+2. solution exploration
+3. PRD drafting as a product decision record
+4. PRD approval
+5. architecture drafting
+6. architecture approval
+7. delivery planning
+8. task creation on GitHub
+9. planning complete
+
+The PRD is intentionally not where discovery happens. It records the product decision once `problem-definition.md` and `solution-exploration.md` are approved.
+
+Solution exploration includes market/comparable/open-source research where relevant and a required review of Marty Cagan's four big product risks: value, usability, feasibility, and business viability.
+
+Architecture remains after PRD approval, but architecture may return the workflow to `solution-exploration` or `prd-drafting` if feasibility invalidates product assumptions.
+
+Delivery planning owns milestones, deliverables, dependencies, parallelisation, and task creation readiness.
 
 ```bash
 /dev-workflow-v2:continue-planning
@@ -75,7 +93,7 @@ Checks the current planning stage once and advances only when the current artifa
 /dev-workflow-v2:choose-next-task
 ```
 
-Analyzes parallel work streams across active PRDs, recommends a task from an idle track, and assigns the issue after confirmation.
+Analyzes parallel work streams across approved delivery plans, including completed planning folders with open GitHub issues, recommends a task from a ready track, and assigns the issue after confirmation.
 
 ### Start implementation
 
