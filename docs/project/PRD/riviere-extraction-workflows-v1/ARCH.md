@@ -41,9 +41,9 @@ Future evolution notes:
 
 ## 3. Component design
 
-**Decision status:** Waiting for user review
+**Decision status:** Approved
 
-The options in this section are draft decision material, not an approved architecture direction. Only viable candidate options should be recorded here.
+The approved component design is **Option 1: Aggregate-owned stage runner**. Option 2 remains recorded as a valid considered option that was ruled out. Option 3 remains recorded as a considered alternative.
 
 The ownership boundary is not under review in this section. Every option below keeps top-level workflow ownership inside `packages/riviere-cli/src/features/workflow`; the options vary only the component decomposition inside that approved boundary.
 
@@ -67,7 +67,7 @@ The ownership boundary is not under review in this section. Every option below k
 
 This option puts the workflow stage loop inside the `RiviereWorkflowRun` aggregate. The command use case stays canonical: load the aggregate, invoke one aggregate method, and persist only after success.
 
-Selecting this option requires explicit approval for `RiviereWorkflowRun` as a new aggregate.
+**Decision:** Selected. `RiviereWorkflowRun` is explicitly approved as a new aggregate.
 
 #### Domain model change
 
@@ -216,7 +216,7 @@ Pattern: `CLI Invoking Command Use Case` + `Command Use Case loading, invoking, 
 
 #### Tangled responsibility findings
 
-- `RiviereWorkflowRun` requires explicit aggregate approval.
+- `RiviereWorkflowRun` is approved as a new aggregate.
 - `RiviereWorkflowRun` may become large because it owns stage execution and graph folding.
 - Care is needed to avoid duplicating existing extraction setup logic; if existing extraction code must be reused, reusable lower-level code should be moved rather than imported across CLI feature boundaries.
 
@@ -224,7 +224,52 @@ Pattern: `CLI Invoking Command Use Case` + `Command Use Case loading, invoking, 
 
 This option keeps the aggregate pure but moves the visible stage sequence into the `RunRiviereWorkflow` command use case. The command still delegates all business behaviour to the same aggregate and saves only after success. This is valid because the command invokes multiple methods on the same aggregate and does not call another command use case, query model, or query-model loader.
 
-Selecting this option requires explicit approval for `RiviereWorkflowRun` as a new aggregate.
+**Decision:** Valid but ruled out for implementation.
+
+This option was worth recording because it is a valid component-design candidate. It is not selected because the use case would need to read the workflow definition and call the appropriate methods on the builder. That would put domain logic in the use-case layer.
+
+#### Domain model change
+
+This view shows the conceptual model change only. It intentionally excludes entrypoints, repositories, files, package imports, and CLI output formatting.
+
+```mermaid
+flowchart TB
+  workflowDefinition["WorkflowDefinition<br/>(workflow intent)"]
+  workflowStage["WorkflowStage<br/>(extract | link | validate | write graph)"]
+  workflowRun["RiviereWorkflowRun<br/>(new aggregate)"]
+  graphState["RiviereBuilder<br/>(existing graph-building aggregate)"]
+  completedGraph["CompletedGraph<br/>(available only after success)"]
+  logEvent["WorkflowLogEvent<br/>(run history)"]
+  workflowError["WorkflowRunError<br/>(abort reason)"]
+
+  workflowDefinition -->|"contains ordered"| workflowStage
+  workflowRun -->|"enforces current step from"| workflowDefinition
+  workflowRun -->|"exposes guarded transition for"| workflowStage
+  workflowRun -->|"owns in-memory graph state"| graphState
+  workflowRun -->|"applies accepted stage changes to"| graphState
+  workflowRun -->|"records"| logEvent
+  workflowRun -->|"aborts with"| workflowError
+  workflowRun -->|"exposes after final transition succeeds"| completedGraph
+
+  classDef existing fill:#e5e7eb,stroke:#374151,color:#111827
+  classDef new fill:#dcfce7,stroke:#166534,color:#111827
+  classDef output fill:#dbeafe,stroke:#1d4ed8,color:#111827
+  classDef error fill:#fee2e2,stroke:#991b1b,color:#111827
+
+  class graphState existing
+  class workflowDefinition,workflowStage,workflowRun,logEvent new
+  class completedGraph output
+  class workflowError error
+```
+
+Key domain changes:
+
+- `RiviereWorkflowRun` is still the new aggregate, but it exposes named stage behaviours rather than owning one internal `runToCompletion()` loop.
+- `WorkflowDefinition` and `WorkflowStage` remain the domain vocabulary for the workflow's intended order.
+- The sequencing difference is outside this domain diagram: the command use case chooses when to call each aggregate behaviour, while the aggregate still enforces the allowed current stage.
+- `RiviereBuilder` remains internal in-memory graph state owned by the workflow run until the run succeeds.
+- `CompletedGraph` is exposed only after the final transition succeeds. It is not formatted JSON; persistence serialises it later.
+- `WorkflowLogEvent` records domain-level lifecycle and failure history. The repository later formats these events as NDJSON.
 
 #### Diagram
 
@@ -307,10 +352,11 @@ runWorkflow
   │    ├─ workflowRun.validate()
   │    │    └─ builder.validate
   │    ├─ workflowRun.prepareFinalGraph()
-  │    │    └─ builder.buildGraphJson
+  │    │    └─ builder.build()
   │    └─ riviereWorkflowRunRepository.saveSuccessfulRun(workflowRun)
-  │         ├─ workflowRun.finalGraphJson()
+  │         ├─ workflowRun.completedGraph()
   │         ├─ workflowRun.logEvents()
+  │         ├─ serializes completed graph
   │         ├─ writes .riviere/graph.json only after success
   │         └─ writes workflow run log
   └─ presentRunRiviereWorkflowResult(result)
@@ -329,7 +375,7 @@ Pattern: `CLI Invoking Command Use Case` + `Command Use Case loading, invoking, 
 
 #### Tangled responsibility findings
 
-- `RiviereWorkflowRun` requires explicit aggregate approval.
+- `RiviereWorkflowRun` would still use the approved workflow-run aggregate, but this option is not selected.
 - The command use case can become too procedural if stage preconditions or graph-state decisions move out of the aggregate. Those checks must remain aggregate methods/domain errors.
 - Adding many future stages may make `RunRiviereWorkflow.execute` longer than the canonical command-use-case shape, even though it still invokes only one aggregate.
 
@@ -337,7 +383,56 @@ Pattern: `CLI Invoking Command Use Case` + `Command Use Case loading, invoking, 
 
 This option decomposes stage execution into pure domain services that return `WorkflowStageResult` value objects. The `RiviereWorkflowRun` aggregate owns the graph-state fold by applying those results in order. The command use case performs explicit dispatch to domain services, but all stage validity, invalid-draft rejection, and final graph readiness remain in the aggregate.
 
-Selecting this option requires explicit approval for `RiviereWorkflowRun` as a new aggregate.
+**Decision:** Not selected. Option 1 is preferred for V1.
+
+#### Domain model change
+
+This view shows the conceptual model change only. It intentionally excludes entrypoints, repositories, files, package imports, and CLI output formatting.
+
+```mermaid
+flowchart TB
+  workflowDefinition["WorkflowDefinition<br/>(workflow intent)"]
+  workflowStage["WorkflowStage<br/>(extract | link | validate | write graph)"]
+  stageServices["WorkflowStageDomainServices<br/>(stage-result calculators)"]
+  stageResult["WorkflowStageResult<br/>(stage outcome value object)"]
+  workflowRun["RiviereWorkflowRun<br/>(new aggregate)"]
+  graphState["RiviereBuilder<br/>(existing graph-building aggregate)"]
+  completedGraph["CompletedGraph<br/>(available only after success)"]
+  logEvent["WorkflowLogEvent<br/>(run history)"]
+  workflowError["WorkflowRunError<br/>(abort reason)"]
+
+  workflowDefinition -->|"contains ordered"| workflowStage
+  stageServices -->|"produce"| stageResult
+  stageResult -->|"represents outcome for"| workflowStage
+  workflowRun -->|"checks result order against"| workflowDefinition
+  workflowRun -->|"accepts/rejects ordered"| stageResult
+  workflowRun -->|"owns in-memory graph state"| graphState
+  stageResult -->|"updates graph state when accepted"| graphState
+  workflowRun -->|"records"| logEvent
+  workflowRun -->|"aborts with"| workflowError
+  workflowRun -->|"exposes after artifact result accepted"| completedGraph
+
+  classDef existing fill:#e5e7eb,stroke:#374151,color:#111827
+  classDef new fill:#dcfce7,stroke:#166534,color:#111827
+  classDef service fill:#fef3c7,stroke:#92400e,color:#111827
+  classDef output fill:#dbeafe,stroke:#1d4ed8,color:#111827
+  classDef error fill:#fee2e2,stroke:#991b1b,color:#111827
+
+  class graphState existing
+  class workflowDefinition,workflowStage,stageResult,workflowRun,logEvent new
+  class stageServices service
+  class completedGraph output
+  class workflowError error
+```
+
+Key domain changes:
+
+- `RiviereWorkflowRun` owns the graph-state fold rather than calculating every stage outcome itself.
+- Stage domain services calculate `WorkflowStageResult` values; they do not own graph state or persistence.
+- `WorkflowStageResult` becomes the explicit seam between stage calculation and aggregate acceptance/rejection.
+- The aggregate checks result order against `WorkflowDefinition` before applying stage changes to `RiviereBuilder`.
+- `CompletedGraph` is exposed only after the graph-artifact stage result is accepted. It is not formatted JSON; persistence serialises it later.
+- This option has the clearest future stage seam, but only while stage services remain domain-safe and do not perform file I/O or external calls directly.
 
 #### Diagram
 
@@ -404,7 +499,7 @@ Legend: gray = existing, yellow = changed, green = new, red = unclear ownership.
 | `RunRiviereWorkflowInput` | `packages/riviere-cli/src/features/workflow/commands` | New | `command-use-case-input` | <ul><li>Carry typed workflow path, project root, config path, and output path.</li></ul> | Small |
 | `RunRiviereWorkflowResult` | `packages/riviere-cli/src/features/workflow/commands` | New | `command-use-case-result` | <ul><li>Return success/failure status, final graph path, and run-log path.</li></ul> | Small |
 | `RiviereWorkflowRunRepository` | `packages/riviere-cli/src/features/workflow/infra/persistence` | New | `aggregate-repository` | <ul><li>Read workflow definition and load extraction contexts.</li><li>Create the in-memory builder and aggregate.</li><li>Persist final graph and run log after success only.</li></ul> | Medium/Large |
-| `RiviereWorkflowRun` | `packages/riviere-cli/src/features/workflow/domain` | New | `aggregate` | <ul><li>Own graph-state fold and current workflow state.</li><li>Apply `WorkflowStageResult` value objects in valid order.</li><li>Reject invalid drafts and out-of-order results.</li><li>Expose the final graph JSON only after successful validation and graph-artifact preparation.</li></ul> | Medium |
+| `RiviereWorkflowRun` | `packages/riviere-cli/src/features/workflow/domain` | New | `aggregate` | <ul><li>Own graph-state fold and current workflow state.</li><li>Apply `WorkflowStageResult` value objects in valid order.</li><li>Reject invalid drafts and out-of-order results.</li><li>Expose the completed graph only after successful validation and graph-artifact preparation.</li></ul> | Medium |
 | `ExtractWorkflowStage` / `LinkWorkflowStage` / `ValidateWorkflowStage` / `PrepareWorkflowGraphArtifact` | `packages/riviere-cli/src/features/workflow/domain` | New | `domain-service` | <ul><li>Run pure stage-result calculation against aggregate state and lower-level in-memory extraction contexts.</li><li>Return `WorkflowStageResult` value objects without doing file I/O or mutating graph state directly.</li></ul> | Small/Medium each |
 | `WorkflowDefinition` / `WorkflowStage` / `WorkflowStageResult` / `WorkflowLogEvent` | `packages/riviere-cli/src/features/workflow/domain` | New | `value-object` | <ul><li>Represent workflow vocabulary, stage outputs, and structured run-log events.</li></ul> | Small |
 | `WorkflowDefinitionError` / `WorkflowRunError` | `packages/riviere-cli/src/features/workflow/domain` | New | `domain-error` | <ul><li>Represent invalid definitions, invalid stage results, invalid drafts, and validation failures.</li></ul> | Small |
@@ -437,10 +532,11 @@ runWorkflow
   │    ├─ prepareWorkflowGraphArtifact.run(workflowRun)
   │    │    └─ derive graph artifact stage result
   │    ├─ workflowRun.apply(graphArtifactStageResult)
-  │    │    └─ builder.build()/serialize()
+  │    │    └─ builder.build()
   │    └─ riviereWorkflowRunRepository.saveSuccessfulRun(workflowRun)
-  │         ├─ workflowRun.finalGraphJson()
+  │         ├─ workflowRun.completedGraph()
   │         ├─ workflowRun.logEvents()
+  │         ├─ serializes completed graph
   │         ├─ writes .riviere/graph.json only after success
   │         └─ writes workflow run log
   └─ presentRunRiviereWorkflowResult(result)
@@ -459,7 +555,7 @@ Pattern: `CLI Invoking Command Use Case` + `Command Use Case loading, invoking d
 
 #### Tangled responsibility findings
 
-- `RiviereWorkflowRun` requires explicit aggregate approval.
+- `RiviereWorkflowRun` would still use the approved workflow-run aggregate, but this option is not selected.
 - This option creates more domain components than Options 1 and 2.
 - Stage services must stay pure and must not read/write files or import infra. If a future AI stage requires external I/O, that future work must add an architecturally valid infra role/adapter rather than putting external calls in domain.
 
@@ -467,19 +563,27 @@ Pattern: `CLI Invoking Command Use Case` + `Command Use Case loading, invoking d
 
 Whichever option is selected, workflows must not become a hidden, more powerful product surface. Any genuinely new Rivière capability introduced for workflow execution must either already exist through the CLI or be deliberately surfaced through the CLI. A direct command such as “apply extraction result to graph” is not currently a selected component option; it remains an open product/architecture question if workflow implementation reveals a hidden capability.
 
-### Recommendation for next discussion
+### Component-design decision
 
-Recommendation for discussion: start with Option 2.
+Decision: select **Option 1: Aggregate-owned stage runner**.
 
-Option 2 preserves the approved `features/workflow` ownership while making the V1 runtime call outline easiest to review: each stage is a direct aggregate call and each final file operation is isolated in the repository save step. Option 1 is the smallest command-use-case shape but concentrates more behaviour in the aggregate. Option 3 has the clearest future stage-result seam but creates more domain components and requires stricter discipline to keep stage services pure.
+Option 1 is selected because the workflow run aggregate is the right place to interpret the workflow definition, own stage sequencing, fold graph-building state, enforce all-or-nothing graph integrity, record run history, and expose the completed graph only after success.
 
-### Approval
+Option 2 is ruled out because it would move domain logic into the use-case layer: the use case would need to read the workflow definition and call the appropriate methods on the builder. Option 2 remains recorded because it was a valid option and worth considering.
 
-Before this can become the approved component design, the following decisions need user review:
+Option 3 remains a valid alternative with the clearest explicit stage-result seam, but it is not selected for V1.
 
-- Choose Option 1, Option 2, Option 3, or a combination.
-- Explicitly approve or reject `RiviereWorkflowRun` as a new aggregate.
-- Decide whether the CLI-parity guardrail requires any additional direct CLI surface in V1.
+### Approved decisions and remaining guardrail
+
+Approved:
+
+- Use Option 1 as the component design for V1.
+- Introduce `RiviereWorkflowRun` as a new aggregate.
+- Keep Options 2 and 3 as considered alternatives, not selected directions.
+
+Remaining guardrail:
+
+- During implementation, check whether workflow execution introduces any genuinely new Rivière capability. If it does, decide whether that capability also needs a direct CLI surface so the CLI does not become a watered-down version of the product.
 
 ## 4. Feasibility confirmations
 
