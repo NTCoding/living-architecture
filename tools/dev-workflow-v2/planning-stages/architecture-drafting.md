@@ -390,7 +390,53 @@ Do not continue to architecture approval until these decisions are resolved.
 
 Describe this option by outlining the philosophy behind it and its key characteristics.
 
-##### Diagram
+##### Domain model change
+
+Show the conceptual domain model change before the runtime call diagram.
+
+Rules:
+
+- Show domain concepts only: aggregates, value objects, domain services, domain errors, domain events, important existing domain objects, and domain outputs.
+- Do not show entrypoints, command use cases, repositories, files, CLI output formatters, package imports, or persistence mechanics.
+- A line describes a domain relationship or domain behaviour, not a runtime call.
+- Use precise relationship labels such as `contains ordered`, `executes steps of`, `owns in-memory state`, `accepts/rejects`, `records`, `aborts with`, or `exposes after success`.
+- Avoid vague labels such as `uses`, `follows`, `manages`, or `handles` unless the team has explicitly accepted the wording.
+- If an option does not change the domain model, write `No domain model change identified.` and explain why.
+
+```mermaid
+flowchart TB
+  definition["FeatureDefinition<br/>(value object)"]
+  step["FeatureStep<br/>(value object)"]
+  aggregate["FeatureRun<br/>(aggregate)"]
+  existingState["ExistingDomainState<br/>(existing aggregate)"]
+  result["FeatureStepResult<br/>(value object)"]
+  completed["CompletedOutput<br/>(domain output)"]
+  event["FeatureLogEvent<br/>(value object/domain event)"]
+  error["FeatureRunError<br/>(domain error)"]
+
+  definition -->|"contains ordered"| step
+  aggregate -->|"executes steps of"| definition
+  aggregate -->|"owns in-memory state"| existingState
+  aggregate -->|"produces and accepts/rejects"| result
+  result -->|"updates state when accepted"| existingState
+  aggregate -->|"records"| event
+  aggregate -->|"aborts with"| error
+  aggregate -->|"exposes after success"| completed
+
+  classDef existing fill:#e5e7eb,stroke:#374151,color:#111827
+  classDef new fill:#dcfce7,stroke:#166534,color:#111827
+  classDef output fill:#dbeafe,stroke:#1d4ed8,color:#111827
+  classDef error fill:#fee2e2,stroke:#991b1b,color:#111827
+
+  class existingState existing
+  class definition,step,aggregate,result,event new
+  class completed output
+  class error error
+```
+
+Then add concise bullets explaining the domain model changes.
+
+##### Runtime call diagram
 
 Use Mermaid.
 
