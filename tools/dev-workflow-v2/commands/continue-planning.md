@@ -44,7 +44,9 @@ The planning flow therefore separates:
 
 Project memory lives at `project-memory/`.
 
-For planning work, read `project-memory/AGENTS.md` and apply it alongside the current stage instructions. For the `problem-definition` stage, this means reading operational project-memory instructions only; do not use `project-memory/priorities.md` or idea folders as problem-definition source material unless the user explicitly names them.
+For planning work, read `project-memory/AGENTS.md` and apply it alongside the current stage instructions. For the `problem-definition` stage, this means reading operational project-memory instructions only; do not use `project-memory/priorities.md`, idea folders, or architecture memories as problem-definition source material unless the user explicitly names them.
+
+Architecture memory lives at `project-memory/architecture/`. It stores approved reusable architectural reasoning for planning. Architecture stages must read `project-memory/architecture/AGENTS.md` and `project-memory/architecture/README.md` before querying, creating, or updating architecture memories.
 
 `/dev-workflow-v2:continue-planning` must treat out-of-scope work as a triage point.
 
@@ -112,6 +114,9 @@ Also keep these project memory paths available:
 - project memory overview: `project-memory/README.md`
 - priorities: `project-memory/priorities.md`
 - ideas directory: `project-memory/ideas/`
+- architecture memory instructions: `project-memory/architecture/AGENTS.md`
+- architecture memory overview: `project-memory/architecture/README.md`
+- architecture memory cards directory: `project-memory/architecture/memories/`
 
 ## Step 3: dispatch to the current planning stage file
 
@@ -143,6 +148,9 @@ The command applies the loaded stage file instructions against this exact contex
 - `projectMemoryReadmePath`
 - `projectMemoryPrioritiesPath`
 - `projectMemoryIdeasPath`
+- `projectMemoryArchitectureInstructionsPath`
+- `projectMemoryArchitectureReadmePath`
+- `projectMemoryArchitectureMemoriesPath`
 - `githubMilestone`
 - `githubIssuesCreated`
 - `githubIssueNumbers`
@@ -155,7 +163,7 @@ Each loaded stage file owns the work for its current stage.
 
 For `problem-definition`, apply `tools/dev-workflow-v2/planning-stages/problem-definition.md` by using the stage file's objectives and source rules to conduct the guided discovery conversation.
 
-No repository files except `markerPath`, `problemDefinitionPath`, the current stage instruction file, `projectMemoryInstructionsPath`, and `projectMemoryReadmePath` may be read until the user has approved a well-defined problem statement, unless the user explicitly names a source for the problem definition. Project-memory content files such as `project-memory/priorities.md` and idea folders must not be used as source material during problem definition unless the user explicitly names them.
+No repository files except `markerPath`, `problemDefinitionPath`, the current stage instruction file, `projectMemoryInstructionsPath`, and `projectMemoryReadmePath` may be read until the user has approved a well-defined problem statement, unless the user explicitly names a source for the problem definition. Project-memory content files such as `project-memory/priorities.md`, idea folders, and architecture memories must not be used as source material during problem definition unless the user explicitly names them.
 
 For `solution-exploration`, research and solution shaping must use only the approved problem definition, user-approved sources, user-approved research directions, and findings confirmed with the user.
 

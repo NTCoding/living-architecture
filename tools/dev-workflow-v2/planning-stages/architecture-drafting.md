@@ -18,10 +18,33 @@ Use the approved solution exploration passed in the runtime context:
 
 - `solutionExplorationPath`
 
+Use architecture memory passed in the runtime context:
+
+- `projectMemoryArchitectureInstructionsPath`
+- `projectMemoryArchitectureReadmePath`
+- `projectMemoryArchitectureMemoriesPath`
+
 Do not switch into implementation.
 Do not create tasks.
 Do not approve the architecture document in this stage.
 Do not write architecture decisions back into the PRD.
+
+## Architecture memory use
+
+Before presenting feasibility conclusions, ownership options, component design options, recommendations, or architecture draft updates:
+
+1. Read `projectMemoryArchitectureInstructionsPath`.
+2. Read `projectMemoryArchitectureReadmePath` as the source of truth for architecture-memory frontmatter, approved metadata values, and memory-card structure.
+3. Identify the actual system areas and architecture concepts involved in the current architecture discussion.
+4. Include `global` memories when their architecture concepts are relevant.
+5. Search `projectMemoryArchitectureMemoriesPath` for approved memories matching those system areas or architecture concepts.
+6. Read relevant memories and use them as advisory reasoning context.
+
+If a memory appears relevant but its fit is unclear, ask the user whether it applies before using it to shape an option or recommendation.
+
+If reusable architectural reasoning emerges during drafting, ask whether the user wants to save it as architecture memory. Propose concise memory-card frontmatter and body text, including `systemAreas` and `architectureConcepts`, and write it only after the user explicitly approves the content.
+
+Do not treat architecture memory as automatic enforcement. Do not use it to override approved PRD content, ADRs, role definitions, repository conventions, or current user decisions.
 
 ## Required starting condition
 
@@ -117,7 +140,7 @@ Stop after this discussion if a loop-back is needed.
 
 ## Step 1: Decide top-level architecture ownership
 
-Research the PRD and existing architecture, then propose ownership options.
+Research the PRD, existing architecture, and relevant architecture memories, then propose ownership options.
 The user owns the decision.
 A recommendation is not approval.
 
@@ -133,6 +156,7 @@ Read:
 - `docs/architecture/overview.md`
 - `docs/architecture/adr/*.md`
 - `.riviere/role-enforcement.config.ts`
+- relevant approved architecture memories from `projectMemoryArchitectureMemoriesPath`
 
 ### What to identify
 
@@ -140,6 +164,7 @@ Read:
 - existing apps, packages, libraries, tools, or modules that may change
 - responsibilities that need an architectural home
 - existing boundaries or ADRs that constrain placement
+- approved architecture memories that may inform reasoning, trade-offs, or anti-pattern avoidance
 
 ### Required discussion output
 

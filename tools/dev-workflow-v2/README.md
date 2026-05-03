@@ -87,6 +87,8 @@ Planning commands use `project-memory/` as the persistent cross-PRD planning mem
 
 Project memory stores deferred ideas, future-work candidates, confirmed priorities, dependencies, and links to relevant research or implementation evidence.
 
+Project memory also includes `project-memory/architecture/`, which stores approved reusable architectural reasoning for planning. Architecture memories use frontmatter for retrieval and human-readable body text for nuance. They are advisory, not automatic rules; when applicability is unclear, `continue-planning` must clarify with the user before relying on them.
+
 When `continue-planning` identifies work that is out of scope for the current PRD, it triages whether the work is explicitly not needed, probably needed later, definitely needed later, or uncertain. Work that is probably or definitely needed later is captured under `project-memory/ideas/` rather than being lost inside the current PRD.
 
 Completed work is not manually duplicated into project memory. Future planning should retrieve completed-work context from PRDs, git history, GitHub issues, GitHub PRs, and linked evidence.

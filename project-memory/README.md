@@ -12,13 +12,16 @@ Project memory is for:
 - work deferred from PRD scope
 - known priorities
 - confirmed dependencies or sequencing signals
+- approved reusable architectural reasoning for future planning
 - links to relevant research, prototypes, PRDs, implementation evidence, GitHub issues, and pull requests
 
 ## Core principles
 
 - PRDs describe committed scope for one planning topic.
 - Project memory preserves cross-PRD context, deferred work, sequencing, and planning signals.
+- Architecture memory preserves approved reasoning that should help future architecture decisions.
 - Ideas are not commitments. An idea becomes committed scope only when it is selected and shaped through a PRD.
+- Architecture memories are advisory, not automatic rules. If a memory may apply but the fit is unclear, clarify with the user before relying on it.
 - Deferred work should not disappear just because it is out of scope for the current PRD.
 - Completed work should not be manually duplicated into project memory. Retrieve completed-work context from PRDs, git history, GitHub issues, GitHub PRs, and linked evidence when needed.
 
@@ -46,6 +49,14 @@ Use this for anything that may need future planning but is not committed to the 
 
 Each idea directory should contain an `idea.md` file. Add research notes, prototypes, or supporting material inside the idea directory as needed.
 
+### `architecture/`
+
+Approved reusable architectural reasoning for planning.
+
+Use this for architecture memories that should inform future architecture definition stages, such as trade-off reasoning, responsibility-placement lessons, project-convention interpretation, misunderstood Rivière role definitions, and architectural anti-patterns.
+
+Read `project-memory/architecture/README.md` before querying, creating, or updating architecture memories. That file is the source of truth for architecture-memory frontmatter, allowed retrieval metadata, and memory-card structure.
+
 ## Deferred-work triage
 
 When planning identifies work that is outside the current PRD scope, it should be triaged rather than discarded.
@@ -71,6 +82,7 @@ When discussing future work, retrieve context from:
 
 - existing PRDs and their status
 - `project-memory/priorities.md`
+- relevant approved architecture memories under `project-memory/architecture/memories/`
 - relevant idea folders
 - git history
 - GitHub issues and pull requests

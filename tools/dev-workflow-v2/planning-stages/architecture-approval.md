@@ -9,10 +9,17 @@ Use the files passed in the runtime context:
 - `prdPath`
 - `solutionExplorationPath`
 - `architecturePath`
+- `projectMemoryArchitectureInstructionsPath`
+- `projectMemoryArchitectureReadmePath`
+- `projectMemoryArchitectureMemoriesPath`
 
 This stage reviews the architecture only.
 It does not create delivery milestones.
 It does not create tasks.
+
+Before approval checks, read `projectMemoryArchitectureInstructionsPath` and `projectMemoryArchitectureReadmePath`, then check whether any approved architecture memories under `projectMemoryArchitectureMemoriesPath` are relevant to the architecture's system areas or architecture concepts.
+
+Architecture memories are advisory. If a relevant memory appears to conflict with the architecture, clarify whether it applies before treating the conflict as an approval concern.
 
 ## Required starting condition
 
@@ -44,6 +51,7 @@ Approve only if all of these are true:
 9. task generation consequences are written explicitly
 10. the architecture removes technical approvals from PRD requirement text instead of duplicating them there
 11. the architecture does not change product scope without returning to the appropriate earlier stage
+12. relevant approved architecture memories were considered as advisory context, and any unclear applicability or conflict was clarified with the user
 
 ## Return checks
 
