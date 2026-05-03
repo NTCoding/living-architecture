@@ -81,6 +81,16 @@ Architecture remains after PRD approval, but architecture may return the workflo
 
 Delivery planning owns milestones, deliverables, dependencies, parallelisation, and task creation readiness.
 
+## Project memory
+
+Planning commands use `project-memory/` as the persistent cross-PRD planning memory layer.
+
+Project memory stores deferred ideas, future-work candidates, confirmed priorities, dependencies, and links to relevant research or implementation evidence.
+
+When `continue-planning` identifies work that is out of scope for the current PRD, it triages whether the work is explicitly not needed, probably needed later, definitely needed later, or uncertain. Work that is probably or definitely needed later is captured under `project-memory/ideas/` rather than being lost inside the current PRD.
+
+Completed work is not manually duplicated into project memory. Future planning should retrieve completed-work context from PRDs, git history, GitHub issues, GitHub PRs, and linked evidence.
+
 ```bash
 /dev-workflow-v2:continue-planning
 ```

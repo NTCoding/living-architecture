@@ -40,6 +40,30 @@ The planning flow therefore separates:
 - Activate different thinking modes by using contrasts such as user pain vs project impact, included scope vs excluded scope, happy path vs failure path, and current state vs desired state.
 - Hide prompt IDs, reply formats, planning markers, stage names, and other command mechanics from the user unless reporting an actual command error. The user should feel like they are having a real conversation with an expert, not a computer.
 
+## Project memory and deferred work
+
+Project memory lives at `project-memory/`.
+
+For planning work, read `project-memory/AGENTS.md` and apply it alongside the current stage instructions. For the `problem-definition` stage, this means reading operational project-memory instructions only; do not use `project-memory/priorities.md` or idea folders as problem-definition source material unless the user explicitly names them.
+
+`/dev-workflow-v2:continue-planning` must treat out-of-scope work as a triage point.
+
+When the user says an item is out of scope, deferred, not for this PRD, later, future work, not now, or similar:
+
+1. Do not discard the item silently.
+2. Ask or confirm whether the item is:
+   - explicitly not needed
+   - probably needed later
+   - definitely needed later
+   - uncertain and needing more discussion
+3. If the item is probably or definitely needed later, create or update an idea folder in `project-memory/ideas/`.
+4. Record the idea, need level, source PRD or planning context, reason deferred, confirmed priority or dependency signals, open questions, and useful links.
+5. Keep the current PRD focused by recording only the concise scope decision there, with a link to the idea folder when useful.
+
+Items that are explicitly not needed should remain only as concise out-of-scope context in the current PRD or planning artefact unless the user confirms that the decision should be remembered more broadly.
+
+Uncertain items should be clarified before they are captured as future work.
+
 In requirement and solution-shaping sections, actively look for:
 
 - missing use cases
@@ -82,6 +106,13 @@ From `planningId`, derive:
 - architecture: `docs/project/PRD/<planningId>/ARCH.md`
 - delivery plan: `docs/project/PRD/<planningId>/delivery.md`
 
+Also keep these project memory paths available:
+
+- project memory instructions: `project-memory/AGENTS.md`
+- project memory overview: `project-memory/README.md`
+- priorities: `project-memory/priorities.md`
+- ideas directory: `project-memory/ideas/`
+
 ## Step 3: dispatch to the current planning stage file
 
 Load exactly one stage file based on `stage` in the active planning marker:
@@ -108,6 +139,10 @@ The command applies the loaded stage file instructions against this exact contex
 - `prdPath`
 - `architecturePath`
 - `deliveryPath`
+- `projectMemoryInstructionsPath`
+- `projectMemoryReadmePath`
+- `projectMemoryPrioritiesPath`
+- `projectMemoryIdeasPath`
 - `githubMilestone`
 - `githubIssuesCreated`
 - `githubIssueNumbers`
@@ -120,7 +155,7 @@ Each loaded stage file owns the work for its current stage.
 
 For `problem-definition`, apply `tools/dev-workflow-v2/planning-stages/problem-definition.md` by using the stage file's objectives and source rules to conduct the guided discovery conversation.
 
-No repository files except `markerPath`, `problemDefinitionPath`, and the current stage instruction file may be read until the user has approved a well-defined problem statement, unless the user explicitly names a source for the problem definition.
+No repository files except `markerPath`, `problemDefinitionPath`, the current stage instruction file, `projectMemoryInstructionsPath`, and `projectMemoryReadmePath` may be read until the user has approved a well-defined problem statement, unless the user explicitly names a source for the problem definition. Project-memory content files such as `project-memory/priorities.md` and idea folders must not be used as source material during problem definition unless the user explicitly names them.
 
 For `solution-exploration`, research and solution shaping must use only the approved problem definition, user-approved sources, user-approved research directions, and findings confirmed with the user.
 

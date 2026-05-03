@@ -55,6 +55,8 @@ Use only:
 - approved `solution-exploration.md`
 - user-approved clarifications made during PRD drafting
 
+Project memory may be updated or linked only for deferred future work confirmed during PRD drafting. Do not use project memory to introduce new current-PRD scope.
+
 Do not invent:
 
 - new requirements
@@ -87,6 +89,7 @@ The PRD must include:
 7. open product questions, if any
 8. architecture questions, but not architecture decisions
 9. source traceability back to approved discovery artefacts
+10. links to project-memory idea folders for non-goals that are probably or definitely needed later
 
 The PRD must not include:
 
@@ -138,7 +141,7 @@ Write or update `PRD.md` with this structure:
 
 ## 5. Non-Goals
 
-- <excluded scenario or capability from approved solution exploration>
+- <excluded scenario or capability from approved solution exploration; if probably or definitely needed later, link to `project-memory/ideas/<idea-slug>/`>
 
 ## 6. Success Criteria
 
@@ -182,6 +185,9 @@ Requirements:
 Non-goals:
 - <short non-goal summary>
 
+Deferred future work:
+- <project-memory idea link or none>
+
 Architecture questions:
 - <question or none>
 
@@ -216,6 +222,7 @@ This stage is complete only when all of these are true:
 8. the PRD contains no delivery milestones, parallelisation, or task breakdown
 9. the PRD has source traceability to both approved discovery artefacts
 10. no `[NEEDS CLARIFICATION]` markers remain
+11. non-goals that are probably or definitely needed later link to their project-memory idea folders
 
 If complete, produce:
 

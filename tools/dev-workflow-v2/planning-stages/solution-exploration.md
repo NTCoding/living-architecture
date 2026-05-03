@@ -49,6 +49,8 @@ Use only:
 - user-approved research directions
 - web or repository findings that are shown to the user and accepted as relevant
 
+Project memory may be updated for deferred future work, but it must not be used to invent product scope, requirements, research findings, or reasons.
+
 Do not invent:
 
 - market facts
@@ -83,6 +85,8 @@ The approved `solution-exploration.md` must cover all of these:
 13. remaining open discovery questions, if any
 
 External research is expected. Do not skip existing-solution research unless the user explicitly approves that it is not relevant for this planning topic and the reason is recorded.
+
+For no-gos and excluded scenarios, distinguish explicit exclusions from work that is probably or definitely needed later. Apply the project-memory deferred-work triage rules before approving the selected concept.
 
 ## Cagan four-risk model
 
@@ -174,6 +178,8 @@ For the likely or selected approach, explore:
 
 Keep this at product and user-experience level. Do not decide architecture or implementation.
 
+For each no-go or excluded scenario, ask enough to distinguish whether it is explicitly not needed, probably needed later, definitely needed later, or uncertain. If it is probably or definitely needed later, capture it under `project-memory/ideas/` and keep only concise exclusion context in `solution-exploration.md`.
+
 ### Objective 6 — Review the four risks
 
 Review the selected approach against all four Cagan risks.
@@ -254,7 +260,7 @@ When the user approves the selected concept, write or update `solution-explorati
 
 ## 7. No-gos and exclusions
 
-- <excluded scenario and reason>
+- <excluded scenario and reason; if probably or definitely needed later, link to `project-memory/ideas/<idea-slug>/`>
 
 ## 8. Risk review
 
@@ -315,6 +321,7 @@ This stage is complete only when all of these are true:
 8. its risk review covers value, usability, feasibility, and business viability
 9. feasibility is not unresolved in a way that blocks PRD drafting
 10. no `[NEEDS CLARIFICATION]` markers remain
+11. no-gos and exclusions have been triaged so probably or definitely needed future work is captured in project memory
 
 If complete, produce:
 

@@ -57,6 +57,8 @@ Milestones and deliverables must be concrete enough for GitHub issue creation. E
 
 Do not invent implementation detail beyond what exists in the approved PRD and approved architecture.
 
+If delivery planning reveals out-of-scope work that is probably or definitely needed later, apply the project-memory deferred-work triage rules before approving the delivery plan.
+
 ## Conversation flow
 
 The prompts below are internal objectives, not user-facing scripts. Ask naturally. Avoid prompt IDs and stage mechanics.
@@ -136,7 +138,7 @@ When the user approves the delivery plan, write or update `delivery.md` with thi
 - Dependencies:
   - <dependency or "None">
 - Out of scope:
-  - <excluded item or "None">
+  - <excluded item or "None"; if probably or definitely needed later, link to `project-memory/ideas/<idea-slug>/`>
 - Source refs:
   - PRD: <section refs>
   - Architecture: <section refs>
@@ -203,6 +205,7 @@ This stage is complete only when all of these are true:
 7. the dependencies section exists, even if there are no dependencies
 8. task creation readiness says deliverables are concrete enough for issue creation
 9. no `[NEEDS CLARIFICATION]` markers remain
+10. delivery out-of-scope items that are probably or definitely needed later are captured in project memory
 
 If complete, produce:
 
