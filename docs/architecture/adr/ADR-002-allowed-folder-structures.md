@@ -12,12 +12,15 @@
 ```text
 features/
 ├── {feature}/
-│   ├── entrypoint/        ← thin translation layer
+│   ├── entrypoint/        ← one folder per external entrypoint
+│   │   └── {entrypoint}/
+│   │       ├── entrypoint.ts
+│   │       └── ...         ← entrypoint-specific DTOs, input mappers, output mappers
 │   ├── commands/          ← write operations, strict layering
 │   ├── queries/           ← read operations, minimal layering
 │   ├── domain/            ← business rules (required if commands exist)
 │   └── infra/             ← feature-specific infrastructure
-│       ├── mappers/       ← response/format mapping
+│       ├── mappers/       ← persistence/external-client mapping, not entrypoint DTOs
 │       ├── middleware/    ← feature-specific middleware
 │       └── persistence/   ← repository implementations
 │
@@ -39,7 +42,7 @@ All sub-folders within a feature are optional — include only what the feature 
 
 ### Layer Responsibilities
 
-**entrypoint/** — Translates between external and internal formats. Parses HTTP requests, CLI arguments, or queue messages into command/query inputs. Maps results back to external responses. If you changed protocols (HTTP → CLI), you'd rewrite this layer but keep commands/ and domain/ unchanged.
+**entrypoint/** — Contains one folder per external entrypoint: `entrypoint/{entrypoint}/entrypoint.ts`. Opening `entrypoint/` should show the available entrypoints as folders. Entrypoint-specific DTOs, input mappers, and output mappers live under the relevant entrypoint folder. This layer translates between external and internal formats: it parses HTTP requests, CLI arguments, or queue messages into command/query inputs and maps results back to external responses. If you changed protocols (HTTP → CLI), you'd rewrite this layer but keep commands/ and domain/ unchanged. Entrypoints must not import `domain/` or persistence infrastructure directly.
 
 **commands/** — Orchestrates write operations. Loads data, invokes domain logic, persists the result. All business rules delegated to domain/. Each command has a dedicated input type — no sharing of input DTOs, no dependency on external input types.
 
@@ -47,11 +50,13 @@ All sub-folders within a feature are optional — include only what the feature 
 
 **domain/** — Business rules with no I/O. Validation, state transitions, invariants, calculations. Never imports from infra/, commands/, queries/, entrypoint/, or shell/.
 
-**infra/** — Feature-specific infrastructure. Repository implementations, response mappers, format adapters, feature-specific middleware. Implements domain contracts. All code must be in sub-folders — no files at the `infra/` root.
+**infra/** — Feature-specific infrastructure. Repository implementations, persistence mappers, external-client adapters, feature-specific middleware. Implements domain contracts. Feature-specific entrypoint DTOs, input mappers, and output mappers do not belong here; they belong under `entrypoint/{entrypoint}/`. All code must be in sub-folders — no files at the `infra/` root.
 
 **platform/domain/** — Shared business rules used across features. Depends on nothing.
 
 **platform/infra/** — Shared technical concerns used across features. HTTP clients, database wrappers, logging, config, messaging.
+
+For CLI code, platform CLI infrastructure owns shared response-envelope formatting and output side effects. Generic `formatSuccess`/`formatError` style functions are CLI response formatters. Writing to stdout, stderr, files, or exiting belongs to CLI response writers. CLI error handlers are only for uncaught CLI-boundary exceptions and must not handle regular command/query failure control flow.
 
 **shell/** — Wires things together at startup. Registers routes, bootstraps frameworks, connects message brokers. No business logic.
 

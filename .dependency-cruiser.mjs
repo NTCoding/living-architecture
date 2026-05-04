@@ -45,11 +45,11 @@ export default {
     {
       name: "entrypoint-restricted-deps",
       severity: "error",
-      comment: "Entrypoint may only import from commands/, queries/, own infra/, platform/infra/",
+      comment: "Entrypoint may only import from own entrypoint/, commands/, queries/, own infra/, platform/infra/",
       from: { path: "features/([^/]+)/entrypoint/.+" },
       to: {
         path: "(features|platform|shell)/",
-        pathNot: "(features/$1/(commands|queries|infra)/|platform/infra/)"
+        pathNot: "(features/$1/(entrypoint|commands|queries|infra)/|platform/infra/)"
       }
     },
     {
@@ -70,7 +70,7 @@ export default {
       name: "domain-no-infra",
       severity: "error",
       comment: "Domain must never import from any infra/",
-      from: { path: "domain/.+" },
+      from: { path: "(features/[^/]+/domain/|platform/domain/).+" },
       to: { path: "(platform/infra|features/[^/]+/infra)/.+" }
     },
     {

@@ -5,8 +5,11 @@ type RoleName =
   | 'aggregate-repository'
   | 'cli-entrypoint'
   | 'cli-error'
+  | 'cli-error-handler'
   | 'cli-input-validator'
   | 'cli-output-formatter'
+  | 'cli-response-formatter'
+  | 'cli-response-writer'
   | 'command-input-factory'
   | 'command-use-case'
   | 'command-use-case-input'
@@ -50,6 +53,9 @@ export const allRoles = [
     targets: ['interface', 'type-alias'],
   }),
   role('cli-output-formatter', { targets: ['function'] }),
+  role('cli-response-formatter', { targets: ['function'] }),
+  role('cli-response-writer', { targets: ['function'] }),
+  role('cli-error-handler', { targets: ['function'] }),
   role('command-input-factory', {
     targets: ['function'],
     allowedOutputs: ['command-use-case-input'],
