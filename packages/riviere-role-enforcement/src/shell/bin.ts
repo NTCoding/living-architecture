@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { main } from '../features/enforcement/entrypoint/cli'
+import { main } from '../features/enforcement/entrypoint/cli/entrypoint'
 
 const configModulePath = process.argv[2]
 if (configModulePath === undefined) {

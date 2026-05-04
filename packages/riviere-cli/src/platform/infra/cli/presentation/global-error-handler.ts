@@ -6,7 +6,7 @@ import { GitError } from '../../external-clients/git/git-errors'
 import { DraftComponentLoadError } from '../../external-clients/draft-components/draft-component-loader'
 import { ConnectionDetectionError } from '@living-architecture/riviere-extract-ts'
 
-/** @riviere-role cli-output-formatter */
+/** @riviere-role cli-error-handler */
 export function handleGlobalError(error: unknown): never {
   if (error instanceof ConfigValidationError) {
     console.log(JSON.stringify(formatError(error.errorCode, error.message)))

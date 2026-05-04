@@ -18,7 +18,7 @@ interface ErrorOutput {
 }
 
 /**
- * @riviere-role cli-output-formatter
+ * @riviere-role cli-response-formatter
  * Formats a successful command result.
  * @param data - The result data.
  * @param warnings - Optional warnings to include.
@@ -33,7 +33,7 @@ export function formatSuccess<T>(data: T, warnings: string[] = []): SuccessOutpu
 }
 
 /**
- * @riviere-role cli-output-formatter
+ * @riviere-role cli-response-formatter
  * Formats a failed command result.
  * @param code - Error code identifying the failure type.
  * @param message - Human-readable error message.
