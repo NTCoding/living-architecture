@@ -80,6 +80,15 @@ describe('loadQueryGraph', () => {
     })
   })
 
+  it('returns graph loading failure when repository throws corrupted graph error', () => {
+    expect(
+      loadQueryGraph(new FailingRepository(new GraphCorruptedError('graph.json')), undefined),
+    ).toStrictEqual({
+      kind: 'graphCorrupted',
+      message: 'Graph file contains invalid JSON',
+    })
+  })
+
   it('rethrows unexpected repository errors', () => {
     expect(() =>
       loadQueryGraph(new FailingRepository(new UnexpectedQueryGraphLoadError()), undefined),

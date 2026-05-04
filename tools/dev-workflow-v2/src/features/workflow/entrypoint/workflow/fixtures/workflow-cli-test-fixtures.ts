@@ -12,7 +12,7 @@ import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engi
 import { createStore } from '@nt-ai-lab/deterministic-agent-workflow-event-store'
 import { createWorkflowRunner } from '@nt-ai-lab/deterministic-agent-workflow-cli'
 import type { RunnerResult } from '@nt-ai-lab/deterministic-agent-workflow-cli'
-import { Workflow } from '../../../domain/workflow'
+import type { Workflow } from '../../../domain/workflow'
 import { WORKFLOW_DEFINITION } from '../../../infra/persistence/workflow-definition'
 import {
   ROUTES, PRE_TOOL_USE_POLICY 

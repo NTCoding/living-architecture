@@ -4,10 +4,15 @@ import type { RiviereQuery } from '@living-architecture/riviere-query'
 import { RiviereQueryRepository } from '../infra/persistence/riviere-query-repository'
 
 /** @riviere-role query-model */
-export type QueryGraphLoadFailure = {
-  readonly kind: 'graphCorrupted'
-  readonly message: string
-}
+export type QueryGraphLoadFailure =
+  | {
+    readonly kind: 'graphCorrupted'
+    readonly message: string
+  }
+  | {
+    readonly kind: 'graphNotFound'
+    readonly message: string
+  }
 
 /** @riviere-role query-model */
 export type LoadedQueryGraph =
@@ -16,10 +21,6 @@ export type LoadedQueryGraph =
     readonly query: RiviereQuery
   }
   | QueryGraphLoadFailure
-  | {
-    readonly kind: 'graphNotFound'
-    readonly message: string
-  }
 
 /** @riviere-role query-model */
 export function toQueryGraphLoadFailure(error: unknown): QueryGraphLoadFailure | undefined {
