@@ -32,6 +32,7 @@ const REVIEW_AGENT_NAMES = [
   'code-review',
   'bug-scanner',
   'task-check',
+  'component-design-architect',
 ] as const
 
 const OPEN_CODE_WORKFLOW_COMMAND = 'dev-workflow-v2:workflow'

@@ -217,11 +217,11 @@ Use this structure:
 
 ##### Domain model change
 
-<Either `No domain model change identified.` with one sentence explaining why, or a small Mermaid diagram showing only domain concepts.>
+<Either `No domain model change identified.` with one sentence explaining why, or a small colour-coded Mermaid diagram showing only domain concepts. Include a legend.>
 
 ##### Runtime call diagram
 
-<Small Mermaid diagram showing direct runtime calls only.>
+<Small colour-coded Mermaid diagram showing direct runtime calls only. Include a legend.>
 
 ##### Components
 
@@ -233,6 +233,17 @@ Use this structure:
 
 ```text
 <Plain-text outline matching the runtime call diagram.>
+```
+
+##### Code stress test
+
+Show concise TypeScript code examples for:
+
+1. The command use case implementation shape, proving application logic only orchestrates.
+2. The key domain behaviour implementation shape, if this design introduces or changes domain logic.
+
+```typescript
+<Combined use-case and domain code example, under 60 lines.>
 ```
 
 ##### New dependencies
@@ -270,6 +281,9 @@ Domain model diagram rules:
 - A line describes a domain relationship or domain behaviour, not a runtime call.
 - Use precise relationship labels such as `contains ordered`, `executes steps of`, `owns in-memory state`, `accepts/rejects`, `records`, `aborts with`, or `exposes after success`.
 - Avoid vague labels such as `uses`, `follows`, `manages`, or `handles` unless the team has explicitly accepted the wording.
+- Include colour classes for existing, changed, new, and unclear/open-decision domain concepts.
+- Assign every node to exactly one colour class.
+- Include a legend after the diagram.
 
 Runtime call diagram rules:
 
@@ -280,6 +294,28 @@ Runtime call diagram rules:
 - Label every line with the method call, function call, API invocation, event emission/subscription, query, file read, file write, or other direct runtime operation.
 - Do not prefix labels with generic words such as `calls`; label the operation directly.
 - Keep it small.
+- Include colour classes for existing, changed, new, and unclear/open-decision components or files.
+- Assign every node to exactly one colour class.
+- Include a legend after the diagram.
+
+Diagram colour legend:
+
+- gray = existing
+- yellow = changed
+- green = new
+- red = unclear ownership / open decision
+
+Code stress test rules:
+
+- Keep the combined code sample under 60 lines.
+- Show real TypeScript code examples for the hardest part of the design, not pseudocode.
+- Use the component names, method names, and type names proposed by the design.
+- The code may omit imports, constructor wiring, and trivial type definitions, but the shown methods must look like code that could actually be implemented.
+- The use case sample must make the load / invoke / save / return shape visible.
+- The use case must not contain domain decisions, graph-state decisions, stage-order decisions, or output formatting.
+- The domain sample must show where the key business rule, invariant, state transition, or domain decision lives.
+- If no domain logic changes, write `No domain code sample needed — this design does not introduce or change domain behaviour.`
+- Do not include full implementation code.
 
 Component table rules:
 
