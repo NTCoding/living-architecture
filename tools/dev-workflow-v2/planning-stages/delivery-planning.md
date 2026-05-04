@@ -33,7 +33,7 @@ The architecture document must contain:
 **Status:** Approved
 ```
 
-If either condition is missing, `/dev-workflow-v2:continue-planning` must produce:
+If either condition is missing, the current planning command must produce:
 
 ```text
 BLOCK

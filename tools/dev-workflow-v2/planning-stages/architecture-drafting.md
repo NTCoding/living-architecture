@@ -60,7 +60,7 @@ The solution exploration must contain:
 **Status:** Approved
 ```
 
-If either condition is missing, `/dev-workflow-v2:continue-planning` must produce:
+If either condition is missing, the current planning command must produce:
 
 ```text
 BLOCK
@@ -110,13 +110,13 @@ No product-impact changes identified.
 
 While drafting architecture, explicitly check whether technical feasibility changes the product direction.
 
-If architecture reveals that the selected product concept should change, `/dev-workflow-v2:continue-planning` must produce:
+If architecture reveals that the selected product concept should change, the current planning command must produce:
 
 ```text
 RETURN: solution-exploration
 ```
 
-If architecture confirms the concept but reveals that PRD requirements, non-goals, success criteria, or architecture questions need revision, `/dev-workflow-v2:continue-planning` must produce:
+If architecture confirms the concept but reveals that PRD requirements, non-goals, success criteria, or architecture questions need revision, the current planning command must produce:
 
 ```text
 RETURN: prd-drafting
@@ -124,7 +124,7 @@ RETURN: prd-drafting
 
 If architecture changes no product assumptions, record that in `## 5. Product impact notes`.
 
-Do not treat a loop-back as failure. It is the workflow protecting feasibility.
+Do not treat a loop-back as failure. It is the planning process protecting feasibility.
 
 ## Step 0: Confirm product feasibility at architecture depth
 
@@ -200,7 +200,13 @@ Reason: `@component-design-architect` continues the same named subagent conversa
 
 Do not ask one subagent to produce multiple designs.
 Do not ask the main agent to produce the designs itself.
+Do not ask the main agent to aggregate, rewrite, or paraphrase subagent designs.
 Do not reuse the full transcript from a previous component-design subagent as context for the next one.
+Do not make the main agent the review or synthesis bottleneck for the full option bodies.
+
+The file is the source of truth. Each `component-design-architect` subagent must write its own option directly to `architecturePath` and then report back when done. This is mandatory.
+
+The main agent orchestrates only. It must not load all three full option bodies into context to summarise, compare, validate, or rewrite them.
 
 ### Shared design brief
 
@@ -217,6 +223,38 @@ Before invoking subagents, prepare a concise shared design brief from:
 
 The shared design brief must include only facts and approved decisions. Do not invent constraints to steer the subagent toward a preferred design.
 
+### Architecture file option scaffold
+
+Before invoking the first subagent, ensure `architecturePath` exists and contains this scaffold under `## 3. Component design`:
+
+```markdown
+### Design Options: <Feature Name>
+
+<!-- component-design-option-1:start -->
+#### Option 1: Pending
+<!-- component-design-option-1:end -->
+
+<!-- component-design-option-2:start -->
+#### Option 2: Pending
+<!-- component-design-option-2:end -->
+
+<!-- component-design-option-3:start -->
+#### Option 3: Pending
+<!-- component-design-option-3:end -->
+
+#### Approval
+
+Options have been written to this file. Which option should be approved, rejected, or combined?
+```
+
+The scaffold is only a write target. Do not fill option content from the main agent.
+
+Each option must be written inside its assigned marker block by the corresponding fresh `component-design-architect` subagent.
+
+The subagent must replace only its assigned marker block content. It must not edit other options, the approval question, the PRD, or production files.
+
+The main agent may create this scaffold, but must not write option content inside the marker blocks.
+
 ### Fresh subagent sequence
 
 Invoke three fresh subagents in sequence:
@@ -224,38 +262,74 @@ Invoke three fresh subagents in sequence:
 1. First design:
    - invoke `@@component-design-architect`
    - pass the shared design brief
+   - pass `architecturePath`
+   - assign marker `component-design-option-1`
    - ask for one component design
+   - instruct the subagent to write Option 1 directly into `architecturePath` inside the assigned marker block and report back when done
+   - after it reports back, perform the mechanical checks and basic semantic checks listed below before continuing
 2. Second design:
    - invoke a new `@@component-design-architect` context
    - pass the shared design brief
-   - pass a concise summary of the first design only for contrast
+   - pass `architecturePath`
+   - assign marker `component-design-option-2`
+   - instruct the subagent to read Option 1 directly from `architecturePath` for contrast
    - ask for one structurally different component design
+   - instruct the subagent to write Option 2 directly into `architecturePath` inside the assigned marker block and report back when done
+   - after it reports back, perform the mechanical checks and basic semantic checks listed below before continuing
 3. Third design:
    - invoke a new `@@component-design-architect` context
    - pass the shared design brief
-   - pass concise summaries of the first and second designs only for contrast
+   - pass `architecturePath`
+   - assign marker `component-design-option-3`
+   - instruct the subagent to read Options 1 and 2 directly from `architecturePath` for contrast
    - ask for one structurally different component design
+   - instruct the subagent to write Option 3 directly into `architecturePath` inside the assigned marker block and report back when done
+   - after it reports back, perform the mechanical checks and basic semantic checks listed below
 
-For the contrast summaries, include only:
+Do not pass main-agent summaries of previous options. The previous options in `architecturePath` are the source of truth for contrast.
 
-- option name
-- component ownership shape
-- major components
-- key runtime call shape
-- main uniqueness point
+Do not paste full previous option text into the subagent prompt. Give the subagent `architecturePath` and tell it which existing option sections to read.
 
-Do not pass full previous option text unless the user explicitly requests it.
+Do not proceed from one option to the next until the previous option has been written, mechanically checked, and passed the basic semantic checks in `architecturePath`.
+
+### Subagent completion report
+
+Each `component-design-architect` subagent must return only a concise completion report after writing its option to `architecturePath`:
+
+```text
+DONE
+- option: <1|2|3>
+- marker: component-design-option-<n>
+- heading: <exact option heading written>
+- distinct-from: <none|option 1|options 1 and 2>
+- validation: <pass or open decisions present; Mermaid and runtime outline format checks must pass>
+```
+
+The subagent must not return the full option body in chat. The file is the source of truth.
 
 ### After subagent results
 
-After all three fresh subagents return:
+After each fresh subagent returns, keep the returned task/session id for that option. Correction feedback must resume that same task/session.
 
-1. Verify that each subagent produced exactly one design.
-2. Verify the three designs are structurally distinct.
-3. If any design is invalid, tangled, impossible to implement, or not distinct, replace only that design with a new fresh `@@component-design-architect` invocation.
-4. Present the three options to the user.
-5. Add a short recommendation only after the three options are presented.
-6. Ask the user which option to approve, reject, or combine.
+Then invoke a fresh `component-design-review` subagent to review only the assigned marker block. Pass `architecturePath`, the assigned marker, the approved PRD path, the approved solution exploration path, and the approved architecture feasibility and ownership context. The review subagent must return JSON with `verdict`, `summary`, and `findings`.
+
+The main agent must not verify the option. It must not run marker checks, Mermaid checks, aggregate-call checks, semantic checks, grep/read validation, or design-quality judgement. All checking belongs to `component-design-review`.
+
+If `component-design-review` returns `FAIL`, resume the same `component-design-architect` task/session that produced that option and send the review JSON findings back to it. Instruct it to correct its design in place by replacing only the same assigned marker block. Then invoke `component-design-review` again. Repeat until the option passes or same-agent correction is unavailable.
+
+Stop after 2 review rounds. Accept the current state of the design after a maximum 2 reviews. We can't allow the process to spin in an infinite loop and 3 rounds of feedback should be more than enough. These designs don't need to be perfect, they need to be solid with no glarring flaws.
+
+If the original `component-design-architect` task/session cannot be resumed after review failure, block and report that same-agent correction is unavailable. Do not replace the failed option with a fresh design agent.
+
+Do not summarise, compare, fix, verify, or rewrite the option body from the main agent. The main agent orchestrates only. The persisted option body in `architecturePath` is reviewed by `component-design-review` only.
+
+After all three options are written and individually verified by `component-design-review`:
+
+1. Do not load all option bodies into the main-agent context.
+2. Do not independently compare or summarise the options.
+3. Use the subagent completion reports only to confirm Option 2 was designed against Option 1 and Option 3 was designed against Options 1 and 2.
+4. Tell the user the three options have been written to `architecturePath`.
+5. Ask the user whether they want to review the file directly, approve an option, reject an option, or ask for a combination.
 
 If fresh `@@component-design-architect` invocation is unavailable, stop and produce:
 
@@ -390,7 +464,7 @@ For each component option, flag tangled components when:
 
 - one element mixes entrypoint, orchestration, domain logic, persistence, external-client access, or presentation
 - a component would need two unrelated `.riviere` roles
-- a domain element exists only to map results into a consumer API such as CLI output, workflow updates, or builder writes
+- a domain element exists only to map results into a consumer API such as CLI output, status updates, or builder writes
 - a command use case uses a query model or query-model loader to execute write behaviour
 - a write operation is modelled through read-side/query components instead of aggregate/repository components
 - a use case depends on another use case
@@ -459,38 +533,44 @@ Use the `component-design-architect` output format for each option.
 Do not rewrite or expand subagent designs into a different structure.
 Do not remove the subagent's code stress test section.
 Do not merge the three designs into one option.
+Do not reconstruct the options from subagent chat responses.
 
-Present the result as:
+The persisted content in `architecturePath` is the authoritative output.
+The main agent must never paste, summarise, paraphrase, rewrite, or otherwise transform option bodies anywhere. The option bodies are reviewed in `architecturePath` only.
+
+The component design section in `architecturePath` must use this shape:
 
 ```markdown
 ### Design Options: <Feature Name>
 
-#### Option 1: <name returned by first subagent>
+<!-- component-design-option-1:start -->
+#### Option 1: <name written by first subagent>
 
-<first subagent design>
+<first subagent design written directly by first subagent>
+<!-- component-design-option-1:end -->
 
-#### Option 2: <name returned by second subagent>
+<!-- component-design-option-2:start -->
+#### Option 2: <name written by second subagent>
 
-<second subagent design>
+<second subagent design written directly by second subagent>
+<!-- component-design-option-2:end -->
 
-#### Option 3: <name returned by third subagent>
+<!-- component-design-option-3:start -->
+#### Option 3: <name written by third subagent>
 
-<third subagent design>
-
-#### Recommendation
-
-<one short paragraph recommending one option or explaining why a combination is better>
+<third subagent design written directly by third subagent>
+<!-- component-design-option-3:end -->
 
 #### Approval
 
-Which option should be approved, rejected, or combined?
+Options have been written to this file. Which option should be approved, rejected, or combined?
 ```
 
-Before presenting the final options, review every component name against all rules in Component Naming Guidelines.
+Before invoking each subagent, include the Component Naming Guidelines, ADR-002 layering constraints, `.riviere` role constraints, and the approved ownership boundary in that subagent's prompt.
 
-If any name violates any naming rule, replace that option with a fresh `@@component-design-architect` invocation.
+The subagent that writes an option is responsible for applying those constraints before writing.
 
-Then review all components against all guidelines in Layering. If any component violates a layering rule, replace that option with a fresh `@@component-design-architect` invocation.
+The main agent must not perform a full semantic review of all written option bodies. If deeper review is needed, invoke a fresh specialist review subagent against `architecturePath` and the relevant marker block rather than loading all option bodies into the main-agent context.
 
 ## Draft approval and completion
 
@@ -530,7 +610,7 @@ After the user approves, rejects, or combines the architecture options into one 
 
 Then ask whether the architecture draft is ready for approval review.
 
-If the user approves the draft for approval review, `/dev-workflow-v2:continue-planning` must produce:
+If the user approves the draft for approval review, the current planning command must produce:
 
 ```text
 ADVANCE: architecture-approval

@@ -29,7 +29,7 @@ The architecture document must contain:
 **Status:** Awaiting Architecture Approval
 ```
 
-If not, `/dev-workflow-v2:continue-planning` must produce:
+If not, the current planning command must produce:
 
 ```text
 BLOCK
@@ -55,13 +55,13 @@ Approve only if all of these are true:
 
 ## Return checks
 
-If architecture reveals that the selected product concept should change, `/dev-workflow-v2:continue-planning` must produce:
+If architecture reveals that the selected product concept should change, the current planning command must produce:
 
 ```text
 RETURN: solution-exploration
 ```
 
-If architecture confirms the concept but reveals that PRD requirements, non-goals, success criteria, or architecture questions need revision, `/dev-workflow-v2:continue-planning` must produce:
+If architecture confirms the concept but reveals that PRD requirements, non-goals, success criteria, or architecture questions need revision, the current planning command must produce:
 
 ```text
 RETURN: prd-drafting
@@ -83,7 +83,7 @@ If the architecture passes:
 **Approval note:** Architecture confirms the approved product direction and provides enough technical shape for delivery planning.
 ```
 
-Then `/dev-workflow-v2:continue-planning` must produce:
+Then the current planning command must produce:
 
 ```text
 ADVANCE: delivery-planning
@@ -91,7 +91,7 @@ ADVANCE: delivery-planning
 
 ## On rejection
 
-If the architecture fails any approval check but does not require a return outcome, `/dev-workflow-v2:continue-planning` must produce:
+If the architecture fails any approval check but does not require a return outcome, the current planning command must produce:
 
 ```text
 BLOCK

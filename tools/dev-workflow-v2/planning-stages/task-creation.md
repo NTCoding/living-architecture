@@ -262,7 +262,7 @@ Block task creation if any of these are true:
 3. the approved delivery plan does not contain concrete deliverables, acceptance criteria, source refs, and verification notes where known
 4. the selected deliverable depends on unresolved product, architecture, or delivery blockers
 
-If blocked, `/dev-workflow-v2:continue-planning` must produce:
+If blocked, the current planning command must produce:
 
 ```text
 BLOCK
@@ -274,7 +274,7 @@ BLOCK
 
 This stage is complete only when all intended GitHub issues have been created successfully and all issue numbers are known.
 
-If complete, `/dev-workflow-v2:continue-planning` must produce:
+If complete, the current planning command must produce:
 
 ```text
 COMPLETE

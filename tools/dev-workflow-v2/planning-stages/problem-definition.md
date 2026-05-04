@@ -59,7 +59,7 @@ It must not include:
 
 ## Required conversational interview
 
-Collect the 5Ws in the current conversation. Do not end an answer by telling the user to run `/dev-workflow-v2:continue-planning` again.
+Collect the 5Ws in the current conversation. Do not end an answer by telling the user to run this command again.
 
 After the user answers a 5W field:
 
@@ -101,7 +101,7 @@ Internal objective: identify where the problem occurs.
 Questioning constraints:
 
 - Ask where the user sees the problem happen.
-- If needed, ask whether it happens in a workflow, artefact, product area, team process, user journey, or handoff.
+- If needed, ask whether it happens in a process, artefact, product area, team process, user journey, or handoff.
 - Do not offer categories unless the user needs examples to answer.
 
 ### W4 — When
@@ -224,7 +224,7 @@ If approved, update `problem-definition.md` with this structure:
 <approved problem statement>
 ```
 
-Then `/dev-workflow-v2:continue-planning` must produce:
+Then the current planning command must produce:
 
 ```text
 ADVANCE: solution-exploration

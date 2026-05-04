@@ -2,11 +2,7 @@
 
 Legacy note: milestone planning no longer belongs in PRD drafting.
 
-Milestones are now owned by:
-
-```text
-tools/dev-workflow-v2/planning-stages/delivery-planning.md
-```
+Milestones are now owned by the delivery-planning stage file.
 
 Reason:
 

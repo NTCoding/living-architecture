@@ -2,11 +2,7 @@
 
 Legacy note: problem statement drafting no longer happens inside `PRD.md`.
 
-Problem definition is now owned by:
-
-```text
-tools/dev-workflow-v2/planning-stages/problem-definition.md
-```
+Problem definition is now owned by the problem-definition planning-stage file.
 
 Reason:
 

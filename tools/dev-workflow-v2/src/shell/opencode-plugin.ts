@@ -33,6 +33,7 @@ const AGENT_NAMES = [
   'bug-scanner',
   'task-check',
   'component-design-architect',
+  'component-design-review',
 ] as const
 
 const OPEN_CODE_WORKFLOW_COMMAND = 'dev-workflow-v2:workflow'

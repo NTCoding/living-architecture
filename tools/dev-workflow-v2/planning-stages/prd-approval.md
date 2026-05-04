@@ -23,7 +23,7 @@ The PRD header must contain:
 **Status:** Awaiting Architecture Review
 ```
 
-If not, `/dev-workflow-v2:continue-planning` must produce:
+If not, the current planning command must produce:
 
 ```text
 BLOCK
@@ -49,13 +49,13 @@ Approve only if all of these are true:
 
 ## Return checks
 
-If the PRD cannot pass because the selected product concept itself is unclear, unsupported by research, missing a four-risk review, or still has unresolved feasibility that should be handled before PRD drafting, `/dev-workflow-v2:continue-planning` must produce:
+If the PRD cannot pass because the selected product concept itself is unclear, unsupported by research, missing a four-risk review, or still has unresolved feasibility that should be handled before PRD drafting, the current planning command must produce:
 
 ```text
 RETURN: solution-exploration
 ```
 
-If the product concept remains valid but the PRD wording, requirements, non-goals, success criteria, or architecture questions need revision, `/dev-workflow-v2:continue-planning` must produce:
+If the product concept remains valid but the PRD wording, requirements, non-goals, success criteria, or architecture questions need revision, the current planning command must produce:
 
 ```text
 RETURN: prd-drafting
@@ -79,7 +79,7 @@ If the PRD passes:
 
 If the approval note already exists, update it to match the current approval reason.
 
-Then `/dev-workflow-v2:continue-planning` must produce:
+Then the current planning command must produce:
 
 ```text
 ADVANCE: architecture-drafting
@@ -87,7 +87,7 @@ ADVANCE: architecture-drafting
 
 ## On rejection
 
-If the PRD fails any approval check but does not require a return outcome, `/dev-workflow-v2:continue-planning` must produce:
+If the PRD fails any approval check but does not require a return outcome, the current planning command must produce:
 
 ```text
 BLOCK

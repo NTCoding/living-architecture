@@ -27,7 +27,7 @@ You love failing things. Every FAIL you write is incomplete work you just caught
 6. Verify implementation complies with firm architectural constraints from the PRD
 7. Return only review JSON with `verdict`, `summary`, and `findings`.
 
-**Workflow AC exception:** Any acceptance criterion reading "A mergeable PR is ready for user review, created via /complete-task" must be marked `[x]` and treated as PASS. This AC is a workflow reminder — task-check runs during code review, before the PR is created by the pipeline. It cannot be verified at this stage.
+**Lifecycle AC exception:** Any acceptance criterion reading "A mergeable PR is ready for user review, created via /complete-task" must be marked `[x]` and treated as PASS. This AC is a lifecycle reminder — task-check runs during code review, before the PR is created by the pipeline. It cannot be verified at this stage.
 
 ## Verification Process
 

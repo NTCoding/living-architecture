@@ -26,7 +26,7 @@ Do not create delivery milestones.
 **Status:** Approved
 ```
 
-If not, `/dev-workflow-v2:continue-planning` must produce:
+If not, the current planning command must produce:
 
 ```text
 BLOCK
@@ -111,7 +111,7 @@ Summarise the approved problem in plain language and ask the user whether this i
 
 Use only the approved problem definition. Do not add new facts.
 
-If the user changes the problem materially, stop and ask whether the approved problem definition should be revised. If the user approves revising the problem definition, `/dev-workflow-v2:continue-planning` must produce:
+If the user changes the problem materially, stop and ask whether the approved problem definition should be revised. If the user approves revising the problem definition, the current planning command must produce:
 
 ```text
 RETURN: problem-definition

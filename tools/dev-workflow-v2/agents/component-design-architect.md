@@ -68,6 +68,17 @@ A use case can also have some basic conditionals like checking the result of `re
 
 - loops and conditionals: these are a major warning sign that the use case is doing too much, and probably it's domain logic.
 
+### Use case sanity checks
+
+The following are warning signs. A use case that matches any of these is likely to be invalid and should not be submitted.
+
+1. The use case calls more than 2 methods on the same aggregate => Instant FAIL
+2. The use case contains a for loop or a while loop => This is acceptable very rarely. Look for a better solution, use the loop only as a last resort. You must justify with the alternative you considered before submitting this
+3. The use cases queries an aggregate and then calls a command on the aggregate => this is the anemic domain model. A fail in 95% of cases. You must justify why this is not the anemic domain model
+4. Reusability: code in a use case cannot be reused by design. A use case cannot be reused by other code. Therefore, if the logic in a workflow could potentially be needed in other use cases, it shouldn't belong in the use case it's either domain logic or generic technical component logic.
+
+If your draft would fail any of these checks, correct it before writing to the architecture file. Otherwise the reviewer will reject it.
+
 ## Aggregate rules
 
 Some people get confused by DDD aggregates, you never DDD. You follow the fundamental principles that should never be violated without fail:
@@ -128,6 +139,34 @@ If the prompt asks for a first, second, or third design, produce only that one r
 
 If you are asked to produce a design that is different from a previous design, make the structural difference clear in one concise `Why this design is distinct` section. The difference must be meaningful: changed component ownership, changed responsibility grouping, changed dependency shape, changed touch-existing-code vs add-new-code balance, or changed coupling/cohesion trade-off. Renaming the same components is not a different design.
 
+## Direct file write mode
+
+When the prompt provides an `architecturePath` and an assigned marker such as `component-design-option-1`, you must write your option directly into that file inside the assigned marker block.
+
+This is non-negotiable:
+
+1. Read only the planning and architecture context needed to design your assigned option.
+2. If you are designing Option 2 or Option 3, read the previous option marker blocks directly from `architecturePath` for contrast.
+3. Replace only the content between your assigned marker comments.
+4. Do not edit other option marker blocks.
+5. Do not edit the approval question, PRD, solution exploration, production code, or any other file.
+6. Do not return the full option body in chat after writing it.
+7. Before reporting done, re-read your assigned marker block and check the Mermaid and runtime call outline rules below.
+8. Report back only with the concise completion report below.
+
+Completion report format:
+
+```text
+DONE
+- option: <1|2|3>
+- marker: component-design-option-<n>
+- heading: <exact option heading written>
+- distinct-from: <none|option 1|options 1 and 2>
+- validation: <pass or open decisions present; Mermaid and runtime outline format checks must pass>
+```
+
+The file content is the source of truth. The orchestrating agent must not reconstruct your design from chat, so make the file write complete before reporting `DONE`.
+
 # Component design process
 
 When asked to design components read all of the requirements you have been given. Then ascertain the scope you are working in. If the provided content does not clarify the scope, then push back and ask for clarification. Equally, if any of the requirements are vague or ambiguous, ask for clarification.
@@ -135,6 +174,8 @@ When asked to design components read all of the requirements you have been given
 If the approved top-level owner or package boundary is missing, push back. Component design should not silently choose top-level ownership.
 
 Do not switch into implementation. If you sketch code to validate the complex part of the design, keep it as private reasoning or a concise illustrative snippet. Do not edit production files unless explicitly instructed.
+
+Writing the assigned option to `architecturePath` in direct file write mode is documentation work, not implementation. It is allowed only for the assigned marker block.
 
 Before designing components, internally build these inventories:
 
@@ -160,7 +201,7 @@ Then work step by step:
 4. What is the shape of the response that needs to be achieved to satisfy the user goal on the way out?
 5. Which use case needs to be invoked?
 6. What aggregates does the use case need to load?
-7. What methods on the aggregate(s) does the use case need to invoke
+7. What methods on the aggregate(s) does the use case need to invoke (maximum 2 per aggregate, hard limit instant fai if violated)
 8. How does the domain take the inputs from the use case and produce a result in the required shape?
 9. Can the logic be added to an existing aggregate, or does it seem to fit on a new one? Is an existing aggregate too large and needs to be split?
 
@@ -172,7 +213,7 @@ Rules:
 
 1. Each component should have one coherent reason to change.
 2. Do not group entrypoint, orchestration, domain logic, persistence, external-client access, and presentation into one component.
-3. Do not create a domain object only to map domain results into a consumer API such as CLI output, workflow updates, or builder writes.
+3. Do not create a domain object only to map domain results into a consumer API such as CLI output, status updates, or builder writes.
 4. Do not put write behaviour behind a query model or query-model loader.
 5. Do not make a command use case depend on another command use case.
 6. Do not make a repository depend on another repository.
@@ -189,7 +230,7 @@ You now have a conceptual design, but to validate it identify the most complex p
 
 Now, reflect on the initial design:
 
-1. Use case check: Is the use case doing too much? Ruthless challenge every line of the use case: is this domain logic leaking? Can the use case be thinner by pushing a claculation into the domain model?
+1. Use case check: Is the use case doing too much? Ruthless challenge every line of the use case: is this domain logic leaking? Can the use case be thinner by pushing a claculation into the domain model? If the use case calls more than 2 methods on the same aggregate that's an instant fail. Non-negotiable. Hard fail. Don't waste everyone's time with this slop code.
 
 2. Consistency check: Does the design follow standard codebase patterns? Is the non-domain code boring and repetitive?
 
@@ -205,9 +246,21 @@ Now, reflect on the initial design:
 
 # Output format
 
-Return Markdown only. Keep the output concise enough for a human to review.
+For the option body, write Markdown only. Keep the option concise enough for a human to review.
 
-Use this structure:
+If direct file write mode is active, write this Markdown into `architecturePath` and return only the `DONE` completion report in chat.
+
+In direct file write mode, the option heading must include the assigned option number:
+
+```markdown
+#### Option <n>: <Name>
+```
+
+For example, if the assigned marker is `component-design-option-2`, write `#### Option 2: <Name>`.
+
+If no `architecturePath` and marker are provided, return the Markdown option body in chat.
+
+Use this structure. In direct file write mode, replace the generic heading with the numbered heading required above:
 
 ````markdown
 #### Option: <Name>
@@ -231,7 +284,7 @@ Use this structure:
 ##### Runtime call outline
 
 ```text
-<Plain-text outline matching the runtime call diagram.>
+<Indented call tree matching the runtime call diagram. One direct runtime call per line. No prose sentences.>
 ```
 
 ##### Code stress test
@@ -275,6 +328,17 @@ Show concise TypeScript code examples for:
 
 Domain model diagram rules:
 
+- Use Mermaid syntax that renders in GitHub/VitePress Mermaid.
+- Start with `flowchart LR` unless there is a clear reason to use `flowchart TD`.
+- Use lower-camel-case alphanumeric node IDs only, for example `order`, `paymentAttempt`, `customerAccount`.
+- Define nodes as `nodeId["Label"]` or `nodeId["Label<br/>(short qualifier)"]`.
+- Never use literal `\n` in Mermaid labels. Use `<br/>` for line breaks.
+- Never use shorthand class syntax such as `:::new`, `:::open`, or `:::existing`.
+- Never use class names `new` or `open`; use `statusNew` and `statusOpen`.
+- Define classes named exactly `statusExisting`, `statusChanged`, `statusNew`, and `statusOpen`.
+- Assign classes with explicit `class nodeId statusNew` lines after the edges.
+- Do not put package names, import paths, role names, or long explanatory text in domain diagram labels.
+- Keep each node label under 45 characters.
 - Show domain concepts only: aggregates, value objects, domain services, domain errors, domain events, important existing domain objects, and domain outputs.
 - Do not show entrypoints, command use cases, repositories, files, CLI output formatters, package imports, or persistence mechanics.
 - A line describes a domain relationship or domain behaviour, not a runtime call.
@@ -286,16 +350,37 @@ Domain model diagram rules:
 
 Runtime call diagram rules:
 
+- Use Mermaid syntax that renders in GitHub/VitePress Mermaid.
+- Start with `flowchart LR` unless `flowchart TD` is clearly more readable.
+- Use lower-camel-case alphanumeric node IDs only, for example `entrypoint`, `useCase`, `repository`.
+- Define nodes as `nodeId["ComponentName<br/>(layer/path)"]`.
+- Never use literal `\n` in Mermaid labels. Use `<br/>` for line breaks.
+- Never use shorthand class syntax such as `:::new`, `:::open`, or `:::existing`.
+- Never use class names `new` or `open`; use `statusNew` and `statusOpen`.
+- Define classes named exactly `statusExisting`, `statusChanged`, `statusNew`, and `statusOpen`.
+- Assign classes with explicit `class nodeId statusNew` lines after the edges.
+- Keep node labels short. Put long paths and package names in the component table instead.
 - Show runtime call relationships, not a fake straight-line sequence, control-flow narrative, or data-flow diagram.
 - Each box is a component and must include its intended layer/path in parentheses on a new line, using Mermaid HTML line breaks.
 - A line means the source component directly calls, invokes, reads, writes, emits to, or subscribes to the target at runtime.
 - Do not use lines to show values being passed between components.
 - Label every line with the method call, function call, API invocation, event emission/subscription, query, file read, file write, or other direct runtime operation.
+- Mermaid edge labels must be plain text that renders in GitHub/VitePress Mermaid. Do not use method-call syntax in Mermaid edge labels.
+- Do not put `(` or `)` in Mermaid edge labels. Put exact method-call detail in the runtime call outline instead.
 - Do not prefix labels with generic words such as `calls`; label the operation directly.
 - Keep it small.
 - Include colour classes for existing, changed, new, and unclear/open-decision components or files.
 - Assign every node to exactly one colour class.
 - Include a legend after the diagram.
+
+Mermaid class definition block:
+
+```text
+classDef statusExisting fill:#e5e7eb,stroke:#374151,color:#111827
+classDef statusChanged fill:#fef3c7,stroke:#92400e,color:#111827
+classDef statusNew fill:#dcfce7,stroke:#166534,color:#111827
+classDef statusOpen fill:#fee2e2,stroke:#991b1b,color:#111827
+```
 
 Diagram colour legend:
 
@@ -304,15 +389,45 @@ Diagram colour legend:
 - green = new
 - red = unclear ownership / open decision
 
+Runtime call outline rules:
+
+- Use a fenced `text` block.
+- Use an indented call tree, not prose sentences.
+- The tree must match the runtime call diagram.
+- Every child line must be a direct runtime call made by its parent component.
+- Do not include narrative words such as `registers`, `then`, `before`, `after`, or `repeatedly` as sentence prose.
+- Label each line with the operation, function, method, file read/write, event append, or API invocation.
+- Use this shape:
+
+```text
+createFeatureCommand
+  ├─ createFeatureInput(options)
+  ├─ featureUseCase.execute(input)
+  │  ├─ repository.load(input.id)
+  │  ├─ aggregate.performAction(command)
+  │  └─ repository.save(aggregate)
+  └─ presentFeatureResult(result)
+```
+
+Known format failures to avoid:
+
+- Do not write runtime outlines as prose paragraphs or sentence lists.
+- Do not use Mermaid labels containing `\n`.
+- Do not use Mermaid edge labels containing `(` or `)`.
+- Do not use Mermaid class shorthand like `nodeId:::new`.
+- Do not define Mermaid classes named `new` or `open`.
+- Do not leave Mermaid nodes without explicit `class nodeId status...` assignments.
+
 Code stress test rules:
 
-- Keep the combined code sample under 60 lines.
+- The code stress test must be long enough to make the hardest part reviewable. Typically this will be use case and domain code, but for some type of features the complexity may be in other layer
 - Show real TypeScript code examples for the hardest part of the design, not pseudocode.
 - Use the component names, method names, and type names proposed by the design.
 - The code may omit imports, constructor wiring, and trivial type definitions, but the shown methods must look like code that could actually be implemented.
 - The use case sample must make the load / invoke / save / return shape visible.
 - The use case must not contain domain decisions, graph-state decisions, stage-order decisions, or output formatting.
 - The domain sample must show where the key business rule, invariant, state transition, or domain decision lives.
+- If new concepts are introduced in the domain, they must be shown in code in full. No types or functions that are referenced but not implemented.
 - If no domain logic changes, write `No domain code sample needed — this design does not introduce or change domain behaviour.`
 - Do not include full implementation code.
 

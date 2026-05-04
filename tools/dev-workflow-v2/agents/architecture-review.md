@@ -51,7 +51,7 @@ If a file under `infra/external-clients/**` uses domain terminology in its expor
 
 ## Consumer-Mapping Ownership Check
 
-If a file under `domain/` defines a port, presenter, formatter, bridge, translator, or adapter whose only purpose is to map domain results into the API of a specific consumer such as CLI output, workflow updates, or builder writes, FAIL it. Pure code is not enough. The abstraction must still be a real domain concept.
+If a file under `domain/` defines a port, presenter, formatter, bridge, translator, or adapter whose only purpose is to map domain results into the API of a specific consumer such as CLI output, status updates, or builder writes, FAIL it. Pure code is not enough. The abstraction must still be a real domain concept.
 
 ## Audit Report (written to Report Path)
 

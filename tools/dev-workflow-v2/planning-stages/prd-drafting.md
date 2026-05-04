@@ -36,7 +36,7 @@ and:
 **Concept approval:** Approved
 ```
 
-If any condition is missing, `/dev-workflow-v2:continue-planning` must produce:
+If any condition is missing, the current planning command must produce:
 
 ```text
 BLOCK
@@ -202,7 +202,7 @@ If the user approves the PRD, update only the PRD header/approval marker to:
 **PRD approval:** Approved
 ```
 
-Then `/dev-workflow-v2:continue-planning` must produce:
+Then the current planning command must produce:
 
 ```text
 ADVANCE: prd-approval
