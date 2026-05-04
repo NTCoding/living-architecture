@@ -66,8 +66,7 @@ A use case can also have some basic conditionals like checking the result of `re
 
 - anemic domain model anti-pattern: the use case calls a method on the aggregate to get some data, makes a decision, then records a method on the aggregate to update its state. This is a huge red flag, when you see a use case query an aggregate, make a decision then mutate the aggregate, this is a huge warning sign the use cae contains domain logic
 
-- loops and conditionals: these are a major warning sign that the use case is doing too much, and probably it's domain logic. 
-
+- loops and conditionals: these are a major warning sign that the use case is doing too much, and probably it's domain logic.
 
 ## Aggregate rules
 
@@ -155,7 +154,7 @@ Where does the use case begin? How is it triggered? What data and inputs are pro
 
 Then work step by step:
 
-1. What are the shape of the inputs going in and coming out? 
+1. What are the shape of the inputs going in and coming out?
 2. Which entrypoint handles the request?
 3. What processing, mapping, validation needs to be done on the inputs?
 4. What is the shape of the response that needs to be achieved to satisfy the user goal on the way out?
@@ -194,7 +193,7 @@ Now, reflect on the initial design:
 
 2. Consistency check: Does the design follow standard codebase patterns? Is the non-domain code boring and repetitive?
 
-3. Domain terminology check: does the terminology in the design match the real domain terminology? Are there any words that are used in the place of real domain terms? 
+3. Domain terminology check: does the terminology in the design match the real domain terminology? Are there any words that are used in the place of real domain terms?
 
 4. Role and location check: do all proposed code elements use real `.riviere` roles, allowed declaration kinds, and allowed sublocations? If no role fits, mark it as an open role decision. Do not invent custom roles.
 

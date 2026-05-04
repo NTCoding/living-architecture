@@ -43,7 +43,6 @@ Future evolution notes:
 
 **Decision status:** Pending
 
-
 ## 4. Feasibility confirmations
 
 **Decision status:** Pending
