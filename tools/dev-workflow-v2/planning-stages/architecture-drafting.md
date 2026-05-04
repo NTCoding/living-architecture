@@ -192,7 +192,77 @@ Work with the user to design the software components to implement the new capabi
 
 ## Task
 
-Generate 3 or more component design options.
+Generate exactly 3 initial component design options by using fresh `component-design-architect` subagent contexts.
+
+Use `@@component-design-architect`, not `@component-design-architect`.
+
+Reason: `@component-design-architect` continues the same named subagent conversation. `@@component-design-architect` starts a fresh subagent context with the message as its first instruction. Each design option must be produced in a fresh context so the subagent focuses on one design only.
+
+Do not ask one subagent to produce multiple designs.
+Do not ask the main agent to produce the designs itself.
+Do not reuse the full transcript from a previous component-design subagent as context for the next one.
+
+### Shared design brief
+
+Before invoking subagents, prepare a concise shared design brief from:
+
+- `prdPath`
+- `solutionExplorationPath`
+- approved product feasibility conclusion
+- approved ownership and boundary decision
+- relevant architecture memories
+- relevant ADRs and architecture constraints
+- the actual target package, module, or feature boundary
+- hard non-negotiable constraints already approved with the user
+
+The shared design brief must include only facts and approved decisions. Do not invent constraints to steer the subagent toward a preferred design.
+
+### Fresh subagent sequence
+
+Invoke three fresh subagents in sequence:
+
+1. First design:
+   - invoke `@@component-design-architect`
+   - pass the shared design brief
+   - ask for one component design
+2. Second design:
+   - invoke a new `@@component-design-architect` context
+   - pass the shared design brief
+   - pass a concise summary of the first design only for contrast
+   - ask for one structurally different component design
+3. Third design:
+   - invoke a new `@@component-design-architect` context
+   - pass the shared design brief
+   - pass concise summaries of the first and second designs only for contrast
+   - ask for one structurally different component design
+
+For the contrast summaries, include only:
+
+- option name
+- component ownership shape
+- major components
+- key runtime call shape
+- main uniqueness point
+
+Do not pass full previous option text unless the user explicitly requests it.
+
+### After subagent results
+
+After all three fresh subagents return:
+
+1. Verify that each subagent produced exactly one design.
+2. Verify the three designs are structurally distinct.
+3. If any design is invalid, tangled, impossible to implement, or not distinct, replace only that design with a new fresh `@@component-design-architect` invocation.
+4. Present the three options to the user.
+5. Add a short recommendation only after the three options are presented.
+6. Ask the user which option to approve, reject, or combine.
+
+If fresh `@@component-design-architect` invocation is unavailable, stop and produce:
+
+```text
+BLOCK
+- Fresh component-design-architect context is unavailable
+```
 
 Options must be as unique as possible.
 
@@ -384,182 +454,43 @@ Do not continue to architecture approval until these decisions are resolved.
 
 ## Output Format
 
-### Design Options: [Feature Name]
+Use the `component-design-architect` output format for each option.
 
-#### Option 1: [Name]
+Do not rewrite or expand subagent designs into a different structure.
+Do not remove the subagent's code stress test section.
+Do not merge the three designs into one option.
 
-Describe this option by outlining the philosophy behind it and its key characteristics.
+Present the result as:
 
-##### Domain model change
+```markdown
+### Design Options: <Feature Name>
 
-Show the conceptual domain model change before the runtime call diagram.
+#### Option 1: <name returned by first subagent>
 
-Rules:
+<first subagent design>
 
-- Show domain concepts only: aggregates, value objects, domain services, domain errors, domain events, important existing domain objects, and domain outputs.
-- Do not show entrypoints, command use cases, repositories, files, CLI output formatters, package imports, or persistence mechanics.
-- A line describes a domain relationship or domain behaviour, not a runtime call.
-- Use precise relationship labels such as `contains ordered`, `executes steps of`, `owns in-memory state`, `accepts/rejects`, `records`, `aborts with`, or `exposes after success`.
-- Avoid vague labels such as `uses`, `follows`, `manages`, or `handles` unless the team has explicitly accepted the wording.
-- If an option does not change the domain model, write `No domain model change identified.` and explain why.
+#### Option 2: <name returned by second subagent>
 
-```mermaid
-flowchart TB
-  definition["FeatureDefinition<br/>(value object)"]
-  step["FeatureStep<br/>(value object)"]
-  aggregate["FeatureRun<br/>(aggregate)"]
-  existingState["ExistingDomainState<br/>(existing aggregate)"]
-  result["FeatureStepResult<br/>(value object)"]
-  completed["CompletedOutput<br/>(domain output)"]
-  event["FeatureLogEvent<br/>(value object/domain event)"]
-  error["FeatureRunError<br/>(domain error)"]
+<second subagent design>
 
-  definition -->|"contains ordered"| step
-  aggregate -->|"executes steps of"| definition
-  aggregate -->|"owns in-memory state"| existingState
-  aggregate -->|"produces and accepts/rejects"| result
-  result -->|"updates state when accepted"| existingState
-  aggregate -->|"records"| event
-  aggregate -->|"aborts with"| error
-  aggregate -->|"exposes after success"| completed
+#### Option 3: <name returned by third subagent>
 
-  classDef existing fill:#e5e7eb,stroke:#374151,color:#111827
-  classDef new fill:#dcfce7,stroke:#166534,color:#111827
-  classDef output fill:#dbeafe,stroke:#1d4ed8,color:#111827
-  classDef error fill:#fee2e2,stroke:#991b1b,color:#111827
-
-  class existingState existing
-  class definition,step,aggregate,result,event new
-  class completed output
-  class error error
-```
-
-Then add concise bullets explaining the domain model changes.
-
-##### Runtime call diagram
-
-Use Mermaid.
-
-Rules:
-
-- Show runtime call relationships, not a fake straight-line sequence, control-flow narrative, or data-flow diagram.
-- Each box is a component and must include its intended layer/path in parentheses on a new line, using Mermaid HTML line breaks. Example: `ComponentName<br/>(/commands)`.
-- A line normally means the source component directly calls the target component's function, method, API, or file operation at runtime.
-- Do not use lines to show values being passed between components. For example, do not draw `createInput -> UseCase` just because the returned input is later passed to the use case; draw both calls from the caller instead.
-- Do not connect two components if one does not directly call, invoke, read, write, emit to, or subscribe to the other.
-- Use branches when one component calls multiple dependencies.
-- Label every line with the method call, function call, API invocation, event emission/subscription, query, file read, file write, or other direct runtime operation.
-- Do not prefix labels with generic words such as `calls`; label the operation directly, for example `runWorkflow.execute(input)`.
-- Do not put status labels in node text.
-- Show status through Mermaid classes.
-- The diagram intentionally does not show compile-time type imports.
-- Keep it small.
-
-```mermaid
-flowchart LR
-  entrypoint["createFeatureCommand<br/>(/entrypoint)"]
-  inputFactory["createFeatureInput<br/>(/commands)"]
-  usecase["FeatureUseCase.execute<br/>(/commands)"]
-  repository["FeatureRepository<br/>(/infra/persistence)"]
-  aggregate["FeatureAggregate<br/>(/domain)"]
-  presenter["presentFeatureResult<br/>(/infra/cli/output)"]
-
-  entrypoint -->|"createFeatureInput(options)"| inputFactory
-  entrypoint -->|"featureUseCase.execute(input)"| usecase
-  entrypoint -->|"presentFeatureResult(result)"| presenter
-  usecase -->|"repository.load(input.id)"| repository
-  usecase -->|"aggregate.performAction(command)"| aggregate
-  usecase -->|"repository.save(aggregate)"| repository
-
-  classDef existing fill:#e5e7eb,stroke:#374151,color:#111827
-  classDef changed fill:#fef3c7,stroke:#92400e,color:#111827
-  classDef new fill:#dcfce7,stroke:#166534,color:#111827
-  classDef unclear fill:#fee2e2,stroke:#991b1b,color:#111827
-
-  class repository existing
-  class entrypoint changed
-  class inputFactory,usecase,aggregate,presenter new
-```
-
-Legend:
-
-- gray = existing
-- yellow = changed
-- green = new
-- red = unclear ownership
-
-##### Components
-
-| Component | Layer / path | Status | .riviere role | Responsibilities | Estimated Size |
-|---|---|---|---|---|---|
-| `ComponentName` | `features/<feature>/<layer>` | New / Existing / Changed | `cli-entrypoint`, `command-use-case`, `aggregate`, etc. | <ul><li>Responsibility one</li><li>Responsibility two</li></ul> | Small / Medium / Large, or estimated lines |
-
-##### Runtime call outline
-
-Show the same runtime calls in plain text so the proposal remains readable if Mermaid rendering fails.
-
-```text
-createFeatureCommand
-  ├─ createFeatureInput(options)
-  ├─ featureUseCase.execute(input)
-  │    ├─ repository.load(input.id)
-  │    ├─ aggregate.performAction(command)
-  │    └─ repository.save(aggregate)
-  └─ presentFeatureResult(result)
-```
-
-**note:** component names must adhere to the component naming guidelines defined in this document.
-
-**note:** `.riviere role` must use real role names from `.riviere/roles.ts` and allowed locations from `.riviere/role-enforcement.config.ts`. Do not invent custom role archetypes such as `custom:*`. If no existing role fits, mark it as an open role decision and do not force-fit the component.
-
-##### New Dependencies
-
-| Dependency | Status | Used By | Purpose |
-|---|---|---|---|
-| `DependencyName` | New / Existing / Changed | `ComponentName` | One sentence |
-
-##### Code Shape
-
-List the main new or changed files only.
-
-```text
-src/
-  api/
-    ExistingEntryPoint.ts        [changed]
-  feature/
-    NewComponent.ts              [new]
-```
-
-##### Why This Option Is Unique
-
-Explain the uniqueness using only these criteria:
-
-- number of components
-- size of components
-- touching existing code vs adding new code
-- introducing dependencies
-
-#### Option 2: [Name]
-
-Use the same format as Option 1.
-
-#### Option 3: [Name]
-
-Use the same format as Option 1.
+<third subagent design>
 
 #### Recommendation
 
-Recommend one option in 1 short paragraph.
+<one short paragraph recommending one option or explaining why a combination is better>
 
 #### Approval
 
-Before presenting the final design, review every component name against all rules in Component Naming Guidelines.
+Which option should be approved, rejected, or combined?
+```
 
-If any name violates any naming rule, revise the design before presenting it.
+Before presenting the final options, review every component name against all rules in Component Naming Guidelines.
 
-Then review all components against all guidelines in Layering. If any component violates a layering rule, revise the design before presenting it.
+If any name violates any naming rule, replace that option with a fresh `@@component-design-architect` invocation.
 
-Ask the user which option to approve, reject, or combine.
+Then review all components against all guidelines in Layering. If any component violates a layering rule, replace that option with a fresh `@@component-design-architect` invocation.
 
 ## Draft approval and completion
 
