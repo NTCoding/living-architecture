@@ -46,9 +46,9 @@ Future evolution notes:
 ### Design Options: Riviere Extraction Workflows V1
 
 <!-- component-design-option-1:start -->
-#### Option 1: Domain-Gated Fold with External Stage Execution
+#### Option 1: Workflow Executor Facade
 
-This design keeps the workflow feature inside `riviere-cli` without introducing a new aggregate. The command use case runs a mechanical loop, but pure domain services decide the next expected stage, apply already-produced stage results, enforce fail-fast state, and expose a final graph only after the valid write graph transition. Extraction reuse is moved behind a package/platform seam so `features/workflow` does not import `features/extract` internals.
+This design replaces the rejected dependency-soup shape with a high-level command use case and a dedicated workflow executor facade. The use case loads a typed run request, delegates the full graph-state fold to one executor, persists the executor result, and returns. Stage progression, dispatch, fail-fast behaviour, graph-state updates, and final-write gating are owned by `WorkflowGraphBuildExecutor`, not by the use case.
 
 ##### Domain model change
 
@@ -58,19 +58,15 @@ flowchart LR
   workflowStage["Workflow Stage"]
   stageKind["Stage Kind"]
   graphState["Graph State"]
-  workflowStageResult["Stage Result"]
-  runEvent["Run Event"]
+  stageResult["Stage Result"]
   finalGraph["Final Graph"]
-  extractionResult["Extraction Result"]
-  workflowFoldState["Workflow Fold State"]
+  runEvent["Run Event"]
   workflowDefinition -->|contains ordered| workflowStage
-  workflowFoldState -->|executes steps of| workflowDefinition
   workflowStage -->|declares| stageKind
-  workflowFoldState -->|owns in-memory state| graphState
-  workflowFoldState -->|records| runEvent
-  workflowStage -->|records| workflowStageResult
-  workflowFoldState -->|exposes after success| finalGraph
-  workflowFoldState -->|accepts after extraction| extractionResult
+  workflowStage -->|records| stageResult
+  stageResult -->|updates| graphState
+  stageResult -->|may expose| finalGraph
+  workflowStage -->|records| runEvent
   workflowDefinition -->|accepts or rejects| stageKind
   classDef statusExisting fill:#e5e7eb,stroke:#374151,color:#111827
   classDef statusChanged fill:#fef3c7,stroke:#92400e,color:#111827
@@ -80,11 +76,9 @@ flowchart LR
   class workflowStage statusNew
   class stageKind statusNew
   class graphState statusExisting
-  class workflowStageResult statusNew
-  class runEvent statusNew
+  class stageResult statusNew
   class finalGraph statusExisting
-  class extractionResult statusNew
-  class workflowFoldState statusNew
+  class runEvent statusNew
 ```
 
 - gray = existing
@@ -92,7 +86,7 @@ flowchart LR
 - green = new
 - red = unclear ownership / open decision
 
-`Workflow Definition`, `Workflow Stage`, `Stage Kind`, `Stage Result`, `Workflow Fold State`, `Workflow Extraction Result`, and `Run Event` are proposed V1 domain terms because the glossary does not yet define workflow-specific terminology. `Graph State` and `Final Graph` use existing Rivière graph representation concepts.
+`Workflow Definition`, `Workflow Stage`, `Stage Kind`, `Stage Result`, and `Run Event` are proposed V1 domain terms. `Graph State` and `Final Graph` use existing Rivière graph representation concepts.
 
 ##### Runtime call diagram
 
@@ -101,31 +95,17 @@ flowchart LR
   cli["createWorkflowCommand<br/>(entrypoint)"]
   inputFactory["createRunWorkflowInput<br/>(commands)"]
   useCase["RunWorkflow<br/>(commands)"]
-  definitionReader["readJsonFile<br/>(infra/external-clients)"]
-  graphFactory["createRiviereBuilderGraph<br/>(infra/external-clients)"]
-  foldNext["selectNextWorkflowStage<br/>(domain)"]
-  extractExecutor["runRiviereTypeScriptExtraction<br/>(platform/infra)"]
-  upsertExecutor["upsertRiviereBuilderComponents<br/>(infra/external-clients)"]
-  linkExecutor["linkRiviereBuilderGraph<br/>(infra/external-clients)"]
-  validateExecutor["validateRiviereBuilderGraph<br/>(infra/external-clients)"]
-  writeExecutor["serializeRiviereBuilderGraph<br/>(infra/external-clients)"]
-  foldApply["applyWorkflowStageResult<br/>(domain)"]
-  graphFile["writeJsonFile<br/>(infra/external-clients)"]
-  runLog["appendNdjsonFile<br/>(infra/external-clients)"]
+  requestLoader["WorkflowRunRequestLoader<br/>(infra/persistence)"]
+  executor["WorkflowGraphBuildExecutor<br/>(commands)"]
+  stageRuntime["runRiviereWorkflowStageOperation<br/>(infra/external-clients)"]
+  resultWriter["WorkflowRunResultWriter<br/>(infra/persistence)"]
   output["presentWorkflowRunResult<br/>(infra/cli/output)"]
   cli -->|create input| inputFactory
   cli -->|execute workflow| useCase
-  useCase -->|read JSON file| definitionReader
-  useCase -->|create empty graph| graphFactory
-  useCase -->|select next stage| foldNext
-  useCase -->|extract components| extractExecutor
-  useCase -->|upsert components| upsertExecutor
-  useCase -->|link graph state| linkExecutor
-  useCase -->|validate graph state| validateExecutor
-  useCase -->|serialize graph state| writeExecutor
-  useCase -->|apply stage result| foldApply
-  useCase -->|append log event| runLog
-  useCase -->|write JSON file| graphFile
+  useCase -->|load request| requestLoader
+  useCase -->|execute graph build| executor
+  executor -->|run stage operation| stageRuntime
+  useCase -->|save result| resultWriter
   cli -->|present result| output
   classDef statusExisting fill:#e5e7eb,stroke:#374151,color:#111827
   classDef statusChanged fill:#fef3c7,stroke:#92400e,color:#111827
@@ -134,17 +114,10 @@ flowchart LR
   class cli statusNew
   class inputFactory statusNew
   class useCase statusNew
-  class definitionReader statusNew
-  class graphFactory statusNew
-  class foldNext statusNew
-  class extractExecutor statusChanged
-  class upsertExecutor statusNew
-  class linkExecutor statusNew
-  class validateExecutor statusNew
-  class writeExecutor statusNew
-  class foldApply statusNew
-  class graphFile statusNew
-  class runLog statusNew
+  class requestLoader statusNew
+  class executor statusNew
+  class stageRuntime statusNew
+  class resultWriter statusOpen
   class output statusNew
 ```
 
@@ -157,35 +130,25 @@ flowchart LR
 
 | Component | Layer / path | Status | .riviere role | Responsibilities | Estimated size |
 |---|---|---|---|---|---|
-| `createWorkflowCommand` | `packages/riviere-cli/src/features/workflow/entrypoint/workflow.ts` | New | `cli-entrypoint` | Register `riviere workflow run`, translate Commander options, call input factory, execute the command use case, present success/failure. | Medium |
-| `createRunWorkflowInput` | `packages/riviere-cli/src/features/workflow/commands/create-run-workflow-input.ts` | New | `command-input-factory` | Convert CLI options into `RunWorkflowInput` without reading workflow files or executing stages. | Small |
-| `RunWorkflowInput` | `packages/riviere-cli/src/features/workflow/commands/run-workflow-input.ts` | New | `command-use-case-input` | Typed command input for workflow name/path, project root, graph output, and log output. | Small |
-| `RunWorkflowResult` | `packages/riviere-cli/src/features/workflow/commands/run-workflow-result.ts` | New | `command-use-case-result` | Return workflow outcome, stage summaries, graph output path, log path, and failure detail. | Small |
-| `RunWorkflow` | `packages/riviere-cli/src/features/workflow/commands/run-workflow.ts` | New | `command-use-case` | Read technical inputs, mechanically execute the next domain-selected stage, apply stage results through domain services, write run logs, commit final graph JSON only on success, and return typed result. | Medium |
-| `WorkflowFoldState` | `packages/riviere-cli/src/features/workflow/domain/workflow-fold-state.ts` | New | `value-object` | Immutable workflow fold state containing current stage index, graph state, stage results, events, outcome, and optional final graph. | Small |
-| `createWorkflowFoldState` | `packages/riviere-cli/src/features/workflow/domain/create-workflow-fold-state.ts` | New | `domain-service` | Create the initial running fold state and first run event. | Small |
-| `selectNextWorkflowStage` | `packages/riviere-cli/src/features/workflow/domain/select-next-workflow-stage.ts` | New | `domain-service` | Decide whether the fold is waiting for the next stage, failed, or ready for final graph commit. | Small |
-| `applyWorkflowStageResult` | `packages/riviere-cli/src/features/workflow/domain/apply-workflow-stage-result.ts` | New | `domain-service` | Apply already-produced stage results, enforce fail-fast progression, update graph state, record lifecycle events, and gate final graph exposure. | Medium |
-| `WorkflowDefinition` | `packages/riviere-cli/src/features/workflow/domain/workflow-definition.ts` | New | `value-object` | Represent a named ordered workflow definition. | Small |
-| `createWorkflowDefinition` | `packages/riviere-cli/src/features/workflow/domain/create-workflow-definition.ts` | New | `domain-service` | Reject definitions missing extract, link, validate, or final write graph stage order. | Medium |
-| `WorkflowStage` | `packages/riviere-cli/src/features/workflow/domain/workflow-stage.ts` | New | `value-object` | Represent one ordered stage and its stage-specific references, such as extraction config path or graph output. | Small |
-| `WorkflowStageResult` | `packages/riviere-cli/src/features/workflow/domain/workflow-stage-result.ts` | New | `value-object` | Represent a stage success/failure without CLI presentation or file-writing concerns. | Small |
-| `WorkflowRunEvent` | `packages/riviere-cli/src/features/workflow/domain/workflow-run-event.ts` | New | `domain-event` | Represent lifecycle events including `StartStep`, `StepCompleted`, `StepFailed`, `RunCompleted`, and `RunFailed`. | Small |
-| `WorkflowDefinitionError` | `packages/riviere-cli/src/features/workflow/domain/workflow-definition-error.ts` | New | `domain-error` | Explain invalid workflow definitions before any graph state is built. | Small |
-| `WorkflowStageFailedError` | `packages/riviere-cli/src/features/workflow/domain/workflow-stage-failed-error.ts` | New | `domain-error` | Represent a failed stage reason without CLI or file-system concerns. | Small |
-| `WorkflowExtractionResult` | `packages/riviere-cli/src/features/workflow/domain/workflow-extraction-result.ts` | New | `value-object` | Workflow-owned extraction output shape passed from TypeScript extraction adapter into the RiviereBuilder upsert adapter; does not expose `features/extract` internals. | Small |
-| `upsertRiviereBuilderComponents` | `packages/riviere-cli/src/features/workflow/infra/external-clients/riviere-builder/upsert-riviere-builder-components.ts` | New | `external-client-service` | Apply extracted components to the current `RiviereBuilder` graph state and return a workflow-owned stage result. | Small |
-| `linkRiviereBuilderGraph` | `packages/riviere-cli/src/features/workflow/infra/external-clients/riviere-builder/link-riviere-builder-graph.ts` | New | `external-client-service` | Wrap the `RiviereBuilder` link capability and return a workflow-owned stage result. | Small |
-| `validateRiviereBuilderGraph` | `packages/riviere-cli/src/features/workflow/infra/external-clients/riviere-builder/validate-riviere-builder-graph.ts` | New | `external-client-service` | Wrap the `RiviereBuilder` validation capability and return a workflow-owned stage result. | Small |
-| `serializeRiviereBuilderGraph` | `packages/riviere-cli/src/features/workflow/infra/external-clients/riviere-builder/serialize-riviere-builder-graph.ts` | New | `external-client-service` | Wrap the `RiviereBuilder` serialization capability and return a workflow-owned final graph result. | Small |
-| `readJsonFile` | `packages/riviere-cli/src/platform/infra/external-clients/node-fs/read-json-file.ts` | Existing / Changed | `external-client-service` | Read JSON from the filesystem; workflow command maps the raw JSON into `WorkflowDefinition` through domain validation. | Small |
-| `createRiviereBuilderGraph` | `packages/riviere-cli/src/features/workflow/infra/external-clients/riviere-builder/create-riviere-builder-graph.ts` | New | `external-client-service` | Wrap `RiviereBuilder.new` to create a new empty graph state for each run. | Small |
-| `runRiviereTypeScriptExtraction` | `packages/riviere-cli/src/platform/infra/external-clients/riviere-extract-ts/run-riviere-typescript-extraction.ts` | Changed | `external-client-service` | Public CLI platform adapter over `@living-architecture/riviere-extract-ts` that extracts one configured TypeScript stage into `WorkflowExtractionResult` without importing `features/extract`. | Medium |
-| `extractComponentsForWorkflowStage` | `packages/riviere-extract-ts/src/features/extraction/domain/extract-components-for-workflow-stage.ts` | Changed | `domain-service` | Package-owned deterministic extraction API that both CLI extraction and workflow adapters can call without cross-feature imports. | Medium |
-| `appendNdjsonFile` | `packages/riviere-cli/src/platform/infra/external-clients/node-fs/append-ndjson-file.ts` | New | `external-client-service` | Append newline-delimited JSON records to a filesystem path. | Small |
-| `writeJsonFile` | `packages/riviere-cli/src/platform/infra/external-clients/node-fs/write-json-file.ts` | Existing / Changed | `external-client-service` | Atomically write JSON content to a filesystem path. | Small |
-| `presentWorkflowRunResult` | `packages/riviere-cli/src/features/workflow/infra/cli/output/present-workflow-run-result.ts` | New | `cli-output-formatter` | Show clear stage progress summary and failure details without deciding workflow semantics. | Small |
-| `createProgram` | `packages/riviere-cli/src/shell/cli.ts` | Changed | `main` | Wire workflow repositories, operations, command use case, and entrypoint into the existing Commander program. | Small |
+| `createWorkflowCommand` | `packages/riviere-cli/src/features/workflow/entrypoint/workflow.ts` | New | `cli-entrypoint` | Register workflow command, create typed input, call use case, present result. | Medium |
+| `createRunWorkflowInput` | `packages/riviere-cli/src/features/workflow/commands/create-run-workflow-input.ts` | New | `command-input-factory` | Convert CLI options into `RunWorkflowInput`. | Small |
+| `RunWorkflowInput` | `packages/riviere-cli/src/features/workflow/commands/run-workflow-input.ts` | New | `command-use-case-input` | Workflow file path, project root, graph path, and log path. | Small |
+| `RunWorkflowResult` | `packages/riviere-cli/src/features/workflow/commands/run-workflow-result.ts` | New | `command-use-case-result` | Outcome, stage summaries, log path, graph path, and failure reason. | Small |
+| `RunWorkflow` | `packages/riviere-cli/src/features/workflow/commands/run-workflow.ts` | New | `command-use-case` | High-level orchestration only: load request, delegate execution, save result, return. | Small |
+| `WorkflowGraphBuildExecutor` | `packages/riviere-cli/src/features/workflow/commands/workflow-graph-build-executor.ts` | New | open role decision | Workflow process component that owns ordered stage progression, dispatch, fail-fast behaviour, graph-state fold, stage results, and final-write gating. | Medium |
+| `WorkflowRunRequest` | `packages/riviere-cli/src/features/workflow/domain/workflow-run-request.ts` | New | `value-object` | Validated workflow definition plus run paths and initial empty graph state. | Small |
+| `WorkflowDefinition` | `packages/riviere-cli/src/features/workflow/domain/workflow-definition.ts` | New | `value-object` | Ordered Rivière-only workflow definition. | Small |
+| `createWorkflowDefinition` | `packages/riviere-cli/src/features/workflow/domain/create-workflow-definition.ts` | New | `domain-service` | Reject invalid V1 definitions, including `extract → write graph`, missing link/validate, write graph not last, or validate before final link. | Medium |
+| `WorkflowStage` | `packages/riviere-cli/src/features/workflow/domain/workflow-stage.ts` | New | `value-object` | One ordered stage and its references/config path. | Small |
+| `WorkflowStageResult` | `packages/riviere-cli/src/features/workflow/domain/workflow-stage-result.ts` | New | `value-object` | Stage success/failure plus updated graph state or final graph content. | Small |
+| `WorkflowRunEvent` | `packages/riviere-cli/src/features/workflow/domain/workflow-run-event.ts` | New | `domain-event` | NDJSON lifecycle event payloads such as `StartStep` and `StepCompleted`. | Small |
+| `WorkflowDefinitionError` | `packages/riviere-cli/src/features/workflow/domain/workflow-definition-error.ts` | New | `domain-error` | Invalid workflow definition errors. | Small |
+| `WorkflowRunRequestLoader` | `packages/riviere-cli/src/features/workflow/infra/persistence/workflow-run-request-loader.ts` | New | `query-model-loader` | Read workflow JSON, validate it into `WorkflowDefinition`, and create empty `RiviereBuilder` graph state for execution. | Medium |
+| `WorkflowRunResultWriter` | `packages/riviere-cli/src/features/workflow/infra/persistence/workflow-run-result-writer.ts` | New | open role decision | Persist NDJSON run log for every run and write final graph JSON only when executor result succeeded. | Medium |
+| `runRiviereWorkflowStageOperation` | `packages/riviere-cli/src/features/workflow/infra/external-clients/riviere-workflow-runtime/run-riviere-workflow-stage-operation.ts` | New | `external-client-service` | Technical facade over `riviere-extract-ts`, `RiviereBuilder` upsert/link/validate/serialize, and package-neutral result mapping. | Medium |
+| `extractComponentsForWorkflowStage` | `packages/riviere-extract-ts/src/features/extraction/domain/extract-components-for-workflow-stage.ts` | Changed | `domain-service` | Public package-owned deterministic extraction API reused without importing `features/extract` internals. | Medium |
+| `presentWorkflowRunResult` | `packages/riviere-cli/src/features/workflow/infra/cli/output/present-workflow-run-result.ts` | New | `cli-output-formatter` | Present outcome and stage summaries. | Small |
+| `createProgram` | `packages/riviere-cli/src/shell/cli.ts` | Changed | `main` | Wire workflow command with three high-level collaborators. | Small |
 
 ##### Runtime call outline
 
@@ -193,18 +156,10 @@ flowchart LR
 createWorkflowCommand
   ├─ createRunWorkflowInput(options)
   ├─ RunWorkflow.execute(input)
-  │  ├─ readJsonFile(input.workflowPath)
-  │  ├─ createWorkflowDefinition(rawDefinition)
-  │  ├─ createRiviereBuilderGraph(input.projectRoot)
-  │  ├─ selectNextWorkflowStage(foldState)
-  │  ├─ runRiviereTypeScriptExtraction(stage)
-  │  ├─ upsertRiviereBuilderComponents(stage, graphState, extractionResult)
-  │  ├─ linkRiviereBuilderGraph(stage, graphState)
-  │  ├─ validateRiviereBuilderGraph(stage, graphState)
-  │  ├─ serializeRiviereBuilderGraph(stage, graphState)
-  │  ├─ applyWorkflowStageResult(foldState, stageResult)
-  │  ├─ appendNdjsonFile(event)
-  │  └─ writeJsonFile(finalGraph)
+  │  ├─ WorkflowRunRequestLoader.load(input)
+  │  ├─ WorkflowGraphBuildExecutor.execute(request)
+  │  │  └─ runRiviereWorkflowStageOperation(stage, graphState)
+  │  └─ WorkflowRunResultWriter.save(result)
   └─ presentWorkflowRunResult(result)
 ```
 
@@ -214,103 +169,64 @@ createWorkflowCommand
 /** @riviere-role command-use-case */
 export class RunWorkflow {
   constructor(
-    private readonly readJson: typeof readJsonFile,
-    private readonly createGraph: typeof createRiviereBuilderGraph,
-    private readonly runExtraction: typeof runRiviereTypeScriptExtraction,
-    private readonly upsertComponents: typeof upsertRiviereBuilderComponents,
-    private readonly linkGraph: typeof linkRiviereBuilderGraph,
-    private readonly validateGraph: typeof validateRiviereBuilderGraph,
-    private readonly serializeGraph: typeof serializeRiviereBuilderGraph,
-    private readonly appendLog: typeof appendNdjsonFile,
-    private readonly writeGraph: typeof writeJsonFile,
+    private readonly requestLoader: WorkflowRunRequestLoader,
+    private readonly executor: WorkflowGraphBuildExecutor,
+    private readonly resultWriter: WorkflowRunResultWriter,
   ) {}
 
   execute(input: RunWorkflowInput): RunWorkflowResult {
-    const definition = createWorkflowDefinition(this.readJson(input.workflowPath))
-    let foldState = createWorkflowFoldState(definition, this.createGraph(input.projectRoot))
-    while (selectNextWorkflowStage(foldState).kind === 'stageExpected') {
-      const next = selectNextWorkflowStage(foldState)
-      const stageResult = this.executeExpectedStage(next.stage, foldState.graphState)
-      foldState = applyWorkflowStageResult(foldState, stageResult)
+    const request = this.requestLoader.load(input)
+    const result = this.executor.execute(request)
+    this.resultWriter.save(result)
+    return result.toCommandResult()
+  }
+}
+
+// .riviere role: open decision for application process executor
+export class WorkflowGraphBuildExecutor {
+  constructor(private readonly runStageOperation: typeof runRiviereWorkflowStageOperation) {}
+
+  execute(request: WorkflowRunRequest): WorkflowExecutionResult {
+    let graphState = request.emptyGraphState
+    const events = [WorkflowRunEvent.runStarted(request.definition.name)]
+    const stageResults: WorkflowStageResult[] = []
+
+    for (const stage of request.definition.stages) {
+      events.push(WorkflowRunEvent.startStep(stage))
+      const result = this.runStageOperation(stage, graphState)
+      stageResults.push(result)
+      if (result.outcome === 'failed') return WorkflowExecutionResult.failed(request, stageResults, events, result.reason)
+      if (stage.kind === 'writeGraph') return WorkflowExecutionResult.succeeded(request, stageResults, events, result.finalGraph)
+      graphState = result.graphState
+      events.push(WorkflowRunEvent.stepCompleted(stage))
     }
-    this.appendLog(input.logPath, foldState.events)
-    if (foldState.outcome === 'succeeded') this.writeGraph(input.graphPath, foldState.finalGraph)
-    return { outcome: foldState.outcome, stages: foldState.stages, logPath: input.logPath, graphPath: input.graphPath }
-  }
 
-  private executeExpectedStage(stage: WorkflowStage, graphState: RiviereBuilder): WorkflowStageResult {
-    if (stage.kind === 'extract') {
-      const extraction = this.runExtraction(stage)
-      return this.upsertComponents(stage, graphState, extraction)
-    }
-    if (stage.kind === 'link') return this.linkGraph(stage, graphState)
-    if (stage.kind === 'validate') return this.validateGraph(stage, graphState)
-    return this.serializeGraph(stage, graphState)
+    return WorkflowExecutionResult.failed(request, stageResults, events, 'Workflow ended without writeGraph')
   }
-}
-
-/** @riviere-role domain-service */
-export function selectNextWorkflowStage(state: WorkflowFoldState): WorkflowStageExpectation {
-  if (state.outcome !== 'running') return { kind: state.outcome }
-  return { kind: 'stageExpected', stage: state.definition.stages[state.stageIndex] }
-}
-
-/** @riviere-role domain-service */
-export function applyWorkflowStageResult(state: WorkflowFoldState, result: WorkflowStageResult): WorkflowFoldState {
-  const expectedStage = state.definition.stages[state.stageIndex]
-  const started = [...state.events, { type: 'StartStep', stage: expectedStage.name, operation: expectedStage.kind }]
-  if (result.outcome === 'failed') {
-    return { ...state, outcome: 'failed', stages: [...state.stages, result], events: [...started, { type: 'StepFailed', stage: expectedStage.name, reason: result.reason }, { type: 'RunFailed', workflow: state.definition.name }] }
-  }
-  if (expectedStage.kind === 'writeGraph') {
-    return { ...state, outcome: 'succeeded', finalGraph: result.finalGraph, stages: [...state.stages, result], events: [...started, { type: 'StepCompleted', stage: expectedStage.name, operation: expectedStage.kind }, { type: 'RunCompleted', workflow: state.definition.name }] }
-  }
-  return { ...state, stageIndex: state.stageIndex + 1, graphState: result.graphState, stages: [...state.stages, result], events: [...started, { type: 'StepCompleted', stage: expectedStage.name, operation: expectedStage.kind }] }
-}
-
-/** @riviere-role value-object */
-export interface WorkflowExtractionResult {
-  outcome: 'succeeded' | 'failed'
-  components: ExtractedGraphComponent[]
-  reason?: string
 }
 
 /** @riviere-role external-client-service */
-export function upsertRiviereBuilderComponents(stage: WorkflowStage, graphState: RiviereBuilder, extraction: WorkflowExtractionResult): WorkflowStageResult {
-  if (extraction.outcome === 'failed') return { outcome: 'failed', stage: stage.name, reason: extraction.reason ?? 'Extraction failed' }
-  if (extraction.components.length === 0) return { outcome: 'failed', stage: stage.name, reason: 'Extraction produced no valid components' }
-  return { outcome: 'succeeded', stage: stage.name, graphState: graphState.upsertComponents(extraction.components) }
+export function runRiviereWorkflowStageOperation(stage: WorkflowStage, graphState: RiviereBuilder): WorkflowStageResult {
+  if (stage.kind === 'extract') {
+    const extraction = extractComponentsForWorkflowStage(stage.configPath)
+    if (extraction.components.length === 0) return WorkflowStageResult.failed(stage, 'Extraction produced no valid components')
+    return WorkflowStageResult.succeeded(stage, graphState.upsertComponents(extraction.components))
+  }
+  if (stage.kind === 'link') return WorkflowStageResult.succeeded(stage, graphState.link(stage.linkOptions))
+  if (stage.kind === 'validate') return graphState.validate().valid ? WorkflowStageResult.succeeded(stage, graphState) : WorkflowStageResult.failed(stage, 'Graph validation failed')
+  return WorkflowStageResult.succeededWithFinalGraph(stage, graphState, graphState.serialize())
 }
-
-/** @riviere-role domain-service */
-export function createWorkflowDefinition(input: { name: string; stages: WorkflowStage[] }): WorkflowDefinition {
-  const kinds = input.stages.map(stage => stage.kind)
-  if (kinds.length < 4) throw new WorkflowDefinitionError('Workflow requires extract, link, validate, and writeGraph stages')
-  if (!kinds.includes('extract')) throw new WorkflowDefinitionError('Workflow requires at least one extract stage')
-  if (!kinds.includes('link')) throw new WorkflowDefinitionError('Workflow requires at least one link stage')
-  if (!kinds.includes('validate')) throw new WorkflowDefinitionError('Workflow requires at least one validate stage')
-  if (kinds[kinds.length - 1] !== 'writeGraph') throw new WorkflowDefinitionError('writeGraph must be the final stage')
-  const firstWriteGraph = kinds.indexOf('writeGraph')
-  if (firstWriteGraph !== kinds.length - 1) throw new WorkflowDefinitionError('writeGraph may only appear once as the final stage')
-  const lastExtract = kinds.lastIndexOf('extract')
-  const lastLink = kinds.lastIndexOf('link')
-  const lastValidate = kinds.lastIndexOf('validate')
-  if (lastLink < lastExtract) throw new WorkflowDefinitionError('At least one link stage must run after the final extract stage')
-  if (lastValidate < lastLink) throw new WorkflowDefinitionError('At least one validate stage must run after the final link stage')
-  return { name: input.name, stages: input.stages }
-}
-
 ```
 
-The command loop is mechanical: ask the domain for the next expected stage, execute the external work for that stage, then pass the already-produced `WorkflowStageResult` back to the domain. The domain never calls extraction, builder adapters, serialization, logging, or file I/O; it owns progression decisions, fail-fast state, lifecycle event recording, and final-write gating.
+The use case has three constructor parameters, no private methods, no loops, and no stage branching. The executor owns workflow progression and fail-fast behaviour. The stage runtime owns technical Rivière operation dispatch and hides its package-level collaborators from the use case.
 
 ##### New dependencies
 
 | Dependency | Status | Used by | Purpose |
 |---|---|---|---|
-| `@living-architecture/riviere-builder` | Existing | `createRiviereBuilderGraph`, `upsertRiviereBuilderComponents`, `linkRiviereBuilderGraph`, `validateRiviereBuilderGraph`, `serializeRiviereBuilderGraph` | Create empty graph state, upsert extracted components, apply link and validate semantics in memory, and serialize the final graph through technical adapters. |
-| `@living-architecture/riviere-extract-ts` public workflow extraction API | Changed | `runRiviereTypeScriptExtraction` | Preserve deterministic TypeScript extraction ownership and avoid importing `features/extract` internals. |
-| Node file system APIs | Existing | `readJsonFile`, `appendNdjsonFile`, `writeJsonFile` | Read workflow JSON, append NDJSON logs, and commit final graph JSON only after success. |
+| `@living-architecture/riviere-builder` | Existing | `runRiviereWorkflowStageOperation`, `WorkflowRunRequestLoader` | Empty graph state plus upsert/link/validate/serialize operations. |
+| `@living-architecture/riviere-extract-ts` public API | Changed | `runRiviereWorkflowStageOperation` | Deterministic extraction without cross-feature imports. |
+| Node file system APIs | Existing | `WorkflowRunRequestLoader`, `WorkflowRunResultWriter` | Read workflow file, append NDJSON log, atomically write final graph JSON. |
 
 ##### Code shape
 
@@ -321,27 +237,18 @@ packages/riviere-cli/src/features/workflow/
   commands/run-workflow-input.ts
   commands/run-workflow-result.ts
   commands/run-workflow.ts
-  domain/workflow-fold-state.ts
-  domain/create-workflow-fold-state.ts
-  domain/select-next-workflow-stage.ts
-  domain/apply-workflow-stage-result.ts
+  commands/workflow-graph-build-executor.ts
+  domain/workflow-run-request.ts
   domain/workflow-definition.ts
   domain/create-workflow-definition.ts
   domain/workflow-stage.ts
   domain/workflow-stage-result.ts
   domain/workflow-run-event.ts
   domain/workflow-definition-error.ts
-  domain/workflow-stage-failed-error.ts
-  infra/external-clients/riviere-builder/create-riviere-builder-graph.ts
-  infra/external-clients/riviere-builder/upsert-riviere-builder-components.ts
-  infra/external-clients/riviere-builder/link-riviere-builder-graph.ts
-  infra/external-clients/riviere-builder/validate-riviere-builder-graph.ts
-  infra/external-clients/riviere-builder/serialize-riviere-builder-graph.ts
+  infra/persistence/workflow-run-request-loader.ts
+  infra/persistence/workflow-run-result-writer.ts
+  infra/external-clients/riviere-workflow-runtime/run-riviere-workflow-stage-operation.ts
   infra/cli/output/present-workflow-run-result.ts
-packages/riviere-cli/src/platform/infra/external-clients/riviere-extract-ts/run-riviere-typescript-extraction.ts
-packages/riviere-cli/src/platform/infra/external-clients/node-fs/read-json-file.ts
-packages/riviere-cli/src/platform/infra/external-clients/node-fs/append-ndjson-file.ts
-packages/riviere-cli/src/platform/infra/external-clients/node-fs/write-json-file.ts
 packages/riviere-extract-ts/src/features/extraction/domain/extract-components-for-workflow-stage.ts
 packages/riviere-cli/src/shell/cli.ts
 ecommerce-demo-app/.riviere/workflows/rebuild-graph.json
@@ -351,64 +258,54 @@ ecommerce-demo-app/.github/workflows/*
 
 ##### .riviere role options
 
-| Declaration | Candidate roles | Preferred role | Reason | Open decision |
-|---|---|---|---|---|
-| `createWorkflowCommand` function | `cli-entrypoint` | `cli-entrypoint` | Handles raw Commander command registration and calls the command use case. | None. |
-| `createRunWorkflowInput` function | `command-input-factory`, `cli-input-validator` | `command-input-factory` | Builds typed command input from CLI options; validation is limited to input shape. | None. |
-| `RunWorkflowInput` interface | `command-use-case-input` | `command-use-case-input` | Dedicated input for `RunWorkflow.execute`. | None. |
-| `RunWorkflowResult` type | `command-use-case-result` | `command-use-case-result` | Dedicated result for `RunWorkflow.execute`. | None. |
-| `WorkflowStageSummary` type | `command-use-case-result-value`, `value-object` | `command-use-case-result-value` | It exists to describe the command result to the entrypoint. | None. |
-| `RunWorkflow` class | `command-use-case` | `command-use-case` | Mechanically executes externally required stage work between pure domain fold decisions. | None. |
-| `createWorkflowFoldState` function | `domain-service` | `domain-service` | Creates the initial running fold state and first run event. | None. |
-| `selectNextWorkflowStage` function | `domain-service` | `domain-service` | Selects the next expected stage or reports terminal fold state without executing stage work. | None. |
-| `applyWorkflowStageResult` function | `domain-service` | `domain-service` | Applies already-produced stage results, records lifecycle events, and gates final graph exposure. | None. |
-| `WorkflowDefinition` interface | `value-object`, `aggregate` | `value-object` | Immutable ordered workflow definition and does not own persisted identity or state transitions. | None. |
-| `createWorkflowDefinition` function | `domain-service` | `domain-service` | Validates V1 minimum stage requirements and creates a workflow definition value. | None. |
-| `WorkflowStage` type | `value-object` | `value-object` | Immutable representation of a Rivière stage. | None. |
-| `WorkflowStageResult` type | `value-object`, `command-use-case-result-value` | `value-object` | Domain concept for stage outcome used before CLI result mapping. | None. |
-| `WorkflowExtractionResult` type | `value-object` | `value-object` | Workflow-owned extraction output shape consumed by extract stage transition. | None. |
-| `WorkflowFoldState` interface | `value-object` | `value-object` | Immutable fold state value passed between pure domain transition functions. | None. |
-| `WorkflowRunEvent` type | `domain-event` | `domain-event` | Domain lifecycle event type for structured run logging. | None. |
-| `WorkflowDefinitionError` class | `domain-error` | `domain-error` | Domain error for invalid workflow definition. | None. |
-| `WorkflowStageFailedError` class | `domain-error` | `domain-error` | Domain error for stage failure reasons. | None. |
-| `upsertRiviereBuilderComponents` function | `external-client-service` | `external-client-service` | Invokes approved `RiviereBuilder` upsert behaviour and maps it to a workflow stage result. | None. |
-| `linkRiviereBuilderGraph` function | `external-client-service` | `external-client-service` | Invokes approved `RiviereBuilder` link behaviour and maps it to a workflow stage result. | None. |
-| `validateRiviereBuilderGraph` function | `external-client-service` | `external-client-service` | Invokes approved `RiviereBuilder` validation and maps invalid output to a failed workflow stage result. | None. |
-| `serializeRiviereBuilderGraph` function | `external-client-service` | `external-client-service` | Invokes approved `RiviereBuilder` serialization and maps it to a write graph stage result. | None. |
-| `readJsonFile` function | `external-client-service` | `external-client-service` | Interacts with Node filesystem JSON reading only. | None. |
-| `createRiviereBuilderGraph` function | `external-client-service` | `external-client-service` | Wraps `RiviereBuilder.new` to create an empty graph state. | None. |
-| `runRiviereTypeScriptExtraction` function | `external-client-service` | `external-client-service` | Uses the public `@living-architecture/riviere-extract-ts` TypeScript extraction API and maps results into `WorkflowExtractionResult`. | None. |
-| `extractComponentsForWorkflowStage` function | `domain-service` | `domain-service` | Package-owned deterministic extraction behaviour in `riviere-extract-ts`, not a CLI feature internal. | None. |
-| `appendNdjsonFile` function | `external-client-service` | `external-client-service` | Interacts with Node filesystem append APIs to write NDJSON records. | None. |
-| `writeJsonFile` function | `external-client-service` | `external-client-service` | Interacts with Node filesystem write APIs to atomically write JSON. | None. |
-| `presentWorkflowRunResult` function | `cli-output-formatter` | `cli-output-formatter` | Converts typed command result into user-facing CLI output. | None. |
-| `createProgram` function | `main` | `main` | Existing shell wiring only. | None. |
+| Declaration                                  | Candidate roles           | Preferred role            | Reason                                                                                                     | Open decision                                                |
+| -------------------------------------------- | ------------------------- | ------------------------- | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| `createWorkflowCommand` function             | `cli-entrypoint`          | `cli-entrypoint`          | CLI registration and high-level command invocation.                                                        | None.                                                        |
+| `createRunWorkflowInput` function            | `command-input-factory`   | `command-input-factory`   | Builds typed command input.                                                                                | None.                                                        |
+| `RunWorkflowInput` interface                 | `command-use-case-input`  | `command-use-case-input`  | Dedicated input for `RunWorkflow`.                                                                         | None.                                                        |
+| `RunWorkflowResult` type                     | `command-use-case-result` | `command-use-case-result` | Dedicated command result.                                                                                  | None.                                                        |
+| `RunWorkflow` class                          | `command-use-case`        | `command-use-case`        | High-level load/delegate/save/return orchestration.                                                        | None.                                                        |
+| `WorkflowGraphBuildExecutor` class           | open role decision        | open role decision        | Process component owned by command layer; not a command use case and not injected with many collaborators. | Existing roles do not include application process executors. |
+| `WorkflowRunRequest` interface               | `value-object`            | `value-object`            | Immutable execution request value.                                                                         | None.                                                        |
+| `WorkflowDefinition` interface               | `value-object`            | `value-object`            | Immutable ordered workflow definition.                                                                     | None.                                                        |
+| `createWorkflowDefinition` function          | `domain-service`          | `domain-service`          | Pure V1 workflow-definition validation.                                                                    | None.                                                        |
+| `WorkflowStage` type                         | `value-object`            | `value-object`            | Immutable stage definition.                                                                                | None.                                                        |
+| `WorkflowStageResult` type                   | `value-object`            | `value-object`            | Stage outcome and graph-state/final-graph result.                                                          | None.                                                        |
+| `WorkflowRunEvent` type                      | `domain-event`            | `domain-event`            | Lifecycle event payloads.                                                                                  | None.                                                        |
+| `WorkflowDefinitionError` class              | `domain-error`            | `domain-error`            | Invalid workflow definition error.                                                                         | None.                                                        |
+| `WorkflowRunRequestLoader` class             | `query-model-loader`      | `query-model-loader`      | Loads execution request without mutating durable graph.                                                    | None.                                                        |
+| `WorkflowRunResultWriter` class              | open role decision        | open role decision        | Writes log and final graph; current roles do not cleanly cover non-aggregate write-result persistence.     | Open role refinement needed.                                 |
+| `runRiviereWorkflowStageOperation` function  | `external-client-service` | `external-client-service` | Technical facade over Rivière package operations, not workflow policy.                                     | None.                                                        |
+| `extractComponentsForWorkflowStage` function | `domain-service`          | `domain-service`          | Package-owned deterministic extraction seam.                                                               | None.                                                        |
+| `presentWorkflowRunResult` function          | `cli-output-formatter`    | `cli-output-formatter`    | CLI presentation.                                                                                          | None.                                                        |
+| `createProgram` function                     | `main`                    | `main`                    | Shell wiring only.                                                                                         | None.                                                        |
 
 ##### Canonical role pattern and tangled responsibility findings
 
-- Canonical pattern used: CLI invoking command use case, with `createWorkflowCommand` calling the input factory, `RunWorkflow.execute`, and output formatter.
-- Canonical pattern adapted: `RunWorkflow` performs I/O setup, mechanically runs the domain-selected next stage, applies each stage result through pure domain services, writes final outputs based on the domain-gated result, and returns a typed result.
-- Canonical pattern tension resolved without a new aggregate: the workflow progression decisions are not in infra and external stage execution is not hidden inside domain callbacks.
+- Canonical CLI pattern used: entrypoint calls input factory, use case, and output formatter.
+- Use case hard rules pass: three constructor parameters, no private methods, no loops, no stage kind branching, and no dependency soup.
+- The executor owns workflow progression and fail-fast behaviour outside the use case.
+- The stage runtime hides technical Rivière package calls behind one collaborator so the use case never knows extract/link/validate/serialize details.
 - Tangled responsibility avoided: workflow definitions do not contain extraction rules, linking rules, custom types, detection predicates, or extraction semantics.
-- Tangled responsibility avoided: external-client services only perform file I/O, builder package calls, or package-owned extraction; workflow progression and final-write gating live in domain services.
-- Tangled responsibility avoided: `write graph` is represented as a domain stage transition that exposes a final graph, while `RunWorkflow` performs the durable write only if the fold result succeeded.
+- Rejected prior-shape note: dependency-soup use cases that inject file readers, graph factories, extraction runners, upserters, linkers, validators, serializers, log writers, and graph writers directly into `RunWorkflow` are rejected.
 
 ##### Design validation
 
-- Domain terminology: open issue, because `Workflow Definition`, `Workflow Stage`, `Stage Kind`, `Stage Result`, `Workflow Fold State`, `Workflow Extraction Result`, `Run Event`, and `Graph State` need glossary approval if this option is selected.
-- Application/domain separation: pass, because workflow progression and graph-state transition rules live in domain components, while file reading, log writing, and durable graph writing remain outside `domain/`.
-- Role and location fit: pass, because all critical components use existing approved roles and no new aggregate approval is required.
-- Implementability: pass, because the critical path uses `command-use-case`, `domain-service`, `value-object`, `domain-event`, `domain-error`, `external-client-service`, and `cli-output-formatter` roles only.
+- Domain terminology: open issue, because workflow-specific terms need glossary approval if selected.
+- Application/domain separation: pass, because workflow-definition validation is pure and technical Rivière operations are isolated in the stage runtime.
+- Role and location fit: open issue, because `WorkflowGraphBuildExecutor` and `WorkflowRunResultWriter` expose gaps in the current role vocabulary without violating the hard use-case rules.
+- Implementability: pass against the hard use-case rules.
 
 ##### Open decisions
 
-- Approve proposed workflow domain terminology and add it to `docs/architecture/domain-terminology/contextive/definitions.glossary.yml` if this option is selected.
+- Approve proposed workflow terminology for the glossary.
+- Decide whether `.riviere` needs an application process executor role and a non-aggregate write-result persistence role; if not, keep these as documented role exceptions for this option.
 <!-- component-design-option-1:end -->
 
 <!-- component-design-option-2:start -->
-#### Option 2: Validated Stage Plan with Domain Run State
+#### Option 2: Compiled Polymorphic Workflow Plan
 
-This design keeps Option 2's distinct direction: workflow ordering is validated up front into a concrete stage plan, then a domain run state owns progression, fail-fast transitions, graph-state advancement, and final-write gating. The command use case has individual role-valid dependencies and only performs externally required Rivière operations for the domain-declared current stage.
+This design compiles the workflow file into an executable Rivière-only plan made of polymorphic stage command objects. The command use case does not know stage kinds, stage order, logging details, graph-state advancement, or final-write rules; it only asks the compiler for a plan, runs that plan, and returns the plan result.
 
 ##### Domain model change
 
@@ -417,20 +314,21 @@ flowchart LR
   workflowDefinition["Workflow Definition"]
   workflowStage["Workflow Stage"]
   stageKind["Stage Kind"]
-  stagePlan["Validated Stage Plan"]
-  workflowRunState["Workflow Run State"]
-  stageExecutionResult["Stage Execution Result"]
+  compiledPlan["Compiled Workflow Plan"]
+  executableStage["Executable Stage"]
   graphState["Graph State"]
+  stageResult["Stage Result"]
   runEvent["Run Event"]
   finalGraph["Final Graph"]
   workflowDefinition -->|contains ordered| workflowStage
-  workflowDefinition -->|accepts or rejects| stagePlan
-  workflowStage -->|declares| stageKind
-  workflowRunState -->|executes steps of| stagePlan
-  workflowRunState -->|owns in-memory state| graphState
-  workflowRunState -->|accepts or rejects| stageExecutionResult
-  workflowRunState -->|records| runEvent
-  workflowRunState -->|exposes after success| finalGraph
+  workflowDefinition -->|accepts or rejects| stageKind
+  compiledPlan -->|executes steps of| workflowDefinition
+  compiledPlan -->|contains ordered| executableStage
+  executableStage -->|represents| workflowStage
+  executableStage -->|updates current| graphState
+  executableStage -->|records| stageResult
+  stageResult -->|records| runEvent
+  compiledPlan -->|exposes after success| finalGraph
   classDef statusExisting fill:#e5e7eb,stroke:#374151,color:#111827
   classDef statusChanged fill:#fef3c7,stroke:#92400e,color:#111827
   classDef statusNew fill:#dcfce7,stroke:#166534,color:#111827
@@ -438,10 +336,10 @@ flowchart LR
   class workflowDefinition statusNew
   class workflowStage statusNew
   class stageKind statusNew
-  class stagePlan statusNew
-  class workflowRunState statusNew
-  class stageExecutionResult statusNew
+  class compiledPlan statusNew
+  class executableStage statusNew
   class graphState statusExisting
+  class stageResult statusNew
   class runEvent statusNew
   class finalGraph statusExisting
 ```
@@ -451,7 +349,7 @@ flowchart LR
 - green = new
 - red = unclear ownership / open decision
 
-`Workflow Definition`, `Workflow Stage`, `Stage Kind`, `Validated Stage Plan`, `Workflow Run State`, `Stage Execution Result`, and `Run Event` are proposed V1 domain terms because the glossary does not yet define workflow-specific terminology. `Graph State` and `Final Graph` use existing Rivière graph representation concepts.
+`Workflow Definition`, `Workflow Stage`, `Stage Kind`, `Compiled Workflow Plan`, `Executable Stage`, `Stage Result`, and `Run Event` are proposed V1 terms. `Graph State` and `Final Graph` use existing Rivière graph representation concepts.
 
 ##### Runtime call diagram
 
@@ -460,33 +358,34 @@ flowchart LR
   cli["createWorkflowCommand<br/>(entrypoint)"]
   inputFactory["createRunWorkflowInput<br/>(commands)"]
   useCase["RunWorkflow<br/>(commands)"]
+  compiler["WorkflowPlanCompiler<br/>(commands)"]
   readFile["readFileUtf8<br/>(platform/infra)"]
   definition["createWorkflowDefinition<br/>(domain)"]
-  startRun["startWorkflowRun<br/>(domain)"]
-  beginStage["beginNextWorkflowStage<br/>(domain)"]
-  tsExtract["runRiviereExtractTs<br/>(platform/infra)"]
-  builderUpsert["invokeRiviereBuilderUpsert<br/>(platform/infra)"]
-  builderLink["invokeRiviereBuilderLink<br/>(platform/infra)"]
-  builderValidate["invokeRiviereBuilderValidate<br/>(platform/infra)"]
-  builderSerialize["invokeRiviereBuilderSerialize<br/>(platform/infra)"]
-  completeStage["completeWorkflowStage<br/>(domain)"]
-  writeFile["writeFileAtomically<br/>(platform/infra)"]
-  appendLog["appendNdjsonRecord<br/>(platform/infra)"]
+  stageRegistry["WorkflowStageCommandRegistry<br/>(commands)"]
+  plan["CompiledWorkflowPlan<br/>(commands)"]
+  stageCommand["ExecutableWorkflowStage<br/>(commands)"]
+  graphWorkspace["RiviereBuilderWorkspace<br/>(commands)"]
+  journal["WorkflowRunJournal<br/>(commands)"]
+  graphCommitter["WorkflowGraphCommitter<br/>(commands)"]
+  builderOps["invokeRiviereBuilder<br/>(platform/infra)"]
+  extractOps["runRiviereExtractTs<br/>(platform/infra)"]
+  fsOps["writeNodeFile<br/>(platform/infra)"]
   output["presentWorkflowRunResult<br/>(infra/cli/output)"]
   cli -->|create input| inputFactory
   cli -->|execute workflow| useCase
-  useCase -->|read file| readFile
-  useCase -->|create definition| definition
-  useCase -->|start run| startRun
-  useCase -->|begin stage| beginStage
-  useCase -->|run extraction| tsExtract
-  useCase -->|upsert builder| builderUpsert
-  useCase -->|link builder| builderLink
-  useCase -->|validate builder| builderValidate
-  useCase -->|serialize builder| builderSerialize
-  useCase -->|complete stage| completeStage
-  useCase -->|write file| writeFile
-  useCase -->|append record| appendLog
+  useCase -->|compile plan| compiler
+  compiler -->|read file| readFile
+  compiler -->|create definition| definition
+  compiler -->|create stages| stageRegistry
+  useCase -->|run plan| plan
+  plan -->|start graph| graphWorkspace
+  plan -->|append lifecycle| journal
+  plan -->|execute stage| stageCommand
+  stageCommand -->|builder operation| builderOps
+  stageCommand -->|extraction operation| extractOps
+  plan -->|commit final graph| graphCommitter
+  graphCommitter -->|write file| fsOps
+  journal -->|write file| fsOps
   cli -->|present result| output
   classDef statusExisting fill:#e5e7eb,stroke:#374151,color:#111827
   classDef statusChanged fill:#fef3c7,stroke:#92400e,color:#111827
@@ -495,18 +394,18 @@ flowchart LR
   class cli statusNew
   class inputFactory statusNew
   class useCase statusNew
+  class compiler statusOpen
   class readFile statusNew
   class definition statusNew
-  class startRun statusNew
-  class beginStage statusNew
-  class tsExtract statusChanged
-  class builderUpsert statusNew
-  class builderLink statusNew
-  class builderValidate statusNew
-  class builderSerialize statusNew
-  class completeStage statusNew
-  class writeFile statusNew
-  class appendLog statusNew
+  class stageRegistry statusOpen
+  class plan statusOpen
+  class stageCommand statusOpen
+  class graphWorkspace statusOpen
+  class journal statusOpen
+  class graphCommitter statusOpen
+  class builderOps statusNew
+  class extractOps statusChanged
+  class fsOps statusNew
   class output statusNew
 ```
 
@@ -519,37 +418,35 @@ flowchart LR
 
 | Component | Layer / path | Status | .riviere role | Responsibilities | Estimated size |
 |---|---|---|---|---|---|
-| `createWorkflowCommand` | `packages/riviere-cli/src/features/workflow/entrypoint/workflow.ts` | New | `cli-entrypoint` | Register `riviere workflow run`, translate Commander input, call input factory, execute use case, and present result. | Medium |
-| `createRunWorkflowInput` | `packages/riviere-cli/src/features/workflow/commands/create-run-workflow-input.ts` | New | `command-input-factory` | Convert CLI options into `RunWorkflowInput` without file reads or workflow semantics. | Small |
-| `RunWorkflowInput` | `packages/riviere-cli/src/features/workflow/commands/run-workflow-input.ts` | New | `command-use-case-input` | Typed command input for workflow path, project root, graph output, and log output. | Small |
-| `RunWorkflowResult` | `packages/riviere-cli/src/features/workflow/commands/run-workflow-result.ts` | New | `command-use-case-result` | Typed command result with run outcome, stage summaries, paths, and failure detail. | Small |
-| `WorkflowStageSummary` | `packages/riviere-cli/src/features/workflow/commands/workflow-stage-summary.ts` | New | `command-use-case-result-value` | Command-result value for executed stage summaries. | Small |
-| `RunWorkflow` | `packages/riviere-cli/src/features/workflow/commands/run-workflow.ts` | New | `command-use-case` | Load workflow file, invoke domain run-state transitions, execute external stage work for the current domain-declared stage, append log records, and write final graph only when the domain returns a commit instruction. | Medium |
-| `WorkflowDefinition` | `packages/riviere-cli/src/features/workflow/domain/workflow-definition.ts` | New | `value-object` | Branded immutable ordered workflow definition. | Small |
-| `WorkflowStage` | `packages/riviere-cli/src/features/workflow/domain/workflow-stage.ts` | New | `value-object` | Branded immutable Rivière stage with allowed stage references. | Small |
-| `WorkflowStageKind` | `packages/riviere-cli/src/features/workflow/domain/workflow-stage-kind.ts` | New | `value-object` | Branded enum-like kind for `extract`, `link`, `validate`, and `writeGraph`. | Small |
-| `createWorkflowDefinition` | `packages/riviere-cli/src/features/workflow/domain/create-workflow-definition.ts` | New | `domain-service` | Parse raw workflow data into a validated plan and reject `extract → write graph`, missing `link`, missing `validate`, repeated or early `write graph`, and invalid ordering. | Medium |
-| `WorkflowRunState` | `packages/riviere-cli/src/features/workflow/domain/workflow-run-state.ts` | New | `value-object` | Branded immutable run state containing current stage index, graph state, outcome, pending events, summaries, and optional final graph. | Small |
-| `WorkflowGraphState` | `packages/riviere-cli/src/features/workflow/domain/workflow-graph-state.ts` | New | `value-object` | Branded opaque graph-building state value carried through domain transitions without domain importing builder APIs. | Small |
-| `startWorkflowRun` | `packages/riviere-cli/src/features/workflow/domain/start-workflow-run.ts` | New | `domain-service` | Create initial run state from a validated definition and empty graph state. | Small |
-| `beginNextWorkflowStage` | `packages/riviere-cli/src/features/workflow/domain/begin-next-workflow-stage.ts` | New | `domain-service` | Enforce fail-fast state, expose only the next expected stage, and record `StartStep`. | Small |
-| `completeWorkflowStage` | `packages/riviere-cli/src/features/workflow/domain/complete-workflow-stage.ts` | New | `domain-service` | Accept a `StageExecutionResult`, advance graph state on success, fail the run on failure, record lifecycle events, and return final-graph commit instructions only after a successful final stage. | Medium |
-| `StageExecutionResult` | `packages/riviere-cli/src/features/workflow/domain/stage-execution-result.ts` | New | `value-object` | Branded stage result contract for success, updated graph state, final graph JSON, and failure reasons including missing config, no matched files, invalid extraction output, builder failure, validation failure, and serialization failure. | Small |
-| `WorkflowRunEvent` | `packages/riviere-cli/src/features/workflow/domain/workflow-run-event.ts` | New | `domain-event` | Structured event union for `RunStarted`, `StartStep`, `StepCompleted`, `StepFailed`, `RunCompleted`, and `RunFailed`. | Small |
-| `WorkflowDefinitionError` | `packages/riviere-cli/src/features/workflow/domain/workflow-definition-error.ts` | New | `domain-error` | Invalid workflow definition failure. | Small |
-| `WorkflowStageError` | `packages/riviere-cli/src/features/workflow/domain/workflow-stage-error.ts` | New | `domain-error` | Stage transition failure without CLI or filesystem concerns. | Small |
-| `readFileUtf8` | `packages/riviere-cli/src/platform/infra/external-clients/node-fs/read-file-utf8.ts` | New | `external-client-service` | Wrap Node filesystem text reads for workflow files. | Small |
-| `writeFileAtomically` | `packages/riviere-cli/src/platform/infra/external-clients/node-fs/write-file-atomically.ts` | New | `external-client-service` | Atomically write final graph JSON when the domain returns a commit instruction. | Small |
-| `appendNdjsonRecord` | `packages/riviere-cli/src/platform/infra/external-clients/node-fs/append-ndjson-record.ts` | New | `external-client-service` | Append one structured JSON record per line to the run log. | Small |
-| `createRiviereBuilder` | `packages/riviere-cli/src/platform/infra/external-clients/riviere-builder/create-riviere-builder.ts` | New | `external-client-service` | Wrap `RiviereBuilder.new` to create empty graph state for each V1 run. | Small |
-| `invokeRiviereBuilderUpsert` | `packages/riviere-cli/src/platform/infra/external-clients/riviere-builder/invoke-riviere-builder-upsert.ts` | New | `external-client-service` | Invoke builder upsert and map builder failures into `StageExecutionResult`. | Small |
-| `invokeRiviereBuilderLink` | `packages/riviere-cli/src/platform/infra/external-clients/riviere-builder/invoke-riviere-builder-link.ts` | New | `external-client-service` | Invoke builder link and map builder failures into `StageExecutionResult`. | Small |
-| `invokeRiviereBuilderValidate` | `packages/riviere-cli/src/platform/infra/external-clients/riviere-builder/invoke-riviere-builder-validate.ts` | New | `external-client-service` | Invoke builder validation and map validation errors into `StageExecutionResult`. | Small |
-| `invokeRiviereBuilderSerialize` | `packages/riviere-cli/src/platform/infra/external-clients/riviere-builder/invoke-riviere-builder-serialize.ts` | New | `external-client-service` | Invoke builder serialization and map serialization errors into `StageExecutionResult`. | Small |
-| `runRiviereExtractTs` | `packages/riviere-cli/src/platform/infra/external-clients/riviere-extract-ts/run-riviere-extract-ts.ts` | Changed | `external-client-service` | Wrap a public `@living-architecture/riviere-extract-ts` API and map missing config, no matched files, and invalid extraction output into typed extraction results. | Medium |
-| `extractComponentsFromConfig` | `packages/riviere-extract-ts/src/features/extraction/domain/extract-components-from-config.ts` | Changed | `domain-service` | Package-owned deterministic extraction entry point reusable by CLI extraction and workflow adapters. | Medium |
-| `presentWorkflowRunResult` | `packages/riviere-cli/src/features/workflow/infra/cli/output/present-workflow-run-result.ts` | New | `cli-output-formatter` | Format success, failure, progress summary, graph path, and log path. | Small |
-| `createProgram` | `packages/riviere-cli/src/shell/cli.ts` | Changed | `main` | Wire individual dependencies and register workflow command. | Small |
+| `createWorkflowCommand` | `packages/riviere-cli/src/features/workflow/entrypoint/workflow.ts` | New | `cli-entrypoint` | Register workflow command, build input, execute use case, present result. | Medium |
+| `createRunWorkflowInput` | `packages/riviere-cli/src/features/workflow/commands/create-run-workflow-input.ts` | New | `command-input-factory` | Convert CLI options into `RunWorkflowInput`. | Small |
+| `RunWorkflowInput` | `packages/riviere-cli/src/features/workflow/commands/run-workflow-input.ts` | New | `command-use-case-input` | Workflow file path, project root, graph output path, and log path. | Small |
+| `RunWorkflowResult` | `packages/riviere-cli/src/features/workflow/commands/run-workflow-result.ts` | New | `command-use-case-result` | Outcome, stage summaries, graph path, log path, and failure reason. | Small |
+| `RunWorkflow` | `packages/riviere-cli/src/features/workflow/commands/run-workflow.ts` | New | `command-use-case` | High-level orchestration only: compile plan, run plan, return command result. | Small |
+| `WorkflowPlanCompiler` | `packages/riviere-cli/src/features/workflow/commands/workflow-plan-compiler.ts` | New | open role decision | Read workflow file through a technical adapter, create a validated workflow definition, ask the registry for executable stages, and assemble a compiled plan. | Medium |
+| `CompiledWorkflowPlan` | `packages/riviere-cli/src/features/workflow/commands/compiled-workflow-plan.ts` | New | open role decision | Own ordered stage progression, fail-fast behaviour, graph-state fold, lifecycle journaling, and final graph commit gating. | Medium |
+| `ExecutableWorkflowStage` | `packages/riviere-cli/src/features/workflow/commands/executable-workflow-stage.ts` | New | open role decision | Interface implemented by stage command objects; each object executes one stage kind polymorphically. | Small |
+| `ExtractWorkflowStageCommand` | `packages/riviere-cli/src/features/workflow/commands/stages/extract-workflow-stage-command.ts` | New | open role decision | Execute one extraction stage, map missing config, no matched files, invalid extraction output, and builder upsert failure into stage result. | Medium |
+| `LinkWorkflowStageCommand` | `packages/riviere-cli/src/features/workflow/commands/stages/link-workflow-stage-command.ts` | New | open role decision | Execute one link stage against current graph state. | Small |
+| `ValidateWorkflowStageCommand` | `packages/riviere-cli/src/features/workflow/commands/stages/validate-workflow-stage-command.ts` | New | open role decision | Execute validation and produce a failed result on validation errors. | Small |
+| `WriteGraphWorkflowStageCommand` | `packages/riviere-cli/src/features/workflow/commands/stages/write-graph-workflow-stage-command.ts` | New | open role decision | Serialize current graph state into final graph content without durable file write. | Small |
+| `WorkflowStageCommandRegistry` | `packages/riviere-cli/src/features/workflow/commands/workflow-stage-command-registry.ts` | New | open role decision | Compile validated stage definitions into polymorphic executable stage objects; this is the only stage-kind dispatch point. | Small |
+| `RiviereBuilderWorkspace` | `packages/riviere-cli/src/features/workflow/commands/riviere-builder-workspace.ts` | New | open role decision | Own transient graph-building state for one run and expose current graph state to stage commands. | Small |
+| `WorkflowRunJournal` | `packages/riviere-cli/src/features/workflow/commands/workflow-run-journal.ts` | New | open role decision | Append NDJSON lifecycle records such as `StartStep`, `StepCompleted`, and `StepFailed`. | Small |
+| `WorkflowGraphCommitter` | `packages/riviere-cli/src/features/workflow/commands/workflow-graph-committer.ts` | New | open role decision | Atomically write the final graph only when the compiled plan reports full success. | Small |
+| `WorkflowDefinition` | `packages/riviere-cli/src/features/workflow/domain/workflow-definition.ts` | New | `value-object` | Branded ordered workflow definition. | Small |
+| `createWorkflowDefinition` | `packages/riviere-cli/src/features/workflow/domain/create-workflow-definition.ts` | New | `domain-service` | Reject non-Rivière stages, `extract → write graph`, missing link/validate, write graph not last, or validate before final link. | Medium |
+| `WorkflowStage` | `packages/riviere-cli/src/features/workflow/domain/workflow-stage.ts` | New | `value-object` | Branded stage definition with allowed references such as Extraction Config path. | Small |
+| `WorkflowStageResult` | `packages/riviere-cli/src/features/workflow/domain/workflow-stage-result.ts` | New | `value-object` | Branded stage outcome with updated graph state, final graph content, or failure reason. | Small |
+| `WorkflowRunEvent` | `packages/riviere-cli/src/features/workflow/domain/workflow-run-event.ts` | New | `domain-event` | Structured lifecycle event payloads. | Small |
+| `WorkflowDefinitionError` | `packages/riviere-cli/src/features/workflow/domain/workflow-definition-error.ts` | New | `domain-error` | Invalid workflow definition error. | Small |
+| `readFileUtf8` | `packages/riviere-cli/src/platform/infra/external-clients/node-fs/read-file-utf8.ts` | New | `external-client-service` | Technical filesystem read wrapper. | Small |
+| `writeNodeFile` | `packages/riviere-cli/src/platform/infra/external-clients/node-fs/write-node-file.ts` | New | `external-client-service` | Technical filesystem write/append wrapper used by journal and committer. | Small |
+| `invokeRiviereBuilder` | `packages/riviere-cli/src/platform/infra/external-clients/riviere-builder/invoke-riviere-builder.ts` | New | `external-client-service` | Technical adapter over builder create/upsert/link/validate/serialize operations. | Medium |
+| `runRiviereExtractTs` | `packages/riviere-cli/src/platform/infra/external-clients/riviere-extract-ts/run-riviere-extract-ts.ts` | Changed | `external-client-service` | Technical adapter over the public deterministic extraction API. | Medium |
+| `extractComponentsFromConfig` | `packages/riviere-extract-ts/src/features/extraction/domain/extract-components-from-config.ts` | Changed | `domain-service` | Package-owned deterministic extraction seam, not a cross-feature CLI import. | Medium |
+| `presentWorkflowRunResult` | `packages/riviere-cli/src/features/workflow/infra/cli/output/present-workflow-run-result.ts` | New | `cli-output-formatter` | Render workflow outcome and stage summaries. | Small |
+| `createProgram` | `packages/riviere-cli/src/shell/cli.ts` | Changed | `main` | Wire compiler, registry, stage command factories, and entrypoint. | Small |
 
 ##### Runtime call outline
 
@@ -557,91 +454,86 @@ flowchart LR
 createWorkflowCommand
   ├─ createRunWorkflowInput(options)
   ├─ RunWorkflow.execute(input)
-  │  ├─ readFileUtf8(input.workflowPath)
-  │  ├─ createWorkflowDefinition(rawWorkflowText)
-  │  ├─ createRiviereBuilder(input.projectRoot)
-  │  ├─ startWorkflowRun(definition, emptyGraphState)
-  │  ├─ beginNextWorkflowStage(runState)
-  │  ├─ appendNdjsonRecord(input.logPath, event)
-  │  ├─ runRiviereExtractTs(stage.configPath)
-  │  ├─ invokeRiviereBuilderUpsert(graphState, extractedEntries)
-  │  ├─ invokeRiviereBuilderLink(graphState)
-  │  ├─ invokeRiviereBuilderValidate(graphState)
-  │  ├─ invokeRiviereBuilderSerialize(graphState)
-  │  ├─ completeWorkflowStage(runState, stageResult)
-  │  ├─ appendNdjsonRecord(input.logPath, event)
-  │  └─ writeFileAtomically(input.graphPath, finalGraphJson)
+  │  ├─ WorkflowPlanCompiler.compile(input)
+  │  │  ├─ readFileUtf8(input.workflowPath)
+  │  │  ├─ createWorkflowDefinition(rawWorkflowText)
+  │  │  └─ WorkflowStageCommandRegistry.createStages(definition.stages)
+  │  └─ CompiledWorkflowPlan.run()
+  │     ├─ RiviereBuilderWorkspace.startEmpty(input.projectRoot)
+  │     ├─ WorkflowRunJournal.append(event)
+  │     ├─ ExecutableWorkflowStage.execute(context)
+  │     ├─ RiviereBuilderWorkspace.replaceGraphState(graphState)
+  │     └─ WorkflowGraphCommitter.commit(finalGraph)
   └─ presentWorkflowRunResult(result)
 ```
 
 ##### Code stress test
 
 ```typescript
-/** @riviere-role value-object */
-export type StageExecutionResult =
-  | { readonly brand: 'StageExecutionResult'; outcome: 'succeeded'; stageName: string; graphState?: WorkflowGraphState; finalGraphJson?: string }
-  | { readonly brand: 'StageExecutionResult'; outcome: 'failed'; stageName: string; reason: 'MissingConfig' | 'NoMatchedFiles' | 'InvalidExtractionOutput' | 'BuilderUpsertFailed' | 'BuilderLinkFailed' | 'ValidationFailed' | 'SerializationFailed'; message: string }
-
 /** @riviere-role command-use-case */
 export class RunWorkflow {
-  constructor(
-    private readonly readFileUtf8: typeof readFileUtf8,
-    private readonly createRiviereBuilder: typeof createRiviereBuilder,
-    private readonly runRiviereExtractTs: typeof runRiviereExtractTs,
-    private readonly invokeRiviereBuilderUpsert: typeof invokeRiviereBuilderUpsert,
-    private readonly invokeRiviereBuilderLink: typeof invokeRiviereBuilderLink,
-    private readonly invokeRiviereBuilderValidate: typeof invokeRiviereBuilderValidate,
-    private readonly invokeRiviereBuilderSerialize: typeof invokeRiviereBuilderSerialize,
-    private readonly appendNdjsonRecord: typeof appendNdjsonRecord,
-    private readonly writeFileAtomically: typeof writeFileAtomically,
-  ) {}
+  constructor(private readonly compiler: WorkflowPlanCompiler) {}
 
   execute(input: RunWorkflowInput): RunWorkflowResult {
-    let state = startWorkflowRun(createWorkflowDefinition(this.readFileUtf8(input.workflowPath)), this.createRiviereBuilder(input.projectRoot))
-    while (state.outcome === 'running') {
-      const begun = beginNextWorkflowStage(state)
-      state = begun.state
-      begun.events.forEach(event => this.appendNdjsonRecord(input.logPath, event))
-      const result = this.executeExternallyRequiredStage(begun.stage, state.graphState)
-      const completed = completeWorkflowStage(state, result)
-      state = completed.state
-      completed.events.forEach(event => this.appendNdjsonRecord(input.logPath, event))
-      if (completed.finalGraphCommit) this.writeFileAtomically(input.graphPath, completed.finalGraphCommit.json)
-    }
-    return { outcome: state.outcome, stages: state.stageSummaries, graphPath: input.graphPath, logPath: input.logPath, reason: state.failure?.message }
-  }
-
-  private executeExternallyRequiredStage(stage: WorkflowStage, graphState: WorkflowGraphState): StageExecutionResult {
-    if (stage.kind === 'extract') {
-      const extraction = this.runRiviereExtractTs(stage.configPath)
-      if (extraction.outcome === 'failed') return { brand: 'StageExecutionResult', outcome: 'failed', stageName: stage.name, reason: extraction.reason, message: extraction.message }
-      if (extraction.entries.length === 0) return { brand: 'StageExecutionResult', outcome: 'failed', stageName: stage.name, reason: 'NoMatchedFiles', message: stage.configPath }
-      return this.invokeRiviereBuilderUpsert(graphState, extraction.entries, stage.name)
-    }
-    if (stage.kind === 'link') return this.invokeRiviereBuilderLink(graphState, stage.name)
-    if (stage.kind === 'validate') return this.invokeRiviereBuilderValidate(graphState, stage.name)
-    return this.invokeRiviereBuilderSerialize(graphState, stage.name)
+    const plan = this.compiler.compile(input)
+    return plan.run().toCommandResult()
   }
 }
 
-/** @riviere-role domain-service */
-export function completeWorkflowStage(state: WorkflowRunState, result: StageExecutionResult): WorkflowStageCompletion {
-  if (result.outcome === 'failed') return failRun(state, result)
-  if (state.expectedStage.kind !== 'writeGraph') return advanceRun(state, result.graphState)
-  if (!result.finalGraphJson) return failRun(state, { brand: 'StageExecutionResult', outcome: 'failed', stageName: result.stageName, reason: 'SerializationFailed', message: 'write graph stage produced no graph JSON' })
-  return succeedRunWithFinalGraph(state, result.finalGraphJson)
+// .riviere role: open decision for compiled application process object
+export class CompiledWorkflowPlan {
+  constructor(private readonly stages: ExecutableWorkflowStage[], private readonly workspace: RiviereBuilderWorkspace, private readonly journal: WorkflowRunJournal, private readonly committer: WorkflowGraphCommitter) {}
+
+  run(): WorkflowPlanRunResult {
+    this.workspace.startEmpty()
+    for (const stage of this.stages) {
+      this.journal.append(WorkflowRunEvent.startStep(stage.name, stage.operation))
+      const result = stage.execute({ graphState: this.workspace.currentGraphState })
+      if (result.outcome === 'failed') {
+        this.journal.append(WorkflowRunEvent.stepFailed(stage.name, result.reason))
+        return WorkflowPlanRunResult.failed(result.reason, this.journal.events)
+      }
+      if (result.kind === 'finalGraph') {
+        this.committer.commit(result.finalGraph)
+        this.journal.append(WorkflowRunEvent.runCompleted())
+        return WorkflowPlanRunResult.succeeded(result.finalGraph, this.journal.events)
+      }
+      this.workspace.replaceGraphState(result.graphState)
+      this.journal.append(WorkflowRunEvent.stepCompleted(stage.name, stage.operation))
+    }
+    return WorkflowPlanRunResult.failed('Workflow ended without write graph', this.journal.events)
+  }
+}
+
+export class ExtractWorkflowStageCommand implements ExecutableWorkflowStage {
+  readonly operation = 'extract'
+  constructor(readonly name: string, private readonly configPath: string, private readonly extractTs: typeof runRiviereExtractTs, private readonly builder: typeof invokeRiviereBuilder) {}
+  execute(context: WorkflowStageContext): WorkflowStageResult {
+    const extracted = this.extractTs(this.configPath)
+    if (extracted.outcome === 'failed') return WorkflowStageResult.failed(this.name, extracted.reason)
+    if (extracted.components.length === 0) return WorkflowStageResult.failed(this.name, 'NoMatchedFiles')
+    return this.builder.upsert(context.graphState, extracted.components).mapFailure('BuilderUpsertFailed')
+  }
+}
+
+export class WriteGraphWorkflowStageCommand implements ExecutableWorkflowStage {
+  readonly operation = 'writeGraph'
+  constructor(readonly name: string, private readonly builder: typeof invokeRiviereBuilder) {}
+  execute(context: WorkflowStageContext): WorkflowStageResult {
+    return this.builder.serialize(context.graphState).mapFailure('SerializationFailed')
+  }
 }
 ```
 
-`runRiviereExtractTs` returns typed failures for missing referenced config files, no matched files, and invalid extraction output. Builder adapters return `BuilderUpsertFailed`, `BuilderLinkFailed`, `ValidationFailed`, or `SerializationFailed` without mutating the durable graph file. The command writes the final graph only when `completeWorkflowStage` returns `finalGraphCommit`; failed completions return no commit instruction and move the domain state to failed, so later stages do not run.
+The use case has one constructor parameter, no private methods, no loops, no stage branching, and no direct technical operation dependencies. The loop is owned by `CompiledWorkflowPlan`; stage dispatch is polymorphic after compilation, so `ExtractWorkflowStageCommand`, `LinkWorkflowStageCommand`, `ValidateWorkflowStageCommand`, and `WriteGraphWorkflowStageCommand` own their own technical execution and failure mapping.
 
 ##### New dependencies
 
 | Dependency | Status | Used by | Purpose |
 |---|---|---|---|
-| `@living-architecture/riviere-builder` | Existing | `createRiviereBuilder`, `invokeRiviereBuilderUpsert`, `invokeRiviereBuilderLink`, `invokeRiviereBuilderValidate`, `invokeRiviereBuilderSerialize` | Create empty graph state, upsert extracted entries, link, validate, and serialize through technical adapters. |
-| `@living-architecture/riviere-extract-ts` public extraction API | Changed | `runRiviereExtractTs` | Reuse deterministic TypeScript extraction without importing `features/extract` internals. |
-| Node file system APIs | Existing | `readFileUtf8`, `writeFileAtomically`, `appendNdjsonRecord` | Read workflow definitions, commit final graph JSON after success, and append NDJSON log records. |
+| `@living-architecture/riviere-builder` | Existing | `invokeRiviereBuilder`, stage commands, workspace | Create empty graph state, upsert, link, validate, and serialize through technical adapters. |
+| `@living-architecture/riviere-extract-ts` public API | Changed | `runRiviereExtractTs`, `ExtractWorkflowStageCommand` | Deterministic extraction without importing `features/extract` internals. |
+| Node file system APIs | Existing | `readFileUtf8`, `writeNodeFile`, journal, committer | Read workflow file, append NDJSON logs, and atomically write final graph. |
 
 ##### Code shape
 
@@ -651,30 +543,28 @@ packages/riviere-cli/src/features/workflow/
   commands/create-run-workflow-input.ts
   commands/run-workflow-input.ts
   commands/run-workflow-result.ts
-  commands/workflow-stage-summary.ts
   commands/run-workflow.ts
+  commands/workflow-plan-compiler.ts
+  commands/compiled-workflow-plan.ts
+  commands/executable-workflow-stage.ts
+  commands/workflow-stage-command-registry.ts
+  commands/riviere-builder-workspace.ts
+  commands/workflow-run-journal.ts
+  commands/workflow-graph-committer.ts
+  commands/stages/extract-workflow-stage-command.ts
+  commands/stages/link-workflow-stage-command.ts
+  commands/stages/validate-workflow-stage-command.ts
+  commands/stages/write-graph-workflow-stage-command.ts
   domain/workflow-definition.ts
-  domain/workflow-stage.ts
-  domain/workflow-stage-kind.ts
   domain/create-workflow-definition.ts
-  domain/workflow-run-state.ts
-  domain/workflow-graph-state.ts
-  domain/start-workflow-run.ts
-  domain/begin-next-workflow-stage.ts
-  domain/complete-workflow-stage.ts
-  domain/stage-execution-result.ts
+  domain/workflow-stage.ts
+  domain/workflow-stage-result.ts
   domain/workflow-run-event.ts
   domain/workflow-definition-error.ts
-  domain/workflow-stage-error.ts
   infra/cli/output/present-workflow-run-result.ts
 packages/riviere-cli/src/platform/infra/external-clients/node-fs/read-file-utf8.ts
-packages/riviere-cli/src/platform/infra/external-clients/node-fs/write-file-atomically.ts
-packages/riviere-cli/src/platform/infra/external-clients/node-fs/append-ndjson-record.ts
-packages/riviere-cli/src/platform/infra/external-clients/riviere-builder/create-riviere-builder.ts
-packages/riviere-cli/src/platform/infra/external-clients/riviere-builder/invoke-riviere-builder-upsert.ts
-packages/riviere-cli/src/platform/infra/external-clients/riviere-builder/invoke-riviere-builder-link.ts
-packages/riviere-cli/src/platform/infra/external-clients/riviere-builder/invoke-riviere-builder-validate.ts
-packages/riviere-cli/src/platform/infra/external-clients/riviere-builder/invoke-riviere-builder-serialize.ts
+packages/riviere-cli/src/platform/infra/external-clients/node-fs/write-node-file.ts
+packages/riviere-cli/src/platform/infra/external-clients/riviere-builder/invoke-riviere-builder.ts
 packages/riviere-cli/src/platform/infra/external-clients/riviere-extract-ts/run-riviere-extract-ts.ts
 packages/riviere-extract-ts/src/features/extraction/domain/extract-components-from-config.ts
 packages/riviere-cli/src/shell/cli.ts
@@ -687,54 +577,377 @@ ecommerce-demo-app/.github/workflows/*
 
 | Declaration | Candidate roles | Preferred role | Reason | Open decision |
 |---|---|---|---|---|
-| `createWorkflowCommand` function | `cli-entrypoint` | `cli-entrypoint` | Commander registration and command invocation. | None. |
-| `createRunWorkflowInput` function | `command-input-factory`, `cli-input-validator` | `command-input-factory` | Builds typed command input from CLI options. | None. |
-| `RunWorkflowInput` type | `command-use-case-input` | `command-use-case-input` | Dedicated input for `RunWorkflow.execute`. | None. |
-| `RunWorkflowResult` type | `command-use-case-result` | `command-use-case-result` | Dedicated output for `RunWorkflow.execute`. | None. |
-| `WorkflowStageSummary` type | `command-use-case-result-value` | `command-use-case-result-value` | Stage summary exists for the command result contract. | None. |
-| `RunWorkflow` class | `command-use-case` | `command-use-case` | Uses individual constructor dependencies and delegates progression to domain services. | None. |
-| `WorkflowDefinition` class | `value-object`, `aggregate` | `value-object` | Branded immutable data; no repository-loaded identity. | None. |
-| `WorkflowStage` class | `value-object` | `value-object` | Branded immutable stage data. | None. |
-| `WorkflowStageKind` type | `value-object` | `value-object` | Branded enum-like domain value. | None. |
-| `createWorkflowDefinition` function | `domain-service` | `domain-service` | Pure validation of the V1 stage plan. | None. |
-| `WorkflowRunState` class | `value-object`, `aggregate` | `value-object` | Branded immutable run state value; it is not persisted through a repository. | None. |
-| `WorkflowGraphState` type | `value-object` | `value-object` | Opaque branded graph-building state carried by the domain without importing builder APIs. | None. |
-| `startWorkflowRun` function | `domain-service` | `domain-service` | Pure creation of the initial run state. | None. |
-| `beginNextWorkflowStage` function | `domain-service` | `domain-service` | Pure stage-start transition and fail-fast guard. | None. |
-| `completeWorkflowStage` function | `domain-service` | `domain-service` | Pure stage-completion transition, graph-state advancement, failure transition, and final-write gating. | None. |
-| `StageExecutionResult` type | `value-object` | `value-object` | Branded data contract for domain transition decisions. | None. |
-| `WorkflowStageCompletion` type | `value-object` | `value-object` | Branded data contract returned by `completeWorkflowStage`. | None. |
-| `WorkflowRunEvent` type | `domain-event` | `domain-event` | Structured lifecycle event union. | None. |
-| `WorkflowDefinitionError` class | `domain-error` | `domain-error` | Invalid stage-plan failure. | None. |
-| `WorkflowStageError` class | `domain-error` | `domain-error` | Stage transition failure. | None. |
-| `readFileUtf8` function | `external-client-service` | `external-client-service` | Technical Node filesystem read wrapper. | None. |
-| `writeFileAtomically` function | `external-client-service` | `external-client-service` | Technical Node filesystem atomic-write wrapper. | None. |
-| `appendNdjsonRecord` function | `external-client-service` | `external-client-service` | Technical Node filesystem append wrapper. | None. |
-| `createRiviereBuilder` function | `external-client-service` | `external-client-service` | Technical adapter over builder construction. | None. |
-| `invokeRiviereBuilderUpsert` function | `external-client-service` | `external-client-service` | Technical adapter over builder upsert. | None. |
-| `invokeRiviereBuilderLink` function | `external-client-service` | `external-client-service` | Technical adapter over builder link. | None. |
-| `invokeRiviereBuilderValidate` function | `external-client-service` | `external-client-service` | Technical adapter over builder validate. | None. |
-| `invokeRiviereBuilderSerialize` function | `external-client-service` | `external-client-service` | Technical adapter over builder serialize. | None. |
-| `runRiviereExtractTs` function | `external-client-service` | `external-client-service` | Technical adapter over `@living-architecture/riviere-extract-ts`. | None. |
-| `extractComponentsFromConfig` function | `domain-service` | `domain-service` | Package-owned deterministic extraction behaviour. | None. |
+| `createWorkflowCommand` function | `cli-entrypoint` | `cli-entrypoint` | CLI registration and high-level invocation. | None. |
+| `createRunWorkflowInput` function | `command-input-factory` | `command-input-factory` | Builds typed command input. | None. |
+| `RunWorkflowInput` type | `command-use-case-input` | `command-use-case-input` | Dedicated input for `RunWorkflow`. | None. |
+| `RunWorkflowResult` type | `command-use-case-result` | `command-use-case-result` | Dedicated result for `RunWorkflow`. | None. |
+| `RunWorkflow` class | `command-use-case` | `command-use-case` | High-level compile/run/return orchestration only. | None. |
+| `WorkflowPlanCompiler` class | open role decision | open role decision | Application compiler that assembles executable plan objects; no current command role fits compiled-plan creation. | Decide whether to add an application-plan-compiler role. |
+| `CompiledWorkflowPlan` class | open role decision | open role decision | Application process object owning the stage loop and all-or-nothing execution. | Decide whether to add a compiled-plan role. |
+| `ExecutableWorkflowStage` interface | open role decision | open role decision | Polymorphic executable stage contract; not a command use case input/result/domain value. | Decide whether to add a workflow-stage-command role. |
+| Stage command classes | open role decision | open role decision | Polymorphic application commands for stage execution with technical adapters injected outside the use case. | Decide whether stage command role is needed. |
+| `WorkflowStageCommandRegistry` class | open role decision | open role decision | Stage-kind dispatch during compilation only; keeps dispatch out of use case and plan runtime. | Decide whether registry role is needed. |
+| `RiviereBuilderWorkspace` class | open role decision | open role decision | Transient run workspace for in-memory graph-building state. | Decide whether workspace role is needed. |
+| `WorkflowRunJournal` class | open role decision | open role decision | Application-level NDJSON journal over technical file writes. | Decide whether non-aggregate write collaborator role is needed. |
+| `WorkflowGraphCommitter` class | open role decision | open role decision | Application-level final graph commit gate over technical file writes. | Decide whether non-aggregate write collaborator role is needed. |
+| `WorkflowDefinition` type | `value-object` | `value-object` | Immutable validated workflow definition. | None. |
+| `createWorkflowDefinition` function | `domain-service` | `domain-service` | Pure V1 definition validation. | None. |
+| `WorkflowStage` type | `value-object` | `value-object` | Immutable stage definition. | None. |
+| `WorkflowStageResult` type | `value-object` | `value-object` | Branded stage result. | None. |
+| `WorkflowRunEvent` type | `domain-event` | `domain-event` | Lifecycle events. | None. |
+| `WorkflowDefinitionError` class | `domain-error` | `domain-error` | Invalid workflow definition error. | None. |
+| `readFileUtf8` function | `external-client-service` | `external-client-service` | Technical filesystem read wrapper. | None. |
+| `writeNodeFile` function | `external-client-service` | `external-client-service` | Technical filesystem write wrapper. | None. |
+| `invokeRiviereBuilder` function | `external-client-service` | `external-client-service` | Technical builder API wrapper. | None. |
+| `runRiviereExtractTs` function | `external-client-service` | `external-client-service` | Technical extraction API wrapper. | None. |
+| `extractComponentsFromConfig` function | `domain-service` | `domain-service` | Package-owned deterministic extraction seam. | None. |
 | `presentWorkflowRunResult` function | `cli-output-formatter` | `cli-output-formatter` | CLI presentation only. | None. |
 | `createProgram` function | `main` | `main` | Shell wiring only. | None. |
 
 ##### Canonical role pattern and tangled responsibility findings
 
-- Canonical pattern used: CLI invoking command use case, with the entrypoint coordinating input creation, use-case execution, and output formatting.
-- Canonical pattern adapted: the command use case has a mechanical loop because workflow execution has many stages, but the domain run state owns progression, fail-fast transitions, graph-state advancement, lifecycle events, and final-write gating.
-- Tangled responsibility avoided: the command does not decide whether to continue after failure or whether the final graph may be written; it follows `WorkflowStageCompletion` returned by `completeWorkflowStage`.
-- Tangled responsibility avoided: external-client services live under `platform/infra/external-clients` and are named for technical capabilities, not workflow-domain behaviour.
-- Tangled responsibility avoided: workflow definitions reference Extraction Config paths but do not contain Detection Predicates, Extraction Rules, custom types, Connection Detection rules, Strict Mode, Lenient Mode, or graph semantics-changing settings.
-- Future stage seam: adding an AI-assisted Rivière stage later would add a stage kind, a stage-plan rule, a domain transition case, and one explicit technical adapter; V1 does not implement that adapter.
+- Canonical CLI pattern used: entrypoint calls input factory, command use case, and output formatter.
+- Use case hard rules pass: one constructor parameter, no private methods, no loops, no stage kind branching, and no dependency soup.
+- Stage progression is owned by `CompiledWorkflowPlan`, and stage dispatch is owned by `WorkflowStageCommandRegistry` at compile time plus stage polymorphism at runtime.
+- Tangled responsibility avoided: domain validation is pure; stage commands call technical adapters; the compiled plan coordinates execution; the use case only orchestrates at a high level.
+- Tangled responsibility avoided: workflow files reference Extraction Config paths but never contain Detection Predicates, Extraction Rules, custom types, Connection Detection rules, Strict Mode, Lenient Mode, or graph semantics-changing settings.
+- Rejected prior-shape note: dependency-soup use cases that inject file readers, graph factories, extraction runners, upserters, linkers, validators, serializers, log writers, and graph writers directly into `RunWorkflow` are rejected.
 
 ##### Design validation
 
-- Domain terminology: open issue, because `Workflow Definition`, `Workflow Stage`, `Stage Kind`, `Validated Stage Plan`, `Workflow Run State`, `Stage Execution Result`, and `Run Event` need glossary approval if this option is selected.
-- Application/domain separation: pass, because stage-plan validity, fail-fast transitions, graph-state advancement, event decisions, and final-write gating live in domain services while file I/O, extraction, builder calls, and durable graph writes stay outside `domain/`.
-- Role and location fit: pass, because the critical path uses existing roles and individual constructor dependencies, with no unresolved dependency-bundle role.
-- Implementability: pass, because failure contracts and final-write prevention are explicit and no forbidden cross-feature imports are required.
+- Domain terminology: open issue, because workflow-specific terms need glossary approval if this option is selected.
+- Application/domain separation: pass, because definition validation is pure domain logic while compiled plan execution and technical stage commands sit outside `domain/`.
+- Role and location fit: open issue, because this design intentionally surfaces missing roles for compiled plans, executable stage commands, registries, workspaces, journals, and committers.
+- Implementability: pass against hard use-case rules; role vocabulary would need approval before implementation in an enforced package.
+
+##### Open decisions
+
+- Approve proposed workflow terminology for the glossary.
+- Decide whether `.riviere` should add application roles for compiled workflow plans, plan compilers, executable stage commands, stage registries, transient workspaces, journals, and graph committers.
+
+##### Why this design is distinct
+
+This is not a copy of Option 1: Option 1 has a single executor facade and a single stage-runtime operation, while this option compiles the workflow into polymorphic executable stage objects and lets the compiled plan run those objects directly.
+<!-- component-design-option-2:end -->
+
+<!-- component-design-option-3:start -->
+#### Option 3: Domain Instruction State Machine with Runtime Driver
+
+This design makes the workflow's business process explicit as a pure domain instruction state machine. The use case loads a validated run request and delegates to a runtime driver; the driver owns the mechanical loop, the domain state machine decides the next instruction and fail-fast transitions, and a separate operation dispatcher invokes extraction, builder, validation, serialization, logging, and file-writing adapters.
+
+##### Domain model change
+
+```mermaid
+flowchart LR
+  workflowDefinition["Workflow Definition"]
+  workflowStage["Workflow Stage"]
+  workflowInstruction["Workflow Instruction"]
+  workflowRunState["Workflow Run State"]
+  graphState["Graph State"]
+  stageOperationResult["Stage Operation Result"]
+  runEvent["Run Event"]
+  finalGraph["Final Graph"]
+  workflowDefinition -->|contains ordered| workflowStage
+  workflowRunState -->|executes steps of| workflowDefinition
+  workflowRunState -->|owns in-memory state| graphState
+  workflowRunState -->|emits next| workflowInstruction
+  workflowRunState -->|accepts or rejects| stageOperationResult
+  workflowRunState -->|records| runEvent
+  workflowRunState -->|exposes after success| finalGraph
+  workflowDefinition -->|accepts or rejects| workflowStage
+  classDef statusExisting fill:#e5e7eb,stroke:#374151,color:#111827
+  classDef statusChanged fill:#fef3c7,stroke:#92400e,color:#111827
+  classDef statusNew fill:#dcfce7,stroke:#166534,color:#111827
+  classDef statusOpen fill:#fee2e2,stroke:#991b1b,color:#111827
+  class workflowDefinition statusNew
+  class workflowStage statusNew
+  class workflowInstruction statusNew
+  class workflowRunState statusNew
+  class graphState statusExisting
+  class stageOperationResult statusNew
+  class runEvent statusNew
+  class finalGraph statusExisting
+```
+
+- gray = existing
+- yellow = changed
+- green = new
+- red = unclear ownership / open decision
+
+`Workflow Definition`, `Workflow Stage`, `Workflow Instruction`, `Workflow Run State`, `Stage Operation Result`, and `Run Event` are proposed V1 domain terms. No new aggregate is introduced; `Workflow Run State` is a branded value object and all transitions are pure domain services.
+
+##### Runtime call diagram
+
+```mermaid
+flowchart LR
+  cli["createWorkflowCommand<br/>(entrypoint)"]
+  inputFactory["createRunWorkflowInput<br/>(commands)"]
+  useCase["RunWorkflow<br/>(commands)"]
+  requestLoader["WorkflowRunRequestLoader<br/>(infra/persistence)"]
+  runtimeDriver["runWorkflowGraphStateMachine<br/>(infra/external-clients)"]
+  stateMachine["selectWorkflowInstruction<br/>(domain)"]
+  transition["applyWorkflowOperationResult<br/>(domain)"]
+  dispatcher["dispatchWorkflowStageOperation<br/>(infra/external-clients)"]
+  extractClient["runRiviereExtractTs<br/>(platform/infra)"]
+  builderClient["invokeRiviereBuilder<br/>(platform/infra)"]
+  logSink["appendWorkflowRunLog<br/>(infra/external-clients)"]
+  graphCommit["commitWorkflowGraph<br/>(infra/external-clients)"]
+  output["presentWorkflowRunResult<br/>(infra/cli/output)"]
+  cli -->|create input| inputFactory
+  cli -->|execute workflow| useCase
+  useCase -->|load request| requestLoader
+  useCase -->|run state machine| runtimeDriver
+  runtimeDriver -->|select instruction| stateMachine
+  runtimeDriver -->|dispatch stage| dispatcher
+  dispatcher -->|run extraction| extractClient
+  dispatcher -->|builder operation| builderClient
+  runtimeDriver -->|apply result| transition
+  runtimeDriver -->|append log| logSink
+  runtimeDriver -->|commit graph| graphCommit
+  cli -->|present result| output
+  classDef statusExisting fill:#e5e7eb,stroke:#374151,color:#111827
+  classDef statusChanged fill:#fef3c7,stroke:#92400e,color:#111827
+  classDef statusNew fill:#dcfce7,stroke:#166534,color:#111827
+  classDef statusOpen fill:#fee2e2,stroke:#991b1b,color:#111827
+  class cli statusNew
+  class inputFactory statusNew
+  class useCase statusNew
+  class requestLoader statusNew
+  class runtimeDriver statusNew
+  class stateMachine statusNew
+  class transition statusNew
+  class dispatcher statusNew
+  class extractClient statusChanged
+  class builderClient statusNew
+  class logSink statusNew
+  class graphCommit statusNew
+  class output statusNew
+```
+
+- gray = existing
+- yellow = changed
+- green = new
+- red = unclear ownership / open decision
+
+##### Components
+
+| Component | Layer / path | Status | .riviere role | Responsibilities | Estimated size |
+|---|---|---|---|---|---|
+| `createWorkflowCommand` | `packages/riviere-cli/src/features/workflow/entrypoint/workflow.ts` | New | `cli-entrypoint` | Register workflow command, call input factory, execute use case, and present result. | Medium |
+| `createRunWorkflowInput` | `packages/riviere-cli/src/features/workflow/commands/create-run-workflow-input.ts` | New | `command-input-factory` | Convert Commander options into typed command input. | Small |
+| `RunWorkflowInput` | `packages/riviere-cli/src/features/workflow/commands/run-workflow-input.ts` | New | `command-use-case-input` | Workflow path, project root, graph output path, and log output path. | Small |
+| `RunWorkflowResult` | `packages/riviere-cli/src/features/workflow/commands/run-workflow-result.ts` | New | `command-use-case-result` | Outcome, stage summaries, failure detail, graph path, and log path. | Small |
+| `RunWorkflow` | `packages/riviere-cli/src/features/workflow/commands/run-workflow.ts` | New | `command-use-case` | High-level orchestration only: load request, run state-machine driver, return result. | Small |
+| `WorkflowRunRequest` | `packages/riviere-cli/src/features/workflow/queries/workflow-run-request.ts` | New | `query-model` | Read-only loaded request containing validated workflow definition, empty graph state, graph path, and log path. | Small |
+| `WorkflowDefinition` | `packages/riviere-cli/src/features/workflow/domain/workflow-definition.ts` | New | `value-object` | Branded ordered workflow definition. | Small |
+| `WorkflowStage` | `packages/riviere-cli/src/features/workflow/domain/workflow-stage.ts` | New | `value-object` | Branded Rivière stage for `extract`, `link`, `validate`, or `writeGraph`. | Small |
+| `WorkflowStageKind` | `packages/riviere-cli/src/features/workflow/domain/workflow-stage-kind.ts` | New | `value-object` | Branded stage kind rejecting non-Rivière operations. | Small |
+| `createWorkflowDefinition` | `packages/riviere-cli/src/features/workflow/domain/create-workflow-definition.ts` | New | `domain-service` | Reject non-Rivière stages, `extract → write graph`, missing link/validate, write graph not last, or validate before final link. | Medium |
+| `WorkflowRunState` | `packages/riviere-cli/src/features/workflow/domain/workflow-run-state.ts` | New | `value-object` | Branded immutable state: current stage index, graph state, events, summaries, outcome, and optional final graph. | Small |
+| `WorkflowInstruction` | `packages/riviere-cli/src/features/workflow/domain/workflow-instruction.ts` | New | `value-object` | Next pure instruction: run a stage, commit final graph, abort, or finish. | Small |
+| `StageOperationResult` | `packages/riviere-cli/src/features/workflow/domain/stage-operation-result.ts` | New | `value-object` | Explicit result of an already-run stage operation, with updated graph state, final graph JSON, or failure reason. | Small |
+| `startWorkflowRunState` | `packages/riviere-cli/src/features/workflow/domain/start-workflow-run-state.ts` | New | `domain-service` | Create initial running state from validated request and empty graph state. | Small |
+| `selectWorkflowInstruction` | `packages/riviere-cli/src/features/workflow/domain/select-workflow-instruction.ts` | New | `domain-service` | Decide the next instruction from current run state; no I/O or technical calls. | Small |
+| `applyWorkflowOperationResult` | `packages/riviere-cli/src/features/workflow/domain/apply-workflow-operation-result.ts` | New | `domain-service` | Accept/reject operation result, record lifecycle events, fail fast, advance graph state, or expose final graph. | Medium |
+| `WorkflowRunEvent` | `packages/riviere-cli/src/features/workflow/domain/workflow-run-event.ts` | New | `domain-event` | Structured lifecycle events including `RunStarted`, `StartStep`, `StepCompleted`, `StepFailed`, `RunCompleted`, and `RunFailed`. | Small |
+| `WorkflowDefinitionError` | `packages/riviere-cli/src/features/workflow/domain/workflow-definition-error.ts` | New | `domain-error` | Invalid workflow definition failure. | Small |
+| `WorkflowStageError` | `packages/riviere-cli/src/features/workflow/domain/workflow-stage-error.ts` | New | `domain-error` | Stage operation failure reason without CLI formatting. | Small |
+| `WorkflowRunRequestLoader` | `packages/riviere-cli/src/features/workflow/infra/persistence/workflow-run-request-loader.ts` | New | `query-model-loader` | Read workflow file, create validated definition, and create an empty graph state query model for the run. | Medium |
+| `runWorkflowGraphStateMachine` | `packages/riviere-cli/src/features/workflow/infra/external-clients/workflow-runtime/run-workflow-graph-state-machine.ts` | New | `external-client-service` | Mechanical in-process driver: ask domain for next instruction, dispatch stage operations, append logs, commit final graph. It does not decide workflow policy. | Medium |
+| `dispatchWorkflowStageOperation` | `packages/riviere-cli/src/features/workflow/infra/external-clients/workflow-runtime/dispatch-workflow-stage-operation.ts` | New | `external-client-service` | The only stage-kind dispatch point; maps technical extraction/builder responses into `StageOperationResult`. | Medium |
+| `appendWorkflowRunLog` | `packages/riviere-cli/src/features/workflow/infra/external-clients/workflow-runtime/append-workflow-run-log.ts` | New | `external-client-service` | Append domain run events as NDJSON through a Node filesystem adapter. | Small |
+| `commitWorkflowGraph` | `packages/riviere-cli/src/features/workflow/infra/external-clients/workflow-runtime/commit-workflow-graph.ts` | New | `external-client-service` | Atomically write the final graph only for a domain commit instruction. | Small |
+| `readFileUtf8` | `packages/riviere-cli/src/platform/infra/external-clients/node-fs/read-file-utf8.ts` | New | `external-client-service` | Technical Node filesystem text read. | Small |
+| `writeNodeFile` | `packages/riviere-cli/src/platform/infra/external-clients/node-fs/write-node-file.ts` | New | `external-client-service` | Technical file write/append wrapper. | Small |
+| `invokeRiviereBuilder` | `packages/riviere-cli/src/platform/infra/external-clients/riviere-builder/invoke-riviere-builder.ts` | New | `external-client-service` | Technical adapter over builder create/upsert/link/validate/serialize. | Medium |
+| `runRiviereExtractTs` | `packages/riviere-cli/src/platform/infra/external-clients/riviere-extract-ts/run-riviere-extract-ts.ts` | Changed | `external-client-service` | Technical adapter over public deterministic extraction API. | Medium |
+| `extractComponentsFromConfig` | `packages/riviere-extract-ts/src/features/extraction/domain/extract-components-from-config.ts` | Changed | `domain-service` | Package-owned deterministic extraction API reused without importing `features/extract` internals. | Medium |
+| `presentWorkflowRunResult` | `packages/riviere-cli/src/features/workflow/infra/cli/output/present-workflow-run-result.ts` | New | `cli-output-formatter` | Format progress summary, failure detail, graph path, and log path. | Small |
+| `createProgram` | `packages/riviere-cli/src/shell/cli.ts` | Changed | `main` | Wire request loader, runtime driver, and workflow command. | Small |
+
+##### Runtime call outline
+
+```text
+createWorkflowCommand
+  ├─ createRunWorkflowInput(options)
+  ├─ RunWorkflow.execute(input)
+  │  ├─ WorkflowRunRequestLoader.load(input)
+  │  └─ runWorkflowGraphStateMachine(request)
+  │     ├─ selectWorkflowInstruction(state)
+  │     ├─ dispatchWorkflowStageOperation(instruction, graphState)
+  │     │  ├─ runRiviereExtractTs(configPath)
+  │     │  └─ invokeRiviereBuilder(operation)
+  │     ├─ applyWorkflowOperationResult(state, operationResult)
+  │     ├─ appendWorkflowRunLog(events)
+  │     └─ commitWorkflowGraph(finalGraph)
+  └─ presentWorkflowRunResult(result)
+```
+
+##### Code stress test
+
+```typescript
+/** @riviere-role command-use-case */
+export class RunWorkflow {
+  constructor(
+    private readonly requestLoader: WorkflowRunRequestLoader,
+    private readonly runStateMachine: typeof runWorkflowGraphStateMachine,
+  ) {}
+
+  execute(input: RunWorkflowInput): RunWorkflowResult {
+    const request = this.requestLoader.load(input)
+    return this.runStateMachine(request)
+  }
+}
+
+/** @riviere-role domain-service */
+export function selectWorkflowInstruction(state: WorkflowRunState): WorkflowInstruction {
+  if (state.outcome === 'failed') return { brand: 'WorkflowInstruction', kind: 'abort', reason: state.failure.message }
+  if (state.outcome === 'succeeded') return { brand: 'WorkflowInstruction', kind: 'commitFinalGraph', finalGraph: state.finalGraph }
+  const stage = state.definition.stages[state.stageIndex]
+  return { brand: 'WorkflowInstruction', kind: 'runStage', stage, graphState: state.graphState, events: [{ type: 'StartStep', stage: stage.name, operation: stage.kind }] }
+}
+
+/** @riviere-role external-client-service */
+export function runWorkflowGraphStateMachine(request: WorkflowRunRequest): RunWorkflowResult {
+  let state = startWorkflowRunState(request)
+  while (true) {
+    const instruction = selectWorkflowInstruction(state)
+    if (instruction.kind === 'abort') return mapRunFailure(request, state)
+    if (instruction.kind === 'commitFinalGraph') {
+      commitWorkflowGraph(request.graphPath, instruction.finalGraph)
+      appendWorkflowRunLog(request.logPath, state.pendingEvents)
+      return mapRunSuccess(request, state)
+    }
+    appendWorkflowRunLog(request.logPath, instruction.events)
+    const result = dispatchWorkflowStageOperation(instruction.stage, instruction.graphState)
+    state = applyWorkflowOperationResult(state, instruction.stage, result)
+    appendWorkflowRunLog(request.logPath, state.pendingEvents)
+  }
+}
+
+/** @riviere-role external-client-service */
+export function dispatchWorkflowStageOperation(stage: WorkflowStage, graphState: WorkflowGraphState): StageOperationResult {
+  if (stage.kind === 'extract') return runExtractAndUpsert(stage, graphState)
+  if (stage.kind === 'link') return invokeRiviereBuilder('link', graphState)
+  if (stage.kind === 'validate') return invokeRiviereBuilder('validate', graphState)
+  return invokeRiviereBuilder('serialize', graphState)
+}
+
+/** @riviere-role domain-service */
+export function createWorkflowDefinition(input: RawWorkflowDefinition): WorkflowDefinition {
+  const kinds = input.stages.map(stage => stage.kind)
+  if (kinds.join('>') === 'extract>writeGraph') throw new WorkflowDefinitionError('Workflow requires link and validate before write graph')
+  if (!kinds.includes('extract') || !kinds.includes('link') || !kinds.includes('validate')) throw new WorkflowDefinitionError('Workflow requires extract, link, validate, and write graph')
+  if (kinds[kinds.length - 1] !== 'writeGraph' || kinds.indexOf('writeGraph') !== kinds.length - 1) throw new WorkflowDefinitionError('write graph must appear once as the final stage')
+  if (kinds.lastIndexOf('link') < kinds.lastIndexOf('extract')) throw new WorkflowDefinitionError('At least one link stage must run after the final extract stage')
+  if (kinds.lastIndexOf('validate') < kinds.lastIndexOf('link')) throw new WorkflowDefinitionError('At least one validate stage must run after the final link stage')
+  return { brand: 'WorkflowDefinition', name: input.name, stages: input.stages }
+}
+```
+
+The use case has two constructor parameters, no private methods, no loop, no stage-kind branch, and no direct technical dependencies. The loop is isolated in a role-valid runtime driver; the driver does not decide workflow policy, because it follows explicit instructions from the domain state machine and passes already-produced operation results back to `applyWorkflowOperationResult`.
+
+##### New dependencies
+
+| Dependency | Status | Used by | Purpose |
+|---|---|---|---|
+| `@living-architecture/riviere-builder` | Existing | `invokeRiviereBuilder`, `WorkflowRunRequestLoader`, `dispatchWorkflowStageOperation` | Create empty graph state, upsert extracted components, link, validate, and serialize without reading the durable final graph. |
+| `@living-architecture/riviere-extract-ts` public extraction API | Changed | `runRiviereExtractTs`, `dispatchWorkflowStageOperation` | Reuse deterministic extraction without forbidden cross-feature imports. |
+| Node file system APIs | Existing | `readFileUtf8`, `writeNodeFile`, `appendWorkflowRunLog`, `commitWorkflowGraph` | Read workflow definitions, write NDJSON logs, and atomically commit the final graph after success. |
+
+##### Code shape
+
+```text
+packages/riviere-cli/src/features/workflow/
+  entrypoint/workflow.ts
+  commands/create-run-workflow-input.ts
+  commands/run-workflow-input.ts
+  commands/run-workflow-result.ts
+  commands/run-workflow.ts
+  queries/workflow-run-request.ts
+  domain/workflow-definition.ts
+  domain/workflow-stage.ts
+  domain/workflow-stage-kind.ts
+  domain/create-workflow-definition.ts
+  domain/workflow-run-state.ts
+  domain/workflow-instruction.ts
+  domain/stage-operation-result.ts
+  domain/start-workflow-run-state.ts
+  domain/select-workflow-instruction.ts
+  domain/apply-workflow-operation-result.ts
+  domain/workflow-run-event.ts
+  domain/workflow-definition-error.ts
+  domain/workflow-stage-error.ts
+  infra/persistence/workflow-run-request-loader.ts
+  infra/external-clients/workflow-runtime/run-workflow-graph-state-machine.ts
+  infra/external-clients/workflow-runtime/dispatch-workflow-stage-operation.ts
+  infra/external-clients/workflow-runtime/append-workflow-run-log.ts
+  infra/external-clients/workflow-runtime/commit-workflow-graph.ts
+  infra/cli/output/present-workflow-run-result.ts
+packages/riviere-cli/src/platform/infra/external-clients/node-fs/read-file-utf8.ts
+packages/riviere-cli/src/platform/infra/external-clients/node-fs/write-node-file.ts
+packages/riviere-cli/src/platform/infra/external-clients/riviere-builder/invoke-riviere-builder.ts
+packages/riviere-cli/src/platform/infra/external-clients/riviere-extract-ts/run-riviere-extract-ts.ts
+packages/riviere-extract-ts/src/features/extraction/domain/extract-components-from-config.ts
+packages/riviere-cli/src/shell/cli.ts
+ecommerce-demo-app/.riviere/workflows/rebuild-graph.json
+ecommerce-demo-app/package.json
+ecommerce-demo-app/.github/workflows/*
+```
+
+##### .riviere role options
+
+| Declaration | Candidate roles | Preferred role | Reason | Open decision |
+|---|---|---|---|---|
+| `createWorkflowCommand` function | `cli-entrypoint` | `cli-entrypoint` | Commander entrypoint orchestration. | None. |
+| `createRunWorkflowInput` function | `command-input-factory`, `cli-input-validator` | `command-input-factory` | Builds use-case input from CLI options. | None. |
+| `RunWorkflowInput` type | `command-use-case-input` | `command-use-case-input` | Dedicated command input. | None. |
+| `RunWorkflowResult` type | `command-use-case-result` | `command-use-case-result` | Dedicated command result. | None. |
+| `RunWorkflow` class | `command-use-case` | `command-use-case` | High-level load/delegate/return orchestration only. | None. |
+| `WorkflowRunRequest` type | `query-model` | `query-model` | Immutable read-only request loaded for one workflow run. | None. |
+| `WorkflowDefinition` type | `value-object` | `value-object` | Branded immutable definition data. | None. |
+| `WorkflowStage` type | `value-object` | `value-object` | Branded immutable stage data. | None. |
+| `WorkflowStageKind` type | `value-object` | `value-object` | Branded enum-like value. | None. |
+| `createWorkflowDefinition` function | `domain-service` | `domain-service` | Pure definition validation and construction. | None. |
+| `WorkflowRunState` type | `value-object` | `value-object` | Immutable run state; transitions are domain services. | None. |
+| `WorkflowInstruction` type | `value-object` | `value-object` | Branded instruction emitted by the domain state machine. | None. |
+| `StageOperationResult` type | `value-object` | `value-object` | Branded explicit result accepted by the state machine. | None. |
+| `startWorkflowRunState` function | `domain-service` | `domain-service` | Pure initial state creation. | None. |
+| `selectWorkflowInstruction` function | `domain-service` | `domain-service` | Pure next-instruction selection. | None. |
+| `applyWorkflowOperationResult` function | `domain-service` | `domain-service` | Pure fail-fast, graph advancement, event, and final graph transition. | None. |
+| `WorkflowRunEvent` type | `domain-event` | `domain-event` | Structured lifecycle event union. | None. |
+| `WorkflowDefinitionError` class | `domain-error` | `domain-error` | Invalid definition failure. | None. |
+| `WorkflowStageError` class | `domain-error` | `domain-error` | Stage failure reason. | None. |
+| `WorkflowRunRequestLoader` class | `query-model-loader` | `query-model-loader` | Loads request without mutating durable graph. | None. |
+| `runWorkflowGraphStateMachine` function | `external-client-service` | `external-client-service` | In-process technical runtime driver for the pure domain state machine. | None. |
+| `dispatchWorkflowStageOperation` function | `external-client-service` | `external-client-service` | Invokes stage-specific technical Rivière operations and maps to domain result values. | None. |
+| `appendWorkflowRunLog` function | `external-client-service` | `external-client-service` | Technical NDJSON append adapter. | None. |
+| `commitWorkflowGraph` function | `external-client-service` | `external-client-service` | Technical atomic final graph write adapter. | None. |
+| `readFileUtf8` function | `external-client-service` | `external-client-service` | Technical filesystem read. | None. |
+| `writeNodeFile` function | `external-client-service` | `external-client-service` | Technical filesystem write/append. | None. |
+| `invokeRiviereBuilder` function | `external-client-service` | `external-client-service` | Technical builder package adapter. | None. |
+| `runRiviereExtractTs` function | `external-client-service` | `external-client-service` | Technical extraction package adapter. | None. |
+| `extractComponentsFromConfig` function | `domain-service` | `domain-service` | Package-owned deterministic extraction API. | None. |
+| `presentWorkflowRunResult` function | `cli-output-formatter` | `cli-output-formatter` | CLI presentation only. | None. |
+| `createProgram` function | `main` | `main` | Shell wiring only. | None. |
+
+##### Canonical role pattern and tangled responsibility findings
+
+- Canonical CLI pattern used: entrypoint calls input factory, command use case, and output formatter.
+- Use case hard rules pass: two constructor parameters, no private methods, no loops, no stage-kind branching, and no dependency soup.
+- Loop owner: `runWorkflowGraphStateMachine` owns the mechanical loop as an `external-client-service`; workflow policy stays in pure domain services `selectWorkflowInstruction` and `applyWorkflowOperationResult`.
+- Stage dispatch owner: `dispatchWorkflowStageOperation` is the only stage-kind branch and is outside the use case and outside the domain.
+- Tangled responsibility avoided: workflow definitions reference Extraction Config paths only; Detection Predicates, Extraction Rules, custom types, Connection Detection, Strict Mode, Lenient Mode, and extraction semantics remain in Rivière configuration and extraction packages.
+- Tangled responsibility avoided: no domain component calls infrastructure, no aggregate approval is needed, and the use case does not receive extraction/builder/filesystem dependency soup.
+- Rejected prior-shape note: dependency-soup use cases that inject file readers, graph factories, extraction runners, upserters, linkers, validators, serializers, log writers, and graph writers directly into `RunWorkflow` are rejected.
+- Not a copy of Options 1 or 2: this option is not a single executor facade and does not compile polymorphic stage objects; its core is a domain instruction state machine interpreted by a runtime driver.
+
+##### Design validation
+
+- Domain terminology: open issue, because proposed workflow terms need glossary approval if this option is selected.
+- Application/domain separation: pass, because domain services only validate definitions and transition run state; all extraction, builder, validation, serialization, logging, and file writes are outside `domain/`.
+- Role and location fit: pass, because every proposed component uses existing `.riviere` roles and ADR-002-compliant locations.
+- Implementability: pass, because no forbidden cross-feature imports are required and the use case obeys all hard rules.
 
 ##### Open decisions
 
@@ -742,11 +955,7 @@ ecommerce-demo-app/.github/workflows/*
 
 ##### Why this design is distinct
 
-This option keeps Option 2 structurally distinct from Option 1 by validating the complete stage plan up front and using a domain run-state transition model, rather than Option 1's separate next-stage selector plus fold-result applicator. It also makes external stage execution visible in the command while moving continuation, failure, graph advancement, and final-write decisions into domain transitions.
-<!-- component-design-option-2:end -->
-
-<!-- component-design-option-3:start -->
-#### Option 3: Pending
+This option is structurally distinct from Options 1 and 2 because the workflow process is represented as domain instructions interpreted by a runtime driver. Option 1 centralises execution behind one executor facade; Option 2 compiles polymorphic executable stages; this option uses neither shape and keeps progression decisions in a pure state machine.
 <!-- component-design-option-3:end -->
 
 #### Approval
