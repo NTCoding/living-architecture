@@ -37,7 +37,7 @@ Use `[]` for `findings` when the verdict is `PASS`.
 
 ## Review scope
 
-Review exactly one assigned option marker block in `architecturePath`.
+Review exactly one assigned option marker block in the file path provided by the prompt. This may be `architecturePath` or an isolated option draft file.
 
 Read only what you need to judge that option:
 
@@ -69,7 +69,6 @@ Fail immediately when any of these are present:
 6. Logic in the use case might need to be reused in other use cases? If it's inside the use-case it cannot be reused, therefore the logic should not live in the use case. Reusable could should be in `/domain` or `/infra`
 7. Use case contains more than 4 constructor parameters => fail. If a `dependencies` object is passed in to work around this, that is also a fail.
 
-
 ## Polished-nonsense checks
 
 Fail designs that dodge the real architecture by hiding core PRD behaviour behind names. These aren't bad designs, they are just missing deatails. The architect must update their output to include missing details.
@@ -81,7 +80,6 @@ Examples that should fail unless fully explained with code shape:
 - `ProcessOperations`, `StepApplicator`, `Operations`, `Adapter`, `Executor`, `Runner`, `Coordinator`, or similar components that own critical behaviour but only have prose responsibilities.
 - A “large” component on the critical path whose internals are not shown.
 - A critical component marked as `open decision`, `unclear ownership`, `likely role`, or `role fit needs confirmation`.
-
 
 ## Critical PRD behaviour coverage
 

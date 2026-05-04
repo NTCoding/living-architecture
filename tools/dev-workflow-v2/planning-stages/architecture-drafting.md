@@ -225,7 +225,7 @@ The shared design brief must include only facts and approved decisions. Do not i
 
 ### Architecture file option scaffold
 
-Before invoking the first subagent, ensure `architecturePath` exists and contains this scaffold under `## 3. Component design`:
+Before invoking component-design subagents, ensure `architecturePath` exists and contains this scaffold under `## 3. Component design`:
 
 ```markdown
 ### Design Options: <Feature Name>
@@ -247,50 +247,63 @@ Before invoking the first subagent, ensure `architecturePath` exists and contain
 Options have been written to this file. Which option should be approved, rejected, or combined?
 ```
 
-The scaffold is only a write target. Do not fill option content from the main agent.
+The scaffold is the final review location after option drafts have been reviewed and mechanically merged. Do not fill option content from the main agent.
 
-Each option must be written inside its assigned marker block by the corresponding fresh `component-design-architect` subagent.
+Each option must first be written by its corresponding fresh `component-design-architect` subagent into a separate sibling draft file:
 
-The subagent must replace only its assigned marker block content. It must not edit other options, the approval question, the PRD, or production files.
+- `docs/project/PRD/<planningId>/component-design-option-1.md`
+- `docs/project/PRD/<planningId>/component-design-option-2.md`
+- `docs/project/PRD/<planningId>/component-design-option-3.md`
 
-The main agent may create this scaffold, but must not write option content inside the marker blocks.
+Each draft file must contain only that option's assigned marker block:
 
-### Fresh subagent sequence
+```markdown
+<!-- component-design-option-<n>:start -->
+#### Option <n>: Pending
+<!-- component-design-option-<n>:end -->
+```
 
-Invoke three fresh subagents in sequence:
+Each option subagent must replace only its assigned marker block in its assigned draft file.
+
+After each option reaches its review limit, mechanically merge that option's assigned marker block from its draft file into the matching marker block in `architecturePath`. This merge is a file operation only. The main agent must not summarise, rewrite, compare, or improve the option body while merging.
+
+The subagent must not edit other option draft files, `architecturePath`, the approval question, the PRD, or production files.
+
+The main agent may create the final scaffold and the three draft-file scaffolds, but must not write option content inside the marker blocks.
+
+### Fresh subagent parallel run
+
+Invoke three fresh `component-design-architect` subagents in parallel.
+
+Reason: later option agents must not be anchored by earlier designs. The previous sequential process caused later agents to copy or lightly mutate the first design rather than challenge it. The three option agents must start from the same approved brief independently.
+
+For each design agent:
+
+- invoke `@@component-design-architect`
+- pass the same shared design brief
+- pass the assigned option draft file path as the file to write
+- pass the assigned marker
+- ask for one component design
+- instruct the subagent to write its option directly into its assigned draft file inside the assigned marker block and report back when done
+- explicitly instruct the subagent not to read the other option draft files or other option marker blocks in `architecturePath`
+
+Assignments:
 
 1. First design:
-   - invoke `@@component-design-architect`
-   - pass the shared design brief
-   - pass `architecturePath`
+   - pass `docs/project/PRD/<planningId>/component-design-option-1.md`
    - assign marker `component-design-option-1`
-   - ask for one component design
-   - instruct the subagent to write Option 1 directly into `architecturePath` inside the assigned marker block and report back when done
-   - after it reports back, perform the mechanical checks and basic semantic checks listed below before continuing
 2. Second design:
-   - invoke a new `@@component-design-architect` context
-   - pass the shared design brief
-   - pass `architecturePath`
+   - pass `docs/project/PRD/<planningId>/component-design-option-2.md`
    - assign marker `component-design-option-2`
-   - instruct the subagent to read Option 1 directly from `architecturePath` for contrast
-   - ask for one structurally different component design
-   - instruct the subagent to write Option 2 directly into `architecturePath` inside the assigned marker block and report back when done
-   - after it reports back, perform the mechanical checks and basic semantic checks listed below before continuing
 3. Third design:
-   - invoke a new `@@component-design-architect` context
-   - pass the shared design brief
-   - pass `architecturePath`
+   - pass `docs/project/PRD/<planningId>/component-design-option-3.md`
    - assign marker `component-design-option-3`
-   - instruct the subagent to read Options 1 and 2 directly from `architecturePath` for contrast
-   - ask for one structurally different component design
-   - instruct the subagent to write Option 3 directly into `architecturePath` inside the assigned marker block and report back when done
-   - after it reports back, perform the mechanical checks and basic semantic checks listed below
 
-Do not pass main-agent summaries of previous options. The previous options in `architecturePath` are the source of truth for contrast.
+Do not pass main-agent summaries of previous options.
 
-Do not paste full previous option text into the subagent prompt. Give the subagent `architecturePath` and tell it which existing option sections to read.
+Do not instruct Option 2 or Option 3 to read previous options for contrast. Do not paste previous option text into their prompts.
 
-Do not proceed from one option to the next until the previous option has been written, mechanically checked, and passed the basic semantic checks in `architecturePath`.
+The design agents may complete in any order. Review and correction for each option may proceed independently after that option's subagent reports done.
 
 ### Subagent completion report
 
@@ -300,8 +313,8 @@ Each `component-design-architect` subagent must return only a concise completion
 DONE
 - option: <1|2|3>
 - marker: component-design-option-<n>
+- draft-file: <path written>
 - heading: <exact option heading written>
-- distinct-from: <none|option 1|options 1 and 2>
 - validation: <pass or open decisions present; Mermaid and runtime outline format checks must pass>
 ```
 
@@ -311,7 +324,7 @@ The subagent must not return the full option body in chat. The file is the sourc
 
 After each fresh subagent returns, keep the returned task/session id for that option. Correction feedback must resume that same task/session.
 
-Then invoke a fresh `component-design-review` subagent to review only the assigned marker block. Pass `architecturePath`, the assigned marker, the approved PRD path, the approved solution exploration path, and the approved architecture feasibility and ownership context. The review subagent must return JSON with `verdict`, `summary`, and `findings`.
+Then invoke a fresh `component-design-review` subagent to review only the assigned marker block in that option's draft file. Pass the option draft file path, the assigned marker, the approved PRD path, the approved solution exploration path, and the approved architecture feasibility and ownership context. The review subagent must return JSON with `verdict`, `summary`, and `findings`.
 
 The main agent must not verify the option. It must not run marker checks, Mermaid checks, aggregate-call checks, semantic checks, grep/read validation, or design-quality judgement. All checking belongs to `component-design-review`.
 
@@ -323,11 +336,11 @@ If the original `component-design-architect` task/session cannot be resumed afte
 
 Do not summarise, compare, fix, verify, or rewrite the option body from the main agent. The main agent orchestrates only. The persisted option body in `architecturePath` is reviewed by `component-design-review` only.
 
-After all three options are written and individually verified by `component-design-review`:
+After all three options are written, independently reviewed, and mechanically merged into `architecturePath`:
 
 1. Do not load all option bodies into the main-agent context.
 2. Do not independently compare or summarise the options.
-3. Use the subagent completion reports only to confirm Option 2 was designed against Option 1 and Option 3 was designed against Options 1 and 2.
+3. Use the subagent completion reports only to confirm each option was written to its assigned draft file and merged into its assigned final marker block.
 4. Tell the user the three options have been written to `architecturePath`.
 5. Ask the user whether they want to review the file directly, approve an option, reject an option, or ask for a combination.
 

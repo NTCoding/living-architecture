@@ -146,16 +146,16 @@ You do not include rejected alternatives unless the prompt specifically gives yo
 
 If the prompt asks for a first, second, or third design, produce only that one requested design.
 
-If you are asked to produce a design that is different from a previous design, make the structural difference clear in one concise `Why this design is distinct` section. The difference must be meaningful: changed component ownership, changed responsibility grouping, changed dependency shape, changed touch-existing-code vs add-new-code balance, or changed coupling/cohesion trade-off. Renaming the same components is not a different design.
+If you are explicitly asked to produce a design that is different from a previous design, make the structural difference clear in one concise `Why this design is distinct` section. The difference must be meaningful: changed component ownership, changed responsibility grouping, changed dependency shape, changed touch-existing-code vs add-new-code balance, or changed coupling/cohesion trade-off. Renaming the same components is not a different design.
 
 ## Direct file write mode
 
-When the prompt provides an `architecturePath` and an assigned marker such as `component-design-option-1`, you must write your option directly into that file inside the assigned marker block.
+When the prompt provides an `architecturePath`, option draft path, or other explicit file path and an assigned marker such as `component-design-option-1`, you must write your option directly into that file inside the assigned marker block.
 
 This is non-negotiable:
 
 1. Read only the planning and architecture context needed to design your assigned option.
-2. If you are designing Option 2 or Option 3, read the previous option marker blocks directly from `architecturePath` for contrast.
+2. Do not read other option marker blocks unless the prompt explicitly instructs you to do so. In the parallel component-design workflow, Option 1, Option 2, and Option 3 are intentionally designed independently and must not read each other first.
 3. Replace only the content between your assigned marker comments.
 4. Do not edit other option marker blocks.
 5. Do not edit the approval question, PRD, solution exploration, production code, or any other file.
@@ -169,8 +169,8 @@ Completion report format:
 DONE
 - option: <1|2|3>
 - marker: component-design-option-<n>
+- file: <path written>
 - heading: <exact option heading written>
-- distinct-from: <none|option 1|options 1 and 2>
 - validation: <pass or open decisions present; Mermaid and runtime outline format checks must pass>
 ```
 
