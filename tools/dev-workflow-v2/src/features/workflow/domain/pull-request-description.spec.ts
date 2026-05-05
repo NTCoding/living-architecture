@@ -43,6 +43,35 @@ describe('parsePullRequestDescriptionOptions', () => {
     })
   })
 
+  it('handles flag-like values in value positions', () => {
+    const result = parsePullRequestDescriptionOptions([
+      '--title',
+      '--description',
+      '--description',
+      'Creates a ready PR.',
+      '--problem',
+      'Direct PR creation could bypass workflow rules.',
+      '--acceptance-criteria',
+      '- PR body follows the standard structure.',
+      '--key-changes',
+      '- Add structured PR creation.',
+      '--architecture-impact',
+      'Workflow owns PR body construction.',
+      '--validation',
+      '- pnpm test',
+      '--notes',
+      'None.',
+    ])
+
+    expect(result).toStrictEqual({
+      ok: true,
+      input: {
+        ...VALID_PULL_REQUEST_DESCRIPTION_INPUT,
+        title: '--description',
+      },
+    })
+  })
+
   it('returns failure when arguments are not strings', () => {
     const result = parsePullRequestDescriptionOptions([123])
 

@@ -31,7 +31,8 @@ echo "Archiving PRD: $PRD_NAME"
 REPO=$(gh repo view --json nameWithOwner -q .nameWithOwner)
 
 # Mark the PRD complete
-sed -i '' 's/^stage: .*/stage: planning-complete/' "$MARKER_FILE"
+sed -i.bak 's/^stage: .*/stage: planning-complete/' "$MARKER_FILE"
+rm -f "${MARKER_FILE}.bak"
 
 # Find and close the milestone
 MILESTONE_NUMBER=$(gh api "repos/${REPO}/milestones" --jq ".[] | select(.title == \"$PRD_NAME\") | .number")
@@ -46,7 +47,8 @@ else
 fi
 
 # Set status to Archived
-sed -i '' 's/^\*\*Status:\*\* .*/**Status:** Archived/' "$PRD_FILE"
+sed -i.bak 's/^\*\*Status:\*\* .*/**Status:** Archived/' "$PRD_FILE"
+rm -f "${PRD_FILE}.bak"
 git add "$PRD_FILE" "$MARKER_FILE"
 
 # Commit the PRD and marker update

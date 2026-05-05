@@ -61,6 +61,8 @@ githubIssueNumbers: []
 
 If the problem definition file does not exist, create it with this exact high-level structure:
 
+Use the original free-text planning topic as `<title>` when available. When starting from an existing planning id, derive a human-readable title by replacing hyphens with spaces and title-casing it; for example, `phase-13-extraction-workflows` becomes `Phase 13 Extraction Workflows`.
+
 ```markdown
 # Problem Definition: <title>
 

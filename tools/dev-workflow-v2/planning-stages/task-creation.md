@@ -405,16 +405,14 @@ Before creating issues, ensure both of these exist in GitHub:
 - milestone title: `<githubMilestone>`
 - label name: `prd:<githubMilestone>`
 
-When running commands that need GitHub access, first run `gh auth token` to get the token value, then use it as `GITHUB_TOKEN=<token>` inline in each command.
-
 Use `gh repo view` and `gh api` to check whether the milestone exists. If it does not exist, create it.
 
 Example command shape:
 
 ```bash
-GITHUB_TOKEN=<token> gh repo view --json owner,name
-GITHUB_TOKEN=<token> gh api "repos/<owner>/<repo>/milestones?state=all"
-GITHUB_TOKEN=<token> gh api -X POST "repos/<owner>/<repo>/milestones" -f title="<githubMilestone>"
+gh repo view --json owner,name
+gh api "repos/<owner>/<repo>/milestones?state=all"
+gh api -X POST "repos/<owner>/<repo>/milestones" -f title="<githubMilestone>"
 ```
 
 Use `gh label list` to check whether the exact label exists. If it does not exist, create it.
@@ -422,8 +420,8 @@ Use `gh label list` to check whether the exact label exists. If it does not exis
 Example command shape:
 
 ```bash
-GITHUB_TOKEN=<token> gh label list --search "prd:<githubMilestone>" --json name --jq '.[] | select(.name == "prd:<githubMilestone>") | .name'
-GITHUB_TOKEN=<token> gh label create "prd:<githubMilestone>" --description "Tasks for <githubMilestone>" --color "5319e7"
+gh label list --search "prd:<githubMilestone>" --json name --jq '.[] | select(.name == "prd:<githubMilestone>") | .name'
+gh label create "prd:<githubMilestone>" --description "Tasks for <githubMilestone>" --color "5319e7"
 ```
 
 If GitHub authentication, repository resolution, milestone creation, or label creation fails, block task creation with the specific failure.
@@ -440,7 +438,7 @@ For each selected deliverable, create the issue with:
 Use:
 
 ```bash
-GITHUB_TOKEN=<token> ./scripts/create-task.sh <milestone> <title> <body>
+./scripts/create-task.sh <milestone> <title> <body>
 ```
 
 ## Step 6: blocking rule

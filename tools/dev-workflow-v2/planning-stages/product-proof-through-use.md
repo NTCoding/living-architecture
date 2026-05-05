@@ -38,10 +38,9 @@ The known dogfooding source for this repository is:
 | Location | `../ecommerce-demo-app` |
 | README | `../ecommerce-demo-app/README.md` |
 
-
 ## Step 1: Extract dogfooding requirements from PRD.md and ARCH.md
 
-Read `problem-statement.md`, `PRD.md`, `solution-exploration.md` and `ARCH.md`. Extract a list of new and modified functionality that needs to be verified via dogfooding. 
+Read `problem-statement.md`, `PRD.md`, `solution-exploration.md` and `ARCH.md`. Extract a list of new and modified functionality that needs to be verified via dogfooding.
 
 Examples to look for (non-exhaustive):
 
@@ -63,12 +62,11 @@ In this section it is crucial to capture all new functionality
 
 ## Step 2: Review existing dogfooding
 
-You must analyze the the current dogfooding project: ../ecommerce-demo-app or github.com/ntcoding/ecommerce-demo-app. You must ensure you are looking at latest changes on the main branch. 
+You must analyze the the current dogfooding project: ../ecommerce-demo-app or github.com/ntcoding/ecommerce-demo-app. You must ensure you are looking at latest changes on the main branch.
 
 The `README.md` of the repository provides a detailed guide explaining how it validates existing functionalty. After reading the README, scan the interesting parts of the repository referenced in the README so that you understand how it works.
 
 In the output document, write section 2 `What dogfooding exists today`. This should contain a textual summary along with key bullet points that seem relevant to the changes introduced by this PRD.
-
 
 ## Step 3: Designing new dogfooding solutions
 
@@ -95,7 +93,7 @@ Reminder: don't just do the bare minimum here. The dogfooding projects are there
 
 ## Step 4: Blockers
 
-If anything is unclear, under-specified or otherwise blocking the production of dogfooding requirements then list them here and it will block the planning process. Do not workaround problems, it will only result in worse solutions and recurring problems. Stop. seek clarification, discuss with the user and do things properly. It's what our users need and deserve. Quality over speed every time. 
+If anything is unclear, under-specified or otherwise blocking the production of dogfooding requirements then list them here and it will block the planning process. Do not workaround problems, it will only result in worse solutions and recurring problems. Stop. seek clarification, discuss with the user and do things properly. It's what our users need and deserve. Quality over speed every time.
 
 ## Step 5: Discuss with user
 

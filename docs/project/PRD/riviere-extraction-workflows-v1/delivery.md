@@ -8,7 +8,7 @@
 
 Delivery is serial because the approved architecture makes fundamental model changes. Going parallel while retiring `ExtractionProject`, introducing `RiviereProject`, and changing extraction-stage execution would create coordination risk rather than delivery speed.
 
-The delivery sequence first introduces the package-owned extraction model and replaces the old extraction aggregate path, then introduces workflow loading, in-memory graph rebuild execution, CLI-boundary run/log/graph output, and finally `ecommerce-demo-app` dogfooding through a real `rebuild-graph` workflow.
+The delivery sequence first introduces the package-owned extraction model and replaces the old extraction aggregate path, then introduces workflow loading, in-memory graph rebuild execution, CLI-boundary run/log/graph output, and finally `ecommerce-demo-app` dogfooding through real workflow files, package scripts, success/failure verifiers, CI, and README updates.
 
 ## 2. Milestones and deliverables
 
@@ -254,46 +254,142 @@ The delivery sequence first introduces the package-owned extraction model and re
 
 ### M5: Prove the workflow in `ecommerce-demo-app`
 
-#### D5.1: Add a real `ecommerce-demo-app` workflow
+#### D5.1: Add V1 workflow definitions to `ecommerce-demo-app`
 
-- Value: The workflow capability is dogfooded against the real demo app configuration.
+- Value: The workflow capability is dogfooded through committed project-local workflow files that cover positive, modular, CI, and failure journeys.
 - Acceptance criteria:
-  - `ecommerce-demo-app` has a real workflow definition named `rebuild-graph`.
-  - The workflow uses `.riviere/config/extraction.config.json`.
-  - The workflow rebuilds `.riviere/graph.json`.
-  - The workflow starts from an empty graph state.
-  - The workflow preserves the current demo purpose of validating that multiple configs can be combined into one config file using references.
-  - Product workflow execution does not include expected-output fixture verification.
-  - No separate multiple-extraction-step demo is added in this PRD.
+  - `../ecommerce-demo-app/.riviere/workflows/combined-config.yaml` exists exactly as specified in `dogfooding.md` section 3.1.
+  - `../ecommerce-demo-app/.riviere/workflows/modular-config.yaml` exists exactly as specified in `dogfooding.md` section 3.1.
+  - `../ecommerce-demo-app/.riviere/workflows/ci-check.yaml` exists exactly as specified in `dogfooding.md` section 3.1.
+  - `../ecommerce-demo-app/.riviere/workflows/failure-workflow.yaml` exists exactly as specified in `dogfooding.md` section 3.1.
+  - Combined and CI workflows use `.riviere/config/extraction.config.json` for extraction and linking.
+  - Modular workflow uses separate module extraction configs and `.riviere/config/extraction.config.json` for linking.
+  - Failure workflow references `.riviere/config/__missing-dogfood-config.json` and writes to `.riviere/graph.json` only as a negative all-or-nothing scenario.
+  - All positive workflows include `extract`, `link`, and `validate`; no workflow embeds arbitrary shell commands.
 - Verification:
-  - Reviewer inspection confirms the `rebuild-graph` workflow definition uses the approved config and output path.
-  - Demo workflow execution is covered by implementation verification; no exact command was named in the approved PRD or architecture.
+  - Reviewer inspection confirms each workflow file matches the exact YAML in `dogfooding.md` section 3.1.
 - Dependencies:
   - M4.
 - Out of scope:
-  - Separate multiple-extraction-step validation/demo.
+  - BFF-only smoke workflow.
+  - Single-domain smoke workflow.
   - Expected-output fixture verification inside product workflow execution.
 - Source refs:
   - PRD: Sections 2, 3, 4, 5, 6.
   - Architecture: Section 6, task generation consequences.
+  - Dogfooding: Sections 1, 2, 3.1, 3.7.
 
-#### D5.2: Run the demo workflow in CI
+#### D5.2: Add package scripts for workflow dogfooding
+
+- Value: Maintainers can run the workflow dogfooding journey through normal project commands.
+- Acceptance criteria:
+  - `../ecommerce-demo-app/package.json` contains `workflow:combined` exactly as specified in `dogfooding.md` section 3.2.
+  - `../ecommerce-demo-app/package.json` contains `workflow:modular` exactly as specified in `dogfooding.md` section 3.2.
+  - `../ecommerce-demo-app/package.json` contains `workflow:ci-check` exactly as specified in `dogfooding.md` section 3.2.
+  - `../ecommerce-demo-app/package.json` contains `verify:workflow:combined`, `verify:workflow:modular`, `verify:workflow:ci-check`, `verify:workflow:failure`, and `dogfood:workflow` exactly as specified in `dogfooding.md` section 3.2.
+  - Scripts call Rivière as normal project commands and do not embed shell commands inside workflow files.
+- Verification:
+  - Reviewer inspection confirms package scripts match `dogfooding.md` section 3.2.
+- Dependencies:
+  - D5.1.
+- Out of scope:
+  - Changing existing `extract`, `verify:extract`, `verify:connections`, or `test:extract` scripts.
+- Source refs:
+  - PRD: Sections 2, 4, 5, 6.
+  - Dogfooding: Sections 3.2, 3.7.
+
+#### D5.3: Add workflow success verifier
+
+- Value: Successful workflow runs are checked from the user's point of view rather than only by fixture comparison.
+- Acceptance criteria:
+  - `../ecommerce-demo-app/scripts/verify-workflow.mjs` exists.
+  - The verifier accepts `node scripts/verify-workflow.mjs <workflow-name> <graph-output-path>`.
+  - The verifier checks the graph output path exists and parses as JSON.
+  - The verifier checks graph output has non-empty `components` and `links` arrays.
+  - The verifier checks graph output contains representative coverage for orders, shipping, inventory, payment, notifications, BFF, and UI as specified in `dogfooding.md` section 3.3.
+  - The verifier checks the latest run log exists under `.riviere/logs/workflows/<workflow-name>/`.
+  - The verifier checks the run log is valid NDJSON and includes required fields and success lifecycle events from `dogfooding.md` section 3.3.
+  - The verifier does not compare workflow run logs to old extraction expected-output fixtures.
+  - Existing `verify:extract` and `verify:connections` scripts remain separate.
+- Verification:
+  - Reviewer inspection confirms `verify-workflow.mjs` implements every required check in `dogfooding.md` section 3.3.
+- Dependencies:
+  - D5.1.
+  - D5.2.
+- Out of scope:
+  - Moving expected-output fixture verification into product workflow execution.
+- Source refs:
+  - PRD: Sections 2, 4, 5, 6.
+  - Dogfooding: Sections 3.3, 3.7.
+
+#### D5.4: Add all-or-nothing failure verifier
+
+- Value: The dogfood protects the trust promise that a failed workflow leaves the previous graph unchanged and produces a useful log.
+- Acceptance criteria:
+  - `../ecommerce-demo-app/scripts/verify-workflow-failure.mjs` exists.
+  - The verifier reads `.riviere/graph.json` before running the negative workflow.
+  - The verifier runs `npx riviere workflow run .riviere/workflows/failure-workflow.yaml` and expects a non-zero exit.
+  - The verifier asserts `.riviere/graph.json` is byte-for-byte unchanged after the failed run.
+  - The verifier asserts a failed-run log exists.
+  - The verifier asserts the failed-run log includes `WorkflowFailed` or `WorkflowValidationFailed`, includes the missing config path where available, and does not include `GraphWriteCompleted`.
+  - The verifier asserts the failed-run log is valid NDJSON and includes standard event fields.
+- Verification:
+  - Reviewer inspection confirms `verify-workflow-failure.mjs` implements every required check in `dogfooding.md` section 3.4.
+- Dependencies:
+  - D5.1.
+  - D5.2.
+- Out of scope:
+  - Product-level CI-specific failure reporting.
+- Source refs:
+  - PRD: Sections 2, 4, 5, 6.
+  - Architecture: all-or-nothing graph integrity requirements.
+  - Dogfooding: Sections 3.4, 3.7.
+
+#### D5.5: Run workflow dogfooding in CI
 
 - Value: Rivière learns from real automated usage without adding CI-specific product behaviour.
 - Acceptance criteria:
-  - `ecommerce-demo-app` CI calls the workflow as a normal CLI command.
+  - `../ecommerce-demo-app/.github/workflows/architecture.yml` runs `pnpm dogfood:workflow` after existing extraction and connection verification steps.
+  - CI continues to run `verify:extract` and `verify:connections` separately.
+  - CI calls workflows as normal project commands.
   - CI does not require workflow-specific annotations, job summaries, reporting, or observability behaviour.
   - A failed workflow command fails CI normally.
-  - Expected-output verification remains separate from product workflow execution.
 - Verification:
-  - CI configuration review confirms the workflow is called as a normal CLI command and no CI-specific workflow behaviour is added; no exact command was named in the approved PRD or architecture.
+  - CI configuration review confirms the workflow dogfooding step matches `dogfooding.md` section 3.5.
 - Dependencies:
-  - D5.1.
+  - D5.2.
+  - D5.3.
+  - D5.4.
 - Out of scope:
   - CI-specific product behaviour, reporting, annotations, job summaries, or observability strategy.
 - Source refs:
   - PRD: Sections 2, 4, 5, 6.
-  - Architecture: Section 6, task generation consequences.
+  - Dogfooding: Sections 3.5, 3.7.
+
+#### D5.6: Update `ecommerce-demo-app` README for workflow dogfooding
+
+- Value: A user can understand and run the new workflow dogfooding journey from the demo app documentation.
+- Acceptance criteria:
+  - README lists `npm run workflow:combined`, `npm run workflow:modular`, `npm run workflow:ci-check`, and `npm run dogfood:workflow` in the install/verify command list.
+  - README explains `.riviere/workflows/combined-config.yaml`, `.riviere/workflows/modular-config.yaml`, `.riviere/workflows/ci-check.yaml`, and `.riviere/workflows/failure-workflow.yaml` as V1 project-local workflow examples.
+  - README explains positive workflows start from an empty graph state and write graph output only after `extract -> link -> validate` succeeds.
+  - README explains link stages reference `.riviere/config/extraction.config.json` because connection/linking rules belong in Rivière config.
+  - README explains run logs are written under `.riviere/logs/workflows/<workflow-name>/{runId}.ndjson`.
+  - README clarifies `expected-extraction-output.json` and `expected-connections.json` remain verification fixtures, not product workflow inputs.
+  - README clarifies Rivière workflows are Rivière-only; shell/npm/CI can call Rivière, but arbitrary shell commands do not live inside workflow files.
+- Verification:
+  - README review confirms every required addition from `dogfooding.md` section 3.6 is present.
+- Dependencies:
+  - D5.1.
+  - D5.2.
+  - D5.3.
+  - D5.4.
+  - D5.5.
+- Out of scope:
+  - Rewriting unrelated demo-app documentation.
+- Source refs:
+  - PRD: Sections 2, 3, 4, 5, 6.
+  - Dogfooding: Sections 3.6, 3.7.
 
 ## 3. Parallelisation
 
@@ -313,6 +409,10 @@ tracks:
       - D4.3
       - D5.1
       - D5.2
+      - D5.3
+      - D5.4
+      - D5.5
+      - D5.6
     can_run_in_parallel_with:
       - none
     coordination_risk: Going parallel while the extraction/project model is changing would create coordination risk rather than delivery speed.
@@ -332,4 +432,5 @@ tracks:
 - Acceptance criteria observable: Yes
 - Verification notes present where known: Yes
 - PRD and architecture source refs present: Yes
+- Dogfooding refs present for dogfooding deliverables: Yes
 - Open blockers: None

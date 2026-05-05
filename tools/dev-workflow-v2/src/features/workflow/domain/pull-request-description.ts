@@ -185,7 +185,9 @@ function readRequiredOption(
   commandTokens: readonly string[],
   optionName: string,
 ): OptionValueResult {
-  const optionIndex = commandTokens.indexOf(optionName)
+  const optionIndex = commandTokens.findIndex(
+    (commandToken, index) => index % 2 === 0 && commandToken === optionName,
+  )
   if (optionIndex < 0) {
     return {
       ok: false,

@@ -9,16 +9,15 @@ Find the next available task, considering delivery-plan parallel work streams.
    - Read `githubMilestone` from each folder's `marker.yml`
    - Read `docs/project/PRD/<planningId>/delivery.md` for each folder that has one
    - Use `docs/project/PRD/<planningId>/delivery.md` to find deliverables and YAML tracks
-   - For each planning folder's GitHub milestone: `GITHUB_TOKEN=<token> gh issue list --milestone "<githubMilestone>" --state open --json number,title,assignees,body,labels`
-   - Non-milestone tasks: `GITHUB_TOKEN=<token> gh issue list --search 'label:"idea" no:milestone state:open' --json number,title,assignees,body,labels` (repeat for `label:"bug"` and `label:"tech improvement"`)
+   - For each planning folder's GitHub milestone: `gh issue list --milestone "<githubMilestone>" --state open --json number,title,assignees,body,labels`
+   - Non-milestone tasks: `gh issue list --search 'label:"idea" no:milestone state:open' --json number,title,assignees,body,labels` (repeat for `label:"bug"` and `label:"tech improvement"`)
+   - Merge non-milestone task results and deduplicate by issue `number` before counting or recommending tasks
 2. Read approved delivery plan(s) from `docs/project/PRD/<planningId>/delivery.md`
 3. Parse each delivery plan's Parallelisation section to identify tracks (requires YAML track definitions)
 4. Map tasks to tracks via deliverable refs in task body
 5. Identify busy tracks (tasks with assignees)
 6. Recommend task from a ready track
 7. Present recommendation with alternatives
-
-When running commands that need GitHub access, first run `gh auth token` to get the token value, then use it as `GITHUB_TOKEN=<token>` inline in the next command.
 
 ## Track Mapping
 
@@ -106,7 +105,7 @@ riviere-extraction-workflows-v1 — Conventions: #167 - Create conventions inter
 
 Once user confirms a task:
 
-1. Assign the issue: `GITHUB_TOKEN=<token> gh issue edit <issue-number> --add-assignee @me`
+1. Assign the issue: `gh issue edit <issue-number> --add-assignee @me`
 2. Tell the user:
 
 ---

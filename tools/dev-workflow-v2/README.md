@@ -28,7 +28,7 @@ Creates the planning folder, marker, and problem definition file for a new plann
 
 Prints the active planning marker, current stage, derived artifact paths, blockers, and next command.
 
-## Planning marker
+#### Planning marker
 
 Planning topics use one folder per product planning topic at `docs/project/PRD/<slug>/`.
 
@@ -62,7 +62,7 @@ The marker stores only:
 
 Artifact paths are derived from `planningId`.
 
-## Planning stages
+#### Planning stages
 
 1. problem definition
 2. solution exploration
@@ -83,7 +83,7 @@ Architecture remains after PRD approval, but architecture may return the workflo
 
 Dogfooding owns exact dogfooding deliverables before delivery planning. Delivery planning owns milestones, deliverables, dependencies, parallelisation, and task creation readiness.
 
-## Project memory
+#### Project memory
 
 Planning commands use `project-memory/` as the persistent cross-PRD planning memory layer.
 
