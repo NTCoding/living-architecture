@@ -6,10 +6,17 @@ Create GitHub issues directly from the approved PRD, approved architecture docum
 
 Use:
 
+- `problemDefinitionPath`
 - `prdPath`
 - `architecturePath`
 - `deliveryPath`
 - `githubMilestone`
+
+Also use these sources when populating implementation guidance:
+
+- `docs/conventions/software-design.md`
+- `docs/conventions/testing.md`
+- relevant architecture memories under `projectMemoryArchitectureMemoriesPath`, following the project-memory architecture instructions before using them
 
 ## Required starting condition
 
@@ -57,11 +64,11 @@ Refactoring/replacement issue titles must name the actual change:
 
 Refactoring/replacement issues must include:
 
-1. **Current flow to replace** — concrete existing class/function/file flow, with code sample when source material exists.
-2. **Expected end-state flow** — concrete approved replacement class/function/file flow, with code sample when architecture contains or implies one.
+1. **Current flow to replace** — concrete existing class/function/file flow in `## Agreed target architecture and design`, with code/config/flow samples when source material exists.
+2. **Target replacement flow** — concrete approved replacement class/function/file flow in `## Agreed target architecture and design`, with all necessary code/config/flow samples from the approved architecture.
 3. **State loading answer** — if application state is loaded or materialised, the issue must name the approved loading boundary, role, method/function call, inputs, output, and where each output field comes from.
 4. **Replacement matrix** — every old public mode/path/behaviour maps to its approved replacement.
-5. **Done criteria for both sides** — the new state exists and works, the old state is gone, and existing behaviours remain equivalent where required.
+5. **Done criteria for both sides** — in `## What "done" looks like`, the new state exists and works, the old state is gone, and existing behaviours remain equivalent where required.
 6. **Design adherence guardrail** — if implementation reveals the approved design is wrong or incomplete, stop and discuss with the user; do not implement a different design without approval.
 
 ## Step 2: build each issue body in this order
@@ -75,54 +82,82 @@ Always include these header lines first:
 
 Then include these mandatory sections in this exact relative order:
 
-1. `## What this ticket is about`
-2. `## Current and expected end state` for refactoring/replacement issues only
-3. `## What "done" looks like`
-4. `## Implementation guidelines`
-5. `## How to verify`
-6. `## Out of scope`
+1. `## Problem`
+2. `## Solution`
+3. `## Agreed target architecture and design`
+4. `## What "done" looks like`
+5. `## Implementation guidelines`
+6. `## How to verify`
+7. `## Things this ticket must not do`
 
 Include these optional sections only when there is concrete source material for them. If included, preserve this relative order around the mandatory sections:
 
-1. `## Edge cases` after `## What "done" looks like`
-2. `## Testing strategy` after `## Implementation guidelines`
-3. `## Dependencies` after `## Testing strategy`, or after `## Implementation guidelines` when no testing strategy is included
-4. `## Glossary` at the end of the main issue body, before the architectural annex
+1. `## Dependencies` after `## Implementation guidelines`
+2. `## Glossary` at the end of the main issue body, before the architectural annex
 
 ## Step 3: populate the sections with these exact rules
 
-### What this ticket is about
+### Problem
+
+Populate from:
+
+- the approved problem definition
+- the selected delivery deliverable
+- the approved PRD sections referenced by that deliverable
+
+This section must:
+
+- quote the relevant PRD/problem-statement text verbatim
+- explain the specific problem slice this ticket covers
+- explain the current workflow or failure mode using concrete details from the PRD or problem definition
+- explain the impact using numbers, examples, affected users, or named consequences from the PRD or problem definition
+- explain why this slice matters in the wider delivery sequence
+
+Do not use vague claims like "slow", "inconsistent", "unreliable", or "hard to repeat" unless the approved PRD/problem definition explains what that means. If the approved artefacts do not contain enough concrete problem detail to write this section, block task creation rather than padding with generic wording.
+
+Do not describe the implementation solution here.
+
+### Solution
 
 Populate from:
 
 - the selected delivery deliverable
 - the approved PRD sections referenced by that deliverable
 
+This section must describe the approved product or behavioural solution slice for this ticket.
+
 This section must:
 
-- teach the subject in plain English
-- explain the current behavior or gap
-- explain why the work matters
-- include concrete examples already present in the approved PRD or approved delivery plan
+- explain what capability, behaviour, workflow step, or user/system outcome this ticket contributes
+- explain how this ticket fits with the surrounding deliverables or wider approved solution
+- explain the boundary between this ticket and neighbouring work where that boundary matters
+- stay source-backed by the approved PRD, solution exploration where referenced by the PRD, and delivery plan
 
-For refactoring/replacement issues, this section must say that the work replaces the old path with the approved new path. It must not describe the task as simple removal when existing behaviour must continue through a replacement path.
+Do not describe detailed technical architecture, code, config, or runtime flow here. That belongs in `## Agreed target architecture and design`.
 
-### Current and expected end state
+Do not list acceptance criteria here. Those belong in `## What "done" looks like`.
 
-Use this section for refactoring/replacement issues.
+### Agreed target architecture and design
 
 Populate from:
 
-- the selected delivery deliverable
 - the approved architecture document
-- relevant code samples already present in the approved architecture document
+- the selected delivery deliverable
+- relevant approved architecture memories when they apply
 
-This section must include:
+The purpose of this section is to ensure that agreed-upon target architecture and design is implemented as described, or challenged if new insights emerge that make it impractical or sub-optimal.
+
+This section must tell the implementer to read `ARCH.md` for the full approved architecture context and scope. The issue must not be treated as a replacement for `ARCH.md`.
+
+This section should include all of the target architecture and design decisions that should be implemented in this ticket. In addition, it should include related parts of the design that help to guide or shape the implementation of this ticket, such as previously implemented parts, parts that will be implemented next, or fundamental model changes that are driving this change.
+
+Copy across all code samples from `ARCH.md` that are necessary to ensure the target architecture is implemented as defined. If you are unsure, it is better to include more.
+
+For refactoring/replacement issues, this section must include:
 
 - the current flow to replace, naming concrete existing classes/functions/files
-- the expected end-state flow, naming concrete approved replacement classes/functions/files
-- relevant code samples from approved architecture or approved planning artefacts
-- an expected end-state code sample when architecture contains enough concrete information to write one
+- the target replacement flow, naming concrete approved replacement classes/functions/files
+- a replacement matrix mapping every old public mode/path/behaviour to its approved replacement
 - the state-loading answer when application state is loaded or materialised
 
 The state-loading answer must name:
@@ -135,11 +170,43 @@ The state-loading answer must name:
 - the output from that call
 - where each output field comes from
 
-If this cannot be populated from approved artefacts, block task creation. Do not invent the missing code shape in the issue.
+Include this implementer instruction:
+
+> If implementation reveals the agreed design is impractical, incomplete, or sub-optimal, stop and push back. Do not silently implement a different design.
+
+If the necessary architecture/design material or code samples cannot be populated from approved artefacts, block task creation. Do not invent the missing technical design in the issue.
 
 ### What "done" looks like
 
-Populate from the selected delivery deliverable's acceptance criteria and any linked PRD success conditions.
+Populate from the selected delivery deliverable's acceptance criteria, linked PRD success conditions, and the agreed target architecture/design for this ticket.
+
+This section must contain these subsections in this order:
+
+1. `### Product`
+2. `### Design`
+3. `### Quality`
+
+#### Product
+
+List observable product/system behaviour that proves the ticket's problem slice is solved. Include happy paths and source-backed unhappy paths.
+
+#### Design
+
+List approved architecture/design constraints that must be true in the implementation: target flows, classes, calls, config shape, role placement, ownership, replacement flows, removed old paths, forbidden alternatives, and behaviour that must remain equivalent.
+
+Cross-references are allowed, but they must be specific enough to identify the exact design being referenced. Do not use vague references like "the approved shape", "the new model", or "per the architecture".
+
+If the referenced design is small, include the concrete details directly. If the referenced design is large, name it precisely and include enough identifying detail so the implementer and reviewer know exactly what is meant.
+
+#### Quality
+
+List source-backed non-functional requirements and quality constraints that apply to this ticket.
+
+Use this for performance, scalability, accessibility, security, privacy, observability, compatibility, data integrity, reliability, maintainability, and testability.
+
+Do not invent generic quality requirements. If the PRD, architecture, or delivery plan does not name a ticket-specific quality constraint, state that no ticket-specific quality criteria were identified beyond the repository standards in `## Implementation guidelines`.
+
+Cross-references are allowed, but they must be specific. Do not write vague bullets like "is reliable", "is maintainable", "has good test coverage", or "performs well".
 
 Every bullet must be observable and checkable at ticket close.
 
@@ -147,7 +214,7 @@ For refactoring/replacement issues, acceptance criteria must include both replac
 
 - the approved new path exists and works
 - the old path no longer exists, when removal is part of the approved plan
-- each old public mode/path/behaviour still works or is explicitly out of scope
+- each old public mode/path/behaviour still works or is explicitly not part of this ticket
 - any major design decision that would otherwise be left to implementation
 
 Do not write summary phrases such as:
@@ -157,59 +224,30 @@ Do not write summary phrases such as:
 - per the PRD
 - as specified
 
-### Edge cases
-
-Populate only from explicit edge cases already written in:
-
-- the approved PRD
-- the approved solution exploration's product paths if referenced by the PRD
-- the selected delivery deliverable
-
-Write each one as:
-
-- `<condition> -> <expected behavior>`
-
-If the selected deliverable does not name any edge cases, omit this section.
-
 ### Implementation guidelines
 
 Populate from:
 
 - the selected delivery deliverable
 - the approved architecture document
+- `docs/conventions/software-design.md`
+- `docs/conventions/testing.md`
+- relevant architecture memories under `projectMemoryArchitectureMemoriesPath`, following the project-memory architecture instructions before using them
 
-This section must contain:
+This section tells the implementer where the change belongs and which repository rules/conventions are especially relevant to this ticket.
 
-- where the code lives
-- public surface
-- firm constraints from the PRD and approved architecture
-- flexible decisions
-- role enforcement guidance
-- for refactoring/replacement issues, the concrete replacement sequence, not only deletion instructions
+This section must include:
 
-Architecture consequences stay here in the lower implementation-guidance area.
-They do not move to the top of the issue.
+- the relevant `/apps`, `/packages`, `/tools`, config, docs, or test areas involved
+- the package/feature boundaries the implementer should stay inside
+- relevant rules from `docs/conventions/software-design.md`, with source file references and rule IDs/names
+- relevant rules from `docs/conventions/testing.md`, with source file references and rule IDs/names
+- relevant architecture memories from `project-memory/architecture/`, with source file references when they apply
+- any other approved project-memory or convention notes that prevent common mistakes for this kind of work
 
-Implementation guidelines must never ask the implementer to choose the approved design implicitly. If a design choice remains, it must either be an explicit acceptance criterion for this task or a blocker that sends the work back to planning.
+Do not include every repository rule. Include the rules that are relevant to this ticket.
 
-### Testing strategy
-
-Populate only from explicit testing material already present in:
-
-- the selected delivery deliverable's explicit verification notes
-- the selected delivery deliverable's explicit edge cases
-- the approved PRD's explicit success criteria
-- the approved architecture document's explicit task consequences
-
-Use these subsections only when the source material requires them and provides concrete content:
-
-- `### Unit`
-- `### Integration`
-- `### Edge cases`
-
-Do not invent testing heuristics.
-Do not add blank testing subsections.
-If a subsection has no concrete source material, omit it.
+Do not use this section to define the target architecture/design, list acceptance criteria, duplicate the architectural annex, or invent product behaviour.
 
 ### Dependencies
 
@@ -223,19 +261,25 @@ If there are no dependencies, omit this section.
 
 ### How to verify
 
-Populate from explicit verification commands and pass conditions already named in the selected delivery deliverable or approved architecture document.
+Populate from explicit verification commands and pass conditions already named in the selected delivery deliverable, approved architecture document, or repository conventions.
 
 The commands must be written exactly.
 
-If no command is known but a manual verification condition is named, include the manual condition.
+This section must map verification steps to the Product, Design, and Quality criteria in `## What "done" looks like`.
 
-### Out of scope
+For each command or manual check, include the expected passing result. Do not write vague phrases like "run relevant tests", "verify it works", or "check behaviour".
+
+If no exact command is known but a manual verification condition is named, include the manual condition.
+
+### Things this ticket must not do
 
 Populate from:
 
 - PRD non-goals
 - solution-exploration no-gos referenced by the PRD
 - explicit exclusions attached to the selected delivery deliverable
+
+This section must name the concrete exclusions that stop the ticket drifting into neighbouring work. Do not use vague exclusions like "no unrelated changes" or "avoid scope creep". Name the actual behaviour, file area, design alternative, or product capability that must not be added.
 
 ### Glossary
 
@@ -338,16 +382,23 @@ GITHUB_TOKEN=<token> ./scripts/create-task.sh <milestone> <title> <body>
 
 Block task creation if any of these are true:
 
-1. the approved PRD does not contain enough concrete product material to populate the required sections above
-2. the approved architecture document does not contain explicit task consequences that can be carried into the generated issue
-3. the approved delivery plan does not contain concrete deliverables, acceptance criteria, source refs, and verification notes where known
-4. the selected deliverable depends on unresolved product, architecture, or delivery blockers
-5. the selected deliverable asks the implementer to make a major design decision that is not an explicit acceptance criterion
-6. a refactoring/replacement issue does not show the current flow and expected end-state flow
-7. a refactoring/replacement issue removes an existing state-loading or persistence path without naming the approved replacement loading boundary, role, call, inputs, output, and data origins
-8. a refactoring/replacement issue title says `Remove X` when the real work is replacing `X` with `Y`
-9. relevant code samples exist in the approved architecture but the issue omits the expected end-state code sample
-10. an old state-loading call is being replaced but the issue does not show the exact approved replacement line/call
+1. the approved problem definition or PRD does not contain enough concrete problem material to populate `## Problem`
+2. the approved PRD does not contain enough concrete product material to populate `## Solution` and `### Product`
+3. the approved architecture document does not contain explicit target architecture/design material that can be carried into `## Agreed target architecture and design`
+4. the issue does not tell the implementer to read `ARCH.md` for the full approved architecture context and scope
+5. code samples from `ARCH.md` are necessary to ensure the target architecture is implemented as defined, but the issue omits them
+6. the approved delivery plan does not contain concrete deliverables, acceptance criteria, source refs, and verification notes where known
+7. the selected deliverable depends on unresolved product, architecture, or delivery blockers
+8. the selected deliverable asks the implementer to make a major design decision that is not an explicit acceptance criterion
+9. `## What "done" looks like` does not include `### Product`, `### Design`, and `### Quality`
+10. `### Design` uses vague references such as "the approved shape", "the new model", or "per the architecture" without naming the actual design
+11. `## Implementation guidelines` includes repository rules without source file references
+12. `## Implementation guidelines` omits relevant convention or architecture-memory guidance needed to avoid known mistakes for this kind of work
+13. `## How to verify` contains vague verification such as "run relevant tests", "verify it works", or "check behaviour"
+14. a refactoring/replacement issue does not show the current flow and target replacement flow in `## Agreed target architecture and design`
+15. a refactoring/replacement issue removes an existing state-loading or persistence path without naming the approved replacement loading boundary, role, call, inputs, output, and data origins
+16. a refactoring/replacement issue title says `Remove X` when the real work is replacing `X` with `Y`
+17. an old state-loading call is being replaced but the issue does not show the exact approved replacement line/call
 
 If blocked, the current planning command must produce:
 
