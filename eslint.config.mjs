@@ -290,7 +290,7 @@ export default tseslint.config(
   },
   // Entrypoint-specific restrictions — wiring only, no private functions
   {
-    files: ['**/entrypoint/**/*.ts'],
+    files: ['**/entrypoint/**/entrypoint.ts'],
     ignores: ['**/*.spec.ts', '**/*.test.ts'],
     rules: {
       'no-restricted-syntax': [

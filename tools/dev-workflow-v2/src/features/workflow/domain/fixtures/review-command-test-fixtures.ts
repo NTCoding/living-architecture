@@ -1,6 +1,6 @@
 import type { ReviewPayload } from '@nt-ai-lab/deterministic-agent-workflow-engine'
-import type { TestContext } from '../../entrypoint/fixtures/workflow-cli-test-fixtures'
-import { runReviewCommand } from '../../entrypoint/fixtures/workflow-cli-test-fixtures'
+import type { TestContext } from '../../entrypoint/workflow/fixtures/workflow-cli-test-fixtures'
+import { runReviewCommand } from '../../entrypoint/workflow/fixtures/workflow-cli-test-fixtures'
 
 type TaskCheckVerdict = 'PASS' | 'FAIL'
 

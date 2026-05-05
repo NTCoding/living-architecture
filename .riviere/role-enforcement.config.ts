@@ -30,7 +30,20 @@ const externalClientRoles: RoleName[] = [
   'external-client-error',
 ]
 
-const cliPresentationRoles: RoleName[] = ['cli-output-formatter', 'cli-error']
+const entrypointRoles: RoleName[] = [
+  'cli-entrypoint',
+  'cli-error-handler',
+  'cli-output-formatter',
+  'command-input-factory',
+]
+
+const cliPresentationRoles: RoleName[] = [
+  'cli-error',
+  'cli-error-handler',
+  'cli-output-formatter',
+  'cli-response-formatter',
+  'cli-response-writer',
+]
 
 const packages = [
   'packages/riviere-cli',
@@ -60,15 +73,14 @@ export const config = roleEnforcement({
 
   locations: [
     location<RoleName>('src/features/{feature}')
-      .subLocation('/entrypoint', ['cli-entrypoint'], {
-        forbiddenImports: ['**/infra/persistence/**'],
+      .subLocation('/entrypoint/{entrypoint}', entrypointRoles, {
+        forbiddenImports: ['**/domain/**', '**/infra/persistence/**'],
       })
       .subLocation('/commands', commandRoles, { forbiddenImports: ['**/infra/cli/**'] })
       .subLocation('/queries', queryRoles, { forbiddenImports: ['**/infra/cli/**'] })
       .subLocation('/domain', domainRoles)
       .subLocation('/infra/external-clients/{client}', externalClientRoles)
-      .subLocation('/infra/persistence', ['aggregate-repository', 'query-model-loader'])
-      .subLocation('/infra/cli/output', ['cli-output-formatter']),
+      .subLocation('/infra/persistence', ['aggregate-repository', 'query-model-loader']),
 
     location<RoleName>('src/platform')
       .subLocation('/domain', domainRoles)
