@@ -4,7 +4,9 @@
 
 Extract software architecture from code as living documentation, using Riviere schema for flow-based (not structural) architecture
 
-Read `@docs/project/project-overview.md` then check `@docs/project/PRD/active/*.md` for the current PRD.
+Read `@docs/project/project-overview.md` then check `@docs/project/PRD/*/PRD.md` for the current PRD.
+
+For planning, discovery, PRD, architecture, delivery planning, or future-project discussion, read `@project-memory/AGENTS.md` and apply the project memory rules for deferred work.
 
 ## Monorepo Structure
 
@@ -27,7 +29,8 @@ Apps:
 - `living-architecture/docs` - Living architecture documentation website
 
 Key documents:
-- `docs/project/PRD/active/` - Current PRDs
+- `docs/project/PRD/` - Current PRD folders
+- `project-memory/` - Cross-PRD planning memory for deferred ideas, priorities, and future-work context
 - `docs/architecture/overview.md` - System design
 - `docs/architecture/domain-terminology/contextive/definitions.glossary.yml`
 - `docs/architecture/adr/` - Decision records

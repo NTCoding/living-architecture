@@ -9,7 +9,7 @@ import {
   progressToState,
   runCommand,
   runReviewCommand,
-  runReviewCommandWithInput,
+  runReviewCommandWithJson,
 } from './fixtures/workflow-cli-test-fixtures'
 
 describe('workflow-cli commands', () => {
@@ -202,7 +202,7 @@ describe('workflow-cli commands', () => {
       const ctx = setup()
       progressToState(ctx, 'REVIEWING')
 
-      const result = runReviewCommandWithInput(ctx, 'task-check', '{')
+      const result = runReviewCommandWithJson(ctx, 'task-check', '{')
 
       expect(result.exitCode).toStrictEqual(1)
       expect(result.output).toContain('Invalid review JSON')
@@ -219,7 +219,7 @@ describe('workflow-cli commands', () => {
       const ctx = setup()
       progressToState(ctx, 'REVIEWING')
 
-      const result = runReviewCommandWithInput(
+      const result = runReviewCommandWithJson(
         ctx,
         'task-check',
         JSON.stringify({ verdict: 'PASS' }),
@@ -257,6 +257,79 @@ describe('workflow-cli commands', () => {
       runCommand(ctx, ['init'])
       const result = runCommand(ctx, ['record-pr', 'abc'])
       expect(result.exitCode).toStrictEqual(1)
+    })
+  })
+
+  describe('create-pr', () => {
+    it('creates ready pull request and records number and URL', () => {
+      const capturedRequests: {
+        readonly title: string
+        readonly body: string
+      }[] = []
+      const ctx = setup({
+        createPullRequest: (request) => {
+          capturedRequests.push(request)
+          return {
+            prNumber: 456,
+            prUrl: 'https://github.com/example/repo/pull/456',
+            isDraft: false,
+          }
+        },
+      })
+      progressToState(ctx, 'SUBMITTING_PR')
+
+      const result = runCommand(ctx, [
+        'create-pr',
+        '--title',
+        'Ready PR',
+        '--description',
+        'Creates a workflow-owned PR.',
+        '--problem',
+        'Direct PR creation allowed draft PRs.',
+        '--acceptance-criteria',
+        '- PR is ready for review',
+        '--key-changes',
+        '- Add create-pr command',
+        '--architecture-impact',
+        'Workflow owns the body.',
+        '--validation',
+        '- pnpm test',
+        '--notes',
+        'None.',
+      ])
+
+      expect(result.exitCode).toStrictEqual(0)
+      expect(capturedRequests).toStrictEqual([
+        expect.objectContaining({
+          title: 'Ready PR',
+          body: expect.stringContaining('## Acceptance Criteria\n\n- PR is ready for review'),
+        }),
+      ])
+      expect(ctx.engineDeps.store.readEvents(ctx.sessionId).map(flattenStoredEvent)).toStrictEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            type: 'pr-recorded',
+            prNumber: 456,
+            prUrl: 'https://github.com/example/repo/pull/456',
+          }),
+        ]),
+      )
+    })
+
+    it('blocks when draft flag is provided', () => {
+      const ctx = setup()
+      progressToState(ctx, 'SUBMITTING_PR')
+
+      const result = runCommand(ctx, ['create-pr', '--draft'])
+
+      expect(result.exitCode).toStrictEqual(2)
+      expect(result.output).toContain('Expected value after --draft')
+      expect(
+        ctx.engineDeps.store
+          .readEvents(ctx.sessionId)
+          .map(flattenStoredEvent)
+          .filter((event) => event.type === 'pr-recorded'),
+      ).toStrictEqual([])
     })
   })
 

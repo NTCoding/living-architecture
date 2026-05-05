@@ -30,6 +30,11 @@ import {
   applyEvent, EMPTY_STATE 
 } from './fold'
 import type { PRFeedbackResult } from '../infra/external-clients/github/get-pr-feedback'
+import {
+  buildPullRequestCreationRequest,
+  parsePullRequestDescriptionOptions,
+  type PullRequestCreationRequest,
+} from './pull-request-description'
 
 const PR_FEEDBACK_POLL_INTERVAL_MS = 15_000
 const PR_FEEDBACK_TIMEOUT_MS = 300_000
@@ -74,9 +79,16 @@ const RECORDING_OPS = defineRecordingOps<StateName, WorkflowState, WorkflowOpera
 type WorkflowDeps = {
   readonly getGitInfo: () => GitInfo
   readonly getPrFeedback: (prNumber: number) => PRFeedbackResult
+  readonly createPullRequest: (request: PullRequestCreationRequest) => CreatedPullRequest
   readonly listSessionReviews: () => readonly StoredReview[]
   readonly sleepMs: (ms: number) => void
   readonly now: () => string
+}
+
+type CreatedPullRequest = {
+  readonly prNumber: number
+  readonly prUrl: string
+  readonly isDraft: boolean
 }
 
 function diffStateOverrides(
@@ -156,12 +168,13 @@ export class Workflow {
 
   appendEvent(event: BaseEvent): void {
     const workflowEvent = parseWorkflowEvent(event)
-    this.pendingEvents = [...this.pendingEvents, workflowEvent]
-    this.state = applyEvent(this.state, workflowEvent)
+    this.append(workflowEvent)
 
     if (workflowEvent.type === 'transitioned' && workflowEvent.to === 'AWAITING_PR_FEEDBACK') {
       if (this.state.prNumber === undefined) {
-        this.appendAutomaticTransition('BLOCKED')
+        this.appendPrFeedbackVerificationFailure(
+          'prNumber not set. Record the PR before awaiting PR feedback.',
+        )
         return
       }
       this.awaitPrFeedback(this.state.prNumber)
@@ -226,6 +239,42 @@ export class Workflow {
     return pass()
   }
 
+  createPr(rawArgs: unknown): PreconditionResult {
+    const gate = checkOperationGate('create-pr', this.state, WORKFLOW_REGISTRY)
+    if (!gate.pass) return gate
+
+    if (this.state.githubIssue === undefined) {
+      return fail('githubIssue not set. Record the issue before creating a PR.')
+    }
+
+    const parsedDescription = parsePullRequestDescriptionOptions(rawArgs)
+    if (!parsedDescription.ok) {
+      return fail(parsedDescription.reason)
+    }
+
+    try {
+      const pullRequestRequest = buildPullRequestCreationRequest(
+        parsedDescription.input,
+        this.state.githubIssue,
+      )
+      const pullRequest = this.deps.createPullRequest(pullRequestRequest)
+      if (pullRequest.isDraft) {
+        return fail(
+          `Expected workflow-created PR #${pullRequest.prNumber} to be ready for review. Got draft PR. Transition to BLOCKED; do not use gh pr ready as a workaround.`,
+        )
+      }
+      this.append({
+        type: 'pr-recorded',
+        at: this.deps.now(),
+        prNumber: pullRequest.prNumber,
+        prUrl: pullRequest.prUrl,
+      })
+      return pass()
+    } catch (error) {
+      return fail(`Unable to create PR: ${String(error)}`)
+    }
+  }
+
   verifyFeedbackAddressed(): PreconditionResult {
     const gate = checkOperationGate('verify-feedback-addressed', this.state, WORKFLOW_REGISTRY)
     if (!gate.pass) return gate
@@ -280,7 +329,7 @@ export class Workflow {
   ): void {
     const feedbackResult = readPrFeedback(this.deps.getPrFeedback, prNumber)
     if (!feedbackResult.ok) {
-      this.appendAutomaticTransition('BLOCKED')
+      this.appendPrFeedbackVerificationFailure(feedbackResult.reason)
       return
     }
 
@@ -294,7 +343,6 @@ export class Workflow {
     const nextConsecutiveCleanPolls = clean ? consecutiveCleanPolls + 1 : 0
     if (
       clean &&
-      // On the last allowed poll, a newly clean CodeRabbit result is accepted instead of timing out a PR that just became ready.
       nextConsecutiveCleanPolls < REQUIRED_CONSECUTIVE_CLEAN_CODERABBIT_POLLS &&
       attemptsRemaining > 1
     ) {
@@ -319,7 +367,9 @@ export class Workflow {
     consecutiveCleanPolls: number,
   ): void {
     if (attemptsRemaining <= 1) {
-      this.appendAutomaticTransition('BLOCKED')
+      this.appendPrFeedbackVerificationFailure(
+        `CodeRabbit feedback did not appear within ${PR_FEEDBACK_TIMEOUT_MS}ms for PR #${prNumber}.`,
+      )
       return
     }
 
@@ -350,8 +400,32 @@ export class Workflow {
     })
   }
 
+  private appendPrFeedbackVerificationFailure(reason: string): void {
+    this.append({
+      type: 'pr-feedback-verification-failed',
+      at: this.deps.now(),
+      reason,
+    })
+    this.appendAutomaticTransition('BLOCKED')
+  }
+
   private append(event: WorkflowEvent): void {
+    if (this.isPrFeedbackBlockedWithoutFailureEvent(event)) {
+      throw new WorkflowStateError(
+        'Expected pr-feedback-verification-failed event before AWAITING_PR_FEEDBACK can transition to BLOCKED.',
+      )
+    }
     this.pendingEvents = [...this.pendingEvents, event]
     this.state = applyEvent(this.state, event)
+  }
+
+  private isPrFeedbackBlockedWithoutFailureEvent(event: WorkflowEvent): boolean {
+    if (event.type !== 'transitioned') return false
+    if (event.from !== 'AWAITING_PR_FEEDBACK') return false
+    if (event.to !== 'BLOCKED') return false
+
+    const previousEvent = this.pendingEvents.at(-1)
+    if (previousEvent === undefined) return true
+    return previousEvent.type !== 'pr-feedback-verification-failed'
   }
 }

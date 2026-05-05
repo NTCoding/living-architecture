@@ -18,6 +18,7 @@ import {
   getGitInfo, runGh 
 } from '../features/workflow/infra/external-clients/git/git'
 import { createGetPrFeedback } from '../features/workflow/infra/external-clients/github/get-pr-feedback'
+import { createPullRequestCreator } from '../features/workflow/infra/external-clients/github/create-pull-request'
 
 type WorkflowDeps = Parameters<typeof Workflow.rehydrate>[1]
 
@@ -26,11 +27,13 @@ function sleepMs(ms: number): void {
 }
 
 const pluginRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..')
-const REVIEW_AGENT_NAMES = [
+const AGENT_NAMES = [
   'architecture-review',
   'code-review',
   'bug-scanner',
   'task-check',
+  'component-design-architect',
+  'component-design-review',
 ] as const
 
 const OPEN_CODE_WORKFLOW_COMMAND = 'dev-workflow-v2:workflow'
@@ -66,7 +69,7 @@ function frontmatterValue(lines: ReadonlyArray<string>, key: string): string | u
   return line.slice(prefix.length).trim()
 }
 
-function parseClaudeAgentFile(agentName: (typeof REVIEW_AGENT_NAMES)[number]): OpenCodeAgentConfig {
+function parseClaudeAgentFile(agentName: (typeof AGENT_NAMES)[number]): OpenCodeAgentConfig {
   const source = readFileSync(join(pluginRoot, 'agents', `${agentName}.md`), 'utf8')
   const lines = source.split('\n').map(trimTrailingCarriageReturn)
   const hasFrontmatter = lines[0] === '---'
@@ -86,7 +89,6 @@ function parseClaudeAgentFile(agentName: (typeof REVIEW_AGENT_NAMES)[number]): O
 
   return {
     mode: 'subagent',
-    hidden: true,
     prompt,
     ...(description === undefined ? {} : { description }),
     ...(color === undefined ? {} : { color }),
@@ -95,7 +97,7 @@ function parseClaudeAgentFile(agentName: (typeof REVIEW_AGENT_NAMES)[number]): O
 
 function registerReviewSubagents(config: OpenCodeConfigInput): void {
   const agents = config.agent ?? {}
-  for (const agentName of REVIEW_AGENT_NAMES) {
+  for (const agentName of AGENT_NAMES) {
     agents[agentName] = {
       ...parseClaudeAgentFile(agentName),
       ...agents[agentName],
@@ -121,6 +123,7 @@ const basePlugin = createOpenCodeWorkflowPlugin<
   buildWorkflowDeps: (platform) => ({
     getGitInfo,
     getPrFeedback: createGetPrFeedback(runGh),
+    createPullRequest: createPullRequestCreator(runGh),
     listSessionReviews: () => platform.store.listSessionReviews(platform.getSessionId()),
     sleepMs,
     now: platform.now,

@@ -11,6 +11,7 @@ const KNOWN_WORKFLOW_EVENT_TYPES = [
   'ci-completed',
   'feedback-checked',
   'feedback-addressed',
+  'pr-feedback-verification-failed',
   'task-check-passed',
   'review-recorded',
   'bash-checked',
@@ -90,6 +91,12 @@ const FEEDBACK_ADDRESSED_SCHEMA = z.object({
   at: z.string(),
 })
 
+const PR_FEEDBACK_VERIFICATION_FAILED_SCHEMA = z.object({
+  type: z.literal('pr-feedback-verification-failed'),
+  at: z.string(),
+  reason: z.string().min(1),
+})
+
 const TASK_CHECK_PASSED_SCHEMA = z.object({
   type: z.literal('task-check-passed'),
   at: z.string(),
@@ -133,6 +140,7 @@ export const WORKFLOW_EVENT_SCHEMA = z.discriminatedUnion('type', [
   CI_COMPLETED_SCHEMA,
   FEEDBACK_CHECKED_SCHEMA,
   FEEDBACK_ADDRESSED_SCHEMA,
+  PR_FEEDBACK_VERIFICATION_FAILED_SCHEMA,
   TASK_CHECK_PASSED_SCHEMA,
   REVIEW_RECORDED_EVENT_SCHEMA,
   BASH_CHECKED_SCHEMA,

@@ -446,6 +446,9 @@ Definition files:
 - `tools/dev-workflow-v2/agents/code-review.md`
 - `tools/dev-workflow-v2/agents/bug-scanner.md`
 - `tools/dev-workflow-v2/agents/task-check.md`
+- `project-memory/architecture/README.md`
+- `project-memory/architecture/AGENTS.md`
+- `project-memory/architecture/memories/**`
 - `docs/conventions/software-design.md`
 - `docs/conventions/standard-patterns.md`
 - `docs/conventions/anti-patterns.md`
@@ -456,6 +459,7 @@ Surface shape:
 
 - Agent prompts define semantic review behavior.
 - Convention docs store durable review knowledge.
+- Architecture memory stores approved reusable architectural reasoning for future planning.
 - Review-feedback checks store learned PR feedback patterns.
 
 Mechanism examples:

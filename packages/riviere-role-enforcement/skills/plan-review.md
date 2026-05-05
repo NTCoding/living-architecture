@@ -51,7 +51,7 @@ Before reviewing the plan, read the full role enforcement context:
 
 Accept the plan from the user via one of:
 
-- A path to a plan document (e.g. `docs/project/PRD/active/X.md`, a task body file, a markdown file).
+- A path to a plan document (e.g. `docs/project/PRD/example-prd/PRD.md`, a task body file, a markdown file).
 - A GitHub issue number or URL — fetch with `gh issue view <n> --json body -q '.body'`.
 - An inline plan pasted into the conversation.
 
@@ -112,7 +112,7 @@ Review the plan for plan-level signals of architectural problems:
 Output a markdown block the user can paste into the plan document or issue body. Exact structure:
 
 ```markdown
-## Architectural Annex (from `/arch-plan`)
+## Architectural Annex
 
 > Directional only — the plan will evolve during TDD. Re-consult `.riviere/role-enforcement.config.ts` as the code takes shape. Role enforcement is verified by oxlint at lint time; this annex surfaces architectural decisions upfront so they do not ambush the implementer mid-build.
 

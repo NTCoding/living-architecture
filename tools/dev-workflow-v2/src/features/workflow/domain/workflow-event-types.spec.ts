@@ -11,6 +11,7 @@ describe('getKnownWorkflowEventTypes', () => {
       'ci-completed',
       'feedback-checked',
       'feedback-addressed',
+      'pr-feedback-verification-failed',
       'task-check-passed',
       'review-recorded',
       'bash-checked',

@@ -167,14 +167,20 @@ describe('Workflow', () => {
       })
 
       expect(wf.getState().currentStateMachineState).toStrictEqual('BLOCKED')
-      expect(wf.getPendingEvents().at(-1)).toMatchObject({
-        type: 'transitioned',
-        to: 'BLOCKED',
-      })
+      expect(wf.getPendingEvents().slice(-2)).toStrictEqual([
+        expect.objectContaining({
+          type: 'pr-feedback-verification-failed',
+          reason: 'CodeRabbit feedback did not appear within 300000ms for PR #99.',
+        }),
+        expect.objectContaining({
+          type: 'transitioned',
+          to: 'BLOCKED',
+        }),
+      ])
       expect(sleepMs).toHaveBeenCalledTimes(20)
     })
 
-    it('auto-transitions to BLOCKED when fetching PR feedback throws or no PR is recorded', () => {
+    it('publishes failure reason before auto-transitioning to BLOCKED when fetching PR feedback throws', () => {
       const withPr = Workflow.rehydrate(
         applyEvents([...eventsToAwaitingPrFeedback().slice(0, -1)]),
         makeDeps({
@@ -183,6 +189,28 @@ describe('Workflow', () => {
           },
         }),
       )
+
+      withPr.appendEvent({
+        type: 'transitioned',
+        at: '2026-01-01T00:00:00Z',
+        from: 'AWAITING_CI',
+        to: 'AWAITING_PR_FEEDBACK',
+      })
+
+      expect(withPr.getState().currentStateMachineState).toStrictEqual('BLOCKED')
+      expect(withPr.getPendingEvents().slice(-2)).toStrictEqual([
+        expect.objectContaining({
+          type: 'pr-feedback-verification-failed',
+          reason: 'Unable to fetch PR feedback: TypeError: GitHub unavailable',
+        }),
+        expect.objectContaining({
+          type: 'transitioned',
+          to: 'BLOCKED',
+        }),
+      ])
+    })
+
+    it('publishes failure reason before auto-transitioning to BLOCKED when no PR is recorded', () => {
       const withoutPr = Workflow.rehydrate(
         applyEvents([
           {
@@ -212,15 +240,39 @@ describe('Workflow', () => {
         makeDeps(),
       )
 
-      for (const wf of [withPr, withoutPr]) {
+      withoutPr.appendEvent({
+        type: 'transitioned',
+        at: '2026-01-01T00:00:00Z',
+        from: 'AWAITING_CI',
+        to: 'AWAITING_PR_FEEDBACK',
+      })
+
+      expect(withoutPr.getState().currentStateMachineState).toStrictEqual('BLOCKED')
+      expect(withoutPr.getPendingEvents().slice(-2)).toStrictEqual([
+        expect.objectContaining({
+          type: 'pr-feedback-verification-failed',
+          reason: 'prNumber not set. Record the PR before awaiting PR feedback.',
+        }),
+        expect.objectContaining({
+          type: 'transitioned',
+          to: 'BLOCKED',
+        }),
+      ])
+    })
+
+    it('throws when AWAITING_PR_FEEDBACK transitions to BLOCKED without failure event', () => {
+      const wf = Workflow.rehydrate(applyEvents(eventsToAwaitingPrFeedback()), makeDeps())
+
+      expect(() =>
         wf.appendEvent({
           type: 'transitioned',
           at: '2026-01-01T00:00:00Z',
-          from: 'AWAITING_CI',
-          to: 'AWAITING_PR_FEEDBACK',
-        })
-        expect(wf.getState().currentStateMachineState).toStrictEqual('BLOCKED')
-      }
+          from: 'AWAITING_PR_FEEDBACK',
+          to: 'BLOCKED',
+        }),
+      ).toThrow(
+        'Expected pr-feedback-verification-failed event before AWAITING_PR_FEEDBACK can transition to BLOCKED.',
+      )
     })
   })
 })

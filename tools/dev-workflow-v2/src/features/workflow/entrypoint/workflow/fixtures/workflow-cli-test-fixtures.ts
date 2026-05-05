@@ -39,6 +39,7 @@ export function buildTestContext(
   overrides: Partial<{
     readonly sessionId: string
     readonly getPrFeedback: WorkflowDeps['getPrFeedback']
+    readonly createPullRequest: WorkflowDeps['createPullRequest']
   }> = {},
 ): TestContext {
   const tempDir = mkdtempSync(join(tmpdir(), 'wf-cli-'))
@@ -72,6 +73,13 @@ export function buildTestContext(
         unresolvedCount: 0,
         threads: [],
       })),
+    createPullRequest:
+      overrides.createPullRequest ??
+      (() => ({
+        prNumber: 123,
+        prUrl: 'https://github.com/example/repo/pull/123',
+        isDraft: false,
+      })),
     listSessionReviews: () => store.listSessionReviews(sessionId),
     sleepMs: () => undefined,
     now: () => '2024-01-01T00:00:00Z',
@@ -89,15 +97,12 @@ export function runCommand(ctx: TestContext, args: readonly string[]): RunnerRes
   return runner(args, ctx.engineDeps, ctx.workflowDeps, { getSessionId: () => ctx.sessionId })
 }
 
-export function runReviewCommandWithInput(
+export function runReviewCommandWithJson(
   ctx: TestContext,
   reviewType: ReviewType,
-  stdin: string,
+  reviewJson: string,
 ): RunnerResult {
-  return runner(['record-review', '--type', reviewType], ctx.engineDeps, ctx.workflowDeps, {
-    getSessionId: () => ctx.sessionId,
-    readStdin: () => stdin,
-  })
+  return runner(['record-review', reviewType, reviewJson], ctx.engineDeps, ctx.workflowDeps, {getSessionId: () => ctx.sessionId,})
 }
 
 export function runReviewCommand(
@@ -105,7 +110,7 @@ export function runReviewCommand(
   reviewType: ReviewType,
   payload: ReviewPayload,
 ): RunnerResult {
-  return runReviewCommandWithInput(ctx, reviewType, JSON.stringify(payload))
+  return runReviewCommandWithJson(ctx, reviewType, JSON.stringify(payload))
 }
 
 export function runHook(ctx: TestContext, stdinJson: string): RunnerResult {
@@ -125,13 +130,18 @@ export function progressToState(ctx: TestContext, targetState: string): void {
   if (!steps) return
   for (const step of steps) {
     if (step[0] === 'record-review') {
-      if (step[1] !== '--type' || step[2] === undefined) {
+      if (step[1] === undefined) {
         throw new WorkflowStateError(
-          "Expected record-review test step shape ['record-review', '--type', <reviewType>].",
+          "Expected record-review test step shape ['record-review', <reviewType>].",
         )
       }
-      const reviewType = step[2]
-      const verdict = step[3] === 'FAIL' ? 'FAIL' : 'PASS'
+      const reviewType = step[1]
+      const verdict = step[2]
+      if (verdict !== 'PASS' && verdict !== 'FAIL') {
+        throw new WorkflowStateError(
+          "Expected record-review test step shape ['record-review', <reviewType>, <PASS|FAIL>].",
+        )
+      }
       runReviewCommand(ctx, reviewType, {
         verdict,
         summary: verdict === 'PASS' ? `${reviewType} passed` : `${reviewType} failed`,

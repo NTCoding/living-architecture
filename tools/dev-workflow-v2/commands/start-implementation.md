@@ -1,23 +1,24 @@
 # start-implementation
 
-Start implementing a task. Sets up the branch and initializes the workflow state machine.
+Start implementing a task after planning is complete. Sets up the branch and initializes the workflow state machine.
 
 ## Arguments
 
-The user provides a **GitHub issue number** — e.g. `#123` or `123`.
+The user provides a **GitHub issue number** — use `123`, not `#123`.
 
 ## Step 1: Set up the branch
 
 The session is already in a worktree (started via `claude -w`). Rename the auto-generated worktree branch to match our convention:
 
 ```bash
-# Get latest main
 git fetch origin main
 
-# Build the branch name from the issue
 ISSUE_TITLE=$(gh issue view <N> --json title -q .title)
-# lowercase, replace non-alphanum with hyphens, collapse, trim, max 30 chars
-SHORT_DESC=$(echo "$ISSUE_TITLE" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-//' | sed 's/-$//' | cut -c1-30)
+SHORT_DESC=$(printf '%s\n' "$ISSUE_TITLE" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-//' | sed 's/-$//' | cut -c1-30 | sed 's/-$//')
+if [ -z "$SHORT_DESC" ]; then
+  printf '%s\n' "Expected non-empty issue title after normalization. Got: <$ISSUE_TITLE>" >&2
+  exit 1
+fi
 
 git branch -m "issue-<N>-${SHORT_DESC}"
 ```

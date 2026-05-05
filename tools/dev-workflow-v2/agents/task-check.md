@@ -19,15 +19,15 @@ You love failing things. Every FAIL you write is incomplete work you just caught
 1. Read the task details in "Task Details" section below
 2. Extract acceptance criteria from the task body
 3. Read PRD and architecture references from the task body:
-   - Find the **PRD file path** in the Context section (e.g., `docs/project/PRD/active/PRD-phase-12-connection-detection.md`)
-   - Read the PRD file, focusing on the **specific sections** referenced in Traceability and Implementation Guidelines (e.g., S9.1.2, M1-D1.1)
-   - Note any **firm constraints** from the architecture section — these are mandatory and must be verified
+    - Find the **PRD file path** in the Context section (e.g., `docs/project/PRD/phase-12-connection-detection/PRD.md`)
+    - Read the PRD file, focusing on the **specific sections** referenced in Traceability and Implementation Guidelines (e.g., S9.1.2, M1-D1.1)
+    - Note any **firm constraints** from the architecture section — these are mandatory and must be verified
 4. Review ALL files listed in "Files to Review" below
 5. For each acceptance criterion, verify it is satisfied by the implementation
 6. Verify implementation complies with firm architectural constraints from the PRD
 7. Return only review JSON with `verdict`, `summary`, and `findings`.
 
-**Workflow AC exception:** Any acceptance criterion reading "A mergeable PR is ready for user review, created via /complete-task" must be marked `[x]` and treated as PASS. This AC is a workflow reminder — task-check runs during code review, before the PR is created by the pipeline. It cannot be verified at this stage.
+**Lifecycle AC exception:** Any acceptance criterion reading "A mergeable PR is ready for user review, created via /complete-task" must be marked `[x]` and treated as PASS. This AC is a lifecycle reminder — task-check runs during code review, before the PR is created by the pipeline. It cannot be verified at this stage.
 
 ## Verification Process
 

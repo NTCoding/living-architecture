@@ -7,10 +7,10 @@ export const submittingPrState: ConcreteStateDefinition = {
   emoji: '🚀',
   agentInstructions: 'states/submitting_pr.md',
   canTransitionTo: ['AWAITING_CI', 'BLOCKED'],
-  allowedWorkflowOperations: ['record-pr'],
+  allowedWorkflowOperations: ['record-pr', 'create-pr'],
   forbidden: { write: true },
 
-  allowForbidden: { bash: ['git push', 'gh pr'] },
+  allowForbidden: { bash: ['git push'] },
 
   transitionGuard: (ctx) => {
     if (!ctx.state.prNumber) return fail('prNumber not set. Run record-pr first.')

@@ -269,7 +269,7 @@ const RECORDING_OPS = defineRecordingOps<StateName, WorkflowState, WorkflowOpera
 
 **Type signature risk:** The platform's `defineRecordingOps` types the ops parameter with `RecordingOpDefinition<readonly never[]>`. Payload functions with typed args (like `(n: number) => ...`) may not be directly assignable. If compilation fails, cast the ops object via `as const satisfies` or similar — the runtime `executeOp` passes args correctly regardless.
 
-Review outcomes are no longer custom recording ops. The platform `record-review` route records review rows and emits `review-recorded` events directly from review JSON passed through stdin.
+Review outcomes are no longer custom recording ops. The platform `record-review` route records review rows and emits `review-recorded` events directly from the review JSON argument.
 
 The Workflow class gets a single `executeRecording` method:
 
@@ -369,10 +369,8 @@ const preToolUseHandler: PreToolUseHandlerFn<
 Review commands use the platform route instead of custom workflow routes:
 
 ```bash
-/dev-workflow-v2:workflow record-review --type task-check
+/dev-workflow-v2:workflow record-review task-check '{"verdict":"PASS","summary":"Task requirements are satisfied.","findings":[]}'
 ```
-
-The review JSON is passed through stdin.
 
 **Behavior change with `extractField`:** The platform's `extractField` returns empty string for missing/null fields. Our current code throws `WorkflowError` with descriptive messages. After migration, malformed hook inputs with missing fields will pass empty strings to the engine checks rather than throwing. This is accepted — the engine's checks will handle empty strings appropriately (empty commands pass bash checks, empty file paths pass write checks), and malformed hook inputs from Claude Code are an edge case not worth custom error handling.
 
