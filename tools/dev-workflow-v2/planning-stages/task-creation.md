@@ -93,7 +93,7 @@ Then include these mandatory sections in this exact relative order:
 Include these optional sections only when there is concrete source material for them. If included, preserve this relative order around the mandatory sections:
 
 1. `## Dependencies` after `## Implementation guidelines`
-2. `## Glossary` at the end of the main issue body, before the architectural annex
+2. `## Glossary` at the end of the issue body
 
 ## Step 3: populate the sections with these exact rules
 
@@ -151,7 +151,9 @@ This section must tell the implementer to read `ARCH.md` for the full approved a
 
 This section should include all of the target architecture and design decisions that should be implemented in this ticket. In addition, it should include related parts of the design that help to guide or shape the implementation of this ticket, such as previously implemented parts, parts that will be implemented next, or fundamental model changes that are driving this change.
 
-Copy across all code samples from `ARCH.md` that are necessary to ensure the target architecture is implemented as defined. If you are unsure, it is better to include more.
+Copy across all code/config/flow samples from `ARCH.md` that are necessary to ensure the target architecture is implemented as defined. If you are unsure, it is better to include more.
+
+Do not replace an available `ARCH.md` code/config/flow sample with a newly written prose description or a simplified invented flow. If `ARCH.md` contains a concrete TypeScript, YAML, JSON, shell, or `text` block for the relevant target design, copy the relevant block into the issue. If multiple `ARCH.md` blocks are relevant to the ticket, include all of them or a clearly identified excerpt from each one.
 
 For refactoring/replacement issues, this section must include:
 
@@ -247,7 +249,7 @@ This section must include:
 
 Do not include every repository rule. Include the rules that are relevant to this ticket.
 
-Do not use this section to define the target architecture/design, list acceptance criteria, duplicate the architectural annex, or invent product behaviour.
+Do not use this section to define the target architecture/design, list acceptance criteria, or invent product behaviour.
 
 ### Dependencies
 
@@ -286,54 +288,7 @@ This section must name the concrete exclusions that stop the ticket drifting int
 Populate from capitalized domain terms used in the issue body.
 Define them inline if needed.
 
-## Step 4: append the architectural annex
-
-After the main issue body, append this exact annex structure:
-
-```markdown
-## Architectural Annex
-
-> Directional only — the plan will evolve during TDD. Re-consult `.riviere/role-enforcement.config.ts` as the code takes shape. Role enforcement is verified by oxlint at lint time; this annex surfaces architectural decisions upfront so they do not ambush the implementer mid-build.
-
-### Affected Enforced Packages
-
-| Package | Feature(s) | Relevant Sublocations |
-|---------|------------|-----------------------|
-| `packages/<name>` | `<feature>` | `src/features/<feature>/commands/`, `src/features/<feature>/domain/`, ... |
-
-### Applicable Canonical Configuration
-
-**Pattern:** <name from `.riviere/canonical-role-configurations.md`, or "None — new pattern">
-
-### Proposed Roles and Locations
-
-These roles and locations must be the agreed design from the approved architecture. If implementation reveals design issues that challenge the agreed design, the implementer must stop and discuss with the user. Do not implement a different design without approval.
-
-| Proposed Element | Kind | Role | Sublocation | Confidence | Notes |
-|------------------|------|------|-------------|------------|-------|
-| `FooUseCase` | class | `command-use-case` | `src/features/foo/commands/` | HIGH | Single public method `apply(...)`; input `FooInput` → result `FooResult`. |
-
-### Gaps — Proposed Code With No Fitting Role
-
-If no gaps: state "No gaps — all proposed elements fit existing roles."
-
-### Structural Concerns
-
-If none: state "No structural concerns identified."
-
-For refactoring/replacement issues, explicitly include any forbidden replacement concepts and the approved replacement concept. Do not only say what not to invent; also say what approved concept is used instead. If the approved replacement concept is not known, block task creation.
-
-### Reminders for the Implementer
-
-- This annex is directional. The plan will evolve during TDD — role assignments may change as code takes shape.
-- Re-consult `.riviere/role-enforcement.config.ts`, `.riviere/roles.ts`, and `.riviere/canonical-role-configurations.md` as proposed elements materialize.
-- Any proposed new role must be approved by the user before being added to `.riviere/roles.ts`. Same for any new aggregate — must be added to `approvedInstances` with `userHasApproved: true`.
-- Role enforcement is automatically verified at lint time (`pnpm nx lint <package>` or the project-wide role-check task). Treat the oxlint result as the final arbiter, not this annex.
-- If a proposed element turns out to need a role that does not exist, stop and get user approval before inventing one.
-- If implementation reveals the approved design is incomplete or wrong, stop and discuss with the user. Do not fill the gap by inventing an alternative design during implementation.
-```
-
-## Step 5: ensure GitHub milestone and label exist
+## Step 4: ensure GitHub milestone and label exist
 
 Before creating issues, ensure both of these exist in GitHub:
 
@@ -363,7 +318,7 @@ GITHUB_TOKEN=<token> gh label create "prd:<githubMilestone>" --description "Task
 
 If GitHub authentication, repository resolution, milestone creation, or label creation fails, block task creation with the specific failure.
 
-## Step 6: create each issue on GitHub
+## Step 5: create each issue on GitHub
 
 For each selected deliverable, create the issue with:
 
@@ -378,7 +333,7 @@ Use:
 GITHUB_TOKEN=<token> ./scripts/create-task.sh <milestone> <title> <body>
 ```
 
-## Step 7: blocking rule
+## Step 6: blocking rule
 
 Block task creation if any of these are true:
 
@@ -386,7 +341,7 @@ Block task creation if any of these are true:
 2. the approved PRD does not contain enough concrete product material to populate `## Solution` and `### Product`
 3. the approved architecture document does not contain explicit target architecture/design material that can be carried into `## Agreed target architecture and design`
 4. the issue does not tell the implementer to read `ARCH.md` for the full approved architecture context and scope
-5. code samples from `ARCH.md` are necessary to ensure the target architecture is implemented as defined, but the issue omits them
+5. code/config/flow samples from `ARCH.md` are necessary to ensure the target architecture is implemented as defined, but the issue omits them or replaces them with prose/newly invented simplified flow
 6. the approved delivery plan does not contain concrete deliverables, acceptance criteria, source refs, and verification notes where known
 7. the selected deliverable depends on unresolved product, architecture, or delivery blockers
 8. the selected deliverable asks the implementer to make a major design decision that is not an explicit acceptance criterion
@@ -408,7 +363,7 @@ BLOCK
 - <task creation blocker>
 ```
 
-## Step 8: completion rule
+## Step 7: completion rule
 
 This stage is complete only when all intended GitHub issues have been created successfully and all issue numbers are known.
 
