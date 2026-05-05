@@ -14,9 +14,16 @@ Use:
 
 Also use these sources when populating implementation guidance:
 
+- `.riviere/role-enforcement.config.ts`
+- `.riviere/roles.ts`
+- `.riviere/canonical-role-configurations.md`
 - `docs/conventions/software-design.md`
 - `docs/conventions/testing.md`
 - relevant architecture memories under `projectMemoryArchitectureMemoriesPath`, following the project-memory architecture instructions before using them
+
+Use this as the source-of-truth glossary:
+
+- `docs/architecture/domain-terminology/contextive/definitions.glossary.yml`
 
 ## Required starting condition
 
@@ -149,13 +156,50 @@ The purpose of this section is to ensure that agreed-upon target architecture an
 
 This section must tell the implementer to read `ARCH.md` for the full approved architecture context and scope. The issue must not be treated as a replacement for `ARCH.md`.
 
-This section should include all of the target architecture and design decisions that should be implemented in this ticket. In addition, it should include related parts of the design that help to guide or shape the implementation of this ticket, such as previously implemented parts, parts that will be implemented next, or fundamental model changes that are driving this change.
+This section must use these subheadings in this order:
+
+1. `### Full architecture context`
+2. `### Target components, boundaries, and responsibilities`
+3. `### Code/config/flow from ARCH.md`
+4. `### Role and location decisions`
+5. `### Current-to-target replacement` for refactoring/replacement issues only
+6. `### Structural concerns and forbidden alternatives` when relevant
+7. `### Design challenge instruction`
+
+#### Full architecture context
+
+Tell the implementer to read `ARCH.md` for the full approved architecture context and scope. The issue must not be treated as a replacement for `ARCH.md`.
+
+#### Target components, boundaries, and responsibilities
+
+Include all of the target architecture and design decisions that should be implemented in this ticket. In addition, include related parts of the design that help to guide or shape the implementation of this ticket, such as previously implemented parts, parts that will be implemented next, or fundamental model changes that are driving this change.
+
+Name the concrete components, boundaries, services, commands, repositories, config files, workflow stages, or domain concepts involved. Do not use vague references such as "the new model", "the approved approach", or "the workflow architecture" without naming the actual element.
+
+#### Code/config/flow from ARCH.md
 
 Copy across all code/config/flow samples from `ARCH.md` that are necessary to ensure the target architecture is implemented as defined. If you are unsure, it is better to include more.
 
 Do not replace an available `ARCH.md` code/config/flow sample with a newly written prose description or a simplified invented flow. If `ARCH.md` contains a concrete TypeScript, YAML, JSON, shell, or `text` block for the relevant target design, copy the relevant block into the issue. If multiple `ARCH.md` blocks are relevant to the ticket, include all of them or a clearly identified excerpt from each one.
 
-For refactoring/replacement issues, this section must include:
+This subsection must contain at least one fenced code/config/flow block copied from `ARCH.md`, unless the approved architecture genuinely contains no code/config/flow sample for this ticket. If the approved architecture contains no such sample, block task creation unless the architecture clearly contains enough design detail for the ticket without one.
+
+#### Role and location decisions
+
+Include role and location decisions from the approved architecture and `.riviere` configuration that affect this ticket.
+
+When the ticket touches role-enforced TypeScript code, include a table with:
+
+| Proposed Element | Kind | Role | Sublocation | Confidence | Notes |
+|------------------|------|------|-------------|------------|-------|
+
+The table must name concrete proposed elements from the approved architecture. Do not replace role/location decisions with prose.
+
+Use `.riviere/role-enforcement.config.ts`, `.riviere/roles.ts`, and `.riviere/canonical-role-configurations.md` as role-enforcement source material. If a proposed element needs a new role or aggregate approval that is not already approved, the issue must say that user approval is required before implementation adds it.
+
+#### Current-to-target replacement
+
+For refactoring/replacement issues, this subsection must include:
 
 - the current flow to replace, naming concrete existing classes/functions/files
 - the target replacement flow, naming concrete approved replacement classes/functions/files
@@ -172,7 +216,15 @@ The state-loading answer must name:
 - the output from that call
 - where each output field comes from
 
-Include this implementer instruction:
+#### Structural concerns and forbidden alternatives
+
+Include structural concerns from the approved architecture and delivery plan. Name forbidden alternatives and the approved replacement or approved path. Do not only say what not to invent; also say what approved design should be used instead.
+
+If no structural concerns are identified for the ticket, omit this subsection rather than adding filler.
+
+#### Design challenge instruction
+
+Include this implementer instruction exactly:
 
 > If implementation reveals the agreed design is impractical, incomplete, or sub-optimal, stop and push back. Do not silently implement a different design.
 
@@ -232,22 +284,58 @@ Populate from:
 
 - the selected delivery deliverable
 - the approved architecture document
+- `.riviere/role-enforcement.config.ts`
+- `.riviere/roles.ts`
+- `.riviere/canonical-role-configurations.md`
 - `docs/conventions/software-design.md`
 - `docs/conventions/testing.md`
 - relevant architecture memories under `projectMemoryArchitectureMemoriesPath`, following the project-memory architecture instructions before using them
 
 This section tells the implementer where the change belongs and which repository rules/conventions are especially relevant to this ticket.
 
-This section must include:
+This section must use these subheadings in this order:
+
+1. `### Change areas`
+2. `### Relevant repository rules`
+3. `### Relevant architecture memories`
+4. `### Lint, role-check, and test expectations`
+
+#### Change areas
+
+Include:
 
 - the relevant `/apps`, `/packages`, `/tools`, config, docs, or test areas involved
 - the package/feature boundaries the implementer should stay inside
+
+#### Relevant repository rules
+
+Include:
+
 - relevant rules from `docs/conventions/software-design.md`, with source file references and rule IDs/names
 - relevant rules from `docs/conventions/testing.md`, with source file references and rule IDs/names
+
+Do not include every repository rule. Include the rules that are relevant to this ticket.
+
+#### Relevant architecture memories
+
+Include:
+
 - relevant architecture memories from `project-memory/architecture/`, with source file references when they apply
 - any other approved project-memory or convention notes that prevent common mistakes for this kind of work
 
-Do not include every repository rule. Include the rules that are relevant to this ticket.
+If no architecture memory applies, say that no relevant architecture memory was identified after checking the relevant memory sources.
+
+#### Lint, role-check, and test expectations
+
+Include reminders that are relevant to the ticket from:
+
+- `.riviere/role-enforcement.config.ts`
+- `.riviere/roles.ts`
+- `.riviere/canonical-role-configurations.md`
+- `docs/conventions/software-design.md`
+- `docs/conventions/testing.md`
+
+When role-enforced TypeScript is touched, tell the implementer to expect lint/role-check feedback and to use it to improve the design rather than working around it. Include the relevant package-level lint or role-check command only when an exact command is known from approved artefacts or repository convention.
 
 Do not use this section to define the target architecture/design, list acceptance criteria, or invent product behaviour.
 
@@ -285,8 +373,17 @@ This section must name the concrete exclusions that stop the ticket drifting int
 
 ### Glossary
 
-Populate from capitalized domain terms used in the issue body.
-Define them inline if needed.
+Populate from the source-of-truth glossary at `docs/architecture/domain-terminology/contextive/definitions.glossary.yml`.
+
+This section must:
+
+- reference `docs/architecture/domain-terminology/contextive/definitions.glossary.yml` as the source glossary
+- include only key domain or architecture terms used in the issue body
+- use the exact term name and definition from the source glossary
+
+Do not invent inline glossary definitions inside the issue.
+
+If the issue needs a domain or architecture term that is not already in the source glossary, add the term to `docs/architecture/domain-terminology/contextive/definitions.glossary.yml` first using source-backed wording from approved planning artefacts. If the definition cannot be populated from approved artefacts, block task creation rather than inventing it.
 
 ## Step 4: ensure GitHub milestone and label exist
 
@@ -347,13 +444,18 @@ Block task creation if any of these are true:
 8. the selected deliverable asks the implementer to make a major design decision that is not an explicit acceptance criterion
 9. `## What "done" looks like` does not include `### Product`, `### Design`, and `### Quality`
 10. `### Design` uses vague references such as "the approved shape", "the new model", or "per the architecture" without naming the actual design
-11. `## Implementation guidelines` includes repository rules without source file references
-12. `## Implementation guidelines` omits relevant convention or architecture-memory guidance needed to avoid known mistakes for this kind of work
-13. `## How to verify` contains vague verification such as "run relevant tests", "verify it works", or "check behaviour"
-14. a refactoring/replacement issue does not show the current flow and target replacement flow in `## Agreed target architecture and design`
-15. a refactoring/replacement issue removes an existing state-loading or persistence path without naming the approved replacement loading boundary, role, call, inputs, output, and data origins
-16. a refactoring/replacement issue title says `Remove X` when the real work is replacing `X` with `Y`
-17. an old state-loading call is being replaced but the issue does not show the exact approved replacement line/call
+11. `## Agreed target architecture and design` omits any required subsection for that ticket: `### Full architecture context`, `### Target components, boundaries, and responsibilities`, `### Code/config/flow from ARCH.md`, `### Role and location decisions`, `### Current-to-target replacement` when refactoring/replacement applies, `### Structural concerns and forbidden alternatives` when relevant, or `### Design challenge instruction`
+12. a ticket touching role-enforced TypeScript code does not include a concrete role/location table in `### Role and location decisions`
+13. `## Implementation guidelines` omits any required subsection: `### Change areas`, `### Relevant repository rules`, `### Relevant architecture memories`, or `### Lint, role-check, and test expectations`
+14. `## Implementation guidelines` includes repository rules without source file references
+15. `## Implementation guidelines` omits relevant convention or architecture-memory guidance needed to avoid known mistakes for this kind of work
+16. `## How to verify` contains vague verification such as "run relevant tests", "verify it works", or "check behaviour"
+17. `## Glossary` includes a term that is not present in `docs/architecture/domain-terminology/contextive/definitions.glossary.yml`
+18. a needed domain or architecture term is absent from the source glossary and cannot be added from approved artefacts
+19. a refactoring/replacement issue does not show the current flow and target replacement flow in `## Agreed target architecture and design`
+20. a refactoring/replacement issue removes an existing state-loading or persistence path without naming the approved replacement loading boundary, role, call, inputs, output, and data origins
+21. a refactoring/replacement issue title says `Remove X` when the real work is replacing `X` with `Y`
+22. an old state-loading call is being replaced but the issue does not show the exact approved replacement line/call
 
 If blocked, the current planning command must produce:
 
