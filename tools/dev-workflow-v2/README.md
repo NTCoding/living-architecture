@@ -41,6 +41,7 @@ Each PRD folder stores all related planning files:
 - solution exploration: `docs/project/PRD/<slug>/solution-exploration.md`
 - PRD: `docs/project/PRD/<slug>/PRD.md`
 - architecture: `docs/project/PRD/<slug>/ARCH.md`
+- dogfooding: `docs/project/PRD/<slug>/dogfooding.md`
 - delivery plan: `docs/project/PRD/<slug>/delivery.md`
 
 The workflow selects the active planning marker from `docs/project/PRD/*/marker.yml`, where active means `stage != planning-complete`.
@@ -69,9 +70,10 @@ Artifact paths are derived from `planningId`.
 4. PRD approval
 5. architecture drafting
 6. architecture approval
-7. delivery planning
-8. task creation on GitHub
-9. planning complete
+7. dogfooding
+8. delivery planning
+9. task creation on GitHub
+10. planning complete
 
 The PRD is intentionally not where discovery happens. It records the product decision once `problem-definition.md` and `solution-exploration.md` are approved.
 
@@ -79,7 +81,7 @@ Solution exploration includes market/comparable/open-source research where relev
 
 Architecture remains after PRD approval, but architecture may return the workflow to `solution-exploration` or `prd-drafting` if feasibility invalidates product assumptions.
 
-Delivery planning owns milestones, deliverables, dependencies, parallelisation, and task creation readiness.
+Dogfooding owns exact dogfooding deliverables before delivery planning. Delivery planning owns milestones, deliverables, dependencies, parallelisation, and task creation readiness.
 
 ## Project memory
 

@@ -1,8 +1,8 @@
 # delivery-planning
 
-Create and approve `delivery.md` after the PRD and architecture are approved.
+Create and approve `delivery.md` after the PRD, architecture, and dogfooding artefact are approved.
 
-This stage turns the approved product decision and approved architecture into value-based delivery slices. It is the first place where milestones belong.
+This stage turns the approved product decision, approved architecture, and approved dogfooding deliverables into value-based delivery slices. It is the first place where milestones belong.
 
 ## Active file
 
@@ -10,10 +10,11 @@ Use the delivery plan file passed in the runtime context:
 
 - `deliveryPath`
 
-Use the approved PRD and approved architecture passed in the runtime context:
+Use the approved PRD, approved architecture, and approved dogfooding artefact passed in the runtime context:
 
 - `prdPath`
 - `architecturePath`
+- `dogfoodingPath`
 
 Do not change product requirements in this stage.
 Do not make new architecture decisions in this stage.
@@ -43,6 +44,19 @@ BLOCK
 
 Only include the blocking item that applies.
 
+The dogfooding artefact must contain:
+
+```text
+**Status:** Approved
+```
+
+If it is missing or not approved, the current planning command must produce:
+
+```text
+BLOCK
+- Dogfooding artefact is not approved
+```
+
 ## Delivery planning standard
 
 Delivery planning must describe value delivered, not internal work performed.
@@ -55,7 +69,9 @@ Milestones and deliverables must be concrete enough for GitHub issue creation. E
 - dependencies or sequencing, if any
 - out-of-scope notes, if any
 
-Do not invent implementation detail beyond what exists in the approved PRD and approved architecture.
+Do not invent implementation detail beyond what exists in the approved PRD, approved architecture, and approved dogfooding artefact.
+
+Dogfooding delivery slices must come directly from `dogfoodingPath` section `What new dogfooding to add`. Use the dogfooding deliverables, final artefact/config/script/README details, and acceptance criteria from that section. Do not create weaker or vaguer dogfooding deliverables than the dogfooding artefact provides.
 
 If delivery planning reveals out-of-scope work that is probably or definitely needed later, apply the project-memory deferred-work triage rules before approving the delivery plan.
 
@@ -99,7 +115,7 @@ The prompts below are internal objectives, not user-facing scripts. Ask naturall
 
 ### Objective 1 — Identify value milestones
 
-Use the approved PRD and architecture to propose value checkpoints.
+Use the approved PRD, architecture, and dogfooding artefact to propose value checkpoints.
 
 Ask the user whether the work is best sliced as:
 
@@ -133,7 +149,7 @@ If splitting creates more risk than value, keep the plan serial.
 
 For each deliverable, capture how it can be verified.
 
-Use only verification material from the approved PRD, approved architecture, and user-approved additions.
+Use only verification material from the approved PRD, approved architecture, approved dogfooding artefact, and user-approved additions.
 
 If commands are named, write them exactly.
 
@@ -176,6 +192,7 @@ When the user approves the delivery plan, write or update `delivery.md` with thi
 - Source refs:
   - PRD: <section refs>
   - Architecture: <section refs>
+  - Dogfooding: <section refs, required for dogfooding deliverables>
 
 ### M2: <value checkpoint>
 
@@ -203,6 +220,7 @@ tracks:
 - Acceptance criteria observable: Yes/No
 - Verification notes present where known: Yes/No
 - PRD and architecture source refs present: Yes/No
+- Dogfooding refs present for dogfooding deliverables: Yes/No
 - Open blockers: <blockers or none>
 ````
 
@@ -229,6 +247,7 @@ Task creation readiness:
 - Deliverables concrete enough: <yes/no>
 - Acceptance criteria observable: <yes/no>
 - Verification notes present where known: <yes/no>
+- Dogfooding refs present for dogfooding deliverables: <yes/no>
 - Open blockers: <none/list>
 
 Does this delivery plan work as the basis for creating tasks, or should we reshape the slices?
@@ -243,11 +262,12 @@ This stage is complete only when all of these are true:
 3. it contains at least one milestone
 4. each milestone contains at least one deliverable
 5. each deliverable has acceptance criteria and source refs
-6. the parallelisation section exists, even if work is serial
-7. the dependencies section exists, even if there are no dependencies
-8. task creation readiness says deliverables are concrete enough for issue creation
-9. no `[NEEDS CLARIFICATION]` markers remain
-10. delivery out-of-scope items that are probably or definitely needed later are captured in project memory
+6. every dogfooding deliverable from `dogfoodingPath` section `What new dogfooding to add` is represented as a delivery deliverable with equal or greater specificity, including its final artefact/config/script/README details and acceptance criteria
+7. the parallelisation section exists, even if work is serial
+8. the dependencies section exists, even if there are no dependencies
+9. task creation readiness says deliverables are concrete enough for issue creation
+10. no `[NEEDS CLARIFICATION]` markers remain
+11. delivery out-of-scope items that are probably or definitely needed later are captured in project memory
 
 If complete, produce:
 

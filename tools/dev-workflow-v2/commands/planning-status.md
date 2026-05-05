@@ -29,6 +29,7 @@ From `planningId`, derive:
 - solution exploration: `docs/project/PRD/<planning-id>/solution-exploration.md`
 - PRD: `docs/project/PRD/<planning-id>/PRD.md`
 - architecture: `docs/project/PRD/<planning-id>/ARCH.md`
+- dogfooding: `docs/project/PRD/<planning-id>/dogfooding.md`
 - delivery plan: `docs/project/PRD/<planning-id>/delivery.md`
 
 ## Step 3: Determine the current artifact
@@ -37,6 +38,7 @@ From `planningId`, derive:
 - `solution-exploration` -> current artifact is `solution-exploration.md`
 - `prd-drafting` or `prd-approval` -> current artifact is `PRD.md`, compiled from approved discovery artefacts
 - `architecture-drafting` or `architecture-approval` -> current artifact is `ARCH.md`, with product-impact loop-back if feasibility invalidates the PRD
+- `dogfooding` -> current artifact is `dogfooding.md`, with loop-back if dogfooding exposes a PRD or architecture gap
 - `delivery-planning` -> current artifact is `delivery.md`
 - `task-creation` -> current artifact is the approved PRD, approved architecture, approved delivery plan, and the GitHub issue set being created
 
@@ -66,6 +68,7 @@ Problem definition: <problem-definition-path>
 Solution exploration: <solution-exploration-path>
 PRD: <prd-path>
 Architecture: <architecture-path>
+Dogfooding: <dogfooding-path>
 Delivery: <delivery-path>
 Blocking items:
 - <item>

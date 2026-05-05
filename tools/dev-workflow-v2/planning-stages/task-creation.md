@@ -1,6 +1,6 @@
 # task-creation
 
-Create GitHub issues directly from the approved PRD, approved architecture document, and approved delivery plan.
+Create GitHub issues directly from the approved PRD, approved architecture document, approved dogfooding artefact, and approved delivery plan.
 
 ## Inputs
 
@@ -9,6 +9,7 @@ Use:
 - `problemDefinitionPath`
 - `prdPath`
 - `architecturePath`
+- `dogfoodingPath`
 - `deliveryPath`
 - `githubMilestone`
 
@@ -27,7 +28,7 @@ Use this as the source-of-truth glossary:
 
 ## Required starting condition
 
-The PRD, architecture document, and delivery plan must all contain:
+The PRD, architecture document, dogfooding artefact, and delivery plan must all contain:
 
 ```text
 **Status:** Approved
@@ -43,6 +44,7 @@ Create one GitHub issue per selected deliverable unless the approved delivery pl
 
 The PRD provides product WHAT and WHY.
 The architecture document provides technical HOW constraints and task consequences.
+The dogfooding artefact provides fully specced dogfooding deliverables and final dogfooding artefacts.
 The delivery plan provides milestone and deliverable slicing.
 
 ## Refactoring and replacement hard-fail gate
@@ -85,7 +87,8 @@ Always include these header lines first:
 1. `**Milestone:** <Delivery plan title> — M<x> (D<x.x>)`
 2. `**PRD:** <file path and section refs>`
 3. `**Architecture:** <file path and section refs>`
-4. `**Delivery plan:** <file path and deliverable refs>`
+4. `**Dogfooding:** <file path and dogfooding deliverable refs, required for dogfooding tickets>`
+5. `**Delivery plan:** <file path and deliverable refs>`
 
 Then include these mandatory sections in this exact relative order:
 
@@ -111,6 +114,7 @@ Populate from:
 - the approved problem definition
 - the selected delivery deliverable
 - the approved PRD sections referenced by that deliverable
+- the approved dogfooding artefact when the deliverable is a dogfooding deliverable
 
 This section must:
 
@@ -149,6 +153,7 @@ Do not list acceptance criteria here. Those belong in `## What "done" looks like
 Populate from:
 
 - the approved architecture document
+- the approved dogfooding artefact when the ticket implements dogfooding artefacts
 - the selected delivery deliverable
 - relevant approved architecture memories when they apply
 
@@ -230,9 +235,13 @@ Include this implementer instruction exactly:
 
 If the necessary architecture/design material or code samples cannot be populated from approved artefacts, block task creation. Do not invent the missing technical design in the issue.
 
+For dogfooding tickets, `## Agreed target architecture and design` must include the exact dogfooding deliverable final content from `dogfoodingPath` section `What new dogfooding to add`. Do not replace a complete workflow/config/README/CI/script/generated-output block with prose.
+
 ### What "done" looks like
 
 Populate from the selected delivery deliverable's acceptance criteria, linked PRD success conditions, and the agreed target architecture/design for this ticket.
+
+For dogfooding tickets, also populate from the linked dogfooding deliverable's stated customer action, customer-visible result, existing dogfooding fit, final content, and acceptance criteria in `dogfoodingPath`.
 
 This section must contain these subsections in this order:
 
@@ -284,6 +293,7 @@ Populate from:
 
 - the selected delivery deliverable
 - the approved architecture document
+- the approved dogfooding artefact when the ticket implements dogfooding artefacts
 - `.riviere/role-enforcement.config.ts`
 - `.riviere/roles.ts`
 - `.riviere/canonical-role-configurations.md`
@@ -353,6 +363,8 @@ If there are no dependencies, omit this section.
 
 Populate from explicit verification commands and pass conditions already named in the selected delivery deliverable, approved architecture document, or repository conventions.
 
+For dogfooding tickets, also include the customer action and exact customer-visible result from `dogfoodingPath`.
+
 The commands must be written exactly.
 
 This section must map verification steps to the Product, Design, and Quality criteria in `## What "done" looks like`.
@@ -368,6 +380,7 @@ Populate from:
 - PRD non-goals
 - solution-exploration no-gos referenced by the PRD
 - explicit exclusions attached to the selected delivery deliverable
+- explicit exclusions from the linked dogfooding deliverable in `dogfoodingPath`
 
 This section must name the concrete exclusions that stop the ticket drifting into neighbouring work. Do not use vague exclusions like "no unrelated changes" or "avoid scope creep". Name the actual behaviour, file area, design alternative, or product capability that must not be added.
 
@@ -456,6 +469,10 @@ Block task creation if any of these are true:
 20. a refactoring/replacement issue removes an existing state-loading or persistence path without naming the approved replacement loading boundary, role, call, inputs, output, and data origins
 21. a refactoring/replacement issue title says `Remove X` when the real work is replacing `X` with `Y`
 22. an old state-loading call is being replaced but the issue does not show the exact approved replacement line/call
+23. a dogfooding ticket does not include the exact dogfooding deliverable final content from `dogfoodingPath`
+24. a dogfooding ticket replaces the dogfooding artefact's workflow/config/README/CI/script/generated-output block with prose
+25. a dogfooding ticket omits the linked dogfooding deliverable's customer action, customer-visible result, existing dogfooding fit, final content, or acceptance criteria
+26. a dogfooding ticket weakens any acceptance criterion, dependency, exclusion, customer action, customer-visible result, or final artefact from `dogfoodingPath`
 
 If blocked, the current planning command must produce:
 

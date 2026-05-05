@@ -34,6 +34,7 @@ From `<planning-id>`, derive:
 - solution exploration: `docs/project/PRD/<planning-id>/solution-exploration.md`
 - PRD: `docs/project/PRD/<planning-id>/PRD.md`
 - architecture: `docs/project/PRD/<planning-id>/ARCH.md`
+- dogfooding: `docs/project/PRD/<planning-id>/dogfooding.md`
 - delivery plan: `docs/project/PRD/<planning-id>/delivery.md`
 
 Do not store artefact paths in the marker file. The workflow derives them by convention.
@@ -77,7 +78,7 @@ If the problem definition file does not exist, create it with this exact high-le
 
 ```
 
-Do not create `solution-exploration.md`, `PRD.md`, `ARCH.md`, or `delivery.md` at this step.
+Do not create `solution-exploration.md`, `PRD.md`, `ARCH.md`, `dogfooding.md`, or `delivery.md` at this step.
 
 The PRD is intentionally not created at planning start. A PRD records the product decision after discovery; it is not the place where product discovery happens.
 
@@ -92,6 +93,7 @@ Problem definition: <problem-definition-path>
 Solution exploration: <solution-exploration-path>
 PRD: <prd-path>
 Architecture: <architecture-path>
+Dogfooding: <dogfooding-path>
 Delivery: <delivery-path>
 Marker: <marker-path>
 Next command: /dev-workflow-v2:continue-planning

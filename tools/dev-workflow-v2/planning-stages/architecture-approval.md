@@ -48,13 +48,13 @@ Approve only if all of these are true:
 6. each reviewed decision has one approved choice
 7. rejected options are explicitly identified
 8. product-impact notes are explicit, even if they say no product-impact changes were identified
-9. task generation consequences are written explicitly
+9. task generation consequences and dogfooding-relevant architecture invariants are written explicitly
 10. the architecture removes technical approvals from PRD requirement text instead of duplicating them there
 11. the architecture does not change product scope without returning to the appropriate earlier stage
 12. relevant approved architecture memories were considered as advisory context, and any unclear applicability or conflict was clarified with the user
 13. any design that loads, rebuilds, materialises, migrates, or replaces application state explicitly names the application state, owning aggregate, repository, load call, load inputs, loaded output, data origins, and caller
 14. any design that replaces a repository, aggregate, loader, or persistence boundary names the approved replacement boundary and does not leave that decision to implementation
-15. task generation consequences include major design decisions needed by implementation tickets, including before/after code shape where architecture contains code-level design
+15. task generation consequences include major design decisions needed by implementation tickets and dogfooding deliverables, including before/after code shape where architecture contains code-level design
 16. no implementation task would need to make a major design decision unless that decision is explicitly included as acceptance criteria
 
 If any state-loading or replacement design is described only with vague phrases such as "materialise", "load the state", "create the stage", "use the new model", or "wire up the service" without the concrete loading boundary and data origins, block architecture approval.
@@ -86,13 +86,13 @@ If the architecture passes:
 - ensure the architecture has an approval note immediately under the status line:
 
 ```text
-**Approval note:** Architecture confirms the approved product direction and provides enough technical shape for delivery planning.
+**Approval note:** Architecture confirms the approved product direction and provides enough technical shape for dogfooding.
 ```
 
 Then the current planning command must produce:
 
 ```text
-ADVANCE: delivery-planning
+ADVANCE: dogfooding
 ```
 
 ## On rejection

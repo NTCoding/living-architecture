@@ -22,8 +22,9 @@ The planning flow therefore separates:
 2. solution exploration
 3. product decision record / PRD
 4. architecture
-5. delivery planning
-6. task creation
+5. dogfooding
+6. delivery planning
+7. task creation
 
 ## Planning guidelines
 
@@ -106,6 +107,7 @@ From `planningId`, derive:
 - solution exploration: `docs/project/PRD/<planningId>/solution-exploration.md`
 - PRD: `docs/project/PRD/<planningId>/PRD.md`
 - architecture: `docs/project/PRD/<planningId>/ARCH.md`
+- dogfooding: `docs/project/PRD/<planningId>/dogfooding.md`
 - delivery plan: `docs/project/PRD/<planningId>/delivery.md`
 
 Also keep these project memory paths available:
@@ -128,6 +130,7 @@ Load exactly one stage file based on `stage` in the active planning marker:
 - `prd-approval` -> `tools/dev-workflow-v2/planning-stages/prd-approval.md`
 - `architecture-drafting` -> `tools/dev-workflow-v2/planning-stages/architecture-drafting.md`
 - `architecture-approval` -> `tools/dev-workflow-v2/planning-stages/architecture-approval.md`
+- `dogfooding` -> `tools/dev-workflow-v2/planning-stages/dogfooding.md`
 - `delivery-planning` -> `tools/dev-workflow-v2/planning-stages/delivery-planning.md`
 - `task-creation` -> `tools/dev-workflow-v2/planning-stages/task-creation.md`
 
@@ -143,6 +146,7 @@ The command applies the loaded stage file instructions against this exact contex
 - `solutionExplorationPath`
 - `prdPath`
 - `architecturePath`
+- `dogfoodingPath`
 - `deliveryPath`
 - `projectMemoryInstructionsPath`
 - `projectMemoryReadmePath`
@@ -168,6 +172,8 @@ No repository files except `markerPath`, `problemDefinitionPath`, the current st
 For `solution-exploration`, research and solution shaping must use only the approved problem definition, user-approved sources, user-approved research directions, and findings confirmed with the user.
 
 For `prd-drafting`, the PRD is compiled from approved `problem-definition.md` and approved `solution-exploration.md`. Do not use the PRD as a discovery workspace.
+
+For `dogfooding`, the active artefact is `dogfoodingPath`. Apply `tools/dev-workflow-v2/planning-stages/dogfooding.md`. If `dogfoodingPath` exists and contains `**Status:** Approved`, produce `ADVANCE: delivery-planning`; otherwise produce a conversational refinement prompt or artefact approval request and internally treat the stage as blocked.
 
 Do not infer requirements from the planning id or repository structure.
 
@@ -217,6 +223,7 @@ Allowed advance targets are only:
 - `prd-approval`
 - `architecture-drafting`
 - `architecture-approval`
+- `dogfooding`
 - `delivery-planning`
 - `task-creation`
 
@@ -283,6 +290,7 @@ If `/dev-workflow-v2:continue-planning` produces:
 - `ADVANCE: prd-approval` -> rewrite marker field `stage: prd-approval`
 - `ADVANCE: architecture-drafting` -> rewrite marker field `stage: architecture-drafting`
 - `ADVANCE: architecture-approval` -> rewrite marker field `stage: architecture-approval`
+- `ADVANCE: dogfooding` -> rewrite marker field `stage: dogfooding`
 - `ADVANCE: delivery-planning` -> rewrite marker field `stage: delivery-planning`
 - `ADVANCE: task-creation` -> rewrite marker field `stage: task-creation`
 - `RETURN: problem-definition` -> rewrite marker field `stage: problem-definition`
@@ -295,7 +303,7 @@ If `/dev-workflow-v2:continue-planning` produces:
 
 If `/dev-workflow-v2:continue-planning` produced `BLOCK`, always print:
 
-For `problem-definition`, `solution-exploration`, `prd-drafting`, and `delivery-planning`, never print the generic blocking format. Print only the interview question, follow-up, artefact approval request, or section-approval request. Hide `BLOCK`, waiting-state names, and `Next command` lines.
+For `problem-definition`, `solution-exploration`, `prd-drafting`, `dogfooding`, and `delivery-planning`, never print the generic blocking format. Print only the interview question, follow-up, artefact approval request, or section-approval request. Hide `BLOCK`, waiting-state names, and `Next command` lines.
 
 For all other blocking states, print:
 
@@ -317,6 +325,7 @@ Problem definition: <problemDefinitionPath>
 Solution exploration: <solutionExplorationPath>
 PRD: <prdPath>
 Architecture: <architecturePath>
+Dogfooding: <dogfoodingPath>
 Delivery: <deliveryPath>
 Next command: /dev-workflow-v2:continue-planning
 ```
@@ -332,6 +341,7 @@ Problem definition: <problemDefinitionPath>
 Solution exploration: <solutionExplorationPath>
 PRD: <prdPath>
 Architecture: <architecturePath>
+Dogfooding: <dogfoodingPath>
 Delivery: <deliveryPath>
 Next command: /dev-workflow-v2:continue-planning
 ```
