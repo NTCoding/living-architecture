@@ -59,6 +59,40 @@ Do not invent implementation detail beyond what exists in the approved PRD and a
 
 If delivery planning reveals out-of-scope work that is probably or definitely needed later, apply the project-memory deferred-work triage rules before approving the delivery plan.
 
+## Outcome-name and acceptance-criteria quality gate
+
+Delivery milestone and deliverable names must describe the concrete outcome being delivered, not an abstract architectural intention. The title must name the actual thing that changes in concrete terms, without vague words that hide unresolved decisions.
+
+Avoid vague outcome names such as:
+
+- preserve the boundary
+- support the model
+- enable materialisation
+- align with architecture
+- make reusable
+- prepare for workflows
+
+unless the same title also names the concrete object, behaviour, or system state that will change.
+
+Acceptance criteria must start with the primary outcome implied by the work name.
+
+Examples:
+
+- If the work is named `Retire ExtractionProject`, the first acceptance criterion must be `ExtractionProject no longer exists`.
+- If the work is named `Introduce RiviereProject`, the first acceptance criterion must be `RiviereProject exists as the approved aggregate`.
+- If the work is named `Migrate extract commands`, the acceptance criteria must name the old path no longer used and the approved new path used.
+
+Each deliverable's acceptance criteria must include, where relevant:
+
+1. **Primary outcome criteria** — the direct reviewer-visible result promised by the title.
+2. **Behaviour continuity criteria** — existing user-facing or command behaviour that must still work.
+3. **Approved architecture criteria** — required approved components, roles, or boundaries from `ARCH.md`.
+4. **Negative criteria** — explicitly forbidden roles, shortcuts, alternative persistence concepts, or unapproved architecture shapes.
+
+Lower-level architectural checks are allowed, but they must not replace the primary outcome criteria.
+
+Do not invent unapproved implementation APIs, roles, loaders, materialisers, repositories, services, or persistence concepts to make a delivery slice sound complete. If the approved architecture does not define the implementation shape clearly enough for task creation, stop and ask for clarification or return to architecture rather than filling the gap.
+
 ## Conversation flow
 
 The prompts below are internal objectives, not user-facing scripts. Ask naturally. Avoid prompt IDs and stage mechanics.
@@ -175,6 +209,14 @@ tracks:
 ## Approval output
 
 Before writing the approved file, show the user:
+
+Before presenting the proposed delivery shape, check every milestone and deliverable:
+
+- Does the title name the actual thing that changes in concrete terms, without vague words that hide unresolved decisions?
+- Does the first acceptance criterion prove the title is true?
+- Are supporting architecture constraints kept as supporting criteria rather than treated as the main outcome?
+- Are negative criteria included when the architecture rejected specific alternatives?
+- Are there any vague words hiding an unresolved design decision?
 
 ```text
 Proposed delivery shape:
