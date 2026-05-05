@@ -1,6 +1,8 @@
 # Architecture: Riviere Extraction Workflows V1
 
-**Status:** Awaiting Architecture Approval
+**Status:** Approved
+
+**Approval note:** Architecture confirms the approved product direction and provides enough technical shape for delivery planning.
 
 ---
 
@@ -24,6 +26,8 @@ The workflow must not simply wrap or chain existing CLI commands. Existing build
 
 The workflow feature should instead orchestrate workflow execution in memory and write the final graph only after all stages succeed. Existing lower-level Rivière capabilities such as deterministic extraction, graph building, linking, validation, and graph serialisation remain owned by their existing packages and command/use-case layers.
 
+Concrete aggregate ownership: `RiviereProject` lives at `packages/riviere-extract-ts/src/features/extraction/domain/riviere-project.ts`, and `RiviereProjectRepository` lives at `packages/riviere-extract-ts/src/features/extraction/infra/persistence/riviere-project-repository.ts`.
+
 Important product boundary: workflows must not provide Rivière capabilities that the CLI does not provide. The CLI must not become “a watered down version of the full product.” Workflow execution may compose capabilities differently to protect all-or-nothing execution, but the underlying product capabilities should remain available through CLI surfaces rather than being hidden only inside workflow execution.
 
 Rejected ownership options:
@@ -31,7 +35,7 @@ Rejected ownership options:
 - A workflow wrapper around existing CLI commands was rejected because it would require graph state to be saved and reloaded between stages and would create cleanup complexity.
 - A new `packages/riviere-workflow` package was not selected for V1 because it adds package and API surface area before the first workflow slice is proven. It remains a possible future evolution if workflows need to be consumed outside the CLI.
 - `packages/riviere-builder` was rejected as the top-level workflow owner because workflow concerns include project-local workflow files, extraction config resolution, run logs, CLI progress, and future stage orchestration beyond pure graph building.
-- `packages/riviere-extract-ts` was rejected because workflows include linking, validation, graph writing, and future non-deterministic AI-assisted stages; `riviere-extract-ts` should remain deterministic extraction only.
+- `packages/riviere-extract-ts` was rejected as the top-level workflow feature owner because workflows include CLI workflow files, graph writing, run logs, and future non-deterministic AI-assisted stages. This does not move `RiviereProject` or `RiviereProjectRepository` out of the extraction package.
 
 Future evolution notes:
 
@@ -116,7 +120,7 @@ Option 1 is the accepted architecture direction. The approved reason is that the
 
 ##### Core idea
 
-Introduce `RiviereProject` as the main aggregate for a Rivière project rooted in a repository. In this option, `ExtractionProject` is explicitly retired as an aggregate. Its current config/materialisation state and extraction behaviours move out of `riviere-cli` into the extraction domain package (`packages/riviere-extract-ts`). Workflow consumes that package-level extraction capability; it does not import `riviere-cli`'s `features/extract` and it does not own extraction.
+Introduce `RiviereProject` as the main aggregate for a Rivière project rooted in a repository. It lives at `packages/riviere-extract-ts/src/features/extraction/domain/riviere-project.ts`. `RiviereProjectRepository` lives at `packages/riviere-extract-ts/src/features/extraction/infra/persistence/riviere-project-repository.ts`. In this option, `ExtractionProject` is explicitly retired as an aggregate. Its current config/materialisation state and extraction behaviours move out of `riviere-cli` into the extraction domain package (`packages/riviere-extract-ts`). Workflow consumes that package-level extraction capability; it does not import `riviere-cli`'s `features/extract` and it does not own extraction.
 
 The workflow file is one input used by `RiviereProjectRepository` to build project state for a selected workflow run. The project is identified by `projectRoot`; the workflow is selected by `workflowName` inside that project. Inline config paths in the user-facing workflow file are resolved during project loading into explicit extraction stages, not opaque configured steps and not nested aggregates.
 
@@ -124,9 +128,9 @@ The workflow file is one input used by `RiviereProjectRepository` to build proje
 
 The current `ExtractionProject` abstraction is challenged directly and resolved in this option: it must not remain an aggregate. Keeping it as an aggregate is Option 2, not an unresolved choice inside this option.
 
-This is also the target architecture for the existing extract feature. Current extract commands are rewired directly from `ExtractionProjectRepository`/`ExtractionProject` to `@living-architecture/riviere-extract-ts` domain services and package-level stage materialisation. The CLI package remains responsible for CLI input, output, command use cases, workflow loading, and shell wiring; it does not own core extraction domain logic. If the team wants to keep the current extract command wiring while adding workflows, that is not Option 1; it is a different option with explicit architecture debt.
+This is also the target architecture for the existing extract feature. Current extract commands are rewired directly from `ExtractionProjectRepository`/`ExtractionProject` to `RiviereProjectRepository`/`RiviereProject` plus package-owned extraction domain services in `@living-architecture/riviere-extract-ts`. The CLI package remains responsible for CLI input, output, command use cases, workflow loading, and shell wiring; it does not own core extraction domain logic. If the team wants to keep the current extract command wiring while adding workflows, that is not Option 1; it is a different option with explicit architecture debt.
 
-Non-CLI use note: this option makes extraction execution reusable outside the CLI. It does not, by itself, make workflow execution reusable outside the CLI, because V1 top-level workflow ownership is currently approved under `packages/riviere-cli/src/features/workflow`. If non-CLI workflow execution becomes a requirement for this PRD, the architecture must reopen ownership and move the reusable `RiviereProject`/stage-plan/graph-application execution model to a package boundary as well. Keeping reusable workflow execution inside `riviere-cli` would be CLI coupling.
+Non-CLI use note: this option makes the extraction project aggregate reusable outside the CLI because `RiviereProject` and `RiviereProjectRepository` live in `packages/riviere-extract-ts`. It does not, by itself, make the V1 workflow CLI surface reusable outside the CLI; command input, output, run-log writing, graph-file writing, and shell wiring remain under `packages/riviere-cli/src/features/workflow`.
 
 Workflow definitions use this V1 location and shape:
 
@@ -203,14 +207,14 @@ flowchart LR
   entrypoint["createWorkflowRunCommand<br/>(entrypoint)"]
   inputFactory["createRunWorkflowInput<br/>(commands)"]
   useCase["RunWorkflow<br/>(commands)"]
-  repository["RiviereProjectRepository<br/>(infra/persistence)"]
+  repository["RiviereProjectRepository<br/>(riviere-extract-ts infra/persistence)"]
   extractionStage["ExtractionStage<br/>(riviere-extract-ts domain)"]
   extractComponents["ExtractComponentsForGraph<br/>(riviere-extract-ts domain)"]
   detectConnections["DetectExtractionConnections<br/>(riviere-extract-ts domain)"]
-  project["RiviereProject<br/>(domain)"]
+  project["RiviereProject<br/>(riviere-extract-ts domain)"]
   builder["RiviereBuilder<br/>(riviere-builder)"]
   applyExtractionToGraph["ApplyExtractionToGraph<br/>(workflow domain)"]
-  formatter["presentWorkflowRunResult<br/>(infra/cli/output)"]
+  formatter["presentWorkflowRunResult<br/>(entrypoint/run-workflow)"]
 
   entrypoint -->|create input| inputFactory
   entrypoint -->|execute workflow| useCase
@@ -256,15 +260,15 @@ Legend: gray = existing, yellow = changed, green = new, blue = explicit role/con
 | `RunWorkflow`                 | `packages/riviere-cli/src/features/workflow/commands/run-workflow.ts`                                    | New                                                                    | `command-use-case`                | Load `RiviereProject` for `{ projectRoot, workflowName }`, call `rebuildGraph()`, return result. No stage loop, no builder construction, no graph/log file writing.                                                                                                                                                                                            | Small          |
 | `RunWorkflowInput`            | `packages/riviere-cli/src/features/workflow/commands/run-workflow-input.ts`                              | New                                                                    | `command-use-case-input`          | Project root, workflow name, and CLI output options.                                                                                                                                                                                                                                                                                                         | Small          |
 | `RunWorkflowResult`           | `packages/riviere-cli/src/features/workflow/commands/run-workflow-result.ts`                             | New                                                                    | `command-use-case-result`         | Graph build success/failure, graph artefact, NDJSON run log events, run log path, and failure detail.                                                                                                                                                                                                                                                        | Small          |
-| `RiviereProjectRepository`    | `packages/riviere-cli/src/features/workflow/infra/persistence/riviere-project-repository.ts`             | New                                                                    | `aggregate-repository`            | Load `RiviereProject` for a selected workflow run from `projectRoot` and `workflowName`; read workflow file, resolve graph metadata, load extraction config/source state, materialise `ExtractionStage` value objects, and create the aggregate. Does not run stages.                                                                                         | Large          |
-| `RiviereProject`              | `packages/riviere-cli/src/features/workflow/domain/riviere-project.ts`                                   | New                                                                    | `aggregate`                       | Own ordered graph-building journey, empty-start rebuild invariant, fail-fast execution, run events, and graph build result. Implementation requires adding `RiviereProject` to approved aggregate instances.                                                                                                                                                 | Medium         |
+| `RiviereProjectRepository`    | `packages/riviere-extract-ts/src/features/extraction/infra/persistence/riviere-project-repository.ts`    | New                                                                    | `aggregate-repository`            | Load the full `RiviereProject` aggregate state for `{ projectRoot, workflowName }` or `{ projectRoot, configPath, useTsConfig }`; read workflow/config files, resolve graph metadata where present, load extraction config/source state, materialise `ExtractionStage` value objects, and create the aggregate. Does not run stages.                         | Large          |
+| `RiviereProject`              | `packages/riviere-extract-ts/src/features/extraction/domain/riviere-project.ts`                          | New                                                                    | `aggregate`                       | Own ordered graph-building journey, empty-start rebuild invariant, fail-fast execution, run events, graph build result, and extract-command operations that replace `ExtractionProject`. Implementation requires adding `RiviereProject` to approved aggregate instances.                                                                                  | Medium         |
 | `ExtractionProject`           | `packages/riviere-cli/src/features/extract/domain/extraction-project.ts`                                 | Removed / replaced in Option 1                                         | none in target                    | No longer the extract aggregate or command-facing extraction object. Current extract command dependencies migrate to `@living-architecture/riviere-extract-ts` stage materialisation and extraction services.                                                                                                                                                | Large          |
 | `ExtractionStage`             | `packages/riviere-extract-ts/src/features/extraction/domain/extraction-stage.ts`                         | Changed / extracted from current `ExtractionProject`                   | `value-object`                    | Hold module contexts, resolved extraction config, repository name, and source/project context for one extraction config. Shared by CLI extract commands, CLI workflows, and future non-CLI consumers through the package API.                                                                                                                                | Large          |
 | `ExtractComponentsForGraph`   | `packages/riviere-extract-ts/src/features/extraction/domain/extract-components-for-graph.ts`             | New / extracted from current `ExtractionProject`                       | `domain-service`                  | Extract draft components and enrich them into graph-ready components without connection detection. Exported from `@living-architecture/riviere-extract-ts`.                                                                                                                                                                                                  | Medium         |
 | `DetectExtractionConnections` | `packages/riviere-extract-ts/src/features/extraction/domain/detect-extraction-connections.ts`            | New / extracted from current `ExtractionProject`                       | `domain-service`                  | Detect links from an extraction stage's module contexts against accumulated graph-ready components. Exported from `@living-architecture/riviere-extract-ts`.                                                                                                                                                                                                 | Medium         |
 | `ApplyExtractionToGraph`      | `packages/riviere-cli/src/features/workflow/domain/apply-extraction-to-graph.ts`                         | New                                                                    | `domain-service`                  | Apply `riviere-extract-ts` output to concrete `RiviereBuilder` write methods as part of the workflow graph rebuild domain operation. This is not a generic mapper and not builder-owned: extraction owns extraction output, builder owns graph mutation rules, workflow owns applying extracted architecture into the rebuild journey.                       | Medium         |
 | `RiviereBuilder`              | `packages/riviere-builder/src/features/building/domain/builder-facade.ts`                                | Existing                                                               | `aggregate`                       | In-memory graph write abstraction only. Knows graph rules, not workflow/config/project setup.                                                                                                                                                                                                                                                                | Existing       |
-| `presentWorkflowRunResult`    | `packages/riviere-cli/src/features/workflow/infra/cli/output/present-workflow-run-result.ts`             | New                                                                    | `cli-output-formatter`            | CLI boundary output handler. Writes the NDJSON run log and, on successful rebuild, writes the graph to the chosen output path using the command result plus CLI options. Feature-local CLI output is accepted for V1 based on current role enforcement and extract precedent.                                                                                  | Medium         |
+| `presentWorkflowRunResult`    | `packages/riviere-cli/src/features/workflow/entrypoint/run-workflow/present-workflow-run-result.ts`       | New                                                                    | `cli-output-formatter` / entrypoint-local output writer role from latest main | CLI boundary output handler. Writes the NDJSON run log and, on successful rebuild, writes the graph to the chosen output path using the command result plus CLI options. The accepted location follows the latest `entrypoint/{entrypoint}` structure from `main`, not the older feature-local `infra/cli/output` pattern. | Medium         |
 
 ##### Stage materialisation and execution mechanics
 
@@ -273,14 +277,40 @@ Legend: gray = existing, yellow = changed, green = new, blue = explicit role/con
 - The PRD's “write graph” step is implemented at the CLI boundary, not as a domain stage and not as a command-use-case writer. `RiviereProject.rebuildGraph()` returns a result containing the built graph, default output path, default run-log path, events, and failure details. `presentWorkflowRunResult(result, cliOptions)` decides how/where to write the graph and log from that result plus CLI inputs.
 - `RiviereProject.create(...)` or an equivalent domain factory must validate the stage-plan grammar before any run starts. The repository may parse workflow config and call that factory, but it must not become the owner of stage semantics.
 - `createRunWorkflowInput` may live under `commands` only if its input is a small parsed-options type owned by the workflow feature. It must not import Commander types or depend on raw CLI option objects; the entrypoint owns CLI-to-parsed-options translation.
-- `presentWorkflowRunResult` follows the existing `features/extract/infra/cli/output/present-extraction-result.ts` precedent and the current role-enforcement config. Option 1 treats feature-local `infra/cli/output` as the CLI boundary for summaries, graph writes, and run-log writes.
+- `presentWorkflowRunResult` follows the latest `main` branch entrypoint-specific structure: feature-local CLI presentation for this command lives under `packages/riviere-cli/src/features/workflow/entrypoint/run-workflow/`, not under the older `infra/cli/output` pattern. Option 1 treats the entrypoint folder as the CLI boundary for summaries, graph writes, and run-log writes.
 - `RiviereProjectRepository` is the repository in this option because it loads the `RiviereProject` aggregate. For every extract stage, it performs the loading/materialisation work: expand module `$ref`, resolve module `extends`, resolve source files, create `ts-morph` projects, and materialise an `ExtractionStage` value object as part of the aggregate state. There is no separate `ExtractionStageRepository`, because `ExtractionStage` is not an aggregate; there is also no `ExtractionConfigResolution` service, because resolving config/source/project context is persistence setup rather than pure domain computation.
+- Repository loading follows the approved architecture memory `project-memory/architecture/memories/repository-loading-must-load-full-aggregate.md`: `RiviereProjectRepository` loads the full aggregate state. It must not accept `sourceMode`, selected files, changed-file mode, draft components, `includeConnections`, or `allowIncomplete`.
 - This option avoids nested aggregates by making a concrete choice: current `ExtractionProject` is no longer an aggregate. Its module contexts, resolved config, repository name, and draft components become package-owned `ExtractionStage`; draft extraction, enrichment, and connection-detection behaviour move into package-owned extraction domain services over that stage.
 - Existing extract commands migrate to the same package-owned `ExtractionStage` and extraction services. Option 1 does not keep `ExtractionProjectRepository`/`ExtractionProject` in the command path.
 - If the team wants `ExtractionProject` to remain an aggregate, this option is rejected and Option 2 is the relevant branch.
 - The extract stage cannot call today's `extractDraftComponents({ includeConnections: false })` and then add results to the builder, because `draftOnly` output is not graph-ready. This option requires an explicit extraction operation that returns enriched graph components without running connection detection.
 - The link stage should call `detectConnections(allGraphComponents, extractionOptions)` only on extraction stages that have already executed in the current run, then apply the returned links to the current in-memory builder. It must not loop over every materialised extraction stage regardless of stage order.
 - The validate stage must call `builder.validate()` before final graph build. The final graph write remains outside `RiviereProject`; the aggregate returns the built graph and events.
+- Architecture approval disposition: keep `ApplyExtractionToGraph` as named and placed. It is approved as workflow domain logic because it mutates the in-memory `RiviereBuilder` graph aggregate as part of the rebuild journey, applies required graph-field checks, preserves source repository information, and is not shaping CLI/user output for a specific presentation use case.
+
+Extraction command replacement flow:
+
+```text
+Current extract command path:
+  ExtractDraftComponents
+    -> ExtractionProjectRepository.loadFromChangedProject/loadFromSelectedFiles/loadFromFullProject(...)
+    -> ExtractionProject.extractDraftComponents({ allowIncomplete, includeConnections })
+
+  EnrichDraftComponents
+    -> ExtractionProjectRepository.loadFromDraftEnrichment({ configPath, draftComponentsPath, useTsConfig })
+    -> ExtractionProject.enrichDraftComponents({ allowIncomplete, includeConnections })
+
+Target extract command path:
+  ExtractDraftComponents
+    -> RiviereProjectRepository.load({ projectRoot, configPath, useTsConfig })
+    -> RiviereProject.extractDraftComponents({ sourceFileSelection, allowIncomplete, includeConnections })
+
+  EnrichDraftComponents
+    -> RiviereProjectRepository.load({ projectRoot, configPath, useTsConfig })
+    -> RiviereProject.enrichDraftComponents({ draftComponents, allowIncomplete, includeConnections })
+```
+
+The target loading call loads the full project aggregate state for the resolved extraction config: expanded module `$ref` entries, resolved module `extends`, repository name, all files matched by config modules, `ts-morph` projects, and `ExtractionStage` value objects. Selected files and changed files are not repository inputs; they become `sourceFileSelection` on `RiviereProject.extractDraftComponents(...)`. `sourceMode` stays in CLI/input validation and is translated before the aggregate operation is called. `draftComponentsPath` is not a repository input; the CLI boundary/infra loads draft components and passes `draftComponents` into `RiviereProject.enrichDraftComponents(...)`. `allowIncomplete` and `includeConnections` are operation inputs only.
 
 Run log semantics:
 
@@ -340,7 +370,7 @@ Role decision: `ExtractionStage` lives in `packages/riviere-extract-ts/src/featu
 createWorkflowRunCommand
   ├─ createRunWorkflowInput(options)
   ├─ RunWorkflow.execute(input)
-  │  ├─ RiviereProjectRepository.loadForWorkflowRun({ projectRoot: input.projectRoot, workflowName: input.workflowName })
+  │  ├─ RiviereProjectRepository.load({ projectRoot: input.projectRoot, workflowName: input.workflowName })
   │  │  ├─ WorkflowDefinitionFile.read(projectRoot, workflowName)
   │  │  ├─ GraphOptions.fromWorkflowDefinition(definition.graph)
   │  │  ├─ load extraction config/source state for each extract stage
@@ -439,13 +469,13 @@ class ApplyExtractionToGraph {
 }
 
 interface RiviereProjectRepository {
-  loadForWorkflowRun(input: { projectRoot: string; workflowName: string }): Promise<RiviereProject>;
+  load(input: { projectRoot: string; workflowName: string }): Promise<RiviereProject>;
 }
 export class RunWorkflow {
   constructor(private readonly projects: RiviereProjectRepository) {}
 
   async execute(input: RunWorkflowInput): Promise<GraphBuildResult> {
-    const project = await this.projects.loadForWorkflowRun({ projectRoot: input.projectRoot, workflowName: input.workflowName });
+    const project = await this.projects.load({ projectRoot: input.projectRoot, workflowName: input.workflowName });
     return project.rebuildGraph();
   }
 }
@@ -512,11 +542,11 @@ packages/riviere-cli/src/features/workflow/commands/create-run-workflow-input.ts
 packages/riviere-cli/src/features/workflow/commands/run-workflow.ts
 packages/riviere-cli/src/features/workflow/commands/run-workflow-input.ts
 packages/riviere-cli/src/features/workflow/commands/run-workflow-result.ts
-packages/riviere-cli/src/features/workflow/infra/persistence/riviere-project-repository.ts
+packages/riviere-extract-ts/src/features/extraction/infra/persistence/riviere-project-repository.ts
 packages/riviere-cli/src/features/workflow/infra/persistence/workflow-run-log-writer.ts
 packages/riviere-cli/src/features/workflow/infra/persistence/workflow-graph-output-writer.ts
-packages/riviere-cli/src/features/workflow/infra/cli/output/present-workflow-run-result.ts
-packages/riviere-cli/src/features/workflow/domain/riviere-project.ts
+packages/riviere-cli/src/features/workflow/entrypoint/run-workflow/present-workflow-run-result.ts
+packages/riviere-extract-ts/src/features/extraction/domain/riviere-project.ts
 packages/riviere-cli/src/features/workflow/domain/apply-extraction-to-graph.ts
 packages/riviere-extract-ts/src/features/extraction/domain/extraction-stage.ts
 packages/riviere-extract-ts/src/features/extraction/domain/extract-components-for-graph.ts
@@ -554,11 +584,11 @@ Costs / risks:
 - Remove `ExtractionProject` from approved `aggregate` role instances when Option 1 is implemented.
 - Do not introduce `ExtractionStageRepository`: `ExtractionStage` is not an aggregate. Do not introduce `ExtractionConfigResolution`: resolving config/source/project context is loading/materialisation, not pure extraction computation. `RiviereProjectRepository` materialises extraction stage value objects while loading the `RiviereProject` aggregate.
 - Keep `ApplyExtractionToGraph` in workflow domain as a `domain-service`; do not move it to builder, extraction, or infra mapping.
-- Treat feature-local `infra/cli/output` as approved for V1 because `.riviere/role-enforcement.config.ts` explicitly allows it and the extract feature already uses the pattern.
+- Use the latest `main` branch entrypoint-specific CLI placement for workflow presentation: `packages/riviere-cli/src/features/workflow/entrypoint/run-workflow/`. Do not add new workflow presentation files under the older `infra/cli/output` pattern.
 - Keep V1 workflow implementation under `packages/riviere-cli/src/features/workflow`. If non-CLI workflow execution becomes required, create a separate package-level workflow architecture rather than reusing CLI internals.
 - Load `BuilderOptions` from the selected workflow definition's graph section for V1.
 - Run workflow extraction in strict mode with `{ allowIncomplete: false }`; do not expose `allowIncomplete` in workflow files or workflow CLI options for V1.
-- Resolve workflow names to project-local workflow definitions through `RiviereProjectRepository.loadForWorkflowRun({ projectRoot, workflowName })` using `.riviere/workflows/{workflowName}.yaml` for V1. Other naming conventions or discovery rules are out of scope for this option.
+- Resolve workflow names to project-local workflow definitions through `RiviereProjectRepository.load({ projectRoot, workflowName })` using `.riviere/workflows/{workflowName}.yaml` for V1. Other naming conventions or discovery rules are out of scope for this option.
 <!-- component-design-option-1:end -->
 
 <!-- component-design-option-2:start -->
@@ -628,7 +658,7 @@ flowchart LR
   extractionProject["ExtractionProject<br/>(domain)"]
   graphApplier["ApplyExtractionToGraph<br/>(domain)"]
   builder["RiviereBuilder<br/>(riviere-builder)"]
-  formatter["presentWorkflowRunResult<br/>(infra/cli/output)"]
+  formatter["presentWorkflowRunResult<br/>(entrypoint/run-workflow)"]
 
   entrypoint -->|create input| inputFactory
   entrypoint -->|execute workflow| useCase
@@ -674,7 +704,7 @@ Legend: gray = existing, yellow = changed, green = new, red = rejected design.
 | `ExtractionProjectRepository`     | `packages/riviere-cli/src/features/extract/infra/persistence/extraction-project/extraction-project-repository.ts` | Existing | `aggregate-repository`                | Load existing `ExtractionProject` aggregate from extraction config inputs.                                                                                  | Existing       |
 | `ExtractionProject`               | `packages/riviere-cli/src/features/extract/domain/extraction-project.ts`                                          | Changed  | `aggregate`                           | Continue to own configured extraction behaviour and expose graph-ready component extraction separately from connection detection.                           | Medium         |
 | `RiviereBuilder`                  | `packages/riviere-builder/src/features/building/domain/builder-facade.ts`                                         | Existing | `aggregate`                           | In-memory graph write abstraction only.                                                                                                                     | Existing       |
-| `presentWorkflowRunResult`        | `packages/riviere-cli/src/features/workflow/infra/cli/output/present-workflow-run-result.ts`                      | New      | `cli-output-formatter`                | Write graph/log to console or files according to CLI parameters.                                                                                            | Small          |
+| `presentWorkflowRunResult`        | `packages/riviere-cli/src/features/workflow/entrypoint/run-workflow/present-workflow-run-result.ts`                | New      | `cli-output-formatter` / entrypoint-local output writer role from latest main | Write graph/log to console or files according to CLI parameters.                                                                                            | Small          |
 
 ##### Stage materialisation and execution mechanics
 
@@ -774,7 +804,7 @@ packages/riviere-cli/src/features/workflow/infra/persistence/riviere-project-con
 packages/riviere-cli/src/features/workflow/domain/riviere-project-context.ts
 packages/riviere-cli/src/features/workflow/domain/riviere-project-graph-rebuilder.ts
 packages/riviere-cli/src/features/workflow/domain/apply-extraction-to-graph.ts
-packages/riviere-cli/src/features/workflow/infra/cli/output/present-workflow-run-result.ts
+packages/riviere-cli/src/features/workflow/entrypoint/run-workflow/present-workflow-run-result.ts
 packages/riviere-cli/src/features/extract/domain/extraction-project.ts
 ```
 
@@ -833,7 +863,7 @@ flowchart LR
   extractionProject["ExtractionProject<br/>(domain)"]
   graphApplier["ApplyExtractionToGraph<br/>(domain)"]
   builder["RiviereBuilder<br/>(riviere-builder)"]
-  formatter["presentWorkflowRunResult<br/>(infra/cli/output)"]
+  formatter["presentWorkflowRunResult<br/>(entrypoint/run-workflow)"]
 
   entrypoint -->|create input| inputFactory
   entrypoint -->|execute workflow| useCase
@@ -879,7 +909,7 @@ Legend: gray = existing, yellow = changed, green = new, red = rejected design.
 | `ExtractionProjectRepository` | `packages/riviere-cli/src/features/extract/infra/persistence/extraction-project/extraction-project-repository.ts` | Existing | `aggregate-repository` | Load existing `ExtractionProject` aggregate from extraction config inputs. | Existing |
 | `ExtractionProject` | `packages/riviere-cli/src/features/extract/domain/extraction-project.ts` | Changed | `aggregate` | Remains focused on extraction behaviour and must expose graph-ready component extraction separately from connection detection. | Medium |
 | `RiviereBuilder` | `packages/riviere-builder/src/features/building/domain/builder-facade.ts` | Existing | `aggregate` | In-memory graph write abstraction only. | Existing |
-| `presentWorkflowRunResult` | `packages/riviere-cli/src/features/workflow/infra/cli/output/present-workflow-run-result.ts` | New | `cli-output-formatter` | Write graph/log to console or files according to CLI parameters. | Small |
+| `presentWorkflowRunResult` | `packages/riviere-cli/src/features/workflow/entrypoint/run-workflow/present-workflow-run-result.ts` | New | `cli-output-formatter` / entrypoint-local output writer role from latest main | Write graph/log to console or files according to CLI parameters. | Small |
 
 ##### Stage materialisation and execution mechanics
 
@@ -979,7 +1009,7 @@ packages/riviere-cli/src/features/workflow/infra/persistence/workflow-definition
 packages/riviere-cli/src/features/workflow/domain/workflow-definition.ts
 packages/riviere-cli/src/features/workflow/application/workflow-graph-build-orchestrator.ts
 packages/riviere-cli/src/features/workflow/domain/apply-extraction-to-graph.ts
-packages/riviere-cli/src/features/workflow/infra/cli/output/present-workflow-run-result.ts
+packages/riviere-cli/src/features/workflow/entrypoint/run-workflow/present-workflow-run-result.ts
 packages/riviere-cli/src/features/extract/domain/extraction-project.ts
 ```
 
@@ -1015,7 +1045,7 @@ Costs / risks:
 
 #### Approval
 
-Option 1 is approved: `RiviereProject` becomes the aggregate that owns the ordered graph-building journey and the empty-start rebuild invariant. Current `ExtractionProject` aggregate responsibilities are retired and split into package-owned extraction stage/value-object and extraction domain services in `packages/riviere-extract-ts`.
+Option 1 is approved: `RiviereProject` becomes the aggregate that owns the ordered graph-building journey and the empty-start rebuild invariant, at `packages/riviere-extract-ts/src/features/extraction/domain/riviere-project.ts`. `RiviereProjectRepository` is at `packages/riviere-extract-ts/src/features/extraction/infra/persistence/riviere-project-repository.ts`. Current `ExtractionProject` aggregate responsibilities are retired and split into package-owned extraction stage/value-object and extraction domain services in `packages/riviere-extract-ts`.
 
 Rejected alternatives:
 
@@ -1034,7 +1064,7 @@ The accepted trade-off is to do the broader refactor now because it is better fo
 - All-or-nothing graph integrity is feasible because `RiviereProject.rebuildGraph()` creates a fresh in-memory `RiviereBuilder`, applies stages in order, and returns the built graph only after successful validation. The CLI boundary writes the final graph only after success.
 - Multiple extraction stages are feasible because each extraction stage contributes graph-ready components to one in-memory builder, and the later link stage detects connections against the accumulated component set.
 - Run logging is feasible because the domain/application result can carry run events, while `presentWorkflowRunResult` writes newline-delimited JSON logs at the CLI boundary.
-- `.riviere` role consequences are explicit: add `RiviereProject` as an approved aggregate instance, remove or change `ExtractionProject`'s aggregate approval when Option 1 is implemented, keep `RiviereProjectRepository` as the aggregate repository, keep `ApplyExtractionToGraph` as a workflow domain service, and keep CLI output writing at the CLI boundary.
+- `.riviere` role consequences are explicit: add `RiviereProject` as an approved aggregate instance in `packages/riviere-extract-ts/src/features/extraction/domain`, remove or change `ExtractionProject`'s aggregate approval when Option 1 is implemented, keep `RiviereProjectRepository` as the aggregate repository in `packages/riviere-extract-ts/src/features/extraction/infra/persistence`, keep `ApplyExtractionToGraph` as a workflow domain service, and keep CLI output writing at the CLI boundary.
 - No product-impact loop-back is required.
 
 ## 5. Product impact notes
@@ -1048,14 +1078,14 @@ No product-impact changes identified.
 Delivery planning and task creation must carry forward these architecture consequences:
 
 - Add the V1 workflow feature under `packages/riviere-cli/src/features/workflow`.
-- Introduce `RiviereProject` as the workflow/project aggregate that owns the ordered graph-building journey, fail-fast execution, run events, and empty-start graph rebuild invariant.
-- Introduce `RiviereProjectRepository` to load selected workflow runs from `.riviere/workflows/{workflowName}.yaml`, validate workflow schema/stage grammar, resolve graph metadata, materialise extraction stages, and create `RiviereProject`. It must not run stages.
+- Introduce `RiviereProject` at `packages/riviere-extract-ts/src/features/extraction/domain/riviere-project.ts` as the workflow/project aggregate that owns the ordered graph-building journey, fail-fast execution, run events, empty-start graph rebuild invariant, and extract-command operations replacing `ExtractionProject`.
+- Introduce `RiviereProjectRepository` at `packages/riviere-extract-ts/src/features/extraction/infra/persistence/riviere-project-repository.ts` to load the full `RiviereProject` aggregate state from `.riviere/workflows/{workflowName}.yaml` or an extraction config path, validate workflow schema/stage grammar when loading a workflow, resolve graph metadata where present, materialise extraction stages, and create `RiviereProject`. It must not run stages and must not accept operation inputs.
 - Move or extract current `ExtractionProject` state and behaviour into `packages/riviere-extract-ts` as `ExtractionStage`, `ExtractComponentsForGraph`, and `DetectExtractionConnections` or equivalent package-owned domain components.
 - Migrate existing extract command paths away from the current `ExtractionProjectRepository` / `ExtractionProject` aggregate model to the package-owned extraction stage/services model selected by Option 1.
 - Add `ApplyExtractionToGraph` in workflow domain to map `EnrichedComponent[]`, `ExtractedLink[]`, and `ExternalLink[]` onto real `RiviereBuilder` methods, including required field validation and source repository preservation.
 - Keep `RiviereBuilder` decoupled from workflow and config. It remains an in-memory graph write abstraction.
 - Implement strict V1 workflow extraction with `{ allowIncomplete: false }`; do not expose `allowIncomplete` in workflow files or workflow CLI options.
 - Implement workflow schema/stage validation before stages run, including required graph metadata, required run-log directory, valid stage order, one or more extract stages, exactly one link stage, and exactly one validate stage.
-- Implement CLI-boundary graph and run-log writing through `presentWorkflowRunResult`, including temp-file plus rename for graph writes so failed runs leave the previous graph unchanged.
+- Implement CLI-boundary graph and run-log writing through entrypoint-local workflow presentation/output handling under `packages/riviere-cli/src/features/workflow/entrypoint/run-workflow/`, including temp-file plus rename for graph writes so failed runs leave the previous graph unchanged.
 - Add `.riviere` role/config changes for `RiviereProject` and the retirement or role change of `ExtractionProject` as part of implementation.
 - Add `ecommerce-demo-app` workflow definition using `.riviere/config/extraction.config.json`, and wire it into CI as a normal CLI command.

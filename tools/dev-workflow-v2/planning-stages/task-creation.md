@@ -31,6 +31,39 @@ The PRD provides product WHAT and WHY.
 The architecture document provides technical HOW constraints and task consequences.
 The delivery plan provides milestone and deliverable slicing.
 
+## Refactoring and replacement hard-fail gate
+
+When a task changes an existing implementation path, retires a concept, removes a component, migrates responsibilities, or replaces one model with another, it is a refactoring/replacement issue.
+
+For refactoring/replacement issues, task creation must hard-fail if the issue would ask the implementer to make a major design decision that is not explicitly answered by the approved architecture and captured as acceptance criteria.
+
+Major design decisions are not ad-hoc implementation work. If the approved PRD, architecture, or delivery plan does not answer the decision, block task creation and return to the relevant planning stage. Do not turn the missing design into implicit implementation work.
+
+Hard-fail examples:
+
+- The old path is removed but the replacement path is not named.
+- A task asks for application state to be used but does not say how that state is loaded.
+- A task asks to replace a repository, loader, aggregate, or persistence boundary without naming the approved replacement boundary and role.
+- A task includes `const value = someNewThing(...)` but does not say where the constructor inputs come from.
+- A task replaces `const oldState = oldRepository.load(...)` but does not show the exact approved replacement load call.
+- A task relies on a new callable, component, role, repository, service, loader, materialiser, or persistence concept that is not explicitly approved.
+
+Refactoring/replacement issue titles must name the actual change:
+
+- Use `Replace X with Y` when something old is being replaced.
+- Use `Remove X` only when the task is pure deletion and no replacement is needed.
+- Do not use `Remove X` when existing behaviour must continue through a new path.
+- `Y` must be a concrete approved replacement, not vague wording such as "new model", "stage materialisation", "service path", or "approved approach" unless the approved artefacts explicitly define the concrete code element and flow behind that phrase.
+
+Refactoring/replacement issues must include:
+
+1. **Current flow to replace** — concrete existing class/function/file flow, with code sample when source material exists.
+2. **Expected end-state flow** — concrete approved replacement class/function/file flow, with code sample when architecture contains or implies one.
+3. **State loading answer** — if application state is loaded or materialised, the issue must name the approved loading boundary, role, method/function call, inputs, output, and where each output field comes from.
+4. **Replacement matrix** — every old public mode/path/behaviour maps to its approved replacement.
+5. **Done criteria for both sides** — the new state exists and works, the old state is gone, and existing behaviours remain equivalent where required.
+6. **Design adherence guardrail** — if implementation reveals the approved design is wrong or incomplete, stop and discuss with the user; do not implement a different design without approval.
+
 ## Step 2: build each issue body in this order
 
 Always include these header lines first:
@@ -43,10 +76,11 @@ Always include these header lines first:
 Then include these mandatory sections in this exact relative order:
 
 1. `## What this ticket is about`
-2. `## What "done" looks like`
-3. `## Implementation guidelines`
-4. `## How to verify`
-5. `## Out of scope`
+2. `## Current and expected end state` for refactoring/replacement issues only
+3. `## What "done" looks like`
+4. `## Implementation guidelines`
+5. `## How to verify`
+6. `## Out of scope`
 
 Include these optional sections only when there is concrete source material for them. If included, preserve this relative order around the mandatory sections:
 
@@ -71,11 +105,50 @@ This section must:
 - explain why the work matters
 - include concrete examples already present in the approved PRD or approved delivery plan
 
+For refactoring/replacement issues, this section must say that the work replaces the old path with the approved new path. It must not describe the task as simple removal when existing behaviour must continue through a replacement path.
+
+### Current and expected end state
+
+Use this section for refactoring/replacement issues.
+
+Populate from:
+
+- the selected delivery deliverable
+- the approved architecture document
+- relevant code samples already present in the approved architecture document
+
+This section must include:
+
+- the current flow to replace, naming concrete existing classes/functions/files
+- the expected end-state flow, naming concrete approved replacement classes/functions/files
+- relevant code samples from approved architecture or approved planning artefacts
+- an expected end-state code sample when architecture contains enough concrete information to write one
+- the state-loading answer when application state is loaded or materialised
+
+The state-loading answer must name:
+
+- the approved loading boundary
+- the approved role of that boundary
+- the method/function call the implementer should use or create
+- the exact replacement line/call when an old loading call is being replaced
+- the inputs to that call
+- the output from that call
+- where each output field comes from
+
+If this cannot be populated from approved artefacts, block task creation. Do not invent the missing code shape in the issue.
+
 ### What "done" looks like
 
 Populate from the selected delivery deliverable's acceptance criteria and any linked PRD success conditions.
 
 Every bullet must be observable and checkable at ticket close.
+
+For refactoring/replacement issues, acceptance criteria must include both replacement outcomes and removal outcomes. Do not list only what disappears. Acceptance criteria must explicitly state:
+
+- the approved new path exists and works
+- the old path no longer exists, when removal is part of the approved plan
+- each old public mode/path/behaviour still works or is explicitly out of scope
+- any major design decision that would otherwise be left to implementation
 
 Do not write summary phrases such as:
 
@@ -112,9 +185,12 @@ This section must contain:
 - firm constraints from the PRD and approved architecture
 - flexible decisions
 - role enforcement guidance
+- for refactoring/replacement issues, the concrete replacement sequence, not only deletion instructions
 
 Architecture consequences stay here in the lower implementation-guidance area.
 They do not move to the top of the issue.
+
+Implementation guidelines must never ask the implementer to choose the approved design implicitly. If a design choice remains, it must either be an explicit acceptance criterion for this task or a blocker that sends the work back to planning.
 
 ### Testing strategy
 
@@ -187,6 +263,8 @@ After the main issue body, append this exact annex structure:
 
 ### Proposed Roles and Locations
 
+These roles and locations must be the agreed design from the approved architecture. If implementation reveals design issues that challenge the agreed design, the implementer must stop and discuss with the user. Do not implement a different design without approval.
+
 | Proposed Element | Kind | Role | Sublocation | Confidence | Notes |
 |------------------|------|------|-------------|------------|-------|
 | `FooUseCase` | class | `command-use-case` | `src/features/foo/commands/` | HIGH | Single public method `apply(...)`; input `FooInput` → result `FooResult`. |
@@ -199,6 +277,8 @@ If no gaps: state "No gaps — all proposed elements fit existing roles."
 
 If none: state "No structural concerns identified."
 
+For refactoring/replacement issues, explicitly include any forbidden replacement concepts and the approved replacement concept. Do not only say what not to invent; also say what approved concept is used instead. If the approved replacement concept is not known, block task creation.
+
 ### Reminders for the Implementer
 
 - This annex is directional. The plan will evolve during TDD — role assignments may change as code takes shape.
@@ -206,6 +286,7 @@ If none: state "No structural concerns identified."
 - Any proposed new role must be approved by the user before being added to `.riviere/roles.ts`. Same for any new aggregate — must be added to `approvedInstances` with `userHasApproved: true`.
 - Role enforcement is automatically verified at lint time (`pnpm nx lint <package>` or the project-wide role-check task). Treat the oxlint result as the final arbiter, not this annex.
 - If a proposed element turns out to need a role that does not exist, stop and get user approval before inventing one.
+- If implementation reveals the approved design is incomplete or wrong, stop and discuss with the user. Do not fill the gap by inventing an alternative design during implementation.
 ```
 
 ## Step 5: ensure GitHub milestone and label exist
@@ -261,6 +342,12 @@ Block task creation if any of these are true:
 2. the approved architecture document does not contain explicit task consequences that can be carried into the generated issue
 3. the approved delivery plan does not contain concrete deliverables, acceptance criteria, source refs, and verification notes where known
 4. the selected deliverable depends on unresolved product, architecture, or delivery blockers
+5. the selected deliverable asks the implementer to make a major design decision that is not an explicit acceptance criterion
+6. a refactoring/replacement issue does not show the current flow and expected end-state flow
+7. a refactoring/replacement issue removes an existing state-loading or persistence path without naming the approved replacement loading boundary, role, call, inputs, output, and data origins
+8. a refactoring/replacement issue title says `Remove X` when the real work is replacing `X` with `Y`
+9. relevant code samples exist in the approved architecture but the issue omits the expected end-state code sample
+10. an old state-loading call is being replaced but the issue does not show the exact approved replacement line/call
 
 If blocked, the current planning command must produce:
 

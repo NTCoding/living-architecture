@@ -52,6 +52,12 @@ Approve only if all of these are true:
 10. the architecture removes technical approvals from PRD requirement text instead of duplicating them there
 11. the architecture does not change product scope without returning to the appropriate earlier stage
 12. relevant approved architecture memories were considered as advisory context, and any unclear applicability or conflict was clarified with the user
+13. any design that loads, rebuilds, materialises, migrates, or replaces application state explicitly names the application state, owning aggregate, repository, load call, load inputs, loaded output, data origins, and caller
+14. any design that replaces a repository, aggregate, loader, or persistence boundary names the approved replacement boundary and does not leave that decision to implementation
+15. task generation consequences include major design decisions needed by implementation tickets, including before/after code shape where architecture contains code-level design
+16. no implementation task would need to make a major design decision unless that decision is explicitly included as acceptance criteria
+
+If any state-loading or replacement design is described only with vague phrases such as "materialise", "load the state", "create the stage", "use the new model", or "wire up the service" without the concrete loading boundary and data origins, block architecture approval.
 
 ## Return checks
 

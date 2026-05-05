@@ -190,6 +190,45 @@ Stop after this discussion. Continue only after the user approves, rejects, or c
 
 Work with the user to design the software components to implement the new capabilities.
 
+## Application state loading and persistence completeness gate
+
+Architecture must explicitly describe how application state is loaded whenever a design reads, rebuilds, materialises, migrates, or replaces application state.
+
+This is a hard gate. A design that says state is "materialised", "loaded", "available", "created", "resolved", or "passed in" without explaining the approved loading mechanism is incomplete.
+
+For command-side application state, the default pattern is:
+
+```text
+command-use-case
+  -> aggregate-repository loads aggregate
+  -> aggregate owns loaded state and behaviour
+  -> aggregate method performs domain behaviour
+```
+
+A repository loads an aggregate only. The aggregate owns the loaded state. If the design uses a different mechanism, that mechanism must be an explicitly approved architecture decision with a named role, location, trade-off, and reason the repository/aggregate pattern does not apply.
+
+For every component design option that touches state loading or persistence, the option must answer:
+
+- What application state is loaded?
+- Which aggregate owns that state after loading?
+- Which repository loads that aggregate?
+- What is the exact load method/function name?
+- What is the exact representative load line/call that implementation should use or create?
+- What are the load inputs?
+- What is the loaded output?
+- Where does each loaded output field come from?
+- Which external-client services, if any, perform technical file/database/API/tool access for the repository?
+- Which component invokes the repository?
+- Which component must not invoke the repository?
+- Which existing load paths are replaced, if this is a migration/refactor?
+- What is the before/after code shape for at least one representative use case?
+
+For refactoring/replacement designs, include relevant code samples. At minimum, show one current representative use case and one expected end-state representative use case. If the current use case has a line such as `const state = repository.load(...)`, the expected end-state sample must show the exact replacement line/call and must show where the replacement call's input data comes from.
+
+If a design replaces a repository, aggregate, loader, or persistence boundary, it must name the approved replacement loading boundary. If the replacement is not known, the option is not a design yet; it is a wishlist item and must not proceed to architecture approval.
+
+Do not allow implementation tasks to decide major loading or persistence design questions. Either decide them in architecture and record them as task-generation consequences, or block and continue architecture design.
+
 ## Task
 
 Generate exactly 3 initial component design options by using fresh `component-design-architect` subagent contexts.
@@ -220,6 +259,7 @@ Before invoking subagents, prepare a concise shared design brief from:
 - relevant ADRs and architecture constraints
 - the actual target package, module, or feature boundary
 - hard non-negotiable constraints already approved with the user
+- the application state loading and persistence completeness gate when the feature reads, rebuilds, materialises, migrates, or replaces application state
 
 The shared design brief must include only facts and approved decisions. Do not invent constraints to steer the subagent toward a preferred design.
 
@@ -581,6 +621,8 @@ Options have been written to this file. Which option should be approved, rejecte
 
 Before invoking each subagent, include the Component Naming Guidelines, ADR-002 layering constraints, `.riviere` role constraints, and the approved ownership boundary in that subagent's prompt.
 
+When relevant, also include the application state loading and persistence completeness gate. The subagent must not use vague phrases such as "materialise state" or "load the stage" without naming the approved loading boundary, role, call, inputs, output, and data origins.
+
 The subagent that writes an option is responsible for applying those constraints before writing.
 
 The main agent must not perform a full semantic review of all written option bodies. If deeper review is needed, invoke a fresh specialist review subagent against `architecturePath` and the relevant marker block rather than loading all option bodies into the main-agent context.
@@ -621,6 +663,8 @@ After the user approves, rejects, or combines the architecture options into one 
 <explicit consequences that delivery planning and task creation must carry forward>
 ```
 
+Task generation consequences must include any major design decisions that implementation tickets need in order to avoid ad-hoc design during implementation. For refactoring/replacement work, this includes the approved replacement path, the state-loading mechanism, before/after code shape, role/location decisions, and forbidden alternative designs.
+
 Then ask whether the architecture draft is ready for approval review.
 
 If the user approves the draft for approval review, the current planning command must produce:
@@ -642,7 +686,9 @@ This stage is complete only when all of these are true:
 7. `.riviere` role decisions are resolved where relevant
 8. product-impact notes are explicit
 9. task generation consequences are explicit
-10. no `[NEEDS CLARIFICATION]` markers remain
+10. state loading and persistence design is explicit where relevant
+11. no major design decisions are left implicitly for implementation
+12. no `[NEEDS CLARIFICATION]` markers remain
 
 If complete, produce:
 
