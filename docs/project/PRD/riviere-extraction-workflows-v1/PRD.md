@@ -4,7 +4,7 @@
 
 **PRD approval:** Approved
 
-**Approval note:** Product discovery is complete enough for architecture drafting. This PRD records the approved product decision and intentionally excludes delivery milestones.
+**Approval note:** Product discovery is complete enough for architecture drafting. This PRD records the approved product decision and intentionally excludes delivery milestones. Dogfooding planning later approved the link-stage config reference and brought modular workflow dogfooding back into V1 scope.
 
 ---
 
@@ -22,13 +22,15 @@ If any stage fails, the workflow aborts immediately. Later stages must not run a
 
 V1 should support one or many extraction stages, so users can run either a single combined extraction config or several focused configs such as `extract-bff`, `extract-orders`, and `extract-shipping`. Extraction and linking behaviour stays in Rivière configuration; the workflow orchestrates Rivière stages and does not duplicate detection rules, linking rules, custom types, or extraction semantics.
 
+The link stage must be able to reference the Rivière config that owns connection/linking rules. For the `ecommerce-demo-app`, the link stage should reference `.riviere/config/extraction.config.json` because that combined config contains the cross-module connection configuration. The workflow file references the config; it must not inline or duplicate linking rules.
+
 V1 must support `extract → link → validate → write graph` as the first workflow stage set. `extract → write graph` alone is not sufficient because it would add another abstraction layer on top of extraction without automating the manual graph-building steps. Linking must be included so the workflow produces a graph-building journey rather than only extracted components. Validation should be included because it is easy and gives confidence that the workflow output is valid.
 
 The TypeScript six-step flow is the first canonical example to automate, but V1 should not lock the product model to only that process. The solution should account for key journeys such as multiple extractions across multiple codebases or parts of a codebase, and multiple linking passes where needed.
 
 Run logs are primarily a developer aid in V1. Logging is easy and cheap, so Rivière should log generously where useful, at the appropriate level. Logs should be newline-delimited structured JSON events so they can be loaded, searched, and filtered easily. Key lifecycle logs should be easy to find through explicit event types or operation identifiers, such as `type: StartStep` and `type: StepCompleted`.
 
-The `ecommerce-demo-app` should be the concrete dogfooding example. Its V1 workflow should use the existing combined extraction config, `.riviere/config/extraction.config.json`. The demo app is currently validating that multiple configs can be combined into a single config file using references, and this should remain the V1 dogfooding path. The workflow should rebuild `.riviere/graph.json` from an empty graph state and be set up in the `ecommerce-demo-app` CI so Rivière can learn from real CI usage, but no CI-specific behaviour is required in this PRD. Demo verification against expected outputs remains outside product workflow execution.
+The `ecommerce-demo-app` should be the concrete dogfooding example. Its V1 dogfooding should include two positive workflows: a combined-config workflow using `.riviere/config/extraction.config.json`, and a modular-config workflow with separate extraction stages for the module configs and a link stage that references `.riviere/config/extraction.config.json`. The combined-config workflow preserves the current demo purpose of validating that multiple configs can be combined into a single config file using references. The modular-config workflow verifies the V1 promise that workflows can use one or many extraction stages. Dogfooding should also include a normal-CLI CI check workflow and a failure workflow/verification that proves failed runs leave `.riviere/graph.json` unchanged and produce a useful log. No CI-specific product behaviour is required in this PRD. Demo verification against expected outputs remains outside product workflow execution.
 
 ## 3. Users and Use Cases
 
@@ -57,15 +59,19 @@ The `ecommerce-demo-app` should be the concrete dogfooding example. Its V1 workf
 - If an extraction config matches no files or produces invalid stage output, Rivière must abort immediately, write a log, and leave the graph unchanged.
 - V1 must support one or many extraction stages, including a single combined extraction config or several focused configs such as `extract-bff`, `extract-orders`, and `extract-shipping`.
 - Extraction and linking behaviour must stay in Rivière configuration; the workflow must not duplicate detection rules, linking rules, custom types, extraction semantics, or workflow settings that change extraction result semantics.
+- A link stage must be able to reference the Rivière config file that owns connection/linking rules.
+- Link-stage config references must not move connection/linking rules into the workflow file.
 - Rivière must show clear stage progress and write a run log so the user can understand what happened.
 - V1 run logs must be newline-delimited structured JSON events.
 - V1 should log generously where useful, at the appropriate level.
 - Each log event must include an explicit event type or operation identifier so key logs can be loaded, searched, and filtered easily.
 - Key workflow lifecycle events must be easily searchable, including events such as `StartStep` and `StepCompleted`.
 - npm scripts, CI, Taskfile, Make, or just may call Rivière, but they must not be embedded inside Rivière workflows as non-Rivière commands.
-- The `ecommerce-demo-app` must receive a real workflow that rebuilds `.riviere/graph.json` from an empty graph state using the existing combined extraction config, `.riviere/config/extraction.config.json`.
+- The `ecommerce-demo-app` must receive a real combined-config workflow that rebuilds `.riviere/graph.json` from an empty graph state using the existing combined extraction config, `.riviere/config/extraction.config.json`, for extraction and link configuration.
 - The `ecommerce-demo-app` V1 workflow must preserve the current demo purpose of validating that multiple configs can be combined into a single config file using references.
-- The `ecommerce-demo-app` workflow must be set up in CI so Rivière can learn from real CI usage.
+- The `ecommerce-demo-app` must receive a real modular-config workflow that rebuilds graph output from an empty graph state using separate extraction stages for module config files and a link stage that references `.riviere/config/extraction.config.json`.
+- The `ecommerce-demo-app` workflows must be set up in CI as normal CLI calls so Rivière can learn from real CI usage.
+- The `ecommerce-demo-app` dogfooding must include a failure workflow or failure verifier that proves failed runs leave `.riviere/graph.json` unchanged and produce a useful failure log.
 - Demo verification against expected outputs must remain outside product workflow execution.
 
 ## 5. Non-Goals
@@ -82,7 +88,6 @@ The `ecommerce-demo-app` should be the concrete dogfooding example. Its V1 workf
 - No treating expected-output test fixtures as part of product workflow execution.
 - No treating “AI-assisted” as manual user work hidden behind a workflow step.
 - No CI-specific behaviour, reporting, annotations, job summaries, or observability strategy in this PRD; the workflow only needs to be callable from CI as a normal CLI command.
-- No separate multiple-extraction-step validation/demo in this PRD; a future validation/demo for workflows with multiple extraction steps is deferred.
 - No enrich as a first-class workflow stage in this PRD.
 - No AI-assisted stages in this PRD.
 - No preset workflows in this PRD.
@@ -99,10 +104,13 @@ The `ecommerce-demo-app` should be the concrete dogfooding example. Its V1 workf
 - A failed workflow leaves the previous final graph unchanged, stops later stages from running, and provides clear failure information through stage output and a run log.
 - A workflow run emits newline-delimited structured JSON logs with searchable event types or operation identifiers.
 - A workflow can use either a single combined extraction config or multiple focused extraction configs without duplicating extraction/linking behaviour in the workflow file.
+- A link stage can reference the Rivière config file that owns connection/linking rules without inlining those rules in the workflow file.
 - Existing automation such as npm scripts or CI can call the Rivière workflow while the Rivière workflow remains Rivière-only.
-- `ecommerce-demo-app` can rebuild `.riviere/graph.json` from an empty graph state using the existing combined extraction config, `.riviere/config/extraction.config.json`.
-- The V1 `ecommerce-demo-app` workflow preserves the current validation that multiple configs can be combined into a single config file using references.
-- `ecommerce-demo-app` runs the workflow in CI as a normal CLI command, with no CI-specific behaviour required.
+- `ecommerce-demo-app` can rebuild `.riviere/graph.json` from an empty graph state using a combined-config workflow that references `.riviere/config/extraction.config.json` for extraction and linking.
+- `ecommerce-demo-app` can run a modular-config workflow with separate extraction stages for module config files and link configuration from `.riviere/config/extraction.config.json`.
+- The V1 `ecommerce-demo-app` combined workflow preserves the current validation that multiple configs can be combined into a single config file using references.
+- `ecommerce-demo-app` runs the workflows in CI as normal CLI commands, with no CI-specific behaviour required.
+- `ecommerce-demo-app` verifies that failed workflow runs leave `.riviere/graph.json` unchanged and produce a useful failure log.
 - Demo expected-output verification remains separate from product workflow execution.
 
 ## 7. Open Product Questions

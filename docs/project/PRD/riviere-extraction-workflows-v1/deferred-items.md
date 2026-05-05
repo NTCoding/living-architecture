@@ -9,7 +9,10 @@ These items are deferred from this PRD, but they are not rejected. They are impo
 - Preset workflows. See `project-memory/ideas/preset-workflows/idea.md`.
 - Plan-first/preview mode. See `project-memory/ideas/workflow-plan-preview-mode/idea.md`.
 - CI-specific behaviour, reporting, annotations, job summaries, or observability strategy. See `project-memory/ideas/ci-workflow-observability/idea.md`.
-- A separate validation/demo for workflows with multiple extraction steps. See `project-memory/ideas/multiple-extraction-step-demo/idea.md`.
+
+## Moved back into this PRD
+
+- A separate validation/demo for workflows with multiple extraction steps is no longer deferred. During dogfooding planning, the user overruled the earlier deferral and approved a modular-config workflow for `ecommerce-demo-app`. See `project-memory/ideas/multiple-extraction-step-demo/idea.md`.
 
 ## Future product questions
 
@@ -18,7 +21,6 @@ These items are deferred from this PRD, but they are not rejected. They are impo
 - What preset workflows would help common graph-building journeys without making V1 preset-led?
 - What should plan-first/preview mode show before a workflow mutates graph state?
 - How should CI observability evolve after Rivière has real feedback from running the `ecommerce-demo-app` workflow in CI?
-- What validation or demo should prove workflows with multiple extraction steps?
 
 ## Deferral rationale
 
@@ -36,6 +38,4 @@ Linking is included because the workflow must produce a graph-building journey r
 
 Validation is included because it is easy and gives confidence that the workflow output is valid.
 
-The V1 `ecommerce-demo-app` workflow should use the existing combined extraction config, `.riviere/config/extraction.config.json`. The demo app is currently validating that multiple configs can be combined into a single config file using references, and this should remain the V1 dogfooding path.
-
-A separate future validation/demo should be created for workflows with multiple extraction steps, but that is deferred from this PRD.
+The V1 `ecommerce-demo-app` dogfooding now includes both a combined-config workflow and a modular-config workflow. The combined workflow preserves the existing validation that multiple configs can be combined into a single config file using references. The modular workflow proves workflows with multiple extraction steps.

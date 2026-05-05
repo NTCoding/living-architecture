@@ -1,14 +1,14 @@
 # Multiple Extraction Step Demo
 
-**Status:** Captured
+**Status:** Planned
 
 **Need level:** Definitely needed
 
 **Source:** `docs/project/PRD/riviere-extraction-workflows-v1/PRD.md` and planning discussion for `riviere-extraction-workflows-v1`
 
-**Reason deferred:** The V1 `ecommerce-demo-app` workflow should use the existing combined extraction config because the demo app is currently validating that multiple configs can be combined into a single config file using references.
+**Reason deferred:** No longer deferred. During dogfooding planning for `riviere-extraction-workflows-v1`, the user overruled the earlier deferral and approved a modular-config workflow for `ecommerce-demo-app`.
 
-**Priority signal:** User asked to add a deferred item to create a validation/demo for multiple extraction steps; no ordering priority confirmed.
+**Priority signal:** User approved bringing modular workflow dogfooding into the current PRD.
 
 **Dependencies:** None confirmed
 
@@ -16,15 +16,15 @@
 
 ## Summary
 
-Create a future validation or demo that proves workflows with multiple extraction steps.
+Add a modular-config workflow to `ecommerce-demo-app` that proves workflows with multiple extraction steps.
 
 ## Why this may matter
 
-The V1 dogfood workflow preserves the current combined-config validation path, so a separate future validation/demo is needed for workflows with multiple extraction steps.
+The V1 dogfood scope now includes both the current combined-config validation path and a modular-config workflow. This proves users can run several focused extraction stages and then link using the config that owns cross-module connection rules.
 
 ## Open questions
 
-- What validation or demo should prove workflows with multiple extraction steps?
+- No open questions recorded yet.
 
 ## Links
 
