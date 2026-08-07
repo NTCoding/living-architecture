@@ -2,7 +2,7 @@
   "name": "@living-architecture/source",
   "version": "0.0.0",
   "license": "Apache-2.0",
-  "packageManager": "pnpm@10.28.0",
+  "packageManager": "pnpm@10.30.2",
   "scripts": {
     "build": "nx run-many -t build",
     "build:deploy": "cd packages/riviere-schema && npx tsc --build tsconfig.lib.json && cd ../riviere-query && npx tsc --build tsconfig.lib.json && cd ../../apps/docs && cp ../../packages/riviere-cli/docs/workflow/step-*.md extract/ai-assisted/ && cp ../../packages/riviere-cli/docs/generated/cli-reference.md reference/cli/cli-reference.md && NODE_OPTIONS='--max-old-space-size=4096' npx vitepress build && cd ../eclair && npx vite build && cd ../.. && rm -rf dist && mkdir -p dist/eclair && cp -r apps/docs/.vitepress/dist/* dist/ && cp -r apps/eclair/dist/* dist/eclair/",
@@ -53,7 +53,6 @@
     "lint-staged": "^16.2.7",
     "markdownlint-cli2": "^0.20.0",
     "medium-zoom": "^1.1.0",
-    "npm": "12.0.2",
     "nx": "22.5.2",
     "oxlint": "^1.19.0",
     "prettier": "^3.7.4",
