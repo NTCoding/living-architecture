@@ -230,8 +230,13 @@ jobs:
       - name: Sync with remote
         run: git pull --rebase origin main
 
-      - name: Release
-        run: pnpm exec nx release --yes
+      - name: Version and tag release
+        run: pnpm exec nx release --yes --skip-publish
         env:
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
           HUSKY: 0
+
+      # Keep publishing separate so a failed publish can be rerun without
+      # creating another set of versions and tags.
+      - name: Publish release
+        run: pnpm exec nx release publish
