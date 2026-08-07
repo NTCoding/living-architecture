@@ -90,8 +90,8 @@ describe('component-types', () => {
   })
 
   describe('VALID_SYSTEM_TYPES', () => {
-    it('contains domain, bff, ui, and other', () => {
-      expect(VALID_SYSTEM_TYPES).toStrictEqual(['domain', 'bff', 'ui', 'other'])
+    it('contains every supported system type', () => {
+      expect(VALID_SYSTEM_TYPES).toStrictEqual(['domain', 'bff', 'ui', 'external-service', 'other'])
     })
   })
 

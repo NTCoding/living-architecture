@@ -177,7 +177,7 @@ AI steps must run after deterministic steps because they read current builder st
 
 **Shared enum references.** Every enum field in the workflow schema that exists in `riviere-schema` is referenced via JSON Schema `$ref` rather than redeclared:
 
-- `domains.*.systemType` — `$ref`s `SystemType` from `riviere-schema` (currently `'domain' | 'bff' | 'ui' | 'other'`).
+- `domains.*.systemType` — `$ref`s `SystemType` from `riviere-schema` (currently `'domain' | 'bff' | 'ui' | 'external-service' | 'other'`).
 - Component-type enums in step configs (e.g. `selection.component-types`) — `$ref` the `ComponentType` enum from `riviere-schema`.
 - Link-type enums in step configs — `$ref` the `LinkType` enum from `riviere-schema`.
 

@@ -8,6 +8,7 @@ import {
   validateHttpMethod,
   isValidHttpMethod,
 } from '../input/validation'
+import { VALID_SYSTEM_TYPES } from '../input/component-types'
 import { CliErrorCode } from './error-codes'
 
 function parseErrorJson(errorJson: string | undefined): unknown {
@@ -109,7 +110,7 @@ describe('validation', () => {
   })
 
   describe('validateSystemType', () => {
-    it.each(['domain', 'bff', 'ui', 'other'])('returns valid for %s', (type) => {
+    it.each(VALID_SYSTEM_TYPES)('returns valid for %s', (type) => {
       expect(validateSystemType(type)).toStrictEqual({ valid: true })
     })
 

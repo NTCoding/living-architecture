@@ -100,6 +100,39 @@ describe('riviere builder add-domain', () => {
       })
     })
 
+    it('adds an external-service domain', async () => {
+      await createGraphWithDomain(ctx.testDir, 'orders')
+
+      const program = createProgram()
+      await program.parseAsync([
+        'node',
+        'riviere',
+        'builder',
+        'add-domain',
+        '--name',
+        'alerts',
+        '--description',
+        'External alert service',
+        '--system-type',
+        'external-service',
+      ])
+
+      const graphPath = join(ctx.testDir, '.riviere', 'graph.json')
+      const content = await readFile(graphPath, 'utf-8')
+      const graph: unknown = JSON.parse(content)
+
+      expect(graph).toMatchObject({
+        metadata: {
+          domains: {
+            alerts: {
+              description: 'External alert service',
+              systemType: 'external-service',
+            },
+          },
+        },
+      })
+    })
+
     it('returns DUPLICATE_DOMAIN error when domain already exists', async () => {
       await createGraphWithDomain(ctx.testDir, 'orders')
 

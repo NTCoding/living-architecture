@@ -83,7 +83,7 @@ riviere builder add-domain [options]
 |------|-------------|
 | `--name <name>` | Domain name |
 | `--description <description>` | Domain description |
-| `--system-type <type>` | System type (domain, bff, ui, other) |
+| `--system-type <type>` | System type (domain, bff, ui, external-service, other) |
 | `--graph <path>` | Custom graph file path (default: .riviere/graph.json) |
 
 **Optional:**

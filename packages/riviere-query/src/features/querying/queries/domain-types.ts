@@ -147,7 +147,7 @@ export interface Domain {
   /** Domain description from graph metadata. */
   description: string
   /** System type classification. */
-  systemType: 'domain' | 'bff' | 'ui' | 'other'
+  systemType: import('@living-architecture/riviere-schema').SystemType
   /** Counts of components by type. */
   componentCounts: ComponentCounts
 }

@@ -66,7 +66,7 @@ export function normalizeComponentType(value: string): string {
   return normalized
 }
 
-export const VALID_SYSTEM_TYPES = ['domain', 'bff', 'ui', 'other'] as const
+export const VALID_SYSTEM_TYPES = ['domain', 'bff', 'ui', 'external-service', 'other'] as const
 type SystemTypeFlag = (typeof VALID_SYSTEM_TYPES)[number]
 
 /** @riviere-role cli-input-validator */

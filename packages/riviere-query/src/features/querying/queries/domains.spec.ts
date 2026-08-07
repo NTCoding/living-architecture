@@ -35,6 +35,19 @@ describe('domains', () => {
     ])
   })
 
+  it('returns the external-service system type from metadata', () => {
+    const graph = createMinimalValidGraph()
+    graph.metadata.domains['alerts'] = {
+      description: 'External alert service',
+      systemType: 'external-service',
+    }
+    const query = new RiviereQuery(graph)
+
+    const result = query.domains()
+
+    expect(result.find((domain) => domain.name === 'alerts')?.systemType).toBe('external-service')
+  })
+
   it('returns multiple domains with correct component counts per type', () => {
     const graph = createMinimalValidGraph()
     graph.metadata.domains['orders'] = {
