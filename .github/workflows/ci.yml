@@ -22,10 +22,10 @@ jobs:
 
       - uses: nrwl/nx-set-shas@v4
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         name: Install pnpm
         with:
-          version: 10.28.0
+          version: 10.30.2
           run_install: false
 
       # This enables task distribution via Nx Cloud
@@ -35,7 +35,7 @@ jobs:
       # - run: pnpm dlx nx start-ci-run --distribute-on="3 linux-medium-js" --stop-agents-after="build"
 
       # Cache node_modules
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: 24
           cache: 'pnpm'
@@ -90,13 +90,13 @@ jobs:
 
       - uses: nrwl/nx-set-shas@v4
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         name: Install pnpm
         with:
-          version: 10.28.0
+          version: 10.30.2
           run_install: false
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: 24
           cache: 'pnpm'
@@ -129,12 +129,12 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         with:
-          version: 10.28.0
+          version: 10.30.2
           run_install: false
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: 24
           cache: 'pnpm'
@@ -151,12 +151,12 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         with:
-          version: 10.28.0
+          version: 10.30.2
           run_install: false
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: 24
           cache: 'pnpm'
@@ -211,20 +211,16 @@ jobs:
           fetch-depth: 0
           token: ${{ steps.app-token.outputs.token }}
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         with:
-          version: 10.28.0
+          version: 10.30.2
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: 24
           cache: 'pnpm'
 
       - run: pnpm install --frozen-lockfile
-
-      # pnpm 10 delegates publishing to npm. This lockfile-managed version supports OIDC.
-      - name: Verify npm trusted publishing support
-        run: test "$(pnpm exec npm --version)" = "12.0.2"
 
       - name: Configure git
         run: |
